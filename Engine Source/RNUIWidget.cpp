@@ -17,16 +17,43 @@ namespace RN
 	namespace UI
 	{
 		RNDefineMeta(Widget, Responder)
-
-		Widget::Widget(Style style)
+		
+		struct WidgetInternals
 		{
-			Initialize(style);
-		}
+			WidgetInternals() :
+				firstResponder(nullptr),
+				minimumSize(Vector2(0.0f)),
+				maximumSize(Vector2(FLT_MAX))
+			{}
+			
+			~WidgetInternals()
+			{}
+			
+			Widget::Style style;
+			bool hasShadow;
+			bool canBecomeKeyWidget;
+			
+			Responder *firstResponder;
+			
+			Vector2 minimumSize;
+			Vector2 maximumSize;
+		};
+
+		Widget::Widget(Style style) :
+			Widget(style, Rect())
+		{}
 		
 		Widget::Widget(Style style, const Rect &frame) :
-			_frame(frame)
+			_frame(frame),
+			_server(nullptr),
+			_level(kRNUIWidgetLevelNormal),
+			_delegate(nullptr)
 		{
-			Initialize(style);
+			_internals->style     = style;
+			_internals->hasShadow = (style != Style::Borderless);
+			
+			_backgroundView = CreateBackgroundView();
+			_contentView    = CreateContentView();
 		}
 		
 		Widget::~Widget()
@@ -35,25 +62,6 @@ namespace RN
 			SafeRelease(_backgroundView);
 		}
 		
-		void Widget::Initialize(Style style)
-		{
-			_canBecomeKeyWidget = true;
-			
-			_style     = style;
-			_hasShadow = (_style != Style::Borderless);
-			_level     = kRNUIWidgetLevelNormal;
-			
-			_backgroundView = CreateBackgroundView();
-			_contentView    = CreateContentView();
-			
-			_server         = nullptr;
-			_firstResponder = nullptr;
-			
-			_minimumSize = Vector2(0.0f, 0.0f);
-			_maximumSize = Vector2(FLT_MAX, FLT_MAX);
-		}
-		
-		
 		// ---------------------
 		// MARK: -
 		// MARK: Content handling
@@ -61,7 +69,7 @@ namespace RN
 		
 		View *Widget::CreateContentView()
 		{
-			View *view = new View(Rect(Vector2(0.0f), GetContentSize()));
+			View *view = new View(Rect(Vector2(), GetContentSize()));
 			view->_widget = this;
 			
 			return view;
@@ -69,19 +77,19 @@ namespace RN
 		
 		WidgetBackgroundView *Widget::CreateBackgroundView()
 		{
-			if(_style == Style::Borderless)
+			if(_internals->style == Style::Borderless)
 				return nullptr;
 			
 			UI::Style *styleSheet = UI::Style::GetSharedInstance();
 			Dictionary *style = nullptr;
 			
-			if(_style & Style::Titled)
+			if(_internals->style & Style::Titled)
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.titled"));
 			else
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.untitled"));
 			
-			WidgetBackgroundView *background = new WidgetBackgroundView(this, _style, style);
-			background->_widget = this;
+			WidgetBackgroundView *background = new WidgetBackgroundView(this, _internals->style, style);
+			background->_widget         = this;
 			background->_clipWithWidget = false;
 			
 			background->ViewHierarchyChanged();
@@ -108,7 +116,7 @@ namespace RN
 		
 		void Widget::SetMinimumSize(const Vector2 &size)
 		{
-			_minimumSize = size;
+			_internals->minimumSize = size;
 			
 			ConstraintFrame();
 			ConstraintContentView();
@@ -116,7 +124,7 @@ namespace RN
 		
 		void Widget::SetMaximumSize(const Vector2 &size)
 		{
-			_maximumSize = size;
+			_internals->maximumSize = size;
 			
 			ConstraintFrame();
 			ConstraintContentView();
@@ -145,6 +153,7 @@ namespace RN
 		void Widget::SetTransform(const Matrix &transform)
 		{
 			_transform = transform;
+			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::SetContentSize(const Vector2 &size)
@@ -163,21 +172,25 @@ namespace RN
 			frame.width  = size.x;
 			frame.height = size.y;
 			
-			_contentView->SetFrame(frame);
+			if(frame != _contentView->GetFrame())
+			{
+				_contentView->SetFrame(frame);
+				SetNeedsLayoutUpdate();
+			}
 		}
 		
 		void Widget::ConstraintFrame()
 		{
 			Rect frame = _frame;
-			frame.width  = std::min(_maximumSize.x, std::max(_minimumSize.x, frame.width));
-			frame.height = std::min(_maximumSize.y, std::max(_minimumSize.y, frame.height));
+			frame.width  = std::min(_internals->maximumSize.x, std::max(_internals->minimumSize.x, frame.width));
+			frame.height = std::min(_internals->maximumSize.y, std::max(_internals->minimumSize.y, frame.height));
 			
 			_frame = frame;
 		}
 		
 		void Widget::SetCanBecomeKeyWidget(bool canBecome)
 		{
-			_canBecomeKeyWidget = canBecome;
+			_internals->canBecomeKeyWidget = canBecome;
 			
 			if(!canBecome && _server && _server->_keyWidget == this)
 				_server->SetKeyWidget(nullptr);
@@ -190,7 +203,7 @@ namespace RN
 		
 		bool Widget::MakeKeyWidget()
 		{
-			if(!_server || !_canBecomeKeyWidget)
+			if(!_server || !_internals->canBecomeKeyWidget)
 				return false;
 			
 			_server->SetKeyWidget(this);
@@ -199,17 +212,17 @@ namespace RN
 		
 		bool Widget::MakeFirstResponder(Responder *responder)
 		{
-			if(responder == _firstResponder)
+			if(responder == _internals->firstResponder)
 				return true;
 			
-			if(_firstResponder && _firstResponder != this)
+			if(_internals->firstResponder && _internals->firstResponder != this)
 			{
-				bool result = _firstResponder->CanResignFirstReponder();
+				bool result = _internals->firstResponder->CanResignFirstReponder();
 				if(!result)
 					return false;
 				
-				_firstResponder->ResignFirstResponder();
-				_firstResponder = nullptr;
+				_internals->firstResponder->ResignFirstResponder();
+				_internals->firstResponder = nullptr;
 			}
 			
 			if(responder)
@@ -218,8 +231,8 @@ namespace RN
 				if(!result)
 					return false;
 				
-				_firstResponder = responder;
-				_firstResponder->BecomeFirstResponder();
+				_internals->firstResponder = responder;
+				_internals->firstResponder->BecomeFirstResponder();
 			}
 			
 			return true;
@@ -227,7 +240,7 @@ namespace RN
 		
 		void Widget::ForceResignFirstResponder()
 		{
-			_firstResponder = nullptr;
+			_internals->firstResponder = nullptr;
 		}
 		
 		// ---------------------
@@ -244,10 +257,21 @@ namespace RN
 			}
 			
 			Server::GetSharedInstance()->AddWidget(this);
+			
+			if(_delegate)
+				_delegate->WidgetDidOpen(this);
 		}
 		
 		void Widget::Close()
 		{
+			if(_delegate)
+			{
+				if(!_delegate->WidgetCanClose(this))
+					return;
+				
+				_delegate->WidgetWillClose(this);
+			}
+			
 			if(_server)
 				_server->RemoveWidget(this);
 		}
@@ -306,12 +330,66 @@ namespace RN
 		
 		// ---------------------
 		// MARK: -
+		// MARK: Delegate related
+		// ---------------------
+		
+		bool Widget::CanBecomeKeyWidget() const
+		{
+			if(!_internals->canBecomeKeyWidget)
+				return false;
+			
+			if(_delegate)
+				return _delegate->WidgetCanBecomeKey(const_cast<Widget *>(this));
+			
+			return true;
+		}
+		
+		bool Widget::CanResignKeyWidget() const
+		{
+			if(_delegate)
+				return _delegate->WidgetCanResignKey(const_cast<Widget *>(this));
+			
+			return true;
+		}
+		
+		void Widget::AcceptKey()
+		{
+			if(_delegate)
+				_delegate->WidgetDidBecomeKey(this);
+		}
+		
+		void Widget::ResignKey()
+		{
+			if(_delegate)
+				_delegate->WidgetDidResignKey(this);
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: Getter
+		// ---------------------
+		
+		View *Widget::GetContentView() const
+		{
+			return _contentView;
+		}
+		
+		Responder *Widget::GetFirstResponder() const
+		{
+			return _internals->firstResponder;
+		}
+		
+		// ---------------------
+		// MARK: -
 		// MARK: Layout engine
 		// ---------------------
 		
 		void Widget::SetNeedsLayoutUpdate()
 		{
 			_contentView->SetNeedsLayoutUpdate();
+			
+			if(_delegate)
+				_delegate->WidgetLayoutContent(this);
 		}
 		
 		void Widget::Center()

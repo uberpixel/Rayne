@@ -31,6 +31,8 @@ namespace RN
 		class View;
 		class WidgetBackgroundView;
 		
+		struct WidgetInternals;
+		
 		class Widget : public Responder
 		{
 		public:
@@ -63,6 +65,22 @@ namespace RN
 				Maximize
 			};
 			
+			struct Delegate
+			{
+				RNAPI virtual bool WidgetCanClose(Widget *widget) { return true; }
+				RNAPI virtual void WidgetWillClose(Widget *widget) {}
+				RNAPI virtual void WidgetDidClose(Widget *widget) {}
+				
+				RNAPI virtual void WidgetDidOpen(Widget *widget) {}
+				
+				RNAPI virtual bool WidgetCanBecomeKey(Widget *widget) { return true; }
+				RNAPI virtual bool WidgetCanResignKey(Widget *widget) { return true; }
+				RNAPI virtual void WidgetDidBecomeKey(Widget *widget) {}
+				RNAPI virtual void WidgetDidResignKey(Widget *widget) {}
+				
+				RNAPI virtual void WidgetLayoutContent(Widget *widget) {}
+			};
+			
 			RNAPI Widget(Style style);
 			RNAPI Widget(Style style, const Rect &frame);
 			RNAPI ~Widget() override;
@@ -81,13 +99,13 @@ namespace RN
 			RNAPI const Rect &GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;
 			
-			RNAPI View *GetContentView() const { return _contentView; }
+			RNAPI View *GetContentView() const;
 			
 			RNAPI void SetNeedsLayoutUpdate();
 			
 			RNAPI bool MakeKeyWidget();
 			RNAPI bool MakeFirstResponder(Responder *responder);
-			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
+			RNAPI Responder *GetFirstResponder() const;
 			
 			RNAPI void Open();
 			RNAPI void Close();
@@ -100,11 +118,15 @@ namespace RN
 			RNAPI virtual void Update();
 			
 		private:
-			void Initialize(Style style);
 			void ConstraintFrame();
 			void ConstraintContentView();
 			
 			void Render(Renderer *renderer);
+			
+			bool CanBecomeKeyWidget() const;
+			bool CanResignKeyWidget() const;
+			void AcceptKey();
+			void ResignKey();
 			
 			void ForceResignFirstResponder();
 			View *PerformHitTest(const Vector2 &position, Event *event);
@@ -114,23 +136,17 @@ namespace RN
 			
 			void UpdateLayout();
 			
-			Style _style;
-			bool _hasShadow;
-			bool _canBecomeKeyWidget;
-			int32 _level;
-			
-			Rect _frame;
+			PIMPL<WidgetInternals> _internals;
 			
 			WidgetBackgroundView *_backgroundView;
 			View *_contentView;
 			
-			Responder *_firstResponder;
+			Delegate *_delegate;
 			
-			Vector2 _minimumSize;
-			Vector2 _maximumSize;
-			
-			Matrix _transform;
+			int32 _level;
 			Server *_server;
+			Rect _frame;
+			Matrix _transform;
 			
 			RNDeclareMeta(Widget)
 		};

@@ -162,8 +162,13 @@ namespace RN
 			
 			_keyWidget = widget;
 			
-			if(_keyWidget && _keyWidget->_backgroundView)
-				_keyWidget->_backgroundView->SetState(Control::State::Selected);
+			if(_keyWidget)
+			{
+				_keyWidget->AcceptKey();
+			
+				if(_keyWidget->_backgroundView)
+					_keyWidget->_backgroundView->SetState(Control::State::Selected);
+			}
 		}
 		
 		void Server::SortWidgets()
@@ -223,12 +228,19 @@ namespace RN
 						case Event::Type::MouseDown:
 							_tracking   = hit;
 							
-							if(hitWidget->_canBecomeKeyWidget)
-								SetKeyWidget(hitWidget);
+							if(!_keyWidget || _keyWidget->CanResignKeyWidget())
+							{
+								if(_keyWidget)
+									_keyWidget->ResignKey();
+								
+								if(hitWidget->CanBecomeKeyWidget())
+									SetKeyWidget(hitWidget);
+								
+								MoveWidgetToFront(hitWidget);
+								hit->MouseDown(event);
+							}
 							
-							MoveWidgetToFront(hitWidget);
 							
-							hit->MouseDown(event);
 							return true;
 							
 						case Event::Type::MouseMoved:

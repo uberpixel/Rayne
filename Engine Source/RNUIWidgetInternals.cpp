@@ -98,7 +98,7 @@ namespace RN
 			{
 				case Widget::TitleControl::Close:
 					_closeButton = button;
-					_closeButton->AddListener(Control::EventType::MouseUpInside, [&]( Control *control, Control::EventType event) {
+					_closeButton->AddListener(Control::EventType::MouseUpInside, [&](Control *control, Control::EventType event) {
 						_container->Close();
 					}, nullptr);
 					break;
@@ -133,7 +133,7 @@ namespace RN
 				frame.x = offsetX;
 				frame.y = roundf((bounds.height * 0.5) - (frame.height * 0.5f));
 				
-				offsetX += frame.width + 2.0f;
+				offsetX += frame.width;
 				button->SetFrame(frame);
 				
 			});
