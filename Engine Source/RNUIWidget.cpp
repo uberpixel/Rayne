@@ -282,7 +282,12 @@ namespace RN
 			}
 			
 			if(_server)
+			{
+				Delegate *temp = _delegate;
+				_delegate = nullptr;
 				_server->RemoveWidget(this);
+				_delegate = temp;
+			}
 		}
 		
 		void Widget::OrderFront()

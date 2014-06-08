@@ -23,6 +23,7 @@ namespace RN
 			_popUpWidget = new Widget(Widget::Style::Borderless);
 			_popUpWidget->SetContentView(_popUpTableView);
 			_popUpWidget->SetWidgetLevel(kRNUIWidgetLevelFloating);
+			_popUpWidget->SetDelegate(this);
 		}
 		
 		PopUpButton::~PopUpButton()
@@ -34,16 +35,65 @@ namespace RN
 		
 		bool PopUpButton::PostEvent(EventType event)
 		{
-			if(event == EventType::MouseUpInside)
+			if(!_popUpWidget->IsOpen())
 			{
-				Vector2 pos = ConvertPointToBase(Vector2(GetBounds().x, GetBounds().y + GetBounds().height));
-				Rect frame(pos, GetBounds().width, 100.0f);
-				_popUpWidget->SetFrame(frame);
-				
-				_popUpWidget->Open();
+				if(event == EventType::MouseUpInside)
+				{
+					Vector2 posTop = ConvertPointToBase(Vector2(GetBounds().x, GetBounds().y));
+					Vector2 posBottom = ConvertPointToBase(Vector2(GetBounds().x, GetBounds().y + GetBounds().height));
+					float height = _popUpTableView->GetContentSize().y;
+					Vector2 windowSize = Window::GetSharedInstance()->GetSize();
+					
+					Rect frame(posBottom, GetBounds().width, height);
+					
+					if(posBottom.y + height > windowSize.y)
+					{
+						//more space to the top
+						if((windowSize.y - posBottom.y) < posTop.y)
+						{
+							if(posTop.y < height)
+							{
+								height = posTop.y;
+								frame.height = height;
+							}
+							
+							frame.y = posTop.y - height;
+						}
+						else
+						{
+							height = windowSize.y - posBottom.y;
+							frame.height = height;
+						}
+					}
+					
+					_popUpWidget->SetFrame(frame);
+					
+					_popUpWidget->Open();
+					_popUpWidget->MakeKeyWidget();
+				}
+			}
+			else
+			{
+				if(event == EventType::MouseUpInside || event == EventType::MouseUpOutside)
+				{
+					RN::Vector2 mousePosition = RN::Input::GetSharedInstance()->GetMousePosition();
+					Rect frame = _popUpWidget->GetFrame();
+					if(!frame.ContainsPoint(mousePosition))
+					{
+						_popUpWidget->Close();
+					}
+				}
 			}
 			
 			return Button::PostEvent(event);
+		}
+		
+		void PopUpButton::WidgetDidResignKey(Widget *widget)
+		{
+			RN::Vector2 mousePosition = RN::Input::GetSharedInstance()->GetMousePosition();
+			mousePosition = ConvertPointFromBase(mousePosition);
+			if(!GetBounds().ContainsPoint(mousePosition))
+				_popUpWidget->Close();
 		}
 		
 		size_t PopUpButton::TableViewNumberOfRows(TableView *tableView)

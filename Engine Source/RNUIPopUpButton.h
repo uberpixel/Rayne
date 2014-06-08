@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "RNWindow.h"
 #include "RNBase.h"
 #include "RNUIButton.h"
 #include "RNUITableView.h"
@@ -18,7 +19,7 @@ namespace RN
 {
 	namespace UI
 	{
-		class PopUpButton : public Button, TableViewDataSource, TableViewDelegate
+		class PopUpButton : public Button, TableViewDataSource, TableViewDelegate, Widget::Delegate
 		{
 		public:
 			RNAPI PopUpButton();
@@ -38,6 +39,8 @@ namespace RN
 			RNAPI size_t TableViewNumberOfRows(TableView *tableView) override;
 			RNAPI TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) override;
 			RNAPI void TableViewDidSelectRow(TableView *tableView, size_t row) override;
+			
+			RNAPI void WidgetDidResignKey(Widget *widget) override;
 			
 			Menu *_menu;
 			Widget *_popUpWidget;

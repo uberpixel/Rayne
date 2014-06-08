@@ -162,14 +162,18 @@ namespace RN
 		{
 			RN_ASSERT(!widget || widget->_server == this, "");
 			
+			if(_keyWidget && _keyWidget == widget)
+				return;
+			
 			if(_keyWidget)
 			{
-				_keyWidget->ResignKey();
-				
+				Widget *tempWidget = _keyWidget;
 				if(_keyWidget->_backgroundView)
 					_keyWidget->_backgroundView->SetState(Control::State::Normal);
 				
 				_keyWidget = nullptr;
+				
+				tempWidget->ResignKey();
 			}
 			
 			_keyWidget = widget;
