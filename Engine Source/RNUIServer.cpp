@@ -127,7 +127,7 @@ namespace RN
 			if(widget == _keyWidget)
 				SetKeyWidget(nullptr);
 			
-			if(_tracking->IsKindOfClass(View::GetMetaClass()))
+			if(_tracking && _tracking->IsKindOfClass(View::GetMetaClass()))
 			{
 				View *tracking = static_cast<View *>(_tracking);
 				
@@ -135,7 +135,7 @@ namespace RN
 					_tracking = nullptr;
 			}
 			
-			if(_hover->IsKindOfClass(View::GetMetaClass()))
+			if(_hover && _hover->IsKindOfClass(View::GetMetaClass()))
 			{
 				View *hover = static_cast<View *>(_hover);
 				

@@ -11,6 +11,7 @@
 #include "RNUIView.h"
 #include "RNUIStyle.h"
 #include "RNUIWidgetInternals.h"
+#include "RNApplication.h"
 
 namespace RN
 {
@@ -172,11 +173,8 @@ namespace RN
 			frame.width  = size.x;
 			frame.height = size.y;
 			
-			if(frame != _contentView->GetFrame())
-			{
-				_contentView->SetFrame(frame);
-				SetNeedsLayoutUpdate();
-			}
+			_contentView->SetFrame(frame);
+			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::ConstraintFrame()
@@ -241,6 +239,11 @@ namespace RN
 		void Widget::ForceResignFirstResponder()
 		{
 			_internals->firstResponder = nullptr;
+		}
+		
+		Responder *Widget::GetNextResponder() const
+		{
+			return Application::GetSharedInstance();
 		}
 		
 		// ---------------------

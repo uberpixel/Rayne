@@ -114,6 +114,8 @@ namespace RN
 			
 			RNAPI void OrderFront();
 			
+			RNAPI Responder *GetNextResponder() const override;
+			
 		protected:
 			RNAPI virtual void Update();
 			
