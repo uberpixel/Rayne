@@ -20,12 +20,13 @@ namespace RN
 			Widget(Widget::Style::Titled | Widget::Style::Closable, Rect(10.0f, 50.0f, 180.0f, 220.0f)),
 			_fps(60)
 		{
-			SetTitle(RNCSTR("Color"));
+			SetTitle(RNCSTR("Statistics"));
 			SetWidgetLevel(kRNUIWidgetLevelFloating);
 			
 			_label = new Label();
 			_label->SetAutoresizingMask(View::AutoresizingMask::FlexibleHeight | View::AutoresizingMask::FlexibleWidth);
 			_label->SetNumberOfLines(0);
+			_label->SetTextColor(Color::WithRNColor(RN::Color(0.817f, 0.817f, 0.817f, 1.0f)));
 			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
 			_fpsCheckbox->SetAutoresizingMask(View::AutoresizingMask::FlexibleTopMargin);
