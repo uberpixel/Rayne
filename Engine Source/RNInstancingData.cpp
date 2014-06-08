@@ -594,7 +594,7 @@ namespace RN
 		entity->_instancedData = data;
 		
 		// Calculate the thin stage
-		data->thinfactor = _random.RandomFloat();
+		data->thinfactor = _random.GetRandomFloat();
 		
 		// Insert into the right bucket
 		Vector3 position = entity->GetPosition();

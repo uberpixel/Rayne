@@ -108,8 +108,8 @@ namespace TG
 		
 		particle->lifespan = 10.0f;
 		
-		particle->velocity = _rng->RandomVector3Range(_velocityMin, _velocityMax);
-		particle->storage.position = _rng->RandomVector3Range(_positionMin, _positionMax);
+		particle->velocity = _rng->GetRandomVector3Range(_velocityMin, _velocityMax);
+		particle->storage.position = _rng->GetRandomVector3Range(_positionMin, _positionMax);
 		
 		float sizeScale = 1.0f;
 		if(!GetIsLocal())
@@ -126,8 +126,8 @@ namespace TG
 		particle->alphaInterpolator.SetEndValue(0.0f);
 		
 		particle->sizeInterpolator.SetDuration(particle->lifespan);
-		particle->sizeInterpolator.SetStartValue(_rng->RandomFloatRange(_sizeStart->x, _sizeStart->y) * sizeScale);
-		particle->sizeInterpolator.SetEndValue(_rng->RandomFloatRange(_sizeEnd->x, _sizeEnd->y) * sizeScale);
+		particle->sizeInterpolator.SetStartValue(_rng->GetRandomFloatRange(_sizeStart->x, _sizeStart->y) * sizeScale);
+		particle->sizeInterpolator.SetEndValue(_rng->GetRandomFloatRange(_sizeEnd->x, _sizeEnd->y) * sizeScale);
 		
 		particle->Update(0.0f);
 		

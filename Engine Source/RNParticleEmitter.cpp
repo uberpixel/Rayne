@@ -38,7 +38,7 @@ namespace RN
 	{
 		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
-		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 		
 		_material = new Material();
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));
@@ -82,7 +82,7 @@ namespace RN
 	{
 		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
-		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 		
 		SetMaterial(static_cast<Material*>(deserializer->DecodeObject()));
 		SetIsLocal(deserializer->DecodeBool());
@@ -444,13 +444,13 @@ namespace RN
 	RN::Particle *GenericParticleEmitter::CreateParticle()
 	{
 		GenericParticle *particle = new GenericParticle();
-		particle->storage.position = _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
+		particle->storage.position = _rng->GetRandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
 		
-		float lifespan = _rng->RandomFloatRange(_lifeSpan->x, _lifeSpan->y);
+		float lifespan = _rng->GetRandomFloatRange(_lifeSpan->x, _lifeSpan->y);
 		particle->lifespan = lifespan;
 		
 		particle->gravity = _gravity;
-		particle->velocity = _velocity + _rng->RandomVector3Range(_velocityRandomizeMin, _velocityRandomizeMax);
+		particle->velocity = _velocity + _rng->GetRandomVector3Range(_velocityRandomizeMin, _velocityRandomizeMax);
 		
 		float sizeScale = 1.0f;
 		if(!GetIsLocal())
@@ -464,8 +464,8 @@ namespace RN
 			particle->velocity *= scale;
 		}
 		
-		particle->sizeInterpolator.SetStartValue(Vector2(_rng->RandomFloatRange(_startSize->x, _startSize->y)) * sizeScale);
-		particle->sizeInterpolator.SetEndValue(Vector2(_rng->RandomFloatRange(_endSize->x, _endSize->y)) * sizeScale);
+		particle->sizeInterpolator.SetStartValue(Vector2(_rng->GetRandomFloatRange(_startSize->x, _startSize->y)) * sizeScale);
+		particle->sizeInterpolator.SetEndValue(Vector2(_rng->GetRandomFloatRange(_endSize->x, _endSize->y)) * sizeScale);
 		particle->sizeInterpolator.SetDuration(lifespan);
 		
 		particle->colorInterpolator.SetStartValue(_startColor);

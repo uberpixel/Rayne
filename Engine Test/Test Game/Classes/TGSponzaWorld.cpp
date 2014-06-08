@@ -56,15 +56,15 @@ namespace TG
 			
 			for(int i = 0; i < 200; i ++)
 			{
-				RN::Vector3 pos(random.RandomFloatRange(-21.0f, 21.0f), random.RandomFloatRange(-7.0f, 14.0f), random.RandomFloatRange(-21.0f, 21.0f));
+				RN::Vector3 pos(random.GetRandomFloatRange(-24.0f, 24.0f), random.GetRandomFloatRange(-7.0f, 14.0f), random.GetRandomFloatRange(-10.0f, 10.0f));
 				
 				RN::Light *light = new RN::Light();
 				light->SetPosition(pos);
-				light->SetRange(random.RandomFloatRange(2.0f, 5.0f));
-				light->SetColor(RN::Color(random.RandomFloat(), random.RandomFloat(), random.RandomFloat()));
+				light->SetRange(random.GetRandomFloatRange(2.0f, 5.0f));
+				light->SetColor(random.GetRandomColor());
 				light->Release();
 				
-				float offset = random.RandomFloatRange(0.0f, 10.0f);
+				float offset = random.GetRandomFloatRange(0.0f, 10.0f);
 				
 				light->SetAction([offset](RN::SceneNode *light, float delta) {
 					
@@ -138,7 +138,7 @@ namespace TG
 			RN::Array *lights = GetSceneNodesWithTag<RN::Light>(TGLightTag);
 			lights->Enumerate<RN::Light>([&](RN::Light *light, size_t index, bool &stop) {
 				
-				float offset = random.RandomFloatRange(0.0f, 10.0f);
+				float offset = random.GetRandomFloatRange(0.0f, 10.0f);
 				
 				light->SetAction([offset](RN::SceneNode *light, float delta) {
 					

@@ -9,13 +9,143 @@
 #include <random>
 #include "RNRandom.h"
 #include "RNCPU.h"
-
-#define kRNSecureRNGSize 128
+#include "RNString.h"
+#include "RNDictionary.h"
+#include "RNNumber.h"
+#include "RNMath.h"
+#include "RNLogging.h"
 
 namespace RN
 {
 	namespace Random
 	{
+		// ---------------------
+		// MARK: -
+		// MARK: Color
+		// ---------------------
+		
+		struct ColorInfo
+		{
+			ColorInfo(const std::string &tname, const std::pair<float, float> &thueRange, const std::vector<std::pair<float, float>> &tlowerBounds) :
+				name(tname),
+				hueRange(thueRange),
+				lowerBounds(tlowerBounds)
+			{
+				float sMin = lowerBounds.front().first;
+				float sMax = lowerBounds.back().first;
+				
+				float bMin = lowerBounds.back().second;
+				float bMax = lowerBounds.front().second;
+				
+				saturationRange = std::make_pair(sMin, sMax);
+				brightnessRange = std::make_pair(bMin, bMax);
+			}
+			
+			std::string name;
+			std::pair<float, float> hueRange;
+			std::pair<float, float> saturationRange;
+			std::pair<float, float> brightnessRange;
+			std::vector<std::pair<float, float>> lowerBounds;
+		};
+		
+		static std::vector<ColorInfo> __ColorDefinitions;
+		
+		void PopulateColorTable()
+		{
+			static std::once_flag token;
+			std::call_once(token, [&] {
+				
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20,100),std::make_pair(30,92),std::make_pair(40,89),std::make_pair(50,85),std::make_pair(60,78),std::make_pair(70,70),std::make_pair(80,60),std::make_pair(90,55),std::make_pair(100,50)};
+					__ColorDefinitions.emplace_back("red", std::make_pair(-26.0f, 18.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20,100),std::make_pair(30,93),std::make_pair(40,88),std::make_pair(50,86),std::make_pair(60,85),std::make_pair(70,70),std::make_pair(100,70)};
+					__ColorDefinitions.emplace_back("orange", std::make_pair(19.0f, 46.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(25,100),std::make_pair(40,94),std::make_pair(50,89),std::make_pair(60,86),std::make_pair(70,84),std::make_pair(80,82),std::make_pair(90,80),std::make_pair(100,75)};
+					__ColorDefinitions.emplace_back("yellow", std::make_pair(47.0f, 62.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(30,100),std::make_pair(40,90),std::make_pair(50,85),std::make_pair(60,81),std::make_pair(70,74),std::make_pair(80,64),std::make_pair(90,50),std::make_pair(100,40)};
+					__ColorDefinitions.emplace_back("green", std::make_pair(63.0f, 178.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20,100),std::make_pair(30,86),std::make_pair(40,80),std::make_pair(50,74),std::make_pair(60,60),std::make_pair(70,52),std::make_pair(80,44),std::make_pair(90,39),std::make_pair(100,35)};
+					__ColorDefinitions.emplace_back("blue", std::make_pair(179.0f, 257.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20,100),std::make_pair(30,87),std::make_pair(40,79),std::make_pair(50,70),std::make_pair(60,65),std::make_pair(70,59),std::make_pair(80,52),std::make_pair(90,45),std::make_pair(100,42)};
+					__ColorDefinitions.emplace_back("purple", std::make_pair(258.0f, 282.0f), pair);
+				}
+				{
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20,100),std::make_pair(30,90),std::make_pair(40,86),std::make_pair(60,84),std::make_pair(80,80),std::make_pair(90,75),std::make_pair(100,73)};
+					__ColorDefinitions.emplace_back("pink", std::make_pair(283.0f, 334.0f), pair);
+				}
+			});
+		}
+		
+		const ColorInfo &GetColorInfo(float hue)
+		{
+			PopulateColorTable();
+			
+			if(hue >= 334.0f && hue <= 360.0f)
+				hue -= 360.0f;
+			
+			for(const ColorInfo &info : __ColorDefinitions)
+			{
+				if(hue >= info.hueRange.first && hue <= info.hueRange.second)
+					return info;
+			}
+			
+			throw "Couldn't find info for color"; // Should never ever happen
+		}
+		
+		float GetMinimumBrightness(float hue, float saturation)
+		{
+			const ColorInfo &info = GetColorInfo(hue);
+			
+			size_t count = info.lowerBounds.size() - 1;
+			
+			for(size_t i = 0; i < count; i ++)
+			{
+				float s1 = info.lowerBounds[i].first;
+				float v1 = info.lowerBounds[i].second;
+				
+				float s2 = info.lowerBounds[i + 1].first;
+				float v2 = info.lowerBounds[i + 1].second;
+				
+				if(saturation >= s1 && saturation <= s2)
+				{
+					float m = (v2 - v1) / (s2 - s1);
+					float b = v1 - m * s1;
+					
+					return m * saturation + b;
+				}
+			}
+			
+			return 0.0f;
+		}
+		
+		float PickSaturationForGenerator(Generator *generator, float hue)
+		{
+			const ColorInfo &info = GetColorInfo(hue);
+			
+			float min = info.saturationRange.first;
+			float max = info.saturationRange.second;
+			
+			return generator->GetRandomFloatRange(min, max);
+		}
+		
+		float PickBrightnessForGenerator(Generator *generator, float hue, float saturation)
+		{
+			float min = GetMinimumBrightness(hue, saturation);
+			float max = 100.0f;
+			
+			return generator->GetRandomFloatRange(min, max);
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: Generator
@@ -34,14 +164,14 @@ namespace RN
 			return seed;
 		}
 		
-		int32 Generator::RandomInt32Range(int32 min, int32 max)
+		int32 Generator::GetRandomInt32Range(int32 min, int32 max)
 		{
 			RN_ASSERT(min >= GetMin(), "");
 			RN_ASSERT(max <= GetMax(), "");
 			
 			while(1)
 			{
-				int32 base = RandomInt32();
+				int32 base = GetRandomInt32();
 				
 				if(base == GetMax())
 					continue;
@@ -55,115 +185,75 @@ namespace RN
 			}
 		}
 		
-		float Generator::RandomFloat()
+		float Generator::GetRandomFloat()
 		{
-			return UniformDeviate(RandomInt32());
+			return GetUniformDeviate(GetRandomInt32());
 		}
 		
-		float Generator::RandomFloatRange(float min, float max)
+		float Generator::GetRandomFloatRange(float min, float max)
 		{
 			float range = max - min;
-			return (UniformDeviate(RandomInt32()) * range) + min;
+			return (GetUniformDeviate(GetRandomInt32()) * range) + min;
 		}
 		
-		double Generator::UniformDeviate(int32 seed)
+		double Generator::GetUniformDeviate(int32 seed)
 		{
 			return seed * (1.0 / (GetMax() + 1.0));
 		}
 		
-		// ---------------------
-		// MARK: -
-		// MARK: LCG
-		// ---------------------
-		
-		LCG::LCG()
+		Color Generator::GetRandomColor()
 		{
-			_M = 2147483647;
-			_A = 16807;
+			float hue = roundf(GetRandomFloatRange(0.0f, 360.0f));
+			float saturation = roundf(PickSaturationForGenerator(this, hue));
+			float brightness = roundf(PickBrightnessForGenerator(this, hue, saturation));
 			
-			_Q = (_M / _A);
-			_R = (_M % _A);
+			hue = hue / 360.0f;
+			hue = (hue * (k::Pi * 2)) - k::Pi;
 			
-			Seed(GetSeedValue());
+			return Color::WithHSV(hue, (saturation / 100.0f), (brightness / 100.0f));
 		}
 		
-		
-		int32 LCG::GetMin() const
+		Vector2 Generator::GetRandomVector2Range(const Vector2 &min, const Vector2 &max)
 		{
-			return 0;
+			Vector2 result;
+			
+			result.x = GetRandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+			result.y = GetRandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
+			
+			return result;
 		}
 		
-		int32 LCG::GetMax() const
+		Vector3 Generator::GetRandomVector3Range(const Vector3 &min, const Vector3 &max)
 		{
-			return INT32_MAX;
+			Vector3 result;
+			
+			result.x = GetRandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+			result.y = GetRandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
+			result.z = GetRandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
+			
+			return result;
 		}
 		
-		
-		void LCG::Seed(uint32 seed)
+		Vector4 Generator::GetRandomVector4Range(const Vector4 &min, const Vector4 &max)
 		{
-			_seed = static_cast<int32>(seed);
+			Vector4 result;
+			
+			result.x = GetRandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+			result.y = GetRandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
+			result.z = GetRandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
+			result.w = GetRandomFloatRange(std::min(min.w, max.w), std::max(min.w, max.w));
+			
+			return result;
 		}
 		
-		int32 LCG::RandomInt32()
+		Color Generator::GetRandomColorRange(const Color &min, const Color &max)
 		{
-			_seed = _A * (_seed % _Q) - _R * (_seed / _Q);
+			Color result;
 			
-			if(_seed <= 0)
-				_seed += _M;
-			
-			return _seed;
-		}
-		
-		// ---------------------
-		// MARK: -
-		// MARK: Dual Phase LCG
-		// ---------------------
-		
-		DualPhaseLCG::DualPhaseLCG()
-		{
-			_M1 = 2147483647;
-			_M2 = 2147483399;
-			_A1 = 40015;
-			_A2 = 40692;
-			
-			_Q1 = (_M1 / _A1);
-			_Q2 = (_M2 / _A2);
-			_R1 = (_M1 % _A1);
-			_R2 = (_M2 % _A2);
-			
-			Seed(GetSeedValue());
-		}
-		
-		int32 DualPhaseLCG::GetMin() const
-		{
-			return 0;
-		}
-		
-		int32 DualPhaseLCG::GetMax() const
-		{
-			return INT32_MAX;
-		}
-		
-		void DualPhaseLCG::Seed(uint32 seed)
-		{
-			_seed1 = _seed2 = static_cast<int32>(seed);
-		}
-		
-		int32 DualPhaseLCG::RandomInt32()
-		{
-			_seed1 = _A1 * (_seed1 % _Q1) - _R1 * (_seed1 / _Q1);
-			_seed2 = _A2 * (_seed2 % _Q2) - _R2 * (_seed2 / _Q2);
-			
-			if(_seed1 <= 0)
-				_seed1 += _M1;
-			
-			if(_seed2 <= 0)
-				_seed2 += _M2;
-			
-			int32 result = _seed1 - _seed2;
-			
-			if(result <= 0)
-				result += _M1 - 1;
+			result.r = GetRandomFloatRange(std::min(min.r, max.r), std::max(min.r, max.r));
+			result.g = GetRandomFloatRange(std::min(min.g, max.g), std::max(min.g, max.g));
+			result.b = GetRandomFloatRange(std::min(min.b, max.b), std::max(min.b, max.b));
+			result.a = GetRandomFloatRange(std::min(min.a, max.a), std::max(min.a, max.a));
 			
 			return result;
 		}
@@ -213,7 +303,7 @@ namespace RN
 			}
 		}
 		
-		int32 MersenneTwister::RandomInt32()
+		int32 MersenneTwister::GetRandomInt32()
 		{
 			uint32 y, a;
 			
@@ -249,20 +339,17 @@ namespace RN
 		}
 	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: RandomNumberGenerator
+	// ---------------------
+	
 	RNDefineMeta(RandomNumberGenerator, Object)
 	
 	RandomNumberGenerator::RandomNumberGenerator(Type type)
 	{
 		switch(type)
 		{
-			case Type::LCG:
-				_generator = new Random::LCG();
-				break;
-				
-			case Type::DualPhaseLCG:
-				_generator = new Random::DualPhaseLCG();
-				break;
-				
 			case Type::MersenneTwister:
 				_generator = new Random::MersenneTwister();
 				break;
@@ -290,85 +377,53 @@ namespace RN
 		_generator->Seed(seed);
 	}
 	
-	int32 RandomNumberGenerator::RandomInt32()
+	int32 RandomNumberGenerator::GetRandomInt32()
 	{
-		return _generator->RandomInt32();
+		return _generator->GetRandomInt32();
 	}
 	
-	int32 RandomNumberGenerator::RandomInt32Range(int32 min, int32 max)
+	int32 RandomNumberGenerator::GetRandomInt32Range(int32 min, int32 max)
 	{
-		return _generator->RandomInt32Range(min, max);
+		return _generator->GetRandomInt32Range(min, max);
 	}
 	
-	float RandomNumberGenerator::RandomFloat()
+	float RandomNumberGenerator::GetRandomFloat()
 	{
-		return _generator->RandomFloat();
+		return _generator->GetRandomFloat();
 	}
 	
-	float RandomNumberGenerator::RandomFloatRange(float min, float max)
+	float RandomNumberGenerator::GetRandomFloatRange(float min, float max)
 	{
-		return _generator->RandomFloatRange(min, max);
+		return _generator->GetRandomFloatRange(min, max);
 	}
 	
-	double RandomNumberGenerator::UniformDeviate(int32 seed)
+	double RandomNumberGenerator::GetUniformDeviate(int32 seed)
 	{
-		return _generator->UniformDeviate(seed);
+		return _generator->GetUniformDeviate(seed);
 	}
 	
-	Color RandomNumberGenerator::RandomColor()
+	Vector2 RandomNumberGenerator::GetRandomVector2Range(const Vector2 &min, const Vector2 &max)
 	{
-		Color result;
-		
-		result.r = _generator->UniformDeviate(_generator->RandomInt32());
-		result.g = _generator->UniformDeviate(_generator->RandomInt32());
-		result.b = _generator->UniformDeviate(_generator->RandomInt32());
-		result.a = _generator->UniformDeviate(_generator->RandomInt32());
-		
-		return result;
+		return GetRandomVector2Range(min, max);
 	}
 	
-	Vector2 RandomNumberGenerator::RandomVector2Range(const Vector2 &min, const Vector2 &max)
+	Vector3 RandomNumberGenerator::GetRandomVector3Range(const Vector3 &min, const Vector3 &max)
 	{
-		Vector2 result;
-		
-		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
-		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
-		
-		return result;
+		return GetRandomVector3Range(min, max);
 	}
 	
-	Vector3 RandomNumberGenerator::RandomVector3Range(const Vector3 &min, const Vector3 &max)
+	Vector4 RandomNumberGenerator::GetRandomVector4Range(const Vector4 &min, const Vector4 &max)
 	{
-		Vector3 result;
-		
-		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
-		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
-		result.z = _generator->RandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
-		
-		return result;
+		return GetRandomVector4Range(min, max);
 	}
 	
-	Vector4 RandomNumberGenerator::RandomVector4Range(const Vector4 &min, const Vector4 &max)
+	Color RandomNumberGenerator::GetRandomColor()
 	{
-		Vector4 result;
-		
-		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
-		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
-		result.z = _generator->RandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
-		result.w = _generator->RandomFloatRange(std::min(min.w, max.w), std::max(min.w, max.w));
-		
-		return result;
+		return _generator->GetRandomColor();
 	}
 	
-	Color RandomNumberGenerator::RandomColorRange(const Color &min, const Color &max)
+	Color RandomNumberGenerator::GetRandomColorRange(const Color &min, const Color &max)
 	{
-		Color result;
-		
-		result.r = _generator->RandomFloatRange(std::min(min.r, max.r), std::max(min.r, max.r));
-		result.g = _generator->RandomFloatRange(std::min(min.g, max.g), std::max(min.g, max.g));
-		result.b = _generator->RandomFloatRange(std::min(min.b, max.b), std::max(min.b, max.b));
-		result.a = _generator->RandomFloatRange(std::min(min.a, max.a), std::max(min.a, max.a));
-		
-		return result;
+		return GetRandomColorRange(min, max);
 	}
 }

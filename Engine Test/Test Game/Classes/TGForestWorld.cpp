@@ -136,7 +136,7 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
-			RN::Vector3 pos(random.RandomFloatRange(-200.0f, 200.0f), 0.0f, random.RandomFloatRange(-200.0f, 200.0f));
+			RN::Vector3 pos(random.GetRandomFloatRange(-200.0f, 200.0f), 0.0f, random.GetRandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos + RN::Vector3(0.0f, 0.5f, 0.0f)))
 			{
@@ -151,10 +151,10 @@ namespace TG
 			
 			pos.y = GetGroundHeight(pos);
 			
-			RN::Entity *entity = new RN::Entity(_trees[random.RandomInt32Range(0, TGForestTreeCount)], pos);
+			RN::Entity *entity = new RN::Entity(_trees[random.GetRandomInt32Range(0, TGForestTreeCount)], pos);
 			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
-			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.89f, 1.12f)));
-			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
+			entity->SetScale(RN::Vector3(random.GetRandomFloatRange(0.89f, 1.12f)));
+			entity->SetRotation(RN::Vector3(random.GetRandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
 			entity->Release();
 			
 			treeNode->AddChild(entity);
@@ -184,7 +184,7 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
-			RN::Vector3 pos(random.RandomFloatRange(-200.0f, 200.0f), 0.2f, random.RandomFloatRange(-200.0f, 200.0f));
+			RN::Vector3 pos(random.GetRandomFloatRange(-200.0f, 200.0f), 0.2f, random.GetRandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos + RN::Vector3(0.0f, 1.0f, 0.0f)))
 			{
@@ -194,7 +194,7 @@ namespace TG
 			
 			pos.y = GetGroundHeight(pos);
 			
-			int32 value = random.RandomInt32Range(1, 100);
+			int32 value = random.GetRandomInt32Range(1, 100);
 			float sand  = _blendmap[IndexForPosition(pos)].b;
 			
 			// Reeds
@@ -208,8 +208,8 @@ namespace TG
 				{
 					RN::Entity *entity = new RN::Entity(_reeds[0], pos);
 					entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
-					entity->SetScale(RN::Vector3(random.RandomFloatRange(0.005f, 0.008f)));
-					entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), -90.0f, 90.0f));
+					entity->SetScale(RN::Vector3(random.GetRandomFloatRange(0.005f, 0.008f)));
+					entity->SetRotation(RN::Vector3(random.GetRandomFloatRange(0, 360.0f), -90.0f, 90.0f));
 					entity->Release();
 					
 					reedNode->AddChild(entity);
@@ -232,8 +232,8 @@ namespace TG
 			
 			RN::Entity *entity = new RN::Entity(_grass[index], pos);
 			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
-			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.9f, 1.3f)));
-			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
+			entity->SetScale(RN::Vector3(random.GetRandomFloatRange(0.9f, 1.3f)));
+			entity->SetRotation(RN::Vector3(random.GetRandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			entity->Release();
 			
 			grassNode->AddChild(entity);
