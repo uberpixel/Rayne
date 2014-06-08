@@ -106,6 +106,7 @@ namespace RN
 		bool _resetDelta;
 		bool _shouldExit;
 		bool _initialized;
+		bool _active;
 		
 		float _fixedDeltaTime;
 		float _delta;
@@ -292,6 +293,7 @@ namespace RN
 		
 		_internals->_initialized = false;
 		_internals->_shouldExit  = false;
+		_internals->_active      = true;
 		
 		_internals->_uiserver->UpdateSize();
 		
@@ -852,6 +854,23 @@ namespace RN
 		return _internals->_context;
 	}
 
+	void Kernel::__WillBecomeActive()
+	{
+		if(_internals->_active)
+			return;
+		
+		_internals->_active = true;
+		_internals->_app->WillBecomeActive();
+	}
+	void Kernel::__WillResignActive()
+	{
+		if(!_internals->_active)
+			return;
+		
+		_internals->_active = false;
+		_internals->_app->WillResignActive();
+	}
+	
 #if RN_PLATFORM_WINDOWS
 	void Kernel::UseAccelerator(HACCEL accelerator)
 	{

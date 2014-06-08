@@ -29,6 +29,15 @@ namespace RN
 	{}
 	
 	
+	void Application::WillBecomeActive()
+	{}
+	void Application::DidBecomeActive()
+	{}
+	void Application::WillResignActive()
+	{}
+	void Application::DidResignActive()
+	{}
+	
 	
 	void Application::GameUpdate(float delta)
 	{

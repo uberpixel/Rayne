@@ -81,8 +81,8 @@ namespace RN
 			Rect _frame;
 			
 			Widget *_keyWidget;
-			View *_tracking;
-			View *_hover;
+			Responder *_tracking;
+			Responder *_hover;
 			std::deque<Widget *> _widgets;
 			
 			Menu *_menu;

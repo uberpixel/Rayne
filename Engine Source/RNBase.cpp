@@ -12,10 +12,11 @@
 #include "RNSpinLock.h"
 #include "RNFileManager.h"
 #include "RNLogging.h"
+#include "RNKernel.h"
 
 #if RN_PLATFORM_MAC_OS
 
-@interface RNApplication : NSApplication
+@interface RNApplication : NSApplication <NSApplicationDelegate>
 
 @end
 
@@ -27,6 +28,15 @@
 		[[self keyWindow] sendEvent:event];
  
 	[super sendEvent:event];
+}
+
+- (void)applicationWillBecomeActive:(NSNotification *)notification
+{
+	RN::Kernel::GetSharedInstance()->__WillBecomeActive();
+}
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+	RN::Kernel::GetSharedInstance()->__WillResignActive();
 }
 
 @end
@@ -103,8 +113,9 @@ namespace RN
 		{
 			[RNApplication sharedApplication];
 			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-			
 			[NSApp finishLaunching];
+			
+			[[RNApplication sharedApplication] setDelegate:(RNApplication *)[RNApplication sharedApplication]];
 		}
 #endif
 	}

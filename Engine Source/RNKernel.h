@@ -77,6 +77,10 @@ namespace RN
 		RNAPI HWND GetMainWindow() const;
 		RNAPI HINSTANCE GetInstance() const;
 #endif
+		
+		// Private
+		void __WillBecomeActive();
+		void __WillResignActive();
 
 	private:
 		Context *GetContext() const;

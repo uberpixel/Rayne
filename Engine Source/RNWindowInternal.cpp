@@ -162,6 +162,24 @@ namespace RN
 				Kernel::GetSharedInstance()->Exit();
 				return 0;
 
+			case WM_ACTIVATE:
+			case WM_ACTIVATEAPP:
+			{
+				switch(wparam)
+				{
+					case 0:
+						Kernel::GetSharedInstance()->__WillResignActive();
+						break;
+						
+					case 1:
+					case 2:
+						Kernel::GetSharedInstance()->__WillBecomeActive();
+						break;
+				}
+				
+				return DefWindowProcW(window, message, wparam, lparam);
+			}
+				
 			case WM_LBUTTONDOWN:
 			case WM_LBUTTONUP:
 			case WM_RBUTTONDOWN:

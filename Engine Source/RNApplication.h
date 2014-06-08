@@ -11,10 +11,11 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNUIResponder.h"
 
 namespace RN
 {
-	class Application : public INonConstructingSingleton<Application>
+	class Application : public UI::Responder, public INonConstructingSingleton<Application>
 	{
 	public:
 		RNAPI Application();
@@ -22,6 +23,11 @@ namespace RN
 		
 		RNAPI virtual void Start();
 		RNAPI virtual void WillExit();
+		
+		RNAPI virtual void WillBecomeActive();
+		RNAPI virtual void DidBecomeActive();
+		RNAPI virtual void WillResignActive();
+		RNAPI virtual void DidResignActive();
 		
 		RNAPI virtual void GameUpdate(float delta);
 		RNAPI virtual void WorldUpdate(float delta);

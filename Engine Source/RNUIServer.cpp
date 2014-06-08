@@ -127,11 +127,21 @@ namespace RN
 			if(widget == _keyWidget)
 				SetKeyWidget(nullptr);
 			
-			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
-				_tracking = nullptr;
+			if(_tracking->IsKindOfClass(View::GetMetaClass()))
+			{
+				View *tracking = static_cast<View *>(_tracking);
+				
+				if(_tracking && (tracking->_widget == widget || !tracking->_widget))
+					_tracking = nullptr;
+			}
 			
-			if(_hover && (_hover->_widget == widget || !_hover->_widget))
-				_hover = nullptr;
+			if(_hover->IsKindOfClass(View::GetMetaClass()))
+			{
+				View *hover = static_cast<View *>(_hover);
+				
+				if(_hover && (hover->_widget == widget || !hover->_widget))
+					_hover = nullptr;
+			}
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
@@ -203,7 +213,7 @@ namespace RN
 				const Vector2 &position = event->GetMousePosition();
 				
 				Widget *hitWidget = nullptr;
-				View *hit = nullptr;
+				Responder *hit = nullptr;
 				
 				for(auto i = _widgets.rbegin(); i != _widgets.rend(); i ++)
 				{
@@ -217,17 +227,20 @@ namespace RN
 					}
 				}
 				
-				if(hit)
+				if(!hit && !hitWidget)
+					hit = Application::GetSharedInstance();
+				
+				switch(event->GetType())
 				{
-					switch(event->GetType())
-					{
-						case Event::Type::MouseWheel:
-							hit->ScrollWheel(event);
-							return true;
-							
-						case Event::Type::MouseDown:
-							_tracking   = hit;
-							
+					case Event::Type::MouseWheel:
+						hit->ScrollWheel(event);
+						return true;
+						
+					case Event::Type::MouseDown:
+						_tracking   = hit;
+						
+						if(hitWidget)
+						{
 							if(!_keyWidget || _keyWidget->CanResignKeyWidget())
 							{
 								if(_keyWidget)
@@ -239,67 +252,78 @@ namespace RN
 								MoveWidgetToFront(hitWidget);
 								hit->MouseDown(event);
 							}
-							
-							
-							return true;
-							
-						case Event::Type::MouseMoved:
-						{
-							if(_hover && _hover != hit)
-								_hover->MouseLeft(event);
-							
-							hit->MouseMoved(event);
-							_hover = hit;
-							
-							return true;
 						}
-							
-						case Event::Type::MouseDragged:
-							_tracking = hit;
-							
-							hit->MouseDragged(event);
-							return true;
-							
-						case Event::Type::MouseUp:
-							_tracking = nullptr;
-							
-							hit->MouseUp(event);
-							return true;
-							
-						default:
-							break;
+						else
+						{
+							hit->MouseDown(event);
+						}
+						
+						return true;
+						
+					case Event::Type::MouseMoved:
+					{
+						if(_hover && _hover != hit)
+							_hover->MouseLeft(event);
+						
+						hit->MouseMoved(event);
+						_hover = hit;
+						
+						return true;
 					}
+						
+					case Event::Type::MouseDragged:
+						_tracking = hit;
+						
+						hit->MouseDragged(event);
+						return true;
+						
+					case Event::Type::MouseUp:
+						_tracking = nullptr;
+						
+						hit->MouseUp(event);
+						return true;
+						
+					default:
+						break;
 				}
 				
 				return false;
 			}
 			
 			
-			Responder *responder = _keyWidget ? _keyWidget->GetFirstResponder() : nullptr;
-			if(!responder)
-				responder = _keyWidget;
-			
-			if(responder && event->IsKeyboard())
+			if(event->IsKeyboard())
 			{
-				switch(event->GetType())
+				Responder *responder = _keyWidget ? _keyWidget->GetFirstResponder() : nullptr;
+				if(!responder)
 				{
-					case Event::Type::KeyDown:
-						responder->KeyDown(event);
-						break;
-						
-					case Event::Type::KeyUp:
-						responder->KeyUp(event);
-						break;
-						
-					case Event::Type::KeyRepeat:
-						responder->KeyRepeat(event);
-						break;
-						
-					default:
-						break;
+					responder = _keyWidget;
+					
+					if(!responder)
+						responder = Application::GetSharedInstance();
 				}
 				
-				return true;
+				if(responder)
+				{
+					switch(event->GetType())
+					{
+						case Event::Type::KeyDown:
+							responder->KeyDown(event);
+							break;
+							
+						case Event::Type::KeyUp:
+							responder->KeyUp(event);
+							break;
+							
+						case Event::Type::KeyRepeat:
+							responder->KeyRepeat(event);
+							break;
+							
+						default:
+							break;
+					}
+					
+					return true;
+				}
 			}
 			
 			return false;
