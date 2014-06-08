@@ -1,4 +1,4 @@
-#version 150 // -*- c++ -*-
+#version 410 // -*- c++ -*-
 #include "rn_SAO_reconstruct.fsh"
 #line 4
 
