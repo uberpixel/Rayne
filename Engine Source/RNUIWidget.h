@@ -95,6 +95,7 @@ namespace RN
 			RNAPI void SetTransform(const Matrix &transform);
 			RNAPI void SetWidgetLevel(int32 level);
 			RNAPI void SetCanBecomeKeyWidget(bool canBecome);
+			RNAPI void SetDelegate(Delegate *delegate);
 			
 			RNAPI const Rect &GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;

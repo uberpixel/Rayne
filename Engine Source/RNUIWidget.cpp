@@ -194,6 +194,11 @@ namespace RN
 				_server->SetKeyWidget(nullptr);
 		}
 		
+		void Widget::SetDelegate(Delegate *delegate)
+		{
+			_delegate = delegate;
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: First responder
