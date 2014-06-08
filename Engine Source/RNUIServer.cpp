@@ -164,6 +164,8 @@ namespace RN
 			
 			if(_keyWidget)
 			{
+				_keyWidget->ResignKey();
+				
 				if(_keyWidget->_backgroundView)
 					_keyWidget->_backgroundView->SetState(Control::State::Normal);
 				
@@ -243,9 +245,6 @@ namespace RN
 						{
 							if(!_keyWidget || _keyWidget->CanResignKeyWidget())
 							{
-								if(_keyWidget)
-									_keyWidget->ResignKey();
-								
 								if(hitWidget->CanBecomeKeyWidget())
 									SetKeyWidget(hitWidget);
 								
