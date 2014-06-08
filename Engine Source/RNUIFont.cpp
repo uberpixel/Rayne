@@ -216,15 +216,20 @@ namespace RN
 						if((bold && !(_descriptor.style & FontDescriptor::FontStyleBold)) || (italic && !(_descriptor.style & FontDescriptor::FontStyleItalic)))
 							continue;
 
-						size_t matched = 0;
+						size_t matched = 1000;
 
 						if(bold && (_descriptor.style & FontDescriptor::FontStyleBold))
-							matched ++;
+							matched += 1000;
 						if(italic && (_descriptor.style & FontDescriptor::FontStyleItalic))
-							matched ++;
+							matched += 1000;
+
+						matched -= match.first.length() - name.length();
 
 						if(matched >= bestMatched)
+						{
 							fontFile = match.second;
+							bestMatched = matched;
+						}
 					}
 				}
 
