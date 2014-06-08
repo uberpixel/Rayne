@@ -31,6 +31,41 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		
+		Array *GetObjectsPassingTest(const std::function<bool (Object *, bool &)> &callback) const
+		{
+			bool stop = false;
+			Array *subarray = new Array();
+			
+			for(size_t i = 0; i < _count; i ++)
+			{
+				if(callback(_data[i], stop))
+					subarray->AddObject(_data[i]);
+				
+				if(stop)
+					break;
+			}
+			
+			return subarray->Autorelease();
+		}
+		
+		template<class T>
+		Array *GetObjectsPassingTest(const std::function<bool (T *, bool &)> &callback) const
+		{
+			bool stop = false;
+			Array *subarray = new Array();
+			
+			for(size_t i = 0; i < _count; i ++)
+			{
+				if(callback(static_cast<T *>(_data[i]), stop))
+					subarray->AddObject(_data[i]);
+				
+				if(stop)
+					break;
+			}
+			
+			return subarray->Autorelease();
+		}
+		
 		
 		Object *operator [](int index) const
 		{
