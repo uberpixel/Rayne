@@ -322,7 +322,7 @@ namespace RN
 							break;
 					}
 					
-					return true;
+					return (responder != Application::GetSharedInstance());
 				}
 			}
 			
