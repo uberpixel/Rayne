@@ -22,6 +22,7 @@ namespace RN
 		struct WidgetInternals
 		{
 			WidgetInternals() :
+				canBecomeKeyWidget(true),
 				firstResponder(nullptr),
 				minimumSize(Vector2(0.0f)),
 				maximumSize(Vector2(FLT_MAX))
