@@ -23,8 +23,7 @@ namespace TG
 		void Start() override;
 		void WillExit() override;
 		
-		void GameUpdate(float delta) override;
-		void WorldUpdate(float delta) override;
+		void KeyDown(RN::Event *event) override;
 		
 	private:
 		void LoadLevel(uint32 levelID);

@@ -64,9 +64,9 @@ namespace TG
 		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
-		RN::UI::Widget *widget = new RN::UI::DebugWidget();
+		/*RN::UI::Widget *widget = new RN::UI::DebugWidget();
 		widget->Open();
-		widget->Release();
+		widget->Release();*/
 		
 		/*widget = new RN::UI::ConsoleWidget();
 		widget->Open();
@@ -75,36 +75,30 @@ namespace TG
 		// Load the last loaded level, or the forst level
 		uint32 level = RN::Settings::GetSharedInstance()->GetUint32ForKey(RNCSTR("lastLevel"), 1);
 		LoadLevel(level);
-		
-		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [this](RN::Message *message) {
-			
-			RN::Event *event = static_cast<RN::Event *>(message);
-			
-			if(event->GetType() == RN::Event::Type::KeyDown)
-			{
-				char character = event->GetCharacter();
-				
-				if(character >= '0' && character <= '9')
-				{
-					uint32 level = character - '0';
-					LoadLevel(level);
-				}
-			}
-			
-		}, this);
 	}
+	
 	
 	void Application::WillExit()
 	{
 		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 	
-	
-	
-	void Application::GameUpdate(float delta)
+	void Application::KeyDown(RN::Event *event)
 	{
-	}
-	void Application::WorldUpdate(float delta)
-	{
+		if(event->GetType() == RN::Event::Type::KeyDown)
+		{
+			char character = event->GetCharacter();
+			
+			if(character > '0' && character <= '9')
+			{
+				uint32 level = character - '0';
+				LoadLevel(level);
+			}
+			
+			if(character == '0')
+			{
+				RN::MessageCenter::GetSharedInstance()->PostMessage(RNCSTR("DPToggle"), nullptr, nullptr);
+			}
+		}
 	}
 }
