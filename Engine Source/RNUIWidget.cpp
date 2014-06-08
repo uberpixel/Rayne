@@ -60,6 +60,9 @@ namespace RN
 		
 		Widget::~Widget()
 		{
+			_contentView->_widget = nullptr;
+			_contentView->ViewHierarchyChanged();
+			
 			_contentView->Release();
 			SafeRelease(_backgroundView);
 		}
@@ -107,6 +110,8 @@ namespace RN
 		
 		void Widget::SetContentView(View *view)
 		{
+			_contentView->_widget = nullptr;
+			_contentView->ViewHierarchyChanged();
 			_contentView->Release();
 			
 			_contentView = view ? view->Retain() : CreateContentView();
