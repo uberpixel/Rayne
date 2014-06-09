@@ -137,8 +137,10 @@ namespace RN
 			{
 				if(!_colorPicker)
 				{
+					Rect frame = Rect(0.0, 0.0, 200.0f, 210.0f);
+					
 					ColorPicker *picker = new ColorPicker();
-					picker->SetFrame(Rect(0.0, 0.0, 200.0f, 180.0f).Inset(5.0f, 5.0f));
+					picker->SetFrame(Rect(frame).Inset(5.0f, 5.0f));
 					picker->SetColor(_color);
 					picker->AddListener(EventType::ValueChanged, [this](Control *control, EventType event) {
 						
@@ -147,9 +149,12 @@ namespace RN
 						
 					}, nullptr);
 					
+					frame.x = 100.0f;
+					frame.y = 100.0f;
+					
 					_colorPicker = new Widget(Widget::Style::Titled | Widget::Style::Closable);
 					_colorPicker->SetTitle(RNCSTR("Color Picker"));
-					_colorPicker->SetFrame(Rect(100, 100, 200.0f, 180.0f));
+					_colorPicker->SetFrame(frame);
 					_colorPicker->GetContentView()->AddSubview(picker);
 				}
 				

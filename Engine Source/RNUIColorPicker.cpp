@@ -56,11 +56,25 @@ namespace RN
 				_brightnessKnob->AddSubview(right->Autorelease());
 			}
 			
+			_alphaSlider = new Slider(Slider::Direction::Horizontal);
+			_alphaSlider->SetMinValue(0.0f);
+			_alphaSlider->SetMaxValue(1.0f);
+			_alphaSlider->AddListener(EventType::ValueChanged, [this](Control *control, EventType event) {
+				
+				RN::Color color = _color;
+				color.a = _alphaSlider->GetValue();
+				
+				UpdateColor(color);
+				
+			}, nullptr);
+			
 			AddSubview(_colorWheel);
 			AddSubview(_colorKnob);
 			
 			AddSubview(_brightnessView);
 			AddSubview(_brightnessKnob);
+			
+			AddSubview(_alphaSlider);
 		}
 		
 		ColorPicker::~ColorPicker()
@@ -84,6 +98,8 @@ namespace RN
 			
 			position *= _colorWheel->GetBounds().GetSize();
 			position += _colorWheel->GetBounds().GetSize() * 0.5f;
+			
+			_alphaSlider->SetValue(_color.a);
 			
 			UpdateColorKnob(position, false);
 			
@@ -221,7 +237,7 @@ namespace RN
 			
 			Rect frame = GetBounds();
 			
-			Rect wheelRect = Rect(frame.x, frame.y, frame.width - 20.0f, frame.height);
+			Rect wheelRect = Rect(frame.x, frame.y, frame.width - 20.0f, frame.height - 25.0f);
 			
 			wheelRect.width  = std::min(wheelRect.height, wheelRect.width);
 			wheelRect.height = wheelRect.width;
@@ -239,6 +255,8 @@ namespace RN
 				UpdateColorKnob(position, false);
 				UpdateBrightness();
 			}
+			
+			_alphaSlider->SetFrame(Rect(0.0f, frame.height - 20.0f, frame.width, 20.0f));
 		}
 		
 		RN::Color ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
@@ -246,7 +264,7 @@ namespace RN
 			float theta = atan2(position.y, -position.x);
 			float r = position.GetLength();
 			
-			return RN::Color::WithHSV(theta, r, brightness);
+			return RN::Color::WithHSV(theta, r, brightness, _alphaSlider->GetValue());
 		}
 		
 		Vector2 ColorPicker::ConvertColorToWheel(const RN::Color &color, float &brightness)

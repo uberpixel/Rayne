@@ -14,6 +14,7 @@
 #include "RNUIColorWheel.h"
 #include "RNUIControl.h"
 #include "RNUIGradientView.h"
+#include "RNUISlider.h"
 
 namespace RN
 {
@@ -46,6 +47,7 @@ namespace RN
 			
 			ColorWheel *_colorWheel;
 			GradientView *_brightnessView;
+			Slider *_alphaSlider;
 			
 			View  *_colorKnob;
 			View  *_brightnessKnob;
