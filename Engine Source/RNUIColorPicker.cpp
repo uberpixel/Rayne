@@ -125,19 +125,26 @@ namespace RN
 			Vector2 point = event->GetMousePosition();
 			UpdateWithMouseLocation(point);
 		}
+		void ColorPicker::MouseUp(Event *event)
+		{
+			Control::MouseUp(event);
+			_hit = nullptr;
+		}
 		
 		void ColorPicker::UpdateWithMouseLocation(const Vector2 &point)
 		{
 			if(!_hit)
 			{
-				Vector2 wheelPoint = _colorWheel->ConvertPointFromBase(point);
-				Vector2 brightnessPoint = _brightnessView->ConvertPointFromBase(point);
+				Vector2 location = ConvertPointFromBase(point);
 				
-				if(_colorWheel->GetBounds().ContainsPoint(wheelPoint))
+				if(_colorWheel->GetFrame().ContainsPoint(location))
 					_hit = _colorWheel;
 				
-				if(_brightnessView->GetBounds().ContainsPoint(brightnessPoint))
+				if(_brightnessView->GetFrame().ContainsPoint(location))
 					_hit = _brightnessView;
+				
+				if(_alphaSlider->GetFrame().ContainsPoint(location))
+					_hit = _alphaSlider;
 			}
 			
 			

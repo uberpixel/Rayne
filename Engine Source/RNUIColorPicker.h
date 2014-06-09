@@ -32,6 +32,7 @@ namespace RN
 			
 			RNAPI void MouseDown(Event *event) override;
 			RNAPI void MouseDragged(Event *event) override;
+			RNAPI void MouseUp(Event *event) override;
 			
 			RNAPI void LayoutSubviews() override;
 			
