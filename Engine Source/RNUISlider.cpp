@@ -112,6 +112,85 @@ namespace RN
 		{
 			Control::StateChanged(state);
 			_knob->SetImage(_knobImages.GetValueForState(state));
+			_knob->SetFrame([&]() -> Rect {
+				
+				Rect frame = _knob->GetFrame();
+				frame.width = _knob->GetImage()->GetWidth();
+				frame.height = _knob->GetImage()->GetHeight();
+				
+				return frame;
+				
+			}());
+			
+			SetNeedsLayoutUpdate();
+		}
+		
+		void Slider::MouseDown(Event *event)
+		{
+			Control::MouseDown(event);
+			HandleEvent(event);
+		}
+		
+		void Slider::MouseDragged(Event *event)
+		{
+			Control::MouseDragged(event);
+			HandleEvent(event);
+		}
+		
+		void Slider::HandleEvent(Event *event)
+		{
+			Rect rect = GetBounds();
+			Rect knob = _knob->GetBounds();
+			Rect insetRect = rect;
+			
+			Vector2 position = GetLocationForEvent(event);
+			
+			float oldValue = _value;
+			
+			if(_direction == Direction::Vertical)
+			{
+				insetRect.Inset(0.0f, knob.height * 0.5f);
+				
+				_value = (position.y - (knob.height * 0.5f)) / insetRect.height;
+				_value = std::min(_max, std::max(_min, _value));
+			}
+			else
+			{
+				insetRect.Inset(knob.width * 0.5f, 0.0f);
+				
+				_value = (position.x - (knob.width * 0.5f)) / insetRect.width;
+				_value = std::min(_max, std::max(_min, _value));
+			}
+			
+			if(!Math::Compare(_value, oldValue))
+			{
+				LayoutKnob();
+				DispatchEvent(EventType::ValueChanged);
+			}
+		}
+		
+		void Slider::LayoutKnob()
+		{
+			Rect rect = GetBounds();
+			Rect knob = _knob->GetBounds();
+			
+			float offset = (_value - _min) / (_max - _min);
+			
+			if(_direction == Direction::Vertical)
+			{
+				float x = (rect.width * 0.5) - (knob.width * 0.5);
+				float y = (offset * (rect.height - knob.height)) - (knob.height * 0.5);
+				
+				_knob->SetFrame(Rect(x, y + (knob.height * 0.5f), knob.width, knob.height).Integral());
+
+			}
+			else
+			{
+				float x = (offset * (rect.width - knob.width)) - (knob.width * 0.5);
+				float y = (rect.height * 0.5) - (knob.height * 0.5);
+				
+				_knob->SetFrame(Rect(x + (knob.width * 0.5f), y, knob.width, knob.height).Integral());
+			}
 		}
 		
 		void Slider::LayoutSubviews()
@@ -121,45 +200,28 @@ namespace RN
 
 			Rect rect = GetBounds();
 			Rect knob = _knob->GetBounds();
-			
-			float offset = 0.5; //(_value - _min) / (_max - _min);
+			Rect insetRect = rect;
 			
 			if(_direction == Direction::Vertical)
 			{
-				// Knob
-				{
-					float x = (rect.width * 0.5) - (knob.width * 0.5);
-					float y = (offset * rect.height) - (knob.height * 0.5);
+				insetRect.Inset(0.0f, knob.height * 0.5f);
+
+				Image *image = _background->GetImage();
+				float x = (rect.width * 0.5) - (image->GetWidth() * 0.5);
 					
-					_knob->SetFrame(Rect(x, y, knob.width, knob.height));
-				}
-				
-				// Background
-				{
-					Image *image = _knob->GetImage();
-					float x = (rect.width * 0.5) - (image->GetWidth() * 0.5);
-					
-					_background->SetFrame(Rect(x, 0.0, image->GetWidth(), rect.height));
-				}
+				_background->SetFrame(Rect(x, insetRect.y, image->GetWidth(), insetRect.height).Integral());
 			}
 			else
 			{
-				// Knob
-				{
-					float x = (offset * rect.width) - (knob.width * 0.5);
-					float y = (rect.height * 0.5) - (knob.height * 0.5);
+				insetRect.Inset(knob.width * 0.5f, 0.0f);
+
+				Image *image = _background->GetImage();
+				float y = (rect.height * 0.5) - (image->GetHeight() * 0.5);
 					
-					_knob->SetFrame(Rect(x, y, knob.width, knob.height));
-				}
-				
-				// Background
-				{
-					Image *image = _knob->GetImage();
-					float y = (rect.height * 0.5) - (image->GetHeight() * 0.5);
-					
-					_background->SetFrame(Rect(0.0, y, rect.width, image->GetHeight()));
-				}
+				_background->SetFrame(Rect(insetRect.x, y, insetRect.width, image->GetHeight()).Integral());
 			}
+			
+			LayoutKnob();
 		}
 	}
 }

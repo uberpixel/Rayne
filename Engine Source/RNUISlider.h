@@ -34,6 +34,9 @@ namespace RN
 			RNAPI void SetMaxValue(float maxValue);
 			RNAPI void SetValue(float value);
 			
+			RNAPI void MouseDown(Event *event) override;
+			RNAPI void MouseDragged(Event *event) override;
+			
 			RNAPI float GetValue() const { return _value; }
 			
 			RNAPI void LayoutSubviews() override;
@@ -42,6 +45,9 @@ namespace RN
 			RNAPI void StateChanged(State state) override;
 			
 		private:
+			void HandleEvent(Event *event);
+			void LayoutKnob();
+			
 			Direction _direction;
 			
 			float _min;
