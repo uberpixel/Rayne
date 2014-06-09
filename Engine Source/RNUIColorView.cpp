@@ -121,10 +121,12 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = GetBounds();
+			Rect contentRect = Rect(_insets.left, _insets.top, frame.width - (_insets.left + _insets.right), frame.height - (_insets.top + _insets.bottom));
 			
-			_background->SetFrame(frame);
+			_background->SetFrame(contentRect);
+			_contentView->SetFrame(contentRect);
+			
 			_border->SetFrame(frame);
-			_contentView->SetFrame(Rect(_insets.left, _insets.top, frame.width - (_insets.left + _insets.right), frame.height - (_insets.top + _insets.bottom)));
 		}
 		
 		bool ColorView::PostEvent(EventType event)

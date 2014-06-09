@@ -44,9 +44,8 @@ namespace RN
 			*vertices ++ = Vector2(size.x, 0.0f);
 			
 			*vertices ++ = Vector2(0.0f, size.y);
-			*vertices ++ = Vector2(size.x, 0.0f);
 			*vertices ++ = Vector2(0.0f, 0.0f);
-			
+			*vertices ++ = Vector2(size.x, 0.0f);
 			
 			RN::Color black = Color::WithRNColor(RN::Color::Black())->GetRNColor();
 			RN::Color white = Color::WithRNColor(RN::Color::White())->GetRNColor();
@@ -76,8 +75,8 @@ namespace RN
 			*vertices ++ = Vector2(size.x, 0.0f);
 			
 			*vertices ++ = Vector2(0.0f, size.y);
-			*vertices ++ = Vector2(size.x, 0.0f);
 			*vertices ++ = Vector2(0.0f, 0.0f);
+			*vertices ++ = Vector2(size.x, 0.0f);
 			
 			chunk.CommitChanges();
 		}
