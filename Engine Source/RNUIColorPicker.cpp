@@ -28,10 +28,10 @@ namespace RN
 			
 			{
 				_colorKnob = new View(Rect(0.0f, 0.0f, 4.0, 4.0));
-				_colorKnob->SetBackgroundColor(RN::Color::Black());
+				_colorKnob->SetBackgroundColor(Color::BlackColor());
 				
 				View *secondKnob = new View(Rect(1.0f, 1.0f, 2.0f, 2.0f));
-				secondKnob->SetBackgroundColor(RN::Color::White());
+				secondKnob->SetBackgroundColor(Color::WhiteColor());
 				
 				_colorKnob->AddSubview(secondKnob->Autorelease());
 			}
@@ -45,10 +45,10 @@ namespace RN
 				View *left  = new View(Rect(0.0f, 0.0,  1.0, 5.0));
 				View *right = new View(Rect(16.0, 0.0, 1.0, 5.0));
 				
-				top->SetBackgroundColor(RN::Color::Black());
-				bottom->SetBackgroundColor(RN::Color::Black());
-				left->SetBackgroundColor(RN::Color::Black());
-				right->SetBackgroundColor(RN::Color::Black());
+				top->SetBackgroundColor(Color::BlackColor());
+				bottom->SetBackgroundColor(Color::BlackColor());
+				left->SetBackgroundColor(Color::BlackColor());
+				right->SetBackgroundColor(Color::BlackColor());
 				
 				_brightnessKnob->AddSubview(top->Autorelease());
 				_brightnessKnob->AddSubview(bottom->Autorelease());
@@ -214,8 +214,8 @@ namespace RN
 				_fullColor.a = 1.0f;
 			}
 			
-			_brightnessView->SetStartColor(_fullColor);
-			_brightnessView->SetEndColor(RN::Color::Black());
+			_brightnessView->SetStartColor(Color::WithRNColor(_fullColor));
+			_brightnessView->SetEndColor(Color::BlackColor());
 			
 			_alphaSlider->SetValue(_color.a);
 			

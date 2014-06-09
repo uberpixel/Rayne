@@ -15,17 +15,10 @@ namespace RN
 	{
 		RNDefineMeta(ColorWheel, View)
 		
-		ColorWheel::ColorWheel()
+		ColorWheel::ColorWheel() :
+			_isDirty(true),
+			_mesh(nullptr)
 		{
-			Initialize();
-		}
-		
-		void ColorWheel::Initialize()
-		{
-			_isDirty = true;
-			
-			_mesh  = nullptr;
-			
 			_material = GetBasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNCSTR("shader/rn_UIColorWheel"), nullptr));
 			_material->Retain();
 			

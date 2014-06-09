@@ -21,6 +21,7 @@
 #include "RNUIWidget.h"
 #include "RNUIResponder.h"
 #include "RNUIGeometry.h"
+#include "RNUIColor.h"
 
 namespace RN
 {
@@ -71,7 +72,7 @@ namespace RN
 			RNAPI virtual void SetFrame(const Rect &frame);
 			RNAPI virtual void SetBounds(const Rect &bounds);
 			
-			RNAPI void SetBackgroundColor(const RN::Color& color);
+			RNAPI void SetBackgroundColor(Color *color);
 			RNAPI void SetInteractionEnabled(bool enabled);
 			RNAPI void SetClipSubviews(bool clipping);
 			RNAPI void SetClipInsets(const EdgeInsets &insets);

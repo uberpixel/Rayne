@@ -24,8 +24,8 @@ namespace RN
 			
 			void SetFrame(const Rect &frame) override;
 			
-			void SetStartColor(const RN::Color &color);
-			void SetEndColor(const RN::Color &color);
+			void SetStartColor(Color *color);
+			void SetEndColor(Color *color);
 			void SetAngle(float angle);
 			
 			void Update() override;

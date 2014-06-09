@@ -28,7 +28,6 @@ namespace RN
 			RNAPI void Draw(Renderer *renderer) override;
 			
 		private:
-			void Initialize();
 			
 			Mesh *_mesh;
 			Material *_material;

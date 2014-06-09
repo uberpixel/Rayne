@@ -86,7 +86,7 @@ namespace RN
 		void ColorView::SetColor(const RN::Color &color)
 		{
 			_color = color;
-			_contentView->SetBackgroundColor(Color::WithRNColor(color)->GetRNColor());
+			_contentView->SetBackgroundColor(Color::WithRNColor(color));
 			
 			if(_colorPicker)
 			{
@@ -101,7 +101,7 @@ namespace RN
 				return;
 			
 			_color = color;
-			_contentView->SetBackgroundColor(Color::WithRNColor(color)->GetRNColor());
+			_contentView->SetBackgroundColor(Color::WithRNColor(color));
 			
 			DispatchEvent(EventType::ValueChanged);
 		}

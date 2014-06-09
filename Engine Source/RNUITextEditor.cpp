@@ -25,7 +25,7 @@ namespace RN
 			_model     = nullptr;
 			_delegate  = nullptr;
 			
-			SetBackgroundColor(RN::Color::ClearColor());
+			SetBackgroundColor(Color::ClearColor());
 		}
 		
 		TextEditor::~TextEditor()

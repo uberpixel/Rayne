@@ -63,12 +63,12 @@ namespace RN
 			_material = GetBasicMaterial(Shader::WithFile("shader/rn_UIView"));
 			_material->Retain();
 			
-			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor)->GetRNColor());
+			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor));
 		}
 		
-		void View::SetBackgroundColor(const RN::Color& color)
+		void View::SetBackgroundColor(Color *color)
 		{
-			_material->SetDiffuseColor(color);
+			_material->SetDiffuseColor(color->GetRNColor());
 		}
 		
 		Mesh *View::GetBasicMesh(const Vector2 &size)

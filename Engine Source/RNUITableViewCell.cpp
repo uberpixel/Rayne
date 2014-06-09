@@ -41,7 +41,7 @@ namespace RN
 			_row = 0;
 			
 			_contentView = new View();
-			_contentView->SetBackgroundColor(RN::Color::ClearColor());
+			_contentView->SetBackgroundColor(Color::ClearColor());
 			
 			AddSubview(_contentView);
 			
@@ -113,13 +113,13 @@ namespace RN
 			
 			if(selected)
 			{
-				SetBackgroundColor(RN::Color::Blue());
-				_textLabel->SetTextColor(Color::WithRNColor(RN::Color::White()));
+				SetBackgroundColor(Color::BlueColor());
+				_textLabel->SetTextColor(Color::WhiteColor());
 			}
 			else
 			{
-				SetBackgroundColor(RN::Color::White());
-				_textLabel->SetTextColor(Color::WithRNColor(RN::Color::Black()));
+				SetBackgroundColor(Color::WhiteColor());
+				_textLabel->SetTextColor(Color::BlackColor());
 			}
 		}
 		
