@@ -263,6 +263,8 @@
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9C8687F19454272008B379E /* RNUIColorViewInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C8687D19454272008B379E /* RNUIColorViewInternals.cpp */; };
+		E9C8688019454272008B379E /* RNUIColorViewInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C8687E19454272008B379E /* RNUIColorViewInternals.h */; };
 		E9C89C9318133C9900465F5B /* RNWindowInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C89C9218133C9900465F5B /* RNWindowInternal.cpp */; };
 		E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */; };
 		E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D15BA617DB27CA00435078 /* RNOpenPanel.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -608,6 +610,8 @@
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNModel.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9C8687D19454272008B379E /* RNUIColorViewInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIColorViewInternals.cpp; sourceTree = "<group>"; };
+		E9C8687E19454272008B379E /* RNUIColorViewInternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColorViewInternals.h; sourceTree = "<group>"; };
 		E9C89C911813392400465F5B /* RNWindowInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNWindowInternal.h; sourceTree = "<group>"; };
 		E9C89C9218133C9900465F5B /* RNWindowInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWindowInternal.cpp; sourceTree = "<group>"; };
 		E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenPanel.cpp; sourceTree = "<group>"; };
@@ -907,6 +911,8 @@
 				E9474D6E1937BEB300105C64 /* RNUIColorPicker.h */,
 				E99E8923193A150800532F80 /* RNUIColorView.cpp */,
 				E99E8924193A150800532F80 /* RNUIColorView.h */,
+				E9C8687D19454272008B379E /* RNUIColorViewInternals.cpp */,
+				E9C8687E19454272008B379E /* RNUIColorViewInternals.h */,
 				E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */,
 				E9474D4D19379B0400105C64 /* RNUIColorWheel.h */,
 				E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */,
@@ -1254,6 +1260,7 @@
 				E9B083B917175354009AD83F /* RNSIMD.h in Headers */,
 				E9B083F217188E29009AD83F /* RNCPU.h in Headers */,
 				E9B083F91718B1D1009AD83F /* RNMemory.h in Headers */,
+				E9C8688019454272008B379E /* RNUIColorViewInternals.h in Headers */,
 				E951615A17D40D930006156A /* RNUITableView.h in Headers */,
 				E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */,
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
@@ -1563,6 +1570,7 @@
 				E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */,
 				E91A254E187CA5BB002748E7 /* RNWorldCoordinator.cpp in Sources */,
 				E96F253F181F384F001450B2 /* RNLoggingEngine.cpp in Sources */,
+				E9C8687F19454272008B379E /* RNUIColorViewInternals.cpp in Sources */,
 				E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */,
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,
 				E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */,

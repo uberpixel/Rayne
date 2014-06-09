@@ -8,6 +8,7 @@
 
 #include "RNUIColorView.h"
 #include "RNUIStyle.h"
+#include "RNUIColorViewInternals.h"
 
 namespace RN
 {
@@ -16,36 +17,17 @@ namespace RN
 		RNDefineMeta(ColorView, Control)
 		
 		ColorView::ColorView() :
-			_colorPicker(nullptr)
-		{
-			Initialize(Style::GetSharedInstance()->GetResourceWithKeyPath<Dictionary>(RNCSTR("colorPicker")));
-			SetColor(RN::Color::White());
-		}
+			ColorView(Style::GetSharedInstance()->GetResourceWithKeyPath<Dictionary>(RNCSTR("colorPicker")))
+		{}
 		
 		ColorView::ColorView(Dictionary *style) :
 			_colorPicker(nullptr)
 		{
-			Initialize(style);
-			SetColor(RN::Color::White());
-		}
-		
-		ColorView::~ColorView()
-		{
-			if(_colorPicker)
-			{
-				_colorPicker->Close();
-				_colorPicker->Release();
-			}
-			
-			_border->Release();
-			_contentView->Release();
-		}
-		
-		void ColorView::Initialize(Dictionary *style)
-		{
 			_border = new ImageView();
 			_contentView = new View();
+			_background = new AlphaBackground();
 			
+			AddSubview(_background);
 			AddSubview(_border);
 			AddSubview(_contentView);
 			
@@ -84,8 +66,21 @@ namespace RN
 			}
 			
 			StateChanged(GetState());
+			SetColor(RN::Color::White());
 		}
 		
+		ColorView::~ColorView()
+		{
+			if(_colorPicker)
+			{
+				_colorPicker->Close();
+				_colorPicker->Release();
+			}
+			
+			_border->Release();
+			_contentView->Release();
+			_background->Release();
+		}
 		
 		
 		void ColorView::SetColor(const RN::Color &color)
@@ -127,6 +122,7 @@ namespace RN
 			
 			Rect frame = GetBounds();
 			
+			_background->SetFrame(frame);
 			_border->SetFrame(frame);
 			_contentView->SetFrame(Rect(_insets.left, _insets.top, frame.width - (_insets.left + _insets.right), frame.height - (_insets.top + _insets.bottom)));
 		}

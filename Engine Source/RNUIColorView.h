@@ -37,7 +37,6 @@ namespace RN
 			RNAPI bool PostEvent(EventType event) override;
 			
 		private:
-			void Initialize(Dictionary *style);
 			void SetColorInternal(const RN::Color &color);
 			
 			RN::Color _color;
@@ -46,6 +45,7 @@ namespace RN
 			
 			ImageView *_border;
 			View *_contentView;
+			View *_background;
 			
 			Widget *_colorPicker;
 			
