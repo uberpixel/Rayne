@@ -31,7 +31,7 @@ namespace TG
 		GetContentView()->AddSubview(_backdrop);
 		GetContentView()->AddSubview(_progressIndicator);
 		
-		GetContentView()->SetBackgroundColor(RN::Color::White());
+		GetContentView()->SetBackgroundColor(RN::UI::Color::WhiteColor());
 		
 		// Listen to UI Server resizes and the finish of thw world coordinator loading
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNUIServerDidResizeMessage, std::bind(&LoadingScreen::UpdateSize, this, std::placeholders::_1), this);

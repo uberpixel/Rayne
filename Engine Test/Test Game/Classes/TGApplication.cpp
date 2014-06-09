@@ -89,7 +89,7 @@ namespace TG
 		{
 			char character = event->GetCharacter();
 			
-			if(character > '0' && character <= '9')
+			if(character > '0' && character < '9')
 			{
 				uint32 level = character - '0';
 				LoadLevel(level);
