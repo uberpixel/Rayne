@@ -93,13 +93,13 @@ namespace RN
 			if(color == _color)
 				return;
 			
+			_alphaSlider->SetValue(color.a);
+			
 			float brightness;
 			Vector2 position = ConvertColorToWheel(color, brightness);
 			
 			position *= _colorWheel->GetBounds().GetSize();
 			position += _colorWheel->GetBounds().GetSize() * 0.5f;
-			
-			_alphaSlider->SetValue(_color.a);
 			
 			UpdateColorKnob(position, false);
 			
@@ -216,6 +216,8 @@ namespace RN
 			
 			_brightnessView->SetStartColor(_fullColor);
 			_brightnessView->SetEndColor(RN::Color::Black());
+			
+			_alphaSlider->SetValue(_color.a);
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);

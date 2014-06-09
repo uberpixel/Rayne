@@ -93,19 +93,19 @@ namespace RN
 		void Slider::SetMinValue(float minValue)
 		{
 			_min = minValue;
-			SetNeedsLayoutUpdate();
+			LayoutKnob();
 		}
 		
 		void Slider::SetMaxValue(float maxValue)
 		{
 			_max = maxValue;
-			SetNeedsLayoutUpdate();
+			LayoutKnob();
 		}
 		
 		void Slider::SetValue(float value)
 		{
 			_value = std::min(_max, std::max(_min, value));
-			SetNeedsLayoutUpdate();
+			LayoutKnob();
 		}
 		
 		void Slider::StateChanged(State state)
