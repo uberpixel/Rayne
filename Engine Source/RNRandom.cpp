@@ -404,17 +404,17 @@ namespace RN
 	
 	Vector2 RandomNumberGenerator::GetRandomVector2Range(const Vector2 &min, const Vector2 &max)
 	{
-		return GetRandomVector2Range(min, max);
+		return _generator->GetRandomVector2Range(min, max);
 	}
 	
 	Vector3 RandomNumberGenerator::GetRandomVector3Range(const Vector3 &min, const Vector3 &max)
 	{
-		return GetRandomVector3Range(min, max);
+		return _generator->GetRandomVector3Range(min, max);
 	}
 	
 	Vector4 RandomNumberGenerator::GetRandomVector4Range(const Vector4 &min, const Vector4 &max)
 	{
-		return GetRandomVector4Range(min, max);
+		return _generator->GetRandomVector4Range(min, max);
 	}
 	
 	Color RandomNumberGenerator::GetRandomColor()
@@ -424,6 +424,6 @@ namespace RN
 	
 	Color RandomNumberGenerator::GetRandomColorRange(const Color &min, const Color &max)
 	{
-		return GetRandomColorRange(min, max);
+		return _generator->GetRandomColorRange(min, max);
 	}
 }
