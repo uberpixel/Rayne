@@ -204,6 +204,7 @@ namespace RN
 			{
 				Vector2 position = ConvertColorToWheel(_color, _brightness);
 				_fullColor = ConvertColorFromWheel(position, 1.0);
+				_fullColor.a = 1.0f;
 			}
 			
 			_brightnessView->SetStartColor(_fullColor);
