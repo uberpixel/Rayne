@@ -12,12 +12,12 @@ precision highp float;
 #include "rn_Matrices.vsh"
 
 in vec2 attPosition;
-in vec4 attColor0;
+in vec2 attTexcoord0;
 
-out vec4 vertColor;
+out vec2 vertTexcoord;
 
 void main()
 {
-	vertColor    = attColor0;
+	vertTexcoord = attTexcoord0;
 	gl_Position  = matProjViewModel * vec4(attPosition, 1.0, 1.0);
 }

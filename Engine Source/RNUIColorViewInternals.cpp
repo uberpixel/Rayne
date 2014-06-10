@@ -23,11 +23,11 @@ namespace RN
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
 			
-			MeshDescriptor colorDescriptor(MeshFeature::Color0);
-			colorDescriptor.elementMember = 4;
-			colorDescriptor.elementSize   = sizeof(Color);
+			MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
+			texcoordDescriptor.elementMember = 2;
+			texcoordDescriptor.elementSize   = sizeof(Vector2);
 			
-			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, colorDescriptor };
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, texcoordDescriptor };
 			
 			_mesh = new Mesh(descriptors, 6, 0);
 			_mesh->SetDrawMode(Mesh::DrawMode::Triangles);
@@ -35,7 +35,7 @@ namespace RN
 			Mesh::Chunk chunk = _mesh->GetChunk();
 			
 			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
-			Mesh::ElementIterator<RN::Color> color = chunk.GetIterator<RN::Color>(MeshFeature::Color0);
+			Mesh::ElementIterator<RN::Vector2> texcoords = chunk.GetIterator<RN::Vector2>(MeshFeature::UVSet0);
 			
 			Vector2 size = GetBounds().GetSize();
 			
@@ -47,16 +47,12 @@ namespace RN
 			*vertices ++ = Vector2(0.0f, 0.0f);
 			*vertices ++ = Vector2(size.x, 0.0f);
 			
-			RN::Color black = Color::WithRNColor(RN::Color::Black())->GetRNColor();
-			RN::Color white = Color::WithRNColor(RN::Color::White())->GetRNColor();
-			
-			*color ++ = black;
-			*color ++ = black;
-			*color ++ = black;
-			
-			*color ++ = white;
-			*color ++ = white;
-			*color ++ = white;
+			*texcoords ++ = Vector2(1.0f, 0.0f);
+			*texcoords ++ = Vector2(0.0f, 0.0f);
+			*texcoords ++ = Vector2(1.0f, 1.0f);
+			*texcoords ++ = Vector2(0.0f, 0.0f);
+			*texcoords ++ = Vector2(0.0f, 1.0f);
+			*texcoords ++ = Vector2(1.0f, 1.0f);
 			
 			chunk.CommitChanges();
 		}
