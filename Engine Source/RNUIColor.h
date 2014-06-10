@@ -21,16 +21,34 @@ namespace RN
 		{
 		public:
 			RNAPI Color();
-			RNAPI Color(const RN::Color& color);
+			RNAPI Color(const RN::Color &color);
 			RNAPI Color(Color *other);
 			
-			RNAPI static Color *WithRNColor(const RN::Color& color);
+			RNAPI static Color *WithRNColor(const RN::Color &color);
+			RNAPI static Color *WithCorrectedRNColor(const RN::Color &color);
+			RNAPI static Color *WithRGB(float r, float g, float b);
+			RNAPI static Color *WithRGBA(float r, float g, float b, float a);
+			RNAPI static Color *WithWhite(float white, float a);
+			RNAPI static Color *WithHSV(float h, float s, float v);
+			
+			RNAPI static Color *RedColor();
+			RNAPI static Color *GreenColor();
+			RNAPI static Color *BlueColor();
+			RNAPI static Color *YellowColor();
+			RNAPI static Color *BlackColor();
+			RNAPI static Color *WhiteColor();
+			RNAPI static Color *GrayColor();
+			RNAPI static Color *ClearColor();
 			
 			RNAPI bool IsEqual(Object *other) const override;
 			
-			RNAPI const RN::Color& GetRNColor() const { return _color; }
+			RNAPI const RN::Color &GetRNColor() const { return _color; }
+			RNAPI const RN::Color &GetUncorrectedRNColor() const { return _uncorrected; }
 			
 		private:
+			Color(const RN::Color &color, std::nullptr_t null);
+			
+			RN::Color _uncorrected;
 			RN::Color _color;
 			
 			RNDeclareMeta(Color);

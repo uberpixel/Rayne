@@ -25,8 +25,8 @@ namespace RN
 			
 			_angleUniform = _material->AddShaderUniform("angle", _angle);
 			
-			SetStartColor(RN::Color::Black());
-			SetEndColor(RN::Color::White());
+			SetStartColor(Color::BlackColor());
+			SetEndColor(Color::WhiteColor());
 		}
 		
 		void GradientView::SetFrame(const Rect &frame)
@@ -36,14 +36,14 @@ namespace RN
 		}
 		
 		
-		void GradientView::SetStartColor(const RN::Color &color)
+		void GradientView::SetStartColor(Color *color)
 		{
-			_material->SetDiffuseColor(color);
+			_material->SetDiffuseColor(color->GetRNColor());
 		}
 		
-		void GradientView::SetEndColor(const RN::Color &color)
+		void GradientView::SetEndColor(Color *color)
 		{
-			_material->SetAmbientColor(color);
+			_material->SetAmbientColor(color->GetRNColor());
 		}
 		
 		void GradientView::SetAngle(float angle)

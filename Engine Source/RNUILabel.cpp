@@ -41,7 +41,7 @@ namespace RN
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
 			SetInteractionEnabled(false);
-			SetBackgroundColor(RN::Color::ClearColor());
+			SetBackgroundColor(Color::ClearColor());
 			SetFont(Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont));
 			SetTextColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::TextColor));
 			
@@ -94,12 +94,6 @@ namespace RN
 			_isDirty = true;
 			
 			_typesetter->SetText(_string);
-		}
-		
-		void Label::SetTextColor(const RN::Color& color)
-		{
-			SetTextColor(Color::WithRNColor(color));
-			
 		}
 		
 		void Label::SetTextColor(Color *color)

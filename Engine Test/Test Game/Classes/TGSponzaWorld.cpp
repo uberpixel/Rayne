@@ -56,7 +56,7 @@ namespace TG
 			
 			for(int i = 0; i < 200; i ++)
 			{
-				RN::Vector3 pos(random.GetRandomFloatRange(-24.0f, 24.0f), random.GetRandomFloatRange(-7.0f, 14.0f), random.GetRandomFloatRange(-10.0f, 10.0f));
+				RN::Vector3 pos(random.GetRandomFloatRange(-24.0f, 24.0f), random.GetRandomFloatRange(-4.0f, 18.0f), random.GetRandomFloatRange(-10.0f, 10.0f));
 				
 				RN::Light *light = new RN::Light();
 				light->SetPosition(pos);

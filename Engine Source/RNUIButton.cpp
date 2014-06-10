@@ -95,7 +95,7 @@ namespace RN
 			AddSubview(_label);
 			
 			StateChanged(GetState());
-			SetBackgroundColor(RN::Color::ClearColor());
+			SetBackgroundColor(Color::ClearColor());
 		}
 		
 		void Button::InitializeFromStyle(Dictionary *style)

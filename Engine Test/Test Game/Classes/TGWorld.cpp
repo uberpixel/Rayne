@@ -121,6 +121,11 @@ namespace TG
 					PPToggleGodrays();
 					break;
 				}
+				case '9':
+				{
+					RN::UI::Server *server = RN::UI::Server::GetSharedInstance();
+					server->SetDrawDebugFrames(!server->GetDrawDebugFrames());
+				}
 					
 				default:
 					break;
