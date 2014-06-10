@@ -24,10 +24,8 @@ namespace RN
 			_colorPicker(nullptr)
 		{
 			_border = new ImageView();
-			_contentView = new View();
-			_background = new AlphaBackground();
+			_contentView = new ColorViewContent();
 			
-			AddSubview(_background);
 			AddSubview(_border);
 			AddSubview(_contentView);
 			
@@ -79,14 +77,13 @@ namespace RN
 			
 			_border->Release();
 			_contentView->Release();
-			_background->Release();
 		}
 		
 		
 		void ColorView::SetColor(const RN::Color &color)
 		{
 			_color = color;
-			_contentView->SetBackgroundColor(Color::WithRNColor(color));
+			_contentView->SetColor(Color::WithRNColor(color));
 			
 			if(_colorPicker)
 			{
@@ -101,7 +98,7 @@ namespace RN
 				return;
 			
 			_color = color;
-			_contentView->SetBackgroundColor(Color::WithRNColor(color));
+			_contentView->SetColor(Color::WithRNColor(color));
 			
 			DispatchEvent(EventType::ValueChanged);
 		}
@@ -123,7 +120,6 @@ namespace RN
 			Rect frame = GetBounds();
 			Rect contentRect = Rect(_insets.left, _insets.top, frame.width - (_insets.left + _insets.right), frame.height - (_insets.top + _insets.bottom));
 			
-			_background->SetFrame(contentRect);
 			_contentView->SetFrame(contentRect);
 			
 			_border->SetFrame(frame);

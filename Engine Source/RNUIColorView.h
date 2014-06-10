@@ -44,8 +44,7 @@ namespace RN
 			EdgeInsets _insets;
 			
 			ImageView *_border;
-			View *_contentView;
-			View *_background;
+			class ColorViewContent *_contentView;
 			
 			Widget *_colorPicker;
 			

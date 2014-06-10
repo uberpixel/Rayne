@@ -16,12 +16,13 @@ namespace RN
 {
 	namespace UI
 	{
-		class AlphaBackground : public View
+		class ColorViewContent : public View
 		{
 		public:
-			AlphaBackground();
+			ColorViewContent();
 			
 			void SetFrame(const Rect &frame) override;
+			void SetColor(Color *color);
 			
 			void Draw(Renderer *renderer) override;
 			

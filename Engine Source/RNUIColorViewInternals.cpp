@@ -14,9 +14,9 @@ namespace RN
 {
 	namespace UI
 	{
-		AlphaBackground::AlphaBackground()
+		ColorViewContent::ColorViewContent()
 		{
-			_material = GetBasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNCSTR("shader/rn_UIAlphaBackground"), nullptr));
+			_material = GetBasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNCSTR("shader/rn_UIColorView"), nullptr));
 			_material->Retain();
 			
 			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
@@ -57,7 +57,7 @@ namespace RN
 			chunk.CommitChanges();
 		}
 		
-		void AlphaBackground::SetFrame(const Rect &frame)
+		void ColorViewContent::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
 			
@@ -77,7 +77,12 @@ namespace RN
 			chunk.CommitChanges();
 		}
 		
-		void AlphaBackground::Draw(Renderer *renderer)
+		void ColorViewContent::SetColor(Color *color)
+		{
+			_material->SetDiffuseColor(color->GetRNColor());
+		}
+		
+		void ColorViewContent::Draw(Renderer *renderer)
 		{
 			View::Draw(renderer);
 			
