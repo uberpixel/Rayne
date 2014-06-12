@@ -307,6 +307,11 @@ namespace RN
 		float hi = h * 3.0 / k::Pi;
 		float f  = hi - floorf(hi);
 		
+		if(hi >= 3.0f)
+			hi -= 6.0f;
+		if(hi < -3.0f)
+			hi += 6.0f;
+		
 		Color components(0.0, s, s * f, s * (1.0 - f));
 		components = Color::White() - components;
 		components *= v;
@@ -315,23 +320,23 @@ namespace RN
 		components.b = fmaxf(components.b, 0.0f);
 		components.a = fmaxf(components.a, 0.0f);
 		
-		if(hi < -2.0)
+		if(hi < -2.0f)
 		{
 			return Color(components.r, components.a, components.g, alpha);
 		}
-		else if(hi < -1.0)
+		else if(hi < -1.0f)
 		{
 			return Color(components.b, components.r, components.g, alpha);
 		}
-		else if(hi < 0.0)
+		else if(hi < 0.0f)
 		{
 			return Color(components.g, components.r, components.a, alpha);
 		}
-		else if(hi < 1.0)
+		else if(hi < 1.0f)
 		{
 			return Color(components.g, components.b, components.r, alpha);
 		}
-		else if(hi < 2.0)
+		else if(hi < 2.0f)
 		{
 			return Color(components.a, components.g, components.r, alpha);
 		}
