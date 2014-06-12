@@ -79,9 +79,14 @@ namespace RN
 			Color *color = new Color(RN::Color(white, white, white, a));
 			return color->Autorelease();
 		}
-		Color *Color::WithHSV(float h, float s, float v)
+		Color *Color::WithHSV(float h, float s, float v, float a)
 		{
-			Color *color = new Color(RN::Color::WithHSV(h, s, v));
+			Color *color = new Color(RN::Color::WithHSV(h, s, v, a));
+			return color->Autorelease();
+		}
+		Color *Color::WithHSV(const Vector4 &hsva)
+		{
+			Color *color = new Color(RN::Color::WithHSV(hsva));
 			return color->Autorelease();
 		}
 		

@@ -56,6 +56,7 @@ namespace RN
 		static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
 		static Color ClearColor() { return Color(0.0f, 0.0f, 0.0f, 0.0f); }
 		static Color WithHSV(float h, float s, float v, float alpha=1.0f);
+		static Color WithHSV(const Vector4 &hsva);
 		
 		struct
 		{
@@ -309,6 +310,10 @@ namespace RN
 		Color components(0.0, s, s * f, s * (1.0 - f));
 		components = Color::White() - components;
 		components *= v;
+		components.r = fmaxf(components.r, 0.0f);
+		components.g = fmaxf(components.g, 0.0f);
+		components.b = fmaxf(components.b, 0.0f);
+		components.a = fmaxf(components.a, 0.0f);
 		
 		if(hi < -2.0)
 		{
@@ -334,6 +339,11 @@ namespace RN
 		{
 			return Color(components.r, components.g, components.b, alpha);
 		}
+	}
+	
+	RN_INLINE Color Color::WithHSV(const Vector4 &hsva)
+	{
+		return WithHSV(hsva.x, hsva.y, hsva.z, hsva.w);
 	}
 	
 	RN_INLINE Vector4 Color::GetHSV() const
@@ -372,7 +382,7 @@ namespace RN
 			s = diff/max;
 		}
 		
-		return Vector4(h, s, v, a);
+		return Vector4(h - k::Pi, s, v, a);
 	}
 
 	#ifndef __GNUG__

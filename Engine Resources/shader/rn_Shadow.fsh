@@ -141,10 +141,10 @@ float rn_ShadowPointTextureCubeArrayShadow(int index, vec3 pos)
 		return texture(lightPointDepth0, pos).r;
 	else if(index == 1)
 		return texture(lightPointDepth1, pos).r;
-	else if(index == 2)
+/*	else if(index == 2)
 		return texture(lightPointDepth2, pos).r;
 	else if(index == 3)
-		return texture(lightPointDepth3, pos).r;
+		return texture(lightPointDepth3, pos).r;*/
 	else return 1.0;
 }
 
@@ -174,10 +174,10 @@ float rn_ShadowSpotTextureArrayShadow(int index, vec3 pos)
 		return texture(lightSpotDepth0, pos);
 	else if(index == 1)
 		return texture(lightSpotDepth1, pos);
-	else if(index == 2)
+/*	else if(index == 2)
 		return texture(lightSpotDepth2, pos);
 	else if(index == 3)
-		return texture(lightSpotDepth3, pos);
+		return texture(lightSpotDepth3, pos);*/
 	else return 1.0;
 }
 

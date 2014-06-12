@@ -21,7 +21,7 @@ namespace RN
 		{}
 		
 		ColorView::ColorView(Dictionary *style) :
-			_colorPicker(nullptr)
+			_colorPicker(nullptr), _color(nullptr)
 		{
 			_border = new ImageView();
 			_contentView = new ColorViewContent();
@@ -64,7 +64,7 @@ namespace RN
 			}
 			
 			StateChanged(GetState());
-			SetColor(RN::Color::White());
+			SetColor(Color::WhiteColor());
 		}
 		
 		ColorView::~ColorView()
@@ -77,13 +77,19 @@ namespace RN
 			
 			_border->Release();
 			_contentView->Release();
+			
+			SafeRelease(_color);
 		}
 		
 		
-		void ColorView::SetColor(const RN::Color &color)
+		void ColorView::SetColor(Color *color)
 		{
-			_color = color;
-			_contentView->SetColor(Color::WithRNColor(color));
+			if(_color && _color->IsEqual(color))
+				return;
+			
+			SafeRelease(_color);
+			_color = color->Retain();
+			_contentView->SetColor(_color);
 			
 			if(_colorPicker)
 			{
@@ -92,13 +98,14 @@ namespace RN
 			}
 		}
 		
-		void ColorView::SetColorInternal(const RN::Color &color)
+		void ColorView::SetColorInternal(Color *color)
 		{
-			if(_color == color)
+			if(_color && _color->IsEqual(color))
 				return;
 			
-			_color = color;
-			_contentView->SetColor(Color::WithRNColor(color));
+			SafeRelease(_color);
+			_color = color->Retain();
+			_contentView->SetColor(color);
 			
 			DispatchEvent(EventType::ValueChanged);
 		}

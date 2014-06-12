@@ -20,7 +20,7 @@ namespace RN
 		
 		ColorPicker::ColorPicker(const Rect &frame) :
 			Control(frame),
-			_color(RN::Color::White())
+			_color(Color::WhiteColor()->Retain())
 		{
 			_colorWheel = new ColorWheel();
 			_brightnessView = new GradientView();
@@ -61,10 +61,10 @@ namespace RN
 			_alphaSlider->SetMaxValue(1.0f);
 			_alphaSlider->AddListener(EventType::ValueChanged, [this](Control *control, EventType event) {
 				
-				RN::Color color = _color;
+				RN::Color color = _color->GetUncorrectedRNColor();
 				color.a = _alphaSlider->GetValue();
 				
-				UpdateColor(color);
+				UpdateColor(Color::WithRNColor(color));
 				
 			}, nullptr);
 			
@@ -84,16 +84,18 @@ namespace RN
 			
 			_brightnessView->Release();
 			_brightnessKnob->Release();
+			
+			SafeRelease(_color);
 		}
 		
 		
 		
-		void ColorPicker::SetColor(const RN::Color &color)
+		void ColorPicker::SetColor(Color *color)
 		{
-			if(color == _color)
+			if(_color && _color->IsEqual(color))
 				return;
 			
-			_alphaSlider->SetValue(color.a);
+			_alphaSlider->SetValue(color->GetUncorrectedRNColor().a);
 			
 			float brightness;
 			Vector2 position = ConvertColorToWheel(color, brightness);
@@ -204,20 +206,17 @@ namespace RN
 		}
 		
 		
-		void ColorPicker::UpdateColor(const RN::Color &color)
+		void ColorPicker::UpdateColor(Color *color)
 		{
-			_color = color;
+			SafeRelease(_color);
+			_color = color->Retain();
+			_colorHSV = _color->GetUncorrectedRNColor().GetHSV();
+			_brightness = _colorHSV.z;
 			
-			{
-				Vector2 position = ConvertColorToWheel(_color, _brightness);
-				_fullColor = ConvertColorFromWheel(position, 1.0);
-				_fullColor.a = 1.0f;
-			}
+			_alphaSlider->SetValue(_colorHSV.w);
 			
-			_brightnessView->SetStartColor(Color::WithRNColor(_fullColor));
+			_brightnessView->SetStartColor(Color::WithHSV(_colorHSV.x, _colorHSV.y, 1.0f, 1.0f));
 			_brightnessView->SetEndColor(Color::BlackColor());
-			
-			_alphaSlider->SetValue(_color.a);
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);
@@ -234,9 +233,9 @@ namespace RN
 			_colorWheel->SetBrightness(_brightness);
 			
 			{
-				float brightness;
-				Vector2 position = ConvertColorToWheel(_color, brightness);
-				_color = ConvertColorFromWheel(position, _brightness);
+				SafeRelease(_color);
+				_colorHSV.z = _brightness;
+				_color = Color::WithHSV(_colorHSV)->Retain();
 			}
 		}
 		
@@ -260,7 +259,8 @@ namespace RN
 			
 			{
 				Vector2 position = ConvertColorToWheel(_color, _brightness);
-				position *= _colorWheel->GetFrame().GetSize();
+				position *= _colorWheel->GetBounds().GetSize();
+				position += _colorWheel->GetBounds().GetSize() * 0.5f;
 				
 				UpdateColorKnob(position, false);
 				UpdateBrightness();
@@ -269,20 +269,20 @@ namespace RN
 			_alphaSlider->SetFrame(Rect(0.0f, frame.height - 20.0f, frame.width, 20.0f));
 		}
 		
-		RN::Color ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
+		Color *ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
 		{
 			float theta = atan2(position.y, -position.x);
 			float r = position.GetLength();
 			
-			return RN::Color::WithHSV(theta, r, brightness, _alphaSlider->GetValue());
+			return Color::WithHSV(theta, r, brightness, _alphaSlider->GetValue());
 		}
 		
-		Vector2 ColorPicker::ConvertColorToWheel(const RN::Color &color, float &brightness)
+		Vector2 ColorPicker::ConvertColorToWheel(const Color *color, float &brightness)
 		{
-			Vector4 hsva = color.GetHSV();
+			Vector4 hsva = color->GetUncorrectedRNColor().GetHSV();
 			brightness = hsva.z;
 			
-			return Vector2(hsva.y * cos(hsva.x), hsva.y * -sin(hsva.x));
+			return Vector2(hsva.y * cos(hsva.x + k::Pi), hsva.y * -sin(hsva.x + k::Pi));
 		}
 	}
 }

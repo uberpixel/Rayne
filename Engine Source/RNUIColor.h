@@ -29,7 +29,8 @@ namespace RN
 			RNAPI static Color *WithRGB(float r, float g, float b);
 			RNAPI static Color *WithRGBA(float r, float g, float b, float a);
 			RNAPI static Color *WithWhite(float white, float a);
-			RNAPI static Color *WithHSV(float h, float s, float v);
+			RNAPI static Color *WithHSV(float h, float s, float v, float a=1.0f);
+			RNAPI static Color *WithHSV(const Vector4 &hsva);
 			
 			RNAPI static Color *RedColor();
 			RNAPI static Color *GreenColor();

@@ -27,8 +27,8 @@ namespace RN
 			RNAPI ColorView(Dictionary *style);
 			RNAPI ~ColorView();
 			
-			RNAPI void SetColor(const RN::Color &color);
-			RNAPI const RN::Color &GetColor() const { return _color; }
+			RNAPI void SetColor(Color *color);
+			RNAPI Color *GetColor() const { return _color; }
 			
 			RNAPI void LayoutSubviews() override;
 			
@@ -37,9 +37,9 @@ namespace RN
 			RNAPI bool PostEvent(EventType event) override;
 			
 		private:
-			void SetColorInternal(const RN::Color &color);
+			void SetColorInternal(Color *color);
 			
-			RN::Color _color;
+			Color *_color;
 			ControlStateStore<Image> _borderImages;
 			EdgeInsets _insets;
 			

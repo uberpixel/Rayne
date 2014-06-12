@@ -38,12 +38,12 @@ namespace RN
 		
 		void GradientView::SetStartColor(Color *color)
 		{
-			_material->SetDiffuseColor(color->GetRNColor());
+			_material->SetDiffuseColor(color->GetUncorrectedRNColor());
 		}
 		
 		void GradientView::SetEndColor(Color *color)
 		{
-			_material->SetAmbientColor(color->GetRNColor());
+			_material->SetAmbientColor(color->GetUncorrectedRNColor());
 		}
 		
 		void GradientView::SetAngle(float angle)

@@ -21,5 +21,5 @@ void main()
 	blendFactor = blendFactor * blendFactor * (3.0 - 2.0 * blendFactor);
 	fragColor0.rgb = mix(vec3(1.0), vec3(0.0), blendFactor);
 	fragColor0.rgb = mix(fragColor0.rgb, diffuse.rgb, diffuse.a);
-	fragColor0 = vec4(pow(fragColor0.rgb, vec3(2.2)), 1.0);
+	fragColor0.a = 1.0;
 }
