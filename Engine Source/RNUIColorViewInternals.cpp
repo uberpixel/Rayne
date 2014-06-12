@@ -47,12 +47,12 @@ namespace RN
 			*vertices ++ = Vector2(0.0f, 0.0f);
 			*vertices ++ = Vector2(size.x, 0.0f);
 			
-			*texcoords ++ = Vector2(1.0f, 0.0f);
-			*texcoords ++ = Vector2(0.0f, 0.0f);
 			*texcoords ++ = Vector2(1.0f, 1.0f);
-			*texcoords ++ = Vector2(0.0f, 0.0f);
 			*texcoords ++ = Vector2(0.0f, 1.0f);
-			*texcoords ++ = Vector2(1.0f, 1.0f);
+			*texcoords ++ = Vector2(1.0f, 0.0f);
+			*texcoords ++ = Vector2(0.0f, 1.0f);
+			*texcoords ++ = Vector2(0.0f, 0.0f);
+			*texcoords ++ = Vector2(1.0f, 0.0f);
 			
 			chunk.CommitChanges();
 		}
@@ -65,6 +65,7 @@ namespace RN
 			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
 			
 			Vector2 size = GetBounds().GetSize();
+			_material->SetDiscardThreshold(size.GetLength()/10.0f);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
@@ -79,7 +80,7 @@ namespace RN
 		
 		void ColorViewContent::SetColor(Color *color)
 		{
-			_material->SetDiffuseColor(color->GetRNColor());
+			_material->SetDiffuseColor(color->GetUncorrectedRNColor());
 		}
 		
 		void ColorViewContent::Draw(Renderer *renderer)
