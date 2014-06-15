@@ -14,8 +14,29 @@
 
 namespace RN
 {
+	static std::unordered_map<const void *, UTF8String *> _stringTable;
+	static SpinLock _stringTableLock;
+
+	UTF8String *StringPool::CreateUTF8String(const void *string)
+	{
+		LockGuard<SpinLock> lock(_stringTableLock);
+		UTF8String *source = _stringTable[string];
+
+		if(!source)
+		{
+			source = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, false);
+			_stringTable[string] = source;
+		}
+
+		lock.Unlock();
+
+		UTF8String *temp = new UTF8String(source->_constStorage, source->_length, source->_hash, source->_flags);
+		return temp;
+	}
+
+
 	RNDefineMeta(UTF8String, Object)
-	
+
 	static const char UTF8TrailingBytes[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -206,6 +227,13 @@ namespace RN
 	{
 		RecalcuateHash();
 	}
+
+	UTF8String::UTF8String(const uint8 *storage, size_t length, machine_hash hash, Flags flags) :
+		_flags(flags),
+		_constStorage(storage),
+		_length(length),
+		_hash(hash)
+	{}
 	
 	UTF8String::UTF8String(const UTF8String *other) :
 		_flags(other->_flags),

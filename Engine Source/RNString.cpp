@@ -47,11 +47,23 @@ namespace RN
 	
 	String::String(const char *string, bool constant)
 	{
+		if(constant)
+		{
+			_string = StringPool::CreateUTF8String(string);
+			return;
+		}
+
 		_string = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, !constant);
 	}
 	
 	String::String(const char *string, size_t length, bool constant)
 	{
+		if(constant && (length == strlen(string)))
+		{
+			_string = StringPool::CreateUTF8String(string);
+			return;
+		}
+
 		_string = new UTF8String(reinterpret_cast<const uint8 *>(string), length, !constant);
 	}
 	

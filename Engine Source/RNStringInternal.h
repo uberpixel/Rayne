@@ -16,9 +16,19 @@
 
 namespace RN
 {
+	class UTF8String;
+
+	class StringPool
+	{
+	public:
+		static UTF8String *CreateUTF8String(const void *string);
+	};
+
 	class UTF8String : public Object
 	{
 	public:
+		friend class StringPool;
+
 		struct Flags : public Enum<uint32>
 		{
 		public:
@@ -63,6 +73,8 @@ namespace RN
 		bool ValidateUTF8() const;
 		
 	protected:
+		UTF8String(const uint8 *storage, size_t length, machine_hash hash, Flags flags);
+
 		size_t SkipCharacters(const uint8 *string, size_t skip) const;
 		void WakeUpWithUTF8String(const uint8 *data, size_t count, bool mutableStorage);
 		
