@@ -497,6 +497,12 @@
     <ClInclude Include="Engine Source\RNUIPopUpButton.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNUISlider.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIColorViewInternals.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -884,6 +890,12 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="Engine Source\RNUIPopUpButton.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUISlider.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIColorViewInternals.cpp">
       <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>

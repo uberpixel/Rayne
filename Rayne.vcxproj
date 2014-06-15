@@ -137,6 +137,7 @@
     <ClInclude Include="Engine Source\RNUIColor.h" />
     <ClInclude Include="Engine Source\RNUIColorPicker.h" />
     <ClInclude Include="Engine Source\RNUIColorView.h" />
+    <ClInclude Include="Engine Source\RNUIColorViewInternals.h" />
     <ClInclude Include="Engine Source\RNUIColorWheel.h" />
     <ClInclude Include="Engine Source\RNUIControl.h" />
     <ClInclude Include="Engine Source\RNUIFont.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include="Engine Source\RNUIScrollView.h" />
     <ClInclude Include="Engine Source\RNUISegmentView.h" />
     <ClInclude Include="Engine Source\RNUIServer.h" />
+    <ClInclude Include="Engine Source\RNUISlider.h" />
     <ClInclude Include="Engine Source\RNUIStyle.h" />
     <ClInclude Include="Engine Source\RNUITableView.h" />
     <ClInclude Include="Engine Source\RNUITableViewCell.h" />
@@ -272,6 +274,7 @@
     <ClCompile Include="Engine Source\RNUIColor.cpp" />
     <ClCompile Include="Engine Source\RNUIColorPicker.cpp" />
     <ClCompile Include="Engine Source\RNUIColorView.cpp" />
+    <ClCompile Include="Engine Source\RNUIColorViewInternals.cpp" />
     <ClCompile Include="Engine Source\RNUIColorWheel.cpp" />
     <ClCompile Include="Engine Source\RNUIControl.cpp" />
     <ClCompile Include="Engine Source\RNUIFont.cpp" />
@@ -290,6 +293,7 @@
     <ClCompile Include="Engine Source\RNUIScrollView.cpp" />
     <ClCompile Include="Engine Source\RNUISegmentView.cpp" />
     <ClCompile Include="Engine Source\RNUIServer.cpp" />
+    <ClCompile Include="Engine Source\RNUISlider.cpp" />
     <ClCompile Include="Engine Source\RNUIStyle.cpp" />
     <ClCompile Include="Engine Source\RNUITableView.cpp" />
     <ClCompile Include="Engine Source\RNUITableViewCell.cpp" />

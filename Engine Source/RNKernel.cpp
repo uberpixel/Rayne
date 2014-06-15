@@ -190,7 +190,9 @@ namespace RN
 	void Kernel::Prepare()
 	{
 		MakeShared();
-		
+
+		_internals->_active = true;
+
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
@@ -293,7 +295,6 @@ namespace RN
 		
 		_internals->_initialized = false;
 		_internals->_shouldExit  = false;
-		_internals->_active      = true;
 		
 		_internals->_uiserver->UpdateSize();
 		
