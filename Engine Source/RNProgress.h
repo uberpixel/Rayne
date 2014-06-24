@@ -63,6 +63,8 @@ namespace RN
 		
 		RNDeclareMeta(Progress)
 	};
+	
+	RNObjectClass(Progress)
 }
 
 #endif /* __RAYNE_PROGRESS_H__ */

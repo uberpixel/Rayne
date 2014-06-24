@@ -32,6 +32,9 @@ namespace RN
 		RNAPI String *GetStringForObject(Object *object) override;
 		RNAPI Object *GetObjectForString(String *string) override;
 	};
+	
+	RNObjectClass(Formatter)
+	RNObjectClass(NumberFormatter)
 }
 
 #endif /* __RAYNE_FORMATTER_H__ */

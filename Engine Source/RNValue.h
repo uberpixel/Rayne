@@ -77,6 +77,8 @@ namespace RN
 		
 		RNDeclareMeta(Value)
 	};
+	
+	RNObjectClass(Value)
 }
 
 #endif /* __RAYNE_VALUE_H__ */

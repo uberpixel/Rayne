@@ -30,6 +30,8 @@ namespace RN
 		
 		RNDeclareMeta(IndexPath)
 	};
+	
+	RNObjectClass(IndexPath)
 }
 
 #endif /* __RAYNE_INDEXPATH_H__ */

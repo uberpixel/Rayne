@@ -10,6 +10,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNLogging.h"
 #include "RNData.h"
+#include "RNObjectInternals.h"
 
 namespace RN
 {
@@ -42,6 +43,8 @@ namespace RN
 					break;
 			}
 		}
+		
+		__DestroyWeakReferences(this);
 	}
 	
 	void Object::InitialWakeUp(MetaClass *meta)
@@ -57,7 +60,10 @@ namespace RN
 	MetaClass *Object::GetMetaClass()
 	{
 		if(!__kRNObjectMetaClass)
+		{
+			__InitWeakTables();
 			__kRNObjectMetaClass = new MetaType();
+		}
 		
 		return reinterpret_cast<Object::MetaType *>(__kRNObjectMetaClass);
 	}

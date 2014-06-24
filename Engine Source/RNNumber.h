@@ -94,6 +94,8 @@ namespace RN
 		
 		RNDeclareMeta(Number);
 	};
+	
+	RNObjectClass(Number)
 }
 
 #endif /* __RAYNE_NUMBER_H__ */

@@ -27,6 +27,8 @@ namespace RN
 		
 		RNDeclareMeta(Null)
 	};
+	
+	RNObjectClass(Null)
 }
 
 #endif /* __RAYNE_NULL_H__ */

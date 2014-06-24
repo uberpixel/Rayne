@@ -295,6 +295,8 @@
 		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
 		E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F44172A4FD70075559B /* RNTextureAtlas.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F4A172A51440075559B /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9E83F49172A51440075559B /* libbz2.dylib */; };
+		E9F09C3C1959F92700235268 /* RNObjectInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F09C3A1959F92700235268 /* RNObjectInternals.cpp */; };
+		E9F09C3D1959F92700235268 /* RNObjectInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F09C3B1959F92700235268 /* RNObjectInternals.h */; };
 		E9F2B68118388BF80014FB80 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F2B68018388BF80014FB80 /* libsqlite3.dylib */; };
 		E9F2B6851838B11F0014FB80 /* RNSHA2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F2B6831838B11F0014FB80 /* RNSHA2.cpp */; };
 		E9F2B6861838B11F0014FB80 /* RNSHA2.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F2B6841838B11F0014FB80 /* RNSHA2.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -643,6 +645,8 @@
 		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
 		E9E83F44172A4FD70075559B /* RNTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureAtlas.h; sourceTree = "<group>"; };
 		E9E83F49172A51440075559B /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
+		E9F09C3A1959F92700235268 /* RNObjectInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNObjectInternals.cpp; sourceTree = "<group>"; };
+		E9F09C3B1959F92700235268 /* RNObjectInternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNObjectInternals.h; sourceTree = "<group>"; };
 		E9F2B68018388BF80014FB80 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		E9F2B68218389ABF0014FB80 /* RNSQLite3Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSQLite3Internal.h; sourceTree = "<group>"; };
 		E9F2B6831838B11F0014FB80 /* RNSHA2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSHA2.cpp; sourceTree = "<group>"; };
@@ -840,6 +844,8 @@
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E9619E0D1696157E00DA187E /* RNObject.cpp */,
 				E9619E0E1696157E00DA187E /* RNObject.h */,
+				E9F09C3A1959F92700235268 /* RNObjectInternals.cpp */,
+				E9F09C3B1959F92700235268 /* RNObjectInternals.h */,
 				E97055D0187D81820022C82A /* RNProgress.cpp */,
 				E97055D1187D81820022C82A /* RNProgress.h */,
 				E9F361F8175AB84800365C12 /* RNSerialization.cpp */,
@@ -1181,6 +1187,7 @@
 				E9619E2A1696157E00DA187E /* RNBase.h in Headers */,
 				E95D42DE17DC28C900026E8C /* RNValue.h in Headers */,
 				E9619E2C1696157E00DA187E /* RNCamera.h in Headers */,
+				E9F09C3D1959F92700235268 /* RNObjectInternals.h in Headers */,
 				E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */,
 				E9619E2D1696157E00DA187E /* RNColor.h in Headers */,
 				E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */,
@@ -1533,6 +1540,7 @@
 				D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */,
 				E9BEC9CE179CDFCB00C05623 /* RNUITextEditor.cpp in Sources */,
 				E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */,
+				E9F09C3C1959F92700235268 /* RNObjectInternals.cpp in Sources */,
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 				E97055D2187D81820022C82A /* RNProgress.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,

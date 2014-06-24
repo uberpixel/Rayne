@@ -72,6 +72,8 @@ namespace RN
 		
 		RNDeclareMeta(Dictionary)
 	};
+	
+	RNObjectClass(Dictionary)
 }
 
 #endif /* __RAYNE_DICTIONARY_H__ */

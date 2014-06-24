@@ -243,6 +243,171 @@ namespace RN
 	{
 		return object ? static_cast<T *>(object->Retain()) : nullptr;
 	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Smart pointers
+	// ---------------------
+	
+	template<class T>
+	struct SmartRef
+	{
+		SmartRef() :
+			_value(new T())
+		{}
+		
+		SmartRef(std::nullptr_t null) :
+			_value(nullptr)
+		{}
+		
+		explicit SmartRef(T *value) :
+			_value(value)
+		{
+			if(_value)
+				_value->Retain();
+		}
+		
+		SmartRef(const SmartRef<T> &other) :
+			_value(nullptr)
+		{
+			Assign(other._value);
+		}
+		
+		template<class ... Args>
+		SmartRef(Args&&... args)
+		{
+			_value = new T(std::forward<Args>(args)...);
+		}
+		
+		~SmartRef()
+		{
+			if(_value)
+				_value->Release();
+		}
+		
+		SmartRef &operator =(const SmartRef<T> &other)
+		{
+			Assign(other._value);
+			return *this;
+		}
+		
+		SmartRef &operator =(T *value)
+		{
+			Assign(value);
+			return *this;
+		}
+		
+		operator T* () const
+		{
+			return Load();
+		}
+		
+		
+		T *operator ->() const
+		{
+			return const_cast<T *>(_value);
+		}
+		
+		T *Load() const
+		{
+			T *object = const_cast<T *>(_value);
+			
+			object->Retain();
+			object->Autorelease();
+			
+			return object;
+		}
+		
+	private:
+		void Assign(T *value)
+		{
+			if(_value)
+				_value->Release();
+			
+			if((_value = value))
+				_value->Retain();
+		}
+		
+		T *_value;
+	};
+	
+	RNAPI Object *__InitWeak(Object **weak, Object *value);
+	RNAPI Object *__StoreWeak(Object **weak, Object *value);
+	RNAPI Object *__LoadWeakObjectRetained(Object **weak);
+	RNAPI Object *__RemoveWeakObject(Object **weak);
+	
+	template<class T>
+	struct WeakRef
+	{
+		WeakRef()
+		{
+			__InitWeak(&_reference, nullptr);
+		}
+		WeakRef(T *value)
+		{
+			__InitWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(value));
+		}
+		WeakRef(const WeakRef<T> &other)
+		{
+			__InitWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
+		}
+		WeakRef(const SmartRef<T> &other)
+		{
+			__InitWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
+		}
+		
+		~WeakRef()
+		{
+			__RemoveWeakObject(reinterpret_cast<Object **>(&_reference));
+		}
+		
+		
+		WeakRef &operator =(const WeakRef<T> &other)
+		{
+			__StoreWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
+			return *this;
+		}
+		WeakRef &operator =(const SmartRef<T> &other)
+		{
+			__StoreWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
+			return *this;
+		}
+		WeakRef &operator =(T *value)
+		{
+			__StoreWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(value));
+			return *this;
+		}
+		
+		
+		operator T* () const
+		{
+			return Load();
+		}
+		
+		T *operator ->() const
+		{
+			return const_cast<T *>(Load());
+		}
+		
+		T *Load() const
+		{
+			Object *object = __LoadWeakObjectRetained(reinterpret_cast<Object **>(&_reference));
+			if(!object)
+				return nullptr;
+			
+			return static_cast<T *>(object->Autorelease());
+		}
+		
+	private:
+		mutable T *_reference;
+	};
+	
+#define RNObjectClass(name) \
+	using name##Ref = RN::SmartRef<name>; \
+	using Weak##name = RN::WeakRef<name>;
+	
+#define RNObjectTransferRef(t) \
+	(t)->Autorelease()
 }
 
 namespace std

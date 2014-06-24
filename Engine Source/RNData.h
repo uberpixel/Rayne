@@ -54,6 +54,8 @@ namespace RN
 		
 		RNDeclareMeta(Data)
 	};
+	
+	RNObjectClass(Data)
 }
 
 #endif /* __RAYNE_DATA_H__ */

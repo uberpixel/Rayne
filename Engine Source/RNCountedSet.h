@@ -54,6 +54,8 @@ namespace RN
 		
 		RNDeclareMeta(CountedSet)
 	};
+	
+	RNObjectClass(CountedSet)
 }
 
 

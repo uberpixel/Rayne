@@ -53,6 +53,8 @@ namespace RN
 		
 		RNDeclareMeta(Set)
 	};
+	
+	RNObjectClass(Set)
 }
 
 #endif /* __RAYNE_SET_H__ */

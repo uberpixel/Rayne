@@ -273,6 +273,8 @@ namespace RN
 		
 		RNDeclareMeta(Array)
 	};
+	
+	RNObjectClass(Array)
 }
 
 #endif /* __RAYNE_ARRAY_H__ */

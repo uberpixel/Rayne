@@ -39,6 +39,8 @@ namespace RN
 		
 		RNDeclareMeta(IndexSet)
 	};
+	
+	RNObjectClass(IndexSet)
 }
 
 #endif /* __RAYNE_INDEXSET_H__ */

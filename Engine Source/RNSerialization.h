@@ -157,6 +157,11 @@ namespace RN
 		
 		std::unordered_map<uint64, Object *> _objectTable;
 	};
+	
+	RNObjectClass(Serializer)
+	RNObjectClass(Deserializer)
+	RNObjectClass(FlatSerializer)
+	RNObjectClass(FlatDeserializer)
 }
 
 #endif /* __RAYNE_SERIALIZATION_H__ */
