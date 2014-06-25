@@ -47,6 +47,8 @@ namespace RN
 		
 		RNDeclareMeta(Asset)
 	};
+	
+	RNObjectClass(Asset)
 }
 
 #endif /* __RAYNE_ASSET_H__ */

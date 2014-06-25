@@ -48,6 +48,8 @@ namespace RN
 		
 		RNDeclareMeta(TextNode)
 	};
+	
+	RNObjectClass(TextNode)
 }
 
 #endif /* __RAYNE_TEXTNODE_H__ */

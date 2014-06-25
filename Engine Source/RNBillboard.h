@@ -49,6 +49,8 @@ namespace RN
 		
 		RNDeclareMeta(Billboard)
 	};
+	
+	RNObjectClass(Billboard)
 }
 
 #endif /* __RAYNE_BILLBOARD_H__ */

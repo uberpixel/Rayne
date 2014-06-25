@@ -112,6 +112,8 @@ namespace RN
 		
 		RNDeclareMeta(Thread)
 	};
+	
+	RNObjectClass(Thread)
 }
 
 #endif /* __RAYNE_THREAD_H__ */

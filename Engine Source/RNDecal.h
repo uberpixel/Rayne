@@ -66,6 +66,8 @@ namespace RN
 		
 		RNDeclareMeta(Decal)
 	};
+	
+	RNObjectClass(Decal)
 }
 
 #endif /* __RAYNE_DECAL_H__ */

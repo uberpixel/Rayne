@@ -59,6 +59,8 @@ namespace RN
 		
 		RNDeclareMeta(SceneNodeAttachment);
 	};
+	
+	RNObjectClass(SceneNodeAttachment)
 }
 
 #endif /* __RAYNE_SCENENODEATTACHMENT_H__ */

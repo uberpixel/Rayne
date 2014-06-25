@@ -299,7 +299,7 @@ namespace RN
 		RNDeclareMeta(SceneNode)
 	};
 	
-	
+	RNObjectClass(SceneNode)
 	
 	RN_INLINE void SceneNode::Translate(const Vector3 &trans)
 	{

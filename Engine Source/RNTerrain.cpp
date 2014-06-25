@@ -15,7 +15,7 @@ namespace RN
 	
 	Terrain::Terrain() :
 		_voxels(nullptr),
-		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
+		_resolution("resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
 		_surface(127)
 	{
 		Initialize();
@@ -24,7 +24,7 @@ namespace RN
 	Terrain::Terrain(const Terrain *other) :
 		Sculptable(other),
 		_voxels(nullptr),
-		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
+		_resolution("resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
 		_surface(127)
 	{
 		Terrain *temp = const_cast<Terrain *>(other);

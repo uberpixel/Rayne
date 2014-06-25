@@ -136,6 +136,8 @@ namespace RN
 		
 		RNDeclareMeta(World)
 	};
+	
+	RNObjectClass(World)
 }
 
 #endif /* __RAYNE_WORLD_H__ */

@@ -253,18 +253,13 @@ namespace RN
 	struct SmartRef
 	{
 		SmartRef() :
-			_value(new T())
-		{}
-		
-		SmartRef(std::nullptr_t null) :
 			_value(nullptr)
 		{}
 		
-		explicit SmartRef(T *value) :
-			_value(value)
+		SmartRef(T *value) :
+			_value(nullptr)
 		{
-			if(_value)
-				_value->Retain();
+			Assign(value);
 		}
 		
 		SmartRef(const SmartRef<T> &other) :
@@ -272,13 +267,6 @@ namespace RN
 		{
 			Assign(other._value);
 		}
-		
-		template<class ... Args>
-		SmartRef(Args&&... args)
-		{
-			_value = new T(std::forward<Args>(args)...);
-		}
-		
 		~SmartRef()
 		{
 			if(_value)
@@ -407,7 +395,7 @@ namespace RN
 	using Weak##name = RN::WeakRef<name>;
 	
 #define RNObjectTransferRef(t) \
-	(t)->Autorelease()
+	const_cast<decltype(t)>((t)->Autorelease())
 }
 
 namespace std

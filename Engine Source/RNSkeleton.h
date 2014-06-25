@@ -121,6 +121,8 @@ namespace RN
 		float _blendtime;
 		Animation *_curranim;
 	};
+	
+	RNObjectClass(Skeleton)
 }
 
 #endif /* __RAYNE_SKELETON_H__ */

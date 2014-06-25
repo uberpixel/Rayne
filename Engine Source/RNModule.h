@@ -75,6 +75,8 @@ namespace RN
 		RNDeclareMeta(Module)
 	};
 	
+	RNObjectClass(Module)
+	
 	class ModuleCoordinator : public ISingleton<ModuleCoordinator>
 	{
 	public:

@@ -47,6 +47,8 @@ namespace RN
 		RNDeclareMeta(Message)
 	};
 	
+	RNObjectClass(Message)
+	
 	class MessageCenter : public ISingleton<MessageCenter>
 	{
 	public:
@@ -56,7 +58,7 @@ namespace RN
 		RNAPI void PostMessage(String *name, Object *object, Dictionary *info);
 
 #if RN_PLATFORM_WINDOWS
-		// Windows like its PostMessage macro that expands to either PostMessageA or PostMessageW, depending on
+		// Windows likes its PostMessage macro that expands to either PostMessageA or PostMessageW, depending on
 		// wether the user compiles for UniCode or ANSI targets... Not much that we can do about it, except of preach
 		// that macros are evil!
 

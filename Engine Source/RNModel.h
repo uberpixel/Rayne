@@ -113,6 +113,8 @@ namespace RN
 		
 		RNDeclareMeta(Model)
 	};
+	
+	RNObjectClass(Model)
 }
 
 #endif /* __RAYNE_MODEL_H__ */

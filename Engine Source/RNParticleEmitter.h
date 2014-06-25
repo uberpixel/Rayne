@@ -88,6 +88,8 @@ namespace RN
 		RNDeclareMeta(ParticleEmitter)
 	};
 	
+	RNObjectClass(ParticleEmitter)
+	
 	class GenericParticleEmitter : public ParticleEmitter
 	{
 	public:
@@ -138,6 +140,8 @@ namespace RN
 		
 		RNDeclareMeta(GenericParticleEmitter)
 	};
+	
+	RNObjectClass(GenericParticleEmitter)
 }
 
 #endif /* __RAYNE_PARTICLEEMITTER_H__ */

@@ -58,6 +58,8 @@ namespace RN
 		
 		RNDeclareMeta(ResourceLoader)
 	};
+	
+	RNObjectClass(ResourceLoader)
 }
 
 #endif /* __RAYNE_RESOURCELOADER_H__ */

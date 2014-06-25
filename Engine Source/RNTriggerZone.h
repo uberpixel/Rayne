@@ -53,6 +53,8 @@ namespace RN
 		
 		RNDeclareMeta(TriggerZone)
 	};
+	
+	RNObjectClass(TriggerZone)
 }
 
 #endif /* __RAYNE_TRIGGERZONE_H__ */

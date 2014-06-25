@@ -39,6 +39,8 @@ namespace RN
 			RNDeclareMeta(LoggingEngine)
 		};
 		
+		RNObjectClass(LoggingEngine)
+		
 		struct LoggingEngineDelegate
 		{
 			RNAPI virtual void Open() = 0;

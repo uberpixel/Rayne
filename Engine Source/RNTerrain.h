@@ -86,6 +86,8 @@ namespace RN
 		
 		RNDeclareMeta(Terrain)
 	};
+	
+	RNObjectClass(Terrain)
 }
 
 #endif /* __RAYNE_TERRAIN_H__ */

@@ -39,6 +39,8 @@ namespace RN
 		RNDeclareMeta(SavePanel)
 	};
 	
+	RNObjectClass(SavePanel)
+	
 	class OpenPanel : public SavePanel
 	{
 	public:
@@ -60,6 +62,8 @@ namespace RN
 		
 		RNDeclareMeta(OpenPanel)
 	};
+	
+	RNObjectClass(OpenPanel)
 }
 
 #endif /* __RAYNE_OPENPANEL_H__ */

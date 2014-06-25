@@ -42,6 +42,8 @@ namespace RN
 		
 		RNDeclareMeta(Timer)
 	};
+	
+	RNObjectClass(Timer)
 }
 
 #endif /* __RAYNE_TIMER_H__ */

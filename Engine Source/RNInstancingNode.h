@@ -94,6 +94,8 @@ namespace RN
 		
 		RNDeclareMeta(InstancingNode)
 	};
+	
+	RNObjectClass(InstancingData)
 }
 
 #endif /* __RAYNE_INSTANCINGNODE_H__ */

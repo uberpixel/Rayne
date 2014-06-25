@@ -387,6 +387,8 @@ namespace RN
 		
 		RNDeclareMeta(Camera)
 	};
+	
+	RNObjectClass(Camera)
 }
 
 #endif /* __RAYNE_CAMERA_H__ */

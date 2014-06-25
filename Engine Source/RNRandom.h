@@ -106,6 +106,8 @@ namespace RN
 		
 		RNDeclareMeta(RandomNumberGenerator)
 	};
+	
+	RNObjectClass(RandomNumberGenerator)
 }
 
 #endif /* __RAYNE_RANDOM_H__ */

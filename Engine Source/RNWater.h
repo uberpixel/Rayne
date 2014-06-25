@@ -46,6 +46,8 @@ namespace RN
 		
 		RNDeclareMeta(Water)
 	};
+	
+	RNObjectClass(Water)
 }
 
 #endif /* __RAYNE_WATER_H__ */

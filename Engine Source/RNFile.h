@@ -89,6 +89,8 @@ namespace RN
 		
 		RNDeclareMeta(File)
 	};
+	
+	RNObjectClass(File)
 }
 
 #endif /* __RAYNE_FILE_H__ */

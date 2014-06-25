@@ -31,6 +31,8 @@ namespace RN
 		
 		RNDeclareMeta(WorldAttachment)
 	};
+	
+	RNObjectClass(WorldAttachment)
 }
 
 #endif /* __RAYNE_WORLDATTACHMENT_H__ */

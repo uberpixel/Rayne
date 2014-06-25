@@ -143,6 +143,8 @@ namespace RN
 		
 		RNDeclareMeta(Light)
 	};
+	
+	RNObjectClass(Light)
 }
 
 #endif /* __RAYNE_LIGHT_H__ */

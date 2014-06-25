@@ -52,6 +52,8 @@ namespace RN
 		
 		RNDeclareMeta(Entity)
 	};
+	
+	RNObjectClass(Entity)
 }
 
 #endif /* __RAYNE_ENTITY_H__ */
