@@ -43,11 +43,10 @@ namespace TG
 			model->GetMaterialAtIndex(0, 22)->SetDiscard(true);
 			model->GetMaterialAtIndex(0, 22)->SetCullMode(RN::Material::CullMode::None);
 			
-			RN::Entity *sponza = new RN::Entity();
+			RN::EntityRef sponza = RNObjectTransferRef(new RN::Entity());
 			sponza->SetModel(model);
 			sponza->SetScale(RN::Vector3(0.2f));
 			sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
-			sponza->Release();
 			
 
 			// Lights
@@ -58,11 +57,10 @@ namespace TG
 			{
 				RN::Vector3 pos(random.GetRandomFloatRange(-24.0f, 24.0f), random.GetRandomFloatRange(-4.0f, 18.0f), random.GetRandomFloatRange(-10.0f, 10.0f));
 				
-				RN::Light *light = new RN::Light();
+				RN::LightRef light = RNObjectTransferRef(new RN::Light());
 				light->SetPosition(pos);
 				light->SetRange(random.GetRandomFloatRange(2.0f, 5.0f));
 				light->SetColor(random.GetRandomColor());
-				light->Release();
 				
 				float offset = random.GetRandomFloatRange(0.0f, 10.0f);
 				
@@ -85,34 +83,33 @@ namespace TG
 			_sunLight->SetTag(TGSunTag);
 			
 			RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
-			RN::Billboard *billboard = new RN::Billboard(billboardtex);
 			
+			RN::BillboardRef billboard = RNObjectTransferRef(new RN::Billboard(billboardtex));
 			billboard->SetScale(RN::Vector3(0.04f));
 			billboard->SetRenderGroup(1);
 			billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 			billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
-			billboard->Release();
 			
 			
 			RN::Texture *blooddecal1tex = RN::Texture::WithFile("textures/blood_decal.png");
-			RN::Decal *blooddecal1 = new RN::Decal(blooddecal1tex);
-			blooddecal1->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-			blooddecal1->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
-			blooddecal1->GetMaterial()->Define("RN_SPECULARITY");
-			blooddecal1->GetMaterial()->Define("RN_NORMALMAP");
-			blooddecal1->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
-			blooddecal1->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/blood_decal_NRM.png"));
-			blooddecal1->Release();
+			
+			RN::DecalRef decal = RNObjectTransferRef(new RN::Decal(blooddecal1tex));
+			decal->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+			decal->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
+			decal->GetMaterial()->Define("RN_SPECULARITY");
+			decal->GetMaterial()->Define("RN_NORMALMAP");
+			decal->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+			decal->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/blood_decal_NRM.png"));
 			
 			RN::Texture *blooddecal2tex = RN::Texture::WithFile("textures/penta.png");
-			RN::Decal *blooddecal2 = new RN::Decal(blooddecal2tex);
-			blooddecal2->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-			blooddecal2->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
-			blooddecal2->GetMaterial()->Define("RN_SPECULARITY");
-			blooddecal2->GetMaterial()->Define("RN_NORMALMAP");
-			blooddecal2->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
-			blooddecal2->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/penta_NRM.png"));
-			blooddecal2->Release();
+			
+			decal = RNObjectTransferRef(new RN::Decal(blooddecal1tex));
+			decal->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+			decal->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
+			decal->GetMaterial()->Define("RN_SPECULARITY");
+			decal->GetMaterial()->Define("RN_NORMALMAP");
+			decal->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+			decal->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/penta_NRM.png"));
 		}
 		else
 		{
