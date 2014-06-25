@@ -8,6 +8,7 @@
 
 #include "RNObjectInternals.h"
 #include "RNObject.h"
+#include <cstdint>
 
 #define kRNCPUCacheLineMax 64
 

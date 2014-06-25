@@ -76,6 +76,7 @@
     <ClInclude Include="Engine Source\RNNull.h" />
     <ClInclude Include="Engine Source\RNNumber.h" />
     <ClInclude Include="Engine Source\RNObject.h" />
+    <ClInclude Include="Engine Source\RNObjectInternals.h" />
     <ClInclude Include="Engine Source\RNOctreeSceneManager.h" />
     <ClInclude Include="Engine Source\RNOpenGL.h" />
     <ClInclude Include="Engine Source\RNOpenGLQueue.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="Engine Source\RNNull.cpp" />
     <ClCompile Include="Engine Source\RNNumber.cpp" />
     <ClCompile Include="Engine Source\RNObject.cpp" />
+    <ClCompile Include="Engine Source\RNObjectInternals.cpp" />
     <ClCompile Include="Engine Source\RNOctreeSceneManager.cpp" />
     <ClCompile Include="Engine Source\RNOpenGL.cpp" />
     <ClCompile Include="Engine Source\RNOpenGLBinder.cpp" />

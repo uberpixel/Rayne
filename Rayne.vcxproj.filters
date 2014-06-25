@@ -503,6 +503,9 @@
     <ClInclude Include="Engine Source\RNUIColorViewInternals.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNObjectInternals.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -897,6 +900,9 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNUIColorViewInternals.cpp">
       <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNObjectInternals.cpp">
+      <Filter>Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
