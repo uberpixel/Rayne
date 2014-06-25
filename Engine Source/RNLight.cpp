@@ -26,8 +26,7 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false),
-		_dirty(false)
+		_suppressShadows(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
 		
@@ -51,8 +50,7 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false),
-		_dirty(false)
+		_suppressShadows(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
 		
@@ -87,8 +85,7 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false),
-		_dirty(false)
+		_suppressShadows(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
 		
@@ -197,6 +194,11 @@ namespace RN
 	}
 	
 	void Light::SetRange(float range)
+	{
+		SetWorldScale(RN::Vector3(range));
+	}
+	
+	void Light::SetRangeInternal(float range)
 	{
 		_range = range;
 	}
@@ -511,26 +513,28 @@ namespace RN
 		return true;
 	}
 	
+	void Light::DidUpdate(ChangeSet change)
+	{
+		SceneNode::DidUpdate(change);
+		if(change == ChangeSet::Position)
+		{
+			float range = GetScale().GetMax();
+			if(!Math::Compare(range, _range))
+			{
+				SetRangeInternal(range);
+			}
+		}
+	}
 	
 	void Light::Update(float delta)
 	{
 		SceneNode::Update(delta);
-		if(_dirty)
-		{
-			SetRange(GetScale().GetMax());
-			_dirty = false;
-		}
 		UpdateShadows();
 	}
 	
 	void Light::UpdateEditMode(float delta)
 	{
 		SceneNode::UpdateEditMode(delta);
-		if(_dirty)
-		{
-			SetRange(GetScale().GetMax());
-			_dirty = false;
-		}
 		UpdateShadows();
 	}
 	

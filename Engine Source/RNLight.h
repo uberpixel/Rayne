@@ -89,6 +89,7 @@ namespace RN
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
 		RNAPI void UpdateEditMode(float delta) override;
+		RNAPI void DidUpdate(ChangeSet change);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
@@ -115,6 +116,7 @@ namespace RN
 	private:
 		void ReCalculateColor();
 		void RemoveShadowCameras();
+		void SetRangeInternal(float range);
 		
 		bool ActivateDirectionalShadows();
 		bool ActivatePointShadows();
@@ -132,7 +134,6 @@ namespace RN
 		Observable<float, Light> _angle;
 		
 		float _angleCos;
-		bool _dirty;
 		
 		Camera *_shadowTarget;
 		std::vector<Matrix> _shadowCameraMatrices;
