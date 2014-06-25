@@ -329,7 +329,7 @@ namespace RN
 	{
 		WeakRef()
 		{
-			__InitWeak(&_reference, nullptr);
+			__InitWeak(reinterpret_cast<Object **>(&_reference), nullptr);
 		}
 		WeakRef(T *value)
 		{
