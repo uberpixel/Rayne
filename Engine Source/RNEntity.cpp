@@ -122,7 +122,7 @@ namespace RN
 		if(_model)
 			SetBoundingBox(_model->GetBoundingBox(), true);
 		
-		if(_model->GetSkeleton() != nullptr)
+		if(_model && _model->GetSkeleton() != nullptr)
 			SetSkeleton(Skeleton::WithSkeleton(_model->GetSkeleton()));
 		
 		Unlock();
