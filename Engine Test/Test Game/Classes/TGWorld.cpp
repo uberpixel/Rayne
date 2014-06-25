@@ -19,7 +19,6 @@ namespace TG
 		_frameCapturing(false),
 		_camera(nullptr),
 		_refractCamera(nullptr),
-		_sunLight(nullptr),
 		_bloomActive(false),
 		_godraysActive(false),
 		_fxaaActive(false),
@@ -44,8 +43,6 @@ namespace TG
 		_godraysPipeline->Release();
 		_bloomPipeline->Release();
 		_fxaaPipeline->Release();
-		
-		RN::SafeRelease(_sunLight);
 	}
 	
 	void World::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
@@ -275,20 +272,21 @@ namespace TG
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
 		
 		
-		if(_sunLight)
+		Sun *sun = _sunLight;
+		if(sun)
 		{
-			RN::Color color = _sunLight->GetAmbientColor();
+			RN::Color color = sun->GetAmbientColor();
 			RN::Color ambient(0.127f, 0.252f, 0.393f, 1.0f);
 			
 			_camera->SetAmbientColor(color * (ambient * 5.0f));
-			_camera->SetFogColor(_sunLight->GetFogColor());
+			_camera->SetFogColor(sun->GetFogColor());
 			_camera->SetFogNear(0.0f);
 			_camera->SetFogFar(500.0f);
 			
 			if(_camera->GetChildren()->GetCount() > 0)
 			{
 				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
-				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(sun->GetFogColor());
 			}
 		}
 	}
@@ -297,18 +295,19 @@ namespace TG
 	{
 		RN::World::UpdateEditMode(delta);
 		
-		if(_sunLight)
+		Sun *sun = _sunLight;
+		if(sun)
 		{
-			RN::Color color = _sunLight->GetAmbientColor();
+			RN::Color color = sun->GetAmbientColor();
 			RN::Color ambient(0.127f, 0.252f, 0.393f, 1.0f);
 			
 			_camera->SetAmbientColor(color * (ambient * 5.0f));
-			_camera->SetFogColor(_sunLight->GetFogColor());
+			_camera->SetFogColor(sun->GetFogColor());
 			
 			if(_camera->GetChildren()->GetCount() > 0)
 			{
 				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
-				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(sun->GetFogColor());
 			}
 		}
 	}

@@ -103,7 +103,7 @@ namespace TG
 			
 			RN::Texture *blooddecal2tex = RN::Texture::WithFile("textures/penta.png");
 			
-			decal = RNObjectTransferRef(new RN::Decal(blooddecal1tex));
+			decal = RNObjectTransferRef(new RN::Decal(blooddecal2tex));
 			decal->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 			decal->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
 			decal->GetMaterial()->Define("RN_SPECULARITY");

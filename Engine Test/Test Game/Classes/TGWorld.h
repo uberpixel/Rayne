@@ -44,7 +44,7 @@ namespace TG
 		
 		RN::Camera *_camera;
 		RN::Camera *_refractCamera;
-		Sun *_sunLight;
+		RN::WeakRef<Sun> _sunLight;
 		
 		std::vector<RN::AABB> _obstacles;
 		
