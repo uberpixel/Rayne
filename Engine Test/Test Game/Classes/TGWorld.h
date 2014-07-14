@@ -79,6 +79,7 @@ namespace TG
 		
 		DebugDrawer *_debugDrawer;
 		CutScene *_cutScene;
+		RN::GamepadDevice *_gamepad;
 		
 		RNDeclareMeta(World)
 	};

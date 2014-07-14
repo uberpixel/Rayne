@@ -15,6 +15,7 @@
  **/
 
 #include "RNBase.h"
+#include "RNLogging.h"
 
 #if RN_PLATFORM_IOS
 	#import <UIKit/UIKit.h>
@@ -28,6 +29,11 @@
 	#import <CoreText/CoreText.h>
 	#import <Foundation/Foundation.h>
 	#import <CoreServices/CoreServices.h>
+
+	#import <IOKit/IOKitLib.h>
+	#import <IOKit/IOCFPlugIn.h>
+	#import <IOKit/hid/IOHIDLib.h>
+	#import <IOKit/usb/IOUSBLib.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS

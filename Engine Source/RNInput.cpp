@@ -11,10 +11,139 @@
 #include "RNAutoreleasePool.h"
 #include "RNWindow.h"
 #include "RNUIServer.h"
-#include "RNLogging.h"
+
+#include "RNInputInternalOSX.h"
 
 namespace RN
 {
+	RNDefineMeta(InputControl, Object)
+	RNDefineMeta(Axis2DControl, InputControl)
+	
+	RNDefineMeta(InputDevice, Object)
+	
+	InputControl::InputControl(const String *name) :
+		_name(name->Copy()),
+		_device(nullptr)
+	{}
+
+	InputControl::~InputControl()
+	{
+		_name->Release();
+	}
+	
+	
+	
+	Axis2DControl::Axis2DControl(const String *name) :
+		InputControl(name)
+	{}
+	
+	
+	
+	InputDevice::InputDevice(Category category, const String *vendor, const String *name) :
+		_category(category),
+		_vendor(vendor ? vendor->Copy() : nullptr),
+		_name(name->Copy()),
+		_serialNumber(nullptr),
+		_controls(new Array())
+	{}
+	
+	InputDevice::~InputDevice()
+	{
+		_name->Release();
+		_controls->Release();
+		
+		SafeRelease(_vendor);
+		SafeRelease(_serialNumber);
+	}
+	
+	
+	void InputDevice::AddControl(InputControl *control)
+	{
+		_controls->AddObject(control);
+		control->_device = this;
+	}
+	
+	void InputDevice::SetSerialNumber(const String *serialNumber)
+	{
+		SafeRelease(_serialNumber);
+		_serialNumber = serialNumber->Copy();
+	}
+	
+	
+	Array *InputDevice::GetSupportedCommands() const
+	{
+		Array *result = new Array();
+		
+		for(const ExecutionPort &port : _executionPorts)
+			result->AddObject(port.command);
+		
+		return result->Autorelease();
+	}
+	
+	std::vector<MetaClass *> InputDevice::GetSupportArgumentsForCommand(const String *command) const
+	{
+		const ExecutionPort *port = GetExecutionPortMatching(command, nullptr);
+		if(!port)
+			throw Exception(Exception::Type::InvalidArgumentException, "Unknown command!");
+		
+		return port->supportedArguments;
+	}
+	
+	
+	bool InputDevice::SupportsCommand(const String *command) const
+	{
+		return (GetExecutionPortMatching(command, nullptr) != nullptr);
+	}
+	
+	bool InputDevice::SupportsCommand(const String *command, MetaClass *meta) const
+	{
+		return (GetExecutionPortMatching(command, meta) != nullptr);
+	}
+	
+	Object *InputDevice::ExecuteCommand(const String *command, Object *argument)
+	{
+		const ExecutionPort *port = GetExecutionPortMatching(command, argument->GetClass());
+		if(!port)
+			throw Exception(Exception::Type::InvalidArgumentException, "ExecuteCommand with unsupport command/argument combo!");
+		
+		return port->action(argument);
+	}
+	
+	const InputDevice::ExecutionPort *InputDevice::GetExecutionPortMatching(const String *command, MetaClass *meta) const
+	{
+		for(const ExecutionPort &port : _executionPorts)
+		{
+			if(command->IsEqual(port.command))
+			{
+				if(!meta)
+					return &port;
+				
+				auto iterator = std::find(port.supportedArguments.begin(), port.supportedArguments.end(), meta);
+				if(iterator != port.supportedArguments.end())
+					return &port;
+			}
+		}
+		
+		return nullptr;
+	}
+	
+	
+	void InputDevice::BindCommand(const String *command, std::function<Object * (Object *)> &&action, std::vector<MetaClass *> &&arguments)
+	{
+		auto iterator = _executionPorts.emplace(_executionPorts.end(), command->Copy()->Autorelease());
+		iterator->action = std::move(action);
+		iterator->supportedArguments = std::move(arguments);
+	}
+	
+	RNDefineMeta(GamepadDevice, InputDevice)
+
+	GamepadDevice::GamepadDevice(Category category, const String *vendor, const String *name) :
+		InputDevice(category, vendor, name),
+		_buttons(0)
+	{}
+	
+	
+	
 	RNDefineMeta(Event, Message)
 	RNDefineSingleton(Input)
 	
@@ -157,11 +286,11 @@ namespace RN
 #endif
 	
 	
-	Input::Input()
-	{
-		_active = true;
-		_invalidateMouse = true;
-	}
+	Input::Input() :
+		_active(true),
+		_invalidateMouse(true),
+		_inputDevices(new Array())
+	{}
 	
 	Input::~Input()
 	{
@@ -169,6 +298,15 @@ namespace RN
 		{
 			event->Release();
 		}
+		
+		_inputDevices->Release();
+	}
+	
+	void Input::BuildDeviceTree()
+	{
+#if RN_PLATFORM_MAC_OS
+		IOKitEnumerateInputDevices();
+#endif
 	}
 	
 	
@@ -191,6 +329,51 @@ namespace RN
 		_pressedKeys.clear();
 		_modifierKeys = 0;
 		_lock.Unlock();
+	}
+	
+	
+	
+	void Input::RegisterDevice(InputDevice *device)
+	{
+		{
+			LockGuard<SpinLock> lock(_deviceLock);
+			_inputDevices->AddObject(device);
+		}
+		
+		MessageCenter::GetSharedInstance()->PostMessage(kRNInputInputDeviceRegistered, device, nullptr);
+	}
+	
+	void Input::UnregisterDevice(InputDevice *device)
+	{
+		{
+			LockGuard<SpinLock> lock(_deviceLock);
+			_inputDevices->RemoveObject(device);
+		}
+		
+		MessageCenter::GetSharedInstance()->PostMessage(kRNInputInputDeviceUnregistered, device, nullptr);
+	}
+	
+	Array *Input::GetInputDevices()
+	{
+		LockGuard<SpinLock> lock(_deviceLock);
+		Array *result = _inputDevices->Copy();
+		
+		return result->Autorelease();
+	}
+	
+	Array *Input::GetInputDevicesMatching(InputDevice::Category categories)
+	{
+		LockGuard<SpinLock> lock(_deviceLock);
+		Array *result = new Array();
+		
+		_inputDevices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
+			
+			if(device->GetCategory() & static_cast<int>(categories))
+				result->AddObject(device);
+			
+		});
+		
+		return result;
 	}
 	
 	
@@ -242,6 +425,11 @@ namespace RN
 			_lock.Unlock();
 			return;
 		}
+		
+		_inputDevices->Enumerate<InputDevice>([](InputDevice *device, size_t index, bool &stop) {
+			device->Update();
+		});
+		
 		
 		MessageCenter *messageCenter = MessageCenter::GetSharedInstance();
 		UI::Server *server = UI::Server::GetSharedInstance();

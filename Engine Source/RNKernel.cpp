@@ -521,6 +521,8 @@ namespace RN
 	
 	void Kernel::Initialize()
 	{
+		_internals->_input->BuildDeviceTree();
+		
 		_internals->_app->Start();
 		_internals->_window->SetTitle(_internals->_app->GetTitle());
 	}

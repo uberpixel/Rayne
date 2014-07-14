@@ -28,10 +28,26 @@ namespace TG
 		_fxaaPipeline(nullptr),
 		_ssaoPipeline(nullptr),
 		_cutScene(nullptr),
+		_gamepad(nullptr),
 		_captureCount(0)
 	{
 		_debugDrawer = new DebugDrawer();
 		AddAttachment(_debugDrawer);
+		
+		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputInputDeviceRegistered, [this](RN::Message *message) {
+			
+			if(_gamepad)
+				return;
+			
+			RN::InputDevice *device = message->GetObject()->Downcast<RN::InputDevice>();
+			
+			if(device->GetCategory() & RN::InputDevice::Category::Gamepad)
+			{
+				_gamepad = device->Downcast<RN::GamepadDevice>();
+				_gamepad->Activate();
+			}
+			
+		}, this);
 	}
 	
 	World::~World()
@@ -252,6 +268,15 @@ namespace TG
 		
 		translation.x = (input->IsKeyPressed('d') - input->IsKeyPressed('a')) * 16.0f;
 		translation.z = (input->IsKeyPressed('s') - input->IsKeyPressed('w')) * 16.0f;
+		
+		if(_gamepad)
+		{
+			translation.x = _gamepad->GetAnalog1().x * 16.0f;
+			translation.z = _gamepad->GetAnalog1().y * 16.0f;
+			
+			rotation.x = -(_gamepad->GetAnalog2().x * 5.0f);
+			rotation.y = -(_gamepad->GetAnalog2().y * 5.0f);
+		}
 		
 		translation *= (input->GetModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
 		

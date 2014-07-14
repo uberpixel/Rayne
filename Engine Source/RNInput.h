@@ -11,12 +11,172 @@
 
 #include "RNBase.h"
 #include "RNMessage.h"
-#include "RNWrappingObject.h"
+#include "RNObject.h"
+#include "RNString.h"
+#include "RNArray.h"
 #include "RNSpinLock.h"
 #include "RNVector.h"
+#include "RNEnum.h"
+
+#define kRNInputInputDeviceRegistered   RNCSTR("kRNInputInputDeviceRegistered")
+#define kRNInputInputDeviceUnregistered RNCSTR("kRNInputInputDeviceUnregistered")
 
 namespace RN
 {
+	class InputDevice;
+	class InputControl : public Object
+	{
+	public:
+		friend class InputDevice;
+		
+		~InputControl() override;
+		
+		const String *GetName() const { return _name; }
+		InputDevice *GetDevice() const { return _device; }
+		
+	protected:
+		InputControl(const String *name);
+		
+	private:
+		String *_name;
+		InputDevice *_device;
+		
+		RNDeclareMeta(InputControl)
+	};
+	
+	class Axis2DControl : public InputControl
+	{
+	public:
+		
+	protected:
+		Axis2DControl(const String *name);
+		
+	private:
+		RNDeclareMeta(Axis2DControl)
+	};
+	
+	
+	
+	
+	class InputDevice : public Object
+	{
+	public:
+		struct Category : public Enum<uint32>
+		{
+			Category()
+			{}
+			
+			Category(uint32 value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Mouse = (1 << 0),
+				Keyboard = (1 << 1),
+				Pen = (1 << 2),
+				Gamepad  = (1 << 3),
+				Joystick = (1 << 4)
+			};
+		};
+		
+		~InputDevice() override;
+		
+		virtual void Update() = 0;
+		virtual void Activate() = 0;
+		virtual void Deactivate() = 0;
+		
+		Category GetCategory() const { return _category; }
+		const String *GetName() const { return _name; }
+		const String *GetVendor() const { return _vendor; }
+		const Array *GetControls() const { return _controls; }
+		
+		bool SupportsCommand(const String *command) const;
+		bool SupportsCommand(const String *command, MetaClass *meta) const;
+		
+		Object *ExecuteCommand(const String *command, Object *argument);
+		
+		Array *GetSupportedCommands() const;
+		std::vector<MetaClass *> GetSupportArgumentsForCommand(const String *command) const;
+		
+	protected:
+		InputDevice(Category category, const String *vendor, const String *name);
+		
+		void SetSerialNumber(const String *serialNumber);
+		
+		void AddControl(InputControl *control);
+		void BindCommand(const String *command, std::function<Object * (Object *)> &&action, std::vector<MetaClass *> &&arguments);
+		
+	private:
+		struct ExecutionPort
+		{
+			ExecutionPort(String *tcommand) :
+				command(tcommand->Retain())
+			{}
+			
+			ExecutionPort(const ExecutionPort &other) :
+				command(other.command->Retain()),
+				supportedArguments(other.supportedArguments),
+				action(other.action)
+			{}
+			
+			ExecutionPort &operator =(const ExecutionPort &other)
+			{
+				command->Autorelease();
+				command = other.command->Retain();
+				
+				supportedArguments = other.supportedArguments;
+				action = other.action;
+				
+				return *this;
+			}
+			
+			~ExecutionPort()
+			{
+				command->Release();
+			}
+			
+			String *command;
+			std::function<Object * (Object *)> action;
+			std::vector<MetaClass *> supportedArguments;
+		};
+		
+		const ExecutionPort *GetExecutionPortMatching(const String *command, MetaClass *meta) const;
+		
+		Category _category;
+		String *_name;
+		String *_vendor;
+		String *_serialNumber;
+		Array *_controls;
+		
+		std::vector<ExecutionPort> _executionPorts;
+		
+		RNDeclareMeta(InputDevice)
+	};
+	
+	
+	class GamepadDevice : public InputDevice
+	{
+	public:
+		bool IsButtonPresed(uint8 button) const { return (_buttons & (1LL < button)); }
+		
+		const Vector2 &GetAnalog1() const { return _analog1; }
+		const Vector2 &GetAnalog2() const { return _analog2; }
+		
+	protected:
+		GamepadDevice(Category category, const String *vendor, const String *name);
+		
+		Vector2 _analog1;
+		Vector2 _analog2;
+		
+		uint64 _buttons;
+		
+		RNDeclareMeta(GamepadDevice)
+	};
+	
+	
+	
+	
 	
 #define kRNInputEventMessage RNSTR("kRNInputEventMessage")
 	
@@ -193,9 +353,10 @@ namespace RN
 	
 	class Input : public ISingleton<Input>
 	{
-	friend class Window;
-	friend class Kernel;
 	public:
+		friend class Window;
+		friend class Kernel;
+		
 		RNAPI Input();
 		RNAPI ~Input();
 
@@ -205,6 +366,9 @@ namespace RN
 		RNAPI void DispatchInputEvents();
 		RNAPI void InvalidateFrame();
 		RNAPI void InvalidateMouse();
+		
+		RNAPI void RegisterDevice(InputDevice *device);
+		RNAPI void UnregisterDevice(InputDevice *device);
 
 #if RN_PLATFORM_MAC_OS
 		RNAPI void HandleEvent(void *data);
@@ -225,14 +389,23 @@ namespace RN
 		RNAPI bool IsKeyPressed(UniChar key) const;
 		
 		RNAPI bool IsMousePressed(uint32 button) const;
+		
+		RNAPI Array *GetInputDevices();
+		RNAPI Array *GetInputDevicesMatching(InputDevice::Category categories);
 
 	private:
+		void BuildDeviceTree();
+		
 		void FlushEventQueue();
 		Vector2 ClampMousePosition(const Vector2 &position) const;
 
 #if RN_PLATFORM_WINDOWS
 		void HandleMouseEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 #endif
+		
+		SpinLock _deviceLock;
+		Array *_inputDevices;
+		
 		
 		Vector2 _mousePosition;
 		Vector2 _realMousePosition;
