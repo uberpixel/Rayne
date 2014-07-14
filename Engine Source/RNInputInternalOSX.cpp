@@ -179,6 +179,7 @@ namespace RN
 	{
 		if(reportID == 0x1)
 		{
+			// Analog sticks
 			Vector2 left(report[1], report[2]);
 			Vector2 right(report[3], report[4]);
 			
@@ -190,6 +191,46 @@ namespace RN
 			
 			if(_analog2.GetLength() < 0.05)
 				_analog2 = Vector2();
+			
+			// Buttons
+			uint8 dpad = (report[5] & 0xf);
+			
+			uint8 buttons1 = report[5];
+			uint8 buttons2 = report[6];
+			
+			//RNDebug("%x %x", buttons1, buttons2);
+			
+			static uint8 dpadlookup[] = {
+				(1 << 0),
+				(1 << 0) | (1 << 1),
+				(1 << 1),
+				(1 << 1) | (1 << 2),
+				(1 << 2),
+				(1 << 2) | (1 << 3),
+				(1 << 3),
+				(1 << 3) | (1 << 0),
+				0
+			};
+			
+			_buttons = dpadlookup[dpad];
+			
+			_buttons |= (buttons1 & (1 << 7)) ? (1 << 4) : 0;
+			_buttons |= (buttons1 & (1 << 6)) ? (1 << 5) : 0;
+			_buttons |= (buttons1 & (1 << 5)) ? (1 << 6) : 0;
+			_buttons |= (buttons1 & (1 << 4)) ? (1 << 7) : 0;
+			
+			_buttons |= (buttons2 & (1 << 0)) ? (1 << 8) : 0;
+			_buttons |= (buttons2 & (1 << 1)) ? (1 << 9) : 0;
+			_buttons |= (buttons2 & (1 << 2)) ? (1 << 10) : 0;
+			_buttons |= (buttons2 & (1 << 3)) ? (1 << 11) : 0;
+			_buttons |= (buttons2 & (1 << 4)) ? (1 << 12) : 0;
+			_buttons |= (buttons2 & (1 << 5)) ? (1 << 13) : 0;
+			_buttons |= (buttons2 & (1 << 6)) ? (1 << 14) : 0;
+			_buttons |= (buttons2 & (1 << 7)) ? (1 << 15) : 0;
+			
+			// Trigger
+			_trigger1 = (report[8] / 255.0);
+			_trigger2 = (report[9] / 255.0);
 		}
 	}
 	

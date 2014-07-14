@@ -158,10 +158,13 @@ namespace RN
 	class GamepadDevice : public InputDevice
 	{
 	public:
-		bool IsButtonPresed(uint8 button) const { return (_buttons & (1LL < button)); }
+		bool IsButtonPressed(uint8 button) const { return (_buttons & (1LL << button)); }
 		
 		const Vector2 &GetAnalog1() const { return _analog1; }
 		const Vector2 &GetAnalog2() const { return _analog2; }
+		
+		float GetTrigger1() const { return _trigger1; }
+		float GetTrigger2() const { return _trigger2; }
 		
 	protected:
 		GamepadDevice(Category category, const String *vendor, const String *name);
@@ -170,6 +173,9 @@ namespace RN
 		Vector2 _analog2;
 		
 		uint64 _buttons;
+		
+		float _trigger1;
+		float _trigger2;
 		
 		RNDeclareMeta(GamepadDevice)
 	};

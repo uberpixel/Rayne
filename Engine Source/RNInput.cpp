@@ -139,7 +139,9 @@ namespace RN
 
 	GamepadDevice::GamepadDevice(Category category, const String *vendor, const String *name) :
 		InputDevice(category, vendor, name),
-		_buttons(0)
+		_buttons(0),
+		_trigger1(0),
+		_trigger2(0)
 	{}
 	
 	
