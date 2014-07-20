@@ -161,8 +161,9 @@ namespace RN
 		pool.Drain();
 		
 		ApplyNodes();
-		DidUpdateToFrame(frame);
+		
 		RunWorldAttachement(&WorldAttachment::StepWorldEditMode, delta);
+		DidUpdateToFrame(frame);
 	}
 	
 	void World::StepWorld(FrameID frame, float delta)
@@ -246,8 +247,9 @@ namespace RN
 		pool.Drain();
 	
 		ApplyNodes();
-		DidUpdateToFrame(frame);
 		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
+		
+		DidUpdateToFrame(frame);
 		
 		_kernel->PopStatistics();
 	}
