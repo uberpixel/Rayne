@@ -165,7 +165,7 @@ void main()
 		color0.a *= color0.a;
 		color0.a *= color0.a;
 		color0.a = clamp(0.3-color0.a, 0.0, 1.0);
-		color0.rgb = mix(color0.rgb, vec3(1.0), color0.a*0.04);
+		color0.rgb = mix(color0.rgb, vec3(1.0), color0.a*0.1);
 	#endif
 	
 	#if defined(RN_FOG)
