@@ -51,6 +51,14 @@ precision highp float;
 	#endif
 #endif
 
+#if defined(RN_GLASS)
+	#define INTERNAL_NEEDS_POSITION_WORLD 1
+
+	#if !defined(RN_LIGHTING)
+		uniform vec3 viewPosition;
+	#endif
+#endif
+
 #if defined(RN_FOG)
 	#define INTERNAL_NEEDS_POSITION_WORLD 1
 	#define INTERNAL_NEEDS_FOG 1
@@ -150,6 +158,14 @@ void main()
 		#endif
 		
 		rn_Lighting(color0, spec, normal, vertPosition);
+	#endif
+
+	#if defined(RN_GLASS)
+		color0.a = max(dot(normalize(vertNormal), normalize(viewPosition-vertPosition)), 0.0)*2.0;
+		color0.a *= color0.a;
+		color0.a *= color0.a;
+		color0.a = clamp(0.3-color0.a, 0.0, 1.0);
+		color0.rgb = mix(color0.rgb, vec3(1.0), color0.a*0.04);
 	#endif
 	
 	#if defined(RN_FOG)
