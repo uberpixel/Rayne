@@ -88,6 +88,10 @@ namespace RN
 		delete _lightOffsetCount;
 	}
 	
+	void ClusteredLightManager::SetClusterSize(const Vector3 &size)
+	{
+		_clusterSize = size;
+	}
 	
 	void ClusteredLightManager::UpdateProgram(Renderer *renderer, ShaderProgram *program)
 	{

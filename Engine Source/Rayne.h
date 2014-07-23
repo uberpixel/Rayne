@@ -75,6 +75,7 @@
 
 #include "RNRenderer.h"
 
+#include "RNLightManager.h"
 #include "RNCamera.h"
 #include "RNMaterial.h"
 #include "RNMesh.h"
