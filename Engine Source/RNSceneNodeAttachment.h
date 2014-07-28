@@ -27,13 +27,17 @@ namespace RN
 		RNAPI SceneNodeAttachment();
 		RNAPI ~SceneNodeAttachment() override;
 		
-		RNAPI void SetPosition(const Vector3 &position);
-		RNAPI void SetScale(const Vector3 &scale);
-		RNAPI void SetRotation(const Quaternion &rotation);
+		RNAPI void SetWorldPosition(const Vector3 &position);
+		RNAPI void SetWorldScale(const Vector3 &scale);
+		RNAPI void SetWorldRotation(const Quaternion &rotation);
 		
-		RNAPI Vector3 GetPosition() const;
-		RNAPI Vector3 GetScale() const;
-		RNAPI Quaternion GetRotation() const;
+		RNAPI Vector3 GetWorldPosition() const;
+		RNAPI Vector3 GetWorldScale() const;
+		RNAPI Quaternion GetWorldRotation() const;
+		
+		RNAPI Vector3 GetForward() const;
+		RNAPI Vector3 GetUp() const;
+		RNAPI Vector3 GetRight() const;
 		
 		RNAPI World *GetWorld() const;
 		RNAPI SceneNode *GetParent() const;
