@@ -7,43 +7,46 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E983D8D3188BEB16007612CE /* dump.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8C1188BEB16007612CE /* dump.c */; };
-		E983D8D4188BEB16007612CE /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8C2188BEB16007612CE /* error.c */; };
-		E983D8D5188BEB16007612CE /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8C3188BEB16007612CE /* hashtable.c */; };
-		E983D8D6188BEB16007612CE /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = E983D8C4188BEB16007612CE /* hashtable.h */; };
-		E983D8D7188BEB16007612CE /* jansson.h in Headers */ = {isa = PBXBuildFile; fileRef = E983D8C6188BEB16007612CE /* jansson.h */; };
-		E983D8D8188BEB16007612CE /* jansson_private.h in Headers */ = {isa = PBXBuildFile; fileRef = E983D8C8188BEB16007612CE /* jansson_private.h */; };
-		E983D8D9188BEB16007612CE /* load.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8C9188BEB16007612CE /* load.c */; };
-		E983D8DA188BEB16007612CE /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8CB188BEB16007612CE /* memory.c */; };
-		E983D8DB188BEB16007612CE /* pack_unpack.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8CC188BEB16007612CE /* pack_unpack.c */; };
-		E983D8DC188BEB16007612CE /* strbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8CD188BEB16007612CE /* strbuffer.c */; };
-		E983D8DD188BEB16007612CE /* strbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E983D8CE188BEB16007612CE /* strbuffer.h */; };
-		E983D8DE188BEB16007612CE /* strconv.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8CF188BEB16007612CE /* strconv.c */; };
-		E983D8DF188BEB16007612CE /* utf.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8D0188BEB16007612CE /* utf.c */; };
-		E983D8E0188BEB16007612CE /* utf.h in Headers */ = {isa = PBXBuildFile; fileRef = E983D8D1188BEB16007612CE /* utf.h */; };
-		E983D8E1188BEB16007612CE /* value.c in Sources */ = {isa = PBXBuildFile; fileRef = E983D8D2188BEB16007612CE /* value.c */; };
+		E9EACD49198AB0B200B90882 /* dump.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD38198AB0B200B90882 /* dump.c */; };
+		E9EACD4A198AB0B200B90882 /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD39198AB0B200B90882 /* error.c */; };
+		E9EACD4B198AB0B200B90882 /* hashtable_seed.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD3A198AB0B200B90882 /* hashtable_seed.c */; };
+		E9EACD4C198AB0B200B90882 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD3B198AB0B200B90882 /* hashtable.c */; };
+		E9EACD4D198AB0B200B90882 /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD3C198AB0B200B90882 /* hashtable.h */; };
+		E9EACD4E198AB0B200B90882 /* jansson_private.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD3D198AB0B200B90882 /* jansson_private.h */; };
+		E9EACD4F198AB0B200B90882 /* jansson.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD3E198AB0B200B90882 /* jansson.h */; };
+		E9EACD50198AB0B200B90882 /* load.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD3F198AB0B200B90882 /* load.c */; };
+		E9EACD51198AB0B200B90882 /* lookup3.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD40198AB0B200B90882 /* lookup3.h */; };
+		E9EACD52198AB0B200B90882 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD41198AB0B200B90882 /* memory.c */; };
+		E9EACD53198AB0B200B90882 /* pack_unpack.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD42198AB0B200B90882 /* pack_unpack.c */; };
+		E9EACD54198AB0B200B90882 /* strbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD43198AB0B200B90882 /* strbuffer.c */; };
+		E9EACD55198AB0B200B90882 /* strbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD44198AB0B200B90882 /* strbuffer.h */; };
+		E9EACD56198AB0B200B90882 /* strconv.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD45198AB0B200B90882 /* strconv.c */; };
+		E9EACD57198AB0B200B90882 /* utf.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD46198AB0B200B90882 /* utf.c */; };
+		E9EACD58198AB0B200B90882 /* utf.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD47198AB0B200B90882 /* utf.h */; };
+		E9EACD59198AB0B200B90882 /* value.c in Sources */ = {isa = PBXBuildFile; fileRef = E9EACD48198AB0B200B90882 /* value.c */; };
+		E9EACD5B198AB17300B90882 /* jansson_config.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EACD5A198AB17300B90882 /* jansson_config.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		E983D8C1188BEB16007612CE /* dump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dump.c; sourceTree = "<group>"; };
-		E983D8C2188BEB16007612CE /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error.c; sourceTree = "<group>"; };
-		E983D8C3188BEB16007612CE /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hashtable.c; sourceTree = "<group>"; };
-		E983D8C4188BEB16007612CE /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hashtable.h; sourceTree = "<group>"; };
-		E983D8C5188BEB16007612CE /* jansson.def */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jansson.def; sourceTree = "<group>"; };
-		E983D8C6188BEB16007612CE /* jansson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson.h; sourceTree = "<group>"; };
-		E983D8C7188BEB16007612CE /* jansson_config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jansson_config.h.in; sourceTree = "<group>"; };
-		E983D8C8188BEB16007612CE /* jansson_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson_private.h; sourceTree = "<group>"; };
-		E983D8C9188BEB16007612CE /* load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = load.c; sourceTree = "<group>"; };
-		E983D8CA188BEB16007612CE /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		E983D8CB188BEB16007612CE /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
-		E983D8CC188BEB16007612CE /* pack_unpack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pack_unpack.c; sourceTree = "<group>"; };
-		E983D8CD188BEB16007612CE /* strbuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strbuffer.c; sourceTree = "<group>"; };
-		E983D8CE188BEB16007612CE /* strbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strbuffer.h; sourceTree = "<group>"; };
-		E983D8CF188BEB16007612CE /* strconv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strconv.c; sourceTree = "<group>"; };
-		E983D8D0188BEB16007612CE /* utf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utf.c; sourceTree = "<group>"; };
-		E983D8D1188BEB16007612CE /* utf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utf.h; sourceTree = "<group>"; };
-		E983D8D2188BEB16007612CE /* value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = value.c; sourceTree = "<group>"; };
 		E9AC38D2188B142900051A67 /* libjansson.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjansson.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9EACD38198AB0B200B90882 /* dump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dump.c; sourceTree = "<group>"; };
+		E9EACD39198AB0B200B90882 /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error.c; sourceTree = "<group>"; };
+		E9EACD3A198AB0B200B90882 /* hashtable_seed.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hashtable_seed.c; sourceTree = "<group>"; };
+		E9EACD3B198AB0B200B90882 /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hashtable.c; sourceTree = "<group>"; };
+		E9EACD3C198AB0B200B90882 /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hashtable.h; sourceTree = "<group>"; };
+		E9EACD3D198AB0B200B90882 /* jansson_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson_private.h; sourceTree = "<group>"; };
+		E9EACD3E198AB0B200B90882 /* jansson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson.h; sourceTree = "<group>"; };
+		E9EACD3F198AB0B200B90882 /* load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = load.c; sourceTree = "<group>"; };
+		E9EACD40198AB0B200B90882 /* lookup3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lookup3.h; sourceTree = "<group>"; };
+		E9EACD41198AB0B200B90882 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
+		E9EACD42198AB0B200B90882 /* pack_unpack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pack_unpack.c; sourceTree = "<group>"; };
+		E9EACD43198AB0B200B90882 /* strbuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strbuffer.c; sourceTree = "<group>"; };
+		E9EACD44198AB0B200B90882 /* strbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strbuffer.h; sourceTree = "<group>"; };
+		E9EACD45198AB0B200B90882 /* strconv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strconv.c; sourceTree = "<group>"; };
+		E9EACD46198AB0B200B90882 /* utf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utf.c; sourceTree = "<group>"; };
+		E9EACD47198AB0B200B90882 /* utf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utf.h; sourceTree = "<group>"; };
+		E9EACD48198AB0B200B90882 /* value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = value.c; sourceTree = "<group>"; };
+		E9EACD5A198AB17300B90882 /* jansson_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jansson_config.h; path = osx/jansson_config.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,24 +63,24 @@
 		E983D8C0188BEB16007612CE /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				E983D8C1188BEB16007612CE /* dump.c */,
-				E983D8C2188BEB16007612CE /* error.c */,
-				E983D8C3188BEB16007612CE /* hashtable.c */,
-				E983D8C4188BEB16007612CE /* hashtable.h */,
-				E983D8C5188BEB16007612CE /* jansson.def */,
-				E983D8C6188BEB16007612CE /* jansson.h */,
-				E983D8C7188BEB16007612CE /* jansson_config.h.in */,
-				E983D8C8188BEB16007612CE /* jansson_private.h */,
-				E983D8C9188BEB16007612CE /* load.c */,
-				E983D8CA188BEB16007612CE /* Makefile.am */,
-				E983D8CB188BEB16007612CE /* memory.c */,
-				E983D8CC188BEB16007612CE /* pack_unpack.c */,
-				E983D8CD188BEB16007612CE /* strbuffer.c */,
-				E983D8CE188BEB16007612CE /* strbuffer.h */,
-				E983D8CF188BEB16007612CE /* strconv.c */,
-				E983D8D0188BEB16007612CE /* utf.c */,
-				E983D8D1188BEB16007612CE /* utf.h */,
-				E983D8D2188BEB16007612CE /* value.c */,
+				E9EACD5A198AB17300B90882 /* jansson_config.h */,
+				E9EACD38198AB0B200B90882 /* dump.c */,
+				E9EACD39198AB0B200B90882 /* error.c */,
+				E9EACD3A198AB0B200B90882 /* hashtable_seed.c */,
+				E9EACD3B198AB0B200B90882 /* hashtable.c */,
+				E9EACD3C198AB0B200B90882 /* hashtable.h */,
+				E9EACD3D198AB0B200B90882 /* jansson_private.h */,
+				E9EACD3E198AB0B200B90882 /* jansson.h */,
+				E9EACD3F198AB0B200B90882 /* load.c */,
+				E9EACD40198AB0B200B90882 /* lookup3.h */,
+				E9EACD41198AB0B200B90882 /* memory.c */,
+				E9EACD42198AB0B200B90882 /* pack_unpack.c */,
+				E9EACD43198AB0B200B90882 /* strbuffer.c */,
+				E9EACD44198AB0B200B90882 /* strbuffer.h */,
+				E9EACD45198AB0B200B90882 /* strconv.c */,
+				E9EACD46198AB0B200B90882 /* utf.c */,
+				E9EACD47198AB0B200B90882 /* utf.h */,
+				E9EACD48198AB0B200B90882 /* value.c */,
 			);
 			name = Source;
 			path = jansson/src;
@@ -106,11 +109,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E983D8DD188BEB16007612CE /* strbuffer.h in Headers */,
-				E983D8D6188BEB16007612CE /* hashtable.h in Headers */,
-				E983D8E0188BEB16007612CE /* utf.h in Headers */,
-				E983D8D7188BEB16007612CE /* jansson.h in Headers */,
-				E983D8D8188BEB16007612CE /* jansson_private.h in Headers */,
+				E9EACD58198AB0B200B90882 /* utf.h in Headers */,
+				E9EACD5B198AB17300B90882 /* jansson_config.h in Headers */,
+				E9EACD51198AB0B200B90882 /* lookup3.h in Headers */,
+				E9EACD4F198AB0B200B90882 /* jansson.h in Headers */,
+				E9EACD55198AB0B200B90882 /* strbuffer.h in Headers */,
+				E9EACD4D198AB0B200B90882 /* hashtable.h in Headers */,
+				E9EACD4E198AB0B200B90882 /* jansson_private.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,16 +170,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E983D8DF188BEB16007612CE /* utf.c in Sources */,
-				E983D8D4188BEB16007612CE /* error.c in Sources */,
-				E983D8DE188BEB16007612CE /* strconv.c in Sources */,
-				E983D8D3188BEB16007612CE /* dump.c in Sources */,
-				E983D8DA188BEB16007612CE /* memory.c in Sources */,
-				E983D8E1188BEB16007612CE /* value.c in Sources */,
-				E983D8D5188BEB16007612CE /* hashtable.c in Sources */,
-				E983D8DB188BEB16007612CE /* pack_unpack.c in Sources */,
-				E983D8D9188BEB16007612CE /* load.c in Sources */,
-				E983D8DC188BEB16007612CE /* strbuffer.c in Sources */,
+				E9EACD50198AB0B200B90882 /* load.c in Sources */,
+				E9EACD56198AB0B200B90882 /* strconv.c in Sources */,
+				E9EACD53198AB0B200B90882 /* pack_unpack.c in Sources */,
+				E9EACD4C198AB0B200B90882 /* hashtable.c in Sources */,
+				E9EACD4B198AB0B200B90882 /* hashtable_seed.c in Sources */,
+				E9EACD4A198AB0B200B90882 /* error.c in Sources */,
+				E9EACD59198AB0B200B90882 /* value.c in Sources */,
+				E9EACD52198AB0B200B90882 /* memory.c in Sources */,
+				E9EACD57198AB0B200B90882 /* utf.c in Sources */,
+				E9EACD49198AB0B200B90882 /* dump.c in Sources */,
+				E9EACD54198AB0B200B90882 /* strbuffer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +220,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-DHAVE_CONFIG",
+					"-DHAVE_STDINT",
+				);
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -245,6 +255,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_CFLAGS = (
+					"-DHAVE_CONFIG",
+					"-DHAVE_STDINT",
+				);
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -253,6 +267,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
@@ -263,6 +278,7 @@
 					/Users/Sidney/Projects/Active/Rayne/Rayne/Vendor/libjansson/jansson/src/.libs,
 				);
 				OTHER_CFLAGS = (
+					"-DHAVE_STDINT_H",
 					"-mtune=core2",
 					"-msse",
 					"-msse2",
@@ -276,6 +292,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
@@ -286,6 +303,7 @@
 					/Users/Sidney/Projects/Active/Rayne/Rayne/Vendor/libjansson/jansson/src/.libs,
 				);
 				OTHER_CFLAGS = (
+					"-DHAVE_STDINT_H",
 					"-mtune=core2",
 					"-msse",
 					"-msse2",
