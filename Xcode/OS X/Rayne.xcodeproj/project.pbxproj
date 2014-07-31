@@ -17,7 +17,7 @@
 		C0C3AD351764B6C4007FADC9 /* RNHit.h in Headers */ = {isa = PBXBuildFile; fileRef = C0C3AD341764B6C4007FADC9 /* RNHit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D5005AD118CF91CB00097D31 /* RNDecal.h in Headers */ = {isa = PBXBuildFile; fileRef = D5005ACF18CF91CB00097D31 /* RNDecal.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D5005AD218CF91CB00097D31 /* RNDecal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5005AD018CF91CB00097D31 /* RNDecal.cpp */; };
-		D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D58CEA3C18159965002EB442 /* RNLightManager.h */; };
+		D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D58CEA3C18159965002EB442 /* RNLightManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D58CEA3D18159965002EB442 /* RNLightManager.cpp */; };
 		D59DCB0C18584E2B00030716 /* RNOctreeSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */; };
 		D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */; };
