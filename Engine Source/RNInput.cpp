@@ -513,6 +513,9 @@ namespace RN
 					case NSKeyUp:
 						type = Event::Type::KeyUp;
 						break;
+						
+					default:
+						break;
 				}
 				
 				event->Release();
