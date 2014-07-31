@@ -47,11 +47,12 @@ namespace RN
 	class Axis2DControl : public InputControl
 	{
 	public:
-		
-	protected:
 		Axis2DControl(const String *name);
 		
 	private:
+		Vector2 _value;
+		float _deadZone;
+		
 		RNDeclareMeta(Axis2DControl)
 	};
 	
@@ -83,8 +84,10 @@ namespace RN
 		~InputDevice() override;
 		
 		virtual void Update() = 0;
-		virtual void Activate() = 0;
-		virtual void Deactivate() = 0;
+		
+		virtual bool Activate();
+		virtual bool Deactivate();
+		bool IsActive() const { return _active; }
 		
 		Category GetCategory() const { return _category; }
 		const String *GetName() const { return _name; }
@@ -149,6 +152,7 @@ namespace RN
 		String *_serialNumber;
 		Array *_controls;
 		
+		bool _active;
 		std::vector<ExecutionPort> _executionPorts;
 		
 		RNDeclareMeta(InputDevice)

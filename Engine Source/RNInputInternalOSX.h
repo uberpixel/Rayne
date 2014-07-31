@@ -22,6 +22,9 @@ namespace RN
 		HIDDevice(IOHIDDeviceRef device);
 		virtual ~HIDDevice();
 		
+		bool Open();
+		bool Close();
+		
 		String *GetStringProperty(CFStringRef property);
 		int32 GetInt32Property(CFStringRef property);
 		
@@ -45,8 +48,8 @@ namespace RN
 		Dualshock4Device(const String *vendor, const String *name, IOHIDDeviceRef device);
 		~Dualshock4Device() override;
 		
-		void Activate() override;
-		void Deactivate() override;
+		bool Activate() override;
+		bool Deactivate() override;
 		void Update() override;
 		
 		Object *SetRumble(Object *value);
@@ -57,8 +60,6 @@ namespace RN
 	private:
 		void SendReport();
 		void Reset();
-		
-		bool _active;
 		
 		uint8 _rumbleLarge;
 		uint8 _rumbleSmall;

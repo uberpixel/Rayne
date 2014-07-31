@@ -19,18 +19,32 @@ namespace RN
 		_connected(true)
 	{
 		CFRetain(_device);
-		
-		IOHIDDeviceScheduleWithRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
-		IOHIDDeviceRegisterInputReportCallback(_device, _input, 1024, &HIDDevice::InputReportCallback, this);
 	}
 	
 	HIDDevice::~HIDDevice()
+	{
+		CFRelease(_device);
+	}
+	
+	bool HIDDevice::Open()
+	{
+		IOReturn result = IOHIDDeviceOpen(_device, kIOHIDOptionsTypeNone);
+		if(result != kIOReturnSuccess)
+			return false;
+		
+		IOHIDDeviceScheduleWithRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
+		IOHIDDeviceRegisterInputReportCallback(_device, _input, 1024, &HIDDevice::InputReportCallback, this);
+		
+		return true;
+	}
+	
+	bool HIDDevice::Close()
 	{
 		IOHIDDeviceUnscheduleFromRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
 		IOHIDDeviceRegisterInputReportCallback(_device, _input, 1024, nullptr, this);
 		
 		IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
-		CFRelease(_device);
+		return true;
 	}
 	
 	
@@ -76,7 +90,6 @@ namespace RN
 	Dualshock4Device::Dualshock4Device(const String *vendor, const String *name, IOHIDDeviceRef device) :
 		GamepadDevice(Category::Gamepad, vendor, name),
 		HIDDevice(device),
-		_active(false),
 		_rumbleLarge(0),
 		_rumbleSmall(0),
 		_ledRed(0),
@@ -89,7 +102,7 @@ namespace RN
 	
 	Dualshock4Device::~Dualshock4Device()
 	{
-		if(_active)
+		if(IsActive())
 			Deactivate();
 	}
 	
@@ -106,22 +119,40 @@ namespace RN
 	
 	
 	
-	void Dualshock4Device::Activate()
+	bool Dualshock4Device::Activate()
 	{
-		_active = true;
-		Reset();
+		if(GamepadDevice::Activate())
+		{
+			if(!Open())
+			{
+				GamepadDevice::Deactivate();
+				return false;
+			}
+			
+			Reset();
+			return true;
+		}
+		
+		return false;
 	}
 	
-	void Dualshock4Device::Deactivate()
+	bool Dualshock4Device::Deactivate()
 	{
-		_active = false;
-		Reset();
+		if(GamepadDevice::Deactivate())
+		{
+			Close();
+			Reset();
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	
 	void Dualshock4Device::Update()
 	{
-		if(!_active)
+		if(!IsActive())
 			return;
 		
 		SendReport();
@@ -134,6 +165,20 @@ namespace RN
 		{
 			Number *number = value->Downcast<Number>();
 			_rumbleLarge = _rumbleSmall = number->GetUint8Value();
+		}
+		
+		if(value->IsKindOfClass(Array::GetMetaClass()))
+		{
+			Array *array = value->Downcast<Array>();
+			
+			if(array->GetCount() != 2)
+				throw Exception(Exception::Type::InvalidArgumentException, "Array must have two entries (RN::Number)");
+			
+			Number *large = array->GetObjectAtIndex<Number>(0);
+			Number *small = array->GetObjectAtIndex<Number>(1);
+			
+			_rumbleLarge = large->GetUint8Value();
+			_rumbleSmall = small->GetUint8Value();
 		}
 		
 		return nullptr;
@@ -151,6 +196,7 @@ namespace RN
 			_ledGreen = static_cast<uint8>(vector.y * 255);
 			_ledBlue  = static_cast<uint8>(vector.z * 255);
 		}
+		
 		
 		return nullptr;
 	}
@@ -177,6 +223,8 @@ namespace RN
 	
 	void Dualshock4Device::HandleInputReport(IOHIDReportType type, uint32 reportID, uint8 *report, size_t length)
 	{
+		RN_ASSERT(IsActive(), "HandleInputReport() called on deactived device!");
+		
 		if(reportID == 0x1)
 		{
 			// Analog sticks
@@ -197,8 +245,6 @@ namespace RN
 			
 			uint8 buttons1 = report[5];
 			uint8 buttons2 = report[6];
-			
-			//RNDebug("%x %x", buttons1, buttons2);
 			
 			static uint8 dpadlookup[] = {
 				(1 << 0),
@@ -262,9 +308,10 @@ namespace RN
 		String *productName;
 		String *vendorName;
 		
-		CFNumberGetValue(productID, kCFNumberSInt32Type, &product);
-		CFNumberGetValue(vendorID, kCFNumberSInt32Type, &vendor);
-		
+		{
+			CFNumberGetValue(productID, kCFNumberSInt32Type, &product);
+			CFNumberGetValue(vendorID, kCFNumberSInt32Type, &vendor);
+		}
 		{
 			char name[512];
 			
@@ -275,16 +322,19 @@ namespace RN
 			vendorName = RNUTF8STR(name);
 		}
 		
+		InputDevice *device = nullptr;
 		
 		if(vendor == 1356 && product == 1476)
 		{
-			Dualshock4Device *device = new Dualshock4Device(vendorName, productName, deviceRef);
-			Input::GetSharedInstance()->RegisterDevice(device);
-			device->Release();			
+			device = new Dualshock4Device(vendorName, productName, deviceRef);
 		}
-		else
+		
+		IOHIDDeviceClose(deviceRef, kIOHIDOptionsTypeNone);
+		
+		if(device)
 		{
-			IOHIDDeviceClose(deviceRef, kIOHIDOptionsTypeNone);
+			Input::GetSharedInstance()->RegisterDevice(device);
+			device->Release();
 		}
 	}
 	

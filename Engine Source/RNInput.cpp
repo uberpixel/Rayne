@@ -44,7 +44,8 @@ namespace RN
 		_vendor(vendor ? vendor->Copy() : nullptr),
 		_name(name->Copy()),
 		_serialNumber(nullptr),
-		_controls(new Array())
+		_controls(new Array()),
+		_active(false)
 	{}
 	
 	InputDevice::~InputDevice()
@@ -67,6 +68,19 @@ namespace RN
 	{
 		SafeRelease(_serialNumber);
 		_serialNumber = serialNumber->Copy();
+	}
+	
+	
+	bool InputDevice::Activate()
+	{
+		_active = true;
+		return true;
+	}
+	
+	bool InputDevice::Deactivate()
+	{
+		_active = false;
+		return true;
 	}
 	
 	
@@ -102,6 +116,9 @@ namespace RN
 	
 	Object *InputDevice::ExecuteCommand(const String *command, Object *argument)
 	{
+		if(!IsActive())
+			throw Exception(Exception::Type::InconsistencyException, "Can't execute commands on de-activate devices");
+		
 		const ExecutionPort *port = GetExecutionPortMatching(command, argument->GetClass());
 		if(!port)
 			throw Exception(Exception::Type::InvalidArgumentException, "ExecuteCommand with unsupport command/argument combo!");
