@@ -49,6 +49,12 @@ namespace RN
 	public:
 		Axis2DControl(const String *name);
 		
+		void SetDeadzone(float zone);
+		void SetValue(const Vector2 &value);
+		
+		float GetDeadzone() const { return _deadZone; }
+		const Vector2 GetValue() const { return _value; }
+		
 	private:
 		Vector2 _value;
 		float _deadZone;

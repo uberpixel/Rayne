@@ -98,12 +98,25 @@ namespace RN
 	{
 		BindCommand(RNUTF8STR("rumble"), std::bind(&Dualshock4Device::SetRumble, this, std::placeholders::_1), { Number::GetMetaClass(), Array::GetMetaClass() });
 		BindCommand(RNUTF8STR("light"), std::bind(&Dualshock4Device::SetLight, this, std::placeholders::_1), { Value::GetMetaClass() });
+	
+	
+		_analogLeft  = new Axis2DControl(RNCSTR("Left Analog"));
+		_analogRight = new Axis2DControl(RNCSTR("Right Analog"));
+		
+		_analogLeft->SetDeadzone(0.05);
+		_analogRight->SetDeadzone(0.05);
+		
+		AddControl(_analogLeft);
+		AddControl(_analogRight);
 	}
 	
 	Dualshock4Device::~Dualshock4Device()
 	{
 		if(IsActive())
 			Deactivate();
+		
+		_analogLeft->Release();
+		_analogRight->Release();
 	}
 	
 	
@@ -234,11 +247,14 @@ namespace RN
 			_analog1 = (left  - 128) / 128;
 			_analog2 = (right - 128) / 128;
 			
-			if(_analog1.GetLength() < 0.05)
+			if(_analog1.GetLength() < _analogLeft->GetDeadzone())
 				_analog1 = Vector2();
 			
-			if(_analog2.GetLength() < 0.05)
+			if(_analog2.GetLength() < _analogRight->GetDeadzone())
 				_analog2 = Vector2();
+			
+			_analogLeft->SetValue(_analog1);
+			_analogRight->SetValue(_analog2);
 			
 			// Buttons
 			uint8 dpad = (report[5] & 0xf);

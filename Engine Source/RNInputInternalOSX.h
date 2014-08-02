@@ -61,6 +61,9 @@ namespace RN
 		void SendReport();
 		void Reset();
 		
+		Axis2DControl *_analogLeft;
+		Axis2DControl *_analogRight;
+		
 		uint8 _rumbleLarge;
 		uint8 _rumbleSmall;
 		

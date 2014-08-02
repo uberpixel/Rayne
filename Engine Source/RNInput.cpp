@@ -34,9 +34,19 @@ namespace RN
 	
 	
 	Axis2DControl::Axis2DControl(const String *name) :
-		InputControl(name)
+		InputControl(name),
+		_deadZone(0.0f)
 	{}
 	
+	
+	void Axis2DControl::SetDeadzone(float zone)
+	{
+		_deadZone = zone;
+	}
+	void Axis2DControl::SetValue(const Vector2 &value)
+	{
+		_value = value;
+	}
 	
 	
 	InputDevice::InputDevice(Category category, const String *vendor, const String *name) :
