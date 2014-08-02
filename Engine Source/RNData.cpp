@@ -47,7 +47,7 @@ namespace RN
 		}
 	}
 	
-	Data::Data(const std::string& name)
+	Data::Data(const std::string &name)
 	{
 		File *file = new File(name, File::FileMode::Read);
 		size_t length = file->GetSize();
@@ -94,7 +94,7 @@ namespace RN
 		return data->Autorelease();
 	}
 	
-	Data *Data::WithContentsOfFile(const std::string& file)
+	Data *Data::WithContentsOfFile(const std::string &file)
 	{
 		Data *data = new Data(file);
 		return data->Autorelease();
@@ -158,7 +158,7 @@ namespace RN
 		std::copy(data, data + range.length, _bytes + range.origin);
 	}
 	
-	void Data::WriteToFile(const std::string& name)
+	void Data::WriteToFile(const std::string &name)
 	{
 		File *file = new File(name, File::FileMode::Write);
 		file->WriteBuffer(_bytes, _length);

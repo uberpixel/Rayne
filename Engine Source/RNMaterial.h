@@ -52,15 +52,15 @@ namespace RN
 				Matrix
 			};
 			
-			RNAPI ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy=true);
-			RNAPI ShaderUniform(const std::string& name, const Matrix &matrix);
-			RNAPI ShaderUniform(const std::string& name, const Vector2 &vec2);
-			RNAPI ShaderUniform(const std::string& name, const Vector3 &vec3);
-			RNAPI ShaderUniform(const std::string& name, const Vector4 &vec4);
+			RNAPI ShaderUniform(const std::string &name, Type type, void *data, size_t count, bool copy=true);
+			RNAPI ShaderUniform(const std::string &name, const Matrix &matrix);
+			RNAPI ShaderUniform(const std::string &name, const Vector2 &vec2);
+			RNAPI ShaderUniform(const std::string &name, const Vector3 &vec3);
+			RNAPI ShaderUniform(const std::string &name, const Vector4 &vec4);
 			
-			RNAPI explicit ShaderUniform(const std::string& name, float fValue);
-			RNAPI explicit ShaderUniform(const std::string& name, int32 iValue);
-			RNAPI explicit ShaderUniform(const std::string& name, uint32 uiValue);
+			RNAPI explicit ShaderUniform(const std::string &name, float fValue);
+			RNAPI explicit ShaderUniform(const std::string &name, int32 iValue);
+			RNAPI explicit ShaderUniform(const std::string &name, uint32 uiValue);
 			
 			RNAPI void SetFloatValue(float value);
 			RNAPI void SetIntegerValue(int32 value);
@@ -191,11 +191,11 @@ namespace RN
 		RNAPI void RemoveTexture(Texture *texture);
 		RNAPI void RemoveTextures();
 		
-		RNAPI void Define(const std::string& define);
-		RNAPI void Define(const std::string& define, const std::string& value);
-		RNAPI void Define(const std::string& define, int32 value);
-		RNAPI void Define(const std::string& define, float value);
-		RNAPI void Undefine(const std::string& define);
+		RNAPI void Define(const std::string &define);
+		RNAPI void Define(const std::string &define, const std::string &value);
+		RNAPI void Define(const std::string &define, int32 value);
+		RNAPI void Define(const std::string &define, float value);
+		RNAPI void Undefine(const std::string &define);
 		
 		RNAPI const Array *GetTextures() const { return _textures; }
 		RNAPI const ShaderLookup &GetLookup() const { return _lookup; }

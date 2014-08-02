@@ -496,7 +496,7 @@ namespace RN
 		return out;
 	}
 	
-	Skeleton *Skeleton::WithFile(const std::string& path)
+	Skeleton *Skeleton::WithFile(const std::string &path)
 	{
 		Dictionary *settings = new Dictionary();
 		settings->Autorelease();

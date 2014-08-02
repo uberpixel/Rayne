@@ -66,7 +66,7 @@ namespace RN
 			
 			RNAPI void Submit();
 			
-			Loggable &operator << (const std::string& val) { _stream << val; return *this; }
+			Loggable &operator << (const std::string &val) { _stream << val; return *this; }
 			Loggable &operator << (const char *val) { _stream << val; return *this; }
 			Loggable &operator << (bool val) { _stream << val; return *this; }
 			Loggable &operator << (short val) { _stream << val; return *this; }

@@ -152,7 +152,7 @@ namespace RN
 			{
 				_table->BeginEditing();
 			
-				for(const std::string& message : _queue)
+				for(const std::string &message : _queue)
 				{
 					bool added = (_messages.size() != _messages.capacity());
 					_messages.push(std::move(message));
@@ -195,7 +195,7 @@ namespace RN
 		void ConsoleWidget::CutOff()
 		{}
 		
-		void ConsoleWidget::Write(const Log::Message& message)
+		void ConsoleWidget::Write(const Log::Message &message)
 		{
 			Widget::Lock();
 			

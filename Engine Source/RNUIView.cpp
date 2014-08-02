@@ -144,7 +144,7 @@ namespace RN
 		// MARK: Coordinate systems
 		// ---------------------
 		
-		void View::ConvertPointToWidget(Vector2& point)
+		void View::ConvertPointToWidget(Vector2 &point)
 		{
 			View *view = _superview;
 			while(view)
@@ -159,7 +159,7 @@ namespace RN
 			point.y += _frame.y - _bounds.y;
 		}
 		
-		void View::ConvertPointFromWidget(Vector2& point)
+		void View::ConvertPointFromWidget(Vector2 &point)
 		{
 			View *view = _superview;
 			while(view)
@@ -704,7 +704,7 @@ namespace RN
 			}
 		}
 		
-		void View::PopulateRenderingObject(RenderingObject& object)
+		void View::PopulateRenderingObject(RenderingObject &object)
 		{
 			object.material = _material;
 			object.transform = &_finalTransform;

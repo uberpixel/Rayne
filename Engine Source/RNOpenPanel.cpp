@@ -27,12 +27,12 @@ namespace RN
 	}
 	
 	
-	void SavePanel::SetTitle(const std::string& title)
+	void SavePanel::SetTitle(const std::string &title)
 	{
 		_title = title;
 	}
 	
-	void SavePanel::SetMessage(const std::string& message)
+	void SavePanel::SetMessage(const std::string &message)
 	{
 		_message = message;
 	}
@@ -56,7 +56,7 @@ namespace RN
 		{
 			NSMutableArray *fileTypes = [NSMutableArray array];
 			
-			for(const std::string& type : _allowedFileTypes)
+			for(const std::string &type : _allowedFileTypes)
 				[fileTypes addObject:[NSString stringWithUTF8String:type.c_str()]];
 			
 			[panel setAllowedFileTypes:fileTypes];
@@ -163,7 +163,7 @@ namespace RN
 		{
 			NSMutableArray *fileTypes = [NSMutableArray array];
 			
-			for(const std::string& type : _allowedFileTypes)
+			for(const std::string &type : _allowedFileTypes)
 				[fileTypes addObject:[NSString stringWithUTF8String:type.c_str()]];
 			
 			[panel setAllowedFileTypes:fileTypes];
@@ -213,7 +213,7 @@ namespace RN
 			ZeroMemory(szFilter, 1024);
 			TCHAR *temp = szFile;
 			
-			for(const std::string& type : _allowedFileTypes)
+			for(const std::string &type : _allowedFileTypes)
 			{
 				strcpy(temp, type.c_str());
 				temp += type.size() + 1;

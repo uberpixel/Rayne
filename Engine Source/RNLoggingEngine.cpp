@@ -87,7 +87,7 @@ namespace RN
 		class StreamLoggingInternal
 		{
 		public:
-			StreamLoggingInternal(std::ostream& stream) :
+			StreamLoggingInternal(std::ostream &stream) :
 				_stream(stream)
 			{}
 			
@@ -125,7 +125,7 @@ namespace RN
 			}
 			
 		private:
-			std::ostream& _stream;
+			std::ostream &_stream;
 		};
 		
 		// ---------------------
@@ -259,7 +259,7 @@ namespace RN
 			int mode = message.HasTitle() ? 1 : 0;
 			SwitchMode(mode);
 			
-			const std::string& header = (message.HasTitle()) ? message.GetTitle() : message.GetFormattedTime();
+			const std::string &header = (message.HasTitle()) ? message.GetTitle() : message.GetFormattedTime();
 			std::string body = std::move(stl::html_encode(message.GetMessage()));
 			
 			switch(mode)

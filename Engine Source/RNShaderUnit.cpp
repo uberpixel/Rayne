@@ -87,7 +87,7 @@ namespace RN
 		}
 	}
 	
-	std::pair<std::string, size_t> ShaderUnit::PreProcessedShaderSource(const std::string& source, const std::vector<ShaderDefine>& defines)
+	std::pair<std::string, size_t> ShaderUnit::PreProcessedShaderSource(const std::string &source, const std::vector<ShaderDefine>& defines)
 	{
 		std::string data = source;
 		size_t index = data.find("#version");
@@ -125,7 +125,7 @@ namespace RN
 		return std::pair<std::string, size_t>(data, cleanedDefines.size());
 	}
 	
-	void ShaderUnit::ParseErrorAndThrow(const std::string& error, size_t offset)
+	void ShaderUnit::ParseErrorAndThrow(const std::string &error, size_t offset)
 	{
 		std::string result(error);
 		

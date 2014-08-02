@@ -17,7 +17,7 @@ namespace RN
 {
 	RNDefineMeta(File, Object)
 
-	File::File(const std::string& path, FileMode mode)
+	File::File(const std::string &path, FileMode mode)
 	{
 		_file = 0;
 		_size = 0;
@@ -91,7 +91,7 @@ namespace RN
 	}
 	
 	
-	void File::ReadIntoString(std::string& string, size_t size, bool appendNull)
+	void File::ReadIntoString(std::string &string, size_t size, bool appendNull)
 	{
 		char *buffer = new char[size + 1];
 		fread(buffer, size, 1, _file);
@@ -195,7 +195,7 @@ namespace RN
 	}
 
 	// Writing operations
-	void File::WriteString(const std::string& string, bool includeNull)
+	void File::WriteString(const std::string &string, bool includeNull)
 	{
 		size_t length = string.length() + (includeNull ? 1 : 0);
 		const char *cstring = string.c_str();
@@ -263,7 +263,7 @@ namespace RN
 	}
 
 	// Misc
-	bool File::OpenPath(const std::string& path, FileMode mode)
+	bool File::OpenPath(const std::string &path, FileMode mode)
 	{
 		const char *fmode = 0;
 		switch(mode)

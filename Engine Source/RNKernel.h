@@ -55,7 +55,7 @@ namespace RN
 		RNAPI void ScheduleTimer(Timer *timer);
 		RNAPI void RemoveTimer(Timer *timer);
 		
-		RNAPI void PushStatistics(const std::string& key);
+		RNAPI void PushStatistics(const std::string &key);
 		RNAPI void PopStatistics();
 		
 		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;

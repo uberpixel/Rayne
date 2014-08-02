@@ -62,7 +62,7 @@ namespace RN
 			Mesh *DequeMesh(size_t vertices);
 			
 			static Font *FontForAttributes(Dictionary *attributes);
-			static const RN::Color& ColorForAttributes(Dictionary *attributes);
+			static const RN::Color &ColorForAttributes(Dictionary *attributes);
 			
 			AttributedString *_string;
 			TextAlignment _alignment;
@@ -97,7 +97,7 @@ namespace RN
 			
 			
 			RNAPI void SetFont(Font *font);
-			RNAPI void SetColor(const RN::Color& color);
+			RNAPI void SetColor(const RN::Color &color);
 			RNAPI void SetOffset(const Vector2 &offset);
 			RNAPI void SetRangeOffset(size_t offset);
 			
@@ -110,7 +110,7 @@ namespace RN
 			RNAPI const std::vector<Glyph>& GetGlyphs() const { return _glyphs; }
 			RNAPI const Vector2 &GetExtents() const { return _extents; }
 			RNAPI const Vector2 &GetOffset() const { return _offset; }
-			RNAPI const RN::Color& GetColor() const { return _color; }
+			RNAPI const RN::Color &GetColor() const { return _color; }
 			RNAPI const Range &GetRange() const { return _range; }
 			RNAPI Range GetRangeOfCharactersAtPoint(const Vector2 &point) const;
 			

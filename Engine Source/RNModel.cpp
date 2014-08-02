@@ -286,7 +286,7 @@ namespace RN
 		return model->Autorelease();
 	}
 	
-	Model *Model::WithFile(const std::string& path, const Dictionary *settings)
+	Model *Model::WithFile(const std::string &path, const Dictionary *settings)
 	{
 		Dictionary *finalsettings = new Dictionary();
 		finalsettings->Autorelease();
@@ -306,7 +306,7 @@ namespace RN
 		return model->Autorelease();
 	}
 	
-	Model *Model::WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader)
+	Model *Model::WithSkyCube(const std::string &up, const std::string &down, const std::string &left, const std::string &right, const std::string &front, const std::string &back, const std::string &shader)
 	{
 		Shader *matShader = Shader::WithFile(shader);
 		
@@ -356,7 +356,7 @@ namespace RN
 		return skyModel;
 	}
 	
-	Model *Model::WithSkyCube(const std::string& shader)
+	Model *Model::WithSkyCube(const std::string &shader)
 	{
 		Shader *matShader = Shader::WithFile(shader);
 		

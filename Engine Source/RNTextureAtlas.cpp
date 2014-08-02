@@ -11,13 +11,13 @@
 
 namespace RN
 {
-	TextureAtlas::TextureAtlas(uint32 width, uint32 height, const Texture::Parameter& parameter) :
+	TextureAtlas::TextureAtlas(uint32 width, uint32 height, const Texture::Parameter &parameter) :
 		Texture2D(parameter)
 	{
 		Initialize(width, height);
 	}
 	
-	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const Texture::Parameter& parameter) :
+	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const Texture::Parameter &parameter) :
 		Texture2D(parameter, isLinear)
 	{
 		Initialize(width, height);

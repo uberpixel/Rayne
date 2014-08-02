@@ -20,8 +20,8 @@ namespace RN
 	class TextureAtlas : public Texture2D
 	{
 	public:
-		RNAPI TextureAtlas(uint32 width, uint32 height, const Texture::Parameter& parameter);
-		RNAPI TextureAtlas(uint32 width, uint32 height, bool linear, const Texture::Parameter& parameter);
+		RNAPI TextureAtlas(uint32 width, uint32 height, const Texture::Parameter &parameter);
+		RNAPI TextureAtlas(uint32 width, uint32 height, bool linear, const Texture::Parameter &parameter);
 		RNAPI ~TextureAtlas() override;
 		
 		RNAPI Rect AllocateRegion(uint32 width, uint32 height);

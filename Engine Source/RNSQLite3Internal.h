@@ -41,7 +41,7 @@ namespace RN
 		public:
 			typedef sqlite3_destructor_type SqliteType;
 			
-			Statement(sqlite3 *connection, const std::string& query) :
+			Statement(sqlite3 *connection, const std::string &query) :
 				_connection(connection),
 				_statement(nullptr)
 			{
@@ -66,7 +66,7 @@ namespace RN
 				sqlite3_bind_blob(_statement, index, data, size, type);
 			}
 			
-			void BindText(int index, const std::string& text, SqliteType type = SQLITE_STATIC)
+			void BindText(int index, const std::string &text, SqliteType type = SQLITE_STATIC)
 			{
 				sqlite3_bind_text(_statement, index, text.c_str(), static_cast<int>(text.length()), type);
 			}
@@ -158,13 +158,13 @@ namespace RN
 		};
 		
 		
-		static inline void Query(sqlite3 *connection, const std::string& query)
+		static inline void Query(sqlite3 *connection, const std::string &query)
 		{
 			SQL::Statement statement(connection, query);
 			statement.Step();
 		}
 		
-		static inline bool CheckTable(sqlite3 *connection, const std::string& table)
+		static inline bool CheckTable(sqlite3 *connection, const std::string &table)
 		{
 			SQL::Statement statement(connection, "SELECT name FROM sqlite_master WHERE type='table' AND name=?");
 			statement.BindText(1, table);

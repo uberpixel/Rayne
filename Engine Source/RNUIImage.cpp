@@ -21,7 +21,7 @@ namespace RN
 			_texture = texture->Retain();
 		}
 		
-		Image::Image(const std::string& file) :
+		Image::Image(const std::string &file) :
 			_atlas(UI::Atlas(0.0f, 0.0f, 1.0f, 1.0f))
 		{
 			Texture::Parameter parameter;
@@ -150,7 +150,7 @@ namespace RN
 		}
 		
 		
-		Image *Image::WithFile(const std::string& file)
+		Image *Image::WithFile(const std::string &file)
 		{
 			Image *image = new Image(file);
 			return image->Autorelease();

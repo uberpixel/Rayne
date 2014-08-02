@@ -47,7 +47,7 @@ namespace RN
 	{
 	}
 	
-	void Application::SetTitle(const std::string& title)
+	void Application::SetTitle(const std::string &title)
 	{
 		_title = title;
 	}

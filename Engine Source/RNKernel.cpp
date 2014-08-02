@@ -463,7 +463,7 @@ namespace RN
 			cpustream << std::endl;
 			bool skipped = false;
 			
-			for(std::string& cap : scaps)
+			for(std::string &cap : scaps)
 			{
 				if(skipped)
 					cpustream << ", ";
@@ -501,7 +501,7 @@ namespace RN
 				bool skipped = false;
 				std::stringstream stream;
 				
-				for(std::string& module : modules)
+				for(std::string &module : modules)
 				{
 					if(skipped)
 						stream << ", ";
@@ -726,7 +726,7 @@ namespace RN
 		_internals->_shouldExit = true;
 	}
 	
-	void Kernel::PushStatistics(const std::string& key)
+	void Kernel::PushStatistics(const std::string &key)
 	{
 		_internals->_statistics[_internals->_statisticsSwitch].Push(key);
 	}

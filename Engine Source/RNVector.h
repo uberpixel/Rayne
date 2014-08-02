@@ -120,8 +120,8 @@ namespace RN
 		explicit Vector4(const Vector3 &other, float w=0.0f);
 		
 #if RN_SIMD
-		Vector4(const SIMD::VecFloat& other);
-		Vector4 &operator= (const SIMD::VecFloat& other);
+		Vector4(const SIMD::VecFloat &other);
+		Vector4 &operator= (const SIMD::VecFloat &other);
 		
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
 		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
@@ -594,11 +594,11 @@ namespace RN
 	}
 	
 #if RN_SIMD
-	RN_INLINE Vector4::Vector4(const SIMD::VecFloat& other) :
+	RN_INLINE Vector4::Vector4(const SIMD::VecFloat &other) :
 		simd(other)
 	{}
 	
-	RN_INLINE Vector4 &Vector4::operator= (const SIMD::VecFloat& other)
+	RN_INLINE Vector4 &Vector4::operator= (const SIMD::VecFloat &other)
 	{
 		simd = other;
 		return *this;

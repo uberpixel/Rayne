@@ -54,7 +54,7 @@ namespace RN
 	}
 	
 	template<class T>
-	void HashCombine(machine_hash& seed, const T &value)
+	void HashCombine(machine_hash &seed, const T &value)
 	{		
 		// This function is equivalent to boost::hash_combine()
 		std::hash<T> hasher;

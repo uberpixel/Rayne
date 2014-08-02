@@ -26,7 +26,7 @@
 
 namespace RN
 {
-	std::string PathManager::Join(const std::string& path1, const std::string& path2)
+	std::string PathManager::Join(const std::string &path1, const std::string &path2)
 	{
 		std::string path = std::move(Basepath(path1));
 		std::stringstream result;
@@ -50,7 +50,7 @@ namespace RN
 		return result.str();
 	}
 	
-	std::string PathManager::PathByRemovingExtension(const std::string& path)
+	std::string PathManager::PathByRemovingExtension(const std::string &path)
 	{
 		size_t i = path.size();
 		while((i --) > 0)
@@ -62,7 +62,7 @@ namespace RN
 		return path;
 	}
 	
-	std::string PathManager::PathByRemovingPathComponent(const std::string& path)
+	std::string PathManager::PathByRemovingPathComponent(const std::string &path)
 	{
 		bool hasMarker = false;
 		
@@ -82,7 +82,7 @@ namespace RN
 		return hasMarker ? path.substr(0, marker) : path;
 	}
 	
-	std::vector<std::string> PathManager::PathComoponents(const std::string& path)
+	std::vector<std::string> PathManager::PathComoponents(const std::string &path)
 	{
 		const char *cstr = path.c_str();
 		std::vector<std::string> result;
@@ -112,7 +112,7 @@ namespace RN
 	{
 		std::stringstream result;
 		
-		for(const std::string& component : components)
+		for(const std::string &component : components)
 		{
 			result << component;
 			result << RNPathDelimiter;
@@ -121,7 +121,7 @@ namespace RN
 		return result.str();
 	}
 	
-	std::string PathManager::Base(const std::string& path)
+	std::string PathManager::Base(const std::string &path)
 	{
 		size_t marker = path.size();
 		size_t i = marker;
@@ -138,7 +138,7 @@ namespace RN
 		return path.substr(i, marker - i);
 	}
 	
-	std::string PathManager::Basename(const std::string& path)
+	std::string PathManager::Basename(const std::string &path)
 	{
 		bool hasExtension = false;
 		
@@ -163,7 +163,7 @@ namespace RN
 		return path.substr(i, marker - i);
 	}
 	
-	std::string PathManager::Basepath(const std::string& path)
+	std::string PathManager::Basepath(const std::string &path)
 	{
 		bool hasExtension = false;
 		
@@ -185,7 +185,7 @@ namespace RN
 		return hasExtension ? path.substr(0, marker) : path;
 	}
 	
-	std::string PathManager::Extension(const std::string& path)
+	std::string PathManager::Extension(const std::string &path)
 	{
 		size_t marker = path.size();
 		size_t i = marker;
@@ -209,12 +209,12 @@ namespace RN
 	}
 	
 	
-	bool PathManager::PathExists(const std::string& path)
+	bool PathManager::PathExists(const std::string &path)
 	{
 		return PathExists(path, 0);
 	}
 	
-	bool PathManager::PathExists(const std::string& path, bool *isDirectory)
+	bool PathManager::PathExists(const std::string &path, bool *isDirectory)
 	{
 #if RN_PLATFORM_POSIX
 		struct stat buf;
@@ -269,7 +269,7 @@ namespace RN
 #endif
 	}
 	
-	bool PathManager::CreatePath(const std::string& tpath, bool createIntermediateDirectories)
+	bool PathManager::CreatePath(const std::string &tpath, bool createIntermediateDirectories)
 	{
 		bool isDirectory;
 		

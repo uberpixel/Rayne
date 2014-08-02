@@ -254,7 +254,7 @@ namespace RN
 				return marker_type(_end, rotation);
 			}
 			
-			void increment_marker(marker_type& marker) const
+			void increment_marker(marker_type &marker) const
 			{
 				if(marker == end_marker())
 				{
@@ -275,7 +275,7 @@ namespace RN
 				if(marker.index == 0)
 					marker.rotation ++;
 			}
-			void decrement_marker(marker_type& marker) const
+			void decrement_marker(marker_type &marker) const
 			{
 				if(marker == begin_marker())
 				{
@@ -366,7 +366,7 @@ namespace RN
 				return false;
 			}
 			
-			bool pop(T& val)
+			bool pop(T &val)
 			{
 				size_t head = _head.load(std::memory_order_relaxed);
 				

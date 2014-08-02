@@ -57,7 +57,7 @@ namespace RN
 		RNAPI bool IsCancelled() const { return _isCancelled.load(); }
 		RNAPI bool IsRunning() const { return _isRunning.load(); }
 		
-		RNAPI void SetName(const std::string& name);
+		RNAPI void SetName(const std::string &name);
 		RNAPI const std::string GetName();
 
 		template <typename T>

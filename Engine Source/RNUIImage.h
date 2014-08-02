@@ -23,10 +23,10 @@ namespace RN
 		{
 		public:
 			RNAPI Image(Texture *texture);
-			RNAPI Image(const std::string& file);
+			RNAPI Image(const std::string &file);
 			RNAPI ~Image() override;
 			
-			RNAPI static Image *WithFile(const std::string& file);
+			RNAPI static Image *WithFile(const std::string &file);
 			RNAPI static Image *WithTexture(Texture *texture);
 			
 			RNAPI void SetAtlas(const Atlas &atlas, bool normalized=true);

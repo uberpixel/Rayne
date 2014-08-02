@@ -53,7 +53,7 @@ namespace RN
 	class __LockGuardCore<T, false>
 	{
 	public:
-		__LockGuardCore(T& lock) :
+		__LockGuardCore(T &lock) :
 			_lock(lock)
 		{
 			Lock();

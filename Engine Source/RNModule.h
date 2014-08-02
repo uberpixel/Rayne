@@ -38,19 +38,19 @@ namespace RN
 	class Module : public Object
 	{
 	public:
-		RNAPI Module(const std::string& name);
+		RNAPI Module(const std::string &name);
 		RNAPI ~Module();
 		
 		RNAPI void Load();
 		RNAPI void Unload();
 		RNAPI bool IsLoaded() const;
 		
-		RNAPI const std::string& GetName() const { return _name; }
-		RNAPI const std::string& GetPath() const { return _path; }
+		RNAPI const std::string &GetName() const { return _name; }
+		RNAPI const std::string &GetPath() const { return _path; }
 		
 		RNAPI uint32 GetABIVersion() const { return _exports.version; }
 		
-		RNAPI void *GetFunctionAddress(const std::string& name);
+		RNAPI void *GetFunctionAddress(const std::string &name);
 		
 		template<class T>
 		T *GetManifestObject(String *key) const
@@ -83,7 +83,7 @@ namespace RN
 		RNAPI ModuleCoordinator();
 		RNAPI ~ModuleCoordinator() override;
 		
-		RNAPI Module *GetModuleWithName(const std::string& name);
+		RNAPI Module *GetModuleWithName(const std::string &name);
 		RNAPI const Array *GetModules() const { return &_modules; }
 		
 	private:

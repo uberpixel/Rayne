@@ -99,7 +99,7 @@ namespace RN
 		RNAPI SceneNode(Deserializer *deserializer);
 		RNAPI ~SceneNode() override;
 		
-		RNAPI void FillRenderingObject(RenderingObject& object) const;
+		RNAPI void FillRenderingObject(RenderingObject &object) const;
 		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void Translate(const Vector3 &trans);
@@ -128,7 +128,7 @@ namespace RN
 		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
 		
 		RNAPI void SetPriority(Priority priority);
-		RNAPI void SetDebugName(const std::string& name);
+		RNAPI void SetDebugName(const std::string &name);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
@@ -165,7 +165,7 @@ namespace RN
 		RNAPI AABB GetBoundingBox() const;
 		RNAPI Sphere GetBoundingSphere() const;
 		
-		RNAPI const std::string& GetDebugName() { return _debugName; }
+		RNAPI const std::string &GetDebugName() { return _debugName; }
 		
 		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 		

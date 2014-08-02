@@ -22,7 +22,7 @@ namespace RN
 {
 	RNDefineMeta(Shader, Asset)
 	
-	GLuint ShaderProgram::GetCustomLocation(const std::string& name)
+	GLuint ShaderProgram::GetCustomLocation(const std::string &name)
 	{
 		auto iterator = _customLocations.find(name);
 		if(iterator != _customLocations.end())
@@ -213,7 +213,7 @@ namespace RN
 		_supportedPrograms = 0;
 	}
 	
-	Shader::Shader(const std::string& shader)
+	Shader::Shader(const std::string &shader)
 	{
 		_supportedPrograms = 0;
 		
@@ -276,7 +276,7 @@ namespace RN
 		}, true);
 	}
 	
-	Shader *Shader::WithFile(const std::string& file)
+	Shader *Shader::WithFile(const std::string &file)
 	{
 		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNSTR(file.c_str()), nullptr);
 		return shader;
@@ -288,7 +288,7 @@ namespace RN
 	// MARK: Defines
 	// ---------------------
 	
-	void Shader::Define(const std::string& define)
+	void Shader::Define(const std::string &define)
 	{
 		LockGuard<Object *> lock(this);
 		
@@ -296,7 +296,7 @@ namespace RN
 		InvalidatePrograms();
 	}
 	
-	void Shader::Define(const std::string& define, const std::string& value)
+	void Shader::Define(const std::string &define, const std::string &value)
 	{
 		LockGuard<Object *> lock(this);
 		
@@ -304,7 +304,7 @@ namespace RN
 		InvalidatePrograms();
 	}
 	
-	void Shader::Define(const std::string& define, int32 value)
+	void Shader::Define(const std::string &define, int32 value)
 	{
 		std::stringstream stream;
 		stream << value;
@@ -312,7 +312,7 @@ namespace RN
 		Define(define, stream.str());
 	}
 	
-	void Shader::Define(const std::string& define, float value)
+	void Shader::Define(const std::string &define, float value)
 	{
 		std::stringstream stream;
 		stream << value;
@@ -320,7 +320,7 @@ namespace RN
 		Define(define, stream.str());
 	}	
 	
-	void Shader::Undefine(const std::string& name)
+	void Shader::Undefine(const std::string &name)
 	{
 		LockGuard<Object *> lock(this);
 		
@@ -542,7 +542,7 @@ namespace RN
 	// MARK: Setter
 	// ---------------------
 	
-	void Shader::IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile &output)
+	void Shader::IncludeShader(const std::string &name, IncludeMode mode, File *parent, PreProcessedFile &output)
 	{
 		File *includeFile = 0;
 		
@@ -673,7 +673,7 @@ namespace RN
 		output.lines = (lines - 1) - output.offset;
 	}
 	
-	bool Shader::IsDefined(const std::string& source, const std::string& define)
+	bool Shader::IsDefined(const std::string &source, const std::string &define)
 	{
 		return (source.find("#ifdef " + define) != std::string::npos || source.find("defined(" + define + ")") != std::string::npos);
 	}
@@ -708,7 +708,7 @@ namespace RN
 		InvalidatePrograms();
 	}
 	
-	void Shader::SetShaderForType(const std::string& path, ShaderType type)
+	void Shader::SetShaderForType(const std::string &path, ShaderType type)
 	{
 		File *file = new File(path);
 		SetShaderForType(file, type);
@@ -724,7 +724,7 @@ namespace RN
 	{
 		std::vector<std::pair<ShaderType, std::string>> files;
 		
-		for(auto& pair : _shaderData)
+		for(auto &pair : _shaderData)
 			files.emplace_back(std::make_pair(pair.first, pair.second.file));
 		
 		std::sort(files.begin(), files.end(), [](const std::pair<ShaderType, std::string>& a, const std::pair<ShaderType, std::string>& b) {
@@ -734,7 +734,7 @@ namespace RN
 		
 		stl::sha2_context context;
 		
-		for(auto& pair : files)
+		for(auto &pair : files)
 		{
 			context.update(reinterpret_cast<const uint8 *>(pair.second.data()), pair.second.length());
 		}
@@ -753,7 +753,7 @@ namespace RN
 		return formatted.str();
 	}
 	
-	const std::string& Shader::GetShaderSource(ShaderType type)
+	const std::string &Shader::GetShaderSource(ShaderType type)
 	{
 		return _shaderData[type].shader;
 	}

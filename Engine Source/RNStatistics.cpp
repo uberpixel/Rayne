@@ -23,7 +23,7 @@ namespace RN
 	
 	
 	
-	Statistics::DataPoint *Statistics::GetPointForKey(const std::string& key)
+	Statistics::DataPoint *Statistics::GetPointForKey(const std::string &key)
 	{
 		auto iterator = _dataPoints.find(key);
 		if(iterator == _dataPoints.end())
@@ -46,7 +46,7 @@ namespace RN
 		return iterator->second;
 	}
 	
-	void Statistics::Push(const std::string& name)
+	void Statistics::Push(const std::string &name)
 	{
 		DataPoint *point = GetPointForKey(name);
 		

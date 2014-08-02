@@ -24,7 +24,7 @@ namespace RN
 			_time(std::chrono::system_clock::now())
 		{}
 		
-		Message::Message(Level level, const std::string& message) :
+		Message::Message(Level level, const std::string &message) :
 			_level(level),
 			_message(message),
 			_time(std::chrono::system_clock::now())
@@ -36,7 +36,7 @@ namespace RN
 			_time(std::chrono::system_clock::now())
 		{}
 		
-		Message::Message(Level level, const std::string& title, const std::string& message) :
+		Message::Message(Level level, const std::string &title, const std::string &message) :
 			_level(level),
 			_title(title),
 			_message(message),
@@ -50,7 +50,7 @@ namespace RN
 			_time(std::chrono::system_clock::now())
 		{}
 		
-		void Message::SetTitle(const std::string& title)
+		void Message::SetTitle(const std::string &title)
 		{
 			_title = title;
 		}
@@ -59,7 +59,7 @@ namespace RN
 			_title = std::move(title);
 		}
 		
-		void Message::SetMessage(const std::string& message)
+		void Message::SetMessage(const std::string &message)
 		{
 			_message = message;
 		}
@@ -68,7 +68,7 @@ namespace RN
 			_message = std::move(message);
 		}
 		
-		const std::string& Message::GetFormattedTime() const
+		const std::string &Message::GetFormattedTime() const
 		{
 			if(!_formattedTime.empty())
 				return _formattedTime;
@@ -161,7 +161,7 @@ namespace RN
 		
 		
 		
-		void Logger::Log(Level level, const std::string& message)
+		void Logger::Log(Level level, const std::string &message)
 		{
 			Message temp(level, message);
 			Log(std::move(temp));

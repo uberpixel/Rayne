@@ -108,8 +108,8 @@ namespace RN
 		
 		RNAPI ~Texture() override;
 		
-		RNAPI static Texture *WithFile(const std::string& name, bool isLinear = false);
-		RNAPI static Texture *WithFile(const std::string& name, const Parameter &parameter, bool isLinear = false);
+		RNAPI static Texture *WithFile(const std::string &name, bool isLinear = false);
+		RNAPI static Texture *WithFile(const std::string &name, const Parameter &parameter, bool isLinear = false);
 		
 		RNAPI virtual void SetSize(size_t width, size_t height);
 		RNAPI void SetParameter(const Parameter &parameter);
@@ -168,7 +168,7 @@ namespace RN
 		RNAPI void UpdateData(const PixelData &data);
 		RNAPI void UpdateRegion(const PixelData &data, const Rect &region);
 		
-		RNAPI void GetData(PixelData& data);
+		RNAPI void GetData(PixelData &data);
 		
 		RNDeclareMeta(Texture2D)
 	};

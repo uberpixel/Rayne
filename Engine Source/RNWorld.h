@@ -38,7 +38,7 @@ namespace RN
 		};
 		
 		RNAPI World(SceneManager *sceneManager);
-		RNAPI World(const std::string& sceneManager);
+		RNAPI World(const std::string &sceneManager);
 		RNAPI ~World() override;
 		
 		RNAPI void SetMode(Mode mode);
@@ -82,7 +82,7 @@ namespace RN
 		RNAPI static World *GetActiveWorld();
 		
 	private:		
-		static class SceneManager *SceneManagerWithName(const std::string& name);
+		static class SceneManager *SceneManagerWithName(const std::string &name);
 		
 		RNAPI SceneNode *__GetSceneNodeWithTag(Tag tag, MetaClass *meta);
 		RNAPI Array *__GetSceneNodesWithTag(Tag tag, MetaClass *meta);

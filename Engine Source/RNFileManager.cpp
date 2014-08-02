@@ -25,7 +25,7 @@ namespace RN
 	// MARK: FileSystemNode
 	// ---------------------
 	
-	FileSystemNode::FileSystemNode(const std::string& name, DirectoryProxy *parent)
+	FileSystemNode::FileSystemNode(const std::string &name, DirectoryProxy *parent)
 	{
 		_name = name;
 		_parent = parent;
@@ -40,7 +40,7 @@ namespace RN
 		}
 	}
 	
-	void FileSystemNode::SetPath(const std::string& path)
+	void FileSystemNode::SetPath(const std::string &path)
 	{
 		_path = path;
 	}
@@ -50,7 +50,7 @@ namespace RN
 	// MARK: FileProxy
 	// ---------------------
 	
-	FileProxy::FileProxy(const std::string& name, DirectoryProxy *parent) :
+	FileProxy::FileProxy(const std::string &name, DirectoryProxy *parent) :
 		FileSystemNode(name, parent)
 	{}
 	
@@ -129,7 +129,7 @@ namespace RN
 								 const FSEventStreamEventId eventIds[]);
 #endif
 	
-	DirectoryProxy::DirectoryProxy(const std::string& path) :
+	DirectoryProxy::DirectoryProxy(const std::string &path) :
 		FileSystemNode(PathManager::Basename(path), nullptr)
 	{
 		SetPath(path);
@@ -156,7 +156,7 @@ namespace RN
 #endif
 	}
 	
-	DirectoryProxy::DirectoryProxy(const std::string& name, DirectoryProxy *parent) :
+	DirectoryProxy::DirectoryProxy(const std::string &name, DirectoryProxy *parent) :
 		FileSystemNode(name, parent)
 	{
 		ScanDirectory();
@@ -179,7 +179,7 @@ namespace RN
 #endif
 	}
 	
-	FileSystemNode *DirectoryProxy::GetSubNode(const std::string& name) const
+	FileSystemNode *DirectoryProxy::GetSubNode(const std::string &name) const
 	{
 		std::vector<std::string> components = PathManager::PathComoponents(name);
 		if(components.size() > 0)
@@ -615,7 +615,7 @@ namespace RN
 	
 	
 	
-	FileSystemNode *FileManager::GetFileSystemNode(const std::string& name)
+	FileSystemNode *FileManager::GetFileSystemNode(const std::string &name)
 	{
 		std::string basePath  = PathManager::PathByRemovingExtension(name);
 		std::string extension = PathManager::Extension(name);
@@ -653,7 +653,7 @@ namespace RN
 		return node;
 	}
 	
-	FileProxy *FileManager::GetFileWithName(const std::string& name, bool strict)
+	FileProxy *FileManager::GetFileWithName(const std::string &name, bool strict)
 	{
 		FileSystemNode *file = GetFileSystemNode(name);
 		
@@ -680,7 +680,7 @@ namespace RN
 		throw Exception(Exception::Type::GenericException, "Couldn't resolve path " + name);
 	}
 	
-	std::string FileManager::GetFilePathWithName(const std::string& name, bool strict)
+	std::string FileManager::GetFilePathWithName(const std::string &name, bool strict)
 	{
 		bool isDirectory;
 		bool exists = PathManager::PathExists(PathManager::Basepath(name), &isDirectory);
@@ -729,7 +729,7 @@ namespace RN
 		return proxy->GetPath();
 	}
 	
-	std::string FileManager::GetNormalizedPathFromFullpath(const std::string& name)
+	std::string FileManager::GetNormalizedPathFromFullpath(const std::string &name)
 	{
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
@@ -765,7 +765,7 @@ namespace RN
 	}
 	
 	
-	void FileManager::AddFileModifier(const std::string& modifier, const std::string& extension)
+	void FileManager::AddFileModifier(const std::string &modifier, const std::string &extension)
 	{
 		auto iterator = _fileModifiers.find(extension);
 		if(iterator != _fileModifiers.end())
@@ -782,14 +782,14 @@ namespace RN
 		}
 	}
 	
-	void FileManager::AddFileModifier(const std::string& modifier)
+	void FileManager::AddFileModifier(const std::string &modifier)
 	{
 		_globalModifiers.push_back(modifier);
 	}
 	
 	
 	
-	bool FileManager::AddSearchPath(const std::string& tpath)
+	bool FileManager::AddSearchPath(const std::string &tpath)
 	{
 		AutoreleasePool pool;
 		
@@ -835,7 +835,7 @@ namespace RN
 		return true;
 	}
 	
-	void FileManager::RemoveSearchPath(const std::string& path)
+	void FileManager::RemoveSearchPath(const std::string &path)
 	{
 		size_t index = k::NotFound;
 		

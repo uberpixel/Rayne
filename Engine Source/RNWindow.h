@@ -114,7 +114,7 @@ namespace RN
 		RNAPI Window();
 		RNAPI ~Window() override;
 
-		RNAPI void SetTitle(const std::string& title);
+		RNAPI void SetTitle(const std::string &title);
 		RNAPI void SetPosition(const Vector2 &position);
 		RNAPI void ActivateConfiguration(WindowConfiguration *configuration, Mask mask);
 		

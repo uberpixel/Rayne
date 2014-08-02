@@ -15,12 +15,12 @@ namespace RN
 {
 	struct ShaderDefine
 	{
-		ShaderDefine(const std::string& tname, const std::string& tvalue) :
+		ShaderDefine(const std::string &tname, const std::string &tvalue) :
 			name(tname),
 			value(tvalue)
 		{}
 		
-		ShaderDefine(const std::string& tname, const int tvalue) :
+		ShaderDefine(const std::string &tname, const int tvalue) :
 			name(tname)
 		{
 			std::stringstream stream;
@@ -95,7 +95,7 @@ namespace std
 	template<>
 	struct hash<RN::ShaderLookup>
 	{
-		size_t operator()(const RN::ShaderLookup& lookup) const
+		size_t operator()(const RN::ShaderLookup &lookup) const
 		{
 			size_t hash = static_cast<size_t>(lookup.type);
 			
@@ -111,7 +111,7 @@ namespace std
 	template<>
 	struct equal_to<RN::ShaderLookup>
 	{
-		bool operator()(const RN::ShaderLookup& lookup1, const RN::ShaderLookup& lookup2) const 
+		bool operator()(const RN::ShaderLookup &lookup1, const RN::ShaderLookup &lookup2) const 
 		{
 			return (lookup1.type == lookup2.type && lookup1.lightDirectionalCount == lookup2.lightDirectionalCount && lookup1.lightPointSpotCount == lookup2.lightPointSpotCount && lookup1.mangledDefines == lookup2.mangledDefines);
 		}

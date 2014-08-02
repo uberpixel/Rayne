@@ -12,34 +12,34 @@ namespace RN
 {
 	RNDefineMeta(Material, Object)
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, Type type, void *data, size_t count, bool copy) :
 		_name(name),
 		_count(count)
 	{
 		StoreData(type, data, GetSizeForType(type), copy);
 	}
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Matrix &matrix) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, const Matrix &matrix) :
 		ShaderUniform(name, Type::Matrix, const_cast<Matrix *>(&matrix), 1, true)
 	{}
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector2 &vec2) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, const Vector2 &vec2) :
 		ShaderUniform(name, Type::Float2, const_cast<Vector2 *>(&vec2), 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector3 &vec3) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, const Vector3 &vec3) :
 		ShaderUniform(name, Type::Float3, const_cast<Vector3 *>(&vec3), 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector4 &vec4) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, const Vector4 &vec4) :
 		ShaderUniform(name, Type::Float4, const_cast<Vector4 *>(&vec4), 1, true)
 	{}
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, float fValue) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, float fValue) :
 		ShaderUniform(name, Type::Float1, &fValue, 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, int32 iValue) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, int32 iValue) :
 		ShaderUniform(name, Type::Int1, &iValue, 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, uint32 uiValue) :
+	Material::ShaderUniform::ShaderUniform(const std::string &name, uint32 uiValue) :
 		ShaderUniform(name, Type::UInt1, &uiValue, 1, true)
 	{}
 	
@@ -461,19 +461,19 @@ namespace RN
 	}
 	
 	
-	void Material::Define(const std::string& define)
+	void Material::Define(const std::string &define)
 	{
 		_defines.emplace_back(ShaderDefine(define, ""));
 		UpdateLookupRequest();
 	}
 	
-	void Material::Define(const std::string& define, const std::string& value)
+	void Material::Define(const std::string &define, const std::string &value)
 	{
 		_defines.emplace_back(ShaderDefine(define, value));
 		UpdateLookupRequest();
 	}
 	
-	void Material::Define(const std::string& define, int32 value)
+	void Material::Define(const std::string &define, int32 value)
 	{
 		std::stringstream stream;
 		stream << value;
@@ -481,7 +481,7 @@ namespace RN
 		Define(define, stream.str());
 	}
 	
-	void Material::Define(const std::string& define, float value)
+	void Material::Define(const std::string &define, float value)
 	{
 		std::stringstream stream;
 		stream << value;
@@ -489,7 +489,7 @@ namespace RN
 		Define(define, stream.str());
 	}
 	
-	void Material::Undefine(const std::string& name)
+	void Material::Undefine(const std::string &name)
 	{
 		for(auto i=_defines.begin(); i!=_defines.end(); i++)
 		{

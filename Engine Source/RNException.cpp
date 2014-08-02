@@ -25,7 +25,7 @@
 
 namespace RN
 {
-	Exception::Exception(Type type, const std::string& reason) :
+	Exception::Exception(Type type, const std::string &reason) :
 		_type(type),
 		_reason(reason)
 	{

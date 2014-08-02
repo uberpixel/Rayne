@@ -195,7 +195,7 @@ namespace RN
 		_parentChildLock.Unlock();
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
-		for(auto& dependecy : _dependencyMap)
+		for(auto &dependecy : _dependencyMap)
 		{
 			dependecy.second->Disconnect();
 		}
@@ -382,7 +382,7 @@ namespace RN
 		DidUpdate(ChangeSet::Priority);
 	}
 	
-	void SceneNode::SetDebugName(const std::string& name)
+	void SceneNode::SetDebugName(const std::string &name)
 	{
 		_debugName = name;
 	}
@@ -394,7 +394,7 @@ namespace RN
 	
 	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
 	{
-		const RN::Vector3& worldPos = GetWorldPosition();
+		const RN::Vector3 &worldPos = GetWorldPosition();
 		
 		RN::Quaternion rotation;
 		rotation = Quaternion::WithLookAt(worldPos - target, GetUp(), keepUpAxis);
@@ -633,7 +633,7 @@ namespace RN
 		});
 	}
 	
-	void SceneNode::FillRenderingObject(RenderingObject& object) const
+	void SceneNode::FillRenderingObject(RenderingObject &object) const
 	{
 		if(_flags & Flags::DrawLate)
 			object.flags |= RenderingObject::DrawLate;

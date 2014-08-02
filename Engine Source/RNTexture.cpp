@@ -55,7 +55,7 @@ namespace RN
 	}
 	
 	
-	Texture *Texture::WithFile(const std::string& name, bool isLinear)
+	Texture *Texture::WithFile(const std::string &name, bool isLinear)
 	{
 		Dictionary *settings = new Dictionary();
 		settings->SetObjectForKey(Number::WithBool(isLinear), RNCSTR("linear"));
@@ -65,7 +65,7 @@ namespace RN
 		return texture;
 	}
 	
-	Texture *Texture::WithFile(const std::string& name, const Parameter &parameter, bool isLinear)
+	Texture *Texture::WithFile(const std::string &name, const Parameter &parameter, bool isLinear)
 	{
 		Value *value = new Value(parameter);
 		
@@ -683,7 +683,7 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture2D::GetData(PixelData& data)
+	void Texture2D::GetData(PixelData &data)
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			GLint internalFormat;

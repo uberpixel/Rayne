@@ -45,7 +45,7 @@ namespace RN
 	// MARK: Module
 	// ---------------------
 	
-	Module::Module(const std::string& name) :
+	Module::Module(const std::string &name) :
 		_name(name)
 	{
 #if RN_PLATFORM_MAC_OS
@@ -100,7 +100,7 @@ namespace RN
 		if(!IsLoaded())
 		{
 #if RN_PLATFORM_POSIX
-			_internals->handle = dlopen(_path.c_str(), RTLD_LAZY);
+			_internals->handle = dlopen(_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 			if(!_internals->handle)
 				throw Exception(Exception::Type::ModuleNotFoundException, std::string(dlerror()));
 #endif
@@ -161,7 +161,7 @@ namespace RN
 		}
 	}
 	
-	void *Module::GetFunctionAddress(const std::string& name)
+	void *Module::GetFunctionAddress(const std::string &name)
 	{
 #if RN_PLATFORM_POSIX
 		return dlsym(_internals->handle, name.c_str());
@@ -235,7 +235,7 @@ namespace RN
 	ModuleCoordinator::~ModuleCoordinator()
 	{}
 	
-	Module *ModuleCoordinator::GetModuleWithName(const std::string& name)
+	Module *ModuleCoordinator::GetModuleWithName(const std::string &name)
 	{
 		LockGuard<Mutex> lock(_mutex);
 		

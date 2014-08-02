@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	MetaClass::MetaClass(MetaClass *parent, const std::string& name, const char *namespaceBlob) :
+	MetaClass::MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob) :
 		_name(name),
 		_superClass(parent)
 	{
@@ -58,7 +58,7 @@ namespace RN
 	
 	RNDefineSingleton(Catalogue)
 	
-	MetaClass *Catalogue::GetClassWithName(const std::string& name) const
+	MetaClass *Catalogue::GetClassWithName(const std::string &name) const
 	{
 		auto iterator = _metaClasses.find(name);
 		if(iterator != _metaClasses.end())

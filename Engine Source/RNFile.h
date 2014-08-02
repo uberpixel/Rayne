@@ -24,7 +24,7 @@ namespace RN
 			ReadWrite = 2
 		} FileMode;
 
-		RNAPI File(const std::string& path, FileMode mode = Read);
+		RNAPI File(const std::string &path, FileMode mode = Read);
 		RNAPI ~File() override;
 		
 		// Reading operations
@@ -32,7 +32,7 @@ namespace RN
 		RNAPI std::vector<uint8> GetBytes();
 		
 		RNAPI void ReadIntoBuffer(void *buffer, size_t size);
-		RNAPI void ReadIntoString(std::string& string, size_t size, bool appendNull=true);
+		RNAPI void ReadIntoString(std::string &string, size_t size, bool appendNull=true);
 		RNAPI void Seek(size_t offset, bool fromStart = false);
 		
 		RNAPI uint8 ReadUint8();
@@ -49,7 +49,7 @@ namespace RN
 		RNAPI double ReadDouble();
 
 		// Writing operations
-		RNAPI void WriteString(const std::string& string, bool includeNull=false);
+		RNAPI void WriteString(const std::string &string, bool includeNull=false);
 		RNAPI void WriteBuffer(const void *buffer, size_t size);
 		
 		RNAPI void WriteUint8(uint8 value);
@@ -69,13 +69,13 @@ namespace RN
 		FILE *GetFilePointer() { return _file; }
 		size_t GetSize() const { return static_cast<size_t>(_size); }
 
-		const std::string& GetPath() { return _path; }
-		const std::string& GetName() { return _name; }
-		const std::string& GetExtension() { return _extension; }
-		const std::string& GetFullPath() { return _fullPath; }
+		const std::string &GetPath() { return _path; }
+		const std::string &GetName() { return _name; }
+		const std::string &GetExtension() { return _extension; }
+		const std::string &GetFullPath() { return _fullPath; }
 
 	private:
-		bool OpenPath(const std::string& path, FileMode mode);
+		bool OpenPath(const std::string &path, FileMode mode);
 
 		FileMode _mode;
 

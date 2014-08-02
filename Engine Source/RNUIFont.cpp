@@ -39,11 +39,11 @@ namespace RN
 		};
 		
 		
-		Font::Font(const std::string& name, float size) :
+		Font::Font(const std::string &name, float size) :
 			Font(name, size, FontDescriptor())
 		{}
 		
-		Font::Font(const std::string& name, float size, const FontDescriptor &descriptor) :
+		Font::Font(const std::string &name, float size, const FontDescriptor &descriptor) :
 			_descriptor(descriptor)
 		{
 			Texture::Parameter parameter;
@@ -79,13 +79,13 @@ namespace RN
 			DropInternals();
 		}
 		
-		Font *Font::WithName(const std::string& name, float size)
+		Font *Font::WithName(const std::string &name, float size)
 		{
 			Font *font = new Font(name, size);
 			return font->Autorelease();
 		}
 		
-		Font *Font::WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor &descriptor)
+		Font *Font::WithNameAndDescriptor(const std::string &name, float size, const FontDescriptor &descriptor)
 		{
 			Font *font = new Font(name, size, descriptor);
 			return font->Autorelease();
@@ -114,7 +114,7 @@ namespace RN
 			DropInternals();
 		}
 		
-		void Font::ResolveFontName(const std::string& name)
+		void Font::ResolveFontName(const std::string &name)
 		{
 			std::string path;
 			

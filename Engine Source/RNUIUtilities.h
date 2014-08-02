@@ -59,7 +59,7 @@ namespace RN
 			bool IsOpen() const override;
 			
 			void CutOff() override;
-			void Write(const Log::Message& message) override;
+			void Write(const Log::Message &message) override;
 			
 			TableView *_table;
 			Log::CallbackLoggingEngine *_engine;

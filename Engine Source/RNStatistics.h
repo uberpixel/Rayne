@@ -29,7 +29,7 @@ namespace RN
 		RNAPI Statistics();
 		RNAPI ~Statistics();
 		
-		RNAPI void Push(const std::string& name);
+		RNAPI void Push(const std::string &name);
 		RNAPI void Pop();
 		
 		RNAPI void Clear();
@@ -37,7 +37,7 @@ namespace RN
 		const std::vector<DataPoint *>& GetDataPoints() const { return _totalPoints; }
 		
 	private:
-		DataPoint *GetPointForKey(const std::string& key);
+		DataPoint *GetPointForKey(const std::string &key);
 		
 		std::unordered_map<std::string, DataPoint *> _dataPoints;
 		std::vector<DataPoint *> _totalPoints;

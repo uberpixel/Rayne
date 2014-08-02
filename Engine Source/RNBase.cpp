@@ -80,7 +80,7 @@ namespace RN
 			loggable << "Caught exception " << e.GetStringifiedType() << ", reason: " << e.GetReason() << std::endl;
 			loggable << "Crashing thread: " << e.GetThread()->GetName() << std::endl << "Backtrace:" << std::endl;
 			
-			for(auto& frame : callstack)
+			for(auto &frame : callstack)
 			{
 				loggable << "\t0x" << std::hex << frame.first << std::dec << " " << frame.second << std::endl;
 			}

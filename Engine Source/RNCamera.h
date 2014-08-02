@@ -75,7 +75,7 @@ namespace RN
 		friend class Camera;
 		friend class Renderer;
 		
-		RNAPI PostProcessingPipeline(const std::string& name, int32 priority);
+		RNAPI PostProcessingPipeline(const std::string &name, int32 priority);
 		RNAPI ~PostProcessingPipeline();
 		
 		RNAPI RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
@@ -302,8 +302,8 @@ namespace RN
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
-		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name, int32 priority);
-		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
+		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string &name, int32 priority);
+		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string &name);
 		RNAPI void AddPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		

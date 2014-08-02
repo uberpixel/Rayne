@@ -147,7 +147,7 @@ namespace RN
 		}
 		
 		
-		void TextField::SetValueForUndefinedKey(Object *value, const std::string& key)
+		void TextField::SetValueForUndefinedKey(Object *value, const std::string &key)
 		{
 			if(_formatter && key == "value")
 			{
@@ -158,7 +158,7 @@ namespace RN
 			Control::SetValueForUndefinedKey(value, key);
 		}
 		
-		Object *TextField::GetValueForUndefinedKey(const std::string& key)
+		Object *TextField::GetValueForUndefinedKey(const std::string &key)
 		{
 			if(_formatter && key == "value")
 			{

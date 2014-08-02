@@ -219,7 +219,7 @@ namespace RN
 		return (_id == std::this_thread::get_id());
 	}
 	
-	void Thread::SetName(const std::string& name)
+	void Thread::SetName(const std::string &name)
 	{
 		LockGuard<Mutex> lock(_mutex);
 		_name = std::string(name);

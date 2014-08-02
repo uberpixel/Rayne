@@ -359,7 +359,7 @@ namespace RN
 		_activeConfiguration->Release();
 	}
 
-	void Window::SetTitle(const std::string& title)
+	void Window::SetTitle(const std::string &title)
 	{
 		if(!Thread::GetMainThread()->OnThread())
 		{

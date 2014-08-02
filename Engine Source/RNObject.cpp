@@ -27,7 +27,7 @@ namespace RN
 		if(!std::uncaught_exception())
 			RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
-		for(auto& pair : _associatedObjects)
+		for(auto &pair : _associatedObjects)
 		{
 			Object *object = std::get<0>(pair.second);
 			MemoryPolicy policy = std::get<1>(pair.second);
@@ -317,7 +317,7 @@ namespace RN
 		Unlock();
 	}
 	
-	Object *Object::ResolveKeyPath(const std::string& path, std::string& key)
+	Object *Object::ResolveKeyPath(const std::string &path, std::string &key)
 	{
 		Object *temp = this;
 		size_t offset = 0;
@@ -337,7 +337,7 @@ namespace RN
 		}
 	}
 	
-	Object *Object::GetPrimitiveValueForKey(const std::string& key)
+	Object *Object::GetPrimitiveValueForKey(const std::string &key)
 	{
 		for(ObservableProperty *property : _properties)
 		{
@@ -348,7 +348,7 @@ namespace RN
 		return GetValueForUndefinedKey(key);
 	}
 	
-	ObservableProperty *Object::GetPropertyForKeyPath(const std::string& keyPath, std::string& key)
+	ObservableProperty *Object::GetPropertyForKeyPath(const std::string &keyPath, std::string &key)
 	{
 		for(ObservableProperty *property : _properties)
 		{
@@ -360,7 +360,7 @@ namespace RN
 	}
 	
 	
-	void Object::WillChangeValueForkey(const std::string& keyPath)
+	void Object::WillChangeValueForkey(const std::string &keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
@@ -372,7 +372,7 @@ namespace RN
 		}
 	}
 	
-	void Object::DidChangeValueForKey(const std::string& keyPath)
+	void Object::DidChangeValueForKey(const std::string &keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
@@ -385,7 +385,7 @@ namespace RN
 	}
 	
 	
-	void Object::SetValueForKey(Object *value, const std::string& keyPath)
+	void Object::SetValueForKey(Object *value, const std::string &keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
@@ -393,7 +393,7 @@ namespace RN
 		property ? property->SetValue(value) : SetValueForUndefinedKey(value, key);
 	}
 	
-	Object *Object::GetValueForKey(const std::string& keyPath)
+	Object *Object::GetValueForKey(const std::string &keyPath)
 	{
 		std::string key;
 		Object *object = ResolveKeyPath(keyPath, key);
@@ -401,12 +401,12 @@ namespace RN
 		return object->GetPrimitiveValueForKey(key);
 	}
 	
-	void Object::SetValueForUndefinedKey(Object *value, const std::string& key)
+	void Object::SetValueForUndefinedKey(Object *value, const std::string &key)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
 	}
 	
-	Object *Object::GetValueForUndefinedKey(const std::string& key)
+	Object *Object::GetValueForUndefinedKey(const std::string &key)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key" + key);
 	}

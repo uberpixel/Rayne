@@ -20,7 +20,7 @@ namespace RN
 		RNAPI Data();
 		RNAPI Data(const void *bytes, size_t length);
 		RNAPI Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
-		RNAPI Data(const std::string& file);
+		RNAPI Data(const std::string &file);
 		RNAPI Data(const Data *other);
 		RNAPI Data(Deserializer *deserializer);
 		RNAPI ~Data() override;
@@ -28,13 +28,13 @@ namespace RN
 		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI static Data *WithBytes(const uint8 *bytes, size_t length);
-		RNAPI static Data *WithContentsOfFile(const std::string& file);
+		RNAPI static Data *WithContentsOfFile(const std::string &file);
 
 		RNAPI void Append(const void *bytes, size_t length);
 		RNAPI void Append(Data *other);
 		
 		RNAPI void ReplaceBytes(const void *bytes, const Range &range);
-		RNAPI void WriteToFile(const std::string& file);
+		RNAPI void WriteToFile(const std::string &file);
 		
 		RNAPI void GetBytesInRange(void *buffer, Range range) const;
 		RNAPI Data *GetDataInRange(Range range) const;

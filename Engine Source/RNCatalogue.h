@@ -36,7 +36,7 @@ namespace RN
 	
 	protected:
 		RNAPI MetaClass() {}
-		RNAPI MetaClass(MetaClass *parent, const std::string& name, const char *namespaceBlob);
+		RNAPI MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob);
 		RNAPI ~MetaClass();
 		
 	private:
@@ -103,7 +103,7 @@ namespace RN
 	public:
 		friend class MetaClass;
 		
-		RNAPI MetaClass *GetClassWithName(const std::string& name) const;
+		RNAPI MetaClass *GetClassWithName(const std::string &name) const;
 		RNAPI void EnumerateClasses(const std::function<void (MetaClass *meta, bool &stop)>& enumerator);
 		
 	private:

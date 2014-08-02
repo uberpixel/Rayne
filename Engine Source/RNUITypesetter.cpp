@@ -63,7 +63,7 @@ namespace RN
 			return font ? font : defaultFont;
 		}
 		
-		const RN::Color& Typesetter::ColorForAttributes(Dictionary *attributes)
+		const RN::Color &Typesetter::ColorForAttributes(Dictionary *attributes)
 		{
 			static RN::Color defaultColor = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 			
@@ -626,7 +626,7 @@ namespace RN
 			_extents.y = _font->GetDefaultLineHeight();
 		}
 		
-		void LineSegment::SetColor(const RN::Color& color)
+		void LineSegment::SetColor(const RN::Color &color)
 		{
 			_color = color;
 		}
@@ -894,7 +894,7 @@ namespace RN
 			
 			float temp = 0.0f;
 			
-			for(LineSegment& segment : _segments)
+			for(LineSegment &segment : _segments)
 			{
 				segment.SetOffset(Vector2(temp + _offset.x, _offset.y));
 				temp += segment.GetExtents().x;
@@ -974,7 +974,7 @@ namespace RN
 				Dictionary *attributes = _string->GetAttributesAtIndex(_range.origin + i);
 				
 				Font *glyphFont = Typesetter::FontForAttributes(attributes);
-				const RN::Color& glyphColor = Typesetter::ColorForAttributes(attributes);
+				const RN::Color &glyphColor = Typesetter::ColorForAttributes(attributes);
 				
 				if(glyphFont != font || color != glyphColor)
 				{

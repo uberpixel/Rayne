@@ -114,7 +114,7 @@ namespace RN
 			RNAPI virtual void Draw(Renderer *renderer);
 			
 			RNAPI void RenderChilds(Renderer *renderer);
-			RNAPI void PopulateRenderingObject(RenderingObject& object);
+			RNAPI void PopulateRenderingObject(RenderingObject &object);
 			
 			RNAPI virtual void DidAddSubview(View *subview);
 			RNAPI virtual void WillRemoveSubview(View *subview);
@@ -133,8 +133,8 @@ namespace RN
 			void UpdateRecursively();
 			void DrawRecursively(Renderer *renderer);
 			
-			void ConvertPointToWidget(Vector2& point);
-			void ConvertPointFromWidget(Vector2& point);
+			void ConvertPointToWidget(Vector2 &point);
+			void ConvertPointFromWidget(Vector2 &point);
 			
 			View *_superview;
 			View *_clippingView;

@@ -37,8 +37,8 @@ namespace RN
 		RNAPI GLenum GetOpenGLType() const;
 		
 	private:
-		std::pair<std::string, size_t> PreProcessedShaderSource(const std::string& source, const std::vector<ShaderDefine>& defines);
-		void ParseErrorAndThrow(const std::string& error, size_t offset);
+		std::pair<std::string, size_t> PreProcessedShaderSource(const std::string &source, const std::vector<ShaderDefine>& defines);
+		void ParseErrorAndThrow(const std::string &error, size_t offset);
 		
 		Shader *_host;
 		ShaderType _type;

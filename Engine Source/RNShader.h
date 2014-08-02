@@ -146,7 +146,7 @@ namespace RN
 		bool HasTessellationShaders() const { return (linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationControlShader))
 													  && linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationEvaluationShader))); }
 		
-		GLuint GetCustomLocation(const std::string& name);
+		GLuint GetCustomLocation(const std::string &name);
 		
 	private:
 		void ReadLocations();
@@ -162,25 +162,25 @@ namespace RN
 		friend class ShaderUnit;
 		
 		RNAPI Shader();
-		RNAPI Shader(const std::string& shader);
+		RNAPI Shader(const std::string &shader);
 		RNAPI ~Shader();
 		
-		RNAPI static Shader *WithFile(const std::string& shader);
+		RNAPI static Shader *WithFile(const std::string &shader);
 		
-		RNAPI void Define(const std::string& define);
-		RNAPI void Define(const std::string& define, const std::string& value);
-		RNAPI void Define(const std::string& define, int32 value);
-		RNAPI void Define(const std::string& define, float value);
-		RNAPI void Undefine(const std::string& define);
+		RNAPI void Define(const std::string &define);
+		RNAPI void Define(const std::string &define, const std::string &value);
+		RNAPI void Define(const std::string &define, int32 value);
+		RNAPI void Define(const std::string &define, float value);
+		RNAPI void Undefine(const std::string &define);
 		
-		RNAPI void SetShaderForType(const std::string& path, ShaderType type);
+		RNAPI void SetShaderForType(const std::string &path, ShaderType type);
 		RNAPI void SetShaderForType(File *file, ShaderType type);
 		
 		RNAPI ShaderProgram *GetProgramOfType(ShaderProgram::Type type);
 		RNAPI ShaderProgram *GetProgramWithLookup(const ShaderLookup &lookup);
 		
 		RNAPI bool SupportsProgramOfType(ShaderProgram::Type type);
-		RNAPI const std::string& GetShaderSource(ShaderType type);
+		RNAPI const std::string &GetShaderSource(ShaderType type);
 		
 		RNAPI std::string GetFileHash() const;
 		
@@ -194,7 +194,7 @@ namespace RN
 				file   = tfile->GetName() + "." + tfile->GetExtension();
 			}
 			
-			DebugMarker(uint32 tline, uint32 toffset, const std::string& tfile)
+			DebugMarker(uint32 tline, uint32 toffset, const std::string &tfile)
 			{
 				line   = tline;
 				offset = toffset;
@@ -228,16 +228,16 @@ namespace RN
 			IncludeDir
 		};
 		
-		std::string PreProcessedShaderSource(const std::string& source);
+		std::string PreProcessedShaderSource(const std::string &source);
 		
 		ShaderProgram *CompileProgram(const ShaderLookup &lookup);
 		
-		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile &output);
+		void IncludeShader(const std::string &name, IncludeMode mode, File *parent, PreProcessedFile &output);
 		void PreProcessFile(File *file, PreProcessedFile &output);
 		
-		void CompileShader(ShaderType type, const std::string& file, GLuint *outShader);
+		void CompileShader(ShaderType type, const std::string &file, GLuint *outShader);
 		void DumpLinkStatusAndDie(ShaderProgram *program);
-		bool IsDefined(const std::string& source, const std::string& define);
+		bool IsDefined(const std::string &source, const std::string &define);
 		
 		void InvalidatePrograms();
 		

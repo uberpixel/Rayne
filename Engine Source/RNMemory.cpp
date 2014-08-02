@@ -140,7 +140,7 @@ namespace RN
 			return malloc(size);
 #endif
 		}
-		void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+		void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 		{
 #if RN_TARGET_HAS_GPERFTOOLS
 			return tc_new_nothrow(size, n);
@@ -148,7 +148,7 @@ namespace RN
 			return malloc(size);
 #endif
 		}
-		void *AllocateArray(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+		void *AllocateArray(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 		{
 #if RN_TARGET_HAS_GPERFTOOLS
 			return tc_newarray_nothrow(size, n);
@@ -174,7 +174,7 @@ namespace RN
 			free(ptr);
 #endif
 		}
-		void Free(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+		void Free(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 		{
 #if RN_TARGET_HAS_GPERFTOOLS
 			tc_delete_nothrow(ptr, n);
@@ -182,7 +182,7 @@ namespace RN
 			free(ptr);
 #endif
 		}
-		void FreeArray(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+		void FreeArray(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 		{
 #if RN_TARGET_HAS_GPERFTOOLS
 			tc_deletearray_nothrow(ptr, n);
@@ -211,7 +211,7 @@ namespace RN
 				return AllocateFromBucket(size);
 			}
 			
-			void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+			void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 			{
 				return AllocateFromBucket(size);
 			}
@@ -234,7 +234,7 @@ namespace RN
 						_freeBuckets.push_back(std::move(*i));
 				}
 				
-				for(auto& bucket : _freeBuckets)
+				for(auto &bucket : _freeBuckets)
 					bucket.offset = 0;
 			}
 			
@@ -345,7 +345,7 @@ namespace RN
 			return _allocator->Allocate(size);
 		}
 		
-		void *Pool::Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+		void *Pool::Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 		{
 			return _allocator->Allocate(size, n);
 		}
@@ -366,11 +366,11 @@ void *operator new[](size_t size)
 {
 	return RN::Memory::AllocateArray(size);
 }
-void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Allocate(size, n);
 }
-void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::AllocateArray(size, n);
 }
@@ -384,11 +384,11 @@ void operator delete[](void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr);
 }
-void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr, n);
 }
-void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }

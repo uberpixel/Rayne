@@ -21,8 +21,8 @@ namespace RN
 		
 		RNAPI void SetCanCreateDirectories(bool canCreateDirectories);
 		
-		RNAPI void SetTitle(const std::string& title);
-		RNAPI void SetMessage(const std::string& message);
+		RNAPI void SetTitle(const std::string &title);
+		RNAPI void SetMessage(const std::string &message);
 		
 		RNAPI void SetAllowedFileTypes(const std::vector<std::string>& fileTypes);
 		

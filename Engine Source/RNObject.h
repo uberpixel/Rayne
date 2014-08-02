@@ -79,7 +79,7 @@ namespace RN
 		// -----------------
 		
 		template<class F>
-		void AddObserver(const std::string& keyPath, F &&function, void *cookie)
+		void AddObserver(const std::string &keyPath, F &&function, void *cookie)
 		{
 			std::string key;
 			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
@@ -96,7 +96,7 @@ namespace RN
 			Unlock();
 		}
 		
-		void RemoveObserver(const std::string& keyPath, void *cookie)
+		void RemoveObserver(const std::string &keyPath, void *cookie)
 		{
 			std::string key;
 			
@@ -106,8 +106,8 @@ namespace RN
 			object->UnmapCookie(cookie, property);
 		}
 		
-		RNAPI void SetValueForKey(Object *value, const std::string& keyPath);
-		RNAPI Object *GetValueForKey(const std::string& keyPath);
+		RNAPI void SetValueForKey(Object *value, const std::string &keyPath);
+		RNAPI Object *GetValueForKey(const std::string &keyPath);
 		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClass *meta);
 		
 	protected:
@@ -116,11 +116,11 @@ namespace RN
 		RNAPI void AddObservable(ObservableProperty *property);
 		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
 		
-		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string& key);
-		RNAPI virtual Object *GetValueForUndefinedKey(const std::string& key);
+		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string &key);
+		RNAPI virtual Object *GetValueForUndefinedKey(const std::string &key);
 		
-		RNAPI void WillChangeValueForkey(const std::string& key);
-		RNAPI void DidChangeValueForKey(const std::string& key);
+		RNAPI void WillChangeValueForkey(const std::string &key);
+		RNAPI void DidChangeValueForKey(const std::string &key);
 		
 	private:
 		class MetaType : public __ConcreteMetaClass<Object>
@@ -133,9 +133,9 @@ namespace RN
 		
 		void __RemoveAssociatedOject(const void *key);
 		
-		RNAPI Object *ResolveKeyPath(const std::string& path, std::string& key);
-		RNAPI Object *GetPrimitiveValueForKey(const std::string& key);
-		RNAPI ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
+		RNAPI Object *ResolveKeyPath(const std::string &path, std::string &key);
+		RNAPI Object *GetPrimitiveValueForKey(const std::string &key);
+		RNAPI ObservableProperty *GetPropertyForKeyPath(const std::string &keyPath, std::string &key);
 		
 		RNAPI void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
 		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property);

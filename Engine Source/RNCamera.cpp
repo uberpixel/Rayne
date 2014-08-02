@@ -87,7 +87,7 @@ namespace RN
 	
 	
 	
-	PostProcessingPipeline::PostProcessingPipeline(const std::string& name, int32 priority) :
+	PostProcessingPipeline::PostProcessingPipeline(const std::string &name, int32 priority) :
 		_name(name),
 		_priority(priority),
 		host(nullptr)
@@ -541,7 +541,7 @@ namespace RN
 	}
 	
 	// Post Processing
-	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name, int32 priority)
+	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string &name, int32 priority)
 	{
 		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name, priority);
 		try
@@ -556,7 +556,7 @@ namespace RN
 		}
 	}
 	
-	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string& name)
+	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string &name)
 	{
 		LockGuard<Object *> lock(this);
 		

@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace stl
 	{
-		static inline std::string html_encode(const std::string& string)
+		static inline std::string html_encode(const std::string &string)
 		{
 			std::string buffer;
 			buffer.reserve(string.size() * 1.1f);
@@ -52,7 +52,7 @@ namespace RN
 			return buffer;
 		}
 		
-		static inline void html_encode(std::string& string)
+		static inline void html_encode(std::string &string)
 		{
 			std::string buffer = std::move(html_encode(const_cast<const std::string&>(string)));
 			std::swap(buffer, string);
@@ -62,7 +62,7 @@ namespace RN
 		class lockable_shim
 		{
 		public:
-			lockable_shim(T& lock) :
+			lockable_shim(T &lock) :
 				_lock(lock)
 			{}
 		

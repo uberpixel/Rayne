@@ -201,7 +201,7 @@ namespace RN
 			gl::GenBuffers(2, &_vbo);
 		});
 		
-		for(auto& descriptor : descriptors)
+		for(auto &descriptor : descriptors)
 		{
 			if(!SupportsFeature(descriptor.feature))
 			{
@@ -213,7 +213,7 @@ namespace RN
 		
 		size_t offset = 0;
 		
-		for(auto& descriptor : _descriptors)
+		for(auto &descriptor : _descriptors)
 		{
 			if(descriptor.feature != MeshFeature::Indices)
 			{
@@ -407,7 +407,7 @@ namespace RN
 	
 	const MeshDescriptor *Mesh::GetDescriptorForFeature(MeshFeature feature) const
 	{
-		for(auto& descriptor : _descriptors)
+		for(auto &descriptor : _descriptors)
 		{
 			if(descriptor.feature == feature)
 				return &descriptor;

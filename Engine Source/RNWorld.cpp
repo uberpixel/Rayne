@@ -34,7 +34,7 @@ namespace RN
 		_cameraClass  = Camera::GetMetaClass();
 	}
 	
-	World::World(const std::string& sceneManager) :
+	World::World(const std::string &sceneManager) :
 		World(World::SceneManagerWithName(sceneManager))
 	{}
 	
@@ -44,7 +44,7 @@ namespace RN
 		_sceneManager->Release();
 	}
 	
-	SceneManager *World::SceneManagerWithName(const std::string& name)
+	SceneManager *World::SceneManagerWithName(const std::string &name)
 	{
 		MetaClass *meta = nullptr;
 		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClass *mclass, bool &stop) {

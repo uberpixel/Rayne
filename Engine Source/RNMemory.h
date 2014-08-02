@@ -30,12 +30,12 @@ namespace RN
 		
 		RNAPI void *Allocate(size_t size);
 		RNAPI void *AllocateArray(size_t size);
-		RNAPI void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
-		RNAPI void *AllocateArray(size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
+		RNAPI void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
+		RNAPI void *AllocateArray(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
 		RNAPI void Free(void *ptr) RN_NOEXCEPT;
 		RNAPI void FreeArray(void *ptr) RN_NOEXCEPT;
-		RNAPI void Free(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
-		RNAPI void FreeArray(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
+		RNAPI void Free(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
+		RNAPI void FreeArray(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
 		
 		class PoolAllocator;
 		class Pool
@@ -45,7 +45,7 @@ namespace RN
 			~Pool();
 			
 			void *Allocate(size_t size);
-			void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
+			void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
 			
 			void Evict(bool willReuse = false);
 			
@@ -64,11 +64,11 @@ RN_INLINE void *operator new[](size_t size)
 {
 	return RN::Memory::AllocateArray(size);
 }
-RN_INLINE void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+RN_INLINE void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Allocate(size, n);
 }
-RN_INLINE void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+RN_INLINE void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::AllocateArray(size, n);
 }
@@ -82,11 +82,11 @@ RN_INLINE void operator delete[](void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr);
 }
-RN_INLINE void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+RN_INLINE void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr, n);
 }
-RN_INLINE void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+RN_INLINE void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }
@@ -95,13 +95,13 @@ RN_INLINE void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 #if RN_PLATFORM_MAC_OS
 void *operator new(size_t size);
 void *operator new[](size_t size);
-void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
-void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
+void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
+void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
 
 void operator delete(void *ptr) RN_NOEXCEPT;
 void operator delete[](void *ptr) RN_NOEXCEPT;
-void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
-void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
+void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
+void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
 #endif
 
 #endif /* __RAYNE_MEMORY_H__ */

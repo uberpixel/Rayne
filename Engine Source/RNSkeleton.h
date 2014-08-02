@@ -94,7 +94,7 @@ namespace RN
 		
 		RNAPI ~Skeleton() override;
 		
-		RNAPI static Skeleton *WithFile(const std::string& path);
+		RNAPI static Skeleton *WithFile(const std::string &path);
 		RNAPI static Skeleton *WithSkeleton(const Skeleton *other);
 		RNAPI static Skeleton *Empty();
 		
