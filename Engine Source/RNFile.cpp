@@ -72,7 +72,7 @@ namespace RN
 		fseek(_file, 0, SEEK_SET);
 		
 		std::vector<uint8> bytes;
-		bytes.reserve(_size);
+		bytes.resize(_size, 0);
 		
 		uint8 *temp = bytes.data();
 		
