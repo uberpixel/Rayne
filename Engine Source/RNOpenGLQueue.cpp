@@ -246,6 +246,7 @@ namespace RN
 					continue;
 				
 				_signal.wait(lock, [&] { return (!_commands.was_empty() || _thread->IsCancelled()); });
+				pool.Drain();
 			}
 		}
 		catch(Exception e)
@@ -254,5 +255,3 @@ namespace RN
 		}
 	}
 }
-
-
