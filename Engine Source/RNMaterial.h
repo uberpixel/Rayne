@@ -319,6 +319,8 @@ namespace RN
 		
 		RNDeclareMeta(Material)
 	};
+	
+	RNObjectClass(Material)
 }
 
 #endif /* __RAYNE_MATERIAL_H__ */

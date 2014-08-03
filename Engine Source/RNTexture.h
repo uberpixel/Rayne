@@ -155,6 +155,8 @@ namespace RN
 		
 		RNDeclareMeta(Texture)
 	};
+
+	RNObjectClass(Texture)
 	
 	class Texture2D : public Texture
 	{
@@ -172,6 +174,8 @@ namespace RN
 		
 		RNDeclareMeta(Texture2D)
 	};
+
+	RNObjectClass(Texture2D)
 	
 	class Texture2DArray : public Texture
 	{
@@ -190,6 +194,8 @@ namespace RN
 		
 		RNDeclareMeta(Texture2DArray)
 	};
+
+	RNObjectClass(Texture2DArray)
 	
 	class TextureCubeMap : public Texture
 	{
@@ -216,6 +222,8 @@ namespace RN
 		
 		RNDeclareMeta(TextureCubeMap)
 	};
+
+	RNObjectClass(TextureCubeMap)
 }
 
 #endif /* __RAYNE_TEXTURE_H__ */

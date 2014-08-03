@@ -77,6 +77,8 @@ namespace RN
 		
 		RNDeclareMeta(RenderStorage)
 	};
+	
+	RNObjectClass(RenderStorage)
 }
 
 #endif

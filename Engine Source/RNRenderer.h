@@ -108,6 +108,8 @@ namespace RN
 		FrameID _frame;
 	};
 	
+	RNObjectClass(FrameCapture)
+	
 	class Renderer : public INonConstructingSingleton<Renderer>
 	{
 	public:

@@ -53,6 +53,8 @@ namespace RN
 		RNDeclareMeta(LightManager)
 	};
 	
+	RNObjectClass(LightManager)
+	
 	class ClusteredLightManager : public LightManager
 	{
 	public:		
@@ -130,6 +132,8 @@ namespace RN
 		
 		RNDeclareMeta(ClusteredLightManager)
 	};
+	
+	RNObjectClass(ClusteredLightManager)
 }
 
 #endif /* __RAYNE_LIGHT_MANAGER_H__ */

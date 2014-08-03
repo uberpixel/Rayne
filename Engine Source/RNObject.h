@@ -250,36 +250,36 @@ namespace RN
 	// ---------------------
 	
 	template<class T>
-	struct SmartRef
+	struct StrongRef
 	{
-		SmartRef() :
+		StrongRef() :
 			_value(nullptr)
 		{}
 		
-		SmartRef(T *value) :
+		StrongRef(T *value) :
 			_value(nullptr)
 		{
 			Assign(value);
 		}
 		
-		SmartRef(const SmartRef<T> &other) :
+		StrongRef(const StrongRef<T> &other) :
 			_value(nullptr)
 		{
 			Assign(other._value);
 		}
-		~SmartRef()
+		~StrongRef()
 		{
 			if(_value)
 				_value->Release();
 		}
 		
-		SmartRef &operator =(const SmartRef<T> &other)
+		StrongRef &operator =(const StrongRef<T> &other)
 		{
 			Assign(other._value);
 			return *this;
 		}
 		
-		SmartRef &operator =(T *value)
+		StrongRef &operator =(T *value)
 		{
 			Assign(value);
 			return *this;
@@ -339,7 +339,7 @@ namespace RN
 		{
 			__InitWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
 		}
-		WeakRef(const SmartRef<T> &other)
+		WeakRef(const StrongRef<T> &other)
 		{
 			__InitWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
 		}
@@ -355,7 +355,7 @@ namespace RN
 			__StoreWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
 			return *this;
 		}
-		WeakRef &operator =(const SmartRef<T> &other)
+		WeakRef &operator =(const StrongRef<T> &other)
 		{
 			__StoreWeak(reinterpret_cast<Object **>(&_reference), static_cast<Object *>(other.Load()));
 			return *this;
@@ -391,7 +391,7 @@ namespace RN
 	};
 	
 #define RNObjectClass(name) \
-	using name##Ref = RN::SmartRef<name>; \
+	using name##Ref = RN::StrongRef<name>; \
 	using Weak##name = RN::WeakRef<name>;
 	
 #define RNObjectTransferRef(t) \

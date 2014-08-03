@@ -397,6 +397,8 @@ namespace RN
 		
 		RNDeclareMeta(Mesh)
 	};
+	
+	RNObjectClass(Mesh)
 }
 
 #endif /* __RAYNE_MESH_H__ */

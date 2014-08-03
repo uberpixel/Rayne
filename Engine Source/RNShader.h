@@ -252,6 +252,8 @@ namespace RN
 		
 		RNDeclareMeta(Shader)
 	};
+	
+	RNObjectClass(Shader)
 }
 
 #endif /* __RAYNE_SHADER_H__ */
