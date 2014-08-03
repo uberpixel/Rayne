@@ -13,6 +13,7 @@
 #include "RNLogging.h"
 #include "RNSettings.h"
 #include "RNString.h"
+#include "RNFileManager.h"
 
 namespace RN
 {
@@ -176,6 +177,18 @@ namespace RN
 				case Version::Core4_1:
 					AddFeature(Feature::TessellationShaders);
 					AddFeature(Feature::ShaderBinary);
+					
+					FileManager::GetSharedInstance()->AddFileModifier("~400", "vsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~400", "gsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~400", "fsh");
+					
+					FileManager::GetSharedInstance()->AddFileModifier("~410", "vsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~410", "gsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~410", "fsh");
+					
+					FileManager::GetSharedInstance()->AddFileModifier("~330", "vsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~330", "gsh");
+					FileManager::GetSharedInstance()->AddFileModifier("~330", "fsh");
 					
 				case Version::Core3_2:
 					AddFeature(Feature::VertexArrays);
