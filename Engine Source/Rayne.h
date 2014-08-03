@@ -55,6 +55,7 @@
 #include "RNResourceLoader.h"
 #include "RNSkeleton.h"
 #include "RNModel.h"
+#include "RNAudioResource.h"
 
 #include "RNMath.h"
 #include "RNSIMD.h"

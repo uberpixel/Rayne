@@ -29,6 +29,8 @@
 		D5ABFACF19391869003C44C3 /* RNUIPopUpButton.h in Headers */ = {isa = PBXBuildFile; fileRef = D5ABFACD19391869003C44C3 /* RNUIPopUpButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D5CC4C5818F0D79F0015B199 /* RNSculptable.h in Headers */ = {isa = PBXBuildFile; fileRef = D5CC4C5618F0D79F0015B199 /* RNSculptable.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D5CC4C5A18F0D88F0015B199 /* RNSculptable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5CC4C5918F0D88F0015B199 /* RNSculptable.cpp */; };
+		D5D1213F198EA0C90014E30C /* RNAudioResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5D1213D198EA0C90014E30C /* RNAudioResource.cpp */; };
+		D5D12140198EA0C90014E30C /* RNAudioResource.h in Headers */ = {isa = PBXBuildFile; fileRef = D5D1213E198EA0C90014E30C /* RNAudioResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E907DF2817C9780E00777A38 /* RNTextNode.cpp */; };
 		E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E907DF2917C9780E00777A38 /* RNTextNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */; };
@@ -374,6 +376,8 @@
 		D5ABFACD19391869003C44C3 /* RNUIPopUpButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIPopUpButton.h; sourceTree = "<group>"; };
 		D5CC4C5618F0D79F0015B199 /* RNSculptable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSculptable.h; sourceTree = "<group>"; };
 		D5CC4C5918F0D88F0015B199 /* RNSculptable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSculptable.cpp; sourceTree = "<group>"; };
+		D5D1213D198EA0C90014E30C /* RNAudioResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAudioResource.cpp; sourceTree = "<group>"; };
+		D5D1213E198EA0C90014E30C /* RNAudioResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAudioResource.h; sourceTree = "<group>"; };
 		E907DF2817C9780E00777A38 /* RNTextNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextNode.cpp; sourceTree = "<group>"; };
 		E907DF2917C9780E00777A38 /* RNTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextNode.h; sourceTree = "<group>"; };
 		E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidgetInternals.cpp; sourceTree = "<group>"; };
@@ -905,6 +909,8 @@
 				E9D3D0421838F0F1007780A7 /* RNResourceLoader.h */,
 				C01BCEC616E6698E0009834F /* RNSkeleton.cpp */,
 				C01BCEC716E6698E0009834F /* RNSkeleton.h */,
+				D5D1213D198EA0C90014E30C /* RNAudioResource.cpp */,
+				D5D1213E198EA0C90014E30C /* RNAudioResource.h */,
 			);
 			name = Assets;
 			sourceTree = "<group>";
@@ -1275,6 +1281,7 @@
 				E9C8688019454272008B379E /* RNUIColorViewInternals.h in Headers */,
 				E951615A17D40D930006156A /* RNUITableView.h in Headers */,
 				E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */,
+				D5D12140198EA0C90014E30C /* RNAudioResource.h in Headers */,
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
 				E9F3A6F9171B8DA70005A79E /* RNParticle.h in Headers */,
 				E90F976518720AEC00709C5F /* RNSceneNodeAttachment.h in Headers */,
@@ -1504,6 +1511,7 @@
 				E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */,
 				D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */,
 				E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */,
+				D5D1213F198EA0C90014E30C /* RNAudioResource.cpp in Sources */,
 				E92AE1AE16B4D68C00EFE1E8 /* RNApplication.cpp in Sources */,
 				E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */,
 				E9768CFB18CFCB95007428CC /* RNAsset.cpp in Sources */,
@@ -1670,6 +1678,7 @@
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
+					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
@@ -1769,6 +1778,7 @@
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
+					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
@@ -1805,6 +1815,7 @@
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
+					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
