@@ -45,6 +45,9 @@
     <ClCompile Include="jansson\src\value.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="jansson\src\hashtable_seed.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="jansson\src\hashtable.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="jansson\src\utf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jansson\src\lookup3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

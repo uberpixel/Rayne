@@ -36,4 +36,14 @@
    otherwise to 0. */
 #define JSON_HAVE_LOCALECONV 1
 
+#define HAVE_STDINT_H 1
+#define HAVE_FCNTL_H 1
+#define HAVE_SCHED_H 1
+#define HAVE_UNISTD_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TYPES_H 1
+
+#define USE_WINDOWS_CRYPTOAPI 1
+
 #endif

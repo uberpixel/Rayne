@@ -14,6 +14,7 @@
     <ClCompile Include="jansson\src\dump.c" />
     <ClCompile Include="jansson\src\error.c" />
     <ClCompile Include="jansson\src\hashtable.c" />
+    <ClCompile Include="jansson\src\hashtable_seed.c" />
     <ClCompile Include="jansson\src\load.c" />
     <ClCompile Include="jansson\src\memory.c" />
     <ClCompile Include="jansson\src\pack_unpack.c" />
@@ -26,6 +27,7 @@
     <ClInclude Include="jansson\src\hashtable.h" />
     <ClInclude Include="jansson\src\jansson.h" />
     <ClInclude Include="jansson\src\jansson_private.h" />
+    <ClInclude Include="jansson\src\lookup3.h" />
     <ClInclude Include="jansson\src\strbuffer.h" />
     <ClInclude Include="jansson\src\utf.h" />
   </ItemGroup>
@@ -73,7 +75,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);HAVE_STDINT_H</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -88,7 +90,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);HAVE_STDINT_H</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
