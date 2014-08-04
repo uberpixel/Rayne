@@ -64,7 +64,7 @@ namespace RN
 			}
 			
 			StateChanged(GetState());
-			SetColor(Color::WhiteColor());
+			SetColor(Color::White());
 		}
 		
 		ColorView::~ColorView()

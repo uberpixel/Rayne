@@ -117,8 +117,8 @@ namespace RN
 			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(row);
 			
 			cell->GetTextLabel()->SetAttributedText(const_cast<AttributedString *>(item->GetAttributedTitle()));
-			cell->SetBackgroundColor(Color::WhiteColor());
-			cell->GetTextLabel()->SetTextColor(Color::BlackColor());
+			cell->SetBackgroundColor(Color::White());
+			cell->GetTextLabel()->SetTextColor(Color::Black());
 			cell->GetImageView()->SetImage(const_cast<Image *>(item->GetImage()));
 			
 			return cell;

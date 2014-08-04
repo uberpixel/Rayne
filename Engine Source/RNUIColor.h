@@ -32,13 +32,13 @@ namespace RN
 			RNAPI static Color *WithHSV(float h, float s, float v, float a=1.0f);
 			RNAPI static Color *WithHSV(const Vector4 &hsva);
 			
-			RNAPI static Color *RedColor();
-			RNAPI static Color *GreenColor();
-			RNAPI static Color *BlueColor();
-			RNAPI static Color *YellowColor();
-			RNAPI static Color *BlackColor();
-			RNAPI static Color *WhiteColor();
-			RNAPI static Color *GrayColor();
+			RNAPI static Color *Red();
+			RNAPI static Color *Green();
+			RNAPI static Color *Blue();
+			RNAPI static Color *Yellow();
+			RNAPI static Color *Black();
+			RNAPI static Color *White();
+			RNAPI static Color *Gray();
 			RNAPI static Color *ClearColor();
 			
 			RNAPI bool IsEqual(Object *other) const override;

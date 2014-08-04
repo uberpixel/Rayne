@@ -113,13 +113,13 @@ namespace RN
 			
 			if(selected)
 			{
-				SetBackgroundColor(Color::BlueColor());
-				_textLabel->SetTextColor(Color::WhiteColor());
+				SetBackgroundColor(Color::Blue());
+				_textLabel->SetTextColor(Color::White());
 			}
 			else
 			{
-				SetBackgroundColor(Color::WhiteColor());
-				_textLabel->SetTextColor(Color::BlackColor());
+				SetBackgroundColor(Color::White());
+				_textLabel->SetTextColor(Color::Black());
 			}
 		}
 		

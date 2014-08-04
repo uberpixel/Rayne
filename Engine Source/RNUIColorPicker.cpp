@@ -20,7 +20,7 @@ namespace RN
 		
 		ColorPicker::ColorPicker(const Rect &frame) :
 			Control(frame),
-			_color(Color::WhiteColor()->Retain())
+			_color(Color::White()->Retain())
 		{
 			_colorWheel = new ColorWheel();
 			_brightnessView = new GradientView();
@@ -28,10 +28,10 @@ namespace RN
 			
 			{
 				_colorKnob = new View(Rect(0.0f, 0.0f, 4.0, 4.0));
-				_colorKnob->SetBackgroundColor(Color::BlackColor());
+				_colorKnob->SetBackgroundColor(Color::Black());
 				
 				View *secondKnob = new View(Rect(1.0f, 1.0f, 2.0f, 2.0f));
-				secondKnob->SetBackgroundColor(Color::WhiteColor());
+				secondKnob->SetBackgroundColor(Color::White());
 				
 				_colorKnob->AddSubview(secondKnob->Autorelease());
 			}
@@ -45,10 +45,10 @@ namespace RN
 				View *left  = new View(Rect(0.0f, 0.0,  1.0, 5.0));
 				View *right = new View(Rect(16.0, 0.0, 1.0, 5.0));
 				
-				top->SetBackgroundColor(Color::BlackColor());
-				bottom->SetBackgroundColor(Color::BlackColor());
-				left->SetBackgroundColor(Color::BlackColor());
-				right->SetBackgroundColor(Color::BlackColor());
+				top->SetBackgroundColor(Color::Black());
+				bottom->SetBackgroundColor(Color::Black());
+				left->SetBackgroundColor(Color::Black());
+				right->SetBackgroundColor(Color::Black());
 				
 				_brightnessKnob->AddSubview(top->Autorelease());
 				_brightnessKnob->AddSubview(bottom->Autorelease());
@@ -216,7 +216,7 @@ namespace RN
 			_alphaSlider->SetValue(_colorHSV.w);
 			
 			_brightnessView->SetStartColor(Color::WithHSV(_colorHSV.x, _colorHSV.y, 1.0f, 1.0f));
-			_brightnessView->SetEndColor(Color::BlackColor());
+			_brightnessView->SetEndColor(Color::Black());
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);

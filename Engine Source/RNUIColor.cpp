@@ -91,7 +91,7 @@ namespace RN
 		}
 		
 		
-		Color *Color::RedColor()
+		Color *Color::Red()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -99,7 +99,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::GreenColor()
+		Color *Color::Green()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -107,7 +107,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::BlueColor()
+		Color *Color::Blue()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -115,7 +115,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::YellowColor()
+		Color *Color::Yellow()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -123,7 +123,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::BlackColor()
+		Color *Color::Black()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -131,7 +131,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::WhiteColor()
+		Color *Color::White()
 		{
 			static Color *color = nullptr;
 			if(!color)
@@ -139,7 +139,7 @@ namespace RN
 			
 			return color;
 		}
-		Color *Color::GrayColor()
+		Color *Color::Gray()
 		{
 			static Color *color = nullptr;
 			if(!color)
