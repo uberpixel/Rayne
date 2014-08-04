@@ -39,7 +39,7 @@ namespace RN
 
 	// Reading operations
 
-	std::string File::GetString()
+	std::string File::GetString() const
 	{
 		long read = 0;
 		long offset = ftell(_file);
@@ -56,7 +56,10 @@ namespace RN
 			read += tread;
 
 			if(tread < kRNFileBufferSize && read < _size)
+			{
+				fseek(_file, offset, SEEK_SET);
 				throw Exception(Exception::Type::GenericException, "Failed to read data from file!");
+			}
 
 			string.append(buffer, tread);
 		}
@@ -65,7 +68,7 @@ namespace RN
 		return string;
 	}
 
-	std::vector<uint8> File::GetBytes()
+	std::vector<uint8> File::GetBytes() const
 	{
 		long read = 0;
 		long offset = ftell(_file);
@@ -83,11 +86,45 @@ namespace RN
 			temp += tread;
 			
 			if(tread < kRNFileBufferSize && read < _size)
+			{
+				fseek(_file, offset, SEEK_SET);
 				throw Exception(Exception::Type::GenericException, "Failed to read data from file!");
+			}
 		}
 		
 		fseek(_file, offset, SEEK_SET);
 		return bytes;
+	}
+	
+	Data *File::GetData() const
+	{
+		uint8 *ptr = new uint8[_size];
+		uint8 *temp = ptr;
+		
+		long read = 0;
+		long offset = ftell(_file);
+		fseek(_file, 0, SEEK_SET);
+		
+		
+		while(read < _size)
+		{
+			long tread = fread(temp, 1, kRNFileBufferSize, _file);
+			read += tread;
+			temp += tread;
+			
+			if(tread < kRNFileBufferSize && read < _size)
+			{
+				delete [] ptr;
+				fseek(_file, offset, SEEK_SET);
+				
+				throw Exception(Exception::Type::GenericException, "Failed to read data from file!");
+			}
+		}
+		
+		fseek(_file, offset, SEEK_SET);
+		
+		Data *data = new Data(ptr, _size, true, true);
+		return data->Autorelease();
 	}
 	
 	
