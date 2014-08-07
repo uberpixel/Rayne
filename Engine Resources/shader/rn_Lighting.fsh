@@ -185,18 +185,41 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 #if defined(RN_POINTSPOT_LIGHTS)
 	int clusterindex = int(int(gl_FragCoord.x/lightClusterSize.x)*lightClusterSize.z*lightClusterSize.w+int(gl_FragCoord.y/lightClusterSize.y)*lightClusterSize.w+int(lineardist/(clipPlanes.y/lightClusterSize.w)));
 	ivec3 listoffset = texelFetch(lightListOffsetCount, clusterindex).xyz;
-	
-	for(int i=0; i<listoffset.y; i++)
-	{
-		int lightindex = int(texelFetch(lightListIndices, listoffset.x++).r) * 2;
-		rn_PointLightClustered(lightindex, viewdir, normal, position, specularity.a, light, specsum);
-	}
 
-	for(int i=0; i<listoffset.z; i++)
-	{
-		int lightindex = int(texelFetch(lightListIndices, listoffset.x++).r) * 3;
-		rn_SpotLightClustered(lightindex, viewdir, normal, position, specularity.a, light, specsum);
-	}
+	#if !defined(RN_DEBUG_LIGHTS)	
+		for(int i=0; i<listoffset.y; i++)
+		{
+			int lightindex = int(texelFetch(lightListIndices, listoffset.x++).r) * 2;
+			rn_PointLightClustered(lightindex, viewdir, normal, position, specularity.a, light, specsum);
+		}
+
+		for(int i=0; i<listoffset.z; i++)
+		{
+			int lightindex = int(texelFetch(lightListIndices, listoffset.x++).r) * 3;
+			rn_SpotLightClustered(lightindex, viewdir, normal, position, specularity.a, light, specsum);
+		}
+	#else
+		if(listoffset.y > 20)
+		{
+			light = vec3(1.0, 0.0, 0.0);
+		}
+		else if(listoffset.y > 10)
+		{
+			light = vec3(0.0, 0.0, 1.0);
+		}
+		else if(listoffset.y > 5)
+		{
+			light = vec3(1.0, 1.0, 0.0);
+		}
+		else if(listoffset.y > 0)
+		{
+			light = vec3(0.0, 1.0, 0.0);
+		}
+		else
+		{
+			light = vec3(1.0, 1.0, 1.0);
+		}
+	#endif
 #endif
 	
 #if defined(RN_DIRECTIONAL_LIGHTS)
