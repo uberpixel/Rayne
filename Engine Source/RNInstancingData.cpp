@@ -516,61 +516,87 @@ namespace RN
 		}
 
 		// Update active entities
-		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
-		SpinLock lock;
-
-		batch->Reserve(_activeEntites.size());
+		ThreadPool *pool = ThreadPool::GetSharedInstance();
+		size_t count = pool->GetThreadCount();
 		
-		for(auto i = entities.begin(); i != entities.end(); i ++)
+		size_t perThread = entities.size() / count;
+		size_t leftOver  = entities.size() % count;
+		
+		ThreadPool::Batch *batch = pool->CreateBatch();
+		SpinLock lock;
+		
+		for(size_t i = 0; i < count; i ++)
 		{
-			Entity *entity = *i;
-
-			batch->AddTask([&, entity] {
-			
-				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-				float distance = position.GetSquaredDistance(entity->GetWorldPosition_NoLock());
+			batch->AddTask([&, i] {
 				
-				bool clipped;
-				float _clipRange2 = _clipRange * _clipRange;
+				size_t total = perThread + ((i == count - 1) ? leftOver : 0);
+				Entity **entityData = entities.data() + (i * perThread);
 				
-				if(_thinning)
+				std::vector<std::pair<size_t, size_t>> resigned;
+				std::vector<Entity *> inserted;
+				
+				for(size_t i = 0; i < total; i ++)
 				{
-					if(distance <= _clipRange2)
+					Entity *entity = entityData[i];
+					
+					InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+					float distance = position.GetSquaredDistance(entity->GetWorldPosition_NoLock());
+					
+					bool clipped;
+					float _clipRange2 = _clipRange * _clipRange;
+					
+					if(_thinning)
 					{
-						clipped = false;
+						if(distance <= _clipRange2)
+						{
+							clipped = false;
+						}
+						else
+						{
+							distance -= _clipRange2;
+							distance /= _thinRange*_thinRange;
+							distance = 1.0f-distance;
+							distance *= distance*distance;
+							distance = 1.0f - distance;
+							clipped = (distance > data->thinfactor);
+						}
 					}
 					else
 					{
-						distance -= _clipRange2;
-						distance /= _thinRange*_thinRange;
-						distance = 1.0f-distance;
-						distance *= distance*distance;
-						distance = 1.0f - distance;
-						clipped = (distance > data->thinfactor);
+						clipped = (distance > _clipRange2);
+					}
+					
+					if(clipped && data->lodStage != k::NotFound)
+					{
+						resigned.push_back(std::make_pair(data->index, data->lodStage));
+						
+						data->lodStage = k::NotFound;
+						data->index = k::NotFound;
+					}
+					else if(!clipped && data->lodStage == k::NotFound)
+					{
+						inserted.push_back(entity);
 					}
 				}
-				else
+				
+				if(!resigned.empty() || !inserted.empty())
 				{
-					clipped = (distance > _clipRange2);
+					lock.Lock();
+					
+					for(auto &index : resigned)
+					{
+						ResignIndex(index.first);
+						_stages[index.second]->RemoveIndex(index.first);
+					}
+					
+					for(Entity *entity : inserted)
+					{
+						InsertEntityIntoLODStage(entity);
+					}
+					
+					lock.Unlock();
 				}
 				
-				if(clipped && data->lodStage != k::NotFound)
-				{
-					lock.Lock();
-					ResignIndex(data->index);
-					_stages[data->lodStage]->RemoveIndex(data->index);
-					lock.Unlock();
-					
-					data->lodStage = k::NotFound;
-					data->index = k::NotFound;
-				}
-				else if(!clipped && data->lodStage == k::NotFound)
-				{
-					lock.Lock();
-					InsertEntityIntoLODStage(entity);
-					lock.Unlock();
-				}
-					
 			});
 		}
 		
