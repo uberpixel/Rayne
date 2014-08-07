@@ -132,6 +132,7 @@ namespace RN
 		}
 		
 		RNAPI Batch *CreateBatch();
+		size_t GetThreadCount() const { return _threadCount; }
 		
 	private:
 		class Task
