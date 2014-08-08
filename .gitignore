@@ -67,3 +67,6 @@ xcuserdata
 /Vendor/freetype-2.4.11/ChangeLog
 /shaders.sublime-workspace
 /shaders.sublime-project
+Engine Test/Test Game/Resources/modules/
+Engine Test/Test Game.vcxproj.slin.nvuser
+Engine Test/Test Game/nsight_profiler.cfg
