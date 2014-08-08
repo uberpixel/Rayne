@@ -247,21 +247,24 @@ namespace RN
 						
 						if(hitWidget)
 						{
-							if(!_keyWidget || _keyWidget->CanResignKeyWidget())
+							if(!_keyWidget || _keyWidget == hitWidget || _keyWidget->CanResignKeyWidget())
 							{
-								if(hitWidget->CanBecomeKeyWidget())
+								if(_keyWidget != hitWidget && hitWidget->CanBecomeKeyWidget())
 									SetKeyWidget(hitWidget);
 								
 								MoveWidgetToFront(hitWidget);
 								hit->MouseDown(event);
 							}
+							
+							return true;
 						}
 						else
 						{
 							hit->MouseDown(event);
+							return false;
 						}
 						
-						return true;
+						break;
 						
 					case Event::Type::MouseMoved:
 					{
