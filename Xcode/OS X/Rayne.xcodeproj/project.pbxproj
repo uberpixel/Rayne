@@ -1680,7 +1680,7 @@
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PREFIX)$(PRODUCT_NAME).$(EXECUTABLE_EXTENSION)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
@@ -1780,7 +1780,7 @@
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PREFIX)$(PRODUCT_NAME).$(EXECUTABLE_EXTENSION)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
@@ -1817,7 +1817,7 @@
 					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 					"\"$(SRCROOT)/../../Vendor/libfreetype/include\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PREFIX)$(PRODUCT_NAME).$(EXECUTABLE_EXTENSION)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
