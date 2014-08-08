@@ -506,6 +506,9 @@
     <ClInclude Include="Engine Source\RNObjectInternals.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNAudioResource.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -903,6 +906,9 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNObjectInternals.cpp">
       <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNAudioResource.cpp">
+      <Filter>Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

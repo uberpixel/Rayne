@@ -19,6 +19,7 @@
     <ClInclude Include="Engine Source\RNArray.h" />
     <ClInclude Include="Engine Source\RNAsset.h" />
     <ClInclude Include="Engine Source\RNAttributedString.h" />
+    <ClInclude Include="Engine Source\RNAudioResource.h" />
     <ClInclude Include="Engine Source\RNAutoreleasePool.h" />
     <ClInclude Include="Engine Source\RNBase.h" />
     <ClInclude Include="Engine Source\RNBaseInternal.h" />
@@ -186,6 +187,7 @@
     <ClCompile Include="Engine Source\RNArray.cpp" />
     <ClCompile Include="Engine Source\RNAsset.cpp" />
     <ClCompile Include="Engine Source\RNAttributedString.cpp" />
+    <ClCompile Include="Engine Source\RNAudioResource.cpp" />
     <ClCompile Include="Engine Source\RNAutoreleasePool.cpp" />
     <ClCompile Include="Engine Source\RNBase.cpp" />
     <ClCompile Include="Engine Source\RNBillboard.cpp" />

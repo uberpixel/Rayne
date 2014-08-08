@@ -23,17 +23,17 @@ namespace RN
 	public:
 		friend class AudioWorld;
 		
-		AudioResource();
-		~AudioResource();
+		RNAPI AudioResource();
+		RNAPI ~AudioResource();
 		
-		void SetRawAudioData(Data *data, int bitsPerSample, int sampleRate, int channels);
+		RNAPI void SetRawAudioData(Data *data, int bitsPerSample, int sampleRate, int channels);
 		
-		Data *GetData() const { return _data; }
-		uint32 GetBitsPerSample() const { return _bitsPerSample; }
-		uint32 GetSampleRate() const { return _sampleRate; }
-		uint32 GetChannels() const { return _channels; }
+		RNAPI Data *GetData() const { return _data; }
+		RNAPI uint32 GetBitsPerSample() const { return _bitsPerSample; }
+		RNAPI uint32 GetSampleRate() const { return _sampleRate; }
+		RNAPI uint32 GetChannels() const { return _channels; }
 		
-		static AudioResource *WithFile(const std::string& path);
+		RNAPI static AudioResource *WithFile(const std::string& path);
 		
 	protected:
 		Data *_data;
