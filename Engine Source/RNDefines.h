@@ -192,6 +192,7 @@
 	#define RN_NORETURN __attribute__((noreturn))
 	#define RN_INLINE inline __attribute__((__always_inline__))
 	#define RN_NOINLINE __attribute__((noinline))
+	#define RN_DEPRECATED(msg) [[deprecated(msg)]]
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))
