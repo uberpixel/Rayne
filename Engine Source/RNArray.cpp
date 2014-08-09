@@ -121,6 +121,16 @@ namespace RN
 		return array->Autorelease();
 	}
 	
+	Array *Array::WithObjects(std::initializer_list<Object *> objects)
+	{
+		Array *array = new Array(objects.size());
+		
+		for(Object *object : objects)
+			array->AddObject(object);
+		
+		return array->Autorelease();
+	}
+	
 	
 	void Array::ShrinkToFit()
 	{

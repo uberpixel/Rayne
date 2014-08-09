@@ -8,7 +8,7 @@
 
 #include "TGForestWorld.h"
 
-#define TGForestFeatureTrees 500
+#define TGForestFeatureTrees 1500
 #define TGForestFeatureGras  350000
 
 namespace TG
@@ -129,7 +129,7 @@ namespace TG
 		
 		// Trees
 		RN::InstancingNode *treeNode = new RN::InstancingNode();
-		treeNode->SetModels(RN::Array::WithObjects(_trees[0], _trees[1], _trees[2], _trees[3], _trees[4], _trees[5], _trees[6], _trees[7], _trees[8], _trees[9], nullptr));
+		treeNode->SetModels(RN::Array::WithObjects({_trees[0], _trees[1], _trees[2], _trees[3], _trees[4], _trees[5], _trees[6], _trees[7], _trees[8], _trees[9]}));
 		treeNode->SetPivot(_camera);
 		treeNode->SetFlags(treeNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		treeNode->Release();
@@ -162,9 +162,9 @@ namespace TG
 		
 		// Grass and reed
 		RN::InstancingNode *grassNode = new RN::InstancingNode();
-		grassNode->SetModels(RN::Array::WithObjects(_grass[0], _grass[1], _grass[2], _grass[3], nullptr));
+		grassNode->SetModels(RN::Array::WithObjects({_grass[0], _grass[1], _grass[2], _grass[3]}));
 		grassNode->SetFlags(grassNode->GetFlags() | RN::SceneNode::Flags::NoSave);
-		grassNode->SetRenderGroup(1);
+		//grassNode->SetRenderGroup(1);
 		grassNode->SetPivot(_camera);
 		grassNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
 		grassNode->SetCellSize(32.0f);
@@ -173,7 +173,7 @@ namespace TG
 		grassNode->Release();
 		
 		RN::InstancingNode *reedNode = new RN::InstancingNode();
-		reedNode->SetModels(RN::Array::WithObjects(_reeds[0], nullptr));
+		reedNode->SetModels(RN::Array::WithObjects({_reeds[0]}));
 		reedNode->SetPivot(_camera);
 		reedNode->SetFlags(reedNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		reedNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);

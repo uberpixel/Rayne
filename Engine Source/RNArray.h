@@ -27,7 +27,8 @@ namespace RN
 		
 		RNAPI static Array *WithArray(const Array *other);
 		RNAPI static Array *WithSet(const Set *set);
-		RNAPI static Array *WithObjects(Object *first, ...);
+		RN_DEPRECATED("User WithObjects(std::initializer_list<>) instead") RNAPI static Array *WithObjects(Object *objects, ...);
+		RNAPI static Array *WithObjects(std::initializer_list<Object *> objects);
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		

@@ -622,7 +622,7 @@ namespace RN
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
 		if(_isDroppingSceneNodes)
-			return Array::WithObjects(nullptr);
+			return Array::WithObjects({});
 		
 		Array *array = new Array(_nodes.size() + _addedNodes.size() + _staticNodes.size() + _cameras.size());
 		
