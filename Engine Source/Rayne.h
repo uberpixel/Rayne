@@ -137,6 +137,7 @@
 #include "RNSemaphore.h"
 #include "RNSpinLock.h"
 #include "RNMutex.h"
+#include "RNAdaptiveLock.h"
 #include "RNLockGuard.h"
 #include "RNFunction.h"
 #include "RNScopeGuard.h"
