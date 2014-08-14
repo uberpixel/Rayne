@@ -65,6 +65,15 @@ namespace RN
 			return static_cast<T>(*(reinterpret_cast<T *>(_storage)));
 		}
 		
+		template<class T>
+		T &GetValue()
+		{
+			if(TypeTranslator<T>::value != _type || sizeof(T) != _size)
+				throw Exception(Exception::Type::InconsistencyException, "Type mismatch!");
+			
+			return *(reinterpret_cast<T *>(_storage));
+		}
+		
 		char GetValueType()
 		{
 			return _type;

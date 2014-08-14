@@ -7,7 +7,7 @@
 //
 
 #include "RNAttributedString.h"
-#include "RNWrappingObject.h"
+#include "RNValue.h"
 
 namespace RN
 {
@@ -244,29 +244,29 @@ namespace RN
 	void AttributedString::MergeAttributes()
 	{
 		typedef stl::interval_tree<Attribute>::interval Interval;
-		typedef WrappingObject<std::deque<stl::interval_tree<Attribute>::interval>> Wrapper;
+		typedef std::deque<stl::interval_tree<Attribute>::interval> ValueType;
 		
 		Dictionary *temp = new Dictionary(_queuedAttributes.size());
 		
 		for(auto i = _queuedAttributes.begin(); i != _queuedAttributes.end(); i ++)
 		{
-			Wrapper *object = temp->GetObjectForKey<Wrapper>(i->value.key);
+			Value *object = temp->GetObjectForKey<Value>(i->value.key);
 			
 			if(!object)
 			{
-				object = new Wrapper();
+				object = new Value(ValueType());
 				temp->SetObjectForKey(object, i->value.key);
 				object->Release();
 			}
 			
-			object->GetData().push_back(std::move(*i));
+			ValueType &value = object->GetValue<ValueType>();
+			value.push_back(std::move(*i));
 		}
 		
 		_queuedAttributes.clear();
 		
-		temp->Enumerate([&](Object *value, Object *key, bool &stop) {
-			Wrapper *object = static_cast<Wrapper *>(value);
-			auto data = object->GetData();
+		temp->Enumerate<Value, Object>([&](Value *value, Object *key, bool &stop) {
+			auto data = value->GetValue<ValueType>();
 			
 			std::sort(data.begin(), data.end(), [](const Interval &left, const Interval &right) {
 				return (left.range.origin < right.range.origin);
