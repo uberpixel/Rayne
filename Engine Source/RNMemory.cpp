@@ -248,7 +248,7 @@ namespace RN
 					buffer = reinterpret_cast<uint8 *>(malloc(size));
 				}
 				
-				AllocationBucket(AllocationBucket&& other)
+				AllocationBucket(AllocationBucket &&other)
 				{
 					size = other.size;
 					offset = other.offset;
@@ -264,7 +264,7 @@ namespace RN
 						free(buffer);
 				}
 				
-				AllocationBucket &operator= (AllocationBucket&& other)
+				AllocationBucket &operator= (AllocationBucket &&other)
 				{
 					size = other.size;
 					offset = other.offset;

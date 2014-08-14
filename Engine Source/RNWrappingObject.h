@@ -27,7 +27,7 @@ namespace RN
 			_data(data)
 		{}
 		
-		WrappingObject(T&& data) :
+		WrappingObject(T &&data) :
 			_data(std::move(data))
 		{}
 		

@@ -27,7 +27,7 @@ namespace RN
 		friend class Context;
 		
 		template<typename F>
-		explicit Thread(F&& func, bool detach=true) :
+		explicit Thread(F &&func, bool detach=true) :
 			_function(std::move(func))
 		{
 			Initialize();
@@ -37,7 +37,7 @@ namespace RN
 				Detach();
 		}
 		
-		Thread(Function&& func, bool detach=true) :
+		Thread(Function &&func, bool detach=true) :
 			_function(std::move(func))
 		{
 			Initialize();

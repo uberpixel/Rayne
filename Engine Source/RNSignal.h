@@ -112,13 +112,13 @@ namespace RN
 		}
 		
 		template<class F>
-		Connection *Connect(F&& f)
+		Connection *Connect(F &&f)
 		{
 			Tag tag = _tags ++;
 			return Connect(std::move(f), tag);
 		}
 		template<class F>
-		Connection *Connect(F&& f, Tag tag)
+		Connection *Connect(F &&f, Tag tag)
 		{
 			Connection *connection = new Connection(this, tag);
 			
@@ -128,7 +128,7 @@ namespace RN
 			return connection;
 		}
 		template<class F>
-		Connection *Connect(F&& f, void *cookie)
+		Connection *Connect(F &&f, void *cookie)
 		{
 			return Connect(std::move(f), reinterpret_cast<Tag>(cookie));
 		}
@@ -163,12 +163,12 @@ namespace RN
 					connection->Disconnect();
 			}
 			
-			Slot(Slot&& other)
+			Slot(Slot &&other)
 			{
 				Move(std::move(other));
 			}
 			
-			Slot &operator= (Slot&& other)
+			Slot &operator= (Slot &&other)
 			{
 				Move(std::move(other));
 				return *this;
@@ -179,7 +179,7 @@ namespace RN
 			std::unique_ptr<Connection> connection;
 			
 		private:
-			void Move(Slot&& other)
+			void Move(Slot &&other)
 			{
 				tag = std::move(other.tag);
 				callback = std::move(other.callback);

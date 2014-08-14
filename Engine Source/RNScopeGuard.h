@@ -18,17 +18,17 @@ namespace RN
 	{
 	public:
 		template<typename F>
-		explicit ScopeGuard(F&& rollback) :
+		explicit ScopeGuard(F &&rollback) :
 			_committed(false),
 			_rollback(std::move(rollback))
 		{}
 		
-		ScopeGuard(ScopeGuard&& other) :
+		ScopeGuard(ScopeGuard &&other) :
 			_committed(other._committed),
 			_rollback(std::move(other._rollback))
 		{}
 		
-		ScopeGuard &operator=(ScopeGuard&& other)
+		ScopeGuard &operator=(ScopeGuard &&other)
 		{
 			_rollback = std::move(other._rollback);
 			_committed = other._committed;

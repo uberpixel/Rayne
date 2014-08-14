@@ -19,15 +19,15 @@ namespace RN
 		Function() = default;
 		
 		template<typename F>
-		Function(F&& f) :
+		Function(F &&f) :
 			_implementation(new ImplementationType<F>(std::move(f)))
 		{}
 		
-		Function(Function&& other) RN_NOEXCEPT :
+		Function(Function &&other) RN_NOEXCEPT :
 			_implementation(std::move(other._implementation))
 		{}
 		
-		Function &operator=(Function&& other) RN_NOEXCEPT
+		Function &operator=(Function &&other) RN_NOEXCEPT
 		{
 			_implementation = std::move(other._implementation);
 			return *this;
@@ -48,7 +48,7 @@ namespace RN
 		template<typename F>
 		struct ImplementationType : Base
 		{
-			ImplementationType(F&& f) :
+			ImplementationType(F &&f) :
 				function(std::move(f))
 			{}
 			

@@ -577,7 +577,7 @@ namespace RN
 			_color   = other._color;
 			_range   = other._range;
 		}
-		LineSegment::LineSegment(LineSegment&& other)
+		LineSegment::LineSegment(LineSegment &&other)
 		{
 			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
@@ -605,7 +605,7 @@ namespace RN
 			
 			return *this;
 		}
-		LineSegment &LineSegment::operator= (LineSegment&& other)
+		LineSegment &LineSegment::operator= (LineSegment &&other)
 		{
 			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);

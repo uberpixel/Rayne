@@ -47,13 +47,13 @@ namespace RN
 		friend class ThreadPool;
 		public:
 			template<class F>
-			void AddTask(F&& f)
+			void AddTask(F &&f)
 			{
 				_tasks.emplace_back(std::move(f), this);
 			}
 			
 			template<class F>
-			std::future<typename std::result_of<F()>::type> AddTaskWithFuture(F&& f)
+			std::future<typename std::result_of<F()>::type> AddTaskWithFuture(F &&f)
 			{
 				typedef typename std::result_of<F()>::type resultType;
 				
@@ -107,7 +107,7 @@ namespace RN
 		RNAPI ~ThreadPool() override;
 		
 		template<class F>
-		void AddTask(F&& f)
+		void AddTask(F &&f)
 		{
 			std::vector<Task> tasks;
 			tasks.emplace_back(std::move(f), nullptr);
@@ -116,7 +116,7 @@ namespace RN
 		}
 		
 		template<class F>
-		std::future<typename std::result_of<F()>::type> AddTaskWithFuture(F&& f)
+		std::future<typename std::result_of<F()>::type> AddTaskWithFuture(F &&f)
 		{
 			typedef typename std::result_of<F()>::type resultType;
 			
@@ -141,17 +141,17 @@ namespace RN
 			Task() = default;
 			
 			template<typename F>
-			Task(F&& f, Batch *tbatch) :
+			Task(F &&f, Batch *tbatch) :
 				function(std::move(f)),
 				batch(tbatch)
 			{}
 
-			Task(Task&& other) :
+			Task(Task &&other) :
 				function(std::move(other.function)),
 				batch(std::move(other.batch))
 			{}
 
-			Task &operator= (Task&& other)
+			Task &operator= (Task &&other)
 			{
 				function = std::move(other.function);
 				batch    = std::move(other.batch);

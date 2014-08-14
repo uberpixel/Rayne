@@ -87,11 +87,11 @@ namespace RN
 		public:
 			RNAPI LineSegment();
 			RNAPI LineSegment(const LineSegment &other);
-			RNAPI LineSegment(LineSegment&& other);
+			RNAPI LineSegment(LineSegment &&other);
 			RNAPI ~LineSegment();
 			
 			RNAPI LineSegment &operator= (const LineSegment &other);
-			RNAPI LineSegment &operator= (LineSegment&& other);
+			RNAPI LineSegment &operator= (LineSegment &&other);
 			
 			RNAPI LineSegment SegmentWithWidth(float width, bool reverse);
 			

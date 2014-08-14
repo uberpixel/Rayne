@@ -30,7 +30,7 @@ namespace RN
 			_time(std::chrono::system_clock::now())
 		{}
 		
-		Message::Message(Level level, std::string&& message) :
+		Message::Message(Level level, std::string &&message) :
 			_level(level),
 			_message(std::move(message)),
 			_time(std::chrono::system_clock::now())
@@ -43,7 +43,7 @@ namespace RN
 			_time(std::chrono::system_clock::now())
 		{}
 		
-		Message::Message(Level level, std::string&& title, std::string&& message) :
+		Message::Message(Level level, std::string &&title, std::string &&message) :
 			_level(level),
 			_title(std::move(title)),
 			_message(std::move(message)),
@@ -54,7 +54,7 @@ namespace RN
 		{
 			_title = title;
 		}
-		void Message::SetTitle(std::string&& title)
+		void Message::SetTitle(std::string &&title)
 		{
 			_title = std::move(title);
 		}
@@ -63,7 +63,7 @@ namespace RN
 		{
 			_message = message;
 		}
-		void Message::SetMessage(std::string&& message)
+		void Message::SetMessage(std::string &&message)
 		{
 			_message = std::move(message);
 		}
@@ -167,7 +167,7 @@ namespace RN
 			Log(std::move(temp));
 		}
 		
-		void Logger::Log(Level level, std::string&& message)
+		void Logger::Log(Level level, std::string &&message)
 		{
 			Message temp(level, std::move(message));
 			Log(std::move(temp));
@@ -202,7 +202,7 @@ namespace RN
 			}
 		}
 		
-		void Logger::Log(Message&& message)
+		void Logger::Log(Message &&message)
 		{
 			LockGuard<SpinLock> lock(_lock);
 			bool knocked = false;

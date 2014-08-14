@@ -66,7 +66,7 @@ namespace RN
 				increment();
 			}
 			
-			void push(value_type&& value)
+			void push(value_type &&value)
 			{
 				_content[_end] = std::move(value);
 				increment();
@@ -350,7 +350,7 @@ namespace RN
 				return false;
 			}
 			
-			bool push(T&& val)
+			bool push(T &&val)
 			{
 				size_t tail = _tail.load(std::memory_order_relaxed);
 				size_t next = advance(tail);

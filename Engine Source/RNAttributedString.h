@@ -57,7 +57,7 @@ namespace RN
 				value = other.value->Retain();
 			}
 			
-			Attribute(Attribute&& other)
+			Attribute(Attribute &&other)
 			{
 				key   = other.key;
 				value = other.value;
@@ -79,7 +79,7 @@ namespace RN
 				return *this;
 			}
 			
-			Attribute &operator= (Attribute&& other)
+			Attribute &operator= (Attribute &&other)
 			{
 				if(key)
 					key->Release();
