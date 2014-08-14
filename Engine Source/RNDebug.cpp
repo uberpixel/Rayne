@@ -11,7 +11,6 @@
 #include "RNRenderer.h"
 #include "RNThread.h"
 #include "RNString.h"
-#include "RNWrappingObject.h"
 #include "RNThreadLocalStorage.h"
 
 namespace RN

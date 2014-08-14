@@ -9,7 +9,6 @@
 #include <png.h>
 #include "RNResourceLoaderBuiltIn.h"
 #include "RNResourceCoordinator.h"
-#include "RNWrappingObject.h"
 #include "RNFileManager.h"
 #include "RNPathManager.h"
 #include "RNString.h"

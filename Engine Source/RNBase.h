@@ -137,7 +137,7 @@ namespace RN
 	
 #define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 	
-#define RN_REGISTER_INIT(name, body) \
+#define RN_REGISTER_INITIALIZER(name, body) \
 	namespace { \
 		static void __RNGlobalInit##name##Callback() { body; } \
 		static RN::Initializer __RNGlobalInit##name (__RNGlobalInit##name##Callback, nullptr); \
@@ -146,7 +146,7 @@ namespace RN
 #define RN_REGISTER_DESTRUCTOR(name, body) \
 	namespace { \
 		static void __RNGlobalDestructor##name##Callback() { body; } \
-		static RN::Initializer __RNGlobalDestructor##name (__RNGlobalDestructor##name##Callback, nullptr); \
+		static RN::Initializer __RNGlobalDestructor##name (nullptr, __RNGlobalDestructor##name##Callback); \
 	}
 	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
