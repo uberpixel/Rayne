@@ -24,6 +24,9 @@ namespace RN
 		
 		void Lock()
 		{
+			if(!_spinLock.test_and_set(std::memory_order_acquire))
+				return; // Fast path for zero contention cases
+			
 			bool acquired = false;
 			auto timeout = std::chrono::high_resolution_clock::now() + std::chrono::nanoseconds(850);
 			
