@@ -25,26 +25,35 @@ namespace RN
 		void Lock()
 		{
 			bool acquired = false;
+			auto timeout = std::chrono::high_resolution_clock::now() + std::chrono::nanoseconds(850);
 			
-			_waiting ++;
-			
-			for(size_t i = 0; i < INT16_MAX; i ++)
-			{
-				bool result = _spinLock.test_and_set(std::memory_order_acquire);
-				if(!result) // We got the lock
+			do {
+				for(size_t i = 0; i < std::numeric_limits<int16>::max(); i ++)
 				{
-					acquired = true;
-					break;
+					bool result = _spinLock.test_and_set(std::memory_order_acquire);
+					if(!result) // We got the lock
+					{
+						acquired = true;
+						break;
+					}
 				}
-			}
+			} while(!acquired && std::chrono::high_resolution_clock::now() < timeout);
 			
 			if(!acquired)
 			{
+				_waiting ++;
+				
+				// To avoid race conditions, check if the predicate became true in the meantime
+				if(_spinLock.test_and_set(std::memory_order_acquire))
+				{
+					_waiting --;
+					return;
+				}
+				
 				std::unique_lock<std::mutex> lock(_lock);
 				_signal.wait(lock, [&] { return (_spinLock.test_and_set(std::memory_order_acquire) == false); });
+				_waiting --;
 			}
-			
-			_waiting --;
 		}
 		
 		bool TryLock()
@@ -55,7 +64,7 @@ namespace RN
 		
 		void Unlock()
 		{
-			_spinLock.clear();
+			_spinLock.clear(std::memory_order_release);
 			
 			if(_waiting > 0)
 				_signal.notify_one();
