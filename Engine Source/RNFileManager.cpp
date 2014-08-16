@@ -11,6 +11,7 @@
 #include "RNPathManager.h"
 #include "RNMessage.h"
 #include "RNAutoreleasePool.h"
+#include "RNLockGuard.h"
 
 namespace RN
 {
@@ -529,6 +530,16 @@ namespace RN
 	// MARK: FileManager
 	// ---------------------
 	
+	struct FileManagerInternals
+	{
+		AdaptiveLock lock;
+		Array directories;
+		
+		std::vector<std::string> globalModifiers;
+		std::unordered_map<std::string, std::vector<std::string>> fileModifiers;
+	};
+	
+	
 #if RN_PLATFORM_POSIX
 	char *realpath_expand(const char *path, char *buffer)
 	{
@@ -622,16 +633,18 @@ namespace RN
 		
 		std::vector<std::string> modifiers;
 		
-		auto iterator = _fileModifiers.find(extension);
-		if(iterator != _fileModifiers.end())
+		LockGuard<AdaptiveLock> lock(_internals->lock);
+		
+		auto iterator = _internals->fileModifiers.find(extension);
+		if(iterator != _internals->fileModifiers.end())
 			modifiers.insert(modifiers.end(), iterator->second.begin(), iterator->second.end());
 		
-		modifiers.insert(modifiers.end(), _globalModifiers.begin(), _globalModifiers.end());
+		modifiers.insert(modifiers.end(), _internals->globalModifiers.begin(), _internals->globalModifiers.end());
 		extension = "." + extension;
 		
 		FileSystemNode *node = nullptr;
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
+		_internals->directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			
 			for(auto j = modifiers.begin(); j != modifiers.end(); j ++)
 			{
@@ -692,12 +705,16 @@ namespace RN
 			
 			std::vector<std::string> modifiers;
 			
-			auto iterator = _fileModifiers.find(extension);
-			if(iterator != _fileModifiers.end())
+			LockGuard<AdaptiveLock> lock(_internals->lock);
+			
+			auto iterator = _internals->fileModifiers.find(extension);
+			if(iterator != _internals->fileModifiers.end())
 				modifiers.insert(modifiers.end(), iterator->second.begin(), iterator->second.end());
 			
-			modifiers.insert(modifiers.end(), _globalModifiers.begin(), _globalModifiers.end());
+			modifiers.insert(modifiers.end(), _internals->globalModifiers.begin(), _internals->globalModifiers.end());
 			extension = "." + extension;
+			
+			lock.Unlock();
 			
 			for(auto j = modifiers.begin(); j != modifiers.end(); j ++)
 			{
@@ -749,7 +766,9 @@ namespace RN
 		
 		std::string path(buffer);
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
+		LockGuard<AdaptiveLock> lock(_internals->lock);
+		
+		_internals->directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			
 			std::string dpath = directory->GetPath();
 			
@@ -767,8 +786,10 @@ namespace RN
 	
 	void FileManager::AddFileModifier(const std::string &modifier, const std::string &extension)
 	{
-		auto iterator = _fileModifiers.find(extension);
-		if(iterator != _fileModifiers.end())
+		LockGuard<AdaptiveLock> lock(_internals->lock);
+		
+		auto iterator = _internals->fileModifiers.find(extension);
+		if(iterator != _internals->fileModifiers.end())
 		{
 			std::vector<std::string>& modifiers = iterator->second;
 			modifiers.push_back(modifier);
@@ -778,13 +799,13 @@ namespace RN
 			std::vector<std::string> modifiers;
 			modifiers.push_back(modifier);
 			
-			_fileModifiers.insert(std::unordered_map<std::string, std::vector<std::string>>::value_type(extension, modifiers));
+			_internals->fileModifiers.insert(std::unordered_map<std::string, std::vector<std::string>>::value_type(extension, modifiers));
 		}
 	}
 	
 	void FileManager::AddFileModifier(const std::string &modifier)
 	{
-		_globalModifiers.push_back(modifier);
+		_internals->globalModifiers.push_back(modifier);
 	}
 	
 	
@@ -807,8 +828,10 @@ namespace RN
 		DWORD result = ::GetFullPathNameA(tpath.c_str(), 1024, buffer, nullptr);
 		std::string path((result != 0) ? buffer : tpath.c_str());
 #endif
+	
+		LockGuard<AdaptiveLock> lock(_internals->lock);
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool &stop) {
+		_internals->directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool &stop) {
 			if(directory->GetPath() == path)
 			{
 				hasPath = true;
@@ -821,8 +844,10 @@ namespace RN
 			try
 			{
 				DirectoryProxy *proxy = new DirectoryProxy(path);
-				_directories.AddObject(proxy);
+				_internals->directories.AddObject(proxy);
 				proxy->Release();
+				
+				lock.Unlock();
 				
 				MessageCenter::GetSharedInstance()->PostMessage(kRNFileSystemSearchPathsChangedMessage, nullptr, nullptr);
 			}
@@ -839,7 +864,9 @@ namespace RN
 	{
 		size_t index = k::NotFound;
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
+		LockGuard<AdaptiveLock> lock(_internals->lock);
+		
+		_internals->directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			if(directory->GetPath() == path)
 			{
 				index = tindex;
@@ -849,8 +876,19 @@ namespace RN
 		
 		if(index != k::NotFound)
 		{
-			_directories.RemoveObjectAtIndex(index);
+			_internals->directories.RemoveObjectAtIndex(index);
+			lock.Unlock();
+			
 			MessageCenter::GetSharedInstance()->PostMessage(kRNFileSystemSearchPathsChangedMessage, nullptr, nullptr);
 		}
+	}
+	
+	Array *FileManager::GetSearchPaths() const
+	{
+		LockGuard<AdaptiveLock> lock(_internals->lock);
+		Array *copy = new Array(&_internals->directories);
+		lock.Unlock();
+		
+		return copy->Autorelease();
 	}
 }

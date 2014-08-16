@@ -13,6 +13,7 @@
 #include "RNObject.h"
 #include "RNArray.h"
 #include "RNFile.h"
+#include "RNAdaptiveLock.h"
 
 #define kRNFileSystemSearchPathsChangedMessage RNCSTR("kRNFileSystemSearchPathsChangedMessage")
 #define kRNFileSystemNodeChangedMessage RNCSTR("kRNFileSystemNodeChangedMessage")
@@ -98,6 +99,7 @@ namespace RN
 	};
 	
 	
+	struct FileManagerInternals;
 	
 	class FileManager : public ISingleton<FileManager>
 	{
@@ -117,13 +119,10 @@ namespace RN
 		RNAPI void AddFileModifier(const std::string &modifier, const std::string &extension);
 		RNAPI void AddFileModifier(const std::string &modifier);
 		
-		Array *GetSearchPaths() const { Array *result = new Array(&_directories); return result->Autorelease(); }
+		Array *GetSearchPaths() const;
 		
 	private:
-		Array _directories;
-		
-		std::vector<std::string> _globalModifiers;
-		std::unordered_map<std::string, std::vector<std::string>> _fileModifiers;
+		PIMPL<FileManagerInternals> _internals;
 		
 		RNDeclareSingleton(FileManager)
 	};
