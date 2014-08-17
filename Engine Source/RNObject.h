@@ -214,7 +214,7 @@ namespace RN
 			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
-	RN_REGISTER_INIT(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
+	RN_REGISTER_INITIALIZER(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
 
 	template<class T>
 	static void SafeRelease(T *&object)

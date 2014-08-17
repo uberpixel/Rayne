@@ -532,7 +532,7 @@ namespace RN
 	
 	struct FileManagerInternals
 	{
-		AdaptiveLock lock;
+		mutable AdaptiveLock lock;
 		Array directories;
 		
 		std::vector<std::string> globalModifiers;

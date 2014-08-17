@@ -173,7 +173,7 @@ namespace TG
 		grassNode->Release();
 		
 		RN::InstancingNode *reedNode = new RN::InstancingNode();
-		reedNode->SetModels(RN::Array::WithObjects({_reeds[0]}));
+		reedNode->SetModels(RN::Array::WithObjects({ _reeds[0], _reeds[0] }));
 		reedNode->SetPivot(_camera);
 		reedNode->SetFlags(reedNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		reedNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);

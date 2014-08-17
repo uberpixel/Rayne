@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="Engine Source\Rayne.h" />
     <ClInclude Include="Engine Source\RNAABB.h" />
+    <ClInclude Include="Engine Source\RNAdaptiveLock.h" />
     <ClInclude Include="Engine Source\RNAlgorithm.h" />
     <ClInclude Include="Engine Source\RNAny.h" />
     <ClInclude Include="Engine Source\RNApplication.h" />
@@ -180,7 +181,6 @@
     <ClInclude Include="Engine Source\RNWorld.h" />
     <ClInclude Include="Engine Source\RNWorldAttachment.h" />
     <ClInclude Include="Engine Source\RNWorldCoordinator.h" />
-    <ClInclude Include="Engine Source\RNWrappingObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNApplication.cpp" />

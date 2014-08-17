@@ -413,9 +413,6 @@
     <ClInclude Include="Engine Source\RNVector.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Engine Source\RNWrappingObject.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Engine Source\RNSingleton.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -508,6 +505,9 @@
     </ClInclude>
     <ClInclude Include="Engine Source\RNAudioResource.h">
       <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNAdaptiveLock.h">
+      <Filter>System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

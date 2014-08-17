@@ -152,6 +152,7 @@
 	#define RN_NORETURN __declspec(noreturn)
 	#define RN_INLINE inline
 	#define RN_NOINLINE __declspec(noinline)
+	#define RN_DEPRECATED(msg) __declspec(deprecated(msg))
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
