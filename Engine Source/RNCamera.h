@@ -49,7 +49,7 @@ namespace RN
 			ReUseCamera_NoRemoval
 		};
 		
-		RNAPI RenderStage(Camera *camera, Camera *conenction, Mode mode);
+		RNAPI RenderStage(Camera *camera, Camera *connection, Mode mode);
 		RNAPI RenderStage(const RenderStage &other);
 		RNAPI ~RenderStage();
 		

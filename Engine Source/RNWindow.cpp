@@ -750,6 +750,12 @@ namespace RN
 		
 	void Window::Flush()
 	{
+		if(_flushProc)
+		{
+			_flushProc();
+			return;
+		}
+		
 #if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable(_internals->context->_internals->cglContext);
 #endif
@@ -761,5 +767,10 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		::SwapBuffers(_internals->hDC);
 #endif
+	}
+		
+	void Window::SetFlushProc(std::function<void()> flush)
+	{
+		_flushProc = flush;
 	}
 }

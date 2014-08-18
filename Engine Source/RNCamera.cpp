@@ -528,6 +528,8 @@ namespace RN
 	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
 	{
 		_projectionMatrix = projectionMatrix;
+		_dirtyFrustum = true;
+		_dirtyProjection = false;
 	}
 	
 	void Camera::DidUpdate(ChangeSet changeSet)

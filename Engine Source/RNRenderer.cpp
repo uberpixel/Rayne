@@ -896,6 +896,9 @@ namespace RN
 			lightManager->AdjustShaderLookup(shader, lookup);
 		}
 		
+		if(_gammaCorrection && shader->SupportsProgramOfType(ShaderProgram::Type::GammaCorrection))
+			lookup.type = ShaderProgram::Type::GammaCorrection;
+		
 		ShaderProgram *program = shader->GetProgramWithLookup(lookup);
 		
 		_currentCamera = stage;

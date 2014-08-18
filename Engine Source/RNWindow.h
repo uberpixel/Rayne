@@ -135,9 +135,13 @@ namespace RN
 		
 		RNAPI WindowConfiguration *GetActiveConfiguration() const { return _activeConfiguration; }
 		RNAPI const std::vector<Screen *> &GetScreens() const { return _screens; }
+		
+		RNAPI void SetFlushProc(std::function<void()> flush);
 
 	private:
 		void Flush();
+		
+		std::function<void()> _flushProc;
 		
 		PIMPL<WindowInternals> _internals;
 		Kernel *_kernel;
