@@ -119,7 +119,7 @@
 
 #define kRNVersionMajor 0
 #define kRNVersionMinor 6
-#define kRNVersionPatch 0
+#define kRNVersionPatch 1
 
 #define kRNABIVersion 7
 
