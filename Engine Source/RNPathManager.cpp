@@ -24,6 +24,8 @@
 	#define RNPathDelimiterTokens "/\\"
 #endif
 
+#define RNIsPossiblePathDelimiter(c) (c == '/' || c == '\\')
+
 namespace RN
 {
 	std::string PathManager::Join(const std::string &path1, const std::string &path2)
@@ -216,7 +218,7 @@ namespace RN
 		
 		while((-- i) > 0)
 		{
-			if(RNIsPathDelimiter(result[i]))
+			if(RNIsPossiblePathDelimiter(result[i]))
 				result[i] = '/';
 		}
 		
