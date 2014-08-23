@@ -208,7 +208,7 @@ namespace RN
 		return (base.find("@2x") != std::string::npos) ? 2.0f : 1.0f;
 	}
 	
-	std::string Normalize(const std::string &path)
+	std::string PathManager::Normalize(const std::string &path)
 	{
 		std::string result(path);
 		
