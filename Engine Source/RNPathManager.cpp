@@ -208,6 +208,21 @@ namespace RN
 		return (base.find("@2x") != std::string::npos) ? 2.0f : 1.0f;
 	}
 	
+	std::string Normalize(const std::string &path)
+	{
+		std::string result(path);
+		
+		size_t i = path.size();
+		
+		while((-- i) > 0)
+		{
+			if(RNIsPathDelimiter(result[i]))
+				result[i] = '/';
+		}
+		
+		return result;
+	}
+	
 	
 	bool PathManager::PathExists(const std::string &path)
 	{

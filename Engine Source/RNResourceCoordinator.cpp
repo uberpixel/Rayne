@@ -245,7 +245,9 @@ namespace RN
 		
 		try
 		{
-			file = new File(name->GetUTF8String());
+			std::string path = PathManager::Normalize(name->GetUTF8String());
+			
+			file = new File(path);
 			file->Autorelease();
 		}
 		catch(Exception e)
@@ -315,7 +317,9 @@ namespace RN
 		
 		try
 		{
-			file = new File(name->GetUTF8String());
+			std::string path = PathManager::Normalize(name->GetUTF8String());
+			
+			file = new File(path);
 			file->Autorelease();
 		}
 		catch(Exception e)
