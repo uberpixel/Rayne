@@ -588,7 +588,6 @@ namespace RN
 
 		std::string base(buffer);
 		
-		AddSearchPath(base);
 		AddSearchPath(base + "/Resources");
 		AddSearchPath(base + "/Engine Resources");
 		
