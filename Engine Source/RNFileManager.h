@@ -119,7 +119,7 @@ namespace RN
 		RNAPI void AddFileModifier(const std::string &modifier, const std::string &extension);
 		RNAPI void AddFileModifier(const std::string &modifier);
 		
-		Array *GetSearchPaths() const;
+		RNAPI Array *GetSearchPaths() const;
 		
 	private:
 		PIMPL<FileManagerInternals> _internals;
