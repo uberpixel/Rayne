@@ -55,6 +55,7 @@ namespace RN
 		static Color White() { return Color(1.0f, 1.0f, 1.0f); }
 		static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
 		static Color ClearColor() { return Color(0.0f, 0.0f, 0.0f, 0.0f); }
+		static Color WithRGBA(float r, float g, float b, float alpha=1.0f) { return Color(r, g, b, a); }
 		static Color WithHSV(float h, float s, float v, float alpha=1.0f);
 		static Color WithHSV(const Vector4 &hsva);
 		
