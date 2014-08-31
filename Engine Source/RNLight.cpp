@@ -353,6 +353,16 @@ namespace RN
 		depthtex->Autorelease();
 		
 		Shader *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
+		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
+		Model *clearDepthSky = RN::Model::WithSkyCube(clearDepthShader);
+		for(int i = 0; i < clearDepthSky->GetMeshCount(0); i++)
+		{
+			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthWrite(true);
+			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthTest(true);
+			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthTestMode(Material::DepthMode::Always);
+			clearDepthSky->GetMaterialAtIndex(0, i)->SetPolygonOffset(false);
+			clearDepthSky->GetMaterialAtIndex(0, i)->SetOverride(Material::Override::Shader | Material::Override::Depthtest | Material::Override::DepthtestMode | Material::Override::Depthwrite | Material::Override::PolygonOffset);
+		}
 		
 		_shadowCameraMatrices.clear();
 		
@@ -371,7 +381,9 @@ namespace RN
 			storage->Autorelease();
 			
 			Camera *tempcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
+			tempcam->SetClearMask(0);
 			tempcam->SetMaterial(depthMaterial->Autorelease());
+			tempcam->SetSky(clearDepthSky);
 			tempcam->SetLODCamera(_shadowTarget);
 			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
@@ -556,13 +568,15 @@ namespace RN
 					{
 						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 						cam->SetFlags(cam->GetFlags()&(~Camera::Flags::NoRender));
-						cam->SetClearMask(Camera::ClearMask::Depth);
+						//TODO: Replace with something else
+						//cam->SetClearMask(Camera::ClearMask::Depth);
 					}
 					else
 					{
 						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 						cam->SetFlags(cam->GetFlags()|Camera::Flags::NoRender);
-						cam->SetClearMask(0);
+						//TODO: Replace with something else
+						//cam->SetClearMask(0);
 						continue;
 					}
 					

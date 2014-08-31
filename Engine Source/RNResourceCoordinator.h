@@ -35,6 +35,7 @@
 #define kRNResourceKeyLightDepthShader                RNCSTR("kRNResourceKeyLightDepthShader")
 #define kRNResourceKeyDirectionalShadowDepthShader    RNCSTR("kRNResourceKeyDirectionalShadowDepthShader")
 #define kRNResourceKeyPointShadowDepthShader          RNCSTR("kRNResourceKeyPointShadowDepthShader")
+#define kRNResourceKeyShadowClearDepthShader		  RNCSTR("kRNResourceKeyShadowClearDepthShader")
 
 namespace RN
 {

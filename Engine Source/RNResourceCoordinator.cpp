@@ -420,6 +420,7 @@ namespace RN
 		LoadShader(RNCSTR("shader/rn_LightDepth"), kRNResourceKeyLightDepthShader);
 		LoadShader(RNCSTR("shader/rn_ShadowDepthSingle"), kRNResourceKeyDirectionalShadowDepthShader);
 		LoadShader(RNCSTR("shader/rn_ShadowDepthCube"), kRNResourceKeyPointShadowDepthShader);
+		LoadShader(RNCSTR("shader/rn_ShadowClearDepth"), kRNResourceKeyShadowClearDepthShader);
 		
 		LoadShader(RNCSTR("shader/rn_DrawFramebuffer"), kRNResourceKeyDrawFramebufferShader);
 	}

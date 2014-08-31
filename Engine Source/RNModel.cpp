@@ -359,36 +359,35 @@ namespace RN
 	Model *Model::WithSkyCube(const std::string &shader)
 	{
 		Shader *matShader = Shader::WithFile(shader);
-		
-		Texture::Parameter parameter;
-		parameter.format = Texture::Format::RGB888;
-		parameter.wrapMode = Texture::WrapMode::Clamp;
-		
-		
-		Material *skyDownMaterial = new Material(matShader);
+		return WithSkyCube(matShader);
+	}
+
+	Model *Model::WithSkyCube(Shader *shader)
+	{
+		Material *skyDownMaterial = new Material(shader);
 		skyDownMaterial->SetDepthWrite(false);
 		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
-		
-		Material *skyUpMaterial = new Material(matShader);
+
+		Material *skyUpMaterial = new Material(shader);
 		skyUpMaterial->SetDepthWrite(false);
 		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 180.0f, 0.0f));
-		
-		Material *skyLeftMaterial = new Material(matShader);
+
+		Material *skyLeftMaterial = new Material(shader);
 		skyLeftMaterial->SetDepthWrite(false);
 		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 90.0f, 0.0f));
-		
-		Material *skyRightMaterial = new Material(matShader);
+
+		Material *skyRightMaterial = new Material(shader);
 		skyRightMaterial->SetDepthWrite(false);
 		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 90.0f, 0.0f));
-		
-		Material *skyFrontMaterial = new Material(matShader);
+
+		Material *skyFrontMaterial = new Material(shader);
 		skyFrontMaterial->SetDepthWrite(false);
 		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 90.0f, 0.0f));
-		
-		Material *skyBackMaterial = new Material(matShader);
+
+		Material *skyBackMaterial = new Material(shader);
 		skyBackMaterial->SetDepthWrite(false);
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 90.0f, 0.0f));
-		
+
 		Model *skyModel = Model::Empty();
 		skyModel->AddMesh(skyDownMesh, skyDownMaterial->Autorelease(), 0);
 		skyModel->AddMesh(skyUpMesh, skyUpMaterial->Autorelease(), 0);
@@ -396,8 +395,7 @@ namespace RN
 		skyModel->AddMesh(skyRightMesh, skyRightMaterial->Autorelease(), 0);
 		skyModel->AddMesh(skyFrontMesh, skyFrontMaterial->Autorelease(), 0);
 		skyModel->AddMesh(skyBackMesh, skyBackMaterial->Autorelease(), 0);
-		
+
 		return skyModel;
 	}
-
 }
