@@ -23,7 +23,7 @@
       <init_from>file:///C:/test/metal01_d.png</init_from>
     </image>
     <image id="Image3" name="metal01_h">
-      <init_from>file:///C:/test/metal01_N.png</init_from>
+      <init_from>file:///C:/test/metal01_n.png</init_from>
     </image>
   </library_images>
   <library_materials>

@@ -35,7 +35,7 @@
       <init_from>file:///C:/test/metal01_d.png</init_from>
     </image>
     <image id="Image7" name="metal01_h">
-      <init_from>file:///C:/test/metal01_N.png</init_from>
+      <init_from>file:///C:/test/metal01_n.png</init_from>
     </image>
     <image id="Image8" name="roof_01">
       <init_from>file:///C:/test/roof_01.png</init_from>

@@ -23,7 +23,7 @@
       <init_from>file:///C:/test/con_dirt_01.png</init_from>
     </image>
     <image id="Image3" name="con_dirt_01_h">
-      <init_from>file:///C:/test/con_dirt_01_N.png</init_from>
+      <init_from>file:///C:/test/con_dirt_01_n.png</init_from>
     </image>
     <image id="Image4" name="door_004">
       <init_from>file:///C:/test/door_004.png</init_from>

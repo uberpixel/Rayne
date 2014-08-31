@@ -17,7 +17,7 @@
       <init_from>file:///C:/test/metal01_d.png</init_from>
     </image>
     <image id="Image1" name="metal01_h">
-      <init_from>file:///C:/test/metal01_N.png</init_from>
+      <init_from>file:///C:/test/metal01_n.png</init_from>
     </image>
     <image id="Image2" name="wood_planks_01">
       <init_from>file:///C:/test/wood_planks_01.png</init_from>
