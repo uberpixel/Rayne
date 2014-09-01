@@ -112,6 +112,7 @@
 #include "RNSpinLock.h"
 #include "RNLockGuard.h"
 #include "RNSingleton.h"
+#include "RNExpected.h"
 
 // ---------------------------
 // Helper macros
