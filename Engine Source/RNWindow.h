@@ -131,6 +131,9 @@ namespace RN
 		
 #if RN_PLATFORM_MAC_OS
 		Screen *GetScreenWithID(CGDirectDisplayID display);
+#elif RN_PLATFORM_WINDOWS
+		RNAPI HWND GetCurrentWindow() const;
+		RNAPI HDC GetCurrentDC() const;
 #endif
 		
 		RNAPI WindowConfiguration *GetActiveConfiguration() const { return _activeConfiguration; }

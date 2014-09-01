@@ -773,4 +773,16 @@ namespace RN
 	{
 		_flushProc = flush;
 	}
+
+#if RN_PLATFORM_WINDOWS
+	HWND Window::GetCurrentWindow() const
+	{
+		return _internals->hWnd;
+	}
+
+	HDC Window::GetCurrentDC() const
+	{
+		return _internals->hDC;
+	}
+#endif
 }
