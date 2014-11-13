@@ -30,6 +30,9 @@ namespace RN
 	// MARK: PNGResourceLoader
 	// ---------------------
 	
+	void RNLibPNGEmptyLogFunction(png_structp png, const char *warning)
+	{}
+
 	PNGResourceLoader::PNGResourceLoader() :
 		ResourceLoader(Texture2D::GetMetaClass())
 	{
@@ -57,6 +60,7 @@ namespace RN
 		
 		png_init_io(pngPointer, file);
 		png_set_sig_bytes(pngPointer, 0);
+		png_set_error_fn(pngPointer, nullptr, nullptr, RNLibPNGEmptyLogFunction);
 		
 		png_read_png(pngPointer, pngInfo, transforms, nullptr);
 		
