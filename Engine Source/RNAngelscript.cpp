@@ -407,39 +407,36 @@ namespace RN
 		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(STDString::ConstructString), asCALL_CDECL_OBJLAST);
 		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const string& in)", asFUNCTION(STDString::ConstructStringCopy), asCALL_CDECL_OBJLAST);
 		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(STDString::DestructString), asCALL_CDECL_OBJLAST);
+		
+		//_internals->_engine->RegisterObjectMethod("string", "string &opAssign(const string& in)", asMETHODPR(std::string, operator =, (const std::string &), std::string &), asCALL_THISCALL);
+		//_internals->_engine->RegisterObjectMethod("string", "string &opAddAssign(const string& in)", asMETHODPR(std::string, operator +=, (const std::string &), std::string &), asCALL_THISCALL);
+		
+		_internals->_engine->RegisterObjectMethod("string", "bool opEquals(const string& in) const", asFUNCTIONPR(std::operator ==, (const std::string &, const std::string &), bool), asCALL_CDECL_OBJFIRST);
+		_internals->_engine->RegisterObjectMethod("string", "int opCmp(const string& in) const", asFUNCTION(STDString::StringCmp), asCALL_CDECL_OBJFIRST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd(const string& in) const", asFUNCTIONPR(std::operator +, (const std::string&, const std::string&), std::string), asCALL_CDECL_OBJFIRST);
+		_internals->_engine->RegisterObjectMethod("string", "uint8 &opIndex(uint)", asFUNCTION(STDString::StringCharAt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "const uint8 &opIndex(uint) const", asFUNCTION(STDString::StringCharAt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "int find(const string& in) const", asFUNCTION(STDString::StringFind), asCALL_CDECL_OBJLAST);
+		
+		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(int)", asFUNCTION(STDString::ConstructStringInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(uint)", asFUNCTION(STDString::ConstructStringUInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(float)", asFUNCTION(STDString::ConstructStringFloat), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(bool)", asFUNCTION(STDString::ConstructStringBool), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAssign(int)", asFUNCTION(STDString::StringAssignInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAddAssign(int)", asFUNCTION(STDString::StringAddAssignInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd(int) const", asFUNCTION(STDString::StringAddInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd_r(int) const", asFUNCTION(STDString::StringAddIntReverse), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAssign(uint)", asFUNCTION(STDString::StringAssignUInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAddAssign(uint)", asFUNCTION(STDString::StringAddAssignUInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd(uint) const", asFUNCTION(STDString::StringAddUInt), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd_r(uint) const", asFUNCTION(STDString::StringAddUIntReverse), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAssign(float)", asFUNCTION(STDString::StringAssignFloat), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAddAssign(float)", asFUNCTION(STDString::StringAddAssignFloat), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd(float) const", asFUNCTION(STDString::StringAddFloat), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd_r(float) const", asFUNCTION(STDString::StringAddFloatReverse), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAssign(bool)", asFUNCTION(STDString::StringAssignBool), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string &opAddAssign(bool)", asFUNCTION(STDString::StringAddAssignBool), asCALL_CDECL_OBJLAST);
+		_internals->_engine->RegisterObjectMethod("string", "string opAdd(bool) const", asFUNCTION(STDString::StringAddBool), asCALL_CDECL_OBJLAST);
+		
 	}
 }
-
-		/*engine->RegisterObjectMethod("string", "string &opAssign(const string& in)", asMETHODPR(std::string, operator =, (const std::string&), std::string&), asCALL_THISCALL);
-		 engine->RegisterObjectMethod("string", "string &opAddAssign(const string& in)", asMETHODPR(std::string, operator+=, (const std::string&), std::string&), asCALL_THISCALL);
-		 engine->RegisterObjectMethod("string", "bool opEquals(const string& in) const", asFUNCTIONPR(std::operator ==, (const std::string&, const std::string&), bool), asCALL_CDECL_OBJFIRST);
-		 engine->RegisterObjectMethod("string", "int opCmp(const string& in) const", asFUNCTION(StringCmp), asCALL_CDECL_OBJFIRST);
-		 engine->RegisterObjectMethod("string", "string opAdd(const string& in) const", asFUNCTIONPR(std::operator +, (const std::string&, const std::string&), std::string), asCALL_CDECL_OBJFIRST);
-		 engine->RegisterObjectMethod("string", "uint length() const", asMETHOD(std::string, size), asCALL_THISCALL);
-		 engine->RegisterObjectMethod("string", "void resize(uint)", asMETHODPR(std::string, resize, (size_t), void), asCALL_THISCALL);
-		 engine->RegisterObjectMethod("string", "uint8 &opIndex(uint)", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "const uint8 &opIndex(uint) const", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "int find(const string& in) const", asFUNCTION(StringFind), asCALL_CDECL_OBJLAST);*/
-		
-		// Register automatic conversion functions for convenience
-		/*engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(int)", asFUNCTION(ConstructStringInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(uint)", asFUNCTION(ConstructStringUInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(float)", asFUNCTION(ConstructStringFloat), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(bool)", asFUNCTION(ConstructStringBool), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAssign(int)", asFUNCTION(StringAssignInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAddAssign(int)", asFUNCTION(StringAddAssignInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd(int) const", asFUNCTION(StringAddInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd_r(int) const", asFUNCTION(StringAddIntReverse), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAssign(uint)", asFUNCTION(StringAssignUInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAddAssign(uint)", asFUNCTION(StringAddAssignUInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd(uint) const", asFUNCTION(StringAddUInt), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd_r(uint) const", asFUNCTION(StringAddUIntReverse), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAssign(float)", asFUNCTION(StringAssignFloat), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAddAssign(float)", asFUNCTION(StringAddAssignFloat), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd(float) const", asFUNCTION(StringAddFloat), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd_r(float) const", asFUNCTION(StringAddFloatReverse), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAssign(bool)", asFUNCTION(StringAssignBool), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string &opAddAssign(bool)", asFUNCTION(StringAddAssignBool), asCALL_CDECL_OBJLAST);
-		 engine->RegisterObjectMethod("string", "string opAdd(bool) const", asFUNCTION(StringAddBool), asCALL_CDECL_OBJLAST);
-		 engine->Regi
-} */
