@@ -17,6 +17,7 @@
 #include "RNTimer.h"
 #include "RNStatistics.h"
 #include "RNFileManager.h"
+#include "RNScriptEngine.h"
 
 #define kRNKernelDidBeginFrameMessage RNCSTR("kRNKernelDidBeginFrameMessage")
 #define kRNKernelDidEndFrameMessage   RNCSTR("kRNKernelDidEndFrameMessage")
@@ -58,6 +59,10 @@ namespace RN
 		
 		RNAPI void PushStatistics(const std::string &key);
 		RNAPI void PopStatistics();
+		
+		RNAPI void AddScriptEngine(ScriptEngine *engine);
+		RNAPI void RemoveScriptEngine(String *identifier);
+		RNAPI ScriptEngine *GetScriptEngine(String *identifier);
 		
 		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 

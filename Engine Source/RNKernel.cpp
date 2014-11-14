@@ -116,6 +116,8 @@ namespace RN
 		
 		std::chrono::steady_clock::time_point _lastFrame;
 		
+		Dictionary *_scriptEngines;
+		
 #if RN_PLATFORM_WINDOWS
 		HWND _mainWindow;
 		HINSTANCE _instance;
@@ -297,6 +299,9 @@ namespace RN
 		_internals->_shouldExit  = false;
 		
 		_internals->_uiserver->UpdateSize();
+		
+		// Scripting engine
+		_internals->_scriptEngines = new Dictionary();
 		
 		// Load all modules
 		ModuleCoordinator::GetSharedInstance();
@@ -803,6 +808,29 @@ namespace RN
 		_internals->_resetDelta = true;
 		_internals->_delta = 0.0f;
 	}
+	
+	void Kernel::AddScriptEngine(ScriptEngine *engine)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		String *identifier = engine->GetIdentifier()->Copy()->Autorelease();
+		
+		_internals->_scriptEngines->SetObjectForKey(engine, identifier);
+	}
+	
+	void Kernel::RemoveScriptEngine(String *identifier)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		_internals->_scriptEngines->RemoveObjectForKey(identifier);
+	}
+	
+	ScriptEngine *Kernel::GetScriptEngine(String *identifier)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		ScriptEngine *engine = _internals->_scriptEngines->GetObjectForKey<ScriptEngine>(identifier);
+		
+		return engine;
+	}
+	
 	
 	float Kernel::GetScaleFactor() const
 	{

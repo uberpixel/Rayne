@@ -94,6 +94,12 @@
 		E945666617D4B80200DEA632 /* RNUIColor.h in Headers */ = {isa = PBXBuildFile; fileRef = E945666417D4B80200DEA632 /* RNUIColor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */; };
 		E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB5F178D7D1200C7B30A /* RNUIStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E946DADF1A14EB9600FB30E2 /* RNAngelscript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E946DADD1A14EB9600FB30E2 /* RNAngelscript.cpp */; };
+		E946DAE01A14EB9600FB30E2 /* RNAngelscript.h in Headers */ = {isa = PBXBuildFile; fileRef = E946DADE1A14EB9600FB30E2 /* RNAngelscript.h */; };
+		E946DAF71A15735300FB30E2 /* RNScriptBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E946DAF51A15735300FB30E2 /* RNScriptBridge.cpp */; };
+		E946DAF81A15735300FB30E2 /* RNScriptBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = E946DAF61A15735300FB30E2 /* RNScriptBridge.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E946DAFB1A15735E00FB30E2 /* RNScriptEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E946DAF91A15735E00FB30E2 /* RNScriptEngine.cpp */; };
+		E946DAFC1A15735E00FB30E2 /* RNScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = E946DAFA1A15735E00FB30E2 /* RNScriptEngine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9474D4E19379B0400105C64 /* RNUIColorWheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */; };
 		E9474D4F19379B0400105C64 /* RNUIColorWheel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9474D4D19379B0400105C64 /* RNUIColorWheel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9474D6F1937BEB300105C64 /* RNUIColorPicker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9474D6D1937BEB300105C64 /* RNUIColorPicker.cpp */; };
@@ -445,6 +451,12 @@
 		E945666417D4B80200DEA632 /* RNUIColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColor.h; sourceTree = "<group>"; };
 		E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIStyle.cpp; sourceTree = "<group>"; };
 		E945AB5F178D7D1200C7B30A /* RNUIStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIStyle.h; sourceTree = "<group>"; };
+		E946DADD1A14EB9600FB30E2 /* RNAngelscript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAngelscript.cpp; sourceTree = "<group>"; };
+		E946DADE1A14EB9600FB30E2 /* RNAngelscript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAngelscript.h; sourceTree = "<group>"; };
+		E946DAF51A15735300FB30E2 /* RNScriptBridge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNScriptBridge.cpp; sourceTree = "<group>"; };
+		E946DAF61A15735300FB30E2 /* RNScriptBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNScriptBridge.h; sourceTree = "<group>"; };
+		E946DAF91A15735E00FB30E2 /* RNScriptEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNScriptEngine.cpp; sourceTree = "<group>"; };
+		E946DAFA1A15735E00FB30E2 /* RNScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNScriptEngine.h; sourceTree = "<group>"; };
 		E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIColorWheel.cpp; sourceTree = "<group>"; };
 		E9474D4D19379B0400105C64 /* RNUIColorWheel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColorWheel.h; sourceTree = "<group>"; };
 		E9474D6D1937BEB300105C64 /* RNUIColorPicker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIColorPicker.cpp; sourceTree = "<group>"; };
@@ -708,6 +720,19 @@
 			name = OpenGL;
 			sourceTree = "<group>";
 		};
+		E946DADC1A14EB5900FB30E2 /* Scripting */ = {
+			isa = PBXGroup;
+			children = (
+				E946DADD1A14EB9600FB30E2 /* RNAngelscript.cpp */,
+				E946DADE1A14EB9600FB30E2 /* RNAngelscript.h */,
+				E946DAF51A15735300FB30E2 /* RNScriptBridge.cpp */,
+				E946DAF61A15735300FB30E2 /* RNScriptBridge.h */,
+				E946DAF91A15735E00FB30E2 /* RNScriptEngine.cpp */,
+				E946DAFA1A15735E00FB30E2 /* RNScriptEngine.h */,
+			);
+			name = Scripting;
+			sourceTree = "<group>";
+		};
 		E94D18BB1753CE8E00F3B10D /* Debug */ = {
 			isa = PBXGroup;
 			children = (
@@ -748,6 +773,7 @@
 				E9B083F31718A2E0009AD83F /* Objects */,
 				E9F8070C1697050D00773A34 /* Rendering */,
 				E9F8070D1697051C00773A34 /* Scene */,
+				E946DADC1A14EB5900FB30E2 /* Scripting */,
 				E97F7B7F175526E5001236E5 /* STL */,
 				E9F8070E1697052500773A34 /* System */,
 				E9E83F42172A4FB60075559B /* UI */,
@@ -1252,6 +1278,7 @@
 				E97055D3187D81820022C82A /* RNProgress.h in Headers */,
 				E95A783017D51E720031C9A2 /* RNUIOutlineView.h in Headers */,
 				E9A9A02E18D52F0B00478810 /* RNTypeTranslator.h in Headers */,
+				E946DAFC1A15735E00FB30E2 /* RNScriptEngine.h in Headers */,
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
 				E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */,
@@ -1358,6 +1385,7 @@
 				E9DAE759184A6B4F00F7DA55 /* RNCountedSet.h in Headers */,
 				D5ABFACF19391869003C44C3 /* RNUIPopUpButton.h in Headers */,
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
+				E946DAE01A14EB9600FB30E2 /* RNAngelscript.h in Headers */,
 				E93A1551185BA95C000645D7 /* RNResourceLoaderBuiltIn.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
 				E919370818A0748C000B1C2E /* RNGPUBuffer.h in Headers */,
@@ -1366,6 +1394,7 @@
 				E9474D701937BEB300105C64 /* RNUIColorPicker.h in Headers */,
 				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
 				E986B6A01879209500AFF219 /* RNOpenGLQueue.h in Headers */,
+				E946DAF81A15735300FB30E2 /* RNScriptBridge.h in Headers */,
 				E9D3D048183A5022007780A7 /* RNNull.h in Headers */,
 				E93763F81794DD7000859EBA /* RNUITextField.h in Headers */,
 			);
@@ -1504,6 +1533,7 @@
 				E9619E411696157E00DA187E /* RNObject.cpp in Sources */,
 				E9619E4E1696157E00DA187E /* RNShader.cpp in Sources */,
 				E9619E511696157E00DA187E /* RNTexture.cpp in Sources */,
+				E946DAF71A15735300FB30E2 /* RNScriptBridge.cpp in Sources */,
 				E9619E551696157E00DA187E /* RNThread.cpp in Sources */,
 				E9619E581696157E00DA187E /* RNWindow.cpp in Sources */,
 				E9619E5A1696157E00DA187E /* RNWorld.cpp in Sources */,
@@ -1527,6 +1557,7 @@
 				C050166916C3FDE600326514 /* RNLight.cpp in Sources */,
 				E986B69F1879209500AFF219 /* RNOpenGLQueue.cpp in Sources */,
 				E9D3D0431838F0F1007780A7 /* RNResourceLoader.cpp in Sources */,
+				E946DAFB1A15735E00FB30E2 /* RNScriptEngine.cpp in Sources */,
 				E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */,
 				E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */,
 				E955495F17A7B1470048FBBC /* RNShaderUnit.cpp in Sources */,
@@ -1549,6 +1580,7 @@
 				E9B083F81718B1D1009AD83F /* RNMemory.cpp in Sources */,
 				E95A782F17D51E720031C9A2 /* RNUIOutlineView.cpp in Sources */,
 				E9F3A6F4171B8D3E0005A79E /* RNParticleEmitter.cpp in Sources */,
+				E946DADF1A14EB9600FB30E2 /* RNAngelscript.cpp in Sources */,
 				E90F87FE1862D5CF00C10354 /* RNUIScrollerInternals.cpp in Sources */,
 				E951615D17D410CF0006156A /* RNUITableViewCell.cpp in Sources */,
 				E986B6A3187B57D100AFF219 /* RNCameraInternal.cpp in Sources */,
