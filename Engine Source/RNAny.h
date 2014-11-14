@@ -2,8 +2,8 @@
 //  RNAny.h
 //  Rayne
 //
-//  Created by Sidney Just on 11/02/14.
-//  Copyright (c) 2014 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RAYNE_ANY_H__
