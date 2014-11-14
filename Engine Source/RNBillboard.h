@@ -29,7 +29,8 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		
-		RNAPI void SetTexture(Texture *texture, float scaleFactor = 0.1f);
+		RNAPI void SetTexture(Texture *texture, float scaleFactor = 1.0f);
+		RNAPI void SetSize(Vector2 size);
 		
 		RNAPI Material *GetMaterial() const { return _material; }
 		RNAPI Texture *GetTexture() const;

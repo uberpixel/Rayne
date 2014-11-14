@@ -119,18 +119,18 @@ namespace RN
 			*vertices ++ = Vector2(0.5f, -0.5f);
 			
 			
-			*uvCoords ++ = Vector2(1.0f, 0.0f);
-			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
 			*uvCoords ++ = Vector2(1.0f, 1.0f);
-			*uvCoords ++ = Vector2(0.0f, 1.0f);
-			
-			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
 			*uvCoords ++ = Vector2(1.0f, 0.0f);
 			
 			*uvCoords ++ = Vector2(1.0f, 0.0f);
-			*uvCoords ++ = Vector2(0.0f, 0.0f);
-			*uvCoords ++ = Vector2(1.0f, 1.0f);
 			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
 			
 			chunk.CommitChanges();
 			mesh->CalculateBoundingVolumes();
@@ -162,6 +162,11 @@ namespace RN
 	{
 		const Array *array = _material->GetTextures();
 		return (array->GetCount() > 0) ? array->GetObjectAtIndex<Texture>(0) : nullptr;
+	}
+	
+	void Billboard::SetSize(RN::Vector2 size)
+	{
+		_size = size;
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)
