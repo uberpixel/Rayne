@@ -520,6 +520,7 @@ namespace RN
 		_orthoBottom = bottom;
 		
 		_dirtyProjection = true;
+		_dirtyFrustum = true;
 		
 		if(!(_flags & Flags::Orthogonal))
 			RNDebug("SetOrthogonalFrustum() called, but the camera is not an orthogonal camera");

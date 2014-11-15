@@ -13,18 +13,18 @@ namespace RN
 {
 	RNDefineMeta(Billboard, SceneNode)
 	
-	Billboard::Billboard()
+	Billboard::Billboard(bool doubleSided) : _isDoubleSided(doubleSided)
 	{
 		Initialize();
 	}
 	
-	Billboard::Billboard(Texture *texture)
+	Billboard::Billboard(Texture *texture, bool doubleSided) : _isDoubleSided(doubleSided)
 	{
 		Initialize();
 		SetTexture(texture);
 	}
 	
-	Billboard::Billboard(Texture *texture, const Vector3 &position)
+	Billboard::Billboard(Texture *texture, const Vector3 &position, bool doubleSided) : _isDoubleSided(doubleSided)
 	{
 		Initialize();
 		SetTexture(texture);
@@ -36,6 +36,8 @@ namespace RN
 	{
 		Billboard *temp = const_cast<Billboard *>(other);
 		LockGuard<Object *> lock(temp);
+		
+		_isDoubleSided = other->_isDoubleSided;
 		
 		Initialize();
 		
@@ -83,10 +85,10 @@ namespace RN
 		_material->SetBlending(true);
 		_material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
 		
-		static std::once_flag onceFlag;
-		static Mesh *mesh;
+		static std::once_flag onceFlagDoubleSided;
+		static Mesh *meshDoubleSided;
 		
-		std::call_once(onceFlag, []() {
+		std::call_once(onceFlagDoubleSided, []() {
 			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
@@ -97,10 +99,10 @@ namespace RN
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			
-			mesh = new Mesh(descriptors, 10, 0);
-			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
+			meshDoubleSided = new Mesh(descriptors, 10, 0);
+			meshDoubleSided->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
-			Mesh::Chunk chunk = mesh->GetChunk();
+			Mesh::Chunk chunk = meshDoubleSided->GetChunk();
 			
 			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
 			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
@@ -133,10 +135,47 @@ namespace RN
 			*uvCoords ++ = Vector2(1.0f, 0.0f);
 			
 			chunk.CommitChanges();
-			mesh->CalculateBoundingVolumes();
+			meshDoubleSided->CalculateBoundingVolumes();
 		});
 		
-		_mesh = mesh->Retain();
+		static std::once_flag onceFlagSingleSided;
+		static Mesh *meshSingleSided;
+		
+		std::call_once(onceFlagSingleSided, []() {
+			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
+			vertexDescriptor.elementMember = 2;
+			vertexDescriptor.elementSize   = sizeof(Vector2);
+			
+			MeshDescriptor uvDescriptor(MeshFeature::UVSet0);
+			uvDescriptor.elementMember = 2;
+			uvDescriptor.elementSize   = sizeof(Vector2);
+			
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
+			
+			meshSingleSided = new Mesh(descriptors, 4, 0);
+			meshSingleSided->SetDrawMode(Mesh::DrawMode::TriangleStrip);
+			
+			Mesh::Chunk chunk = meshSingleSided->GetChunk();
+			
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
+			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+			
+			*vertices ++ = Vector2(0.5f, 0.5f);
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			*vertices ++ = Vector2(0.5f, -0.5f);
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			
+			chunk.CommitChanges();
+			meshSingleSided->CalculateBoundingVolumes();
+		});
+		
+		
+		_mesh = _isDoubleSided?meshDoubleSided->Retain():meshSingleSided->Retain();
 	}
 	
 	void Billboard::SetTexture(Texture *texture, float scaleFactor)
@@ -167,6 +206,7 @@ namespace RN
 	void Billboard::SetSize(RN::Vector2 size)
 	{
 		_size = size;
+		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)

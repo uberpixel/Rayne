@@ -20,9 +20,9 @@ namespace RN
 	class Billboard : public SceneNode
 	{
 	public:
-		RNAPI Billboard();
-		RNAPI Billboard(Texture *texture);
-		RNAPI Billboard(Texture *texture, const Vector3 &position);
+		RNAPI Billboard(bool doubleSided = true);
+		RNAPI Billboard(Texture *texture, bool doubleSided = true);
+		RNAPI Billboard(Texture *texture, const Vector3 &position, bool doubleSided = true);
 		RNAPI Billboard(const Billboard *other);
 		RNAPI Billboard(Deserializer *deserializer);
 		RNAPI ~Billboard() override;
@@ -36,7 +36,6 @@ namespace RN
 		RNAPI Texture *GetTexture() const;
 		RNAPI const Vector2 &GetSize() const { return _size; }
 		
-		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
@@ -47,6 +46,7 @@ namespace RN
 		Mesh *_mesh;
 		Matrix _transform;
 		Material *_material;
+		bool _isDoubleSided;
 		
 		RNDeclareMeta(Billboard)
 	};
