@@ -107,7 +107,7 @@ namespace RN
 					uint32 width  = static_cast<uint32>(CGDisplayModeGetPixelWidth(mode));
 					uint32 height = static_cast<uint32>(CGDisplayModeGetPixelHeight(mode));
 					
-					if(width >= 1024 && height >= 768)
+					if(width >= 320 && height >= 240)
 					{
 						if(_scaleFactor >= 1.5f)
 						{
@@ -297,7 +297,7 @@ namespace RN
 		XFreePixmap(_dpy, maskPixmap);
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
-
+		
 		RN_ASSERT(_mainScreen, "A main screen is required for Rayne to work!");
 		RN_ASSERT(!_screens.empty(), "There needs to be at least one screen!");
 
