@@ -29,6 +29,7 @@
 #include "RNInput.h"
 #include "RNUIServer.h"
 #include "RNWindow.h"
+#include "RNScriptEngine.h"
 
 namespace RN
 {

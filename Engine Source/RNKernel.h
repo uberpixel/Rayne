@@ -17,7 +17,7 @@
 #include "RNTimer.h"
 #include "RNStatistics.h"
 #include "RNFileManager.h"
-#include "RNScriptEngine.h"
+//#include "RNScriptEngine.h"
 
 #define kRNKernelDidBeginFrameMessage RNCSTR("kRNKernelDidBeginFrameMessage")
 #define kRNKernelDidEndFrameMessage   RNCSTR("kRNKernelDidEndFrameMessage")
@@ -28,6 +28,7 @@ namespace RN
 	class KernelInternal;
 	class Window;
 	class Context;
+	class ScriptEngine;
 
 	namespace UI
 	{
