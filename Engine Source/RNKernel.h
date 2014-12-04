@@ -88,6 +88,8 @@ namespace RN
 		// Private
 		void __WillBecomeActive();
 		void __WillResignActive();
+		void __DidBecomeActive();
+		void __DidResignActive();
 
 	private:
 		Context *GetContext() const;

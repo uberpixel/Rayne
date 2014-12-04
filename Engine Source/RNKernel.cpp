@@ -891,16 +891,31 @@ namespace RN
 		if(_internals->_active)
 			return;
 		
-		_internals->_active = true;
 		_internals->_app->WillBecomeActive();
+	}
+	void Kernel::__DidBecomeActive()
+	{
+		if(_internals->_active)
+			return;
+		
+		_internals->_active = true;
+		_internals->_app->DidBecomeActive();
+		_internals->_window->DidActivate();
 	}
 	void Kernel::__WillResignActive()
 	{
 		if(!_internals->_active)
 			return;
 		
-		_internals->_active = false;
 		_internals->_app->WillResignActive();
+	}
+	void Kernel::__DidResignActive()
+	{
+		if(!_internals->_active)
+			return;
+		
+		_internals->_active = false;
+		_internals->_app->DidResignActive();
 	}
 	
 #if RN_PLATFORM_WINDOWS

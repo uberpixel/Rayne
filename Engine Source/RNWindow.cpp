@@ -785,4 +785,13 @@ namespace RN
 		return _internals->hDC;
 	}
 #endif
+		
+	void Window::DidActivate()
+	{
+		if(!_cursorVisible)
+		{
+			_cursorVisible = true;
+			HideCursor();
+		}
+	}
 }

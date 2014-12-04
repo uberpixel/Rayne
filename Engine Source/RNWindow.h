@@ -142,6 +142,7 @@ namespace RN
 		RNAPI void SetFlushProc(std::function<void()> flush);
 
 	private:
+		void DidActivate();
 		void Flush();
 		
 		std::function<void()> _flushProc;

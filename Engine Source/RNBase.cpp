@@ -39,6 +39,15 @@
 	RN::Kernel::GetSharedInstance()->__WillResignActive();
 }
 
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+	RN::Kernel::GetSharedInstance()->__DidBecomeActive();
+}
+- (void)applicationDidResignActive:(NSNotification *)notification
+{
+	RN::Kernel::GetSharedInstance()->__DidResignActive();
+}
+
 @end
 
 #endif
