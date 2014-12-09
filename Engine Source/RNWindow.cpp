@@ -212,54 +212,13 @@ namespace RN
 		_activeScreen  = nullptr;
 		_activeConfiguration = nullptr;
 		
+		UpdateScreens();
+		
 #if RN_PLATFORM_MAC_OS
-		CGDisplayCount count;
-		
-		CGGetActiveDisplayList(0, 0, &count);
-		CGDirectDisplayID *table = new CGDirectDisplayID[count];
-		
-		CGGetActiveDisplayList(count, table, &count);
-		for(size_t i = 0; i < count; i ++)
-		{
-			try
-			{
-				CGDirectDisplayID displayID = table[i];
-				Screen *screen = new Screen(displayID);
-				
-				_screens.push_back(screen);
-				
-				if(CGDisplayIsMain(displayID))
-					_mainScreen = screen;
-			}
-			catch(Exception e)
-			{}
-		}
-		
-		delete [] table;
 		_internals->nativeWindow = nil;
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)__MonitorEnumProc, NULL);
-
-		for(HMONITOR monitor : __MonitorHandles)
-		{
-			try
-			{
-				Screen *screen = new Screen(monitor);
-
-				if(screen->IsMainScreen())
-				{
-					_screens.insert(_screens.begin(), screen);
-					_mainScreen = screen;
-				}
-				else
-					_screens.push_back(screen);
-			}
-			catch(Exception e)
-			{}
-		}
-		
 		_internals->hWnd = nullptr;
 #endif
 		
@@ -680,6 +639,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 	Screen *Window::GetScreenWithID(CGDirectDisplayID display)
 	{
+		UpdateScreens();
 		for(Screen *screen : _screens)
 		{
 			if(screen->_display == display)
@@ -793,5 +753,56 @@ namespace RN
 			_cursorVisible = true;
 			HideCursor();
 		}
+	}
+		
+	void Window::UpdateScreens()
+	{
+#if RN_PLATFORM_MAC_OS
+		CGDisplayCount count;
+		
+		CGGetActiveDisplayList(0, 0, &count);
+		CGDirectDisplayID *table = new CGDirectDisplayID[count];
+		
+		CGGetActiveDisplayList(count, table, &count);
+		for(size_t i = 0; i < count; i ++)
+		{
+			try
+			{
+				CGDirectDisplayID displayID = table[i];
+				Screen *screen = new Screen(displayID);
+				
+				_screens.push_back(screen);
+				
+				if(CGDisplayIsMain(displayID))
+					_mainScreen = screen;
+			}
+			catch(Exception e)
+			{}
+		}
+		
+		delete [] table;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)__MonitorEnumProc, NULL);
+		
+		for(HMONITOR monitor : __MonitorHandles)
+		{
+			try
+			{
+				Screen *screen = new Screen(monitor);
+				
+				if(screen->IsMainScreen())
+				{
+					_screens.insert(_screens.begin(), screen);
+					_mainScreen = screen;
+				}
+				else
+					_screens.push_back(screen);
+			}
+			catch(Exception e)
+			{}
+		}
+#endif
 	}
 }

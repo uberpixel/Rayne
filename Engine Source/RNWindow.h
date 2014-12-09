@@ -137,13 +137,14 @@ namespace RN
 #endif
 		
 		RNAPI WindowConfiguration *GetActiveConfiguration() const { return _activeConfiguration; }
-		RNAPI const std::vector<Screen *> &GetScreens() const { return _screens; }
+		RNAPI const std::vector<Screen *> &GetScreens() { void UpdateScreens(); return _screens; }
 		
 		RNAPI void SetFlushProc(std::function<void()> flush);
 
 	private:
 		void DidActivate();
 		void Flush();
+		void UpdateScreens();
 		
 		std::function<void()> _flushProc;
 		
