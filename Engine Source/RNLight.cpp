@@ -580,8 +580,8 @@ namespace RN
 						continue;
 					}
 					
-					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits.size());
-					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits.size()));
+					float linear = _shadowTarget->GetClipNear() + (_shadowParameter.maxShadowDist*_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits.size());
+					float log = _shadowTarget->GetClipNear() * powf(_shadowParameter.maxShadowDist*_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits.size()));
 					far = linear*_shadowParameter.distanceBlendFactor+log*(1.0f-_shadowParameter.distanceBlendFactor);
 					
 					Camera *tempcam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);

@@ -38,6 +38,7 @@ namespace RN
 		ShadowParameter(size_t resolution = 512) :
 			resolution(resolution),
 			distanceBlendFactor(0.05f),
+			maxShadowDist(1.0f),
 			shadowTarget(nullptr)
 		{
 			splits.push_back(ShadowSplit());
@@ -46,6 +47,7 @@ namespace RN
 		ShadowParameter(Camera *target, size_t resolution = 1024) :
 			resolution(resolution),
 			distanceBlendFactor(0.05f),
+			maxShadowDist(1.0f),
 			shadowTarget(target)
 		{
 			splits.push_back(ShadowSplit(1, 0, 3.0f, 256.0f));
@@ -58,6 +60,7 @@ namespace RN
 		
 		std::vector<ShadowSplit> splits;
 		float distanceBlendFactor;
+		float maxShadowDist;
 		Camera *shadowTarget;
 	};
 	
