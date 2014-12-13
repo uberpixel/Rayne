@@ -112,26 +112,33 @@ float rn_ShadowDirectional0()
 		proj[i] = vertDirLightProj[i].xyz/vertDirLightProj[i].w;
 	}
 	
-	bvec3 inMap[RN_DIRECTIONAL_SHADOWS-1];
-	for(int i = 0; i < RN_DIRECTIONAL_SHADOWS-1; i++)
+	bvec3 inMap[RN_DIRECTIONAL_SHADOWS];
+	for(int i = 0; i < RN_DIRECTIONAL_SHADOWS; i++)
 	{
 		inMap[i] = lessThan(proj[i]*proj[i], vec3(1.0));
 	}
 	
-	int mapToUse = RN_DIRECTIONAL_SHADOWS-1;
+	int mapToUse = -1;
 	
-	for(int i = RN_DIRECTIONAL_SHADOWS-2; i >= 0; i--)
+	for(int i = RN_DIRECTIONAL_SHADOWS-1; i >= 0; i--)
 	{
 		if(inMap[i].x && inMap[i].y && inMap[i].z)
 			mapToUse = i;
 	}
 
-	vec4 projected = vec4(proj[mapToUse].xy*0.5+0.5, float(mapToUse), proj[mapToUse].z*0.5+0.5);
-//	return texture(lightDirectionalDepth, projected);
+	if(mapToUse >= 0)
+	{
+		vec4 projected = vec4(proj[mapToUse].xy*0.5+0.5, float(mapToUse), proj[mapToUse].z*0.5+0.5);
+	//	return texture(lightDirectionalDepth, projected);
 
-//	return rn_ShadowPCF2x2(lightDirectionalDepth, projected);
-	return rn_ShadowPCF4x4(lightDirectionalDepth, projected);
-//	return rn_ShadowPCFPoisson16(lightDirectionalDepth, projected, 4.0);
+	//	return rn_ShadowPCF2x2(lightDirectionalDepth, projected);
+		return rn_ShadowPCF4x4(lightDirectionalDepth, projected);
+	//	return rn_ShadowPCFPoisson16(lightDirectionalDepth, projected, 4.0);
+	}
+	else
+	{
+		return 1.0;
+	}
 }
 #endif
 
