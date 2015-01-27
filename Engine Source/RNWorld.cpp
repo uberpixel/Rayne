@@ -168,13 +168,9 @@ namespace RN
 	
 	void World::StepWorld(FrameID frame, float delta)
 	{
-		_kernel->PushStatistics("wld.step");
-		
 		if(_mode == Mode::Edit)
 		{
 			StepWorldEditMode(frame, delta);
-			_kernel->PopStatistics();
-			
 			return;
 		}
 		
@@ -250,14 +246,10 @@ namespace RN
 		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		DidUpdateToFrame(frame);
-		
-		_kernel->PopStatistics();
 	}
 	
 	void World::RenderWorld(Renderer *renderer)
 	{
-		_kernel->PushStatistics("wld.render");
-		
 		renderer->SetMode(Renderer::Mode::ModeWorld);
 		
 		for(Camera *camera : _cameras)
@@ -275,8 +267,6 @@ namespace RN
 			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);
 			renderer->FinishCamera();
 		}
-		
-		_kernel->PopStatistics();
 	}
 	
 	void World::SceneNodeWillRender(SceneNode *node)

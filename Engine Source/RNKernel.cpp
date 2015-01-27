@@ -97,9 +97,6 @@ namespace RN
 		WorldCoordinator *_worldCoordinator;
 		UI::Server *_uiserver;
 		
-		uint32 _statisticsSwitch;
-		Statistics _statistics[2];
-		
 		uint32 _maxFPS;
 		float _minDelta;
 		
@@ -233,7 +230,6 @@ namespace RN
 		_internals->_pool = new AutoreleasePool();
 		
 		_internals->_fixedDelta = false;
-		_internals->_statisticsSwitch = 0;
 		
 		_internals->_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
 		Settings::GetSharedInstance()->LoadSettings();
@@ -567,11 +563,6 @@ namespace RN
 		_internals->_delta = trueDelta * _internals->_timeScale;
 		_internals->_scaledTime += _internals->_delta;
 		
-		_internals->_statisticsSwitch = (++ _internals->_statisticsSwitch) % 2;
-		_internals->_statistics[_internals->_statisticsSwitch].Clear();
-		
-		PushStatistics("krn.events");
-		
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool
 		{
@@ -621,8 +612,6 @@ namespace RN
 			}
 		}
 #endif
-		
-		PopStatistics();
 		
 		_internals->_frame ++;
 		_internals->_renderer->BeginFrame(_internals->_delta);
@@ -680,13 +669,9 @@ namespace RN
 		Log::Logger::GetSharedInstance()->Flush(true);
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
-		PushStatistics("krn.flush");
-		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			_internals->_window->Flush();
 		}, true);
-		
-		PopStatistics();
 		
 		_internals->_lastFrame = now;
 		_internals->_pool->Drain();
@@ -701,14 +686,10 @@ namespace RN
 			
 			if(_internals->_minDelta > trueDelta)
 			{
-				PushStatistics("krn.sleep");
-				
 				long sleepTime = (_internals->_minDelta - trueDelta) * 1000000;
 				
 				if(sleepTime > 1000)
 					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
-				
-				PopStatistics();
 			}
 		}
 		
@@ -730,23 +711,6 @@ namespace RN
 	void Kernel::Exit()
 	{
 		_internals->_shouldExit = true;
-	}
-	
-	void Kernel::PushStatistics(const std::string &key)
-	{
-		_internals->_statistics[_internals->_statisticsSwitch].Push(key);
-	}
-	
-	void Kernel::PopStatistics()
-	{
-		_internals->_statistics[_internals->_statisticsSwitch].Pop();
-	}
-	
-	
-	const std::vector<Statistics::DataPoint *>& Kernel::GetStatisticsData() const
-	{
-		uint32 index = (_internals->_statisticsSwitch + 1) % 2;
-		return _internals->_statistics[index].GetDataPoints();
 	}
 	
 	void Kernel::SetTimeScale(double timeScale)

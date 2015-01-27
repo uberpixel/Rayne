@@ -108,8 +108,6 @@
 		E9474D7719380B4400105C64 /* RNUIGradientView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9474D7519380B4400105C64 /* RNUIGradientView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9488F1818698D3500C00995 /* RNSingleton.h in Headers */ = {isa = PBXBuildFile; fileRef = E9488F1618698D3500C00995 /* RNSingleton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E949088518ACD3CB008CBFCF /* RNThreadLocalStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = E949088418ACD396008CBFCF /* RNThreadLocalStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94CB79C18600D4C005A3778 /* RNStatistics.cpp */; };
-		E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */ = {isa = PBXBuildFile; fileRef = E94CB79D18600D4C005A3778 /* RNStatistics.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
 		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E951615917D40D930006156A /* RNUITableView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E951615717D40D930006156A /* RNUITableView.cpp */; };
@@ -465,8 +463,6 @@
 		E9474D7519380B4400105C64 /* RNUIGradientView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIGradientView.h; sourceTree = "<group>"; };
 		E9488F1618698D3500C00995 /* RNSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSingleton.h; sourceTree = "<group>"; };
 		E949088418ACD396008CBFCF /* RNThreadLocalStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNThreadLocalStorage.h; sourceTree = "<group>"; };
-		E94CB79C18600D4C005A3778 /* RNStatistics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNStatistics.cpp; sourceTree = "<group>"; };
-		E94CB79D18600D4C005A3778 /* RNStatistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNStatistics.h; sourceTree = "<group>"; };
 		E94D18B71753CE8A00F3B10D /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E94D18B81753CE8A00F3B10D /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E951615717D40D930006156A /* RNUITableView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUITableView.cpp; sourceTree = "<group>"; };
@@ -742,8 +738,6 @@
 				E9E09ECE18204C580022073F /* RNLogging.h */,
 				E96F253D181F384F001450B2 /* RNLoggingEngine.cpp */,
 				E96F253E181F384F001450B2 /* RNLoggingEngine.h */,
-				E94CB79C18600D4C005A3778 /* RNStatistics.cpp */,
-				E94CB79D18600D4C005A3778 /* RNStatistics.h */,
 			);
 			name = Debug;
 			sourceTree = "<group>";
@@ -1228,7 +1222,6 @@
 				E95D42DE17DC28C900026E8C /* RNValue.h in Headers */,
 				E9619E2C1696157E00DA187E /* RNCamera.h in Headers */,
 				E9F09C3D1959F92700235268 /* RNObjectInternals.h in Headers */,
-				E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */,
 				E9619E2D1696157E00DA187E /* RNColor.h in Headers */,
 				E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */,
 				E9619E301696157E00DA187E /* RNDefines.h in Headers */,
@@ -1632,7 +1625,6 @@
 				E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */,
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,
 				E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */,
-				E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */,
 				D5A89D8418EF64FB00F21256 /* RNPointGrid.cpp in Sources */,
 				E9BE9F3E1861627D00B486E8 /* RNUIScroller.cpp in Sources */,
 				E95EEE481784CFDC00CDCA6E /* RNStringInternal.cpp in Sources */,

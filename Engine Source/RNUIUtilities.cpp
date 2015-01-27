@@ -68,7 +68,7 @@ namespace RN
 		
 		void DebugWidget::HandleMessage(Message *message)
 		{
-			Kernel *kernel = Kernel::GetSharedInstance();
+			/*Kernel *kernel = Kernel::GetSharedInstance();
 			//Renderer *renderer = Renderer::GetSharedInstance();
 			
 			float delta = kernel->GetDelta();
@@ -86,7 +86,7 @@ namespace RN
 				string->Append(RNSTR("%s: %3.4fs\n", point->name.c_str(), milliseconds));
 			}
 			
-			_label->SetText(string);
+			_label->SetText(string);*/
 		}
 		
 		

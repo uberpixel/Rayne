@@ -15,7 +15,6 @@
 #include "RNApplication.h"
 #include "RNFunction.h"
 #include "RNTimer.h"
-#include "RNStatistics.h"
 #include "RNFileManager.h"
 //#include "RNScriptEngine.h"
 
@@ -58,14 +57,9 @@ namespace RN
 		RNAPI void ScheduleTimer(Timer *timer);
 		RNAPI void RemoveTimer(Timer *timer);
 		
-		RNAPI void PushStatistics(const std::string &key);
-		RNAPI void PopStatistics();
-		
 		RNAPI void AddScriptEngine(ScriptEngine *engine);
 		RNAPI void RemoveScriptEngine(String *identifier);
 		RNAPI ScriptEngine *GetScriptEngine(String *identifier);
-		
-		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 
 		RNAPI float GetScaleFactor() const;
 		RNAPI float GetActiveScaleFactor() const;
