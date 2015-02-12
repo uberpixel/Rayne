@@ -28,7 +28,8 @@ namespace RN
 			parameter.maxMipMaps = 0;
 			
 			_texture = Texture::WithFile(file, parameter);
-			_texture->Retain();
+			if(_texture)
+				_texture->Retain();
 		}
 		
 		Image::~Image()
