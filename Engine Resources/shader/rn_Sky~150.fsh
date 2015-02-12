@@ -105,13 +105,7 @@ void main()
 	// Finally, scale the Mie and Rayleigh colors and set up the varying variables for the pixel shader
 	float fCos = dot(v3LightPos, -normVertDirToCam);
 	float fMiePhase = 1.5 * ((1.0 - g2) / (2.0 + g2)) * (1.0 + fCos*fCos) / pow(1.0 + g2 - 2.0*g*fCos, 1.5);
-	color0.xyz = min(v3FrontColor * (v3InvWavelength * fKrESun) + fMiePhase * v3FrontColor * fKmESun, vec3(50.0, 50.0, 50.0));
-
-	float colorlength = length(color0.xyz);
-	if(colorlength > 5.0)
-	{
-		color0.xyz *= 5.0/colorlength;
-	}
+	color0.xyz = min(v3FrontColor * (v3InvWavelength * fKrESun) + fMiePhase * v3FrontColor * fKmESun, vec3(5.0, 5.0, 5.0));
 
 #else
 	vec4 color0 = texture(mTexture0, vertTexcoord)*ambient;
