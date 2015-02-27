@@ -1,13 +1,8 @@
-#Basic project setup
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.4)
 project(RayneAll)
-#TODO: maybe add version here?
 
-#Add vendor dependencies
-add_subdirectory("Vendor")
+# General settings, independent of target
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-#Add source directory for Rayne
-add_subdirectory("Engine Source")
-
-#Add Engine Test project
-add_subdirectory("Engine Test")
+add_subdirectory("Source")
+add_subdirectory("Tests")
