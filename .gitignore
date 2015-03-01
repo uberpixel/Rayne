@@ -2,71 +2,7 @@
 [Tt]humbs.db
 *.DS_Store
 *.orig
-*.xccheckout
 
-# Xcode Project files
-/xcuserdata/
-/project.xcworkspace/xcuserdata/
-
-# Visual Studio
-*.[Oo]bj
-*.user
-*.aps
-*.vspscc
-*.vssscc
-*_i.c
-*_p.c
-*.ncb
-*.suo
-*.tlb
-*.tlh
-*.bak
-*.[Cc]ache
-*.ilk
-*.log
-*.lib
-*.sbr
-*.sdf
-*.opensdf
-*.unsuccessfulbuild
-ipch/
-[Bb]in
-[Dd]ebug*/
-[Rr]elease*/
-Ankh.NoLoad
-
-# Code::Blocks IDE stuff
-bin/
-obj/
-*.depend
-*.layout
-
-# Library stuff
-xcuserdata
-/DerivedData/
-
-# Misc
-/Build/
-
-/Xcode/OS X/DerivedData/
-/Documentation/html/
-/Engine Test/Game/Game-ios.xcodeproj/project.xcworkspace/
-/Engine Test/Game/DerivedData/
-/Engine Test/Game/Resources/modules/
-/Engine Test/Game/Resources/libGame.dylib
-/Engine Modules/rayne-bullet/bullet/
-/Engine Modules/Build/
-/Vendor/freetype-2.4.11/objs/
-/Vendor/freetype-2.4.11/docs/
-/Vendor/freetype-2.4.11/vms_make.com
-/Vendor/freetype-2.4.11/version.sed
-/Vendor/freetype-2.4.11/ChangeLog.23
-/Vendor/freetype-2.4.11/ChangeLog.22
-/Vendor/freetype-2.4.11/ChangeLog.21
-/Vendor/freetype-2.4.11/ChangeLog.20
-/Vendor/freetype-2.4.11/ChangeLog
-/shaders.sublime-workspace
-/shaders.sublime-project
-Engine Test/Test Game/Resources/modules/
-Engine Test/Test Game.vcxproj.slin.nvuser
-Engine Test/Test Game/nsight_profiler.cfg
+# CLion
+**/.idea/workspace.xml
+**/.idea/tasks.xml
