@@ -51,9 +51,11 @@ namespace RN
 	
 	Thread::Thread() :
 		_id(std::this_thread::get_id()),
-		_name("Main Thread")
+		_name(nullptr)
 	{
 		Initialize();
+
+		_name = new String("Main Thread", true);
 		
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
@@ -71,6 +73,11 @@ namespace RN
 		struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
 		pthread_cond_timedwait_relative_np(_exitSignal.native_handle(), _exitMutex.native_handle(), &time);
 #endif
+
+		delete _runLoop;
+
+		_dictionary->Release();
+		_name->Release();
 	}
 	
 	void Thread::Initialize()
@@ -80,6 +87,9 @@ namespace RN
 		_isRunning   = false;
 		_isCancelled = false;
 		_isDetached  = false;
+
+		_runLoop = new RunLoop();
+		_dictionary = new Dictionary();
 		
 		Retain();
 		//ThreadCoordinator::GetSharedInstance()->ConsumeConcurrency();
@@ -162,12 +172,12 @@ namespace RN
 		std::stringstream stream;
 		stream << "RN::Thread " << __ThreadAtomicIDs.fetch_add(1);
 		
-		_name = stream.str();
-	}
+		_name = new String(stream.str().c_str());
+;	}
 	
 	void Thread::Detach()
 	{
-		if(_isDetached.exchange(true) == true)
+		if(_isDetached.exchange(true))
 			throw Exception(Exception::Type::InconsistencyException, "Can't detach already detached thread!");
 		
 		std::thread([&]() {
@@ -179,13 +189,13 @@ namespace RN
 					LockGuard<Mutex> lock(_mutex);
 					
 #if RN_PLATFORM_MAC_OS
-					pthread_setname_np(_name.c_str());
+					pthread_setname_np(_name->GetUTF8String());
 #endif
 #if RN_PLATFORM_LINUX
-					pthread_setname_np(pthread_self(), _name.c_str());
+					pthread_setname_np(pthread_self(), _name->GetUTF8String());
 #endif
 #if RN_PLATFORM_WINDOWS
-					RNSetThreadName(const_cast<char*>(_name.c_str()));
+					RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
 #endif
 				}
 				
@@ -212,29 +222,34 @@ namespace RN
 		return (_id == std::this_thread::get_id());
 	}
 	
-	void Thread::SetName(const std::string &name)
+	void Thread::SetName(const String *name)
 	{
 		LockGuard<Mutex> lock(_mutex);
-		_name = std::string(name);
+
+		_name->Release();
+		_name = name ? name->Copy() : nullptr;
+
+		if(!_name)
+			_name = RNCSTR("")->Retain();
 		
 		if(IsRunning() && OnThread())
 		{
 #if RN_PLATFORM_MAC_OS
-			pthread_setname_np(_name.c_str());
+			pthread_setname_np(_name->GetUTF8String());
 #endif
 #if RN_PLATFORM_LINUX
-			pthread_setname_np(pthread_self(), _name.c_str());
+			pthread_setname_np(pthread_self(), _name->GetUTF8String());
 #endif
 #if RN_PLATFORM_WINDOWS
-			RNSetThreadName(const_cast<char*>(_name.c_str()));
+			RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
 #endif
 		}
 	}
 	
-	const std::string Thread::GetName()
+	String *Thread::GetName()
 	{
 		LockGuard<Mutex> lock(_mutex);
-		std::string name = _name;
+		String *name = _name->Copy();
 		
 		return name;
 	}

@@ -10,6 +10,8 @@
 #define __RAYNE_KERNEL_H__
 
 #include "RNBase.h"
+#include "../Threads/RNThread.h"
+#include "../Threads/RNRunLoop.h"
 
 namespace RN
 {
@@ -18,7 +20,17 @@ namespace RN
 	public:
 		Kernel();
 
-		bool Step();
+		void Run();
+
+	private:
+		void Bootstrap();
+		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
+
+		Thread *_mainThread;
+		RunLoop *_runLoop;
+
+		RunLoopObserver *_observer;
+		bool _exit;
 	};
 }
 

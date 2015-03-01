@@ -13,7 +13,9 @@
 #include "../Base/RNFunction.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNDictionary.h"
+#include "../Objects/RNString.h"
 #include "RNMutex.h"
+#include "RNRunLoop.h"
 
 namespace RN
 {
@@ -23,7 +25,6 @@ namespace RN
 	{
 	public:
 		friend class Kernel;
-		friend class Context;
 		
 		template<typename F>
 		explicit Thread(F &&func, bool detach=true) :
@@ -51,19 +52,19 @@ namespace RN
 		RNAPI void Detach();
 		RNAPI bool OnThread() const;
 		RNAPI void WaitForExit();
+		RNAPI void SetName(const String *name);
 		
 		RNAPI void Cancel();
 		RNAPI bool IsCancelled() const { return _isCancelled.load(); }
 		RNAPI bool IsRunning() const { return _isRunning.load(); }
-		
-		RNAPI void SetName(const std::string &name);
-		RNAPI const std::string GetName();
+		RNAPI String *GetName();
+		RNAPI RunLoop *GetRunLoop() const { return _runLoop; }
 
 		template <typename T>
 		T *GetObjectForKey(Object *key)
 		{
 			LockGuard<SpinLock> lock(_dictionaryLock);
-			T *object = _dictionary.GetObjectForKey<T>(key);
+			T *object = _dictionary->GetObjectForKey<T>(key);
 			
 			return object;
 		}
@@ -71,13 +72,13 @@ namespace RN
 		void SetObjectForKey(Object *object, Object *key)
 		{
 			LockGuard<SpinLock> lock(_dictionaryLock);
-			_dictionary.SetObjectForKey(object, key->Copy());
+			_dictionary->SetObjectForKey(object, key->Copy());
 		}
 		
 		void RemoveObjectForKey(Object *key)
 		{
 			LockGuard<SpinLock> lock(_dictionaryLock);
-			_dictionary.RemoveObjectForKey(key);
+			_dictionary->RemoveObjectForKey(key);
 		}
 		
 		RNAPI static Thread *GetCurrentThread();
@@ -92,20 +93,20 @@ namespace RN
 		void AutoAssignName();
 		
 		Mutex _mutex;
-		
+		RunLoop *_runLoop;
+
 		//Context *_context;
 		SpinLock _dictionaryLock;
+		Dictionary *_dictionary;
+		String *_name;
 		
 		std::atomic<bool> _isRunning;
 		std::atomic<bool> _isCancelled;
 		std::atomic<bool> _isDetached;
-		
+
 		Function _function;
 		std::thread::id _id;
-		
-		std::string _name;
-		Dictionary _dictionary;
-		
+
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;
 		
