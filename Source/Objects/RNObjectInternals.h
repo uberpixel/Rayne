@@ -2,7 +2,7 @@
 //  RNObjectInternals.h
 //  Rayne
 //
-//  Copyright 2014 by Überpixel. All rights reserved.
+//  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
