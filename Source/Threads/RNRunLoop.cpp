@@ -7,6 +7,7 @@
 //
 
 #include "RNRunLoop.h"
+#include "RNThread.h"
 
 namespace RN
 {
@@ -89,6 +90,16 @@ namespace RN
 	{
 		_observers->Release();
 		_sources->Release();
+	}
+
+	RunLoop *RunLoop::GetMainRunLoop()
+	{
+		return Thread::GetMainThread()->GetRunLoop();
+	}
+
+	RunLoop *RunLoop::GetCurrentRunLoop()
+	{
+		return Thread::GetCurrentThread()->GetRunLoop();
 	}
 
 	void RunLoop::AddObserver(RunLoopObserver *observer)
