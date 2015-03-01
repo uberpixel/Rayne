@@ -2,8 +2,32 @@ cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
 set(RAYNE_SOURCES
-    RNBase.cpp
-    RNObject.cpp)
+    Base/RNMemory.cpp
+    Base/RNBase.cpp
+    Base/RNException.cpp
+    Base/RNKernel.cpp
+    Base/RNUnicode.cpp
+    Math/RNMath.cpp
+    Objects/RNCatalogue.cpp
+    Objects/RNObject.cpp
+    Objects/RNObjectInternals.cpp
+    Objects/RNKVO.cpp
+    Objects/RNAutoreleasePool.cpp
+    Objects/RNSerialization.cpp
+    Objects/RNData.cpp
+    Objects/RNNull.cpp
+    Objects/RNNumber.cpp
+    Objects/RNString.cpp
+    Objects/RNStringInternal.cpp
+    Objects/RNValue.cpp
+    Objects/RNArray.cpp
+    Objects/RNDictionary.cpp
+    Objects/RNSet.cpp
+    Objects/RNCountedSet.cpp
+    Threads/RNThread.cpp
+    Threads/RNRunLoop.cpp
+    Threads/RNMutex.cpp
+    Threads/RNSpinlock.cpp)
 
 set(BUILD_64Bit YES)
 

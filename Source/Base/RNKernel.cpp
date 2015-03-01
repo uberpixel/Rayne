@@ -1,17 +1,20 @@
 //
-//  RNBase.cpp
+//  RNKernel.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNBase.h"
+#include "RNKernel.h"
 
 namespace RN
 {
-	void Initialize(int argc, char *argv[])
-	{
+	Kernel::Kernel()
+	{}
 
+	bool Kernel::Step()
+	{
+		return true;
 	}
 }
