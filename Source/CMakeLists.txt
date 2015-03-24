@@ -29,6 +29,62 @@ set(RAYNE_SOURCES
     Threads/RNMutex.cpp
     Threads/RNSpinlock.cpp)
 
+set(RAYNE_HEADERS
+    Rayne.h
+    Base/RNAny.h
+    Base/RNBase.h
+    Base/RNDefines.h
+    Base/RNEnum.h
+    Base/RNException.h
+    Base/RNExpected.h
+    Base/RNFunction.h
+    Base/RNKernel.h
+    Base/RNLockGuard.h
+    Base/RNMemory.h
+    Base/RNScopeGuard.h
+    Base/RNSignal.h
+    Base/RNSingleton.h
+    Base/RNSTL.h
+    Base/RNTypeTranslator.h
+    Base/RNUnicode.h
+    Math/RNAlgorithm.h
+    Math/RNColor.h
+    Math/RNConstants.h
+    Math/RNMath.h
+    Math/RNMatrix.h
+    Math/RNMatrixQuaternion.h
+    Math/RNQuaternion.h
+    Math/RNSIMD.h
+    Math/RNVector.h
+    Objects/RNArray.h
+    Objects/RNAutoreleasePool.h
+    Objects/RNCatalogue.h
+    Objects/RNCountedSet.h
+    Objects/RNData.h
+    Objects/RNDictionary.h
+    Objects/RNKVO.h
+    Objects/RNKVOImplementation.h
+    Objects/RNNull.h
+    Objects/RNNumber.h
+    Objects/RNObject.h
+    Objects/RNSerialization.h
+    Objects/RNSet.h
+    Objects/RNString.h
+    Objects/RNValue.h
+    Threads/RNMutex.h
+    Threads/RNRunLoop.h
+    Threads/RNSemaphore.h
+    Threads/RNSpinLock.h
+    Threads/RNThread.h
+    Threads/RNThreadLocalStorage.h)
+
+set(RAYNE_HEADERS_PRIVATE
+    Objects/RNHashTableInternal.h
+    Objects/RNObjectInternals.h
+    Objects/RNStringInternal.h)
+
+
+set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 set(BUILD_64Bit YES)
 
 if(NOT APPLE)
@@ -80,7 +136,7 @@ function(createTarget arg1 arg2 arg3)
     elseif(WIN32)
     endif()
 
-    add_library("${TARGET_NAME}" ${arg3} ${RAYNE_SOURCES})
+    add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
 
 endfunction()
 
