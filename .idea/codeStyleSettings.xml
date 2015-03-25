@@ -18,6 +18,15 @@
         <Objective-C>
           <option name="NAMESPACE_BRACE_PLACEMENT" value="5" />
           <option name="FUNCTION_BRACE_PLACEMENT" value="5" />
+          <option name="FUNCTION_CALL_ARGUMENTS_ALIGN_MULTILINE" value="true" />
+          <option name="CLASS_CONSTRUCTOR_INIT_LIST_ALIGN_MULTILINE" value="false" />
+          <option name="CLASS_CONSTRUCTOR_INIT_LIST_NEW_LINE_BEFORE_COLON" value="0" />
+          <option name="CLASS_CONSTRUCTOR_INIT_LIST_NEW_LINE_AFTER_COLON" value="1" />
+          <option name="SUPERCLASS_LIST_ALIGN_MULTILINE" value="false" />
+          <option name="SUPERCLASS_LIST_BEFORE_COLON" value="0" />
+          <option name="FIELDS_PREFIX" value="_" />
+          <option name="GETTERS_PREFIX" value="Get" />
+          <option name="SETTERS_PREFIX" value="Set" />
         </Objective-C>
         <Objective-C-extensions>
           <option name="GENERATE_INSTANCE_VARIABLES_FOR_PROPERTIES" value="ASK" />
@@ -51,12 +60,14 @@
           <option name="BRACE_STYLE" value="5" />
           <option name="CLASS_BRACE_STYLE" value="5" />
           <option name="ELSE_ON_NEW_LINE" value="true" />
+          <option name="CATCH_ON_NEW_LINE" value="true" />
           <option name="SPACE_AROUND_UNARY_OPERATOR" value="true" />
           <option name="SPACE_BEFORE_IF_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_WHILE_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_FOR_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_CATCH_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_SWITCH_PARENTHESES" value="false" />
+          <option name="KEEP_SIMPLE_BLOCKS_IN_ONE_LINE" value="true" />
           <indentOptions>
             <option name="CONTINUATION_INDENT_SIZE" value="4" />
             <option name="USE_TAB_CHARACTER" value="true" />
@@ -65,6 +76,5 @@
       </value>
     </option>
     <option name="USE_PER_PROJECT_SETTINGS" value="true" />
-    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default (1)" />
   </component>
 </project>
