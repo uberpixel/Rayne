@@ -81,9 +81,9 @@ namespace RN
 	}
 	
 	
-	machine_hash Value::GetHash() const
+	size_t Value::GetHash() const
 	{
-		machine_hash hash = _size ^ _type;
+		size_t hash = _size ^ _type;
 		
 		for(size_t i = 0; i < _size - 1; i ++)
 			hash ^= _storage[i] | (static_cast<uint32>(_storage[i + 1]) << 16);

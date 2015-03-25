@@ -80,7 +80,7 @@ namespace RN
 		RNAPI uint32 GetUint32Value() const;
 		RNAPI uint64 GetUint64Value() const;
 		
-		RNAPI machine_hash GetHash() const override;
+		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		RNAPI Type GetType() const { return _type; }

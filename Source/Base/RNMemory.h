@@ -12,12 +12,6 @@
 #include <new>
 #include "RNDefines.h"
 
-#if RN_TARGET_CXX_NOXCEPT
-	#define RN_NOEXCEPT noexcept
-#else
-	#define RN_NOEXCEPT
-#endif
-
 namespace RN
 {
 	namespace Memory

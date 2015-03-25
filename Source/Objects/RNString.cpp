@@ -160,7 +160,7 @@ namespace RN
 	// MARK: Object system
 	// ---------------------
 	
-	machine_hash String::GetHash() const
+	size_t String::GetHash() const
 	{
 		return _string->GetHash();
 	}

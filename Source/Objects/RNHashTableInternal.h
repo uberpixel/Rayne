@@ -120,7 +120,7 @@ namespace RN
 		
 		Bucket *FindBucket(Object *object) const
 		{
-			machine_hash hash = object->GetHash();
+			size_t hash = object->GetHash();
 			size_t index = hash % _capacity;
 			
 			Bucket *bucket = _buckets[index];
@@ -137,7 +137,7 @@ namespace RN
 		
 		Bucket *FindBucket(Object *object, bool &created)
 		{
-			machine_hash hash = object->GetHash();
+			size_t hash = object->GetHash();
 			size_t index = hash % _capacity;
 			
 			Bucket *bucket = _buckets[index];
@@ -214,7 +214,7 @@ namespace RN
 					
 					if(bucket->object)
 					{
-						machine_hash hash = bucket->GetHash();
+						size_t hash = bucket->GetHash();
 						size_t index = hash % _capacity;
 						
 						bucket->next = _buckets[index];

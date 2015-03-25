@@ -43,7 +43,7 @@ namespace RN
 			}
 			
 			
-			machine_hash GetHash() const
+			size_t GetHash() const
 			{
 				return object->GetHash();
 			}

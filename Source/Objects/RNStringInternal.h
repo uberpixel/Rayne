@@ -40,7 +40,7 @@ namespace RN
 		
 		UTF8String *MutableCopy() const;
 		
-		machine_hash GetHash() const { const_cast<UTF8String *>(this)->RecalcuateHash(); return _hash; }
+		size_t GetHash() const { const_cast<UTF8String *>(this)->RecalcuateHash(); return _hash; }
 		size_t GetLength() const { return _length; }
 		bool IsMutable() const { return !(_flags & Flags::ConstStorage); }
 		
@@ -58,7 +58,7 @@ namespace RN
 		bool ValidateUTF8() const;
 		
 	protected:
-		UTF8String(const uint8 *storage, size_t length, machine_hash hash, Flags flags);
+		UTF8String(const uint8 *storage, size_t length, size_t hash, Flags flags);
 
 		size_t SkipCharacters(const uint8 *string, size_t skip) const;
 		void WakeUpWithUTF8String(const uint8 *data, size_t count, bool mutableStorage);
@@ -70,7 +70,7 @@ namespace RN
 		const uint8 *_constStorage;
 		
 		size_t _length;
-		machine_hash _hash;
+		size_t _hash;
 		
 		Flags _flags;
 		

@@ -38,7 +38,7 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		
-		RNAPI machine_hash GetHash() const override;
+		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		RNAPI static Value *WithVector2(const Vector2 &vector);

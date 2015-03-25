@@ -228,7 +228,7 @@ namespace RN
 		RecalcuateHash();
 	}
 
-	UTF8String::UTF8String(const uint8 *storage, size_t length, machine_hash hash, Flags flags) :
+	UTF8String::UTF8String(const uint8 *storage, size_t length, size_t hash, Flags flags) :
 		_flags(flags),
 		_constStorage(storage),
 		_length(length),

@@ -126,9 +126,9 @@ namespace RN
 		return (this == other);
 	}
 	
-	machine_hash Object::GetHash() const
+	size_t Object::GetHash() const
 	{
-		machine_hash hash = reinterpret_cast<machine_hash>(this);
+		size_t hash = reinterpret_cast<size_t>(this);
 		
 		hash = ~hash + (hash << 15);
 		hash = hash ^ (hash >> 12);

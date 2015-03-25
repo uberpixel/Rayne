@@ -17,7 +17,6 @@
 
 #define RN_PLATFORM_MAC_OS  0
 #define RN_PLATFORM_WINDOWS 0
-#define RN_PLATFORM_IOS     0
 #define RN_PLATFORM_LINUX	0
 
 #define RN_PLATFORM_ARM   0
@@ -28,9 +27,6 @@
 
 #define RN_TARGET_OPENGL    0
 #define RN_TARGET_OPENGL_ES 0
-
-#define RN_TARGET_CXX_NOXCEPT   0
-#define RN_TARGET_CXX_CONSTEXPR 0
 
 #define RN_BUILD_DEBUG   1
 #define RN_BUILD_RELEASE 1
@@ -125,20 +121,20 @@
 
 
 #if defined(_MSC_VER)
+	namespace RN
+	{
+		typedef signed char int8;
+		typedef unsigned char uint8;
 
-	typedef signed char				int8;
-	typedef unsigned char			uint8;
+		typedef short int16;
+		typedef unsigned short uint16;
 
-	typedef short					int16;
-	typedef unsigned short			uint16;
+		typedef int int32;
+		typedef unsigned int uint32;
 
-	typedef int						int32;
-	typedef unsigned int			uint32;
-
-	typedef __int64					int64;
-	typedef unsigned __int64		uint64;
-
-	#define alignas(n) __declspec(align(n))
+		typedef __int64 int64;
+		typedef unsigned __int64 uint64;
+	}
 
 	#pragma warning(disable: 4018)
 	#pragma warning(disable: 4244)
@@ -153,6 +149,9 @@
 	#define RN_INLINE inline
 	#define RN_NOINLINE __declspec(noinline)
 	#define RN_DEPRECATED(msg) __declspec(deprecated(msg))
+	#define RN_NOEXCEPT
+	#define RN_CONSTEXPR
+	#define RN_ALIGNAS(n) __declspec(align(n))
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
@@ -170,30 +169,29 @@
 #endif /* _MSC_VER */
 
 #if defined(__GNUC__) // Also catches Clang on OS X
+	namespace RN
+	{
+		typedef signed char int8;
+		typedef unsigned char uint8;
 
-	#undef RN_TARGET_CXX_NOXCEPT
-	#undef RN_TARGET_CXX_CONSTEXPR
+		typedef short int16;
+		typedef unsigned short uint16;
 
-	#define RN_TARGET_CXX_NOXCEPT   1
-	#define RN_TARGET_CXX_CONSTEXPR 1
+		typedef int int32;
+		typedef unsigned int uint32;
 
-	typedef signed char				int8;
-	typedef unsigned char			uint8;
-
-	typedef short					int16;
-	typedef unsigned short			uint16;
-
-	typedef int						int32;
-	typedef unsigned int			uint32;
-
-	typedef long long				int64;
-	typedef unsigned long long		uint64;
+		typedef long long int64;
+		typedef unsigned long long uint64;
+	}
 
 	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 	#define RN_NORETURN __attribute__((noreturn))
 	#define RN_INLINE inline __attribute__((__always_inline__))
 	#define RN_NOINLINE __attribute__((noinline))
 	#define RN_DEPRECATED(msg) [[deprecated(msg)]]
+	#define RN_NOEXCEPT noexcept
+	#define RN_CONSTEXPR constexpr
+	#define RN_ALIGNAS(n) alignas(n)
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))
@@ -211,32 +209,31 @@
 #endif /* __GNUC__ */
 
 // Sanity checks
-typedef size_t machine_hash;
-
 #if (RN_BUILD_DEBUG && RN_BUILD_RELEASE) || (!RN_BUILD_DEBUG && !RN_BUILD_RELEASE)
 	#error "Debug and Release build both defined (only define either one of DEBUG or NDEBUG)"
 #endif
 
-static_assert(sizeof(int8) == 1, "int8 must be 1 byte!");
-static_assert(sizeof(int16) == 2, "int16 must be 2 bytes!");
-static_assert(sizeof(int32) == 4, "int32 must be 4 bytes!");
-static_assert(sizeof(int64) == 8, "int64 must be 8 bytes!");
+namespace RN
+{
+	static_assert(sizeof(int8) == 1, "int8 must be 1 byte!");
+	static_assert(sizeof(int16) == 2, "int16 must be 2 bytes!");
+	static_assert(sizeof(int32) == 4, "int32 must be 4 bytes!");
+	static_assert(sizeof(int64) == 8, "int64 must be 8 bytes!");
 
-static_assert(sizeof(uint8) == 1, "uint8 must be 1 byte!");
-static_assert(sizeof(uint16) == 2, "uint16 must be 2 bytes!");
-static_assert(sizeof(uint32) == 4, "uint32 must be 4 bytes!");
-static_assert(sizeof(uint64) == 8, "uint64 must be 8 bytes!");
+	static_assert(sizeof(uint8) == 1, "uint8 must be 1 byte!");
+	static_assert(sizeof(uint16) == 2, "uint16 must be 2 bytes!");
+	static_assert(sizeof(uint32) == 4, "uint32 must be 4 bytes!");
+	static_assert(sizeof(uint64) == 8, "uint64 must be 8 bytes!");
 
-static_assert(std::is_signed<int8>::value, "int8 must be signed!");
-static_assert(std::is_signed<int16>::value, "int16 must be signed!");
-static_assert(std::is_signed<int32>::value, "int32 must be signed!");
-static_assert(std::is_signed<int64>::value, "int64 must be signed!");
+	static_assert(std::is_signed<int8>::value, "int8 must be signed!");
+	static_assert(std::is_signed<int16>::value, "int16 must be signed!");
+	static_assert(std::is_signed<int32>::value, "int32 must be signed!");
+	static_assert(std::is_signed<int64>::value, "int64 must be signed!");
 
-static_assert(std::is_unsigned<uint8>::value, "uint8 must be unsigned!");
-static_assert(std::is_unsigned<uint16>::value, "uint16 must be unsigned!");
-static_assert(std::is_unsigned<uint32>::value, "uint32 must be unsigned!");
-static_assert(std::is_unsigned<uint64>::value, "uint64 must be unsigned!");
-
-static_assert(std::is_same<std::size_t, machine_hash>::value, "size_t and machine_hash must be the same!");
+	static_assert(std::is_unsigned<uint8>::value, "uint8 must be unsigned!");
+	static_assert(std::is_unsigned<uint16>::value, "uint16 must be unsigned!");
+	static_assert(std::is_unsigned<uint32>::value, "uint32 must be unsigned!");
+	static_assert(std::is_unsigned<uint64>::value, "uint64 must be unsigned!");
+}
 
 #endif /* __RAYNE_DEFINES_H__ */

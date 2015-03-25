@@ -31,7 +31,7 @@ namespace RN
 		RNAPI Object *Copy() const;
 		
 		RNAPI virtual bool IsEqual(Object *other) const;
-		RNAPI virtual machine_hash GetHash() const;
+		RNAPI virtual size_t GetHash() const;
 		RNAPI bool IsKindOfClass(MetaClass *other) const;
 		
 		RNAPI virtual void Serialize(Serializer *serializer);

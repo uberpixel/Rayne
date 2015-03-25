@@ -101,8 +101,6 @@
 	#define RN_EXPECT_FALSE(x) (x)
 #endif
 
-typedef uint64 Tag;
-
 namespace RN
 {
 	class Kernel;
@@ -110,6 +108,8 @@ namespace RN
 	Kernel *Initialize(int argc, char *argv[]);
 
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
+
+	typedef uint64 Tag;
 
 	enum class ComparisonResult : int
 	{

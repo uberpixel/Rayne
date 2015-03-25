@@ -47,7 +47,7 @@ namespace RN
 				return (key && key->IsEqual(lookup));
 			}
 			
-			machine_hash GetHash() const
+			size_t GetHash() const
 			{
 				return key->GetHash();
 			}
@@ -109,9 +109,9 @@ namespace RN
 	}
 	
 	
-	machine_hash Dictionary::GetHash() const
+	size_t Dictionary::GetHash() const
 	{
-		return static_cast<machine_hash>(GetCount());
+		return static_cast<size_t>(GetCount());
 	}
 	
 	bool Dictionary::IsEqual(Object *temp) const

@@ -341,12 +341,12 @@ namespace RN
 		throw Exception(Exception::Type::InconsistencyException, "Unknwon type!");
 	}
 	
-	machine_hash Number::GetHash() const
+	size_t Number::GetHash() const
 	{
 		const uint8 *bytes = _buffer;
 		const uint8 *end = bytes + SizeForType(_type);
 		
-		machine_hash hash = 0;
+		size_t hash = 0;
 		
 		while(bytes < end)
 		{

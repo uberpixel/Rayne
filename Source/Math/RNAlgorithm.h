@@ -17,17 +17,17 @@
 namespace RN
 {
 	template<class T>
-	void HashCombine(machine_hash &seed, const T &value)
+	void HashCombine(size_t &seed, const T &value)
 	{		
 		// This function is equivalent to boost::hash_combine()
 		std::hash<T> hasher;
-		seed ^= static_cast<machine_hash>(hasher(value)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		seed ^= static_cast<size_t>(hasher(value)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 	}
 	
 	template<class Iterator>
-	machine_hash HashRange(Iterator first, Iterator last)
+	size_t HashRange(Iterator first, Iterator last)
 	{
-		machine_hash hash = 0;
+		size_t hash = 0;
 		for(; first != last; first ++)
 		{
 			HashCombine(hash, *first);
