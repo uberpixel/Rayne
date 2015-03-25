@@ -60,6 +60,14 @@
 #include "../Threads/RNSpinLock.h"
 
 // ---------------------------
+// Platform dependent includes
+// ---------------------------
+
+#if RN_PLATFORM_MAC_OS
+	#include <mach/mach.h>
+#endif
+
+// ---------------------------
 // Helper macros
 // ---------------------------
 

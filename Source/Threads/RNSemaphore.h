@@ -9,68 +9,76 @@
 #ifndef __RAYNE_SEMAPHORE_H__
 #define __RAYNE_SEMAPHORE_H__
 
-#include "RNBase.h"
+#include "../Base/RNBase.h"
 
 namespace RN
 {
+#if RN_PLATFORM_MAC_OS
+
 	class Semaphore
 	{
 	public:
-		Semaphore(size_t count) :
-			_count(count),
-			_initial(count)
-		{}
-		
+		Semaphore(size_t count)
+		{
+			semaphore_create(mach_task_self(), &_semaphore, SYNC_POLICY_FIFO, static_cast<int>(count));
+		}
+
 		~Semaphore()
 		{
-			RN_ASSERT(_count >= _initial, "Semaphore destructor called while semaphore is still in use.");
-			
-#if RN_PLATFORM_MAC_OS
-			// Works around a bug in OS X, which sometimes crashes mutexes and condition variables
-			// https://devforums.apple.com/thread/220316?tstart=0
-			
-			struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
-			pthread_cond_timedwait_relative_np(_condition.native_handle(), _mutex.native_handle(), &time);
-#endif
+			semaphore_destroy(mach_task_self(), _semaphore);
 		}
-		
-		void Signal()
-		{
-			std::lock_guard<std::mutex> lock(_mutex);
-			
-			_count ++;
-			_condition.notify_one();
-		}
-		
+
 		void Wait()
 		{
-			std::unique_lock<std::mutex> lock(_mutex);
-			
-			while(_count == 0)
-				_condition.wait(lock);
-			
-			_count --;
+			semaphore_wait(_semaphore);
 		}
-		
-		bool TryWait()
+
+		void Signal()
 		{
-			std::lock_guard<std::mutex> lock(_mutex);
-			if(_count)
-			{
-				_count --;
-				return true;
-			}
-			
-			return false;
+			semaphore_signal(_semaphore);
 		}
-		
+
 	private:
-		size_t _count;
-		size_t _initial;
-		
-		std::condition_variable _condition;
-		std::mutex _mutex;
+		Semaphore(const Semaphore &other) = delete;
+
+		Semaphore &operator=(const Semaphore &other) = delete;
+
+		semaphore_t _semaphore;
 	};
+
+#endif
+
+#if RN_PLATFORM_WINDOWS
+
+	class Semaphore
+	{
+	public:
+		Semaphore(size_t count)
+		{
+			_semaphore = ::CreateSemaphore(NULL, static_cast<int>(count), MAXLONG, NULL);
+		}
+		~Semaphore()
+		{
+			::CloseHandle(_semaphore);
+		}
+
+		void Wait()
+		{
+			WaitForSingleObject(_semaphore, INFINITE);
+		}
+		void Signal()
+		{
+			ReleaseSemaphore(_semaphore, 1, NULL);
+		}
+
+	private:
+		Semaphore(const Semaphore &other) = delete;
+		Semaphore &operator =(const Semaphore &other) = delete;
+
+		HANDLE _semaphore;
+	};
+
+#endif
 }
 
 #endif /* __RAYNE_SEMAPHORE_H__ */
