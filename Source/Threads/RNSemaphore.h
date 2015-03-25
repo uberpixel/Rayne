@@ -40,7 +40,6 @@ namespace RN
 
 	private:
 		Semaphore(const Semaphore &other) = delete;
-
 		Semaphore &operator=(const Semaphore &other) = delete;
 
 		semaphore_t _semaphore;

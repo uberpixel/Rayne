@@ -10,94 +10,87 @@
 #define __RAYNE_THREADLOCALSTORAGE_H__
 
 #include "../Base/RNBase.h"
-#include "RNSpinLock.h"
 
 namespace RN
 {
-	namespace stl
+#if RN_PLATFORM_POSIX
+	template<class T>
+	class ThreadLocalStorage;
+
+	template<class T>
+	class ThreadLocalStorage
 	{
-		template<class T>
-		class thread_local_storage
+	public:
+		ThreadLocalStorage()
 		{
-		public:
-			T &get()
+			pthread_key_create(&_key, &CleanBuffer);
+		}
+		~ThreadLocalStorage()
+		{
+			pthread_key_delete(_key);
+		}
+
+
+		void SetValue(const T &value)
+		{
+			T *buffer = GetBuffer();
+			*buffer = value;
+		}
+		T GetValue() const
+		{
+			T *buffer = GetBuffer();
+			return *buffer;
+		}
+
+	private:
+		static void CleanBuffer(void *buffer)
+		{
+			T *object = reinterpret_cast<T *>(buffer);
+			delete object;
+		}
+
+		T *GetBuffer() const
+		{
+			void *buffer = pthread_getspecific(_key);
+			if(! buffer)
 			{
-				_lock.Lock();
-				T &value = _storage[std::this_thread::get_id()];
-				_lock.Unlock();
-				
-				return value;
+				buffer = new T();
+				pthread_setspecific(_key, buffer);
 			}
-			
-			
-			void clear()
-			{
-				_lock.Lock();
-				_storage.clear();
-				_lock.Unlock();
-			}
-			void clear_local()
-			{
-				_lock.Lock();
-				_storage.erase(std::this_thread::get_id());
-				_lock.Unlock();
-			}
-			
-			
-			std::vector<T> values() const
-			{
-				std::vector<T> result;
-				result.reserve(_storage.size());
-				
-				_lock.Lock();
-				
-				for(auto &pair : _storage)
-					result.push_back(pair.second);
-				
-				_lock.Unlock();
-				
-				return result;
-			}
-			
-			std::vector<T> move_values()
-			{
-				std::vector<T> result;
-				result.reserve(_storage.size());
-				
-				_lock.Lock();
-				
-				for(auto &pair : _storage)
-					result.push_back(std::move(pair.second));
-				
-				_storage.clear();
-				_lock.Unlock();
-				
-				return result;
-			}
-			
-			
-			T &operator *()
-			{
-				return get();
-			}
-			const T &operator *() const
-			{
-				return get();
-			}
-			T *operator ->()
-			{
-				return &get();
-			}
-			const T *operator ->() const
-			{
-				return &get();
-			}
-			
-		private:
-			mutable SpinLock _lock;
-			std::unordered_map<std::thread::id, T> _storage;
-		};
-	}
+
+			return reinterpret_cast<T *>(buffer);
+		}
+
+		pthread_key_t _key;
+	};
+
+	template<class T>
+	class ThreadLocalStorage<T *>
+	{
+	public:
+		ThreadLocalStorage()
+		{
+			pthread_key_create(&_key, nullptr);
+		}
+		~ThreadLocalStorage()
+		{
+			pthread_key_delete(_key);
+		}
+
+
+		void SetValue(T *value)
+		{
+			pthread_setspecific(_key, value);
+		}
+		T *GetValue() const
+		{
+			return reinterpret_cast<T *>(pthread_getspecific(_key));
+		}
+
+	private:
+		pthread_key_t _key;
+	};
+#endif
 }
 
 #endif /* __RAYNE_THREADLOCALSTORAGE_H__ */

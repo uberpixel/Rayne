@@ -7,8 +7,7 @@
 //
 
 #include "RNThread.h"
-#include "RNSpinLock.h"
-#include "../Objects/RNArray.h"
+#include "RNThreadLocalStorage.h"
 
 #if RN_PLATFORM_WINDOWS
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
@@ -45,8 +44,7 @@ namespace RN
 	__RNDefineMetaAndGFYMSVC(Thread, Object)
 	
 	static Thread *__MainThread;
-	static SpinLock __ThreadLock;
-	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
+	static ThreadLocalStorage<Thread *> __LocalThread;
 	static std::atomic<uint32> __ThreadAtomicIDs;
 	
 	Thread::Thread() :
@@ -56,11 +54,7 @@ namespace RN
 		Initialize();
 
 		_name = new String("Main Thread", true);
-		
-		__ThreadLock.Lock();
-		__ThreadMap[_id] = this;
-		__ThreadLock.Unlock();
-		
+		__LocalThread.SetValue(this);
 		__MainThread = this;
 	}
 	
@@ -97,15 +91,8 @@ namespace RN
 	
 	Thread *Thread::GetCurrentThread()
 	{
-		LockGuard<SpinLock> lock(__ThreadLock);
-		
-		auto iterator = __ThreadMap.find(std::this_thread::get_id());
-		if(iterator != __ThreadMap.end())
-			return iterator->second;
-		
-		return nullptr;
+		return __LocalThread.GetValue();
 	}
-	
 	Thread *Thread::GetMainThread()
 	{
 		return __MainThread;
@@ -135,10 +122,7 @@ namespace RN
 	void Thread::Entry()
 	{
 		_id = std::this_thread::get_id();
-		
-		__ThreadLock.Lock();
-		__ThreadMap[_id] = this;
-		__ThreadLock.Unlock();
+		__LocalThread.SetValue(this);
 		
 		_isRunning.store(true);
 	}
@@ -150,11 +134,8 @@ namespace RN
 			_context->ForceDeactivate();
 			_context = nullptr;
 		}*/
-		
-		{
-			LockGuard<SpinLock> lock(__ThreadLock);
-			__ThreadMap.erase(_id);
-		}
+
+		__LocalThread.SetValue(nullptr);
 		
 		{
 			std::lock_guard<std::mutex> lock(_exitMutex);
