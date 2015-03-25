@@ -152,6 +152,8 @@
 	#define RN_NOEXCEPT
 	#define RN_CONSTEXPR
 	#define RN_ALIGNAS(n) __declspec(align(n))
+	#define RN_EXPECT_TRUE(x)  (x)
+	#define RN_EXPECT_FALSE(x) (x)
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
@@ -192,6 +194,8 @@
 	#define RN_NOEXCEPT noexcept
 	#define RN_CONSTEXPR constexpr
 	#define RN_ALIGNAS(n) alignas(n)
+	#define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
+	#define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))

@@ -91,16 +91,6 @@
 		static RN::Initializer __RNGlobalDestructor##name (nullptr, __RNGlobalDestructor##name##Callback); \
 	}
 
-#if RN_PLATFORM_POSIX
-	#define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
-	#define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
-#endif
-
-#if RN_PLATFORM_WINDOWS
-	#define RN_EXPECT_TRUE(x)  (x)
-	#define RN_EXPECT_FALSE(x) (x)
-#endif
-
 namespace RN
 {
 	class Kernel;

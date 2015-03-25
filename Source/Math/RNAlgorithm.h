@@ -11,9 +11,6 @@
 
 #include "../Base/RNBase.h"
 
-#define kRNParallelSortMaxBatchSize  10
-#define kRNParallelSortMinBatchCount 4
-
 namespace RN
 {
 	template<class T>
@@ -38,7 +35,7 @@ namespace RN
 	
 	static inline uint32 NextPowerOfTwo(uint32 value)
 	{
-		value--;
+		value --;
 		
 		value |= value >> 1;
 		value |= value >> 2;
@@ -51,7 +48,7 @@ namespace RN
 	
 	static inline uint64 NextPowerOfTwo(uint64 value)
 	{
-		value--;
+		value --;
 		
 		value |= value >> 1;
 		value |= value >> 2;
