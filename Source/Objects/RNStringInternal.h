@@ -28,25 +28,11 @@ namespace RN
 	public:
 		friend class StringPool;
 
-		struct Flags : public Enum<uint32>
-		{
-		public:
-			Flags()
-			{}
-			
-			Flags(uint32 val) :
-				Enum(val)
-			{}
-			
-			enum
-			{
-				ByteCountMask = 0xfff,
-				
-				ConstStorage = (1 << 16),
-				ASCII = (1 << 17)
-			};
-		};
-		
+		RN_OPTIONS(Flags, uint32,
+				   ByteCountMask = 0xfff,
+				   ConstStorage = (1 << 16),
+				   ASCII = (1 << 17));
+
 		UTF8String();
 		UTF8String(const UTF8String *other);
 		UTF8String(const uint8 *data, size_t bytes, bool mutableStorage);

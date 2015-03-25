@@ -50,7 +50,7 @@
 
 #include "RNDefines.h"
 #include "RNException.h"
-#include "RNEnum.h"
+#include "RNOptions.h"
 #include "RNExpected.h"
 #include "RNSingleton.h"
 #include "RNScopeGuard.h"

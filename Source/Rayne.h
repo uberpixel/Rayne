@@ -41,5 +41,6 @@
 #include "Threads/RNRunLoop.h"
 #include "Threads/RNSpinLock.h"
 #include "Threads/RNThreadLocalStorage.h"
+#include "Threads/RNWorkQueue.h"
 
 #endif /* _RAYNE_RAYNE_H__ */

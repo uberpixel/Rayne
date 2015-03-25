@@ -22,24 +22,13 @@ namespace RN
 	class RunLoopObserver : public Object
 	{
 	public:
-		struct Activity : public Enum<int>
-		{
-			Activity()
-			{}
-			Activity(int val) :
-				Enum(val)
-			{}
-
-			enum
-			{
-				Entry = (1 << 0),
-				Sources = (1 << 2),
-				Finalize = (1 << 3),
-				BeforeWaiting = (1 << 4),
-				AfterWaiting = (1 << 5),
-				Exit = (1 << 6)
-			};
-		};
+		RN_OPTIONS(Activity, uint32,
+				   Entry = (1 << 0),
+				   Sources = (1 << 2),
+				   Finalize = (1 << 3),
+				   BeforeWaiting = (1 << 4),
+				   AfterWaiting = (1 << 5),
+				   Exit = (1 << 6));
 
 		RNAPI RunLoopObserver(Activity activites, bool repeats, std::function<void (RunLoopObserver *, Activity)> &&callback);
 

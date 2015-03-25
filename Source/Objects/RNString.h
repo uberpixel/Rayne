@@ -20,23 +20,10 @@ namespace RN
 	class String : public Object
 	{
 	public:
-		struct ComparisonMode : public Enum<uint32>
-		{
-			ComparisonMode()
-			{}
-			
-			ComparisonMode(uint32 val) :
-				Enum(val)
-			{}
-			
-			enum
-			{
-				CaseInsensitive = (1 << 0),
-				Numerically = (1 << 1)
-			};
-		};
-		
-		
+		RN_OPTIONS(ComparisonMode, uint32,
+		           CaseInsensitive = (1 << 0),
+		           Numerically = (1 << 1));
+
 		RNAPI String();
 		RNAPI String(const char *string, va_list args);
 		RNAPI String(const char *string, bool constant=false);

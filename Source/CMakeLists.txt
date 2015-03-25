@@ -26,14 +26,15 @@ set(RAYNE_SOURCES
     Objects/RNCountedSet.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
-    Threads/RNSpinlock.cpp)
+    Threads/RNSpinlock.cpp
+    Threads/RNWorkQueue.cpp)
 
 set(RAYNE_HEADERS
     Rayne.h
     Base/RNAny.h
     Base/RNBase.h
     Base/RNDefines.h
-    Base/RNEnum.h
+    Base/RNOptions.h
     Base/RNException.h
     Base/RNExpected.h
     Base/RNFunction.h
@@ -74,7 +75,8 @@ set(RAYNE_HEADERS
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h
     Threads/RNThread.h
-    Threads/RNThreadLocalStorage.h)
+    Threads/RNThreadLocalStorage.h
+    Threads/RNWorkQueue.h)
 
 set(RAYNE_HEADERS_PRIVATE
     Objects/RNHashTableInternal.h
