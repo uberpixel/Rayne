@@ -14,7 +14,6 @@
 #include "../Objects/RNObject.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
-#include "RNMutex.h"
 #include "RNRunLoop.h"
 
 namespace RN
@@ -27,36 +26,40 @@ namespace RN
 		friend class Kernel;
 		
 		template<typename F>
-		explicit Thread(F &&func, bool detach=true) :
+		explicit Thread(F &&func, bool start=true) :
 			_function(std::move(func))
 		{
 			Initialize();
 			AutoAssignName();
 			
-			if(detach)
-				Detach();
+			if(start)
+				Start();
 		}
 		
-		Thread(Function &&func, bool detach=true) :
+		Thread(Function &&func, bool start=true) :
 			_function(std::move(func))
 		{
 			Initialize();
 			AutoAssignName();
 			
-			if(detach)
-				Detach();
+			if(start)
+				Start();
 		}
 
 		RNAPI ~Thread();
-		
-		RNAPI void Detach();
+
+		RNAPI void SetName(const String *name);
+
+		RNAPI void Start();
 		RNAPI bool OnThread() const;
 		RNAPI void WaitForExit();
-		RNAPI void SetName(const String *name);
+		RNAPI void ExecuteOnExit(std::function<void (void *)> &&function, void *context);
+		RNAPI void UnscheduleExecuteOnExit(void *context);
 		
 		RNAPI void Cancel();
 		RNAPI bool IsCancelled() const { return _isCancelled.load(); }
 		RNAPI bool IsRunning() const { return _isRunning.load(); }
+
 		RNAPI String *GetName();
 		RNAPI RunLoop *GetRunLoop() const { return _runLoop; }
 
@@ -91,8 +94,9 @@ namespace RN
 		void Entry();
 		void Exit();
 		void AutoAssignName();
+		void __UnscheduleExecuteOnExit(void *context);
 		
-		Mutex _mutex;
+		std::mutex _generalMutex;
 		RunLoop *_runLoop;
 
 		//Context *_context;
@@ -109,6 +113,7 @@ namespace RN
 
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;
+		std::vector<std::pair<std::function<void (void *)>, void *>> _exitFunctions;
 		
 		RNDeclareMeta(Thread)
 	};

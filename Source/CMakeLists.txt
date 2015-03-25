@@ -26,7 +26,6 @@ set(RAYNE_SOURCES
     Objects/RNCountedSet.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
-    Threads/RNMutex.cpp
     Threads/RNSpinlock.cpp)
 
 set(RAYNE_HEADERS
@@ -71,7 +70,6 @@ set(RAYNE_HEADERS
     Objects/RNSet.h
     Objects/RNString.h
     Objects/RNValue.h
-    Threads/RNMutex.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h

@@ -39,7 +39,6 @@
 
 #include "Threads/RNThread.h"
 #include "Threads/RNRunLoop.h"
-#include "Threads/RNMutex.h"
 #include "Threads/RNSpinLock.h"
 #include "Threads/RNThreadLocalStorage.h"
 

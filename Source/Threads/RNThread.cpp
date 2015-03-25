@@ -118,6 +118,32 @@ namespace RN
 		
 		Release();
 	}
+
+	void Thread::ExecuteOnExit(std::function<void (void *)> &&function, void *context)
+	{
+		std::lock_guard<std::mutex> lock(_exitMutex);
+		__UnscheduleExecuteOnExit(context);
+		_exitFunctions.push_back(std::make_pair(std::move(function), context));
+	}
+
+	void Thread::UnscheduleExecuteOnExit(void *context)
+	{
+		std::lock_guard<std::mutex> lock(_exitMutex);
+		__UnscheduleExecuteOnExit(context);
+	}
+
+	void Thread::__UnscheduleExecuteOnExit(void *context)
+	{
+		for(auto i = _exitFunctions.begin(); i != _exitFunctions.end(); i ++)
+		{
+			auto &pair = *i;
+			if(pair.second == context)
+			{
+				_exitFunctions.erase(i);
+				return;
+			}
+		}
+	}
 	
 	void Thread::Entry()
 	{
@@ -141,6 +167,9 @@ namespace RN
 			std::lock_guard<std::mutex> lock(_exitMutex);
 			_isRunning.store(false);
 			_exitSignal.notify_all();
+
+			for(auto &pair : _exitFunctions)
+				pair.first(pair.second);
 		}
 		
 		//ThreadCoordinator::GetSharedInstance()->RestoreConcurrency();
@@ -156,10 +185,10 @@ namespace RN
 		_name = new String(stream.str().c_str());
 ;	}
 	
-	void Thread::Detach()
+	void Thread::Start()
 	{
 		if(_isDetached.exchange(true))
-			throw Exception(Exception::Type::InconsistencyException, "Can't detach already detached thread!");
+			throw Exception(Exception::Type::InconsistencyException, "Can't start already detached thread!");
 		
 		std::thread([&]() {
 			Entry();
@@ -167,7 +196,7 @@ namespace RN
 			try
 			{
 				{
-					LockGuard<Mutex> lock(_mutex);
+					std::lock_guard<std::mutex> lock(_generalMutex);
 					
 #if RN_PLATFORM_MAC_OS
 					pthread_setname_np(_name->GetUTF8String());
@@ -205,7 +234,7 @@ namespace RN
 	
 	void Thread::SetName(const String *name)
 	{
-		LockGuard<Mutex> lock(_mutex);
+		std::lock_guard<std::mutex> lock(_generalMutex);
 
 		_name->Release();
 		_name = name ? name->Copy() : nullptr;
@@ -229,9 +258,9 @@ namespace RN
 	
 	String *Thread::GetName()
 	{
-		LockGuard<Mutex> lock(_mutex);
+		std::lock_guard<std::mutex> lock(_generalMutex);
 		String *name = _name->Copy();
 		
-		return name;
+		return name->Autorelease();
 	}
 }
