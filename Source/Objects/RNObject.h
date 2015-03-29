@@ -143,7 +143,6 @@ namespace RN
 		RecursiveSpinLock _lock;
 		
 		std::atomic<size_t> _refCount;
-		std::atomic_flag _cleanUpFlag;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
 		std::vector<ObservableProperty *> _properties;

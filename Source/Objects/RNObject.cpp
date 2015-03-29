@@ -15,11 +15,9 @@ namespace RN
 {
 	void *__kRNObjectMetaClass = nullptr;
 	
-	Object::Object()
-	{
-		_cleanUpFlag.clear();
-		_refCount = 1;
-	}
+	Object::Object() :
+		_refCount(1)
+	{}
 	
 	Object::~Object()
 	{
@@ -69,20 +67,19 @@ namespace RN
 	
 	Object *Object::Retain()
 	{
-		_refCount ++;
+		_refCount.fetch_add(1, std::memory_order_relaxed);
 		return this;
 	}
 	
 	Object *Object::Release()
 	{
-		if(_refCount.fetch_sub(1) == 1)
+		if(_refCount.fetch_sub(1, std::memory_order_release) == 1)
 		{
-			if(!_cleanUpFlag.test_and_set())
-			{
-				CleanUp();
-				delete this;
-			}
-				
+			std::atomic_thread_fence(std::memory_order_acquire); // Synchronize all accesses to this object before deleting it
+
+			CleanUp();
+			delete this;
+
 			return nullptr;
 		}
 		
