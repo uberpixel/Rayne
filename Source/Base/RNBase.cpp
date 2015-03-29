@@ -42,4 +42,26 @@ namespace RN
 		delete Log::Logger::GetSharedInstance(); // Try to get a cleanly flushed log*/
 		abort();
 	}
+
+	uint32 GetABIVersion() RN_NOEXCEPT
+	{
+		return kRNABIVersion;
+	}
+	uint32 GetAPIVersion() RN_NOEXCEPT
+	{
+		return static_cast<uint32>((kRNVersionMajor << 16) | (kRNVersionMinor << 8) | (kRNVersionPatch))
+	}
+
+	uint32 GetMajorVersion() RN_NOEXCEPT
+	{
+		return kRNVersionMajor;
+	}
+	uint32 GetMinorVersion() RN_NOEXCEPT
+	{
+		return kRNVersionMinor;
+	}
+	uint32 GetPatchVersion() RN_NOEXCEPT
+	{
+		return kRNVersionPatch;
+	}
 }
