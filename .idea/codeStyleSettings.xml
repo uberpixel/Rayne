@@ -18,8 +18,6 @@
         <Objective-C>
           <option name="NAMESPACE_BRACE_PLACEMENT" value="5" />
           <option name="FUNCTION_BRACE_PLACEMENT" value="5" />
-          <option name="FUNCTION_PARAMETERS_ALIGN_MULTILINE" value="true" />
-          <option name="FUNCTION_CALL_ARGUMENTS_ALIGN_MULTILINE" value="true" />
           <option name="TEMPLATE_PARAMETERS_ALIGN_MULTILINE" value="true" />
           <option name="TEMPLATE_CALL_ARGUMENTS_ALIGN_MULTILINE" value="true" />
           <option name="CLASS_CONSTRUCTOR_INIT_LIST_NEW_LINE_BEFORE_COLON" value="0" />
@@ -63,14 +61,12 @@
           <option name="ELSE_ON_NEW_LINE" value="true" />
           <option name="CATCH_ON_NEW_LINE" value="true" />
           <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
-          <option name="ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION" value="true" />
           <option name="SPACE_AROUND_UNARY_OPERATOR" value="true" />
           <option name="SPACE_BEFORE_IF_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_WHILE_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_FOR_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_CATCH_PARENTHESES" value="false" />
           <option name="SPACE_BEFORE_SWITCH_PARENTHESES" value="false" />
-          <option name="KEEP_SIMPLE_BLOCKS_IN_ONE_LINE" value="true" />
           <indentOptions>
             <option name="CONTINUATION_INDENT_SIZE" value="4" />
             <option name="USE_TAB_CHARACTER" value="true" />
