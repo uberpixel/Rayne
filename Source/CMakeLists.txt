@@ -47,7 +47,7 @@ set(RAYNE_HEADERS
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
     Data/RNAny.h
-    Data/RNRingbuffer.h
+    Data/RNRingBuffer.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h

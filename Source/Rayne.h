@@ -14,7 +14,7 @@
 #include "Base/RNUnicode.h"
 
 #include "Data/RNAny.h"
-#include "Data/RNRingbuffer.h"
+#include "Data/RNRingBuffer.h"
 
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"
