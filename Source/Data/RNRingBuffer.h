@@ -81,7 +81,7 @@ namespace RN
 		}
 
 	private:
-		RN_CONSTEXPR size_t Capacity = Size + 1;
+		static RN_CONSTEXPR size_t Capacity = Size + 1;
 
 		size_t Advance(size_t index) const
 		{
