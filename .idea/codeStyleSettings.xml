@@ -36,12 +36,10 @@
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Typedef" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Struct" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Enum" />
-            <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="ClassPredef" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Constant" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Global" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="FunctionPredecl" />
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Function" />
-            <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Class" />
           </file>
           <class>
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Property" />
