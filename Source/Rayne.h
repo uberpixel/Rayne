@@ -10,9 +10,11 @@
 #define __RAYNE_RAYNE_H__
 
 #include "Base/RNBase.h"
-#include "Base/RNAny.h"
 #include "Base/RNKernel.h"
 #include "Base/RNUnicode.h"
+
+#include "Data/RNAny.h"
+#include "Data/RNRingbuffer.h"
 
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"

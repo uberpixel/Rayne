@@ -31,7 +31,6 @@ set(RAYNE_SOURCES
 
 set(RAYNE_HEADERS
     Rayne.h
-    Base/RNAny.h
     Base/RNBase.h
     Base/RNDefines.h
     Base/RNOptions.h
@@ -47,6 +46,8 @@ set(RAYNE_HEADERS
     Base/RNSTL.h
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
+    Data/RNAny.h
+    Data/RNRingbuffer.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h
