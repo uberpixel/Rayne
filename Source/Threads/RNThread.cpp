@@ -76,8 +76,6 @@ namespace RN
 	
 	void Thread::Initialize()
 	{
-		//_context = nullptr;
-		
 		_isRunning   = false;
 		_isCancelled = false;
 		_isDetached  = false;
@@ -86,7 +84,6 @@ namespace RN
 		_dictionary = new Dictionary();
 		
 		Retain();
-		//ThreadCoordinator::GetSharedInstance()->ConsumeConcurrency();
 	}
 	
 	Thread *Thread::GetCurrentThread()
@@ -155,12 +152,7 @@ namespace RN
 	
 	void Thread::Exit()
 	{
-		/*if(_context)
-		{
-			_context->ForceDeactivate();
-			_context = nullptr;
-		}*/
-
+		_thread.detach();
 		__LocalThread.SetValue(nullptr);
 		
 		{
@@ -171,8 +163,7 @@ namespace RN
 			for(auto &pair : _exitFunctions)
 				pair.first(pair.second);
 		}
-		
-		//ThreadCoordinator::GetSharedInstance()->RestoreConcurrency();
+
 		Release();
 	}
 	
@@ -190,7 +181,7 @@ namespace RN
 		if(_isDetached.exchange(true))
 			throw Exception(Exception::Type::InconsistencyException, "Can't start already detached thread!");
 		
-		std::thread([&]() {
+		_thread = std::move(std::thread([&]() {
 			Entry();
 			
 			try
@@ -217,7 +208,7 @@ namespace RN
 			}
 			
 			Exit();
-		}).detach();
+		}));
 	}
 	
 	

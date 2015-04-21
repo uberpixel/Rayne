@@ -99,7 +99,6 @@ namespace RN
 		std::mutex _generalMutex;
 		RunLoop *_runLoop;
 
-		//Context *_context;
 		SpinLock _dictionaryLock;
 		Dictionary *_dictionary;
 		String *_name;
@@ -110,6 +109,7 @@ namespace RN
 
 		Function _function;
 		std::thread::id _id;
+		std::thread _thread;
 
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;
