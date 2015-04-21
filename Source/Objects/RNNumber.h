@@ -81,7 +81,7 @@ namespace RN
 		RNAPI uint64 GetUint64Value() const;
 		
 		RNAPI size_t GetHash() const override;
-		RNAPI bool IsEqual(Object *other) const override;
+		RNAPI bool IsEqual(const Object *other) const override;
 		
 		RNAPI Type GetType() const { return _type; }
 		

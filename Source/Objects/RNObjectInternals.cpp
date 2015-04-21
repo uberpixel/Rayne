@@ -50,8 +50,8 @@ namespace RN
 	public:
 		static WeakTable *GetWeakTableForPointer(void *pointer)
 		{
-			std::uintptr_t ptr = (std::uintptr_t)pointer;
-			int index = ((ptr >> 4) ^ (ptr >> 9)) & (kRNWeakBucketCount - 1);
+			std::uintptr_t ptr = reinterpret_cast<uintptr_t>(pointer);
+			size_t index = ((ptr >> 4) ^ (ptr >> 9)) & (kRNWeakBucketCount - 1);
 			
 			return reinterpret_cast<WeakTable *>(&__WeakBuckets[index * kRNWeakBucketsSpread]);
 		}

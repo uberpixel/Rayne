@@ -26,15 +26,17 @@ namespace RN
 	
 		for(auto &pair : _associatedObjects)
 		{
-			Object *object = std::get<0>(pair.second);
 			MemoryPolicy policy = std::get<1>(pair.second);
 			
 			switch(policy)
 			{
 				case MemoryPolicy::Retain:
 				case MemoryPolicy::Copy:
+				{
+					Object *object = std::get<0>(pair.second);
 					object->Release();
 					break;
+				}
 					
 				default:
 					break;
@@ -118,7 +120,7 @@ namespace RN
 	}
 	
 	
-	bool Object::IsEqual(Object *other) const
+	bool Object::IsEqual(const Object *other) const
 	{
 		return (this == other);
 	}
@@ -138,14 +140,14 @@ namespace RN
 	}
 	
 	
-	bool Object::IsKindOfClass(MetaClass *other) const
+	bool Object::IsKindOfClass(const MetaClass *other) const
 	{
 		return GetClass()->InheritsFromClass(other);
 	}
 	
 	
 	
-	void Object::__RemoveAssociatedOject(const void *key)
+	void Object::__RemoveAssociatedObject(const void *key)
 	{
 		auto iterator = _associatedObjects.find((void *)key);
 		if(iterator != _associatedObjects.end())
@@ -192,18 +194,18 @@ namespace RN
 		}
 		
 		Lock();
-		__RemoveAssociatedOject(key);
+		__RemoveAssociatedObject(key);
 		
 		std::tuple<Object *, MemoryPolicy> tuple = std::tuple<Object *, MemoryPolicy>(object, policy);
-		_associatedObjects.insert(decltype(_associatedObjects)::value_type((void *)key, tuple));
+		_associatedObjects.insert(decltype(_associatedObjects)::value_type(const_cast<void *>(key), tuple));
 		
 		Unlock();
 	}
 	
-	void Object::RemoveAssociatedOject(const void *key)
+	void Object::RemoveAssociatedObject(const void *key)
 	{
 		Lock();
-		__RemoveAssociatedOject(key);
+		__RemoveAssociatedObject(key);
 		Unlock();
 	}
 	
@@ -356,7 +358,7 @@ namespace RN
 	}
 	
 	
-	void Object::WillChangeValueForkey(const std::string &keyPath)
+	void Object::WillChangeValueForKey(const std::string &keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);

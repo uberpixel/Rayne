@@ -29,7 +29,7 @@ namespace RN
 		Catalogue::GetSharedInstance()->RemoveMetaClass(this);
 	}
 	
-	bool MetaClass::InheritsFromClass(MetaClass *other) const
+	bool MetaClass::InheritsFromClass(const MetaClass *other) const
 	{
 		if(this == other)
 			return true;

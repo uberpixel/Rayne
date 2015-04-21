@@ -32,7 +32,7 @@ namespace RN
 		virtual bool SupportsSerialization() const { return false; }
 		virtual bool SupportsCopying() const { return false; }
 		
-		RNAPI bool InheritsFromClass(MetaClass *other) const;
+		RNAPI bool InheritsFromClass(const MetaClass *other) const;
 	
 	protected:
 		RNAPI MetaClass() {}

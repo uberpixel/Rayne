@@ -356,12 +356,11 @@ namespace RN
 		
 		return hash;
 	}
-	bool Number::IsEqual(Object *other) const
+	bool Number::IsEqual(const Object *other) const
 	{
-		if(!other->IsKindOfClass(Number::GetMetaClass()))
+		const Number *number = other->Downcast<Number>();
+		if(!number)
 			return false;
-		
-		Number *number = static_cast<Number *>(other);
 		
 		bool integer = ((NumberIsSignedInteger(_type) || NumberIsUnsignedInteger(_type)) && (NumberIsSignedInteger(number->_type) || NumberIsUnsignedInteger(number->_type)));
 		if(integer)

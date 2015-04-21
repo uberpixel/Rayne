@@ -30,9 +30,9 @@ namespace RN
 		
 		RNAPI Object *Copy() const;
 		
-		RNAPI virtual bool IsEqual(Object *other) const;
+		RNAPI virtual bool IsEqual(const Object *other) const;
 		RNAPI virtual size_t GetHash() const;
-		RNAPI bool IsKindOfClass(MetaClass *other) const;
+		RNAPI bool IsKindOfClass(const MetaClass *other) const;
 		
 		RNAPI virtual void Serialize(Serializer *serializer);
 		
@@ -53,6 +53,17 @@ namespace RN
 			
 			return nullptr;
 		}
+
+		template<class T>
+		const T *Downcast() const
+		{
+			static_assert(std::is_base_of<Object, T>::value, "T must inherit from Object!");
+
+			if(IsKindOfClass(T::GetMetaClass()))
+				return static_cast<const T *>(this);
+
+			return nullptr;
+		}
 		
 		RNAPI virtual MetaClass *GetClass() const;
 		RNAPI static MetaClass *GetMetaClass();
@@ -71,7 +82,7 @@ namespace RN
 		};
 		
 		RNAPI void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
-		RNAPI void RemoveAssociatedOject(const void *key);
+		RNAPI void RemoveAssociatedObject(const void *key);
 		RNAPI Object *GetAssociatedObject(const void *key);
 		
 		// -----------------
@@ -119,7 +130,7 @@ namespace RN
 		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string &key);
 		RNAPI virtual Object *GetValueForUndefinedKey(const std::string &key);
 		
-		RNAPI void WillChangeValueForkey(const std::string &key);
+		RNAPI void WillChangeValueForKey(const std::string &key);
 		RNAPI void DidChangeValueForKey(const std::string &key);
 		
 	private:
@@ -131,7 +142,7 @@ namespace RN
 			{}
 		};
 		
-		void __RemoveAssociatedOject(const void *key);
+		void __RemoveAssociatedObject(const void *key);
 		
 		RNAPI Object *ResolveKeyPath(const std::string &path, std::string &key);
 		RNAPI Object *GetPrimitiveValueForKey(const std::string &key);
@@ -292,12 +303,12 @@ namespace RN
 		
 		T *operator ->() const
 		{
-			return const_cast<T *>(_value);
+			return _value;
 		}
 		
 		T *Load() const
 		{
-			T *object = const_cast<T *>(_value);
+			T *object = _value;
 			
 			object->Retain();
 			object->Autorelease();
@@ -413,7 +424,7 @@ namespace std
 	{
 		bool operator()(const RN::Object *object1, const RN::Object *object2) const
 		{
-			return object1->IsEqual(const_cast<RN::Object *>(object2));
+			return object1->IsEqual(object2);
 		}
 	};
 }

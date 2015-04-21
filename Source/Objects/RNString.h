@@ -44,7 +44,7 @@ namespace RN
 		RNAPI static String *WithContentsOfFile(const std::string &file, Encoding encoding);
 		
 		RNAPI size_t GetHash() const override;
-		RNAPI bool IsEqual(Object *other) const override;
+		RNAPI bool IsEqual(const Object *other) const override;
 		
 		RNAPI void Append(const String *string);
 		RNAPI void Append(const char *string, ...);

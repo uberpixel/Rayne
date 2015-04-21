@@ -165,12 +165,12 @@ namespace RN
 		return _string->GetHash();
 	}
 	
-	bool String::IsEqual(Object *other) const
+	bool String::IsEqual(const Object *other) const
 	{
-		if(!other->IsKindOfClass(String::GetMetaClass()))
-		   return false;
-		   
-		String *string = static_cast<String *>(other);
+		const String *string = other->Downcast<String>();
+		if(!string)
+			return false;
+
 		if(string->GetLength() != GetLength())
 			return false;
 		

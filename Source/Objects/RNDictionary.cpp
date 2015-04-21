@@ -114,12 +114,12 @@ namespace RN
 		return static_cast<size_t>(GetCount());
 	}
 	
-	bool Dictionary::IsEqual(Object *temp) const
+	bool Dictionary::IsEqual(const Object *temp) const
 	{
-		if(!temp->IsKindOfClass(Dictionary::GetMetaClass()))
+		const Dictionary *other = temp->Downcast<Dictionary>();
+		if(!other)
 			return false;
-		
-		Dictionary *other = static_cast<Dictionary *>(temp);
+
 		if(GetCount() != other->GetCount())
 			return false;
 		
@@ -144,8 +144,8 @@ namespace RN
 		
 		return true;
 	}
-	
-	
+
+
 	
 	Array *Dictionary::GetAllObjects() const
 	{
@@ -252,7 +252,7 @@ namespace RN
 	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool &)>& callback) const
 	{
 		bool stop = false;
-		
+
 		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
 		{
 			DictionaryInternal::Bucket *bucket = _internals->hashTable._buckets[i];

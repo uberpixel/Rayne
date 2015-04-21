@@ -91,7 +91,7 @@ namespace RN
 		return hash;
 	}
 	
-	bool Value::IsEqual(Object *tother) const
+	bool Value::IsEqual(const Object *tother) const
 	{
 		const Value *other = tother->Downcast<Value>();
 		if(!other)
