@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
+#include "../Threads/RNWorkQueue.h"
 
 namespace RN
 {
@@ -21,6 +22,7 @@ namespace RN
 		Kernel();
 
 		void Run();
+		void Exit();
 
 	private:
 		void Bootstrap();
@@ -28,9 +30,10 @@ namespace RN
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;
+		WorkQueue *_mainQueue;
 
 		RunLoopObserver *_observer;
-		bool _exit;
+		std::atomic<bool> _exit;
 	};
 }
 

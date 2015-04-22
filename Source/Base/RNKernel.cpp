@@ -19,6 +19,7 @@ namespace RN
 	{
 		_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true, std::bind(&Kernel::HandleObserver, this, std::placeholders::_1, std::placeholders::_2));
 		_mainThread = new Thread();
+		_mainQueue = WorkQueue::GetQueueWithPriority(WorkQueue::Priority::MainThread);
 
 		_runLoop = _mainThread->GetRunLoop();
 		_runLoop->AddObserver(_observer);
@@ -34,6 +35,16 @@ namespace RN
 			return;
 		}
 
+		{
+			volatile bool finishWork;
+			_mainQueue->AddWork([&]{ finishWork = true; });
+
+			do {
+				finishWork = false;
+				_mainQueue->PerformWork();
+			} while(!finishWork);
+		}
+
 		// Make sure the run loop wakes up again afterwards
 		_runLoop->WakeUp();
 	}
@@ -43,5 +54,10 @@ namespace RN
 		do {
 			_runLoop->Run();
 		} while(!_exit);
+	}
+
+	void Kernel::Exit()
+	{
+		_exit = true;
 	}
 }

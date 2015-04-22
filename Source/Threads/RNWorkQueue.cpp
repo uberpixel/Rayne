@@ -29,10 +29,11 @@
 
 namespace RN
 {
-	static WorkQueue *__WorkQueues[3];
+	static WorkQueue *__WorkQueues[4];
 
 	WorkQueue::WorkQueue(Priority priority, Flags flags) :
 		_flags(flags),
+		_priority(priority),
 		_width(0),
 		_realWidth(0),
 		_open(0),
@@ -56,6 +57,7 @@ namespace RN
 				maxThreads = 32;
 				break;
 			case Priority::Background:
+			case Priority::MainThread:
 				multiplier = 32;
 				maxThreads = 4;
 				break;
@@ -73,6 +75,7 @@ namespace RN
 			__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
 			__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
 			__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
+			__WorkQueues[3] = new WorkQueue(Priority::MainThread, 0);
 		});
 
 		return __WorkQueues[static_cast<uint32>(priority)];
@@ -152,147 +155,158 @@ namespace RN
 		return source;
 	}
 
+	bool WorkQueue::PerformWork()
+	{
+		if(!ConditionalSpin(_barrier))
+		{
+			// There currently is a barrier executing, so wait until that one is completed
+			std::unique_lock<std::mutex> lock(_barrierLock);
+
+			if(_barrier)
+			{
+				_barrierSignal.wait(lock, [&]() -> bool { return (_barrier == false); });
+			}
+		}
+
+		if(!ConditionalSpin(_suspended == 0))
+		{
+			std::unique_lock<std::mutex> lock(_workLock);
+			if(_suspended > 0)
+				_workSignal.wait(lock, [&]() -> bool { return (_suspended == 0); });
+		}
+
+		// Grab work from the work pool
+		_readLock.Lock();
+
+		if(_barrier) // Make sure there really isn't a barrier in place now
+		{
+			_readLock.Unlock();
+			return true;
+		}
+
+		WorkSource *source;
+		bool result = _buffer.Pop(source);
+		bool isBarrier = source->TestFlag(WorkSource::Flags::Barrier);
+
+		if(result)
+		{
+			if(isBarrier)
+				_barrier = true;
+
+			_running ++;
+			_open --;
+		}
+
+		_readLock.Unlock();
+
+
+		if(result)
+		{
+			if(isBarrier)
+			{
+				// If the work is a barrier, wait until all other work loads clear up
+				if(!ConditionalSpin(_running.load() > 1))
+				{
+					std::unique_lock<std::mutex> lock(_barrierLock);
+
+					if(_running > 1)
+					{
+						_barrierSignal.wait(lock, [&]() -> bool { return (_running.load() == 1); });
+					}
+				}
+
+				while(_running > 1)
+				{}
+			}
+
+			source->Callout();
+
+			if(_isOverCommitted)
+			{
+				// If we are over committed, try to clear up that over commit
+
+				if(_writeLock.TryLock())
+				{
+					while(!_overcommit.empty())
+					{
+						WorkSource *temp = _overcommit.front();
+
+						if(!_buffer.Push(temp))
+							break;
+
+						_overcommit.erase(_overcommit.begin());
+					}
+
+					if(_overcommit.empty())
+					{
+						std::cout << "Cleared over commit" << std::endl;
+						_isOverCommitted = false;
+					}
+
+					_writeLock.Unlock();
+				}
+			}
+
+			// Clean up
+			if(isBarrier)
+			{
+				std::lock_guard<std::mutex> lock(_barrierLock);
+				_barrier = false;
+				_barrierSignal.notify_all();
+			}
+
+			if(_barrier)
+			{
+				// A barrier is waiting to execute, signal it to be ready if needed
+
+				std::lock_guard<std::mutex> lock(_barrierLock);
+				if((-- _running) == 1)
+					_barrierSignal.notify_all();
+			}
+			else
+			{
+				_running --;
+			}
+
+			if(source->TestFlag(WorkSource::Flags::Synchronous))
+			{
+				// Synchronous work sources aren't immediately relinquished but
+				// the waiting thread is signalled that the work is completed
+				// and it will relinquish the source eventually
+
+				std::lock_guard<std::mutex> lock(_syncLock);
+				source->Complete();
+				_syncSignal.notify_all();
+			}
+			else
+			{
+				source->Relinquish();
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	void WorkQueue::ThreadEntry()
 	{
 		Thread *thread = Thread::GetCurrentThread();
 
 		while(!thread->IsCancelled())
 		{
-			if(!ConditionalSpin(_barrier))
+			if(!PerformWork())
 			{
-				// There currently is a barrier executing, so wait until that one is completed
-				std::unique_lock<std::mutex> lock(_barrierLock);
-
-				if(_barrier)
+				if(!ConditionalSpin(_open.load() > 0))
 				{
-					_barrierSignal.wait(lock, [&]() -> bool { return (_barrier == false); });
-				}
-			}
+					std::unique_lock<std::mutex> lock(_workLock);
 
-			if(!ConditionalSpin(_suspended == 0))
-			{
-				std::unique_lock<std::mutex> lock(_workLock);
-				if(_suspended > 0)
-					_workSignal.wait(lock, [&]() -> bool { return (_suspended == 0); });
-			}
-
-			// Grab work from the work pool
-			_readLock.Lock();
-
-			if(_barrier) // Make sure there really isn't a barrier in place now
-			{
-				_readLock.Unlock();
-				continue;
-			}
-
-			WorkSource *source;
-			bool result = _buffer.Pop(source);
-			bool isBarrier = source->TestFlag(WorkSource::Flags::Barrier);
-
-			if(result)
-			{
-				if(isBarrier)
-					_barrier = true;
-
-				_running ++;
-				_open --;
-			}
-
-			_readLock.Unlock();
-
-
-			if(result)
-			{
-				if(isBarrier)
-				{
-					// If the work is a barrier, wait until all other work loads clear up
-					if(!ConditionalSpin(_running.load() > 1))
+					if(_open.load() == 0)
 					{
-						std::unique_lock<std::mutex> lock(_barrierLock);
-
-						if(_running > 1)
-						{
-							_barrierSignal.wait(lock, [&]() -> bool { return (_running.load() == 1); });
-						}
+						_sleeping ++;
+						_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0); });
+						_sleeping --;
 					}
-
-					while(_running > 1)
-					{}
-				}
-
-				source->Callout();
-
-				if(_isOverCommitted)
-				{
-					// If we are over committed, try to clear up that over commit
-
-					if(_writeLock.TryLock())
-					{
-						while(!_overcommit.empty())
-						{
-							WorkSource *temp = _overcommit.front();
-
-							if(!_buffer.Push(temp))
-								break;
-
-							_overcommit.erase(_overcommit.begin());
-						}
-
-						if(_overcommit.empty())
-						{
-							std::cout << "Cleared over commit" << std::endl;
-							_isOverCommitted = false;
-						}
-
-						_writeLock.Unlock();
-					}
-				}
-
-				// Clean up
-				if(isBarrier)
-				{
-					std::lock_guard<std::mutex> lock(_barrierLock);
-					_barrier = false;
-					_barrierSignal.notify_all();
-				}
-
-				if(_barrier)
-				{
-					// A barrier is waiting to execute, signal it to be ready if needed
-
-					std::lock_guard<std::mutex> lock(_barrierLock);
-					if((-- _running) == 1)
-						_barrierSignal.notify_all();
-				}
-				else
-				{
-					_running --;
-				}
-
-				if(source->TestFlag(WorkSource::Flags::Synchronous))
-				{
-					// Synchronous work sources aren't immediately relinquished but
-					// the waiting thread is signalled that the work is completed
-					// and it will relinquish the source eventually
-
-					std::lock_guard<std::mutex> lock(_syncLock);
-					source->Complete();
-					_syncSignal.notify_all();
-				}
-				else
-				{
-					source->Relinquish();
-				}
-			}
-			else if(!ConditionalSpin(_open.load() > 0))
-			{
-				std::unique_lock<std::mutex> lock(_workLock);
-
-				if(_open.load() == 0)
-				{
-					_sleeping ++;
-					_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0); });
-					_sleeping --;
 				}
 			}
 		}
@@ -300,6 +314,9 @@ namespace RN
 
 	void WorkQueue::ReCalculateWidth()
 	{
+		if(_priority == Priority::MainThread)
+			return;
+
 		size_t width = 1;
 
 		if(_flags & WorkQueue::Flags::Concurrent)

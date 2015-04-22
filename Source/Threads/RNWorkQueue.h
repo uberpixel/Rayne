@@ -17,10 +17,13 @@
 
 namespace RN
 {
-	class WorkSource;
+	class Kernel;
+
 	class WorkQueue : public Object
 	{
 	public:
+		friend class Kernel;
+
 		RN_OPTIONS(Flags, uint32,
 				   Concurrent = (1 << 0));
 
@@ -28,7 +31,8 @@ namespace RN
 		{
 			High = 0,
 			Default = 1,
-			Background = 2
+			Background = 2,
+			MainThread = 3
 		};
 
 		WorkQueue(Priority priority, Flags flags);
@@ -48,8 +52,10 @@ namespace RN
 
 		void ThreadEntry();
 		void ReCalculateWidth();
+		bool PerformWork();
 
 		Flags _flags;
+		Priority _priority;
 
 		size_t _concurrency;
 		size_t _threshold;
