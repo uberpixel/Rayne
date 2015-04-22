@@ -27,7 +27,8 @@ set(RAYNE_SOURCES
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
     Threads/RNSpinlock.cpp
-    Threads/RNWorkQueue.cpp)
+    Threads/RNWorkQueue.cpp
+    Threads/RNWorkSource.cpp)
 
 set(RAYNE_HEADERS
     Rayne.h
@@ -77,7 +78,8 @@ set(RAYNE_HEADERS
     Threads/RNSpinLock.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
-    Threads/RNWorkQueue.h)
+    Threads/RNWorkQueue.h
+    Threads/RNWorkSource.h)
 
 set(RAYNE_HEADERS_PRIVATE
     Objects/RNHashTableInternal.h
@@ -87,6 +89,7 @@ set(RAYNE_HEADERS_PRIVATE
 
 set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 set(BUILD_64Bit YES)
+SET(COMPILE_FLAGS "-x objective-c++")
 
 if(NOT APPLE)
     set(BUILD_32Bit YES)
@@ -137,6 +140,7 @@ function(createTarget arg1 arg2 arg3)
     elseif(WIN32)
     endif()
 
+    add_definitions(${COMPILE_FLAGS})
     add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
 
 endfunction()

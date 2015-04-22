@@ -152,7 +152,6 @@ namespace RN
 	
 	void Thread::Exit()
 	{
-		_thread.detach();
 		__LocalThread.SetValue(nullptr);
 		
 		{
@@ -209,6 +208,8 @@ namespace RN
 			
 			Exit();
 		}));
+
+		_thread.detach();
 	}
 	
 	
