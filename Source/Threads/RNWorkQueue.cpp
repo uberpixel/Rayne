@@ -83,6 +83,21 @@ namespace RN
 		_threshold = _concurrency * multiplier;
 	}
 
+	WorkQueue::~WorkQueue()
+	{
+		for(Thread *thread : _threads)
+			thread->Cancel();
+
+		_workSignal.notify_all();
+
+		for(Thread *thread : _threads)
+		{
+			// Wait for the thread to exit
+			thread->WaitForExit();
+		}
+	}
+
+
 	WorkQueue *WorkQueue::GetMainQueue()
 	{
 		return __WorkQueues[3];
@@ -316,7 +331,7 @@ namespace RN
 					if(_open.load() == 0)
 					{
 						_sleeping ++;
-						_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0); });
+						_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0 || thread->IsCancelled()); });
 						_sleeping --;
 					}
 				}

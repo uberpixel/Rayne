@@ -35,6 +35,7 @@ namespace RN
 		};
 
 		RNAPI WorkQueue(Priority priority, Flags flags);
+		RNAPI ~WorkQueue();
 
 		RNAPI static WorkQueue *GetMainQueue();
 		RNAPI static WorkQueue *GetGlobalQueue(Priority priority);
@@ -53,8 +54,9 @@ namespace RN
 		WorkSource *AddWorkWithFlags(Function &&function, WorkSource::Flags flags);
 
 		void ThreadEntry();
-		void ReCalculateWidth();
 		bool PerformWork();
+
+		void ReCalculateWidth();
 
 		Flags _flags;
 
