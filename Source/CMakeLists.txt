@@ -27,6 +27,7 @@ set(RAYNE_SOURCES
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
     Threads/RNSpinlock.cpp
+    Threads/RNWorkGroup.cpp
     Threads/RNWorkQueue.cpp
     Threads/RNWorkSource.cpp)
 
@@ -49,6 +50,7 @@ set(RAYNE_HEADERS
     Base/RNUnicode.h
     Data/RNAny.h
     Data/RNRingBuffer.h
+    Data/RNRRef.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h
@@ -78,6 +80,7 @@ set(RAYNE_HEADERS
     Threads/RNSpinLock.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
+    Threads/RNWorkGroup.h
     Threads/RNWorkQueue.h
     Threads/RNWorkSource.h)
 

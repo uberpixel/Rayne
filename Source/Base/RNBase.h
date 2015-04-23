@@ -97,6 +97,8 @@ namespace RN
 
 	Kernel *Initialize(int argc, char *argv[]);
 
+	using Clock = std::chrono::high_resolution_clock;
+
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 
 	/**

@@ -15,6 +15,7 @@
 
 #include "Data/RNAny.h"
 #include "Data/RNRingBuffer.h"
+#include "Data/RNRRef.h"
 
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"
@@ -43,6 +44,7 @@
 #include "Threads/RNRunLoop.h"
 #include "Threads/RNSpinLock.h"
 #include "Threads/RNThreadLocalStorage.h"
+#include "Threads/RNWorkGroup.h"
 #include "Threads/RNWorkQueue.h"
 
 #endif /* _RAYNE_RAYNE_H__ */
