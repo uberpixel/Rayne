@@ -17,9 +17,11 @@ namespace RN
 
 	void Kernel::Bootstrap()
 	{
+		WorkQueue::InitializeQueues();
+
 		_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true, std::bind(&Kernel::HandleObserver, this, std::placeholders::_1, std::placeholders::_2));
 		_mainThread = new Thread();
-		_mainQueue = WorkQueue::GetQueueWithPriority(WorkQueue::Priority::MainThread);
+		_mainQueue = WorkQueue::GetMainQueue();
 
 		_runLoop = _mainThread->GetRunLoop();
 		_runLoop->AddObserver(_observer);

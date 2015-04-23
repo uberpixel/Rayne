@@ -31,23 +31,25 @@ namespace RN
 		{
 			High = 0,
 			Default = 1,
-			Background = 2,
-			MainThread = 3
+			Background = 2
 		};
 
-		WorkQueue(Priority priority, Flags flags);
+		RNAPI WorkQueue(Priority priority, Flags flags);
 
-		static WorkQueue *GetQueueWithPriority(Priority priority);
+		RNAPI static WorkQueue *GetMainQueue();
+		RNAPI static WorkQueue *GetGlobalQueue(Priority priority);
 
-		void AddWork(Function &&function);
-		void AddWorkBarrier(Function &&function);
-		void AddWorkSynchronous(Function &&function);
-		void AddWorkSynchronousBarrier(Function &&function);
+		RNAPI void AddWork(Function &&function);
+		RNAPI void AddWorkBarrier(Function &&function);
+		RNAPI void AddWorkSynchronous(Function &&function);
+		RNAPI void AddWorkSynchronousBarrier(Function &&function);
 
-		void Suspend();
-		void Resume();
+		RNAPI void Suspend();
+		RNAPI void Resume();
 
 	private:
+		static void InitializeQueues();
+
 		WorkSource *AddWorkWithFlags(Function &&function, WorkSource::Flags flags);
 
 		void ThreadEntry();
@@ -55,7 +57,6 @@ namespace RN
 		bool PerformWork();
 
 		Flags _flags;
-		Priority _priority;
 
 		size_t _concurrency;
 		size_t _threshold;
@@ -87,7 +88,11 @@ namespace RN
 
 		SpinLock _threadLock;
 		std::vector<Thread *> _threads;
+
+		RNDeclareMeta(WorkQueue)
 	};
+
+	RNObjectClass(WorkQueue)
 }
 
 #endif /* __RAYNE_WORKQUEUE_H__ */

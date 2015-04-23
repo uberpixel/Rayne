@@ -29,11 +29,27 @@
 
 namespace RN
 {
+	RNDefineMeta(WorkQueue, Object)
+
+	// Private queue flags
+	#define kRNWorkQueueFlagMainThread (1 << 18)
+
 	static WorkQueue *__WorkQueues[4];
+
+	void WorkQueue::InitializeQueues()
+	{
+		static std::once_flag flag;
+
+		std::call_once(flag, []{
+			__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
+			__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
+			__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
+			__WorkQueues[3] = new WorkQueue(Priority::Default, kRNWorkQueueFlagMainThread);
+		});
+	}
 
 	WorkQueue::WorkQueue(Priority priority, Flags flags) :
 		_flags(flags),
-		_priority(priority),
 		_width(0),
 		_realWidth(0),
 		_open(0),
@@ -57,7 +73,6 @@ namespace RN
 				maxThreads = 32;
 				break;
 			case Priority::Background:
-			case Priority::MainThread:
 				multiplier = 32;
 				maxThreads = 4;
 				break;
@@ -68,16 +83,13 @@ namespace RN
 		_threshold = _concurrency * multiplier;
 	}
 
-	WorkQueue *WorkQueue::GetQueueWithPriority(Priority priority)
+	WorkQueue *WorkQueue::GetMainQueue()
 	{
-		static std::once_flag flag;
-		std::call_once(flag, []{
-			__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
-			__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
-			__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
-			__WorkQueues[3] = new WorkQueue(Priority::MainThread, 0);
-		});
+		return __WorkQueues[3];
+	}
 
+	WorkQueue *WorkQueue::GetGlobalQueue(Priority priority)
+	{
 		return __WorkQueues[static_cast<uint32>(priority)];
 	}
 
@@ -314,7 +326,7 @@ namespace RN
 
 	void WorkQueue::ReCalculateWidth()
 	{
-		if(_priority == Priority::MainThread)
+		if(_flags & kRNWorkQueueFlagMainThread)
 			return;
 
 		size_t width = 1;
