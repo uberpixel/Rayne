@@ -76,10 +76,10 @@ namespace RN
 		std::unique_lock<std::mutex> lock(_lock);
 		_signal.wait(lock, [&]() -> bool { return (_open.load() == 0); });
 	}
-	void WorkGroup::WaitUntil(const Clock::time_point &timeout)
+	bool WorkGroup::WaitUntil(const Clock::time_point &timeout)
 	{
 		std::unique_lock<std::mutex> lock(_lock);
-		_signal.wait_until(lock, timeout, [&]() -> bool { return (_open.load() == 0); });
+		return _signal.wait_until(lock, timeout, [&]() -> bool { return (_open.load() == 0); });
 	}
 	void WorkGroup::Notify(WorkQueue *queue, Function &&function)
 	{

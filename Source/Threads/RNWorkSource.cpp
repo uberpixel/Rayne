@@ -65,7 +65,7 @@ namespace RN
 	{
 		_function = std::move(function);
 		_flags = flags;
-		_completed  = false;
+		_completed = false;
 	}
 
 	void WorkSource::Relinquish()

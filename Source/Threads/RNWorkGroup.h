@@ -27,7 +27,7 @@ namespace RN
 		RNAPI void Leave();
 
 		RNAPI void Wait();
-		RNAPI void WaitUntil(const Clock::time_point &timeout);
+		RNAPI bool WaitUntil(const Clock::time_point &timeout);
 		RNAPI void Notify(WorkQueue *queue, Function &&function);
 
 	private:
