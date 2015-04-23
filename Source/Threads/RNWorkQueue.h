@@ -40,10 +40,10 @@ namespace RN
 		RNAPI static WorkQueue *GetMainQueue();
 		RNAPI static WorkQueue *GetGlobalQueue(Priority priority);
 
-		RNAPI void AddWork(Function &&function);
-		RNAPI void AddWorkBarrier(Function &&function);
-		RNAPI void AddWorkSynchronous(Function &&function);
-		RNAPI void AddWorkSynchronousBarrier(Function &&function);
+		RNAPI void Perform(Function &&function);
+		RNAPI void PerformBarrier(Function &&function);
+		RNAPI void PerformSynchronous(Function &&function);
+		RNAPI void PerformSynchronousBarrier(Function &&function);
 
 		RNAPI void Suspend();
 		RNAPI void Resume();
@@ -51,7 +51,7 @@ namespace RN
 	private:
 		static void InitializeQueues();
 
-		WorkSource *AddWorkWithFlags(Function &&function, WorkSource::Flags flags);
+		WorkSource *PerformWithFlags(Function &&function, WorkSource::Flags flags);
 
 		void ThreadEntry();
 		bool PerformWork();

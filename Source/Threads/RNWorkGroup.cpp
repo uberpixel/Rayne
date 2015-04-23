@@ -26,13 +26,13 @@ namespace RN
 		}
 	}
 
-	void WorkGroup::AddWork(WorkQueue *queue, Function &&function)
+	void WorkGroup::Perform(WorkQueue *queue, Function &&function)
 	{
 		Enter();
 
 		auto rref = MakeRRef(std::move(function));
 
-		queue->AddWork([this, rref]() mutable {
+		queue->Perform([this, rref]() mutable {
 
 			Function func(rref.Move());
 			func();
@@ -57,7 +57,7 @@ namespace RN
 			for(auto &pair : _waiters)
 			{
 				WorkQueue *queue = std::get<0>(pair);
-				queue->AddWork(std::move(std::get<1>(pair)));
+				queue->Perform(std::move(std::get<1>(pair)));
 				queue->Release();
 			}
 

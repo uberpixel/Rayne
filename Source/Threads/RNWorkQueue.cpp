@@ -109,19 +109,19 @@ namespace RN
 	}
 
 
-	void WorkQueue::AddWork(Function &&function)
+	void WorkQueue::Perform(Function &&function)
 	{
-		AddWorkWithFlags(std::move(function), 0);
+		PerformWithFlags(std::move(function), 0);
 	}
 
-	void WorkQueue::AddWorkBarrier(Function &&function)
+	void WorkQueue::PerformBarrier(Function &&function)
 	{
-		AddWorkWithFlags(std::move(function), WorkSource::Flags::Barrier);
+		PerformWithFlags(std::move(function), WorkSource::Flags::Barrier);
 	}
 
-	void WorkQueue::AddWorkSynchronous(Function &&function)
+	void WorkQueue::PerformSynchronous(Function &&function)
 	{
-		WorkSource *source = AddWorkWithFlags(std::move(function), WorkSource::Flags::Synchronous);
+		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous);
 
 		std::unique_lock<std::mutex> lock(_syncLock);
 		if(source->IsComplete())
@@ -133,9 +133,9 @@ namespace RN
 		_syncSignal.wait(lock, [&]{ return (source->IsComplete()); });
 		source->Relinquish();
 	}
-	void WorkQueue::AddWorkSynchronousBarrier(Function &&function)
+	void WorkQueue::PerformSynchronousBarrier(Function &&function)
 	{
-		WorkSource *source = AddWorkWithFlags(std::move(function), WorkSource::Flags::Synchronous | WorkSource::Flags::Barrier);
+		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous | WorkSource::Flags::Barrier);
 
 		std::unique_lock<std::mutex> lock(_syncLock);
 		if(source->IsComplete())
@@ -148,7 +148,7 @@ namespace RN
 		source->Relinquish();
 	}
 
-	WorkSource *WorkQueue::AddWorkWithFlags(Function &&function, WorkSource::Flags flags)
+	WorkSource *WorkQueue::PerformWithFlags(Function &&function, WorkSource::Flags flags)
 	{
 		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 

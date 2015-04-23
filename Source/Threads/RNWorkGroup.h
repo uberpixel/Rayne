@@ -21,7 +21,7 @@ namespace RN
 		RNAPI WorkGroup();
 		RNAPI ~WorkGroup();
 
-		RNAPI void AddWork(WorkQueue *queue, Function &&function);
+		RNAPI void Perform(WorkQueue *queue, Function &&function);
 
 		RNAPI void Enter();
 		RNAPI void Leave();

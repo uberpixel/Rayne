@@ -39,7 +39,7 @@ namespace RN
 
 		{
 			volatile bool finishWork;
-			_mainQueue->AddWork([&]{ finishWork = true; });
+			_mainQueue->Perform([&]{ finishWork = true; });
 
 			do {
 				finishWork = false;
