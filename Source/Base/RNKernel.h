@@ -16,16 +16,24 @@
 
 namespace RN
 {
+	struct __KernelBootstrapHelper;
+
 	class Kernel
 	{
 	public:
-		Kernel();
+		friend struct __KernelBootstrapHelper;
 
 		void Run();
 		void Exit();
 
+		void TearDown();
+
 	private:
+		Kernel();
+		~Kernel();
+
 		void Bootstrap();
+
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
 
 		Thread *_mainThread;

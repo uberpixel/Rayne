@@ -50,6 +50,7 @@ namespace RN
 
 	private:
 		static void InitializeQueues();
+		static void TearDownQueues();
 
 		WorkSource *PerformWithFlags(Function &&function, WorkSource::Flags flags);
 

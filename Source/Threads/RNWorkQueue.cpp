@@ -38,14 +38,19 @@ namespace RN
 
 	void WorkQueue::InitializeQueues()
 	{
-		static std::once_flag flag;
+		__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
+		__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
+		__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
+		__WorkQueues[3] = new WorkQueue(Priority::Default, kRNWorkQueueFlagMainThread);
+	}
 
-		std::call_once(flag, []{
-			__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
-			__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
-			__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
-			__WorkQueues[3] = new WorkQueue(Priority::Default, kRNWorkQueueFlagMainThread);
-		});
+	void WorkQueue::TearDownQueues()
+	{
+		for(size_t i = 0; i < 4; i ++)
+		{
+			__WorkQueues[i]->Release();
+			__WorkQueues[i] = nullptr;
+		}
 	}
 
 	WorkQueue::WorkQueue(Priority priority, Flags flags) :

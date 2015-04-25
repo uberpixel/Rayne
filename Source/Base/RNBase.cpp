@@ -11,10 +11,21 @@
 
 namespace RN
 {
+	struct __KernelBootstrapHelper
+	{
+	public:
+		static Kernel *BootstrapKernel()
+		{
+			Kernel *result = new Kernel();
+			result->Bootstrap();
+
+			return result;
+		}
+	};
+
 	Kernel *Initialize(int argc, char *argv[])
 	{
-		Kernel *result = new Kernel();
-
+		Kernel *result = __KernelBootstrapHelper::BootstrapKernel();
 		return result;
 	}
 

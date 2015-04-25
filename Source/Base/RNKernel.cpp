@@ -10,10 +10,14 @@
 
 namespace RN
 {
-	Kernel::Kernel()
-	{
-		Bootstrap();
-	}
+	Kernel::Kernel() :
+		_exit(false)
+	{}
+
+	Kernel::~Kernel()
+	{}
+
+
 
 	void Kernel::Bootstrap()
 	{
@@ -25,9 +29,14 @@ namespace RN
 
 		_runLoop = _mainThread->GetRunLoop();
 		_runLoop->AddObserver(_observer);
-
-		_exit = false;
 	}
+	void Kernel::TearDown()
+	{
+		WorkQueue::TearDownQueues();
+
+		delete this;
+	}
+
 
 	void Kernel::HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity)
 	{
@@ -53,6 +62,8 @@ namespace RN
 
 	void Kernel::Run()
 	{
+		_exit = false;
+
 		do {
 			_runLoop->Run();
 		} while(!_exit);
