@@ -242,7 +242,11 @@ namespace RN
 				}
 			}
 
+			// Call out and perform the work
+			std::atomic_thread_fence(std::memory_order_acquire);
 			source->Callout();
+			std::atomic_thread_fence(std::memory_order_release);
+
 
 			// If we are over committed, try to clear up that over commit
 			if(_isOverCommitted.load(std::memory_order_acquire) && _writeLock.TryLock())
