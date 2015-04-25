@@ -57,7 +57,7 @@ namespace RN
 	
 	String::String(const char *string, size_t length, bool constant)
 	{
-		if(constant && (length == strlen(string)))
+		if(constant)
 		{
 			_string = StringPool::CreateUTF8String(string);
 			return;

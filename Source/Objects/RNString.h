@@ -79,10 +79,16 @@ namespace RN
 		
 		RNDeclareMeta(String)
 	};
+
+	template<class T, size_t N>
+	String *__MakeConstantString(T (&cstr)[N])
+	{
+		return String::WithString(cstr, N, true);
+	}
 }
 
 #define RNSTR(...)  RN::String::WithFormat(__VA_ARGS__)
-#define RNCSTR(cstr) RN::String::WithString(cstr, true)
+#define RNCSTR(cstr) RN::__MakeConstantString(cstr)
 
 #define RNUTF8STR(str)  RN::String::WithBytes(str, RN::Encoding::UTF8)
 #define RNCUTF8STR(str) RN::String::WithBytes(str, RN::Encoding::UTF8, true)
