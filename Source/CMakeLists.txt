@@ -92,11 +92,17 @@ set(RAYNE_HEADERS_PRIVATE
 
 set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 set(BUILD_64Bit YES)
-SET(COMPILE_FLAGS "-x objective-c++")
+set(COMPILE_FLAGS "")
+
+if(APPLE)
+    set(COMPILE_FLAGS "-x objective-c++")
+endif()
 
 if(NOT APPLE)
     set(BUILD_32Bit YES)
 endif()
+
+add_definitions(${COMPILE_FLAGS})
 
 # Helper macros
 function(createTarget arg1 arg2 arg3)
@@ -143,7 +149,6 @@ function(createTarget arg1 arg2 arg3)
     elseif(WIN32)
     endif()
 
-    add_definitions(${COMPILE_FLAGS})
     add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
 
 endfunction()

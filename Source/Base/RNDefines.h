@@ -28,17 +28,16 @@
 #define RN_TARGET_OPENGL    0
 #define RN_TARGET_OPENGL_ES 0
 
-#define RN_BUILD_DEBUG   1
-#define RN_BUILD_RELEASE 1
+#define RN_BUILD_DEBUG   0
+#define RN_BUILD_RELEASE 0
 
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(NDEBUG)
 	#undef RN_BUILD_RELEASE
-	#define RN_BUILD_RELEASE 0
-#endif /* defined(DEBUG) || defined(_DEBUG) */
-#if NDEBUG
+	#define RN_BUILD_RELEASE 1
+#else
 	#undef RN_BUILD_DEBUG
-	#define RN_BUILD_DEBUG 0
-#endif /* NDEBUG */
+	#define RN_BUILD_DEBUG 1
+#endif
 
 #if defined(__APPLE__) && defined(__MACH__)
 
