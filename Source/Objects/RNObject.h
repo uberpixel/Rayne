@@ -25,7 +25,7 @@ namespace RN
 		RNAPI virtual ~Object();
 		
 		RNAPI Object *Retain();
-		RNAPI Object *Release();
+		RNAPI void Release();
 		RNAPI Object *Autorelease();
 		
 		RNAPI Object *Copy() const;
@@ -174,10 +174,6 @@ namespace RN
 		cls *Retain() \
 		{ \
 			return static_cast<cls *>(Object::Retain()); \
-		} \
-		cls *Release() \
-		{ \
-			return static_cast<cls *>(Object::Release()); \
 		} \
 		cls *Autorelease() \
 		{ \

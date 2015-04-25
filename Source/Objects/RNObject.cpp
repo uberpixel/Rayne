@@ -73,7 +73,7 @@ namespace RN
 		return this;
 	}
 	
-	Object *Object::Release()
+	void Object::Release()
 	{
 		if(_refCount.fetch_sub(1, std::memory_order_release) == 1)
 		{
@@ -81,11 +81,7 @@ namespace RN
 
 			CleanUp();
 			delete this;
-
-			return nullptr;
 		}
-		
-		return this;
 	}
 	
 	Object *Object::Autorelease()
