@@ -213,8 +213,11 @@
 #endif /* __GNUC__ */
 
 // Sanity checks
-#if (RN_BUILD_DEBUG && RN_BUILD_RELEASE) || (!RN_BUILD_DEBUG && !RN_BUILD_RELEASE)
+#if (RN_BUILD_DEBUG && RN_BUILD_RELEASE)
 	#error "Debug and Release build both defined (only define either one of DEBUG or NDEBUG)"
+#endif
+#if (!RN_BUILD_DEBUG && !RN_BUILD_RELEASE)
+	#error "Neither Debug nor Release build  are defined (please define either one of DEBUG or NDEBUG)"
 #endif
 
 namespace RN
