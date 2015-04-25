@@ -8,7 +8,17 @@
 
 #include "RNWorkQueue.h"
 
-#if 1
+#if RN_PLATFORM_INTEL
+	#if RN_PLATFORM_WINDOWS
+		#define RNHardwarePause() YieldProcessor()
+	#else
+		#define RNHardwarePause() __asm__("pause")
+	#endif
+#endif
+#if RN_PLATFORM_ARM
+	#define RNHardwarePause() __asm__("yield")
+#endif
+
 #define ConditionalSpin(e) \
 	({ \
 		bool result = false; \
@@ -19,13 +29,10 @@
 				result = true; \
 				break; \
 			} \
+			RNHardwarePause(); \
 		} \
 		result; \
 	})
-#else
-#define ConditionalSpin(e) \
-	((e))
-#endif
 
 namespace RN
 {
@@ -52,6 +59,7 @@ namespace RN
 			__WorkQueues[i] = nullptr;
 		}
 	}
+
 
 	WorkQueue::WorkQueue(Priority priority, Flags flags) :
 		_flags(flags),
@@ -107,7 +115,6 @@ namespace RN
 	{
 		return __WorkQueues[3];
 	}
-
 	WorkQueue *WorkQueue::GetGlobalQueue(Priority priority)
 	{
 		return __WorkQueues[static_cast<uint32>(priority)];
@@ -118,7 +125,6 @@ namespace RN
 	{
 		PerformWithFlags(std::move(function), 0);
 	}
-
 	void WorkQueue::PerformBarrier(Function &&function)
 	{
 		PerformWithFlags(std::move(function), WorkSource::Flags::Barrier);
@@ -162,8 +168,6 @@ namespace RN
 		if(!_buffer.Push(source))
 		{
 			// Put it in the over commit bin
-			std::cout << "Overcommit" << std::endl;
-
 			_overcommit.push_back(source);
 			_open.fetch_add(1, std::memory_order_release);
 			_isOverCommitted = true;
@@ -189,44 +193,38 @@ namespace RN
 
 	bool WorkQueue::PerformWork()
 	{
-		if(!ConditionalSpin(_barrier))
+		if(!ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0))
+		{
+			std::unique_lock<std::mutex> lock(_workLock);
+			_workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
+		}
+
+		if(!ConditionalSpin(_barrier.load(std::memory_order_acquire)))
 		{
 			// There currently is a barrier executing, so wait until that one is completed
 			std::unique_lock<std::mutex> lock(_barrierLock);
-
-			if(_barrier)
-			{
-				_barrierSignal.wait(lock, [&]() -> bool { return (_barrier == false); });
-			}
-		}
-
-		if(!ConditionalSpin(_suspended == 0))
-		{
-			std::unique_lock<std::mutex> lock(_workLock);
-			if(_suspended > 0)
-				_workSignal.wait(lock, [&]() -> bool { return (_suspended == 0); });
+			_barrierSignal.wait(lock, [&]() -> bool { return (_barrier.load(std::memory_order_acquire) == false); });
 		}
 
 		// Grab work from the work pool
 		_readLock.Lock();
 
-		if(_barrier) // Make sure there really isn't a barrier in place now
+		if(_barrier.load(std::memory_order_acquire)) // Make sure there really isn't a barrier in place now
 		{
 			_readLock.Unlock();
 			return true;
 		}
 
 		WorkSource *source;
-		bool result = _buffer.Pop(source);
-		bool isBarrier = source->TestFlag(WorkSource::Flags::Barrier);
+		bool result, isBarrier;
 
-		if(result)
+		if((result = _buffer.Pop(source)))
 		{
-			if(isBarrier)
-				_barrier = true;
+			if((isBarrier = source->TestFlag(WorkSource::Flags::Barrier)))
+				_barrier.store(std::memory_order_release);
 
-			_running ++;
-			_open --;
+			_running.fetch_add(1, std::memory_order_relaxed);
+			_open.fetch_sub(1, std::memory_order_relaxed);
 		}
 
 		_readLock.Unlock();
@@ -237,67 +235,51 @@ namespace RN
 			if(isBarrier)
 			{
 				// If the work is a barrier, wait until all other work loads clear up
-				if(!ConditionalSpin(_running.load() > 1))
+				if(!ConditionalSpin(_running.load(std::memory_order_acquire) > 1))
 				{
 					std::unique_lock<std::mutex> lock(_barrierLock);
-
-					if(_running > 1)
-					{
-						_barrierSignal.wait(lock, [&]() -> bool { return (_running.load() == 1); });
-					}
+					_barrierSignal.wait(lock, [&]() -> bool { return (_running.load() == 1); });
 				}
-
-				while(_running > 1)
-				{}
 			}
 
 			source->Callout();
 
-			if(_isOverCommitted)
+			// If we are over committed, try to clear up that over commit
+			if(_isOverCommitted.load(std::memory_order_acquire) && _writeLock.TryLock())
 			{
-				// If we are over committed, try to clear up that over commit
-
-				if(_writeLock.TryLock())
+				while(!_overcommit.empty())
 				{
-					while(!_overcommit.empty())
-					{
-						WorkSource *temp = _overcommit.front();
+					WorkSource *temp = _overcommit.front();
 
-						if(!_buffer.Push(temp))
-							break;
+					if(!_buffer.Push(temp))
+						break;
 
-						_overcommit.erase(_overcommit.begin());
-					}
-
-					if(_overcommit.empty())
-					{
-						std::cout << "Cleared over commit" << std::endl;
-						_isOverCommitted = false;
-					}
-
-					_writeLock.Unlock();
+					_overcommit.erase(_overcommit.begin());
 				}
+
+				if(_overcommit.empty())
+					_isOverCommitted.store(false, std::memory_order_relaxed);
+
+				_writeLock.Unlock();
 			}
 
 			// Clean up
 			if(isBarrier)
 			{
 				std::lock_guard<std::mutex> lock(_barrierLock);
-				_barrier = false;
+				_barrier.store(false, std::memory_order_relaxed);
 				_barrierSignal.notify_all();
 			}
-
-			if(_barrier)
+			else if(_barrier.load(std::memory_order_acquire))
 			{
 				// A barrier is waiting to execute, signal it to be ready if needed
-
 				std::lock_guard<std::mutex> lock(_barrierLock);
 				if((-- _running) == 1)
 					_barrierSignal.notify_all();
 			}
 			else
 			{
-				_running --;
+				_running.fetch_sub(1, std::memory_order_relaxed);
 			}
 
 			if(source->TestFlag(WorkSource::Flags::Synchronous))
@@ -335,15 +317,18 @@ namespace RN
 
 					if(_open.load() == 0)
 					{
-						_sleeping ++;
+						_sleeping.fetch_add(1, std::memory_order_relaxed);
 						_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0 || thread->IsCancelled()); });
-						_sleeping --;
+						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 					}
 				}
 			}
 		}
 	}
 
+	/**
+	 * Must be called with _writeLock being held
+	 */
 	void WorkQueue::ReCalculateWidth()
 	{
 		if(_flags & kRNWorkQueueFlagMainThread)
@@ -381,19 +366,19 @@ namespace RN
 
 	void WorkQueue::Suspend()
 	{
-		_suspended ++;
+		_suspended.fetch_add(1, std::memory_order_relaxed);
 	}
 	void WorkQueue::Resume()
 	{
-		if(_suspended == 1)
+		if(_suspended.load(std::memory_order_acquire) == 1)
 		{
 			std::lock_guard<std::mutex> lock(_workLock);
-			_suspended --;
+			_suspended.fetch_sub(1, std::memory_order_release);
 			_workSignal.notify_all();
 		}
 		else
 		{
-			_suspended --;
+			_suspended.fetch_sub(1, std::memory_order_release);
 		}
 	}
 }
