@@ -11,14 +11,40 @@
 #include "RNSerialization.h"
 #include "RNAutoreleasePool.h"
 
+#if RN_PLATFORM_POSIX
+	#define kRNIsPathDelimiter(c) (c == '/')
+	#define kRNPathDelimiter '/'
+	#define kRNPathDelimiterTokens "/"
+#endif
+
+#if RN_PLATFORM_WINDOWS
+	#define kRNIsPathDelimiter(c) (c == '/' || c == '\\')
+	#define kRNPathDelimiter '\\'
+	#define kRNPathDelimiterTokens "/\\"
+#endif
+
 namespace RN
 {
 	RNDefineMeta(String, Object)
+
+	static CharacterSet *__stringPathDelimiterSet;
+	static CharacterSet *__stringPathExtensionSet;
 
 	// ---------------------
 	// MARK: -
 	// MARK: String
 	// ---------------------
+
+	void String::InitialWakeUp(MetaClass *cls)
+	{
+		if(cls == GetMetaClass())
+		{
+			__stringPathDelimiterSet = new CharacterSet(kRNPathDelimiterTokens);
+			__stringPathExtensionSet = new CharacterSet(".");
+		}
+
+		Object::InitialWakeUp(cls);
+	}
 	
 	String::String() :
 		_string(new UTF8String())
@@ -285,82 +311,216 @@ namespace RN
 	{
 		size_t length = string->GetLength();
 		
-		if(range.length < length)
+		if(range.length < length || range.length == 0)
 			return Range(kRNNotFound, 0);
 		
 		UniChar characters[kStringUniCharFetch];
-		UniChar *compare = new UniChar[length];
+		UniChar *compare = (length < 256) ? ((UniChar *)alloca(length * sizeof(UniChar))) : new UniChar[length];
 		
 		string->_string->GetCharactersInRange(compare, Range(0, length));
 		
 		bool found = false;
-		size_t left   = range.length;
-		size_t offset = range.origin;
-		size_t j = 1;
-		
 		Range result = Range(kRNNotFound, 0);
-		CodePoint first = CodePoint(compare[0]);
-		
-		while(left > 0 && !found)
+
+		if(mode & ComparisonMode::Reverse)
 		{
-			size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
-			_string->GetCharactersInRange(characters, Range(offset, read));
-			
-			for(size_t i = 0; i < read; i ++)
+			size_t left   = range.length;
+			size_t offset = range.origin + left;
+			size_t j = length - 2;
+
+			CodePoint first = CodePoint(compare[length - 1]);
+
+			while(left > 0 && !found)
 			{
-				CodePoint point = characters[i];
-				
-				if(result.origin == kRNNotFound)
+				size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
+				_string->GetCharactersInRange(characters, Range(offset - read, read));
+
+				for(size_t i = 0; i < read; i ++)
 				{
-					if(point == first)
+					CodePoint point = characters[read - (i + 1)];
+
+					if(result.origin == kRNNotFound)
 					{
-						result.origin = offset + i;
-						result.length = 1;
-						
-						if(result.length >= length)
+						if(mode & ComparisonMode::CaseInsensitive)
 						{
-							found = true;
-							break;
+							point = point.GetLowerCase();
+							first = first.GetLowerCase();
 						}
-					}
-				}
-				else
-				{
-					CodePoint tpoint = CodePoint(compare[j]);
-					
-					if(mode & ComparisonMode::CaseInsensitive)
-					{
-						point  = point.GetLowerCase();
-						tpoint = tpoint.GetLowerCase();
-					}
-					
-					if(tpoint != point)
-					{
-						j = 1;
-						result = Range(kRNNotFound, 0);
+
+						if(point == first)
+						{
+							result.origin = offset - length - i;
+							result.length = 1;
+
+							if(result.length >= length)
+							{
+								found = true;
+								break;
+							}
+						}
 					}
 					else
 					{
-						result.length ++;
-						j ++;
-						
-						if(result.length >= length)
+						CodePoint tpoint = CodePoint(compare[j]);
+
+						if(mode & ComparisonMode::CaseInsensitive)
 						{
-							found = true;
-							break;
+							point  = point.GetLowerCase();
+							tpoint = tpoint.GetLowerCase();
+						}
+
+						if(tpoint != point)
+						{
+							j = length - 2;
+							result = Range(kRNNotFound, 0);
+						}
+						else
+						{
+							result.length ++;
+							j --;
+
+							if(result.length >= length)
+							{
+								found = true;
+								break;
+							}
 						}
 					}
 				}
+
+				offset += read;
+				left   -= read;
 			}
-			
-			offset += read;
-			left   -= read;
 		}
-		
-		delete [] compare;
+		else
+		{
+			size_t left = range.length;
+			size_t offset = range.origin;
+			size_t j = 1;
+
+			CodePoint first = CodePoint(compare[0]);
+
+			while(left > 0 && ! found)
+			{
+				size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
+				_string->GetCharactersInRange(characters, Range(offset, read));
+
+				for(size_t i = 0; i < read; i ++)
+				{
+					CodePoint point = characters[i];
+
+					if(result.origin == kRNNotFound)
+					{
+						if(mode & ComparisonMode::CaseInsensitive)
+						{
+							point = point.GetLowerCase();
+							first = first.GetLowerCase();
+						}
+
+						if(point == first)
+						{
+							result.origin = offset + i;
+							result.length = 1;
+
+							if(result.length >= length)
+							{
+								found = true;
+								break;
+							}
+						}
+					}
+					else
+					{
+						CodePoint tpoint = CodePoint(compare[j]);
+
+						if(mode & ComparisonMode::CaseInsensitive)
+						{
+							point = point.GetLowerCase();
+							tpoint = tpoint.GetLowerCase();
+						}
+
+						if(tpoint != point)
+						{
+							j = 1;
+							result = Range(kRNNotFound, 0);
+						}
+						else
+						{
+							result.length ++;
+							j ++;
+
+							if(result.length >= length)
+							{
+								found = true;
+								break;
+							}
+						}
+					}
+				}
+
+				offset += read;
+				left -= read;
+			}
+		}
+
+		if(length >= 256)
+			delete [] compare;
+
 		return found ? result : Range(kRNNotFound, 0);
 	}
-	
+
+	Range String::GetRangeOfCharacterInSet(const CharacterSet *set, ComparisonMode mode) const
+	{
+		return GetRangeOfCharacterInSet(set, mode, Range(0, GetLength()));
+	}
+
+	Range String::GetRangeOfCharacterInSet(const CharacterSet *set, ComparisonMode mode, const Range &range) const
+	{
+		UniChar characters[kStringUniCharFetch];
+
+		if(mode & ComparisonMode::Reverse)
+		{
+			size_t left = range.length;
+			size_t offset = range.origin + left;
+
+			while(left > 0)
+			{
+				size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
+				_string->GetCharactersInRange(characters, Range(offset - read, read));
+
+				for(size_t i = 0; i < read; i ++)
+				{
+					if(set->CharacterIsMember(characters[read - (i + 1)]))
+						return Range(offset - (i + 1), 1);
+				}
+
+				left -= read;
+			}
+		}
+		else
+		{
+			size_t left = range.length;
+			size_t offset = range.origin;
+
+			while(left > 0)
+			{
+				size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
+				_string->GetCharactersInRange(characters, Range(offset, read));
+
+				for(size_t i = 0; i < read; i ++)
+				{
+					if(set->CharacterIsMember(characters[i]))
+						return Range(offset + i, 1);
+				}
+
+				left -= read;
+			}
+		}
+
+		return Range(kRNNotFound, 0);
+	}
+
+
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
 	{
 		return Compare(other, mode, Range(0, GetLength()));
@@ -551,7 +711,168 @@ namespace RN
 		
 		return array->Autorelease();
 	}
-	
+
+	size_t String::__GetTrailingPathLocation() const
+	{
+		size_t location = GetLength() - 1;
+		size_t result = kRNNotFound;
+
+		while(1)
+		{
+			Range range(location, 1);
+			size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
+
+			if(location == delimiter)
+			{
+				result = location;
+
+				if(RN_EXPECT_FALSE(location == 0))
+					break;
+
+				location --;
+				continue;
+			}
+
+			break;
+		}
+
+		return result;
+	}
+	void String::__DeleteTrailingPath()
+	{
+		size_t trailing = __GetTrailingPathLocation();
+		if(trailing != kRNNotFound)
+			DeleteCharacters(Range(trailing, GetLength() - trailing));
+	}
+
+	void String::DeletePathExtension()
+	{
+		__DeleteTrailingPath();
+
+		// Find the extension and last path delimiter
+		size_t extension = GetRangeOfCharacterInSet(__stringPathExtensionSet, ComparisonMode::Reverse).origin;
+		if(extension == kRNNotFound)
+			return;
+
+		size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, ComparisonMode::Reverse).origin;
+
+		if(delimiter == kRNNotFound || delimiter < extension)
+			DeleteCharacters(Range(extension, GetLength() - extension));
+	}
+	void String::DeleteLastPathComponent()
+	{
+		__DeleteTrailingPath();
+
+		size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, ComparisonMode::Reverse).origin;
+		if(delimiter != kRNNotFound)
+			DeleteCharacters(Range(delimiter, GetLength() - delimiter));
+	}
+	void String::AppendPathComponent(const String *component)
+	{
+		if(component->GetCharacterAtIndex(0) != kRNPathDelimiter)
+		{
+			Range range(GetLength() - 1, 1);
+			size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
+
+			if(delimiter == kRNNotFound)
+				Append("%c", kRNPathDelimiter);
+		}
+
+		Append(component);
+	}
+	void String::AppendPathExtension(const String *extension)
+	{
+		__DeleteTrailingPath();
+
+		if(extension->GetCharacterAtIndex(0) != '.')
+			Append(".");
+
+		Append(extension);
+	}
+
+	Array *String::GetPathComponents() const
+	{
+		Array *array = new Array();
+		Range range(0, GetLength());
+
+		while(kRNIsPathDelimiter(GetCharacterAtIndex(range.origin)))
+		{
+			range.origin ++;
+			range.length --;
+		}
+
+		while(1)
+		{
+			if(range.length == 0)
+				break;
+
+			size_t end = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
+
+			if(end == range.origin)
+			{
+				range.origin ++;
+				range.length --;
+
+				continue;
+			}
+
+			if(end == kRNNotFound)
+				end = GetLength();
+
+			Range subrange(range.origin, end - range.origin);
+			array->AddObject(GetSubstring(subrange));
+
+			if(end == GetLength())
+				break;
+
+			range.origin = end + 1;
+			range.length = GetLength() - range.origin;
+		}
+
+		return array->Autorelease();
+	}
+
+	String *String::GetPathExtension() const
+	{
+		Range range(0, GetLength());
+		size_t trailing = __GetTrailingPathLocation();
+		size_t end = GetLength();
+
+		if(trailing != kRNNotFound)
+		{
+			range.origin = 0;
+			range.length = trailing;
+
+			end = trailing;
+		}
+
+		size_t extension = GetRangeOfCharacterInSet(__stringPathExtensionSet, ComparisonMode::Reverse, range).origin;
+		if(extension != kRNNotFound)
+			return GetSubstring(Range(extension + 1, end - (extension + 1)));
+
+		return nullptr;
+	}
+	String *String::GetLastPathComponent() const
+	{
+		Range range(0, GetLength());
+		size_t trailing = __GetTrailingPathLocation();
+		size_t end = GetLength();
+
+		if(trailing != kRNNotFound)
+		{
+			range.origin = 0;
+			range.length = trailing;
+
+			end = trailing;
+		}
+
+		size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, ComparisonMode::Reverse, range).origin;
+		if(delimiter != kRNNotFound)
+			return GetSubstring(Range(delimiter + 1, end - (delimiter + 1)));
+
+		return Copy();
+	}
+
 	
 	bool String::WriteToFile(const std::string &path, Encoding encoding)
 	{

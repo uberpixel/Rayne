@@ -13,6 +13,7 @@
 #include "../Base/RNUnicode.h"
 #include "RNObject.h"
 #include "RNArray.h"
+#include "RNCharacterSet.h"
 
 namespace RN
 {
@@ -22,7 +23,10 @@ namespace RN
 	public:
 		RN_OPTIONS(ComparisonMode, uint32,
 		           CaseInsensitive = (1 << 0),
-		           Numerically = (1 << 1));
+		           Numerically = (1 << 1),
+				   Reverse = (1 << 2));
+
+		RNAPI static void InitialWakeUp(MetaClass *cls);
 
 		RNAPI String();
 		RNAPI String(const char *string, va_list args);
@@ -45,7 +49,10 @@ namespace RN
 		
 		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;
-		
+
+		/**
+		 * Mutation
+		 **/
 		RNAPI void Append(const String *string);
 		RNAPI void Append(const char *string, ...);
 		RNAPI void Insert(const String *string, size_t index);
@@ -55,10 +62,16 @@ namespace RN
 		
 		RNAPI void ReplaceCharacters(const String *replacement, const Range &range);
 		RNAPI void ReplaceOccurrencesOfString(const String *string, const String *replacement);
-		
+
+		/**
+		 * Comparison / Lookup
+		 **/
 		RNAPI Range GetRangeOfString(const String *string, ComparisonMode mode = 0) const;
 		RNAPI Range GetRangeOfString(const String *string, ComparisonMode mode, const Range &range) const;
-		
+
+		RNAPI Range GetRangeOfCharacterInSet(const CharacterSet *set, ComparisonMode mode = 0) const;
+		RNAPI Range GetRangeOfCharacterInSet(const CharacterSet *set, ComparisonMode mode, const Range &range) const;
+
 		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode = 0) const;
 		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode, const Range &range) const;
 		
@@ -67,13 +80,31 @@ namespace RN
 		RNAPI Array *GetComponentsSeparatedByString(const String *other) const;
 		
 		RNAPI size_t GetLength() const;
-		
+
+		/**
+		 * Raw access
+		 **/
 		RNAPI uint8 *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const;
 		RNAPI char *GetUTF8String() const;
-		
+
+		/**
+		 * Paths
+		 **/
+		RNAPI void DeletePathExtension();
+		RNAPI void DeleteLastPathComponent();
+		RNAPI void AppendPathComponent(const String *component);
+		RNAPI void AppendPathExtension(const String *extension);
+		RNAPI Array *GetPathComponents() const;
+		RNAPI String *GetPathExtension() const;
+		RNAPI String *GetLastPathComponent() const;
+
+
 		RNAPI bool WriteToFile(const std::string &file, Encoding encoding);
 		
 	private:
+		size_t __GetTrailingPathLocation() const;
+		void __DeleteTrailingPath();
+
 		String(UTF8String *string);
 		UTF8String *_string;
 		

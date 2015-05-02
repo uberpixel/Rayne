@@ -38,6 +38,7 @@
 #include "Objects/RNNull.h"
 #include "Objects/RNNumber.h"
 #include "Objects/RNValue.h"
+#include "Objects/RNCharacterSet.h"
 #include "Objects/RNString.h"
 
 #include "Threads/RNThread.h"

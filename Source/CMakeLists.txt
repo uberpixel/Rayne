@@ -17,6 +17,7 @@ set(RAYNE_SOURCES
     Objects/RNData.cpp
     Objects/RNNull.cpp
     Objects/RNNumber.cpp
+    Objects/RNCharacterSet.cpp
     Objects/RNString.cpp
     Objects/RNStringInternal.cpp
     Objects/RNValue.cpp
@@ -73,6 +74,7 @@ set(RAYNE_HEADERS
     Objects/RNObject.h
     Objects/RNSerialization.h
     Objects/RNSet.h
+    Objects/RNCharacterSet.h
     Objects/RNString.h
     Objects/RNValue.h
     Threads/RNRunLoop.h
