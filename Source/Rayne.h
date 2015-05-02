@@ -41,6 +41,8 @@
 #include "Objects/RNCharacterSet.h"
 #include "Objects/RNString.h"
 
+#include "System/RNFileManager.h"
+
 #include "Threads/RNThread.h"
 #include "Threads/RNRunLoop.h"
 #include "Threads/RNSpinLock.h"

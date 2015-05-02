@@ -168,6 +168,14 @@ namespace RN
 				MetaClass(super::GetMetaClass(), #cls, signature) \
 			{} \
 		};
+#define __RNDeclareScopedMetaPrivateWithTraits(scope, cls, super, ...) \
+		class cls##MetaType : public RN::__ConcreteMetaClass<scope::cls, __VA_ARGS__> \
+		{ \
+		public: \
+			cls##MetaType(const char *signature) : \
+				MetaClass(super::GetMetaClass(), #cls, signature) \
+			{} \
+		};
 
 #define __RNDeclareMetaPublic(cls) \
 	public: \
@@ -206,6 +214,24 @@ namespace RN
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
 	RN_REGISTER_INITIALIZER(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
+
+#define RNDefineScopedMeta(scope, cls, super) \
+	__RNDeclareScopedMetaPrivateWithTraits(scope, cls, super, \
+		std::conditional<std::is_default_constructible<scope::cls>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCronstructable<scope::cls>, RN::__MetaClassTraitNull0<scope::cls>>::type, \
+		std::conditional<std::is_constructible<scope::cls, RN::Deserializer *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitSerializable<scope::cls>, RN::__MetaClassTraitNull1<scope::cls>>::type, \
+		std::conditional<std::is_constructible<scope::cls, const scope::cls *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCopyable<scope::cls>, RN::__MetaClassTraitNull2<scope::cls>>::type) \
+	void *__kRN##cls##__metaClass = nullptr; \
+	RN::MetaClass *scope::cls::GetClass() const \
+	{ \
+		return cls::GetMetaClass(); \
+	} \
+	RN::MetaClass *scope::cls::GetMetaClass() \
+	{ \
+		if(!__kRN##cls##__metaClass) \
+			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
+	} \
+	RN_REGISTER_INITIALIZER(cls##Init, scope::cls::GetMetaClass(); scope::cls::InitialWakeUp(scope::cls::GetMetaClass()))
 	
 #define __RNDefineMetaAndGFYMSVC(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, RN::__MetaClassTraitNull0<cls>, RN::__MetaClassTraitNull1<cls>, RN::__MetaClassTraitNull2<cls>) \

@@ -10,6 +10,7 @@
 #define __RAYNE_KERNEL_H__
 
 #include "RNBase.h"
+#include "../System/RNFileManager.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
 #include "../Threads/RNWorkQueue.h"
@@ -35,6 +36,8 @@ namespace RN
 		void Bootstrap();
 
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
+
+		FileManager *_fileManager;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

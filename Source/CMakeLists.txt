@@ -25,6 +25,7 @@ set(RAYNE_SOURCES
     Objects/RNDictionary.cpp
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
+    System/RNFileManager.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
     Threads/RNSpinlock.cpp
@@ -77,6 +78,7 @@ set(RAYNE_HEADERS
     Objects/RNCharacterSet.h
     Objects/RNString.h
     Objects/RNValue.h
+    System/RNFileManager.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h
@@ -87,6 +89,7 @@ set(RAYNE_HEADERS
     Threads/RNWorkSource.h)
 
 set(RAYNE_HEADERS_PRIVATE
+    Base/RNBaseInternal.h
     Objects/RNHashTableInternal.h
     Objects/RNObjectInternals.h
     Objects/RNStringInternal.h)
@@ -95,9 +98,14 @@ set(RAYNE_HEADERS_PRIVATE
 set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 set(BUILD_64Bit YES)
 set(COMPILE_FLAGS "")
+set(LINK_LIBRARIES "")
 
 if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(FOUNDATION_LIBRARY Foundation)
+
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
 endif()
 
 if(NOT APPLE)
@@ -152,6 +160,7 @@ function(createTarget arg1 arg2 arg3)
     endif()
 
     add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
+    target_link_libraries("${TARGET_NAME}" ${LINK_LIBRARIES})
 
 endfunction()
 

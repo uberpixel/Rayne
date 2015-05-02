@@ -29,11 +29,14 @@ namespace RN
 
 		_runLoop = _mainThread->GetRunLoop();
 		_runLoop->AddObserver(_observer);
+
+		_fileManager = new FileManager();
 	}
 	void Kernel::TearDown()
 	{
 		WorkQueue::TearDownQueues();
 
+		delete _fileManager;
 		delete this;
 	}
 
