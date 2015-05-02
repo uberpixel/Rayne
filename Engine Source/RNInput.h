@@ -44,6 +44,39 @@ namespace RN
 		RNDeclareMeta(InputControl)
 	};
 	
+	class ButtonControl : public InputControl
+	{
+	public:
+		ButtonControl(const String *name);
+		
+		void SetPressed(bool pressed);
+		bool IsPressed() const { return _pressed; }
+		
+	private:
+		bool _pressed;
+		
+		RNDeclareMeta(ButtonControl)
+	};
+	
+	
+	class AxisControl : public InputControl
+	{
+	public:
+		AxisControl(const String *name);
+		
+		void SetDeadzone(float zone);
+		void SetValue(float value);
+		
+		float GetDeadzone() const { return _deadZone; }
+		float GetValue() const { return _value; }
+		
+	private:
+		float _value;
+		float _deadZone;
+		
+		RNDeclareMeta(AxisControl)
+	};
+	
 	class Axis2DControl : public InputControl
 	{
 	public:
@@ -99,6 +132,7 @@ namespace RN
 		const String *GetName() const { return _name; }
 		const String *GetVendor() const { return _vendor; }
 		const Array *GetControls() const { return _controls; }
+		InputControl *GetControlWithName(const String *name) const;
 		
 		bool SupportsCommand(const String *command) const;
 		bool SupportsCommand(const String *command, MetaClass *meta) const;

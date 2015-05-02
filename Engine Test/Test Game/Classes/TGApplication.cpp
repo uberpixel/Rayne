@@ -74,7 +74,7 @@ namespace TG
 		
 		// Load the last loaded level, or the forst level
 		uint32 level = RN::Settings::GetSharedInstance()->GetUint32ForKey(RNCSTR("lastLevel"), 1);
-		LoadLevel(level);
+		LoadLevel(2);
 	}
 	
 	

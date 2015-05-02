@@ -14,6 +14,12 @@
 
 namespace RN
 {
+	/***************************
+	 *
+	 * HIDDevice
+	 *
+	 ***************************/
+	
 	HIDDevice::HIDDevice(IOHIDDeviceRef device) :
 		_device(device),
 		_connected(true)
@@ -83,9 +89,264 @@ namespace RN
 		HIDDevice *device = reinterpret_cast<HIDDevice *>(context);
 		device->HandleInputReport(type, reportID, report, reportLength);
 	}
+	
+	/***************************
+	 *
+	 * HIDElement
+	 *
+	 ***************************/
+	
+	HIDElement::HIDElement(IOHIDElementRef element) :
+		logicalMinimum(IOHIDElementGetLogicalMin(element)),
+		logicalMaximum(IOHIDElementGetLogicalMax(element)),
+		physicalMinimum(IOHIDElementGetPhysicalMin(element)),
+		physicalMaximum(IOHIDElementGetPhysicalMax(element)),
+		usage(IOHIDElementGetUsage(element)),
+		usagePage(IOHIDElementGetUsagePage(element)),
+		reportSize(IOHIDElementGetReportSize(element)),
+		reportCount(IOHIDElementGetReportCount(element)),
+		control(nullptr)
+	{}
 
+	/***************************
+	 *
+	 * GenericJoystickDevice
+	 *
+	 ***************************/
 	
+	GenericJoystickDevice::GenericJoystickDevice(const String *vendor, const String *name, IOHIDDeviceRef device) :
+		InputDevice(Category::Joystick, vendor, name),
+		HIDDevice(device),
+		_axisCount(0)
+	{
+		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(device, NULL, kIOHIDOptionsTypeNone);
+		
+		RNDebug("Device: %s", name->GetUTF8String());
+		ParseHIDElements(nullptr, elements);
+		
+		CFRelease(elements);
+	}
 	
+	GenericJoystickDevice::~GenericJoystickDevice()
+	{
+	}
+	
+	void GenericJoystickDevice::ParseHIDElements(IOHIDElementRef parent, CFArrayRef elements)
+	{
+		size_t count = CFArrayGetCount(elements);
+		for(size_t i = 0; i < count; i ++)
+		{
+			IOHIDElementRef element = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
+			
+			if(IOHIDElementGetParent(element) != parent)
+				continue;
+			
+			IOHIDElementType type = IOHIDElementGetType(element);
+			IOHIDElementCookie cookie = IOHIDElementGetCookie(element);
+			
+			{
+				Log::Loggable loggable;
+				
+				loggable << "Element type: " << type << " ";
+				loggable << "report {" << IOHIDElementGetReportID(element) << ", " << IOHIDElementGetReportCount(element) << " * " << IOHIDElementGetReportSize(element) << "} ";
+				loggable << "cookie: " << (uint32)IOHIDElementGetCookie(element) << " ";
+				loggable << "usage {" << IOHIDElementGetUsagePage(element) << ", " << IOHIDElementGetUsage(element) << "}";
+			}
+			
+			switch(type)
+			{
+				case kIOHIDElementTypeCollection:
+				{
+					CFArrayRef children = IOHIDElementGetChildren(element);
+					ParseHIDElements(element, children);
+					break;
+				}
+					
+				default:
+					break;
+			}
+			
+			if(type < kIOHIDElementTypeOutput)
+			{
+				auto iterator = _elements.find(cookie);
+				if(iterator == _elements.end())
+				{
+					HIDElement *telement = new HIDElement(element);
+					_elements.emplace(cookie, telement);
+					
+					std::vector<HIDElement *> &telements = _reports[IOHIDElementGetReportID(element)];
+					telements.push_back(telement);
+					
+					switch(telement->usagePage)
+					{
+						case kHIDPage_GenericDesktop:
+						{
+							InputControl *control = nullptr;
+							
+							switch(telement->usage)
+							{
+								case kHIDUsage_GD_X:
+									control = new AxisControl(RNSTR("Axis X %d", (int)(_axisCount ++)));
+									break;
+								case kHIDUsage_GD_Y:
+									control = new AxisControl(RNSTR("Axis Y %d", (int)(_axisCount ++)));
+									break;
+								case kHIDUsage_GD_Z:
+									control = new AxisControl(RNSTR("Axis Z %d", (int)(_axisCount ++)));
+									break;
+									
+								case kHIDUsage_GD_Rx:
+									control = new AxisControl(RNSTR("Axis Rx %d", (int)(_axisCount ++)));
+									break;
+								case kHIDUsage_GD_Ry:
+									control = new AxisControl(RNSTR("Axis Ry %d", (int)(_axisCount ++)));
+									break;
+								case kHIDUsage_GD_Rz:
+									control = new AxisControl(RNSTR("Axis Rz %d", (int)(_axisCount ++)));
+									break;
+							}
+							
+							telement->control = control;
+							if(control)
+							{
+								AddControl(control);
+								control->Release();
+							}
+							break;
+						}
+							
+						case kHIDPage_Button:
+						{
+							String *name = RNSTR("Button %u", telement->usage);
+							ButtonControl *control = new ButtonControl(name);
+							
+							telement->control = control;
+							
+							AddControl(control);
+							control->Release();
+							break;
+						}
+							
+						default:
+							break;
+					}
+				}
+			}
+		}
+		
+	}
+	
+	bool GenericJoystickDevice::Activate()
+	{
+		if(InputDevice::Activate())
+		{
+			if(!Open())
+			{
+				InputDevice::Deactivate();
+				return false;
+			}
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	bool GenericJoystickDevice::Deactivate()
+	{
+		if(InputDevice::Deactivate())
+		{
+			Close();
+			return true;
+		}
+		
+		return false;
+	}
+	
+	void GenericJoystickDevice::Update()
+	{}
+	
+#define BitfieldMask(l) ((1 << (l)) - 1)
+#define BitfieldGetValue(v, s, l) (((v) >> s) & BitfieldMask(l))
+	
+#define ReadReportData(report, i, l) ({ \
+	uint32_t x = (uint32_t)(i); \
+	uint32_t index = x / 32; \
+ 	uint32_t o = x % 32; \
+	uint32_t r = report[index]; \
+	(BitfieldGetValue(r, o, l)); })
+	
+	void GenericJoystickDevice::HandleInputReport(IOHIDReportType type, uint32 reportID, uint8 *report, size_t length)
+	{
+		auto iterator = _reports.find(reportID);
+		if(iterator != _reports.end())
+		{
+			const std::vector<HIDElement *> &elements = (*iterator).second;
+			
+			size_t offset = 0;
+			uint32_t *reportData = (uint32_t *)report;
+			
+			for(auto iterator = elements.rbegin(); iterator != elements.rend(); iterator ++)
+			{
+				HIDElement *element = *iterator;
+				
+				if(element->reportSize > 0)
+				{
+					for(size_t i = 0; i< element->reportCount; i ++)
+					{
+						switch(element->usagePage)
+						{
+							case kHIDPage_GenericDesktop:
+							{
+								switch(element->usage)
+								{
+									case kHIDUsage_GD_X:
+									case kHIDUsage_GD_Y:
+									case kHIDUsage_GD_Z:
+									case kHIDUsage_GD_Rx:
+									case kHIDUsage_GD_Ry:
+									case kHIDUsage_GD_Rz:
+									{
+										uint32_t value = ReadReportData(reportData, offset, element->reportSize);
+										double result = static_cast<double>((value + element->logicalMinimum)) / element->logicalMaximum;
+										
+										result = (result * 2.0) - 1.0;
+										
+										AxisControl *control = static_cast<AxisControl *>(element->control);
+										
+										if(Math::FastAbs(result) < control->GetDeadzone())
+											result = 0.0;
+										
+										control->SetValue(result);
+										break;
+									}
+								}
+								
+								break;
+							}
+								
+							case kHIDPage_Button:
+							{
+								uint32_t value = ReadReportData(reportData, offset, element->reportSize);
+								ButtonControl *control = static_cast<ButtonControl *>(element->control);
+								
+								control->SetPressed(value);
+								break;
+							}
+						}
+						
+						offset += element->reportSize;
+					}
+				}
+			}
+		}
+	}
+
+	/***************************
+	 *
+	 * Dualshock4Device
+	 *
+	 ***************************/
 	
 	Dualshock4Device::Dualshock4Device(const String *vendor, const String *name, IOHIDDeviceRef device) :
 		GamepadDevice(Category::Gamepad, vendor, name),
@@ -298,7 +559,11 @@ namespace RN
 	
 	
 	
-	
+	/***************************
+	 *
+	 * Device manager
+	 *
+	 ***************************/
 	
 	void IOKitHIDDeviceAdded(void *context, IOReturn result, void *sender, IOHIDDeviceRef deviceRef)
 	{
@@ -340,9 +605,14 @@ namespace RN
 		
 		InputDevice *device = nullptr;
 		
-		if(vendor == 1356 && product == 1476)
+		// Match specialized devices
+		if(vendor == 0x54c && product == 0x5c4)
+			device = new Dualshock4Device(vendorName, productName, deviceRef); // Playstation 4 controller
+		
+		// Generic devices
+		if(IOHIDDeviceConformsTo(deviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick))
 		{
-			device = new Dualshock4Device(vendorName, productName, deviceRef);
+			device = new GenericJoystickDevice(vendorName, productName, deviceRef);
 		}
 		
 		IOHIDDeviceClose(deviceRef, kIOHIDOptionsTypeNone);

@@ -638,7 +638,7 @@ namespace RN
 			{
 				for(uint32 z = 0; z < _voxels->GetResolutionZ(); z++)
 				{
-					if(abs(x - position.x) <= size.x && abs(y - position.y) <= size.y && abs(z - position.z) <= size.z)
+					if(fabsf(x - position.x) <= size.x && fabsf(y - position.y) <= size.y && fabsf(z - position.z) <= size.z)
 					{
 						_voxels->SetVoxel(x, y, z, Point(density));
 					}

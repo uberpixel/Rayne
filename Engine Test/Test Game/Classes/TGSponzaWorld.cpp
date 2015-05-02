@@ -25,6 +25,7 @@ namespace TG
 	void SponzaWorld::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
 	{
 		World::LoadOnThread(thread, deserializer);
+		return;
 		
 		_camera->SetClipFar(100.0f);
 		

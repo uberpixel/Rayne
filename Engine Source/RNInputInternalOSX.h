@@ -10,6 +10,7 @@
 #define __RAYNE_INPUTINTERNALOSX_H__
 
 #include "RNBaseInternal.h"
+#include "RNBase.h"
 #include "RNInput.h"
 
 #if RN_PLATFORM_MAC_OS
@@ -40,6 +41,46 @@ namespace RN
 		
 		uint8 _input[1024];
 		bool _connected;
+	};
+	
+	struct HIDElement
+	{
+		HIDElement(IOHIDElementRef element);
+		
+		CFIndex logicalMinimum;
+		CFIndex logicalMaximum;
+		
+		CFIndex physicalMinimum;
+		CFIndex physicalMaximum;
+		
+		uint32 usage;
+		uint32 usagePage;
+		
+		size_t reportSize;
+		size_t reportCount;
+		
+		InputControl *control;
+	};
+	
+	class GenericJoystickDevice : public InputDevice, public HIDDevice
+	{
+	public:
+		GenericJoystickDevice(const String *vendor, const String *name, IOHIDDeviceRef device);
+		~GenericJoystickDevice();
+		
+		bool Activate() override;
+		bool Deactivate() override;
+		void Update() override;
+		
+		void HandleInputReport(IOHIDReportType type, uint32 reportID, uint8 *report, size_t length) override;
+		
+	private:
+		void ParseHIDElements(IOHIDElementRef parent, CFArrayRef elements);
+		
+		std::unordered_map<uint32_t, HIDElement *> _elements;
+		std::unordered_map<uint32_t, std::vector<HIDElement *>> _reports;
+		
+		size_t _axisCount;
 	};
 	
 	class Dualshock4Device : public GamepadDevice, public HIDDevice

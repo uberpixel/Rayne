@@ -17,6 +17,8 @@
 namespace RN
 {
 	RNDefineMeta(InputControl, Object)
+	RNDefineMeta(ButtonControl, InputControl)
+	RNDefineMeta(AxisControl, InputControl)
 	RNDefineMeta(Axis2DControl, InputControl)
 	
 	RNDefineMeta(InputDevice, Object)
@@ -29,6 +31,35 @@ namespace RN
 	InputControl::~InputControl()
 	{
 		_name->Release();
+	}
+	
+	
+	
+	ButtonControl::ButtonControl(const String *name) :
+		InputControl(name),
+		_pressed(false)
+	{}
+	
+	void ButtonControl::SetPressed(bool pressed)
+	{
+		_pressed = pressed;
+	}
+	
+	
+	AxisControl::AxisControl(const String *name) :
+		InputControl(name),
+		_deadZone(0.0f),
+		_value(0.0f)
+	{}
+	
+	
+	void AxisControl::SetDeadzone(float zone)
+	{
+		_deadZone = zone;
+	}
+	void AxisControl::SetValue(float value)
+	{
+		_value = value;
 	}
 	
 	
@@ -93,6 +124,22 @@ namespace RN
 		return true;
 	}
 	
+	InputControl *InputDevice::GetControlWithName(const String *name) const
+	{
+		InputControl *result = nullptr;
+		
+		_controls->Enumerate<InputControl>([&](InputControl *control, size_t index, bool &stop) {
+			
+			if(control->GetName()->IsEqual(const_cast<String *>(name)))
+			{
+				result = control;
+				stop = true;
+			}
+			
+		});
+		
+		return result;
+	}
 	
 	Array *InputDevice::GetSupportedCommands() const
 	{

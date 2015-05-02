@@ -41,6 +41,15 @@ namespace TG
 			
 			RN::InputDevice *device = message->GetObject()->Downcast<RN::InputDevice>();
 			
+			if(device->GetCategory() & RN::InputDevice::Category::Joystick)
+			{
+				if(device->GetName()->GetRangeOfString(RNCSTR("Stick")).origin != RN::k::NotFound)
+					device->Activate();
+				
+				if(device->GetName()->GetRangeOfString(RNCSTR("Throttle")).origin != RN::k::NotFound)
+					device->Activate();
+			}
+			
 			if(device->GetCategory() & RN::InputDevice::Category::Gamepad)
 			{
 				_gamepad = device->Downcast<RN::GamepadDevice>();
