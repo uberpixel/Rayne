@@ -41,6 +41,7 @@ namespace RN
 
 		protected:
 			Node(String *name, Node *parent, Type type);
+			~Node();
 
 			void SetPath(String *path);
 
@@ -65,6 +66,7 @@ namespace RN
 		protected:
 			Directory(String *name, Node *parent);
 			Directory(const String *path);
+			~Directory();
 
 		private:
 			void ParseDirectory();

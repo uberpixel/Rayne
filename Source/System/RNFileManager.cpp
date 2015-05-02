@@ -28,6 +28,11 @@ namespace RN
 		if(_parent)
 			SetPath(_parent->GetPath()->StringByAppendingPathComponent(name));
 	}
+	FileManager::Node::~Node()
+	{
+		SafeRelease(_path);
+		_name->Release();
+	}
 
 	void FileManager::Node::SetPath(String *path)
 	{
@@ -53,6 +58,12 @@ namespace RN
 	{
 		SetPath(path->Copy()->Autorelease());
 		ParseDirectory();
+	}
+
+	FileManager::Directory::~Directory()
+	{
+		_children->Release();
+		_childMap->Release();
 	}
 
 	FileManager::Node *FileManager::Directory::GetChildWithName(const String *name) const
