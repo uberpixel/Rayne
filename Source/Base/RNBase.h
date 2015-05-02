@@ -52,7 +52,6 @@
 #include "RNException.h"
 #include "RNOptions.h"
 #include "RNExpected.h"
-#include "RNSingleton.h"
 #include "RNScopeGuard.h"
 #include "RNLockGuard.h"
 #include "../Math/RNConstants.h"

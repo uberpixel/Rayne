@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	static Kernel *__sharedInstance = nullptr;
+
 	Kernel::Kernel() :
 		_exit(false)
 	{}
@@ -17,10 +19,16 @@ namespace RN
 	Kernel::~Kernel()
 	{}
 
+	Kernel *Kernel::GetSharedInstance()
+	{
+		return __sharedInstance;
+	}
 
 
 	void Kernel::Bootstrap()
 	{
+		__sharedInstance = this;
+
 		WorkQueue::InitializeQueues();
 
 		_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true, std::bind(&Kernel::HandleObserver, this, std::placeholders::_1, std::placeholders::_2));
@@ -38,6 +46,8 @@ namespace RN
 
 		delete _fileManager;
 		delete this;
+
+		__sharedInstance = nullptr;
 	}
 
 

@@ -98,10 +98,12 @@ namespace RN
 	class __ConcreteMetaClass : public virtual MetaClass, public Traits...
 	{};
 	
-	class Catalogue : public ISingleton<Catalogue>
+	class Catalogue
 	{
 	public:
 		friend class MetaClass;
+
+		static Catalogue *GetSharedInstance();
 		
 		RNAPI MetaClass *GetClassWithName(const std::string &name) const;
 		RNAPI void EnumerateClasses(const std::function<void (MetaClass *meta, bool &stop)>& enumerator);
@@ -113,8 +115,6 @@ namespace RN
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
 		
 		std::unordered_map<std::string, MetaClass *> _metaClasses;
-		
-		RNDeclareSingleton(Catalogue)
 	};
 }
 

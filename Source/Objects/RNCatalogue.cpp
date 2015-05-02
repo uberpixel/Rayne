@@ -56,7 +56,13 @@ namespace RN
 	
 	
 	
-	RNDefineSingleton(Catalogue)
+	static Catalogue *__sharedInstance = nullptr;
+	RN_REGISTER_INITIALIZER(CatalogueConstructor, { __sharedInstance = new Catalogue(); })
+
+	Catalogue *Catalogue::GetSharedInstance()
+	{
+		return __sharedInstance;
+	}
 	
 	MetaClass *Catalogue::GetClassWithName(const std::string &name) const
 	{

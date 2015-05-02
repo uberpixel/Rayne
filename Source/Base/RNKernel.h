@@ -24,6 +24,8 @@ namespace RN
 	public:
 		friend struct __KernelBootstrapHelper;
 
+		static Kernel *GetSharedInstance();
+
 		void Run();
 		void Exit();
 

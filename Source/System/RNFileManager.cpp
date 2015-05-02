@@ -145,7 +145,7 @@ namespace RN
 	}
 #endif
 
-	static FileManager *__sharedInstance;
+	static FileManager *__sharedInstance = nullptr;
 
 	FileManager::FileManager() :
 		_nodes(new Array())

@@ -46,7 +46,6 @@ set(RAYNE_HEADERS
     Base/RNMemory.h
     Base/RNScopeGuard.h
     Base/RNSignal.h
-    Base/RNSingleton.h
     Base/RNSTL.h
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
