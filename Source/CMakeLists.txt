@@ -95,7 +95,7 @@ set(BUILD_64Bit YES)
 set(COMPILE_FLAGS "")
 
 if(APPLE)
-    set(COMPILE_FLAGS "-x objective-c++")
+    set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
 endif()
 
 if(NOT APPLE)
