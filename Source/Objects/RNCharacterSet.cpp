@@ -1,5 +1,5 @@
 //
-//  RNCharacterSet.h
+//  RNCharacterSet.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.

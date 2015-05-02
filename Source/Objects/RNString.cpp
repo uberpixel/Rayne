@@ -873,6 +873,33 @@ namespace RN
 		return Copy();
 	}
 
+	String *String::StringByDeletingPathExtension() const
+	{
+		String *copy = Copy();
+		copy->DeletePathExtension();
+		return copy->Autorelease();
+	}
+	String *String::StringByDeletingLastPathComponent() const
+	{
+		String *copy = Copy();
+		copy->DeleteLastPathComponent();
+		return copy->Autorelease();
+	}
+	String *String::StringByAppendingPathComponent(const String *component) const
+	{
+		String *copy = Copy();
+		copy->AppendPathComponent(component);
+		return copy->Autorelease();
+	}
+	String *String::StringByAppendingPathExtension(const String *extension) const
+	{
+		{
+			String *copy = Copy();
+			copy->AppendPathExtension(extension);
+			return copy->Autorelease();
+		}
+	}
+
 	
 	bool String::WriteToFile(const std::string &path, Encoding encoding)
 	{

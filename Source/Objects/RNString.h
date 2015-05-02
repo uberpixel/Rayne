@@ -94,6 +94,10 @@ namespace RN
 		RNAPI void DeleteLastPathComponent();
 		RNAPI void AppendPathComponent(const String *component);
 		RNAPI void AppendPathExtension(const String *extension);
+		RNAPI String *StringByDeletingPathExtension() const;
+		RNAPI String *StringByDeletingLastPathComponent() const;
+		RNAPI String *StringByAppendingPathComponent(const String *component) const;
+		RNAPI String *StringByAppendingPathExtension(const String *extension) const;
 		RNAPI Array *GetPathComponents() const;
 		RNAPI String *GetPathExtension() const;
 		RNAPI String *GetLastPathComponent() const;
