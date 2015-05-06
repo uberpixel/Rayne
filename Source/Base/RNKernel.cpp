@@ -98,6 +98,8 @@ namespace RN
 
 		_time += _delta;
 
+		_application->WillStep(_delta);
+
 		// Perform work submitted to the main queue
 		{
 			volatile bool finishWork;
@@ -124,6 +126,7 @@ namespace RN
 		}
 #endif
 
+		_application->DidStep(_delta);
 		_lastFrame = now;
 
 		// FPS cap

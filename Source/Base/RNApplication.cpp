@@ -25,7 +25,8 @@ namespace RN
 	void Application::DidFinishLaunching(Kernel *kernel) {}
 	void Application::WillExit() {}
 
-	void Application::Step(float delta) {}
+	void Application::WillStep(float delta) {}
+	void Application::DidStep(float delta) {}
 
 	void Application::WillBecomeActive() {}
 	void Application::DidBecomeActive() {}
