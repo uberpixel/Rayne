@@ -8,7 +8,8 @@
 #include "RNBase.h"
 
 #if RN_PLATFORM_MAC_OS
-	#include <Foundation/Foundation.h>
+	#import <Cocoa/Cocoa.h>
+	#import <Foundation/Foundation.h>
 #endif
 
 #endif /* __RAYNE_BASEINTERNAL_H__ */

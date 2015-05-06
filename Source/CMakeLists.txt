@@ -3,6 +3,7 @@ project(Rayne)
 
 set(RAYNE_SOURCES
     Base/RNMemory.cpp
+    Base/RNApplication.cpp
     Base/RNBase.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
@@ -35,6 +36,7 @@ set(RAYNE_SOURCES
 
 set(RAYNE_HEADERS
     Rayne.h
+    Base/RNApplication.h
     Base/RNBase.h
     Base/RNDefines.h
     Base/RNOptions.h

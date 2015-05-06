@@ -6,27 +6,67 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNBase.h"
+#include "RNBaseInternal.h"
 #include "RNKernel.h"
+
+#if RN_PLATFORM_MAC_OS
+
+@interface RNApplication : NSApplication <NSApplicationDelegate>
+@end
+
+@implementation RNApplication
+
+- (void)sendEvent:(NSEvent *)event
+{
+	if([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask))
+		[[self keyWindow] sendEvent:event];
+
+	[super sendEvent:event];
+}
+
+@end
+
+#endif
 
 namespace RN
 {
 	struct __KernelBootstrapHelper
 	{
 	public:
-		static Kernel *BootstrapKernel()
+		static Kernel *BootstrapKernel(Application *app)
 		{
-			Kernel *result = new Kernel();
+			Kernel *result = new Kernel(app);
 			result->Bootstrap();
 
 			return result;
 		}
+
+		static void TearDownKernel(Kernel *kernel)
+		{
+			kernel->TearDown();
+		}
 	};
 
-	Kernel *Initialize(int argc, char *argv[])
+	void Initialize(int argc, char *argv[], Application *app)
 	{
-		Kernel *result = __KernelBootstrapHelper::BootstrapKernel();
-		return result;
+		RN_ASSERT(app, "Application mustn't be NULL");
+
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool {
+			[RNApplication sharedApplication];
+			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+			[NSApp finishLaunching];
+
+			[[RNApplication sharedApplication] setDelegate:(RNApplication *)[RNApplication sharedApplication]];
+		}
+#endif
+
+		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app);
+		result->Run();
+
+		__KernelBootstrapHelper::TearDownKernel(result);
+
+		std::exit(EXIT_SUCCESS);
 	}
 
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)

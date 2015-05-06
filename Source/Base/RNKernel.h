@@ -10,6 +10,7 @@
 #define __RAYNE_KERNEL_H__
 
 #include "RNBase.h"
+#include "RNApplication.h"
 #include "../System/RNFileManager.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
@@ -29,16 +30,19 @@ namespace RN
 		void Run();
 		void Exit();
 
-		void TearDown();
+		void SetMaxFPS(uint32 maxFPS);
 
 	private:
-		Kernel();
+		Kernel(Application *app);
 		~Kernel();
 
 		void Bootstrap();
+		void FinishBootstrap();
+		void TearDown();
 
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
 
+		Application *_application;
 		FileManager *_fileManager;
 
 		Thread *_mainThread;
@@ -47,6 +51,15 @@ namespace RN
 
 		RunLoopObserver *_observer;
 		std::atomic<bool> _exit;
+
+		size_t _frames;
+		double _minDelta;
+		uint32 _maxFPS;
+		Clock::time_point _lastFrame;
+		bool _firstFrame;
+
+		double _time;
+		double _delta;
 	};
 }
 
