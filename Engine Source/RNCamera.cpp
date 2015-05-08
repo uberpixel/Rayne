@@ -606,7 +606,7 @@ namespace RN
 	
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		//Get camera frustums extends to be covered by the split
+		//Get camera frustum extends to be covered by the split
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
 		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
 		Vector3 farcorner2 = camera->ToWorld(Vector3(-1.0f, -1.0f, far));
