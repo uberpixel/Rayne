@@ -95,6 +95,8 @@ namespace RN
 		ApplyNodes();
 		UpdateEditMode(delta);
 		
+		RunWorldAttachement(&WorldAttachment::StepWorldEditMode, delta);
+		
 		AutoreleasePool pool;
 		std::vector<SceneNode *> retry;
 		
@@ -162,7 +164,6 @@ namespace RN
 		
 		ApplyNodes();
 		
-		RunWorldAttachement(&WorldAttachment::StepWorldEditMode, delta);
 		DidUpdateToFrame(frame);
 	}
 	
@@ -176,6 +177,8 @@ namespace RN
 		
 		ApplyNodes();
 		Update(delta);
+		
+		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		AutoreleasePool pool;
 		std::vector<SceneNode *> retry;
@@ -243,7 +246,6 @@ namespace RN
 		pool.Drain();
 	
 		ApplyNodes();
-		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		DidUpdateToFrame(frame);
 	}

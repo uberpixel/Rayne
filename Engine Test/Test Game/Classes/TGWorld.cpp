@@ -44,8 +44,20 @@ namespace TG
 			
 			if(device->GetCategory() & RN::InputDevice::Category::Joystick)
 			{
-				//if(device->GetName()->GetRangeOfString(RNCSTR("Stick")).origin != RN::k::NotFound)
-				//	device->Activate();
+				if(device->GetName()->GetRangeOfString(RNCSTR("Stick")).origin != RN::k::NotFound)
+				{
+					RN::Kernel::GetSharedInstance()->ScheduleFunction([device]{
+						device->Activate();
+					});
+					
+					
+					device->GetControls()->Enumerate<RN::InputControl>([&](RN::InputControl *control, size_t index, bool &stop) {
+						
+						if(control->IsKindOfClass(RN::AxisControl::GetMetaClass()))
+							_axises->AddObject(control);
+						
+					});
+				}
 				
 				if(device->GetName()->GetRangeOfString(RNCSTR("Throttle")).origin != RN::k::NotFound)
 				{
