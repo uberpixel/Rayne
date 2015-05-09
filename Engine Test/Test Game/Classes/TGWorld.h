@@ -80,6 +80,10 @@ namespace TG
 		DebugDrawer *_debugDrawer;
 		CutScene *_cutScene;
 		RN::GamepadDevice *_gamepad;
+		RN::Array *_axises;
+		
+		RN::UI::Widget *_widget;
+		RN::UI::Label *_label;
 		
 		RNDeclareMeta(World)
 	};

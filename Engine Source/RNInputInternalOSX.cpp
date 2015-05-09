@@ -97,6 +97,7 @@ namespace RN
 	 ***************************/
 	
 	HIDElement::HIDElement(IOHIDElementRef element) :
+		cookie(IOHIDElementGetCookie(element)),
 		logicalMinimum(IOHIDElementGetLogicalMin(element)),
 		logicalMaximum(IOHIDElementGetLogicalMax(element)),
 		physicalMinimum(IOHIDElementGetPhysicalMin(element)),
@@ -106,7 +107,9 @@ namespace RN
 		reportSize(IOHIDElementGetReportSize(element)),
 		reportCount(IOHIDElementGetReportCount(element)),
 		control(nullptr)
-	{}
+	{
+		this->element = (IOHIDElementRef)CFRetain(element);
+	}
 
 	/***************************
 	 *
@@ -116,11 +119,13 @@ namespace RN
 	
 	GenericJoystickDevice::GenericJoystickDevice(const String *vendor, const String *name, IOHIDDeviceRef device) :
 		InputDevice(Category::Joystick, vendor, name),
-		HIDDevice(device),
-		_axisCount(0)
+		_axisCount(0),
+		_device(device),
+		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 50, kIOHIDOptionsTypeNone))
 	{
+		CFRetain(_device);
 		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(device, NULL, kIOHIDOptionsTypeNone);
-		
+
 		RNDebug("Device: %s", name->GetUTF8String());
 		ParseHIDElements(nullptr, elements);
 		
@@ -176,6 +181,7 @@ namespace RN
 					
 					std::vector<HIDElement *> &telements = _reports[IOHIDElementGetReportID(element)];
 					telements.push_back(telement);
+					_allElements.push_back(telement);
 					
 					switch(telement->usagePage)
 					{
@@ -240,11 +246,18 @@ namespace RN
 	{
 		if(InputDevice::Activate())
 		{
-			if(!Open())
+			IOHIDDeviceOpen(_device, kIOHIDOptionsTypeNone);
+			IOHIDDeviceScheduleWithRunLoop(_device, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+			
+			IOHIDQueueStart(_queue);
+			IOHIDQueueRegisterValueAvailableCallback(_queue, &GenericJoystickDevice::QueueCallback, this);
+			
+			for(HIDElement *element : _allElements)
 			{
-				InputDevice::Deactivate();
-				return false;
+				IOHIDQueueAddElement(_queue, element->element);
 			}
+			
+			IOHIDQueueScheduleWithRunLoop(_queue, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 			
 			return true;
 		}
@@ -256,7 +269,7 @@ namespace RN
 	{
 		if(InputDevice::Deactivate())
 		{
-			Close();
+			IOHIDQueueStop(_queue);
 			return true;
 		}
 		
@@ -266,80 +279,68 @@ namespace RN
 	void GenericJoystickDevice::Update()
 	{}
 	
-#define BitfieldMask(l) ((1 << (l)) - 1)
-#define BitfieldGetValue(v, s, l) (((v) >> s) & BitfieldMask(l))
-	
-#define ReadReportData(report, i, l) ({ \
-	uint32_t x = (uint32_t)(i); \
-	uint32_t index = x / 32; \
- 	uint32_t o = x % 32; \
-	uint32_t r = report[index]; \
-	(BitfieldGetValue(r, o, l)); })
-	
-	void GenericJoystickDevice::HandleInputReport(IOHIDReportType type, uint32 reportID, uint8 *report, size_t length)
+	void GenericJoystickDevice::HandleQueue()
 	{
-		auto iterator = _reports.find(reportID);
-		if(iterator != _reports.end())
+		while(1)
 		{
-			const std::vector<HIDElement *> &elements = (*iterator).second;
+			IOHIDValueRef value = IOHIDQueueCopyNextValueWithTimeout(_queue, 0.0);
+			if(!value)
+				break;
 			
-			size_t offset = 0;
-			uint32_t *reportData = (uint32_t *)report;
+			IOHIDElementRef element = IOHIDValueGetElement(value);
+			IOHIDElementCookie cookie = IOHIDElementGetCookie(element);
 			
-			for(auto iterator = elements.rbegin(); iterator != elements.rend(); iterator ++)
+			for(HIDElement *helement : _allElements)
 			{
-				HIDElement *element = *iterator;
-				
-				if(element->reportSize > 0)
+				if(helement->cookie == cookie)
 				{
-					for(size_t i = 0; i< element->reportCount; i ++)
+					switch(helement->usagePage)
 					{
-						switch(element->usagePage)
+						case kHIDPage_GenericDesktop:
 						{
-							case kHIDPage_GenericDesktop:
+							switch(helement->usage)
 							{
-								switch(element->usage)
+								case kHIDUsage_GD_X:
+								case kHIDUsage_GD_Y:
+								case kHIDUsage_GD_Z:
+								case kHIDUsage_GD_Rx:
+								case kHIDUsage_GD_Ry:
+								case kHIDUsage_GD_Rz:
 								{
-									case kHIDUsage_GD_X:
-									case kHIDUsage_GD_Y:
-									case kHIDUsage_GD_Z:
-									case kHIDUsage_GD_Rx:
-									case kHIDUsage_GD_Ry:
-									case kHIDUsage_GD_Rz:
-									{
-										uint32_t value = ReadReportData(reportData, offset, element->reportSize);
-										double result = static_cast<double>((value + element->logicalMinimum)) / element->logicalMaximum;
-										
-										result = (result * 2.0) - 1.0;
-										
-										AxisControl *control = static_cast<AxisControl *>(element->control);
-										
-										if(Math::FastAbs(result) < control->GetDeadzone())
-											result = 0.0;
-										
-										control->SetValue(result);
-										break;
-									}
+									AxisControl *control = static_cast<AxisControl *>(helement->control);
+									double result = static_cast<double>((IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical) + helement->logicalMinimum)) / helement->logicalMaximum;
+									
+									result = (result * 2.0) - 1.0;
+									
+									control->SetValue(result);
+									
+									break;
 								}
-								
-								break;
 							}
-								
-							case kHIDPage_Button:
-							{
-								uint32_t value = ReadReportData(reportData, offset, element->reportSize);
-								ButtonControl *control = static_cast<ButtonControl *>(element->control);
-								
-								control->SetPressed(value);
-								break;
-							}
+							break;
 						}
-						
-						offset += element->reportSize;
+							
+						case kHIDPage_Button:
+						{
+							CFIndex result = IOHIDValueGetIntegerValue(value);
+							
+							ButtonControl *control = static_cast<ButtonControl *>(helement->control);
+							control->SetPressed(result > 0);
+							break;
+						}
+
 					}
 				}
 			}
+			
+			CFRelease(value);
 		}
+	}
+	
+	void GenericJoystickDevice::QueueCallback(void *context, IOReturn result, void *sender)
+	{
+		GenericJoystickDevice *device = reinterpret_cast<GenericJoystickDevice *>(context);
+		device->HandleQueue();
 	}
 
 	/***************************

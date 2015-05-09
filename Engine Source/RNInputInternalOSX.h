@@ -47,6 +47,9 @@ namespace RN
 	{
 		HIDElement(IOHIDElementRef element);
 		
+		IOHIDElementRef element;
+		IOHIDElementCookie cookie;
+		
 		CFIndex logicalMinimum;
 		CFIndex logicalMaximum;
 		
@@ -62,7 +65,7 @@ namespace RN
 		InputControl *control;
 	};
 	
-	class GenericJoystickDevice : public InputDevice, public HIDDevice
+	class GenericJoystickDevice : public InputDevice
 	{
 	public:
 		GenericJoystickDevice(const String *vendor, const String *name, IOHIDDeviceRef device);
@@ -72,15 +75,19 @@ namespace RN
 		bool Deactivate() override;
 		void Update() override;
 		
-		void HandleInputReport(IOHIDReportType type, uint32 reportID, uint8 *report, size_t length) override;
-		
 	private:
-		void ParseHIDElements(IOHIDElementRef parent, CFArrayRef elements);
+		void HandleQueue();
 		
+		void ParseHIDElements(IOHIDElementRef parent, CFArrayRef elements);
+		static void QueueCallback(void *context, IOReturn result, void *sender);
+		
+		std::vector<HIDElement *> _allElements;
 		std::unordered_map<uint32_t, HIDElement *> _elements;
 		std::unordered_map<uint32_t, std::vector<HIDElement *>> _reports;
 		
 		size_t _axisCount;
+		IOHIDQueueRef _queue;
+		IOHIDDeviceRef _device;
 	};
 	
 	class Dualshock4Device : public GamepadDevice, public HIDDevice

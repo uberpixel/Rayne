@@ -32,6 +32,7 @@ namespace TG
 		_captureCount(0)
 	{
 		_debugDrawer = new DebugDrawer();
+		_axises = new RN::Array();
 		AddAttachment(_debugDrawer);
 		
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputInputDeviceRegistered, [this](RN::Message *message) {
@@ -43,11 +44,23 @@ namespace TG
 			
 			if(device->GetCategory() & RN::InputDevice::Category::Joystick)
 			{
-				if(device->GetName()->GetRangeOfString(RNCSTR("Stick")).origin != RN::k::NotFound)
-					device->Activate();
+				//if(device->GetName()->GetRangeOfString(RNCSTR("Stick")).origin != RN::k::NotFound)
+				//	device->Activate();
 				
 				if(device->GetName()->GetRangeOfString(RNCSTR("Throttle")).origin != RN::k::NotFound)
-					device->Activate();
+				{
+					RN::Kernel::GetSharedInstance()->ScheduleFunction([device]{
+						device->Activate();
+					});
+					
+					
+					device->GetControls()->Enumerate<RN::InputControl>([&](RN::InputControl *control, size_t index, bool &stop) {
+						
+						if(control->IsKindOfClass(RN::AxisControl::GetMetaClass()))
+							_axises->AddObject(control);
+						
+					});
+				}
 			}
 			
 			if(device->GetCategory() & RN::InputDevice::Category::Gamepad)
@@ -74,6 +87,16 @@ namespace TG
 	{
 		RN::World::LoadOnThread(thread, deserializer);
 		CreateCameras();
+		
+		_widget = new RN::UI::Widget(RN::UI::Widget::Style::Titled, RN::Rect(0, 0, 200, 400));
+		_widget->Open();
+		
+		_label = new RN::UI::Label();
+		_label->SetFrame(RN::Rect(0, 0, 200, 400));
+		_label->SetNumberOfLines(0);
+		_label->SetTextColor(RN::UI::Color::White());
+		
+		_widget->GetContentView()->AddSubview(_label);
 	}
 	
 	void World::HandleInputEvent(RN::Event *event)
@@ -250,6 +273,18 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
+		RN::String *string = RNSTR("");
+		
+		_axises->Enumerate<RN::AxisControl>([&](RN::AxisControl *control, size_t index, bool &stop) {
+			
+			string->Append("%s: %f\n", control->GetName()->GetUTF8String(), control->GetValue());
+			
+			//RNDebug("Control %s: %f", control->GetName()->GetUTF8String(), control->GetValue());
+			
+		});
+		
+		_label->SetText(string);
+		
 		if(_cutScene)
 		{
 			_cutScene->Update(delta);
