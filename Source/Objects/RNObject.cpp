@@ -22,7 +22,7 @@ namespace RN
 	Object::~Object()
 	{
 		if(!std::uncaught_exception())
-			RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
+			RN_ASSERT(_refCount.load(std::memory_order_relaxed) <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
 		for(auto &pair : _associatedObjects)
 		{
@@ -69,15 +69,18 @@ namespace RN
 	
 	Object *Object::Retain()
 	{
-		_refCount.fetch_add(1, std::memory_order_relaxed);
+		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
 	}
 	
 	void Object::Release()
 	{
+		// If this is the last reference this thread has, which it very well might be,
+		// we need to flush all accesses done so far. Thus the release barrier
 		if(_refCount.fetch_sub(1, std::memory_order_release) == 1)
 		{
-			std::atomic_thread_fence(std::memory_order_acquire); // Synchronize all accesses to this object before deleting it
+			// Catch up with all changes from all other threads thad had access to the object
+			std::atomic_thread_fence(std::memory_order_acquire);
 
 			CleanUp();
 			delete this;
@@ -172,36 +175,35 @@ namespace RN
 		RN_ASSERT(value, "Value mustn't be NULL!");
 		RN_ASSERT(key, "Key mustn't be NULL!");
 		
-		Object *object = 0;
-		
-		switch(policy)
+		Object *object = nullptr;
+
+		if(value)
 		{
-			case MemoryPolicy::Assign:
-				object = value;
-				break;
-				
-			case MemoryPolicy::Retain:
-				object = value->Retain();
-				break;
-				
-			case MemoryPolicy::Copy:
-				object = value->GetMetaClass()->ConstructWithCopy(value);
-				break;
+			switch(policy)
+			{
+				case MemoryPolicy::Assign:
+					object = value;
+					break;
+
+				case MemoryPolicy::Retain:
+					object = value->Retain();
+					break;
+
+				case MemoryPolicy::Copy:
+					object = value->GetMetaClass()->ConstructWithCopy(value);
+					break;
+			}
 		}
 		
 		Lock();
 		__RemoveAssociatedObject(key);
-		
-		std::tuple<Object *, MemoryPolicy> tuple = std::tuple<Object *, MemoryPolicy>(object, policy);
-		_associatedObjects.insert(decltype(_associatedObjects)::value_type(const_cast<void *>(key), tuple));
-		
-		Unlock();
-	}
-	
-	void Object::RemoveAssociatedObject(const void *key)
-	{
-		Lock();
-		__RemoveAssociatedObject(key);
+
+		if(object)
+		{
+			std::tuple<Object *, MemoryPolicy> tuple = std::make_tuple(object, policy);
+			_associatedObjects.emplace(const_cast<void *>(key), std::move(tuple));
+		}
+
 		Unlock();
 	}
 	
@@ -397,11 +399,11 @@ namespace RN
 	
 	void Object::SetValueForUndefinedKey(Object *value, const std::string &key)
 	{
-		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
+		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key " + key);
 	}
 	
 	Object *Object::GetValueForUndefinedKey(const std::string &key)
 	{
-		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key" + key);
+		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key " + key);
 	}
 }

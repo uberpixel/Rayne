@@ -82,7 +82,6 @@ namespace RN
 		};
 		
 		RNAPI void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
-		RNAPI void RemoveAssociatedObject(const void *key);
 		RNAPI Object *GetAssociatedObject(const void *key);
 		
 		// -----------------
