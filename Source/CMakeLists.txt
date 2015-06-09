@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 set(RAYNE_SOURCES
     Base/RNMemory.cpp
     Base/RNApplication.cpp
@@ -26,6 +28,12 @@ set(RAYNE_SOURCES
     Objects/RNDictionary.cpp
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
+    Rendering/Metal/RNMetalRenderer.cpp
+    Rendering/Metal/RNMetalRendererDescriptor.cpp
+    Rendering/Metal/RNMetalWindow.cpp
+    Rendering/RNRenderer.cpp
+    Rendering/RNRenderingDescriptor.cpp
+    Rendering/RNWindow.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
     Threads/RNThread.cpp
@@ -81,6 +89,12 @@ set(RAYNE_HEADERS
     Objects/RNCharacterSet.h
     Objects/RNString.h
     Objects/RNValue.h
+    Rendering/Metal/RNMetalRenderer.h
+    Rendering/Metal/RNMetalRendererDescriptor.h
+    Rendering/Metal/RNMetalWindow.h
+    Rendering/RNRenderer.h
+    Rendering/RNRenderingDescriptor.h
+    Rendering/RNWindow.h
     System/RNFileManager.h
     System/RNScreen.h
     Threads/RNRunLoop.h
@@ -110,6 +124,10 @@ if(APPLE)
     find_library(IOKIT_LIBRARY IOKit)
 
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
+    set(CMAKE_EXE_LINKER_FLAGS "-framework Metal")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+    set(CMAKE_OSX_SYSROOT /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
+    set(XCODE_ATTRIBUTE_SDKROOT macosx)
     set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
 
