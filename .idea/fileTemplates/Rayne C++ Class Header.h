@@ -12,7 +12,7 @@
 #[[#ifndef]]# __RAYNE_${NormalizedNameCaps}_H_
 #[[#define]]# __RAYNE_${NormalizedNameCaps}_H_
 
-#include "RNBase.h"
+#[[#include]]# "RNBase.h"
 
 namespace RN
 {
