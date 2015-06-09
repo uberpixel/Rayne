@@ -162,15 +162,7 @@ namespace RN
 
 	RN_INLINE Rect Rect::GetIntegral() const
 	{
-		Rect result(*this);
-
-		result.x = floorf(result.x);
-		result.y = floorf(result.y);
-
-		result.width  = floorf(result.width);
-		result.height = floorf(result.height);
-
-		return result;
+		return Rect(*this).Integral();
 	}
 
 
