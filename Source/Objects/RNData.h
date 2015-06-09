@@ -14,6 +14,7 @@
 
 namespace RN
 {
+	class String;
 	class Data : public Object
 	{
 	public:
@@ -27,12 +28,13 @@ namespace RN
 		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI static Data *WithBytes(const uint8 *bytes, size_t length);
+		RNAPI static Expected<Data *> WithContentsOfFile(const String *file);
 
 		RNAPI void Append(const void *bytes, size_t length);
 		RNAPI void Append(Data *other);
 		
 		RNAPI void ReplaceBytes(const void *bytes, const Range &range);
-		RNAPI void WriteToFile(const std::string &file);
+		RNAPI bool WriteToFile(const String *file);
 		
 		RNAPI void GetBytesInRange(void *buffer, Range range) const;
 		RNAPI Data *GetDataInRange(Range range) const;

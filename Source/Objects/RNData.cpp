@@ -6,10 +6,15 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <fcntl.h>
+#include <unistd.h>
 #include "RNData.h"
 #include "RNSerialization.h"
+#include "RNString.h"
+#include "../System/RNFileManager.h"
 
 #define kRNDataIncreaseLength 64
+#define kRNDataReadBufferSize 1024
 
 namespace RN
 {
@@ -84,6 +89,43 @@ namespace RN
 		return data->Autorelease();
 	}
 
+	Expected<Data *> Data::WithContentsOfFile(const String *file)
+	{
+		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
+		if(!path)
+			return nullptr;
+
+		int fd = open(path->GetUTF8String(), O_RDONLY);
+		if(fd < 0)
+			return InvalidArgumentException("Couldn't open file");
+
+		off_t size = lseek(fd, 0, SEEK_END);
+		lseek(fd, 0, SEEK_SET);
+
+		uint8 *bytes = new uint8[size];
+		size_t bytesRead = 0;
+
+		while(bytesRead < size)
+		{
+			ssize_t result = read(fd, bytes + bytesRead, size - bytesRead);
+			if(result < 0)
+			{
+				if(errno == EINTR)
+					continue;
+
+				close(fd);
+				return InconsistencyException("Failed to read file");
+			}
+			else
+				bytesRead += result;
+		}
+
+		close(fd);
+
+		Data *data = new Data(bytes, size, true, true);
+		return data->Autorelease();
+	}
+
 	
 	
 	void Data::Initialize(const void *bytes, size_t length)
@@ -143,11 +185,34 @@ namespace RN
 		std::copy(data, data + range.length, _bytes + range.origin);
 	}
 	
-	void Data::WriteToFile(const std::string &name)
+	bool Data::WriteToFile(const String *file)
 	{
-		/*File *file = new File(name, File::FileMode::Write);
-		file->WriteBuffer(_bytes, _length);
-		file->Release();*/
+		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, FileManager::ResolveHint::CreateNode);
+		if(!path)
+			return false;
+
+		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT);
+		if(fd < 0)
+			return false;
+
+		size_t written = 0;
+		while(written < _length)
+		{
+			ssize_t result = write(fd, _bytes + written, _length - written);
+			if(result < 0)
+			{
+				if(errno == EINTR)
+					continue;
+
+				close(fd);
+				return false;
+			}
+
+			written += result;
+		}
+
+		close(fd);
+		return true;
 	}
 	
 	
