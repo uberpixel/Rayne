@@ -60,7 +60,7 @@ namespace RN
 		T GetValue() const
 		{
 			if(TypeTranslator<T>::value != _type || sizeof(T) != _size)
-				throw Exception(Exception::Type::InconsistencyException, "Type mismatch!");
+				throw InconsistencyException("Type mismatch!");
 			
 			return static_cast<T>(*(reinterpret_cast<T *>(_storage)));
 		}
@@ -69,7 +69,7 @@ namespace RN
 		T &GetValue()
 		{
 			if(TypeTranslator<T>::value != _type || sizeof(T) != _size)
-				throw Exception(Exception::Type::InconsistencyException, "Type mismatch!");
+				throw InconsistencyException("Type mismatch!");
 			
 			return *(reinterpret_cast<T *>(_storage));
 		}

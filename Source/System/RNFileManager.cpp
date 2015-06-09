@@ -79,7 +79,7 @@ namespace RN
 		if(!dir)
 		{
 			errno = error;
-			throw Exception(Exception::Type::InconsistencyException, "Couldn't open directory");
+			throw InconsistencyException("Couldn't open directory");
 		}
 
 		struct dirent *ent;

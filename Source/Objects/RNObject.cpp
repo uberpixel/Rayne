@@ -115,7 +115,7 @@ namespace RN
 	
 	void Object::Serialize(Serializer *serializer)
 	{
-		throw Exception(Exception::Type::GenericException, "Serialization not supported!");
+		throw InconsistencyException("Serialization not supported (or a subclass called Object::Serialize)");
 	}
 	
 	
@@ -399,11 +399,11 @@ namespace RN
 	
 	void Object::SetValueForUndefinedKey(Object *value, const std::string &key)
 	{
-		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key " + key);
+		throw InconsistencyException("SetValue() for undefined key " + key);
 	}
 	
 	Object *Object::GetValueForUndefinedKey(const std::string &key)
 	{
-		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key " + key);
+		throw InconsistencyException("GetValue() for undefined key " + key);
 	}
 }

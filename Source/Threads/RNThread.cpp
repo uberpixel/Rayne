@@ -178,7 +178,7 @@ namespace RN
 	void Thread::Start()
 	{
 		if(_isDetached.exchange(true))
-			throw Exception(Exception::Type::InconsistencyException, "Can't start already detached thread!");
+			throw InconsistencyException("Can't start already detached thread!");
 		
 		_thread = std::move(std::thread([&]() {
 			Entry();

@@ -17,61 +17,37 @@
 namespace RN
 {
 	class Thread;
+	class String;
 	class Exception
 	{
 	public:
-		enum class Type
-		{
-			GenericException,
-			InvalidArgumentException,
-			RangeException,
-			InconsistencyException,
-			DowncastException,
-			
-			ApplicationNotFoundException,
-			NoCPUException,
-			NoGPUException,
-			NoContextException,
-			
-			ModuleNotFoundException,
-			ModuleUnsupportedABIException,
-			ModuleConstructFailedException,
-			
-			TextureFormatUnsupportedException,
-			
-			ShaderUnsupportedException,
-			ShaderCompilationFailedException,
-			ShaderLinkingFailedException,
-			
-			FramebufferException,
-			FramebufferUnsupportedException,
-			FramebufferIncompleteAttachmentException,
-			FramebufferIncompleteMissingAttachmentException,
-			FramebufferIncompleteDrawbufferException,
-			FramebufferIncompleteMultisampleException,
-			FramebufferIncompleteLayerException,
-			FramebufferIncompleteDimensionsException
-		};
-		
-		RNAPI Exception(Type type, const std::string &reason);
-		RNAPI Exception(Type type, const char *format, ...);
-		
-		Type GetType() const { return _type; }
+		RNAPI Exception(const std::string &reason);
+		RNAPI Exception(const String *reason);
+
 		Thread *GetThread() const { return _thread; }
-		
-		RNAPI const char *GetStringifiedType() const;
 		const std::string &GetReason() const { return _reason; }
 		const std::vector<std::pair<uintptr_t, std::string>>& GetCallStack() const { return _callStack; }
 		
 	private:
 		void GatherInfo();
-		
-		Type _type;
+
 		std::string _reason;
 		
 		Thread *_thread;
 		std::vector<std::pair<uintptr_t, std::string>> _callStack;
 	};
+
+	#define RNExceptionType(name) \
+		class name##Exception : public RN::Exception \
+		{ \
+		public: \
+			using Exception::Exception; \
+		};
+
+	RNExceptionType(InvalidArgument)
+	RNExceptionType(Range)
+	RNExceptionType(Downcast)
+	RNExceptionType(Inconsistency)
 }
 
 

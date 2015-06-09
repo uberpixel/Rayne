@@ -149,7 +149,7 @@ namespace RN
 				break;
 				
 			default:
-				throw Exception(Exception::Type::InconsistencyException, "");
+				throw InconsistencyException("Invalid UTF8 sequence");
 		}
 		
 		bytes ++;

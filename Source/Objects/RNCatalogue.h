@@ -24,9 +24,9 @@ namespace RN
 		RNAPI std::string GetName() const { return _name; }
 		RNAPI std::string GetFullname() const;
 		
-		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
-		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw Exception(Exception::Type::GenericException, ""); }
-		virtual Object *ConstructWithCopy(Object *) { throw Exception(Exception::Type::GenericException, ""); }
+		virtual Object *Construct() { throw InconsistencyException("Construct() called but not provided"); }
+		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw InconsistencyException("ConstructWithDeserializer() called but not provided"); }
+		virtual Object *ConstructWithCopy(Object *) { throw InconsistencyException("ConstructWithCopy() called but not provided");  }
 		
 		virtual bool SupportsConstruction() const { return false; }
 		virtual bool SupportsSerialization() const { return false; }

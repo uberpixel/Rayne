@@ -147,7 +147,7 @@ namespace RN
 		}
 		
 		if(/*!object->IsKindOfClass(Asset::GetMetaClass()) && */!object->GetClass()->SupportsSerialization())
-			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->GetClass()->GetFullname().c_str());
+			throw InvalidArgumentException(RNSTR("EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->GetClass()->GetFullname().c_str()));
 		
 		auto iterator = _objectTable.find(object);
 		if(iterator != _objectTable.end())
@@ -354,7 +354,7 @@ namespace RN
 		PeekHeader(&type, size);
 		
 		if(type != expected)
-			throw Exception(Exception::Type::InconsistencyException, "Expected type %c but got %c!", expected, type);
+			throw InconsistencyException(RNSTR("Expected type %c but got %c!", expected, type));
 		
 		DecodeHeader(nullptr, nullptr);
 	}
@@ -695,7 +695,7 @@ namespace RN
 		AssertType(expected, &tsize);
 		
 		if(tsize != size)
-			throw Exception(Exception::Type::InconsistencyException, "Size inconsitency (%i != %i)", (int)tsize, (int)size);
+			throw InconsistencyException(RNSTR("Size inconsitency (%i != %i)", (int)tsize, (int)size));
 		
 		_data->GetBytesInRange(buffer, Range(_index, size));
 		_index += size;

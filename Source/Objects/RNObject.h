@@ -95,8 +95,8 @@ namespace RN
 			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
 			
 			if(!property)
-				throw Exception(Exception::Type::InvalidArgumentException, "No property for key \"%s\"", key.c_str());
-			
+				throw InvalidArgumentException("No property for key");
+
 			Lock();
 			property->AssertSignal();
 			

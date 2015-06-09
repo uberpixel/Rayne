@@ -25,29 +25,19 @@
 
 namespace RN
 {
-	Exception::Exception(Type type, const std::string &reason) :
-		_type(type),
+	Exception::Exception(const std::string &reason) :
 		_reason(reason)
 	{
 		GatherInfo();
 	}
 	
-	Exception::Exception(Type type, const char *format, ...) :
-		_type(type)
+	Exception::Exception(const String *reason) :
+		_reason(reason->GetUTF8String())
 	{
-		char buffer[1024];
-		va_list args;
-		
-		va_start(args, format);
-		vsnprintf(buffer, 1024, format, args);
-		va_end(args);
-		
-		buffer[1023] = '\0';
-		
-		_reason = buffer;
-		
 		GatherInfo();
 	}
+
+
 	
 	RN_NOINLINE void Exception::GatherInfo()
 	{
@@ -109,49 +99,5 @@ namespace RN
 		
 		if(_reason.empty())
 			_reason = "Jabberwock is killing user";
-	}
-	
-	
-#define CaseType(type) \
-	case type: \
-		return #type ; \
-		break;
-	
-	const char *Exception::GetStringifiedType() const
-	{
-		switch(_type)
-		{
-			CaseType(Type::GenericException)
-			CaseType(Type::InvalidArgumentException)
-			CaseType(Type::RangeException)
-			CaseType(Type::InconsistencyException)
-			CaseType(Type::DowncastException)
-				
-			CaseType(Type::ApplicationNotFoundException)
-			CaseType(Type::NoCPUException)
-			CaseType(Type::NoGPUException)
-			CaseType(Type::NoContextException)
-				
-			CaseType(Type::ModuleNotFoundException)
-			CaseType(Type::ModuleUnsupportedABIException)
-			CaseType(Type::ModuleConstructFailedException)
-				
-			CaseType(Type::TextureFormatUnsupportedException)
-			
-			CaseType(Type::ShaderUnsupportedException)
-			CaseType(Type::ShaderCompilationFailedException)
-			CaseType(Type::ShaderLinkingFailedException)
-				
-			CaseType(Type::FramebufferException)
-			CaseType(Type::FramebufferUnsupportedException)
-			CaseType(Type::FramebufferIncompleteAttachmentException)
-			CaseType(Type::FramebufferIncompleteMissingAttachmentException)
-			CaseType(Type::FramebufferIncompleteDrawbufferException)
-			CaseType(Type::FramebufferIncompleteDimensionsException)
-			CaseType(Type::FramebufferIncompleteLayerException)
-			CaseType(Type::FramebufferIncompleteMultisampleException)
-		}
-		
-		return nullptr;
 	}
 }

@@ -338,7 +338,7 @@ namespace RN
 				return sizeof(bool);
 		}
 
-		throw Exception(Exception::Type::InconsistencyException, "Unknwon type!");
+		throw InconsistencyException("Invalid type!");
 	}
 	
 	size_t Number::GetHash() const
