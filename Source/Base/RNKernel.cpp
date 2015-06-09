@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "../System/RNScreen.h"
 
 namespace RN
 {
@@ -40,6 +41,8 @@ namespace RN
 		_runLoop = _mainThread->GetRunLoop();
 		_runLoop->AddObserver(_observer);
 
+		Screen::InitializeScreens();
+
 		_fileManager = new FileManager();
 		_firstFrame = true;
 		_frames = 0;
@@ -60,6 +63,7 @@ namespace RN
 	{
 		_application->WillExit();
 
+		Screen::TeardownScreens();
 		WorkQueue::TearDownQueues();
 
 		delete _fileManager;

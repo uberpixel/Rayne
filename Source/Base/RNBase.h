@@ -63,6 +63,7 @@
 
 #if RN_PLATFORM_MAC_OS
 	#include <mach/mach.h>
+	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
 // ---------------------------

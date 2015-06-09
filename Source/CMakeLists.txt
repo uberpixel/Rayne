@@ -27,6 +27,7 @@ set(RAYNE_SOURCES
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
     System/RNFileManager.cpp
+    System/RNScreen.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
     Threads/RNSpinlock.cpp
@@ -61,6 +62,7 @@ set(RAYNE_HEADERS
     Math/RNMatrix.h
     Math/RNMatrixQuaternion.h
     Math/RNQuaternion.h
+    Math/RNRect.h
     Math/RNSIMD.h
     Math/RNVector.h
     Objects/RNArray.h
@@ -80,6 +82,7 @@ set(RAYNE_HEADERS
     Objects/RNString.h
     Objects/RNValue.h
     System/RNFileManager.h
+    System/RNScreen.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h
@@ -104,9 +107,10 @@ set(LINK_LIBRARIES "")
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(FOUNDATION_LIBRARY Foundation)
+    find_library(IOKIT_LIBRARY IOKit)
 
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
 
 if(NOT APPLE)

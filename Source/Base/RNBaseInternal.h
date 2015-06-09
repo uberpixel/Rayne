@@ -10,6 +10,7 @@
 #if RN_PLATFORM_MAC_OS
 	#import <Cocoa/Cocoa.h>
 	#import <Foundation/Foundation.h>
+	#import <IOKit/graphics/IOGraphicsLib.h>
 #endif
 
 #endif /* __RAYNE_BASEINTERNAL_H__ */

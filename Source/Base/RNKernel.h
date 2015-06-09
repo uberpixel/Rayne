@@ -32,6 +32,8 @@ namespace RN
 
 		void SetMaxFPS(uint32 maxFPS);
 
+		float GetScaleFactor() const { return 1.0f; }
+
 	private:
 		Kernel(Application *app);
 		~Kernel();
