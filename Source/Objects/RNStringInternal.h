@@ -16,6 +16,7 @@
 namespace RN
 {
 	class UTF8String;
+	class Data;
 
 	class StringPool
 	{
@@ -50,7 +51,7 @@ namespace RN
 		UniChar GetCharacterAtIndex(size_t index) const;
 		void GetCharactersInRange(UniChar *buffer, const Range &range) const;
 		
-		void *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const;
+		Data *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const;
 		UTF8String *GetSubstring(const Range &range) const;
 		
 		

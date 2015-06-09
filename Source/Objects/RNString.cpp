@@ -10,6 +10,7 @@
 #include "RNStringInternal.h"
 #include "RNSerialization.h"
 #include "RNAutoreleasePool.h"
+#include "RNData.h"
 
 #if RN_PLATFORM_POSIX
 	#define kRNIsPathDelimiter(c) (c == '/')
@@ -102,7 +103,10 @@ namespace RN
 	{
 		_string = new UTF8String(bytes, length, encoding, !constant);
 	}
-	
+
+	String::String(const Data *data, Encoding encoding) :
+		String(data->GetBytes(), data->GetLength(), encoding, false)
+	{}
 	
 	String::String(const String *string)
 	{
@@ -169,16 +173,14 @@ namespace RN
 		return string->Autorelease();
 	}
 	
-	String *String::WithContentsOfFile(const std::string &tfile, Encoding encoding)
+	Expected<String *> String::WithContentsOfFile(const String *file, Encoding encoding)
 	{
-		/*File *file = new File(tfile);
-		std::vector<uint8> bytes = std::move(file->GetBytes());
-		size_t size = file->GetSize();
-		file->Release();
-		
-		String *string = new String(bytes.data(), size, encoding, false);
-		return string->Autorelease();*/
-		return nullptr;
+		Expected<Data *> data = Data::WithContentsOfFile(file);
+		if(!data.IsValid())
+			return InvalidArgumentException("Couldn't open file");
+
+		String *string = new String(data, encoding);
+		return string->Autorelease();
 	}
 	
 	// ---------------------
@@ -659,7 +661,7 @@ namespace RN
 	char *String::GetUTF8String() const
 	{
 		size_t length;
-		return static_cast<char *>(_string->GetBytesWithEncoding(Encoding::UTF8, false, length));
+		return static_cast<char *>(_string->GetBytesWithEncoding(Encoding::UTF8, false, length)->GetBytes());
 	}
 	
 	String *String::GetSubstring(const Range &range) const
@@ -677,7 +679,13 @@ namespace RN
 	
 	uint8 *String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &outLength) const
 	{		
-		return static_cast<uint8 *>(_string->GetBytesWithEncoding(encoding, lossy, outLength));
+		return static_cast<uint8 *>(_string->GetBytesWithEncoding(encoding, lossy, outLength)->GetBytes());
+	}
+
+	Data *String::GetDataWithEncoding(Encoding encoding) const
+	{
+		size_t length;
+		return _string->GetBytesWithEncoding(encoding, true, length);
 	}
 	
 	Array *String::GetComponentsSeparatedByString(const String *other) const
@@ -901,25 +909,9 @@ namespace RN
 	}
 
 	
-	bool String::WriteToFile(const std::string &path, Encoding encoding)
+	bool String::WriteToFile(const String *file, Encoding encoding)
 	{
-		AutoreleasePool pool;
-		
-		try
-		{
-			/*size_t length;
-			void *buffer = GetBytesWithEncoding(encoding, true, length);
-			
-			File *file = new File(path, File::FileMode::Write);
-			file->WriteBuffer(buffer, length);
-			file->Release();*/
-			
-			
-			return true;
-		}
-		catch(...)
-		{}
-		
-		return false;
+		Data *data = GetDataWithEncoding(encoding);
+		return data->WriteToFile(file);
 	}
 }

@@ -560,7 +560,7 @@ namespace RN
 	}
 	
 	
-	void *UTF8String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const
+	Data *UTF8String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const
 	{
 		char *data = nullptr;
 		
@@ -663,8 +663,8 @@ namespace RN
 		{
 			Data *temp = new Data(data, length, true, true);
 			temp->Autorelease();
-			
-			return temp->GetBytes();
+
+			return temp;
 		}
 		
 		return nullptr;

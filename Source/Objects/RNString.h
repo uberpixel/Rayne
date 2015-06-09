@@ -18,6 +18,8 @@
 namespace RN
 {
 	class UTF8String;
+	class Data;
+
 	class String : public Object
 	{
 	public:
@@ -34,6 +36,7 @@ namespace RN
 		RNAPI String(const char *string, size_t length, bool constant=false);
 		RNAPI String(const void *bytes, Encoding encoding, bool constant=false);
 		RNAPI String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
+		RNAPI String(const Data *data, Encoding encoding);
 		RNAPI String(const String *string);
 		RNAPI String(Deserializer *deserializer);
 		RNAPI ~String() override;
@@ -45,7 +48,7 @@ namespace RN
 		RNAPI static String *WithString(const char *string, size_t length, bool constant = false);
 		RNAPI static String *WithBytes(const void *bytes, Encoding encoding, bool constant = false);
 		RNAPI static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant = false);
-		RNAPI static String *WithContentsOfFile(const std::string &file, Encoding encoding);
+		RNAPI static Expected<String *> WithContentsOfFile(const String *file, Encoding encoding);
 		
 		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;
@@ -85,6 +88,7 @@ namespace RN
 		 * Raw access
 		 **/
 		RNAPI uint8 *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &length) const;
+		RNAPI Data *GetDataWithEncoding(Encoding encoding) const;
 		RNAPI char *GetUTF8String() const;
 
 		/**
@@ -103,7 +107,7 @@ namespace RN
 		RNAPI String *GetLastPathComponent() const;
 
 
-		RNAPI bool WriteToFile(const std::string &file, Encoding encoding);
+		RNAPI bool WriteToFile(const String *file, Encoding encoding);
 		
 	private:
 		size_t __GetTrailingPathLocation() const;
