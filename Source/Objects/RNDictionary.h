@@ -26,9 +26,9 @@ namespace RN
 		RNAPI Dictionary(Deserializer *deserializer);
 		RNAPI ~Dictionary() override;
 		
-		RNAPI void Serialize(Serializer *serializer);
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
-		RNAPI size_t GetHash() const;
+		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;
 		
 		template<typename T=Object>

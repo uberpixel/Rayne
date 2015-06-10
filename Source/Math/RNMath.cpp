@@ -13,6 +13,7 @@ namespace RN
 {
 	namespace Math
 	{
+#if RN_SIMD
 		alignas(128) const uint32 ITrigonometryTable[256][2] =
 		{
 			{0x3F800000, 0x00000000}, {0x3F7FEC43, 0x3CC90AB0}, {0x3F7FB10F, 0x3D48FB30}, {0x3F7F4E6D, 0x3D96A905}, {0x3F7EC46D, 0x3DC8BD36}, {0x3F7E1324, 0x3DFAB273}, {0x3F7D3AAC, 0x3E164083}, {0x3F7C3B28, 0x3E2F10A3},
@@ -53,7 +54,7 @@ namespace RN
 		{
 			return reinterpret_cast<const Vector2 *>(ITrigonometryTable);
 		}
-		
+#endif
 		
 		
 		float Sqrt(float x)

@@ -5,11 +5,12 @@
 //  Copyright ${YEAR} by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
+
 #set ($NormalizedName = $NAME.substring(2))
 #set ($NormalizedNameCaps = $NAME.substring(2).toUpperCase())
 
-#[[#ifndef]]# __RAYNE_${NormalizedNameCaps}_H__
-#[[#define]]# __RAYNE_${NormalizedNameCaps}_H__
+#[[#ifndef]]# __RAYNE_${NormalizedNameCaps}_H_
+#[[#define]]# __RAYNE_${NormalizedNameCaps}_H_
 
 #[[#include]]# "RNBase.h"
 
@@ -22,4 +23,4 @@ namespace RN
 }
 
 
-#[[#endif]]# /* __RAYNE_${NormalizedNameCaps}_H__ */
+#[[#endif]]# /* __RAYNE_${NormalizedNameCaps}_H_ */

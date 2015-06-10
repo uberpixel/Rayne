@@ -39,7 +39,8 @@ set(RAYNE_SOURCES
     Threads/RNSpinlock.cpp
     Threads/RNWorkGroup.cpp
     Threads/RNWorkQueue.cpp
-    Threads/RNWorkSource.cpp)
+    Threads/RNWorkSource.cpp
+    Scene/RNScene.cpp)
 
 set(RAYNE_HEADERS
     Rayne.h
@@ -102,7 +103,8 @@ set(RAYNE_HEADERS
     Threads/RNThreadLocalStorage.h
     Threads/RNWorkGroup.h
     Threads/RNWorkQueue.h
-    Threads/RNWorkSource.h)
+    Threads/RNWorkSource.h
+    Scene/RNScene.h)
 
 set(RAYNE_HEADERS_PRIVATE
     Base/RNBaseInternal.h

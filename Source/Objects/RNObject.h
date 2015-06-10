@@ -34,7 +34,7 @@ namespace RN
 		RNAPI virtual size_t GetHash() const;
 		RNAPI bool IsKindOfClass(const MetaClass *other) const;
 		
-		RNAPI virtual void Serialize(Serializer *serializer);
+		RNAPI virtual void Serialize(Serializer *serializer) const;
 		
 		RNAPI void Lock();
 		RNAPI void Unlock();
