@@ -15,8 +15,8 @@ namespace RN
 	static Kernel *__sharedInstance = nullptr;
 
 	Kernel::Kernel(Application *application) :
-		_exit(false),
-		_application(application)
+		_application(application),
+		_exit(false)
 	{}
 
 	Kernel::~Kernel()

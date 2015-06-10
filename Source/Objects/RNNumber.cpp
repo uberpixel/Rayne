@@ -190,7 +190,7 @@ namespace RN
 	
 	
 	
-	void Number::Serialize(Serializer *serializer)
+	void Number::Serialize(Serializer *serializer) const
 	{
 #if RN_PLATFORM_WINDOWS
 		#pragma pack(push, 1)

@@ -96,7 +96,7 @@ namespace RN
 		}
 	}
 	
-	void Dictionary::Serialize(Serializer *serializer)
+	void Dictionary::Serialize(Serializer *serializer) const
 	{
 		serializer->EncodeInt64(static_cast<int64>(GetCount()));
 		

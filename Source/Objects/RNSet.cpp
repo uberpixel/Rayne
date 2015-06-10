@@ -97,7 +97,7 @@ namespace RN
 		}
 	}
 	
-	void Set::Serialize(Serializer *serializer)
+	void Set::Serialize(Serializer *serializer) const
 	{
 		serializer->EncodeInt64(static_cast<int64>(GetCount()));
 		

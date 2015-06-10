@@ -27,7 +27,7 @@ namespace RN
 		RNAPI CountedSet(Deserializer *deserializer);
 		RNAPI ~CountedSet() override;
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(Object *object);

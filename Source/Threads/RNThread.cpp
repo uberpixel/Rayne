@@ -48,8 +48,8 @@ namespace RN
 	static std::atomic<uint32> __ThreadAtomicIDs;
 	
 	Thread::Thread() :
-		_id(std::this_thread::get_id()),
-		_name(nullptr)
+		_name(nullptr),
+		_id(std::this_thread::get_id())
 	{
 		Initialize();
 

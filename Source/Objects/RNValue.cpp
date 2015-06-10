@@ -37,7 +37,7 @@ namespace RN
 	}
 	
 	
-	void Value::Serialize(Serializer *serializer)
+	void Value::Serialize(Serializer *serializer) const
 	{
 		serializer->EncodeInt32(_type);
 		serializer->EncodeBytes(_storage, _size);

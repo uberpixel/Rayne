@@ -76,7 +76,7 @@ namespace RN
 		std::copy(data, data + _length, _bytes);
 	}
 	
-	void Data::Serialize(Serializer *serializer)
+	void Data::Serialize(Serializer *serializer) const
 	{
 		serializer->EncodeBytes(_bytes, _length);
 	}

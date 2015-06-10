@@ -68,10 +68,10 @@ namespace RN
 
 #if RN_PLATFORM_MAC_OS
 	Screen::Screen(CGDirectDisplayID display) :
-		_display(display),
 		_resolutions(new Array()),
 		_name(nullptr),
-		_isMainScreen(CGDisplayIsMain(display))
+		_isMainScreen(CGDisplayIsMain(display)),
+		_display(display)
 	{
 		// Find the NSScreen that corresponds to this screen
 		NSArray *screens = [NSScreen screens];
@@ -147,7 +147,11 @@ namespace RN
 
 		NSString *screenName = nil;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 		NSDictionary *deviceInfo = (NSDictionary *)IODisplayCreateInfoDictionary(CGDisplayIOServicePort(display), kIODisplayOnlyPreferredName);
+#pragma clang diagnostic pop
+		
 		NSDictionary *localizedNames = [deviceInfo objectForKey:[NSString stringWithUTF8String:kDisplayProductName]];
 
 		if([localizedNames count] > 0)

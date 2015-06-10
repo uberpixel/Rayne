@@ -20,11 +20,11 @@ namespace RN
 	// ---------------------
 	
 	ObservableProperty::ObservableProperty(const char *name, char type) :
-		_type(type),
-		_changeSet(nullptr),
 		_object(nullptr),
+		_type(type),
+		_flags(1 << 4),
 		_signal(nullptr),
-		_flags(1 << 4)
+		_changeSet(nullptr)
 	{
 		RN_ASSERT(type != '?', "ObservableProperty with invalid type!");
 		

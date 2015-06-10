@@ -36,7 +36,7 @@ namespace RN
 		RNAPI Value(Deserializer *deserializer);
 		RNAPI ~Value();
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;

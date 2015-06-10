@@ -85,6 +85,8 @@ namespace RN
 			_tags(0)
 		{}
 		
+		virtual ~Signal(){}
+		
 		template <typename... SigCompatible>
 		void Emit(SigCompatible&&... args)
 		{

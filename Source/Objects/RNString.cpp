@@ -128,7 +128,7 @@ namespace RN
 		_string = new UTF8String(bytes, length, true);
 	}
 	
-	void String::Serialize(Serializer *serializer)
+	void String::Serialize(Serializer *serializer) const
 	{
 		size_t length;
 		uint8 *bytes = GetBytesWithEncoding(Encoding::UTF8, false, length);

@@ -25,7 +25,7 @@ namespace RN
 		RNAPI Data(Deserializer *deserializer);
 		RNAPI ~Data() override;
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI static Data *WithBytes(const uint8 *bytes, size_t length);
 		RNAPI static Expected<Data *> WithContentsOfFile(const String *file);

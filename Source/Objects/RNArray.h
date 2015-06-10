@@ -29,7 +29,7 @@ namespace RN
 		RNAPI static Array *WithSet(const Set *set);
 		RNAPI static Array *WithObjects(std::initializer_list<Object *> objects);
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		Array *GetObjectsPassingTest(const std::function<bool (Object *, bool &)> &callback) const
 		{

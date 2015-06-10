@@ -20,8 +20,8 @@ namespace RN
 
 	RunLoopObserver::RunLoopObserver(Activity activites, bool repeats, std::function<void (RunLoopObserver *, Activity)> &&callback) :
 		_activites(activites),
-		_repeats(repeats),
 		_callback(std::move(callback)),
+		_repeats(repeats),
 		_valid(true)
 	{}
 
@@ -35,8 +35,8 @@ namespace RN
 	// ---------------------------
 
 	RunLoopSource::RunLoopSource() :
-		_signaled(false),
 		_valid(true),
+		_signaled(false),
 		_runLoop(nullptr)
 	{}
 

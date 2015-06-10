@@ -80,7 +80,7 @@ namespace RN
 			_data[i] = deserializer->DecodeObject()->Retain();
 		}
 	}
-	void Array::Serialize(Serializer *serializer)
+	void Array::Serialize(Serializer *serializer) const
 	{
 		serializer->EncodeInt64(static_cast<int64>(_count));
 		serializer->EncodeInt64(static_cast<int64>(_size));

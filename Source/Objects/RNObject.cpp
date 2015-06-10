@@ -113,7 +113,7 @@ namespace RN
 	}
 	
 	
-	void Object::Serialize(Serializer *serializer)
+	void Object::Serialize(Serializer *serializer) const
 	{
 		throw InconsistencyException("Serialization not supported (or a subclass called Object::Serialize)");
 	}

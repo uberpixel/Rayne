@@ -36,8 +36,8 @@ namespace RN
 		{}
 		
 		Expected(Expected &&other) :
-			_exception(std::move(other._exception)),
 			_result(std::move(other._result)),
+			_exception(std::move(other._exception)),
 			_acknowledged(other._acknowledged.load())
 		{
 			other._acknowledged = true;

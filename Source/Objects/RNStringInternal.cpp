@@ -221,26 +221,26 @@ namespace RN
 	
 	
 	UTF8String::UTF8String() :
-		_flags(Flags::ASCII | Flags::ConstStorage),
 		_constStorage(reinterpret_cast<const uint8 *>("")),
-		_length(0)
+		_length(0),
+		_flags(Flags::ASCII | Flags::ConstStorage)
 	{
 		RecalcuateHash();
 	}
 
 	UTF8String::UTF8String(const uint8 *storage, size_t length, size_t hash, Flags flags) :
-		_flags(flags),
 		_constStorage(storage),
 		_length(length),
-		_hash(hash)
+		_hash(hash),
+		_flags(flags)
 	{}
 	
 	UTF8String::UTF8String(const UTF8String *other) :
-		_flags(other->_flags),
+		_storage(other->_storage),
+		_constStorage(other->_constStorage),
 		_length(other->_length),
 		_hash(other->_hash),
-		_constStorage(other->_constStorage),
-		_storage(other->_storage)
+		_flags(other->_flags)
 	{}
 	
 	UTF8String::UTF8String(const uint8 *data, size_t bytes, bool mutableStorage) :

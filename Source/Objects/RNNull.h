@@ -21,7 +21,7 @@ namespace RN
 		RNAPI Null(Deserializer *deserializer);
 		RNAPI ~Null() override;
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI static Null *GetNull();
 		

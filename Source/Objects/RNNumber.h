@@ -64,7 +64,7 @@ namespace RN
 		RNAPI static Number *WithUint32(uint32 value);
 		RNAPI static Number *WithUint64(uint64 value);
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI bool GetBoolValue() const;
 		RNAPI float GetFloatValue() const;

@@ -21,7 +21,7 @@ namespace RN
 	
 	Null::Null(Deserializer *deserializer)
 	{}
-	void Null::Serialize(Serializer *serializer)
+	void Null::Serialize(Serializer *serializer) const
 	{}
 	
 	

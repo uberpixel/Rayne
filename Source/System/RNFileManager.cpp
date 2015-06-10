@@ -20,10 +20,10 @@ namespace RN
 	RNDefineScopedMeta(FileManager, File, FileManager::Node)
 
 	FileManager::Node::Node(String *name, Node *parent, Type type) :
+		_type(type),
 		_name(name->Retain()),
 		_path(nullptr),
-		_parent(parent),
-		_type(type)
+		_parent(parent)
 	{
 		if(_parent)
 			SetPath(_parent->GetPath()->StringByAppendingPathComponent(name));

@@ -41,7 +41,7 @@ namespace RN
 		
 		UTF8String *MutableCopy() const;
 		
-		size_t GetHash() const { const_cast<UTF8String *>(this)->RecalcuateHash(); return _hash; }
+		size_t GetHash() const override { const_cast<UTF8String *>(this)->RecalcuateHash(); return _hash; }
 		size_t GetLength() const { return _length; }
 		bool IsMutable() const { return !(_flags & Flags::ConstStorage); }
 		

@@ -41,7 +41,7 @@ namespace RN
 		RNAPI String(Deserializer *deserializer);
 		RNAPI ~String() override;
 		
-		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI void Serialize(Serializer *serializer) const override;
 		
 		RNAPI static String *WithFormat(const char *string, ...);
 		RNAPI static String *WithString(const char *string, bool constant = false);
