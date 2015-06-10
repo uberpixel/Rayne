@@ -13,6 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../System/RNScreen.h"
 #include "RNWindow.h"
+#include "RNGPUBuffer.h"
 
 namespace RN
 {
@@ -28,6 +29,9 @@ namespace RN
 
 		RNAPI virtual void BeginWindow(Window *window) = 0;
 		RNAPI virtual void EndWindow() = 0;
+
+		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) = 0;
+		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) = 0;
 
 	protected:
 		RNAPI Renderer();

@@ -9,6 +9,7 @@
 #include "../../Base/RNBaseInternal.h"
 #include "RNMetalRenderer.h"
 #include "RNMetalInternals.h"
+#include "RNMetalGPUBuffer.h"
 
 namespace RN
 {
@@ -78,5 +79,50 @@ namespace RN
 			_internals->pass.commandBuffer = nil;
 			_internals->pass.drawable = nil;
 		}
+	}
+
+	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUBuffer::Options options)
+	{
+		MTLResourceOptions resourceOptions;
+		switch(options)
+		{
+			case GPUBuffer::Options::ReadWrite:
+				resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+				break;
+			case GPUBuffer::Options::WriteOnly:
+				resourceOptions = MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
+				break;
+			case GPUBuffer::Options::Private:
+				resourceOptions = MTLResourceStorageModePrivate;
+				break;
+		}
+
+		id<MTLBuffer> buffer = [_internals->device newBufferWithLength:length options:resourceOptions];
+		if(!buffer)
+			return nullptr;
+
+		return (new MetalGPUBuffer(buffer));
+	}
+	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options)
+	{
+		MTLResourceOptions resourceOptions;
+		switch(options)
+		{
+			case GPUBuffer::Options::ReadWrite:
+				resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+				break;
+			case GPUBuffer::Options::WriteOnly:
+				resourceOptions = MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
+				break;
+			case GPUBuffer::Options::Private:
+				resourceOptions = MTLResourceStorageModePrivate;
+				break;
+		}
+
+		id<MTLBuffer> buffer = [_internals->device newBufferWithBytes:bytes length:length options:resourceOptions];
+		if(!buffer)
+			return nullptr;
+
+		return (new MetalGPUBuffer(buffer));
 	}
 }
