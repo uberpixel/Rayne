@@ -59,6 +59,11 @@ namespace RN
 			[colorAttachment setTexture:[_internals->pass.drawable texture]];
 			[colorAttachment setLoadAction:MTLLoadActionClear];
 			[colorAttachment setClearColor:MTLClearColorMake(0, 0.1, 0.5, 1.0)];
+
+			id<MTLRenderCommandEncoder> command = [_internals->pass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
+			[command endEncoding];
+
+			[descriptor release];
 		}
 	}
 
