@@ -10,6 +10,9 @@
 
 namespace RN
 {
+	MetalRenderer::MetalRenderer()
+	{}
+
 	Window *MetalRenderer::CreateWindow(const Rect &frame, Screen *screen)
 	{
 		RN_ASSERT(!_mainWindow, "Metal renderer only supports one window");

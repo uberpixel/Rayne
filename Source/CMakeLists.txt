@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
 set(RAYNE_SOURCES
     Base/RNMemory.cpp
     Base/RNApplication.cpp
@@ -122,13 +120,13 @@ if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(FOUNDATION_LIBRARY Foundation)
     find_library(IOKIT_LIBRARY IOKit)
+    find_library(METAL_LIBRARY Metal)
+    find_library(QUARTZCORE_LIBRARY QuartzCore)
 
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
-    set(CMAKE_EXE_LINKER_FLAGS "-framework Metal")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
     set(CMAKE_OSX_SYSROOT /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
-    set(XCODE_ATTRIBUTE_SDKROOT macosx)
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY})
 endif()
 
 if(NOT APPLE)

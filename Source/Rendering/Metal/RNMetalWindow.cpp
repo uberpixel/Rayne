@@ -17,7 +17,8 @@ namespace RN
 		CAMetalLayer *metalLayer;
 	};
 
-	MetalWindow::MetalWindow(const Rect &frame, Screen *screen)
+	MetalWindow::MetalWindow(const Rect &frame, Screen *screen) :
+		Window(screen)
 	{
 		_internals->rawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(frame.x, frame.y, frame.width, frame.height) styleMask:NSTitledWindowMask | NSResizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 		[_internals->rawWindow setBackgroundColor:[NSColor blackColor]];
