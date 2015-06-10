@@ -15,13 +15,24 @@
 
 namespace RN
 {
+	struct MetalRendererInternals;
+	class MetalWindow;
+
 	class MetalRenderer : public Renderer
 	{
 	public:
-		MetalRenderer();
-		Window *CreateWindow(const Rect &frame, Screen *screen) final;
+		friend class MetalWindow;
+
+		RNAPI MetalRenderer();
+
+		RNAPI Window *CreateWindow(const Rect &frame, Screen *screen) final;
+		RNAPI Window *GetMainWindow();
+
+		RNAPI void BeginWindow(Window *window) final;
+		RNAPI void EndWindow() final;
 
 	protected:
+		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
 	};
 }

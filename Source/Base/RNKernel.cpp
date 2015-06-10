@@ -9,6 +9,8 @@
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
 #include "../System/RNScreen.h"
+#include "../Rendering/Metal/RNMetalRendererDescriptor.h"
+#include "../Rendering/RNRenderer.h"
 
 namespace RN
 {
@@ -53,6 +55,10 @@ namespace RN
 		SetMaxFPS(60);
 
 		_application->WillFinishLaunching(this);
+
+		MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
+		Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
+		renderer->CreateWindow(Rect(0, 0, 1024, 768), Screen::GetMainScreen());
 	}
 	void Kernel::FinishBootstrap()
 	{
@@ -129,6 +135,10 @@ namespace RN
 			}
 		}
 #endif
+
+		Renderer *renderer = Renderer::GetActiveRenderer();
+		renderer->BeginWindow(renderer->GetMainWindow());
+		renderer->EndWindow();
 
 		_application->DidStep(_delta);
 		_lastFrame = now;

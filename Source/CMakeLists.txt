@@ -88,6 +88,7 @@ set(RAYNE_HEADERS
     Objects/RNCharacterSet.h
     Objects/RNString.h
     Objects/RNValue.h
+    Rendering/Metal/RNMetalInternals.cpp
     Rendering/Metal/RNMetalRenderer.h
     Rendering/Metal/RNMetalRendererDescriptor.h
     Rendering/Metal/RNMetalWindow.h
@@ -108,6 +109,7 @@ set(RAYNE_HEADERS
 
 set(RAYNE_HEADERS_PRIVATE
     Base/RNBaseInternal.h
+    Rendering/Metal/RNMetalInternals.h
     Objects/RNHashTableInternal.h
     Objects/RNObjectInternals.h
     Objects/RNStringInternal.h)

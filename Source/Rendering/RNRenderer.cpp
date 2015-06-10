@@ -22,7 +22,7 @@ namespace RN
 
 	void Renderer::Activate()
 	{
-		RN_ASSERT(_activeRenderer, "Rayne only supports one active renderer at a time");
+		RN_ASSERT(!_activeRenderer, "Rayne only supports one active renderer at a time");
 		_activeRenderer = this;
 	}
 }

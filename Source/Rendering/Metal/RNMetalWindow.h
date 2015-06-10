@@ -14,16 +14,22 @@
 
 namespace RN
 {
+	class MetalRenderer;
+	struct MetalWindowInternals;
+
 	class MetalWindow : public Window
 	{
 	public:
-		MetalWindow(const Rect &frame, Screen *screen);
+		friend class MetalRenderer;
 
 		void SetTitle(const String *title) final;
 
 	private:
-		struct Internals;
-		PIMPL<Internals> _internals;
+		MetalWindow(const Rect &frame, Screen *screen, MetalRenderer *renderer);
+
+
+		PIMPL<MetalWindowInternals> _internals;
+		MetalRenderer *_renderer;
 	};
 }
 

@@ -22,7 +22,12 @@ namespace RN
 		RNAPI static Renderer *GetActiveRenderer();
 
 		RNAPI virtual Window *CreateWindow(const Rect &frame, Screen *screen) = 0;
+		RNAPI virtual Window *GetMainWindow() = 0;
+
 		RNAPI void Activate();
+
+		RNAPI virtual void BeginWindow(Window *window) = 0;
+		RNAPI virtual void EndWindow() = 0;
 
 	protected:
 		RNAPI Renderer();
