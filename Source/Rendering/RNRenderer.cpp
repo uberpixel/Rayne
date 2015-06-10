@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNDefineMeta(Renderer, Object)
+
 	static Renderer *_activeRenderer = nullptr;
 
 	Renderer::Renderer()

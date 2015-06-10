@@ -17,7 +17,7 @@
 
 namespace RN
 {
-	class Renderer
+	class Renderer : public Object
 	{
 	public:
 		RNAPI static Renderer *GetActiveRenderer();
@@ -35,6 +35,8 @@ namespace RN
 
 	protected:
 		RNAPI Renderer();
+
+		RNDeclareMeta(Renderer)
 	};
 }
 

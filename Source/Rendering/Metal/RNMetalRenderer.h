@@ -26,17 +26,19 @@ namespace RN
 		RNAPI MetalRenderer();
 
 		RNAPI Window *CreateWindow(const Rect &frame, Screen *screen) final;
-		RNAPI Window *GetMainWindow();
+		RNAPI Window *GetMainWindow() final;
 
 		RNAPI void BeginWindow(Window *window) final;
 		RNAPI void EndWindow() final;
 
-		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options);
-		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options);
+		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) final;
+		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) final;
 
 	protected:
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
+
+		RNDeclareMeta(MetalRenderer)
 	};
 }
 

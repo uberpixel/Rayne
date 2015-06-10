@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	RNDefineMeta(MetalRenderer, Renderer)
+
 	MetalRenderer::MetalRenderer() :
 		_mainWindow(nullptr)
 	{
