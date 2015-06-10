@@ -26,6 +26,7 @@ set(RAYNE_SOURCES
     Objects/RNDictionary.cpp
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
+    Objects/RNWeakStorage.cpp
     Rendering/Metal/RNMetalGPUBuffer.cpp
     Rendering/Metal/RNMetalRenderer.cpp
     Rendering/Metal/RNMetalRendererDescriptor.cpp
@@ -91,6 +92,7 @@ set(RAYNE_HEADERS
     Objects/RNCharacterSet.h
     Objects/RNString.h
     Objects/RNValue.h
+    Objects/RNWeakStorage.h
     Rendering/Metal/RNMetalGPUBuffer.h
     Rendering/Metal/RNMetalInternals.cpp
     Rendering/Metal/RNMetalRenderer.h
