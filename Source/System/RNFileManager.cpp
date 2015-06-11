@@ -11,6 +11,7 @@
 
 #if RN_PLATFORM_POSIX
 	#include <dirent.h>
+	#include <unistd.h>
 #endif
 
 namespace RN
@@ -267,6 +268,11 @@ namespace RN
 
 			return result->GetPath()->Copy()->Autorelease();
 		}
+		
+		String *expanded = __ExpandPath(path);
+		
+		if(access(expanded->GetUTF8String(), F_OK) != -1)
+			return expanded;
 
 		return nullptr;
 	}
