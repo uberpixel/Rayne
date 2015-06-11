@@ -24,6 +24,7 @@ namespace RN
 		friend class MetalWindow;
 
 		RNAPI MetalRenderer();
+		RNAPI ~MetalRenderer();
 
 		RNAPI Window *CreateWindow(const Rect &frame, Screen *screen) final;
 		RNAPI Window *GetMainWindow() final;
@@ -33,6 +34,9 @@ namespace RN
 
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) final;
 		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) final;
+
+		RNAPI ShaderLibrary *GetShaderLibraryWithFile(const String *file) final;
+		RNAPI ShaderLibrary *GetShaderLibraryWithSource(const String *source) final;
 
 	protected:
 		PIMPL<MetalRendererInternals> _internals;

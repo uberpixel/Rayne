@@ -30,10 +30,14 @@ set(RAYNE_SOURCES
     Rendering/Metal/RNMetalGPUBuffer.cpp
     Rendering/Metal/RNMetalRenderer.cpp
     Rendering/Metal/RNMetalRendererDescriptor.cpp
+    Rendering/Metal/RNMetalShader.cpp
+    Rendering/Metal/RNMetalShaderLibrary.cpp
     Rendering/Metal/RNMetalWindow.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRenderingDescriptor.cpp
+    Rendering/RNShader.cpp
+    Rendering/RNShaderLibrary.cpp
     Rendering/RNWindow.cpp
     Scene/RNScene.cpp
     Scene/RNSceneNode.cpp
@@ -97,10 +101,14 @@ set(RAYNE_HEADERS
     Rendering/Metal/RNMetalInternals.cpp
     Rendering/Metal/RNMetalRenderer.h
     Rendering/Metal/RNMetalRendererDescriptor.h
+    Rendering/Metal/RNMetalShader.h
+    Rendering/Metal/RNMetalShaderLibrary.h
     Rendering/Metal/RNMetalWindow.h
     Rendering/RNGPUBuffer.h
     Rendering/RNRenderer.h
     Rendering/RNRenderingDescriptor.h
+    Rendering/RNShader.h
+    Rendering/RNShaderLibrary.h
     Rendering/RNWindow.h
     Scene/RNScene.h
     Scene/RNSceneNode.h

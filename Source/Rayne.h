@@ -42,7 +42,15 @@
 #include "Objects/RNCharacterSet.h"
 #include "Objects/RNString.h"
 
+#include "Rendering/RNGPUBuffer.h"
+#include "Rendering/RNRenderer.h"
+#include "Rendering/RNRenderingDescriptor.h"
+#include "Rendering/RNShader.h"
+#include "Rendering/RNShaderLibrary.h"
+#include "Rendering/RNWindow.h"
+
 #include "System/RNFileManager.h"
+#include "System/RNScreen.h"
 
 #include "Threads/RNThread.h"
 #include "Threads/RNRunLoop.h"

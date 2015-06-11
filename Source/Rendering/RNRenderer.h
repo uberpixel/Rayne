@@ -11,9 +11,11 @@
 #define __RAYNE_RENDERER_H_
 
 #include "../Base/RNBase.h"
+#include "../Objects/RNWeakStorage.h"
 #include "../System/RNScreen.h"
 #include "RNWindow.h"
 #include "RNGPUBuffer.h"
+#include "RNShaderLibrary.h"
 
 namespace RN
 {
@@ -33,11 +35,16 @@ namespace RN
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) = 0;
 
+		RNAPI virtual ShaderLibrary *GetShaderLibraryWithFile(const String *file) = 0;
+		RNAPI virtual ShaderLibrary *GetShaderLibraryWithSource(const String *source) = 0;
+
 	protected:
 		RNAPI Renderer();
 
 		RNDeclareMeta(Renderer)
 	};
+
+	RNExceptionType(ShaderCompilation)
 }
 
 
