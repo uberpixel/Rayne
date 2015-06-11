@@ -91,6 +91,9 @@ namespace RN
 			_runLoop->Stop();
 			return;
 		}
+#if RN_PLATFORM_MAC_OS
+		NSAutoreleasePool *nsautoreleasePool = [[NSAutoreleasePool alloc] init];
+#endif
 
 		Clock::time_point now = Clock::now();
 
@@ -158,6 +161,10 @@ namespace RN
 					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
 			}
 		}
+
+#if RN_PLATFORM_MAC_OS
+		[nsautoreleasePool release];
+#endif
 
 		// Make sure the run loop wakes up again afterwards
 		_runLoop->WakeUp();

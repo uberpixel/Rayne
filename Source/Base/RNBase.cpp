@@ -36,14 +36,26 @@ namespace RN
 		static Kernel *BootstrapKernel(Application *app)
 		{
 			Kernel *result = new Kernel(app);
+#if RN_PLATFORM_MAC_OS
+			@autoreleasepool {
+				result->Bootstrap();
+			}
+#else
 			result->Bootstrap();
+#endif
 
 			return result;
 		}
 
 		static void TearDownKernel(Kernel *kernel)
 		{
-			kernel->TearDown();
+#if RN_PLATFORM_MAC_OS
+			@autoreleasepool {
+				kernel->TearDown();
+			}
+#else
+			result->TearDown();
+#endif
 		}
 	};
 
@@ -58,6 +70,18 @@ namespace RN
 			[NSApp finishLaunching];
 
 			[[RNApplication sharedApplication] setDelegate:(RNApplication *)[RNApplication sharedApplication]];
+			
+			@autoreleasepool {
+				
+				NSDate *date = [NSDate date];
+				NSEvent *event;
+				
+				while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+				{
+					[NSApp sendEvent:event];
+					[NSApp updateWindows];
+				}
+			}
 		}
 #endif
 

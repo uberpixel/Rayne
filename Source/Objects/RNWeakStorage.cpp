@@ -27,7 +27,7 @@ namespace RN
 	{
 		CleanZombies();
 
-		std::remove_if(_storage.begin(), _storage.end(), [](Entry &entry) -> bool {
+		std::remove_if(_storage.begin(), _storage.end(), [&](Entry &entry) -> bool {
 
 			Object *temp = entry.object.Load();
 			return (temp && temp->IsEqual(object));
@@ -38,10 +38,10 @@ namespace RN
 	{
 		CleanZombies();
 
-		std::remove_if(_storage.begin(), _storage.end(), [](Entry &entry) -> bool {
+		std::remove_if(_storage.begin(), _storage.end(), [&](Entry &entry) -> bool {
 
 			Object *temp = entry.object.Load();
-			return (temp == object)
+			return (temp == object);
 
 		});
 	}

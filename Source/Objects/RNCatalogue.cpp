@@ -58,10 +58,12 @@ namespace RN
 	
 	
 	static Catalogue *__sharedInstance = nullptr;
-	RN_REGISTER_INITIALIZER(CatalogueConstructor, { __sharedInstance = new Catalogue(); })
-
+	
 	Catalogue *Catalogue::GetSharedInstance()
 	{
+		if(RN_EXPECT_FALSE(!__sharedInstance))
+			__sharedInstance = new Catalogue();
+		
 		return __sharedInstance;
 	}
 	
