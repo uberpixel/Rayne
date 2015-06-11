@@ -274,6 +274,14 @@ namespace RN
 		if(access(expanded->GetUTF8String(), F_OK) != -1)
 			return expanded;
 
+		if(hint & ResolveHint::CreateNode)
+		{
+			String *parent = expanded->StringByDeletingLastPathComponent();
+			
+			if(access(parent->GetUTF8String(), F_OK) != -1)
+				return expanded;
+		}
+
 		return nullptr;
 	}
 
