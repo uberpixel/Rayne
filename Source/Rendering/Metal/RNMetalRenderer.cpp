@@ -11,10 +11,29 @@
 #include "RNMetalInternals.h"
 #include "RNMetalShaderLibrary.h"
 #include "RNMetalGPUBuffer.h"
+#include "RNMetalTexture.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalRenderer, Renderer)
+
+	MTLPixelFormat textureFormat[] = {
+		MTLPixelFormatRGBA8Uint,
+		MTLPixelFormatRGB10A2Uint,
+		MTLPixelFormatR8Uint,
+		MTLPixelFormatRG8Uint,
+		MTLPixelFormatR16Float,
+		MTLPixelFormatRG16Float,
+		MTLPixelFormatRGBA16Float,
+		MTLPixelFormatR32Float,
+		MTLPixelFormatRG32Float,
+		MTLPixelFormatRGBA32Float,
+		MTLPixelFormatDepth24Unorm_Stencil8,
+		MTLPixelFormatDepth32Float,
+		MTLPixelFormatStencil8,
+		MTLPixelFormatDepth24Unorm_Stencil8,
+		MTLPixelFormatDepth32Float_Stencil8
+	};
 
 	MetalRenderer::MetalRenderer() :
 		_mainWindow(nullptr)
@@ -96,44 +115,31 @@ namespace RN
 		}
 	}
 
-	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUBuffer::Options options)
+	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::UsageOptions options)
 	{
-		MTLResourceOptions resourceOptions;
 		switch(options)
 		{
-			case GPUBuffer::Options::ReadWrite:
-				resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-				break;
-			case GPUBuffer::Options::WriteOnly:
-				resourceOptions = MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
-				break;
-			case GPUBuffer::Options::Private:
-				resourceOptions = MTLResourceStorageModePrivate;
-				break;
+			case GPUResource::UsageOptions::ReadWrite:
+				return MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+			case GPUResource::UsageOptions::WriteOnly:
+				return MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
+			case GPUResource::UsageOptions::Private:
+				return  MTLResourceStorageModePrivate;
 		}
+	}
 
+	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
+	{
+		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(options);
 		id<MTLBuffer> buffer = [_internals->device newBufferWithLength:length options:resourceOptions];
 		if(!buffer)
 			return nullptr;
 
 		return (new MetalGPUBuffer(buffer));
 	}
-	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options)
+	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
 	{
-		MTLResourceOptions resourceOptions;
-		switch(options)
-		{
-			case GPUBuffer::Options::ReadWrite:
-				resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-				break;
-			case GPUBuffer::Options::WriteOnly:
-				resourceOptions = MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
-				break;
-			case GPUBuffer::Options::Private:
-				resourceOptions = MTLResourceStorageModePrivate;
-				break;
-		}
-
+		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(options);
 		id<MTLBuffer> buffer = [_internals->device newBufferWithBytes:bytes length:length options:resourceOptions];
 		if(!buffer)
 			return nullptr;
@@ -156,5 +162,51 @@ namespace RN
 
 		MetalShaderLibrary *lib = new MetalShaderLibrary(library);
 		return lib->Autorelease();
+	}
+
+	bool MetalRenderer::SupportsTextureFormat(Texture::Descriptor::Format format)
+	{
+		return true;
+	}
+
+	Texture *MetalRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
+	{
+		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
+
+		metalDescriptor.width = descriptor.width;
+		metalDescriptor.height = descriptor.height;
+		metalDescriptor.depth = descriptor.depth;
+		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.usageOptions);
+		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
+		metalDescriptor.pixelFormat = textureFormat[static_cast<uint32>(descriptor.format)];
+
+		switch(descriptor.type)
+		{
+			case Texture::Descriptor::Type::Type1D:
+				metalDescriptor.textureType = MTLTextureType1D;
+				break;
+			case Texture::Descriptor::Type::Type1DArray:
+				metalDescriptor.textureType = MTLTextureType1DArray;
+				break;
+			case Texture::Descriptor::Type::Type2D:
+				metalDescriptor.textureType = MTLTextureType2D;
+				break;
+			case Texture::Descriptor::Type::Type2DArray:
+				metalDescriptor.textureType = MTLTextureType2DArray;
+				break;
+			case Texture::Descriptor::Type::TypeCube:
+				metalDescriptor.textureType = MTLTextureTypeCube;
+				break;
+			case Texture::Descriptor::Type::TypeCubeArray:
+				metalDescriptor.textureType = MTLTextureTypeCubeArray;
+				break;
+			case Texture::Descriptor::Type::Type3D:
+				metalDescriptor.textureType = MTLTextureType3D;
+				break;
+		}
+
+		[metalDescriptor release];
+
+		return nullptr;
 	}
 }

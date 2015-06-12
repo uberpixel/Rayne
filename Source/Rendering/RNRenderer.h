@@ -16,6 +16,7 @@
 #include "RNWindow.h"
 #include "RNGPUBuffer.h"
 #include "RNShaderLibrary.h"
+#include "RNTexture.h"
 
 namespace RN
 {
@@ -32,11 +33,15 @@ namespace RN
 		RNAPI virtual void BeginWindow(Window *window) = 0;
 		RNAPI virtual void EndWindow() = 0;
 
-		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) = 0;
-		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) = 0;
+		RNAPI virtual bool SupportsTextureFormat(Texture::Descriptor::Format format) = 0;
+
+		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) = 0;
+		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) = 0;
 
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithFile(const String *file) = 0;
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithSource(const String *source) = 0;
+
+		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 
 	protected:
 		RNAPI Renderer();

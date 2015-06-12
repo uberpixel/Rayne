@@ -32,11 +32,15 @@ namespace RN
 		RNAPI void BeginWindow(Window *window) final;
 		RNAPI void EndWindow() final;
 
-		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUBuffer::Options options) final;
-		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUBuffer::Options options) final;
+		RNAPI bool SupportsTextureFormat(Texture::Descriptor::Format format) final;
+
+		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
+		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
 
 		RNAPI ShaderLibrary *GetShaderLibraryWithFile(const String *file) final;
 		RNAPI ShaderLibrary *GetShaderLibraryWithSource(const String *source) final;
+
+		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
 	protected:
 		PIMPL<MetalRendererInternals> _internals;
