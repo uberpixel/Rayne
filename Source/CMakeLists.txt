@@ -42,6 +42,7 @@ set(RAYNE_SOURCES
     Rendering/RNShaderLibrary.cpp
     Rendering/RNTexture.cpp
     Rendering/RNWindow.cpp
+    Scene/RNCamera.cpp
     Scene/RNScene.cpp
     Scene/RNSceneNode.cpp
     System/RNFileManager.cpp
@@ -79,6 +80,7 @@ set(RAYNE_HEADERS
     Math/RNMath.h
     Math/RNMatrix.h
     Math/RNMatrixQuaternion.h
+    Math/RNPlane.h
     Math/RNQuaternion.h
     Math/RNRect.h
     Math/RNSIMD.h
@@ -116,6 +118,7 @@ set(RAYNE_HEADERS
     Rendering/RNShaderLibrary.h
     Rendering/RNTexture.h
     Rendering/RNWindow.h
+    Scene/RNCamera.h
     Scene/RNScene.h
     Scene/RNSceneNode.h
     System/RNFileManager.h
