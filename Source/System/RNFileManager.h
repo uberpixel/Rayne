@@ -92,10 +92,19 @@ namespace RN
 				   CreateNode = (1 << 0),
 		           IgnoreModifiers = (1 << 1));
 
+		enum class Location
+		{
+			ApplicationDirectory,
+			RootResourcesDirectory,
+			SaveDirectory
+		};
+
 		RNAPI static FileManager *GetSharedInstance();
 
 		RNAPI Node *ResolvePath(const String *path, ResolveHint hint);
 		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint);
+
+		RNAPI String *GetPathForLocation(Location location) const;
 
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);

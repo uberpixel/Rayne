@@ -285,6 +285,81 @@ namespace RN
 		return nullptr;
 	}
 
+	String *FileManager::GetPathForLocation(Location location) const
+	{
+#if RN_PLATFORM_MAC_OS
+		static bool isAppBundle = false;
+		static std::once_flag flag;
+
+		std::call_once(flag, [&]{
+
+			NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+			NSString *directory = [arguments objectAtIndex:0];
+
+			isAppBundle = ([directory rangeOfString:@".app"].location != NSNotFound);
+
+		});
+#endif
+		switch(location)
+		{
+			case Location::ApplicationDirectory:
+			{
+#if RN_PLATFORM_MAC_OS
+				if(isAppBundle)
+				{
+					NSBundle *bundle = [NSBundle mainBundle];
+					NSString *path = [bundle bundlePath];
+
+					return RNSTR([path UTF8String]);
+				}
+				else
+				{
+					NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+					NSString *directory = [arguments objectAtIndex:0];
+
+					String *result = RNSTR([directory UTF8String]);
+					result = result->StringByDeletingLastPathComponent();
+
+					return result;
+				}
+#endif
+
+				break;
+			}
+
+			case Location::RootResourcesDirectory:
+			{
+#if RN_PLATFORM_MAC_OS
+				if(isAppBundle)
+				{
+					NSBundle *bundle = [NSBundle mainBundle];
+					NSString *path = [bundle resourcePath];
+
+					return RNSTR([path UTF8String]);
+				}
+				else
+				{
+					NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+					NSString *directory = [arguments objectAtIndex:0];
+
+					String *result = RNSTR([directory UTF8String]);
+					result = result->StringByDeletingLastPathComponent();
+
+					return result;
+				}
+#endif
+
+				break;
+			}
+
+			case Location::SaveDirectory:
+
+				break;
+		}
+
+		return nullptr;
+	}
+
 	void FileManager::AddSearchPath(const String *path)
 	{
 		path = __ExpandPath(path);
