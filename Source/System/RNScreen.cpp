@@ -119,7 +119,10 @@ namespace RN
 			CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
 			if(CFGetTypeID(mode) == CGDisplayModeGetTypeID())
 			{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 				CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
+#pragma clang diagnostic pop
 
 				if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), 0) == kCFCompareEqualTo)
 				{
