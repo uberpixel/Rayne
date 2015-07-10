@@ -18,6 +18,8 @@ namespace RN
 	class Application
 	{
 	public:
+		friend class Kernel;
+
 		RNAPI Application();
 		RNAPI virtual ~Application();
 
@@ -34,11 +36,11 @@ namespace RN
 		RNAPI virtual void WillResignActive();
 		RNAPI virtual void DidResignActive();
 
-
-		RNAPI void SetTitle(const String *title);
 		const String *GetTitle() const { return _title; }
 
 	private:
+		void __PrepareForWillFinishLaunching(Kernel *kernel);
+
 		String *_title;
 	};
 }

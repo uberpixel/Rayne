@@ -36,6 +36,7 @@
 #include "Objects/RNSet.h"
 #include "Objects/RNCountedSet.h"
 #include "Objects/RNDictionary.h"
+#include "Objects/RNJSONSerialization.h"
 #include "Objects/RNNull.h"
 #include "Objects/RNNumber.h"
 #include "Objects/RNValue.h"

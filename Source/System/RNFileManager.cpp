@@ -7,6 +7,8 @@
 //
 
 #include "../Base/RNBaseInternal.h"
+#include "../Base/RNKernel.h"
+#include "../Base/RNApplication.h"
 #include "RNFileManager.h"
 
 #if RN_PLATFORM_POSIX
@@ -173,6 +175,28 @@ namespace RN
 		return __sharedInstance;
 	}
 
+	void FileManager::__PrepareWithManifest()
+	{
+		Array *paths = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(kRNManifestSearchPathsKey);
+		if(paths)
+		{
+			String *delimiter = RNCSTR("./");
+			String *base = GetPathForLocation(Location::ApplicationDirectory);
+
+			paths->Enumerate<String>([&](String *path, size_t index, bool &stop) {
+
+				Range range = path->GetRangeOfString(delimiter, 0, Range(0, 2));
+				if(range.origin == 0)
+				{
+					path = path->GetSubstring(Range(1, path->GetLength() - 1));
+					path->Insert(base, 0);
+				}
+
+				AddSearchPath(path);
+
+			});
+		}
+	}
 
 	String *FileManager::__ExpandPath(const String *tpath)
 	{
@@ -353,8 +377,14 @@ namespace RN
 			}
 
 			case Location::SaveDirectory:
+			{
+#if RN_PLATFORM_MAC_OS
+				//NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
 
+
+#endif
 				break;
+			}
 		}
 
 		return nullptr;

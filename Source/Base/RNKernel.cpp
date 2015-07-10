@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "../Objects/RNJSONSerialization.h"
 #include "../System/RNScreen.h"
 #include "../Rendering/Metal/RNMetalRendererDescriptor.h"
 #include "../Rendering/RNRenderer.h"
@@ -34,32 +35,67 @@ namespace RN
 	{
 		__sharedInstance = this;
 
-		WorkQueue::InitializeQueues();
+		try
+		{
+			WorkQueue::InitializeQueues();
 
-		_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true, std::bind(&Kernel::HandleObserver, this, std::placeholders::_1, std::placeholders::_2));
-		_mainThread = new Thread();
-		_mainQueue = WorkQueue::GetMainQueue();
+			_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true,
+											std::bind(&Kernel::HandleObserver, this, std::placeholders::_1,
+													  std::placeholders::_2));
+			_mainThread = new Thread();
+			_mainQueue = WorkQueue::GetMainQueue();
 
-		_runLoop = _mainThread->GetRunLoop();
-		_runLoop->AddObserver(_observer);
+			_runLoop = _mainThread->GetRunLoop();
+			_runLoop->AddObserver(_observer);
 
-		Screen::InitializeScreens();
+			Screen::InitializeScreens();
 
-		_fileManager = new FileManager();
-		_firstFrame = true;
-		_frames = 0;
+			_fileManager = new FileManager();
+			_firstFrame = true;
+			_frames = 0;
 
-		_delta = 0;
-		_time = 0;
+			_delta = 0;
+			_time = 0;
 
-		SetMaxFPS(60);
+			SetMaxFPS(60);
+			ReadManifest();
 
-		_application->WillFinishLaunching(this);
+			_application->__PrepareForWillFinishLaunching(this);
+			_fileManager->__PrepareWithManifest();
 
-		MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-		Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
-		renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
+			_application->WillFinishLaunching(this);
+
+			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
+			Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
+			Window *window = renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
+			window->SetTitle(_application->GetTitle());
+		}
+		catch(...)
+		{
+			__sharedInstance = nullptr;
+			std::rethrow_exception(std::current_exception());
+		}
 	}
+
+	void Kernel::ReadManifest()
+	{
+		String *path = _fileManager->GetPathForLocation(FileManager::Location::RootResourcesDirectory);
+		path = path->StringByAppendingPathComponent(RNCSTR("manifest.json"));
+
+		Data *data = Data::WithContentsOfFile(path);
+		if(!data)
+			throw InvalidArgumentException(String::WithFormat("Could not open manifest at path %s", path->GetUTF8String()));
+
+		_manifest = JSONSerialization::ObjectFromData<Dictionary>(data, 0);
+
+		if(!_manifest)
+			throw InconsistencyException("Malformed manifest.json");
+
+		String *title = _manifest->GetObjectForKey<String>(kRNManifestApplicationKey);
+		if(!title)
+			throw InconsistencyException("Malformed manifest.json, RNApplication key not set");
+	}
+
 	void Kernel::FinishBootstrap()
 	{
 		_application->DidFinishLaunching(this);

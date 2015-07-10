@@ -7,18 +7,24 @@
 //
 
 #include "RNApplication.h"
+#include "RNKernel.h"
 
 namespace RN
 {
 	Application::Application() :
 		_title(nullptr)
 	{
-		SetTitle(RNCSTR(""));
+
 	}
 
 	Application::~Application()
 	{
 		SafeRelease(_title);
+	}
+
+	void Application::__PrepareForWillFinishLaunching(Kernel *kernel)
+	{
+		_title = kernel->GetManifestEntryForKey<String>(kRNManifestApplicationKey);
 	}
 
 	void Application::WillFinishLaunching(Kernel *kernel) {}
@@ -32,12 +38,4 @@ namespace RN
 	void Application::DidBecomeActive() {}
 	void Application::WillResignActive() {}
 	void Application::DidResignActive() {}
-
-	void Application::SetTitle(const String *title)
-	{
-		RN_ASSERT(title, "Title mustn't be NULL");
-
-		SafeRelease(_title);
-		_title = title->Copy();
-	}
 }

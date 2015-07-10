@@ -24,6 +24,7 @@ set(RAYNE_SOURCES
     Objects/RNValue.cpp
     Objects/RNArray.cpp
     Objects/RNDictionary.cpp
+    Objects/RNJSONSerialization.cpp
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
     Objects/RNWeakStorage.cpp
@@ -91,6 +92,7 @@ set(RAYNE_HEADERS
     Objects/RNCountedSet.h
     Objects/RNData.h
     Objects/RNDictionary.h
+    Objects/RNJSONSerialization.h
     Objects/RNKVO.h
     Objects/RNKVOImplementation.h
     Objects/RNNull.h
@@ -144,6 +146,8 @@ set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 set(BUILD_64Bit YES)
 set(COMPILE_FLAGS "")
 set(LINK_LIBRARIES "")
+
+include_directories("${jansson_BINARY_DIR}/include")
 
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
@@ -211,6 +215,7 @@ function(createTarget arg1 arg2 arg3)
 
     add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
     target_link_libraries("${TARGET_NAME}" ${LINK_LIBRARIES})
+    target_link_libraries(${TARGET_NAME} jansson)
 
 endfunction()
 

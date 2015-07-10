@@ -114,6 +114,7 @@ namespace RN
 		~FileManager();
 
 		String *__ExpandPath(const String *path);
+		void __PrepareWithManifest();
 
 		std::mutex _lock;
 		Array *_nodes;
