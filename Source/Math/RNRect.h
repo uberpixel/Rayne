@@ -11,6 +11,7 @@
 #define __RAYNE_RECT_H_
 
 #include "../Base/RNBase.h"
+#include "RNMath.h"
 #include "RNVector.h"
 
 namespace RN
@@ -24,8 +25,8 @@ namespace RN
 		Rect(const Vector2 &origin, const Vector2 &size);
 		Rect(const Rect &other);
 
-		bool operator== (const Rect &other);
-		bool operator!= (const Rect &other);
+		bool operator== (const Rect &other) const;
+		bool operator!= (const Rect &other) const;
 
 		bool ContainsPoint(const Vector2 &point) const;
 		bool IntersectsRect(const Rect &other) const;
@@ -102,19 +103,19 @@ namespace RN
 		height = other.height;
 	}
 
-	RN_INLINE bool Rect::operator== (const Rect &other)
+	RN_INLINE bool Rect::operator== (const Rect &other) const
 	{
-		if(fabsf(x - other.x) > k::EpsilonFloat || fabsf(y - other.y) > k::EpsilonFloat ||
-		   fabsf(width - other.width) > k::EpsilonFloat || fabsf(height - other.height) > k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) > k::EpsilonFloat || Math::FastAbs(y - other.y) > k::EpsilonFloat ||
+			Math::FastAbs(width - other.width) > k::EpsilonFloat || Math::FastAbs(height - other.height) > k::EpsilonFloat)
 			return false;
 
 		return true;
 	}
 
-	RN_INLINE bool Rect::operator!= (const Rect &other)
+	RN_INLINE bool Rect::operator!= (const Rect &other) const
 	{
-		if(fabsf(x - other.x) > k::EpsilonFloat || fabsf(y - other.y) > k::EpsilonFloat ||
-		   fabsf(width - other.width) > k::EpsilonFloat || fabsf(height - other.height) > k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) > k::EpsilonFloat || Math::FastAbs(y - other.y) > k::EpsilonFloat ||
+			Math::FastAbs(width - other.width) > k::EpsilonFloat || Math::FastAbs(height - other.height) > k::EpsilonFloat)
 			return true;
 
 		return false;
