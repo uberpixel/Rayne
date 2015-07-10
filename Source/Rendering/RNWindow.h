@@ -18,7 +18,8 @@ namespace RN
 	class Window
 	{
 	public:
-		virtual void SetTitle(const String *title) = 0;
+		RNAPI virtual void SetTitle(const String *title) = 0;
+		RNAPI virtual Screen *GetScreen() = 0;
 
 	protected:
 		RNAPI Window(Screen *screen);

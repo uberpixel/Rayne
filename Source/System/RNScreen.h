@@ -41,6 +41,7 @@ namespace RN
 
 #if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID GetDisplayID() const { return _display; }
+		void *GetNSScreen() const { return _nsscreen; }
 #endif
 
 	private:
@@ -59,6 +60,7 @@ namespace RN
 
 #if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID _display;
+		void *_nsscreen; // NSScreen * instance
 #endif
 
 		RNDeclareMeta(Screen)

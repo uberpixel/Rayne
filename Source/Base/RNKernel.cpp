@@ -58,7 +58,7 @@ namespace RN
 
 		MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
 		Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
-		renderer->CreateWindow(Rect(0, 0, 1024, 768), Screen::GetMainScreen());
+		renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
 	}
 	void Kernel::FinishBootstrap()
 	{

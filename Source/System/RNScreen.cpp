@@ -71,11 +71,11 @@ namespace RN
 		_resolutions(new Array()),
 		_name(nullptr),
 		_isMainScreen(CGDisplayIsMain(display)),
+		_nsscreen(nullptr),
 		_display(display)
 	{
 		// Find the NSScreen that corresponds to this screen
 		NSArray *screens = [NSScreen screens];
-		NSScreen *thisScreen = nil;
 
 		for(NSInteger i = 0; i < [screens count]; i ++)
 		{
@@ -92,23 +92,22 @@ namespace RN
 				{
 					if(displayIDs[i] == display)
 					{
-						thisScreen = screen;
-
 						_frame = Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+						_nsscreen = screen;
 						break;
 					}
 				}
 
-				if(thisScreen)
+				if(_nsscreen)
 					break;
 			}
 		}
 
-		if(!thisScreen)
+		if(!_nsscreen)
 			throw InconsistencyException("Couldn't find NSScreen matching CGDirectDisplayID");
 
 		_scaleFactor = Kernel::GetSharedInstance()->GetScaleFactor();
-		_scaleFactor = std::max(_scaleFactor, static_cast<float>([thisScreen backingScaleFactor]));
+		_scaleFactor = std::max(_scaleFactor, static_cast<float>([(NSScreen *)_nsscreen backingScaleFactor]));
 
 		// Enumerate through all supported modes
 		CFArrayRef array = CGDisplayCopyAllDisplayModes(display, 0);

@@ -23,10 +23,10 @@ namespace RN
 		friend class MetalRenderer;
 
 		void SetTitle(const String *title) final;
+		Screen *GetScreen() final;
 
 	private:
-		MetalWindow(const Rect &frame, Screen *screen, MetalRenderer *renderer);
-
+		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);
 
 		PIMPL<MetalWindowInternals> _internals;
 		MetalRenderer *_renderer;

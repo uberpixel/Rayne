@@ -66,11 +66,11 @@ namespace RN
 	}
 
 
-	Window *MetalRenderer::CreateWindow(const Rect &frame, Screen *screen)
+	Window *MetalRenderer::CreateWindow(const Vector2 &size, Screen *screen)
 	{
 		RN_ASSERT(!_mainWindow, "Metal renderer only supports one window");
 
-		_mainWindow = new MetalWindow(frame, screen, this);
+		_mainWindow = new MetalWindow(size, screen, this);
 		return _mainWindow;
 	}
 
