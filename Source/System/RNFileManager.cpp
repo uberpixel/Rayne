@@ -230,7 +230,7 @@ namespace RN
 
 				if(lastNode)
 				{
-					result = node;
+					result = subnode;
 					break;
 				}
 
