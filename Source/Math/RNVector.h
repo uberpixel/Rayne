@@ -109,7 +109,7 @@ namespace RN
 		};
 	};
 	
-	class alignas(16) Vector4
+	class RN_ALIGNAS(16) Vector4
 	{
 	public:
 		Vector4();

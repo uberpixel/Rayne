@@ -53,7 +53,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "RNDefines.h"
 #include "RNException.h"
 #include "RNOptions.h"
 #include "RNExpected.h"

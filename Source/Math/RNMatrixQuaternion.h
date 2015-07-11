@@ -16,7 +16,7 @@
 namespace RN
 {
 	class Quaternion;
-	class alignas(16) Matrix
+	class RN_ALIGNAS(16) Matrix
 	{
 	public:
 		Matrix();

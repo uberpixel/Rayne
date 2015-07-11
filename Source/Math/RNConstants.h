@@ -10,7 +10,12 @@
 #define __RAYNE_CONSTANTS_H__
 
 #include <cfloat>
-#include "../Base/RNDefines.h"
+
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
 
 namespace RN
 {

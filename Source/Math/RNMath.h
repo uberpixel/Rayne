@@ -9,7 +9,11 @@
 #ifndef __RAYNE_MATH_H__
 #define __RAYNE_MATH_H__
 
-#include "../Base/RNDefines.h"
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
 
 #include "RNSIMD.h"
 #include "RNConstants.h"

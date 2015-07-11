@@ -10,7 +10,11 @@
 #define __RAYNE_MEMORY_H__
 
 #include <new>
-#include "RNDefines.h"
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
 
 namespace RN
 {

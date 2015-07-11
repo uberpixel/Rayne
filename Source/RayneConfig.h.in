@@ -16,4 +16,71 @@
 
 #define kRNABIVersion ${VERSION_ABI}
 
+#if ${HAVE_STDINT_H} // HAVE_STDINT_H
+	#include <stdint.h>
+#endif
+
+#define RN_FUNCTION_SIGNATURE ${RAYNE_FUNCTION_SIGNATURE}
+#define RN_EXPECT_TRUE(x)  ${RAYNE_EXPECT_TRUE}
+#define RN_EXPECT_FALSE(x) ${RAYNE_EXPECT_FALSE}
+#define RN_ALIGNAS(x) ${RAYNE_ALIGNAS}
+#define RN_NOEXCEPT ${RAYNE_NOEXCEPT}
+#define RN_CONSTEXPR ${RAYNE_CONSTEXPR}
+#define RN_NORETURN ${RAYNE_NORETURN}
+#define RN_INLINE ${RAYNE_INLINE}
+#define RN_NOINLINE ${RAYNE_NOINLINE}
+
+#if RN_BUILD_LIBRARY
+	#define RNAPI ${RAYNE_RNAPI_EXPORT}
+	#define RNAPI_DEFINEBASE ${RAYNE_RNAPI_EXPORT}
+#else
+	#define RNAPI ${RAYNE_RNAPI_IMPORT}
+	#define RNAPI_DEFINEBASE ${RAYNE_RNAPI_IMPORT}
+#endif /* RN_BUILD_LIBRARY */
+
+
+#define RN_PLATFORM_MAC_OS ${RAYNE_PLATFORM_OSX}
+#define RN_PLATFORM_WINDOWS ${RAYNE_PLATFORM_WINDOWS}
+#define RN_PLATFORM_LINUX ${RAYNE_PLATFORM_LINUX}
+#define RN_PLATFORM_POSIX ${RAYNE_PLATFORM_POSIX}
+
+#define RN_PLATFORM_INTEL 1
+#define RN_PLATFORM_ARM 0
+
+#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__))
+	#define RN_PLATFORM_32BIT 0
+	#define RN_PLATFORM_64BIT 1
+#else
+	#define RN_PLATFORM_32BIT 1
+	#define RN_PLATFORM_64BIT 0
+#endif
+
+#if defined(NDEBUG)
+	#define RN_BUILD_DEBUG   0
+	#define RN_BUILD_RELEASE 1
+#else
+	#define RN_BUILD_DEBUG   1
+	#define RN_BUILD_RELEASE 0
+#endif
+
+namespace RN
+{
+	namespace numeric
+	{
+		typedef ${RAYNE_INT8} int8;
+		typedef ${RAYNE_UINT8} uint8;
+
+		typedef ${RAYNE_INT16} int16;
+		typedef ${RAYNE_UINT16} uint16;
+
+		typedef ${RAYNE_INT32} int32;
+		typedef ${RAYNE_UINT32} uint32;
+
+		typedef ${RAYNE_INT64} int64;
+		typedef ${RAYNE_UINT64} uint64;
+	}
+
+	using namespace numeric;
+}
+
 #endif /* __RAYNE_CONFIG_H_  */

@@ -9,7 +9,11 @@
 #ifndef __RAYNE_SIMD_H__
 #define __RAYNE_SIMD_H__
 
-#include "../Base/RNDefines.h"
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
 
 #define RN_SIMD 0
 #define RN_SSE  0
@@ -81,7 +85,7 @@ namespace RN
 		static inline VecFloat NegativeZero()
 		{
 #if RN_SSE
-			alignas(16) static const uint32 negativeZero[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
+			RN_ALIGNAS(16) static const uint32 negativeZero[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
 			return _mm_load_ps(reinterpret_cast<const float *>(negativeZero));
 #endif
 		}
@@ -298,7 +302,7 @@ namespace RN
 		static inline VecFloat LoadConstant()
 		{
 #if RN_SSE
-			alignas(16) static const unsigned int values[4] = {value, value, value, value};
+			RN_ALIGNAS(16) static const unsigned int values[4] = {value, value, value, value};
 			return _mm_load_ps(reinterpret_cast<const float *>(values));
 #endif
 		}

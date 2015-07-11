@@ -24,7 +24,7 @@ namespace RN
 	RN_INLINE Matrix &Matrix::operator*= (const Matrix &other)
 	{
 #if RN_SIMD
-		alignas(16) float tmp[16];
+		RN_ALIGNAS(16) float tmp[16];
 		SIMD::VecFloat right, result;
 		
 		for(int i=0; i<16; i+=4)
