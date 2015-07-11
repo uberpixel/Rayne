@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
+set(VERSION_MAJOR 2)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+set(VERSION_ABI 10)
+set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+
+set(RAYNE_INSTALL_LIB_DIR       lib CACHE PATH "Installation directory for libraries")
+set(RAYNE_INSTALL_BIN_DIR       bin CACHE PATH "Installation directory for executables")
+set(RAYNE_INSTALL_INCLUDE_DIR   include CACHE PATH "Installation directory for header files")
+
 set(RAYNE_SOURCES
     Base/RNMemory.cpp
     Base/RNApplication.cpp
@@ -30,6 +44,7 @@ set(RAYNE_SOURCES
     Objects/RNCountedSet.cpp
     Objects/RNWeakStorage.cpp
     Rendering/Metal/RNMetalGPUBuffer.cpp
+    Rendering/Metal/RNMetalInternals.cpp
     Rendering/Metal/RNMetalRenderer.cpp
     Rendering/Metal/RNMetalRendererDescriptor.cpp
     Rendering/Metal/RNMetalShader.cpp
@@ -107,7 +122,6 @@ set(RAYNE_HEADERS
     Objects/RNValue.h
     Objects/RNWeakStorage.h
     Rendering/Metal/RNMetalGPUBuffer.h
-    Rendering/Metal/RNMetalInternals.cpp
     Rendering/Metal/RNMetalRenderer.h
     Rendering/Metal/RNMetalRendererDescriptor.h
     Rendering/Metal/RNMetalShader.h
@@ -149,7 +163,10 @@ set(BUILD_64Bit YES)
 set(COMPILE_FLAGS "")
 set(LINK_LIBRARIES "")
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
+
 include_directories("${jansson_BINARY_DIR}/include")
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
@@ -161,7 +178,7 @@ if(APPLE)
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
     set(CMAKE_OSX_SYSROOT /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY})
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY} jansson)
 endif()
 
 if(NOT APPLE)
@@ -217,7 +234,13 @@ function(createTarget arg1 arg2 arg3)
 
     add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
     target_link_libraries("${TARGET_NAME}" ${LINK_LIBRARIES})
-    target_link_libraries(${TARGET_NAME} jansson)
+    set_target_properties("${TARGET_NAME}" PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_ABI})
+    set_target_properties("${TARGET_NAME}" PROPERTIES PUBLIC_HEADER "${RAYNE_HEADERS}")
+
+    # Copy the headers
+    foreach(HEADER ${RAYNE_HEADERS})
+        add_custom_command(TARGET "${TARGET_NAME}" PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
+    endforeach()
 
 endfunction()
 

@@ -1,0 +1,19 @@
+//
+//  RayneConfig.h
+//  Rayne
+//
+//  Copyright 2015 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+
+#ifndef __RAYNE_CONFIG_H_
+#define __RAYNE_CONFIG_H_
+
+#define kRNVersionMajor ${VERSION_MAJOR}
+#define kRNVersionMinor ${VERSION_MINOR}
+#define kRNVersionPatch ${VERSION_PATCH}
+
+#define kRNABIVersion ${VERSION_ABI}
+
+#endif /* __RAYNE_CONFIG_H_  */

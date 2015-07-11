@@ -13,6 +13,12 @@
 // Platform independent includes
 // ---------------------------
 
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
+
 #include "RNMemory.h"
 
 #include <assert.h>
@@ -70,11 +76,6 @@
 // Helper macros
 // ---------------------------
 
-#define kRNVersionMajor 0
-#define kRNVersionMinor 7
-#define kRNVersionPatch 0
-
-#define kRNABIVersion 10
 
 #define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 
