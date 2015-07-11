@@ -7,6 +7,7 @@ set(RAYNE_SOURCES
     Base/RNBase.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
+    Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Math/RNMath.cpp
     Objects/RNCatalogue.cpp
@@ -68,6 +69,7 @@ set(RAYNE_HEADERS
     Base/RNLockGuard.h
     Base/RNMemory.h
     Base/RNScopeGuard.h
+    Base/RNSettings.h
     Base/RNSignal.h
     Base/RNSTL.h
     Base/RNTypeTranslator.h

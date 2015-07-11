@@ -109,6 +109,9 @@ namespace RN
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);
 
+		RNAPI bool PathExists(const String *path);
+		RNAPI bool PathExists(const String *path, bool &isDirectory);
+
 	private:
 		FileManager();
 		~FileManager();

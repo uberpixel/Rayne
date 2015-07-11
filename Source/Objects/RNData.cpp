@@ -8,6 +8,8 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
+
 #include "RNData.h"
 #include "RNSerialization.h"
 #include "RNString.h"
@@ -194,6 +196,8 @@ namespace RN
 		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT);
 		if(fd < 0)
 			return false;
+
+		chmod(path->GetUTF8String(), 0755);
 
 		size_t written = 0;
 		while(written < _length)

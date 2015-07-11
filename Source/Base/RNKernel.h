@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNApplication.h"
+#include "RNSettings.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
 #include "../System/RNFileManager.h"
@@ -40,6 +41,7 @@ namespace RN
 		float GetScaleFactor() const { return 1.0f; }
 
 		Application *GetApplication() const { return _application; }
+		Settings *GetSettings() const { return _settings; }
 
 		template<class T>
 		T *GetManifestEntryForKey(String *key) const
@@ -61,6 +63,7 @@ namespace RN
 		Application *_application;
 		FileManager *_fileManager;
 		Dictionary *_manifest;
+		Settings *_settings;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

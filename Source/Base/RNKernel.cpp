@@ -65,6 +65,8 @@ namespace RN
 
 			_application->WillFinishLaunching(this);
 
+			_settings = new Settings(); // Requires the FileManager to have all search paths
+
 			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
 			Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
 			Window *window = renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
@@ -152,7 +154,10 @@ namespace RN
 		// Perform work submitted to the main queue
 		{
 			volatile bool finishWork;
-			_mainQueue->Perform([&]{ finishWork = true; });
+			_mainQueue->Perform([&]{
+				finishWork = true;
+				_settings->Sync();
+			});
 
 			do {
 				finishWork = false;

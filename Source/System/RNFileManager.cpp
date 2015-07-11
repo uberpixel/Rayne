@@ -14,6 +14,7 @@
 #if RN_PLATFORM_POSIX
 	#include <dirent.h>
 	#include <unistd.h>
+	#include <sys/stat.h>
 #endif
 
 namespace RN
@@ -41,8 +42,6 @@ namespace RN
 	{
 		SafeRelease(_path);
 		_path = SafeRetain(path);
-
-		std::cout << _path->GetUTF8String() << std::endl;
 	}
 
 
@@ -379,8 +378,14 @@ namespace RN
 			case Location::SaveDirectory:
 			{
 #if RN_PLATFORM_MAC_OS
-				//NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
+				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
 
+				NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
+				url = [url URLByAppendingPathComponent:[NSString stringWithUTF8String:application->GetUTF8String()]];
+
+				[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:NULL];
+
+				return RNSTR([[url path] UTF8String]);
 
 #endif
 				break;
@@ -441,5 +446,35 @@ namespace RN
 		{
 			_nodes->RemoveObjectAtIndex(index);
 		}
+	}
+
+	bool FileManager::PathExists(const String *path)
+	{
+		__unused bool ignored;
+		return PathExists(path, ignored);
+	}
+
+	bool FileManager::PathExists(const String *path, bool &isDirectory)
+	{
+#if RN_PLATFORM_POSIX
+		struct stat buf;
+		int result = stat(path->GetUTF8String(), &buf);
+
+		if(result != 0)
+			return false;
+
+		isDirectory = S_ISDIR(buf.st_mode);
+		return true;
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		DWORD attributes = ::GetFileAttributes(path->GetUTF8String());
+
+		if(attributes == INVALID_FILE_ATTRIBUTES)
+			return false;
+
+		isDirectory = (attributes & FILE_ATTRIBUTE_DIRECTORY);
+		return true;
+#endif
 	}
 }
