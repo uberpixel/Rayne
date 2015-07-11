@@ -122,17 +122,20 @@
 #if defined(_MSC_VER)
 	namespace RN
 	{
-		typedef signed char int8;
-		typedef unsigned char uint8;
+		namespace numeric
+		{
+			typedef signed char int8;
+			typedef unsigned char uint8;
 
-		typedef short int16;
-		typedef unsigned short uint16;
+			typedef short int16;
+			typedef unsigned short uint16;
 
-		typedef int int32;
-		typedef unsigned int uint32;
+			typedef int int32;
+			typedef unsigned int uint32;
 
-		typedef __int64 int64;
-		typedef unsigned __int64 uint64;
+			typedef __int64 int64;
+			typedef unsigned __int64 uint64;
+		}
 	}
 
 	#pragma warning(disable: 4018)
@@ -172,17 +175,20 @@
 #if defined(__GNUC__) // Also catches Clang on OS X
 	namespace RN
 	{
-		typedef signed char int8;
-		typedef unsigned char uint8;
+		namespace numeric
+		{
+			typedef signed char int8;
+			typedef unsigned char uint8;
 
-		typedef short int16;
-		typedef unsigned short uint16;
+			typedef short int16;
+			typedef unsigned short uint16;
 
-		typedef int int32;
-		typedef unsigned int uint32;
+			typedef int int32;
+			typedef unsigned int uint32;
 
-		typedef long long int64;
-		typedef unsigned long long uint64;
+			typedef long long int64;
+			typedef unsigned long long uint64;
+		}
 	}
 
 	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
@@ -221,25 +227,30 @@
 
 namespace RN
 {
-	static_assert(sizeof(int8) == 1, "int8 must be 1 byte!");
-	static_assert(sizeof(int16) == 2, "int16 must be 2 bytes!");
-	static_assert(sizeof(int32) == 4, "int32 must be 4 bytes!");
-	static_assert(sizeof(int64) == 8, "int64 must be 8 bytes!");
+	namespace numeric
+	{
+		static_assert(sizeof(int8) == 1, "int8 must be 1 byte!");
+		static_assert(sizeof(int16) == 2, "int16 must be 2 bytes!");
+		static_assert(sizeof(int32) == 4, "int32 must be 4 bytes!");
+		static_assert(sizeof(int64) == 8, "int64 must be 8 bytes!");
 
-	static_assert(sizeof(uint8) == 1, "uint8 must be 1 byte!");
-	static_assert(sizeof(uint16) == 2, "uint16 must be 2 bytes!");
-	static_assert(sizeof(uint32) == 4, "uint32 must be 4 bytes!");
-	static_assert(sizeof(uint64) == 8, "uint64 must be 8 bytes!");
+		static_assert(sizeof(uint8) == 1, "uint8 must be 1 byte!");
+		static_assert(sizeof(uint16) == 2, "uint16 must be 2 bytes!");
+		static_assert(sizeof(uint32) == 4, "uint32 must be 4 bytes!");
+		static_assert(sizeof(uint64) == 8, "uint64 must be 8 bytes!");
 
-	static_assert(std::is_signed<int8>::value, "int8 must be signed!");
-	static_assert(std::is_signed<int16>::value, "int16 must be signed!");
-	static_assert(std::is_signed<int32>::value, "int32 must be signed!");
-	static_assert(std::is_signed<int64>::value, "int64 must be signed!");
+		static_assert(std::is_signed<int8>::value, "int8 must be signed!");
+		static_assert(std::is_signed<int16>::value, "int16 must be signed!");
+		static_assert(std::is_signed<int32>::value, "int32 must be signed!");
+		static_assert(std::is_signed<int64>::value, "int64 must be signed!");
 
-	static_assert(std::is_unsigned<uint8>::value, "uint8 must be unsigned!");
-	static_assert(std::is_unsigned<uint16>::value, "uint16 must be unsigned!");
-	static_assert(std::is_unsigned<uint32>::value, "uint32 must be unsigned!");
-	static_assert(std::is_unsigned<uint64>::value, "uint64 must be unsigned!");
+		static_assert(std::is_unsigned<uint8>::value, "uint8 must be unsigned!");
+		static_assert(std::is_unsigned<uint16>::value, "uint16 must be unsigned!");
+		static_assert(std::is_unsigned<uint32>::value, "uint32 must be unsigned!");
+		static_assert(std::is_unsigned<uint64>::value, "uint64 must be unsigned!");
+	}
+
+	using namespace numeric;
 }
 
 #endif /* __RAYNE_DEFINES_H__ */
