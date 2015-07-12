@@ -8,6 +8,7 @@
 
 #include "RNThread.h"
 #include "RNThreadLocalStorage.h"
+#include "../Objects/RNAutoreleasePool.h"
 
 #if RN_PLATFORM_WINDOWS
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
@@ -182,11 +183,12 @@ namespace RN
 		
 		_thread = std::move(std::thread([&]() {
 			Entry();
-			
+
 			try
 			{
 				{
 					std::lock_guard<std::mutex> lock(_generalMutex);
+					AutoreleasePool pool;
 					
 #if RN_PLATFORM_MAC_OS
 					pthread_setname_np(_name->GetUTF8String());

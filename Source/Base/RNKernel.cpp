@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../System/RNScreen.h"
 #include "../Rendering/Metal/RNMetalRendererDescriptor.h"
@@ -49,6 +50,8 @@ namespace RN
 			_runLoop->AddObserver(_observer);
 
 			_logger = new Logger();
+
+			AutoreleasePool pool; // Wrap everyting into an autorelease pool from now on
 
 			Screen::InitializeScreens();
 
@@ -139,6 +142,8 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		NSAutoreleasePool *nsautoreleasePool = [[NSAutoreleasePool alloc] init];
 #endif
+
+		AutoreleasePool pool;
 
 		Clock::time_point now = Clock::now();
 

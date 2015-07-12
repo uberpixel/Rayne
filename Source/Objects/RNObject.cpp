@@ -10,6 +10,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNData.h"
 #include "RNObjectInternals.h"
+#include "../Debug/RNLogger.h"
 
 namespace RN
 {
@@ -92,12 +93,9 @@ namespace RN
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
-			/*Log::Loggable loggable(Log::Level::Error);
-			
 			MetaClass *meta = GetClass();
-			
-			loggable << "Autorelease() with no pool in place, " << this << " (" << meta->GetFullname() << ") will leak!";*/
-			
+			RNError("Autorelease() with no pool in place, <%p:%s> will leak!", this, meta->GetFullname().c_str());
+
 			return this;
 		}
 		
