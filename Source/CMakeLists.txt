@@ -25,14 +25,20 @@ include(CheckTypeSize)
 
 macro(check_cxx_compiler_attribute _ATTRIBUTE _RESULT)
   check_cxx_source_compiles("${_ATTRIBUTE} int somefunc() { return 0; }
-    int main() { return somefunc();}" ${_RESULT}
+    int main() { return somefunc(); }" ${_RESULT}
     # Some compilers do not fail with a bad flag
     FAIL_REGEX "unrecognized .*option"                     # GNU
     FAIL_REGEX "ignoring unknown option"                   # MSVC
     FAIL_REGEX "warning D9002"                             # MSVC, any lang
-    FAIL_REGEX "[Uu]nknown option"                         # HP
-    FAIL_REGEX "[Ww]arning: [Oo]ption"                     # SunPro
-    FAIL_REGEX "command option .* is not recognized"       # XL
+  )
+endmacro()
+
+macro(check_cxx_compiler_type_attribute _ATTRIBUTE _RESULT)
+  check_cxx_source_compiles("int main() { return ${_ATTRIBUTE} int bar = 0; bar; }" ${_RESULT}
+    # Some compilers do not fail with a bad flag
+    FAIL_REGEX "unrecognized .*option"                     # GNU
+    FAIL_REGEX "ignoring unknown option"                   # MSVC
+    FAIL_REGEX "warning D9002"                             # MSVC, any lang
   )
 endmacro()
 
@@ -181,8 +187,8 @@ else()
     set(RAYNE_EXPECT_FALSE "(x)")
 endif()
 
-check_cxx_source_compiles("int main() { alignas(16) float tmp[16]; tmp[0] = 24.0f; }" HAVE_ALIGNAS)
-check_cxx_source_compiles("int main() { __declspec(align(16)) float tmp[16]; tmp[0] = 24.0f; }" HAVE_DECLSPEC_ALIGNAS)
+check_cxx_compiler_type_attribute("alignas(16)" HAVE_ALIGNAS)
+check_cxx_compiler_type_attribute(" __declspec(align(16))" HAVE_DECLSPEC_ALIGNAS)
 
 if(HAVE_ALIGNAS)
     set(RAYNE_ALIGNAS "alignas(x)")
