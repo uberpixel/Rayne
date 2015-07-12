@@ -18,6 +18,8 @@
 namespace RN
 {
 	class Serializer;
+	class String;
+
 	class Object
 	{
 	public:
@@ -27,6 +29,8 @@ namespace RN
 		RNAPI Object *Retain();
 		RNAPI void Release();
 		RNAPI Object *Autorelease();
+
+		RNAPI virtual const String *GetDescription() const;
 		
 		RNAPI Object *Copy() const;
 		

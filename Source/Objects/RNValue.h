@@ -25,11 +25,12 @@ namespace RN
 		template<class T>
 		Value(const T &value) :
 			_type(TypeTranslator<T>::value),
-			_size(sizeof(T))
+			_size(sizeof(T)),
+			_alignment(std::alignment_of<T>::value)
 		{
 			const uint8 *source = reinterpret_cast<const uint8 *>(&value);
 			
-			_storage = new uint8[_size];
+			_storage = reinterpret_cast<uint8 *>(Memory::AllocateAligned(_size, _alignment));
 			std::copy(source, source + _size, _storage);
 		}
 		RNAPI Value(const Value *other);
@@ -37,6 +38,7 @@ namespace RN
 		RNAPI ~Value();
 		
 		RNAPI void Serialize(Serializer *serializer) const override;
+		RNAPI const String *GetDescription() const override;
 		
 		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;
@@ -82,6 +84,7 @@ namespace RN
 	private:
 		char _type;
 		size_t _size;
+		size_t _alignment;
 		uint8 *_storage;
 		
 		RNDeclareMeta(Value)

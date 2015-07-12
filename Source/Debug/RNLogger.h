@@ -131,11 +131,49 @@ namespace RN
 		WorkQueue *_queue;
 		std::chrono::system_clock::time_point _lastMessage;
 	};
+
+	class LogBuilder
+	{
+	public:
+		RNAPI LogBuilder(size_t line, const char *file, const char *function, Logger::Level level = Logger::Level::Info);
+		RNAPI ~LogBuilder();
+
+		RNAPI void Submit();
+
+		LogBuilder &operator << (const Object *object) { _stream << object->GetDescription()->GetUTF8String(); return *this; }
+		LogBuilder &operator << (const std::string &val) { _stream << val; return *this; }
+		LogBuilder &operator << (const char *val) { _stream << val; return *this; }
+		LogBuilder &operator << (bool val) { _stream << val; return *this; }
+		LogBuilder &operator << (short val) { _stream << val; return *this; }
+		LogBuilder &operator << (unsigned short val) { _stream << val; return *this; }
+		LogBuilder &operator << (int val) { _stream << val; return *this; }
+		LogBuilder &operator << (unsigned int val) { _stream << val; return *this; }
+		LogBuilder &operator << (long val) { _stream << val; return *this; }
+		LogBuilder &operator << (unsigned long val) { _stream << val; return *this; }
+		LogBuilder &operator << (long long val) { _stream << val; return *this; }
+		LogBuilder &operator << (unsigned long long val) { _stream << val; return *this; }
+		LogBuilder &operator << (const void *val) { _stream << val; return *this; }
+		LogBuilder &operator << (std::ostream &(*pf)(std::ostream &)) { _stream << pf; return *this; }
+		LogBuilder &operator << (std::ios &(*pf)(std::ios &)) { _stream << pf; return *this; };
+		LogBuilder &operator << (std::ios_base &(*pf)(std::ios_base &)) { _stream << pf; return *this; }
+
+	private:
+		Logger::Level _level;
+		size_t _line;
+		const char *_file;
+		const char *_function;
+		std::stringstream _stream;
+	};
 }
 
-#define RNDebug(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Debug, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
-#define RNInfo(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Info, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
-#define RNWarning(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Warning, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
-#define RNError(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Error, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+#define RNDebugf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Debug, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+#define RNInfof(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Info, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+#define RNWarningf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Warning, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+#define RNErrorf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Error, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+
+#define RNDebug(exp) do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Debug); builder << exp; } while(0)
+#define RNInfo(exp) do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Info); builder << exp; } while(0)
+#define RNWarning(exp) do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Warning); builder << exp; } while(0)
+#define RNError(exp)  do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Error); builder << exp; } while(0)
 
 #endif /* __RAYNE_LOGGING_H_ */

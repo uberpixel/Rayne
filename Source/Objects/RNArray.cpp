@@ -8,6 +8,7 @@
 
 #include "RNArray.h"
 #include "RNSet.h"
+#include "RNString.h"
 #include "RNSerialization.h"
 
 namespace RN
@@ -113,7 +114,23 @@ namespace RN
 		
 		return array->Autorelease();
 	}
-	
+
+	const String *Array::GetDescription() const
+	{
+		if(_count == 0)
+			return RNCSTR("[]");
+
+		String *result = String::WithString("[\n", false);
+
+		Enumerate([&](Object *object, size_t index, bool &stop) {
+			result->Append("\t");
+			result->Append(object->GetDescription());
+			result->Append(",\n");
+		});
+
+		result->Append("]");
+		return result;
+	}
 	
 	void Array::ShrinkToFit()
 	{

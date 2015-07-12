@@ -8,6 +8,7 @@
 
 #include "RNValue.h"
 #include "RNSerialization.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -15,9 +16,10 @@ namespace RN
 	
 	Value::Value(const Value *other) :
 		_type(other->_type),
-		_size(other->_size)
+		_size(other->_size),
+		_alignment(other->_alignment)
 	{
-		_storage = new uint8[_size];
+		_storage = reinterpret_cast<uint8 *>(Memory::AllocateAligned(_size, _alignment));
 		std::copy(other->_storage, other->_storage + _size, _storage);
 	}
 	
@@ -27,13 +29,13 @@ namespace RN
 		
 		uint8 *source = static_cast<uint8 *>(deserializer->DecodeBytes(&_size));
 		
-		_storage = new uint8[_size];
+		_storage = reinterpret_cast<uint8 *>(Memory::AllocateAligned(_size, _alignment));
 		std::copy(source, source + _size, _storage);
 	}
 	
 	Value::~Value()
 	{
-		delete [] _storage;
+		Memory::FreeAligned(_storage);
 	}
 	
 	
@@ -41,6 +43,54 @@ namespace RN
 	{
 		serializer->EncodeInt32(_type);
 		serializer->EncodeBytes(_storage, _size);
+	}
+
+	const String *Value::GetDescription() const
+	{
+		switch(_type)
+		{
+			case TypeTranslator<Vector2>::value:
+			{
+				Vector2 value(GetValue<Vector2>());
+				return RNSTR("<Vector2(%f, %f)>", value.x, value.y);
+			}
+			case TypeTranslator<Vector3>::value:
+			{
+				Vector3 value(GetValue<Vector3>());
+				return RNSTR("<Vector3(%f, %f)>", value.x, value.y, value.z);
+			}
+			case TypeTranslator<Vector4>::value:
+			{
+				Vector4 value(GetValue<Vector4>());
+				return RNSTR("<Vector4(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
+			}
+
+			case TypeTranslator<Color>::value:
+			{
+				Color value(GetValue<Color>());
+				return RNSTR("<Color(%f, %f, %f, %f)>", value.r, value.g, value.b, value.a);
+			}
+
+			case TypeTranslator<Matrix>::value:
+			{
+				Matrix value(GetValue<Matrix>());
+				return RNSTR("<Matrix(\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f)>",
+							 value.m[0], value.m[1], value.m[2], value.m[3],
+							 value.m[4], value.m[5], value.m[6], value.m[7],
+							 value.m[8], value.m[9], value.m[10], value.m[11],
+							 value.m[12], value.m[13], value.m[14], value.m[15]);
+			}
+			case TypeTranslator<Quaternion>::value:
+			{
+				Quaternion value(GetValue<Quaternion>());
+				return RNSTR("<Quaternion(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
+			}
+
+			default:
+				break;
+		}
+
+		return RNSTR("<Value: type: %c, size: %d, alignment: %d>", _type, (int)_size, (int)_alignment);
 	}
 	
 	

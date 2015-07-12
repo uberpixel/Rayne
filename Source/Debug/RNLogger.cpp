@@ -229,4 +229,27 @@ namespace RN
 			_queue->Perform([this]{ __FlushQueue(); });
 		}
 	}
+
+
+	LogBuilder::LogBuilder(size_t line, const char *file, const char *function, Logger::Level level) :
+		_level(level),
+		_line(line),
+		_file(file),
+		_function(function)
+	{}
+
+	LogBuilder::~LogBuilder()
+	{
+		Submit();
+	}
+
+	void LogBuilder::Submit()
+	{
+		if(!_stream.tellp())
+			return;
+
+		LogMessage message(_line, _file, _function, std::move(_stream.str()));
+		__sharedLogger->Log(_level, std::move(message));
+		_stream.str("");
+	}
 }

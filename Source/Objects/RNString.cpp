@@ -187,6 +187,11 @@ namespace RN
 	// MARK: -
 	// MARK: Object system
 	// ---------------------
+
+	const String *String::GetDescription() const
+	{
+		return this;
+	}
 	
 	size_t String::GetHash() const
 	{

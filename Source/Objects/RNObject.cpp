@@ -10,6 +10,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNData.h"
 #include "RNObjectInternals.h"
+#include "RNString.h"
 #include "../Debug/RNLogger.h"
 
 namespace RN
@@ -52,6 +53,11 @@ namespace RN
 	
 	void Object::CleanUp()
 	{}
+
+	const String *Object::GetDescription() const
+	{
+		return String::WithFormat("<%s:%p>", GetClass()->GetName().c_str(), this);
+	}
 	
 	MetaClass *Object::GetClass() const
 	{
@@ -94,7 +100,7 @@ namespace RN
 		if(!pool)
 		{
 			MetaClass *meta = GetClass();
-			RNError("Autorelease() with no pool in place, <%p:%s> will leak!", this, meta->GetFullname().c_str());
+			RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<void *>(this) << "> will leak!");
 
 			return this;
 		}

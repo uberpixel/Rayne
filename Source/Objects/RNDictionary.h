@@ -27,6 +27,7 @@ namespace RN
 		RNAPI ~Dictionary() override;
 		
 		RNAPI void Serialize(Serializer *serializer) const override;
+		RNAPI const String *GetDescription() const override;
 		
 		RNAPI size_t GetHash() const override;
 		RNAPI bool IsEqual(const Object *other) const override;

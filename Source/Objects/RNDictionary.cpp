@@ -107,6 +107,25 @@ namespace RN
 			
 		});
 	}
+
+	const String *Dictionary::GetDescription() const
+	{
+		if(_internals->hashTable._count == 0)
+			return RNCSTR("[]");
+
+		String *result = String::WithString("[\n", false);
+
+		Enumerate([&](Object *object, Object *key, bool &stop) {
+			result->Append("\t");
+			result->Append(key->GetDescription());
+			result->Append(" : ");
+			result->Append(object->GetDescription());
+			result->Append(",\n");
+		});
+
+		result->Append("]");
+		return result;
+	}
 	
 	
 	size_t Dictionary::GetHash() const

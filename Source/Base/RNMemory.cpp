@@ -73,6 +73,9 @@ namespace RN
 			return (result == 0) ? ptr : 0;
 #else
 #if RN_PLATFORM_POSIX
+			if(alignment < sizeof(void *))
+				alignment = sizeof(void *);
+
 			void *ptr;
 			int result = posix_memalign(&ptr, alignment, size);
 			

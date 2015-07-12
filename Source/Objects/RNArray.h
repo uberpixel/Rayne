@@ -30,6 +30,7 @@ namespace RN
 		RNAPI static Array *WithObjects(std::initializer_list<Object *> objects);
 		
 		RNAPI void Serialize(Serializer *serializer) const override;
+		RNAPI const String *GetDescription() const override;
 		
 		Array *GetObjectsPassingTest(const std::function<bool (Object *, bool &)> &callback) const
 		{

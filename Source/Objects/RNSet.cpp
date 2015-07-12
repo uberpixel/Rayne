@@ -10,6 +10,7 @@
 #include "RNArray.h"
 #include "RNHashTableInternal.h"
 #include "RNSerialization.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -106,6 +107,23 @@ namespace RN
 			serializer->EncodeObject(object);
 			
 		});
+	}
+
+	const String *Set::GetDescription() const
+	{
+		if(_internals->hashTable._count == 0)
+			return RNCSTR("[]");
+
+		String *result = String::WithString("[\n", false);
+
+		Enumerate([&](Object *object, bool &stop) {
+			result->Append("\t");
+			result->Append(object->GetDescription());
+			result->Append(",\n");
+		});
+
+		result->Append("]");
+		return result;
 	}
 	
 	
