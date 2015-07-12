@@ -48,6 +48,8 @@ namespace RN
 			_runLoop = _mainThread->GetRunLoop();
 			_runLoop->AddObserver(_observer);
 
+			_logger = new Logger();
+
 			Screen::InitializeScreens();
 
 			_fileManager = new FileManager();
@@ -63,9 +65,10 @@ namespace RN
 			_application->__PrepareForWillFinishLaunching(this);
 			_fileManager->__PrepareWithManifest();
 
-			_application->WillFinishLaunching(this);
-
 			_settings = new Settings(); // Requires the FileManager to have all search paths
+			_logger->__LoadDefaultLoggers();
+
+			_application->WillFinishLaunching(this);
 
 			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
 			Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
@@ -111,6 +114,10 @@ namespace RN
 		WorkQueue::TearDownQueues();
 
 		delete _fileManager;
+
+		_logger->Flush();
+		delete _logger;
+
 		delete this;
 
 		__sharedInstance = nullptr;

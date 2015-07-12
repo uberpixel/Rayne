@@ -289,6 +289,8 @@ set(RAYNE_SOURCES
     Base/RNKernel.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
+    Debug/RNLogger.cpp
+    Debug/RNLoggingEngine.cpp
     Math/RNMath.cpp
     Objects/RNCatalogue.cpp
     Objects/RNObject.cpp
@@ -357,6 +359,8 @@ set(RAYNE_HEADERS
     Data/RNAny.h
     Data/RNRingBuffer.h
     Data/RNRRef.h
+    Debug/RNLogger.h
+    Debug/RNLoggingEngine.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h

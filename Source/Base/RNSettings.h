@@ -16,6 +16,8 @@
 
 #include "../Objects/RNNumber.h"
 
+#define kRNSettingsLoggersKey RNCSTR("RNLoggers")
+
 namespace RN
 {
 	class Kernel;

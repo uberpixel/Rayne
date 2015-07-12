@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNApplication.h"
 #include "RNSettings.h"
+#include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
 #include "../System/RNFileManager.h"
@@ -64,6 +65,7 @@ namespace RN
 		FileManager *_fileManager;
 		Dictionary *_manifest;
 		Settings *_settings;
+		Logger *_logger;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

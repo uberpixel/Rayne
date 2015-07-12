@@ -6,6 +6,7 @@
 #define __RAYNE_BASEINTERNAL_H__
 
 #include "RNBase.h"
+#include "../Debug/RNLogger.h"
 
 #if RN_PLATFORM_MAC_OS
 	#import <Cocoa/Cocoa.h>

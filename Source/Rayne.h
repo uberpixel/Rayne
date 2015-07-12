@@ -12,11 +12,15 @@
 #include "Base/RNApplication.h"
 #include "Base/RNBase.h"
 #include "Base/RNKernel.h"
+#include "Base/RNSettings.h"
 #include "Base/RNUnicode.h"
 
 #include "Data/RNAny.h"
 #include "Data/RNRingBuffer.h"
 #include "Data/RNRRef.h"
+
+#include "Debug/RNLogger.h"
+#include "Debug/RNLoggingEngine.h"
 
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"
