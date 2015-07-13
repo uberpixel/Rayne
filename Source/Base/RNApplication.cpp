@@ -25,6 +25,7 @@ namespace RN
 	void Application::__PrepareForWillFinishLaunching(Kernel *kernel)
 	{
 		_title = kernel->GetManifestEntryForKey<String>(kRNManifestApplicationKey);
+		_title->Retain();
 	}
 
 	void Application::WillFinishLaunching(Kernel *kernel) {}

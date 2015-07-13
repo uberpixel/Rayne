@@ -30,7 +30,7 @@ namespace RN
 
 		Thread *GetThread() const { return _thread; }
 		const std::string &GetReason() const { return _reason; }
-		const std::vector<std::pair<uintptr_t, std::string>>& GetCallStack() const { return _callStack; }
+		const std::vector<std::pair<uintptr_t, std::string>> &GetCallStack() const { return _callStack; }
 		
 	private:
 		void GatherInfo();

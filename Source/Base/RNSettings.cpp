@@ -8,6 +8,7 @@
 
 #include "../System/RNFileManager.h"
 #include "../Objects/RNJSONSerialization.h"
+#include "../Debug/RNLogger.h"
 #include "RNSettings.h"
 
 namespace RN
@@ -32,12 +33,36 @@ namespace RN
 
 				if(_settings)
 				{
+					Data *orgData = Data::WithContentsOfFile(original);
+					if(orgData)
+					{
+						try
+						{
+							Dictionary *orgSettings = JSONSerialization::ObjectFromData<Dictionary>(orgData, 0);
+
+							orgSettings->Enumerate<Object, String>([&](Object *object, String *key, bool &stop) {
+
+								if(!_settings->GetObjectForKey(key))
+								{
+									_settings->SetObjectForKey(object, key);
+									_isDirty = true;
+								}
+
+							});
+						}
+						catch(Exception &e)
+						{}
+					}
+
+
 					__sharedInstance = this;
 					return;
 				}
 			}
 			catch(Exception &e)
-			{}
+			{
+				RNWarning("Found stored settings.json, but encountered the following exception while trying to read it: " << e);
+			}
 		}
 
 
@@ -106,11 +131,19 @@ namespace RN
 		try
 		{
 			Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::Options::PrettyPrint);
-			data->WriteToFile(GetSettingsLocation());
+			bool saved = data->WriteToFile(GetSettingsLocation());
 
-			_isDirty = false;
+			if(saved)
+			{
+				_isDirty = false;
+				return;
+			}
+
+			RNWarning("Failed to sync settings.json");
 		}
 		catch(Exception &e)
-		{}
+		{
+			RNWarning("Encountered the following exception while trying to sync the settings.json: " << e);
+		}
 	}
 }
