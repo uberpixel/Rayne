@@ -160,7 +160,7 @@ namespace RN
 
 		{
 			LockGuard<SpinLock> lock(_lock);
-			while(!_messages.Push(std::move(message)))
+			while(!_messages.Push(std::move(LogEntry(level, std::move(message)))))
 				_queue->PerformSynchronous([this]{ __FlushQueue(); });
 		}
 
@@ -203,21 +203,21 @@ namespace RN
 	void Logger::__FlushQueue()
 	{
 		std::lock_guard<std::mutex> lock(_engineLock);
-		LogMessage message;
+		LogEntry entry;
 
-		while(_messages.Pop(message))
+		while(_messages.Pop(entry))
 		{
-			message.FormatTime();
+			entry.message.FormatTime();
 
 			_engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 
-				auto offset = std::chrono::duration_cast<std::chrono::seconds>(message.time - _lastMessage).count();
-				_lastMessage = message.time;
+				auto offset = std::chrono::duration_cast<std::chrono::seconds>(entry.message.time - _lastMessage).count();
+				_lastMessage = entry.message.time;
 
 				if(offset >= 10)
 					engine->LogBreak();
 
-				engine->Log(Level::Debug, message);
+				engine->Log(entry.level, entry.message);
 			});
 		}
 

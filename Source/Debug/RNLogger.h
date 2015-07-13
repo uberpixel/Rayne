@@ -114,6 +114,32 @@ namespace RN
 		RNAPI void Flush();
 
 	private:
+		struct LogEntry
+		{
+			LogEntry() = default;
+
+			LogEntry(Level tlevel, LogMessage &&tmessage) :
+				level(tlevel),
+				message(std::move(tmessage))
+			{}
+
+			LogEntry(LogEntry &&other) :
+				level(other.level),
+				message(std::move(other.message))
+			{}
+
+			LogEntry &operator= (LogEntry &&other)
+			{
+				level = other.level;
+				message = std::move(other.message);
+
+				return *this;
+			}
+
+			LogMessage message;
+			Level level;
+		};
+
 		Logger();
 		~Logger();
 
@@ -121,7 +147,7 @@ namespace RN
 		void __FlushQueue();
 
 		SpinLock _lock;
-		AtomicRingBuffer<LogMessage, 128> _messages;
+		AtomicRingBuffer<LogEntry, 128> _messages;
 
 		std::mutex _engineLock;
 		Array *_threadEngines;
