@@ -25,6 +25,9 @@ namespace RN
 		void SetTitle(const String *title) final;
 		Screen *GetScreen() final;
 
+		void Show() final;
+		void Hide() final;
+
 	private:
 		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);
 

@@ -70,6 +70,7 @@ namespace RN
 			[NSApp finishLaunching];
 
 			[[RNApplication sharedApplication] setDelegate:(RNApplication *)[RNApplication sharedApplication]];
+			[[RNApplication sharedApplication] activateIgnoringOtherApps:YES];
 			
 			@autoreleasepool {
 				

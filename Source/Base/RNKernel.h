@@ -16,6 +16,7 @@
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
 #include "../System/RNFileManager.h"
+#include "../Rendering/RNRenderer.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
 #include "../Threads/RNWorkQueue.h"
@@ -60,12 +61,14 @@ namespace RN
 		void TearDown();
 
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
+		void HandleSystemEvents();
 
 		Application *_application;
 		FileManager *_fileManager;
 		Dictionary *_manifest;
 		Settings *_settings;
 		Logger *_logger;
+		Renderer *_renderer;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

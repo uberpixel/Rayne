@@ -30,7 +30,6 @@ namespace RN
 		CGFloat xPos = (NSWidth([nsscreen frame]) - NSWidth(frame)) * 0.5;
 		CGFloat yPos = (NSHeight([nsscreen frame]) - NSHeight(frame)) * 0.5;
 		[_internals->window setFrame:NSMakeRect(xPos, yPos, NSWidth(frame), NSHeight(frame)) display:YES];
-		[_internals->window makeKeyAndOrderFront:nil];
 	}
 
 	void MetalWindow::SetTitle(const String *title)
@@ -57,5 +56,15 @@ namespace RN
 
 		RN_ASSERT(result, "Result must not be NULL, something broke internally");
 		return result;
+	}
+
+	void MetalWindow::Show()
+	{
+		[_internals->window makeKeyAndOrderFront:nil];
+	}
+
+	void MetalWindow::Hide()
+	{
+		[_internals->window orderOut:nil];
 	}
 }

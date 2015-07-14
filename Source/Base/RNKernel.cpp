@@ -74,9 +74,7 @@ namespace RN
 			_application->WillFinishLaunching(this);
 
 			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-			Renderer *renderer = descriptor->CreateAndSetActiveRenderer();
-			Window *window = renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
-			window->SetTitle(_application->GetTitle());
+			_renderer = descriptor->CreateAndSetActiveRenderer();
 		}
 		catch(...)
 		{
@@ -122,7 +120,6 @@ namespace RN
 		delete _logger;
 
 		delete this;
-
 		__sharedInstance = nullptr;
 	}
 
@@ -153,9 +150,18 @@ namespace RN
 
 		if(RN_EXPECT_FALSE(_firstFrame))
 		{
+			HandleSystemEvents();
 			FinishBootstrap();
-			_delta = 0.0;
 
+			Window *window = _renderer->GetMainWindow();
+			if(!window)
+			{
+				window = _renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
+				window->SetTitle(_application->GetTitle());
+				window->Show();
+			}
+
+			_delta = 0.0;
 			_firstFrame = false;
 		}
 
@@ -178,23 +184,10 @@ namespace RN
 		}
 
 		// System event handling
-#if RN_PLATFORM_MAC_OS
-		@autoreleasepool {
+		HandleSystemEvents();
 
-			NSDate *date = [NSDate date];
-			NSEvent *event;
-
-			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
-			{
-				[NSApp sendEvent:event];
-				[NSApp updateWindows];
-			}
-		}
-#endif
-
-		Renderer *renderer = Renderer::GetActiveRenderer();
-		renderer->BeginWindow(renderer->GetMainWindow());
-		renderer->EndWindow();
+		_renderer->BeginWindow(_renderer->GetMainWindow());
+		_renderer->EndWindow();
 
 		_application->DidStep(_delta);
 		_lastFrame = now;
@@ -221,6 +214,23 @@ namespace RN
 
 		// Make sure the run loop wakes up again afterwards
 		_runLoop->WakeUp();
+	}
+
+	void Kernel::HandleSystemEvents()
+	{
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool {
+
+			NSDate *date = [NSDate date];
+			NSEvent *event;
+
+			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+			{
+				[NSApp sendEvent:event];
+				[NSApp updateWindows];
+			}
+		}
+#endif
 	}
 
 	void Kernel::Run()
