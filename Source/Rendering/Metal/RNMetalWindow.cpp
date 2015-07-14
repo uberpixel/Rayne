@@ -19,7 +19,7 @@ namespace RN
 	{
 		_internals->metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) andDevice:renderer->_internals->device];
 
-		_internals->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSTitledWindowMask | NSResizableWindowMask backing:NSBackingStoreBuffered defer:NO];
+		_internals->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
 		[_internals->window setContentView:_internals->metalView];

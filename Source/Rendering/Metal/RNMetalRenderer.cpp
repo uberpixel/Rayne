@@ -7,6 +7,7 @@
 //
 
 #include "../../Base/RNBaseInternal.h"
+#include "../../Objects/RNNumber.h"
 #include "RNMetalRenderer.h"
 #include "RNMetalInternals.h"
 #include "RNMetalShaderLibrary.h"
@@ -40,6 +41,21 @@ namespace RN
 	{
 		_internals->device = nullptr;
 
+		// Check for parameters that need to be activated before interacting with the Metal API
+		Dictionary *parameters = GetParameters();
+		if(parameters)
+		{
+			Number *apiValidation = parameters->GetObjectForKey<Number>(RNCSTR("api_validation"));
+			if(apiValidation && apiValidation->GetBoolValue())
+			{
+				char buffer[64];
+				strcpy(buffer, "METAL_DEVICE_WRAPPER_TYPE=1");
+
+				putenv(buffer);
+			}
+		}
+
+		// Actual initialization
 		NSArray *devices = MTLCopyAllDevices();
 		NSUInteger count = [devices count];
 

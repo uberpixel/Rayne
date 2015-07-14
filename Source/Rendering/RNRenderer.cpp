@@ -7,6 +7,7 @@
 //
 
 #include "RNRenderer.h"
+#include "../Base/RNSettings.h"
 
 namespace RN
 {
@@ -20,6 +21,18 @@ namespace RN
 	Renderer *Renderer::GetActiveRenderer()
 	{
 		return _activeRenderer;
+	}
+
+	Dictionary *Renderer::GetParameters() const
+	{
+		Dictionary *renderer = Settings::GetSharedInstance()->GetEntryForKey<Dictionary>(RNCSTR("RNRenderer"));
+		if(renderer)
+		{
+			Dictionary *parameters = renderer->GetObjectForKey<Dictionary>(RNCSTR("parameters"));
+			return parameters;
+		}
+
+		return nullptr;
 	}
 
 	void Renderer::Activate()
