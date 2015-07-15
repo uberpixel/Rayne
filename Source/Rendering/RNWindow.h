@@ -12,10 +12,11 @@
 
 #include "../Base/RNBase.h"
 #include "../System/RNScreen.h"
+#include "../Objects/RNObject.h"
 
 namespace RN
 {
-	class Window
+	class Window : public Object
 	{
 	public:
 		RNAPI virtual void SetTitle(const String *title) = 0;
@@ -29,6 +30,8 @@ namespace RN
 
 	private:
 		Screen *_screen;
+
+		RNDeclareMeta(Window)
 	};
 }
 

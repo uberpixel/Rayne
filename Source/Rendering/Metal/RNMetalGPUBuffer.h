@@ -30,6 +30,8 @@ namespace RN
 		~MetalGPUBuffer() override;
 
 		void *_buffer;
+
+		RNDeclareMeta(MetalGPUBuffer)
 	};
 }
 

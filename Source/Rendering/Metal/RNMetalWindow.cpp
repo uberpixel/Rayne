@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	RNDefineMeta(MetalWindow, Window)
+
 	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer) :
 		Window(screen),
 		_renderer(nullptr)

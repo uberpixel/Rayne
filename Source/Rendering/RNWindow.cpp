@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNDefineMeta(Window, Object)
+
 	Window::Window(Screen *screen) :
 		_screen(screen->Retain())
 	{

@@ -11,6 +11,8 @@
 
 namespace RN
 {
+	RNDefineMeta(MetalGPUBuffer, GPUBuffer)
+
 	MetalGPUBuffer::MetalGPUBuffer(void *data) :
 		_buffer(data)
 	{}
