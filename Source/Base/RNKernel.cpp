@@ -71,6 +71,8 @@ namespace RN
 			_settings = new Settings(); // Requires the FileManager to have all search paths
 			_logger->__LoadDefaultLoggers();
 
+			_sceneCoordinator = new SceneCoordinator();
+
 			_application->WillFinishLaunching(this);
 
 			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
@@ -115,6 +117,7 @@ namespace RN
 		WorkQueue::TearDownQueues();
 
 		delete _fileManager;
+		delete _sceneCoordinator;
 
 		_logger->Flush();
 		delete _logger;
@@ -186,7 +189,10 @@ namespace RN
 		// System event handling
 		HandleSystemEvents();
 
+		_sceneCoordinator->Update(_delta);
+
 		_renderer->BeginWindow(_renderer->GetMainWindow());
+		_sceneCoordinator->Render(_renderer);
 		_renderer->EndWindow();
 
 		_application->DidStep(_delta);

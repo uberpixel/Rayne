@@ -17,6 +17,7 @@
 #include "../Objects/RNString.h"
 #include "../System/RNFileManager.h"
 #include "../Rendering/RNRenderer.h"
+#include "../Scene/RNSceneCoordinator.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
 #include "../Threads/RNWorkQueue.h"
@@ -69,6 +70,7 @@ namespace RN
 		Settings *_settings;
 		Logger *_logger;
 		Renderer *_renderer;
+		SceneCoordinator *_sceneCoordinator;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

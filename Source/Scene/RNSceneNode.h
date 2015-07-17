@@ -11,6 +11,7 @@
 #define __RAYNE_SCENENODE_H__
 
 #include "../Base/RNBase.h"
+#include "../Data/RNIntrusiveList.h"
 #include "../Objects/RNObject.h"
 #include "../Math/RNMatrix.h"
 #include "../Math/RNQuaternion.h"
@@ -21,9 +22,15 @@
 
 namespace RN
 {
+	class Scene;
+	class Camera;
+	class Renderer;
+
 	class SceneNode : public Object
 	{
 	public:
+		friend class Scene;
+
 		enum class Priority
 		{
 			UpdateEarly,
@@ -70,8 +77,6 @@ namespace RN
 		RNAPI void Rotate(const Vector3 &rot);
 		RNAPI void Rotate(const Quaternion &rot);
 
-		RNAPI void RemoveFromWorld();
-
 		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetTag(Tag tag);
 
@@ -87,7 +92,6 @@ namespace RN
 		RNAPI virtual void SetWorldRotation(const Quaternion &rot);
 
 		RNAPI void SetPriority(Priority priority);
-		RNAPI void SetDebugName(const std::string &name);
 
 		RNAPI uint64 GetUID() const { return _uid; }
 		RNAPI uint64 GetLID() const { return _lid; }
@@ -108,39 +112,31 @@ namespace RN
 		RNAPI const Vector3 &GetEulerAngle() const { return _euler; }
 		RNAPI const Quaternion &GetRotation() const { return _rotation; }
 
-		RNAPI const std::string &GetDebugName() { return _debugName; }
-
 		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 
 		RNAPI void AddChild(SceneNode *child);
 		RNAPI void RemoveChild(SceneNode *child);
 		RNAPI void RemoveFromParent();
 
-		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
-
 		RNAPI SceneNode *GetParent() const;
 		RNAPI Priority GetPriority() const { return _priority; }
 		RNAPI Flags GetFlags() const { return _flags.load(); }
 
-		RNAPI uint8 GetRenderGroup() const {return renderGroup;};
-		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
+		RNAPI uint8 GetRenderGroup() const {return _renderGroup;};
+		RNAPI uint8 GetCollisionGroup() const {return _collisionGroup;};
 
 		RNAPI const Array *GetChildren() const;
-		RNAPI bool HasChildren() const;
 
 		RNAPI Matrix GetWorldTransform() const;
 		RNAPI Matrix GetTransform() const;
 
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera) {}
+
 		virtual void Update(float delta)
-		{
-			if(_action)
-				_action(this, delta);
-		}
+		{}
 
 		virtual void UpdateEditMode(float delta)
-		{
-
-		}
+		{}
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
@@ -153,33 +149,31 @@ namespace RN
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
 		RNAPI virtual void DidRemoveChild(SceneNode *child) {}
 
-		Observable<Vector3, SceneNode> _position;
-		Observable<Vector3, SceneNode> _scale;
-		Observable<Quaternion, SceneNode> _rotation;
-		Vector3 _euler;
-
-		Signal<void (SceneNode *)> _cleanUpSignal;
-
 	private:
 		void Initialize();
 		void UpdateInternalData() const;
 
 		SceneNode *_parent;
-		Array _children;
+		Array *_children;
 
 		Priority _priority;
 		std::atomic<uint32> _flags;
 
-		uint8 renderGroup;
-		uint8 collisionGroup;
+		uint8 _renderGroup;
+		uint8 _collisionGroup;
 
 		uint64 _uid;
 		uint64 _lid;
 
+		Scene *_scene;
+		IntrusiveList<SceneNode>::Member _sceneEntry;
+
 		Observable<Tag, SceneNode> _tag;
 
-		std::function<void (SceneNode *, float)> _action;
-		std::string _debugName;
+		Observable<Vector3, SceneNode> _position;
+		Observable<Vector3, SceneNode> _scale;
+		Observable<Quaternion, SceneNode> _rotation;
+		Vector3 _euler;
 
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;
@@ -402,14 +396,9 @@ namespace RN
 			}
 
 			_updated = false;
-
-			size_t count = _children.GetCount();
-
-			for(size_t i = 0; i < count; i ++)
-			{
-				SceneNode *child = static_cast<SceneNode *>(_children[i]);
+			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
 				child->_updated = true;
-			}
+			});
 		}
 	}
 }

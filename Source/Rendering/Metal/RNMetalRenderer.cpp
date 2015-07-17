@@ -14,15 +14,18 @@
 #include "RNMetalGPUBuffer.h"
 #include "RNMetalTexture.h"
 
+#include "RNMetalShaders.metal"
+
 namespace RN
 {
 	RNDefineMeta(MetalRenderer, Renderer)
 
 	MTLPixelFormat textureFormat[] = {
-		MTLPixelFormatRGBA8Uint,
-		MTLPixelFormatRGB10A2Uint,
-		MTLPixelFormatR8Uint,
-		MTLPixelFormatRG8Uint,
+		MTLPixelFormatInvalid,
+		MTLPixelFormatBGRA8Unorm,
+		MTLPixelFormatRGB10A2Unorm,
+		MTLPixelFormatR8Unorm,
+		MTLPixelFormatRG8Unorm,
 		MTLPixelFormatR16Float,
 		MTLPixelFormatRG16Float,
 		MTLPixelFormatRGBA16Float,
@@ -73,6 +76,50 @@ namespace RN
 
 		_internals->commandQueue = [_internals->device newCommandQueue];
 		[devices release];
+
+		const float vertexData[] = {
+			-1.0, -1.0, 0.0, 0.0,
+			1.0, -1.0, 0.0, 0.0,
+			-1.0, 1.0, 0.0, 1.0,
+			1.0, 1.0, 1.0, 1.0
+		};
+
+		NSError *error = nil;
+		_internals->defaultLibrary = [_internals->device newLibraryWithSource:[NSString stringWithUTF8String:kRNMetalRendererDefaultShaders] options:nil error:&error];
+
+		if(!_internals->defaultLibrary)
+			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
+
+		MTLVertexDescriptor *vertexDescriptor = [MTLVertexDescriptor vertexDescriptor];
+
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setFormat:MTLVertexFormatFloat2];
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setOffset:0];
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setBufferIndex:0];
+
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setFormat:MTLVertexFormatFloat2];
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setOffset:2 * sizeof(float)];
+		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setBufferIndex:0];
+
+		[[[vertexDescriptor layouts] objectAtIndexedSubscript:0] setStride:4 * sizeof(float)];
+		[[[vertexDescriptor layouts] objectAtIndexedSubscript:0] setStepFunction:MTLVertexStepFunctionPerVertex];
+
+		MTLRenderPipelineDescriptor *descriptor = [[MTLRenderPipelineDescriptor alloc] init];
+		[descriptor setVertexFunction:[_internals->defaultLibrary newFunctionWithName:@"basic_blit_vertex"]];
+		[descriptor setFragmentFunction:[_internals->defaultLibrary newFunctionWithName:@"basic_blit_fragment"]];
+		[descriptor setVertexDescriptor:vertexDescriptor];
+		[[[descriptor colorAttachments] objectAtIndexedSubscript:0] setPixelFormat:MTLPixelFormatBGRA8Unorm];
+
+		_internals->blitState = [_internals->device newRenderPipelineStateWithDescriptor:descriptor error:&error];
+		if(!_internals->blitState)
+			throw InconsistencyException([[error localizedDescription] UTF8String]);
+
+		_internals->blitVertexBuffer = [_internals->device newBufferWithBytes:vertexData length:sizeof(vertexData) options:MTLResourceStorageModeShared];
+
+		MTLSamplerDescriptor *samplerDescriptor = [[MTLSamplerDescriptor alloc] init];
+		samplerDescriptor.minFilter = MTLSamplerMinMagFilterNearest;
+		samplerDescriptor.magFilter = MTLSamplerMinMagFilterNearest;
+		_internals->blitSampler = [_internals->device newSamplerStateWithDescriptor:samplerDescriptor];
+		[samplerDescriptor release];
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -103,18 +150,18 @@ namespace RN
 
 		if(_internals->pass.drawable)
 		{
-			_internals->pass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
 			MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-			MTLRenderPassColorAttachmentDescriptor * colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
 			[colorAttachment setTexture:[_internals->pass.drawable texture]];
-			[colorAttachment setLoadAction:MTLLoadActionClear];
-			[colorAttachment setClearColor:MTLClearColorMake(0, 0.1, 0.5, 1.0)];
+			[colorAttachment setLoadAction:MTLLoadActionDontCare];
 
-			id<MTLRenderCommandEncoder> command = [_internals->pass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
-			[command endEncoding];
+			_internals->pass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
+			_internals->pass.blitCommand = [_internals->pass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
 
 			[descriptor release];
+
+			[_internals->pass.blitCommand setRenderPipelineState:_internals->blitState];
+			[_internals->pass.blitCommand setVertexBuffer:_internals->blitVertexBuffer offset:0 atIndex:0];
 		}
 	}
 
@@ -122,14 +169,55 @@ namespace RN
 	{
 		if(_internals->pass.drawable)
 		{
+			[_internals->pass.blitCommand endEncoding];
+
 			[_internals->pass.commandBuffer presentDrawable:_internals->pass.drawable];
 			[_internals->pass.commandBuffer commit];
 			[_internals->pass.commandBuffer release];
 
 			_internals->pass.commandBuffer = nil;
+			_internals->pass.blitCommand = nil;
 			_internals->pass.drawable = nil;
 		}
 	}
+
+	void MetalRenderer::BeginCamera(Camera *camera)
+	{
+		_internals->renderPass.camera = camera;
+		_internals->renderPass.framebuffer = camera->GetFramebuffer();
+		_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
+
+		MetalTexture *colorTexture = static_cast<MetalTexture *>(_internals->renderPass.framebuffer->GetColorTexture());
+		const Color &clearColor = camera->GetClearColor();
+
+		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
+		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+		[colorAttachment setTexture:(id<MTLTexture>)colorTexture->_texture];
+		[colorAttachment setLoadAction:MTLLoadActionClear];
+		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+
+		id<MTLRenderCommandEncoder> command = [_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
+		[command endEncoding];
+
+		[descriptor release];
+	}
+
+	void MetalRenderer::EndCamera()
+	{
+		[_internals->renderPass.commandBuffer commit];
+		[_internals->renderPass.commandBuffer release];
+
+		Framebuffer *framebuffer = _internals->renderPass.framebuffer;
+		MetalTexture *colorTexture = static_cast<MetalTexture *>(framebuffer->GetColorTexture());
+
+		[_internals->pass.blitCommand setFragmentSamplerState:_internals->blitSampler atIndex:0];
+		[_internals->pass.blitCommand setFragmentTexture:(id<MTLTexture>)colorTexture->_texture atIndex:0];
+		[_internals->pass.blitCommand drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+
+		_internals->renderPass.commandBuffer = nil;
+		_internals->renderPass.framebuffer = nullptr;
+	}
+
 
 	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::UsageOptions options)
 	{
@@ -180,7 +268,7 @@ namespace RN
 		return lib->Autorelease();
 	}
 
-	bool MetalRenderer::SupportsTextureFormat(Texture::Descriptor::Format format)
+	bool MetalRenderer::SupportsTextureFormat(Texture::Format format)
 	{
 		return true;
 	}
@@ -221,8 +309,9 @@ namespace RN
 				break;
 		}
 
+		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor];
 		[metalDescriptor release];
 
-		return nullptr;
+		return new MetalTexture(texture, descriptor);
 	}
 }

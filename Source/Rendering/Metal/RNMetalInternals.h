@@ -20,19 +20,37 @@
 namespace RN
 {
 	class MetalWindow;
+	class Framebuffer;
+	class Camera;
 
 	struct MetalWindowPass
 	{
 		MetalWindow *window;
 		id<CAMetalDrawable> drawable;
 		id<MTLCommandBuffer> commandBuffer;
+		id<MTLRenderCommandEncoder> blitCommand;
 	};
+
+	struct MetalRenderPass
+	{
+		Camera *camera;
+		Framebuffer *framebuffer;
+		id<MTLCommandBuffer> commandBuffer;
+	};
+
 
 	struct MetalRendererInternals
 	{
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
+
+		id<MTLBuffer> blitVertexBuffer;
+		id<MTLRenderPipelineState> blitState;
+		id<MTLSamplerState> blitSampler;
+		id<MTLLibrary> defaultLibrary;
+
 		MetalWindowPass pass;
+		MetalRenderPass renderPass;
 	};
 
 	struct MetalWindowInternals

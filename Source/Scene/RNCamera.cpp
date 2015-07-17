@@ -16,7 +16,9 @@ namespace RN
 		Camera(Vector2(0.0f))
 	{}
 
-	Camera::Camera(const Vector2 &size)
+	Camera::Camera(const Vector2 &size) :
+		_framebuffer(new Framebuffer(size, Framebuffer::Options::PrivateStorage, Texture::Format::RGBA8888)),
+		_cameraSceneEntry(this)
 	{}
 
 /*	Camera::Camera(const Vector2 &size, Texture *target) :

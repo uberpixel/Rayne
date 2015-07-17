@@ -19,6 +19,32 @@ namespace RN
 	class Texture : public Object
 	{
 	public:
+		enum class Format
+		{
+			Invalid,
+
+			RGBA8888,
+			RGB10A2,
+
+			R8,
+			RG88,
+
+			R16F,
+			RG16F,
+			RGBA16F,
+
+			R32F,
+			RG32F,
+			RGBA32F,
+
+			Depth24I,
+			Depth32F,
+			Stencil8,
+			Depth24Stencil8,
+			Depth32FStencil8
+		};
+
+
 		struct Descriptor
 		{
 			enum class Type
@@ -30,29 +56,6 @@ namespace RN
 				TypeCube,
 				TypeCubeArray,
 				Type3D
-			};
-
-			enum class Format
-			{
-				RGBA8888,
-				RGB10A2,
-
-				R8,
-				RG88,
-
-				R16F,
-				RG16F,
-				RGBA16F,
-
-				R32F,
-				RG32F,
-				RGBA32F,
-
-				Depth24I,
-				Depth32F,
-				Stencil8,
-				Depth24Stencil8,
-				Depth32FStencil8
 			};
 
 			RN_OPTIONS(TextureUsage, uint32,

@@ -32,7 +32,10 @@ namespace RN
 		RNAPI void BeginWindow(Window *window) final;
 		RNAPI void EndWindow() final;
 
-		RNAPI bool SupportsTextureFormat(Texture::Descriptor::Format format) final;
+		RNAPI void BeginCamera(Camera *camera) final;
+		RNAPI void EndCamera() final;
+
+		RNAPI bool SupportsTextureFormat(Texture::Format format) final;
 
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
 		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;

@@ -11,15 +11,18 @@
 #define __RAYNE_CAMERA_H__
 
 #include "../Base/RNBase.h"
-#include "RNSceneNode.h"
 #include "../Math/RNPlane.h"
 #include "../Math/RNRect.h"
+#include "../Rendering/RNFramebuffer.h"
+#include "RNSceneNode.h"
 
 namespace RN
 {
 	class Camera : public SceneNode
 	{
 	public:
+		friend class Scene;
+
 		RN_OPTIONS(Flags, uint32,
 				   NoSky        = (1 << 5),
 				   NoSorting    = (1 << 6),
@@ -90,6 +93,7 @@ namespace RN
 		RNAPI const Vector3 &GetFrustumCenter();
 		RNAPI float GetFrustumRadius();
 
+		Framebuffer *GetFramebuffer() const { return _framebuffer; }
 		const Color &GetClearColor() const { return _clearColor; }
 		RNAPI const Rect &GetFrame();
 //		Material *GetMaterial() const { return _material; }
@@ -127,6 +131,9 @@ namespace RN
 		Vector3 __ToWorld(const Vector3 &dir);
 //		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
+
+		IntrusiveList<Camera>::Member _cameraSceneEntry;
+		Framebuffer *_framebuffer;
 
 		Rect _frame;
 		Color _clearColor;

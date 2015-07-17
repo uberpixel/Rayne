@@ -52,6 +52,7 @@ namespace RN
 	RNExceptionType(Range)
 	RNExceptionType(Downcast)
 	RNExceptionType(Inconsistency)
+	RNExceptionType(InvalidCall)
 }
 
 

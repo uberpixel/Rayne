@@ -10,6 +10,9 @@
 #ifndef __RAYNE_PLANE_H__
 #define __RAYNE_PLANE_H__
 
+#include "../Base/RNBase.h"
+#include "RNVector.h"
+
 namespace RN
 {
 	class Plane

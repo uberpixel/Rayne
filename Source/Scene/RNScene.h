@@ -10,13 +10,27 @@
 #define __RAYNE_SCENE_H__
 
 #include "../Base/RNBase.h"
+#include "../Objects/RNObject.h"
+#include "../Rendering/RNRenderer.h"
+#include "RNSceneNode.h"
+#include "RNCamera.h"
 
 namespace RN
 {
-	class Scene
+	class Scene : public Object
 	{
 	public:
+		RNAPI void Update(float delta);
+		RNAPI void Render(Renderer *renderer);
 
+		RNAPI void AddNode(SceneNode *node);
+		RNAPI void RemoveNode(SceneNode *node);
+
+	private:
+		IntrusiveList<SceneNode> _nodes[3];
+		IntrusiveList<Camera> _cameras;
+
+		RNDeclareMeta(Scene)
 	};
 }
 

@@ -16,6 +16,7 @@
 #include "Base/RNUnicode.h"
 
 #include "Data/RNAny.h"
+#include "Data/RNIntrusiveList.h"
 #include "Data/RNRingBuffer.h"
 #include "Data/RNRRef.h"
 
@@ -47,12 +48,20 @@
 #include "Objects/RNCharacterSet.h"
 #include "Objects/RNString.h"
 
+#include "Rendering/RNFramebuffer.h"
 #include "Rendering/RNGPUBuffer.h"
+#include "Rendering/RNGPUResource.h"
+#include "Rendering/RNMaterial.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRenderingDescriptor.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"
 #include "Rendering/RNWindow.h"
+
+#include "Scene/RNCamera.h"
+#include "Scene/RNScene.h"
+#include "Scene/RNSceneCoordinator.h"
+#include "Scene/RNSceneNode.h"
 
 #include "System/RNFileManager.h"
 #include "System/RNScreen.h"

@@ -20,7 +20,9 @@ namespace RN
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_uid(__SceneNodeIDs.fetch_add(1)),
-		_lid(-1)
+		_lid(-1),
+		_sceneEntry(this),
+		_scene(nullptr)
 	{
 		Initialize();
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });
@@ -48,14 +50,12 @@ namespace RN
 		SetRotation(other->GetRotation());
 		SetScale(other->GetScale());
 
-		renderGroup    = other->renderGroup;
-		collisionGroup = other->collisionGroup;
+		_renderGroup    = other->_renderGroup;
+		_collisionGroup = other->_collisionGroup;
 
 		_priority = other->_priority;
 		_flags    = other->_flags.load();
 		_tag      = other->_tag;
-
-		_action = other->_action;
 
 		other->GetChildren()->Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop){
 			AddChild(node->Copy());
@@ -63,7 +63,9 @@ namespace RN
 	}
 
 	SceneNode::~SceneNode()
-	{}
+	{
+		_children->Release();
+	}
 
 
 
@@ -76,8 +78,8 @@ namespace RN
 
 		uint32 groups = static_cast<uint32>(deserializer->DecodeInt32());
 
-		renderGroup    = (groups & 0xff);
-		collisionGroup = (groups >> 8);
+		_renderGroup    = (groups & 0xff);
+		_collisionGroup = (groups >> 8);
 
 		_priority = static_cast<Priority>(deserializer->DecodeInt32());
 		_flags    = static_cast<Flags>(deserializer->DecodeInt32());
@@ -104,15 +106,15 @@ namespace RN
 		serializer->EncodeVector3(_scale);
 		serializer->EncodeQuarternion(_rotation);
 
-		serializer->EncodeInt32(renderGroup | (collisionGroup << 8));
+		serializer->EncodeInt32(_renderGroup | (_collisionGroup << 8));
 		serializer->EncodeInt32(static_cast<int32>(_priority));
 		serializer->EncodeInt32(_flags);
 		serializer->EncodeInt64(_tag);
 		serializer->EncodeInt64(_lid);
 
-		serializer->EncodeInt64(static_cast<uint64>(_children.GetCount()));
+		serializer->EncodeInt64(static_cast<uint64>(_children->GetCount()));
 
-		_children.Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+		_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
 
 			bool noSave = (node->_flags & Flags::NoSave);
 
@@ -127,13 +129,14 @@ namespace RN
 
 	void SceneNode::Initialize()
 	{
+		_children = new Array();
 		_parent  = nullptr;
 		_updated = true;
 		_flags     = 0;
 
 		_priority      = Priority::UpdateDontCare;
-		renderGroup    = 0;
-		collisionGroup = 0;
+		_renderGroup    = 0;
+		_collisionGroup = 0;
 	}
 
 
@@ -158,12 +161,12 @@ namespace RN
 
 	void SceneNode::SetRenderGroup(uint8 group)
 	{
-		renderGroup = group;
+		_renderGroup = group;
 	}
 
 	void SceneNode::SetCollisionGroup(uint8 group)
 	{
-		collisionGroup = group;
+		_collisionGroup = group;
 	}
 
 	void SceneNode::SetPriority(Priority priority)
@@ -171,16 +174,6 @@ namespace RN
 		WillUpdate(ChangeSet::Priority);
 		_priority = priority;
 		DidUpdate(ChangeSet::Priority);
-	}
-
-	void SceneNode::SetDebugName(const std::string &name)
-	{
-		_debugName = name;
-	}
-
-	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
-	{
-		_action = action;
 	}
 
 	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
@@ -200,13 +193,12 @@ namespace RN
 
 	void SceneNode::AddChild(SceneNode *child)
 	{
-		if(child->_parent)
-			return;
+		child->RemoveFromParent();
 
 		WillAddChild(child);
 		child->WillUpdate(ChangeSet::Parent);
 
-		_children.AddObject(child);
+		_children->AddObject(child);
 
 		child->_parent = this;
 		child->DidUpdate(ChangeSet::Parent);
@@ -224,7 +216,7 @@ namespace RN
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
 
-			_children.RemoveObject(child);
+			_children->RemoveObject(child);
 
 			child->DidUpdate(ChangeSet::Parent);
 			DidRemoveChild(child);
@@ -240,12 +232,7 @@ namespace RN
 
 	const Array *SceneNode::GetChildren() const
 	{
-		return _children.Copy()->Autorelease();
-	}
-
-	bool SceneNode::HasChildren() const
-	{
-		return (_children.GetCount() > 0);
+		return _children;
 	}
 
 	SceneNode *SceneNode::GetParent() const

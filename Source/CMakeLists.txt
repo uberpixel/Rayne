@@ -319,8 +319,10 @@ set(RAYNE_SOURCES
     Rendering/Metal/RNMetalShaderLibrary.cpp
     Rendering/Metal/RNMetalTexture.cpp
     Rendering/Metal/RNMetalWindow.cpp
+    Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
+    Rendering/RNMaterial.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRenderingDescriptor.cpp
     Rendering/RNShader.cpp
@@ -329,6 +331,7 @@ set(RAYNE_SOURCES
     Rendering/RNWindow.cpp
     Scene/RNCamera.cpp
     Scene/RNScene.cpp
+    Scene/RNSceneCoordinator.cpp
     Scene/RNSceneNode.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -357,6 +360,7 @@ set(RAYNE_HEADERS
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
     Data/RNAny.h
+    Data/RNIntrusiveList.h
     Data/RNRingBuffer.h
     Data/RNRRef.h
     Debug/RNLogger.h
@@ -397,8 +401,10 @@ set(RAYNE_HEADERS
     Rendering/Metal/RNMetalShaderLibrary.h
     Rendering/Metal/RNMetalTexture.h
     Rendering/Metal/RNMetalWindow.h
+    Rendering/RNFramebuffer.h
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h
+    Rendering/RNMaterial.h
     Rendering/RNRenderer.h
     Rendering/RNRenderingDescriptor.h
     Rendering/RNShader.h
@@ -407,6 +413,7 @@ set(RAYNE_HEADERS
     Rendering/RNWindow.h
     Scene/RNCamera.h
     Scene/RNScene.h
+    Scene/RNSceneCoordinator.h
     Scene/RNSceneNode.h
     System/RNFileManager.h
     System/RNScreen.h
