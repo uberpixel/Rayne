@@ -23,16 +23,31 @@ namespace RN
 	class AnimationBone
 	{
 	public:
-		RNAPI AnimationBone(AnimationBone *prev, AnimationBone *next, const float frametime, const Vector3 &pos, const Vector3 &scal, const Quaternion &rot);
+		struct Frame
+		{
+			float time;
+			Vector3 position;
+			Vector3 scale;
+			Quaternion rotation;
+		};
 		
-		float time;
+		AnimationBone(int32 numframes);
+		~AnimationBone();
 		
-		Vector3 position;
-		Vector3 scale;
-		Quaternion rotation;
+		void Update(float delta, bool loop);
+		void SetTime(float time, bool loop);
+		void SetIndex(int32 index, bool loop);
 		
-		AnimationBone *nextFrame;
-		AnimationBone *prevFrame;
+		const Frame GetInterpolatedFrame() const;
+		bool IsFinished() const;
+		
+		Frame *frames;
+		int32 numFrames;
+		
+	private:
+		float currentTime;
+		int32 currentFrame;
+		bool finished;
 	};
 	
 	class Animation : public Object
@@ -41,7 +56,6 @@ namespace RN
 		RNAPI Animation(const std::string &animname);
 		RNAPI ~Animation();
 		
-		RNAPI void MakeLoop();
 		RNAPI float GetLength();
 		
 		std::string name;
@@ -56,7 +70,7 @@ namespace RN
 		RNAPI Bone(const Bone &other);
 		
 		RNAPI void Init(Bone *parent = 0);
-		RNAPI bool Update(Bone *parent, float timestep, bool restart);
+		RNAPI bool Update(Bone *parent, float delta, bool loop);
 		
 		RNAPI void SetAnimation(AnimationBone *anim);
 		
@@ -75,11 +89,8 @@ namespace RN
 		std::vector<Bone*> children;
 		std::vector<uint16> tempChildren;
 		
-		AnimationBone *currFrame;
-		AnimationBone *nextFrame;
+		AnimationBone *animationBone;
 		
-		float currTime;
-		float timeDiff;
 		bool finished;
 		bool absolute;
 		
@@ -99,13 +110,13 @@ namespace RN
 		RNAPI static Skeleton *Empty();
 		
 		RNAPI void Init();
-		RNAPI bool Update(float timestep, bool restart = true);
+		RNAPI bool Update(float delta, bool restart = true);
 		RNAPI void SetTime(float time);
 		RNAPI void SetProgress(float progress);
 		RNAPI void SetAnimation(const std::string &animname);
 		RNAPI void SetAnimation(Animation *anim);
-		RNAPI void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
-		RNAPI void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
+//		RNAPI void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
+//		RNAPI void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		RNAPI void RemoveAnimation(const std::string &animname);
 		
 		RNAPI std::vector<Bone *> GetBones(const std::string name);

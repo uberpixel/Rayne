@@ -561,30 +561,18 @@ namespace RN
 			uint16 numanimbones = file->ReadUint16();
 			for(int n = 0; n < numanimbones; n++)
 			{
-				AnimationBone *animbone = 0;
 				uint16 boneid = file->ReadUint16();
 				uint32 numframes = file->ReadUint32();
+				
+				AnimationBone *animbone = new AnimationBone(numframes);
 				for(int f = 0; f < numframes; f++)
 				{
-					float time = file->ReadFloat();
-					Vector3 animbonepos;
-					file->ReadIntoBuffer(&animbonepos.x, sizeof(Vector3));
-					Vector3 animbonescale;
-					file->ReadIntoBuffer(&animbonescale.x, sizeof(Vector3));
-					Quaternion animbonerot;
-					file->ReadIntoBuffer(&animbonerot.x, sizeof(Quaternion));
-					
-					animbone = new AnimationBone(animbone, 0, time, animbonepos, animbonescale, animbonerot);
+					animbone->frames[f].time = file->ReadFloat();
+					file->ReadIntoBuffer(&animbone->frames[f].position.x, sizeof(Vector3));
+					file->ReadIntoBuffer(&animbone->frames[f].scale.x, sizeof(Vector3));
+					file->ReadIntoBuffer(&animbone->frames[f].rotation.x, sizeof(Quaternion));
 				}
 				
-				AnimationBone *lastbone = animbone;
-				while(animbone->prevFrame != 0)
-				{
-					animbone->prevFrame->nextFrame = animbone;
-					animbone = animbone->prevFrame;
-				}
-				animbone->prevFrame = lastbone;
-				lastbone->nextFrame = animbone;
 				anim->bones.insert(std::pair<size_t, AnimationBone*>(static_cast<size_t>(boneid), animbone));
 			}
 		}

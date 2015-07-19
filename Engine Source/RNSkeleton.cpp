@@ -16,16 +16,118 @@
 
 namespace RN
 {
-	AnimationBone::AnimationBone(AnimationBone *prev, AnimationBone *next, const float frametime, const Vector3 &pos, const Vector3 &scal, const Quaternion &rot)
+	AnimationBone::AnimationBone(int32 numframes)
 	{
-		time = frametime;
-		position = pos;
-		scale = scal;
-		rotation = rot;
-		
-		prevFrame = prev;
-		nextFrame = next;
+		currentTime = 0.0f;
+		currentFrame = 0;
+		numFrames = numframes;
+		frames = new AnimationBone::Frame[numframes];
 	}
+	
+	AnimationBone::~AnimationBone()
+	{
+		delete[] frames;
+	}
+	
+	void AnimationBone::Update(float delta, bool loop)
+	{
+		if(numFrames <= 1)
+			return;
+		
+		finished = false;
+		currentTime += delta;
+		
+		if(delta > 0.0f) //forwards
+		{
+			while(currentTime > frames[currentFrame+1].time)
+			{
+				currentFrame += 1;
+				
+				if(currentFrame > numFrames-2)
+				{
+					if(loop)
+					{
+						currentFrame = 0;
+						currentTime -= frames[numFrames-1].time;
+					}
+					else
+					{
+						currentFrame = numFrames-2;
+						currentTime = frames[numFrames-1].time;
+						finished = true;
+					}
+				}
+			}
+		}
+		else //backwards
+		{
+			while(currentTime < frames[currentFrame].time)
+			{
+				currentFrame -= 1;
+				
+				if(currentFrame < 0)
+				{
+					if(loop)
+					{
+						currentFrame = numFrames-2;
+						currentTime += frames[numFrames-1].time;
+					}
+					else
+					{
+						currentFrame = 0;
+						currentTime = 0.0f;
+						finished = true;
+					}
+				}
+			}
+		}
+	}
+	
+	void AnimationBone::SetTime(float time, bool loop)
+	{
+		currentTime = 0.0f;
+		Update(time, loop);
+	}
+	
+	void AnimationBone::SetIndex(int32 frame, bool loop)
+	{
+		currentFrame = frame;
+		
+		if(loop)
+		{
+			while(currentFrame > numFrames-1)
+			{
+				currentFrame -= numFrames-1;
+			}
+		}
+		else
+		{
+			currentFrame = std::min(currentFrame, numFrames-1);
+		}
+		
+		currentTime = frames[currentFrame].time;
+	}
+	
+	const AnimationBone::Frame AnimationBone::GetInterpolatedFrame() const
+	{
+		Frame frame;
+		
+		float timeDiff = frames[currentFrame+1].time-frames[currentFrame].time;
+		float blend = (currentTime-frames[currentFrame].time)/timeDiff;
+		
+		frame.time = currentTime;
+		frame.position = frames[currentFrame].position.GetLerp(frames[currentFrame+1].position, blend);
+		frame.scale = frames[currentFrame].scale.GetLerp(frames[currentFrame+1].scale, blend);
+		frame.rotation = Quaternion::WithLerpSpherical(frames[currentFrame].rotation, frames[currentFrame+1].rotation, blend);
+		
+		return frame;
+	}
+	
+	bool AnimationBone::IsFinished() const
+	{
+		return finished;
+	}
+	
 	
 	Animation::Animation(const std::string &animname)
 	{
@@ -37,27 +139,7 @@ namespace RN
 		for (std::map<size_t, AnimationBone*>::iterator it = bones.begin(); it != bones.end(); ++it)
 		{
 			AnimationBone *bone = it->second;
-			if(bone->prevFrame != 0)
-			{
-				bone->prevFrame->nextFrame = 0;
-				bone->prevFrame = 0;
-			}
-			while(bone->nextFrame)
-			{
-				bone = bone->nextFrame;
-				delete bone->prevFrame;
-			}
 			delete bone;
-		}
-	}
-	
-	void Animation::MakeLoop()
-	{
-		for(auto bone : bones)
-		{
-			AnimationBone *temp = bone.second;
-			temp->prevFrame->nextFrame = new AnimationBone(temp->prevFrame, temp, temp->prevFrame->time+1+temp->time, temp->position, temp->scale, temp->rotation);
-			temp->prevFrame = temp->prevFrame->nextFrame;
 		}
 	}
 	
@@ -66,11 +148,12 @@ namespace RN
 		float length = 0.0f;
 		for(auto bone : bones)
 		{
-			if(bone.second->prevFrame)
-				length = fmaxf(length, bone.second->prevFrame->time);
+			if(bone.second->frames)
+				length = fmaxf(length, bone.second->frames[bone.second->numFrames-1].time);
 		}
 		return length;
 	}
+	
 	
 	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute)
 	{
@@ -84,9 +167,7 @@ namespace RN
 		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0, 1.0, 1.0);
 		
-		currFrame = 0;
-		nextFrame = 0;
-		currTime = 0.0f;
+		animationBone = nullptr;
 		finished = false;
 		this->absolute = absolute;
 	}
@@ -103,9 +184,7 @@ namespace RN
 		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0f, 1.0f, 1.0f);
 		
-		currFrame = 0;
-		nextFrame = 0;
-		currTime = 0.0f;
+		animationBone = nullptr;
 		finished = false;
 		this->absolute = absolute;
 	}
@@ -121,9 +200,7 @@ namespace RN
 		name = other.name;
 		isRoot = other.isRoot;
 		tempChildren = other.tempChildren;
-		currFrame = 0;
-		nextFrame = 0;
-		currTime = 0.0f;
+		animationBone = nullptr;
 		finished = false;
 		absolute = other.absolute;
 	}
@@ -139,53 +216,29 @@ namespace RN
 			relBaseMatrix = parent->invBaseMatrix*relBaseMatrix;
 	}
 	
-	bool Bone::Update(Bone *parent, float timestep, bool restart)
+	bool Bone::Update(Bone *parent, float delta, bool loop)
 	{
 		bool running = true;
-		if(currFrame != 0 && nextFrame != 0)
+		if(animationBone && animationBone->numFrames > 0)
 		{
-			if(finished && restart)
+			animationBone->Update(delta, loop);
+			AnimationBone::Frame interpolatedFrame = animationBone->GetInterpolatedFrame();
+			
+			position = interpolatedFrame.position;
+			scale = interpolatedFrame.scale;
+			rotation = interpolatedFrame.rotation;
+			
+			if(animationBone->numFrames <= 1)
 			{
-				finished = false;
-				currTime = 0.0f;
-			}
-			
-			currTime += timestep;
-			
-			if(currFrame != nextFrame) //bone not animated
-			{
-				while(currTime > nextFrame->time)
-				{
-					if(currFrame->time > nextFrame->time)
-					{
-						if(restart)
-						{
-							currTime -= currFrame->time;
-						}
-						else
-						{
-							finished = true;
-							running = false;
-							currTime = currFrame->time;
-							break;
-						}
-					}
-					currFrame = nextFrame;
-					nextFrame = nextFrame->nextFrame;
-					timeDiff = nextFrame->time-currFrame->time;
-				}
-			
-				float blend = (currTime-currFrame->time)/timeDiff;
-				position = currFrame->position.GetLerp(nextFrame->position, blend);
-				scale = currFrame->scale.GetLerp(nextFrame->scale, blend);
-				rotation = Quaternion::WithLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
+				running = false;
 			}
 			else
 			{
-				position = currFrame->position;
-				scale = currFrame->scale;
-				rotation = currFrame->rotation;
-				running = false;
+				if(animationBone->IsFinished())
+				{
+					finished = true;
+					running = false;
+				}
 			}
 		}
 		else
@@ -194,7 +247,7 @@ namespace RN
 		}
 		
 		//TODO: Remove absolute flag...
-		if(!absolute || !currFrame)
+		if(!absolute || !animationBone)
 		{
 			finalMatrix = relBaseMatrix;
 			finalMatrix.Translate(position);
@@ -218,7 +271,7 @@ namespace RN
 			Debug::AddLinePoint(pos1, Color::Red());
 #endif
 			
-			if(children[i]->Update(this, timestep, restart))
+			if(children[i]->Update(this, delta, loop))
 				running = true;
 		}
 		
@@ -237,21 +290,16 @@ namespace RN
 	
 	void Bone::SetAnimation(AnimationBone *animbone)
 	{
-		currTime = 0.0f;
 		if(animbone)
 		{
-			currFrame = animbone;
-			nextFrame = animbone->nextFrame;
-			timeDiff = nextFrame->time-currFrame->time;
+			animationBone = animbone;
 		}
 		else
 		{
 			position = Vector3();
 			rotation = Quaternion::WithIdentity();
 			scale = Vector3(1.0f, 1.0f, 1.0f);
-			currFrame = nullptr;
-			nextFrame = nullptr;
-			timeDiff = 0.0f;
+			animationBone = nullptr;
 		}
 	}
 	
@@ -320,7 +368,7 @@ namespace RN
 		}
 	}
 	
-	bool Skeleton::Update(float timestep, bool restart)
+	bool Skeleton::Update(float delta, bool restart)
 	{
 		if(_blendanim)
 		{
@@ -332,7 +380,7 @@ namespace RN
 		{
 			if(bones[i].isRoot)
 			{
-				if(bones[i].Update(0, timestep, restart))
+				if(bones[i].Update(0, delta, restart))
 					running = true;
 			}
 		}
@@ -400,7 +448,7 @@ namespace RN
 		}
 	}
 	
-	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop)
+/*	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop)
 	{
 		Animation *fromanim = animations[from];
 		Animation *toanim = new Animation(to);
@@ -448,7 +496,7 @@ namespace RN
 		
 		if(loop)
 			toanim->MakeLoop();
-	}
+	}*/
 	
 	void Skeleton::RemoveAnimation(const std::string &animname)
 	{
@@ -460,7 +508,7 @@ namespace RN
 		anim->Release();
 	}
 	
-	void Skeleton::SetBlendAnimation(const std::string &to, float blendtime, float targettime)
+/*	void Skeleton::SetBlendAnimation(const std::string &to, float blendtime, float targettime)
 	{
 		_curranim = animations[to];
 		_blendanim = new Animation("blend_to_"+to);
@@ -484,7 +532,7 @@ namespace RN
 		
 		_blendtime = targettime;
 		SetAnimation(_blendanim);
-	}
+	}*/
 	
 	std::vector<Bone *> Skeleton::GetBones(const std::string name)
 	{
