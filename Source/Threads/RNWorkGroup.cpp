@@ -63,7 +63,7 @@ namespace RN
 
 			_waiters.clear();
 
-			Autorelease();
+			Release();
 		}
 		else
 		{

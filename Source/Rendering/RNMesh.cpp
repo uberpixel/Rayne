@@ -7,7 +7,7 @@
 //
 
 #include "RNMesh.h"
-#include "../Debug/RNLogger.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
@@ -28,6 +28,8 @@ namespace RN
 		{sizeof(int8),       alignof(int8)},
 		{sizeof(int16),      alignof(int16)},
 		{sizeof(int32),      alignof(int32)},
+
+		{sizeof(float),      alignof(float)},
 
 		{sizeof(Vector2),    alignof(Vector2)},
 		{sizeof(Vector3),    alignof(Vector3)},

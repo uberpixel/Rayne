@@ -12,7 +12,8 @@
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
-#include "RNRenderer.h"
+#include "../Objects/RNString.h"
+#include "RNRendererTypes.h"
 #include "RNGPUBuffer.h"
 
 namespace RN

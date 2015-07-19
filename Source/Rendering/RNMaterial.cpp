@@ -10,4 +10,19 @@
 
 namespace RN
 {
+	RNDefineMeta(Material, Object)
+
+	Material::Material(Shader *fragmentShader, Shader *vertexShader) :
+		_fragmentShader(SafeRetain(fragmentShader)),
+		_vertexShader(SafeRetain(vertexShader))
+	{
+		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
+		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+	}
+
+	Material::~Material()
+	{
+		SafeRelease(_fragmentShader);
+		SafeRelease(_vertexShader);
+	}
 }

@@ -19,8 +19,11 @@ namespace RN
 	class Material : public Object
 	{
 	public:
+		RNAPI Material(Shader *fragmentShader, Shader *vertexShader);
+		RNAPI ~Material() override;
 
-
+		Shader *GetFragmentShader() const { return _fragmentShader; }
+		Shader *GetVertexShader() const { return _vertexShader; }
 
 	private:
 		Shader *_fragmentShader;

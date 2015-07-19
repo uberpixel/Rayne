@@ -23,37 +23,10 @@
 #include "RNShaderLibrary.h"
 #include "RNTexture.h"
 #include "RNFramebuffer.h"
+#include "RNRendererTypes.h"
 
 namespace RN
 {
-	enum class DrawMode
-	{
-		Point,
-		Line,
-		LineStrip,
-		Triangle,
-		TriangleStrip
-	};
-
-	enum class PrimitiveType
-	{
-		Uint8,
-		Uint16,
-		Uint32,
-
-		Int8,
-		Int16,
-		Int32,
-
-		Vector2,
-		Vector3,
-		Vector4,
-
-		Matrix,
-		Quaternion,
-		Color
-	};
-
 	class Renderer : public Object
 	{
 	public:

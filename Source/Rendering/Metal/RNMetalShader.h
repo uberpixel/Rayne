@@ -21,14 +21,30 @@ namespace RN
 	public:
 		friend class MetalShaderLibrary;
 
+		class MetalAttribute : public Attribute
+		{
+		public:
+			MetalAttribute(const String *name, PrimitiveType type, size_t index) :
+				Attribute(name, type),
+				_index(index)
+			{}
+
+			size_t GetIndex() const { return _index; }
+
+		private:
+			size_t _index;
+		};
+
 		RNAPI ~MetalShader() override;
 
 		RNAPI const String *GetName() const override;
+		RNAPI const Array *GetAttributes() const override;
 
 	private:
 		MetalShader(void *shader);
 
 		void *_shader;
+		Array *_attributes;
 
 		RNDeclareMeta(MetalShader)
 	};

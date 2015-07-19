@@ -408,6 +408,7 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNRenderer.h
+    Rendering/RNRendererTypes.h
     Rendering/RNRenderingDescriptor.h
     Rendering/RNShader.h
     Rendering/RNShaderLibrary.h
