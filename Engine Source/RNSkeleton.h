@@ -31,23 +31,26 @@ namespace RN
 			Quaternion rotation;
 		};
 		
-		AnimationBone(int32 numframes);
-		~AnimationBone();
+		RNAPI AnimationBone(int32 numframes);
+		RNAPI ~AnimationBone();
 		
-		void Update(float delta, bool loop);
-		void SetTime(float time, bool loop);
-		void SetIndex(int32 index, bool loop);
+		RNAPI void Update(float delta, bool loop);
+		RNAPI void SetTime(float time, bool loop);
+		RNAPI void SetFrame(int32 frame, bool loop);
 		
-		const Frame GetInterpolatedFrame() const;
-		bool IsFinished() const;
+		RNAPI const Frame GetInterpolatedFrame() const;
+		RNAPI bool IsFinished() const;
 		
 		Frame *frames;
 		int32 numFrames;
 		
+		float loopBlendTime;
+		
 	private:
-		float currentTime;
-		int32 currentFrame;
-		bool finished;
+		float _currentTime;
+		int32 _currentFrame;
+		int32 _nextFrame;
+		bool _finished;
 	};
 	
 	class Animation : public Object
@@ -56,6 +59,7 @@ namespace RN
 		RNAPI Animation(const std::string &animname);
 		RNAPI ~Animation();
 		
+		RNAPI void MakeLoop(float blendTime);
 		RNAPI float GetLength();
 		
 		std::string name;
@@ -65,6 +69,12 @@ namespace RN
 	class Bone
 	{
 	public:
+		enum OffsetMode
+		{
+			Add,
+			Override
+		};
+		
 		RNAPI Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute=false);
 		RNAPI Bone(const Matrix &basemat, const std::string bonename, bool root, bool absolute=false);
 		RNAPI Bone(const Bone &other);
@@ -74,12 +84,20 @@ namespace RN
 		
 		RNAPI void SetAnimation(AnimationBone *anim);
 		
+		RNAPI Vector3 GetAbsolutePosition() const;
+		
 		Matrix relBaseMatrix;
 		Matrix invBaseMatrix;
 		
 		Vector3 position;
-		Quaternion rotation;
 		Vector3 scale;
+		Quaternion rotation;
+		
+		Vector3 positionOffset;
+		Vector3 scaleOffset;
+		Quaternion rotationOffset;
+		
+		OffsetMode offsetMode;
 		
 		Matrix finalMatrix;
 		
@@ -93,8 +111,6 @@ namespace RN
 		
 		bool finished;
 		bool absolute;
-		
-	private:
 	};
 	
 	class Skeleton : public Asset

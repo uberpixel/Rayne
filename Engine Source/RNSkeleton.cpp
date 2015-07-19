@@ -18,8 +18,10 @@ namespace RN
 {
 	AnimationBone::AnimationBone(int32 numframes)
 	{
-		currentTime = 0.0f;
-		currentFrame = 0;
+		_currentTime = 0.0f;
+		_currentFrame = 0;
+		_nextFrame = 1;
+		loopBlendTime = 0.0f;
 		numFrames = numframes;
 		frames = new AnimationBone::Frame[numframes];
 	}
@@ -34,49 +36,53 @@ namespace RN
 		if(numFrames <= 1)
 			return;
 		
-		finished = false;
-		currentTime += delta;
+		_finished = false;
+		_currentTime += delta;
 		
 		if(delta > 0.0f) //forwards
 		{
-			while(currentTime > frames[currentFrame+1].time)
+			while(_currentTime > frames[_nextFrame].time)
 			{
-				currentFrame += 1;
+				_currentFrame = _nextFrame;
+				_nextFrame = _currentFrame + 1;
 				
-				if(currentFrame > numFrames-2)
+				if(_nextFrame > numFrames-1)
 				{
 					if(loop)
 					{
-						currentFrame = 0;
-						currentTime -= frames[numFrames-1].time;
+						_nextFrame = 0;
+						_currentTime -= frames[numFrames-1].time+loopBlendTime;
 					}
 					else
 					{
-						currentFrame = numFrames-2;
-						currentTime = frames[numFrames-1].time;
-						finished = true;
+						_currentFrame = numFrames-2;
+						_nextFrame = _currentFrame + 1;
+						_currentTime = frames[_nextFrame].time;
+						_finished = true;
 					}
 				}
 			}
 		}
 		else //backwards
 		{
-			while(currentTime < frames[currentFrame].time)
+			while(_currentTime < frames[_currentFrame].time)
 			{
-				currentFrame -= 1;
+				_nextFrame = _currentFrame;
+				_currentFrame -= 1;
 				
-				if(currentFrame < 0)
+				if(_currentFrame < 0)
 				{
 					if(loop)
 					{
-						currentFrame = numFrames-2;
-						currentTime += frames[numFrames-1].time;
+						_currentFrame = numFrames-1;
+						_currentTime += frames[numFrames-1].time+loopBlendTime;
 					}
 					else
 					{
-						currentFrame = 0;
-						currentTime = 0.0f;
-						finished = true;
+						_currentFrame = 0;
+						_nextFrame = 1;
+						_currentTime = 0.0f;
+						_finished = true;
 					}
 				}
 			}
@@ -85,47 +91,59 @@ namespace RN
 	
 	void AnimationBone::SetTime(float time, bool loop)
 	{
-		currentTime = 0.0f;
-		Update(time, loop);
+		Update(time-_currentTime, loop);
 	}
 	
-	void AnimationBone::SetIndex(int32 frame, bool loop)
+	void AnimationBone::SetFrame(int32 frame, bool loop)
 	{
-		currentFrame = frame;
+		_currentFrame = frame;
 		
 		if(loop)
 		{
-			while(currentFrame > numFrames-1)
+			while(_currentFrame > numFrames-1)
 			{
-				currentFrame -= numFrames-1;
+				_currentFrame -= numFrames-1;
 			}
 		}
 		else
 		{
-			currentFrame = std::min(currentFrame, numFrames-1);
+			_currentFrame = std::min(_currentFrame, numFrames-1);
 		}
 		
-		currentTime = frames[currentFrame].time;
+		_currentTime = frames[_currentFrame].time;
 	}
 	
 	const AnimationBone::Frame AnimationBone::GetInterpolatedFrame() const
 	{
 		Frame frame;
 		
-		float timeDiff = frames[currentFrame+1].time-frames[currentFrame].time;
-		float blend = (currentTime-frames[currentFrame].time)/timeDiff;
+		float timeDiff = frames[_nextFrame].time - frames[_currentFrame].time;
+		float blend = (_currentTime - frames[_currentFrame].time)/timeDiff;
 		
-		frame.time = currentTime;
-		frame.position = frames[currentFrame].position.GetLerp(frames[currentFrame+1].position, blend);
-		frame.scale = frames[currentFrame].scale.GetLerp(frames[currentFrame+1].scale, blend);
-		frame.rotation = Quaternion::WithLerpSpherical(frames[currentFrame].rotation, frames[currentFrame+1].rotation, blend);
+		if(frames[_nextFrame].time < frames[_currentFrame].time)
+		{
+			timeDiff = frames[_nextFrame].time + loopBlendTime;
+			if(_currentTime < frames[_nextFrame].time)
+			{
+				blend = (_currentTime + loopBlendTime)/timeDiff;
+			}
+			else
+			{
+				blend = (_currentTime - frames[_currentFrame].time)/timeDiff;
+			}
+		}
+		
+		frame.time = _currentTime;
+		frame.position = frames[_currentFrame].position.GetLerp(frames[_nextFrame].position, blend);
+		frame.scale = frames[_currentFrame].scale.GetLerp(frames[_nextFrame].scale, blend);
+		frame.rotation = Quaternion::WithLerpSpherical(frames[_currentFrame].rotation, frames[_nextFrame].rotation, blend);
 		
 		return frame;
 	}
 	
 	bool AnimationBone::IsFinished() const
 	{
-		return finished;
+		return _finished;
 	}
 	
 	
@@ -140,6 +158,14 @@ namespace RN
 		{
 			AnimationBone *bone = it->second;
 			delete bone;
+		}
+	}
+	
+	void Animation::MakeLoop(float blendTime)
+	{
+		for(auto bone : bones)
+		{
+			bone.second->loopBlendTime = blendTime;
 		}
 	}
 	
@@ -167,6 +193,11 @@ namespace RN
 		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0, 1.0, 1.0);
 		
+		positionOffset = Vector3(0.0f, 0.0f, 0.0f);
+		scaleOffset = Vector3(0.0f, 0.0f, 0.0f);
+		rotationOffset = Quaternion::WithIdentity();
+		offsetMode = OffsetMode::Add;
+		
 		animationBone = nullptr;
 		finished = false;
 		this->absolute = absolute;
@@ -184,6 +215,11 @@ namespace RN
 		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0f, 1.0f, 1.0f);
 		
+		positionOffset = Vector3(0.0f, 0.0f, 0.0f);
+		scaleOffset = Vector3(0.0f, 0.0f, 0.0f);
+		rotationOffset = Quaternion::WithIdentity();
+		offsetMode = OffsetMode::Add;
+		
 		animationBone = nullptr;
 		finished = false;
 		this->absolute = absolute;
@@ -196,6 +232,12 @@ namespace RN
 		position = other.position;
 		rotation = other.rotation;
 		scale = other.scale;
+		
+		positionOffset = other.positionOffset;
+		scaleOffset = other.scaleOffset;
+		rotationOffset = other.rotationOffset;
+		offsetMode = other.offsetMode;
+		
 		finalMatrix = other.finalMatrix;
 		name = other.name;
 		isRoot = other.isRoot;
@@ -219,7 +261,7 @@ namespace RN
 	bool Bone::Update(Bone *parent, float delta, bool loop)
 	{
 		bool running = true;
-		if(animationBone && animationBone->numFrames > 0)
+		if(animationBone && animationBone->numFrames > 0 && offsetMode != OffsetMode::Override)
 		{
 			animationBone->Update(delta, loop);
 			AnimationBone::Frame interpolatedFrame = animationBone->GetInterpolatedFrame();
@@ -227,6 +269,13 @@ namespace RN
 			position = interpolatedFrame.position;
 			scale = interpolatedFrame.scale;
 			rotation = interpolatedFrame.rotation;
+			
+			if(offsetMode == OffsetMode::Add)
+			{
+				position += positionOffset;
+				scale += scaleOffset;
+				rotation = rotationOffset*rotation;
+			}
 			
 			if(animationBone->numFrames <= 1)
 			{
@@ -244,6 +293,10 @@ namespace RN
 		else
 		{
 			running = false;
+			
+			position = positionOffset;
+			scale = scaleOffset+Vector3(1.0f, 1.0f, 1.0f);
+			rotation = rotationOffset;
 		}
 		
 		//TODO: Remove absolute flag...
@@ -301,6 +354,11 @@ namespace RN
 			scale = Vector3(1.0f, 1.0f, 1.0f);
 			animationBone = nullptr;
 		}
+	}
+	
+	Vector3 Bone::GetAbsolutePosition() const
+	{
+		return finalMatrix * invBaseMatrix.GetInverse() * RN::Vector3(0.0f);
 	}
 	
 	
