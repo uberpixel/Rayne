@@ -204,27 +204,25 @@ namespace RN
 	// MARK: Chunk
 	// ---------------------
 
-	Mesh::Chunk::Chunk(Mesh *mesh) :
+	Mesh::Chunk::Chunk(Mesh *mesh, bool triangles) :
 		_mesh(mesh),
+		_triangles(triangles),
 		_dirtyVertices(false),
 		_dirtyIndices(false),
 		_vertexData(nullptr),
-		_indexData(nullptr)
+		_indexData(nullptr),
+		_indicesDescriptor(nullptr)
 	{
+		if(triangles)
+		{
+			_indicesDescriptor = _mesh->GetDescriptor(VertexDescriptor::Feature::Indices);
+			GetIndexData();
+		}
 	}
 
 	Mesh::Chunk::~Chunk()
 	{
 		CommitChanges();
-	}
-
-	void Mesh::Chunk::SetData(const void *data, VertexDescriptor::Feature feature)
-	{
-	}
-
-	void Mesh::Chunk::SetDataInRange(const void *data, VertexDescriptor::Feature feature, const Range &range)
-	{
-
 	}
 
 	void Mesh::Chunk::CommitChanges()

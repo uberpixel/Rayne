@@ -89,6 +89,11 @@ namespace RN
 				_feature == VertexDescriptor::Feature::Indices ? (_chunk->_dirtyIndices = true) : (_chunk->_dirtyVertices = true);
 			}
 
+			size_t TranslateIndex(size_t index)
+			{
+				return _chunk->TranslateIndex(index);
+			}
+
 			VertexDescriptor::Feature _feature;
 			Chunk *_chunk;
 		};
@@ -193,9 +198,10 @@ namespace RN
 			}
 
 		private:
-			ElementIterator(VertexDescriptor::Feature feature, Chunk *chunk, T *ptr) :
+			ElementIterator(VertexDescriptor::Feature feature, Chunk *chunk, T *ptr, size_t index) :
 				_ptr(ptr),
-				_base(ptr)
+				_base(ptr),
+				_index(index)
 			{
 				_chunk = chunk;
 				_feature = feature;
@@ -203,15 +209,18 @@ namespace RN
 
 			void Advance(size_t count)
 			{
-				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + (__ChunkFriend::GetStride() * count)));
+				_index += count;
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_base) + (__ChunkFriend::GetStride() * __ChunkFriend::TranslateIndex(_index))));
 			}
 			void Decrease(size_t count)
 			{
-				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) - (__ChunkFriend::GetStride() * count)));
+				_index -= count;
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_base) + (__ChunkFriend::GetStride() * __ChunkFriend::TranslateIndex(_index))));
 			}
 
 			T *_ptr;
 			T *_base;
+			size_t _index;
 		};
 
 		class Chunk
@@ -220,13 +229,15 @@ namespace RN
 			friend class Mesh;
 			friend class __ChunkFriend;
 
+			RNAPI ~Chunk();
+
 			template<class T>
 			ElementIterator<T> GetIterator(VertexDescriptor::Feature feature)
 			{
 				size_t offset = _mesh->GetDescriptor(feature)->GetOffset();
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexDescriptor::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 
-				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr));
+				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
 			}
 
 			template<class T>
@@ -235,21 +246,33 @@ namespace RN
 				size_t offset = _mesh->GetDescriptor(feature)->GetOffset();
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexDescriptor::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 
-				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr));
-				result += index;
-
+				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);
 				return result;
 			}
 
-			RNAPI void SetData(const void *data, VertexDescriptor::Feature feature);
-			RNAPI void SetDataInRange(const void *data, VertexDescriptor::Feature feature, const Range &range);
-
 			RNAPI void CommitChanges();
 
-			RNAPI ~Chunk();
-
 		private:
-			Chunk(Mesh *mesh);
+			Chunk(Mesh *mesh, bool triangles);
+
+			size_t TranslateIndex(size_t index)
+			{
+				if(!_triangles || !_indicesDescriptor)
+					return index;
+
+				switch(_indicesDescriptor->GetType())
+				{
+					case PrimitiveType::Uint8:
+						return static_cast<uint8 *>(_indexData)[index];
+					case PrimitiveType::Uint16:
+						return static_cast<uint16 *>(_indexData)[index];
+					case PrimitiveType::Uint32:
+						return static_cast<uint32 *>(_indexData)[index];
+
+					default:
+						throw InconsistencyException("Invalid state while translating triangle index!");
+				}
+			}
 
 			void *GetVertexData()
 			{
@@ -266,10 +289,12 @@ namespace RN
 				return _indexData;
 			}
 
+			const VertexDescriptor *_indicesDescriptor;
 			void *_vertexData;
 			void *_indexData;
 
 			Mesh *_mesh;
+			bool _triangles;
 
 			bool _dirtyVertices;
 			bool _dirtyIndices;
@@ -288,7 +313,8 @@ namespace RN
 		RNAPI const VertexDescriptor *GetDescriptor(VertexDescriptor::Feature feature) const;
 		RNAPI const VertexDescriptor *GetDescriptor(const String *name) const;
 
-		Chunk GetChunk() { return Chunk(this); }
+		Chunk GetChunk() { return Chunk(this, false); }
+		Chunk GetTrianglesChunk() { return Chunk(this, true); }
 
 		size_t GetStride() const { return _stride; }
 		size_t GetVerticesCount() const { return _verticesCount; }
