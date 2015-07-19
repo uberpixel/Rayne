@@ -14,6 +14,10 @@
 #include "../Objects/RNWeakStorage.h"
 #include "../System/RNScreen.h"
 #include "../Scene/RNCamera.h"
+#include "../Math/RNVector.h"
+#include "../Math/RNMatrix.h"
+#include "../Math/RNQuaternion.h"
+#include "../Math/RNColor.h"
 #include "RNWindow.h"
 #include "RNGPUBuffer.h"
 #include "RNShaderLibrary.h"
@@ -22,6 +26,34 @@
 
 namespace RN
 {
+	enum class DrawMode
+	{
+		Point,
+		Line,
+		LineStrip,
+		Triangle,
+		TriangleStrip
+	};
+
+	enum class PrimitiveType
+	{
+		Uint8,
+		Uint16,
+		Uint32,
+
+		Int8,
+		Int16,
+		Int32,
+
+		Vector2,
+		Vector3,
+		Vector4,
+
+		Matrix,
+		Quaternion,
+		Color
+	};
+
 	class Renderer : public Object
 	{
 	public:
@@ -41,6 +73,7 @@ namespace RN
 		RNAPI virtual void EndCamera() = 0;
 
 		RNAPI virtual bool SupportsTextureFormat(Texture::Format format) = 0;
+		RNAPI virtual bool SupportsDrawMode(DrawMode mode) = 0;
 
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) = 0;

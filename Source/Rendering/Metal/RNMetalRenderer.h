@@ -36,6 +36,7 @@ namespace RN
 		RNAPI void EndCamera() final;
 
 		RNAPI bool SupportsTextureFormat(Texture::Format format) final;
+		RNAPI bool SupportsDrawMode(DrawMode mode) final;
 
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
 		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;

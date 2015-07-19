@@ -323,6 +323,7 @@ set(RAYNE_SOURCES
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
     Rendering/RNMaterial.cpp
+    Rendering/RNMesh.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRenderingDescriptor.cpp
     Rendering/RNShader.cpp
@@ -405,6 +406,7 @@ set(RAYNE_HEADERS
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h
     Rendering/RNMaterial.h
+    Rendering/RNMesh.h
     Rendering/RNRenderer.h
     Rendering/RNRenderingDescriptor.h
     Rendering/RNShader.h

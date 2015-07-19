@@ -272,6 +272,10 @@ namespace RN
 	{
 		return true;
 	}
+	bool MetalRenderer::SupportsDrawMode(DrawMode mode)
+	{
+		return true;
+	}
 
 	Texture *MetalRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{

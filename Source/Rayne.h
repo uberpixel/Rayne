@@ -52,6 +52,7 @@
 #include "Rendering/RNGPUBuffer.h"
 #include "Rendering/RNGPUResource.h"
 #include "Rendering/RNMaterial.h"
+#include "Rendering/RNMesh.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRenderingDescriptor.h"
 #include "Rendering/RNShader.h"
