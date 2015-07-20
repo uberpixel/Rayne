@@ -35,6 +35,12 @@ namespace RN
 		RNAPI void RemoveObject(Object *object);
 		RNAPI void RemoveAllObjects();
 		RNAPI bool ContainsObject(Object *object) const;
+
+		template<class T>
+		T *GetObject(Object *object) const
+		{
+			return static_cast<T *>(__GetObject(object));
+		}
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, bool &stop)>& callback) const;
 		
@@ -51,6 +57,8 @@ namespace RN
 		RNAPI size_t GetCount() const;
 		
 	private:
+		RNAPI Object *__GetObject(Object *object) const;
+
 		PIMPL<SetInternal> _internals;
 		
 		RNDeclareMeta(Set)

@@ -186,6 +186,12 @@ namespace RN
 		SetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return (bucket != nullptr);
 	}
+
+	Object *Set::__GetObject(Object *object) const
+	{
+		SetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
+		return bucket->object;
+	}
 	
 	
 	
