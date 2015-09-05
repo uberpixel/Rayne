@@ -82,6 +82,20 @@ namespace RN
 					[NSApp sendEvent:event];
 					[NSApp updateWindows];
 				}
+
+				NSMenu *menu = [[NSMenu alloc] init];
+				[menu setAutoenablesItems:NO];
+
+				NSString *quitTitle = [@"Quit " stringByAppendingString:[[NSProcessInfo processInfo] processName]];
+				NSMenuItem *quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"];
+				NSMenu *quitMenu = [[NSMenu alloc] init];
+				[quitMenu addItem:[quitMenuItem autorelease]];
+
+				NSMenuItem *appMenu = [[NSMenuItem alloc] init];
+				[appMenu setSubmenu:[quitMenu autorelease]];
+				[menu addItem:[appMenu autorelease]];
+
+				[NSApp setMainMenu:[menu autorelease]];
 			}
 		}
 #endif
