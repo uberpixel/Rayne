@@ -251,6 +251,7 @@ namespace RN
 	Mesh *Mesh::WithCubeMesh(const Vector3 &size, const Color &color)
 	{
 		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
 							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
@@ -288,6 +289,37 @@ namespace RN
 		*vertices ++ = Vector3(size.x, - size.y, size.z);
 		*vertices ++ = Vector3(- size.x, - size.y, size.z);
 
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
 
 		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexAttribute::Feature::Color0);
 
