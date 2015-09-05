@@ -32,9 +32,53 @@ namespace RN
 			MTLVertexFormatFloat4
 		};
 
-	MetalStateCoordinator::MetalStateCoordinator()
-	{
+	MTLCompareFunction CompareFunctionLookup[] =
+		{
+			MTLCompareFunctionNever,
+			MTLCompareFunctionAlways,
+			MTLCompareFunctionLess,
+			MTLCompareFunctionLessEqual,
+			MTLCompareFunctionEqual,
+			MTLCompareFunctionNotEqual,
+			MTLCompareFunctionGreaterEqual,
+			MTLCompareFunctionGreater
+		};
 
+	MetalStateCoordinator::MetalStateCoordinator() :
+		_device(nullptr),
+		_lastDepthStencilState(nullptr)
+	{}
+
+	void MetalStateCoordinator::SetDevice(id<MTLDevice> device)
+	{
+		_device = device;
+	}
+
+
+	id<MTLDepthStencilState> MetalStateCoordinator::GetDepthStencilStateForMaterial(Material *material)
+	{
+		if(RN_EXPECT_TRUE(_lastDepthStencilState != nullptr) && _lastDepthStencilState->MatchesMaterial(material))
+			return _lastDepthStencilState->state;
+
+		for(const MetalDepthStencilState &state : _depthStencilStates)
+		{
+			if(state.MatchesMaterial(material))
+			{
+				_lastDepthStencilState = &state;
+				return _lastDepthStencilState->state;
+			}
+		}
+
+		MTLDepthStencilDescriptor *descriptor = [[MTLDepthStencilDescriptor alloc] init];
+		[descriptor setDepthCompareFunction:CompareFunctionLookup[static_cast<uint32_t>(material->GetDepthMode())]];
+		[descriptor setDepthWriteEnabled:material->GetDepthWriteEnabled()];
+
+		id<MTLDepthStencilState> state = [_device newDepthStencilStateWithDescriptor:descriptor];
+		_depthStencilStates.emplace_back(material, state);
+		[descriptor release];
+
+		_lastDepthStencilState = &_depthStencilStates.back();
+		return _lastDepthStencilState->state;
 	}
 
 	id<MTLRenderPipelineState> MetalStateCoordinator::GetRenderPipelineState(id<MTLDevice> device, Material *material, Mesh *mesh)

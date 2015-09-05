@@ -63,16 +63,11 @@ namespace RN
 	{
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
-
-		id<MTLBuffer> blitVertexBuffer;
-		id<MTLRenderPipelineState> blitState;
-		id<MTLSamplerState> blitSampler;
 		id<MTLLibrary> defaultLibrary;
-		id<MTLDepthStencilState> _depthStencilState;
 
 		MetalWindowPass pass;
 		MetalRenderPass renderPass;
-		MetalStateCoordinator _stateCoordinator;
+		MetalStateCoordinator stateCoordinator;
 	};
 
 	struct MetalWindowInternals

@@ -14,7 +14,9 @@ namespace RN
 
 	Material::Material(Shader *fragmentShader, Shader *vertexShader) :
 		_fragmentShader(SafeRetain(fragmentShader)),
-		_vertexShader(SafeRetain(vertexShader))
+		_vertexShader(SafeRetain(vertexShader)),
+		_depthMode(DepthMode::Less),
+		_depthWriteEnabled(true)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -24,5 +26,15 @@ namespace RN
 	{
 		SafeRelease(_fragmentShader);
 		SafeRelease(_vertexShader);
+	}
+
+	void Material::SetDepthWriteEnabled(bool depthWrite)
+	{
+		_depthWriteEnabled = depthWrite;
+	}
+
+	void Material::SetDepthMode(DepthMode mode)
+	{
+		_depthMode = mode;
 	}
 }

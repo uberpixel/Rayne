@@ -32,17 +32,44 @@ namespace RN
 
 	};
 
+	struct MetalDepthStencilState
+	{
+		MetalDepthStencilState() = default;
+		MetalDepthStencilState(Material *material, id<MTLDepthStencilState> tstate) :
+			mode(material->GetDepthMode()),
+			depthWriteEnabled(material->GetDepthWriteEnabled()),
+			state(tstate)
+		{}
+
+		Material::DepthMode mode;
+		bool depthWriteEnabled;
+		id<MTLDepthStencilState> state;
+
+		RN_INLINE bool MatchesMaterial(Material *material) const
+		{
+			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled);
+		}
+	};
+
 	class MetalStateCoordinator
 	{
 	public:
 		MetalStateCoordinator();
+
+		void SetDevice(id<MTLDevice> device);
+
+		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
 
 		id<MTLRenderPipelineState> GetRenderPipelineState(id<MTLDevice> device, Material *material, Mesh *mesh);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
 
-		Set *_set;
+		id<MTLDevice> _device;
+
+
+		std::vector<MetalDepthStencilState> _depthStencilStates;
+		const MetalDepthStencilState *_lastDepthStencilState;
 	};
 }
 

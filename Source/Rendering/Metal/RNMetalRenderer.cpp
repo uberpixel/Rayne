@@ -75,57 +75,15 @@ namespace RN
 		RN_ASSERT(_internals->device, "Needs a valid device");
 
 		_internals->commandQueue = [_internals->device newCommandQueue];
-		[devices release];
+		_internals->stateCoordinator.SetDevice(_internals->device);
 
-		const float vertexData[] = {
-			-1.0, -1.0, 0.0, 0.0,
-			1.0, -1.0, 1.0, 0.0,
-			-1.0, 1.0, 0.0, 1.0,
-			1.0, 1.0, 1.0, 1.0
-		};
+		[devices release];
 
 		NSError *error = nil;
 		_internals->defaultLibrary = [_internals->device newLibraryWithSource:[NSString stringWithUTF8String:kRNMetalRendererDefaultShaders] options:nil error:&error];
 
 		if(!_internals->defaultLibrary)
 			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
-
-		MTLVertexDescriptor *vertexDescriptor = [MTLVertexDescriptor vertexDescriptor];
-
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setFormat:MTLVertexFormatFloat2];
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setOffset:0];
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:0] setBufferIndex:0];
-
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setFormat:MTLVertexFormatFloat2];
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setOffset:2 * sizeof(float)];
-		[[[vertexDescriptor attributes] objectAtIndexedSubscript:1] setBufferIndex:0];
-
-		[[[vertexDescriptor layouts] objectAtIndexedSubscript:0] setStride:4 * sizeof(float)];
-		[[[vertexDescriptor layouts] objectAtIndexedSubscript:0] setStepFunction:MTLVertexStepFunctionPerVertex];
-
-		MTLRenderPipelineDescriptor *descriptor = [[MTLRenderPipelineDescriptor alloc] init];
-		[descriptor setVertexFunction:[_internals->defaultLibrary newFunctionWithName:@"basic_blit_vertex"]];
-		[descriptor setFragmentFunction:[_internals->defaultLibrary newFunctionWithName:@"basic_blit_fragment"]];
-		[descriptor setVertexDescriptor:vertexDescriptor];
-		[[[descriptor colorAttachments] objectAtIndexedSubscript:0] setPixelFormat:MTLPixelFormatBGRA8Unorm];
-
-		_internals->blitState = [_internals->device newRenderPipelineStateWithDescriptor:descriptor error:&error];
-		if(!_internals->blitState)
-			throw InconsistencyException([[error localizedDescription] UTF8String]);
-
-		_internals->blitVertexBuffer = [_internals->device newBufferWithBytes:vertexData length:sizeof(vertexData) options:MTLResourceStorageModeShared];
-
-		MTLSamplerDescriptor *samplerDescriptor = [[MTLSamplerDescriptor alloc] init];
-		samplerDescriptor.minFilter = MTLSamplerMinMagFilterNearest;
-		samplerDescriptor.magFilter = MTLSamplerMinMagFilterNearest;
-		_internals->blitSampler = [_internals->device newSamplerStateWithDescriptor:samplerDescriptor];
-		[samplerDescriptor release];
-
-		MTLDepthStencilDescriptor *depthDescriptor = [[MTLDepthStencilDescriptor alloc] init];
-		[depthDescriptor setDepthCompareFunction:MTLCompareFunctionLess];
-		[depthDescriptor setDepthWriteEnabled:YES];
-
-		_internals->_depthStencilState = [_internals->device newDepthStencilStateWithDescriptor:depthDescriptor];
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -338,7 +296,7 @@ namespace RN
 
 		if(drawable->dirty)
 		{
-			id<MTLRenderPipelineState> state = _internals->_stateCoordinator.GetRenderPipelineState(_internals->device, drawable->material, drawable->mesh);
+			id<MTLRenderPipelineState> state = _internals->stateCoordinator.GetRenderPipelineState(_internals->device, drawable->material, drawable->mesh);
 
 			if(drawable->_pipelineState)
 				[(id<MTLRenderPipelineState>)drawable->_pipelineState release];
@@ -379,7 +337,7 @@ namespace RN
 		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
 
 		[encoder setRenderPipelineState:state];
-		[encoder setDepthStencilState:_internals->_depthStencilState];
+		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
 		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
 		[encoder setVertexBuffer:(id<MTLBuffer>)drawable->_uniformBuffer->_buffer offset:0 atIndex:1];
 		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
