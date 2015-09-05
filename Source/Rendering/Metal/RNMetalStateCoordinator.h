@@ -16,22 +16,10 @@
 #include "../RNRenderer.h"
 #include "../RNMaterial.h"
 #include "../RNMesh.h"
+#include "../../scene/RNCamera.h"
 
 namespace RN
 {
-	class MetalRenderingState : public Object
-	{
-	public:
-
-	private:
-		Shader *_fragmentShader;
-		Shader *_vertexShader;
-		Material *_material;
-		Texture::Format _pixelFormat;
-
-
-	};
-
 	struct MetalDepthStencilState
 	{
 		MetalDepthStencilState() = default;
@@ -51,6 +39,30 @@ namespace RN
 		}
 	};
 
+	struct MetalRenderingState
+	{
+		MTLPixelFormat pixelFormat;
+		MTLPixelFormat depthFormat;
+		MTLPixelFormat stencilFormat;
+		id<MTLRenderPipelineState> state;
+	};
+
+	struct MetalRenderingStateCollection
+	{
+		MetalRenderingStateCollection() = default;
+		MetalRenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, id<MTLFunction> vertex, id<MTLFunction> fragment) :
+			descriptor(tdescriptor),
+			vertexShader(vertex),
+			fragmentShader(fragment)
+		{}
+
+		Mesh::VertexDescriptor descriptor;
+		id<MTLFunction> vertexShader;
+		id<MTLFunction> fragmentShader;
+
+		std::vector<MetalRenderingState> states;
+	};
+
 	class MetalStateCoordinator
 	{
 	public:
@@ -59,17 +71,18 @@ namespace RN
 		void SetDevice(id<MTLDevice> device);
 
 		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
-
-		id<MTLRenderPipelineState> GetRenderPipelineState(id<MTLDevice> device, Material *material, Mesh *mesh);
+		id<MTLRenderPipelineState> GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
+		id<MTLRenderPipelineState> GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera);
 
 		id<MTLDevice> _device;
 
-
 		std::vector<MetalDepthStencilState> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;
+
+		std::vector<MetalRenderingStateCollection> _renderingStates;
 	};
 }
 

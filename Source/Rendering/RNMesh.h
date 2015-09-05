@@ -115,6 +115,25 @@ namespace RN
 					HashCombine(_hash, _names->GetHash());
 			}
 
+			VertexDescriptor(const VertexDescriptor &other) :
+				_attributes(other._attributes),
+				_featureSet(other._featureSet),
+				_hash(other._hash),
+				_names(SafeRetain(other._names))
+			{}
+
+			VertexDescriptor &operator =(const VertexDescriptor &other)
+			{
+				SafeRelease(_names);
+
+				_attributes = other._attributes;
+				_featureSet = other._featureSet;
+				_hash = other._hash;
+				_names = SafeRetain(other._names);
+
+				return *this;
+			}
+
 			~VertexDescriptor()
 			{
 				SafeRelease(_names);

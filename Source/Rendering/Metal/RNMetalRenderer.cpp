@@ -298,7 +298,7 @@ namespace RN
 
 		if(drawable->dirty)
 		{
-			id<MTLRenderPipelineState> state = _internals->stateCoordinator.GetRenderPipelineState(_internals->device, drawable->material, drawable->mesh);
+			id<MTLRenderPipelineState> state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
 
 			if(drawable->_pipelineState)
 				[(id<MTLRenderPipelineState>)drawable->_pipelineState release];
