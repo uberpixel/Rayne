@@ -57,6 +57,8 @@ namespace RN
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
 
+		std::vector<Camera *> _cameras;
+
 		RNDeclareMeta(MetalRenderer)
 	};
 }

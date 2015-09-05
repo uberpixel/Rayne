@@ -79,7 +79,7 @@ namespace RN
 
 		const float vertexData[] = {
 			-1.0, -1.0, 0.0, 0.0,
-			1.0, -1.0, 0.0, 0.0,
+			1.0, -1.0, 1.0, 0.0,
 			-1.0, 1.0, 0.0, 1.0,
 			1.0, 1.0, 1.0, 1.0
 		};
@@ -145,31 +145,10 @@ namespace RN
 
 	void MetalRenderer::BeginWindow(Window *window)
 	{
+		_cameras.clear();
+
 		_internals->pass.window = static_cast<MetalWindow *>(window);
 		_internals->pass.drawable = [_internals->pass.window->_internals->metalView nextDrawable];
-
-		if(_internals->pass.drawable)
-		{
-			//_internals->pass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
-			/*MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-			[colorAttachment setTexture:[_internals->pass.drawable texture]];
-			[colorAttachment setLoadAction:MTLLoadActionClear];
-			[colorAttachment setStoreAction:MTLStoreActionStore];
-			[colorAttachment setClearColor:MTLClearColorMake(1.0, 0.0, 0.0f, 1.0)];
-
-			_internals->pass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-			//_internals->pass.blitCommand = [_internals->pass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
-
-			_internals->renderPass.renderCommand = [[_internals->pass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
-
-
-			 [descriptor release];
-
-			//[_internals->pass.blitCommand setRenderPipelineState:_internals->blitState];
-			//[_internals->pass.blitCommand setVertexBuffer:_internals->blitVertexBuffer offset:0 atIndex:0];*/
-		}
 	}
 
 	void MetalRenderer::EndWindow()
@@ -188,6 +167,16 @@ namespace RN
 			_internals->renderPass.renderCommand = [_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
 			[_internals->renderPass.renderCommand setRenderPipelineState:_internals->blitState];
 			[_internals->renderPass.renderCommand setVertexBuffer:_internals->blitVertexBuffer offset:0 atIndex:0];
+			[_internals->renderPass.renderCommand setFragmentSamplerState:_internals->blitSampler atIndex:0];
+
+			for(Camera *camera : _cameras)
+			{
+				Framebuffer *framebuffer = camera->GetFramebuffer();
+				MetalTexture *colorTexture = static_cast<MetalTexture *>(framebuffer->GetColorTexture());
+
+				[_internals->renderPass.renderCommand setFragmentTexture:(id<MTLTexture>)colorTexture->_texture atIndex:0];
+				[_internals->renderPass.renderCommand drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+			}
 
 			[_internals->renderPass.renderCommand endEncoding];
 
@@ -196,7 +185,6 @@ namespace RN
 			[_internals->renderPass.commandBuffer release];
 
 			_internals->renderPass.commandBuffer = nil;
-			//_internals->pass.blitCommand = nil;
 			_internals->pass.drawable = nil;
 		}
 	}
@@ -224,7 +212,7 @@ namespace RN
 		_internals->renderPass.viewMatrix = Matrix::WithIdentity();
 		_internals->renderPass.inverseViewMatrix = Matrix::WithIdentity().GetInverse();
 
-		Matrix projectionMatrix = Matrix::WithProjectionPerspective(60 * k::DegToRad, 2.6, 0.01, 1000.0f);
+		Matrix projectionMatrix = Matrix::WithProjectionPerspective(60, 1.3333, 0.01, 1000.0f);
 
 		_internals->renderPass.projectionMatrix = projectionMatrix;
 		_internals->renderPass.inverseProjectionMatrix = projectionMatrix.GetInverse();
@@ -244,15 +232,7 @@ namespace RN
 		[_internals->renderPass.commandBuffer commit];
 		[_internals->renderPass.commandBuffer release];
 
-		/*Framebuffer *framebuffer = _internals->renderPass.framebuffer;
-		MetalTexture *colorTexture = static_cast<MetalTexture *>(framebuffer->GetColorTexture());
-
-		[_internals->pass.blitCommand setFragmentSamplerState:_internals->blitSampler atIndex:0];
-		[_internals->pass.blitCommand setFragmentTexture:(id<MTLTexture>)colorTexture->_texture atIndex:0];
-		[_internals->pass.blitCommand drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
-
-		_internals->renderPass.commandBuffer = nil;
-		_internals->renderPass.framebuffer = nullptr;*/
+		_cameras.push_back(_internals->renderPass.camera);
 	}
 
 
