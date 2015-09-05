@@ -136,12 +136,14 @@ namespace RN
 		_internals->renderPass.framebuffer = camera->GetFramebuffer();
 
 
+		const Color &clearColor = camera->GetClearColor();
+
 		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
 		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
 		[colorAttachment setTexture:[_internals->pass.drawable texture]];
 		[colorAttachment setLoadAction:MTLLoadActionClear];
 		[colorAttachment setStoreAction:MTLStoreActionStore];
-		[colorAttachment setClearColor:MTLClearColorMake(0.0, 0.0, 0.0f, 1.0)];
+		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 
 		MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
 		[depthAttachment setTexture:_internals->pass.depthTexture];
