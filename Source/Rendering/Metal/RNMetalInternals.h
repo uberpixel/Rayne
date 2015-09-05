@@ -11,6 +11,7 @@
 
 #include "../../Base/RNBase.h"
 #include "../../Base/RNBaseInternal.h"
+#include "RNMetalStateCoordinator.h"
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
@@ -22,13 +23,20 @@ namespace RN
 	class MetalWindow;
 	class Framebuffer;
 	class Camera;
+	class MetalGPUBuffer;
 
 	struct MetalWindowPass
 	{
 		MetalWindow *window;
 		id<CAMetalDrawable> drawable;
-		id<MTLCommandBuffer> commandBuffer;
-		id<MTLRenderCommandEncoder> blitCommand;
+	};
+
+	struct MetalDrawable : public Drawable
+	{
+		id<MTLRenderPipelineState> _pipelineState;
+		MetalGPUBuffer *_uniformBuffer;
+		MetalDrawable *_next;
+		MetalDrawable *_prev;
 	};
 
 	struct MetalRenderPass
@@ -36,6 +44,15 @@ namespace RN
 		Camera *camera;
 		Framebuffer *framebuffer;
 		id<MTLCommandBuffer> commandBuffer;
+		id<MTLRenderCommandEncoder> renderCommand;
+
+		Matrix viewMatrix;
+		Matrix inverseViewMatrix;
+		Matrix projectionMatrix;
+		Matrix inverseProjectionMatrix;
+
+		MetalDrawable *drawableHead;
+		size_t drawableCount;
 	};
 
 
@@ -51,6 +68,7 @@ namespace RN
 
 		MetalWindowPass pass;
 		MetalRenderPass renderPass;
+		MetalStateCoordinator _stateCoordinator;
 	};
 
 	struct MetalWindowInternals

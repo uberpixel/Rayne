@@ -20,6 +20,7 @@ namespace RN
 	{
 	public:
 		RNAPI virtual void *GetBuffer() const = 0;
+		RNAPI virtual void Invalidate();
 		RNAPI virtual void InvalidateRange(const Range &range) = 0;
 		RNAPI virtual size_t GetLength() const = 0;
 

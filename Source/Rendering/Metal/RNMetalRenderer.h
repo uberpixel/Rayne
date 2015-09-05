@@ -16,7 +16,9 @@
 namespace RN
 {
 	struct MetalRendererInternals;
+	struct MetalDrawable;
 	class MetalWindow;
+	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
 	{
@@ -46,7 +48,12 @@ namespace RN
 
 		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
+		RNAPI Drawable *CreateDrawable() final;
+		RNAPI void SubmitDrawable(Drawable *drawable) final;
+
 	protected:
+		void RenderDrawable(MetalDrawable *drawable);
+
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
 

@@ -13,6 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
+#include "../Math/RNAlgorithm.h"
 #include "RNRendererTypes.h"
 #include "RNGPUBuffer.h"
 
@@ -21,7 +22,7 @@ namespace RN
 	class Mesh : public Object
 	{
 	public:
-		struct VertexDescriptor
+		struct VertexAttribute
 		{
 		public:
 			friend class Mesh;
@@ -41,19 +42,33 @@ namespace RN
 			};
 
 
-			VertexDescriptor(Feature feature, PrimitiveType type) :
+			VertexAttribute(Feature feature, PrimitiveType type) :
 				_feature(feature),
 				_name(nullptr),
 				_type(type)
 			{}
-			VertexDescriptor(const String *name, PrimitiveType type) :
+			VertexAttribute(const String *name, PrimitiveType type) :
 				_feature(Feature::Custom),
 				_name(name->Copy()),
 				_type(type)
 			{}
-			~VertexDescriptor()
+			~VertexAttribute()
 			{
 				SafeRelease(_name);
+			}
+
+			bool operator ==(const VertexAttribute &other) const
+			{
+				return IsEqual(other);
+			}
+			bool operator !=(const VertexAttribute &other) const
+			{
+				return !IsEqual(other);
+			}
+
+			bool IsEqual(const VertexAttribute &other) const
+			{
+				return (_type == other._type && _feature == other._feature && (_feature == Feature::Custom && _name->IsEqual(other._name)));
 			}
 
 			PrimitiveType GetType() const { return _type; }
@@ -74,6 +89,75 @@ namespace RN
 			size_t _size;
 		};
 
+		class VertexDescriptor
+		{
+		public:
+			VertexDescriptor(const std::initializer_list<VertexAttribute> &attributes) :
+				_attributes(attributes),
+				_names(nullptr),
+				_featureSet(0)
+			{
+				for(auto &attribute : _attributes)
+				{
+					_featureSet |= (1 << static_cast<uint32>(attribute.GetFeature()));
+
+					if(attribute.GetFeature() == VertexAttribute::Feature::Custom)
+					{
+						if(!_names)
+							_names = new Array();
+
+						_names->AddObject(attribute.GetName()->Copy());
+					}
+				}
+
+				_hash = _featureSet;
+				if(_names)
+					HashCombine(_hash, _names->GetHash());
+			}
+
+			~VertexDescriptor()
+			{
+				SafeRelease(_names);
+			}
+
+
+			bool operator== (VertexDescriptor &other) const
+			{
+				return IsEqual(other);
+			}
+			bool operator!= (VertexDescriptor &other) const
+			{
+				return IsEqual(other);
+			}
+
+
+			size_t GetHash() const
+			{
+				return _hash;
+			}
+			bool IsEqual(const VertexDescriptor &other) const
+			{
+				if(GetHash() != other.GetHash() || _attributes.size() != other._attributes.size())
+					return false;
+
+				size_t count = _attributes.size();
+				for(size_t i = 0; i < count; i ++)
+				{
+					if(_attributes[i] != other._attributes[i])
+						return false;
+				}
+
+				return true;
+			}
+
+		private:
+			std::vector<VertexAttribute> _attributes;
+			uint32 _featureSet;
+			Array *_names;
+			size_t _hash;
+		};
+
+
 		class Chunk;
 		friend class Chunk;
 
@@ -82,12 +166,12 @@ namespace RN
 		protected:
 			size_t GetStride() const
 			{
-				return (_feature == VertexDescriptor::Feature::Indices) ? 0 : _chunk->_mesh->GetStride();
+				return (_feature == VertexAttribute::Feature::Indices) ? 2 : _chunk->_mesh->GetStride();
 			}
 
 			void MarkDirty()
 			{
-				_feature == VertexDescriptor::Feature::Indices ? (_chunk->_dirtyIndices = true) : (_chunk->_dirtyVertices = true);
+				_feature == VertexAttribute::Feature::Indices ? (_chunk->_dirtyIndices = true) : (_chunk->_dirtyVertices = true);
 			}
 
 			size_t TranslateIndex(size_t index)
@@ -95,7 +179,7 @@ namespace RN
 				return _chunk->TranslateIndex(index);
 			}
 
-			VertexDescriptor::Feature _feature;
+			VertexAttribute::Feature _feature;
 			Chunk *_chunk;
 		};
 
@@ -199,7 +283,7 @@ namespace RN
 			}
 
 		private:
-			ElementIterator(VertexDescriptor::Feature feature, Chunk *chunk, T *ptr, size_t index) :
+			ElementIterator(VertexAttribute::Feature feature, Chunk *chunk, T *ptr, size_t index) :
 				_ptr(ptr),
 				_base(ptr),
 				_index(index)
@@ -233,19 +317,19 @@ namespace RN
 			RNAPI ~Chunk();
 
 			template<class T>
-			ElementIterator<T> GetIterator(VertexDescriptor::Feature feature)
+			ElementIterator<T> GetIterator(VertexAttribute::Feature feature)
 			{
-				size_t offset = _mesh->GetDescriptor(feature)->GetOffset();
-				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexDescriptor::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
+				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
+				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
 			}
 
 			template<class T>
-			ElementIterator<T> GetIteratorAtIndex(VertexDescriptor::Feature feature, size_t index)
+			ElementIterator<T> GetIteratorAtIndex(VertexAttribute::Feature feature, size_t index)
 			{
-				size_t offset = _mesh->GetDescriptor(feature)->GetOffset();
-				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexDescriptor::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
+				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
+				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 
 				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);
 				return result;
@@ -290,7 +374,7 @@ namespace RN
 				return _indexData;
 			}
 
-			const VertexDescriptor *_indicesDescriptor;
+			const VertexAttribute *_indicesDescriptor;
 			void *_vertexData;
 			void *_indexData;
 
@@ -302,17 +386,17 @@ namespace RN
 		};
 
 
-		RNAPI Mesh(const std::initializer_list<VertexDescriptor> &descriptors, size_t verticesCount, size_t indicesCount);
+		RNAPI Mesh(const std::initializer_list<VertexAttribute> &descriptors, size_t verticesCount, size_t indicesCount);
 		RNAPI ~Mesh() override;
 
 		RNAPI static Mesh *WithCubeMesh(const Vector3 &size, const Color &color);
 
 		RNAPI void SetDrawMode(DrawMode mode);
-		RNAPI void SetElementData(VertexDescriptor::Feature feature, const void *data);
+		RNAPI void SetElementData(VertexAttribute::Feature feature, const void *data);
 		RNAPI void SetElementData(const String *name, const void *data);
 
-		RNAPI const VertexDescriptor *GetDescriptor(VertexDescriptor::Feature feature) const;
-		RNAPI const VertexDescriptor *GetDescriptor(const String *name) const;
+		RNAPI const VertexAttribute *GetAttribute(VertexAttribute::Feature feature) const;
+		RNAPI const VertexAttribute *GetAttribute(const String *name) const;
 
 		Chunk GetChunk() { return Chunk(this, false); }
 		Chunk GetTrianglesChunk() { return Chunk(this, true); }
@@ -321,8 +405,14 @@ namespace RN
 		size_t GetVerticesCount() const { return _verticesCount; }
 		size_t GetIndicesCount() const { return _indicesCount; }
 
+		const std::vector<VertexAttribute> &GetVertexAttributes() const { return _vertexAttributes; }
+		const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
+
+		GPUBuffer *GetVertexBuffer() const { return _vertexBuffer; }
+		GPUBuffer *GetIndicesBuffer() const { return _indicesBuffer; }
+
 	private:
-		void PerformDescriptorSetup();
+		void ParseAttributes();
 
 		GPUBuffer *_vertexBuffer;
 		GPUBuffer *_indicesBuffer;
@@ -334,9 +424,10 @@ namespace RN
 		size_t _verticesSize;
 		size_t _indicesSize;
 
-		DrawMode  _drawMode;
+		DrawMode _drawMode;
 
-		std::vector<VertexDescriptor> _vertexDescriptors;
+		std::vector<VertexAttribute> _vertexAttributes;
+		VertexDescriptor _descriptor;
 
 		RNDeclareMeta(Mesh)
 	};

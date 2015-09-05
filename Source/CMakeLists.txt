@@ -34,7 +34,7 @@ macro(check_cxx_compiler_attribute _ATTRIBUTE _RESULT)
 endmacro()
 
 macro(check_cxx_compiler_type_attribute _ATTRIBUTE _RESULT)
-  check_cxx_source_compiles("int main() { return ${_ATTRIBUTE} int bar = 0; bar; }" ${_RESULT}
+  check_cxx_source_compiles("int main() { ${_ATTRIBUTE} int bar; return 0; }" ${_RESULT}
     # Some compilers do not fail with a bad flag
     FAIL_REGEX "unrecognized .*option"                     # GNU
     FAIL_REGEX "ignoring unknown option"                   # MSVC
@@ -188,14 +188,15 @@ else()
 endif()
 
 check_cxx_compiler_type_attribute("alignas(16)" HAVE_ALIGNAS)
-check_cxx_compiler_type_attribute(" __declspec(align(16))" HAVE_DECLSPEC_ALIGNAS)
+check_cxx_compiler_type_attribute("__declspec(align(16))" HAVE_DECLSPEC_ALIGNAS)
 
 if(HAVE_ALIGNAS)
     set(RAYNE_ALIGNAS "alignas(x)")
 elseif(HAVE_DECLSPEC_ALIGNAS)
     set(RAYNE_ALIGNAS "__declspec(align(x))")
 else()
-    message(FATAL_ERROR "Could not detect alignas() equivalent")
+    set(RAYNE_ALIGNAS "alignas(x)")
+    #message(FATAL_ERROR "Could not detect alignas() equivalent")
 endif()
 
 check_cxx_source_compiles("void foo() noexcept; void foo() { }; int main() { foo(); }" HAVE_NOEXCEPT)
@@ -317,6 +318,7 @@ set(RAYNE_SOURCES
     Rendering/Metal/RNMetalRendererDescriptor.cpp
     Rendering/Metal/RNMetalShader.cpp
     Rendering/Metal/RNMetalShaderLibrary.cpp
+    Rendering/Metal/RNMetalStateCoordinator.cpp
     Rendering/Metal/RNMetalTexture.cpp
     Rendering/Metal/RNMetalWindow.cpp
     Rendering/RNFramebuffer.cpp
@@ -400,6 +402,7 @@ set(RAYNE_HEADERS
     Rendering/Metal/RNMetalRendererDescriptor.h
     Rendering/Metal/RNMetalShader.h
     Rendering/Metal/RNMetalShaderLibrary.h
+    Rendering/Metal/RNMetalStateCoordinator.h
     Rendering/Metal/RNMetalTexture.h
     Rendering/Metal/RNMetalWindow.h
     Rendering/RNFramebuffer.h

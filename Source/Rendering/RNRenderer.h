@@ -24,9 +24,60 @@
 #include "RNTexture.h"
 #include "RNFramebuffer.h"
 #include "RNRendererTypes.h"
+#include "RNMesh.h"
+#include "RNMaterial.h"
 
 namespace RN
 {
+	struct Drawable
+	{
+		Drawable()
+		{
+			dirty = true;
+			mesh = nullptr;
+			material = nullptr;
+		}
+		virtual ~Drawable()
+		{}
+
+		void Update(Mesh *tmesh, Material *tmaterial, SceneNode *node)
+		{
+			if(mesh != tmesh)
+			{
+				dirty = true;
+				mesh = tmesh;
+			}
+			if(material != tmaterial)
+			{
+				dirty = true;
+				material = tmaterial;
+			}
+
+			Update(node);
+		}
+		void Update(SceneNode *node)
+		{
+			uniforms.modelMatrix = node->GetWorldTransform();
+			uniforms.inverseModelMatrix = uniforms.modelMatrix.GetInverse();
+		}
+
+		Mesh *mesh;
+		Material *material;
+
+		struct Uniforms
+		{
+			Matrix modelMatrix;
+			Matrix viewMatrix;
+			Matrix projectionMatrix;
+			Matrix inverseModelMatrix;
+			Matrix inverseViewMatrix;
+			Matrix inverseProjectionMatrix;
+		};
+
+		Uniforms uniforms;
+		bool dirty;
+	};
+
 	class Renderer : public Object
 	{
 	public:
@@ -55,6 +106,9 @@ namespace RN
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithSource(const String *source) = 0;
 
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
+
+		RNAPI virtual Drawable *CreateDrawable() = 0;
+		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
 
 	protected:
 		RNAPI Renderer();

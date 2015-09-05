@@ -41,15 +41,16 @@ namespace RN
 
 	};
 
-	Mesh::Mesh(const std::initializer_list<VertexDescriptor> &descriptors, size_t verticesCount, size_t indicesCount) :
-		_vertexDescriptors(descriptors),
+	Mesh::Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
+		_vertexAttributes(attributes),
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
-		_drawMode(DrawMode::Triangle)
+		_drawMode(DrawMode::Triangle),
+		_descriptor(attributes)
 	{
-		PerformDescriptorSetup();
+		ParseAttributes();
 	}
 
 	Mesh::~Mesh()
@@ -58,24 +59,24 @@ namespace RN
 		SafeRelease(_indicesBuffer);
 	}
 
-	void Mesh::PerformDescriptorSetup()
+	void Mesh::ParseAttributes()
 	{
 		bool hasIndices = false;
 
 		size_t offset = 0;
 
-		for(VertexDescriptor &descriptor : _vertexDescriptors)
+		for(VertexAttribute &attribute : _vertexAttributes)
 		{
-			const PrimitiveTypeEntry &entry = __PrimitiveTypeTable[static_cast<size_t>(descriptor._type)];
+			const PrimitiveTypeEntry &entry = __PrimitiveTypeTable[static_cast<size_t>(attribute._type)];
 
-			descriptor._size = entry.size;
+			attribute._size = entry.size;
 
-			switch(descriptor._feature)
+			switch(attribute._feature)
 			{
-				case VertexDescriptor::Feature::Indices:
+				case VertexAttribute::Feature::Indices:
 				{
 					hasIndices = true;
-					descriptor._offset = 0;
+					attribute._offset = 0;
 
 					_indicesSize = entry.size * _indicesCount;
 					break;
@@ -85,7 +86,7 @@ namespace RN
 				{
 					offset += offset % entry.alignment;
 
-					descriptor._offset = offset;
+					attribute._offset = offset;
 
 					offset += entry.size;
 
@@ -118,9 +119,9 @@ namespace RN
 		_drawMode = mode;
 	}
 
-	void Mesh::SetElementData(VertexDescriptor::Feature feature, const void *tdata)
+	void Mesh::SetElementData(VertexAttribute::Feature feature, const void *tdata)
 	{
-		if(feature == VertexDescriptor::Feature::Indices)
+		if(feature == VertexAttribute::Feature::Indices)
 		{
 			const uint8 *data = static_cast<const uint8 *>(tdata);
 			uint8 *destination = static_cast<uint8 *>(_indicesBuffer->GetBuffer());
@@ -130,21 +131,21 @@ namespace RN
 		}
 		else
 		{
-			for(auto &descriptor : _vertexDescriptors)
+			for(auto &attribute : _vertexAttributes)
 			{
-				if(descriptor._feature == feature)
+				if(attribute._feature == feature)
 				{
 					uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
 					const uint8 *data = static_cast<const uint8 *>(tdata);
 
-					uint8 *buffer = vertices + descriptor._offset;
+					uint8 *buffer = vertices + attribute._offset;
 
 					for(size_t i = 0; i < _verticesCount; i ++)
 					{
-						std::copy(data, data + descriptor._size, buffer);
+						std::copy(data, data + attribute._size, buffer);
 
 						buffer += _stride;
-						data += descriptor._size;
+						data += attribute._size;
 					}
 
 					_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
@@ -156,21 +157,21 @@ namespace RN
 
 	void Mesh::SetElementData(const String *name, const void *tdata)
 	{
-		for(auto &descriptor : _vertexDescriptors)
+		for(auto &attribute : _vertexAttributes)
 		{
-			if(descriptor._name && descriptor._name->IsEqual(name))
+			if(attribute._name && attribute._name->IsEqual(name))
 			{
 				uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
 				const uint8 *data = static_cast<const uint8 *>(tdata);
 
-				uint8 *buffer = vertices + descriptor._offset;
+				uint8 *buffer = vertices + attribute._offset;
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					std::copy(data, data + descriptor._size, buffer);
+					std::copy(data, data + attribute._size, buffer);
 
 					buffer += _stride;
-					data += descriptor._size;
+					data += attribute._size;
 				}
 
 				_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
@@ -179,23 +180,23 @@ namespace RN
 		}
 	}
 
-	const Mesh::VertexDescriptor *Mesh::GetDescriptor(VertexDescriptor::Feature feature) const
+	const Mesh::VertexAttribute *Mesh::GetAttribute(VertexAttribute::Feature feature) const
 	{
-		for(auto &descriptor : _vertexDescriptors)
+		for(auto &attribute : _vertexAttributes)
 		{
-			if(descriptor._feature == feature)
-				return &descriptor;
+			if(attribute._feature == feature)
+				return &attribute;
 		}
 
 		return nullptr;
 	}
 
-	const Mesh::VertexDescriptor *Mesh::GetDescriptor(const String *name) const
+	const Mesh::VertexAttribute *Mesh::GetAttribute(const String *name) const
 	{
-		for(auto &descriptor : _vertexDescriptors)
+		for(auto &attribute : _vertexAttributes)
 		{
-			if(descriptor._name && descriptor._name->IsEqual(name))
-				return &descriptor;
+			if(attribute._name && attribute._name->IsEqual(name))
+				return &attribute;
 		}
 
 		return nullptr;
@@ -217,7 +218,7 @@ namespace RN
 	{
 		if(triangles)
 		{
-			_indicesDescriptor = _mesh->GetDescriptor(VertexDescriptor::Feature::Indices);
+			_indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
 			GetIndexData();
 		}
 	}
@@ -249,15 +250,13 @@ namespace RN
 
 	Mesh *Mesh::WithCubeMesh(const Vector3 &size, const Color &color)
 	{
-		Mesh *mesh = new Mesh({VertexDescriptor(VertexDescriptor::Feature::Vertices, PrimitiveType::Vector3),
-							   VertexDescriptor(VertexDescriptor::Feature::Color0, PrimitiveType::Color),
-							   VertexDescriptor(VertexDescriptor::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
+		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
+							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
 		Chunk chunk = mesh->GetChunk();
 
-		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexDescriptor::Feature::Vertices);
-		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexDescriptor::Feature::Color0);
-		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexDescriptor::Feature::Indices);
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
 
 		*vertices ++ = Vector3(- size.x, size.y, size.z);
 		*vertices ++ = Vector3(size.x, size.y, size.z);
@@ -289,35 +288,13 @@ namespace RN
 		*vertices ++ = Vector3(size.x, - size.y, size.z);
 		*vertices ++ = Vector3(- size.x, - size.y, size.z);
 
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
 
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
+		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexAttribute::Feature::Color0);
 
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
+		for(size_t i = 0; i < 24; i ++)
+			*colors ++ = color;
 
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
-		*colors ++ = color;
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
 		*indices ++ = 0;
 		*indices ++ = 3;

@@ -20,6 +20,7 @@ namespace RN
 	{
 	public:
 		friend class MetalShaderLibrary;
+		friend class MetalStateCoordinator;
 
 		class MetalAttribute : public Attribute
 		{
