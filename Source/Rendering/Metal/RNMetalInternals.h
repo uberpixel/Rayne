@@ -68,6 +68,7 @@ namespace RN
 		id<MTLRenderPipelineState> blitState;
 		id<MTLSamplerState> blitSampler;
 		id<MTLLibrary> defaultLibrary;
+		id<MTLDepthStencilState> _depthStencilState;
 
 		MetalWindowPass pass;
 		MetalRenderPass renderPass;

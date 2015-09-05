@@ -120,6 +120,12 @@ namespace RN
 		samplerDescriptor.magFilter = MTLSamplerMinMagFilterNearest;
 		_internals->blitSampler = [_internals->device newSamplerStateWithDescriptor:samplerDescriptor];
 		[samplerDescriptor release];
+
+		MTLDepthStencilDescriptor *depthDescriptor = [[MTLDepthStencilDescriptor alloc] init];
+		[depthDescriptor setDepthCompareFunction:MTLCompareFunctionLess];
+		[depthDescriptor setDepthWriteEnabled:YES];
+
+		_internals->_depthStencilState = [_internals->device newDepthStencilStateWithDescriptor:depthDescriptor];
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -373,6 +379,7 @@ namespace RN
 		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
 
 		[encoder setRenderPipelineState:state];
+		[encoder setDepthStencilState:_internals->_depthStencilState];
 		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
 		[encoder setVertexBuffer:(id<MTLBuffer>)drawable->_uniformBuffer->_buffer offset:0 atIndex:1];
 		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
