@@ -149,37 +149,14 @@ namespace RN
 
 		_internals->pass.window = static_cast<MetalWindow *>(window);
 		_internals->pass.drawable = [_internals->pass.window->_internals->metalView nextDrawable];
+		_internals->pass.depthTexture = [_internals->pass.window->_internals->metalView nextDepthBuffer];
+		_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
 	}
 
 	void MetalRenderer::EndWindow()
 	{
 		if(_internals->pass.drawable)
 		{
-			_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
-			MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-			[colorAttachment setTexture:[_internals->pass.drawable texture]];
-			[colorAttachment setLoadAction:MTLLoadActionClear];
-			[colorAttachment setStoreAction:MTLStoreActionStore];
-			[colorAttachment setClearColor:MTLClearColorMake(0.0, 0.0, 0.0f, 1.0)];
-
-			_internals->renderPass.renderCommand = [_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor];
-			[_internals->renderPass.renderCommand setRenderPipelineState:_internals->blitState];
-			[_internals->renderPass.renderCommand setVertexBuffer:_internals->blitVertexBuffer offset:0 atIndex:0];
-			[_internals->renderPass.renderCommand setFragmentSamplerState:_internals->blitSampler atIndex:0];
-
-			for(Camera *camera : _cameras)
-			{
-				Framebuffer *framebuffer = camera->GetFramebuffer();
-				MetalTexture *colorTexture = static_cast<MetalTexture *>(framebuffer->GetColorTexture());
-
-				[_internals->renderPass.renderCommand setFragmentTexture:(id<MTLTexture>)colorTexture->_texture atIndex:0];
-				[_internals->renderPass.renderCommand drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
-			}
-
-			[_internals->renderPass.renderCommand endEncoding];
-
 			[_internals->renderPass.commandBuffer presentDrawable:_internals->pass.drawable];
 			[_internals->renderPass.commandBuffer commit];
 			[_internals->renderPass.commandBuffer release];
@@ -193,21 +170,27 @@ namespace RN
 	{
 		_internals->renderPass.camera = camera;
 		_internals->renderPass.framebuffer = camera->GetFramebuffer();
-		_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
 
-		MetalTexture *colorTexture = static_cast<MetalTexture *>(_internals->renderPass.framebuffer->GetColorTexture());
-		const Color &clearColor = camera->GetClearColor();
 
 		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
 		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-		[colorAttachment setTexture:(id<MTLTexture>)colorTexture->_texture];
+		[colorAttachment setTexture:[_internals->pass.drawable texture]];
 		[colorAttachment setLoadAction:MTLLoadActionClear];
 		[colorAttachment setStoreAction:MTLStoreActionStore];
-		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+		[colorAttachment setClearColor:MTLClearColorMake(0.0, 0.0, 0.0f, 1.0)];
+
+		MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+		[depthAttachment setTexture:_internals->pass.depthTexture];
+		[depthAttachment setLoadAction:MTLLoadActionClear];
+		[depthAttachment setStoreAction:MTLStoreActionStore];
+
+		MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+		[stencilAttachment setTexture:_internals->pass.depthTexture];
+		[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+		[stencilAttachment setStoreAction:MTLStoreActionDontCare];
 
 		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 		_internals->renderPass.drawableHead = nullptr;
-		_internals->renderPass.drawableCount = 0;
 
 		_internals->renderPass.viewMatrix = Matrix::WithIdentity();
 		_internals->renderPass.inverseViewMatrix = Matrix::WithIdentity().GetInverse();
@@ -228,11 +211,6 @@ namespace RN
 		}
 
 		[_internals->renderPass.renderCommand endEncoding];
-
-		[_internals->renderPass.commandBuffer commit];
-		[_internals->renderPass.commandBuffer release];
-
-		_cameras.push_back(_internals->renderPass.camera);
 	}
 
 

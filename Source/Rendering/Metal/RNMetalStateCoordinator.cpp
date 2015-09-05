@@ -50,6 +50,9 @@ namespace RN
 		pipelineStateDescriptor.vertexDescriptor = descriptor;
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
 
+		pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+		pipelineStateDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+
 		return [device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:NULL];
 	}
 

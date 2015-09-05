@@ -30,6 +30,8 @@ namespace RN
 
 		RNAPI void SetGenerateMipMaps() final;
 
+		RNAPI void *__GetUnderlyingTexture() const { return _texture; }
+
 	private:
 		MetalTexture(void *texture, const Descriptor &descriptor);
 

@@ -46,6 +46,7 @@ namespace RN
 
 
 				Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(depthFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
+				descriptor.usageOptions = GPUResource::UsageOptions::Private;
 				_depthTexture = renderer->CreateTextureWithDescriptor(descriptor);
 
 				if(stencilFormat == depthFormat)
@@ -67,6 +68,7 @@ namespace RN
 
 
 				Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(stencilFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
+				descriptor.usageOptions = GPUResource::UsageOptions::Private;
 				_stencilTexture = renderer->CreateTextureWithDescriptor(descriptor);
 			}
 		}

@@ -15,6 +15,7 @@
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
+- (id<MTLTexture>)nextDepthBuffer;
 - (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
 @end
 
@@ -28,7 +29,9 @@ namespace RN
 	struct MetalWindowPass
 	{
 		MetalWindow *window;
+
 		id<CAMetalDrawable> drawable;
+		id<MTLTexture> depthTexture;
 	};
 
 	struct MetalDrawable : public Drawable
