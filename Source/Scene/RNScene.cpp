@@ -29,6 +29,7 @@ namespace RN
 
 				group->Perform(queue, [&, node] {
 					node->Update(delta);
+					node->UpdateInternalData();
 				});
 
 				member = member->GetNext();
