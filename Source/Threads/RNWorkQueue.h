@@ -51,9 +51,18 @@ namespace RN
 	private:
 		struct WorkThread
 		{
+			WorkThread() :
+				sleeping(false),
+				thread(nullptr),
+				localOpen(0)
+			{}
+
+			std::atomic<bool> sleeping;
 			std::atomic<Thread *> thread;
 			AtomicRingBuffer<WorkSource *, 512> localBuffer;
 			std::atomic<size_t> localOpen;
+			std::condition_variable workSignal;
+			std::mutex workLock;
 		};
 
 		static void InitializeQueues();
@@ -77,15 +86,15 @@ namespace RN
 
 		std::atomic<size_t> _open;
 		std::atomic<size_t> _running;
-		std::atomic<size_t> _sleeping;
+		//std::atomic<size_t> _sleeping;
 		std::atomic<size_t> _suspended;
 		std::atomic<bool> _barrier;
 
 		std::condition_variable _barrierSignal;
 		std::mutex _barrierLock;
 
-		std::condition_variable _workSignal;
-		std::mutex _workLock;
+		//std::condition_variable _workSignal;
+		//std::mutex _workLock;
 
 		std::condition_variable _syncSignal;
 		std::mutex _syncLock;
