@@ -409,6 +409,7 @@ namespace RN
 		RNAPI ~Mesh() override;
 
 		RNAPI static Mesh *WithCubeMesh(const Vector3 &size, const Color &color);
+		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
 
 		RNAPI void SetDrawMode(DrawMode mode);
 		RNAPI void SetElementData(VertexAttribute::Feature feature, const void *data);

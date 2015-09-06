@@ -372,4 +372,60 @@ namespace RN
 
 		return mesh->Autorelease();
 	}
+
+	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t segments)
+	{
+		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
+							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, segments*slices, (segments - 2)*(slices - 1)*6);
+
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+		ElementIterator<Vector4> colors = chunk.GetIterator<Vector4>(VertexAttribute::Feature::Color0);
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		for(size_t i = 0; i < segments; i ++)
+		{
+			for(size_t j = 0; j < slices; j ++)
+			{
+				float theta = float(i) / (segments - 1) * (k::Pi);
+				float phi   = float(j) / (slices - 1)   * (k::Pi * 2);
+
+				Vector3 position(radius *  Math::Sin(theta) * Math::Cos(phi), radius * -Math::Sin(theta) * Math::Sin(phi), radius *  Math::Cos(theta));
+				*vertices ++ = position;
+				*normals ++ = position.GetNormalized();
+				*colors ++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		for(size_t i = 0; i < segments - 3; i ++)
+		{
+			for(size_t j = 0; j < slices - 1; j ++)
+			{
+				*indices ++ = i * slices + j;
+				*indices ++ = (i + 1) * slices + j + 1;
+				*indices ++ = i * slices + j + 1;
+
+				*indices ++ = i * slices + j;
+				*indices ++ = (i + 1) * slices + j;
+				*indices ++ = (i + 1) * slices + j + 1;
+			}
+		}
+
+		for(size_t i = 0; i < slices - 1; i ++)
+		{
+			*indices ++ = (segments - 2) * slices;
+			*indices ++ = i;
+			*indices ++ = i + 2;
+
+			*indices ++ = (segments - 2) * slices + 1;
+			*indices ++ = (segments - 3) * slices + i + 1;
+			*indices ++ = (segments - 3) * slices + i;
+		}
+
+		return mesh->Autorelease();
+	}
 }
