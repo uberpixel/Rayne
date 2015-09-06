@@ -137,6 +137,8 @@ namespace RN
 		state.depthFormat = depthFormat;
 		state.stencilFormat = stencilFormat;
 
+		collection.states.push_back(state);
+
 		return pipelineState;
 	}
 

@@ -68,7 +68,7 @@ namespace RN
 
 			bool IsEqual(const VertexAttribute &other) const
 			{
-				return (_type == other._type && _feature == other._feature && (_feature == Feature::Custom && _name->IsEqual(other._name)));
+				return (_type == other._type && _feature == other._feature);
 			}
 
 			PrimitiveType GetType() const { return _type; }
