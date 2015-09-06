@@ -69,8 +69,7 @@ namespace RN
 		_open(0),
 		_sleeping(0),
 		_suspended(0),
-		_barrier(false),
-		_isOverCommitted(false)
+		_barrier(false)
 	{
 		size_t multiplier;
 		size_t maxThreads;
@@ -94,11 +93,21 @@ namespace RN
 		_concurrency = std::max(static_cast<size_t>(2), _concurrency);
 		_concurrency = std::min(_concurrency, maxThreads);
 		_threshold = _concurrency * multiplier;
+
+		ReCalculateWidth(); // Start with at least one running thread
+
+		if(_flags & kRNWorkQueueFlagMainThread) // The main queue still needs a buffer
+		{
+			WorkThread *fake = new WorkThread();
+			fake->localOpen = 0;
+
+			_threads.push_back(fake);
+		}
 	}
 
 	WorkQueue::~WorkQueue()
 	{
-		for(Thread *thread : _threads)
+		/*for(Thread *thread : _threads)
 			thread->Cancel();
 
 		_workSignal.notify_all();
@@ -107,7 +116,7 @@ namespace RN
 		{
 			// Wait for the thread to exit
 			thread->WaitForExit();
-		}
+		}*/
 	}
 
 
@@ -163,35 +172,50 @@ namespace RN
 	{
 		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 
-		LockGuard<SpinLock> lock(_writeLock);
+		_open.fetch_add(1, std::memory_order_release);
+		ReCalculateWidth();
 
-		if(!_buffer.Push(source))
+		// Submit the work item to the queue
+		LockGuard<SpinLock> lock(_threadLock);
+
+		WorkThread *least = nullptr;
+		size_t leastCount = 0xfffffffff;
+
+		for(WorkThread *thread : _threads)
 		{
-			// Put it in the over commit bin
-			_overcommit.push_back(source);
-			_open.fetch_add(1, std::memory_order_release);
-			_isOverCommitted = true;
+			size_t open = thread->localOpen.load(std::memory_order_acquire);
 
-			return source;
+			if(open < leastCount)
+			{
+				least = thread;
+				leastCount = open;
+			}
 		}
+
+		RN_ASSERT(least, "Broken WorkQueue. All that is left now is hope and tears");
+
+		least->localBuffer.Push(source);
+		least->localOpen.fetch_add(1, std::memory_order_release);
+
+		lock.Unlock();
+
 
 		// Assure wake up
 		if(_sleeping > 0 && _suspended == 0)
 		{
 			std::unique_lock<std::mutex> lock(_workLock);
-			_open.fetch_add(1, std::memory_order_release);
-			_workSignal.notify_all();
-		}
-		else
-		{
-			_open.fetch_add(1, std::memory_order_release);
+			_workSignal.notify_one();
 		}
 
-		ReCalculateWidth();
 		return source;
 	}
 
-	bool WorkQueue::PerformWork()
+	bool WorkQueue::PerformWorkMainThread()
+	{
+		return PerformWork(_threads.front());
+	}
+
+	bool WorkQueue::PerformWork(WorkThread *thread)
 	{
 		if(!ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0))
 		{
@@ -207,39 +231,30 @@ namespace RN
 		}
 
 		// Grab work from the work pool
-		_readLock.Lock();
-
-		if(_barrier.load(std::memory_order_acquire)) // Make sure there really isn't a barrier in place now
-		{
-			_readLock.Unlock();
-			return true;
-		}
-
 		WorkSource *source;
-		bool result, isBarrier;
+		bool result = ConditionalSpin(thread->localBuffer.Pop(source));
+		if(!result)
+			return false;
 
-		if((result = _buffer.Pop(source)))
+		bool isBarrier;
+		if((isBarrier = source->TestFlag(WorkSource::Flags::Barrier)))
+			_barrier.store(std::memory_order_release);
+
+		_running.fetch_add(1, std::memory_order_relaxed);
+		_open.fetch_sub(1, std::memory_order_relaxed);
+		thread->localOpen.fetch_sub(1, std::memory_order_relaxed);
+
+
+		// Barrier path
+		if(isBarrier)
 		{
-			if((isBarrier = source->TestFlag(WorkSource::Flags::Barrier)))
-				_barrier.store(std::memory_order_release);
-
-			_running.fetch_add(1, std::memory_order_relaxed);
-			_open.fetch_sub(1, std::memory_order_relaxed);
-		}
-
-		_readLock.Unlock();
-
-
-		if(result)
-		{
-			if(isBarrier)
+			// If the work is a barrier, wait until all other work loads clear up
+			if(!ConditionalSpin(_running.load(std::memory_order_acquire) > 1))
 			{
-				// If the work is a barrier, wait until all other work loads clear up
-				if(!ConditionalSpin(_running.load(std::memory_order_acquire) > 1))
-				{
-					std::unique_lock<std::mutex> lock(_barrierLock);
-					_barrierSignal.wait(lock, [&]() -> bool { return (_running.load() == 1); });
-				}
+				std::unique_lock<std::mutex> lock(_barrierLock);
+				_barrierSignal.wait(lock, [&]() -> bool {
+					return (_running.load() == 1);
+				});
 			}
 
 			// Call out and perform the work
@@ -247,73 +262,62 @@ namespace RN
 			source->Callout();
 			std::atomic_thread_fence(std::memory_order_release);
 
-
-			// If we are over committed, try to clear up that over commit
-			if(_isOverCommitted.load(std::memory_order_acquire) && _writeLock.TryLock())
-			{
-				while(!_overcommit.empty())
-				{
-					WorkSource *temp = _overcommit.front();
-
-					if(!_buffer.Push(temp))
-						break;
-
-					_overcommit.erase(_overcommit.begin());
-				}
-
-				if(_overcommit.empty())
-					_isOverCommitted.store(false, std::memory_order_relaxed);
-
-				_writeLock.Unlock();
-			}
+			// Signal that the barrier is done
+			std::lock_guard<std::mutex> lock(_barrierLock);
+			_barrier.store(false, std::memory_order_relaxed);
+			_barrierSignal.notify_all();
+		}
+		else
+		{
+			// Call out and perform the work
+			std::atomic_thread_fence(std::memory_order_acquire);
+			source->Callout();
+			std::atomic_thread_fence(std::memory_order_release);
 
 			// Clean up
-			if(isBarrier)
-			{
-				std::lock_guard<std::mutex> lock(_barrierLock);
-				_barrier.store(false, std::memory_order_relaxed);
-				_barrierSignal.notify_all();
-			}
-			else if(_barrier.load(std::memory_order_acquire))
+			if(_barrier.load(std::memory_order_acquire))
 			{
 				// A barrier is waiting to execute, signal it to be ready if needed
 				std::lock_guard<std::mutex> lock(_barrierLock);
-				if((-- _running) == 1)
+				if((--_running) == 1)
 					_barrierSignal.notify_all();
 			}
 			else
 			{
 				_running.fetch_sub(1, std::memory_order_relaxed);
 			}
-
-			if(source->TestFlag(WorkSource::Flags::Synchronous))
-			{
-				// Synchronous work sources aren't immediately relinquished but
-				// the waiting thread is signalled that the work is completed
-				// and it will relinquish the source eventually
-
-				std::lock_guard<std::mutex> lock(_syncLock);
-				source->Complete();
-				_syncSignal.notify_all();
-			}
-			else
-			{
-				source->Relinquish();
-			}
-
-			return true;
 		}
 
-		return false;
+
+		if(source->TestFlag(WorkSource::Flags::Synchronous))
+		{
+			// Synchronous work sources aren't immediately relinquished but
+			// the waiting thread is signalled that the work is completed
+			// and it will relinquish the source eventually
+
+			std::lock_guard<std::mutex> lock(_syncLock);
+			source->Complete();
+			_syncSignal.notify_all();
+		}
+		else
+		{
+			source->Relinquish();
+		}
+
+		return true;
 	}
 
-	void WorkQueue::ThreadEntry()
+	void WorkQueue::ThreadEntry(WorkThread *thread)
 	{
-		Thread *thread = Thread::GetCurrentThread();
+		Thread *actual;
 
-		while(!thread->IsCancelled())
+		do {
+			actual = thread->thread;
+		} while(!actual);
+
+		while(!actual->IsCancelled())
 		{
-			if(!PerformWork())
+			if(!PerformWork(thread))
 			{
 				if(!ConditionalSpin(_open.load() > 0))
 				{
@@ -322,7 +326,7 @@ namespace RN
 					if(_open.load() == 0)
 					{
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
-						_workSignal.wait(lock, [&]() -> bool { return (_open.load() > 0 || thread->IsCancelled()); });
+						_workSignal.wait(lock, [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || actual->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 					}
 				}
@@ -360,8 +364,14 @@ namespace RN
 
 			for(size_t i = 0; i < width - _width; i ++)
 			{
-				Thread *thread = new Thread([this]{ ThreadEntry(); });
-				_threads.push_back(thread);
+				WorkThread *workThread = new WorkThread();
+				workThread->localOpen.store(0, std::memory_order_release);
+				workThread->thread = nullptr;
+
+				Thread *thread = new Thread([this, workThread]{ ThreadEntry(workThread); });
+				workThread->thread.store(thread, std::memory_order_release);
+
+				_threads.push_back(workThread);
 			}
 
 			_width = width;

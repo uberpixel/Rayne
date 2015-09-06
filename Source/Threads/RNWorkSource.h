@@ -18,6 +18,7 @@ namespace RN
 	{
 	public:
 		friend class WorkSourcePool;
+		friend class WorkQueue;
 
 		RN_OPTIONS(Flags, uint32,
 				   Barrier = (1 << 0),
@@ -33,7 +34,6 @@ namespace RN
 		void Relinquish();
 
 	private:
-		WorkSource(WorkSourcePool *pool);
 		WorkSource(Function &&function, Flags flags, WorkSourcePool *pool);
 		void Refurbish(Function &&function, Flags flags);
 
@@ -41,6 +41,7 @@ namespace RN
 		Flags _flags;
 		WorkSourcePool *_pool;
 		std::atomic<bool> _completed;
+		WorkSource *_next;
 	};
 }
 

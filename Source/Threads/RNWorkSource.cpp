@@ -15,20 +15,8 @@ namespace RN
 {
 	struct WorkSourcePool
 	{
-		WorkSourcePool()
-		{
-			// Pre-Warm the local work group
-			for(size_t i = 0; i < 2048; i ++)
-			{
-				WorkSource *source = new WorkSource(this);
-				buffer.Push(source);
-			}
-		}
-
-		SpinLock readLock;
-		SpinLock writeLock;
-
-		AtomicRingBuffer<WorkSource *, 16192> buffer;
+		SpinLock lock;
+		WorkSource *head;
 	};
 
 	static ThreadLocalStorage<WorkSourcePool *> __LocalPools;
@@ -45,34 +33,30 @@ namespace RN
 		return pool;
 	}
 
-	WorkSource::WorkSource(WorkSourcePool *pool) :
-		_pool(pool)
-	{}
-
 	WorkSource::WorkSource(Function &&function, Flags flags, WorkSourcePool *pool) :
 		_function(std::move(function)),
 		_flags(flags),
 		_pool(pool),
-		_completed(false)
+		_completed(false),
+		_next(nullptr)
 	{}
 
 	WorkSource *WorkSource::DequeueWorkSource(Function &&function, Flags flags)
 	{
 		WorkSourcePool *pool = __GetLocalPool();
-		WorkSource *source;
+		pool->lock.Lock();
 
-		LockGuard<SpinLock> lock(pool->readLock);
-
-		if(!pool->buffer.Pop(source))
+		WorkSource *source = pool->head;
+		if(!source)
 		{
-			lock.Unlock();
+			pool->lock.Unlock();
 
-			RNDebug("Exhausted local work pool");
 			source = new WorkSource(std::move(function), flags, pool);
 			return source;
 		}
 
-		lock.Unlock();
+		pool->head = source->_next;
+		pool->lock.Unlock();
 
 		source->Refurbish(std::move(function), flags);
 		return source;
@@ -83,16 +67,14 @@ namespace RN
 		_function = std::move(function);
 		_flags = flags;
 		_completed = false;
+		_next = nullptr;
 	}
 
 	void WorkSource::Relinquish()
 	{
-		LockGuard<SpinLock> lock(_pool->writeLock);
-
-		if(!_pool->buffer.Push(this))
-		{
-			lock.Unlock();
-			delete this; // The local pool reached its limit
-		}
+		_pool->lock.Lock();
+		_next = _pool->head;
+		_pool->head = _next;
+		_pool->lock.Unlock();
 	}
 }

@@ -49,13 +49,21 @@ namespace RN
 		RNAPI void Resume();
 
 	private:
+		struct WorkThread
+		{
+			std::atomic<Thread *> thread;
+			AtomicRingBuffer<WorkSource *, 512> localBuffer;
+			std::atomic<size_t> localOpen;
+		};
+
 		static void InitializeQueues();
 		static void TearDownQueues();
 
 		WorkSource *PerformWithFlags(Function &&function, WorkSource::Flags flags);
 
-		void ThreadEntry();
-		bool PerformWork();
+		void ThreadEntry(WorkThread *thread);
+		bool PerformWork(WorkThread *thread);
+		bool PerformWorkMainThread();
 
 		void ReCalculateWidth();
 
@@ -82,15 +90,16 @@ namespace RN
 		std::condition_variable _syncSignal;
 		std::mutex _syncLock;
 
-		SpinLock _readLock;
-		SpinLock _writeLock;
+		/*SpinLock _lock;
+		WorkSource *_workHead;
+		WorkSource *_workTail;
 
 		AtomicRingBuffer<WorkSource *, 512> _buffer;
 		std::vector<WorkSource *> _overcommit;
-		std::atomic<bool> _isOverCommitted;
+		std::atomic<bool> _isOverCommitted;*/
 
 		SpinLock _threadLock;
-		std::vector<Thread *> _threads;
+		std::vector<WorkThread *> _threads;
 
 		RNDeclareMeta(WorkQueue)
 	};
