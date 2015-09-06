@@ -48,10 +48,11 @@ namespace RN
 	}
 	void WorkGroup::Leave()
 	{
-		if(_open.load() == 1)
+		if(_open.fetch_sub(1, std::memory_order_release) == 1)
 		{
+			std::atomic_thread_fence(std::memory_order_acquire);
+
 			std::unique_lock<std::mutex> lock(_lock);
-			_open --;
 			_signal.notify_all();
 
 			for(auto &pair : _waiters)
@@ -64,10 +65,6 @@ namespace RN
 			_waiters.clear();
 
 			Release();
-		}
-		else
-		{
-			_open --;
 		}
 	}
 

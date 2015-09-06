@@ -167,6 +167,8 @@ namespace RN
 
 		_internals->renderPass.projectionMatrix = projectionMatrix;
 		_internals->renderPass.inverseProjectionMatrix = projectionMatrix.GetInverse();
+
+		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
 	}
 
 	void MetalRenderer::EndCamera()
@@ -295,7 +297,7 @@ namespace RN
 		drawable->_uniformsBufferIndex = 0;
 
 		for(size_t i = 0; i < 3; i ++)
-			drawable->_uniformBuffers[i] = static_cast<MetalGPUBuffer *>(CreateBufferWithLength(sizeof(Drawable::Uniforms), GPUResource::UsageOptions::ReadWrite));
+			drawable->_uniformBuffers[i] = static_cast<MetalGPUBuffer *>(CreateBufferWithLength(sizeof(Uniforms), GPUResource::UsageOptions::ReadWrite));
 
 		return drawable;
 	}
@@ -317,14 +319,16 @@ namespace RN
 
 		// Update uniforms
 		drawable->_uniformsBufferIndex = (drawable->_uniformsBufferIndex + 1) % 3;
-		Drawable::Uniforms *uniforms = static_cast<Drawable::Uniforms *>(drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->GetBuffer());
+		Uniforms *uniforms = static_cast<Uniforms *>(drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->GetBuffer());
 
-		uniforms->modelMatrix = drawable->uniforms.modelMatrix;
-		uniforms->inverseModelMatrix = drawable->uniforms.inverseModelMatrix;
+		uniforms->modelViewProjectionMatrix = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+		uniforms->modelMatrix = drawable->modelMatrix;
+
+		/*uniforms->inverseModelMatrix = drawable->uniforms.inverseModelMatrix;
 		uniforms->viewMatrix = _internals->renderPass.viewMatrix;
 		uniforms->inverseViewMatrix = _internals->renderPass.inverseViewMatrix;
 		uniforms->projectionMatrix = _internals->renderPass.projectionMatrix;
-		uniforms->inverseProjectionMatrix = _internals->renderPass.inverseProjectionMatrix;
+		uniforms->inverseProjectionMatrix = _internals->renderPass.inverseProjectionMatrix;*/
 
 		drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->Invalidate();
 

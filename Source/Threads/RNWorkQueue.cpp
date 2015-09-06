@@ -92,7 +92,7 @@ namespace RN
 		}
 
 		_concurrency = std::max(static_cast<size_t>(2), _concurrency);
-		_concurrency = std::max(_concurrency, maxThreads);
+		_concurrency = std::min(_concurrency, maxThreads);
 		_threshold = _concurrency * multiplier;
 	}
 
@@ -199,7 +199,7 @@ namespace RN
 			_workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
 		}
 
-		if(!ConditionalSpin(_barrier.load(std::memory_order_acquire)))
+		if(!ConditionalSpin(_barrier.load(std::memory_order_acquire) == false))
 		{
 			// There currently is a barrier executing, so wait until that one is completed
 			std::unique_lock<std::mutex> lock(_barrierLock);

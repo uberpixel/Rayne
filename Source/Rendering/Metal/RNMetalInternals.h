@@ -54,6 +54,8 @@ namespace RN
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;
+		Matrix projectionViewMatrix;
+		Matrix inverseProjectionViewMatrix;
 
 		MetalDrawable *drawableHead;
 		size_t drawableCount;

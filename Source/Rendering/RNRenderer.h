@@ -29,6 +29,12 @@
 
 namespace RN
 {
+	struct Uniforms
+	{
+		Matrix modelViewProjectionMatrix;
+		Matrix modelMatrix;
+	};
+
 	struct Drawable
 	{
 		Drawable()
@@ -55,26 +61,16 @@ namespace RN
 
 			Update(node);
 		}
-		void Update(SceneNode *node)
+		virtual void Update(SceneNode *node)
 		{
-			uniforms.modelMatrix = node->GetWorldTransform();
-			uniforms.inverseModelMatrix = uniforms.modelMatrix.GetInverse();
+			modelMatrix = node->GetWorldTransform();
+			inverseModelMatrix = modelMatrix.GetInverse();
 		}
 
 		Mesh *mesh;
 		Material *material;
-
-		struct Uniforms
-		{
-			Matrix modelMatrix;
-			Matrix viewMatrix;
-			Matrix projectionMatrix;
-			Matrix inverseModelMatrix;
-			Matrix inverseViewMatrix;
-			Matrix inverseProjectionMatrix;
-		};
-
-		Uniforms uniforms;
+		Matrix modelMatrix;
+		Matrix inverseModelMatrix;
 		bool dirty;
 	};
 
