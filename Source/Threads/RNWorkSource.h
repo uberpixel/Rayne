@@ -17,6 +17,8 @@ namespace RN
 	struct WorkSource
 	{
 	public:
+		friend class WorkSourcePool;
+
 		RN_OPTIONS(Flags, uint32,
 				   Barrier = (1 << 0),
 				   Synchronous = (1 << 1));
@@ -31,6 +33,7 @@ namespace RN
 		void Relinquish();
 
 	private:
+		WorkSource(WorkSourcePool *pool);
 		WorkSource(Function &&function, Flags flags, WorkSourcePool *pool);
 		void Refurbish(Function &&function, Flags flags);
 

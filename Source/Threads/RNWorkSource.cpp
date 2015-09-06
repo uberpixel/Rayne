@@ -9,15 +9,26 @@
 #include "RNWorkSource.h"
 #include "RNThreadLocalStorage.h"
 #include "../Data/RNRingBuffer.h"
+#include "../Debug/RNLogger.h"
 
 namespace RN
 {
 	struct WorkSourcePool
 	{
+		WorkSourcePool()
+		{
+			// Pre-Warm the local work group
+			for(size_t i = 0; i < 2048; i ++)
+			{
+				WorkSource *source = new WorkSource(this);
+				buffer.Push(source);
+			}
+		}
+
 		SpinLock readLock;
 		SpinLock writeLock;
 
-		AtomicRingBuffer<WorkSource *, 128> buffer;
+		AtomicRingBuffer<WorkSource *, 16192> buffer;
 	};
 
 	static ThreadLocalStorage<WorkSourcePool *> __LocalPools;
@@ -34,6 +45,9 @@ namespace RN
 		return pool;
 	}
 
+	WorkSource::WorkSource(WorkSourcePool *pool) :
+		_pool(pool)
+	{}
 
 	WorkSource::WorkSource(Function &&function, Flags flags, WorkSourcePool *pool) :
 		_function(std::move(function)),
@@ -51,6 +65,9 @@ namespace RN
 
 		if(!pool->buffer.Pop(source))
 		{
+			lock.Unlock();
+
+			RNDebug("Exhausted local work pool");
 			source = new WorkSource(std::move(function), flags, pool);
 			return source;
 		}
@@ -73,6 +90,9 @@ namespace RN
 		LockGuard<SpinLock> lock(_pool->writeLock);
 
 		if(!_pool->buffer.Push(this))
+		{
+			lock.Unlock();
 			delete this; // The local pool reached its limit
+		}
 	}
 }
