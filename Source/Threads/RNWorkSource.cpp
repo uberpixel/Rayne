@@ -74,7 +74,7 @@ namespace RN
 	{
 		_pool->lock.Lock();
 		_next = _pool->head;
-		_pool->head = _next;
+		_pool->head = this;
 		_pool->lock.Unlock();
 	}
 }
