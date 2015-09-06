@@ -109,6 +109,7 @@ namespace RN
 
 		SpinLock _threadLock;
 		std::vector<WorkThread *> _threads;
+		WorkThread *_favourite;
 
 		RNDeclareMeta(WorkQueue)
 	};

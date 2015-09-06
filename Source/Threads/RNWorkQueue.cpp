@@ -34,6 +34,21 @@
 		result; \
 	})
 
+#define ConditionalSpinLow(e) \
+	({ \
+		bool result = false; \
+		for(size_t i = 0; i < 512U; i ++) \
+		{ \
+			if((e)) \
+			{ \
+				result = true; \
+				break; \
+			} \
+			RNHardwarePause(); \
+		} \
+		result; \
+	})
+
 namespace RN
 {
 	RNDefineMeta(WorkQueue, Object)
@@ -68,7 +83,8 @@ namespace RN
 		_realWidth(0),
 		_open(0),
 		_suspended(0),
-		_barrier(false)
+		_barrier(false),
+		_favourite(nullptr)
 	{
 		size_t multiplier;
 		size_t maxThreads;
@@ -176,23 +192,33 @@ namespace RN
 		LockGuard<SpinLock> lock(_threadLock);
 
 		WorkThread *least = nullptr;
-		size_t leastCount = 0xfffffffff;
 
-		for(WorkThread *thread : _threads)
+		if(_favourite && _favourite->localOpen.load(std::memory_order_acquire) < _threshold)
 		{
-			size_t open = thread->localOpen.load(std::memory_order_acquire);
+			least = _favourite;
+		}
+		else
+		{
+			size_t leastCount = 0xfffffffff;
 
-			if(open < leastCount)
+			for(WorkThread *thread : _threads)
 			{
-				least = thread;
-				leastCount = open;
+				size_t open = thread->localOpen.load(std::memory_order_acquire);
 
-				if(open < _threshold)
-					break;
+				if(open < leastCount)
+				{
+					least = thread;
+					leastCount = open;
+
+					if(open < _threshold)
+						break;
+				}
 			}
 		}
 
 		RN_ASSERT(least, "Broken WorkQueue. All that is left now is hope and tears");
+
+		_favourite = least;
 
 		least->localBuffer.Push(source);
 		least->localOpen.fetch_add(1, std::memory_order_release);
@@ -231,7 +257,7 @@ namespace RN
 
 		// Grab work from the work pool
 		WorkSource *source;
-		bool result = ConditionalSpin(thread->localBuffer.Pop(source));
+		bool result = ConditionalSpinLow(thread->localBuffer.Pop(source));
 		if(!result)
 			return false;
 
