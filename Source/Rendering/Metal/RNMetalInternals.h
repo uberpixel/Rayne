@@ -37,7 +37,8 @@ namespace RN
 	struct MetalDrawable : public Drawable
 	{
 		id<MTLRenderPipelineState> _pipelineState;
-		MetalGPUBuffer *_uniformBuffer;
+		MetalGPUBuffer *_uniformBuffers[3];
+		size_t _uniformsBufferIndex;
 		MetalDrawable *_next;
 		MetalDrawable *_prev;
 	};
