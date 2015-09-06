@@ -158,6 +158,8 @@ namespace RN
 		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 		_internals->renderPass.drawableHead = nullptr;
 
+		[descriptor release];
+
 		_internals->renderPass.viewMatrix = Matrix::WithIdentity();
 		_internals->renderPass.inverseViewMatrix = Matrix::WithIdentity().GetInverse();
 
@@ -178,6 +180,8 @@ namespace RN
 		}
 
 		[_internals->renderPass.renderCommand endEncoding];
+		[_internals->renderPass.renderCommand release];
+		_internals->renderPass.renderCommand = nil;
 	}
 
 
