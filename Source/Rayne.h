@@ -14,6 +14,7 @@
 #include "Base/RNKernel.h"
 #include "Base/RNSettings.h"
 #include "Base/RNUnicode.h"
+#include "Base/RNMemoryPool.h"
 
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"

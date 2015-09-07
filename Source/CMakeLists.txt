@@ -288,6 +288,7 @@ set(RAYNE_SOURCES
     Base/RNBase.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
+    Base/RNMemoryPool.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Debug/RNLogger.cpp
@@ -356,6 +357,7 @@ set(RAYNE_HEADERS
     Base/RNKernel.h
     Base/RNLockGuard.h
     Base/RNMemory.h
+    Base/RNMemoryPool.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
     Base/RNSignal.h

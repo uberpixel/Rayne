@@ -10,9 +10,12 @@
 #define __RAYNE_FUNCTIONH_H__
 
 #include "RNBase.h"
+#include "RNMemoryPool.h"
 
 namespace RN
 {
+	MemoryPool *__GetFunctionPool();
+
 	class Function
 	{
 	public:
@@ -56,10 +59,13 @@ namespace RN
 			{
 				function();
 			}
-			
+
+			RN_INLINE void *operator new(size_t size) { return __GetFunctionPool()->Allocate(size); }
+			RN_INLINE void operator delete(void *ptr) { if(ptr) __GetFunctionPool()->Free(ptr); }
+
 			F function;
 		};
-		
+
 		std::unique_ptr<Base> _implementation;
 	};
 }

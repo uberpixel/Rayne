@@ -9,7 +9,15 @@
 #ifndef __RAYNE_SPINLOCK_H__
 #define __RAYNE_SPINLOCK_H__
 
-#include "../Base/RNBase.h"
+#include <assert.h>
+#include <atomic>
+#include <thread>
+
+#ifdef RAYNE_INCLUDE_PREFIX
+	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
+#else
+	#include <RayneConfig.h>
+#endif
 
 namespace RN
 {

@@ -8,6 +8,7 @@
 
 #include "RNBaseInternal.h"
 #include "RNKernel.h"
+#include "RNMemoryPool.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -30,11 +31,15 @@
 
 namespace RN
 {
+	static MemoryPool *__functionPool;
+
 	struct __KernelBootstrapHelper
 	{
 	public:
 		static Kernel *BootstrapKernel(Application *app)
 		{
+			__functionPool = new MemoryPool();
+
 			Kernel *result = new Kernel(app);
 #if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
@@ -58,6 +63,11 @@ namespace RN
 #endif
 		}
 	};
+
+	MemoryPool *__GetFunctionPool()
+	{
+		return __functionPool;
+	}
 
 	void Initialize(int argc, char *argv[], Application *app)
 	{
