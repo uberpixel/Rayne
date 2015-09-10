@@ -22,7 +22,8 @@ namespace RN
 
 		RN_OPTIONS(Flags, uint32,
 				   Barrier = (1 << 0),
-				   Synchronous = (1 << 1));
+				   Synchronous = (1 << 1),
+				   BarrierBlock = (1 << 2));
 
 		static WorkSource *DequeueWorkSource(Function &&function, Flags flags);
 

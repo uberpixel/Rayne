@@ -194,7 +194,22 @@ namespace RN
 		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 
 		_internals->workQueue.push(source);
-		_open.fetch_add(1, std::memory_order_release);
+		_open.fetch_add(1, std::memory_order_relaxed);
+
+		if(flags & WorkSource::Flags::Barrier)
+		{
+			// Push _concurrency BarrierBlock work sources to keep other threads
+			// from running over the barrier. This works because threads encountering a BarrierBlock
+			// will consume the block and wait until the barrier completes.
+			// Also we only guarantee that barriers work with single producer submission
+
+			for(size_t i = 0; i < _concurrency; i ++)
+			{
+				WorkSource *source = WorkSource::DequeueWorkSource([]{}, WorkSource::Flags::Barrier | WorkSource::Flags::BarrierBlock);
+				_internals->workQueue.push(source);
+				_open.fetch_add(1, std::memory_order_relaxed);
+			}
+		}
 
 		ReCalculateWidth();
 
@@ -240,6 +255,22 @@ namespace RN
 		// Barrier path
 		if(isBarrier)
 		{
+			if(source->TestFlag(WorkSource::Flags::BarrierBlock))
+			{
+				// Give the barrier thread a bit of time to set the barrier flag
+				// This avoids racing without introducing a lock
+				ConditionalSpinLow(_barrier.load(std::memory_order_acquire) == true);
+
+				// Wait for rendezvous with the barrier signal
+				std::unique_lock<std::mutex> lock(_barrierLock);
+				_barrierSignal.wait(lock, [&]() -> bool {
+					return (_barrier.load(std::memory_order_acquire) == false);
+				});
+
+				source->Relinquish();
+				return true;
+			}
+
 			// If the work is a barrier, wait until all other work loads clear up
 			if(!ConditionalSpin(_running.load(std::memory_order_acquire) > 1))
 			{
@@ -339,9 +370,6 @@ namespace RN
 			if(width == 0)
 				width = 1;
 		}
-
-		if(_open.load(std::memory_order_acquire) == 0)
-			width = 0;
 
 		_realWidth = width;
 
