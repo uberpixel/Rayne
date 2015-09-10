@@ -10,6 +10,10 @@
 #include "../Threads/RNWorkQueue.h"
 #include "../Threads/RNWorkGroup.h"
 
+#define kRNSceneUpdateBatchSize 64
+#define kRNSceneRenderBatchSize 32
+#define kRNSceneUseRenderPool 1
+
 namespace RN
 {
 	RNDefineMeta(Scene, Object)
@@ -17,6 +21,9 @@ namespace RN
 	void Scene::Update(float delta)
 	{
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
+
+		std::vector<SceneNode *> temp;
+		temp.reserve(kRNSceneUpdateBatchSize);
 
 		for(size_t i = 0; i < 3; i ++)
 		{
@@ -26,13 +33,37 @@ namespace RN
 			while(member)
 			{
 				SceneNode *node = member->Get();
+				temp.push_back(node);
 
-				group->Perform(queue, [&, node] {
-					node->Update(delta);
-					node->UpdateInternalData();
-				});
+				if(temp.size() == kRNSceneUpdateBatchSize)
+				{
+					group->Perform(queue, [&, temp] {
+
+						for(SceneNode *node : temp)
+						{
+							node->Update(delta);
+							node->UpdateInternalData();
+						}
+
+					});
+
+					temp.clear();
+				}
 
 				member = member->GetNext();
+			}
+
+			if(temp.size() > 0)
+			{
+				group->Perform(queue, [&, temp] {
+
+					for(SceneNode *node : temp)
+					{
+						node->Update(delta);
+						node->UpdateInternalData();
+					}
+
+				});
 			}
 
 			group->Wait();
@@ -42,10 +73,71 @@ namespace RN
 
 	void Scene::Render(Renderer *renderer)
 	{
+#if kRNSceneUseRenderPool
+		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
+
 		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
 		while(member)
 		{
 			Camera *camera = member->Get();
+			WorkGroup *group = new WorkGroup();
+
+			renderer->BeginCamera(camera);
+
+			std::vector<SceneNode *> temp;
+			temp.reserve(kRNSceneRenderBatchSize);
+
+			for(size_t i = 0; i < 3; i ++)
+			{
+				IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+				while(member)
+				{
+					SceneNode *node = member->Get();
+					temp.push_back(node);
+
+					if(temp.size() == kRNSceneRenderBatchSize)
+					{
+						group->Perform(queue, [&, temp] {
+
+							for(SceneNode *node : temp)
+							{
+								node->Render(renderer, camera);
+							}
+
+						});
+
+						temp.clear();
+					}
+
+					member = member->GetNext();
+				}
+			}
+
+			if(temp.size() > 0)
+			{
+				group->Perform(queue, [&, temp] {
+
+					for(SceneNode *node : temp)
+					{
+						node->Render(renderer, camera);
+					}
+
+				});
+			}
+
+			group->Wait();
+			group->Release();
+
+			renderer->EndCamera();
+
+			member = member->GetNext();
+		}
+#else
+		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
+		while(member)
+		{
+			Camera *camera = member->Get();
+			WorkGroup *group = new WorkGroup();
 
 			renderer->BeginCamera(camera);
 
@@ -65,6 +157,7 @@ namespace RN
 
 			member = member->GetNext();
 		}
+#endif
 	}
 
 	void Scene::AddNode(SceneNode *node)

@@ -308,39 +308,50 @@ namespace RN
 
 		if(drawable->dirty)
 		{
+			_lock.Lock();
 			id<MTLRenderPipelineState> state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
 
 			if(drawable->_pipelineState)
 				[(id<MTLRenderPipelineState>)drawable->_pipelineState release];
 
 			drawable->_pipelineState = [state retain];
+			_lock.Unlock();
+
 			drawable->dirty = false;
 		}
 
 		// Update uniforms
-		drawable->_uniformsBufferIndex = (drawable->_uniformsBufferIndex + 1) % 3;
-		Uniforms *uniforms = static_cast<Uniforms *>(drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->GetBuffer());
+		//if(drawable->_uniformsBufferIndex == 0)
+		{
+			drawable->_uniformsBufferIndex = (drawable->_uniformsBufferIndex + 1) % 3;
+			Uniforms *uniforms = static_cast<Uniforms *>(drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->GetBuffer());
 
-		uniforms->modelViewProjectionMatrix = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-		uniforms->modelMatrix = drawable->modelMatrix;
+			uniforms->modelViewProjectionMatrix = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+			uniforms->modelMatrix = drawable->modelMatrix;
 
-		/*uniforms->inverseModelMatrix = drawable->uniforms.inverseModelMatrix;
-		uniforms->viewMatrix = _internals->renderPass.viewMatrix;
-		uniforms->inverseViewMatrix = _internals->renderPass.inverseViewMatrix;
-		uniforms->projectionMatrix = _internals->renderPass.projectionMatrix;
-		uniforms->inverseProjectionMatrix = _internals->renderPass.inverseProjectionMatrix;*/
+			/*uniforms->inverseModelMatrix = drawable->uniforms.inverseModelMatrix;
+			uniforms->viewMatrix = _internals->renderPass.viewMatrix;
+			uniforms->inverseViewMatrix = _internals->renderPass.inverseViewMatrix;
+			uniforms->projectionMatrix = _internals->renderPass.projectionMatrix;
+			uniforms->inverseProjectionMatrix = _internals->renderPass.inverseProjectionMatrix;*/
 
-		drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->Invalidate();
+			drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->Invalidate();
+		}
 
 		// Push into the queue
-		drawable->_next = _internals->renderPass.drawableHead;
 		drawable->_prev = nullptr;
+
+		_lock.Lock();
+
+		drawable->_next = _internals->renderPass.drawableHead;
 
 		if(drawable->_next)
 			drawable->_next->_prev = drawable;
 
 		_internals->renderPass.drawableHead = drawable;
 		_internals->renderPass.drawableCount ++;
+
+		_lock.Unlock();
 	}
 
 	void MetalRenderer::RenderDrawable(size_t index, MetalDrawable *drawable)

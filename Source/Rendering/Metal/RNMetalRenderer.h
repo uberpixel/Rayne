@@ -58,6 +58,7 @@ namespace RN
 		MetalWindow *_mainWindow;
 
 		std::vector<Camera *> _cameras;
+		SpinLock _lock;
 
 		RNDeclareMeta(MetalRenderer)
 	};

@@ -182,7 +182,7 @@ namespace RN
 
 			do {
 				finishWork = false;
-				_mainQueue->PerformWorkMainThread();
+				_mainQueue->PerformWork();
 			} while(!finishWork);
 		}
 

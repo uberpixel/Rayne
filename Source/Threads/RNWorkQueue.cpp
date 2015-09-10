@@ -7,6 +7,7 @@
 //
 
 #include "RNWorkQueue.h"
+#include <boost/lockfree/queue.hpp>
 
 #if RN_PLATFORM_INTEL
 	#if RN_PLATFORM_WINDOWS
@@ -53,6 +54,22 @@ namespace RN
 {
 	RNDefineMeta(WorkQueue, Object)
 
+	struct WorkQueueInternals
+	{
+		WorkQueueInternals() :
+			workQueue(4096)
+		{}
+
+		std::vector<WorkSource *> overcommitQueue;
+		std::atomic<bool> isOverCommitted;
+		SpinLock overcommitLock;
+
+		std::condition_variable workSignal;
+		std::mutex workLock;
+
+		boost::lockfree::queue<WorkSource *, boost::parameter::void_, boost::parameter::void_, boost::parameter::void_> workQueue;
+	};
+
 	// Private queue flags
 	#define kRNWorkQueueFlagMainThread (1 << 18)
 
@@ -83,8 +100,7 @@ namespace RN
 		_realWidth(0),
 		_open(0),
 		_suspended(0),
-		_barrier(false),
-		_favourite(nullptr)
+		_barrier(false)
 	{
 		size_t multiplier;
 		size_t maxThreads;
@@ -108,28 +124,20 @@ namespace RN
 		_concurrency = std::max(static_cast<size_t>(2), _concurrency);
 		_concurrency = std::min(_concurrency, maxThreads);
 		_threshold = _concurrency * multiplier;
-
-		ReCalculateWidth(); // Start with at least one running thread
-
-		if(_flags & kRNWorkQueueFlagMainThread) // The main queue still needs a buffer
-		{
-			WorkThread *fake = new WorkThread();
-			_threads.push_back(fake);
-		}
 	}
 
 	WorkQueue::~WorkQueue()
 	{
-		/*for(Thread *thread : _threads)
+		for(Thread *thread : _threads)
 			thread->Cancel();
 
-		_workSignal.notify_all();
+		_internals->workSignal.notify_all();
 
 		for(Thread *thread : _threads)
 		{
 			// Wait for the thread to exit
 			thread->WaitForExit();
-		}*/
+		}
 	}
 
 
@@ -185,67 +193,27 @@ namespace RN
 	{
 		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 
+		_internals->workQueue.push(source);
 		_open.fetch_add(1, std::memory_order_release);
+
 		ReCalculateWidth();
 
-		// Submit the work item to the queue
-		LockGuard<SpinLock> lock(_threadLock);
-
-		WorkThread *least = nullptr;
-
-		if(_favourite && _favourite->localOpen.load(std::memory_order_acquire) < _threshold)
-		{
-			least = _favourite;
-		}
-		else
-		{
-			size_t leastCount = 0xfffffffff;
-
-			for(WorkThread *thread : _threads)
-			{
-				size_t open = thread->localOpen.load(std::memory_order_acquire);
-
-				if(open < leastCount)
-				{
-					least = thread;
-					leastCount = open;
-
-					if(open < _threshold)
-						break;
-				}
-			}
-		}
-
-		RN_ASSERT(least, "Broken WorkQueue. All that is left now is hope and tears");
-
-		_favourite = least;
-
-		least->localBuffer.Push(source);
-		least->localOpen.fetch_add(1, std::memory_order_release);
-
-		lock.Unlock();
-
 		// Assure wake up
-		if(least->sleeping.load(std::memory_order_acquire) && _suspended.load(std::memory_order_acquire) == 0)
+		if(_sleeping.load(std::memory_order_acquire) && _suspended.load(std::memory_order_acquire) == 0)
 		{
-			std::unique_lock<std::mutex> lock(least->workLock);
-			least->workSignal.notify_one();
+			std::unique_lock<std::mutex> lock(_internals->workLock);
+			_internals->workSignal.notify_one();
 		}
 
 		return source;
 	}
 
-	bool WorkQueue::PerformWorkMainThread()
-	{
-		return PerformWork(_threads.front());
-	}
-
-	bool WorkQueue::PerformWork(WorkThread *thread)
+	bool WorkQueue::PerformWork()
 	{
 		if(!ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0))
 		{
-			std::unique_lock<std::mutex> lock(thread->workLock);
-			thread->workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
+			std::unique_lock<std::mutex> lock(_internals->workLock);
+			_internals->workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
 		}
 
 		if(!ConditionalSpin(_barrier.load(std::memory_order_acquire) == false))
@@ -257,7 +225,7 @@ namespace RN
 
 		// Grab work from the work pool
 		WorkSource *source;
-		bool result = ConditionalSpinLow(thread->localBuffer.Pop(source));
+		bool result = ConditionalSpinLow(_internals->workQueue.pop(source));
 		if(!result)
 			return false;
 
@@ -267,7 +235,6 @@ namespace RN
 
 		_running.fetch_add(1, std::memory_order_relaxed);
 		_open.fetch_sub(1, std::memory_order_relaxed);
-		thread->localOpen.fetch_sub(1, std::memory_order_relaxed);
 
 
 		// Barrier path
@@ -331,27 +298,23 @@ namespace RN
 		return true;
 	}
 
-	void WorkQueue::ThreadEntry(WorkThread *thread)
+	void WorkQueue::ThreadEntry()
 	{
-		Thread *actual;
+		Thread *thread = Thread::GetCurrentThread();
 
-		do {
-			actual = thread->thread;
-		} while(!actual);
-
-		while(!actual->IsCancelled())
+		while(!thread->IsCancelled())
 		{
-			if(!PerformWork(thread))
+			if(!PerformWork())
 			{
-				if(!ConditionalSpin(thread->localOpen.load() > 0))
+				if(!ConditionalSpin(_open.load(std::memory_order_acquire) > 0))
 				{
-					std::unique_lock<std::mutex> lock(thread->workLock);
+					std::unique_lock<std::mutex> lock(_internals->workLock);
 
 					if(_open.load() == 0)
 					{
-						thread->sleeping.store(true, std::memory_order_relaxed);
-						thread->workSignal.wait(lock, [&]() -> bool { return (thread->localOpen.load(std::memory_order_acquire) > 0 || actual->IsCancelled()); });
-						thread->sleeping.store(false, std::memory_order_relaxed);
+						_sleeping.fetch_add(1, std::memory_order_relaxed);
+						_internals->workSignal.wait(lock, [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
+						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 					}
 				}
 			}
@@ -388,12 +351,8 @@ namespace RN
 
 			for(size_t i = 0; i < width - _width; i ++)
 			{
-				WorkThread *workThread = new WorkThread();
-
-				Thread *thread = new Thread([this, workThread]{ ThreadEntry(workThread); });
-				workThread->thread.store(thread, std::memory_order_release);
-
-				_threads.push_back(workThread);
+				Thread *thread = new Thread([this]{ ThreadEntry(); });
+				_threads.push_back(thread);
 			}
 
 			_width = width;
