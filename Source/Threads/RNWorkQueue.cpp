@@ -13,11 +13,11 @@
 	#if RN_PLATFORM_WINDOWS
 		#define RNHardwarePause() YieldProcessor()
 	#else
-		#define RNHardwarePause() __asm__("pause")
+		#define RNHardwarePause() __asm__ volatile("pause")
 	#endif
 #endif
 #if RN_PLATFORM_ARM
-	#define RNHardwarePause() __asm__("yield")
+	#define RNHardwarePause() __asm__ volatile("yield")
 #endif
 
 #define ConditionalSpin(e) \
