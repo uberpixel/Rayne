@@ -18,6 +18,7 @@
 
 namespace RN
 {
+	class Window;
 	class Camera : public SceneNode
 	{
 	public:
@@ -124,8 +125,8 @@ namespace RN
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }*/
 
 	private:
-		void PostUpdate();
-		void UpdateProjection();
+		void PostUpdate(Renderer *renderer);
+		void UpdateProjection(Renderer *renderer);
 		void UpdateFrustum();
 
 		Vector3 __ToWorld(const Vector3 &dir);
@@ -170,6 +171,7 @@ namespace RN
 
 		Plane _clipPlane;
 //		LightManager *_lightManager;
+		Window *_window;
 
 		Matrix _projectionMatrix;
 		Matrix _inverseProjectionMatrix;

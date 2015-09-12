@@ -80,6 +80,8 @@ namespace RN
 		while(member)
 		{
 			Camera *camera = member->Get();
+			camera->PostUpdate(renderer);
+
 			WorkGroup *group = new WorkGroup();
 
 			renderer->RenderIntoCamera(camera, [&] {

@@ -7,19 +7,28 @@
 //
 
 #include "RNCamera.h"
+#include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNWindow.h"
 
 namespace RN
 {
 	RNDefineMeta(Camera, SceneNode)
 
 	Camera::Camera() :
-		Camera(Vector2(0.0f))
-	{}
+		_framebuffer(nullptr),
+		_cameraSceneEntry(this),
+		_window(nullptr)
+	{
+		Initialize();
+	}
 
 	Camera::Camera(const Vector2 &size) :
 		_framebuffer(new Framebuffer(size, Framebuffer::Options::PrivateStorage, Texture::Format::RGBA8888)),
-		_cameraSceneEntry(this)
-	{}
+		_cameraSceneEntry(this),
+		_window(nullptr)
+	{
+		Initialize();
+	}
 
 /*	Camera::Camera(const Vector2 &size, Texture *target) :
 		Camera(size, target, Flags::Defaults)
@@ -78,6 +87,8 @@ namespace RN
 
 	Camera::~Camera()
 	{
+		SafeRelease(_framebuffer);
+
 /*		SafeRelease(_sky);
 		SafeRelease(_material);
 
@@ -122,10 +133,6 @@ namespace RN
 		_priority  = 0;
 		_lodCamera = nullptr;
 
-		Update(0.0f);
-		UpdateProjection();
-		UpdateFrustum();
-
 		_prefersLightManager = true;
 	}
 
@@ -135,7 +142,6 @@ namespace RN
 		if(_frame != frame)
 		{
 			_frame = std::move(frame.GetIntegral());
-
 			_dirtyProjection = true;
 		}
 	}
@@ -379,7 +385,6 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
-		UpdateProjection();
 		UpdateFrustum();
 
 /*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
@@ -393,7 +398,6 @@ namespace RN
 	{
 		SceneNode::UpdateEditMode(delta);
 
-		UpdateProjection();
 		UpdateFrustum();
 
 /*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
@@ -403,10 +407,12 @@ namespace RN
 		}*/
 	}
 
-	void Camera::PostUpdate()
+	void Camera::PostUpdate(Renderer *renderer)
 	{
 		_inverseViewMatrix = GetWorldTransform();
 		_viewMatrix = _inverseViewMatrix.GetInverse();
+
+		UpdateProjection(renderer);
 
 /*		if(_flags & Flags::Fullscreen)
 		{
@@ -421,30 +427,30 @@ namespace RN
 		}*/
 	}
 
-	void Camera::UpdateProjection()
+	void Camera::UpdateProjection(Renderer *renderer)
 	{
-		if(!_dirtyProjection)
-			return;
-
-		_dirtyProjection = false;
-
 		if(_flags & Flags::Orthogonal)
 		{
 			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
 			return;
 		}
 
-/*		if(_flags & Flags::UpdateAspect)
+		if(!_framebuffer)
+		{
+			if(!_window)
+				_window = renderer->GetMainWindow();
+
+			Vector2 size = _window->GetSize();
+
+			_aspect = size.x / size.y;
+		}
+		else
+		{
 			_aspect = _frame.width / _frame.height;
+		}
 
 		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
-
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PushProjectionUpdate(this);
-		}*/
 	}
 
 	void Camera::UpdateFrustum()

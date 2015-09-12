@@ -129,7 +129,12 @@ namespace RN
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
 
-		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:NULL];
+		MTLRenderPipelineReflection *reflection;
+		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
+
+		// TODO: Error handling, plox
+
+
 
 		MetalRenderingState state;
 		state.state = pipelineState;

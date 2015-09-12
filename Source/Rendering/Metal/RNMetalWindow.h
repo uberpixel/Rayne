@@ -28,6 +28,8 @@ namespace RN
 		void Show() final;
 		void Hide() final;
 
+		Vector2 GetSize() const final;
+
 	private:
 		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);
 

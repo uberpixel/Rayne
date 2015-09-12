@@ -157,13 +157,11 @@ namespace RN
 
 		[descriptor release];
 
-		_internals->renderPass.viewMatrix = Matrix::WithIdentity();
-		_internals->renderPass.inverseViewMatrix = Matrix::WithIdentity().GetInverse();
+		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
+		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
-		Matrix projectionMatrix = Matrix::WithProjectionPerspective(60, 1.3333, 0.01, 1000.0f);
-
-		_internals->renderPass.projectionMatrix = projectionMatrix;
-		_internals->renderPass.inverseProjectionMatrix = projectionMatrix.GetInverse();
+		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
+		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
 

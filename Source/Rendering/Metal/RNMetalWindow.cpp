@@ -69,4 +69,11 @@ namespace RN
 	{
 		[_internals->window orderOut:nil];
 	}
+
+	Vector2 MetalWindow::GetSize() const
+	{
+		NSRect rect = [_internals->window frame];
+
+		return Vector2(rect.size.width, rect.size.height);
+	}
 }
