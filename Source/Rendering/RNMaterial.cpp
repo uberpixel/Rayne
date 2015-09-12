@@ -12,9 +12,38 @@ namespace RN
 {
 	RNDefineMeta(Material, Object)
 
-	Material::Material(Shader *fragmentShader, Shader *vertexShader) :
-		_fragmentShader(SafeRetain(fragmentShader)),
-		_vertexShader(SafeRetain(vertexShader)),
+	MaterialDescriptor::MaterialDescriptor() :
+		fragmentShader(nullptr),
+		vertexShader(nullptr),
+		_textures(new Array())
+	{}
+
+	MaterialDescriptor::~MaterialDescriptor()
+	{
+		SafeRelease(_textures);
+	}
+
+
+	void MaterialDescriptor::AddTexture(Texture *texture)
+	{
+		_textures->AddObject(texture);
+	}
+	void MaterialDescriptor::RemoveAllTextures()
+	{
+		_textures->RemoveAllObjects();
+	}
+	const Array *MaterialDescriptor::GetTextures() const
+	{
+		return _textures;
+	}
+
+
+
+
+
+	Material::Material(const MaterialDescriptor &descriptor) :
+		_fragmentShader(SafeRetain(descriptor.fragmentShader)),
+		_vertexShader(SafeRetain(descriptor.vertexShader)),
 		_depthMode(DepthMode::Less),
 		_depthWriteEnabled(true)
 	{

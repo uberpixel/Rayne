@@ -86,11 +86,8 @@ namespace RN
 
 		RNAPI void Activate();
 
-		RNAPI virtual void BeginWindow(Window *window) = 0;
-		RNAPI virtual void EndWindow() = 0;
-
-		RNAPI virtual void BeginCamera(Camera *camera) = 0;
-		RNAPI virtual void EndCamera() = 0;
+		RNAPI virtual void RenderIntoWindow(Window *window, Function &&function) = 0;
+		RNAPI virtual void RenderIntoCamera(Camera *camera, Function &&function) = 0;
 
 		RNAPI virtual bool SupportsTextureFormat(Texture::Format format) = 0;
 		RNAPI virtual bool SupportsDrawMode(DrawMode mode) = 0;

@@ -107,20 +107,18 @@ namespace RN
 	}
 
 
-	void MetalRenderer::BeginWindow(Window *window)
+	void MetalRenderer::RenderIntoWindow(Window *window, Function &&function)
 	{
-		_cameras.clear();
-
 		_internals->pass.window = static_cast<MetalWindow *>(window);
 		_internals->pass.drawable = [_internals->pass.window->_internals->metalView nextDrawable];
 		_internals->pass.depthTexture = [_internals->pass.window->_internals->metalView nextDepthBuffer];
-		_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-	}
 
-	void MetalRenderer::EndWindow()
-	{
 		if(_internals->pass.drawable)
 		{
+			_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
+
+			function();
+
 			[_internals->renderPass.commandBuffer presentDrawable:_internals->pass.drawable];
 			[_internals->renderPass.commandBuffer commit];
 			[_internals->renderPass.commandBuffer release];
@@ -129,12 +127,11 @@ namespace RN
 			_internals->pass.drawable = nil;
 		}
 	}
-
-	void MetalRenderer::BeginCamera(Camera *camera)
+	void MetalRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
+		// Set up
 		_internals->renderPass.camera = camera;
 		_internals->renderPass.framebuffer = camera->GetFramebuffer();
-
 
 		const Color &clearColor = camera->GetClearColor();
 
@@ -169,10 +166,10 @@ namespace RN
 		_internals->renderPass.inverseProjectionMatrix = projectionMatrix.GetInverse();
 
 		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
-	}
 
-	void MetalRenderer::EndCamera()
-	{
+		function();
+
+		// Clean Up
 		size_t i = 0;
 		MetalDrawable *drawable = _internals->renderPass.drawableHead;
 		while(drawable)
@@ -185,7 +182,6 @@ namespace RN
 		[_internals->renderPass.renderCommand release];
 		_internals->renderPass.renderCommand = nil;
 	}
-
 
 	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::UsageOptions options)
 	{

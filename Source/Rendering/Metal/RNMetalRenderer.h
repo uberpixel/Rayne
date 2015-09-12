@@ -31,11 +31,8 @@ namespace RN
 		RNAPI Window *CreateWindow(const Vector2 &size, Screen *screen) final;
 		RNAPI Window *GetMainWindow() final;
 
-		RNAPI void BeginWindow(Window *window) final;
-		RNAPI void EndWindow() final;
-
-		RNAPI void BeginCamera(Camera *camera) final;
-		RNAPI void EndCamera() final;
+		RNAPI void RenderIntoWindow(Window *window, Function &&function) final;
+		RNAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
 
 		RNAPI bool SupportsTextureFormat(Texture::Format format) final;
 		RNAPI bool SupportsDrawMode(DrawMode mode) final;
@@ -57,7 +54,6 @@ namespace RN
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
 
-		std::vector<Camera *> _cameras;
 		SpinLock _lock;
 
 		RNDeclareMeta(MetalRenderer)

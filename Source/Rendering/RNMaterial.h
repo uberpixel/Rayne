@@ -12,10 +12,30 @@
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
+#include "../Objects/RNArray.h"
+#include "../Rendering/RNTexture.h"
 #include "RNShader.h"
 
 namespace RN
 {
+	class MaterialDescriptor
+	{
+	public:
+		MaterialDescriptor();
+		~MaterialDescriptor();
+
+		void AddTexture(Texture *texture);
+		void RemoveAllTextures();
+
+		const Array *GetTextures() const;
+
+		Shader *fragmentShader;
+		Shader *vertexShader;
+
+	private:
+		Array *_textures;
+	};
+
 	class Material : public Object
 	{
 	public:
@@ -31,7 +51,7 @@ namespace RN
 			Greater
 		};
 
-		RNAPI Material(Shader *fragmentShader, Shader *vertexShader);
+		RNAPI Material(const MaterialDescriptor &descriptor);
 		RNAPI ~Material() override;
 
 		Shader *GetFragmentShader() const { return _fragmentShader; }

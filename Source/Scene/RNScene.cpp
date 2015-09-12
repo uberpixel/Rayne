@@ -82,53 +82,53 @@ namespace RN
 			Camera *camera = member->Get();
 			WorkGroup *group = new WorkGroup();
 
-			renderer->BeginCamera(camera);
+			renderer->RenderIntoCamera(camera, [&] {
 
-			std::vector<SceneNode *> temp;
-			temp.reserve(kRNSceneRenderBatchSize);
+				std::vector<SceneNode *> temp;
+				temp.reserve(kRNSceneRenderBatchSize);
 
-			for(size_t i = 0; i < 3; i ++)
-			{
-				IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
-				while(member)
+				for(size_t i = 0; i < 3; i++)
 				{
-					SceneNode *node = member->Get();
-					temp.push_back(node);
-
-					if(temp.size() == kRNSceneRenderBatchSize)
+					IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+					while(member)
 					{
-						group->Perform(queue, [&, temp] {
+						SceneNode *node = member->Get();
+						temp.push_back(node);
 
-							for(SceneNode *node : temp)
-							{
-								node->Render(renderer, camera);
-							}
+						if(temp.size() == kRNSceneRenderBatchSize)
+						{
+							group->Perform(queue, [&, temp] {
 
-						});
+								for(SceneNode *node : temp)
+								{
+									node->Render(renderer, camera);
+								}
 
-						temp.clear();
+							});
+
+							temp.clear();
+						}
+
+						member = member->GetNext();
 					}
-
-					member = member->GetNext();
 				}
-			}
 
-			if(temp.size() > 0)
-			{
-				group->Perform(queue, [&, temp] {
+				if(temp.size() > 0)
+				{
+					group->Perform(queue, [&, temp] {
 
-					for(SceneNode *node : temp)
-					{
-						node->Render(renderer, camera);
-					}
+						for(SceneNode *node : temp)
+						{
+							node->Render(renderer, camera);
+						}
 
-				});
-			}
+					});
+				}
 
-			group->Wait();
-			group->Release();
+				group->Wait();
+				group->Release();
 
-			renderer->EndCamera();
+			});
 
 			member = member->GetNext();
 		}

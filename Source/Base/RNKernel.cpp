@@ -191,9 +191,9 @@ namespace RN
 
 		_sceneCoordinator->Update(_delta);
 
-		_renderer->BeginWindow(_renderer->GetMainWindow());
-		_sceneCoordinator->Render(_renderer);
-		_renderer->EndWindow();
+		_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&]{
+			_sceneCoordinator->Render(_renderer);
+		});
 
 		_application->DidStep(_delta);
 		_lastFrame = now;
