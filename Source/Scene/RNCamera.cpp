@@ -17,7 +17,8 @@ namespace RN
 	Camera::Camera() :
 		_framebuffer(nullptr),
 		_cameraSceneEntry(this),
-		_window(nullptr)
+		_window(nullptr),
+		_flags(0)
 	{
 		Initialize();
 	}
@@ -25,7 +26,8 @@ namespace RN
 	Camera::Camera(const Vector2 &size) :
 		_framebuffer(new Framebuffer(size, Framebuffer::Options::PrivateStorage, Texture::Format::RGBA8888)),
 		_cameraSceneEntry(this),
-		_window(nullptr)
+		_window(nullptr),
+		_flags(0)
 	{
 		Initialize();
 	}
