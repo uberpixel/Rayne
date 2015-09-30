@@ -130,6 +130,7 @@ namespace RN
 		RNAPI Matrix GetWorldTransform() const;
 		RNAPI Matrix GetTransform() const;
 
+		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) { return true; }
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) {}
 
 		virtual void Update(float delta)

@@ -7,6 +7,7 @@
 //
 
 #include "RNScene.h"
+#include "../Debug/RNLogger.h"
 #include "../Threads/RNWorkQueue.h"
 #include "../Threads/RNWorkGroup.h"
 
@@ -103,7 +104,8 @@ namespace RN
 
 								for(SceneNode *node : temp)
 								{
-									node->Render(renderer, camera);
+									if(node->CanRender(renderer, camera))
+										node->Render(renderer, camera);
 								}
 
 							});

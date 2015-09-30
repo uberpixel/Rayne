@@ -453,6 +453,9 @@ namespace RN
 
 		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
+
+		_dirtyFrustum = true;
+		UpdateFrustum();
 	}
 
 	void Camera::UpdateFrustum()
@@ -584,8 +587,6 @@ namespace RN
 
 	bool Camera::InFrustum(const Vector3 &position, float radius)
 	{
-		UpdateFrustum();
-
 		if(_frustumCenter.GetDistance(position) > _frustumRadius + radius)
 			return false;
 
