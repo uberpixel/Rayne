@@ -69,6 +69,17 @@ namespace RN
 		return __functionPool;
 	}
 
+	Kernel *__BootstrapKernel(Application *app)
+	{
+		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app);
+		return result;
+	}
+
+	void __TearDownKernel(Kernel *kernel)
+	{
+		__KernelBootstrapHelper::TearDownKernel(kernel);
+	}
+
 	void Initialize(int argc, char *argv[], Application *app)
 	{
 		RN_ASSERT(app, "Application mustn't be NULL");
@@ -110,10 +121,10 @@ namespace RN
 		}
 #endif
 
-		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app);
+		Kernel *result = __BootstrapKernel(app);
 		result->Run();
 
-		__KernelBootstrapHelper::TearDownKernel(result);
+		__TearDownKernel(result);
 
 		std::exit(EXIT_SUCCESS);
 	}
