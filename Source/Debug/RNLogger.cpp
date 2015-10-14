@@ -57,7 +57,7 @@ namespace RN
 
 	Logger::~Logger()
 	{
-		_queue->PerformSynchronous([this]{ __FlushQueue(); });
+		__FlushQueue();
 		_queue->Release();
 
 		{

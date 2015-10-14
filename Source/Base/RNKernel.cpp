@@ -116,6 +116,9 @@ namespace RN
 		Screen::TeardownScreens();
 		WorkQueue::TearDownQueues();
 
+		_renderer->Deactivate();
+		delete _renderer;
+
 		delete _fileManager;
 		delete _sceneCoordinator;
 

@@ -22,7 +22,10 @@ namespace RN
 	{
 		friend class Logger;
 
-		LogMessage() = default;
+		LogMessage() :
+			_cmessage(nullptr)
+		{}
+
 		LogMessage(size_t tline, const char *tfile, const char *tfunction, std::string &&tmessage) :
 			line(tline),
 			file(tfile),
