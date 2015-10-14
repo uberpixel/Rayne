@@ -1,9 +1,13 @@
 //
-// Created by Sidney Just on 14/10/15.
+//  __Bootstrap.h
+//  Rayne Unit Tests
+//
+//  Copyright 2015 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef RAYNEALL_BOOTSTRAP_H
-#define RAYNEALL_BOOTSTRAP_H
+#ifndef _RAYNE_UNITTESTS_BOOTSTRAP_H_
+#define _RAYNE_UNITTESTS_BOOTSTRAP_H_
 
 #include <gtest/gtest.h>
 #include <Rayne.h>
@@ -47,4 +51,4 @@ private:
 };
 
 
-#endif //RAYNEALL_BOOTSTRAP_H
+#endif /* _RAYNE_UNITTESTS_BOOTSTRAP_H_ */

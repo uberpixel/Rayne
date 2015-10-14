@@ -1,5 +1,9 @@
 //
-// Created by Sidney Just on 14/10/15.
+//  ObjectTests.cpp
+//  Rayne Unit Tests
+//
+//  Copyright 2015 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "__Bootstrap.h"
@@ -22,7 +26,7 @@ public:
 		_results(results)
 	{}
 
-	~TestObject() override
+	~ObjectTests() override
 	{
 		_results.isDeallocated = true;
 	}
@@ -40,7 +44,7 @@ private:
 
 RNDefineMeta(TestObject, RN::Object)
 
-class TestObjectDes : public TestObject
+class TestObjectDes : public ObjectTests
 {
 public:
 	TestObjectDes(TestObjectResults &results) :
@@ -64,7 +68,7 @@ TEST_F(LifeCycleTest, AllocationDeallocation)
 {
 	TestObjectResults results;
 
-	TestObject *object = new TestObject(results);
+	ObjectTests *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	object->Retain();
@@ -87,7 +91,7 @@ TEST_F(LifeCycleTest, Autorelease)
 {
 	TestObjectResults results;
 
-	TestObject *object = new TestObject(results);
+	ObjectTests *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	{
@@ -115,43 +119,51 @@ TEST_F(EqualityTests, Equality)
 {
 	TestObjectResults results;
 
-	TestObject *object = new TestObject(results);
+	ObjectTests *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_FALSE(object->IsEqual(nullptr));
 	EXPECT_TRUE(object->IsEqual(object));
 
-	TestObject *other = new TestObject(results);
+	ObjectTests *other = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_FALSE(object->IsEqual(other));
+
+	object->Release();
+	other->Release();
 }
 
 TEST_F(EqualityTests, Hash)
 {
 	TestObjectResults results;
 
-	TestObject *object = new TestObject(results);
+	ObjectTests *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_EQ(object->GetHash(), object->GetHash()); // Subsequent calls to get hash must return the same value
 
-	TestObject *other = new TestObject(results);
+	ObjectTests *other = new ObjectTests(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_NE(object->GetHash(), other->GetHash());
+
+	object->Release();
+	other->Release();
 }
 
 TEST_F(EqualityTests, Class)
 {
 	TestObjectResults results;
 
-	TestObject *object = new TestObject(results);
+	ObjectTests *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_TRUE(object->IsKindOfClass(RN::Object::GetMetaClass()));
-	EXPECT_TRUE(object->IsKindOfClass(TestObject::GetMetaClass()));
+	EXPECT_TRUE(object->IsKindOfClass(ObjectTests::GetMetaClass()));
 
 	EXPECT_FALSE(object->IsKindOfClass(RN::String::GetMetaClass()));
 	EXPECT_FALSE(object->IsKindOfClass(TestObjectDes::GetMetaClass()));
+
+	object->Release();
 }
