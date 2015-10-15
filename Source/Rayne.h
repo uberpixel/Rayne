@@ -35,6 +35,7 @@
 #include "Math/RNSIMD.h"
 #include "Math/RNVector.h"
 
+#include "Objects/RNAutoreleasePool.h"
 #include "Objects/RNObject.h"
 #include "Objects/RNCatalogue.h"
 #include "Objects/RNKVO.h"
