@@ -131,10 +131,25 @@ namespace RN
 
 	enum class ComparisonResult : int
 	{
-		LessThan   = -1,
-		EqualTo     = 0,
-		GreaterThan = 1
+		LessThan   = -1, // lhs < rhs
+		EqualTo     = 0, // lhs == rhs
+		GreaterThan = 1  // lhs > rhs
 	};
+
+	static RN_INLINE std::ostream &operator<< (std::ostream &os, const ComparisonResult &result)
+	{
+		switch(result)
+		{
+			case ComparisonResult::LessThan:
+				return os << "ComparisonResult::LessThan";
+			case ComparisonResult::EqualTo:
+				return os << "ComparisonResult::EqualTo";
+			case ComparisonResult::GreaterThan:
+				return os << "ComparisonResult::GreaterThan";
+		}
+
+		return os << "{invalid}";
+	}
 
 	class Initializer
 	{
@@ -182,9 +197,26 @@ namespace RN
 			return (GetEnd() >= other.origin && origin <= other.GetEnd());
 		}
 
+		bool operator ==(const Range &other) const
+		{
+			if(origin == kRNNotFound || other.origin == kRNNotFound)
+				return (origin == other.origin);
+
+			return (origin == other.origin && length == other.length);
+		}
+		bool operator !=(const Range &other) const
+		{
+			return !(*this == other);
+		}
+
 		size_t origin;
 		size_t length;
 	};
+
+	static RN_INLINE std::ostream &operator<< (std::ostream &os, const Range &range)
+	{
+		return os << "{" << range.origin << ", " << range.length << "}";
+	}
 
 	template <class T>
 	class PIMPL
