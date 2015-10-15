@@ -78,6 +78,9 @@ namespace RN
 
 		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode = 0) const;
 		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode, const Range &range) const;
+
+		RNAPI bool HasPrefix(const String *other) const;
+		RNAPI bool HasSuffix(const String *other) const;
 		
 		RNAPI String *GetSubstring(const Range &range) const;
 		RNAPI UniChar GetCharacterAtIndex(size_t index) const;

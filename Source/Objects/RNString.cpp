@@ -652,6 +652,25 @@ namespace RN
 	
 		return ComparisonResult::EqualTo;
 	}
+
+	bool String::HasPrefix(const String *other) const
+	{
+		if(GetLength() < other->GetLength())
+			return false;
+
+		Range range = GetRangeOfString(other, 0, Range(0, other->GetLength()));
+		return (range.origin == 0);
+	}
+
+	bool String::HasSuffix(const String *other) const
+	{
+		if(GetLength() < other->GetLength())
+			return false;
+
+		size_t offset = GetLength() - other->GetLength();
+		Range range = GetRangeOfString(other, 0, Range(offset, other->GetLength()));
+		return (range.origin == offset);
+	}
 	
 	// ---------------------
 	// MARK: -
