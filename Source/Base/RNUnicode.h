@@ -26,6 +26,7 @@ namespace RN
 		RNAPI static char ConverToCharacter(UniChar character);
 		
 		static UniChar Ellipsis() { return 0x2026; }
+		static CodePoint ASCIITerminator() { return CodePoint(char(0x7f)); }
 		
 		RNAPI char GetASCIICharacter() const;
 		RNAPI UniChar GetCharacter() const { return _codePoint; }

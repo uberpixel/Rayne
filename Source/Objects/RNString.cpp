@@ -535,12 +535,6 @@ namespace RN
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range &range) const
 	{
-		if(range.length < other->GetLength())
-			return ComparisonResult::GreaterThan;
-		
-		if(range.length > other->GetLength())
-			return ComparisonResult::LessThan;
-		
 		UniChar charactersA[kStringUniCharFetch];
 		UniChar charactersB[kStringUniCharFetch];
 		
@@ -557,7 +551,7 @@ namespace RN
 		size_t readB = 0;
 		
 		size_t leftA = range.length;
-		size_t leftB = range.length;
+		size_t leftB = other->GetLength();
 		
 #define ReadCharacter(Side) \
 		do { \
@@ -574,6 +568,14 @@ namespace RN
 				i##Side = 0; \
 			} \
 		} while(0)
+
+#define CharactersLeft(Side) \
+		({ size_t result; \
+		if(i##Side >= read##Side && left##Side == 0) \
+		{ result = 0; } \
+		else \
+		{ result = read##Side - i##Side; } \
+		(result); })
 		
 		while(1)
 		{
@@ -591,38 +593,47 @@ namespace RN
 			
 			if(mode & ComparisonMode::Numerically)
 			{
-				if(a <= 0x7f && b <= 0x7f)
+				if(a <= CodePoint::ASCIITerminator() && b <= CodePoint::ASCIITerminator())
 				{
 					char ca = static_cast<char>(a);
 					char cb = static_cast<char>(b);
 					
-					if(ca <= '9' && ca >= '0' && cb <= '9' && cb >= '0')
+					if(isnumber(ca) && isnumber(cb))
 					{
 						uint32 numA = 0;
 						uint32 numB = 0;
 						
 						do {
 							numA = numA * 10 + (ca - '0');
-							
+
+							if(CharactersLeft(A) == 0)
+								break;
+
 							ReadCharacter(A);
-							a = charactersA[iA ++];
+
+							if((a = charactersA[iA ++]) > CodePoint::ASCIITerminator())
+								break;
 							
 							ca = static_cast<char>(a);
-						} while(ca <= '9' && ca >= '0');
+						} while(isnumber(ca));
 						
 						do {
 							numB = numB * 10 + (cb - '0');
+
+							if(CharactersLeft(B) == 0)
+								break;
 							
 							ReadCharacter(B);
-							b = charactersB[iB ++];
-							
+							if((b = charactersB[iB ++]) > CodePoint::ASCIITerminator())
+								break;
+
 							cb = static_cast<char>(b);
-						} while(cb <= '9' && cb >= '0');
+						} while(isnumber(cb));
 						
 						if(numA > numB)
 							return ComparisonResult::GreaterThan;
 						
-						if(numB > numA)
+						if(numA < numB)
 							return ComparisonResult::LessThan;
 						
 						continue;
@@ -634,8 +645,7 @@ namespace RN
 			{
 				if(a > b)
 					return ComparisonResult::GreaterThan;
-				
-				if(b > a)
+				if(a < b)
 					return ComparisonResult::LessThan;
 			}
 		}
@@ -643,11 +653,13 @@ namespace RN
 #undef ReadCharacter
 		
 	endComparison:
-	
-		if(leftA && !leftB)
+
+		size_t _leftA = CharactersLeft(A);
+		size_t _leftB = CharactersLeft(B);
+
+		if(_leftA && !_leftB)
 			return ComparisonResult::GreaterThan;
-		
-		if(leftB && !leftA)
+		if(_leftB && !_leftA)
 			return ComparisonResult::LessThan;
 	
 		return ComparisonResult::EqualTo;
