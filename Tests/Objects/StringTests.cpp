@@ -264,6 +264,10 @@ TEST_F(StringPathTests, DeletePathExtension)
 	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
 	string->DeletePathExtension();
 	EXPECT_STREQ("/usr/home/test", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("")));
+	string->DeletePathExtension();
+	EXPECT_STREQ("", string->GetUTF8String());
 }
 
 TEST_F(StringPathTests, StringByDeletingPathExtension)
@@ -295,6 +299,10 @@ TEST_F(StringPathTests, DeletePathComponent)
 
 	string->DeleteLastPathComponent();
 	EXPECT_STREQ("/", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("")));
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("", string->GetUTF8String());
 
 	ASSERT_TRUE((string = RNCSTR("/usr/home/test.")));
 	string->DeleteLastPathComponent();
