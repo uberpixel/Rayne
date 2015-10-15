@@ -7,7 +7,6 @@
 //
 
 #include "__Bootstrap.h"
-#include "../../Source/Objects/RNAutoreleasePool.h"
 
 struct TestObjectResults
 {
@@ -61,10 +60,10 @@ RNDefineMeta(TestObjectDes, TestObject)
 // MARK: LifeCycleTest
 // ---------------------
 
-class LifeCycleTest : public KernelFixture
+class ObjectLifeCycleTests : public KernelFixture
 {};
 
-TEST_F(LifeCycleTest, AllocationDeallocation)
+TEST_F(ObjectLifeCycleTests, AllocationDeallocation)
 {
 	TestObjectResults results;
 
@@ -87,7 +86,7 @@ TEST_F(LifeCycleTest, AllocationDeallocation)
 	EXPECT_TRUE(results.hasReachedWillDealloc);
 }
 
-TEST_F(LifeCycleTest, Autorelease)
+TEST_F(ObjectLifeCycleTests, Autorelease)
 {
 	TestObjectResults results;
 
@@ -112,10 +111,10 @@ TEST_F(LifeCycleTest, Autorelease)
 // MARK: Equality Tests
 // ---------------------
 
-class EqualityTests : public KernelFixture
+class ObjectEqualityTests : public KernelFixture
 {};
 
-TEST_F(EqualityTests, Equality)
+TEST_F(ObjectEqualityTests, Equality)
 {
 	TestObjectResults results;
 
@@ -134,7 +133,7 @@ TEST_F(EqualityTests, Equality)
 	other->Release();
 }
 
-TEST_F(EqualityTests, Hash)
+TEST_F(ObjectEqualityTests, Hash)
 {
 	TestObjectResults results;
 
@@ -152,7 +151,7 @@ TEST_F(EqualityTests, Hash)
 	other->Release();
 }
 
-TEST_F(EqualityTests, Class)
+TEST_F(ObjectEqualityTests, Class)
 {
 	TestObjectResults results;
 

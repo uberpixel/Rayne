@@ -5,7 +5,8 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(${Rayne_BINARY_DIR}/include)
 
 add_executable(objectTests
-        ObjectTests.cpp)
+        ObjectTests.cpp
+        StringTests.cpp)
 
 set(RESOURCES
         manifest.json)

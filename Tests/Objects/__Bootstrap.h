@@ -43,9 +43,13 @@ protected:
 	{
 		_app = new __Bootstrap::Application();
 		_kernel = RN::__BootstrapKernel(_app, _arguments);
+
+		_pool = new RN::AutoreleasePool();
 	}
 	void TearDown() override
 	{
+		delete _pool;
+
 		__TearDownKernel(_kernel);
 		delete _app;
 	}
@@ -54,6 +58,8 @@ private:
 	__Bootstrap::Application *_app;
 	RN::ArgumentParser _arguments;
 	RN::Kernel *_kernel;
+
+	RN::AutoreleasePool *_pool;
 };
 
 
