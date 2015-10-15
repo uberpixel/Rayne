@@ -805,11 +805,17 @@ namespace RN
 	}
 	void String::DeleteLastPathComponent()
 	{
+		if(GetLength() == 0)
+			return;
+
 		__DeleteTrailingPath();
 
 		size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, ComparisonMode::Reverse).origin;
 		if(delimiter != kRNNotFound)
 			DeleteCharacters(Range(delimiter, GetLength() - delimiter));
+
+		if(GetLength() == 0)
+			Append("%c", kRNPathDelimiter);
 	}
 	void String::AppendPathComponent(const String *component)
 	{
