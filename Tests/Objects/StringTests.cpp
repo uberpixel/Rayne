@@ -240,3 +240,151 @@ TEST_F(StringComparisonTests, ComponentsSeparatedByString)
 		EXPECT_EQ(1, components->GetCount());
 	}
 }
+
+// ---------------------
+// MARK: -
+// MARK: Paths
+// ---------------------
+
+class StringPathTests : public KernelFixture
+{};
+
+TEST_F(StringPathTests, DeletePathExtension)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.txt")));
+	string->DeletePathExtension();
+	EXPECT_STREQ("/usr/home/test", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.")));
+	string->DeletePathExtension();
+	EXPECT_STREQ("/usr/home/test", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+	string->DeletePathExtension();
+	EXPECT_STREQ("/usr/home/test", string->GetUTF8String());
+}
+
+TEST_F(StringPathTests, StringByDeletingPathExtension)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNSTR("/usr/home/test.txt")));
+
+	// StringByDeletingPathExtension() uses DeletePathExtension(), so just make sure the original string
+	// says the same
+
+	EXPECT_STREQ("/usr/home/test", string->StringByDeletingPathExtension()->GetUTF8String());
+	EXPECT_STREQ("/usr/home/test.txt", string->GetUTF8String());
+}
+
+TEST_F(StringPathTests, DeletePathComponent)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.txt")));
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/usr/home", string->GetUTF8String());
+
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/usr", string->GetUTF8String());
+
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/", string->GetUTF8String());
+
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.")));
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/usr/home", string->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+	string->DeleteLastPathComponent();
+	EXPECT_STREQ("/usr/home", string->GetUTF8String());
+}
+
+TEST_F(StringPathTests, AppendPathComponent)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.txt")));
+	string->AppendPathComponent(RNCSTR("Bar"));
+	EXPECT_STREQ("/usr/home/test.txt/Bar", string->GetUTF8String());
+
+	string->AppendPathComponent(RNCSTR("/Foo"));
+	EXPECT_STREQ("/usr/home/test.txt/Bar/Foo", string->GetUTF8String());
+}
+
+TEST_F(StringPathTests, AppendPathExtension)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+	string->AppendPathExtension(RNCSTR("Bar"));
+	EXPECT_STREQ("/usr/home/test.Bar", string->GetUTF8String());
+
+	string->AppendPathExtension(RNCSTR("Foo"));
+	EXPECT_STREQ("/usr/home/test.Bar.Foo", string->GetUTF8String());
+}
+
+TEST_F(StringPathTests, GetPathComponents)
+{
+	RN::String *string;
+	RN::Array *components;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+
+	components = string->GetPathComponents();
+	ASSERT_EQ(components->GetCount(), 3);
+
+	EXPECT_STREQ("usr", components->GetObjectAtIndex<RN::String>(0)->GetUTF8String());
+	EXPECT_STREQ("home", components->GetObjectAtIndex<RN::String>(1)->GetUTF8String());
+	EXPECT_STREQ("test", components->GetObjectAtIndex<RN::String>(2)->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home.txt")));
+
+	components = string->GetPathComponents();
+	ASSERT_EQ(components->GetCount(), 2);
+
+	EXPECT_STREQ("usr", components->GetObjectAtIndex<RN::String>(0)->GetUTF8String());
+	EXPECT_STREQ("home.txt", components->GetObjectAtIndex<RN::String>(1)->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("usr")));
+
+	components = string->GetPathComponents();
+	ASSERT_EQ(components->GetCount(), 1);
+
+	EXPECT_STREQ("usr", components->GetObjectAtIndex<RN::String>(0)->GetUTF8String());
+}
+
+TEST_F(StringPathTests, GetPathExtension)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+	ASSERT_FALSE(string->GetPathExtension());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.txt")));
+	ASSERT_TRUE(string->GetPathExtension());
+	EXPECT_STREQ("txt", string->GetPathExtension()->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.")));
+	ASSERT_TRUE(string->GetPathExtension());
+	EXPECT_STREQ("", string->GetPathExtension()->GetUTF8String());
+}
+
+TEST_F(StringPathTests, GetLastPathComponent)
+{
+	RN::String *string;
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test")));
+	EXPECT_STREQ("test", string->GetLastPathComponent()->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/test.txt")));
+	EXPECT_STREQ("test.txt", string->GetLastPathComponent()->GetUTF8String());
+
+	ASSERT_TRUE((string = RNCSTR("/usr/home/")));
+	EXPECT_STREQ("home", string->GetLastPathComponent()->GetUTF8String());
+}
