@@ -8,7 +8,6 @@
 
 #include "__Bootstrap.h"
 
-
 // ---------------------
 // MARK: -
 // MARK: Comparison
@@ -16,6 +15,36 @@
 
 class StringComparisonTests : public KernelFixture
 {};
+
+TEST_F(StringComparisonTests, Equality)
+{
+	EXPECT_TRUE(RNCSTR("Hello")->IsEqual(RNSTR("Hello")));
+	EXPECT_TRUE(RNCSTR("World")->IsEqual(RNSTR("World")));
+
+	RN::String *test1 = RNCSTR("Hello");
+	ASSERT_TRUE(test1);
+
+	test1->Append(RNCSTR(" World"));
+
+	EXPECT_TRUE(test1->IsEqual(RNCSTR("Hello World")));
+	EXPECT_FALSE(test1->IsEqual(RNCSTR("Hello")));
+
+	EXPECT_FALSE(test1->IsEqual(RN::Number::WithInt32(0x32)));
+}
+
+TEST_F(StringComparisonTests, Hash)
+{
+	RN::String *test1 = RNSTR("Hello");
+	ASSERT_TRUE(test1);
+
+	EXPECT_EQ(RNCSTR("Hello")->GetHash(), test1->GetHash());
+
+	test1->Append(" World");
+	EXPECT_EQ(RNCSTR("Hello World")->GetHash(), test1->GetHash());
+
+	test1->Append(" Test1");
+	EXPECT_EQ(RNCSTR("Hello World Test1")->GetHash(), test1->GetHash());
+}
 
 TEST_F(StringComparisonTests, RangeOfString)
 {
@@ -113,4 +142,27 @@ TEST_F(StringComparisonTests, Suffix)
 	EXPECT_FALSE(test1->HasSuffix(RNCSTR("x")));
 }
 
+TEST_F(StringComparisonTests, ComponentsSeparatedByString)
+{
+	RN::String *test1 = RNCSTR("Test, Bar, Foo, X");
+	ASSERT_TRUE(test1);
 
+	{
+		RN::Array *components = test1->GetComponentsSeparatedByString(RNCSTR(", "));
+
+		ASSERT_EQ(4, components->GetCount());
+
+		EXPECT_TRUE(components->GetObjectAtIndex<RN::String>(0)->IsEqual(RNCSTR("Test")));
+		EXPECT_TRUE(components->GetObjectAtIndex<RN::String>(1)->IsEqual(RNCSTR("Bar")));
+		EXPECT_TRUE(components->GetObjectAtIndex<RN::String>(2)->IsEqual(RNCSTR("Foo")));
+		EXPECT_TRUE(components->GetObjectAtIndex<RN::String>(3)->IsEqual(RNCSTR("X")));
+	}
+
+	RN::String *test2 = RNCSTR("Test Bar");
+	ASSERT_TRUE(test2);
+
+	{
+		RN::Array *components = test2->GetComponentsSeparatedByString(RNCSTR(", "));
+		EXPECT_EQ(1, components->GetCount());
+	}
+}
