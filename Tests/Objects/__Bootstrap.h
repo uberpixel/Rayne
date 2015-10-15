@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	extern Kernel *__BootstrapKernel(Application *app);
+	extern Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments);
 	extern void __TearDownKernel(Kernel *kernel);
 }
 
@@ -30,14 +30,19 @@ class KernelFixture : public ::testing::Test
 {
 public:
 	KernelFixture() :
-		Test()
+		KernelFixture({ "--headless" })
+	{}
+
+	KernelFixture(const std::vector<const char *> &arguments) :
+		Test(),
+		_arguments(arguments.size(), const_cast<const char **>(arguments.data()))
 	{}
 
 protected:
 	void SetUp() override
 	{
 		_app = new __Bootstrap::Application();
-		_kernel = RN::__BootstrapKernel(_app);
+		_kernel = RN::__BootstrapKernel(_app, _arguments);
 	}
 	void TearDown() override
 	{
@@ -47,6 +52,7 @@ protected:
 
 private:
 	__Bootstrap::Application *_app;
+	RN::ArgumentParser _arguments;
 	RN::Kernel *_kernel;
 };
 

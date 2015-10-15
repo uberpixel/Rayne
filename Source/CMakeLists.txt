@@ -283,8 +283,9 @@ endif()
 # Source files
 
 set(RAYNE_SOURCES
-    Base/RNMemory.cpp
+    Base/RNMemory.cpp # RNMemory should come first
     Base/RNApplication.cpp
+    Base/RNArgumentParser.cpp
     Base/RNBase.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
@@ -349,6 +350,7 @@ set(RAYNE_SOURCES
 set(RAYNE_HEADERS
     Rayne.h
     Base/RNApplication.h
+    Base/RNArgumentParser.h
     Base/RNBase.h
     Base/RNOptions.h
     Base/RNException.h

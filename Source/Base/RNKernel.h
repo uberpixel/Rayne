@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNApplication.h"
 #include "RNSettings.h"
+#include "RNArgumentParser.h"
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
@@ -53,7 +54,7 @@ namespace RN
 		}
 
 	private:
-		Kernel(Application *app);
+		Kernel(Application *app, const ArgumentParser &arguments);
 		~Kernel();
 
 		void Bootstrap();
@@ -63,6 +64,8 @@ namespace RN
 
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
 		void HandleSystemEvents();
+
+		const ArgumentParser &_arguments;
 
 		Application *_application;
 		FileManager *_fileManager;

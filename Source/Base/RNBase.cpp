@@ -8,7 +8,6 @@
 
 #include "RNBaseInternal.h"
 #include "RNKernel.h"
-#include "RNMemoryPool.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -36,11 +35,11 @@ namespace RN
 	struct __KernelBootstrapHelper
 	{
 	public:
-		static Kernel *BootstrapKernel(Application *app)
+		static Kernel *BootstrapKernel(Application *app, const ArgumentParser &arguments)
 		{
 			__functionPool = new MemoryPool();
 
-			Kernel *result = new Kernel(app);
+			Kernel *result = new Kernel(app, arguments);
 #if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
 				result->Bootstrap();
@@ -69,9 +68,9 @@ namespace RN
 		return __functionPool;
 	}
 
-	Kernel *__BootstrapKernel(Application *app)
+	Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments)
 	{
-		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app);
+		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app, arguments);
 		return result;
 	}
 
@@ -80,7 +79,7 @@ namespace RN
 		__KernelBootstrapHelper::TearDownKernel(kernel);
 	}
 
-	void Initialize(int argc, char *argv[], Application *app)
+	void Initialize(int argc, const char *argv[], Application *app)
 	{
 		RN_ASSERT(app, "Application mustn't be NULL");
 
@@ -121,7 +120,9 @@ namespace RN
 		}
 #endif
 
-		Kernel *result = __BootstrapKernel(app);
+		ArgumentParser arguments(argc, argv);
+
+		Kernel *result = __BootstrapKernel(app, arguments);
 		result->Run();
 
 		__TearDownKernel(result);
