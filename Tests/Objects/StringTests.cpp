@@ -75,13 +75,13 @@ TEST_F(StringComparisonTests, CompareNumerical)
 	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test2->Compare(RNCSTR("980"), RN::String::ComparisonMode::Numerically));
 
 	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test3->Compare(RNCSTR("467"), RN::String::ComparisonMode::Numerically));
-	EXPECT_EQ(RN::ComparisonResult::LessThan, test3->Compare(RNCSTR("World 466"), RN::String::ComparisonMode::Numerically));
-	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test3->Compare(RNCSTR("World 468"), RN::String::ComparisonMode::Numerically));
+	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test3->Compare(RNCSTR("World 466"), RN::String::ComparisonMode::Numerically));
+	EXPECT_EQ(RN::ComparisonResult::LessThan, test3->Compare(RNCSTR("World 468"), RN::String::ComparisonMode::Numerically));
 	EXPECT_EQ(RN::ComparisonResult::EqualTo, test3->Compare(RNCSTR("World 467"), RN::String::ComparisonMode::Numerically));
 
 	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test4->Compare(RNCSTR("467 World"), RN::String::ComparisonMode::Numerically));
-	EXPECT_EQ(RN::ComparisonResult::LessThan, test4->Compare(RNCSTR("World 466 World"), RN::String::ComparisonMode::Numerically));
-	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test4->Compare(RNCSTR("World 468 World"), RN::String::ComparisonMode::Numerically));
+	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test4->Compare(RNCSTR("World 466 World"), RN::String::ComparisonMode::Numerically));
+	EXPECT_EQ(RN::ComparisonResult::LessThan, test4->Compare(RNCSTR("World 468 World"), RN::String::ComparisonMode::Numerically));
 	EXPECT_EQ(RN::ComparisonResult::EqualTo, test4->Compare(RNCSTR("World 467 World"), RN::String::ComparisonMode::Numerically));
 }
 
