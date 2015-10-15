@@ -10,6 +10,80 @@
 
 // ---------------------
 // MARK: -
+// MARK: Mutation
+// ---------------------
+
+class StringMutationTests : public KernelFixture
+{};
+
+TEST_F(StringMutationTests, Append)
+{
+	RN::String *test1 = RNSTR("Hello");
+	ASSERT_TRUE(test1);
+
+	EXPECT_STREQ("Hello", test1->GetUTF8String());
+
+	test1->Append(RNCSTR(" World"));
+	EXPECT_STREQ("Hello World", test1->GetUTF8String());
+
+	test1->Append(" Test1");
+	EXPECT_STREQ("Hello World Test1", test1->GetUTF8String());
+
+	test1->Append(RNSTR(" Test2"));
+	EXPECT_STREQ("Hello World Test1 Test2", test1->GetUTF8String());
+}
+
+TEST_F(StringMutationTests, Insert)
+{
+	RN::String *test1 = RNSTR("Hello x World");
+	ASSERT_TRUE(test1);
+
+	test1->Insert(RNCSTR("X"), 6);
+	test1->Insert(RNCSTR("X"), 8);
+
+	EXPECT_STREQ("Hello XxX World", test1->GetUTF8String());
+
+	test1->Insert(RNCSTR("Foo "), 0);
+	EXPECT_STREQ("Foo Hello XxX World", test1->GetUTF8String());
+
+	test1->Insert(RNCSTR(" Foo"), test1->GetLength());
+	EXPECT_STREQ("Foo Hello XxX World Foo", test1->GetUTF8String());
+}
+
+TEST_F(StringMutationTests, DeleteCharacters)
+{
+	RN::String *test1 = RNSTR("Hello x World");
+	ASSERT_TRUE(test1);
+
+	EXPECT_STREQ("Hello x World", test1->GetUTF8String());
+
+	test1->DeleteCharacters(RN::Range(6, 2));
+	EXPECT_STREQ("Hello World", test1->GetUTF8String());
+
+	test1->DeleteCharacters(RN::Range(0, 2));
+	EXPECT_STREQ("llo World", test1->GetUTF8String());
+
+	test1->DeleteCharacters(RN::Range(test1->GetLength() - 3, 3));
+	EXPECT_STREQ("llo Wo", test1->GetUTF8String());
+}
+
+TEST_F(StringMutationTests, ReplaceCharacters)
+{
+	RN::String *test1 = RNSTR("Hello x World");
+	ASSERT_TRUE(test1);
+
+	test1->ReplaceCharacters(RNCSTR("Lovely"), RN::Range(6, 1));
+	EXPECT_STREQ("Hello Lovely World", test1->GetUTF8String());
+
+	test1->ReplaceCharacters(RNCSTR("Hi"), RN::Range(0, 5));
+	EXPECT_STREQ("Hi Lovely World", test1->GetUTF8String());
+
+	test1->ReplaceCharacters(RNCSTR("Trouble"), RN::Range(10, 5));
+	EXPECT_STREQ("Hi Lovely Trouble", test1->GetUTF8String());
+}
+
+// ---------------------
+// MARK: -
 // MARK: Comparison
 // ---------------------
 
