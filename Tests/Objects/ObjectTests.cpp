@@ -26,7 +26,7 @@ public:
 		_results(results)
 	{}
 
-	~ObjectTests() override
+	~TestObject() override
 	{
 		_results.isDeallocated = true;
 	}
@@ -44,7 +44,7 @@ private:
 
 RNDefineMeta(TestObject, RN::Object)
 
-class TestObjectDes : public ObjectTests
+class TestObjectDes : public TestObject
 {
 public:
 	TestObjectDes(TestObjectResults &results) :
@@ -68,7 +68,7 @@ TEST_F(LifeCycleTest, AllocationDeallocation)
 {
 	TestObjectResults results;
 
-	ObjectTests *object = new TestObject(results);
+	TestObject *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	object->Retain();
@@ -91,7 +91,7 @@ TEST_F(LifeCycleTest, Autorelease)
 {
 	TestObjectResults results;
 
-	ObjectTests *object = new TestObject(results);
+	TestObject *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	{
@@ -119,13 +119,13 @@ TEST_F(EqualityTests, Equality)
 {
 	TestObjectResults results;
 
-	ObjectTests *object = new TestObject(results);
+	TestObject *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_FALSE(object->IsEqual(nullptr));
 	EXPECT_TRUE(object->IsEqual(object));
 
-	ObjectTests *other = new TestObject(results);
+	TestObject *other = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_FALSE(object->IsEqual(other));
@@ -138,12 +138,12 @@ TEST_F(EqualityTests, Hash)
 {
 	TestObjectResults results;
 
-	ObjectTests *object = new TestObject(results);
+	TestObject *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_EQ(object->GetHash(), object->GetHash()); // Subsequent calls to get hash must return the same value
 
-	ObjectTests *other = new ObjectTests(results);
+	TestObject *other = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_NE(object->GetHash(), other->GetHash());
@@ -156,11 +156,11 @@ TEST_F(EqualityTests, Class)
 {
 	TestObjectResults results;
 
-	ObjectTests *object = new TestObject(results);
+	TestObject *object = new TestObject(results);
 	ASSERT_TRUE(object);
 
 	EXPECT_TRUE(object->IsKindOfClass(RN::Object::GetMetaClass()));
-	EXPECT_TRUE(object->IsKindOfClass(ObjectTests::GetMetaClass()));
+	EXPECT_TRUE(object->IsKindOfClass(TestObject::GetMetaClass()));
 
 	EXPECT_FALSE(object->IsKindOfClass(RN::String::GetMetaClass()));
 	EXPECT_FALSE(object->IsKindOfClass(TestObjectDes::GetMetaClass()));
