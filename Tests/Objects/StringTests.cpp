@@ -57,6 +57,12 @@ TEST_F(StringComparisonTests, Compare)
 	EXPECT_EQ(RN::ComparisonResult::EqualTo, test1->Compare(RNCSTR("X"), RN::String::ComparisonMode::CaseInsensitive, RN::Range(6, 1)));
 	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test1->Compare(RNCSTR("X"), 0, RN::Range(6, 1)));
 	EXPECT_EQ(RN::ComparisonResult::EqualTo, test1->Compare(RNCSTR("World x World")));
+
+	RN::String *test2 = RNCSTR("World");
+	ASSERT_TRUE(test2);
+
+	EXPECT_EQ(RN::ComparisonResult::LessThan, test2->Compare(RNCSTR("World x World")));
+	EXPECT_EQ(RN::ComparisonResult::GreaterThan, test2->Compare(RNCSTR("Hello x World")));
 }
 
 TEST_F(StringComparisonTests, CompareNumerical)
