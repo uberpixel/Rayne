@@ -76,8 +76,16 @@ namespace RN
 
 			_application->WillFinishLaunching(this);
 
-			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-			_renderer = descriptor->CreateAndSetActiveRenderer();
+			if(!_arguments.HasArgument("--headless", 'h'))
+			{
+				MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
+				_renderer = descriptor->CreateAndSetActiveRenderer();
+			}
+			else
+			{
+				_renderer = nullptr;
+			}
+
 		}
 		catch(...)
 		{
@@ -117,8 +125,11 @@ namespace RN
 		Screen::TeardownScreens();
 		WorkQueue::TearDownQueues();
 
-		_renderer->Deactivate();
-		delete _renderer;
+		if(_renderer)
+		{
+			_renderer->Deactivate();
+			delete _renderer;
+		}
 
 		delete _fileManager;
 		delete _sceneCoordinator;
@@ -160,12 +171,15 @@ namespace RN
 			HandleSystemEvents();
 			FinishBootstrap();
 
-			Window *window = _renderer->GetMainWindow();
-			if(!window)
+			if(_renderer)
 			{
-				window = _renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
-				window->SetTitle(_application->GetTitle());
-				window->Show();
+				Window *window = _renderer->GetMainWindow();
+				if(!window)
+				{
+					window = _renderer->CreateWindow(Vector2(1024, 768), Screen::GetMainScreen());
+					window->SetTitle(_application->GetTitle());
+					window->Show();
+				}
 			}
 
 			_delta = 0.0;
@@ -195,9 +209,12 @@ namespace RN
 
 		_sceneCoordinator->Update(_delta);
 
-		_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&]{
-			_sceneCoordinator->Render(_renderer);
-		});
+		if(_renderer)
+		{
+			_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&] {
+				_sceneCoordinator->Render(_renderer);
+			});
+		}
 
 		_application->DidStep(_delta);
 		_lastFrame = now;
