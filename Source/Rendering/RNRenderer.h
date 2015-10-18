@@ -29,12 +29,6 @@
 
 namespace RN
 {
-	struct Uniforms
-	{
-		Matrix modelViewProjectionMatrix;
-		Matrix modelMatrix;
-	};
-
 	struct Drawable
 	{
 		Drawable()

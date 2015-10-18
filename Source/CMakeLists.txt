@@ -322,6 +322,7 @@ set(RAYNE_SOURCES
     Rendering/Metal/RNMetalShaderLibrary.cpp
     Rendering/Metal/RNMetalStateCoordinator.cpp
     Rendering/Metal/RNMetalTexture.cpp
+    Rendering/Metal/RNMetalUniformBuffer.cpp
     Rendering/Metal/RNMetalWindow.cpp
     Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp

@@ -81,7 +81,7 @@ namespace RN
 		return _lastDepthStencilState->state;
 	}
 
-	id<MTLRenderPipelineState> MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const MetalRenderingState &MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
@@ -107,7 +107,7 @@ namespace RN
 
 	}
 
-	id<MTLRenderPipelineState> MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera)
+	const MetalRenderingState &MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera)
 	{
 		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm;
 		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
@@ -116,7 +116,7 @@ namespace RN
 		for(const MetalRenderingState &state : collection.states)
 		{
 			if(state.pixelFormat == pixelFormat && state.depthFormat == depthFormat && state.stencilFormat == stencilFormat)
-				return state.state;
+				return state;
 		}
 
 		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
@@ -134,9 +134,47 @@ namespace RN
 
 		// TODO: Error handling, plox
 
-
-
+		// Create the rendering state
 		MetalRenderingState state;
+
+		state.vertexArguments.reserve([[reflection vertexArguments] count]);
+		state.fragmentArguments.reserve([[reflection fragmentArguments] count]);
+
+		for(MTLArgument *argument in [reflection vertexArguments])
+		{
+			MetalRenderingStateArgument *parsed = nullptr;
+
+			switch([argument type])
+			{
+				case MTLArgumentTypeBuffer:
+					parsed = new MetalRenderingStateUniformBufferArgument(argument);
+					break;
+				default:
+					parsed = new MetalRenderingStateArgument(argument);
+					break;
+			}
+
+			state.vertexArguments.push_back(parsed);
+		}
+
+		for(MTLArgument *argument in [reflection fragmentArguments])
+		{
+			MetalRenderingStateArgument *parsed = nullptr;
+
+			switch([argument type])
+			{
+				case MTLArgumentTypeBuffer:
+					parsed = new MetalRenderingStateUniformBufferArgument(argument);
+					break;
+				default:
+					parsed = new MetalRenderingStateArgument(argument);
+					break;
+			}
+
+			state.fragmentArguments.push_back(parsed);
+		}
+
+
 		state.state = pipelineState;
 		state.pixelFormat = pixelFormat;
 		state.depthFormat = depthFormat;
@@ -144,7 +182,7 @@ namespace RN
 
 		collection.states.push_back(state);
 
-		return pipelineState;
+		return collection.states.back();
 	}
 
 	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)

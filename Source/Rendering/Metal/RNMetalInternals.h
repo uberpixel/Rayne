@@ -12,6 +12,7 @@
 #include "../../Base/RNBase.h"
 #include "../../Base/RNBaseInternal.h"
 #include "RNMetalStateCoordinator.h"
+#include "RNMetalUniformBuffer.h"
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
@@ -36,9 +37,42 @@ namespace RN
 
 	struct MetalDrawable : public Drawable
 	{
-		id<MTLRenderPipelineState> _pipelineState;
-		MetalGPUBuffer *_uniformBuffers[3];
-		size_t _uniformsBufferIndex;
+		~MetalDrawable()
+		{
+			for(MetalUniformBuffer *buffer : _vertexBuffers)
+				delete buffer;
+		}
+
+		void UpdateRenderingState(Renderer *renderer, const MetalRenderingState *state)
+		{
+			if(state == _pipelineState)
+				return;
+
+			_pipelineState = state;
+
+			for(MetalUniformBuffer *buffer : _vertexBuffers)
+				delete buffer;
+
+			_vertexBuffers.clear();
+
+			for(MetalRenderingStateArgument *argument : state->vertexArguments)
+			{
+				switch(argument->type)
+				{
+					case MetalRenderingStateArgument::Type::Buffer:
+					{
+						if(argument->index > 0)
+							_vertexBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
+					}
+
+					default:
+						break;
+				}
+			}
+		}
+
+		const MetalRenderingState *_pipelineState;
+		std::vector<MetalUniformBuffer *> _vertexBuffers;
 		MetalDrawable *_next;
 		MetalDrawable *_prev;
 	};

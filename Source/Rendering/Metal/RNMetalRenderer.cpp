@@ -13,6 +13,7 @@
 #include "RNMetalShaderLibrary.h"
 #include "RNMetalGPUBuffer.h"
 #include "RNMetalTexture.h"
+#include "RNMetalUniformBuffer.h"
 
 #include "RNMetalShaders.metal"
 
@@ -288,10 +289,6 @@ namespace RN
 		drawable->_pipelineState = nullptr;
 		drawable->_next = nullptr;
 		drawable->_prev = nullptr;
-		drawable->_uniformsBufferIndex = 0;
-
-		for(size_t i = 0; i < 3; i ++)
-			drawable->_uniformBuffers[i] = static_cast<MetalGPUBuffer *>(CreateBufferWithLength(sizeof(Uniforms), GPUResource::UsageOptions::ReadWrite));
 
 		return drawable;
 	}
@@ -303,33 +300,38 @@ namespace RN
 		if(drawable->dirty)
 		{
 			_lock.Lock();
-			id<MTLRenderPipelineState> state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
-
-			if(drawable->_pipelineState)
-				[(id<MTLRenderPipelineState>)drawable->_pipelineState release];
-
-			drawable->_pipelineState = [state retain];
+			const MetalRenderingState &state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
 			_lock.Unlock();
 
+			drawable->UpdateRenderingState(this, &state);
 			drawable->dirty = false;
 		}
 
 		// Update uniforms
-		//if(drawable->_uniformsBufferIndex == 0)
 		{
-			drawable->_uniformsBufferIndex = (drawable->_uniformsBufferIndex + 1) % 3;
-			Uniforms *uniforms = static_cast<Uniforms *>(drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->GetBuffer());
+			for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
+			{
+				GPUBuffer *gpuBuffer = uniformBuffer->Advance();
+				uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 
-			uniforms->modelViewProjectionMatrix = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-			uniforms->modelMatrix = drawable->modelMatrix;
+				const MetalUniformBuffer::Member *member;
 
-			/*uniforms->inverseModelMatrix = drawable->uniforms.inverseModelMatrix;
-			uniforms->viewMatrix = _internals->renderPass.viewMatrix;
-			uniforms->inverseViewMatrix = _internals->renderPass.inverseViewMatrix;
-			uniforms->projectionMatrix = _internals->renderPass.projectionMatrix;
-			uniforms->inverseProjectionMatrix = _internals->renderPass.inverseProjectionMatrix;*/
+				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
+				{
+					Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+					Matrix *target = reinterpret_cast<Matrix *>(buffer + member->GetOffset());
 
-			drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->Invalidate();
+					*target = result;
+					//std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+				}
+
+				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
+				{
+					std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
+				}
+
+				gpuBuffer->Invalidate();
+			}
 		}
 
 		// Push into the queue
@@ -356,14 +358,19 @@ namespace RN
 		{
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetVertexBuffer());
 
-			[encoder setRenderPipelineState: drawable->_pipelineState];
+			[encoder setRenderPipelineState: drawable->_pipelineState->state];
 			[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
 			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
 		}
 
 		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
 
-		[encoder setVertexBuffer:(id<MTLBuffer>)drawable->_uniformBuffers[drawable->_uniformsBufferIndex]->_buffer offset:0 atIndex:1];
+		for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
+		{
+			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
+			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+		}
+
 		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
 	}
 }
