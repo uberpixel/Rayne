@@ -10,6 +10,7 @@
 #include "../Debug/RNLogger.h"
 #include "../Threads/RNWorkQueue.h"
 #include "../Threads/RNWorkGroup.h"
+#include "../Objects/RNAutoreleasePool.h"
 
 #define kRNSceneUpdateBatchSize 64
 #define kRNSceneRenderBatchSize 32
@@ -40,6 +41,8 @@ namespace RN
 				{
 					group->Perform(queue, [&, temp] {
 
+						AutoreleasePool pool;
+
 						for(SceneNode *node : temp)
 						{
 							node->Update(delta);
@@ -57,6 +60,8 @@ namespace RN
 			if(temp.size() > 0)
 			{
 				group->Perform(queue, [&, temp] {
+
+					AutoreleasePool pool;
 
 					for(SceneNode *node : temp)
 					{
@@ -102,6 +107,8 @@ namespace RN
 						{
 							group->Perform(queue, [&, temp] {
 
+								AutoreleasePool pool;
+
 								for(SceneNode *node : temp)
 								{
 									if(node->CanRender(renderer, camera))
@@ -120,6 +127,8 @@ namespace RN
 				if(temp.size() > 0)
 				{
 					group->Perform(queue, [&, temp] {
+
+						AutoreleasePool pool;
 
 						for(SceneNode *node : temp)
 						{
