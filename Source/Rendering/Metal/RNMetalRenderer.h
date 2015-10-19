@@ -49,7 +49,7 @@ namespace RN
 		RNAPI void SubmitDrawable(Drawable *drawable) final;
 
 	protected:
-		void RenderDrawable(size_t index, MetalDrawable *drawable);
+		void RenderDrawable(MetalDrawable *drawable);
 
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;

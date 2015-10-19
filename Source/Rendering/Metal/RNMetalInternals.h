@@ -83,6 +83,7 @@ namespace RN
 		Framebuffer *framebuffer;
 		id<MTLCommandBuffer> commandBuffer;
 		id<MTLRenderCommandEncoder> renderCommand;
+		const MetalRenderingState *activeState;
 
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;

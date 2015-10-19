@@ -154,6 +154,7 @@ namespace RN
 		[stencilAttachment setStoreAction:MTLStoreActionDontCare];
 
 		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
+		_internals->renderPass.activeState = nullptr;
 		_internals->renderPass.drawableHead = nullptr;
 
 		[descriptor release];
@@ -169,17 +170,18 @@ namespace RN
 		function();
 
 		// Clean Up
-		size_t i = 0;
 		MetalDrawable *drawable = _internals->renderPass.drawableHead;
 		while(drawable)
 		{
-			RenderDrawable(i ++, drawable);
+			RenderDrawable(drawable);
 			drawable = drawable->_next;
 		}
 
 		[_internals->renderPass.renderCommand endEncoding];
 		[_internals->renderPass.renderCommand release];
 		_internals->renderPass.renderCommand = nil;
+
+		_internals->renderPass.activeState = nullptr;
 	}
 
 	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::UsageOptions options)
@@ -319,10 +321,7 @@ namespace RN
 				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
 				{
 					Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-					Matrix *target = reinterpret_cast<Matrix *>(buffer + member->GetOffset());
-
-					*target = result;
-					//std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+					std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
 				}
 
 				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
@@ -350,17 +349,19 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	void MetalRenderer::RenderDrawable(size_t index, MetalDrawable *drawable)
+	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
 	{
 		id<MTLRenderCommandEncoder> encoder = _internals->renderPass.renderCommand;
 
-		if(index == 0)
+		if(_internals->renderPass.activeState != drawable->_pipelineState)
 		{
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetVertexBuffer());
 
 			[encoder setRenderPipelineState: drawable->_pipelineState->state];
 			[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
 			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
+
+			_internals->renderPass.activeState = drawable->_pipelineState;
 		}
 
 		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
