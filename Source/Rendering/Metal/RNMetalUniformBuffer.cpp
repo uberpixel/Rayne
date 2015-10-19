@@ -56,6 +56,14 @@ namespace RN
 				_members.emplace_back(Feature::InverseViewProjectionMatrix, offset);
 			else if(name->IsEqual(RNCSTR("inverseProjectionMatrix")))
 				_members.emplace_back(Feature::InverseProjectionMatrix, offset);
+			else if(name->IsEqual(RNCSTR("ambientColor")))
+				_members.emplace_back(Feature::AmbientColor, offset);
+			else if(name->IsEqual(RNCSTR("diffuseColor")))
+				_members.emplace_back(Feature::DiffuseColor, offset);
+			else if(name->IsEqual(RNCSTR("specularColor")))
+				_members.emplace_back(Feature::SpecularColor, offset);
+			else if(name->IsEqual(RNCSTR("emissiveColor")))
+				_members.emplace_back(Feature::EmissiveColor, offset);
 			else
 				_members.emplace_back(name, offset);
 

@@ -54,14 +54,24 @@ namespace RN
 		RNAPI Material(const MaterialDescriptor &descriptor);
 		RNAPI ~Material() override;
 
+		RNAPI void SetDepthWriteEnabled(bool depthWrite);
+		RNAPI void SetDepthMode(DepthMode mode);
+
+		RNAPI void SetAmbientColor(const Color &color);
+		RNAPI void SetDiffuseColor(const Color &color);
+		RNAPI void SetSpecularColor(const Color &color);
+		RNAPI void SetEmissiveColor(const Color &color);
+
 		Shader *GetFragmentShader() const { return _fragmentShader; }
 		Shader *GetVertexShader() const { return _vertexShader; }
 
 		DepthMode GetDepthMode() const { return _depthMode; }
 		bool GetDepthWriteEnabled() const { return _depthWriteEnabled; }
 
-		void SetDepthWriteEnabled(bool depthWrite);
-		void SetDepthMode(DepthMode mode);
+		const Color &GetAmbientColor() const { return _ambientColor; }
+		const Color &GetDiffuseColor() const { return _diffuseColor; }
+		const Color &GetSpecularColor() const { return _specularColor; }
+		const Color &GetEmissiveColor() const { return _emissiveColor; }
 
 	private:
 		Shader *_fragmentShader;
@@ -69,6 +79,11 @@ namespace RN
 
 		DepthMode _depthMode;
 		bool _depthWriteEnabled;
+
+		Color _ambientColor;
+		Color _diffuseColor;
+		Color _specularColor;
+		Color _emissiveColor;
 
 		RNDeclareMeta(Material)
 	};

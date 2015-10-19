@@ -33,13 +33,17 @@ namespace RN
 				   ModelViewProjectionMatrix = (1 << 3),
 				   ViewMatrix = (1 << 4),
 				   ViewProjectionMatrix = (1 << 5),
-				   ProjectionMatrix = (1 << 11),
-				   InverseModelMatrix = (1 << 6),
-				   InverseModelViewMatrix = (1 << 7),
-				   InverseModelViewProjectionMatrix = (1 << 8),
-				   InverseViewMatrix = (1 << 9),
-				   InverseViewProjectionMatrix = (1 << 10),
-				   InverseProjectionMatrix = (1 << 12));
+				   ProjectionMatrix = (1 << 6),
+				   InverseModelMatrix = (1 << 7),
+				   InverseModelViewMatrix = (1 << 8),
+				   InverseModelViewProjectionMatrix = (1 << 9),
+				   InverseViewMatrix = (1 << 10),
+				   InverseViewProjectionMatrix = (1 << 11),
+				   InverseProjectionMatrix = (1 << 12),
+				   AmbientColor = (1 << 13),
+				   DiffuseColor = (1 << 14),
+				   SpecularColor = (1 << 15),
+				   EmissiveColor = (1 << 16));
 
 		class Member
 		{
