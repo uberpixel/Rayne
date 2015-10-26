@@ -3,3 +3,5 @@ project(Rayne-Vendor)
 
 add_subdirectory("jansson")
 add_subdirectory("gtest")
+add_subdirectory("libpng")
+add_subdirectory("zlib")

@@ -35,6 +35,19 @@ check_boost_include(detail)
 check_boost_include(utility)
 check_boost_include(lockfree)
 
+# CMake policies
+if(POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD) # Allow reading LOCATION
+endif()
+
+if(APPLE)
+
+    if(POLICY CMP0042)
+        cmake_policy(SET CMP0042 NEW) # Set MACOSX_RPATH=YES by default
+    endif()
+
+endif()
+
 # Include all Rayne targets
 add_subdirectory("Source")
 add_subdirectory("Tests")

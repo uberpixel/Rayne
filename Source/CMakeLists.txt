@@ -453,6 +453,9 @@ set(LINK_LIBRARIES "")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
 include_directories("${jansson_BINARY_DIR}/include")
+include_directories("${libpng_SOURCE_DIR}")
+include_directories("${libpng_BINARY_DIR}")
+include_directories("${zlib_SOURCE_DIR}")
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${VENDOR_BOOST_DIR}/assert/include)
 include_directories(${VENDOR_BOOST_DIR}/static_assert/include)
@@ -479,9 +482,11 @@ if(APPLE)
 
     set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
-    set(CMAKE_OSX_SYSROOT /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY} jansson)
+    set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY})
 endif()
+
+set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png16_static zlibstatic)
 
 if(NOT APPLE)
     set(BUILD_32Bit YES)
