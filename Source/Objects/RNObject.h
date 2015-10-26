@@ -278,6 +278,12 @@ namespace RN
 	{
 		return object ? static_cast<T *>(object->Retain()) : nullptr;
 	}
+
+	template<class T>
+	static T *SafeCopy(const T *object)
+	{
+		return object ? static_cast<T *>(object->Copy()) : nullptr;
+	}
 	
 	// ---------------------
 	// MARK: -
