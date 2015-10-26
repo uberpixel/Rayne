@@ -17,6 +17,10 @@
 #include "Base/RNUnicode.h"
 #include "Base/RNMemoryPool.h"
 
+#include "Assets/RNAsset.h"
+#include "Assets/RNAssetCoordinator.h"
+#include "Assets/RNAssetLoader.h"
+
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"
 #include "Data/RNRingBuffer.h"
@@ -67,7 +71,7 @@
 #include "Scene/RNSceneCoordinator.h"
 #include "Scene/RNSceneNode.h"
 
-#include "System/RNFileManager.h"
+#include "System/RNFileCoordinator.h"
 #include "System/RNScreen.h"
 
 #include "Threads/RNThread.h"

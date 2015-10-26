@@ -16,7 +16,7 @@
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
-#include "../System/RNFileManager.h"
+#include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Scene/RNSceneCoordinator.h"
 #include "../Threads/RNThread.h"
@@ -68,7 +68,7 @@ namespace RN
 		const ArgumentParser &_arguments;
 
 		Application *_application;
-		FileManager *_fileManager;
+		FileCoordinator *_fileManager;
 		Dictionary *_manifest;
 		Settings *_settings;
 		Logger *_logger;

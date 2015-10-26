@@ -1,13 +1,13 @@
 //
-//  RNFileManager.h
+//  RNFileCoordinator.h
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_FILEMANAGER_H__
-#define __RAYNE_FILEMANAGER_H__
+#ifndef __RAYNE_FILECOORDINATOR_H__
+#define __RAYNE_FILECOORDINATOR_H__
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNString.h"
@@ -17,7 +17,7 @@
 namespace RN
 {
 	class Kernel;
-	class FileManager
+	class FileCoordinator
 	{
 	public:
 		friend class Kernel;
@@ -31,7 +31,7 @@ namespace RN
 				Directory
 			};
 
-			friend class FileManager;
+			friend class FileCoordinator;
 
 			Type GetType() const { return _type; }
 			Node *GetParent() const { return _parent; }
@@ -58,7 +58,7 @@ namespace RN
 		class Directory : public Node
 		{
 		public:
-			friend class FileManager;
+			friend class FileCoordinator;
 
 			RNAPI Node *GetChildWithName(const String *name) const;
 			const Array *GetChildren() const { return _children; }
@@ -99,7 +99,7 @@ namespace RN
 			SaveDirectory
 		};
 
-		RNAPI static FileManager *GetSharedInstance();
+		RNAPI static FileCoordinator *GetSharedInstance();
 
 		RNAPI Node *ResolvePath(const String *path, ResolveHint hint);
 		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint);
@@ -113,8 +113,8 @@ namespace RN
 		RNAPI bool PathExists(const String *path, bool &isDirectory);
 
 	private:
-		FileManager();
-		~FileManager();
+		FileCoordinator();
+		~FileCoordinator();
 
 		String *__ExpandPath(const String *path);
 		void __PrepareWithManifest();
@@ -124,4 +124,4 @@ namespace RN
 	};
 }
 
-#endif /* __RAYNE_FILEMANAGER_H__ */
+#endif /* __RAYNE_FILECOORDINATOR_H__ */

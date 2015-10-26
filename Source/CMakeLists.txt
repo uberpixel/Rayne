@@ -339,7 +339,7 @@ set(RAYNE_SOURCES
     Scene/RNScene.cpp
     Scene/RNSceneCoordinator.cpp
     Scene/RNSceneNode.cpp
-    System/RNFileManager.cpp
+    System/RNFileCoordinator.cpp
     System/RNScreen.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
@@ -350,6 +350,9 @@ set(RAYNE_SOURCES
 
 set(RAYNE_HEADERS
     Rayne.h
+    Assets/RNAsset.h
+    Assets/RNAssetCoordinator.h
+    Assets/RNAssetLoader.h
     Base/RNApplication.h
     Base/RNArgumentParser.h
     Base/RNBase.h
@@ -426,7 +429,7 @@ set(RAYNE_HEADERS
     Scene/RNScene.h
     Scene/RNSceneCoordinator.h
     Scene/RNSceneNode.h
-    System/RNFileManager.h
+    System/RNFileCoordinator.h
     System/RNScreen.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
@@ -521,10 +524,6 @@ function(createTarget arg1 arg2 arg3)
 
     # Apply settings
     if(APPLE)
-
-        if(POLICY CMP0042)
-            cmake_policy(SET CMP0042 NEW) # Set MACOSX_RPATH=YES by default
-        endif()
 
         set(CMAKE_OSX_ARCHITECTURES x86_64)
 
