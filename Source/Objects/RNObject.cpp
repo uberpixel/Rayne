@@ -51,7 +51,7 @@ namespace RN
 	void Object::InitialWakeUp(MetaClass *meta)
 	{}
 	
-	void Object::CleanUp()
+	void Object::Dealloc()
 	{}
 
 	const String *Object::GetDescription() const
@@ -89,7 +89,7 @@ namespace RN
 			// Catch up with all changes from all other threads thad had access to the object
 			std::atomic_thread_fence(std::memory_order_acquire);
 
-			CleanUp();
+			Dealloc();
 			delete this;
 		}
 	}

@@ -23,9 +23,6 @@ namespace RN
 	class Object
 	{
 	public:
-		RNAPI Object();
-		RNAPI virtual ~Object();
-		
 		RNAPI Object *Retain();
 		RNAPI void Release();
 		RNAPI Object *Autorelease();
@@ -125,7 +122,9 @@ namespace RN
 		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClass *meta);
 		
 	protected:
-		RNAPI virtual void CleanUp();
+		RNAPI Object();
+		RNAPI virtual ~Object();
+		RNAPI virtual void Dealloc();
 		
 		RNAPI void AddObservable(ObservableProperty *property);
 		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
@@ -144,7 +143,7 @@ namespace RN
 				MetaClass(0, "Object", RN_FUNCTION_SIGNATURE)
 			{}
 		};
-		
+
 		void __RemoveAssociatedObject(const void *key);
 		
 		RNAPI Object *ResolveKeyPath(const std::string &path, std::string &key);

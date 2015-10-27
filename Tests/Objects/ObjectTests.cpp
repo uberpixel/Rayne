@@ -30,7 +30,7 @@ public:
 		_results.isDeallocated = true;
 	}
 
-	void CleanUp() override
+	void Dealloc() override
 	{
 		_results.hasReachedWillDealloc = true;
 	}

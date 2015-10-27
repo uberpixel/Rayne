@@ -14,7 +14,6 @@
 
 namespace RN
 {
-	class Kernel;
 	class Application
 	{
 	public:
