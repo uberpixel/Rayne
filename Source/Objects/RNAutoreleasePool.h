@@ -20,6 +20,8 @@ namespace RN
 	public:
 		RNAPI AutoreleasePool();
 		RNAPI ~AutoreleasePool();
+
+		RNAPI static void PerformBlock(Function &&function);
 		
 		RNAPI void AddObject(Object *object);
 		RNAPI void Drain();

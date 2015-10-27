@@ -43,7 +43,14 @@ namespace RN
 		Drain();
 		_localPools.SetValue(_parent);
 	}
-	
+
+	void AutoreleasePool::PerformBlock(Function &&function)
+	{
+		AutoreleasePool pool;
+		function();
+		pool.Drain();
+	}
+
 	void AutoreleasePool::AddObject(Object *object)
 	{
 #if RNDebugAutoreleasePools

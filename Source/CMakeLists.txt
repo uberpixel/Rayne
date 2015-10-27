@@ -236,7 +236,7 @@ if(WIN32)
     set(RAYNE_RNAPI_EXPORT "__declspec(dllexport)")
     set(RAYNE_RNAPI_IMPORT "__declspec(dllimport)")
 else()
-    set(RAYNE_RNAPI_EXPORT "__attribute__((visibility(\"default\")))")
+    set(RAYNE_RNAPI_EXPORT "")
     set(RAYNE_RNAPI_IMPORT "")
 endif()
 
