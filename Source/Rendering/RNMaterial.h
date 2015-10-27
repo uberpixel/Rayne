@@ -21,13 +21,13 @@ namespace RN
 	class MaterialDescriptor
 	{
 	public:
-		MaterialDescriptor();
-		~MaterialDescriptor();
+		RNAPI MaterialDescriptor();
+		RNAPI ~MaterialDescriptor();
 
-		void AddTexture(Texture *texture);
-		void RemoveAllTextures();
+		RNAPI void AddTexture(Texture *texture);
+		RNAPI void RemoveAllTextures();
 
-		const Array *GetTextures() const;
+		RNAPI const Array *GetTextures() const;
 
 		Shader *fragmentShader;
 		Shader *vertexShader;
