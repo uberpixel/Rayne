@@ -29,7 +29,7 @@ namespace RN
 			const String *GetName() const { return _name; }
 			PrimitiveType GetType() const { return _type; }
 
-			const String *GetDescription() const override { return RNSTR("<ShaderAttribute: name: %s, type: %d>", _name->GetUTF8String(), static_cast<int>(_type)); }
+			const String *GetDescription() const override { return RNSTR("<ShaderAttribute: name: " << _name << ", type: " << (int)_type << ">"); }
 
 		protected:
 			RNAPI Attribute(const String *name, PrimitiveType type);

@@ -123,6 +123,40 @@ namespace RN
 		RNDeclareMeta(String)
 	};
 
+	class StringBuilder
+	{
+	public:
+		StringBuilder()
+		{}
+
+		String *Build() const
+		{
+			std::string string = _stream.str();
+			return String::WithString(string.c_str(), false);
+		}
+
+		StringBuilder &operator << (const Object *object) { _stream << object->GetDescription()->GetUTF8String(); return *this; }
+		StringBuilder &operator << (const Exception &e) { _stream << e.GetReason(); return *this; }
+		StringBuilder &operator << (const std::string &val) { _stream << val; return *this; }
+		StringBuilder &operator << (const char *val) { _stream << val; return *this; }
+		StringBuilder &operator << (bool val) { _stream << val; return *this; }
+		StringBuilder &operator << (short val) { _stream << val; return *this; }
+		StringBuilder &operator << (unsigned short val) { _stream << val; return *this; }
+		StringBuilder &operator << (int val) { _stream << val; return *this; }
+		StringBuilder &operator << (unsigned int val) { _stream << val; return *this; }
+		StringBuilder &operator << (long val) { _stream << val; return *this; }
+		StringBuilder &operator << (unsigned long val) { _stream << val; return *this; }
+		StringBuilder &operator << (long long val) { _stream << val; return *this; }
+		StringBuilder &operator << (unsigned long long val) { _stream << val; return *this; }
+		StringBuilder &operator << (const void *val) { _stream << val; return *this; }
+		StringBuilder &operator << (std::ostream &(*pf)(std::ostream &)) { _stream << pf; return *this; }
+		StringBuilder &operator << (std::ios &(*pf)(std::ios &)) { _stream << pf; return *this; };
+		StringBuilder &operator << (std::ios_base &(*pf)(std::ios_base &)) { _stream << pf; return *this; }
+
+	private:
+		std::stringstream _stream;
+	};
+
 	template<class T, size_t N>
 	String *__MakeConstantString(T (&cstr)[N])
 	{
@@ -130,7 +164,8 @@ namespace RN
 	}
 }
 
-#define RNSTR(...)  RN::String::WithFormat(__VA_ARGS__)
+#define RNSTR(...) (RN::StringBuilder{} << __VA_ARGS__).Build()
+#define RNSTRF(...)  RN::String::WithFormat(__VA_ARGS__)
 #define RNCSTR(cstr) RN::__MakeConstantString(cstr)
 
 #define RNUTF8STR(str)  RN::String::WithBytes(str, RN::Encoding::UTF8)

@@ -52,29 +52,29 @@ namespace RN
 			case TypeTranslator<Vector2>::value:
 			{
 				Vector2 value(GetValue<Vector2>());
-				return RNSTR("<Vector2(%f, %f)>", value.x, value.y);
+				return RNSTRF("<Vector2(%f, %f)>", value.x, value.y);
 			}
 			case TypeTranslator<Vector3>::value:
 			{
 				Vector3 value(GetValue<Vector3>());
-				return RNSTR("<Vector3(%f, %f)>", value.x, value.y, value.z);
+				return RNSTRF("<Vector3(%f, %f)>", value.x, value.y, value.z);
 			}
 			case TypeTranslator<Vector4>::value:
 			{
 				Vector4 value(GetValue<Vector4>());
-				return RNSTR("<Vector4(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
+				return RNSTRF("<Vector4(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
 			}
 
 			case TypeTranslator<Color>::value:
 			{
 				Color value(GetValue<Color>());
-				return RNSTR("<Color(%f, %f, %f, %f)>", value.r, value.g, value.b, value.a);
+				return RNSTRF("<Color(%f, %f, %f, %f)>", value.r, value.g, value.b, value.a);
 			}
 
 			case TypeTranslator<Matrix>::value:
 			{
 				Matrix value(GetValue<Matrix>());
-				return RNSTR("<Matrix(\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f)>",
+				return RNSTRF("<Matrix(\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f\n\t%f, %f, %f, %f)>",
 							 value.m[0], value.m[1], value.m[2], value.m[3],
 							 value.m[4], value.m[5], value.m[6], value.m[7],
 							 value.m[8], value.m[9], value.m[10], value.m[11],
@@ -83,14 +83,14 @@ namespace RN
 			case TypeTranslator<Quaternion>::value:
 			{
 				Quaternion value(GetValue<Quaternion>());
-				return RNSTR("<Quaternion(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
+				return RNSTRF("<Quaternion(%f, %f, %f, %f)>", value.x, value.y, value.z, value.w);
 			}
 
 			default:
 				break;
 		}
 
-		return RNSTR("<Value: type: %c, size: %d, alignment: %d>", _type, (int)_size, (int)_alignment);
+		return RNSTRF("<Value: type: %c, size: %d, alignment: %d>", _type, (int)_size, (int)_alignment);
 	}
 	
 	
