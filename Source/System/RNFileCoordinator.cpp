@@ -228,49 +228,48 @@ namespace RN
 		if(RN_EXPECT_FALSE(componentCount == 0))
 			return nullptr;
 
+		std::lock_guard<std::mutex> lock(_lock);
 
-			std::lock_guard<std::mutex> lock(_lock);
+		Node *result = nullptr;
 
-			Node *result = nullptr;
+		_nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
 
-			_nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
+			Directory *node = directory;
 
-				Directory *node = directory;
+			for(size_t i = 0; i < componentCount; i++)
+			{
+				String *component = components->GetObjectAtIndex<String>(i);
+				Node *subnode = node->GetChildWithName(component);
 
-				for(size_t i = 0; i < componentCount; i++)
+				bool lastNode = (i == componentCount - 1);
+
+				if(!subnode)
 				{
-					String *component = components->GetObjectAtIndex<String>(i);
-					Node *subnode = node->GetChildWithName(component);
+					if(lastNode && (hint & ResolveHint::CreateNode))
+						result = node;
 
-					bool lastNode = (i == componentCount - 1);
-
-					if(!subnode)
-					{
-						if(lastNode && (hint & ResolveHint::CreateNode))
-							result = node;
-
-						break;
-					}
-
-					if(lastNode)
-					{
-						result = subnode;
-						break;
-					}
-
-					if(subnode->GetType() == Node::Type::File)
-						break;
-
-					node = static_cast<Directory *>(subnode);
+					break;
 				}
 
-				if(result)
-					stop = true;
+				if(lastNode)
+				{
+					result = subnode;
+					break;
+				}
 
-			});
+				if(subnode->GetType() == Node::Type::File)
+					break;
+
+				node = static_cast<Directory *>(subnode);
+			}
 
 			if(result)
-				return result->Retain()->Autorelease();
+				stop = true;
+
+		});
+
+		if(result)
+			return result->Retain()->Autorelease();
 
 		return nullptr;
 	}
