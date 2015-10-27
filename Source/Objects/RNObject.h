@@ -223,16 +223,16 @@ namespace RN
 		std::conditional<std::is_default_constructible<scope::cls>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCronstructable<scope::cls>, RN::__MetaClassTraitNull0<scope::cls>>::type, \
 		std::conditional<std::is_constructible<scope::cls, RN::Deserializer *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitSerializable<scope::cls>, RN::__MetaClassTraitNull1<scope::cls>>::type, \
 		std::conditional<std::is_constructible<scope::cls, const scope::cls *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCopyable<scope::cls>, RN::__MetaClassTraitNull2<scope::cls>>::type) \
-	void *__kRN##cls##__metaClass = nullptr; \
+	void *__kRN##scope##cls##__metaClass = nullptr; \
 	RN::MetaClass *scope::cls::GetClass() const \
 	{ \
 		return cls::GetMetaClass(); \
 	} \
 	RN::MetaClass *scope::cls::GetMetaClass() \
 	{ \
-		if(!__kRN##cls##__metaClass) \
-			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
-		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
+		if(!__kRN##scope##cls##__metaClass) \
+			__kRN##scope##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##scope##cls##__metaClass); \
 	} \
 	RN_REGISTER_INITIALIZER(cls##Init, scope::cls::GetMetaClass(); scope::cls::InitialWakeUp(scope::cls::GetMetaClass()))
 	
