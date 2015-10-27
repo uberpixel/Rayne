@@ -220,7 +220,7 @@ namespace RN
 		return path;
 	}
 
-	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint)
+	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		Array *components = path->GetPathComponents();
 		size_t componentCount = components->GetCount();
@@ -228,53 +228,54 @@ namespace RN
 		if(RN_EXPECT_FALSE(componentCount == 0))
 			return nullptr;
 
-		std::lock_guard<std::mutex> lock(_lock);
 
-		Node *result = nullptr;
+			std::lock_guard<std::mutex> lock(_lock);
 
-		_nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
+			Node *result = nullptr;
 
-			Directory *node = directory;
+			_nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
 
-			for(size_t i = 0; i < componentCount; i ++)
-			{
-				String *component = components->GetObjectAtIndex<String>(i);
-				Node *subnode = node->GetChildWithName(component);
+				Directory *node = directory;
 
-				bool lastNode = (i == componentCount - 1);
-
-				if(!subnode)
+				for(size_t i = 0; i < componentCount; i++)
 				{
-					if(lastNode && (hint & ResolveHint::CreateNode))
-						result = node;
+					String *component = components->GetObjectAtIndex<String>(i);
+					Node *subnode = node->GetChildWithName(component);
 
-					break;
+					bool lastNode = (i == componentCount - 1);
+
+					if(!subnode)
+					{
+						if(lastNode && (hint & ResolveHint::CreateNode))
+							result = node;
+
+						break;
+					}
+
+					if(lastNode)
+					{
+						result = subnode;
+						break;
+					}
+
+					if(subnode->GetType() == Node::Type::File)
+						break;
+
+					node = static_cast<Directory *>(subnode);
 				}
 
-				if(lastNode)
-				{
-					result = subnode;
-					break;
-				}
+				if(result)
+					stop = true;
 
-				if(subnode->GetType() == Node::Type::File)
-					break;
-
-				node = static_cast<Directory *>(subnode);
-			}
+			});
 
 			if(result)
-				stop = true;
-
-		});
-
-		if(result)
-			return result->Retain()->Autorelease();
+				return result->Retain()->Autorelease();
 
 		return nullptr;
 	}
 
-	String *FileCoordinator::ResolveFullPath(const String *path, ResolveHint hint)
+	String *FileCoordinator::ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		Node *result = ResolvePath(path, hint);
 		if(result)

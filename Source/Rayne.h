@@ -71,6 +71,7 @@
 #include "Scene/RNSceneCoordinator.h"
 #include "Scene/RNSceneNode.h"
 
+#include "System/RNFile.h"
 #include "System/RNFileCoordinator.h"
 #include "System/RNScreen.h"
 

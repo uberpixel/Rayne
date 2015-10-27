@@ -339,6 +339,7 @@ set(RAYNE_SOURCES
     Scene/RNScene.cpp
     Scene/RNSceneCoordinator.cpp
     Scene/RNSceneNode.cpp
+    System/RNFile.cpp
     System/RNFileCoordinator.cpp
     System/RNScreen.cpp
     Threads/RNThread.cpp
@@ -429,6 +430,7 @@ set(RAYNE_HEADERS
     Scene/RNScene.h
     Scene/RNSceneCoordinator.h
     Scene/RNSceneNode.h
+    System/RNFile.h
     System/RNFileCoordinator.h
     System/RNScreen.h
     Threads/RNRunLoop.h

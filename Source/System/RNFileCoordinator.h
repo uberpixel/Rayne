@@ -101,8 +101,8 @@ namespace RN
 
 		RNAPI static FileCoordinator *GetSharedInstance();
 
-		RNAPI Node *ResolvePath(const String *path, ResolveHint hint);
-		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint);
+		RNAPI Node *ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT;
+		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT;
 
 		RNAPI String *GetPathForLocation(Location location) const;
 
