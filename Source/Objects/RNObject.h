@@ -171,10 +171,10 @@ namespace RN
 			{} \
 		};
 #define __RNDeclareScopedMetaPrivateWithTraits(scope, cls, super, ...) \
-		class cls##MetaType : public RN::__ConcreteMetaClass<scope::cls, __VA_ARGS__> \
+		class scope##cls##MetaType : public RN::__ConcreteMetaClass<scope::cls, __VA_ARGS__> \
 		{ \
 		public: \
-			cls##MetaType(const char *signature) : \
+			scope##cls##MetaType(const char *signature) : \
 				MetaClass(super::GetMetaClass(), #cls, signature) \
 			{} \
 		};
@@ -225,13 +225,13 @@ namespace RN
 	void *__kRN##scope##cls##__metaClass = nullptr; \
 	RN::MetaClass *scope::cls::GetClass() const \
 	{ \
-		return cls::GetMetaClass(); \
+		return scope::cls::GetMetaClass(); \
 	} \
 	RN::MetaClass *scope::cls::GetMetaClass() \
 	{ \
 		if(!__kRN##scope##cls##__metaClass) \
-			__kRN##scope##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
-		return reinterpret_cast<cls##MetaType *>(__kRN##scope##cls##__metaClass); \
+			__kRN##scope##cls##__metaClass = new scope##cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<scope##cls##MetaType *>(__kRN##scope##cls##__metaClass); \
 	} \
 	RN_REGISTER_INITIALIZER(cls##Init, scope::cls::GetMetaClass(); scope::cls::InitialWakeUp(scope::cls::GetMetaClass()))
 	
