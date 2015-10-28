@@ -123,6 +123,8 @@ namespace RN
 		RNDeclareMeta(String)
 	};
 
+	RNObjectClass(String)
+
 	class StringBuilder
 	{
 	public:

@@ -292,6 +292,9 @@ set(RAYNE_SOURCES
     Base/RNMemoryPool.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
+    Assets/RNAsset.cpp
+    Assets/RNAssetCoordinator.cpp
+    Assets/RNAssetLoader.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
     Math/RNMath.cpp

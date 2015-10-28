@@ -62,6 +62,7 @@ namespace RN
 		
 		bool IsValid() const { _acknowledged = true; return !_exception; }
 		T Get() const { if(!IsValid()) { std::rethrow_exception(_exception); } return _result; }
+		std::exception_ptr GetException() const { return _exception; }
 		void Suppress() { _acknowledged = true; }
 		
 	private:
@@ -107,6 +108,7 @@ namespace RN
 		
 		bool IsValid() const { _acknowledged = true; return !_exception; }
 		void Get() const { if(!IsValid()) { std::rethrow_exception(_exception); } }
+		std::exception_ptr GetException() const { return _exception; }
 		void Suppress() { _acknowledged = true; }
 		
 	private:

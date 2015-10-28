@@ -12,6 +12,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Data/RNRingbuffer.h"
+#include "../Data/RNRRef.h"
 #include "RNWorkSource.h"
 #include "RNThread.h"
 
@@ -45,6 +46,26 @@ namespace RN
 		RNAPI void PerformBarrier(Function &&function);
 		RNAPI void PerformSynchronous(Function &&function);
 		RNAPI void PerformSynchronousBarrier(Function &&function);
+
+		template<class F>
+		std::future<typename std::result_of<F()>::type> PerformWithFuture(F &&f)
+		{
+			typedef typename std::result_of<F()>::type resultType;
+
+			std::packaged_task<resultType ()> task(std::move(f));
+			std::future<resultType> result(task.get_future());
+
+			auto rref = MakeRRef(std::move(task));
+
+			Perform([rref]() mutable {
+
+				std::packaged_task<resultType ()> task(std::move(rref.Move()));
+				task();
+
+			});
+
+			return result;
+		}
 
 		RNAPI void Suspend();
 		RNAPI void Resume();

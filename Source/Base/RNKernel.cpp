@@ -72,6 +72,7 @@ namespace RN
 			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
 			_logger->__LoadDefaultLoggers();
 
+			_assetCoordinator = new AssetCoordinator();
 			_sceneCoordinator = new SceneCoordinator();
 
 			_application->WillFinishLaunching(this);
@@ -132,6 +133,7 @@ namespace RN
 		}
 
 		delete _fileManager;
+		delete _assetCoordinator;
 		delete _sceneCoordinator;
 
 		_logger->Flush();

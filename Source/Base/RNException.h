@@ -53,6 +53,7 @@ namespace RN
 	RNExceptionType(Downcast)
 	RNExceptionType(Inconsistency)
 	RNExceptionType(InvalidCall)
+	RNExceptionType(NotImplemented)
 }
 
 

@@ -16,6 +16,7 @@
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
+#include "../Assets/RNAssetCoordinator.h"
 #include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Scene/RNSceneCoordinator.h"
@@ -74,6 +75,7 @@ namespace RN
 		Logger *_logger;
 		Renderer *_renderer;
 		SceneCoordinator *_sceneCoordinator;
+		AssetCoordinator *_assetCoordinator;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;
