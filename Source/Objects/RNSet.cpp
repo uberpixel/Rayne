@@ -82,8 +82,25 @@ namespace RN
 	
 	Set::~Set()
 	{}
-	
-	
+
+
+
+	Set *Set::WithArray(const Array *other)
+	{
+		Set *set = new Set(other);
+		return set->Autorelease();
+	}
+
+	Set *Set::WithObjects(std::initializer_list<Object *> objects)
+	{
+		Set *set = new Set(objects.size());
+
+		for(Object *object : objects)
+			set->AddObject(object);
+
+		return set->Autorelease();
+	}
+
 	
 	Set::Set(Deserializer *deserializer)
 	{

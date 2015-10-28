@@ -150,6 +150,38 @@ namespace RN
 
 
 
+	int File::CreateFileDescriptor() const
+	{
+		return dup(_fd);
+	}
+
+	FILE *File::CreateFile() const
+	{
+		const char *mode;
+
+		if(_mode & (Mode::Read | Mode::Write))
+		{
+			if(_mode & Mode::Append)
+				mode = "a+";
+			else
+				mode = "w+";
+		}
+		else if(_mode & Mode::Read)
+		{
+			mode = "r";
+		}
+		else
+		{
+			if(_mode & Mode::Append)
+				mode = "a";
+			else
+				mode = "w";
+		}
+
+		return fdopen(dup(_fd), mode);
+	}
+
+
 	int  File::__FileWithPath(const String *name, Mode mode)
 	{
 		int oflag = 0;
@@ -169,7 +201,7 @@ namespace RN
 				oflag |= O_CREAT;
 		}
 
-		if(!(mode & Mode::Append))
+		if(!(mode & Mode::Append) && !(mode & Mode::Read))
 			oflag |= O_TRUNC;
 
 		// Open the file

@@ -43,6 +43,10 @@ namespace RN
 
 		const String *GetPath() const { return _path; }
 
+		// Must be closed with close() and fclose() respectively
+		int CreateFileDescriptor() const;
+		FILE *CreateFile() const;
+
 	private:
 		static int __FileWithPath(const String *name, Mode mode);
 		File(int fd, const String *path, Mode mode);
