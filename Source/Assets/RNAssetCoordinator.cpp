@@ -10,6 +10,8 @@
 #include "../Debug/RNLogger.h"
 #include "RNAssetCoordinator.h"
 
+#include "RNPNGAssetLoader.h"
+
 namespace RN
 {
 	static AssetCoordinator *__sharedInstance = nullptr;
@@ -18,6 +20,8 @@ namespace RN
 		_loaders(new Array())
 	{
 		__sharedInstance = this;
+
+		PNGAssetLoader::Register();
 	}
 	AssetCoordinator::~AssetCoordinator()
 	{
@@ -275,7 +279,7 @@ namespace RN
 
 			if(buffer)
 			{
-				magicSize = file->Read(buffer, _maxMagicSize);
+				magicSize = file->Read(magic, _maxMagicSize);
 				file->Seek(0);
 			}
 
@@ -286,7 +290,7 @@ namespace RN
 					if(!loader->GetResourceClass()->InheritsFromClass(base))
 						return;
 
-					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
+					if(requiresBackgroundSupport && !loader->_supportsBackgroundLoading)
 						return;
 
 					if(loader->_fileExtensions->GetCount() > 0 && !loader->_fileExtensions->ContainsObject(extension))
@@ -344,7 +348,7 @@ namespace RN
 					if(!loader->GetResourceClass()->InheritsFromClass(base))
 						return;
 
-					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
+					if(requiresBackgroundSupport && !loader->_supportsBackgroundLoading)
 						return;
 
 					if(!loader->_supportsVirtualFiles)

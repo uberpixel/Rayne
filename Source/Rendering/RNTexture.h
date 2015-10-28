@@ -12,11 +12,12 @@
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
+#include "../Assets/RNAsset.h"
 #include "RNGPUResource.h"
 
 namespace RN
 {
-	class Texture : public Object
+	class Texture : public Asset
 	{
 	public:
 		enum class Format
@@ -120,7 +121,7 @@ namespace RN
 
 			static Region With2D(uint32 x, uint32 y, uint32 w, uint32 h)
 			{
-				return Region(x, y, 1, w, h, 1);
+				return Region(x, y, 0, w, h, 1);
 			}
 
 			static Region With3D(uint32 x, uint32 y, uint32 z, uint32 w, uint32 h, uint32 d)
@@ -139,6 +140,8 @@ namespace RN
 				uint32 depth;
 			};
 		};
+
+		RNAPI static Texture *WithName(const String *name);
 
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;

@@ -14,13 +14,19 @@ namespace RN
 {
 	RNDefineMeta(AssetLoader, Object)
 
-	AssetLoader::AssetLoader(MetaClass *resourceClass) :
+	AssetLoader::AssetLoader(const Config &config) :
 		_magicBytes(nullptr),
 		_magicBytesOffset(0),
 		_fileExtensions(nullptr),
-		_resourceClass(resourceClass),
-		_supportsVirtualFiles(false)
-	{}
+		_resourceClass(config.resourceClass),
+		_supportsBackgroundLoading(config.supportsBackgroundLoading),
+		_supportsVirtualFiles(config.supportsVirtualFiles),
+		_priority(config.priority)
+	{
+		_magicBytes = SafeRetain(config._magicBytes);
+		_magicBytesOffset = config._magicBytesOffset;
+		_fileExtensions = SafeRetain(config._extensions);
+	}
 
 	AssetLoader::~AssetLoader()
 	{
@@ -58,12 +64,6 @@ namespace RN
 		{
 			return std::current_exception();
 		}
-	}
-
-
-	bool AssetLoader::SupportsBackgroundLoading()
-	{
-		return false;
 	}
 
 	std::future<Asset *> AssetLoader::LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback &&callback)
@@ -112,37 +112,13 @@ namespace RN
 		});
 	}
 
-	void AssetLoader::SetFileExtensions(const Set *extensions)
-	{
-		SafeRelease(_fileExtensions);
-		_fileExtensions = SafeCopy(extensions);
-	}
-
-	void AssetLoader::SetMagicBytes(const Data *data, size_t begin)
-	{
-		SafeRelease(_magicBytes);
-
-		_magicBytes = SafeCopy(data);
-		_magicBytesOffset = begin;
-	}
-
-	void AssetLoader::SetSupportsVirtualFiles(bool support)
-	{
-		_supportsVirtualFiles = support;
-	}
-
-	bool AssetLoader::SupportsLoadingFile(File *file)
+	bool AssetLoader::SupportsLoadingFile(File *file) const
 	{
 		return true;
 	}
 
-	bool AssetLoader::SupportsLoadingName(const String *name)
+	bool AssetLoader::SupportsLoadingName(const String *name) const
 	{
 		return _supportsVirtualFiles;
-	}
-
-	uint32 AssetLoader::GetPriority() const
-	{
-		return 10;
 	}
 }

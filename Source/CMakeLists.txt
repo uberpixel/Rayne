@@ -295,6 +295,7 @@ set(RAYNE_SOURCES
     Assets/RNAsset.cpp
     Assets/RNAssetCoordinator.cpp
     Assets/RNAssetLoader.cpp
+    Assets/RNPNGAssetLoader.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
     Math/RNMath.cpp
@@ -446,6 +447,7 @@ set(RAYNE_HEADERS
     Threads/RNWorkSource.h)
 
 set(RAYNE_HEADERS_PRIVATE
+    Assets/RNPNGAssetLoader.h
     Base/RNBaseInternal.h
     Rendering/Metal/RNMetalInternals.h
     Objects/RNHashTableInternal.h

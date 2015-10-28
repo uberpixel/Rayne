@@ -22,6 +22,60 @@ namespace RN
 	class AssetLoader : public Object
 	{
 	public:
+		struct Config
+		{
+			friend class AssetLoader;
+
+			Config(MetaClass *tresourceClass) :
+				_extensions(nullptr),
+				_magicBytes(nullptr),
+				_magicBytesOffset(0),
+				resourceClass(tresourceClass),
+				supportsBackgroundLoading(false),
+				supportsVirtualFiles(false),
+				priority(10)
+			{}
+
+			~Config()
+			{
+				SafeRelease(_extensions);
+				SafeRelease(_magicBytes);
+			}
+
+			void SetExtensions(const Set *extensions)
+			{
+				SafeRelease(_extensions);
+				_extensions = SafeCopy(extensions);
+			}
+
+			void SetMagicBytes(const Data *bytes, size_t offset)
+			{
+				SafeRelease(_magicBytes);
+
+				_magicBytes = SafeCopy(bytes);
+				_magicBytesOffset = offset;
+			}
+
+			const Set *GetExtensions() const { return _extensions; }
+			const Data *GetMagicBytes() const { return _magicBytes; }
+			size_t GetMagicBytesOffset() const { return _magicBytesOffset; }
+
+
+			MetaClass *resourceClass;
+
+			bool supportsBackgroundLoading;
+			bool supportsVirtualFiles;
+
+			uint32 priority;
+
+		private:
+			Set *_extensions;
+
+			Data *_magicBytes;
+			size_t _magicBytesOffset;
+
+		};
+
 		friend class AssetCoordinator;
 
 		RNAPI ~AssetLoader();
@@ -29,20 +83,14 @@ namespace RN
 		RNAPI virtual Asset *Load(File *file, Dictionary *settings);
 		RNAPI virtual Asset *Load(const String *name, Dictionary *settings);
 
-		RNAPI virtual bool SupportsBackgroundLoading();
-		RNAPI virtual bool SupportsLoadingFile(File *file);
-		RNAPI virtual bool SupportsLoadingName(const String *name);
+		RNAPI virtual bool SupportsLoadingFile(File *file) const;
+		RNAPI virtual bool SupportsLoadingName(const String *name) const;
 
-		RNAPI virtual uint32 GetPriority() const;
-
+		RNAPI uint32 GetPriority() const { return _priority; }
 		RNAPI MetaClass *GetResourceClass() const { return _resourceClass; }
 
 	protected:
-		RNAPI AssetLoader(MetaClass *resourceClass);
-
-		RNAPI void SetFileExtensions(const Set *extensions);
-		RNAPI void SetMagicBytes(const Data *data, size_t begin);
-		RNAPI void SetSupportsVirtualFiles(bool support);
+		RNAPI AssetLoader(const Config &config);
 
 	private:
 		using Callback = std::function<void (Asset *, Tag)>;
@@ -53,6 +101,9 @@ namespace RN
 		Data *_magicBytes;
 		size_t _magicBytesOffset;
 		Set *_fileExtensions;
+
+		uint32 _priority;
+		bool _supportsBackgroundLoading;
 		bool _supportsVirtualFiles;
 
 		MetaClass *_resourceClass;
