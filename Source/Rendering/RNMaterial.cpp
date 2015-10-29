@@ -56,6 +56,24 @@ namespace RN
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
 	}
 
+	Material::Material(const Material *other) :
+		_fragmentShader(SafeRetain(other->_fragmentShader)),
+		_vertexShader(SafeRetain(other->_vertexShader)),
+		_depthMode(other->_depthMode),
+		_depthWriteEnabled(other->_depthWriteEnabled),
+		_ambientColor(other->_ambientColor),
+		_diffuseColor(other->_diffuseColor),
+		_specularColor(other->_specularColor),
+		_emissiveColor(other->_emissiveColor),
+		_textures(SafeRetain(other->_textures))
+	{}
+
+	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
+	{
+		Material *material = new Material(descriptor);
+		return material;
+	}
+
 	Material::~Material()
 	{
 		SafeRelease(_fragmentShader);

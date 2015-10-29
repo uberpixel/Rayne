@@ -52,7 +52,10 @@ namespace RN
 		};
 
 		RNAPI Material(const MaterialDescriptor &descriptor);
+		RNAPI Material(const Material *other);
 		RNAPI ~Material() override;
+
+		RNAPI static Material *WithDescriptor(const MaterialDescriptor &descriptor);
 
 		RNAPI void SetDepthWriteEnabled(bool depthWrite);
 		RNAPI void SetDepthMode(DepthMode mode);
