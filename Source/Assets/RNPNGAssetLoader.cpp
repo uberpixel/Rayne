@@ -135,7 +135,9 @@ namespace RN
 		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
 		texture->SetData(0, data, bytesPerRow);
-		texture->SetGenerateMipMaps();
+
+		if(mipMapped)
+			texture->GenerateMipMaps();
 
 		delete[] data;
 

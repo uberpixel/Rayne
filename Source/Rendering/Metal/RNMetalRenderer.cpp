@@ -41,7 +41,8 @@ namespace RN
 	};
 
 	MetalRenderer::MetalRenderer() :
-		_mainWindow(nullptr)
+		_mainWindow(nullptr),
+		_mipMapTextures(new Set())
 	{
 		_internals->device = nullptr;
 
@@ -91,6 +92,8 @@ namespace RN
 	{
 		[_internals->commandQueue release];
 		[_internals->device release];
+
+		_mipMapTextures->Release();
 	}
 
 
@@ -108,6 +111,34 @@ namespace RN
 	}
 
 
+	void MetalRenderer::CreateMipMapForeTexture(MetalTexture *texture)
+	{
+		_lock.Lock();
+		_mipMapTextures->AddObject(texture);
+		_lock.Unlock();
+	}
+
+	void MetalRenderer::CreateMipMaps()
+	{
+		if(_mipMapTextures->GetCount() == 0)
+			return;
+
+		id<MTLCommandBuffer> commandBuffer = [_internals->commandQueue commandBuffer];
+
+		_mipMapTextures->Enumerate<MetalTexture>([&](MetalTexture *texture, bool &stop) {
+
+			id<MTLBlitCommandEncoder> commandEncoder = [commandBuffer blitCommandEncoder];
+			[commandEncoder generateMipmapsForTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture()];
+			[commandEncoder endEncoding];
+		});
+
+		[commandBuffer commit];
+		[commandBuffer waitUntilCompleted];
+
+		_mipMapTextures->RemoveAllObjects();
+	}
+
+
 	void MetalRenderer::RenderIntoWindow(Window *window, Function &&function)
 	{
 		_internals->pass.window = static_cast<MetalWindow *>(window);
@@ -116,6 +147,8 @@ namespace RN
 
 		if(_internals->pass.drawable)
 		{
+			CreateMipMaps();
+
 			_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
 
 			function();
@@ -282,7 +315,7 @@ namespace RN
 		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor];
 		[metalDescriptor release];
 
-		return new MetalTexture(texture, descriptor);
+		return new MetalTexture(this, &_internals->stateCoordinator, texture, descriptor);
 	}
 
 	Drawable *MetalRenderer::CreateDrawable()
@@ -426,6 +459,17 @@ namespace RN
 		{
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+		}
+
+		const Array *textures = drawable->material->GetTextures();
+		size_t count = textures->GetCount();
+
+		for(size_t i = 0; i < count; i ++)
+		{
+			MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
+
+			[encoder setFragmentSamplerState:(id<MTLSamplerState>)texture->__GetUnderlyingSampler() atIndex:i];
+			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
 		}
 
 		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];

@@ -141,20 +141,57 @@ namespace RN
 			};
 		};
 
+		enum class WrapMode
+		{
+			Clamp,
+			Repeat
+		};
+
+		enum class Filter
+		{
+			Linear,
+			Nearest
+		};
+
+		struct Parameter
+		{
+			Parameter() :
+				wrapMode(WrapMode::Repeat),
+				filter(Filter::Linear),
+				depthCompare(false),
+				anisotropy(1)
+			{}
+
+			bool operator== (const Parameter &other) const
+			{
+				return (filter == other.filter && wrapMode == other.wrapMode && depthCompare == other.depthCompare && anisotropy == other.anisotropy);
+			}
+
+			Filter filter;
+			WrapMode wrapMode;
+
+			bool depthCompare;
+			uint32 anisotropy;
+		};
+
 		RNAPI static Texture *WithName(const String *name);
 
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) = 0;
 
-		RNAPI virtual void SetGenerateMipMaps() = 0;
+		RNAPI virtual void SetParameter(const Parameter &parameter);
+
+		RNAPI virtual void GenerateMipMaps() = 0;
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
+		const Parameter &GetParameter() const RN_NOEXCEPT { return _parameter; }
 
 	protected:
 		Texture(const Descriptor &descriptor);
 
 		Descriptor _descriptor;
+		Parameter _parameter;
 
 		RNDeclareMeta(Texture)
 	};

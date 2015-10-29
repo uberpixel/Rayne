@@ -8,20 +8,30 @@
 
 #include "../../Base/RNBaseInternal.h"
 #include "RNMetalTexture.h"
+#include "RNMetalRenderer.h"
+#include "RNMetalStateCoordinator.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalTexture, Texture)
 
-	MetalTexture::MetalTexture(void *texture, const Descriptor &descriptor) :
+	MetalTexture::MetalTexture(MetalRenderer *renderer, MetalStateCoordinator *coordinator, void *texture, const Descriptor &descriptor) :
 		Texture(descriptor),
-		_texture(texture)
-	{}
+		_renderer(renderer),
+		_coordinator(coordinator),
+		_texture(texture),
+		_sampler(nullptr)
+	{
+		SetParameter(GetParameter());
+	}
 
 	MetalTexture::~MetalTexture()
 	{
 		id<MTLTexture> texture = (id<MTLTexture>)_texture;
 		[texture release];
+
+		id<MTLSamplerState> sampler = (id<MTLSamplerState>)_sampler;
+		[sampler release];
 	}
 
 	void MetalTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -39,6 +49,19 @@ namespace RN
 		[texture replaceRegion:MTLRegionMake3D(region.x, region.y, region.z, region.width, region.height, region.depth) mipmapLevel:mipmapLevel withBytes:bytes bytesPerRow:bytesPerRow];
 	}
 
-	void MetalTexture::SetGenerateMipMaps()
-	{}
+	void MetalTexture::GenerateMipMaps()
+	{
+		_renderer->CreateMipMapForeTexture(this);
+	}
+
+	void MetalTexture::SetParameter(const Parameter &parameter)
+	{
+		Texture::SetParameter(parameter);
+
+		id<MTLSamplerState> sampler = (id<MTLSamplerState>)_sampler;
+		[sampler release];
+
+		sampler = [_coordinator->GetSamplerStateForTextureParameter(parameter) retain];
+		_sampler = sampler;
+	}
 }

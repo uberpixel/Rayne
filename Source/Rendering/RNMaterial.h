@@ -73,9 +73,13 @@ namespace RN
 		const Color &GetSpecularColor() const { return _specularColor; }
 		const Color &GetEmissiveColor() const { return _emissiveColor; }
 
+		const Array *GetTextures() const { return _textures; }
+
 	private:
 		Shader *_fragmentShader;
 		Shader *_vertexShader;
+
+		Array *_textures;
 
 		DepthMode _depthMode;
 		bool _depthWriteEnabled;

@@ -49,7 +49,8 @@ namespace RN
 		_ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
 		_diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 		_specularColor(1.0f, 1.0f, 1.0f, 4.0f),
-		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f)
+		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
+		_textures(SafeCopy(descriptor.GetTextures()))
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -59,6 +60,7 @@ namespace RN
 	{
 		SafeRelease(_fragmentShader);
 		SafeRelease(_vertexShader);
+		SafeRelease(_textures);
 	}
 
 	void Material::SetDepthWriteEnabled(bool depthWrite)

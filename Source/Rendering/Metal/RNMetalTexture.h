@@ -16,6 +16,7 @@
 namespace RN
 {
 	class MetalRenderer;
+	class MetalStateCoordinator;
 
 	class MetalTexture : public Texture
 	{
@@ -28,14 +29,19 @@ namespace RN
 		RNAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		RNAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
 
-		RNAPI void SetGenerateMipMaps() final;
+		RNAPI void GenerateMipMaps() final;
+		RNAPI void SetParameter(const Parameter &parameter) final;
 
 		RNAPI void *__GetUnderlyingTexture() const { return _texture; }
+		RNAPI void *__GetUnderlyingSampler() const { return _sampler; }
 
 	private:
-		MetalTexture(void *texture, const Descriptor &descriptor);
+		MetalTexture(MetalRenderer *renderer, MetalStateCoordinator *coordinator, void *texture, const Descriptor &descriptor);
 
+		MetalRenderer *_renderer;
+		MetalStateCoordinator *_coordinator;
 		void *_texture;
+		void *_sampler;
 
 		RNDeclareMeta(MetalTexture)
 	};

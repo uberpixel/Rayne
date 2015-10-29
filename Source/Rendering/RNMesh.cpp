@@ -252,6 +252,7 @@ namespace RN
 	{
 		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
 							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
@@ -320,6 +321,38 @@ namespace RN
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
 
 		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexAttribute::Feature::Color0);
 

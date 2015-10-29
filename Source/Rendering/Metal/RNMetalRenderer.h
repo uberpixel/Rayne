@@ -18,11 +18,13 @@ namespace RN
 	struct MetalRendererInternals;
 	struct MetalDrawable;
 	class MetalWindow;
+	class MetalTexture;
 	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
 	{
 	public:
+		friend class MetalTexture;
 		friend class MetalWindow;
 
 		RNAPI MetalRenderer();
@@ -55,6 +57,11 @@ namespace RN
 		MetalWindow *_mainWindow;
 
 		SpinLock _lock;
+
+		void CreateMipMapForeTexture(MetalTexture *texture);
+		void CreateMipMaps();
+
+		Set *_mipMapTextures;
 
 		RNDeclareMeta(MetalRenderer)
 	};

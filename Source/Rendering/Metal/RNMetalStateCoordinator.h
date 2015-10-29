@@ -201,6 +201,8 @@ namespace RN
 		void SetDevice(id<MTLDevice> device);
 
 		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
+		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);
+
 		const MetalRenderingState &GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
@@ -208,6 +210,9 @@ namespace RN
 		const MetalRenderingState &GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera);
 
 		id<MTLDevice> _device;
+
+		std::mutex _samplerLock;
+		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;
 
 		std::vector<MetalDepthStencilState> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;

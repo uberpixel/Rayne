@@ -22,4 +22,9 @@ namespace RN
 		AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
 		return coordinator->GetAssetWithName<Texture>(name, nullptr);
 	}
+
+	void Texture::SetParameter(const Parameter &parameter)
+	{
+		_parameter = parameter;
+	}
 }

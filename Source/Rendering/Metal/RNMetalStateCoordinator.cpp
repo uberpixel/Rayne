@@ -81,6 +81,66 @@ namespace RN
 		return _lastDepthStencilState->state;
 	}
 
+	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForTextureParameter(const Texture::Parameter &parameter)
+	{
+		std::lock_guard<std::mutex> lock(_samplerLock);
+
+		for(auto &pair : _samplers)
+		{
+			if(pair.second == parameter)
+				return pair.first;
+		}
+
+
+		MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+
+		switch(parameter.wrapMode)
+		{
+			case Texture::WrapMode::Clamp:
+				[descriptor setRAddressMode:MTLSamplerAddressModeClampToEdge];
+				[descriptor setSAddressMode:MTLSamplerAddressModeClampToEdge];
+				[descriptor setTAddressMode:MTLSamplerAddressModeClampToEdge];
+				break;
+			case Texture::WrapMode::Repeat:
+				[descriptor setRAddressMode:MTLSamplerAddressModeRepeat];
+				[descriptor setSAddressMode:MTLSamplerAddressModeRepeat];
+				[descriptor setTAddressMode:MTLSamplerAddressModeRepeat];
+				break;
+		}
+
+		MTLSamplerMipFilter mipFilter = MTLSamplerMipFilterNotMipmapped;
+
+		switch(parameter.filter)
+		{
+			case Texture::Filter::Linear:
+				[descriptor setMinFilter:MTLSamplerMinMagFilterLinear];
+				[descriptor setMagFilter:MTLSamplerMinMagFilterLinear];
+
+				mipFilter = MTLSamplerMipFilterLinear;
+				break;
+
+			case Texture::Filter::Nearest:
+				[descriptor setMinFilter:MTLSamplerMinMagFilterNearest];
+				[descriptor setMagFilter:MTLSamplerMinMagFilterNearest];
+
+				mipFilter = MTLSamplerMipFilterNearest;
+				break;
+		}
+
+		[descriptor setMipFilter:mipFilter];
+
+		NSUInteger anisotropy = std::min(static_cast<uint32>(16), std::max(static_cast<uint32>(1), parameter.anisotropy));
+		[descriptor setMaxAnisotropy:anisotropy];
+
+		id<MTLSamplerState> sampler = [_device newSamplerStateWithDescriptor:descriptor];
+		[descriptor release];
+
+		_samplers.emplace_back(std::make_pair(sampler, parameter));
+
+		return sampler;
+	}
+
+
 	const MetalRenderingState &MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
