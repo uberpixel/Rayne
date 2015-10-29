@@ -20,6 +20,7 @@ namespace RN
 	{
 	public:
 		friend class Kernel;
+		friend class Asset;
 
 		RNAPI static AssetCoordinator *GetSharedInstance();
 
@@ -47,6 +48,8 @@ namespace RN
 		AssetLoader *PickAssetLoader(MetaClass *base, File *file, const String *name, bool requiresBackgroundSupport);
 
 		Asset *ValidateAsset(MetaClass *base, Asset *asset);
+
+		void __RemoveAsset(Asset *asset, String *name);
 		void PrepareAsset(Asset *asset, String *name, Dictionary *settings);
 
 		std::shared_future<Asset *> __GetFutureMatching(MetaClass *base, String *name);

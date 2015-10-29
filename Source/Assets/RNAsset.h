@@ -14,11 +14,25 @@
 
 namespace RN
 {
+	class AssetCoordinator;
 	class Asset : public Object
 	{
 	public:
+		friend class AssetCoordinator;
+
+		Asset();
+
+		const String *GetDescription() const override;
+
+	protected:
+		void Dealloc() override;
 
 	private:
+		void __AwakeWithCoordinator(AssetCoordinator *coordinator, String *name);
+
+		AssetCoordinator *_coordinator;
+		String *_name;
+
 		RNDeclareMeta(Asset)
 	};
 }

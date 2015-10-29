@@ -87,8 +87,19 @@ namespace RN
 	}
 	void AssetCoordinator::PrepareAsset(Asset *asset, String *name, Dictionary *settings)
 	{
+		asset->__AwakeWithCoordinator(this, name);
+
 		_resources[name] = asset;
-		RNDebug("Added asset " << name);
+		RNDebug("Loaded asset " << asset);
+	}
+	void AssetCoordinator::__RemoveAsset(Asset *asset, String *name)
+	{
+		{
+			std::unique_lock<std::mutex> lock(_lock);
+			_resources.erase(name);
+		}
+
+		RNDebug("Unloaded asset " << asset);
 	}
 
 
