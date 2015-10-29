@@ -35,6 +35,7 @@
 #include "Math/RNMath.h"
 #include "Math/RNMatrixQuaternion.h"
 #include "Math/RNMatrix.h"
+#include "Math/RNRandom.h"
 #include "Math/RNQuaternion.h"
 #include "Math/RNSIMD.h"
 #include "Math/RNVector.h"

@@ -299,6 +299,7 @@ set(RAYNE_SOURCES
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
     Math/RNMath.cpp
+    Math/RNRandom.cpp
     Objects/RNCatalogue.cpp
     Objects/RNObject.cpp
     Objects/RNObjectInternals.cpp
@@ -388,6 +389,7 @@ set(RAYNE_HEADERS
     Math/RNMatrix.h
     Math/RNMatrixQuaternion.h
     Math/RNPlane.h
+    Math/RNRandom.h
     Math/RNQuaternion.h
     Math/RNRect.h
     Math/RNSIMD.h
