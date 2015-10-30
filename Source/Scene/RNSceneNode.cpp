@@ -132,10 +132,10 @@ namespace RN
 		_children = new Array();
 		_parent  = nullptr;
 		_updated = true;
-		_flags     = 0;
+		_flags = 0;
 
-		_priority      = Priority::UpdateDontCare;
-		_renderGroup    = 0;
+		_priority = Priority::UpdateNormal;
+		_renderGroup = 0;
 		_collisionGroup = 0;
 	}
 
@@ -259,25 +259,9 @@ namespace RN
 
 		if(changeSet & ChangeSet::Parent && _parent == nullptr)
 		{
-			if(_parent == nullptr)
-			{
-				_position = _worldPosition;
-				_rotation = _worldRotation;
-				_euler    = _worldEuler;
-				_scale    = _worldScale;
-
-				_updated = true;
-			}
-			else
-			{
-				Vector3 position(_position);
-				Quaternion rotation(_rotation);
-				Vector3 scale(_scale);
-
-				SetWorldPosition(position);
-				SetWorldRotation(rotation);
-				SetWorldScale(scale);
-			}
+			SetWorldPosition(_position);
+			SetWorldRotation(_rotation);
+			SetWorldScale(_scale);
 		}
 
 		if(_parent)

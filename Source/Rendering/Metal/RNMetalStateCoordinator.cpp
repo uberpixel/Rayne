@@ -141,7 +141,7 @@ namespace RN
 	}
 
 
-	const MetalRenderingState &MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
@@ -151,39 +151,41 @@ namespace RN
 		id<MTLFunction> vertexFunction = (id<MTLFunction>)vertexShader->_shader;
 		id<MTLFunction> fragmentFunction = (id<MTLFunction>)fragmentShader->_shader;
 
-		for(MetalRenderingStateCollection &collection : _renderingStates)
+		for(MetalRenderingStateCollection *collection : _renderingStates)
 		{
-			if(collection.descriptor.IsEqual(descriptor))
+			if(collection->descriptor.IsEqual(descriptor))
 			{
-				if(collection.fragmentShader == fragmentFunction && collection.vertexShader == vertexFunction)
+				if(collection->fragmentShader == fragmentFunction && collection->vertexShader == vertexFunction)
 				{
 					return GetRenderPipelineStateInCollection(collection, mesh, camera);
 				}
 			}
 		}
 
-		_renderingStates.emplace_back(descriptor, vertexFunction, fragmentFunction);
-		return GetRenderPipelineStateInCollection(_renderingStates.back(), mesh, camera);
+		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexFunction, fragmentFunction);
+		_renderingStates.push_back(collection);
+
+		return GetRenderPipelineStateInCollection(collection, mesh, camera);
 
 	}
 
-	const MetalRenderingState &MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Camera *camera)
 	{
 		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm;
 		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
 		MTLPixelFormat stencilFormat = MTLPixelFormatDepth24Unorm_Stencil8;
 
-		for(const MetalRenderingState &state : collection.states)
+		for(const MetalRenderingState *state : collection->states)
 		{
-			if(state.pixelFormat == pixelFormat && state.depthFormat == depthFormat && state.stencilFormat == stencilFormat)
+			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)
 				return state;
 		}
 
 		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
 
 		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-		pipelineStateDescriptor.vertexFunction = collection.vertexShader;
-		pipelineStateDescriptor.fragmentFunction = collection.fragmentShader;
+		pipelineStateDescriptor.vertexFunction = collection->vertexShader;
+		pipelineStateDescriptor.fragmentFunction = collection->fragmentShader;
 		pipelineStateDescriptor.vertexDescriptor = descriptor;
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat;
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
@@ -195,10 +197,10 @@ namespace RN
 		// TODO: Error handling, plox
 
 		// Create the rendering state
-		MetalRenderingState state;
+		MetalRenderingState *state = new MetalRenderingState();
 
-		state.vertexArguments.reserve([[reflection vertexArguments] count]);
-		state.fragmentArguments.reserve([[reflection fragmentArguments] count]);
+		state->vertexArguments.reserve([[reflection vertexArguments] count]);
+		state->fragmentArguments.reserve([[reflection fragmentArguments] count]);
 
 		for(MTLArgument *argument in [reflection vertexArguments])
 		{
@@ -214,7 +216,7 @@ namespace RN
 					break;
 			}
 
-			state.vertexArguments.push_back(parsed);
+			state->vertexArguments.push_back(parsed);
 		}
 
 		for(MTLArgument *argument in [reflection fragmentArguments])
@@ -231,18 +233,18 @@ namespace RN
 					break;
 			}
 
-			state.fragmentArguments.push_back(parsed);
+			state->fragmentArguments.push_back(parsed);
 		}
 
 
-		state.state = pipelineState;
-		state.pixelFormat = pixelFormat;
-		state.depthFormat = depthFormat;
-		state.stencilFormat = stencilFormat;
+		state->state = [pipelineState retain];
+		state->pixelFormat = pixelFormat;
+		state->depthFormat = depthFormat;
+		state->stencilFormat = stencilFormat;
 
-		collection.states.push_back(state);
+		collection->states.push_back(state);
 
-		return collection.states.back();
+		return state;
 	}
 
 	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)

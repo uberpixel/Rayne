@@ -335,10 +335,10 @@ namespace RN
 		if(drawable->dirty)
 		{
 			_lock.Lock();
-			const MetalRenderingState &state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(this, &state);
+			drawable->UpdateRenderingState(this, state);
 			drawable->dirty = false;
 		}
 

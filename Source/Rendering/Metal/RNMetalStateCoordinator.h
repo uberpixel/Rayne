@@ -189,7 +189,7 @@ namespace RN
 		id<MTLFunction> vertexShader;
 		id<MTLFunction> fragmentShader;
 
-		std::vector<MetalRenderingState> states;
+		std::vector<MetalRenderingState *> states;
 	};
 
 
@@ -203,11 +203,11 @@ namespace RN
 		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
 		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);
 
-		const MetalRenderingState &GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
-		const MetalRenderingState &GetRenderPipelineStateInCollection(MetalRenderingStateCollection &collection, Mesh *mesh, Camera *camera);
+		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Camera *camera);
 
 		id<MTLDevice> _device;
 
@@ -217,7 +217,7 @@ namespace RN
 		std::vector<MetalDepthStencilState> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;
 
-		std::vector<MetalRenderingStateCollection> _renderingStates;
+		std::vector<MetalRenderingStateCollection *> _renderingStates;
 	};
 }
 

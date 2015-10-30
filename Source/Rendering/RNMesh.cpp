@@ -248,12 +248,136 @@ namespace RN
 	// MARK: Convenient constructors
 	// ---------------------
 
-	Mesh *Mesh::WithCubeMesh(const Vector3 &size, const Color &color)
+	Mesh *Mesh::WithColoredCube(const Vector3 &size, const Color &color)
+	{
+		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
+							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
+
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+
+		*vertices ++ = Vector3(- size.x, size.y, size.z);
+		*vertices ++ = Vector3(size.x, size.y, size.z);
+		*vertices ++ = Vector3(size.x, - size.y, size.z);
+		*vertices ++ = Vector3(- size.x, - size.y, size.z);
+
+		*vertices ++ = Vector3(- size.x, size.y, - size.z);
+		*vertices ++ = Vector3(size.x, size.y, - size.z);
+		*vertices ++ = Vector3(size.x, - size.y, - size.z);
+		*vertices ++ = Vector3(- size.x, - size.y, - size.z);
+
+		*vertices ++ = Vector3(- size.x, size.y, - size.z);
+		*vertices ++ = Vector3(- size.x, size.y, size.z);
+		*vertices ++ = Vector3(- size.x, - size.y, size.z);
+		*vertices ++ = Vector3(- size.x, - size.y, - size.z);
+
+		*vertices ++ = Vector3(size.x, size.y, - size.z);
+		*vertices ++ = Vector3(size.x, size.y, size.z);
+		*vertices ++ = Vector3(size.x, - size.y, size.z);
+		*vertices ++ = Vector3(size.x, - size.y, - size.z);
+
+		*vertices ++ = Vector3(- size.x, size.y, size.z);
+		*vertices ++ = Vector3(size.x, size.y, size.z);
+		*vertices ++ = Vector3(size.x, size.y, - size.z);
+		*vertices ++ = Vector3(- size.x, size.y, - size.z);
+
+		*vertices ++ = Vector3(- size.x, - size.y, - size.z);
+		*vertices ++ = Vector3(size.x, - size.y, - size.z);
+		*vertices ++ = Vector3(size.x, - size.y, size.z);
+		*vertices ++ = Vector3(- size.x, - size.y, size.z);
+
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0f);
+
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0f);
+
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0f);
+
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0f);
+
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0f);
+
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0f);
+
+		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexAttribute::Feature::Color0);
+
+		for(size_t i = 0; i < 24; i ++)
+			*colors ++ = color;
+
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		*indices ++ = 0;
+		*indices ++ = 3;
+		*indices ++ = 1;
+		*indices ++ = 2;
+		*indices ++ = 1;
+		*indices ++ = 3;
+
+		*indices ++ = 5;
+		*indices ++ = 7;
+		*indices ++ = 4;
+		*indices ++ = 7;
+		*indices ++ = 5;
+		*indices ++ = 6;
+
+		*indices ++ = 8;
+		*indices ++ = 11;
+		*indices ++ = 9;
+		*indices ++ = 10;
+		*indices ++ = 9;
+		*indices ++ = 11;
+
+		*indices ++ = 13;
+		*indices ++ = 15;
+		*indices ++ = 12;
+		*indices ++ = 15;
+		*indices ++ = 13;
+		*indices ++ = 14;
+
+		*indices ++ = 17;
+		*indices ++ = 19;
+		*indices ++ = 16;
+		*indices ++ = 19;
+		*indices ++ = 17;
+		*indices ++ = 18;
+
+		*indices ++ = 21;
+		*indices ++ = 23;
+		*indices ++ = 20;
+		*indices ++ = 23;
+		*indices ++ = 21;
+		*indices ++ = 22;
+
+		return mesh->Autorelease();
+	}
+
+	Mesh *Mesh::WithTexturedCube(const Vector3 &size)
 	{
 		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
 							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
 							   VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
-							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
 		Chunk chunk = mesh->GetChunk();
@@ -354,11 +478,6 @@ namespace RN
 		*texcoords ++ = Vector2(1.0f, 1.0f);
 		*texcoords ++ = Vector2(0.0f, 1.0f);
 
-		ElementIterator<Color> colors = chunk.GetIterator<Color>(VertexAttribute::Feature::Color0);
-
-		for(size_t i = 0; i < 24; i ++)
-			*colors ++ = color;
-
 		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
 		*indices ++ = 0;
@@ -405,6 +524,7 @@ namespace RN
 
 		return mesh->Autorelease();
 	}
+
 
 	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t segments)
 	{

@@ -34,7 +34,7 @@ namespace RN
 		enum class Priority
 		{
 			UpdateEarly,
-			UpdateDontCare,
+			UpdateNormal,
 			UpdateLate
 		};
 
@@ -122,8 +122,8 @@ namespace RN
 		RNAPI Priority GetPriority() const { return _priority; }
 		RNAPI Flags GetFlags() const { return _flags.load(); }
 
-		RNAPI uint8 GetRenderGroup() const {return _renderGroup;};
-		RNAPI uint8 GetCollisionGroup() const {return _collisionGroup;};
+		RNAPI uint8 GetRenderGroup() const { return _renderGroup; };
+		RNAPI uint8 GetCollisionGroup() const { return _collisionGroup; };
 
 		RNAPI const Array *GetChildren() const;
 

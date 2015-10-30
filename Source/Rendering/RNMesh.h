@@ -408,7 +408,9 @@ namespace RN
 		RNAPI Mesh(const std::initializer_list<VertexAttribute> &descriptors, size_t verticesCount, size_t indicesCount);
 		RNAPI ~Mesh() override;
 
-		RNAPI static Mesh *WithCubeMesh(const Vector3 &size, const Color &color);
+		RNAPI static Mesh *WithColoredCube(const Vector3 &size, const Color &color);
+		RNAPI static Mesh *WithTexturedCube(const Vector3 &size);
+
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
 
 		RNAPI void SetDrawMode(DrawMode mode);
