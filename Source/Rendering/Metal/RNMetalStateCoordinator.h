@@ -155,6 +155,11 @@ namespace RN
 			state(tstate)
 		{}
 
+		~MetalDepthStencilState()
+		{
+			[state release];
+		}
+
 		Material::DepthMode mode;
 		bool depthWriteEnabled;
 		id<MTLDepthStencilState> state;
@@ -167,6 +172,16 @@ namespace RN
 
 	struct MetalRenderingState
 	{
+		~MetalRenderingState()
+		{
+			for(MetalRenderingStateArgument *argument : vertexArguments)
+				delete argument;
+			for(MetalRenderingStateArgument *argument : fragmentArguments)
+				delete argument;
+
+			[state release];
+		}
+
 		MTLPixelFormat pixelFormat;
 		MTLPixelFormat depthFormat;
 		MTLPixelFormat stencilFormat;
@@ -185,6 +200,12 @@ namespace RN
 			fragmentShader(fragment)
 		{}
 
+		~MetalRenderingStateCollection()
+		{
+			for(MetalRenderingState *state : states)
+				delete state;
+		}
+
 		Mesh::VertexDescriptor descriptor;
 		id<MTLFunction> vertexShader;
 		id<MTLFunction> fragmentShader;
@@ -197,6 +218,7 @@ namespace RN
 	{
 	public:
 		MetalStateCoordinator();
+		~MetalStateCoordinator();
 
 		void SetDevice(id<MTLDevice> device);
 
@@ -214,7 +236,7 @@ namespace RN
 		std::mutex _samplerLock;
 		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;
 
-		std::vector<MetalDepthStencilState> _depthStencilStates;
+		std::vector<MetalDepthStencilState *> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;
 
 		std::vector<MetalRenderingStateCollection *> _renderingStates;

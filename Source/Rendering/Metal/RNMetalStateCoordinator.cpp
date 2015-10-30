@@ -49,6 +49,18 @@ namespace RN
 		_lastDepthStencilState(nullptr)
 	{}
 
+	MetalStateCoordinator::~MetalStateCoordinator()
+	{
+		for(MetalRenderingStateCollection *collection : _renderingStates)
+			delete collection;
+
+		for(MetalDepthStencilState *state : _depthStencilStates)
+			delete state;
+
+		for(auto &pair : _samplers)
+			[pair.first release];
+	}
+
 	void MetalStateCoordinator::SetDevice(id<MTLDevice> device)
 	{
 		_device = device;
@@ -60,11 +72,11 @@ namespace RN
 		if(RN_EXPECT_TRUE(_lastDepthStencilState != nullptr) && _lastDepthStencilState->MatchesMaterial(material))
 			return _lastDepthStencilState->state;
 
-		for(const MetalDepthStencilState &state : _depthStencilStates)
+		for(const MetalDepthStencilState *state : _depthStencilStates)
 		{
-			if(state.MatchesMaterial(material))
+			if(state->MatchesMaterial(material))
 			{
-				_lastDepthStencilState = &state;
+				_lastDepthStencilState = state;
 				return _lastDepthStencilState->state;
 			}
 		}
@@ -74,10 +86,11 @@ namespace RN
 		[descriptor setDepthWriteEnabled:material->GetDepthWriteEnabled()];
 
 		id<MTLDepthStencilState> state = [_device newDepthStencilStateWithDescriptor:descriptor];
-		_depthStencilStates.emplace_back(material, state);
+		_lastDepthStencilState = new MetalDepthStencilState(material, state);
+
+		_depthStencilStates.push_back(const_cast<MetalDepthStencilState *>(_lastDepthStencilState));
 		[descriptor release];
 
-		_lastDepthStencilState = &_depthStencilStates.back();
 		return _lastDepthStencilState->state;
 	}
 
