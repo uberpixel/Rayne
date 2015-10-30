@@ -175,8 +175,8 @@ namespace RN
 
 	void Scene::AddNode(SceneNode *node)
 	{
-		if(node->_scene)
-			node->_scene->RemoveNode(node);
+		RN_ASSERT(node->_scene == nullptr, "AddNode() must be called on a Node not owned by the scene");
+
 
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
@@ -192,8 +192,8 @@ namespace RN
 
 		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
 
-		node->_scene = this;
 		node->Retain();
+		node->UpdateScene(this);
 	}
 
 	void Scene::RemoveNode(SceneNode *node)
@@ -202,7 +202,7 @@ namespace RN
 
 		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
 
-		node->_scene = nullptr;
+		node->UpdateScene(nullptr);
 		node->Autorelease();
 	}
 }

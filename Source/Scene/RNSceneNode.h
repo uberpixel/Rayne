@@ -154,6 +154,9 @@ namespace RN
 		void Initialize();
 		void UpdateInternalData() const;
 
+		void UpdateScene(Scene *scene);
+		void __CompleteAttachmentWithScene(Scene *scene);
+
 		SceneNode *_parent;
 		Array *_children;
 

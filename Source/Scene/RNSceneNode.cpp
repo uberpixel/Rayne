@@ -7,6 +7,7 @@
 //
 
 #include "RNSceneNode.h"
+#include "RNScene.h"
 
 namespace RN
 {
@@ -130,7 +131,8 @@ namespace RN
 	void SceneNode::Initialize()
 	{
 		_children = new Array();
-		_parent  = nullptr;
+		_parent = nullptr;
+		_scene = nullptr;
 		_updated = true;
 		_flags = 0;
 
@@ -188,6 +190,42 @@ namespace RN
 
 	// -------------------
 	// MARK: -
+	// MARK: Scene
+	// -------------------
+
+	void SceneNode::UpdateScene(Scene *scene)
+	{
+		if(_scene)
+		{
+			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+				_scene->RemoveNode(node);
+			});
+		}
+
+		_scene = scene;
+
+		if(_scene)
+		{
+			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+				scene->AddNode(node);
+			});
+		}
+	}
+
+	void SceneNode::__CompleteAttachmentWithScene(Scene *scene)
+	{
+		if(_scene == scene)
+			return;
+
+		if(_scene)
+			_scene->RemoveNode(this);
+
+		if(scene)
+			scene->AddNode(this);
+	}
+
+	// -------------------
+	// MARK: -
 	// MARK: Children
 	// -------------------
 
@@ -202,6 +240,7 @@ namespace RN
 
 		child->_parent = this;
 		child->DidUpdate(ChangeSet::Parent);
+		child->__CompleteAttachmentWithScene(_scene);
 
 		DidAddChild(child);
 	}
@@ -219,6 +258,8 @@ namespace RN
 			_children->RemoveObject(child);
 
 			child->DidUpdate(ChangeSet::Parent);
+			child->__CompleteAttachmentWithScene(nullptr);
+
 			DidRemoveChild(child);
 		}
 	}
