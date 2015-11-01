@@ -9,6 +9,12 @@
 #include "../Base/RNKernel.h"
 #include "RNModuleCoordinator.h"
 
+#if RN_PLATFORM_POSIX
+
+#include <dlfcn.h>
+
+#endif
+
 namespace RN
 {
 	static ModuleCoordinator *__sharedInstance = nullptr;
@@ -19,6 +25,7 @@ namespace RN
 	{
 		__sharedInstance = this;
 	}
+
 	ModuleCoordinator::~ModuleCoordinator()
 	{
 		SafeRelease(_modules);
@@ -31,7 +38,6 @@ namespace RN
 	{
 		return __sharedInstance;
 	}
-
 
 
 	Module *ModuleCoordinator::GetModuleWithName(const String *name)
@@ -51,21 +57,23 @@ namespace RN
 		{
 			module = new Module(name);
 
+			String *nameCopy = name->Copy()->Autorelease();
+
 			try
 			{
+				_modules->AddObject(module);
+				_moduleMap->SetObjectForKey(module, nameCopy);
+
 				module->Initialize();
 			}
 			catch(Exception &e)
 			{
+				_modules->RemoveObject(module);
+				_moduleMap->RemoveObjectForKey(nameCopy);
+
 				delete module;
 				throw e;
 			}
-
-
-			String *nameCopy = name->Copy()->Autorelease();
-
-			_modules->AddObject(module);
-			_moduleMap->SetObjectForKey(module, nameCopy);
 		}
 		catch(Exception &e)
 		{
@@ -82,12 +90,57 @@ namespace RN
 		{
 			modules->Enumerate<String>([&](String *name, size_t index, bool &stop) {
 
-				Module *module = new Module(name);
-				module->Initialize();
+				Module *module = nullptr;
+				String *nameCopy = name->Copy()->Autorelease();
+
+				try
+				{
+					module = new Module(name);
+
+					_modules->AddObject(module);
+					_moduleMap->SetObjectForKey(module, nameCopy);
+
+					module->Initialize();
+				}
+				catch(Exception &e)
+				{
+					_modules->RemoveObject(module);
+					_moduleMap->RemoveObjectForKey(nameCopy);
+
+					delete module;
+					throw e;
+				}
 
 				RNDebug("Loaded module " << module);
 
 			});
 		}
+	}
+
+	Module *ModuleCoordinator::GetModuleForClass(MetaClass *meta) const
+	{
+		return meta->GetModule();
+	}
+
+	Module *ModuleCoordinator::__GetModuleForSymbol(void *symbol)
+	{
+		Dl_info info;
+		int status = dladdr(symbol, &info);
+		if(status == 0)
+			return nullptr;
+
+		Module *outModule = nullptr;
+
+		_modules->Enumerate<Module>([&](Module *module, size_t index, bool &stop) {
+
+			if(dlsym(module->_handle, info.dli_sname))
+			{
+				outModule = module;
+				stop = true;
+			}
+
+		});
+
+		return outModule;
 	}
 }

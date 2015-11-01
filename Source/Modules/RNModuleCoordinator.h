@@ -20,20 +20,25 @@ namespace RN
 	{
 	public:
 		friend class Kernel;
+		friend class Catalogue;
 
 		RN_OPTIONS(Options, uint32,
 				   NoLoad = (1 << 0));
 
-		static ModuleCoordinator *GetSharedInstance();
+		RNAPI static ModuleCoordinator *GetSharedInstance();
 
 		RNAPI Module *GetModuleWithName(const String *name);
 		RNAPI Module *GetModuleWithName(const String *name, Options options);
+
+		RNAPI Module *GetModuleForClass(MetaClass *meta) const;
 
 	private:
 		ModuleCoordinator();
 		~ModuleCoordinator();
 
 		void LoadModules();
+
+		Module *__GetModuleForSymbol(void *symbol);
 
 		std::mutex _lock;
 

@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Modules/RNModuleCoordinator.h"
 #include "RNCatalogue.h"
 #include "RNString.h"
 
@@ -13,7 +14,16 @@
 
 namespace RN
 {
-	static __ClassInitializer __pendingClasses[kPendingMetaClassSize];
+	typedef MetaClass *(*__ClassGetMetaClass)();
+
+	struct __PendingClass
+	{
+		__ClassInitializer init;
+		__ClassGetMetaClass getter;
+		MetaClass *meta;
+	};
+
+	static __PendingClass __pendingClasses[kPendingMetaClassSize];
 	static size_t __pendingClassesCount;
 	static bool __immediatelyHandlePendingClasses = false;
 
@@ -25,7 +35,11 @@ namespace RN
 			return;
 		}
 
-		__pendingClasses[__pendingClassesCount ++] = initializer;
+		__pendingClasses[__pendingClassesCount].init = initializer;
+		__pendingClasses[__pendingClassesCount].getter = nullptr;
+		__pendingClasses[__pendingClassesCount].meta = nullptr;
+
+		__pendingClassesCount ++;
 	}
 
 
@@ -132,7 +146,26 @@ namespace RN
 		__immediatelyHandlePendingClasses = true;
 
 		for(size_t i = 0; i < __pendingClassesCount; i ++)
-			__pendingClasses[i]();
+		{
+			__pendingClasses[i].getter = reinterpret_cast<__ClassGetMetaClass>(__pendingClasses[i].init());
+			__pendingClasses[i].meta = __pendingClasses[i].getter();
+		}
+	}
+
+	void Catalogue::DoClassesPreFlight()
+	{
+		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
+
+		for(size_t i = 0; i < __pendingClassesCount; i ++)
+		{
+			if(__pendingClasses[i].meta->_module)
+				continue;
+
+#if RN_PLATFORM_POSIX
+			Module *module = coordinator->__GetModuleForSymbol(reinterpret_cast<void *>(__pendingClasses[i].getter));
+			__pendingClasses[i].meta->_module = module;
+#endif
+		}
 	}
 	
 	void Catalogue::AddMetaClass(MetaClass *meta)

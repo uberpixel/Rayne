@@ -205,7 +205,7 @@ namespace RN
 #else
 #define __RNObjectInitializer(cls, name) \
 	namespace { \
-		static void __RN##name##Register() { cls::InitialWakeUp(cls::GetMetaClass()); } \
+		static void *__RN##name##Register() { cls::InitialWakeUp(cls::GetMetaClass()); return reinterpret_cast<void *>(&cls::GetMetaClass);  } \
 		RN_REGISTER_INITIALIZER(name##init, RN::__RegisterMetaClass(&__RN##name##Register)) \
 	}
 #endif

@@ -121,6 +121,9 @@ namespace RN
 			throw InconsistencyException(RNSTR("Invalid ABI version reported by" << _name));
 
 		_identifier = new String(descriptor.identifier, Encoding::UTF8, false);
+
+		// Since we just loaded a new module, we might be able to link meta classes with their modules
+		Catalogue::GetSharedInstance()->DoClassesPreFlight();
 	}
 
 	const String *Module::GetDescription() const

@@ -120,6 +120,7 @@ namespace RN
 		~Catalogue();
 
 		void RegisterPendingClasses();
+		void DoClassesPreFlight();
 
 		void AddMetaClass(MetaClass *meta);
 		void RemoveMetaClass(MetaClass *meta);
@@ -128,12 +129,12 @@ namespace RN
 		void PopModule();
 		
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
-		
+
 		std::unordered_map<std::string, MetaClass *> _metaClasses;
 		std::vector<Module *> _modules;
 	};
 
-	typedef void (*__ClassInitializer)();
+	typedef void *(*__ClassInitializer)();
 
 	RNAPI void __RegisterMetaClass(__ClassInitializer initializer);
 }
