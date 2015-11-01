@@ -201,7 +201,7 @@ namespace RN
 
 #define RNDefineMeta(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, \
-		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCronstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
+		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitConstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
 		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
 		std::conditional<std::is_constructible<cls, const cls *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
 	void *__kRN##cls##__metaClass = nullptr; \
@@ -219,7 +219,7 @@ namespace RN
 
 #define RNDefineScopedMeta(scope, cls, super) \
 	__RNDeclareScopedMetaPrivateWithTraits(scope, cls, super, \
-		std::conditional<std::is_default_constructible<scope::cls>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCronstructable<scope::cls>, RN::__MetaClassTraitNull0<scope::cls>>::type, \
+		std::conditional<std::is_default_constructible<scope::cls>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitConstructable<scope::cls>, RN::__MetaClassTraitNull0<scope::cls>>::type, \
 		std::conditional<std::is_constructible<scope::cls, RN::Deserializer *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitSerializable<scope::cls>, RN::__MetaClassTraitNull1<scope::cls>>::type, \
 		std::conditional<std::is_constructible<scope::cls, const scope::cls *>::value && !std::is_abstract<scope::cls>::value, RN::MetaClassTraitCopyable<scope::cls>, RN::__MetaClassTraitNull2<scope::cls>>::type) \
 	void *__kRN##scope##cls##__metaClass = nullptr; \

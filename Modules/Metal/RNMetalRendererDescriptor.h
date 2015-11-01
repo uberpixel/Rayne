@@ -13,14 +13,18 @@
 
 namespace RN
 {
-	class MetalRendererDescriptor : public RenderingDescriptor
+	class MetalRendererDescriptor : public RendererDescriptor
 	{
 	public:
+		static void InitialWakeUp(MetaClass *meta);
+
 		MetalRendererDescriptor();
 
-		Renderer *CreateAndSetActiveRenderer() final;
+		Renderer *CreateRenderer(const Dictionary *parameters) override;
+		bool CanConstructWithSettings(const Dictionary *parameters) const override;
+
+		RNDeclareMeta(MetalRendererDescriptor)
 	};
 }
-
 
 #endif /* __RAYNE_METALRENDERERDESCRIPTOR_H__ */

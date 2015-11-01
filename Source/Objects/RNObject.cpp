@@ -56,7 +56,7 @@ namespace RN
 
 	const String *Object::GetDescription() const
 	{
-		return String::WithFormat("<%s:%p>", GetClass()->GetName().c_str(), this);
+		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ">");
 	}
 	
 	MetaClass *Object::GetClass() const

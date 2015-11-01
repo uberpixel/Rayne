@@ -23,6 +23,7 @@ namespace RN
 	public:
 		friend class Catalogue;
 
+		RNAPI Module *GetModule() const { return _module; }
 		RNAPI MetaClass *GetSuperClass() const { return _superClass; }
 		RNAPI std::string GetName() const { return _name; }
 		RNAPI std::string GetFullname() const;
@@ -62,7 +63,7 @@ namespace RN
 	{};
 
 	template<class T>
-	class MetaClassTraitCronstructable : public virtual MetaClass
+	class MetaClassTraitConstructable : public virtual MetaClass
 	{
 	public:
 		T *Construct() override

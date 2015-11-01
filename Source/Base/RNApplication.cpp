@@ -39,4 +39,9 @@ namespace RN
 	void Application::DidBecomeActive() {}
 	void Application::WillResignActive() {}
 	void Application::DidResignActive() {}
+
+	RendererDescriptor *Application::GetPreferredRenderer() const
+	{
+		return nullptr;
+	}
 }

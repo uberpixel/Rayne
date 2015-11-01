@@ -71,28 +71,55 @@ namespace RN
 			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
 			_logger->__LoadDefaultLoggers();
 
+			_rendererCoordinator = new RendererCoordinator();
 			_assetCoordinator = new AssetCoordinator();
 			_sceneCoordinator = new SceneCoordinator();
 			_moduleCoordinator = new ModuleCoordinator();
 			_moduleCoordinator->LoadModules();
 
 			_application->WillFinishLaunching(this);
+			_renderer = nullptr;
 
 			if(!_arguments.HasArgument("--headless", 'h'))
 			{
-				_renderer = nullptr;
+				RendererDescriptor *descriptor = _application->GetPreferredRenderer();
 
-				MetaClass *meta = Catalogue::GetSharedInstance()->GetClassWithName("RN::MetalRenderer");
-
-				if(meta)
+				if(!descriptor)
 				{
-					_renderer = meta->Construct()->Downcast<Renderer>();
-					_renderer->Activate();
+					descriptor = _rendererCoordinator->GetPreferredRenderer();
+
+					if(!descriptor)
+					{
+						Array *renderers = _rendererCoordinator->GetAvailableRenderers();
+
+						if(renderers->GetCount() > 0)
+							descriptor = renderers->GetObjectAtIndex<RendererDescriptor>(0);
+					}
+				}
+
+				if(descriptor)
+				{
+					try
+					{
+						_renderer = _rendererCoordinator->ActivateRenderer(descriptor);
+						RNDebug("Using renderer " << _renderer);
+					}
+					catch(Exception &e)
+					{
+						_renderer = nullptr;
+						RNError("Creating renderer failed with exception: " << e);
+					}
+				}
+
+
+				if(!_renderer)
+				{
+					RNWarning("Non headless rendering requested, but no available rendering descriptor found!");
 				}
 			}
 			else
 			{
-				_renderer = nullptr;
+				RNDebug("Running with headless renderer");
 			}
 
 		}
@@ -144,6 +171,7 @@ namespace RN
 		delete _assetCoordinator;
 		delete _sceneCoordinator;
 		delete _moduleCoordinator;
+		delete _rendererCoordinator;
 
 		_logger->Flush();
 		delete _logger;

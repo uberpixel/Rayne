@@ -39,17 +39,16 @@ namespace RN
 		MTLPixelFormatDepth32Float_Stencil8
 	};
 
-	MetalRenderer::MetalRenderer() :
+	MetalRenderer::MetalRenderer(const Dictionary *parameters) :
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set())
 	{
 		_internals->device = nullptr;
 
 		// Check for parameters that need to be activated before interacting with the Metal API
-		Dictionary *parameters = GetParameters();
 		if(parameters)
 		{
-			Number *apiValidation = parameters->GetObjectForKey<Number>(RNCSTR("api_validation"));
+			Number *apiValidation = const_cast<Dictionary *>(parameters)->GetObjectForKey<Number>(RNCSTR("api_validation"));
 			if(apiValidation && apiValidation->GetBoolValue())
 			{
 				char buffer[64];

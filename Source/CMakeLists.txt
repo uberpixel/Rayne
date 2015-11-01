@@ -60,7 +60,8 @@ set(RAYNE_SOURCES
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNRenderer.cpp
-    Rendering/RNRenderingDescriptor.cpp
+    Rendering/RNRendererCoordinator.cpp
+    Rendering/RNRendererDescriptor.cpp
     Rendering/RNShader.cpp
     Rendering/RNShaderLibrary.cpp
     Rendering/RNTexture.cpp
@@ -145,8 +146,9 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNRenderer.h
+    Rendering/RNRendererCoordinator.h
+    Rendering/RNRendererDescriptor.h
     Rendering/RNRendererTypes.h
-    Rendering/RNRenderingDescriptor.h
     Rendering/RNShader.h
     Rendering/RNShaderLibrary.h
     Rendering/RNTexture.h

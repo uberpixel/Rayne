@@ -65,7 +65,7 @@
 #include "Rendering/RNMaterial.h"
 #include "Rendering/RNMesh.h"
 #include "Rendering/RNRenderer.h"
-#include "Rendering/RNRenderingDescriptor.h"
+#include "Rendering/RNRendererDescriptor.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"
 #include "Rendering/RNWindow.h"

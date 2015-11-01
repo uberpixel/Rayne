@@ -20,6 +20,7 @@
 #include "../Modules/RNModuleCoordinator.h"
 #include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNRendererCoordinator.h"
 #include "../Scene/RNSceneCoordinator.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
@@ -78,6 +79,7 @@ namespace RN
 		SceneCoordinator *_sceneCoordinator;
 		AssetCoordinator *_assetCoordinator;
 		ModuleCoordinator *_moduleCoordinator;
+		RendererCoordinator *_rendererCoordinator;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

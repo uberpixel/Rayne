@@ -11,6 +11,8 @@
 
 #include "RNBase.h"
 #include "../Objects/RNString.h"
+#include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNRendererCoordinator.h"
 
 namespace RN
 {
@@ -34,6 +36,8 @@ namespace RN
 		RNAPI virtual void DidBecomeActive();
 		RNAPI virtual void WillResignActive();
 		RNAPI virtual void DidResignActive();
+
+		RNAPI RendererDescriptor *GetPreferredRenderer() const;
 
 		const String *GetTitle() const { return _title; }
 

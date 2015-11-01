@@ -23,18 +23,6 @@ namespace RN
 		return _activeRenderer;
 	}
 
-	Dictionary *Renderer::GetParameters() const
-	{
-		Dictionary *renderer = Settings::GetSharedInstance()->GetEntryForKey<Dictionary>(RNCSTR("RNRenderer"));
-		if(renderer)
-		{
-			Dictionary *parameters = renderer->GetObjectForKey<Dictionary>(RNCSTR("parameters"));
-			return parameters;
-		}
-
-		return nullptr;
-	}
-
 	void Renderer::Activate()
 	{
 		RN_ASSERT(!_activeRenderer, "Rayne only supports one active renderer at a time");

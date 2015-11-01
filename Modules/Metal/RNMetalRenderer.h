@@ -26,7 +26,7 @@ namespace RN
 		friend class MetalTexture;
 		friend class MetalWindow;
 
-		RNAPI MetalRenderer();
+		RNAPI MetalRenderer(const Dictionary *parameters);
 		RNAPI ~MetalRenderer();
 
 		RNAPI Window *CreateWindow(const Vector2 &size, Screen *screen) final;
