@@ -12,16 +12,11 @@ set(VENDOR_BOOST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/boost/libs)
 
 
 # CMake policies
-if(POLICY CMP0026)
-    cmake_policy(SET CMP0026 OLD) # Allow reading LOCATION
+if(POLICY CMP0042)
+    set(CMAKE_POLICY_DEFAULT_CMP0042 NEW)
 endif()
-
-if(APPLE)
-
-    if(POLICY CMP0042)
-        cmake_policy(SET CMP0042 NEW) # Set MACOSX_RPATH=YES by default
-    endif()
-
+if(POLICY CMP0026)
+    set(CMAKE_POLICY_DEFAULT_CMP0026 OLD)
 endif()
 
 # Include all Rayne targets

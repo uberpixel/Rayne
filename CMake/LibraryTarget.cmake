@@ -28,6 +28,10 @@ macro(__rayne_create_target _NAME _ARCH _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES
 
         set(CMAKE_OSX_ARCHITECTURES x86_64)
 
+        if(POLICY CMP0042)
+            cmake_policy(SET CMP0042 NEW) # Set MACOSX_RPATH=YES by default
+        endif()
+
     elseif(UNIX)
     elseif(WIN32)
     endif()
