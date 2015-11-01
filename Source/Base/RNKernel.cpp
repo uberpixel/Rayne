@@ -74,14 +74,21 @@ namespace RN
 			_assetCoordinator = new AssetCoordinator();
 			_sceneCoordinator = new SceneCoordinator();
 			_moduleCoordinator = new ModuleCoordinator();
+			_moduleCoordinator->LoadModules();
 
 			_application->WillFinishLaunching(this);
 
 			if(!_arguments.HasArgument("--headless", 'h'))
 			{
-				//MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-				//_renderer = descriptor->CreateAndSetActiveRenderer();
 				_renderer = nullptr;
+
+				MetaClass *meta = Catalogue::GetSharedInstance()->GetClassWithName("RN::MetalRenderer");
+
+				if(meta)
+				{
+					_renderer = meta->Construct()->Downcast<Renderer>();
+					_renderer->Activate();
+				}
 			}
 			else
 			{

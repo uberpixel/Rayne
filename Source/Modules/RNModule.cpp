@@ -23,7 +23,10 @@ namespace RN
 		_name(SafeCopy(name)),
 		_path(nullptr)
 	{
-		String *base = _name->Copy()->Autorelease();
+		String *basePath = _name->StringByDeletingLastPathComponent();
+		String *base = _name->GetLastPathComponent();
+
+		base->Append("-x64"); // TODO: Don't hardcode this
 
 #if RN_PLATFORM_MAC_OS
 		base->AppendPathExtension(RNCSTR("dylib"));
@@ -39,6 +42,9 @@ namespace RN
 		base->Insert(RNCSTR("lib"), 0);
 #endif
 
+		base = basePath->StringByAppendingPathComponent(base);
+
+
 		_path = FileCoordinator::GetSharedInstance()->ResolveFullPath(base, 0);
 		if(!_path)
 			throw InvalidArgumentException("Couldn't resolve module name");
@@ -52,15 +58,17 @@ namespace RN
 		}
 		else
 		{
+			Catalogue::GetSharedInstance()->PushModule(this);
 			_handle = dlopen(_path->GetUTF8String(), RTLD_NOW | RTLD_GLOBAL);
+			Catalogue::GetSharedInstance()->PopModule();
 		}
 
-		if(!handle)
+		if(!_handle)
 			throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
 
 		char buffer[512];
-		strcpy(buffer, "RN");
-		strcat(buffer, name->GetUTF8String());
+		strcpy(buffer, "__RN");
+		strcat(buffer, name->GetLastPathComponent()->GetUTF8String());
 		strcat(buffer, "Init");
 
 		_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));

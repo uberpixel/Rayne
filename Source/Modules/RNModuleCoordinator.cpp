@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Base/RNKernel.h"
 #include "RNModuleCoordinator.h"
 
 namespace RN
@@ -68,9 +69,23 @@ namespace RN
 		}
 		catch(Exception &e)
 		{
-			module = nullptr;
+			throw e;
 		}
 
 		return module;
+	}
+
+	void ModuleCoordinator::LoadModules()
+	{
+		Array *modules = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(RNCSTR("RNModules"));
+		if(modules)
+		{
+			modules->Enumerate<String>([&](String *name, size_t index, bool &stop) {
+
+				Module *module = new Module(name);
+				module->Initialize();
+
+			});
+		}
 	}
 }

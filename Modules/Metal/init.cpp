@@ -8,4 +8,4 @@
 
 #include <Rayne.h>
 
-RNModule(Metal, "net.uberpixel.rayne.metal")
+RNModule(RayneMetal, "net.uberpixel.rayne.metal")

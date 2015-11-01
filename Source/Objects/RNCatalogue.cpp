@@ -13,7 +13,8 @@ namespace RN
 {
 	MetaClass::MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob) :
 		_superClass(parent),
-		_name(name)
+		_name(name),
+		_module(nullptr)
 	{
 		Catalogue::ParsePrettyFunction(namespaceBlob, _namespace);
 		
@@ -87,14 +88,27 @@ namespace RN
 				break;
 		}
 	}
-	
+
+
+	void Catalogue::PushModule(Module *module)
+	{
+		_modules.push_back(module);
+	}
+	void Catalogue::PopModule()
+	{
+		_modules.pop_back();
+	}
+
 	
 	void Catalogue::AddMetaClass(MetaClass *meta)
 	{
 		auto iterator = _metaClasses.find(meta->GetFullname());
 		if(iterator != _metaClasses.end())
 			throw InvalidArgumentException(RNSTR("A MetaClass of the same name '" << meta->GetFullname() << "' already exists!"));
-		
+
+		if(!_modules.empty())
+			meta->_module = _modules.back();
+
 		_metaClasses.insert(std::unordered_map<std::string, MetaClass *>::value_type(meta->GetFullname(), meta));
 	}
 	

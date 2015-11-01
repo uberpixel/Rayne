@@ -26,12 +26,14 @@ namespace RN
 
 		static ModuleCoordinator *GetSharedInstance();
 
-		Module *GetModuleWithName(const String *name);
-		Module *GetModuleWithName(const String *name, Options options);
+		RNAPI Module *GetModuleWithName(const String *name);
+		RNAPI Module *GetModuleWithName(const String *name, Options options);
 
 	private:
 		ModuleCoordinator();
 		~ModuleCoordinator();
+
+		void LoadModules();
 
 		std::mutex _lock;
 

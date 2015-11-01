@@ -16,10 +16,13 @@ namespace RN
 	class Object;
 	class Serializer;
 	class Deserializer;
+	class Module;
 	
 	class MetaClass
 	{
 	public:
+		friend class Catalogue;
+
 		RNAPI MetaClass *GetSuperClass() const { return _superClass; }
 		RNAPI std::string GetName() const { return _name; }
 		RNAPI std::string GetFullname() const;
@@ -40,6 +43,7 @@ namespace RN
 		RNAPI ~MetaClass();
 		
 	private:
+		Module *_module;
 		MetaClass *_superClass;
 		std::string _name;
 		std::vector<std::string> _namespace;
@@ -102,6 +106,7 @@ namespace RN
 	{
 	public:
 		friend class MetaClass;
+		friend class Module;
 
 		static Catalogue *GetSharedInstance();
 		
@@ -111,10 +116,14 @@ namespace RN
 	private:
 		void AddMetaClass(MetaClass *meta);
 		void RemoveMetaClass(MetaClass *meta);
+
+		void PushModule(Module *module);
+		void PopModule();
 		
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
 		
 		std::unordered_map<std::string, MetaClass *> _metaClasses;
+		std::vector<Module *> _modules;
 	};
 }
 
