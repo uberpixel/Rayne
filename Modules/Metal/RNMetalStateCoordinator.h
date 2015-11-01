@@ -9,14 +9,8 @@
 #ifndef __RAYNE_METALSTATECOORDINATOR_H_
 #define __RAYNE_METALSTATECOORDINATOR_H_
 
-#include "../../Base/RNBaseInternal.h"
-#include "../../Base/RNBase.h"
-#include "../../Objects/RNObject.h"
-#include "../../Objects/RNSet.h"
-#include "../../scene/RNCamera.h"
-#include "../RNRenderer.h"
-#include "../RNMaterial.h"
-#include "../RNMesh.h"
+#include <Rayne.h>
+#import <Metal/Metal.h>
 
 namespace RN
 {

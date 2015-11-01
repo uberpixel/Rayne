@@ -12,8 +12,6 @@
 	#import <Cocoa/Cocoa.h>
 	#import <Foundation/Foundation.h>
 	#import <IOKit/graphics/IOGraphicsLib.h>
-	#import <Metal/Metal.h>
-	#import <QuartzCore/QuartzCore.h>
 #endif
 
 #endif /* __RAYNE_BASEINTERNAL_H__ */

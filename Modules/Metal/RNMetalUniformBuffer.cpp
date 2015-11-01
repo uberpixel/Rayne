@@ -6,7 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../../Objects/RNAutoreleasePool.h"
 #include "RNMetalUniformBuffer.h"
 #include "RNMetalInternals.h"
 #include "RNMetalRenderer.h"

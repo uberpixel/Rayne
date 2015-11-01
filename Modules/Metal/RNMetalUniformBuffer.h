@@ -9,9 +9,7 @@
 #ifndef __RAYNE_METALUNIFORMBUFFER_H_
 #define __RAYNE_METALUNIFORMBUFFER_H_
 
-#include "../../Base/RNBase.h"
-#include "../../Objects/RNObject.h"
-#include "../../Objects/RNString.h"
+#include <Rayne.h>
 #include "RNMetalStateCoordinator.h"
 
 #define kRNMetalUniformBufferCount 3

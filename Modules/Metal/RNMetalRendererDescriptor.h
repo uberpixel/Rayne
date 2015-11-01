@@ -9,8 +9,7 @@
 #ifndef __RAYNE_METALRENDERERDESCRIPTOR_H__
 #define __RAYNE_METALRENDERERDESCRIPTOR_H__
 
-#include "../../Base/RNBase.h"
-#include "../RNRenderingDescriptor.h"
+#include <Rayne.h>
 
 namespace RN
 {

@@ -17,6 +17,7 @@
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
 #include "../Assets/RNAssetCoordinator.h"
+#include "../Modules/RNModuleCoordinator.h"
 #include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Scene/RNSceneCoordinator.h"
@@ -76,6 +77,7 @@ namespace RN
 		Renderer *_renderer;
 		SceneCoordinator *_sceneCoordinator;
 		AssetCoordinator *_assetCoordinator;
+		ModuleCoordinator *_moduleCoordinator;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

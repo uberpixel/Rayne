@@ -40,6 +40,9 @@
 #include "Math/RNSIMD.h"
 #include "Math/RNVector.h"
 
+#include "Modules/RNModule.h"
+#include "Modules/RNModuleCoordinator.h"
+
 #include "Objects/RNAutoreleasePool.h"
 #include "Objects/RNObject.h"
 #include "Objects/RNCatalogue.h"

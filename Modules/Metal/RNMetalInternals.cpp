@@ -6,9 +6,9 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#import <Metal/Metal.h>
 #include "RNMetalInternals.h"
 #include "RNMetalTexture.h"
-#include "../RNFramebuffer.h"
 
 @implementation RNMetalView
 	{

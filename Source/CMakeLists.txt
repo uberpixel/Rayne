@@ -1,23 +1,18 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
+include(../CMake/CompilerCheck.cmake)
+include(../CMake/BoostInclude.cmake)
+include(../CMake/TargetDirectories.cmake)
+include(../CMake/LibraryTarget.cmake)
+
+target_directories(RAYNE)
+
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 set(VERSION_ABI 10)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-
-set(RAYNE_INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
-set(RAYNE_INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
-set(RAYNE_INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
-
-# CMake macros
-include(../CMake/CompilerCheck.cmake)
-include(../CMake/BoostInclude.cmake)
 
 # Source files
 set(RAYNE_SOURCES
@@ -38,6 +33,8 @@ set(RAYNE_SOURCES
     Debug/RNLoggingEngine.cpp
     Math/RNMath.cpp
     Math/RNRandom.cpp
+    Modules/RNModule.cpp
+    Modules/RNModuleCoordinator.cpp
     Objects/RNCatalogue.cpp
     Objects/RNObject.cpp
     Objects/RNObjectInternals.cpp
@@ -57,16 +54,6 @@ set(RAYNE_SOURCES
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
     Objects/RNWeakStorage.cpp
-    Rendering/Metal/RNMetalGPUBuffer.cpp
-    Rendering/Metal/RNMetalInternals.cpp
-    Rendering/Metal/RNMetalRenderer.cpp
-    Rendering/Metal/RNMetalRendererDescriptor.cpp
-    Rendering/Metal/RNMetalShader.cpp
-    Rendering/Metal/RNMetalShaderLibrary.cpp
-    Rendering/Metal/RNMetalStateCoordinator.cpp
-    Rendering/Metal/RNMetalTexture.cpp
-    Rendering/Metal/RNMetalUniformBuffer.cpp
-    Rendering/Metal/RNMetalWindow.cpp
     Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
@@ -132,6 +119,8 @@ set(RAYNE_HEADERS
     Math/RNRect.h
     Math/RNSIMD.h
     Math/RNVector.h
+    Modules/RNModule.h
+    Modules/RNModuleCoordinator.h
     Objects/RNArray.h
     Objects/RNAutoreleasePool.h
     Objects/RNCatalogue.h
@@ -150,14 +139,6 @@ set(RAYNE_HEADERS
     Objects/RNString.h
     Objects/RNValue.h
     Objects/RNWeakStorage.h
-    Rendering/Metal/RNMetalGPUBuffer.h
-    Rendering/Metal/RNMetalRenderer.h
-    Rendering/Metal/RNMetalRendererDescriptor.h
-    Rendering/Metal/RNMetalShader.h
-    Rendering/Metal/RNMetalShaderLibrary.h
-    Rendering/Metal/RNMetalStateCoordinator.h
-    Rendering/Metal/RNMetalTexture.h
-    Rendering/Metal/RNMetalWindow.h
     Rendering/RNFramebuffer.h
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h
@@ -189,131 +170,58 @@ set(RAYNE_HEADERS
 set(RAYNE_HEADERS_PRIVATE
     Assets/RNPNGAssetLoader.h
     Base/RNBaseInternal.h
-    Rendering/Metal/RNMetalInternals.h
     Objects/RNHashTableInternal.h
     Objects/RNObjectInternals.h
     Objects/RNStringInternal.h)
 
 
 set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
-set(BUILD_64Bit YES)
-
-if(NOT APPLE)
-    set(BUILD_32Bit YES)
-endif()
-
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+set(INCLUDE_DIRECTORIES
+        ${CMAKE_CURRENT_BINARY_DIR}/include
+        "${jansson_BINARY_DIR}/include"
+        "${libpng_SOURCE_DIR}"
+        "${libpng_BINARY_DIR}"
+        "${zlib_SOURCE_DIR}")
 
-include_directories("${jansson_BINARY_DIR}/include")
-include_directories("${libpng_SOURCE_DIR}")
-include_directories("${libpng_BINARY_DIR}")
-include_directories("${zlib_SOURCE_DIR}")
+boost_include(assert INCLUDE_DIRECTORIES)
+boost_include(static_assert INCLUDE_DIRECTORIES)
+boost_include(config INCLUDE_DIRECTORIES)
+boost_include(type_traits INCLUDE_DIRECTORIES)
+boost_include(mpl INCLUDE_DIRECTORIES)
+boost_include(preprocessor INCLUDE_DIRECTORIES)
+boost_include(array INCLUDE_DIRECTORIES)
+boost_include(atomic INCLUDE_DIRECTORIES)
+boost_include(core INCLUDE_DIRECTORIES)
+boost_include(throw_exception INCLUDE_DIRECTORIES)
+boost_include(functional INCLUDE_DIRECTORIES)
+boost_include(parameter INCLUDE_DIRECTORIES)
+boost_include(detail INCLUDE_DIRECTORIES)
+boost_include(utility INCLUDE_DIRECTORIES)
+boost_include(lockfree INCLUDE_DIRECTORIES)
 
-boost_include(assert)
-boost_include(static_assert)
-boost_include(config)
-boost_include(type_traits)
-boost_include(mpl)
-boost_include(preprocessor)
-boost_include(array)
-boost_include(atomic)
-boost_include(core)
-boost_include(throw_exception)
-boost_include(functional)
-boost_include(parameter)
-boost_include(detail)
-boost_include(utility)
-boost_include(lockfree)
-
-set(COMPILE_FLAGS "")
+set(COMPILE_DEFINITIONS "")
+set(COMPILE_OPTIONS "")
 set(LINK_LIBRARIES "")
+set(RAYNE_LIBRARIES "")
 
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(FOUNDATION_LIBRARY Foundation)
     find_library(IOKIT_LIBRARY IOKit)
-    find_library(METAL_LIBRARY Metal)
-    find_library(QUARTZCORE_LIBRARY QuartzCore)
 
-    set(COMPILE_FLAGS "-x objective-c++ -DRN_BUILD_LIBRARY=1")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
-    set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY} ${METAL_LIBRARY} ${QUARTZCORE_LIBRARY})
+    set(COMPILE_DEFINITIONS "-DRN_BUILD_LIBRARY=1")
+    set(COMPILE_OPTIONS "-xobjective-c++")
+
+    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
 
 set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png16_static zlibstatic)
 
-add_definitions(${COMPILE_FLAGS})
-
-# Helper macros
-function(createTarget arg1 arg2 arg3)
-
-    # Input check
-    if(NOT ((arg2 EQUAL 64) OR (arg2 EQUAL 32)))
-        message(FATAL_ERROR "Target must be either \"32\" or \"64\", is \"${arg2}\"")
-    endif()
-
-    if(NOT (("${arg3}" STREQUAL "STATIC") OR ("${arg3}" STREQUAL "SHARED")))
-         message(FATAL_ERROR "Type must be either \"STATIC\" or \"SHARED\", is \"${arg3}\"")
-    endif()
-
-    # Create the target name
-    set(TARGET_NAME "${arg1}")
-
-    if("${arg3}" STREQUAL "STATIC")
-        set(TARGET_NAME "${TARGET_NAME}-static")
-    endif()
-
-    if(arg2 EQUAL 64)
-        set(TARGET_NAME "${TARGET_NAME}-x64")
-    else()
-        set(TARGET_NAME "${TARGET_NAME}-x86")
-    endif()
-
-    # Apply settings
-    if(APPLE)
-
-        set(CMAKE_OSX_ARCHITECTURES x86_64)
-
-    elseif(UNIX)
-
-        if(arg2 EQUAL 64)
-            target_compile_options(${arg1} PUBLIC -m64)
-        else()
-            target_compile_options(${arg1} PUBLIC -m32)
-        endif()
-
-    elseif(WIN32)
-    endif()
-
-    add_library("${TARGET_NAME}" ${arg3} ${TARGET_FILES})
-    target_link_libraries("${TARGET_NAME}" ${LINK_LIBRARIES})
-    set_target_properties("${TARGET_NAME}" PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_ABI})
-    set_target_properties("${TARGET_NAME}" PROPERTIES PUBLIC_HEADER "${RAYNE_HEADERS}")
-
-    # Copy the headers
-    foreach(HEADER ${RAYNE_HEADERS})
-        add_custom_command(TARGET "${TARGET_NAME}" PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
-    endforeach()
-
-endfunction()
-
-if(BUILD_64Bit)
-
-    createTarget(Rayne 64 SHARED)
-    createTarget(Rayne 64 STATIC)
-
-endif()
-if(BUILD_32Bit)
-
-    if(APPLE)
-        message(WARNING "x86 build on OS X not supported")
-    else()
-        createTarget(Rayne 32 SHARED)
-        createTarget(Rayne 32 STATIC)
-    endif()
-
-endif()
+rayne_add_library(Rayne "${RAYNE_SOURCES}" "${RAYNE_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
+rayne_target_add_definitions(Rayne "${COMPILE_DEFINITIONS}")
+rayne_target_add_options(Rayne "${COMPILE_OPTIONS}")
+rayne_target_include_directories(Rayne "${INCLUDE_DIRECTORIES}")
+rayne_target_link_libraries(Rayne "${LINK_LIBRARIES}")

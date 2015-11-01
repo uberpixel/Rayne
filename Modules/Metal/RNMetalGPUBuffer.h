@@ -10,8 +10,7 @@
 #ifndef __RAYNE_METALGPUBUFFER_H_
 #define __RAYNE_METALGPUBUFFER_H_
 
-#include "../../Base/RNBase.h"
-#include "../RNGPUBuffer.h"
+#include <Rayne.h>
 
 namespace RN
 {

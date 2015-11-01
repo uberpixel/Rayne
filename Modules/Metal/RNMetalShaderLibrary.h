@@ -10,8 +10,7 @@
 #ifndef __RAYNE_METALSHADERLIBRARY_H_
 #define __RAYNE_METALSHADERLIBRARY_H_
 
-#include "../../Base/RNBase.h"
-#include "../RNShaderLibrary.h"
+#include <Rayne.h>
 
 namespace RN
 {

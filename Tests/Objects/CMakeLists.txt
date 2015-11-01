@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Objects-Tests)
 
+include(../../CMake/CopyResources.cmake)
+
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(${Rayne_BINARY_DIR}/include)
 

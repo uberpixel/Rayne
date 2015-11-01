@@ -11,7 +11,6 @@
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../System/RNScreen.h"
-#include "../Rendering/Metal/RNMetalRendererDescriptor.h"
 #include "../Rendering/RNRenderer.h"
 
 namespace RN
@@ -74,13 +73,15 @@ namespace RN
 
 			_assetCoordinator = new AssetCoordinator();
 			_sceneCoordinator = new SceneCoordinator();
+			_moduleCoordinator = new ModuleCoordinator();
 
 			_application->WillFinishLaunching(this);
 
 			if(!_arguments.HasArgument("--headless", 'h'))
 			{
-				MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-				_renderer = descriptor->CreateAndSetActiveRenderer();
+				//MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
+				//_renderer = descriptor->CreateAndSetActiveRenderer();
+				_renderer = nullptr;
 			}
 			else
 			{
@@ -135,6 +136,7 @@ namespace RN
 		delete _fileManager;
 		delete _assetCoordinator;
 		delete _sceneCoordinator;
+		delete _moduleCoordinator;
 
 		_logger->Flush();
 		delete _logger;

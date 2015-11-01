@@ -6,8 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../../Base/RNBaseInternal.h"
-#include "../../Objects/RNNumber.h"
+#import <Metal/Metal.h>
 #include "RNMetalRenderer.h"
 #include "RNMetalInternals.h"
 #include "RNMetalShaderLibrary.h"

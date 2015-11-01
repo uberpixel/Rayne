@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#import <Metal/Metal.h>
 #include "RNMetalGPUBuffer.h"
-#include "../../Base/RNBaseInternal.h"
 
 namespace RN
 {

@@ -1,5 +1,5 @@
 
-macro(boost_include _NAME)
+macro(boost_include _NAME _INCLUDE_DIRS)
 
     set(_PATH ${VENDOR_BOOST_DIR}/${_NAME}/include)
 
@@ -7,6 +7,6 @@ macro(boost_include _NAME)
         message(FATAL_ERROR "Could not find boost::${_NAME}")
     endif()
 
-    include_directories(${_PATH})
+    set(_INCLUDE_DIRS ${_INCLUDE_DIRS} ${_PATH})
 
 endmacro()

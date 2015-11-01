@@ -9,8 +9,7 @@
 #ifndef __RAYNE_METALWINDOW_H__
 #define __RAYNE_METALWINDOW_H__
 
-#include "../../Base/RNBase.h"
-#include "../RNWindow.h"
+#include <Rayne.h>
 
 namespace RN
 {

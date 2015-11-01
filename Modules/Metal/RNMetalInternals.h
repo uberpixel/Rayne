@@ -9,8 +9,11 @@
 #ifndef __RAYNE_METALINTERNALS_H__
 #define __RAYNE_METALINTERNALS_H__
 
-#include "../../Base/RNBase.h"
-#include "../../Base/RNBaseInternal.h"
+#import <Metal/Metal.h>
+#import <Cocoa/Cocoa.h>
+#import <QuartzCore/QuartzCore.h>
+
+#include <Rayne.h>
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
 
