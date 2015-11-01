@@ -21,12 +21,19 @@ namespace RN
 		_handle(nullptr),
 		_ownsHandle(true),
 		_name(SafeCopy(name)),
-		_path(nullptr)
+		_path(nullptr),
+		_identifier(nullptr)
 	{
 		String *basePath = _name->StringByDeletingLastPathComponent();
 		String *base = _name->GetLastPathComponent();
 
-		base->Append("-x64"); // TODO: Don't hardcode this
+#if RN_PLATFORM_64BIT
+		base->Append("-x64");
+#endif
+#if RN_PLATFORM_32BIT
+		base->Append("-x86");
+#endif
+
 
 #if RN_PLATFORM_MAC_OS
 		base->AppendPathExtension(RNCSTR("dylib"));
@@ -51,10 +58,28 @@ namespace RN
 
 		_path->Retain();
 
-		void *handle = dlopen(_path->GetUTF8String(), RTLD_GLOBAL | RTLD_NOLOAD);
-		if(handle)
+		char buffer[512];
+		strcpy(buffer, "__RN");
+		strcat(buffer, name->GetLastPathComponent()->GetUTF8String());
+		strcat(buffer, "Init");
+
+		void *initializer = nullptr;
+
+		if((initializer = dlsym(RTLD_DEFAULT, buffer)))
 		{
-			_handle = handle;
+			_handle = nullptr;
+			_ownsHandle = false;
+
+			Dl_info info;
+			int status = dladdr(initializer, &info);
+			if(status != 0)
+			{
+				_path->Release();
+				_path = RNSTR(info.dli_fname)->Retain();
+
+				_handle = dlopen(info.dli_fname, RTLD_NOLOAD | RTLD_GLOBAL);
+				_ownsHandle = true;
+			}
 		}
 		else
 		{
@@ -63,13 +88,8 @@ namespace RN
 			Catalogue::GetSharedInstance()->PopModule();
 		}
 
-		if(!_handle)
+		if(!_handle && _ownsHandle)
 			throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
-
-		char buffer[512];
-		strcpy(buffer, "__RN");
-		strcat(buffer, name->GetLastPathComponent()->GetUTF8String());
-		strcat(buffer, "Init");
 
 		_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
 
@@ -84,6 +104,7 @@ namespace RN
 
 		SafeRelease(_name);
 		SafeRelease(_path);
+		SafeRelease(_identifier);
 	}
 
 	void Module::Initialize()
@@ -98,5 +119,12 @@ namespace RN
 
 		if(descriptor.abiVersion != GetABIVersion())
 			throw InconsistencyException(RNSTR("Invalid ABI version reported by" << _name));
+
+		_identifier = new String(descriptor.identifier, Encoding::UTF8, false);
+	}
+
+	const String *Module::GetDescription() const
+	{
+		return RNSTR("<RN::Module:" << (void *)this << " " << GetIdentifier() << ">");
 	}
 }

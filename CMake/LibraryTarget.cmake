@@ -135,7 +135,7 @@ macro(rayne_target_add_definitions _TARGET _DEFINITIONS)
     foreach(TARGET ${TARGETS})
 
         foreach(DEFINITION ${_DEFINITIONS})
-            target_compile_definitions(${TARGET} PUBLIC "${DEFINITION}")
+            target_compile_definitions(${TARGET} PRIVATE "${DEFINITION}")
         endforeach()
 
     endforeach()
@@ -149,7 +149,7 @@ macro(rayne_target_add_options _TARGET _OPTIONS)
     foreach(TARGET ${TARGETS})
 
         foreach(OPTION ${_OPTIONS})
-            target_compile_options(${TARGET} PUBLIC "${OPTION}")
+            target_compile_options(${TARGET} PRIVATE "${OPTION}")
         endforeach()
 
     endforeach()
@@ -171,7 +171,7 @@ macro(rayne_target_include_directories _TARGET _DIRECTORIES)
     __rayne_target_names(${_TARGET} TARGETS)
 
     foreach(TARGET ${TARGETS})
-        target_include_directories("${TARGET}" PUBLIC "${_DIRECTORIES}")
+        target_include_directories("${TARGET}" PRIVATE "${_DIRECTORIES}")
     endforeach()
 
 endmacro()

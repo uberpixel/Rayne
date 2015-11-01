@@ -199,6 +199,17 @@ namespace RN
 #define RNDeclareMeta(cls) \
 	__RNDeclareMetaPublic(cls)
 
+#if RN_BUILD_LIBRARY
+#define __RNObjectInitializer(cls, name) \
+	RN_REGISTER_INITIALIZER(name##Init, cls::InitialWakeUp(cls::GetMetaClass()))
+#else
+#define __RNObjectInitializer(cls, name) \
+	namespace { \
+		static void __RN##name##Register() { cls::InitialWakeUp(cls::GetMetaClass()); } \
+		RN_REGISTER_INITIALIZER(name##init, RN::__RegisterMetaClass(&__RN##name##Register)) \
+	}
+#endif
+
 #define RNDefineMeta(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, \
 		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitConstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
@@ -215,7 +226,7 @@ namespace RN
 			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
-	RN_REGISTER_INITIALIZER(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
+	__RNObjectInitializer(cls, cls)
 
 #define RNDefineScopedMeta(scope, cls, super) \
 	__RNDeclareScopedMetaPrivateWithTraits(scope, cls, super, \
@@ -233,7 +244,7 @@ namespace RN
 			__kRN##scope##cls##__metaClass = new scope##cls##MetaType(RN_FUNCTION_SIGNATURE); \
 		return reinterpret_cast<scope##cls##MetaType *>(__kRN##scope##cls##__metaClass); \
 	} \
-	RN_REGISTER_INITIALIZER(cls##Init, scope::cls::GetMetaClass(); scope::cls::InitialWakeUp(scope::cls::GetMetaClass()))
+	__RNObjectInitializer(scope::cls, cls)
 	
 #define __RNDefineMetaAndGFYMSVC(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, RN::__MetaClassTraitNull0<cls>, RN::__MetaClassTraitNull1<cls>, RN::__MetaClassTraitNull2<cls>) \

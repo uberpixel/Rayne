@@ -9,8 +9,28 @@
 #include "RNCatalogue.h"
 #include "RNString.h"
 
+#define kPendingMetaClassSize 1024
+
 namespace RN
 {
+	static __ClassInitializer __pendingClasses[kPendingMetaClassSize];
+	static size_t __pendingClassesCount;
+	static bool __immediatelyHandlePendingClasses = false;
+
+	void __RegisterMetaClass(__ClassInitializer initializer)
+	{
+		if(RN_EXPECT_TRUE(__immediatelyHandlePendingClasses))
+		{
+			initializer();
+			return;
+		}
+
+		__pendingClasses[__pendingClassesCount ++] = initializer;
+	}
+
+
+
+
 	MetaClass::MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob) :
 		_superClass(parent),
 		_name(name),
@@ -59,12 +79,20 @@ namespace RN
 	
 	
 	static Catalogue *__sharedInstance = nullptr;
-	
+
+	Catalogue::Catalogue()
+	{}
+	Catalogue::~Catalogue()
+	{
+		__sharedInstance = nullptr;
+	}
+
+
 	Catalogue *Catalogue::GetSharedInstance()
 	{
 		if(RN_EXPECT_FALSE(!__sharedInstance))
 			__sharedInstance = new Catalogue();
-		
+
 		return __sharedInstance;
 	}
 	
@@ -99,6 +127,13 @@ namespace RN
 		_modules.pop_back();
 	}
 
+	void Catalogue::RegisterPendingClasses()
+	{
+		__immediatelyHandlePendingClasses = true;
+
+		for(size_t i = 0; i < __pendingClassesCount; i ++)
+			__pendingClasses[i]();
+	}
 	
 	void Catalogue::AddMetaClass(MetaClass *meta)
 	{

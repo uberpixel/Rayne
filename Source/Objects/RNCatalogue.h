@@ -102,19 +102,25 @@ namespace RN
 	template<class T, class... Traits>
 	class __ConcreteMetaClass : public virtual MetaClass, public Traits...
 	{};
-	
+
 	class Catalogue
 	{
 	public:
+		friend class Kernel;
 		friend class MetaClass;
 		friend class Module;
 
-		static Catalogue *GetSharedInstance();
+		RNAPI static Catalogue *GetSharedInstance();
 		
 		RNAPI MetaClass *GetClassWithName(const std::string &name) const;
 		RNAPI void EnumerateClasses(const std::function<void (MetaClass *meta, bool &stop)>& enumerator);
 		
 	private:
+		Catalogue();
+		~Catalogue();
+
+		void RegisterPendingClasses();
+
 		void AddMetaClass(MetaClass *meta);
 		void RemoveMetaClass(MetaClass *meta);
 
@@ -126,6 +132,10 @@ namespace RN
 		std::unordered_map<std::string, MetaClass *> _metaClasses;
 		std::vector<Module *> _modules;
 	};
+
+	typedef void (*__ClassInitializer)();
+
+	RNAPI void __RegisterMetaClass(__ClassInitializer initializer);
 }
 
 #endif

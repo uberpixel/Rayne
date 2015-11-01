@@ -85,6 +85,8 @@ namespace RN
 				Module *module = new Module(name);
 				module->Initialize();
 
+				RNDebug("Loaded module " << module);
+
 			});
 		}
 	}

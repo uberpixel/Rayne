@@ -33,6 +33,9 @@ namespace RN
 
 		const String *GetName() const { return _name; }
 		const String *GetPath() const { return _path; }
+		const String *GetIdentifier() const { return _identifier; }
+
+		RNAPI const String *GetDescription() const override;
 
 	private:
 		Module(const String *name);
@@ -47,6 +50,7 @@ namespace RN
 
 		String *_name;
 		String *_path;
+		String *_identifier;
 
 		InitializeFunction _initializer;
 

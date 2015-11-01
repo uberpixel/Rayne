@@ -75,6 +75,9 @@ namespace RN
 			_assetCoordinator = new AssetCoordinator();
 			_sceneCoordinator = new SceneCoordinator();
 			_moduleCoordinator = new ModuleCoordinator();
+
+			Catalogue::GetSharedInstance()->RegisterPendingClasses();
+
 			_moduleCoordinator->LoadModules();
 
 			_application->WillFinishLaunching(this);
