@@ -1,5 +1,5 @@
 
-macro(boost_include _NAME _INCLUDE_DIRS)
+macro(find_boost_library _NAME)
 
     set(_PATH ${VENDOR_BOOST_DIR}/${_NAME}/include)
 
@@ -7,6 +7,6 @@ macro(boost_include _NAME _INCLUDE_DIRS)
         message(FATAL_ERROR "Could not find boost::${_NAME}")
     endif()
 
-    set(_INCLUDE_DIRS ${_INCLUDE_DIRS} ${_PATH})
+    set(BOOST_${_NAME}_INCLUDE ${_PATH})
 
 endmacro()

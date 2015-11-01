@@ -179,28 +179,43 @@ set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
+find_boost_library(assert)
+find_boost_library(static_assert)
+find_boost_library(config)
+find_boost_library(type_traits)
+find_boost_library(mpl)
+find_boost_library(preprocessor)
+find_boost_library(array)
+find_boost_library(atomic)
+find_boost_library(core)
+find_boost_library(throw_exception)
+find_boost_library(functional)
+find_boost_library(parameter)
+find_boost_library(detail)
+find_boost_library(utility)
+find_boost_library(lockfree)
+
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
         "${jansson_BINARY_DIR}/include"
         "${libpng_SOURCE_DIR}"
         "${libpng_BINARY_DIR}"
-        "${zlib_SOURCE_DIR}")
-
-boost_include(assert INCLUDE_DIRECTORIES)
-boost_include(static_assert INCLUDE_DIRECTORIES)
-boost_include(config INCLUDE_DIRECTORIES)
-boost_include(type_traits INCLUDE_DIRECTORIES)
-boost_include(mpl INCLUDE_DIRECTORIES)
-boost_include(preprocessor INCLUDE_DIRECTORIES)
-boost_include(array INCLUDE_DIRECTORIES)
-boost_include(atomic INCLUDE_DIRECTORIES)
-boost_include(core INCLUDE_DIRECTORIES)
-boost_include(throw_exception INCLUDE_DIRECTORIES)
-boost_include(functional INCLUDE_DIRECTORIES)
-boost_include(parameter INCLUDE_DIRECTORIES)
-boost_include(detail INCLUDE_DIRECTORIES)
-boost_include(utility INCLUDE_DIRECTORIES)
-boost_include(lockfree INCLUDE_DIRECTORIES)
+        "${zlib_SOURCE_DIR}"
+        "${BOOST_assert_INCLUDE}"
+        "${BOOST_static_assert_INCLUDE}"
+        "${BOOST_config_INCLUDE}"
+        "${BOOST_type_traits_INCLUDE}"
+        "${BOOST_mpl_INCLUDE}"
+        "${BOOST_preprocessor_INCLUDE}"
+        "${BOOST_array_INCLUDE}"
+        "${BOOST_atomic_INCLUDE}"
+        "${BOOST_core_INCLUDE}"
+        "${BOOST_throw_exception_INCLUDE}"
+        "${BOOST_functional_INCLUDE}"
+        "${BOOST_parameter_INCLUDE}"
+        "${BOOST_detail_INCLUDE}"
+        "${BOOST_utility_INCLUDE}"
+        "${BOOST_lockfree_INCLUDE}")
 
 set(COMPILE_DEFINITIONS "")
 set(COMPILE_OPTIONS "")
