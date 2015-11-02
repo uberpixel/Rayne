@@ -68,10 +68,14 @@ namespace RN
 			}
 			catch(Exception &e)
 			{
-				_modules->RemoveObject(module);
-				_moduleMap->RemoveObjectForKey(nameCopy);
+				if(module)
+				{
+					_modules->RemoveObject(module);
+					_moduleMap->RemoveObjectForKey(nameCopy);
 
-				delete module;
+					delete module;
+				}
+
 				throw e;
 			}
 		}
@@ -104,10 +108,14 @@ namespace RN
 				}
 				catch(Exception &e)
 				{
-					_modules->RemoveObject(module);
-					_moduleMap->RemoveObjectForKey(nameCopy);
+					if(module)
+					{
+						_modules->RemoveObject(module);
+						_moduleMap->RemoveObjectForKey(nameCopy);
 
-					delete module;
+						delete module;
+					}
+
 					throw e;
 				}
 
