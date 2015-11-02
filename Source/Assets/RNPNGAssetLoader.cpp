@@ -43,7 +43,7 @@ namespace RN
 		AssetLoader(config)
 	{}
 
-	Asset *PNGAssetLoader::Load(File *file, Dictionary *settings)
+	Asset *PNGAssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
 	{
 		FILE *rawFile = file->CreateFile();
 		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;

@@ -26,11 +26,21 @@ namespace RN
 		{
 			friend class AssetLoader;
 
-			Config(MetaClass *tresourceClass) :
+			Config(MetaClass *resourceClass) :
 				_extensions(nullptr),
 				_magicBytes(nullptr),
 				_magicBytesOffset(0),
-				resourceClass(tresourceClass),
+				resourceClasses({ resourceClass }),
+				supportsBackgroundLoading(false),
+				supportsVirtualFiles(false),
+				priority(10)
+			{}
+
+			Config(std::initializer_list<MetaClass *> &tresourceClasses) :
+				_extensions(nullptr),
+				_magicBytes(nullptr),
+				_magicBytesOffset(0),
+				resourceClasses(tresourceClasses),
 				supportsBackgroundLoading(false),
 				supportsVirtualFiles(false),
 				priority(10)
@@ -60,8 +70,7 @@ namespace RN
 			const Data *GetMagicBytes() const { return _magicBytes; }
 			size_t GetMagicBytesOffset() const { return _magicBytesOffset; }
 
-
-			MetaClass *resourceClass;
+			std::vector<MetaClass *> resourceClasses;
 
 			bool supportsBackgroundLoading;
 			bool supportsVirtualFiles;
@@ -80,23 +89,24 @@ namespace RN
 
 		RNAPI ~AssetLoader();
 
-		RNAPI virtual Asset *Load(File *file, Dictionary *settings);
-		RNAPI virtual Asset *Load(const String *name, Dictionary *settings);
+		RNAPI virtual Asset *Load(File *file, MetaClass *meta, Dictionary *settings);
+		RNAPI virtual Asset *Load(const String *name, MetaClass *meta, Dictionary *settings);
 
 		RNAPI virtual bool SupportsLoadingFile(File *file) const;
 		RNAPI virtual bool SupportsLoadingName(const String *name) const;
+		RNAPI bool SupportsResourceClass(MetaClass *meta) const;
 
 		RNAPI uint32 GetPriority() const { return _priority; }
-		RNAPI MetaClass *GetResourceClass() const { return _resourceClass; }
+		RNAPI const std::vector<MetaClass *> &GetResourceClasses() const { return _resourceClasses; }
 
 	protected:
 		RNAPI AssetLoader(const Config &config);
 
 	private:
-		using Callback = std::function<void (Asset *, Tag)>;
+		using Callback = std::function<void (Asset *)>;
 
-		std::future<Asset *> LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback &&callback);
-		Expected<Asset *> __Load(Object *fileOrName, Dictionary *settings) RN_NOEXCEPT;
+		std::future<Asset *> LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback);
+		Expected<Asset *> __Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT;
 
 		Data *_magicBytes;
 		size_t _magicBytesOffset;
@@ -106,7 +116,7 @@ namespace RN
 		bool _supportsBackgroundLoading;
 		bool _supportsVirtualFiles;
 
-		MetaClass *_resourceClass;
+		std::vector<MetaClass *> _resourceClasses;
 		RNDeclareMeta(AssetLoader)
 	};
 }

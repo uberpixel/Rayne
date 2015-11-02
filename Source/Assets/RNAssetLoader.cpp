@@ -18,7 +18,7 @@ namespace RN
 		_magicBytes(nullptr),
 		_magicBytesOffset(0),
 		_fileExtensions(nullptr),
-		_resourceClass(config.resourceClass),
+		_resourceClasses(config.resourceClasses),
 		_supportsBackgroundLoading(config.supportsBackgroundLoading),
 		_supportsVirtualFiles(config.supportsVirtualFiles),
 		_priority(config.priority)
@@ -26,6 +26,11 @@ namespace RN
 		_magicBytes = SafeRetain(config._magicBytes);
 		_magicBytesOffset = config._magicBytesOffset;
 		_fileExtensions = SafeRetain(config._extensions);
+
+		for(MetaClass *meta : _resourceClasses)
+		{
+			RN_ASSERT(meta->InheritsFromClass(Asset::GetMetaClass()), "AssetLoader must support loading Asset subclasses only");
+		}
 	}
 
 	AssetLoader::~AssetLoader()
@@ -35,29 +40,29 @@ namespace RN
 	}
 
 
-	Asset *AssetLoader::Load(File *file, Dictionary *settings)
+	Asset *AssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
 	{
 		throw NotImplementedException("Load() not implemented");
 	}
 
-	Asset *AssetLoader::Load(const String *name, Dictionary *settings)
+	Asset *AssetLoader::Load(const String *name, MetaClass *meta, Dictionary *settings)
 	{
 		throw NotImplementedException("Load() not implemented");
 	}
 
-	Expected<Asset *> AssetLoader::__Load(Object *fileOrName, Dictionary *settings) RN_NOEXCEPT
+	Expected<Asset *> AssetLoader::__Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT
 	{
 		try
 		{
 			if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 			{
 				File *file = static_cast<File *>(fileOrName);
-				return Load(file, settings);
+				return Load(file, meta, settings);
 			}
 			else
 			{
 				String *name = static_cast<String *>(fileOrName);
-				return Load(name, settings);
+				return Load(name, meta, settings);
 			}
 		}
 		catch(...)
@@ -66,7 +71,7 @@ namespace RN
 		}
 	}
 
-	std::future<Asset *> AssetLoader::LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback &&callback)
+	std::future<Asset *> AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
 	{
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Background);
 
@@ -84,25 +89,25 @@ namespace RN
 					if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 					{
 						File *file = static_cast<File *>(fileOrName);
-						result = Load(file, settings);
+						result = Load(file, meta, settings);
 					}
 					else
 					{
 						String *name = static_cast<String *>(fileOrName);
-						result = Load(name, settings);
+						result = Load(name, meta, settings);
 					}
 				});
 			}
 			catch(Exception &e)
 			{
-				callback(nullptr, tag);
+				callback(nullptr);
 				fileOrName->Release();
 				settings->Release();
 
 				std::rethrow_exception(std::current_exception());
 			}
 
-			callback(result, tag);
+			callback(result);
 
 			fileOrName->Release();
 			settings->Release();
@@ -120,5 +125,16 @@ namespace RN
 	bool AssetLoader::SupportsLoadingName(const String *name) const
 	{
 		return _supportsVirtualFiles;
+	}
+
+	bool AssetLoader::SupportsResourceClass(MetaClass *meta) const
+	{
+		for(auto tmeta : _resourceClasses)
+		{
+			if(meta->InheritsFromClass(tmeta))
+				return true;
+		}
+
+		return false;
 	}
 }

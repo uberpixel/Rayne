@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Texture, GPUResource)
+	RNDefineMeta(Texture, Asset)
 
 	Texture::Texture(const Descriptor &descriptor) :
 		_descriptor(descriptor)

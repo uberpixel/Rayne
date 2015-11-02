@@ -50,7 +50,7 @@ namespace RN
 		Asset *ValidateAsset(MetaClass *base, Asset *asset);
 
 		void __RemoveAsset(Asset *asset, String *name);
-		void PrepareAsset(Asset *asset, String *name, Dictionary *settings);
+		void PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings);
 
 		std::shared_future<Asset *> __GetFutureMatching(MetaClass *base, String *name);
 
@@ -61,8 +61,39 @@ namespace RN
 		Array *_loaders;
 		size_t _maxMagicSize;
 
-		std::unordered_map<StringRef, WeakRef<Asset>, std::hash<Object>, std::equal_to<Object>> _resources;
-		std::unordered_map<StringRef, std::shared_future<Asset *>, std::hash<Object>, std::equal_to<Object>> _requests;
+		struct LoadedAsset
+		{
+			LoadedAsset(Asset *tasset, MetaClass *tmeta) :
+				asset(std::move(tasset)),
+				meta(tmeta)
+			{}
+
+			LoadedAsset(LoadedAsset &&other) = default;
+			LoadedAsset &operator= (LoadedAsset &&other) = default;
+
+			WeakRef<Asset> asset;
+			MetaClass *meta;
+		};
+		struct PendingAsset
+		{
+			PendingAsset(std::shared_future<Asset *> &&tfuture, MetaClass *tmeta) :
+				future(std::move(tfuture)),
+				meta(tmeta)
+			{}
+
+			PendingAsset(PendingAsset &&other) = default; /* :
+				future(std::move(other.future)),
+				meta(other.meta)
+			{}*/
+
+			PendingAsset &operator= (PendingAsset &&other) = default;
+
+			std::shared_future<Asset *> future;
+			MetaClass *meta;
+		};
+
+		std::unordered_map<StringRef, std::vector<LoadedAsset>, std::hash<Object>, std::equal_to<Object>> _resources;
+		std::unordered_map<StringRef, std::vector<PendingAsset>, std::hash<Object>, std::equal_to<Object>> _requests;
 	};
 }
 

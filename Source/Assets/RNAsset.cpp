@@ -16,7 +16,8 @@ namespace RN
 
 	Asset::Asset() :
 		_coordinator(nullptr),
-		_name(nullptr)
+		_name(nullptr),
+		_meta(nullptr)
 	{}
 
 	void Asset::Dealloc()
@@ -25,6 +26,7 @@ namespace RN
 		{
 			_coordinator->__RemoveAsset(this, _name);
 			_coordinator = nullptr;
+			_meta = nullptr;
 
 			SafeRelease(_name);
 		}
@@ -32,8 +34,9 @@ namespace RN
 		Object::Dealloc();
 	}
 
-	void Asset::__AwakeWithCoordinator(AssetCoordinator *coordinator, String *name)
+	void Asset::__AwakeWithCoordinator(AssetCoordinator *coordinator, String *name, MetaClass *meta)
 	{
+		_meta = meta;
 		_coordinator = coordinator;
 		_name = SafeCopy(name);
 	}

@@ -85,18 +85,33 @@ namespace RN
 
 		return asset;
 	}
-	void AssetCoordinator::PrepareAsset(Asset *asset, String *name, Dictionary *settings)
+	void AssetCoordinator::PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings)
 	{
-		asset->__AwakeWithCoordinator(this, name);
+		asset->__AwakeWithCoordinator(this, name, meta);
 
-		_resources[name] = asset;
+		auto &vector = _resources[name];
+		vector.emplace_back(asset, meta);
+
 		RNDebug("Loaded asset " << asset);
 	}
 	void AssetCoordinator::__RemoveAsset(Asset *asset, String *name)
 	{
 		{
 			std::unique_lock<std::mutex> lock(_lock);
-			_resources.erase(name);
+
+			auto &vector = _resources[name];
+
+			for(auto iterator = vector.begin(); iterator != vector.end(); iterator ++)
+			{
+				if(iterator->meta == asset->_meta)
+				{
+					vector.erase(iterator);
+					break;
+				}
+			}
+
+			if(vector.empty())
+				_resources.erase(name);
 		}
 
 		RNDebug("Unloaded asset " << asset);
@@ -112,10 +127,22 @@ namespace RN
 			auto iterator = _resources.find(name);
 			if(iterator != _resources.end())
 			{
-				asset = iterator->second.Load();
-				if(!asset)
-					_resources.erase(iterator);
+				auto &vector = iterator->second;
+
+				for(auto &entry : vector)
+				{
+					if(base->InheritsFromClass(entry.meta))
+					{
+						asset = entry.asset.Load();
+						if(!asset)
+							_resources.erase(iterator);
+
+						goto foundEntry;
+					}
+				}
 			}
+
+		foundEntry:;
 		}
 
 		if(asset)
@@ -140,8 +167,13 @@ namespace RN
 		auto iterator = _requests.find(name);
 		if(iterator != _requests.end())
 		{
-			std::shared_future<Asset *> future(iterator->second);
-			return future;
+			auto &vector = iterator->second;
+
+			for(auto &entry : vector)
+			{
+				if(base->InheritsFromClass(entry.meta))
+					return entry.future;
+			}
 		}
 
 		throw InconsistencyException("No matching future found");
@@ -179,7 +211,11 @@ namespace RN
 		AssetLoader *loader = PickAssetLoader(base, file, name, true);
 
 		std::promise<Asset *> promise;
-		_requests.emplace(name, std::move(promise.get_future().share()));
+
+		std::vector<PendingAsset> vector;
+		vector.emplace_back(std::move(promise.get_future().share()), base);
+
+		_requests.emplace(name, std::move(vector));
 
 		lock.unlock();
 
@@ -188,7 +224,7 @@ namespace RN
 			settings = new Dictionary();
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
-		Expected<Asset *> asset = loader->__Load(fileOrName, settings);
+		Expected<Asset *> asset = loader->__Load(fileOrName, base, settings);
 
 		name->Release();
 		settings->Release();
@@ -202,7 +238,7 @@ namespace RN
 			std::rethrow_exception(asset.GetException());
 		}
 
-		PrepareAsset(asset.Get(), name, settings);
+		PrepareAsset(asset.Get(), name, base, settings);
 		lock.unlock();
 
 		return asset.Get();
@@ -243,7 +279,7 @@ namespace RN
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 
-		std::future<Asset *> future = std::move(loader->LoadInBackground(fileOrName, settings, 0, [this, name, settings](Asset *result, Tag tag) {
+		std::future<Asset *> future = std::move(loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
 
 			std::unique_lock<std::mutex> lock(_lock);
 
@@ -259,7 +295,7 @@ namespace RN
 				return;
 			}
 
-			PrepareAsset(result, name, settings);
+			PrepareAsset(result, name, base, settings);
 			lock.unlock();
 
 			name->Release();
@@ -268,8 +304,9 @@ namespace RN
 		}));
 
 		std::shared_future<Asset *> shared = future.share();
-		_requests.emplace(name, shared);
-		lock.unlock();
+
+		auto &vector = _requests[name];
+		vector.emplace_back(std::move(shared), base);
 
 		return shared;
 	}
@@ -298,7 +335,7 @@ namespace RN
 
 				try
 				{
-					if(!loader->GetResourceClass()->InheritsFromClass(base))
+					if(!loader->SupportsResourceClass(base))
 						return;
 
 					if(requiresBackgroundSupport && !loader->_supportsBackgroundLoading)
@@ -356,7 +393,7 @@ namespace RN
 
 				try
 				{
-					if(!loader->GetResourceClass()->InheritsFromClass(base))
+					if(!loader->SupportsResourceClass(base))
 						return;
 
 					if(requiresBackgroundSupport && !loader->_supportsBackgroundLoading)

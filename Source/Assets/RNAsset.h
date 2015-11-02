@@ -28,10 +28,11 @@ namespace RN
 		void Dealloc() override;
 
 	private:
-		void __AwakeWithCoordinator(AssetCoordinator *coordinator, String *name);
+		void __AwakeWithCoordinator(AssetCoordinator *coordinator, String *name, MetaClass *meta);
 
 		AssetCoordinator *_coordinator;
 		String *_name;
+		MetaClass *_meta;
 
 		RNDeclareMeta(Asset)
 	};
