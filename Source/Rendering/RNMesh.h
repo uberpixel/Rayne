@@ -410,6 +410,8 @@ namespace RN
 		RNAPI Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount);
 		RNAPI ~Mesh() override;
 
+		RNAPI static Mesh *WithName(const String *name);
+
 		RNAPI static Mesh *WithColoredCube(const Vector3 &size, const Color &color);
 		RNAPI static Mesh *WithTexturedCube(const Vector3 &size);
 

@@ -6,12 +6,13 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Assets/RNAssetCoordinator.h"
 #include "RNMesh.h"
 #include "RNRenderer.h"
 
 namespace RN
 {
-	RNDefineMeta(Mesh, Object)
+	RNDefineMeta(Mesh, Asset)
 
 	struct PrimitiveTypeEntry
 	{
@@ -285,6 +286,12 @@ namespace RN
 	// MARK: -
 	// MARK: Convenient constructors
 	// ---------------------
+
+	Mesh *Mesh::WithName(const String *name)
+	{
+		AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
+		return coordinator->GetAssetWithName<Mesh>(name, nullptr);
+	}
 
 	Mesh *Mesh::WithColoredCube(const Vector3 &size, const Color &color)
 	{

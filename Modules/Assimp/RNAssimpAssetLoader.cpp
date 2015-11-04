@@ -29,7 +29,7 @@ namespace RN
 			Array *extensions = string->GetComponentsSeparatedByString(RNCSTR(";"));
 
 
-			Config config(Asset::GetMetaClass());
+			Config config(Mesh::GetMetaClass());
 			config.SetExtensions(Set::WithArray(extensions));
 			config.supportsBackgroundLoading = true;
 
