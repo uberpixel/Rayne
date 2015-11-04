@@ -42,13 +42,18 @@ namespace RN
 	};
 
 	Mesh::Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
+		Mesh(std::vector<VertexAttribute>(attributes), verticesCount, indicesCount)
+	{}
+
+	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
 		_vertexAttributes(attributes),
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
 		_drawMode(DrawMode::Triangle),
-		_descriptor(attributes)
+		_descriptor(attributes),
+		_changeCounter(0)
 	{
 		ParseAttributes();
 	}
@@ -114,6 +119,27 @@ namespace RN
 																				   GPUResource::UsageOptions::ReadWrite);
 	}
 
+	void Mesh::BeginChanges()
+	{
+		if((_changeCounter ++) == 0)
+		{
+			_changedVertices = false;
+			_changedIndices = false;
+		}
+	}
+
+	void Mesh::EndChanges()
+	{
+		if((-- _changeCounter) == 0)
+		{
+			if(_changedVertices)
+				_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+
+			if(_changedIndices)
+				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+		}
+	}
+
 	void Mesh::SetDrawMode(DrawMode mode)
 	{
 		_drawMode = mode;
@@ -127,7 +153,11 @@ namespace RN
 			uint8 *destination = static_cast<uint8 *>(_indicesBuffer->GetBuffer());
 
 			std::copy(data, data + _indicesSize, destination);
-			_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+
+			if(_changeCounter)
+				_changedIndices = true;
+			else
+				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
 		}
 		else
 		{
@@ -148,7 +178,11 @@ namespace RN
 						data += attribute._size;
 					}
 
-					_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+					if(_changeCounter)
+						_changedVertices = true;
+					else
+						_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+
 					break;
 				}
 			}
@@ -174,7 +208,11 @@ namespace RN
 					data += attribute._size;
 				}
 
-				_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+				if(_changeCounter)
+					_changedVertices = true;
+				else
+					_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+
 				break;
 			}
 		}

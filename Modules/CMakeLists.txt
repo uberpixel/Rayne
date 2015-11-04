@@ -4,3 +4,5 @@ project(Rayne-Modules)
 if(APPLE)
     add_subdirectory("Metal")
 endif()
+
+add_subdirectory("Assimp")

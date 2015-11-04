@@ -11,6 +11,7 @@
 #define __RAYNE_MESH_H_
 
 #include "../Base/RNBase.h"
+#include "../Assets/RNAsset.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
 #include "../Math/RNAlgorithm.h"
@@ -19,7 +20,7 @@
 
 namespace RN
 {
-	class Mesh : public Object
+	class Mesh : public Asset
 	{
 	public:
 		struct VertexAttribute
@@ -92,7 +93,7 @@ namespace RN
 		class VertexDescriptor
 		{
 		public:
-			VertexDescriptor(const std::initializer_list<VertexAttribute> &attributes) :
+			VertexDescriptor(const std::vector<VertexAttribute> &attributes) :
 				_attributes(attributes),
 				_names(nullptr),
 				_featureSet(0)
@@ -405,13 +406,17 @@ namespace RN
 		};
 
 
-		RNAPI Mesh(const std::initializer_list<VertexAttribute> &descriptors, size_t verticesCount, size_t indicesCount);
+		RNAPI Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount);
+		RNAPI Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount);
 		RNAPI ~Mesh() override;
 
 		RNAPI static Mesh *WithColoredCube(const Vector3 &size, const Color &color);
 		RNAPI static Mesh *WithTexturedCube(const Vector3 &size);
 
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
+
+		RNAPI void BeginChanges();
+		RNAPI void EndChanges();
 
 		RNAPI void SetDrawMode(DrawMode mode);
 		RNAPI void SetElementData(VertexAttribute::Feature feature, const void *data);
@@ -450,6 +455,10 @@ namespace RN
 
 		std::vector<VertexAttribute> _vertexAttributes;
 		VertexDescriptor _descriptor;
+
+		uint32 _changeCounter;
+		bool _changedVertices;
+		bool _changedIndices;
 
 		RNDeclareMeta(Mesh)
 	};

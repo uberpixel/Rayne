@@ -10,6 +10,7 @@ set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOS
 # Boost
 set(VENDOR_BOOST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/boost/libs)
 
+set(CMAKE_DEBUG_POSTFIX "")
 
 # CMake policies
 if(POLICY CMP0042)
