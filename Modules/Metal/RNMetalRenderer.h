@@ -44,6 +44,7 @@ namespace RN
 		RNAPI ShaderLibrary *GetShaderLibraryWithFile(const String *file) final;
 		RNAPI ShaderLibrary *GetShaderLibraryWithSource(const String *source) final;
 
+		RNAPI const String *GetTextureFormatName(const Texture::Format format) final;
 		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
 		RNAPI Drawable *CreateDrawable() final;
@@ -61,6 +62,7 @@ namespace RN
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;
+		Dictionary *_textureFormatLookup;
 
 		RNDeclareMeta(MetalRenderer)
 	};

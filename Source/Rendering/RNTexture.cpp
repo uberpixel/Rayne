@@ -8,6 +8,7 @@
 
 #include "../Assets/RNAssetCoordinator.h"
 #include "RNTexture.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
@@ -26,5 +27,11 @@ namespace RN
 	void Texture::SetParameter(const Parameter &parameter)
 	{
 		_parameter = parameter;
+	}
+
+	const String *Texture::Descriptor::__TranslateFormat(Format format)
+	{
+		Renderer *renderer = Renderer::GetActiveRenderer();
+		return renderer->GetTextureFormatName(format);
 	}
 }

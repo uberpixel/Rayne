@@ -20,24 +20,6 @@ namespace RN
 {
 	RNDefineMeta(MetalRenderer, Renderer)
 
-	MTLPixelFormat textureFormat[] = {
-		MTLPixelFormatInvalid,
-		MTLPixelFormatBGRA8Unorm,
-		MTLPixelFormatRGB10A2Unorm,
-		MTLPixelFormatR8Unorm,
-		MTLPixelFormatRG8Unorm,
-		MTLPixelFormatR16Float,
-		MTLPixelFormatRG16Float,
-		MTLPixelFormatRGBA16Float,
-		MTLPixelFormatR32Float,
-		MTLPixelFormatRG32Float,
-		MTLPixelFormatRGBA32Float,
-		MTLPixelFormatDepth24Unorm_Stencil8,
-		MTLPixelFormatDepth32Float,
-		MTLPixelFormatStencil8,
-		MTLPixelFormatDepth24Unorm_Stencil8,
-		MTLPixelFormatDepth32Float_Stencil8
-	};
 
 	MetalRenderer::MetalRenderer(const Dictionary *parameters) :
 		_mainWindow(nullptr),
@@ -84,6 +66,30 @@ namespace RN
 
 		if(!_internals->defaultLibrary)
 			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
+
+		// Texture format look ups
+		_textureFormatLookup = new Dictionary();
+
+#define TextureFormat(name, metal) \
+		_textureFormatLookup->SetObjectForKey(Number::WithUint32(metal), RNCSTR(#name))
+
+		TextureFormat(RGBA8888, MTLPixelFormatBGRA8Unorm);
+		TextureFormat(RGB10A2, MTLPixelFormatRGB10A2Unorm);
+		TextureFormat(R8, MTLPixelFormatR8Unorm);
+		TextureFormat(RG88, MTLPixelFormatRG8Unorm);
+		TextureFormat(R16F, MTLPixelFormatR16Float);
+		TextureFormat(RG16F, MTLPixelFormatRG16Float);
+		TextureFormat(RGBA16F, MTLPixelFormatRGBA16Float);
+		TextureFormat(R32F, MTLPixelFormatR32Float);
+		TextureFormat(RG32F, MTLPixelFormatRG32Float);
+		TextureFormat(RGBA32F, MTLPixelFormatRGBA32Float);
+		TextureFormat(Depth24I, MTLPixelFormatDepth24Unorm_Stencil8);
+		TextureFormat(Depth32F, MTLPixelFormatDepth32Float);
+		TextureFormat(Stencil8, MTLPixelFormatStencil8);
+		TextureFormat(Depth24Stencil8, MTLPixelFormatDepth24Unorm_Stencil8);
+		TextureFormat(Depth32FStencil8, MTLPixelFormatDepth32Float_Stencil8);
+
+#undef TextureFormat
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -92,6 +98,7 @@ namespace RN
 		[_internals->device release];
 
 		_mipMapTextures->Release();
+		_textureFormatLookup->Release();
 	}
 
 
@@ -273,8 +280,47 @@ namespace RN
 		return true;
 	}
 
+	const String *MetalRenderer::GetTextureFormatName(const Texture::Format format)
+	{
+#define TextureFormat(name) \
+		case Texture::Format::name: \
+			return RNCSTR(#name) \
+
+		switch(format)
+		{
+			TextureFormat(RGBA8888);
+			TextureFormat(RGB10A2);
+			TextureFormat(R8);
+			TextureFormat(RG88);
+			TextureFormat(R16F);
+			TextureFormat(RG16F);
+			TextureFormat(RGBA16F);
+			TextureFormat(R32F);
+			TextureFormat(RG32F);
+			TextureFormat(RGBA32F);
+			TextureFormat(Depth24I);
+			TextureFormat(Depth32F);
+			TextureFormat(Stencil8);
+			TextureFormat(Depth24Stencil8);
+			TextureFormat(Depth32FStencil8);
+
+			default:
+				return nullptr;
+		}
+
+#undef TextureFormat
+	}
+
 	Texture *MetalRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
+		String *formatName = const_cast<String *>(descriptor.GetFormat());
+		if(!formatName)
+			throw InvalidTextureFormatException("Texture Format is NULL!");
+
+		Number *format = _textureFormatLookup->GetObjectForKey<Number>(formatName);
+		if(!format)
+			throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << format << "'"));
+
 		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
 
 		metalDescriptor.width = descriptor.width;
@@ -282,8 +328,19 @@ namespace RN
 		metalDescriptor.depth = descriptor.depth;
 		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.usageOptions);
 		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
-		metalDescriptor.pixelFormat = textureFormat[static_cast<uint32>(descriptor.format)];
-		metalDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+		metalDescriptor.pixelFormat = static_cast<MTLPixelFormat>(format->GetUint32Value());
+
+		MTLTextureUsage usage = 0;
+
+		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderRead)
+			usage |= MTLTextureUsageShaderRead;
+		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderWrite)
+			usage |= MTLTextureUsageShaderWrite;
+		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+			usage |= MTLTextureUsageRenderTarget;
+
+		metalDescriptor.usage = usage;
+
 
 		switch(descriptor.type)
 		{

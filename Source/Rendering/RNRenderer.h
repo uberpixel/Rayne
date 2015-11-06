@@ -91,6 +91,7 @@ namespace RN
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithFile(const String *file) = 0;
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithSource(const String *source) = 0;
 
+		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) = 0;
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 
 		RNAPI virtual Drawable *CreateDrawable() = 0;
