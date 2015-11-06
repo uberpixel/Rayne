@@ -35,7 +35,7 @@ namespace RN
 		RNAPI void RenderIntoWindow(Window *window, Function &&function) final;
 		RNAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
 
-		RNAPI bool SupportsTextureFormat(Texture::Format format) final;
+		RNAPI bool SupportsTextureFormat(const String *format) final;
 		RNAPI bool SupportsDrawMode(DrawMode mode) final;
 
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;

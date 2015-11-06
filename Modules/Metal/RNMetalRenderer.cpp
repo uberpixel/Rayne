@@ -27,19 +27,6 @@ namespace RN
 	{
 		_internals->device = nullptr;
 
-		// Check for parameters that need to be activated before interacting with the Metal API
-		if(parameters)
-		{
-			Number *apiValidation = const_cast<Dictionary *>(parameters)->GetObjectForKey<Number>(RNCSTR("api_validation"));
-			if(apiValidation && apiValidation->GetBoolValue())
-			{
-				char buffer[64];
-				strcpy(buffer, "METAL_DEVICE_WRAPPER_TYPE=1");
-
-				putenv(buffer);
-			}
-		}
-
 		// Actual initialization
 		NSArray *devices = MTLCopyAllDevices();
 		NSUInteger count = [devices count];
@@ -47,7 +34,7 @@ namespace RN
 		for(NSUInteger i = 0; i < count; i ++)
 		{
 			id<MTLDevice> device = [devices objectAtIndex:i];
-			if(![device isLowPower])
+			if(![device isLowPower] && ![device isHeadless])
 			{
 				_internals->device = [device retain];
 				break;
@@ -86,7 +73,14 @@ namespace RN
 		TextureFormat(Depth24I, MTLPixelFormatDepth24Unorm_Stencil8);
 		TextureFormat(Depth32F, MTLPixelFormatDepth32Float);
 		TextureFormat(Stencil8, MTLPixelFormatStencil8);
-		TextureFormat(Depth24Stencil8, MTLPixelFormatDepth24Unorm_Stencil8);
+
+#if RN_PLATFORM_MAC_OS
+		if([_internals->device isDepth24Stencil8PixelFormatSupported])
+		{
+			TextureFormat(Depth24Stencil8, MTLPixelFormatDepth24Unorm_Stencil8);
+		}
+#endif
+
 		TextureFormat(Depth32FStencil8, MTLPixelFormatDepth32Float_Stencil8);
 
 #undef TextureFormat
@@ -271,9 +265,9 @@ namespace RN
 		return lib->Autorelease();
 	}
 
-	bool MetalRenderer::SupportsTextureFormat(Texture::Format format)
+	bool MetalRenderer::SupportsTextureFormat(const String *format)
 	{
-		return true;
+		return (_textureFormatLookup->GetObjectForKey(format) != nullptr);
 	}
 	bool MetalRenderer::SupportsDrawMode(DrawMode mode)
 	{

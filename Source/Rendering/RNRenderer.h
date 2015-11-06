@@ -82,7 +82,7 @@ namespace RN
 		RNAPI virtual void RenderIntoWindow(Window *window, Function &&function) = 0;
 		RNAPI virtual void RenderIntoCamera(Camera *camera, Function &&function) = 0;
 
-		RNAPI virtual bool SupportsTextureFormat(Texture::Format format) = 0;
+		RNAPI virtual bool SupportsTextureFormat(const String *format) = 0;
 		RNAPI virtual bool SupportsDrawMode(DrawMode mode) = 0;
 
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) = 0;

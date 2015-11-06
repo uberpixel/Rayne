@@ -37,12 +37,21 @@ namespace RN
 
 	bool MetalRendererDescriptor::CanConstructWithSettings(const Dictionary *parameters) const
 	{
+		// Check for parameters that need to be activated before interacting with the Metal API
+		if(parameters)
+		{
+			Number *apiValidation = const_cast<Dictionary *>(parameters)->GetObjectForKey<Number>(RNCSTR("api_validation"));
+			if(apiValidation && apiValidation->GetBoolValue())
+				setenv("METAL_DEVICE_WRAPPER_TYPE", "1", 1);
+		}
+
+		// Probe the provided devices
 		bool hasHighPoweredDevice = false;
 		NSArray *devices = MTLCopyAllDevices();
 
 		for(id<MTLDevice> device in devices)
 		{
-			if(![device isLowPower])
+			if(![device isLowPower] && ![device isHeadless])
 			{
 				hasHighPoweredDevice = true;
 				break;
