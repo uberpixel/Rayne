@@ -118,7 +118,7 @@ namespace RN
 		
 		
 		
-		Bucket *FindBucket(Object *object) const
+		Bucket *FindBucket(const Object *object) const
 		{
 			size_t hash = object->GetHash();
 			size_t index = hash % _capacity;
@@ -135,7 +135,7 @@ namespace RN
 			return bucket;
 		}
 		
-		Bucket *FindBucket(Object *object, bool &created)
+		Bucket *FindBucket(const Object *object, bool &created)
 		{
 			size_t hash = object->GetHash();
 			size_t index = hash % _capacity;
@@ -173,7 +173,7 @@ namespace RN
 			return bucket;
 		}
 		
-		bool ContainsObject(Object *object)
+		bool ContainsObject(const Object *object)
 		{
 			Bucket *bucket = FindBucket(object);
 			return (bucket != nullptr);

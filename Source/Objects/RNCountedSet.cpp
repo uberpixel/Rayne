@@ -49,7 +49,7 @@ namespace RN
 				return object->GetHash();
 			}
 			
-			bool WrapsLookup(Object *lookup) const
+			bool WrapsLookup(const Object *lookup) const
 			{
 				return (object && object->IsEqual(lookup));
 			}
@@ -174,7 +174,7 @@ namespace RN
 		}
 	}
 	
-	void CountedSet::RemoveObject(Object *key)
+	void CountedSet::RemoveObject(const Object *key)
 	{
 		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		if(bucket)
@@ -196,13 +196,13 @@ namespace RN
 		_internals->hashTable.RemoveAllBuckets();
 	}
 	
-	bool CountedSet::ContainsObject(Object *object)
+	bool CountedSet::ContainsObject(const Object *object) const
 	{
 		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return (bucket != nullptr);
 	}
 	
-	size_t CountedSet::GetCountForObject(Object *object) const
+	size_t CountedSet::GetCountForObject(const Object *object) const
 	{
 		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return bucket ? bucket->count : 0;

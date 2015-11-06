@@ -120,11 +120,11 @@ namespace RN
 			Dictionary *dictionary = static_cast<Dictionary *>(object);
 			json = json_object();
 
-			dictionary->Enumerate([&](Object *object, Object *key, bool &stop) {
+			dictionary->Enumerate([&](Object *object, const Object *key, bool &stop) {
 
 				if(key->IsKindOfClass(__JSONStringClass))
 				{
-					String *string = static_cast<String *>(key);
+					const String *string = static_cast<const String *>(key);
 					const char *utf8 = string->GetUTF8String();
 
 					json_t *data = static_cast<json_t *>(SerializeObject(object));

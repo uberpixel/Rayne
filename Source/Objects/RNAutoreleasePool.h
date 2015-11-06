@@ -23,7 +23,7 @@ namespace RN
 
 		RNAPI static void PerformBlock(Function &&function);
 		
-		RNAPI void AddObject(Object *object);
+		RNAPI void AddObject(const Object *object);
 		RNAPI void Drain();
 		
 		RNAPI static AutoreleasePool *GetCurrentPool();

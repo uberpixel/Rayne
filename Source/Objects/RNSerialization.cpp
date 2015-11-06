@@ -54,8 +54,8 @@ namespace RN
 		temp = static_cast<uint32>(_nametable->GetCount());
 		result->Append(&temp, sizeof(uint32));
 		
-		_nametable->Enumerate([&](Object *value, Object *key, bool &stop) {
-			String *name = static_cast<String *>(key);
+		_nametable->Enumerate([&](Object *value, const Object *key, bool &stop) {
+			const String *name = static_cast<const String *>(key);
 			Number *index = static_cast<Number *>(value);
 			
 			size_t length;
@@ -90,7 +90,7 @@ namespace RN
 		
 		for(auto i = _conditionalTable.begin(); i != _conditionalTable.end(); i ++)
 		{
-			Object *object = i->first;
+			const Object *object = i->first;
 			const std::vector<uint64> &locations = i->second;
 			
 			auto iterator = _objectTable.find(object);
@@ -136,7 +136,7 @@ namespace RN
 		EncodeData('+', size, data);
 	}
 	
-	void FlatSerializer::EncodeObject(Object *object)
+	void FlatSerializer::EncodeObject(const Object *object)
 	{
 		if(!object)
 		{
@@ -155,7 +155,7 @@ namespace RN
 			_jumpTable.push_back(_data->GetLength());
 			
 			uint64 index = iterator->second;
-			
+
 			EncodeData('J', sizeof(uint64), &index);
 			return;
 		}
@@ -174,7 +174,7 @@ namespace RN
 		_objectTable.emplace(object, static_cast<uint64>(tindex));
 	}
 	
-	void FlatSerializer::EncodeRootObject(Object *object)
+	void FlatSerializer::EncodeRootObject(const Object *object)
 	{
 		_data->Release();
 		_nametable->Release();
@@ -185,7 +185,7 @@ namespace RN
 		EncodeObject(object);
 	}
 	
-	void FlatSerializer::EncodeConditionalObject(Object *object)
+	void FlatSerializer::EncodeConditionalObject(const Object *object)
 	{
 		size_t index = _data->GetLength();
 		

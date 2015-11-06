@@ -25,9 +25,9 @@ namespace RN
 	{
 	public:
 		RNAPI virtual void EncodeBytes(void *data, size_t size) = 0;
-		RNAPI virtual void EncodeObject(Object *object) = 0;
-		RNAPI virtual void EncodeRootObject(Object *object) = 0;
-		RNAPI virtual void EncodeConditionalObject(Object *object) = 0;
+		RNAPI virtual void EncodeObject(const Object *object) = 0;
+		RNAPI virtual void EncodeRootObject(const Object *object) = 0;
+		RNAPI virtual void EncodeConditionalObject(const Object *object) = 0;
 		RNAPI virtual void EncodeString(const std::string &string) = 0;
 		
 		RNAPI virtual void EncodeBool(bool value) = 0;
@@ -88,9 +88,9 @@ namespace RN
 		RNAPI ~FlatSerializer() override;
 		
 		RNAPI void EncodeBytes(void *data, size_t size) override;
-		RNAPI void EncodeObject(Object *object) override;
-		RNAPI void EncodeRootObject(Object *object) override;
-		RNAPI void EncodeConditionalObject(Object *object) override;
+		RNAPI void EncodeObject(const Object *object) override;
+		RNAPI void EncodeRootObject(const Object *object) override;
+		RNAPI void EncodeConditionalObject(const Object *object) override;
 		RNAPI void EncodeString(const std::string &string) override;
 		
 		RNAPI void EncodeBool(bool value) override;
@@ -117,8 +117,8 @@ namespace RN
 		Dictionary *_nametable;
 		
 		std::vector<uint64> _jumpTable;
-		std::unordered_map<Object *, uint64> _objectTable;
-		std::unordered_map<Object *, std::vector<uint64>> _conditionalTable;
+		std::unordered_map<const Object *, uint64> _objectTable;
+		std::unordered_map<const Object *, std::vector<uint64>> _conditionalTable;
 	};
 	
 	class FlatDeserializer : public Deserializer

@@ -42,7 +42,7 @@ namespace RN
 				SafeRelease(object);
 			}
 			
-			bool WrapsLookup(Object *lookup)
+			bool WrapsLookup(const Object *lookup) const
 			{
 				return (key && key->IsEqual(lookup));
 			}
@@ -52,7 +52,7 @@ namespace RN
 				return key->GetHash();
 			}
 			
-			Object *key;
+			const Object *key;
 			Object *object;
 			
 			Bucket *next;
@@ -100,7 +100,7 @@ namespace RN
 	{
 		serializer->EncodeInt64(static_cast<int64>(GetCount()));
 		
-		Enumerate([&](Object *object, Object *key, bool &stop) {
+		Enumerate([&](Object *object, const Object *key, bool &stop) {
 			
 			serializer->EncodeObject(object);
 			serializer->EncodeObject(key);
@@ -115,7 +115,7 @@ namespace RN
 
 		String *result = String::WithString("[\n", false);
 
-		Enumerate([&](Object *object, Object *key, bool &stop) {
+		Enumerate([&](Object *object, const Object *key, bool &stop) {
 			result->Append("\t");
 			result->Append(key->GetDescription());
 			result->Append(" : ");
@@ -195,7 +195,7 @@ namespace RN
 			while(bucket)
 			{
 				if(bucket->key)
-					array->AddObject(bucket->key);
+					array->AddObject(const_cast<Object *>(bucket->key));
 				
 				bucket = bucket->next;
 			}
@@ -210,7 +210,7 @@ namespace RN
 	}
 	
 	
-	Object *Dictionary::PrimitiveObjectForKey(Object *key)
+	Object *Dictionary::PrimitiveObjectForKey(const Object *key)
 	{
 		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		return bucket ? bucket->object : nullptr;
@@ -231,7 +231,7 @@ namespace RN
 		}
 	}
 	
-	void Dictionary::SetObjectForKey(Object *object, Object *key)
+	void Dictionary::SetObjectForKey(Object *object, const Object *key)
 	{
 		bool created;
 		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key, created);
@@ -241,7 +241,7 @@ namespace RN
 			SafeRelease(bucket->object);
 			SafeRelease(bucket->key);
 			
-			bucket->key    = key->Retain();
+			bucket->key = key->Retain();
 			bucket->object = object->Retain();
 			
 			if(created)
@@ -249,7 +249,7 @@ namespace RN
 		}
 	}
 	
-	void Dictionary::RemoveObjectForKey(Object *key)
+	void Dictionary::RemoveObjectForKey(const Object *key)
 	{
 		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		
@@ -268,7 +268,7 @@ namespace RN
 		_internals->hashTable.RemoveAllBuckets();
 	}
 	
-	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool &)>& callback) const
+	void Dictionary::Enumerate(const std::function<void (Object *, const Object *, bool &)>& callback) const
 	{
 		bool stop = false;
 

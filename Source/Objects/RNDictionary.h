@@ -33,7 +33,7 @@ namespace RN
 		RNAPI bool IsEqual(const Object *other) const override;
 		
 		template<typename T=Object>
-		T *GetObjectForKey(Object *key)
+		T *GetObjectForKey(const Object *key)
 		{
 			Object *object = PrimitiveObjectForKey(key);
 			if(object)
@@ -43,17 +43,17 @@ namespace RN
 		}
 		
 		RNAPI void AddEntriesFromDictionary(const Dictionary *other);
-		RNAPI void SetObjectForKey(Object *object, Object *key);
-		RNAPI void RemoveObjectForKey(Object *key);
+		RNAPI void SetObjectForKey(Object *object, const Object *key);
+		RNAPI void RemoveObjectForKey(const Object *key);
 		RNAPI void RemoveAllObjects();
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool &stop)>& callback) const;
+		RNAPI void Enumerate(const std::function<void (Object *object, const Object *key, bool &stop)>& callback) const;
 		
 		template<class T, class K>
-		void Enumerate(const std::function<void (T *object, K *key, bool &stop)>& callback) const
+		void Enumerate(const std::function<void (T *object, const K *key, bool &stop)>& callback) const
 		{
-			Enumerate([&](Object *object, Object *key, bool &stop) {
-				callback(static_cast<T *>(object), static_cast<K *>(key), stop);
+			Enumerate([&](Object *object, const Object *key, bool &stop) {
+				callback(static_cast<T *>(object), static_cast<const K *>(key), stop);
 			});
 		}
 		
@@ -69,7 +69,7 @@ namespace RN
 	private:
 		PIMPL<DictionaryInternal> _internals;
 		
-		RNAPI Object *PrimitiveObjectForKey(Object *key);
+		RNAPI Object *PrimitiveObjectForKey(const Object *key);
 		
 		RNDeclareMeta(Dictionary)
 	};

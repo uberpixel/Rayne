@@ -79,8 +79,14 @@ namespace RN
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
 	}
+	const Object *Object::Retain() const
+	{
+		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
+		return this;
+	}
 	
-	void Object::Release()
+
+	void Object::Release() const
 	{
 		// If this is the last reference this thread has, which it very well might be,
 		// we need to flush all accesses done so far. Thus the release barrier
@@ -89,8 +95,11 @@ namespace RN
 			// Catch up with all changes from all other threads thad had access to the object
 			std::atomic_thread_fence(std::memory_order_acquire);
 
-			Dealloc();
-			delete this;
+			// Since this function is marked const, we need to do this
+			Object *nonConstThis = const_cast<Object *>(this);
+
+			nonConstThis->Dealloc();
+			delete nonConstThis;
 		}
 	}
 	
@@ -105,6 +114,20 @@ namespace RN
 			return this;
 		}
 		
+		pool->AddObject(this);
+		return this;
+	}
+	const Object *Object::Autorelease() const
+	{
+		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
+		if(!pool)
+		{
+			MetaClass *meta = GetClass();
+			RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<const void *>(this) << "> will leak!");
+
+			return this;
+		}
+
 		pool->AddObject(this);
 		return this;
 	}

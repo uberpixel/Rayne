@@ -24,8 +24,10 @@ namespace RN
 	{
 	public:
 		RNAPI Object *Retain();
-		RNAPI void Release();
+		RNAPI const Object *Retain() const;
+		RNAPI void Release() const;
 		RNAPI Object *Autorelease();
+		RNAPI const Object *Autorelease() const;
 
 		RNAPI virtual const String *GetDescription() const;
 		
@@ -155,7 +157,7 @@ namespace RN
 		
 		RecursiveSpinLock _lock;
 		
-		std::atomic<size_t> _refCount;
+		mutable std::atomic<size_t> _refCount;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
 		std::vector<ObservableProperty *> _properties;
@@ -185,9 +187,17 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Retain()); \
 		} \
+		const cls *Retain() const \
+		{ \
+			return static_cast<const cls *>(Object::Retain()); \
+		} \
 		cls *Autorelease() \
 		{ \
 			return static_cast<cls *>(Object::Autorelease()); \
+		} \
+		const cls *Autorelease() const \
+		{ \
+			return static_cast<const cls *>(Object::Autorelease()); \
 		} \
 		cls *Copy() const \
 		{ \

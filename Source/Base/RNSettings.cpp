@@ -40,7 +40,7 @@ namespace RN
 						{
 							Dictionary *orgSettings = JSONSerialization::ObjectFromData<Dictionary>(orgData, 0);
 
-							orgSettings->Enumerate<Object, String>([&](Object *object, String *key, bool &stop) {
+							orgSettings->Enumerate<Object, String>([&](Object *object, const String *key, bool &stop) {
 
 								if(!_settings->GetObjectForKey(key))
 								{

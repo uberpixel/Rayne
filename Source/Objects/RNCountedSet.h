@@ -31,9 +31,9 @@ namespace RN
 		RNAPI const String *GetDescription() const override;
 		
 		RNAPI void AddObject(Object *object);
-		RNAPI void RemoveObject(Object *object);
+		RNAPI void RemoveObject(const Object *object);
 		RNAPI void RemoveAllObjects();
-		RNAPI bool ContainsObject(Object *object);
+		RNAPI bool ContainsObject(const Object *object) const;
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool &stop)>& callback) const;
 		
@@ -48,7 +48,7 @@ namespace RN
 		RNAPI Array *GetAllObjects() const;
 		
 		RNAPI size_t GetCount() const;
-		RNAPI size_t GetCountForObject(Object *object) const;
+		RNAPI size_t GetCountForObject(const Object *object) const;
 		
 	private:
 		PIMPL<CountedSetInternal> _internals;

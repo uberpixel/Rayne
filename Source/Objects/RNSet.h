@@ -35,12 +35,12 @@ namespace RN
 		RNAPI const String *GetDescription() const override;
 		
 		RNAPI void AddObject(Object *object);
-		RNAPI void RemoveObject(Object *object);
+		RNAPI void RemoveObject(const Object *object);
 		RNAPI void RemoveAllObjects();
-		RNAPI bool ContainsObject(Object *object) const;
+		RNAPI bool ContainsObject(const Object *object) const;
 
 		template<class T>
-		T *GetObject(Object *object) const
+		T *GetObject(const Object *object) const
 		{
 			return static_cast<T *>(__GetObject(object));
 		}
@@ -60,7 +60,7 @@ namespace RN
 		RNAPI size_t GetCount() const;
 		
 	private:
-		RNAPI Object *__GetObject(Object *object) const;
+		RNAPI Object *__GetObject(const Object *object) const;
 
 		PIMPL<SetInternal> _internals;
 		

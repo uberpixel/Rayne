@@ -23,7 +23,7 @@ namespace RN
 #if RNDebugAutoreleasePools
 		std::vector<std::pair<Object *, Exception>> objects;
 #else 
-		std::vector<Object *> objects;
+		std::vector<const Object *> objects;
 #endif
 	};
 	
@@ -51,7 +51,7 @@ namespace RN
 		pool.Drain();
 	}
 
-	void AutoreleasePool::AddObject(Object *object)
+	void AutoreleasePool::AddObject(const Object *object)
 	{
 #if RNDebugAutoreleasePools
 		_internals->objects.emplace_back(std::make_pair(object, Exception(Exception::Type::GenericException, "Traceback")));
@@ -68,12 +68,12 @@ namespace RN
 #if RNDebugAutoreleasePools
 		for(auto &pair : _internals->objects)
 		{
-			Object *object = pair.first;
+			const Object *object = pair.first;
 			object->Release();
 			
 		}
 #else
-		for(Object *object : _internals->objects)
+		for(const Object *object : _internals->objects)
 		{
 			object->Release();
 		}

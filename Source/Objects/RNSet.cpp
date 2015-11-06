@@ -181,7 +181,7 @@ namespace RN
 		}
 	}
 	
-	void Set::RemoveObject(Object *key)
+	void Set::RemoveObject(const Object *key)
 	{
 		SetInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		if(bucket)
@@ -198,13 +198,13 @@ namespace RN
 		_internals->hashTable.RemoveAllBuckets();
 	}
 	
-	bool Set::ContainsObject(Object *object) const
+	bool Set::ContainsObject(const Object *object) const
 	{
 		SetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return (bucket != nullptr);
 	}
 
-	Object *Set::__GetObject(Object *object) const
+	Object *Set::__GetObject(const Object *object) const
 	{
 		SetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return bucket->object;
