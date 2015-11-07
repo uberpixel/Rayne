@@ -21,6 +21,7 @@ namespace RN
 	{
 	public:
 		friend class Kernel;
+		friend class Module;
 
 		class Node : public Object
 		{
@@ -109,8 +110,8 @@ namespace RN
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);
 
-		RNAPI bool PathExists(const String *path);
-		RNAPI bool PathExists(const String *path, bool &isDirectory);
+		RNAPI static bool PathExists(const String *path);
+		RNAPI static bool PathExists(const String *path, bool &isDirectory);
 
 	private:
 		FileCoordinator();
@@ -119,8 +120,14 @@ namespace RN
 		String *__ExpandPath(const String *path);
 		void __PrepareWithManifest();
 
+		void __AddModuleWithPath(Module *module, const String *path);
+		void __RemoveModule(Module *module);
+
+		Array *__GetNodeContainerForPath(const String *path);
+
 		std::mutex _lock;
 		Array *_nodes;
+		Dictionary *_modulePaths;
 	};
 }
 

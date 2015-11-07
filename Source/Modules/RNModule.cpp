@@ -22,8 +22,23 @@ namespace RN
 		_ownsHandle(true),
 		_name(SafeCopy(name)),
 		_path(nullptr),
-		_identifier(nullptr)
+		_identifier(nullptr),
+		_resourcePath(nullptr),
+		_lookupPrefix(nullptr)
 	{
+		// Figure out if name points to a folder
+		bool isDirectory = false;
+		FileCoordinator *coordinator = FileCoordinator::GetSharedInstance();
+
+		String *path = coordinator->ResolveFullPath(_name, 0);
+		if(path)
+		{
+			if(coordinator->PathExists(path, isDirectory) && isDirectory)
+				_name->AppendPathComponent(_name->GetLastPathComponent());
+		}
+
+
+		// Resolve the files
 		String *basePath = _name->StringByDeletingLastPathComponent();
 		String *base = _name->GetLastPathComponent();
 
@@ -52,49 +67,76 @@ namespace RN
 		base = basePath->StringByAppendingPathComponent(base);
 
 
-		_path = FileCoordinator::GetSharedInstance()->ResolveFullPath(base, 0);
+		_path = coordinator->ResolveFullPath(base, 0);
 		if(!_path)
 			throw InvalidArgumentException("Couldn't resolve module name");
 
 		_path->Retain();
 
-		char buffer[512];
-		strcpy(buffer, "__RN");
-		strcat(buffer, name->GetLastPathComponent()->GetUTF8String());
-		strcat(buffer, "Init");
-
-		void *initializer = nullptr;
-
-		if((initializer = dlsym(RTLD_DEFAULT, buffer)))
+		// Resolve extra paths
+		if(isDirectory)
 		{
-			_handle = nullptr;
-			_ownsHandle = false;
+			_resourcePath = SafeRetain(_path->StringByAppendingPathComponent(RNCSTR("Resources")));
 
-			Dl_info info;
-			int status = dladdr(initializer, &info);
-			if(status != 0)
+			if(!coordinator->PathExists(_resourcePath))
+				_resourcePath = nullptr;
+
+			if(_resourcePath)
 			{
-				_path->Release();
-				_path = RNSTR(info.dli_fname)->Retain();
+				_lookupPrefix = _name->Copy();
+				_lookupPrefix->Insert(RNCSTR(":"), 0);
+				_lookupPrefix->Append(RNCSTR(":"));
 
-				_handle = dlopen(info.dli_fname, RTLD_NOLOAD | RTLD_GLOBAL);
-				_ownsHandle = true;
+				coordinator->__AddModuleWithPath(this, path);
 			}
 		}
-		else
+
+		try
 		{
-			Catalogue::GetSharedInstance()->PushModule(this);
-			_handle = dlopen(_path->GetUTF8String(), RTLD_NOW | RTLD_GLOBAL);
-			Catalogue::GetSharedInstance()->PopModule();
+			// Load the library
+			char buffer[512];
+			strcpy(buffer, "__RN");
+			strcat(buffer, name->GetLastPathComponent()->GetUTF8String());
+			strcat(buffer, "Init");
+
+			void *initializer = nullptr;
+
+			if((initializer = dlsym(RTLD_DEFAULT, buffer)))
+			{
+				_handle = nullptr;
+				_ownsHandle = false;
+
+				Dl_info info;
+				int status = dladdr(initializer, &info);
+				if(status != 0)
+				{
+					_path->Release();
+					_path = RNSTR(info.dli_fname)->Retain();
+
+					_handle = dlopen(info.dli_fname, RTLD_NOLOAD | RTLD_GLOBAL);
+					_ownsHandle = true;
+				}
+			}
+			else
+			{
+				Catalogue::GetSharedInstance()->PushModule(this);
+				_handle = dlopen(_path->GetUTF8String(), RTLD_NOW | RTLD_GLOBAL);
+				Catalogue::GetSharedInstance()->PopModule();
+			}
+
+			if(!_handle && _ownsHandle)
+				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
+
+			_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
+
+			if(!_initializer)
+				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
 		}
-
-		if(!_handle && _ownsHandle)
-			throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
-
-		_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
-
-		if(!_initializer)
-			throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
+		catch(...)
+		{
+			FileCoordinator::GetSharedInstance()->__RemoveModule(this);
+			std::rethrow_exception(std::current_exception());
+		}
 	}
 
 	Module::~Module()
@@ -105,6 +147,10 @@ namespace RN
 		SafeRelease(_name);
 		SafeRelease(_path);
 		SafeRelease(_identifier);
+		SafeRelease(_resourcePath);
+		SafeRelease(_lookupPrefix);
+
+		FileCoordinator::GetSharedInstance()->__RemoveModule(this);
 	}
 
 	void Module::Initialize()
@@ -114,11 +160,19 @@ namespace RN
 
 		descriptor.module = this;
 
-		if(!_initializer(&descriptor))
-			throw InconsistencyException("Initializer failed");
+		try
+		{
+			if(!_initializer(&descriptor))
+				throw InconsistencyException("Initializer failed");
 
-		if(descriptor.abiVersion != GetABIVersion())
-			throw InconsistencyException(RNSTR("Invalid ABI version reported by" << _name));
+			if(descriptor.abiVersion != GetABIVersion())
+				throw InconsistencyException(RNSTR("Invalid ABI version reported by" << _name));
+		}
+		catch(...)
+		{
+			FileCoordinator::GetSharedInstance()->__RemoveModule(this);
+			std::rethrow_exception(std::current_exception());
+		}
 
 		_identifier = new String(descriptor.identifier, Encoding::UTF8, false);
 
@@ -129,5 +183,14 @@ namespace RN
 	const String *Module::GetDescription() const
 	{
 		return RNSTR("<RN::Module:" << (void *)this << " " << GetIdentifier() << ">");
+	}
+
+	const String *Module::GetPathForResource(const String *resource)
+	{
+		if(!_resourcePath)
+			return nullptr;
+
+		String *path = _lookupPrefix->StringByAppendingPathComponent(resource);
+		return FileCoordinator::GetSharedInstance()->ResolveFullPath(path, 0);
 	}
 }

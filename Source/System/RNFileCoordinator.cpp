@@ -9,6 +9,7 @@
 #include "../Base/RNBaseInternal.h"
 #include "../Base/RNKernel.h"
 #include "../Base/RNApplication.h"
+#include "../Modules/RNModule.h"
 #include "RNFileCoordinator.h"
 
 #if RN_PLATFORM_POSIX
@@ -161,12 +162,16 @@ namespace RN
 	static FileCoordinator *__sharedInstance = nullptr;
 
 	FileCoordinator::FileCoordinator() :
-		_nodes(new Array())
+		_nodes(new Array()),
+		_modulePaths(new Dictionary())
 	{
 		__sharedInstance = this;
 	}
 	FileCoordinator::~FileCoordinator()
 	{
+		SafeRelease(_nodes);
+		SafeRelease(_modulePaths);
+
 		__sharedInstance = nullptr;
 	}
 	FileCoordinator *FileCoordinator::GetSharedInstance()
@@ -220,6 +225,21 @@ namespace RN
 		return path;
 	}
 
+	Array *FileCoordinator::__GetNodeContainerForPath(const String *path)
+	{
+		Array *components = path->GetPathComponents();
+		if(components->GetCount() > 1)
+		{
+			String *component = components->GetObjectAtIndex<String>(0);
+			Array *nodes = _modulePaths->GetObjectForKey<Array>(component);
+
+			if(nodes)
+				return nodes;
+		}
+
+		return _nodes;
+	}
+
 	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		Array *components = path->GetPathComponents();
@@ -231,8 +251,9 @@ namespace RN
 		std::lock_guard<std::mutex> lock(_lock);
 
 		Node *result = nullptr;
+		Array *nodes = __GetNodeContainerForPath(path);
 
-		_nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
+		nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
 
 			Directory *node = directory;
 
@@ -446,6 +467,49 @@ namespace RN
 		{
 			_nodes->RemoveObjectAtIndex(index);
 		}
+	}
+
+	void FileCoordinator::__AddModuleWithPath(Module *module, const String *path)
+	{
+		String *prefix = SafeCopy(module->GetName());
+
+		prefix->Insert(RNCSTR(":"), 0);
+		prefix->Append(RNCSTR(":"));
+
+		{
+			std::lock_guard<std::mutex> lock(_lock);
+
+			Array *nodes = _modulePaths->GetObjectForKey<Array>(prefix);
+			if(!nodes)
+			{
+				nodes = new Array();
+				_modulePaths->SetObjectForKey(nodes->Autorelease(), prefix);
+			}
+
+			try
+			{
+				Directory *directory = new Directory(path);
+				nodes->AddObject(directory);
+				directory->Release();
+			}
+			catch(Exception e)
+			{
+				throw e;
+			}
+		}
+
+		prefix->Release();
+
+	}
+	void FileCoordinator::__RemoveModule(Module *module)
+	{
+		String *prefix = SafeCopy(module->GetName());
+
+		prefix->Insert(RNCSTR(":"), 0);
+		prefix->Append(RNCSTR(":"));
+
+		std::lock_guard<std::mutex> lock(_lock);
+		_modulePaths->RemoveObjectForKey(prefix);
 	}
 
 	bool FileCoordinator::PathExists(const String *path)
