@@ -72,11 +72,14 @@ namespace RN
 			throw InvalidArgumentException("Couldn't resolve module name");
 
 		_path->Retain();
+		_name = _name->GetLastPathComponent();
 
 		// Resolve extra paths
 		if(isDirectory)
 		{
-			_resourcePath = SafeRetain(_path->StringByAppendingPathComponent(RNCSTR("Resources")));
+			String *basePath = _path->StringByDeletingLastPathComponent();
+
+			_resourcePath = SafeRetain(basePath->StringByAppendingPathComponent(RNCSTR("Resources")));
 
 			if(!coordinator->PathExists(_resourcePath))
 				_resourcePath = nullptr;
@@ -87,7 +90,7 @@ namespace RN
 				_lookupPrefix->Insert(RNCSTR(":"), 0);
 				_lookupPrefix->Append(RNCSTR(":"));
 
-				coordinator->__AddModuleWithPath(this, path);
+				coordinator->__AddModuleWithPath(this, _resourcePath);
 			}
 		}
 

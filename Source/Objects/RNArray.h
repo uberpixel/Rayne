@@ -264,7 +264,9 @@ namespace RN
 				return (result == ComparisonResult::LessThan);
 			});
 		}
-		
+
+		const String *GetComponentsJoinedByString(const String *separator);
+
 	private:
 		RNAPI void UpdateSizeIfNeeded(size_t required);
 		

@@ -123,7 +123,7 @@ namespace RN
 		void __AddModuleWithPath(Module *module, const String *path);
 		void __RemoveModule(Module *module);
 
-		Array *__GetNodeContainerForPath(const String *path);
+		Array *__GetNodeContainerForPath(const String *path, Array *&outPath);
 
 		std::mutex _lock;
 		Array *_nodes;

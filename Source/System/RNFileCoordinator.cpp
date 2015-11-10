@@ -225,7 +225,7 @@ namespace RN
 		return path;
 	}
 
-	Array *FileCoordinator::__GetNodeContainerForPath(const String *path)
+	Array *FileCoordinator::__GetNodeContainerForPath(const String *path, Array *&outPath)
 	{
 		Array *components = path->GetPathComponents();
 		if(components->GetCount() > 1)
@@ -234,24 +234,32 @@ namespace RN
 			Array *nodes = _modulePaths->GetObjectForKey<Array>(component);
 
 			if(nodes)
+			{
+				components->RemoveObjectAtIndex(0);
+				outPath = components;
+
 				return nodes;
+			}
 		}
 
+		outPath = components;
 		return _nodes;
 	}
 
 	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
-		Array *components = path->GetPathComponents();
+		std::lock_guard<std::mutex> lock(_lock);
+
+		Array *components = nullptr;
+
+		Node *result = nullptr;
+		Array *nodes = __GetNodeContainerForPath(path, components);
+
+		RN_ASSERT(components, "outPath is null!"); // Should _NEVER_ happen
 		size_t componentCount = components->GetCount();
 
 		if(RN_EXPECT_FALSE(componentCount == 0))
 			return nullptr;
-
-		std::lock_guard<std::mutex> lock(_lock);
-
-		Node *result = nullptr;
-		Array *nodes = __GetNodeContainerForPath(path);
 
 		nodes->Enumerate<Directory>([&](Directory *directory, size_t index, bool &stop) {
 
@@ -266,7 +274,7 @@ namespace RN
 
 				if(!subnode)
 				{
-					if(lastNode && (hint & ResolveHint::CreateNode))
+					if(lastNode && ((hint & ResolveHint::CreateNode) || node->GetName()->IsEqual(component)))
 						result = node;
 
 					break;

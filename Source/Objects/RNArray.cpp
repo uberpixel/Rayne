@@ -186,4 +186,21 @@ namespace RN
 			}
 		}
 	}
+
+	const String *Array::GetComponentsJoinedByString(const String *separator)
+	{
+		String *result = new String();
+		size_t limit = GetCount();
+
+		Enumerate([&](Object *object, size_t index, bool &stop) {
+
+			result->Append(object->GetDescription());
+
+			if(index + 1 < limit)
+				result->Append(separator);
+
+		});
+
+		return result->Autorelease();
+	}
 }

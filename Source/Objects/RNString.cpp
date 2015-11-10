@@ -177,7 +177,7 @@ namespace RN
 	{
 		Expected<Data *> data = Data::WithContentsOfFile(file);
 		if(!data.IsValid())
-			return InvalidArgumentException("Couldn't open file");
+			return InvalidArgumentException(RNSTR("Couldn't open file '" << file << "'"));
 
 		String *string = new String(data, encoding);
 		return string->Autorelease();

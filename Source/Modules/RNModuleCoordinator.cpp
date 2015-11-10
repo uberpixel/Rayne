@@ -7,6 +7,7 @@
 //
 
 #include "../Base/RNKernel.h"
+#include "../Objects/RNAutoreleasePool.h"
 #include "RNModuleCoordinator.h"
 
 #if RN_PLATFORM_POSIX
@@ -89,40 +90,44 @@ namespace RN
 
 	void ModuleCoordinator::LoadModules()
 	{
-		Array *modules = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(RNCSTR("RNModules"));
-		if(modules)
-		{
-			modules->Enumerate<String>([&](String *name, size_t index, bool &stop) {
+		AutoreleasePool::PerformBlock([&]{
 
-				Module *module = nullptr;
-				String *nameCopy = name->Copy()->Autorelease();
+			Array *modules = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(RNCSTR("RNModules"));
+			if(modules)
+			{
+				modules->Enumerate<String>([&](String *name, size_t index, bool &stop) {
 
-				try
-				{
-					module = new Module(name);
+					Module *module = nullptr;
+					String *nameCopy = name->Copy()->Autorelease();
 
-					_modules->AddObject(module);
-					_moduleMap->SetObjectForKey(module, nameCopy);
-
-					module->Initialize();
-				}
-				catch(Exception &e)
-				{
-					if(module)
+					try
 					{
-						_modules->RemoveObject(module);
-						_moduleMap->RemoveObjectForKey(nameCopy);
+						module = new Module(name);
 
-						delete module;
+						_modules->AddObject(module);
+						_moduleMap->SetObjectForKey(module, nameCopy);
+
+						module->Initialize();
+					}
+					catch(Exception &e)
+					{
+						if(module)
+						{
+							_modules->RemoveObject(module);
+							_moduleMap->RemoveObjectForKey(nameCopy);
+
+							delete module;
+						}
+
+						throw e;
 					}
 
-					throw e;
-				}
+					RNDebug("Loaded module " << module);
 
-				RNDebug("Loaded module " << module);
+				});
+			}
 
-			});
-		}
+		});
 	}
 
 	Module *ModuleCoordinator::GetModuleForClass(MetaClass *meta) const
