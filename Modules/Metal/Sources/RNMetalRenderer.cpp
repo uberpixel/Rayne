@@ -14,8 +14,6 @@
 #include "RNMetalTexture.h"
 #include "RNMetalUniformBuffer.h"
 
-#include "RNMetalShaders.metal"
-
 namespace RN
 {
 	RNDefineMeta(MetalRenderer, Renderer)
@@ -48,11 +46,8 @@ namespace RN
 
 		[devices release];
 
-		NSError *error = nil;
-		_internals->defaultLibrary = [_internals->device newLibraryWithSource:[NSString stringWithUTF8String:kRNMetalRendererDefaultShaders] options:nil error:&error];
-
-		if(!_internals->defaultLibrary)
-			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
+		MetalShaderLibrary *library = static_cast<MetalShaderLibrary *>(GetShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.metal")));
+		_internals->defaultLibrary = [(id<MTLLibrary>)library->_library retain];
 
 		// Texture format look ups
 		_textureFormatLookup = new Dictionary();

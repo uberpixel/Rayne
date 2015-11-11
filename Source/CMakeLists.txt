@@ -3,10 +3,7 @@ project(Rayne)
 
 include(../CMake/CompilerCheck.cmake)
 include(../CMake/BoostInclude.cmake)
-include(../CMake/TargetDirectories.cmake)
 include(../CMake/LibraryTarget.cmake)
-
-target_directories(RAYNE)
 
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)

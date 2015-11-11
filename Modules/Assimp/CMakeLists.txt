@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(RayneAssimp)
 
-include(../../CMake/TargetDirectories.cmake)
 include(../../CMake/LibraryTarget.cmake)
 
 set(ASSIMP_BUILD_TESTS off)
@@ -10,8 +9,6 @@ set(ASSIMP_NO_EXPORT on)
 set(ASSIMP_BUILD_ASSIMP_TOOLS off)
 
 add_subdirectory(Vendor/Assimp)
-
-target_directories(ASSIMP)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)

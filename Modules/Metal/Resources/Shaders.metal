@@ -1,4 +1,4 @@
-const char *kRNMetalRendererDefaultShaders = R"(#include <metal_stdlib>
+#include <metal_stdlib>
 
 using namespace metal;
 
@@ -27,4 +27,3 @@ fragment float4 basic_blit_fragment(VertexResult vert [[stage_in]], texture2d<fl
 {
 	return texture.sample(samplr, vert.texCoords).rgba;
 }
-)";

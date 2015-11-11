@@ -1,6 +1,9 @@
 
 macro(__rayne_create_target _NAME _ARCH _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERSION _ABI)
 
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
+
     # Input check
     if(NOT ((${_ARCH} EQUAL 64) OR (${_ARCH} EQUAL 32)))
         message(FATAL_ERROR "Target must be either \"32\" or \"64\", is \"${_ARCH}\"")
@@ -176,6 +179,26 @@ macro(rayne_target_include_directories _TARGET _DIRECTORIES)
 
     foreach(TARGET ${TARGETS})
         target_include_directories("${TARGET}" PRIVATE "${_DIRECTORIES}")
+    endforeach()
+
+endmacro()
+
+macro(rayne_copy_resources _TARGET _RESOURCES)
+
+    __rayne_target_names(${_TARGET} _TARGETS)
+
+    foreach(_RTARGET ${_TARGETS})
+
+        foreach(_RESOURCE ${_RESOURCES})
+
+            if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
+                add_custom_command(TARGET ${_RTARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "${CMAKE_CURRENT_BINARY_DIR}/Build/${_RESOURCE}")
+            else()
+                add_custom_command(TARGET ${_RTARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "${CMAKE_CURRENT_BINARY_DIR}/Build/${_RESOURCE}")
+            endif()
+
+        endforeach()
+
     endforeach()
 
 endmacro()
