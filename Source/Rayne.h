@@ -29,6 +29,10 @@
 #include "Debug/RNLogger.h"
 #include "Debug/RNLoggingEngine.h"
 
+#include "Input/RNInputControl.h"
+#include "Input/RNInputDevice.h"
+#include "Input/RNInputManager.h"
+
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"
 #include "Math/RNConstants.h"

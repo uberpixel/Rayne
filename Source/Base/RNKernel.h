@@ -16,6 +16,7 @@
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
+#include "../Input/RNInputManager.h"
 #include "../Assets/RNAssetManager.h"
 #include "../Modules/RNModuleManager.h"
 #include "../System/RNFileCoordinator.h"
@@ -80,6 +81,7 @@ namespace RN
 		AssetManager *_assetManager;
 		ModuleManager *_moduleManager;
 		RendererManager *_rendererManager;
+		InputManager *_inputManager;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

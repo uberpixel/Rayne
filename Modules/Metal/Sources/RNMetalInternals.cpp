@@ -53,3 +53,48 @@
 
 @end
 
+@implementation RNMetalWindow
+
+- (BOOL)windowShouldClose:(id)sender
+{
+	return NO;
+}
+
+- (void)keyDown:(NSEvent *)theEvent
+{}
+- (void)keyUp:(NSEvent *)theEvent
+{}
+- (void)mouseMoved:(NSEvent *)theEvent
+{}
+- (void)mouseDown:(NSEvent *)theEvent
+{}
+- (void)rightMouseDown:(NSEvent *)theEvent
+{}
+- (void)otherMouseDown:(NSEvent *)theEvent
+{}
+- (void)mouseDragged:(NSEvent *)theEvent
+{}
+- (void)rightMouseDragged:(NSEvent *)theEvent
+{}
+- (void)otherMouseDragged:(NSEvent *)theEvent
+{}
+- (void)mouseUp:(NSEvent *)theEvent
+{}
+- (void)rightMouseUp:(NSEvent *)theEvent
+{}
+- (void)otherMouseUp:(NSEvent *)theEvent
+{}
+- (void)scrollWheel:(NSEvent *)theEvent
+{}
+
+
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
+- (BOOL)canBecomeMainWindow
+{
+	return YES;
+}
+
+@end

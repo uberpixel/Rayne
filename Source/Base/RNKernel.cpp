@@ -74,6 +74,7 @@ namespace RN
 			_rendererManager = new RendererManager();
 			_assetManager = new AssetManager();
 			_sceneManager = new SceneManager();
+			_inputManager = new InputManager();
 			_moduleManager = new ModuleManager();
 
 			Catalogue::GetSharedInstance()->RegisterPendingClasses();
@@ -172,6 +173,7 @@ namespace RN
 		delete _fileManager;
 		delete _assetManager;
 		delete _sceneManager;
+		delete _inputManager;
 		delete _moduleManager;
 		delete _rendererManager;
 
@@ -248,6 +250,8 @@ namespace RN
 		// System event handling
 		HandleSystemEvents();
 
+		// Update input and then run scene updates
+		_inputManager->Update(_delta);
 		_sceneManager->Update(_delta);
 
 		if(_renderer)

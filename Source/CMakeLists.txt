@@ -28,6 +28,9 @@ set(RAYNE_SOURCES
     Assets/RNPNGAssetLoader.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
+    Input/RNInputControl.cpp
+    Input/RNInputDevice.cpp
+    Input/RNInputManager.cpp
     Math/RNMath.cpp
     Math/RNRandom.cpp
     Modules/RNModule.cpp
@@ -105,6 +108,9 @@ set(RAYNE_HEADERS
     Data/RNRRef.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
+    Input/RNInputControl.h
+    Input/RNInputDevice.h
+    Input/RNInputManager.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h
@@ -173,8 +179,18 @@ set(RAYNE_HEADERS_PRIVATE
     Objects/RNObjectInternals.h
     Objects/RNStringInternal.h)
 
+set(RAYNE_PLATFORM_SOURCES "")
+set(RAYNE_PLATFORM_HEADERS_PRIVATE "")
 
-set(TARGET_FILES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE})
+if(APPLE)
+
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputOSX.cpp)
+
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputOSX.h)
+
+endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
@@ -234,7 +250,10 @@ endif()
 
 set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png16_static zlibstatic)
 
-rayne_add_library(Rayne "${RAYNE_SOURCES}" "${RAYNE_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
+set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
+set(TARGET_HEADERS ${RAYNE_HEADERS})
+
+rayne_add_library(Rayne "${TARGET_SOURCES}" "${TARGET_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_target_add_definitions(Rayne "${COMPILE_DEFINITIONS}")
 rayne_target_add_options(Rayne "${COMPILE_OPTIONS}")
 rayne_target_include_directories(Rayne "${INCLUDE_DIRECTORIES}")

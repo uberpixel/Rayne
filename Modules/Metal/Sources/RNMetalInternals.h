@@ -23,6 +23,9 @@
 - (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
 @end
 
+@interface RNMetalWindow : NSWindow
+@end
+
 namespace RN
 {
 	class MetalWindow;
