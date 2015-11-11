@@ -12,7 +12,7 @@
 #include "RNBase.h"
 #include "../Objects/RNString.h"
 #include "../Rendering/RNRenderer.h"
-#include "../Rendering/RNRendererCoordinator.h"
+#include "../Rendering/RNRendererManager.h"
 
 namespace RN
 {

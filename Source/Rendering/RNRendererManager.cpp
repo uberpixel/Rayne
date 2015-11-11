@@ -1,5 +1,5 @@
 //
-//  RNRendererCoordinator.cpp
+//  RNRendererManager.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
@@ -7,32 +7,32 @@
 //
 
 #include "../Base/RNSettings.h"
-#include "RNRendererCoordinator.h"
+#include "RNRendererManager.h"
 #include "RNRenderer.h"
 
 namespace RN
 {
-	static RendererCoordinator *__sharedInstance;
+	static RendererManager *__sharedInstance;
 
-	RendererCoordinator::RendererCoordinator() :
+	RendererManager::RendererManager() :
 		_descriptors(new Array())
 	{
 		__sharedInstance = this;
 	}
 
-	RendererCoordinator::~RendererCoordinator()
+	RendererManager::~RendererManager()
 	{
 		SafeRelease(_descriptors);
 		__sharedInstance = nullptr;
 	}
 
-	RendererCoordinator *RendererCoordinator::GetSharedInstance()
+	RendererManager *RendererManager::GetSharedInstance()
 	{
 		return __sharedInstance;
 	}
 
 
-	Dictionary *RendererCoordinator::GetSettings() const
+	Dictionary *RendererManager::GetSettings() const
 	{
 		Dictionary *renderer = Settings::GetSharedInstance()->GetEntryForKey<Dictionary>(RNCSTR("RNRenderer"));
 		if(renderer)
@@ -41,7 +41,7 @@ namespace RN
 		return (new Dictionary())->Autorelease();
 	}
 
-	Dictionary *RendererCoordinator::GetParameters() const
+	Dictionary *RendererManager::GetParameters() const
 	{
 		Dictionary *settings = GetSettings();
 		return settings->GetObjectForKey<Dictionary>(RNCSTR("parameters"));
@@ -49,25 +49,25 @@ namespace RN
 
 
 
-	void RendererCoordinator::AddDescriptor(RendererDescriptor *descriptor)
+	void RendererManager::AddDescriptor(RendererDescriptor *descriptor)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		_descriptors->AddObject(descriptor);
 	}
-	void RendererCoordinator::RemoveDescriptor(RendererDescriptor *descriptor)
+	void RendererManager::RemoveDescriptor(RendererDescriptor *descriptor)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		_descriptors->RemoveObject(descriptor);
 	}
 
 
-	Array *RendererCoordinator::GetRenderers() const
+	Array *RendererManager::GetRenderers() const
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		return _descriptors->Copy()->Autorelease();
 	}
 
-	Array *RendererCoordinator::GetAvailableRenderers() const
+	Array *RendererManager::GetAvailableRenderers() const
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
@@ -78,7 +78,7 @@ namespace RN
 		});
 	}
 
-	RendererDescriptor *RendererCoordinator::GetPreferredRenderer() const
+	RendererDescriptor *RendererManager::GetPreferredRenderer() const
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
@@ -91,13 +91,13 @@ namespace RN
 		return nullptr;
 	}
 
-	RendererDescriptor *RendererCoordinator::GetRendererWithIdentifier(const String *identifier) const
+	RendererDescriptor *RendererManager::GetRendererWithIdentifier(const String *identifier) const
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		return __GetRendererWithIdentifier(identifier);
 	}
 
-	RendererDescriptor *RendererCoordinator::__GetRendererWithIdentifier(const String *identifier) const
+	RendererDescriptor *RendererManager::__GetRendererWithIdentifier(const String *identifier) const
 	{
 		RendererDescriptor *descriptor = nullptr;
 
@@ -114,7 +114,7 @@ namespace RN
 		return descriptor;
 	}
 
-	Renderer *RendererCoordinator::ActivateRenderer(RendererDescriptor *descriptor)
+	Renderer *RendererManager::ActivateRenderer(RendererDescriptor *descriptor)
 	{
 		Dictionary *parameters = GetParameters();
 

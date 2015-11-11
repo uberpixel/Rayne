@@ -71,13 +71,13 @@ namespace RN
 			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
 			_logger->__LoadDefaultLoggers();
 
-			_rendererCoordinator = new RendererCoordinator();
-			_assetCoordinator = new AssetCoordinator();
-			_sceneCoordinator = new SceneCoordinator();
-			_moduleCoordinator = new ModuleCoordinator();
+			_rendererManager = new RendererManager();
+			_assetManager = new AssetManager();
+			_sceneManager = new SceneManager();
+			_moduleManager = new ModuleManager();
 
 			Catalogue::GetSharedInstance()->RegisterPendingClasses();
-			_moduleCoordinator->LoadModules();
+			_moduleManager->LoadModules();
 
 			_application->WillFinishLaunching(this);
 			_renderer = nullptr;
@@ -88,11 +88,11 @@ namespace RN
 
 				if(!descriptor)
 				{
-					descriptor = _rendererCoordinator->GetPreferredRenderer();
+					descriptor = _rendererManager->GetPreferredRenderer();
 
 					if(!descriptor)
 					{
-						Array *renderers = _rendererCoordinator->GetAvailableRenderers();
+						Array *renderers = _rendererManager->GetAvailableRenderers();
 
 						if(renderers->GetCount() > 0)
 							descriptor = renderers->GetObjectAtIndex<RendererDescriptor>(0);
@@ -103,7 +103,7 @@ namespace RN
 				{
 					try
 					{
-						_renderer = _rendererCoordinator->ActivateRenderer(descriptor);
+						_renderer = _rendererManager->ActivateRenderer(descriptor);
 						RNDebug("Using renderer " << _renderer);
 					}
 					catch(Exception &e)
@@ -170,10 +170,10 @@ namespace RN
 		}
 
 		delete _fileManager;
-		delete _assetCoordinator;
-		delete _sceneCoordinator;
-		delete _moduleCoordinator;
-		delete _rendererCoordinator;
+		delete _assetManager;
+		delete _sceneManager;
+		delete _moduleManager;
+		delete _rendererManager;
 
 		_logger->Flush();
 		delete _logger;
@@ -248,12 +248,12 @@ namespace RN
 		// System event handling
 		HandleSystemEvents();
 
-		_sceneCoordinator->Update(_delta);
+		_sceneManager->Update(_delta);
 
 		if(_renderer)
 		{
 			_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&] {
-				_sceneCoordinator->Render(_renderer);
+				_sceneManager->Render(_renderer);
 			});
 		}
 

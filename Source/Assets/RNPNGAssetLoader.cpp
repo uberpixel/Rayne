@@ -13,7 +13,7 @@
 #include "../Rendering/RNRenderer.h"
 
 #include "RNPNGAssetLoader.h"
-#include "RNAssetCoordinator.h"
+#include "RNAssetManager.h"
 
 namespace RN
 {
@@ -35,7 +35,7 @@ namespace RN
 
 		__assetLoader = new PNGAssetLoader(config);
 
-		AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
+		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		coordinator->RegisterAssetLoader(__assetLoader);
 	}
 

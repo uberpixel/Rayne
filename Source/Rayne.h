@@ -18,7 +18,7 @@
 #include "Base/RNMemoryPool.h"
 
 #include "Assets/RNAsset.h"
-#include "Assets/RNAssetCoordinator.h"
+#include "Assets/RNAssetManager.h"
 #include "Assets/RNAssetLoader.h"
 
 #include "Data/RNAny.h"
@@ -41,7 +41,7 @@
 #include "Math/RNVector.h"
 
 #include "Modules/RNModule.h"
-#include "Modules/RNModuleCoordinator.h"
+#include "Modules/RNModuleManager.h"
 
 #include "Objects/RNAutoreleasePool.h"
 #include "Objects/RNObject.h"
@@ -66,13 +66,14 @@
 #include "Rendering/RNMesh.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRendererDescriptor.h"
+#include "Rendering/RNRendererManager.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"
 #include "Rendering/RNWindow.h"
 
 #include "Scene/RNCamera.h"
 #include "Scene/RNScene.h"
-#include "Scene/RNSceneCoordinator.h"
+#include "Scene/RNSceneManager.h"
 #include "Scene/RNSceneNode.h"
 
 #include "System/RNFile.h"

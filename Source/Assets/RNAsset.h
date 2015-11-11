@@ -14,11 +14,11 @@
 
 namespace RN
 {
-	class AssetCoordinator;
+	class AssetManager;
 	class Asset : public Object
 	{
 	public:
-		friend class AssetCoordinator;
+		friend class AssetManager;
 
 		Asset();
 
@@ -28,9 +28,9 @@ namespace RN
 		void Dealloc() override;
 
 	private:
-		void __AwakeWithCoordinator(AssetCoordinator *coordinator, String *name, MetaClass *meta);
+		void __AwakeWithCoordinator(AssetManager *coordinator, String *name, MetaClass *meta);
 
-		AssetCoordinator *_coordinator;
+		AssetManager *_coordinator;
 		String *_name;
 		MetaClass *_meta;
 

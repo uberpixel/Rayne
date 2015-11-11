@@ -19,7 +19,7 @@ namespace RN
 	class Module : public Object
 	{
 	public:
-		friend class ModuleCoordinator;
+		friend class ModuleManager;
 
 		struct Descriptor
 		{

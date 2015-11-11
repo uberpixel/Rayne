@@ -1,5 +1,5 @@
 //
-//  RNAssetCoordinator.cpp
+//  RNAssetManager.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
@@ -8,34 +8,34 @@
 
 #include "../Data/RNRRef.h"
 #include "../Debug/RNLogger.h"
-#include "RNAssetCoordinator.h"
+#include "RNAssetManager.h"
 
 #include "RNPNGAssetLoader.h"
 
 namespace RN
 {
-	static AssetCoordinator *__sharedInstance = nullptr;
+	static AssetManager *__sharedInstance = nullptr;
 
-	AssetCoordinator::AssetCoordinator() :
+	AssetManager::AssetManager() :
 		_loaders(new Array())
 	{
 		__sharedInstance = this;
 
 		PNGAssetLoader::Register();
 	}
-	AssetCoordinator::~AssetCoordinator()
+	AssetManager::~AssetManager()
 	{
 		SafeRelease(_loaders);
 		__sharedInstance = nullptr;
 	}
 
-	AssetCoordinator *AssetCoordinator::GetSharedInstance()
+	AssetManager *AssetManager::GetSharedInstance()
 	{
 		return __sharedInstance;
 	}
 
 
-	void AssetCoordinator::RegisterAssetLoader(AssetLoader *loader)
+	void AssetManager::RegisterAssetLoader(AssetLoader *loader)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
@@ -57,7 +57,7 @@ namespace RN
 		UpdateMagicSize();
 	}
 
-	void AssetCoordinator::UnregisterAssetLoader(AssetLoader *loader)
+	void AssetManager::UnregisterAssetLoader(AssetLoader *loader)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		_loaders->RemoveObject(loader);
@@ -65,7 +65,7 @@ namespace RN
 		UpdateMagicSize();
 	}
 
-	void AssetCoordinator::UpdateMagicSize()
+	void AssetManager::UpdateMagicSize()
 	{
 		_maxMagicSize = 0;
 		_loaders->Enumerate<AssetLoader>([&](AssetLoader *loader, size_t index, bool &stop) {
@@ -78,14 +78,14 @@ namespace RN
 
 
 
-	Asset *AssetCoordinator::ValidateAsset(MetaClass *base, Asset *asset)
+	Asset *AssetManager::ValidateAsset(MetaClass *base, Asset *asset)
 	{
 		if(!asset->IsKindOfClass(base))
 			throw InconsistencyException(RNSTR("Failed to validate asset for class " << base->GetName()));
 
 		return asset;
 	}
-	void AssetCoordinator::PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings)
+	void AssetManager::PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings)
 	{
 		asset->__AwakeWithCoordinator(this, name, meta);
 
@@ -94,7 +94,7 @@ namespace RN
 
 		RNDebug("Loaded asset " << asset);
 	}
-	void AssetCoordinator::__RemoveAsset(Asset *asset, String *name)
+	void AssetManager::__RemoveAsset(Asset *asset, String *name)
 	{
 		{
 			std::unique_lock<std::mutex> lock(_lock);
@@ -118,7 +118,7 @@ namespace RN
 	}
 
 
-	std::shared_future<Asset *> AssetCoordinator::__GetFutureMatching(MetaClass *base, String *name)
+	std::shared_future<Asset *> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
 	{
 		// Check if the resource is already loaded
 		Asset *asset = nullptr;
@@ -179,7 +179,7 @@ namespace RN
 		throw InconsistencyException("No matching future found");
 	}
 
-	Asset *AssetCoordinator::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
+	Asset *AssetManager::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
 		String *name = tname->Copy();
 		std::unique_lock<std::mutex> lock(_lock);
@@ -244,7 +244,7 @@ namespace RN
 		return asset.Get();
 	}
 
-	std::shared_future<Asset *> AssetCoordinator::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
+	std::shared_future<Asset *> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
 		String *name = tname->Copy();
 		std::unique_lock<std::mutex> lock(_lock);
@@ -312,7 +312,7 @@ namespace RN
 	}
 
 
-	AssetLoader *AssetCoordinator::PickAssetLoader(MetaClass *base, File *file, const String *name, bool requiresBackgroundSupport)
+	AssetLoader *AssetManager::PickAssetLoader(MetaClass *base, File *file, const String *name, bool requiresBackgroundSupport)
 	{
 		AssetLoader *assetLoader = nullptr;
 

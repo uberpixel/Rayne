@@ -85,7 +85,7 @@ namespace RN
 
 		};
 
-		friend class AssetCoordinator;
+		friend class AssetManager;
 
 		RNAPI ~AssetLoader();
 

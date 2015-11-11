@@ -1,5 +1,5 @@
 //
-//  RNSceneCoordinator.h
+//  RNSceneManager.h
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
@@ -7,8 +7,8 @@
 //
 
 
-#ifndef __RAYNE_SCENECOORDINATOR_H_
-#define __RAYNE_SCENECOORDINATOR_H_
+#ifndef __RAYNE_SCENEMANAGER_H_
+#define __RAYNE_SCENEMANAGER_H_
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNArray.h"
@@ -17,12 +17,12 @@
 namespace RN
 {
 	class Kernel;
-	class SceneCoordinator
+	class SceneManager
 	{
 	public:
 		friend class Kernel;
 
-		RNAPI static SceneCoordinator *GetSharedInstance();
+		RNAPI static SceneManager *GetSharedInstance();
 
 		RNAPI void AddScene(Scene *scene);
 		RNAPI void RemoveScene(Scene *scene);
@@ -31,12 +31,12 @@ namespace RN
 		RNAPI void Render(Renderer *renderer);
 
 	private:
-		SceneCoordinator();
-		~SceneCoordinator();
+		SceneManager();
+		~SceneManager();
 
 		Array *_scenes;
 	};
 }
 
 
-#endif /* __RAYNE_SCENECOORDINATOR_H_ */
+#endif /* __RAYNE_SCENEMANAGER_H_ */

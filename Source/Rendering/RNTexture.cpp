@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../Assets/RNAssetCoordinator.h"
+#include "../Assets/RNAssetManager.h"
 #include "RNTexture.h"
 #include "RNRenderer.h"
 
@@ -20,7 +20,7 @@ namespace RN
 
 	Texture *Texture::WithName(const String *name)
 	{
-		AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
+		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		return coordinator->GetAssetWithName<Texture>(name, nullptr);
 	}
 

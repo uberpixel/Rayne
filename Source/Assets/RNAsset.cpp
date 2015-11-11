@@ -8,7 +8,7 @@
 
 #include "../Objects/RNString.h"
 #include "RNAsset.h"
-#include "RNAssetCoordinator.h"
+#include "RNAssetManager.h"
 
 namespace RN
 {
@@ -34,7 +34,7 @@ namespace RN
 		Object::Dealloc();
 	}
 
-	void Asset::__AwakeWithCoordinator(AssetCoordinator *coordinator, String *name, MetaClass *meta)
+	void Asset::__AwakeWithCoordinator(AssetManager *coordinator, String *name, MetaClass *meta)
 	{
 		_meta = meta;
 		_coordinator = coordinator;

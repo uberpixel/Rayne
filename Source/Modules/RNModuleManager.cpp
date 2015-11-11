@@ -1,5 +1,5 @@
 //
-//  RNModuleCoordinator.cpp
+//  RNModuleManager.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
@@ -8,7 +8,7 @@
 
 #include "../Base/RNKernel.h"
 #include "../Objects/RNAutoreleasePool.h"
-#include "RNModuleCoordinator.h"
+#include "RNModuleManager.h"
 
 #if RN_PLATFORM_POSIX
 
@@ -18,16 +18,16 @@
 
 namespace RN
 {
-	static ModuleCoordinator *__sharedInstance = nullptr;
+	static ModuleManager *__sharedInstance = nullptr;
 
-	ModuleCoordinator::ModuleCoordinator() :
+	ModuleManager::ModuleManager() :
 		_modules(new Array()),
 		_moduleMap(new Dictionary())
 	{
 		__sharedInstance = this;
 	}
 
-	ModuleCoordinator::~ModuleCoordinator()
+	ModuleManager::~ModuleManager()
 	{
 		SafeRelease(_modules);
 		SafeRelease(_moduleMap);
@@ -35,18 +35,18 @@ namespace RN
 		__sharedInstance = nullptr;
 	}
 
-	ModuleCoordinator *ModuleCoordinator::GetSharedInstance()
+	ModuleManager *ModuleManager::GetSharedInstance()
 	{
 		return __sharedInstance;
 	}
 
 
-	Module *ModuleCoordinator::GetModuleWithName(const String *name)
+	Module *ModuleManager::GetModuleWithName(const String *name)
 	{
 		return GetModuleWithName(name, 0);
 	}
 
-	Module *ModuleCoordinator::GetModuleWithName(const String *name, Options options)
+	Module *ModuleManager::GetModuleWithName(const String *name, Options options)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
@@ -88,7 +88,7 @@ namespace RN
 		return module;
 	}
 
-	void ModuleCoordinator::LoadModules()
+	void ModuleManager::LoadModules()
 	{
 		AutoreleasePool::PerformBlock([&]{
 
@@ -130,12 +130,12 @@ namespace RN
 		});
 	}
 
-	Module *ModuleCoordinator::GetModuleForClass(MetaClass *meta) const
+	Module *ModuleManager::GetModuleForClass(MetaClass *meta) const
 	{
 		return meta->GetModule();
 	}
 
-	Module *ModuleCoordinator::__GetModuleForSymbol(void *symbol)
+	Module *ModuleManager::__GetModuleForSymbol(void *symbol)
 	{
 		Dl_info info;
 		int status = dladdr(symbol, &info);

@@ -23,7 +23,7 @@ set(RAYNE_SOURCES
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Assets/RNAsset.cpp
-    Assets/RNAssetCoordinator.cpp
+    Assets/RNAssetManager.cpp
     Assets/RNAssetLoader.cpp
     Assets/RNPNGAssetLoader.cpp
     Debug/RNLogger.cpp
@@ -31,7 +31,7 @@ set(RAYNE_SOURCES
     Math/RNMath.cpp
     Math/RNRandom.cpp
     Modules/RNModule.cpp
-    Modules/RNModuleCoordinator.cpp
+    Modules/RNModuleManager.cpp
     Objects/RNCatalogue.cpp
     Objects/RNObject.cpp
     Objects/RNObjectInternals.cpp
@@ -57,7 +57,7 @@ set(RAYNE_SOURCES
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNRenderer.cpp
-    Rendering/RNRendererCoordinator.cpp
+    Rendering/RNRendererManager.cpp
     Rendering/RNRendererDescriptor.cpp
     Rendering/RNShader.cpp
     Rendering/RNShaderLibrary.cpp
@@ -65,7 +65,7 @@ set(RAYNE_SOURCES
     Rendering/RNWindow.cpp
     Scene/RNCamera.cpp
     Scene/RNScene.cpp
-    Scene/RNSceneCoordinator.cpp
+    Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
     System/RNFile.cpp
     System/RNFileCoordinator.cpp
@@ -80,7 +80,7 @@ set(RAYNE_SOURCES
 set(RAYNE_HEADERS
     Rayne.h
     Assets/RNAsset.h
-    Assets/RNAssetCoordinator.h
+    Assets/RNAssetManager.h
     Assets/RNAssetLoader.h
     Base/RNApplication.h
     Base/RNArgumentParser.h
@@ -118,7 +118,7 @@ set(RAYNE_HEADERS
     Math/RNSIMD.h
     Math/RNVector.h
     Modules/RNModule.h
-    Modules/RNModuleCoordinator.h
+    Modules/RNModuleManager.h
     Objects/RNArray.h
     Objects/RNAutoreleasePool.h
     Objects/RNCatalogue.h
@@ -143,7 +143,7 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNRenderer.h
-    Rendering/RNRendererCoordinator.h
+    Rendering/RNRendererManager.h
     Rendering/RNRendererDescriptor.h
     Rendering/RNRendererTypes.h
     Rendering/RNShader.h
@@ -152,7 +152,7 @@ set(RAYNE_HEADERS
     Rendering/RNWindow.h
     Scene/RNCamera.h
     Scene/RNScene.h
-    Scene/RNSceneCoordinator.h
+    Scene/RNSceneManager.h
     Scene/RNSceneNode.h
     System/RNFile.h
     System/RNFileCoordinator.h

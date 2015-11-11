@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../Modules/RNModuleCoordinator.h"
+#include "../Modules/RNModuleManager.h"
 #include "RNCatalogue.h"
 #include "RNString.h"
 
@@ -154,7 +154,7 @@ namespace RN
 
 	void Catalogue::DoClassesPreFlight()
 	{
-		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
+		ModuleManager *coordinator = ModuleManager::GetSharedInstance();
 
 		for(size_t i = 0; i < __pendingClassesCount; i ++)
 		{

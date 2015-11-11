@@ -37,8 +37,8 @@ namespace RN
 
 			__assetLoader = new AssimpAssetLoader(config);
 
-			AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
-			coordinator->RegisterAssetLoader(__assetLoader);
+			AssetManager *manager = AssetManager::GetSharedInstance();
+			manager->RegisterAssetLoader(__assetLoader);
 		}
 	}
 

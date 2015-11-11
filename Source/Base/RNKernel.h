@@ -16,12 +16,12 @@
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
-#include "../Assets/RNAssetCoordinator.h"
-#include "../Modules/RNModuleCoordinator.h"
+#include "../Assets/RNAssetManager.h"
+#include "../Modules/RNModuleManager.h"
 #include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
-#include "../Rendering/RNRendererCoordinator.h"
-#include "../Scene/RNSceneCoordinator.h"
+#include "../Rendering/RNRendererManager.h"
+#include "../Scene/RNSceneManager.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
 #include "../Threads/RNWorkQueue.h"
@@ -76,10 +76,10 @@ namespace RN
 		Settings *_settings;
 		Logger *_logger;
 		Renderer *_renderer;
-		SceneCoordinator *_sceneCoordinator;
-		AssetCoordinator *_assetCoordinator;
-		ModuleCoordinator *_moduleCoordinator;
-		RendererCoordinator *_rendererCoordinator;
+		SceneManager *_sceneManager;
+		AssetManager *_assetManager;
+		ModuleManager *_moduleManager;
+		RendererManager *_rendererManager;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

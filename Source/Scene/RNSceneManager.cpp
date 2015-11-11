@@ -1,50 +1,50 @@
 //
-//  RNSceneCoordinator.cpp
+//  RNSceneManager.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNSceneCoordinator.h"
+#include "RNSceneManager.h"
 
 namespace RN
 {
-	static SceneCoordinator *__sharedInstance;
+	static SceneManager *__sharedInstance;
 
-	SceneCoordinator::SceneCoordinator() :
+	SceneManager::SceneManager() :
 		_scenes(new Array())
 	{
 		__sharedInstance = this;
 	}
-	SceneCoordinator::~SceneCoordinator()
+	SceneManager::~SceneManager()
 	{
 		_scenes->Release();
 		__sharedInstance = nullptr;
 	}
 
-	SceneCoordinator *SceneCoordinator::GetSharedInstance()
+	SceneManager *SceneManager::GetSharedInstance()
 	{
 		return __sharedInstance;
 	}
 
 
-	void SceneCoordinator::AddScene(Scene *scene)
+	void SceneManager::AddScene(Scene *scene)
 	{
 		_scenes->AddObject(scene);
 	}
-	void SceneCoordinator::RemoveScene(Scene *scene)
+	void SceneManager::RemoveScene(Scene *scene)
 	{
 		_scenes->RemoveObject(scene);
 	}
 
-	void SceneCoordinator::Update(float delta)
+	void SceneManager::Update(float delta)
 	{
 		_scenes->Enumerate<Scene>([&](Scene *scene, size_t index, bool &stop) {
 			scene->Update(delta);
 		});
 	}
-	void SceneCoordinator::Render(Renderer *renderer)
+	void SceneManager::Render(Renderer *renderer)
 	{
 		_scenes->Enumerate<Scene>([&](Scene *scene, size_t index, bool &stop) {
 			scene->Render(renderer);

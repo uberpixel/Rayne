@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../Assets/RNAssetCoordinator.h"
+#include "../Assets/RNAssetManager.h"
 #include "RNMesh.h"
 #include "RNRenderer.h"
 
@@ -289,7 +289,7 @@ namespace RN
 
 	Mesh *Mesh::WithName(const String *name)
 	{
-		AssetCoordinator *coordinator = AssetCoordinator::GetSharedInstance();
+		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		return coordinator->GetAssetWithName<Mesh>(name, nullptr);
 	}
 

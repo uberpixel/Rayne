@@ -1,13 +1,13 @@
 //
-//  RNAssetCoordinator.h
+//  RNAssetManager.h
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_ASSETCOORDINATOR_H_
-#define __RAYNE_ASSETCOORDINATOR_H_
+#ifndef __RAYNE_ASSETMANAGER_H_
+#define __RAYNE_ASSETMANAGER_H_
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNArray.h"
@@ -16,13 +16,13 @@
 
 namespace RN
 {
-	class AssetCoordinator
+	class AssetManager
 	{
 	public:
 		friend class Kernel;
 		friend class Asset;
 
-		RNAPI static AssetCoordinator *GetSharedInstance();
+		RNAPI static AssetManager *GetSharedInstance();
 
 		template<class T>
 		T *GetAssetWithName(const String *name, const Dictionary *settings)
@@ -40,8 +40,8 @@ namespace RN
 		RNAPI void UnregisterAssetLoader(AssetLoader *loader);
 
 	private:
-		AssetCoordinator();
-		~AssetCoordinator();
+		AssetManager();
+		~AssetManager();
 
 		void UpdateMagicSize();
 
@@ -97,4 +97,4 @@ namespace RN
 	};
 }
 
-#endif /* __RAYNE_ASSETCOORDINATOR_H_ */
+#endif /* __RAYNE_ASSETMANAGER_H_ */
