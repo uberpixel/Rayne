@@ -43,6 +43,7 @@ namespace RN
 			return nullptr;
 		}
 
+		Type GetType() const { return _type; }
 		const String *GetName() const { return _name; }
 		InputDevice *GetDevice() const { return _device; }
 		InputControl *GetParent() const { return _parent; }
@@ -52,6 +53,9 @@ namespace RN
 		RNAPI InputControl *GetControlWithName(const String *name) const;
 
 		RNAPI virtual void AddControl(InputControl *control);
+
+		RNAPI bool IsControlToggling(const String *name) const;
+		RNAPI Object *GetControlValue(const String *name) const;
 
 	protected:
 		RNAPI InputControl(const String *name, Type type);
@@ -70,6 +74,7 @@ namespace RN
 
 		Type _type;
 		Object *_value;
+		bool _toggling;
 
 		IntrusiveList<InputControl> _controls;
 		IntrusiveList<InputControl>::Member _controlsEntry;

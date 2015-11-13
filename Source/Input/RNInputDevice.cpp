@@ -167,20 +167,20 @@ namespace RN
 		if(!_active)
 			return;
 
-		_manager->SendActionToTargets(InputManager::Action::DidStart, this, control, Number::WithBool(true));
+		_manager->PerformEvent(InputManager::Event::DidStart, this, control, Number::WithBool(true));
 	}
 	void InputDevice::ControlDidEnd(InputControl *control)
 	{
 		if(!_active)
 			return;
 
-		_manager->SendActionToTargets(InputManager::Action::DidEnd, this, control, Number::WithBool(false));
+		_manager->PerformEvent(InputManager::Event::DidEnd, this, control, Number::WithBool(false));
 	}
 	void InputDevice::ControlDidUpdate(InputControl *control, Object *value)
 	{
 		if(!_active)
 			return;
 
-		_manager->SendActionToTargets(InputManager::Action::DidUpdate, this, control, value);
+		_manager->PerformEvent(InputManager::Event::DidUpdate, this, control, value);
 	}
 }

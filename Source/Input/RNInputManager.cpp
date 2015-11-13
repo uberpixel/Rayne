@@ -10,12 +10,50 @@
 
 namespace RN
 {
+	class InputBindPoint : public Object
+	{
+	public:
+		InputBindPoint()
+		{}
+
+		void AddCallback(InputManager::Callback &&callback, void *token)
+		{
+			_callbacks.emplace_back(std::make_pair(std::move(callback), token));
+		}
+		bool RemoveToken(void *token)
+		{
+			for(auto iterator = _callbacks.begin(); iterator != _callbacks.end();)
+			{
+				if(iterator->second == token)
+				{
+					iterator = _callbacks.erase(iterator);
+					break;
+				}
+
+				iterator ++;
+			}
+
+			return (_callbacks.size() == 0);
+		}
+
+		void Perform(const InputManager::Action &action)
+		{
+			for(auto &callback : _callbacks)
+				callback.first(action);
+		}
+
+	private:
+		std::vector<std::pair<InputManager::Callback, void *>> _callbacks;
+	};
+
+
 	extern void BuildPlatformDeviceTree();
 
 	static InputManager *__sharedInstance = nullptr;
 
 	InputManager::InputManager() :
-		_devices(new Array())
+		_devices(new Array()),
+		_bindings(new Dictionary())
 	{
 		__sharedInstance = this;
 
@@ -88,28 +126,28 @@ namespace RN
 	}
 
 
-	void InputManager::AddTarget(void *target, Action actions, InputDevice::Category category, Callback &&callback)
+	void InputManager::AddTarget(void *target, Event events, InputDevice::Category category, Callback &&callback)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
-		_targets.emplace_back(target, actions, nullptr, category, std::move(callback));
+		_targets.emplace_back(target, events, nullptr, category, std::move(callback));
 	}
-	void InputManager::AddTarget(void *target, Action actions, InputDevice *device, Callback &&callback)
+	void InputManager::AddTarget(void *target, Event events, InputDevice *device, Callback &&callback)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
-		_targets.emplace_back(target, actions, device, 0, std::move(callback));
+		_targets.emplace_back(target, events, device, 0, std::move(callback));
 	}
 
-	void InputManager::RemoveTarget(void *target, Action actions, InputDevice *device)
+	void InputManager::RemoveTarget(void *target, Event events, InputDevice *device)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
-			if(iterator->target == target && iterator->actions & actions && iterator->device == device)
+			if(iterator->target == target && (iterator->events & events) && iterator->device == device)
 			{
-				iterator->actions &= ~actions;
+				iterator->events &= ~events;
 
-				if(iterator->actions == 0)
+				if(iterator->events == 0)
 				{
 					iterator = _targets.erase(iterator);
 					continue;
@@ -120,17 +158,17 @@ namespace RN
 		}
 	}
 
-	void InputManager::RemoveTarget(void *target, Action actions)
+	void InputManager::RemoveTarget(void *target, Event events)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
-			if(iterator->target == target && iterator->actions & actions)
+			if(iterator->target == target && iterator->events & events)
 			{
-				iterator->actions &= ~actions;
+				iterator->events &= ~events;
 
-				if(iterator->actions == 0)
+				if(iterator->events == 0)
 				{
 					iterator = _targets.erase(iterator);
 					continue;
@@ -148,7 +186,6 @@ namespace RN
 		{
 			if(iterator->target == target)
 			{
-
 				iterator = _targets.erase(iterator);
 				continue;
 			}
@@ -157,16 +194,79 @@ namespace RN
 		}
 	}
 
-	void InputManager::SendActionToTargets(Action action, InputDevice *device, InputControl *control, Object *value)
+	void InputManager::Bind(void *target, const String *name, Callback &&callback)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
+		InputBindPoint *bindPoint = _bindings->GetObjectForKey<InputBindPoint>(name);
+		if(!bindPoint)
+		{
+			bindPoint = new InputBindPoint();
+			_bindings->SetObjectForKey(bindPoint, name);
+			bindPoint->Release();
+		}
+
+		bindPoint->AddCallback(std::move(callback), target);
+	}
+
+	void InputManager::Unbind(void *target, const String *name)
+	{
+		std::lock_guard<std::mutex> lock(_lock);
+
+		InputBindPoint *bindPoint = _bindings->GetObjectForKey<InputBindPoint>(name);
+		if(bindPoint)
+		{
+			if(bindPoint->RemoveToken(target))
+				_bindings->RemoveObjectForKey(name);
+		}
+	}
+	
+	void InputManager::PerformEvent(Event event, InputDevice *device, InputControl *control, Object *value)
+	{
+		std::lock_guard<std::mutex> lock(_lock);
+
+		Action action;
+		action.event = event;
+		action.device = device;
+		action.control = control;
+		action.value = value;
+
+		InputBindPoint *bindPoint = _bindings->GetObjectForKey<InputBindPoint>(control->GetName());
+		if(bindPoint)
+			bindPoint->Perform(action);
+
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
-			if((iterator->actions & action) && (iterator->device == device || (iterator->device == nullptr && iterator->categories & device->GetCategory())))
-				iterator->callback(device, control, value, action);
+			if((iterator->events & event) && (iterator->device == device || (iterator->device == nullptr && iterator->categories & device->GetCategory())))
+				iterator->callback(action);
 
 			iterator ++;
 		}
+	}
+
+	bool InputManager::IsControlToggling(const String *name) const
+	{
+		size_t count = _devices->GetCount();
+		for(size_t i = 0; i < count; i ++)
+		{
+			InputDevice *device = static_cast<InputDevice *>(_devices->GetObjectAtIndex(i));
+			if(device->IsControlToggling(name))
+				return true;
+		}
+
+		return false;
+	}
+	Object *InputManager::GetControlValue(const String *name) const
+	{
+		size_t count = _devices->GetCount();
+		for(size_t i = 0; i < count; i ++)
+		{
+			Object *value;
+			InputDevice *device = static_cast<InputDevice *>(_devices->GetObjectAtIndex(i));
+			if((value = device->GetControlValue(name)))
+				return value;
+		}
+
+		return nullptr;
 	}
 }

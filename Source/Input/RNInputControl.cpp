@@ -19,7 +19,8 @@ namespace RN
 		_name(SafeCopy(name)),
 		_device(nullptr),
 		_parent(nullptr),
-		_value(nullptr)
+		_value(nullptr),
+		_toggling(false)
 	{}
 
 	InputControl::~InputControl()
@@ -108,12 +109,14 @@ namespace RN
 	void InputControl::Start()
 	{
 		RN_ASSERT(_type == Type::Toggle, "Only toggle controls can start");
+		_toggling = true;
 		_device->ControlDidStart(this);
 	}
 
 	void InputControl::End()
 	{
 		RN_ASSERT(_type == Type::Toggle, "Only toggle controls can end");
+		_toggling = false;
 		_device->ControlDidEnd(this);
 	}
 
@@ -126,6 +129,41 @@ namespace RN
 		_value = SafeRetain(value);
 
 		_device->ControlDidUpdate(this, value);
+	}
+
+	bool InputControl::IsControlToggling(const String *name) const
+	{
+		RN_ASSERT(_type == Type::Group, "Only groups can query their child controls");
+
+		InputControl *control = GetFirstControl();
+		while(control)
+		{
+			if(control->GetType() == Type::Toggle && control->GetName()->IsEqual(name))
+			{
+				bool result = control->_toggling;
+				if(result)
+					return result;
+			}
+
+			control = control->GetNextControl();
+		}
+
+		return false;
+	}
+	Object *InputControl::GetControlValue(const String *name) const
+	{
+		RN_ASSERT(_type == Type::Group, "Only groups can query their child controls");
+
+		InputControl *control = GetFirstControl();
+		while(control)
+		{
+			if(control->GetType() == Type::Continuous && control->GetName()->IsEqual(name))
+				return control->_value;
+
+			control = control->GetNextControl();
+		}
+
+		return nullptr;
 	}
 
 
