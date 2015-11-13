@@ -15,6 +15,7 @@
 #include "../Objects/RNNumber.h"
 #include "../Objects/RNArray.h"
 #include "../Objects/RNString.h"
+#include "../Objects/RNDictionary.h"
 
 namespace RN
 {
@@ -78,6 +79,8 @@ namespace RN
 
 		IntrusiveList<InputControl> _controls;
 		IntrusiveList<InputControl>::Member _controlsEntry;
+		Dictionary *_controlMap;
+		Array *_controlGroups;
 
 		RNDeclareMeta(InputControl)
 	};

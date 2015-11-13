@@ -20,7 +20,9 @@ namespace RN
 		_device(nullptr),
 		_parent(nullptr),
 		_value(nullptr),
-		_toggling(false)
+		_toggling(false),
+		_controlMap(new Dictionary()),
+		_controlGroups(new Array())
 	{}
 
 	InputControl::~InputControl()
@@ -33,6 +35,9 @@ namespace RN
 
 			member = next;
 		}
+
+		_controlMap->Release();
+		_controlGroups->Release();
 
 		SafeRelease(_name);
 		SafeRelease(_value);
@@ -57,9 +62,17 @@ namespace RN
 
 	void InputControl::AddControl(InputControl *control)
 	{
+		// Changes here should be mirrored in InputDevice::AddControl, if appropriate
+
 		_controls.PushBack(control->_controlsEntry);
 		control->__LinkIntoDeviceWithParent(_device, this);
 		control->Retain();
+
+		if(control->GetName())
+			_controlMap->SetObjectForKey(control, control->GetName());
+
+		if(control->GetType() == Type::Group)
+			_controlGroups->AddObject(control);
 	}
 
 	InputControl *InputControl::GetFirstControl() const
@@ -92,14 +105,18 @@ namespace RN
 
 	InputControl *InputControl::GetControlWithName(const String *name) const
 	{
-		InputControl *control = GetFirstControl();
+		InputControl *control = _controlMap->GetObjectForKey<InputControl>(name);
+		if(control)
+			return control;
 
-		while(control)
+		size_t count = _controlGroups->GetCount();
+		for(size_t i = 0; i < count; i ++)
 		{
-			if(control->GetName()->IsEqual(name))
-				return control;
+			control = static_cast<InputControl *>(_controlGroups->GetObjectAtIndex(i));
 
-			control = control->GetNextControl();
+			InputControl *result = control->GetControlWithName(name);
+			if(result)
+				return result;
 		}
 
 		return nullptr;
@@ -135,17 +152,12 @@ namespace RN
 	{
 		RN_ASSERT(_type == Type::Group, "Only groups can query their child controls");
 
-		InputControl *control = GetFirstControl();
-		while(control)
-		{
-			if(control->GetType() == Type::Toggle && control->GetName()->IsEqual(name))
-			{
-				bool result = control->_toggling;
-				if(result)
-					return result;
-			}
+		InputControl *control;
 
-			control = control->GetNextControl();
+		if((control = GetControlWithName(name)))
+		{
+			if(control->GetType() == Type::Toggle)
+				return control->_toggling;
 		}
 
 		return false;
@@ -154,13 +166,12 @@ namespace RN
 	{
 		RN_ASSERT(_type == Type::Group, "Only groups can query their child controls");
 
-		InputControl *control = GetFirstControl();
-		while(control)
-		{
-			if(control->GetType() == Type::Continuous && control->GetName()->IsEqual(name))
-				return control->_value;
+		InputControl *control;
 
-			control = control->GetNextControl();
+		if((control = GetControlWithName(name)))
+		{
+			if(control->GetType() == Type::Continuous)
+				return control->_value;
 		}
 
 		return nullptr;

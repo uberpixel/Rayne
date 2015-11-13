@@ -37,9 +37,17 @@ namespace RN
 
 	void InputDevice::AddControl(InputControl *control)
 	{
+		// Changes here should be mirrored in InputControl::AddControl, if appropriate
+
 		_controls.PushBack(control->_controlsEntry);
 		control->__LinkIntoDeviceWithParent(this, this);
 		control->Retain();
+
+		if(control->GetName())
+			_controlMap->SetObjectForKey(control, control->GetName());
+
+		if(control->GetType() == Type::Group)
+			_controlGroups->AddObject(control);
 	}
 
 	void InputDevice::SetSerialNumber(const String *serialNumber)
