@@ -55,6 +55,8 @@ namespace RN
 		RNAPI bool IsControlToggling(const String *name) const;
 		RNAPI Object *GetControlValue(const String *name) const;
 
+		RNAPI const Vector2 &GetMouseDelta() const { return _mouseDelta; }
+
 	private:
 		InputManager();
 		~InputManager();
@@ -89,6 +91,10 @@ namespace RN
 		Array *_devices;
 		std::vector<Target> _targets;
 		Dictionary *_bindings;
+
+		Array *_mouseDevices;
+		Vector2 _previousMouseDelta;
+		Vector2 _mouseDelta;
 	};
 }
 

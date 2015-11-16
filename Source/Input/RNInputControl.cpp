@@ -122,17 +122,29 @@ namespace RN
 		return nullptr;
 	}
 
+	void InputControl::Update()
+	{
+		auto control = _controls.GetHead();
+		while(control)
+		{
+			InputControl *inputControl = control->Get();
+			inputControl->Update();
+
+			control = control->GetNext();
+		}
+	}
+
 
 	void InputControl::Start()
 	{
-		RN_ASSERT(_type == Type::Toggle, "Only toggle controls can start");
+		RN_ASSERT(IsToggle(), "Only toggle controls can start");
 		_toggling = true;
 		_device->ControlDidStart(this);
 	}
 
 	void InputControl::End()
 	{
-		RN_ASSERT(_type == Type::Toggle, "Only toggle controls can end");
+		RN_ASSERT(IsToggle(), "Only toggle controls can end");
 		_toggling = false;
 		_device->ControlDidEnd(this);
 	}
@@ -140,7 +152,7 @@ namespace RN
 	void InputControl::UpdateValue(Object *value)
 	{
 		RN_ASSERT(value, "Value mustn't be NULL");
-		RN_ASSERT(_type == Type::Continuous, "Only continous controls can have values");
+		RN_ASSERT(IsContinuous(), "Only continous controls can have values");
 
 		SafeRelease(_value);
 		_value = SafeRetain(value);
@@ -156,7 +168,7 @@ namespace RN
 
 		if((control = GetControlWithName(name)))
 		{
-			if(control->GetType() == Type::Toggle)
+			if(control->IsToggle())
 				return control->_toggling;
 		}
 
@@ -170,11 +182,24 @@ namespace RN
 
 		if((control = GetControlWithName(name)))
 		{
-			if(control->GetType() == Type::Continuous)
+			if(control->IsContinuous())
 				return control->_value;
 		}
 
 		return nullptr;
+	}
+
+	bool InputControl::IsGroup() const
+	{
+		return false;
+	}
+	bool InputControl::IsToggle() const
+	{
+		return false;
+	}
+	bool InputControl::IsContinuous() const
+	{
+		return false;
 	}
 
 
@@ -184,10 +209,16 @@ namespace RN
 		InputControl(nullptr, Type::Group)
 	{}
 
+	bool InputControlGroup::IsGroup() const
+	{
+		return true;
+	}
+
+
 	RNDefineMeta(ButtonControl, InputControl)
 
-	ButtonControl::ButtonControl(const String *name) :
-		InputControl(name, Type::Toggle),
+	ButtonControl::ButtonControl(const String *name, Type type) :
+		InputControl(name, type),
 		_pressed(false)
 	{}
 
@@ -198,5 +229,83 @@ namespace RN
 
 		pressed ? Start() : End();
 		_pressed = pressed;
+	}
+
+	bool ButtonControl::IsToggle() const
+	{
+		return true;
+	}
+
+
+	RNDefineMeta(AxisControl, InputControl)
+
+	AxisControl::AxisControl(const String *name, Type type, Axis axis) :
+		InputControl(name, type),
+		_axis(axis),
+		_deadZone(0.0f),
+		_center(0.0),
+		_min(FLT_MIN),
+		_max(FLT_MAX),
+		_normalizer(1.0)
+	{}
+
+	void AxisControl::SetRange(float min, float max, float deadZone)
+	{
+		_center = (min + max) * 0.5f;
+
+		_min = min - _center;
+		_max = max - _center;
+		_deadZone = deadZone;
+		_normalizer = 1.0f / (_max - _deadZone);
+	}
+
+	void AxisControl::SetValue(float value)
+	{
+		float v = value - _center;
+
+		if(Math::FastAbs(v) < _deadZone)
+		{
+			UpdateValue(Number::WithFloat(0.0f));
+			return;
+		}
+
+		if(v > 0.0f)
+		{
+			v = (std::min(v, _max) - _deadZone) * _normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
+		else
+		{
+			v = (std::max(v, _min) + _deadZone) * _normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
+
+		UpdateValue(Number::WithFloat(value));
+	}
+
+	bool AxisControl::IsContinuous() const
+	{
+		return true;
+	}
+
+	RNDefineMeta(DeltaAxisControl, AxisControl)
+
+	DeltaAxisControl::DeltaAxisControl(const String *name, Axis axis) :
+		AxisControl(name, Type::DeltaAxis, axis)
+	{}
+
+	void DeltaAxisControl::Update()
+	{
+		InputControl::Update();
+		UpdateValue(Number::WithFloat(0.0));
+	}
+
+	void DeltaAxisControl::SetValue(float value)
+	{
+		Number *current = GetValue<Number>();
+		if(current)
+			value += current->GetFloatValue();
+
+		UpdateValue(Number::WithFloat(value));
 	}
 }

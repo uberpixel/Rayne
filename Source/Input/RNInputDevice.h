@@ -84,8 +84,6 @@ namespace RN
 		RNAPI void Unregister();
 		RNAPI bool IsRegistered() const { return (_manager != nullptr); }
 
-		RNAPI virtual void Update() = 0;
-
 		RNAPI bool Activate() RN_NOEXCEPT;
 		RNAPI bool Deactivate() RN_NOEXCEPT;
 		RNAPI bool IsActive() const { return _active; }

@@ -16,51 +16,60 @@
 
 namespace RN
 {
+	struct HIDElement
+	{
+		HIDElement(IOHIDElementRef element, InputControl *control);
+		~HIDElement();
+
+		HIDElement(HIDElement &&other) = default;
+		HIDElement &operator =(HIDElement &&other) = default;
+
+		IOHIDElementRef element;
+		IOHIDElementCookie cookie;
+
+		CFIndex logicalMinimum;
+		CFIndex logicalMaximum;
+
+		CFIndex physicalMinimum;
+		CFIndex physicalMaximum;
+
+		uint32 usage;
+		uint32 usagePage;
+
+		size_t reportSize;
+		size_t reportCount;
+
+		InputControl *control;
+
+		void HandleValue(IOHIDValueRef value);
+	};
+
+
 	class OSXPlatformDevice : public InputDevice
 	{
 	public:
-		OSXPlatformDevice(const Descriptor &descriptor, io_object_t object, CFDictionaryRef properties);
+		OSXPlatformDevice(const Descriptor &descriptor, IOHIDDeviceRef device);
+
 		~OSXPlatformDevice();
 
 		void Update() override;
 		bool __Activate() override;
 		bool __Deactivate() override;
 
+		IOHIDDeviceRef GetRawDevice() const { return _device; }
+
 	private:
-		void BuildControlTree(InputControl *parent, CFDictionaryRef properties);
+		void BuildControlTree(InputControl *parent, CFArrayRef elements);
 
-		io_object_t _object;
+		std::vector<HIDElement *> _allElements;
+		std::unordered_map<IOHIDElementCookie, HIDElement *> _elements;
 
-		IOCFPlugInInterface **_pluginInterface;
-		IOHIDDeviceInterface **_deviceInterface;
-		IOHIDQueueInterface **_deviceQueue;
+		IOHIDQueueRef _queue;
+		IOHIDDeviceRef _device;
+
+		size_t _buttonCount;
 
 		RNDeclareMeta(OSXPlatformDevice);
-	};
-
-	class OSXPlatformControl
-	{
-	public:
-		friend class OSXPlatformDevice;
-
-		OSXPlatformControl(IOHIDElementCookie cookie) :
-			_cookie(cookie)
-		{}
-
-	private:
-		IOHIDElementCookie _cookie;
-	};
-
-	class OSXPlatformButtonControl : public ButtonControl, public OSXPlatformControl
-	{
-	public:
-		OSXPlatformButtonControl(const String *name, IOHIDElementCookie cookie);
-
-		void Start() { ButtonControl::Start(); }
-		void End() { ButtonControl::End(); }
-
-	private:
-		RNDeclareMeta(OSXPlatformButtonControl)
 	};
 }
 

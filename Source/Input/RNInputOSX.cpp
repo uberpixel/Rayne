@@ -34,323 +34,425 @@ namespace RN
 			"Left Control", "Left Shift", "Left Option", "Left Command", "Right Control", "Right Shift", "Right Option", "Right Command"
 		};
 
+	const char *kLinearAxisName[3] =
+		{
+			"X-Axis", "Y-Axis", "Z-Axis"
+		};
+
+	const char *kRotationAxisName[3] =
+		{
+			"RX-Axis", "RY-Axis", "RZ-Axis"
+		};
+
+	const char *kDeltaAxisName[3] =
+		{
+			"X-Delta", "Y-Delta", "Z-Delta"
+		};
+
+
 	const char *kOSXDeviceCookieKey = "kOSXDeviceCookieKey";
 
-	OSXPlatformDevice::OSXPlatformDevice(const Descriptor &descriptor, io_object_t object, CFDictionaryRef properties) :
+
+	OSXPlatformDevice::OSXPlatformDevice(const Descriptor &descriptor, IOHIDDeviceRef device) :
 		InputDevice(descriptor),
-		_object(object)
+		_device(device),
+		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 64, kIOHIDOptionsTypeNone))
 	{
-		IOObjectRetain(_object);
+		CFRetain(_device);
 
-		SInt32 score;
+		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(_device, NULL, kIOHIDOptionsTypeNone);
+		BuildControlTree(this, elements);
 
-		if(IOCreatePlugInInterfaceForService(object, kIOHIDDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &_pluginInterface, &score) == kIOReturnSuccess)
-		{
-			if((**_pluginInterface).QueryInterface(_pluginInterface, CFUUIDGetUUIDBytes(kIOHIDDeviceInterfaceID), (void **)&_deviceInterface) == S_OK)
-			{
-				(**_deviceInterface).open(_deviceInterface, 0);
-				_deviceQueue = (**_deviceInterface).allocQueue(_deviceInterface);
+		CFRelease(elements);
 
-				if(_deviceQueue && ((**_deviceQueue).create(_deviceQueue, 0, kInputQueueSize) == kIOReturnSuccess))
-				{
-					BuildControlTree(this, properties);
-				}
-			}
-		}
+		// Prepare the queue
+		for(HIDElement *element : _allElements)
+			IOHIDQueueAddElement(_queue, element->element);
 	}
 
 	OSXPlatformDevice::~OSXPlatformDevice()
 	{
-		if(_deviceQueue)
-		{
-			(**_deviceQueue).dispose(_deviceQueue);
-			(**_deviceQueue).Release(_deviceQueue);
-		}
+		CFRelease(_device);
+		CFRelease(_queue);
 
-		if(_deviceInterface)
-		{
-			(**_deviceInterface).close(_deviceInterface);
-			(**_deviceInterface).Release(_deviceInterface);
-		}
+		IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
 
-		if(_pluginInterface)
-			IODestroyPlugInInterface(_pluginInterface);
-
-		IOObjectRelease(_object);
+		for(HIDElement *element : _allElements)
+			delete element;
 	}
 
-	void OSXPlatformDevice::BuildControlTree(InputControl *parent, CFDictionaryRef dictionary)
+	void OSXPlatformDevice::BuildControlTree(InputControl *parent, CFArrayRef elements)
 	{
-		const void *elementValue = CFDictionaryGetValue(dictionary, CFSTR(kIOHIDElementKey));
-
-		if(elementValue && CFGetTypeID(elementValue) == CFArrayGetTypeID())
+		size_t count = CFArrayGetCount(elements);
+		for(size_t i = 0; i < count; i ++)
 		{
-			CFArrayRef elementArray = (CFArrayRef)elementValue;
+			IOHIDElementRef element = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
 
-			CFIndex count = CFArrayGetCount(elementArray);
+			IOHIDElementType type = IOHIDElementGetType(element);
+			IOHIDElementCookie cookie = IOHIDElementGetCookie(element);
 
-			for(CFIndex index = 0; index < count; index++)
+			if(_elements.find(cookie) != _elements.end())
+				continue;
+
+			switch(type)
 			{
-				const void *value = CFArrayGetValueAtIndex(elementArray, index);
-				if(value && CFGetTypeID(value) == CFDictionaryGetTypeID())
+				case kIOHIDElementTypeCollection:
 				{
-					CFDictionaryRef properties = (CFDictionaryRef)value;
+					InputControl *group = new InputControlGroup();
+					parent->AddControl(group);
 
-					const void *elementTypeValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementTypeKey));
-					if(elementTypeValue)
+					BuildControlTree(group, IOHIDElementGetChildren(element));
+					group->Release();
+					break;
+				}
+
+				case kIOHIDElementTypeInput_Misc:
+				case kIOHIDElementTypeInput_Button:
+				case kIOHIDElementTypeInput_Axis:
+				case kIOHIDElementTypeInput_ScanCodes:
+				{
+					uint32 usage = IOHIDElementGetUsage(element);
+					uint32 usagePage = IOHIDElementGetUsagePage(element);
+
+					InputControl *control = nullptr;
+
+					switch(usagePage)
 					{
-						int32 elementType;
-
-						CFNumberGetValue((CFNumberRef)elementTypeValue, kCFNumberSInt32Type, &elementType);
-						switch(elementType)
+						case kHIDPage_KeyboardOrKeypad:
 						{
-							case kIOHIDElementTypeCollection:
+							bool valid = ((uint32)(usage - 0xE0) < 8U);
+							if(valid)
 							{
-								InputControl *group = new InputControlGroup();
-								parent->AddControl(group);
-
-								BuildControlTree(group, properties);
-								group->Release();
-								break;
+								if(IOHIDElementIsArray(element))
+									valid = false;
+							}
+							else
+							{
+								valid = ((uint32)(usage - 4) < 100U);
 							}
 
-							case kIOHIDElementTypeInput_Misc:
-							case kIOHIDElementTypeInput_Button:
-							case kIOHIDElementTypeInput_Axis:
-							case kIOHIDElementTypeInput_ScanCodes:
+
+							if(valid)
+								control = new ButtonControl(RNSTR(kKeyboardButtonName[usage]), InputControl::Type::KeyButton);
+
+							break;
+						}
+						case kHIDPage_GenericDesktop:
+						{
+							switch(usage)
 							{
-								const void *cookieValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementCookieKey));
-								if(cookieValue)
+								case kHIDUsage_GD_X:
+								case kHIDUsage_GD_Y:
+								case kHIDUsage_GD_Z:
 								{
-									IOHIDElementCookie cookie;
-									CFNumberGetValue((CFNumberRef)cookieValue, kCFNumberSInt32Type, &cookie);
+									bool relative = IOHIDElementIsRelative(element);
+									AxisControl::Axis axis = static_cast<AxisControl::Axis>((usage - kHIDUsage_GD_X) + 1);
 
-									const void *usagePageValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementUsagePageKey));
-									const void *usageValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementUsageKey));
-									if((usagePageValue) && (usageValue))
+									if(relative)
 									{
-										int32 usagePage;
-										int32 usage;
-
-										CFNumberGetValue((CFNumberRef)usagePageValue, kCFNumberSInt32Type, &usagePage);
-										CFNumberGetValue((CFNumberRef)usageValue, kCFNumberSInt32Type, &usage);
-
-										InputControl *control = nullptr;
-
-										switch(usagePage)
-										{
-											case kHIDPage_KeyboardOrKeypad:
-											{
-												bool valid = ((uint32)(usage - 0xE0) < 8U);
-												if(valid)
-												{
-													const void *arrayValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementIsArrayKey));
-													if(arrayValue && CFBooleanGetValue((CFBooleanRef)arrayValue))
-														valid = false;
-												}
-												else
-												{
-													valid = ((uint32)(usage - 4) < 100U);
-												}
-
-
-												if(valid)
-													control = new OSXPlatformButtonControl(RNSTR(kKeyboardButtonName[usage]), cookie);
-
-												break;
-											}
-										}
-
-										if(control)
-										{
-											parent->AddControl(control);
-											control->Release();
-										}
+										control = new DeltaAxisControl(RNSTR(kDeltaAxisName[usage - kHIDUsage_GD_X]), axis);
 									}
-								}
+									else
+									{
+										control = new AxisControl(RNSTR(kLinearAxisName[usage - kHIDUsage_GD_X]), InputControl::Type::LinearAxis, axis);
+									}
 
-								break;
+									break;
+								}
+								case kHIDUsage_GD_Wheel:
+									control = new DeltaAxisControl(RNSTR(kDeltaAxisName[2]), AxisControl::Axis::Z);
+									break;
+
+								case kHIDUsage_GD_Rx:
+								case kHIDUsage_GD_Ry:
+								case kHIDUsage_GD_Rz:
+								{
+									AxisControl::Axis axis = static_cast<AxisControl::Axis>((usage - kHIDUsage_GD_Rx) + 1);
+									control = new AxisControl(RNSTR(kLinearAxisName[usage - kHIDUsage_GD_Rx]), InputControl::Type::RotationAxis, axis);
+									break;
+								}
 							}
+
+							break;
+						}
+						case kHIDPage_Button:
+						{
+							String *name = RNSTR("Button " << (++ _buttonCount));
+							control = new ButtonControl(name, InputControl::Type::Button);
 						}
 					}
+
+					if(control)
+					{
+						HIDElement *hidElement = new HIDElement(element, control);
+
+						_allElements.push_back(hidElement);
+						_elements.emplace(cookie, hidElement);
+
+						parent->AddControl(control);
+						control->Release();
+
+						switch(control->GetType())
+						{
+							case InputControl::Type::RotationAxis:
+							case InputControl::Type::LinearAxis:
+							case InputControl::Type::Slider:
+							{
+								float vmin = (float)IOHIDElementGetPhysicalMin(element);
+								float vmax = (float)IOHIDElementGetPhysicalMax(element);
+
+								float deadZoneMultiplier = (control->GetType() == InputControl::Type::Slider) ? 0.0625f : 0.25f;
+								static_cast<AxisControl *>(control)->SetRange(vmin, vmax, (vmax - vmin) * deadZoneMultiplier);
+								break;
+							}
+
+							default:
+								break;
+						}
+					}
+
+					break;
 				}
+
+				default:
+					break;
 			}
 		}
 	}
 
 	void OSXPlatformDevice::Update()
 	{
-		static const AbsoluteTime zero = {0, 0};
-		IOHIDEventStruct event;
+		InputDevice::Update();
 
-		while((**_deviceQueue).getNextEvent(_deviceQueue, &event, zero, 0) == kIOReturnSuccess)
+		while(1)
 		{
-			IOHIDElementCookie cookie = event.elementCookie;
+			IOHIDValueRef value = IOHIDQueueCopyNextValueWithTimeout(_queue, 0.0);
+			if(!value)
+				break;
 
-			InputControl *control = GetFirstControl();
-			while(control)
+			IOHIDElementRef element = IOHIDValueGetElement(value);
+			IOHIDElementCookie cookie = IOHIDElementGetCookie(element);
+
+			auto iterator = _elements.find(cookie);
+			if(iterator != _elements.end())
 			{
-				OSXPlatformControl *platformControl = dynamic_cast<OSXPlatformControl *>(control);
-				if(platformControl)
-				{
-					if(platformControl->_cookie == cookie)
-					{
-						OSXPlatformButtonControl *button = dynamic_cast<OSXPlatformButtonControl *>(control);
-						event.value ? button->Start() : button->End();
-
-						break;
-					}
-				}
-
-				control = control->GetNextControl();
+				HIDElement *hidElement = iterator->second;
+				hidElement->HandleValue(value);
 			}
+
+			CFRelease(value);
 		}
 	}
 
 	bool OSXPlatformDevice::__Activate()
 	{
-		InputControl *control = GetFirstControl();
-		while(control)
-		{
-			OSXPlatformControl *platformControl = dynamic_cast<OSXPlatformControl *>(control);
-			if(platformControl)
-				(**_deviceQueue).addElement(_deviceQueue, platformControl->_cookie, 0);
+		if(IOHIDDeviceOpen(_device, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
+			return false;
 
-			control = control->GetNextControl();
-		}
+		IOHIDQueueStart(_queue);
 
-		(**_deviceQueue).start(_deviceQueue);
 		return true;
 	}
 	bool OSXPlatformDevice::__Deactivate()
 	{
-		(**_deviceQueue).stop(_deviceQueue);
-
-		InputControl *control = GetFirstControl();
-		while(control)
-		{
-			OSXPlatformControl *platformControl = dynamic_cast<OSXPlatformControl *>(control);
-			if(platformControl)
-				(**_deviceQueue).removeElement(_deviceQueue, platformControl->_cookie);
-
-			control = control->GetNextControl();
-		}
+		IOHIDQueueStop(_queue);
+		IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
 
 		return true;
 	}
 
 
-	RNDefineMeta(OSXPlatformButtonControl, ButtonControl)
+	// HIDElement
 
-	OSXPlatformButtonControl::OSXPlatformButtonControl(const String *name, IOHIDElementCookie cookie) :
-		ButtonControl(name),
-		OSXPlatformControl(cookie)
-	{}
+	HIDElement::HIDElement(IOHIDElementRef element, InputControl *control) :
+		cookie(IOHIDElementGetCookie(element)),
+		logicalMinimum(IOHIDElementGetLogicalMin(element)),
+		logicalMaximum(IOHIDElementGetLogicalMax(element)),
+		physicalMinimum(IOHIDElementGetPhysicalMin(element)),
+		physicalMaximum(IOHIDElementGetPhysicalMax(element)),
+		usage(IOHIDElementGetUsage(element)),
+		usagePage(IOHIDElementGetUsagePage(element)),
+		reportSize(IOHIDElementGetReportSize(element)),
+		reportCount(IOHIDElementGetReportCount(element)),
+		control(nullptr)
+	{
+		this->element = (IOHIDElementRef)CFRetain(element);
+		this->control = control;
+	}
+
+	HIDElement::~HIDElement()
+	{
+		CFRelease(element);
+	}
+
+	void HIDElement::HandleValue(IOHIDValueRef value)
+	{
+		{
+			AxisControl *axisControl = control->Downcast<AxisControl>();
+			if(axisControl)
+				axisControl->SetValue(IOHIDValueGetIntegerValue(value));
+		}
+
+		{
+			ButtonControl *buttonControl = control->Downcast<ButtonControl>();
+			if(buttonControl)
+			{
+				CFIndex result = IOHIDValueGetIntegerValue(value);
+				buttonControl->SetPressed(result > 0);
+			}
+		}
+	}
+
+
+	// Device management
+	static IOHIDManagerRef _hidManager = nullptr;
+	static Array *_foundDevices = nullptr;
+
+	void OSXPlatformHIDDeviceAdded(void *context, IOReturn result, void *sender, IOHIDDeviceRef deviceRef)
+	{
+		CFNumberRef usagePageValue = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDPrimaryUsagePageKey));
+		CFNumberRef usageValue = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDPrimaryUsageKey));
+
+		if(!usagePageValue || !usageValue)
+		{
+			IOHIDDeviceClose(deviceRef, kIOHIDOptionsTypeNone);
+			return;
+		}
+
+		int32 usagePage;
+		int32 usage;
+
+		CFNumberGetValue(usagePageValue, kCFNumberSInt32Type, &usagePage);
+		CFNumberGetValue(usageValue, kCFNumberSInt32Type, &usage);
+
+		switch(usagePage)
+		{
+			case kHIDPage_GenericDesktop:
+			{
+				CFNumberRef productID = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDProductIDKey));
+				CFNumberRef vendorID  = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDVendorIDKey));
+
+				CFStringRef productValue = (CFStringRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDProductKey));
+				CFStringRef vendorValue  = (CFStringRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDManufacturerKey));
+
+				if(!productID || !vendorID || !productValue || !vendorValue)
+					break;
+
+				uint32 product;
+				uint32 vendor;
+
+				String *productName;
+				String *vendorName;
+
+				{
+					CFNumberGetValue(productID, kCFNumberSInt32Type, &product);
+					CFNumberGetValue(vendorID, kCFNumberSInt32Type, &vendor);
+				}
+				{
+					char name[1024];
+
+					CFStringGetCString(productValue, name, 1024, kCFStringEncodingUTF8);
+					productName = RNUTF8STR(name);
+
+					CFStringGetCString(vendorValue, name, 1024, kCFStringEncodingUTF8);
+					vendorName = RNUTF8STR(name);
+				}
+
+
+				InputDevice::Category category;
+				bool valid = false;
+
+				switch(usage)
+				{
+					case kHIDUsage_GD_Keyboard:
+					case kHIDUsage_GD_Keypad:
+					{
+						category = InputDevice::Category::Keyboard;
+						valid = true;
+						break;
+					}
+
+					case kHIDUsage_GD_Mouse:
+					case kHIDUsage_GD_Pointer:
+					{
+						category = InputDevice::Category::Mouse;
+						valid = true;
+						break;
+					}
+				}
+
+				if(valid)
+				{
+					RNDebug("Found " << productName << " by " << vendorName);
+
+					InputDevice::Descriptor descriptor(category);
+					descriptor.SetVendor(vendorName);
+					descriptor.SetName(productName);
+					descriptor.SetVendorID(Number::WithUint32(vendor));
+					descriptor.SetProductID(Number::WithUint32(product));
+
+					OSXPlatformDevice *device = new OSXPlatformDevice(descriptor, deviceRef);
+					device->Register();
+					device->Activate();
+
+					_foundDevices->AddObject(device->Autorelease());
+				}
+
+				break;
+			}
+		}
+	}
+	void OSXPlatformHIDDeviceRemoved(void *context, IOReturn result, void *sender, IOHIDDeviceRef deviceRef)
+	{
+		_foundDevices->Enumerate<OSXPlatformDevice>([&](OSXPlatformDevice *device, size_t index, bool &stop) {
+
+			if(device->GetRawDevice() == deviceRef)
+			{
+				if(device->IsActive())
+					device->Deactivate();
+
+				if(device->IsRegistered())
+					device->Unregister();
+
+				_foundDevices->RemoveObjectAtIndex(index);
+				stop = true;
+			}
+
+		});
+	}
 
 
 	void BuildPlatformDeviceTree()
 	{
-		RNInfo("Starting to build device tree");
+		_foundDevices = new Array();
+		_hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+		IOHIDManagerSetDeviceMatching(_hidManager, nullptr);
 
-		io_iterator_t iterator;
+		IOHIDManagerRegisterDeviceMatchingCallback(_hidManager, &OSXPlatformHIDDeviceAdded, nullptr);
+		IOHIDManagerRegisterDeviceRemovalCallback(_hidManager, &OSXPlatformHIDDeviceRemoved, nullptr);
 
-		CFMutableDictionaryRef dictionary = IOServiceMatching(kIOHIDDeviceKey);
-		if(!dictionary || (IOServiceGetMatchingServices(kIOMasterPortDefault, dictionary, &iterator) != kIOReturnSuccess))
-			return;
+		IOHIDManagerScheduleWithRunLoop(_hidManager, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
+		IOHIDManagerOpen(_hidManager, kIOHIDOptionsTypeNone);
+	}
 
-		while(1)
-		{
-			CFMutableDictionaryRef properties;
+	void TearDownPlatformDeviceTree()
+	{
+		_foundDevices->Enumerate<OSXPlatformDevice>([](OSXPlatformDevice *device, size_t index, bool &stop) {
 
-			io_object_t object = IOIteratorNext(iterator);
-			if(!object)
-				break;
+			if(device->IsActive())
+				device->Deactivate();
 
-			if(IORegistryEntryCreateCFProperties(object, &properties, kCFAllocatorDefault, kNilOptions) == KERN_SUCCESS)
-			{
-				CFNumberRef usagePageValue = (CFNumberRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDPrimaryUsagePageKey));
-				CFNumberRef usageValue = (CFNumberRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDPrimaryUsageKey));
+			if(device->IsRegistered())
+				device->Unregister();
 
-				if(usagePageValue && usageValue)
-				{
-					int32 usagePage;
-					int32 usage;
+		});
+		_foundDevices->Release();
+		_foundDevices = nullptr;
 
-					CFNumberGetValue(usagePageValue, kCFNumberSInt32Type, &usagePage);
-					CFNumberGetValue(usageValue, kCFNumberSInt32Type, &usage);
+		IOHIDManagerUnscheduleFromRunLoop(_hidManager, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
+		IOHIDManagerClose(_hidManager, kIOHIDOptionsTypeNone);
 
-					switch(usagePage)
-					{
-						case kHIDPage_GenericDesktop:
-						{
-							CFNumberRef productIDValue = (CFNumberRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDVendorIDKey));
-							CFNumberRef vendorIDValue = (CFNumberRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDProductIDKey));
-
-							CFStringRef productValue = (CFStringRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDManufacturerKey));
-							CFStringRef vendorValue = (CFStringRef)CFDictionaryGetValue(properties, CFSTR(kIOHIDProductKey));
-
-							uint32 productID;
-							uint32 vendorID;
-
-							CFNumberGetValue(productIDValue, kCFNumberSInt32Type, &productID);
-							CFNumberGetValue(vendorIDValue, kCFNumberSInt32Type, &vendorID);
-
-							String *product;
-							String *vendor;
-
-							{
-								char buffer[1024];
-								CFStringGetCString(productValue, buffer, 1024, kCFStringEncodingUTF8);
-								product = new String(buffer, Encoding::UTF8, false);
-								product->Autorelease();
-
-								CFStringGetCString(vendorValue, buffer, 1024, kCFStringEncodingUTF8);
-								vendor = new String(buffer, Encoding::UTF8, false);
-								vendor->Autorelease();
-							}
-
-							switch(usage)
-							{
-								case kHIDUsage_GD_Keyboard:
-								case kHIDUsage_GD_Keypad:
-
-									InputDevice::Descriptor descriptor(InputDevice::Category::Keyboard);
-									descriptor.SetVendor(vendor);
-									descriptor.SetName(product);
-									descriptor.SetVendorID(Number::WithUint32(vendorID));
-									descriptor.SetProductID(Number::WithUint32(productID));
-
-									OSXPlatformDevice *device = new OSXPlatformDevice(descriptor, object, properties);
-									device->Register();
-									device->Activate();
-									device->Release();
-
-									RNInfo("Added device" << device);
-
-									break;
-							}
-
-							break;
-						}
-					}
-
-
-					/*if (usagePage == kHIDPage_GenericDesktop)
-					{
-						if ((usage == kHIDUsage_GD_Pointer) || (usage == kHIDUsage_GD_Mouse)) deviceList.Append(new MouseDevice(object, properties));
-						else if ((usage == kHIDUsage_GD_Keyboard) || (usage == kHIDUsage_GD_Keypad)) deviceList.Append(new KeyboardDevice(object, properties));
-						else if ((usage == kHIDUsage_GD_Joystick) || (usage == kHIDUsage_GD_GamePad)) deviceList.Append(new JoystickDevice(object, properties));
-					}*/
-				}
-
-				CFRelease(properties);
-			}
-
-			IOObjectRelease(object);
-		}
-
-		IOObjectRelease(iterator);
-
-		RNInfo("Built device tree");
+		CFRelease(_hidManager);
+		_hidManager = nullptr;
 	}
 }

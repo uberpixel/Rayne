@@ -48,12 +48,14 @@ namespace RN
 
 
 	extern void BuildPlatformDeviceTree();
+	extern void TearDownPlatformDeviceTree();
 
 	static InputManager *__sharedInstance = nullptr;
 
 	InputManager::InputManager() :
 		_devices(new Array()),
-		_bindings(new Dictionary())
+		_bindings(new Dictionary()),
+		_mouseDevices(new Array())
 	{
 		__sharedInstance = this;
 
@@ -64,6 +66,7 @@ namespace RN
 
 	InputManager::~InputManager()
 	{
+		TearDownPlatformDeviceTree();
 		_devices->Release();
 	}
 
@@ -81,6 +84,9 @@ namespace RN
 		device->_manager = this;
 
 		_devices->AddObject(device);
+
+		if(device->GetCategory() == InputDevice::Category::Mouse)
+			_mouseDevices->AddObject(device);
 	}
 
 	void InputManager::__RemoveDevice(InputDevice *device)
@@ -89,6 +95,9 @@ namespace RN
 
 		RN_ASSERT(device->IsRegistered(), "Device must be registered");
 		device->_manager = nullptr;
+
+		if(device->GetCategory() == InputDevice::Category::Mouse)
+			_mouseDevices->RemoveObject(device);
 
 		_devices->RemoveObject(device);
 	}
@@ -102,8 +111,34 @@ namespace RN
 			devices = _devices->Copy()->Autorelease();
 		}
 
+		_previousMouseDelta = _mouseDelta;
+		_mouseDelta = Vector2();
+
 		devices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 			device->Update();
+		});
+
+		_mouseDevices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
+
+			AxisControl *xControl = static_cast<AxisControl *>(device->GetControlWithName(RNCSTR("X-Delta")));
+			AxisControl *yControl = static_cast<AxisControl *>(device->GetControlWithName(RNCSTR("Y-Delta")));
+
+			if(xControl)
+			{
+				Number *value = xControl->GetValue<Number>();
+
+				if(value)
+					_mouseDelta.x += value->GetFloatValue();
+			}
+
+			if(yControl)
+			{
+				Number *value = yControl->GetValue<Number>();
+
+				if(value)
+					_mouseDelta.y += value->GetFloatValue();
+			}
+
 		});
 	}
 
