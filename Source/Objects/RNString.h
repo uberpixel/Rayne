@@ -150,6 +150,9 @@ namespace RN
 		StringBuilder &operator << (unsigned long val) { _stream << val; return *this; }
 		StringBuilder &operator << (long long val) { _stream << val; return *this; }
 		StringBuilder &operator << (unsigned long long val) { _stream << val; return *this; }
+		StringBuilder &operator << (float val) { _stream << val; return *this; }
+		StringBuilder &operator << (double val) { _stream << val; return *this; }
+		StringBuilder &operator << (long double val) { _stream << val; return *this; }
 		StringBuilder &operator << (const void *val) { _stream << val; return *this; }
 		StringBuilder &operator << (std::ostream &(*pf)(std::ostream &)) { _stream << pf; return *this; }
 		StringBuilder &operator << (std::ios &(*pf)(std::ios &)) { _stream << pf; return *this; };

@@ -182,6 +182,9 @@ namespace RN
 		LogBuilder &operator << (unsigned long val) { _stream << val; return *this; }
 		LogBuilder &operator << (long long val) { _stream << val; return *this; }
 		LogBuilder &operator << (unsigned long long val) { _stream << val; return *this; }
+		LogBuilder &operator << (float val) { _stream << val; return *this; }
+		LogBuilder &operator << (double val) { _stream << val; return *this; }
+		LogBuilder &operator << (long double val) { _stream << val; return *this; }
 		LogBuilder &operator << (const void *val) { _stream << val; return *this; }
 		LogBuilder &operator << (std::ostream &(*pf)(std::ostream &)) { _stream << pf; return *this; }
 		LogBuilder &operator << (std::ios &(*pf)(std::ios &)) { _stream << pf; return *this; };
