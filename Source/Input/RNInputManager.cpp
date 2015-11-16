@@ -129,7 +129,7 @@ namespace RN
 		}
 
 		_previousMouseDelta = _mouseDelta;
-		_mouseDelta = Vector2();
+		_mouseDelta = Vector3();
 
 		devices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 			device->Update();
@@ -137,26 +137,42 @@ namespace RN
 
 		_mouseDevices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 
-			AxisControl *xControl = static_cast<AxisControl *>(device->GetControlWithName(RNCSTR("X-Delta")));
-			AxisControl *yControl = static_cast<AxisControl *>(device->GetControlWithName(RNCSTR("Y-Delta")));
+			Array *controls = device->GetControlsWithType(InputDevice::Type::DeltaAxis);
 
-			if(xControl)
-			{
-				Number *value = xControl->GetValue<Number>();
+			controls->Enumerate<DeltaAxisControl>([&](DeltaAxisControl *control, size_t index, bool &stop) {
 
-				if(value)
-					_mouseDelta.x += value->GetFloatValue();
-			}
+				Number *value = control->GetValue<Number>();
+				if(!value)
+					return;
 
-			if(yControl)
-			{
-				Number *value = yControl->GetValue<Number>();
+				switch(control->GetAxis())
+				{
+					case AxisControl::Axis::X:
+						_mouseDelta.x += value->GetFloatValue();
+						break;
+					case AxisControl::Axis::Y:
+						_mouseDelta.y += value->GetFloatValue();
+						break;
+					case AxisControl::Axis::Z:
+						_mouseDelta.z += value->GetFloatValue();
+						break;
 
-				if(value)
-					_mouseDelta.y += value->GetFloatValue();
-			}
+					default:
+						break;
+				}
+
+			});
 
 		});
+
+		if(_mode & MouseMode::Smoothed)
+		{
+			float x = _mouseDelta.x * 0.5f;
+			float y = _mouseDelta.y * 0.5f;
+
+			_mouseDelta.x = _previousMouseDelta.x + x;
+			_mouseDelta.y = _previousMouseDelta.y + y;
+		}
 	}
 
 

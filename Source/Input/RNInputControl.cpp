@@ -103,7 +103,7 @@ namespace RN
 		return nullptr;
 	}
 
-	InputControl *InputControl::GetControlWithName(const String *name) const
+	InputControl *InputControl::__GetControlWithName(const String *name) const
 	{
 		InputControl *control = _controlMap->GetObjectForKey<InputControl>(name);
 		if(control)
@@ -120,6 +120,22 @@ namespace RN
 		}
 
 		return nullptr;
+	}
+
+	Array *InputControl::GetControlsWithType(Type type) const
+	{
+		Array *array = new Array();
+
+		InputControl *control = GetFirstControl();
+		while(control)
+		{
+			if(control->GetType() == type)
+				array->AddObject(control);
+
+			control = control->GetNextControl();
+		}
+
+		return array->Autorelease();
 	}
 
 	void InputControl::Update()
@@ -236,6 +252,32 @@ namespace RN
 		return true;
 	}
 
+	RNDefineMeta(SliderControl, InputControl)
+
+	SliderControl::SliderControl(const String *name) :
+		InputControl(name, Type::Slider),
+		_max(0.0f),
+		_normalizer(0.0f),
+		_deadZone(0.0f)
+	{}
+
+	void SliderControl::SetRange(float min, float max, float deadZone)
+	{
+		_max = max;
+		_deadZone = min + deadZone;
+		_normalizer = 1.0f / (max - deadZone);
+	}
+	void SliderControl::SetValue(float value)
+	{
+		if(value < _deadZone)
+		{
+			UpdateValue(Number::WithFloat(0.0f));
+			return;
+		}
+
+		float v = (std::min(v, _max) - _deadZone) * _normalizer;
+		UpdateValue(Number::WithFloat(v));
+	}
 
 	RNDefineMeta(AxisControl, InputControl)
 
@@ -261,25 +303,6 @@ namespace RN
 
 	void AxisControl::SetValue(float value)
 	{
-		float v = value - _center;
-
-		if(Math::FastAbs(v) < _deadZone)
-		{
-			UpdateValue(Number::WithFloat(0.0f));
-			return;
-		}
-
-		if(v > 0.0f)
-		{
-			v = (std::min(v, _max) - _deadZone) * _normalizer;
-			UpdateValue(Number::WithFloat(v));
-		}
-		else
-		{
-			v = (std::max(v, _min) + _deadZone) * _normalizer;
-			UpdateValue(Number::WithFloat(v));
-		}
-
 		UpdateValue(Number::WithFloat(value));
 	}
 
@@ -307,5 +330,65 @@ namespace RN
 			value += current->GetFloatValue();
 
 		UpdateValue(Number::WithFloat(value));
+	}
+
+	RNDefineMeta(LinearAxisControl, AxisControl)
+
+	LinearAxisControl::LinearAxisControl(const String *name, Axis axis) :
+		AxisControl(name, Type::LinearAxis, axis)
+	{}
+
+	void LinearAxisControl::SetValue(float value)
+	{
+		float v = value - GetCenter();
+		float deadZone = GetDeadZone();
+		float normalizer = GetNormalizer();
+
+		if(Math::FastAbs(v) < deadZone)
+		{
+			UpdateValue(Number::WithFloat(0.0f));
+			return;
+		}
+
+		if(v > 0.0f)
+		{
+			v = (std::min(v, GetMax()) - deadZone) * normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
+		else
+		{
+			v = (std::max(v, GetMin()) + deadZone) * normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
+	}
+
+	RNDefineMeta(RotationAxisControl, AxisControl)
+
+	RotationAxisControl::RotationAxisControl(const String *name, Axis axis) :
+		AxisControl(name, Type::RotationAxis, axis)
+	{}
+
+	void RotationAxisControl::SetValue(float value)
+	{
+		float v = value - GetCenter();
+		float deadZone = GetDeadZone();
+		float normalizer = GetNormalizer();
+
+		if(Math::FastAbs(v) < deadZone)
+		{
+			UpdateValue(Number::WithFloat(0.0f));
+			return;
+		}
+
+		if(v > 0.0f)
+		{
+			v = (std::min(v, GetMax()) - deadZone) * normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
+		else
+		{
+			v = (std::max(v, GetMin()) + deadZone) * normalizer;
+			UpdateValue(Number::WithFloat(v));
+		}
 	}
 }

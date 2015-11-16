@@ -68,6 +68,11 @@ namespace RN
 		IOHIDDeviceRef _device;
 
 		size_t _buttonCount;
+		size_t _sliderCount;
+
+		size_t _deltaAxisCount;
+		size_t _linearAxisCount;
+		size_t _rotationAxisCount;
 
 		RNDeclareMeta(OSXPlatformDevice);
 	};

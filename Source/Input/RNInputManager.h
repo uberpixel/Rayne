@@ -29,7 +29,8 @@ namespace RN
 
 		RN_OPTIONS(MouseMode, uint32,
 				   Hidden = (1 << 0),
-				   Captured = (1 << 2));
+				   Captured = (1 << 2),
+				   Smoothed = (1 << 3));
 
 		struct Action
 		{
@@ -101,8 +102,8 @@ namespace RN
 		MouseMode _mode;
 
 		Array *_mouseDevices;
-		Vector2 _previousMouseDelta;
-		Vector2 _mouseDelta;
+		Vector3 _previousMouseDelta;
+		Vector3 _mouseDelta;
 	};
 }
 

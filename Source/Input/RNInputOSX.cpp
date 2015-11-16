@@ -36,17 +36,17 @@ namespace RN
 
 	const char *kLinearAxisName[3] =
 		{
-			"X-Axis", "Y-Axis", "Z-Axis"
+			"X-Axis ", "Y-Axis ", "Z-Axis "
 		};
 
 	const char *kRotationAxisName[3] =
 		{
-			"RX-Axis", "RY-Axis", "RZ-Axis"
+			"RX-Axis ", "RY-Axis ", "RZ-Axis "
 		};
 
 	const char *kDeltaAxisName[3] =
 		{
-			"X-Delta", "Y-Delta", "Z-Delta"
+			"X-Delta ", "Y-Delta ", "Z-Delta "
 		};
 
 
@@ -56,7 +56,12 @@ namespace RN
 	OSXPlatformDevice::OSXPlatformDevice(const Descriptor &descriptor, IOHIDDeviceRef device) :
 		InputDevice(descriptor),
 		_device(device),
-		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 64, kIOHIDOptionsTypeNone))
+		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 64, kIOHIDOptionsTypeNone)),
+		_buttonCount(0),
+		_sliderCount(0),
+		_deltaAxisCount(0),
+		_rotationAxisCount(0),
+		_linearAxisCount(0)
 	{
 		CFRetain(_device);
 
@@ -150,17 +155,17 @@ namespace RN
 
 									if(relative)
 									{
-										control = new DeltaAxisControl(RNSTR(kDeltaAxisName[usage - kHIDUsage_GD_X]), axis);
+										control = new DeltaAxisControl(RNSTR(kDeltaAxisName[usage - kHIDUsage_GD_X] << (++ _deltaAxisCount)), axis);
 									}
 									else
 									{
-										control = new AxisControl(RNSTR(kLinearAxisName[usage - kHIDUsage_GD_X]), InputControl::Type::LinearAxis, axis);
+										control = new LinearAxisControl(RNSTR(kLinearAxisName[usage - kHIDUsage_GD_X] << (++ _linearAxisCount)), axis);
 									}
 
 									break;
 								}
 								case kHIDUsage_GD_Wheel:
-									control = new DeltaAxisControl(RNSTR(kDeltaAxisName[2]), AxisControl::Axis::Z);
+									control = new DeltaAxisControl(RNSTR(kDeltaAxisName[2] << (++ _deltaAxisCount)), AxisControl::Axis::Z);
 									break;
 
 								case kHIDUsage_GD_Rx:
@@ -168,9 +173,13 @@ namespace RN
 								case kHIDUsage_GD_Rz:
 								{
 									AxisControl::Axis axis = static_cast<AxisControl::Axis>((usage - kHIDUsage_GD_Rx) + 1);
-									control = new AxisControl(RNSTR(kLinearAxisName[usage - kHIDUsage_GD_Rx]), InputControl::Type::RotationAxis, axis);
+									control = new RotationAxisControl(RNSTR(kRotationAxisName[usage - kHIDUsage_GD_Rx] << (++ _rotationAxisCount)), axis);
 									break;
 								}
+
+								case kHIDUsage_GD_Slider:
+									control = new SliderControl(RNSTR("Slider " << (++ _sliderCount)));
+									break;
 							}
 
 							break;
@@ -196,13 +205,20 @@ namespace RN
 						{
 							case InputControl::Type::RotationAxis:
 							case InputControl::Type::LinearAxis:
+							{
+								float vmin = (float)IOHIDElementGetPhysicalMin(element);
+								float vmax = (float)IOHIDElementGetPhysicalMax(element);
+
+								static_cast<AxisControl *>(control)->SetRange(vmin, vmax, (vmax - vmin) * 0.15f);
+								break;
+							}
+
 							case InputControl::Type::Slider:
 							{
 								float vmin = (float)IOHIDElementGetPhysicalMin(element);
 								float vmax = (float)IOHIDElementGetPhysicalMax(element);
 
-								float deadZoneMultiplier = (control->GetType() == InputControl::Type::Slider) ? 0.0625f : 0.25f;
-								static_cast<AxisControl *>(control)->SetRange(vmin, vmax, (vmax - vmin) * deadZoneMultiplier);
+								static_cast<SliderControl *>(control)->SetRange(vmin, vmax, (vmax - vmin) * 0.0625f);
 								break;
 							}
 

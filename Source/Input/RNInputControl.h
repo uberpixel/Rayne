@@ -56,7 +56,17 @@ namespace RN
 
 		RNAPI InputControl *GetFirstControl() const;
 		RNAPI InputControl *GetNextControl() const;
-		RNAPI InputControl *GetControlWithName(const String *name) const;
+		RNAPI Array *GetControlsWithType(Type type) const;
+
+		template<class T = InputControl>
+		T *GetControlWithName(const String *name) const
+		{
+			InputControl *control = __GetControlWithName(name);
+			if(control)
+				return control->Downcast<T>();
+
+			return nullptr;
+		}
 
 		RNAPI virtual void AddControl(InputControl *control);
 		RNAPI virtual void Update();
@@ -76,7 +86,9 @@ namespace RN
 		RNAPI virtual void UpdateValue(Object *value);
 
 	private:
-		Object *__GetValue() const { return _value; }
+		RNAPI InputControl *__GetControlWithName(const String *name) const;
+		RNAPI Object *__GetValue() const { return _value; }
+
 		void __LinkIntoDeviceWithParent(InputDevice *device, InputControl *parent);
 
 		String *_name;
@@ -121,6 +133,22 @@ namespace RN
 		RNDeclareMeta(ButtonControl)
 	};
 
+	class SliderControl : public InputControl
+	{
+	public:
+		RNAPI SliderControl(const String *name);
+
+		RNAPI void SetRange(float min, float max, float deadZone);
+		RNAPI void SetValue(float value);
+
+	private:
+		float _max;
+		float _deadZone;
+		float _normalizer;
+
+		RNDeclareMeta(SliderControl)
+	};
+
 	class AxisControl : public InputControl
 	{
 	public:
@@ -144,6 +172,7 @@ namespace RN
 		RNAPI float GetMax() const { return _max; }
 		RNAPI float GetDeadZone() const { return _deadZone; }
 		RNAPI float GetNormalizer() const { return _normalizer; }
+		RNAPI Axis GetAxis() const { return _axis; }
 
 	private:
 		Axis _axis;
@@ -167,6 +196,29 @@ namespace RN
 
 	private:
 		RNDeclareMeta(DeltaAxisControl)
+	};
+
+	class LinearAxisControl : public AxisControl
+	{
+	public:
+		RNAPI LinearAxisControl(const String *name, Axis axis);
+
+		RNAPI void SetValue(float value) override;
+
+	private:
+		RNDeclareMeta(LinearAxisControl)
+	};
+
+
+	class RotationAxisControl : public AxisControl
+	{
+	public:
+		RNAPI RotationAxisControl(const String *name, Axis axis);
+
+		RNAPI void SetValue(float value) override;
+
+	private:
+		RNDeclareMeta(RotationAxisControl)
 	};
 }
 
