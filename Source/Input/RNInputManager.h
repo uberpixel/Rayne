@@ -27,6 +27,10 @@ namespace RN
 				   DidEnd = (1 << 2),
 				   DidUpdate = (1 << 3));
 
+		RN_OPTIONS(MouseMode, uint32,
+				   Hidden = (1 << 0),
+				   Captured = (1 << 2));
+
 		struct Action
 		{
 			InputDevice *device;
@@ -41,6 +45,8 @@ namespace RN
 		RNAPI static InputManager *GetSharedInstance();
 
 		RNAPI Array *GetDevicesWithCategories(InputDevice::Category categories);
+
+		RNAPI void SetMouseMode(MouseMode mode);
 
 		RNAPI void AddTarget(void *target, Event events, InputDevice::Category category, Callback &&callback);
 		RNAPI void AddTarget(void *target, Event events, InputDevice *device, Callback &&callback);
@@ -91,6 +97,8 @@ namespace RN
 		Array *_devices;
 		std::vector<Target> _targets;
 		Dictionary *_bindings;
+
+		MouseMode _mode;
 
 		Array *_mouseDevices;
 		Vector2 _previousMouseDelta;

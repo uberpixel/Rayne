@@ -102,6 +102,23 @@ namespace RN
 		_devices->RemoveObject(device);
 	}
 
+	void InputManager::SetMouseMode(MouseMode mode)
+	{
+		_mode = mode;
+
+#if RN_PLATFORM_MAC_OS
+		if(_mode & MouseMode::Hidden)
+			CGDisplayHideCursor(kCGDirectMainDisplay);
+		else
+			CGDisplayShowCursor(kCGDirectMainDisplay);
+
+		if(_mode & MouseMode::Captured)
+			CGAssociateMouseAndMouseCursorPosition(false);
+		else
+			CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+	}
+
 	void InputManager::Update(float delta)
 	{
 		RN::Array *devices;
