@@ -9,10 +9,10 @@
 #ifndef __RAYNE_MATH_H__
 #define __RAYNE_MATH_H__
 
-#ifdef RAYNE_INCLUDE_PREFIX
-	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
-#else
+#ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>
+#else
+	#include "../RayneConfig.h"
 #endif
 
 #include "RNSIMD.h"

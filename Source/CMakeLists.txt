@@ -232,7 +232,6 @@ set(INCLUDE_DIRECTORIES
         "${BOOST_utility_INCLUDE}"
         "${BOOST_lockfree_INCLUDE}")
 
-set(COMPILE_DEFINITIONS "")
 set(COMPILE_OPTIONS "")
 set(LINK_LIBRARIES "")
 set(RAYNE_LIBRARIES "")

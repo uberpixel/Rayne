@@ -11,10 +11,10 @@
 
 #include <cfloat>
 
-#ifdef RAYNE_INCLUDE_PREFIX
-	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
-#else
+#ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>
+#else
+	#include "../RayneConfig.h"
 #endif
 
 namespace RN
@@ -25,8 +25,8 @@ namespace RN
 		static const float Pi_2 = 1.57079632679489661923132169163975144f;
 		static const float Pi_4 = 0.785398163397448309615660845819875721f;
 
-		static const float DegToRad = 0.01745329251;
-		static const float RadToDeg = 57.2957795131;
+		static const float DegToRad = 0.01745329251f;
+		static const float RadToDeg = 57.2957795131f;
 
 		static const float E      = 2.71828182845904523536028747135266250f;
 		static const float Log2E  = 1.44269504088896340735992468100189214f;

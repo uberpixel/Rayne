@@ -13,10 +13,10 @@
 // Platform independent includes
 // ---------------------------
 
-#ifdef RAYNE_INCLUDE_PREFIX
-	#include <RAYNE_INCLUDE_PREFIX/RayneConfig.h>
-#else
+#ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>
+#else
+	#include "../RayneConfig.h"
 #endif
 
 #include "RNMemory.h"
