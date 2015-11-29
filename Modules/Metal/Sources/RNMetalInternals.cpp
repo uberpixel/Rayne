@@ -37,14 +37,14 @@
 		[_layer setDevice:device];
 		[_layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
 		[_layer setFramebufferOnly:YES];
+		[_layer setContentsScale:2.0];
 
-		[self setWantsBestResolutionOpenGLSurface:YES];
 		[self setWantsLayer:YES];
 		[self setLayer:_layer];
 
 		for(size_t i = 0; i < 3; i ++)
 		{
-			_depthbuffer[i] = new RN::Framebuffer(RN::Vector2(frameRect.size.width, frameRect.size.height), RN::Framebuffer::Options::PrivateStorage, RN::Texture::Format::Invalid, RN::Texture::Format::Depth24I, RN::Texture::Format::Invalid);
+			_depthbuffer[i] = new RN::Framebuffer(RN::Vector2(frameRect.size.width * 2.0f, frameRect.size.height * 2.0f), RN::Framebuffer::Options::PrivateStorage, RN::Texture::Format::Invalid, RN::Texture::Format::Depth24I, RN::Texture::Format::Invalid);
 		}
 	}
 
