@@ -68,6 +68,7 @@
 #include "Rendering/RNGPUResource.h"
 #include "Rendering/RNMaterial.h"
 #include "Rendering/RNMesh.h"
+#include "Rendering/RNModel.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRendererDescriptor.h"
 #include "Rendering/RNRendererManager.h"
@@ -76,6 +77,7 @@
 #include "Rendering/RNWindow.h"
 
 #include "Scene/RNCamera.h"
+#include "Scene/RNEntity.h"
 #include "Scene/RNScene.h"
 #include "Scene/RNSceneManager.h"
 #include "Scene/RNSceneNode.h"

@@ -59,6 +59,7 @@ set(RAYNE_SOURCES
     Rendering/RNGPUResource.cpp
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
+    Rendering/RNModel.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRendererManager.cpp
     Rendering/RNRendererDescriptor.cpp
@@ -67,6 +68,7 @@ set(RAYNE_SOURCES
     Rendering/RNTexture.cpp
     Rendering/RNWindow.cpp
     Scene/RNCamera.cpp
+    Scene/RNEntity.cpp
     Scene/RNScene.cpp
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
@@ -148,6 +150,7 @@ set(RAYNE_HEADERS
     Rendering/RNGPUResource.h
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
+    Rendering/RNModel.h
     Rendering/RNRenderer.h
     Rendering/RNRendererManager.h
     Rendering/RNRendererDescriptor.h
@@ -157,6 +160,7 @@ set(RAYNE_HEADERS
     Rendering/RNTexture.h
     Rendering/RNWindow.h
     Scene/RNCamera.h
+    Scene/RNEntity.h
     Scene/RNScene.h
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h
