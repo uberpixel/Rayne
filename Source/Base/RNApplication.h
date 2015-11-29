@@ -21,7 +21,6 @@ namespace RN
 	public:
 		friend class Kernel;
 
-		RNAPI Application();
 		RNAPI virtual ~Application();
 
 		RNAPI virtual void WillFinishLaunching(Kernel *kernel);
@@ -40,6 +39,9 @@ namespace RN
 		RNAPI RendererDescriptor *GetPreferredRenderer() const;
 
 		const String *GetTitle() const { return _title; }
+
+	protected:
+		RNAPI Application();
 
 	private:
 		void __PrepareForWillFinishLaunching(Kernel *kernel);
