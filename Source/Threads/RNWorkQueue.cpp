@@ -357,9 +357,6 @@ namespace RN
 		}
 	}
 
-	/**
-	 * Must be called with _writeLock being held
-	 */
 	void WorkQueue::ReCalculateWidth()
 	{
 		if(_flags & kRNWorkQueueFlagMainThread)
@@ -376,6 +373,7 @@ namespace RN
 				width = 1;
 		}
 
+		_threadLock.Lock();
 		_realWidth = width;
 
 		if(width > _width)
@@ -390,6 +388,7 @@ namespace RN
 
 			_width = width;
 		}
+		_threadLock.Unlock();
 	}
 
 	void WorkQueue::Suspend()
@@ -399,10 +398,6 @@ namespace RN
 	void WorkQueue::Resume()
 	{
 		if(_suspended.fetch_sub(1, std::memory_order_acquire) == 1)
-		{
-			//std::lock_guard<std::mutex> lock(_workLock);
-			//_suspended.fetch_sub(1, std::memory_order_release);
-			//_workSignal.notify_all();
-		}
+			_internals->workSignal.notify_all();
 	}
 }
