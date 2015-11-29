@@ -20,6 +20,13 @@ if(POLICY CMP0026)
     set(CMAKE_POLICY_DEFAULT_CMP0026 OLD)
 endif()
 
+#Exclude all install settings
+macro(install)
+endmacro()
+
+#Force default to build static libraries.
+option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
+
 # Include all Rayne targets
 add_subdirectory("Source")
 add_subdirectory("Modules")

@@ -11,6 +11,10 @@ set(VERSION_PATCH 0)
 set(VERSION_ABI 10)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
+macro(rayne_install)
+    _install(${ARGV})
+endmacro(rayne_install)
+
 # Source files
 set(RAYNE_SOURCES
     Base/RNMemory.cpp # RNMemory should come first
@@ -261,3 +265,9 @@ rayne_target_add_definitions(Rayne "${COMPILE_DEFINITIONS}")
 rayne_target_add_options(Rayne "${COMPILE_OPTIONS}")
 rayne_target_include_directories(Rayne "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(Rayne "${LINK_LIBRARIES}")
+
+__rayne_target_names(Rayne _TARGETS)
+rayne_install(TARGETS ${_TARGETS}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/. DESTINATION include/Rayne)

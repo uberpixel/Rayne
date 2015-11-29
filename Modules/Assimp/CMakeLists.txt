@@ -3,10 +3,11 @@ project(RayneAssimp)
 
 include(../../CMake/LibraryTarget.cmake)
 
-set(ASSIMP_BUILD_TESTS off)
-set(BUILD_SHARED_LIBS off)
-set(ASSIMP_NO_EXPORT on)
-set(ASSIMP_BUILD_ASSIMP_TOOLS off)
+#Force some better default values...
+option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
+option(ASSIMP_BUILD_TESTS  "If the test suite for Assimp is built in addition to the library." OFF)
+option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." ON)
+option(ASSIMP_BUILD_ASSIMP_TOOLS "If the supplementary tools for Assimp are built in addition to the library." OFF)
 
 add_subdirectory(Vendor/Assimp)
 

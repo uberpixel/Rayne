@@ -43,7 +43,7 @@ macro(__rayne_create_target _NAME _ARCH _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES
 
     add_library("${TARGET_NAME}" ${_TYPE} ${ALL_SOURCES})
     #set_target_properties("${TARGET_NAME}" PROPERTIES VERSION ${_VERSION} SOVERSION ${_ABI})
-    set_target_properties("${TARGET_NAME}" PROPERTIES PUBLIC_HEADER "${_HEADERS}")
+    #set_target_properties("${TARGET_NAME}" PROPERTIES PUBLIC_HEADER "${_HEADERS}")
 
     if(UNIX)
         if(${_ARCH} EQUAL 64)
