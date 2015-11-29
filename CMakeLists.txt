@@ -32,3 +32,5 @@ add_subdirectory("Source")
 add_subdirectory("Modules")
 add_subdirectory("Tests")
 add_subdirectory("Vendor")
+
+add_custom_target(Rayne-Install make install COMMENT "Installing Rayne and modules...")
