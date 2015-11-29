@@ -181,7 +181,7 @@ namespace RN
 				wrapMode(WrapMode::Repeat),
 				filter(Filter::Linear),
 				depthCompare(false),
-				anisotropy(1)
+				anisotropy(Texture::GetDefaultAnisotropy())
 			{}
 
 			bool operator== (const Parameter &other) const
@@ -208,6 +208,9 @@ namespace RN
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
 		const Parameter &GetParameter() const RN_NOEXCEPT { return _parameter; }
+
+		RNAPI static uint32 GetDefaultAnisotropy();
+		RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
 	protected:
 		Texture(const Descriptor &descriptor);

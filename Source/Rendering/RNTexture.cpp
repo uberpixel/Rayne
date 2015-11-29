@@ -14,6 +14,8 @@ namespace RN
 {
 	RNDefineMeta(Texture, Asset)
 
+	static uint32 _defaultAnisotropy = 1;
+
 	Texture::Texture(const Descriptor &descriptor) :
 		_descriptor(descriptor)
 	{}
@@ -33,5 +35,15 @@ namespace RN
 	{
 		Renderer *renderer = Renderer::GetActiveRenderer();
 		return renderer->GetTextureFormatName(format);
+	}
+
+	uint32 Texture::GetDefaultAnisotropy()
+	{
+		return _defaultAnisotropy;
+	}
+	void Texture::SetDefaultAnisotropy(uint32 anisotropy)
+	{
+		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
+		_defaultAnisotropy = anisotropy;
 	}
 }
