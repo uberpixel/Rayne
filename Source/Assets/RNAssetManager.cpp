@@ -40,18 +40,12 @@ namespace RN
 		std::lock_guard<std::mutex> lock(_lock);
 
 		_loaders->AddObject(loader);
-		_loaders->Sort<AssetLoader>([] (const AssetLoader *loader1, const AssetLoader *loader2) -> ComparisonResult {
+		_loaders->Sort<AssetLoader>([] (const AssetLoader *loader1, const AssetLoader *loader2) -> bool {
 
 			uint32 priority1 = loader1->GetPriority();
 			uint32 priority2 = loader2->GetPriority();
 
-			if(priority1 > priority2)
-				return ComparisonResult::GreaterThan;
-
-			if(priority1 < priority2)
-				return ComparisonResult::LessThan;
-
-			return ComparisonResult::EqualTo;
+			return priority1 < priority2;
 		});
 
 		UpdateMagicSize();
