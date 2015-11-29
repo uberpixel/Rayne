@@ -70,12 +70,14 @@ namespace RN
 		bool hasIndices = false;
 
 		size_t offset = 0;
+		size_t initialAlignment = kRNNotFound;
+
+		Renderer *renderer = Renderer::GetActiveRenderer();
 
 		for(VertexAttribute &attribute : _vertexAttributes)
 		{
-			const PrimitiveTypeEntry &entry = __PrimitiveTypeTable[static_cast<size_t>(attribute._type)];
-
-			attribute._size = entry.size;
+			attribute._size = renderer->GetSizeForType(attribute._type);
+			attribute._typeSize = __PrimitiveTypeTable[static_cast<size_t>(attribute._type)].size;
 
 			switch(attribute._feature)
 			{
@@ -84,24 +86,26 @@ namespace RN
 					hasIndices = true;
 					attribute._offset = 0;
 
-					_indicesSize = entry.size * _indicesCount;
+					_indicesSize = attribute._size * _indicesCount;
 					break;
 				}
 
 				default:
 				{
-					offset += offset % entry.alignment;
+					size_t alignment = offset % renderer->GetAlignmentForType(attribute._type);
 
-					attribute._offset = offset;
+					if(initialAlignment == kRNNotFound)
+						initialAlignment = renderer->GetAlignmentForType(attribute._type);
 
-					offset += entry.size;
+					attribute._offset = offset + alignment;
+					offset += attribute._size + alignment;
 
 					break;
 				}
 			}
 		}
 
-		_stride = offset;
+		_stride = offset + (offset % initialAlignment);
 		_verticesSize = _stride * _verticesCount;
 
 		// Sanity checks before doing anything with the data
@@ -112,12 +116,10 @@ namespace RN
 		if(! hasIndices && _indicesCount > 0)
 			throw InconsistencyException("Mesh created without indices descriptor and non-zero indices count");
 
-		_vertexBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(_verticesSize,
-																			  GPUResource::UsageOptions::ReadWrite);
+		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::ReadWrite);
 
 		if(hasIndices)
-			_indicesBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(_indicesSize,
-																				   GPUResource::UsageOptions::ReadWrite);
+			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::ReadWrite);
 	}
 
 	void Mesh::BeginChanges()
@@ -173,10 +175,10 @@ namespace RN
 
 					for(size_t i = 0; i < _verticesCount; i ++)
 					{
-						std::copy(data, data + attribute._size, buffer);
+						std::copy(data, data + attribute._typeSize, buffer);
 
 						buffer += _stride;
-						data += attribute._size;
+						data += attribute._typeSize;
 					}
 
 					if(_changeCounter)
@@ -203,10 +205,10 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					std::copy(data, data + attribute._size, buffer);
+					std::copy(data, data + attribute._typeSize, buffer);
 
 					buffer += _stride;
-					data += attribute._size;
+					data += attribute._typeSize;
 				}
 
 				if(_changeCounter)

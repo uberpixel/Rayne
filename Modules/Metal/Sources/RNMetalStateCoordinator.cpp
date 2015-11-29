@@ -269,15 +269,11 @@ namespace RN
 
 		size_t offset = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
-		const Mesh::VertexAttribute *indicesAttribute = nullptr;
 
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
-			{
-				indicesAttribute = &attribute;
 				continue;
-			}
 
 			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[offset];
 			attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];

@@ -88,9 +88,9 @@ namespace RN
 					{
 						png_bytep ptr = &(row[x * 3]);
 
-						*temp ++ = ptr[2];
-						*temp ++ = ptr[1];
 						*temp ++ = ptr[0];
+						*temp ++ = ptr[1];
+						*temp ++ = ptr[2];
 						*temp ++ = 1;
 					}
 				}

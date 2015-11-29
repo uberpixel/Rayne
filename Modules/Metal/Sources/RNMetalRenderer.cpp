@@ -55,7 +55,7 @@ namespace RN
 #define TextureFormat(name, metal) \
 		_textureFormatLookup->SetObjectForKey(Number::WithUint32(metal), RNCSTR(#name))
 
-		TextureFormat(RGBA8888, MTLPixelFormatBGRA8Unorm);
+		TextureFormat(RGBA8888, MTLPixelFormatRGBA8Unorm);
 		TextureFormat(RGB10A2, MTLPixelFormatRGB10A2Unorm);
 		TextureFormat(R8, MTLPixelFormatR8Unorm);
 		TextureFormat(RG88, MTLPixelFormatRG8Unorm);
@@ -260,16 +260,77 @@ namespace RN
 		return lib->Autorelease();
 	}
 
-	bool MetalRenderer::SupportsTextureFormat(const String *format)
+	bool MetalRenderer::SupportsTextureFormat(const String *format) const
 	{
 		return (_textureFormatLookup->GetObjectForKey(format) != nullptr);
 	}
-	bool MetalRenderer::SupportsDrawMode(DrawMode mode)
+	bool MetalRenderer::SupportsDrawMode(DrawMode mode) const
 	{
 		return true;
 	}
 
-	const String *MetalRenderer::GetTextureFormatName(const Texture::Format format)
+	// https://developer.apple.com/library/ios/documentation/Metal/Reference/MetalShadingLanguageGuide/MetalShadingLanguageGuide.pdf
+	size_t MetalRenderer::GetAlignmentForType(PrimitiveType type) const
+	{
+		switch(type)
+		{
+			case PrimitiveType::Uint8:
+			case PrimitiveType::Int8:
+				return 1;
+
+			case PrimitiveType::Uint16:
+			case PrimitiveType::Int16:
+				return 2;
+
+			case PrimitiveType::Uint32:
+			case PrimitiveType::Int32:
+			case PrimitiveType::Float:
+				return 4;
+
+			case PrimitiveType::Vector2:
+				return 8;
+
+			case PrimitiveType::Vector3:
+			case PrimitiveType::Vector4:
+			case PrimitiveType::Matrix:
+			case PrimitiveType::Quaternion:
+			case PrimitiveType::Color:
+				return 16;
+		}
+	}
+
+	size_t MetalRenderer::GetSizeForType(PrimitiveType type) const
+	{
+		switch(type)
+		{
+			case PrimitiveType::Uint8:
+			case PrimitiveType::Int8:
+				return 1;
+
+			case PrimitiveType::Uint16:
+			case PrimitiveType::Int16:
+				return 2;
+
+			case PrimitiveType::Uint32:
+			case PrimitiveType::Int32:
+			case PrimitiveType::Float:
+				return 4;
+
+			case PrimitiveType::Vector2:
+				return 8;
+
+			case PrimitiveType::Vector3:
+			case PrimitiveType::Vector4:
+			case PrimitiveType::Quaternion:
+			case PrimitiveType::Color:
+				return 16;
+
+			case PrimitiveType::Matrix:
+				return 64;
+		}
+	}
+
+	const String *MetalRenderer::GetTextureFormatName(const Texture::Format format) const
 	{
 #define TextureFormat(name) \
 		case Texture::Format::name: \

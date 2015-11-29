@@ -82,8 +82,12 @@ namespace RN
 		RNAPI virtual void RenderIntoWindow(Window *window, Function &&function) = 0;
 		RNAPI virtual void RenderIntoCamera(Camera *camera, Function &&function) = 0;
 
-		RNAPI virtual bool SupportsTextureFormat(const String *format) = 0;
-		RNAPI virtual bool SupportsDrawMode(DrawMode mode) = 0;
+		RNAPI virtual bool SupportsTextureFormat(const String *format) const = 0;
+		RNAPI virtual bool SupportsDrawMode(DrawMode mode) const = 0;
+
+		RNAPI virtual size_t GetAlignmentForType(PrimitiveType type) const = 0;
+		RNAPI virtual size_t GetSizeForType(PrimitiveType type) const = 0;
+		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) const = 0;
 
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) = 0;
@@ -91,7 +95,6 @@ namespace RN
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithFile(const String *file) = 0;
 		RNAPI virtual ShaderLibrary *GetShaderLibraryWithSource(const String *source) = 0;
 
-		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) = 0;
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 
 		RNAPI virtual Drawable *CreateDrawable() = 0;

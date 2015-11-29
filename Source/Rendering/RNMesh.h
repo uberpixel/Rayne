@@ -88,6 +88,7 @@ namespace RN
 
 			size_t _offset;
 			size_t _size;
+			size_t _typeSize;
 		};
 
 		class VertexDescriptor

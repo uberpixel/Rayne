@@ -20,6 +20,7 @@ namespace RN
 
 	Renderer *Renderer::GetActiveRenderer()
 	{
+		RN_ASSERT(_activeRenderer, "GetActiveRenderer() called, but no renderer is currently active");
 		return _activeRenderer;
 	}
 
