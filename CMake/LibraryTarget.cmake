@@ -202,3 +202,10 @@ macro(rayne_copy_resources _TARGET _RESOURCES)
     endforeach()
 
 endmacro()
+
+
+macro(rayne_install)
+
+    _install(${ARGV})
+
+endmacro(rayne_install)

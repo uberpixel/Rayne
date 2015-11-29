@@ -11,10 +11,6 @@ set(VERSION_PATCH 0)
 set(VERSION_ABI 10)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-macro(rayne_install)
-    _install(${ARGV})
-endmacro(rayne_install)
-
 # Source files
 set(RAYNE_SOURCES
     Base/RNMemory.cpp # RNMemory should come first

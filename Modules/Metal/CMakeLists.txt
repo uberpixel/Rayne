@@ -41,3 +41,5 @@ rayne_target_add_options(RayneMetal "-xobjective-c++")
 rayne_target_include_directories(RayneMetal "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
 rayne_copy_resources(RayneMetal ${RESOURCES})
+
+rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneMetal)
