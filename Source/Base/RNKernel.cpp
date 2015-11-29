@@ -18,9 +18,9 @@ namespace RN
 	static Kernel *__sharedInstance = nullptr;
 
 	Kernel::Kernel(Application *application, const ArgumentParser &arguments) :
+		_arguments(arguments),
 		_application(application),
-		_exit(false),
-		_arguments(arguments)
+		_exit(false)
 	{}
 
 	Kernel::~Kernel()

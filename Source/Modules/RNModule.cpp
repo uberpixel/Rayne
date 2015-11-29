@@ -18,11 +18,11 @@ namespace RN
 	RNDefineMeta(Module, Object)
 
 	Module::Module(const String *name) :
-		_handle(nullptr),
 		_ownsHandle(true),
+		_handle(nullptr),
 		_name(SafeCopy(name)),
-		_path(nullptr),
 		_identifier(nullptr),
+		_path(nullptr),
 		_resourcePath(nullptr),
 		_lookupPrefix(nullptr)
 	{
