@@ -378,8 +378,6 @@ namespace RN
 
 		if(width > _width)
 		{
-			LockGuard<SpinLock> lock(_threadLock);
-
 			for(size_t i = 0; i < width - _width; i ++)
 			{
 				Thread *thread = new Thread([this]{ ThreadEntry(); });
