@@ -31,11 +31,15 @@ namespace RN
 
 	void SceneManager::AddScene(Scene *scene)
 	{
+		scene->WillBecomeActive();
 		_scenes->AddObject(scene);
+		scene->DidBecomeActive();
 	}
 	void SceneManager::RemoveScene(Scene *scene)
 	{
+		scene->WillResignActive();
 		_scenes->RemoveObject(scene);
+		scene->DidResignActive();
 	}
 
 	void SceneManager::Update(float delta)

@@ -20,13 +20,29 @@ namespace RN
 	class Scene : public Object
 	{
 	public:
-		RNAPI void Update(float delta);
-		RNAPI void Render(Renderer *renderer);
+		friend class Kernel;
+		friend class SceneManager;
 
 		RNAPI void AddNode(SceneNode *node);
 		RNAPI void RemoveNode(SceneNode *node);
 
+	protected:
+		RNAPI virtual void WillBecomeActive();
+		RNAPI virtual void DidBecomeActive();
+
+		RNAPI virtual void WillResignActive();
+		RNAPI virtual void DidResignActive();
+
+		RNAPI virtual void WillUpdate(float delta);
+		RNAPI virtual void DidUpdate(float delta);
+
+		RNAPI virtual void WillRender(Renderer *renderer);
+		RNAPI virtual void DidRender(Renderer *renderer);
+
 	private:
+		void Update(float delta);
+		void Render(Renderer *renderer);
+
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
 

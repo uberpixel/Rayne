@@ -22,6 +22,8 @@ namespace RN
 
 	void Scene::Update(float delta)
 	{
+		WillUpdate(delta);
+
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
 		std::vector<SceneNode *> temp;
@@ -32,41 +34,54 @@ namespace RN
 			WorkGroup *group = new WorkGroup();
 
 			IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+			IntrusiveList<SceneNode>::Member *first = member;
+
+			size_t count = 0;
+
 			while(member)
 			{
-				SceneNode *node = member->Get();
-				temp.push_back(node);
-
-				if(temp.size() == kRNSceneUpdateBatchSize)
+				if(count == kRNSceneUpdateBatchSize)
 				{
-					group->Perform(queue, [&, temp] {
+					group->Perform(queue, [&, member, first] {
 
 						AutoreleasePool pool;
+						auto iterator = first;
 
-						for(SceneNode *node : temp)
+						while(iterator != member)
 						{
+							SceneNode *node = iterator->Get();
+
 							node->Update(delta);
 							node->UpdateInternalData();
+
+							iterator = iterator->GetNext();
 						}
 
 					});
 
-					temp.clear();
+					first = member;
+					count = 0;
 				}
 
 				member = member->GetNext();
+				count ++;
 			}
 
-			if(temp.size() > 0)
+			if(first != member)
 			{
-				group->Perform(queue, [&, temp] {
+				group->Perform(queue, [&, member, first] {
 
 					AutoreleasePool pool;
+					auto iterator = first;
 
-					for(SceneNode *node : temp)
+					while(iterator != member)
 					{
+						SceneNode *node = iterator->Get();
+
 						node->Update(delta);
 						node->UpdateInternalData();
+
+						iterator = iterator->GetNext();
 					}
 
 				});
@@ -75,10 +90,14 @@ namespace RN
 			group->Wait();
 			group->Release();
 		}
+
+		DidUpdate(delta);
 	}
 
 	void Scene::Render(Renderer *renderer)
 	{
+		WillRender(renderer);
+
 #if kRNSceneUseRenderPool
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
@@ -88,54 +107,65 @@ namespace RN
 			Camera *camera = member->Get();
 			camera->PostUpdate(renderer);
 
-			WorkGroup *group = new WorkGroup();
-
 			renderer->RenderIntoCamera(camera, [&] {
 
-				std::vector<SceneNode *> temp;
-				temp.reserve(kRNSceneRenderBatchSize);
+				WorkGroup *group = new WorkGroup();
 
-				for(size_t i = 0; i < 3; i++)
+				for(size_t i = 0; i < 3; i ++)
 				{
 					IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+					IntrusiveList<SceneNode>::Member *first = member;
+
+					size_t count = 0;
+
 					while(member)
 					{
-						SceneNode *node = member->Get();
-						temp.push_back(node);
-
-						if(temp.size() == kRNSceneRenderBatchSize)
+						if(count == kRNSceneUpdateBatchSize)
 						{
-							group->Perform(queue, [&, temp] {
+							group->Perform(queue, [&, member, first] {
 
 								AutoreleasePool pool;
+								auto iterator = first;
 
-								for(SceneNode *node : temp)
+								while(iterator != member)
 								{
+									SceneNode *node = iterator->Get();
+
 									if(node->CanRender(renderer, camera))
 										node->Render(renderer, camera);
+
+									iterator = iterator->GetNext();
 								}
 
 							});
 
-							temp.clear();
+							first = member;
+							count = 0;
 						}
 
 						member = member->GetNext();
+						count ++;
 					}
-				}
 
-				if(temp.size() > 0)
-				{
-					group->Perform(queue, [&, temp] {
+					if(first != member)
+					{
+						group->Perform(queue, [&, member, first] {
 
-						AutoreleasePool pool;
+							AutoreleasePool pool;
+							auto iterator = first;
 
-						for(SceneNode *node : temp)
-						{
-							node->Render(renderer, camera);
-						}
+							while(iterator != member)
+							{
+								SceneNode *node = iterator->Get();
 
-					});
+								if(node->CanRender(renderer, camera))
+									node->Render(renderer, camera);
+
+								iterator = iterator->GetNext();
+							}
+
+						});
+					}
 				}
 
 				group->Wait();
@@ -145,6 +175,7 @@ namespace RN
 
 			member = member->GetNext();
 		}
+
 #else
 		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
 		while(member)
@@ -171,6 +202,8 @@ namespace RN
 			member = member->GetNext();
 		}
 #endif
+
+		DidRender(renderer);
 	}
 
 	void Scene::AddNode(SceneNode *node)
@@ -205,4 +238,23 @@ namespace RN
 		node->UpdateScene(nullptr);
 		node->Autorelease();
 	}
+
+	void Scene::WillBecomeActive()
+	{}
+	void Scene::DidBecomeActive()
+	{}
+
+	void Scene::WillResignActive()
+	{}
+	void Scene::DidResignActive()
+	{}
+
+	void Scene::WillUpdate(float delta)
+	{}
+	void Scene::DidUpdate(float delta)
+	{}
+	void Scene::WillRender(Renderer *renderer)
+	{}
+	void Scene::DidRender(Renderer *renderer)
+	{}
 }
