@@ -82,7 +82,7 @@ namespace RN
 		if(!dir)
 		{
 			errno = error;
-			throw InconsistencyException("Couldn't open directory");
+			throw InconsistencyException(RNSTR("Couldn't open directory " << GetPath()));
 		}
 
 		struct dirent *ent;
