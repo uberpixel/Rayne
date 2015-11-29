@@ -411,7 +411,10 @@ namespace RN
 
 	void Camera::PostUpdate(Renderer *renderer)
 	{
-		_inverseViewMatrix = GetWorldTransform();
+		_inverseViewMatrix = Matrix::WithTranslation(GetWorldPosition());
+		_inverseViewMatrix.Rotate(GetWorldRotation());
+		_inverseViewMatrix.Scale(GetScale());
+
 		_viewMatrix = _inverseViewMatrix.GetInverse();
 
 		UpdateProjection(renderer);
