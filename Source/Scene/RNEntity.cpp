@@ -72,10 +72,9 @@ namespace RN
 		if(!RN_EXPECT_FALSE(_model))
 			return;
 
-		float distance = 0.0f;
 		Camera *distanceCamera = camera->GetLODCamera();
 
-		distance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
+		float distance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
 		distance /= distanceCamera->GetClipFar();
 
 		Model::LODStage *stage = _model->GetLODStageForDistance(distance);
