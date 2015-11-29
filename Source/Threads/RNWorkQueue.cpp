@@ -7,6 +7,7 @@
 //
 
 #include "RNWorkQueue.h"
+#include "../Objects/RNAutoreleasePool.h"
 #include <boost/lockfree/queue.hpp>
 
 #if RN_PLATFORM_INTEL
@@ -333,6 +334,8 @@ namespace RN
 	{
 		Thread *thread = Thread::GetCurrentThread();
 
+		AutoreleasePool *pool = new AutoreleasePool();
+
 		while(!thread->IsCancelled())
 		{
 			if(!PerformWork())
@@ -343,6 +346,8 @@ namespace RN
 
 					if(_open.load() == 0)
 					{
+						pool->Drain();
+
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
 						_internals->workSignal.wait(lock, [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
