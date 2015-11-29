@@ -132,9 +132,13 @@ namespace RN
 			mipMapped = wrapper->GetBoolValue();
 
 		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, width, height, mipMapped);
+		Texture::Parameter parameter;
+		parameter.anisotropy = 16;
+
 		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
 		texture->SetData(0, data, bytesPerRow);
+		texture->SetParameter(parameter);
 
 		if(mipMapped)
 			texture->GenerateMipMaps();
