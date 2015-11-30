@@ -73,7 +73,7 @@ namespace RN
 	public:
 		RNAPI static Renderer *GetActiveRenderer();
 
-		RNAPI virtual Window *CreateWindow(const Vector2 &size, Screen *screen) = 0;
+		RNAPI virtual Window *CreateAWindow(const Vector2 &size, Screen *screen) = 0;
 		RNAPI virtual Window *GetMainWindow() = 0;
 
 		RNAPI void Activate();

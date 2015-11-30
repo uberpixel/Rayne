@@ -29,7 +29,7 @@ namespace RN
 		RNAPI MetalRenderer(const Dictionary *parameters);
 		RNAPI ~MetalRenderer();
 
-		RNAPI Window *CreateWindow(const Vector2 &size, Screen *screen) final;
+		RNAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
 		RNAPI Window *GetMainWindow() final;
 
 		RNAPI void RenderIntoWindow(Window *window, Function &&function) final;
