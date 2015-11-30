@@ -20,7 +20,9 @@
 #endif
 
 #if RN_PLATFORM_WINDOWS
+#ifndef NOMINMAX
 	#define NOMINMAX
+#endif
 #endif
 
 #include "RNMemory.h"
