@@ -68,6 +68,17 @@
 	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
+#if RN_PLATFORM_WINDOWS
+	#define WINDOWS_LEAN_AND_MEAN
+	#include <WinSock2.h>
+	#include <windows.h>
+	#include <commdlg.h>
+	#include <ShlObj.h>
+
+	#undef near
+	#undef far
+#endif
+
 // ---------------------------
 // Helper macros
 // ---------------------------
