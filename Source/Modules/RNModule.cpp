@@ -153,7 +153,12 @@ namespace RN
 			if(!_handle && _ownsHandle)
 				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
 
+#if RN_PLATFORM_POSIX
 			_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
+#endif
+#if RN_PLATFORM_WINDOWS
+			_initializer = reinterpret_cast<InitializeFunction>(::GetProcAddress(_handle, buffer));
+#endif
 
 			if(!_initializer)
 				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
