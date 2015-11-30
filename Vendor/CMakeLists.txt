@@ -4,10 +4,10 @@ project(Rayne-Vendor)
 #Force better default values.
 option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
 
+add_subdirectory("zlib")
 add_subdirectory("jansson")
 add_subdirectory("gtest")
 add_subdirectory("libpng")
-add_subdirectory("zlib")
 
 #Exclude all unused targets from normal build
 set_target_properties(example PROPERTIES EXCLUDE_FROM_ALL TRUE)

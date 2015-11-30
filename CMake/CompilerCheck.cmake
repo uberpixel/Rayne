@@ -24,6 +24,7 @@ macro(check_cxx_compiler_type_attribute _ATTRIBUTE _RESULT)
 endmacro()
 
 check_include_files(stdint.h HAVE_STDINT_H)
+check_include_files(stddef.h HAVE_STDDEF_H)
 
 # 8 Bit types
 

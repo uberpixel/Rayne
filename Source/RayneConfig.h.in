@@ -20,6 +20,10 @@
 	#include <stdint.h>
 #endif
 
+#if ${HAVE_STDDEF_H} && __WIN32__
+#include <stddef.h>
+#endif
+
 #define RN_FUNCTION_SIGNATURE ${RAYNE_FUNCTION_SIGNATURE}
 #define RN_EXPECT_TRUE(x)  ${RAYNE_EXPECT_TRUE}
 #define RN_EXPECT_FALSE(x) ${RAYNE_EXPECT_FALSE}
@@ -52,19 +56,19 @@
 #define RN_PLATFORM_ARM 0
 
 #if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__))
-	#define RN_PLATFORM_32BIT 0
-	#define RN_PLATFORM_64BIT 1
+#define RN_PLATFORM_32BIT 0
+#define RN_PLATFORM_64BIT 1
 #else
-	#define RN_PLATFORM_32BIT 1
-	#define RN_PLATFORM_64BIT 0
+#define RN_PLATFORM_32BIT 1
+#define RN_PLATFORM_64BIT 0
 #endif
 
 #if defined(NDEBUG)
-	#define RN_BUILD_DEBUG   0
-	#define RN_BUILD_RELEASE 1
+#define RN_BUILD_DEBUG   0
+#define RN_BUILD_RELEASE 1
 #else
-	#define RN_BUILD_DEBUG   1
-	#define RN_BUILD_RELEASE 0
+#define RN_BUILD_DEBUG   1
+#define RN_BUILD_RELEASE 0
 #endif
 
 namespace RN
