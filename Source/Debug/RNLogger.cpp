@@ -22,7 +22,7 @@ namespace RN
 		std::stringstream stream;
 		std::time_t timet = std::chrono::system_clock::to_time_t(time);
 
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_POSIX || __GNUC__
 		std::tm tm = std::tm{0};
 		localtime_r(&timet, &tm);
 #else

@@ -58,7 +58,7 @@ namespace RN
 				kernel->TearDown();
 			}
 #else
-			result->TearDown();
+			kernel->TearDown();
 #endif
 		}
 	};
