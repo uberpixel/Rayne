@@ -137,6 +137,7 @@ namespace RN
 
 	Module *ModuleManager::__GetModuleForSymbol(void *symbol)
 	{
+#if RN_PLATFORM_POSIX
 		Dl_info info;
 		int status = dladdr(symbol, &info);
 		if(status == 0)
@@ -155,5 +156,9 @@ namespace RN
 		});
 
 		return outModule;
+#endif
+#if RN_PLATFORM_WINDOWS
+		return nullptr;
+#endif
 	}
 }
