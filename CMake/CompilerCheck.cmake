@@ -181,8 +181,8 @@ else()
     #message(FATAL_ERROR "Could not detect alignas() equivalent")
 endif()
 
-check_cxx_source_compiles("void foo() noexcept; void foo() noexcept { } int main() { foo(); }" HAVE_NOEXCEPT)
-check_cxx_source_compiles("void foo() NOEXCEPT; void foo() NOEXCEPT { } int main() { foo(); }" HAVE_MSVC_NOEXCEPT)
+check_cxx_source_compiles("void foo() noexcept { } int main() { foo(); }" HAVE_NOEXCEPT)
+check_cxx_source_compiles("void foo() NOEXCEPT { } int main() { foo(); }" HAVE_MSVC_NOEXCEPT)
 
 if(HAVE_NOEXCEPT)
     set(RAYNE_NOEXCEPT noexcept)
