@@ -43,7 +43,7 @@ namespace RN
 
 	void WorkGroup::Enter()
 	{
-		if((_open ++) == 0)
+		if((_open.fetch_add(1, std::memory_order_acquire)) == 0)
 			Retain();
 	}
 	void WorkGroup::Leave()
