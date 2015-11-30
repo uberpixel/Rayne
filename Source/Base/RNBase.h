@@ -19,6 +19,10 @@
 	#include "../RayneConfig.h"
 #endif
 
+#if RN_PLATFORM_WINDOWS
+	#define NOMINMAX
+#endif
+
 #include "RNMemory.h"
 
 #include <assert.h>
