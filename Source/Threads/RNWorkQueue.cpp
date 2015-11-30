@@ -7,49 +7,13 @@
 //
 
 #include "RNWorkQueue.h"
+#include "RNAdaptiveLock.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include <boost/lockfree/queue.hpp>
 
-#if RN_PLATFORM_INTEL
-	#if RN_PLATFORM_WINDOWS
-		#define RNHardwarePause() YieldProcessor()
-	#else
-		#define RNHardwarePause() __asm__ volatile("pause")
-	#endif
-#endif
-#if RN_PLATFORM_ARM
-	#define RNHardwarePause() __asm__ volatile("yield")
-#endif
+#define ConditionalSpin(e) RNConditionalSpin(e, 10535U)
 
-#define ConditionalSpin(e) \
-	({ \
-		bool result = false; \
-		for(size_t i = 0; i < 10535U; i ++) \
-		{ \
-			if((e)) \
-			{ \
-				result = true; \
-				break; \
-			} \
-			RNHardwarePause(); \
-		} \
-		result; \
-	})
-
-#define ConditionalSpinLow(e) \
-	({ \
-		bool result = false; \
-		for(size_t i = 0; i < 512U; i ++) \
-		{ \
-			if((e)) \
-			{ \
-				result = true; \
-				break; \
-			} \
-			RNHardwarePause(); \
-		} \
-		result; \
-	})
+#define ConditionalSpinLow(e) RNConditionalSpin(e, 512U)
 
 namespace RN
 {

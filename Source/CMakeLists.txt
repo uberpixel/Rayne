@@ -167,6 +167,7 @@ set(RAYNE_HEADERS
     System/RNFile.h
     System/RNFileCoordinator.h
     System/RNScreen.h
+    Threads/RNAdaptiveLock.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h

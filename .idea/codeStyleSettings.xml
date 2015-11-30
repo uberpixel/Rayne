@@ -16,6 +16,7 @@
             <option name="USE_RELATIVE_INDENTS" value="false" />
           </value>
         </option>
+        <option name="LINE_SEPARATOR" value="&#10;" />
         <Objective-C>
           <option name="NAMESPACE_BRACE_PLACEMENT" value="2" />
           <option name="FUNCTION_BRACE_PLACEMENT" value="2" />
