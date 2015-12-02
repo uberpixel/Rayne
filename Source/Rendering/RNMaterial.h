@@ -32,6 +32,8 @@ namespace RN
 		Shader *fragmentShader;
 		Shader *vertexShader;
 
+		float discardThreshold;
+
 	private:
 		Array *_textures;
 	};
@@ -65,6 +67,8 @@ namespace RN
 		RNAPI void SetSpecularColor(const Color &color);
 		RNAPI void SetEmissiveColor(const Color &color);
 
+		RNAPI void SetDiscardThreshold(float threshold);
+
 		Shader *GetFragmentShader() const { return _fragmentShader; }
 		Shader *GetVertexShader() const { return _vertexShader; }
 
@@ -77,6 +81,7 @@ namespace RN
 		const Color &GetEmissiveColor() const { return _emissiveColor; }
 
 		const Array *GetTextures() const { return _textures; }
+		float GetDiscardThreshold() const { return _discardThreshold; }
 
 	private:
 		Shader *_fragmentShader;
@@ -91,6 +96,8 @@ namespace RN
 		Color _diffuseColor;
 		Color _specularColor;
 		Color _emissiveColor;
+
+		float _discardThreshold;
 
 		RNDeclareMeta(Material)
 	};

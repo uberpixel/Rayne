@@ -18,6 +18,7 @@ namespace RN
 	struct MetalDrawable;
 	class MetalWindow;
 	class MetalTexture;
+	class MetalUniformBuffer;
 	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
@@ -55,6 +56,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
+		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
 
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;

@@ -433,6 +433,90 @@ namespace RN
 		return drawable;
 	}
 
+	void MetalRenderer::FillUniformBuffer(MetalUniformBuffer *uniformBuffer, MetalDrawable *drawable)
+	{
+		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+
+		const MetalUniformBuffer::Member *member;
+
+		// Matrices
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
+		{
+			Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
+		{
+			Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewProjectionMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
+		}
+
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewMatrix)))
+		{
+			Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewProjectionMatrix)))
+		{
+			Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
+		}
+
+		// Color
+		Material *material = drawable->material;
+
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetAmbientColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetDiffuseColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::EmissiveColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
+		}
+
+		// Misc
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiscardThreshold)))
+		{
+			float temp = material->GetDiscardThreshold();
+			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
+		}
+
+		gpuBuffer->Invalidate();
+	}
+
 	void MetalRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		MetalDrawable *drawable = static_cast<MetalDrawable *>(tdrawable);
@@ -451,79 +535,12 @@ namespace RN
 		{
 			for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
 			{
-				GPUBuffer *gpuBuffer = uniformBuffer->Advance();
-				uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+				FillUniformBuffer(uniformBuffer, drawable);
+			}
 
-				const MetalUniformBuffer::Member *member;
-
-				// Matrices
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
-				{
-					Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
-					std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
-				{
-					Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-					std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewProjectionMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
-				}
-
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewMatrix)))
-				{
-					Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
-					std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewProjectionMatrix)))
-				{
-					Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-					std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
-				{
-					std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
-				}
-
-				// Color
-				Material *material = drawable->material;
-
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
-				{
-					std::memcpy(buffer + member->GetOffset(), &material->GetAmbientColor().r, sizeof(Color));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
-				{
-					std::memcpy(buffer + member->GetOffset(), &material->GetDiffuseColor().r, sizeof(Color));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
-				{
-					std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
-				}
-				if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::EmissiveColor)))
-				{
-					std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
-				}
-
-				gpuBuffer->Invalidate();
+			for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
+			{
+				FillUniformBuffer(uniformBuffer, drawable);
 			}
 		}
 
@@ -565,6 +582,12 @@ namespace RN
 		{
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+		}
+
+		for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
+		{
+			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
+			[encoder setFragmentBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}
 
 		const Array *textures = drawable->material->GetTextures();
