@@ -128,7 +128,6 @@ namespace RN
 	{
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
-		id<MTLLibrary> defaultLibrary;
 
 		MetalWindowPass pass;
 		MetalRenderPass renderPass;

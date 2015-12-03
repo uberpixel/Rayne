@@ -46,8 +46,8 @@ namespace RN
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
 		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
 
-		RNAPI ShaderLibrary *GetShaderLibraryWithFile(const String *file) final;
-		RNAPI ShaderLibrary *GetShaderLibraryWithSource(const String *source) final;
+		RNAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
+		RNAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
 
 		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -58,16 +58,16 @@ namespace RN
 		void RenderDrawable(MetalDrawable *drawable);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
 
-		PIMPL<MetalRendererInternals> _internals;
-		MetalWindow *_mainWindow;
-
-		SpinLock _lock;
-
 		void CreateMipMapForeTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;
 		Dictionary *_textureFormatLookup;
+
+		PIMPL<MetalRendererInternals> _internals;
+		MetalWindow *_mainWindow;
+
+		SpinLock _lock;
 
 		RNDeclareMeta(MetalRenderer)
 	};
