@@ -6,11 +6,13 @@
 # CLion
 **/.idea/workspace.xml
 **/.idea/tasks.xml
+**/.idea/Rayne.iml
+/build/
 CMakeLists.txt.user
-.idea/Rayne.iml
-build
+
 
 # Visual Studio 
 VS15/
 # don't ask, this won't be in here for long
 _jwki/	
+

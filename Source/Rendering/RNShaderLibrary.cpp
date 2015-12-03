@@ -11,4 +11,30 @@
 namespace RN
 {
 	RNDefineMeta(ShaderLibrary, Object)
+	RNDefineMeta(ShaderCompileOptions, Object)
+
+	ShaderCompileOptions::ShaderCompileOptions() :
+		_defines(new Dictionary()),
+		_basePath(nullptr)
+	{}
+
+	ShaderCompileOptions::~ShaderCompileOptions()
+	{
+		SafeRelease(_defines);
+		SafeRelease(_basePath);
+	}
+
+	void ShaderCompileOptions::SetDefines(const Dictionary *defines)
+	{
+		SafeRelease(_defines);
+		_defines = SafeCopy(defines);
+
+		if(!_defines)
+			_defines = new Dictionary();
+	}
+	void ShaderCompileOptions::SetBasePath(const String *basePath)
+	{
+		SafeRelease(_basePath);
+		_basePath = SafeCopy(basePath);
+	}
 }

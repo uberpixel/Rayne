@@ -15,6 +15,7 @@ namespace RN
 	MaterialDescriptor::MaterialDescriptor() :
 		fragmentShader(nullptr),
 		vertexShader(nullptr),
+		discardThreshold(0.3f),
 		_textures(new Array())
 	{}
 
@@ -50,7 +51,8 @@ namespace RN
 		_ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
 		_diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 		_specularColor(1.0f, 1.0f, 1.0f, 4.0f),
-		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f)
+		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
+		_discardThreshold(descriptor.discardThreshold)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -88,6 +90,11 @@ namespace RN
 	void Material::SetDepthMode(DepthMode mode)
 	{
 		_depthMode = mode;
+	}
+
+	void Material::SetDiscardThreshold(float threshold)
+	{
+		_discardThreshold = threshold;
 	}
 
 	void Material::SetAmbientColor(const Color &color)

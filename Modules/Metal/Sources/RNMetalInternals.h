@@ -47,6 +47,8 @@ namespace RN
 		{
 			for(MetalUniformBuffer *buffer : _vertexBuffers)
 				delete buffer;
+			for(MetalUniformBuffer *buffer : _fragmentBuffers)
+				delete buffer;
 		}
 
 		void UpdateRenderingState(Renderer *renderer, const MetalRenderingState *state)
@@ -58,8 +60,11 @@ namespace RN
 
 			for(MetalUniformBuffer *buffer : _vertexBuffers)
 				delete buffer;
+			for(MetalUniformBuffer *buffer : _fragmentBuffers)
+				delete buffer;
 
 			_vertexBuffers.clear();
+			_fragmentBuffers.clear();
 
 			for(MetalRenderingStateArgument *argument : state->vertexArguments)
 			{
@@ -75,10 +80,26 @@ namespace RN
 						break;
 				}
 			}
+
+			for(MetalRenderingStateArgument *argument : state->fragmentArguments)
+			{
+				switch(argument->type)
+				{
+					case MetalRenderingStateArgument::Type::Buffer:
+					{
+						if(argument->index > 0)
+							_fragmentBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
+					}
+
+					default:
+						break;
+				}
+			}
 		}
 
 		const MetalRenderingState *_pipelineState;
 		std::vector<MetalUniformBuffer *> _vertexBuffers;
+		std::vector<MetalUniformBuffer *> _fragmentBuffers;
 		MetalDrawable *_next;
 		MetalDrawable *_prev;
 	};
@@ -107,7 +128,6 @@ namespace RN
 	{
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
-		id<MTLLibrary> defaultLibrary;
 
 		MetalWindowPass pass;
 		MetalRenderPass renderPass;

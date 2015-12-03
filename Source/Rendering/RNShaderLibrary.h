@@ -13,10 +13,31 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
+#include "../Objects/RNDictionary.h"
 #include "RNShader.h"
 
 namespace RN
 {
+	class ShaderCompileOptions : public Object
+	{
+	public:
+		RNAPI ShaderCompileOptions();
+		RNAPI ~ShaderCompileOptions();
+
+		RNAPI void SetDefines(const Dictionary *defines);
+		RNAPI void SetBasePath(const String *basePath);
+
+		const Dictionary *GetDefines() const { return _defines; }
+		const String *GetBasePath() const { return _basePath; }
+
+
+	private:
+		String *_basePath;
+		Dictionary *_defines;
+
+		RNDeclareMeta(ShaderCompileOptions)
+	};
+
 	class ShaderLibrary : public Object
 	{
 	public:

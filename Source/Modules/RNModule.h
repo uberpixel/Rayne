@@ -44,9 +44,13 @@ namespace RN
 
 		void Initialize();
 
-#if RN_PLATFORM_POSIX
 		bool _ownsHandle;
+
+#if RN_PLATFORM_POSIX
 		void *_handle;
+#endif
+#if RN_PLATFORM_WINDOWS
+		HMODULE _handle;
 #endif
 
 		String *_name;

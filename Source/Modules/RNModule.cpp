@@ -104,6 +104,7 @@ namespace RN
 
 			void *initializer = nullptr;
 
+#if RN_PLATFORM_POSIX
 			if((initializer = dlsym(RTLD_DEFAULT, buffer)))
 			{
 				_handle = nullptr;
@@ -126,11 +127,38 @@ namespace RN
 				_handle = dlopen(_path->GetUTF8String(), RTLD_NOW | RTLD_GLOBAL);
 				Catalogue::GetSharedInstance()->PopModule();
 			}
+#endif
+#if RN_PLATFORM_WINDOWS
+			HMODULE module = GetModuleWithFunction(buffer);
+			if(module)
+			{
+				char pathBuffer[1024];
+
+				size_t result = ::GetDllDirectory(module, &pathBuffer);
+				pathBuffer[result + 1] = '\0';
+
+				_handle = module;
+				_path = RNSTR(pathBuffer)->StringByAppendingPathComponent(base)->Retain();
+				_ownsHandle = false;
+			}
+			else
+			{
+				Catalogue::GetSharedInstance()->PushModule(this);
+				_ownsHandle = true;
+				_handle = ::LoadLibrary(_path->GetUTF8String());
+				Catalogue::GetSharedInstance()->PopModule();
+			}
+#endif
 
 			if(!_handle && _ownsHandle)
 				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
 
+#if RN_PLATFORM_POSIX
 			_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
+#endif
+#if RN_PLATFORM_WINDOWS
+			_initializer = reinterpret_cast<InitializeFunction>(::GetProcAddress(_handle, buffer));
+#endif
 
 			if(!_initializer)
 				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library"));
@@ -144,8 +172,14 @@ namespace RN
 
 	Module::~Module()
 	{
+#if RN_PLATFORM_POSIX
 		if(_handle && _ownsHandle)
 			dlclose(_handle);
+#endif
+#if RN_PLATFORM_WINDOWS
+		if(_handle && _ownsHandle)
+			FreeLibrary(_handle);
+#endif
 
 		SafeRelease(_name);
 		SafeRelease(_path);
@@ -155,6 +189,36 @@ namespace RN
 
 		FileCoordinator::GetSharedInstance()->__RemoveModule(this);
 	}
+
+#if RN_PLATFORM_WINDOWS
+	HMODULE Module::GetModuleWithFunction(const char *name)
+	{
+		HANDLE process = ::GetCurrentProcess();
+		DWORD needed;
+
+		::EnumProcessModules(process, NULL, 0, &needed);
+
+		size_t count = needed / sizeof(HMDOULE);
+
+		HMODULE *modules = new HMODULE[count];
+		::EnumProcessModules(cur_proc, modules, needed, NULL);
+
+		for(size_t i = 0; i < count; i++)
+		{
+			void *result = ::GetProcAddress(modules[i], name);
+			if(result)
+			{
+				HMODULE result = modules[i];
+
+				delete[] modules;
+				return result;
+			}
+		}
+
+		delete[] modules;
+		return 0;
+	}
+#endif
 
 	void Module::Initialize()
 	{

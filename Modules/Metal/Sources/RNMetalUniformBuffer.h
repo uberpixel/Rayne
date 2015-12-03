@@ -41,7 +41,8 @@ namespace RN
 				   AmbientColor = (1 << 13),
 				   DiffuseColor = (1 << 14),
 				   SpecularColor = (1 << 15),
-				   EmissiveColor = (1 << 16));
+				   EmissiveColor = (1 << 16),
+			       DiscardThreshold = (1 << 17));
 
 		class Member
 		{

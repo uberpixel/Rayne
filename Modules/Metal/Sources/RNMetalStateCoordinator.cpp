@@ -121,7 +121,7 @@ namespace RN
 				break;
 		}
 
-		MTLSamplerMipFilter mipFilter = MTLSamplerMipFilterNotMipmapped;
+		MTLSamplerMipFilter mipFilter;
 
 		switch(parameter.filter)
 		{
@@ -207,6 +207,9 @@ namespace RN
 		MTLRenderPipelineReflection *reflection;
 		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
 
+		[pipelineStateDescriptor release];
+		[descriptor release];
+
 		// TODO: Error handling, plox
 
 		// Create the rendering state
@@ -250,7 +253,7 @@ namespace RN
 		}
 
 
-		state->state = [pipelineState retain];
+		state->state = pipelineState;
 		state->pixelFormat = pixelFormat;
 		state->depthFormat = depthFormat;
 		state->stencilFormat = stencilFormat;
@@ -262,7 +265,7 @@ namespace RN
 
 	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
 	{
-		MTLVertexDescriptor *descriptor = [[MTLVertexDescriptor vertexDescriptor] retain];
+		MTLVertexDescriptor *descriptor = [[MTLVertexDescriptor alloc] init];
 		descriptor.layouts[0].stride = mesh->GetStride();
 		descriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 		descriptor.layouts[0].stepRate = 1;

@@ -18,6 +18,7 @@ namespace RN
 	struct MetalDrawable;
 	class MetalWindow;
 	class MetalTexture;
+	class MetalUniformBuffer;
 	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
@@ -29,7 +30,7 @@ namespace RN
 		RNAPI MetalRenderer(const Dictionary *parameters);
 		RNAPI ~MetalRenderer();
 
-		RNAPI Window *CreateWindow(const Vector2 &size, Screen *screen) final;
+		RNAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
 		RNAPI Window *GetMainWindow() final;
 
 		RNAPI void RenderIntoWindow(Window *window, Function &&function) final;
@@ -45,8 +46,8 @@ namespace RN
 		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
 		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
 
-		RNAPI ShaderLibrary *GetShaderLibraryWithFile(const String *file) final;
-		RNAPI ShaderLibrary *GetShaderLibraryWithSource(const String *source) final;
+		RNAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
+		RNAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
 
 		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -55,17 +56,18 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
-
-		PIMPL<MetalRendererInternals> _internals;
-		MetalWindow *_mainWindow;
-
-		SpinLock _lock;
+		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
 
 		void CreateMipMapForeTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;
 		Dictionary *_textureFormatLookup;
+
+		PIMPL<MetalRendererInternals> _internals;
+		MetalWindow *_mainWindow;
+
+		SpinLock _lock;
 
 		RNDeclareMeta(MetalRenderer)
 	};

@@ -63,6 +63,8 @@ namespace RN
 				_members.emplace_back(Feature::SpecularColor, offset);
 			else if(name->IsEqual(RNCSTR("emissiveColor")))
 				_members.emplace_back(Feature::EmissiveColor, offset);
+			else if(name->IsEqual(RNCSTR("discardThreshold")))
+				_members.emplace_back(Feature::DiscardThreshold, offset);
 			else
 				_members.emplace_back(name, offset);
 
