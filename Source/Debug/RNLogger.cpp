@@ -26,7 +26,7 @@ namespace RN
 		std::tm tm = std::tm{0};
 		localtime_r(&timet, &tm);
 #else
-		std::tm tm = *localtime(&time);
+		std::tm tm = *localtime(&timet);
 #endif
 
 		std::chrono::duration<double> sec = time - std::chrono::system_clock::from_time_t(timet) + std::chrono::seconds(tm.tm_sec);

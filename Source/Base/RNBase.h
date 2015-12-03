@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <cstdarg>	// Without this explicit include, MSVC chokes on va_start/va_end
+
 #include <type_traits>
 #include <iostream>
 #include <iomanip>
