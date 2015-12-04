@@ -71,10 +71,6 @@
 #define RN_BUILD_RELEASE 0
 #endif
 
-#if RN_PLATFORM_WINDOWS && !defined(__GNUC__)
-typedef signed long long ssize_t;
-#endif
-
 namespace RN
 {
 	namespace numeric
