@@ -191,7 +191,15 @@ namespace RN
 		int oflag = 0;
 
 		if(mode & (Mode::Read | Mode::Write))
+		{
+#if RN_PLATFORM_POSIX
+			oflag |= O_RDWR;
+#endif
+#if RN_PLATFORM_WINDOWS
 			oflag |= _O_RDWR;
+#endif
+		}
+
 		else if(mode & Mode::Read)
 			oflag |= O_RDONLY;
 		else if(mode & Mode::Write)
