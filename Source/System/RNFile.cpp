@@ -191,7 +191,7 @@ namespace RN
 		int oflag = 0;
 
 		if(mode & (Mode::Read | Mode::Write))
-			oflag |= _O_RDWR;
+			oflag |= O_RDWR;
 		else if(mode & Mode::Read)
 			oflag |= O_RDONLY;
 		else if(mode & Mode::Write)
