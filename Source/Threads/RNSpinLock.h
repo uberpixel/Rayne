@@ -24,7 +24,7 @@ namespace RN
 	class SpinLock
 	{
 	public:
-#if _MSC_VER <= 1800
+#if _MSC_VER <= 1900	// MSVC14 still does not support value initialization of std::atomic_flag
 		SpinLock()
 		{
 			_flag.clear();
