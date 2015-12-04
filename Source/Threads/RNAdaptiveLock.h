@@ -22,9 +22,9 @@
 #define RNHardwarePause() __asm__ volatile("yield")
 #endif
 
-#define RNConditionalSpin(e, count) \
-	({ \
-		bool result = false; \
+#define RNConditionalSpin(e, count, result) \
+	do { \
+		result = false; \
 		for(size_t i = 0; i < count; i ++) \
 		{ \
 			if((e)) \
@@ -34,8 +34,7 @@
 			} \
 			RNHardwarePause(); \
 		} \
-		result; \
-	})
+	} while(0)
 
 namespace RN
 {
@@ -58,11 +57,11 @@ namespace RN
 
 			do {
 
-				if(RNConditionalSpin(_spinLock.test_and_set(std::memory_order_acquire), 10535U))
-				{
-					acquired = true;
+				bool acquired;
+				RNConditionalSpin(_spinLock.test_and_set(std::memory_order_acquire), 10535U, acquired);
+
+				if(acquired)
 					break;
-				}
 
 			} while(Clock::now() < timeout);
 

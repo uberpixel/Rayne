@@ -11,9 +11,9 @@
 #include "../Objects/RNAutoreleasePool.h"
 #include <boost/lockfree/queue.hpp>
 
-#define ConditionalSpin(e) RNConditionalSpin(e, 10535U)
+#define ConditionalSpin(e, result) RNConditionalSpin(e, 10535U, result)
 
-#define ConditionalSpinLow(e) RNConditionalSpin(e, 512U)
+#define ConditionalSpinLow(e, result) RNConditionalSpin(e, 512U, result)
 
 namespace RN
 {
@@ -190,13 +190,17 @@ namespace RN
 
 	bool WorkQueue::PerformWork()
 	{
-		if(!ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0))
+		bool result;
+		ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0, result);
+
+		if(!result)
 		{
 			std::unique_lock<std::mutex> lock(_internals->workLock);
 			_internals->workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
 		}
 
-		if(!ConditionalSpin(_barrier.load(std::memory_order_acquire) == false))
+		ConditionalSpin(_barrier.load(std::memory_order_acquire) == false, result);
+		if(!result)
 		{
 			// There currently is a barrier executing, so wait until that one is completed
 			std::unique_lock<std::mutex> lock(_barrierLock);
@@ -205,7 +209,8 @@ namespace RN
 
 		// Grab work from the work pool
 		WorkSource *source;
-		bool result = ConditionalSpinLow(_internals->workQueue.pop(source));
+		ConditionalSpinLow(_internals->workQueue.pop(source), result);
+
 		if(!result)
 			return false;
 
@@ -224,7 +229,7 @@ namespace RN
 			{
 				// Give the barrier thread a bit of time to set the barrier flag
 				// This avoids racing without introducing a lock
-				ConditionalSpinLow(_barrier.load(std::memory_order_acquire) == true);
+				ConditionalSpinLow(_barrier.load(std::memory_order_acquire) == true, result);
 
 				// Wait for rendezvous with the barrier signal
 				std::unique_lock<std::mutex> lock(_barrierLock);
@@ -237,7 +242,9 @@ namespace RN
 			}
 
 			// If the work is a barrier, wait until all other work loads clear up
-			if(!ConditionalSpin(_running.load(std::memory_order_acquire) > 1))
+			ConditionalSpin(_running.load(std::memory_order_acquire) > 1, result);
+
+			if(!result)
 			{
 				std::unique_lock<std::mutex> lock(_barrierLock);
 				_barrierSignal.wait(lock, [&]() -> bool {
@@ -304,7 +311,10 @@ namespace RN
 		{
 			if(!PerformWork())
 			{
-				if(!ConditionalSpin(_open.load(std::memory_order_acquire) > 0))
+				bool result;
+				ConditionalSpin(_open.load(std::memory_order_acquire) > 0, result);
+
+				if(!result)
 				{
 					std::unique_lock<std::mutex> lock(_internals->workLock);
 
