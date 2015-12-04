@@ -59,11 +59,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-//#if RN_PLATFORM_WINDOWS		// Posix replacement headers for msvc
-//	//#include "unistd.h"
-//	#include "dirent.h"
-//#endif
-
 #include "RNException.h"
 #include "RNOptions.h"
 #include "RNExpected.h"

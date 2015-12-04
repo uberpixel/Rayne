@@ -28,8 +28,9 @@ namespace RN
 		{}
 
 		RRef() = delete;
-		//RRef &operator =(RRef other) = delete;
-		RRef &operator = (RRef other) {
+
+		RRef &operator =(RRef other)
+		{
 			_value = std::move(other._value);
 		}
 
