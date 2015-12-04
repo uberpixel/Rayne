@@ -23,6 +23,9 @@
 #ifndef NOMINMAX
 	#define NOMINMAX
 #endif
+
+typedef signed long long ssize_t;	
+
 #endif
 
 #include "RNMemory.h"
@@ -31,6 +34,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 #include <cstdarg>	// Without this explicit include, MSVC chokes on va_start/va_end
