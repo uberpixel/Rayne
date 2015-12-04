@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.4)
 project(RayneAll)
 
 # General settings, independent of target
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
