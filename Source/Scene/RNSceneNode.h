@@ -369,42 +369,6 @@ namespace RN
 		UpdateInternalData();
 		return Matrix(_worldTransform);
 	}
-
-	void SceneNode::UpdateInternalData() const
-	{
-		if(_updated)
-		{
-			_localTransform = Matrix::WithTranslation(_position);
-			_localTransform.Rotate(_rotation);
-			_localTransform.Scale(_scale);
-
-			if(_parent)
-			{
-				_parent->UpdateInternalData();
-
-				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
-				_worldRotation = _parent->_worldRotation * _rotation;
-				_worldScale = _parent->_worldScale * _scale;
-				_worldEuler = _parent->_worldEuler + _euler;
-
-				_worldTransform = _parent->_worldTransform * _localTransform;
-			}
-			else
-			{
-				_worldPosition = _position;
-				_worldRotation = _rotation;
-				_worldScale = _scale;
-				_worldEuler = _euler;
-
-				_worldTransform = _localTransform;
-			}
-
-			_updated = false;
-			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
-				child->_updated = true;
-			});
-		}
-	}
 }
 
 

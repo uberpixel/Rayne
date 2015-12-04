@@ -71,6 +71,10 @@
 #define RN_BUILD_RELEASE 0
 #endif
 
+#if __MSVC__
+typedef signed long long ssize_t;
+#endif
+
 namespace RN
 {
 	namespace numeric
@@ -86,8 +90,6 @@ namespace RN
 
 		typedef ${RAYNE_INT64} int64;
 		typedef ${RAYNE_UINT64} uint64;
-
-		typedef ${RAYNE_SSIZE_T} ssize_t;
 	}
 
 	using namespace numeric;

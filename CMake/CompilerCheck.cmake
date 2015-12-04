@@ -146,17 +146,6 @@ else()
     message(FATAL_ERROR "Could not detect a valid unsiged 64-bit integer type")
 endif()
 
-check_type_size(ssize_t SSIZE_T)
-check_type_size("signed long long" SIGNED_LONG_LONG_INT)
-
-if(HAVE_SSIZE_T)
-    set(RAYNE_SSIZE_T uint64_t)
-elseif(HAVE_SIGNED_LONG_LONG_INT AND (${SIGNED_LONG_LONG_INT} EQUAL 8))
-    set(RAYNE_SSIZE_T "signed long long")
-else()
-    message(FATAL_ERROR "Could not detect a valid signed 64-bit integer type")
-endif()
-
 # Check language features
 
 check_c_source_compiles("int main() { if(__PRETTY_FUNCTION__) {} }" HAVE_PRETTY_FUNCTION)
