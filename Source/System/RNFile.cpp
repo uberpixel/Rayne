@@ -9,6 +9,10 @@
 #include "RNFile.h"
 #include "RNFileCoordinator.h"
 
+#if RN_PLATFORM_WINDOWS
+	#include "../Base/RNUnistd.h"
+#endif
+
 namespace RN
 {
 	RNDefineMeta(File, Object)
@@ -187,7 +191,7 @@ namespace RN
 		int oflag = 0;
 
 		if(mode & (Mode::Read | Mode::Write))
-			oflag |= O_RDWR;
+			oflag |= _O_RDWR;
 		else if(mode & Mode::Read)
 			oflag |= O_RDONLY;
 		else if(mode & Mode::Write)

@@ -16,6 +16,9 @@
 	#include <dirent.h>
 	#include <unistd.h>
 	#include <sys/stat.h>
+#elif RN_PLATFORM_WINDOWS
+	#include "../Base/RNUnistd.h"
+	#include "dirent.h"
 #endif
 
 namespace RN
@@ -218,8 +221,9 @@ namespace RN
 #else
 		char buffer[MAX_PATH];
 
-		DWORD result = ::GetFullPathNameA(tpath.c_str(), MAX_PATH, buffer, nullptr);
-		std::string path((result != 0) ? buffer : tpath.c_str());
+		auto cpath = tpath->GetUTF8String();
+		DWORD result = ::GetFullPathNameA(cpath, MAX_PATH, buffer, nullptr);
+		String *path = String::WithString(((result != 0) ? buffer : cpath));
 #endif
 
 		return path;
@@ -522,7 +526,7 @@ namespace RN
 
 	bool FileCoordinator::PathExists(const String *path)
 	{
-		__unused bool ignored;
+		bool ignored;
 		return PathExists(path, ignored);
 	}
 
