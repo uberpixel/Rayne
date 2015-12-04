@@ -83,6 +83,7 @@
 	#include <windows.h>
 	#include <commdlg.h>
 	#include <ShlObj.h>
+	#include <Psapi.h>
 
 	#undef near
 	#undef far

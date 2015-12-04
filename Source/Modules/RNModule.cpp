@@ -198,10 +198,10 @@ namespace RN
 
 		::EnumProcessModules(process, NULL, 0, &needed);
 
-		size_t count = needed / sizeof(HMDOULE);
+		size_t count = needed / sizeof(HMODULE);
 
 		HMODULE *modules = new HMODULE[count];
-		::EnumProcessModules(cur_proc, modules, needed, NULL);
+		::EnumProcessModules(process, modules, needed, NULL);
 
 		for(size_t i = 0; i < count; i++)
 		{
