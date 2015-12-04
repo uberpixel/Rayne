@@ -598,7 +598,7 @@ namespace RN
 					char ca = static_cast<char>(a);
 					char cb = static_cast<char>(b);
 					
-					if(isnumber(ca) && isnumber(cb))
+					if(isdigit(ca) && isdigit(cb))
 					{
 						uint32 numA = 0;
 						uint32 numB = 0;
@@ -615,7 +615,7 @@ namespace RN
 								break;
 							
 							ca = static_cast<char>(a);
-						} while(isnumber(ca));
+						} while(isdigit(ca));
 						
 						do {
 							numB = numB * 10 + (cb - '0');
@@ -628,7 +628,7 @@ namespace RN
 								break;
 
 							cb = static_cast<char>(b);
-						} while(isnumber(cb));
+						} while(isdigit(cb));
 						
 						if(numA > numB)
 							return ComparisonResult::GreaterThan;
