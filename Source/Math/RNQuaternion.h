@@ -482,23 +482,23 @@ namespace RN
 		
 		Vector3 result;
 		
-		result.y = asin(fmax(fmin(-2.0f * (yz - xw), 1.0), -1.0));
-		double cy = cos(result.y);
+		result.y = asinf(fmax(fmin(-2.0f * (yz - xw), 1.0f), -1.0f));
+		float cy = cosf(result.y);
 		if(Math::FastAbs(cy) > k::EpsilonFloat)
 		{
-			result.x = atan2(2.0f * (xz + yw)/cy, (1.0f - 2.0f * (xx + yy))/cy);
-			result.z = atan2(2.0f * (xy + zw)/cy, (1.0f - 2.0f * (xx + zz))/cy);
+			result.x = atan2f(2.0f * (xz + yw)/cy, (1.0f - 2.0f * (xx + yy))/cy);
+			result.z = atan2f(2.0f * (xy + zw)/cy, (1.0f - 2.0f * (xx + zz))/cy);
 		}
 		else
 		{
 			result.z = 0.0f;
 			if(result.y > 0.0f)
 			{
-				result.x = atan2(2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
+				result.x = atan2f(2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
 			}
 			else
 			{
-				result.x = atan2(-2.0f * (xy - zw), -1.0f - 2.0f * (yy + zz));
+				result.x = atan2f(-2.0f * (xy - zw), -1.0f - 2.0f * (yy + zz));
 			}
 		}
 		

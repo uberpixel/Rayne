@@ -86,6 +86,8 @@ namespace RN
 
 		typedef ${RAYNE_INT64} int64;
 		typedef ${RAYNE_UINT64} uint64;
+
+		typedef ${RAYNE_SSIZE_T} ssize_t;
 	}
 
 	using namespace numeric;

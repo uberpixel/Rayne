@@ -17,7 +17,7 @@ namespace RN
 {
 	RN_INLINE Matrix::Matrix()
 	{
-		std::fill(m, m + 16, 0);
+		std::fill(m, m + 16, 0.0f);
 		m[0] = m[5] = m[10] = m[15] = 1.0f;
 	}
 
@@ -180,7 +180,7 @@ namespace RN
 	{
 		Matrix mat;
 		
-		std::fill(mat.m, mat.m + 16, 0);
+		std::fill(mat.m, mat.m + 16, 0.0f);
 		mat.m[0] = mat.m[5] = mat.m[10] = mat.m[15] = 1.0f;
 		
 		return mat;
@@ -343,23 +343,23 @@ namespace RN
 	{
 		Vector3 result;
 		
-		result.y = asin(fmax(fmin(-m[9], 1.0), -1.0));
-		double cy = cos(result.y);
+		result.y = asinf(fmax(fmin(-m[9], 1.0f), -1.0f));
+		float cy = cosf(result.y);
 		if(Math::FastAbs(cy) > k::EpsilonFloat)
 		{
-			result.x = atan2(m[8]/cy, m[10]/cy);
-			result.z = atan2(m[1]/cy, m[5]/cy);
+			result.x = atan2f(m[8]/cy, m[10]/cy);
+			result.z = atan2f(m[1]/cy, m[5]/cy);
 		}
 		else
 		{
 			result.z = 0.0f;
 			if(result.y > 0.0f)
 			{
-				result.x = atan2(m[4], m[0]);
+				result.x = atan2f(m[4], m[0]);
 			}
 			else
 			{
-				result.x = atan2(-m[4], -m[0]);
+				result.x = atan2f(-m[4], -m[0]);
 			}
 		}
 		

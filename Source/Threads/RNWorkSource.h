@@ -17,7 +17,7 @@ namespace RN
 	struct WorkSource
 	{
 	public:
-		friend class WorkSourcePool;
+		friend struct WorkSourcePool;
 		friend class WorkQueue;
 
 		RN_OPTIONS(Flags, uint32,

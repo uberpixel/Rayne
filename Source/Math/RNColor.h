@@ -305,7 +305,7 @@ namespace RN
 	
 	RN_INLINE Color Color::WithHSV(float h, float s, float v, float alpha)
 	{
-		float hi = h * 3.0 / k::Pi;
+		float hi = h * 3.0f / k::Pi;
 		float f  = hi - floorf(hi);
 		
 		if(hi >= 3.0f)
@@ -313,7 +313,7 @@ namespace RN
 		if(hi < -3.0f)
 			hi += 6.0f;
 		
-		Color components(0.0, s, s * f, s * (1.0 - f));
+		Color components(0.0f, s, s * f, s * (1.0f - f));
 		components = Color::White() - components;
 		components *= v;
 		components.r = fmaxf(components.r, 0.0f);

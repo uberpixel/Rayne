@@ -231,7 +231,7 @@ namespace RN
 
 		_time += _delta;
 
-		_application->WillStep(_delta);
+		_application->WillStep(static_cast<float>(_delta));
 
 		// Perform work submitted to the main queue
 		{
@@ -251,8 +251,8 @@ namespace RN
 		HandleSystemEvents();
 
 		// Update input and then run scene updates
-		_inputManager->Update(_delta);
-		_sceneManager->Update(_delta);
+		_inputManager->Update(static_cast<float>(_delta));
+		_sceneManager->Update(static_cast<float>(_delta));
 
 		if(_renderer)
 		{
@@ -261,7 +261,7 @@ namespace RN
 			});
 		}
 
-		_application->DidStep(_delta);
+		_application->DidStep(static_cast<float>(_delta));
 		_lastFrame = now;
 
 		// FPS cap
