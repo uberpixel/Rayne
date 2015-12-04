@@ -50,6 +50,7 @@ namespace RN
 		void *_handle;
 #endif
 #if RN_PLATFORM_WINDOWS
+		HMODULE GetModuleWithFunction(const char *name);
 		HMODULE _handle;
 #endif
 

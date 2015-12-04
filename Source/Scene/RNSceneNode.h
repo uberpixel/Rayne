@@ -370,7 +370,7 @@ namespace RN
 		return Matrix(_worldTransform);
 	}
 
-	RN_INLINE void SceneNode::UpdateInternalData() const
+	void SceneNode::UpdateInternalData() const
 	{
 		if(_updated)
 		{

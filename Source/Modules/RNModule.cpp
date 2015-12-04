@@ -134,7 +134,7 @@ namespace RN
 			{
 				char pathBuffer[1024];
 
-				size_t result = ::GetDllDirectory(module, &pathBuffer);
+				size_t result = ::GetModuleFileName(module, pathBuffer, 1024);
 				pathBuffer[result + 1] = '\0';
 
 				_handle = module;
