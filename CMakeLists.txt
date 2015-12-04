@@ -36,7 +36,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
 set(ZLIB_FOUND 1)
 set(ZLIB_LIBRARIES zlibstatic)
 set(ZLIB_LIBRARY zlibstatic)
-set(ZLIB_INCLUDE_DIR ../Vendor/zlib)
+set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/Vendor/zlib" "${CMAKE_BINARY_DIR}/Vendor/zlib")
 
 # Include all Rayne targets
 add_subdirectory("Source")
