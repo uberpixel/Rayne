@@ -10,6 +10,8 @@
 #include "RNLoggingEngine.h"
 #include "../Base/RNSettings.h"
 
+#include "../Base/RNUnistd.h"
+
 namespace RN
 {
 	static Logger *__sharedLogger = nullptr;
