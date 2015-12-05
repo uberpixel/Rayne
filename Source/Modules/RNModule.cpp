@@ -69,7 +69,7 @@ namespace RN
 
 		_path = coordinator->ResolveFullPath(base, 0);
 		if(!_path)
-			throw InvalidArgumentException(std::string("Couldn't resolve module name: ") + name->GetUTF8String());
+			throw InvalidArgumentException(RNSTR("Couldn't resolve module name: " << name));
 
 		_path->Retain();
 		_name = _name->GetLastPathComponent();
