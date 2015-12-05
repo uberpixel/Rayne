@@ -467,12 +467,9 @@ namespace RN
 				TCHAR tpath[MAX_PATH];
 				::SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, tpath);
 
-				std::stringstream stream;
-				stream << tpath << "/" << title;
-
 				String *path = RNSTR(tpath << "/" << application);
 
-				::CreateDirectory(path->GetUTF8String(), NULL)
+				::CreateDirectory(path->GetUTF8String(), NULL);
 				return path;
 #endif
 				break;
