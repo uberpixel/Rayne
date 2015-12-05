@@ -52,9 +52,13 @@ namespace RN
 		Settings *GetSettings() const { return _settings; }
 
 		template<class T>
-		T *GetManifestEntryForKey(String *key) const
+		T *GetManifestEntryForKey(const String *key) const
 		{
-			return _manifest->GetObjectForKey<T>(key);
+			Object *result = __GetManifestEntryForKey(key);
+			if(!result)
+				return nullptr;
+
+			return result->Downcast<T>();
 		}
 
 	private:
@@ -68,6 +72,8 @@ namespace RN
 
 		void HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity);
 		void HandleSystemEvents();
+
+		RNAPI Object *__GetManifestEntryForKey(const String *key) const;
 
 		const ArgumentParser &_arguments;
 

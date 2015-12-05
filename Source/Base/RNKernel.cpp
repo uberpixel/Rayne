@@ -147,9 +147,25 @@ namespace RN
 		if(!_manifest)
 			throw InconsistencyException("Malformed manifest.json");
 
-		String *title = _manifest->GetObjectForKey<String>(kRNManifestApplicationKey);
+		String *title = GetManifestEntryForKey<String>(kRNManifestApplicationKey);
 		if(!title)
 			throw InconsistencyException("Malformed manifest.json, RNApplication key not set");
+	}
+
+	Object *Kernel::__GetManifestEntryForKey(const String *key) const
+	{
+		Object *result;
+
+#if RN_PLATFORM_MAC_OS
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~osx")))))
+			return result;
+#endif
+#if RN_PLATFORM_WINDOWS
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~win")))))
+			return result;
+#endif
+
+		return _manifest->GetObjectForKey(key);
 	}
 
 	void Kernel::FinishBootstrap()
