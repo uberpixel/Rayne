@@ -85,7 +85,7 @@ namespace RN
 			{}
 		}
 
-		_screens.clear();
+		__MonitorHandles.clear();
 #endif
 	}
 	void Screen::TeardownScreens()
