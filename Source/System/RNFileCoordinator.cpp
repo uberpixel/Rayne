@@ -379,6 +379,26 @@ namespace RN
 					return result;
 				}
 #endif
+#if RN_PLATFORM_WINDOWS
+				char buffer[MAX_PATH];
+				DWORD size = MAX_PATH;
+
+				::GetModuleFileNameA(0, buffer, size);
+
+				char *temp = buffer + strlen(buffer);
+				while(temp != buffer)
+				{
+					temp --;
+
+					if(*temp == '/' || *temp == '\\')
+					{
+						*temp = '\0';
+						break;
+					}
+				}
+
+				return RNSTR(buffer);
+#endif
 
 				break;
 			}
@@ -404,6 +424,26 @@ namespace RN
 					return result;
 				}
 #endif
+#if RN_PLATFORM_WINDOWS
+				char buffer[MAX_PATH];
+				DWORD size = MAX_PATH;
+
+				::GetModuleFileNameA(0, buffer, size);
+
+				char *temp = buffer + strlen(buffer);
+				while(temp != buffer)
+				{
+					temp --;
+
+					if(*temp == '/' || *temp == '\\')
+					{
+						*temp = '\0';
+						break;
+					}
+				}
+
+				return RNSTR(buffer);
+#endif
 
 				break;
 			}
@@ -420,6 +460,20 @@ namespace RN
 
 				return RNSTR([[url path] UTF8String]);
 
+#endif
+#if RN_PLATFORM_WINDOWS
+				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
+
+				TCHAR tpath[MAX_PATH];
+				::SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, tpath);
+
+				std::stringstream stream;
+				stream << tpath << "/" << title;
+
+				String *path = RNSTR(tpath << "/" << application);
+
+				::CreateDirectory(path->GetUTF8String(), NULL)
+				return path;
 #endif
 				break;
 			}
