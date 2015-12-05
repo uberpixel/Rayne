@@ -569,13 +569,13 @@ namespace RN
 			} \
 		} while(0)
 
-#define CharactersLeft(Side) \
-		({ size_t result; \
-		if(i##Side >= read##Side && left##Side == 0) \
-		{ result = 0; } \
-		else \
-		{ result = read##Side - i##Side; } \
-		(result); })
+#define CharactersLeft(Side, result) \
+		do { \
+			if(i##Side >= read##Side && left##Side == 0) \
+			{ result = 0; } \
+			else \
+			{ result = read##Side - i##Side; } \
+		} while(0)
 		
 		while(1)
 		{
@@ -606,7 +606,10 @@ namespace RN
 						do {
 							numA = numA * 10 + (ca - '0');
 
-							if(CharactersLeft(A) == 0)
+							size_t left;
+							CharactersLeft(A, left);
+
+							if(left == 0)
 								break;
 
 							ReadCharacter(A);
@@ -620,9 +623,12 @@ namespace RN
 						do {
 							numB = numB * 10 + (cb - '0');
 
-							if(CharactersLeft(B) == 0)
+							size_t left;
+							CharactersLeft(B, left);
+
+							if(left == 0)
 								break;
-							
+
 							ReadCharacter(B);
 							if((b = charactersB[iB ++]) > CodePoint::ASCIITerminator())
 								break;
@@ -654,8 +660,10 @@ namespace RN
 		
 	endComparison:
 
-		size_t _leftA = CharactersLeft(A);
-		size_t _leftB = CharactersLeft(B);
+		size_t _leftA;
+		size_t _leftB;
+		CharactersLeft(A, _leftA);
+		CharactersLeft(B, _leftB);
 
 		if(_leftA && !_leftB)
 			return ComparisonResult::GreaterThan;
