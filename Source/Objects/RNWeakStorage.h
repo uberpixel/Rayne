@@ -21,7 +21,7 @@ namespace RN
 		RNAPI WeakStorage();
 		RNAPI ~WeakStorage() override;
 
-		RNAPI void AddObject(Object *objet);
+		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(Object *object);
 		RNAPI void RemoveObjectIdenticalTo(Object *object);
 		RNAPI void RemoveAllObjects();
