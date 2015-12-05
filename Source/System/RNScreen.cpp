@@ -14,6 +14,16 @@ namespace RN
 {
 	RNDefineMeta(Screen, Object)
 
+#if RN_PLATFORM_WINDOWS
+	static std::vector<HMONITOR> __MonitorHandles;
+
+	static BOOL __MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+	{
+		__MonitorHandles.push_back(hMonitor);
+		return true;
+	}
+#endif
+
 	static Screen *_mainScreen;
 	static Array *_screens;
 
@@ -55,6 +65,27 @@ namespace RN
 
 			delete [] table;
 		}
+#endif
+#if RN_PLATFORM_WINDOWS
+
+		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)&__MonitorEnumProc, NULL);
+
+		for(HMONITOR monitor : __MonitorHandles)
+		{
+			try
+			{
+				Screen *screen = new Screen(monitor);
+
+				_screens->AddObject(screen->Autorelease());
+
+				if(screen->IsMainScreen())
+					_mainScreen = screen;
+			}
+			catch(Exception e)
+			{}
+		}
+
+		_screens.clear();
 #endif
 	}
 	void Screen::TeardownScreens()
@@ -162,6 +193,53 @@ namespace RN
 		if(screenName)
 			_name = RNSTR([screenName UTF8String])->Retain();
 	}
+#endif
+
+#if RN_PLATFORM_WINDOWS
+	Screen::Screen(HMONITOR monitor) :
+		_resolutions(new Array()),
+		_name(nullptr),
+		_monitor(monitor),
+		_scaleFactor(1.0f),
+		_isMainScreen(false)
+	{
+		MONITORINFOEXA info;
+		info.cbSize = sizeof(MONITORINFOEXA);
+
+		if(!::GetMonitorInfoA(_monitor, &info))
+			throw GenericException("GetMonitorInfoA failed");
+
+		_isMainScreen = (info.dwFlags & MONITORINFOF_PRIMARY);
+
+		_frame.x = info.rcMonitor.left;
+		_frame.y = info.rcMonitor.top;
+
+		_frame.width = info.rcMonitor.right - info.rcMonitor.left;
+		_frame.height = info.rcMonitor.bottom - info.rcMonitor.top;
+
+		for(DWORD modeNum = 0; ; modeNum++)
+		{
+			DEVMODE mode;
+
+			mode.dmSize = sizeof(DEVMODE);
+			mode.dmDriverExtra = 0;
+
+			if(!::EnumDisplaySettingsA(info.szDevice, modeNum, &mode))
+				break;
+
+			uint32 width = mode.dmPelsWidth;
+			uint32 height = mode.dmPelsHeight;
+
+			if(width >= 320 && height >= 240)
+			{
+				Value *value = Value::WithVector2(Vector2(width, height));
+				_resolutions->AddObject(value);
+			}
+		}
+
+		_name = RNSTR(info.szDevice)->Retain();
+	}
+#endif
 
 	Screen::~Screen()
 	{
@@ -170,5 +248,4 @@ namespace RN
 
 		_resolutions->Release();
 	}
-#endif
 }

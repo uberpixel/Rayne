@@ -51,6 +51,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		Screen(CGDirectDisplayID display);
 #endif
+#if RN_PLATFORM_WINDOWS
+		Screen(HMONITOR monitor);
+#endif
 
 		Rect _frame;
 		float _scaleFactor;
@@ -61,6 +64,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID _display;
 		void *_nsscreen; // NSScreen * instance
+#endif
+#if RN_PLATFORM_WINDOWS
+		HMONITOR _monitor;
 #endif
 
 		RNDeclareMeta(Screen)
