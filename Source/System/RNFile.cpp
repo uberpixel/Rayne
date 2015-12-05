@@ -11,6 +11,8 @@
 
 #if RN_PLATFORM_WINDOWS
 	#include "../Base/RNUnistd.h"
+#elif RN_PLATFORM_POSIX
+#define O_BINARY 0x0
 #endif
 
 namespace RN
@@ -22,13 +24,13 @@ namespace RN
 		_mode(mode),
 		_path(path->Copy())
 	{
-		_size = static_cast<size_t>(_lseek(fd, 0, SEEK_END));
-		_lseek(fd, 0, SEEK_SET);
+		_size = static_cast<size_t>(lseek(fd, 0, SEEK_END));
+		lseek(fd, 0, SEEK_SET);
 	}
 
 	File::~File()
 	{
-		_close(_fd);
+		close(_fd);
 		SafeRelease(_path);
 	}
 
@@ -58,7 +60,7 @@ namespace RN
 
 		do {
 
-			ssize_t bytesRead = _read(_fd, bytes + totalRead, left);
+			ssize_t bytesRead = read(_fd, bytes + totalRead, left);
 			if(bytesRead == 0)
 				break;
 
@@ -116,7 +118,7 @@ namespace RN
 
 		do {
 
-			ssize_t written = _write(_fd, bytes + totalWritten, left);
+			ssize_t written = write(_fd, bytes + totalWritten, left);
 			if(written == 0)
 				break;
 
@@ -156,7 +158,7 @@ namespace RN
 
 	int File::CreateFileDescriptor() const
 	{
-		return _dup(_fd);
+		return dup(_fd);
 	}
 
 	FILE *File::CreateFile() const
@@ -182,13 +184,13 @@ namespace RN
 				mode = "wb";
 		}
 
-		return _fdopen(_dup(_fd), mode);
+		return fdopen(dup(_fd), mode);
 	}
 
 
 	int  File::__FileWithPath(const String *name, Mode mode)
 	{
-		int oflag = 0;
+		int oflag = O_BINARY;
 
 		if(mode & (Mode::Read | Mode::Write))
 			oflag |= O_RDWR;
@@ -208,15 +210,10 @@ namespace RN
 		if(!(mode & Mode::Append) && !(mode & Mode::Read))
 			oflag |= O_TRUNC;
 
-		if(oflag)
-		{
-			oflag |= O_BINARY;
-		}
-
 		// Open the file
 		int error = errno;
 
-		int fd = _open(name->GetUTF8String(), oflag);
+		int fd = open(name->GetUTF8String(), oflag);
 		if(fd == -1)
 		{
 			errno = error;
