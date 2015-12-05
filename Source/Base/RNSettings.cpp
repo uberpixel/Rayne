@@ -101,13 +101,13 @@ namespace RN
 		return location;
 	}
 
-	void Settings::SetEntryForKey(Object *object, String *key)
+	void Settings::SetEntryForKey(Object *object, const String *tkey)
 	{
 		if(!JSONSerialization::IsValidJSONObject(object))
 			throw InvalidArgumentException("Object must be serializable to JSON!");
 
 		object = object->Copy();
-		key = key->Copy();
+		String *key = tkey->Copy();
 
 		std::lock_guard<std::mutex> lock(_lock);
 
@@ -115,7 +115,7 @@ namespace RN
 		_isDirty = true;
 	}
 
-	void Settings::RemoveEntryForKey(String *key)
+	void Settings::RemoveEntryForKey(const String *key)
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 		_settings->RemoveObjectForKey(key);
@@ -145,5 +145,26 @@ namespace RN
 		{
 			RNWarning("Encountered the following exception while trying to sync the settings.json: " << e);
 		}
+	}
+
+	Object *Settings::__RetrieveObjectForLiteralKey(const String *key) const
+	{
+		return _settings->GetObjectForKey(key);
+	}
+
+	Object *Settings::__GetObjectForKey(const String *key) const
+	{
+		Object *result;
+
+#if RN_PLATFORM_MAC_OS
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~osx")))))
+			return result;
+#endif
+#if RN_PLATFORM_WINDOWS
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~win")))))
+			return result;
+#endif
+
+		return _settings->GetObjectForKey(key);
 	}
 }

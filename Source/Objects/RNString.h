@@ -67,6 +67,8 @@ namespace RN
 		RNAPI void ReplaceCharacters(const String *replacement, const Range &range);
 		RNAPI void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 
+		RNAPI String *StringByAppendingString(const String *other) const;
+
 		/**
 		 * Comparison / Lookup
 		 **/

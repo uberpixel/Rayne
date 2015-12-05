@@ -30,10 +30,10 @@ namespace RN
 		RNAPI static String *GetSettingsLocation();
 
 		template<class T=Object>
-		T *GetEntryForKey(String *key) const
+		T *GetEntryForKey(const String *key) const
 		{
 			std::unique_lock<std::mutex> lock(_lock);
-			T *object = _settings->GetObjectForKey<T>(key);
+			Object *object = __GetObjectForKey(key);
 
 			if(!object)
 				return nullptr;
@@ -41,56 +41,59 @@ namespace RN
 			object->Retain();
 			lock.unlock();
 
-			return object->Autorelease();
+			return object->Autorelease()->Downcast<T>();
 		}
 
-		bool GetBoolForKey(String *key, bool defaultValue = false) const
+		bool GetBoolForKey(const String *key, bool defaultValue = false) const
 		{
 			Number *number = GetEntryForKey<Number>(key);
 			return number ? number->GetBoolValue() : defaultValue;
 		}
-		float GetFloatForKey(String *key, float defaultValue = 0.0f) const
+		float GetFloatForKey(const String *key, float defaultValue = 0.0f) const
 		{
 			Number *number = GetEntryForKey<Number>(key);
 			return number ? number->GetFloatValue() : defaultValue;
 		}
-		int32 GetInt32ForKey(String *key, int32 defaultValue = 0) const
+		int32 GetInt32ForKey(const String *key, int32 defaultValue = 0) const
 		{
 			Number *number = GetEntryForKey<Number>(key);
 			return number ? number->GetInt32Value() : defaultValue;
 		}
-		uint32 GetUint32ForKey(String *key, uint32 defaultValue = 0) const
+		uint32 GetUint32ForKey(const String *key, uint32 defaultValue = 0) const
 		{
 			Number *number = GetEntryForKey<Number>(key);
 			return number ? number->GetUint32Value() : defaultValue;
 		}
 
-		RNAPI void SetEntryForKey(Object *object, String *key);
+		RNAPI void SetEntryForKey(Object *object, const String *key);
 
-		void SetBoolForKey(String *key, bool value)
+		void SetBoolForKey(const String *key, bool value)
 		{
 			SetEntryForKey(Number::WithBool(value), key);
 		}
-		void SetFloatForKey(String *key, float value)
+		void SetFloatForKey(const String *key, float value)
 		{
 			SetEntryForKey(Number::WithFloat(value), key);
 		}
-		void SetInt32ForKey(String *key, int32 value)
+		void SetInt32ForKey(const String *key, int32 value)
 		{
 			SetEntryForKey(Number::WithInt32(value), key);
 		}
-		void SetUint32ForKey(String *key, uint32 value)
+		void SetUint32ForKey(const String *key, uint32 value)
 		{
 			SetEntryForKey(Number::WithUint32(value), key);
 		}
 
-		RNAPI void RemoveEntryForKey(String *key);
+		RNAPI void RemoveEntryForKey(const String *key);
 
 		RNAPI void Sync();
 
 	private:
 		Settings();
 		~Settings();
+
+		RNAPI Object *__GetObjectForKey(const String *key) const;
+		RNAPI Object *__RetrieveObjectForLiteralKey(const String *key) const;
 
 		mutable std::mutex _lock;
 		bool _isDirty;

@@ -301,6 +301,14 @@ namespace RN
 			ReplaceCharacters(replacement, range);
 		}
 	}
+
+	String *String::StringByAppendingString(const String *other) const
+	{
+		String *result = Copy();
+		result->Append(other);
+
+		return result->Autorelease();
+	}
 	
 	// ---------------------
 	// MARK: -
