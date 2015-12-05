@@ -1,9 +1,5 @@
 
 macro(__rayne_create_target _NAME _ARCH _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERSION _ABI)
-
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
-
     # Input check
     if(NOT ((${_ARCH} EQUAL 64) OR (${_ARCH} EQUAL 32)))
         message(FATAL_ERROR "Target must be either \"32\" or \"64\", is \"${_ARCH}\"")
