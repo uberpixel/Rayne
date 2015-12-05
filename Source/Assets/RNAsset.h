@@ -20,12 +20,12 @@ namespace RN
 	public:
 		friend class AssetManager;
 
-		Asset();
+		RNAPI Asset();
 
-		const String *GetDescription() const override;
+		RNAPI const String *GetDescription() const override;
 
 	protected:
-		void Dealloc() override;
+		RNAPI void Dealloc() override;
 
 	private:
 		void __AwakeWithCoordinator(AssetManager *coordinator, String *name, MetaClass *meta);
