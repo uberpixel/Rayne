@@ -207,7 +207,7 @@ namespace RN
 		info.cbSize = sizeof(MONITORINFOEXA);
 
 		if(!::GetMonitorInfoA(_monitor, &info))
-			throw GenericException("GetMonitorInfoA failed");
+			throw InconsistencyException("GetMonitorInfoA failed");
 
 		_isMainScreen = (info.dwFlags & MONITORINFOF_PRIMARY);
 
