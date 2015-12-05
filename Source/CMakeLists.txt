@@ -104,6 +104,7 @@ set(RAYNE_HEADERS
     Base/RNSTL.h
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
+    Base/RNUnistd.h
     Data/RNAny.h
     Data/RNIntrusiveList.h
     Data/RNRingBuffer.h
