@@ -18,6 +18,20 @@
 
 namespace RN
 {
+	class ShaderLookupRequest : public Object
+	{
+	public:
+		RNAPI ShaderLookupRequest();
+
+		bool receiveShadows;
+		bool castShadows;
+
+		bool discard;
+
+	private:
+		RNDeclareMeta(ShaderLookupRequest)
+	};
+
 	class ShaderCompileOptions : public Object
 	{
 	public:
@@ -36,6 +50,22 @@ namespace RN
 		Dictionary *_defines;
 
 		RNDeclareMeta(ShaderCompileOptions)
+	};
+
+	class ShaderProgram : public Object
+	{
+	public:
+		RNAPI ShaderProgram(Shader *vertexShader, Shader *fragmentShader);
+		RNAPI ~ShaderProgram();
+
+		Shader *GetVertexShader() const { return _vertexShader; }
+		Shader *GetFragmentShader() const { return _fragmentShader; }
+
+	private:
+		Shader *_vertexShader;
+		Shader *_fragmentShader;
+
+		RNDeclareMeta(ShaderProgram)
 	};
 
 	class ShaderLibrary : public Object

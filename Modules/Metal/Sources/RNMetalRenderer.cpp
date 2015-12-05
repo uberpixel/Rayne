@@ -297,6 +297,11 @@ namespace RN
 		return lib;
 	}
 
+	ShaderProgram *MetalRenderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
+	{
+		return nullptr;
+	}
+
 	bool MetalRenderer::SupportsTextureFormat(const String *format) const
 	{
 		return (_textureFormatLookup->GetObjectForKey(format) != nullptr);

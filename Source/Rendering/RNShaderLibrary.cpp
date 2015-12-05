@@ -11,6 +11,14 @@
 namespace RN
 {
 	RNDefineMeta(ShaderLibrary, Object)
+	RNDefineMeta(ShaderLookupRequest, Object)
+
+	ShaderLookupRequest::ShaderLookupRequest() :
+		receiveShadows(true),
+		castShadows(true),
+		discard(true)
+	{}
+
 	RNDefineMeta(ShaderCompileOptions, Object)
 
 	ShaderCompileOptions::ShaderCompileOptions() :
@@ -36,5 +44,18 @@ namespace RN
 	{
 		SafeRelease(_basePath);
 		_basePath = SafeCopy(basePath);
+	}
+
+	RNDefineMeta(ShaderProgram, Object)
+
+	ShaderProgram::ShaderProgram(Shader *vertexShader, Shader *fragmentShader) :
+		_vertexShader(SafeRetain(vertexShader)),
+		_fragmentShader(SafeRetain(fragmentShader))
+	{}
+
+	ShaderProgram::~ShaderProgram()
+	{
+		SafeRelease(_vertexShader);
+		SafeRelease(_fragmentShader);
 	}
 }
