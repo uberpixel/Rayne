@@ -12,7 +12,6 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Data/RNRingbuffer.h"
-#include "../Data/RNRRef.h"
 #include "RNWorkSource.h"
 #include "RNThread.h"
 
@@ -55,11 +54,9 @@ namespace RN
 			std::packaged_task<resultType ()> task(std::move(f));
 			std::future<resultType> result(task.get_future());
 
-			auto rref = MakeRRef(std::move(task));
+			Perform([func = std::move(task)]() mutable {
 
-			Perform([rref]() mutable {
-
-				std::packaged_task<resultType ()> task(std::move(rref.Move()));
+				std::packaged_task<resultType ()> task(std::move(func));
 				task();
 
 			});

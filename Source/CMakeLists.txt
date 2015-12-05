@@ -107,7 +107,6 @@ set(RAYNE_HEADERS
     Data/RNAny.h
     Data/RNIntrusiveList.h
     Data/RNRingBuffer.h
-    Data/RNRRef.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
     Input/RNInputControl.h

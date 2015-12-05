@@ -7,7 +7,6 @@
 //
 
 #include "RNWorkGroup.h"
-#include "../Data/RNRRef.h"
 
 namespace RN
 {
@@ -30,11 +29,9 @@ namespace RN
 	{
 		Enter();
 
-		auto rref = MakeRRef(std::move(function));
+		queue->Perform([this, f = std::move(function)]() mutable {
 
-		queue->Perform([this, rref]() mutable {
-
-			Function func(rref.Move());
+			Function func(std::move(f));
 			func();
 
 			Leave();
