@@ -101,4 +101,9 @@ namespace RN
 		if(_reason.empty())
 			_reason = "Jabberwock is killing user";
 	}
+
+	const char *Exception::what() const RN_NOEXCEPT
+	{
+		return _reason.c_str();
+	}
 }

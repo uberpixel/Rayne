@@ -22,7 +22,7 @@ namespace RN
 {
 	class Thread;
 	class String;
-	class Exception
+	class Exception : public std::exception
 	{
 	public:
 		RNAPI Exception(const std::string &reason);
@@ -31,7 +31,9 @@ namespace RN
 		Thread *GetThread() const { return _thread; }
 		const std::string &GetReason() const { return _reason; }
 		const std::vector<std::pair<uintptr_t, std::string>> &GetCallStack() const { return _callStack; }
-		
+
+		RNAPI const char *what() const RN_NOEXCEPT override;
+
 	private:
 		void GatherInfo();
 
