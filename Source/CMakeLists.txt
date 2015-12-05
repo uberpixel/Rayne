@@ -188,13 +188,17 @@ set(RAYNE_PLATFORM_SOURCES "")
 set(RAYNE_PLATFORM_HEADERS_PRIVATE "")
 
 if(APPLE)
-
     set(RAYNE_PLATFORM_SOURCES
             Input/RNInputOSX.cpp)
 
     set(RAYNE_PLATFORM_HEADERS_PRIVATE
             Input/RNInputOSX.h)
+elseif(WIN32)
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputWindows.cpp)
 
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputWindows.h)
 endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)

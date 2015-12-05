@@ -265,7 +265,7 @@ namespace RN
 				
 			case Encoding::UTF16LE:
 			{
-				if(bytes == kRNNotFound)
+/*				if(bytes == kRNNotFound)
 					bytes = UTF16StringByteLength(static_cast<const uint16 *>(data));
 				
 				std::u16string string(static_cast<const char16_t *>(data), (bytes / 2));
@@ -275,13 +275,13 @@ namespace RN
 				std::string bstring = converter.to_bytes(string);
 				const char *utf8 = bstring.c_str();
 				
-				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);
+				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);*/
 				break;
 			}
 				
 			case Encoding::UTF16BE:
 			{
-				if(bytes == kRNNotFound)
+/*				if(bytes == kRNNotFound)
 					bytes = UTF16StringByteLength(static_cast<const uint16 *>(data));
 				
 				std::u16string string(static_cast<const char16_t *>(data), (bytes / 2));
@@ -291,7 +291,7 @@ namespace RN
 				std::string bstring = converter.to_bytes(string);
 				const char *utf8 = bstring.c_str();
 				
-				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);
+				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);*/
 				break;
 			}
 				
@@ -609,7 +609,7 @@ namespace RN
 				
 			case Encoding::UTF16LE:
 			{
-				const char *start = reinterpret_cast<const char *>(GetBytes());
+/*				const char *start = reinterpret_cast<const char *>(GetBytes());
 				const char *end   = start + GetBytesCount();
 				
 				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff, std::codecvt_mode::little_endian>, char16_t> converter;
@@ -618,13 +618,13 @@ namespace RN
 				data = new char[(string.length() + 1) * 2];
 				length = string.length() * 2;
 				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
+				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));*/
 				break;
 			}
 				
 			case Encoding::UTF16BE:
 			{
-				const char *start = reinterpret_cast<const char *>(GetBytes());
+/*				const char *start = reinterpret_cast<const char *>(GetBytes());
 				const char *end   = start + GetBytesCount();
 				
 				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff>, char16_t> converter;
@@ -633,7 +633,7 @@ namespace RN
 				data = new char[(string.length() + 1) * 2];
 				length = string.length() * 2;
 				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
+				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));*/
 				break;
 			}
 				
