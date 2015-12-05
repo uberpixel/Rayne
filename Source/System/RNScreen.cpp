@@ -70,6 +70,8 @@ namespace RN
 
 		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)&__MonitorEnumProc, NULL);
 
+		_screens = new Array();
+
 		for(HMONITOR monitor : __MonitorHandles)
 		{
 			try
