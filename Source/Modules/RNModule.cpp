@@ -69,7 +69,7 @@ namespace RN
 
 		_path = coordinator->ResolveFullPath(base, 0);
 		if(!_path)
-			throw InvalidArgumentException("Couldn't resolve module name");
+			throw InvalidArgumentException(std::string("Couldn't resolve module name: ") + name->GetUTF8String());
 
 		_path->Retain();
 		_name = _name->GetLastPathComponent();
@@ -196,12 +196,12 @@ namespace RN
 		HANDLE process = ::GetCurrentProcess();
 		DWORD needed;
 
-		::EnumProcessModules(process, NULL, 0, &needed);
+		::EnumProcessModulesEx(process, NULL, 0, &needed, LIST_MODULES_ALL);
 
 		size_t count = needed / sizeof(HMODULE);
 
 		HMODULE *modules = new HMODULE[count];
-		::EnumProcessModules(process, modules, needed, NULL);
+		::EnumProcessModulesEx(process, modules, needed, &needed, LIST_MODULES_ALL);
 
 		for(size_t i = 0; i < count; i++)
 		{
