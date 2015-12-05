@@ -21,7 +21,7 @@ set(SOURCES
         init.cpp
         RNAssimpAssetLoader.cpp)
 
-set(HEADERS "")
+set(HEADERS "RNAssimpAssetLoader.h")
 
 set(RAYNE_LIBRARIES Rayne)
 set(LINK_LIBRARIES assimp)

@@ -359,7 +359,7 @@ namespace RN
 			RNAPI void CommitChanges();
 
 		private:
-			Chunk(Mesh *mesh, bool triangles);
+			RNAPI Chunk(Mesh *mesh, bool triangles);
 
 			size_t TranslateIndex(size_t index)
 			{
