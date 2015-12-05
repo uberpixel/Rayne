@@ -5,9 +5,13 @@
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
-
+#include "../Base/RNBase.h"
 #include <fcntl.h>
-#include <unistd.h>
+#if RN_PLATFORM_POSIX
+	#include <unistd.h>
+#elif RN_PLATFORM_WINDOWS
+	#include "../Base/RNUnistd.h"
+#endif
 #include <sys/stat.h>
 
 #include "RNData.h"
