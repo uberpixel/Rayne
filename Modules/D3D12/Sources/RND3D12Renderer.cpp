@@ -297,11 +297,10 @@ namespace RN
 
 		if(!library)
 			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
+			*/
 
-		D3D12ShaderLibrary *lib = new D3D12ShaderLibrary(library);
-		return lib;*/
-
-		return nullptr;
+		D3D12ShaderLibrary *lib = new D3D12ShaderLibrary(nullptr);
+		return lib;
 	}
 
 	ShaderProgram *D3D12Renderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
@@ -473,7 +472,7 @@ namespace RN
 
 		return new D3D12Texture(this, &_internals->stateCoordinator, texture, descriptor);*/
 
-		return nullptr;
+		return new D3D12Texture(this, nullptr, nullptr, descriptor);
 	}
 
 	Drawable *D3D12Renderer::CreateDrawable()

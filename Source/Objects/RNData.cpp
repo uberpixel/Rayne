@@ -101,7 +101,7 @@ namespace RN
 		if(!path)
 			return nullptr;
 
-		int fd = open(path->GetUTF8String(), O_RDONLY);
+		int fd = _open(path->GetUTF8String(), O_RDONLY|O_BINARY);
 		if(fd < 0)
 			return InvalidArgumentException("Couldn't open file");
 
@@ -113,13 +113,13 @@ namespace RN
 
 		while(bytesRead < size)
 		{
-			ssize_t result = read(fd, bytes + bytesRead, size - bytesRead);
+			ssize_t result = _read(fd, bytes + bytesRead, size - bytesRead);
 			if(result < 0)
 			{
 				if(errno == EINTR)
 					continue;
 
-				close(fd);
+				_close(fd);
 				return InconsistencyException("Failed to read file");
 			}
 			else if(result == 0)
@@ -130,7 +130,7 @@ namespace RN
 				bytesRead += result;
 		}
 
-		close(fd);
+		_close(fd);
 
 		Data *data = new Data(bytes, size, true, true);
 		return data->Autorelease();
@@ -201,29 +201,29 @@ namespace RN
 		if(!path)
 			return false;
 
-		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT);
+		int fd = _open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT | O_BINARY);
 		if(fd < 0)
 			return false;
 
-		chmod(path->GetUTF8String(), 0755);
+		_chmod(path->GetUTF8String(), 0755);
 
 		size_t written = 0;
 		while(written < _length)
 		{
-			ssize_t result = write(fd, _bytes + written, _length - written);
+			ssize_t result = _write(fd, _bytes + written, _length - written);
 			if(result < 0)
 			{
 				if(errno == EINTR)
 					continue;
 
-				close(fd);
+				_close(fd);
 				return false;
 			}
 
 			written += result;
 		}
 
-		close(fd);
+		_close(fd);
 		return true;
 	}
 	

@@ -34,11 +34,10 @@ namespace RN
 
 		if(!shader)
 			return nullptr;
-
-		D3D12Shader *temp = new D3D12Shader(shader);
-		return temp->Autorelease();*/
-
-		return nullptr;
+			*/
+		
+		D3D12Shader *temp = new D3D12Shader(nullptr);
+		return temp->Autorelease();
 	}
 	Array *D3D12ShaderLibrary::GetShaderNames() const
 	{

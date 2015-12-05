@@ -213,7 +213,7 @@ namespace RN
 		RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
 	protected:
-		Texture(const Descriptor &descriptor);
+		RNAPI Texture(const Descriptor &descriptor);
 
 		Descriptor _descriptor;
 		Parameter _parameter;
