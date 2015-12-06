@@ -108,6 +108,7 @@ namespace RN
 		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT;
 
 		RNAPI String *GetPathForLocation(Location location) const;
+		RNAPI String *GetNormalizedPathFromFullPath(const String *fullPath);
 
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);

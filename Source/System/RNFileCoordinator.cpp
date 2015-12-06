@@ -276,6 +276,43 @@ namespace RN
 		return path;
 	}
 
+	String *FileCoordinator::GetNormalizedPathFromFullPath(const String *fullPath)
+	{
+		char buffer[1024];
+#if RN_PLATFORM_POSIX
+		int error = errno;
+		char *result = realpath_expand(fullPath->GetUTF8String(), buffer);
+
+		if(!result)
+		{
+			errno = error;
+			throw InvalidArgumentException(RNSTR("No such file or directory " << fullPath));
+		}
+#else
+		DWORD result = ::GetFullPathNameA(fullPath->GetUTF8String(), 1024, buffer, nullptr);
+		if(result == 0)
+			throw InvalidArgumentException(RNSTR("No such file or directory " << fullPath));
+#endif
+
+		String *path = RNSTR(buffer);
+
+		std::lock_guard<std::mutex> lock(_lock);
+
+		_nodes->Enumerate<Directory>([&](Directory *directory, size_t tindex, bool &stop) {
+
+			if(path->HasPrefix(directory->GetPath()))
+			{
+				size_t length = directory->GetPath()->GetLength() + 1;
+
+				path = path->GetSubstring(Range(length, path->GetLength() - length));
+				stop = true;
+			}
+
+		});
+
+		return path;
+	}
+
 	Array *FileCoordinator::__GetNodeContainerForPath(const String *path, Array *&outPath)
 	{
 		Array *components = path->GetPathComponents();
