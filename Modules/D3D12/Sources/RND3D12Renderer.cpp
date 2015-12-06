@@ -19,7 +19,8 @@ namespace RN
 
 	D3D12Renderer::D3D12Renderer(const Dictionary *parameters) :
 		_mainWindow(nullptr),
-		_mipMapTextures(new Set())
+		_mipMapTextures(new Set()),
+		_defaultShaders(new Dictionary())
 	{
 
 #ifdef _DEBUG
@@ -313,7 +314,44 @@ namespace RN
 
 	ShaderProgram *D3D12Renderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
 	{
-		return nullptr;
+		Dictionary *defines = new Dictionary();
+
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_NORMALS"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_TANGENTS"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_COLOR"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_UV0"));
+
+		if(lookup->discard)
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));
+
+		ShaderCompileOptions *options = new ShaderCompileOptions();
+		options->SetDefines(defines);
+
+		ShaderLibrary *library;
+
+		{
+			LockGuard<SpinLock> lock(_lock);
+			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
+
+			if(!library)
+			{
+				library = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"), options);
+				_defaultShaders->SetObjectForKey(library, options);
+			}
+		}
+
+		options->Release();
+		defines->Release();
+
+		Shader *vertex = library->GetShaderWithName(RNCSTR("gouraud_vertex"));
+		Shader *fragment = library->GetShaderWithName(RNCSTR("gouraud_fragment"));
+
+		ShaderProgram *program = new ShaderProgram(vertex, fragment);
+		return program->Autorelease();
 	}
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const

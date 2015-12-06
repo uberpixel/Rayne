@@ -18,7 +18,7 @@ namespace RN
 {
 	class Renderer;
 	class GPUBuffer;
-	class D3D12RenderingStateUniformBufferArgument;
+	struct D3D12RenderingStateUniformBufferArgument;
 
 	class D3D12UniformBuffer : public Object
 	{

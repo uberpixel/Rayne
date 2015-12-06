@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	struct D3D12RendererInternals;
+	class D3D12RendererInternals;
 	struct D3D12Drawable;
 	class D3D12Window;
 	class D3D12Texture;
@@ -70,6 +70,7 @@ namespace RN
 		D3D12Window *_mainWindow;
 
 		SpinLock _lock;
+		Dictionary *_defaultShaders;
 
 		RNDeclareMeta(D3D12Renderer)
 	};

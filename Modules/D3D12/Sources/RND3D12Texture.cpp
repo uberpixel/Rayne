@@ -63,4 +63,9 @@ namespace RN
 		sampler = [_coordinator->GetSamplerStateForTextureParameter(parameter) retain];
 		_sampler = sampler;*/
 	}
+
+	bool D3D12Texture::HasColorChannel(ColorChannel channel) const
+	{
+		return false;
+	}
 }
