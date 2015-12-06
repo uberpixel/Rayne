@@ -20,10 +20,12 @@ namespace RN
 		if(!data)
 			throw InvalidArgumentException(RNSTR("Could not open file: " << file));
 
-		Dictionary *mainDictionary = JSONSerialization::ObjectFromData<Dictionary>(data, 0);
-		Array *libraryArray = mainDictionary->GetObjectForKey<Array>(RNCSTR("D3D12ShaderLibrary"));
-		libraryArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
-			String *fileString = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+		Array *mainArray = JSONSerialization::ObjectFromData<Array>(data, 0);
+		mainArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
+			String *fileString = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~d3d12"));
+			if(!fileString)
+				fileString = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+
 			Array *shadersArray = libraryDictionary->GetObjectForKey<Array>(RNCSTR("shaders"));
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
