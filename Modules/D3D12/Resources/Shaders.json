@@ -1,0 +1,22 @@
+{
+	"MetalShaderLibrary": [
+		{
+			"file": "Shaders.metal"
+		}
+	],
+	"D3D12ShaderLibrary": [
+		{
+			"file": "Shaders.hlsl",
+			"shaders": [
+				{
+					"name" : "basic_blit_vertex",
+					"type" : "vertex"
+				},
+				{
+					"name" : "basic_blit_fragment",
+					"type" : "fragment"
+				}
+			]
+		}
+	]
+}
