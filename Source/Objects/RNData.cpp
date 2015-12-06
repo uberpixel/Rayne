@@ -123,10 +123,6 @@ namespace RN
 				close(fd);
 				return InconsistencyException("Failed to read file");
 			}
-			else if(result == 0)
-			{
-				break;
-			}
 			else
 				bytesRead += result;
 		}
