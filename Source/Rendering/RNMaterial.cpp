@@ -38,6 +38,12 @@ namespace RN
 		return _textures;
 	}
 
+	void MaterialDescriptor::SetShaderProgram(const ShaderProgram *program)
+	{
+		fragmentShader = program->GetFragmentShader();
+		vertexShader = program->GetVertexShader();
+	}
+
 
 
 

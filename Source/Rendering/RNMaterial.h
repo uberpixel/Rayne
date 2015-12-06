@@ -15,6 +15,7 @@
 #include "../Objects/RNArray.h"
 #include "../Rendering/RNTexture.h"
 #include "RNShader.h"
+#include "RNShaderLibrary.h"
 
 namespace RN
 {
@@ -28,6 +29,8 @@ namespace RN
 		RNAPI void RemoveAllTextures();
 
 		RNAPI const Array *GetTextures() const;
+
+		RNAPI void SetShaderProgram(const ShaderProgram *program);
 
 		Shader *fragmentShader;
 		Shader *vertexShader;

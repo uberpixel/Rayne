@@ -7,6 +7,7 @@
 //
 
 #include "RNShaderLibrary.h"
+#include "../Math/RNAlgorithm.h"
 
 namespace RN
 {
@@ -44,6 +45,29 @@ namespace RN
 	{
 		SafeRelease(_basePath);
 		_basePath = SafeCopy(basePath);
+	}
+
+	bool ShaderCompileOptions::IsEqual(const Object *other) const
+	{
+		const ShaderCompileOptions *options = other->Downcast<ShaderCompileOptions>();
+		if(RN_EXPECT_FALSE(!options))
+			return false;
+
+		if(!options->_defines->IsEqual(_defines))
+			return false;
+
+		return true;
+	}
+	size_t ShaderCompileOptions::GetHash() const
+	{
+		size_t hash = 0;
+
+		HashCombine(hash, _defines->GetHash());
+
+		if(_basePath)
+			HashCombine(hash, _basePath->GetHash());
+
+		return hash;
 	}
 
 	RNDefineMeta(ShaderProgram, Object)

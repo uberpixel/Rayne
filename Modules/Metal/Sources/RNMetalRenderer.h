@@ -71,6 +71,8 @@ namespace RN
 
 		SpinLock _lock;
 
+		Dictionary *_defaultShaders;
+
 		RNDeclareMeta(MetalRenderer)
 	};
 }

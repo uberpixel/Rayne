@@ -41,9 +41,11 @@ namespace RN
 		RNAPI void SetDefines(const Dictionary *defines);
 		RNAPI void SetBasePath(const String *basePath);
 
+		RNAPI bool IsEqual(const Object *other) const override;
+		RNAPI size_t GetHash() const override;
+
 		const Dictionary *GetDefines() const { return _defines; }
 		const String *GetBasePath() const { return _basePath; }
-
 
 	private:
 		String *_basePath;
