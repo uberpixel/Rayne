@@ -27,18 +27,33 @@ namespace RN
 	RNDefineScopedMeta(FileCoordinator, Directory, FileCoordinator::Node)
 	RNDefineScopedMeta(FileCoordinator, File, FileCoordinator::Node)
 
+	const String *_platformModifier;
+
 	FileCoordinator::Node::Node(String *name, Node *parent, Type type) :
 		_type(type),
 		_name(name->Retain()),
 		_path(nullptr),
+		_modifier(nullptr),
 		_parent(parent)
 	{
 		if(_parent)
 			SetPath(_parent->GetPath()->StringByAppendingPathComponent(name));
+
+		Range range = name->GetRangeOfString(RNCSTR("~"), String::ComparisonMode::Reverse);
+		if(range.origin != kRNNotFound)
+		{
+			String *extension = name->GetPathExtension();
+
+			size_t modifierLength = _name->GetLength() - range.origin - extension->GetLength() - 1;
+
+			_modifier = _name->GetSubstring(Range(range.origin, modifierLength))->Retain();
+			_name->DeleteCharacters(Range(range.origin, modifierLength));
+		}
 	}
 	FileCoordinator::Node::~Node()
 	{
 		SafeRelease(_path);
+		SafeRelease(_modifier);
 		_name->Release();
 	}
 
@@ -74,7 +89,7 @@ namespace RN
 
 	FileCoordinator::Node *FileCoordinator::Directory::GetChildWithName(const String *name) const
 	{
-		return _childMap->GetObjectForKey<FileCoordinator::Node>(const_cast<String *>(name));
+		return _childMap->GetObjectForKey<FileCoordinator::Node>(name);
 	}
 
 	void FileCoordinator::Directory::ParseDirectory()
@@ -111,14 +126,39 @@ namespace RN
 
 				if(node)
 				{
+					// Only allow nodes matching the platform modifier, ie ~osx or ~win
+					if(node->GetModifier())
+					{
+						if(!node->GetModifier()->IsEqual(_platformModifier))
+						{
+							node->Release();
+							continue;
+						}
+					}
+
+					// Make sure only the platform modifier node is allowed into the VFS,
+					// the regular version is removed if necessary
+					Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
+					if(other)
+					{
+						if(!node->GetModifier())
+						{
+							node->Release();
+							continue;
+						}
+
+						_children->RemoveObject(other);
+					}
+
 					_children->AddObject(node);
-					_childMap->SetObjectForKey(node, const_cast<String *>(node->GetName()));
+					_childMap->SetObjectForKey(node, node->GetName());
 
 					node->Release();
-
 				}
 			}
 		}
+
+
 
 		closedir(dir);
 	}
@@ -169,6 +209,13 @@ namespace RN
 		_modulePaths(new Dictionary())
 	{
 		__sharedInstance = this;
+
+#if RN_PLATFORM_MAC_OS
+		_platformModifier = RNCSTR("~osx")->Retain();
+#endif
+#if RN_PLATFORM_WINDOWS
+		_platformModifier = RNCSTR("~win")->Retain();
+#endif
 	}
 	FileCoordinator::~FileCoordinator()
 	{

@@ -39,6 +39,7 @@ namespace RN
 
 			const String *GetName() const { return _name; }
 			const String *GetPath() const { return _path; }
+			const String *GetModifier() const { return _modifier; }
 
 		protected:
 			Node(String *name, Node *parent, Type type);
@@ -51,6 +52,7 @@ namespace RN
 
 			String *_name;
 			String *_path;
+			String *_modifier;
 			Node *_parent;
 
 			RNDeclareMeta(Node)
