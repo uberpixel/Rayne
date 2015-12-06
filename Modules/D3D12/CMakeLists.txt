@@ -26,6 +26,7 @@ set(SOURCES
 set(RESOURCES Resources)
 
 set(HEADERS
+        Sources/d3dx12.h
         Sources/RND3D12GPUBuffer.h
         Sources/RND3D12Internals.h
         Sources/RND3D12Renderer.h
@@ -40,8 +41,11 @@ set(HEADERS
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
 
+set(LINK_LIBRARIES d3d12.lib d3dcompiler.lib dxgi.lib)
+
 rayne_add_library(RayneD3D12 "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_target_include_directories(RayneD3D12 "${INCLUDE_DIRECTORIES}")
+rayne_target_link_libraries(RayneD3D12 "${LINK_LIBRARIES}")
 rayne_copy_resources(RayneD3D12 ${RESOURCES})
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneD3D12)

@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RND3D12UniformBuffer.h"
 #include "RND3D12Internals.h"
+#include "RND3D12UniformBuffer.h"
 #include "RND3D12Renderer.h"
 
 namespace RN

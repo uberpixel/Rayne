@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RND3D12Renderer.h"
 #include "RND3D12Internals.h"
+#include "RND3D12Renderer.h"
 #include "RND3D12ShaderLibrary.h"
 #include "RND3D12GPUBuffer.h"
 #include "RND3D12Texture.h"
@@ -21,6 +21,19 @@ namespace RN
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set())
 	{
+
+#ifdef _DEBUG
+		// Enable the D3D12 debug layer.
+		{
+			ID3D12Debug *debugController;
+			if(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+			{
+				debugController->EnableDebugLayer();
+			}
+		}
+#endif
+		
+
 /*		_internals->device = nullptr;
 
 		// Actual initialization
@@ -42,38 +55,29 @@ namespace RN
 		_internals->commandQueue = [_internals->device newCommandQueue];
 		_internals->stateCoordinator.SetDevice(_internals->device);
 
-		[devices release];
+		[devices release];*/
 
 		// Texture format look ups
 		_textureFormatLookup = new Dictionary();
 
-#define TextureFormat(name, metal) \
-		_textureFormatLookup->SetObjectForKey(Number::WithUint32(metal), RNCSTR(#name))
+#define TextureFormat(name, d3d12) \
+		_textureFormatLookup->SetObjectForKey(Number::WithUint32(d3d12), RNCSTR(#name))
 
-		TextureFormat(RGBA8888, MTLPixelFormatRGBA8Unorm);
-		TextureFormat(RGB10A2, MTLPixelFormatRGB10A2Unorm);
-		TextureFormat(R8, MTLPixelFormatR8Unorm);
-		TextureFormat(RG88, MTLPixelFormatRG8Unorm);
-		TextureFormat(R16F, MTLPixelFormatR16Float);
-		TextureFormat(RG16F, MTLPixelFormatRG16Float);
-		TextureFormat(RGBA16F, MTLPixelFormatRGBA16Float);
-		TextureFormat(R32F, MTLPixelFormatR32Float);
-		TextureFormat(RG32F, MTLPixelFormatRG32Float);
-		TextureFormat(RGBA32F, MTLPixelFormatRGBA32Float);
-		TextureFormat(Depth24I, MTLPixelFormatDepth24Unorm_Stencil8);
-		TextureFormat(Depth32F, MTLPixelFormatDepth32Float);
-		TextureFormat(Stencil8, MTLPixelFormatStencil8);
+		TextureFormat(RGBA8888, DXGI_FORMAT_R8G8B8A8_UNORM);
+		TextureFormat(RGB10A2, DXGI_FORMAT_R10G10B10A2_UNORM);
+		TextureFormat(R8, DXGI_FORMAT_R8_UNORM);
+		TextureFormat(RG88, DXGI_FORMAT_R8G8_UNORM);
+		TextureFormat(R16F, DXGI_FORMAT_R16_FLOAT);
+		TextureFormat(RG16F, DXGI_FORMAT_R16G16_FLOAT);
+		TextureFormat(RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT);
+		TextureFormat(R32F, DXGI_FORMAT_R32_FLOAT);
+		TextureFormat(RG32F, DXGI_FORMAT_R32G32_FLOAT);
+		TextureFormat(RGBA32F, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		TextureFormat(Depth24I, DXGI_FORMAT_D24_UNORM_S8_UINT);
+		TextureFormat(Depth32F, DXGI_FORMAT_D32_FLOAT);
+		TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
 
-#if RN_PLATFORM_MAC_OS
-		if([_internals->device isDepth24Stencil8PixelFormatSupported])
-		{
-			TextureFormat(Depth24Stencil8, MTLPixelFormatDepth24Unorm_Stencil8);
-		}
-#endif
-
-		TextureFormat(Depth32FStencil8, MTLPixelFormatDepth32Float_Stencil8);
-
-#undef TextureFormat*/
+#undef TextureFormat
 	}
 
 	D3D12Renderer::~D3D12Renderer()
@@ -91,6 +95,8 @@ namespace RN
 		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
 
 		_mainWindow = new D3D12Window(size, screen, this);
+		_internals->InitializeRenderingPipeline(_mainWindow);
+
 		return _mainWindow;
 	}
 
@@ -130,56 +136,62 @@ namespace RN
 
 	void D3D12Renderer::RenderIntoWindow(Window *window, Function &&function)
 	{
-/*		_internals->pass.window = static_cast<D3D12Window *>(window);
-		_internals->pass.drawable = [_internals->pass.window->_internals->metalView nextDrawable];
-		_internals->pass.depthTexture = [_internals->pass.window->_internals->metalView nextDepthBuffer];
+		_internals->pass.window = static_cast<D3D12Window *>(window);
 
-		if(_internals->pass.drawable)
+		// Command list allocators can only be reset when the associated 
+		// command lists have finished execution on the GPU; apps should use 
+		// fences to determine GPU execution progress.
+		_internals->commandAllocators[_internals->frameIndex]->Reset();
+
+		// However, when ExecuteCommandList() is called on a particular command 
+		// list, that command list can then be reset at any time and must be before 
+		// re-recording.
+		_internals->commandList->Reset(_internals->commandAllocators[_internals->frameIndex], NULL);
+
+		/*if(_needsUpdateForWindowSizeChange)
 		{
-			CreateMipMaps();
-
-			_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
-			function();
-
-			[_internals->renderPass.commandBuffer presentDrawable:_internals->pass.drawable];
-			[_internals->renderPass.commandBuffer commit];
-			[_internals->renderPass.commandBuffer release];
-
-			_internals->renderPass.commandBuffer = nil;
-			_internals->pass.drawable = nil;
+			CreateFramebuffers();
 		}*/
+
+		// Set necessary state.
+		_internals->commandList->SetGraphicsRootSignature(_internals->rootSignature);
+
+		ID3D12DescriptorHeap* ppHeaps[] = { _internals->cbvHeap };
+		_internals->commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+		_internals->commandList->SetGraphicsRootDescriptorTable(0, _internals->cbvHeap->GetGPUDescriptorHandleForHeapStart());
+
+		// Draw cameras
+		function();
+
+		// Indicate that the back buffer will now be used to present.
+		_internals->commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_internals->renderTargets[_internals->frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+		_internals->commandList->Close();
+
+		// Execute the command list.
+		ID3D12CommandList* ppCommandLists[] = { _internals->commandList };
+		_internals->commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+		// Present the frame.
+		_internals->swapChain->Present(0, 0);
+
+		_internals->MoveToNextFrame();
 	}
 	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
-		// Set up
-/*		_internals->renderPass.camera = camera;
+		_internals->commandList->RSSetViewports(1, &_internals->viewport);
+		_internals->commandList->RSSetScissorRects(1, &_internals->scissorRect);
+
+		// Indicate that the back buffer will be used as a render target.
+		_internals->commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_internals->renderTargets[_internals->frameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_internals->rtvHeap->GetCPUDescriptorHandleForHeapStart(), _internals->frameIndex, _internals->rtvDescriptorSize);
+		_internals->commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+		_internals->renderPass.camera = camera;
 		_internals->renderPass.framebuffer = camera->GetFramebuffer();
-
-		const Color &clearColor = camera->GetClearColor();
-
-		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-		[colorAttachment setTexture:[_internals->pass.drawable texture]];
-		[colorAttachment setLoadAction:MTLLoadActionClear];
-		[colorAttachment setStoreAction:MTLStoreActionStore];
-		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
-
-		MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-		[depthAttachment setTexture:_internals->pass.depthTexture];
-		[depthAttachment setLoadAction:MTLLoadActionClear];
-		[depthAttachment setStoreAction:MTLStoreActionStore];
-
-		MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-		[stencilAttachment setTexture:_internals->pass.depthTexture];
-		[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-		[stencilAttachment setStoreAction:MTLStoreActionDontCare];
-
-		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 		_internals->renderPass.activeState = nullptr;
 		_internals->renderPass.drawableHead = nullptr;
-
-		[descriptor release];
 
 		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
 		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
@@ -189,21 +201,20 @@ namespace RN
 
 		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
 
+		// Clear
+		const Color &clearColor = camera->GetClearColor();
+		_internals->commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
+
+		// Create drawables
 		function();
 
-		// Clean Up
+		// Draw
 		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
 		while(drawable)
 		{
 			RenderDrawable(drawable);
 			drawable = drawable->_next;
 		}
-
-		[_internals->renderPass.renderCommand endEncoding];
-		[_internals->renderPass.renderCommand release];
-		_internals->renderPass.renderCommand = nil;
-
-		_internals->renderPass.activeState = nullptr;*/
 	}
 
 /*	MTLResourceOptions D3D12ResourceOptionsFromOptions(GPUResource::UsageOptions options)
@@ -377,7 +388,7 @@ namespace RN
 
 	const String *D3D12Renderer::GetTextureFormatName(const Texture::Format format) const
 	{
-/*#define TextureFormatX(name) \
+#define TextureFormatX(name) \
 		case Texture::Format::name: \
 			return RNCSTR(#name) \
 
@@ -403,7 +414,7 @@ namespace RN
 				return nullptr;
 		}
 
-#undef TextureFormatX*/
+#undef TextureFormatX
 
 		return nullptr;
 	}
@@ -611,6 +622,22 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(D3D12Drawable *drawable)
 	{
+		/*		for(Entity *ent : entities)
+		{
+		_commandList->SetPipelineState(ent->_model->_material->_pipelineState.Get());
+		_commandList->IASetPrimitiveTopology(ent->_model->_mesh->_topology);
+		_commandList->IASetVertexBuffers(0, 1, &(ent->_model->_mesh->_vertexBufferView));
+		if(ent->_model->_mesh->_indexBuffer)
+		{
+		_commandList->IASetIndexBuffer(&(ent->_model->_mesh->_indexBufferView));
+		_commandList->DrawIndexedInstanced(ent->_model->_mesh->_indexCount, 1, 0, 0, 0);
+		}
+		else
+		{
+		_commandList->DrawInstanced(ent->_model->_mesh->_vertexCount, 1, 0, 0);
+		}
+		}*/
+
 /*		id<MTLRenderCommandEncoder> encoder = _internals->renderPass.renderCommand;
 
 		if(_internals->renderPass.activeState != drawable->_pipelineState)

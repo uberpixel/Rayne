@@ -14,12 +14,12 @@
 namespace RN
 {
 	class D3D12Renderer;
-	struct D3D12WindowInternals;
 
 	class D3D12Window : public Window
 	{
 	public:
 		friend class D3D12Renderer;
+		friend class D3D12RendererInternals;
 
 		void SetTitle(const String *title) final;
 		Screen *GetScreen() final;
@@ -32,7 +32,7 @@ namespace RN
 	private:
 		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer);
 
-		PIMPL<D3D12WindowInternals> _internals;
+		HWND _hwnd;
 		D3D12Renderer *_renderer;
 
 		RNDeclareMeta(D3D12Window)

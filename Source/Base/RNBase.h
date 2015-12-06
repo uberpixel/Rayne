@@ -20,9 +20,17 @@
 #endif
 
 #if RN_PLATFORM_WINDOWS
-#ifndef NOMINMAX
-	#define NOMINMAX
-#endif
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
+	#endif
+
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
+
+	#ifndef _USE_MATH_DEFINES
+		#define _USE_MATH_DEFINES
+	#endif
 #endif
 
 #include "RNMemory.h"
@@ -78,7 +86,6 @@
 #endif
 
 #if RN_PLATFORM_WINDOWS
-	#define WINDOWS_LEAN_AND_MEAN
 	#include <WinSock2.h>
 	#include <windows.h>
 	#include <commdlg.h>

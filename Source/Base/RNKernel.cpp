@@ -319,6 +319,14 @@ namespace RN
 			}
 		}
 #endif
+#if RN_PLATFORM_WINDOWS
+		MSG message;
+		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
+#endif
 	}
 
 	void Kernel::Run()

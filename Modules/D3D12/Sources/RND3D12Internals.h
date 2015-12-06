@@ -9,22 +9,25 @@
 #ifndef __RAYNE_D3D12INTERNALS_H__
 #define __RAYNE_D3D12INTERNALS_H__
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+#include <windows.h>
+#include <d3d12.h>
+#include <dxgi1_4.h>
+#include <d3dcompiler.h>
+#include "d3dx12.h"
+
 #include <Rayne.h>
+
 #include "RND3D12StateCoordinator.h"
 #include "RND3D12UniformBuffer.h"
-
-/*#import <D3D12/D3D12.h>
-#import <Cocoa/Cocoa.h>
-#import <QuartzCore/QuartzCore.h>
-
-@interface RND3D12View : NSView
-- (id<CAD3D12Drawable>)nextDrawable;
-- (id<MTLTexture>)nextDepthBuffer;
-- (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
-@end
-
-@interface RND3D12Window : NSWindow
-@end*/
 
 namespace RN
 {
@@ -124,21 +127,42 @@ namespace RN
 	};
 
 
-	struct D3D12RendererInternals
+	class D3D12RendererInternals
 	{
-/*		id<MTLDevice> device;
-		id<MTLCommandQueue> commandQueue;*/
-
+	public:
 		D3D12WindowPass pass;
 		D3D12RenderPass renderPass;
 		D3D12StateCoordinator stateCoordinator;
+
+		ID3D12Device *device;
+		ID3D12CommandQueue *commandQueue;
+		IDXGISwapChain3 *swapChain;
+		ID3D12CommandAllocator *commandAllocators[3];
+		ID3D12GraphicsCommandList *commandList;
+
+		ID3D12DescriptorHeap *rtvHeap;
+		UINT rtvDescriptorSize;
+		ID3D12DescriptorHeap *cbvHeap;
+
+		ID3D12Resource *renderTargets[3];
+		ID3D12RootSignature *rootSignature;
+
+		UINT frameIndex;
+		HANDLE fenceEvent;
+		ID3D12Fence *fence;
+		UINT64 fenceValues[3];
+
+		D3D12_VIEWPORT viewport;
+		D3D12_RECT scissorRect;
+
+		void InitializeRenderingPipeline(D3D12Window *window);
+		void CreateFramebuffers(const Vector2 &size);
+		void GetHardwareAdapter(_In_ IDXGIFactory4* pFactory, _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter);
+		void WaitForGpu();
+		void MoveToNextFrame();
 	};
 
-	struct D3D12WindowInternals
-	{
-//		NSWindow *window;
-//		RND3D12View *metalView;
-	};
+	LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 }
 
 #endif /* __RAYNE_D3D12INTERNALS_H__ */
