@@ -292,7 +292,7 @@ namespace RN
 		_properties.push_back(property);
 	}
 	
-	void Object::AddObservables(std::initializer_list<ObservableProperty *> properties)
+	void Object::AddObservables(const std::initializer_list<ObservableProperty *> properties)
 	{
 		_properties.reserve(_properties.size() + properties.size());
 		

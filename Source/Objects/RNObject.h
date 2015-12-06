@@ -129,7 +129,7 @@ namespace RN
 		RNAPI virtual void Dealloc();
 		
 		RNAPI void AddObservable(ObservableProperty *property);
-		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
+		RNAPI void AddObservables(const std::initializer_list<ObservableProperty *> properties);
 		
 		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string &key);
 		RNAPI virtual Object *GetValueForUndefinedKey(const std::string &key);
