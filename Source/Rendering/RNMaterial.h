@@ -56,6 +56,13 @@ namespace RN
 			Greater
 		};
 
+		enum class CullMode
+		{
+			None,
+			BackFace,
+			FrontFace
+		};
+
 		RNAPI Material(const MaterialDescriptor &descriptor);
 		RNAPI Material(const Material *other);
 		RNAPI ~Material() override;
@@ -71,6 +78,7 @@ namespace RN
 		RNAPI void SetEmissiveColor(const Color &color);
 
 		RNAPI void SetDiscardThreshold(float threshold);
+		RNAPI void SetCullMode(CullMode mode);
 
 		Shader *GetFragmentShader() const { return _fragmentShader; }
 		Shader *GetVertexShader() const { return _vertexShader; }
@@ -85,6 +93,7 @@ namespace RN
 
 		const Array *GetTextures() const { return _textures; }
 		float GetDiscardThreshold() const { return _discardThreshold; }
+		CullMode GetCullMode() const { return _cullMode; }
 
 	private:
 		Shader *_fragmentShader;
@@ -101,6 +110,7 @@ namespace RN
 		Color _emissiveColor;
 
 		float _discardThreshold;
+		CullMode _cullMode;
 
 		RNDeclareMeta(Material)
 	};

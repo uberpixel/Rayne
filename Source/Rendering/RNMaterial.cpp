@@ -58,7 +58,8 @@ namespace RN
 		_diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 		_specularColor(1.0f, 1.0f, 1.0f, 4.0f),
 		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
-		_discardThreshold(descriptor.discardThreshold)
+		_discardThreshold(descriptor.discardThreshold),
+		_cullMode(CullMode::BackFace)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -118,5 +119,10 @@ namespace RN
 	void Material::SetEmissiveColor(const Color &color)
 	{
 		_emissiveColor = color;
+	}
+
+	void Material::SetCullMode(CullMode mode)
+	{
+		_cullMode = mode;
 	}
 }

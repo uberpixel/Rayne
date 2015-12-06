@@ -669,7 +669,7 @@ namespace RN
 		}
 
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
-
+		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
 
 		// Set Uniforms
 		for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
