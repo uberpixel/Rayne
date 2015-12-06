@@ -105,7 +105,7 @@ namespace RN
 		return array->Autorelease();
 	}
 	
-	Array *Array::WithObjects(std::initializer_list<Object *> objects)
+	Array *Array::WithObjects(const std::initializer_list<Object *> objects)
 	{
 		Array *array = new Array(objects.size());
 		

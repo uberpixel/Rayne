@@ -27,7 +27,7 @@ namespace RN
 		RNAPI ~Set() override;
 
 		RNAPI static Set *WithArray(const Array *other);
-		RNAPI static Set *WithObjects(std::initializer_list<Object *> objects);
+		RNAPI static Set *WithObjects(const std::initializer_list<Object *> objects);
 		
 		RNAPI Set(Deserializer *deserializer);
 		RNAPI void Serialize(Serializer *serializer) const override;

@@ -91,7 +91,7 @@ namespace RN
 		return set->Autorelease();
 	}
 
-	Set *Set::WithObjects(std::initializer_list<Object *> objects)
+	Set *Set::WithObjects(const std::initializer_list<Object *> objects)
 	{
 		Set *set = new Set(objects.size());
 
