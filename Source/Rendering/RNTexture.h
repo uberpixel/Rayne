@@ -196,6 +196,14 @@ namespace RN
 			uint32 anisotropy;
 		};
 
+		enum class ColorChannel
+		{
+			Red,
+			Green,
+			Blue,
+			Alpha
+		};
+
 		RNAPI static Texture *WithName(const String *name);
 
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
@@ -205,6 +213,7 @@ namespace RN
 		RNAPI virtual void SetParameter(const Parameter &parameter);
 
 		RNAPI virtual void GenerateMipMaps() = 0;
+		RNAPI virtual bool HasColorChannel(ColorChannel channel) const = 0;
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
 		const Parameter &GetParameter() const RN_NOEXCEPT { return _parameter; }

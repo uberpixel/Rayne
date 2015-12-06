@@ -62,14 +62,13 @@ namespace RN
 		TextureFormat(R32F, MTLPixelFormatR32Float);
 		TextureFormat(RG32F, MTLPixelFormatRG32Float);
 		TextureFormat(RGBA32F, MTLPixelFormatRGBA32Float);
-		TextureFormat(Depth24I, MTLPixelFormatDepth24Unorm_Stencil8);
 		TextureFormat(Depth32F, MTLPixelFormatDepth32Float);
 		TextureFormat(Stencil8, MTLPixelFormatStencil8);
 
 #if RN_PLATFORM_MAC_OS
 		if([_internals->device isDepth24Stencil8PixelFormatSupported])
 		{
-			TextureFormat(Depth24Stencil8, MTLPixelFormatDepth24Unorm_Stencil8);
+			TextureFormat(Depth24I, MTLPixelFormatDepth24Unorm_Stencil8);
 		}
 #endif
 

@@ -162,7 +162,7 @@ namespace RN
 			Texture *texture = LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
 
 			descriptor.AddTexture(texture);
-			lookup->discard = false;
+			lookup->discard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
 		}
 
 		descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));

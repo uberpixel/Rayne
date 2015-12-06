@@ -31,6 +31,8 @@ namespace RN
 		RNAPI void GenerateMipMaps() final;
 		RNAPI void SetParameter(const Parameter &parameter) final;
 
+		RNAPI bool HasColorChannel(ColorChannel channel) const final;
+
 		RNAPI void *__GetUnderlyingTexture() const { return _texture; }
 		RNAPI void *__GetUnderlyingSampler() const { return _sampler; }
 
