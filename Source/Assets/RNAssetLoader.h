@@ -36,7 +36,7 @@ namespace RN
 				priority(10)
 			{}
 
-			Config(std::initializer_list<MetaClass *> &tresourceClasses) :
+			Config(const std::initializer_list<MetaClass *> &tresourceClasses) :
 				_extensions(nullptr),
 				_magicBytes(nullptr),
 				_magicBytesOffset(0),

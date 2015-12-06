@@ -6,9 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include "RNAssimpAssetLoader.h"
 
 namespace RN
@@ -29,7 +26,7 @@ namespace RN
 			Array *extensions = string->GetComponentsSeparatedByString(RNCSTR(";"));
 
 
-			Config config(Mesh::GetMetaClass());
+			Config config({ Mesh::GetMetaClass(), Model::GetMetaClass() });
 			config.SetExtensions(Set::WithArray(extensions));
 			config.supportsBackgroundLoading = true;
 
@@ -48,15 +45,9 @@ namespace RN
 
 	Asset *AssimpAssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
 	{
-		bool guessMaterial = true;
+		bool loadLOD = true;
 		bool recalculateNormals = false;
 		float smoothNormalAngle = 20.0f;
-
-		if(settings->GetObjectForKey(RNCSTR("guessMaterial")))
-		{
-			Number *number = settings->GetObjectForKey<Number>(RNCSTR("guessMaterial"));
-			guessMaterial = number->GetBoolValue();
-		}
 
 		if(settings->GetObjectForKey(RNCSTR("recalculateNormals")))
 		{
@@ -69,6 +60,13 @@ namespace RN
 			Number *number = settings->GetObjectForKey<Number>(RNCSTR("smoothNormalAngle"));
 			smoothNormalAngle = number->GetFloatValue();
 		}
+
+		if(settings->GetObjectForKey(RNCSTR("loadLOD")))
+		{
+			Number *number = settings->GetObjectForKey<Number>(RNCSTR("loadLOD"));
+			loadLOD = number->GetBoolValue();
+		}
+
 
 
 		Assimp::Importer importer;
@@ -86,8 +84,93 @@ namespace RN
 		if(!scene)
 			throw InconsistencyException(RNSTR(importer.GetErrorString()));
 
-		return LoadAssimpMesh(scene, 0);
+		if(meta->InheritsFromClass(Mesh::GetMetaClass()))
+			return LoadAssimpMesh(scene, 0);
+
+		// Load a full model
+		Model *model = new Model();
+		size_t stageIndex = 0;
+
+		std::vector<float> lodFactors = Model::GetDefaultLODFactors();
+
+		const String *path = file->GetPath();
+		String *basePath = path->StringByDeletingLastPathComponent();
+
+		LoadAssimpLODStage(basePath, scene, model->AddLODStage(lodFactors[0]));
+
+		if(loadLOD)
+		{
+			String *extension = path->GetPathExtension();
+			String *name = path->GetLastPathComponent()->StringByDeletingLastPathComponent();
+
+			stageIndex ++;
+
+			while(stageIndex < lodFactors.size())
+			{
+				String *lodPath = basePath->StringByAppendingPathComponent(RNSTR(name << "_lod" << stageIndex << "." << extension));
+
+				try
+				{
+					const aiScene *scene = importer.ReadFile(lodPath->GetUTF8String(), 0);
+					if(recalculateNormals)
+					{
+						importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
+						scene = importer.ApplyPostProcessing(aiProcess_RemoveComponent);
+					}
+					scene = importer.ApplyPostProcessing(aiProcessPreset_TargetRealtime_Quality | aiProcess_OptimizeGraph | aiProcess_OptimizeMeshes | aiProcess_FlipUVs);
+
+					if(!scene)
+						throw InconsistencyException(RNSTR(importer.GetErrorString()));
+
+					Model::LODStage *stage = model->AddLODStage(lodFactors[stageIndex]);
+					LoadAssimpLODStage(basePath, scene, stage);
+				}
+				catch(Exception &e)
+				{
+					break;
+				}
+
+				stageIndex ++;
+			}
+		}
+
+		return model->Autorelease();
 	}
+
+	void AssimpAssetLoader::LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage)
+	{
+		for(size_t i = 0; i < scene->mNumMeshes; i++)
+		{
+			auto pair = LoadAssimpMeshGroup(filepath, scene, i);
+			stage->AddMesh(pair.first, pair.second);
+		}
+	}
+
+	std::pair<Mesh *, Material *> AssimpAssetLoader::LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index)
+	{
+		Mesh *mesh = LoadAssimpMesh(scene, index);
+
+		aiMesh *aimesh = scene->mMeshes[index];
+		aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
+
+		Renderer *renderer = Renderer::GetActiveRenderer();
+		ShaderLookupRequest *lookup = new ShaderLookupRequest();
+		MaterialDescriptor descriptor;
+
+		if(aimaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+		{
+			Texture *texture = LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+
+			descriptor.AddTexture(texture);
+			lookup->discard = false;
+		}
+
+		descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));
+		lookup->Release();
+
+		return std::make_pair(mesh, Material::WithDescriptor(descriptor));
+	}
+
 
 	Mesh *AssimpAssetLoader::LoadAssimpMesh(const aiScene *scene, size_t index)
 	{
@@ -220,5 +303,18 @@ namespace RN
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
+	}
+
+	Texture *AssimpAssetLoader::LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
+	{
+		aiString aipath;
+		material->GetTexture(aitexturetype, index, &aipath);
+
+		String *filename = RNSTR(aipath.C_Str())->GetLastPathComponent();
+		String *fullPath = path->StringByAppendingPathComponent(filename);
+
+		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
+
+		return Texture::WithName(fullPath);
 	}
 }

@@ -10,8 +10,9 @@
 #define __RAYNE_ASSIMPASSETLOADER_H_
 
 #include <Rayne.h>
-
-class aiScene;
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace RN
 {
@@ -25,7 +26,11 @@ namespace RN
 	private:
 		AssimpAssetLoader(const Config &config);
 
+		void LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage);
+		std::pair<Mesh *, Material *> LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index);
+
 		Mesh *LoadAssimpMesh(const aiScene *scene, size_t index);
+		Texture *LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
 
 		RNDeclareMeta(AssimpAssetLoader)
 	};

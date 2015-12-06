@@ -15,7 +15,8 @@ namespace RN
 	Entity::Entity() :
 		_model(nullptr)
 	{}
-	Entity::Entity(Model *model)
+	Entity::Entity(Model *model) :
+		_model(nullptr)
 	{
 		SetModel(model);
 	}
