@@ -46,6 +46,7 @@ set(LINK_LIBRARIES d3d12.lib d3dcompiler.lib dxgi.lib)
 rayne_add_library(RayneD3D12 "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_target_include_directories(RayneD3D12 "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(RayneD3D12 "${LINK_LIBRARIES}")
+rayne_set_module_output_directory(RayneD3D12)
 rayne_copy_resources(RayneD3D12 ${RESOURCES})
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneD3D12)

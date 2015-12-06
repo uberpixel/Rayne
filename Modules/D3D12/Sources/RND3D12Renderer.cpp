@@ -339,7 +339,7 @@ namespace RN
 
 			if(!library)
 			{
-				library = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"), options);
+				library = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"), options);
 				_defaultShaders->SetObjectForKey(library, options);
 			}
 		}
