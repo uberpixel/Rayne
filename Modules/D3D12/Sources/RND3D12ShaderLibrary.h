@@ -26,9 +26,9 @@ namespace RN
 		Array *GetShaderNames() const final;
 
 	private:
-		D3D12ShaderLibrary(void *library);
+		D3D12ShaderLibrary(const String *file);
 
-		void *_library;
+		Dictionary *_shaders;
 
 		RNDeclareMeta(D3D12ShaderLibrary)
 	};

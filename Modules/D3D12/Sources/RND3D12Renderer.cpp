@@ -88,12 +88,10 @@ namespace RN
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
-/*		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
+		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
 
 		_mainWindow = new D3D12Window(size, screen, this);
-		return _mainWindow;*/
-
-		return nullptr;
+		return _mainWindow;
 	}
 
 	Window *D3D12Renderer::GetMainWindow()
@@ -230,7 +228,7 @@ namespace RN
 
 		return (new D3D12GPUBuffer(buffer));*/
 
-		return nullptr;
+		return new D3D12GPUBuffer(malloc(length), length);
 	}
 	GPUBuffer *D3D12Renderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
 	{
@@ -241,13 +239,12 @@ namespace RN
 
 		return (new D3D12GPUBuffer(buffer));*/
 
-		return nullptr;
+		return new D3D12GPUBuffer(malloc(length), length);
 	}
 
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
 	{
-		String *source = String::WithContentsOfFile(file, Encoding::UTF8);
-		return CreateShaderLibraryWithSource(source, options);
+		return new D3D12ShaderLibrary(file);
 	}
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
 	{

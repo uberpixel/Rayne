@@ -25,10 +25,11 @@ namespace RN
 		RNAPI size_t GetLength() const final;
 
 	private:
-		D3D12GPUBuffer(void *data);
+		D3D12GPUBuffer(void *data, size_t length);
 		~D3D12GPUBuffer() override;
 
 		void *_buffer;
+		size_t _length;
 
 		RNDeclareMeta(D3D12GPUBuffer)
 	};

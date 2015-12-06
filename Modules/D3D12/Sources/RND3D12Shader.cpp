@@ -12,28 +12,23 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	D3D12Shader::D3D12Shader(void *shader) :
-		_shader(shader),
+	D3D12Shader::D3D12Shader(String *file, String *entryPointName, String *shaderType) :
 		_attributes(new Array())
 	{
-		// We don't need to retain the shader because it was created
-		// with [newFunctionWithName:] which returns an explicitly
-		// owned object
-
-/*		id<MTLFunction> function = (id<MTLFunction>)_shader;
-		switch([function functionType])
+		if(shaderType->IsEqual(RNCSTR("vertex")))
 		{
-			case MTLFunctionTypeFragment:
-				SetType(Type::Fragment);
-				break;
-			case MTLFunctionTypeVertex:
-				SetType(Type::Vertex);
-				break;
-			case MTLFunctionTypeKernel:
-				SetType(Type::Compute);
-				break;
+			SetType(Type::Vertex);
+		}
+		else if(shaderType->IsEqual(RNCSTR("fragment")))
+		{
+			SetType(Type::Fragment);
+		}
+		else if(shaderType->IsEqual(RNCSTR("compute")))
+		{
+			SetType(Type::Compute);
 		}
 
+/*
 		NSArray *attributes = [function vertexAttributes];
 		size_t count = [attributes count];
 

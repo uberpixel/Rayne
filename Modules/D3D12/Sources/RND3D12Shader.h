@@ -41,9 +41,8 @@ namespace RN
 		RNAPI const Array *GetAttributes() const override;
 
 	private:
-		D3D12Shader(void *shader);
+		D3D12Shader(String *file, String *entryPointName, String *shaderType);
 
-		void *_shader;
 		Array *_attributes;
 
 		RNDeclareMeta(D3D12Shader)

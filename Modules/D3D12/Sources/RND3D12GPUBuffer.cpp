@@ -12,21 +12,20 @@ namespace RN
 {
 	RNDefineMeta(D3D12GPUBuffer, GPUBuffer)
 
-	D3D12GPUBuffer::D3D12GPUBuffer(void *data) :
-		_buffer(data)
+	D3D12GPUBuffer::D3D12GPUBuffer(void *data, size_t length) :
+		_buffer(data), _length(length)
 	{}
 
 	D3D12GPUBuffer::~D3D12GPUBuffer()
 	{
-/*		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
-		[buffer release];*/
+		free(_buffer);
 	}
 
 	void *D3D12GPUBuffer::GetBuffer() const
 	{
 /*		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
 		return [buffer contents];*/
-		return nullptr;
+		return _buffer;
 	}
 
 	void D3D12GPUBuffer::InvalidateRange(const Range &range)
@@ -40,6 +39,6 @@ namespace RN
 /*		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
 		return [buffer length];*/
 
-		return 0;
+		return _length;
 	}
 }

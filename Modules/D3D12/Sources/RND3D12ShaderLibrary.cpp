@@ -13,47 +13,46 @@ namespace RN
 {
 	RNDefineMeta(D3D12ShaderLibrary, ShaderLibrary)
 
-	D3D12ShaderLibrary::D3D12ShaderLibrary(void *library) :
-		_library(library)
+	D3D12ShaderLibrary::D3D12ShaderLibrary(const String *file) :
+		_shaders(new Dictionary())
 	{
-/*		id<MTLLibrary> lib = (id<MTLLibrary>)library;
-		[lib retain];*/
+		Data *data = Data::WithContentsOfFile(file);
+		if(!data)
+			throw InvalidArgumentException(RNSTR("Could not open file: " << file));
+
+		Dictionary *mainDictionary = JSONSerialization::ObjectFromData<Dictionary>(data, 0);
+		Array *libraryArray = mainDictionary->GetObjectForKey<Array>(RNCSTR("D3D12ShaderLibrary"));
+		libraryArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
+			String *fileString = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+			Array *shadersArray = libraryDictionary->GetObjectForKey<Array>(RNCSTR("shaders"));
+			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
+				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
+				String *shaderType = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
+				D3D12Shader *shader = new D3D12Shader(fileString, entryPointName, shaderType);
+				if(shader)
+				{
+					_shaders->SetObjectForKey(shader, entryPointName);
+				}
+			});
+		});
 	}
+
 	D3D12ShaderLibrary::~D3D12ShaderLibrary()
 	{
-/*		id<MTLLibrary> lib = (id<MTLLibrary>)_library;
-		[lib release];*/
+		_shaders->Release();
 	}
-
-
 
 	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name)
 	{
-/*		id<MTLLibrary> lib = (id<MTLLibrary>)_library;
-		id<MTLFunction> shader = [lib newFunctionWithName:[NSString stringWithUTF8String:name->GetUTF8String()]];
-
-		if(!shader)
+		D3D12Shader *temp = _shaders->GetObjectForKey<D3D12Shader>(name);
+		if(!temp)
 			return nullptr;
-			*/
 		
-		D3D12Shader *temp = new D3D12Shader(nullptr);
-		return temp->Autorelease();
+		return temp;
 	}
+
 	Array *D3D12ShaderLibrary::GetShaderNames() const
 	{
-		Array *result = new Array();
-/*		id<MTLLibrary> library = (id<MTLLibrary>)_library;
-
-		NSArray *names = [library functionNames];
-		NSUInteger count = [names count];
-
-		for(NSUInteger i = 0; i < count; i ++)
-		{
-			NSString *name = [names objectAtIndex:i];
-
-			result->AddObject(RNSTR([name UTF8String]));
-		}*/
-
-		return result->Autorelease();
+		return _shaders->GetAllKeys();
 	}
 }
