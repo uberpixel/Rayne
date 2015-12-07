@@ -20,10 +20,10 @@ namespace RN
 		_descriptor(descriptor)
 	{}
 
-	Texture *Texture::WithName(const String *name)
+	Texture *Texture::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
-		return coordinator->GetAssetWithName<Texture>(name, nullptr);
+		return coordinator->GetAssetWithName<Texture>(name, settings);
 	}
 
 	void Texture::SetParameter(const Parameter &parameter)

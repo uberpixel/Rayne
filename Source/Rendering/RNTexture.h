@@ -204,7 +204,7 @@ namespace RN
 			Alpha
 		};
 
-		RNAPI static Texture *WithName(const String *name);
+		RNAPI static Texture *WithName(const String *name, const Dictionary *settings = nullptr);
 
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;

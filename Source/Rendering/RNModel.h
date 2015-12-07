@@ -98,7 +98,7 @@ namespace RN
 		RNAPI Model();
 		RNAPI Model(Mesh *mesh, Material *material);
 
-		RNAPI static Model *WithName(const String *name);
+		RNAPI static Model *WithName(const String *name, const Dictionary *settings = nullptr);
 
 		RNAPI LODStage *AddLODStage(float distance);
 		RNAPI void RemoveLODStage(size_t index);

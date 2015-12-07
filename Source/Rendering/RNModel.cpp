@@ -30,10 +30,10 @@ namespace RN
 		stage->AddMesh(mesh, material);
 	}
 
-	Model *Model::WithName(const String *name)
+	Model *Model::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
-		return coordinator->GetAssetWithName<Model>(name, nullptr);
+		return coordinator->GetAssetWithName<Model>(name, settings);
 	}
 
 
