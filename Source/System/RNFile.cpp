@@ -255,4 +255,24 @@ namespace RN
 
 		return file->Autorelease();
 	}
+
+
+#define ConvenienceReader(type, name) \
+	type File::name() \
+	{ \
+		type buffer; \
+		size_t read = Read(&buffer, sizeof(type)); \
+		return buffer; \
+	}
+
+	ConvenienceReader(uint8, ReadUint8)
+	ConvenienceReader(uint16, ReadUint16)
+	ConvenienceReader(uint32, ReadUint32)
+	ConvenienceReader(uint64, ReadUint64)
+	ConvenienceReader(int8, ReadInt8)
+	ConvenienceReader(int16, ReadInt16)
+	ConvenienceReader(int32, ReadInt32)
+	ConvenienceReader(int64, ReadInt64)
+	ConvenienceReader(float, ReadFloat)
+	ConvenienceReader(double, ReadDouble)
 }

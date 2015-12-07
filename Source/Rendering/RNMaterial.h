@@ -23,6 +23,7 @@ namespace RN
 	{
 	public:
 		RNAPI MaterialDescriptor();
+		RNAPI MaterialDescriptor(const MaterialDescriptor &other);
 		RNAPI ~MaterialDescriptor();
 
 		RNAPI void AddTexture(Texture *texture);

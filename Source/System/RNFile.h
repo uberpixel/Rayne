@@ -37,6 +37,19 @@ namespace RN
 		RNAPI size_t Read(void *buffer, size_t size);
 		RNAPI Data *ReadData(size_t maxLength);
 
+		RNAPI uint8 ReadUint8();
+		RNAPI uint16 ReadUint16();
+		RNAPI uint32 ReadUint32();
+		RNAPI uint64 ReadUint64();
+
+		RNAPI int8 ReadInt8();
+		RNAPI int16 ReadInt16();
+		RNAPI int32 ReadInt32();
+		RNAPI int64 ReadInt64();
+
+		RNAPI float ReadFloat();
+		RNAPI double ReadDouble();
+
 		// Writing
 		RNAPI size_t Write(const void *buffer, size_t size);
 		RNAPI size_t WriteData(const Data *data);

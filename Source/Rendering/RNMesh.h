@@ -38,6 +38,8 @@ namespace RN
 				UVCoords0,
 				UVCoords1,
 				Indices,
+				BoneWeights,
+				BoneIndices,
 
 				Custom
 			};

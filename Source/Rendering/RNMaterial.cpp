@@ -19,6 +19,15 @@ namespace RN
 		_textures(new Array())
 	{}
 
+	MaterialDescriptor::MaterialDescriptor(const MaterialDescriptor &other) :
+		fragmentShader(other.fragmentShader),
+		vertexShader(other.vertexShader),
+		discardThreshold(other.discardThreshold),
+		_textures(SafeCopy(other._textures))
+	{
+
+	}
+
 	MaterialDescriptor::~MaterialDescriptor()
 	{
 		SafeRelease(_textures);
