@@ -10,6 +10,7 @@
 #include "RNAssetManager.h"
 
 #include "RNPNGAssetLoader.h"
+#include "RNSGMAssetLoader.h"
 
 namespace RN
 {
@@ -21,6 +22,7 @@ namespace RN
 		__sharedInstance = this;
 
 		PNGAssetLoader::Register();
+		SGMAssetLoader::Register();
 	}
 	AssetManager::~AssetManager()
 	{
