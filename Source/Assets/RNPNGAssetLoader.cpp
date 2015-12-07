@@ -91,7 +91,7 @@ namespace RN
 						*temp ++ = ptr[0];
 						*temp ++ = ptr[1];
 						*temp ++ = ptr[2];
-						*temp ++ = 1;
+						*temp ++ = 255;
 					}
 				}
 
