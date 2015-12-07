@@ -131,7 +131,7 @@ namespace RN
 
 		ID3D12Resource *renderTargets[3];
 		ID3D12RootSignature *rootSignature;
-
+		
 		UINT frameIndex;
 		HANDLE fenceEvent;
 		ID3D12Fence *fence;

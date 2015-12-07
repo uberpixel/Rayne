@@ -56,6 +56,15 @@ namespace RN
 		TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
 
 #undef TextureFormat
+
+		//TODO: get timing with normal window creation fixed... and remove this
+		Window *window = GetMainWindow();
+		if(!window)
+		{
+			window = CreateAWindow(Vector2(1024, 768), Screen::GetMainScreen());
+//			window->SetTitle(_application->GetTitle());
+			window->Show();
+		}
 	}
 
 	D3D12Renderer::~D3D12Renderer()
@@ -229,7 +238,7 @@ namespace RN
 
 		return (new D3D12GPUBuffer(buffer));*/
 
-		return new D3D12GPUBuffer(malloc(length), length);
+		return new D3D12GPUBuffer(bytes, length);
 	}
 
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
@@ -640,21 +649,31 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(D3D12Drawable *drawable)
 	{
-		/*		for(Entity *ent : entities)
+		D3D12GPUBuffer *vertexBuffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetVertexBuffer());
+		D3D12GPUBuffer *indexBuffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetIndicesBuffer());
+
+		_internals->commandList->SetPipelineState(drawable->_pipelineState->state);
+		_internals->commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+		vertexBufferView.BufferLocation = vertexBuffer->_bufferResource->GetGPUVirtualAddress();
+		vertexBufferView.StrideInBytes = drawable->mesh->GetStride();
+		vertexBufferView.SizeInBytes = vertexBuffer->GetLength();
+		_internals->commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+
+		if(indexBuffer)
 		{
-		_commandList->SetPipelineState(ent->_model->_material->_pipelineState.Get());
-		_commandList->IASetPrimitiveTopology(ent->_model->_mesh->_topology);
-		_commandList->IASetVertexBuffers(0, 1, &(ent->_model->_mesh->_vertexBufferView));
-		if(ent->_model->_mesh->_indexBuffer)
-		{
-		_commandList->IASetIndexBuffer(&(ent->_model->_mesh->_indexBufferView));
-		_commandList->DrawIndexedInstanced(ent->_model->_mesh->_indexCount, 1, 0, 0, 0);
+			D3D12_INDEX_BUFFER_VIEW indexBufferView;
+			indexBufferView.BufferLocation = indexBuffer->_bufferResource->GetGPUVirtualAddress();
+			indexBufferView.SizeInBytes = indexBuffer->GetLength();
+			indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+			_internals->commandList->IASetIndexBuffer(&indexBufferView);
+			_internals->commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
 		}
 		else
 		{
-		_commandList->DrawInstanced(ent->_model->_mesh->_vertexCount, 1, 0, 0);
+			_internals->commandList->DrawInstanced(drawable->mesh->GetVerticesCount(), 1, 0, 0);
 		}
-		}*/
 
 /*		id<MTLRenderCommandEncoder> encoder = _internals->renderPass.renderCommand;
 
@@ -691,14 +710,6 @@ namespace RN
 
 			[encoder setFragmentSamplerState:(id<MTLSamplerState>)texture->__GetUnderlyingSampler() atIndex:i];
 			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
-		}
-
-
-		// Mesh
-		D3D12GPUBuffer *buffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetVertexBuffer());
-		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
-
-		D3D12GPUBuffer *indexBuffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];*/
+		}*/
 	}
 }

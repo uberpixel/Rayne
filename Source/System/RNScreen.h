@@ -27,17 +27,17 @@ namespace RN
 
 		~Screen();
 
-		uint32 GetWidth() const { return static_cast<uint32>(_frame.width); }
-		uint32 GetHeight() const { return static_cast<uint32>(_frame.height); }
+		RNAPI uint32 GetWidth() const { return static_cast<uint32>(_frame.width); }
+		RNAPI uint32 GetHeight() const { return static_cast<uint32>(_frame.height); }
 
-		float GetScaleFactor() const { return _scaleFactor; }
-		const Rect &GetFrame() const { return _frame; }
-		const Array *GetSupportedResolutions() const { return _resolutions; } // Array of RN::Value of RN::Vector2
-		const String *GetName() const { return _name; }
-		bool IsMainScreen() const { return _isMainScreen; }
+		RNAPI float GetScaleFactor() const { return _scaleFactor; }
+		RNAPI const Rect &GetFrame() const { return _frame; }
+		RNAPI const Array *GetSupportedResolutions() const { return _resolutions; } // Array of RN::Value of RN::Vector2
+		RNAPI const String *GetName() const { return _name; }
+		RNAPI bool IsMainScreen() const { return _isMainScreen; }
 
-		static Screen *GetMainScreen();
-		static Array *GetScreens();
+		RNAPI static Screen *GetMainScreen();
+		RNAPI static Array *GetScreens();
 
 #if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID GetDisplayID() const { return _display; }

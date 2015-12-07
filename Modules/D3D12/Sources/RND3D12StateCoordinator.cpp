@@ -8,31 +8,48 @@
 
 #include "d3dx12.h"
 #include "RND3D12StateCoordinator.h"
+#include "RND3D12Renderer.h"
+#include "RND3D12Internals.h"
 
 namespace RN
 {
-/*	MTLVertexFormat _vertexFormatLookup[] =
-		{
-			MTLVertexFormatUChar2,
-			MTLVertexFormatUShort2,
-			MTLVertexFormatUInt,
-
-			MTLVertexFormatChar2,
-			MTLVertexFormatShort2,
-			MTLVertexFormatInt,
-
-			MTLVertexFormatFloat,
-
-			MTLVertexFormatFloat2,
-			MTLVertexFormatFloat3,
-			MTLVertexFormatFloat4,
-
-			MTLVertexFormatFloat4,
-			MTLVertexFormatFloat4,
-			MTLVertexFormatFloat4
+	DXGI_FORMAT _vertexFormatLookup[] =
+	{
+		DXGI_FORMAT_R8_UINT,
+		DXGI_FORMAT_R16_UINT,
+		DXGI_FORMAT_R32_UINT,
+		
+		DXGI_FORMAT_R8_SINT,
+		DXGI_FORMAT_R16_SINT,
+		DXGI_FORMAT_R32_SINT,
+		
+		DXGI_FORMAT_R32_FLOAT,
+		
+		DXGI_FORMAT_R32G32_FLOAT,
+		DXGI_FORMAT_R32G32B32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT
 		};
 
-	MTLCompareFunction CompareFunctionLookup[] =
+	const char* _vertexFeatureLookup[]
+	{
+		"POSITION",
+		"NORMAL",
+		"TANGENT",
+		"COLOR",
+		"COLOR",
+		"TEXCOORD",
+		"TEXCOORD",
+
+		"INDEX",
+
+		"CUSTOM"
+	};
+
+/*	MTLCompareFunction CompareFunctionLookup[] =
 		{
 			MTLCompareFunctionNever,
 			MTLCompareFunctionAlways,
@@ -43,6 +60,16 @@ namespace RN
 			MTLCompareFunctionGreaterEqual,
 			MTLCompareFunctionGreater
 		};*/
+
+	D3D12RenderingState::~D3D12RenderingState()
+	{
+		for(D3D12RenderingStateArgument *argument : vertexArguments)
+			delete argument;
+		for(D3D12RenderingStateArgument *argument : fragmentArguments)
+			delete argument;
+
+		state->Release();
+	}
 
 	D3D12StateCoordinator::D3D12StateCoordinator() :
 //		_device(nullptr),
@@ -179,41 +206,49 @@ namespace RN
 		_renderingStates.push_back(collection);
 
 		return GetRenderPipelineStateInCollection(collection, mesh, camera);
-
-		return nullptr;
 	}
 
 	const D3D12RenderingState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera)
 	{
-/*		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm;
-		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-		MTLPixelFormat stencilFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+		DXGI_FORMAT pixelFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
+		//TODO: Fix this shit
 		for(const D3D12RenderingState *state : collection->states)
 		{
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)
+			if(state->pixelFormat == pixelFormat && state->depthStencilFormat == depthStencilFormat)
 				return state;
 		}
 
-		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
+		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
-		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-		pipelineStateDescriptor.vertexFunction = collection->vertexShader;
-		pipelineStateDescriptor.fragmentFunction = collection->fragmentShader;
-		pipelineStateDescriptor.vertexDescriptor = descriptor;
-		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat;
-		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
-		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
+		ID3DBlob *vertexShader = static_cast<ID3DBlob*>(collection->vertexShader);
+		ID3DBlob *fragmentShader = static_cast<ID3DBlob*>(collection->vertexShader);
 
-		MTLRenderPipelineReflection *reflection;
-		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
+		// Describe and create the graphics pipeline state object (PSO).
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.pRootSignature = renderer->_internals->rootSignature;
+		psoDesc.InputLayout = CreateVertexDescriptorFromMesh(mesh);
+		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
+		psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.DepthStencilState.DepthEnable = TRUE;
+		psoDesc.DepthStencilState.StencilEnable = TRUE;
+		psoDesc.DSVFormat = depthStencilFormat;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = 1;
+		psoDesc.RTVFormats[0] = pixelFormat;
+		psoDesc.SampleDesc.Count = 1;
 
-		[pipelineStateDescriptor release];
-		[descriptor release];
 
-		// TODO: Error handling, plox
+		D3D12RenderingState *state = new D3D12RenderingState();
+		renderer->_internals->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
-		// Create the rendering state
+
+
+/*		// Create the rendering state
 		D3D12RenderingState *state = new D3D12RenderingState();
 
 		state->vertexArguments.reserve([[reflection vertexArguments] count]);
@@ -251,44 +286,37 @@ namespace RN
 			}
 
 			state->fragmentArguments.push_back(parsed);
-		}
+		}*/
 
-
-		state->state = pipelineState;
 		state->pixelFormat = pixelFormat;
-		state->depthFormat = depthFormat;
-		state->stencilFormat = stencilFormat;
+		state->depthStencilFormat = depthStencilFormat;
 
 		collection->states.push_back(state);
 
-		return state;*/
-
-		return nullptr;
+		return state;
 	}
 
-/*	MTLVertexDescriptor *D3D12StateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
+	D3D12_INPUT_LAYOUT_DESC D3D12StateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
 	{
-		MTLVertexDescriptor *descriptor = [[MTLVertexDescriptor alloc] init];
-		descriptor.layouts[0].stride = mesh->GetStride();
-		descriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
-		descriptor.layouts[0].stepRate = 1;
-
-		size_t offset = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
+		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
 
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[offset];
-			attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];
-			attributeDescriptor.offset = attribute.GetOffset();
-			attributeDescriptor.bufferIndex = 0;
-
-			offset ++;
+			D3D12_INPUT_ELEMENT_DESC element = {};
+			element.SemanticName = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
+			element.SemanticIndex = 0;
+			element.Format = _vertexFormatLookup[static_cast<int>(attribute.GetType())];
+			element.InputSlot = 0;
+			element.AlignedByteOffset = attribute.GetOffset();
+			element.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+			element.InstanceDataStepRate = 1;
+			inputElementDescs.push_back(element);
 		}
 
-		return descriptor;
-	}*/
+		return {inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size())};
+	}
 }

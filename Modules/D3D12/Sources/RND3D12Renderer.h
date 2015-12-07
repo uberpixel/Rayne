@@ -26,6 +26,8 @@ namespace RN
 	public:
 		friend class D3D12Texture;
 		friend class D3D12Window;
+		friend class D3D12StateCoordinator;
+		friend class D3D12GPUBuffer;
 
 		RNAPI D3D12Renderer(const Dictionary *parameters);
 		RNAPI ~D3D12Renderer();

@@ -12,6 +12,9 @@
 #include <Rayne.h>
 #include "RND3D12Shader.h"
 
+struct D3D12_INPUT_LAYOUT_DESC;
+struct ID3D12PipelineState;
+
 namespace RN
 {
 	RNExceptionType(D3D12StructArgumentUnsupported)
@@ -166,20 +169,11 @@ namespace RN
 
 	struct D3D12RenderingState
 	{
-		~D3D12RenderingState()
-		{
-			for(D3D12RenderingStateArgument *argument : vertexArguments)
-				delete argument;
-			for(D3D12RenderingStateArgument *argument : fragmentArguments)
-				delete argument;
+		~D3D12RenderingState();
 
-//			[state release];
-		}
-
-/*		MTLPixelFormat pixelFormat;
-		MTLPixelFormat depthFormat;
-		MTLPixelFormat stencilFormat;
-		id<MTLRenderPipelineState> state;*/
+		size_t pixelFormat;
+		size_t depthStencilFormat;
+		ID3D12PipelineState *state;
 
 		std::vector<D3D12RenderingStateArgument *> vertexArguments;
 		std::vector<D3D12RenderingStateArgument *> fragmentArguments;
@@ -207,22 +201,19 @@ namespace RN
 		std::vector<D3D12RenderingState *> states;
 	};
 
-
 	class D3D12StateCoordinator
 	{
 	public:
 		D3D12StateCoordinator();
 		~D3D12StateCoordinator();
 
-/*		void SetDevice(id<MTLDevice> device);
-
-		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
+/*		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
 		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);*/
 
 		const D3D12RenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
-//		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
+		D3D12_INPUT_LAYOUT_DESC CreateVertexDescriptorFromMesh(Mesh *mesh);
 		const D3D12RenderingState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
 
 //		id<MTLDevice> _device;

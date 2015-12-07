@@ -12,6 +12,7 @@
 
 #include <Rayne.h>
 
+class ID3D12Resource;
 namespace RN
 {
 	class D3D12Renderer;
@@ -25,10 +26,10 @@ namespace RN
 		RNAPI size_t GetLength() const final;
 
 	private:
-		D3D12GPUBuffer(void *data, size_t length);
+		D3D12GPUBuffer(const void *data, size_t length);
 		~D3D12GPUBuffer() override;
 
-		void *_buffer;
+		ID3D12Resource *_bufferResource;
 		size_t _length;
 
 		RNDeclareMeta(D3D12GPUBuffer)
