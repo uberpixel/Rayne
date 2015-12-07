@@ -22,6 +22,7 @@ namespace RN
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary())
 	{
+		_internals->device = nullptr;
 
 #ifdef _DEBUG
 		// Enable the D3D12 debug layer.
@@ -34,30 +35,6 @@ namespace RN
 		}
 #endif
 		
-
-/*		_internals->device = nullptr;
-
-		// Actual initialization
-		NSArray *devices = MTLCopyAllDevices();
-		NSUInteger count = [devices count];
-
-		for(NSUInteger i = 0; i < count; i ++)
-		{
-			id<MTLDevice> device = [devices objectAtIndex:i];
-			if(![device isLowPower] && ![device isHeadless])
-			{
-				_internals->device = [device retain];
-				break;
-			}
-		}
-
-		RN_ASSERT(_internals->device, "Needs a valid device");
-
-		_internals->commandQueue = [_internals->device newCommandQueue];
-		_internals->stateCoordinator.SetDevice(_internals->device);
-
-		[devices release];*/
-
 		// Texture format look ups
 		_textureFormatLookup = new Dictionary();
 
@@ -178,6 +155,7 @@ namespace RN
 
 		_internals->MoveToNextFrame();
 	}
+
 	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
 		_internals->commandList->RSSetViewports(1, &_internals->viewport);
@@ -258,6 +236,7 @@ namespace RN
 	{
 		return new D3D12ShaderLibrary(file);
 	}
+
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
 	{
 /*		MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
@@ -358,6 +337,7 @@ namespace RN
 	{
 		return (_textureFormatLookup->GetObjectForKey(format) != nullptr);
 	}
+
 	bool D3D12Renderer::SupportsDrawMode(DrawMode mode) const
 	{
 		return true;

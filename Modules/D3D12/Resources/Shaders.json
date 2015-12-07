@@ -1,6 +1,6 @@
 [
 	{
-		"file": ":RayneMetal:/Shaders.metal",
+		"file": ":RayneD3D12:/Shaders.hlsl",
 		"shaders": [
 			{
 				"name": "gouraud_vertex",

@@ -44,6 +44,7 @@ namespace RN
 		D3D12Shader(String *file, String *entryPointName, String *shaderType);
 
 		Array *_attributes;
+		void *_shader;
 
 		RNDeclareMeta(D3D12Shader)
 	};

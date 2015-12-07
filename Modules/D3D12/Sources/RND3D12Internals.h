@@ -9,23 +9,8 @@
 #ifndef __RAYNE_D3D12INTERNALS_H__
 #define __RAYNE_D3D12INTERNALS_H__
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES
-#endif
-#include <windows.h>
-#include <d3d12.h>
-#include <dxgi1_4.h>
-#include <d3dcompiler.h>
 #include "d3dx12.h"
-
 #include <Rayne.h>
-
 #include "RND3D12StateCoordinator.h"
 #include "RND3D12UniformBuffer.h"
 

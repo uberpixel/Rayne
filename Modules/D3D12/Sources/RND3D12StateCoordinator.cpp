@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "d3dx12.h"
 #include "RND3D12StateCoordinator.h"
-#include "RND3D12Shader.h"
 
 namespace RN
 {
@@ -156,13 +156,13 @@ namespace RN
 
 	const D3D12RenderingState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
-/*		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
+		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
 		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(material->GetVertexShader());
 		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
 
-		id<MTLFunction> vertexFunction = (id<MTLFunction>)vertexShader->_shader;
-		id<MTLFunction> fragmentFunction = (id<MTLFunction>)fragmentShader->_shader;
+		void *vertexFunction = vertexShader->_shader;
+		void *fragmentFunction = fragmentShader->_shader;
 
 		for(D3D12RenderingStateCollection *collection : _renderingStates)
 		{
@@ -178,7 +178,7 @@ namespace RN
 		D3D12RenderingStateCollection *collection = new D3D12RenderingStateCollection(descriptor, vertexFunction, fragmentFunction);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, camera);*/
+		return GetRenderPipelineStateInCollection(collection, mesh, camera);
 
 		return nullptr;
 	}

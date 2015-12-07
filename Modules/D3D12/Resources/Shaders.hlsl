@@ -1,25 +1,16 @@
 //
-//  Shaders.metal
+//  Shaders.hlsl
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <metal_stdlib>
-#include <simd/simd.h>
-
-//#define vertex
-//#define fragment
-//#define constant const
-
 // Exported defines:
 // RN_NORMALS
 // RN_COLOR
 // RN_UV0
 // RN_DISCARD
-
-using namespace metal;
 
 #define RN_FRAGMENT_UNIFORM 0
 
@@ -41,14 +32,19 @@ using namespace metal;
 #endif
 
 // Variables in constant address space
-constant float3 light_position = float3(1.0, 1.0, 1.0);
+const float3 light_position = float3(1.0, 1.0, 1.0);
 
-struct Uniforms
+#if RN_UV0
+Texture2D texture : register(t0);
+SamplerState samplr : register(s0);
+#endif
+
+cbuffer Uniforms : register(b0)
 {
-	matrix_float4x4 modelViewProjectionMatrix;
+	matrix modelViewProjectionMatrix;
 
 #if RN_NORMALS
-	matrix_float4x4 modelMatrix;
+	matrix modelMatrix;
 #endif
 
 	float4 ambientColor;
@@ -56,7 +52,7 @@ struct Uniforms
 };
 
 #if RN_FRAGMENT_UNIFORM
-struct FragmentUniforms
+cbuffer FragmentUniforms : register(b1)
 {
 #if RN_DISCARD
 	float discardThreshold;
@@ -66,78 +62,71 @@ struct FragmentUniforms
 
 struct InputVertex
 {
-	float3 position [[attribute(0)]];
+	float3 position : POSITION;
 
 #if RN_NORMALS
-	float3 normal [[attribute(1)]];
+	float3 normal : NORMAL;
 #endif
 #if RN_COLOR
-	float4 color [[attribute(1 + RN_NORMALS)]];
+	float4 color : COLOR0;
 #endif
 #if RN_UV0
-	float2 texCoords [[attribute(1 + RN_NORMALS + RN_COLOR)]];
+	float2 texCoords : TEXCOORD0;
 #endif
 #if RN_TANGENTS
-	float4 tangents [[attribute(1 + RN_NORMALS + RN_COLOR + RN_UV0)]];
+	float4 tangents : TANGENT;
 #endif
 };
 
 struct FragmentVertex
 {
-	float4 position [[position]];
+	float4 position : SV_POSITION;
 
-#if RN_COLOR
-	float4 color;
-#endif
 #if RN_NORMALS
-	float3 normal;
+	float3 normal : NORMAL;
+#endif
+#if RN_COLOR
+	float4 color : COLOR2;
 #endif
 #if RN_UV0
-	float2 texCoords;
+	float2 texCoords : TEXCOORD0;
 #endif
 
-	float4 ambient;
-	float4 diffuse;
+	float4 ambient : COLOR0;
+	float4 diffuse : COLOR1;
 };
 
-vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]])
+FragmentVertex gouraud_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0);
+	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0));
 
 #if RN_COLOR
 	result.color = vert.color;
 #endif
 #if RN_NORMALS
-	result.normal = (uniforms.modelMatrix * float4(vert.normal, 0.0)).xyz;
+	result.normal = mul(modelMatrix, float4(vert.normal, 0.0)).xyz;
 #endif
 #if RN_UV0
 	result.texCoords = vert.texCoords;
 #endif
 
-	result.ambient = uniforms.ambientColor;
-	result.diffuse = uniforms.diffuseColor;
+	result.ambient = ambientColor;
+	result.diffuse = diffuseColor;
 
 	return result;
 }
 
 
-fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
-#if RN_UV0
-	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
-#endif
-#if RN_FRAGMENT_UNIFORM
-	, constant FragmentUniforms &uniforms [[buffer(1)]]
-#endif
-)
+float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 {
+	float4 color = 1.0f;
 #if RN_UV0
-	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+	color = texture.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
-		if(color.a < uniforms.discardThreshold)
-			discard_fragment();
+	clip(color.a - discardThreshold);
 #endif
 #endif
 

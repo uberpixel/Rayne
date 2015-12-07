@@ -10,6 +10,7 @@
 #define __RAYNE_D3D12STATECOORDINATOR_H_
 
 #include <Rayne.h>
+#include "RND3D12Shader.h"
 
 namespace RN
 {
@@ -187,11 +188,11 @@ namespace RN
 	struct D3D12RenderingStateCollection
 	{
 		D3D12RenderingStateCollection() = default;
-/*		D3D12RenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, id<MTLFunction> vertex, id<MTLFunction> fragment) :
+		D3D12RenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, void *vertex, void *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
-		{}*/
+		{}
 
 		~D3D12RenderingStateCollection()
 		{
@@ -200,8 +201,8 @@ namespace RN
 		}
 
 		Mesh::VertexDescriptor descriptor;
-/*		id<MTLFunction> vertexShader;
-		id<MTLFunction> fragmentShader;*/
+		void *vertexShader;
+		void *fragmentShader;
 
 		std::vector<D3D12RenderingState *> states;
 	};
