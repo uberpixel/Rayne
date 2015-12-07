@@ -65,6 +65,8 @@ namespace RN
 				_members.emplace_back(Feature::EmissiveColor, offset);
 			else if(name->IsEqual(RNCSTR("discardThreshold")))
 				_members.emplace_back(Feature::DiscardThreshold, offset);
+			else if(name->IsEqual(RNCSTR("textureTileFactor")))
+				_members.emplace_back(Feature::TextureTileFactor, offset);
 			else
 				_members.emplace_back(name, offset);
 

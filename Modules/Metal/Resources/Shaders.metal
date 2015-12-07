@@ -53,6 +53,10 @@ struct Uniforms
 
 	float4 ambientColor;
 	float4 diffuseColor;
+
+#if RN_UV0
+	float textureTileFactor;
+#endif
 };
 
 #if RN_FRAGMENT_UNIFORM
@@ -113,7 +117,7 @@ vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uni
 	result.normal = (uniforms.modelMatrix * float4(vert.normal, 0.0)).xyz;
 #endif
 #if RN_UV0
-	result.texCoords = vert.texCoords;
+	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
 #endif
 
 	result.ambient = uniforms.ambientColor;

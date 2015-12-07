@@ -610,6 +610,11 @@ namespace RN
 			float temp = material->GetDiscardThreshold();
 			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
 		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::TextureTileFactor)))
+		{
+			float temp = material->GetTextureTileFactor();
+			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
+		}
 
 		gpuBuffer->Invalidate();
 	}

@@ -68,6 +68,7 @@ namespace RN
 		_specularColor(1.0f, 1.0f, 1.0f, 4.0f),
 		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
 		_discardThreshold(descriptor.discardThreshold),
+		_textureTileFactor(1.0),
 		_cullMode(CullMode::BackFace)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
@@ -83,7 +84,8 @@ namespace RN
 		_ambientColor(other->_ambientColor),
 		_diffuseColor(other->_diffuseColor),
 		_specularColor(other->_specularColor),
-		_emissiveColor(other->_emissiveColor)
+		_emissiveColor(other->_emissiveColor),
+		_textureTileFactor(other->_textureTileFactor)
 	{}
 
 	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
@@ -111,6 +113,11 @@ namespace RN
 	void Material::SetDiscardThreshold(float threshold)
 	{
 		_discardThreshold = threshold;
+	}
+
+	void Material::SetTextureTileFactor(float factor)
+	{
+		_textureTileFactor = factor;
 	}
 
 	void Material::SetAmbientColor(const Color &color)

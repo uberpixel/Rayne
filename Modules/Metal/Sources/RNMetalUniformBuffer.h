@@ -42,7 +42,8 @@ namespace RN
 				   DiffuseColor = (1 << 14),
 				   SpecularColor = (1 << 15),
 				   EmissiveColor = (1 << 16),
-			       DiscardThreshold = (1 << 17));
+			       DiscardThreshold = (1 << 17),
+				   TextureTileFactor = (1 << 18));
 
 		class Member
 		{
