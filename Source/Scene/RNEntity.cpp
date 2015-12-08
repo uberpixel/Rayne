@@ -68,7 +68,7 @@ namespace RN
 		}
 	}
 
-	void Entity::Render(Renderer *renderer, Camera *camera)
+	void Entity::Render(Renderer *renderer, Camera *camera) const
 	{
 		if(!RN_EXPECT_FALSE(_model))
 			return;

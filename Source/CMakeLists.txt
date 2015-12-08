@@ -114,6 +114,7 @@ set(RAYNE_HEADERS
     Input/RNInputControl.h
     Input/RNInputDevice.h
     Input/RNInputManager.h
+    Math/RNAABB.h
     Math/RNAlgorithm.h
     Math/RNColor.h
     Math/RNConstants.h
@@ -125,6 +126,7 @@ set(RAYNE_HEADERS
     Math/RNQuaternion.h
     Math/RNRect.h
     Math/RNSIMD.h
+    Math/RNSphere.h
     Math/RNVector.h
     Modules/RNModule.h
     Modules/RNModuleManager.h

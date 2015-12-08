@@ -21,12 +21,13 @@ namespace RN
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_uid(__SceneNodeIDs.fetch_add(1)),
-		_lid(-1),
+		_lid(static_cast<uint64>(-1)),
 		_sceneEntry(this),
 		_scene(nullptr)
 	{
 		Initialize();
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });
+		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
 	}
 
 	SceneNode::SceneNode(const Vector3 &position) :
@@ -178,6 +179,22 @@ namespace RN
 		DidUpdate(ChangeSet::Priority);
 	}
 
+	void SceneNode::SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere)
+	{
+		_boundingBox = boundingBox;
+
+		if(calculateBoundingSphere)
+			_boundingSphere = Sphere(_boundingBox);
+
+		_updated = true;
+	}
+
+	void SceneNode::SetBoundingSphere(const Sphere &boundingSphere)
+	{
+		_boundingSphere = boundingSphere;
+		_updated = true;
+	}
+
 	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
 	{
 		const RN::Vector3 &worldPos = GetWorldPosition();
@@ -281,6 +298,21 @@ namespace RN
 		return _parent;
 	}
 
+	// -------------------
+	// MARK: -
+	// MARK: Rendering
+	// ------------------
+
+	bool SceneNode::CanRender(Renderer *renderer, Camera *camera) const
+	{
+		if(_flags & Flags::Hidden)
+			return false;
+
+		return camera->InFrustum(GetBoundingSphere());
+	}
+
+	void SceneNode::Render(Renderer *renderer, Camera *camera) const
+	{}
 
 	// -------------------
 	// MARK: -
@@ -337,6 +369,16 @@ namespace RN
 
 				_worldTransform = _localTransform;
 			}
+
+			_transformedBoundingBox = _boundingBox;
+			_transformedBoundingBox.position = _worldPosition;
+			_transformedBoundingBox *= _worldScale;
+			_transformedBoundingBox.SetRotation(_worldRotation);
+
+			_transformedBoundingSphere = _boundingSphere;
+			_transformedBoundingSphere.position = _worldPosition;
+			_transformedBoundingSphere *= _worldScale;
+			_transformedBoundingSphere.SetRotation(_worldRotation);
 
 			_updated = false;
 			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {

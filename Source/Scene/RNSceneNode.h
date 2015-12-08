@@ -16,6 +16,8 @@
 #include "../Math/RNMatrix.h"
 #include "../Math/RNQuaternion.h"
 #include "../Math/RNVector.h"
+#include "../Math/RNAABB.h"
+#include "../Math/RNSphere.h"
 #include "../Base/RNSignal.h"
 #include "../Objects/RNArray.h"
 #include "../Objects/RNKVOImplementation.h"
@@ -91,6 +93,9 @@ namespace RN
 		RNAPI virtual void SetWorldScale(const Vector3 &scal);
 		RNAPI virtual void SetWorldRotation(const Quaternion &rot);
 
+		RNAPI void SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere=true);
+		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
+
 		RNAPI void SetPriority(Priority priority);
 
 		RNAPI uint64 GetUID() const { return _uid; }
@@ -106,6 +111,9 @@ namespace RN
 		RNAPI Vector3 GetWorldScale() const;
 		RNAPI Vector3 GetWorldEulerAngle() const;
 		RNAPI Quaternion GetWorldRotation() const;
+
+		RNAPI AABB GetBoundingBox() const;
+		RNAPI Sphere GetBoundingSphere() const;
 
 		RNAPI const Vector3 &GetPosition() const { return _position; }
 		RNAPI const Vector3 &GetScale() const { return _scale; }
@@ -130,8 +138,8 @@ namespace RN
 		RNAPI Matrix GetWorldTransform() const;
 		RNAPI Matrix GetTransform() const;
 
-		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) { return true; }
-		RNAPI virtual void Render(Renderer *renderer, Camera *camera) {}
+		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) const;
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera) const;
 
 		virtual void Update(float delta)
 		{}
@@ -156,6 +164,9 @@ namespace RN
 
 		void UpdateScene(Scene *scene);
 		void __CompleteAttachmentWithScene(Scene *scene);
+
+		AABB _boundingBox;
+		Sphere _boundingSphere;
 
 		SceneNode *_parent;
 		Array *_children;
@@ -187,6 +198,9 @@ namespace RN
 
 		mutable Matrix _worldTransform;
 		mutable Matrix _localTransform;
+
+		mutable AABB _transformedBoundingBox;
+		mutable Sphere _transformedBoundingSphere;
 
 		RNDeclareMeta(SceneNode)
 	};
@@ -368,6 +382,18 @@ namespace RN
 	{
 		UpdateInternalData();
 		return Matrix(_worldTransform);
+	}
+
+	RN_INLINE AABB SceneNode::GetBoundingBox() const
+	{
+		UpdateInternalData();
+		return AABB(_transformedBoundingBox);
+	}
+
+	RN_INLINE Sphere SceneNode::GetBoundingSphere() const
+	{
+		UpdateInternalData();
+		return Sphere(_transformedBoundingSphere);
 	}
 }
 

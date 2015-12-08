@@ -32,6 +32,7 @@
 #include "Input/RNInputDevice.h"
 #include "Input/RNInputManager.h"
 
+#include "Math/RNAABB.h"
 #include "Math/RNAlgorithm.h"
 #include "Math/RNColor.h"
 #include "Math/RNConstants.h"
@@ -41,6 +42,7 @@
 #include "Math/RNRandom.h"
 #include "Math/RNQuaternion.h"
 #include "Math/RNSIMD.h"
+#include "Math/RNSphere.h"
 #include "Math/RNVector.h"
 
 #include "Modules/RNModule.h"

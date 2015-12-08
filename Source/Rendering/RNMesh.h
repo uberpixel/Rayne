@@ -15,6 +15,8 @@
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
 #include "../Math/RNAlgorithm.h"
+#include "../Math/RNAABB.h"
+#include "../Math/RNSphere.h"
 #include "RNRendererTypes.h"
 #include "RNGPUBuffer.h"
 
@@ -430,8 +432,13 @@ namespace RN
 		RNAPI const VertexAttribute *GetAttribute(VertexAttribute::Feature feature) const;
 		RNAPI const VertexAttribute *GetAttribute(const String *name) const;
 
+		RNAPI void CalculateBoundingVolumes();
+
 		Chunk GetChunk() { return Chunk(this, false); }
 		Chunk GetTrianglesChunk() { return Chunk(this, true); }
+
+		const AABB &GetBoundingBox() const { return _boundingBox; }
+		const Sphere &GetBoundingSphere() const { return _boundingSphere; }
 
 		size_t GetStride() const { return _stride; }
 		size_t GetVerticesCount() const { return _verticesCount; }
@@ -464,6 +471,9 @@ namespace RN
 		uint32 _changeCounter;
 		bool _changedVertices;
 		bool _changedIndices;
+
+		AABB _boundingBox;
+		Sphere _boundingSphere;
 
 		RNDeclareMeta(Mesh)
 	};

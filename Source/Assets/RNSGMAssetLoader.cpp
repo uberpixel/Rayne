@@ -84,6 +84,7 @@ namespace RN
 			}
 		}
 
+		model->CalculateBoundingVolumes();
 		return model->Autorelease();
 	}
 

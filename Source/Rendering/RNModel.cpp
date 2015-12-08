@@ -88,7 +88,22 @@ namespace RN
 		return _lodStages->GetLastObject<LODStage>();
 	}
 
+	void Model::CalculateBoundingVolumes()
+	{
+		_boundingBox = AABB(Vector3(0.0), Vector3(0.0));
 
+		LODStage *stage = GetLODStage(0);
+
+		for(LODStage::Group &group : stage->_groups)
+		{
+			Mesh *mesh = group._mesh;
+
+			mesh->CalculateBoundingVolumes();
+			_boundingBox += mesh->GetBoundingBox();
+		}
+
+		_boundingSphere = Sphere(_boundingBox);
+	}
 
 	const std::vector<float> &Model::GetDefaultLODFactors()
 	{

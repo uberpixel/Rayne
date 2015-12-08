@@ -56,6 +56,9 @@ namespace RN
 		_descriptor(attributes),
 		_changeCounter(0)
 	{
+		_boundingBox = AABB(Vector3(0.0f), Vector3(0.0f));
+		_boundingSphere = Sphere(_boundingBox);
+
 		ParseAttributes();
 	}
 
@@ -241,6 +244,78 @@ namespace RN
 		}
 
 		return nullptr;
+	}
+
+	void Mesh::CalculateBoundingVolumes()
+	{
+		Vector3 min = Vector3();
+		Vector3 max = Vector3();
+
+		const VertexAttribute *attribute = GetAttribute(VertexAttribute::Feature::Vertices);
+
+		if(!attribute)
+		{
+			_boundingBox = AABB(Vector3(0.0f), Vector3(0.0f));
+			_boundingSphere = Sphere(_boundingBox);
+
+			return;
+		}
+
+		Chunk chunk = GetChunk();
+
+		switch(attribute->GetType())
+		{
+			case PrimitiveType::Vector2:
+			{
+				ElementIterator<Vector2> iterator = chunk.GetIterator<Vector2>(VertexAttribute::Feature::Vertices);
+
+				for(size_t i = 0; i < _verticesCount; i ++)
+				{
+					Vector2 vertex = *iterator;
+
+					min.x = std::min(vertex.x, min.x);
+					min.y = std::min(vertex.y, min.y);
+
+					max.x = std::max(vertex.x, max.x);
+					max.y = std::max(vertex.y, max.y);
+
+					iterator ++;
+				}
+
+				break;
+			}
+
+			case PrimitiveType::Vector3:
+			{
+				ElementIterator<Vector3> iterator = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+
+				for(size_t i = 0; i < _verticesCount; i ++)
+				{
+					Vector3 vertex = *iterator;
+
+					min.x = std::min(vertex.x, min.x);
+					min.y = std::min(vertex.y, min.y);
+
+					max.x = std::max(vertex.x, max.x);
+					max.y = std::max(vertex.y, max.y);
+
+					min.z = std::min(vertex.z, min.z);
+					max.z = std::max(vertex.z, max.z);
+
+					iterator ++;
+				}
+
+				break;
+			}
+
+			default:
+				_boundingBox = AABB(Vector3(0.0f), Vector3(0.0f));
+				_boundingSphere = Sphere(_boundingBox);
+				break;
+		}
+
+		_boundingBox = AABB(min, max);
+		_boundingSphere = Sphere(_boundingBox);
 	}
 
 	// ---------------------

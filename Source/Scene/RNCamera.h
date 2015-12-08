@@ -90,6 +90,8 @@ namespace RN
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 
 		RNAPI virtual bool InFrustum(const Vector3 &position, float radius);
+		RNAPI virtual bool InFrustum(const Sphere &sphere);
+		RNAPI virtual bool InFrustum(const AABB &aabb);
 
 		RNAPI const Vector3 &GetFrustumCenter();
 		RNAPI float GetFrustumRadius();

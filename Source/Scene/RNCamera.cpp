@@ -613,4 +613,36 @@ namespace RN
 
 		return true;
 	}
+
+	bool Camera::InFrustum(const Sphere &sphere)
+	{
+		UpdateFrustum();
+		return InFrustum(sphere.position+sphere.offset, sphere.radius);
+	}
+
+	bool Camera::InFrustum(const AABB &aabb)
+	{
+		UpdateFrustum();
+
+		/*		Plane *planes = &_frustumLeft;
+				Plane *absPlanes = &_absFrustumLeft;
+
+				Vector3 position = aabb.Position();
+
+				for(int i=0; i<6; i++)
+				{
+					const Plane &plane = planes[i];
+					const Plane &absPlane = absPlanes[i];
+
+					float d = position.Dot(plane.normal);
+					float r = aabb.width.Dot(absPlane.normal);
+
+					float dpr = d + r + plane.d;
+
+					if(Math::IsNegative(dpr))
+						return false;
+				}*/
+
+		return true;
+	}
 }

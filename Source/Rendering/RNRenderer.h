@@ -40,7 +40,7 @@ namespace RN
 		virtual ~Drawable()
 		{}
 
-		void Update(Mesh *tmesh, Material *tmaterial, SceneNode *node)
+		void Update(Mesh *tmesh, Material *tmaterial, const SceneNode *node)
 		{
 			if(mesh != tmesh)
 			{
@@ -55,7 +55,7 @@ namespace RN
 
 			Update(node);
 		}
-		virtual void Update(SceneNode *node)
+		virtual void Update(const SceneNode *node)
 		{
 			modelMatrix = node->GetWorldTransform();
 			inverseModelMatrix = modelMatrix.GetInverse();
