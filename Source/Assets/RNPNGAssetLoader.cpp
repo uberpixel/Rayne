@@ -125,7 +125,11 @@ namespace RN
 		fclose(rawFile);
 
 
+#if RN_PLATFORM_MAC_OS
+		bool mipMapped = true;
+#else
 		bool mipMapped = false;
+#endif
 		Number *wrapper;
 
 		if((wrapper = settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
