@@ -27,6 +27,7 @@ namespace RN
 		RNAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		RNAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		RNAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
+		RNAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
 		RNAPI void GenerateMipMaps() final;
 		RNAPI void SetParameter(const Parameter &parameter) final;
@@ -42,6 +43,8 @@ namespace RN
 		D3D12StateCoordinator *_coordinator;
 		void *_texture;
 		void *_sampler;
+
+		void *_data;
 
 		RNDeclareMeta(D3D12Texture)
 	};
