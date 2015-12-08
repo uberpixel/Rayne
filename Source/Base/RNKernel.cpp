@@ -241,6 +241,8 @@ namespace RN
 			}
 
 			_delta = 0.0;
+
+			HandleSystemEvents();
 			FinishBootstrap();
 			
 			_firstFrame = false;
