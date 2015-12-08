@@ -23,7 +23,7 @@ namespace RN
 		[buffer release];
 	}
 
-	void *MetalGPUBuffer::GetBuffer() const
+	void *MetalGPUBuffer::GetBuffer()
 	{
 		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
 		return [buffer contents];

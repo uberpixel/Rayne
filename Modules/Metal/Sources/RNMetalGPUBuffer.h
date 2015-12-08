@@ -20,7 +20,7 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
-		RNAPI void *GetBuffer() const final;
+		RNAPI void *GetBuffer() final;
 		RNAPI void InvalidateRange(const Range &range) final;
 		RNAPI size_t GetLength() const final;
 

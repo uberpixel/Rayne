@@ -6,7 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-
 #ifndef __RAYNE_GPUBUFFER_H_
 #define __RAYNE_GPUBUFFER_H_
 
