@@ -115,7 +115,7 @@ namespace RN
 
 				for(uint8 n = 0; n < textureCount; n ++)
 				{
-					__unused uint8 usageHint = file->ReadUint8();
+					/*__unused uint8 usageHint =*/ file->ReadUint8();
 
 					size_t length = file->ReadUint16();
 					char *buffer = new char[length];

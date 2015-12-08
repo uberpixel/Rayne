@@ -125,7 +125,7 @@ namespace RN
 		fclose(rawFile);
 
 
-		bool mipMapped = true;
+		bool mipMapped = false;
 		Number *wrapper;
 
 		if((wrapper = settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))

@@ -220,24 +220,12 @@ namespace RN
 
 	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
 	{
-/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);
-		id<MTLBuffer> buffer = [_internals->device newBufferWithLength:length options:resourceOptions];
-		if(!buffer)
-			return nullptr;
-
-		return (new D3D12GPUBuffer(buffer));*/
-
-		return new D3D12GPUBuffer(malloc(length), length);
+/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
+		return new D3D12GPUBuffer(nullptr, length);
 	}
 	GPUBuffer *D3D12Renderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
 	{
-/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);
-		id<MTLBuffer> buffer = [_internals->device newBufferWithBytes:bytes length:length options:resourceOptions];
-		if(!buffer)
-			return nullptr;
-
-		return (new D3D12GPUBuffer(buffer));*/
-
+/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
 		return new D3D12GPUBuffer(bytes, length);
 	}
 

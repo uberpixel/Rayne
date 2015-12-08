@@ -32,7 +32,7 @@
 #endif
 
 // Variables in constant address space
-const float3 light_position = float3(1.0, 1.0, 1.0);
+static const float3 light_position = float3(1.0, 1.0, 1.0);
 
 #if RN_UV0
 Texture2D texture : register(t0);

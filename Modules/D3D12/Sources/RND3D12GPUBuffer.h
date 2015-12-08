@@ -21,7 +21,7 @@ namespace RN
 	public:
 		friend class D3D12Renderer;
 
-		RNAPI void *GetBuffer() const final;
+		RNAPI void *GetBuffer() final;
 		RNAPI void InvalidateRange(const Range &range) final;
 		RNAPI size_t GetLength() const final;
 
@@ -30,6 +30,7 @@ namespace RN
 		~D3D12GPUBuffer() override;
 
 		ID3D12Resource *_bufferResource;
+		ID3D12Resource *_bufferResourceUpload;
 		size_t _length;
 
 		RNDeclareMeta(D3D12GPUBuffer)
