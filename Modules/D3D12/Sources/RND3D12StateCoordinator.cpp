@@ -242,8 +242,9 @@ namespace RN
 		psoDesc.RTVFormats[0] = pixelFormat;
 		psoDesc.SampleDesc.Count = 1;
 
-
 		D3D12RenderingState *state = new D3D12RenderingState();
+		state->pixelFormat = pixelFormat;
+		state->depthStencilFormat = depthStencilFormat;
 		renderer->_internals->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
 
@@ -287,9 +288,6 @@ namespace RN
 
 			state->fragmentArguments.push_back(parsed);
 		}*/
-
-		state->pixelFormat = pixelFormat;
-		state->depthStencilFormat = depthStencilFormat;
 
 		collection->states.push_back(state);
 
