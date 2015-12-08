@@ -228,7 +228,6 @@ namespace RN
 		if(RN_EXPECT_FALSE(_firstFrame))
 		{
 			HandleSystemEvents();
-			FinishBootstrap();
 
 			if(_renderer)
 			{
@@ -242,6 +241,8 @@ namespace RN
 			}
 
 			_delta = 0.0;
+			FinishBootstrap();
+			
 			_firstFrame = false;
 		}
 
