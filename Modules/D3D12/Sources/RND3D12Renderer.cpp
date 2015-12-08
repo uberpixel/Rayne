@@ -56,15 +56,6 @@ namespace RN
 		TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
 
 #undef TextureFormat
-
-		//TODO: get timing with normal window creation fixed... and remove this
-		Window *window = GetMainWindow();
-		if(!window)
-		{
-			window = CreateAWindow(Vector2(1024, 768), Screen::GetMainScreen());
-//			window->SetTitle(_application->GetTitle());
-			window->Show();
-		}
 	}
 
 	D3D12Renderer::~D3D12Renderer()
