@@ -65,6 +65,8 @@ namespace RN
 					drawables[j] = 	renderer->CreateDrawable();
 				}
 			}
+
+			SetBoundingBox(model->GetBoundingBox());
 		}
 	}
 
