@@ -40,9 +40,12 @@ namespace RN
 	}
 	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
 	{
-		// No error handling here so far
 		if (_data != nullptr) {
 			delete[] _data;
+		}
+		if (bytes == nullptr) {		// Allow to empty texture data; could be treated as error alternatively
+			_data = nullptr;
+			return;
 		}
 		auto numBytes = _descriptor.height * bytesPerRow;
 		_data = static_cast<char*>(new char[numBytes]);
@@ -59,7 +62,9 @@ namespace RN
 	}
 	void D3D12Texture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const 
 	{
-		// No error handling here either (so far)
+		if (_data == nullptr) {
+			throw RN::InconsistencyException("Texture contains no data.");
+		}
 		auto numBytes = _descriptor.height * bytesPerRow;
 		std::memcpy(bytes, _data, numBytes);
 	}
