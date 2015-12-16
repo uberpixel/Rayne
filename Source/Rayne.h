@@ -64,6 +64,7 @@
 #include "Objects/RNCharacterSet.h"
 #include "Objects/RNString.h"
 
+#include "Rendering/RNDynamicGPUBuffer.h"
 #include "Rendering/RNFramebuffer.h"
 #include "Rendering/RNGPUBuffer.h"
 #include "Rendering/RNGPUResource.h"
@@ -79,6 +80,7 @@
 
 #include "Scene/RNCamera.h"
 #include "Scene/RNEntity.h"
+#include "Scene/RNInstancingNode.h"
 #include "Scene/RNScene.h"
 #include "Scene/RNSceneManager.h"
 #include "Scene/RNSceneNode.h"

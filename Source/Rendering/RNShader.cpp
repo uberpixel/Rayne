@@ -13,11 +13,6 @@ namespace RN
 	RNDefineMeta(Shader, Object)
 	RNDefineScopedMeta(Shader, Attribute, Object)
 
-	void Shader::SetType(Type type)
-	{
-		_type = type;
-	}
-
 	Shader::Attribute::Attribute(const String *name, PrimitiveType type) :
 		_name(name->Copy()),
 		_type(type)
@@ -27,4 +22,10 @@ namespace RN
 	{
 		_name->Release();
 	}
+
+
+	Shader::Shader(Type type, ShaderLibrary *library) :
+		_type(type),
+		_library(library)
+	{}
 }

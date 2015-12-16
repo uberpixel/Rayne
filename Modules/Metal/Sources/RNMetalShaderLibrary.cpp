@@ -36,7 +36,7 @@ namespace RN
 		if(!shader)
 			return nullptr;
 
-		MetalShader *temp = new MetalShader(shader);
+		MetalShader *temp = new MetalShader(shader, this);
 		return temp->Autorelease();
 	}
 	Array *MetalShaderLibrary::GetShaderNames() const

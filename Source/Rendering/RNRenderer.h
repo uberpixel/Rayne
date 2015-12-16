@@ -36,6 +36,7 @@ namespace RN
 			dirty = true;
 			mesh = nullptr;
 			material = nullptr;
+			count = 1;
 		}
 		virtual ~Drawable()
 		{}
@@ -53,7 +54,8 @@ namespace RN
 				material = tmaterial;
 			}
 
-			Update(node);
+			if(node)
+				Update(node);
 		}
 		virtual void Update(const SceneNode *node)
 		{
@@ -65,6 +67,7 @@ namespace RN
 		Material *material;
 		Matrix modelMatrix;
 		Matrix inverseModelMatrix;
+		size_t count;
 		bool dirty;
 	};
 

@@ -154,7 +154,7 @@ namespace RN
 			[state release];
 		}
 
-		Material::DepthMode mode;
+		DepthMode mode;
 		bool depthWriteEnabled;
 		id<MTLDepthStencilState> state;
 

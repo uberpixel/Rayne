@@ -16,9 +16,13 @@
 
 namespace RN
 {
+	struct InstancingEntity;
+
 	class Entity : public SceneNode
 	{
 	public:
+		friend class InstancingData;
+
 		RNAPI Entity();
 		RNAPI Entity(Model *model);
 		RNAPI ~Entity();
@@ -33,6 +37,7 @@ namespace RN
 
 		Model *_model;
 		std::vector<std::vector<Drawable *>> _drawables;
+		InstancingEntity *_instancedData;
 
 		RNDeclareMeta(Entity)
 	};

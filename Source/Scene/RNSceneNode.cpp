@@ -205,6 +205,19 @@ namespace RN
 		SetWorldRotation(rotation);
 	}
 
+	bool SceneNode::HasFlags(Flags flags) const
+	{
+		return (_flags.load(std::memory_order_acquire) & flags);
+	}
+	SceneNode::Flags SceneNode::RemoveFlags(Flags flags)
+	{
+		return _flags.fetch_and(flags, std::memory_order_acq_rel) & flags;
+	}
+	SceneNode::Flags SceneNode::AddFlags(Flags flags)
+	{
+		return _flags.fetch_or(flags, std::memory_order_acq_rel) | flags;
+	}
+
 	// -------------------
 	// MARK: -
 	// MARK: Scene
@@ -305,7 +318,7 @@ namespace RN
 
 	bool SceneNode::CanRender(Renderer *renderer, Camera *camera) const
 	{
-		if(_flags & Flags::Hidden)
+		if(_flags.load(std::memory_order_acquire) & Flags::Hidden)
 			return false;
 
 		return camera->InFrustum(GetBoundingSphere());

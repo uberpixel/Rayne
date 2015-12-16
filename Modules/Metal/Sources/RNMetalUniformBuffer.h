@@ -99,6 +99,7 @@ namespace RN
 		const Member *GetMemberForFeature(Feature feature) const;
 
 		size_t GetIndex() const { return _index; }
+		bool IsActive() const { return _valid; }
 
 	private:
 		size_t _index;
@@ -106,6 +107,7 @@ namespace RN
 		size_t _bufferIndex;
 		Feature _supportedFeatures;
 		std::vector<Member> _members;
+		bool _valid;
 
 		RNDeclareMeta(MetalUniformBuffer)
 	};

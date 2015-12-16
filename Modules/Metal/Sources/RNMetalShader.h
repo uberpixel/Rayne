@@ -41,7 +41,7 @@ namespace RN
 		RNAPI const Array *GetAttributes() const override;
 
 	private:
-		MetalShader(void *shader);
+		MetalShader(void *shader, ShaderLibrary *library);
 
 		void *_shader;
 		Array *_attributes;

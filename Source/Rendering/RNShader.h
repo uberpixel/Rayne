@@ -18,6 +18,7 @@
 
 namespace RN
 {
+	class ShaderLibrary;
 	class Shader : public Object
 	{
 	public:
@@ -41,6 +42,7 @@ namespace RN
 			RNDeclareMeta(Attribute)
 		};
 
+
 		enum class Type
 		{
 			Fragment,
@@ -52,12 +54,14 @@ namespace RN
 		RNAPI virtual const Array *GetAttributes() const = 0;
 
 		Type GetType() const { return _type; }
+		ShaderLibrary *GetLibrary() const { return _library; }
 
 	protected:
-		RNAPI void SetType(Type type);
+		RNAPI Shader(Type type, ShaderLibrary *library);
 
 	private:
 		Type _type;
+		ShaderLibrary *_library;
 
 		RNDeclareMeta(Shader)
 	};

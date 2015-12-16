@@ -51,8 +51,11 @@ namespace RN
 						{
 							SceneNode *node = iterator->Get();
 
-							node->Update(delta);
-							node->UpdateInternalData();
+							if(!node->HasFlags(SceneNode::Flags::Static))
+							{
+								node->Update(delta);
+								node->UpdateInternalData();
+							}
 
 							iterator = iterator->GetNext();
 						}
@@ -78,8 +81,11 @@ namespace RN
 					{
 						SceneNode *node = iterator->Get();
 
-						node->Update(delta);
-						node->UpdateInternalData();
+						if(!node->HasFlags(SceneNode::Flags::Static))
+						{
+							node->Update(delta);
+							node->UpdateInternalData();
+						}
 
 						iterator = iterator->GetNext();
 					}

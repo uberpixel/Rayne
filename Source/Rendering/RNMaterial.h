@@ -19,6 +19,25 @@
 
 namespace RN
 {
+	enum class DepthMode
+	{
+		Never,
+		Always,
+		Less,
+		LessOrEqual,
+		Equal,
+		NotEqual,
+		GreaterOrEqual,
+		Greater
+	};
+
+	enum class CullMode
+	{
+		None,
+		BackFace,
+		FrontFace
+	};
+
 	class MaterialDescriptor
 	{
 	public:
@@ -26,6 +45,7 @@ namespace RN
 		RNAPI MaterialDescriptor(const MaterialDescriptor &other);
 		RNAPI ~MaterialDescriptor();
 
+		RNAPI void SetTextures(const Array *textures);
 		RNAPI void AddTexture(Texture *texture);
 		RNAPI void RemoveAllTextures();
 
@@ -36,7 +56,17 @@ namespace RN
 		Shader *fragmentShader;
 		Shader *vertexShader;
 
+		DepthMode depthMode;
+		bool depthWriteEnabled;
+
+		Color ambientColor;
+		Color diffuseColor;
+		Color specularColor;
+		Color emissiveColor;
+
 		float discardThreshold;
+		float textureTileFactor;
+		CullMode cullMode;
 
 	private:
 		Array *_textures;
@@ -45,25 +75,6 @@ namespace RN
 	class Material : public Object
 	{
 	public:
-		enum class DepthMode
-		{
-			Never,
-			Always,
-			Less,
-			LessOrEqual,
-			Equal,
-			NotEqual,
-			GreaterOrEqual,
-			Greater
-		};
-
-		enum class CullMode
-		{
-			None,
-			BackFace,
-			FrontFace
-		};
-
 		RNAPI Material(const MaterialDescriptor &descriptor);
 		RNAPI Material(const Material *other);
 		RNAPI ~Material() override;
@@ -82,6 +93,11 @@ namespace RN
 		RNAPI void SetTextureTileFactor(float factor);
 		RNAPI void SetCullMode(CullMode mode);
 
+		RNAPI void SetFragmentBuffers(const Array *buffers);
+		RNAPI void SetVertexBuffers(const Array *buffers);
+
+		RNAPI MaterialDescriptor GetDescriptor() const;
+
 		Shader *GetFragmentShader() const { return _fragmentShader; }
 		Shader *GetVertexShader() const { return _vertexShader; }
 
@@ -98,11 +114,16 @@ namespace RN
 		float GetTextureTileFactor() const { return _textureTileFactor; }
 		CullMode GetCullMode() const { return _cullMode; }
 
+		const Array *GetFragmentBuffers() const { return _fragmentBuffers; }
+		const Array *GetVertexBuffers() const { return _vertexBuffers; }
+
 	private:
 		Shader *_fragmentShader;
 		Shader *_vertexShader;
 
 		Array *_textures;
+		Array *_vertexBuffers;
+		Array *_fragmentBuffers;
 
 		DepthMode _depthMode;
 		bool _depthWriteEnabled;

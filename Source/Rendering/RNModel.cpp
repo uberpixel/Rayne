@@ -30,6 +30,17 @@ namespace RN
 		stage->AddMesh(mesh, material);
 	}
 
+	Model::Model(const Model *other) :
+		_lodStages(other->_lodStages->Copy()),
+		_boundingBox(other->_boundingBox),
+		_boundingSphere(other->_boundingSphere)
+	{}
+
+	Model::~Model()
+	{
+		_lodStages->Release();
+	}
+
 	Model *Model::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();

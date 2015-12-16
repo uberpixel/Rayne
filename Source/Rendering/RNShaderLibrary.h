@@ -60,6 +60,8 @@ namespace RN
 		RNAPI ShaderProgram(Shader *vertexShader, Shader *fragmentShader);
 		RNAPI ~ShaderProgram();
 
+		RNAPI static ShaderProgram *WithVertexAndFragmentShaders(Shader *vertex, Shader *fragment);
+
 		Shader *GetVertexShader() const { return _vertexShader; }
 		Shader *GetFragmentShader() const { return _fragmentShader; }
 

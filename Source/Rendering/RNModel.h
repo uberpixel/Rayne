@@ -28,6 +28,12 @@ namespace RN
 				_distance(distance)
 			{}
 
+			LODStage(const LODStage *other) :
+				_distance(other->_distance),
+				_groups(other->_groups),
+				_index(other->_index)
+			{}
+
 			void AddMesh(Mesh *mesh, Material *material)
 			{
 				_groups.emplace_back(mesh, material);
@@ -97,6 +103,8 @@ namespace RN
 
 		RNAPI Model();
 		RNAPI Model(Mesh *mesh, Material *material);
+		RNAPI Model(const Model *other);
+		RNAPI ~Model();
 
 		RNAPI static Model *WithName(const String *name, const Dictionary *settings = nullptr);
 

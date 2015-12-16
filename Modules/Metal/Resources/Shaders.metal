@@ -45,6 +45,7 @@ constant float3 light_position = float3(1.0, 1.0, 1.0);
 
 struct Uniforms
 {
+	matrix_float4x4 viewProjectionMatrix;
 	matrix_float4x4 modelViewProjectionMatrix;
 
 #if RN_NORMALS
@@ -104,6 +105,8 @@ struct FragmentVertex
 	float4 diffuse;
 };
 
+// Non instanced
+
 vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]])
 {
 	FragmentVertex result;
@@ -155,3 +158,70 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 	return color * (vert.ambient + vert.diffuse);
 #endif
 }
+
+// Instancing
+
+struct InstanceBufferUniform
+{
+	int index;
+};
+
+struct InstanceBufferMatrixUniform
+{
+	matrix_float4x4 _modelMatrix;
+	matrix_float4x4 _inverseModelMatrix;
+};
+
+vertex FragmentVertex gouraud_vertex_instanced(InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]], constant InstanceBufferUniform *instanceUniforms [[buffer(2)]], constant InstanceBufferMatrixUniform *matricesUniform [[buffer(3)]], ushort iid [[instance_id]])
+{
+	int index = instanceUniforms[iid].index;
+
+	FragmentVertex result;
+
+	result.position = uniforms.viewProjectionMatrix * matricesUniform[index]._modelMatrix * float4(vert.position, 1.0);
+
+#if RN_COLOR
+	result.color = vert.color;
+#endif
+#if RN_NORMALS
+	result.normal = (uniforms.modelMatrix * float4(vert.normal, 0.0)).xyz;
+#endif
+#if RN_UV0
+	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
+#endif
+
+	result.ambient = uniforms.ambientColor;
+	result.diffuse = uniforms.diffuseColor;
+
+	return result;
+}
+
+fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
+#if RN_UV0
+	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
+#endif
+#if RN_FRAGMENT_UNIFORM
+	, constant FragmentUniforms &uniforms [[buffer(1)]]
+#endif
+)
+{
+#if RN_UV0
+	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+
+#if RN_DISCARD
+		if(color.a < uniforms.discardThreshold)
+			discard_fragment();
+#endif
+#endif
+
+#if RN_COLOR
+	color *= vert.color;
+#endif
+
+#if RN_NORMALS
+	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+#else
+	return color * (vert.ambient + vert.diffuse);
+#endif
+}
+

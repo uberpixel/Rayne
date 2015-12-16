@@ -637,12 +637,14 @@ namespace RN
 		{
 			for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
 			{
-				FillUniformBuffer(uniformBuffer, drawable);
+				if(uniformBuffer->IsActive())
+					FillUniformBuffer(uniformBuffer, drawable);
 			}
 
 			for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
 			{
-				FillUniformBuffer(uniformBuffer, drawable);
+				if(uniformBuffer->IsActive())
+					FillUniformBuffer(uniformBuffer, drawable);
 			}
 		}
 
@@ -676,17 +678,40 @@ namespace RN
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
 		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
 
+		size_t bufferIndex = 0;
+
 		// Set Uniforms
+		const Array *vertexBuffers = drawable->material->GetVertexBuffers();
+
 		for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
 		{
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			if(uniformBuffer->IsActive())
+			{
+				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
+				[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			}
+			else
+			{
+				MetalGPUBuffer *buffer = vertexBuffers->GetObjectAtIndex<MetalGPUBuffer>(bufferIndex ++);
+				[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			}
 		}
+
+		const Array *fragmentBuffers = drawable->material->GetFragmentBuffers();
+		bufferIndex = 0;
 
 		for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
 		{
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setFragmentBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			if(uniformBuffer->IsActive())
+			{
+				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
+				[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			}
+			else
+			{
+				MetalGPUBuffer *buffer = fragmentBuffers->GetObjectAtIndex<MetalGPUBuffer>(bufferIndex ++);
+				[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			}
 		}
 
 		// Set textures
@@ -707,6 +732,14 @@ namespace RN
 		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
 
 		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-		[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id<MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
+
+		if(drawable->count == 1)
+		{
+			[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
+		}
+		else
+		{
+			[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0 instanceCount:drawable->count];
+		}
 	}
 }

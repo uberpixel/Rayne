@@ -55,9 +55,11 @@ set(RAYNE_SOURCES
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
     Objects/RNWeakStorage.cpp
+    Rendering/RNDynamicGPUBuffer.cpp
     Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
+    Rendering/RNInstancingData.cpp
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
@@ -70,6 +72,7 @@ set(RAYNE_SOURCES
     Rendering/RNWindow.cpp
     Scene/RNCamera.cpp
     Scene/RNEntity.cpp
+    Scene/RNInstancingNode.cpp
     Scene/RNScene.cpp
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
@@ -109,6 +112,7 @@ set(RAYNE_HEADERS
     Data/RNAny.h
     Data/RNIntrusiveList.h
     Data/RNRingBuffer.h
+    Data/RNSpatialMap.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
     Input/RNInputControl.h
@@ -148,9 +152,11 @@ set(RAYNE_HEADERS
     Objects/RNString.h
     Objects/RNValue.h
     Objects/RNWeakStorage.h
+    Rendering/RNDynamicGPUBuffer.h
     Rendering/RNFramebuffer.h
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h
+    Rendering/RNInstancingData.h
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNModel.h
@@ -164,6 +170,7 @@ set(RAYNE_HEADERS
     Rendering/RNWindow.h
     Scene/RNCamera.h
     Scene/RNEntity.h
+    Scene/RNInstancingNode.h
     Scene/RNScene.h
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h

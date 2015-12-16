@@ -82,4 +82,10 @@ namespace RN
 		SafeRelease(_vertexShader);
 		SafeRelease(_fragmentShader);
 	}
+
+	ShaderProgram *ShaderProgram::WithVertexAndFragmentShaders(Shader *vertex, Shader *fragment)
+	{
+		ShaderProgram *program = new ShaderProgram(vertex, fragment);
+		return program->Autorelease();
+	}
 }

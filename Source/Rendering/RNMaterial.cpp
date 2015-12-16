@@ -16,6 +16,14 @@ namespace RN
 		fragmentShader(nullptr),
 		vertexShader(nullptr),
 		discardThreshold(0.3f),
+		depthMode(DepthMode::Less),
+		depthWriteEnabled(true),
+		ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
+		diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
+		specularColor(1.0f, 1.0f, 1.0f, 4.0f),
+		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
+		textureTileFactor(1.0),
+		cullMode(CullMode::BackFace),
 		_textures(new Array())
 	{}
 
@@ -23,16 +31,28 @@ namespace RN
 		fragmentShader(other.fragmentShader),
 		vertexShader(other.vertexShader),
 		discardThreshold(other.discardThreshold),
+		depthMode(other.depthMode),
+		depthWriteEnabled(other.depthWriteEnabled),
+		ambientColor(other.ambientColor),
+		diffuseColor(other.diffuseColor),
+		specularColor(other.specularColor),
+		emissiveColor(other.emissiveColor),
+		textureTileFactor(other.textureTileFactor),
+		cullMode(other.cullMode),
 		_textures(SafeCopy(other._textures))
-	{
-
-	}
+	{}
 
 	MaterialDescriptor::~MaterialDescriptor()
 	{
 		SafeRelease(_textures);
 	}
 
+
+	void MaterialDescriptor::SetTextures(const Array *textures)
+	{
+		_textures->Release();
+		_textures = textures->Copy();
+	}
 
 	void MaterialDescriptor::AddTexture(Texture *texture)
 	{
@@ -61,15 +81,17 @@ namespace RN
 		_fragmentShader(SafeRetain(descriptor.fragmentShader)),
 		_vertexShader(SafeRetain(descriptor.vertexShader)),
 		_textures(SafeCopy(descriptor.GetTextures())),
-		_depthMode(DepthMode::Less),
-		_depthWriteEnabled(true),
-		_ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
-		_diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
-		_specularColor(1.0f, 1.0f, 1.0f, 4.0f),
-		_emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
+		_depthMode(descriptor.depthMode),
+		_depthWriteEnabled(descriptor.depthWriteEnabled),
+		_ambientColor(descriptor.ambientColor),
+		_diffuseColor(descriptor.diffuseColor),
+		_specularColor(descriptor.specularColor),
+		_emissiveColor(descriptor.emissiveColor),
 		_discardThreshold(descriptor.discardThreshold),
-		_textureTileFactor(1.0),
-		_cullMode(CullMode::BackFace)
+		_textureTileFactor(descriptor.textureTileFactor),
+		_cullMode(descriptor.cullMode),
+		_vertexBuffers(nullptr),
+		_fragmentBuffers(nullptr)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -85,7 +107,11 @@ namespace RN
 		_diffuseColor(other->_diffuseColor),
 		_specularColor(other->_specularColor),
 		_emissiveColor(other->_emissiveColor),
-		_textureTileFactor(other->_textureTileFactor)
+		_discardThreshold(other->_discardThreshold),
+		_textureTileFactor(other->_textureTileFactor),
+		_cullMode(other->_cullMode),
+		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
+		_fragmentBuffers(SafeCopy(other->_fragmentBuffers))
 	{}
 
 	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
@@ -96,6 +122,8 @@ namespace RN
 
 	Material::~Material()
 	{
+		SafeRelease(_vertexBuffers);
+		SafeRelease(_fragmentBuffers);
 		SafeRelease(_fragmentShader);
 		SafeRelease(_vertexShader);
 		SafeRelease(_textures);
@@ -108,6 +136,17 @@ namespace RN
 	void Material::SetDepthMode(DepthMode mode)
 	{
 		_depthMode = mode;
+	}
+
+	void Material::SetFragmentBuffers(const Array *buffers)
+	{
+		SafeRelease(_fragmentBuffers);
+		_fragmentBuffers = SafeCopy(buffers);
+	}
+	void Material::SetVertexBuffers(const Array *buffers)
+	{
+		SafeRelease(_vertexBuffers);
+		_vertexBuffers = SafeCopy(buffers);
 	}
 
 	void Material::SetDiscardThreshold(float threshold)
@@ -140,5 +179,24 @@ namespace RN
 	void Material::SetCullMode(CullMode mode)
 	{
 		_cullMode = mode;
+	}
+
+	MaterialDescriptor Material::GetDescriptor() const
+	{
+		MaterialDescriptor descriptor;
+		descriptor.SetTextures(GetTextures());
+		descriptor.fragmentShader = _fragmentShader;
+		descriptor.vertexShader = _vertexShader;
+		descriptor.depthMode = _depthMode;
+		descriptor.depthWriteEnabled = _depthWriteEnabled;
+		descriptor.ambientColor = _ambientColor;
+		descriptor.diffuseColor = _diffuseColor;
+		descriptor.specularColor = _specularColor;
+		descriptor.emissiveColor = _emissiveColor;
+		descriptor.discardThreshold = _discardThreshold;
+		descriptor.textureTileFactor = _textureTileFactor;
+		descriptor.cullMode = _cullMode;
+
+		return descriptor;
 	}
 }

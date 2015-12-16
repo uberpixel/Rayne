@@ -17,11 +17,9 @@ namespace RN
 	MetalUniformBuffer::MetalUniformBuffer(Renderer *renderer, MetalRenderingStateUniformBufferArgument *uniformBuffer) :
 		_bufferIndex(0),
 		_supportedFeatures(0),
-		_index(uniformBuffer->index)
+		_index(uniformBuffer->index),
+		_valid(true)
 	{
-		for(size_t i = 0; i < kRNMetalUniformBufferCount; i ++)
-			_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::WriteOnly);
-
 		AutoreleasePool pool;
 
 		for(MetalRenderingStateUniformBufferMember *member : uniformBuffer->members)
@@ -68,16 +66,28 @@ namespace RN
 			else if(name->IsEqual(RNCSTR("textureTileFactor")))
 				_members.emplace_back(Feature::TextureTileFactor, offset);
 			else
+			{
 				_members.emplace_back(name, offset);
+				_valid = false;
+			}
 
 			_supportedFeatures |= _members.back().GetFeature();
+		}
+
+		if(_valid)
+		{
+			for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
+				_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::WriteOnly);
 		}
 	}
 
 	MetalUniformBuffer::~MetalUniformBuffer()
 	{
-		for(size_t i = 0; i < kRNMetalUniformBufferCount; i ++)
-			_buffers[i]->Release();
+		if(_valid)
+		{
+			for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
+				_buffers[i]->Release();
+		}
 	}
 
 	GPUBuffer *MetalUniformBuffer::Advance()

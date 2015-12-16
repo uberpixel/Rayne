@@ -44,7 +44,6 @@ namespace RN
 				   DrawLate     = (1 << 0),
 				   Static       = (1 << 1),
 				   Hidden       = (1 << 2),
-				   HideChildren = (1 << 3),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),
@@ -97,6 +96,10 @@ namespace RN
 		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
 
 		RNAPI void SetPriority(Priority priority);
+
+		RNAPI bool HasFlags(Flags flags) const;
+		RNAPI Flags RemoveFlags(Flags flags);
+		RNAPI Flags AddFlags(Flags flags);
 
 		RNAPI uint64 GetUID() const { return _uid; }
 		RNAPI uint64 GetLID() const { return _lid; }

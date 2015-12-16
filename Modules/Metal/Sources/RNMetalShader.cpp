@@ -13,7 +13,23 @@ namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	MetalShader::MetalShader(void *shader) :
+	static Shader::Type __GetTypeFromMetalShader(id<MTLFunction> function)
+	{
+		switch([function functionType])
+		{
+			case MTLFunctionTypeFragment:
+				return Shader::Type::Fragment;
+			case MTLFunctionTypeVertex:
+				return Shader::Type::Vertex;
+			case MTLFunctionTypeKernel:
+				return Shader::Type::Compute;
+		}
+
+		throw InconsistencyException("Invalid metal function");
+	}
+
+	MetalShader::MetalShader(void *shader, ShaderLibrary *library) :
+		Shader(__GetTypeFromMetalShader((id<MTLFunction>)shader), library),
 		_shader(shader),
 		_attributes(new Array())
 	{
@@ -22,18 +38,6 @@ namespace RN
 		// owned object
 
 		id<MTLFunction> function = (id<MTLFunction>)_shader;
-		switch([function functionType])
-		{
-			case MTLFunctionTypeFragment:
-				SetType(Type::Fragment);
-				break;
-			case MTLFunctionTypeVertex:
-				SetType(Type::Vertex);
-				break;
-			case MTLFunctionTypeKernel:
-				SetType(Type::Compute);
-				break;
-		}
 
 		NSArray *attributes = [function vertexAttributes];
 		size_t count = [attributes count];
