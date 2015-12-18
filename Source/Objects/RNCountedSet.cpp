@@ -156,9 +156,43 @@ namespace RN
 		
 		return array->Autorelease();
 	}
-	
-	
-	
+
+
+	bool CountedSet::IsEqual(const Object *other) const
+	{
+		const CountedSet *otherSet = other->Downcast<CountedSet>();
+		if(RN_EXPECT_FALSE(!otherSet))
+			return false;
+
+		if(GetCount() != otherSet->GetCount())
+			return false;
+
+		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
+		{
+			CountedSetInternal::Bucket *bucket = _internals->hashTable._buckets[i];
+			while(bucket)
+			{
+				if(bucket->object)
+				{
+					size_t count = otherSet->GetCountForObject(bucket->object);
+
+					if(count != bucket->count)
+						return false;
+				}
+
+				bucket = bucket->next;
+			}
+		}
+
+		return true;
+	}
+	size_t CountedSet::GetHash() const
+	{
+		return std::hash<size_t>{}(_internals->hashTable._count);
+	}
+
+
+
 	void CountedSet::AddObject(Object *object)
 	{
 		bool created;

@@ -167,8 +167,36 @@ namespace RN
 	{
 		return _internals->hashTable.GetCount();
 	}
-	
-	
+
+
+	bool Set::IsEqual(const Object *other) const
+	{
+		const Set *otherSet = other->Downcast<Set>();
+		if(RN_EXPECT_FALSE(!otherSet))
+			return false;
+
+		if(GetCount() != otherSet->GetCount())
+			return false;
+
+		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
+		{
+			SetInternal::Bucket *bucket = _internals->hashTable._buckets[i];
+			while(bucket)
+			{
+				if(bucket->object && !otherSet->ContainsObject(bucket->object))
+					return false;
+
+				bucket = bucket->next;
+			}
+		}
+
+		return true;
+	}
+	size_t Set::GetHash() const
+	{
+		return std::hash<size_t>{}(_internals->hashTable._count);
+	}
+
 	void Set::AddObject(Object *object)
 	{
 		bool create;

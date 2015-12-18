@@ -29,7 +29,11 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) const override;
 		RNAPI const String *GetDescription() const override;
-		
+
+		RNAPI bool IsEqual(const Object *other) const override;
+		RNAPI size_t GetHash() const override;
+
+
 		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(const Object *object);
 		RNAPI void RemoveAllObjects();
