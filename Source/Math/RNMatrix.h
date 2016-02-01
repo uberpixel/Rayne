@@ -513,52 +513,52 @@ namespace RN
 	
 	RN_INLINE bool Matrix::IsEqual(const Matrix &other, float epsilon) const
 	{
-		if(fabs(m[0] - other.m[0]) > epsilon)
+		if(Math::FastAbs(m[0] - other.m[0]) > epsilon)
 			return false;
 		
-		if(fabs(m[1] - other.m[1]) > epsilon)
+		if(Math::FastAbs(m[1] - other.m[1]) > epsilon)
 			return false;
 		
-		if(fabs(m[2] - other.m[2]) > epsilon)
+		if(Math::FastAbs(m[2] - other.m[2]) > epsilon)
 			return false;
 		
-		if(fabs(m[3] - other.m[3]) > epsilon)
+		if(Math::FastAbs(m[3] - other.m[3]) > epsilon)
 			return false;
 		
-		if(fabs(m[4] - other.m[4]) > epsilon)
+		if(Math::FastAbs(m[4] - other.m[4]) > epsilon)
 			return false;
 		
-		if(fabs(m[5] - other.m[5]) > epsilon)
+		if(Math::FastAbs(m[5] - other.m[5]) > epsilon)
 			return false;
 		
-		if(fabs(m[6] - other.m[6]) > epsilon)
+		if(Math::FastAbs(m[6] - other.m[6]) > epsilon)
 			return false;
 		
-		if(fabs(m[7] - other.m[7]) > epsilon)
+		if(Math::FastAbs(m[7] - other.m[7]) > epsilon)
 			return false;
 		
-		if(fabs(m[8] - other.m[8]) > epsilon)
+		if(Math::FastAbs(m[8] - other.m[8]) > epsilon)
 			return false;
 		
-		if(fabs(m[9] - other.m[9]) > epsilon)
+		if(Math::FastAbs(m[9] - other.m[9]) > epsilon)
 			return false;
 		
-		if(fabs(m[10] - other.m[10]) > epsilon)
+		if(Math::FastAbs(m[10] - other.m[10]) > epsilon)
 			return false;
 		
-		if(fabs(m[11] - other.m[11]) > epsilon)
+		if(Math::FastAbs(m[11] - other.m[11]) > epsilon)
 			return false;
 		
-		if(fabs(m[12] - other.m[12]) > epsilon)
+		if(Math::FastAbs(m[12] - other.m[12]) > epsilon)
 			return false;
 		
-		if(fabs(m[13] - other.m[13]) > epsilon)
+		if(Math::FastAbs(m[13] - other.m[13]) > epsilon)
 			return false;
 		
-		if(fabs(m[14] - other.m[14]) > epsilon)
+		if(Math::FastAbs(m[14] - other.m[14]) > epsilon)
 			return false;
 		
-		if(fabs(m[15] - other.m[15]) > epsilon)
+		if(Math::FastAbs(m[15] - other.m[15]) > epsilon)
 			return false;
 		
 		return true;

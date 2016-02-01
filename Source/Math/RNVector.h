@@ -210,10 +210,10 @@ namespace RN
 
 	RN_INLINE bool Vector2::operator== (const Vector2 &other) const
 	{
-		if(fabs(x - other.x) > k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > k::EpsilonFloat)
+		if(Math::FastAbs(y - other.y) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -221,7 +221,7 @@ namespace RN
 
 	RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
 	{
-		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) <= k::EpsilonFloat && Math::FastAbs(y - other.y) <= k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -313,10 +313,10 @@ namespace RN
 
 	RN_INLINE bool Vector2::IsEqual(const Vector2 &other, float epsilon) const
 	{
-		if(fabs(x - other.x) > epsilon)
+		if(Math::FastAbs(x - other.x) > epsilon)
 			return false;
 
-		if(fabs(y - other.y) > epsilon)
+		if(Math::FastAbs(y - other.y) > epsilon)
 			return false;
 
 		return true;
@@ -392,13 +392,13 @@ namespace RN
 
 	RN_INLINE bool Vector3::operator== (const Vector3 &other) const
 	{
-		if(fabs(x - other.x) > k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > k::EpsilonFloat)
+		if(Math::FastAbs(y - other.y) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(z - other.z) > k::EpsilonFloat)
+		if(Math::FastAbs(z - other.z) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -406,7 +406,7 @@ namespace RN
 
 	RN_INLINE bool Vector3::operator!= (const Vector3 &other) const
 	{
-		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) <= k::EpsilonFloat && Math::FastAbs(y - other.y) <= k::EpsilonFloat && Math::FastAbs(z - other.z) <= k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -508,13 +508,13 @@ namespace RN
 
 	RN_INLINE bool Vector3::IsEqual(const Vector3 &other, float epsilon) const
 	{
-		if(fabs(x - other.x) > epsilon)
+		if(Math::FastAbs(x - other.x) > epsilon)
 			return false;
 
-		if(fabs(y - other.y) > epsilon)
+		if(Math::FastAbs(y - other.y) > epsilon)
 			return false;
 
-		if(fabs(z - other.z) > epsilon)
+		if(Math::FastAbs(z - other.z) > epsilon)
 			return false;
 
 		return true;
@@ -606,16 +606,16 @@ namespace RN
 
 	RN_INLINE bool Vector4::operator== (const Vector4 &other) const
 	{
-		if(fabs(x - other.x) > k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > k::EpsilonFloat)
+		if(Math::FastAbs(y - other.y) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(z - other.z) > k::EpsilonFloat)
+		if(Math::FastAbs(z - other.z) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(w - other.w) > k::EpsilonFloat)
+		if(Math::FastAbs(w - other.w) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -623,7 +623,7 @@ namespace RN
 
 	RN_INLINE bool Vector4::operator!= (const Vector4 &other) const
 	{
-		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat && fabs(w - other.w) <= k::EpsilonFloat)
+		if(Math::FastAbs(x - other.x) <= k::EpsilonFloat && Math::FastAbs(y - other.y) <= k::EpsilonFloat && Math::FastAbs(z - other.z) <= k::EpsilonFloat && Math::FastAbs(w - other.w) <= k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -804,16 +804,16 @@ namespace RN
 
 	RN_INLINE bool Vector4::IsEqual(const Vector4 &other, float epsilon) const
 	{
-		if(fabs(x - other.x) > epsilon)
+		if(Math::FastAbs(x - other.x) > epsilon)
 			return false;
 
-		if(fabs(y - other.y) > epsilon)
+		if(Math::FastAbs(y - other.y) > epsilon)
 			return false;
 
-		if(fabs(z - other.z) > epsilon)
+		if(Math::FastAbs(z - other.z) > epsilon)
 			return false;
 
-		if(fabs(w - other.w) > epsilon)
+		if(Math::FastAbs(w - other.w) > epsilon)
 			return false;
 
 		return true;
