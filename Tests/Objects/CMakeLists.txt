@@ -8,7 +8,8 @@ include_directories(${Rayne_BINARY_DIR}/include)
 
 add_executable(objectTests
         ObjectTests.cpp
-        StringTests.cpp)
+        StringTests.cpp
+        KVOTests.cpp)
 
 set(RESOURCES
         manifest.json)
