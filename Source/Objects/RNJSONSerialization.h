@@ -24,32 +24,32 @@ namespace RN
 					AllowFragments = (1 << 1));
 
 
-		RNAPI static String *JSONStringFromObject(Object *root, Options options = 0);
-		RNAPI static Data *JSONDataFromObject(Object *root, Options options = 0);
+		RNAPI static String *JSONStringFromObject(const Object *root, Options options = 0);
+		RNAPI static Data *JSONDataFromObject(const Object *root, Options options = 0);
 
 		template<class T = Object>
-		static T *ObjectFromString(String *string, Options options = 0)
+		static T *ObjectFromString(const String *string, Options options = 0)
 		{
 			return __ObjectFromString(string, options)->Downcast<T>();
 		}
 
 		template<class T = Object>
-		static T *ObjectFromData(Data *data, Options options = 0)
+		static T *ObjectFromData(const Data *data, Options options = 0)
 		{
 			return __ObjectFromData(data, options)->Downcast<T>();
 		}
 
-		RNAPI static bool IsValidJSONObject(Object *object);
+		RNAPI static bool IsValidJSONObject(const Object *object);
 
 	private:
 		static Object *DeserializeObject(void *);
 		static Object *DeserializeFromUTF8String(const char *string, Options options);
 
-		static void *SerializeObject(Object *object);
-		static void *SerializeObject(Object *root, Options options);
+		static void *SerializeObject(const Object *object);
+		static void *SerializeObject(const Object *root, Options options);
 
-		RNAPI static Object *__ObjectFromString(String *string, Options options);
-		RNAPI static Object *__ObjectFromData(Data *data, Options options);
+		RNAPI static Object *__ObjectFromString(const String *string, Options options);
+		RNAPI static Object *__ObjectFromData(const Data *data, Options options);
 	};
 }
 

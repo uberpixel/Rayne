@@ -38,7 +38,7 @@ namespace RN
 
 
 
-	bool JSONSerialization::IsValidJSONObject(Object *object)
+	bool JSONSerialization::IsValidJSONObject(const Object *object)
 	{
 		JSONReadClasses();
 
@@ -56,13 +56,13 @@ namespace RN
 		return false;
 	}
 
-	void *JSONSerialization::SerializeObject(Object *object)
+	void *JSONSerialization::SerializeObject(const Object *object)
 	{
 		json_t *json = nullptr;
 
 		if(object->IsKindOfClass(__JSONNumberClass))
 		{
-			Number *number = static_cast<Number *>(object);
+			const Number *number = static_cast<const Number *>(object);
 			switch(number->GetType())
 			{
 				case Number::Type::Float32:
@@ -98,7 +98,7 @@ namespace RN
 
 		if(object->IsKindOfClass(__JSONStringClass))
 		{
-			String *string = static_cast<String *>(object);
+			const String *string = static_cast<const String *>(object);
 			const char *utf8 = string->GetUTF8String();
 
 			json = json_string_nocheck(utf8);
@@ -106,7 +106,7 @@ namespace RN
 
 		if(object->IsKindOfClass(__JSONArrayClass))
 		{
-			Array *array = static_cast<Array *>(object);
+			const Array *array = static_cast<const Array *>(object);
 			json = json_array();
 
 			array->Enumerate([&](Object *object, size_t index, bool &stop) {
@@ -117,7 +117,7 @@ namespace RN
 
 		if(object->IsKindOfClass(__JSONDictionaryClass))
 		{
-			Dictionary *dictionary = static_cast<Dictionary *>(object);
+			const Dictionary *dictionary = static_cast<const Dictionary *>(object);
 			json = json_object();
 
 			dictionary->Enumerate([&](Object *object, const Object *key, bool &stop) {
@@ -143,10 +143,7 @@ namespace RN
 		}
 
 		if(!json)
-		{
-			String *string = String::WithFormat("Can't JSON serialize object of type %s", object->GetClass()->GetFullname().c_str());
-			throw InconsistencyException(string);
-		}
+			throw InconsistencyException(RNSTR("Can't JSON serialize object " << object << " of type " << object->GetClass()));
 
 		return json;
 	}
@@ -225,7 +222,7 @@ namespace RN
 
 
 
-	void *JSONSerialization::SerializeObject(Object *root, Options options)
+	void *JSONSerialization::SerializeObject(const Object *root, Options options)
 	{
 		JSONReadClasses();
 
@@ -247,7 +244,7 @@ namespace RN
 		return data;
 	}
 
-	Data *JSONSerialization::JSONDataFromObject(Object *root, Options options)
+	Data *JSONSerialization::JSONDataFromObject(const Object *root, Options options)
 	{
 		char *data = reinterpret_cast<char *>(SerializeObject(root, options));
 
@@ -257,7 +254,7 @@ namespace RN
 		return temp->Autorelease();
 	}
 
-	String *JSONSerialization::JSONStringFromObject(Object *root, Options options)
+	String *JSONSerialization::JSONStringFromObject(const Object *root, Options options)
 	{
 		void *data = SerializeObject(root, options);
 
@@ -282,12 +279,7 @@ namespace RN
 		json_t *root = json_loads(string, flags, &error);
 
 		if(!root)
-		{
-			std::stringstream stream;
-			stream << error.text << "\nLine: " << error.line << ", column: " << error.column;
-
-			throw InconsistencyException(stream.str());
-		}
+			throw InconsistencyException(RNSTR(error.text << "\nLine: " << error.line << ", column: " << error.column));
 
 
 		Object *object;
@@ -302,12 +294,12 @@ namespace RN
 		return object->Autorelease();
 	}
 
-	Object *JSONSerialization::__ObjectFromString(String *string, Options options)
+	Object *JSONSerialization::__ObjectFromString(const String *string, Options options)
 	{
 		return DeserializeFromUTF8String(string->GetUTF8String(), options);
 	}
 
-	Object *JSONSerialization::__ObjectFromData(Data *data, Options options)
+	Object *JSONSerialization::__ObjectFromData(const Data *data, Options options)
 	{
 		return DeserializeFromUTF8String(reinterpret_cast<char *>(data->GetBytes()), options);
 	}
