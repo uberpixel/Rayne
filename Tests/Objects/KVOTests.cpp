@@ -130,16 +130,16 @@ TEST_F(KVOTests, ObjectValues)
 	KVOTestObject *object = new KVOTestObject();
 
 	container->SetValueForKey(object, "testObject");
-	ASSERT_EQ(container->GetTestObject(), object);
+	ASSERT_EQ(object, container->GetTestObject());
 
 	container->SetTestObject(nullptr);
-	ASSERT_EQ(container->GetTestObject(), nullptr);
+	ASSERT_EQ(nullptr, container->GetTestObject());
 
 	container->SetTestObject(object);
-	ASSERT_EQ(container->GetTestObject(), object);
+	ASSERT_EQ(object, container->GetTestObject());
 
 	container->SetValueForKey(nullptr, "testObject");
-	ASSERT_EQ(container->GetTestObject(), nullptr);
+	ASSERT_EQ(nullptr, container->GetTestObject());
 
 	object->Release();
 	container->Release();
@@ -208,7 +208,7 @@ TEST_F(KVOTests, Observer)
 	object->SetTestFloat(128.0f);
 	object->SetValueForKey(RN::Number::WithFloat(32.0f), "testFloat");
 
-	ASSERT_EQ(index, capturedIndex);
+	ASSERT_EQ(capturedIndex, index);
 
 	object->Release();
 }
