@@ -10,7 +10,6 @@
 #include "../Threads/RNThreadLocalStorage.h"
 
 #define kRNAutoreleasePoolGrowthRate 128
-#define RNDebugAutoreleasePools 0
 
 namespace RN
 {
@@ -19,12 +18,7 @@ namespace RN
 	struct AutoreleasePoolInternals
 	{
 		std::thread::id owner;
-		
-#if RNDebugAutoreleasePools
-		std::vector<std::pair<Object *, Exception>> objects;
-#else 
 		std::vector<const Object *> objects;
-#endif
 	};
 	
 	AutoreleasePool::AutoreleasePool() :
@@ -53,11 +47,7 @@ namespace RN
 
 	void AutoreleasePool::AddObject(const Object *object)
 	{
-#if RNDebugAutoreleasePools
-		_internals->objects.emplace_back(std::make_pair(object, Exception(Exception::Type::GenericException, "Traceback")));
-#else
 		_internals->objects.push_back(object);
-#endif
 		
 		if((_internals->objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
 			_internals->objects.reserve(_internals->objects.size() + kRNAutoreleasePoolGrowthRate);
@@ -65,19 +55,8 @@ namespace RN
 	
 	void AutoreleasePool::Drain()
 	{
-#if RNDebugAutoreleasePools
-		for(auto &pair : _internals->objects)
-		{
-			const Object *object = pair.first;
-			object->Release();
-			
-		}
-#else
 		for(const Object *object : _internals->objects)
-		{
 			object->Release();
-		}
-#endif
 		
 		_internals->objects.clear();
 	}
