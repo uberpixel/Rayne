@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_KVOIMPLEMENTATION
-#define __RAYNE_KVOIMPLEMENTATION
+#ifndef __RAYNE_KVOIMPLEMENTATION__
+#define __RAYNE_KVOIMPLEMENTATION__
 
 #include "../Base/RNBase.h"
 #include "RNKVO.h"
@@ -17,32 +17,29 @@
 
 namespace RN
 {
-	template<class T>
+	template<class T, class Target, class GetterType = T, class SetterType = T>
 	class ObservableScalar;
-	
-	template<class T>
+
+	template<class T, class Target, class GetterType = const T &, class SetterType = const T &>
 	class ObservableValue;
-	
-	template<class T, class Target = Object, class specialize = void>
-	class Observable
-	{
-		Observable() = delete;
-	};
+
+	template<class T, class Target, class GetterType = T, class SetterType = T>
+	class ObservableObject;
 
 #define __ObservableScalar(type, kvotype) \
-	template<class Target> \
-	class Observable<type, Target> : public ObservableProperty \
+	template<class Target, class GetterType, class SetterType> \
+	class ObservableScalar<type, Target, GetterType, SetterType> : public ObservableProperty \
 	{ \
 	public: \
-		typedef void (Target::*Setter)(type); \
-		typedef type (Target::*Getter)() const; \
-		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
+		using Setter = void (Target::*)(SetterType); \
+		using Getter = GetterType (Target::*)() const; \
+		ObservableScalar(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableProperty(name, TypeTranslator<type>::value), \
 			_getter(getter), \
 			_setter(setter) \
 		{} \
-		Observable(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
-			Observable(name, getter, setter) \
+		ObservableScalar(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
+			ObservableScalar(name, getter, setter) \
 		{ \
 			_storage = initial; \
 		} \
@@ -53,7 +50,7 @@ namespace RN
 			WillChangeValue(); \
 			if(_setter) \
 			{ \
-				(static_cast<Target *>(_object)->*_setter)(number->Get##kvotype##Value()); \
+				(static_cast<Target *>(_owner)->*_setter)(number->Get##kvotype##Value()); \
 			} \
 			else \
 			{ \
@@ -63,7 +60,7 @@ namespace RN
 		} \
 		Object *GetValue() const override \
 		{ \
-			return _getter ? Number::With##kvotype ((static_cast<Target *>(_object)->*_getter)()) : Number::With##kvotype (_storage); \
+			return _getter ? Number::With##kvotype ((static_cast<Target *>(_owner)->*_getter)()) : Number::With##kvotype (_storage); \
 		} \
 		bool operator == (const type &other) const \
 		{ \
@@ -85,42 +82,32 @@ namespace RN
 		\
 		type &operator= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage = other; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		\
 		type &operator+= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage += other; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		type &operator-= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage -= other; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		type &operator*= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage *= other; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		type &operator/= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage /= other; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
@@ -144,38 +131,30 @@ namespace RN
 		\
 		type &operator ++() \
 		{ \
-			WillChangeValue(); \
 			++ _storage; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		type operator ++(int) \
 		{ \
 			type result = _storage; \
-			 \
-			WillChangeValue(); \
+			\
 			++ _storage; \
-			DidChangeValue(); \
-			 \
+			\
 			return result; \
 		} \
 		type &operator --() \
 		{ \
-			WillChangeValue(); \
 			-- _storage; \
-			DidChangeValue(); \
 			 \
 			return _storage; \
 		} \
 		type operator --(int) \
 		{ \
 			type result = _storage; \
-			 \
-			WillChangeValue(); \
+			\
 			-- _storage; \
-			DidChangeValue(); \
-			 \
+			\
 			return result; \
 		} \
 	private: \
@@ -186,34 +165,26 @@ namespace RN
 
 	
 #define __ObservableValueBegin(type) \
-	template<class Target> \
-	class Observable<type, Target> : public ObservableProperty \
+	template<class Target, class GetterType, class SetterType> \
+	class ObservableValue<type, Target, GetterType, SetterType> : public ObservableProperty \
 	{ \
 	public: \
-		typedef void (Target::*Setter)(const type &); \
-		typedef type (Target::*Getter)() const; \
-		typedef const type &(Target::*ConstGetter)() const; \
-		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
+		using Setter = void (Target::*)(SetterType); \
+		using Getter = GetterType (Target::*)() const; \
+		ObservableValue(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableProperty(name, TypeTranslator<type>::value), \
 			_getter(getter), \
-			_setter(setter), \
-			_const(false) \
+			_setter(setter) \
 		{} \
-		Observable(const char *name, ConstGetter getter, Setter setter) : \
-			ObservableProperty(name, TypeTranslator<type>::value), \
-			_cgetter(getter), \
-			_setter(setter), \
-			_const(true) \
-		{} \
-		Observable(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
-			Observable(name, getter, setter) \
+		ObservableValue(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
+			ObservableValue(name, getter, setter) \
 		{ \
 			_storage = initial; \
 		} \
-		Observable(const char *name, const type &initial, ConstGetter getter, Setter setter) : \
-			Observable(name, getter, setter) \
+		ObservableValue(const char *name, type &&initial, Getter getter = nullptr, Setter setter = nullptr) : \
+			ObservableValue(name, getter, setter) \
 		{ \
-			_storage = initial; \
+			_storage = std::move(initial); \
 		} \
 		\
 		void SetValue(Object *tvalue) override \
@@ -223,7 +194,7 @@ namespace RN
 			WillChangeValue(); \
 			if(_setter) \
 			{ \
-				(static_cast<Target *>(_object)->*_setter)(value->GetValue<type>()); \
+				(static_cast<Target *>(_owner)->*_setter)(value->GetValue<type>()); \
 			} \
 			else \
 			{ \
@@ -234,7 +205,7 @@ namespace RN
 		Object *GetValue() const override \
 		{ \
 			if(_getter) \
-				return _const ? Value::With##type ((static_cast<Target *>(_object)->*_cgetter)()) : Value::With##type ((static_cast<Target *>(_object)->*_getter)()); \
+				return Value::With##type ((static_cast<Target *>(_owner)->*_getter)()); \
 			return Value::With##type (_storage); \
 		} \
 		operator const type& () const \
@@ -243,19 +214,13 @@ namespace RN
 		} \
 		type &operator= (const type &other) \
 		{ \
-			WillChangeValue(); \
 			_storage = other; \
-			DidChangeValue(); \
 			\
 			return _storage; \
 		} \
 	private: \
 		Setter _setter; \
-		union { \
-			Getter _getter; \
-			ConstGetter _cgetter; \
-		}; \
-		bool _const; \
+		Getter _getter; \
 		type _storage; \
 	public:
 	
@@ -291,9 +256,7 @@ namespace RN
 #define __ObservableValueBinaryArithmeticAddition(type) \
 	type &operator+= (const type &other) \
 	{ \
-		WillChangeValue(); \
 		_storage += other; \
-		DidChangeValue(); \
 		\
 		return _storage; \
 	} \
@@ -305,9 +268,7 @@ namespace RN
 #define __ObservableValueBinaryArithmeticSubtraction(type) \
 	type &operator-= (const type &other) \
 	{ \
-		WillChangeValue(); \
 		_storage -= other; \
-		DidChangeValue(); \
 		\
 		return _storage; \
 	} \
@@ -319,9 +280,7 @@ namespace RN
 #define __ObservableValueBinaryArithmeticMultiplication(type) \
 	type &operator*= (const type &other) \
 	{ \
-		WillChangeValue(); \
 		_storage *= other; \
-		DidChangeValue(); \
 		\
 		return _storage; \
 	} \
@@ -333,9 +292,7 @@ namespace RN
 #define __ObservableValueBinaryArithmeticDivision(type) \
 	type &operator/= (const type &other) \
 	{ \
-		WillChangeValue(); \
 		_storage /= other; \
-		DidChangeValue(); \
 		\
 		return _storage; \
 	} \
@@ -354,14 +311,14 @@ namespace RN
 #define __ObservableValueEnd() \
 	};
 	
-	template<class T, class Target>
-	class Observable<T *, Target, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableProperty
+	template<class T, class Target, class GetterType, class SetterType>
+	class ObservableObject<T *, Target, GetterType, SetterType> : public ObservableProperty
 	{
 	public:
-		typedef void (Target::*Setter)(T *);
-		typedef T *(Target::*Getter)() const;
-		
-		Observable(const char *name, Object::MemoryPolicy policy, Getter getter = nullptr, Setter setter = nullptr) :
+		using Setter = void (Target::*)(SetterType);
+		using Getter = GetterType (Target::*)() const;
+
+		ObservableObject(const char *name, Object::MemoryPolicy policy, Getter getter = nullptr, Setter setter = nullptr) :
 			ObservableProperty(name, TypeTranslator<Object *>::value),
 			_policy(policy),
 			_getter(getter),
@@ -389,13 +346,13 @@ namespace RN
 						
 					case Object::MemoryPolicy::Copy:
 						SafeRelease(_storage);
-						_storage = object ? static_cast<T *>(object->Copy()) : nullptr;
+						_storage = static_cast<T *>(SafeCopy(object));
 						break;
 				}
 			}
 			else
 			{
-				(static_cast<Target *>(_object)->*_setter)(static_cast<T *>(object));
+				(static_cast<Target *>(_owner)->*_setter)(static_cast<T *>(object));
 			}
 		
 			DidChangeValue();
@@ -404,7 +361,7 @@ namespace RN
 		Object *GetValue() const override
 		{
 			if(_getter)
-				return (static_cast<Target *>(_object)->*_getter)();
+				return (static_cast<Target *>(_owner)->*_getter)();
 				
 			return _storage;
 		}
@@ -442,9 +399,7 @@ namespace RN
 
 		T *operator= (T *other)
 		{
-			WillChangeValue();
 			_storage = other;
-			DidChangeValue();
 			
 			return _storage;
 		}
@@ -463,20 +418,20 @@ namespace RN
 	};
 
 
-	template<class Target>
-	class Observable<bool, Target> : public ObservableProperty
+	template<class Target, class GetterType, class SetterType>
+	class ObservableScalar<bool, Target, GetterType, SetterType> : public ObservableProperty
 	{
 	public:
-		typedef void (Target::*Setter)(bool);
-		typedef bool (Target::*Getter)() const;
+		using Setter = void (Target::*)(SetterType);
+		using Getter = GetterType (Target::*)() const;
 
-		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) :
+		ObservableScalar(const char *name, Getter getter = nullptr, Setter setter = nullptr) :
 			ObservableProperty(name, TypeTranslator<bool>::value),
 			_getter(getter),
 			_setter(setter)
 		{}
-		Observable(const char *name, bool initial, Getter getter = nullptr, Setter setter = nullptr) :
-			Observable(name, getter, setter)
+		ObservableScalar(const char *name, bool initial, Getter getter = nullptr, Setter setter = nullptr) :
+			ObservableScalar(name, getter, setter)
 		{
 			_storage = initial;
 		}
@@ -489,7 +444,7 @@ namespace RN
 			WillChangeValue();
 			if(_setter)
 			{
-				(static_cast<Target *>(_object)->*_setter)(number->GetBoolValue());
+				(static_cast<Target *>(_owner)->*_setter)(number->GetBoolValue());
 			}
 			else
 			{
@@ -499,7 +454,7 @@ namespace RN
 		}
 		Object *GetValue() const override
 		{
-			return _getter ? Number::WithBool((static_cast<Target *>(_object)->*_getter)()) : Number::WithBool(_storage);
+			return _getter ? Number::WithBool((static_cast<Target *>(_owner)->*_getter)()) : Number::WithBool(_storage);
 		}
 		
 		bool operator== (const bool other)
@@ -514,9 +469,7 @@ namespace RN
 
 		bool &operator= (const bool &other)
 		{
-			WillChangeValue();
 			_storage = other;
-			DidChangeValue();
 			
 			return _storage;
 		}

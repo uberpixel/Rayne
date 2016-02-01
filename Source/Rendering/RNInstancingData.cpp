@@ -111,8 +111,10 @@ namespace RN
 		{
 			if(_indicesSize < _indices.size())
 			{
-				_indicesBuffer->Resize(static_cast<size_t>(_indices.size() * 1.5f) * sizeof(uint32));
-				_indicesSize = _indicesBuffer->GetLength() / sizeof(uint32);
+				size_t count = static_cast<size_t>(_indices.size() * 1.5f);
+
+				_indicesBuffer->Resize(count * sizeof(uint32));
+				_indicesSize = count;
 			}
 
 			_indicesBuffer->Advance();
@@ -183,7 +185,7 @@ namespace RN
 			_stages.push_back(new InstancingLODStage(stage));
 		}
 
-		_buffer = new DynamicGPUBuffer(50);
+		_buffer = new DynamicGPUBuffer(50 * sizeof(Matrix));
 
 		SetClipping(true, 64);
 		Reserve(50);

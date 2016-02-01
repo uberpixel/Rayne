@@ -61,8 +61,8 @@ namespace RN
 		void ModelsChanged();
 		void UpdateData(InstancingData *data);
 
-		void EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes);
-		void PivotDidMove(Object *object, const std::string &key, Dictionary *changes);
+		void EntityDidUpdateModel(Object *object, const char *key, const Dictionary *changes);
+		void PivotDidMove(Object *object, const char *key, const Dictionary *changes);
 
 		std::unordered_map<Model *, InstancingData *> _data;
 		std::vector<InstancingData *> _rawData;
@@ -70,9 +70,9 @@ namespace RN
 		Set *_models;
 		Mode _mode;
 
-		Observable<float, InstancingNode> _clipRange;
-		Observable<float, InstancingNode> _thinRange;
-		Observable<float, InstancingNode> _cellSize;
+		ObservableScalar<float, InstancingNode> _clipRange;
+		ObservableScalar<float, InstancingNode> _thinRange;
+		ObservableScalar<float, InstancingNode> _cellSize;
 
 		Camera *_pivot;
 

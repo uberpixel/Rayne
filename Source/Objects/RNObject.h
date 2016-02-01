@@ -92,35 +92,44 @@ namespace RN
 		// -----------------
 		
 		template<class F>
-		void AddObserver(const std::string &keyPath, F &&function, void *cookie)
+		void AddObserver(const char *key, F &&function, void *cookie) const
 		{
-			std::string key;
-			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+			ObservableProperty *property = GetPropertyForKey(key);
 			
 			if(!property)
-				throw InvalidArgumentException("No property for key");
+				throw InvalidArgumentException("No property for key ");
 
-			Lock();
+			LockGuard<RecursiveSpinLock> lock(const_cast<RecursiveSpinLock &>(_lock));
 			property->AssertSignal();
 			
 			Connection *connection = property->_signal->Connect(std::move(function));
 			MapCookie(cookie, property, connection);
-			
-			Unlock();
 		}
 		
-		void RemoveObserver(const std::string &keyPath, void *cookie)
+		void RemoveObserver(const char *key, void *cookie) const
 		{
-			std::string key;
-			
-			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
-			Object *object = property->_object;
-			
-			object->UnmapCookie(cookie, property);
+			ObservableProperty *property = GetPropertyForKey(key);
+			UnmapCookie(cookie, property);
 		}
 		
-		RNAPI void SetValueForKey(Object *value, const std::string &keyPath);
-		RNAPI Object *GetValueForKey(const std::string &keyPath);
+		RNAPI void SetValueForKey(Object *value, const char *key);
+		RNAPI void SetValueForKeyPath(Object *value, const char *keyPath);
+
+		template<class T=Object>
+		T *GetValueForKey(const char *key) const
+		{
+			Object *result = GetPrimitiveValueForKey(key);
+			return result ? result->Downcast<T>() : nullptr;
+		}
+
+		template<class T=Object>
+		T *GetValueForKeyPath(const char *keyPath) const
+		{
+			Object *result = GetPrimitiveValueForKeyPath(keyPath);
+			return result ? result->Downcast<T>() : nullptr;
+		}
+
+
 		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClass *meta);
 		
 	protected:
@@ -131,11 +140,11 @@ namespace RN
 		RNAPI void AddObservable(ObservableProperty *property);
 		RNAPI void AddObservables(const std::initializer_list<ObservableProperty *> properties);
 		
-		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string &key);
-		RNAPI virtual Object *GetValueForUndefinedKey(const std::string &key);
+		RNAPI virtual void SetValueForUndefinedKey(Object *value, const char *key);
+		RNAPI virtual Object *GetValueForUndefinedKey(const char *key) const;
 		
-		RNAPI void WillChangeValueForKey(const std::string &key);
-		RNAPI void DidChangeValueForKey(const std::string &key);
+		RNAPI void WillChangeValueForKey(const char *key);
+		RNAPI void DidChangeValueForKey(const char *key);
 		
 	private:
 		class MetaType : public __ConcreteMetaClass<Object>
@@ -147,13 +156,15 @@ namespace RN
 		};
 
 		void __RemoveAssociatedObject(const void *key);
+
+		RNAPI void SetPrimitiveValueForKey(Object *value, const char *key);
+		RNAPI Object *GetPrimitiveValueForKey(const char *key) const;
+		RNAPI Object *GetPrimitiveValueForKeyPath(const char *keyPath) const;
+
+		RNAPI ObservableProperty *GetPropertyForKey(const char *key) const;
 		
-		RNAPI Object *ResolveKeyPath(const std::string &path, std::string &key);
-		RNAPI Object *GetPrimitiveValueForKey(const std::string &key);
-		RNAPI ObservableProperty *GetPropertyForKeyPath(const std::string &keyPath, std::string &key);
-		
-		RNAPI void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
-		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property);
+		RNAPI void MapCookie(void *cookie, ObservableProperty *property, Connection *connection) const;
+		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property) const;
 		
 		RecursiveSpinLock _lock;
 		
@@ -161,7 +172,7 @@ namespace RN
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
 		std::vector<ObservableProperty *> _properties;
-		std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
+		mutable std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
 	};
 	
 #define __RNDeclareMetaPrivateWithTraits(cls, super, ...) \

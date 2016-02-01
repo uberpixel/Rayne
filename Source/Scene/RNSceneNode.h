@@ -186,11 +186,11 @@ namespace RN
 		Scene *_scene;
 		IntrusiveList<SceneNode>::Member _sceneEntry;
 
-		Observable<Tag, SceneNode> _tag;
+		ObservableScalar<Tag, SceneNode> _tag;
 
-		Observable<Vector3, SceneNode> _position;
-		Observable<Vector3, SceneNode> _scale;
-		Observable<Quaternion, SceneNode> _rotation;
+		ObservableValue<Vector3, SceneNode> _position;
+		ObservableValue<Vector3, SceneNode> _scale;
+		ObservableValue<Quaternion, SceneNode> _rotation;
 		Vector3 _euler;
 
 		mutable bool _updated;

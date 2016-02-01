@@ -222,7 +222,7 @@ namespace RN
 		data->SetThinningRange((_mode & Mode::Thinning), _thinRange);
 	}
 
-	void InstancingNode::EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes)
+	void InstancingNode::EntityDidUpdateModel(Object *object, const char *key, const Dictionary *changes)
 	{
 		Object *tOld = changes->GetObjectForKey(kRNObservableOldValueKey);
 		Object *tNew = changes->GetObjectForKey(kRNObservableNewValueKey);
@@ -268,7 +268,7 @@ namespace RN
 		Unlock();
 	}
 
-	void InstancingNode::PivotDidMove(Object *object, const std::string &key, Dictionary *changes)
+	void InstancingNode::PivotDidMove(Object *object, const char *key, const Dictionary *changes)
 	{
 		for(InstancingData *data : _rawData)
 			data->PivotMoved();

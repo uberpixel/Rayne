@@ -33,9 +33,9 @@ namespace RN
 		RNAPI bool IsEqual(const Object *other) const override;
 		
 		template<typename T=Object>
-		T *GetObjectForKey(const Object *key)
+		T *GetObjectForKey(const Object *key) const
 		{
-			Object *object = PrimitiveObjectForKey(key);
+			Object *object = GetPrimitiveObjectForKey(key);
 			if(object)
 				return object->Downcast<T>();
 			
@@ -63,13 +63,13 @@ namespace RN
 		RNAPI size_t GetCount() const;
 		
 	protected:
-		RNAPI void SetValueForUndefinedKey(Object *value, const std::string &key) override;
-		RNAPI Object *GetValueForUndefinedKey(const std::string &key) override;
+		RNAPI void SetValueForUndefinedKey(Object *value, const char *key) override;
+		RNAPI Object *GetValueForUndefinedKey(const char *key) const override;
 		
 	private:
 		PIMPL<DictionaryInternal> _internals;
 		
-		RNAPI Object *PrimitiveObjectForKey(const Object *key);
+		RNAPI Object *GetPrimitiveObjectForKey(const Object *key) const;
 		
 		RNDeclareMeta(Dictionary)
 	};

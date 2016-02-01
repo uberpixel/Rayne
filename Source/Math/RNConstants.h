@@ -10,6 +10,7 @@
 #define __RAYNE_CONSTANTS_H__
 
 #include <cfloat>
+#include <cstddef>
 
 #ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>

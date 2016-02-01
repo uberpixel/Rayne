@@ -210,7 +210,7 @@ namespace RN
 	}
 	
 	
-	Object *Dictionary::PrimitiveObjectForKey(const Object *key)
+	Object *Dictionary::GetPrimitiveObjectForKey(const Object *key) const
 	{
 		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		return bucket ? bucket->object : nullptr;
@@ -292,14 +292,14 @@ namespace RN
 	
 	
 	// KVO
-	void Dictionary::SetValueForUndefinedKey(Object *value, const std::string &key)
+	void Dictionary::SetValueForUndefinedKey(Object *value, const char *key)
 	{
-		SetObjectForKey(value, RNSTR(key.c_str()));
+		SetObjectForKey(value, RNSTR(key));
 	}
 	
-	Object *Dictionary::GetValueForUndefinedKey(const std::string &key)
+	Object *Dictionary::GetValueForUndefinedKey(const char *key) const
 	{
-		Object *value = GetObjectForKey(RNSTR(key.c_str()));
+		Object *value = GetObjectForKey(RNSTR(key));
 		return value;
 	}
 }

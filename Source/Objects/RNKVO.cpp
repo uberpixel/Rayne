@@ -20,7 +20,7 @@ namespace RN
 	// ---------------------
 	
 	ObservableProperty::ObservableProperty(const char *name, char type) :
-		_object(nullptr),
+		_owner(nullptr),
 		_type(type),
 		_flags(1 << 4),
 		_signal(nullptr),
@@ -41,7 +41,7 @@ namespace RN
 	void ObservableProperty::AssertSignal()
 	{
 		if(!_signal)
-			_signal = new Signal<void (Object *, const std::string &, Dictionary *)>();
+			_signal = new Signal<void (Object *, const char *, const Dictionary *)>();
 	}
 	
 	
@@ -52,9 +52,11 @@ namespace RN
 	
 	void ObservableProperty::WillChangeValue()
 	{
-		RN_ASSERT(_object, "Observable<> must be added to an Object before they can be used!");
-		
-		if(((_flags ++) & 0xf) == 0 && _signal)
+		RN_ASSERT(_owner, "Observable<> must be added to an Object before they can be used!");
+
+		uint8 recursion = (_flags & 0xf);
+
+		if((recursion ++) == 0 && _signal)
 		{
 			if(_signal->GetCount() > 0)
 			{
@@ -64,24 +66,38 @@ namespace RN
 				_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableOldValueKey);
 			}
 		}
+
+		_flags &= ~0xf;
+		_flags |= recursion;
 	}
 	
 	void ObservableProperty::DidChangeValue()
 	{
-		RN_ASSERT(_object, "Observable<> must be added to an Object before they can be used!");
+		RN_ASSERT(_owner, "Observable<> must be added to an Object before they can be used!");
+
+		uint8 recursion = (_flags & 0xf);
 		
-		if(((-- _flags) & 0xf) == 0)
+		if((-- recursion) == 0)
 		{
 			if(_changeSet)
 			{
+				// Write the recursion counter back immediately
+				_flags &= ~0xf;
+				_flags |= recursion;
+
 				Object *value = GetValue();
 				_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableNewValueKey);
 				
-				_signal->Emit(std::move(_object), _name, std::move(_changeSet));
+				_signal->Emit(std::move(_owner), _name, std::move(_changeSet));
 				
 				_changeSet->Release();
 				_changeSet = nullptr;
+
+				return;
 			}
 		}
+
+		_flags &= ~0xf;
+		_flags |= recursion;
 	}
 }

@@ -19,10 +19,6 @@
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 #define kRNObservableOldValueKey RNCSTR("kRNObservableOldValueKey")
 
-#if RN_PLATFORM_WINDOWS
-#pragma push_macro("GetObject")
-#undef GetObject
-#endif
 
 namespace RN
 {
@@ -37,20 +33,15 @@ namespace RN
 		
 		RNAPI virtual ~ObservableProperty();
 	
-		std::string GetName() const { return _name; }
+		const char *GetName() const { return _name; }
 		char GetType() const { return _type; }
 		
 		RNAPI virtual void SetValue(Object *value) = 0;
 		RNAPI virtual Object *GetValue() const = 0;
-		RNAPI Object *GetObject() const { return _object; }
+		RNAPI Object *GetOwner() const { return _owner; }
 
-#if RN_PLATFORM_WINDOWS
-		Object *GetObjectA() const { return _object; }
-		Object *GetObjectW() const { return _object; }
-#endif
-		
 		RNAPI void SetWritable(bool writable);
-		bool IsWritable() const { return _flags & (1 << 8); }
+		bool IsWritable() const { return (_flags & (1 << 4)); }
 		
 		RNAPI virtual MetaClass *GetMetaClass() const { return nullptr; }
 		
@@ -60,23 +51,19 @@ namespace RN
 	protected:
 		RNAPI ObservableProperty(const char *name, char type);
 		
-		Object *_object;
+		Object *_owner;
 		
 	private:
 		RNAPI void AssertSignal();
 		
 		char _type;
 		char _name[33];
-		uint8 _flags;
+		uint8 _flags; // Lower 3 bits used as recursion Will/DidChange counter
 		
-		Signal<void (Object *, const std::string &, Dictionary *)> *_signal;
+		Signal<void (Object *, const char *, const Dictionary *)> *_signal;
 		Dictionary *_changeSet;
 		void *_opaque;
 	};
 }
-
-#if RN_PLATFORM_WINDOWS
-#pragma pop_macro("GetObject")
-#endif
 
 #endif /* __RAYNE_KVO_H__ */
