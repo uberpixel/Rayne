@@ -4,6 +4,7 @@
   <component name="CidrRootsConfiguration">
     <sourceRoots />
     <libraryRoots>
+      <file path="$PROJECT_DIR$/Modules/Assimp/Vendor" />
       <file path="$PROJECT_DIR$/Vendor" />
     </libraryRoots>
     <excludeRoots>
