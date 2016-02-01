@@ -26,6 +26,8 @@ namespace RN
 		RNAPI bool CharacterIsMember(UniChar character) const;
 
 	private:
+		void AddCharacter(UniChar character);
+
 		uint8 _bitmap[8192];
 	};
 }
