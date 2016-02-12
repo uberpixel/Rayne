@@ -43,4 +43,4 @@ rayne_target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
 rayne_set_module_output_directory(RayneMetal)
 rayne_copy_resources(RayneMetal ${RESOURCES})
 
-rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneMetal)
+rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneMetal/. DESTINATION lib/Rayne/RayneMetal)

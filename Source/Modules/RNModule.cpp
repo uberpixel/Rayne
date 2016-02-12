@@ -42,14 +42,6 @@ namespace RN
 		String *basePath = _name->StringByDeletingLastPathComponent();
 		String *base = _name->GetLastPathComponent();
 
-#if RN_PLATFORM_64BIT
-		base->Append("-x64");
-#endif
-#if RN_PLATFORM_32BIT
-		base->Append("-x86");
-#endif
-
-
 #if RN_PLATFORM_MAC_OS
 		base->AppendPathExtension(RNCSTR("dylib"));
 #endif

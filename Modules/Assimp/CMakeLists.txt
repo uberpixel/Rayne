@@ -34,4 +34,4 @@ rayne_target_include_directories(RayneAssimp "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(RayneAssimp "${LINK_LIBRARIES}")
 rayne_set_module_output_directory(RayneAssimp)
 
-rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneAssimp)
+rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneAssimp/. DESTINATION lib/Rayne/RayneAssimp)
