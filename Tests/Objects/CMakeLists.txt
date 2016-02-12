@@ -18,4 +18,4 @@ set(RESOURCES
 copy_resources(${RESOURCES} objectTests)
 
 target_link_libraries(objectTests gtest gtest_main)
-target_link_libraries(objectTests Rayne-x64)
+target_link_libraries(objectTests Rayne)

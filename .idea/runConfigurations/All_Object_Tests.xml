@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Object Tests" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="RayneAll" TARGET_NAME="objectTests" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RayneAll" RUN_TARGET_NAME="objectTests" TEST_MODE="SUITE_TEST">
+  <configuration default="false" name="All Object Tests" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RayneAll" TARGET_NAME="objectTests" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RayneAll" RUN_TARGET_NAME="objectTests" TEST_MODE="SUITE_TEST">
     <envs />
     <method />
   </configuration>

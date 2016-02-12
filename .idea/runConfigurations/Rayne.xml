@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Rayne" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="RayneAll" TARGET_NAME="Rayne" CONFIG_NAME="Debug">
+  <configuration default="false" name="Rayne" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RayneAll" TARGET_NAME="Rayne" CONFIG_NAME="Debug">
     <envs />
     <method />
   </configuration>
