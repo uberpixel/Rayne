@@ -7,7 +7,7 @@
 //
 #set ($NormalizedName = $NAME)
 
-#[[#include]]# "__Bootstrap.h"
+#[[#include]]# "../Shared/Bootstrap.h"
 
 class $NormalizedName : public KernelFixture
 {};
