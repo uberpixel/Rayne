@@ -260,7 +260,7 @@ namespace RN
 
 		});
 
-		return CreateShaderLibraryWithSource(source, options);
+		return CreateShaderLibraryWithSource(source->Autorelease(), options);
 	}
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
 	{

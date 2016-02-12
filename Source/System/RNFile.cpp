@@ -94,7 +94,7 @@ namespace RN
 
 	Data *File::ReadData(size_t maxLength)
 	{
-		uint8 *buffer = new uint8[maxLength];
+		uint8 *buffer = (uint8 *)malloc(maxLength);
 		size_t read = Read(buffer, maxLength);
 
 		Data *data = new Data(buffer, read, true, true);

@@ -31,7 +31,7 @@ namespace RN
 	{
 		_length = 0;
 		_allocated = 10;
-		_bytes = new uint8[_allocated];
+		_bytes = (uint8 *)malloc(_allocated);
 		
 		_ownsData = _freeData = true;
 	}
@@ -67,7 +67,7 @@ namespace RN
 	Data::~Data()
 	{
 		if(_freeData)
-			delete[] _bytes;
+			free(_bytes);
 	}
 	
 	
@@ -78,7 +78,7 @@ namespace RN
 		
 		_allocated = _length;
 		_freeData  = _ownsData = true;
-		_bytes     = new uint8[_allocated];
+		_bytes     = (uint8 *)malloc(_allocated);
 		
 		std::copy(data, data + _length, _bytes);
 	}
@@ -109,7 +109,7 @@ namespace RN
 		off_t size = lseek(fd, 0, SEEK_END);
 		lseek(fd, 0, SEEK_SET);
 
-		uint8 *bytes = new uint8[size];
+		uint8 *bytes = (uint8 *)malloc(size);
 		size_t bytesRead = 0;
 
 		while(bytesRead < size)
@@ -143,7 +143,7 @@ namespace RN
 		_allocated = length;
 		_length    = length;
 		
-		_bytes = new uint8[_allocated];
+		_bytes = (uint8 *)malloc(_allocated);
 		
 		if(bytes)
 		{
@@ -159,9 +159,9 @@ namespace RN
 		
 		if(_allocated < minimumLength)
 		{
-			uint8 *temp = new uint8[minimumLength + kRNDataIncreaseLength];
+			uint8 *temp = (uint8 *)malloc(minimumLength + kRNDataIncreaseLength);
 			std::copy(_bytes, _bytes + _length, temp);
-			delete [] _bytes;
+			free(_bytes);
 			
 			_bytes = temp;
 			_allocated = minimumLength + kRNDataIncreaseLength;
@@ -230,7 +230,7 @@ namespace RN
 		if(range.origin + range.length > _length)
 			throw RangeException("range is not within the datas bounds!");
 		
-		uint8 *data = new uint8[range.length];
+		uint8 *data = (uint8 *)malloc(range.length);
 		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);
 		
 		Data *temp = new Data(data, range.length, true, true);

@@ -571,7 +571,7 @@ namespace RN
 				if(_flags & Flags::ASCII)
 				{
 					const uint8 *bytes = GetBytes();
-					data = new char[_length + 1];
+					data = (char *)malloc(_length + 1);
 					
 					std::copy(bytes, bytes + _length, data);
 					data[_length] = '\0';
@@ -581,7 +581,7 @@ namespace RN
 				else if(lossy)
 				{
 					const uint8 *bytes = GetBytes();
-					data = new char[_length + 1];
+					data = (char *)malloc(_length + 1);
 					
 					for(size_t i = 0; i < _length; i ++)
 					{
@@ -600,7 +600,7 @@ namespace RN
 				const uint8 *bytes = GetBytes();
 				length = GetBytesCount();
 				
-				data = new char[length + 1];
+				data = (char *)malloc(length + 1);
 				
 				std::copy(bytes, bytes + length, data);
 				data[length] = '\0';
@@ -609,37 +609,41 @@ namespace RN
 				
 			case Encoding::UTF16LE:
 			{
-/*				const char *start = reinterpret_cast<const char *>(GetBytes());
+#if RN_PLATFORM_MAC_OS
+				const char *start = reinterpret_cast<const char *>(GetBytes());
 				const char *end   = start + GetBytesCount();
 				
 				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff, std::codecvt_mode::little_endian>, char16_t> converter;
 				std::u16string string = converter.from_bytes(start, end);
 				
-				data = new char[(string.length() + 1) * 2];
+				data = (char *)malloc((string.length() + 1) * 2);
 				length = string.length() * 2;
 				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));*/
+				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
+#endif
 				break;
 			}
 				
 			case Encoding::UTF16BE:
 			{
-/*				const char *start = reinterpret_cast<const char *>(GetBytes());
+#if RN_PLATFORM_MAC_OS
+				const char *start = reinterpret_cast<const char *>(GetBytes());
 				const char *end   = start + GetBytesCount();
 				
 				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff>, char16_t> converter;
 				std::u16string string = converter.from_bytes(start, end);
 				
-				data = new char[(string.length() + 1) * 2];
+				data = (char *)malloc((string.length() + 1) * 2);
 				length = string.length() * 2;
 				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));*/
+				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
+#endif
 				break;
 			}
 				
 			case Encoding::UTF32:
 			{
-				data = new char[(_length + 1) * 4];
+				data = (char *)malloc((_length + 1) * 4);
 				uint32 *temp = reinterpret_cast<uint32 *>(data);
 				
 				const uint8 *bytes = GetBytes();
@@ -662,9 +666,7 @@ namespace RN
 		if(data)
 		{
 			Data *temp = new Data(data, length, true, true);
-			temp->Autorelease();
-
-			return temp;
+			return temp->Autorelease();
 		}
 		
 		return nullptr;

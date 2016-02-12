@@ -194,6 +194,8 @@ namespace RN
 
 		if(screenName)
 			_name = RNSTR([screenName UTF8String])->Retain();
+
+		[deviceInfo release];
 	}
 #endif
 

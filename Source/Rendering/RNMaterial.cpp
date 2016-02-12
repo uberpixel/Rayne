@@ -117,7 +117,7 @@ namespace RN
 	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
 	{
 		Material *material = new Material(descriptor);
-		return material;
+		return material->Autorelease();
 	}
 
 	Material::~Material()
