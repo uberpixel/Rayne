@@ -16,9 +16,9 @@
 	#include <dirent.h>
 	#include <unistd.h>
 	#include <sys/stat.h>
-#elif RN_PLATFORM_WINDOWS
-	#include "../Base/RNUnistd.h"
-	#include "dirent.h"
+#endif
+#if RN_PLATFORM_WINDOWS
+	#include <io.h>
 #endif
 
 namespace RN
@@ -94,6 +94,7 @@ namespace RN
 
 	void FileCoordinator::Directory::ParseDirectory()
 	{
+#if RN_PLATFORM_POSIX
 		int error = errno;
 		DIR *dir = opendir(GetPath()->GetUTF8String());
 
@@ -158,9 +159,76 @@ namespace RN
 			}
 		}
 
-
-
 		closedir(dir);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		WIN32_FIND_DATA ffd;
+
+		std::stringstream stream;
+		stream << GetPath()->GetUTF8String() << "\\*";
+
+		HANDLE handle = ::FindFirstFile(stream.str().c_str(), &ffd);
+
+		if(handle == INVALID_HANDLE_VALUE)
+			return;
+
+		do {
+
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+				continue;
+
+			if(strlen(ffd.cFileName) > 0 && ffd.cFileName[0] != '.')
+			{
+				Node *node = nullptr;
+
+				if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				{
+					node = new Directory(RNSTR(ffd.cFileName), this);
+				}
+				else
+				{
+					node = new File(RNSTR(ffd.cFileName), this);
+				}
+
+				if(node)
+				{
+					// Only allow nodes matching the platform modifier, ie ~osx or ~win
+					if(node->GetModifier())
+					{
+						if(!node->GetModifier()->IsEqual(_platformModifier))
+						{
+							node->Release();
+							continue;
+						}
+					}
+
+					// Make sure only the platform modifier node is allowed into the VFS,
+					// the regular version is removed if necessary
+					Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
+					if(other)
+					{
+						if(!node->GetModifier())
+						{
+							node->Release();
+							continue;
+						}
+
+						_children->RemoveObject(other);
+					}
+
+					_children->AddObject(node);
+					_childMap->SetObjectForKey(node, node->GetName());
+
+					node->Release();
+				}
+			}
+
+		} while(::FindNextFile(handle, &ffd));
+
+		::FindClose(handle);
+
+#endif
 	}
 
 	FileCoordinator::File::File(String *name, Node *parent) :
@@ -410,7 +478,7 @@ namespace RN
 		}
 		
 		String *expanded = __ExpandPath(path);
-		
+
 		if(access(expanded->GetUTF8String(), F_OK) != -1)
 			return expanded;
 

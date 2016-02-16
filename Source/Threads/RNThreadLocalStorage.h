@@ -135,7 +135,7 @@ namespace RN
 			if(!buffer)
 			{
 				buffer = new T();
-				::TlsSetValue(_key, value);
+				::TlsSetValue(_key, buffer);
 
 				Thread *thread = Thread::GetCurrentThread();
 				thread->ExecuteOnExit([](void *context) {

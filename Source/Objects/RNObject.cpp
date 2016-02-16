@@ -367,7 +367,13 @@ namespace RN
 
 		temp ++;
 
+#if RN_PLATFORM_POSIX
 		strlcpy(storage, keyPath, temp - keyPath);
+#endif
+#if RN_PLATFORM_WINDOWS
+		strncpy(storage, keyPath, temp - keyPath);
+		storage[32] = '\0';
+#endif
 
 		Object *next = GetValueForKey(storage);
 		if(!next)
@@ -412,7 +418,13 @@ namespace RN
 
 		temp ++;
 
+#if RN_PLATFORM_POSIX
 		strlcpy(storage, keyPath, temp - keyPath);
+#endif
+#if RN_PLATFORM_WINDOWS
+		strncpy(storage, keyPath, temp - keyPath);
+		storage[32] = '\0';
+#endif
 
 		Object *next = GetValueForKey(storage);
 		if(!next)

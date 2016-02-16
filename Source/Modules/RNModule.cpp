@@ -197,7 +197,7 @@ namespace RN
 
 		for(size_t i = 0; i < count; i++)
 		{
-			void *result = ::GetProcAddress(modules[i], name);
+			void *result = reinterpret_cast<void *>(::GetProcAddress(modules[i], name));
 			if(result)
 			{
 				HMODULE result = modules[i];
