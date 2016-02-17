@@ -20,6 +20,10 @@
 #include <DbgHelp.h>
 #endif
 
+#if RN_COMPILER_MSVC
+#pragma comment(lib, "DbgHelp.lib")
+#endif
+
 #define kRNExceptionMaxSymbols 64
 
 namespace RN

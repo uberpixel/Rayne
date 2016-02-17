@@ -21,6 +21,10 @@
 	#include <io.h>
 #endif
 
+#if RN_COMPILER_MSVC
+	#define F_OK 0
+#endif
+
 namespace RN
 {
 	RNDefineScopedMeta(FileCoordinator, Node, Object)

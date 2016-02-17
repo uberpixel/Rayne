@@ -163,7 +163,7 @@ namespace RN
 
 	private:
 		void Initialize();
-		void UpdateInternalData() const;
+		RNAPI void UpdateInternalData() const;
 
 		void UpdateScene(Scene *scene);
 		void __CompleteAttachmentWithScene(Scene *scene);
