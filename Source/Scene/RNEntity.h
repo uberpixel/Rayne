@@ -28,7 +28,7 @@ namespace RN
 		RNAPI ~Entity();
 
 		RNAPI void SetModel(Model *model);
-		RNAPI Model *GetModel() const { return _model; }
+		Model *GetModel() const { return _model; }
 
 		RNAPI void Render(Renderer *renderer, Camera *camera) const override;
 

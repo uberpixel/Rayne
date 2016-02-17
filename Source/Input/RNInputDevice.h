@@ -82,11 +82,11 @@ namespace RN
 
 		RNAPI void Register();
 		RNAPI void Unregister();
-		RNAPI bool IsRegistered() const { return (_manager != nullptr); }
+		bool IsRegistered() const { return (_manager != nullptr); }
 
 		RNAPI bool Activate() RN_NOEXCEPT;
 		RNAPI bool Deactivate() RN_NOEXCEPT;
-		RNAPI bool IsActive() const { return _active; }
+		bool IsActive() const { return _active; }
 
 		Category GetCategory() const { return _category; }
 		const String *GetVendor() const { return _vendor; }

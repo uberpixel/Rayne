@@ -13,6 +13,8 @@ namespace RN
 {
 	RNDefineMeta(Renderer, Object)
 
+	RNExceptionImp(ShaderCompilation)
+
 	static Renderer *_activeRenderer = nullptr;
 
 	Renderer::Renderer()

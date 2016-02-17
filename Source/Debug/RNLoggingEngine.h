@@ -30,7 +30,7 @@ namespace RN
 		RNAPI virtual void Flush() = 0;
 
 		RNAPI virtual bool IsOpen() const = 0;
-		RNAPI bool IsThreadBound() const { return _threadBound; }
+		bool IsThreadBound() const { return _threadBound; }
 
 		RNAPI virtual void Log(Logger::Level level, const LogMessage &message) = 0;
 		RNAPI virtual void LogBreak() = 0;

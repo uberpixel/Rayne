@@ -96,8 +96,8 @@ namespace RN
 		RNAPI virtual bool SupportsLoadingName(const String *name) const;
 		RNAPI bool SupportsResourceClass(MetaClass *meta) const;
 
-		RNAPI uint32 GetPriority() const { return _priority; }
-		RNAPI const std::vector<MetaClass *> &GetResourceClasses() const { return _resourceClasses; }
+		uint32 GetPriority() const { return _priority; }
+		const std::vector<MetaClass *> &GetResourceClasses() const { return _resourceClasses; }
 
 	protected:
 		RNAPI AssetLoader(const Config &config);

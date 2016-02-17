@@ -113,12 +113,12 @@ namespace RN
 
 		RNAPI LODStage *GetLODStage(size_t index) const;
 		RNAPI LODStage *GetLODStageForDistance(float distance) const;
-		RNAPI size_t GetLODStageCount() const { return _lodStages->GetCount(); }
+		size_t GetLODStageCount() const { return _lodStages->GetCount(); }
 
 		RNAPI void CalculateBoundingVolumes();
 
-		RNAPI const AABB &GetBoundingBox() const { return _boundingBox; }
-		RNAPI const Sphere &GetBoundingSphere() const { return _boundingSphere; }
+		const AABB &GetBoundingBox() const { return _boundingBox; }
+		const Sphere &GetBoundingSphere() const { return _boundingSphere; }
 
 		RNAPI static const std::vector<float> &GetDefaultLODFactors();
 		RNAPI static void SetDefaultLODFactors(const std::vector<float> &factors);

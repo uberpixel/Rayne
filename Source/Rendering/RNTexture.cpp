@@ -14,6 +14,8 @@ namespace RN
 {
 	RNDefineMeta(Texture, Asset)
 
+	RNExceptionImp(InvalidTextureFormat)
+
 	static uint32 _defaultAnisotropy = 1;
 
 	Texture::Texture(const Descriptor &descriptor) :

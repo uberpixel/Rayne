@@ -27,14 +27,14 @@ namespace RN
 
 		~Screen();
 
-		RNAPI uint32 GetWidth() const { return static_cast<uint32>(_frame.width); }
-		RNAPI uint32 GetHeight() const { return static_cast<uint32>(_frame.height); }
+		uint32 GetWidth() const { return static_cast<uint32>(_frame.width); }
+		uint32 GetHeight() const { return static_cast<uint32>(_frame.height); }
 
-		RNAPI float GetScaleFactor() const { return _scaleFactor; }
-		RNAPI const Rect &GetFrame() const { return _frame; }
-		RNAPI const Array *GetSupportedResolutions() const { return _resolutions; } // Array of RN::Value of RN::Vector2
-		RNAPI const String *GetName() const { return _name; }
-		RNAPI bool IsMainScreen() const { return _isMainScreen; }
+		float GetScaleFactor() const { return _scaleFactor; }
+		const Rect &GetFrame() const { return _frame; }
+		const Array *GetSupportedResolutions() const { return _resolutions; } // Array of RN::Value of RN::Vector2
+		const String *GetName() const { return _name; }
+		bool IsMainScreen() const { return _isMainScreen; }
 
 		RNAPI static Screen *GetMainScreen();
 		RNAPI static Array *GetScreens();

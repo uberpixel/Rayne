@@ -17,15 +17,20 @@
 #endif
 
 #if RN_PLATFORM_WINDOWS
-#include <windows.h>
 #include <DbgHelp.h>
-#pragma comment(lib, "DbgHelp.lib")
 #endif
 
 #define kRNExceptionMaxSymbols 64
 
 namespace RN
 {
+	RNExceptionImp(InvalidArgument)
+	RNExceptionImp(Range)
+	RNExceptionImp(Downcast)
+	RNExceptionImp(Inconsistency)
+	RNExceptionImp(InvalidCall)
+	RNExceptionImp(NotImplemented)
+
 	Exception::Exception(const std::string &reason) :
 		_reason(reason)
 	{

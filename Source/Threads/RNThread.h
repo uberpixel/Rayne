@@ -57,11 +57,11 @@ namespace RN
 		RNAPI void UnscheduleExecuteOnExit(void *context);
 		
 		RNAPI void Cancel();
-		RNAPI bool IsCancelled() const { return _isCancelled.load(); }
-		RNAPI bool IsRunning() const { return _isRunning.load(); }
+		bool IsCancelled() const { return _isCancelled.load(); }
+		bool IsRunning() const { return _isRunning.load(); }
 
 		RNAPI String *GetName();
-		RNAPI RunLoop *GetRunLoop() const { return _runLoop; }
+		RunLoop *GetRunLoop() const { return _runLoop; }
 
 		template <typename T>
 		T *GetObjectForKey(Object *key)

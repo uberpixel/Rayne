@@ -23,10 +23,10 @@ namespace RN
 	public:
 		friend class Catalogue;
 
-		RNAPI Module *GetModule() const { return _module; }
-		RNAPI MetaClass *GetSuperClass() const { return _superClass; }
-		RNAPI std::string GetName() const { return _name; }
-		RNAPI std::string GetFullname() const;
+		Module *GetModule() const { return _module; }
+		MetaClass *GetSuperClass() const { return _superClass; }
+		std::string GetName() const { return _name; }
+		std::string GetFullname() const;
 		
 		virtual Object *Construct() { throw InconsistencyException("Construct() called but not provided"); }
 		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw InconsistencyException("ConstructWithDeserializer() called but not provided"); }
@@ -39,7 +39,7 @@ namespace RN
 		RNAPI bool InheritsFromClass(const MetaClass *other) const;
 	
 	protected:
-		RNAPI MetaClass() {}
+		MetaClass() {}
 		RNAPI MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob);
 		RNAPI ~MetaClass();
 		

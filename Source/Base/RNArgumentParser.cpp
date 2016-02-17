@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNExceptionImp(ArgumentNotFound)
+
 	ArgumentParser::ArgumentParser(int argc, const char *argv[])
 	{
 		_arguments = new Array();

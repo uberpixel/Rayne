@@ -18,7 +18,7 @@ namespace RN
 	class CodePoint
 	{
 	public:
-		RNAPI CodePoint() {}
+		CodePoint() {}
 		RNAPI CodePoint(UniChar character);
 		RNAPI CodePoint(char character);
 		
@@ -29,7 +29,7 @@ namespace RN
 		static CodePoint ASCIITerminator() { return CodePoint(char(0x7f)); }
 		
 		RNAPI char GetASCIICharacter() const;
-		RNAPI UniChar GetCharacter() const { return _codePoint; }
+		UniChar GetCharacter() const { return _codePoint; }
 		
 		RNAPI bool IsNewline() const;
 		RNAPI bool IsWhitespace() const;

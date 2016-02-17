@@ -19,6 +19,10 @@ namespace RN
 {
 	RNDefineMeta(File, Object)
 
+	RNExceptionImp(FileNotFound)
+	RNExceptionImp(FileIO)
+	RNExceptionImp(FileGeneric)
+
 	File::File(int fd, const String *path, Mode mode) :
 		_fd(fd),
 		_mode(mode),

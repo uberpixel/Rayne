@@ -38,12 +38,12 @@ namespace RN
 		
 		RNAPI virtual void SetValue(Object *value) = 0;
 		RNAPI virtual Object *GetValue() const = 0;
-		RNAPI Object *GetOwner() const { return _owner; }
+		Object *GetOwner() const { return _owner; }
 
 		RNAPI void SetWritable(bool writable);
 		bool IsWritable() const { return (_flags & (1 << 4)); }
 		
-		RNAPI virtual MetaClass *GetMetaClass() const { return nullptr; }
+		virtual MetaClass *GetMetaClass() const { return nullptr; }
 		
 		RNAPI void WillChangeValue();
 		RNAPI void DidChangeValue();

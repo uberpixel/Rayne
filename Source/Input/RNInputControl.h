@@ -87,7 +87,7 @@ namespace RN
 
 	private:
 		RNAPI InputControl *__GetControlWithName(const String *name) const;
-		RNAPI Object *__GetValue() const { return _value; }
+		Object *__GetValue() const { return _value; }
 
 		void __LinkIntoDeviceWithParent(InputDevice *device, InputControl *parent);
 
@@ -124,7 +124,7 @@ namespace RN
 		RNAPI ButtonControl(const String *name, Type type);
 
 		RNAPI void SetPressed(bool pressed);
-		RNAPI bool IsPressed() const { return _pressed; }
+		bool IsPressed() const { return _pressed; }
 
 		RNAPI bool IsToggle() const final;
 
@@ -167,12 +167,12 @@ namespace RN
 
 		RNAPI bool IsContinuous() const final;
 
-		RNAPI float GetCenter() const { return _center; }
-		RNAPI float GetMin() const { return _min; }
-		RNAPI float GetMax() const { return _max; }
-		RNAPI float GetDeadZone() const { return _deadZone; }
-		RNAPI float GetNormalizer() const { return _normalizer; }
-		RNAPI Axis GetAxis() const { return _axis; }
+		float GetCenter() const { return _center; }
+		float GetMin() const { return _min; }
+		float GetMax() const { return _max; }
+		float GetDeadZone() const { return _deadZone; }
+		float GetNormalizer() const { return _normalizer; }
+		Axis GetAxis() const { return _axis; }
 
 	private:
 		Axis _axis;

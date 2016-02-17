@@ -72,11 +72,11 @@ namespace RN
 
 		RNAPI void Serialize(Serializer *serializer) const override;
 
-		RNAPI void Translate(const Vector3 &trans);
-		RNAPI void TranslateLocal(const Vector3 &trans);
-		RNAPI void Scale(const Vector3 &scal);
-		RNAPI void Rotate(const Vector3 &rot);
-		RNAPI void Rotate(const Quaternion &rot);
+		void Translate(const Vector3 &trans);
+		void TranslateLocal(const Vector3 &trans);
+		void Scale(const Vector3 &scal);
+		void Rotate(const Vector3 &rot);
+		void Rotate(const Quaternion &rot);
 
 		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetTag(Tag tag);
@@ -84,13 +84,13 @@ namespace RN
 		RNAPI void SetRenderGroup(uint8 group);
 		RNAPI void SetCollisionGroup(uint8 group);
 
-		RNAPI virtual void SetPosition(const Vector3 &pos);
-		RNAPI virtual void SetScale(const Vector3 &scal);
-		RNAPI virtual void SetRotation(const Quaternion &rot);
+		virtual void SetPosition(const Vector3 &pos);
+		virtual void SetScale(const Vector3 &scal);
+		virtual void SetRotation(const Quaternion &rot);
 
-		RNAPI virtual void SetWorldPosition(const Vector3 &pos);
-		RNAPI virtual void SetWorldScale(const Vector3 &scal);
-		RNAPI virtual void SetWorldRotation(const Quaternion &rot);
+		virtual void SetWorldPosition(const Vector3 &pos);
+		virtual void SetWorldScale(const Vector3 &scal);
+		virtual void SetWorldRotation(const Quaternion &rot);
 
 		RNAPI void SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere=true);
 		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
@@ -101,27 +101,27 @@ namespace RN
 		RNAPI Flags RemoveFlags(Flags flags);
 		RNAPI Flags AddFlags(Flags flags);
 
-		RNAPI uint64 GetUID() const { return _uid; }
-		RNAPI uint64 GetLID() const { return _lid; }
+		uint64 GetUID() const { return _uid; }
+		uint64 GetLID() const { return _lid; }
 
-		RNAPI Tag GetTag() const { return _tag; }
+		Tag GetTag() const { return _tag; }
 
-		RNAPI Vector3 GetForward() const;
-		RNAPI Vector3 GetUp() const;
-		RNAPI Vector3 GetRight() const;
+		Vector3 GetForward() const;
+		Vector3 GetUp() const;
+		Vector3 GetRight() const;
 
-		RNAPI Vector3 GetWorldPosition() const;
-		RNAPI Vector3 GetWorldScale() const;
-		RNAPI Vector3 GetWorldEulerAngle() const;
-		RNAPI Quaternion GetWorldRotation() const;
+		Vector3 GetWorldPosition() const;
+		Vector3 GetWorldScale() const;
+		Vector3 GetWorldEulerAngle() const;
+		Quaternion GetWorldRotation() const;
 
-		RNAPI AABB GetBoundingBox() const;
-		RNAPI Sphere GetBoundingSphere() const;
+		AABB GetBoundingBox() const;
+		Sphere GetBoundingSphere() const;
 
-		RNAPI const Vector3 &GetPosition() const { return _position; }
-		RNAPI const Vector3 &GetScale() const { return _scale; }
-		RNAPI const Vector3 &GetEulerAngle() const { return _euler; }
-		RNAPI const Quaternion &GetRotation() const { return _rotation; }
+		const Vector3 &GetPosition() const { return _position; }
+		const Vector3 &GetScale() const { return _scale; }
+		const Vector3 &GetEulerAngle() const { return _euler; }
+		const Quaternion &GetRotation() const { return _rotation; }
 
 		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 
@@ -130,11 +130,11 @@ namespace RN
 		RNAPI void RemoveFromParent();
 
 		RNAPI SceneNode *GetParent() const;
-		RNAPI Priority GetPriority() const { return _priority; }
-		RNAPI Flags GetFlags() const { return _flags.load(); }
+		Priority GetPriority() const { return _priority; }
+		Flags GetFlags() const { return _flags.load(); }
 
-		RNAPI uint8 GetRenderGroup() const { return _renderGroup; };
-		RNAPI uint8 GetCollisionGroup() const { return _collisionGroup; };
+		uint8 GetRenderGroup() const { return _renderGroup; };
+		uint8 GetCollisionGroup() const { return _collisionGroup; };
 
 		RNAPI const Array *GetChildren() const;
 
@@ -154,12 +154,12 @@ namespace RN
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
 		RNAPI virtual void DidUpdate(ChangeSet changeSet);
 
-		RNAPI virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
-		RNAPI virtual void ChildWillUpdate(SceneNode *child, ChangeSet changes) {}
-		RNAPI virtual void WillAddChild(SceneNode *child) {}
-		RNAPI virtual void DidAddChild(SceneNode *child)  {}
-		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
-		RNAPI virtual void DidRemoveChild(SceneNode *child) {}
+		virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
+		virtual void ChildWillUpdate(SceneNode *child, ChangeSet changes) {}
+		virtual void WillAddChild(SceneNode *child) {}
+		virtual void DidAddChild(SceneNode *child)  {}
+		virtual void WillRemoveChild(SceneNode *child) {}
+		virtual void DidRemoveChild(SceneNode *child) {}
 
 	private:
 		void Initialize();

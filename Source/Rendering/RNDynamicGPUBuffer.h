@@ -27,8 +27,8 @@ namespace RN
 		RNAPI void *GetBuffer();
 		RNAPI void Invalidate();
 		RNAPI void InvalidateRange(const Range &range);
-		RNAPI size_t GetLength() const { return _length; }
-		RNAPI GPUBuffer *GetGPUBuffer() const { return _buffers[_index]; }
+		size_t GetLength() const { return _length; }
+		GPUBuffer *GetGPUBuffer() const { return _buffers[_index]; }
 
 	private:
 		GPUBuffer *_buffers[3];

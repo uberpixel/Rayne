@@ -47,8 +47,17 @@ namespace RN
 		class name##Exception : public RN::Exception \
 		{ \
 		public: \
-			using Exception::Exception; \
+			RNAPI name##Exception(const std::string &reason); \
+			RNAPI name##Exception(const String *reason); \
 		};
+
+	#define RNExceptionImp(name) \
+		name##Exception::name##Exception(const std::string &reason) : \
+			RN::Exception(reason) \
+		{} \
+		name##Exception::name##Exception(const String *reason) : \
+			RN::Exception(reason) \
+		{}
 
 	RNExceptionType(InvalidArgument)
 	RNExceptionType(Range)
@@ -57,6 +66,5 @@ namespace RN
 	RNExceptionType(InvalidCall)
 	RNExceptionType(NotImplemented)
 }
-
 
 #endif /* __RAYNE_EXCEPTION_H__ */

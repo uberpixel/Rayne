@@ -45,11 +45,11 @@ namespace RN
 		RNAPI bool CanRender(Renderer *renderer, Camera *camera) const override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) const override;
 
-		RNAPI float GetCellSize() const { return _cellSize; }
-		RNAPI float GetClipRange() const { return _clipRange; }
-		RNAPI float GetThinRange() const { return _thinRange; }
-		RNAPI Camera *GetPivot() const { return _pivot; }
-		RNAPI Mode GetMode() const { return _mode; }
+		float GetCellSize() const { return _cellSize; }
+		float GetClipRange() const { return _clipRange; }
+		float GetThinRange() const { return _thinRange; }
+		Camera *GetPivot() const { return _pivot; }
+		Mode GetMode() const { return _mode; }
 
 	protected:
 		RNAPI void Dealloc() override;

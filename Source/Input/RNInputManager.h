@@ -62,7 +62,7 @@ namespace RN
 		RNAPI bool IsControlToggling(const String *name) const;
 		RNAPI Object *GetControlValue(const String *name) const;
 
-		RNAPI const Vector3 &GetMouseDelta() const { return _mouseDelta; }
+		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
 
 	private:
 		InputManager();
