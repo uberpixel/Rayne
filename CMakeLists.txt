@@ -49,6 +49,9 @@ set(ZLIB_LIBRARIES zlibstatic)
 set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/Vendor/zlib" "${CMAKE_BINARY_DIR}/Vendor/zlib")
 
+# Disable Jansson tests
+option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
+
 # Include all Rayne targets
 add_subdirectory("Source")
 add_subdirectory("Modules")
