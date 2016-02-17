@@ -20,7 +20,7 @@
 	#include <stdint.h>
 #endif
 
-#if ${HAVE_STDDEF_H} && __WIN32__
+#if ${HAVE_STDDEF_H} && __WIN32__ // HAVE_STDDEF_H
 #include <stddef.h>
 #endif
 
@@ -71,6 +71,29 @@
 #define RN_BUILD_RELEASE 0
 #endif
 
+#define RN_COMPILER_GCC 0
+#define RN_COMPILER_CLANG 0
+#define RN_COMPILER_MSVC 0
+
+#define RN_COMPILER_MINGW 0
+
+#ifdef __clang__
+	#undef RN_COMPILER_CLANG
+	#define RN_COMPILER_CLANG 1
+#endif
+#ifdef __GNUC__
+	#undef RN_COMPILER_GCC
+	#define RN_COMPILER_GCC 1
+#endif
+#ifdef _MSC_VER
+	#undef RN_COMPILER_MSVC
+	#define RN_COMPILER_MSVC 1
+#endif
+#ifdef __MINGW64__
+	#undef RN_COMPILER_MINGW
+	#define RN_COMPILER_MINGW 1
+#endif
+
 namespace RN
 {
 	namespace numeric
@@ -90,5 +113,9 @@ namespace RN
 
 	using namespace numeric;
 }
+
+#if RN_PLATFORM_32BIT
+	#error "32 bit targets aren't supported anymore"
+#endif
 
 #endif /* __RAYNE_CONFIG_H_  */

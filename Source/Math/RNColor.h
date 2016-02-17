@@ -391,9 +391,7 @@ namespace RN
 		return Vector4(h - k::Pi, s, v, a);
 	}
 
-#ifndef __GNUG__
 	static_assert(std::is_trivially_copyable<Color>::value, "Color must be trivially copyable");
-#endif
 }
 
 #endif /* __RAYNE_COLOR_H__ */
