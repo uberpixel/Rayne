@@ -13,7 +13,26 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
+	static Shader::Type __GetTypeFromShaderString(const String *type)
+	{
+		if(type->IsEqual(RNCSTR("vertex")))
+		{
+			return Shader::Type::Vertex;
+		}
+		else if(type->IsEqual(RNCSTR("fragment")))
+		{
+			return Shader::Type::Fragment;
+		}
+		else if(type->IsEqual(RNCSTR("compute")))
+		{
+			return Shader::Type::Compute;
+		}
+
+		throw InconsistencyException("Invalid shader type");
+	}
+
 	D3D12Shader::D3D12Shader(String *file, String *entryPointName, String *shaderType) :
+		Shader(__GetTypeFromShaderString(shaderType), nullptr),
 		_attributes(new Array()), _shader(nullptr)
 	{
 #ifdef _DEBUG
@@ -24,20 +43,18 @@ namespace RN
 #endif
 
 		String *shaderTarget;
-		if(shaderType->IsEqual(RNCSTR("vertex")))
+
+		switch(GetType())
 		{
-			shaderTarget = RNCSTR("vs_5_0");
-			SetType(Type::Vertex);
-		}
-		else if(shaderType->IsEqual(RNCSTR("fragment")))
-		{
-			shaderTarget = RNCSTR("ps_5_0");
-			SetType(Type::Fragment);
-		}
-		else if(shaderType->IsEqual(RNCSTR("compute")))
-		{
-			shaderTarget = RNCSTR("cs_5_0");
-			SetType(Type::Compute);
+			case Type::Vertex:
+				shaderTarget = RNCSTR("vs_5_0");
+				break;
+			case Type::Fragment:
+				shaderTarget = RNCSTR("ps_5_0");
+				break;
+			case Type::Compute:
+				shaderTarget = RNCSTR("cs_5_0");
+				break;
 		}
 
 		Data *shaderData = Data::WithContentsOfFile(file);
