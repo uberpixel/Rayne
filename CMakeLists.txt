@@ -51,6 +51,7 @@ set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/Vendor/zlib" "${CMAKE_BINARY_DIR}/Vend
 
 # Disable Jansson tests
 option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
+option(JANSSON_EXAMPLES "Build Jansson examples" OFF)
 
 # Include all Rayne targets
 add_subdirectory("Source")

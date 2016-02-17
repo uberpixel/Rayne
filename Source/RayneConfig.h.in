@@ -118,4 +118,12 @@ namespace RN
 	#error "32 bit targets aren't supported anymore"
 #endif
 
+#if RN_COMPILER_MSVC && !defined(RAYNE_DISABLE_MSVC_PRAGMAS)
+	#pragma warning(disable: 4244)
+	#pragma warning(disable: 4250)
+	#pragma warning(disable: 4267)
+	#pragma warning(disable: 4800)
+	#pragma warning(disable: 4996)
+#endif
+
 #endif /* __RAYNE_CONFIG_H_  */
