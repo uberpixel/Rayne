@@ -50,7 +50,7 @@ namespace RN
 
 							});
 						}
-						catch(Exception &e)
+						catch(Exception &)
 						{}
 					}
 

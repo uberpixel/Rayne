@@ -98,7 +98,7 @@ namespace RN
 					}
 				});
 			}
-			catch(Exception &e)
+			catch(Exception &)
 			{
 				callback(nullptr);
 				fileOrName->Release();

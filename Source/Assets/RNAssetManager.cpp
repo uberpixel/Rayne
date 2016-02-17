@@ -150,7 +150,7 @@ namespace RN
 				asset = ValidateAsset(base, asset);
 				promise.set_value(asset);
 			}
-			catch(Exception &e)
+			catch(Exception &)
 			{
 				promise.set_exception(std::current_exception());
 			}
@@ -187,7 +187,7 @@ namespace RN
 			future.wait();
 			return future.get();
 		}
-		catch(InconsistencyException &e)
+		catch(InconsistencyException &)
 		{}
 
 		// Load the resource
@@ -198,7 +198,7 @@ namespace RN
 		{
 			file = File::WithName(name, File::Mode::Read);
 		}
-		catch(Exception &e)
+		catch(Exception &)
 		{
 			file = nullptr;
 		}
@@ -251,7 +251,7 @@ namespace RN
 
 			return future;
 		}
-		catch(InconsistencyException &e)
+		catch(InconsistencyException &)
 		{}
 
 		// Load the resource
@@ -262,7 +262,7 @@ namespace RN
 		{
 			file = File::WithName(name, File::Mode::Read);
 		}
-		catch(Exception &e)
+		catch(Exception &)
 		{
 			file = nullptr;
 		}
@@ -370,7 +370,7 @@ namespace RN
 						return;
 					}
 				}
-				catch(Exception &e)
+				catch(Exception &)
 				{
 					file->Seek(0, true);
 				}
@@ -408,7 +408,7 @@ namespace RN
 						return;
 					}
 				}
-				catch(Exception &e)
+				catch(Exception &)
 				{}
 
 			});

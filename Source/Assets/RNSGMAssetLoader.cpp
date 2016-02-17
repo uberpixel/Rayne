@@ -75,7 +75,7 @@ namespace RN
 					Model::LODStage *stage = model->AddLODStage(lodFactors[stageIndex]);
 					LoadLODStage(lodFile, stage);
 				}
-				catch(Exception &e)
+				catch(Exception )
 				{
 					break;
 				}

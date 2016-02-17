@@ -330,7 +330,7 @@ namespace RN
 			{
 				_offset = 0;
 
-				for(int i = 0; i < _N - 1; i++)
+				for(uint32 i = 0; i < _N - 1; i++)
 				{
 					y = (_bytes[i] & _U) | (_bytes[i + 1] & _L);
 					a = (y & 0x1) ? _A : 0x0;
