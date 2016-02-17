@@ -269,7 +269,7 @@ namespace RN
 					tangent.w = -1.0f;
 				}
 
-				if(isnan(normal.x) || isnan(normal.y) || isnan(normal.z))
+				if(std::isnan(normal.x) || std::isnan(normal.y) || std::isnan(normal.z))
 				{
 					normal = RN::Vector3(0.0f, -1.0f, 0.0f);
 					aimesh->mNormals[ind].x = 0.0f;
@@ -277,7 +277,7 @@ namespace RN
 					aimesh->mNormals[ind].z = 0.0f;
 				}
 
-				if(isnan(tangent.x) || isnan(tangent.y) || isnan(tangent.z))
+				if(std::isnan(tangent.x) || std::isnan(tangent.y) || std::isnan(tangent.z))
 				{
 					Vector3 newnormal(normal);
 					newnormal.x += 1.0f;
