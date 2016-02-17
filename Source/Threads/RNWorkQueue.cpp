@@ -216,7 +216,7 @@ namespace RN
 
 		bool isBarrier;
 		if((isBarrier = source->TestFlag(WorkSource::Flags::Barrier)))
-			_barrier.store(std::memory_order_release);
+			_barrier.store(true, std::memory_order_release);
 
 		_running.fetch_add(1, std::memory_order_relaxed);
 		_open.fetch_sub(1, std::memory_order_relaxed);

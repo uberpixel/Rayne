@@ -104,7 +104,7 @@ namespace RN
 	bool ArgumentParser::HasArgument(const char *full, char shorthand) const RN_NOEXCEPT
 	{
 		if(!full && shorthand == '\0')
-			throw false;
+			return false;
 
 		if(full)
 		{
@@ -166,7 +166,7 @@ namespace RN
 	bool ArgumentParser::HasArgumentAndValue(const char *full, char shorthand) const RN_NOEXCEPT
 	{
 		if(!full && shorthand == '\0')
-			throw false;
+			return false;
 
 		if(full)
 		{
