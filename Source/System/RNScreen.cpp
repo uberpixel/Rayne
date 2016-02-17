@@ -68,7 +68,7 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 
-		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)&__MonitorEnumProc, NULL);
+		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)&__MonitorEnumProc, 0);
 
 		_screens = new Array();
 

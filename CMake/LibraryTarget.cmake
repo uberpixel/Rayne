@@ -35,6 +35,10 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
         target_compile_options(${TARGET_NAME} PUBLIC -m64)
     endif()
 
+    if(MINGW)
+        target_compile_options(${TARGET_NAME} PUBLIC -m64)
+    endif()
+
     if(NOT ("${_HEADERS}" STREQUAL ""))
         foreach(HEADER ${_HEADERS})
             add_custom_command(TARGET "${TARGET_NAME}" PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
