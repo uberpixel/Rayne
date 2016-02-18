@@ -8,4 +8,8 @@ if(MSVC)
 	add_subdirectory("D3D12")
 endif()
 
+if(WIN32)
+    add_subdirectory("Vulkan")
+endif()
+
 add_subdirectory("Assimp")
