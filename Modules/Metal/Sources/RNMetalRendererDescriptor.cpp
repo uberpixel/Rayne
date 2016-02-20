@@ -63,8 +63,6 @@ namespace RN
 			return false;
 
 		});
-
-		RNInfo(_devices);
 	}
 
 	Renderer *MetalRendererDescriptor::CreateRenderer(RenderingDevice *device)

@@ -22,12 +22,23 @@ namespace RN
 		Descriptor descriptor;
 
 		descriptor.type = Type::Discrete;
-
-		if([[device name] containsString:@"Intel"])
-			descriptor.type = Type::Integrated;
-
 		descriptor.vendorID = 0;
 		descriptor.driverVersion = 0;
+
+		if([[device name] localizedCaseInsensitiveContainsString:@"Intel"])
+		{
+			descriptor.type = Type::Integrated;
+			descriptor.vendorID = 0x8086;
+		}
+		else if([[device name] localizedCaseInsensitiveContainsString:@"Nvidia"])
+		{
+			descriptor.vendorID = 0x10DE;
+		}
+		else if([[device name] localizedCaseInsensitiveContainsString:@"AMD"])
+		{
+			descriptor.vendorID = 0x1002;
+		}
+
 
 		if([device supportsFeatureSet:MTLFeatureSet_OSX_GPUFamily1_v1])
 			descriptor.apiVersion = RNVersionMake(1, 1, 0);
