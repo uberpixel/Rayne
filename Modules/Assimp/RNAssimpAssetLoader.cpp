@@ -30,8 +30,6 @@ namespace RN
 			config.SetExtensions(Set::WithArray(extensions));
 			config.supportsBackgroundLoading = true;
 
-			RNDebug("Registered Assimp loader with extensions: " << extensions);
-
 			__assetLoader = new AssimpAssetLoader(config);
 
 			AssetManager *manager = AssetManager::GetSharedInstance();
