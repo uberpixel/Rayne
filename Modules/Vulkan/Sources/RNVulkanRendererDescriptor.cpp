@@ -8,6 +8,7 @@
 
 #include "RNVulkanRendererDescriptor.h"
 #include "RNVulkanDispatchTable.h"
+#include "RNVulkanDevice.h"
 
 namespace RN
 {
@@ -29,8 +30,14 @@ namespace RN
 		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.vulkan"), RNCSTR("Vulkan"))
 	{}
 
-	Renderer *VulkanRendererDescriptor::CreateRenderer(RenderingDevice *device)
+	Renderer *VulkanRendererDescriptor::CreateRenderer(RenderingDevice *tdevice)
 	{
+		VulkanDevice *device = static_cast<VulkanDevice *>(tdevice);
+		if(device->CreateDevice(_instance->GetDeviceExtensions()))
+		{
+
+		}
+
 		return nullptr;
 	}
 

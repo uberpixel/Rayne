@@ -11,7 +11,6 @@
 
 #include <Rayne.h>
 #include "RNVulkanDispatchTable.h"
-#include "RNVulkanDevice.h"
 
 namespace RN
 {
@@ -33,8 +32,10 @@ namespace RN
 		VkResult EnumerateDevices(std::vector<VkPhysicalDevice> &devices) const;
 		VkResult EnumerateDevicesWithExtensions(std::vector<VkPhysicalDevice> &devices, const std::vector<const char *> &extensions) const;
 
+		const std::vector<const char *> &GetDeviceExtensions() { return _requiredDeviceExtensions; }
+
 	private:
-		bool VulkanInstance::DeviceSupportsExtensions(VkPhysicalDevice device, const std::vector<const char *> &extensions) const;
+		bool DeviceSupportsExtensions(VkPhysicalDevice device, const std::vector<const char *> &extensions) const;
 
 		HMODULE _module;
 		VkInstance _instance;
@@ -43,6 +44,7 @@ namespace RN
 		Array *_devices;
 
 		std::vector<const char *> _requiredExtensions;
+		std::vector<const char *> _requiredDeviceExtensions;
 	};
 
 	extern String *GetStringForVulkanResult(VkResult result);

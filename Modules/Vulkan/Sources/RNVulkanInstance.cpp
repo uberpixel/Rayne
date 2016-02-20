@@ -7,6 +7,7 @@
 //
 
 #include "RNVulkanInstance.h"
+#include "RNVulkanDevice.h"
 
 namespace RN
 {
@@ -17,6 +18,7 @@ namespace RN
 		_devices(nullptr)
 	{
 		_requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+		_requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
 	VulkanInstance::~VulkanInstance()
@@ -96,16 +98,15 @@ namespace RN
 		{
 			_devices = new Array();
 
-			std::vector<const char *> extensions;
-			extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-
 			std::vector<VkPhysicalDevice> devices;
-			if(EnumerateDevicesWithExtensions(devices, extensions) == VK_SUCCESS)
+			if(EnumerateDevicesWithExtensions(devices, _requiredDeviceExtensions) == VK_SUCCESS)
 			{
 				for(auto device : devices)
 				{
 					VulkanDevice *temp = new VulkanDevice(this, device);
-					_devices->AddObject(temp);
+					if(temp->IsValidDevice())
+						_devices->AddObject(temp);
+
 					temp->Release();
 				}
 			}

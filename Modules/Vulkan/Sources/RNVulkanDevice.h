@@ -11,14 +11,19 @@
 
 #include <Rayne.h>
 #include "RNVulkanDispatchTable.h"
+#include "RNVulkanInstance.h"
 
 namespace RN
 {
-	class VulkanIntance;
 	class VulkanDevice : public RenderingDevice
 	{
 	public:
 		friend class VulkanInstance;
+
+		bool CreateDevice(const std::vector<const char *> &extensions);
+		bool IsValidDevice() const { return (_gameQueue != kRNNotFound && _presentQueue != kRNNotFound); }
+
+		void GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues);
 
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);
@@ -26,7 +31,11 @@ namespace RN
 		static Descriptor DescriptorForDevice(VkPhysicalDevice device);
 
 		VulkanInstance *_instance;
-		VkPhysicalDevice _device;
+		VkPhysicalDevice _physicalDevice;
+		VkDevice _device;
+
+		size_t _gameQueue;
+		size_t _presentQueue;
 
 		RNDeclareMeta(VulkanDevice)
 	};

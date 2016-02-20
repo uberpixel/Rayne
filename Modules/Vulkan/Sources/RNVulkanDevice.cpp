@@ -56,6 +56,78 @@ namespace RN
 	VulkanDevice::VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device) :
 		RenderingDevice(GetNameForDevice(device), DescriptorForDevice(device)),
 		_instance(instance),
-		_device(device)
-	{}
+		_physicalDevice(device),
+		_gameQueue(kRNNotFound),
+		_presentQueue(kRNNotFound)
+	{
+		std::vector<VkQueueFamilyProperties> queues;
+		GetQueueProperties(queues);
+
+		for (uint32_t i = 0; i < queues.size(); i++)
+		{
+			const VkQueueFamilyProperties &queue = queues[i];
+			const VkFlags flags = VK_QUEUE_GRAPHICS_BIT;
+
+			if(_gameQueue == kRNNotFound && (queue.queueFlags & flags) == flags)
+				_gameQueue = i;
+
+			if(_presentQueue == kRNNotFound)
+			{
+#if RN_PLATFORM_WINDOWS
+				bool result = vk::GetPhysicalDeviceWin32PresentationSupportKHR(_physicalDevice, i);
+#endif
+
+				if(result)
+					_presentQueue = i;
+			}
+
+			if(_gameQueue >= 0 && _presentQueue >= 0)
+				break;
+		}
+	}
+
+	void VulkanDevice::GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues)
+	{
+		uint32_t count = 0;
+		vk::GetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &count, nullptr);
+
+		queues.resize(count);
+		vk::GetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &count, queues.data());
+	}
+
+	bool VulkanDevice::CreateDevice(const std::vector<const char *> &extensions)
+	{
+		VkPhysicalDeviceFeatures features;
+		vk::GetPhysicalDeviceFeatures(_physicalDevice, &features);
+
+
+		VkDeviceCreateInfo deviceInfo = {};
+		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		deviceInfo.queueCreateInfoCount = 1;
+		deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		deviceInfo.ppEnabledExtensionNames = extensions.data();
+		deviceInfo.pEnabledFeatures = &features;
+
+
+		const std::vector<float> queuePriorities(1, 0.0f);
+		std::array<VkDeviceQueueCreateInfo, 2> queueInfo = {};
+		queueInfo[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueInfo[0].queueFamilyIndex = static_cast<uint32_t>(_gameQueue);
+		queueInfo[0].queueCount = 1;
+		queueInfo[0].pQueuePriorities = queuePriorities.data();
+
+		if(_gameQueue != _presentQueue)
+		{
+			queueInfo[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueInfo[1].queueFamilyIndex = static_cast<uint32_t>(_presentQueue);
+			queueInfo[1].queueCount = 1;
+			queueInfo[1].pQueuePriorities = queuePriorities.data();
+
+			deviceInfo.queueCreateInfoCount ++;
+		}
+
+		deviceInfo.pQueueCreateInfos = queueInfo.data();
+
+		return (vk::CreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device) == VK_SUCCESS);
+	}
 }
