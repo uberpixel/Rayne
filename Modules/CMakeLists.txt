@@ -1,15 +1,21 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne-Modules)
 
-if(APPLE)
+option(BUILD_METAL_MODULE "Build the Metal renderer module" ON)
+option(BUILD_D3D12_MODULE "Build the DirectX12 renderer module" ON)
+option(BUILD_VULKAN_MODULE "Build the Vulkan renderer module" ON)
+option(BUILD_ASSIMP_MODULE "Build the Assimp module" ON)
+
+if(APPLE AND BUILD_METAL_MODULE)
     add_subdirectory("Metal")
 endif()
-if(MSVC)
+if(MSVC AND BUILD_D3D12_MODULE)
 	add_subdirectory("D3D12")
 endif()
-
-if(WIN32)
+if(WIN32 AND BUILD_VULKAN_MODULE)
     add_subdirectory("Vulkan")
 endif()
 
-add_subdirectory("Assimp")
+if(BUILD_ASSIMP_MODULE)
+    add_subdirectory("Assimp")
+endif()

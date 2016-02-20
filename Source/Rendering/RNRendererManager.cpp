@@ -60,6 +60,14 @@ namespace RN
 
 		Dictionary *settings = GetParameters();
 		descriptor->PrepareWithSettings(settings);
+
+		if(!descriptor->CanCreateRenderer())
+		{
+			RemoveDescriptor(descriptor);
+			return;
+		}
+
+		RNDebug("Added renderer " << descriptor << ", available devices: " << descriptor->GetDevices());
 	}
 	void RendererManager::RemoveDescriptor(RendererDescriptor *descriptor)
 	{

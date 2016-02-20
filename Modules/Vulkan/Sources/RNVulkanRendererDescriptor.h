@@ -19,11 +19,16 @@ namespace RN
 	public:
 		static void InitialWakeUp(MetaClass *meta);
 
-		Renderer *CreateRenderer(const Dictionary *parameters) override;
-		bool CanConstructWithSettings(const Dictionary *parameters) const override;
+		Renderer *CreateRenderer(RenderingDevice *device) override;
+		bool CanCreateRenderer() const override;
+
+		const Array *GetDevices() const { return _instance->GetDevices(); }
+		void PrepareWithSettings(const Dictionary *settings);
 
 	private:
 		VulkanRendererDescriptor();
+
+		VulkanInstance *_instance;
 
 		RNDeclareMeta(VulkanRendererDescriptor)
 	};

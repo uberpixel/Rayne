@@ -29,27 +29,23 @@ namespace RN
 		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.vulkan"), RNCSTR("Vulkan"))
 	{}
 
-	Renderer *VulkanRendererDescriptor::CreateRenderer(const Dictionary *parameters)
+	Renderer *VulkanRendererDescriptor::CreateRenderer(RenderingDevice *device)
 	{
 		return nullptr;
 	}
 
-	bool VulkanRendererDescriptor::CanConstructWithSettings(const Dictionary *parameters) const
+	void VulkanRendererDescriptor::PrepareWithSettings(const Dictionary *settings)
 	{
-		if(!__vulkanInstance)
-			__vulkanInstance = new VulkanInstance();
-
-
-		if(__vulkanInstance->LoadVulkan())
+		_instance = new VulkanInstance();
+		if(!_instance->LoadVulkan())
 		{
-			Array *devices = __vulkanInstance->GetDevices();
-			devices->Enumerate<VulkanDevice>([&](VulkanDevice *device, size_t index, bool &stop) {
-
-				RNInfo(device);
-
-			});
+			delete _instance;
+			_instance = nullptr;
 		}
+	}
 
-		return false;
+	bool VulkanRendererDescriptor::CanCreateRenderer() const
+	{
+		return (_instance && _instance->GetDevices()->GetCount() > 0);
 	}
 }

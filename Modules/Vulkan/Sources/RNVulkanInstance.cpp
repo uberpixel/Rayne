@@ -105,11 +105,7 @@ namespace RN
 				for(auto device : devices)
 				{
 					VulkanDevice *temp = new VulkanDevice(this, device);
-					if(temp->ParseDevice())
-					{
-						_devices->AddObject(temp);
-					}
-
+					_devices->AddObject(temp);
 					temp->Release();
 				}
 			}

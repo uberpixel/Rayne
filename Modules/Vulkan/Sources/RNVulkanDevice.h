@@ -15,35 +15,18 @@
 namespace RN
 {
 	class VulkanIntance;
-	class VulkanDevice : public Object
+	class VulkanDevice : public RenderingDevice
 	{
 	public:
 		friend class VulkanInstance;
 
-		const String *GetDescription() const override;
-
-		const String *GetName() const { return _name; }
-
-		uint32 GetAPIVersion() const { return _apiVersion; }
-		uint32 GetDriverVersion() const { return _driverVersion; }
-		uint32 GetVendorID() const { return _vendorID; }
-
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);
 
-		bool ParseDevice();
+		static Descriptor DescriptorForDevice(VkPhysicalDevice device);
 
 		VulkanInstance *_instance;
 		VkPhysicalDevice _device;
-
-		String *_name;
-
-		uint32_t _apiVersion;
-		uint32_t _driverVersion;
-		uint32_t _vendorID;
-		uint32_t _deviceID;
-
-		VkPhysicalDeviceType _type;
 
 		RNDeclareMeta(VulkanDevice)
 	};
