@@ -116,7 +116,7 @@
 	}
 
 #define RNVersionMake(major, minor, patch) \
-	((major << 22) | (minor << 12) | patch)
+	((RN::uint32)((major << 22) | (minor << 12) | patch))
 
 #define RNVersionGetMajor(version) ((RN::uint32)(version) >> 22)
 #define RNVersionGetMinor(version) (((RN::uint32)(version) >> 12) & 0x3ff)

@@ -39,6 +39,8 @@ namespace RN
 			descriptor.vendorID = 0x1002;
 		}
 
+		NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+		descriptor.driverVersion = RNVersionMake(version.majorVersion, version.minorVersion, version.patchVersion);
 
 		if([device supportsFeatureSet:MTLFeatureSet_OSX_GPUFamily1_v1])
 			descriptor.apiVersion = RNVersionMake(1, 1, 0);
