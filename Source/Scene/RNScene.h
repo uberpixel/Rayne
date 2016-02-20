@@ -23,10 +23,14 @@ namespace RN
 		friend class Kernel;
 		friend class SceneManager;
 
+		RNAPI ~Scene();
+
 		RNAPI void AddNode(SceneNode *node);
 		RNAPI void RemoveNode(SceneNode *node);
 
 	protected:
+		RNAPI Scene();
+
 		RNAPI virtual void WillBecomeActive();
 		RNAPI virtual void DidBecomeActive();
 

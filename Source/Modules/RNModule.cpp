@@ -52,7 +52,7 @@ namespace RN
 		base->AppendPathExtension(RNCSTR("so"));
 #endif
 
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_POSIX || RN_COMPILER_MINGW
 		base->Insert(RNCSTR("lib"), 0);
 #endif
 

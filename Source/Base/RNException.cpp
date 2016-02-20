@@ -47,6 +47,9 @@ namespace RN
 		GatherInfo();
 	}
 
+	Exception::~Exception()
+	{}
+
 
 	
 	RN_NOINLINE void Exception::GatherInfo()

@@ -20,6 +20,11 @@ namespace RN
 {
 	RNDefineMeta(Scene, Object)
 
+	Scene::Scene()
+	{}
+	Scene::~Scene()
+	{}
+
 	void Scene::Update(float delta)
 	{
 		WillUpdate(delta);

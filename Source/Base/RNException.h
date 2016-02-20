@@ -27,6 +27,7 @@ namespace RN
 	public:
 		RNAPI Exception(const std::string &reason);
 		RNAPI Exception(const String *reason);
+		RNAPI ~Exception();
 
 		Thread *GetThread() const { return _thread; }
 		const std::string &GetReason() const { return _reason; }
