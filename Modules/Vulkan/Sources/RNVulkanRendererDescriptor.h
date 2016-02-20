@@ -10,6 +10,7 @@
 #define __RAYNE_VULKANRENDERERDESCRIPTOR_H_
 
 #include <Rayne.h>
+#include "RNVulkanInstance.h"
 
 namespace RN
 {

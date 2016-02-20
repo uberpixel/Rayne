@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(VulkanRendererDescriptor, RendererDescriptor)
 
-	static HMODULE _vulkanModule = nullptr;
+	static VulkanInstance *__vulkanInstance = nullptr;
 
 	void VulkanRendererDescriptor::InitialWakeUp(MetaClass *meta)
 	{
@@ -36,27 +36,18 @@ namespace RN
 
 	bool VulkanRendererDescriptor::CanConstructWithSettings(const Dictionary *parameters) const
 	{
-		if(!_vulkanModule)
+		if(!__vulkanInstance)
+			__vulkanInstance = new VulkanInstance();
+
+
+		if(__vulkanInstance->LoadVulkan())
 		{
-			_vulkanModule = ::LoadLibrary("vulkan-1.dll");
+			Array *devices = __vulkanInstance->GetDevices();
+			devices->Enumerate<VulkanDevice>([&](VulkanDevice *device, size_t index, bool &stop) {
 
-			PFN_vkGetInstanceProcAddr procAddr = nullptr;
+				RNInfo(device);
 
-			if(_vulkanModule)
-				procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(::GetProcAddress(_vulkanModule, "vkGetInstanceProcAddr"));
-
-			if(!_vulkanModule || !procAddr)
-			{
-				RNError("Couldn't load Vulkan library");
-
-				if(_vulkanModule)
-				{
-					::FreeLibrary(_vulkanModule);
-					_vulkanModule = nullptr;
-				}
-
-				return nullptr;
-			}
+			});
 		}
 
 		return false;

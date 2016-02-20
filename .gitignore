@@ -16,3 +16,7 @@ VS15/
 # don't ask, this won't be in here for long
 _jwki/	
 
+
+# Vulkan Renderer
+/Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
+/Modules/Vulkan/Sources/RNVulkanDispatchTable.h
