@@ -163,7 +163,7 @@ namespace RN
 	}
 	uint32 GetAPIVersion() RN_NOEXCEPT
 	{
-		return static_cast<uint32>((kRNVersionMajor << 16) | (kRNVersionMinor << 8) | (kRNVersionPatch));
+		return RNVersionMake(kRNVersionMajor, kRNVersionMinor, kRNVersionPatch);
 	}
 
 	uint32 GetMajorVersion() RN_NOEXCEPT

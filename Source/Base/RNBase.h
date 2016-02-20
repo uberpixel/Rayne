@@ -115,6 +115,13 @@
 		static RN::Initializer __RNGlobalDestructor##name (nullptr, __RNGlobalDestructor##name##Callback); \
 	}
 
+#define RNVersionMake(major, minor, patch) \
+	((major << 22) | (minor << 12) | patch)
+
+#define RNVersionGetMajor(version) ((RN::uint32)(version) >> 22)
+#define RNVersionGetMinor(version) (((RN::uint32)(version) >> 12) & 0x3ff)
+#define RNVersionGetPatch(version) ((RN::uint32)(version) & 0xfff)
+
 namespace RN
 {
 	class Kernel;

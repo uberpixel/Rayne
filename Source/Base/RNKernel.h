@@ -39,12 +39,12 @@ namespace RN
 	public:
 		friend struct __KernelBootstrapHelper;
 
-		static Kernel *GetSharedInstance();
+		RNAPI static Kernel *GetSharedInstance();
 
-		void Run();
-		void Exit();
+		RNAPI void Run();
+		RNAPI void Exit();
 
-		void SetMaxFPS(uint32 maxFPS);
+		RNAPI void SetMaxFPS(uint32 maxFPS);
 
 		float GetScaleFactor() const { return 1.0f; }
 
