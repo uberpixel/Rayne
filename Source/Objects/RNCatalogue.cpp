@@ -158,7 +158,7 @@ namespace RN
 
 		for(size_t i = 0; i < __pendingClassesCount; i ++)
 		{
-			if(__pendingClasses[i].meta->_module)
+			if(!__pendingClasses[i].meta || __pendingClasses[i].meta->_module)
 				continue;
 
 #if RN_PLATFORM_POSIX

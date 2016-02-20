@@ -77,8 +77,8 @@ namespace RN
 			_inputManager = new InputManager();
 			_moduleManager = new ModuleManager();
 
-			Catalogue::GetSharedInstance()->RegisterPendingClasses();
 			_moduleManager->LoadModules();
+			Catalogue::GetSharedInstance()->RegisterPendingClasses();
 
 			_application->WillFinishLaunching(this);
 			_renderer = nullptr;
