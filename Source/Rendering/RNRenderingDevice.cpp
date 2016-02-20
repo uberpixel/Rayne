@@ -32,6 +32,6 @@ namespace RN
 		String *apiString = RNSTR(RNVersionGetMajor(_apiVersion) << "." << RNVersionGetMinor(_apiVersion) << "." << RNVersionGetPatch(_apiVersion));
 		String *driverString = RNSTR(RNVersionGetMajor(_driverVersion) << "." << RNVersionGetMinor(_driverVersion) << "." << RNVersionGetPatch(_driverVersion));
 
-		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << "> (" << _name << ", " << "API: " << apiString << ", Driver: " << driverString << ")");
+		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << "> (" << _name << " (Vendor: " << std::hex << _vendorID << "), " << "API: " << apiString << ", Driver: " << driverString << ")");
 	}
 }
