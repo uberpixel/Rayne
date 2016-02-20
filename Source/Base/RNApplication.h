@@ -37,6 +37,7 @@ namespace RN
 		RNAPI virtual void DidResignActive();
 
 		RNAPI RendererDescriptor *GetPreferredRenderer() const;
+		RNAPI RenderingDevice *GetPreferredRenderingDevice(const Array *devices) const;
 
 		const String *GetTitle() const { return _title; }
 

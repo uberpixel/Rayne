@@ -71,6 +71,9 @@ namespace RN
 		bool dirty;
 	};
 
+	class RendererDescriptor;
+	class RenderingDevice;
+
 	class Renderer : public Object
 	{
 	public:
@@ -105,8 +108,15 @@ namespace RN
 		RNAPI virtual Drawable *CreateDrawable() = 0;
 		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
 
+		RendererDescriptor *GetDescriptor() const { return _descriptor; }
+		RenderingDevice *GetDevice() const { return _device; }
+
 	protected:
-		RNAPI Renderer();
+		RNAPI Renderer(RendererDescriptor *descriptor, RenderingDevice *device);
+
+	private:
+		RenderingDevice *_device;
+		RendererDescriptor *_descriptor;
 
 		RNDeclareMeta(Renderer)
 	};

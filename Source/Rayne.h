@@ -74,6 +74,7 @@
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRendererDescriptor.h"
 #include "Rendering/RNRendererManager.h"
+#include "Rendering/RNRenderingDevice.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"
 #include "Rendering/RNWindow.h"

@@ -7,6 +7,8 @@
 //
 
 #include "../Base/RNSettings.h"
+#include "../Base/RNKernel.h"
+#include "../Base/RNApplication.h"
 #include "RNRendererManager.h"
 #include "RNRenderer.h"
 
@@ -51,8 +53,13 @@ namespace RN
 
 	void RendererManager::AddDescriptor(RendererDescriptor *descriptor)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
-		_descriptors->AddObject(descriptor);
+		{
+			std::lock_guard<std::mutex> lock(_lock);
+			_descriptors->AddObject(descriptor);
+		}
+
+		Dictionary *settings = GetParameters();
+		descriptor->PrepareWithSettings(settings);
 	}
 	void RendererManager::RemoveDescriptor(RendererDescriptor *descriptor)
 	{
@@ -71,10 +78,8 @@ namespace RN
 	{
 		std::lock_guard<std::mutex> lock(_lock);
 
-		Dictionary *settings = GetParameters();
-
 		return _descriptors->GetObjectsPassingTest<RendererDescriptor>([&](RendererDescriptor *descriptor, bool &stop) -> bool {
-			return descriptor->CanConstructWithSettings(settings);
+			return descriptor->CanCreateRenderer();
 		});
 	}
 
@@ -118,15 +123,28 @@ namespace RN
 	{
 		Dictionary *parameters = GetParameters();
 
-		if(!descriptor->CanConstructWithSettings(parameters))
+		if(!descriptor->CanCreateRenderer())
 			throw InconsistencyException("Tried to activate renderer that is not available");
+
+		// Get the preferred device
+		const Array *devices = descriptor->GetDevices();
+
+		if(devices->GetCount() == 0)
+			throw InconsistencyException("Tried to activate renderer without devices");
+
+		RenderingDevice *device = Kernel::GetSharedInstance()->GetApplication()->GetPreferredRenderingDevice(devices);
+		if(!device || !devices->ContainsObject(device))
+			throw InconsistencyException("Invalid preferred rendering device");
+
 
 		Renderer *renderer = nullptr;
 
 		try
 		{
-			renderer = descriptor->CreateRenderer(parameters);
+			renderer = descriptor->CreateRenderer(device);
 			renderer->Activate();
+
+			RNInfo("Using renderer: " << renderer << ", device: " << device);
 		}
 		catch(...)
 		{

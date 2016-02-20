@@ -44,4 +44,9 @@ namespace RN
 	{
 		return nullptr;
 	}
+
+	RenderingDevice *Application::GetPreferredRenderingDevice(const Array *devices) const
+	{
+		return devices->GetFirstObject<RenderingDevice>();
+	}
 }

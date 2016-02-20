@@ -105,7 +105,6 @@ namespace RN
 					try
 					{
 						_renderer = _rendererManager->ActivateRenderer(descriptor);
-						RNDebug("Using renderer " << _renderer);
 					}
 					catch(Exception &e)
 					{

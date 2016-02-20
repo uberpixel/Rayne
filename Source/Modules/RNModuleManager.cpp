@@ -122,7 +122,7 @@ namespace RN
 						throw e;
 					}
 
-					RNDebug("Loaded module " << module);
+					RNInfo("Loaded module " << module);
 
 				});
 			}

@@ -13,6 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
+#include "RNRenderingDevice.h"
 
 namespace RN
 {
@@ -22,8 +23,12 @@ namespace RN
 	public:
 		RNAPI ~RendererDescriptor();
 
-		RNAPI virtual Renderer *CreateRenderer(const Dictionary *parameters) = 0;
-		RNAPI virtual bool CanConstructWithSettings(const Dictionary *parameters) const = 0;
+		RNAPI virtual Renderer *CreateRenderer(RenderingDevice *device) = 0;
+		RNAPI virtual bool CanCreateRenderer() const = 0;
+
+		RNAPI virtual const Array *GetDevices() const = 0;
+
+		RNAPI virtual void PrepareWithSettings(const Dictionary *settings) = 0;
 
 		const String *GetIdentifier() const { return _identifier; }
 		const String *GetAPI() const { return _api; }
@@ -38,6 +43,5 @@ namespace RN
 		RNDeclareMeta(RendererDescriptor)
 	};
 }
-
 
 #endif /* __RAYNE_RENDERERDESCRIPTOR_H__ */
