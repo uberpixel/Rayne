@@ -95,14 +95,41 @@ namespace RN
 			Array *modules = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(RNCSTR("RNModules"));
 			if(modules)
 			{
-				modules->Enumerate<String>([&](String *name, size_t index, bool &stop) {
+				modules->Enumerate<Object>([&](Object *value, size_t index, bool &stop) {
 
+					bool optional = true;
+					String *nameCopy = nullptr;
+
+					// Read the module entry
+					if(value->IsKindOfClass(String::GetMetaClass()))
+					{
+						nameCopy = value->Downcast<String>()->Copy()->Autorelease();
+					}
+					else if(value->IsKindOfClass(Dictionary::GetMetaClass()))
+					{
+						Dictionary *entry = value->Downcast<Dictionary>();
+
+						String *name = entry->GetObjectForKey<String>(RNCSTR("location"));
+						if(!name)
+							throw InconsistencyException(RNSTR("Invalid modules entry, 'location' must be set!"));
+
+						nameCopy = name->Copy()->Autorelease();
+
+						Number *optionalValue = entry->GetObjectForKey<Number>(RNCSTR("optional"));
+						if(optionalValue && optionalValue->GetBoolValue())
+							optional = true;
+					}
+					else
+					{
+						throw InconsistencyException(RNSTR("Invalid modules entry" << value));
+					}
+
+					// Create the module
 					Module *module = nullptr;
-					String *nameCopy = name->Copy()->Autorelease();
 
 					try
 					{
-						module = new Module(name);
+						module = new Module(nameCopy);
 
 						_modules->AddObject(module);
 						_moduleMap->SetObjectForKey(module, nameCopy);
@@ -118,6 +145,9 @@ namespace RN
 
 							delete module;
 						}
+
+						if(optional)
+							return;
 
 						throw e;
 					}
