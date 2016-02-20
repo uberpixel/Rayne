@@ -11,6 +11,8 @@
 
 namespace RN
 {
+	RNExceptionImp(MetalStructArgumentUnsupported)
+
 	MTLVertexFormat _vertexFormatLookup[] =
 		{
 			MTLVertexFormatUChar2,

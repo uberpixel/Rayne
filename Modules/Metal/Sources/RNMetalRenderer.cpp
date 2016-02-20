@@ -13,38 +13,22 @@
 #include "RNMetalGPUBuffer.h"
 #include "RNMetalTexture.h"
 #include "RNMetalUniformBuffer.h"
+#include "RNMetalDevice.h"
+#include "RNMetalRendererDescriptor.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalRenderer, Renderer)
 
-	MetalRenderer::MetalRenderer(const Dictionary *parameters) :
+	MetalRenderer::MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device) :
+		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary())
 	{
-		_internals->device = nullptr;
-
-		// Actual initialization
-		NSArray *devices = MTLCopyAllDevices();
-		NSUInteger count = [devices count];
-
-		for(NSUInteger i = 0; i < count; i ++)
-		{
-			id<MTLDevice> device = [devices objectAtIndex:i];
-			if(![device isLowPower] && ![device isHeadless])
-			{
-				_internals->device = [device retain];
-				break;
-			}
-		}
-
-		RN_ASSERT(_internals->device, "Needs a valid device");
-
+		_internals->device = device->GetDevice();
 		_internals->commandQueue = [_internals->device newCommandQueue];
 		_internals->stateCoordinator.SetDevice(_internals->device);
-
-		[devices release];
 
 		// Texture format look ups
 		_textureFormatLookup = new Dictionary();
@@ -466,7 +450,7 @@ namespace RN
 
 		Number *format = _textureFormatLookup->GetObjectForKey<Number>(formatName);
 		if(!format)
-			throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << format << "'"));
+			throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << formatName << "'"));
 
 		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
 

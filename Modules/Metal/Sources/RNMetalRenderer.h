@@ -16,6 +16,9 @@ namespace RN
 {
 	struct MetalRendererInternals;
 	struct MetalDrawable;
+
+	class MetalRendererDescriptor;
+	class MetalDevice;
 	class MetalWindow;
 	class MetalTexture;
 	class MetalUniformBuffer;
@@ -27,7 +30,7 @@ namespace RN
 		friend class MetalTexture;
 		friend class MetalWindow;
 
-		RNAPI MetalRenderer(const Dictionary *parameters);
+		RNAPI MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device);
 		RNAPI ~MetalRenderer();
 
 		RNAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;

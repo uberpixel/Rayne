@@ -20,8 +20,15 @@ namespace RN
 
 		MetalRendererDescriptor();
 
-		Renderer *CreateRenderer(const Dictionary *parameters) override;
-		bool CanConstructWithSettings(const Dictionary *parameters) const override;
+		Renderer *CreateRenderer(RenderingDevice *device) override;
+		bool CanCreateRenderer() const override;
+
+		void PrepareWithSettings(const Dictionary *settings) override;
+
+		const Array *GetDevices() const override { return _devices; }
+
+	private:
+		Array *_devices;
 
 		RNDeclareMeta(MetalRendererDescriptor)
 	};

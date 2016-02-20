@@ -9,6 +9,7 @@
 #import <Metal/Metal.h>
 #include "RNMetalRendererDescriptor.h"
 #include "RNMetalRenderer.h"
+#include "RNMetalDevice.h"
 
 namespace RN
 {
@@ -25,41 +26,55 @@ namespace RN
 	}
 
 	MetalRendererDescriptor::MetalRendererDescriptor() :
-		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.metal"), RNCSTR("Metal"))
+		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.metal"), RNCSTR("Metal")),
+		_devices(new Array())
 	{}
 
 
-	Renderer *MetalRendererDescriptor::CreateRenderer(const Dictionary *parameters)
+	void MetalRendererDescriptor::PrepareWithSettings(const Dictionary *settings)
 	{
-		MetalRenderer *renderer = new MetalRenderer(parameters);
-		return renderer;
-	}
-
-	bool MetalRendererDescriptor::CanConstructWithSettings(const Dictionary *parameters) const
-	{
-		// Check for parameters that need to be activated before interacting with the Metal API
-		if(parameters)
+		// Check for settings that need to be activated before interacting with the Metal API
+		if(settings)
 		{
-			Number *apiValidation = const_cast<Dictionary *>(parameters)->GetObjectForKey<Number>(RNCSTR("api_validation"));
+			Number *apiValidation = const_cast<Dictionary *>(settings)->GetObjectForKey<Number>(RNCSTR("api_validation"));
 			if(apiValidation && apiValidation->GetBoolValue())
 				setenv("METAL_DEVICE_WRAPPER_TYPE", "1", 1);
 		}
 
-		// Probe the provided devices
-		bool hasHighPoweredDevice = false;
 		NSArray *devices = MTLCopyAllDevices();
 
 		for(id<MTLDevice> device in devices)
 		{
-			if(![device isLowPower] && ![device isHeadless])
+			if(![device isHeadless])
 			{
-				hasHighPoweredDevice = true;
-				break;
+				MetalDevice *temp = new MetalDevice(device);
+				_devices->AddObject(temp);
+				temp->Release();
 			}
 		}
 
 		[devices release];
 
-		return hasHighPoweredDevice;
+		_devices->Sort<MetalDevice>([](const MetalDevice *deviceA, const MetalDevice *deviceB) -> bool {
+
+			if(deviceA->GetType() == MetalDevice::Type::Discrete)
+				return true;
+
+			return false;
+
+		});
+
+		RNInfo(_devices);
+	}
+
+	Renderer *MetalRendererDescriptor::CreateRenderer(RenderingDevice *device)
+	{
+		MetalRenderer *renderer = new MetalRenderer(this, static_cast<MetalDevice *>(device));
+		return renderer;
+	}
+
+	bool MetalRendererDescriptor::CanCreateRenderer() const
+	{
+		return (_devices->GetCount() > 0);
 	}
 }

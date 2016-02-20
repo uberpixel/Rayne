@@ -11,6 +11,7 @@ set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
+        Sources/RNMetalDevice.cpp
         Sources/RNMetalGPUBuffer.cpp
         Sources/RNMetalInternals.cpp
         Sources/RNMetalRenderer.cpp
