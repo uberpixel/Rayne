@@ -25,6 +25,8 @@ namespace RN
 
 		void GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues);
 
+		VkDevice GetDevice() const { return _device; }
+
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);
 

@@ -25,6 +25,9 @@ namespace RN
 		RN_ASSERT(device, "Device mustn't be NULL");
 	}
 
+	Renderer::~Renderer()
+	{}
+
 	Renderer *Renderer::GetActiveRenderer()
 	{
 		RN_ASSERT(_activeRenderer, "GetActiveRenderer() called, but no renderer is currently active");

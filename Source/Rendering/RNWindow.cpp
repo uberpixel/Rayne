@@ -14,7 +14,8 @@ namespace RN
 
 	Window::Window(Screen *screen) :
 		_screen(screen->Retain())
-	{
+	{}
 
-	}
+	Window::~Window()
+	{}
 }

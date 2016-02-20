@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(VulkanDevice, Object)
+	RNDefineMeta(VulkanDevice, RenderingDevice)
 
 	VulkanDevice::Descriptor VulkanDevice::DescriptorForDevice(VkPhysicalDevice device)
 	{

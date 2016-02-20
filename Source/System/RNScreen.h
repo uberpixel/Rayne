@@ -43,6 +43,9 @@ namespace RN
 		CGDirectDisplayID GetDisplayID() const { return _display; }
 		void *GetNSScreen() const { return _nsscreen; }
 #endif
+#if RN_PLATFORM_WINDOWS
+		HMONITOR GetHMONITOR() const { return _monitor; }
+#endif
 
 	private:
 		static void InitializeScreens();

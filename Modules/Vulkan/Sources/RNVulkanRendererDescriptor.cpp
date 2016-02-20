@@ -8,13 +8,12 @@
 
 #include "RNVulkanRendererDescriptor.h"
 #include "RNVulkanDispatchTable.h"
+#include "RNVulkanRenderer.h"
 #include "RNVulkanDevice.h"
 
 namespace RN
 {
 	RNDefineMeta(VulkanRendererDescriptor, RendererDescriptor)
-
-	static VulkanInstance *__vulkanInstance = nullptr;
 
 	void VulkanRendererDescriptor::InitialWakeUp(MetaClass *meta)
 	{
@@ -35,7 +34,10 @@ namespace RN
 		VulkanDevice *device = static_cast<VulkanDevice *>(tdevice);
 		if(device->CreateDevice(_instance->GetDeviceExtensions()))
 		{
+			vk::init_dispatch_table_bottom(_instance->GetInstance(), device->GetDevice());
 
+			VulkanRenderer *renderer = new VulkanRenderer(this, device);
+			return renderer;
 		}
 
 		return nullptr;
