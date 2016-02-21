@@ -10,7 +10,7 @@
 #ifndef __RAYNE_METALSHADER_H_
 #define __RAYNE_METALSHADER_H_
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -35,10 +35,10 @@ namespace RN
 			size_t _index;
 		};
 
-		RNAPI ~MetalShader() override;
+		MTLAPI RNAPI ~MetalShader() override;
 
-		RNAPI const String *GetName() const override;
-		RNAPI const Array *GetAttributes() const override;
+		MTLAPI RNAPI const String *GetName() const override;
+		MTLAPI RNAPI const Array *GetAttributes() const override;
 
 	private:
 		MetalShader(void *shader, ShaderLibrary *library);

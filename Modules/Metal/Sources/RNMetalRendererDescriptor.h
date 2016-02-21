@@ -9,7 +9,7 @@
 #ifndef __RAYNE_METALRENDERERDESCRIPTOR_H__
 #define __RAYNE_METALRENDERERDESCRIPTOR_H__
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -18,12 +18,12 @@ namespace RN
 	public:
 		static void InitialWakeUp(MetaClass *meta);
 
-		MetalRendererDescriptor();
+		MTLAPI MetalRendererDescriptor();
 
-		Renderer *CreateRenderer(RenderingDevice *device) override;
-		bool CanCreateRenderer() const override;
+		MTLAPI Renderer *CreateRenderer(RenderingDevice *device) override;
+		MTLAPI bool CanCreateRenderer() const override;
 
-		void PrepareWithSettings(const Dictionary *settings) override;
+		MTLAPI void PrepareWithSettings(const Dictionary *settings) override;
 
 		const Array *GetDevices() const override { return _devices; }
 

@@ -9,8 +9,7 @@
 #ifndef __RAYNE_METALSTATECOORDINATOR_H_
 #define __RAYNE_METALSTATECOORDINATOR_H_
 
-#include <Rayne.h>
-#import <Metal/Metal.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -211,15 +210,15 @@ namespace RN
 	class MetalStateCoordinator
 	{
 	public:
-		MetalStateCoordinator();
-		~MetalStateCoordinator();
+		MTLAPI MetalStateCoordinator();
+		MTLAPI ~MetalStateCoordinator();
 
-		void SetDevice(id<MTLDevice> device);
+		MTLAPI void SetDevice(id<MTLDevice> device);
 
-		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
-		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);
+		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
+		MTLAPI id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);
 
-		const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);

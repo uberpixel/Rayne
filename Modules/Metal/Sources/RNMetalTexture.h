@@ -10,7 +10,7 @@
 #ifndef __RAYNE_METALTEXTURE_H_
 #define __RAYNE_METALTEXTURE_H_
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -22,20 +22,20 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
-		RNAPI ~MetalTexture() override;
+		MTLAPI ~MetalTexture() override;
 
-		RNAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
+		MTLAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
+		MTLAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
+		MTLAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
+		MTLAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
-		RNAPI void GenerateMipMaps() final;
-		RNAPI void SetParameter(const Parameter &parameter) final;
+		MTLAPI void GenerateMipMaps() final;
+		MTLAPI void SetParameter(const Parameter &parameter) final;
 
-		RNAPI bool HasColorChannel(ColorChannel channel) const final;
+		MTLAPI bool HasColorChannel(ColorChannel channel) const final;
 
-		RNAPI void *__GetUnderlyingTexture() const { return _texture; }
-		RNAPI void *__GetUnderlyingSampler() const { return _sampler; }
+		void *__GetUnderlyingTexture() const { return _texture; }
+		void *__GetUnderlyingSampler() const { return _sampler; }
 
 	private:
 		MetalTexture(MetalRenderer *renderer, MetalStateCoordinator *coordinator, void *texture, const Descriptor &descriptor);

@@ -9,7 +9,7 @@
 #ifndef __RAYNE_METALRENDERER_H__
 #define __RAYNE_METALRENDERER_H__
 
-#include <Rayne.h>
+#include "RNMetal.h"
 #include "RNMetalWindow.h"
 
 namespace RN
@@ -30,34 +30,34 @@ namespace RN
 		friend class MetalTexture;
 		friend class MetalWindow;
 
-		RNAPI MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device);
-		RNAPI ~MetalRenderer();
+		MTLAPI MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device);
+		MTLAPI ~MetalRenderer();
 
-		RNAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
-		RNAPI Window *GetMainWindow() final;
+		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		MTLAPI Window *GetMainWindow() final;
 
-		RNAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		RNAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		MTLAPI void RenderIntoWindow(Window *window, Function &&function) final;
+		MTLAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
 
-		RNAPI bool SupportsTextureFormat(const String *format) const final;
-		RNAPI bool SupportsDrawMode(DrawMode mode) const final;
+		MTLAPI bool SupportsTextureFormat(const String *format) const final;
+		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		RNAPI const String *GetTextureFormatName(const Texture::Format format) const final;
-		RNAPI size_t GetAlignmentForType(PrimitiveType type) const final;
-		RNAPI size_t GetSizeForType(PrimitiveType type) const final;
+		MTLAPI const String *GetTextureFormatName(const Texture::Format format) const final;
+		MTLAPI size_t GetAlignmentForType(PrimitiveType type) const final;
+		MTLAPI size_t GetSizeForType(PrimitiveType type) const final;
 
-		RNAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
-		RNAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
+		MTLAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
+		MTLAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
 
-		RNAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		RNAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
 
-		RNAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		MTLAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
 
-		RNAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
+		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		RNAPI Drawable *CreateDrawable() final;
-		RNAPI void SubmitDrawable(Drawable *drawable) final;
+		MTLAPI Drawable *CreateDrawable() final;
+		MTLAPI void SubmitDrawable(Drawable *drawable) final;
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);

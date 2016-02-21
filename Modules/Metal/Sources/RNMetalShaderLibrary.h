@@ -10,7 +10,7 @@
 #ifndef __RAYNE_METALSHADERLIBRARY_H_
 #define __RAYNE_METALSHADERLIBRARY_H_
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -20,10 +20,10 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
-		~MetalShaderLibrary() override;
+		MTLAPI ~MetalShaderLibrary() override;
 
-		Shader *GetShaderWithName(const String *name) final;
-		Array *GetShaderNames() const final;
+		MTLAPI Shader *GetShaderWithName(const String *name) final;
+		MTLAPI Array *GetShaderNames() const final;
 
 	private:
 		MetalShaderLibrary(void *library);

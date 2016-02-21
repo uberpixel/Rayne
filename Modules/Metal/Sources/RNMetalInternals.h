@@ -13,7 +13,7 @@
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include <Rayne.h>
+#include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
 

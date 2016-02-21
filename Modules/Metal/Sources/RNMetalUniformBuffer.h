@@ -9,7 +9,7 @@
 #ifndef __RAYNE_METALUNIFORMBUFFER_H_
 #define __RAYNE_METALUNIFORMBUFFER_H_
 
-#include <Rayne.h>
+#include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
 
 #define kRNMetalUniformBufferCount 3
@@ -90,13 +90,13 @@ namespace RN
 			size_t _offset;
 		};
 
-		MetalUniformBuffer(Renderer *renderer, MetalRenderingStateUniformBufferArgument *uniformBuffer);
-		~MetalUniformBuffer();
+		MTLAPI MetalUniformBuffer(Renderer *renderer, MetalRenderingStateUniformBufferArgument *uniformBuffer);
+		MTLAPI ~MetalUniformBuffer();
 
-		GPUBuffer *Advance();
-		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
+		MTLAPI GPUBuffer *Advance();
+		MTLAPI GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
-		const Member *GetMemberForFeature(Feature feature) const;
+		MTLAPI const Member *GetMemberForFeature(Feature feature) const;
 
 		size_t GetIndex() const { return _index; }
 		bool IsActive() const { return _valid; }

@@ -10,6 +10,7 @@
 #define __RAYNE_METAL_H_
 
 #include <Rayne.h>
+#import <Metal/Metal.h>
 
 #if defined(RN_BUILD_METAL)
 	#define MTLAPI RN_EXPORT

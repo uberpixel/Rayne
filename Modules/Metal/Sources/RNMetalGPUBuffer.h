@@ -10,7 +10,7 @@
 #ifndef __RAYNE_METALGPUBUFFER_H_
 #define __RAYNE_METALGPUBUFFER_H_
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -20,9 +20,9 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
-		RNAPI void *GetBuffer() final;
-		RNAPI void InvalidateRange(const Range &range) final;
-		RNAPI size_t GetLength() const final;
+		MTLAPI void *GetBuffer() final;
+		MTLAPI void InvalidateRange(const Range &range) final;
+		MTLAPI size_t GetLength() const final;
 
 	private:
 		MetalGPUBuffer(void *data);

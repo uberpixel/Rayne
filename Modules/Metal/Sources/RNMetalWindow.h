@@ -9,7 +9,7 @@
 #ifndef __RAYNE_METALWINDOW_H__
 #define __RAYNE_METALWINDOW_H__
 
-#include <Rayne.h>
+#include "RNMetal.h"
 
 namespace RN
 {
@@ -21,13 +21,13 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
-		void SetTitle(const String *title) final;
-		Screen *GetScreen() final;
+		MTLAPI void SetTitle(const String *title) final;
+		MTLAPI Screen *GetScreen() final;
 
-		void Show() final;
-		void Hide() final;
+		MTLAPI void Show() final;
+		MTLAPI void Hide() final;
 
-		Vector2 GetSize() const final;
+		MTLAPI Vector2 GetSize() const final;
 
 	private:
 		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);

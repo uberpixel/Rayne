@@ -9,8 +9,7 @@
 #ifndef __RAYNE_METALDEVICE_H_
 #define __RAYNE_METALDEVICE_H_
 
-#include <Rayne.h>
-#import <Metal/Metal.h>
+#include "RNMetal.h"
 
 namespace RN
 {
