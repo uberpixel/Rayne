@@ -104,7 +104,7 @@ namespace RN
 		Dictionary *_controlMap;
 		Array *_controlGroups;
 
-		RNDeclareMeta(InputControl)
+		__RNDeclareMetaInternal(InputControl)
 	};
 
 	class InputControlGroup : public InputControl
@@ -115,7 +115,7 @@ namespace RN
 		RNAPI bool IsGroup() const final;
 
 	private:
-		RNDeclareMeta(InputControlGroup);
+		__RNDeclareMetaInternal(InputControlGroup);
 	};
 
 	class ButtonControl : public InputControl
@@ -130,7 +130,7 @@ namespace RN
 
 	private:
 		bool _pressed;
-		RNDeclareMeta(ButtonControl)
+		__RNDeclareMetaInternal(ButtonControl)
 	};
 
 	class SliderControl : public InputControl
@@ -146,7 +146,7 @@ namespace RN
 		float _deadZone;
 		float _normalizer;
 
-		RNDeclareMeta(SliderControl)
+		__RNDeclareMetaInternal(SliderControl)
 	};
 
 	class AxisControl : public InputControl
@@ -183,7 +183,7 @@ namespace RN
 		float _deadZone;
 		float _normalizer;
 
-		RNDeclareMeta(AxisControl)
+		__RNDeclareMetaInternal(AxisControl)
 	};
 
 	class DeltaAxisControl : public AxisControl
@@ -195,7 +195,7 @@ namespace RN
 		RNAPI void SetValue(float value) override;
 
 	private:
-		RNDeclareMeta(DeltaAxisControl)
+		__RNDeclareMetaInternal(DeltaAxisControl)
 	};
 
 	class LinearAxisControl : public AxisControl
@@ -206,7 +206,7 @@ namespace RN
 		RNAPI void SetValue(float value) override;
 
 	private:
-		RNDeclareMeta(LinearAxisControl)
+		__RNDeclareMetaInternal(LinearAxisControl)
 	};
 
 
@@ -218,7 +218,7 @@ namespace RN
 		RNAPI void SetValue(float value) override;
 
 	private:
-		RNDeclareMeta(RotationAxisControl)
+		__RNDeclareMetaInternal(RotationAxisControl)
 	};
 }
 

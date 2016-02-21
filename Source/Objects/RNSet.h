@@ -67,7 +67,7 @@ namespace RN
 
 		PIMPL<SetInternal> _internals;
 		
-		RNDeclareMeta(Set)
+		__RNDeclareMetaInternal(Set)
 	};
 	
 	RNObjectClass(Set)

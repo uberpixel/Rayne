@@ -37,7 +37,7 @@ namespace RN
 
 		std::atomic<size_t> _open;
 
-		RNDeclareMeta(WorkGroup)
+		__RNDeclareMetaInternal(WorkGroup)
 	};
 
 	RNObjectClass(WorkGroup)

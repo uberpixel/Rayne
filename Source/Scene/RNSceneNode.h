@@ -205,7 +205,7 @@ namespace RN
 		mutable AABB _transformedBoundingBox;
 		mutable Sphere _transformedBoundingSphere;
 
-		RNDeclareMeta(SceneNode)
+		__RNDeclareMetaInternal(SceneNode)
 	};
 
 	RNObjectClass(SceneNode)

@@ -30,7 +30,7 @@ namespace RN
 
 		void *_buffer;
 
-		RNDeclareMeta(MetalGPUBuffer)
+		RNDeclareMetaAPI(MetalGPUBuffer, MTLAPI)
 	};
 }
 

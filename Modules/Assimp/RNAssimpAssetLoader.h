@@ -9,7 +9,7 @@
 #ifndef __RAYNE_ASSIMPASSETLOADER_H_
 #define __RAYNE_ASSIMPASSETLOADER_H_
 
-#include <Rayne.h>
+#include "RNAssimp.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -32,7 +32,7 @@ namespace RN
 		Mesh *LoadAssimpMesh(const aiScene *scene, size_t index);
 		Texture *LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
 
-		RNDeclareMeta(AssimpAssetLoader)
+		RNDeclareMetaAPI(AssimpAssetLoader, ASAPI)
 	};
 }
 

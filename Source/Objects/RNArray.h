@@ -273,7 +273,7 @@ namespace RN
 		size_t _count;
 		size_t _size;
 		
-		RNDeclareMeta(Array)
+		__RNDeclareMetaInternal(Array)
 	};
 	
 	RNObjectClass(Array)

@@ -213,12 +213,23 @@ namespace RN
 		cls *Copy() const \
 		{ \
 			return static_cast<cls *>(Object::Copy()); \
-		} \
-		RNAPI_DEFINEBASE RN::MetaClass *GetClass() const override; \
-		RNAPI_DEFINEBASE static RN::MetaClass *GetMetaClass();
-	
+		}
+
+
+#define __RNDeclareMetaInternal(cls) \
+	__RNDeclareMetaPublic(cls) \
+	RNAPI MetaClass *GetClass() const override; \
+	RNAPI static MetaClass *GetMetaClass();
+
 #define RNDeclareMeta(cls) \
-	__RNDeclareMetaPublic(cls)
+	__RNDeclareMetaPublic(cls) \
+	RN::MetaClass *GetClass() const override; \
+	static RN::MetaClass *GetMetaClass();
+
+#define RNDeclareMetaAPI(cls, apiVisibility) \
+	__RNDeclareMetaPublic(cls) \
+	apiVisibility RN::MetaClass *GetClass() const override; \
+	apiVisibility static RN::MetaClass *GetMetaClass();
 
 #if RN_BUILD_LIBRARY
 #define __RNObjectInitializer(cls, name) \

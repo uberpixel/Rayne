@@ -9,7 +9,7 @@
 #ifndef __RAYNE_VULKANRENDERERDESCRIPTOR_H_
 #define __RAYNE_VULKANRENDERERDESCRIPTOR_H_
 
-#include <Rayne.h>
+#include "RNVulkan.h"
 #include "RNVulkanInstance.h"
 
 namespace RN
@@ -32,7 +32,7 @@ namespace RN
 
 		VulkanInstance *_instance;
 
-		RNDeclareMeta(VulkanRendererDescriptor)
+		RNDeclareMetaAPI(VulkanRendererDescriptor, VKAPI)
 	};
 }
 

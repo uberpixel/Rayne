@@ -9,8 +9,8 @@
 #ifndef __RAYNE_VULKANWINDOW_H_
 #define __RAYNE_VULKANWINDOW_H_
 
-#include <Rayne.h>
 #include <queue>
+#include "RNVulkan.h"
 #include "RNVulkanBackBuffer.h"
 
 #define kRNVulkanBackBufferCount 3
@@ -54,7 +54,7 @@ namespace RN
 
 		VkExtent2D _extents;
 
-		RNDeclareMeta(VulkanWindow)
+		RNDeclareMetaAPI(VulkanWindow, VKAPI)
 	};
 }
 

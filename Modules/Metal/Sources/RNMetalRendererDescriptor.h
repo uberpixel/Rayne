@@ -30,7 +30,7 @@ namespace RN
 	private:
 		Array *_devices;
 
-		RNDeclareMeta(MetalRendererDescriptor)
+		RNDeclareMetaAPI(MetalRendererDescriptor, MTLAPI)
 	};
 }
 

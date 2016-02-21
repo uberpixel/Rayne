@@ -78,7 +78,7 @@ namespace RN
 
 		MetaClass *_entityClass;
 
-		RNDeclareMeta(InstancingNode)
+		__RNDeclareMetaInternal(InstancingNode)
 	};
 }
 

@@ -9,7 +9,7 @@
 #ifndef __RAYNE_VULKANBUFFER_H_
 #define __RAYNE_VULKANBUFFER_H_
 
-#include <Rayne.h>
+#include "RNVulkan.h"
 
 namespace RN
 {

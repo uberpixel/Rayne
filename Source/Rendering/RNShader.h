@@ -39,7 +39,7 @@ namespace RN
 			String *_name;
 			PrimitiveType _type;
 
-			RNDeclareMeta(Attribute)
+			__RNDeclareMetaInternal(Attribute)
 		};
 
 
@@ -63,7 +63,7 @@ namespace RN
 		Type _type;
 		ShaderLibrary *_library;
 
-		RNDeclareMeta(Shader)
+		__RNDeclareMetaInternal(Shader)
 	};
 }
 

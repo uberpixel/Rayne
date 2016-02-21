@@ -34,7 +34,7 @@ namespace RN
 		String *_name;
 		MetaClass *_meta;
 
-		RNDeclareMeta(Asset)
+		__RNDeclareMetaInternal(Asset)
 	};
 }
 

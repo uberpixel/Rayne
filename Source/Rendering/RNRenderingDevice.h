@@ -59,7 +59,7 @@ namespace RN
 
 		Type _type;
 
-		RNDeclareMeta(RenderingDevice)
+		__RNDeclareMetaInternal(RenderingDevice)
 	};
 }
 

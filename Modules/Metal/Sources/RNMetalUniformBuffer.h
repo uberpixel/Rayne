@@ -109,7 +109,7 @@ namespace RN
 		std::vector<Member> _members;
 		bool _valid;
 
-		RNDeclareMeta(MetalUniformBuffer)
+		RNDeclareMetaAPI(MetalUniformBuffer, MTLAPI)
 	};
 }
 

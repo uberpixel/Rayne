@@ -137,7 +137,7 @@ namespace RN
 		float _textureTileFactor;
 		CullMode _cullMode;
 
-		RNDeclareMeta(Material)
+		__RNDeclareMetaInternal(Material)
 	};
 }
 

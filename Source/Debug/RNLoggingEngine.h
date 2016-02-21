@@ -42,7 +42,7 @@ namespace RN
 	private:
 		bool _threadBound;
 
-		RNDeclareMeta(LoggingEngine)
+		__RNDeclareMetaInternal(LoggingEngine)
 	};
 
 	class STDOUTLoggingEngine : public LoggingEngine
@@ -63,7 +63,7 @@ namespace RN
 		bool _open;
 		std::ostream &_stream;
 
-		RNDeclareMeta(STDOUTLoggingEngine)
+		__RNDeclareMetaInternal(STDOUTLoggingEngine)
 	};
 }
 

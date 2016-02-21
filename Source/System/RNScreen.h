@@ -72,7 +72,7 @@ namespace RN
 		HMONITOR _monitor;
 #endif
 
-		RNDeclareMeta(Screen)
+		__RNDeclareMetaInternal(Screen)
 	};
 }
 

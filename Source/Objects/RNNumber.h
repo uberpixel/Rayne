@@ -92,7 +92,7 @@ namespace RN
 		uint8 *_buffer;
 		Type _type;
 		
-		RNDeclareMeta(Number);
+		__RNDeclareMetaInternal(Number);
 	};
 	
 	RNObjectClass(Number)

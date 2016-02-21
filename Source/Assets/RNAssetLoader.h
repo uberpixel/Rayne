@@ -117,7 +117,7 @@ namespace RN
 		bool _supportsVirtualFiles;
 
 		std::vector<MetaClass *> _resourceClasses;
-		RNDeclareMeta(AssetLoader)
+		__RNDeclareMetaInternal(AssetLoader)
 	};
 }
 

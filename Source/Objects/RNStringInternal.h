@@ -75,7 +75,7 @@ namespace RN
 		
 		Flags _flags;
 		
-		RNDeclareMeta(UTF8String)
+		__RNDeclareMetaInternal(UTF8String)
 	};
 }
 

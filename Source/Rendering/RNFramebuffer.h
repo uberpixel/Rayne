@@ -39,7 +39,7 @@ namespace RN
 		Texture *_depthTexture;
 		Texture *_stencilTexture;
 
-		RNDeclareMeta(Framebuffer)
+		__RNDeclareMetaInternal(Framebuffer)
 	};
 }
 

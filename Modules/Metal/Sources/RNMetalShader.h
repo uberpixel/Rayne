@@ -46,7 +46,7 @@ namespace RN
 		void *_shader;
 		Array *_attributes;
 
-		RNDeclareMeta(MetalShader)
+		RNDeclareMetaAPI(MetalShader, MTLAPI)
 	};
 }
 

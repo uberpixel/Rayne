@@ -40,7 +40,7 @@ namespace RN
 		String *_identifier;
 		String *_api;
 
-		RNDeclareMeta(RendererDescriptor)
+		__RNDeclareMetaInternal(RendererDescriptor)
 	};
 }
 

@@ -28,7 +28,7 @@ namespace RN
 
 		void LoadLODStage(File *file, Model::LODStage *stage);
 
-		RNDeclareMeta(SGMAssetLoader)
+		__RNDeclareMetaInternal(SGMAssetLoader)
 	};
 }
 

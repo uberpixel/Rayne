@@ -87,7 +87,7 @@ namespace RN
 		size_t _alignment;
 		uint8 *_storage;
 		
-		RNDeclareMeta(Value)
+		__RNDeclareMetaInternal(Value)
 	};
 	
 	RNObjectClass(Value)

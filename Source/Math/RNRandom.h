@@ -108,7 +108,7 @@ namespace RN
 		SpinLock _lock;
 		Random::Generator *_generator;
 
-		RNDeclareMeta(RandomNumberGenerator)
+		__RNDeclareMetaInternal(RandomNumberGenerator)
 	};
 
 	RNAPI int32 GetRandomInt32();

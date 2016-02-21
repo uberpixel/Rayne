@@ -250,7 +250,11 @@ namespace RN
 
 	const String *Module::GetDescription() const
 	{
-		return RNSTR("<RN::Module:" << (void *)this << "> (" << GetName() << ", " << GetIdentifier() << ")");
+		const String *path = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(GetPath());
+		if(!path)
+			path = GetPath();
+
+		return RNSTR("<RN::Module:" << (void *)this << "> (" << GetName() << ", " << path << ")");
 	}
 
 	const String *Module::GetPathForResource(const String *resource)

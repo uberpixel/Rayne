@@ -45,7 +45,7 @@ namespace RN
 		void *_texture;
 		void *_sampler;
 
-		RNDeclareMeta(MetalTexture)
+		RNDeclareMetaAPI(MetalTexture, MTLAPI)
 	};
 }
 

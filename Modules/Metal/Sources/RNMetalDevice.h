@@ -28,7 +28,7 @@ namespace RN
 
 		id<MTLDevice> _device;
 
-		RNDeclareMeta(MetalDevice)
+		RNDeclareMetaAPI(MetalDevice, MTLAPI)
 	};
 }
 

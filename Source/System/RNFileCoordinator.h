@@ -55,7 +55,7 @@ namespace RN
 			String *_modifier;
 			Node *_parent;
 
-			RNDeclareMeta(Node)
+			__RNDeclareMetaInternal(Node)
 		};
 
 		class Directory : public Node
@@ -77,7 +77,7 @@ namespace RN
 			Array *_children;
 			Dictionary *_childMap;
 
-			RNDeclareMeta(Directory)
+			__RNDeclareMetaInternal(Directory)
 		};
 
 		class File : public Node
@@ -88,7 +88,7 @@ namespace RN
 		protected:
 			File(String *name, Node *parent);
 
-			RNDeclareMeta(File)
+			__RNDeclareMetaInternal(File)
 		};
 
 		RN_OPTIONS(ResolveHint, uint32,

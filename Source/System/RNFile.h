@@ -69,7 +69,7 @@ namespace RN
 		Mode _mode;
 		String *_path;
 
-		RNDeclareMeta(File)
+		__RNDeclareMetaInternal(File)
 	};
 
 	RNExceptionType(FileNotFound)

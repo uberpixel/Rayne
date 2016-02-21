@@ -22,12 +22,27 @@ set(SOURCES
         Sources/RNMetalTexture.cpp
         Sources/RNMetalUniformBuffer.cpp
         Sources/RNMetalWindow.cpp
-        Sources/init.cpp)
+        Sources/RNMetalInit.cpp)
 
 set(RESOURCES
         Resources)
 
-set(HEADERS "")
+set(HEADERS
+        Sources/RNMetal.h
+        Sources/RNMetalDevice.h
+        Sources/RNMetalGPUBuffer.h
+        Sources/RNMetalInternals.h
+        Sources/RNMetalRenderer.h
+        Sources/RNMetalRendererDescriptor.h
+        Sources/RNMetalShader.h
+        Sources/RNMetalShaderLibrary.h
+        Sources/RNMetalStateCoordinator.h
+        Sources/RNMetalTexture.h
+        Sources/RNMetalUniformBuffer.h
+        Sources/RNMetalWindow.h)
+
+set(DEFINES
+        "RN_BUILD_METAL")
 
 find_library(COCOA_LIBRARY Cocoa)
 find_library(METAL_LIBRARY Metal)
@@ -41,6 +56,7 @@ rayne_add_library(RayneMetal "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${V
 rayne_target_add_options(RayneMetal "-xobjective-c++")
 rayne_target_include_directories(RayneMetal "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
+rayne_target_add_definitions(RayneMetal "${DEFINES}")
 rayne_set_module_output_directory(RayneMetal)
 rayne_copy_resources(RayneMetal ${RESOURCES})
 

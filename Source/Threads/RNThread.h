@@ -115,7 +115,7 @@ namespace RN
 		std::condition_variable _exitSignal;
 		std::vector<std::pair<std::function<void (void *)>, void *>> _exitFunctions;
 		
-		RNDeclareMeta(Thread)
+		__RNDeclareMetaInternal(Thread)
 	};
 	
 	RNObjectClass(Thread)

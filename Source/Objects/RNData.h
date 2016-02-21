@@ -52,7 +52,7 @@ namespace RN
 		bool _freeData;
 		bool _ownsData;
 		
-		RNDeclareMeta(Data)
+		__RNDeclareMetaInternal(Data)
 	};
 	
 	RNObjectClass(Data)

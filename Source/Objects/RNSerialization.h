@@ -49,7 +49,7 @@ namespace RN
 	protected:
 		RNAPI virtual ~Serializer();
 		
-		RNDeclareMeta(Serializer)
+		__RNDeclareMetaInternal(Serializer)
 	};
 	
 	class Deserializer : public Object
@@ -76,7 +76,7 @@ namespace RN
 	protected:
 		RNAPI virtual ~Deserializer();
 		
-		RNDeclareMeta(Deserializer)
+		__RNDeclareMetaInternal(Deserializer)
 	};
 	
 	

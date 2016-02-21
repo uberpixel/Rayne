@@ -25,7 +25,7 @@ namespace RN
 			Private
 		};
 
-		RNDeclareMeta(GPUResource)
+		__RNDeclareMetaInternal(GPUResource)
 	};
 }
 

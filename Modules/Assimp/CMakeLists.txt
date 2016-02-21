@@ -18,10 +18,15 @@ set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
-        init.cpp
+        RNAssimpInit.cpp
         RNAssimpAssetLoader.cpp)
 
-set(HEADERS "RNAssimpAssetLoader.h")
+set(HEADERS
+        RNAssimpAssetLoader.h
+        RNAssimp.h)
+
+set(DEFINES
+        RN_BUILD_ASSIMP)
 
 set(RAYNE_LIBRARIES Rayne)
 set(LINK_LIBRARIES assimp)
@@ -32,6 +37,7 @@ set(INCLUDE_DIRECTORIES
 rayne_add_library(RayneAssimp "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_target_include_directories(RayneAssimp "${INCLUDE_DIRECTORIES}")
 rayne_target_link_libraries(RayneAssimp "${LINK_LIBRARIES}")
+rayne_target_add_definitions(RayneAssimp "${DEFINES}")
 rayne_set_module_output_directory(RayneAssimp)
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneAssimp/. DESTINATION lib/Rayne/RayneAssimp)

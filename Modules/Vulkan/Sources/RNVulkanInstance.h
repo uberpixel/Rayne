@@ -9,7 +9,7 @@
 #ifndef __RAYNE_VULKANINSTANCE_H_
 #define __RAYNE_VULKANINSTANCE_H_
 
-#include <Rayne.h>
+#include "RNVulkan.h"
 #include "RNVulkanDispatchTable.h"
 
 namespace RN

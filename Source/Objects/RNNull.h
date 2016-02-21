@@ -25,7 +25,7 @@ namespace RN
 		
 		RNAPI static Null *GetNull();
 		
-		RNDeclareMeta(Null)
+		__RNDeclareMetaInternal(Null)
 	};
 	
 	RNObjectClass(Null)

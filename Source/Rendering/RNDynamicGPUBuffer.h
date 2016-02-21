@@ -35,7 +35,7 @@ namespace RN
 		size_t _index;
 		size_t _length;
 
-		RNDeclareMeta(DynamicGPUBuffer)
+		__RNDeclareMetaInternal(DynamicGPUBuffer)
 	};
 }
 

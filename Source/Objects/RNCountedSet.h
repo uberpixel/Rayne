@@ -57,7 +57,7 @@ namespace RN
 	private:
 		PIMPL<CountedSetInternal> _internals;
 		
-		RNDeclareMeta(CountedSet)
+		__RNDeclareMetaInternal(CountedSet)
 	};
 	
 	RNObjectClass(CountedSet)

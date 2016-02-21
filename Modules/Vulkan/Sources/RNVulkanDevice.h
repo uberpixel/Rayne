@@ -9,7 +9,7 @@
 #ifndef __RAYNE_VULKANDEVICE_H_
 #define __RAYNE_VULKANDEVICE_H_
 
-#include <Rayne.h>
+#include "RNVulkan.h"
 #include "RNVulkanDispatchTable.h"
 #include "RNVulkanInstance.h"
 
@@ -45,7 +45,7 @@ namespace RN
 		size_t _gameQueue;
 		size_t _presentQueue;
 
-		RNDeclareMeta(VulkanDevice)
+		RNDeclareMetaAPI(VulkanDevice, VKAPI)
 	};
 }
 

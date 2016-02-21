@@ -228,7 +228,7 @@ namespace RN
 		Descriptor _descriptor;
 		Parameter _parameter;
 
-		RNDeclareMeta(Texture)
+		__RNDeclareMetaInternal(Texture)
 	};
 
 	RNExceptionType(InvalidTextureFormat)

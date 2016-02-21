@@ -9,7 +9,7 @@
 #ifndef __RAYNE_VULKANRENDERER_H_
 #define __RAYNE_VULKANRENDERER_H_
 
-#include <Rayne.h>
+#include "RNVulkan.h"
 #include "RNVulkanDevice.h"
 #include "RNVulkanRendererDescriptor.h"
 #include "RNVulkanBackBuffer.h"
@@ -59,7 +59,7 @@ namespace RN
 		VkQueue _gameQueue;
 		VkQueue _presentQueue;
 
-		RNDeclareMeta(VulkanRenderer)
+		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};
 }
 

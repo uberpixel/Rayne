@@ -14,8 +14,8 @@
 
 namespace RN
 {
-	extern Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments);
-	extern void __TearDownKernel(Kernel *kernel);
+	RNAPI Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments);
+	RNAPI void __TearDownKernel(Kernel *kernel);
 }
 
 namespace __Bootstrap

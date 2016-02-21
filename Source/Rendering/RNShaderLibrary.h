@@ -29,7 +29,7 @@ namespace RN
 		bool discard;
 
 	private:
-		RNDeclareMeta(ShaderLookupRequest)
+		__RNDeclareMetaInternal(ShaderLookupRequest)
 	};
 
 	class ShaderCompileOptions : public Object
@@ -51,7 +51,7 @@ namespace RN
 		String *_basePath;
 		Dictionary *_defines;
 
-		RNDeclareMeta(ShaderCompileOptions)
+		__RNDeclareMetaInternal(ShaderCompileOptions)
 	};
 
 	class ShaderProgram : public Object
@@ -69,7 +69,7 @@ namespace RN
 		Shader *_vertexShader;
 		Shader *_fragmentShader;
 
-		RNDeclareMeta(ShaderProgram)
+		__RNDeclareMetaInternal(ShaderProgram)
 	};
 
 	class ShaderLibrary : public Object
@@ -78,7 +78,7 @@ namespace RN
 		RNAPI virtual Shader *GetShaderWithName(const String *name) = 0;
 		RNAPI virtual Array *GetShaderNames() const = 0;
 
-		RNDeclareMeta(ShaderLibrary)
+		__RNDeclareMetaInternal(ShaderLibrary)
 	};
 }
 

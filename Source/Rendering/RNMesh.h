@@ -475,7 +475,7 @@ namespace RN
 		AABB _boundingBox;
 		Sphere _boundingSphere;
 
-		RNDeclareMeta(Mesh)
+		__RNDeclareMetaInternal(Mesh)
 	};
 }
 

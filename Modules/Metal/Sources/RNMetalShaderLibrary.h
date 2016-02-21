@@ -30,7 +30,7 @@ namespace RN
 
 		void *_library;
 
-		RNDeclareMeta(MetalShaderLibrary)
+		RNDeclareMetaAPI(MetalShaderLibrary, MTLAPI)
 	};
 }
 

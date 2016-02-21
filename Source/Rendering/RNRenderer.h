@@ -120,7 +120,7 @@ namespace RN
 		RenderingDevice *_device;
 		RendererDescriptor *_descriptor;
 
-		RNDeclareMeta(Renderer)
+		__RNDeclareMetaInternal(Renderer)
 	};
 
 	RNExceptionType(ShaderCompilation)

@@ -23,7 +23,7 @@ namespace RN
 		RNAPI virtual void InvalidateRange(const Range &range) = 0;
 		RNAPI virtual size_t GetLength() const = 0;
 
-		RNDeclareMeta(GPUBuffer)
+		__RNDeclareMetaInternal(GPUBuffer)
 	};
 }
 

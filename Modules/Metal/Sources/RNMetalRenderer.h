@@ -76,7 +76,7 @@ namespace RN
 
 		Dictionary *_defaultShaders;
 
-		RNDeclareMeta(MetalRenderer)
+		RNDeclareMetaAPI(MetalRenderer, MTLAPI)
 	};
 }
 

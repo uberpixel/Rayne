@@ -35,7 +35,7 @@ namespace RN
 		PIMPL<MetalWindowInternals> _internals;
 		MetalRenderer *_renderer;
 
-		RNDeclareMeta(MetalWindow)
+		RNDeclareMetaAPI(MetalWindow, MTLAPI)
 	};
 }
 

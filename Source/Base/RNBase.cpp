@@ -65,6 +65,10 @@ namespace RN
 		}
 	};
 
+	RNAPI Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments);
+	RNAPI void __TearDownKernel(Kernel *kernel);
+
+
 	MemoryPool *__GetFunctionPool()
 	{
 		return __functionPool;

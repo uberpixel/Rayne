@@ -35,7 +35,7 @@ namespace RN
 	private:
 		Screen *_screen;
 
-		RNDeclareMeta(Window)
+		__RNDeclareMetaInternal(Window)
 	};
 }
 

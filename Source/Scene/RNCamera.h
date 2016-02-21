@@ -194,7 +194,7 @@ namespace RN
 //		std::vector<PostProcessingPipeline *> _PPPipelines;
 //		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 
-		RNDeclareMeta(Camera);
+		__RNDeclareMetaInternal(Camera);
 	};
 }
 

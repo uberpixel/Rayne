@@ -122,7 +122,7 @@ namespace RN
 		String(UTF8String *string);
 		UTF8String *_string;
 		
-		RNDeclareMeta(String)
+		__RNDeclareMetaInternal(String)
 	};
 
 	RNObjectClass(String)

@@ -42,6 +42,7 @@ set(SOURCES
         Sources/RNVulkanInit.cpp)
 
 set(HEADERS
+        Sources/RNVulkan.h
         Sources/RNVulkanBackBuffer.h
         Sources/RNVulkanBuffer.h
         Sources/RNVulkanDevice.h
@@ -54,12 +55,16 @@ set(HEADERS
 set(RESOURCES
         Resources)
 
+set(DEFINES
+        "VK_USE_PLATFORM_WIN32_KHR"
+        "RN_BUILD_VULKAN")
+
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor")
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_target_include_directories(RayneVulkan "${INCLUDE_DIRECTORIES}")
-rayne_target_add_definitions(RayneVulkan "VK_USE_PLATFORM_WIN32_KHR")
+rayne_target_add_definitions(RayneVulkan "${DEFINES}")
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
 

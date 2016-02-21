@@ -98,7 +98,7 @@ namespace RN
 			std::vector<Group> _groups;
 			size_t _index;
 
-			RNDeclareMeta(LODStage)
+			__RNDeclareMetaInternal(LODStage)
 		};
 
 		RNAPI Model();
@@ -129,7 +129,7 @@ namespace RN
 		AABB _boundingBox;
 		Sphere _boundingSphere;
 
-		RNDeclareMeta(Model)
+		__RNDeclareMetaInternal(Model)
 	};
 }
 

@@ -39,7 +39,7 @@ namespace RN
 		std::vector<std::vector<Drawable *>> _drawables;
 		InstancingEntity *_instancedData;
 
-		RNDeclareMeta(Entity)
+		__RNDeclareMetaInternal(Entity)
 	};
 }
 

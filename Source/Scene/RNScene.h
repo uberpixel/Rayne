@@ -50,7 +50,7 @@ namespace RN
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
 
-		RNDeclareMeta(Scene)
+		__RNDeclareMetaInternal(Scene)
 	};
 }
 

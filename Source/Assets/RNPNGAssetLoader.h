@@ -24,7 +24,7 @@ namespace RN
 	private:
 		PNGAssetLoader(const Config &config);
 
-		RNDeclareMeta(PNGAssetLoader)
+		__RNDeclareMetaInternal(PNGAssetLoader)
 	};
 }
 

@@ -63,7 +63,7 @@ namespace RN
 
 		InitializeFunction _initializer;
 
-		RNDeclareMeta(Module)
+		__RNDeclareMetaInternal(Module)
 	};
 }
 

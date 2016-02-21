@@ -45,7 +45,7 @@ namespace RN
 		bool _repeats;
 		bool _valid;
 
-		RNDeclareMeta(RunLoopObserver)
+		__RNDeclareMetaInternal(RunLoopObserver)
 	};
 
 	class RunLoopSource : public Object
@@ -77,7 +77,7 @@ namespace RN
 		std::mutex _lock;
 		RunLoop *_runLoop;
 
-		RNDeclareMeta(RunLoopSource)
+		__RNDeclareMetaInternal(RunLoopSource)
 	};
 
 

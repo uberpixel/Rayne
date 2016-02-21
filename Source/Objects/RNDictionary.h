@@ -71,7 +71,7 @@ namespace RN
 		
 		RNAPI Object *GetPrimitiveObjectForKey(const Object *key) const;
 		
-		RNDeclareMeta(Dictionary)
+		__RNDeclareMetaInternal(Dictionary)
 	};
 	
 	RNObjectClass(Dictionary)

@@ -77,7 +77,7 @@ namespace RN
 
 		mutable std::vector<Entry> _storage; // Mutable because some const functions need to remove zombies... Only a tad ugly
 
-		RNDeclareMeta(WeakStorage)
+		__RNDeclareMetaInternal(WeakStorage)
 	};
 }
 

@@ -161,7 +161,7 @@ namespace RN
 		InputManager *_manager;
 		std::vector<ExecutionPort> _executionPorts;
 
-		RNDeclareMeta(InputDevice)
+		__RNDeclareMetaInternal(InputDevice)
 	};
 }
 

@@ -103,7 +103,7 @@ namespace RN
 
 		PIMPL<WorkQueueInternals> _internals;
 
-		RNDeclareMeta(WorkQueue)
+		__RNDeclareMetaInternal(WorkQueue)
 	};
 
 	RNObjectClass(WorkQueue)
