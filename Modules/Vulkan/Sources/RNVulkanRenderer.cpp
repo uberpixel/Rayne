@@ -16,7 +16,10 @@ namespace RN
 	VulkanRenderer::VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device) :
 		Renderer(descriptor, device),
 		_mainWindow(nullptr)
-	{}
+	{
+		vk::GetDeviceQueue(device->GetDevice(), device->GetGameQueue(), 0, &_gameQueue);
+		vk::GetDeviceQueue(device->GetDevice(), device->GetPresentQueue(), 0, &_presentQueue);
+	}
 
 	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
@@ -30,10 +33,18 @@ namespace RN
 		return _mainWindow;
 	}
 
-	void VulkanRenderer::RenderIntoWindow(Window *window, Function &&function)
-	{}
+	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
+	{
+		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
+
+		window->AcquireBackBuffer();
+		function();
+		window->PresentBackBuffer();
+	}
 	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
-	{}
+	{
+		function();
+	}
 
 	bool VulkanRenderer::SupportsTextureFormat(const String *format) const
 	{

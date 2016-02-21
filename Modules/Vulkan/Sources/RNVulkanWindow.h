@@ -10,6 +10,10 @@
 #define __RAYNE_VULKANWINDOW_H_
 
 #include <Rayne.h>
+#include <queue>
+#include "RNVulkanBackBuffer.h"
+
+#define kRNVulkanBackBufferCount 3
 
 namespace RN
 {
@@ -29,11 +33,26 @@ namespace RN
 
 		Vector2 GetSize() const final;
 
+		void AcquireBackBuffer();
+		void PresentBackBuffer();
+
 	private:
 		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer);
 
+		void InitializeSurface();
+		void ResizeSwapchain(const Vector2 &size);
+
 		HWND _hwnd;
 		VulkanRenderer *_renderer;
+
+		std::queue<VulkanBackBuffer *> _backBuffers;
+		VulkanBackBuffer *_activeBackBuffer;
+
+		VkSurfaceKHR _surface;
+		VkSurfaceFormatKHR _format;
+		VkSwapchainKHR _swapchain;
+
+		VkExtent2D _extents;
 
 		RNDeclareMeta(VulkanWindow)
 	};

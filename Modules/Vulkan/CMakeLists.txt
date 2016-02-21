@@ -30,6 +30,7 @@ generate_dispatch_table(RNVulkanDispatchTable.h)
 generate_dispatch_table(RNVulkanDispatchTable.cpp)
 
 set(SOURCES
+        Sources/RNVulkanBackBuffer.cpp
         Sources/RNVulkanBuffer.cpp
         Sources/RNVulkanDevice.cpp
         Sources/RNVulkanDispatchTable.cpp
@@ -40,10 +41,8 @@ set(SOURCES
         Sources/RNVulkanWindow.cpp
         Sources/RNVulkanInit.cpp)
 
-set(RESOURCES
-        Resources)
-
 set(HEADERS
+        Sources/RNVulkanBackBuffer.h
         Sources/RNVulkanBuffer.h
         Sources/RNVulkanDevice.h
         Sources/RNVulkanDispatchTable.h
@@ -51,6 +50,9 @@ set(HEADERS
         Sources/RNVulkanRenderer.h
         Sources/RNVulkanRendererDescriptor.h
         Sources/RNVulkanWindow.h)
+
+set(RESOURCES
+        Resources)
 
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor")

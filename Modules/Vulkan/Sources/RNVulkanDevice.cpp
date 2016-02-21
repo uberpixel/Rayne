@@ -95,6 +95,24 @@ namespace RN
 		vk::GetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &count, queues.data());
 	}
 
+	VkResult VulkanDevice::GetSurfaceFormats(VkSurfaceKHR surface, std::vector<VkSurfaceFormatKHR> &formats)
+	{
+		uint32_t count = 0;
+		vk::GetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, nullptr);
+
+		formats.resize(count);
+		return vk::GetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, formats.data());
+	}
+
+	VkResult VulkanDevice::GetPresentModes(VkSurfaceKHR surface, std::vector<VkPresentModeKHR> &modes)
+	{
+		uint32_t count = 0;
+		vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, nullptr);
+
+		modes.resize(count);
+		return vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, modes.data());
+	}
+
 	bool VulkanDevice::CreateDevice(const std::vector<const char *> &extensions)
 	{
 		VkPhysicalDeviceFeatures features;

@@ -12,6 +12,7 @@
 #include <Rayne.h>
 #include "RNVulkanDevice.h"
 #include "RNVulkanRendererDescriptor.h"
+#include "RNVulkanBackBuffer.h"
 
 namespace RN
 {
@@ -47,8 +48,16 @@ namespace RN
 		Drawable *CreateDrawable() override;
 		void SubmitDrawable(Drawable *drawable) override;
 
+		VulkanDevice *GetVulkanDevice() { return static_cast<VulkanDevice *>(GetDevice()); }
+		VulkanInstance *GetVulkanInstance() { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
+
+		VkQueue GetPresentQueue() const { return _presentQueue; }
+
 	private:
 		VulkanWindow *_mainWindow;
+
+		VkQueue _gameQueue;
+		VkQueue _presentQueue;
 
 		RNDeclareMeta(VulkanRenderer)
 	};

@@ -24,8 +24,14 @@ namespace RN
 		bool IsValidDevice() const { return (_gameQueue != kRNNotFound && _presentQueue != kRNNotFound); }
 
 		void GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues);
+		VkResult GetSurfaceFormats(VkSurfaceKHR surface, std::vector<VkSurfaceFormatKHR> &formats);
+		VkResult GetPresentModes(VkSurfaceKHR surface, std::vector<VkPresentModeKHR> &modes);
 
 		VkDevice GetDevice() const { return _device; }
+		VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
+
+		uint32_t GetGameQueue() const { return static_cast<uint32_t>(_gameQueue); }
+		uint32_t GetPresentQueue() const { return static_cast<uint32_t>(_presentQueue); }
 
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);

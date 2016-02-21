@@ -25,6 +25,8 @@ namespace RN
 		const Array *GetDevices() const { return _instance->GetDevices(); }
 		void PrepareWithSettings(const Dictionary *settings);
 
+		VulkanInstance *GetInstance() const { return _instance; }
+
 	private:
 		VulkanRendererDescriptor();
 
