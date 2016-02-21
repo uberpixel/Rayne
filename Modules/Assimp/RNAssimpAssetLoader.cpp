@@ -123,7 +123,7 @@ namespace RN
 					Model::LODStage *stage = model->AddLODStage(lodFactors[stageIndex]);
 					LoadAssimpLODStage(basePath, scene, stage);
 				}
-				catch(Exception &e)
+				catch(Exception &)
 				{
 					break;
 				}
@@ -207,12 +207,12 @@ namespace RN
 
 			indices = new uint8[size];
 
-			for(int face = 0; face < aimesh->mNumFaces; face ++)
+			for(uint32 face = 0; face < aimesh->mNumFaces; face ++)
 			{
 				if(aimesh->mFaces[face].mNumIndices != 3)
 					continue;
 
-				for(int ind = 0; ind < aimesh->mFaces[face].mNumIndices; ind ++)
+				for(uint32 ind = 0; ind < aimesh->mFaces[face].mNumIndices; ind ++)
 				{
 					switch(indicesType)
 					{
@@ -251,7 +251,7 @@ namespace RN
 			Mesh::Chunk chunk = mesh->GetChunk();
 			Mesh::ElementIterator<Vector4> it = chunk.GetIterator<Vector4>(Mesh::VertexAttribute::Feature::Tangents);
 
-			for(int ind = 0; ind < aimesh->mNumVertices; ind++)
+			for(uint32 ind = 0; ind < aimesh->mNumVertices; ind++)
 			{
 				Vector4 tangent(aimesh->mTangents[ind].x, aimesh->mTangents[ind].y, aimesh->mTangents[ind].z, 0.0f);
 				Vector3 normal(aimesh->mNormals[ind].x, aimesh->mNormals[ind].y, aimesh->mNormals[ind].z);
