@@ -52,14 +52,23 @@ namespace RN
 		base->AppendPathExtension(RNCSTR("so"));
 #endif
 
-#if RN_PLATFORM_POSIX || RN_COMPILER_MINGW
+		Array *paths = new Array();
+
+		paths->AddObject(basePath->StringByAppendingPathComponent(base));
 		base->Insert(RNCSTR("lib"), 0);
-#endif
+		paths->AddObject(basePath->StringByAppendingPathComponent(base));
 
-		base = basePath->StringByAppendingPathComponent(base);
+		paths->Autorelease();
+
+		paths->Enumerate<String>([&](String *path, size_t index, bool &stop) {
+
+			_path = coordinator->ResolveFullPath(path, 0);
+			if(_path)
+				stop = true;
+
+		});
 
 
-		_path = coordinator->ResolveFullPath(base, 0);
 		if(!_path)
 			throw InvalidArgumentException(RNSTR("Couldn't resolve module name: " << name));
 
@@ -241,7 +250,7 @@ namespace RN
 
 	const String *Module::GetDescription() const
 	{
-		return RNSTR("<RN::Module:" << (void *)this << " " << GetIdentifier() << ">");
+		return RNSTR("<RN::Module:" << (void *)this << "> (" << GetName() << ", " << GetIdentifier() << ")");
 	}
 
 	const String *Module::GetPathForResource(const String *resource)
