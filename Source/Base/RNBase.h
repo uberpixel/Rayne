@@ -116,11 +116,11 @@
 	}
 
 #define RNVersionMake(major, minor, patch) \
-	((RN::uint32)((major << 22) | (minor << 12) | patch))
+	((RN::uint32)(((major & 0x7ff) << 21) | ((minor & 0x7ff) << 10) | (patch & 0x3ff)))
 
-#define RNVersionGetMajor(version) ((RN::uint32)(version) >> 22)
-#define RNVersionGetMinor(version) (((RN::uint32)(version) >> 12) & 0x3ff)
-#define RNVersionGetPatch(version) ((RN::uint32)(version) & 0xfff)
+#define RNVersionGetMajor(version) ((RN::uint32)(version) >> 21)
+#define RNVersionGetMinor(version) (((RN::uint32)(version) >> 10) & 0x7ff)
+#define RNVersionGetPatch(version) ((RN::uint32)(version) & 0x3ff)
 
 namespace RN
 {
@@ -161,6 +161,9 @@ namespace RN
 	 * Returns the patch version of Rayne
 	 **/
 	RNAPI uint32 GetPatchVersion() RN_NOEXCEPT;
+
+	RNAPI String *GetVersionString(uint32 version);
+
 
 	typedef uint64 Tag;
 

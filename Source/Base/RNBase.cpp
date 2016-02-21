@@ -178,4 +178,13 @@ namespace RN
 	{
 		return kRNVersionPatch;
 	}
+	String *GetVersionString(uint32 version)
+	{
+		String *versionString = RNSTR(RNVersionGetMajor(version) << "." << RNVersionGetMinor(version));
+
+		if(RNVersionGetPatch(version) > 0)
+			versionString->Append(RNSTR("." << RNVersionGetPatch(version)));
+
+		return versionString;
+	}
 }

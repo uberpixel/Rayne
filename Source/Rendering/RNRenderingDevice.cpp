@@ -29,8 +29,8 @@ namespace RN
 
 	const String *RenderingDevice::GetDescription() const
 	{
-		String *apiString = RNSTR(RNVersionGetMajor(_apiVersion) << "." << RNVersionGetMinor(_apiVersion) << "." << RNVersionGetPatch(_apiVersion));
-		String *driverString = RNSTR(RNVersionGetMajor(_driverVersion) << "." << RNVersionGetMinor(_driverVersion) << "." << RNVersionGetPatch(_driverVersion));
+		String *apiString = GetVersionString(_apiVersion);
+		String *driverString = GetVersionString(_driverVersion);
 
 		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << "> (" << _name << " (Vendor: " << std::hex << _vendorID << "), " << "API: " << apiString << ", Driver: " << driverString << ")");
 	}
