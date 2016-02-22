@@ -12,6 +12,7 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
         Sources/RNMetalDevice.cpp
+        Sources/RNMetalFramebuffer.cpp
         Sources/RNMetalGPUBuffer.cpp
         Sources/RNMetalInternals.cpp
         Sources/RNMetalRenderer.cpp
@@ -30,6 +31,7 @@ set(RESOURCES
 set(HEADERS
         Sources/RNMetal.h
         Sources/RNMetalDevice.h
+        Sources/RNMetalFramebuffer.h
         Sources/RNMetalGPUBuffer.h
         Sources/RNMetalInternals.h
         Sources/RNMetalRenderer.h

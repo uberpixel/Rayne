@@ -20,33 +20,35 @@ namespace RN
 	class VulkanRenderer : public Renderer
 	{
 	public:
-		VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
+		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 
-		Window *CreateAWindow(const Vector2 &size, Screen *screen) override;
-		Window *GetMainWindow() override;
+		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		VKAPI Window *GetMainWindow() final;
 
-		void RenderIntoWindow(Window *window, Function &&function) override;
-		void RenderIntoCamera(Camera *camera, Function &&function) override;
+		VKAPI void RenderIntoWindow(Window *window, Function &&function) final;
+		VKAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
 
-		bool SupportsTextureFormat(const String *format) const override;
-		bool SupportsDrawMode(DrawMode mode) const override;
+		VKAPI bool SupportsTextureFormat(const String *format) const final;
+		VKAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		size_t GetAlignmentForType(PrimitiveType type) const override;
-		size_t GetSizeForType(PrimitiveType type) const override;
-		const String *GetTextureFormatName(const Texture::Format format) const override;
+		VKAPI size_t GetAlignmentForType(PrimitiveType type) const final;
+		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
+		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 
-		GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) override;
-		GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) override;
+		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
+		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
 
-		ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) override;
-		ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) override;
+		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
+		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
 
-		ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) override;
+		VKAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
 
-		Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) override;
+		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		Drawable *CreateDrawable() override;
-		void SubmitDrawable(Drawable *drawable) override;
+		VKAPI Framebuffer *CreateFramebuffer(const Framebuffer::Descriptor &descriptor) final;
+
+		VKAPI Drawable *CreateDrawable() final;
+		VKAPI void SubmitDrawable(Drawable *drawable) final;
 
 		VulkanDevice *GetVulkanDevice() { return static_cast<VulkanDevice *>(GetDevice()); }
 		VulkanInstance *GetVulkanInstance() { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
