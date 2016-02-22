@@ -22,22 +22,38 @@ namespace RN
 		RN_OPTIONS(Options, uint32,
 				PrivateStorage = (1 << 0));
 
-		RNAPI Framebuffer(const Vector2 &size, Options options, Texture::Format colorFormat, Texture::Format depthFormat = Texture::Format::Invalid, Texture::Format stencilFormat = Texture::Format::Invalid);
+		struct Descriptor
+		{
+			Descriptor() :
+				options(0),
+				colorFormat(Texture::Format::RGBA8888),
+				depthFormat(Texture::Format::Invalid),
+				stencilFormat(Texture::Format::Invalid)
+			{}
 
-		Options GetOptions() const { return _options; }
+			Descriptor(const Descriptor &) = default;
+			Descriptor &operator =(const Descriptor &) = default;
+
+			Options options;
+			Texture::Format colorFormat;
+			Texture::Format depthFormat;
+			Texture::Format stencilFormat;
+		};
+
+		const Descriptor &GetDescriptor() const { return _descriptor; }
 		const Vector2 &GetSize() const { return _size; }
 
-		RNAPI Texture *GetColorTexture() const;
-		RNAPI Texture *GetDepthTexture() const;
-		RNAPI Texture *GetStencilTexture() const;
+		RNAPI virtual Texture *GetColorTexture() const = 0;
+		RNAPI virtual Texture *GetDepthTexture() const = 0;
+		RNAPI virtual Texture *GetStencilTexture() const = 0;
+
+	protected:
+		RNAPI Framebuffer(const Vector2 &size, const Descriptor &descriptor);
+		RNAPI ~Framebuffer();
 
 	private:
 		Vector2 _size;
-		Options _options;
-
-		Texture *_colorTexture;
-		Texture *_depthTexture;
-		Texture *_stencilTexture;
+		Descriptor _descriptor;
 
 		__RNDeclareMetaInternal(Framebuffer)
 	};
