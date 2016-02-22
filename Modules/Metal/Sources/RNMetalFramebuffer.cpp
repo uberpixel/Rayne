@@ -18,7 +18,7 @@ namespace RN
 		_depthTexture(nullptr),
 		_stencilTexture(nullptr)
 	{
-		if(descripotr.options & Options::PrivateStorage)
+		if(descriptor.options & Options::PrivateStorage)
 		{
 			Renderer *renderer = Renderer::GetActiveRenderer();
 
@@ -51,7 +51,7 @@ namespace RN
 
 				_depthTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 
-				if(stencilFormat == depthFormat)
+				if(descriptor.stencilFormat == descriptor.depthFormat)
 					_stencilTexture = _depthTexture->Retain();
 			}
 
@@ -87,7 +87,7 @@ namespace RN
 
 	Texture *MetalFramebuffer::GetColorTexture() const
 	{
-		if(_options & Options::PrivateStorage)
+		if(GetDescriptor().options & Options::PrivateStorage)
 			return _colorTexture;
 
 		throw InvalidCallException("GetColorTexture() can only be called on private storage framebuffer");
@@ -95,7 +95,7 @@ namespace RN
 
 	Texture *MetalFramebuffer::GetDepthTexture() const
 	{
-		if(_options & Options::PrivateStorage)
+		if(GetDescriptor().options & Options::PrivateStorage)
 			return _depthTexture;
 
 		throw InvalidCallException("GetDepthTexture() can only be called on private storage framebuffer");
@@ -103,7 +103,7 @@ namespace RN
 
 	Texture *MetalFramebuffer::GetStencilTexture() const
 	{
-		if(_options & Options::PrivateStorage)
+		if(GetDescriptor().options & Options::PrivateStorage)
 			return _stencilTexture;
 
 		throw InvalidCallException("GetStencilTexture() can only be called on private storage framebuffer");

@@ -56,6 +56,8 @@ namespace RN
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
+		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+
 		MTLAPI Drawable *CreateDrawable() final;
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
 

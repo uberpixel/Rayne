@@ -9,6 +9,7 @@
 #import <Metal/Metal.h>
 #include "RNMetalInternals.h"
 #include "RNMetalTexture.h"
+#include "RNMetalFramebuffer.h"
 
 @implementation RNMetalView
 	{
@@ -42,9 +43,15 @@
 		[self setWantsLayer:YES];
 		[self setLayer:_layer];
 
+		RN::Vector2 size = RN::Vector2(frameRect.size.width * 2.0f, frameRect.size.height * 2.0f);
+		RN::MetalFramebuffer::Descriptor descriptor;
+		descriptor.options = RN::Framebuffer::Options::PrivateStorage;
+		descriptor.colorFormat = RN::Texture::Format::Invalid;
+		descriptor.depthFormat = RN::Texture::Format::Depth24I;
+
 		for(size_t i = 0; i < 3; i ++)
 		{
-			_depthbuffer[i] = new RN::Framebuffer(RN::Vector2(frameRect.size.width * 2.0f, frameRect.size.height * 2.0f), RN::Framebuffer::Options::PrivateStorage, RN::Texture::Format::Invalid, RN::Texture::Format::Depth24I, RN::Texture::Format::Invalid);
+			_depthbuffer[i] = new RN::MetalFramebuffer(size, descriptor);
 		}
 	}
 

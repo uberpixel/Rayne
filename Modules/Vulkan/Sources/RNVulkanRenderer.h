@@ -45,7 +45,7 @@ namespace RN
 
 		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		VKAPI Framebuffer *CreateFramebuffer(const Framebuffer::Descriptor &descriptor) final;
+		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
 
 		VKAPI Drawable *CreateDrawable() final;
 		VKAPI void SubmitDrawable(Drawable *drawable) final;

@@ -24,6 +24,10 @@ namespace RN
 		MTLAPI Texture *GetStencilTexture() const final;
 
 	private:
+		Texture *_colorTexture;
+		Texture *_depthTexture;
+		Texture *_stencilTexture;
+
 		RNDeclareMetaAPI(MetalFramebuffer, MTLAPI)
 	};
 }

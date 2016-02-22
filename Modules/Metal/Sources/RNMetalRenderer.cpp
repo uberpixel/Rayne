@@ -15,6 +15,7 @@
 #include "RNMetalUniformBuffer.h"
 #include "RNMetalDevice.h"
 #include "RNMetalRendererDescriptor.h"
+#include "RNMetalFramebuffer.h"
 
 namespace RN
 {
@@ -502,6 +503,11 @@ namespace RN
 		[metalDescriptor release];
 
 		return new MetalTexture(this, &_internals->stateCoordinator, texture, descriptor);
+	}
+
+	Framebuffer *MetalRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
+	{
+		return new MetalFramebuffer(size, descriptor);
 	}
 
 	Drawable *MetalRenderer::CreateDrawable()

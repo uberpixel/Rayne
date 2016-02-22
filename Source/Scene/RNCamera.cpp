@@ -14,14 +14,14 @@ namespace RN
 {
 	RNDefineMeta(Camera, SceneNode)
 
-	static Framebuffer *CreateFramebuffer()
+	static Framebuffer *CreateFramebuffer(const Vector2 &size)
 	{
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
 		descriptor.colorFormat = Texture::Format::RGBA8888;
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->CreateFramebuffer(descriptor);
+		return renderer->CreateFramebuffer(size, descriptor);
 	}
 
 	Camera::Camera() :
@@ -34,7 +34,7 @@ namespace RN
 	}
 
 	Camera::Camera(const Vector2 &size) :
-		_framebuffer(CreateFramebuffer()),
+		_framebuffer(CreateFramebuffer(size)),
 		_cameraSceneEntry(this),
 		_window(nullptr),
 		_flags(0)

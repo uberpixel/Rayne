@@ -96,7 +96,7 @@ namespace RN
 		return nullptr;
 	}
 
-	Framebuffer *VulkanRenderer::CreateFramebuffer(const Framebuffer::Descriptor &descriptor)
+	Framebuffer *VulkanRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
 	{
 		return nullptr;
 	}
