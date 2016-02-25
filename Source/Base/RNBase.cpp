@@ -148,16 +148,11 @@ namespace RN
 		va_end(args);
 
 
-		/*{
-			Log::Loggable loggable(Log::Level::Error);
-
-			loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
-			loggable << "Reason: " << reason;
+		{
+			RNError("Assertion '" << expression << "' failed in '" << func << "', " << file << ":" << line);
+			RNError("Reason: " << reason);
 		}
 
-		Log::Logger::GetSharedInstance()->Flush(true);
-
-		delete Log::Logger::GetSharedInstance(); // Try to get a cleanly flushed log*/
 		abort();
 	}
 
