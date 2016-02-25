@@ -13,6 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
+#import "../Modules/RNExtensionPoint.h"
 #include "RNRenderingDevice.h"
 
 namespace RN
@@ -21,6 +22,10 @@ namespace RN
 	class RendererDescriptor : public Object
 	{
 	public:
+		friend class Kernel;
+
+		RNAPI static ExtensionPoint<RendererDescriptor> *GetExtensionPoint();
+
 		RNAPI ~RendererDescriptor();
 
 		RNAPI virtual Renderer *CreateRenderer(RenderingDevice *device) = 0;
@@ -33,12 +38,27 @@ namespace RN
 		const String *GetIdentifier() const { return _identifier; }
 		const String *GetAPI() const { return _api; }
 
+		RNAPI static Array *GetRenderers();
+		RNAPI static Array *GetAvailableRenderers();
+
+		RNAPI static RendererDescriptor *GetPreferredRenderer();
+		RNAPI static RendererDescriptor *GetRendererWithIdentifier(const String *identifier);
+
 	protected:
 		RNAPI RendererDescriptor(const String *identifier, const String *api);
 
 	private:
+		static Dictionary *GetSettings();
+		static Dictionary *GetParameters();
+
+		static RendererDescriptor *__GetRendererWithIdentifier(const String *identifier);
+		static Renderer *ActivateRenderer(RendererDescriptor *descriptor);
+
+		void __PrepareWithSettings(const Dictionary *settings);
+
 		String *_identifier;
 		String *_api;
+		bool _isPrepared;
 
 		__RNDeclareMetaInternal(RendererDescriptor)
 	};

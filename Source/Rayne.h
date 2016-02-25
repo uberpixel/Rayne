@@ -45,6 +45,7 @@
 #include "Math/RNSphere.h"
 #include "Math/RNVector.h"
 
+#include "Modules/RNExtensionPoint.h"
 #include "Modules/RNModule.h"
 #include "Modules/RNModuleManager.h"
 
@@ -73,7 +74,6 @@
 #include "Rendering/RNModel.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRendererDescriptor.h"
-#include "Rendering/RNRendererManager.h"
 #include "Rendering/RNRenderingDevice.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"

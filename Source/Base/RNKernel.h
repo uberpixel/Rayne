@@ -21,7 +21,6 @@
 #include "../Modules/RNModuleManager.h"
 #include "../System/RNFileCoordinator.h"
 #include "../Rendering/RNRenderer.h"
-#include "../Rendering/RNRendererManager.h"
 #include "../Scene/RNSceneManager.h"
 #include "../Threads/RNThread.h"
 #include "../Threads/RNRunLoop.h"
@@ -86,7 +85,6 @@ namespace RN
 		SceneManager *_sceneManager;
 		AssetManager *_assetManager;
 		ModuleManager *_moduleManager;
-		RendererManager *_rendererManager;
 		InputManager *_inputManager;
 
 		Thread *_mainThread;

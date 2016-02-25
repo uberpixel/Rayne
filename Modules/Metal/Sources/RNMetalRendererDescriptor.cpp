@@ -20,7 +20,7 @@ namespace RN
 		if(meta == MetalRendererDescriptor::GetMetaClass())
 		{
 			MetalRendererDescriptor *descriptor = new MetalRendererDescriptor();
-			RendererManager::GetSharedInstance()->AddDescriptor(descriptor);
+			GetExtensionPoint()->AddExtension(descriptor, 0);
 			descriptor->Release();
 		}
 	}

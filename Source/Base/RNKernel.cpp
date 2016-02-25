@@ -10,8 +10,7 @@
 #include "RNBaseInternal.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
-#include "../System/RNScreen.h"
-#include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNRendererDescriptor.h"
 
 namespace RN
 {
@@ -54,6 +53,7 @@ namespace RN
 			AutoreleasePool pool; // Wrap everyting into an autorelease pool from now on
 
 			Screen::InitializeScreens();
+			__ExtensionPointBase::InitializeExtensionPoints();
 
 			_fileManager = new FileCoordinator();
 			_firstFrame = true;
@@ -71,7 +71,6 @@ namespace RN
 			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
 			_logger->__LoadDefaultLoggers();
 
-			_rendererManager = new RendererManager();
 			_assetManager = new AssetManager();
 			_sceneManager = new SceneManager();
 			_inputManager = new InputManager();
@@ -89,11 +88,11 @@ namespace RN
 
 				if(!descriptor)
 				{
-					descriptor = _rendererManager->GetPreferredRenderer();
+					descriptor = RendererDescriptor::GetPreferredRenderer();
 
 					if(!descriptor)
 					{
-						Array *renderers = _rendererManager->GetAvailableRenderers();
+						Array *renderers = RendererDescriptor::GetAvailableRenderers();
 
 						if(renderers->GetCount() > 0)
 							descriptor = renderers->GetObjectAtIndex<RendererDescriptor>(0);
@@ -104,7 +103,7 @@ namespace RN
 				{
 					try
 					{
-						_renderer = _rendererManager->ActivateRenderer(descriptor);
+						_renderer = RendererDescriptor::ActivateRenderer(descriptor);
 					}
 					catch(Exception &e)
 					{
@@ -190,10 +189,11 @@ namespace RN
 		delete _sceneManager;
 		delete _inputManager;
 		delete _moduleManager;
-		delete _rendererManager;
 
 		_logger->Flush();
 		delete _logger;
+
+		__ExtensionPointBase::TeardownExtensionPoints();
 
 		delete this;
 		__sharedInstance = nullptr;

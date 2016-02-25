@@ -34,6 +34,7 @@ set(RAYNE_SOURCES
     Input/RNInputManager.cpp
     Math/RNMath.cpp
     Math/RNRandom.cpp
+    Modules/RNExtensionPoint.cpp
     Modules/RNModule.cpp
     Modules/RNModuleManager.cpp
     Objects/RNCatalogue.cpp
@@ -64,7 +65,6 @@ set(RAYNE_SOURCES
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
     Rendering/RNRenderer.cpp
-    Rendering/RNRendererManager.cpp
     Rendering/RNRendererDescriptor.cpp
     Rendering/RNRenderingDevice.cpp
     Rendering/RNShader.cpp
@@ -133,6 +133,7 @@ set(RAYNE_HEADERS
     Math/RNSIMD.h
     Math/RNSphere.h
     Math/RNVector.h
+    Modules/RNExtensionPoint.h
     Modules/RNModule.h
     Modules/RNModuleManager.h
     Objects/RNArray.h
@@ -162,7 +163,6 @@ set(RAYNE_HEADERS
     Rendering/RNMesh.h
     Rendering/RNModel.h
     Rendering/RNRenderer.h
-    Rendering/RNRendererManager.h
     Rendering/RNRendererDescriptor.h
     Rendering/RNRendererTypes.h
     Rendering/RNRenderingDevice.h

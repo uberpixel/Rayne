@@ -8,6 +8,7 @@
 
 #include "RNApplication.h"
 #include "RNKernel.h"
+#include "../Rendering/RNRenderingDevice.h"
 
 namespace RN
 {
