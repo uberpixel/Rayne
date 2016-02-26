@@ -13,7 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNString.h"
-#import "../Modules/RNExtensionPoint.h"
+#include "../Modules/RNExtensionPoint.h"
 #include "RNRenderingDevice.h"
 
 namespace RN

@@ -17,7 +17,7 @@
 
 namespace RN
 {
-	class __ExtensionPointBase
+	class __ExtensionPointBase : public Object
 	{
 	public:
 		friend class Kernel;

@@ -7,42 +7,62 @@
 //
 
 #include "RNExtensionPoint.h"
+#include "../Objects/RNDictionary.h"
 
 namespace RN
 {
 	static SpinLock __pointLock;
-	static std::unordered_map<std::string, __ExtensionPointBase *> __pointStorage;
+	static Dictionary *__pointStorage = nullptr;
+
+	static void InstallStorage()
+	{
+		if(RN_EXPECT_FALSE(!__pointStorage))
+			__pointStorage = new Dictionary();
+	}
+
+
 
 	void __ExtensionPointBase::InitializeExtensionPoints()
 	{
-		__pointStorage.clear();
+		InstallStorage();
 	}
 	void __ExtensionPointBase::TeardownExtensionPoints()
 	{
-		__pointStorage.clear();
+		SafeRelease(__pointStorage);
 	}
-
 
 	void __ExtensionPointBase::InstallExtensionPoint(__ExtensionPointBase *point)
 	{
 		LockGuard<SpinLock> lock(__pointLock);
-		__pointStorage.emplace(point->GetName(), point);
+
+		InstallStorage();
+
+		String *name = new String(point->GetName().c_str());
+		__pointStorage->SetObjectForKey(point, name);
+		name->Release();
 	}
 
 	void __ExtensionPointBase::RemoveExtensionPoint(__ExtensionPointBase *point)
 	{
 		LockGuard<SpinLock> lock(__pointLock);
-		auto iterator = __pointStorage.find(point->GetName());
 
-		if(iterator != __pointStorage.end() && iterator->second == point)
-			__pointStorage.erase(iterator);
+		InstallStorage();
+
+		String *name = new String(point->GetName().c_str());
+		__pointStorage->RemoveObjectForKey(name);
+		name->Release();
 	}
 
-	__ExtensionPointBase *__ExtensionPointBase::GetExtensionPoint(const std::string &name)
+	__ExtensionPointBase *__ExtensionPointBase::GetExtensionPoint(const std::string &tname)
 	{
 		LockGuard<SpinLock> lock(__pointLock);
-		auto iterator = __pointStorage.find(name);
 
-		return (iterator == __pointStorage.end()) ? nullptr : iterator->second;
+		InstallStorage();
+
+		String *name = new String(tname.c_str());
+		__ExtensionPointBase *result = static_cast<__ExtensionPointBase *>(__pointStorage->GetObjectForKey(name));
+		name->Release();
+
+		return result;
 	}
 }

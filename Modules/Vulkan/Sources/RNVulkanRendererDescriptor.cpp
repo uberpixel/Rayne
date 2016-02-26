@@ -20,7 +20,7 @@ namespace RN
 		if(meta == VulkanRendererDescriptor::GetMetaClass())
 		{
 			VulkanRendererDescriptor *descriptor = new VulkanRendererDescriptor();
-			RendererManager::GetSharedInstance()->AddDescriptor(descriptor);
+			GetExtensionPoint()->AddExtension(descriptor, 0);
 			descriptor->Release();
 		}
 	}
