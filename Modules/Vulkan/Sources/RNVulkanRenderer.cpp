@@ -18,14 +18,14 @@ namespace RN
 	VulkanRenderer::VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device) :
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
-		_textureFormatLookup(new Dictionary())
+		_textureFormatLookup(new Dictionary()),
+		_currentFrame(0)
 	{
-		vk::GetDeviceQueue(device->GetDevice(), device->GetGameQueue(), 0, &_gameQueue);
-		vk::GetDeviceQueue(device->GetDevice(), device->GetPresentQueue(), 0, &_presentQueue);
+		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		cmdPoolInfo.queueFamilyIndex = device->GetGameQueue();
+		cmdPoolInfo.queueFamilyIndex = device->GetWorkQueue();
 		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
@@ -121,8 +121,8 @@ namespace RN
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &_commandBuffer;
 
-		RNVulkanValidate(vk::QueueSubmit(_gameQueue, 1, &submitInfo, VK_NULL_HANDLE));
-		RNVulkanValidate(vk::QueueWaitIdle(_gameQueue));
+		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+		RNVulkanValidate(vk::QueueWaitIdle(_workQueue));
 
 		VkCommandBufferBeginInfo cmdBufInfo = {};
 		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -154,12 +154,10 @@ namespace RN
 		window->PresentBackBuffer();
 
 		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
+		_currentFrame ++;
 	}
 	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
-		function();
-		return;
-
 		VulkanFramebuffer *framebuffer = static_cast<VulkanFramebuffer *>(camera->GetFramebuffer());
 		Vector2 size = _mainWindow->GetSize();
 
@@ -172,7 +170,7 @@ namespace RN
 		RNVulkanValidate(vk::BeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
 
-		VkClearValue clearValues[2];
+		/*VkClearValue clearValues[2];
 		clearValues[0].color = { 0.0f, 0.5f, 0.9f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
@@ -206,11 +204,11 @@ namespace RN
 		scissor.offset.x = 0;
 		scissor.offset.y = 0;
 
-		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
+		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);*/
 
 		function();
 
-		vk::CmdEndRenderPass(commandBuffer);
+		//vk::CmdEndRenderPass(commandBuffer);
 
 		// Add a present memory barrier to the end of the command buffer
 		// This will transform the frame buffer color attachment to a
@@ -230,7 +228,12 @@ namespace RN
 		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
 		vk::EndCommandBuffer(commandBuffer);
 
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
 
+		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
 		VkImageMemoryBarrier postPresentBarrier = {};
 		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

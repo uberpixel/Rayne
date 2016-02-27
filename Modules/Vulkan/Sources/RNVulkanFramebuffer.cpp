@@ -131,15 +131,15 @@ namespace RN
 
 	Texture *VulkanFramebuffer::GetColorTexture() const
 	{
-		return nullptr;
+		return _framebuffers[0]->colorTexture;
 	}
 	Texture *VulkanFramebuffer::GetDepthTexture() const
 	{
-		return nullptr;
+		return _framebuffers[0]->depthTexture;
 	}
 	Texture *VulkanFramebuffer::GetStencilTexture() const
 	{
-		return nullptr;
+		return _framebuffers[0]->stencilTexture;
 	}
 
 	VkCommandBuffer VulkanFramebuffer::GetCommandBuffer() const

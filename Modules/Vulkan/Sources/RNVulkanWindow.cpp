@@ -45,18 +45,16 @@ namespace RN
 		RECT windowRect = { 0, 0, static_cast<LONG>(size.x), static_cast<LONG>(size.y) };
 		::AdjustWindowRect(&windowRect, style, FALSE);
 
-		_hwnd = ::CreateWindowExW(0, L"RNVulkanWindowClass", L"", style, 300, 300, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
+		Rect frame = screen->GetFrame();
+
+		Vector2 offset = Vector2(frame.width - (windowRect.right - windowRect.left), frame.height - (windowRect.bottom - windowRect.top));
+		offset *= 0.5;
+		offset.x += frame.x;
+		offset.y += frame.y;
+
+		_hwnd = ::CreateWindowExW(0, L"RNVulkanWindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 
 		::SetForegroundWindow(_hwnd);
-
-		// Create the back buffers
-		VkDevice device = renderer->GetVulkanDevice()->GetDevice();
-
-		for(size_t i = 0; i < kRNVulkanRenderStages; i ++)
-		{
-			VulkanBackBuffer *buffer = new VulkanBackBuffer(device);
-			_backBuffers.push(buffer);
-		}
 
 		// Create the swap chain
 		InitializeSurface();
@@ -115,7 +113,7 @@ namespace RN
 		if(_extents.width == extent.width && _extents.height == extent.height)
 			return;
 
-		uint32_t imageCount = std::max(caps.minImageCount, std::min(caps.maxImageCount, static_cast<uint32_t>(1)));
+		uint32_t imageCount = std::max(caps.minImageCount, std::min(caps.maxImageCount, static_cast<uint32_t>(kRNVulkanRenderStages)));
 
 		assert(caps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 		assert(caps.supportedTransforms & caps.currentTransform);
@@ -147,34 +145,28 @@ namespace RN
 		swapchainInfo.imageExtent = extent;
 		swapchainInfo.imageArrayLayers = 1;
 		swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		swapchainInfo.preTransform = caps.currentTransform;
 		swapchainInfo.compositeAlpha = compositeAlpha;
 		swapchainInfo.presentMode = mode;
 		swapchainInfo.clipped = VK_TRUE;
 		swapchainInfo.oldSwapchain = _swapchain;
 
-		std::vector<uint32_t> queueFamilies(1, device->GetGameQueue());
-		if(device->GetGameQueue() != device->GetPresentQueue())
-		{
-			queueFamilies.push_back(device->GetPresentQueue());
-
-			swapchainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-			swapchainInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilies.size());
-			swapchainInfo.pQueueFamilyIndices = queueFamilies.data();
-		}
-		else
-		{
-			swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		}
-
 		RNVulkanValidate(vk::CreateSwapchainKHR(device->GetDevice(), &swapchainInfo, nullptr, &_swapchain));
 		_extents = extent;
 
-		// destroy the old swapchain
+		// Destroy the old swapchain
 		if(swapchainInfo.oldSwapchain != VK_NULL_HANDLE)
 		{
 			RNVulkanValidate(vk::DeviceWaitIdle(device->GetDevice()));
 			vk::DestroySwapchainKHR(device->GetDevice(), swapchainInfo.oldSwapchain, nullptr);
+		}
+
+		// Create the swapchain
+		for(size_t i = 0; i < imageCount; i ++)
+		{
+			VulkanBackBuffer *buffer = new VulkanBackBuffer(device->GetDevice(), _swapchain);
+			_backBuffers.push(buffer);
 		}
 	}
 
@@ -182,24 +174,14 @@ namespace RN
 	{
 		_activeBackBuffer = _backBuffers.front();
 		_activeBackBuffer->WaitForPresentFence();
-		_activeBackBuffer->AcquireNextImage(_swapchain);
+		_activeBackBuffer->AcquireNextImage();
 
 		_backBuffers.pop();
 	}
 
 	void VulkanWindow::PresentBackBuffer()
 	{
-		VkPresentInfoKHR present_info = {};
-		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = _activeBackBuffer->GetRenderSemaphore();
-		present_info.swapchainCount = 1;
-		present_info.pSwapchains = &_swapchain;
-		present_info.pImageIndices = _activeBackBuffer->GetImageIndex();
-
-		RNVulkanValidate(vk::QueuePresentKHR(_renderer->GetPresentQueue(), &present_info));
-		RNVulkanValidate(vk::QueueSubmit(_renderer->GetPresentQueue(), 0, nullptr, _activeBackBuffer->GetPresentFence()));
-
+		_activeBackBuffer->Present(_renderer->GetWorkQueue());
 		_backBuffers.push(_activeBackBuffer);
 	}
 

@@ -23,27 +23,27 @@ namespace RN
 	{
 		if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 		{
-			RNError("[" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg);
+			RNError("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
 			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 		{
-			RNWarning("[" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg);
+			RNWarning("[" << pLayerPrefix << "] (" << (void *)srcObject <<  ") Code " << msgCode << ": " << pMsg);
 			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 		{
-			RNDebug("[" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg);
+			RNDebug("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
 			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 		{
-			RNWarning("(Perf) [" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg);
+			RNWarning("(Perf) [" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
 			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 		{
-			RNInfo("[" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg);
+			RNInfo("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
 			return VK_TRUE;
 		}
 

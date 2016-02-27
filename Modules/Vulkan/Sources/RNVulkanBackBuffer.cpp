@@ -10,8 +10,9 @@
 
 namespace RN
 {
-	VulkanBackBuffer::VulkanBackBuffer(VkDevice device) :
-		_device(device)
+	VulkanBackBuffer::VulkanBackBuffer(VkDevice device, VkSwapchainKHR swapchain) :
+		_device(device),
+		_swapchain(swapchain)
 	{
 		VkSemaphoreCreateInfo semaphore = {};
 		semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -38,8 +39,22 @@ namespace RN
 		RNVulkanValidate(vk::ResetFences(_device, 1, &_presentFence));
 	}
 
-	void VulkanBackBuffer::AcquireNextImage(VkSwapchainKHR swapchain)
+	void VulkanBackBuffer::AcquireNextImage()
 	{
-		RNVulkanValidate(vk::AcquireNextImageKHR(_device, swapchain, UINT64_MAX, _acquireSemaphore, VK_NULL_HANDLE, &_imageIndex));
+		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _acquireSemaphore, VK_NULL_HANDLE, &_imageIndex));
+	}
+
+	void VulkanBackBuffer::Present(VkQueue queue)
+	{
+		VkPresentInfoKHR present_info = {};
+		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		present_info.waitSemaphoreCount = 1;
+		present_info.pWaitSemaphores = &_renderSemaphore;
+		present_info.swapchainCount = 1;
+		present_info.pSwapchains = &_swapchain;
+		present_info.pImageIndices = &_imageIndex;
+
+		RNVulkanValidate(vk::QueuePresentKHR(queue, &present_info));
+		RNVulkanValidate(vk::QueueSubmit(queue, 0, nullptr, _presentFence));
 	}
 }

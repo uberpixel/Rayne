@@ -54,7 +54,7 @@ namespace RN
 		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }
 		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
 
-		VkQueue GetPresentQueue() const { return _presentQueue; }
+		VkQueue GetWorkQueue() const { return _workQueue; }
 		VkResult CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkResult CreateCommandBuffer(VkCommandBuffer &buffer);
 
@@ -68,11 +68,12 @@ namespace RN
 
 		Dictionary *_textureFormatLookup;
 
-		VkQueue _gameQueue;
-		VkQueue _presentQueue;
+		VkQueue _workQueue;
 
 		VkCommandPool _commandPool;
 		VkCommandBuffer _commandBuffer;
+
+		size_t _currentFrame;
 
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};
