@@ -21,7 +21,8 @@ namespace RN
 		_renderer(renderer),
 		_surface(VK_NULL_HANDLE),
 		_swapchain(VK_NULL_HANDLE),
-		_activeBackBuffer(nullptr)
+		_activeBackBuffer(nullptr),
+		_framebuffer(nullptr)
 	{
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
 
@@ -64,6 +65,7 @@ namespace RN
 	VulkanWindow::~VulkanWindow()
 	{
 		::DestroyWindow(_hwnd);
+		SafeRelease(_framebuffer);
 	}
 
 	void VulkanWindow::InitializeSurface()
@@ -168,6 +170,14 @@ namespace RN
 			VulkanBackBuffer *buffer = new VulkanBackBuffer(device->GetDevice(), _swapchain);
 			_backBuffers.push(buffer);
 		}
+
+		SafeRelease(_framebuffer);
+
+		Framebuffer::Descriptor descriptor;
+		descriptor.options = Framebuffer::Options::PrivateStorage;
+		descriptor.colorFormat = Texture::Format::RGBA8888;
+
+		_framebuffer = new VulkanFramebuffer(size, descriptor, _swapchain, _renderer);
 	}
 
 	void VulkanWindow::AcquireBackBuffer()

@@ -458,7 +458,6 @@ namespace RN
 			Vector2 size = _window->GetSize();
 
 			_aspect = size.x / size.y;
-			_framebuffer = CreateFramebuffer(size);
 		}
 		else
 		{

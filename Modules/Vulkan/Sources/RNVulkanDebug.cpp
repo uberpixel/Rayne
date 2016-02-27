@@ -77,13 +77,38 @@ namespace RN
 		return (result == VK_SUCCESS);
 	}
 
-	std::vector<const char *> DebugLayers()
+	std::vector<const char *> DebugInstanceLayers()
 	{
 		std::vector<const char *> layers;
 
 #if RN_VULKAN_ENABLE_VALIDATION
-		layers.push_back("VK_LAYER_LUNARG_threading");
+		//layers.push_back("VK_LAYER_RENDERDOC_Capture");
+		//layers.push_back("VK_LAYER_LUNARG_api_dump");
+
 		//layers.push_back("VK_LAYER_LUNARG_mem_tracker");
+		layers.push_back("VK_LAYER_LUNARG_threading");
+		layers.push_back("VK_LAYER_LUNARG_object_tracker");
+		layers.push_back("VK_LAYER_LUNARG_draw_state");
+		layers.push_back("VK_LAYER_LUNARG_param_checker");
+		layers.push_back("VK_LAYER_LUNARG_swapchain");
+		layers.push_back("VK_LAYER_LUNARG_device_limits");
+		layers.push_back("VK_LAYER_LUNARG_image");
+		layers.push_back("VK_LAYER_GOOGLE_unique_objects");
+#endif
+
+		return layers;
+	}
+
+	std::vector<const char *> DebugDeviceLayers()
+	{
+		std::vector<const char *> layers;
+
+#if RN_VULKAN_ENABLE_VALIDATION
+		//layers.push_back("VK_LAYER_RENDERDOC_Capture");
+		//layers.push_back("VK_LAYER_LUNARG_api_dump");
+
+		//layers.push_back("VK_LAYER_LUNARG_mem_tracker");
+		layers.push_back("VK_LAYER_LUNARG_threading");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");
 		layers.push_back("VK_LAYER_LUNARG_draw_state");
 		layers.push_back("VK_LAYER_LUNARG_param_checker");

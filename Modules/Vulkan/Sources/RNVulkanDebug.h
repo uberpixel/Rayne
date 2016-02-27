@@ -14,7 +14,9 @@
 namespace RN
 {
 	bool SetupVulkanDebugging(VkInstance instance);
-	std::vector<const char *> DebugLayers();
+
+	std::vector<const char *> DebugInstanceLayers();
+	std::vector<const char *> DebugDeviceLayers();
 }
 
 #endif /* __RAYNE_VULKANDEBUG_H_ */

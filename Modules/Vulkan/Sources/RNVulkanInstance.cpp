@@ -77,7 +77,7 @@ namespace RN
 		vk::init_dispatch_table_top(procAddr);
 
 		// TODO: Verify extensions
-		std::vector<const char *> layers = DebugLayers();
+		std::vector<const char *> layers = DebugInstanceLayers();
 
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;

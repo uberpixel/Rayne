@@ -156,7 +156,7 @@ namespace RN
 		queueInfo.pQueuePriorities = queuePriorities.data();
 
 
-		std::vector<const char *> layers = DebugLayers();
+		std::vector<const char *> layers = DebugDeviceLayers();
 
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

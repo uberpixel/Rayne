@@ -161,6 +161,9 @@ namespace RN
 		VulkanFramebuffer *framebuffer = static_cast<VulkanFramebuffer *>(camera->GetFramebuffer());
 		Vector2 size = _mainWindow->GetSize();
 
+		if(!framebuffer)
+			framebuffer = _mainWindow->GetFramebuffer();
+
 		VkCommandBuffer commandBuffer = framebuffer->GetCommandBuffer();
 
 		VkCommandBufferBeginInfo cmdBufInfo = {};

@@ -11,6 +11,7 @@
 
 #include "RNVulkan.h"
 #include "RNVulkanBackBuffer.h"
+#include "RNVulkanFramebuffer.h"
 
 namespace RN
 {
@@ -34,6 +35,7 @@ namespace RN
 		VKAPI void PresentBackBuffer();
 
 		VkSwapchainKHR GetSwapChain() const { return _swapchain; }
+		VulkanFramebuffer *GetFramebuffer() const { return _framebuffer; }
 
 	private:
 		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer);
@@ -46,6 +48,7 @@ namespace RN
 
 		std::queue<VulkanBackBuffer *> _backBuffers;
 		VulkanBackBuffer *_activeBackBuffer;
+		VulkanFramebuffer *_framebuffer;
 
 		VkSurfaceKHR _surface;
 		VkSurfaceFormatKHR _format;
