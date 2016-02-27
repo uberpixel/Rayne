@@ -25,6 +25,11 @@ namespace RN
 			Private
 		};
 
+		RNAPI ~GPUResource();
+
+	protected:
+		RNAPI GPUResource();
+
 		__RNDeclareMetaInternal(GPUResource)
 	};
 }

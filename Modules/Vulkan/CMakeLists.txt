@@ -31,25 +31,31 @@ generate_dispatch_table(RNVulkanDispatchTable.cpp)
 
 set(SOURCES
         Sources/RNVulkanBackBuffer.cpp
-        Sources/RNVulkanBuffer.cpp
+        Sources/RNVulkanDebug.cpp
         Sources/RNVulkanDevice.cpp
         Sources/RNVulkanDispatchTable.cpp
-        Sources/RNVulkanDispatchTable.h
+        Sources/RNVulkanDispatchTable.h # Required so the custom command triggers
+        Sources/RNVulkanFramebuffer.cpp
+        Sources/RNVulkanGPUBuffer.cpp
         Sources/RNVulkanInstance.cpp
         Sources/RNVulkanRenderer.cpp
         Sources/RNVulkanRendererDescriptor.cpp
+        Sources/RNVulkanTexture.cpp
         Sources/RNVulkanWindow.cpp
         Sources/RNVulkanInit.cpp)
 
 set(HEADERS
         Sources/RNVulkan.h
+        Sources/RNVulkanDebug.h
         Sources/RNVulkanBackBuffer.h
-        Sources/RNVulkanBuffer.h
         Sources/RNVulkanDevice.h
         Sources/RNVulkanDispatchTable.h
+        Sources/RNVulkanFramebuffer.h
+        Sources/RNVulkanGPUBuffer.h
         Sources/RNVulkanInstance.h
         Sources/RNVulkanRenderer.h
         Sources/RNVulkanRendererDescriptor.h
+        Sources/RNVulkanTexture.h
         Sources/RNVulkanWindow.h)
 
 set(RESOURCES

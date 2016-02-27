@@ -20,9 +20,9 @@ namespace RN
 		fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fence.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		vk::CreateSemaphore(device, &semaphore, nullptr, &_acquireSemaphore);
-		vk::CreateSemaphore(device, &semaphore, nullptr, &_renderSemaphore);
-		vk::CreateFence(device, &fence, nullptr, &_presentFence);
+		RNVulkanValidate(vk::CreateSemaphore(device, &semaphore, nullptr, &_acquireSemaphore));
+		RNVulkanValidate(vk::CreateSemaphore(device, &semaphore, nullptr, &_renderSemaphore));
+		RNVulkanValidate(vk::CreateFence(device, &fence, nullptr, &_presentFence));
 	}
 
 	VulkanBackBuffer::~VulkanBackBuffer()
@@ -34,12 +34,12 @@ namespace RN
 
 	void VulkanBackBuffer::WaitForPresentFence()
 	{
-		vk::WaitForFences(_device, 1, &_presentFence, VK_TRUE, UINT64_MAX);
-		vk::ResetFences(_device, 1, &_presentFence);
+		RNVulkanValidate(vk::WaitForFences(_device, 1, &_presentFence, VK_TRUE, UINT64_MAX));
+		RNVulkanValidate(vk::ResetFences(_device, 1, &_presentFence));
 	}
 
 	void VulkanBackBuffer::AcquireNextImage(VkSwapchainKHR swapchain)
 	{
-		vk::AcquireNextImageKHR(_device, swapchain, UINT64_MAX, _acquireSemaphore, VK_NULL_HANDLE, &_imageIndex);
+		RNVulkanValidate(vk::AcquireNextImageKHR(_device, swapchain, UINT64_MAX, _acquireSemaphore, VK_NULL_HANDLE, &_imageIndex));
 	}
 }

@@ -22,27 +22,30 @@ namespace RN
 	public:
 		enum class Format
 		{
-			Invalid,
-
 			RGBA8888,
 			RGB10A2,
 
 			R8,
 			RG88,
+			RGB888,
 
 			R16F,
 			RG16F,
+			RGB16F,
 			RGBA16F,
 
 			R32F,
 			RG32F,
+			RGB32F,
 			RGBA32F,
 
 			Depth24I,
 			Depth32F,
 			Stencil8,
 			Depth24Stencil8,
-			Depth32FStencil8
+			Depth32FStencil8,
+
+			Invalid
 		};
 
 		struct Descriptor
@@ -120,7 +123,7 @@ namespace RN
 			uint32 mipMaps;
 
 		private:
-			static const String *__TranslateFormat(Format format);
+			RNAPI static const String *__TranslateFormat(Format format);
 
 			String *_format;
 		};
@@ -224,6 +227,7 @@ namespace RN
 
 	protected:
 		RNAPI Texture(const Descriptor &descriptor);
+		RNAPI ~Texture();
 
 		Descriptor _descriptor;
 		Parameter _parameter;

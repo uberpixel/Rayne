@@ -17,20 +17,20 @@ namespace RN
 	class VulkanInstance
 	{
 	public:
-		VulkanInstance();
-		~VulkanInstance();
+		VKAPI VulkanInstance();
+		VKAPI ~VulkanInstance();
 
-		bool LoadVulkan();
+		VKAPI bool LoadVulkan();
 
 		Array *GetDevices() const { return _devices; }
 
 		VkInstance GetInstance() const { return _instance; }
 
-		VkResult EnumerateExtensions(const char *layer, std::vector<VkExtensionProperties> &extensions) const;
-		VkResult EnumerateDeviceExtensions(VkPhysicalDevice device, const char *layer, std::vector<VkExtensionProperties> &extensions) const;
+		VKAPI VkResult EnumerateExtensions(const char *layer, std::vector<VkExtensionProperties> &extensions) const;
+		VKAPI VkResult EnumerateDeviceExtensions(VkPhysicalDevice device, const char *layer, std::vector<VkExtensionProperties> &extensions) const;
 
-		VkResult EnumerateDevices(std::vector<VkPhysicalDevice> &devices) const;
-		VkResult EnumerateDevicesWithExtensions(std::vector<VkPhysicalDevice> &devices, const std::vector<const char *> &extensions) const;
+		VKAPI VkResult EnumerateDevices(std::vector<VkPhysicalDevice> &devices) const;
+		VKAPI VkResult EnumerateDevicesWithExtensions(std::vector<VkPhysicalDevice> &devices, const std::vector<const char *> &extensions) const;
 
 		const std::vector<const char *> &GetDeviceExtensions() { return _requiredDeviceExtensions; }
 

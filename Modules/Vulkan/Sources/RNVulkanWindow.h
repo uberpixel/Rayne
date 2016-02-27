@@ -9,11 +9,8 @@
 #ifndef __RAYNE_VULKANWINDOW_H_
 #define __RAYNE_VULKANWINDOW_H_
 
-#include <queue>
 #include "RNVulkan.h"
 #include "RNVulkanBackBuffer.h"
-
-#define kRNVulkanBackBufferCount 3
 
 namespace RN
 {
@@ -23,18 +20,20 @@ namespace RN
 	public:
 		friend class VulkanRenderer;
 
-		~VulkanWindow();
+		VKAPI ~VulkanWindow();
 
-		void SetTitle(const String *title) final;
-		Screen *GetScreen() final;
+		VKAPI void SetTitle(const String *title) final;
+		VKAPI Screen *GetScreen() final;
 
-		void Show() final;
-		void Hide() final;
+		VKAPI void Show() final;
+		VKAPI void Hide() final;
 
-		Vector2 GetSize() const final;
+		VKAPI Vector2 GetSize() const final;
 
-		void AcquireBackBuffer();
-		void PresentBackBuffer();
+		VKAPI void AcquireBackBuffer();
+		VKAPI void PresentBackBuffer();
+
+		VkSwapchainKHR GetSwapChain() const { return _swapchain; }
 
 	private:
 		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer);

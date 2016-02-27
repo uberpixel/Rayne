@@ -243,6 +243,7 @@ namespace RN
 #endif
 
 #define RNDefineMeta(cls, super) \
+	static_assert(std::is_base_of<super, cls>::value, "RNDefineMeta() with an invalid object inheritance"); \
 	__RNDeclareMetaPrivateWithTraits(cls, super, \
 		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitConstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
 		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \

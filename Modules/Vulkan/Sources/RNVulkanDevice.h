@@ -20,18 +20,21 @@ namespace RN
 	public:
 		friend class VulkanInstance;
 
-		bool CreateDevice(const std::vector<const char *> &extensions);
+		VKAPI bool CreateDevice(const std::vector<const char *> &extensions);
 		bool IsValidDevice() const { return (_gameQueue != kRNNotFound && _presentQueue != kRNNotFound); }
 
-		void GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues);
-		VkResult GetSurfaceFormats(VkSurfaceKHR surface, std::vector<VkSurfaceFormatKHR> &formats);
-		VkResult GetPresentModes(VkSurfaceKHR surface, std::vector<VkPresentModeKHR> &modes);
+		VKAPI void GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues);
+		VKAPI VkResult GetSurfaceFormats(VkSurfaceKHR surface, std::vector<VkSurfaceFormatKHR> &formats);
+		VKAPI VkResult GetPresentModes(VkSurfaceKHR surface, std::vector<VkPresentModeKHR> &modes);
 
 		VkDevice GetDevice() const { return _device; }
 		VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
 
 		uint32_t GetGameQueue() const { return static_cast<uint32_t>(_gameQueue); }
 		uint32_t GetPresentQueue() const { return static_cast<uint32_t>(_presentQueue); }
+
+		VKAPI VkBool32 GetMemoryWithType(uint32_t typeBits, VkFlags properties, uint32_t &typeIndex) const;
+		VKAPI size_t GetMemoryWithType(VkMemoryPropertyFlagBits required) const;
 
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);
@@ -44,6 +47,8 @@ namespace RN
 
 		size_t _gameQueue;
 		size_t _presentQueue;
+
+		VkPhysicalDeviceMemoryProperties _memoryProperties;
 
 		RNDeclareMetaAPI(VulkanDevice, VKAPI)
 	};

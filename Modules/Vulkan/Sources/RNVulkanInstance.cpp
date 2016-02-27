@@ -8,6 +8,7 @@
 
 #include "RNVulkanInstance.h"
 #include "RNVulkanDevice.h"
+#include "RNVulkanDebug.h"
 
 namespace RN
 {
@@ -18,6 +19,12 @@ namespace RN
 		_devices(nullptr)
 	{
 		_requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+		_requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+
+#if RN_VULKAN_ENABLE_VALIDATION
+		_requiredExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+#endif
+
 		_requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
@@ -70,6 +77,7 @@ namespace RN
 		vk::init_dispatch_table_top(procAddr);
 
 		// TODO: Verify extensions
+		std::vector<const char *> layers = DebugLayers();
 
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -77,13 +85,15 @@ namespace RN
 		appInfo.applicationVersion = 0;
 		appInfo.pEngineName = "Rayne";
 		appInfo.engineVersion = GetAPIVersion();
-		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 3);
 
 		VkInstanceCreateInfo instanceInfo = {};
 		instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceInfo.pApplicationInfo = &appInfo;
 		instanceInfo.enabledExtensionCount = static_cast<uint32_t>(_requiredExtensions.size());
 		instanceInfo.ppEnabledExtensionNames = _requiredExtensions.data();
+		instanceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+		instanceInfo.ppEnabledLayerNames = layers.data();
 
 		VkResult result = vk::CreateInstance(&instanceInfo, _allocationCallbacks, &_instance);
 		if(result != VK_SUCCESS)
@@ -95,6 +105,7 @@ namespace RN
 		}
 
 		vk::init_dispatch_table_middle(_instance, false);
+		SetupVulkanDebugging(_instance);
 
 		// Load the list of devices
 		{

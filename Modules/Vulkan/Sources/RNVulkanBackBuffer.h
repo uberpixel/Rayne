@@ -17,11 +17,11 @@ namespace RN
 	class VulkanBackBuffer
 	{
 	public:
-		VulkanBackBuffer(VkDevice device);
-		~VulkanBackBuffer();
+		VKAPI VulkanBackBuffer(VkDevice device);
+		VKAPI ~VulkanBackBuffer();
 
-		void WaitForPresentFence();
-		void AcquireNextImage(VkSwapchainKHR swapChain);
+		VKAPI 	void WaitForPresentFence();
+		VKAPI void AcquireNextImage(VkSwapchainKHR swapChain);
 
 		uint32_t *GetImageIndex() const { return const_cast<uint32_t *>(&_imageIndex); }
 		VkSemaphore *GetRenderSemaphore() const { return const_cast<VkSemaphore *>(&_renderSemaphore); }

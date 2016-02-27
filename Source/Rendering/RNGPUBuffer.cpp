@@ -12,6 +12,12 @@ namespace RN
 {
 	RNDefineMeta(GPUBuffer, GPUResource)
 
+	GPUBuffer::GPUBuffer()
+	{}
+
+	GPUBuffer::~GPUBuffer()
+	{}
+
 	void GPUBuffer::Invalidate()
 	{
 		InvalidateRange(Range(0, GetLength()));

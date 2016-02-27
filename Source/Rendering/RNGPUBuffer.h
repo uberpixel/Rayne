@@ -18,10 +18,14 @@ namespace RN
 	class GPUBuffer : public GPUResource
 	{
 	public:
+		RNAPI ~GPUBuffer();
 		RNAPI virtual void *GetBuffer() = 0;
 		RNAPI virtual void Invalidate();
 		RNAPI virtual void InvalidateRange(const Range &range) = 0;
 		RNAPI virtual size_t GetLength() const = 0;
+
+	protected:
+		RNAPI GPUBuffer();
 
 		__RNDeclareMetaInternal(GPUBuffer)
 	};

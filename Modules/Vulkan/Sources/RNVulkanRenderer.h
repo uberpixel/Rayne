@@ -34,6 +34,7 @@ namespace RN
 		VKAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
 		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
+		VKAPI VkFormat GetVulkanFormatForName(const String *name);
 
 		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
 		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
@@ -50,16 +51,28 @@ namespace RN
 		VKAPI Drawable *CreateDrawable() final;
 		VKAPI void SubmitDrawable(Drawable *drawable) final;
 
-		VulkanDevice *GetVulkanDevice() { return static_cast<VulkanDevice *>(GetDevice()); }
-		VulkanInstance *GetVulkanInstance() { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
+		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }
+		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
 
 		VkQueue GetPresentQueue() const { return _presentQueue; }
+		VkResult CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
+		VkResult CreateCommandBuffer(VkCommandBuffer &buffer);
+
+		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
+
+		VkCommandBuffer GetGlobalCommandBuffer() const { return _commandBuffer; }
+		void SubmitGlobalCommandBuffer();
 
 	private:
 		VulkanWindow *_mainWindow;
 
+		Dictionary *_textureFormatLookup;
+
 		VkQueue _gameQueue;
 		VkQueue _presentQueue;
+
+		VkCommandPool _commandPool;
+		VkCommandBuffer _commandBuffer;
 
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};

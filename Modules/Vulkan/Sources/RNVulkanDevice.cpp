@@ -7,6 +7,7 @@
 //
 
 #include "RNVulkanDevice.h"
+#include "RNVulkanDebug.h"
 
 namespace RN
 {
@@ -74,16 +75,18 @@ namespace RN
 			if(_presentQueue == kRNNotFound)
 			{
 #if RN_PLATFORM_WINDOWS
-				bool result = vk::GetPhysicalDeviceWin32PresentationSupportKHR(_physicalDevice, i);
+				bool result = (vk::GetPhysicalDeviceWin32PresentationSupportKHR(_physicalDevice, i) == VK_TRUE);
 #endif
 
 				if(result)
 					_presentQueue = i;
 			}
 
-			if(_gameQueue >= 0 && _presentQueue >= 0)
+			if(_gameQueue != kRNNotFound && _presentQueue != kRNNotFound)
 				break;
 		}
+
+		vk::GetPhysicalDeviceMemoryProperties(device, &_memoryProperties);
 	}
 
 	void VulkanDevice::GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues)
@@ -113,17 +116,54 @@ namespace RN
 		return vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, modes.data());
 	}
 
+	VkBool32 VulkanDevice::GetMemoryWithType(uint32_t typeBits, VkFlags properties, uint32_t &typeIndex) const
+	{
+		for(uint32_t i = 0; i < _memoryProperties.memoryTypeCount; i++)
+		{
+			if((typeBits & 1) == 1)
+			{
+				if((_memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+				{
+					typeIndex = i;
+
+					return VK_TRUE;
+				}
+			}
+
+			typeBits >>= 1;
+		}
+
+		return VK_FALSE;
+	}
+
+	size_t VulkanDevice::GetMemoryWithType(VkMemoryPropertyFlagBits required) const
+	{
+		for(size_t i = 0; i < _memoryProperties.memoryTypeCount; i ++)
+		{
+			uint32_t flags = _memoryProperties.memoryTypes[i].propertyFlags;
+
+			if((flags & required) == required)
+				return i;
+		}
+
+		return kRNNotFound;
+	}
+
 	bool VulkanDevice::CreateDevice(const std::vector<const char *> &extensions)
 	{
 		VkPhysicalDeviceFeatures features;
 		vk::GetPhysicalDeviceFeatures(_physicalDevice, &features);
 
 
+		std::vector<const char *> layers = DebugLayers();
+
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		deviceInfo.ppEnabledExtensionNames = extensions.data();
+		deviceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+		deviceInfo.ppEnabledLayerNames = layers.data();
 		deviceInfo.pEnabledFeatures = &features;
 
 
@@ -146,6 +186,9 @@ namespace RN
 
 		deviceInfo.pQueueCreateInfos = queueInfo.data();
 
-		return (vk::CreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device) == VK_SUCCESS);
+		VkResult result = vk::CreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device);
+		RNVulkanValidate(result);
+
+		return (result == VK_SUCCESS);
 	}
 }

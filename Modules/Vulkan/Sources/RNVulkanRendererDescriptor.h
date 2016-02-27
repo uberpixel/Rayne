@@ -17,10 +17,10 @@ namespace RN
 	class VulkanRendererDescriptor : public RendererDescriptor
 	{
 	public:
-		static void InitialWakeUp(MetaClass *meta);
+		VKAPI static void InitialWakeUp(MetaClass *meta);
 
-		Renderer *CreateRenderer(RenderingDevice *device) override;
-		bool CanCreateRenderer() const override;
+		VKAPI Renderer *CreateRenderer(RenderingDevice *device) override;
+		VKAPI bool CanCreateRenderer() const override;
 
 		const Array *GetDevices() const { return _instance->GetDevices(); }
 		void PrepareWithSettings(const Dictionary *settings);

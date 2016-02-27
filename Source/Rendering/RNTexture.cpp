@@ -22,6 +22,9 @@ namespace RN
 		_descriptor(descriptor)
 	{}
 
+	Texture::~Texture()
+	{}
+
 	Texture *Texture::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();

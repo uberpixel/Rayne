@@ -11,4 +11,10 @@
 namespace RN
 {
 	RNDefineMeta(GPUResource, Object)
+
+	GPUResource::GPUResource()
+	{}
+
+	GPUResource::~GPUResource()
+	{}
 }
