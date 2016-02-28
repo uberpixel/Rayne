@@ -555,6 +555,25 @@ namespace RN
 
 				return RNSTR(buffer);
 #endif
+#if RN_PLATFORM_LINUX
+				char buffer[PATH_MAX];
+				size_t size = PATH_MAX;
+				readlink("/proc/self/exe", buffer, size);
+
+				char *temp = buffer + strlen(buffer);
+				while(temp != buffer)
+				{
+					temp --;
+
+					if(*temp == '/' || *temp == '\\')
+					{
+						*temp = '\0';
+						break;
+					}
+				}
+
+				return RNSTR(buffer);
+#endif
 
 				break;
 			}
@@ -600,6 +619,25 @@ namespace RN
 
 				return RNSTR(buffer);
 #endif
+#if RN_PLATFORM_LINUX
+				char buffer[PATH_MAX];
+				size_t size = PATH_MAX;
+				readlink("/proc/self/exe", buffer, size);
+
+				char *temp = buffer + strlen(buffer);
+				while(temp != buffer)
+				{
+					temp --;
+
+					if(*temp == '/' || *temp == '\\')
+					{
+						*temp = '\0';
+						break;
+					}
+				}
+
+				return RNSTR(buffer);
+#endif
 
 				break;
 			}
@@ -626,6 +664,13 @@ namespace RN
 				String *path = RNSTR(tpath << "/" << application);
 
 				::CreateDirectory(path->GetUTF8String(), NULL);
+				return path;
+#endif
+#if RN_PLATFORM_LINUX
+				char *home = getenv("HOME");
+				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
+				String *path = RNSTR(home << "/." << application);
+				mkdir(path->GetUTF8String(), S_IRWXU);
 				return path;
 #endif
 				break;

@@ -11,8 +11,10 @@
 
 namespace RN
 {
+#if RN_PLATFORM_WINDOWS
 	static std::once_flag __windowClassToken;
 	static WNDCLASSEXW __windowClass;
+#endif
 
 	RNDefineMeta(VulkanWindow, Window);
 
@@ -24,6 +26,7 @@ namespace RN
 		_activeBackBuffer(nullptr),
 		_framebuffer(nullptr)
 	{
+#if RN_PLATFORM_WINDOWS
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
 
 		std::call_once(__windowClassToken, [&] {
@@ -56,6 +59,7 @@ namespace RN
 		_hwnd = ::CreateWindowExW(0, L"RNVulkanWindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 
 		::SetForegroundWindow(_hwnd);
+#endif
 
 		// Create the swap chain
 		InitializeSurface();
@@ -64,7 +68,10 @@ namespace RN
 
 	VulkanWindow::~VulkanWindow()
 	{
+#if RN_PLATFORM_WINDOWS
 		::DestroyWindow(_hwnd);
+#endif
+
 		SafeRelease(_framebuffer);
 	}
 
@@ -73,12 +80,14 @@ namespace RN
 		VulkanDevice *device = _renderer->GetVulkanDevice();
 		VulkanInstance *instance = _renderer->GetVulkanInstance();
 
+#if RN_PLATFORM_WINDOWS
 		VkWin32SurfaceCreateInfoKHR surfaceInfo = {};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.hinstance = ::GetModuleHandle(nullptr);
 		surfaceInfo.hwnd = _hwnd;
 
 		RNVulkanValidate(vk::CreateWin32SurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
+#endif
 
 		VkBool32 surfaceSupported;
 		vk::GetPhysicalDeviceSurfaceSupportKHR(device->GetPhysicalDevice(), 0, _surface, &surfaceSupported);
@@ -198,6 +207,7 @@ namespace RN
 
 	void VulkanWindow::SetTitle(const String *title)
 	{
+#if RN_PLATFORM_WINDOWS
 		char *text = title->GetUTF8String();
 		wchar_t *wtext = new wchar_t[strlen(text) + 1];
 		mbstowcs(wtext, text, strlen(text) + 1);//Plus null
@@ -206,10 +216,12 @@ namespace RN
 		::SetWindowTextW(_hwnd, ptr);
 
 		delete[] wtext;
+#endif
 	}
 
 	Screen *VulkanWindow::GetScreen()
 	{
+#if RN_PLATFORM_WINDOWS
 		HMONITOR monitor = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTOPRIMARY);
 
 		Screen *result = nullptr;
@@ -226,22 +238,33 @@ namespace RN
 		});
 
 		return result;
+#endif
+
+		return nullptr;
 	}
 
 	void VulkanWindow::Show()
 	{
+#if RN_PLATFORM_WINDOWS
 		::ShowWindow(_hwnd, SW_SHOW);
+#endif
 	}
 
 	void VulkanWindow::Hide()
 	{
+#if RN_PLATFORM_WINDOWS
 		::ShowWindow(_hwnd, SW_HIDE);
+#endif
 	}
 
 	Vector2 VulkanWindow::GetSize() const
 	{
+#if RN_PLATFORM_WINDOWS
 		RECT windowRect;
 		::GetClientRect(_hwnd, &windowRect);
 		return Vector2(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+#endif
+
+		return Vector2();
 	}
 }

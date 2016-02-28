@@ -14,12 +14,20 @@ namespace RN
 {
 	VulkanInstance::VulkanInstance() :
 		_instance(nullptr),
+#if RN_PLATFORM_WINDOWS
 		_module(nullptr),
+#endif
 		_allocationCallbacks(nullptr),
 		_devices(nullptr)
 	{
 		_requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
+#if RN_PLATFORM_WINDOWS
 		_requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#endif
+#if RN_PLATFORM_LINUX
+		_requiredExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#endif
 
 #if RN_VULKAN_ENABLE_VALIDATION
 		_requiredExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -33,8 +41,10 @@ namespace RN
 		if(_instance)
 			vk::DestroyInstance(_instance, _allocationCallbacks);
 
+#if RN_PLATFORM_WINDOWS
 		if(_module)
 			::FreeModule(_module);
+#endif
 
 		SafeRelease(_devices);
 	}
@@ -44,6 +54,7 @@ namespace RN
 		if(_instance)
 			return true;
 
+#if RN_PLATFORM_WINDOWS
 		if(!_module)
 		{
 			// Load the module and verify that we have vkGetInstanceProcAddr() available
@@ -75,6 +86,8 @@ namespace RN
 			procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(::GetProcAddress(_module, "vkGetInstanceProcAddr"));
 
 		vk::init_dispatch_table_top(procAddr);
+#endif
+
 
 		// TODO: Verify extensions
 		std::vector<const char *> layers = DebugInstanceLayers();

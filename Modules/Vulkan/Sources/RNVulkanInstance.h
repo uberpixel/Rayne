@@ -37,7 +37,10 @@ namespace RN
 	private:
 		bool DeviceSupportsExtensions(VkPhysicalDevice device, const std::vector<const char *> &extensions) const;
 
+#if RN_PLATFORM_WINDOWS
 		HMODULE _module;
+#endif
+
 		VkInstance _instance;
 		VkAllocationCallbacks *_allocationCallbacks;
 

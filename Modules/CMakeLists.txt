@@ -12,7 +12,7 @@ endif()
 if(MSVC AND BUILD_D3D12_MODULE)
 	add_subdirectory("D3D12")
 endif()
-if(WIN32 AND BUILD_VULKAN_MODULE)
+if(((WIN32 OR UNIX) AND NOT APPLE) AND BUILD_VULKAN_MODULE)
     add_subdirectory("Vulkan")
 endif()
 

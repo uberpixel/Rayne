@@ -124,10 +124,12 @@ namespace RN
 			}
 
 		}
-		catch(...)
+		catch(std::exception &blubb)
 		{
 			__sharedInstance = nullptr;
-			std::rethrow_exception(std::current_exception());
+
+			RNDebug(blubb.what());
+			throw blubb;
 		}
 	}
 

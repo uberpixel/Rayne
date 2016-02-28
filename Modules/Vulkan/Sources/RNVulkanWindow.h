@@ -43,7 +43,10 @@ namespace RN
 		void InitializeSurface();
 		void ResizeSwapchain(const Vector2 &size);
 
+#if RN_PLATFORM_WINDOWS
 		HWND _hwnd;
+#endif
+
 		VulkanRenderer *_renderer;
 
 		std::queue<VulkanBackBuffer *> _backBuffers;

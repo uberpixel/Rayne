@@ -71,6 +71,9 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 			bool result = (vk::GetPhysicalDeviceWin32PresentationSupportKHR(_physicalDevice, i) == VK_TRUE);
 #endif
+#if RN_PLATFORM_LINUX
+			bool result = false;//(vk::GetPhysicalDeviceXcbPresentationSupportKHR(_physicalDevice, i, connection, id) == VK_TRUE);
+#endif
 
 			if(result && (queue.queueFlags & flags) == flags)
 			{
