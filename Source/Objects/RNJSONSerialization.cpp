@@ -201,7 +201,7 @@ namespace RN
 				break;
 
 			case JSON_INTEGER:
-				data = new Number(json_integer_value(json));
+				data = new Number(static_cast<uint32>(json_integer_value(json)));
 				break;
 
 			case JSON_REAL:

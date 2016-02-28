@@ -82,7 +82,7 @@ set(RAYNE_SOURCES
     System/RNScreen.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
-    Threads/RNSpinlock.cpp
+    Threads/RNSpinLock.cpp
     Threads/RNWorkGroup.cpp
     Threads/RNWorkQueue.cpp
     Threads/RNWorkSource.cpp)
@@ -212,6 +212,12 @@ elseif(WIN32)
 
     set(RAYNE_PLATFORM_HEADERS_PRIVATE
             Input/RNInputWindows.h)
+elseif(UNIX)
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputLinux.cpp)
+
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputLinux.h)
 endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)

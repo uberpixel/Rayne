@@ -12,6 +12,8 @@
 #if RN_PLATFORM_WINDOWS
 	#include "../Base/RNUnistd.h"
 #elif RN_PLATFORM_POSIX
+	#include <unistd.h>
+	#include <fcntl.h>
 #define O_BINARY 0x0
 #endif
 

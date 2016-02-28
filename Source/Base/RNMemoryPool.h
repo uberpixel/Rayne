@@ -9,7 +9,7 @@
 #ifndef __RAYNE_MEMORYPOOL_H_
 #define __RAYNE_MEMORYPOOL_H_
 
-#include "../Threads/RNSpinlock.h"
+#include "../Threads/RNSpinLock.h"
 #include <vector>
 #include <list>
 #include <bitset>

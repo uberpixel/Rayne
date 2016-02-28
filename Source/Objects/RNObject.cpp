@@ -12,6 +12,7 @@
 #include "RNObjectInternals.h"
 #include "RNString.h"
 #include "../Debug/RNLogger.h"
+#include <string>
 
 namespace RN
 {
@@ -367,10 +368,9 @@ namespace RN
 
 		temp ++;
 
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_MAC_OS
 		strlcpy(storage, keyPath, temp - keyPath);
-#endif
-#if RN_PLATFORM_WINDOWS
+#else
 		strncpy(storage, keyPath, temp - keyPath);
 		storage[32] = '\0';
 #endif
@@ -418,10 +418,9 @@ namespace RN
 
 		temp ++;
 
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_MAC_OS
 		strlcpy(storage, keyPath, temp - keyPath);
-#endif
-#if RN_PLATFORM_WINDOWS
+#else
 		strncpy(storage, keyPath, temp - keyPath);
 		storage[32] = '\0';
 #endif

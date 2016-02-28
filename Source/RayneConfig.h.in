@@ -20,7 +20,7 @@
 	#include <stdint.h>
 #endif
 
-#if ${HAVE_STDDEF_H} && __WIN32__ // HAVE_STDDEF_H
+#if ${HAVE_STDDEF_H} // HAVE_STDDEF_H
 #include <stddef.h>
 #endif
 
