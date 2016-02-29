@@ -99,6 +99,10 @@ namespace RN
 			xcb_screen_t *screen = iterator.data;
 
 			Screen *temp = new Screen(screen, (i == 0));
+
+			if(i == 0)
+				_mainScreen = temp;
+
 			_screens->AddObject(temp);
 			temp->Release();
 
