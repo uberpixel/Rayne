@@ -40,6 +40,9 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HMODULE _module;
 #endif
+#if RN_PLATFORM_POSIX
+		void *_module;
+#endif
 
 		VkInstance _instance;
 		VkAllocationCallbacks *_allocationCallbacks;

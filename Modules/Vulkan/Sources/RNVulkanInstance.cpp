@@ -10,13 +10,15 @@
 #include "RNVulkanDevice.h"
 #include "RNVulkanDebug.h"
 
+#if RN_PLATFORM_POSIX
+#include <dlfcn.h>
+#endif
+
 namespace RN
 {
 	VulkanInstance::VulkanInstance() :
 		_instance(nullptr),
-#if RN_PLATFORM_WINDOWS
 		_module(nullptr),
-#endif
 		_allocationCallbacks(nullptr),
 		_devices(nullptr)
 	{
@@ -84,6 +86,39 @@ namespace RN
 
 		if(_module)
 			procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(::GetProcAddress(_module, "vkGetInstanceProcAddr"));
+
+		vk::init_dispatch_table_top(procAddr);
+#endif
+
+#if RN_PLATFORM_POSIX
+		if(!_module)
+		{
+			_module = dlopen("/usr/lib/x86_64-linux-gnu/libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
+
+			PFN_vkGetInstanceProcAddr procAddr = nullptr;
+
+			if(_module)
+				procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(_module, "vkGetInstanceProcAddr"));
+
+			if(!_module || !procAddr)
+			{
+				RNError("Couldn't load Vulkan library");
+
+				if(_module)
+				{
+					dlclose(_module);
+					_module = nullptr;
+				}
+
+				return false;
+			}
+		}
+
+		// Create a Vulkan Instance
+		PFN_vkGetInstanceProcAddr procAddr = nullptr;
+
+		if(_module)
+			procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(_module, "vkGetInstanceProcAddr"));
 
 		vk::init_dispatch_table_top(procAddr);
 #endif
