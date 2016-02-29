@@ -122,6 +122,8 @@ namespace RN
 
 #if RN_PLATFORM_MAC_OS
 					flags |= RTLD_NOLOAD;
+#else
+					flags |= RTLD_NOW;
 #endif
 
 					_handle = dlopen(info.dli_fname, flags);
