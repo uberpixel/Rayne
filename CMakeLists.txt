@@ -41,12 +41,9 @@ if(POLICY CMP0026)
     set(CMAKE_POLICY_DEFAULT_CMP0026 OLD)
 endif()
 
-#Exclude all install settings
-macro(install)
-endmacro()
-
 #Force default to build static libraries.
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
+option(SKIP_INSTALL_ALL "Skip PNG intall" ON)
 
 #Force static zlib to be used
 set(ZLIB_FOUND 1)
