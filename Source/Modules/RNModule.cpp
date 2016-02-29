@@ -118,7 +118,13 @@ namespace RN
 					_path->Release();
 					_path = RNSTR(info.dli_fname)->Retain();
 
-					_handle = dlopen(info.dli_fname, RTLD_NOLOAD | RTLD_GLOBAL);
+					int flags = RTLD_GLOBAL;
+
+#if RN_PLATFORM_MAC_OS
+					flags |= RTLD_NOLOAD;
+#endif
+
+					_handle = dlopen(info.dli_fname, flags);
 					_ownsHandle = true;
 				}
 			}
