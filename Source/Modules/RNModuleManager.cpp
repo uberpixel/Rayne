@@ -147,7 +147,10 @@ namespace RN
 						}
 
 						if(optional)
+						{
+							RNDebug("Couldn't load optional module '" << nameCopy << "'. Error: " << e.what());
 							return;
+						}
 
 						throw e;
 					}
