@@ -50,6 +50,10 @@ namespace RN
 
 			_logger = new Logger();
 
+#if RN_PLATFORM_LINUX
+			_connection = xcb_connect(nullptr, nullptr);
+#endif
+
 			AutoreleasePool pool; // Wrap everyting into an autorelease pool from now on
 
 			Screen::InitializeScreens();
@@ -179,6 +183,10 @@ namespace RN
 
 		Screen::TeardownScreens();
 		WorkQueue::TearDownQueues();
+
+#if RN_PLATFORM_LINUX
+		xcb_disconnect(_connection);
+#endif
 
 		if(_renderer)
 		{
@@ -330,6 +338,11 @@ namespace RN
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
+#endif
+#if RN_PLATFORM_LINUX
+		xcb_generic_event_t *event;
+		while((event = xcb_poll_for_event(_connection)))
+		{}
 #endif
 	}
 

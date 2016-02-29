@@ -60,6 +60,10 @@ namespace RN
 			return result->Downcast<T>();
 		}
 
+#if RN_PLATFORM_LINUX
+		xcb_connection_t *GetXCBConnection() const { return _connection; }
+#endif
+
 	private:
 		Kernel(Application *app, const ArgumentParser &arguments);
 		~Kernel();
@@ -90,6 +94,10 @@ namespace RN
 		Thread *_mainThread;
 		RunLoop *_runLoop;
 		WorkQueue *_mainQueue;
+
+#if RN_PLATFORM_LINUX
+		xcb_connection_t *_connection;
+#endif
 
 		RunLoopObserver *_observer;
 		std::atomic<bool> _exit;

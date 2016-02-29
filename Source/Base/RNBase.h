@@ -32,6 +32,9 @@
 		#define _USE_MATH_DEFINES
 	#endif
 #endif
+#if RN_PLATFORM_LINUX
+	#include <xcb/xcb.h>
+#endif
 
 #include "RNMemory.h"
 

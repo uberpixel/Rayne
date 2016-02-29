@@ -46,6 +46,9 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HMONITOR GetHMONITOR() const { return _monitor; }
 #endif
+#if RN_PLATFORM_LINUX
+		const xcb_screen_t *GetXCBScreen() const { return &_screen; }
+#endif
 
 	private:
 		static void InitializeScreens();
@@ -56,6 +59,9 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 		Screen(HMONITOR monitor);
+#endif
+#if RN_PLATFORM_LINUX
+		Screen(xcb_screen_t *screen, bool mainScreen);
 #endif
 
 		Rect _frame;
@@ -70,6 +76,9 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 		HMONITOR _monitor;
+#endif
+#if RN_PLATFORM_LINUX
+		xcb_screen_t _screen;
 #endif
 
 		__RNDeclareMetaInternal(Screen)

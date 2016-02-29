@@ -291,10 +291,12 @@ if(WIN32)
 endif()
 
 if(UNIX AND (NOT APPLE))
+    find_package(XCB REQUIRED)
     find_library(PTHREAD_LIBRARY pthread)
     find_library(DL_LIBRARY dl)
 
-    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY})
+    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY} ${XCB_LIBRARIES})
+    set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${XCB_INCLUDE_DIRS})
 endif()
 
 set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png16_static zlibstatic)

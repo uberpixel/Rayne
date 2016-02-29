@@ -39,10 +39,10 @@ namespace RN
 
 	void Screen::InitializeScreens()
 	{
+		_screens = new Array();
+
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool {
-
-			_screens = new Array();
 
 			CGDisplayCount count;
 
@@ -70,8 +70,6 @@ namespace RN
 
 		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)&__MonitorEnumProc, 0);
 
-		_screens = new Array();
-
 		for(HMONITOR monitor : __MonitorHandles)
 		{
 			try
@@ -88,6 +86,24 @@ namespace RN
 		}
 
 		__MonitorHandles.clear();
+#endif
+#if RN_PLATFORM_LINUX
+
+		const xcb_setup_t *setup = xcb_get_setup(Kernel::GetSharedInstance()->GetXCBConnection());
+
+		xcb_screen_iterator_t iterator = xcb_setup_roots_iterator(setup);
+		int count = xcb_setup_roots_length(setup);
+
+		for(int i = 0; i < count; i ++)
+		{
+			xcb_screen_t *screen = iterator.data;
+
+			Screen *temp = new Screen(screen, (i == 0));
+			_screens->AddObject(temp);
+			temp->Release();
+
+			xcb_screen_next(&iterator);
+		}
 #endif
 	}
 	void Screen::TeardownScreens()
@@ -242,6 +258,24 @@ namespace RN
 		}
 
 		_name = RNSTR(info.szDevice)->Retain();
+	}
+#endif
+#if RN_PLATFORM_LINUX
+	Screen::Screen(xcb_screen_t *screen, bool mainScreen) :
+		_scaleFactor(1.0),
+		_resolutions(new Array()),
+		_isMainScreen(mainScreen)
+	{
+		std::memcpy(&_screen, screen, sizeof(xcb_screen_t));
+
+		_frame.x = _frame.y = 0.0f;
+		_frame.width = screen->width_in_pixels;
+		_frame.height = screen->height_in_pixels;
+
+		_name = RNSTR("")->Retain();
+
+		Value *value = Value::WithVector2(_frame.GetSize());
+		_resolutions->AddObject(value);
 	}
 #endif
 
