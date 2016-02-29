@@ -150,9 +150,9 @@ endmacro()
 
 
 macro(rayne_install)
-
-    _install(${ARGV})
-
+    if(NOT UNIX OR APPLE)
+        _install(${ARGV})
+    endif()
 endmacro(rayne_install)
 
 
