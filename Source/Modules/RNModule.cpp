@@ -159,10 +159,10 @@ namespace RN
 			}
 #endif
 
+#if RN_PLATFORM_POSIX
 			if(!_handle && _ownsHandle)
 				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library. Error: " << dlerror()));
 
-#if RN_PLATFORM_POSIX
 			_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
 #endif
 #if RN_PLATFORM_WINDOWS
