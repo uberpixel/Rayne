@@ -272,9 +272,15 @@ namespace RN
 	{
 		std::memcpy(&_screen, screen, sizeof(xcb_screen_t));
 
-		_frame.x = _frame.y = 0.0f;
-		_frame.width = screen->width_in_pixels;
-		_frame.height = screen->height_in_pixels;
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_get_geometry_reply_t *geometry = xcb_get_geometry_reply(connection, xcb_get_geometry(connection, _screen.root), nullptr);
+
+		_frame.x = geometry->x;
+		_frame.y = geometry->y;
+		_frame.width = geometry->width;
+		_frame.height = geometry->height;
+
+		free(geometry);
 
 		_name = RNSTR("")->Retain();
 

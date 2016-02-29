@@ -63,7 +63,7 @@ namespace RN
 		std::vector<VkQueueFamilyProperties> queues;
 		GetQueueProperties(queues);
 
-		for (uint32_t i = 0; i < queues.size(); i++)
+		for(uint32_t i = 0; i < queues.size(); i++)
 		{
 			const VkQueueFamilyProperties &queue = queues[i];
 			const VkFlags flags = VK_QUEUE_GRAPHICS_BIT;
@@ -72,7 +72,8 @@ namespace RN
 			bool result = (vk::GetPhysicalDeviceWin32PresentationSupportKHR(_physicalDevice, i) == VK_TRUE);
 #endif
 #if RN_PLATFORM_LINUX
-			bool result = false;//(vk::GetPhysicalDeviceXcbPresentationSupportKHR(_physicalDevice, i, connection, id) == VK_TRUE);
+			const xcb_screen_t *screen = Screen::GetMainScreen()->GetXCBScreen();
+			bool result = (vk::GetPhysicalDeviceXcbPresentationSupportKHR(_physicalDevice, i, Kernel::GetSharedInstance()->GetXCBConnection(), screen->root_visual) == VK_TRUE);
 #endif
 
 			if(result && (queue.queueFlags & flags) == flags)

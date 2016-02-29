@@ -60,6 +60,45 @@ namespace RN
 
 		::SetForegroundWindow(_hwnd);
 #endif
+#if RN_PLATFORM_LINUX
+
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		const xcb_screen_t *xcbscreen = screen->GetXCBScreen();
+
+		uint32_t value_mask, value_list[32];
+
+		value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+		value_list[0] = xcbscreen->black_pixel;
+		value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+
+		_window = xcb_generate_id(connection);
+
+		xcb_create_window(connection, XCB_COPY_FROM_PARENT, _window, xcbscreen->root, 0, 0, static_cast<uint16_t>(size.x), static_cast<uint16_t>(size.y), 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, xcbscreen->root_visual, value_mask, value_list);
+
+
+		xcb_intern_atom_cookie_t cookie = xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS");
+		xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(connection, cookie, 0);
+
+		cookie = xcb_intern_atom(connection, 0, 16, "WM_DELETE_WINDOW");
+		_destroyWindow = xcb_intern_atom_reply(connection, cookie, 0);
+
+		xcb_change_property(connection, XCB_PROP_MODE_REPLACE, _window, (*reply).atom, 4, 32, 1, &(*_destroyWindow).atom);
+		free(reply);
+
+		xcb_map_window(connection, _window);
+
+
+		Rect frame = screen->GetFrame();
+
+		Vector2 offset = Vector2(frame.width - size.x, frame.height - size.y);
+		offset *= 0.5;
+		offset += frame.GetOrigin();
+
+		const uint32_t coords[] = { static_cast<uint32_t>(offset.x), static_cast<uint32_t>(offset.y) };
+		xcb_configure_window(connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, coords);
+
+		xcb_flush(connection);
+#endif
 
 		// Create the swap chain
 		InitializeSurface();
@@ -87,6 +126,16 @@ namespace RN
 		surfaceInfo.hwnd = _hwnd;
 
 		RNVulkanValidate(vk::CreateWin32SurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
+#endif
+#if RN_PLATFORM_LINUX
+		VkXcbSurfaceCreateInfoKHR surfaceInfo = {};
+		surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+		surfaceInfo.pNext = nullptr;
+		surfaceInfo.flags = 0;
+		surfaceInfo.connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		surfaceInfo.window = _window;
+
+		RNVulkanValidate(vk::CreateXcbSurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
 #endif
 
 		VkBool32 surfaceSupported;
@@ -217,6 +266,9 @@ namespace RN
 
 		delete[] wtext;
 #endif
+#if RN_PLATFORM_LINUX
+		xcb_change_property(Kernel::GetSharedInstance()->GetXCBConnection(), XCB_PROP_MODE_REPLACE, _window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, title->GetLength(), title->GetUTF8String());
+#endif
 	}
 
 	Screen *VulkanWindow::GetScreen()
@@ -239,8 +291,27 @@ namespace RN
 
 		return result;
 #endif
+#if RN_PLATFORM_LINUX
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_get_geometry_reply_t *geometry = xcb_get_geometry_reply(connection, xcb_get_geometry(connection, _window), nullptr);
 
-		return nullptr;
+		Screen *result = nullptr;
+		Array *screens = Screen::GetScreens();
+
+		screens->Enumerate<Screen>([&](Screen *screen, size_t index, bool &stop) {
+
+			if(screen->GetXCBScreen()->root == geometry->root)
+			{
+				result = screen;
+				stop = true;
+			}
+
+		});
+
+		free(geometry);
+
+		return result;
+#endif
 	}
 
 	void VulkanWindow::Show()
@@ -248,12 +319,18 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		::ShowWindow(_hwnd, SW_SHOW);
 #endif
+#if RN_PLATFORM_LINUX
+		xcb_map_window(Kernel::GetSharedInstance()->GetXCBConnection(), _window);
+#endif
 	}
 
 	void VulkanWindow::Hide()
 	{
 #if RN_PLATFORM_WINDOWS
 		::ShowWindow(_hwnd, SW_HIDE);
+#endif
+#if RN_PLATFORM_LINUX
+		xcb_unmap_window(Kernel::GetSharedInstance()->GetXCBConnection(), _window);
 #endif
 	}
 
@@ -264,7 +341,15 @@ namespace RN
 		::GetClientRect(_hwnd, &windowRect);
 		return Vector2(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
 #endif
+#if RN_PLATFORM_LINUX
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_get_geometry_reply_t *geometry = xcb_get_geometry_reply(connection, xcb_get_geometry(connection, _window), nullptr);
 
-		return Vector2();
+		Vector2 size(geometry->width, geometry->height);
+
+		free(geometry);
+
+		return size;
+#endif
 	}
 }

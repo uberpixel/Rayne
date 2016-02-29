@@ -340,6 +340,8 @@ namespace RN
 		}
 #endif
 #if RN_PLATFORM_LINUX
+		xcb_flush(_connection);
+
 		xcb_generic_event_t *event;
 		while((event = xcb_poll_for_event(_connection)))
 		{}

@@ -46,6 +46,10 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HWND _hwnd;
 #endif
+#if RN_PLATFORM_LINUX
+		xcb_window_t _window;
+		xcb_intern_atom_reply_t *_destroyWindow;
+#endif
 
 		VulkanRenderer *_renderer;
 

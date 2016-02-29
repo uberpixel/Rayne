@@ -145,6 +145,8 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
+		return;
+
 		SubmitGlobalCommandBuffer();
 
 		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
