@@ -75,6 +75,8 @@ namespace RN
 		_path->Retain();
 		_name = _name->GetLastPathComponent();
 
+		String *error = nullptr;
+
 		// Resolve extra paths
 		if(isDirectory)
 		{
@@ -128,6 +130,13 @@ namespace RN
 
 					_handle = dlopen(info.dli_fname, flags);
 					_ownsHandle = true;
+
+					if(!_handle)
+						error = RNSTR(dlerror());
+				}
+				else
+				{
+					error = RNSTR("Found " << buffer << "() already loaded, but couldn't find the loaded library");
 				}
 			}
 			else
@@ -135,6 +144,9 @@ namespace RN
 				Catalogue::GetSharedInstance()->PushModule(this);
 				_handle = dlopen(_path->GetUTF8String(), RTLD_NOW | RTLD_GLOBAL);
 				Catalogue::GetSharedInstance()->PopModule();
+
+				if(!_handle)
+					error = RNSTR(dlerror());
 			}
 #endif
 #if RN_PLATFORM_WINDOWS
@@ -159,10 +171,17 @@ namespace RN
 			}
 #endif
 
-#if RN_PLATFORM_POSIX
 			if(!_handle && _ownsHandle)
-				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library. Error: " << dlerror()));
+			{
+				String *appendix = RNCSTR("");
 
+				if(error)
+					appendix = RNSTR(" Error: " << error);
+
+				throw InvalidArgumentException(RNSTR(_name << " is not a valid dynamic library." << appendix));
+			}
+
+#if RN_PLATFORM_POSIX
 			_initializer = reinterpret_cast<InitializeFunction>(dlsym(_handle, buffer));
 #endif
 #if RN_PLATFORM_WINDOWS
