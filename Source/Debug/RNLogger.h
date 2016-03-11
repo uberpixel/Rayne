@@ -170,7 +170,7 @@ namespace RN
 		RNAPI void Submit();
 
 		LogBuilder &operator << (const Object *object) { _stream << object->GetDescription()->GetUTF8String(); return *this; }
-		LogBuilder &operator << (const Exception &e) { _stream << e.GetReason(); return *this; }
+		LogBuilder &operator << (const std::exception &e) { _stream << e.what(); return *this; }
 		LogBuilder &operator << (const std::string &val) { _stream << val; return *this; }
 		LogBuilder &operator << (const char *val) { _stream << val; return *this; }
 		LogBuilder &operator << (bool val) { _stream << val; return *this; }

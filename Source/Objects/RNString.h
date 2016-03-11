@@ -140,7 +140,7 @@ namespace RN
 		}
 
 		StringBuilder &operator << (const Object *object) { _stream << object->GetDescription()->GetUTF8String(); return *this; }
-		StringBuilder &operator << (const Exception &e) { _stream << e.GetReason(); return *this; }
+		StringBuilder &operator << (const std::exception &e) { _stream << e.what(); return *this; }
 		StringBuilder &operator << (const std::string &val) { _stream << val; return *this; }
 		StringBuilder &operator << (const char *val) { _stream << val; return *this; }
 		StringBuilder &operator << (bool val) { _stream << val; return *this; }
