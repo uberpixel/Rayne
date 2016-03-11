@@ -326,10 +326,11 @@ namespace RN
 						pool->Drain();
 
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
-						_internals->workSignal.wait_for(lock, std::chrono::milliseconds(500), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
+						bool result = _internals->workSignal.wait_for(lock, std::chrono::milliseconds(500), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 
-						if(RN_EXPECT_FALSE((_open.load() == 0 || thread->IsCancelled())))
+						// Resign the thread if the timeout was reached
+						if(RN_EXPECT_FALSE(!result))
 						{
 							_threadLock.Lock();
 
