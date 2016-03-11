@@ -12,7 +12,6 @@
 #include <boost/lockfree/queue.hpp>
 
 #define ConditionalSpin(e, result) RNConditionalSpin(e, 10535U, result)
-
 #define ConditionalSpinLow(e, result) RNConditionalSpin(e, 512U, result)
 
 namespace RN
@@ -42,10 +41,10 @@ namespace RN
 
 	void WorkQueue::InitializeQueues()
 	{
-		__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent);
-		__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent);
-		__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent);
-		__WorkQueues[3] = new WorkQueue(Priority::Default, kRNWorkQueueFlagMainThread);
+		__WorkQueues[0] = new WorkQueue(Priority::High, Flags::Concurrent, RNCSTR("net.uberpixel.rayne.queue.high"));
+		__WorkQueues[1] = new WorkQueue(Priority::Default, Flags::Concurrent, RNCSTR("net.uberpixel.rayne.queue.default"));
+		__WorkQueues[2] = new WorkQueue(Priority::Background, Flags::Concurrent, RNCSTR("net.uberpixel.rayne.queue.background"));
+		__WorkQueues[3] = new WorkQueue(Priority::Default, kRNWorkQueueFlagMainThread, RNCSTR("net.uberpixel.rayne.queue.main"));
 	}
 
 	void WorkQueue::TearDownQueues()
@@ -58,14 +57,16 @@ namespace RN
 	}
 
 
-	WorkQueue::WorkQueue(Priority priority, Flags flags) :
+	WorkQueue::WorkQueue(Priority priority, Flags flags, const String *identifier) :
 		_flags(flags),
 		_concurrency(std::thread::hardware_concurrency()),
 		_width(0),
 		_realWidth(0),
 		_open(0),
 		_suspended(0),
-		_barrier(false)
+		_barrier(false),
+		_identifier(identifier->Copy()),
+		_threadCount(0)
 	{
 		size_t multiplier;
 		size_t maxThreads;
@@ -103,6 +104,8 @@ namespace RN
 			// Wait for the thread to exit
 			thread->WaitForExit();
 		}
+
+		_identifier->Release();
 	}
 
 
@@ -323,8 +326,20 @@ namespace RN
 						pool->Drain();
 
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
-						_internals->workSignal.wait(lock, [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
+						_internals->workSignal.wait_for(lock, std::chrono::milliseconds(500), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
+
+						if(RN_EXPECT_FALSE((_open.load() == 0 || thread->IsCancelled())))
+						{
+							_threadLock.Lock();
+
+							_threads.erase(std::find(_threads.begin(), _threads.end(), thread));
+							_width --;
+
+							_threadLock.Unlock();
+
+							return;
+						}
 					}
 				}
 			}
@@ -336,15 +351,19 @@ namespace RN
 		if(_flags & kRNWorkQueueFlagMainThread)
 			return;
 
-		size_t width = 1;
+		size_t width;
 
 		if(_flags & WorkQueue::Flags::Concurrent)
 		{
 			size_t open = std::min(_threshold, _open.load(std::memory_order_acquire));
 			width = static_cast<size_t>(roundf(_concurrency * (open / static_cast<float>(_threshold))));
 
-			if(width == 0)
-				width = 1;
+			if(_open.load(std::memory_order_acquire) > 0)
+				width = std::max(width, static_cast<size_t>(1));
+		}
+		else
+		{
+			width = (_open.load(std::memory_order_acquire) > 0) ? 1 : 0;
 		}
 
 		_threadLock.Lock();
@@ -354,8 +373,12 @@ namespace RN
 		{
 			for(size_t i = 0; i < width - _width; i ++)
 			{
-				Thread *thread = new Thread([this]{ ThreadEntry(); });
+				Thread *thread = new Thread([this]{ ThreadEntry(); }, false);
+				thread->SetName(_identifier->StringByAppendingString(RNSTR("." << _threadCount ++)));
+				thread->Start();
+
 				_threads.push_back(thread);
+				thread->Release();
 			}
 
 			_width = width;

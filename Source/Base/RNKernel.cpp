@@ -37,24 +37,25 @@ namespace RN
 
 		try
 		{
-			WorkQueue::InitializeQueues();
-
 			_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true,
 											std::bind(&Kernel::HandleObserver, this, std::placeholders::_1,
 													  std::placeholders::_2));
 			_mainThread = new Thread();
-			_mainQueue = WorkQueue::GetMainQueue();
+
 
 			_runLoop = _mainThread->GetRunLoop();
 			_runLoop->AddObserver(_observer);
-
-			_logger = new Logger();
 
 #if RN_PLATFORM_LINUX
 			_connection = xcb_connect(nullptr, nullptr);
 #endif
 
 			AutoreleasePool pool; // Wrap everyting into an autorelease pool from now on
+
+			WorkQueue::InitializeQueues();
+
+			_mainQueue = WorkQueue::GetMainQueue();
+			_logger = new Logger();
 
 			Screen::InitializeScreens();
 			__ExtensionPointBase::InitializeExtensionPoints();

@@ -35,7 +35,7 @@ namespace RN
 			Background = 2
 		};
 
-		RNAPI WorkQueue(Priority priority, Flags flags);
+		RNAPI WorkQueue(Priority priority, Flags flags, const String *identifier);
 		RNAPI ~WorkQueue();
 
 		RNAPI static WorkQueue *GetMainQueue();
@@ -78,6 +78,7 @@ namespace RN
 
 		void ReCalculateWidth();
 
+		String *_identifier;
 		Flags _flags;
 
 		size_t _concurrency;
@@ -85,6 +86,7 @@ namespace RN
 
 		size_t _width;
 		size_t _realWidth;
+		size_t _threadCount;
 
 		std::atomic<size_t> _open;
 		std::atomic<size_t> _running;

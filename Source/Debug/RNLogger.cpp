@@ -50,7 +50,7 @@ namespace RN
 
 	Logger::Logger()
 	{
-		_queue = new RN::WorkQueue(RN::WorkQueue::Priority::Background, 0);
+		_queue = new RN::WorkQueue(RN::WorkQueue::Priority::Background, 0, RNCSTR("net.uberpixel.rayne.queue.logger"));
 		_engines = new RN::Array();
 		_threadEngines = new RN::Array();
 
