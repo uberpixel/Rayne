@@ -9,22 +9,18 @@
 #include "RNLogger.h"
 #include "RNLoggingEngine.h"
 #include "../Base/RNSettings.h"
-
-#include "../Base/RNUnistd.h"
+#include "../Threads/RNWorkGroup.h"
 
 namespace RN
 {
 	static Logger *__sharedLogger = nullptr;
 
-	void LogMessage::FormatTime()
+	static std::string FormatTime(std::chrono::system_clock::time_point &time)
 	{
-		if(!formattedTime.empty())
-			return;
-
 		std::stringstream stream;
 		std::time_t timet = std::chrono::system_clock::to_time_t(time);
 
-#if RN_PLATFORM_POSIX || __GNUC__
+#if RN_PLATFORM_POSIX || RN_COMPILER_GCC
 		std::tm tm = std::tm{0};
 		localtime_r(&timet, &tm);
 #else
@@ -44,15 +40,17 @@ namespace RN
 		PutTwoDigitNumber(sec.count());
 #undef PutTwoDigitNumber
 
-		formattedTime = std::move(stream.str());
+		return std::move(stream.str());
 	}
+
 
 
 	Logger::Logger()
 	{
-		_queue = new RN::WorkQueue(RN::WorkQueue::Priority::Background, 0, RNCSTR("net.uberpixel.rayne.queue.logger"));
-		_engines = new RN::Array();
-		_threadEngines = new RN::Array();
+		_queue = new WorkQueue(WorkQueue::Priority::Background, WorkQueue::Flags::Serial, RNCSTR("net.uberpixel.rayne.queue.logger"));
+		_engines = new Array();
+		_threadEngines = new Array();
+		_flag.clear(std::memory_order_release);
 
 		__sharedLogger = this;
 	}
@@ -63,7 +61,7 @@ namespace RN
 		_queue->Release();
 
 		{
-			std::lock_guard<std::mutex> lock(_engineLock);
+			LockGuard<SpinLock> lock(_engineLock);
 
 			_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 				engine->Close();
@@ -85,39 +83,9 @@ namespace RN
 		return __sharedLogger;
 	}
 
-	void Logger::__LoadDefaultLoggers()
-	{
-		Array *loggers = Settings::GetSharedInstance()->GetEntryForKey<Array>(kRNSettingsLoggersKey);
-		if(!loggers)
-			return;
-
-		Catalogue *catalogue = Catalogue::GetSharedInstance();
-
-		loggers->Enumerate<Dictionary>([&](Dictionary *entry, size_t index, bool &stop) {
-
-			String *name = entry->GetObjectForKey<String>(RNCSTR("class"));
-			if(!name)
-				return;
-
-			Number *tlevel = entry->GetObjectForKey<Number>(RNCSTR("level"));
-			Level level = tlevel ? static_cast<Level>(tlevel->GetUint32Value()) : Level::Debug;
-
-			MetaClass *meta = catalogue->GetClassWithName(name->GetUTF8String());
-			if(meta && meta->SupportsConstruction())
-			{
-				LoggingEngine *engine = static_cast<LoggingEngine *>(meta->Construct());
-				engine->SetLevel(level);
-
-				AddEngine(engine);
-
-				engine->Autorelease();
-			}
-		});
-	}
-
 	void Logger::AddEngine(LoggingEngine *engine)
 	{
-		std::lock_guard<std::mutex> lock(_engineLock);
+		LockGuard<SpinLock> lock(_engineLock);
 
 		bool bound = engine->IsThreadBound();
 
@@ -126,13 +94,15 @@ namespace RN
 		else
 			_engines->AddObject(engine);
 
-		engine->Flush();
 		engine->Open();
 	}
 
 	void Logger::RemoveEngine(LoggingEngine *engine)
 	{
-		std::lock_guard<std::mutex> lock(_engineLock);
+		Flush(true);
+
+		LockGuard<SpinLock> lock(_engineLock);
+		engine->Close();
 
 		bool bound = engine->IsThreadBound();
 
@@ -140,35 +110,45 @@ namespace RN
 			_threadEngines->RemoveObject(engine);
 		else
 			_engines->RemoveObject(engine);
-
-		engine->Flush();
-		engine->Close();
 	}
 
 	void Logger::Log(Level level, LogMessage &&message)
 	{
 		{
-			std::lock_guard<std::mutex> lock(_engineLock);
+			LockGuard<SpinLock> lock(_engineLock);
 
 			if(_threadEngines->GetCount() > 0)
 			{
-				message.FormatTime();
+				std::string time = FormatTime(message.time);
 
 				_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-					engine->Log(level, message);
+					engine->Log(level, message, time);
 				});
 			}
+
+			if(_engines->GetCount() == 0)
+				return;
 		}
 
-		{
-			LockGuard<SpinLock> lock(_lock);
-			while(!_messages.Push(std::move(LogEntry(level, std::move(message)))))
-				_queue->PerformSynchronous([this]{ __FlushQueue(); });
-		}
+		_queue->Perform([message{std::move(message)}, this, level]() mutable {
 
-		bool wanted = false;
-		if(_queueMarked.compare_exchange_strong(wanted, true, std::memory_order_acq_rel))
-			_queue->Perform([this]{ __FlushQueue(); });
+			{
+				LogContainer container(std::move(message), level);
+
+				LockGuard<SpinLock> lock(_lock);
+
+				while(!_messages.Push(std::move(container)))
+				{
+					lock.Unlock();
+					__FlushQueue();
+					lock.Lock();
+				}
+			}
+
+			if(!_flag.test_and_set(std::memory_order_acq_rel))
+				_queue->Perform([=]{ __FlushQueue(); });
+
+		});
 	}
 
 	void Logger::Log(Level level, size_t line, const char *file, const char *function, const char *format, ...)
@@ -189,48 +169,91 @@ namespace RN
 		Log(level, std::move(message));
 	}
 
-	void Logger::Flush()
+	void Logger::Flush(bool synchronous)
 	{
-		std::lock_guard<std::mutex> lock(_engineLock);
+		Array *engines;
 
-		_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-			engine->Flush();
+		{
+			LockGuard<SpinLock> lock(_engineLock);
+			engines = _engines->Copy();
+		}
+
+		Function work([=]() {
+
+			engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
+				engine->Flush();
+			});
+
+			engines->Release();
+
 		});
 
-		_engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-			engine->Flush();
-		});
+		synchronous ? _queue->PerformSynchronousBarrier(std::move(work)) : _queue->PerformBarrier(std::move(work));
 	}
 
 	void Logger::__FlushQueue()
 	{
-		std::lock_guard<std::mutex> lock(_engineLock);
-		LogEntry entry;
+		if(RN_EXPECT_FALSE(_messages.WasEmpty()))
+			return;
 
-		while(_messages.Pop(entry))
+		Array *engines;
+
 		{
-			entry.message.FormatTime();
+			LockGuard<SpinLock> lock(_engineLock);
+			engines = _engines->Copy();
+		}
 
-			_engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
+		std::vector<LogContainer> *messages = new std::vector<LogContainer>();
+		{
+			LogContainer message;
 
-				auto offset = std::chrono::duration_cast<std::chrono::seconds>(entry.message.time - _lastMessage).count();
-				_lastMessage = entry.message.time;
+			while(_messages.Pop(message))
+				messages->push_back(std::move(message));
+		}
 
-				if(offset >= 10)
-					engine->LogBreak();
+		WorkGroup *group = new WorkGroup();
 
-				engine->Log(entry.level, entry.message);
+		group->Perform(_queue, [messages]() {
+
+			for(auto iterator = messages->begin(); iterator != messages->end(); iterator ++)
+			{
+				LogContainer &container = *iterator;
+				container.FormatTime();
+			}
+
+		});
+
+
+		engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
+
+			group->Perform(_queue, [engine, messages]() {
+
+				for(auto iterator = messages->begin(); iterator != messages->end(); iterator ++)
+				{
+					LogContainer &container = *iterator;
+					engine->Log(container.level, container.message, container.formattedTime);
+				}
+
 			});
-		}
 
-		_queueMarked.store(false, std::memory_order_release);
+		});
 
-		if(!_messages.WasEmpty())
-		{
-			_queueMarked.store(true, std::memory_order_release);
-			_queue->Perform([this]{ __FlushQueue(); });
-		}
+
+		group->Notify(_queue, [=]() {
+
+			delete messages;
+			engines->Release();
+
+			_flag.clear(std::memory_order_release);
+
+			if(!_messages.WasEmpty())
+				__FlushQueue();
+
+		});
+
+		group->Release();
 	}
+
 
 
 	LogBuilder::LogBuilder(size_t line, const char *file, const char *function, Logger::Level level) :
@@ -253,5 +276,15 @@ namespace RN
 		LogMessage message(_line, _file, _function, std::move(_stream.str()));
 		__sharedLogger->Log(_level, std::move(message));
 		_stream.str("");
+	}
+
+
+
+	void Logger::LogContainer::FormatTime()
+	{
+		if(!formattedTime.empty())
+			return;
+
+		formattedTime = std::move(RN::FormatTime(message.time));
 	}
 }

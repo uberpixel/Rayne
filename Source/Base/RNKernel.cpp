@@ -11,6 +11,7 @@
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../Rendering/RNRendererDescriptor.h"
+#include "../Debug/RNLoggingEngine.h"
 
 namespace RN
 {
@@ -57,6 +58,11 @@ namespace RN
 			_mainQueue = WorkQueue::GetMainQueue();
 			_logger = new Logger();
 
+			Array *loggers = _application->GetLoggingEngines();
+			loggers->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
+				_logger->AddEngine(engine);
+			});
+
 			Screen::InitializeScreens();
 			__ExtensionPointBase::InitializeExtensionPoints();
 
@@ -74,7 +80,6 @@ namespace RN
 			_fileManager->__PrepareWithManifest();
 
 			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
-			_logger->__LoadDefaultLoggers();
 
 			_assetManager = new AssetManager();
 			_sceneManager = new SceneManager();

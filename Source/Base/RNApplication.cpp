@@ -9,6 +9,7 @@
 #include "RNApplication.h"
 #include "RNKernel.h"
 #include "../Rendering/RNRenderingDevice.h"
+#include "../Debug/RNLoggingEngine.h"
 
 namespace RN
 {
@@ -49,5 +50,11 @@ namespace RN
 	RenderingDevice *Application::GetPreferredRenderingDevice(const Array *devices) const
 	{
 		return devices->GetFirstObject<RenderingDevice>();
+	}
+
+	Array *Application::GetLoggingEngines() const
+	{
+		StreamLoggingEngine *engine = new StreamLoggingEngine(std::cout, false);
+		return Array::WithObjects({ engine->Autorelease() });
 	}
 }

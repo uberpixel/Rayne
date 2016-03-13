@@ -38,6 +38,8 @@ namespace RN
 		RNAPI RendererDescriptor *GetPreferredRenderer() const;
 		RNAPI RenderingDevice *GetPreferredRenderingDevice(const Array *devices) const;
 
+		RNAPI Array *GetLoggingEngines() const;
+
 		const String *GetTitle() const { return _title; }
 
 	protected:

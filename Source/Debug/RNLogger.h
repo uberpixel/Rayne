@@ -6,9 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-
-#ifndef __RAYNE_LOGGING_H_
-#define __RAYNE_LOGGING_H_
+#ifndef __RAYNE_LOGGING_H__
+#define __RAYNE_LOGGING_H__
 
 #include "../Base/RNBase.h"
 #include "../Data/RNRingBuffer.h"
@@ -22,8 +21,7 @@ namespace RN
 	{
 		friend class Logger;
 
-		LogMessage() :
-			_cmessage(nullptr)
+		LogMessage()
 		{}
 
 		LogMessage(size_t tline, const char *tfile, const char *tfunction, std::string &&tmessage) :
@@ -31,8 +29,7 @@ namespace RN
 			file(tfile),
 			function(tfunction),
 			time(std::chrono::system_clock::now()),
-			_strmessage(std::move(tmessage)),
-			_cmessage(nullptr)
+			message(std::move(tmessage))
 		{}
 
 		LogMessage(size_t tline, const char *tfile, const char *tfunction, const char *tmessage) :
@@ -40,25 +37,19 @@ namespace RN
 			file(tfile),
 			function(tfunction),
 			time(std::chrono::system_clock::now()),
-			_cmessage(tmessage)
+			message(tmessage)
 		{}
 
 		~LogMessage()
-		{
-			delete[] _cmessage;
-		}
+		{}
 
 		LogMessage(LogMessage &&other) :
 			line(other.line),
 			file(other.file),
 			function(other.function),
 			time(other.time),
-			formattedTime(std::move(other.formattedTime)),
-			_strmessage(std::move(other._strmessage)),
-			_cmessage(other._cmessage)
-		{
-			other._cmessage = nullptr;
-		}
+			message(std::move(other.message))
+		{}
 
 		LogMessage &operator= (LogMessage &&other)
 		{
@@ -66,28 +57,16 @@ namespace RN
 			file = other.file;
 			function = other.function;
 			time = other.time;
-			formattedTime = std::move(formattedTime);
-			_strmessage = std::move(_strmessage);
-			_cmessage = other._cmessage;
-
-			other._cmessage = nullptr;
+			message = std::move(other.message);
 
 			return *this;
 		}
-
-		const char *GetMessage() const { return _cmessage ? _cmessage : _strmessage.c_str(); }
 
 		size_t line;
 		const char *file;
 		const char *function;
 		std::chrono::system_clock::time_point time;
-		std::string formattedTime;
-
-	private:
-		void FormatTime();
-
-		std::string _strmessage;
-		const char *_cmessage;
+		std::string message;
 	};
 
 	class LoggingEngine;
@@ -114,51 +93,56 @@ namespace RN
 		RNAPI void Log(Level level, LogMessage &&message);
 		RNAPI void Log(Level level, size_t line, const char *file, const char *function, const char *format, ...);
 
-		RNAPI void Flush();
+		RNAPI void Flush(bool synchronous = true);
 
 	private:
-		struct LogEntry
+		struct LogContainer
 		{
-			LogEntry() = default;
+			LogContainer() = default;
 
-			LogEntry(Level tlevel, LogMessage &&tmessage) :
-				level(tlevel),
-				message(std::move(tmessage))
+			LogContainer(LogMessage &&tmessage, Level tlevel) :
+				message(std::move(tmessage)),
+				level(tlevel)
 			{}
 
-			LogEntry(LogEntry &&other) :
-				level(other.level),
-				message(std::move(other.message))
+			LogContainer(LogContainer &&other) :
+				message(std::move(other.message)),
+				formattedTime(std::move(other.formattedTime)),
+				level(other.level)
 			{}
 
-			LogEntry &operator= (LogEntry &&other)
+			LogContainer &operator =(LogContainer &&other)
 			{
-				level = other.level;
 				message = std::move(other.message);
+				formattedTime = std::move(other.formattedTime);
+				level = other.level;
 
 				return *this;
 			}
 
+			void FormatTime();
+
 			LogMessage message;
+			std::string formattedTime;
 			Level level;
 		};
 
 		Logger();
 		~Logger();
 
-		void __LoadDefaultLoggers();
 		void __FlushQueue();
 
 		SpinLock _lock;
-		AtomicRingBuffer<LogEntry, 128> _messages;
+		AtomicRingBuffer<LogContainer, 256> _messages;
 
-		std::mutex _engineLock;
+		SpinLock _engineLock;
 		Array *_threadEngines;
 		Array *_engines;
 
-		std::atomic<bool> _queueMarked;
 		WorkQueue *_queue;
 		std::chrono::system_clock::time_point _lastMessage;
+
+		std::atomic_flag _flag;
 	};
 
 	class LogBuilder
@@ -209,4 +193,4 @@ namespace RN
 #define RNWarning(exp) do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Warning); builder << exp; } while(0)
 #define RNError(exp)  do { RN::LogBuilder builder(__LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RN::Logger::Level::Error); builder << exp; } while(0)
 
-#endif /* __RAYNE_LOGGING_H_ */
+#endif /* __RAYNE_LOGGING_H__ */

@@ -24,31 +24,32 @@ namespace RN
 
 		RNAPI void SetLevel(Logger::Level level);
 
-	protected:
 		RNAPI virtual void Open() = 0;
 		RNAPI virtual void Close() = 0;
 		RNAPI virtual void Flush() = 0;
 
 		RNAPI virtual bool IsOpen() const = 0;
 		bool IsThreadBound() const { return _threadBound; }
+		Logger::Level GetLevel() const { return _level.load(std::memory_order_acquire); }
 
-		RNAPI virtual void Log(Logger::Level level, const LogMessage &message) = 0;
+		RNAPI virtual void Log(Logger::Level level, const LogMessage &message, const std::string &header) = 0;
 		RNAPI virtual void LogBreak() = 0;
 
+	protected:
 		RNAPI LoggingEngine(bool threadBound);
-
-		std::atomic<Logger::Level> _level;
 
 	private:
 		bool _threadBound;
+		std::atomic<Logger::Level> _level;
 
 		__RNDeclareMetaInternal(LoggingEngine)
 	};
 
-	class STDOUTLoggingEngine : public LoggingEngine
+	class StreamLoggingEngine : public LoggingEngine
 	{
 	public:
-		RNAPI STDOUTLoggingEngine();
+		RNAPI StreamLoggingEngine();
+		RNAPI StreamLoggingEngine(std::ostream &stream, bool threadBound);
 
 		RNAPI void Open() final;
 		RNAPI void Close() final;
@@ -56,14 +57,14 @@ namespace RN
 
 		RNAPI bool IsOpen() const final;
 
-		RNAPI void Log(Logger::Level level, const LogMessage &message) final;
+		RNAPI void Log(Logger::Level level, const LogMessage &message, const std::string &header) final;
 		RNAPI void LogBreak() final;
 
 	private:
 		bool _open;
 		std::ostream &_stream;
 
-		__RNDeclareMetaInternal(STDOUTLoggingEngine)
+		__RNDeclareMetaInternal(StreamLoggingEngine)
 	};
 }
 

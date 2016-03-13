@@ -11,7 +11,7 @@
 namespace RN
 {
 	RNDefineMeta(LoggingEngine, Object)
-	RNDefineMeta(STDOUTLoggingEngine, LoggingEngine)
+	RNDefineMeta(StreamLoggingEngine, LoggingEngine)
 
 	LoggingEngine::LoggingEngine(bool threadBound) :
 		_level(Logger::Level::Info),
@@ -31,38 +31,39 @@ namespace RN
 		"(error)"
 	};
 
-	STDOUTLoggingEngine::STDOUTLoggingEngine() :
-		LoggingEngine(true),
-		_stream(std::cout),
+	StreamLoggingEngine::StreamLoggingEngine() :
+		StreamLoggingEngine(std::cout, true)
+	{}
+
+	StreamLoggingEngine::StreamLoggingEngine(std::ostream &stream, bool threadBound) :
+		LoggingEngine(threadBound),
+		_stream(stream),
 		_open(true)
 	{}
 
-	void STDOUTLoggingEngine::Open()
+	void StreamLoggingEngine::Open()
 	{
 		_open = true;
 	}
-	void STDOUTLoggingEngine::Close()
+	void StreamLoggingEngine::Close()
 	{
 		_open = false;
 		_stream.flush();
 	}
-	void STDOUTLoggingEngine::Flush()
+	void StreamLoggingEngine::Flush()
 	{
 		_stream.flush();
 	}
 
-	bool STDOUTLoggingEngine::IsOpen() const
+	bool StreamLoggingEngine::IsOpen() const
 	{
 		return _open;
 	}
 
-	void STDOUTLoggingEngine::Log(Logger::Level level, const LogMessage &message)
+	void StreamLoggingEngine::Log(Logger::Level level, const LogMessage &message, const std::string &header)
 	{
-		if(static_cast<size_t>(level) < static_cast<size_t>(_level.load(std::memory_order_acquire)))
-			return;
-
-		_stream << message.formattedTime << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.GetMessage() << "\n";
+		_stream << header << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.message << "\n";
 	}
-	void STDOUTLoggingEngine::LogBreak()
+	void StreamLoggingEngine::LogBreak()
 	{}
 }
