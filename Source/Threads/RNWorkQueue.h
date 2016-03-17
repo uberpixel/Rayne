@@ -26,6 +26,7 @@ namespace RN
 		friend class Kernel;
 
 		RN_OPTIONS(Flags, uint32,
+				   Serial = 0,
 				   Concurrent = (1 << 0));
 
 		enum class Priority : uint32
