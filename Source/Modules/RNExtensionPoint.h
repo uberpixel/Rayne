@@ -121,8 +121,16 @@ namespace RN
 	public:
 		static_assert(std::is_base_of<Object, T>::value, "T must inherit from Object!");
 
+		class Delegate
+		{
+		public:
+			virtual bool CanAddExtension(T *extension) { return true; }
+			virtual void DidAddExtension(T *extension) {}
+		};
+
 		ExtensionPoint(const std::string &name) :
-			__ExtensionPointBase(name, T::GetMetaClass())
+			__ExtensionPointBase(name, T::GetMetaClass()),
+			_delegate(nullptr)
 		{}
 
 		void AddExtension(T *extension, int32 priority)
@@ -130,10 +138,21 @@ namespace RN
 			RN_ASSERT(extension, "Extension mustn't be NULL");
 			RN_ASSERT(extension->IsKindOfClass(T::GetMetaClass()), "AddExtension() called with an invalid class");
 
-			AddSortDescriptor(Descriptor(extension, priority));
+			if(!_delegate || _delegate->CanAddExtension(extension))
+			{
+				AddSortDescriptor(Descriptor(extension, priority));
+
+				if(_delegate)
+					_delegate->DidAddExtension(extension);
+			}
 		}
 
 		Array *GetExtensions() const { return AllObjects(); }
+
+		void SetDelegate(Delegate *delegate)
+		{
+			_delegate = delegate;
+		}
 
 		static ExtensionPoint<T> *GetExtensionPoint(const std::string &name)
 		{
@@ -149,6 +168,9 @@ namespace RN
 
 			return static_cast<ExtensionPoint<T> *>(base);
 		}
+
+	private:
+		Delegate *_delegate;
 	};
 }
 

@@ -7,7 +7,6 @@
 //
 
 #include "RNExtensionPoint.h"
-#include "../Objects/RNDictionary.h"
 
 namespace RN
 {
@@ -31,6 +30,7 @@ namespace RN
 		SafeRelease(__pointStorage);
 	}
 
+
 	void __ExtensionPointBase::InstallExtensionPoint(__ExtensionPointBase *point)
 	{
 		LockGuard<SpinLock> lock(__pointLock);
@@ -41,7 +41,6 @@ namespace RN
 		__pointStorage->SetObjectForKey(point, name);
 		name->Release();
 	}
-
 	void __ExtensionPointBase::RemoveExtensionPoint(__ExtensionPointBase *point)
 	{
 		LockGuard<SpinLock> lock(__pointLock);
@@ -52,6 +51,7 @@ namespace RN
 		__pointStorage->RemoveObjectForKey(name);
 		name->Release();
 	}
+
 
 	__ExtensionPointBase *__ExtensionPointBase::GetExtensionPoint(const std::string &tname)
 	{
