@@ -240,6 +240,7 @@ find_boost_library(lockfree)
 
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Vendor/utf8_v2_3_4/source
         "${jansson_BINARY_DIR}/include"
         "${libpng_SOURCE_DIR}"
         "${libpng_BINARY_DIR}"

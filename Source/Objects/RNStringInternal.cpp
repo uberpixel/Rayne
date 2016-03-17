@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <codecvt>
+#include <utf8.h>
 #include "../Math/RNAlgorithm.h"
 #include "RNStringInternal.h"
 #include "RNString.h"
@@ -263,35 +263,17 @@ namespace RN
 				break;
 			}
 				
-			case Encoding::UTF16LE:
+			case Encoding::UTF16:
 			{
-/*				if(bytes == kRNNotFound)
+				if(bytes == kRNNotFound)
 					bytes = UTF16StringByteLength(static_cast<const uint16 *>(data));
-				
-				std::u16string string(static_cast<const char16_t *>(data), (bytes / 2));
-				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff, std::codecvt_mode::little_endian>, char16_t> converter;
-				
-				
-				std::string bstring = converter.to_bytes(string);
-				const char *utf8 = bstring.c_str();
-				
-				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);*/
-				break;
-			}
-				
-			case Encoding::UTF16BE:
-			{
-/*				if(bytes == kRNNotFound)
-					bytes = UTF16StringByteLength(static_cast<const uint16 *>(data));
-				
-				std::u16string string(static_cast<const char16_t *>(data), (bytes / 2));
-				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff>, char16_t> converter;
-				
-				
-				std::string bstring = converter.to_bytes(string);
-				const char *utf8 = bstring.c_str();
-				
-				WakeUpWithUTF8String(reinterpret_cast<const uint8 *>(utf8), bstring.length(), true);*/
+
+				const uint16 *end = reinterpret_cast<const uint16 *>(static_cast<const uint8 *>(data) + bytes);
+
+				std::vector<uint8> result;
+				utf8::utf16to8(static_cast<const uint16 *>(data), end, std::back_inserter(result));
+
+				WakeUpWithUTF8String(result.data(), result.size(), true);
 				break;
 			}
 				
@@ -308,25 +290,13 @@ namespace RN
 						bytes += 4;
 						
 				}
-				
-				
-				uint8 *tdata = new uint8[bytes];
-				uint8 *temp = tdata;
-				
-				size_t length = bytes / 4;
-				
-				for(size_t i = 0; i < length; i ++)
-				{
-					if(utf32[i] == 0)
-						break;
-					
-					UnicodeToUTF8(utf32[i], temp);
-					temp += UTF8ByteLengthForUnichar(utf32[i]);
-				}
-				
-				WakeUpWithUTF8String(tdata, temp - tdata, true);
-				
-				delete [] tdata;
+
+				const uint32 *end = reinterpret_cast<const uint32 *>(static_cast<const uint8 *>(data) + bytes);
+
+				std::vector<uint8> result;
+				utf8::utf32to8(static_cast<const uint32 *>(data), end, std::back_inserter(result));
+
+				WakeUpWithUTF8String(result.data(), result.size(), true);
 				break;
 			}
 		}
@@ -607,58 +577,30 @@ namespace RN
 				break;
 			}
 				
-			case Encoding::UTF16LE:
+			case Encoding::UTF16:
 			{
-#if RN_PLATFORM_MAC_OS
 				const char *start = reinterpret_cast<const char *>(GetBytes());
-				const char *end   = start + GetBytesCount();
-				
-				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff, std::codecvt_mode::little_endian>, char16_t> converter;
-				std::u16string string = converter.from_bytes(start, end);
-				
-				data = (char *)malloc((string.length() + 1) * 2);
-				length = string.length() * 2;
-				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
-#endif
+				const char *end = start + GetBytesCount();
+
+				uint16 *result = static_cast<uint16 *>(malloc(GetLength() * 2));
+
+				utf8::utf8to16(start, end, result);
+				data = reinterpret_cast<char *>(result);
+
 				break;
 			}
-				
-			case Encoding::UTF16BE:
-			{
-#if RN_PLATFORM_MAC_OS
-				const char *start = reinterpret_cast<const char *>(GetBytes());
-				const char *end   = start + GetBytesCount();
-				
-				std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff>, char16_t> converter;
-				std::u16string string = converter.from_bytes(start, end);
-				
-				data = (char *)malloc((string.length() + 1) * 2);
-				length = string.length() * 2;
-				
-				std::copy(string.begin(), string.end(), reinterpret_cast<uint16 *>(data));
-#endif
-				break;
-			}
+
 				
 			case Encoding::UTF32:
 			{
-				data = (char *)malloc((_length + 1) * 4);
-				uint32 *temp = reinterpret_cast<uint32 *>(data);
-				
-				const uint8 *bytes = GetBytes();
-				
-				for(size_t i = 0; i < _length; i ++)
-				{
-					size_t trailing = (UTF8TrailingBytes[*bytes] + 1);
-					
-					temp[i] = UTF8ToUnicode(bytes);
-					bytes += trailing;
-				}
-				
-				temp[_length] = 0;
-				length = _length * 4;
-				
+				const char *start = reinterpret_cast<const char *>(GetBytes());
+				const char *end = start + GetBytesCount();
+
+				uint32 *result = static_cast<uint32 *>(malloc(GetLength() * 4));
+
+				utf8::utf8to32(start, end, result);
+				data = reinterpret_cast<char *>(result);
+
 				break;
 			}
 		}

@@ -66,11 +66,8 @@ namespace RN
 	{
 		ASCII,
 		UTF8,
-		UTF16LE,
-		UTF16BE,
-		UTF32,
-		
-		UTF16 = UTF16LE
+		UTF16,
+		UTF32
 	};
 }
 
