@@ -145,7 +145,7 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
-		return;
+//		return;
 
 		SubmitGlobalCommandBuffer();
 
@@ -175,7 +175,7 @@ namespace RN
 		RNVulkanValidate(vk::BeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
 
-		/*VkClearValue clearValues[2];
+		VkClearValue clearValues[2];
 		clearValues[0].color = { 0.0f, 0.5f, 0.9f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
@@ -209,11 +209,11 @@ namespace RN
 		scissor.offset.x = 0;
 		scissor.offset.y = 0;
 
-		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);*/
+		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		function();
 
-		//vk::CmdEndRenderPass(commandBuffer);
+		vk::CmdEndRenderPass(commandBuffer);
 
 		// Add a present memory barrier to the end of the command buffer
 		// This will transform the frame buffer color attachment to a

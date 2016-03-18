@@ -35,6 +35,7 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 		{
 			FramebufferData *data = new FramebufferData();
+			_framebuffers[i] = data;
 
 			VkImageView attachments[3];
 			size_t attachmentCount = 0;
@@ -106,6 +107,9 @@ namespace RN
 				}
 			}
 
+			if(_renderPass == VK_NULL_HANDLE)
+				InitializeRenderPass();
+
 			renderer->CreateCommandBuffer(data->commandBuffer);
 
 			VkFramebufferCreateInfo frameBufferCreateInfo = {};
@@ -119,11 +123,6 @@ namespace RN
 			frameBufferCreateInfo.layers = 1;
 
 			RNVulkanValidate(vk::CreateFramebuffer(device->GetDevice(), &frameBufferCreateInfo, nullptr, &data->framebuffer));
-
-			_framebuffers[i] = data;
-
-			if(_renderPass == VK_NULL_HANDLE)
-				InitializeRenderPass();
 		}
 	}
 	VulkanFramebuffer::~VulkanFramebuffer()
