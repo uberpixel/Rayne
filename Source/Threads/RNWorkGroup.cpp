@@ -49,17 +49,19 @@ namespace RN
 		{
 			std::atomic_thread_fence(std::memory_order_acquire);
 
-			std::unique_lock<std::mutex> lock(_lock);
-			_signal.notify_all();
-
-			for(auto &pair : _waiters)
 			{
-				WorkQueue *queue = std::get<0>(pair);
-				queue->Perform(std::move(std::get<1>(pair)));
-				queue->Release();
-			}
+				std::unique_lock<std::mutex> lock(_lock);
+				_signal.notify_all();
 
-			_waiters.clear();
+				for(auto &pair : _waiters)
+				{
+					WorkQueue *queue = std::get<0>(pair);
+					queue->Perform(std::move(std::get<1>(pair)));
+					queue->Release();
+				}
+
+				_waiters.clear();
+			}
 
 			Release();
 		}
