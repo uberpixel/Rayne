@@ -249,20 +249,43 @@ namespace RN
 		switch(result)
 		{
 			case VK_SUCCESS:
-				return RNCSTR("Success");
+				return RNCSTR("VK_SUCCESS");
 			case VK_NOT_READY:
-				return RNCSTR("Not Ready");
+				return RNCSTR("VK_NOT_READY");
 			case VK_TIMEOUT:
-				return RNCSTR("Timeout");
+				return RNCSTR("VK_TIMEOUT");
 			case VK_EVENT_SET:
-				return RNCSTR("Event Set");
+				return RNCSTR("VK_EVENT_SET");
 			case VK_EVENT_RESET:
-				return RNCSTR("Event Reset");
+				return RNCSTR("VK_EVENT_RESET");
 			case VK_INCOMPLETE:
-				return RNCSTR("Incomplete");
+				return RNCSTR("VK_INCOMPLETE");
+
+			case VK_ERROR_OUT_OF_HOST_MEMORY:
+				return RNCSTR("VK_ERROR_OUT_OF_HOST_MEMORY");
+			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+				return RNCSTR("VK_ERROR_OUT_OF_DEVICE_MEMORY");
+			case VK_ERROR_INITIALIZATION_FAILED:
+				return RNCSTR("VK_ERROR_INITIALIZATION_FAILED");
+			case VK_ERROR_DEVICE_LOST:
+				return RNCSTR("VK_ERROR_DEVICE_LOST");
+			case VK_ERROR_MEMORY_MAP_FAILED:
+				return RNCSTR("VK_ERROR_MEMORY_MAP_FAILED");
+			case VK_ERROR_LAYER_NOT_PRESENT:
+				return RNCSTR("VK_ERROR_LAYER_NOT_PRESENT");
+			case VK_ERROR_EXTENSION_NOT_PRESENT:
+				return RNCSTR("VK_ERROR_EXTENSION_NOT_PRESENT");
+			case VK_ERROR_FEATURE_NOT_PRESENT:
+				return RNCSTR("VK_ERROR_FEATURE_NOT_PRESENT");
+			case VK_ERROR_INCOMPATIBLE_DRIVER:
+				return RNCSTR("VK_ERROR_INCOMPATIBLE_DRIVER");
+			case VK_ERROR_TOO_MANY_OBJECTS:
+				return RNCSTR("VK_ERROR_TOO_MANY_OBJECTS");
+			case VK_ERROR_FORMAT_NOT_SUPPORTED:
+				return RNCSTR("VK_ERROR_FORMAT_NOT_SUPPORTED");
 
 			default:
-				return RNSTR("Unknown (" << result << ")");
+				return RNSTR("Unknown error (" << result << ")");
 		}
 	}
 }
