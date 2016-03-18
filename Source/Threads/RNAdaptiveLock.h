@@ -56,8 +56,7 @@ namespace RN
 			auto timeout = Clock::now() + std::chrono::nanoseconds(850);
 
 			do {
-
-				bool acquired;
+				
 				RNConditionalSpin(_spinLock.test_and_set(std::memory_order_acquire), 10535U, acquired);
 
 				if(acquired)
