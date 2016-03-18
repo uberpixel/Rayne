@@ -278,17 +278,13 @@ if(APPLE)
 endif()
 
 if(WIN32)
-
     if(MINGW)
-
         find_library(DBGHELP_LIBRARY Dbghelp)
         find_library(PSAPI_LIBRARY Psapi)
 
         set(LINK_LIBRARIES ${DBGHELP_LIBRARY} ${PSAPI_LIBRARY})
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -latomic")
-
     endif()
-
 endif()
 
 if(UNIX AND (NOT APPLE))

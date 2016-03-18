@@ -28,10 +28,10 @@ namespace RN
 
 #define RNVulkanValidate(expression) \
     do { \
-        VkResult result = (expression); \
-        if(result != VK_SUCCESS) \
+        VkResult _result = (expression); \
+        if(_result != VK_SUCCESS) \
         { \
-            RN::VulkanErrorBreak(result); \
+            RN::VulkanErrorBreak(_result); \
         } \
     } while(0)
 
