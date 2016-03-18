@@ -10,6 +10,7 @@
 #include "RNLoggingEngine.h"
 #include "../Base/RNSettings.h"
 #include "../Threads/RNWorkGroup.h"
+#include "../Base/RNUnistd.h"
 
 namespace RN
 {
