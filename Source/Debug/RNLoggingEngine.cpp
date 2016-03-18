@@ -62,7 +62,7 @@ namespace RN
 
 	void StreamLoggingEngine::Log(Logger::Level level, const LogMessage &message, const std::string &header)
 	{
-		_stream << header << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.message << "\n";
+		_stream << header << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.message->GetUTF8String() << "\n";
 	}
 	void StreamLoggingEngine::LogBreak()
 	{}

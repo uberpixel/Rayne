@@ -164,8 +164,13 @@ namespace RN
 		vsnprintf(buffer, static_cast<size_t>(size + 1), format, args);
 		va_end(args);
 
-		LogMessage message(line, file, function, buffer);
+		LogMessage message(line, file, function, RNSTR(buffer));
+		Log(level, std::move(message));
+	}
 
+	void Logger::Log(Level level, size_t line, const char *file, const char *function, const String *string)
+	{
+		LogMessage message(line, file, function, string);
 		Log(level, std::move(message));
 	}
 
@@ -252,30 +257,6 @@ namespace RN
 		});
 
 		group->Release();
-	}
-
-
-
-	LogBuilder::LogBuilder(size_t line, const char *file, const char *function, Logger::Level level) :
-		_level(level),
-		_line(line),
-		_file(file),
-		_function(function)
-	{}
-
-	LogBuilder::~LogBuilder()
-	{
-		Submit();
-	}
-
-	void LogBuilder::Submit()
-	{
-		if(!_stream.tellp())
-			return;
-
-		LogMessage message(_line, _file, _function, std::move(_stream.str()));
-		__sharedLogger->Log(_level, std::move(message));
-		_stream.str("");
 	}
 
 

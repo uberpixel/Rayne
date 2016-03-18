@@ -467,7 +467,7 @@ namespace RN
 		if(!IsMutable())
 		{
 			size_t start = SkipCharacters(_constStorage, range.origin);
-			size_t end   = start + SkipCharacters(_constStorage + start, range.length);
+			size_t end = start + SkipCharacters(_constStorage + start, range.length);
 			
 			UTF8String *substring = new UTF8String(_constStorage + start, end - start, false);
 			return substring->Autorelease();
@@ -476,7 +476,7 @@ namespace RN
 		const uint8 *data = GetBytes();
 		
 		size_t start = SkipCharacters(data, range.origin);
-		size_t end   = start + SkipCharacters(data + start, range.length);
+		size_t end = start + SkipCharacters(data + start, range.length);
 		
 		UTF8String *substring = new UTF8String(data + start, end - start, true);
 		return substring->Autorelease();
@@ -492,12 +492,12 @@ namespace RN
 		
 		if(string)
 		{
-			size_t gap    = SkipCharacters(_storage.data(), range.origin);
+			size_t gap = SkipCharacters(_storage.data(), range.origin);
 			size_t gapEnd = gap + SkipCharacters(_storage.data() + gap, range.length);
 			
 			
 			const uint8 *data = string->GetBytes();
-			size_t size       = string->GetBytesCount();
+			size_t size = string->GetBytesCount();
 			
 			_storage.erase(_storage.begin() + gap, _storage.begin() + gapEnd);
 			_storage.insert(_storage.begin() + gap, data, data + size);
@@ -519,7 +519,7 @@ namespace RN
 		}
 		else
 		{
-			size_t gap    = SkipCharacters(_storage.data(), range.origin);
+			size_t gap = SkipCharacters(_storage.data(), range.origin);
 			size_t gapEnd = gap + SkipCharacters(_storage.data() + gap, range.length);
 			
 			_storage.erase(_storage.begin() + gap, _storage.begin() + gapEnd);

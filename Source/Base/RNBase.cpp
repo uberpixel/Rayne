@@ -6,10 +6,9 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <locale>
 #include "RNBaseInternal.h"
 #include "RNKernel.h"
-
-
 
 #if RN_PLATFORM_MAC_OS
 
@@ -41,6 +40,13 @@ namespace RN
 		{
 			__functionPool = new MemoryPool();
 
+			if(!arguments.HasArgument("no-locale", 'l'))
+			{
+				const char *result = setlocale(LC_ALL, "en_US.UTF-8");
+				if(!result)
+					std::cerr << "Couldn't set locale" << std::endl;
+			}
+
 			Kernel *result = new Kernel(app, arguments);
 #if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
@@ -62,6 +68,9 @@ namespace RN
 #else
 			kernel->TearDown();
 #endif
+
+			delete __functionPool;
+			__functionPool = nullptr;
 		}
 	};
 
