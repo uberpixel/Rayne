@@ -41,15 +41,15 @@ namespace RN
 
 	void VulkanBackBuffer::AcquireNextImage()
 	{
-		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _acquireSemaphore, VK_NULL_HANDLE, &_imageIndex));
+		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &_imageIndex));
 	}
 
 	void VulkanBackBuffer::Present(VkQueue queue)
 	{
 		VkPresentInfoKHR present_info = {};
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &_renderSemaphore;
+		present_info.waitSemaphoreCount = 0;
+//		present_info.pWaitSemaphores = &_renderSemaphore;
 		present_info.swapchainCount = 1;
 		present_info.pSwapchains = &_swapchain;
 		present_info.pImageIndices = &_imageIndex;

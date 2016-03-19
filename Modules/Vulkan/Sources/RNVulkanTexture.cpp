@@ -260,8 +260,8 @@ namespace RN
 		// Undefined layout
 		// Only allowed as initial layout!
 		// Make sure any writes to the image have been finished
-		if(oldImageLayout == VK_IMAGE_LAYOUT_UNDEFINED)
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+		if(oldImageLayout == VK_IMAGE_LAYOUT_UNDEFINED) //TODO: Check if there is a case where this is needed...
+			imageMemoryBarrier.srcAccessMask = 0;// VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		// Old layout is color attachment
 		// Make sure any writes to the color buffer have been finished
