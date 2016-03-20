@@ -241,7 +241,6 @@ namespace RN
 	void VulkanWindow::AcquireBackBuffer()
 	{
 		_activeBackBuffer = _backBuffers.front();
-		_activeBackBuffer->WaitForPresentFence();
 		_activeBackBuffer->AcquireNextImage();
 
 		_backBuffers.pop();

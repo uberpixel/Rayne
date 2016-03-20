@@ -27,9 +27,14 @@ namespace RN
 		VKAPI Texture *GetDepthTexture() const final;
 		VKAPI Texture *GetStencilTexture() const final;
 
-		VkRenderPass GetRenderPass() const { return _renderPass; }
-		VkCommandBuffer GetCommandBuffer() const;
-		VkFramebuffer GetFramebuffer() const;
+		VKAPI Texture *GetColorTexture(size_t index) const;
+		VKAPI Texture *GetDepthTexture(size_t index) const;
+		VKAPI Texture *GetStencilTexture(size_t index) const;
+
+		VkRenderPass GetRenderPass(size_t index) const { return _renderPass; }
+		VkCommandBuffer GetDrawCommandBuffer(size_t index) const;
+		VkCommandBuffer GetPreDrawCommandBuffer(size_t index) const;
+		VkFramebuffer GetFramebuffer(size_t index) const;
 
 	private:
 		struct FramebufferData
@@ -41,13 +46,14 @@ namespace RN
 			{}
 
 			VkFramebuffer framebuffer;
-			VkCommandBuffer commandBuffer;
+			VkCommandBuffer preDrawCommandBuffer;
+			VkCommandBuffer drawCommandBuffer;
 			VulkanTexture *colorTexture;
 			VulkanTexture *depthTexture;
 			VulkanTexture *stencilTexture;
 		};
 
-		void InitializeRenderPass();
+		void InitializeRenderPass(size_t index);
 
 		VulkanRenderer *_renderer;
 

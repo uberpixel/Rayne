@@ -108,9 +108,10 @@ namespace RN
 			}
 
 			if(_renderPass == VK_NULL_HANDLE)
-				InitializeRenderPass();
+				InitializeRenderPass(i);
 
-			renderer->CreateCommandBuffer(data->commandBuffer);
+			renderer->CreateCommandBuffer(data->preDrawCommandBuffer);
+			renderer->CreateCommandBuffer(data->drawCommandBuffer);
 
 			VkFramebufferCreateInfo frameBufferCreateInfo = {};
 			frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -141,19 +142,37 @@ namespace RN
 		return _framebuffers[0]->stencilTexture;
 	}
 
-	VkCommandBuffer VulkanFramebuffer::GetCommandBuffer() const
+	Texture *VulkanFramebuffer::GetColorTexture(size_t index) const
 	{
-		return _framebuffers[0]->commandBuffer;
+		return _framebuffers[index]->colorTexture;
+	}
+	Texture *VulkanFramebuffer::GetDepthTexture(size_t index) const
+	{
+		return _framebuffers[index]->depthTexture;
+	}
+	Texture *VulkanFramebuffer::GetStencilTexture(size_t index) const
+	{
+		return _framebuffers[index]->stencilTexture;
 	}
 
-	VkFramebuffer VulkanFramebuffer::GetFramebuffer() const
+	VkCommandBuffer VulkanFramebuffer::GetDrawCommandBuffer(size_t index) const
 	{
-		return _framebuffers[0]->framebuffer;
+		return _framebuffers[index]->drawCommandBuffer;
 	}
 
-	void VulkanFramebuffer::InitializeRenderPass()
+	VkCommandBuffer VulkanFramebuffer::GetPreDrawCommandBuffer(size_t index) const
 	{
-		FramebufferData *data = _framebuffers[0];
+		return _framebuffers[index]->preDrawCommandBuffer;
+	}
+
+	VkFramebuffer VulkanFramebuffer::GetFramebuffer(size_t index) const
+	{
+		return _framebuffers[index]->framebuffer;
+	}
+
+	void VulkanFramebuffer::InitializeRenderPass(size_t index)
+	{
+		FramebufferData *data = _framebuffers[index];
 
 		VkAttachmentDescription attachments[3];
 		uint32_t count = 0;

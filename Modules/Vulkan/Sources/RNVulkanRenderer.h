@@ -62,6 +62,7 @@ namespace RN
 
 		VkCommandBuffer GetGlobalCommandBuffer() const { return _commandBuffer; }
 		void SubmitGlobalCommandBuffer();
+		void BeginGlobalCommandBuffer();
 
 	private:
 		VulkanWindow *_mainWindow;

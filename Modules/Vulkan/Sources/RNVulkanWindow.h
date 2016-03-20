@@ -36,6 +36,7 @@ namespace RN
 
 		VkSwapchainKHR GetSwapChain() const { return _swapchain; }
 		VulkanFramebuffer *GetFramebuffer() const { return _framebuffer; }
+		VulkanBackBuffer *GetActiveBackbuffer() const { return _activeBackBuffer; }
 
 	private:
 		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer);

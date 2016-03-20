@@ -10,6 +10,7 @@
 #include "RNVulkanWindow.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanTexture.h"
+#include "RNVulkanBackBuffer.h"
 
 namespace RN
 {
@@ -79,12 +80,7 @@ namespace RN
 #undef TextureFormat
 
 		CreateCommandBuffer(_commandBuffer);
-
-		VkCommandBufferBeginInfo cmdBufInfo = {};
-		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		RNVulkanValidate(vk::BeginCommandBuffer(_commandBuffer, &cmdBufInfo));
+		BeginGlobalCommandBuffer();
 	}
 
 	VkResult VulkanRenderer::CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -123,7 +119,10 @@ namespace RN
 
 		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 		RNVulkanValidate(vk::QueueWaitIdle(_workQueue));
+	}
 
+	void VulkanRenderer::BeginGlobalCommandBuffer()
+	{
 		VkCommandBufferBeginInfo cmdBufInfo = {};
 		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -145,8 +144,6 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
-//		return;
-
 		SubmitGlobalCommandBuffer();
 
 		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
@@ -157,6 +154,8 @@ namespace RN
 
 		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
 		_currentFrame ++;
+
+		BeginGlobalCommandBuffer();
 	}
 	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
@@ -166,93 +165,120 @@ namespace RN
 		if(!framebuffer)
 			framebuffer = _mainWindow->GetFramebuffer();
 
-		VkCommandBuffer commandBuffer = framebuffer->GetCommandBuffer();
-
 		VkCommandBufferBeginInfo cmdBufInfo = {};
 		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		cmdBufInfo.pNext = NULL;
 
-		RNVulkanValidate(vk::BeginCommandBuffer(commandBuffer, &cmdBufInfo));
+		VulkanBackBuffer *backbuffer = _mainWindow->GetActiveBackbuffer();
+		uint32_t framebufferIndex = backbuffer->GetImageIndex();
 
-		VkImageMemoryBarrier postPresentBarrier = {};
-		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		postPresentBarrier.pNext = NULL;
-		postPresentBarrier.srcAccessMask = 0;
-		postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		postPresentBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-		postPresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture())->GetImage();
+		{
+			VkCommandBuffer commandBuffer = framebuffer->GetPreDrawCommandBuffer(framebufferIndex);
 
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
+			RNVulkanValidate(vk::BeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
+			VkImageMemoryBarrier postPresentBarrier = {};
+			postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			postPresentBarrier.pNext = NULL;
+			postPresentBarrier.srcAccessMask = 0;
+			postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			postPresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+			postPresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture(framebufferIndex))->GetImage();
 
-		VkClearValue clearValues[2];
-		clearValues[0].color = { camera->GetClearColor().r, camera->GetClearColor().g, camera->GetClearColor().b, camera->GetClearColor().a };
-		clearValues[1].depthStencil = { 1.0f, 0 };
+			vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
 
-		VkRenderPassBeginInfo renderPassBeginInfo = {};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.pNext = NULL;
-		renderPassBeginInfo.renderPass = framebuffer->GetRenderPass();
-		renderPassBeginInfo.framebuffer = framebuffer->GetFramebuffer();
-		renderPassBeginInfo.renderArea.offset.x = 0;
-		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(size.x);
-		renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(size.y);
-		renderPassBeginInfo.clearValueCount = 1;
-		renderPassBeginInfo.pClearValues = clearValues;
+			vk::EndCommandBuffer(commandBuffer);
 
-		vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &commandBuffer;
 
-		// Update dynamic viewport state
-		VkViewport viewport = {};
-		viewport.height = size.x;
-		viewport.width = size.y;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
+			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+		}
 
-		vk::CmdSetViewport(commandBuffer, 0, 1, &viewport);
+		{
+			VkCommandBuffer commandBuffer = framebuffer->GetDrawCommandBuffer(framebufferIndex);
+			RNVulkanValidate(vk::BeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
-		// Update dynamic scissor state
-		VkRect2D scissor = {};
-		scissor.extent.width = static_cast<uint32_t>(size.x);
-		scissor.extent.height = static_cast<uint32_t>(size.y);
-		scissor.offset.x = 0;
-		scissor.offset.y = 0;
+			VkClearValue clearValues[2];
+			clearValues[0].color = {camera->GetClearColor().r, camera->GetClearColor().g, camera->GetClearColor().b,
+									camera->GetClearColor().a};
+			clearValues[1].depthStencil = {1.0f, 0};
 
-		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
+			VkRenderPassBeginInfo renderPassBeginInfo = {};
+			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBeginInfo.pNext = NULL;
+			renderPassBeginInfo.renderPass = framebuffer->GetRenderPass(framebufferIndex);
+			renderPassBeginInfo.framebuffer = framebuffer->GetFramebuffer(framebufferIndex);
+			renderPassBeginInfo.renderArea.offset.x = 0;
+			renderPassBeginInfo.renderArea.offset.y = 0;
+			renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(size.x);
+			renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(size.y);
+			renderPassBeginInfo.clearValueCount = 1;
+			renderPassBeginInfo.pClearValues = clearValues;
 
-		function();
+			vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vk::CmdEndRenderPass(commandBuffer);
+			// Update dynamic viewport state
+			VkViewport viewport = {};
+			viewport.height = size.x;
+			viewport.width = size.y;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
 
-		// Add a present memory barrier to the end of the command buffer
-		// This will transform the frame buffer color attachment to a
-		// new layout for presenting it to the windowing system integration
-		VkImageMemoryBarrier prePresentBarrier = {};
-		prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		prePresentBarrier.pNext = NULL;
-		prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		prePresentBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-		prePresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture())->GetImage();
+			vk::CmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
-		vk::EndCommandBuffer(commandBuffer);
+			// Update dynamic scissor state
+			VkRect2D scissor = {};
+			scissor.extent.width = static_cast<uint32_t>(size.x);
+			scissor.extent.height = static_cast<uint32_t>(size.y);
+			scissor.offset.x = 0;
+			scissor.offset.y = 0;
 
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
+			vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+			function();
+
+			vk::CmdEndRenderPass(commandBuffer);
+
+			// Add a present memory barrier to the end of the command buffer
+			// This will transform the frame buffer color attachment to a
+			// new layout for presenting it to the windowing system integration
+			VkImageMemoryBarrier prePresentBarrier = {};
+			prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			prePresentBarrier.pNext = NULL;
+			prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+			prePresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture(framebufferIndex))->GetImage();
+
+			vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
+			vk::EndCommandBuffer(commandBuffer);
+
+			VkSemaphore presentSemaphore = backbuffer->GetPresentSemaphore();
+			VkSemaphore renderSemaphore = backbuffer->GetRenderSemaphore();
+			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &commandBuffer;
+			submitInfo.waitSemaphoreCount = 1;
+			submitInfo.pWaitSemaphores = &presentSemaphore;
+			submitInfo.signalSemaphoreCount = 1;
+			submitInfo.pSignalSemaphores = &renderSemaphore;
+			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+
+			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+		}
 	}
 
 	bool VulkanRenderer::SupportsTextureFormat(const String *format) const

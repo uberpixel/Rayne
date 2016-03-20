@@ -20,19 +20,20 @@ namespace RN
 		VKAPI VulkanBackBuffer(VkDevice device, VkSwapchainKHR swapchain);
 		VKAPI ~VulkanBackBuffer();
 
-		VKAPI void WaitForPresentFence();
 		VKAPI void AcquireNextImage();
 		VKAPI void Present(VkQueue queue);
 
-		VkFence GetPresentFence() const { return _presentFence; }
+		VkSemaphore GetPresentSemaphore() const { return _presentSemaphore; }
+		VkSemaphore GetRenderSemaphore() const { return _renderSemaphore; }
+
+		uint32_t GetImageIndex() const { return _imageIndex; };
 
 	private:
 		VkSwapchainKHR _swapchain;
 
 		VkDevice _device;
-		VkSemaphore _acquireSemaphore;
+		VkSemaphore _presentSemaphore;
 		VkSemaphore _renderSemaphore;
-		VkFence _presentFence;
 
 		uint32_t _imageIndex;
 	};
