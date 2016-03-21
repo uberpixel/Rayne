@@ -60,89 +60,21 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
 
 endmacro()
 
-macro(__rayne_target_names _NAME _NAMES)
-
-    set(${_NAMES}
-            "${_NAME}")
-
-endmacro()
-
 macro(rayne_add_library _NAME _SOURCES _HEADERS _RAYNE_LIBRARIES _VERSION _ABI)
 
     __rayne_create_target(${_NAME} SHARED "${_SOURCES}" "${_HEADERS}" "${_RAYNE_LIBRARIES}" "${_VERSION}" "${_ABI}")
-
-    set(LIBRARIES
-            "${_NAME}")
-
-    foreach(LIBRARY ${LIBRARIES})
-        add_dependencies(${_NAME} "${LIBRARY}")
-    endforeach()
-
-endmacro()
-
-macro(rayne_target_add_definitions _TARGET _DEFINITIONS)
-
-    __rayne_target_names(${_TARGET} TARGETS)
-
-    foreach(TARGET ${TARGETS})
-
-        foreach(DEFINITION ${_DEFINITIONS})
-            target_compile_definitions(${TARGET} PRIVATE "${DEFINITION}")
-        endforeach()
-
-    endforeach()
-
-endmacro()
-
-macro(rayne_target_add_options _TARGET _OPTIONS)
-
-    __rayne_target_names(${_TARGET} TARGETS)
-
-    foreach(TARGET ${TARGETS})
-
-        foreach(OPTION ${_OPTIONS})
-            target_compile_options(${TARGET} PRIVATE "${OPTION}")
-        endforeach()
-
-    endforeach()
-
-endmacro()
-
-macro(rayne_target_link_libraries _TARGET _LIBRARIES)
-
-    __rayne_target_names(${_TARGET} TARGETS)
-
-    foreach(TARGET ${TARGETS})
-        target_link_libraries(${TARGET} "${_LIBRARIES}")
-    endforeach()
-
-endmacro()
-
-macro(rayne_target_include_directories _TARGET _DIRECTORIES)
-
-    __rayne_target_names(${_TARGET} TARGETS)
-
-    foreach(TARGET ${TARGETS})
-        target_include_directories("${TARGET}" PRIVATE "${_DIRECTORIES}")
-    endforeach()
 
 endmacro()
 
 macro(rayne_copy_resources _TARGET _RESOURCES)
 
-    __rayne_target_names(${_TARGET} _TARGETS)
+    foreach(_RESOURCE ${_RESOURCES})
 
-    foreach(_RTARGET ${_TARGETS})
-
-        foreach(_RESOURCE ${_RESOURCES})
-
-            if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
-                add_custom_command(TARGET ${_RTARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_RTARGET}>/${_RESOURCE}")
-            else()
-                add_custom_command(TARGET ${_RTARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_RTARGET}>/${_RESOURCE}")
-            endif()
-
-        endforeach()
+        if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
+            add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+        else()
+            add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+        endif()
 
     endforeach()
 
@@ -156,20 +88,18 @@ endmacro(rayne_install)
 
 macro(rayne_set_module_output_directory _TARGET)
 
-    __rayne_target_names(${_TARGET} _TARGETS)
-
     if(WIN32)
-        set_target_properties(${_TARGETS} PROPERTIES
+        set_target_properties(${_TARGET} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/${_TARGET}"
             LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Debug/${_TARGET}"
             ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug/${_TARGET}")
 
-        set_target_properties(${_TARGETS} PROPERTIES
+        set_target_properties(${_TARGET} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/${_TARGET}"
             LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Release/${_TARGET}"
             ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Release/${_TARGET}")
     else()
-        set_target_properties(${_TARGETS} PROPERTIES
+        set_target_properties(${_TARGET} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_TARGET}"
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${_TARGET}"
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${_TARGET}")

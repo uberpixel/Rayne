@@ -11,6 +11,12 @@ endif()
 
 find_package(PythonInterp 3 REQUIRED)
 
+if(DEFINED ENV{VK_SDK_PATH})
+    set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
+else()
+    message(FATAL_ERROR "Could not find Vulkan SDK")
+endif()
+
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/CopyResources.cmake)
 
@@ -73,9 +79,11 @@ set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor")
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
-rayne_target_include_directories(RayneVulkan "${INCLUDE_DIRECTORIES}")
-rayne_target_add_definitions(RayneVulkan "${DEFINES}")
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
+
+target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
+target_include_directories(RayneVulkan SYSTEM PRIVATE ${VULKAN_BASE}/Include)
+target_compile_definitions(RayneVulkan PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneVulkan/. DESTINATION lib/Rayne/RayneVulkan)

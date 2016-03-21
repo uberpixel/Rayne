@@ -35,9 +35,10 @@ set(INCLUDE_DIRECTORIES
         ${Assimp_SOURCE_DIR}/include)
 
 rayne_add_library(RayneAssimp "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
-rayne_target_include_directories(RayneAssimp "${INCLUDE_DIRECTORIES}")
-rayne_target_link_libraries(RayneAssimp "${LINK_LIBRARIES}")
-rayne_target_add_definitions(RayneAssimp "${DEFINES}")
 rayne_set_module_output_directory(RayneAssimp)
+
+target_include_directories(RayneAssimp SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
+target_link_libraries(RayneAssimp "${LINK_LIBRARIES}")
+target_compile_definitions(RayneAssimp PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneAssimp/. DESTINATION lib/Rayne/RayneAssimp)

@@ -302,13 +302,11 @@ set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${
 set(TARGET_HEADERS ${RAYNE_HEADERS})
 
 rayne_add_library(Rayne "${TARGET_SOURCES}" "${TARGET_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
-rayne_target_add_definitions(Rayne "${COMPILE_DEFINITIONS}")
-rayne_target_add_options(Rayne "${COMPILE_OPTIONS}")
-rayne_target_include_directories(Rayne "${INCLUDE_DIRECTORIES}")
-rayne_target_link_libraries(Rayne "${LINK_LIBRARIES}")
 
-__rayne_target_names(Rayne _TARGETS)
-rayne_install(TARGETS ${_TARGETS}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+target_include_directories(Rayne SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
+target_link_libraries(Rayne "${LINK_LIBRARIES}")
+target_compile_definitions(Rayne PRIVATE "${COMPILE_DEFINITIONS}")
+target_compile_definitions(Rayne PRIVATE "${COMPILE_OPTIONS}")
+
+#rayne_install(Rayne Rayne ${_TARGETS} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/. DESTINATION include/Rayne)
