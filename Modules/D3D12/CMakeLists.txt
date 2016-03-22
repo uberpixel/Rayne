@@ -42,7 +42,7 @@ set(HEADERS
         Sources/RND3D12Window.h)
 
 set(RESOURCES Resources)
-set(DEFINES "RN_BUILD_VULKAN")
+set(DEFINES "RN_BUILD_D3D12")
 
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
