@@ -9,7 +9,7 @@
 #ifndef __RAYNE_D3D12STATECOORDINATOR_H_
 #define __RAYNE_D3D12STATECOORDINATOR_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 #include "RND3D12Shader.h"
 
 struct D3D12_INPUT_LAYOUT_DESC;

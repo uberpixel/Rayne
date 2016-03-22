@@ -10,7 +10,7 @@
 #ifndef __RAYNE_D3D12TEXTURE_H_
 #define __RAYNE_D3D12TEXTURE_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 namespace RN
 {
@@ -22,19 +22,19 @@ namespace RN
 	public:
 		friend class D3D12Renderer;
 
-		RNAPI ~D3D12Texture() override;
+		D3DAPI ~D3D12Texture() override;
 
-		RNAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
-		RNAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
+		D3DAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
+		D3DAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
+		D3DAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
+		D3DAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
-		RNAPI void GenerateMipMaps() final;
-		RNAPI void SetParameter(const Parameter &parameter) final;
-		RNAPI bool HasColorChannel(ColorChannel channel) const final;
+		D3DAPI void GenerateMipMaps() final;
+		D3DAPI void SetParameter(const Parameter &parameter) final;
+		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
 
-		RNAPI void *__GetUnderlyingTexture() const { return _texture; }
-		RNAPI void *__GetUnderlyingSampler() const { return _sampler; }
+		D3DAPI void *__GetUnderlyingTexture() const { return _texture; }
+		D3DAPI void *__GetUnderlyingSampler() const { return _sampler; }
 
 	private:
 		D3D12Texture(D3D12Renderer *renderer, D3D12StateCoordinator *coordinator, void *texture, const Descriptor &descriptor);

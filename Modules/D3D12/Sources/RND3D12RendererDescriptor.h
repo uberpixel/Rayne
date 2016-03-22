@@ -9,7 +9,7 @@
 #ifndef __RAYNE_D3D12RENDERERDESCRIPTOR_H__
 #define __RAYNE_D3D12RENDERERDESCRIPTOR_H__
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 namespace RN
 {
@@ -18,10 +18,18 @@ namespace RN
 	public:
 		static void InitialWakeUp(MetaClass *meta);
 
-		D3D12RendererDescriptor();
+		D3DAPI D3D12RendererDescriptor();
 
-		Renderer *CreateRenderer(const Dictionary *parameters) override;
-		bool CanConstructWithSettings(const Dictionary *parameters) const override;
+		D3DAPI Renderer *CreateRenderer(RenderingDevice *device) final;
+		D3DAPI bool CanCreateRenderer() const final;
+
+		D3DAPI void PrepareWithSettings(const Dictionary *settings) final;
+
+		D3DAPI const Array *GetDevices() const final;
+
+	private:
+		IDXGIFactory4 *_factory;
+		Array *_devices;
 
 		RNDeclareMeta(D3D12RendererDescriptor)
 	};

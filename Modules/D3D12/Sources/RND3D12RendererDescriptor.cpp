@@ -8,6 +8,7 @@
 
 #include "RND3D12RendererDescriptor.h"
 #include "RND3D12Renderer.h"
+#include "RND3D12Device.h"
 
 namespace RN
 {
@@ -18,49 +19,54 @@ namespace RN
 		if(meta == D3D12RendererDescriptor::GetMetaClass())
 		{
 			D3D12RendererDescriptor *descriptor = new D3D12RendererDescriptor();
-			RendererManager::GetSharedInstance()->AddDescriptor(descriptor);
+			GetExtensionPoint()->AddExtension(descriptor, -5);
 			descriptor->Release();
 		}
 	}
 
 	D3D12RendererDescriptor::D3D12RendererDescriptor() :
-		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.d3d12"), RNCSTR("D3D12"))
+		RN::RendererDescriptor(RNCSTR("net.uberpixel.rendering.d3d12"), RNCSTR("D3D12")),
+		_devices(nullptr)
 	{}
 
 
-	Renderer *D3D12RendererDescriptor::CreateRenderer(const Dictionary *parameters)
+	Renderer *D3D12RendererDescriptor::CreateRenderer(RenderingDevice *device)
 	{
-		D3D12Renderer *renderer = new D3D12Renderer(parameters);
-		return renderer;
+		return nullptr;
+	}
+	bool D3D12RendererDescriptor::CanCreateRenderer() const
+	{
+		return (_devices && _devices->GetCount() > 0);
 	}
 
-	bool D3D12RendererDescriptor::CanConstructWithSettings(const Dictionary *parameters) const
+	void D3D12RendererDescriptor::PrepareWithSettings(const Dictionary *settings)
 	{
-		// Check for parameters that need to be activated before interacting with the D3D12 API
-/*		if(parameters)
-		{
-			Number *apiValidation = const_cast<Dictionary *>(parameters)->GetObjectForKey<Number>(RNCSTR("api_validation"));
-			if(apiValidation && apiValidation->GetBoolValue())
-				setenv("D3D12_DEVICE_WRAPPER_TYPE", "1", 1);
-		}
+		if(::CreateDXGIFactory2(0, __uuidof(IDXGIFactory4), reinterpret_cast<void **>(&_factory)) != S_OK)
+			return;
 
-		// Probe the provided devices
-		bool hasHighPoweredDevice = false;
-		NSArray *devices = MTLCopyAllDevices();
+		_devices = new Array();
 
-		for(id<MTLDevice> device in devices)
+		UINT i = 0;
+		while(1)
 		{
-			if(![device isLowPower] && ![device isHeadless])
-			{
-				hasHighPoweredDevice = true;
+			IDXGIAdapter1 *adapter;
+			HRESULT result = _factory->EnumAdapters1(i, &adapter);
+
+			if(result != S_OK)
 				break;
-			}
+
+			D3D12Device *device = new D3D12Device(adapter);
+			_devices->AddObject(device);
+			device->Release();
+
+			RNDebug("Found adapter " << device);
+
+			i++;
 		}
+	}
 
-		[devices release];
-
-		return hasHighPoweredDevice;*/
-
-		return true;
+	const Array *D3D12RendererDescriptor::GetDevices() const
+	{
+		return _devices;
 	}
 }

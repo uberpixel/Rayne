@@ -11,6 +11,9 @@ set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
+        Sources/RND3D12.cpp
+        Sources/RND3D12Device.cpp
+        Sources/RND3D12Framebuffer.cpp
         Sources/RND3D12GPUBuffer.cpp
         Sources/RND3D12Internals.cpp
         Sources/RND3D12Renderer.cpp
@@ -21,12 +24,12 @@ set(SOURCES
         Sources/RND3D12Texture.cpp
         Sources/RND3D12UniformBuffer.cpp
         Sources/RND3D12Window.cpp
-        Sources/init.cpp)
-
-set(RESOURCES Resources)
+        Sources/RND3D12.cpp)
 
 set(HEADERS
-        Sources/d3dx12.h
+        Sources/RND3D12.h
+        Sources/RND3D12Device.h
+        Sources/RND3D12Framebuffer.h
         Sources/RND3D12GPUBuffer.h
         Sources/RND3D12Internals.h
         Sources/RND3D12Renderer.h
@@ -37,6 +40,9 @@ set(HEADERS
         Sources/RND3D12Texture.h
         Sources/RND3D12UniformBuffer.h
         Sources/RND3D12Window.h)
+
+set(RESOURCES Resources)
+set(DEFINES "RN_BUILD_VULKAN")
 
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
@@ -49,5 +55,6 @@ rayne_copy_resources(RayneD3D12 ${RESOURCES})
 
 target_include_directories(RayneD3D12 SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_link_libraries(RayneD3D12 "${LINK_LIBRARIES}")
+target_compile_definitions(RayneD3D12 PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneD3D12)

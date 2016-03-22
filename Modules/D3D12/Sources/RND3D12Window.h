@@ -9,7 +9,7 @@
 #ifndef __RAYNE_D3D12WINDOW_H__
 #define __RAYNE_D3D12WINDOW_H__
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 namespace RN
 {
@@ -21,13 +21,13 @@ namespace RN
 		friend class D3D12Renderer;
 		friend class D3D12RendererInternals;
 
-		void SetTitle(const String *title) final;
-		Screen *GetScreen() final;
+		D3DAPI void SetTitle(const String *title) final;
+		D3DAPI Screen *GetScreen() final;
 
-		void Show() final;
-		void Hide() final;
+		D3DAPI void Show() final;
+		D3DAPI void Hide() final;
 
-		Vector2 GetSize() const final;
+		D3DAPI Vector2 GetSize() const final;
 
 	private:
 		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer);

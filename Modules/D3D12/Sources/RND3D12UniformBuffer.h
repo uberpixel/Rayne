@@ -9,7 +9,7 @@
 #ifndef __RAYNE_D3D12UNIFORMBUFFER_H_
 #define __RAYNE_D3D12UNIFORMBUFFER_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 #include "RND3D12StateCoordinator.h"
 
 #define kRND3D12UniformBufferCount 3

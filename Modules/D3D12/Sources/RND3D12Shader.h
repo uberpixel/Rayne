@@ -10,7 +10,7 @@
 #ifndef __RAYNE_D3D12SHADER_H_
 #define __RAYNE_D3D12SHADER_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 namespace RN
 {
@@ -35,10 +35,10 @@ namespace RN
 			size_t _index;
 		};
 
-		RNAPI ~D3D12Shader() override;
+		D3DAPI ~D3D12Shader() override;
 
-		RNAPI const String *GetName() const override;
-		RNAPI const Array *GetAttributes() const override;
+		D3DAPI const String *GetName() const override;
+		D3DAPI const Array *GetAttributes() const override;
 
 	private:
 		D3D12Shader(String *file, String *entryPointName, String *shaderType);

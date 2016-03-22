@@ -18,9 +18,11 @@ namespace RN
 	RNDefineMeta(D3D12Renderer, Renderer)
 
 	D3D12Renderer::D3D12Renderer(const Dictionary *parameters) :
+		Renderer(nullptr, nullptr),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
-		_defaultShaders(new Dictionary())
+		_defaultShaders(new Dictionary()),
+		_textureFormatLookup(new Dictionary())
 	{
 		_internals->device = nullptr;
 
@@ -34,37 +36,53 @@ namespace RN
 			}
 		}
 #endif
-		
+
 		// Texture format look ups
-		_textureFormatLookup = new Dictionary();
-
 #define TextureFormat(name, d3d12) \
-		_textureFormatLookup->SetObjectForKey(Number::WithUint32(d3d12), RNCSTR(#name))
+			case Texture::Format::name: { \
+				_textureFormatLookup->SetObjectForKey(Number::WithUint32(d3d12), RNCSTR(#name)); \
+			} break
 
-		TextureFormat(RGBA8888, DXGI_FORMAT_R8G8B8A8_UNORM);
-		TextureFormat(RGB10A2, DXGI_FORMAT_R10G10B10A2_UNORM);
-		TextureFormat(R8, DXGI_FORMAT_R8_UNORM);
-		TextureFormat(RG88, DXGI_FORMAT_R8G8_UNORM);
-		TextureFormat(R16F, DXGI_FORMAT_R16_FLOAT);
-		TextureFormat(RG16F, DXGI_FORMAT_R16G16_FLOAT);
-		TextureFormat(RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		TextureFormat(R32F, DXGI_FORMAT_R32_FLOAT);
-		TextureFormat(RG32F, DXGI_FORMAT_R32G32_FLOAT);
-		TextureFormat(RGBA32F, DXGI_FORMAT_R32G32B32A32_FLOAT);
-		TextureFormat(Depth24I, DXGI_FORMAT_D24_UNORM_S8_UINT);
-		TextureFormat(Depth32F, DXGI_FORMAT_D32_FLOAT);
-		TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
+		bool isDone = false;
 
-#undef TextureFormat
+		for(size_t i = 0; isDone == false; i++)
+		{
+			switch(static_cast<Texture::Format>(i))
+			{
+				TextureFormat(RGBA8888, DXGI_FORMAT_R8G8B8A8_UNORM);
+				TextureFormat(RGB10A2, DXGI_FORMAT_R10G10B10A2_UNORM);
+
+				TextureFormat(R8, DXGI_FORMAT_R8_UNORM);
+				TextureFormat(RG88, DXGI_FORMAT_R8G8_UNORM);
+				
+				TextureFormat(R16F, DXGI_FORMAT_R16_FLOAT);
+				TextureFormat(RG16F, DXGI_FORMAT_R16G16_FLOAT);
+				TextureFormat(RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+				TextureFormat(R32F, DXGI_FORMAT_R32_FLOAT);
+				TextureFormat(RG32F, DXGI_FORMAT_R32G32_FLOAT);
+				TextureFormat(RGBA32F, DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+				TextureFormat(Depth24I, DXGI_FORMAT_D24_UNORM_S8_UINT);
+				TextureFormat(Depth32F, DXGI_FORMAT_D32_FLOAT);
+				TextureFormat(Depth24Stencil8, DXGI_FORMAT_D24_UNORM_S8_UINT);
+				TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
+
+				case Texture::Format::RGB888:
+				case Texture::Format::RGB16F:
+				case Texture::Format::RGB32F:
+				case Texture::Format::Stencil8:
+					break;
+
+				case Texture::Format::Invalid:
+					isDone = true;
+					break;
+			}
+		}
 	}
 
 	D3D12Renderer::~D3D12Renderer()
 	{
-/*		[_internals->commandQueue release];
-		[_internals->device release];
-
-		_mipMapTextures->Release();
-		_textureFormatLookup->Release();*/
 	}
 
 
@@ -331,9 +349,9 @@ namespace RN
 		return true;
 	}
 
-	// https://developer.apple.com/library/ios/documentation/D3D12/Reference/D3D12ShadingLanguageGuide/D3D12ShadingLanguageGuide.pdf
 	size_t D3D12Renderer::GetAlignmentForType(PrimitiveType type) const
 	{
+		// TODO!!!!
 		switch(type)
 		{
 			case PrimitiveType::Uint8:
@@ -363,6 +381,7 @@ namespace RN
 
 	size_t D3D12Renderer::GetSizeForType(PrimitiveType type) const
 	{
+		// TODO!!!
 		switch(type)
 		{
 			case PrimitiveType::Uint8:
@@ -404,19 +423,25 @@ namespace RN
 			TextureFormatX(RGB10A2);
 			TextureFormatX(R8);
 			TextureFormatX(RG88);
+			TextureFormatX(RGB888);
+
 			TextureFormatX(R16F);
 			TextureFormatX(RG16F);
+			TextureFormatX(RGB16F);
 			TextureFormatX(RGBA16F);
+
 			TextureFormatX(R32F);
 			TextureFormatX(RG32F);
+			TextureFormatX(RGB32F);
 			TextureFormatX(RGBA32F);
+
 			TextureFormatX(Depth24I);
 			TextureFormatX(Depth32F);
 			TextureFormatX(Stencil8);
 			TextureFormatX(Depth24Stencil8);
 			TextureFormatX(Depth32FStencil8);
 
-			default:
+			case Texture::Format::Invalid:
 				return nullptr;
 		}
 
@@ -487,6 +512,11 @@ namespace RN
 		return new D3D12Texture(this, &_internals->stateCoordinator, texture, descriptor);*/
 
 		return new D3D12Texture(this, nullptr, nullptr, descriptor);
+	}
+
+	Framebuffer *D3D12Renderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
+	{
+		return nullptr;
 	}
 
 	Drawable *D3D12Renderer::CreateDrawable()

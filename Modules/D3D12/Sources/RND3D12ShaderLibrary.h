@@ -10,7 +10,7 @@
 #ifndef __RAYNE_D3D12SHADERLIBRARY_H_
 #define __RAYNE_D3D12SHADERLIBRARY_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 namespace RN
 {
@@ -20,10 +20,10 @@ namespace RN
 	public:
 		friend class D3D12Renderer;
 
-		~D3D12ShaderLibrary() override;
+		D3DAPI ~D3D12ShaderLibrary() override;
 
-		Shader *GetShaderWithName(const String *name) final;
-		Array *GetShaderNames() const final;
+		D3DAPI Shader *GetShaderWithName(const String *name) final;
+		D3DAPI Array *GetShaderNames() const final;
 
 	private:
 		D3D12ShaderLibrary(const String *file);

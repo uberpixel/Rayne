@@ -10,7 +10,7 @@
 #ifndef __RAYNE_D3D12GPUBUFFER_H_
 #define __RAYNE_D3D12GPUBUFFER_H_
 
-#include <Rayne.h>
+#include "RND3D12.h"
 
 class ID3D12Resource;
 namespace RN
@@ -21,9 +21,9 @@ namespace RN
 	public:
 		friend class D3D12Renderer;
 
-		RNAPI void *GetBuffer() final;
-		RNAPI void InvalidateRange(const Range &range) final;
-		RNAPI size_t GetLength() const final;
+		D3DAPI void *GetBuffer() final;
+		D3DAPI void InvalidateRange(const Range &range) final;
+		D3DAPI size_t GetLength() const final;
 
 	private:
 		D3D12GPUBuffer(const void *data, size_t length);
