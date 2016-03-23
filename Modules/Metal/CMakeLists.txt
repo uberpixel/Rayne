@@ -55,11 +55,13 @@ set(LINK_LIBRARIES ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY} ${METAL_LIBRARY})
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
 
 rayne_add_library(RayneMetal "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
-rayne_target_add_options(RayneMetal "-xobjective-c++")
-rayne_target_include_directories(RayneMetal "${INCLUDE_DIRECTORIES}")
-rayne_target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
-rayne_target_add_definitions(RayneMetal "${DEFINES}")
 rayne_set_module_output_directory(RayneMetal)
 rayne_copy_resources(RayneMetal ${RESOURCES})
+
+target_include_directories(RayneMetal SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
+target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
+target_compile_options(RayneMetal PRIVATE "-xobjective-c++")
+target_compile_definitions(RayneMetal PRIVATE "${DEFINES}")
+
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneMetal/. DESTINATION lib/Rayne/RayneMetal)
