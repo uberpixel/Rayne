@@ -68,7 +68,8 @@ namespace RN
 
 			Descriptor() :
 				type(Type::Type2D),
-				usageOptions(GPUResource::UsageOptions::ReadWrite),
+				accessOptions(GPUResource::AccessOptions::ReadWrite),
+
 				usageHint(UsageHint::ShaderRead),
 				width(1),
 				height(1),
@@ -115,7 +116,7 @@ namespace RN
 			const String *GetFormat() const { return _format; }
 
 			Type type;
-			GPUResource::UsageOptions usageOptions;
+			GPUResource::AccessOptions accessOptions;
 			UsageHint usageHint;
 			uint32 width;
 			uint32 height;

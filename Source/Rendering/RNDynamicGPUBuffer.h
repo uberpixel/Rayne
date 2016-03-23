@@ -17,7 +17,7 @@ namespace RN
 	class DynamicGPUBuffer : public Object
 	{
 	public:
-		RNAPI DynamicGPUBuffer(size_t initial);
+		RNAPI DynamicGPUBuffer(size_t initial, GPUResource::UsageOptions usageOption);
 		RNAPI ~DynamicGPUBuffer();
 
 		RNAPI void Resize(size_t length);
@@ -34,6 +34,8 @@ namespace RN
 		GPUBuffer *_buffers[3];
 		size_t _index;
 		size_t _length;
+
+		GPUResource::UsageOptions _usageOption;
 
 		__RNDeclareMetaInternal(DynamicGPUBuffer)
 	};

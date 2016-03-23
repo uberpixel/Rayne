@@ -62,7 +62,7 @@ namespace RN
 		_indicesBuffer(nullptr),
 		_indicesSize(50)
 	{
-		_indicesBuffer = new DynamicGPUBuffer(_indicesSize * sizeof(uint32));
+		_indicesBuffer = new DynamicGPUBuffer(_indicesSize * sizeof(uint32), GPUResource::UsageOptions::Index);
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
 		size_t count = stage->GetCount();
@@ -185,7 +185,7 @@ namespace RN
 			_stages.push_back(new InstancingLODStage(stage));
 		}
 
-		_buffer = new DynamicGPUBuffer(50 * sizeof(Matrix));
+		_buffer = new DynamicGPUBuffer(50 * sizeof(Matrix), GPUResource::UsageOptions::Uniform);
 
 		SetClipping(true, 64);
 		Reserve(50);

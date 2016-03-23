@@ -405,22 +405,21 @@ namespace RN
 		throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << name << "'"));
 	}
 
-	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
 		void *data = malloc(length);
-		return (new VulkanGPUBuffer(data, length));
+		return (new VulkanGPUBuffer(this, data, length, usageOptions));
 	}
-	GPUBuffer *VulkanRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *VulkanRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
 		void *data = malloc(length);
 		memcpy(data, bytes, length);
-		return (new VulkanGPUBuffer(data, length));
+		return (new VulkanGPUBuffer(this, data, length, usageOptions));
 	}
 
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
 	{
-		VulkanDevice *device = GetDevice()->Downcast<VulkanDevice>();
-		VulkanShaderLibrary *library = new VulkanShaderLibrary(device->GetDevice(), file, options);
+		VulkanShaderLibrary *library = new VulkanShaderLibrary(this, file, options);
 		return library;
 	}
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)

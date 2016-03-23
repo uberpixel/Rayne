@@ -97,8 +97,8 @@ namespace RN
 		RNAPI virtual size_t GetSizeForType(PrimitiveType type) const = 0;
 		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) const = 0;
 
-		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) = 0;
-		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) = 0;
+		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
+		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 
 		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) = 0;
 		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) = 0;

@@ -39,8 +39,8 @@ namespace RN
 		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		VKAPI VkFormat GetVulkanFormatForName(const String *name);
 
-		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
-		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
+		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options, GPUResource::AccessOptions accessOptions) final;
 
 		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
 		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;

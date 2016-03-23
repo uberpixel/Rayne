@@ -91,15 +91,15 @@ namespace RN
 	{
 		VkImageUsageFlags flags = 0;
 
-		switch(descriptor.usageOptions)
+		switch(descriptor.accessOptions)
 		{
-			case GPUResource::UsageOptions::ReadWrite:
+			case GPUResource::AccessOptions::ReadWrite:
 				flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 				break;
-			case GPUResource::UsageOptions::WriteOnly:
+			case GPUResource::AccessOptions::WriteOnly:
 				flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 				break;
-			case GPUResource::UsageOptions::Private:
+			case GPUResource::AccessOptions::Private:
 				flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 				break;
 		}

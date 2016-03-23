@@ -13,14 +13,15 @@ namespace RN
 {
 	RNDefineMeta(DynamicGPUBuffer, Object)
 
-	DynamicGPUBuffer::DynamicGPUBuffer(size_t initial) :
+	DynamicGPUBuffer::DynamicGPUBuffer(size_t initial, GPUResource::UsageOptions usageOption) :
 		_index(0),
-		_length(std::max(static_cast<size_t>(5), initial))
+		_length(std::max(static_cast<size_t>(5), initial)),
+		_usageOption(usageOption)
 	{
 		Renderer *renderer = Renderer::GetActiveRenderer();
 
 		for(size_t i = 0; i < 3; i ++)
-			_buffers[i] = renderer->CreateBufferWithLength(_length, GPUBuffer::UsageOptions::ReadWrite);
+			_buffers[i] = renderer->CreateBufferWithLength(_length, usageOption, GPUResource::AccessOptions::ReadWrite);
 	}
 
 	DynamicGPUBuffer::~DynamicGPUBuffer()
@@ -43,12 +44,12 @@ namespace RN
 		if(buffer->GetLength() < _length)
 		{
 			buffer->Release();
-			_buffers[_index] = Renderer::GetActiveRenderer()->CreateBufferWithLength(_length, GPUBuffer::UsageOptions::ReadWrite);
+			_buffers[_index] = Renderer::GetActiveRenderer()->CreateBufferWithLength(_length, _usageOption, GPUBuffer::AccessOptions::ReadWrite);
 		}
 		else if(buffer->GetLength() / 2 > _length)
 		{
 			buffer->Release();
-			_buffers[_index] = Renderer::GetActiveRenderer()->CreateBufferWithLength(_length, GPUBuffer::UsageOptions::ReadWrite);
+			_buffers[_index] = Renderer::GetActiveRenderer()->CreateBufferWithLength(_length, _usageOption, GPUBuffer::AccessOptions::ReadWrite);
 		}
 	}
 

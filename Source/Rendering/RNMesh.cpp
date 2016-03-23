@@ -119,10 +119,10 @@ namespace RN
 		if(! hasIndices && _indicesCount > 0)
 			throw InconsistencyException("Mesh created without indices descriptor and non-zero indices count");
 
-		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::ReadWrite);
+		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
 
 		if(hasIndices)
-			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::ReadWrite);
+			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
 	}
 
 	void Mesh::BeginChanges()

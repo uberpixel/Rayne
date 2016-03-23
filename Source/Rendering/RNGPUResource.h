@@ -20,6 +20,13 @@ namespace RN
 	public:
 		enum class UsageOptions
 		{
+			Uniform,
+			Vertex,
+			Index
+		};
+
+		enum class AccessOptions
+		{
 			ReadWrite,
 			WriteOnly,
 			Private

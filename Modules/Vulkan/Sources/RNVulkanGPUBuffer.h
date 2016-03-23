@@ -10,6 +10,7 @@
 #define __RAYNE_VULKANGPUBUFFER_H_
 
 #include "RNVulkan.h"
+#include "RNVulkanRenderer.h"
 
 namespace RN
 {
@@ -23,14 +24,16 @@ namespace RN
 		VKAPI size_t GetLength() const final;
 
 	private:
-		VulkanGPUBuffer(void *data, size_t length);
+		VulkanGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption);
 		~VulkanGPUBuffer() override;
+
+		VulkanRenderer *_renderer;
 
 		VkBuffer _buffer;
 		VkDeviceMemory _memory;
 
-		void *_data;
 		size_t _length;
+		void *_mappedBuffer;
 
 		RNDeclareMetaAPI(VulkanGPUBuffer, VKAPI)
 	};

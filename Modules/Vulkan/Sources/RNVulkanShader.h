@@ -30,6 +30,7 @@ namespace RN
 
 		Array *_attributes;
 		VkPipelineShaderStageCreateInfo _shaderStage;
+		VkShaderModule _module;
 		String *_name;
 
 		RNDeclareMetaAPI(VulkanShader, VKAPI)

@@ -8,13 +8,16 @@
 
 #include "RNVulkanShaderLibrary.h"
 #include "RNVulkanShader.h"
+#include "RNVulkanRenderer.h"
 
 namespace RN
 {
 	RNDefineMeta(VulkanShaderLibrary, ShaderLibrary)
 
-	VulkanShaderLibrary::VulkanShaderLibrary(VkDevice device, const String *file, const ShaderCompileOptions *options) : _device(device), _shaders(new Dictionary())
+	VulkanShaderLibrary::VulkanShaderLibrary(VulkanRenderer *renderer, const String *file, const ShaderCompileOptions *options) : _shaders(new Dictionary()), _renderer(renderer)
 	{
+		VkDevice device = renderer->GetVulkanDevice()->GetDevice();
+
 		Data *data = Data::WithContentsOfFile(file);
 		Array *mainArray = JSONSerialization::ObjectFromData<Array>(data, 0);
 
@@ -42,7 +45,7 @@ namespace RN
 			moduleCreateInfo.pCode = (uint32_t*)shaderCode;
 			moduleCreateInfo.flags = 0;
 
-			RNVulkanValidate(vk::CreateShaderModule(_device, &moduleCreateInfo, NULL, &_shaderModule));
+			RNVulkanValidate(vk::CreateShaderModule(device, &moduleCreateInfo, NULL, &_shaderModule));
 
 			//Build all the shader programs
 			shaderArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {

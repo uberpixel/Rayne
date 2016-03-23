@@ -15,7 +15,8 @@ namespace RN
 	VulkanShader::VulkanShader(const String *name, Shader::Type type, VkShaderModule module, ShaderLibrary *library) :
 		Shader(type, library),
 		_attributes(new Array()),
-		_name(name->Copy())
+		_name(name->Copy()),
+		_module(module)
 	{
 		VkShaderStageFlagBits stage;
 
@@ -38,7 +39,7 @@ namespace RN
 		_shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		_shaderStage.stage = stage;
 		_shaderStage.module = module;
-		_shaderStage.pName = name->GetUTF8String();
+		_shaderStage.pName = "main";
 	}
 	VulkanShader::~VulkanShader()
 	{

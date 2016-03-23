@@ -25,9 +25,10 @@ namespace RN
 		VKAPI Array *GetShaderNames() const final;
 
 	private:
-		VulkanShaderLibrary(VkDevice device, const String *file, const ShaderCompileOptions *options);
+		VulkanShaderLibrary(class VulkanRenderer *renderer, const String *file, const ShaderCompileOptions *options);
 
-		VkDevice _device;
+		class VulkanRenderer *_renderer;
+
 		VkShaderModule _shaderModule;
 		Dictionary *_shaders;
 
