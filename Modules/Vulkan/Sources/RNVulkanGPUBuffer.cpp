@@ -12,19 +12,24 @@ namespace RN
 {
 	RNDefineMeta(VulkanGPUBuffer, GPUBuffer)
 
-	VulkanGPUBuffer::VulkanGPUBuffer(void *data)
-	{}
+	VulkanGPUBuffer::VulkanGPUBuffer(void *data, size_t length)
+	{
+		_data = data;
+		_length = length;
+	}
 	VulkanGPUBuffer::~VulkanGPUBuffer()
-	{}
+	{
+		free(_data);
+	}
 
 	void *VulkanGPUBuffer::GetBuffer()
 	{
-		return nullptr;
+		return _data;
 	}
 	void VulkanGPUBuffer::InvalidateRange(const Range &range)
 	{}
 	size_t VulkanGPUBuffer::GetLength() const
 	{
-		return 0;
+		return _length;
 	}
 }

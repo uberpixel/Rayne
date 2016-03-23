@@ -178,7 +178,6 @@ namespace RN
 
 		function();
 
-		// Clean Up
 		MetalDrawable *drawable = _internals->renderPass.drawableHead;
 		while(drawable)
 		{
@@ -186,6 +185,7 @@ namespace RN
 			drawable = drawable->_next;
 		}
 
+		// Clean up
 		[_internals->renderPass.renderCommand endEncoding];
 		[_internals->renderPass.renderCommand release];
 		_internals->renderPass.renderCommand = nil;

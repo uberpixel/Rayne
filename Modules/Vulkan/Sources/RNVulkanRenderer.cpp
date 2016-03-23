@@ -8,9 +8,11 @@
 
 #include "RNVulkanRenderer.h"
 #include "RNVulkanWindow.h"
-#include "RNVulkanFramebuffer.h"
-#include "RNVulkanTexture.h"
-#include "RNVulkanBackBuffer.h"
+#include "RNVulkanInternals.h"
+#include "RNVulkanGPUBuffer.h"
+#include "RNVulkanShader.h"
+#include "RNVulkanShaderLibrary.h"
+#include "RNVulkanDevice.h"
 
 namespace RN
 {
@@ -20,7 +22,8 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_textureFormatLookup(new Dictionary()),
-		_currentFrame(0)
+		_currentFrame(0),
+		_defaultShaders(new Dictionary())
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -159,6 +162,9 @@ namespace RN
 	}
 	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
+		// Submit drawables
+		function();
+
 		VulkanFramebuffer *framebuffer = static_cast<VulkanFramebuffer *>(camera->GetFramebuffer());
 		Vector2 size = _mainWindow->GetSize();
 
@@ -242,7 +248,12 @@ namespace RN
 
 			vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-			function();
+/*			VulkanDrawable *drawable = _internals->renderPass.drawableHead;
+			while(drawable)
+			{
+				RenderDrawable(drawable);
+				drawable = drawable->_next;
+			}*/
 
 			vk::CmdEndRenderPass(commandBuffer);
 
@@ -292,11 +303,61 @@ namespace RN
 
 	size_t VulkanRenderer::GetAlignmentForType(PrimitiveType type) const
 	{
-		return 0;
+		switch(type)
+		{
+			case PrimitiveType::Uint8:
+			case PrimitiveType::Int8:
+				return 1;
+
+			case PrimitiveType::Uint16:
+			case PrimitiveType::Int16:
+				return 2;
+
+			case PrimitiveType::Uint32:
+			case PrimitiveType::Int32:
+			case PrimitiveType::Float:
+				return 4;
+
+			case PrimitiveType::Vector2:
+				return 8;
+
+			case PrimitiveType::Vector3:
+			case PrimitiveType::Vector4:
+			case PrimitiveType::Matrix:
+			case PrimitiveType::Quaternion:
+			case PrimitiveType::Color:
+				return 16;
+		}
 	}
 	size_t VulkanRenderer::GetSizeForType(PrimitiveType type) const
 	{
-		return 0;
+		switch(type)
+		{
+			case PrimitiveType::Uint8:
+			case PrimitiveType::Int8:
+				return 1;
+
+			case PrimitiveType::Uint16:
+			case PrimitiveType::Int16:
+				return 2;
+
+			case PrimitiveType::Uint32:
+			case PrimitiveType::Int32:
+			case PrimitiveType::Float:
+				return 4;
+
+			case PrimitiveType::Vector2:
+				return 8;
+
+			case PrimitiveType::Vector3:
+			case PrimitiveType::Vector4:
+			case PrimitiveType::Quaternion:
+			case PrimitiveType::Color:
+				return 16;
+
+			case PrimitiveType::Matrix:
+				return 64;
+		}
 	}
 	const String *VulkanRenderer::GetTextureFormatName(const Texture::Format format) const
 	{
@@ -346,30 +407,74 @@ namespace RN
 
 	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
 	{
-		return nullptr;
+		void *data = malloc(length);
+		return (new VulkanGPUBuffer(data, length));
 	}
 	GPUBuffer *VulkanRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
 	{
-		return nullptr;
+		void *data = malloc(length);
+		memcpy(data, bytes, length);
+		return (new VulkanGPUBuffer(data, length));
 	}
 
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
 	{
-		return nullptr;
+		VulkanDevice *device = GetDevice()->Downcast<VulkanDevice>();
+		VulkanShaderLibrary *library = new VulkanShaderLibrary(device->GetDevice(), file, options);
+		return library;
 	}
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
 	{
+		RN_ASSERT(-1, "NOT IMPLEMENTED!");
 		return nullptr;
 	}
 
 	ShaderProgram *VulkanRenderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
 	{
-		return nullptr;
+		Dictionary *defines = new Dictionary();
+
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_NORMALS"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_TANGENTS"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_COLOR"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_UV0"));
+
+		if(lookup->discard)
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));
+
+		ShaderCompileOptions *options = new ShaderCompileOptions();
+		options->SetDefines(defines);
+
+		ShaderLibrary *library;
+
+		{
+			LockGuard<SpinLock> lock(_lock);
+			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
+
+			if(!library)
+			{
+				library = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"), options);
+				_defaultShaders->SetObjectForKey(library, options);
+			}
+		}
+
+		options->Release();
+		defines->Release();
+
+		Shader *vertex = library->GetShaderWithName(RNCSTR("gouraud_vertex"));
+		Shader *fragment = library->GetShaderWithName(RNCSTR("gouraud_fragment"));
+
+		ShaderProgram *program = new ShaderProgram(vertex, fragment);
+		return program->Autorelease();
 	}
 
 	Texture *VulkanRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
-		return nullptr;
+		VulkanTexture *texture = new VulkanTexture(descriptor, this);
+		return texture;
 	}
 
 	Framebuffer *VulkanRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
@@ -379,8 +484,40 @@ namespace RN
 
 	Drawable *VulkanRenderer::CreateDrawable()
 	{
-		return nullptr;
+		VulkanDrawable *drawable = new VulkanDrawable();
+		drawable->_next = nullptr;
+		drawable->_prev = nullptr;
+
+		return drawable;
 	}
-	void VulkanRenderer::SubmitDrawable(Drawable *drawable)
-	{}
+	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
+	{
+		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);
+
+		if(drawable->dirty)
+		{
+//			drawable->UpdateRenderingState(this, state);
+			drawable->dirty = false;
+		}
+
+		// Push into the queue
+		drawable->_prev = nullptr;
+
+		_lock.Lock();
+
+		drawable->_next = _internals->renderPass.drawableHead;
+
+		if(drawable->_next)
+			drawable->_next->_prev = drawable;
+
+		_internals->renderPass.drawableHead = drawable;
+		_internals->renderPass.drawableCount ++;
+
+		_lock.Unlock();
+	}
+
+	void VulkanRenderer::RenderDrawable(VulkanDrawable *drawable)
+	{
+
+	}
 }

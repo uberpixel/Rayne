@@ -14,7 +14,6 @@
 
 namespace RN
 {
-	class MetalRenderer;
 	class MetalShaderLibrary : public ShaderLibrary
 	{
 	public:

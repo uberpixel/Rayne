@@ -1,0 +1,20 @@
+[
+	{
+		"file": ":RayneVulkan:/Shaders.vert.spv",
+		"shaders": [
+			{
+				"name": "gouraud_vertex",
+				"type": "vertex"
+			}
+		]
+	},
+	{
+		"file": ":RayneVulkan:/Shaders.frag.spv",
+		"shaders": [
+			{
+				"name": "gouraud_fragment",
+				"type": "fragment"
+			}
+		]
+	}
+]

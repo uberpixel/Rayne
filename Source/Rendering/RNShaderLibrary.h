@@ -78,6 +78,10 @@ namespace RN
 		RNAPI virtual Shader *GetShaderWithName(const String *name) = 0;
 		RNAPI virtual Array *GetShaderNames() const = 0;
 
+	protected:
+		RNAPI ShaderLibrary();
+		RNAPI virtual ~ShaderLibrary();
+
 		__RNDeclareMetaInternal(ShaderLibrary)
 	};
 }

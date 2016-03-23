@@ -1,0 +1,84 @@
+//
+//  RNVulkanShaderLibrary.cpp
+//  Rayne
+//
+//  Copyright 2016 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+#include "RNVulkanShaderLibrary.h"
+#include "RNVulkanShader.h"
+
+namespace RN
+{
+	RNDefineMeta(VulkanShaderLibrary, ShaderLibrary)
+
+	VulkanShaderLibrary::VulkanShaderLibrary(VkDevice device, const String *file, const ShaderCompileOptions *options) : _device(device), _shaders(new Dictionary())
+	{
+		Data *data = Data::WithContentsOfFile(file);
+		Array *mainArray = JSONSerialization::ObjectFromData<Array>(data, 0);
+
+		//Load the shader code
+		mainArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
+
+			String *file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~spirv"));
+			if(!file)
+				file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+
+			Data *content = Data::WithContentsOfFile(file);
+
+			Array *shaderArray = libraryDictionary->GetObjectForKey<Array>(RNCSTR("shaders"));
+
+			//Create the shader module
+			const char *shaderCode = static_cast<const char*>(content->GetBytes());
+			size_t size = content->GetLength();
+
+			VkShaderModuleCreateInfo moduleCreateInfo;
+
+			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			moduleCreateInfo.pNext = NULL;
+
+			moduleCreateInfo.codeSize = size;
+			moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+			moduleCreateInfo.flags = 0;
+
+			RNVulkanValidate(vk::CreateShaderModule(_device, &moduleCreateInfo, NULL, &_shaderModule));
+
+			//Build all the shader programs
+			shaderArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
+				String *name = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
+				String *typeName = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
+
+				Shader::Type type;
+				if(typeName->IsEqual(RNCSTR("vertex")))
+				{
+					type = Shader::Type::Vertex;
+				}
+				else if(typeName->IsEqual(RNCSTR("fragment")))
+				{
+					type = Shader::Type::Fragment;
+				}
+				else if(typeName->IsEqual(RNCSTR("compute")))
+				{
+					type = Shader::Type::Compute;
+				}
+
+				VulkanShader *shader = new VulkanShader(name, type, _shaderModule, this);
+				_shaders->SetObjectForKey(shader, name);
+			});
+		});
+	}
+	VulkanShaderLibrary::~VulkanShaderLibrary()
+	{
+
+	}
+
+	Shader *VulkanShaderLibrary::GetShaderWithName(const String *name)
+	{
+		return _shaders->GetObjectForKey<Shader>(name);
+	}
+	Array *VulkanShaderLibrary::GetShaderNames() const
+	{
+		return _shaders->GetAllKeys();
+	}
+}

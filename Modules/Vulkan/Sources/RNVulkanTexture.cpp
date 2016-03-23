@@ -114,6 +114,10 @@ namespace RN
 			else
 				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
+		else
+		{
+			flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		}
 
 		return flags;
 	}
@@ -192,6 +196,7 @@ namespace RN
 		imageView.subresourceRange.levelCount = 1;
 		imageView.subresourceRange.baseArrayLayer = 0;
 		imageView.subresourceRange.layerCount = 1;
+		imageView.image = _image;
 
 		SetImageLayout(_image, VK_IMAGE_ASPECT_DEPTH_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 

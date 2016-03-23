@@ -51,10 +51,10 @@ namespace RN
 	{
 		return devices->GetFirstObject<RenderingDevice>();
 	}
-
+	
 	Array *Application::GetLoggingEngines() const
 	{
-		StreamLoggingEngine *engine = new StreamLoggingEngine(std::cout, false);
+		StreamLoggingEngine *engine = new StreamLoggingEngine(std::cout, true);
 		return Array::WithObjects({ engine->Autorelease() });
 	}
 }
