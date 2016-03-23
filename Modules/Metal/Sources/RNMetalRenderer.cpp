@@ -193,31 +193,31 @@ namespace RN
 		_internals->renderPass.activeState = nullptr;
 	}
 
-	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::UsageOptions options)
+	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options)
 	{
 		switch(options)
 		{
-			case GPUResource::UsageOptions::ReadWrite:
+			case GPUResource::AccessOptions::ReadWrite:
 				return MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-			case GPUResource::UsageOptions::WriteOnly:
+			case GPUResource::AccessOptions::WriteOnly:
 				return MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
-			case GPUResource::UsageOptions::Private:
+			case GPUResource::AccessOptions::Private:
 				return  MTLResourceStorageModePrivate;
 		}
 	}
 
-	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
-		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(options);
+		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(accessOptions);
 		id<MTLBuffer> buffer = [_internals->device newBufferWithLength:length options:resourceOptions];
 		if(!buffer)
 			return nullptr;
 
 		return (new MetalGPUBuffer(buffer));
 	}
-	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
-		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(options);
+		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(accessOptions);
 		id<MTLBuffer> buffer = [_internals->device newBufferWithBytes:bytes length:length options:resourceOptions];
 		if(!buffer)
 			return nullptr;
@@ -458,7 +458,7 @@ namespace RN
 		metalDescriptor.width = descriptor.width;
 		metalDescriptor.height = descriptor.height;
 		metalDescriptor.depth = descriptor.depth;
-		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.usageOptions);
+		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.accessOptions);
 		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
 		metalDescriptor.pixelFormat = static_cast<MTLPixelFormat>(format->GetUint32Value());
 

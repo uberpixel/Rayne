@@ -77,7 +77,7 @@ namespace RN
 		if(_valid)
 		{
 			for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
-				_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::WriteOnly);
+				_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly);
 		}
 	}
 
