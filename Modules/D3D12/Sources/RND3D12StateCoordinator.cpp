@@ -9,7 +9,6 @@
 #include "d3dx12.h"
 #include "RND3D12StateCoordinator.h"
 #include "RND3D12Renderer.h"
-#include "RND3D12Internals.h"
 
 namespace RN
 {
@@ -227,7 +226,7 @@ namespace RN
 
 		// Describe and create the graphics pipeline state object (PSO).
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-		psoDesc.pRootSignature = renderer->_internals->rootSignature;
+		//psoDesc.pRootSignature = renderer->_internals->rootSignature;
 		psoDesc.InputLayout = CreateVertexDescriptorFromMesh(mesh);
 		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 		psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
@@ -245,7 +244,7 @@ namespace RN
 		D3D12RenderingState *state = new D3D12RenderingState();
 		state->pixelFormat = pixelFormat;
 		state->depthStencilFormat = depthStencilFormat;
-		renderer->_internals->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
+		//renderer->_internals->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
 
 

@@ -6,36 +6,64 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RND3D12Internals.h"
 #include "RND3D12Renderer.h"
 #include "RND3D12ShaderLibrary.h"
 #include "RND3D12GPUBuffer.h"
 #include "RND3D12Texture.h"
 #include "RND3D12UniformBuffer.h"
+#include "RND3D12Device.h"
+#include "RND3D12RendererDescriptor.h"
+#include "RND3D12Framebuffer.h"
 
 namespace RN
 {
 	RNDefineMeta(D3D12Renderer, Renderer)
 
-	D3D12Renderer::D3D12Renderer(const Dictionary *parameters) :
-		Renderer(nullptr, nullptr),
+	D3D12Renderer::D3D12Renderer(D3D12RendererDescriptor *descriptor, D3D12Device *device) :
+		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary()),
 		_textureFormatLookup(new Dictionary())
 	{
-		_internals->device = nullptr;
+		ID3D12Device *underlyingDevice = device->GetDevice();
 
-#ifdef _DEBUG
-		// Enable the D3D12 debug layer.
 		{
-			ID3D12Debug *debugController;
-			if(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-			{
-				debugController->EnableDebugLayer();
-			}
+			// Describe and create a render target view (RTV) descriptor heap.
+			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+			rtvHeapDesc.NumDescriptors = 3;
+			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+			underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_rtvHeap));
+			_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+			// Describe and create a constant buffer view (CBV) descriptor heap.
+			// Flags indicate that this descriptor heap can be bound to the pipeline 
+			// and that descriptors contained in it can be referenced by a root table.
+			D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
+			cbvHeapDesc.NumDescriptors = 1;
+			cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			underlyingDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&_cbvHeap));
+			_cbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
-#endif
+
+		// Create an empty root signature.
+		{
+			CD3DX12_DESCRIPTOR_RANGE ranges[1];
+			CD3DX12_ROOT_PARAMETER rootParameters[1];
+
+			ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+			rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+			rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+			ID3DBlob *signature;
+			ID3DBlob *error;
+			D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+			underlyingDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_rootSignature));
+		}
 
 		// Texture format look ups
 #define TextureFormat(name, d3d12) \
@@ -91,8 +119,6 @@ namespace RN
 		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
 
 		_mainWindow = new D3D12Window(size, screen, this);
-		_internals->InitializeRenderingPipeline(_mainWindow);
-
 		return _mainWindow;
 	}
 
@@ -114,118 +140,83 @@ namespace RN
 		if(_mipMapTextures->GetCount() == 0)
 			return;
 
-/*		id<MTLCommandBuffer> commandBuffer = [_internals->commandQueue commandBuffer];
-
-		_mipMapTextures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, bool &stop) {
-
-			id<MTLBlitCommandEncoder> commandEncoder = [commandBuffer blitCommandEncoder];
-			[commandEncoder generateMipmapsForTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture()];
-			[commandEncoder endEncoding];
-		});
-
-		[commandBuffer commit];
-		[commandBuffer waitUntilCompleted];
-		*/
 		_mipMapTextures->RemoveAllObjects();
 	}
 
 
-	void D3D12Renderer::RenderIntoWindow(Window *window, Function &&function)
+	void D3D12Renderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
-		_internals->pass.window = static_cast<D3D12Window *>(window);
+		D3D12Window *window = static_cast<D3D12Window *>(twindow);
 
-		// Command list allocators can only be reset when the associated 
-		// command lists have finished execution on the GPU; apps should use 
-		// fences to determine GPU execution progress.
-		_internals->commandAllocators[_internals->frameIndex]->Reset();
+		window->AcquireBackBuffer();
+		window->GetCommandAllocator()->Reset();
+		window->GetCommandList()->Reset(window->GetCommandAllocator(), nullptr);
 
-		// However, when ExecuteCommandList() is called on a particular command 
-		// list, that command list can then be reset at any time and must be before 
-		// re-recording.
-		_internals->commandList->Reset(_internals->commandAllocators[_internals->frameIndex], NULL);
+		window->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
 
-		/*if(_needsUpdateForWindowSizeChange)
-		{
-			CreateFramebuffers();
-		}*/
-
-		// Set necessary state.
-		_internals->commandList->SetGraphicsRootSignature(_internals->rootSignature);
-
-		ID3D12DescriptorHeap* ppHeaps[] = { _internals->cbvHeap };
-		_internals->commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-		_internals->commandList->SetGraphicsRootDescriptorTable(0, _internals->cbvHeap->GetGPUDescriptorHandleForHeapStart());
-
-		// Draw cameras
+		ID3D12DescriptorHeap* ppHeaps[] = { _cbvHeap };
+		window->GetCommandList()->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+		window->GetCommandList()->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+		
 		function();
 
-		// Indicate that the back buffer will now be used to present.
-		_internals->commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_internals->renderTargets[_internals->frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		ID3D12Resource *renderTarget = window->GetFramebuffer()->GetRenderTarget(window->GetFrameIndex());
 
-		_internals->commandList->Close();
+		window->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		window->GetCommandList()->Close();
 
 		// Execute the command list.
-		ID3D12CommandList* ppCommandLists[] = { _internals->commandList };
-		_internals->commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		ID3D12CommandList* ppCommandLists[] = { window->GetCommandList() };
+		window->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-		// Present the frame.
-		_internals->swapChain->Present(0, 0);
-
-		_internals->MoveToNextFrame();
+		window->PresentBackBuffer();
 	}
 
 	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
-		_internals->commandList->RSSetViewports(1, &_internals->viewport);
-		_internals->commandList->RSSetScissorRects(1, &_internals->scissorRect);
+		D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(camera->GetFramebuffer());
+
+		if(!framebuffer)
+			framebuffer = _mainWindow->GetFramebuffer();
+
+		ID3D12Resource *renderTarget = framebuffer->GetRenderTarget(_mainWindow->GetFrameIndex());
+
+		Vector2 size = _mainWindow->GetSize();
+
+		D3D12_VIEWPORT viewport;
+		viewport.Width = size.x;
+		viewport.Height = size.y;
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.MaxDepth = 1.0;
+		viewport.MinDepth = 0.0;
+
+		D3D12_RECT scissorRect;
+		scissorRect.right = static_cast<LONG>(size.x);
+		scissorRect.bottom = static_cast<LONG>(size.y);
+		scissorRect.left = 0;
+		scissorRect.top = 0;
+
+		ID3D12GraphicsCommandList *commandList = _mainWindow->GetCommandList();
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &scissorRect);
 
 		// Indicate that the back buffer will be used as a render target.
-		_internals->commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_internals->renderTargets[_internals->frameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_internals->rtvHeap->GetCPUDescriptorHandleForHeapStart(), _internals->frameIndex, _internals->rtvDescriptorSize);
-		_internals->commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-		_internals->renderPass.camera = camera;
-		_internals->renderPass.framebuffer = camera->GetFramebuffer();
-		_internals->renderPass.activeState = nullptr;
-		_internals->renderPass.drawableHead = nullptr;
-
-		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
-		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
-
-		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
-
-		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _rtvDescriptorSize);
+		commandList->OMSetRenderTargets(1, &rtvHandle, false , nullptr);
 
 		// Clear
 		const Color &clearColor = camera->GetClearColor();
-		_internals->commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
 
 		// Create drawables
 		function();
 
 		// Draw
-		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
-		while(drawable)
-		{
-			RenderDrawable(drawable);
-			drawable = drawable->_next;
-		}
 	}
-
-/*	MTLResourceOptions D3D12ResourceOptionsFromOptions(GPUResource::UsageOptions options)
-	{
-		switch(options)
-		{
-			case GPUResource::UsageOptions::ReadWrite:
-				return MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-			case GPUResource::UsageOptions::WriteOnly:
-				return MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
-			case GPUResource::UsageOptions::Private:
-				return  MTLResourceStorageModePrivate;
-		}
-	}*/
 
 	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
 	{
@@ -245,54 +236,6 @@ namespace RN
 
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
 	{
-/*		MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
-
-		if(options)
-		{
-			const Dictionary *defines = options->GetDefines();
-			if(defines)
-			{
-				NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
-
-				defines->Enumerate<Object, Object>([&](Object *value, const Object *key, bool &stop) {
-
-					if(key->IsKindOfClass(String::GetMetaClass()))
-					{
-						NSString *keyString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(key)->GetUTF8String()];
-
-						if(value->IsKindOfClass(Number::GetMetaClass()))
-						{
-							NSNumber *valueNumber = [[NSNumber alloc] initWithLongLong:static_cast<Number *>(value)->GetInt64Value()];
-							[metalDefines setObject:valueNumber forKey:keyString];
-							[valueNumber release];
-						}
-						else if(value->IsKindOfClass(String::GetMetaClass()))
-						{
-							NSString *valueString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(value)->GetUTF8String()];
-							[metalDefines setObject:valueString forKey:keyString];
-							[valueString release];
-						}
-
-						[keyString release];
-					}
-
-				});
-
-				[metalOptions setPreprocessorMacros:metalDefines];
-				[metalDefines release];
-			}
-		}
-
-		NSError *error = nil;
-		id<MTLLibrary> library = [_internals->device newLibraryWithSource:[NSString stringWithUTF8String:source->GetUTF8String()] options:metalOptions error:&error];
-
-
-		[metalOptions release];
-
-		if(!library)
-			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
-			*/
-
 		D3D12ShaderLibrary *lib = new D3D12ShaderLibrary(nullptr);
 		return lib;
 	}
@@ -452,65 +395,6 @@ namespace RN
 
 	Texture *D3D12Renderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
-/*		String *formatName = const_cast<String *>(descriptor.GetFormat());
-		if(!formatName)
-			throw InvalidTextureFormatException("Texture Format is NULL!");
-
-		Number *format = _textureFormatLookup->GetObjectForKey<Number>(formatName);
-		if(!format)
-			throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << format << "'"));
-
-		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
-
-		metalDescriptor.width = descriptor.width;
-		metalDescriptor.height = descriptor.height;
-		metalDescriptor.depth = descriptor.depth;
-		metalDescriptor.resourceOptions = D3D12ResourceOptionsFromOptions(descriptor.usageOptions);
-		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
-		metalDescriptor.pixelFormat = static_cast<MTLPixelFormat>(format->GetUint32Value());
-
-		MTLTextureUsage usage = 0;
-
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderRead)
-			usage |= MTLTextureUsageShaderRead;
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderWrite)
-			usage |= MTLTextureUsageShaderWrite;
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
-			usage |= MTLTextureUsageRenderTarget;
-
-		metalDescriptor.usage = usage;
-
-
-		switch(descriptor.type)
-		{
-			case Texture::Descriptor::Type::Type1D:
-				metalDescriptor.textureType = MTLTextureType1D;
-				break;
-			case Texture::Descriptor::Type::Type1DArray:
-				metalDescriptor.textureType = MTLTextureType1DArray;
-				break;
-			case Texture::Descriptor::Type::Type2D:
-				metalDescriptor.textureType = MTLTextureType2D;
-				break;
-			case Texture::Descriptor::Type::Type2DArray:
-				metalDescriptor.textureType = MTLTextureType2DArray;
-				break;
-			case Texture::Descriptor::Type::TypeCube:
-				metalDescriptor.textureType = MTLTextureTypeCube;
-				break;
-			case Texture::Descriptor::Type::TypeCubeArray:
-				metalDescriptor.textureType = MTLTextureTypeCubeArray;
-				break;
-			case Texture::Descriptor::Type::Type3D:
-				metalDescriptor.textureType = MTLTextureType3D;
-				break;
-		}
-
-		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor];
-		[metalDescriptor release];
-
-		return new D3D12Texture(this, &_internals->stateCoordinator, texture, descriptor);*/
-
 		return new D3D12Texture(this, nullptr, nullptr, descriptor);
 	}
 
@@ -531,194 +415,13 @@ namespace RN
 
 	void D3D12Renderer::FillUniformBuffer(D3D12UniformBuffer *uniformBuffer, D3D12Drawable *drawable)
 	{
-		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-
-		const D3D12UniformBuffer::Member *member;
-
-		// Matrices
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::ModelMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::ModelViewMatrix)))
-		{
-			Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::ModelViewProjectionMatrix)))
-		{
-			Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::ViewMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::ViewProjectionMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
-		}
-
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::InverseModelMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::InverseModelViewMatrix)))
-		{
-			Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::InverseModelViewProjectionMatrix)))
-		{
-			Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::InverseViewMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::InverseViewProjectionMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
-		}
-
-		// Color
-		Material *material = drawable->material;
-
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::AmbientColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetAmbientColor().r, sizeof(Color));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::DiffuseColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetDiffuseColor().r, sizeof(Color));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::SpecularColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::EmissiveColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
-		}
-
-		// Misc
-		if((member = uniformBuffer->GetMemberForFeature(D3D12UniformBuffer::Feature::DiscardThreshold)))
-		{
-			float temp = material->GetDiscardThreshold();
-			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
-		}
-
-		gpuBuffer->Invalidate();
 	}
 
 	void D3D12Renderer::SubmitDrawable(Drawable *tdrawable)
 	{
-		D3D12Drawable *drawable = static_cast<D3D12Drawable *>(tdrawable);
-
-		if(drawable->dirty)
-		{
-			_lock.Lock();
-			const D3D12RenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
-			_lock.Unlock();
-
-			drawable->UpdateRenderingState(this, state);
-			drawable->dirty = false;
-		}
-
-		// Update uniforms
-		{
-			for(D3D12UniformBuffer *uniformBuffer : drawable->_vertexBuffers)
-			{
-				FillUniformBuffer(uniformBuffer, drawable);
-			}
-
-			for(D3D12UniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
-			{
-				FillUniformBuffer(uniformBuffer, drawable);
-			}
-		}
-
-		// Push into the queue
-		drawable->_prev = nullptr;
-
-		_lock.Lock();
-
-		drawable->_next = _internals->renderPass.drawableHead;
-
-		if(drawable->_next)
-			drawable->_next->_prev = drawable;
-
-		_internals->renderPass.drawableHead = drawable;
-		_internals->renderPass.drawableCount ++;
-
-		_lock.Unlock();
 	}
 
 	void D3D12Renderer::RenderDrawable(D3D12Drawable *drawable)
 	{
-		D3D12GPUBuffer *vertexBuffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetVertexBuffer());
-		D3D12GPUBuffer *indexBuffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-
-		_internals->commandList->SetPipelineState(drawable->_pipelineState->state);
-		_internals->commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-		vertexBufferView.BufferLocation = vertexBuffer->_bufferResource->GetGPUVirtualAddress();
-		vertexBufferView.StrideInBytes = drawable->mesh->GetStride();
-		vertexBufferView.SizeInBytes = vertexBuffer->GetLength();
-		_internals->commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-
-		if(indexBuffer)
-		{
-			D3D12_INDEX_BUFFER_VIEW indexBufferView;
-			indexBufferView.BufferLocation = indexBuffer->_bufferResource->GetGPUVirtualAddress();
-			indexBufferView.SizeInBytes = indexBuffer->GetLength();
-			indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-			_internals->commandList->IASetIndexBuffer(&indexBufferView);
-			_internals->commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
-		}
-		else
-		{
-			_internals->commandList->DrawInstanced(drawable->mesh->GetVerticesCount(), 1, 0, 0);
-		}
-
-/*		id<MTLRenderCommandEncoder> encoder = _internals->renderPass.renderCommand;
-
-		if(_internals->renderPass.activeState != drawable->_pipelineState)
-		{
-			[encoder setRenderPipelineState: drawable->_pipelineState->state];
-
-			_internals->renderPass.activeState = drawable->_pipelineState;
-		}
-
-		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
-
-
-		// Set Uniforms
-		for(D3D12UniformBuffer *uniformBuffer : drawable->_vertexBuffers)
-		{
-			D3D12GPUBuffer *buffer = static_cast<D3D12GPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
-		}
-
-		for(D3D12UniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
-		{
-			D3D12GPUBuffer *buffer = static_cast<D3D12GPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setFragmentBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
-		}
-
-		// Set textures
-		const Array *textures = drawable->material->GetTextures();
-		size_t count = textures->GetCount();
-
-		for(size_t i = 0; i < count; i ++)
-		{
-			D3D12Texture *texture = textures->GetObjectAtIndex<D3D12Texture>(i);
-
-			[encoder setFragmentSamplerState:(id<MTLSamplerState>)texture->__GetUnderlyingSampler() atIndex:i];
-			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
-		}*/
 	}
 }

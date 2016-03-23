@@ -30,7 +30,7 @@ namespace RN
 
 		Dictionary *_shaders;
 
-		RNDeclareMeta(D3D12ShaderLibrary)
+		RNDeclareMetaAPI(D3D12ShaderLibrary, D3DAPI)
 	};
 }
 

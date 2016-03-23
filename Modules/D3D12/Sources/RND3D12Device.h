@@ -18,10 +18,16 @@ namespace RN
 	public:
 		D3DAPI D3D12Device(IDXGIAdapter1 *adapter);
 
+		D3DAPI bool CreateDevice();
+
+		IDXGIAdapter1 *GetAdapter() const { return _adapter;  }
+		ID3D12Device *GetDevice() const { return _device; }
+
 	private:
 		IDXGIAdapter1 *_adapter;
+		ID3D12Device *_device;
 
-		RNDeclareMeta(D3D12Device)
+		RNDeclareMetaAPI(D3D12Device, D3DAPI)
 	};
 }
 

@@ -46,7 +46,7 @@ namespace RN
 
 		void *_data;
 
-		RNDeclareMeta(D3D12Texture)
+		RNDeclareMetaAPI(D3D12Texture, D3DAPI)
 	};
 }
 

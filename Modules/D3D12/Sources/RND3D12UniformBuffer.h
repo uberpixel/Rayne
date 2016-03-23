@@ -106,7 +106,7 @@ namespace RN
 		Feature _supportedFeatures;
 		std::vector<Member> _members;
 
-		RNDeclareMeta(D3D12UniformBuffer)
+		RNDeclareMetaAPI(D3D12UniformBuffer, D3DAPI)
 	};
 }
 

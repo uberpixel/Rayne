@@ -27,11 +27,13 @@ namespace RN
 
 		D3DAPI const Array *GetDevices() const final;
 
+		IDXGIFactory4 *GetFactory() const { return _factory; }
+
 	private:
 		IDXGIFactory4 *_factory;
 		Array *_devices;
 
-		RNDeclareMeta(D3D12RendererDescriptor)
+		RNDeclareMetaAPI(D3D12RendererDescriptor, D3DAPI)
 	};
 }
 
