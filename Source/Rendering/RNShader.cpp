@@ -28,4 +28,9 @@ namespace RN
 		_type(type),
 		_library(library)
 	{}
+
+	Shader::~Shader()
+	{
+
+	}
 }

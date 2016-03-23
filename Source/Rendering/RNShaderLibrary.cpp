@@ -11,7 +11,6 @@
 
 namespace RN
 {
-	RNDefineMeta(ShaderLibrary, Object)
 	RNDefineMeta(ShaderLookupRequest, Object)
 
 	ShaderLookupRequest::ShaderLookupRequest() :
@@ -87,5 +86,17 @@ namespace RN
 	{
 		ShaderProgram *program = new ShaderProgram(vertex, fragment);
 		return program->Autorelease();
+	}
+
+	RNDefineMeta(ShaderLibrary, Object)
+
+	ShaderLibrary::ShaderLibrary()
+	{
+
+	}
+
+	ShaderLibrary::~ShaderLibrary()
+	{
+
 	}
 }

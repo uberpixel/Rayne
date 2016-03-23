@@ -14,7 +14,6 @@
 
 namespace RN
 {
-	class MetalShaderLibrary;
 	class MetalShader : public Shader
 	{
 	public:
@@ -35,10 +34,10 @@ namespace RN
 			size_t _index;
 		};
 
-		MTLAPI RNAPI ~MetalShader() override;
+		MTLAPI ~MetalShader() override;
 
-		MTLAPI RNAPI const String *GetName() const override;
-		MTLAPI RNAPI const Array *GetAttributes() const override;
+		MTLAPI const String *GetName() const override;
+		MTLAPI const Array *GetAttributes() const override;
 
 	private:
 		MetalShader(void *shader, ShaderLibrary *library);

@@ -58,6 +58,7 @@ namespace RN
 
 	protected:
 		RNAPI Shader(Type type, ShaderLibrary *library);
+		RNAPI virtual ~Shader();
 
 	private:
 		Type _type;

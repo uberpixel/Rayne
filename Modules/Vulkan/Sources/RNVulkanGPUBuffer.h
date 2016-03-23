@@ -23,11 +23,14 @@ namespace RN
 		VKAPI size_t GetLength() const final;
 
 	private:
-		VulkanGPUBuffer(void *data);
+		VulkanGPUBuffer(void *data, size_t length);
 		~VulkanGPUBuffer() override;
 
 		VkBuffer _buffer;
 		VkDeviceMemory _memory;
+
+		void *_data;
+		size_t _length;
 
 		RNDeclareMetaAPI(VulkanGPUBuffer, VKAPI)
 	};

@@ -17,6 +17,9 @@
 namespace RN
 {
 	class VulkanWindow;
+	struct VulkanRendererInternals;
+	struct VulkanDrawable;
+
 	class VulkanRenderer : public Renderer
 	{
 	public:
@@ -65,9 +68,16 @@ namespace RN
 		void BeginGlobalCommandBuffer();
 
 	private:
+		void RenderDrawable(VulkanDrawable *drawable);
+
 		VulkanWindow *_mainWindow;
 
+		PIMPL<VulkanRendererInternals> _internals;
+
+		SpinLock _lock;
+
 		Dictionary *_textureFormatLookup;
+		Dictionary *_defaultShaders;
 
 		VkQueue _workQueue;
 
