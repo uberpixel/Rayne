@@ -12,7 +12,6 @@
 
 #include "RND3D12.h"
 
-class ID3D12Resource;
 namespace RN
 {
 	class D3D12Renderer;
@@ -33,7 +32,7 @@ namespace RN
 		ID3D12Resource *_bufferResourceUpload;
 		size_t _length;
 
-		RNDeclareMeta(D3D12GPUBuffer)
+		RNDeclareMetaAPI(D3D12GPUBuffer, D3DAPI)
 	};
 }
 

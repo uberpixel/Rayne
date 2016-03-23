@@ -46,7 +46,7 @@ namespace RN
 		Array *_attributes;
 		void *_shader;
 
-		RNDeclareMeta(D3D12Shader)
+		RNDeclareMetaAPI(D3D12Shader, D3DAPI)
 	};
 }
 

@@ -30,8 +30,16 @@ namespace RN
 	{}
 
 
-	Renderer *D3D12RendererDescriptor::CreateRenderer(RenderingDevice *device)
+	Renderer *D3D12RendererDescriptor::CreateRenderer(RenderingDevice *tdevice)
 	{
+		D3D12Device *device = static_cast<D3D12Device *>(tdevice);
+
+		if(device->CreateDevice())
+		{
+			D3D12Renderer *renderer = new D3D12Renderer(this, device);
+			return renderer;
+		}
+
 		return nullptr;
 	}
 	bool D3D12RendererDescriptor::CanCreateRenderer() const
@@ -41,13 +49,12 @@ namespace RN
 
 	void D3D12RendererDescriptor::PrepareWithSettings(const Dictionary *settings)
 	{
-		if(::CreateDXGIFactory2(0, __uuidof(IDXGIFactory4), reinterpret_cast<void **>(&_factory)) != S_OK)
+		if(::CreateDXGIFactory2(0, IID_PPV_ARGS(&_factory)) != S_OK)
 			return;
 
 		_devices = new Array();
 
-		UINT i = 0;
-		while(1)
+		for(UINT i = 0; ; i ++)
 		{
 			IDXGIAdapter1 *adapter;
 			HRESULT result = _factory->EnumAdapters1(i, &adapter);

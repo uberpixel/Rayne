@@ -11,15 +11,81 @@
 
 #include "RND3D12.h"
 #include "RND3D12Window.h"
+#include "RND3D12Device.h"
+#include "RND3D12RendererDescriptor.h"
+#include "RND3D12StateCoordinator.h"
+#include "RND3D12UniformBuffer.h"
 
 namespace RN
 {
-	class D3D12RendererInternals;
 	struct D3D12Drawable;
+	class D3D12RendererInternals;
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
-	class GPUBuffer;
+
+	struct D3D12Drawable : public Drawable
+	{
+		~D3D12Drawable()
+		{
+			for(D3D12UniformBuffer *buffer : _vertexBuffers)
+				delete buffer;
+			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
+				delete buffer;
+		}
+
+		void UpdateRenderingState(Renderer *renderer, const D3D12RenderingState *state)
+		{
+			if(state == _pipelineState)
+				return;
+
+			_pipelineState = state;
+
+			for(D3D12UniformBuffer *buffer : _vertexBuffers)
+				delete buffer;
+			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
+				delete buffer;
+
+			_vertexBuffers.clear();
+			_fragmentBuffers.clear();
+
+			for(D3D12RenderingStateArgument *argument : state->vertexArguments)
+			{
+				switch(argument->type)
+				{
+					case D3D12RenderingStateArgument::Type::Buffer:
+					{
+						if(argument->index > 0)
+							_vertexBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
+					}
+
+					default:
+						break;
+				}
+			}
+
+			for(D3D12RenderingStateArgument *argument : state->fragmentArguments)
+			{
+				switch(argument->type)
+				{
+					case D3D12RenderingStateArgument::Type::Buffer:
+					{
+						if(argument->index > 0)
+							_fragmentBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
+					}
+
+					default:
+						break;
+				}
+			}
+		}
+
+		const D3D12RenderingState *_pipelineState;
+		std::vector<D3D12UniformBuffer *> _vertexBuffers;
+		std::vector<D3D12UniformBuffer *> _fragmentBuffers;
+		D3D12Drawable *_next;
+		D3D12Drawable *_prev;
+	};
 
 	class D3D12Renderer : public Renderer
 	{
@@ -29,7 +95,7 @@ namespace RN
 		friend class D3D12StateCoordinator;
 		friend class D3D12GPUBuffer;
 
-		D3DAPI D3D12Renderer(const Dictionary *parameters);
+		D3DAPI D3D12Renderer(D3D12RendererDescriptor *descriptor, D3D12Device *device);
 		D3DAPI ~D3D12Renderer();
 
 		D3DAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
@@ -60,6 +126,13 @@ namespace RN
 		D3DAPI Drawable *CreateDrawable() final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
 
+		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
+		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
+
+		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
+		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
+		ID3D12DescriptorHeap *GetCBVHeap() const { return _cbvHeap; }
+
 	protected:
 		void RenderDrawable(D3D12Drawable *drawable);
 		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
@@ -70,13 +143,19 @@ namespace RN
 		Set *_mipMapTextures;
 		Dictionary *_textureFormatLookup;
 
-		PIMPL<D3D12RendererInternals> _internals;
 		D3D12Window *_mainWindow;
 
 		SpinLock _lock;
 		Dictionary *_defaultShaders;
 
-		RNDeclareMeta(D3D12Renderer)
+		ID3D12RootSignature *_rootSignature;
+
+		ID3D12DescriptorHeap *_rtvHeap;
+		UINT _rtvDescriptorSize;
+		ID3D12DescriptorHeap *_cbvHeap;
+		UINT _cbvDescriptorSize;
+
+		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};
 }
 
