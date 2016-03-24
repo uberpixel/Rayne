@@ -68,7 +68,7 @@ namespace RN
 		void BeginGlobalCommandBuffer();
 
 	private:
-		void RenderDrawable(VulkanDrawable *drawable);
+		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
 
 		VulkanWindow *_mainWindow;
 

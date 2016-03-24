@@ -10,11 +10,27 @@
 #define __RAYNE_VULKANINTERNALS_H__
 
 #include "RNVulkan.h"
+#include "RNVulkanStateCoordinator.h"
 
 namespace RN
 {
 	struct VulkanDrawable : public Drawable
 	{
+		~VulkanDrawable()
+		{
+
+		}
+
+		void UpdateRenderingState(Renderer *renderer, const VulkanRenderingState *state)
+		{
+			if(state == _pipelineState)
+				return;
+
+			_pipelineState = state;
+		}
+
+		const VulkanRenderingState *_pipelineState;
+
 		VulkanDrawable *_next;
 		VulkanDrawable *_prev;
 	};
@@ -35,6 +51,7 @@ namespace RN
 	struct VulkanRendererInternals
 	{
 		VulkanRenderPass renderPass;
+		VulkanStateCoordinator stateCoordinator;
 	};
 }
 

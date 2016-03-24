@@ -19,6 +19,7 @@ namespace RN
 	public:
 		friend class VulkanShaderLibrary;
 		friend class VulkanRenderer;
+		friend class VulkanStateCoordinator;
 
 		VKAPI ~VulkanShader() override;
 

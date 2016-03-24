@@ -27,6 +27,9 @@ namespace RN
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
+		_internals->stateCoordinator.SetRenderer(this);
+		_internals->renderPass.drawableHead = nullptr;
+
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		cmdPoolInfo.queueFamilyIndex = device->GetWorkQueue();
@@ -162,6 +165,8 @@ namespace RN
 	}
 	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
+		_internals->renderPass.drawableHead = nullptr;
+
 		// Submit drawables
 		function();
 
@@ -219,7 +224,7 @@ namespace RN
 			VkRenderPassBeginInfo renderPassBeginInfo = {};
 			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassBeginInfo.pNext = NULL;
-			renderPassBeginInfo.renderPass = framebuffer->GetRenderPass(framebufferIndex);
+			renderPassBeginInfo.renderPass = framebuffer->GetRenderPass();
 			renderPassBeginInfo.framebuffer = framebuffer->GetFramebuffer(framebufferIndex);
 			renderPassBeginInfo.renderArea.offset.x = 0;
 			renderPassBeginInfo.renderArea.offset.y = 0;
@@ -248,12 +253,12 @@ namespace RN
 
 			vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-/*			VulkanDrawable *drawable = _internals->renderPass.drawableHead;
+			VulkanDrawable *drawable = _internals->renderPass.drawableHead;
 			while(drawable)
 			{
-				RenderDrawable(drawable);
+				RenderDrawable(commandBuffer, drawable);
 				drawable = drawable->_next;
-			}*/
+			}
 
 			vk::CmdEndRenderPass(commandBuffer);
 
@@ -396,6 +401,7 @@ namespace RN
 
 #undef TextureFormatX
 	}
+
 	VkFormat VulkanRenderer::GetVulkanFormatForName(const String *name)
 	{
 		Number *value = _textureFormatLookup->GetObjectForKey<Number>(name);
@@ -484,6 +490,7 @@ namespace RN
 	Drawable *VulkanRenderer::CreateDrawable()
 	{
 		VulkanDrawable *drawable = new VulkanDrawable();
+		drawable->_pipelineState = nullptr;
 		drawable->_next = nullptr;
 		drawable->_prev = nullptr;
 
@@ -495,7 +502,12 @@ namespace RN
 
 		if(drawable->dirty)
 		{
-//			drawable->UpdateRenderingState(this, state);
+			//TODO: Fix the camera situation...
+			_lock.Lock();
+			const VulkanRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			_lock.Unlock();
+
+			drawable->UpdateRenderingState(this, state);
 			drawable->dirty = false;
 		}
 
@@ -515,8 +527,19 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	void VulkanRenderer::RenderDrawable(VulkanDrawable *drawable)
+	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
 	{
+		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
 
+		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());
+		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
+
+		VkDeviceSize offsets[1] = { 0 };
+		// Bind mesh vertex buffer
+		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
+		// Bind mesh index buffer
+		vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, VK_INDEX_TYPE_UINT16);
+		// Render mesh vertex buffer using it's indices
+		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
 	}
 }

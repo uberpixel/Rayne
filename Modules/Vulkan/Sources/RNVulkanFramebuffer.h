@@ -31,7 +31,7 @@ namespace RN
 		VKAPI Texture *GetDepthTexture(size_t index) const;
 		VKAPI Texture *GetStencilTexture(size_t index) const;
 
-		VkRenderPass GetRenderPass(size_t index) const { return _renderPass; }
+		VkRenderPass GetRenderPass() const { return _renderPass; }
 		VkCommandBuffer GetDrawCommandBuffer(size_t index) const;
 		VkCommandBuffer GetPreDrawCommandBuffer(size_t index) const;
 		VkFramebuffer GetFramebuffer(size_t index) const;

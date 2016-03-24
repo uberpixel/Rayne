@@ -1,6 +1,6 @@
 [
 	{
-		"file": ":RayneVulkan:/Shaders.vert.spv",
+		"file": ":RayneVulkan:/vert.spv",
 		"shaders": [
 			{
 				"name": "gouraud_vertex",
@@ -9,7 +9,7 @@
 		]
 	},
 	{
-		"file": ":RayneVulkan:/Shaders.frag.spv",
+		"file": ":RayneVulkan:/frag.spv",
 		"shaders": [
 			{
 				"name": "gouraud_fragment",
