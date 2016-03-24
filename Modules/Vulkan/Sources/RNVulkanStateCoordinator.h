@@ -21,6 +21,11 @@ namespace RN
 		}
 
 		VkPipeline state;
+		VkDescriptorSetLayout descriptorSetLayout;
+		VkDescriptorSet descriptorSet;
+		VkPipelineLayout pipelineLayout;
+
+		GPUBuffer *uniformBuffer;
 	};
 
 	class VulkanShader;
@@ -61,6 +66,7 @@ namespace RN
 		const VulkanRenderingState *GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Camera *camera);
 
 		VulkanRenderer *_renderer;
+		VkDescriptorPool _descriptorPool;
 
 		std::vector<VulkanRenderingStateCollection *> _renderingStates;
 	};

@@ -79,6 +79,11 @@ namespace RN
 		return _mappedBuffer;
 	}
 
+	VkBuffer VulkanGPUBuffer::GetVulkanBuffer() const
+	{
+		return _buffer;
+	}
+
 	void VulkanGPUBuffer::InvalidateRange(const Range &range)
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();

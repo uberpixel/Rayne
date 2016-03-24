@@ -11,6 +11,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanWindow.h"
+#include "RNVulkanGPUBuffer.h"
 
 namespace RN
 {
@@ -36,8 +37,10 @@ namespace RN
 		};
 
 	VulkanStateCoordinator::VulkanStateCoordinator() :
-		_renderer(nullptr)
-	{}
+		_renderer(nullptr), _descriptorPool(VK_NULL_HANDLE)
+	{
+
+	}
 
 	VulkanStateCoordinator::~VulkanStateCoordinator()
 	{
@@ -48,6 +51,28 @@ namespace RN
 	VKAPI void VulkanStateCoordinator::SetRenderer(VulkanRenderer *renderer)
 	{
 		_renderer = renderer;
+
+		if(!_descriptorPool)
+		{
+			VkDescriptorPoolSize uniformBufferPoolSize = {};
+			uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			uniformBufferPoolSize.descriptorCount = 1;
+
+			/*		VkDescriptorPoolSize descriptorPoolSize = {};
+					descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorPoolSize.descriptorCount = 1;*/
+
+			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize };
+
+			VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			descriptorPoolInfo.pNext = NULL;
+			descriptorPoolInfo.poolSizeCount = poolSizes.size();
+			descriptorPoolInfo.pPoolSizes = poolSizes.data();
+			descriptorPoolInfo.maxSets = 1000;
+
+			RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, nullptr, &_descriptorPool));
+		}
 	}
 
 	const VulkanRenderingState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
@@ -89,7 +114,7 @@ namespace RN
 		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizationState.flags = 0;
 		rasterizationState.depthClampEnable = VK_TRUE;
 
@@ -136,14 +161,60 @@ namespace RN
 		shaderStages[1] = collection->fragmentShader->_shaderStage;
 
 
+		VkDescriptorSetLayoutBinding setLayoutBinding = {};
+		setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		setLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		setLayoutBinding.binding = 0;
+		setLayoutBinding.descriptorCount = 1;
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setLayoutBinding };
+
+
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorSetLayoutCreateInfo.pNext = NULL;
+		descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
+		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
+
+		VkDescriptorSetLayout descriptorSetLayout;
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout));
+
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutCreateInfo.pNext = NULL;
-		pipelineLayoutCreateInfo.setLayoutCount = 0;
-		pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+		pipelineLayoutCreateInfo.setLayoutCount = 1;
+		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 
 		VkPipelineLayout pipelineLayout;
 		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout));
+
+		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+		descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		descriptorSetAllocateInfo.pNext = NULL;
+		descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
+		descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
+		descriptorSetAllocateInfo.descriptorSetCount = 1;
+
+		VkDescriptorSet descriptorSet;
+		RNVulkanValidate(vk::AllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet));
+
+		VulkanGPUBuffer *gpuBuffer = _renderer->CreateBufferWithLength(sizeof(float)*16, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<VulkanGPUBuffer>();
+
+		VkDescriptorBufferInfo bufferDescriptorInfo = {};
+		bufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
+		bufferDescriptorInfo.offset = 0;
+		bufferDescriptorInfo.range = gpuBuffer->GetLength();
+
+		VkWriteDescriptorSet writeDescriptorSet = {};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.pNext = NULL;
+		writeDescriptorSet.dstSet = descriptorSet;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		writeDescriptorSet.dstBinding = 0;
+		writeDescriptorSet.pBufferInfo = &bufferDescriptorInfo;
+		writeDescriptorSet.descriptorCount = 1;
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeDescriptorSet };
+
+		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
 
 		VulkanFramebuffer *framebuffer = nullptr;
 		if(camera)
@@ -190,7 +261,6 @@ namespace RN
 		inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
 		inputState.pVertexAttributeDescriptions = attributeDescriptions.data();
 
-
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineCreateInfo.pNext = NULL;
@@ -212,42 +282,13 @@ namespace RN
 		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
 		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline));
 
-/*
-
-
-
-		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm;
-		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-		MTLPixelFormat stencilFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-
-		for(const MetalRenderingState *state : collection->states)
-		{
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)
-				return state;
-		}
-
-		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
-
-		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-		pipelineStateDescriptor.vertexFunction = collection->vertexShader;
-		pipelineStateDescriptor.fragmentFunction = collection->fragmentShader;
-		pipelineStateDescriptor.vertexDescriptor = descriptor;
-		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat;
-		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
-		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
-
-		MTLRenderPipelineReflection *reflection;
-		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
-
-		[pipelineStateDescriptor release];
-		[descriptor release];
-
-		// TODO: Error handling, plox
-*/
-
 		// Create the rendering state
 		VulkanRenderingState *state = new VulkanRenderingState();
 		state->state = pipeline;
+		state->descriptorSetLayout = descriptorSetLayout;
+		state->descriptorSet = descriptorSet;
+		state->pipelineLayout = pipelineLayout;
+		state->uniformBuffer = gpuBuffer;
 
 		collection->states.push_back(state);
 

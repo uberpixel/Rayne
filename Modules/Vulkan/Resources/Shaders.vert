@@ -8,12 +8,14 @@
 
 #version 450
 
-//mat4 modelViewProjectionMatrix;
+layout (binding = 0) uniform UBO 
+{
+	mat4 modelViewProjectionMatrix;
+} ubo;
 
 layout (location = 0) in vec3 position;
 
 void main()
 {
-	vec3 pos = position;
-	gl_Position = vec4(pos, 1.0);
+	gl_Position = ubo.modelViewProjectionMatrix*vec4(position/10.0, 1.0);
 }

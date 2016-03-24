@@ -12,7 +12,6 @@
 #include "RNVulkanGPUBuffer.h"
 #include "RNVulkanShader.h"
 #include "RNVulkanShaderLibrary.h"
-#include "RNVulkanDevice.h"
 
 namespace RN
 {
@@ -167,6 +166,15 @@ namespace RN
 	{
 		_internals->renderPass.drawableHead = nullptr;
 
+		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
+		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+
+		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
+		_internals->renderPass.projectionMatrix.Scale(Vector3(1.0f, -1.0f, 1.0f));
+		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+
+		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
+
 		// Submit drawables
 		function();
 
@@ -237,8 +245,8 @@ namespace RN
 
 			// Update dynamic viewport state
 			VkViewport viewport = {};
-			viewport.height = size.x;
-			viewport.width = size.y;
+			viewport.width = size.x;
+			viewport.height = size.y;
 			viewport.minDepth = 0.0f;
 			viewport.maxDepth = 1.0f;
 
@@ -487,6 +495,98 @@ namespace RN
 		return new VulkanFramebuffer(size, descriptor,  _mainWindow->GetSwapChain(), this);
 	}
 
+	void VulkanRenderer::FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable)
+	{
+		GPUBuffer *gpuBuffer = uniformBuffer;//uniformBuffer->Advance();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+
+		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+		std::memcpy(buffer, result.m, sizeof(Matrix));
+
+	/*	const VulkanUniformBuffer::Member *member;
+
+		// Matrices
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
+		{
+			Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
+		{
+			Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewProjectionMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
+		}
+
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewMatrix)))
+		{
+			Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewProjectionMatrix)))
+		{
+			Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
+		{
+			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
+		}
+
+		// Color
+		Material *material = drawable->material;
+
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetAmbientColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetDiffuseColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::EmissiveColor)))
+		{
+			std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
+		}
+
+		// Misc
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiscardThreshold)))
+		{
+			float temp = material->GetDiscardThreshold();
+			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
+		}
+		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::TextureTileFactor)))
+		{
+			float temp = material->GetTextureTileFactor();
+			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
+		}*/
+
+		gpuBuffer->Invalidate();
+	}
+
 	Drawable *VulkanRenderer::CreateDrawable()
 	{
 		VulkanDrawable *drawable = new VulkanDrawable();
@@ -496,6 +596,7 @@ namespace RN
 
 		return drawable;
 	}
+
 	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);
@@ -510,6 +611,8 @@ namespace RN
 			drawable->UpdateRenderingState(this, state);
 			drawable->dirty = false;
 		}
+
+		FillUniformBuffer(drawable->_pipelineState->uniformBuffer, drawable);
 
 		// Push into the queue
 		drawable->_prev = nullptr;
@@ -529,6 +632,7 @@ namespace RN
 
 	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
 	{
+		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_pipelineState->descriptorSet, 0, NULL);
 		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
 
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());

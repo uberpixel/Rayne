@@ -23,6 +23,8 @@ namespace RN
 		VKAPI void InvalidateRange(const Range &range) final;
 		VKAPI size_t GetLength() const final;
 
+		VkBuffer GetVulkanBuffer() const;
+
 	private:
 		VulkanGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption);
 		~VulkanGPUBuffer() override;
