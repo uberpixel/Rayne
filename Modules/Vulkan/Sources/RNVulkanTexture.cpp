@@ -116,7 +116,7 @@ namespace RN
 		}
 		else
 		{
-			flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+			flags = VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
 
 		return flags;
@@ -161,24 +161,39 @@ namespace RN
 		image.mipLevels = descriptor.mipMaps;
 		image.arrayLayers = 1;
 		image.samples = VK_SAMPLE_COUNT_1_BIT;
-		image.tiling = VK_IMAGE_TILING_OPTIMAL;
 		image.usage = VkImageUsageFromDescriptor(descriptor, image.format);
 		image.flags = 0;
+
+		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		{
+			image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			image.tiling = VK_IMAGE_TILING_OPTIMAL;
+		}
+		else
+		{
+			image.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+			image.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			image.tiling = VK_IMAGE_TILING_LINEAR;
+		}
 
 		RNVulkanValidate(vk::CreateImage(device->GetDevice(), &image, nullptr, &_image));
 
 
-		VkMemoryRequirements requirements;
-		vk::GetImageMemoryRequirements(device->GetDevice(), _image, &requirements);
-
+		vk::GetImageMemoryRequirements(device->GetDevice(), _image, &_requirements);
 
 		VkMemoryAllocateInfo alloctionInfo = {};
 		alloctionInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		alloctionInfo.pNext = nullptr;
-		alloctionInfo.allocationSize = requirements.size;
+		alloctionInfo.allocationSize = _requirements.size;
 
-		device->GetMemoryWithType(requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, alloctionInfo.memoryTypeIndex);
-
+		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		{
+			device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, alloctionInfo.memoryTypeIndex);
+		}
+		else
+		{
+			device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, alloctionInfo.memoryTypeIndex);
+		}
 
 		RNVulkanValidate(vk::AllocateMemory(device->GetDevice(), &alloctionInfo, nullptr, &_memory));
 		RNVulkanValidate(vk::BindImageMemory(device->GetDevice(), _image, _memory, 0));
@@ -198,9 +213,28 @@ namespace RN
 		imageView.subresourceRange.layerCount = 1;
 		imageView.image = _image;
 
-		SetImageLayout(_image, VK_IMAGE_ASPECT_DEPTH_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
 		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageView, nullptr, &_imageView));
+
+
+		// Create sampler
+		VkSamplerCreateInfo samplerInfo = {};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+		samplerInfo.minLod = 0.0f;
+		// Max level-of-detail should match mip level count
+		samplerInfo.maxLod = 0.0f;
+		// Enable anisotropic filtering
+		samplerInfo.maxAnisotropy = 8;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		RNVulkanValidate(vk::CreateSampler(device->GetDevice(), &samplerInfo, nullptr, &_sampler));
 	}
 
 	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image, VkImageView imageView) :
@@ -210,7 +244,9 @@ namespace RN
 		_imageView(imageView),
 		_memory(VK_NULL_HANDLE),
 		_format(VK_FORMAT_B8G8R8A8_UNORM)
-	{}
+	{
+
+	}
 
 	VulkanTexture::~VulkanTexture()
 	{
@@ -227,7 +263,31 @@ namespace RN
 	}
 
 	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
-	{}
+	{
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+
+		VkImageSubresource subRes = {};
+		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subRes.mipLevel = mipmapLevel;
+
+		VkSubresourceLayout subResLayout;
+		void *data;
+
+		// Get sub resources layout
+		// Includes row pitch, size offsets, etc.
+		vk::GetImageSubresourceLayout(device, _image, &subRes, &subResLayout);
+
+		// Map image memory
+		RNVulkanValidate(vk::MapMemory(device, _memory, 0, _requirements.size, 0, &data));
+
+		// Copy image data into memory
+		memcpy(data, bytes, bytesPerRow*_descriptor.height);
+
+		vk::UnmapMemory(device, _memory);
+
+		SetImageLayout(_image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	}
+
 	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
 	{}
 	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow)

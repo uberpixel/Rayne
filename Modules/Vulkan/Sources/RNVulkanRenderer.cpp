@@ -170,7 +170,7 @@ namespace RN
 		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
 		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		_internals->renderPass.projectionMatrix.Scale(Vector3(1.0f, -1.0f, 1.0f));
+		_internals->renderPass.projectionMatrix.m[5] *= -1.0f;
 		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
@@ -238,7 +238,7 @@ namespace RN
 			renderPassBeginInfo.renderArea.offset.y = 0;
 			renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(size.x);
 			renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(size.y);
-			renderPassBeginInfo.clearValueCount = 1;
+			renderPassBeginInfo.clearValueCount = 2;
 			renderPassBeginInfo.pClearValues = clearValues;
 
 			vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -503,14 +503,14 @@ namespace RN
 		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
 		std::memcpy(buffer, result.m, sizeof(Matrix));
 
-	/*	const VulkanUniformBuffer::Member *member;
+	/*	const VulkanUniformBuffer::Member *member;*/
 
 		// Matrices
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
+//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
 		{
-			std::memcpy(buffer + member->GetOffset(), drawable->modelMatrix.m, sizeof(Matrix));
+			std::memcpy(buffer + sizeof(Matrix), drawable->modelMatrix.m, sizeof(Matrix));
 		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
+/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
 		{
 			Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
 			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
@@ -550,20 +550,20 @@ namespace RN
 		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
 		{
 			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
-		}
+		}*/
 
 		// Color
 		Material *material = drawable->material;
 
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
+//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
 		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetAmbientColor().r, sizeof(Color));
+			std::memcpy(buffer + sizeof(Matrix)*2, &material->GetAmbientColor().r, sizeof(Color));
 		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
+//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
 		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetDiffuseColor().r, sizeof(Color));
+			std::memcpy(buffer + sizeof(Matrix)*2 + sizeof(Color), &material->GetDiffuseColor().r, sizeof(Color));
 		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
+/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
 		{
 			std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
 		}

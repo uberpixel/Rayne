@@ -234,6 +234,9 @@ namespace RN
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
 		descriptor.colorFormat = Texture::Format::RGBA8888;
+		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
+		descriptor.stencilFormat = Texture::Format::Depth24Stencil8;
+		descriptor.stencilFormat = Texture::Format::Depth24Stencil8;
 
 		_framebuffer = new VulkanFramebuffer(size, descriptor, _swapchain, _renderer);
 	}

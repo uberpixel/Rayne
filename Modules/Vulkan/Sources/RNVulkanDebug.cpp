@@ -109,7 +109,6 @@ namespace RN
 		//layers.push_back("VK_LAYER_LUNARG_api_dump");
 
 //		layers.push_back("VK_LAYER_LUNARG_standard_validation");
-
 		//layers.push_back("VK_LAYER_LUNARG_mem_tracker");
 /*		layers.push_back("VK_LAYER_LUNARG_threading");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");

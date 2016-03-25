@@ -34,6 +34,7 @@ namespace RN
 		VkImage GetImage() const { return _image; }
 		VkImageView GetImageView() const { return _imageView; }
 		VkFormat GetFormat() const { return _format; }
+		VkSampler GetSampler() const { return _sampler; }
 
 		VKAPI static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
 
@@ -46,6 +47,8 @@ namespace RN
 		VkImageView _imageView;
 
 		VkDeviceMemory _memory;
+		VkMemoryRequirements _requirements;
+		VkSampler _sampler;
 
 		RNDeclareMetaAPI(VulkanTexture, VKAPI);
 	};

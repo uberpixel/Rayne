@@ -63,7 +63,7 @@ namespace RN
 		VKAPI void SetRenderer(VulkanRenderer *renderer);
 
 	private:
-		const VulkanRenderingState *GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Camera *camera);
+		const VulkanRenderingState *GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Material *material, Camera *camera);
 
 		VulkanRenderer *_renderer;
 		VkDescriptorPool _descriptorPool;

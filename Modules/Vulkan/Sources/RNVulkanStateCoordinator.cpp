@@ -58,11 +58,11 @@ namespace RN
 			uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			uniformBufferPoolSize.descriptorCount = 1;
 
-			/*		VkDescriptorPoolSize descriptorPoolSize = {};
-					descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-					descriptorPoolSize.descriptorCount = 1;*/
+			VkDescriptorPoolSize textureBufferPoolSize = {};
+			textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			textureBufferPoolSize.descriptorCount = 1;
 
-			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize };
+			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
 
 			VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
 			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -88,7 +88,7 @@ namespace RN
 			{
 				if(collection->vertexShader == vertexShader && collection->fragmentShader == fragmentShader)
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, camera);
+					return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
 				}
 			}
 		}
@@ -96,10 +96,10 @@ namespace RN
 		VulkanRenderingStateCollection *collection = new VulkanRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, camera);
+		return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
 	}
 
-	const VulkanRenderingState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Camera *camera)
+	const VulkanRenderingState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
 	{
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		VkDevice device = renderer->GetVulkanDevice()->GetDevice();
@@ -133,8 +133,8 @@ namespace RN
 		depthStencilState.depthTestEnable = VK_TRUE;
 		depthStencilState.depthWriteEnable = VK_TRUE;
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-		depthStencilState.front = depthStencilState.back;
 		depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+		depthStencilState.front = depthStencilState.back;
 
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -161,12 +161,19 @@ namespace RN
 		shaderStages[1] = collection->fragmentShader->_shaderStage;
 
 
-		VkDescriptorSetLayoutBinding setLayoutBinding = {};
-		setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		setLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		setLayoutBinding.binding = 0;
-		setLayoutBinding.descriptorCount = 1;
-		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setLayoutBinding };
+		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		setUniformLayoutBinding.binding = 0;
+		setUniformLayoutBinding.descriptorCount = 1;
+
+		VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+		setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		setImageLayoutBinding.binding = 1;
+		setImageLayoutBinding.descriptorCount = 1;
+
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding, setImageLayoutBinding };
 
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
@@ -197,23 +204,38 @@ namespace RN
 		VkDescriptorSet descriptorSet;
 		RNVulkanValidate(vk::AllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet));
 
-		VulkanGPUBuffer *gpuBuffer = _renderer->CreateBufferWithLength(sizeof(float)*16, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<VulkanGPUBuffer>();
+		VulkanGPUBuffer *gpuBuffer = _renderer->CreateBufferWithLength(sizeof(Matrix)*2 + sizeof(Color)*2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<VulkanGPUBuffer>();
 
-		VkDescriptorBufferInfo bufferDescriptorInfo = {};
-		bufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
-		bufferDescriptorInfo.offset = 0;
-		bufferDescriptorInfo.range = gpuBuffer->GetLength();
+		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
+		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
+		uniformBufferDescriptorInfo.offset = 0;
+		uniformBufferDescriptorInfo.range = gpuBuffer->GetLength();
 
-		VkWriteDescriptorSet writeDescriptorSet = {};
-		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeDescriptorSet.pNext = NULL;
-		writeDescriptorSet.dstSet = descriptorSet;
-		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		writeDescriptorSet.dstBinding = 0;
-		writeDescriptorSet.pBufferInfo = &bufferDescriptorInfo;
-		writeDescriptorSet.descriptorCount = 1;
-		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeDescriptorSet };
+		VkWriteDescriptorSet writeUniformDescriptorSet = {};
+		writeUniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeUniformDescriptorSet.pNext = NULL;
+		writeUniformDescriptorSet.dstSet = descriptorSet;
+		writeUniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		writeUniformDescriptorSet.dstBinding = 0;
+		writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
+		writeUniformDescriptorSet.descriptorCount = 1;
 
+		VulkanTexture *texture = material->GetTextures()->GetFirstObject<VulkanTexture>();
+		VkDescriptorImageInfo imageBufferDescriptorInfo = {};
+		imageBufferDescriptorInfo.sampler = texture->GetSampler();
+		imageBufferDescriptorInfo.imageView = texture->GetImageView();
+		imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		VkWriteDescriptorSet writeImageDescriptorSet = {};
+		writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeImageDescriptorSet.pNext = NULL;
+		writeImageDescriptorSet.dstSet = descriptorSet;
+		writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeImageDescriptorSet.dstBinding = 1;
+		writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfo;
+		writeImageDescriptorSet.descriptorCount = 1;
+
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet, writeImageDescriptorSet };
 		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
 
 		VulkanFramebuffer *framebuffer = nullptr;
@@ -239,16 +261,17 @@ namespace RN
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			VkVertexInputAttributeDescription attributeDescription = {};
-			attributeDescription.location = offset;
-			attributeDescription.binding = 0;
-			attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
-			attributeDescription.offset = attribute.GetOffset();
+			//TODO: Remove the if (unused bindings confuse the validation layers...)
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0)
+			{
+				VkVertexInputAttributeDescription attributeDescription = {};
+				attributeDescription.location = offset;
+				attributeDescription.binding = 0;
+				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
+				attributeDescription.offset = attribute.GetOffset();
 
-			attributeDescriptions.push_back(attributeDescription);
-
-			//TODO: Remove (unused bindings confuse the validation layers...)
-			break;
+				attributeDescriptions.push_back(attributeDescription);
+			}
 
 			offset ++;
 		}
