@@ -237,6 +237,8 @@ namespace RN
 			String *file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~metal"));
 			if(!file)
 				file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+			if(!file)
+				return;
 
 			String *content = String::WithContentsOfFile(file, Encoding::UTF8);
 
