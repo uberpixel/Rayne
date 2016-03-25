@@ -82,7 +82,7 @@ namespace RN
 		std::vector<const char *> layers;
 
 #if RN_VULKAN_ENABLE_VALIDATION
-		layers.push_back("VK_LAYER_RENDERDOC_Capture");
+//		layers.push_back("VK_LAYER_RENDERDOC_Capture");
 		//layers.push_back("VK_LAYER_LUNARG_api_dump");
 
 //		layers.push_back("VK_LAYER_LUNARG_standard_validation");
@@ -105,7 +105,7 @@ namespace RN
 		std::vector<const char *> layers;
 
 #if RN_VULKAN_ENABLE_VALIDATION
-		layers.push_back("VK_LAYER_RENDERDOC_Capture");
+//		layers.push_back("VK_LAYER_RENDERDOC_Capture");
 		//layers.push_back("VK_LAYER_LUNARG_api_dump");
 
 //		layers.push_back("VK_LAYER_LUNARG_standard_validation");

@@ -167,14 +167,19 @@ namespace RN
 		setUniformLayoutBinding.binding = 0;
 		setUniformLayoutBinding.descriptorCount = 1;
 
-		VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-		setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		setImageLayoutBinding.binding = 1;
-		setImageLayoutBinding.descriptorCount = 1;
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
 
-		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding, setImageLayoutBinding };
+		size_t textureCount = material->GetTextures()->GetCount();
+		for(size_t i = 0; i < textureCount; i++)
+		{
+			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			setImageLayoutBinding.binding = i + 1;
+			setImageLayoutBinding.descriptorCount = 1;
 
+			setLayoutBindings.push_back(setImageLayoutBinding);
+		}
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
 		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -220,23 +225,34 @@ namespace RN
 		writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
 		writeUniformDescriptorSet.descriptorCount = 1;
 
-		VulkanTexture *texture = material->GetTextures()->GetFirstObject<VulkanTexture>();
-		VkDescriptorImageInfo imageBufferDescriptorInfo = {};
-		imageBufferDescriptorInfo.sampler = texture->GetSampler();
-		imageBufferDescriptorInfo.imageView = texture->GetImageView();
-		imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		std::vector<VkDescriptorImageInfo*> imageBufferDescriptorInfoArray;
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet };
 
-		VkWriteDescriptorSet writeImageDescriptorSet = {};
-		writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeImageDescriptorSet.pNext = NULL;
-		writeImageDescriptorSet.dstSet = descriptorSet;
-		writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writeImageDescriptorSet.dstBinding = 1;
-		writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfo;
-		writeImageDescriptorSet.descriptorCount = 1;
+		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
+			VkDescriptorImageInfo *imageBufferDescriptorInfo = new VkDescriptorImageInfo;
+			imageBufferDescriptorInfo->sampler = texture->GetSampler();
+			imageBufferDescriptorInfo->imageView = texture->GetImageView();
+			imageBufferDescriptorInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
 
-		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet, writeImageDescriptorSet };
+			VkWriteDescriptorSet writeImageDescriptorSet = {};
+			writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeImageDescriptorSet.pNext = NULL;
+			writeImageDescriptorSet.dstSet = descriptorSet;
+			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeImageDescriptorSet.dstBinding = index + 1;
+			writeImageDescriptorSet.pImageInfo = imageBufferDescriptorInfoArray[index];
+			writeImageDescriptorSet.descriptorCount = 1;
+
+			writeDescriptorSets.push_back(writeImageDescriptorSet);
+		});
+
 		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
+
+		for(VkDescriptorImageInfo *imageBufferDescriptor : imageBufferDescriptorInfoArray)
+		{
+			delete imageBufferDescriptor;
+		}
 
 		VulkanFramebuffer *framebuffer = nullptr;
 		if(camera)

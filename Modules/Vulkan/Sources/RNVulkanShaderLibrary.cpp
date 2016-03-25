@@ -24,9 +24,11 @@ namespace RN
 		//Load the shader code
 		mainArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
 
-			String *file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~spirv"));
+			String *file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~vulkan"));
 			if(!file)
 				file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
+			if(!file)
+				return;
 
 			Data *content = Data::WithContentsOfFile(file);
 
