@@ -23,6 +23,6 @@ namespace RN
 
 	const String *HIDDevice::GetDescription() const
 	{
-		return RNSTR(Object::GetDescription() << " (" << GetManufacturerString() << ", " << GetProductString() << ")");
+		return RNSTR(Object::GetDescription() << " (0x" << std::hex << GetVendorID() << ", 0x" << std::hex << GetProductID() << ", " << GetManufacturerString() << ", " << GetProductString() << ")");
 	}
 }

@@ -11,6 +11,10 @@
 
 #include "../Base/RNBase.h"
 
+// References:
+// http://www.usb.org/developers/hidpage
+// http://www.usb.org/developers/hidpage/Hut1_12v2.pdf
+
 namespace RN
 {
 	enum class HIDUsagePage : uint16

@@ -21,6 +21,16 @@ namespace RN
 		RNAPI virtual void Open() = 0;
 		RNAPI virtual void Close() = 0;
 
+		RNAPI virtual size_t ReadReport(uint8 *data, size_t length, std::chrono::milliseconds timeout) = 0;
+		RNAPI virtual size_t ReadReport(uint8 *data, size_t length) = 0;
+
+		RNAPI virtual size_t WriteReport(const uint8 *data, size_t length) = 0;
+
+		RNAPI virtual size_t SendFeatureReport(const uint8 *data, size_t length) = 0;
+		RNAPI virtual size_t GetFeatureReport(uint8 *data, size_t length) const = 0;
+
+		RNAPI virtual const String *GetIndexedString(size_t index) const = 0;
+
 		bool IsVendor() const { return static_cast<uint16>(_usagePage) >= static_cast<uint16>(HIDUsagePage::VendorDefinedStart); }
 
 		HIDUsagePage GetUsagePage() const { return _usagePage; }
@@ -32,9 +42,15 @@ namespace RN
 			return static_cast<T>(_usage);
 		}
 
-		RNAPI virtual String *GetManufacturerString() const = 0;
-		RNAPI virtual String *GetProductString() const = 0;
-		RNAPI virtual String *GetSerialString() const = 0;
+		RNAPI virtual const String *GetManufacturerString() const = 0;
+		RNAPI virtual const String *GetProductString() const = 0;
+		RNAPI virtual const String *GetSerialString() const = 0;
+
+		RNAPI virtual size_t GetInputReportLength() const = 0;
+		RNAPI virtual size_t GetOutputReportLength() const = 0;
+
+		RNAPI virtual uint32 GetVendorID() const = 0;
+		RNAPI virtual uint32 GetProductID() const = 0;
 
 		RNAPI const String *GetDescription() const override;
 

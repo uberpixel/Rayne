@@ -80,23 +80,52 @@ namespace RN
 	class WindowsHIDDevice : public HIDDevice
 	{
 	public:
-		RNAPI WindowsHIDDevice(const char *devicePath, HIDP_CAPS caps, HANDLE handle);
+		RNAPI WindowsHIDDevice(const char *devicePath, HIDP_CAPS caps, HIDD_ATTRIBUTES attributes, HANDLE handle);
 		RNAPI ~WindowsHIDDevice();
 
 		RNAPI void Open() final;
 		RNAPI void Close() final;
 
-		RNAPI String *GetManufacturerString() const final;
-		RNAPI String *GetProductString() const final;
-		RNAPI String *GetSerialString() const final;
+		RNAPI const String *GetManufacturerString() const final;
+		RNAPI const String *GetProductString() const final;
+		RNAPI const String *GetSerialString() const final;
+
+		RNAPI size_t ReadReport(uint8 *data, size_t length, std::chrono::milliseconds timeout) final;
+		RNAPI size_t ReadReport(uint8 *data, size_t length) final;
+
+		RNAPI size_t WriteReport(const uint8 *data, size_t length) final;
+
+		RNAPI size_t SendFeatureReport(const uint8 *data, size_t length) final;
+		RNAPI size_t GetFeatureReport(uint8 *data, size_t length) const final;
+
+		RNAPI const String *GetIndexedString(size_t index) const final;
+
+		RNAPI size_t GetInputReportLength() const final;
+		RNAPI size_t GetOutputReportLength() const final;
+
+		RNAPI uint32 GetVendorID() const final;
+		RNAPI uint32 GetProductID() const final;
 
 	private:
+		size_t __ReadReport(uint8 *data, size_t length, int32 timeout);
+
 		char _devicePath[256];
+		uint32 _vendorID;
+		uint32 _productID;
+
 		HANDLE _deviceHandle;
 
 		String *_manufacturerString;
 		String *_productString;
 		String *_serialString;
+
+		size_t _outputReportLength;
+		size_t _inputReportLength;
+
+		bool _readPending;
+		uint8 *_readBuffer;
+
+		OVERLAPPED _overlapped;
 
 		__RNDeclareMetaInternal(WindowsHIDDevice)
 	};
