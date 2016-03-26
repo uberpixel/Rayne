@@ -13,6 +13,10 @@ namespace RN
 {
 	RNDefineMeta(HIDDevice, Object)
 
+	RNExceptionImp(HIDRead)
+	RNExceptionImp(HIDWrite)
+	RNExceptionImp(HIDOpen)
+
 	HIDDevice::HIDDevice(HIDUsagePage usagePage, uint16 usage) :
 		_usagePage(usagePage),
 		_usage(usage)

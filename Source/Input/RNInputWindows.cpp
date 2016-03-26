@@ -97,11 +97,13 @@ namespace RN
 	{
 		memset(&_overlapped, 0, sizeof(OVERLAPPED));
 
-		_overlapped.hEvent = ::CreateEvent(nullptr, false, false, nullptr);
-		_deviceHandle = OpenDevice(_devicePath, false);
+		_deviceHandle = OpenDevice(_devicePath, true);
+		if(_deviceHandle == INVALID_HANDLE_VALUE)
+			throw HIDOpenException("::CreateFileA() failed");
 
 		HidD_SetNumInputBuffers(_deviceHandle, 64);
 
+		_overlapped.hEvent = ::CreateEvent(nullptr, false, false, nullptr);
 		_readBuffer = new uint8[_inputReportLength];
 	}
 
@@ -160,7 +162,7 @@ namespace RN
 					::CancelIo(_deviceHandle);
 					_readPending = false;
 
-					return 0;
+					throw HIDReadException("::ReadFile() failed");
 				}
 			}
 		}
@@ -193,6 +195,10 @@ namespace RN
 			}
 
 			return bytesRead;
+		}
+		else if(!result)
+		{
+			throw HIDReadException("::GetOverlappedResult() failed");
 		}
 
 		return 0;
@@ -230,18 +236,14 @@ namespace RN
 		if(!result)
 		{
 			if(::GetLastError() != ERROR_IO_PENDING)
-			{
-				throw "Fuck";
-			}
+				throw HIDWriteException("::WriteFile() failed");
 		}
 
 		DWORD bytesWritten;
 		result = ::GetOverlappedResult(_deviceHandle, &overlapped, &bytesWritten, true);
 
 		if(!result)
-		{
-			throw "Fuck";
-		}
+			throw HIDWriteException("::GetOverlappedResult() failed");
 
 		return bytesWritten;
 	}
@@ -263,14 +265,13 @@ namespace RN
 		BOOL result = ::DeviceIoControl(_deviceHandle, IOCTL_HID_GET_FEATURE, data, static_cast<DWORD>(length), data, static_cast<DWORD>(length), &bytesReturned, &overlapped);
 		if(!result)
 		{
-			throw "Issue";
+			if(::GetLastError() != ERROR_IO_PENDING)
+				throw HIDReadException("::DeviceIoControl() failed");
 		}
 
 		result = ::GetOverlappedResult(_deviceHandle, &overlapped, &bytesReturned, true);
 		if(!result)
-		{
-			throw "Issue";
-		}
+			throw HIDReadException("::GetOverlappedResult() failed");
 
 		return bytesReturned + 1;
 	}

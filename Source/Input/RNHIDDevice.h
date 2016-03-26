@@ -64,6 +64,10 @@ namespace RN
 
 		__RNDeclareMetaInternal(HIDDevice)
 	};
+
+	RNExceptionType(HIDRead)
+	RNExceptionType(HIDWrite)
+	RNExceptionType(HIDOpen)
 }
 
 
