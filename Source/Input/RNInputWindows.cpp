@@ -9,73 +9,19 @@
 #include "../Debug/RNLogger.h"
 #include "RNInputWindows.h"
 
-#include <ntdef.h>
-#include <winbase.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-	#include <setupapi.h>
-	#include <winioctl.h>
-
-	/* Copied from inc/ddk/hidclass.h, part of the Windows DDK. */
-	#define HID_OUT_CTL_CODE(id)  \
-			CTL_CODE(FILE_DEVICE_KEYBOARD, (id), METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
-	#define IOCTL_HID_GET_FEATURE                   HID_OUT_CTL_CODE(100)
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-/* Since we're not building with the DDK, and the HID header
-   files aren't part of the SDK, we have to define all this
-   stuff here. In lookup_functions(), the function pointers
-   defined below are set. */
-typedef struct _HIDD_ATTRIBUTES{
-	ULONG Size;
-	USHORT VendorID;
-	USHORT ProductID;
-	USHORT VersionNumber;
-} HIDD_ATTRIBUTES, *PHIDD_ATTRIBUTES;
-
-typedef USHORT USAGE;
-typedef struct _HIDP_CAPS {
-	USAGE Usage;
-	USAGE UsagePage;
-	USHORT InputReportByteLength;
-	USHORT OutputReportByteLength;
-	USHORT FeatureReportByteLength;
-	USHORT Reserved[17];
-	USHORT fields_not_used_by_hidapi[10];
-} HIDP_CAPS, *PHIDP_CAPS;
-typedef void* PHIDP_PREPARSED_DATA;
-#define HIDP_STATUS_SUCCESS 0x110000
-
-typedef BOOLEAN (__stdcall *HidD_GetAttributes_)(HANDLE device, PHIDD_ATTRIBUTES attrib);
-typedef BOOLEAN (__stdcall *HidD_GetSerialNumberString_)(HANDLE device, PVOID buffer, ULONG buffer_len);
-typedef BOOLEAN (__stdcall *HidD_GetManufacturerString_)(HANDLE handle, PVOID buffer, ULONG buffer_len);
-typedef BOOLEAN (__stdcall *HidD_GetProductString_)(HANDLE handle, PVOID buffer, ULONG buffer_len);
-typedef BOOLEAN (__stdcall *HidD_SetFeature_)(HANDLE handle, PVOID data, ULONG length);
-typedef BOOLEAN (__stdcall *HidD_GetFeature_)(HANDLE handle, PVOID data, ULONG length);
-typedef BOOLEAN (__stdcall *HidD_GetIndexedString_)(HANDLE handle, ULONG string_index, PVOID buffer, ULONG buffer_len);
-typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_)(HANDLE handle, PHIDP_PREPARSED_DATA *preparsed_data);
-typedef BOOLEAN (__stdcall *HidD_FreePreparsedData_)(PHIDP_PREPARSED_DATA preparsed_data);
-typedef NTSTATUS (__stdcall *HidP_GetCaps_)(PHIDP_PREPARSED_DATA preparsed_data, HIDP_CAPS *caps);
-typedef BOOLEAN (__stdcall *HidD_SetNumInputBuffers_)(HANDLE handle, ULONG number_buffers);
-
 namespace RN
 {
-	static HidD_GetAttributes_ HidD_GetAttributes;
-	static HidD_GetSerialNumberString_ HidD_GetSerialNumberString;
-	static HidD_GetManufacturerString_ HidD_GetManufacturerString;
-	static HidD_GetProductString_ HidD_GetProductString;
-	static HidD_SetFeature_ HidD_SetFeature;
-	static HidD_GetFeature_ HidD_GetFeature;
-	static HidD_GetIndexedString_ HidD_GetIndexedString;
-	static HidD_GetPreparsedData_ HidD_GetPreparsedData;
-	static HidD_FreePreparsedData_ HidD_FreePreparsedData;
-	static HidP_GetCaps_ HidP_GetCaps;
-	static HidD_SetNumInputBuffers_ HidD_SetNumInputBuffers;
+	HidD_GetAttributes_ HidD_GetAttributes;
+	HidD_GetSerialNumberString_ HidD_GetSerialNumberString;
+	HidD_GetManufacturerString_ HidD_GetManufacturerString;
+	HidD_GetProductString_ HidD_GetProductString;
+	HidD_SetFeature_ HidD_SetFeature;
+	HidD_GetFeature_ HidD_GetFeature;
+	HidD_GetIndexedString_ HidD_GetIndexedString;
+	HidD_GetPreparsedData_ HidD_GetPreparsedData;
+	HidD_FreePreparsedData_ HidD_FreePreparsedData;
+	HidP_GetCaps_ HidP_GetCaps;
+	HidD_SetNumInputBuffers_ HidD_SetNumInputBuffers;
 
 	static HMODULE _hidModule;
 
@@ -84,6 +30,91 @@ namespace RN
 		DWORD access = enumerate ? 0 : GENERIC_WRITE | GENERIC_READ;
 		return ::CreateFileA(devicePath, access, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
 	}
+
+	String *CreateWcharString(wchar_t *input)
+	{
+		size_t length = wcslen(input);
+		uint8 *buffer = new uint8[length * 4];
+
+		int result = ::WideCharToMultiByte(CP_UTF8, 0, input, static_cast<int>(length), reinterpret_cast<LPSTR>(buffer), static_cast<int>(length * 4), nullptr, nullptr);
+		String *string = new String(buffer, result, Encoding::UTF8);
+
+		delete[] buffer;
+
+		return string;
+	}
+
+	RNDefineMeta(WindowsHIDDevice, HIDDevice)
+
+	WindowsHIDDevice::WindowsHIDDevice(const char *devicePath, HIDP_CAPS caps, HANDLE handle) :
+		HIDDevice(static_cast<HIDUsagePage>(caps.UsagePage), caps.Usage),
+		_deviceHandle(INVALID_HANDLE_VALUE),
+		_manufacturerString(nullptr),
+		_productString(nullptr),
+		_serialString(nullptr)
+	{
+		strcpy(_devicePath, devicePath);
+
+		wchar_t string[512];
+
+		BOOL result = HidD_GetSerialNumberString(handle, string, 512);
+		if(result)
+		{
+			string[511] = 0;
+			_serialString = CreateWcharString(string);
+		}
+
+		result = HidD_GetManufacturerString(handle, string, 512);
+		if(result)
+		{
+			string[511] = 0;
+			_manufacturerString = CreateWcharString(string);
+		}
+
+		result = HidD_GetProductString(handle, string, 512);
+		if(result)
+		{
+			string[511] = 0;
+			_productString = CreateWcharString(string);
+		}
+	}
+
+	WindowsHIDDevice::~WindowsHIDDevice()
+	{
+		Close();
+		SafeRelease(_productString);
+		SafeRelease(_manufacturerString);
+		SafeRelease(_serialString);
+	}
+
+	void WindowsHIDDevice::Open()
+	{
+		_deviceHandle = OpenDevice(_devicePath, false);
+	}
+
+	void WindowsHIDDevice::Close()
+	{
+		if(_deviceHandle != INVALID_HANDLE_VALUE)
+		{
+			::CloseHandle(_deviceHandle);
+			_deviceHandle = INVALID_HANDLE_VALUE;
+		}
+	}
+
+	String *WindowsHIDDevice::GetManufacturerString() const
+	{
+		return _manufacturerString;
+	}
+	String *WindowsHIDDevice::GetProductString() const
+	{
+		return _productString;
+	}
+	String *WindowsHIDDevice::GetSerialString() const
+	{
+		return _serialString;
+	}
+
+
 
 	void EnumerateDevices()
 	{
@@ -171,7 +202,26 @@ namespace RN
 
 			HidD_GetAttributes(writeHandle, &attributes);
 
-			RNDebug("Found HID Device " << attributes.VendorID << ", " << attributes.ProductID);
+			PHIDP_PREPARSED_DATA parsedData;
+
+			result = HidD_GetPreparsedData(writeHandle, &parsedData);
+			if(!result)
+				continue;
+
+			HIDP_CAPS caps;
+			NTSTATUS status = HidP_GetCaps(parsedData, &caps);
+			if(status != HIDP_STATUS_SUCCESS)
+			{
+				HidD_FreePreparsedData(parsedData);
+				continue;
+			}
+
+			WindowsHIDDevice *device = new WindowsHIDDevice(deviceInterfaceDetailData->DevicePath, caps, writeHandle);
+			if(!device->IsVendor())
+				RNDebug(device);
+
+
+			HidD_FreePreparsedData(parsedData);
 		}
 
 		::SetupDiDestroyDeviceInfoList(deviceInfo);
