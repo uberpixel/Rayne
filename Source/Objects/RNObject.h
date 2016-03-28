@@ -323,9 +323,27 @@ namespace RN
 	}
 
 	template<class T>
+	static const T *SafeRetain(const T *object)
+	{
+		return object ? static_cast<const T *>(object->Retain()) : nullptr;
+	}
+
+	template<class T>
 	static T *SafeCopy(const T *object)
 	{
 		return object ? static_cast<T *>(object->Copy()) : nullptr;
+	}
+
+	template<class T>
+	static const T *SafeDowncast(const Object *object)
+	{
+		return object ? object->Downcast<T>() : nullptr;
+	}
+
+	template<class T>
+	static T *SafeDowncast(Object *object)
+	{
+		return object ? object->Downcast<T>() : nullptr;
 	}
 	
 	// ---------------------
