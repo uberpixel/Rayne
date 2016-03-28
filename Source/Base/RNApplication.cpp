@@ -54,7 +54,12 @@ namespace RN
 	
 	Array *Application::GetLoggingEngines() const
 	{
-		StreamLoggingEngine *engine = new StreamLoggingEngine(std::cout, true);
+#if RN_PLATFORM_WINDOWS
+		LoggingEngine *engine = new WideCharStreamLoggingEngine(std::wcout, true);
 		return Array::WithObjects({ engine->Autorelease() });
+#else
+		LoggingEngine *engine = new StreamLoggingEngine(std::cout, true);
+		return Array::WithObjects({ engine->Autorelease() });
+#endif
 	}
 }

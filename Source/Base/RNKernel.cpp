@@ -134,12 +134,12 @@ namespace RN
 			}
 
 		}
-		catch(std::exception &blubb)
+		catch(std::exception &e)
 		{
 			__sharedInstance = nullptr;
 
-			RNDebug(blubb.what());
-			throw blubb;
+			std::cerr << e.what() << std::endl;
+			throw e;
 		}
 	}
 

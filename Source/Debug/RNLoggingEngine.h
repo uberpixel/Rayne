@@ -66,6 +66,32 @@ namespace RN
 
 		__RNDeclareMetaInternal(StreamLoggingEngine)
 	};
+
+#if RN_PLATFORM_WINDOWS
+	class WideCharStreamLoggingEngine : public LoggingEngine
+	{
+	public:
+		RNAPI WideCharStreamLoggingEngine();
+		RNAPI WideCharStreamLoggingEngine(std::wostream &stream, bool threadBound);
+
+		RNAPI void Open() final;
+		RNAPI void Close() final;
+		RNAPI void Flush() final;
+
+		RNAPI bool IsOpen() const final;
+
+		RNAPI void Log(Logger::Level level, const LogMessage &message, const std::string &header) final;
+		RNAPI void LogBreak() final;
+
+	private:
+		void Log(const char *string);
+
+		bool _open;
+		std::wostream &_stream;
+
+		__RNDeclareMetaInternal(WideCharStreamLoggingEngine)
+	};
+#endif
 }
 
 
