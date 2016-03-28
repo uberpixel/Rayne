@@ -12,7 +12,6 @@ namespace RN
 {
 	RNDefineMeta(LoggingEngine, Object)
 	RNDefineMeta(StreamLoggingEngine, LoggingEngine)
-	RNDefineMeta(WideCharStreamLoggingEngine, LoggingEngine)
 
 	LoggingEngine::LoggingEngine(bool threadBound) :
 		_level(Logger::Level::Info),
@@ -70,6 +69,8 @@ namespace RN
 
 
 #if RN_PLATFORM_WINDOWS
+	RNDefineMeta(WideCharStreamLoggingEngine, LoggingEngine)
+
 	WideCharStreamLoggingEngine::WideCharStreamLoggingEngine() :
 		WideCharStreamLoggingEngine(std::wcout, true)
 	{}
