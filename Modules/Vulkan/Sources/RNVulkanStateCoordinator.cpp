@@ -69,7 +69,7 @@ namespace RN
 			descriptorPoolInfo.pNext = NULL;
 			descriptorPoolInfo.poolSizeCount = poolSizes.size();
 			descriptorPoolInfo.pPoolSizes = poolSizes.data();
-			descriptorPoolInfo.maxSets = 1000;
+			descriptorPoolInfo.maxSets = 10000;
 
 			RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, nullptr, &_descriptorPool));
 		}

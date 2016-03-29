@@ -148,7 +148,8 @@ namespace RN
 		_image(VK_NULL_HANDLE),
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
-		_format(renderer->GetVulkanFormatForName(descriptor.GetFormat()))
+		_format(renderer->GetVulkanFormatForName(descriptor.GetFormat())),
+		_isInitialized(false)
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
@@ -243,7 +244,8 @@ namespace RN
 		_image(image),
 		_imageView(imageView),
 		_memory(VK_NULL_HANDLE),
-		_format(VK_FORMAT_B8G8R8A8_UNORM)
+		_format(VK_FORMAT_B8G8R8A8_UNORM),
+		_isInitialized(true)
 	{
 
 	}
@@ -285,7 +287,11 @@ namespace RN
 
 		vk::UnmapMemory(device, _memory);
 
-		SetImageLayout(_image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		if(!_isInitialized)
+		{
+			_isInitialized = true;
+			SetImageLayout(_image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
 	}
 
 	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -293,7 +299,30 @@ namespace RN
 	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow)
 	{}
 	void VulkanTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const
-	{}
+	{
+		RN_ASSERT(_isInitialized, "This texture has not been loaded yet!");
+
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+
+		VkImageSubresource subRes = {};
+		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subRes.mipLevel = mipmapLevel;
+
+		VkSubresourceLayout subResLayout;
+		void *data;
+
+		// Get sub resources layout
+		// Includes row pitch, size offsets, etc.
+		vk::GetImageSubresourceLayout(device, _image, &subRes, &subResLayout);
+
+		// Map image memory
+		RNVulkanValidate(vk::MapMemory(device, _memory, 0, _requirements.size, 0, &data));
+
+		// Copy image data into memory
+		memcpy(bytes, data, bytesPerRow*_descriptor.height);
+
+		vk::UnmapMemory(device, _memory);
+	}
 	void VulkanTexture::SetParameter(const Parameter &parameter)
 	{}
 	void VulkanTexture::GenerateMipMaps()

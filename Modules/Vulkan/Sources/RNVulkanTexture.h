@@ -50,6 +50,8 @@ namespace RN
 		VkMemoryRequirements _requirements;
 		VkSampler _sampler;
 
+		bool _isInitialized;
+
 		RNDeclareMetaAPI(VulkanTexture, VKAPI);
 	};
 }
