@@ -139,7 +139,7 @@ namespace RN
 			return String::WithString(string.c_str(), false);
 		}
 
-		StringBuilder &operator << (const Object *object) { _stream << object->GetDescription()->GetUTF8String(); return *this; }
+		StringBuilder &operator << (const Object *object) { if(object) { _stream << object->GetDescription()->GetUTF8String(); } else { _stream << "<null>"; } return *this; }
 		StringBuilder &operator << (const std::exception &e) { _stream << e.what(); return *this; }
 		StringBuilder &operator << (const std::string &val) { _stream << val; return *this; }
 		StringBuilder &operator << (const char *val) { _stream << val; return *this; }

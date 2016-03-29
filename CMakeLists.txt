@@ -17,8 +17,23 @@ endif()
 
 if(UNIX)
     if(APPLE)
+        execute_process(COMMAND xcrun --show-sdk-path --sdk macosx
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                RESULT_VARIABLE OSX_SDK_RESULT
+                OUTPUT_VARIABLE OSX_SDK_PATH)
+
+        if(NOT ${OSX_SDK_RESULT} MATCHES "0")
+            message(FATAL_ERROR "xcrun, invalid return")
+        endif()
+
+        string(LENGTH ${OSX_SDK_PATH} OSX_SDK_PATH_LENGTH)
+        math(EXPR OSX_SDK_PATH_LENGTH "${OSX_SDK_PATH_LENGTH} - 1")
+
+        string(SUBSTRING ${OSX_SDK_PATH} 0 ${OSX_SDK_PATH_LENGTH} OSX_SDK_PATH)
+
         set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
-        set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk)
+        set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH})
+
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -static-libstdc++")

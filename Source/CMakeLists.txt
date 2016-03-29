@@ -29,6 +29,7 @@ set(RAYNE_SOURCES
     Assets/RNSGMAssetLoader.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
+    Input/RNHIDDevice.cpp
     Input/RNInputControl.cpp
     Input/RNInputDevice.cpp
     Input/RNInputManager.cpp
@@ -116,6 +117,8 @@ set(RAYNE_HEADERS
     Data/RNSpatialMap.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
+    Input/RNHID.h
+    Input/RNHIDDevice.h
     Input/RNInputControl.h
     Input/RNInputDevice.h
     Input/RNInputManager.h
@@ -285,6 +288,10 @@ if(WIN32)
         set(LINK_LIBRARIES ${DBGHELP_LIBRARY} ${PSAPI_LIBRARY})
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -latomic")
     endif()
+
+    find_library(SETUPAPI_LIBRARY setupapi)
+    set(LINK_LIBRARIES ${LINK_LIBRARIES} ${SETUPAPI_LIBRARY})
+
 endif()
 
 if(UNIX AND (NOT APPLE))
