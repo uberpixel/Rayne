@@ -19,6 +19,7 @@ namespace RN
 	class VulkanWindow;
 	struct VulkanRendererInternals;
 	struct VulkanDrawable;
+	class VulkanTexture;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -38,6 +39,9 @@ namespace RN
 		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
 		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		VKAPI VkFormat GetVulkanFormatForName(const String *name);
+
+		VKAPI void CreateMipMapForTexture(VulkanTexture *texture);
+		VKAPI void CreateMipMaps();
 
 		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options, GPUResource::AccessOptions accessOptions) final;
@@ -79,6 +83,8 @@ namespace RN
 
 		Dictionary *_textureFormatLookup;
 		Dictionary *_defaultShaders;
+
+		Set *_mipMapTextures;
 
 		VkQueue _workQueue;
 

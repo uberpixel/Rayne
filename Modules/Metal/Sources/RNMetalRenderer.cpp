@@ -87,7 +87,7 @@ namespace RN
 	}
 
 
-	void MetalRenderer::CreateMipMapForeTexture(MetalTexture *texture)
+	void MetalRenderer::CreateMipMapForTexture(MetalTexture *texture)
 	{
 		_lock.Lock();
 		_mipMapTextures->AddObject(texture);

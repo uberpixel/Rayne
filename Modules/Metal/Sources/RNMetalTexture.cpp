@@ -59,7 +59,7 @@ namespace RN
 
 	void MetalTexture::GenerateMipMaps()
 	{
-		_renderer->CreateMipMapForeTexture(this);
+		_renderer->CreateMipMapForTexture(this);
 	}
 
 	void MetalTexture::SetParameter(const Parameter &parameter)

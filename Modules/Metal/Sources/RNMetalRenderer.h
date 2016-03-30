@@ -65,7 +65,7 @@ namespace RN
 		void RenderDrawable(MetalDrawable *drawable);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
 
-		void CreateMipMapForeTexture(MetalTexture *texture);
+		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;

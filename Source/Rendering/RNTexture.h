@@ -102,6 +102,20 @@ namespace RN
 				mipMaps = 1 + static_cast<uint32>(floor(log2(std::max(static_cast<double>(width), static_cast<double>(height)))));
 			}
 
+			uint32 GetWidthForMipMapLevel(uint8 mipmapLevel) const
+			{
+				int newWidth = width/std::pow(2, mipmapLevel);
+				newWidth -= newWidth%2;
+				return std::max(newWidth, 1);
+			}
+
+			uint32 GetHeightForMipMapLevel(uint8 mipmapLevel) const
+			{
+				int newHeight = height/std::pow(2, mipmapLevel);
+				newHeight -= newHeight%2;
+				return std::max(newHeight, 1);
+			}
+
 			void SetFormat(Format format)
 			{
 				SetFormat(__TranslateFormat(format));

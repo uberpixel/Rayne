@@ -36,7 +36,7 @@ namespace RN
 		VkFormat GetFormat() const { return _format; }
 		VkSampler GetSampler() const { return _sampler; }
 
-		VKAPI static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
+		VKAPI static void SetImageLayout(VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
 
 	private:
 		VulkanRenderer *_renderer;
@@ -44,10 +44,10 @@ namespace RN
 		VkFormat _format;
 
 		VkImage _image;
-		VkImageView _imageView;
-
 		VkDeviceMemory _memory;
 		VkMemoryRequirements _requirements;
+
+		VkImageView _imageView;
 		VkSampler _sampler;
 
 		bool _isInitialized;

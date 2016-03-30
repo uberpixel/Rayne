@@ -22,7 +22,8 @@ namespace RN
 		_mainWindow(nullptr),
 		_textureFormatLookup(new Dictionary()),
 		_currentFrame(0),
-		_defaultShaders(new Dictionary())
+		_defaultShaders(new Dictionary()),
+		_mipMapTextures(new Set())
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -149,6 +150,7 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
+		CreateMipMaps(); // Needs the global command buffer
 		SubmitGlobalCommandBuffer();
 
 		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
@@ -408,6 +410,61 @@ namespace RN
 		}
 
 #undef TextureFormatX
+	}
+
+	void VulkanRenderer::CreateMipMapForTexture(VulkanTexture *texture)
+	{
+		_lock.Lock();
+		_mipMapTextures->AddObject(texture);
+		_lock.Unlock();
+	}
+
+	void VulkanRenderer::CreateMipMaps()
+	{
+		if(_mipMapTextures->GetCount() == 0)
+			return;
+
+		_mipMapTextures->Enumerate<VulkanTexture>([&](VulkanTexture *texture, bool &stop) {
+
+			VulkanTexture::SetImageLayout(texture->GetImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			VulkanTexture::SetImageLayout(texture->GetImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+			for(int i = 0; i < texture->GetDescriptor().mipMaps; i++)
+			{
+				VkImageBlit imageBlit = {};
+
+				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.srcSubresource.mipLevel = i;
+				imageBlit.srcSubresource.baseArrayLayer = 0;
+				imageBlit.srcSubresource.layerCount = 1;
+
+				imageBlit.srcOffsets[0].x = 0;
+				imageBlit.srcOffsets[0].y = 0;
+				imageBlit.srcOffsets[0].z = 0;
+				imageBlit.srcOffsets[1].x = texture->GetDescriptor().GetWidthForMipMapLevel(i);
+				imageBlit.srcOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i);
+				imageBlit.srcOffsets[1].z = 0;
+
+				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.dstSubresource.mipLevel = i+1;
+				imageBlit.dstSubresource.baseArrayLayer = 0;
+				imageBlit.dstSubresource.layerCount = 1;
+
+				imageBlit.dstOffsets[0].x = 0;
+				imageBlit.dstOffsets[0].y = 0;
+				imageBlit.dstOffsets[0].z = 0;
+				imageBlit.dstOffsets[1].x = texture->GetDescriptor().GetWidthForMipMapLevel(i+1);
+				imageBlit.dstOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i+1);
+				imageBlit.dstOffsets[1].z = 0;
+
+				vk::CmdBlitImage(GetGlobalCommandBuffer(), texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
+
+				VulkanTexture::SetImageLayout(texture->GetImage(), i, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			}
+
+			VulkanTexture::SetImageLayout(texture->GetImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		});
+
+		_mipMapTextures->RemoveAllObjects();
 	}
 
 	VkFormat VulkanRenderer::GetVulkanFormatForName(const String *name)

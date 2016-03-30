@@ -70,7 +70,7 @@ namespace RN
 					colorAttachmentView.flags = 0;
 					colorAttachmentView.image = colorImages[i];
 
-					VulkanTexture::SetImageLayout(colorImages[i], VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+					VulkanTexture::SetImageLayout(colorImages[i], 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &colorAttachmentView, nullptr, &imageView));
