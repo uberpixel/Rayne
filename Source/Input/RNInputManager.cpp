@@ -6,9 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <rpc.h>
 #include "RNInputManager.h"
-#include "../Debug/RNLoggingEngine.h"
 
 namespace RN
 {
