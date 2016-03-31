@@ -71,6 +71,12 @@ namespace RN
 		void __AddDevice(InputDevice *device);
 		void __RemoveDevice(InputDevice *device);
 
+#if RN_PLATFORM_WINDOWS
+		void __HandleRawInput(HRAWINPUT lParam);
+		Vector3 _mouseMovement;
+		bool _keyPressed[256];
+#endif
+
 		struct Target
 		{
 			Target(void *ttarget, Event tevents, InputDevice *tdevice, InputDevice::Category tcategories, Callback &&tcallback) :

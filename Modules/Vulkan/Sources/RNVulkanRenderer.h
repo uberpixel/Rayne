@@ -25,6 +25,7 @@ namespace RN
 	{
 	public:
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
+		VKAPI ~VulkanRenderer();
 
 		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
 		VKAPI Window *GetMainWindow() final;

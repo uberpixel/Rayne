@@ -50,8 +50,6 @@ namespace RN
 		VkImageView _imageView;
 		VkSampler _sampler;
 
-		bool _isInitialized;
-
 		RNDeclareMetaAPI(VulkanTexture, VKAPI);
 	};
 }

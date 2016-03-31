@@ -6,7 +6,9 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <rpc.h>
 #include "RNInputManager.h"
+#include "../Debug/RNLoggingEngine.h"
 
 namespace RN
 {
@@ -55,9 +57,28 @@ namespace RN
 	InputManager::InputManager() :
 		_devices(new Array()),
 		_bindings(new Dictionary()),
-		_mouseDevices(new Array())
+		_mouseDevices(new Array()),
+		_mode(0)
 	{
 		__sharedInstance = this;
+
+#if RN_PLATFORM_WINDOWS
+		memset(_keyPressed, 0, 256*sizeof(bool));
+
+		RAWINPUTDEVICE Rid[2];
+
+		Rid[0].usUsagePage = 0x01;
+		Rid[0].usUsage = 0x02;
+		Rid[0].dwFlags = 0;   // adds HID mouse and also ignores legacy mouse messages
+		Rid[0].hwndTarget = 0;
+
+		Rid[1].usUsagePage = 0x01;
+		Rid[1].usUsage = 0x06;
+		Rid[1].dwFlags = 0;   // adds HID keyboard and also ignores legacy keyboard messages
+		Rid[1].hwndTarget = 0;
+
+		RN_ASSERT(RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])), "Raw input shit is broken, yo!");
+#endif
 
 		// Avoid any and all re-ordering
 		std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -75,6 +96,33 @@ namespace RN
 		return __sharedInstance;
 	}
 
+
+#if RN_PLATFORM_WINDOWS
+	void InputManager::__HandleRawInput(HRAWINPUT lParam)
+	{
+		UINT dwSize;
+		GetRawInputData(lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+		LPBYTE lpb = new BYTE[dwSize];
+		if(lpb == NULL){ return; }
+
+		RN_ASSERT(GetRawInputData(lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize , "GetRawInputData does not return correct size !");
+
+		RAWINPUT* rawInput = (RAWINPUT*)lpb;
+
+		if(rawInput->header.dwType == RIM_TYPEKEYBOARD)
+		{
+			if(rawInput->data.keyboard.VKey < 256)
+				_keyPressed[rawInput->data.keyboard.VKey] = (rawInput->data.keyboard.Message == WM_KEYDOWN);
+		}
+		else if(rawInput->header.dwType == RIM_TYPEMOUSE)
+		{
+			_mouseMovement.x += rawInput->data.mouse.lLastX;
+			_mouseMovement.y += rawInput->data.mouse.lLastY;
+		}
+
+		delete[] lpb;
+	}
+#endif
 
 	void InputManager::__AddDevice(InputDevice *device)
 	{
@@ -165,13 +213,18 @@ namespace RN
 
 		});
 
+#if RN_PLATFORM_WINDOWS
+		_mouseDelta += _mouseMovement;
+		_mouseMovement = Vector3();
+#endif
+
 		if(_mode & MouseMode::Smoothed)
 		{
 			float x = _mouseDelta.x * 0.5f;
 			float y = _mouseDelta.y * 0.5f;
 
-			_mouseDelta.x = _previousMouseDelta.x + x;
-			_mouseDelta.y = _previousMouseDelta.y + y;
+			_mouseDelta.x = _previousMouseDelta.x*0.5 + x;
+			_mouseDelta.y = _previousMouseDelta.y*0.5 + y;
 		}
 	}
 
@@ -321,6 +374,25 @@ namespace RN
 			if(device->IsControlToggling(name))
 				return true;
 		}
+
+#if RN_PLATFORM_WINDOWS
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[0x57];
+		}
+		if(name->IsEqual(RNCSTR("A")))
+		{
+			return _keyPressed[0x41];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[0x53];
+		}
+		if(name->IsEqual(RNCSTR("D")))
+		{
+			return _keyPressed[0x44];
+		}
+#endif
 
 		return false;
 	}

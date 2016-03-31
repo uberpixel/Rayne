@@ -89,6 +89,13 @@ namespace RN
 		BeginGlobalCommandBuffer();
 	}
 
+	VulkanRenderer::~VulkanRenderer()
+	{
+		_mipMapTextures->Release();
+		_textureFormatLookup->Release();
+		_defaultShaders->Release();
+	}
+
 	VkResult VulkanRenderer::CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
 	{
 		VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};

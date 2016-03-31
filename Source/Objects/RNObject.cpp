@@ -93,7 +93,7 @@ namespace RN
 		// we need to flush all accesses done so far. Thus the release barrier
 		if(_refCount.fetch_sub(1, std::memory_order_release) == 1)
 		{
-			// Catch up with all changes from all other threads thad had access to the object
+			// Catch up with all changes from all other threads that had access to the object
 			std::atomic_thread_fence(std::memory_order_acquire);
 
 			// Since this function is marked const, we need to do this
@@ -114,7 +114,7 @@ namespace RN
 
 			return this;
 		}
-		
+
 		pool->AddObject(this);
 		return this;
 	}

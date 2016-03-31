@@ -75,7 +75,7 @@ namespace RN
 	}
 	VulkanShaderLibrary::~VulkanShaderLibrary()
 	{
-
+		_shaders->Release();
 	}
 
 	Shader *VulkanShaderLibrary::GetShaderWithName(const String *name)

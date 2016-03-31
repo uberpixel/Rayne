@@ -341,6 +341,11 @@ namespace RN
 		MSG message;
 		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
 		{
+			if(message.message == WM_INPUT)
+			{
+				InputManager::GetSharedInstance()->__HandleRawInput((HRAWINPUT)message.lParam);
+			}
+
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}

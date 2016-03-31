@@ -147,8 +147,7 @@ namespace RN
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
 		_format(renderer->GetVulkanFormatForName(descriptor.GetFormat())),
-		_isInitialized(false),
-		_sampler(nullptr)
+		_sampler(VK_NULL_HANDLE)
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
@@ -235,8 +234,7 @@ namespace RN
 		_imageView(imageView),
 		_memory(VK_NULL_HANDLE),
 		_format(VK_FORMAT_B8G8R8A8_UNORM),
-		_isInitialized(true),
-		_sampler(nullptr)
+		_sampler(VK_NULL_HANDLE)
 	{
 
 	}
@@ -253,6 +251,9 @@ namespace RN
 
 		if(_memory != VK_NULL_HANDLE)
 			vk::FreeMemory(device->GetDevice(), _memory, _renderer->GetAllocatorCallback());
+
+		if(_sampler != VK_NULL_HANDLE)
+			vk::DestroySampler(device->GetDevice(), _sampler, _renderer->GetAllocatorCallback());
 	}
 
 	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
