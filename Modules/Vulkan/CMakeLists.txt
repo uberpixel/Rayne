@@ -10,11 +10,13 @@ if(NOT PYTHON_EXECUTABLE)
 endif()
 
 find_package(PythonInterp 3 REQUIRED)
-
-if(DEFINED ENV{VK_SDK_PATH})
-    set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
-else()
-    message(FATAL_ERROR "Could not find Vulkan SDK")
+if(NOT ${VULKAN_BASE})
+    if(DEFINED ENV{VK_SDK_PATH})
+        set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
+    else()
+        set(VULKAN_BASE NOTFOUND)
+        message(FATAL_ERROR "Could not find Vulkan SDK")
+    endif()
 endif()
 
 include(../../CMake/LibraryTarget.cmake)

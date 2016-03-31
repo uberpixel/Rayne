@@ -133,7 +133,7 @@ namespace RN
 		appInfo.applicationVersion = 0;
 		appInfo.pEngineName = "Rayne";
 		appInfo.engineVersion = GetAPIVersion();
-		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 4);
+		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 3);
 
 		VkInstanceCreateInfo instanceInfo = {};
 		instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
