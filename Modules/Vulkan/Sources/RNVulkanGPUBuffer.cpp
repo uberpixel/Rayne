@@ -46,12 +46,12 @@ namespace RN
 		bufferCreateInfo.size = length;
 		bufferCreateInfo.flags = 0;
 
-		RNVulkanValidate(vk::CreateBuffer(device, &bufferCreateInfo, nullptr, &_buffer));
+		RNVulkanValidate(vk::CreateBuffer(device, &bufferCreateInfo, _renderer->GetAllocatorCallback(), &_buffer));
 		vk::GetBufferMemoryRequirements(device, _buffer, &memoryRequirements);
 		memoryAllocateInfo.allocationSize = memoryRequirements.size;
 
 		renderer->GetVulkanDevice()->GetMemoryWithType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memoryAllocateInfo.memoryTypeIndex);
-		RNVulkanValidate(vk::AllocateMemory(device, &memoryAllocateInfo, nullptr, &_memory));
+		RNVulkanValidate(vk::AllocateMemory(device, &memoryAllocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		if(data != nullptr)
 		{
 			void *mapped;
@@ -65,8 +65,8 @@ namespace RN
 	VulkanGPUBuffer::~VulkanGPUBuffer()
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-		vk::DestroyBuffer(device, _buffer, nullptr);
-		vk::FreeMemory(device, _memory, nullptr);
+		vk::DestroyBuffer(device, _buffer, _renderer->GetAllocatorCallback());
+		vk::FreeMemory(device, _memory, _renderer->GetAllocatorCallback());
 	}
 
 	void *VulkanGPUBuffer::GetBuffer()

@@ -73,7 +73,7 @@ namespace RN
 					VulkanTexture::SetImageLayout(colorImages[i], 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 					VkImageView imageView;
-					RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &colorAttachmentView, nullptr, &imageView));
+					RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &colorAttachmentView, _renderer->GetAllocatorCallback(), &imageView));
 
 					data->colorTexture = new VulkanTexture(attachment, renderer, colorImages[i], imageView);
 				}
@@ -123,7 +123,7 @@ namespace RN
 			frameBufferCreateInfo.height = static_cast<uint32>(size.y);
 			frameBufferCreateInfo.layers = 1;
 
-			RNVulkanValidate(vk::CreateFramebuffer(device->GetDevice(), &frameBufferCreateInfo, nullptr, &data->framebuffer));
+			RNVulkanValidate(vk::CreateFramebuffer(device->GetDevice(), &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &data->framebuffer));
 		}
 	}
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -256,6 +256,6 @@ namespace RN
 		renderPassInfo.pDependencies = nullptr;
 
 		VulkanDevice *device = _renderer->GetVulkanDevice();
-		RNVulkanValidate(vk::CreateRenderPass(device->GetDevice(), &renderPassInfo, nullptr, &_renderPass));
+		RNVulkanValidate(vk::CreateRenderPass(device->GetDevice(), &renderPassInfo, _renderer->GetAllocatorCallback(), &_renderPass));
 	}
 }

@@ -188,7 +188,7 @@ namespace RN
 		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
 
 		VkDescriptorSetLayout descriptorSetLayout;
-		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout));
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, _renderer->GetAllocatorCallback(), &descriptorSetLayout));
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -197,7 +197,7 @@ namespace RN
 		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 
 		VkPipelineLayout pipelineLayout;
-		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout));
+		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, _renderer->GetAllocatorCallback(), &pipelineLayout));
 
 		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 		descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -319,7 +319,7 @@ namespace RN
 
 		VkPipeline pipeline;
 		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
-		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline));
+		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, _renderer->GetAllocatorCallback(), &pipeline));
 
 		// Create the rendering state
 		VulkanRenderingState *state = new VulkanRenderingState();
