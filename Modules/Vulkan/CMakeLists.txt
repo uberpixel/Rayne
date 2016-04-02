@@ -8,7 +8,7 @@ if(NOT PYTHON_EXECUTABLE)
 endif()
 
 find_package(PythonInterp 3 REQUIRED)
-if(UNIX AND NOT APPLE)
+if(WIN32)
     if(DEFINED ENV{VK_SDK_PATH})
         set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
     else()
