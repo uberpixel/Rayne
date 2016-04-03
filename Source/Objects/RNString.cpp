@@ -968,8 +968,15 @@ namespace RN
 
 	String *String::GetNormalizedPath() const
 	{
+		bool hasPathPrefix = HasPrefix(RNCSTR("/"));
+
 		Array *components = GetPathComponents();
-		return components->GetComponentsJoinedByString(RNCSTR("/"));
+		String *path = components->GetComponentsJoinedByString(RNCSTR("/"));
+
+		if(hasPathPrefix)
+			path->Insert(RNCSTR("/"), 0);
+
+		return path;
 	}
 
 	

@@ -100,11 +100,11 @@ namespace RN
 	{
 		String *path = FileCoordinator::GetSharedInstance()->ResolveFullPath(file, 0);
 		if(!path)
-			return nullptr;
+			return InvalidArgumentException(RNSTR("Couldn't open file " << file));
 
 		int fd = open(path->GetUTF8String(), O_RDONLY|O_BINARY);
 		if(fd < 0)
-			return InvalidArgumentException("Couldn't open file");
+			return InvalidArgumentException(RNSTR("Couldn't open file " << path));
 
 		off_t size = lseek(fd, 0, SEEK_END);
 		lseek(fd, 0, SEEK_SET);
