@@ -502,7 +502,46 @@ namespace RN
 
 	bool VulkanTexture::HasColorChannel(ColorChannel channel) const
 	{
-		return true;
+#define ColorChannel(format, r, g, b, a) \
+		case format: \
+		{ \
+			switch(channel) \
+			{ \
+				case ColorChannel::Red: \
+					return r; \
+				case ColorChannel::Green: \
+					return g; \
+				case ColorChannel::Blue: \
+					return b; \
+				case ColorChannel::Alpha: \
+					return a; \
+			} \
+			return false; \
+		}
+
+		switch(GetFormat())
+		{
+			ColorChannel(VK_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
+			ColorChannel(VK_FORMAT_A2R10G10B10_UNORM_PACK32, true, true, true, true)
+			ColorChannel(VK_FORMAT_R8_UNORM, true, false, false, false)
+			ColorChannel(VK_FORMAT_R8G8_UNORM, true, true, false, false)
+
+			ColorChannel(VK_FORMAT_R16_SFLOAT, true, false, false, false)
+			ColorChannel(VK_FORMAT_R16G16_SFLOAT, true, true, false, false)
+			ColorChannel(VK_FORMAT_R16G16B16A16_SFLOAT, true, true, true, true)
+
+			ColorChannel(VK_FORMAT_R32_SFLOAT, true, false, false, false)
+			ColorChannel(VK_FORMAT_R32G32_SFLOAT, true, true, false, false)
+			ColorChannel(VK_FORMAT_R32G32B32A32_SFLOAT, true, true, true, true)
+
+			ColorChannel(VK_FORMAT_D32_SFLOAT, false, false, false, false)
+			ColorChannel(VK_FORMAT_S8_UINT, false, false, false, false)
+			ColorChannel(VK_FORMAT_D24_UNORM_S8_UINT, false, false, false, false)
+			ColorChannel(VK_FORMAT_D32_SFLOAT_S8_UINT, false, false, false, false)
+
+			default:
+				return false;
+		}
 	}
 
 	void VulkanTexture::SetImageLayout(VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout)
