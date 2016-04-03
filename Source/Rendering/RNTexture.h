@@ -73,25 +73,9 @@ namespace RN
 				width(1),
 				height(1),
 				depth(1),
-				mipMaps(1),
-				_format(nullptr)
+				mipMaps(1)
 			{
 				SetFormat(__TranslateFormat(Format::RGBA8888));
-			}
-			Descriptor(const Descriptor &descriptor) :
-				type(descriptor.type),
-				accessOptions(descriptor.accessOptions),
-				usageHint(descriptor.usageHint),
-				width(descriptor.width),
-				height(descriptor.height),
-				depth(descriptor.depth),
-				mipMaps(descriptor.mipMaps)
-			{
-				_format = SafeCopy(descriptor._format);
-			}
-			~Descriptor()
-			{
-				SafeRelease(_format);
 			}
 
 			static Descriptor With2DTextureAndFormat(Format format, uint32 width, uint32 height, bool mipMapped)
@@ -133,7 +117,6 @@ namespace RN
 
 			void SetFormat(const String *format)
 			{
-				SafeRelease(_format);
 				_format = SafeCopy(format);
 			}
 
@@ -150,7 +133,7 @@ namespace RN
 		private:
 			RNAPI static const String *__TranslateFormat(Format format);
 
-			String *_format;
+			StrongRef<String> _format;
 		};
 
 		struct Region
