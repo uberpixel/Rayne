@@ -669,14 +669,15 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const VulkanRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			VulkanUniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, drawable->material);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(this, state);
+			drawable->UpdateRenderingState(this, pipelineState, uniformState);
 			drawable->dirty = false;
 		}
 
-		FillUniformBuffer(drawable->_pipelineState->uniformBuffer, drawable);
+		FillUniformBuffer(drawable->_uniformState->uniformBuffer, drawable);
 
 		// Push into the queue
 		drawable->_prev = nullptr;
@@ -696,7 +697,7 @@ namespace RN
 
 	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
 	{
-		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_pipelineState->descriptorSet, 0, NULL);
+		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
 		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
 
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());

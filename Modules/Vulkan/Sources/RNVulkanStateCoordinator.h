@@ -13,37 +13,38 @@
 
 namespace RN
 {
-	struct VulkanRenderingState
+	struct VulkanPipelineState
 	{
-		~VulkanRenderingState()
+		~VulkanPipelineState()
 		{
 			//vk::DestroyPipeline(device, state, nullptr);
-			//textures->Release();
 		}
-
-//		Array *textures;
 
 		VkPipeline state;
 		VkDescriptorSetLayout descriptorSetLayout;
-		VkDescriptorSet descriptorSet;
 		VkPipelineLayout pipelineLayout;
+		uint8 textureCount;
+	};
 
+	struct VulkanUniformState
+	{
+		VkDescriptorSet descriptorSet;
 		GPUBuffer *uniformBuffer;
 	};
 
 	class VulkanShader;
-	struct VulkanRenderingStateCollection
+	struct VulkanPipelineStateCollection
 	{
-		VulkanRenderingStateCollection() = default;
-		VulkanRenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, VulkanShader *vertex, VulkanShader *fragment) :
+		VulkanPipelineStateCollection() = default;
+		VulkanPipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, VulkanShader *vertex, VulkanShader *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
 		{}
 
-		~VulkanRenderingStateCollection()
+		~VulkanPipelineStateCollection()
 		{
-			for(VulkanRenderingState *state : states)
+			for(VulkanPipelineState *state : states)
 				delete state;
 		}
 
@@ -51,7 +52,7 @@ namespace RN
 		class VulkanShader *vertexShader;
 		class VulkanShader *fragmentShader;
 
-		std::vector<VulkanRenderingState *> states;
+		std::vector<VulkanPipelineState *> states;
 	};
 
 
@@ -62,16 +63,17 @@ namespace RN
 		VKAPI VulkanStateCoordinator();
 		VKAPI ~VulkanStateCoordinator();
 
-		VKAPI const VulkanRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		VKAPI const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		VKAPI VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState, Material *material);
 		VKAPI void SetRenderer(VulkanRenderer *renderer);
 
 	private:
-		const VulkanRenderingState *GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Material *material, Camera *camera);
+		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera);
 
 		VulkanRenderer *_renderer;
 		VkDescriptorPool _descriptorPool;
 
-		std::vector<VulkanRenderingStateCollection *> _renderingStates;
+		std::vector<VulkanPipelineStateCollection *> _renderingStates;
 	};
 }
 

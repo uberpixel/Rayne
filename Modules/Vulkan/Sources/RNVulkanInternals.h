@@ -21,15 +21,17 @@ namespace RN
 
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const VulkanRenderingState *state)
+		void UpdateRenderingState(Renderer *renderer, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
 		{
-			if(state == _pipelineState)
+			if(pipelineState == _pipelineState && uniformState == _uniformState)
 				return;
 
-			_pipelineState = state;
+			_pipelineState = pipelineState;
+			_uniformState = uniformState;
 		}
 
-		const VulkanRenderingState *_pipelineState;
+		const VulkanPipelineState *_pipelineState;
+		VulkanUniformState *_uniformState;
 
 		VulkanDrawable *_next;
 		VulkanDrawable *_prev;
