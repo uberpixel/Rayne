@@ -47,7 +47,7 @@ namespace RN
 			moduleCreateInfo.pCode = (uint32_t*)shaderCode;
 			moduleCreateInfo.flags = 0;
 
-			RNVulkanValidate(vk::CreateShaderModule(device, &moduleCreateInfo, NULL, &_shaderModule));
+			RNVulkanValidate(vk::CreateShaderModule(device, &moduleCreateInfo, _renderer->GetAllocatorCallback(), &_shaderModule));
 
 			//Build all the shader programs
 			shaderArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {

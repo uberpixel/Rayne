@@ -18,7 +18,10 @@ namespace RN
 		~VulkanRenderingState()
 		{
 			//vk::DestroyPipeline(device, state, nullptr);
+			//textures->Release();
 		}
+
+//		Array *textures;
 
 		VkPipeline state;
 		VkDescriptorSetLayout descriptorSetLayout;

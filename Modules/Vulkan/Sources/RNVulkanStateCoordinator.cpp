@@ -101,6 +101,24 @@ namespace RN
 
 	const VulkanRenderingState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanRenderingStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
 	{
+/*		for(VulkanRenderingState *state : collection->states)
+		{
+			bool isEqual = true;
+			material->GetTextures()->Enumerate<Texture>([&](Texture *texture, size_t index, bool &stop0){
+				state->textures->Enumerate<Texture>([&](Texture *other, size_t index, bool &stop1){
+					if(texture != other)
+					{
+						isEqual = false;
+						stop0 = true;
+						stop1 = true;
+					}
+				});
+			});
+
+			if(isEqual)
+				return state;
+		}*/
+
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		VkDevice device = renderer->GetVulkanDevice()->GetDevice();
 
@@ -328,6 +346,7 @@ namespace RN
 		state->descriptorSet = descriptorSet;
 		state->pipelineLayout = pipelineLayout;
 		state->uniformBuffer = gpuBuffer;
+//		state->textures = SafeCopy(material->GetTextures());
 
 		collection->states.push_back(state);
 
