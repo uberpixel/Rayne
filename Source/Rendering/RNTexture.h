@@ -69,7 +69,6 @@ namespace RN
 			Descriptor() :
 				type(Type::Type2D),
 				accessOptions(GPUResource::AccessOptions::ReadWrite),
-
 				usageHint(UsageHint::ShaderRead),
 				width(1),
 				height(1),
@@ -78,6 +77,17 @@ namespace RN
 				_format(nullptr)
 			{
 				SetFormat(__TranslateFormat(Format::RGBA8888));
+			}
+			Descriptor(const Descriptor &descriptor) :
+				type(descriptor.type),
+				accessOptions(descriptor.accessOptions),
+				usageHint(descriptor.usageHint),
+				width(descriptor.width),
+				height(descriptor.height),
+				depth(descriptor.depth),
+				mipMaps(descriptor.mipMaps)
+			{
+				_format = SafeCopy(descriptor._format);
 			}
 			~Descriptor()
 			{

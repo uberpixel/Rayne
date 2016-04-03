@@ -218,12 +218,12 @@ namespace RN
 		// Draw
 	}
 
-	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
 /*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
 		return new D3D12GPUBuffer(nullptr, length);
 	}
-	GPUBuffer *D3D12Renderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options)
+	GPUBuffer *D3D12Renderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
 /*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
 		return new D3D12GPUBuffer(bytes, length);

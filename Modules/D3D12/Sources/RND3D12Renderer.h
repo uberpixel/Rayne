@@ -111,8 +111,8 @@ namespace RN
 		D3DAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		D3DAPI size_t GetSizeForType(PrimitiveType type) const final;
 
-		D3DAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions options) final;
-		D3DAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options) final;
+		D3DAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+		D3DAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
