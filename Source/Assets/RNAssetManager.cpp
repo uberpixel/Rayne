@@ -8,6 +8,7 @@
 
 #include "../Debug/RNLogger.h"
 #include "RNAssetManager.h"
+#include "RNAssetManagerInternals.h"
 
 #include "RNPNGAssetLoader.h"
 #include "RNSGMAssetLoader.h"
@@ -17,7 +18,9 @@ namespace RN
 	static AssetManager *__sharedInstance = nullptr;
 
 	AssetManager::AssetManager() :
-		_loaders(new Array())
+		_loaders(new Array()),
+		_requests(new Dictionary()),
+		_resources(new Dictionary())
 	{
 		__sharedInstance = this;
 
@@ -27,6 +30,9 @@ namespace RN
 	AssetManager::~AssetManager()
 	{
 		SafeRelease(_loaders);
+		SafeRelease(_requests);
+		SafeRelease(_resources);
+
 		__sharedInstance = nullptr;
 	}
 
@@ -84,8 +90,18 @@ namespace RN
 	{
 		asset->__AwakeWithCoordinator(this, name, meta);
 
-		auto &vector = _resources[name];
-		vector.emplace_back(asset, meta);
+		Array *resources = _resources->GetObjectForKey<Array>(name);
+
+		if(!resources)
+		{
+			resources = new Array();
+			_resources->SetObjectForKey(resources, name);
+			resources->Release();
+		}
+
+		LoadedAsset *wrapper = new LoadedAsset(asset, meta);
+		resources->AddObject(wrapper);
+		wrapper->Release();
 
 		RNDebug("Loaded asset " << asset);
 	}
@@ -94,19 +110,22 @@ namespace RN
 		{
 			std::unique_lock<std::mutex> lock(_lock);
 
-			auto &vector = _resources[name];
+			Array *resources = _resources->GetObjectForKey<Array>(name);
+			size_t count = resources->GetCount();
 
-			for(auto iterator = vector.begin(); iterator != vector.end(); iterator ++)
+			for(size_t i = 0; i < count; i ++)
 			{
-				if(iterator->meta == asset->_meta)
+				LoadedAsset *wrapper = static_cast<LoadedAsset *>(resources->GetObjectAtIndex(i));
+
+				if(wrapper->GetMeta() == asset->_meta)
 				{
-					vector.erase(iterator);
+					resources->RemoveObjectAtIndex(i);
 					break;
 				}
 			}
 
-			if(vector.empty())
-				_resources.erase(name);
+			if(resources->GetCount() == 0)
+				_resources->RemoveObjectForKey(name);
 		}
 
 		RNDebug("Unloaded asset " << asset);
@@ -119,25 +138,25 @@ namespace RN
 		Asset *asset = nullptr;
 
 		{
-			auto iterator = _resources.find(name);
-			if(iterator != _resources.end())
+			Array *resources = _resources->GetObjectForKey<Array>(name);
+			if(resources)
 			{
-				auto &vector = iterator->second;
+				size_t count = resources->GetCount();
 
-				for(auto &entry : vector)
+				for(size_t i = 0; i < count; i ++)
 				{
-					if(base->InheritsFromClass(entry.meta))
-					{
-						asset = entry.asset.Load();
-						if(!asset)
-							_resources.erase(iterator);
+					LoadedAsset *wrapper = static_cast<LoadedAsset *>(resources->GetObjectAtIndex(i));
 
-						goto foundEntry;
+					if(base->InheritsFromClass(wrapper->GetMeta()))
+					{
+						asset = wrapper->GetAsset();
+						if(!asset)
+							resources->RemoveObjectAtIndex(i);
+
+						break;
 					}
 				}
 			}
-
-		foundEntry:;
 		}
 
 		if(asset)
@@ -159,15 +178,17 @@ namespace RN
 		}
 
 		// Check if there is a pending request for the resource
-		auto iterator = _requests.find(name);
-		if(iterator != _requests.end())
+		Array *requests = _requests->GetObjectForKey<Array>(name);
+		if(requests)
 		{
-			auto &vector = iterator->second;
+			size_t count = requests->GetCount();
 
-			for(auto &entry : vector)
+			for(size_t i = 0; i < count; i ++)
 			{
-				if(base->InheritsFromClass(entry.meta))
-					return entry.future;
+				PendingAsset *wrapper = static_cast<PendingAsset *>(requests->GetObjectAtIndex(i));
+
+				if(base->InheritsFromClass(wrapper->GetMeta()))
+					return wrapper->GetFuture();
 			}
 		}
 
@@ -207,10 +228,17 @@ namespace RN
 
 		std::promise<Asset *> promise;
 
-		std::vector<PendingAsset> vector;
-		vector.emplace_back(std::move(promise.get_future().share()), base);
+		Array *requests = _requests->GetObjectForKey<Array>(name);
+		if(!requests)
+		{
+			requests = new Array();
+			_requests->SetObjectForKey(requests, name);
+			requests->Release();
+		}
 
-		_requests.emplace(name, std::move(vector));
+		PendingAsset *wrapper = new PendingAsset(std::move(promise.get_future().share()), base);
+		requests->AddObject(wrapper);
+		wrapper->Release();
 
 		lock.unlock();
 
@@ -221,11 +249,14 @@ namespace RN
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 		Expected<Asset *> asset = loader->__Load(fileOrName, base, settings);
 
-		name->Release();
 		settings->Release();
 
 		lock.lock();
-		_requests.erase(name);
+
+		requests->RemoveObject(wrapper);
+
+		if(requests->GetCount() == 0)
+			_requests->RemoveObjectForKey(name);
 
 		if(!asset.IsValid())
 		{
@@ -235,6 +266,8 @@ namespace RN
 
 		PrepareAsset(asset.Get(), name, base, settings);
 		lock.unlock();
+
+		name->Release();
 
 		return asset.Get();
 	}
@@ -278,7 +311,22 @@ namespace RN
 
 			std::unique_lock<std::mutex> lock(_lock);
 
-			_requests.erase(name);
+			Array *requests = _requests->GetObjectForKey<Array>(name);
+			if(requests)
+			{
+				size_t count = requests->GetCount();
+
+				for(size_t i = 0; i < count; i ++)
+				{
+					PendingAsset *wrapper = static_cast<PendingAsset *>(requests->GetObjectAtIndex(i));
+
+					if(base == wrapper->GetMeta())
+					{
+						requests->RemoveObjectAtIndex(i);
+						break;
+					}
+				}
+			}
 
 			if(!result)
 			{
@@ -298,10 +346,22 @@ namespace RN
 
 		}));
 
+
 		std::shared_future<Asset *> shared = future.share();
 
-		auto &vector = _requests[name];
-		vector.emplace_back(std::move(shared), base);
+		Array *requests = _requests->GetObjectForKey<Array>(name);
+		if(!requests)
+		{
+			requests = new Array();
+			_requests->SetObjectForKey(requests, name);
+			requests->Release();
+		}
+
+		std::shared_future<Asset *> copy(shared);
+
+		PendingAsset *wrapper = new PendingAsset(std::move(copy), base);
+		requests->AddObject(wrapper);
+		wrapper->Release();
 
 		return shared;
 	}

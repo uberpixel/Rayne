@@ -24,6 +24,7 @@ set(RAYNE_SOURCES
     Base/RNUnicode.cpp
     Assets/RNAsset.cpp
     Assets/RNAssetManager.cpp
+    Assets/RNAssetManagerInternals.cpp
     Assets/RNAssetLoader.cpp
     Assets/RNPNGAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
@@ -195,6 +196,7 @@ set(RAYNE_HEADERS
 set(RAYNE_HEADERS_PRIVATE
     Assets/RNPNGAssetLoader.h
     Assets/RNSGMAssetLoader.h
+    Assets/RNAssetManagerInternals.h
     Base/RNBaseInternal.h
     Objects/RNHashTableInternal.h
     Objects/RNObjectInternals.h
