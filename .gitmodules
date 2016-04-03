@@ -15,4 +15,4 @@
 	url = https://github.com/madler/zlib.git
 [submodule "Modules/Assimp/Vendor/Assimp"]
 	path = Modules/Assimp/Vendor/Assimp
-	url = https://github.com/assimp/assimp.git
+	url = https://github.com/uberpixel/assimp.git
