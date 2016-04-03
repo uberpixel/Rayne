@@ -187,7 +187,7 @@ namespace RN
 		}
 	}
 
-	const String *Array::GetComponentsJoinedByString(const String *separator)
+	String *Array::GetComponentsJoinedByString(const String *separator)
 	{
 		String *result = new String();
 		size_t limit = GetCount();

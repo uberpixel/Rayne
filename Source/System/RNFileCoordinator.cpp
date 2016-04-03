@@ -478,20 +478,20 @@ namespace RN
 				return result->GetPath()->StringByAppendingPathComponent(last);
 			}
 
-			return result->GetPath()->Copy()->Autorelease();
+			return result->GetPath()->GetNormalizedPath();
 		}
 		
 		String *expanded = __ExpandPath(path);
 
 		if(access(expanded->GetUTF8String(), F_OK) != -1)
-			return expanded;
+			return expanded->GetNormalizedPath();
 
 		if(hint & ResolveHint::CreateNode)
 		{
 			String *parent = expanded->StringByDeletingLastPathComponent();
 			
 			if(access(parent->GetUTF8String(), F_OK) != -1)
-				return expanded;
+				return expanded->GetNormalizedPath();
 		}
 
 		return nullptr;

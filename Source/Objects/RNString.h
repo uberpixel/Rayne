@@ -112,6 +112,8 @@ namespace RN
 		RNAPI String *GetPathExtension() const;
 		RNAPI String *GetLastPathComponent() const;
 
+		RNAPI String *GetNormalizedPath() const;
+
 
 		RNAPI bool WriteToFile(const String *file, Encoding encoding);
 		

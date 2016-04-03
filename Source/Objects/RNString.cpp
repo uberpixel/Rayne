@@ -966,6 +966,12 @@ namespace RN
 		}
 	}
 
+	String *String::GetNormalizedPath() const
+	{
+		Array *components = GetPathComponents();
+		return components->GetComponentsJoinedByString(RNCSTR("/"));
+	}
+
 	
 	bool String::WriteToFile(const String *file, Encoding encoding)
 	{

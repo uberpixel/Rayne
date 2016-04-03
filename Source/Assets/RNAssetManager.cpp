@@ -197,7 +197,7 @@ namespace RN
 
 	Asset *AssetManager::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
-		String *name = tname->Copy();
+		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
 
 		try
@@ -274,7 +274,7 @@ namespace RN
 
 	std::shared_future<Asset *> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
-		String *name = tname->Copy();
+		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
 
 		try
