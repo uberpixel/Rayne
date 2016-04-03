@@ -132,7 +132,7 @@ namespace RN
 	}
 
 
-	std::shared_future<Asset *> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
+	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
 	{
 		// Check if the resource is already loaded
 		Asset *asset = nullptr;
@@ -161,8 +161,8 @@ namespace RN
 
 		if(asset)
 		{
-			std::promise<Asset *> promise;
-			std::shared_future<Asset *> future = promise.get_future().share();
+			std::promise<StrongRef<Asset>> promise;
+			std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
 
 			try
 			{
@@ -202,9 +202,10 @@ namespace RN
 
 		try
 		{
-			std::shared_future<Asset *> future = __GetFutureMatching(base, name);
+			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
 			name->Release();
 
+			lock.unlock();
 			future.wait();
 			return future.get();
 		}
@@ -226,7 +227,7 @@ namespace RN
 
 		AssetLoader *loader = PickAssetLoader(base, file, name, true);
 
-		std::promise<Asset *> promise;
+		std::promise<StrongRef<Asset>> promise;
 
 		Array *requests = _requests->GetObjectForKey<Array>(name);
 		if(!requests)
@@ -272,14 +273,14 @@ namespace RN
 		return asset.Get();
 	}
 
-	std::shared_future<Asset *> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
+	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
 
 		try
 		{
-			std::shared_future<Asset *> future = __GetFutureMatching(base, name);
+			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
 			name->Release();
 
 			return future;
@@ -307,7 +308,7 @@ namespace RN
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 
-		std::future<Asset *> future = std::move(loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
+		std::future<StrongRef<Asset>> future = std::move(loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
 
 			std::unique_lock<std::mutex> lock(_lock);
 
@@ -343,11 +344,12 @@ namespace RN
 
 			name->Release();
 			settings->Release();
+			result->Autorelease();
 
 		}));
 
 
-		std::shared_future<Asset *> shared = future.share();
+		std::shared_future<StrongRef<Asset>> shared = future.share();
 
 		Array *requests = _requests->GetObjectForKey<Array>(name);
 		if(!requests)
@@ -357,7 +359,7 @@ namespace RN
 			requests->Release();
 		}
 
-		std::shared_future<Asset *> copy(shared);
+		std::shared_future<StrongRef<Asset>> copy(shared);
 
 		PendingAsset *wrapper = new PendingAsset(std::move(copy), base);
 		requests->AddObject(wrapper);

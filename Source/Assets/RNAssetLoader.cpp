@@ -71,14 +71,14 @@ namespace RN
 		}
 	}
 
-	std::future<Asset *> AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
+	std::future<StrongRef<Asset>> AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
 	{
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Background);
 
 		fileOrName->Retain();
 		settings->Retain();
 
-		return queue->PerformWithFuture([=]() -> Asset * {
+		return queue->PerformWithFuture([=]() -> StrongRef<Asset> {
 
 			Asset *result;
 
@@ -89,22 +89,22 @@ namespace RN
 					if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 					{
 						File *file = static_cast<File *>(fileOrName);
-						result = Load(file, meta, settings);
+						result = SafeRetain(Load(file, meta, settings));
 					}
 					else
 					{
 						String *name = static_cast<String *>(fileOrName);
-						result = Load(name, meta, settings);
+						result = SafeRetain(Load(name, meta, settings));
 					}
 				});
 			}
-			catch(Exception &)
+			catch(Exception &e)
 			{
 				callback(nullptr);
 				fileOrName->Release();
 				settings->Release();
 
-				std::rethrow_exception(std::current_exception());
+				throw e;
 			}
 
 			callback(result);

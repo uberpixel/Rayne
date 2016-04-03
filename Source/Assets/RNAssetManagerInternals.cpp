@@ -18,7 +18,7 @@ namespace RN
 		_asset(asset)
 	{}
 
-	PendingAsset::PendingAsset(std::shared_future<Asset *> &&future, MetaClass *meta) :
+	PendingAsset::PendingAsset(std::shared_future<StrongRef<Asset>> &&future, MetaClass *meta) :
 		_meta(meta),
 		_future(std::move(future))
 	{}

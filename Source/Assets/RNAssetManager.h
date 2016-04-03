@@ -31,7 +31,7 @@ namespace RN
 		}
 
 		template<class T>
-		std::shared_future<Asset *> GetFutureAssetWithName(const String *name, const Dictionary *settings)
+		std::shared_future<StrongRef<Asset>> GetFutureAssetWithName(const String *name, const Dictionary *settings)
 		{
 			return __GetFutureAssetWithName(T::GetMetaClass(), name, settings);
 		}
@@ -52,10 +52,10 @@ namespace RN
 		void __RemoveAsset(Asset *asset, String *name);
 		void PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings);
 
-		std::shared_future<Asset *> __GetFutureMatching(MetaClass *base, String *name);
+		std::shared_future<StrongRef<Asset>> __GetFutureMatching(MetaClass *base, String *name);
 
 		RNAPI Asset *__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings);
-		RNAPI std::shared_future<Asset *> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings);
+		RNAPI std::shared_future<StrongRef<Asset>> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings);
 
 		std::mutex _lock;
 		Array *_loaders;

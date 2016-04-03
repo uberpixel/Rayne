@@ -105,7 +105,7 @@ namespace RN
 	private:
 		using Callback = std::function<void (Asset *)>;
 
-		std::future<Asset *> LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback);
+		std::future<StrongRef<Asset>> LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback);
 		Expected<Asset *> __Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT;
 
 		Data *_magicBytes;
