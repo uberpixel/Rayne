@@ -8,6 +8,7 @@
 
 #include "RNWorkQueue.h"
 #include "RNAdaptiveLock.h"
+#include "RNThreadLocalStorage.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include <boost/lockfree/queue.hpp>
 
@@ -38,6 +39,7 @@ namespace RN
 	#define kRNWorkQueueFlagMainThread (1 << 18)
 
 	static WorkQueue *__WorkQueues[4];
+	static ThreadLocalStorage<WorkQueue *> __LocalWorkQueues;
 
 	void WorkQueue::InitializeQueues()
 	{
@@ -116,6 +118,15 @@ namespace RN
 	WorkQueue *WorkQueue::GetGlobalQueue(Priority priority)
 	{
 		return __WorkQueues[static_cast<uint32>(priority)];
+	}
+
+	WorkQueue *WorkQueue::GetCurrentWorkQueue()
+	{
+		Thread *thread = Thread::GetCurrentThread();
+		if(thread == Thread::GetMainThread())
+			return GetMainQueue();
+
+		return __LocalWorkQueues.GetValue();
 	}
 
 
@@ -307,8 +318,9 @@ namespace RN
 	void WorkQueue::ThreadEntry()
 	{
 		Thread *thread = Thread::GetCurrentThread();
-
 		AutoreleasePool *pool = new AutoreleasePool();
+
+		__LocalWorkQueues.SetValue(this);
 
 		while(!thread->IsCancelled())
 		{
@@ -339,12 +351,15 @@ namespace RN
 
 							_threadLock.Unlock();
 
+							delete pool;
 							return;
 						}
 					}
 				}
 			}
 		}
+
+		delete pool;
 	}
 
 	void WorkQueue::ReCalculateWidth()

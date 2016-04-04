@@ -41,6 +41,7 @@ namespace RN
 
 		RNAPI static WorkQueue *GetMainQueue();
 		RNAPI static WorkQueue *GetGlobalQueue(Priority priority);
+		RNAPI static WorkQueue *GetCurrentWorkQueue();
 
 		RNAPI void Perform(Function &&function);
 		RNAPI void PerformBarrier(Function &&function);
@@ -56,6 +57,24 @@ namespace RN
 			std::future<resultType> result(task.get_future());
 
 			Perform([func = std::move(task)]() mutable {
+
+				std::packaged_task<resultType ()> task(std::move(func));
+				task();
+
+			});
+
+			return result;
+		}
+
+		template<class F>
+		std::future<typename std::result_of<F()>::type> PerformBarrierWithFuture(F &&f)
+		{
+			typedef typename std::result_of<F()>::type resultType;
+
+			std::packaged_task<resultType ()> task(std::move(f));
+			std::future<resultType> result(task.get_future());
+
+			PerformBarrier([func = std::move(task)]() mutable {
 
 				std::packaged_task<resultType ()> task(std::move(func));
 				task();
