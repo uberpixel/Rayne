@@ -4,18 +4,16 @@
 *.orig
 
 # CLion
-**/.idea/workspace.xml
-**/.idea/tasks.xml
-**/.idea/Rayne.iml
+.idea/*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/vcs.xml
+.idea/misc.xml
+.idea/dictionaries
+.idea/InspectionProfiles
+
 /build/
 CMakeLists.txt.user
-
-
-# Visual Studio 
-VS15/
-# don't ask, this won't be in here for long
-_jwki/	
-
 
 # Vulkan Renderer
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
