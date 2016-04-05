@@ -52,6 +52,7 @@ namespace RN
 		void __RemoveAsset(Asset *asset, String *name);
 		void PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings);
 
+		Asset *__GetAssetMatching(MetaClass *base, String *name);
 		std::shared_future<StrongRef<Asset>> __GetFutureMatching(MetaClass *base, String *name);
 
 		RNAPI Asset *__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings);

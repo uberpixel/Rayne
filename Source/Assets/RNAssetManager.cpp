@@ -132,9 +132,8 @@ namespace RN
 	}
 
 
-	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
+	Asset *AssetManager::__GetAssetMatching(MetaClass *base, String *name)
 	{
-		// Check if the resource is already loaded
 		Asset *asset = nullptr;
 
 		{
@@ -159,24 +158,11 @@ namespace RN
 			}
 		}
 
-		if(asset)
-		{
-			std::promise<StrongRef<Asset>> promise;
-			std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
+		return asset;
+	}
 
-			try
-			{
-				asset = ValidateAsset(base, asset);
-				promise.set_value(asset);
-			}
-			catch(Exception &)
-			{
-				promise.set_exception(std::current_exception());
-			}
-
-			return future;
-		}
-
+	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
+	{
 		// Check if there is a pending request for the resource
 		Array *requests = _requests->GetObjectForKey<Array>(name);
 		if(requests)
@@ -202,15 +188,46 @@ namespace RN
 
 		try
 		{
+			Asset *asset = __GetAssetMatching(base, name);
+			if(asset)
+			{
+				asset->Retain();
+
+				lock.unlock();
+				name->Release();
+
+				return asset->Autorelease();
+			}
+
 			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
+			lock.unlock();
+
 			name->Release();
 
-			lock.unlock();
-			future.wait();
-			return future.get();
+			WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+
+			if(queue != WorkQueue::GetMainQueue())
+			{
+				queue->YieldWithFuture(future);
+			}
+			else
+			{
+				future.wait();
+			}
+
+
+			lock.lock();
+
+			asset = __GetAssetMatching(base, name);
+			RN_ASSERT(asset, "Asset mustn't be null at this point");
+
+			return asset->Retain()->Autorelease();
 		}
 		catch(InconsistencyException &)
-		{}
+		{
+			if(!lock.owns_lock())
+				lock.lock();
+		}
 
 		// Load the resource
 		File *file;
@@ -228,21 +245,23 @@ namespace RN
 		AssetLoader *loader = PickAssetLoader(base, file, name, true);
 
 		std::promise<StrongRef<Asset>> promise;
+		PendingAsset *wrapper;
 
-		Array *requests = _requests->GetObjectForKey<Array>(name);
-		if(!requests)
 		{
-			requests = new Array();
-			_requests->SetObjectForKey(requests, name);
-			requests->Release();
+			Array *requests = _requests->GetObjectForKey<Array>(name);
+			if(!requests)
+			{
+				requests = new Array();
+				_requests->SetObjectForKey(requests, name);
+				requests->Release();
+			}
+
+			wrapper = new PendingAsset(std::move(promise.get_future().share()), base);
+			requests->AddObject(wrapper);
+			wrapper->Release();
+
+			lock.unlock();
 		}
-
-		PendingAsset *wrapper = new PendingAsset(std::move(promise.get_future().share()), base);
-		requests->AddObject(wrapper);
-		wrapper->Release();
-
-		lock.unlock();
-
 
 		if(!settings)
 			settings = new Dictionary();
@@ -254,10 +273,17 @@ namespace RN
 
 		lock.lock();
 
-		requests->RemoveObject(wrapper);
+		{
+			Array *requests = _requests->GetObjectForKey<Array>(name);
 
-		if(requests->GetCount() == 0)
-			_requests->RemoveObjectForKey(name);
+			if(requests)
+			{
+				requests->RemoveObject(wrapper);
+
+				if(requests->GetCount() == 0)
+					_requests->RemoveObjectForKey(name);
+			}
+		}
 
 		if(!asset.IsValid())
 		{
@@ -280,6 +306,29 @@ namespace RN
 
 		try
 		{
+			Asset *asset = __GetAssetMatching(base, name);
+			if(asset)
+			{
+				asset->Retain();
+
+				lock.unlock();
+
+				std::promise<StrongRef<Asset>> promise;
+				std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
+
+				try
+				{
+					asset = ValidateAsset(base, asset);
+					promise.set_value(asset);
+				}
+				catch(Exception &)
+				{
+					promise.set_exception(std::current_exception());
+				}
+
+				return future;
+			}
+
 			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
 			name->Release();
 
@@ -327,6 +376,9 @@ namespace RN
 						break;
 					}
 				}
+
+				if(requests->GetCount() == 0)
+					_requests->RemoveObjectForKey(name);
 			}
 
 			if(!result)

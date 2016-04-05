@@ -73,7 +73,7 @@ namespace RN
 
 	std::future<StrongRef<Asset>> AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
 	{
-		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Background);
+		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
 
 		fileOrName->Retain();
 		settings->Retain();
@@ -98,7 +98,7 @@ namespace RN
 					}
 				});
 			}
-			catch(Exception &e)
+			catch(std::exception &e)
 			{
 				callback(nullptr);
 				fileOrName->Release();
