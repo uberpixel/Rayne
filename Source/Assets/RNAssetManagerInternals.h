@@ -33,12 +33,16 @@ namespace RN
 	class PendingAsset : public Object
 	{
 	public:
-		PendingAsset(std::shared_future<StrongRef<Asset>> &&future, MetaClass *meta);
+		PendingAsset(MetaClass *meta);
+
+		void SetAsset(Asset *asset);
+		void SetException(std::exception_ptr exception);
 
 		MetaClass *GetMeta() const { return _meta; }
-		std::shared_future<StrongRef<Asset>> &GetFuture() const { return const_cast<std::shared_future<StrongRef<Asset>> &>(_future); }
+		std::shared_future<StrongRef<Asset>> GetFuture() const { return _future; }
 
 	private:
+		std::promise<StrongRef<Asset>> _promise;
 		std::shared_future<StrongRef<Asset>> _future;
 		MetaClass *_meta;
 

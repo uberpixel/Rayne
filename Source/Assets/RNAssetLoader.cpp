@@ -8,6 +8,7 @@
 
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Threads/RNWorkQueue.h"
+#include "../Debug/RNLogger.h"
 #include "RNAssetLoader.h"
 
 namespace RN
@@ -71,14 +72,14 @@ namespace RN
 		}
 	}
 
-	std::future<StrongRef<Asset>> AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
+	void AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
 	{
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
 
 		fileOrName->Retain();
 		settings->Retain();
 
-		return queue->PerformWithFuture([=]() -> StrongRef<Asset> {
+		queue->Perform([=]() {
 
 			Asset *result;
 
@@ -100,19 +101,18 @@ namespace RN
 			}
 			catch(std::exception &e)
 			{
+				RNError("Encountered exception " << e << " while loading asset");
+
 				callback(nullptr);
+
 				fileOrName->Release();
 				settings->Release();
-
-				throw e;
 			}
 
 			callback(result);
 
 			fileOrName->Release();
 			settings->Release();
-
-			return result;
 
 		});
 	}

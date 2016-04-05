@@ -192,10 +192,9 @@ namespace RN
 			if(asset)
 			{
 				asset->Retain();
-
 				lock.unlock();
-				name->Release();
 
+				name->Release();
 				return asset->Autorelease();
 			}
 
@@ -215,13 +214,7 @@ namespace RN
 				future.wait();
 			}
 
-
-			lock.lock();
-
-			asset = __GetAssetMatching(base, name);
-			RN_ASSERT(asset, "Asset mustn't be null at this point");
-
-			return asset->Retain()->Autorelease();
+			return future.get();
 		}
 		catch(InconsistencyException &)
 		{
@@ -244,7 +237,6 @@ namespace RN
 
 		AssetLoader *loader = PickAssetLoader(base, file, name, true);
 
-		std::promise<StrongRef<Asset>> promise;
 		PendingAsset *wrapper;
 
 		{
@@ -256,7 +248,7 @@ namespace RN
 				requests->Release();
 			}
 
-			wrapper = new PendingAsset(std::move(promise.get_future().share()), base);
+			wrapper = new PendingAsset(base);
 			requests->AddObject(wrapper);
 			wrapper->Release();
 
@@ -273,6 +265,8 @@ namespace RN
 
 		lock.lock();
 
+		wrapper->Retain();
+
 		{
 			Array *requests = _requests->GetObjectForKey<Array>(name);
 
@@ -287,16 +281,22 @@ namespace RN
 
 		if(!asset.IsValid())
 		{
-			promise.set_exception(asset.GetException());
+			wrapper->SetException(asset.GetException());
 			std::rethrow_exception(asset.GetException());
 		}
 
-		PrepareAsset(asset.Get(), name, base, settings);
+		// Send the result out
+		Asset *result = asset.Get()->Retain();
+
+		PrepareAsset(result, name, base, settings);
 		lock.unlock();
 
 		name->Release();
 
-		return asset.Get();
+		wrapper->SetAsset(result);
+		wrapper->Release();
+
+		return result->Autorelease();
 	}
 
 	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
@@ -310,7 +310,6 @@ namespace RN
 			if(asset)
 			{
 				asset->Retain();
-
 				lock.unlock();
 
 				std::promise<StrongRef<Asset>> promise;
@@ -335,7 +334,10 @@ namespace RN
 			return future;
 		}
 		catch(InconsistencyException &)
-		{}
+		{
+			if(!lock.owns_lock())
+				lock.lock();
+		}
 
 		// Load the resource
 		File *file;
@@ -357,29 +359,36 @@ namespace RN
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 
-		std::future<StrongRef<Asset>> future = std::move(loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
+		loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
 
 			std::unique_lock<std::mutex> lock(_lock);
 
 			Array *requests = _requests->GetObjectForKey<Array>(name);
+			PendingAsset *wrapper = nullptr;
+
 			if(requests)
 			{
 				size_t count = requests->GetCount();
 
 				for(size_t i = 0; i < count; i ++)
 				{
-					PendingAsset *wrapper = static_cast<PendingAsset *>(requests->GetObjectAtIndex(i));
+					wrapper = static_cast<PendingAsset *>(requests->GetObjectAtIndex(i));
 
 					if(base == wrapper->GetMeta())
 					{
+						wrapper->Retain();
 						requests->RemoveObjectAtIndex(i);
 						break;
 					}
+
+					wrapper = nullptr; // Just in case so we don't end up with a wrong wrapper
 				}
 
 				if(requests->GetCount() == 0)
 					_requests->RemoveObjectForKey(name);
 			}
+
+			RN_ASSERT(wrapper, "Inconsistent state after asset loader was fullfilled");
 
 			if(!result)
 			{
@@ -388,6 +397,8 @@ namespace RN
 				name->Release();
 				settings->Release();
 
+				wrapper->SetAsset(nullptr);
+				wrapper->Release();
 				return;
 			}
 
@@ -396,12 +407,15 @@ namespace RN
 
 			name->Release();
 			settings->Release();
+
+
+			wrapper->SetAsset(result);
+			wrapper->Release();
+
 			result->Autorelease();
 
-		}));
+		});
 
-
-		std::shared_future<StrongRef<Asset>> shared = future.share();
 
 		Array *requests = _requests->GetObjectForKey<Array>(name);
 		if(!requests)
@@ -411,13 +425,11 @@ namespace RN
 			requests->Release();
 		}
 
-		std::shared_future<StrongRef<Asset>> copy(shared);
-
-		PendingAsset *wrapper = new PendingAsset(std::move(copy), base);
+		PendingAsset *wrapper = new PendingAsset(base);
 		requests->AddObject(wrapper);
 		wrapper->Release();
 
-		return shared;
+		return wrapper->GetFuture();
 	}
 
 

@@ -18,8 +18,18 @@ namespace RN
 		_asset(asset)
 	{}
 
-	PendingAsset::PendingAsset(std::shared_future<StrongRef<Asset>> &&future, MetaClass *meta) :
-		_meta(meta),
-		_future(std::move(future))
-	{}
+	PendingAsset::PendingAsset(MetaClass *meta) :
+		_meta(meta)
+	{
+		_future = _promise.get_future().share();
+	}
+
+	void PendingAsset::SetAsset(Asset *asset)
+	{
+		_promise.set_value(asset);
+	}
+	void PendingAsset::SetException(std::exception_ptr exception)
+	{
+		_promise.set_exception(exception);
+	}
 }
