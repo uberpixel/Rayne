@@ -76,7 +76,7 @@ namespace RN
 		switch(priority)
 		{
 			case Priority::High:
-				multiplier = 12;
+				multiplier = 8;
 				maxThreads = 64;
 				break;
 			case Priority::Default:

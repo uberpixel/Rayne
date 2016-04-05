@@ -77,13 +77,19 @@ namespace RN
 		{
 			typedef typename std::result_of<F()>::type resultType;
 
-			std::packaged_task<resultType ()> task(std::move(f));
-			std::future<resultType> result(task.get_future());
+			std::promise<resultType> promise;
+			std::future<resultType> result(promise.get_future());
 
-			PerformBarrier([func = std::move(task)]() mutable {
+			Perform([promise = std::move(promise), f = std::move(f)]() mutable {
 
-				std::packaged_task<resultType ()> task(std::move(func));
-				task();
+				try
+				{
+					promise.set_value(f());
+				}
+				catch(...)
+				{
+					promise.set_exception(std::current_exception());
+				}
 
 			});
 
@@ -91,7 +97,7 @@ namespace RN
 		}
 
 		template<class Predicate>
-		void Yield(Predicate &&predicate)
+		void YieldWithPredicate(Predicate &&predicate)
 		{
 			while(!predicate())
 				__Yield();
@@ -100,7 +106,7 @@ namespace RN
 		template<class T>
 		void YieldWithFuture(T &future)
 		{
-			Yield([&]() -> bool {
+			YieldWithPredicate([&]() -> bool {
 				return (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
 			});
 		}
@@ -108,7 +114,7 @@ namespace RN
 		template<class T>
 		void YieldWithCondition(std::condition_variable &condition, T &lock)
 		{
-			Yield([&]() -> bool {
+			YieldWithPredicate([&]() -> bool {
 				return (condition.wait_for(lock, std::chrono::seconds(0)) == std::cv_status::no_timeout);
 			});
 		}
@@ -116,7 +122,7 @@ namespace RN
 		template<class T, class Predicate>
 		void YieldWithCondition(std::condition_variable &condition, T &lock, Predicate &&predicate)
 		{
-			Yield([&]() -> bool {
+			YieldWithPredicate([&]() -> bool {
 				return condition.wait_for(lock, std::chrono::seconds(0), std::move(predicate));
 			});
 		}
