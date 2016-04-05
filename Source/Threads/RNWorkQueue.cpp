@@ -315,10 +315,10 @@ namespace RN
 		return true;
 	}
 
-	void WorkQueue::ThreadEntry()
+	bool WorkQueue::PerformWorkWithTimeout(uint32 timeout)
 	{
 		Thread *thread = Thread::GetCurrentThread();
-		AutoreleasePool *pool = new AutoreleasePool();
+		AutoreleasePool pool;
 
 		__LocalWorkQueues.SetValue(this);
 
@@ -335,31 +335,41 @@ namespace RN
 
 					if(_open.load() == 0)
 					{
-						pool->Drain();
+						pool.Drain();
 
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
-						bool result = _internals->workSignal.wait_for(lock, std::chrono::milliseconds(500), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
+						bool result = _internals->workSignal.wait_for(lock, std::chrono::milliseconds(timeout), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 
 						// Resign the thread if the timeout was reached
 						if(RN_EXPECT_FALSE(!result))
-						{
-							_threadLock.Lock();
-
-							_threads.erase(std::find(_threads.begin(), _threads.end(), thread));
-							_width --;
-
-							_threadLock.Unlock();
-
-							delete pool;
-							return;
-						}
+							return false;
 					}
 				}
 			}
 		}
 
-		delete pool;
+		return true;
+	}
+
+	void WorkQueue::__Yield()
+	{
+		PerformWorkWithTimeout(1);
+	}
+
+	void WorkQueue::ThreadEntry()
+	{
+		if(!PerformWorkWithTimeout(500))
+		{
+			Thread *thread = Thread::GetCurrentThread();
+
+			_threadLock.Lock();
+
+			_threads.erase(std::find(_threads.begin(), _threads.end(), thread));
+			_width--;
+
+			_threadLock.Unlock();
+		}
 	}
 
 	void WorkQueue::ReCalculateWidth()

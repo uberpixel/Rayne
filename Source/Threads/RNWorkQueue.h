@@ -53,13 +53,19 @@ namespace RN
 		{
 			typedef typename std::result_of<F()>::type resultType;
 
-			std::packaged_task<resultType ()> task(std::move(f));
-			std::future<resultType> result(task.get_future());
+			std::promise<resultType> promise;
+			std::future<resultType> result(promise.get_future());
 
-			Perform([func = std::move(task)]() mutable {
+			Perform([promise = std::move(promise), f = std::move(f)]() mutable {
 
-				std::packaged_task<resultType ()> task(std::move(func));
-				task();
+				try
+				{
+					promise.set_value(f());
+				}
+				catch(...)
+				{
+					promise.set_exception(std::current_exception());
+				}
 
 			});
 
@@ -84,6 +90,37 @@ namespace RN
 			return result;
 		}
 
+		template<class Predicate>
+		void Yield(Predicate &&predicate)
+		{
+			while(!predicate())
+				__Yield();
+		}
+
+		template<class T>
+		void YieldWithFuture(T &future)
+		{
+			Yield([&]() -> bool {
+				return (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
+			});
+		}
+
+		template<class T>
+		void YieldWithCondition(std::condition_variable &condition, T &lock)
+		{
+			Yield([&]() -> bool {
+				return (condition.wait_for(lock, std::chrono::seconds(0)) == std::cv_status::no_timeout);
+			});
+		}
+
+		template<class T, class Predicate>
+		void YieldWithCondition(std::condition_variable &condition, T &lock, Predicate &&predicate)
+		{
+			Yield([&]() -> bool {
+				return condition.wait_for(lock, std::chrono::seconds(0), std::move(predicate));
+			});
+		}
+
 		RNAPI void Suspend();
 		RNAPI void Resume();
 
@@ -93,7 +130,10 @@ namespace RN
 
 		WorkSource *PerformWithFlags(Function &&function, WorkSource::Flags flags);
 
+		RNAPI void __Yield();
+
 		void ThreadEntry();
+		bool PerformWorkWithTimeout(uint32 timeout);
 		bool PerformWork();
 
 		void ReCalculateWidth();
