@@ -8,6 +8,7 @@
 
 #include "../Rendering/RNRenderer.h"
 #include "../System/RNFileCoordinator.h"
+#include "../Threads/RNWorkQueue.h"
 #include "RNSGMAssetLoader.h"
 #include "RNAssetManager.h"
 
@@ -100,10 +101,11 @@ namespace RN
 		std::vector<std::pair<ShaderLookupRequest *, MaterialDescriptor>> materials;
 
 		// Get Materials
+		Array *materialPlaceholder = new Array();
+
 		for(uint8 i = 0; i < materialCount; i ++)
 		{
-			ShaderLookupRequest *lookup = new ShaderLookupRequest();
-			MaterialDescriptor descriptor;
+			Array *textures = new Array();
 
 			file->ReadUint8();
 
@@ -126,12 +128,10 @@ namespace RN
 					String *fullPath = path->StringByAppendingPathComponent(filename);
 
 					String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
-					Texture *texture = Texture::WithName(normalized);
 
-					descriptor.AddTexture(texture);
+					AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
 
-					if(texture->HasColorChannel(Texture::ColorChannel::Alpha))
-						lookup->discard = true;
+					textures->AddObject(normalized);
 
 					delete[] buffer;
 				}
@@ -152,9 +152,53 @@ namespace RN
 				//	descriptor->S(color);
 			}
 
+			Dictionary *info = new Dictionary();
+			info->SetObjectForKey(textures, RNCSTR("textures"));
+
+			materialPlaceholder->AddObject(info);
+
+			textures->Release();
+			info->Release();
+		}
+
+		// Collect the loaded textures
+		materialPlaceholder->Enumerate<Dictionary>([&](Dictionary *info, size_t index, bool &stop) {
+
+			Array *textures = info->GetObjectForKey<Array>(RNCSTR("textures"));
+			ShaderLookupRequest *lookup = new ShaderLookupRequest();
+
+			MaterialDescriptor descriptor;
+
+			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
+
+				std::shared_future<StrongRef<Asset>> future = AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(file, nullptr);
+				WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+
+				if(queue)
+				{
+					queue->YieldWithFuture(future);
+				}
+				else
+				{
+					future.wait();
+				}
+
+
+				Texture *texture = future.get()->Downcast<Texture>();
+				descriptor.AddTexture(texture);
+
+				if(texture->HasColorChannel(Texture::ColorChannel::Alpha))
+					lookup->discard = true;
+
+			});
+
 			materials.emplace_back(std::make_pair(lookup, descriptor));
 			lookup->Autorelease();
-		}
+
+		});
+
+		materialPlaceholder->Release();
+
 
 		// Get Meshes
 		size_t meshCount = file->ReadUint8();
