@@ -140,6 +140,14 @@ namespace RN
 	{
 		for(size_t i = 0; i < scene->mNumMeshes; i++)
 		{
+			aiMesh *aimesh = scene->mMeshes[i];
+			aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
+
+			LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+		}
+
+		for(size_t i = 0; i < scene->mNumMeshes; i++)
+		{
 			auto pair = LoadAssimpMeshGroup(filepath, scene, i);
 			stage->AddMesh(pair.first, pair.second);
 		}
@@ -158,7 +166,20 @@ namespace RN
 
 		if(aimaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
-			Texture *texture = LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+			WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+			auto future = LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+
+			if(queue != WorkQueue::GetMainQueue())
+			{
+				queue->YieldWithFuture(future);
+			}
+			else
+			{
+				future.wait();
+			}
+
+
+			Texture *texture = future.get()->Downcast<Texture>();
 
 			descriptor.AddTexture(texture);
 			lookup->discard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
@@ -304,7 +325,7 @@ namespace RN
 		return mesh->Autorelease();
 	}
 
-	Texture *AssimpAssetLoader::LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
+	std::shared_future<StrongRef<Asset>> AssimpAssetLoader::LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
 	{
 		aiString aipath;
 		material->GetTexture(aitexturetype, index, &aipath);
@@ -316,6 +337,6 @@ namespace RN
 
 		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
 
-		return Texture::WithName(normalized);
+		return AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
 	}
 }

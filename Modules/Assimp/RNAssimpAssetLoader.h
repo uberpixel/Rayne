@@ -30,7 +30,7 @@ namespace RN
 		std::pair<Mesh *, Material *> LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index);
 
 		Mesh *LoadAssimpMesh(const aiScene *scene, size_t index);
-		Texture *LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
+		std::shared_future<StrongRef<Asset>> LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
 
 		RNDeclareMetaAPI(AssimpAssetLoader, ASAPI)
 	};
