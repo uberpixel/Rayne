@@ -55,8 +55,10 @@ namespace RN
 	
 	void AutoreleasePool::Drain()
 	{
-		for(const Object *object : _internals->objects)
-			object->Release();
+		for(auto iterator = _internals->objects.begin(); iterator != _internals->objects.end(); iterator++)
+		{
+			(*iterator)->Release();
+		}
 		
 		_internals->objects.clear();
 	}
