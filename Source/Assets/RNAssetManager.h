@@ -21,6 +21,7 @@ namespace RN
 	public:
 		friend class Kernel;
 		friend class Asset;
+		friend class AssetLoader;
 
 		RNAPI static AssetManager *GetSharedInstance();
 
@@ -50,6 +51,8 @@ namespace RN
 		Asset *ValidateAsset(MetaClass *base, Asset *asset);
 
 		void __RemoveAsset(Asset *asset, String *name);
+		void __FinishLoadingAsset(void *token, std::exception &exception);
+		void __FinishLoadingAsset(void *token, Asset *asset);
 		void PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings);
 
 		Asset *__GetAssetMatching(MetaClass *base, String *name);

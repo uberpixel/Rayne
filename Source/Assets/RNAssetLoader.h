@@ -105,7 +105,7 @@ namespace RN
 	private:
 		using Callback = std::function<void (Asset *)>;
 
-		void LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback);
+		void LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, void *token);
 		Expected<Asset *> __Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT;
 
 		Data *_magicBytes;

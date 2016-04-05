@@ -10,6 +10,7 @@
 #include "../Threads/RNWorkQueue.h"
 #include "../Debug/RNLogger.h"
 #include "RNAssetLoader.h"
+#include "RNAssetManager.h"
 
 namespace RN
 {
@@ -72,7 +73,7 @@ namespace RN
 		}
 	}
 
-	void AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, Callback &&callback)
+	void AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, void *token)
 	{
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
 
@@ -103,13 +104,15 @@ namespace RN
 			{
 				RNError("Encountered exception " << e << " while loading asset");
 
-				callback(nullptr);
+				AssetManager *manager = AssetManager::GetSharedInstance();
+				manager->__FinishLoadingAsset(token, e);
 
 				fileOrName->Release();
 				settings->Release();
 			}
 
-			callback(result);
+			AssetManager *manager = AssetManager::GetSharedInstance();
+			manager->__FinishLoadingAsset(token, result);
 
 			fileOrName->Release();
 			settings->Release();

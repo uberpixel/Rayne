@@ -7,6 +7,7 @@
 //
 
 #include "RNAssetManagerInternals.h"
+#include "../Objects/RNString.h"
 
 namespace RN
 {
@@ -18,8 +19,9 @@ namespace RN
 		_asset(asset)
 	{}
 
-	PendingAsset::PendingAsset(MetaClass *meta) :
-		_meta(meta)
+	PendingAsset::PendingAsset(MetaClass *meta, String *name) :
+		_meta(meta),
+		_name(name)
 	{
 		_future = _promise.get_future().share();
 	}

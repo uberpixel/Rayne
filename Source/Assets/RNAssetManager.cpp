@@ -248,7 +248,7 @@ namespace RN
 				requests->Release();
 			}
 
-			wrapper = new PendingAsset(base);
+			wrapper = new PendingAsset(base, name);
 			requests->AddObject(wrapper);
 			wrapper->Release();
 
@@ -359,62 +359,8 @@ namespace RN
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 
-		loader->LoadInBackground(fileOrName, base, settings, [this, name, settings, base](Asset *result) {
-
-			std::unique_lock<std::mutex> lock(_lock);
-
-			Array *requests = _requests->GetObjectForKey<Array>(name);
-			PendingAsset *wrapper = nullptr;
-
-			if(requests)
-			{
-				size_t count = requests->GetCount();
-
-				for(size_t i = 0; i < count; i ++)
-				{
-					wrapper = static_cast<PendingAsset *>(requests->GetObjectAtIndex(i));
-
-					if(base == wrapper->GetMeta())
-					{
-						wrapper->Retain();
-						requests->RemoveObjectAtIndex(i);
-						break;
-					}
-
-					wrapper = nullptr; // Just in case so we don't end up with a wrong wrapper
-				}
-
-				if(requests->GetCount() == 0)
-					_requests->RemoveObjectForKey(name);
-			}
-
-			RN_ASSERT(wrapper, "Inconsistent state after asset loader was fullfilled");
-
-			if(!result)
-			{
-				lock.unlock();
-
-				name->Release();
-				settings->Release();
-
-				wrapper->SetAsset(nullptr);
-				wrapper->Release();
-				return;
-			}
-
-			PrepareAsset(result, name, base, settings);
-			lock.unlock();
-
-			name->Release();
-			settings->Release();
-
-
-			wrapper->SetAsset(result);
-			wrapper->Release();
-
-			result->Autorelease();
-
-		});
+		PendingAsset *wrapper = new PendingAsset(base, name);
+		loader->LoadInBackground(fileOrName, base, settings, wrapper);
 
 
 		Array *requests = _requests->GetObjectForKey<Array>(name);
@@ -425,11 +371,60 @@ namespace RN
 			requests->Release();
 		}
 
-		PendingAsset *wrapper = new PendingAsset(base);
 		requests->AddObject(wrapper);
 		wrapper->Release();
 
 		return wrapper->GetFuture();
+	}
+
+	void AssetManager::__FinishLoadingAsset(void *token, std::exception &exception)
+	{
+		PendingAsset *wrapper = reinterpret_cast<PendingAsset *>(token);
+		String *name = wrapper->GetName();
+
+		wrapper->Retain();
+
+		{
+			std::unique_lock<std::mutex> lock(_lock);
+			Array *requests = _requests->GetObjectForKey<Array>(name);
+
+			if(requests)
+			{
+				requests->RemoveObject(wrapper);
+
+				if(requests->GetCount() == 0)
+					_requests->RemoveObjectForKey(name);
+			}
+		}
+
+		wrapper->SetException(std::make_exception_ptr(exception));
+		wrapper->Release();
+
+	}
+	void AssetManager::__FinishLoadingAsset(void *token, Asset *asset)
+	{
+		PendingAsset *wrapper = reinterpret_cast<PendingAsset *>(token);
+		String *name = wrapper->GetName();
+
+		wrapper->Retain();
+
+		{
+			PrepareAsset(asset, name, wrapper->GetMeta(), nullptr);
+
+			std::unique_lock<std::mutex> lock(_lock);
+			Array *requests = _requests->GetObjectForKey<Array>(name);
+
+			if(requests)
+			{
+				requests->RemoveObject(wrapper);
+
+				if(requests->GetCount() == 0)
+					_requests->RemoveObjectForKey(name);
+			}
+		}
+
+		wrapper->SetAsset(asset);
+		wrapper->Release();
 	}
 
 
