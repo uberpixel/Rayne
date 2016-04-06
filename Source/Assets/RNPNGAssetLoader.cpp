@@ -43,7 +43,7 @@ namespace RN
 		AssetLoader(config)
 	{}
 
-	Asset *PNGAssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
+	Asset *PNGAssetLoader::Load(File *file, const LoadOptions &options)
 	{
 		FILE *rawFile = file->CreateFile();
 		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
@@ -128,7 +128,7 @@ namespace RN
 		bool mipMapped = true;
 		Number *wrapper;
 
-		if((wrapper = settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
+		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
 			mipMapped = wrapper->GetBoolValue();
 
 		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, width, height, mipMapped);

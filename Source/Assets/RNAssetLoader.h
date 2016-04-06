@@ -14,6 +14,7 @@
 #include "../Objects/RNData.h"
 #include "../Objects/RNSet.h"
 #include "../System/RNFile.h"
+#include "../Threads/RNWorkQueue.h"
 
 #include "RNAsset.h"
 
@@ -82,15 +83,21 @@ namespace RN
 
 			Data *_magicBytes;
 			size_t _magicBytesOffset;
+		};
 
+		struct LoadOptions
+		{
+			MetaClass *meta;
+			StrongRef<Dictionary> settings;
+			WorkQueue *queue;
 		};
 
 		friend class AssetManager;
 
 		RNAPI ~AssetLoader();
 
-		RNAPI virtual Asset *Load(File *file, MetaClass *meta, Dictionary *settings);
-		RNAPI virtual Asset *Load(const String *name, MetaClass *meta, Dictionary *settings);
+		RNAPI virtual Asset *Load(File *file, const LoadOptions &options);
+		RNAPI virtual Asset *Load(const String *name, const LoadOptions &options);
 
 		RNAPI virtual bool SupportsLoadingFile(File *file) const;
 		RNAPI virtual bool SupportsLoadingName(const String *name) const;
@@ -105,8 +112,8 @@ namespace RN
 	private:
 		using Callback = std::function<void (Asset *)>;
 
-		void LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, void *token);
-		Expected<Asset *> __Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT;
+		void __LoadInBackground(Object *fileOrName, const LoadOptions &options, void *token);
+		Expected<Asset *> __Load(Object *fileOrName, const LoadOptions &options) RN_NOEXCEPT;
 
 		Data *_magicBytes;
 		size_t _magicBytesOffset;

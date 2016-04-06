@@ -37,13 +37,13 @@ namespace RN
 		AssetLoader(config)
 	{}
 
-	Asset *SGMAssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
+	Asset *SGMAssetLoader::Load(File *file, const LoadOptions &options)
 	{
 		bool autoLoadLOD = false;
 
-		if(settings->GetObjectForKey(RNCSTR("autoLoadLOD")))
+		if(options.settings->GetObjectForKey(RNCSTR("autoLoadLOD")))
 		{
-			Number *number = settings->GetObjectForKey<Number>(RNCSTR("autoLoadLOD"));
+			Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("autoLoadLOD"));
 			autoLoadLOD = number->GetBoolValue();
 		}
 
@@ -56,7 +56,7 @@ namespace RN
 		const String *path = file->GetPath();
 		String *basePath = path->StringByDeletingLastPathComponent();
 
-		LoadLODStage(file, model->AddLODStage(lodFactors[0]));
+		LoadLODStage(file, model->AddLODStage(lodFactors[0]), options);
 
 		if(autoLoadLOD)
 		{
@@ -74,7 +74,7 @@ namespace RN
 					File *lodFile = File::WithName(lodPath);
 
 					Model::LODStage *stage = model->AddLODStage(lodFactors[stageIndex]);
-					LoadLODStage(lodFile, stage);
+					LoadLODStage(lodFile, stage, options);
 				}
 				catch(Exception )
 				{
@@ -89,7 +89,7 @@ namespace RN
 		return model->Autorelease();
 	}
 
-	void SGMAssetLoader::LoadLODStage(File *file, Model::LODStage *stage)
+	void SGMAssetLoader::LoadLODStage(File *file, Model::LODStage *stage, const LoadOptions &options)
 	{
 		const String *path = file->GetPath()->StringByDeletingLastPathComponent();
 
@@ -129,7 +129,10 @@ namespace RN
 
 					String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
 
-					AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
+					if(options.queue)
+						AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
+					else
+						AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(normalized, nullptr);
 
 					textures->AddObject(normalized);
 
@@ -171,20 +174,25 @@ namespace RN
 
 			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
 
-				std::shared_future<StrongRef<Asset>> future = AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(file, nullptr);
-				WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+				Texture *texture;
 
-				if(queue)
+				if(options.queue)
 				{
-					queue->YieldWithFuture(future);
+					std::shared_future<StrongRef<Asset>> future = AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(file, nullptr);
+					WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+
+					if(queue)
+						queue->YieldWithFuture(future);
+					else
+						future.wait();
+
+					texture = future.get()->Downcast<Texture>();
 				}
 				else
 				{
-					future.wait();
+					texture = AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(file, nullptr);
 				}
 
-
-				Texture *texture = future.get()->Downcast<Texture>();
 				descriptor.AddTexture(texture);
 
 				if(texture->HasColorChannel(Texture::ColorChannel::Alpha))

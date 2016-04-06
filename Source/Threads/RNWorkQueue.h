@@ -99,6 +99,8 @@ namespace RN
 		template<class Predicate>
 		void YieldWithPredicate(Predicate &&predicate)
 		{
+			RN_ASSERT(CanYield(), "Only yieldable queues can be yielded");
+
 			while(!predicate())
 				__Yield();
 		}
@@ -106,6 +108,12 @@ namespace RN
 		template<class T>
 		void YieldWithFuture(T &future)
 		{
+			if(RN_EXPECT_FALSE(!CanYield()))
+			{
+				future.wait();
+				return;
+			}
+
 			YieldWithPredicate([&]() -> bool {
 				return (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
 			});
@@ -114,6 +122,12 @@ namespace RN
 		template<class T>
 		void YieldWithCondition(std::condition_variable &condition, T &lock)
 		{
+			if(RN_EXPECT_FALSE(!CanYield()))
+			{
+				condition.wait(lock);
+				return;
+			}
+
 			YieldWithPredicate([&]() -> bool {
 				return (condition.wait_for(lock, std::chrono::seconds(0)) == std::cv_status::no_timeout);
 			});
@@ -122,6 +136,12 @@ namespace RN
 		template<class T, class Predicate>
 		void YieldWithCondition(std::condition_variable &condition, T &lock, Predicate &&predicate)
 		{
+			if(RN_EXPECT_FALSE(!CanYield()))
+			{
+				condition.wait(lock, std::move(predicate));
+				return;
+			}
+
 			YieldWithPredicate([&]() -> bool {
 				return condition.wait_for(lock, std::chrono::seconds(0), std::move(predicate));
 			});
@@ -129,6 +149,8 @@ namespace RN
 
 		RNAPI void Suspend();
 		RNAPI void Resume();
+
+		RNAPI bool CanYield() const;
 
 	private:
 		static void InitializeQueues();

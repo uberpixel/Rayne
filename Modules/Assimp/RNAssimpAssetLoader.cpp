@@ -41,11 +41,14 @@ namespace RN
 		AssetLoader(config)
 	{}
 
-	Asset *AssimpAssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
+	Asset *AssimpAssetLoader::Load(File *file, const LoadOptions &options)
 	{
 		bool loadLOD = true;
 		bool recalculateNormals = false;
 		float smoothNormalAngle = 20.0f;
+
+		Dictionary *settings = options.settings;
+		MetaClass *meta = options.meta;
 
 		if(settings->GetObjectForKey(RNCSTR("recalculateNormals")))
 		{
@@ -94,7 +97,7 @@ namespace RN
 		const String *path = file->GetPath();
 		String *basePath = path->StringByDeletingLastPathComponent();
 
-		LoadAssimpLODStage(basePath, scene, model->AddLODStage(lodFactors[0]));
+		LoadAssimpLODStage(basePath, scene, model->AddLODStage(lodFactors[0]), options);
 
 		if(loadLOD)
 		{
@@ -121,7 +124,7 @@ namespace RN
 						throw InconsistencyException(RNSTR(importer.GetErrorString()));
 
 					Model::LODStage *stage = model->AddLODStage(lodFactors[stageIndex]);
-					LoadAssimpLODStage(basePath, scene, stage);
+					LoadAssimpLODStage(basePath, scene, stage, options);
 				}
 				catch(Exception &)
 				{
@@ -136,24 +139,27 @@ namespace RN
 		return model->Autorelease();
 	}
 
-	void AssimpAssetLoader::LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage)
+	void AssimpAssetLoader::LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage, const LoadOptions &options)
 	{
-		for(size_t i = 0; i < scene->mNumMeshes; i++)
+		if(options.queue)
 		{
-			aiMesh *aimesh = scene->mMeshes[i];
-			aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
+			for(size_t i = 0; i < scene->mNumMeshes; i++)
+			{
+				aiMesh *aimesh = scene->mMeshes[i];
+				aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
 
-			LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+				LoadAsyncTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+			}
 		}
 
 		for(size_t i = 0; i < scene->mNumMeshes; i++)
 		{
-			auto pair = LoadAssimpMeshGroup(filepath, scene, i);
+			auto pair = LoadAssimpMeshGroup(filepath, scene, i, options);
 			stage->AddMesh(pair.first, pair.second);
 		}
 	}
 
-	std::pair<Mesh *, Material *> AssimpAssetLoader::LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index)
+	std::pair<Mesh *, Material *> AssimpAssetLoader::LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index, const LoadOptions &options)
 	{
 		Mesh *mesh = LoadAssimpMesh(scene, index);
 
@@ -166,20 +172,20 @@ namespace RN
 
 		if(aimaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
-			WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
-			auto future = LoadAssimpTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+			Texture *texture;
 
-			if(queue != WorkQueue::GetMainQueue())
+			if(options.queue)
 			{
-				queue->YieldWithFuture(future);
+				auto future = LoadAsyncTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
+				options.queue->YieldWithFuture(future);
+
+
+				texture = future.get()->Downcast<Texture>();
 			}
 			else
 			{
-				future.wait();
+				texture = LoadTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
 			}
-
-
-			Texture *texture = future.get()->Downcast<Texture>();
 
 			descriptor.AddTexture(texture);
 			lookup->discard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
@@ -325,7 +331,7 @@ namespace RN
 		return mesh->Autorelease();
 	}
 
-	std::shared_future<StrongRef<Asset>> AssimpAssetLoader::LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
+	std::shared_future<StrongRef<Asset>> AssimpAssetLoader::LoadAsyncTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
 	{
 		aiString aipath;
 		material->GetTexture(aitexturetype, index, &aipath);
@@ -338,5 +344,20 @@ namespace RN
 		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
 
 		return AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
+	}
+
+	Texture *AssimpAssetLoader::LoadTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index)
+	{
+		aiString aipath;
+		material->GetTexture(aitexturetype, index, &aipath);
+
+		String *filename = RNSTR(aipath.C_Str())->GetLastPathComponent();
+		String *fullPath = path->StringByAppendingPathComponent(filename);
+
+		String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+
+		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
+
+		return AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(normalized, nullptr);
 	}
 }

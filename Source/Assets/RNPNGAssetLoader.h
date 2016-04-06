@@ -19,7 +19,7 @@ namespace RN
 	public:
 		static void Register();
 
-		Asset *Load(File *file, MetaClass *meta, Dictionary *settings) override;
+		Asset *Load(File *file, const LoadOptions &options) override;
 
 	private:
 		PNGAssetLoader(const Config &config);

@@ -42,29 +42,29 @@ namespace RN
 	}
 
 
-	Asset *AssetLoader::Load(File *file, MetaClass *meta, Dictionary *settings)
+	Asset *AssetLoader::Load(File *file, const LoadOptions &options)
 	{
-		throw NotImplementedException("Load() not implemented");
+		throw NotImplementedException("Load(File *, const LoadOptions &) not implemented");
 	}
 
-	Asset *AssetLoader::Load(const String *name, MetaClass *meta, Dictionary *settings)
+	Asset *AssetLoader::Load(const String *name, const LoadOptions &options)
 	{
-		throw NotImplementedException("Load() not implemented");
+		throw NotImplementedException("Load(const String *, const LoadOptions &) not implemented");
 	}
 
-	Expected<Asset *> AssetLoader::__Load(Object *fileOrName, MetaClass *meta, Dictionary *settings) RN_NOEXCEPT
+	Expected<Asset *> AssetLoader::__Load(Object *fileOrName, const LoadOptions &options) RN_NOEXCEPT
 	{
 		try
 		{
 			if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 			{
 				File *file = static_cast<File *>(fileOrName);
-				return Load(file, meta, settings);
+				return Load(file, options);
 			}
 			else
 			{
 				String *name = static_cast<String *>(fileOrName);
-				return Load(name, meta, settings);
+				return Load(name, options);
 			}
 		}
 		catch(...)
@@ -73,14 +73,11 @@ namespace RN
 		}
 	}
 
-	void AssetLoader::LoadInBackground(Object *fileOrName, MetaClass *meta, Dictionary *settings, void *token)
+	void AssetLoader::__LoadInBackground(Object *fileOrName, const LoadOptions &options, void *token)
 	{
-		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
-
 		fileOrName->Retain();
-		settings->Retain();
 
-		queue->Perform([=]() {
+		options.queue->Perform([=]() {
 
 			Asset *result;
 
@@ -91,12 +88,12 @@ namespace RN
 					if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 					{
 						File *file = static_cast<File *>(fileOrName);
-						result = SafeRetain(Load(file, meta, settings));
+						result = SafeRetain(Load(file, options));
 					}
 					else
 					{
 						String *name = static_cast<String *>(fileOrName);
-						result = SafeRetain(Load(name, meta, settings));
+						result = SafeRetain(Load(name, options));
 					}
 				});
 			}
@@ -108,14 +105,12 @@ namespace RN
 				manager->__FinishLoadingAsset(token, e);
 
 				fileOrName->Release();
-				settings->Release();
 			}
 
 			AssetManager *manager = AssetManager::GetSharedInstance();
 			manager->__FinishLoadingAsset(token, result);
 
 			fileOrName->Release();
-			settings->Release();
 
 		});
 	}

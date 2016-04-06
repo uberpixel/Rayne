@@ -96,16 +96,19 @@ namespace RN
 
 	WorkQueue::~WorkQueue()
 	{
-		for(Thread *thread : _threads)
+		_threadLock.Lock();
+		std::vector<Thread *> threads = _threads;
+		_threadLock.Unlock();
+
+
+		// Cancel all threads, wake them up and then wait for their exit
+		for(Thread *thread : threads)
 			thread->Cancel();
 
 		_internals->workSignal.notify_all();
 
-		for(Thread *thread : _threads)
-		{
-			// Wait for the thread to exit
+		for(Thread *thread : threads)
 			thread->WaitForExit();
-		}
 
 		_identifier->Release();
 	}
@@ -129,6 +132,10 @@ namespace RN
 		return __LocalWorkQueues.GetValue();
 	}
 
+	bool WorkQueue::CanYield() const
+	{
+		return (((_flags & kRNWorkQueueFlagMainThread) == 0) && this == __LocalWorkQueues.GetValue());
+	}
 
 	void WorkQueue::Perform(Function &&function)
 	{

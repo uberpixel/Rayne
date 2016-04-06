@@ -21,16 +21,18 @@ namespace RN
 	public:
 		static void InitialWakeUp(MetaClass *meta);
 
-		Asset *Load(File *file, MetaClass *meta, Dictionary *settings) override;
+		Asset *Load(File *file, const LoadOptions &options) override;
 
 	private:
 		AssimpAssetLoader(const Config &config);
 
-		void LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage);
-		std::pair<Mesh *, Material *> LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index);
+		void LoadAssimpLODStage(const String *filepath, const aiScene *scene, Model::LODStage *stage, const LoadOptions &options);
+		std::pair<Mesh *, Material *> LoadAssimpMeshGroup(const String *filepath, const aiScene *scene, size_t index, const LoadOptions &options);
 
 		Mesh *LoadAssimpMesh(const aiScene *scene, size_t index);
-		std::shared_future<StrongRef<Asset>> LoadAssimpTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
+
+		std::shared_future<StrongRef<Asset>> LoadAsyncTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
+		Texture *LoadTexture(aiMaterial *material, const String *path, aiTextureType aitexturetype, uint8 index);
 
 		RNDeclareMetaAPI(AssimpAssetLoader, ASAPI)
 	};

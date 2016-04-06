@@ -20,13 +20,13 @@ namespace RN
 	public:
 		static void Register();
 
-		Asset *Load(File *file, MetaClass *meta, Dictionary *settings) override;
+		Asset *Load(File *file, const LoadOptions &options) override;
 		bool SupportsLoadingFile(File *file) const override;
 
 	private:
 		SGMAssetLoader(const Config &config);
 
-		void LoadLODStage(File *file, Model::LODStage *stage);
+		void LoadLODStage(File *file, Model::LODStage *stage, const LoadOptions &options);
 
 		__RNDeclareMetaInternal(SGMAssetLoader)
 	};

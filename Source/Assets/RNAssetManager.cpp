@@ -205,13 +205,10 @@ namespace RN
 
 			WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
 
-			if(queue != WorkQueue::GetMainQueue())
+			if(queue)
 			{
 				queue->YieldWithFuture(future);
-			}
-			else
-			{
-				future.wait();
+				return future.get();
 			}
 
 			return future.get();
@@ -251,15 +248,20 @@ namespace RN
 			wrapper = new PendingAsset(base, name);
 			requests->AddObject(wrapper);
 			wrapper->Release();
-
-			lock.unlock();
 		}
+
+		lock.unlock();
 
 		if(!settings)
 			settings = new Dictionary();
 
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
-		Expected<Asset *> asset = loader->__Load(fileOrName, base, settings);
+		AssetLoader::LoadOptions options;
+		options.settings = settings;
+		options.queue = nullptr;
+		options.meta = base;
+
+		Expected<Asset *> asset = loader->__Load(fileOrName, options);
 
 		settings->Release();
 
@@ -360,7 +362,16 @@ namespace RN
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 
 		PendingAsset *wrapper = new PendingAsset(base, name);
-		loader->LoadInBackground(fileOrName, base, settings, wrapper);
+
+		AssetLoader::LoadOptions options;
+		options.settings = settings;
+		options.queue = WorkQueue::GetCurrentWorkQueue();
+		options.meta = base;
+
+		if(options.queue == nullptr || options.queue == WorkQueue::GetMainQueue())
+			options.queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
+
+		loader->__LoadInBackground(fileOrName, options, wrapper);
 
 
 		Array *requests = _requests->GetObjectForKey<Array>(name);
@@ -377,7 +388,7 @@ namespace RN
 		return wrapper->GetFuture();
 	}
 
-	void AssetManager::__FinishLoadingAsset(void *token, std::exception &exception)
+	void AssetManager::__FinishLoadingAsset(void *token, Expected<Asset *> asset)
 	{
 		PendingAsset *wrapper = reinterpret_cast<PendingAsset *>(token);
 		String *name = wrapper->GetName();
@@ -385,31 +396,8 @@ namespace RN
 		wrapper->Retain();
 
 		{
-			std::unique_lock<std::mutex> lock(_lock);
-			Array *requests = _requests->GetObjectForKey<Array>(name);
-
-			if(requests)
-			{
-				requests->RemoveObject(wrapper);
-
-				if(requests->GetCount() == 0)
-					_requests->RemoveObjectForKey(name);
-			}
-		}
-
-		wrapper->SetException(std::make_exception_ptr(exception));
-		wrapper->Release();
-
-	}
-	void AssetManager::__FinishLoadingAsset(void *token, Asset *asset)
-	{
-		PendingAsset *wrapper = reinterpret_cast<PendingAsset *>(token);
-		String *name = wrapper->GetName();
-
-		wrapper->Retain();
-
-		{
-			PrepareAsset(asset, name, wrapper->GetMeta(), nullptr);
+			if(asset.IsValid())
+				PrepareAsset(asset.Get(), name, wrapper->GetMeta(), nullptr);
 
 			std::unique_lock<std::mutex> lock(_lock);
 			Array *requests = _requests->GetObjectForKey<Array>(name);
@@ -423,10 +411,14 @@ namespace RN
 			}
 		}
 
-		wrapper->SetAsset(asset);
-		wrapper->Release();
-	}
+		if(asset.IsValid())
+			wrapper->SetAsset(asset.Get());
+		else
+			wrapper->SetException(asset.GetException());
 
+		wrapper->Release();
+
+	}
 
 	AssetLoader *AssetManager::PickAssetLoader(MetaClass *base, File *file, const String *name, bool requiresBackgroundSupport)
 	{
