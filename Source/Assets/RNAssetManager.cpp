@@ -20,8 +20,11 @@ namespace RN
 	AssetManager::AssetManager() :
 		_loaders(new Array()),
 		_requests(new Dictionary()),
-		_resources(new Dictionary())
+		_resources(new Dictionary()),
+		_defaultQueue(nullptr)
 	{
+		SetDefaultQueue(WorkQueue::GetGlobalQueue(WorkQueue::Priority::High));
+
 		__sharedInstance = this;
 
 		PNGAssetLoader::Register();
@@ -33,12 +36,25 @@ namespace RN
 		SafeRelease(_requests);
 		SafeRelease(_resources);
 
+		SafeRelease(_defaultQueue);
+
 		__sharedInstance = nullptr;
 	}
 
 	AssetManager *AssetManager::GetSharedInstance()
 	{
 		return __sharedInstance;
+	}
+
+
+	void AssetManager::SetDefaultQueue(WorkQueue *queue)
+	{
+		RN_ASSERT(queue != WorkQueue::GetMainQueue(), "The default queue can't be the main queue");
+
+		std::lock_guard<std::mutex> lock(_lock);
+
+		SafeRelease(_defaultQueue);
+		_defaultQueue = SafeRetain(queue);
 	}
 
 
@@ -301,7 +317,7 @@ namespace RN
 		return result->Autorelease();
 	}
 
-	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
+	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings, WorkQueue *queue)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
@@ -365,11 +381,14 @@ namespace RN
 
 		AssetLoader::LoadOptions options;
 		options.settings = settings;
-		options.queue = WorkQueue::GetCurrentWorkQueue();
+		options.queue = queue ? queue : _defaultQueue;
 		options.meta = base;
 
-		if(options.queue == nullptr || options.queue == WorkQueue::GetMainQueue())
-			options.queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
+		if(options.queue == nullptr)
+			options.queue = WorkQueue::GetCurrentWorkQueue();
+
+		if(options.queue == nullptr)
+			options.queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
 		loader->__LoadInBackground(fileOrName, options, wrapper);
 

@@ -32,13 +32,15 @@ namespace RN
 		}
 
 		template<class T>
-		std::shared_future<StrongRef<Asset>> GetFutureAssetWithName(const String *name, const Dictionary *settings)
+		std::shared_future<StrongRef<Asset>> GetFutureAssetWithName(const String *name, const Dictionary *settings, WorkQueue *queue = nullptr)
 		{
-			return __GetFutureAssetWithName(T::GetMetaClass(), name, settings);
+			return __GetFutureAssetWithName(T::GetMetaClass(), name, settings, queue);
 		}
 
 		RNAPI void RegisterAssetLoader(AssetLoader *loader);
 		RNAPI void UnregisterAssetLoader(AssetLoader *loader);
+
+		RNAPI void SetDefaultQueue(WorkQueue *queue);
 
 	private:
 		AssetManager();
@@ -58,7 +60,7 @@ namespace RN
 		std::shared_future<StrongRef<Asset>> __GetFutureMatching(MetaClass *base, String *name);
 
 		RNAPI Asset *__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings);
-		RNAPI std::shared_future<StrongRef<Asset>> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings);
+		RNAPI std::shared_future<StrongRef<Asset>> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings, WorkQueue *queue);
 
 		std::mutex _lock;
 		Array *_loaders;
@@ -66,6 +68,8 @@ namespace RN
 
 		Dictionary *_resources;
 		Dictionary *_requests;
+
+		WorkQueue *_defaultQueue;
 	};
 }
 
