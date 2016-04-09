@@ -10,9 +10,13 @@
 #include "RNObject.h"
 #include <cstdint>
 
-#define kRNCPUCacheLineMax 64
+#if RN_PLATFORM_MAC_OS
+#include <sys/sysctl.h>
+#endif
+#if RN_PLATFORM_LINUX
+#include <unistd.h>
+#endif
 
-#define kRNWeakBucketsSpread (kRNCPUCacheLineMax) * 2
 #define kRNWeakBucketCount   8
 
 namespace RN
@@ -44,6 +48,47 @@ namespace RN
 		Object *object;
 		size_t references;
 	};
+
+	size_t GetCachelineSize()
+	{
+#if RN_PLATFORM_MAC_OS
+		size_t cacheLineSize = 0;
+		size_t sizeofSizeT = sizeof(size_t);
+
+		sysctlbyname("hw.cachelinesize", &cacheLineSize, &sizeofSizeT, 0, 0);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		size_t cacheLineSize = 0;
+		DWORD bufferSize = 0;
+		SYSTEM_LOGICAL_PROCESSOR_INFORMATION *buffer = 0;
+
+		::GetLogicalProcessorInformation(0, &bufferSize);
+		buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)malloc(bufferSize);
+
+		::GetLogicalProcessorInformation(&buffer[0], &bufferSize);
+
+		for(DWORD i = 0; i != bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i)
+		{
+			if(buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1)
+			{
+				cacheLineSize = buffer[i].Cache.LineSize;
+				break;
+			}
+		}
+
+		free(buffer);
+#endif
+
+#if RN_PLATFORM_LINUX
+		size_t cacheLineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+#endif
+
+		return cacheLineSize; /* Leave here to trigger an error on all unsupported platforms */
+	}
+
+	static size_t __CacheLineSize;
+	static size_t __WeakBucketSpread;
 	
 	class WeakTable
 	{
@@ -53,14 +98,14 @@ namespace RN
 			std::uintptr_t ptr = reinterpret_cast<uintptr_t>(pointer);
 			size_t index = ((ptr >> 4) ^ (ptr >> 9)) & (kRNWeakBucketCount - 1);
 			
-			return reinterpret_cast<WeakTable *>(&__WeakBuckets[index * kRNWeakBucketsSpread]);
+			return reinterpret_cast<WeakTable *>(&__WeakBuckets[index * __WeakBucketSpread]);
 		}
 		static void Init()
 		{
-			__WeakBuckets = new uint8[kRNWeakBucketCount * kRNWeakBucketsSpread];
+			__WeakBuckets = reinterpret_cast<uint8 *>(Memory::AllocateAligned(kRNWeakBucketCount * __WeakBucketSpread, __CacheLineSize));
 			
 			for(size_t i = 0; i < kRNWeakBucketCount; i ++)
-				new (&__WeakBuckets[i * kRNWeakBucketsSpread]) WeakTable();
+				new (&__WeakBuckets[i * __WeakBucketSpread]) WeakTable();
 		}
 		
 		
@@ -245,6 +290,9 @@ namespace RN
 	
 	void __InitWeakTables()
 	{
+		__CacheLineSize = std::min(GetCachelineSize(), static_cast<size_t>(64));
+		__WeakBucketSpread = __CacheLineSize * 2;
+
 		WeakTable::Init();
 	}
 	
