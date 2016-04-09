@@ -277,9 +277,13 @@ if(APPLE)
     find_library(FOUNDATION_LIBRARY Foundation)
     find_library(IOKIT_LIBRARY IOKit)
 
-    set(COMPILE_OPTIONS "-xobjective-c++")
+    set(COMPILE_OPTIONS -xobjective-c++)
 
     set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
+endif()
+
+if(UNIX OR MINGW)
+    set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2 -mfpmath=sse -msse -msse2)
 endif()
 
 if(WIN32)
@@ -315,7 +319,7 @@ rayne_add_library(Rayne "${TARGET_SOURCES}" "${TARGET_HEADERS}" "${RAYNE_LIBRARI
 target_include_directories(Rayne SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_link_libraries(Rayne "${LINK_LIBRARIES}")
 target_compile_definitions(Rayne PRIVATE "${COMPILE_DEFINITIONS}")
-target_compile_options(Rayne PRIVATE "${COMPILE_OPTIONS}")
+target_compile_options(Rayne PRIVATE ${COMPILE_OPTIONS})
 
 #rayne_install(Rayne Rayne ${_TARGETS} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/. DESTINATION include/Rayne)
