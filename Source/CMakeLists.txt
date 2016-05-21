@@ -105,6 +105,7 @@ set(RAYNE_HEADERS
     Base/RNLockGuard.h
     Base/RNMemory.h
     Base/RNMemoryPool.h
+        Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
     Base/RNSignal.h

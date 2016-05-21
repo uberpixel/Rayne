@@ -68,6 +68,12 @@ namespace RN
 
 		std::unique_ptr<Base> _implementation;
 	};
+
+	template<class Functor>
+	Function MakeFunction(Functor &&functor)
+	{
+		return Function(std::forward<Functor>(functor));
+	}
 }
 
 #endif
