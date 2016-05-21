@@ -187,6 +187,7 @@ set(RAYNE_HEADERS
     System/RNFile.h
     System/RNFileCoordinator.h
     System/RNScreen.h
+    Threads/RNCondition.h
     Threads/RNLock.h
     Threads/RNParkingLot.h
     Threads/RNRecursiveLock.h

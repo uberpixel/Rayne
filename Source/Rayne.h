@@ -90,6 +90,7 @@
 #include "System/RNFileCoordinator.h"
 #include "System/RNScreen.h"
 
+#include "Threads/RNCondition.h"
 #include "Threads/RNLock.h"
 #include "Threads/RNRecursiveLock.h"
 #include "Threads/RNRunLoop.h"
