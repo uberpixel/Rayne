@@ -148,8 +148,8 @@ namespace RN
 					else
 						data->condition.wait_until(lock, timeout);
 
-					lock.lock();
 					lock.unlock();
+					lock.lock();
 				}
 
 				gotQueued = (data->address == nullptr);
