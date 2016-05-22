@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Base/RNBase.h"
 #include "RNRecursiveLockable.h"
 #include "RNThreadPark.h"
 

@@ -9,8 +9,15 @@
 #ifndef __RAYNE_CONDITION_H_
 #define __RAYNE_CONDITION_H_
 
-#include "../Base/RNBase.h"
-#import "RNThreadPark.h"
+#ifdef RN_BUILD_LIBRARY
+	#include <RayneConfig.h>
+#else
+	#include "../RayneConfig.h"
+#endif
+
+#include <atomic>
+
+#include "RNThreadPark.h"
 
 namespace RN
 {

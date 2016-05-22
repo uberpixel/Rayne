@@ -9,16 +9,20 @@
 #ifndef _RAYNE_BASE_H_
 #define _RAYNE_BASE_H_
 
-// ---------------------------
-// Platform independent includes
-// ---------------------------
-
 #ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>
 #else
 	#include "../RayneConfig.h"
 #endif
 
+// ---------------------------
+// Platform dependent includes
+// ---------------------------
+
+#if RN_PLATFORM_MAC_OS
+	#include <mach/mach.h>
+	#include <CoreGraphics/CoreGraphics.h>
+#endif
 #if RN_PLATFORM_WINDOWS
 	#ifndef WIN32_LEAN_AND_MEAN
 		#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
@@ -31,10 +35,23 @@
 	#ifndef _USE_MATH_DEFINES
 		#define _USE_MATH_DEFINES
 	#endif
+
+	#include <WinSock2.h>
+	#include <windows.h>
+	#include <commdlg.h>
+	#include <ShlObj.h>
+	#include <Psapi.h>
+
+	#undef near
+	#undef far
 #endif
 #if RN_PLATFORM_LINUX
 	#include <xcb/xcb.h>
 #endif
+
+// ---------------------------
+// Platform independent includes
+// ---------------------------
 
 #include "RNMemory.h"
 
@@ -45,7 +62,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <cstdarg>	// Without this explicit include, MSVC chokes on va_start/va_end
+#include <cstdarg>
 
 #include <type_traits>
 #include <iostream>
@@ -79,32 +96,14 @@
 #include "../Math/RNMath.h"
 #include "../Threads/RNSpinLock.h"
 
-// ---------------------------
-// Platform dependent includes
-// ---------------------------
+#include "../Threads/RNCondition.h"
+#include "../Threads/RNLockable.h"
+#include "../Threads/RNRecursiveLockable.h"
 
-#if RN_PLATFORM_MAC_OS
-	#include <mach/mach.h>
-	#include <CoreGraphics/CoreGraphics.h>
-#endif
-
-#if RN_PLATFORM_WINDOWS
-	#include <WinSock2.h>
-	#include <windows.h>
-	#include <commdlg.h>
-	#include <ShlObj.h>
-	#include <Psapi.h>
-
-	#undef near
-	#undef far
-#endif
 
 // ---------------------------
 // Helper macros
 // ---------------------------
-
-
-#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 
 #define RN_REGISTER_INITIALIZER(name, body) \
 	namespace { \
@@ -129,8 +128,6 @@ namespace RN
 {
 	class Kernel;
 	class Application;
-
-	using Clock = std::chrono::high_resolution_clock;
 
 	RNAPI RN_NORETURN void Initialize(int argc, const char *argv[], Application *app);
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);

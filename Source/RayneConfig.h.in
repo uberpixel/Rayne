@@ -126,4 +126,15 @@ namespace RN
 	#pragma warning(disable: 4996)
 #endif
 
+#include <chrono>
+
+namespace RN
+{
+	using Clock = std::chrono::high_resolution_clock;
+
+	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
+}
+
+#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
+
 #endif /* __RAYNE_CONFIG_H_  */

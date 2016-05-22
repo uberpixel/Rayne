@@ -9,7 +9,15 @@
 #ifndef __RAYNE_THREADPARK_H_
 #define __RAYNE_THREADPARK_H_
 
-#include "../Base/RNBase.h"
+#ifdef RN_BUILD_LIBRARY
+	#include <RayneConfig.h>
+#else
+	#include "../RayneConfig.h"
+#endif
+
+#include <atomic>
+#include <functional>
+#include "../Base/RNOptions.h"
 
 namespace RN
 {
