@@ -1,0 +1,129 @@
+//
+//  RayneConfig.h
+//  Rayne
+//
+//  Copyright 2015 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+
+#ifndef __RAYNE_CONFIG_H_
+#define __RAYNE_CONFIG_H_
+
+#define kRNVersionMajor ${VERSION_MAJOR}
+#define kRNVersionMinor ${VERSION_MINOR}
+#define kRNVersionPatch ${VERSION_PATCH}
+
+#define kRNABIVersion ${VERSION_ABI}
+
+#if ${HAVE_STDINT_H} // HAVE_STDINT_H
+	#include <stdint.h>
+#endif
+
+#if ${HAVE_STDDEF_H} // HAVE_STDDEF_H
+#include <stddef.h>
+#endif
+
+#define RN_FUNCTION_SIGNATURE ${RAYNE_FUNCTION_SIGNATURE}
+#define RN_EXPECT_TRUE(x)  ${RAYNE_EXPECT_TRUE}
+#define RN_EXPECT_FALSE(x) ${RAYNE_EXPECT_FALSE}
+#define RN_ALIGNAS(x) ${RAYNE_ALIGNAS}
+#define RN_NOEXCEPT ${RAYNE_NOEXCEPT}
+#define RN_CONST_NOEXCEPT const ${RAYNE_NOEXCEPT}
+#define RN_CONSTEXPR ${RAYNE_CONSTEXPR}
+#define RN_NORETURN ${RAYNE_NORETURN}
+#define RN_INLINE ${RAYNE_INLINE}
+#define RN_NOINLINE ${RAYNE_NOINLINE}
+
+#define RN_EXPORT ${RAYNE_RNAPI_EXPORT}
+#define RN_IMPORT ${RAYNE_RNAPI_IMPORT}
+
+#if RN_BUILD_LIBRARY
+	#define RNAPI RN_EXPORT
+	#define RNAPI_DEFINEBASE RN_EXPORT
+#else
+	#define RNAPI RN_IMPORT
+	#define RNAPI_DEFINEBASE RN_IMPORT
+#endif /* RN_BUILD_LIBRARY */
+
+
+#define RN_PLATFORM_MAC_OS ${RAYNE_PLATFORM_OSX}
+#define RN_PLATFORM_WINDOWS ${RAYNE_PLATFORM_WINDOWS}
+#define RN_PLATFORM_LINUX ${RAYNE_PLATFORM_LINUX}
+#define RN_PLATFORM_POSIX ${RAYNE_PLATFORM_POSIX}
+
+#define RN_PLATFORM_INTEL 1
+#define RN_PLATFORM_ARM 0
+
+#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__))
+#define RN_PLATFORM_32BIT 0
+#define RN_PLATFORM_64BIT 1
+#else
+#define RN_PLATFORM_32BIT 1
+#define RN_PLATFORM_64BIT 0
+#endif
+
+#if defined(NDEBUG)
+#define RN_BUILD_DEBUG   0
+#define RN_BUILD_RELEASE 1
+#else
+#define RN_BUILD_DEBUG   1
+#define RN_BUILD_RELEASE 0
+#endif
+
+#define RN_COMPILER_GCC 0
+#define RN_COMPILER_CLANG 0
+#define RN_COMPILER_MSVC 0
+
+#define RN_COMPILER_MINGW 0
+
+#ifdef __clang__
+	#undef RN_COMPILER_CLANG
+	#define RN_COMPILER_CLANG 1
+#endif
+#ifdef __GNUC__
+	#undef RN_COMPILER_GCC
+	#define RN_COMPILER_GCC 1
+#endif
+#ifdef _MSC_VER
+	#undef RN_COMPILER_MSVC
+	#define RN_COMPILER_MSVC 1
+#endif
+#ifdef __MINGW64__
+	#undef RN_COMPILER_MINGW
+	#define RN_COMPILER_MINGW 1
+#endif
+
+namespace RN
+{
+	namespace numeric
+	{
+		typedef ${RAYNE_INT8} int8;
+		typedef ${RAYNE_UINT8} uint8;
+
+		typedef ${RAYNE_INT16} int16;
+		typedef ${RAYNE_UINT16} uint16;
+
+		typedef ${RAYNE_INT32} int32;
+		typedef ${RAYNE_UINT32} uint32;
+
+		typedef ${RAYNE_INT64} int64;
+		typedef ${RAYNE_UINT64} uint64;
+	}
+
+	using namespace numeric;
+}
+
+#if RN_PLATFORM_32BIT
+	#error "32 bit targets aren't supported anymore"
+#endif
+
+#if RN_COMPILER_MSVC && !defined(RAYNE_DISABLE_MSVC_PRAGMAS)
+	#pragma warning(disable: 4244)
+	#pragma warning(disable: 4250)
+	#pragma warning(disable: 4267)
+	#pragma warning(disable: 4800)
+	#pragma warning(disable: 4996)
+#endif
+
+#endif /* __RAYNE_CONFIG_H_  */

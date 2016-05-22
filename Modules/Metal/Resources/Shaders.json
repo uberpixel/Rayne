@@ -1,0 +1,15 @@
+[
+	{
+		"file": ":RayneMetal:/Shaders.metal",
+		"shaders": [
+			{
+				"name": "gouraud_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "gouraud_fragment",
+				"type": "fragment"
+			}
+		]
+	}
+]

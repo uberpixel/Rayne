@@ -1,0 +1,15 @@
+[
+	{
+		"file": ":RayneD3D12:/Shaders.hlsl",
+		"shaders": [
+			{
+				"name": "gouraud_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "gouraud_fragment",
+				"type": "fragment"
+			}
+		]
+	}
+]

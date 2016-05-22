@@ -1,21 +1,7 @@
-Check the [Wiki](https://github.com/rayne3d/rayne/wiki) from time to time
 
-## Contact
-Please update your own info when they change
+# Toolchain
 
-### Sidney
-  * ICQ: 636396811
-  * Jabber: justsid@jabber.ccc.de
-  * Skype: thatsnotmyidea
+Available toolchains are either CMake + [Visual Studio 2015 | Xcode] or CLion. When using Visual Studio, make sure to generate a Win64 solution!
 
-### Nils
-  * ICQ: 256017431
-  * Jabber: slin@macjabber.de
-  * Skype: silentsoftmasters
+When using CLion on Windows, use [x86_64-5.3.0-release-posix-seh-rt_v4-rev0](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.3.0/threads-posix/seh/)
 
-### Tilman:
-  * ICQ: 178138664
-  * Skype: ti1man
-
-## Third party libraries
-When adding third party libraries, please update the [/Vendor/README.md](https://github.com/rayne3d/rayne/blob/master/Vendor/README.md) as well so that we can keep track of licenses and dependencies (and also know who to blame when shit breaks).
