@@ -177,7 +177,7 @@ namespace RN
 		return asset;
 	}
 
-	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
+	Expected<std::shared_future<StrongRef<Asset>>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
 	{
 		// Check if there is a pending request for the resource
 		Array *requests = _requests->GetObjectForKey<Array>(name);
@@ -194,7 +194,7 @@ namespace RN
 			}
 		}
 
-		throw InconsistencyException("No matching future found");
+		return InconsistencyException("No matching future found");
 	}
 
 	Asset *AssetManager::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
@@ -202,7 +202,6 @@ namespace RN
 		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
 
-		try
 		{
 			Asset *asset = __GetAssetMatching(base, name);
 			if(asset)
@@ -213,8 +212,12 @@ namespace RN
 				name->Release();
 				return asset->Autorelease();
 			}
+		}
 
-			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
+		Expected<std::shared_future<StrongRef<Asset>>> future = __GetFutureMatching(base, name);
+
+		if(future.IsValid())
+		{
 			lock.unlock();
 
 			name->Release();
@@ -223,16 +226,11 @@ namespace RN
 
 			if(queue)
 			{
-				queue->YieldWithFuture(future);
-				return future.get();
+				queue->YieldWithFuture(future.Get());
+				return future.Get().get();
 			}
 
-			return future.get();
-		}
-		catch(InconsistencyException &)
-		{
-			if(!lock.owns_lock())
-				lock.lock();
+			return future.Get().get();
 		}
 
 		// Load the resource
@@ -322,39 +320,34 @@ namespace RN
 		String *name = tname->GetNormalizedPath()->Retain();
 		std::unique_lock<std::mutex> lock(_lock);
 
-		try
+		Asset *asset = __GetAssetMatching(base, name);
+		if(asset)
 		{
-			Asset *asset = __GetAssetMatching(base, name);
-			if(asset)
+			asset->Retain();
+			lock.unlock();
+
+			std::promise<StrongRef<Asset>> promise;
+			std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
+
+			try
 			{
-				asset->Retain();
-				lock.unlock();
-
-				std::promise<StrongRef<Asset>> promise;
-				std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
-
-				try
-				{
-					asset = ValidateAsset(base, asset);
-					promise.set_value(asset);
-				}
-				catch(Exception &)
-				{
-					promise.set_exception(std::current_exception());
-				}
-
-				return future;
+				asset = ValidateAsset(base, asset);
+				promise.set_value(asset);
 			}
-
-			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
-			name->Release();
+			catch(Exception &)
+			{
+				promise.set_exception(std::current_exception());
+			}
 
 			return future;
 		}
-		catch(InconsistencyException &)
+
+		Expected<std::shared_future<StrongRef<Asset>>> future = __GetFutureMatching(base, name);
+		if(future.IsValid())
 		{
-			if(!lock.owns_lock())
-				lock.lock();
+			name->Release();
+
+			return future.Get();
 		}
 
 		// Load the resource
