@@ -1,31 +1,31 @@
 //
-//  RNRecursiveLock.h
+//  RNRecursiveLockable.h
 //  Rayne
 //
 //  Copyright 2016 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_RECURSIVELOCK_H_
-#define __RAYNE_RECURSIVELOCK_H_
+#ifndef __RAYNE_RECURSIVELOCKABLE_H_
+#define __RAYNE_RECURSIVELOCKABLE_H_
 
 #include "../Base/RNBase.h"
 
 namespace RN
 {
-	class RecursiveLock
+	class RecursiveLockable
 	{
 	public:
-		RecursiveLock() :
+		RecursiveLockable() :
 			_threadRecursion(0)
 		{
 			_flag.store(0, std::memory_order_release);
 		}
 
-		void Acquire()
+		void Lock()
 		{
 			uint8 value = 0;
-			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(value, kLockFlagIsAcquired, std::memory_order_acq_rel)))
+			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(value, kLockFlagLocked, std::memory_order_acq_rel)))
 			{
 				_thread = std::this_thread::get_id();
 				_threadRecursion = 1;
@@ -39,18 +39,18 @@ namespace RN
 				return;
 			}
 
-			AcquireSlowPath();
+			LockSlowPath();
 		}
 
-		bool TryAcquire()
+		bool TryLock()
 		{
 			while(1)
 			{
 				uint8 value = _flag.load(std::memory_order_acquire);
-				if(value & kLockFlagIsAcquired)
+				if(value & kLockFlagLocked)
 					return false;
 
-				if(_flag.compare_exchange_weak(value, value | kLockFlagIsAcquired))
+				if(_flag.compare_exchange_weak(value, value | kLockFlagLocked))
 				{
 					_thread = std::this_thread::get_id();
 					_threadRecursion = 1;
@@ -59,24 +59,24 @@ namespace RN
 			}
 		}
 
-		void Release()
+		void Unlock()
 		{
-			RN_ASSERT(IsAcquired(), "Lock must be acquired in order to be released!");
+			RN_ASSERT(IsAcquired(), "Lockable must be acquired in order to be released!");
 
 			if((-- _threadRecursion) > 0)
 				return;
 
-			uint8 expected = kLockFlagIsAcquired;
+			uint8 expected = kLockFlagLocked;
 
 			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(expected, 0, std::memory_order_acq_rel)))
 				return;
 
-			ReleaseSlowPath();
+			UnlockSlowPath();
 		}
 
 		bool IsAcquired() const
 		{
-			return _flag.load(std::memory_order_acquire) & kLockFlagIsAcquired;
+			return _flag.load(std::memory_order_acquire) & kLockFlagLocked;
 		}
 
 	protected:
@@ -85,13 +85,13 @@ namespace RN
 		size_t _threadRecursion;
 
 	private:
-		RNAPI void AcquireSlowPath();
-		RNAPI void ReleaseSlowPath();
+		RNAPI void LockSlowPath();
+		RNAPI void UnlockSlowPath();
 
-		static constexpr uint8 kLockFlagIsAcquired = (1 << 0);
-		static constexpr uint8 kLockFlagIsParked = (1 << 1);
+		static constexpr uint8 kLockFlagLocked = (1 << 0);
+		static constexpr uint8 kLockFlagParked = (1 << 1);
 	};
 }
 
 
-#endif /* __RAYNE_RECURSIVELOCK_H_ */
+#endif /* __RAYNE_RECURSIVELOCKABLE_H_ */

@@ -105,12 +105,12 @@ namespace RN
 		SafeRelease(_material);
 
 		for(PostProcessingPipeline *pipeline : _PPPipelines)
-			pipeline->Release();
+			pipeline->Unlock();
 
 		if(_lightManager)
 		{
 			_lightManager->camera = nullptr;
-			_lightManager->Release();
+			_lightManager->Unlock();
 		}*/
 	}
 
@@ -243,7 +243,7 @@ namespace RN
 		if(_lightManager)
 		{
 			_lightManager->camera = nullptr;
-			_lightManager->Release();
+			_lightManager->Unlock();
 		}
 
 		_prefersLightManager = false;
@@ -339,7 +339,7 @@ namespace RN
 				_namedPPPipelines.erase(pipeline->_name);
 
 				pipeline->host = nullptr;
-				pipeline->Release();
+				pipeline->Unlock();
 				break;
 			}
 		}
@@ -580,7 +580,7 @@ namespace RN
 		if(!_lightManager && _prefersLightManager)
 		{
 			SetLightManager(LightManager::CreateDefaultLightManager());
-			_lightManager->Release(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
+			_lightManager->Unlock(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
 		}
 
 		return _lightManager;

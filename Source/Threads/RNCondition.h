@@ -10,7 +10,7 @@
 #define __RAYNE_CONDITION_H_
 
 #include "../Base/RNBase.h"
-#import "RNParkingLot.h"
+#import "RNThreadPark.h"
 
 namespace RN
 {
@@ -27,12 +27,12 @@ namespace RN
 			if(timeout < Clock::now())
 				return false;
 
-			bool result = ParkingLot::Park(&_hasWaiters, [this]() -> bool {
+			bool result = __Private::ThreadPark::Park(&_hasWaiters, [this]() -> bool {
 				_hasWaiters.store(true, std::memory_order_release);
 				return true;
-			}, [&lock]() { lock.Release(); }, timeout);
+			}, [&lock]() { lock.Unlock(); }, timeout);
 
-			lock.Acquire();
+			lock.Lock();
 			return result;
 		}
 		template<class T, class Functor>
@@ -45,6 +45,17 @@ namespace RN
 			}
 
 			return true;
+		}
+
+		template<class T, class Rep, class Period>
+		bool WaitFor(T &lock, const std::chrono::duration<Rep, Period> &duration)
+		{
+			return WaitUntil(lock, Clock::now() + duration);
+		}
+		template<class T, class Rep, class Period, class Functor>
+		bool WaitFor(T &lock, const std::chrono::duration<Rep, Period> &duration, const Functor &predicate)
+		{
+			return WaitUntil(lock, Clock::now() + duration, predicate);
 		}
 
 		template<class T>
@@ -63,10 +74,10 @@ namespace RN
 			if(!_hasWaiters.load(std::memory_order_acquire))
 				return;
 
-			ParkingLot::UnparkThread(&_hasWaiters, [this](ParkingLot::UnparkResult result) {
+			__Private::ThreadPark::UnparkThread(&_hasWaiters, [this](__Private::ThreadPark::UnparkResult result) {
 
-				if(!(result & ParkingLot::UnparkResult::HasMoreThreads))
-					_hasWaiters.store(0, std::memory_order_release);
+				if(!(result & __Private::ThreadPark::UnparkResult::HasMoreThreads))
+					_hasWaiters.store(false, std::memory_order_release);
 
 			});
 		}
@@ -76,7 +87,7 @@ namespace RN
 				return;
 
 			_hasWaiters.store(std::memory_order_release);
-			ParkingLot::UnparkAllThreads(&_hasWaiters);
+			__Private::ThreadPark::UnparkAllThreads(&_hasWaiters);
 		}
 
 	private:

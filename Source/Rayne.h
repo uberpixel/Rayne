@@ -91,8 +91,8 @@
 #include "System/RNScreen.h"
 
 #include "Threads/RNCondition.h"
-#include "Threads/RNLock.h"
-#include "Threads/RNRecursiveLock.h"
+#include "Threads/RNLockable.h"
+#include "Threads/RNRecursiveLockable.h"
 #include "Threads/RNRunLoop.h"
 #include "Threads/RNSemaphore.h"
 #include "Threads/RNThread.h"

@@ -82,9 +82,9 @@ set(RAYNE_SOURCES
     System/RNFile.cpp
     System/RNFileCoordinator.cpp
     System/RNScreen.cpp
-    Threads/RNLock.cpp
-    Threads/RNParkingLot.cpp
-    Threads/RNRecursiveLock.cpp
+    Threads/RNLockable.cpp
+    Threads/RNThreadPark.cpp
+    Threads/RNRecursiveLockable.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
     Threads/RNSpinLock.cpp
@@ -188,9 +188,9 @@ set(RAYNE_HEADERS
     System/RNFileCoordinator.h
     System/RNScreen.h
     Threads/RNCondition.h
-    Threads/RNLock.h
-    Threads/RNParkingLot.h
-    Threads/RNRecursiveLock.h
+    Threads/RNLockable.h
+    Threads/RNThreadPark.h
+    Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
     Threads/RNSpinLock.h
