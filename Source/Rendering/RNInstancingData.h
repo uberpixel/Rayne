@@ -91,7 +91,7 @@ namespace RN
 		bool  _clipping;
 		float _clipRange;
 
-		SpinLock _lock;
+		Lockable _lock;
 
 		bool _dirty;
 		bool _dirtyIndices;

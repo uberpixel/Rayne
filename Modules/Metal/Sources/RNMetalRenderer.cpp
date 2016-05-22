@@ -324,7 +324,7 @@ namespace RN
 		ShaderLibrary *library;
 
 		{
-			LockGuard<SpinLock> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
 
 			if(!library)

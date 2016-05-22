@@ -188,7 +188,7 @@ namespace RN
 		std::condition_variable _syncSignal;
 		std::mutex _syncLock;
 
-		SpinLock _threadLock;
+		Lockable _threadLock;
 		std::vector<Thread *> _threads;
 
 		PIMPL<WorkQueueInternals> _internals;

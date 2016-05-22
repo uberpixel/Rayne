@@ -109,8 +109,12 @@ namespace RN
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
-			MetaClass *meta = GetClass();
-			RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<void *>(this) << "> will leak!");
+			AutoreleasePool::PerformBlock([this]() {
+
+				MetaClass *meta = GetClass();
+				RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<void *>(this) << "> will leak!");
+
+			});
 
 			return this;
 		}
@@ -123,8 +127,12 @@ namespace RN
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
-			MetaClass *meta = GetClass();
-			RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<const void *>(this) << "> will leak!");
+			AutoreleasePool::PerformBlock([this]() {
+
+				MetaClass *meta = GetClass();
+				RNError("Autorelease() with no pool in place, <" << meta->GetFullname() << ":" << reinterpret_cast<const void *>(this) << "> will leak!");
+
+			});
 
 			return this;
 		}
@@ -303,13 +311,13 @@ namespace RN
 	
 	void Object::MapCookie(void *cookie, ObservableProperty *property, Connection *connection) const
 	{
-		LockGuard<RecursiveSpinLock> lock(const_cast<RecursiveSpinLock &>(_lock));
+		LockGuard<RecursiveLockable> lock(const_cast<RecursiveLockable &>(_lock));
 		_cookies.emplace_back(std::make_tuple(cookie, property, connection));
 	}
 	
 	void Object::UnmapCookie(void *cookie, ObservableProperty *property) const
 	{
-		LockGuard<RecursiveSpinLock> lock(const_cast<RecursiveSpinLock &>(_lock));
+		LockGuard<RecursiveLockable> lock(const_cast<RecursiveLockable &>(_lock));
 		
 		for(auto iterator = _cookies.begin(); iterator != _cookies.end();)
 		{
@@ -335,7 +343,7 @@ namespace RN
 
 	ObservableProperty *Object::GetPropertyForKey(const char *key) const
 	{
-		LockGuard<RecursiveSpinLock> lock(const_cast<RecursiveSpinLock &>(_lock));
+		LockGuard<RecursiveLockable> lock(const_cast<RecursiveLockable &>(_lock));
 
 		for(ObservableProperty *property : _properties)
 		{

@@ -52,7 +52,7 @@ namespace RN
 
 		std::vector<WorkSource *> overcommitQueue;
 		std::atomic<bool> isOverCommitted;
-		SpinLock overcommitLock;
+		Lockable overcommitLock;
 
 		std::condition_variable workSignal;
 		std::mutex workLock;

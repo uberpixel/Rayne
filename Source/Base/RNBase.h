@@ -94,7 +94,6 @@
 #include "RNLockGuard.h"
 #include "../Math/RNConstants.h"
 #include "../Math/RNMath.h"
-#include "../Threads/RNSpinLock.h"
 
 #include "../Threads/RNCondition.h"
 #include "../Threads/RNLockable.h"

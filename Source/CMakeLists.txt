@@ -87,7 +87,7 @@ set(RAYNE_SOURCES
     Threads/RNRecursiveLockable.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
-    Threads/RNSpinLock.cpp
+    Threads/RNLockable.cpp
     Threads/RNWorkGroup.cpp
     Threads/RNWorkQueue.cpp
     Threads/RNWorkSource.cpp)
@@ -193,7 +193,7 @@ set(RAYNE_HEADERS
     Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
-    Threads/RNSpinLock.h
+    Threads/RNLockable.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
     Threads/RNWorkGroup.h

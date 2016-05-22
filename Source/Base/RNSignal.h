@@ -124,7 +124,7 @@ namespace RN
 		{
 			Connection *connection = new Connection(this, tag);
 			
-			LockGuard<SpinLock> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			_slots.emplace_back(Slot(tag, connection, std::move(f)));
 			
 			return connection;
@@ -191,7 +191,7 @@ namespace RN
 		
 		void RemoveSlot(Tag tag) override
 		{
-			LockGuard<SpinLock> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 		
 			auto iterator = std::find_if(_slots.begin(), _slots.end(), [&](const Slot &slot) { return slot.tag == tag; });
 			if(iterator != _slots.end())
@@ -201,8 +201,8 @@ namespace RN
 			}
 		}
 		
-		SpinLock _lock;
-		SpinLock _emitLock;
+		Lockable _lock;
+		Lockable _emitLock;
 		std::atomic<Tag> _tags;
 		std::vector<Slot> _slots;
 	};

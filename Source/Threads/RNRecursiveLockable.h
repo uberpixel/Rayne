@@ -68,7 +68,8 @@ namespace RN
 
 		void Unlock()
 		{
-			RN_ASSERT(IsAcquired(), "Lockable must be acquired in order to be released!");
+			RN_ASSERT(IsLocked(), "RecursiveLockable must be acquired in order to be released!");
+			RN_ASSERT(_thread == std::this_thread::get_id(), "RecursiveLockable must be unlocked from the thread that locked it");
 
 			if((-- _threadRecursion) > 0)
 				return;
@@ -81,15 +82,10 @@ namespace RN
 			UnlockSlowPath();
 		}
 
-		bool IsAcquired() const
+		bool IsLocked() const
 		{
 			return _flag.load(std::memory_order_acquire) & kLockFlagLocked;
 		}
-
-	protected:
-		std::atomic<uint8> _flag;
-		std::atomic<std::thread::id> _thread;
-		size_t _threadRecursion;
 
 	private:
 		RNAPI void LockSlowPath();
@@ -97,6 +93,10 @@ namespace RN
 
 		static constexpr uint8 kLockFlagLocked = (1 << 0);
 		static constexpr uint8 kLockFlagParked = (1 << 1);
+
+		std::atomic<uint8> _flag;
+		std::atomic<std::thread::id> _thread;
+		size_t _threadRecursion;
 	};
 }
 

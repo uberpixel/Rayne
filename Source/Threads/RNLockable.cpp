@@ -23,7 +23,12 @@ namespace RN
 
 
 			if(!(value & kLockFlagLocked) && _flag.compare_exchange_weak(value, value | kLockFlagLocked, std::memory_order_release))
+			{
+#if RN_BUILD_DEBUG
+				_thread = std::this_thread::get_id();
+#endif
 				return;
+			}
 
 			if(!(value & kLockFlagParked) && spinCount < spinLimit)
 			{
@@ -48,9 +53,7 @@ namespace RN
 
 			if(value == kLockFlagLocked)
 			{
-				uint8 expected = kLockFlagLocked;
-
-				if(!_flag.compare_exchange_weak(expected, 0, std::memory_order_release))
+				if(!_flag.compare_exchange_weak(value, 0, std::memory_order_release))
 					continue;
 
 				return;

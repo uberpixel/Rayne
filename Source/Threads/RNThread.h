@@ -66,7 +66,7 @@ namespace RN
 		template <typename T>
 		T *GetObjectForKey(Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			T *object = _dictionary->GetObjectForKey<T>(key);
 			
 			return object;
@@ -74,13 +74,13 @@ namespace RN
 		
 		void SetObjectForKey(Object *object, Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			_dictionary->SetObjectForKey(object, key->Copy());
 		}
 		
 		void RemoveObjectForKey(Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			_dictionary->RemoveObjectForKey(key);
 		}
 		
@@ -99,7 +99,7 @@ namespace RN
 		std::mutex _generalMutex;
 		RunLoop *_runLoop;
 
-		SpinLock _dictionaryLock;
+		Lockable _dictionaryLock;
 		Dictionary *_dictionary;
 		String *_name;
 		

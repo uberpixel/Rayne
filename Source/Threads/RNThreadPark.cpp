@@ -8,7 +8,7 @@
 
 #include "RNThreadPark.h"
 #include "RNThreadLocalStorage.h"
-#include "RNSpinLock.h"
+#include "RNLockable.h"
 
 namespace RN
 {
@@ -31,7 +31,7 @@ namespace RN
 			ThreadData *next;
 		};
 
-		static SpinLock _threadLock;
+		static Lockable _threadLock;
 		static std::unordered_map<void *, ThreadData *> _threadQueue;
 		static ThreadLocalStorage<ThreadData *> *_threadData;
 

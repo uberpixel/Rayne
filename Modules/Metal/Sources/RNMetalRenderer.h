@@ -74,7 +74,7 @@ namespace RN
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
 
-		SpinLock _lock;
+		Lockable _lock;
 
 		Dictionary *_defaultShaders;
 

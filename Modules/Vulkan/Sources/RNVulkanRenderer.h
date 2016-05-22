@@ -80,7 +80,7 @@ namespace RN
 
 		PIMPL<VulkanRendererInternals> _internals;
 
-		SpinLock _lock;
+		Lockable _lock;
 
 		Dictionary *_textureFormatLookup;
 		Dictionary *_defaultShaders;

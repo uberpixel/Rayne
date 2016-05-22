@@ -105,7 +105,7 @@ namespace RN
 		RNAPI Vector4 GetRandomVector4Range(const Vector4 &min, const Vector4 &max);
 
 	private:
-		SpinLock _lock;
+		Lockable _lock;
 		Random::Generator *_generator;
 
 		__RNDeclareMetaInternal(RandomNumberGenerator)
