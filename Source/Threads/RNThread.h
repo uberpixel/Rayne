@@ -96,7 +96,7 @@ namespace RN
 		void AutoAssignName();
 		void __UnscheduleExecuteOnExit(void *context);
 		
-		std::mutex _generalMutex;
+		Lockable _generalMutex;
 		RunLoop *_runLoop;
 
 		Lockable _dictionaryLock;
@@ -111,8 +111,8 @@ namespace RN
 		std::thread::id _id;
 		std::thread _thread;
 
-		std::mutex _exitMutex;
-		std::condition_variable _exitSignal;
+		Lockable _exitMutex;
+		Condition _exitSignal;
 		std::vector<std::pair<std::function<void (void *)>, void *>> _exitFunctions;
 		
 		__RNDeclareMetaInternal(Thread)

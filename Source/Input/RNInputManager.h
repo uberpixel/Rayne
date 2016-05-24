@@ -100,7 +100,7 @@ namespace RN
 		void PerformEvent(Event event, InputDevice *device, InputControl *control, Object *value);
 		void Update(float delta);
 
-		std::mutex _lock;
+		Lockable _lock;
 		Array *_devices;
 		std::vector<Target> _targets;
 		Dictionary *_bindings;

@@ -30,14 +30,14 @@ namespace RN
 		template<class T=Object>
 		T *GetEntryForKey(const String *key) const
 		{
-			std::unique_lock<std::mutex> lock(_lock);
+			UniqueLock<Lockable> lock(_lock);
 			Object *object = __GetObjectForKey(key);
 
 			if(!object)
 				return nullptr;
 
 			object->Retain();
-			lock.unlock();
+			lock.Unlock();
 
 			return object->Autorelease()->Downcast<T>();
 		}
@@ -93,7 +93,7 @@ namespace RN
 		RNAPI Object *__GetObjectForKey(const String *key) const;
 		RNAPI Object *__RetrieveObjectForLiteralKey(const String *key) const;
 
-		mutable std::mutex _lock;
+		mutable Lockable _lock;
 		bool _isDirty;
 		Dictionary *_settings;
 	};

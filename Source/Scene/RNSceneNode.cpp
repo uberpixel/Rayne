@@ -46,7 +46,9 @@ namespace RN
 		SceneNode()
 	{
 		SceneNode *temp = const_cast<SceneNode *>(other);
-		LockGuard<Object *> lock(temp);
+
+		LockWrapper<Object *> wrapper(temp);
+		LockGuard<LockWrapper<Object *>> lock(wrapper);
 
 		SetPosition(other->GetPosition());
 		SetRotation(other->GetRotation());

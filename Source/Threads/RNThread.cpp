@@ -61,14 +61,6 @@ namespace RN
 	
 	Thread::~Thread()
 	{
-#if RN_PLATFORM_MAC_OS
-		// Works around a bug in OS X, which sometimes crashes mutexes and condition variables
-		// https://devforums.apple.com/thread/220316?tstart=0
-		
-		struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
-		pthread_cond_timedwait_relative_np(_exitSignal.native_handle(), _exitMutex.native_handle(), &time);
-#endif
-
 		delete _runLoop;
 
 		_dictionary->Release();
@@ -104,7 +96,7 @@ namespace RN
 		
 		Retain();
 		
-		std::unique_lock<std::mutex> lock(_exitMutex);
+		UniqueLock<Lockable> lock(_exitMutex);
 		
 		if(!IsRunning())
 		{
@@ -112,21 +104,21 @@ namespace RN
 			return;
 		}
 		
-		_exitSignal.wait(lock, [&]() { return !IsRunning(); });
+		_exitSignal.Wait(lock, [&]() { return !IsRunning(); });
 		
 		Release();
 	}
 
 	void Thread::ExecuteOnExit(std::function<void (void *)> &&function, void *context)
 	{
-		std::lock_guard<std::mutex> lock(_exitMutex);
+		LockGuard<Lockable> lock(_exitMutex);
 		__UnscheduleExecuteOnExit(context);
 		_exitFunctions.push_back(std::make_pair(std::move(function), context));
 	}
 
 	void Thread::UnscheduleExecuteOnExit(void *context)
 	{
-		std::lock_guard<std::mutex> lock(_exitMutex);
+		LockGuard<Lockable> lock(_exitMutex);
 		__UnscheduleExecuteOnExit(context);
 	}
 
@@ -156,9 +148,9 @@ namespace RN
 		__LocalThread.SetValue(nullptr);
 		
 		{
-			std::lock_guard<std::mutex> lock(_exitMutex);
+			LockGuard<Lockable> lock(_exitMutex);
 			_isRunning.store(false);
-			_exitSignal.notify_all();
+			_exitSignal.NotifyAll();
 
 			for(auto &pair : _exitFunctions)
 				pair.first(pair.second);
@@ -187,7 +179,7 @@ namespace RN
 			try
 			{
 				{
-					std::lock_guard<std::mutex> lock(_generalMutex);
+					LockGuard<Lockable> lock(_generalMutex);
 					AutoreleasePool pool;
 					
 #if RN_PLATFORM_MAC_OS
@@ -228,7 +220,7 @@ namespace RN
 	
 	void Thread::SetName(const String *name)
 	{
-		std::lock_guard<std::mutex> lock(_generalMutex);
+		LockGuard<Lockable> lock(_generalMutex);
 
 		_name->Release();
 		_name = name ? name->Copy() : nullptr;
@@ -252,7 +244,7 @@ namespace RN
 	
 	String *Thread::GetName()
 	{
-		std::lock_guard<std::mutex> lock(_generalMutex);
+		LockGuard<Lockable> lock(_generalMutex);
 		String *name = _name->Copy();
 		
 		return name->Autorelease();

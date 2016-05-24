@@ -91,13 +91,14 @@
 #include "RNOptions.h"
 #include "RNExpected.h"
 #include "RNScopeGuard.h"
-#include "RNLockGuard.h"
 #include "../Math/RNConstants.h"
 #include "../Math/RNMath.h"
-
 #include "../Threads/RNCondition.h"
 #include "../Threads/RNLockable.h"
 #include "../Threads/RNRecursiveLockable.h"
+#include "../Threads/RNLockGuard.h"
+#include "../Threads/RNUniqueLock.h"
+#include "../Threads/RNLockWrapper.h"
 
 
 // ---------------------------

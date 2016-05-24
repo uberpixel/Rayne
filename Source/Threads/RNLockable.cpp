@@ -19,10 +19,9 @@ namespace RN
 
 		while(1)
 		{
-			uint8 value = _flag.load(std::memory_order_acquire);
+			uint8 value = _flag.load();
 
-
-			if(!(value & kLockFlagLocked) && _flag.compare_exchange_weak(value, value | kLockFlagLocked, std::memory_order_release))
+			if(!(value & kLockFlagLocked) && __Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
 			{
 #if RN_BUILD_DEBUG
 				_thread = std::this_thread::get_id();
@@ -38,7 +37,7 @@ namespace RN
 				continue;
 			}
 
-			if(!(value & kLockFlagParked) && !_flag.compare_exchange_weak(value, value | kLockFlagParked, std::memory_order_release))
+			if(!(value & kLockFlagParked) && !__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagParked))
 				continue;
 
 			__Private::ThreadPark::CompareAndPark(&_flag, kLockFlagParked | kLockFlagLocked);
@@ -49,22 +48,28 @@ namespace RN
 	{
 		while(1)
 		{
-			uint8 value = _flag.load(std::memory_order_acquire);
+			uint8 value = _flag.load();
+
+			RN_ASSERT(value == kLockFlagLocked || value == (kLockFlagLocked | kLockFlagParked), "UnlockSlowPath found flag in inconsistent state, value: %d", value);
 
 			if(value == kLockFlagLocked)
 			{
-				if(!_flag.compare_exchange_weak(value, 0, std::memory_order_release))
+				if(!__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0))
 					continue;
 
 				return;
 			}
 
+			RN_DEBUG_ASSERT(value == (kLockFlagLocked | kLockFlagParked), "UnlockSlowPath found flag in inconsistent state");
+
 			__Private::ThreadPark::UnparkThread(&_flag, [this](__Private::ThreadPark::UnparkResult result) {
 
+				RN_DEBUG_ASSERT(_flag.load() == (kLockFlagLocked | kLockFlagParked), "UnlockSlowPath found flag in inconsistent state");
+
 				if(result & __Private::ThreadPark::UnparkResult::HasMoreThreads)
-					_flag.store(kLockFlagParked, std::memory_order_release);
+					_flag.store(kLockFlagParked);
 				else
-					_flag.store(0, std::memory_order_release);
+					_flag.store(0);
 
 			});
 		}

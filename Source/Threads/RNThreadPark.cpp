@@ -96,10 +96,10 @@ namespace RN
 				{
 					if(!prev)
 					{
+						_threadQueue.erase(iterator);
+
 						if(temp->next)
 							_threadQueue.insert({const_cast<void *>(address), temp->next});
-						else
-							_threadQueue.erase(iterator);
 
 						return;
 					}
@@ -126,14 +126,15 @@ namespace RN
 				data->address = address;
 			}
 
-			QueueThreadData(address, data);
-
 			if(!validation())
 			{
-				DequeueThreadData(address, data);
+				std::unique_lock<std::mutex> lock(data->lock);
+				data->address = nullptr;
+
 				return false;
 			}
 
+			QueueThreadData(address, data);
 
 			beforeSleep();
 
@@ -152,6 +153,7 @@ namespace RN
 					lock.lock();
 				}
 
+				RN_DEBUG_ASSERT(!data->address || data->address == address, "Invalid data address");
 				gotQueued = (data->address == nullptr);
 			}
 
@@ -181,27 +183,19 @@ namespace RN
 				return;
 			}
 
-			ThreadData *prev = nullptr;
 			ThreadData *data = iterator->second;
-			while(data)
+			if(data)
 			{
-				if(data->address == address)
-				{
-					UnparkResult result = UnparkResult::UnparkedThread;
+				RN_DEBUG_ASSERT(data->address == address, "Invalid data address");
 
-					if(data->next)
-						result |= UnparkResult::HasMoreThreads;
+				UnparkResult result = UnparkResult::UnparkedThread;
 
-					callback(result);
+				if(data->next)
+					result |= UnparkResult::HasMoreThreads;
 
-					break;
-				}
-
-				prev = data;
-				data = data->next;
+				callback(result);
 			}
-
-			if(!data)
+			else
 			{
 				callback(0);
 
@@ -210,20 +204,12 @@ namespace RN
 			}
 
 			// Remove the ThreadData from the queue
-			if(prev)
-			{
-				prev->next = data->next;
-			}
-			else
-			{
-				if(data->next)
-					_threadQueue.insert({const_cast<void *>(address), data->next});
-				else
-					_threadQueue.erase(iterator);
-			}
+			_threadQueue.erase(iterator);
+
+			if(data->next)
+				_threadQueue.insert({const_cast<void *>(address), data->next});
 
 			_threadLock.Unlock();
-
 
 			// Clear the address
 			{

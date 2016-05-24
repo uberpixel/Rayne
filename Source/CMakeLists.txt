@@ -105,14 +105,12 @@ set(RAYNE_HEADERS
     Base/RNExpected.h
     Base/RNFunction.h
     Base/RNKernel.h
-    Base/RNLockGuard.h
     Base/RNMemory.h
     Base/RNMemoryPool.h
     Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
     Base/RNSignal.h
-    Base/RNSTL.h
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
     Base/RNUnistd.h
@@ -189,6 +187,9 @@ set(RAYNE_HEADERS
     System/RNScreen.h
     Threads/RNCondition.h
     Threads/RNLockable.h
+    Threads/RNLockGuard.h
+    Threads/RNLockTools.h
+    Threads/RNLockWrapper.h
     Threads/RNThreadPark.h
     Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
@@ -196,6 +197,7 @@ set(RAYNE_HEADERS
     Threads/RNLockable.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
+    Threads/RNUniqueLock.h
     Threads/RNWorkGroup.h
     Threads/RNWorkQueue.h
     Threads/RNWorkSource.h)

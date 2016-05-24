@@ -51,7 +51,7 @@ namespace RN
 	{
 		RN_ASSERT(queue != WorkQueue::GetMainQueue(), "The default queue can't be the main queue");
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		SafeRelease(_defaultQueue);
 		_defaultQueue = SafeRetain(queue);
@@ -60,7 +60,7 @@ namespace RN
 
 	void AssetManager::RegisterAssetLoader(AssetLoader *loader)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_loaders->AddObject(loader);
 		_loaders->Sort<AssetLoader>([] (const AssetLoader *loader1, const AssetLoader *loader2) -> bool {
@@ -76,7 +76,7 @@ namespace RN
 
 	void AssetManager::UnregisterAssetLoader(AssetLoader *loader)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_loaders->RemoveObject(loader);
 
 		UpdateMagicSize();
@@ -124,7 +124,7 @@ namespace RN
 	void AssetManager::__RemoveAsset(Asset *asset, String *name)
 	{
 		{
-			std::unique_lock<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 
 			Array *resources = _resources->GetObjectForKey<Array>(name);
 			size_t count = resources->GetCount();
@@ -200,14 +200,14 @@ namespace RN
 	Asset *AssetManager::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
-		std::unique_lock<std::mutex> lock(_lock);
+		UniqueLock<Lockable> lock(_lock);
 
 		{
 			Asset *asset = __GetAssetMatching(base, name);
 			if(asset)
 			{
 				asset->Retain();
-				lock.unlock();
+				lock.Unlock();
 
 				name->Release();
 				return asset->Autorelease();
@@ -218,7 +218,7 @@ namespace RN
 
 		if(future.IsValid())
 		{
-			lock.unlock();
+			lock.Unlock();
 
 			name->Release();
 
@@ -264,7 +264,7 @@ namespace RN
 			wrapper->Release();
 		}
 
-		lock.unlock();
+		lock.Unlock();
 
 		if(!settings)
 			settings = new Dictionary();
@@ -279,7 +279,7 @@ namespace RN
 
 		settings->Release();
 
-		lock.lock();
+		lock.Lock();
 
 		wrapper->Retain();
 
@@ -305,7 +305,7 @@ namespace RN
 		Asset *result = asset.Get()->Retain();
 
 		PrepareAsset(result, name, base, settings);
-		lock.unlock();
+		lock.Unlock();
 
 		name->Release();
 
@@ -318,13 +318,13 @@ namespace RN
 	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings, WorkQueue *queue)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
-		std::unique_lock<std::mutex> lock(_lock);
+		UniqueLock<Lockable> lock(_lock);
 
 		Asset *asset = __GetAssetMatching(base, name);
 		if(asset)
 		{
 			asset->Retain();
-			lock.unlock();
+			lock.Unlock();
 
 			std::promise<StrongRef<Asset>> promise;
 			std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
@@ -411,7 +411,7 @@ namespace RN
 			if(asset.IsValid())
 				PrepareAsset(asset.Get(), name, wrapper->GetMeta(), nullptr);
 
-			std::unique_lock<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			Array *requests = _requests->GetObjectForKey<Array>(name);
 
 			if(requests)

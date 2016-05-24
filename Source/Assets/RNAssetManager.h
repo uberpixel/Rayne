@@ -62,7 +62,7 @@ namespace RN
 		RNAPI Asset *__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings);
 		RNAPI std::shared_future<StrongRef<Asset>> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings, WorkQueue *queue);
 
-		std::mutex _lock;
+		Lockable _lock;
 		Array *_loaders;
 		size_t _maxMagicSize;
 

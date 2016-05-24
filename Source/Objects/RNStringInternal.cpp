@@ -19,16 +19,19 @@ namespace RN
 
 	UTF8String *StringPool::CreateUTF8String(const void *string)
 	{
-		LockGuard<Lockable> lock(_stringTableLock);
-		UTF8String *source = _stringTable[string];
+		UTF8String *source;
 
-		if(!source)
 		{
-			source = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, false);
-			_stringTable[string] = source;
-		}
+			LockGuard<Lockable> lock(_stringTableLock);
+			source = _stringTable[string];
 
-		lock.Unlock();
+			if(!source)
+			{
+				source = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, false);
+				_stringTable[string] = source;
+			}
+
+		}
 
 		UTF8String *temp = new UTF8String(source->_constStorage, source->_length, source->_hash, source->_flags);
 		return temp;

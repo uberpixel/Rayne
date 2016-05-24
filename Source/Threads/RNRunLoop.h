@@ -74,7 +74,7 @@ namespace RN
 		std::atomic<bool> _valid;
 		std::atomic<bool> _signaled;
 
-		std::mutex _lock;
+		Lockable _lock;
 		RunLoop *_runLoop;
 
 		__RNDeclareMetaInternal(RunLoopSource)
@@ -122,8 +122,8 @@ namespace RN
 		std::atomic<bool> _stopped;
 		std::atomic<bool> _waiting;
 
-		std::mutex _lock;
-		std::condition_variable _signal;
+		Lockable _lock;
+		Condition _signal;
 	};
 }
 

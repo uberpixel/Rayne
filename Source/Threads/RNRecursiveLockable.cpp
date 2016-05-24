@@ -21,7 +21,7 @@ namespace RN
 		{
 			uint8 value = _flag.load(std::memory_order_acquire);
 
-			if(!(value & kLockFlagLocked) && _flag.compare_exchange_weak(value, value | kLockFlagLocked, std::memory_order_release))
+			if(!(value & kLockFlagLocked) && __Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
 			{
 				_thread = std::this_thread::get_id();
 				_threadRecursion = 1;
@@ -37,7 +37,7 @@ namespace RN
 				continue;
 			}
 
-			if(!(value & kLockFlagParked) && !_flag.compare_exchange_weak(value, value | kLockFlagParked, std::memory_order_release))
+			if(!(value & kLockFlagParked) && !__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagParked))
 				continue;
 
 			__Private::ThreadPark::CompareAndPark(&_flag, kLockFlagParked | kLockFlagLocked);
@@ -52,9 +52,7 @@ namespace RN
 
 			if(value == kLockFlagLocked)
 			{
-				uint8 expected = kLockFlagLocked;
-
-				if(!_flag.compare_exchange_weak(expected, 0, std::memory_order_release))
+				if(!__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0))
 					continue;
 
 				return;

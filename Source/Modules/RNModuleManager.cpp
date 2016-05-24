@@ -48,7 +48,7 @@ namespace RN
 
 	Module *ModuleManager::GetModuleWithName(const String *name, Options options)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		Module *module = _moduleMap->GetObjectForKey<Module>(const_cast<String *>(name));
 		if(!module && options & Options::NoLoad)

@@ -135,6 +135,12 @@ namespace RN
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 }
 
+#if RN_BUILD_DEBUG
+	#define RN_DEBUG_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
+#else
+	#define RN_DEBUG_ASSERT(e, ...) (void)0
+#endif
+
 #define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 
 #endif /* __RAYNE_CONFIG_H_  */

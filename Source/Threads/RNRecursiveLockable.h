@@ -18,6 +18,8 @@
 #include <atomic>
 #include <thread>
 
+#include "RNLockTools.h"
+
 namespace RN
 {
 	class RecursiveLockable
@@ -31,8 +33,7 @@ namespace RN
 
 		void Lock()
 		{
-			uint8 value = 0;
-			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(value, kLockFlagLocked, std::memory_order_acq_rel)))
+			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, 0, kLockFlagLocked)))
 			{
 				_thread = std::this_thread::get_id();
 				_threadRecursion = 1;
@@ -57,7 +58,7 @@ namespace RN
 				if(value & kLockFlagLocked)
 					return false;
 
-				if(_flag.compare_exchange_weak(value, value | kLockFlagLocked))
+				if(__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
 				{
 					_thread = std::this_thread::get_id();
 					_threadRecursion = 1;
@@ -74,9 +75,7 @@ namespace RN
 			if((-- _threadRecursion) > 0)
 				return;
 
-			uint8 expected = kLockFlagLocked;
-
-			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(expected, 0, std::memory_order_acq_rel)))
+			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0)))
 				return;
 
 			UnlockSlowPath();

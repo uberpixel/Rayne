@@ -136,7 +136,7 @@ namespace RN
 			{
 				LogContainer container(std::move(message), level);
 
-				LockGuard<Lockable> lock(_lock);
+				UniqueLock<Lockable> lock(_lock);
 
 				while(!_messages.Push(std::move(container)))
 				{

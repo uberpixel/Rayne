@@ -120,30 +120,30 @@ namespace RN
 		}
 
 		template<class T>
-		void YieldWithCondition(std::condition_variable &condition, T &lock)
+		void YieldWithCondition(Condition &condition, T &lock)
 		{
 			if(RN_EXPECT_FALSE(!CanYield()))
 			{
-				condition.wait(lock);
+				condition.Wait(lock);
 				return;
 			}
 
 			YieldWithPredicate([&]() -> bool {
-				return (condition.wait_for(lock, std::chrono::seconds(0)) == std::cv_status::no_timeout);
+				return (condition.WaitFor(lock, std::chrono::seconds(0)));
 			});
 		}
 
 		template<class T, class Predicate>
-		void YieldWithCondition(std::condition_variable &condition, T &lock, Predicate &&predicate)
+		void YieldWithCondition(Condition &condition, T &lock, Predicate &&predicate)
 		{
 			if(RN_EXPECT_FALSE(!CanYield()))
 			{
-				condition.wait(lock, std::move(predicate));
+				condition.Wait(lock, std::move(predicate));
 				return;
 			}
 
 			YieldWithPredicate([&]() -> bool {
-				return condition.wait_for(lock, std::chrono::seconds(0), std::move(predicate));
+				return condition.WaitFor(lock, std::chrono::seconds(0), std::move(predicate));
 			});
 		}
 
@@ -182,11 +182,11 @@ namespace RN
 		std::atomic<size_t> _suspended;
 		std::atomic<bool> _barrier;
 
-		std::condition_variable _barrierSignal;
-		std::mutex _barrierLock;
+		Condition _barrierSignal;
+		Lockable _barrierLock;
 
-		std::condition_variable _syncSignal;
-		std::mutex _syncLock;
+		Condition _syncSignal;
+		Lockable _syncLock;
 
 		Lockable _threadLock;
 		std::vector<Thread *> _threads;

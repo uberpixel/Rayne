@@ -92,6 +92,8 @@
 
 #include "Threads/RNCondition.h"
 #include "Threads/RNLockable.h"
+#include "Threads/RNLockTools.h"
+#include "Threads/RNLockWrapper.h"
 #include "Threads/RNRecursiveLockable.h"
 #include "Threads/RNRunLoop.h"
 #include "Threads/RNSemaphore.h"

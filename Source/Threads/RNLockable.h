@@ -18,6 +18,8 @@
 #include <atomic>
 #include <thread>
 
+#include "RNLockTools.h"
+
 namespace RN
 {
 	class Lockable
@@ -30,8 +32,7 @@ namespace RN
 
 		void Lock()
 		{
-			uint8 value = 0;
-			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(value, kLockFlagLocked, std::memory_order_acq_rel)))
+			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, 0, kLockFlagLocked, std::memory_order_acquire)))
 			{
 #if RN_BUILD_DEBUG
 				_thread = std::this_thread::get_id();
@@ -46,11 +47,11 @@ namespace RN
 		{
 			while(1)
 			{
-				uint8 value = _flag.load(std::memory_order_acquire);
+				uint8 value = _flag.load();
 				if(value & kLockFlagLocked)
 					return false;
 
-				if(_flag.compare_exchange_weak(value, value | kLockFlagLocked))
+				if(__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
 				{
 #if RN_BUILD_DEBUG
 					_thread = std::this_thread::get_id();
@@ -68,9 +69,7 @@ namespace RN
 			RN_ASSERT(_thread == std::this_thread::get_id(), "Lockable must be unlocked from the thread that locked it");
 #endif
 
-			uint8 expected = kLockFlagLocked;
-
-			if(RN_EXPECT_TRUE(_flag.compare_exchange_weak(expected, 0, std::memory_order_acq_rel)))
+			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0, std::memory_order_release)))
 				return;
 
 			UnlockSlowPath();
