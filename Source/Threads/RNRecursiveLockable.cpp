@@ -8,7 +8,7 @@
 
 #include "../Base/RNBase.h"
 #include "RNRecursiveLockable.h"
-#include "RNThreadPark.h"
+#include "RNFutex.h"
 
 namespace RN
 {
@@ -40,7 +40,7 @@ namespace RN
 			if(!(value & kLockFlagParked) && !__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagParked))
 				continue;
 
-			__Private::ThreadPark::CompareAndPark(&_flag, kLockFlagParked | kLockFlagLocked);
+			__Private::Futex::CompareAndWait(&_flag, kLockFlagParked | kLockFlagLocked);
 		}
 	}
 
@@ -58,9 +58,9 @@ namespace RN
 				return;
 			}
 
-			__Private::ThreadPark::UnparkThread(&_flag, [this](__Private::ThreadPark::UnparkResult result) {
+			__Private::Futex::WakeOne(&_flag, [this](__Private::Futex::WakeResult result) {
 
-				if(result & __Private::ThreadPark::UnparkResult::HasMoreThreads)
+				if(result & __Private::Futex::WakeResult::HasMoreThreads)
 					_flag.store(kLockFlagParked, std::memory_order_release);
 				else
 					_flag.store(0, std::memory_order_release);

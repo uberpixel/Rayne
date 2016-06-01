@@ -17,7 +17,7 @@
 
 #include <atomic>
 
-#include "RNThreadPark.h"
+#include "RNFutex.h"
 
 namespace RN
 {
@@ -34,10 +34,12 @@ namespace RN
 			if(timeout < Clock::now())
 				return false;
 
-			bool result = __Private::ThreadPark::Park(&_hasWaiters, [this]() -> bool {
+			bool result = __Private::Futex::Wait(&_hasWaiters, [this]() -> bool {
 				_hasWaiters.store(true, std::memory_order_release);
 				return true;
-			}, [&lock]() { lock.Unlock(); }, timeout);
+			}, [&lock]() {
+				lock.Unlock();
+			}, timeout);
 
 			lock.Lock();
 			return result;
@@ -81,9 +83,9 @@ namespace RN
 			if(!_hasWaiters.load(std::memory_order_acquire))
 				return;
 
-			__Private::ThreadPark::UnparkThread(&_hasWaiters, [this](__Private::ThreadPark::UnparkResult result) {
+			__Private::Futex::WakeOne(&_hasWaiters, [this](__Private::Futex::WakeResult result) {
 
-				if(!(result & __Private::ThreadPark::UnparkResult::HasMoreThreads))
+				if(!(result & __Private::Futex::WakeResult::HasMoreThreads))
 					_hasWaiters.store(false, std::memory_order_release);
 
 			});
@@ -94,7 +96,7 @@ namespace RN
 				return;
 
 			_hasWaiters.store(std::memory_order_release);
-			__Private::ThreadPark::UnparkAllThreads(&_hasWaiters);
+			__Private::Futex::WakeAll(&_hasWaiters);
 		}
 
 	private:

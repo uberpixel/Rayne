@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNThreadPark.h"
+#include "RNFutex.h"
 #include "RNThreadLocalStorage.h"
 #include "RNLockable.h"
 
@@ -115,13 +115,13 @@ namespace RN
 			_threadLock.Unlock();
 		}
 
-		bool ThreadPark::__ParkConditionally(const void *address, std::function<bool()> validation, std::function<void()> beforeSleep, Clock::time_point timeout)
+		bool Futex::__WaitConditionally(const void *address, std::function<bool()> validation, std::function<void()> beforeSleep, Clock::time_point timeout)
 		{
 			ThreadData *data = GetThreadData();
 
 			{
 				std::unique_lock<std::mutex> lock(data->lock);
-				RN_ASSERT(data->address == nullptr, "Recursively called ThreadPark::Park()");
+				RN_ASSERT(data->address == nullptr, "Recursively called Futex::Wait()");
 
 				data->address = address;
 			}
@@ -170,7 +170,7 @@ namespace RN
 			return false;
 		}
 
-		void ThreadPark::UnparkThread(const void *address, std::function<void(UnparkResult)> callback)
+		void Futex::WakeOne(const void *address, std::function<void(WakeResult)> callback)
 		{
 			_threadLock.Lock();
 
@@ -188,10 +188,10 @@ namespace RN
 			{
 				RN_DEBUG_ASSERT(data->address == address, "Invalid data address");
 
-				UnparkResult result = UnparkResult::UnparkedThread;
+				WakeResult result = WakeResult::WokeUpThread;
 
 				if(data->next)
-					result |= UnparkResult::HasMoreThreads;
+					result |= WakeResult::HasMoreThreads;
 
 				callback(result);
 			}
@@ -220,18 +220,18 @@ namespace RN
 			data->condition.notify_one();
 		}
 
-		ThreadPark::UnparkResult ThreadPark::UnparkThread(const void *address)
+		Futex::WakeResult Futex::WakeOne(const void *address)
 		{
-			UnparkResult result;
+			WakeResult result;
 
-			UnparkThread(address, [&](UnparkResult res) {
+			WakeOne(address, [&](WakeResult res) {
 				result = res;
 			});
 
 			return result;
 		}
 
-		void ThreadPark::UnparkAllThreads(const void *address)
+		void Futex::WakeAll(const void *address)
 		{
 			_threadLock.Lock();
 
