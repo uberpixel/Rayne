@@ -66,6 +66,8 @@ namespace RN
 					_flag.store(0, std::memory_order_release);
 
 			});
+
+			return;
 		}
 	}
 }

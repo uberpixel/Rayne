@@ -72,6 +72,8 @@ namespace RN
 					_flag.store(0);
 
 			});
+
+			return;
 		}
 	}
 }
