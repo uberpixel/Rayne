@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	static SpinLock __pointLock;
+	static Lockable __pointLock;
 	static Dictionary *__pointStorage = nullptr;
 
 	static void InstallStorage()
@@ -33,7 +33,7 @@ namespace RN
 
 	void __ExtensionPointBase::InstallExtensionPoint(__ExtensionPointBase *point)
 	{
-		LockGuard<SpinLock> lock(__pointLock);
+		LockGuard<Lockable> lock(__pointLock);
 
 		InstallStorage();
 
@@ -43,7 +43,7 @@ namespace RN
 	}
 	void __ExtensionPointBase::RemoveExtensionPoint(__ExtensionPointBase *point)
 	{
-		LockGuard<SpinLock> lock(__pointLock);
+		LockGuard<Lockable> lock(__pointLock);
 
 		InstallStorage();
 
@@ -55,7 +55,7 @@ namespace RN
 
 	__ExtensionPointBase *__ExtensionPointBase::GetExtensionPoint(const std::string &tname)
 	{
-		LockGuard<SpinLock> lock(__pointLock);
+		LockGuard<Lockable> lock(__pointLock);
 
 		InstallStorage();
 

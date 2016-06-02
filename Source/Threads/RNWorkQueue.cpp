@@ -7,10 +7,35 @@
 //
 
 #include "RNWorkQueue.h"
-#include "RNAdaptiveLock.h"
 #include "RNThreadLocalStorage.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include <boost/lockfree/queue.hpp>
+
+#if RN_PLATFORM_INTEL
+#if RN_PLATFORM_WINDOWS
+#define RNHardwarePause() YieldProcessor()
+#else
+#define RNHardwarePause() __asm__ volatile("pause")
+#endif
+#endif
+#if RN_PLATFORM_ARM
+#define RNHardwarePause() __asm__ volatile("yield")
+#endif
+
+#define RNConditionalSpin(e, count, result) \
+	do { \
+		result = false; \
+		for(size_t i = 0; i < count; i ++) \
+		{ \
+			if((e)) \
+			{ \
+				result = true; \
+				break; \
+			} \
+			RNHardwarePause(); \
+		} \
+	} while(0)
+
 
 #define ConditionalSpin(e, result) RNConditionalSpin(e, 10535U, result)
 #define ConditionalSpinLow(e, result) RNConditionalSpin(e, 512U, result)
@@ -27,10 +52,10 @@ namespace RN
 
 		std::vector<WorkSource *> overcommitQueue;
 		std::atomic<bool> isOverCommitted;
-		SpinLock overcommitLock;
+		Lockable overcommitLock;
 
-		std::condition_variable workSignal;
-		std::mutex workLock;
+		Condition workSignal;
+		Lockable workLock;
 
 		boost::lockfree::queue<WorkSource *, boost::parameter::void_, boost::parameter::void_, boost::parameter::void_> workQueue;
 	};
@@ -105,7 +130,7 @@ namespace RN
 		for(Thread *thread : threads)
 			thread->Cancel();
 
-		_internals->workSignal.notify_all();
+		_internals->workSignal.NotifyAll();
 
 		for(Thread *thread : threads)
 			thread->WaitForExit();
@@ -150,28 +175,28 @@ namespace RN
 	{
 		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous);
 
-		std::unique_lock<std::mutex> lock(_syncLock);
+		UniqueLock<Lockable> lock(_syncLock);
 		if(source->IsComplete())
 		{
 			source->Relinquish();
 			return;
 		}
 
-		_syncSignal.wait(lock, [&]{ return (source->IsComplete()); });
+		_syncSignal.Wait(lock, [&]{ return (source->IsComplete()); });
 		source->Relinquish();
 	}
 	void WorkQueue::PerformSynchronousBarrier(Function &&function)
 	{
 		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous | WorkSource::Flags::Barrier);
 
-		std::unique_lock<std::mutex> lock(_syncLock);
+		UniqueLock<Lockable> lock(_syncLock);
 		if(source->IsComplete())
 		{
 			source->Relinquish();
 			return;
 		}
 
-		_syncSignal.wait(lock, [&]{ return (source->IsComplete()); });
+		_syncSignal.Wait(lock, [&]{ return (source->IsComplete()); });
 		source->Relinquish();
 	}
 
@@ -202,8 +227,8 @@ namespace RN
 		// Assure wake up
 		if(_sleeping.load(std::memory_order_acquire) && _suspended.load(std::memory_order_acquire) == 0)
 		{
-			std::unique_lock<std::mutex> lock(_internals->workLock);
-			_internals->workSignal.notify_one();
+			UniqueLock<Lockable> lock(_internals->workLock);
+			_internals->workSignal.NotifyOne();
 		}
 
 		return source;
@@ -216,16 +241,16 @@ namespace RN
 
 		if(!result)
 		{
-			std::unique_lock<std::mutex> lock(_internals->workLock);
-			_internals->workSignal.wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
+			UniqueLock<Lockable> lock(_internals->workLock);
+			_internals->workSignal.Wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
 		}
 
 		ConditionalSpin(_barrier.load(std::memory_order_acquire) == false, result);
 		if(!result)
 		{
 			// There currently is a barrier executing, so wait until that one is completed
-			std::unique_lock<std::mutex> lock(_barrierLock);
-			_barrierSignal.wait(lock, [&]() -> bool { return (_barrier.load(std::memory_order_acquire) == false); });
+			UniqueLock<Lockable> lock(_barrierLock);
+			_barrierSignal.Wait(lock, [&]() -> bool { return (_barrier.load(std::memory_order_acquire) == false); });
 		}
 
 		// Grab work from the work pool
@@ -253,8 +278,8 @@ namespace RN
 				ConditionalSpinLow(_barrier.load(std::memory_order_acquire) == true, result);
 
 				// Wait for rendezvous with the barrier signal
-				std::unique_lock<std::mutex> lock(_barrierLock);
-				_barrierSignal.wait(lock, [&]() -> bool {
+				UniqueLock<Lockable> lock(_barrierLock);
+				_barrierSignal.Wait(lock, [&]() -> bool {
 					return (_barrier.load(std::memory_order_acquire) == false);
 				});
 
@@ -267,8 +292,8 @@ namespace RN
 
 			if(!result)
 			{
-				std::unique_lock<std::mutex> lock(_barrierLock);
-				_barrierSignal.wait(lock, [&]() -> bool {
+				UniqueLock<Lockable> lock(_barrierLock);
+				_barrierSignal.Wait(lock, [&]() -> bool {
 					return (_running.load() == 1);
 				});
 			}
@@ -279,9 +304,9 @@ namespace RN
 			std::atomic_thread_fence(std::memory_order_release);
 
 			// Signal that the barrier is done
-			std::lock_guard<std::mutex> lock(_barrierLock);
+			LockGuard<Lockable> lock(_barrierLock);
 			_barrier.store(false, std::memory_order_relaxed);
-			_barrierSignal.notify_all();
+			_barrierSignal.NotifyAll();
 		}
 		else // Non barrier path
 		{
@@ -294,9 +319,9 @@ namespace RN
 			if(_barrier.load(std::memory_order_acquire))
 			{
 				// A barrier is waiting to execute, signal it to be ready if needed
-				std::lock_guard<std::mutex> lock(_barrierLock);
+				LockGuard<Lockable> lock(_barrierLock);
 				if((--_running) == 1)
-					_barrierSignal.notify_all();
+					_barrierSignal.NotifyAll();
 			}
 			else
 			{
@@ -311,9 +336,9 @@ namespace RN
 			// the waiting thread is signalled that the work is completed
 			// and it will relinquish the source eventually
 
-			std::lock_guard<std::mutex> lock(_syncLock);
+			LockGuard<Lockable> lock(_syncLock);
 			source->Complete();
-			_syncSignal.notify_all();
+			_syncSignal.NotifyAll();
 
 			return true;
 		}
@@ -338,14 +363,14 @@ namespace RN
 
 				if(!result)
 				{
-					std::unique_lock<std::mutex> lock(_internals->workLock);
+					UniqueLock<Lockable> lock(_internals->workLock);
 
 					if(_open.load() == 0)
 					{
 						pool.Drain();
 
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
-						bool result = _internals->workSignal.wait_for(lock, std::chrono::milliseconds(timeout), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
+						bool result = _internals->workSignal.WaitFor(lock, std::chrono::milliseconds(timeout), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
 
 						// Resign the thread if the timeout was reached
@@ -426,6 +451,6 @@ namespace RN
 	void WorkQueue::Resume()
 	{
 		if(_suspended.fetch_sub(1, std::memory_order_acquire) == 1)
-			_internals->workSignal.notify_all();
+			_internals->workSignal.NotifyAll();
 	}
 }

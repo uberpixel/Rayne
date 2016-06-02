@@ -51,7 +51,7 @@ namespace RN
 	{
 		RN_ASSERT(queue != WorkQueue::GetMainQueue(), "The default queue can't be the main queue");
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		SafeRelease(_defaultQueue);
 		_defaultQueue = SafeRetain(queue);
@@ -60,7 +60,7 @@ namespace RN
 
 	void AssetManager::RegisterAssetLoader(AssetLoader *loader)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_loaders->AddObject(loader);
 		_loaders->Sort<AssetLoader>([] (const AssetLoader *loader1, const AssetLoader *loader2) -> bool {
@@ -76,7 +76,7 @@ namespace RN
 
 	void AssetManager::UnregisterAssetLoader(AssetLoader *loader)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_loaders->RemoveObject(loader);
 
 		UpdateMagicSize();
@@ -124,7 +124,7 @@ namespace RN
 	void AssetManager::__RemoveAsset(Asset *asset, String *name)
 	{
 		{
-			std::unique_lock<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 
 			Array *resources = _resources->GetObjectForKey<Array>(name);
 			size_t count = resources->GetCount();
@@ -177,7 +177,7 @@ namespace RN
 		return asset;
 	}
 
-	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
+	Expected<std::shared_future<StrongRef<Asset>>> AssetManager::__GetFutureMatching(MetaClass *base, String *name)
 	{
 		// Check if there is a pending request for the resource
 		Array *requests = _requests->GetObjectForKey<Array>(name);
@@ -194,28 +194,31 @@ namespace RN
 			}
 		}
 
-		throw InconsistencyException("No matching future found");
+		return InconsistencyException("No matching future found");
 	}
 
 	Asset *AssetManager::__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
-		std::unique_lock<std::mutex> lock(_lock);
+		UniqueLock<Lockable> lock(_lock);
 
-		try
 		{
 			Asset *asset = __GetAssetMatching(base, name);
 			if(asset)
 			{
 				asset->Retain();
-				lock.unlock();
+				lock.Unlock();
 
 				name->Release();
 				return asset->Autorelease();
 			}
+		}
 
-			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
-			lock.unlock();
+		Expected<std::shared_future<StrongRef<Asset>>> future = __GetFutureMatching(base, name);
+
+		if(future.IsValid())
+		{
+			lock.Unlock();
 
 			name->Release();
 
@@ -223,16 +226,11 @@ namespace RN
 
 			if(queue)
 			{
-				queue->YieldWithFuture(future);
-				return future.get();
+				queue->YieldWithFuture(future.Get());
+				return future.Get().get();
 			}
 
-			return future.get();
-		}
-		catch(InconsistencyException &)
-		{
-			if(!lock.owns_lock())
-				lock.lock();
+			return future.Get().get();
 		}
 
 		// Load the resource
@@ -266,7 +264,7 @@ namespace RN
 			wrapper->Release();
 		}
 
-		lock.unlock();
+		lock.Unlock();
 
 		if(!settings)
 			settings = new Dictionary();
@@ -281,7 +279,7 @@ namespace RN
 
 		settings->Release();
 
-		lock.lock();
+		lock.Lock();
 
 		wrapper->Retain();
 
@@ -307,7 +305,7 @@ namespace RN
 		Asset *result = asset.Get()->Retain();
 
 		PrepareAsset(result, name, base, settings);
-		lock.unlock();
+		lock.Unlock();
 
 		name->Release();
 
@@ -320,41 +318,36 @@ namespace RN
 	std::shared_future<StrongRef<Asset>> AssetManager::__GetFutureAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings, WorkQueue *queue)
 	{
 		String *name = tname->GetNormalizedPath()->Retain();
-		std::unique_lock<std::mutex> lock(_lock);
+		UniqueLock<Lockable> lock(_lock);
 
-		try
+		Asset *asset = __GetAssetMatching(base, name);
+		if(asset)
 		{
-			Asset *asset = __GetAssetMatching(base, name);
-			if(asset)
+			asset->Retain();
+			lock.Unlock();
+
+			std::promise<StrongRef<Asset>> promise;
+			std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
+
+			try
 			{
-				asset->Retain();
-				lock.unlock();
-
-				std::promise<StrongRef<Asset>> promise;
-				std::shared_future<StrongRef<Asset>> future = promise.get_future().share();
-
-				try
-				{
-					asset = ValidateAsset(base, asset);
-					promise.set_value(asset);
-				}
-				catch(Exception &)
-				{
-					promise.set_exception(std::current_exception());
-				}
-
-				return future;
+				asset = ValidateAsset(base, asset);
+				promise.set_value(asset);
 			}
-
-			std::shared_future<StrongRef<Asset>> future = __GetFutureMatching(base, name);
-			name->Release();
+			catch(Exception &)
+			{
+				promise.set_exception(std::current_exception());
+			}
 
 			return future;
 		}
-		catch(InconsistencyException &)
+
+		Expected<std::shared_future<StrongRef<Asset>>> future = __GetFutureMatching(base, name);
+		if(future.IsValid())
 		{
-			if(!lock.owns_lock())
-				lock.lock();
+			name->Release();
+
+			return future.Get();
 		}
 
 		// Load the resource
@@ -418,7 +411,7 @@ namespace RN
 			if(asset.IsValid())
 				PrepareAsset(asset.Get(), name, wrapper->GetMeta(), nullptr);
 
-			std::unique_lock<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			Array *requests = _requests->GetObjectForKey<Array>(name);
 
 			if(requests)

@@ -31,8 +31,8 @@ namespace RN
 		RNAPI void Notify(WorkQueue *queue, Function &&function);
 
 	private:
-		std::mutex _lock;
-		std::condition_variable _signal;
+		Lockable _lock;
+		Condition _signal;
 		std::vector<std::pair<WorkQueue *, Function>> _waiters;
 
 		std::atomic<size_t> _open;

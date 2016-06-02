@@ -128,7 +128,7 @@ namespace RN
 
 		Array *__GetNodeContainerForPath(const String *path, Array *&outPath);
 
-		std::mutex _lock;
+		Lockable _lock;
 		Array *_nodes;
 		Dictionary *_modulePaths;
 	};

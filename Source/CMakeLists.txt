@@ -82,9 +82,12 @@ set(RAYNE_SOURCES
     System/RNFile.cpp
     System/RNFileCoordinator.cpp
     System/RNScreen.cpp
+    Threads/RNLockable.cpp
+        Threads/RNFutex.cpp
+    Threads/RNRecursiveLockable.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
-    Threads/RNSpinLock.cpp
+    Threads/RNLockable.cpp
     Threads/RNWorkGroup.cpp
     Threads/RNWorkQueue.cpp
     Threads/RNWorkSource.cpp)
@@ -102,13 +105,12 @@ set(RAYNE_HEADERS
     Base/RNExpected.h
     Base/RNFunction.h
     Base/RNKernel.h
-    Base/RNLockGuard.h
     Base/RNMemory.h
     Base/RNMemoryPool.h
+    Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
     Base/RNSignal.h
-    Base/RNSTL.h
     Base/RNTypeTranslator.h
     Base/RNUnicode.h
     Base/RNUnistd.h
@@ -183,12 +185,19 @@ set(RAYNE_HEADERS
     System/RNFile.h
     System/RNFileCoordinator.h
     System/RNScreen.h
-    Threads/RNAdaptiveLock.h
+    Threads/RNCondition.h
+    Threads/RNLockable.h
+    Threads/RNLockGuard.h
+    Threads/RNLockTools.h
+    Threads/RNLockWrapper.h
+        Threads/RNFutex.h
+    Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
-    Threads/RNSpinLock.h
+    Threads/RNLockable.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
+    Threads/RNUniqueLock.h
     Threads/RNWorkGroup.h
     Threads/RNWorkQueue.h
     Threads/RNWorkSource.h)

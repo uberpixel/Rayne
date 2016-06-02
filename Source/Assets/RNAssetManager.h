@@ -57,12 +57,12 @@ namespace RN
 		void PrepareAsset(Asset *asset, String *name, MetaClass *meta, Dictionary *settings);
 
 		Asset *__GetAssetMatching(MetaClass *base, String *name);
-		std::shared_future<StrongRef<Asset>> __GetFutureMatching(MetaClass *base, String *name);
+		Expected<std::shared_future<StrongRef<Asset>>> __GetFutureMatching(MetaClass *base, String *name);
 
 		RNAPI Asset *__GetAssetWithName(MetaClass *base, const String *tname, const Dictionary *tsettings);
 		RNAPI std::shared_future<StrongRef<Asset>> __GetFutureAssetWithName(MetaClass *base, const String *name, const Dictionary *settings, WorkQueue *queue);
 
-		std::mutex _lock;
+		Lockable _lock;
 		Array *_loaders;
 		size_t _maxMagicSize;
 

@@ -145,7 +145,7 @@ namespace RN
 
 		D3D12Window *_mainWindow;
 
-		SpinLock _lock;
+		Lockable _lock;
 		Dictionary *_defaultShaders;
 
 		ID3D12RootSignature *_rootSignature;

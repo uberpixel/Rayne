@@ -15,20 +15,23 @@
 namespace RN
 {
 	static std::unordered_map<const void *, UTF8String *> _stringTable;
-	static SpinLock _stringTableLock;
+	static Lockable _stringTableLock;
 
 	UTF8String *StringPool::CreateUTF8String(const void *string)
 	{
-		LockGuard<SpinLock> lock(_stringTableLock);
-		UTF8String *source = _stringTable[string];
+		UTF8String *source;
 
-		if(!source)
 		{
-			source = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, false);
-			_stringTable[string] = source;
-		}
+			LockGuard<Lockable> lock(_stringTableLock);
+			source = _stringTable[string];
 
-		lock.Unlock();
+			if(!source)
+			{
+				source = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, false);
+				_stringTable[string] = source;
+			}
+
+		}
 
 		UTF8String *temp = new UTF8String(source->_constStorage, source->_length, source->_hash, source->_flags);
 		return temp;

@@ -15,7 +15,7 @@ namespace RN
 {
 	struct WorkSourcePool
 	{
-		SpinLock lock;
+		Lockable lock;
 		WorkSource *head;
 	};
 

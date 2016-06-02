@@ -109,7 +109,7 @@ namespace RN
 		object = object->Copy();
 		String *key = tkey->Copy();
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_settings->SetObjectForKey(object->Autorelease(), key->Autorelease());
 		_isDirty = true;
@@ -117,14 +117,14 @@ namespace RN
 
 	void Settings::RemoveEntryForKey(const String *key)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_settings->RemoveObjectForKey(key);
 		_isDirty = true;
 	}
 
 	void Settings::Sync()
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		if(!_isDirty)
 			return;
 

@@ -62,7 +62,7 @@ namespace RN
 		_queue->Release();
 
 		{
-			LockGuard<SpinLock> lock(_engineLock);
+			LockGuard<Lockable> lock(_engineLock);
 
 			_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 				engine->Close();
@@ -86,7 +86,7 @@ namespace RN
 
 	void Logger::AddEngine(LoggingEngine *engine)
 	{
-		LockGuard<SpinLock> lock(_engineLock);
+		LockGuard<Lockable> lock(_engineLock);
 
 		bool bound = engine->IsThreadBound();
 
@@ -102,7 +102,7 @@ namespace RN
 	{
 		Flush(true);
 
-		LockGuard<SpinLock> lock(_engineLock);
+		LockGuard<Lockable> lock(_engineLock);
 		engine->Close();
 
 		bool bound = engine->IsThreadBound();
@@ -116,7 +116,7 @@ namespace RN
 	void Logger::Log(Level level, LogMessage &&message)
 	{
 		{
-			LockGuard<SpinLock> lock(_engineLock);
+			LockGuard<Lockable> lock(_engineLock);
 
 			if(_threadEngines->GetCount() > 0)
 			{
@@ -136,7 +136,7 @@ namespace RN
 			{
 				LogContainer container(std::move(message), level);
 
-				LockGuard<SpinLock> lock(_lock);
+				UniqueLock<Lockable> lock(_lock);
 
 				while(!_messages.Push(std::move(container)))
 				{
@@ -180,7 +180,7 @@ namespace RN
 		Array *engines;
 
 		{
-			LockGuard<SpinLock> lock(_engineLock);
+			LockGuard<Lockable> lock(_engineLock);
 			engines = _engines->Copy();
 		}
 
@@ -205,7 +205,7 @@ namespace RN
 		Array *engines;
 
 		{
-			LockGuard<SpinLock> lock(_engineLock);
+			LockGuard<Lockable> lock(_engineLock);
 			engines = _engines->Copy();
 		}
 

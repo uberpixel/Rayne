@@ -58,10 +58,10 @@ namespace RN
 			assert(_acknowledged);
 		}
 		
-		operator T() const { return Get(); }
+		operator T &() const { return Get(); }
 		
 		bool IsValid() const { _acknowledged = true; return !_exception; }
-		T Get() const { if(!IsValid()) { std::rethrow_exception(_exception); } return _result; }
+		T &Get() const { if(!IsValid()) { std::rethrow_exception(_exception); } return const_cast<T &>(_result); }
 		std::exception_ptr GetException() const { return _exception; }
 		void Suppress() { _acknowledged = true; }
 		

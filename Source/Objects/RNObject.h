@@ -11,7 +11,7 @@
 
 #include "../Base/RNBase.h"
 #include "../Base/RNSignal.h"
-#include "../Threads/RNSpinLock.h"
+#include "../Threads/RNLockable.h"
 #include "RNCatalogue.h"
 #include "RNKVO.h"
 
@@ -99,7 +99,7 @@ namespace RN
 			if(!property)
 				throw InvalidArgumentException("No property for key ");
 
-			LockGuard<RecursiveSpinLock> lock(const_cast<RecursiveSpinLock &>(_lock));
+			LockGuard<RecursiveLockable> lock(const_cast<RecursiveLockable &>(_lock));
 			property->AssertSignal();
 			
 			Connection *connection = property->_signal->Connect(std::move(function));
@@ -166,7 +166,7 @@ namespace RN
 		RNAPI void MapCookie(void *cookie, ObservableProperty *property, Connection *connection) const;
 		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property) const;
 		
-		RecursiveSpinLock _lock;
+		RecursiveLockable _lock;
 		
 		mutable std::atomic<size_t> _refCount;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;

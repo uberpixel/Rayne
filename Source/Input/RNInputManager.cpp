@@ -124,7 +124,7 @@ namespace RN
 
 	void InputManager::__AddDevice(InputDevice *device)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		RN_ASSERT(device->IsRegistered() == false, "Device is already registered");
 		device->_manager = this;
@@ -137,7 +137,7 @@ namespace RN
 
 	void InputManager::__RemoveDevice(InputDevice *device)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		RN_ASSERT(device->IsRegistered(), "Device must be registered");
 		device->_manager = nullptr;
@@ -170,7 +170,7 @@ namespace RN
 		RN::Array *devices;
 
 		{
-			std::lock_guard<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			devices = _devices->Copy()->Autorelease();
 		}
 
@@ -232,7 +232,7 @@ namespace RN
 		Array *result = new Array();
 
 		{
-			std::lock_guard<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			_devices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 
 				if(device->GetCategory() & categories)
@@ -247,18 +247,18 @@ namespace RN
 
 	void InputManager::AddTarget(void *target, Event events, InputDevice::Category category, Callback &&callback)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_targets.emplace_back(target, events, nullptr, category, std::move(callback));
 	}
 	void InputManager::AddTarget(void *target, Event events, InputDevice *device, Callback &&callback)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_targets.emplace_back(target, events, device, 0, std::move(callback));
 	}
 
 	void InputManager::RemoveTarget(void *target, Event events, InputDevice *device)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
@@ -279,7 +279,7 @@ namespace RN
 
 	void InputManager::RemoveTarget(void *target, Event events)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
@@ -299,7 +299,7 @@ namespace RN
 	}
 	void InputManager::RemoveTarget(void *target)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		for(auto iterator = _targets.begin(); iterator != _targets.end();)
 		{
@@ -315,7 +315,7 @@ namespace RN
 
 	void InputManager::Bind(void *target, const String *name, Callback &&callback)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		InputBindPoint *bindPoint = _bindings->GetObjectForKey<InputBindPoint>(name);
 		if(!bindPoint)
@@ -330,7 +330,7 @@ namespace RN
 
 	void InputManager::Unbind(void *target, const String *name)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		InputBindPoint *bindPoint = _bindings->GetObjectForKey<InputBindPoint>(name);
 		if(bindPoint)
@@ -342,7 +342,7 @@ namespace RN
 	
 	void InputManager::PerformEvent(Event event, InputDevice *device, InputControl *control, Object *value)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		Action action;
 		action.event = event;

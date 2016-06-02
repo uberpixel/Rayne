@@ -40,7 +40,7 @@ namespace RN
 
 		Module *__GetModuleForSymbol(void *symbol);
 
-		std::mutex _lock;
+		Lockable _lock;
 
 		Array *_modules;
 		Dictionary *_moduleMap;

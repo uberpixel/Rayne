@@ -50,8 +50,8 @@ namespace RN
 			std::atomic_thread_fence(std::memory_order_acquire);
 
 			{
-				std::unique_lock<std::mutex> lock(_lock);
-				_signal.notify_all();
+				LockGuard<Lockable> lock(_lock);
+				_signal.NotifyAll();
 
 				for(auto &pair : _waiters)
 				{
@@ -69,17 +69,17 @@ namespace RN
 
 	void WorkGroup::Wait()
 	{
-		std::unique_lock<std::mutex> lock(_lock);
-		_signal.wait(lock, [&]() -> bool { return (_open.load() == 0); });
+		UniqueLock<Lockable> lock(_lock);
+		_signal.Wait(lock, [&]() -> bool { return (_open.load() == 0); });
 	}
 	bool WorkGroup::WaitUntil(const Clock::time_point &timeout)
 	{
-		std::unique_lock<std::mutex> lock(_lock);
-		return _signal.wait_until(lock, timeout, [&]() -> bool { return (_open.load() == 0); });
+		UniqueLock<Lockable> lock(_lock);
+		return _signal.WaitUntil(lock, timeout, [&]() -> bool { return (_open.load() == 0); });
 	}
 	void WorkGroup::Notify(WorkQueue *queue, Function &&function)
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_waiters.push_back(std::make_pair(queue->Retain(), std::move(function)));
 	}
 }

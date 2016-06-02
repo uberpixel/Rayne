@@ -409,67 +409,67 @@ namespace RN
 
 	void RandomNumberGenerator::Seed(uint32 seed)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_generator->Seed(seed);
 	}
 
 	int32 RandomNumberGenerator::GetRandomInt32()
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomInt32();
 	}
 
 	int32 RandomNumberGenerator::GetRandomInt32Range(int32 min, int32 max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomInt32Range(min, max);
 	}
 
 	float RandomNumberGenerator::GetRandomFloat()
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomFloat();
 	}
 
 	float RandomNumberGenerator::GetRandomFloatRange(float min, float max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomFloatRange(min, max);
 	}
 
 	double RandomNumberGenerator::GetUniformDeviate(int32 seed)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetUniformDeviate(seed);
 	}
 
 	Vector2 RandomNumberGenerator::GetRandomVector2Range(const Vector2 &min, const Vector2 &max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomVector2Range(min, max);
 	}
 
 	Vector3 RandomNumberGenerator::GetRandomVector3Range(const Vector3 &min, const Vector3 &max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomVector3Range(min, max);
 	}
 
 	Vector4 RandomNumberGenerator::GetRandomVector4Range(const Vector4 &min, const Vector4 &max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomVector4Range(min, max);
 	}
 
 	Color RandomNumberGenerator::GetRandomColor()
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomColor();
 	}
 
 	Color RandomNumberGenerator::GetRandomColorRange(const Color &min, const Color &max)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		return _generator->GetRandomColorRange(min, max);
 	}
 

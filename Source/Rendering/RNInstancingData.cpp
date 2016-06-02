@@ -565,7 +565,7 @@ namespace RN
 
 	void InstancingData::InsertEntity(Entity *entity)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_needsClipping = true;
 		_entities.push_back(entity);
@@ -605,7 +605,7 @@ namespace RN
 
 	void InstancingData::RemoveEntity(Entity *entity)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		InstancingEntity *data = static_cast<InstancingEntity *>(entity->_instancedData);
 		data->bucket->nodes.erase(std::find(data->bucket->nodes.begin(), data->bucket->nodes.end(), entity));
@@ -629,7 +629,7 @@ namespace RN
 
 	void InstancingData::UpdateEntity(Entity *entity)
 	{
-		LockGuard<SpinLock> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 
 		Vector3 position = entity->GetPosition();

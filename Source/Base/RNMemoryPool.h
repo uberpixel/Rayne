@@ -9,7 +9,7 @@
 #ifndef __RAYNE_MEMORYPOOL_H_
 #define __RAYNE_MEMORYPOOL_H_
 
-#include "../Threads/RNSpinLock.h"
+#include "../Threads/RNLockable.h"
 #include <vector>
 #include <list>
 #include <bitset>
@@ -47,7 +47,7 @@ namespace RN
 		private:
 			SizePool *_owner;
 			std::bitset<128> _usage;
-			SpinLock _lock;
+			Lockable _lock;
 			uint8_t *_data;
 			size_t _size;
 		};

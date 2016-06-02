@@ -368,7 +368,7 @@ namespace RN
 
 		String *path = RNSTR(buffer);
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_nodes->Enumerate<Directory>([&](Directory *directory, size_t tindex, bool &stop) {
 
@@ -408,7 +408,7 @@ namespace RN
 
 	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		Array *components = nullptr;
 
@@ -684,7 +684,7 @@ namespace RN
 	{
 		path = __ExpandPath(path);
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		bool hasPath = false;
 
@@ -715,7 +715,7 @@ namespace RN
 	{
 		path = __ExpandPath(path);
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		size_t index = kRNNotFound;
 
@@ -741,7 +741,7 @@ namespace RN
 		prefix->Append(RNCSTR(":"));
 
 		{
-			std::lock_guard<std::mutex> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 
 			Array *nodes = _modulePaths->GetObjectForKey<Array>(prefix);
 			if(!nodes)
@@ -772,7 +772,7 @@ namespace RN
 		prefix->Insert(RNCSTR(":"), 0);
 		prefix->Append(RNCSTR(":"));
 
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_modulePaths->RemoveObjectForKey(prefix);
 	}
 

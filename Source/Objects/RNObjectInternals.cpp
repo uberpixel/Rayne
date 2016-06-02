@@ -172,7 +172,7 @@ namespace RN
 		}
 		
 		
-		SpinLock lock;
+		Lockable lock;
 		std::unordered_map<void *, WeakEntry *, WeakHash> weakMap;
 	};
 	
@@ -199,8 +199,8 @@ namespace RN
 		WeakTable *oldTable = WeakTable::GetWeakTableForPointer(object);
 		WeakTable *newTable = WeakTable::GetWeakTableForPointer(value);
 		
-		SpinLock &lock1 = (oldTable > newTable) ? newTable->lock : oldTable->lock;
-		SpinLock &lock2 = (oldTable > newTable) ? oldTable->lock : newTable->lock;
+		Lockable &lock1 = (oldTable > newTable) ? newTable->lock : oldTable->lock;
+		Lockable &lock2 = (oldTable > newTable) ? oldTable->lock : newTable->lock;
 		
 		bool differentLocks = (oldTable != newTable);
 		if(differentLocks)
@@ -239,7 +239,7 @@ namespace RN
 		Object *object = *weak;
 		
 		WeakTable *table = WeakTable::GetWeakTableForPointer(object);
-		SpinLock &lock = table->lock;
+		Lockable &lock = table->lock;
 		
 		lock.Lock();
 		
@@ -266,7 +266,7 @@ namespace RN
 		Object *object = *weak;
 		
 		WeakTable *table = WeakTable::GetWeakTableForPointer(object);
-		SpinLock &lock = table->lock;
+		Lockable &lock = table->lock;
 		
 		lock.Lock();
 		
@@ -299,7 +299,7 @@ namespace RN
 	void __DestroyWeakReferences(Object *object)
 	{
 		WeakTable *table = WeakTable::GetWeakTableForPointer(object);
-		SpinLock &lock = table->lock;
+		Lockable &lock = table->lock;
 		
 		lock.Lock();
 		table->DestroyWeakReference(object);

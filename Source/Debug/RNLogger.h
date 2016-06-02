@@ -130,10 +130,10 @@ namespace RN
 
 		void __FlushQueue();
 
-		SpinLock _lock;
+		Lockable _lock;
 		AtomicRingBuffer<LogContainer, 256> _messages;
 
-		SpinLock _engineLock;
+		Lockable _engineLock;
 		Array *_threadEngines;
 		Array *_engines;
 

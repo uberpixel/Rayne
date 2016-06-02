@@ -10,7 +10,6 @@
 #define __RAYNE_SIGNAL_H__
 
 #include "RNBase.h"
-#include "RNSTL.h"
 
 namespace RN
 {
@@ -90,27 +89,27 @@ namespace RN
 		template <typename... SigCompatible>
 		void Emit(SigCompatible&&... args)
 		{
-			stl::lockable_shim<decltype(_lock)> lock1(_lock);
-			stl::lockable_shim<decltype(_emitLock)> lock2(_emitLock);
-			
-			std::lock(lock1, lock2);
+			UniqueLock<decltype(_lock)> lock1(_lock, LockPolicy::DeferLock);
+			UniqueLock<decltype(_emitLock)> lock2(_emitLock, LockPolicy::DeferLock);
+
+			Lock(lock1, lock2);
 			
 			std::vector<Slot> slots;
 			std::swap(slots, _slots);
 			
-			lock1.unlock();
+			lock1.Unlock();
 			
 			for(Slot &slot : slots)
 				slot.callback(std::forward<SigCompatible>(args)...);
 			
-			lock1.lock();
+			lock1.Lock();
 			std::swap(slots, _slots);
 			
 			if(!slots.empty())
 				_slots.insert(_slots.end(), std::make_move_iterator(slots.begin()), std::make_move_iterator(slots.end()));
 		
-			lock1.unlock();
-			lock2.unlock();
+			lock1.Unlock();
+			lock2.Unlock();
 		}
 		
 		template<class F>
@@ -124,7 +123,7 @@ namespace RN
 		{
 			Connection *connection = new Connection(this, tag);
 			
-			LockGuard<SpinLock> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 			_slots.emplace_back(Slot(tag, connection, std::move(f)));
 			
 			return connection;
@@ -191,7 +190,7 @@ namespace RN
 		
 		void RemoveSlot(Tag tag) override
 		{
-			LockGuard<SpinLock> lock(_lock);
+			LockGuard<Lockable> lock(_lock);
 		
 			auto iterator = std::find_if(_slots.begin(), _slots.end(), [&](const Slot &slot) { return slot.tag == tag; });
 			if(iterator != _slots.end())
@@ -201,8 +200,8 @@ namespace RN
 			}
 		}
 		
-		SpinLock _lock;
-		SpinLock _emitLock;
+		Lockable _lock;
+		Lockable _emitLock;
 		std::atomic<Tag> _tags;
 		std::vector<Slot> _slots;
 	};

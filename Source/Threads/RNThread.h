@@ -66,7 +66,7 @@ namespace RN
 		template <typename T>
 		T *GetObjectForKey(Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			T *object = _dictionary->GetObjectForKey<T>(key);
 			
 			return object;
@@ -74,13 +74,13 @@ namespace RN
 		
 		void SetObjectForKey(Object *object, Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			_dictionary->SetObjectForKey(object, key->Copy());
 		}
 		
 		void RemoveObjectForKey(Object *key)
 		{
-			LockGuard<SpinLock> lock(_dictionaryLock);
+			LockGuard<Lockable> lock(_dictionaryLock);
 			_dictionary->RemoveObjectForKey(key);
 		}
 		
@@ -96,10 +96,10 @@ namespace RN
 		void AutoAssignName();
 		void __UnscheduleExecuteOnExit(void *context);
 		
-		std::mutex _generalMutex;
+		Lockable _generalMutex;
 		RunLoop *_runLoop;
 
-		SpinLock _dictionaryLock;
+		Lockable _dictionaryLock;
 		Dictionary *_dictionary;
 		String *_name;
 		
@@ -111,8 +111,8 @@ namespace RN
 		std::thread::id _id;
 		std::thread _thread;
 
-		std::mutex _exitMutex;
-		std::condition_variable _exitSignal;
+		Lockable _exitMutex;
+		Condition _exitSignal;
 		std::vector<std::pair<std::function<void (void *)>, void *>> _exitFunctions;
 		
 		__RNDeclareMetaInternal(Thread)

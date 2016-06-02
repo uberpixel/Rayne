@@ -42,13 +42,13 @@ namespace RN
 
 	void RunLoopSource::Invalidate()
 	{
-		std::unique_lock<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_valid = false;
 	}
 
 	void RunLoopSource::Signal()
 	{
-		std::unique_lock<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_signaled = true;
 
 		if(_runLoop)
@@ -57,14 +57,14 @@ namespace RN
 
 	void RunLoopSource::__AddToRunLoop(RunLoop *runLoop)
 	{
-		std::unique_lock<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_runLoop = runLoop;
 		WasAdded();
 	}
 	void RunLoopSource::__RemoveFromRunLoop()
 	{
-		std::unique_lock<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 
 		_runLoop = nullptr;
 		WasRemoved();
@@ -159,9 +159,9 @@ namespace RN
 
 				auto wakeup = std::min(GetNextWakeUp(), timeout);
 
-				std::unique_lock<std::mutex> lock(_lock);
+				UniqueLock<Lockable> lock(_lock);
 				_waiting = true;
-				_signal.wait_until(lock, wakeup, [&]() -> bool { return _needsWakeup; });
+				_signal.WaitUntil(lock, wakeup, [&]() -> bool { return _needsWakeup; });
 				_waiting = false;
 
 				DoObservers(RunLoopObserver::Activity::AfterWaiting);
@@ -175,7 +175,7 @@ namespace RN
 
 	void RunLoop::Stop()
 	{
-		std::lock_guard<std::mutex> lock(_lock);
+		LockGuard<Lockable> lock(_lock);
 		_stopped = true;
 
 		if(_waiting)
@@ -185,7 +185,7 @@ namespace RN
 	void RunLoop::WakeUp()
 	{
 		_needsWakeup = true;
-		_signal.notify_one();
+		_signal.NotifyOne();
 	}
 
 	bool RunLoop::Step(const Clock::time_point &now)
