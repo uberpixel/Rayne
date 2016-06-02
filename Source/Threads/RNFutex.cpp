@@ -230,8 +230,17 @@ namespace RN
 
 					WakeResult result = WakeResult::WokeUpThread;
 
-					if(data->next)
-						result |= WakeResult::HasMoreThreads;
+					ThreadData *temp = data->next;
+					while(temp)
+					{
+						if(temp->address == address)
+						{
+							result |= WakeResult::HasMoreThreads;
+							break;
+						}
+
+						temp = temp->next;
+					}
 
 					callback(result);
 					break;
