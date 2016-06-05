@@ -157,7 +157,7 @@ namespace RN
 
 				DoObservers(RunLoopObserver::Activity::BeforeWaiting);
 
-				auto wakeup = std::min(GetNextWakeUp(), timeout);
+				Clock::time_point wakeup = std::min(GetNextWakeUp(), timeout);
 
 				UniqueLock<Lockable> lock(_lock);
 				_waiting = true;
@@ -301,7 +301,7 @@ namespace RN
 		dead->Release();
 	}
 
-	RunLoop::Clock::time_point RunLoop::GetNextWakeUp()
+	Clock::time_point RunLoop::GetNextWakeUp()
 	{
 		return Clock::time_point::max();
 	}

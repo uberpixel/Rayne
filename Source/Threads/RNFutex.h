@@ -53,7 +53,7 @@ namespace RN
 			}
 
 			template<class T, class U>
-			RNAPI static bool CompareAndWait(const std::atomic<T> *address, U expected)
+			static bool CompareAndWait(const std::atomic<T> *address, U expected)
 			{
 				return Wait(address, [address, expected]() -> bool {
 

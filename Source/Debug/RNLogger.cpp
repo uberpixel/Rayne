@@ -21,7 +21,7 @@ namespace RN
 		std::stringstream stream;
 		std::time_t timet = std::chrono::system_clock::to_time_t(time);
 
-#if RN_PLATFORM_POSIX || RN_COMPILER_GCC
+#if RN_PLATFORM_POSIX
 		std::tm tm = std::tm{0};
 		localtime_r(&timet, &tm);
 #else

@@ -84,7 +84,6 @@ namespace RN
 	class RunLoop
 	{
 	public:
-		using Clock = std::chrono::steady_clock;
 		using Duration = std::chrono::microseconds;
 
 		RNAPI RunLoop();
