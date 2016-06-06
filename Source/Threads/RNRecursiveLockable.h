@@ -69,8 +69,8 @@ namespace RN
 
 		void Unlock()
 		{
-			RN_ASSERT(IsLocked(), "RecursiveLockable must be acquired in order to be released!");
-			RN_ASSERT(_thread == std::this_thread::get_id(), "RecursiveLockable must be unlocked from the thread that locked it");
+			RN_DEBUG_ASSERT(IsLocked(), "RecursiveLockable must be acquired in order to be released!");
+			RN_DEBUG_ASSERT(_thread.load(std::memory_order_acquire) == std::this_thread::get_id(), "RecursiveLockable must be unlocked from the thread that locked it");
 
 			if((-- _threadRecursion) > 0)
 				return;

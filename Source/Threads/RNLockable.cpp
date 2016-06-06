@@ -19,15 +19,10 @@ namespace RN
 
 		while(1)
 		{
-			uint8 value = _flag.load();
+			uint8 value = _flag.load(std::memory_order_acquire);
 
 			if(!(value & kLockFlagLocked) && __Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
-			{
-#if RN_BUILD_DEBUG
-				_thread = std::this_thread::get_id();
-#endif
 				return;
-			}
 
 			if(!(value & kLockFlagParked) && spinCount < spinLimit)
 			{
@@ -48,7 +43,7 @@ namespace RN
 	{
 		while(1)
 		{
-			uint8 value = _flag.load();
+			uint8 value = _flag.load(std::memory_order_acquire);
 
 			RN_ASSERT(value == kLockFlagLocked || value == (kLockFlagLocked | kLockFlagParked), "UnlockSlowPath found flag in inconsistent state, value: %d", value);
 
@@ -67,9 +62,9 @@ namespace RN
 				RN_DEBUG_ASSERT(_flag.load() == (kLockFlagLocked | kLockFlagParked), "UnlockSlowPath found flag in inconsistent state");
 
 				if(result & __Private::Futex::WakeResult::HasMoreThreads)
-					_flag.store(kLockFlagParked);
+					_flag.store(kLockFlagParked, std::memory_order_release);
 				else
-					_flag.store(0);
+					_flag.store(0, std::memory_order_release);
 
 			});
 

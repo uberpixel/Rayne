@@ -33,12 +33,7 @@ namespace RN
 		void Lock()
 		{
 			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, 0, kLockFlagLocked, std::memory_order_acquire)))
-			{
-#if RN_BUILD_DEBUG
-				_thread = std::this_thread::get_id();
-#endif
 				return;
-			}
 
 			LockSlowPath();
 		}
@@ -47,27 +42,18 @@ namespace RN
 		{
 			while(1)
 			{
-				uint8 value = _flag.load();
+				uint8 value = _flag.load(std::memory_order_acquire);
 				if(value & kLockFlagLocked)
 					return false;
 
 				if(__Private::CompareExchangeWeak<uint8>(_flag, value, value | kLockFlagLocked))
-				{
-#if RN_BUILD_DEBUG
-					_thread = std::this_thread::get_id();
-#endif
 					return true;
-				}
 			}
 		}
 
 		void Unlock()
 		{
 			RN_ASSERT(IsLocked(), "Lockable must be acquired in order to be released!");
-
-#if RN_BUILD_DEBUG
-			RN_ASSERT(_thread == std::this_thread::get_id(), "Lockable must be unlocked from the thread that locked it");
-#endif
 
 			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0, std::memory_order_release)))
 				return;
@@ -88,10 +74,6 @@ namespace RN
 		static constexpr uint8 kLockFlagParked = (1 << 1);
 
 		std::atomic<uint8> _flag;
-
-#if RN_BUILD_DEBUG
-		std::thread::id _thread;
-#endif
 	};
 }
 
