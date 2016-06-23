@@ -168,6 +168,7 @@ namespace RN
 				std::unique_lock<std::mutex> lock(data->lock);
 				data->address = nullptr;
 
+				beforeSleep();
 				return false;
 			}
 
