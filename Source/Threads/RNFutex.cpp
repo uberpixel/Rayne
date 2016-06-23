@@ -165,9 +165,11 @@ namespace RN
 
 			if(!validation())
 			{
-				std::unique_lock<std::mutex> lock(data->lock);
-				data->address = nullptr;
-
+				{
+					std::unique_lock<std::mutex> lock(data->lock);
+					data->address = nullptr;
+				}
+				
 				beforeSleep();
 				return false;
 			}
