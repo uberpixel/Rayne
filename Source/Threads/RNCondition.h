@@ -95,7 +95,7 @@ namespace RN
 			if(!_hasWaiters.load(std::memory_order_acquire))
 				return;
 
-			_hasWaiters.store(std::memory_order_release);
+			_hasWaiters.store(false, std::memory_order_release);
 			__Private::Futex::WakeAll(&_hasWaiters);
 		}
 
