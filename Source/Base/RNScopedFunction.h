@@ -14,19 +14,14 @@
 namespace RN
 {
 	template<class F>
-	class __ScopedFunction;
+	class ScopedFunction;
 
 	template<class R, class... Args>
-	class __ScopedFunction<R (Args...)>
+	class ScopedFunction<R (Args...)>
 	{
 	public:
-		__ScopedFunction() :
-			_implementation(nullptr),
-			_arg(nullptr)
-		{}
-
-		__ScopedFunction(R (*implementation)(void *, Args...), void *arg = nullptr) :
-			_implementation(implementation),
+		ScopedFunction(R (*imp)(void *arg, Args...) = nullptr, void *arg = nullptr) :
+			_implementation(imp),
 			_arg(arg)
 		{}
 
@@ -41,32 +36,58 @@ namespace RN
 		void *_arg;
 	};
 
-	template<class F, class Functor>
-	class ScopedFunction;
+	template<class T, class F>
+	class __ScopedFunctionImplementation;
 
-	template<class R, class... Args, class Functor>
-	class ScopedFunction<R (Args...), Functor> : public __ScopedFunction<R (Args...)>
+	template<class R, class... Args, class F>
+	class __ScopedFunctionImplementation<R (Args...), F>  : public ScopedFunction<R (Args...)>
 	{
 	public:
 		template<class PassedFunctor>
-		ScopedFunction(PassedFunctor &&functor) :
-			__ScopedFunction<R (Args...)>(Callback, this),
-			_functor(std::forward<PassedFunctor>(functor))
+		__ScopedFunctionImplementation(PassedFunctor &&functor) :
+			ScopedFunction<R (Args...)>(ForwardCall, this),
+			_functor(functor)
 		{}
 
-	private:
-		static R Callback(void *argument, Args... arguments)
+		__ScopedFunctionImplementation(const __ScopedFunctionImplementation &other) :
+			ScopedFunction<R (Args...)>(ForwardCall, this),
+			_functor(other._functor)
+		{}
+
+		__ScopedFunctionImplementation(__ScopedFunctionImplementation &&other) :
+			ScopedFunction<R (Args...)>(ForwardCall, this),
+			_functor(other._functor)
+		{}
+
+
+		__ScopedFunctionImplementation &operator =(const __ScopedFunctionImplementation &other)
 		{
-			return static_cast<ScopedFunction *>(argument)->_functor(arguments...);
+			_functor = other._functor;
+		}
+		__ScopedFunctionImplementation &operator =(__ScopedFunctionImplementation &&other)
+		{
+			_functor = other._functor;
 		}
 
-		Functor _functor;
+	private:
+		static R ForwardCall(void *argument, Args... arguments)
+		{
+			return static_cast<__ScopedFunctionImplementation *>(argument)->_functor(arguments...);
+		}
+
+		F _functor;
 	};
 
+
 	template<class FunctionType, class Functor>
-	ScopedFunction<FunctionType, Functor> MakeScopedFunction(Functor &&functor)
+	__ScopedFunctionImplementation<FunctionType, Functor> MakeScopedFunction(const Functor &functor)
 	{
-		return ScopedFunction<FunctionType, Functor>(std::forward<Functor>(functor));
+		return __ScopedFunctionImplementation<FunctionType, Functor>(functor);
+	}
+	template<class FunctionType, class Functor>
+	__ScopedFunctionImplementation<FunctionType, Functor> MakeScopedFunction(Functor &&functor)
+	{
+		return __ScopedFunctionImplementation<FunctionType, Functor>(std::move<Functor>(functor));
 	}
 }
 
