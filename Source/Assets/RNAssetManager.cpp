@@ -408,10 +408,11 @@ namespace RN
 		wrapper->Retain();
 
 		{
+			LockGuard<Lockable> lock(_lock);
+
 			if(asset.IsValid())
 				PrepareAsset(asset.Get(), name, wrapper->GetMeta(), nullptr);
 
-			LockGuard<Lockable> lock(_lock);
 			Array *requests = _requests->GetObjectForKey<Array>(name);
 
 			if(requests)

@@ -309,10 +309,7 @@ namespace RN
 					tangent = Vector4(newnormal.GetCrossProduct(normal).Normalize(), 1.0f);
 				}
 
-				it->x = tangent.x;
-				it->y = tangent.y;
-				it->z = tangent.z;
-				it->w = tangent.w;
+				*it = tangent;
 				it ++;
 			}
 		}
