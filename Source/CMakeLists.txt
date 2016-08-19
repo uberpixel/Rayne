@@ -83,7 +83,7 @@ set(RAYNE_SOURCES
     System/RNFileCoordinator.cpp
     System/RNScreen.cpp
     Threads/RNLockable.cpp
-        Threads/RNFutex.cpp
+    Threads/RNFutex.cpp
     Threads/RNRecursiveLockable.cpp
     Threads/RNThread.cpp
     Threads/RNRunLoop.cpp
@@ -190,7 +190,7 @@ set(RAYNE_HEADERS
     Threads/RNLockGuard.h
     Threads/RNLockTools.h
     Threads/RNLockWrapper.h
-        Threads/RNFutex.h
+    Threads/RNFutex.h
     Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h

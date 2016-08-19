@@ -4,6 +4,11 @@ project(RayneAll)
 # General settings, independent of target
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/CMake")
 
+option(RAYNE_THREAD_SANITIZER "Enable Clang thread sanitizer if available" OFF)
+option(RAYNE_ADDRESS_SANITIZER "Enable Clang address sanitizer if available" OFF)
+option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
+
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE")
 else()
@@ -14,6 +19,33 @@ else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
     endif()
 endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # Thread Sanitizer
+    if(${RAYNE_THREAD_SANITIZER})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
+    endif()
+
+    # Address Sanitizer
+    if(${RAYNE_ADDRESS_SANITIZER})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+    endif()
+
+    # Memory Sanitizer
+    if(${RAYNE_MEMORY_SANITIZER})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=memory")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=memory")
+    endif()
+
+    # Optimize compiler generation for better stack traces with memory and/or address sanitizer enabled
+    if(${RAYNE_MEMORY_SANITIZER} OR ${RAYNE_ADDRESS_SANITIZER})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-optimize-sibling-calls -fno-omit-frame-pointer")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-optimize-sibling-calls -fno-omit-frame-pointer")
+    endif()
+endif()
+
 
 if(UNIX)
     if(APPLE)
