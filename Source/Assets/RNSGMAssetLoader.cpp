@@ -7,7 +7,7 @@
 //
 
 #include "../Rendering/RNRenderer.h"
-#include "../System/RNFileCoordinator.h"
+#include "../System/RNFileManager.h"
 #include "../Threads/RNWorkQueue.h"
 #include "RNSGMAssetLoader.h"
 #include "RNAssetManager.h"
@@ -127,7 +127,7 @@ namespace RN
 					String *filename = RNSTR(buffer);
 					String *fullPath = path->StringByAppendingPathComponent(filename);
 
-					String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+					String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
 
 					if(options.queue)
 						AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);

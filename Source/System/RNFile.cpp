@@ -7,7 +7,7 @@
 //
 
 #include "RNFile.h"
-#include "RNFileCoordinator.h"
+#include "RNFileManager.h"
 
 #if RN_PLATFORM_WINDOWS
 	#include "../Base/RNUnistd.h"
@@ -231,7 +231,7 @@ namespace RN
 
 	File *File::WithName(const String *name, Mode mode)
 	{
-		FileCoordinator *coordinator = FileCoordinator::GetSharedInstance();
+		FileManager *coordinator = FileManager::GetSharedInstance();
 
 		if(mode & Mode::Write)
 		{
@@ -247,10 +247,10 @@ namespace RN
 			}
 		}
 
-		FileCoordinator::ResolveHint hint = 0;
+		FileManager::ResolveHint hint = 0;
 
 		if(mode & Mode::Write && !(mode & Mode::NoCreate))
-			hint |= FileCoordinator::ResolveHint::CreateNode;
+			hint |= FileManager::ResolveHint::CreateNode;
 
 		String *path = coordinator->ResolveFullPath(name, hint);
 		if(!path)

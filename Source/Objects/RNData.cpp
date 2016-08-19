@@ -18,7 +18,7 @@
 #include "RNData.h"
 #include "RNSerialization.h"
 #include "RNString.h"
-#include "../System/RNFileCoordinator.h"
+#include "../System/RNFileManager.h"
 
 #define kRNDataIncreaseLength 64
 #define kRNDataReadBufferSize 1024
@@ -98,7 +98,7 @@ namespace RN
 
 	Expected<Data *> Data::WithContentsOfFile(const String *file)
 	{
-		String *path = FileCoordinator::GetSharedInstance()->ResolveFullPath(file, 0);
+		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
 		if(!path)
 			return InvalidArgumentException(RNSTR("Couldn't open file " << file));
 
@@ -194,7 +194,7 @@ namespace RN
 	
 	bool Data::WriteToFile(const String *file)
 	{
-		String *path = FileCoordinator::GetSharedInstance()->ResolveFullPath(file, FileCoordinator::ResolveHint::CreateNode);
+		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, FileManager::ResolveHint::CreateNode);
 		if(!path)
 			return false;
 

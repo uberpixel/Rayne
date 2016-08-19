@@ -87,7 +87,7 @@
 #include "Scene/RNSceneNode.h"
 
 #include "System/RNFile.h"
-#include "System/RNFileCoordinator.h"
+#include "System/RNFileManager.h"
 #include "System/RNScreen.h"
 
 #include "Threads/RNCondition.h"

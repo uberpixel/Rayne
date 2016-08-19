@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../System/RNFileCoordinator.h"
+#include "../System/RNFileManager.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../Debug/RNLogger.h"
 #include "RNSettings.h"
@@ -19,7 +19,7 @@ namespace RN
 		_settings(nullptr),
 		_isDirty(false)
 	{
-		FileCoordinator *manager = FileCoordinator::GetSharedInstance();
+		FileManager *manager = FileManager::GetSharedInstance();
 
 		String *location = GetSettingsLocation();
 		String *original = manager->ResolveFullPath(RNCSTR("settings.json"), 0);
@@ -95,7 +95,7 @@ namespace RN
 
 	String *Settings::GetSettingsLocation()
 	{
-		String *location = FileCoordinator::GetSharedInstance()->GetPathForLocation(FileCoordinator::Location::SaveDirectory);
+		String *location = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::SaveDirectory);
 		location->AppendPathComponent(RNCSTR("settings.json"));
 
 		return location;

@@ -80,7 +80,7 @@ set(RAYNE_SOURCES
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
     System/RNFile.cpp
-    System/RNFileCoordinator.cpp
+    System/RNFileManager.cpp
     System/RNScreen.cpp
     Threads/RNLockable.cpp
     Threads/RNFutex.cpp
@@ -183,7 +183,7 @@ set(RAYNE_HEADERS
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h
     System/RNFile.h
-    System/RNFileCoordinator.h
+    System/RNFileManager.h
     System/RNScreen.h
     Threads/RNCondition.h
     Threads/RNLockable.h

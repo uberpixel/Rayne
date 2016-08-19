@@ -336,7 +336,7 @@ namespace RN
 		String *filename = RNSTR(aipath.C_Str())->GetLastPathComponent();
 		String *fullPath = path->StringByAppendingPathComponent(filename);
 
-		String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+		String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
 
 		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
 
@@ -351,7 +351,7 @@ namespace RN
 		String *filename = RNSTR(aipath.C_Str())->GetLastPathComponent();
 		String *fullPath = path->StringByAppendingPathComponent(filename);
 
-		String *normalized = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+		String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
 
 		//bool linear = (aitexturetype == aiTextureType_NORMALS || aitexturetype == aiTextureType_HEIGHT || aitexturetype == aiTextureType_DISPLACEMENT);
 

@@ -1,5 +1,5 @@
 //
-//  RNFileCoordinator.cpp
+//  RNFileManager.cpp
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
@@ -10,7 +10,7 @@
 #include "../Base/RNKernel.h"
 #include "../Base/RNApplication.h"
 #include "../Modules/RNModule.h"
-#include "RNFileCoordinator.h"
+#include "RNFileManager.h"
 
 #if RN_PLATFORM_POSIX
 	#include <dirent.h>
@@ -27,13 +27,13 @@
 
 namespace RN
 {
-	RNDefineScopedMeta(FileCoordinator, Node, Object)
-	RNDefineScopedMeta(FileCoordinator, Directory, FileCoordinator::Node)
-	RNDefineScopedMeta(FileCoordinator, File, FileCoordinator::Node)
+	RNDefineScopedMeta(FileManager, Node, Object)
+	RNDefineScopedMeta(FileManager, Directory, FileManager::Node)
+	RNDefineScopedMeta(FileManager, File, FileManager::Node)
 
 	const String *_platformModifier;
 
-	FileCoordinator::Node::Node(String *name, Node *parent, Type type) :
+	FileManager::Node::Node(String *name, Node *parent, Type type) :
 		_type(type),
 		_name(name->Retain()),
 		_path(nullptr),
@@ -54,21 +54,21 @@ namespace RN
 			_name->DeleteCharacters(Range(range.origin, modifierLength));
 		}
 	}
-	FileCoordinator::Node::~Node()
+	FileManager::Node::~Node()
 	{
 		SafeRelease(_path);
 		SafeRelease(_modifier);
 		_name->Release();
 	}
 
-	void FileCoordinator::Node::SetPath(String *path)
+	void FileManager::Node::SetPath(String *path)
 	{
 		SafeRelease(_path);
 		_path = SafeRetain(path);
 	}
 
 
-	FileCoordinator::Directory::Directory(String *name, Node *parent) :
+	FileManager::Directory::Directory(String *name, Node *parent) :
 		Node(name, parent, Type::Directory),
 		_children(new Array()),
 		_childMap(new Dictionary())
@@ -76,7 +76,7 @@ namespace RN
 		ParseDirectory();
 	}
 
-	FileCoordinator::Directory::Directory(const String *path) :
+	FileManager::Directory::Directory(const String *path) :
 		Node(path->GetLastPathComponent(), nullptr, Type::Directory),
 		_children(new Array()),
 		_childMap(new Dictionary())
@@ -85,18 +85,18 @@ namespace RN
 		ParseDirectory();
 	}
 
-	FileCoordinator::Directory::~Directory()
+	FileManager::Directory::~Directory()
 	{
 		_children->Release();
 		_childMap->Release();
 	}
 
-	FileCoordinator::Node *FileCoordinator::Directory::GetChildWithName(const String *name) const
+	FileManager::Node *FileManager::Directory::GetChildWithName(const String *name) const
 	{
-		return _childMap->GetObjectForKey<FileCoordinator::Node>(name);
+		return _childMap->GetObjectForKey<FileManager::Node>(name);
 	}
 
-	void FileCoordinator::Directory::ParseDirectory()
+	void FileManager::Directory::ParseDirectory()
 	{
 #if RN_PLATFORM_POSIX
 		int error = errno;
@@ -235,13 +235,13 @@ namespace RN
 #endif
 	}
 
-	FileCoordinator::File::File(String *name, Node *parent) :
+	FileManager::File::File(String *name, Node *parent) :
 		Node(name, parent, Type::File)
 	{}
 
 	// ---------------------
 	// MARK: -
-	// MARK: FileCoordinator
+	// MARK: FileManager
 	// ---------------------
 
 #if RN_PLATFORM_POSIX
@@ -274,9 +274,9 @@ namespace RN
 	}
 #endif
 
-	static FileCoordinator *__sharedInstance = nullptr;
+	static FileManager *__sharedInstance = nullptr;
 
-	FileCoordinator::FileCoordinator() :
+	FileManager::FileManager() :
 		_nodes(new Array()),
 		_modulePaths(new Dictionary())
 	{
@@ -289,19 +289,19 @@ namespace RN
 		_platformModifier = RNCSTR("~win")->Retain();
 #endif
 	}
-	FileCoordinator::~FileCoordinator()
+	FileManager::~FileManager()
 	{
 		SafeRelease(_nodes);
 		SafeRelease(_modulePaths);
 
 		__sharedInstance = nullptr;
 	}
-	FileCoordinator *FileCoordinator::GetSharedInstance()
+	FileManager *FileManager::GetSharedInstance()
 	{
 		return __sharedInstance;
 	}
 
-	void FileCoordinator::__PrepareWithManifest()
+	void FileManager::__PrepareWithManifest()
 	{
 		Array *paths = Kernel::GetSharedInstance()->GetManifestEntryForKey<Array>(kRNManifestSearchPathsKey);
 		if(paths)
@@ -324,7 +324,7 @@ namespace RN
 		}
 	}
 
-	String *FileCoordinator::__ExpandPath(const String *tpath)
+	String *FileManager::__ExpandPath(const String *tpath)
 	{
 #if RN_PLATFORM_POSIX
 		char buffer[PATH_MAX];
@@ -348,7 +348,7 @@ namespace RN
 		return path;
 	}
 
-	String *FileCoordinator::GetNormalizedPathFromFullPath(const String *fullPath)
+	String *FileManager::GetNormalizedPathFromFullPath(const String *fullPath)
 	{
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
@@ -385,7 +385,7 @@ namespace RN
 		return path;
 	}
 
-	Array *FileCoordinator::__GetNodeContainerForPath(const String *path, Array *&outPath)
+	Array *FileManager::__GetNodeContainerForPath(const String *path, Array *&outPath)
 	{
 		Array *components = path->GetPathComponents();
 		if(components->GetCount() > 1)
@@ -406,7 +406,7 @@ namespace RN
 		return _nodes;
 	}
 
-	FileCoordinator::Node *FileCoordinator::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
+	FileManager::Node *FileManager::ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		LockGuard<Lockable> lock(_lock);
 
@@ -463,7 +463,7 @@ namespace RN
 		return nullptr;
 	}
 
-	String *FileCoordinator::ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT
+	String *FileManager::ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		Node *result = ResolvePath(path, hint);
 		if(result)
@@ -497,7 +497,7 @@ namespace RN
 		return nullptr;
 	}
 
-	String *FileCoordinator::GetPathForLocation(Location location) const
+	String *FileManager::GetPathForLocation(Location location) const
 	{
 #if RN_PLATFORM_MAC_OS
 		static bool isAppBundle = false;
@@ -680,7 +680,7 @@ namespace RN
 		return nullptr;
 	}
 
-	void FileCoordinator::AddSearchPath(const String *path)
+	void FileManager::AddSearchPath(const String *path)
 	{
 		path = __ExpandPath(path);
 
@@ -711,7 +711,7 @@ namespace RN
 		}
 	}
 
-	void FileCoordinator::RemoveSearchPath(const String *path)
+	void FileManager::RemoveSearchPath(const String *path)
 	{
 		path = __ExpandPath(path);
 
@@ -733,7 +733,7 @@ namespace RN
 		}
 	}
 
-	void FileCoordinator::__AddModuleWithPath(Module *module, const String *path)
+	void FileManager::__AddModuleWithPath(Module *module, const String *path)
 	{
 		String *prefix = SafeCopy(module->GetName());
 
@@ -765,7 +765,7 @@ namespace RN
 		prefix->Release();
 
 	}
-	void FileCoordinator::__RemoveModule(Module *module)
+	void FileManager::__RemoveModule(Module *module)
 	{
 		String *prefix = SafeCopy(module->GetName());
 
@@ -776,13 +776,13 @@ namespace RN
 		_modulePaths->RemoveObjectForKey(prefix);
 	}
 
-	bool FileCoordinator::PathExists(const String *path)
+	bool FileManager::PathExists(const String *path)
 	{
 		bool ignored;
 		return PathExists(path, ignored);
 	}
 
-	bool FileCoordinator::PathExists(const String *path, bool &isDirectory)
+	bool FileManager::PathExists(const String *path, bool &isDirectory)
 	{
 #if RN_PLATFORM_POSIX
 		struct stat buf;

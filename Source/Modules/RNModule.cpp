@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "../System/RNFileCoordinator.h"
+#include "../System/RNFileManager.h"
 #include "RNModule.h"
 
 #if RN_PLATFORM_POSIX
@@ -28,7 +28,7 @@ namespace RN
 	{
 		// Figure out if name points to a folder
 		bool isDirectory = false;
-		FileCoordinator *coordinator = FileCoordinator::GetSharedInstance();
+		FileManager *coordinator = FileManager::GetSharedInstance();
 
 		String *path = coordinator->ResolveFullPath(_name, 0);
 		if(path)
@@ -193,7 +193,7 @@ namespace RN
 		}
 		catch(...)
 		{
-			FileCoordinator::GetSharedInstance()->__RemoveModule(this);
+			FileManager::GetSharedInstance()->__RemoveModule(this);
 			std::rethrow_exception(std::current_exception());
 		}
 	}
@@ -215,7 +215,7 @@ namespace RN
 		SafeRelease(_resourcePath);
 		SafeRelease(_lookupPrefix);
 
-		FileCoordinator::GetSharedInstance()->__RemoveModule(this);
+		FileManager::GetSharedInstance()->__RemoveModule(this);
 	}
 
 #if RN_PLATFORM_WINDOWS
@@ -265,7 +265,7 @@ namespace RN
 		}
 		catch(...)
 		{
-			FileCoordinator::GetSharedInstance()->__RemoveModule(this);
+			FileManager::GetSharedInstance()->__RemoveModule(this);
 			std::rethrow_exception(std::current_exception());
 		}
 
@@ -277,7 +277,7 @@ namespace RN
 
 	const String *Module::GetDescription() const
 	{
-		const String *path = FileCoordinator::GetSharedInstance()->GetNormalizedPathFromFullPath(GetPath());
+		const String *path = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(GetPath());
 		if(!path)
 			path = GetPath();
 
@@ -290,6 +290,6 @@ namespace RN
 			return nullptr;
 
 		String *path = _lookupPrefix->StringByAppendingPathComponent(resource);
-		return FileCoordinator::GetSharedInstance()->ResolveFullPath(path, 0);
+		return FileManager::GetSharedInstance()->ResolveFullPath(path, 0);
 	}
 }

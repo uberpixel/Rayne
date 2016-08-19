@@ -66,7 +66,7 @@ namespace RN
 			Screen::InitializeScreens();
 			__ExtensionPointBase::InitializeExtensionPoints();
 
-			_fileManager = new FileCoordinator();
+			_fileManager = new FileManager();
 			_firstFrame = true;
 			_frames = 0;
 
@@ -79,7 +79,7 @@ namespace RN
 			_application->__PrepareForWillFinishLaunching(this);
 			_fileManager->__PrepareWithManifest();
 
-			_settings = new Settings(); // Requires the FileCoordinator to have all search paths
+			_settings = new Settings(); // Requires the FileManager to have all search paths
 
 			_assetManager = new AssetManager();
 			_sceneManager = new SceneManager();
@@ -145,7 +145,7 @@ namespace RN
 
 	void Kernel::ReadManifest()
 	{
-		String *path = _fileManager->GetPathForLocation(FileCoordinator::Location::RootResourcesDirectory);
+		String *path = _fileManager->GetPathForLocation(FileManager::Location::RootResourcesDirectory);
 		path = path->StringByAppendingPathComponent(RNCSTR("manifest.json"));
 
 		Data *data = Data::WithContentsOfFile(path);

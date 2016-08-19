@@ -19,7 +19,7 @@
 #include "../Input/RNInputManager.h"
 #include "../Assets/RNAssetManager.h"
 #include "../Modules/RNModuleManager.h"
-#include "../System/RNFileCoordinator.h"
+#include "../System/RNFileManager.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Scene/RNSceneManager.h"
 #include "../Threads/RNThread.h"
@@ -81,7 +81,7 @@ namespace RN
 		const ArgumentParser &_arguments;
 
 		Application *_application;
-		FileCoordinator *_fileManager;
+		FileManager *_fileManager;
 		Dictionary *_manifest;
 		Settings *_settings;
 		Logger *_logger;
