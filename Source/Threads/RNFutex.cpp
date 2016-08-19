@@ -163,8 +163,12 @@ namespace RN
 				data->address = address;
 			}
 
+			QueueThreadData(address, data);
+
 			if(!validation())
 			{
+				DequeueThreadData(address, data);
+
 				{
 					std::unique_lock<std::mutex> lock(data->lock);
 					data->address = nullptr;
@@ -173,8 +177,6 @@ namespace RN
 				beforeSleep();
 				return false;
 			}
-
-			QueueThreadData(address, data);
 
 			beforeSleep();
 
