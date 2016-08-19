@@ -20,7 +20,8 @@ namespace RN
 	Kernel::Kernel(Application *application, const ArgumentParser &arguments) :
 		_arguments(arguments),
 		_application(application),
-		_exit(false)
+		_exit(false),
+		_isActive(true)
 	{}
 
 	Kernel::~Kernel()
@@ -215,6 +216,25 @@ namespace RN
 		__sharedInstance = nullptr;
 	}
 
+	void Kernel::__WillBecomeActive()
+	{
+		_application->WillBecomeActive();
+	}
+	void Kernel::__DidBecomeActive()
+	{
+		_isActive = true;
+		_application->DidBecomeActive();
+	}
+	void Kernel::__WillResignActive()
+	{
+		_application->WillResignActive();
+	}
+	void Kernel::__DidResignActive()
+	{
+		_isActive = false;
+		_application->DidResignActive();
+	}
+
 	void Kernel::SetMaxFPS(uint32 maxFPS)
 	{
 		_maxFPS = maxFPS;
@@ -285,7 +305,9 @@ namespace RN
 		HandleSystemEvents();
 
 		// Update input and then run scene updates
-		_inputManager->Update(static_cast<float>(_delta));
+		if(_isActive)
+			_inputManager->Update(static_cast<float>(_delta));
+
 		_sceneManager->Update(static_cast<float>(_delta));
 
 		if(_renderer)

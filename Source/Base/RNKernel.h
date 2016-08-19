@@ -60,8 +60,17 @@ namespace RN
 			return result->Downcast<T>();
 		}
 
+		bool IsActive() const { return _isActive; }
+
 #if RN_PLATFORM_LINUX
 		xcb_connection_t *GetXCBConnection() const { return _connection; }
+#endif
+
+#if RN_PLATFORM_MAC_OS
+		void __WillBecomeActive();
+		void __DidBecomeActive();
+		void __WillResignActive();
+		void __DidResignActive();
 #endif
 
 	private:
@@ -110,6 +119,8 @@ namespace RN
 
 		double _time;
 		double _delta;
+
+		bool _isActive;
 	};
 }
 

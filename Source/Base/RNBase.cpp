@@ -22,6 +22,14 @@
 @end
 
 @implementation RNApplication
+{
+	RN::Kernel *_kernel;
+}
+
+- (void)setKernel:(RN::Kernel *)kernel
+{
+	_kernel = kernel;
+}
 
 - (void)sendEvent:(NSEvent *)event
 {
@@ -29,6 +37,26 @@
 		[[self keyWindow] sendEvent:event];
 
 	[super sendEvent:event];
+}
+
+
+- (void)applicationWillBecomeActive:(NSNotification *)notification
+{
+	_kernel->__WillBecomeActive();
+}
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+	_kernel->__DidBecomeActive();
+}
+
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+	_kernel->__WillResignActive();
+}
+- (void)applicationDidResignActive:(NSNotification *)notification
+{
+	_kernel->__DidResignActive();
 }
 
 @end
@@ -161,6 +189,10 @@ namespace RN
 		ArgumentParser arguments(argc, argv);
 
 		Kernel *result = __BootstrapKernel(app, arguments);
+#if RN_PLATFORM_MAC_OS
+		[(RNApplication *)[RNApplication sharedApplication] setKernel:result];
+#endif
+
 		result->Run();
 
 		__TearDownKernel(result);
