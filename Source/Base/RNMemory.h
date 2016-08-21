@@ -55,37 +55,37 @@ namespace RN
 }
 
 #if RN_PLATFORM_WINDOWS
-RN_INLINE void *operator new(size_t size)
+void *operator new(size_t size)
 {
 	return RN::Memory::Allocate(size);
 }
-RN_INLINE void *operator new[](size_t size)
+void *operator new[](size_t size)
 {
 	return RN::Memory::AllocateArray(size);
 }
-RN_INLINE void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
+void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Allocate(size, n);
 }
-RN_INLINE void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT
+void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::AllocateArray(size, n);
 }
 
 
-RN_INLINE void operator delete(void *ptr) RN_NOEXCEPT
+void operator delete(void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr);
 }
-RN_INLINE void operator delete[](void *ptr) RN_NOEXCEPT
+void operator delete[](void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr);
 }
-RN_INLINE void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
+void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr, n);
 }
-RN_INLINE void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
+void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }

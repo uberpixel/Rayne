@@ -218,6 +218,7 @@ namespace RN
 		__sharedInstance = nullptr;
 	}
 
+#if RN_PLATFORM_MAC_OS
 	void Kernel::__WillBecomeActive()
 	{
 		_application->WillBecomeActive();
@@ -236,6 +237,7 @@ namespace RN
 		_isActive = false;
 		_application->DidResignActive();
 	}
+#endif
 
 	void Kernel::SetMaxFPS(uint32 maxFPS)
 	{

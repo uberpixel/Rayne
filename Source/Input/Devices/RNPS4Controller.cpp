@@ -114,10 +114,10 @@ namespace RN
 				throw InvalidArgumentException("Array must have two entries (RN::Number)");
 
 			Number *large = array->GetObjectAtIndex<Number>(0);
-			Number *small = array->GetObjectAtIndex<Number>(1);
+			Number *tiny = array->GetObjectAtIndex<Number>(1);
 
 			_rumbleLarge = large->GetUint8Value();
-			_rumbleSmall = small->GetUint8Value();
+			_rumbleSmall = tiny->GetUint8Value();
 		}
 
 		return nullptr;

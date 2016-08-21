@@ -117,7 +117,7 @@ namespace RN
 
 				for(uint8 n = 0; n < textureCount; n ++)
 				{
-					/*__unused uint8 usageHint =*/ file->ReadUint8();
+					/*RN_UNUSED uint8 usageHint =*/ file->ReadUint8();
 
 					size_t length = file->ReadUint16();
 					char *buffer = new char[length];
@@ -144,7 +144,7 @@ namespace RN
 
 			for(uint8 u = 0; u < colorCount; u ++)
 			{
-				__unused uint8 usagehint = file->ReadUint8();
+				RN_UNUSED uint8 usagehint = file->ReadUint8();
 				Color color;
 				color.r = file->ReadFloat();
 				color.g = file->ReadFloat();

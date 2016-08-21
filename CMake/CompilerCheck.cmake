@@ -192,6 +192,14 @@ else()
     set(RAYNE_NOEXCEPT "")
 endif()
 
+check_cxx_source_compiles("int main() { __unused int bar; }" HAVE_UNUSED)
+
+if(HAVE_UNUSED)
+    set(RAYNE_UNUSED noexcept)
+else()
+    set(RAYNE_UNUSED "")
+endif()
+
 check_cxx_source_compiles("constexpr int factorial(int n) { return n <= 1 ? 1 : (n * factorial(n-1)); } int main() {}" HAVE_CONSTEXPR)
 
 if(HAVE_CONSTEXPR)
