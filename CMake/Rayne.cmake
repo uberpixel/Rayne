@@ -3,7 +3,7 @@ macro(rayne_link_with _TARGET)
     target_link_libraries(${_TARGET} Rayne)
     add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:Rayne>" "$<TARGET_FILE_DIR:${_TARGET}>/$<TARGET_FILE_NAME:Rayne>")
 
-    target_include_directories(${_TARGET} SYSTEM PRIVATE {Rayne_BINARY_DIR}/include)
+    target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 
     if(WIN32)
         set_target_properties(${_TARGET} PROPERTIES
