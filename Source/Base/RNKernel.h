@@ -13,6 +13,7 @@
 #include "RNApplication.h"
 #include "RNSettings.h"
 #include "RNArgumentParser.h"
+#include "RNNotificationManager.h"
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
 #include "../Objects/RNString.h"
@@ -99,6 +100,7 @@ namespace RN
 		AssetManager *_assetManager;
 		ModuleManager *_moduleManager;
 		InputManager *_inputManager;
+		NotificationManager *_notificationManager;
 
 		Thread *_mainThread;
 		RunLoop *_runLoop;

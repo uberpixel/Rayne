@@ -20,6 +20,8 @@ set(RAYNE_SOURCES
     Base/RNException.cpp
     Base/RNKernel.cpp
     Base/RNMemoryPool.cpp
+    Base/RNNotification.cpp
+    Base/RNNotificationManager.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Assets/RNAsset.cpp
@@ -107,6 +109,8 @@ set(RAYNE_HEADERS
     Base/RNKernel.h
     Base/RNMemory.h
     Base/RNMemoryPool.h
+    Base/RNNotification.h
+    Base/RNNotificationManager.h
     Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h

@@ -82,6 +82,7 @@ namespace RN
 
 			_settings = new Settings(); // Requires the FileManager to have all search paths
 
+			_notificationManager = new NotificationManager();
 			_assetManager = new AssetManager();
 			_sceneManager = new SceneManager();
 			_inputManager = new InputManager();
@@ -206,6 +207,7 @@ namespace RN
 		delete _sceneManager;
 		delete _inputManager;
 		delete _moduleManager;
+		delete _notificationManager;
 
 		_logger->Flush();
 		delete _logger;

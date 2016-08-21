@@ -16,6 +16,8 @@
 #include "Base/RNSettings.h"
 #include "Base/RNUnicode.h"
 #include "Base/RNMemoryPool.h"
+#include "Base/RNNotification.h"
+#include "Base/RNNotificationManager.h"
 
 #include "Assets/RNAsset.h"
 #include "Assets/RNAssetManager.h"
