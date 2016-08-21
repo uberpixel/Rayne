@@ -6,6 +6,9 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Base/RNNotificationManager.h"
+#include "../Debug/RNLogger.h"
+#include "Devices/RNPS4Controller.h"
 #include "RNInputManager.h"
 
 namespace RN
@@ -56,7 +59,8 @@ namespace RN
 		_devices(new Array()),
 		_bindings(new Dictionary()),
 		_mouseDevices(new Array()),
-		_mode(0)
+		_mode(0),
+		_hidDevices(new Array())
 	{
 		__sharedInstance = this;
 
@@ -78,6 +82,8 @@ namespace RN
 		RN_ASSERT(RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])), "Raw input shit is broken, yo!");
 #endif
 
+		PS4Controller::RegisterDriver();
+
 		// Avoid any and all re-ordering
 		std::atomic_thread_fence(std::memory_order_seq_cst);
 		BuildPlatformDeviceTree();
@@ -87,6 +93,9 @@ namespace RN
 	{
 		TearDownPlatformDeviceTree();
 		_devices->Release();
+		_bindings->Release();
+		_mouseDevices->Release();
+		_hidDevices->Release();
 	}
 
 	InputManager *InputManager::GetSharedInstance()
@@ -133,6 +142,8 @@ namespace RN
 
 		if(device->GetCategory() == InputDevice::Category::Mouse)
 			_mouseDevices->AddObject(device);
+
+		RNDebug("(Input) Added device: " << device);
 	}
 
 	void InputManager::__RemoveDevice(InputDevice *device)
@@ -141,6 +152,8 @@ namespace RN
 
 		RN_ASSERT(device->IsRegistered(), "Device must be registered");
 		device->_manager = nullptr;
+
+		RNDebug("(Input) Removed device: " << device);
 
 		if(device->GetCategory() == InputDevice::Category::Mouse)
 			_mouseDevices->RemoveObject(device);
@@ -236,7 +249,7 @@ namespace RN
 			_devices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 
 				if(device->GetCategory() & categories)
-					result->AddObject(result);
+					result->AddObject(device);
 
 			});
 		}
@@ -406,5 +419,46 @@ namespace RN
 		}
 
 		return nullptr;
+	}
+
+	HIDDevice *InputManager::GetHIDDevice(uint16 vendorID, uint16 productID) const
+	{
+		LockGuard<Lockable> lock(const_cast<Lockable &>(_lock));
+		HIDDevice *result = nullptr;
+
+		_hidDevices->Enumerate<HIDDevice>([&](HIDDevice *device, size_t index, bool &stop) {
+
+			if(device->GetProductID() == productID && device->GetVendorID() == vendorID)
+			{
+				result = device;
+				stop = true;
+			}
+
+		});
+
+		if(result)
+			return result->Retain()->Autorelease();
+
+		return nullptr;
+	}
+
+	void InputManager::__AddRawHIDDevice(HIDDevice *device)
+	{
+		{
+			LockGuard<Lockable> lock(_lock);
+			_hidDevices->AddObject(device);
+		}
+
+		NotificationManager::GetSharedInstance()->PostNotification(kRNInputManagerHIDDeviceAdded, device);
+	}
+
+	void InputManager::__RemoveRawHIDDevice(HIDDevice *device)
+	{
+		{
+			LockGuard<Lockable> lock(_lock);
+			_hidDevices->RemoveObject(device);
+		}
+
+		NotificationManager::GetSharedInstance()->PostNotification(kRNInputManagerHIDDeviceRemoved, device);
 	}
 }

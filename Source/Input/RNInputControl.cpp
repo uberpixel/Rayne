@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Objects/RNValue.h"
 #include "RNInputControl.h"
 #include "RNInputDevice.h"
 
@@ -225,6 +226,10 @@ namespace RN
 		InputControl(nullptr, Type::Group)
 	{}
 
+	InputControlGroup::InputControlGroup(const String *name) :
+		InputControl(name, Type::Group)
+	{}
+
 	bool InputControlGroup::IsGroup() const
 	{
 		return true;
@@ -390,5 +395,59 @@ namespace RN
 			v = (std::max(v, GetMin()) + deadZone) * normalizer;
 			UpdateValue(Number::WithFloat(v));
 		}
+	}
+
+
+	RNDefineMeta(Linear2DAxisControl, InputControl)
+
+	Linear2DAxisControl::Linear2DAxisControl(const String *name) :
+		InputControl(name, InputControl::Type::LinearAxis2D),
+		_deadZone(0.0f),
+		_center(0.0),
+		_min(FLT_MIN),
+		_max(FLT_MAX),
+		_normalizer(1.0)
+	{}
+
+	void Linear2DAxisControl::SetRange(const Vector2 &min, const Vector2 &max, const Vector2 &deadZone)
+	{
+		_center = (min + max) * 0.5f;
+
+		_min = min - _center;
+		_max = max - _center;
+		_deadZone = deadZone;
+
+		_normalizer = _max - _deadZone;
+		_normalizer.x = 1.0f / _normalizer.x;
+		_normalizer.y = 1.0f / _normalizer.y;
+	}
+
+	void Linear2DAxisControl::SetValue(const Vector2 &value)
+	{
+		Vector2 v = value - GetCenter();
+		const Vector2 &deadZone = GetDeadZone();
+		const Vector2 &normalizer = GetNormalizer();
+
+
+		if(Math::FastAbs(v.x) < deadZone.x)
+			v.x = 0.0f;
+		else if(v.x > 0.0f)
+			v.x = (std::min(v.x, GetMax().x) - deadZone.x) * normalizer.x;
+		else
+			v.x = (std::max(v.x, GetMin().x) + deadZone.x) * normalizer.x;
+
+		if(Math::FastAbs(v.y) < deadZone.y)
+			v.y = 0.0f;
+		else if(v.y > 0.0f)
+			v.y = (std::min(v.y, GetMax().y) - deadZone.y) * normalizer.y;
+		else
+			v.y = (std::max(v.y, GetMin().y) + deadZone.y) * normalizer.y;
+
+		UpdateValue(Value::WithVector2(v));
+	}
+
+	bool Linear2DAxisControl::IsContinuous() const
+	{
+		return true;
 	}
 }

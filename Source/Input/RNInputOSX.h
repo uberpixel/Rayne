@@ -12,6 +12,7 @@
 #include <IOKit/hid/IOHIDLib.h>
 #include <IOKit/IOCFPlugIn.h>
 #include "../Base/RNBase.h"
+#include "RNHIDDevice.h"
 #include "RNInputManager.h"
 
 namespace RN
@@ -44,7 +45,6 @@ namespace RN
 		void HandleValue(IOHIDValueRef value);
 	};
 
-
 	class OSXPlatformDevice : public InputDevice
 	{
 	public:
@@ -75,6 +75,53 @@ namespace RN
 		size_t _rotationAxisCount;
 
 		RNDeclareMeta(OSXPlatformDevice);
+	};
+
+	class OSXHIDDevice : public HIDDevice
+	{
+	public:
+		RNAPI OSXHIDDevice(IOHIDDeviceRef device);
+		RNAPI ~OSXHIDDevice();
+
+		RNAPI void Open() final;
+		RNAPI void Close() final;
+
+		RNAPI virtual Data *ReadReport(uint32 reportID) const final;
+		RNAPI virtual Data *ReadFeatureReport(uint32 reportID) const final;
+
+		RNAPI virtual size_t WriteReport(uint32 reportID, const Data *data) final;
+
+		RNAPI const String *GetManufacturerString() const final;
+		RNAPI const String *GetProductString() const final;
+		RNAPI const String *GetSerialString() const final;
+
+		size_t GetInputReportLength() const { return _inputReportLength; }
+		size_t GetOutputReportLength() const { return _outputReportLength; }
+		size_t GetFeatureReportLength() const { return _featureReportLength; }
+
+		RNAPI uint32 GetVendorID() const final;
+		RNAPI uint32 GetProductID() const final;
+
+	private:
+		void HandleInputReport(uint32_t reportID, uint8_t *report, CFIndex length);
+		static void InputReportCallback(void *context, IOReturn result, void *deviceRef, IOHIDReportType type, uint32_t reportID, uint8_t *report, CFIndex length);
+
+		const String *GetStringWithKey(CFStringRef key) const;
+		uint32 GetSizeWithKey(CFStringRef key) const;
+
+		IOHIDDeviceRef _device;
+		uint32 _openCount;
+
+		uint32 _featureReportLength;
+		uint8 *_featureReportBuffer;
+
+		uint32 _inputReportLength;
+		uint8 *_inputReportBuffer;
+
+		uint32 _outputReportLength;
+		uint8 *_outputReportBuffer;
+
+		mutable std::map<uint32, Data *> _inputReports;
 	};
 }
 

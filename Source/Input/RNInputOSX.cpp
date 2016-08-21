@@ -15,6 +15,204 @@ namespace RN
 {
 	RNDefineMeta(OSXPlatformDevice, InputDevice)
 
+	static HIDUsagePage __IOHIDDeviceGetUsagePage(IOHIDDeviceRef device)
+	{
+		CFNumberRef value = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDDeviceUsagePageKey));
+		if(!value)
+			value = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsagePageKey));
+
+		HIDUsagePage usagePage;
+		CFNumberGetValue(value, kCFNumberSInt16Type, &usagePage);
+
+		return usagePage;
+	}
+	static uint16 __IOHIDDeviceGetUsage(IOHIDDeviceRef device)
+	{
+		CFNumberRef value = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDDeviceUsageKey));
+		if(!value)
+			value = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
+
+		uint16 usage;
+		CFNumberGetValue(value, kCFNumberSInt16Type, &usage);
+
+		return usage;
+	}
+
+	OSXHIDDevice::OSXHIDDevice(IOHIDDeviceRef device) :
+		HIDDevice(__IOHIDDeviceGetUsagePage(device), __IOHIDDeviceGetUsage(device)),
+		_device(device),
+		_openCount(0)
+	{
+		CFRetain(device);
+	}
+
+	OSXHIDDevice::~OSXHIDDevice()
+	{
+		for(auto iterator : _inputReports)
+			iterator.second->Release();
+
+		CFRelease(_device);
+	}
+
+	void OSXHIDDevice::Open()
+	{
+		if((_openCount ++) == 0)
+		{
+			IOReturn result = IOHIDDeviceOpen(_device, kIOHIDOptionsTypeNone);
+			if(result != kIOReturnSuccess)
+			{
+				_openCount = 0;
+				throw HIDOpenException("Failed to open HID device");
+			}
+
+			Retain();
+
+			_featureReportLength = GetSizeWithKey(CFSTR(kIOHIDMaxFeatureReportSizeKey));
+			_inputReportLength = GetSizeWithKey(CFSTR(kIOHIDMaxInputReportSizeKey));
+			_outputReportLength = GetSizeWithKey(CFSTR(kIOHIDMaxOutputReportSizeKey));
+
+			if(_featureReportLength)
+				_featureReportBuffer = new uint8[_featureReportLength];
+			if(_inputReportLength)
+				_inputReportBuffer = new uint8[_inputReportLength];
+			if(_outputReportLength)
+				_outputReportBuffer = new uint8[_outputReportLength];
+
+			IOHIDDeviceRegisterInputReportCallback(_device, _inputReportBuffer, _inputReportLength, &OSXHIDDevice::InputReportCallback, this);
+			IOHIDDeviceScheduleWithRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopCommonModes);
+		}
+	}
+	void OSXHIDDevice::Close()
+	{
+		if((-- _openCount) == 0)
+		{
+			IOHIDDeviceRegisterInputReportCallback(_device, nullptr, 0, nullptr, this);
+			IOHIDDeviceUnscheduleFromRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopCommonModes);
+			IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
+
+			delete[] _featureReportBuffer;
+			delete[] _inputReportBuffer;
+			delete[] _outputReportBuffer;
+
+			_featureReportBuffer = nullptr;
+			_inputReportBuffer = nullptr;
+			_outputReportBuffer = nullptr;
+
+			Release();
+		}
+	}
+
+	void OSXHIDDevice::InputReportCallback(void *context, IOReturn result, void *deviceRef, IOHIDReportType type, uint32_t reportID, uint8_t *report, CFIndex length)
+	{
+		OSXHIDDevice *device = static_cast<OSXHIDDevice *>(context);
+		device->HandleInputReport(reportID, report, length);
+	}
+	void OSXHIDDevice::HandleInputReport(uint32_t reportID, uint8_t *report, CFIndex length)
+	{
+		auto iterator = _inputReports.find(reportID);
+		if(iterator != _inputReports.end())
+		{
+			iterator->second->Release();
+			_inputReports.erase(iterator);
+		}
+
+		Data *data = new Data(report, length);
+		_inputReports[reportID] = data;
+	}
+
+
+	Data *OSXHIDDevice::ReadReport(uint32 reportID) const
+	{
+		auto iterator = _inputReports.find(reportID);
+		if(iterator != _inputReports.end())
+		{
+			Data *data = iterator->second;
+			_inputReports.erase(iterator);
+
+			return data->Autorelease();
+		}
+
+		return nullptr;
+	}
+
+	size_t OSXHIDDevice::WriteReport(uint32 reportID, const Data *data)
+	{
+		IOReturn result = IOHIDDeviceSetReport(_device, kIOHIDReportTypeOutput, reportID, (const uint8_t *)data->GetBytes(), data->GetLength());
+		if(result != kIOReturnSuccess)
+			throw HIDWriteException("Failed to write report");
+
+		return _outputReportLength;
+	}
+
+	Data *OSXHIDDevice::ReadFeatureReport(uint32 reportID) const
+	{
+		Data *data = new Data(nullptr, _featureReportLength);
+		data->Autorelease();
+
+		IOReturn result = IOHIDDeviceGetReport(_device, kIOHIDReportTypeFeature, reportID, (uint8_t *)data->GetBytes(), NULL);
+		if(result != kIOReturnSuccess)
+			throw HIDWriteException("Failed to write report");
+
+		return data;
+	}
+
+	uint32 OSXHIDDevice::GetSizeWithKey(CFStringRef key) const
+	{
+		CFNumberRef number = (CFNumberRef)IOHIDDeviceGetProperty(_device, key);
+		if(number && CFGetTypeID(number) == CFNumberGetTypeID())
+		{
+			uint32 value;
+			CFNumberGetValue(number, kCFNumberSInt32Type, &value);
+
+			return value;
+		}
+
+		return 0;
+	}
+
+	const String *OSXHIDDevice::GetStringWithKey(CFStringRef key) const
+	{
+		CFStringRef string = (CFStringRef)IOHIDDeviceGetProperty(_device, key);
+		if(string && CFGetTypeID(string) == CFStringGetTypeID())
+		{
+			const size_t size = CFStringGetLength(string) + 1;
+			char *data = new char[size];
+			CFStringGetCString(string, data, size, kCFStringEncodingASCII);
+
+			String *result = new String(data);
+
+			delete[] data;
+
+			return result->Autorelease();
+		}
+
+		return nullptr;
+	}
+
+	const String *OSXHIDDevice::GetManufacturerString() const
+	{
+		return GetStringWithKey(CFSTR(kIOHIDManufacturerKey));
+	}
+	const String *OSXHIDDevice::GetProductString() const
+	{
+		return GetStringWithKey(CFSTR(kIOHIDProductKey));
+	}
+	const String *OSXHIDDevice::GetSerialString() const
+	{
+		return GetStringWithKey(CFSTR(kIOHIDSerialNumberKey));
+	}
+
+	uint32 OSXHIDDevice::GetVendorID() const
+	{
+		return GetSizeWithKey(CFSTR(kIOHIDVendorIDKey));
+	}
+	uint32 OSXHIDDevice::GetProductID() const
+	{
+		return GetSizeWithKey(CFSTR(kIOHIDProductIDKey));
+	}
+
+
+
 	const char *kKeyboardButtonName[0xE8] =
 		{
 			"0x00", "0x01", "0x02", "0x03", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -395,12 +593,19 @@ namespace RN
 						valid = true;
 						break;
 					}
+
+					default:
+					{
+						OSXHIDDevice *device = new OSXHIDDevice(deviceRef);
+						device->Register();
+						device->Release();
+
+						break;
+					}
 				}
 
 				if(valid)
 				{
-					RNDebug("Found " << productName << " by " << vendorName);
-
 					InputDevice::Descriptor descriptor(category);
 					descriptor.SetVendor(vendorName);
 					descriptor.SetName(productName);

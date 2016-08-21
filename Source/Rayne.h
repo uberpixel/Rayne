@@ -30,6 +30,7 @@
 #include "Debug/RNLogger.h"
 #include "Debug/RNLoggingEngine.h"
 
+#include "Input/RNHIDDevice.h"
 #include "Input/RNInputControl.h"
 #include "Input/RNInputDevice.h"
 #include "Input/RNInputManager.h"

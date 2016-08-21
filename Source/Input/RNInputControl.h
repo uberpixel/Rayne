@@ -29,6 +29,7 @@ namespace RN
 		{
 			Group,
 			DeltaAxis,
+			LinearAxis2D,
 			LinearAxis,
 			RotationAxis,
 			Slider,
@@ -111,6 +112,7 @@ namespace RN
 	{
 	public:
 		RNAPI InputControlGroup();
+		RNAPI InputControlGroup(const String *name);
 
 		RNAPI bool IsGroup() const final;
 
@@ -219,6 +221,32 @@ namespace RN
 
 	private:
 		__RNDeclareMetaInternal(RotationAxisControl)
+	};
+
+	class Linear2DAxisControl : public InputControl
+	{
+	public:
+		RNAPI Linear2DAxisControl(const String *name);
+
+		RNAPI void SetRange(const Vector2 &min, const Vector2 &max, const Vector2 &deadZone);
+		RNAPI void SetValue(const Vector2 &value);
+
+		RNAPI bool IsContinuous() const override;
+
+		const Vector2 &GetCenter() const { return _center; }
+		const Vector2 &GetMin() const { return _min; }
+		const Vector2 &GetMax() const { return _max; }
+		const Vector2 &GetDeadZone() const { return _deadZone; }
+		const Vector2 &GetNormalizer() const { return _normalizer; }
+
+	private:
+		Vector2 _center;
+		Vector2 _min;
+		Vector2 _max;
+		Vector2 _deadZone;
+		Vector2 _normalizer;
+
+		__RNDeclareMetaInternal(Linear2DAxisControl)
 	};
 }
 

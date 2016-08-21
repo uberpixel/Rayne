@@ -11,25 +11,25 @@
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
+#include "../Objects/RNData.h"
 #include "RNHID.h"
+#include "RNInputDevice.h"
 
 namespace RN
 {
 	class HIDDevice : public Object
 	{
 	public:
+		RNAPI void Register();
+		RNAPI void Unregister();
+
 		RNAPI virtual void Open() = 0;
 		RNAPI virtual void Close() = 0;
 
-		RNAPI virtual size_t ReadReport(uint8 *data, size_t length, std::chrono::milliseconds timeout) = 0;
-		RNAPI virtual size_t ReadReport(uint8 *data, size_t length) = 0;
+		RNAPI virtual Data *ReadReport(uint32 reportID) const = 0;
+		RNAPI virtual Data *ReadFeatureReport(uint32 reportID) const = 0;
 
-		RNAPI virtual size_t WriteReport(const uint8 *data, size_t length) = 0;
-
-		RNAPI virtual size_t SendFeatureReport(const uint8 *data, size_t length) = 0;
-		RNAPI virtual size_t GetFeatureReport(uint8 *data, size_t length) const = 0;
-
-		RNAPI virtual const String *GetIndexedString(size_t index) const = 0;
+		RNAPI virtual size_t WriteReport(uint32 reportID, const Data *data) = 0;
 
 		bool IsVendor() const { return static_cast<uint16>(_usagePage) >= static_cast<uint16>(HIDUsagePage::VendorDefinedStart); }
 
@@ -48,11 +48,14 @@ namespace RN
 
 		RNAPI virtual size_t GetInputReportLength() const = 0;
 		RNAPI virtual size_t GetOutputReportLength() const = 0;
+		RNAPI virtual size_t GetFeatureReportLength() const = 0;
 
 		RNAPI virtual uint32 GetVendorID() const = 0;
 		RNAPI virtual uint32 GetProductID() const = 0;
 
 		RNAPI const String *GetDescription() const override;
+
+		RNAPI InputDevice::Descriptor GetDescriptor() const;
 
 	protected:
 		RNAPI HIDDevice(HIDUsagePage usagePage, uint16 usage);

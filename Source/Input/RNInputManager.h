@@ -13,6 +13,10 @@
 #include "../Objects/RNArray.h"
 #include "../Objects/RNDictionary.h"
 #include "RNInputDevice.h"
+#include "RNHIDDevice.h"
+
+#define kRNInputManagerHIDDeviceAdded RNCSTR("kRNInputManagerHIDDeviceAdded")
+#define kRNInputManagerHIDDeviceRemoved RNCSTR("kRNInputManagerHIDDeviceRemoved")
 
 namespace RN
 {
@@ -21,6 +25,7 @@ namespace RN
 	public:
 		friend class Kernel;
 		friend class InputDevice;
+		friend class HIDDevice;
 
 		RN_OPTIONS(Event, uint32,
 				   DidStart = (1 << 0),
@@ -62,6 +67,8 @@ namespace RN
 		RNAPI bool IsControlToggling(const String *name) const;
 		RNAPI Object *GetControlValue(const String *name) const;
 
+		RNAPI HIDDevice *GetHIDDevice(uint16 vendorID, uint16 productID) const;
+
 		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
 
 	private:
@@ -70,6 +77,9 @@ namespace RN
 
 		void __AddDevice(InputDevice *device);
 		void __RemoveDevice(InputDevice *device);
+
+		void __AddRawHIDDevice(HIDDevice *device);
+		void __RemoveRawHIDDevice(HIDDevice *device);
 
 #if RN_PLATFORM_WINDOWS
 		void __HandleRawInput(HRAWINPUT lParam);
@@ -110,6 +120,8 @@ namespace RN
 		Array *_mouseDevices;
 		Vector3 _previousMouseDelta;
 		Vector3 _mouseDelta;
+
+		Array *_hidDevices;
 	};
 }
 

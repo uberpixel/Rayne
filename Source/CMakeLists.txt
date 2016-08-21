@@ -32,6 +32,7 @@ set(RAYNE_SOURCES
     Assets/RNSGMAssetLoader.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
+    Input/Devices/RNPS4Controller.cpp
     Input/RNHIDDevice.cpp
     Input/RNInputControl.cpp
     Input/RNInputDevice.cpp
@@ -124,6 +125,7 @@ set(RAYNE_HEADERS
     Data/RNSpatialMap.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
+    Input/Devices/RNPS4Controller.h
     Input/RNHID.h
     Input/RNHIDDevice.h
     Input/RNInputControl.h
