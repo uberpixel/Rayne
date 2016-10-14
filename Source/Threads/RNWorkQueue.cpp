@@ -50,10 +50,6 @@ namespace RN
 			workQueue(4096)
 		{}
 
-		std::vector<WorkSource *> overcommitQueue;
-		std::atomic<bool> isOverCommitted;
-		Lockable overcommitLock;
-
 		Condition workSignal;
 		Lockable workLock;
 
@@ -254,7 +250,7 @@ namespace RN
 		}
 
 		// Grab work from the work pool
-		WorkSource *source;
+		WorkSource *source = nullptr;
 		ConditionalSpinLow(_internals->workQueue.pop(source), result);
 
 		if(!result)
