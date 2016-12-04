@@ -61,11 +61,15 @@ namespace RN
 	private:
 		void BuildControlTree(InputControl *parent, CFArrayRef elements);
 
+		static void DataAvailableCallback(void *context, IOReturn result, void *sender);
+
 		std::vector<HIDElement *> _allElements;
 		std::unordered_map<IOHIDElementCookie, HIDElement *> _elements;
 
 		IOHIDQueueRef _queue;
 		IOHIDDeviceRef _device;
+
+		bool _hasDataAvailable;
 
 		size_t _buttonCount;
 		size_t _sliderCount;
@@ -76,6 +80,44 @@ namespace RN
 
 		RNDeclareMeta(OSXPlatformDevice);
 	};
+
+	class OSXMouseDevice : public OSXPlatformDevice
+	{
+	public:
+		RNAPI OSXMouseDevice(const Descriptor &descriptor, IOHIDDeviceRef device);
+		RNAPI ~OSXMouseDevice();
+
+		RNAPI void Update() override;
+
+		RNAPI bool __Activate() override;
+		RNAPI bool __Deactivate() override;
+
+	private:
+		static CGEventRef EventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *context);
+
+		void HandleEvent(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *context);
+		void Reset()
+		{
+			_lastDelta = Vector2(0);
+			_lastMouseWheel = Vector2(0);
+			_buttonEvents.clear();
+		}
+
+		CFMachPortRef _eventTap;
+		CFRunLoopSourceRef _runLoopSource;
+
+		Array *_buttonControls;
+		DeltaAxisControl *_deltaXAxis;
+		DeltaAxisControl *_deltaYAxis;
+
+		Vector2 _lastDelta;
+		Vector2 _lastMouseWheel;
+
+		std::vector<std::pair<size_t, bool>> _buttonEvents;
+	};
+
+
+
 
 	class OSXHIDDevice : public HIDDevice
 	{
@@ -123,6 +165,8 @@ namespace RN
 
 		mutable std::map<uint32, Data *> _inputReports;
 	};
+
+
 }
 
 

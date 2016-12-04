@@ -93,6 +93,8 @@ namespace RN
 		const Number *GetVendorID() const { return _vendorID; }
 		const Number *GetProductID() const { return _productID; }
 
+		RNAPI const String *GetDescription() const override;
+
 		RNAPI bool SupportsCommand(const String *command) const;
 		RNAPI bool SupportsCommand(const String *command, MetaClass *meta) const;
 

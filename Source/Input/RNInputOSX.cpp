@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "../Base/RNBaseInternal.h"
 #include "../Debug/RNLogger.h"
 #include "RNInputOSX.h"
 
@@ -44,6 +45,7 @@ namespace RN
 		_openCount(0)
 	{
 		CFRetain(device);
+		Open();
 	}
 
 	OSXHIDDevice::~OSXHIDDevice()
@@ -102,7 +104,7 @@ namespace RN
 		}
 	}
 
-	void OSXHIDDevice::InputReportCallback(void *context, IOReturn result, void *deviceRef, IOHIDReportType type, uint32_t reportID, uint8_t *report, CFIndex length)
+	void OSXHIDDevice::InputReportCallback(void *context, __unused IOReturn result, __unused void *deviceRef, __unused IOHIDReportType type, uint32_t reportID, uint8_t *report, CFIndex length)
 	{
 		OSXHIDDevice *device = static_cast<OSXHIDDevice *>(context);
 		device->HandleInputReport(reportID, report, length);
@@ -116,7 +118,7 @@ namespace RN
 			_inputReports.erase(iterator);
 		}
 
-		Data *data = new Data(report, length);
+		Data *data = new Data(report, static_cast<size_t>(length));
 		_inputReports[reportID] = data;
 	}
 
@@ -149,7 +151,9 @@ namespace RN
 		Data *data = new Data(nullptr, _featureReportLength);
 		data->Autorelease();
 
-		IOReturn result = IOHIDDeviceGetReport(_device, kIOHIDReportTypeFeature, reportID, (uint8_t *)data->GetBytes(), NULL);
+		CFIndex length = static_cast<CFIndex>(_featureReportLength);
+
+		IOReturn result = IOHIDDeviceGetReport(_device, kIOHIDReportTypeFeature, reportID, (uint8_t *)data->GetBytes(), &length);
 		if(result != kIOReturnSuccess)
 			throw HIDWriteException("Failed to write report");
 
@@ -175,8 +179,9 @@ namespace RN
 		CFStringRef string = (CFStringRef)IOHIDDeviceGetProperty(_device, key);
 		if(string && CFGetTypeID(string) == CFStringGetTypeID())
 		{
-			const size_t size = CFStringGetLength(string) + 1;
+			const size_t size = static_cast<size_t>(CFStringGetLength(string) + 1);
 			char *data = new char[size];
+
 			CFStringGetCString(string, data, size, kCFStringEncodingASCII);
 
 			String *result = new String(data);
@@ -248,18 +253,17 @@ namespace RN
 		};
 
 
-	const char *kOSXDeviceCookieKey = "kOSXDeviceCookieKey";
-
 
 	OSXPlatformDevice::OSXPlatformDevice(const Descriptor &descriptor, IOHIDDeviceRef device) :
 		InputDevice(descriptor),
 		_device(device),
-		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 64, kIOHIDOptionsTypeNone)),
+		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 32, kIOHIDOptionsTypeNone)),
 		_buttonCount(0),
 		_sliderCount(0),
 		_deltaAxisCount(0),
 		_rotationAxisCount(0),
-		_linearAxisCount(0)
+		_linearAxisCount(0),
+		_hasDataAvailable(false)
 	{
 		CFRetain(_device);
 
@@ -286,7 +290,8 @@ namespace RN
 
 	void OSXPlatformDevice::BuildControlTree(InputControl *parent, CFArrayRef elements)
 	{
-		size_t count = CFArrayGetCount(elements);
+		size_t count = static_cast<size_t>(CFArrayGetCount(elements));
+
 		for(size_t i = 0; i < count; i ++)
 		{
 			IOHIDElementRef element = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
@@ -378,6 +383,9 @@ namespace RN
 								case kHIDUsage_GD_Slider:
 									control = new SliderControl(RNSTR("Slider " << (++ _sliderCount)));
 									break;
+
+								default:
+									break;
 							}
 
 							break;
@@ -387,6 +395,9 @@ namespace RN
 							String *name = RNSTR("Button " << (++ _buttonCount));
 							control = new ButtonControl(name, InputControl::Type::Button);
 						}
+
+						default:
+							break;
 					}
 
 					if(control)
@@ -438,11 +449,14 @@ namespace RN
 	{
 		InputDevice::Update();
 
-		while(1)
+		while(_hasDataAvailable)
 		{
-			IOHIDValueRef value = IOHIDQueueCopyNextValueWithTimeout(_queue, 0.0);
+			IOHIDValueRef value = IOHIDQueueCopyNextValue(_queue);
 			if(!value)
+			{
+				_hasDataAvailable = false;
 				break;
+			}
 
 			IOHIDElementRef element = IOHIDValueGetElement(value);
 			IOHIDElementCookie cookie = IOHIDElementGetCookie(element);
@@ -458,23 +472,163 @@ namespace RN
 		}
 	}
 
+	void OSXPlatformDevice::DataAvailableCallback(void *context, __unused IOReturn result, __unused void *sender)
+	{
+		OSXPlatformDevice *device = static_cast<OSXPlatformDevice *>(context);
+		device->_hasDataAvailable = true;
+	}
+
 	bool OSXPlatformDevice::__Activate()
 	{
 		if(IOHIDDeviceOpen(_device, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
 			return false;
 
 		IOHIDQueueStart(_queue);
+		IOHIDQueueRegisterValueAvailableCallback(_queue, &OSXPlatformDevice::DataAvailableCallback, this);
+		IOHIDQueueScheduleWithRunLoop(_queue, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
 
 		return true;
 	}
 	bool OSXPlatformDevice::__Deactivate()
 	{
 		IOHIDQueueStop(_queue);
+		IOHIDQueueUnscheduleFromRunLoop(_queue, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
+
 		IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
 
 		return true;
 	}
 
+	// OSXMouseDevice
+
+	OSXMouseDevice::OSXMouseDevice(const Descriptor &descriptor, IOHIDDeviceRef device) :
+		OSXPlatformDevice(descriptor, device)
+	{
+		CGEventMask mask = CGEventMaskBit(kCGEventLeftMouseDown) |
+			CGEventMaskBit(kCGEventLeftMouseUp) |
+			CGEventMaskBit(kCGEventRightMouseDown) |
+			CGEventMaskBit(kCGEventRightMouseUp) |
+			CGEventMaskBit(kCGEventMouseMoved) |
+			CGEventMaskBit(kCGEventLeftMouseDragged) |
+			CGEventMaskBit(kCGEventRightMouseDragged) |
+			CGEventMaskBit(kCGEventScrollWheel) |
+			CGEventMaskBit(kCGEventOtherMouseDown) |
+			CGEventMaskBit(kCGEventOtherMouseUp) |
+			CGEventMaskBit(kCGEventOtherMouseDragged);
+
+		_eventTap = CGEventTapCreate(kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, mask, &OSXMouseDevice::EventCallback, this);
+		_runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, _eventTap, 0);
+
+		_deltaXAxis = GetControlWithName<DeltaAxisControl>(RNSTR(kDeltaAxisName[0] << "1"));
+		_deltaYAxis = GetControlWithName<DeltaAxisControl>(RNSTR(kDeltaAxisName[1] << "2"));
+
+		_buttonControls = new Array();
+
+		for(size_t i = 1;; i ++)
+		{
+			ButtonControl *control = GetControlWithName<ButtonControl>(RNSTR("Button " << i));
+			if(!control)
+				break;
+
+			_buttonControls->AddObject(control);
+		}
+	}
+	OSXMouseDevice::~OSXMouseDevice()
+	{
+		_buttonControls->Release();
+
+		CFRelease(_eventTap);
+		CFRelease(_runLoopSource);
+	}
+
+	bool OSXMouseDevice::__Activate()
+	{
+		CFRunLoopAddSource(CFRunLoopGetCurrent(), _runLoopSource, kCFRunLoopCommonModes);
+		CGEventTapEnable(_eventTap, true);
+
+		Reset();
+
+		return true;
+	}
+	bool OSXMouseDevice::__Deactivate()
+	{
+		CGEventTapEnable(_eventTap, false);
+		CFRunLoopRemoveSource(CFRunLoopGetCurrent(), _runLoopSource, kCFRunLoopCommonModes);
+
+		Reset();
+
+		return true;
+	}
+
+	void OSXMouseDevice::Update()
+	{
+		InputDevice::Update();
+
+		if(_deltaXAxis)
+			_deltaXAxis->SetValue(_lastDelta.x);
+		if(_deltaYAxis)
+			_deltaYAxis->SetValue(_lastDelta.y);
+
+		for(auto &pair : _buttonEvents)
+		{
+			ButtonControl *control = _buttonControls->GetObjectAtIndex<ButtonControl>(pair.first);
+			control->SetPressed(pair.second);
+		}
+
+		Reset();
+	}
+
+	CGEventRef OSXMouseDevice::EventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *context)
+	{
+		OSXMouseDevice *device = reinterpret_cast<OSXMouseDevice *>(context);
+		device->HandleEvent(proxy, type, event, context);
+
+		return event;
+	}
+
+	void OSXMouseDevice::HandleEvent(CGEventTapProxy proxy, CGEventType type, CGEventRef cgEvent, void *context)
+	{
+		if(type == kCGEventTapDisabledByTimeout || type == kCGEventTapDisabledByUserInput)
+			return;
+
+		@autoreleasepool
+		{
+			NSEvent *event = [NSEvent eventWithCGEvent:cgEvent];
+
+			switch(type)
+			{
+				case kCGEventLeftMouseDown:
+				case kCGEventRightMouseDown:
+				case kCGEventOtherMouseDown:
+					_buttonEvents.emplace_back(std::make_pair(static_cast<uint32>([event buttonNumber]), true));
+					break;
+
+				case kCGEventLeftMouseUp:
+				case kCGEventRightMouseUp:
+				case kCGEventOtherMouseUp:
+					_buttonEvents.emplace_back(std::make_pair(static_cast<uint32>([event buttonNumber]), false));
+					break;
+
+				case kCGEventMouseMoved:
+					_lastDelta.x += [event deltaX] * 2;
+					_lastDelta.y += [event deltaY] * 2;
+					break;
+
+				case kCGEventScrollWheel:
+					_lastMouseWheel += Vector2([event deltaX], [event deltaY]);
+					break;
+
+				case kCGEventLeftMouseDragged:
+				case kCGEventRightMouseDragged:
+				case kCGEventOtherMouseDragged:
+
+					break;
+
+				default:
+					break; // Shouldn't execute
+			}
+		}
+	}
 
 	// HIDElement
 
@@ -521,8 +675,9 @@ namespace RN
 	// Device management
 	static IOHIDManagerRef _hidManager = nullptr;
 	static Array *_foundDevices = nullptr;
+	static bool _hasMouse = false;
 
-	void OSXPlatformHIDDeviceAdded(void *context, IOReturn result, void *sender, IOHIDDeviceRef deviceRef)
+	void OSXPlatformHIDDeviceAdded(__unused void *context, __unused IOReturn result, __unused void *sender, IOHIDDeviceRef deviceRef)
 	{
 		CFNumberRef usagePageValue = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDPrimaryUsagePageKey));
 		CFNumberRef usageValue = (CFNumberRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDPrimaryUsageKey));
@@ -587,10 +742,22 @@ namespace RN
 					}
 
 					case kHIDUsage_GD_Mouse:
-					case kHIDUsage_GD_Pointer:
 					{
-						category = InputDevice::Category::Mouse;
-						valid = true;
+						if(_hasMouse)
+							break;
+
+						InputDevice::Descriptor descriptor(InputDevice::Category::Mouse);
+						descriptor.SetVendor(vendorName);
+						descriptor.SetName(productName);
+						descriptor.SetVendorID(Number::WithUint32(vendor));
+						descriptor.SetProductID(Number::WithUint32(product));
+
+						OSXMouseDevice *device = new OSXMouseDevice(descriptor, deviceRef);
+						device->Register();
+						device->Activate();
+
+						_foundDevices->AddObject(device->Autorelease());
+						_hasMouse = true;
 						break;
 					}
 
@@ -621,9 +788,12 @@ namespace RN
 
 				break;
 			}
+
+			default:
+				break;
 		}
 	}
-	void OSXPlatformHIDDeviceRemoved(void *context, IOReturn result, void *sender, IOHIDDeviceRef deviceRef)
+	void OSXPlatformHIDDeviceRemoved(__unused void *context, __unused IOReturn result, __unused void *sender, IOHIDDeviceRef deviceRef)
 	{
 		_foundDevices->Enumerate<OSXPlatformDevice>([&](OSXPlatformDevice *device, size_t index, bool &stop) {
 

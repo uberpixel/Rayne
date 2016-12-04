@@ -234,8 +234,8 @@ namespace RN
 			float x = _mouseDelta.x * 0.5f;
 			float y = _mouseDelta.y * 0.5f;
 
-			_mouseDelta.x = _previousMouseDelta.x*0.5 + x;
-			_mouseDelta.y = _previousMouseDelta.y*0.5 + y;
+			_mouseDelta.x = _previousMouseDelta.x * 0.5f + x;
+			_mouseDelta.y = _previousMouseDelta.y * 0.5f + y;
 		}
 	}
 

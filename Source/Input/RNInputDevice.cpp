@@ -35,6 +35,32 @@ namespace RN
 		SafeRelease(_productID);
 	}
 
+	const String *InputDevice::GetDescription() const
+	{
+		String *categories = new String();
+
+		if(_category & Category::Mouse)
+			categories->Append("Mouse, ");
+		if(_category & Category::Keyboard)
+			categories->Append("Keyboard, ");
+		if(_category & Category::Pen)
+			categories->Append("Pen, ");
+		if(_category & Category::Gamepad)
+			categories->Append("Gamepad, ");
+		if(_category & Category::Joystick)
+			categories->Append("Joystick, ");
+
+		if(categories->GetLength() > 2)
+			categories->DeleteCharacters(Range(categories->GetLength() - 2, 2));
+
+		categories->Autorelease();
+
+		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << "> (Category: " << categories <<
+						", Vendor: " << std::hex << (_vendorID ? _vendorID->GetUint32Value() : 0) <<
+						", Product: " << (_productID ? _productID->GetUint32Value() : 0) <<
+						", Name: " << GetName() << ")");
+	}
+
 	void InputDevice::AddControl(InputControl *control)
 	{
 		// Changes here should be mirrored in InputControl::AddControl, if appropriate

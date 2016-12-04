@@ -96,8 +96,7 @@ namespace RN
 
 		if(_parent)
 		{
-			auto next = _parent->_controlsEntry.GetNext();
-			if(next)
+			if((next = _parent->_controlsEntry.GetNext()))
 				return next->Get();
 		}
 
