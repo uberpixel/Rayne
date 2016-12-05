@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.4)
-project(Metal)
+project(RayneMetal)
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/CopyResources.cmake)

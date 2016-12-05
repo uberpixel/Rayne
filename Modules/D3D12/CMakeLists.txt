@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.4)
-project(D3D12)
+project(RayneD3D12)
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/CopyResources.cmake)
