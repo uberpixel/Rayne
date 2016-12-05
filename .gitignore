@@ -11,12 +11,14 @@
 .idea/misc.xml
 .idea/dictionaries
 
+# CMake
 /build/
+/cmake-build-*
 CMakeLists.txt.user
 
 # Vulkan Renderer
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 
-# Came
-/cmake-build-*
+# UI Module
+/Modules/UI/Vendor/skia
