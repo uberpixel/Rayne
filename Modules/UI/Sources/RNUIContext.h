@@ -53,6 +53,20 @@ namespace RN
 			Luminosity
 		};
 
+		enum StrokeCap
+		{
+			Butt,
+			Round,
+			Square
+		};
+
+		enum StrokeJoin
+		{
+			MiterJoin,
+			RoundJoin,
+			BevelJoin
+		};
+
 		class Context : public Object
 		{
 		public:
@@ -68,11 +82,15 @@ namespace RN
 			UIAPI void StrokePath(const Path *path);
 			UIAPI void StrokePath(const Path *path, BlendMode blendMode, float alpha = 1.0);
 
+			UIAPI void SetAntiAlias(bool antiAlias);
+
 			UIAPI void SetFillColor(const Color &color);
 			UIAPI void SetStrokeColor(const Color &color);
 
 			UIAPI void SetStrokeWidth(float strokeWidth);
 			UIAPI void SetStrokeMiter(float strokeWidth);
+			UIAPI void SetStrokeCap(StrokeCap cap);
+			UIAPI void SetStrokeJoin(StrokeJoin join);
 
 			UIAPI Texture *GetTexture(bool generateMipMaps = false) const;
 

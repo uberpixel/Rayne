@@ -60,6 +60,12 @@ namespace RN
 		}
 
 
+		void Context::SetAntiAlias(bool antiAlias)
+		{
+			_internals->strokeStyle.setAntiAlias(antiAlias);
+			_internals->fillStyle.setAntiAlias(antiAlias);
+		}
+
 
 		void Context::SetFillColor(const Color &color)
 		{
@@ -77,6 +83,15 @@ namespace RN
 		void Context::SetStrokeMiter(float strokeWidth)
 		{
 			_internals->strokeStyle.setStrokeWidth(strokeWidth);
+		}
+
+		void Context::SetStrokeCap(StrokeCap cap)
+		{
+			_internals->strokeStyle.setStrokeCap(static_cast<SkPaint::Cap>(cap));
+		}
+		void Context::SetStrokeJoin(StrokeJoin join)
+		{
+			_internals->strokeStyle.setStrokeJoin(static_cast<SkPaint::Join >(join));
 		}
 
 		void Context::FillPath(const Path *path)
