@@ -10,7 +10,6 @@
 .idea/vcs.xml
 .idea/misc.xml
 .idea/dictionaries
-.idea/InspectionProfiles
 
 /build/
 CMakeLists.txt.user
@@ -18,3 +17,6 @@ CMakeLists.txt.user
 # Vulkan Renderer
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.h
+
+# Came
+/cmake-build-*
