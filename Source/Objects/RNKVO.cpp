@@ -22,7 +22,7 @@ namespace RN
 	ObservableProperty::ObservableProperty(const char *name, char type) :
 		_owner(nullptr),
 		_type(type),
-		_flags(1 << 4),
+		_flags(1 << __kRNObservableFlagWritable),
 		_signal(nullptr),
 		_changeSet(nullptr)
 	{
@@ -47,7 +47,7 @@ namespace RN
 	
 	void ObservableProperty::SetWritable(bool writable)
 	{
-		writable ? (_flags |= (1 << 4)) : (_flags &= ~(1 << 4));
+		writable ? (_flags |= (1 << __kRNObservableFlagWritable)) : (_flags &= ~(1 << __kRNObservableFlagWritable));
 	}
 	
 	void ObservableProperty::WillChangeValue()

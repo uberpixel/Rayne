@@ -329,6 +329,8 @@ namespace RN
 		
 		void SetValue(Object *object) override
 		{
+			RN_DEBUG_ASSERT(IsWritable(), "Observable must be writable");
+
 			WillChangeValue();
 			
 			if(!_setter)
@@ -438,7 +440,8 @@ namespace RN
 		
 		void SetValue(Object *value) override
 		{
-			RN_ASSERT(value->IsKindOfClass(Number::GetMetaClass()), "");
+			RN_ASSERT(value->IsKindOfClass(Number::GetMetaClass()), "Value must be a of type RN::Number");
+			RN_DEBUG_ASSERT(IsWritable(), "Observable must be writable");
 			
 			Number *number = static_cast<Number *>(value);
 			WillChangeValue();

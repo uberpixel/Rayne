@@ -19,6 +19,7 @@
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 #define kRNObservableOldValueKey RNCSTR("kRNObservableOldValueKey")
 
+#define __kRNObservableFlagWritable 4 // Internal, do not use!
 
 namespace RN
 {
@@ -41,7 +42,7 @@ namespace RN
 		Object *GetOwner() const { return _owner; }
 
 		RNAPI void SetWritable(bool writable);
-		bool IsWritable() const { return (_flags & (1 << 4)); }
+		bool IsWritable() const { return (_flags & (1 << __kRNObservableFlagWritable)); }
 		
 		virtual MetaClass *GetMetaClass() const { return nullptr; }
 		
