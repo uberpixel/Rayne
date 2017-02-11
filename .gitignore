@@ -10,6 +10,7 @@
 .idea/vcs.xml
 .idea/misc.xml
 .idea/dictionaries
+.idea/serialmonitor_settings.xml
 
 /build/
 CMakeLists.txt.user
