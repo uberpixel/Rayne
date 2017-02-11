@@ -65,6 +65,11 @@ namespace RN
 			_internals->strokeStyle.setAntiAlias(antiAlias);
 			_internals->fillStyle.setAntiAlias(antiAlias);
 		}
+		void Context::SetClipRect(const Rect &rect)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->clipRect(MakeRect(rect));
+		}
 
 
 		void Context::SetFillColor(const Color &color)
@@ -131,6 +136,29 @@ namespace RN
 
 			_internals->strokeStyle.setBlendMode(previous);
 			_internals->strokeStyle.setAlpha(previousAlpha);
+		}
+
+		void Context::FillRect(const Rect &rect)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->drawRect(MakeRect(rect), _internals->fillStyle);
+		}
+		void Context::StrokeRect(const Rect &rect)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->drawRect(MakeRect(rect), _internals->strokeStyle);
+		}
+
+
+		void Context::Translate(const Vector2 &offset)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->translate(offset.x, offset.y);
+		}
+		void Context::Rotate(float degrees)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->rotate(degrees);
 		}
 
 

@@ -13,7 +13,11 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         Sources/RNUIContext.cpp
         Sources/RNUIPath.cpp
+        Sources/RNUIView.cpp
+        Sources/RNUIWindow.cpp
+        Sources/RNUIServer.cpp
         Sources/RNUIInit.cpp
+        Sources/RNUIEdgeInsets.h
         Sources/RNUIInternals.h)
 
 set(RESOURCES
@@ -22,7 +26,11 @@ set(RESOURCES
 set(HEADERS
         Sources/RNUIContext.h
         Sources/RNUIPath.h
+        Sources/RNUIView.h
+        Sources/RNUIWindow.h
+        Sources/RNUIServer.h
         Sources/RNUIConfig.h
+        Sources/RNUIEdgeInsets.h
         Sources/RNUI.h)
 
 set(DEFINES

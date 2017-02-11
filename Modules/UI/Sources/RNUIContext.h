@@ -82,7 +82,11 @@ namespace RN
 			UIAPI void StrokePath(const Path *path);
 			UIAPI void StrokePath(const Path *path, BlendMode blendMode, float alpha = 1.0);
 
+			UIAPI void FillRect(const Rect &rect);
+			UIAPI void StrokeRect(const Rect &rect);
+
 			UIAPI void SetAntiAlias(bool antiAlias);
+			UIAPI void SetClipRect(const Rect &rect);
 
 			UIAPI void SetFillColor(const Color &color);
 			UIAPI void SetStrokeColor(const Color &color);
@@ -91,6 +95,9 @@ namespace RN
 			UIAPI void SetStrokeMiter(float strokeWidth);
 			UIAPI void SetStrokeCap(StrokeCap cap);
 			UIAPI void SetStrokeJoin(StrokeJoin join);
+
+			UIAPI void Translate(const Vector2 &offset);
+			UIAPI void Rotate(float degrees);
 
 			UIAPI Texture *GetTexture(bool generateMipMaps = false) const;
 

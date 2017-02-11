@@ -14,5 +14,11 @@
 #include "RNUIConfig.h"
 #include "RNUIContext.h"
 #include "RNUIPath.h"
+#include "RNUIEdgeInsets.h"
+
+#include "RNUIServer.h"
+
+#include "RNUIWindow.h"
+#include "RNUIView.h"
 
 #endif /* __RAYNE_UI_H_ */
