@@ -14,7 +14,6 @@
 
 namespace RN
 {
-	struct AutoreleasePoolInternals;
 	class AutoreleasePool
 	{
 	public:
@@ -30,7 +29,8 @@ namespace RN
 		
 	private:
 		AutoreleasePool *_parent;
-		PIMPL<AutoreleasePoolInternals> _internals;
+		std::thread::id _owner;
+		std::vector<const Object *> _objects;
 	};
 }
 
