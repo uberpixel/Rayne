@@ -444,6 +444,8 @@ namespace RN
 		size_t GetStride() const { return _stride; }
 		size_t GetVerticesCount() const { return _verticesCount; }
 		size_t GetIndicesCount() const { return _indicesCount; }
+		
+		DrawMode GetDrawMode() const { return _drawMode; }
 
 		const std::vector<VertexAttribute> &GetVertexAttributes() const { return _vertexAttributes; }
 		const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
