@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.4)
 project(Rayne)
 
 include(../CMake/CompilerCheck.cmake)
-include(../CMake/BoostInclude.cmake)
 include(../CMake/LibraryTarget.cmake)
 
 set(VERSION_MAJOR 2)
@@ -242,44 +241,15 @@ endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
-find_boost_library(assert)
-find_boost_library(static_assert)
-find_boost_library(config)
-find_boost_library(type_traits)
-find_boost_library(mpl)
-find_boost_library(preprocessor)
-find_boost_library(array)
-find_boost_library(atomic)
-find_boost_library(core)
-find_boost_library(throw_exception)
-find_boost_library(functional)
-find_boost_library(parameter)
-find_boost_library(detail)
-find_boost_library(utility)
-find_boost_library(lockfree)
 
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../Vendor/utf8_v2_3_4/source
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Vendor/concurrentqueue
         "${jansson_BINARY_DIR}/include"
         "${libpng_SOURCE_DIR}"
         "${libpng_BINARY_DIR}"
-        "${zlib_SOURCE_DIR}"
-        "${BOOST_assert_INCLUDE}"
-        "${BOOST_static_assert_INCLUDE}"
-        "${BOOST_config_INCLUDE}"
-        "${BOOST_type_traits_INCLUDE}"
-        "${BOOST_mpl_INCLUDE}"
-        "${BOOST_preprocessor_INCLUDE}"
-        "${BOOST_array_INCLUDE}"
-        "${BOOST_atomic_INCLUDE}"
-        "${BOOST_core_INCLUDE}"
-        "${BOOST_throw_exception_INCLUDE}"
-        "${BOOST_functional_INCLUDE}"
-        "${BOOST_parameter_INCLUDE}"
-        "${BOOST_detail_INCLUDE}"
-        "${BOOST_utility_INCLUDE}"
-        "${BOOST_lockfree_INCLUDE}")
+        "${zlib_SOURCE_DIR}")
 
 set(COMPILE_OPTIONS "")
 set(LINK_LIBRARIES "")
@@ -324,7 +294,7 @@ if(UNIX AND (NOT APPLE))
     set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${XCB_INCLUDE_DIRS})
 endif()
 
-set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png16_static zlibstatic)
+set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic)
 
 set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
 set(TARGET_HEADERS ${RAYNE_HEADERS})
