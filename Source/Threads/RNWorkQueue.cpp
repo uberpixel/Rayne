@@ -9,7 +9,7 @@
 #include "RNWorkQueue.h"
 #include "RNThreadLocalStorage.h"
 #include "../Objects/RNAutoreleasePool.h"
-#include <boost/lockfree/queue.hpp>
+#include <concurrentqueue.h>
 
 #if RN_PLATFORM_INTEL
 #if RN_PLATFORM_WINDOWS
@@ -53,7 +53,7 @@ namespace RN
 		Condition workSignal;
 		Lockable workLock;
 
-		boost::lockfree::queue<WorkSource *, boost::parameter::void_, boost::parameter::void_, boost::parameter::void_> workQueue;
+		moodycamel::ConcurrentQueue<WorkSource *> workQueue;
 	};
 
 	// Private queue flags
@@ -200,7 +200,7 @@ namespace RN
 	{
 		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 
-		_internals->workQueue.push(source);
+		_internals->workQueue.enqueue(source);
 		_open.fetch_add(1, std::memory_order_relaxed);
 
 		if(flags & WorkSource::Flags::Barrier)
@@ -213,7 +213,7 @@ namespace RN
 			for(size_t i = 0; i < _concurrency; i ++)
 			{
 				WorkSource *source = WorkSource::DequeueWorkSource([]{}, WorkSource::Flags::Barrier | WorkSource::Flags::BarrierBlock);
-				_internals->workQueue.push(source);
+				_internals->workQueue.enqueue(source);
 				_open.fetch_add(1, std::memory_order_relaxed);
 			}
 		}
@@ -251,7 +251,7 @@ namespace RN
 
 		// Grab work from the work pool
 		WorkSource *source = nullptr;
-		ConditionalSpinLow(_internals->workQueue.pop(source), result);
+		ConditionalSpinLow(_internals->workQueue.try_dequeue(source), result);
 
 		if(!result)
 			return false;
