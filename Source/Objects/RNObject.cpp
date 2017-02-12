@@ -14,11 +14,28 @@
 #include "../Debug/RNLogger.h"
 #include <string>
 
+#if RN_ZOMBIE_ALLOCATION
+	#define AssertZombieInteraction() \
+		do { \
+			if(_isZombie) \
+			{ \
+				MetaClass *meta = GetClass(); \
+				RNError(RN_FUNCTION_SIGNATURE << " called on zombie object <" << meta->GetFullname() << ":" << reinterpret_cast<const void *>(this) << ">, this will result in memory corruptions!"); \
+			} \
+		} while(0)
+#else
+	#define AssertZombieInteraction() \
+		(void)0
+#endif
+
 namespace RN
 {
 	void *__kRNObjectMetaClass = nullptr;
 	
 	Object::Object() :
+#if RN_ZOMBIE_ALLOCATION
+		_isZombie(false),
+#endif
 		_refCount(1)
 	{}
 	
@@ -77,11 +94,15 @@ namespace RN
 	
 	Object *Object::Retain()
 	{
+		AssertZombieInteraction();
+
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
 	}
 	const Object *Object::Retain() const
 	{
+		AssertZombieInteraction();
+
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
 	}
@@ -89,6 +110,16 @@ namespace RN
 
 	void Object::Release() const
 	{
+#if RN_ZOMBIE_ALLOCATION
+		if(_isZombie)
+		{
+			MetaClass *meta = GetClass();
+			RNError("Release() called on zombie object <" << meta->GetFullname() << ":" << reinterpret_cast<const void *>(this) << ">, this will result in memory corruptions!");
+
+			return;
+		}
+#endif
+
 		// If this is the last reference this thread has, which it very well might be,
 		// we need to flush all accesses done so far. Thus the release barrier
 		if(_refCount.fetch_sub(1, std::memory_order_release) == 1)
@@ -96,16 +127,22 @@ namespace RN
 			// Catch up with all changes from all other threads that had access to the object
 			std::atomic_thread_fence(std::memory_order_acquire);
 
+#if RN_ZOMBIE_ALLOCATION
+			_isZombie = true;
+#else
 			// Since this function is marked const, we need to do this
 			Object *nonConstThis = const_cast<Object *>(this);
 
 			nonConstThis->Dealloc();
 			delete nonConstThis;
+#endif
 		}
 	}
 	
 	Object *Object::Autorelease()
 	{
+		AssertZombieInteraction();
+
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
@@ -124,6 +161,8 @@ namespace RN
 	}
 	const Object *Object::Autorelease() const
 	{
+		AssertZombieInteraction();
+
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
@@ -144,6 +183,8 @@ namespace RN
 	
 	Object *Object::Copy() const
 	{
+		AssertZombieInteraction();
+
 		RN_ASSERT(GetClass()->SupportsCopying(), "Only Objects that support the copy trait can be copied!\n");
 		return GetClass()->ConstructWithCopy(const_cast<Object *>(this));
 	}

@@ -15,6 +15,8 @@
 #include "RNCatalogue.h"
 #include "RNKVO.h"
 
+#define RN_ZOMBIE_ALLOCATION 0
+
 namespace RN
 {
 	class Serializer;
@@ -167,8 +169,12 @@ namespace RN
 		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property) const;
 		
 		RecursiveLockable _lock;
-		
+
+#if RN_ZOMBIE_ALLOCATION
+		mutable bool _isZombie;
+#endif
 		mutable std::atomic<size_t> _refCount;
+
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
 		std::vector<ObservableProperty *> _properties;
