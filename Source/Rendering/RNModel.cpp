@@ -62,8 +62,8 @@ namespace RN
 
 		for(size_t i = 0; i < count; i ++)
 		{
-			LODStage *stage = _lodStages->GetObjectAtIndex<LODStage>(i);
-			stage->_index = i;
+			LODStage *temp = _lodStages->GetObjectAtIndex<LODStage>(i);
+			temp->_index = i;
 		}
 
 		return stage->Autorelease();
