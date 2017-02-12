@@ -124,8 +124,8 @@ namespace RN
 		_resolutions(new Array()),
 		_name(nullptr),
 		_isMainScreen(CGDisplayIsMain(display)),
-		_nsscreen(nullptr),
-		_display(display)
+		_display(display),
+		_nsscreen(nullptr)
 	{
 		// Find the NSScreen that corresponds to this screen
 		NSArray *screens = [NSScreen screens];

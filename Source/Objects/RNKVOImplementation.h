@@ -35,8 +35,8 @@ namespace RN
 		using Getter = GetterType (Target::*)() const; \
 		ObservableScalar(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableProperty(name, TypeTranslator<type>::value), \
-			_getter(getter), \
-			_setter(setter) \
+			_setter(setter), \
+			_getter(getter) \
 		{} \
 		ObservableScalar(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableScalar(name, getter, setter) \
@@ -173,8 +173,8 @@ namespace RN
 		using Getter = GetterType (Target::*)() const; \
 		ObservableValue(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableProperty(name, TypeTranslator<type>::value), \
-			_getter(getter), \
-			_setter(setter) \
+			_setter(setter), \
+			_getter(getter) \
 		{} \
 		ObservableValue(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
 			ObservableValue(name, getter, setter) \
@@ -320,9 +320,9 @@ namespace RN
 
 		ObservableObject(const char *name, Object::MemoryPolicy policy, Getter getter = nullptr, Setter setter = nullptr) :
 			ObservableProperty(name, TypeTranslator<Object *>::value),
-			_policy(policy),
-			_getter(getter),
 			_setter(setter),
+			_getter(getter),
+			_policy(policy),
 			_storage(nullptr),
 			_meta(T::GetMetaClass())
 		{}
@@ -429,8 +429,8 @@ namespace RN
 
 		ObservableScalar(const char *name, Getter getter = nullptr, Setter setter = nullptr) :
 			ObservableProperty(name, TypeTranslator<bool>::value),
-			_getter(getter),
-			_setter(setter)
+			_setter(setter),
+			_getter(getter)
 		{}
 		ObservableScalar(const char *name, bool initial, Getter getter = nullptr, Setter setter = nullptr) :
 			ObservableScalar(name, getter, setter)

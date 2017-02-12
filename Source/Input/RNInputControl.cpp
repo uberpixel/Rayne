@@ -15,13 +15,13 @@ namespace RN
 	RNDefineMeta(InputControl, Object)
 
 	InputControl::InputControl(const String *name, Type type) :
-		_type(type),
-		_controlsEntry(this),
 		_name(SafeCopy(name)),
 		_device(nullptr),
 		_parent(nullptr),
+		_type(type),
 		_value(nullptr),
 		_toggling(false),
+		_controlsEntry(this),
 		_controlMap(new Dictionary()),
 		_controlGroups(new Array())
 	{}
@@ -261,8 +261,8 @@ namespace RN
 	SliderControl::SliderControl(const String *name) :
 		InputControl(name, Type::Slider),
 		_max(0.0f),
-		_normalizer(0.0f),
-		_deadZone(0.0f)
+		_deadZone(0.0f),
+		_normalizer(0.0f)
 	{}
 
 	void SliderControl::SetRange(float min, float max, float deadZone)
@@ -288,10 +288,10 @@ namespace RN
 	AxisControl::AxisControl(const String *name, Type type, Axis axis) :
 		InputControl(name, type),
 		_axis(axis),
-		_deadZone(0.0f),
 		_center(0.0),
 		_min(FLT_MIN),
 		_max(FLT_MAX),
+		_deadZone(0.0f),
 		_normalizer(1.0)
 	{}
 
@@ -401,10 +401,10 @@ namespace RN
 
 	Linear2DAxisControl::Linear2DAxisControl(const String *name) :
 		InputControl(name, InputControl::Type::LinearAxis2D),
-		_deadZone(0.0f),
 		_center(0.0),
 		_min(FLT_MIN),
 		_max(FLT_MAX),
+		_deadZone(0.0f),
 		_normalizer(1.0)
 	{}
 

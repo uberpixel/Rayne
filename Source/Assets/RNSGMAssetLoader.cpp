@@ -144,7 +144,7 @@ namespace RN
 
 			for(uint8 u = 0; u < colorCount; u ++)
 			{
-				uint8 usagehint = file->ReadUint8();
+				__unused uint8 usagehint = file->ReadUint8();
 				Color color;
 				color.r = file->ReadFloat();
 				color.g = file->ReadFloat();

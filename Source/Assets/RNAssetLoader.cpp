@@ -20,10 +20,10 @@ namespace RN
 		_magicBytes(nullptr),
 		_magicBytesOffset(0),
 		_fileExtensions(nullptr),
-		_resourceClasses(config.resourceClasses),
+		_priority(config.priority),
 		_supportsBackgroundLoading(config.supportsBackgroundLoading),
 		_supportsVirtualFiles(config.supportsVirtualFiles),
-		_priority(config.priority)
+		_resourceClasses(config.resourceClasses)
 	{
 		_magicBytes = SafeRetain(config._magicBytes);
 		_magicBytesOffset = config._magicBytesOffset;

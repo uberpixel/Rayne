@@ -72,8 +72,8 @@ namespace RN
 		};
 
 		__ExtensionPointBase(const std::string &name, MetaClass *meta) :
-			_name(name),
-			_meta(meta)
+			_meta(meta),
+			_name(name)
 		{
 			InstallExtensionPoint(this);
 		}

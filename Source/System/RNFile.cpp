@@ -267,7 +267,7 @@ namespace RN
 	type File::name() \
 	{ \
 		type buffer; \
-		size_t read = Read(&buffer, sizeof(type)); \
+		__unused size_t read = Read(&buffer, sizeof(type)); \
 		return buffer; \
 	}
 

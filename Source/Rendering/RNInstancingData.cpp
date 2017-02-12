@@ -24,8 +24,8 @@ namespace RN
 		{}
 
 		__InstancingBucket(Vector3 &&tposition) :
-			active(false),
-			position(std::move(tposition))
+			position(std::move(tposition)),
+			active(false)
 		{}
 
 		std::vector<Entity *> nodes;
@@ -150,11 +150,11 @@ namespace RN
 		_capacity(0),
 		_count(0),
 		_clipping(false),
-		_buckets(32.0f, false),
-		_needsRecreation(false),
 		_dirtyIndices(false),
+		_needsRecreation(false),
+		_thinRange(32.0f),
 		_thinning(true),
-		_thinRange(32.0f)
+		_buckets(32.0f, false)
 	{
 		_model = model->Copy();
 		_pivot = nullptr;
@@ -378,8 +378,8 @@ namespace RN
 		_freeList.pop_back();
 		_count ++;
 
-		_matrices[((index * 2) + 0)] = std::move(entity->GetWorldTransform());
-		_matrices[((index * 2) + 1)] = std::move(entity->GetWorldTransform().GetInverse());
+		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
+		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 
 		_dirtyIndices = true;
 		return index;

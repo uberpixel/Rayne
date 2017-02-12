@@ -19,8 +19,8 @@ namespace RN
 
 	AssetManager::AssetManager() :
 		_loaders(new Array()),
-		_requests(new Dictionary()),
 		_resources(new Dictionary()),
+		_requests(new Dictionary()),
 		_defaultQueue(nullptr)
 	{
 		SetDefaultQueue(WorkQueue::GetGlobalQueue(WorkQueue::Priority::High));

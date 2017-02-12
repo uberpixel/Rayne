@@ -173,7 +173,7 @@ namespace RN
 		if(_isDetached.exchange(true))
 			throw InconsistencyException("Can't start already detached thread!");
 		
-		_thread = std::move(std::thread([&]() {
+		_thread = std::thread([&]() {
 			Entry();
 
 			try
@@ -201,7 +201,7 @@ namespace RN
 			}
 			
 			Exit();
-		}));
+		});
 
 		_thread.detach();
 	}

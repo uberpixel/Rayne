@@ -47,12 +47,12 @@ namespace RN
 	{}
 
 	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
-		_vertexAttributes(attributes),
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
 		_drawMode(DrawMode::Triangle),
+		_vertexAttributes(attributes),
 		_descriptor(attributes),
 		_changeCounter(0)
 	{
@@ -324,13 +324,13 @@ namespace RN
 	// ---------------------
 
 	Mesh::Chunk::Chunk(Mesh *mesh, bool triangles) :
+		_indicesDescriptor(nullptr),
+		_vertexData(nullptr),
+		_indexData(nullptr),
 		_mesh(mesh),
 		_triangles(triangles),
 		_dirtyVertices(false),
-		_dirtyIndices(false),
-		_vertexData(nullptr),
-		_indexData(nullptr),
-		_indicesDescriptor(nullptr)
+		_dirtyIndices(false)
 	{
 		if(triangles)
 		{

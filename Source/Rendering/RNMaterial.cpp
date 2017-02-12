@@ -15,13 +15,13 @@ namespace RN
 	MaterialDescriptor::MaterialDescriptor() :
 		fragmentShader(nullptr),
 		vertexShader(nullptr),
-		discardThreshold(0.3f),
 		depthMode(DepthMode::Less),
 		depthWriteEnabled(true),
 		ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
 		diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 		specularColor(1.0f, 1.0f, 1.0f, 4.0f),
 		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
+		discardThreshold(0.3f),
 		textureTileFactor(1.0),
 		cullMode(CullMode::BackFace),
 		_textures(new Array())
@@ -30,13 +30,13 @@ namespace RN
 	MaterialDescriptor::MaterialDescriptor(const MaterialDescriptor &other) :
 		fragmentShader(other.fragmentShader),
 		vertexShader(other.vertexShader),
-		discardThreshold(other.discardThreshold),
 		depthMode(other.depthMode),
 		depthWriteEnabled(other.depthWriteEnabled),
 		ambientColor(other.ambientColor),
 		diffuseColor(other.diffuseColor),
 		specularColor(other.specularColor),
 		emissiveColor(other.emissiveColor),
+		discardThreshold(other.discardThreshold),
 		textureTileFactor(other.textureTileFactor),
 		cullMode(other.cullMode),
 		_textures(SafeCopy(other._textures))
@@ -81,6 +81,8 @@ namespace RN
 		_fragmentShader(SafeRetain(descriptor.fragmentShader)),
 		_vertexShader(SafeRetain(descriptor.vertexShader)),
 		_textures(SafeCopy(descriptor.GetTextures())),
+		_vertexBuffers(nullptr),
+		_fragmentBuffers(nullptr),
 		_depthMode(descriptor.depthMode),
 		_depthWriteEnabled(descriptor.depthWriteEnabled),
 		_ambientColor(descriptor.ambientColor),
@@ -89,9 +91,7 @@ namespace RN
 		_emissiveColor(descriptor.emissiveColor),
 		_discardThreshold(descriptor.discardThreshold),
 		_textureTileFactor(descriptor.textureTileFactor),
-		_cullMode(descriptor.cullMode),
-		_vertexBuffers(nullptr),
-		_fragmentBuffers(nullptr)
+		_cullMode(descriptor.cullMode)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
@@ -101,6 +101,8 @@ namespace RN
 		_fragmentShader(SafeRetain(other->_fragmentShader)),
 		_vertexShader(SafeRetain(other->_vertexShader)),
 		_textures(SafeRetain(other->_textures)),
+		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
+		_fragmentBuffers(SafeCopy(other->_fragmentBuffers)),
 		_depthMode(other->_depthMode),
 		_depthWriteEnabled(other->_depthWriteEnabled),
 		_ambientColor(other->_ambientColor),
@@ -109,9 +111,7 @@ namespace RN
 		_emissiveColor(other->_emissiveColor),
 		_discardThreshold(other->_discardThreshold),
 		_textureTileFactor(other->_textureTileFactor),
-		_cullMode(other->_cullMode),
-		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
-		_fragmentBuffers(SafeCopy(other->_fragmentBuffers))
+		_cullMode(other->_cullMode)
 	{}
 
 	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)

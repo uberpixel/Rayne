@@ -25,19 +25,19 @@ namespace RN
 	}
 
 	Camera::Camera() :
-		_framebuffer(nullptr),
 		_cameraSceneEntry(this),
-		_window(nullptr),
-		_flags(0)
+		_framebuffer(nullptr),
+		_flags(0),
+		_window(nullptr)
 	{
 		Initialize();
 	}
 
 	Camera::Camera(const Vector2 &size) :
-		_framebuffer(CreateFramebuffer(size)),
 		_cameraSceneEntry(this),
-		_window(nullptr),
-		_flags(0)
+		_framebuffer(CreateFramebuffer(size)),
+		_flags(0),
+		_window(nullptr)
 	{
 		Initialize();
 	}

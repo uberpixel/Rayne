@@ -18,8 +18,8 @@ namespace RN
 	static Renderer *_activeRenderer = nullptr;
 
 	Renderer::Renderer(RendererDescriptor *descriptor, RenderingDevice *device) :
-		_descriptor(descriptor),
-		_device(device)
+		_device(device),
+		_descriptor(descriptor)
 	{
 		RN_ASSERT(descriptor, "Descriptor mustn't be NULL");
 		RN_ASSERT(device, "Device mustn't be NULL");

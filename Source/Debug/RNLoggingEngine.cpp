@@ -14,8 +14,8 @@ namespace RN
 	RNDefineMeta(StreamLoggingEngine, LoggingEngine)
 
 	LoggingEngine::LoggingEngine(bool threadBound) :
-		_level(Logger::Level::Info),
-		_threadBound(threadBound)
+		_threadBound(threadBound),
+		_level(Logger::Level::Info)
 	{}
 
 	void LoggingEngine::SetLevel(Logger::Level level)
@@ -37,8 +37,8 @@ namespace RN
 
 	StreamLoggingEngine::StreamLoggingEngine(std::ostream &stream, bool threadBound) :
 		LoggingEngine(threadBound),
-		_stream(stream),
-		_open(true)
+		_open(true),
+		_stream(stream)
 	{}
 
 	void StreamLoggingEngine::Open()

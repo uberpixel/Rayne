@@ -41,7 +41,7 @@ namespace RN
 		PutTwoDigitNumber(sec.count());
 #undef PutTwoDigitNumber
 
-		return std::move(stream.str());
+		return stream.str();
 	}
 
 
@@ -267,6 +267,6 @@ namespace RN
 		if(!formattedTime.empty())
 			return;
 
-		formattedTime = std::move(RN::FormatTime(message.time));
+		formattedTime = RN::FormatTime(message.time);
 	}
 }

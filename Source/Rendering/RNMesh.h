@@ -48,14 +48,14 @@ namespace RN
 
 
 			VertexAttribute(Feature feature, PrimitiveType type) :
+				_type(type),
 				_feature(feature),
-				_name(nullptr),
-				_type(type)
+				_name(nullptr)
 			{}
 			VertexAttribute(const String *name, PrimitiveType type) :
+				_type(type),
 				_feature(Feature::Custom),
-				_name(name->Copy()),
-				_type(type)
+				_name(name->Copy())
 			{}
 			~VertexAttribute()
 			{
@@ -100,8 +100,8 @@ namespace RN
 		public:
 			VertexDescriptor(const std::vector<VertexAttribute> &attributes) :
 				_attributes(attributes),
-				_names(nullptr),
-				_featureSet(0)
+				_featureSet(0),
+				_names(nullptr)
 			{
 				for(auto &attribute : _attributes)
 				{
@@ -124,8 +124,8 @@ namespace RN
 			VertexDescriptor(const VertexDescriptor &other) :
 				_attributes(other._attributes),
 				_featureSet(other._featureSet),
-				_hash(other._hash),
-				_names(SafeRetain(other._names))
+				_names(SafeRetain(other._names)),
+				_hash(other._hash)
 			{}
 
 			VertexDescriptor &operator =(const VertexDescriptor &other)
