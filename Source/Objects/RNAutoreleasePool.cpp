@@ -15,18 +15,12 @@ namespace RN
 {
 	static ThreadLocalStorage<AutoreleasePool *> _localPools;
 
-	struct AutoreleasePoolInternals
-	{
-		std::thread::id owner;
-		std::vector<const Object *> objects;
-	};
 	
 	AutoreleasePool::AutoreleasePool() :
-		_parent(AutoreleasePool::GetCurrentPool())
+		_parent(AutoreleasePool::GetCurrentPool()),
+		_owner(std::this_thread::get_id())
 	{
-		_internals->owner = std::this_thread::get_id();
-		_internals->objects.reserve(kRNAutoreleasePoolGrowthRate);
-
+		_objects.reserve(kRNAutoreleasePoolGrowthRate);
 		_localPools.SetValue(this);
 	}
 	
@@ -47,20 +41,20 @@ namespace RN
 
 	void AutoreleasePool::AddObject(const Object *object)
 	{
-		_internals->objects.push_back(object);
+		RN_ASSERT(object, "Object mustn't be NULL");
+
+		_objects.push_back(object);
 		
-		if((_internals->objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
-			_internals->objects.reserve(_internals->objects.size() + kRNAutoreleasePoolGrowthRate);
+		if((_objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
+			_objects.reserve(_objects.size() + kRNAutoreleasePoolGrowthRate);
 	}
 	
 	void AutoreleasePool::Drain()
 	{
-		for(auto iterator = _internals->objects.begin(); iterator != _internals->objects.end(); iterator++)
-		{
+		for(auto iterator = _objects.begin(); iterator != _objects.end(); iterator++)
 			(*iterator)->Release();
-		}
 		
-		_internals->objects.clear();
+		_objects.clear();
 	}
 	
 	AutoreleasePool *AutoreleasePool::GetCurrentPool()

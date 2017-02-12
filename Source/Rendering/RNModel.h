@@ -53,7 +53,7 @@ namespace RN
 			}
 
 			Mesh *GetMeshAtIndex(size_t index) const { return _groups[index]._mesh; }
-			Material *GetMaterialAtIndex(size_t index) const { return _groups[index]._material;	}
+			Material *GetMaterialAtIndex(size_t index) const { return _groups[index]._material; }
 
 			size_t GetCount() const { return _groups.size(); }
 			size_t GetIndex() const { return _index; }

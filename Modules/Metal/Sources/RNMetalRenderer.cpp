@@ -722,16 +722,44 @@ namespace RN
 		// Mesh
 		MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetVertexBuffer());
 		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
-
-		MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-
-		if(drawable->count == 1)
+		
+		DrawMode drawMode = drawable->mesh->GetDrawMode();
+		MTLPrimitiveType primitiveType;
+		
+		switch(drawMode)
 		{
-			[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
+			case DrawMode::Point:
+				primitiveType = MTLPrimitiveTypePoint;
+				break;
+			case DrawMode::Line:
+				primitiveType = MTLPrimitiveTypeLine;
+				break;
+			case DrawMode::LineStrip:
+				primitiveType = MTLPrimitiveTypeLineStrip;
+				break;
+			case DrawMode::Triangle:
+				primitiveType = MTLPrimitiveTypeTriangle;
+				break;
+			case DrawMode::TriangleStrip:
+				primitiveType = MTLPrimitiveTypeTriangleStrip;
+				break;
+		}
+		
+		if(drawable->mesh->GetIndicesCount() > 0)
+		{
+			MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
+
+			if(drawable->count == 1)
+				[encoder drawIndexedPrimitives:primitiveType indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
+			else
+				[encoder drawIndexedPrimitives:primitiveType indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0 instanceCount:drawable->count];
 		}
 		else
 		{
-			[encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:drawable->mesh->GetIndicesCount() indexType:MTLIndexTypeUInt16 indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0 instanceCount:drawable->count];
+			if(drawable->count == 1)
+				[encoder drawPrimitives:primitiveType vertexStart:0 vertexCount:drawable->mesh->GetVerticesCount()];
+			else
+				[encoder drawPrimitives:primitiveType vertexStart:0 vertexCount:drawable->mesh->GetVerticesCount() instanceCount:drawable->count];
 		}
 	}
 }
