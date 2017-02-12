@@ -55,9 +55,6 @@ namespace RN
 		else
 		{
 			Initialize(bytes, length);
-			
-			if(deleteWhenDone)
-				free((void *)bytes);
 		}
 	}
 
