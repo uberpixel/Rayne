@@ -119,6 +119,9 @@ namespace RN
 
 				break;
 			}
+				
+			default:
+				throw InconsistencyException(RNSTR("File " << file << " is neither RGBA nor RGB"));
 		}
 
 		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);

@@ -469,6 +469,9 @@ namespace RN
 					{
 						size_t offset = loader->_magicBytesOffset;
 						size_t size = loader->_magicBytes->GetLength();
+						
+						if(size > magicSize)
+							return;
 
 						if(offset > 0)
 						{

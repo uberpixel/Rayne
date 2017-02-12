@@ -280,6 +280,8 @@ namespace RN
 		object = table->RemoveWeakReference(object);
 		*weak  = nullptr;
 		
+		(void)(object);
+		
 		lock.Unlock();
 		
 		return nullptr;

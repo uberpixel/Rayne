@@ -271,15 +271,13 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector2 vertex = *iterator;
+					Vector2 vertex = *iterator ++;
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
 
 					max.x = std::max(vertex.x, max.x);
 					max.y = std::max(vertex.y, max.y);
-
-					iterator ++;
 				}
 
 				break;
@@ -291,7 +289,7 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector3 vertex = *iterator;
+					Vector3 vertex = *iterator ++;
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
@@ -301,8 +299,6 @@ namespace RN
 
 					min.z = std::min(vertex.z, min.z);
 					max.z = std::max(vertex.z, max.z);
-
-					iterator ++;
 				}
 
 				break;

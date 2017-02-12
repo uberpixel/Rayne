@@ -216,7 +216,8 @@ namespace RN
 
 			ElementIterator(const ElementIterator &other) :
 				_ptr(other._ptr),
-				_base(other._base)
+				_base(other._base),
+				_index(other._index)
 			{
 				_feature = other._feature;
 				_chunk = other._chunk;

@@ -167,6 +167,8 @@ namespace RN
 
 		LogMessage message(line, file, function, RNSTR(buffer));
 		Log(level, std::move(message));
+		
+		delete[] buffer;
 	}
 
 	void Logger::Log(Level level, size_t line, const char *file, const char *function, const String *string)

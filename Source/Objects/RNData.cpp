@@ -55,6 +55,9 @@ namespace RN
 		else
 		{
 			Initialize(bytes, length);
+			
+			if(deleteWhenDone)
+				free((void *)bytes);
 		}
 	}
 
@@ -198,7 +201,7 @@ namespace RN
 		if(!path)
 			return false;
 
-		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT | O_BINARY);
+		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, 0644);
 		if(fd < 0)
 			return false;
 

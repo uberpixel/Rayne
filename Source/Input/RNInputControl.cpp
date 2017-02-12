@@ -279,7 +279,7 @@ namespace RN
 			return;
 		}
 
-		float v = (std::min(v, _max) - _deadZone) * _normalizer;
+		float v = (std::min(value, _max) - _deadZone) * _normalizer;
 		UpdateValue(Number::WithFloat(v));
 	}
 

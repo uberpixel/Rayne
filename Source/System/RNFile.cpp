@@ -219,7 +219,7 @@ namespace RN
 		// Open the file
 		int error = errno;
 
-		int fd = open(name->GetUTF8String(), oflag);
+		int fd = open(name->GetUTF8String(), oflag, 0644);
 		if(fd == -1)
 		{
 			errno = error;

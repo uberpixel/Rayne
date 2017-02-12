@@ -267,6 +267,8 @@ namespace RN
 				colorOffset = offset;
 				offset += sizeof(Color);
 			}
+			
+			(void)(offset);
 
 			if(hasBones)
 			{
