@@ -10,6 +10,7 @@ option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." ON)
 option(ASSIMP_BUILD_ASSIMP_TOOLS "If the supplementary tools for Assimp are built in addition to the library." OFF)
 
 add_subdirectory(Vendor/Assimp)
+target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
