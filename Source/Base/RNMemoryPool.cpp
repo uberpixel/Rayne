@@ -103,11 +103,10 @@ namespace RN
 
 
 	MemoryPool::Node::Node(size_t size, SizePool *pool) :
-		_size(size),
-		_owner(pool)
-	{
-		_data = new uint8[_size * 128];
-	}
+		_owner(pool),
+		_data(new uint8[size * 128]),
+		_size(size)
+	{}
 
 	MemoryPool::Node::~Node()
 	{

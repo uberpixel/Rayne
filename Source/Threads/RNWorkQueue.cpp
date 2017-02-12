@@ -81,15 +81,17 @@ namespace RN
 
 
 	WorkQueue::WorkQueue(Priority priority, Flags flags, const String *identifier) :
+		_identifier(identifier->Copy()),
 		_flags(flags),
 		_concurrency(std::thread::hardware_concurrency()),
 		_width(0),
 		_realWidth(0),
+		_threadCount(0),
 		_open(0),
+		_running(0),
+		_sleeping(0),
 		_suspended(0),
-		_barrier(false),
-		_identifier(identifier->Copy()),
-		_threadCount(0)
+		_barrier(false)
 	{
 		size_t multiplier;
 		size_t maxThreads;

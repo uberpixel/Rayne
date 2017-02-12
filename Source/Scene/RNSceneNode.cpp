@@ -16,14 +16,14 @@ namespace RN
 	std::atomic<uint64> __SceneNodeIDs;
 
 	SceneNode::SceneNode() :
-		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
-		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
-		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
-		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_uid(__SceneNodeIDs.fetch_add(1)),
 		_lid(static_cast<uint64>(-1)),
+		_scene(nullptr),
 		_sceneEntry(this),
-		_scene(nullptr)
+		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
+		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
+		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
+		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation)
 	{
 		Initialize();
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });

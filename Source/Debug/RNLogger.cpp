@@ -41,7 +41,7 @@ namespace RN
 		PutTwoDigitNumber(sec.count());
 #undef PutTwoDigitNumber
 
-		return std::move(stream.str());
+		return stream.str();
 	}
 
 
@@ -167,6 +167,8 @@ namespace RN
 
 		LogMessage message(line, file, function, RNSTR(buffer));
 		Log(level, std::move(message));
+		
+		delete[] buffer;
 	}
 
 	void Logger::Log(Level level, size_t line, const char *file, const char *function, const String *string)
@@ -267,6 +269,6 @@ namespace RN
 		if(!formattedTime.empty())
 			return;
 
-		formattedTime = std::move(RN::FormatTime(message.time));
+		formattedTime = RN::FormatTime(message.time);
 	}
 }

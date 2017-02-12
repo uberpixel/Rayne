@@ -92,9 +92,9 @@ namespace RN
 			Target(void *ttarget, Event tevents, InputDevice *tdevice, InputDevice::Category tcategories, Callback &&tcallback) :
 				callback(std::move(tcallback)),
 				device(tdevice),
-				target(ttarget),
 				categories(tcategories),
-				events(tevents)
+				events(tevents),
+				target(ttarget)
 			{}
 
 			Target(Target &&other) = default;

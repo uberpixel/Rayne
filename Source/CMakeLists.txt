@@ -269,6 +269,9 @@ endif()
 
 if(UNIX OR MINGW)
     set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2 -mfpmath=sse -msse -msse2)
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
 endif()
 
 if(WIN32)

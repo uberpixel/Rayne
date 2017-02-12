@@ -26,9 +26,9 @@ namespace RN
 	{
 	public:
 		UniqueLock(T &lock, LockPolicy policy = LockPolicy::Lock) :
-			_lock(lock),
 			_ownsLock(false),
-			_hasLock(true)
+			_hasLock(true),
+			_lock(lock)
 		{
 			switch(policy)
 			{

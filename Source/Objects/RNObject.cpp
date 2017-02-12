@@ -327,7 +327,7 @@ namespace RN
 			{
 				std::get<2>(tuple)->Disconnect();
 				
-				if(property->_signal->GetCount() == 0)
+				if(property->_signal && property->_signal->GetCount() == 0)
 				{
 					delete property->_signal;
 					property->_signal = nullptr;

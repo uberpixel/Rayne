@@ -39,7 +39,7 @@ namespace RN
 			{
 				for(size_t i = 0; i < count; i ++)
 				{
-					object->Release();
+					SafeRelease(object);
 				}
 			}
 			

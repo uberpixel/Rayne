@@ -189,8 +189,8 @@ namespace RN
 		struct Parameter
 		{
 			Parameter() :
-				wrapMode(WrapMode::Repeat),
 				filter(Filter::Linear),
+				wrapMode(WrapMode::Repeat),
 				depthCompare(false),
 				anisotropy(Texture::GetDefaultAnisotropy())
 			{}

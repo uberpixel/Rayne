@@ -37,8 +37,8 @@ namespace RN
 				_category(category),
 				_name(nullptr),
 				_vendor(nullptr),
-				_productID(nullptr),
-				_vendorID(nullptr)
+				_vendorID(nullptr),
+				_productID(nullptr)
 			{}
 
 			void SetName(const String *name)
@@ -125,8 +125,8 @@ namespace RN
 
 			ExecutionPort(const ExecutionPort &other) :
 				command(other.command->Retain()),
-				supportedArguments(other.supportedArguments),
-				action(other.action)
+				action(other.action),
+				supportedArguments(other.supportedArguments)
 			{}
 
 			ExecutionPort &operator =(const ExecutionPort &other)

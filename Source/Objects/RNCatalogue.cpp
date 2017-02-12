@@ -46,9 +46,9 @@ namespace RN
 
 
 	MetaClass::MetaClass(MetaClass *parent, const std::string &name, const char *namespaceBlob) :
+		_module(nullptr),
 		_superClass(parent),
-		_name(name),
-		_module(nullptr)
+		_name(name)
 	{
 		Catalogue::ParsePrettyFunction(namespaceBlob, _namespace);
 		

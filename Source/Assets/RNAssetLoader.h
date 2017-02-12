@@ -28,23 +28,23 @@ namespace RN
 			friend class AssetLoader;
 
 			Config(MetaClass *resourceClass) :
-				_extensions(nullptr),
-				_magicBytes(nullptr),
-				_magicBytesOffset(0),
 				resourceClasses({ resourceClass }),
 				supportsBackgroundLoading(false),
 				supportsVirtualFiles(false),
-				priority(10)
+				priority(10),
+				_extensions(nullptr),
+				_magicBytes(nullptr),
+				_magicBytesOffset(0)
 			{}
 
 			Config(const std::initializer_list<MetaClass *> &tresourceClasses) :
-				_extensions(nullptr),
-				_magicBytes(nullptr),
-				_magicBytesOffset(0),
 				resourceClasses(tresourceClasses),
 				supportsBackgroundLoading(false),
 				supportsVirtualFiles(false),
-				priority(10)
+				priority(10),
+				_extensions(nullptr),
+				_magicBytes(nullptr),
+				_magicBytesOffset(0)
 			{}
 
 			~Config()

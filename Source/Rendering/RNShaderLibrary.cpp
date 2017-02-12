@@ -22,8 +22,8 @@ namespace RN
 	RNDefineMeta(ShaderCompileOptions, Object)
 
 	ShaderCompileOptions::ShaderCompileOptions() :
-		_defines(new Dictionary()),
-		_basePath(nullptr)
+		_basePath(nullptr),
+		_defines(new Dictionary())
 	{}
 
 	ShaderCompileOptions::~ShaderCompileOptions()

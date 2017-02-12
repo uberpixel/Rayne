@@ -16,8 +16,8 @@ namespace RN
 	Settings *__sharedInstance = nullptr;
 
 	Settings::Settings() :
-		_settings(nullptr),
-		_isDirty(false)
+		_isDirty(false),
+		_settings(nullptr)
 	{
 		FileManager *manager = FileManager::GetSharedInstance();
 

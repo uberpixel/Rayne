@@ -256,14 +256,14 @@ namespace RN
 
 	OSXPlatformDevice::OSXPlatformDevice(const Descriptor &descriptor, IOHIDDeviceRef device) :
 		InputDevice(descriptor),
-		_device(device),
 		_queue(IOHIDQueueCreate(kCFAllocatorDefault, device, 32, kIOHIDOptionsTypeNone)),
+		_device(device),
+		_hasDataAvailable(false),
 		_buttonCount(0),
 		_sliderCount(0),
 		_deltaAxisCount(0),
-		_rotationAxisCount(0),
 		_linearAxisCount(0),
-		_hasDataAvailable(false)
+		_rotationAxisCount(0)
 	{
 		CFRetain(_device);
 

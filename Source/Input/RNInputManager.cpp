@@ -58,8 +58,8 @@ namespace RN
 	InputManager::InputManager() :
 		_devices(new Array()),
 		_bindings(new Dictionary()),
-		_mouseDevices(new Array()),
 		_mode(0),
+		_mouseDevices(new Array()),
 		_hidDevices(new Array())
 	{
 		__sharedInstance = this;

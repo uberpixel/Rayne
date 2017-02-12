@@ -219,7 +219,7 @@ namespace RN
 		// Open the file
 		int error = errno;
 
-		int fd = open(name->GetUTF8String(), oflag);
+		int fd = open(name->GetUTF8String(), oflag, 0644);
 		if(fd == -1)
 		{
 			errno = error;
@@ -238,7 +238,7 @@ namespace RN
 			bool isDirectory;
 			String *basePath = name->StringByDeletingLastPathComponent();
 
-			if(coordinator->PathExists(name) || (coordinator->PathExists(name, isDirectory) && isDirectory))
+			if(coordinator->PathExists(name) || (coordinator->PathExists(basePath, isDirectory) && isDirectory))
 			{
 				int fd = __FileWithPath(name, mode);
 				File *file = new File(fd, name, mode);
@@ -267,7 +267,7 @@ namespace RN
 	type File::name() \
 	{ \
 		type buffer; \
-		size_t read = Read(&buffer, sizeof(type)); \
+		__unused size_t read = Read(&buffer, sizeof(type)); \
 		return buffer; \
 	}
 

@@ -566,6 +566,8 @@ namespace RN
 					
 					length = _length;
 				}
+				
+				break;
 			}
 				
 			case Encoding::UTF8:

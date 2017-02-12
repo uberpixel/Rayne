@@ -14,13 +14,13 @@ namespace RN
 	RNDefineMeta(InstancingNode, SceneNode)
 
 	InstancingNode::InstancingNode() :
+		_models(new Set()),
+		_mode(0),
 		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),
 		_thinRange("Thin range", 128.0f, &InstancingNode::GetThinRange, &InstancingNode::SetThinningRange),
 		_cellSize("Cell size", 32.0f, &InstancingNode::GetCellSize, &InstancingNode::SetCellSize),
-		_entityClass(Entity::GetMetaClass()),
-		_models(new Set()),
 		_pivot(nullptr),
-		_mode(0)
+		_entityClass(Entity::GetMetaClass())
 	{
 		AddObservables({ &_clipRange, &_thinRange, &_cellSize });
 	}

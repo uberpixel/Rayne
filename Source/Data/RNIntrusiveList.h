@@ -24,9 +24,9 @@ namespace RN
 			friend class IntrusiveList;
 
 			Member(T *value) :
-				_value(value),
 				_next(nullptr),
-				_prev(nullptr)
+				_prev(nullptr),
+				_value(value)
 			{}
 
 			T *Get() const { return _value; }

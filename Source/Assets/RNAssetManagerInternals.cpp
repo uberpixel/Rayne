@@ -15,8 +15,8 @@ namespace RN
 	RNDefineMeta(LoadedAsset, Object)
 
 	LoadedAsset::LoadedAsset(Asset *asset, MetaClass *meta) :
-		_meta(meta),
-		_asset(asset)
+		_asset(asset),
+		_meta(meta)
 	{}
 
 	PendingAsset::PendingAsset(MetaClass *meta, String *name) :
