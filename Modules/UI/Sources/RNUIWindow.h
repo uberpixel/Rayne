@@ -49,13 +49,28 @@ namespace RN
 			UIAPI void Close();
 			UIAPI bool IsOpen() const { return _server != nullptr; }
 
+			Context *GetBackingStore() const { return _backingStore; }
+			Model *GetModel() const { return _model; }
+
+			UIAPI void Update();
+			UIAPI void Render(Renderer *renderer);
+
 		private:
+			Mesh *CreateMesh() const;
+
 			Rect _frame;
 			Matrix _transform;
 
 			Server *_server;
 			Context *_backingStore;
 			bool _needsNewBackingStore;
+
+			Model *_model;
+			Mesh *_mesh;
+			Material *_material;
+			Drawable *_drawable;
+
+			View *_contentView;
 
 			RNDeclareMetaAPI(Window, UIAPI)
 		};

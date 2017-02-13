@@ -366,8 +366,8 @@ namespace RN
 					converted.x += _window->_frame.x;
 					converted.y += _window->_frame.y;
 
-					if(_window->_server)
-						serverHeight = _window->_server->GetHeight();
+					//if(_window->_server)
+					//	serverHeight = _window->_server->GetHeight();
 				}
 
 				_finalTransform = _intermediateTransform;
@@ -392,6 +392,8 @@ namespace RN
 		{
 			float serverHeight = (_window && _window->_server) ? _window->_server->GetHeight() : _frame.GetSize().y;
 			Vector2 origin = _frame.GetOrigin();
+
+			serverHeight =  _frame.GetSize().y;
 
 			_clippingView = nullptr;
 

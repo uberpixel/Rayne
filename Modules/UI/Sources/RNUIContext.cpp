@@ -28,10 +28,15 @@ namespace RN
 
 			_internals->strokeStyle.setStyle(SkPaint::kStroke_Style);
 			_internals->fillStyle.setStyle(SkPaint::kFill_Style);
+
+			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888 : Texture::Format::RGB888;
+			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, false);
+			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+
 		}
 		Context::~Context()
 		{
-
+			_texture->Release();
 		}
 
 
@@ -162,18 +167,12 @@ namespace RN
 		}
 
 
-		Texture *Context::GetTexture(bool generateMipMaps) const
+		void Context::UpdateTexture(bool generateMipMaps)
 		{
-			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888 : Texture::Format::RGB888;
-			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, false);
-			Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
-
-			texture->SetData(0, _internals->backingSurface.data(), _rowBytes);
+			_texture->SetData(0, _internals->backingSurface.data(), _rowBytes);
 
 			if(generateMipMaps)
-				texture->GenerateMipMaps();
-
-			return texture->Autorelease();
+				_texture->GenerateMipMaps();
 		}
 	}
 }

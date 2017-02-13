@@ -143,24 +143,48 @@ namespace RN
 		_internals->renderPass.camera = camera;
 		_internals->renderPass.framebuffer = camera->GetFramebuffer();
 
-		const Color &clearColor = camera->GetClearColor();
+		const Camera::Flags flags = camera->GetFlags();
 
 		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-		[colorAttachment setTexture:[_internals->pass.drawable texture]];
-		[colorAttachment setLoadAction:MTLLoadActionClear];
-		[colorAttachment setStoreAction:MTLStoreActionStore];
-		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 
-		MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-		[depthAttachment setTexture:_internals->pass.depthTexture];
-		[depthAttachment setLoadAction:MTLLoadActionClear];
-		[depthAttachment setStoreAction:MTLStoreActionStore];
+		if(!(flags & Camera::Flags::NoClear))
+		{
+			const Color &clearColor = camera->GetClearColor();
 
-		MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-		[stencilAttachment setTexture:_internals->pass.depthTexture];
-		[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-		[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			[colorAttachment setTexture:[_internals->pass.drawable texture]];
+			[colorAttachment setLoadAction:MTLLoadActionClear];
+			[colorAttachment setStoreAction:MTLStoreActionStore];
+			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+
+
+			MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+			[depthAttachment setTexture:_internals->pass.depthTexture];
+			[depthAttachment setLoadAction:MTLLoadActionClear];
+			[depthAttachment setStoreAction:MTLStoreActionStore];
+
+			MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+			[stencilAttachment setTexture:_internals->pass.depthTexture];
+			[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+			[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+		}
+		else
+		{
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			[colorAttachment setTexture:[_internals->pass.drawable texture]];
+			[colorAttachment setLoadAction:MTLLoadActionLoad];
+			[colorAttachment setStoreAction:MTLStoreActionStore];
+
+			MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+			[depthAttachment setTexture:_internals->pass.depthTexture];
+			[depthAttachment setLoadAction:MTLLoadActionLoad];
+			[depthAttachment setStoreAction:MTLStoreActionStore];
+
+			MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+			[stencilAttachment setTexture:_internals->pass.depthTexture];
+			[stencilAttachment setLoadAction:MTLLoadActionLoad];
+			[stencilAttachment setStoreAction:MTLStoreActionStore];
+		}
 
 		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 		_internals->renderPass.activeState = nullptr;

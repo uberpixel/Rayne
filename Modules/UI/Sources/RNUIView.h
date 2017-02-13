@@ -21,6 +21,8 @@ namespace RN
 		class View : public Object
 		{
 		public:
+			friend class Window;
+
 			UIAPI View();
 			UIAPI View(const Rect &frame);
 			UIAPI ~View();

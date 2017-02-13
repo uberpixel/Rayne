@@ -19,12 +19,24 @@ namespace RN
 		static Server *_mainServer = nullptr;
 
 		Server::Server(Camera *camera) :
-			_camera(SafeRetain(camera)),
-			_frame(camera->GetFrame())
-		{}
+			_camera(SafeRetain(camera))
+		{
+			if(!_camera)
+			{
+				uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::NoClear;
+
+				_camera = new Camera(Vector2(1024, 768), Texture::Format::RGBA16F, flags);
+				_camera->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
+				_camera->SetClipNear(-500.0f);
+			}
+
+			_frame = Rect(0, 0, 1024, 768);
+		}
 
 		Server::~Server()
-		{}
+		{
+			SafeRelease(_camera);
+		}
 
 		Server *Server::GetMainServer()
 		{
@@ -42,16 +54,16 @@ namespace RN
 		}
 
 
-		void Server::AddWindow(Window *window)
+		void Server::AddWindow(UI::Window *window)
 		{
 			RN_ASSERT(window->_server == nullptr, "Window mustn't be part of a server");
 
 			window->_server = this;
-			window->Release();
+			window->Retain();
 
 			_windows.push_back(window);
 		}
-		void Server::RemoveWindow(Window *window)
+		void Server::RemoveWindow(UI::Window *window)
 		{
 			RN_ASSERT(window->_server == this, "Window must be part of this server");
 
@@ -59,6 +71,25 @@ namespace RN
 
 			window->_server = nullptr;
 			window->Release();
+		}
+
+
+		void Server::Render(Renderer *renderer)
+		{
+			for(Window *window : _windows)
+				window->Update();
+
+			Rect frame = Rect(Vector2(), Vector2(1024, 768));
+			_camera->SetOrthogonalFrustum(frame.GetBottom(), frame.GetTop(), frame.GetLeft(), frame.GetRight());
+			_camera->Update(0.0f);
+			_camera->PostUpdate(renderer);
+
+			renderer->RenderIntoCamera(_camera, [&] {
+
+				for(Window *window : _windows)
+					window->Render(renderer);
+
+			});
 		}
 	}
 }

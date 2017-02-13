@@ -30,7 +30,9 @@ namespace RN
 				   NoRender     = (1 << 7),
 				   NoFlush      = (1 << 8),
 				   NoDepthWrite = (1 << 9),
-				   ForceFlush   = (1 << 10),
+				   NoClear      = (1 << 10),
+				   ForceFlush   = (1 << 11),
+
 
 				   InheritPosition   = (1 << 12),
 				   InheritFrame      = (1 << 13),
@@ -49,7 +51,7 @@ namespace RN
 
 
 		RNAPI Camera();
-		RNAPI Camera(const Vector2 &size);
+		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags);
 
 /*		RNAPI Camera(const Vector2 &size, Texture *target);
 		RNAPI Camera(const Vector2 &size, Texture *target, Flags flags);
@@ -86,6 +88,8 @@ namespace RN
 
 		RNAPI void Update(float delta) override;
 		RNAPI void UpdateEditMode(float delta) override;
+
+		RNAPI void PostUpdate(Renderer *renderer);
 
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 
@@ -127,7 +131,6 @@ namespace RN
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }*/
 
 	private:
-		void PostUpdate(Renderer *renderer);
 		void UpdateProjection(Renderer *renderer);
 		void UpdateFrustum();
 

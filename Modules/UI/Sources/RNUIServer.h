@@ -28,14 +28,15 @@ namespace RN
 
 			UIAPI void MakeDefaultServer();
 
-			UIAPI void AddWindow(Window *window);
-			UIAPI void RemoveWindow(Window *window);
+			UIAPI void AddWindow(UI::Window *window);
+			UIAPI void RemoveWindow(UI::Window *window);
+
+			UIAPI void Render(Renderer *renderer);
 
 			float GetHeight() const { return _frame.height; }
 			float GetWidth() const { return _frame.width; }
 
 			Camera *GetCamera() const { return _camera; }
-
 		private:
 
 			Camera *_camera;

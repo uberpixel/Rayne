@@ -99,7 +99,8 @@ namespace RN
 			UIAPI void Translate(const Vector2 &offset);
 			UIAPI void Rotate(float degrees);
 
-			UIAPI Texture *GetTexture(bool generateMipMaps = false) const;
+			Texture *GetTexture() const { return _texture; }
+			UIAPI void UpdateTexture(bool generateMipMaps = false);
 
 		private:
 			PIMPL<ContextInternals> _internals;
@@ -108,6 +109,8 @@ namespace RN
 			size_t _height;
 			size_t _rowBytes;
 			bool _hasAlpha;
+
+			Texture *_texture;
 
 			RNDeclareMetaAPI(Context, UIAPI)
 		};
