@@ -9,7 +9,8 @@
 #include "RNAutoreleasePool.h"
 #include "../Threads/RNThreadLocalStorage.h"
 
-#define kRNAutoreleasePoolGrowthRate 128
+#define kRNAutoreleasePoolInitialGrowth 128
+#define kRNAutoreleasePoolGrowthFactor 1.4
 
 namespace RN
 {
@@ -20,7 +21,7 @@ namespace RN
 		_parent(AutoreleasePool::GetCurrentPool()),
 		_owner(std::this_thread::get_id())
 	{
-		_objects.reserve(kRNAutoreleasePoolGrowthRate);
+		_objects.reserve(kRNAutoreleasePoolInitialGrowth);
 		_localPools.SetValue(this);
 	}
 	
@@ -45,16 +46,20 @@ namespace RN
 
 		_objects.push_back(object);
 		
-		if((_objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
-			_objects.reserve(_objects.size() + kRNAutoreleasePoolGrowthRate);
+		if(_objects.size() == _objects.capacity())
+			_objects.reserve(static_cast<size_t>(_objects.size() + (_objects.size() * kRNAutoreleasePoolGrowthFactor)));
 	}
 	
 	void AutoreleasePool::Drain()
 	{
-		for(auto iterator = _objects.begin(); iterator != _objects.end(); iterator++)
-			(*iterator)->Release();
-		
-		_objects.clear();
+		std::vector<const Object *> objects;
+		std::swap(objects, _objects);
+
+		for(const Object *object : objects)
+			object->Release();
+
+		_objects = std::vector<const Object *>();
+		_objects.reserve(kRNAutoreleasePoolInitialGrowth);
 	}
 	
 	AutoreleasePool *AutoreleasePool::GetCurrentPool()
