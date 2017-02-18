@@ -301,6 +301,6 @@ namespace RN
 
 	Object *JSONSerialization::__ObjectFromData(const Data *data, Options options)
 	{
-		return DeserializeFromUTF8String(reinterpret_cast<char *>(data->GetBytes()), options);
+		return DeserializeFromUTF8String(data->GetBytes<char>(), options);
 	}
 }

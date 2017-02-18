@@ -38,7 +38,13 @@ namespace RN
 		
 		RNAPI void GetBytesInRange(void *buffer, Range range) const;
 		RNAPI Data *GetDataInRange(Range range) const;
-		void *GetBytes() const { return static_cast<void *>(_bytes); }
+
+		template<class T = void>
+		const T *GetBytes(size_t offset = 0) const { return reinterpret_cast<T *>(_bytes + offset); }
+
+		template<class T = void>
+		T *GetBytes(size_t offset = 0) { return reinterpret_cast<T *>(_bytes + offset); }
+
 		size_t GetLength() const { return _length; }
 		
 	private:

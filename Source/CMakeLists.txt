@@ -27,6 +27,7 @@ set(RAYNE_SOURCES
     Assets/RNAssetManager.cpp
     Assets/RNAssetManagerInternals.cpp
     Assets/RNAssetLoader.cpp
+    Assets/RNBitmap.cpp
     Assets/RNPNGAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
     Debug/RNLogger.cpp
@@ -99,6 +100,7 @@ set(RAYNE_HEADERS
     Assets/RNAsset.h
     Assets/RNAssetManager.h
     Assets/RNAssetLoader.h
+    Assets/RNBitmap.h
     Base/RNApplication.h
     Base/RNArgumentParser.h
     Base/RNBase.h
