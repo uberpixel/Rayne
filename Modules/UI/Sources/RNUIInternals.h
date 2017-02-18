@@ -30,6 +30,12 @@ namespace RN
 			SkPath path;
 		};
 
+		struct ImageInternals
+		{
+			sk_sp<SkImage> image;
+		};
+
+
 
 		static SkColor MakeColor(const Color &color)
 		{

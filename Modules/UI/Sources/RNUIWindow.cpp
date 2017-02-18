@@ -28,6 +28,7 @@ namespace RN
 
 			_contentView = new View(Rect(0, 0, frame.width, frame.height));
 			_contentView->_window = this;
+			_contentView->SetBackgroundColor(Color::White());
 
 			_model = new Model();
 			_model->AddLODStage(_model->GetDefaultLODFactors()[0]);
@@ -120,6 +121,8 @@ namespace RN
 				ShaderLookupRequest *lookup = new ShaderLookupRequest();
 
 				MaterialDescriptor descriptor;
+				descriptor.depthWriteEnabled = false;
+				descriptor.depthMode = DepthMode::Always;
 				descriptor.AddTexture(_backingStore->GetTexture());
 				descriptor.SetShaderProgram(Renderer::GetActiveRenderer()->GetDefaultShader(_mesh, lookup));
 
@@ -143,8 +146,17 @@ namespace RN
 					}
 				}
 
+
+				Vector3 translation;
+
+				if(_server)
+				{
+					float height = _server->GetHeight();
+					translation = Vector3(_frame.x, (height - _frame.height) - _frame.y, 0);
+				}
+
 				_drawable->Update(_mesh, _material, nullptr);
-				_drawable->modelMatrix = Matrix::WithTranslation(Vector3());
+				_drawable->modelMatrix = Matrix::WithTranslation(translation);
 				_drawable->inverseModelMatrix = _drawable->modelMatrix.GetInverse();
 
 				_needsNewBackingStore = false;

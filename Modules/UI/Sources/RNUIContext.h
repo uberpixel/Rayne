@@ -11,6 +11,7 @@
 
 #include "RNUIConfig.h"
 #include "RNUIPath.h"
+#include "RNUIImage.h"
 
 namespace RN
 {
@@ -76,6 +77,8 @@ namespace RN
 			UIAPI void SaveState();
 			UIAPI void RestoreState();
 			UIAPI void Clear(const Color &color);
+
+			UIAPI void DrawImage(const Image *image, const Rect &rect);
 
 			UIAPI void FillPath(const Path *path);
 			UIAPI void FillPath(const Path *path, BlendMode blendMode, float alpha = 1.0);

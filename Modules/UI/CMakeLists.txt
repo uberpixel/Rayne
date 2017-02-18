@@ -18,6 +18,8 @@ set(SOURCES
         Sources/RNUIServer.cpp
         Sources/RNUIInit.cpp
         Sources/RNUIEdgeInsets.h
+        Sources/RNUIImage.cpp
+        Sources/RNUIImageView.cpp
         Sources/RNUIInternals.h)
 
 set(RESOURCES
@@ -31,6 +33,8 @@ set(HEADERS
         Sources/RNUIServer.h
         Sources/RNUIConfig.h
         Sources/RNUIEdgeInsets.h
+        Sources/RNUIImage.h
+        Sources/RNUIImageView.h
         Sources/RNUI.h)
 
 set(DEFINES

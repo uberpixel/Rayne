@@ -390,14 +390,11 @@ namespace RN
 
 		void View::CalculateScissorRect()
 		{
-			float serverHeight = (_window && _window->_server) ? _window->_server->GetHeight() : _frame.GetSize().y;
-			Vector2 origin = _frame.GetOrigin();
-
-			serverHeight =  _frame.GetSize().y;
+			//Vector2 origin = _frame.GetOrigin();
 
 			_clippingView = nullptr;
 
-			View *view = _superview;
+			/*View *view = _superview;
 			while(view)
 			{
 				if(!_clippingView && view->_clipsToBounds)
@@ -407,16 +404,10 @@ namespace RN
 				origin.y += view->_frame.y - view->_bounds.y;
 
 				view = view->_superview;
-			}
+			}*/
 
-			if(_window)
-			{
-				origin.x += _window->_frame.x;
-				origin.y += _window->_frame.y;
-			}
-
-			_scissorRect.x = origin.x;
-			_scissorRect.y = serverHeight - _frame.height - origin.y;
+			_scissorRect.x = 0; //origin.x;
+			_scissorRect.y = 0; //origin.y;
 			_scissorRect.width  = _frame.width;
 			_scissorRect.height = _frame.height;
 
@@ -441,6 +432,8 @@ namespace RN
 		// MARK: Drawing
 		// ---------------------
 
+		void View::Draw(Context *context) const
+		{}
 
 		void View::DrawInContext(Context *context) const
 		{
@@ -452,6 +445,8 @@ namespace RN
 				context->SetFillColor(_backgroundColor);
 				context->FillRect(Rect(0, 0, _frame.width, _frame.height));
 			}
+
+			Draw(context);
 
 			// Draw all children
 			size_t count = _subviews->GetCount();

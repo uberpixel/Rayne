@@ -54,6 +54,7 @@ namespace RN
 			UIAPI void SetNeedsLayout();
 			UIAPI void LayoutIfNeeded();
 
+			UIAPI virtual void Draw(Context *context) const;
 			UIAPI virtual void DrawInContext(Context *context) const;
 
 		protected:

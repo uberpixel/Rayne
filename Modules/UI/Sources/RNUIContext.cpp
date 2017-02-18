@@ -154,6 +154,12 @@ namespace RN
 			canvas->drawRect(MakeRect(rect), _internals->strokeStyle);
 		}
 
+		void Context::DrawImage(const Image *image, const Rect &rect)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			canvas->drawImageRect(image->_internals->image, MakeRect(rect), &_internals->fillStyle);
+		}
+
 
 		void Context::Translate(const Vector2 &offset)
 		{
