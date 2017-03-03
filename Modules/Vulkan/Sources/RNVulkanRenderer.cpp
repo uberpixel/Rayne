@@ -181,7 +181,7 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
-		//CreateMipMaps(); // Needs the global command buffer
+		CreateMipMaps(); // Needs the global command buffer
 		ProcessCommandBuffers();
 
 		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
@@ -478,7 +478,7 @@ namespace RN
 
 				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
 
-				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), i+1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			}
 
 			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

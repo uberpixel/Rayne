@@ -80,7 +80,7 @@ namespace RN
 //		layers.push_back("VK_LAYER_RENDERDOC_Capture");
 //		layers.push_back("VK_LAYER_LUNARG_api_dump");
 
-		layers.push_back("VK_LAYER_LUNARG_standard_validation");
+//		layers.push_back("VK_LAYER_LUNARG_standard_validation");
 /*		layers.push_back("VK_LAYER_LUNARG_param_checker");
 		layers.push_back("VK_LAYER_LUNARG_device_limits");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");
@@ -101,7 +101,7 @@ namespace RN
 //		layers.push_back("VK_LAYER_RENDERDOC_Capture");
 //		layers.push_back("VK_LAYER_LUNARG_api_dump");
 
-		layers.push_back("VK_LAYER_LUNARG_standard_validation");
+//		layers.push_back("VK_LAYER_LUNARG_standard_validation");
 /*		layers.push_back("VK_LAYER_LUNARG_param_checker");
 		layers.push_back("VK_LAYER_LUNARG_device_limits");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");
