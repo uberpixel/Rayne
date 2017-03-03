@@ -26,6 +26,9 @@ namespace RN
 			if(!fileString)
 				fileString = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
 
+			if(!fileString)
+				return;
+
 			Array *shadersArray = libraryDictionary->GetObjectForKey<Array>(RNCSTR("shaders"));
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
