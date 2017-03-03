@@ -32,8 +32,6 @@ namespace RN
 		VKAPI Texture *GetStencilTexture(size_t index) const;
 
 		VkRenderPass GetRenderPass() const { return _renderPass; }
-		VkCommandBuffer GetDrawCommandBuffer(size_t index) const;
-		VkCommandBuffer GetPreDrawCommandBuffer(size_t index) const;
 		VkFramebuffer GetFramebuffer(size_t index) const;
 
 	private:
@@ -46,8 +44,6 @@ namespace RN
 			{}
 
 			VkFramebuffer framebuffer;
-			VkCommandBuffer preDrawCommandBuffer;
-			VkCommandBuffer drawCommandBuffer;
 			VulkanTexture *colorTexture;
 			VulkanTexture *depthTexture;
 			VulkanTexture *stencilTexture;

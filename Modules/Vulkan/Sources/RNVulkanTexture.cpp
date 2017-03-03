@@ -8,6 +8,7 @@
 
 #include "RNVulkanTexture.h"
 #include "RNVulkanRenderer.h"
+#include "RNVulkanInternals.h"
 
 namespace RN
 {
@@ -221,7 +222,11 @@ namespace RN
 
 		if(!(descriptor.usageHint & Descriptor::UsageHint::RenderTarget))
 		{
-			SetImageLayout(_image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+			commandBuffer->Begin();
+			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			commandBuffer->End();
+			_renderer->SubmitCommandBuffer(commandBuffer);
 		}
 
 		SetParameter(_parameter);
@@ -321,8 +326,10 @@ namespace RN
 
 		vk::UnmapMemory(device, uploadMemory);
 
-		SetImageLayout(uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-		SetImageLayout(_image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+		commandBuffer->Begin();
+		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		VkImageCopy copyRegion = {};
 
@@ -344,13 +351,10 @@ namespace RN
 		copyRegion.extent.height = region.height;
 		copyRegion.extent.depth = region.depth;
 
-		VkCommandBuffer buffer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer())->GetGlobalCommandBuffer();
-		vk::CmdCopyImage(buffer, uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-
-		SetImageLayout(_image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		_renderer->SubmitGlobalCommandBuffer();
-		_renderer->BeginGlobalCommandBuffer();
+		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		commandBuffer->End();
+		_renderer->SubmitCommandBuffer(commandBuffer);
 
 		vk::DestroyImage(device, uploadImage, _renderer->GetAllocatorCallback());
 		vk::FreeMemory(device, uploadMemory, _renderer->GetAllocatorCallback());
@@ -358,6 +362,8 @@ namespace RN
 
 	void VulkanTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const
 	{
+		//TODO: Force main thread, or make it more flexible
+
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
 		VkImage downloadImage;
@@ -392,8 +398,10 @@ namespace RN
 		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &downloadMemory));
 		RNVulkanValidate(vk::BindImageMemory(device, downloadImage, downloadMemory, 0));
 
-		SetImageLayout(downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		SetImageLayout(_image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+		commandBuffer->Begin();
+		SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 		VkImageCopy copyRegion = {};
 
@@ -413,14 +421,14 @@ namespace RN
 		copyRegion.extent.height = _descriptor.height;
 		copyRegion.extent.depth = _descriptor.depth;
 
-		VkCommandBuffer buffer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer())->GetGlobalCommandBuffer();
-		vk::CmdCopyImage(buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, downloadImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, downloadImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-		SetImageLayout(_image, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		SetImageLayout(downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		commandBuffer->End();
+		_renderer->SubmitCommandBuffer(commandBuffer);
 
-		_renderer->SubmitGlobalCommandBuffer();
-		_renderer->BeginGlobalCommandBuffer();
+		//TODO: block and wait for GPU to copy data before reading it.
 
 		VkSubresourceLayout subResLayout;
 		void *data;
@@ -544,7 +552,7 @@ namespace RN
 		}
 	}
 
-	void VulkanTexture::SetImageLayout(VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout)
+	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout)
 	{
 		VkImageMemoryBarrier imageMemoryBarrier = {};
 		imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -618,13 +626,11 @@ namespace RN
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		}
 
-
 		// Put barrier on top
 		VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
 		// Put barrier inside setup command buffer
-		VkCommandBuffer buffer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer())->GetGlobalCommandBuffer();
 		vk::CmdPipelineBarrier(buffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 	}
 }

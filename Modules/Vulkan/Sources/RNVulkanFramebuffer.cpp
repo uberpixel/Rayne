@@ -9,6 +9,7 @@
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanDevice.h"
 #include "RNVulkanRenderer.h"
+#include "RNVulkanInternals.h"
 
 namespace RN
 {
@@ -31,6 +32,9 @@ namespace RN
 		}
 
 		_framebuffers.resize(count);
+
+		VulkanCommandBuffer *commandBuffer = renderer->GetCommandBuffer();
+		commandBuffer->Begin();
 
 		for(size_t i = 0; i < count; i ++)
 		{
@@ -70,7 +74,7 @@ namespace RN
 					colorAttachmentView.flags = 0;
 					colorAttachmentView.image = colorImages[i];
 
-					VulkanTexture::SetImageLayout(colorImages[i], 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+					VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), colorImages[i], 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &colorAttachmentView, _renderer->GetAllocatorCallback(), &imageView));
@@ -110,9 +114,6 @@ namespace RN
 			if(_renderPass == VK_NULL_HANDLE)
 				InitializeRenderPass(i);
 
-			renderer->CreateCommandBuffer(data->preDrawCommandBuffer);
-			renderer->CreateCommandBuffer(data->drawCommandBuffer);
-
 			VkFramebufferCreateInfo frameBufferCreateInfo = {};
 			frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			frameBufferCreateInfo.pNext = nullptr;
@@ -125,6 +126,9 @@ namespace RN
 
 			RNVulkanValidate(vk::CreateFramebuffer(device->GetDevice(), &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &data->framebuffer));
 		}
+
+		commandBuffer->End();
+		renderer->SubmitCommandBuffer(commandBuffer);
 	}
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{}
@@ -153,16 +157,6 @@ namespace RN
 	Texture *VulkanFramebuffer::GetStencilTexture(size_t index) const
 	{
 		return _framebuffers[index]->stencilTexture;
-	}
-
-	VkCommandBuffer VulkanFramebuffer::GetDrawCommandBuffer(size_t index) const
-	{
-		return _framebuffers[index]->drawCommandBuffer;
-	}
-
-	VkCommandBuffer VulkanFramebuffer::GetPreDrawCommandBuffer(size_t index) const
-	{
-		return _framebuffers[index]->preDrawCommandBuffer;
 	}
 
 	VkFramebuffer VulkanFramebuffer::GetFramebuffer(size_t index) const

@@ -11,6 +11,7 @@
 
 #include "RNVulkan.h"
 #include "RNVulkanStateCoordinator.h"
+#include "RNVulkanRenderer.h"
 
 namespace RN
 {
@@ -48,6 +49,28 @@ namespace RN
 
 		VulkanDrawable *drawableHead;
 		size_t drawableCount;
+	};
+
+	class VulkanCommandBuffer : public Object
+	{
+	public:
+		friend RN::VulkanRenderer;
+
+		~VulkanCommandBuffer();
+
+		void Begin();
+		void End();
+
+		VkCommandBuffer GetCommandBuffer() const {return _commandBuffer;}
+
+	private:
+		VulkanCommandBuffer(VkDevice device, VkCommandPool pool);
+
+		VkCommandBuffer _commandBuffer;
+		VkDevice _device;
+		VkCommandPool _pool;
+
+		RNDeclareMetaAPI(VulkanCommandBuffer, VKAPI)
 	};
 
 	struct VulkanRendererInternals

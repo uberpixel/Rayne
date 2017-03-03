@@ -36,8 +36,13 @@
 		#define _USE_MATH_DEFINES
 	#endif
 
+	//#define _AMD64_
+
+	//#include <ntdef.h>
 	#include <WinSock2.h>
 	#include <windows.h>
+	#include <NTDDNDIS.h>
+
 	#include <commdlg.h>
 	#include <ShlObj.h>
 	#include <Psapi.h>

@@ -20,6 +20,7 @@ namespace RN
 	struct VulkanRendererInternals;
 	struct VulkanDrawable;
 	class VulkanTexture;
+	class VulkanCommandBuffer;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -63,18 +64,18 @@ namespace RN
 		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
 
 		VkQueue GetWorkQueue() const { return _workQueue; }
-		VkResult CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
-		VkResult CreateCommandBuffer(VkCommandBuffer &buffer);
-
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
 
-		VkCommandBuffer GetGlobalCommandBuffer() const { return _commandBuffer; }
-		void SubmitGlobalCommandBuffer();
-		void BeginGlobalCommandBuffer();
+		VulkanCommandBuffer *GetCommandBuffer();
+		void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
+		void ProcessCommandBuffers();
 
 	private:
 		void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
+
+		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
+		VkCommandBuffer CreateVulkanCommandBuffer();
 
 		VulkanWindow *_mainWindow;
 
@@ -90,7 +91,7 @@ namespace RN
 		VkQueue _workQueue;
 
 		VkCommandPool _commandPool;
-		VkCommandBuffer _commandBuffer;
+		Array *_submittedCommandBuffers;
 
 		size_t _currentFrame;
 
