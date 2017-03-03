@@ -45,7 +45,7 @@ namespace RN
 
 	void *D3D12GPUBuffer::GetBuffer()
 	{
-		if(!_bufferResourceUpload)
+		if(!_bufferResource)
 			return nullptr;
 
 		void *data;
