@@ -24,12 +24,13 @@ namespace RN
 		D3DAPI void InvalidateRange(const Range &range) final;
 		D3DAPI size_t GetLength() const final;
 
+		ID3D12Resource *GetD3D12Buffer() const;
+
 	private:
 		D3D12GPUBuffer(const void *data, size_t length);
 		~D3D12GPUBuffer() override;
 
 		ID3D12Resource *_bufferResource;
-		ID3D12Resource *_bufferResourceUpload;
 		size_t _length;
 
 		RNDeclareMetaAPI(D3D12GPUBuffer, D3DAPI)
