@@ -15,6 +15,8 @@
 	#include "../RayneConfig.h"
 #endif
 
+#include <new>
+
 namespace RN
 {
 	namespace Memory

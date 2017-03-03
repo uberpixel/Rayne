@@ -263,6 +263,8 @@ if(APPLE)
     find_library(IOKIT_LIBRARY IOKit)
 
     set(COMPILE_OPTIONS -xobjective-c++)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
 
     set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
@@ -270,8 +272,10 @@ endif()
 if(UNIX OR MINGW)
     set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2 -mfpmath=sse -msse -msse2)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
+    if(NOT APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    endif()
 endif()
 
 if(WIN32)
