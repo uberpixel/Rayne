@@ -123,6 +123,16 @@ namespace RN
 		return commandBuffer->Autorelease();
 	}
 
+	VulkanCommandBufferWithCallback *VulkanRenderer::GetCommandBufferWithCallback()
+	{
+		VulkanCommandBufferWithCallback *commandBuffer = new VulkanCommandBufferWithCallback(GetVulkanDevice()->GetDevice(), _commandPool);
+		_lock.Lock();
+		commandBuffer->_commandBuffer = CreateVulkanCommandBuffer();
+		_lock.Unlock();
+
+		return commandBuffer->Autorelease();
+	}
+
 	void VulkanRenderer::SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer)
 	{
 		_lock.Lock();
@@ -140,7 +150,7 @@ namespace RN
 			return;
 		}
 
-		buffers.resize(_submittedCommandBuffers->GetCount());
+		buffers.reserve(_submittedCommandBuffers->GetCount());
 		_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
 			buffers.push_back(buffer->_commandBuffer);
 		});
@@ -171,7 +181,7 @@ namespace RN
 
 	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
-		CreateMipMaps(); // Needs the global command buffer
+		//CreateMipMaps(); // Needs the global command buffer
 		ProcessCommandBuffers();
 
 		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
@@ -202,6 +212,13 @@ namespace RN
 		VulkanFramebuffer *framebuffer = static_cast<VulkanFramebuffer *>(camera->GetFramebuffer());
 		Vector2 size = _mainWindow->GetSize();
 
+		//Happens to be 0 when the window is closed.
+		if(size.x < 0.01f || size.y < 0.01f)
+		{
+			size.x = 1.0f;
+			size.y = 1.0f;
+		}
+
 		if(!framebuffer)
 			framebuffer = _mainWindow->GetFramebuffer();
 
@@ -215,7 +232,7 @@ namespace RN
 		VkImageMemoryBarrier postPresentBarrier = {};
 		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		postPresentBarrier.pNext = NULL;
-		postPresentBarrier.srcAccessMask = 0;
+		postPresentBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 		postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -431,7 +448,7 @@ namespace RN
 
 			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-			for(int i = 0; i < texture->GetDescriptor().mipMaps; i++)
+			for(uint16 i = 0; i < texture->GetDescriptor().mipMaps-1; i++)
 			{
 				VkImageBlit imageBlit = {};
 
@@ -445,7 +462,7 @@ namespace RN
 				imageBlit.srcOffsets[0].z = 0;
 				imageBlit.srcOffsets[1].x = texture->GetDescriptor().GetWidthForMipMapLevel(i);
 				imageBlit.srcOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i);
-				imageBlit.srcOffsets[1].z = 0;
+				imageBlit.srcOffsets[1].z = 1;
 
 				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				imageBlit.dstSubresource.mipLevel = i+1;
@@ -457,11 +474,11 @@ namespace RN
 				imageBlit.dstOffsets[0].z = 0;
 				imageBlit.dstOffsets[1].x = texture->GetDescriptor().GetWidthForMipMapLevel(i+1);
 				imageBlit.dstOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i+1);
-				imageBlit.dstOffsets[1].z = 0;
+				imageBlit.dstOffsets[1].z = 1;
 
 				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
 
-				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), i, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), i+1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			}
 
 			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

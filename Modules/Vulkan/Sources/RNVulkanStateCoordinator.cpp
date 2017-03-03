@@ -56,11 +56,11 @@ namespace RN
 		{
 			VkDescriptorPoolSize uniformBufferPoolSize = {};
 			uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uniformBufferPoolSize.descriptorCount = 1;
+			uniformBufferPoolSize.descriptorCount = 1000;
 
 			VkDescriptorPoolSize textureBufferPoolSize = {};
 			textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			textureBufferPoolSize.descriptorCount = 1;
+			textureBufferPoolSize.descriptorCount = 1000;
 
 			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
 
@@ -120,6 +120,7 @@ namespace RN
 		rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizationState.lineWidth = 1.0f;
 		rasterizationState.flags = 0;
 		rasterizationState.depthClampEnable = VK_TRUE;
 

@@ -21,6 +21,7 @@ namespace RN
 	struct VulkanDrawable;
 	class VulkanTexture;
 	class VulkanCommandBuffer;
+	class VulkanCommandBufferWithCallback;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -67,6 +68,7 @@ namespace RN
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
 
 		VulkanCommandBuffer *GetCommandBuffer();
+		VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
 		void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
 		void ProcessCommandBuffers();
 

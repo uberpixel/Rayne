@@ -194,6 +194,7 @@ namespace RN
 		if(data->colorTexture)
 		{
 			attachments[count].format = data->colorTexture->GetFormat();
+			attachments[count].flags = 0;
 			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
 			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -210,6 +211,7 @@ namespace RN
 		if(data->depthTexture)
 		{
 			attachments[count].format = data->depthTexture->GetFormat();
+			attachments[count].flags = 0;
 			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
 			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -226,6 +228,7 @@ namespace RN
 		if(data->stencilTexture && data->stencilTexture != data->depthTexture)
 		{
 			attachments[count].format = data->stencilTexture->GetFormat();
+			attachments[count].flags = 0;
 			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
 			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;

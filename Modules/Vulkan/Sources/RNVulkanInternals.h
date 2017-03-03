@@ -63,14 +63,32 @@ namespace RN
 
 		VkCommandBuffer GetCommandBuffer() const {return _commandBuffer;}
 
-	private:
+	protected:
 		VulkanCommandBuffer(VkDevice device, VkCommandPool pool);
 
+	private:
 		VkCommandBuffer _commandBuffer;
 		VkDevice _device;
 		VkCommandPool _pool;
 
 		RNDeclareMetaAPI(VulkanCommandBuffer, VKAPI)
+	};
+
+	class VulkanCommandBufferWithCallback : public VulkanCommandBuffer
+	{
+	public:
+		friend RN::VulkanRenderer;
+
+		~VulkanCommandBufferWithCallback();
+		void SetFinishedCallback(std::function<void()> callback);
+
+	protected:
+		VulkanCommandBufferWithCallback(VkDevice device, VkCommandPool pool);
+
+	private:
+		std::function<void()> _finishedCallback;
+
+		RNDeclareMetaAPI(VulkanCommandBufferWithCallback, VKAPI)
 	};
 
 	struct VulkanRendererInternals
