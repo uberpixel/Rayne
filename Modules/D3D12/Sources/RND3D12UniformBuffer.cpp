@@ -13,15 +13,15 @@ namespace RN
 {
 	RNDefineMeta(D3D12UniformBuffer, Object)
 
-	D3D12UniformBuffer::D3D12UniformBuffer(Renderer *renderer, D3D12RenderingStateUniformBufferArgument *uniformBuffer) :
+	D3D12UniformBuffer::D3D12UniformBuffer(Renderer *renderer, size_t size) :
 		_bufferIndex(0),
-		_supportedFeatures(0),
-		_index(uniformBuffer->index)
+		_supportedFeatures(0)
 	{
-/*		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
-			_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::WriteOnly);
+		//Three buffers for triplebuffering
+		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
+			_buffers[i] = renderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
 
-		AutoreleasePool pool;
+/*		AutoreleasePool pool;
 
 		for(D3D12RenderingStateUniformBufferMember *member : uniformBuffer->members)
 		{
@@ -73,29 +73,29 @@ namespace RN
 
 	D3D12UniformBuffer::~D3D12UniformBuffer()
 	{
-/*		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
-			_buffers[i]->Release();*/
+		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
+			_buffers[i]->Release();
 	}
 
 	GPUBuffer *D3D12UniformBuffer::Advance()
 	{
-/*		_bufferIndex = (_bufferIndex + 1) % kRND3D12UniformBufferCount;
-		return _buffers[_bufferIndex];*/
+		_bufferIndex = (_bufferIndex + 1) % kRND3D12UniformBufferCount;
+		return _buffers[_bufferIndex];
 
 		return nullptr;
 	}
 
 	const D3D12UniformBuffer::Member *D3D12UniformBuffer::GetMemberForFeature(Feature feature) const
 	{
-/*		if(!(_supportedFeatures & feature))
+		/*if(!(_supportedFeatures & feature))
 			return nullptr;
 
 		for(const Member &member : _members)
 		{
 			if(member.GetFeature() == feature)
 				return &member;
-		}
-		*/
+		}*/
+		
 		return nullptr;
 	}
 }

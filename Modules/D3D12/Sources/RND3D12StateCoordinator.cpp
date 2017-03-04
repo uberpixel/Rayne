@@ -9,6 +9,7 @@
 #include "d3dx12.h"
 #include "RND3D12StateCoordinator.h"
 #include "RND3D12Renderer.h"
+#include "RND3D12UniformBuffer.h"
 
 namespace RN
 {
@@ -60,7 +61,7 @@ namespace RN
 			MTLCompareFunctionGreater
 		};*/
 
-	D3D12RenderingState::~D3D12RenderingState()
+	D3D12PipelineState::~D3D12PipelineState()
 	{
 		for(D3D12RenderingStateArgument *argument : vertexArguments)
 			delete argument;
@@ -180,7 +181,7 @@ namespace RN
 	}*/
 
 
-	const D3D12RenderingState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
@@ -207,13 +208,13 @@ namespace RN
 		return GetRenderPipelineStateInCollection(collection, mesh, camera);
 	}
 
-	const D3D12RenderingState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera)
 	{
 		DXGI_FORMAT pixelFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 		//TODO: Fix this shit
-		for(const D3D12RenderingState *state : collection->states)
+		for(const D3D12PipelineState *state : collection->states)
 		{
 			if(state->pixelFormat == pixelFormat && state->depthStencilFormat == depthStencilFormat)
 				return state;
@@ -232,11 +233,12 @@ namespace RN
 		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 		psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		psoDesc.DepthStencilState.DepthEnable = FALSE;
-		psoDesc.DepthStencilState.StencilEnable = FALSE;
 		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		psoDesc.DepthStencilState.StencilEnable = FALSE;
 		psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;// depthStencilFormat;
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -244,7 +246,7 @@ namespace RN
 		psoDesc.RTVFormats[0] = pixelFormat;
 		psoDesc.SampleDesc.Count = 1;
 
-		D3D12RenderingState *state = new D3D12RenderingState();
+		D3D12PipelineState *state = new D3D12PipelineState();
 		state->pixelFormat = pixelFormat;
 		state->depthStencilFormat = depthStencilFormat;
 		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
@@ -321,5 +323,59 @@ namespace RN
 		}
 
 		return inputElementDescs;
+	}
+
+	D3D12UniformState *D3D12StateCoordinator::GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material)
+	{
+		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
+		D3D12UniformBuffer *gpuBuffer = new D3D12UniformBuffer(renderer, sizeof(Matrix) * 2 + sizeof(Color) * 2);//renderer->CreateBufferWithLength(sizeof(Matrix) * 2 + sizeof(Color) * 2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<D3D12GPUBuffer>();
+
+/*		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
+		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
+		uniformBufferDescriptorInfo.offset = 0;
+		uniformBufferDescriptorInfo.range = gpuBuffer->GetLength();
+
+		VkWriteDescriptorSet writeUniformDescriptorSet = {};
+		writeUniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeUniformDescriptorSet.pNext = NULL;
+		writeUniformDescriptorSet.dstSet = descriptorSet;
+		writeUniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		writeUniformDescriptorSet.dstBinding = 0;
+		writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
+		writeUniformDescriptorSet.descriptorCount = 1;
+
+		std::vector<VkDescriptorImageInfo*> imageBufferDescriptorInfoArray;
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet };
+
+		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
+			VkDescriptorImageInfo *imageBufferDescriptorInfo = new VkDescriptorImageInfo;
+			imageBufferDescriptorInfo->sampler = texture->GetSampler();
+			imageBufferDescriptorInfo->imageView = texture->GetImageView();
+			imageBufferDescriptorInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
+
+			VkWriteDescriptorSet writeImageDescriptorSet = {};
+			writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeImageDescriptorSet.pNext = NULL;
+			writeImageDescriptorSet.dstSet = descriptorSet;
+			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeImageDescriptorSet.dstBinding = index + 1;
+			writeImageDescriptorSet.pImageInfo = imageBufferDescriptorInfoArray[index];
+			writeImageDescriptorSet.descriptorCount = 1;
+
+			writeDescriptorSets.push_back(writeImageDescriptorSet);
+		});
+
+		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+
+		for(VkDescriptorImageInfo *imageBufferDescriptor : imageBufferDescriptorInfoArray)
+		{
+			delete imageBufferDescriptor;
+		}*/
+
+		D3D12UniformState *state = new D3D12UniformState();
+		state->uniformBuffer = gpuBuffer;
+
+		return state;
 	}
 }

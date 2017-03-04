@@ -41,7 +41,7 @@ namespace RN
 			// Flags indicate that this descriptor heap can be bound to the pipeline 
 			// and that descriptors contained in it can be referenced by a root table.
 			D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
-			cbvHeapDesc.NumDescriptors = 1;
+			cbvHeapDesc.NumDescriptors = 3;
 			cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 			underlyingDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&_cbvHeap));
@@ -57,7 +57,7 @@ namespace RN
 			rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
 
 			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-			rootSignatureDesc.Init(0/*_countof(rootParameters)*/, nullptr/*rootParameters*/, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			ID3DBlob *signature;
 			ID3DBlob *error;
@@ -154,9 +154,11 @@ namespace RN
 
 		window->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
 
-		/*ID3D12DescriptorHeap* ppHeaps[] = { _cbvHeap };
+		ID3D12DescriptorHeap* ppHeaps[] = { _cbvHeap };
 		window->GetCommandList()->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-		window->GetCommandList()->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());*/
+
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(_cbvHeap->GetGPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
+		window->GetCommandList()->SetGraphicsRootDescriptorTable(0, cbvHandle);
 		
 		function();
 
@@ -180,7 +182,7 @@ namespace RN
 		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
 		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		_internals->renderPass.projectionMatrix.m[5] *= -1.0f;
+		//_internals->renderPass.projectionMatrix.m[5] *= -1.0f;
 		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
@@ -237,13 +239,11 @@ namespace RN
 
 	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
-/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
-		return new D3D12GPUBuffer(nullptr, length);
+		return new D3D12GPUBuffer(nullptr, length, usageOptions);
 	}
 	GPUBuffer *D3D12Renderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
-/*		MTLResourceOptions resourceOptions = D3D12ResourceOptionsFromOptions(options);*/
-		return new D3D12GPUBuffer(bytes, length);
+		return new D3D12GPUBuffer(bytes, length, usageOptions);
 	}
 
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
@@ -432,19 +432,19 @@ namespace RN
 
 	void D3D12Renderer::FillUniformBuffer(D3D12UniformBuffer *uniformBuffer, D3D12Drawable *drawable)
 	{
-/*		GPUBuffer *gpuBuffer = uniformBuffer;//uniformBuffer->Advance();
+		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 
 		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-		std::memcpy(buffer, result.m, sizeof(Matrix));*/
+		std::memcpy(buffer, result.m, sizeof(Matrix));
 
 		/*	const VulkanUniformBuffer::Member *member;*/
 
 		// Matrices
 		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
-/*		{
+		{
 			std::memcpy(buffer + sizeof(Matrix), drawable->modelMatrix.m, sizeof(Matrix));
-		}*/
+		}
 		/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
 		{
 		Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
@@ -488,7 +488,7 @@ namespace RN
 		}*/
 
 		// Color
-		/*Material *material = drawable->material;
+		Material *material = drawable->material;
 
 		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
 		{
@@ -497,7 +497,7 @@ namespace RN
 		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
 		{
 			std::memcpy(buffer + sizeof(Matrix) * 2 + sizeof(Color), &material->GetDiffuseColor().r, sizeof(Color));
-		}*/
+		}
 		/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
 		{
 		std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
@@ -519,7 +519,7 @@ namespace RN
 		std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
 		}*/
 
-		//gpuBuffer->Invalidate();
+		gpuBuffer->Invalidate();
 	}
 
 	void D3D12Renderer::SubmitDrawable(Drawable *tdrawable)
@@ -530,14 +530,15 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const D3D12RenderingState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, drawable->material);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(this, pipelineState);
+			drawable->UpdateRenderingState(this, pipelineState, uniformState);
 			drawable->dirty = false;
 		}
 
-		//FillUniformBuffer(drawable->_uniformState->uniformBuffer, drawable);
+		FillUniformBuffer(drawable->_uniformState->uniformBuffer, drawable);
 
 		// Push into the queue
 		drawable->_prev = nullptr;
@@ -557,6 +558,13 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		D3D12GPUBuffer *constantBuffer = drawable->_uniformState->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+		cbvDesc.BufferLocation = constantBuffer->GetD3D12Buffer()->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = (constantBuffer->GetLength()+255) & ~255;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvHandle(_cbvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
+		GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
 		commandList->SetPipelineState(drawable->_pipelineState->state);
 
 		D3D12GPUBuffer *buffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetVertexBuffer());

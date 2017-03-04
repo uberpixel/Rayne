@@ -89,7 +89,7 @@ namespace RN
 			size_t _offset;
 		};
 
-		D3D12UniformBuffer(Renderer *renderer, D3D12RenderingStateUniformBufferArgument *uniformBuffer);
+		D3D12UniformBuffer(Renderer *renderer, size_t size);
 		~D3D12UniformBuffer();
 
 		GPUBuffer *Advance();

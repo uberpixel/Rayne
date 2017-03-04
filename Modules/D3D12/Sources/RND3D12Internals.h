@@ -19,61 +19,21 @@ namespace RN
 	{
 		~D3D12Drawable()
 		{
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
+
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const D3D12RenderingState *state)
+		void UpdateRenderingState(Renderer *renderer, const D3D12PipelineState *pipelineState, D3D12UniformState *uniformState)
 		{
-			if(state == _pipelineState)
+			if(pipelineState == _pipelineState && uniformState == _uniformState)
 				return;
 
-			_pipelineState = state;
-
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-
-			_vertexBuffers.clear();
-			_fragmentBuffers.clear();
-
-			for(D3D12RenderingStateArgument *argument : state->vertexArguments)
-			{
-				switch(argument->type)
-				{
-				case D3D12RenderingStateArgument::Type::Buffer:
-				{
-					if(argument->index > 0)
-						_vertexBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-				}
-
-				default:
-					break;
-				}
-			}
-
-			for(D3D12RenderingStateArgument *argument : state->fragmentArguments)
-			{
-				switch(argument->type)
-				{
-				case D3D12RenderingStateArgument::Type::Buffer:
-				{
-					if(argument->index > 0)
-						_fragmentBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-				}
-
-				default:
-					break;
-				}
-			}
+			_pipelineState = pipelineState;
+			_uniformState = uniformState;
 		}
 
-		const D3D12RenderingState *_pipelineState;
-		std::vector<D3D12UniformBuffer *> _vertexBuffers;
-		std::vector<D3D12UniformBuffer *> _fragmentBuffers;
+		const D3D12PipelineState *_pipelineState;
+		D3D12UniformState *_uniformState;
+
 		D3D12Drawable *_next;
 		D3D12Drawable *_prev;
 	};

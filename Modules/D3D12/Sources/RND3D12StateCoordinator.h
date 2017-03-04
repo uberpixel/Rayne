@@ -19,6 +19,14 @@ namespace RN
 {
 	RNExceptionType(D3D12StructArgumentUnsupported)
 
+	class D3D12UniformBuffer;
+
+	struct D3D12UniformState
+	{
+		//VkDescriptorSet descriptorSet;
+		D3D12UniformBuffer *uniformBuffer;
+	};
+
 	class D3D12RenderingStateUniformBufferMember
 	{
 	public:
@@ -167,9 +175,9 @@ namespace RN
 		}
 	};
 
-	struct D3D12RenderingState
+	struct D3D12PipelineState
 	{
-		~D3D12RenderingState();
+		~D3D12PipelineState();
 
 		size_t pixelFormat;
 		size_t depthStencilFormat;
@@ -190,7 +198,7 @@ namespace RN
 
 		~D3D12RenderingStateCollection()
 		{
-			for(D3D12RenderingState *state : states)
+			for(D3D12PipelineState *state : states)
 				delete state;
 		}
 
@@ -198,7 +206,7 @@ namespace RN
 		void *vertexShader;
 		void *fragmentShader;
 
-		std::vector<D3D12RenderingState *> states;
+		std::vector<D3D12PipelineState *> states;
 	};
 
 	class D3D12StateCoordinator
@@ -210,13 +218,12 @@ namespace RN
 /*		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
 		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);*/
 
-		const D3D12RenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
 
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
-		const D3D12RenderingState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
-
-//		id<MTLDevice> _device;
+		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
 
 		std::mutex _samplerLock;
 //		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;

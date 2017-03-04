@@ -27,7 +27,7 @@ namespace RN
 		ID3D12Resource *GetD3D12Buffer() const;
 
 	private:
-		D3D12GPUBuffer(const void *data, size_t length);
+		D3D12GPUBuffer(const void *data, size_t length, GPUResource::UsageOptions usageOptions);
 		~D3D12GPUBuffer() override;
 
 		ID3D12Resource *_bufferResource;

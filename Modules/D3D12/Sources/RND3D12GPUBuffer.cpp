@@ -14,14 +14,21 @@ namespace RN
 {
 	RNDefineMeta(D3D12GPUBuffer, GPUBuffer)
 
-	D3D12GPUBuffer::D3D12GPUBuffer(const void *data, size_t length) : 
+	D3D12GPUBuffer::D3D12GPUBuffer(const void *data, size_t length, GPUResource::UsageOptions usageOptions) :
 		_length(length),
 		_bufferResource(nullptr)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 		ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
 
-		HRESULT hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(length), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&_bufferResource));
+		//Uniform buffers have a to be multiples of 64kb
+		if(usageOptions == GPUResource::UsageOptions::Uniform)
+		{
+			//_length = ((_length % (1024 * 64)) + 1) * 1024 * 64;
+			_length = (_length + 255) & ~255;
+		}
+
+		HRESULT hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(_length), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&_bufferResource));
 
 		if(FAILED(hr))
 		{
