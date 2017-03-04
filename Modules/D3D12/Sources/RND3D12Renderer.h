@@ -67,6 +67,7 @@ namespace RN
 		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
 		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
 		ID3D12DescriptorHeap *GetCBVHeap() const { return _cbvHeap; }
+		ID3D12DescriptorHeap *GetDSVHeap() const { return _dsvHeap; }
 
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
@@ -89,6 +90,7 @@ namespace RN
 
 		ID3D12DescriptorHeap *_rtvHeap;
 		UINT _rtvDescriptorSize;
+		ID3D12DescriptorHeap *_dsvHeap;
 		ID3D12DescriptorHeap *_cbvHeap;
 		UINT _cbvDescriptorSize;
 

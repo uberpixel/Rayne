@@ -29,6 +29,7 @@ namespace RN
 	private:
 		D3D12Renderer *_renderer;
 		ID3D12Resource *_renderTargets[3];
+		ID3D12Resource *_depthStencilBuffer;
 
 		RNDeclareMetaAPI(D3D12Framebuffer, D3DAPI)
 	};

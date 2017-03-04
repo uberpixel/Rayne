@@ -37,13 +37,20 @@ namespace RN
 			underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_rtvHeap));
 			_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
+			// Describe and create depth stencil view descriptor heap
+			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+			dsvHeapDesc.NumDescriptors = 1;
+			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+			underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&_dsvHeap));
+
 			// Describe and create a constant buffer view (CBV) descriptor heap.
 			// Flags indicate that this descriptor heap can be bound to the pipeline 
 			// and that descriptors contained in it can be referenced by a root table.
 			D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
 			cbvHeapDesc.NumDescriptors = 3;
-			cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			underlyingDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&_cbvHeap));
 			_cbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
@@ -111,6 +118,7 @@ namespace RN
 
 	D3D12Renderer::~D3D12Renderer()
 	{
+		
 	}
 
 
@@ -222,11 +230,13 @@ namespace RN
 		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _rtvDescriptorSize);
-		commandList->OMSetRenderTargets(1, &rtvHandle, false , nullptr);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+		commandList->OMSetRenderTargets(1, &rtvHandle, false , &dsvHandle);
 
 		// Clear
 		const Color &clearColor = camera->GetClearColor();
 		commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
+		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		//Draw drawables
 		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
