@@ -63,8 +63,9 @@ namespace RN
 	}
 
 
-	void Bitmap::ReadPixel(size_t x, size_t y, Pixel &pixel) const
+	Color Bitmap::GetPixel(size_t x, size_t y) const
 	{
+		Color pixel;
 		size_t index = (y * _info.bytesPerRow) + (x *_bytesPerPixel);
 
 		switch(_info.format)
@@ -146,8 +147,10 @@ namespace RN
 				break;
 			}
 		}
+
+		return pixel;
 	}
-	void Bitmap::WritePixel(size_t x, size_t y, const Pixel &pixel)
+	void Bitmap::SetPixel(size_t x, size_t y, const Color &pixel)
 	{
 		size_t index = (y * _info.bytesPerRow) + (x *_bytesPerPixel);
 
@@ -178,10 +181,10 @@ namespace RN
 			{
 				uint8_t *data = _data->GetBytes<uint8_t>(index);
 
-				data[0] = pixel.GetRed();
-				data[1] = pixel.GetGreen();
-				data[2] = pixel.GetBlue();
-				data[3] = pixel.GetAlpha();
+				data[0] = static_cast<uint8>(pixel.r * 255);
+				data[1] = static_cast<uint8>(pixel.g * 255);
+				data[2] = static_cast<uint8>(pixel.b * 255);
+				data[3] = static_cast<uint8>(pixel.a * 255);
 
 				break;
 			}
@@ -189,9 +192,9 @@ namespace RN
 			{
 				uint8_t *data = _data->GetBytes<uint8_t>(index);
 
-				data[0] = pixel.GetRed();
-				data[1] = pixel.GetGreen();
-				data[2] = pixel.GetBlue();
+				data[0] = static_cast<uint8>(pixel.r * 255);
+				data[1] = static_cast<uint8>(pixel.g * 255);
+				data[2] = static_cast<uint8>(pixel.b * 255);
 
 				break;
 			}
@@ -199,10 +202,10 @@ namespace RN
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 
-				data[0] = pixel.GetRed() >> 4;
-				data[1] = pixel.GetGreen() >> 4;
-				data[2] = pixel.GetBlue() >> 4;
-				data[3] = pixel.GetAlpha() >> 4;
+				data[0] = static_cast<uint8>(pixel.r * 255) >> 4;
+				data[1] = static_cast<uint8>(pixel.g * 255) >> 4;
+				data[2] = static_cast<uint8>(pixel.b * 255) >> 4;
+				data[3] = static_cast<uint8>(pixel.a * 255) >> 4;
 
 				break;
 			}
@@ -210,10 +213,10 @@ namespace RN
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 
-				data[0] = pixel.GetRed() >> 3;
-				data[1] = pixel.GetGreen() >> 3;
-				data[2] = pixel.GetBlue() >> 3;
-				data[3] = pixel.GetAlpha() >> 7;
+				data[0] = static_cast<uint8>(pixel.r * 255) >> 3;
+				data[1] = static_cast<uint8>(pixel.g * 255) >> 3;
+				data[2] = static_cast<uint8>(pixel.b * 255) >> 3;
+				data[3] = static_cast<uint8>(pixel.a * 255) >> 7;
 
 				break;
 			}
@@ -221,9 +224,9 @@ namespace RN
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 
-				data[0] = pixel.GetRed() >> 3;
-				data[1] = pixel.GetGreen() >> 2;
-				data[2] = pixel.GetBlue() >> 3;
+				data[0] = static_cast<uint8>(pixel.r * 255) >> 3;
+				data[1] = static_cast<uint8>(pixel.g * 255) >> 2;
+				data[2] = static_cast<uint8>(pixel.b * 255) >> 3;
 
 				break;
 			}
@@ -252,10 +255,8 @@ namespace RN
 		{
 			for(size_t x = 0; x < _info.width; x++)
 			{
-				Pixel pixel;
-
-				ReadPixel(x, y, pixel);
-				other->WritePixel(x, y, pixel);
+				Color pixel = GetPixel(x, y);
+				other->SetPixel(x, y, pixel);
 			}
 		}
 

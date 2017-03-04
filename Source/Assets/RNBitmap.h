@@ -12,6 +12,7 @@
 #include "../Base/RNBase.h"
 #include "../Assets/RNAsset.h"
 #include "../Objects/RNData.h"
+#include "../Math/RNColor.h"
 
 namespace RN
 {
@@ -52,6 +53,9 @@ namespace RN
 
 		RNAPI Bitmap *GetBitmapWithFormat(BitmapInfo::Format format, size_t bytesPerRow = 0) const;
 
+		Color GetPixel(size_t x, size_t y) const;
+		void SetPixel(size_t x, size_t y, const Color &color);
+
 		size_t GetWidth() const { return _info.width; }
 		size_t GetHeight() const { return _info.height; }
 		const BitmapInfo &GetInfo() const { return _info; }
@@ -59,35 +63,7 @@ namespace RN
 		const Data *GetData() const { return _data; }
 
 	private:
-		struct Pixel
-		{
-			float r;
-			float g;
-			float b;
-			float a;
-
-			uint8 GetRed() const
-			{
-				return static_cast<uint8>(r * 255);
-			}
-			uint8 GetGreen() const
-			{
-				return static_cast<uint8>(g * 255);
-			}
-			uint8 GetBlue() const
-			{
-				return static_cast<uint8>(b * 255);
-			}
-			uint8 GetAlpha() const
-			{
-				return static_cast<uint8>(a * 255);
-			}
-		};
-
 		Bitmap(Data *data, const BitmapInfo &info, bool dummy);
-
-		void ReadPixel(size_t x, size_t y, Pixel &pixel) const;
-		void WritePixel(size_t x, size_t y, const Pixel &pixel);
 
 		void Update();
 
