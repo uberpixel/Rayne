@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Vulkan)
 
+find_package(PythonInterp 3 REQUIRED)
 if(NOT PYTHON_EXECUTABLE)
     if(WIN32)
         set(PYTHON_EXECUTABLE "C:/Program Files (x86)/Python36/python.exe")
     endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
 if(WIN32)
     if(DEFINED ENV{VK_SDK_PATH})
         set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
