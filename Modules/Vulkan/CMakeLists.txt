@@ -3,7 +3,7 @@ project(Vulkan)
 
 if(NOT PYTHON_EXECUTABLE)
     if(WIN32)
-        set(PYTHON_EXECUTABLE "C:/Program Files (x86)/Python 3.5/python.exe")
+        set(PYTHON_EXECUTABLE "C:/Program Files (x86)/Python36/python.exe")
     endif()
 endif()
 

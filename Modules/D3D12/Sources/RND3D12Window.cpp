@@ -107,6 +107,7 @@ namespace RN
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
 		device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, _commandAllocators[_frameIndex], nullptr, IID_PPV_ARGS(&_commandList));
+		_commandList->Close();
 
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;

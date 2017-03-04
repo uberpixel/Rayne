@@ -222,19 +222,22 @@ namespace RN
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
 		ID3DBlob *vertexShader = static_cast<ID3DBlob*>(collection->vertexShader);
-		ID3DBlob *fragmentShader = static_cast<ID3DBlob*>(collection->vertexShader);
+		ID3DBlob *fragmentShader = static_cast<ID3DBlob*>(collection->fragmentShader);
 
 		// Describe and create the graphics pipeline state object (PSO).
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-		//psoDesc.pRootSignature = renderer->_internals->rootSignature;
-		psoDesc.InputLayout = CreateVertexDescriptorFromMesh(mesh);
+		psoDesc.pRootSignature = renderer->_rootSignature;
+		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs = CreateVertexElementDescriptorsFromMesh(mesh);
+		psoDesc.InputLayout = { inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()) };
 		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 		psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.DepthStencilState.DepthEnable = TRUE;
-		psoDesc.DepthStencilState.StencilEnable = TRUE;
-		psoDesc.DSVFormat = depthStencilFormat;
+		psoDesc.DepthStencilState.DepthEnable = FALSE;
+		psoDesc.DepthStencilState.StencilEnable = FALSE;
+		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;// depthStencilFormat;
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		psoDesc.NumRenderTargets = 1;
@@ -244,9 +247,12 @@ namespace RN
 		D3D12RenderingState *state = new D3D12RenderingState();
 		state->pixelFormat = pixelFormat;
 		state->depthStencilFormat = depthStencilFormat;
-		//renderer->_internals->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
+		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
-
+		if(FAILED(success))
+		{
+			return nullptr;
+		}
 
 /*		// Create the rendering state
 		D3D12RenderingState *state = new D3D12RenderingState();
@@ -293,7 +299,7 @@ namespace RN
 		return state;
 	}
 
-	D3D12_INPUT_LAYOUT_DESC D3D12StateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
+	std::vector<D3D12_INPUT_ELEMENT_DESC> D3D12StateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
 	{
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
@@ -310,10 +316,10 @@ namespace RN
 			element.InputSlot = 0;
 			element.AlignedByteOffset = attribute.GetOffset();
 			element.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-			element.InstanceDataStepRate = 1;
+			element.InstanceDataStepRate = 0;
 			inputElementDescs.push_back(element);
 		}
 
-		return {inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size())};
+		return inputElementDescs;
 	}
 }

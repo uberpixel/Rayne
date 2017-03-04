@@ -213,7 +213,7 @@ namespace RN
 		const D3D12RenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
 	private:
-		D3D12_INPUT_LAYOUT_DESC CreateVertexDescriptorFromMesh(Mesh *mesh);
+		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
 		const D3D12RenderingState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
 
 //		id<MTLDevice> _device;

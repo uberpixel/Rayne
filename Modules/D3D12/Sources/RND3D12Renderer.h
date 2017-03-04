@@ -13,79 +13,14 @@
 #include "RND3D12Window.h"
 #include "RND3D12Device.h"
 #include "RND3D12RendererDescriptor.h"
-#include "RND3D12StateCoordinator.h"
-#include "RND3D12UniformBuffer.h"
 
 namespace RN
 {
 	struct D3D12Drawable;
-	class D3D12RendererInternals;
+	struct D3D12RendererInternals;
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
-
-	struct D3D12Drawable : public Drawable
-	{
-		~D3D12Drawable()
-		{
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-		}
-
-		void UpdateRenderingState(Renderer *renderer, const D3D12RenderingState *state)
-		{
-			if(state == _pipelineState)
-				return;
-
-			_pipelineState = state;
-
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-
-			_vertexBuffers.clear();
-			_fragmentBuffers.clear();
-
-			for(D3D12RenderingStateArgument *argument : state->vertexArguments)
-			{
-				switch(argument->type)
-				{
-					case D3D12RenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_vertexBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
-
-			for(D3D12RenderingStateArgument *argument : state->fragmentArguments)
-			{
-				switch(argument->type)
-				{
-					case D3D12RenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_fragmentBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
-		}
-
-		const D3D12RenderingState *_pipelineState;
-		std::vector<D3D12UniformBuffer *> _vertexBuffers;
-		std::vector<D3D12UniformBuffer *> _fragmentBuffers;
-		D3D12Drawable *_next;
-		D3D12Drawable *_prev;
-	};
 
 	class D3D12Renderer : public Renderer
 	{
@@ -134,7 +69,7 @@ namespace RN
 		ID3D12DescriptorHeap *GetCBVHeap() const { return _cbvHeap; }
 
 	protected:
-		void RenderDrawable(D3D12Drawable *drawable);
+		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
 		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
 
 		void CreateMipMapForeTexture(D3D12Texture *texture);
@@ -144,6 +79,8 @@ namespace RN
 		Dictionary *_textureFormatLookup;
 
 		D3D12Window *_mainWindow;
+
+		PIMPL<D3D12RendererInternals> _internals;
 
 		Lockable _lock;
 		Dictionary *_defaultShaders;
