@@ -677,6 +677,11 @@ namespace RN
 		return drawable;
 	}
 
+	void VulkanRenderer::DeleteDrawable(Drawable *drawable)
+	{
+		delete drawable;
+	}
+
 	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);

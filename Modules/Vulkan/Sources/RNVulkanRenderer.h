@@ -59,6 +59,7 @@ namespace RN
 		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
 
 		VKAPI Drawable *CreateDrawable() final;
+		VKAPI void DeleteDrawable(Drawable *drawable);
 		VKAPI void SubmitDrawable(Drawable *drawable) final;
 
 		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }

@@ -48,7 +48,6 @@ namespace RN
 		DXGI_FORMAT _format;
 
 		ID3D12Resource *_textureBuffer;
-		ID3D12DescriptorHeap *_textureDescriptorHeap;
 		
 		D3D12_STATIC_SAMPLER_DESC _samplerDesc;
 

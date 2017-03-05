@@ -59,6 +59,7 @@ namespace RN
 		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
 
 		MTLAPI Drawable *CreateDrawable() final;
+		MTLAPI void DeleteDrawable(Drawable *drawable);
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
 
 	protected:

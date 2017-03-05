@@ -522,6 +522,11 @@ namespace RN
 		return drawable;
 	}
 
+	void MetalRenderer::DeleteDrawable(Drawable *drawable)
+	{
+		delete drawable;
+	}
+
 	void MetalRenderer::FillUniformBuffer(MetalUniformBuffer *uniformBuffer, MetalDrawable *drawable)
 	{
 		GPUBuffer *gpuBuffer = uniformBuffer->Advance();

@@ -110,6 +110,7 @@ namespace RN
 		RNAPI virtual Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) = 0;
 
 		RNAPI virtual Drawable *CreateDrawable() = 0;
+		RNAPI virtual void DeleteDrawable(Drawable *drawable) = 0;
 		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
 
 		RendererDescriptor *GetDescriptor() const { return _descriptor; }

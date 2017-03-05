@@ -243,7 +243,7 @@ namespace RN
 	D3D12Texture::D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer) :
 		Texture(descriptor),
 		_renderer(renderer),
-		_format(DXGI_FORMAT_B8G8R8A8_UNORM)
+		_format(DXGI_FORMAT_R8G8B8A8_UNORM)
 	{
 
 	}
@@ -303,19 +303,13 @@ namespace RN
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		D3D12_DESCRIPTOR_HEAP_DESC textureHeapDesc = {};
-		textureHeapDesc.NumDescriptors = 1;
-		textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		device->CreateDescriptorHeap(&textureHeapDesc, IID_PPV_ARGS(&_textureDescriptorHeap));
-
 		// now we create a shader resource view (descriptor that points to the texture and describes it)
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = _format;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
-		device->CreateShaderResourceView(_textureBuffer, &srvDesc, _textureDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		device->CreateShaderResourceView(_textureBuffer, &srvDesc, _renderer->GetCurrentTextureDescriptorCPUHandle());
 
 		// Now we execute the command list to upload the initial assets (triangle data)
 		commandList->Close();

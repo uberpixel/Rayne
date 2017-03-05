@@ -97,10 +97,9 @@ namespace RN
 
 		const Member *GetMemberForFeature(Feature feature) const;
 
-		size_t GetIndex() const { return _index; }
+		size_t GetCurrentBufferIndex() const { return _bufferIndex; }
 
 	private:
-		size_t _index;
 		GPUBuffer *_buffers[kRND3D12UniformBufferCount];
 		size_t _bufferIndex;
 		Feature _supportedFeatures;

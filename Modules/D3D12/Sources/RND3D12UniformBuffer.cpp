@@ -8,6 +8,7 @@
 
 #include "RND3D12UniformBuffer.h"
 #include "RND3D12Renderer.h"
+#include "RND3D12GPUBuffer.h"
 
 namespace RN
 {
@@ -17,9 +18,18 @@ namespace RN
 		_bufferIndex(0),
 		_supportedFeatures(0)
 	{
+		D3D12Renderer *realRenderer = renderer->Downcast<D3D12Renderer>();
+
 		//Three buffers for triplebuffering
-		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
+		for(size_t i = 0; i < kRND3D12UniformBufferCount; i++)
+		{
 			_buffers[i] = renderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
+
+			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+			cbvDesc.BufferLocation = _buffers[i]->Downcast<D3D12GPUBuffer>()->GetD3D12Buffer()->GetGPUVirtualAddress();
+			cbvDesc.SizeInBytes = _buffers[i]->GetLength();
+			realRenderer->GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, realRenderer->GetUniformDescriptorCPUHandle(i));
+		}
 
 /*		AutoreleasePool pool;
 

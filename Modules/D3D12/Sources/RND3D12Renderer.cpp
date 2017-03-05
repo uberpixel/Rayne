@@ -24,7 +24,8 @@ namespace RN
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary()),
-		_textureFormatLookup(new Dictionary())
+		_textureFormatLookup(new Dictionary()),
+		_currentTextureDescHeapIndex(0)
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -44,28 +45,25 @@ namespace RN
 			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&_dsvHeap));
 
-			// Describe and create a constant buffer view (CBV) descriptor heap.
-			// Flags indicate that this descriptor heap can be bound to the pipeline 
-			// and that descriptors contained in it can be referenced by a root table.
-			D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc = {};
-			cbvHeapDesc.NumDescriptors = 3;
-			cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			underlyingDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&_cbvHeap));
-			_cbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			// Layout: textures, frame 1 cbv, frame 2 cbv, frame 3 cbv
+			D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
+			srvCbvHeapDesc.NumDescriptors = 5+3;
+			srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			underlyingDevice->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap));
+			_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
 		// Create an empty root signature.
 		{
-			CD3DX12_DESCRIPTOR_RANGE cbvRanges[1];
-			CD3DX12_DESCRIPTOR_RANGE srvRanges[1];
+			CD3DX12_DESCRIPTOR_RANGE srvCbvRanges[2];
 			CD3DX12_ROOT_PARAMETER rootParameters[2];
 
-			cbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-			rootParameters[0].InitAsDescriptorTable(1, &cbvRanges[0], D3D12_SHADER_VISIBILITY_VERTEX);
-
-			srvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-			rootParameters[1].InitAsDescriptorTable(1, &srvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+			// Perfomance TIP: Order from most frequent to least frequent.
+			srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);//, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+			srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0);//, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+			rootParameters[0].InitAsDescriptorTable(1, &srvCbvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+			rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[1], D3D12_SHADER_VISIBILITY_VERTEX);
 
 			// Create sampler
 			D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -454,6 +452,11 @@ namespace RN
 		return drawable;
 	}
 
+	void D3D12Renderer::DeleteDrawable(Drawable *drawable)
+	{
+		delete drawable;
+	}
+
 	void D3D12Renderer::FillUniformBuffer(D3D12UniformBuffer *uniformBuffer, D3D12Drawable *drawable)
 	{
 		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
@@ -538,10 +541,10 @@ namespace RN
 		std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
 		}
 		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::TextureTileFactor)))
-		{
+		{*/
 		float temp = material->GetTextureTileFactor();
-		std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
-		}*/
+		std::memcpy(buffer + sizeof(Matrix) * 2 + sizeof(Color) * 2, &temp, sizeof(float));
+		//}
 
 		gpuBuffer->Invalidate();
 	}
@@ -582,26 +585,13 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		D3D12GPUBuffer *constantBuffer = drawable->_uniformState->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-		cbvDesc.BufferLocation = constantBuffer->GetD3D12Buffer()->GetGPUVirtualAddress();
-		cbvDesc.SizeInBytes = (constantBuffer->GetLength()+255) & ~255;
-		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCPUHandle(_cbvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
-		GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, cbvCPUHandle);
+		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap };
+		_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap->GetGPUDescriptorHandleForHeapStart(), 5 + _mainWindow->GetFrameIndex(), _srvCbvDescriptorSize);
+		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
 
-		ID3D12DescriptorHeap* constantBufferDescriptorHeaps[] = { _cbvHeap };
-		_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(constantBufferDescriptorHeaps), constantBufferDescriptorHeaps);
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_cbvHeap->GetGPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
-		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(0, cbvGPUHandle);
-
-		const Array *textures = drawable->material->GetTextures();
-		if(textures->GetCount() > 0)
-		{
-			ID3D12DescriptorHeap *textureDescriptorHeap = textures->GetFirstObject()->Downcast<D3D12Texture>()->_textureDescriptorHeap;
-			ID3D12DescriptorHeap* textureDescriptorHeaps[] = { textureDescriptorHeap };
-			_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(textureDescriptorHeaps), textureDescriptorHeaps);
-			_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(1, textureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		}
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap->GetGPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
 		commandList->SetPipelineState(drawable->_pipelineState->state);
 

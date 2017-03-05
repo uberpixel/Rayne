@@ -59,6 +59,7 @@ namespace RN
 		D3DAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
 
 		D3DAPI Drawable *CreateDrawable() final;
+		D3DAPI void DeleteDrawable(Drawable *drawable) final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
 
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
@@ -66,8 +67,10 @@ namespace RN
 
 		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
 		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
-		ID3D12DescriptorHeap *GetCBVHeap() const { return _cbvHeap; }
+		ID3D12DescriptorHeap *GetSRVCBVHeap() const { return _srvCbvHeap; }
 		ID3D12DescriptorHeap *GetDSVHeap() const { return _dsvHeap; }
+		CD3DX12_CPU_DESCRIPTOR_HANDLE GetCurrentTextureDescriptorCPUHandle() { return CD3DX12_CPU_DESCRIPTOR_HANDLE(_srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), _currentTextureDescHeapIndex++, _srvCbvDescriptorSize); }
+		CD3DX12_CPU_DESCRIPTOR_HANDLE GetUniformDescriptorCPUHandle(uint16 frameIndex) { return CD3DX12_CPU_DESCRIPTOR_HANDLE(_srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), 5 + frameIndex, _srvCbvDescriptorSize); }
 
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
@@ -91,8 +94,9 @@ namespace RN
 		ID3D12DescriptorHeap *_rtvHeap;
 		UINT _rtvDescriptorSize;
 		ID3D12DescriptorHeap *_dsvHeap;
-		ID3D12DescriptorHeap *_cbvHeap;
-		UINT _cbvDescriptorSize;
+		ID3D12DescriptorHeap *_srvCbvHeap;
+		UINT _srvCbvDescriptorSize;
+		uint16 _currentTextureDescHeapIndex;
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};

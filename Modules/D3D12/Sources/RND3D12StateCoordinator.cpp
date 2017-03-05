@@ -328,7 +328,7 @@ namespace RN
 	D3D12UniformState *D3D12StateCoordinator::GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
-		D3D12UniformBuffer *gpuBuffer = new D3D12UniformBuffer(renderer, sizeof(Matrix) * 2 + sizeof(Color) * 2);//renderer->CreateBufferWithLength(sizeof(Matrix) * 2 + sizeof(Color) * 2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<D3D12GPUBuffer>();
+		D3D12UniformBuffer *gpuBuffer = new D3D12UniformBuffer(renderer, sizeof(Matrix) * 2 + sizeof(Color) * 2 + sizeof(float));//renderer->CreateBufferWithLength(sizeof(Matrix) * 2 + sizeof(Color) * 2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<D3D12GPUBuffer>();
 
 /*		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
 		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
