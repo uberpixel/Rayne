@@ -57,14 +57,34 @@ namespace RN
 
 		// Create an empty root signature.
 		{
-			CD3DX12_DESCRIPTOR_RANGE ranges[1];
-			CD3DX12_ROOT_PARAMETER rootParameters[1];
+			CD3DX12_DESCRIPTOR_RANGE cbvRanges[1];
+			CD3DX12_DESCRIPTOR_RANGE srvRanges[1];
+			CD3DX12_ROOT_PARAMETER rootParameters[2];
 
-			ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-			rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+			cbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+			rootParameters[0].InitAsDescriptorTable(1, &cbvRanges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+			srvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+			rootParameters[1].InitAsDescriptorTable(1, &srvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+			// Create sampler
+			D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+			samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+			samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+			samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+			samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+			samplerDesc.MipLODBias = 0.0f;
+			samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+			samplerDesc.MinLOD = 0.0f;
+			samplerDesc.MaxLOD = 1.0f;
+			samplerDesc.MaxAnisotropy = 0;
+			samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+			samplerDesc.ShaderRegister = 0;
+			samplerDesc.RegisterSpace = 0;
+			samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-			rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			ID3DBlob *signature;
 			ID3DBlob *error;
@@ -161,12 +181,6 @@ namespace RN
 		window->GetCommandList()->Reset(window->GetCommandAllocator(), nullptr);
 
 		window->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
-
-		ID3D12DescriptorHeap* ppHeaps[] = { _cbvHeap };
-		window->GetCommandList()->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(_cbvHeap->GetGPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
-		window->GetCommandList()->SetGraphicsRootDescriptorTable(0, cbvHandle);
 		
 		function();
 
@@ -422,7 +436,7 @@ namespace RN
 
 	Texture *D3D12Renderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
-		return new D3D12Texture(this, nullptr, nullptr, descriptor);
+		return new D3D12Texture(descriptor, this);
 	}
 
 	Framebuffer *D3D12Renderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
@@ -572,8 +586,22 @@ namespace RN
 		D3D12GPUBuffer *constantBuffer = drawable->_uniformState->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
 		cbvDesc.BufferLocation = constantBuffer->GetD3D12Buffer()->GetGPUVirtualAddress();
 		cbvDesc.SizeInBytes = (constantBuffer->GetLength()+255) & ~255;
-		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvHandle(_cbvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
-		GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, cbvHandle);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCPUHandle(_cbvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
+		GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, cbvCPUHandle);
+
+		ID3D12DescriptorHeap* constantBufferDescriptorHeaps[] = { _cbvHeap };
+		_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(constantBufferDescriptorHeaps), constantBufferDescriptorHeaps);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_cbvHeap->GetGPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _cbvDescriptorSize);
+		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(0, cbvGPUHandle);
+
+		const Array *textures = drawable->material->GetTextures();
+		if(textures->GetCount() > 0)
+		{
+			ID3D12DescriptorHeap *textureDescriptorHeap = textures->GetFirstObject()->Downcast<D3D12Texture>()->_textureDescriptorHeap;
+			ID3D12DescriptorHeap* textureDescriptorHeaps[] = { textureDescriptorHeap };
+			_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(textureDescriptorHeaps), textureDescriptorHeaps);
+			_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(1, textureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		}
 
 		commandList->SetPipelineState(drawable->_pipelineState->state);
 

@@ -39,7 +39,7 @@ Texture2D texture : register(t0);
 SamplerState samplr : register(s0);
 #endif
 
-/*cbuffer Uniforms : register(b0)
+cbuffer Uniforms : register(b0)
 {
 	matrix modelViewProjectionMatrix;
 
@@ -58,7 +58,7 @@ cbuffer FragmentUniforms : register(b1)
 	float discardThreshold;
 #endif
 };
-#endif*/
+#endif
 
 struct InputVertex
 {
@@ -100,7 +100,7 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	result.position = float4(vert.position, 1.0);// mul(modelViewProjectionMatrix, float4(vert.position, 1.0));
+	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0));
 
 #if RN_COLOR
 	result.color = vert.color;
@@ -112,8 +112,8 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 	result.texCoords = vert.texCoords;
 #endif
 
-	result.ambient = 1.0f;//ambientColor;
-	result.diffuse = 1.0f;//diffuseColor;
+	result.ambient = ambientColor;
+	result.diffuse = diffuseColor;
 
 	return result;
 }
@@ -123,7 +123,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 {
 	float4 color = 1.0f;
 #if RN_UV0
-	color = texture.Sample(samplr, vert.texCoords).rgba;
+	//color = texture.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
 	clip(color.a - discardThreshold);
