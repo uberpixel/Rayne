@@ -25,7 +25,7 @@ namespace RN
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary()),
 		_textureFormatLookup(new Dictionary()),
-		_currentTextureDescHeapIndex(0)
+		_srvCbvHeap{ nullptr, nullptr, nullptr }
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -45,12 +45,6 @@ namespace RN
 			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&_dsvHeap));
 
-			// Layout: textures, frame 1 cbv, frame 2 cbv, frame 3 cbv
-			D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
-			srvCbvHeapDesc.NumDescriptors = 5+3;
-			srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			underlyingDevice->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap));
 			_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
@@ -60,8 +54,8 @@ namespace RN
 			CD3DX12_ROOT_PARAMETER rootParameters[2];
 
 			// Perfomance TIP: Order from most frequent to least frequent.
-			srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);//, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-			srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0);//, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+			srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
+			srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0);
 			rootParameters[0].InitAsDescriptorTable(1, &srvCbvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 			rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[1], D3D12_SHADER_VISIBILITY_VERTEX);
 
@@ -197,6 +191,8 @@ namespace RN
 	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
 		_internals->renderPass.drawableHead = nullptr;
+		_internals->renderPass.drawableCount = 0;
+		_internals->renderPass.textureDescriptorCount = 0;
 
 		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
 		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
@@ -209,6 +205,8 @@ namespace RN
 
 		// Create drawables
 		function();
+
+		CreateDescriptorHeap();
 
 		D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(camera->GetFramebuffer());
 
@@ -249,6 +247,10 @@ namespace RN
 		const Color &clearColor = camera->GetClearColor();
 		commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
 		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+		// Set the the one big descriptor heap for the whole frame
+		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[_mainWindow->GetFrameIndex()] };
+		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 
 		//Draw drawables
 		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
@@ -444,17 +446,112 @@ namespace RN
 
 	Drawable *D3D12Renderer::CreateDrawable()
 	{
-		D3D12Drawable *drawable = new D3D12Drawable();
-		drawable->_pipelineState = nullptr;
-		drawable->_next = nullptr;
-		drawable->_prev = nullptr;
+/*		D3D12Drawable *newDrawable;
+		if(_unusedDrawableIndices.size() > 0)
+		{
+			newDrawable = &_drawables[_unusedDrawableIndices.back()];
+			_unusedDrawableIndices.pop_back();
+			newDrawable->_index = _drawables.size() - 1;
+		}
+		else
+		{
+			D3D12Drawable drawable = D3D12Drawable();
+			_drawables.push_back(D3D12Drawable());
+			newDrawable = &_drawables.back();
+		}
+		
+		newDrawable->_pipelineState = nullptr;
+		newDrawable->_uniformState = nullptr;
+		newDrawable->_active = true;
 
-		return drawable;
+		return newDrawable;*/
+
+		D3D12Drawable *newDrawable = new D3D12Drawable();
+		newDrawable->_pipelineState = nullptr;
+		newDrawable->_uniformState = nullptr;
+		return newDrawable;
 	}
 
 	void D3D12Renderer::DeleteDrawable(Drawable *drawable)
 	{
+/*		D3D12Drawable *oldDrawable = static_cast<D3D12Drawable*>(drawable);
+		_unusedDrawableIndices.push_back(oldDrawable->_index);
+		oldDrawable->_active = false;*/
+
 		delete drawable;
+	}
+
+	void D3D12Renderer::CreateDescriptorHeap()
+	{
+		_currentDrawableIndex = 0;
+		ID3D12Device *device = GetD3D12Device()->GetDevice();
+
+		if(_srvCbvHeap[_mainWindow->GetFrameIndex()])
+		{
+			_srvCbvHeap[_mainWindow->GetFrameIndex()]->Release();
+		}
+
+		// Layout: 5 textures + 1 cbv
+		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
+		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->renderPass.drawableCount;
+		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap[_mainWindow->GetFrameIndex()]));
+
+		// Describe null SRVs. Null descriptors are used to "unbind" textures
+		D3D12_SHADER_RESOURCE_VIEW_DESC nullSrvDesc = {};
+		nullSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		nullSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		nullSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		nullSrvDesc.Texture2D.MipLevels = 1;
+		nullSrvDesc.Texture2D.MostDetailedMip = 0;
+		nullSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+		// now we create a shader resource view (descriptor that points to the texture and describes it)
+		D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
+		textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		//textureSrvDesc.Format = _format;
+		textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		textureSrvDesc.Texture2D.MipLevels = 1;
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+
+		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
+		while(drawable)
+		{
+			//Create texture descriptors
+			const Array *textures = drawable->material->GetTextures();
+			textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
+				//Root signature expects 5 textures max
+				if(i >= 5)
+				{
+					stop = true;
+					return;
+				}
+
+				textureSrvDesc.Format = texture->_format;
+				device->CreateShaderResourceView(texture->_textureBuffer, &textureSrvDesc, currentCPUHandle);
+				currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+			});
+
+			//Create null texture descriptors for those textures not used within the limit of 5
+			for(int i = 5 - textures->GetCount(); i > 0; i--)
+			{
+				device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+				currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+			}
+
+			//Create constant buffer descriptor
+			D3D12UniformBuffer *uniformBuffer = drawable->_uniformState->uniformBuffer;
+			D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+			cbvDesc.BufferLocation = actualBuffer->GetD3D12Buffer()->GetGPUVirtualAddress();
+			cbvDesc.SizeInBytes = actualBuffer->GetLength();
+			GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
+			currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+			
+			drawable = drawable->_next;
+		}
 	}
 
 	void D3D12Renderer::FillUniformBuffer(D3D12UniformBuffer *uniformBuffer, D3D12Drawable *drawable)
@@ -585,12 +682,10 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
-		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap };
-		_mainWindow->GetCommandList()->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap->GetGPUDescriptorHandleForHeapStart(), 5 + _mainWindow->GetFrameIndex(), _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
 		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap->GetGPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
 		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
 		commandList->SetPipelineState(drawable->_pipelineState->state);
@@ -613,6 +708,8 @@ namespace RN
 		commandList->IASetIndexBuffer(&indexBufferView);
 
 		commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+
+		_currentDrawableIndex += 1;
 
 /*		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
 		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);

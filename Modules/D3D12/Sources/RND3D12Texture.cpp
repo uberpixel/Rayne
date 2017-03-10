@@ -303,14 +303,6 @@ namespace RN
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		// now we create a shader resource view (descriptor that points to the texture and describes it)
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = _format;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
-		device->CreateShaderResourceView(_textureBuffer, &srvDesc, _renderer->GetCurrentTextureDescriptorCPUHandle());
-
 		// Now we execute the command list to upload the initial assets (triangle data)
 		commandList->Close();
 		ID3D12CommandList* ppCommandLists[] = { commandList };

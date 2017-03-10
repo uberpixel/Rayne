@@ -67,10 +67,7 @@ namespace RN
 
 		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
 		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
-		ID3D12DescriptorHeap *GetSRVCBVHeap() const { return _srvCbvHeap; }
 		ID3D12DescriptorHeap *GetDSVHeap() const { return _dsvHeap; }
-		CD3DX12_CPU_DESCRIPTOR_HANDLE GetCurrentTextureDescriptorCPUHandle() { return CD3DX12_CPU_DESCRIPTOR_HANDLE(_srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), _currentTextureDescHeapIndex++, _srvCbvDescriptorSize); }
-		CD3DX12_CPU_DESCRIPTOR_HANDLE GetUniformDescriptorCPUHandle(uint16 frameIndex) { return CD3DX12_CPU_DESCRIPTOR_HANDLE(_srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), 5 + frameIndex, _srvCbvDescriptorSize); }
 
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
@@ -78,6 +75,8 @@ namespace RN
 
 		void CreateMipMapForeTexture(D3D12Texture *texture);
 		void CreateMipMaps();
+
+		void CreateDescriptorHeap();
 
 		Set *_mipMapTextures;
 		Dictionary *_textureFormatLookup;
@@ -94,9 +93,13 @@ namespace RN
 		ID3D12DescriptorHeap *_rtvHeap;
 		UINT _rtvDescriptorSize;
 		ID3D12DescriptorHeap *_dsvHeap;
-		ID3D12DescriptorHeap *_srvCbvHeap;
+		ID3D12DescriptorHeap *_srvCbvHeap[3];
 		UINT _srvCbvDescriptorSize;
-		uint16 _currentTextureDescHeapIndex;
+
+		size_t _currentDrawableIndex;
+
+		/*std::vector<D3D12Drawable> _drawables;
+		std::vector<uint32> _unusedDrawableIndices;*/
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};

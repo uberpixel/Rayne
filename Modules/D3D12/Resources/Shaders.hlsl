@@ -12,6 +12,10 @@
 // RN_UV0
 // RN_DISCARD
 
+#define RN_NORMALS 1
+#define RN_UV0 1
+#define RN_TANGENTS 1
+
 #define RN_FRAGMENT_UNIFORM 0
 
 #if RN_DISCARD
@@ -35,7 +39,7 @@
 static const float3 light_position = float3(1.0, 1.0, 1.0);
 
 #if RN_UV0
-Texture2D texture : register(t0);
+Texture2D texture0 : register(t0);
 SamplerState samplr : register(s0);
 #endif
 
@@ -49,6 +53,8 @@ cbuffer Uniforms : register(b0)
 
 	float4 ambientColor;
 	float4 diffuseColor;
+
+	float textureTileFactor;
 };
 
 #if RN_FRAGMENT_UNIFORM
@@ -123,7 +129,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 {
 	float4 color = 1.0f;
 #if RN_UV0
-	//color = texture.Sample(samplr, vert.texCoords).rgba;
+	color = texture0.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
 	clip(color.a - discardThreshold);

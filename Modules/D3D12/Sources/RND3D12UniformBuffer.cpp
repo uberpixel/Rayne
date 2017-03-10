@@ -24,11 +24,6 @@ namespace RN
 		for(size_t i = 0; i < kRND3D12UniformBufferCount; i++)
 		{
 			_buffers[i] = renderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
-
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-			cbvDesc.BufferLocation = _buffers[i]->Downcast<D3D12GPUBuffer>()->GetD3D12Buffer()->GetGPUVirtualAddress();
-			cbvDesc.SizeInBytes = _buffers[i]->GetLength();
-			realRenderer->GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, realRenderer->GetUniformDescriptorCPUHandle(i));
 		}
 
 /*		AutoreleasePool pool;

@@ -36,6 +36,9 @@ namespace RN
 
 		D3D12Drawable *_next;
 		D3D12Drawable *_prev;
+
+		/*bool _active;
+		uint32 _index;*/
 	};
 
 	struct D3D12RenderPass
@@ -49,6 +52,8 @@ namespace RN
 
 		D3D12Drawable *drawableHead;
 		size_t drawableCount;
+
+		size_t textureDescriptorCount;
 	};
 
 	struct D3D12RendererInternals
