@@ -9,6 +9,7 @@
 #include "RND3D12Texture.h"
 #include "RND3D12Renderer.h"
 #include "RND3D12StateCoordinator.h"
+#include "RND3D12Internals.h"
 
 namespace RN
 {
@@ -294,91 +295,21 @@ namespace RN
 		textureData.RowPitch = bytesPerRow;
 		textureData.SlicePitch = bytesPerRow * region.height;
 
-		ID3D12GraphicsCommandList *commandList = _renderer->GetMainWindow()->Downcast<D3D12Window>()->GetCommandList();
-		commandList->Reset(_renderer->GetMainWindow()->Downcast<D3D12Window>()->GetCommandAllocator(), nullptr);
-
-		// Now we copy the upload buffer contents to the default heap
-		UpdateSubresources(commandList, _textureBuffer, textureUploadBuffer, 0, 0, 1, &textureData);
-
-		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
-		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-		// Now we execute the command list to upload the initial assets (triangle data)
-		commandList->Close();
-		ID3D12CommandList* ppCommandLists[] = { commandList };
-		_renderer->GetMainWindow()->Downcast<D3D12Window>()->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-		// increment the fence value now, otherwise the buffer might not be uploaded by the time we start drawing
-		//fenceValue[frameIndex]++;
-		//commandQueue->Signal(fence[frameIndex], fenceValue[frameIndex]);
-
-
-
-/*		vk::GetImageMemoryRequirements(device, uploadImage, &uploadRequirements);
-		VkMemoryAllocateInfo allocateInfo = {};
-		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocateInfo.pNext = nullptr;
-		allocateInfo.allocationSize = uploadRequirements.size;
-
-		_renderer->GetVulkanDevice()->GetMemoryWithType(uploadRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
-
-		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &uploadMemory));
-		RNVulkanValidate(vk::BindImageMemory(device, uploadImage, uploadMemory, 0));
-
-		VkSubresourceLayout subResLayout;
-		void *data;
-
-		VkImageSubresource subRes = {};
-		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		subRes.mipLevel = 0;
-
-		// Get sub resources layout
-		// Includes row pitch, size offsets, etc.
-		vk::GetImageSubresourceLayout(device, uploadImage, &subRes, &subResLayout);
-
-		// Map image memory
-		RNVulkanValidate(vk::MapMemory(device, uploadMemory, 0, uploadRequirements.size, 0, &data));
-
-		// Copy image data into memory
-		memcpy(data, bytes, bytesPerRow*_descriptor.height);
-
-		vk::UnmapMemory(device, uploadMemory);
-
-		VulkanCommandBufferWithCallback *commandBuffer = _renderer->GetCommandBufferWithCallback();
-		commandBuffer->Begin();
-		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-		VkImageCopy copyRegion = {};
-
-		copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.srcSubresource.baseArrayLayer = 0;
-		copyRegion.srcSubresource.mipLevel = 0;
-		copyRegion.srcSubresource.layerCount = 1;
-		copyRegion.srcOffset = { 0, 0, 0 };
-
-		copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.dstSubresource.baseArrayLayer = slice;
-		copyRegion.dstSubresource.mipLevel = mipmapLevel;
-		copyRegion.dstSubresource.layerCount = 1;
-		copyRegion.dstOffset.x = region.x;
-		copyRegion.dstOffset.y = region.y;
-		copyRegion.dstOffset.z = region.z;
-
-		copyRegion.extent.width = region.width;
-		copyRegion.extent.height = region.height;
-		copyRegion.extent.depth = region.depth;
-
-		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		commandBuffer->End();
-
-		commandBuffer->SetFinishedCallback([this, device, uploadImage, uploadMemory]() {
-			vk::DestroyImage(device, uploadImage, _renderer->GetAllocatorCallback());
-			vk::FreeMemory(device, uploadMemory, _renderer->GetAllocatorCallback());
+		D3D12CommandListWithCallback *commandList = _renderer->GetCommandListWithCallback();
+		commandList->SetFinishedCallback([this, textureUploadBuffer]{
+			_isReady = true;
+			textureUploadBuffer->Release();
 		});
 
-		_renderer->SubmitCommandBuffer(commandBuffer);*/
+		// Now we copy the upload buffer contents to the default heap
+		UpdateSubresources(commandList->GetCommandList(), _textureBuffer, textureUploadBuffer, 0, 0, 1, &textureData);
+
+		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+		// Now we execute the command list to upload the initial assets (triangle data)
+		commandList->End();
+		_renderer->SubmitCommandList(commandList);
 	}
 
 	void D3D12Texture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const

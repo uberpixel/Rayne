@@ -46,8 +46,9 @@ namespace RN
 		D3D12StateCoordinator *_coordinator;
 
 		DXGI_FORMAT _format;
-
 		ID3D12Resource *_textureBuffer;
+
+		bool _isReady;
 		
 		D3D12_STATIC_SAMPLER_DESC _samplerDesc;
 

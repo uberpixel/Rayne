@@ -41,7 +41,7 @@ namespace RN
 		const DWORD style =  WS_OVERLAPPEDWINDOW;
 
 		RECT windowRect = { 0, 0, static_cast<LONG>(size.x), static_cast<LONG>(size.y) };
-		::AdjustWindowRect(&windowRect, style, false);
+		AdjustWindowRect(&windowRect, style, false);
 
 		Rect frame = screen->GetFrame();
 
@@ -50,9 +50,9 @@ namespace RN
 		offset.x += frame.x;
 		offset.y += frame.y;
 
-		_hwnd = ::CreateWindowExW(0, L"RND3D12WindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
+		_hwnd = CreateWindowExW(0, L"RND3D12WindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 
-		::SetForegroundWindow(_hwnd);
+		SetForegroundWindow(_hwnd);
 
 		// 
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
@@ -63,19 +63,16 @@ namespace RN
 
 		device->CreateCommandQueue(&queueDescriptor, IID_PPV_ARGS(&_commandQueue));
 
-		for(int i = 0; i < 3; i++)
-			device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&_commandAllocators[i]));
-
 		device->CreateFence(_fenceValues[_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
 		_fenceValues[_frameIndex] ++;
-		_fenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
+		_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
 
 		ResizeSwapchain(size);
 	}
 
 	D3D12Window::~D3D12Window()
 	{
-		::DestroyWindow(_hwnd);
+		DestroyWindow(_hwnd);
 	}
 
 	void D3D12Window::ResizeSwapchain(const Vector2 &size)
@@ -106,9 +103,6 @@ namespace RN
 		_swapChain = static_cast<IDXGISwapChain3 *>(__swapChain);
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
-		device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, _commandAllocators[_frameIndex], nullptr, IID_PPV_ARGS(&_commandList));
-		_commandList->Close();
-
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
 		descriptor.colorFormat = Texture::Format::RGBA8888;
@@ -123,7 +117,7 @@ namespace RN
 		mbstowcs(wtext, text, strlen(text) + 1);//Plus null
 		LPWSTR ptr = wtext;
 
-		::SetWindowTextW(_hwnd, ptr);
+		SetWindowTextW(_hwnd, ptr);
 
 		delete[] wtext;
 	}
@@ -150,39 +144,40 @@ namespace RN
 
 	void D3D12Window::Show()
 	{
-		::ShowWindow(_hwnd, SW_SHOW);
+		ShowWindow(_hwnd, SW_SHOW);
 	}
 
 	void D3D12Window::Hide()
 	{
-		::ShowWindow(_hwnd, SW_HIDE);
+		ShowWindow(_hwnd, SW_HIDE);
 	}
 
 	Vector2 D3D12Window::GetSize() const
 	{
 		RECT windowRect;
-		::GetClientRect(_hwnd, &windowRect);
+		GetClientRect(_hwnd, &windowRect);
 		return Vector2(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
 	}
-
 
 	void D3D12Window::AcquireBackBuffer()
 	{
 		const UINT64 fenceValue = _fenceValues[_frameIndex];
-
 		_commandQueue->Signal(_fence, fenceValue);
+
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
-		if(_fence->GetCompletedValue() < _fenceValues[_frameIndex])
+		_completedFenceValue = _fence->GetCompletedValue();
+		if(_completedFenceValue < _fenceValues[_frameIndex])
 		{
 			_fence->SetEventOnCompletion(_fenceValues[_frameIndex], _fenceEvent);
-			::WaitForSingleObjectEx(_fenceEvent, INFINITE, false);
+			WaitForSingleObjectEx(_fenceEvent, INFINITE, false);
 		}
 
 		_fenceValues[_frameIndex] = fenceValue + 1;
 	}
+
 	void D3D12Window::PresentBackBuffer()
 	{
-		_swapChain->Present(0, 0);
+		_swapChain->Present(1, 0); //Use 0, 0 for no vsync
 	}
 }

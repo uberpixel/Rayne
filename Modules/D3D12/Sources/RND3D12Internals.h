@@ -61,6 +61,48 @@ namespace RN
 		D3D12RenderPass renderPass;
 		D3D12StateCoordinator stateCoordinator;
 	};
+
+	class D3D12CommandList : public Object
+	{
+	public:
+		friend RN::D3D12Renderer;
+
+		~D3D12CommandList();
+
+		void Begin();
+		void End();
+
+		ID3D12GraphicsCommandList *GetCommandList() const { return _commandList; }
+
+	protected:
+		D3D12CommandList(ID3D12Device *device);
+
+	private:
+		ID3D12GraphicsCommandList *_commandList;
+		ID3D12CommandAllocator *_commandAllocator;
+		ID3D12Device *_device;
+		bool _isOpen;
+		UINT _fenceValue;
+
+		RNDeclareMetaAPI(D3D12CommandList, D3DAPI)
+	};
+
+	class D3D12CommandListWithCallback : public D3D12CommandList
+	{
+	public:
+		friend RN::D3D12Renderer;
+
+		~D3D12CommandListWithCallback();
+		void SetFinishedCallback(std::function<void()> callback);
+
+	protected:
+		D3D12CommandListWithCallback(ID3D12Device *device);
+
+	private:
+		std::function<void()> _finishedCallback;
+
+		RNDeclareMetaAPI(D3D12CommandListWithCallback, D3DAPI)
+	};
 }
 
 #endif /* __RAYNE_VULKANINTERNALS_H__ */

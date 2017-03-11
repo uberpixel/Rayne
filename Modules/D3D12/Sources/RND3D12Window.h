@@ -35,12 +35,12 @@ namespace RN
 		D3DAPI void PresentBackBuffer();
 
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
-		ID3D12CommandAllocator *GetCommandAllocator() const { return _commandAllocators[_frameIndex]; }
-		ID3D12GraphicsCommandList *GetCommandList() const { return _commandList; }
 
 		HWND GetHWND() const { return _hwnd;  }
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer;  }
+		const UINT GetCurrentFenceValue() const { return _fenceValues[_frameIndex]; }
+		const UINT GetCompletedFenceValue() const { return _completedFenceValue; }
 
 	private:
 		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer);
@@ -51,14 +51,12 @@ namespace RN
 		D3D12Renderer *_renderer;
 		D3D12Framebuffer *_framebuffer;
 
-		ID3D12CommandAllocator *_commandAllocators[3];
-		ID3D12GraphicsCommandList *_commandList;
-
 		ID3D12CommandQueue *_commandQueue;
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;
 		UINT _fenceValues[3];
+		UINT _completedFenceValue;
 		HANDLE _fenceEvent;
 
 		size_t _frameIndex;

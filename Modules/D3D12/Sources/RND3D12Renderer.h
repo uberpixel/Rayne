@@ -21,6 +21,8 @@ namespace RN
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
+	class D3D12CommandList;
+	class D3D12CommandListWithCallback;
 
 	class D3D12Renderer : public Renderer
 	{
@@ -62,6 +64,10 @@ namespace RN
 		D3DAPI void DeleteDrawable(Drawable *drawable) final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
 
+		D3D12CommandList *GetCommandList();
+		D3D12CommandListWithCallback *GetCommandListWithCallback();
+		void SubmitCommandList(D3D12CommandList *commandBuffer);
+
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
 
@@ -82,6 +88,10 @@ namespace RN
 		Dictionary *_textureFormatLookup;
 
 		D3D12Window *_mainWindow;
+
+		D3D12CommandList *_currentCommandList;
+		Array *_submittedCommandLists;
+		Array *_executedCommandLists;
 
 		PIMPL<D3D12RendererInternals> _internals;
 

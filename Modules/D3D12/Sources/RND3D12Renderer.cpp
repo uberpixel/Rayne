@@ -25,7 +25,9 @@ namespace RN
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary()),
 		_textureFormatLookup(new Dictionary()),
-		_srvCbvHeap{ nullptr, nullptr, nullptr }
+		_srvCbvHeap{ nullptr, nullptr, nullptr },
+		_submittedCommandLists(new Array()),
+		_executedCommandLists(new Array())
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -133,6 +135,24 @@ namespace RN
 		
 	}
 
+	D3D12CommandList *D3D12Renderer::GetCommandList()
+	{
+		D3D12CommandList *commandList = new D3D12CommandList(GetD3D12Device()->GetDevice());
+		return commandList->Autorelease();
+	}
+
+	D3D12CommandListWithCallback *D3D12Renderer::GetCommandListWithCallback()
+	{
+		D3D12CommandListWithCallback *commandList = new D3D12CommandListWithCallback(GetD3D12Device()->GetDevice());
+		return commandList->Autorelease();
+	}
+
+	void D3D12Renderer::SubmitCommandList(D3D12CommandList *commandList)
+	{
+		_lock.Lock();
+		_submittedCommandLists->AddObject(commandList);
+		_lock.Unlock();
+	}
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
@@ -168,22 +188,38 @@ namespace RN
 	{
 		D3D12Window *window = static_cast<D3D12Window *>(twindow);
 
-		window->AcquireBackBuffer();
-		window->GetCommandAllocator()->Reset();
-		window->GetCommandList()->Reset(window->GetCommandAllocator(), nullptr);
+		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
+		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
+		{
+			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= window->GetCompletedFenceValue())
+			{
+				_executedCommandLists->RemoveObjectAtIndex(i);
+			}
+		}
 
-		window->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
+		window->AcquireBackBuffer();
+		_currentCommandList = GetCommandList();
+
+		_currentCommandList->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
 		
 		function();
 
 		ID3D12Resource *renderTarget = window->GetFramebuffer()->GetRenderTarget(window->GetFrameIndex());
 
-		window->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-		window->GetCommandList()->Close();
+		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		_currentCommandList->End();
+		SubmitCommandList(_currentCommandList);
+		_currentCommandList = nullptr;
 
-		// Execute the command list.
-		ID3D12CommandList* ppCommandLists[] = { window->GetCommandList() };
-		window->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		// Execute all command lists
+		std::vector<ID3D12CommandList*> commandLists;
+		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
+			commandLists.push_back(list->GetCommandList());
+			list->_fenceValue = window->GetCurrentFenceValue();
+		});
+		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
+		_submittedCommandLists->RemoveAllObjects();
+		window->GetCommandQueue()->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
 
 		window->PresentBackBuffer();
 	}
@@ -231,7 +267,7 @@ namespace RN
 		scissorRect.left = 0;
 		scissorRect.top = 0;
 
-		ID3D12GraphicsCommandList *commandList = _mainWindow->GetCommandList();
+		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
 
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissorRect);
@@ -683,10 +719,10 @@ namespace RN
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
 		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
-		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
+		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
 
 		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
-		_mainWindow->GetCommandList()->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
+		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
 		commandList->SetPipelineState(drawable->_pipelineState->state);
 
