@@ -40,8 +40,6 @@ namespace RN
 
 		VKAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
-		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
-		VKAPI VkFormat GetVulkanFormatForName(const String *name);
 
 		VKAPI void CreateMipMapForTexture(VulkanTexture *texture);
 		VKAPI void CreateMipMaps();
@@ -86,7 +84,6 @@ namespace RN
 
 		Lockable _lock;
 
-		Dictionary *_textureFormatLookup;
 		Dictionary *_defaultShaders;
 
 		Set *_mipMapTextures;

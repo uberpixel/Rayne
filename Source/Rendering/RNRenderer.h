@@ -95,7 +95,6 @@ namespace RN
 
 		RNAPI virtual size_t GetAlignmentForType(PrimitiveType type) const = 0;
 		RNAPI virtual size_t GetSizeForType(PrimitiveType type) const = 0;
-		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) const = 0;
 
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;

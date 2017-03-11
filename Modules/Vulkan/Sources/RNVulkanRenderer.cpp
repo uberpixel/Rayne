@@ -20,7 +20,6 @@ namespace RN
 	VulkanRenderer::VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device) :
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
-		_textureFormatLookup(new Dictionary()),
 		_currentFrame(0),
 		_defaultShaders(new Dictionary()),
 		_mipMapTextures(new Set()),
@@ -37,59 +36,11 @@ namespace RN
 		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
-
-#define TextureFormat(name, vulkan) \
-			case Texture::Format::name: { \
-				VkFormatProperties properties; \
-				vk::GetPhysicalDeviceFormatProperties(device->GetPhysicalDevice(), vulkan, &properties); \
-				 \
-				VkFormatFeatureFlags required = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT; \
-				 \
-				if((properties.optimalTilingFeatures & required) == required) \
-					_textureFormatLookup->SetObjectForKey(Number::WithUint32(vulkan), RNCSTR(#name)); \
-			} break
-
-		bool isDone = false;
-
-		for(size_t i = 0; isDone == false; i ++)
-		{
-			switch(static_cast<Texture::Format>(i))
-			{
-				TextureFormat(RGBA8888, VK_FORMAT_R8G8B8A8_UNORM);
-				TextureFormat(RGB10A2, VK_FORMAT_A2R10G10B10_UNORM_PACK32);
-
-				TextureFormat(R8, VK_FORMAT_R8_UNORM);
-				TextureFormat(RG88, VK_FORMAT_R8G8_UNORM);
-				TextureFormat(RGB888, VK_FORMAT_R8G8B8_UNORM);
-
-				TextureFormat(R16F, VK_FORMAT_R16_SFLOAT);
-				TextureFormat(RG16F, VK_FORMAT_R16G16_SFLOAT);
-				TextureFormat(RGB16F, VK_FORMAT_R16G16B16_SFLOAT);
-				TextureFormat(RGBA16F, VK_FORMAT_R16G16B16A16_SFLOAT);
-
-				TextureFormat(R32F, VK_FORMAT_R32_SFLOAT);
-				TextureFormat(RG32F, VK_FORMAT_R32G32_SFLOAT);
-				TextureFormat(RGB32F, VK_FORMAT_R32G32B32_SFLOAT);
-				TextureFormat(RGBA32F, VK_FORMAT_R32G32B32A32_SFLOAT);
-
-				TextureFormat(Depth24I, VK_FORMAT_X8_D24_UNORM_PACK32);
-				TextureFormat(Depth32F, VK_FORMAT_D32_SFLOAT);
-				TextureFormat(Stencil8, VK_FORMAT_S8_UINT);
-				TextureFormat(Depth24Stencil8, VK_FORMAT_D24_UNORM_S8_UINT);
-				TextureFormat(Depth32FStencil8, VK_FORMAT_D32_SFLOAT_S8_UINT);
-
-				case Texture::Format::Invalid:
-					isDone = true;
-					break;
-			}
-		}
-#undef TextureFormat
 	}
 
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
-		_textureFormatLookup->Release();
 		_defaultShaders->Release();
 	}
 
@@ -391,43 +342,6 @@ namespace RN
 				return 64;
 		}
 	}
-	const String *VulkanRenderer::GetTextureFormatName(const Texture::Format format) const
-	{
-#define TextureFormatX(name) \
-		case Texture::Format::name: \
-			return RNCSTR(#name) \
-
-		switch(format)
-		{
-			TextureFormatX(RGBA8888);
-			TextureFormatX(RGB10A2);
-
-			TextureFormatX(R8);
-			TextureFormatX(RG88);
-			TextureFormatX(RGB888);
-
-			TextureFormatX(R16F);
-			TextureFormatX(RG16F);
-			TextureFormatX(RGB16F);
-			TextureFormatX(RGBA16F);
-
-			TextureFormatX(R32F);
-			TextureFormatX(RG32F);
-			TextureFormatX(RGB32F);
-			TextureFormatX(RGBA32F);
-
-			TextureFormatX(Depth24I);
-			TextureFormatX(Depth32F);
-			TextureFormatX(Stencil8);
-			TextureFormatX(Depth24Stencil8);
-			TextureFormatX(Depth32FStencil8);
-
-			case Texture::Format::Invalid:
-				return nullptr;
-		}
-
-#undef TextureFormatX
-	}
 
 	void VulkanRenderer::CreateMipMapForTexture(VulkanTexture *texture)
 	{
@@ -488,15 +402,6 @@ namespace RN
 		SubmitCommandBuffer(commandBuffer);
 
 		_mipMapTextures->RemoveAllObjects();
-	}
-
-	VkFormat VulkanRenderer::GetVulkanFormatForName(const String *name)
-	{
-		Number *value = _textureFormatLookup->GetObjectForKey<Number>(name);
-		if(value)
-			return static_cast<VkFormat>(value->GetUint32Value());
-
-		throw InvalidTextureFormatException(RNSTR("Unsupported texture format '" << name << "'"));
 	}
 
 	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)

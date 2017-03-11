@@ -73,9 +73,10 @@ namespace RN
 				width(1),
 				height(1),
 				depth(1),
-				mipMaps(1)
+				mipMaps(1),
+				format(Format::RGBA8888)
 			{
-				SetFormat(__TranslateFormat(Format::RGBA8888));
+
 			}
 
 			static Descriptor With2DTextureAndFormat(Format format, uint32 width, uint32 height, bool mipMapped)
@@ -83,7 +84,7 @@ namespace RN
 				Descriptor descriptor;
 				descriptor.width = width;
 				descriptor.height = height;
-				descriptor.SetFormat(__TranslateFormat(format));
+				descriptor.format = format;
 
 				if(mipMapped)
 					descriptor.CalculateMipMapCount();
@@ -110,18 +111,6 @@ namespace RN
 				return std::max(newHeight, 1);
 			}
 
-			void SetFormat(Format format)
-			{
-				SetFormat(__TranslateFormat(format));
-			}
-
-			void SetFormat(const String *format)
-			{
-				_format = SafeCopy(format);
-			}
-
-			const String *GetFormat() const { return _format; }
-
 			Type type;
 			GPUResource::AccessOptions accessOptions;
 			UsageHint usageHint;
@@ -129,11 +118,7 @@ namespace RN
 			uint32 height;
 			uint32 depth;
 			uint32 mipMaps;
-
-		private:
-			RNAPI static const String *__TranslateFormat(Format format);
-
-			StrongRef<String> _format;
+			Format format;
 		};
 
 		struct Region

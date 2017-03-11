@@ -44,7 +44,6 @@ namespace RN
 		D3DAPI bool SupportsTextureFormat(const String *format) const final;
 		D3DAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		D3DAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		D3DAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		D3DAPI size_t GetSizeForType(PrimitiveType type) const final;
 
@@ -79,13 +78,12 @@ namespace RN
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
 		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
 
-		void CreateMipMapForeTexture(D3D12Texture *texture);
+		void CreateMipMapForTexture(D3D12Texture *texture);
 		void CreateMipMaps();
 
 		void CreateDescriptorHeap();
 
 		Set *_mipMapTextures;
-		Dictionary *_textureFormatLookup;
 
 		D3D12Window *_mainWindow;
 

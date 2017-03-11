@@ -51,7 +51,7 @@ namespace RN
 
 			if(descriptor.colorFormat != Texture::Format::Invalid)
 			{
-				attachment.SetFormat(descriptor.colorFormat);
+				attachment.format = descriptor.colorFormat;
 
 				if(swapChain != VK_NULL_HANDLE)
 				{
@@ -90,7 +90,7 @@ namespace RN
 			}
 			if(descriptor.depthFormat != Texture::Format::Invalid)
 			{
-				attachment.SetFormat(descriptor.depthFormat);
+				attachment.format = descriptor.depthFormat;
 				data->depthTexture = new VulkanTexture(attachment, renderer);
 
 				attachments[attachmentCount++] = data->depthTexture->GetImageView();
@@ -100,7 +100,7 @@ namespace RN
 			{
 				if(descriptor.stencilFormat != descriptor.depthFormat)
 				{
-					attachment.SetFormat(descriptor.stencilFormat);
+					attachment.format = descriptor.stencilFormat;
 					data->stencilTexture = new VulkanTexture(attachment, renderer);
 
 					attachments[attachmentCount++] = data->stencilTexture->GetImageView();

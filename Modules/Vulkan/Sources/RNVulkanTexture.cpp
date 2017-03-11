@@ -34,6 +34,49 @@ namespace RN
 		}
 	}
 
+	static VkFormat VkImageFormatFromTextureFormat(Texture::Format format)
+	{
+		switch(format)
+		{
+			case Texture::Format::RGBA8888:
+				return VK_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::RGB10A2:
+				return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+			case Texture::Format::R8:
+				return VK_FORMAT_R8_UNORM;
+			case Texture::Format::RG88:
+				return VK_FORMAT_R8G8_UNORM;
+			case Texture::Format::RGB888:
+				return VK_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::R16F:
+				return VK_FORMAT_R16_SFLOAT;
+			case Texture::Format::RG16F:
+				return VK_FORMAT_R16G16_SFLOAT;
+			case Texture::Format::RGB16F:
+				return VK_FORMAT_R16G16B16_SFLOAT;
+			case Texture::Format::RGBA16F:
+				return VK_FORMAT_R16G16B16A16_SFLOAT;
+			case Texture::Format::R32F:
+				return VK_FORMAT_R32_SFLOAT;
+			case Texture::Format::RG32F:
+				return VK_FORMAT_R32G32_SFLOAT;
+			case Texture::Format::RGB32F:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+			case Texture::Format::RGBA32F:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case Texture::Format::Depth24I:
+				return VK_FORMAT_X8_D24_UNORM_PACK32;
+			case Texture::Format::Depth32F:
+				return VK_FORMAT_D32_SFLOAT;
+			case Texture::Format::Stencil8:
+				return VK_FORMAT_S8_UINT;
+			case Texture::Format::Depth24Stencil8:
+				return VK_FORMAT_D24_UNORM_S8_UINT;
+			case Texture::Format::Depth32FStencil8:
+				return VK_FORMAT_D32_SFLOAT_S8_UINT;
+		}
+	}
+
 	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Descriptor::Type type)
 	{
 		switch(type)
@@ -147,7 +190,7 @@ namespace RN
 		_image(VK_NULL_HANDLE),
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
-		_format(renderer->GetVulkanFormatForName(descriptor.GetFormat())),
+		_format(VkImageFormatFromTextureFormat(descriptor.format)),
 		_sampler(VK_NULL_HANDLE)
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
@@ -228,7 +271,7 @@ namespace RN
 			commandBuffer->End();
 			_renderer->SubmitCommandBuffer(commandBuffer);
 		}
-		else if(descriptor.GetFormat()->IsEqual(RNCSTR("Depth24Stencil8")))
+		else if(descriptor.format == Format::Depth24Stencil8)
 		{
 			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 			commandBuffer->Begin();

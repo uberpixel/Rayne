@@ -24,7 +24,6 @@ namespace RN
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
 		_defaultShaders(new Dictionary()),
-		_textureFormatLookup(new Dictionary()),
 		_srvCbvHeap{ nullptr, nullptr, nullptr },
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array())
@@ -85,49 +84,6 @@ namespace RN
 			D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 			underlyingDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_rootSignature));
 		}
-
-		// Texture format look ups
-#define TextureFormat(name, d3d12) \
-			case Texture::Format::name: { \
-				_textureFormatLookup->SetObjectForKey(Number::WithUint32(d3d12), RNCSTR(#name)); \
-			} break
-
-		bool isDone = false;
-
-		for(size_t i = 0; isDone == false; i++)
-		{
-			switch(static_cast<Texture::Format>(i))
-			{
-				TextureFormat(RGBA8888, DXGI_FORMAT_R8G8B8A8_UNORM);
-				TextureFormat(RGB10A2, DXGI_FORMAT_R10G10B10A2_UNORM);
-
-				TextureFormat(R8, DXGI_FORMAT_R8_UNORM);
-				TextureFormat(RG88, DXGI_FORMAT_R8G8_UNORM);
-				
-				TextureFormat(R16F, DXGI_FORMAT_R16_FLOAT);
-				TextureFormat(RG16F, DXGI_FORMAT_R16G16_FLOAT);
-				TextureFormat(RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT);
-
-				TextureFormat(R32F, DXGI_FORMAT_R32_FLOAT);
-				TextureFormat(RG32F, DXGI_FORMAT_R32G32_FLOAT);
-				TextureFormat(RGBA32F, DXGI_FORMAT_R32G32B32A32_FLOAT);
-
-				TextureFormat(Depth24I, DXGI_FORMAT_D24_UNORM_S8_UINT);
-				TextureFormat(Depth32F, DXGI_FORMAT_D32_FLOAT);
-				TextureFormat(Depth24Stencil8, DXGI_FORMAT_D24_UNORM_S8_UINT);
-				TextureFormat(Depth32FStencil8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
-
-				case Texture::Format::RGB888:
-				case Texture::Format::RGB16F:
-				case Texture::Format::RGB32F:
-				case Texture::Format::Stencil8:
-					break;
-
-				case Texture::Format::Invalid:
-					isDone = true;
-					break;
-			}
-		}
 	}
 
 	D3D12Renderer::~D3D12Renderer()
@@ -168,7 +124,7 @@ namespace RN
 	}
 
 
-	void D3D12Renderer::CreateMipMapForeTexture(D3D12Texture *texture)
+	void D3D12Renderer::CreateMipMapForTexture(D3D12Texture *texture)
 	{
 		_lock.Lock();
 		_mipMapTextures->AddObject(texture);
@@ -361,7 +317,7 @@ namespace RN
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const
 	{
-		return (_textureFormatLookup->GetObjectForKey(format) != nullptr);
+		return true;
 	}
 
 	bool D3D12Renderer::SupportsDrawMode(DrawMode mode) const
@@ -429,45 +385,6 @@ namespace RN
 			case PrimitiveType::Matrix:
 				return 64;
 		}
-	}
-
-	const String *D3D12Renderer::GetTextureFormatName(const Texture::Format format) const
-	{
-#define TextureFormatX(name) \
-		case Texture::Format::name: \
-			return RNCSTR(#name) \
-
-		switch(format)
-		{
-			TextureFormatX(RGBA8888);
-			TextureFormatX(RGB10A2);
-			TextureFormatX(R8);
-			TextureFormatX(RG88);
-			TextureFormatX(RGB888);
-
-			TextureFormatX(R16F);
-			TextureFormatX(RG16F);
-			TextureFormatX(RGB16F);
-			TextureFormatX(RGBA16F);
-
-			TextureFormatX(R32F);
-			TextureFormatX(RG32F);
-			TextureFormatX(RGB32F);
-			TextureFormatX(RGBA32F);
-
-			TextureFormatX(Depth24I);
-			TextureFormatX(Depth32F);
-			TextureFormatX(Stencil8);
-			TextureFormatX(Depth24Stencil8);
-			TextureFormatX(Depth32FStencil8);
-
-			case Texture::Format::Invalid:
-				return nullptr;
-		}
-
-#undef TextureFormatX
-
-		return nullptr;
 	}
 
 	Texture *D3D12Renderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)

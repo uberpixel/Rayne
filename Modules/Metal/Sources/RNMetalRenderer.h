@@ -42,7 +42,6 @@ namespace RN
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		MTLAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		MTLAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		MTLAPI size_t GetSizeForType(PrimitiveType type) const final;
 
@@ -61,6 +60,8 @@ namespace RN
 		MTLAPI Drawable *CreateDrawable() final;
 		MTLAPI void DeleteDrawable(Drawable *drawable);
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
+
+		const String *GetTextureFormatName(const Texture::Format format) const final;
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);

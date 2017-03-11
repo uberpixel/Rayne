@@ -447,7 +447,7 @@ namespace RN
 
 	Texture *MetalRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
-		String *formatName = const_cast<String *>(descriptor.GetFormat());
+		String *formatName = GetTextureFormatName(descriptor.format);
 		if(!formatName)
 			throw InvalidTextureFormatException("Texture Format is NULL!");
 

@@ -35,6 +35,51 @@ namespace RN
 		}
 	}
 
+	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
+	{
+		switch(format)
+		{
+			case Texture::Format::RGBA8888:
+				return DXGI_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::RGB10A2:
+				return DXGI_FORMAT_R10G10B10A2_UNORM;
+			case Texture::Format::R8:
+				return DXGI_FORMAT_R8_UNORM;
+			case Texture::Format::RG88:
+				return DXGI_FORMAT_R8G8_UNORM;
+			case Texture::Format::RGB888:
+				return DXGI_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::R16F:
+				return DXGI_FORMAT_R16_FLOAT;
+			case Texture::Format::RG16F:
+				return DXGI_FORMAT_R16G16_FLOAT;
+			case Texture::Format::RGB16F:
+				return DXGI_FORMAT_R16G16B16A16_FLOAT;
+			case Texture::Format::RGBA16F:
+				return DXGI_FORMAT_R16G16B16A16_FLOAT;
+			case Texture::Format::R32F:
+				return DXGI_FORMAT_R32_FLOAT;
+			case Texture::Format::RG32F:
+				return DXGI_FORMAT_R32G32_FLOAT;
+			case Texture::Format::RGB32F:
+				return DXGI_FORMAT_R32G32B32_FLOAT;
+			case Texture::Format::RGBA32F:
+				return DXGI_FORMAT_R32G32B32A32_FLOAT;
+			case Texture::Format::Depth24I:
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case Texture::Format::Depth32F:
+				return DXGI_FORMAT_D32_FLOAT;
+			case Texture::Format::Stencil8:
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case Texture::Format::Depth24Stencil8:
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case Texture::Format::Depth32FStencil8:
+				return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+			default:
+				return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+
 /*	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Descriptor::Type type)
 	{
 		switch(type)
@@ -244,9 +289,25 @@ namespace RN
 	D3D12Texture::D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer) :
 		Texture(descriptor),
 		_renderer(renderer),
-		_format(DXGI_FORMAT_R8G8B8A8_UNORM)
+		_format(D3D12ImageFormatFromTextureFormat(descriptor.format))
 	{
+		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 
+		D3D12_RESOURCE_DESC imageDesc = {};
+		imageDesc.Dimension = D3D12ImageTypeFromTextureType(_descriptor.type);
+		imageDesc.Alignment = 0;
+		imageDesc.Width = descriptor.width;
+		imageDesc.Height = descriptor.height;
+		imageDesc.DepthOrArraySize = descriptor.depth;
+		imageDesc.MipLevels = 1;// descriptor.mipMaps;
+		imageDesc.Format = _format;
+		imageDesc.SampleDesc.Count = 1;
+		imageDesc.SampleDesc.Quality = 0;
+		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		// create the final texture buffer
+		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_textureBuffer));
 	}
 
 	D3D12Texture::~D3D12Texture()
@@ -280,9 +341,6 @@ namespace RN
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-		// create the final texture buffer
-		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_textureBuffer));
 
 		// create a temporary buffer to upload the texture from
 		ID3D12Resource *textureUploadBuffer;

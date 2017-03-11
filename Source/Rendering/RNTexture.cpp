@@ -36,12 +36,6 @@ namespace RN
 		_parameter = parameter;
 	}
 
-	const String *Texture::Descriptor::__TranslateFormat(Format format)
-	{
-		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->GetTextureFormatName(format);
-	}
-
 	uint32 Texture::GetDefaultAnisotropy()
 	{
 		return _defaultAnisotropy;
