@@ -60,15 +60,16 @@ namespace RN
 		Data *shaderData = Data::WithContentsOfFile(file);
 		char *text = file->GetUTF8String();
 
-		ID3DBlob *shader = nullptr;
+		_shader = nullptr;
 		ID3DBlob *error = nullptr;
-		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPointName->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &shader, &error);
-		_shader = shader;
+		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPointName->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
 
 		if(FAILED(success))
 		{
-			if(shader)
-				shader->Release();
+			if(_shader)
+				_shader->Release();
+
+			_shader = nullptr;
 
 			String *errorString = RNCSTR("");
 			if(error)
@@ -144,10 +145,8 @@ namespace RN
 
 	D3D12Shader::~D3D12Shader()
 	{
-/*		id<MTLFunction> function = (id<MTLFunction>)_shader;
-		[function release];
-
-		_attributes->Release();*/
+		_shader->Release();
+		_attributes->Release();
 	}
 
 	const String *D3D12Shader::GetName() const

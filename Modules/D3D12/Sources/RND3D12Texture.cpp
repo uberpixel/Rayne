@@ -250,7 +250,7 @@ namespace RN
 
 	D3D12Texture::~D3D12Texture()
 	{
-		
+		_textureBuffer->Release();
 	}
 
 	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)

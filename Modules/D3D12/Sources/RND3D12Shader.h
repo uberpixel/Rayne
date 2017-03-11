@@ -44,7 +44,7 @@ namespace RN
 		D3D12Shader(String *file, String *entryPointName, String *shaderType);
 
 		Array *_attributes;
-		void *_shader;
+		ID3DBlob *_shader;
 
 		RNDeclareMetaAPI(D3D12Shader, D3DAPI)
 	};
