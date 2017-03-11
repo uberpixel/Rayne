@@ -34,6 +34,8 @@ namespace RN
 
 		MTLAPI bool HasColorChannel(ColorChannel channel) const final;
 
+		static MTLPixelFormat PixelFormatForTextureFormat(Format format);
+
 		void *__GetUnderlyingTexture() const { return _texture; }
 		void *__GetUnderlyingSampler() const { return _sampler; }
 

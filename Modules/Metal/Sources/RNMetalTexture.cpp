@@ -116,4 +116,39 @@ namespace RN
 				return false;
 		}
 	}
+
+	MTLPixelFormat MetalTexture::PixelFormatForTextureFormat(Format format)
+	{
+		switch(format)
+		{
+			case Format::RGBA8888:
+				return MTLPixelFormatRGBA8Unorm;
+			case Format::RGB10A2:
+				return MTLPixelFormatRGB10A2Unorm;
+			case Format::R8:
+				return MTLPixelFormatR8Unorm;
+			case Format::RG88:
+				return MTLPixelFormatRG8Unorm;
+			case Format::R16F:
+				return MTLPixelFormatR16Float;
+			case Format::RG16F:
+				return MTLPixelFormatRG16Float;
+			case Format::RGBA16F:
+				return MTLPixelFormatRGBA16Float;
+			case Format::R32F:
+				return MTLPixelFormatR32Float;
+			case Format::RG32F:
+				return MTLPixelFormatRG32Float;
+			case Format::RGBA32F:
+				return MTLPixelFormatRGBA32Float;
+			case Format::Depth32F:
+				return MTLPixelFormatDepth32Float;
+			case Format::Stencil8:
+				return MTLPixelFormatStencil8;
+			case Format::Depth24I:
+				return MTLPixelFormatDepth24Unorm_Stencil8;
+			case Format::Depth32FStencil8:
+				return MTLPixelFormatDepth32Float_Stencil8;
+		}
+	}
 }

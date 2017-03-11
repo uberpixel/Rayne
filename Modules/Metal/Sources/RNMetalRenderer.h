@@ -61,8 +61,6 @@ namespace RN
 		MTLAPI void DeleteDrawable(Drawable *drawable);
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
 
-		const String *GetTextureFormatName(const Texture::Format format) const final;
-
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
@@ -71,7 +69,6 @@ namespace RN
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;
-		Dictionary *_textureFormatLookup;
 
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
