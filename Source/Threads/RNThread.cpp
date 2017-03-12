@@ -25,6 +25,7 @@ typedef struct tagTHREADNAME_INFO
 
 void RNSetThreadName(char *threadName)
 {
+#if RN_COMPILER_MSVC
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadName;
@@ -37,6 +38,7 @@ void RNSetThreadName(char *threadName)
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{}
+#endif
 }
 #endif
 

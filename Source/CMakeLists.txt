@@ -4,9 +4,8 @@ project(Rayne)
 include(../CMake/CompilerCheck.cmake)
 include(../CMake/LibraryTarget.cmake)
 
-if(WIN32)
+if(MSVC)
     include(../CMake/FindWindowsSDK.cmake)
-
     get_windowssdk_library_dirs(${WINDOWSSDK_PREFERRED_DIR} WINDOWS_SDK_LIBRARY_PATH)
 endif()
 
@@ -295,8 +294,12 @@ if(WIN32)
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -latomic")
     endif()
 
-    find_library(SETUPAPI_LIBRARY SetupAPI
-            PATHS ${WINDOWS_SDK_LIBRARY_PATH})
+    if(MSVC)
+        find_library(SETUPAPI_LIBRARY SetupAPI
+                PATHS ${WINDOWS_SDK_LIBRARY_PATH})
+    else()
+        find_library(SETUPAPI_LIBRARY SetupAPI)
+    endif()
 
     if(NOT SETUPAPI_LIBRARY)
         message(FATAL_ERROR "Setup API library not found")
