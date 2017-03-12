@@ -61,7 +61,7 @@ namespace RN
 
 		const char *GetFileName() const
 		{
-			ssize_t length = strlen(file);
+			int32 length = static_cast<int32>(strlen(file));
 			while(length > 0)
 			{
 #if RN_PLATFORM_WINDOWS
