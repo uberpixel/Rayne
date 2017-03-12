@@ -4,9 +4,8 @@ project(Rayne)
 include(../CMake/CompilerCheck.cmake)
 include(../CMake/LibraryTarget.cmake)
 
-if(WIN32)
+if(MSVC)
     include(../CMake/FindWindowsSDK.cmake)
-
     get_windowssdk_library_dirs(${WINDOWSSDK_PREFERRED_DIR} WINDOWS_SDK_LIBRARY_PATH)
 endif()
 
