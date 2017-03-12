@@ -13,7 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "RNLogger.h"
-
+#include "RNLogFormatter.h"
 
 namespace RN
 {
@@ -22,25 +22,27 @@ namespace RN
 	public:
 		friend class Logger;
 
-		RNAPI void SetLevel(Logger::Level level);
-
 		RNAPI virtual void Open() = 0;
 		RNAPI virtual void Close() = 0;
 		RNAPI virtual void Flush() = 0;
 
+		RNAPI void SetLogFormatter(LogFormatter *formatter);
+
 		RNAPI virtual bool IsOpen() const = 0;
 		bool IsThreadBound() const { return _threadBound; }
-		Logger::Level GetLevel() const { return _level.load(std::memory_order_acquire); }
+		const LogFormatter *GetFormatter() const { return _formatter; }
 
-		RNAPI virtual void Log(Logger::Level level, const LogMessage &message, const std::string &header) = 0;
+		RNAPI virtual void Log(const String *message) = 0;
 		RNAPI virtual void LogBreak() = 0;
 
 	protected:
 		RNAPI LoggingEngine(bool threadBound);
+		RNAPI ~LoggingEngine();
 
 	private:
 		bool _threadBound;
-		std::atomic<Logger::Level> _level;
+		LogFormatter *_formatter;
+		Logger::Level _level;
 
 		__RNDeclareMetaInternal(LoggingEngine)
 	};
@@ -57,7 +59,7 @@ namespace RN
 
 		RNAPI bool IsOpen() const final;
 
-		RNAPI void Log(Logger::Level level, const LogMessage &message, const std::string &header) final;
+		RNAPI void Log(const String *message) final;
 		RNAPI void LogBreak() final;
 
 	private:
@@ -80,7 +82,7 @@ namespace RN
 
 		RNAPI bool IsOpen() const final;
 
-		RNAPI void Log(Logger::Level level, const LogMessage &message, const std::string &header) final;
+		RNAPI void Log(const String *message) final;
 		RNAPI void LogBreak() final;
 
 	private:

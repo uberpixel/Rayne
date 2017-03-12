@@ -59,6 +59,24 @@ namespace RN
 			return *this;
 		}
 
+		const char *GetFileName() const
+		{
+			ssize_t length = strlen(file);
+			while(length > 0)
+			{
+#if RN_PLATFORM_WINDOWS
+				if(file[length] == '/' || file[length] == '\\')
+					return file + length + 1;
+#else
+				if(file[length] == '/')
+					return file + length + 1;
+#endif
+				length --;
+			}
+
+			return file;
+		}
+
 		size_t line;
 		const char *file;
 		const char *function;
@@ -84,7 +102,7 @@ namespace RN
 
 		RNAPI static Logger *GetSharedInstance();
 
-		RNAPI void AddEngine(LoggingEngine *engine);
+		RNAPI void AddEngine(LoggingEngine *engine, Level level = Level::Debug);
 		RNAPI void RemoveEngine(LoggingEngine *engine);
 
 		RNAPI void Log(Level level, LogMessage &&message);
@@ -94,44 +112,13 @@ namespace RN
 		RNAPI void Flush(bool synchronous = true);
 
 	private:
-		struct LogContainer
-		{
-			LogContainer() = default;
-
-			LogContainer(LogMessage &&tmessage, Level tlevel) :
-				message(std::move(tmessage)),
-				level(tlevel)
-			{}
-
-			LogContainer(LogContainer &&other) :
-				message(std::move(other.message)),
-				formattedTime(std::move(other.formattedTime)),
-				level(other.level)
-			{}
-
-			LogContainer &operator =(LogContainer &&other)
-			{
-				message = std::move(other.message);
-				formattedTime = std::move(other.formattedTime);
-				level = other.level;
-
-				return *this;
-			}
-
-			void FormatTime();
-
-			LogMessage message;
-			std::string formattedTime;
-			Level level;
-		};
-
 		Logger();
 		~Logger();
 
 		void __FlushQueue();
 
 		Lockable _lock;
-		AtomicRingBuffer<LogContainer, 256> _messages;
+		AtomicRingBuffer<LogMessage, 256> _messages;
 
 		Lockable _engineLock;
 		Array *_threadEngines;

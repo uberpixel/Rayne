@@ -27,6 +27,7 @@
 #include "Data/RNIntrusiveList.h"
 #include "Data/RNRingBuffer.h"
 
+#include "Debug/RNLogFormatter.h"
 #include "Debug/RNLogger.h"
 #include "Debug/RNLoggingEngine.h"
 
