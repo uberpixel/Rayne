@@ -289,7 +289,9 @@ namespace RN
 	D3D12Texture::D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer) :
 		Texture(descriptor),
 		_renderer(renderer),
-		_format(D3D12ImageFormatFromTextureFormat(descriptor.format))
+		_format(D3D12ImageFormatFromTextureFormat(descriptor.format)),
+		_isReady(false),
+		_needsMipMaps(false)
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 
@@ -299,15 +301,16 @@ namespace RN
 		imageDesc.Width = descriptor.width;
 		imageDesc.Height = descriptor.height;
 		imageDesc.DepthOrArraySize = descriptor.depth;
-		imageDesc.MipLevels = 1;// descriptor.mipMaps;
+		imageDesc.MipLevels = descriptor.mipMaps;
 		imageDesc.Format = _format;
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		imageDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;// D3D12_RESOURCE_FLAG_NONE;
 
 		// create the final texture buffer
 		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_textureBuffer));
+		_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 
 	D3D12Texture::~D3D12Texture()
@@ -324,7 +327,7 @@ namespace RN
 	{
 		SetData(region, mipmapLevel, 0, bytes, bytesPerRow);
 	}
-
+	
 	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow)
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
@@ -335,7 +338,7 @@ namespace RN
 		imageDesc.Width = region.width;
 		imageDesc.Height = region.height;
 		imageDesc.DepthOrArraySize = region.depth;
-		imageDesc.MipLevels = 1;
+		imageDesc.MipLevels = GetDescriptor().mipMaps;
 		imageDesc.Format = _format;
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
@@ -357,13 +360,14 @@ namespace RN
 		commandList->SetFinishedCallback([this, textureUploadBuffer]{
 			_isReady = true;
 			textureUploadBuffer->Release();
+			_currentState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		});
 
 		// Now we copy the upload buffer contents to the default heap
 		UpdateSubresources(commandList->GetCommandList(), _textureBuffer, textureUploadBuffer, 0, 0, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
-		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE|D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		// Now we execute the command list to upload the initial assets (triangle data)
 		commandList->End();
@@ -511,7 +515,8 @@ namespace RN
 
 	void D3D12Texture::GenerateMipMaps()
 	{
-		//_renderer->CreateMipMapForTexture(this);
+		_needsMipMaps = true;
+		_renderer->CreateMipMapsForTexture(this);
 	}
 
 	bool D3D12Texture::HasColorChannel(ColorChannel channel) const

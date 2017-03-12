@@ -78,12 +78,12 @@ namespace RN
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
 		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
 
-		void CreateMipMapForTexture(D3D12Texture *texture);
+		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();
 
 		void CreateDescriptorHeap();
 
-		Set *_mipMapTextures;
+		Array *_mipMapTextures;
 
 		D3D12Window *_mainWindow;
 

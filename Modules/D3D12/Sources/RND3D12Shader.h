@@ -20,6 +20,7 @@ namespace RN
 	public:
 		friend class D3D12ShaderLibrary;
 		friend class D3D12StateCoordinator;
+		friend class D3D12Renderer;
 
 		class D3D12Attribute : public Attribute
 		{

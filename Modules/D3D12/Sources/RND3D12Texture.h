@@ -47,8 +47,10 @@ namespace RN
 
 		DXGI_FORMAT _format;
 		ID3D12Resource *_textureBuffer;
+		D3D12_RESOURCE_STATES _currentState;
 
 		bool _isReady;
+		bool _needsMipMaps;
 		
 		D3D12_STATIC_SAMPLER_DESC _samplerDesc;
 

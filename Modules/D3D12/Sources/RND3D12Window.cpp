@@ -178,6 +178,6 @@ namespace RN
 
 	void D3D12Window::PresentBackBuffer()
 	{
-		_swapChain->Present(1, 0); //Use 0, 0 for no vsync
+		_swapChain->Present(0, 0); //Use 0, 0 for no vsync
 	}
 }

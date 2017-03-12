@@ -11,5 +11,14 @@
 				"type": "fragment"
 			}
 		]
+	},
+	{
+		"file": ":RayneD3D12:/GenerateMipMaps.hlsl",
+		"shaders": [
+			{
+				"name": "GenerateMipMaps",
+				"type": "compute"
+			}
+		]
 	}
 ]
