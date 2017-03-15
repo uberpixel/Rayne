@@ -194,11 +194,6 @@ namespace RN
 				return (_feature == VertexAttribute::Feature::Indices) ? 2 : _chunk->_mesh->GetStride();
 			}
 
-			void MarkDirty()
-			{
-				_feature == VertexAttribute::Feature::Indices ? (_chunk->_dirtyIndices = true) : (_chunk->_dirtyVertices = true);
-			}
-
 			size_t TranslateIndex(size_t index)
 			{
 				return _chunk->TranslateIndex(index);
@@ -226,7 +221,6 @@ namespace RN
 
 			T *operator ->()
 			{
-				MarkDirty();
 				return _ptr;
 			}
 
@@ -237,7 +231,6 @@ namespace RN
 
 			T &operator *()
 			{
-				__ChunkFriend::MarkDirty();
 				return *_ptr;
 			}
 
@@ -361,8 +354,6 @@ namespace RN
 				return result;
 			}
 
-			RNAPI void CommitChanges();
-
 		private:
 			RNAPI Chunk(Mesh *mesh, bool triangles);
 
@@ -406,9 +397,6 @@ namespace RN
 
 			Mesh *_mesh;
 			bool _triangles;
-
-			bool _dirtyVertices;
-			bool _dirtyIndices;
 		};
 
 

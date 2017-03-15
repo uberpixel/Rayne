@@ -271,7 +271,7 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector2 vertex = *iterator ++;
+					const Vector2 &vertex = *(iterator++);
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
@@ -289,7 +289,7 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector3 vertex = *iterator ++;
+					const Vector3 &vertex = *(iterator++);
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
@@ -324,9 +324,7 @@ namespace RN
 		_vertexData(nullptr),
 		_indexData(nullptr),
 		_mesh(mesh),
-		_triangles(triangles),
-		_dirtyVertices(false),
-		_dirtyIndices(false)
+		_triangles(triangles)
 	{
 		if(triangles)
 		{
@@ -337,22 +335,7 @@ namespace RN
 
 	Mesh::Chunk::~Chunk()
 	{
-		CommitChanges();
-	}
 
-	void Mesh::Chunk::CommitChanges()
-	{
-		if(_dirtyVertices)
-		{
-			_mesh->_vertexBuffer->InvalidateRange(Range(0, _mesh->_verticesSize));
-			_dirtyVertices = false;
-		}
-
-		if(_dirtyIndices)
-		{
-			_mesh->_indicesBuffer->InvalidateRange(Range(0, _mesh->_indicesSize));
-			_dirtyIndices = false;
-		}
 	}
 
 	// ---------------------
