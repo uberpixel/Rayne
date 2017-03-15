@@ -21,7 +21,8 @@ namespace RN
 		_length(length),
 		_transferResource(nullptr),
 		_resource(nullptr),
-		_isTransfering(false)
+		_isTransfering(false),
+		_isRecording(false)
 	{
 		_resourceDescription = CD3DX12_RESOURCE_DESC::Buffer(_length);
 
@@ -75,16 +76,18 @@ namespace RN
 		}
 		else
 		{
+			if(_isRecording)
+				return _transferPointer;
+
+			_isRecording = true;
 			_isTransfering = true;
 
-			if(!_transferResource)
-				_transferResource = GetTransferResource();
+			_transferResource = GetTransferResource();
 
-			void *data;
 			CD3DX12_RANGE readRange(0, 0);
-			_transferResource->Map(0, &readRange, &data);
+			_transferResource->Map(0, &readRange, &_transferPointer);
 
-			return data;
+			return _transferPointer;
 		}
 	}
 
@@ -94,16 +97,14 @@ namespace RN
 			return;
 
 		_transferResource->Unmap(0, nullptr);
+		_isRecording = false;
 
 		D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		D3D12CommandListWithCallback *commandList = renderer->GetCommandListWithCallback();
 		ID3D12Resource *transferResource = _transferResource;
+		_transferResource = nullptr;
 		commandList->SetFinishedCallback([this, transferResource] {
 			_isTransfering = false;
-
-			if(transferResource == _transferResource)
-				_transferResource = nullptr;
-
 			transferResource->Release();
 		});
 
@@ -113,7 +114,7 @@ namespace RN
 			SetResourceState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 		}
 
-		commandList->GetCommandList()->CopyResource(_resource, _transferResource);
+		commandList->GetCommandList()->CopyResource(_resource, transferResource);
 
 		if(!(_resourceState & originalResourceState))
 		{
@@ -131,14 +132,15 @@ namespace RN
 
 	ID3D12Resource *D3D12Resource::GetTransferResource()
 	{
-		HRESULT hr = _device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &_resourceDescription, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&_transferResource));
+		ID3D12Resource *transferResource = nullptr;
+		HRESULT hr = _device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &_resourceDescription, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&transferResource));
 
 		if(FAILED(hr))
 		{
-			_transferResource = nullptr;
+			transferResource = nullptr;
 		}
 
-		return _transferResource;
+		return transferResource;
 	}
 
 	size_t D3D12Resource::GetLength()
