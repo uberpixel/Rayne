@@ -177,15 +177,15 @@ namespace RN
 			};
 		};
 
-		CD3DX12_DESCRIPTOR_RANGE srvCbvRanges[2];
+		CD3DX12_DESCRIPTOR_RANGE descriptorRanges[2];
 		CD3DX12_ROOT_PARAMETER rootParameters[3];
 
 		// Perfomance TIP: Order from most frequent to least frequent.
-		srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-		srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+		descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+		descriptorRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
 		rootParameters[0].InitAsConstants(2, 0);
-		rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[0]);
-		rootParameters[2].InitAsDescriptorTable(1, &srvCbvRanges[1]);
+		rootParameters[1].InitAsDescriptorTable(1, &descriptorRanges[0]);
+		rootParameters[2].InitAsDescriptorTable(1, &descriptorRanges[1]);
 
 		// Create sampler
 		D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -241,35 +241,26 @@ namespace RN
 		D3D12_UNORDERED_ACCESS_VIEW_DESC textureUavDesc = {};
 		textureUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
-
 		D3D12CommandList *commandList = GetCommandList();
 		ID3D12GraphicsCommandList *d3d12CommandList = commandList->GetCommandList();
 		d3d12CommandList->SetComputeRootSignature(mipMapRootSignature);
 		d3d12CommandList->SetPipelineState(psoMipMaps);
 		d3d12CommandList->SetDescriptorHeaps(1, &descriptorHeap);
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE currentGPUHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
 
 		_mipMapTextures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t index, bool &stop) {
 			Texture::Descriptor textureDescriptor = texture->GetDescriptor();
 			if(textureDescriptor.mipMaps <= 1)
 				return;
 
-			d3d12CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture->_textureBuffer, texture->_currentState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-			texture->_currentState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			texture->TransitionToState(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 			for(uint32_t TopMip = 0; TopMip < textureDescriptor.mipMaps-1; TopMip++)
 			{
-				uint32_t SrcWidth = textureDescriptor.width >> TopMip;
-				uint32_t SrcHeight = textureDescriptor.height >> TopMip;
-				uint32_t DstWidth = SrcWidth >> 1;
-				uint32_t DstHeight = SrcHeight >> 1;
-
-				if(DstWidth == 0)
-					DstWidth = 1;
-				if(DstHeight == 0)
-					DstHeight = 1;
+				uint32_t dstWidth = std::max(textureDescriptor.width >> (TopMip+1), 1u);
+				uint32_t dstHeight = std::max(textureDescriptor.height >> (TopMip+1), 1u);
 
 				textureSrvDesc.Format = texture->_format;
 				textureSrvDesc.Texture2D.MipLevels = 1;
@@ -282,20 +273,18 @@ namespace RN
 				GetD3D12Device()->GetDevice()->CreateUnorderedAccessView(texture->_textureBuffer, nullptr, &textureUavDesc, currentCPUHandle);
 				currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 
-				d3d12CommandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/DstWidth).Uint, 0);
-				d3d12CommandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/DstHeight).Uint, 1);
+				d3d12CommandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/ dstWidth).Uint, 0);
+				d3d12CommandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/ dstHeight).Uint, 1);
 				
-				d3d12CommandList->SetComputeRootDescriptorTable(1, srvGPUHandle);
-				srvGPUHandle.Offset(1, _srvCbvDescriptorSize);
-				d3d12CommandList->SetComputeRootDescriptorTable(2, srvGPUHandle);
-				srvGPUHandle.Offset(1, _srvCbvDescriptorSize);
-				d3d12CommandList->Dispatch(std::max(DstWidth / 8, 1u), std::max(DstHeight / 8, 1u), 1);
+				d3d12CommandList->SetComputeRootDescriptorTable(1, currentGPUHandle);
+				currentGPUHandle.Offset(1, _srvCbvDescriptorSize);
+				d3d12CommandList->SetComputeRootDescriptorTable(2, currentGPUHandle);
+				currentGPUHandle.Offset(1, _srvCbvDescriptorSize);
+				d3d12CommandList->Dispatch(std::max(dstWidth / 8, 1u), std::max(dstHeight / 8, 1u), 1);
 				d3d12CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(texture->_textureBuffer));
 			}
 
-			d3d12CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture->_textureBuffer, texture->_currentState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-			texture->_currentState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-
+			texture->TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			texture->_needsMipMaps = false;
 		});
 
@@ -674,7 +663,7 @@ namespace RN
 			D3D12UniformBuffer *uniformBuffer = drawable->_uniformState->uniformBuffer;
 			D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-			cbvDesc.BufferLocation = actualBuffer->GetD3D12Buffer()->GetGPUVirtualAddress();
+			cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
 			cbvDesc.SizeInBytes = actualBuffer->GetLength();
 			GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 			currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
@@ -825,33 +814,19 @@ namespace RN
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-		vertexBufferView.BufferLocation = buffer->_bufferResource->GetGPUVirtualAddress();
+		vertexBufferView.BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress();
 		vertexBufferView.StrideInBytes = drawable->mesh->GetStride();
-		vertexBufferView.SizeInBytes = buffer->_length;
+		vertexBufferView.SizeInBytes = buffer->GetLength();
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
-		indexBufferView.BufferLocation = indices->_bufferResource->GetGPUVirtualAddress();
+		indexBufferView.BufferLocation = indices->GetD3D12Resource()->GetGPUVirtualAddress();
 		indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-		indexBufferView.SizeInBytes = indices->_length;
+		indexBufferView.SizeInBytes = indices->GetLength();
 		commandList->IASetIndexBuffer(&indexBufferView);
 
 		commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
 
 		_currentDrawableIndex += 1;
-
-/*		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
-		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
-
-		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());
-		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-
-		VkDeviceSize offsets[1] = { 0 };
-		// Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
-		// Bind mesh index buffer
-		vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, VK_INDEX_TYPE_UINT16);
-		// Render mesh vertex buffer using it's indices
-		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);*/
 	}
 }

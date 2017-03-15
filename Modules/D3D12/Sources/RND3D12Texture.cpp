@@ -306,7 +306,7 @@ namespace RN
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		imageDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;// D3D12_RESOURCE_FLAG_NONE;
+		imageDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 		// create the final texture buffer
 		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_textureBuffer));
@@ -360,14 +360,13 @@ namespace RN
 		commandList->SetFinishedCallback([this, textureUploadBuffer]{
 			_isReady = true;
 			textureUploadBuffer->Release();
-			_currentState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		});
 
 		// Now we copy the upload buffer contents to the default heap
 		UpdateSubresources(commandList->GetCommandList(), _textureBuffer, textureUploadBuffer, 0, 0, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
-		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE|D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		// Now we execute the command list to upload the initial assets (triangle data)
 		commandList->End();
@@ -563,5 +562,11 @@ namespace RN
 			default:
 				return false;
 		}*/
+	}
+
+	void D3D12Texture::TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState)
+	{
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, _currentState, targetState));
+		_currentState = targetState;
 	}
 }

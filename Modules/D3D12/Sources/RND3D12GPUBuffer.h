@@ -15,6 +15,8 @@
 namespace RN
 {
 	class D3D12Renderer;
+	class D3D12Resource;
+
 	class D3D12GPUBuffer : public GPUBuffer
 	{
 	public:
@@ -24,14 +26,13 @@ namespace RN
 		D3DAPI void InvalidateRange(const Range &range) final;
 		D3DAPI size_t GetLength() const final;
 
-		ID3D12Resource *GetD3D12Buffer() const;
+		ID3D12Resource *GetD3D12Resource() const;
 
 	private:
 		D3D12GPUBuffer(const void *data, size_t length, GPUResource::UsageOptions usageOptions);
 		~D3D12GPUBuffer() override;
 
-		ID3D12Resource *_bufferResource;
-		size_t _length;
+		D3D12Resource *_resource;
 
 		RNDeclareMetaAPI(D3D12GPUBuffer, D3DAPI)
 	};

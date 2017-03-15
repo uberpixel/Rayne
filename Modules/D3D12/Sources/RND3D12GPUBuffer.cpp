@@ -9,71 +9,73 @@
 #include "d3dx12.h"
 #include "RND3D12Renderer.h"
 #include "RND3D12GPUBuffer.h"
+#include "RND3D12Resource.h"
 
 namespace RN
 {
 	RNDefineMeta(D3D12GPUBuffer, GPUBuffer)
 
-	D3D12GPUBuffer::D3D12GPUBuffer(const void *data, size_t length, GPUResource::UsageOptions usageOptions) :
-		_length(length),
-		_bufferResource(nullptr)
+	D3D12GPUBuffer::D3D12GPUBuffer(const void *data, size_t length, UsageOptions usageOptions) :
+		_resource(nullptr)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 		ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
 
-		//Uniform buffers have a to be multiples of 64kb
-		if(usageOptions == GPUResource::UsageOptions::Uniform)
+		if(usageOptions == UsageOptions::Uniform)
 		{
-			//_length = ((_length % (1024 * 64)) + 1) * 1024 * 64;
-			_length = (_length + 255) & ~255;
+			//Uniform buffers need 256bit alignement
+			length = (length + 255) & ~255;
 		}
 
-		HRESULT hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(_length), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&_bufferResource));
-
-		if(FAILED(hr))
+		D3D12Resource::ResourceType resourceType;
+		switch(usageOptions)
 		{
-			_bufferResource = nullptr;
-			_length = 0;
-			return;
+			case UsageOptions::Index:
+				resourceType = D3D12Resource::ResourceType::Index;
+				break;
+			case UsageOptions::Vertex:
+				resourceType = D3D12Resource::ResourceType::Vertex;
+				break;
+			case UsageOptions::Uniform:
+				resourceType = D3D12Resource::ResourceType::Uniform;
+				break;
 		}
+
+		_resource = new D3D12Resource(device, length, resourceType);
 
 		if(data)
 		{
-			void* vertexDataBegin = GetBuffer();
-			memcpy(vertexDataBegin, data, length);
+			void *copyDst = GetBuffer();
+			std::memcpy(copyDst, data, length);
 			Invalidate();
 		}
 	}
 
 	D3D12GPUBuffer::~D3D12GPUBuffer()
 	{
-		_bufferResource->Release();
+		_resource->Release();
 	}
 
 	void *D3D12GPUBuffer::GetBuffer()
 	{
-		if(!_bufferResource)
+		if(!_resource)
 			return nullptr;
 
-		void *data;
-		CD3DX12_RANGE readRange(0, 0);
-		_bufferResource->Map(0, &readRange, &data);
-
-		return data;
+		return _resource->GetUploadBuffer();
 	}
 
 	void D3D12GPUBuffer::InvalidateRange(const Range &range)
 	{
-		_bufferResource->Unmap(0, nullptr);
+		_resource->Invalidate();
 	}
 
 	size_t D3D12GPUBuffer::GetLength() const
 	{
-		return _length;
+		return _resource->GetLength();
 	}
 
-	ID3D12Resource *D3D12GPUBuffer::GetD3D12Buffer() const
+	ID3D12Resource *D3D12GPUBuffer::GetD3D12Resource() const
 	{
-		return _bufferResource;
+		return _resource->GetD3D12Resource();
 	}
 }

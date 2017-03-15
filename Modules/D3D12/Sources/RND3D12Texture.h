@@ -16,6 +16,7 @@ namespace RN
 {
 	class D3D12Renderer;
 	class D3D12StateCoordinator;
+	class D3D12CommandList;
 
 	class D3D12Texture : public Texture
 	{
@@ -42,6 +43,8 @@ namespace RN
 		VkSampler GetSampler() const { return _sampler; }*/
 
 	private:
+		void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
+
 		D3D12Renderer *_renderer;
 		D3D12StateCoordinator *_coordinator;
 

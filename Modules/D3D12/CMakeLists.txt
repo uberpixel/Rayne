@@ -14,6 +14,7 @@ set(SOURCES
         Sources/RND3D12.cpp
         Sources/RND3D12Device.cpp
         Sources/RND3D12Framebuffer.cpp
+        Sources/RND3D12Resource.cpp
         Sources/RND3D12GPUBuffer.cpp
         Sources/RND3D12Internals.cpp
         Sources/RND3D12Renderer.cpp
@@ -30,6 +31,7 @@ set(HEADERS
         Sources/RND3D12.h
         Sources/RND3D12Device.h
         Sources/RND3D12Framebuffer.h
+        Sources/RND3D12Resource.h
         Sources/RND3D12GPUBuffer.h
         Sources/RND3D12Internals.h
         Sources/RND3D12Renderer.h
