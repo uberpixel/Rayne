@@ -18,58 +18,32 @@
 
 namespace RN
 {
-	class ShaderLookupRequest : public Object
+	class Mesh;
+	class Material;
+	class ShaderOptions : public Object
 	{
 	public:
-		RNAPI ShaderLookupRequest();
+		RNAPI ShaderOptions(Shader::Type shaderType);
+		RNAPI ShaderOptions(Mesh *mesh, Shader::Type shaderType);
 
-		bool receiveShadows;
-		bool castShadows;
+		RNAPI void EnableDiscard();
 
-		bool discard;
-
-	private:
-		__RNDeclareMetaInternal(ShaderLookupRequest)
-	};
-
-	class ShaderCompileOptions : public Object
-	{
-	public:
-		RNAPI ShaderCompileOptions();
-		RNAPI ~ShaderCompileOptions();
-
-		RNAPI void SetDefines(const Dictionary *defines);
-		RNAPI void SetBasePath(const String *basePath);
+		RNAPI void AddDefine(String *name, String *value);
 
 		RNAPI bool IsEqual(const Object *other) const override;
 		RNAPI size_t GetHash() const override;
 
 		const Dictionary *GetDefines() const { return _defines; }
-		const String *GetBasePath() const { return _basePath; }
+		Shader::Type GetType() const { return _type; }
 
+		/*		bool receiveShadows;
+		bool castShadows;
+		bool discard;*/
 	private:
-		String *_basePath;
 		Dictionary *_defines;
+		Shader::Type _type;
 
-		__RNDeclareMetaInternal(ShaderCompileOptions)
-	};
-
-	class ShaderProgram : public Object
-	{
-	public:
-		RNAPI ShaderProgram(Shader *vertexShader, Shader *fragmentShader);
-		RNAPI ~ShaderProgram();
-
-		RNAPI static ShaderProgram *WithVertexAndFragmentShaders(Shader *vertex, Shader *fragment);
-
-		Shader *GetVertexShader() const { return _vertexShader; }
-		Shader *GetFragmentShader() const { return _fragmentShader; }
-
-	private:
-		Shader *_vertexShader;
-		Shader *_fragmentShader;
-
-		__RNDeclareMetaInternal(ShaderProgram)
+		__RNDeclareMetaInternal(ShaderOptions)
 	};
 
 	class ShaderLibrary : public Object

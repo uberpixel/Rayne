@@ -177,7 +177,8 @@ namespace RN
 				vertex = vertex->GetLibrary()->GetShaderWithName(vertex->GetName()->StringByAppendingString(RNCSTR("_instanced")));
 				fragment = fragment->GetLibrary()->GetShaderWithName(fragment->GetName()->StringByAppendingString(RNCSTR("_instanced")));
 
-				descriptor.SetShaderProgram(ShaderProgram::WithVertexAndFragmentShaders(vertex, fragment));
+				descriptor.vertexShader = vertex;
+				descriptor.fragmentShader = fragment;
 
 				stage->ReplaceMaterial(Material::WithDescriptor(descriptor), j);
 			}

@@ -8,84 +8,58 @@
 
 #include "RNShaderLibrary.h"
 #include "../Math/RNAlgorithm.h"
+#include "../Rendering/RNMesh.h"
+#include "../Rendering/RNMaterial.h"
 
 namespace RN
 {
-	RNDefineMeta(ShaderLookupRequest, Object)
+	RNDefineMeta(ShaderOptions, Object)
 
-	ShaderLookupRequest::ShaderLookupRequest() :
-		receiveShadows(true),
-		castShadows(true),
-		discard(true)
-	{}
-
-	RNDefineMeta(ShaderCompileOptions, Object)
-
-	ShaderCompileOptions::ShaderCompileOptions() :
-		_basePath(nullptr),
-		_defines(new Dictionary())
-	{}
-
-	ShaderCompileOptions::~ShaderCompileOptions()
+	ShaderOptions::ShaderOptions(Shader::Type shaderType) : _defines(new Dictionary()), _type(shaderType)
 	{
-		SafeRelease(_defines);
-		SafeRelease(_basePath);
 	}
 
-	void ShaderCompileOptions::SetDefines(const Dictionary *defines)
+	ShaderOptions::ShaderOptions(Mesh *mesh, Shader::Type shaderType) : _defines(new Dictionary()), _type(shaderType)
 	{
-		SafeRelease(_defines);
-		_defines = SafeCopy(defines);
-
-		if(!_defines)
-			_defines = new Dictionary();
-	}
-	void ShaderCompileOptions::SetBasePath(const String *basePath)
-	{
-		SafeRelease(_basePath);
-		_basePath = SafeCopy(basePath);
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
+			AddDefine(RNCSTR("RN_NORMALS"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
+			AddDefine(RNCSTR("RN_TANGENTS"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
+			AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
+			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
 	}
 
-	bool ShaderCompileOptions::IsEqual(const Object *other) const
+	void ShaderOptions::EnableDiscard()
 	{
-		const ShaderCompileOptions *options = other->Downcast<ShaderCompileOptions>();
+		AddDefine(RNCSTR("RN_DISCARD"), RNCSTR("1"));
+	}
+
+	void ShaderOptions::AddDefine(String *name, String *value)
+	{
+		_defines->SetObjectForKey(value, name);
+	}
+
+	bool ShaderOptions::IsEqual(const Object *other) const
+	{
+		const ShaderOptions *options = other->Downcast<ShaderOptions>();
 		if(RN_EXPECT_FALSE(!options))
 			return false;
 
-		if(!options->_defines->IsEqual(_defines))
+		if(!options->_defines->IsEqual(_defines) || _type != options->_type)
 			return false;
 
 		return true;
 	}
-	size_t ShaderCompileOptions::GetHash() const
+	size_t ShaderOptions::GetHash() const
 	{
 		size_t hash = 0;
 
 		HashCombine(hash, _defines->GetHash());
-
-		if(_basePath)
-			HashCombine(hash, _basePath->GetHash());
+		HashCombine(hash, _type);
 
 		return hash;
-	}
-
-	RNDefineMeta(ShaderProgram, Object)
-
-	ShaderProgram::ShaderProgram(Shader *vertexShader, Shader *fragmentShader) :
-		_vertexShader(SafeRetain(vertexShader)),
-		_fragmentShader(SafeRetain(fragmentShader))
-	{}
-
-	ShaderProgram::~ShaderProgram()
-	{
-		SafeRelease(_vertexShader);
-		SafeRelease(_fragmentShader);
-	}
-
-	ShaderProgram *ShaderProgram::WithVertexAndFragmentShaders(Shader *vertex, Shader *fragment)
-	{
-		ShaderProgram *program = new ShaderProgram(vertex, fragment);
-		return program->Autorelease();
 	}
 
 	RNDefineMeta(ShaderLibrary, Object)

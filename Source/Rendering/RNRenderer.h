@@ -99,10 +99,10 @@ namespace RN
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 
-		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) = 0;
-		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) = 0;
+		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file) = 0;
+		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source) = 0;
 
-		RNAPI virtual ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) = 0;
+		RNAPI virtual Shader *GetDefaultShader(const ShaderOptions *options) = 0;
 
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 

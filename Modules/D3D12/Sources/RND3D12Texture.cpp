@@ -520,9 +520,7 @@ namespace RN
 
 	bool D3D12Texture::HasColorChannel(ColorChannel channel) const
 	{
-		return true;
-
-/*#define ColorChannel(format, r, g, b, a) \
+#define ColorChannel(format, r, g, b, a) \
 		case format: \
 		{ \
 			switch(channel) \
@@ -539,29 +537,25 @@ namespace RN
 			return false; \
 		}
 
-		switch(GetFormat())
+		switch(_format)
 		{
-			ColorChannel(VK_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
-			ColorChannel(VK_FORMAT_A2R10G10B10_UNORM_PACK32, true, true, true, true)
-			ColorChannel(VK_FORMAT_R8_UNORM, true, false, false, false)
-			ColorChannel(VK_FORMAT_R8G8_UNORM, true, true, false, false)
+			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_R10G10B10A2_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_R8_UNORM, true, false, false, false)
+			ColorChannel(DXGI_FORMAT_R8G8_UNORM, true, true, false, false)
 
-			ColorChannel(VK_FORMAT_R16_SFLOAT, true, false, false, false)
-			ColorChannel(VK_FORMAT_R16G16_SFLOAT, true, true, false, false)
-			ColorChannel(VK_FORMAT_R16G16B16A16_SFLOAT, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_R16_FLOAT, true, false, false, false)
+			ColorChannel(DXGI_FORMAT_R16G16_FLOAT, true, true, false, false)
+			ColorChannel(DXGI_FORMAT_R16G16B16A16_FLOAT, true, true, true, true)
 
-			ColorChannel(VK_FORMAT_R32_SFLOAT, true, false, false, false)
-			ColorChannel(VK_FORMAT_R32G32_SFLOAT, true, true, false, false)
-			ColorChannel(VK_FORMAT_R32G32B32A32_SFLOAT, true, true, true, true)
-
-			ColorChannel(VK_FORMAT_D32_SFLOAT, false, false, false, false)
-			ColorChannel(VK_FORMAT_S8_UINT, false, false, false, false)
-			ColorChannel(VK_FORMAT_D24_UNORM_S8_UINT, false, false, false, false)
-			ColorChannel(VK_FORMAT_D32_SFLOAT_S8_UINT, false, false, false, false)
+			ColorChannel(DXGI_FORMAT_R32_FLOAT, true, false, false, false)
+			ColorChannel(DXGI_FORMAT_R32G32_FLOAT, true, true, false, false)
+			ColorChannel(DXGI_FORMAT_R32G32B32_FLOAT, true, true, true, false)
+			ColorChannel(DXGI_FORMAT_R32G32B32A32_FLOAT, true, true, true, true)
 
 			default:
 				return false;
-		}*/
+		}
 	}
 
 	void D3D12Texture::TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState)

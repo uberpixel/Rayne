@@ -84,6 +84,8 @@ namespace RN
 			D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 			underlyingDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_rootSignature));
 		}
+
+		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"));
 	}
 
 	D3D12Renderer::~D3D12Renderer()
@@ -220,8 +222,7 @@ namespace RN
 		ID3D12DescriptorHeap *descriptorHeap;
 		GetD3D12Device()->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
 
-		ShaderLibrary *library = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"), nullptr);
-		D3D12Shader *compute = library->GetShaderWithName(RNCSTR("GenerateMipMaps"))->Downcast<D3D12Shader>();
+		D3D12Shader *compute = _defaultShaderLibrary->GetShaderWithName(RNCSTR("GenerateMipMaps"))->Downcast<D3D12Shader>();
 		ID3DBlob *computeShader = static_cast<ID3DBlob*>(compute->_shader);
 
 		// Describe and create the graphics pipeline state object (PSO).
@@ -419,56 +420,39 @@ namespace RN
 		return new D3D12GPUBuffer(bytes, length, usageOptions);
 	}
 
-	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
+	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file)
 	{
 		return new D3D12ShaderLibrary(file);
 	}
 
-	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
+	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithSource(const String *source)
 	{
 		D3D12ShaderLibrary *lib = new D3D12ShaderLibrary(nullptr);
 		return lib;
 	}
 
-	ShaderProgram *D3D12Renderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
+	Shader *D3D12Renderer::GetDefaultShader(const ShaderOptions *options)
 	{
-		Dictionary *defines = new Dictionary();
+/*		if(lookup->discard)
+			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));*/
 
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_NORMALS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_TANGENTS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_COLOR"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_UV0"));
-
-		if(lookup->discard)
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));
-
-		ShaderCompileOptions *options = new ShaderCompileOptions();
-		options->SetDefines(defines);
-
-		ShaderLibrary *library;
+		Shader *shader;
 		{
 			LockGuard<Lockable> lock(_lock);
-			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
+			shader = _defaultShaders->GetObjectForKey<Shader>(options);
 
-			if(!library)
+			if(!shader)
 			{
-				library = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"), options);
-				_defaultShaders->SetObjectForKey(library, options);
+				if(options->GetType() == Shader::Type::Vertex)
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"));// , options);	//TODO: Options as second param!
+				else if(options->GetType() == Shader::Type::Fragment)
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"));// , options);
+
+				_defaultShaders->SetObjectForKey(shader, options);
 			}
 		}
 
-		options->Release();
-		defines->Release();
-
-		Shader *vertex = library->GetShaderWithName(RNCSTR("gouraud_vertex"));
-		Shader *fragment = library->GetShaderWithName(RNCSTR("gouraud_fragment"));
-
-		ShaderProgram *program = new ShaderProgram(vertex, fragment);
-		return program->Autorelease();
+		return shader->Autorelease();
 	}
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const

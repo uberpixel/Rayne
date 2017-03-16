@@ -51,8 +51,6 @@ namespace RN
 
 		RNAPI const Array *GetTextures() const;
 
-		RNAPI void SetShaderProgram(const ShaderProgram *program);
-
 		Shader *fragmentShader;
 		Shader *vertexShader;
 

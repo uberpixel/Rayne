@@ -15,13 +15,14 @@
 #define RN_NORMALS 1
 #define RN_UV0 1
 #define RN_TANGENTS 1
+#define RN_DISCARD 1
 
 #define RN_FRAGMENT_UNIFORM 0
 
-#if RN_DISCARD
+/*#if RN_DISCARD
 #undef RN_FRAGMENT_UNIFORM
 #define RN_FRAGMENT_UNIFORM 1
-#endif
+#endif*/
 
 #ifndef RN_NORMALS
 #define RN_NORMALS 0
@@ -132,7 +133,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 	color = texture0.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
-	clip(color.a - discardThreshold);
+	clip(color.a - 0.1f);//discardThreshold);
 #endif
 #endif
 

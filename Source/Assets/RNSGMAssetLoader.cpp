@@ -98,7 +98,7 @@ namespace RN
 		uint8 materialCount = file->ReadUint8();
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		std::vector<std::pair<ShaderLookupRequest *, MaterialDescriptor>> materials;
+		std::vector<std::pair<bool, MaterialDescriptor>> materials;
 
 		// Get Materials
 		Array *materialPlaceholder = new Array();
@@ -168,9 +168,9 @@ namespace RN
 		materialPlaceholder->Enumerate<Dictionary>([&](Dictionary *info, size_t index, bool &stop) {
 
 			Array *textures = info->GetObjectForKey<Array>(RNCSTR("textures"));
-			ShaderLookupRequest *lookup = new ShaderLookupRequest();
 
 			MaterialDescriptor descriptor;
+			bool wantsDiscard = false;
 
 			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
 
@@ -195,13 +195,13 @@ namespace RN
 
 				descriptor.AddTexture(texture);
 
+				//TODO: Maybe only assume discard if the first texture has an alpha channel?
 				if(texture->HasColorChannel(Texture::ColorChannel::Alpha))
-					lookup->discard = true;
+					wantsDiscard = true;
 
 			});
 
-			materials.emplace_back(std::make_pair(lookup, descriptor));
-			lookup->Autorelease();
+			materials.emplace_back(std::make_pair(wantsDiscard, descriptor));
 
 		});
 
@@ -341,10 +341,15 @@ namespace RN
 			mesh->EndChanges();
 
 			// Load the material
-			ShaderLookupRequest *lookup = materialPair.first;
+			bool wantsDiscard = materialPair.first;
 			MaterialDescriptor &descriptor = materialPair.second;
+			ShaderOptions *vertexShaderOptions = new ShaderOptions(mesh, Shader::Type::Vertex);
+			ShaderOptions *fragmentShaderOptions = new ShaderOptions(mesh, Shader::Type::Fragment);
+			if(wantsDiscard)
+				fragmentShaderOptions->EnableDiscard();
 
-			descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));
+			descriptor.vertexShader = renderer->GetDefaultShader(vertexShaderOptions->Autorelease());
+			descriptor.fragmentShader = renderer->GetDefaultShader(fragmentShaderOptions->Autorelease());
 
 			stage->AddMesh(mesh, Material::WithDescriptor(descriptor));
 			mesh->Autorelease();

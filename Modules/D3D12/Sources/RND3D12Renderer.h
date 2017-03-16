@@ -23,6 +23,7 @@ namespace RN
 	class D3D12UniformBuffer;
 	class D3D12CommandList;
 	class D3D12CommandListWithCallback;
+	class ShaderOptions;
 
 	class D3D12Renderer : public Renderer
 	{
@@ -50,10 +51,10 @@ namespace RN
 		D3DAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		D3DAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 
-		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		D3DAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		D3DAPI Shader *GetDefaultShader(const ShaderOptions *options) final;
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -86,6 +87,7 @@ namespace RN
 		Array *_mipMapTextures;
 
 		D3D12Window *_mainWindow;
+		ShaderLibrary *_defaultShaderLibrary;
 
 		D3D12CommandList *_currentCommandList;
 		Array *_submittedCommandLists;

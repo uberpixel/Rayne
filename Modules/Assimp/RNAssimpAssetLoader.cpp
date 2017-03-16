@@ -167,8 +167,8 @@ namespace RN
 		aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		ShaderLookupRequest *lookup = new ShaderLookupRequest();
 		MaterialDescriptor descriptor;
+		bool wantsDiscard = false;
 
 		if(aimaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
@@ -188,11 +188,18 @@ namespace RN
 			}
 
 			descriptor.AddTexture(texture);
-			lookup->discard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
+			wantsDiscard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
 		}
 
-		descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));
-		lookup->Release();
+		ShaderOptions *vertexShaderOptions = new ShaderOptions(mesh, Shader::Type::Vertex);
+		ShaderOptions *fragmentShaderOptions = new ShaderOptions(mesh, Shader::Type::Fragment);
+		if(wantsDiscard)
+		{
+			fragmentShaderOptions->EnableDiscard();
+		}
+
+		descriptor.vertexShader = renderer->GetDefaultShader(vertexShaderOptions->Autorelease());
+		descriptor.fragmentShader = renderer->GetDefaultShader(fragmentShaderOptions->Autorelease());
 
 		return std::make_pair(mesh, Material::WithDescriptor(descriptor));
 	}
