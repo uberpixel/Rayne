@@ -17,7 +17,7 @@ namespace RN
 	class MetalShader : public Shader
 	{
 	public:
-		friend class MetalShaderLibrary;
+		friend class MetalSpecializedShaderLibrary;
 		friend class MetalStateCoordinator;
 
 		class MetalAttribute : public Attribute
@@ -40,7 +40,7 @@ namespace RN
 		MTLAPI const Array *GetAttributes() const override;
 
 	private:
-		MetalShader(void *shader, ShaderLibrary *library);
+		MetalShader(void *shader);
 
 		void *_shader;
 		Array *_attributes;

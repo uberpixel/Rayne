@@ -28,8 +28,8 @@ namespace RN
 		throw InconsistencyException("Invalid metal function");
 	}
 
-	MetalShader::MetalShader(void *shader, ShaderLibrary *library) :
-		Shader(__GetTypeFromMetalShader((id<MTLFunction>)shader), library),
+	MetalShader::MetalShader(void *shader) :
+		Shader(__GetTypeFromMetalShader((id<MTLFunction>)shader)),
 		_shader(shader),
 		_attributes(new Array())
 	{

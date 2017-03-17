@@ -49,8 +49,7 @@ namespace RN
 	class ShaderLibrary : public Object
 	{
 	public:
-		RNAPI virtual Shader *GetShaderWithName(const String *name) = 0;
-		RNAPI virtual Array *GetShaderNames() const = 0;
+		RNAPI virtual Shader *GetShaderWithName(const String *name, const ShaderOptions *options) = 0;
 
 	protected:
 		RNAPI ShaderLibrary();

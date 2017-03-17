@@ -54,15 +54,13 @@ namespace RN
 		RNAPI virtual const Array *GetAttributes() const = 0;
 
 		Type GetType() const { return _type; }
-		ShaderLibrary *GetLibrary() const { return _library; }
 
 	protected:
-		RNAPI Shader(Type type, ShaderLibrary *library);
+		RNAPI Shader(Type type);
 		RNAPI virtual ~Shader();
 
 	private:
 		Type _type;
-		ShaderLibrary *_library;
 
 		__RNDeclareMetaInternal(Shader)
 	};

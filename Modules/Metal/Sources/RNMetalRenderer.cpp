@@ -25,7 +25,7 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Set()),
-		_defaultShaders(new Dictionary())
+		_defaultShaderLibrary(nullptr)
 	{
 		_internals->device = device->GetDevice();
 		_internals->commandQueue = [_internals->device newCommandQueue];
@@ -38,7 +38,6 @@ namespace RN
 		[_internals->device release];
 
 		_mipMapTextures->Release();
-		_defaultShaders->Release();
 	}
 
 
@@ -194,7 +193,7 @@ namespace RN
 		return (new MetalGPUBuffer(buffer));
 	}
 
-	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
+	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithFile(const String *file)
 	{
 		Data *data = Data::WithContentsOfFile(file);
 
@@ -216,101 +215,33 @@ namespace RN
 
 		});
 
-		return CreateShaderLibraryWithSource(source->Autorelease(), options);
+		return CreateShaderLibraryWithSource(source->Autorelease());
 	}
-	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
+	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithSource(const String *source)
 	{
-		MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
-
-		if(options)
-		{
-			const Dictionary *defines = options->GetDefines();
-			if(defines)
-			{
-				NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
-
-				defines->Enumerate<Object, Object>([&](Object *value, const Object *key, bool &stop) {
-
-					if(key->IsKindOfClass(String::GetMetaClass()))
-					{
-						NSString *keyString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(key)->GetUTF8String()];
-
-						if(value->IsKindOfClass(Number::GetMetaClass()))
-						{
-							NSNumber *valueNumber = [[NSNumber alloc] initWithLongLong:static_cast<Number *>(value)->GetInt64Value()];
-							[metalDefines setObject:valueNumber forKey:keyString];
-							[valueNumber release];
-						}
-						else if(value->IsKindOfClass(String::GetMetaClass()))
-						{
-							NSString *valueString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(value)->GetUTF8String()];
-							[metalDefines setObject:valueString forKey:keyString];
-							[valueString release];
-						}
-
-						[keyString release];
-					}
-
-				});
-
-				[metalOptions setPreprocessorMacros:metalDefines];
-				[metalDefines release];
-			}
-		}
-
-		NSError *error = nil;
-		id<MTLLibrary> library = [_internals->device newLibraryWithSource:[NSString stringWithUTF8String:source->GetUTF8String()] options:metalOptions error:&error];
-
-
-		[metalOptions release];
-
-		if(!library)
-			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
-
-		MetalShaderLibrary *lib = new MetalShaderLibrary(library);
+		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, source);
 		return lib;
 	}
 
-	ShaderProgram *MetalRenderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
+	Shader *MetalRenderer::GetDefaultShader(const ShaderOptions *options)
 	{
-		Dictionary *defines = new Dictionary();
-
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_NORMALS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_TANGENTS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_COLOR"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_UV0"));
-
-		if(lookup->discard)
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));
-
-		ShaderCompileOptions *options = new ShaderCompileOptions();
-		options->SetDefines(defines);
-
-		ShaderLibrary *library;
+		Shader *shader = nullptr;
 
 		{
 			LockGuard<Lockable> lock(_lock);
-			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
 
-			if(!library)
+			if(!_defaultShaderLibrary)
 			{
-				library = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"), options);
-				_defaultShaders->SetObjectForKey(library, options);
+				_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
 			}
+
+			if(options->GetType() == Shader::Type::Vertex)
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+			else if(options->GetType() == Shader::Type::Fragment)
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 		}
 
-		options->Release();
-		defines->Release();
-
-		Shader *vertex = library->GetShaderWithName(RNCSTR("gouraud_vertex"));
-		Shader *fragment = library->GetShaderWithName(RNCSTR("gouraud_fragment"));
-
-		ShaderProgram *program = new ShaderProgram(vertex, fragment);
-		return program->Autorelease();
+		return shader;
 	}
 
 	bool MetalRenderer::SupportsTextureFormat(const String *format) const

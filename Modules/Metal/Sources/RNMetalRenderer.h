@@ -48,10 +48,10 @@ namespace RN
 		MTLAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		MTLAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 
-		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		MTLAPI Shader *GetDefaultShader(const ShaderOptions *options) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -75,7 +75,7 @@ namespace RN
 
 		Lockable _lock;
 
-		Dictionary *_defaultShaders;
+		ShaderLibrary *_defaultShaderLibrary;
 
 		RNDeclareMetaAPI(MetalRenderer, MTLAPI)
 	};

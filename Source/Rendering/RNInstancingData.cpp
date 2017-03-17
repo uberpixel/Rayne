@@ -174,11 +174,12 @@ namespace RN
 				Shader *vertex = descriptor.vertexShader;
 				Shader *fragment = descriptor.fragmentShader;
 
-				vertex = vertex->GetLibrary()->GetShaderWithName(vertex->GetName()->StringByAppendingString(RNCSTR("_instanced")));
-				fragment = fragment->GetLibrary()->GetShaderWithName(fragment->GetName()->StringByAppendingString(RNCSTR("_instanced")));
+				//TODO: Broke instancing completely... Maybe ask the shader or its library directly for it's instanced version?
+				//vertex = vertex->GetLibrary()->GetShaderWithName(vertex->GetName()->StringByAppendingString(RNCSTR("_instanced")), );
+				//fragment = fragment->GetLibrary()->GetShaderWithName(fragment->GetName()->StringByAppendingString(RNCSTR("_instanced")), );
 
-				descriptor.vertexShader = vertex;
-				descriptor.fragmentShader = fragment;
+				//descriptor.vertexShader = vertex;
+				//descriptor.fragmentShader = fragment;
 
 				stage->ReplaceMaterial(Material::WithDescriptor(descriptor), j);
 			}

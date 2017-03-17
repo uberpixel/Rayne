@@ -24,9 +24,8 @@ namespace RN
 	}
 
 
-	Shader::Shader(Type type, ShaderLibrary *library) :
-		_type(type),
-		_library(library)
+	Shader::Shader(Type type) :
+		_type(type)
 	{}
 
 	Shader::~Shader()
