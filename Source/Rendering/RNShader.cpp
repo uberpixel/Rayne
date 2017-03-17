@@ -7,6 +7,7 @@
 //
 
 #include "RNShader.h"
+#include "RNShaderLibrary.h"
 
 namespace RN
 {
@@ -24,12 +25,28 @@ namespace RN
 	}
 
 
-	Shader::Shader(Type type) :
-		_type(type)
+	Shader::Shader(ShaderLibrary *library, const ShaderOptions *options) :
+		_options(options->Retain()), _library(library)
 	{}
 
 	Shader::~Shader()
 	{
+		_options->Release();
+	}
 
+	Shader::Type Shader::GetType() const
+	{
+		return _options->GetType();
+	}
+
+	const ShaderOptions *Shader::GetShaderOptions() const
+	{
+		//TODO: maybe retain!?
+		return _options;
+	}
+
+	ShaderLibrary *Shader::GetLibrary() const
+	{
+		return _library;
 	}
 }

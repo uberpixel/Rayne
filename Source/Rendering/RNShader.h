@@ -19,6 +19,7 @@
 namespace RN
 {
 	class ShaderLibrary;
+	class ShaderOptions;
 	class Shader : public Object
 	{
 	public:
@@ -53,14 +54,17 @@ namespace RN
 		RNAPI virtual const String *GetName() const = 0;
 		RNAPI virtual const Array *GetAttributes() const = 0;
 
-		Type GetType() const { return _type; }
+		Type GetType() const;
+		const ShaderOptions *GetShaderOptions() const;
+		ShaderLibrary *GetLibrary() const;
 
 	protected:
-		RNAPI Shader(Type type);
+		RNAPI Shader(ShaderLibrary *library, const ShaderOptions *options);
 		RNAPI virtual ~Shader();
 
 	private:
-		Type _type;
+		const ShaderOptions *_options;
+		WeakRef<ShaderLibrary> _library;
 
 		__RNDeclareMetaInternal(Shader)
 	};

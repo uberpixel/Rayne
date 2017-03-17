@@ -40,7 +40,7 @@ namespace RN
 		MTLAPI const Array *GetAttributes() const override;
 
 	private:
-		MetalShader(void *shader);
+		MetalShader(ShaderLibrary *library, const ShaderOptions *options, void *shader);
 
 		void *_shader;
 		Array *_attributes;

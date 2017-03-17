@@ -433,9 +433,6 @@ namespace RN
 
 	Shader *D3D12Renderer::GetDefaultShader(const ShaderOptions *options)
 	{
-/*		if(lookup->discard)
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));*/
-
 		Shader *shader;
 		{
 			LockGuard<Lockable> lock(_lock);

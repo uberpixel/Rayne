@@ -13,23 +13,8 @@ namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	static Shader::Type __GetTypeFromMetalShader(id<MTLFunction> function)
-	{
-		switch([function functionType])
-		{
-			case MTLFunctionTypeFragment:
-				return Shader::Type::Fragment;
-			case MTLFunctionTypeVertex:
-				return Shader::Type::Vertex;
-			case MTLFunctionTypeKernel:
-				return Shader::Type::Compute;
-		}
-
-		throw InconsistencyException("Invalid metal function");
-	}
-
-	MetalShader::MetalShader(void *shader) :
-		Shader(__GetTypeFromMetalShader((id<MTLFunction>)shader)),
+	MetalShader::MetalShader(ShaderLibrary *library, const ShaderOptions *options, void *shader) :
+		Shader(library, options),
 		_shader(shader),
 		_attributes(new Array())
 	{

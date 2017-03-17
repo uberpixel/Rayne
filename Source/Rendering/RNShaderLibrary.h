@@ -50,6 +50,7 @@ namespace RN
 	{
 	public:
 		RNAPI virtual Shader *GetShaderWithName(const String *name, const ShaderOptions *options) = 0;
+		RNAPI virtual Shader *GetInstancedShaderForShader(Shader *shader) = 0;
 
 	protected:
 		RNAPI ShaderLibrary();
