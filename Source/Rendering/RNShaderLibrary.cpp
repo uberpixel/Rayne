@@ -15,6 +15,18 @@ namespace RN
 {
 	RNDefineMeta(ShaderOptions, Object)
 
+	ShaderOptions *ShaderOptions::WithMesh(Mesh *mesh)
+	{
+		ShaderOptions *options = new ShaderOptions(mesh);
+		return options->Autorelease();
+	}
+
+	ShaderOptions *ShaderOptions::WithNothing()
+	{
+		ShaderOptions *options = new ShaderOptions();
+		return options->Autorelease();
+	}
+
 	ShaderOptions::ShaderOptions() : _defines(new Dictionary())
 	{
 	}

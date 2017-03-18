@@ -94,7 +94,10 @@ namespace RN
 		if(!specificLibrary)
 			return nullptr;
 
-		return specificLibrary->GetShaderWithOptions(this, options);
+		if(options)
+			return specificLibrary->GetShaderWithOptions(this, options);
+
+		return specificLibrary->GetShaderWithOptions(this, ShaderOptions::WithNothing());
 	}
 
 	Shader *D3D12ShaderLibrary::GetInstancedShaderForShader(Shader *shader)

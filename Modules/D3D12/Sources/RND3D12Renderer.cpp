@@ -221,8 +221,7 @@ namespace RN
 		ID3D12DescriptorHeap *descriptorHeap;
 		GetD3D12Device()->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
 
-		ShaderOptions *shaderOptions = new ShaderOptions();
-		D3D12Shader *compute = _defaultShaderLibrary->GetShaderWithName(RNCSTR("GenerateMipMaps"), shaderOptions)->Downcast<D3D12Shader>();
+		D3D12Shader *compute = _defaultShaderLibrary->GetShaderWithName(RNCSTR("GenerateMipMaps"))->Downcast<D3D12Shader>();
 		ID3DBlob *computeShader = static_cast<ID3DBlob*>(compute->_shader);
 
 		// Describe and create the graphics pipeline state object (PSO).

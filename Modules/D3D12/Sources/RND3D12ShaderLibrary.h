@@ -42,7 +42,7 @@ namespace RN
 
 		D3DAPI ~D3D12ShaderLibrary() override;
 
-		D3DAPI Shader *GetShaderWithName(const String *name, const ShaderOptions *options) final;
+		D3DAPI Shader *GetShaderWithName(const String *name, const ShaderOptions *options = nullptr) final;
 		D3DAPI Shader *GetInstancedShaderForShader(Shader *shader) final;
 
 	private:

@@ -23,8 +23,8 @@ namespace RN
 	class ShaderOptions : public Object
 	{
 	public:
-		RNAPI ShaderOptions();
-		RNAPI ShaderOptions(Mesh *mesh);
+		RNAPI static ShaderOptions *WithMesh(Mesh *mesh);
+		RNAPI static ShaderOptions *WithNothing();
 
 		RNAPI void EnableDiscard();
 
@@ -39,6 +39,9 @@ namespace RN
 		bool castShadows;
 		bool discard;*/
 	private:
+		RNAPI ShaderOptions();
+		RNAPI ShaderOptions(Mesh *mesh);
+
 		Dictionary *_defines;
 
 		__RNDeclareMetaInternal(ShaderOptions)
@@ -47,7 +50,7 @@ namespace RN
 	class ShaderLibrary : public Object
 	{
 	public:
-		RNAPI virtual Shader *GetShaderWithName(const String *name, const ShaderOptions *options) = 0;
+		RNAPI virtual Shader *GetShaderWithName(const String *name, const ShaderOptions *options = nullptr) = 0;
 		RNAPI virtual Shader *GetInstancedShaderForShader(Shader *shader) = 0;
 
 	protected:

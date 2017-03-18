@@ -12,11 +12,6 @@
 // RN_UV0
 // RN_DISCARD
 
-#define RN_NORMALS 1
-#define RN_UV0 1
-#define RN_TANGENTS 1
-#define RN_DISCARD 1
-
 #define RN_FRAGMENT_UNIFORM 0
 
 /*#if RN_DISCARD

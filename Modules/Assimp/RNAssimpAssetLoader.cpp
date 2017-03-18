@@ -191,7 +191,7 @@ namespace RN
 			wantsDiscard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
 		}
 
-		ShaderOptions *shaderOptions = new ShaderOptions();
+		ShaderOptions *shaderOptions = ShaderOptions::WithMesh(mesh);
 		if(wantsDiscard)
 		{
 			shaderOptions->EnableDiscard();

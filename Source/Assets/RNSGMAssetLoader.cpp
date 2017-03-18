@@ -343,12 +343,12 @@ namespace RN
 			// Load the material
 			bool wantsDiscard = materialPair.first;
 			MaterialDescriptor &descriptor = materialPair.second;
-			ShaderOptions *shaderOptions = new ShaderOptions(mesh);
+			ShaderOptions *shaderOptions = ShaderOptions::WithMesh(mesh);
 			if(wantsDiscard)
 				shaderOptions->EnableDiscard();
 
 			descriptor.vertexShader = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions);
-			descriptor.fragmentShader = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions->Autorelease());
+			descriptor.fragmentShader = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions);
 
 			stage->AddMesh(mesh, Material::WithDescriptor(descriptor));
 			mesh->Autorelease();

@@ -42,9 +42,16 @@ namespace RN
 		Data *shaderData = Data::WithContentsOfFile(fileName);
 		char *text = fileName->GetUTF8String();
 
+		std::vector<D3D_SHADER_MACRO> shaderDefines;
+		options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
+			shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});
+		});
+
+		shaderDefines.push_back({0, 0});
+
 		_shader = nullptr;
 		ID3DBlob *error = nullptr;
-		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
+		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, shaderDefines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
 
 		if(FAILED(success))
 		{
