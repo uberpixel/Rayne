@@ -15,11 +15,11 @@ namespace RN
 {
 	RNDefineMeta(ShaderOptions, Object)
 
-	ShaderOptions::ShaderOptions(Shader::Type shaderType) : _defines(new Dictionary()), _type(shaderType)
+	ShaderOptions::ShaderOptions() : _defines(new Dictionary())
 	{
 	}
 
-	ShaderOptions::ShaderOptions(Mesh *mesh, Shader::Type shaderType) : _defines(new Dictionary()), _type(shaderType)
+	ShaderOptions::ShaderOptions(Mesh *mesh) : _defines(new Dictionary())
 	{
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
 			AddDefine(RNCSTR("RN_NORMALS"), RNCSTR("1"));
@@ -47,19 +47,14 @@ namespace RN
 		if(RN_EXPECT_FALSE(!options))
 			return false;
 
-		if(!options->_defines->IsEqual(_defines) || _type != options->_type)
+		if(!options->_defines->IsEqual(_defines))
 			return false;
 
 		return true;
 	}
 	size_t ShaderOptions::GetHash() const
 	{
-		size_t hash = 0;
-
-		HashCombine(hash, _defines->GetHash());
-		HashCombine(hash, _type);
-
-		return hash;
+		return _defines->GetHash();
 	}
 
 	RNDefineMeta(ShaderLibrary, Object)

@@ -191,15 +191,14 @@ namespace RN
 			wantsDiscard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
 		}
 
-		ShaderOptions *vertexShaderOptions = new ShaderOptions(mesh, Shader::Type::Vertex);
-		ShaderOptions *fragmentShaderOptions = new ShaderOptions(mesh, Shader::Type::Fragment);
+		ShaderOptions *shaderOptions = new ShaderOptions();
 		if(wantsDiscard)
 		{
-			fragmentShaderOptions->EnableDiscard();
+			shaderOptions->EnableDiscard();
 		}
 
-		descriptor.vertexShader = renderer->GetDefaultShader(vertexShaderOptions->Autorelease());
-		descriptor.fragmentShader = renderer->GetDefaultShader(fragmentShaderOptions->Autorelease());
+		descriptor.vertexShader = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions);
+		descriptor.fragmentShader = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions->Autorelease());
 
 		return std::make_pair(mesh, Material::WithDescriptor(descriptor));
 	}

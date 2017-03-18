@@ -13,26 +13,8 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	static Shader::Type __GetTypeFromShaderString(const String *type)
-	{
-		if(type->IsEqual(RNCSTR("vertex")))
-		{
-			return Shader::Type::Vertex;
-		}
-		else if(type->IsEqual(RNCSTR("fragment")))
-		{
-			return Shader::Type::Fragment;
-		}
-		else if(type->IsEqual(RNCSTR("compute")))
-		{
-			return Shader::Type::Compute;
-		}
-
-		throw InconsistencyException("Invalid shader type");
-	}
-
-	D3D12Shader::D3D12Shader(String *file, String *entryPointName, String *shaderType) :
-		Shader(__GetTypeFromShaderString(shaderType), nullptr),
+	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options) :
+		Shader(library, type, options),
 		_attributes(new Array()), _shader(nullptr)
 	{
 #ifdef _DEBUG
@@ -57,12 +39,12 @@ namespace RN
 				break;
 		}
 
-		Data *shaderData = Data::WithContentsOfFile(file);
-		char *text = file->GetUTF8String();
+		Data *shaderData = Data::WithContentsOfFile(fileName);
+		char *text = fileName->GetUTF8String();
 
 		_shader = nullptr;
 		ID3DBlob *error = nullptr;
-		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPointName->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
+		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
 
 		if(FAILED(success))
 		{
@@ -78,8 +60,8 @@ namespace RN
 				error->Release();
 			}
 
-			RNDebug(RNSTR("Failed to compile shader: " << file << " with error: " << errorString));
-			throw ShaderCompilationException(RNSTR("Failed to compile shader: " << file << " with error: " << errorString));
+			RNDebug(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
+			throw ShaderCompilationException(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
 		}
 		
 /*

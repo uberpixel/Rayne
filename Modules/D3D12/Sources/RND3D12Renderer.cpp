@@ -23,7 +23,6 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Array()),
-		_defaultShaders(new Dictionary()),
 		_srvCbvHeap{ nullptr, nullptr, nullptr },
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array())
@@ -222,7 +221,8 @@ namespace RN
 		ID3D12DescriptorHeap *descriptorHeap;
 		GetD3D12Device()->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
 
-		D3D12Shader *compute = _defaultShaderLibrary->GetShaderWithName(RNCSTR("GenerateMipMaps"))->Downcast<D3D12Shader>();
+		ShaderOptions *shaderOptions = new ShaderOptions();
+		D3D12Shader *compute = _defaultShaderLibrary->GetShaderWithName(RNCSTR("GenerateMipMaps"), shaderOptions)->Downcast<D3D12Shader>();
 		ID3DBlob *computeShader = static_cast<ID3DBlob*>(compute->_shader);
 
 		// Describe and create the graphics pipeline state object (PSO).
@@ -431,25 +431,15 @@ namespace RN
 		return lib;
 	}
 
-	Shader *D3D12Renderer::GetDefaultShader(const ShaderOptions *options)
+	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options)
 	{
 		Shader *shader;
-		{
-			LockGuard<Lockable> lock(_lock);
-			shader = _defaultShaders->GetObjectForKey<Shader>(options);
+		if(type == Shader::Type::Vertex)
+			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);	//TODO: Options as second param!
+		else if(type == Shader::Type::Fragment)
+			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 
-			if(!shader)
-			{
-				if(options->GetType() == Shader::Type::Vertex)
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"));// , options);	//TODO: Options as second param!
-				else if(options->GetType() == Shader::Type::Fragment)
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"));// , options);
-
-				_defaultShaders->SetObjectForKey(shader, options);
-			}
-		}
-
-		return shader->Autorelease();
+		return shader;
 	}
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const
@@ -490,6 +480,9 @@ namespace RN
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
+
+			default:
+				return 1;
 		}
 	}
 
@@ -522,6 +515,9 @@ namespace RN
 
 			case PrimitiveType::Matrix:
 				return 64;
+
+			default:
+				return 1;
 		}
 	}
 

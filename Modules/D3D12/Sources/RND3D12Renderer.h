@@ -54,7 +54,7 @@ namespace RN
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		D3DAPI Shader *GetDefaultShader(const ShaderOptions *options) final;
+		D3DAPI Shader *GetDefaultShader(Shader::Type type, ShaderOptions *options) final;
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -96,7 +96,6 @@ namespace RN
 		PIMPL<D3D12RendererInternals> _internals;
 
 		Lockable _lock;
-		Dictionary *_defaultShaders;
 
 		ID3D12RootSignature *_rootSignature;
 

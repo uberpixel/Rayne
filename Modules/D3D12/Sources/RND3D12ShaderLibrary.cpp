@@ -11,10 +11,35 @@
 
 namespace RN
 {
+	RNDefineMeta(D3D12SpecificShaderLibrary, Object)
+
+	D3D12SpecificShaderLibrary::D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type) : _shaders(new Dictionary()), _fileName(fileName->Retain()), _entryPoint(entryPoint->Retain()), _type(type)
+	{
+
+	}
+
+	D3D12SpecificShaderLibrary::~D3D12SpecificShaderLibrary()
+	{
+		_fileName->Release();
+		_entryPoint->Release();
+		_shaders->Release();
+	}
+
+	Shader *D3D12SpecificShaderLibrary::GetShaderWithOptions(ShaderLibrary *library, const ShaderOptions *options)
+	{
+		D3D12Shader *shader = _shaders->GetObjectForKey<D3D12Shader>(options);
+		if(shader)
+			return shader;
+
+		shader = new D3D12Shader(library, _fileName, _entryPoint, _type, options);
+		_shaders->SetObjectForKey(shader, options);
+
+		return shader->Autorelease();
+	}
+
 	RNDefineMeta(D3D12ShaderLibrary, ShaderLibrary)
 
-	D3D12ShaderLibrary::D3D12ShaderLibrary(const String *file) :
-		_shaders(new Dictionary())
+	D3D12ShaderLibrary::D3D12ShaderLibrary(const String *file) : _specificShaderLibraries(new Dictionary())
 	{
 		Data *data = Data::WithContentsOfFile(file);
 		if(!data)
@@ -33,31 +58,47 @@ namespace RN
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
 				String *shaderType = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
-				D3D12Shader *shader = new D3D12Shader(fileString, entryPointName, shaderType);
-				if(shader)
+
+				Shader::Type type = Shader::Type::Vertex;
+				if(shaderType->IsEqual(RNCSTR("vertex")))
 				{
-					_shaders->SetObjectForKey(shader, entryPointName);
+					type = Shader::Type::Vertex;
 				}
+				else if(shaderType->IsEqual(RNCSTR("fragment")))
+				{
+					type = Shader::Type::Fragment;
+				}
+				else if(shaderType->IsEqual(RNCSTR("compute")))
+				{
+					type = Shader::Type::Compute;
+				}
+				else
+				{
+					RN_ASSERT(false, "Unknown shader type %s for %s in library %s.", shaderType, entryPointName, file);
+				}
+
+				D3D12SpecificShaderLibrary *specificLibrary = new D3D12SpecificShaderLibrary(fileString, entryPointName, type);
+				_specificShaderLibraries->SetObjectForKey(specificLibrary, entryPointName);
 			});
 		});
 	}
 
 	D3D12ShaderLibrary::~D3D12ShaderLibrary()
 	{
-		_shaders->Release();
+		_specificShaderLibraries->Release();
 	}
 
-	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name)
+	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name, const ShaderOptions *options)
 	{
-		D3D12Shader *temp = _shaders->GetObjectForKey<D3D12Shader>(name);
-		if(!temp)
+		D3D12SpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<D3D12SpecificShaderLibrary>(name);
+		if(!specificLibrary)
 			return nullptr;
-		
-		return temp;
+
+		return specificLibrary->GetShaderWithOptions(this, options);
 	}
 
-	Array *D3D12ShaderLibrary::GetShaderNames() const
+	Shader *D3D12ShaderLibrary::GetInstancedShaderForShader(Shader *shader)
 	{
-		return _shaders->GetAllKeys();
+		return nullptr;
 	}
 }

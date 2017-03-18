@@ -23,8 +23,8 @@ namespace RN
 	class ShaderOptions : public Object
 	{
 	public:
-		RNAPI ShaderOptions(Shader::Type shaderType);
-		RNAPI ShaderOptions(Mesh *mesh, Shader::Type shaderType);
+		RNAPI ShaderOptions();
+		RNAPI ShaderOptions(Mesh *mesh);
 
 		RNAPI void EnableDiscard();
 
@@ -34,14 +34,12 @@ namespace RN
 		RNAPI size_t GetHash() const override;
 
 		const Dictionary *GetDefines() const { return _defines; }
-		Shader::Type GetType() const { return _type; }
 
 		/*		bool receiveShadows;
 		bool castShadows;
 		bool discard;*/
 	private:
 		Dictionary *_defines;
-		Shader::Type _type;
 
 		__RNDeclareMetaInternal(ShaderOptions)
 	};

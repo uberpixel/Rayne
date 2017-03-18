@@ -18,7 +18,7 @@ namespace RN
 	class D3D12Shader : public Shader
 	{
 	public:
-		friend class D3D12ShaderLibrary;
+		friend class D3D12SpecificShaderLibrary;
 		friend class D3D12StateCoordinator;
 		friend class D3D12Renderer;
 
@@ -42,7 +42,7 @@ namespace RN
 		D3DAPI const Array *GetAttributes() const override;
 
 	private:
-		D3D12Shader(String *file, String *entryPointName, String *shaderType);
+		D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options);
 
 		Array *_attributes;
 		ID3DBlob *_shader;

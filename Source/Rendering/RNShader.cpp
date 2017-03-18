@@ -25,8 +25,8 @@ namespace RN
 	}
 
 
-	Shader::Shader(ShaderLibrary *library, const ShaderOptions *options) :
-		_options(options->Retain()), _library(library)
+	Shader::Shader(ShaderLibrary *library, Type type, const ShaderOptions *options) :
+		_options(options->Retain()), _library(library), _type(type)
 	{}
 
 	Shader::~Shader()
@@ -36,7 +36,7 @@ namespace RN
 
 	Shader::Type Shader::GetType() const
 	{
-		return _options->GetType();
+		return _type;
 	}
 
 	const ShaderOptions *Shader::GetShaderOptions() const
