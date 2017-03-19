@@ -25,12 +25,17 @@ namespace RN
 		Shader *GetShaderWithOptions(ShaderLibrary *library, const ShaderOptions *options);
 
 	private:
-		D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type);
+		D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
+
+		const ShaderOptions *GetCleanedShaderOptions(const ShaderOptions *options) const;
+		const Shader::Signature *GetShaderSignature(const ShaderOptions *options) const;
+
 		Dictionary *_shaders;
 
 		const String *_entryPoint;
 		const String *_fileName;
 		Shader::Type _type;
+		Dictionary *_signatureDescription;
 
 		RNDeclareMetaAPI(D3D12SpecificShaderLibrary, D3DAPI)
 	};

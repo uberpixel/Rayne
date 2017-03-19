@@ -1,20 +1,54 @@
 [
 	{
 		"file": ":RayneD3D12:/Shaders.hlsl",
-		"shaders": [
+		"shaders":
+		[
 			{
 				"name": "gouraud_vertex",
-				"type": "vertex"
+				"type": "vertex",
+				"signature":
+				{
+					"uniforms": ["transform_modelviewprojection", "transform_model", "material_ambientcolor", "material_diffusecolor"],
+					"textures": 0,
+					"samplers": 0,
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						"RN_UV0"
+					]
+				}
 			},
 			{
 				"name": "gouraud_fragment",
-				"type": "fragment"
+				"type": "fragment",
+				"signature":
+				{
+					"uniforms": 0,
+					"textures": 0,
+					"samplers": 0,
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						{
+							"option": "RN_UV0",
+							"textures": 1,
+							"samplers": 1
+						},
+						{
+							"option": "RN_DISCARD",
+							"uniforms": ["material_discardthreshold"]
+						}
+					]
+				}
 			}
 		]
 	},
 	{
 		"file": ":RayneD3D12:/GenerateMipMaps.hlsl",
-		"shaders": [
+		"shaders":
+		[
 			{
 				"name": "GenerateMipMaps",
 				"type": "compute"

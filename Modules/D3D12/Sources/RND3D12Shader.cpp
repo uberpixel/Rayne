@@ -13,9 +13,8 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options) :
-		Shader(library, type, options),
-		_attributes(new Array()), _shader(nullptr)
+	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options, const Signature *signature) :
+		Shader(library, type, options, signature), _shader(nullptr), _name(entryPoint->Retain())
 	{
 #ifdef _DEBUG
 		// Enable better shader debugging with the graphics debugging tools.
@@ -135,21 +134,11 @@ namespace RN
 	D3D12Shader::~D3D12Shader()
 	{
 		_shader->Release();
-		_attributes->Release();
+		_name->Release();
 	}
 
 	const String *D3D12Shader::GetName() const
 	{
-/*		id<MTLFunction> function = (id<MTLFunction>)_shader;
-		NSString *name = [function name];
-
-		return RNSTR([name UTF8String]);*/
-
-		return nullptr;
-	}
-
-	const Array *D3D12Shader::GetAttributes() const
-	{
-		return _attributes;
+		return _name;
 	}
 }

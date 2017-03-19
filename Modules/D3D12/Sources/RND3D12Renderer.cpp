@@ -56,8 +56,8 @@ namespace RN
 			// Perfomance TIP: Order from most frequent to least frequent.
 			srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
 			srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0);
-			rootParameters[0].InitAsDescriptorTable(1, &srvCbvRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
-			rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[1], D3D12_SHADER_VISIBILITY_VERTEX);
+			rootParameters[0].InitAsDescriptorTable(1, &srvCbvRanges[0], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
+			rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[1], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
 
 			// Create sampler
 			D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -638,6 +638,7 @@ namespace RN
 			//Create constant buffer descriptor
 			D3D12UniformBuffer *uniformBuffer = drawable->_uniformState->uniformBuffer;
 			D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 			cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
 			cbvDesc.SizeInBytes = actualBuffer->GetLength();
@@ -648,96 +649,129 @@ namespace RN
 		}
 	}
 
-	void D3D12Renderer::FillUniformBuffer(D3D12UniformBuffer *uniformBuffer, D3D12Drawable *drawable)
+	void D3D12Renderer::FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset)
 	{
-		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-
-		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-		std::memcpy(buffer, result.m, sizeof(Matrix));
-
-		/*	const VulkanUniformBuffer::Member *member;*/
-
-		// Matrices
-		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
-		{
-			std::memcpy(buffer + sizeof(Matrix), drawable->modelMatrix.m, sizeof(Matrix));
-		}
-		/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
-		{
-		Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
-		std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
-		{
-		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-		std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewMatrix)))
-		{
-		std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewProjectionMatrix)))
-		{
-		std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
-		}
-
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelMatrix)))
-		{
-		std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewMatrix)))
-		{
-		Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
-		std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewProjectionMatrix)))
-		{
-		Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-		std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewMatrix)))
-		{
-		std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
-		{
-		std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
-		}*/
-
-		// Color
 		Material *material = drawable->material;
 
-		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
-		{
-			std::memcpy(buffer + sizeof(Matrix) * 2, &material->GetAmbientColor().r, sizeof(Color));
-		}
-		//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
-		{
-			std::memcpy(buffer + sizeof(Matrix) * 2 + sizeof(Color), &material->GetDiffuseColor().r, sizeof(Color));
-		}
-		/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
-		{
-		std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::EmissiveColor)))
-		{
-		std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
-		}
+		buffer += offset;
 
-		// Misc
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiscardThreshold)))
-		{
-		float temp = material->GetDiscardThreshold();
-		std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::TextureTileFactor)))
-		{*/
-		float temp = material->GetTextureTileFactor();
-		std::memcpy(buffer + sizeof(Matrix) * 2 + sizeof(Color) * 2, &temp, sizeof(float));
-		//}
+		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
+			offset = descriptor->GetOffset() + descriptor->GetSize();
 
-		gpuBuffer->Invalidate();
+			switch(descriptor->GetIdentifier())
+			{
+			case Shader::UniformDescriptor::Identifier::ModelMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), drawable->modelMatrix.m, descriptor->GetSize());
+				break;
+			}
+				
+			case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
+			{
+				Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
+				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
+			{
+				Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::ViewMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.viewMatrix.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.projectionViewMatrix.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), drawable->inverseModelMatrix.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::InverseModelViewMatrix:
+			{
+				Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrix:
+			{
+				Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::InverseViewMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseViewMatrix.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::AmbientColor:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::DiffuseColor:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::SpecularColor:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::EmissiveColor:
+			{
+				std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::TextureTileFactor:
+			{
+				float temp = material->GetTextureTileFactor();
+				std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::DiscardThreshold:
+			{
+				float temp = material->GetDiscardThreshold();
+				std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+				break;
+			}
+
+			case Shader::UniformDescriptor::Identifier::Custom:
+			{
+				//TODO: Implement custom shader variables!
+				break;
+			}
+
+			default:
+				break;
+			}
+		});
 	}
 
 	void D3D12Renderer::SubmitDrawable(Drawable *tdrawable)
@@ -756,7 +790,12 @@ namespace RN
 			drawable->dirty = false;
 		}
 
-		FillUniformBuffer(drawable->_uniformState->uniformBuffer, drawable);
+		GPUBuffer *gpuBuffer = drawable->_uniformState->uniformBuffer->Advance();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+		size_t offset = 0;
+		FillUniformBuffer(buffer, drawable, drawable->material->GetVertexShader(), offset);
+		FillUniformBuffer(buffer, drawable, drawable->material->GetFragmentShader(), offset);
+		gpuBuffer->Invalidate();
 
 		// Push into the queue
 		drawable->_prev = nullptr;

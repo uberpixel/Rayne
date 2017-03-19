@@ -77,7 +77,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
-		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
+		void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
 
 		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();

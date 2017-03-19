@@ -22,30 +22,16 @@ namespace RN
 		friend class D3D12StateCoordinator;
 		friend class D3D12Renderer;
 
-		class D3D12Attribute : public Attribute
-		{
-		public:
-			D3D12Attribute(const String *name, PrimitiveType type, size_t index) :
-				Attribute(name, type),
-				_index(index)
-			{}
+		D3DAPI ~D3D12Shader() final;
 
-			size_t GetIndex() const { return _index; }
-
-		private:
-			size_t _index;
-		};
-
-		D3DAPI ~D3D12Shader() override;
-
-		D3DAPI const String *GetName() const override;
-		D3DAPI const Array *GetAttributes() const override;
+		D3DAPI const String *GetName() const final;
 
 	private:
-		D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options);
+		D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options, const Signature *signature);
 
-		Array *_attributes;
+		Array *_uniformDescriptors;
 		ID3DBlob *_shader;
+		const String *_name;
 
 		RNDeclareMetaAPI(D3D12Shader, D3DAPI)
 	};

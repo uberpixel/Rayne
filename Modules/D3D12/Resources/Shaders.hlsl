@@ -12,25 +12,6 @@
 // RN_UV0
 // RN_DISCARD
 
-#define RN_FRAGMENT_UNIFORM 0
-
-/*#if RN_DISCARD
-#undef RN_FRAGMENT_UNIFORM
-#define RN_FRAGMENT_UNIFORM 1
-#endif*/
-
-#ifndef RN_NORMALS
-#define RN_NORMALS 0
-#endif
-
-#ifndef RN_COLOR
-#define RN_COLOR 0
-#endif
-
-#ifndef RN_UV0
-#define RN_UV0 0
-#endif
-
 // Variables in constant address space
 static const float3 light_position = float3(1.0, 1.0, 1.0);
 
@@ -39,28 +20,16 @@ Texture2D texture0 : register(t0);
 SamplerState samplr : register(s0);
 #endif
 
-cbuffer Uniforms : register(b0)
+cbuffer uniforms : register(b0)
 {
 	matrix modelViewProjectionMatrix;
-
-#if RN_NORMALS
 	matrix modelMatrix;
-#endif
 
 	float4 ambientColor;
 	float4 diffuseColor;
 
-	float textureTileFactor;
-};
-
-#if RN_FRAGMENT_UNIFORM
-cbuffer FragmentUniforms : register(b1)
-{
-#if RN_DISCARD
 	float discardThreshold;
-#endif
 };
-#endif
 
 struct InputVertex
 {
@@ -128,7 +97,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 	color = texture0.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
-	clip(color.a - 0.1f);//discardThreshold);
+	clip(color.a - discardThreshold);
 #endif
 #endif
 

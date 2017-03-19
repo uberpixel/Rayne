@@ -328,7 +328,21 @@ namespace RN
 	D3D12UniformState *D3D12StateCoordinator::GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
-		D3D12UniformBuffer *gpuBuffer = new D3D12UniformBuffer(renderer, sizeof(Matrix) * 2 + sizeof(Color) * 2 + sizeof(float));//renderer->CreateBufferWithLength(sizeof(Matrix) * 2 + sizeof(Color) * 2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<D3D12GPUBuffer>();
+
+		Shader *vertexShader = material->GetVertexShader();
+		Shader *fragmentShader = material->GetFragmentShader();
+		D3D12UniformBuffer *vertexBuffer = nullptr;
+		//D3D12UniformBuffer *fragmentBuffer = nullptr;
+		if(vertexShader && vertexShader->GetSignature() && fragmentShader->GetSignature())
+		{
+			size_t totalSize = vertexShader->GetSignature()->GetTotalUniformSize();
+			if(totalSize > 0)
+				vertexBuffer = new D3D12UniformBuffer(renderer, totalSize);
+		}
+		/*if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
+		{
+			fragmentBuffer = new D3D12UniformBuffer(renderer, fragmentShader->GetSignature()->GetTotalUniformSize());
+		}*/
 
 /*		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
 		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
@@ -374,7 +388,8 @@ namespace RN
 		}*/
 
 		D3D12UniformState *state = new D3D12UniformState();
-		state->uniformBuffer = gpuBuffer;
+		state->uniformBuffer = vertexBuffer;
+		//state->fragmentShaderUniformBuffer = fragmentBuffer;
 
 		return state;
 	}
