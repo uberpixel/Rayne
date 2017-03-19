@@ -9,19 +9,15 @@
 #include "RND3D12Window.h"
 #include "RND3D12Renderer.h"
 #include "RND3D12Framebuffer.h"
+#include "RND3D12SwapChain.h"
 
 namespace RN
 {
 	RNDefineMeta(D3D12Window, Window)
 
-	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer) : 
-		Window(screen), 
-		_renderer(renderer),
-		_frameIndex(0)
+	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, uint8 bufferCount) : 
+		Window(screen)
 	{
-		for(int i = 0; i < 3; i++)
-			_fenceValues[i] = 0;
-
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
 
 		static std::once_flag flag;
@@ -51,63 +47,14 @@ namespace RN
 		offset.y += frame.y;
 
 		_hwnd = CreateWindowExW(0, L"RND3D12WindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
-
 		SetForegroundWindow(_hwnd);
 
-		// 
-		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
-
-		D3D12_COMMAND_QUEUE_DESC queueDescriptor = { };
-		queueDescriptor.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDescriptor.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-		device->CreateCommandQueue(&queueDescriptor, IID_PPV_ARGS(&_commandQueue));
-
-		device->CreateFence(_fenceValues[_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
-		_fenceValues[_frameIndex] ++;
-		_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-
-		ResizeSwapchain(size);
+		_swapChain = new D3D12SwapChain(size, _hwnd, renderer, bufferCount);
 	}
 
 	D3D12Window::~D3D12Window()
 	{
 		DestroyWindow(_hwnd);
-	}
-
-	void D3D12Window::ResizeSwapchain(const Vector2 &size)
-	{
-		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
-		IDXGIFactory4 *factory = _renderer->GetD3D12Descriptor()->GetFactory();
-
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-		device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&_commandQueue));
-
-		Vector2 windowSize = GetSize();
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-		swapChainDesc.BufferCount = 3;
-		swapChainDesc.BufferDesc.Width = windowSize.x;
-		swapChainDesc.BufferDesc.Height = windowSize.y;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.OutputWindow = _hwnd;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.Windowed = true;
-
-		IDXGISwapChain *__swapChain;
-		factory->CreateSwapChain(_commandQueue, &swapChainDesc, &__swapChain);
-		_swapChain = static_cast<IDXGISwapChain3 *>(__swapChain);
-		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
-
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888;
-
-		_framebuffer = new D3D12Framebuffer(size, descriptor, _swapChain, _renderer);
 	}
 
 	void D3D12Window::SetTitle(const String *title)
@@ -157,27 +104,5 @@ namespace RN
 		RECT windowRect;
 		GetClientRect(_hwnd, &windowRect);
 		return Vector2(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
-	}
-
-	void D3D12Window::AcquireBackBuffer()
-	{
-		const UINT64 fenceValue = _fenceValues[_frameIndex];
-		_commandQueue->Signal(_fence, fenceValue);
-
-		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
-
-		_completedFenceValue = _fence->GetCompletedValue();
-		if(_completedFenceValue < _fenceValues[_frameIndex])
-		{
-			_fence->SetEventOnCompletion(_fenceValues[_frameIndex], _fenceEvent);
-			WaitForSingleObjectEx(_fenceEvent, INFINITE, false);
-		}
-
-		_fenceValues[_frameIndex] = fenceValue + 1;
-	}
-
-	void D3D12Window::PresentBackBuffer()
-	{
-		_swapChain->Present(0, 0); //Use 1, 0 for vsync
 	}
 }

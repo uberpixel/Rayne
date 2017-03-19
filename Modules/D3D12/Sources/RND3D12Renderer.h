@@ -64,6 +64,7 @@ namespace RN
 		D3DAPI void DeleteDrawable(Drawable *drawable) final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
 
+		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
 		D3D12CommandList *GetCommandList();
 		D3D12CommandListWithCallback *GetCommandListWithCallback();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
@@ -89,6 +90,7 @@ namespace RN
 		D3D12Window *_mainWindow;
 		ShaderLibrary *_defaultShaderLibrary;
 
+		ID3D12CommandQueue *_commandQueue;
 		D3D12CommandList *_currentCommandList;
 		Array *_submittedCommandLists;
 		Array *_executedCommandLists;

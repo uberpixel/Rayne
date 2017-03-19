@@ -14,10 +14,12 @@
 namespace RN
 {
 	class D3D12Renderer;
+	class D3D12SwapChain;
+
 	class D3D12Framebuffer : public Framebuffer
 	{
 	public:
-		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, IDXGISwapChain3 *swapChain, D3D12Renderer *renderer);
+		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer);
 		D3DAPI ~D3D12Framebuffer();
 
 		D3DAPI Texture *GetColorTexture() const final;

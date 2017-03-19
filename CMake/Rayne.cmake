@@ -27,7 +27,7 @@ macro(rayne_use_modules _TARGET _MODULES)
     foreach(_MODULE ${_MODULES})
         set(_MODULE_TARGET "${_MODULE}")
         target_link_libraries(${_TARGET} ${_MODULE_TARGET})
-        target_include_directories(Basic SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
+        target_include_directories(${_TARGET} SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
 
         add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "$<TARGET_FILE_DIR:${_TARGET}>/Resources/Modules/${_MODULE}")
     endforeach()

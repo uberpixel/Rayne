@@ -8,12 +8,13 @@
 
 #include "RND3D12Framebuffer.h"
 #include "RND3D12Renderer.h"
+#include "RND3D12SwapChain.h"
 
 namespace RN
 {
 	RNDefineMeta(D3D12Framebuffer, Framebuffer)
 
-	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, IDXGISwapChain3 *swapChain, D3D12Renderer *renderer) :
+	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer) :
 		Framebuffer(size, descriptor),
 		_renderer(renderer)
 	{
@@ -21,9 +22,9 @@ namespace RN
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderer->GetRTVHeap()->GetCPUDescriptorHandleForHeapStart());
 
-		for(int i = 0; i < 3; i++)
+		for(int i = 0; i < swapChain->GetBufferCount(); i++)
 		{
-			swapChain->GetBuffer(i, IID_PPV_ARGS(&_renderTargets[i]));
+			swapChain->GetD3D12SwapChain()->GetBuffer(i, IID_PPV_ARGS(&_renderTargets[i]));
 			device->CreateRenderTargetView(_renderTargets[i], nullptr, rtvHandle);
 			rtvHandle.Offset(1, renderer->GetRTVHeapSize());
 		}

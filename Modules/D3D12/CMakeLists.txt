@@ -24,6 +24,7 @@ set(SOURCES
         Sources/RND3D12StateCoordinator.cpp
         Sources/RND3D12Texture.cpp
         Sources/RND3D12UniformBuffer.cpp
+        Sources/RND3D12SwapChain.cpp
         Sources/RND3D12Window.cpp
         Sources/RND3D12.cpp)
 
@@ -41,6 +42,7 @@ set(HEADERS
         Sources/RND3D12StateCoordinator.h
         Sources/RND3D12Texture.h
         Sources/RND3D12UniformBuffer.h
+        Sources/RND3D12SwapChain.h
         Sources/RND3D12Window.h)
 
 set(RESOURCES Resources)

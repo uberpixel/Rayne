@@ -14,6 +14,7 @@
 #include "RND3D12Device.h"
 #include "RND3D12Framebuffer.h"
 #include "RND3D12Internals.h"
+#include "RND3D12SwapChain.h"
 
 namespace RN
 {
@@ -28,6 +29,11 @@ namespace RN
 		_executedCommandLists(new Array())
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
+
+		D3D12_COMMAND_QUEUE_DESC queueDescriptor = {};
+		queueDescriptor.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		queueDescriptor.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		underlyingDevice->CreateCommandQueue(&queueDescriptor, IID_PPV_ARGS(&_commandQueue));
 
 		{
 			// Describe and create a render target view (RTV) descriptor heap.
@@ -115,7 +121,7 @@ namespace RN
 	{
 		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
 
-		_mainWindow = new D3D12Window(size, screen, this);
+		_mainWindow = new D3D12Window(size, screen, this, 2);
 		return _mainWindow;
 	}
 
@@ -298,11 +304,12 @@ namespace RN
 	void D3D12Renderer::RenderIntoWindow(Window *twindow, Function &&function)
 	{
 		D3D12Window *window = static_cast<D3D12Window *>(twindow);
+		D3D12SwapChain *swapChain = window->GetSwapChain();
 
 		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
 		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
 		{
-			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= window->GetCompletedFenceValue())
+			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= swapChain->GetCompletedFenceValue())
 			{
 				_executedCommandLists->RemoveObjectAtIndex(i);
 			}
@@ -310,14 +317,14 @@ namespace RN
 
 		CreateMipMaps();
 
-		window->AcquireBackBuffer();
+		swapChain->AcquireBackBuffer();
 		_currentCommandList = GetCommandList();
 
 		_currentCommandList->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
 		
 		function();
 
-		ID3D12Resource *renderTarget = window->GetFramebuffer()->GetRenderTarget(window->GetFrameIndex());
+		ID3D12Resource *renderTarget = swapChain->GetFramebuffer()->GetRenderTarget(swapChain->GetFrameIndex());
 
 		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 		_currentCommandList->End();
@@ -328,13 +335,13 @@ namespace RN
 		std::vector<ID3D12CommandList*> commandLists;
 		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
 			commandLists.push_back(list->GetCommandList());
-			list->_fenceValue = window->GetCurrentFenceValue();
+			list->_fenceValue = swapChain->GetCurrentFenceValue();
 		});
 		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
 		_submittedCommandLists->RemoveAllObjects();
-		window->GetCommandQueue()->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
+		_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
 
-		window->PresentBackBuffer();
+		swapChain->PresentBackBuffer();
 	}
 
 	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
@@ -359,26 +366,37 @@ namespace RN
 
 		D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(camera->GetFramebuffer());
 
+		D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
+		D3D12SwapChain *swapChain = window->GetSwapChain();
+
 		if(!framebuffer)
-			framebuffer = _mainWindow->GetFramebuffer();
+			framebuffer = swapChain->GetFramebuffer();
 
-		ID3D12Resource *renderTarget = framebuffer->GetRenderTarget(_mainWindow->GetFrameIndex());
+		ID3D12Resource *renderTarget = framebuffer->GetRenderTarget(swapChain->GetFrameIndex());
 
-		Vector2 size = _mainWindow->GetSize();
+		Rect cameraRect = camera->GetFrame();
+		if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+		{
+			Vector2 framebufferSize = framebuffer->GetSize();
+			cameraRect.x = 0.0f;
+			cameraRect.y = 0.0f;
+			cameraRect.width = framebufferSize.x;
+			cameraRect.height = framebufferSize.y;
+		}
 
 		D3D12_VIEWPORT viewport;
-		viewport.Width = size.x;
-		viewport.Height = size.y;
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
+		viewport.Width = cameraRect.width;
+		viewport.Height = cameraRect.height;
+		viewport.TopLeftX = cameraRect.x;
+		viewport.TopLeftY = cameraRect.y;
 		viewport.MaxDepth = 1.0;
 		viewport.MinDepth = 0.0;
 
 		D3D12_RECT scissorRect;
-		scissorRect.right = static_cast<LONG>(size.x);
-		scissorRect.bottom = static_cast<LONG>(size.y);
-		scissorRect.left = 0;
-		scissorRect.top = 0;
+		scissorRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
+		scissorRect.bottom = static_cast<LONG>(cameraRect.height + cameraRect.y);
+		scissorRect.left = cameraRect.x;
+		scissorRect.top = cameraRect.y;
 
 		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
 
@@ -388,7 +406,7 @@ namespace RN
 		// Indicate that the back buffer will be used as a render target.
 		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), _mainWindow->GetFrameIndex(), _rtvDescriptorSize);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), swapChain->GetFrameIndex(), _rtvDescriptorSize);
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 		commandList->OMSetRenderTargets(1, &rtvHandle, false , &dsvHandle);
 
@@ -398,7 +416,7 @@ namespace RN
 		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		// Set the the one big descriptor heap for the whole frame
-		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[_mainWindow->GetFrameIndex()] };
+		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
 		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 
 		//Draw drawables
@@ -571,10 +589,11 @@ namespace RN
 	{
 		_currentDrawableIndex = 0;
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
+		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 
-		if(_srvCbvHeap[_mainWindow->GetFrameIndex()])
+		if(_srvCbvHeap[swapChain->GetFrameIndex()])
 		{
-			_srvCbvHeap[_mainWindow->GetFrameIndex()]->Release();
+			_srvCbvHeap[swapChain->GetFrameIndex()]->Release();
 		}
 
 		// Layout: 5 textures + 1 cbv
@@ -582,7 +601,7 @@ namespace RN
 		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->renderPass.drawableCount;
 		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap[_mainWindow->GetFrameIndex()]));
+		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap[swapChain->GetFrameIndex()]));
 
 		// Describe null SRVs. Null descriptors are used to "unbind" textures
 		D3D12_SHADER_RESOURCE_VIEW_DESC nullSrvDesc = {};
@@ -598,7 +617,7 @@ namespace RN
 		textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
 
 		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
 		while(drawable)
@@ -815,10 +834,12 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
+		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
+
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[_mainWindow->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
 		commandList->SetPipelineState(drawable->_pipelineState->state);

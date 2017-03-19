@@ -15,6 +15,7 @@ namespace RN
 {
 	class D3D12Renderer;
 	class D3D12Framebuffer;
+	class D3D12SwapChain;
 
 	class D3D12Window : public Window
 	{
@@ -31,35 +32,14 @@ namespace RN
 
 		D3DAPI Vector2 GetSize() const final;
 
-		D3DAPI void AcquireBackBuffer();
-		D3DAPI void PresentBackBuffer();
-
-		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
-
-		HWND GetHWND() const { return _hwnd;  }
-		size_t GetFrameIndex() const { return _frameIndex;  }
-		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer;  }
-		const UINT GetCurrentFenceValue() const { return _fenceValues[_frameIndex]; }
-		const UINT GetCompletedFenceValue() const { return _completedFenceValue; }
+		HWND GetHWND() const { return _hwnd; }
+		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
-		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer);
-
-		void ResizeSwapchain(const Vector2 &size);
-
+		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, uint8 bufferCount);
 		HWND _hwnd;
-		D3D12Renderer *_renderer;
-		D3D12Framebuffer *_framebuffer;
 
-		ID3D12CommandQueue *_commandQueue;
-		IDXGISwapChain3 *_swapChain;
-
-		ID3D12Fence *_fence;
-		UINT _fenceValues[3];
-		UINT _completedFenceValue;
-		HANDLE _fenceEvent;
-
-		size_t _frameIndex;
+		D3D12SwapChain *_swapChain;
 
 		RNDeclareMetaAPI(D3D12Window, D3DAPI)
 	};
