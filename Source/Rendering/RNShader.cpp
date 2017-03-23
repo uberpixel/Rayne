@@ -17,90 +17,106 @@ namespace RN
 
 	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset) :
 		_name(name->Copy()),
+		_identifier(Identifier::Custom),
 		_type(type),
-		_offset(offset),
-		_identifier(Identifier::Custom)
+		_offset(offset)
 	{}
 
 	Shader::UniformDescriptor::UniformDescriptor(const String *name, size_t offset) :
 		_name(name->Copy()), _offset(offset)
 	{
-		if(name->IsEqual(RNCSTR("transform_model")))
+		if(name->IsEqual(RNCSTR("global_time")) || name->IsEqual(RNCSTR("time")))
+		{
+			_identifier = Time;
+			_type = PrimitiveType::Float;
+		}
+
+		if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")))
 		{
 			_identifier = ModelMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_modelview")))
+		else if(name->IsEqual(RNCSTR("transform_modelview")) || name->IsEqual(RNCSTR("modelViewMatrix")))
 		{
-			_identifier = ModelMatrix;
+			_identifier = ModelViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_modelviewprojection")))
+		else if(name->IsEqual(RNCSTR("transform_modelviewprojection")) || name->IsEqual(RNCSTR("modelViewProjectionMatrix")))
 		{
 			_identifier = ModelViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_view")))
+		else if(name->IsEqual(RNCSTR("transform_view")) || name->IsEqual(RNCSTR("viewMatrix")))
 		{
 			_identifier = ViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_viewprojection")))
+		else if(name->IsEqual(RNCSTR("transform_viewprojection")) || name->IsEqual(RNCSTR("viewProjectionMatrix")))
 		{
 			_identifier = ViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inversemodel")))
+		else if(name->IsEqual(RNCSTR("transform_projection")) || name->IsEqual(RNCSTR("projectionMatrix")))
+		{
+			_identifier = ProjectionMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")))
 		{
 			_identifier = InverseModelMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inversemodelview")))
+		else if(name->IsEqual(RNCSTR("transform_inversemodelview")) || name->IsEqual(RNCSTR("inverseModelViewMatrix")))
 		{
 			_identifier = InverseModelViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection")))
+		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection")) || name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix")))
 		{
 			_identifier = InverseModelViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inverseview")))
+		else if(name->IsEqual(RNCSTR("transform_inverseview")) || name->IsEqual(RNCSTR("inverseViewMatrix")))
 		{
 			_identifier = InverseViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection")))
+		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection")) || name->IsEqual(RNCSTR("inverseViewProjectionMatrix")))
 		{
 			_identifier = InverseViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("material_ambientcolor")))
+		else if(name->IsEqual(RNCSTR("transform_inverseprojection")) || name->IsEqual(RNCSTR("inverseProjectionMatrix")))
+		{
+			_identifier = InverseProjectionMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")))
 		{
 			_identifier = AmbientColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_diffusecolor")))
+		else if(name->IsEqual(RNCSTR("material_diffusecolor")) || name->IsEqual(RNCSTR("diffuseColor")))
 		{
 			_identifier = DiffuseColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_specularcolor")))
+		else if(name->IsEqual(RNCSTR("material_specularcolor")) || name->IsEqual(RNCSTR("specularColor")))
 		{
 			_identifier = SpecularColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_emissivecolor")))
+		else if(name->IsEqual(RNCSTR("material_emissivecolor")) || name->IsEqual(RNCSTR("emissiveColor")))
 		{
 			_identifier = EmissiveColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_texturetilefactor")))
+		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")))
 		{
 			_identifier = TextureTileFactor;
 			_type = PrimitiveType::Float;
 		}
-		else if(name->IsEqual(RNCSTR("material_discardthreshold")))
+		else if(name->IsEqual(RNCSTR("material_discardthreshold")) || name->IsEqual(RNCSTR("discardThreshold")))
 		{
 			_identifier = DiscardThreshold;
 			_type = PrimitiveType::Float;
@@ -169,6 +185,10 @@ namespace RN
 		_options(options->Retain()), _library(library), _type(type), _signature(signature->Retain())
 	{}
 
+	Shader::Shader(ShaderLibrary *library, Type type, const ShaderOptions *options) :
+		_options(options->Retain()), _library(library), _type(type), _signature(nullptr)
+	{}
+
 	Shader::~Shader()
 	{
 		_options->Release();
@@ -184,6 +204,12 @@ namespace RN
 	{
 		//TODO: maybe retain and autorelease!?
 		return _options;
+	}
+
+	void Shader::SetSignature(const Signature *signature)
+	{
+		RN_ASSERT(!_signature, "Shader signature can only be set once!");
+		_signature = signature->Retain();
 	}
 
 	const Shader::Signature *Shader::GetSignature() const

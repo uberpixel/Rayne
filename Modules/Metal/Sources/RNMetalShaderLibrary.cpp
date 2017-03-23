@@ -14,7 +14,9 @@ namespace RN
 {
 	RNDefineMeta(MetalSpecializedShaderLibrary, Object)
 
-	MetalSpecializedShaderLibrary::MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const ShaderOptions *options) : _options(options->Retain())
+	MetalSpecializedShaderLibrary::MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const ShaderOptions *options) :
+		_options(options->Retain()),
+		_shaders(new Dictionary())
 	{
 		MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
 
@@ -71,18 +73,44 @@ namespace RN
 		[lib release];
 
 		_options->Release();
+		_shaders->Release();
 	}
 
-	Shader *MetalSpecializedShaderLibrary::GetShaderWithName(const String *name, ShaderLibrary *library)
+	Shader *MetalSpecializedShaderLibrary::GetShaderWithName(const String *name, ShaderLibrary *library, id<MTLDevice> device)
 	{
-		id<MTLLibrary> lib = (id<MTLLibrary>)_metalLibrary;
-		id<MTLFunction> shader = [lib newFunctionWithName:[NSString stringWithUTF8String:name->GetUTF8String()]];
+		MetalShader *shader = _shaders->GetObjectForKey<MetalShader>(name);
+		if(shader)
+			return shader;
 
-		if(!shader)
+		id<MTLLibrary> lib = (id<MTLLibrary>)_metalLibrary;
+		id<MTLFunction> function = [lib newFunctionWithName:[NSString stringWithUTF8String:name->GetUTF8String()]];
+
+		if(!function)
 			return nullptr;
 
-		MetalShader *temp = new MetalShader(library, _options, shader);
-		return temp->Autorelease();
+		Shader::Type type = Shader::Type::Vertex;
+		switch([function functionType])
+		{
+			case MTLFunctionTypeFragment:
+			{
+				type = Shader::Type::Fragment;
+				break;
+			}
+			case MTLFunctionTypeVertex:
+			{
+				type = Shader::Type::Vertex;
+				break;
+			}
+			case MTLFunctionTypeKernel:
+			{
+				type = Shader::Type::Compute;
+				break;
+			}
+		}
+
+		shader = new MetalShader(library, type, _options, function);
+		_shaders->SetObjectForKey(shader, name);
+		return shader->Autorelease();
 	}
 
 	RNDefineMeta(MetalShaderLibrary, ShaderLibrary)
@@ -99,6 +127,9 @@ namespace RN
 
 	Shader *MetalShaderLibrary::GetShaderWithName(const String *name, const ShaderOptions *options)
 	{
+		if(!options)
+			options = ShaderOptions::WithNothing();
+
 		MetalSpecializedShaderLibrary *specializedLibrary = _specializedLibraries->GetObjectForKey<MetalSpecializedShaderLibrary>(options);
 
 		if(!specializedLibrary)
@@ -107,7 +138,7 @@ namespace RN
 			_specializedLibraries->SetObjectForKey(specializedLibrary, options);
 		}
 
-		return specializedLibrary->GetShaderWithName(name, this);
+		return specializedLibrary->GetShaderWithName(name, this, _device);
 	}
 
 	Shader *MetalShaderLibrary::GetInstancedShaderForShader(Shader *shader)
@@ -119,6 +150,6 @@ namespace RN
 			return nullptr;
 		}
 
-		return specializedLibrary->GetShaderWithName(shader->GetName()->StringByAppendingString(RNCSTR("_instanced")), this);
+		return specializedLibrary->GetShaderWithName(shader->GetName()->StringByAppendingString(RNCSTR("_instanced")), this, _device);
 	}
 }

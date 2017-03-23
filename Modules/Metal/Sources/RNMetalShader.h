@@ -20,30 +20,14 @@ namespace RN
 		friend class MetalSpecializedShaderLibrary;
 		friend class MetalStateCoordinator;
 
-		class MetalAttribute : public Attribute
-		{
-		public:
-			MetalAttribute(const String *name, PrimitiveType type, size_t index) :
-				Attribute(name, type),
-				_index(index)
-			{}
-
-			size_t GetIndex() const { return _index; }
-
-		private:
-			size_t _index;
-		};
-
 		MTLAPI ~MetalShader() override;
-
 		MTLAPI const String *GetName() const override;
-		MTLAPI const Array *GetAttributes() const override;
 
 	private:
-		MetalShader(ShaderLibrary *library, const ShaderOptions *options, void *shader);
+		MetalShader(ShaderLibrary *library, Type type, const ShaderOptions *options, void *shader);
+		void SetReflectedArguments(NSArray *arguments);
 
 		void *_shader;
-		Array *_attributes;
 
 		RNDeclareMetaAPI(MetalShader, MTLAPI)
 	};

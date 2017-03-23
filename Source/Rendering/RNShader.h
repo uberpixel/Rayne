@@ -35,17 +35,20 @@ namespace RN
 				ModelViewProjectionMatrix,
 				ViewMatrix,
 				ViewProjectionMatrix,
+				ProjectionMatrix,
 				InverseModelMatrix,
 				InverseModelViewMatrix,
 				InverseModelViewProjectionMatrix,
 				InverseViewMatrix,
 				InverseViewProjectionMatrix,
+				InverseProjectionMatrix,
 				AmbientColor,
 				DiffuseColor,
 				SpecularColor,
 				EmissiveColor,
 				TextureTileFactor,
-				DiscardThreshold
+				DiscardThreshold,
+				Time
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);
@@ -121,7 +124,10 @@ namespace RN
 
 	protected:
 		RNAPI Shader(ShaderLibrary *library, Type type, const ShaderOptions *options, const Signature *signature);
+		RNAPI Shader(ShaderLibrary *library, Type type, const ShaderOptions *options);
 		RNAPI virtual ~Shader();
+
+		void SetSignature(const Signature *signature);
 
 	private:
 		const ShaderOptions *_options;

@@ -21,7 +21,7 @@ namespace RN
 
 		~MetalSpecializedShaderLibrary();
 
-		Shader *GetShaderWithName(const String *name, ShaderLibrary *library);
+		Shader *GetShaderWithName(const String *name, ShaderLibrary *library, id<MTLDevice> device);
 
 		RNDeclareMetaAPI(MetalSpecializedShaderLibrary, MTLAPI)
 
@@ -29,6 +29,7 @@ namespace RN
 		MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const ShaderOptions *options);
 		void *_metalLibrary;
 		const ShaderOptions *_options;
+		Dictionary *_shaders;
 	};
 
 	class MetalShaderLibrary : public ShaderLibrary

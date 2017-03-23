@@ -66,35 +66,14 @@ namespace RN
 			_vertexBuffers.clear();
 			_fragmentBuffers.clear();
 
-			for(MetalRenderingStateArgument *argument : state->vertexArguments)
-			{
-				switch(argument->type)
-				{
-					case MetalRenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_vertexBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
-					}
+			//TODO: Support multiple uniform buffers
+			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
+			if(totalSize > 0)
+				_vertexBuffers.push_back(new MetalUniformBuffer(renderer, totalSize, 1));
 
-					default:
-						break;
-				}
-			}
-
-			for(MetalRenderingStateArgument *argument : state->fragmentArguments)
-			{
-				switch(argument->type)
-				{
-					case MetalRenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_fragmentBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
+			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
+			if(totalSize > 0)
+				_fragmentBuffers.push_back(new MetalUniformBuffer(renderer, totalSize, 1));
 		}
 
 		const MetalRenderingState *_pipelineState;

@@ -13,83 +13,19 @@ namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	MetalShader::MetalShader(ShaderLibrary *library, const ShaderOptions *options, void *shader) :
-		Shader(library, options),
-		_shader(shader),
-		_attributes(new Array())
+	MetalShader::MetalShader(ShaderLibrary *library, Type type, const ShaderOptions *options, void *shader) :
+		Shader(library, type, options),
+		_shader(shader)
 	{
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
 		// owned object
-
-		id<MTLFunction> function = (id<MTLFunction>)_shader;
-
-		NSArray *attributes = [function vertexAttributes];
-		size_t count = [attributes count];
-
-		for(size_t i = 0; i < count; i ++)
-		{
-			MTLVertexAttribute *attribute = [attributes objectAtIndex:i];
-			if([attribute isActive])
-			{
-				PrimitiveType type;
-				switch([attribute attributeType])
-				{
-					case MTLDataTypeFloat:
-						type = PrimitiveType::Float;
-						break;
-					case MTLDataTypeFloat2:
-						type = PrimitiveType::Vector2;
-						break;
-					case MTLDataTypeFloat3:
-						type = PrimitiveType::Vector3;
-						break;
-					case MTLDataTypeFloat4:
-						type = PrimitiveType::Vector4;
-						break;
-
-					case MTLDataTypeFloat4x4:
-						type = PrimitiveType::Matrix;
-					break;
-
-					case MTLDataTypeInt:
-						type = PrimitiveType::Int32;
-						break;
-					case MTLDataTypeUInt:
-						type = PrimitiveType::Uint32;
-						break;
-
-					case MTLDataTypeShort:
-						type = PrimitiveType::Int16;
-						break;
-					case MTLDataTypeUShort:
-						type = PrimitiveType::Uint16;
-						break;
-
-					case MTLDataTypeChar:
-						type = PrimitiveType::Int8;
-						break;
-					case MTLDataTypeUChar:
-						type = PrimitiveType::Uint8;
-						break;
-
-					default:
-						continue;
-				}
-
-				MetalAttribute *attributeCopy = new MetalAttribute(RNSTR([[attribute name] UTF8String]), type, [attribute attributeIndex]);
-				_attributes->AddObject(attributeCopy);
-				attributeCopy->Release();
-			}
-		}
-
 	}
+
 	MetalShader::~MetalShader()
 	{
 		id<MTLFunction> function = (id<MTLFunction>)_shader;
 		[function release];
-
-		_attributes->Release();
 	}
 
 	const String *MetalShader::GetName() const
@@ -100,8 +36,50 @@ namespace RN
 		return RNSTR([name UTF8String]);
 	}
 
-	const Array *MetalShader::GetAttributes() const
+	void MetalShader::SetReflectedArguments(NSArray *arguments)
 	{
-		return _attributes;
+		//TODO: Support custom arguments
+		//TODO: Support more than one uniform buffer
+
+		uint8 samplerCount = 0;
+		uint8 textureCount = 0;
+		Array *uniformDescriptors = new Array();
+
+		for(MTLArgument *argument in arguments)
+		{
+			switch([argument type])
+			{
+				case MTLArgumentTypeBuffer:
+				{
+					MTLStructType *structType = [argument
+					bufferStructType];
+					for(MTLStructMember *member in [structType members])
+					{
+						String *name = RNSTR([[member name] UTF8String])->Retain();
+						uint32 offset = [member
+						offset];
+
+						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
+						//offset += descriptor->GetSize();
+						uniformDescriptors->AddObject(descriptor->Autorelease());
+					}
+					break;
+				}
+
+				case MTLArgumentTypeTexture:
+					textureCount += 1;
+				break;
+
+				case MTLArgumentTypeSampler:
+					samplerCount += 1;
+				break;
+
+				default:
+					break;
+			}
+		}
+
+		Signature *signature = new Signature(uniformDescriptors, samplerCount, textureCount);
+		SetSignature(signature->Autorelease());
 	}
 }

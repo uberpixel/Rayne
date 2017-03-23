@@ -51,7 +51,7 @@ namespace RN
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI Shader *GetDefaultShader(const ShaderOptions *options) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, ShaderOptions *options) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -63,7 +63,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
-		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
+		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader);
 
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();

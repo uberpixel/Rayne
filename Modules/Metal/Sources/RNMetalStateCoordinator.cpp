@@ -11,8 +11,6 @@
 
 namespace RN
 {
-	RNExceptionImp(MetalStructArgumentUnsupported)
-
 	MTLVertexFormat _vertexFormatLookup[] =
 		{
 			MTLVertexFormatUChar2,
@@ -163,21 +161,18 @@ namespace RN
 		MetalShader *vertexShader = static_cast<MetalShader *>(material->GetVertexShader());
 		MetalShader *fragmentShader = static_cast<MetalShader *>(material->GetFragmentShader());
 
-		id<MTLFunction> vertexFunction = (id<MTLFunction>)vertexShader->_shader;
-		id<MTLFunction> fragmentFunction = (id<MTLFunction>)fragmentShader->_shader;
-
 		for(MetalRenderingStateCollection *collection : _renderingStates)
 		{
 			if(collection->descriptor.IsEqual(descriptor))
 			{
-				if(collection->fragmentShader == fragmentFunction && collection->vertexShader == vertexFunction)
+				if(collection->fragmentShader->IsEqual(fragmentShader) && collection->vertexShader->IsEqual(vertexShader))
 				{
 					return GetRenderPipelineStateInCollection(collection, mesh, camera);
 				}
 			}
 		}
 
-		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexFunction, fragmentFunction);
+		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
 		return GetRenderPipelineStateInCollection(collection, mesh, camera);
@@ -199,66 +194,47 @@ namespace RN
 		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
 
 		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-		pipelineStateDescriptor.vertexFunction = collection->vertexShader;
-		pipelineStateDescriptor.fragmentFunction = collection->fragmentShader;
+		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
+		pipelineStateDescriptor.fragmentFunction = static_cast<id>(collection->fragmentShader->_shader);
 		pipelineStateDescriptor.vertexDescriptor = descriptor;
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat;
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
 
-		MTLRenderPipelineReflection *reflection;
-		id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
+		id<MTLRenderPipelineState> pipelineState = nil;
+		if(collection->vertexShader->GetSignature() && collection->fragmentShader->GetSignature())
+		{
+			pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:NULL];
+		}
+		else
+		{
+			MTLRenderPipelineReflection * reflection;
+			pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
+
+			// TODO: Error handling, plox
+
+			if(!collection->vertexShader->GetSignature())
+			{
+				collection->vertexShader->SetReflectedArguments([reflection vertexArguments]);
+			}
+
+			if(!collection->fragmentShader->GetSignature())
+			{
+				collection->fragmentShader->SetReflectedArguments([reflection fragmentArguments]);
+			}
+		}
 
 		[pipelineStateDescriptor release];
 		[descriptor release];
 
-		// TODO: Error handling, plox
-
 		// Create the rendering state
 		MetalRenderingState *state = new MetalRenderingState();
-
-		state->vertexArguments.reserve([[reflection vertexArguments] count]);
-		state->fragmentArguments.reserve([[reflection fragmentArguments] count]);
-
-		for(MTLArgument *argument in [reflection vertexArguments])
-		{
-			MetalRenderingStateArgument *parsed = nullptr;
-
-			switch([argument type])
-			{
-				case MTLArgumentTypeBuffer:
-					parsed = new MetalRenderingStateUniformBufferArgument(argument);
-					break;
-				default:
-					parsed = new MetalRenderingStateArgument(argument);
-					break;
-			}
-
-			state->vertexArguments.push_back(parsed);
-		}
-
-		for(MTLArgument *argument in [reflection fragmentArguments])
-		{
-			MetalRenderingStateArgument *parsed = nullptr;
-
-			switch([argument type])
-			{
-				case MTLArgumentTypeBuffer:
-					parsed = new MetalRenderingStateUniformBufferArgument(argument);
-					break;
-				default:
-					parsed = new MetalRenderingStateArgument(argument);
-					break;
-			}
-
-			state->fragmentArguments.push_back(parsed);
-		}
-
-
 		state->state = pipelineState;
 		state->pixelFormat = pixelFormat;
 		state->depthFormat = depthFormat;
 		state->stencilFormat = stencilFormat;
+		state->vertexShader = collection->vertexShader;
+		state->fragmentShader = collection->fragmentShader;
 
 		collection->states.push_back(state);
 
