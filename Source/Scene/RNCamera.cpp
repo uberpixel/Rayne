@@ -27,8 +27,7 @@ namespace RN
 	Camera::Camera() :
 		_cameraSceneEntry(this),
 		_framebuffer(nullptr),
-		_flags(0),
-		_window(nullptr)
+		_flags(0)
 	{
 		Initialize();
 	}
@@ -36,8 +35,7 @@ namespace RN
 	Camera::Camera(const Vector2 &size) :
 		_cameraSceneEntry(this),
 		_framebuffer(CreateFramebuffer(size)),
-		_flags(0),
-		_window(nullptr)
+		_flags(0)
 	{
 		Initialize();
 	}
@@ -118,7 +116,7 @@ namespace RN
 	void Camera::Initialize()
 	{
 		_fov      = 70.0f;
-		_aspect   = 1.0f;
+		_aspect   = 0.0f;
 
 		_clipNear = 0.1f;
 		_clipFar  = 500.0f;
@@ -450,21 +448,31 @@ namespace RN
 			return;
 		}
 
-		if(!_framebuffer)
+		float tempAspect = _aspect;
+
+		if(std::abs(tempAspect) <= 0.0001)
 		{
-			if(!_window)
-				_window = renderer->GetMainWindow();
+			if(!_framebuffer)
+			{
+				Window *window = renderer->GetMainWindow();
+				Vector2 size = window->GetSize();
 
-			Vector2 size = _window->GetSize();
-
-			_aspect = size.x / size.y;
+				tempAspect = size.x / size.y;
+			}
+			else
+			{
+				if(std::abs(_frame.GetArea()) < 0.0001)
+				{
+					tempAspect = _framebuffer->GetSize().x / _framebuffer->GetSize().y;
+				}
+				else
+				{
+					tempAspect = _frame.width / _frame.height;
+				}
+			}
 		}
-		else
-		{
-			_aspect = _frame.width / _frame.height;
-		}
 
-		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
+		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, tempAspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 
 		_dirtyFrustum = true;

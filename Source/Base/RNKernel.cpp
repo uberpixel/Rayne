@@ -316,7 +316,7 @@ namespace RN
 
 		if(_renderer)
 		{
-			_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&] {
+			_renderer->Render([&] {
 				_sceneManager->Render(_renderer);
 			});
 		}

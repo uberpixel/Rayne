@@ -17,32 +17,36 @@ namespace RN
 {
 	struct D3D12Drawable : public Drawable
 	{
-		~D3D12Drawable()
+		struct CameraSpecific
 		{
+			const D3D12PipelineState *pipelineState;
+			D3D12UniformState *uniformState; //TODO: Check if needs to be deleted when done
+		};
 
+		~D3D12Drawable(){}
+
+		void AddUniformStateIfNeeded(size_t cameraID)
+		{
+			if(_cameraSpecifics.size() <= cameraID)
+			{
+				_cameraSpecifics.push_back({ nullptr, nullptr });
+				dirty = true;
+			}
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const D3D12PipelineState *pipelineState, D3D12UniformState *uniformState)
+		void UpdateRenderingState(size_t cameraID, const D3D12PipelineState *pipelineState, D3D12UniformState *uniformState)
 		{
-			if(pipelineState == _pipelineState && uniformState == _uniformState)
-				return;
-
-			_pipelineState = pipelineState;
-			_uniformState = uniformState;
+			_cameraSpecifics[cameraID].pipelineState = pipelineState;
+			_cameraSpecifics[cameraID].uniformState = uniformState;
 		}
 
-		const D3D12PipelineState *_pipelineState;
-		D3D12UniformState *_uniformState;
-
-		D3D12Drawable *_next;
-		D3D12Drawable *_prev;
-
-		/*bool _active;
-		uint32 _index;*/
+		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
 	struct D3D12RenderPass
 	{
+		Camera *camera;
+
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;
@@ -50,16 +54,17 @@ namespace RN
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
 
-		D3D12Drawable *drawableHead;
-		size_t drawableCount;
-
-		size_t textureDescriptorCount;
+		std::vector<D3D12Drawable *> drawables;
 	};
 
 	struct D3D12RendererInternals
 	{
-		D3D12RenderPass renderPass;
+		std::vector<D3D12RenderPass> renderPasses;
 		D3D12StateCoordinator stateCoordinator;
+
+		D3D12RenderPass currentRenderPass;
+		size_t currentCameraID;
+		size_t totalDrawableCount;
 	};
 
 	class D3D12CommandList : public Object

@@ -173,7 +173,6 @@ namespace RN
 
 		Plane _clipPlane;
 //		LightManager *_lightManager;
-		Window *_window;
 
 		Matrix _projectionMatrix;
 		Matrix _inverseProjectionMatrix;

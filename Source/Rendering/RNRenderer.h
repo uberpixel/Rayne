@@ -87,8 +87,8 @@ namespace RN
 		RNAPI void Activate();
 		RNAPI virtual void Deactivate();
 
-		RNAPI virtual void RenderIntoWindow(Window *window, Function &&function) = 0;
-		RNAPI virtual void RenderIntoCamera(Camera *camera, Function &&function) = 0;
+		RNAPI virtual void Render(Function &&function) = 0;
+		RNAPI virtual void SubmitCamera(Camera *camera, Function &&function) = 0;
 
 		RNAPI virtual bool SupportsTextureFormat(const String *format) const = 0;
 		RNAPI virtual bool SupportsDrawMode(DrawMode mode) const = 0;

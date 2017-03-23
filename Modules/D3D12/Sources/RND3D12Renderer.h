@@ -39,8 +39,8 @@ namespace RN
 		D3DAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
 		D3DAPI Window *GetMainWindow() final;
 
-		D3DAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		D3DAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		D3DAPI void Render(Function &&function) final;
+		D3DAPI void SubmitCamera(Camera *camera, Function &&function) final;
 
 		D3DAPI bool SupportsTextureFormat(const String *format) const final;
 		D3DAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -108,9 +108,6 @@ namespace RN
 		UINT _srvCbvDescriptorSize;
 
 		size_t _currentDrawableIndex;
-
-		/*std::vector<D3D12Drawable> _drawables;
-		std::vector<uint32> _unusedDrawableIndices;*/
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};

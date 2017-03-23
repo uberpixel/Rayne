@@ -118,7 +118,7 @@ namespace RN
 			Camera *camera = member->Get();
 			camera->PostUpdate(renderer);
 
-			renderer->RenderIntoCamera(camera, [&] {
+			renderer->SubmitCamera(camera, [&] {
 
 				WorkGroup *group = new WorkGroup();
 
@@ -181,7 +181,6 @@ namespace RN
 
 				group->Wait();
 				group->Release();
-
 			});
 
 			member = member->GetNext();

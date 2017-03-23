@@ -256,46 +256,6 @@ namespace RN
 			return nullptr;
 		}
 
-/*		// Create the rendering state
-		D3D12RenderingState *state = new D3D12RenderingState();
-
-		state->vertexArguments.reserve([[reflection vertexArguments] count]);
-		state->fragmentArguments.reserve([[reflection fragmentArguments] count]);
-
-		for(MTLArgument *argument in [reflection vertexArguments])
-		{
-			D3D12RenderingStateArgument *parsed = nullptr;
-
-			switch([argument type])
-			{
-				case MTLArgumentTypeBuffer:
-					parsed = new D3D12RenderingStateUniformBufferArgument(argument);
-					break;
-				default:
-					parsed = new D3D12RenderingStateArgument(argument);
-					break;
-			}
-
-			state->vertexArguments.push_back(parsed);
-		}
-
-		for(MTLArgument *argument in [reflection fragmentArguments])
-		{
-			D3D12RenderingStateArgument *parsed = nullptr;
-
-			switch([argument type])
-			{
-				case MTLArgumentTypeBuffer:
-					parsed = new D3D12RenderingStateUniformBufferArgument(argument);
-					break;
-				default:
-					parsed = new D3D12RenderingStateArgument(argument);
-					break;
-			}
-
-			state->fragmentArguments.push_back(parsed);
-		}*/
-
 		collection->states.push_back(state);
 
 		return state;
@@ -342,49 +302,6 @@ namespace RN
 		/*if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
 			fragmentBuffer = new D3D12UniformBuffer(renderer, fragmentShader->GetSignature()->GetTotalUniformSize());
-		}*/
-
-/*		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
-		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
-		uniformBufferDescriptorInfo.offset = 0;
-		uniformBufferDescriptorInfo.range = gpuBuffer->GetLength();
-
-		VkWriteDescriptorSet writeUniformDescriptorSet = {};
-		writeUniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeUniformDescriptorSet.pNext = NULL;
-		writeUniformDescriptorSet.dstSet = descriptorSet;
-		writeUniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		writeUniformDescriptorSet.dstBinding = 0;
-		writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
-		writeUniformDescriptorSet.descriptorCount = 1;
-
-		std::vector<VkDescriptorImageInfo*> imageBufferDescriptorInfoArray;
-		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet };
-
-		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-			VkDescriptorImageInfo *imageBufferDescriptorInfo = new VkDescriptorImageInfo;
-			imageBufferDescriptorInfo->sampler = texture->GetSampler();
-			imageBufferDescriptorInfo->imageView = texture->GetImageView();
-			imageBufferDescriptorInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-			imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
-
-			VkWriteDescriptorSet writeImageDescriptorSet = {};
-			writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeImageDescriptorSet.pNext = NULL;
-			writeImageDescriptorSet.dstSet = descriptorSet;
-			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			writeImageDescriptorSet.dstBinding = index + 1;
-			writeImageDescriptorSet.pImageInfo = imageBufferDescriptorInfoArray[index];
-			writeImageDescriptorSet.descriptorCount = 1;
-
-			writeDescriptorSets.push_back(writeImageDescriptorSet);
-		});
-
-		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
-
-		for(VkDescriptorImageInfo *imageBufferDescriptor : imageBufferDescriptorInfoArray)
-		{
-			delete imageBufferDescriptor;
 		}*/
 
 		D3D12UniformState *state = new D3D12UniformState();

@@ -301,10 +301,14 @@ namespace RN
 	}
 
 
-	void D3D12Renderer::RenderIntoWindow(Window *twindow, Function &&function)
+	void D3D12Renderer::Render(Function &&function)
 	{
-		D3D12Window *window = static_cast<D3D12Window *>(twindow);
-		D3D12SwapChain *swapChain = window->GetSwapChain();
+		_currentDrawableIndex = 0;
+		_internals->renderPasses.clear();
+		_internals->totalDrawableCount = 0;
+		_internals->currentCameraID = 0;
+
+		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 
 		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
 		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
@@ -318,17 +322,88 @@ namespace RN
 		CreateMipMaps();
 
 		swapChain->AcquireBackBuffer();
+
+		//RenderIntoCamera is called for each camera and creates lists of drawables per camera
+		function();
+
+		CreateDescriptorHeap();
+
 		_currentCommandList = GetCommandList();
 		_currentCommandList->Retain();
-		_currentCommandList->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
+
+		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
+		commandList->SetGraphicsRootSignature(_rootSignature);
 
 		// Indicate that the back buffer will be used as a render target.
 		ID3D12Resource *renderTarget = swapChain->GetFramebuffer()->GetRenderTarget(swapChain->GetFrameIndex());
-		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		
-		function();
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		// Set the one big descriptor heap for the whole frame
+		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
+		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+		
+		_internals->currentCameraID = 0;
+		for(D3D12RenderPass renderPass : _internals->renderPasses)
+		{
+			D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
+			D3D12SwapChain *swapChain = window->GetSwapChain();
+
+			D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(renderPass.camera->GetFramebuffer());
+			if(!framebuffer)
+			{
+				framebuffer = swapChain->GetFramebuffer();
+			}
+
+			Rect cameraRect = renderPass.camera->GetFrame();
+			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+			{
+				Vector2 framebufferSize = framebuffer->GetSize();
+				cameraRect.x = 0.0f;
+				cameraRect.y = 0.0f;
+				cameraRect.width = framebufferSize.x;
+				cameraRect.height = framebufferSize.y;
+			}
+
+			D3D12_VIEWPORT viewport;
+			viewport.Width = cameraRect.width;
+			viewport.Height = cameraRect.height;
+			viewport.TopLeftX = cameraRect.x;
+			viewport.TopLeftY = cameraRect.y;
+			viewport.MaxDepth = 1.0;
+			viewport.MinDepth = 0.0;
+
+			D3D12_RECT scissorRect;
+			scissorRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
+			scissorRect.bottom = static_cast<LONG>(cameraRect.height + cameraRect.y);
+			scissorRect.left = cameraRect.x;
+			scissorRect.top = cameraRect.y;
+
+			commandList->RSSetViewports(1, &viewport);
+			commandList->RSSetScissorRects(1, &scissorRect);
+
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), swapChain->GetFrameIndex(), _rtvDescriptorSize);
+			CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+			commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+			// Clear
+			//TODO: It would be better to just clear the whole rendertarget at once...
+			const Color &clearColor = renderPass.camera->GetClearColor();
+			commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &scissorRect);
+			commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &scissorRect);
+
+			if(renderPass.drawables.size() > 0)
+			{
+				//Draw drawables
+				for(D3D12Drawable *drawable : renderPass.drawables)
+				{
+					RenderDrawable(commandList, drawable);
+				}
+
+				_internals->currentCameraID += 1;
+			}
+		}
+
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 		_currentCommandList->End();
 		SubmitCommandList(_currentCommandList);
 		_currentCommandList->Release();
@@ -347,86 +422,26 @@ namespace RN
 		swapChain->PresentBackBuffer();
 	}
 
-	void D3D12Renderer::RenderIntoCamera(Camera *camera, Function &&function)
+	void D3D12Renderer::SubmitCamera(Camera *camera, Function &&function)
 	{
-		_internals->renderPass.drawableHead = nullptr;
-		_internals->renderPass.drawableCount = 0;
-		_internals->renderPass.textureDescriptorCount = 0;
+		_internals->currentRenderPass.camera = camera;
+		_internals->currentRenderPass.drawables.resize(0);
 
-		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
-		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+		_internals->currentRenderPass.viewMatrix = camera->GetViewMatrix();
+		_internals->currentRenderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
-		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		//_internals->renderPass.projectionMatrix.m[5] *= -1.0f;
-		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+		_internals->currentRenderPass.projectionMatrix = camera->GetProjectionMatrix();
+		//renderPass.projectionMatrix.m[5] *= -1.0f;
+		_internals->currentRenderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
-		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
+		_internals->currentRenderPass.projectionViewMatrix = _internals->currentRenderPass.projectionMatrix * _internals->currentRenderPass.viewMatrix;
 
 		// Create drawables
 		function();
 
-		CreateDescriptorHeap();
-
-		D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(camera->GetFramebuffer());
-
-		D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
-		D3D12SwapChain *swapChain = window->GetSwapChain();
-
-		if(!framebuffer)
-			framebuffer = swapChain->GetFramebuffer();
-
-		Rect cameraRect = camera->GetFrame();
-		if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
-		{
-			Vector2 framebufferSize = framebuffer->GetSize();
-			cameraRect.x = 0.0f;
-			cameraRect.y = 0.0f;
-			cameraRect.width = framebufferSize.x;
-			cameraRect.height = framebufferSize.y;
-		}
-
-		D3D12_VIEWPORT viewport;
-		viewport.Width = cameraRect.width;
-		viewport.Height = cameraRect.height;
-		viewport.TopLeftX = cameraRect.x;
-		viewport.TopLeftY = cameraRect.y;
-		viewport.MaxDepth = 1.0;
-		viewport.MinDepth = 0.0;
-
-		D3D12_RECT scissorRect;
-		scissorRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
-		scissorRect.bottom = static_cast<LONG>(cameraRect.height + cameraRect.y);
-		scissorRect.left = cameraRect.x;
-		scissorRect.top = cameraRect.y;
-
-		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
-
-		commandList->RSSetViewports(1, &viewport);
-		commandList->RSSetScissorRects(1, &scissorRect);
-
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), swapChain->GetFrameIndex(), _rtvDescriptorSize);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
-		commandList->OMSetRenderTargets(1, &rtvHandle, false , &dsvHandle);
-
-		// Clear
-		const Color &clearColor = camera->GetClearColor();
-		commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
-		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-		if(_internals->renderPass.drawableCount > 0)
-		{
-			// Set the the one big descriptor heap for the whole frame
-			ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
-			commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
-
-			//Draw drawables
-			D3D12Drawable *drawable = _internals->renderPass.drawableHead;
-			while(drawable)
-			{
-				RenderDrawable(commandList, drawable);
-				drawable = drawable->_next;
-			}
-		}
+		_internals->totalDrawableCount += _internals->currentRenderPass.drawables.size();
+		_internals->renderPasses.push_back(_internals->currentRenderPass);
+		_internals->currentCameraID += 1;
 	}
 
 	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
@@ -551,47 +566,20 @@ namespace RN
 
 	Drawable *D3D12Renderer::CreateDrawable()
 	{
-/*		D3D12Drawable *newDrawable;
-		if(_unusedDrawableIndices.size() > 0)
-		{
-			newDrawable = &_drawables[_unusedDrawableIndices.back()];
-			_unusedDrawableIndices.pop_back();
-			newDrawable->_index = _drawables.size() - 1;
-		}
-		else
-		{
-			D3D12Drawable drawable = D3D12Drawable();
-			_drawables.push_back(D3D12Drawable());
-			newDrawable = &_drawables.back();
-		}
-		
-		newDrawable->_pipelineState = nullptr;
-		newDrawable->_uniformState = nullptr;
-		newDrawable->_active = true;
-
-		return newDrawable;*/
-
 		D3D12Drawable *newDrawable = new D3D12Drawable();
-		newDrawable->_pipelineState = nullptr;
-		newDrawable->_uniformState = nullptr;
 		return newDrawable;
 	}
 
 	void D3D12Renderer::DeleteDrawable(Drawable *drawable)
 	{
-/*		D3D12Drawable *oldDrawable = static_cast<D3D12Drawable*>(drawable);
-		_unusedDrawableIndices.push_back(oldDrawable->_index);
-		oldDrawable->_active = false;*/
-
 		delete drawable;
 	}
 
 	void D3D12Renderer::CreateDescriptorHeap()
 	{
-		if(_internals->renderPass.drawableCount == 0)
+		if(_internals->totalDrawableCount == 0)
 			return;
 
-		_currentDrawableIndex = 0;
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 
@@ -602,7 +590,7 @@ namespace RN
 
 		// Layout: 5 textures + 1 cbv
 		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
-		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->renderPass.drawableCount;
+		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->totalDrawableCount;
 		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap[swapChain->GetFrameIndex()]));
@@ -623,52 +611,58 @@ namespace RN
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
 
-		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
-		while(drawable)
+		size_t cameraID = 0;
+		for(D3D12RenderPass renderPass : _internals->renderPasses)
 		{
-			//Create texture descriptors
-			const Array *textures = drawable->material->GetTextures();
-			textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
-				//Root signature expects 5 textures max
-				if(i >= 5)
-				{
-					stop = true;
-					return;
-				}
+			if(renderPass.drawables.size() == 0)
+				continue;
 
-				//Check if texture finished uploading to the vram
-				if(texture->_isReady && !texture->_needsMipMaps)
-				{
-					textureSrvDesc.Format = texture->_format;
-					textureSrvDesc.Texture2D.MipLevels = texture->GetDescriptor().mipMaps;
-					device->CreateShaderResourceView(texture->_textureBuffer, &textureSrvDesc, currentCPUHandle);
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
-				}
-				else
+			for(D3D12Drawable *drawable : renderPass.drawables)
+			{
+				//Create texture descriptors
+				const Array *textures = drawable->material->GetTextures();
+				textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
+					//Root signature expects 5 textures max
+					if(i >= 5)
+					{
+						stop = true;
+						return;
+					}
+
+					//Check if texture finished uploading to the vram
+					if(texture->_isReady && !texture->_needsMipMaps)
+					{
+						textureSrvDesc.Format = texture->_format;
+						textureSrvDesc.Texture2D.MipLevels = texture->GetDescriptor().mipMaps;
+						device->CreateShaderResourceView(texture->_textureBuffer, &textureSrvDesc, currentCPUHandle);
+						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					}
+					else
+					{
+						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					}
+				});
+
+				//Create null texture descriptors for those textures not used within the limit of 5
+				for(int i = 5 - textures->GetCount(); i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 				}
-			});
 
-			//Create null texture descriptors for those textures not used within the limit of 5
-			for(int i = 5 - textures->GetCount(); i > 0; i--)
-			{
-				device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+				//Create constant buffer descriptor
+				D3D12UniformBuffer *uniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->uniformBuffer;
+				D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+
+				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+				cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
+				cbvDesc.SizeInBytes = actualBuffer->GetLength();
+				GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 				currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 			}
 
-			//Create constant buffer descriptor
-			D3D12UniformBuffer *uniformBuffer = drawable->_uniformState->uniformBuffer;
-			D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-			cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
-			cbvDesc.SizeInBytes = actualBuffer->GetLength();
-			GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-			currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
-			
-			drawable = drawable->_next;
+			cameraID += 1;
 		}
 	}
 
@@ -683,116 +677,116 @@ namespace RN
 
 			switch(descriptor->GetIdentifier())
 			{
-			case Shader::UniformDescriptor::Identifier::ModelMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), drawable->modelMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::ModelMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), drawable->modelMatrix.m, descriptor->GetSize());
+					break;
+				}
 				
-			case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
-			{
-				Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
-				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
+				{
+					Matrix result = _internals->currentRenderPass.viewMatrix * drawable->modelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
-			{
-				Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
+				{
+					Matrix result = _internals->currentRenderPass.projectionViewMatrix * drawable->modelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::ViewMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.viewMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::ViewMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.viewMatrix.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.projectionViewMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.projectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), drawable->inverseModelMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), drawable->inverseModelMatrix.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::InverseModelViewMatrix:
-			{
-				Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
-				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::InverseModelViewMatrix:
+				{
+					Matrix result = _internals->currentRenderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrix:
-			{
-				Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-				std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrix:
+				{
+					Matrix result = _internals->currentRenderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::InverseViewMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseViewMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::InverseViewMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.inverseViewMatrix.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::AmbientColor:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::AmbientColor:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::DiffuseColor:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::DiffuseColor:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::SpecularColor:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::SpecularColor:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::EmissiveColor:
-			{
-				std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::EmissiveColor:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::TextureTileFactor:
-			{
-				float temp = material->GetTextureTileFactor();
-				std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
+				{
+					float temp = material->GetTextureTileFactor();
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::DiscardThreshold:
-			{
-				float temp = material->GetDiscardThreshold();
-				std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
+				{
+					float temp = material->GetDiscardThreshold();
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
 
-			case Shader::UniformDescriptor::Identifier::Custom:
-			{
-				//TODO: Implement custom shader variables!
-				break;
-			}
+				case Shader::UniformDescriptor::Identifier::Custom:
+				{
+					//TODO: Implement custom shader variables!
+					break;
+				}
 
-			default:
-				break;
+				default:
+					break;
 			}
 		});
 	}
@@ -800,6 +794,7 @@ namespace RN
 	void D3D12Renderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		D3D12Drawable *drawable = static_cast<D3D12Drawable *>(tdrawable);
+		drawable->AddUniformStateIfNeeded(_internals->currentCameraID);
 
 		if(drawable->dirty)
 		{
@@ -809,11 +804,11 @@ namespace RN
 			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, drawable->material);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(this, pipelineState, uniformState);
+			drawable->UpdateRenderingState(_internals->currentCameraID, pipelineState, uniformState);
 			drawable->dirty = false;
 		}
 
-		GPUBuffer *gpuBuffer = drawable->_uniformState->uniformBuffer->Advance();
+		GPUBuffer *gpuBuffer = drawable->_cameraSpecifics[_internals->currentCameraID].uniformState->uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 		size_t offset = 0;
 		FillUniformBuffer(buffer, drawable, drawable->material->GetVertexShader(), offset);
@@ -821,18 +816,8 @@ namespace RN
 		gpuBuffer->Invalidate();
 
 		// Push into the queue
-		drawable->_prev = nullptr;
-
 		_lock.Lock();
-
-		drawable->_next = _internals->renderPass.drawableHead;
-
-		if(drawable->_next)
-			drawable->_next->_prev = drawable;
-
-		_internals->renderPass.drawableHead = drawable;
-		_internals->renderPass.drawableCount++;
-
+		_internals->currentRenderPass.drawables.push_back(drawable);
 		_lock.Unlock();
 	}
 
@@ -846,7 +831,7 @@ namespace RN
 		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
-		commandList->SetPipelineState(drawable->_pipelineState->state);
+		commandList->SetPipelineState(drawable->_cameraSpecifics[_internals->currentCameraID].pipelineState->state);
 
 		D3D12GPUBuffer *buffer = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetVertexBuffer());
 		D3D12GPUBuffer *indices = static_cast<D3D12GPUBuffer *>(drawable->mesh->GetIndicesBuffer());
