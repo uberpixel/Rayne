@@ -319,16 +319,19 @@ namespace RN
 
 		swapChain->AcquireBackBuffer();
 		_currentCommandList = GetCommandList();
-
+		_currentCommandList->Retain();
 		_currentCommandList->GetCommandList()->SetGraphicsRootSignature(_rootSignature);
+
+		// Indicate that the back buffer will be used as a render target.
+		ID3D12Resource *renderTarget = swapChain->GetFramebuffer()->GetRenderTarget(swapChain->GetFrameIndex());
+		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		
 		function();
-
-		ID3D12Resource *renderTarget = swapChain->GetFramebuffer()->GetRenderTarget(swapChain->GetFrameIndex());
 
 		_currentCommandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 		_currentCommandList->End();
 		SubmitCommandList(_currentCommandList);
+		_currentCommandList->Release();
 		_currentCommandList = nullptr;
 
 		// Execute all command lists
@@ -372,8 +375,6 @@ namespace RN
 		if(!framebuffer)
 			framebuffer = swapChain->GetFramebuffer();
 
-		ID3D12Resource *renderTarget = framebuffer->GetRenderTarget(swapChain->GetFrameIndex());
-
 		Rect cameraRect = camera->GetFrame();
 		if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
 		{
@@ -403,9 +404,6 @@ namespace RN
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissorRect);
 
-		// Indicate that the back buffer will be used as a render target.
-		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), swapChain->GetFrameIndex(), _rtvDescriptorSize);
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 		commandList->OMSetRenderTargets(1, &rtvHandle, false , &dsvHandle);
@@ -415,16 +413,19 @@ namespace RN
 		commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 0, nullptr);
 		commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-		// Set the the one big descriptor heap for the whole frame
-		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
-		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
-
-		//Draw drawables
-		D3D12Drawable *drawable = _internals->renderPass.drawableHead;
-		while(drawable)
+		if(_internals->renderPass.drawableCount > 0)
 		{
-			RenderDrawable(commandList, drawable);
-			drawable = drawable->_next;
+			// Set the the one big descriptor heap for the whole frame
+			ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
+			commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+
+			//Draw drawables
+			D3D12Drawable *drawable = _internals->renderPass.drawableHead;
+			while(drawable)
+			{
+				RenderDrawable(commandList, drawable);
+				drawable = drawable->_next;
+			}
 		}
 	}
 
@@ -587,6 +588,9 @@ namespace RN
 
 	void D3D12Renderer::CreateDescriptorHeap()
 	{
+		if(_internals->renderPass.drawableCount == 0)
+			return;
+
 		_currentDrawableIndex = 0;
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
