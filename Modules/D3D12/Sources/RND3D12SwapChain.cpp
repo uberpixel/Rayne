@@ -9,6 +9,7 @@
 #include "RND3D12SwapChain.h"
 #include "RND3D12Renderer.h"
 #include "RND3D12Framebuffer.h"
+#include "RND3D12Internals.h"
 
 namespace RN
 {
@@ -86,6 +87,19 @@ namespace RN
 		}
 
 		_fenceValues[_frameIndex] = fenceValue + 1;
+	}
+
+	void D3D12SwapChain::Prepare(D3D12CommandList *commandList)
+	{
+		// Indicate that the back buffer will be used as a render target.
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetRenderTarget();
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	}
+
+	void D3D12SwapChain::Finalize(D3D12CommandList *commandList)
+	{
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetRenderTarget();
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	}
 
 	void D3D12SwapChain::PresentBackBuffer()

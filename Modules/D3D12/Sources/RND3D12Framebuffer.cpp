@@ -16,17 +16,14 @@ namespace RN
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer) :
 		Framebuffer(size, descriptor),
-		_renderer(renderer)
+		_renderer(renderer),
+		_swapChain(swapChain)
 	{
 		ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
-
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderer->GetRTVHeap()->GetCPUDescriptorHandleForHeapStart());
 
 		for(int i = 0; i < swapChain->GetBufferCount(); i++)
 		{
 			swapChain->GetD3D12SwapChain()->GetBuffer(i, IID_PPV_ARGS(&_renderTargets[i]));
-			device->CreateRenderTargetView(_renderTargets[i], nullptr, rtvHandle);
-			rtvHandle.Offset(1, renderer->GetRTVHeapSize());
 		}
 
 		// Create depthbuffer
@@ -35,13 +32,6 @@ namespace RN
 		depthClearValue.DepthStencil.Depth = 1.0f;
 		depthClearValue.DepthStencil.Stencil = 0;
 		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D24_UNORM_S8_UINT, size.x, size.y, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL), D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&_depthStencilBuffer));
-
-		// Create depth stencil view
-		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-		depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-		device->CreateDepthStencilView(_depthStencilBuffer, &depthStencilViewDesc, renderer->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart());
 	}
 
 	D3D12Framebuffer::~D3D12Framebuffer()
@@ -60,5 +50,15 @@ namespace RN
 	Texture *D3D12Framebuffer::GetStencilTexture() const
 	{
 		return nullptr;
+	}
+
+	ID3D12Resource *D3D12Framebuffer::GetRenderTarget() const
+	{
+		if(_swapChain)
+		{
+			return _renderTargets[_swapChain->GetFrameIndex()];
+		}
+
+		return _renderTargets[0];
 	}
 }

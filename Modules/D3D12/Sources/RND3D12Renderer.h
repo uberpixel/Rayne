@@ -72,10 +72,6 @@ namespace RN
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
 
-		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
-		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
-		ID3D12DescriptorHeap *GetDSVHeap() const { return _dsvHeap; }
-
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
 		void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
@@ -84,6 +80,7 @@ namespace RN
 		void CreateMipMaps();
 
 		void CreateDescriptorHeap();
+		void SetCameraAsRendertarget(D3D12CommandList *commandList, Camera *camera);
 
 		Array *_mipMapTextures;
 
@@ -101,11 +98,9 @@ namespace RN
 
 		ID3D12RootSignature *_rootSignature;
 
-		ID3D12DescriptorHeap *_rtvHeap;
-		UINT _rtvDescriptorSize;
-		ID3D12DescriptorHeap *_dsvHeap;
-		ID3D12DescriptorHeap *_srvCbvHeap[3];
+		ID3D12DescriptorHeap *_currentSrvCbvHeap;
 		UINT _srvCbvDescriptorSize;
+		UINT _rtvDescriptorSize;
 
 		ID3D12Fence *_fence;
 		UINT _scheduledFenceValue;

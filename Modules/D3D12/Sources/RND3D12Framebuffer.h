@@ -26,10 +26,13 @@ namespace RN
 		D3DAPI Texture *GetDepthTexture() const final;
 		D3DAPI Texture *GetStencilTexture() const final;
 
-		ID3D12Resource *GetRenderTarget(size_t index) const { return _renderTargets[index]; }
+		ID3D12Resource *GetRenderTarget() const;
+		ID3D12Resource *GetDepthBuffer() const { return _depthStencilBuffer; }
+		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
 		D3D12Renderer *_renderer;
+		WeakRef<D3D12SwapChain> _swapChain;
 		ID3D12Resource *_renderTargets[3];
 		ID3D12Resource *_depthStencilBuffer;
 

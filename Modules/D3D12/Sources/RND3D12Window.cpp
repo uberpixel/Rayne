@@ -105,4 +105,9 @@ namespace RN
 		GetClientRect(_hwnd, &windowRect);
 		return Vector2(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
 	}
+
+	Framebuffer *D3D12Window::GetFramebuffer() const
+	{
+		return _swapChain->GetFramebuffer();
+	}
 }

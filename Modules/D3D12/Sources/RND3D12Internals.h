@@ -57,10 +57,19 @@ namespace RN
 		std::vector<D3D12Drawable *> drawables;
 	};
 
+	struct D3D12FrameResource
+	{
+		IUnknown *resource;
+		uint32 frame;
+	};
+
 	struct D3D12RendererInternals
 	{
 		std::vector<D3D12RenderPass> renderPasses;
 		D3D12StateCoordinator stateCoordinator;
+
+		std::vector<D3D12SwapChain*> swapChains;
+		std::vector<D3D12FrameResource> frameResources;
 
 		D3D12RenderPass currentRenderPass;
 		size_t currentCameraID;

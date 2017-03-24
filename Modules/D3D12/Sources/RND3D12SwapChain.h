@@ -15,6 +15,7 @@ namespace RN
 {
 	class D3D12Renderer;
 	class D3D12Framebuffer;
+	class D3D12CommandList;
 
 	class D3D12SwapChain : public Object
 	{
@@ -26,6 +27,8 @@ namespace RN
 		D3DAPI Vector2 GetSize() const;
 
 		D3DAPI void AcquireBackBuffer();
+		D3DAPI void Prepare(D3D12CommandList *commandList);
+		D3DAPI void Finalize(D3D12CommandList *commandList);
 		D3DAPI void PresentBackBuffer();
 
 		size_t GetFrameIndex() const { return _frameIndex;  }

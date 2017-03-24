@@ -156,6 +156,11 @@ namespace RN
 		}
 	}
 
+	void Camera::SetFramebuffer(Framebuffer *framebuffer)
+	{
+		_framebuffer = framebuffer;
+	}
+
 	void Camera::SetClearColor(const Color &clearColor)
 	{
 		_clearColor = clearColor;

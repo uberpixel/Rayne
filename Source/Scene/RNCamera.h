@@ -64,6 +64,7 @@ namespace RN
 
 		RNAPI void DidUpdate(ChangeSet changeSet) override;
 
+		RNAPI void SetFramebuffer(Framebuffer *framebuffer);
 		RNAPI void SetFrame(const Rect &frame);
 		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetClearColor(const Color &color);

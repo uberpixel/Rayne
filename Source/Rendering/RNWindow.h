@@ -13,6 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../System/RNScreen.h"
 #include "../Objects/RNObject.h"
+#include "../Rendering/RNFramebuffer.h"
 
 namespace RN
 {
@@ -28,6 +29,8 @@ namespace RN
 		RNAPI virtual void Hide() = 0;
 
 		RNAPI virtual Vector2 GetSize() const = 0;
+
+		RNAPI virtual Framebuffer *GetFramebuffer() const = 0;
 
 	protected:
 		RNAPI Window(Screen *screen);

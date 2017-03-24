@@ -24,7 +24,7 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Array()),
-		_srvCbvHeap{ nullptr, nullptr, nullptr },
+		_currentSrvCbvHeap(nullptr),
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array()),
 		_scheduledFenceValue(0),
@@ -39,24 +39,8 @@ namespace RN
 		queueDescriptor.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		underlyingDevice->CreateCommandQueue(&queueDescriptor, IID_PPV_ARGS(&_commandQueue));
 
-		{
-			// Describe and create a render target view (RTV) descriptor heap.
-			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-			rtvHeapDesc.NumDescriptors = 3;
-			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_rtvHeap));
-			_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-			// Describe and create depth stencil view descriptor heap
-			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-			dsvHeapDesc.NumDescriptors = 1;
-			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&_dsvHeap));
-
-			_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		}
+		_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// Create a root signature.
 		{
@@ -123,10 +107,12 @@ namespace RN
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
-		RN_ASSERT(!_mainWindow, "D3D12 renderer only supports one window");
+		D3D12Window *window = new D3D12Window(size, screen, this, 2);
 
-		_mainWindow = new D3D12Window(size, screen, this, 2);
-		return _mainWindow;
+		if(!_mainWindow)
+			_mainWindow = window;
+
+		return window;
 	}
 
 	Window *D3D12Renderer::GetMainWindow()
@@ -311,8 +297,8 @@ namespace RN
 		_internals->renderPasses.clear();
 		_internals->totalDrawableCount = 0;
 		_internals->currentCameraID = 0;
+		_internals->swapChains.clear();
 
-		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 		_completedFenceValue = _fence->GetCompletedValue();
 
 		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
@@ -324,77 +310,47 @@ namespace RN
 			}
 		}
 
-		CreateMipMaps();
+		//Free other frame resources such as descriptor heaps, that are not in use by the gpu anymore
+		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
+		{
+			D3D12FrameResource &frameResource = _internals->frameResources[i];
+			if(frameResource.frame <= _completedFenceValue)
+			{
+				frameResource.resource->Release();
+				_internals->frameResources.erase(_internals->frameResources.begin() + i);
+			}
+		}
 
-		swapChain->AcquireBackBuffer();
+		CreateMipMaps();		
 
 		//RenderIntoCamera is called for each camera and creates lists of drawables per camera
 		function();
 
+		for(D3D12SwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->AcquireBackBuffer();
+		}
+
 		CreateDescriptorHeap();
 
 		_currentCommandList = GetCommandList();
-		_currentCommandList->Retain();
+
+		for(D3D12SwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->Prepare(_currentCommandList);
+		}
 
 		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
 		commandList->SetGraphicsRootSignature(_rootSignature);
 
-		// Indicate that the back buffer will be used as a render target.
-		ID3D12Resource *renderTarget = swapChain->GetFramebuffer()->GetRenderTarget(swapChain->GetFrameIndex());
-		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
 		// Set the one big descriptor heap for the whole frame
-		ID3D12DescriptorHeap* srvCbvHeaps[] = { _srvCbvHeap[swapChain->GetFrameIndex()] };
+		ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap };
 		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 		
 		_internals->currentCameraID = 0;
 		for(D3D12RenderPass renderPass : _internals->renderPasses)
 		{
-			D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
-			D3D12SwapChain *swapChain = window->GetSwapChain();
-
-			D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(renderPass.camera->GetFramebuffer());
-			if(!framebuffer)
-			{
-				framebuffer = swapChain->GetFramebuffer();
-			}
-
-			Rect cameraRect = renderPass.camera->GetFrame();
-			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
-			{
-				Vector2 framebufferSize = framebuffer->GetSize();
-				cameraRect.x = 0.0f;
-				cameraRect.y = 0.0f;
-				cameraRect.width = framebufferSize.x;
-				cameraRect.height = framebufferSize.y;
-			}
-
-			D3D12_VIEWPORT viewport;
-			viewport.Width = cameraRect.width;
-			viewport.Height = cameraRect.height;
-			viewport.TopLeftX = cameraRect.x;
-			viewport.TopLeftY = cameraRect.y;
-			viewport.MaxDepth = 1.0;
-			viewport.MinDepth = 0.0;
-
-			D3D12_RECT scissorRect;
-			scissorRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
-			scissorRect.bottom = static_cast<LONG>(cameraRect.height + cameraRect.y);
-			scissorRect.left = cameraRect.x;
-			scissorRect.top = cameraRect.y;
-
-			commandList->RSSetViewports(1, &viewport);
-			commandList->RSSetScissorRects(1, &scissorRect);
-
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart(), swapChain->GetFrameIndex(), _rtvDescriptorSize);
-			CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsvHeap->GetCPUDescriptorHandleForHeapStart());
-			commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
-
-			// Clear
-			//TODO: It would be better to just clear the whole rendertarget at once...
-			const Color &clearColor = renderPass.camera->GetClearColor();
-			commandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &scissorRect);
-			commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &scissorRect);
+			SetCameraAsRendertarget(_currentCommandList, renderPass.camera);
 
 			if(renderPass.drawables.size() > 0)
 			{
@@ -408,10 +364,13 @@ namespace RN
 			}
 		}
 
-		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		for(D3D12SwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->Finalize(_currentCommandList);
+		}
+		
 		_currentCommandList->End();
 		SubmitCommandList(_currentCommandList);
-		_currentCommandList->Release();
 		_currentCommandList = nullptr;
 
 		// Execute all command lists
@@ -426,7 +385,10 @@ namespace RN
 
 		_commandQueue->Signal(_fence, _scheduledFenceValue++);
 
-		swapChain->PresentBackBuffer();
+		for(D3D12SwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->PresentBackBuffer();
+		}
 	}
 
 	void D3D12Renderer::SubmitCamera(Camera *camera, Function &&function)
@@ -442,6 +404,38 @@ namespace RN
 		_internals->currentRenderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		_internals->currentRenderPass.projectionViewMatrix = _internals->currentRenderPass.projectionMatrix * _internals->currentRenderPass.viewMatrix;
+
+
+		Framebuffer *framebuffer = camera->GetFramebuffer();
+		D3D12SwapChain *newSwapChain = nullptr;
+		if(!framebuffer)
+		{
+			D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
+			D3D12SwapChain *swapChain = window->GetSwapChain();
+			newSwapChain = swapChain;
+		}
+		else
+		{
+			newSwapChain = framebuffer->Downcast<D3D12Framebuffer>()->GetSwapChain();
+		}
+		
+		if(newSwapChain)
+		{
+			bool notIncluded = true;
+			for(D3D12SwapChain *swapChain : _internals->swapChains)
+			{
+				if(swapChain == newSwapChain)
+				{
+					notIncluded = false;
+					break;
+				}
+			}
+			if(notIncluded)
+			{
+				_internals->swapChains.push_back(newSwapChain);
+			}
+		}
+
 
 		// Create drawables
 		function();
@@ -582,25 +576,107 @@ namespace RN
 		delete drawable;
 	}
 
+	void D3D12Renderer::SetCameraAsRendertarget(D3D12CommandList *commandList, Camera *camera)
+	{
+		ID3D12Device *underlyingDevice = GetD3D12Device()->GetDevice();
+		ID3D12GraphicsCommandList *d3dCommandList = commandList->GetCommandList();
+
+		//Get the cameras frame buffer
+		D3D12Framebuffer *framebuffer = static_cast<D3D12Framebuffer *>(camera->GetFramebuffer());
+		if(!framebuffer)
+		{
+			D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
+			D3D12SwapChain *swapChain = window->GetSwapChain();
+			framebuffer = swapChain->GetFramebuffer();
+		}
+
+		ID3D12DescriptorHeap *rtvHeap;
+		ID3D12DescriptorHeap *dsvHeap;
+
+		//TODO: Create heaps per framebuffer and not per camera
+		//Create new heaps
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = 1;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+
+		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+		dsvHeapDesc.NumDescriptors = 1;
+		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap));
+
+		_internals->frameResources.push_back({ rtvHeap, _scheduledFenceValue });
+		_internals->frameResources.push_back({ dsvHeap, _scheduledFenceValue });
+
+		//Create the render target view
+		underlyingDevice->CreateRenderTargetView(framebuffer->GetRenderTarget(), nullptr, rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+		// Create depth stencil view
+		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+		underlyingDevice->CreateDepthStencilView(framebuffer->GetDepthBuffer(), &depthStencilViewDesc, dsvHeap->GetCPUDescriptorHandleForHeapStart());
+
+		//Set the rendertargets
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(dsvHeap->GetCPUDescriptorHandleForHeapStart());
+		d3dCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+		//Setup viewport and scissor rect
+		Rect cameraRect = camera->GetFrame();
+		if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+		{
+			Vector2 framebufferSize = framebuffer->GetSize();
+			cameraRect.x = 0.0f;
+			cameraRect.y = 0.0f;
+			cameraRect.width = framebufferSize.x;
+			cameraRect.height = framebufferSize.y;
+		}
+
+		D3D12_VIEWPORT viewport;
+		viewport.Width = cameraRect.width;
+		viewport.Height = cameraRect.height;
+		viewport.TopLeftX = cameraRect.x;
+		viewport.TopLeftY = cameraRect.y;
+		viewport.MaxDepth = 1.0;
+		viewport.MinDepth = 0.0;
+
+		D3D12_RECT scissorRect;
+		scissorRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
+		scissorRect.bottom = static_cast<LONG>(cameraRect.height + cameraRect.y);
+		scissorRect.left = cameraRect.x;
+		scissorRect.top = cameraRect.y;
+
+		d3dCommandList->RSSetViewports(1, &viewport);
+		d3dCommandList->RSSetScissorRects(1, &scissorRect);
+
+		// Clear
+		//TODO: It would probably be better to just clear the whole rendertarget at once...
+		const Color &clearColor = camera->GetClearColor();
+		d3dCommandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &scissorRect);
+		d3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &scissorRect);
+	}
+
 	void D3D12Renderer::CreateDescriptorHeap()
 	{
 		if(_internals->totalDrawableCount == 0)
 			return;
 
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
-		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 
-		if(_srvCbvHeap[swapChain->GetFrameIndex()])
-		{
-			_srvCbvHeap[swapChain->GetFrameIndex()]->Release();
-		}
+		ID3D12DescriptorHeap *srvCbvHeap;
 
 		// Layout: 5 textures + 1 cbv
 		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
 		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->totalDrawableCount;
 		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_srvCbvHeap[swapChain->GetFrameIndex()]));
+		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&srvCbvHeap));
+		_currentSrvCbvHeap = srvCbvHeap;
+		_internals->frameResources.push_back({ srvCbvHeap, _scheduledFenceValue });
 
 		// Describe null SRVs. Null descriptors are used to "unbind" textures
 		D3D12_SHADER_RESOURCE_VIEW_DESC nullSrvDesc = {};
@@ -616,7 +692,7 @@ namespace RN
 		textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
 
 		size_t cameraID = 0;
 		for(D3D12RenderPass renderPass : _internals->renderPasses)
@@ -832,10 +908,10 @@ namespace RN
 	{
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_srvCbvHeap[swapChain->GetFrameIndex()]->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
 
 		commandList->SetPipelineState(drawable->_cameraSpecifics[_internals->currentCameraID].pipelineState->state);
