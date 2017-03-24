@@ -107,6 +107,10 @@ namespace RN
 		ID3D12DescriptorHeap *_srvCbvHeap[3];
 		UINT _srvCbvDescriptorSize;
 
+		ID3D12Fence *_fence;
+		UINT _scheduledFenceValue;
+		UINT _completedFenceValue;
+
 		size_t _currentDrawableIndex;
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)

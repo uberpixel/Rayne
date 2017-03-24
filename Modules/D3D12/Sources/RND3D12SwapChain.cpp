@@ -20,7 +20,7 @@ namespace RN
 		_size(size),
 		_bufferCount(bufferCount)
 	{
-		for(int i = 0; i < 3; i++)
+		for(int i = 0; i < bufferCount; i++)
 			_fenceValues[i] = 0;
 
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
@@ -78,8 +78,8 @@ namespace RN
 
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
-		_completedFenceValue = _fence->GetCompletedValue();
-		if(_completedFenceValue < _fenceValues[_frameIndex])
+		UINT completedFenceValue = _fence->GetCompletedValue();
+		if(completedFenceValue < _fenceValues[_frameIndex])
 		{
 			_fence->SetEventOnCompletion(_fenceValues[_frameIndex], _fenceEvent);
 			WaitForSingleObjectEx(_fenceEvent, INFINITE, false);

@@ -29,9 +29,7 @@ namespace RN
 		D3DAPI void PresentBackBuffer();
 
 		size_t GetFrameIndex() const { return _frameIndex;  }
-		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer;  }
-		const UINT GetCurrentFenceValue() const { return _fenceValues[_frameIndex]; }
-		const UINT GetCompletedFenceValue() const { return _completedFenceValue; }
+		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer; }
 
 		IDXGISwapChain3 *GetD3D12SwapChain() const { return _swapChain; }
 		uint8 GetBufferCount() const { return _bufferCount; }
@@ -50,7 +48,6 @@ namespace RN
 
 		ID3D12Fence *_fence;
 		UINT _fenceValues[3];
-		UINT _completedFenceValue;
 		HANDLE _fenceEvent;
 
 		size_t _frameIndex;

@@ -26,9 +26,13 @@ namespace RN
 		_mipMapTextures(new Array()),
 		_srvCbvHeap{ nullptr, nullptr, nullptr },
 		_submittedCommandLists(new Array()),
-		_executedCommandLists(new Array())
+		_executedCommandLists(new Array()),
+		_scheduledFenceValue(0),
+		_completedFenceValue(0)
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
+
+		underlyingDevice->CreateFence(_scheduledFenceValue++, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
 
 		D3D12_COMMAND_QUEUE_DESC queueDescriptor = {};
 		queueDescriptor.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -309,11 +313,12 @@ namespace RN
 		_internals->currentCameraID = 0;
 
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
+		_completedFenceValue = _fence->GetCompletedValue();
 
 		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
 		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
 		{
-			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= swapChain->GetCompletedFenceValue())
+			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= _completedFenceValue)
 			{
 				_executedCommandLists->RemoveObjectAtIndex(i);
 			}
@@ -413,11 +418,13 @@ namespace RN
 		std::vector<ID3D12CommandList*> commandLists;
 		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
 			commandLists.push_back(list->GetCommandList());
-			list->_fenceValue = swapChain->GetCurrentFenceValue();
+			list->_fenceValue = _scheduledFenceValue;
 		});
 		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
 		_submittedCommandLists->RemoveAllObjects();
 		_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
+
+		_commandQueue->Signal(_fence, _scheduledFenceValue++);
 
 		swapChain->PresentBackBuffer();
 	}
