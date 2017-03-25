@@ -273,8 +273,10 @@ namespace RN
 	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
 	{
 		_projectionMatrix = projectionMatrix;
+		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 		_dirtyFrustum = true;
 		_dirtyProjection = false;
+		UpdateFrustum();
 	}
 
 	void Camera::DidUpdate(ChangeSet changeSet)
@@ -447,6 +449,9 @@ namespace RN
 
 	void Camera::UpdateProjection(Renderer *renderer)
 	{
+		if(!_dirtyProjection)
+			return;
+
 		if(_flags & Flags::Orthogonal)
 		{
 			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);

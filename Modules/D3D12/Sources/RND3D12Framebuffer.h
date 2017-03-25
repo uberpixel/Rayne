@@ -33,7 +33,7 @@ namespace RN
 	private:
 		D3D12Renderer *_renderer;
 		WeakRef<D3D12SwapChain> _swapChain;
-		ID3D12Resource *_renderTargets[3];
+		ID3D12Resource **_renderTargets;
 		ID3D12Resource *_depthStencilBuffer;
 
 		RNDeclareMetaAPI(D3D12Framebuffer, D3DAPI)

@@ -16,6 +16,13 @@ namespace RN
 		_screen(screen->Retain())
 	{}
 
-	Window::~Window()
+	Window::Window() :
+		_screen(nullptr)
 	{}
+
+	Window::~Window()
+	{
+		if(_screen)
+			_screen->Release();
+	}
 }

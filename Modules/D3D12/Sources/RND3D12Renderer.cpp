@@ -610,8 +610,12 @@ namespace RN
 		_internals->frameResources.push_back({ rtvHeap, _scheduledFenceValue });
 		_internals->frameResources.push_back({ dsvHeap, _scheduledFenceValue });
 
+		//TODO: Don't hardcode these descriptors!
 		//Create the render target view
-		underlyingDevice->CreateRenderTargetView(framebuffer->GetRenderTarget(), nullptr, rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+		renderTargetViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		underlyingDevice->CreateRenderTargetView(framebuffer->GetRenderTarget(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Create depth stencil view
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};

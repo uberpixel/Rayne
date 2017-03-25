@@ -26,34 +26,37 @@ namespace RN
 
 		D3DAPI Vector2 GetSize() const;
 
-		D3DAPI void AcquireBackBuffer();
-		D3DAPI void Prepare(D3D12CommandList *commandList);
-		D3DAPI void Finalize(D3D12CommandList *commandList);
-		D3DAPI void PresentBackBuffer();
+		D3DAPI virtual void AcquireBackBuffer();
+		D3DAPI virtual void Prepare(D3D12CommandList *commandList);
+		D3DAPI virtual void Finalize(D3D12CommandList *commandList);
+		D3DAPI virtual void PresentBackBuffer();
+
+		D3DAPI virtual ID3D12Resource *GetD3D12Buffer(int i) const;
 
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer; }
 
-		IDXGISwapChain3 *GetD3D12SwapChain() const { return _swapChain; }
 		uint8 GetBufferCount() const { return _bufferCount; }
+
+	protected:
+		D3DAPI D3D12SwapChain(){}
+
+		D3D12Renderer *_renderer;
+		D3D12Framebuffer *_framebuffer;
+		Vector2 _size;
+		uint8 _bufferCount;
+		size_t _frameIndex;
 
 	private:
 		D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, uint8 bufferCount);
 
 		void ResizeSwapchain(const Vector2 &size, HWND hwnd);
-
-		Vector2 _size;
-		uint8 _bufferCount;
-
-		D3D12Renderer *_renderer;
-		D3D12Framebuffer *_framebuffer;
+		
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;
 		UINT _fenceValues[3];
 		HANDLE _fenceEvent;
-
-		size_t _frameIndex;
 
 		RNDeclareMetaAPI(D3D12SwapChain, D3DAPI)
 	};

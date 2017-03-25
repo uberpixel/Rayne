@@ -63,13 +63,21 @@ namespace RN
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
 		descriptor.colorFormat = Texture::Format::RGBA8888;
-
+		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
 		_framebuffer = new D3D12Framebuffer(size, descriptor, this, _renderer);
 	}
 
 	Vector2 D3D12SwapChain::GetSize() const
 	{
 		return _size;
+	}
+
+	ID3D12Resource *D3D12SwapChain::GetD3D12Buffer(int i) const
+	{
+		ID3D12Resource *bufferResource;
+		_swapChain->GetBuffer(i, IID_PPV_ARGS(&bufferResource));
+
+		return bufferResource;
 	}
 
 	void D3D12SwapChain::AcquireBackBuffer()

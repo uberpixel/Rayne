@@ -33,6 +33,7 @@ namespace RN
 		RNAPI virtual Framebuffer *GetFramebuffer() const = 0;
 
 	protected:
+		RNAPI Window();
 		RNAPI Window(Screen *screen);
 
 	private:
