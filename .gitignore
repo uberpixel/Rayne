@@ -2,7 +2,6 @@
 [Tt]humbs.db
 *.DS_Store
 *.orig
-
 # CLion
 .idea/*.iml
 .idea/workspace.xml
@@ -11,13 +10,11 @@
 .idea/misc.xml
 .idea/dictionaries
 .idea/serialmonitor_settings.xml
-
 /build/
 CMakeLists.txt.user
-
 # Vulkan Renderer
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.h
-
 # Came
 /cmake-build-*
+Modules/Oculus/Vendor/OculusSDK/
