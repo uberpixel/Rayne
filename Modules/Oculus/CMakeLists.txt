@@ -13,12 +13,14 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNOculusInit.cpp
         RNOculusSwapChain.cpp
-        RNOculusWindow.cpp)
+        RNOculusWindow.cpp
+        RNOculusCamera.cpp)
 
 set(HEADERS
 		RNOculus.h
         RNOculusSwapChain.h
-        RNOculusWindow.h)
+        RNOculusWindow.h
+        RNOculusCamera.h)
 
 set(DEFINES RN_BUILD_OCULUS)
 
