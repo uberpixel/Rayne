@@ -85,8 +85,10 @@ set(RAYNE_SOURCES
     Scene/RNEntity.cpp
     Scene/RNInstancingNode.cpp
     Scene/RNScene.cpp
+    Scene/RNSceneAttachment.cpp
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
+    Scene/RNSceneNodeAttachment.cpp
     System/RNFile.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -192,8 +194,10 @@ set(RAYNE_HEADERS
     Scene/RNEntity.h
     Scene/RNInstancingNode.h
     Scene/RNScene.h
+    Scene/RNSceneAttachment.h
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h
+    Scene/RNSceneNodeAttachment.h
     System/RNFile.h
     System/RNFileManager.h
     System/RNScreen.h

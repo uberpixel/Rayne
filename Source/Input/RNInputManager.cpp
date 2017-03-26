@@ -387,6 +387,7 @@ namespace RN
 		}
 
 #if RN_PLATFORM_WINDOWS
+		//TODO: Support all keys
 		if(name->IsEqual(RNCSTR("W")))
 		{
 			return _keyPressed[0x57];
@@ -402,6 +403,14 @@ namespace RN
 		if(name->IsEqual(RNCSTR("D")))
 		{
 			return _keyPressed[0x44];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[0x45];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[0x46];
 		}
 #endif
 

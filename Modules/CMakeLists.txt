@@ -6,6 +6,7 @@ option(BUILD_D3D12_MODULE "Build the DirectX12 renderer module" ON)
 option(BUILD_VULKAN_MODULE "Build the Vulkan renderer module" ON)
 option(BUILD_ASSIMP_MODULE "Build the Assimp module" ON)
 option(BUILD_OCULUS_MODULE "Build the Oculus module" ON)
+option(BUILD_BULLET_MODULE "Build the Bullet physics module" ON)
 
 if(APPLE AND ${BUILD_METAL_MODULE})
     add_subdirectory("Metal")
@@ -23,4 +24,8 @@ endif()
 
 if(MSVC AND ${BUILD_OCULUS_MODULE})
     add_subdirectory("Oculus")
+endif()
+
+if(${BUILD_BULLET_MODULE})
+    add_subdirectory("Bullet")
 endif()

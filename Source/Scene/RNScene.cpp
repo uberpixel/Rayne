@@ -20,10 +20,13 @@ namespace RN
 {
 	RNDefineMeta(Scene, Object)
 
-	Scene::Scene()
+	Scene::Scene() : _attachments(nullptr)
 	{}
 	Scene::~Scene()
-	{}
+	{
+		if(_attachments)
+			_attachments->Release();
+	}
 
 	void Scene::Update(float delta)
 	{
@@ -100,6 +103,14 @@ namespace RN
 
 			group->Wait();
 			group->Release();
+		}
+
+		//Update scene attachments
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneAttachment>([delta](SceneAttachment *attachment, size_t index, bool &stop) {
+				attachment->Update(delta);
+			});
 		}
 
 		DidUpdate(delta);
@@ -247,6 +258,25 @@ namespace RN
 
 		node->UpdateScene(nullptr);
 		node->Autorelease();
+	}
+
+	void Scene::AddAttachment(SceneAttachment *attachment)
+	{
+		RN_ASSERT(attachment->_scene == nullptr, "AddAttachment() must be called on an Attachment not owned by the scene");
+
+		if(!_attachments)
+			_attachments = new Array();
+
+		_attachments->AddObject(attachment);
+		attachment->_scene = this;
+	}
+
+	void Scene::RemoveAttachment(SceneAttachment *attachment)
+	{
+		RN_ASSERT(attachment->_scene == this, "RemoveAttachment() must be called on an Attachment owned by the scene");
+
+		_attachments->RemoveObject(attachment);
+		attachment->_scene = nullptr;
 	}
 
 	void Scene::WillBecomeActive()

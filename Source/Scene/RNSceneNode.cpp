@@ -8,6 +8,7 @@
 
 #include "RNSceneNode.h"
 #include "RNScene.h"
+#include "RNSceneNodeAttachment.h"
 
 namespace RN
 {
@@ -23,7 +24,8 @@ namespace RN
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
-		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation)
+		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
+		_attachments(nullptr)
 	{
 		Initialize();
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });
@@ -69,6 +71,9 @@ namespace RN
 	SceneNode::~SceneNode()
 	{
 		_children->Release();
+
+		if(_attachments)
+			_attachments->Release();
 	}
 
 
@@ -303,6 +308,21 @@ namespace RN
 			parent->RemoveChild(this);
 	}
 
+	void SceneNode::AddAttachment(SceneNodeAttachment *attachment)
+	{
+		if(!_attachments)
+			_attachments = new Array();
+
+		_attachments->AddObject(attachment);
+		attachment->_node = this;
+	}
+
+	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
+	{
+		attachment->_node = nullptr;
+		_attachments->RemoveObject(attachment);
+	}
+
 	const Array *SceneNode::GetChildren() const
 	{
 		return _children;
@@ -333,6 +353,16 @@ namespace RN
 	// MARK: -
 	// MARK: Updates
 	// ------------------
+
+	void SceneNode::Update(float delta)
+	{
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([delta](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->Update(delta);
+			});
+		}
+	}
 
 	void SceneNode::WillUpdate(ChangeSet changeSet)
 	{

@@ -423,6 +423,7 @@ namespace RN
 
 		RNAPI void CalculateBoundingVolumes();
 
+		//TODO: Having the two types is a bit confusing since they result in different iterator behaviour
 		Chunk GetChunk() { return Chunk(this, false); }
 		Chunk GetTrianglesChunk() { return Chunk(this, true); }
 

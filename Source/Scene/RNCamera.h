@@ -86,7 +86,6 @@ namespace RN
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 
 		RNAPI void Update(float delta) override;
-		RNAPI void UpdateEditMode(float delta) override;
 
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 

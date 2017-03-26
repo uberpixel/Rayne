@@ -356,6 +356,7 @@ namespace RN
 							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -471,6 +472,11 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
 		return mesh->Autorelease();
 	}
 
@@ -481,6 +487,7 @@ namespace RN
 							   VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -623,6 +630,11 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
 		return mesh->Autorelease();
 	}
 
@@ -634,6 +646,7 @@ namespace RN
 							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, segments*slices, (segments - 2)*(slices - 1)*6);
 
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -679,6 +692,11 @@ namespace RN
 			*indices ++ = (segments - 3) * slices + i + 1;
 			*indices ++ = (segments - 3) * slices + i;
 		}
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
 
 		return mesh->Autorelease();
 	}
