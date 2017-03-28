@@ -44,8 +44,6 @@ namespace RN
 		RNAPI void Run();
 		RNAPI void Exit();
 
-		RNAPI void SetMaxFPS(uint32 maxFPS);
-
 		float GetScaleFactor() const { return 1.0f; }
 
 		Application *GetApplication() const { return _application; }
@@ -114,8 +112,6 @@ namespace RN
 		std::atomic<bool> _exit;
 
 		size_t _frames;
-		double _minDelta;
-		uint32 _maxFPS;
 		Clock::time_point _lastFrame;
 		bool _firstFrame;
 

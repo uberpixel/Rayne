@@ -148,7 +148,7 @@ namespace RN
 		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) const;
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) const;
 
-		virtual void Update(float delta);
+		RNAPI virtual void Update(float delta);
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);

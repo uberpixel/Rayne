@@ -90,6 +90,8 @@ namespace RN
 		_layer.Viewport[1].Pos.y = 0;
 		_layer.Viewport[1].Size.w = bufferSize.w / 2;
 		_layer.Viewport[1].Size.h = bufferSize.h;
+
+		ovr_SetTrackingOriginType(_session, ovrTrackingOrigin_FloorLevel);
 	}
 
 	OculusSwapChain::~OculusSwapChain()

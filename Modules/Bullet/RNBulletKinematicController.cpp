@@ -11,6 +11,8 @@
 #include "RNBulletMaterial.h"
 
 #include "btBulletDynamicsCommon.h"
+#include "BulletDynamics/Character/btKinematicCharacterController.h"
+#include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
 namespace RN
 {
@@ -28,7 +30,7 @@ namespace RN
 		_controller = new btKinematicCharacterController(_ghost, static_cast<btConvexShape *>(_shape->GetBulletShape()), stepHeight);
 		_controller->warp(btVector3(offset.x, offset.y, offset.z));
 		_controller->setJumpSpeed(5.0f);
-		_controller->setGravity(btVector3(0.0f, 9.81f, 0.0f));
+		_controller->setGravity(btVector3(0.0f, -9.81f, 0.0f));
 	}
 		
 	BulletKinematicController::~BulletKinematicController()
@@ -75,7 +77,7 @@ namespace RN
 		_controller->jump();
 	}
 		
-	btCollisionObject *BulletKinematicController::GetBulletCollisionObject()
+	btCollisionObject *BulletKinematicController::GetBulletCollisionObject() const
 	{
 		return _ghost;
 	}

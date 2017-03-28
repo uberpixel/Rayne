@@ -10,6 +10,7 @@
 #define __RAYNE_OCULUSWINDOW_H_
 
 #include "RNOculus.h"
+#include "RNOculusTrackingState.h"
 
 namespace RN
 {
@@ -36,15 +37,15 @@ namespace RN
 
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 
-		OVRAPI void UpdateTrackingData();
-		OVRAPI Vector3 GetHeadPosition() const;
-		OVRAPI Quaternion GetHeadRotation() const;
-		OVRAPI Matrix GetProjectionMatrix(int eye, float near, float far) const;
-		OVRAPI Vector3 GetEyePosition(int eye) const;
-		OVRAPI Quaternion GetEyeRotation(int eye) const;
+		OVRAPI void UpdateTrackingData(float near, float far);
+
+		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState() const;
+		OVRAPI const OculusTouchTrackingState &GetTouchTrackingState(int hand) const;
 
 	private:
 		OculusSwapChain *_swapChain;
+		OculusHMDTrackingState _hmdTrackingState;
+		OculusTouchTrackingState _touchTrackingState[2];
 
 		RNDeclareMetaAPI(OculusWindow, OVRAPI)
 	};

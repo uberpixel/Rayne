@@ -107,7 +107,7 @@ namespace RN
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
-		D3D12Window *window = new D3D12Window(size, screen, this, 2);
+		D3D12Window *window = new D3D12Window(size, screen, this, 4);
 
 		if(!_mainWindow)
 			_mainWindow = window;

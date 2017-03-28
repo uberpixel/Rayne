@@ -22,20 +22,20 @@ namespace RN
 	public:
 		friend class BulletWorld;
 			
-		BulletCollisionObject();
-		~BulletCollisionObject() override;
+		BTAPI BulletCollisionObject();
+		BTAPI ~BulletCollisionObject() override;
 			
-		void SetCollisionFilter(short int filter);
-		void SetCollisionFilterMask(short int mask);
-		void SetMaterial(BulletMaterial *material);
-		void SetContactCallback(std::function<void(BulletCollisionObject *)> &&callback);
-		virtual void SetPositionOffset(RN::Vector3 offset);
+		BTAPI void SetCollisionFilter(short int filter);
+		BTAPI void SetCollisionFilterMask(short int mask);
+		BTAPI void SetMaterial(BulletMaterial *material);
+		BTAPI void SetContactCallback(std::function<void(BulletCollisionObject *)> &&callback);
+		BTAPI virtual void SetPositionOffset(RN::Vector3 offset);
 			
 		short int GetCollisionFilter() const { return _collisionFilter; }
 		short int GetCollisionFilterMask() const { return _collisionFilterMask; }
 		BulletMaterial *GetMaterial() const { return _material; }
 			
-		virtual btCollisionObject *GetBulletCollisionObject() const = 0;
+		BTAPI virtual btCollisionObject *GetBulletCollisionObject() const = 0;
 			
 	protected:
 		//void DidUpdate(SceneNode::ChangeSet changeSet) override;

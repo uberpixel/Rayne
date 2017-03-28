@@ -8,7 +8,6 @@
 
 #include "RNOculusSwapChain.h"
 #include "RNOculusCamera.h"
-#include "RNOculusWindow.h"
 
 namespace RN
 {
@@ -17,7 +16,8 @@ namespace RN
 	OculusCamera::OculusCamera(bool debug) :
 		_window(new OculusWindow()),
 		_isDebug(debug),
-		_debugWindow(nullptr)
+		_debugWindow(nullptr),
+		_head(new SceneNode())
 	{
 		Vector2 windowSize = _window->GetSize();
 
@@ -28,36 +28,51 @@ namespace RN
 			_debugWindow->Show();
 		}
 
+		AddChild(_head);
+
 		for(int i = 0; i < 2; i++)
 		{
-			_camera[i] = new Camera();
+			_eye[i] = new Camera();
 
 			if(!_isDebug)
-				_camera[i]->SetFramebuffer(_window->GetFramebuffer());
+				_eye[i]->SetFramebuffer(_window->GetFramebuffer());
 			else
-				_camera[i]->SetFramebuffer(_debugWindow->GetFramebuffer());
+				_eye[i]->SetFramebuffer(_debugWindow->GetFramebuffer());
 
-			_camera[i]->SetFrame(Rect(i * windowSize.x / 2, 0, windowSize.x / 2, windowSize.y));
-			AddChild(_camera[i]);
+			_eye[i]->SetFrame(Rect(i * windowSize.x / 2, 0, windowSize.x / 2, windowSize.y));
+			_head->AddChild(_eye[i]);
 		}
 	}
 
 	OculusCamera::~OculusCamera()
 	{
 		_window->Release();
-		_camera[0]->Release();
-		_camera[1]->Release();
+		_head->Release();
+		_eye[0]->Release();
+		_eye[1]->Release();
 	}
 
 	void OculusCamera::Update(float delta)
 	{
-		_window->UpdateTrackingData();
-		//_camera->SetRotation(_oculusWindow->GetHeadRotation());
-		for(int i = 0; i < 2; i++)
-		{
-			_camera[i]->SetProjectionMatrix(_window->GetProjectionMatrix(i, _camera[i]->GetClipNear(), _camera[i]->GetClipFar()));
-			_camera[i]->SetPosition(_window->GetEyePosition(i));
-			_camera[i]->SetRotation(_window->GetEyeRotation(i));
-		}
+		_window->UpdateTrackingData(_eye[0]->GetClipNear(), _eye[0]->GetClipFar());
+		const OculusHMDTrackingState &hmdState = _window->GetHMDTrackingState();
+
+		_eye[0]->SetPosition(hmdState.eyeOffset[0]);
+		_eye[1]->SetPosition(hmdState.eyeOffset[1]);
+		_eye[0]->SetProjectionMatrix(hmdState.eyeProjection[0]);
+		_eye[1]->SetProjectionMatrix(hmdState.eyeProjection[1]);
+
+		_head->SetRotation(hmdState.rotation);
+		_head->SetPosition(hmdState.position);
+	}
+
+	const OculusHMDTrackingState &OculusCamera::GetHMDTrackingState()
+	{
+		return _window->GetHMDTrackingState();
+	}
+
+	const OculusTouchTrackingState &OculusCamera::GetTouchTrackingState(int hand)
+	{
+		return _window->GetTouchTrackingState(hand);
 	}
 }

@@ -13,8 +13,8 @@
 #include "RNBulletCollisionObject.h"
 #include "RNBulletShape.h"
 
-#include <BulletDynamics/Character/btKinematicCharacterController.h>
-#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+class btPairCachingGhostObject;
+class btKinematicCharacterController;
 
 namespace RN
 {
@@ -36,7 +36,7 @@ namespace RN
 		BTAPI bool IsOnGround();
 		BTAPI void Jump();
 			
-		BTAPI virtual btCollisionObject *GetBulletCollisionObject();
+		BTAPI btCollisionObject *GetBulletCollisionObject() const override;
 			
 	protected:
 		//void DidUpdate(SceneNode::ChangeSet changeSet) override;

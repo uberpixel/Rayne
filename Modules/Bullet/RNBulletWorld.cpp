@@ -16,7 +16,7 @@ namespace RN
 {
 	RNDefineMeta(BulletWorld, SceneAttachment)
 
-	BulletWorld::BulletWorld(const Vector3 &gravity) : _maxSteps(10), _stepSize(1.0 / 60.0)
+	BulletWorld::BulletWorld(const Vector3 &gravity) : _maxSteps(50), _stepSize(1.0 / 120.0)
 	{
 		_pairCallback = new btGhostPairCallback();
 

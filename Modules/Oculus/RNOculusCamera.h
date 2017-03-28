@@ -10,6 +10,8 @@
 #define __RAYNE_OCULUSCAMERA_H_
 
 #include "RNOculus.h"
+#include "RNOculusTrackingState.h"
+#include "RNOculusWindow.h"
 
 namespace RN
 {
@@ -20,11 +22,19 @@ namespace RN
 		OVRAPI OculusCamera(bool debug = false);
 		OVRAPI ~OculusCamera();
 
-		void Update(float delta) override;
+		OVRAPI virtual void Update(float delta) override;
+
+		OVRAPI void ReCenter();
+
+		SceneNode *GetHead() const { return _head; }
+
+		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState();
+		OVRAPI const OculusTouchTrackingState &GetTouchTrackingState(int hand);
 
 	private:
 		OculusWindow *_window;
-		Camera *_camera[2];
+		SceneNode *_head;
+		Camera *_eye[2];
 
 		bool _isDebug;
 		Window *_debugWindow;

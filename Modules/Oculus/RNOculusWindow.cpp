@@ -33,56 +33,88 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
-	void OculusWindow::UpdateTrackingData()
+	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
 	{
-		_swapChain->UpdatePredictedPose();
+		Vector3 result;
+		result.x = ovrVector.x;
+		result.y = ovrVector.y;
+		result.z = ovrVector.z;
+		return result;
 	}
 
-	Vector3 OculusWindow::GetHeadPosition() const
+	static Vector2 GetVectorForOVRVector(const ovrVector2f &ovrVector)
 	{
-		ovrVector3f position = _swapChain->_hmdState.HeadPose.ThePose.Position;
-		return Vector3(position.x, position.y, position.z);
+		Vector2 result;
+		result.x = ovrVector.x;
+		result.y = ovrVector.y;
+		return result;
 	}
 
-	Quaternion OculusWindow::GetHeadRotation() const
+	static Quaternion GetQuaternionForOVRQuaternion(const ovrQuatf &ovrQuat)
 	{
-		ovrQuatf rotation = _swapChain->_hmdState.HeadPose.ThePose.Orientation;
-		return Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+		Quaternion result;
+		result.x = ovrQuat.x;
+		result.y = ovrQuat.y;
+		result.z = ovrQuat.z;
+		result.w = ovrQuat.w;
+		return result;
 	}
 
-	Matrix OculusWindow::GetProjectionMatrix(int eye, float near, float far) const
+	static Matrix GetMatrixForOVRMatrix(const ovrMatrix4f &ovrMatrix)
 	{
-		ovrMatrix4f proj = ovrMatrix4f_Projection(_swapChain->_layer.Fov[eye], near, far, ovrProjection_None);
 		Matrix result;
-
 		for(int q = 0; q < 4; q++)
 		{
 			for(int t = 0; t < 4; t++)
 			{
-				result.m[q*4 + t] = proj.M[t][q];
+				result.m[q * 4 + t] = ovrMatrix.M[t][q];
 			}
 		}
-
 		return result;
 	}
 
-	Vector3 OculusWindow::GetEyePosition(int eye) const
+	void OculusWindow::UpdateTrackingData(float near, float far)
 	{
-		// Get view and projection matrices for the Rift camera
-		/*		Vector3f pos = originPos + originRot.Transform(layer.RenderPose[eye].Position);
-		Matrix4f rot = originRot * Matrix4f(layer.RenderPose[eye].Orientation);
-		Vector3f finalUp = rot.Transform(Vector3f(0, 1, 0));
-		Vector3f finalForward = rot.Transform(Vector3f(0, 0, -1));
-		Matrix4f view = Matrix4f::LookAtRH(pos, pos + finalForward, finalUp);
-		Matrix4f proj = ovrMatrix4f_Projection(layer.Fov[eye], 0.2f, 1000.0f, 0);*/
+		_swapChain->UpdatePredictedPose();
 
-		ovrVector3f position = _swapChain->_layer.RenderPose[eye].Position;
-		return Vector3(position.x, position.y, position.z);
+		_hmdTrackingState.eyeOffset[0] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewOffset[0]);
+		_hmdTrackingState.eyeOffset[1] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewOffset[1]);
+		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[0], near, far, ovrProjection_None));
+		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[1], near, far, ovrProjection_None));
+		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.ThePose.Position);
+		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.ThePose.Orientation);
+
+		ovrInputState inputState;
+		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
+		{
+			_touchTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
+			_touchTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
+			_touchTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
+			_touchTrackingState[0].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[0]);
+			_touchTrackingState[0].indexTrigger = inputState.IndexTrigger[0];
+			_touchTrackingState[0].handTrigger = inputState.HandTrigger[0];
+
+			_touchTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
+			_touchTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
+			_touchTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
+			_touchTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
+			_touchTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
+			_touchTrackingState[1].handTrigger = inputState.HandTrigger[1];
+		}
+		else
+		{
+			_touchTrackingState[0].active = false;
+			_touchTrackingState[1].active = false;
+		}
 	}
 
-	Quaternion OculusWindow::GetEyeRotation(int eye) const
+	const OculusHMDTrackingState &OculusWindow::GetHMDTrackingState() const
 	{
-		ovrQuatf rotation = _swapChain->_layer.RenderPose[eye].Orientation;
-		return Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+		return _hmdTrackingState;
+	}
+
+	const OculusTouchTrackingState &OculusWindow::GetTouchTrackingState(int hand) const
+	{
+		return _touchTrackingState[hand];
 	}
 }

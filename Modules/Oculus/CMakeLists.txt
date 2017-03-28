@@ -14,17 +14,23 @@ set(SOURCES
         RNOculusInit.cpp
         RNOculusSwapChain.cpp
         RNOculusWindow.cpp
-        RNOculusCamera.cpp)
+        RNOculusCamera.cpp
+        RNOculusTrackingState.cpp)
 
 set(HEADERS
-		RNOculus.h
+	RNOculus.h
         RNOculusSwapChain.h
         RNOculusWindow.h
-        RNOculusCamera.h)
+        RNOculusCamera.h
+        RNOculusTrackingState.h)
 
 set(DEFINES RN_BUILD_OCULUS)
 
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib RayneD3D12)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib RayneD3D12)
+else()
+        set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Release/VS2015/LibOVR.lib RayneD3D12)
+endif()
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Include"
