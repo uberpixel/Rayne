@@ -1,0 +1,13 @@
+{
+	"RNApplication": "Swords",
+	"RNSearchPaths":
+	[
+		"./Resources"
+	],
+	"RNModules":
+	[
+		"Modules/RayneD3D12",
+		"Modules/RayneAssimp",
+		"Modules/RayneOculus"
+	]
+}

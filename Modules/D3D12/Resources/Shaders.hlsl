@@ -28,7 +28,12 @@ cbuffer uniforms : register(b0)
 	float4 ambientColor;
 	float4 diffuseColor;
 
+#if RN_UV0
+	float textureTileFactor;
+#endif
+#if RN_DISCARD
 	float discardThreshold;
+#endif
 };
 
 struct InputVertex
@@ -80,7 +85,7 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 	result.normal = mul(modelMatrix, float4(vert.normal, 0.0)).xyz;
 #endif
 #if RN_UV0
-	result.texCoords = vert.texCoords;
+	result.texCoords = vert.texCoords*textureTileFactor;
 #endif
 
 	result.ambient = ambientColor;
