@@ -7,6 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/CMake")
 option(RAYNE_THREAD_SANITIZER "Enable Clang thread sanitizer if available" OFF)
 option(RAYNE_ADDRESS_SANITIZER "Enable Clang address sanitizer if available" OFF)
 option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
+option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
 
 
 if(MSVC)
@@ -97,7 +98,7 @@ option(SKIP_INSTALL_ALL "Skip PNG intall" ON)
 set(ZLIB_FOUND 1)
 set(ZLIB_LIBRARIES zlibstatic)
 set(ZLIB_LIBRARY zlibstatic)
-set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/Vendor/zlib" "${CMAKE_BINARY_DIR}/Vendor/zlib")
+set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/zlib" "${CMAKE_CURRENT_BINARY_DIR}/Vendor/zlib")
 
 # Disable Jansson tests
 option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)

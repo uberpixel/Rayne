@@ -29,6 +29,7 @@ set(SOURCES
         Sources/RND3D12.cpp)
 
 set(HEADERS
+        Sources/d3dx12.h
         Sources/RND3D12.h
         Sources/RND3D12Device.h
         Sources/RND3D12Framebuffer.h
