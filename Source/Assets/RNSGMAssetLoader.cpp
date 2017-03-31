@@ -334,9 +334,10 @@ namespace RN
 			// Read the indices
 			file->Seek(indicesOffset);
 
-			GPUBuffer *indexBuffer = mesh->GetIndicesBuffer();
-			file->Read(indexBuffer->GetBuffer(), indicesCount * indicesSize);
-			indexBuffer->Invalidate();
+			uint8 *indicesBuffer = new uint8[indicesCount * indicesSize];
+			file->Read(indicesBuffer, indicesCount * indicesSize);
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indicesBuffer);
+			delete[] indicesBuffer;
 
 			mesh->EndChanges();
 

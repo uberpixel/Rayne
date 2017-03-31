@@ -49,6 +49,8 @@ namespace RN
 	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
+		_vertexBufferCPU(nullptr),
+		_indicesBufferCPU(nullptr),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
 		_drawMode(DrawMode::Triangle),
@@ -66,6 +68,11 @@ namespace RN
 	{
 		SafeRelease(_vertexBuffer);
 		SafeRelease(_indicesBuffer);
+		
+		if(_vertexBufferCPU)
+			free(_vertexBufferCPU);
+		if(_indicesBufferCPU)
+			free(_indicesBufferCPU);
 	}
 
 	void Mesh::ParseAttributes()
@@ -120,9 +127,13 @@ namespace RN
 			throw InconsistencyException("Mesh created without indices descriptor and non-zero indices count");
 
 		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
+		_vertexBufferCPU = malloc(_verticesSize);
 
 		if(hasIndices)
+		{
 			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
+			_indicesBufferCPU = malloc(_indicesSize);
+		}
 	}
 
 	void Mesh::BeginChanges()
@@ -138,11 +149,11 @@ namespace RN
 	{
 		if((-- _changeCounter) == 0)
 		{
-			if(_changedVertices)
-				_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
-
 			if(_changedIndices)
-				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize));
+
+			if(_changedVertices)
+				SubmitVertices(Range(0, _verticesSize));
 		}
 	}
 
@@ -156,14 +167,14 @@ namespace RN
 		if(feature == VertexAttribute::Feature::Indices)
 		{
 			const uint8 *data = static_cast<const uint8 *>(tdata);
-			uint8 *destination = static_cast<uint8 *>(_indicesBuffer->GetBuffer());
+			uint8 *destination = static_cast<uint8 *>(_indicesBufferCPU);
 
 			std::copy(data, data + _indicesSize, destination);
 
 			if(_changeCounter)
 				_changedIndices = true;
 			else
-				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize));
 		}
 		else
 		{
@@ -171,7 +182,7 @@ namespace RN
 			{
 				if(attribute._feature == feature)
 				{
-					uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
+					uint8 *vertices = static_cast<uint8 *>(_vertexBufferCPU);
 					const uint8 *data = static_cast<const uint8 *>(tdata);
 
 					uint8 *buffer = vertices + attribute._offset;
@@ -187,7 +198,7 @@ namespace RN
 					if(_changeCounter)
 						_changedVertices = true;
 					else
-						_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+						SubmitVertices(Range(0, _verticesSize));
 
 					break;
 				}
@@ -201,7 +212,7 @@ namespace RN
 		{
 			if(attribute._name && attribute._name->IsEqual(name))
 			{
-				uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
+				uint8 *vertices = static_cast<uint8 *>(_vertexBufferCPU);
 				const uint8 *data = static_cast<const uint8 *>(tdata);
 
 				uint8 *buffer = vertices + attribute._offset;
@@ -217,7 +228,7 @@ namespace RN
 				if(_changeCounter)
 					_changedVertices = true;
 				else
-					_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+					SubmitVertices(Range(0, _verticesSize));
 
 				break;
 			}
@@ -699,5 +710,27 @@ namespace RN
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
+	}
+
+	void Mesh::SubmitVertices(const Range &range)
+	{
+		if(!_vertexBufferCPU)
+			return;
+
+		//TODO: Don't copy full range if not needed.
+		void *target = _vertexBuffer->GetBuffer();
+		memcpy(target, _vertexBufferCPU, _verticesSize);
+		_vertexBuffer->InvalidateRange(range);
+	}
+
+	void Mesh::SubmitIndices(const Range &range)
+	{
+		if(!_indicesBufferCPU)
+			return;
+
+		//TODO: Don't copy full range if not needed.
+		void *target = _indicesBuffer->GetBuffer();
+		memcpy(target, _indicesBufferCPU, _indicesSize);
+		_indicesBuffer->InvalidateRange(range);
 	}
 }

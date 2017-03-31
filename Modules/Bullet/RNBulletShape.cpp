@@ -187,6 +187,7 @@ namespace RN
 		
 	void BulletTriangleMeshShape::AddMesh(Mesh *mesh)
 	{
+		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
 		if(!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
 		{
@@ -202,7 +203,7 @@ namespace RN
 			const Vector3 &vertex1 = *(vertexIterator++);
 			const Vector3 &vertex2 = *(vertexIterator++);
 			const Vector3 &vertex3 = *(vertexIterator);
-			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), true);
+			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
 		}
 	}
 		

@@ -339,7 +339,7 @@ namespace RN
 			ElementIterator<T> GetIterator(VertexAttribute::Feature feature)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
-				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
+				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset; //TODO: First index is assumed to be 0, but could be different
 
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
 			}
@@ -379,14 +379,14 @@ namespace RN
 			void *GetVertexData()
 			{
 				if(!_vertexData)
-					_vertexData = _mesh->_vertexBuffer->GetBuffer();
+					_vertexData = _mesh->_vertexBufferCPU;
 
 				return _vertexData;
 			}
 			void *GetIndexData()
 			{
 				if(!_indexData)
-					_indexData = _mesh->_indicesBuffer->GetBuffer();
+					_indexData = _mesh->_indicesBufferCPU;
 
 				return _indexData;
 			}
@@ -444,9 +444,14 @@ namespace RN
 
 	private:
 		void ParseAttributes();
+		void SubmitIndices(const Range &range);
+		void SubmitVertices(const Range &range);
 
+		//TODO: Find a nice way to combine cpu and gpu buffers with consistent interface, optional storage and transfer between them
 		GPUBuffer *_vertexBuffer;
 		GPUBuffer *_indicesBuffer;
+		void *_vertexBufferCPU;
+		void *_indicesBufferCPU;
 
 		size_t _stride;
 		size_t _verticesCount;

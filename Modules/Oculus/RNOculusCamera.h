@@ -24,8 +24,6 @@ namespace RN
 
 		OVRAPI virtual void Update(float delta) override;
 
-		OVRAPI void ReCenter();
-
 		SceneNode *GetHead() const { return _head; }
 
 		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState();
