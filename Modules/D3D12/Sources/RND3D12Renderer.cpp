@@ -27,6 +27,7 @@ namespace RN
 		_currentSrvCbvHeap(nullptr),
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array()),
+		_commandListPool(new Array()),
 		_scheduledFenceValue(0),
 		_completedFenceValue(0)
 	{
@@ -88,13 +89,19 @@ namespace RN
 
 	D3D12CommandList *D3D12Renderer::GetCommandList()
 	{
-		D3D12CommandList *commandList = new D3D12CommandList(GetD3D12Device()->GetDevice());
-		return commandList->Autorelease();
-	}
-
-	D3D12CommandListWithCallback *D3D12Renderer::GetCommandListWithCallback()
-	{
-		D3D12CommandListWithCallback *commandList = new D3D12CommandListWithCallback(GetD3D12Device()->GetDevice());
+		D3D12CommandList *commandList = nullptr;
+		if(_commandListPool->GetCount() == 0)
+		{
+			commandList = new D3D12CommandList(GetD3D12Device()->GetDevice());
+		}
+		else
+		{
+			commandList = _commandListPool->GetLastObject<D3D12CommandList>();
+			commandList->Retain();
+			_commandListPool->RemoveObjectAtIndex(_commandListPool->GetCount() - 1);
+			commandList->Begin();
+		}
+		
 		return commandList->Autorelease();
 	}
 
@@ -306,6 +313,9 @@ namespace RN
 		{
 			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= _completedFenceValue)
 			{
+				D3D12CommandList *commandList = _executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i);
+				commandList->Finish();
+				_commandListPool->AddObject(commandList);
 				_executedCommandLists->RemoveObjectAtIndex(i);
 			}
 		}

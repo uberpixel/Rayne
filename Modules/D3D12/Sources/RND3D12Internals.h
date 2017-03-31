@@ -85,6 +85,7 @@ namespace RN
 
 		void Begin();
 		void End();
+		void SetFinishedCallback(std::function<void()> callback);
 
 		ID3D12GraphicsCommandList *GetCommandList() const { return _commandList; }
 
@@ -92,30 +93,17 @@ namespace RN
 		D3D12CommandList(ID3D12Device *device);
 
 	private:
+		void Finish();
+
 		ID3D12GraphicsCommandList *_commandList;
 		ID3D12CommandAllocator *_commandAllocator;
 		ID3D12Device *_device;
 		bool _isOpen;
 		UINT _fenceValue;
 
-		RNDeclareMetaAPI(D3D12CommandList, D3DAPI)
-	};
-
-	class D3D12CommandListWithCallback : public D3D12CommandList
-	{
-	public:
-		friend RN::D3D12Renderer;
-
-		~D3D12CommandListWithCallback();
-		void SetFinishedCallback(std::function<void()> callback);
-
-	protected:
-		D3D12CommandListWithCallback(ID3D12Device *device);
-
-	private:
 		std::function<void()> _finishedCallback;
 
-		RNDeclareMetaAPI(D3D12CommandListWithCallback, D3DAPI)
+		RNDeclareMetaAPI(D3D12CommandList, D3DAPI)
 	};
 }
 

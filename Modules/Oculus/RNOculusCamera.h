@@ -30,6 +30,7 @@ namespace RN
 
 		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState();
 		OVRAPI const OculusTouchTrackingState &GetTouchTrackingState(int hand);
+		OVRAPI void SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics);
 
 	private:
 		OculusWindow *_window;

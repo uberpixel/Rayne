@@ -36,6 +36,7 @@ namespace RN
 		BTAPI void SetCCDSweptSphereRadius(float radius);
 		BTAPI void SetGravity(const Vector3 &gravity);
 		BTAPI void SetDamping(float linear, float angular);
+		BTAPI void SetAllowDeactivation(bool canDeactivate);
 			
 		BTAPI void ApplyForce(const Vector3 &force);
 		BTAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
@@ -58,7 +59,7 @@ namespace RN
 		BTAPI void SetPositionOffset(RN::Vector3 offset) final;
 			
 	protected:
-		//void DidUpdate(SceneNode::ChangeSet changeSet) override;
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		void UpdateFromMaterial(BulletMaterial *material) override;
 		
 		void InsertIntoWorld(BulletWorld *world) override;

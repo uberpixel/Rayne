@@ -356,7 +356,7 @@ namespace RN
 		textureData.RowPitch = bytesPerRow;
 		textureData.SlicePitch = bytesPerRow * region.height;
 
-		D3D12CommandListWithCallback *commandList = _renderer->GetCommandListWithCallback();
+		D3D12CommandList *commandList = _renderer->GetCommandList();
 		commandList->SetFinishedCallback([this, textureUploadBuffer]{
 			_isReady = true;
 			textureUploadBuffer->Release();

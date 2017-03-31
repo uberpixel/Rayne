@@ -91,9 +91,9 @@ namespace RN
 	}
 		
 		
-/*	void BulletCollisionObject::DidUpdate(SceneNode::ChangeSet changeSet)
+	void BulletCollisionObject::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-		if(changeSet & SceneNode::ChangeSet::World)
+/*		if(changeSet & SceneNode::ChangeSet::World)
 		{
 			World *world = GetParent()->GetWorld();
 				
@@ -108,10 +108,10 @@ namespace RN
 				BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
 				return;
 			}
-		}
+		}*/
 	}
 		
-	void BulletCollisionObject::DidAddToParent()
+/*	void BulletCollisionObject::DidAddToParent()
 	{
 		if(!_owner)
 			BulletWorld::GetSharedInstance()->InsertCollisionObject(this);

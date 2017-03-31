@@ -38,7 +38,7 @@ namespace RN
 		BTAPI virtual btCollisionObject *GetBulletCollisionObject() const = 0;
 			
 	protected:
-		//void DidUpdate(SceneNode::ChangeSet changeSet) override;
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		//void DidAddToParent() override;
 		//void WillRemoveFromParent() override;
 			

@@ -66,7 +66,6 @@ namespace RN
 
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
 		D3D12CommandList *GetCommandList();
-		D3D12CommandListWithCallback *GetCommandListWithCallback();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
 
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
@@ -91,6 +90,7 @@ namespace RN
 		D3D12CommandList *_currentCommandList;
 		Array *_submittedCommandLists;
 		Array *_executedCommandLists;
+		Array *_commandListPool;
 
 		PIMPL<D3D12RendererInternals> _internals;
 

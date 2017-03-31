@@ -8,6 +8,7 @@
 
 #include "RNBulletWorld.h"
 #include "RNBulletCollisionObject.h"
+#include "RNBulletConstraint.h"
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
@@ -73,6 +74,11 @@ namespace RN
 		_maxSteps = maxsteps;
 	}
 
+	void BulletWorld::SetSolverIterations(int iterations)
+	{
+		_dynamicsWorld->getSolverInfo().m_numIterations = iterations;
+	}
+
 	void BulletWorld::Update(float delta)
 	{
 		_dynamicsWorld->stepSimulation(delta, _maxSteps, _stepSize);
@@ -127,5 +133,10 @@ namespace RN
 			attachment->RemoveFromWorld(this);
 			_collisionObjects.erase(attachment);
 		}
+	}
+
+	void BulletWorld::InsertConstraint(BulletConstraint *constraint)
+	{
+		_dynamicsWorld->addConstraint(constraint->GetBulletConstraint());
 	}
 }

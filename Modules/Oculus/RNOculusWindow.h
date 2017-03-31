@@ -41,6 +41,7 @@ namespace RN
 
 		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState() const;
 		OVRAPI const OculusTouchTrackingState &GetTouchTrackingState(int hand) const;
+		OVRAPI void SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics);
 
 	private:
 		OculusSwapChain *_swapChain;

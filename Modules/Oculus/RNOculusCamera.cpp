@@ -75,4 +75,9 @@ namespace RN
 	{
 		return _window->GetTouchTrackingState(hand);
 	}
+
+	void OculusCamera::SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics)
+	{
+		_window->SubmitTouchHaptics(hand, haptics);
+	}
 }

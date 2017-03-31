@@ -31,6 +31,7 @@ set(SOURCES
         RNBulletMaterial.cpp
         RNBulletRigidBody.cpp
         RNBulletShape.cpp
+        RNBulletConstraint.cpp
         RNBulletInternals.cpp)
 
 set(HEADERS
@@ -41,6 +42,7 @@ set(HEADERS
         RNBulletMaterial.h
         RNBulletRigidBody.h
         RNBulletShape.h
+        RNBulletConstraint.h
         RNBulletInternals.h)
 
 set(DEFINES RN_BUILD_BULLET)

@@ -117,4 +117,13 @@ namespace RN
 	{
 		return _touchTrackingState[hand];
 	}
+
+	void OculusWindow::SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics)
+	{
+		ovrHapticsBuffer buffer;
+		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
+		buffer.SamplesCount = haptics.sampleCount;
+		buffer.Samples = haptics.samples;
+		ovr_SubmitControllerVibration(_swapChain->_session, hand?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
+	}
 }

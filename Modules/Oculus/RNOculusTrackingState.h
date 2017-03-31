@@ -33,6 +33,18 @@ namespace RN
 		float handTrigger;
 		Vector2 thumbstick;
 	};
+
+	struct OculusTouchHaptics
+	{
+		OculusTouchHaptics() : sampleCount(0) {}
+		void Push(uint8 sample)
+		{
+			samples[sampleCount++] = sample;
+		}
+
+		uint8 samples[256];
+		uint16 sampleCount;
+	};
 }
 
 

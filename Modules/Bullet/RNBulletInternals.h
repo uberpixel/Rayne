@@ -17,14 +17,14 @@ namespace RN
 	class BulletRigidBodyMotionState : public btMotionState
 	{
 	public:
-		void SetSceneNode(SceneNode *node);
+		void SetSceneNode(SceneNodeAttachment *attachment);
 		void SetPositionOffset(Vector3 offset);
 
 		void getWorldTransform(btTransform &worldTrans) const override;
 		void setWorldTransform(const btTransform &worldTrans) override;
 
 	private:
-		SceneNode *_node;
+		SceneNodeAttachment *_attachment;
 		Vector3 _offset;
 	};
 }

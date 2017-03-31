@@ -21,6 +21,7 @@ class btOverlappingPairCallback;
 namespace RN
 {
 	class BulletCollisionObject;
+	class BulletConstraint;
 
 	struct BulletContactInfo
 	{
@@ -40,11 +41,14 @@ namespace RN
 
 		BTAPI void Update(float delta) override;
 		BTAPI void SetStepSize(double stepsize, int maxsteps);
+		BTAPI void SetSolverIterations(int iterations);
 
 		BTAPI BulletContactInfo CastRay(const Vector3 &from, const Vector3 &to);
 
 		BTAPI void InsertCollisionObject(BulletCollisionObject *attachment);
 		BTAPI void RemoveCollisionObject(BulletCollisionObject *attachment);
+
+		BTAPI void InsertConstraint(BulletConstraint *constraint);
 
 		BTAPI btDynamicsWorld *GetBulletDynamicsWorld() { return _dynamicsWorld; }
 

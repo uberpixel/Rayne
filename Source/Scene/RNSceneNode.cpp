@@ -368,6 +368,13 @@ namespace RN
 	{
 		if(_parent)
 			_parent->ChildWillUpdate(this, changeSet);
+
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->__WillUpdate(changeSet);
+			});
+		}
 	}
 
 	void SceneNode::DidUpdate(ChangeSet changeSet)
@@ -384,6 +391,13 @@ namespace RN
 
 		if(_parent)
 			_parent->ChildDidUpdate(this, changeSet);
+
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->__DidUpdate(changeSet);
+			});
+		}
 	}
 
 	void SceneNode::UpdateInternalData() const

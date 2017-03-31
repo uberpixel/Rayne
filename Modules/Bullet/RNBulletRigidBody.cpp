@@ -98,6 +98,11 @@ namespace RN
 	{
 		_rigidBody->setDamping(linear, angular);
 	}
+
+	void BulletRigidBody::SetAllowDeactivation(bool canDeactivate)
+	{
+		_rigidBody->forceActivationState(canDeactivate?ACTIVE_TAG:DISABLE_DEACTIVATION);
+	}
 		
 	Vector3 BulletRigidBody::GetLinearVelocity() const
 	{
@@ -164,8 +169,7 @@ namespace RN
 		
 		
 		
-		
-/*	void BulletRigidBody::DidUpdate(SceneNode::ChangeSet changeSet)
+	void BulletRigidBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		BulletCollisionObject::DidUpdate(changeSet);
 			
@@ -173,13 +177,14 @@ namespace RN
 		{
 			btTransform transform;
 				
-			getWorldTransform(transform);
+			_motionState->getWorldTransform(transform);
 			_rigidBody->setCenterOfMassTransform(transform);
 		}
-	}*/
+	}
 	void BulletRigidBody::UpdateFromMaterial(BulletMaterial *material)
 	{
 		_rigidBody->setFriction(material->GetFriction());
+		_rigidBody->setRollingFriction(material->GetRollingFriction());
 		_rigidBody->setRestitution(material->GetRestitution());
 		_rigidBody->setDamping(material->GetLinearDamping(), material->GetAngularDamping());
 	}
@@ -188,7 +193,7 @@ namespace RN
 	void BulletRigidBody::InsertIntoWorld(BulletWorld *world)
 	{
 		BulletCollisionObject::InsertIntoWorld(world);
-		_motionState->SetSceneNode(GetParent());
+		_motionState->SetSceneNode(this);
 			
 		{
 			btTransform transform;

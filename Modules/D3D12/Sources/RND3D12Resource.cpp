@@ -100,7 +100,7 @@ namespace RN
 		_isRecording = false;
 
 		D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
-		D3D12CommandListWithCallback *commandList = renderer->GetCommandListWithCallback();
+		D3D12CommandList *commandList = renderer->GetCommandList();
 		ID3D12Resource *transferResource = _transferResource;
 		_transferResource = nullptr;
 		commandList->SetFinishedCallback([this, transferResource] {
