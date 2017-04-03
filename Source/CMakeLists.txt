@@ -34,6 +34,7 @@ set(RAYNE_SOURCES
     Assets/RNAssetLoader.cpp
     Assets/RNPNGAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
+    Assets/RNAudioAsset.cpp
     Debug/RNLogFormatter.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
@@ -107,6 +108,7 @@ set(RAYNE_HEADERS
     Assets/RNAsset.h
     Assets/RNAssetManager.h
     Assets/RNAssetLoader.h
+    Assets/RNAudioAsset.h
     Base/RNApplication.h
     Base/RNArgumentParser.h
     Base/RNBase.h

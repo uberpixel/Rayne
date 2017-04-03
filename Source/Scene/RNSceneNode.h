@@ -134,6 +134,7 @@ namespace RN
 		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
 
 		RNAPI SceneNode *GetParent() const;
+		Scene *GetScene() const { return _scene; };
 		Priority GetPriority() const { return _priority; }
 		Flags GetFlags() const { return _flags.load(); }
 

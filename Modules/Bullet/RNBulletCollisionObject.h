@@ -10,6 +10,7 @@
 #define __RAYNE_BULLETCOLLISIONOBJECT_H_
 
 #include "RNBullet.h"
+#include "RNBulletWorld.h"
 
 class btCollisionObject;
 
@@ -28,7 +29,7 @@ namespace RN
 		BTAPI void SetCollisionFilter(short int filter);
 		BTAPI void SetCollisionFilterMask(short int mask);
 		BTAPI void SetMaterial(BulletMaterial *material);
-		BTAPI void SetContactCallback(std::function<void(BulletCollisionObject *)> &&callback);
+		BTAPI void SetContactCallback(std::function<void(BulletCollisionObject *, const BulletContactInfo&)> &&callback);
 		BTAPI virtual void SetPositionOffset(RN::Vector3 offset);
 			
 		short int GetCollisionFilter() const { return _collisionFilter; }
@@ -53,7 +54,7 @@ namespace RN
 		BulletWorld *_owner;
 		BulletMaterial *_material;
 			
-		std::function<void(BulletCollisionObject *)> _callback;
+		std::function<void(BulletCollisionObject *, const BulletContactInfo&)> _callback;
 			
 		short int _collisionFilter;
 		short int _collisionFilterMask;

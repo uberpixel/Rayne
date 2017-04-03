@@ -7,7 +7,6 @@
 //
 
 #include "RNBulletCollisionObject.h"
-#include "RNBulletWorld.h"
 #include "RNBulletMaterial.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -58,7 +57,7 @@ namespace RN
 		}
 	}
 		
-	void BulletCollisionObject::SetContactCallback(std::function<void (BulletCollisionObject *)> &&callback)
+	void BulletCollisionObject::SetContactCallback(std::function<void (BulletCollisionObject *, const BulletContactInfo&)> &&callback)
 	{
 		_callback = std::move(callback);
 	}

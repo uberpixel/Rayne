@@ -54,11 +54,34 @@ namespace RN
 			BulletCollisionObject *objectA = static_cast<BulletCollisionObject *>(contactManifold->getBody0()->getUserPointer());
 			BulletCollisionObject *objectB = static_cast<BulletCollisionObject *>(contactManifold->getBody1()->getUserPointer());
 
-			if(objectA->_callback)
-				objectA->_callback(objectB);
+			for(int i = 0; i < contactManifold->getNumContacts(); i++)
+			{
+				btManifoldPoint &contactPoint = contactManifold->getContactPoint(i);
+				if(contactPoint.getDistance() < contactManifold->getContactBreakingThreshold())
+				{
+					if(objectA->_callback)
+					{
+						BulletContactInfo contactInfo;
+						contactInfo.distance = contactPoint.getDistance();
+						contactInfo.node = objectB->GetParent();
+						contactInfo.normal = RN::Vector3(contactPoint.m_normalWorldOnB.getX(), contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
+						contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnB.getX(), contactPoint.m_positionWorldOnB.getY(), contactPoint.m_positionWorldOnB.getZ());
+						objectA->_callback(objectB, contactInfo);
+					}
 
-			if(objectB->_callback)
-				objectB->_callback(objectA);
+					if(objectB->_callback)
+					{
+						BulletContactInfo contactInfo;
+						contactInfo.distance = contactPoint.getDistance();
+						contactInfo.node = objectA->GetParent();
+						contactInfo.normal = -RN::Vector3(contactPoint.m_normalWorldOnB.getX(), contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
+						contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnA.getX(), contactPoint.m_positionWorldOnA.getY(), contactPoint.m_positionWorldOnA.getZ());
+						objectB->_callback(objectA, contactInfo);
+					}
+
+					break;
+				}
+			}
 		}
 	}
 

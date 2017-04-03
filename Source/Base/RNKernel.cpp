@@ -266,7 +266,7 @@ namespace RN
 				Window *window = _renderer->GetMainWindow();
 				if(!window)
 				{
-					window = _renderer->CreateAWindow(Vector2(1024, 768), Screen::GetMainScreen());
+					window = _renderer->CreateAWindow(Vector2(1920, 1080), Screen::GetMainScreen());
 					window->SetTitle(_application->GetTitle());
 					window->Show();
 				}

@@ -22,6 +22,7 @@
 #include "Assets/RNAsset.h"
 #include "Assets/RNAssetManager.h"
 #include "Assets/RNAssetLoader.h"
+#include "Assets/RNAudioAsset.h"
 
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"
