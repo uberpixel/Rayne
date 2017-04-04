@@ -12,6 +12,8 @@
 #include "AL/alc.h"
 #include "AL/alext.h"
 
+//static LPALCGETSTRINGISOFT alcGetStringiSOFT;
+
 namespace RN
 {
 	RNDefineMeta(OpenALWorld, SceneAttachment)
@@ -29,6 +31,26 @@ namespace RN
 			return;
 		}
 
+/*		if(!alcIsExtensionPresent(_device, "ALC_SOFT_HRTF"))
+		{
+			RNDebug("Error: ALC_SOFT_HRTF not supported");
+			return;
+		}
+
+		int num_hrtf = 0;
+		alcGetIntegerv(_device, ALC_NUM_HRTF_SPECIFIERS_SOFT, 1, &num_hrtf);
+		if(!num_hrtf)
+			RNDebug("No HRTFs found");
+		else
+		{
+			RNDebug("Available HRTFs:");
+			for(int i = 0; i < num_hrtf; i++)
+			{
+				const ALCchar *name = alcGetStringiSOFT(_device, ALC_HRTF_SPECIFIER_SOFT, i);
+				RNDebug("    " << i << ": " << name);
+			}
+		}*/
+
 		//Enable HRTF
 		int attributes[3] = {ALC_HRTF_SOFT, ALC_TRUE, 0};
 			
@@ -38,6 +60,16 @@ namespace RN
 		{
 			RNDebug("rayne-openal: Could not create audio context.");
 			return;
+		}
+
+		int hrtf_state = 0;
+		alcGetIntegerv(_device, ALC_HRTF_SOFT, 1, &hrtf_state);
+		if(!hrtf_state)
+			RNDebug("HRTF not enabled!\n");
+		else
+		{
+			const ALchar *name = alcGetString(_device, ALC_HRTF_SPECIFIER_SOFT);
+			RNDebug("HRTF enabled, using " << name);
 		}
 	}
 		

@@ -8,6 +8,7 @@
 
 #include "../Debug/RNLogger.h"
 #include "../Assets/RNAssetManager.h"
+#include "../Rendering/RNRenderer.h"
 #include "RNModel.h"
 
 namespace RN
@@ -47,6 +48,62 @@ namespace RN
 		return coordinator->GetAssetWithName<Model>(name, settings);
 	}
 
+	Model *Model::WithSkycube(const MaterialDescriptor &materialDescriptor, const String *left, const String *front, const String *right, const String *back, const String *up, const String *down)
+	{
+		Model *sky = new Model();
+		LODStage *stage = sky->AddLODStage(1.0f);
+
+		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
+		MaterialDescriptor tempDescriptor = materialDescriptor;
+		if(!tempDescriptor.vertexShader)
+			tempDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, ShaderOptions::WithMesh(leftMesh), Shader::Default::Sky);
+		if(!tempDescriptor.fragmentShader)
+			tempDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, ShaderOptions::WithMesh(leftMesh), Shader::Default::Sky);
+
+		MaterialDescriptor leftMaterialDescriptor = tempDescriptor;
+		if(left)
+			leftMaterialDescriptor.AddTexture(Texture::WithName(left));
+		Material *leftMaterial = Material::WithDescriptor(leftMaterialDescriptor);
+		stage->AddMesh(leftMesh, leftMaterial);
+
+		Mesh *frontMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, -0.5f));
+		MaterialDescriptor frontMaterialDescriptor = tempDescriptor;
+		if(front)
+			frontMaterialDescriptor.AddTexture(Texture::WithName(front));
+		Material *frontMaterial = Material::WithDescriptor(frontMaterialDescriptor);
+		stage->AddMesh(frontMesh, frontMaterial);
+
+		Mesh *rightMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(-90.0f, 90.0f, 0.0f)), RN::Vector3(0.5f, 0.0f, 0.0f));
+		MaterialDescriptor rightMaterialDescriptor = tempDescriptor;
+		if(right)
+			rightMaterialDescriptor.AddTexture(Texture::WithName(right));
+		Material *rightMaterial = Material::WithDescriptor(rightMaterialDescriptor);
+		stage->AddMesh(rightMesh, rightMaterial);
+
+		Mesh *backMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(180.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, 0.5f));
+		MaterialDescriptor backMaterialDescriptor = tempDescriptor;
+		if(back)
+			backMaterialDescriptor.AddTexture(Texture::WithName(back));
+		Material *backMaterial = Material::WithDescriptor(backMaterialDescriptor);
+		stage->AddMesh(backMesh, backMaterial);
+
+		Mesh *upMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 180.0f, 0.0f)), RN::Vector3(0.0f, 0.5f, 0.0f));
+		MaterialDescriptor upMaterialDescriptor = tempDescriptor;
+		if(up)
+			upMaterialDescriptor.AddTexture(Texture::WithName(up));
+		Material *upMaterial = Material::WithDescriptor(upMaterialDescriptor);
+		stage->AddMesh(upMesh, upMaterial);
+
+		Mesh *downMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 0.0f, 0.0f)), RN::Vector3(0.0f, -0.5f, 0.0f));
+		MaterialDescriptor downMaterialDescriptor = tempDescriptor;
+		if(down)
+			downMaterialDescriptor.AddTexture(Texture::WithName(down));
+		Material *downMaterial = Material::WithDescriptor(downMaterialDescriptor);
+		stage->AddMesh(downMesh, downMaterial);
+
+
+		return sky->Autorelease();
+	}
 
 
 	Model::LODStage *Model::AddLODStage(float distance)

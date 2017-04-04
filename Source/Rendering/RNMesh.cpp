@@ -650,6 +650,55 @@ namespace RN
 	}
 
 
+	Mesh *Mesh::WithTexturedPlane(const Quaternion &rotation, const Vector3 &position, const Vector2 &size)
+	{
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, 4, 6);
+
+		mesh->BeginChanges();
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(-size.x, 0.0f, size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(size.x, 0.0f, size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(size.x, 0.0f, -size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(-size.x, 0.0f, -size.y));
+
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
+
+		*texcoords++ = Vector2(0.0f, 1.0f);
+		*texcoords++ = Vector2(1.0f, 1.0f);
+		*texcoords++ = Vector2(1.0f, 0.0f);
+		*texcoords++ = Vector2(0.0f, 0.0f);
+
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		*indices++ = 0;
+		*indices++ = 1;
+		*indices++ = 3;
+		*indices++ = 2;
+		*indices++ = 3;
+		*indices++ = 1;
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
+		return mesh->Autorelease();
+	}
+
+
 	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t segments)
 	{
 		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),

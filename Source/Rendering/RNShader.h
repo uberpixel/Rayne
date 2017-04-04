@@ -115,6 +115,12 @@ namespace RN
 			Compute
 		};
 
+		enum Default
+		{
+			Gouraud,
+			Sky
+		};
+
 		RNAPI virtual const String *GetName() const = 0;
 
 		RNAPI Type GetType() const;

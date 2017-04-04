@@ -70,21 +70,24 @@ namespace RN
 		
 	void OpenALSource::Play()
 	{
+		Update(0.0f);
+
 		alSourcePlay(_source);
 		_isPlaying = true;
 	}
 		
 	void OpenALSource::Update(float delta)
 	{
+		Vector3 position = GetWorldPosition();
+		alSourcefv(_source, AL_POSITION, &position.x);
+
+		Vector3 velocity = position - _oldPosition;
+		_oldPosition = position;
+
 		if(delta == 0.0f)
 			return;
 
-		Vector3 position = GetWorldPosition();
-		Vector3 velocity = position-_oldPosition;
 		velocity /= delta;
-		_oldPosition = position;
-			
-		alSourcefv(_source, AL_POSITION, &position.x);
 		alSourcefv(_source, AL_VELOCITY, &velocity.x);
 			
 		ALenum sourceState;

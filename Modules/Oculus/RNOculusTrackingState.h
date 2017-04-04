@@ -24,6 +24,17 @@ namespace RN
 
 	struct OculusTouchTrackingState
 	{
+		enum Button
+		{
+			AX,
+			BY,
+			Thumb,
+			Enter,
+			BUTTON_COUNT
+		};
+
+		OculusTouchTrackingState() : button{false, false, false, false} {}
+
 		bool active;
 
 		Vector3 position;
@@ -32,6 +43,8 @@ namespace RN
 		float indexTrigger;
 		float handTrigger;
 		Vector2 thumbstick;
+
+		bool button[Button::BUTTON_COUNT];
 	};
 
 	struct OculusTouchHaptics

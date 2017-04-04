@@ -100,6 +100,16 @@ namespace RN
 			_touchTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
 			_touchTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
 			_touchTrackingState[1].handTrigger = inputState.HandTrigger[1];
+
+			_touchTrackingState[0].button[OculusTouchTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
+			_touchTrackingState[0].button[OculusTouchTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
+			_touchTrackingState[0].button[OculusTouchTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_LThumb;
+			_touchTrackingState[0].button[OculusTouchTrackingState::Button::Enter] = inputState.Buttons & ovrButton_Enter;
+
+			_touchTrackingState[1].button[OculusTouchTrackingState::Button::AX] = inputState.Buttons & ovrButton_A;
+			_touchTrackingState[1].button[OculusTouchTrackingState::Button::BY] = inputState.Buttons & ovrButton_B;
+			_touchTrackingState[1].button[OculusTouchTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_RThumb;
+			_touchTrackingState[1].button[OculusTouchTrackingState::Button::Enter] = false;
 		}
 		else
 		{

@@ -185,6 +185,7 @@ namespace RN
 	{
 		_rigidBody->setFriction(material->GetFriction());
 		_rigidBody->setRollingFriction(material->GetRollingFriction());
+		_rigidBody->setSpinningFriction(material->GetSpinningFriction());
 		_rigidBody->setRestitution(material->GetRestitution());
 		_rigidBody->setDamping(material->GetLinearDamping(), material->GetAngularDamping());
 	}

@@ -18,7 +18,8 @@ namespace RN
 		_angularDamping = 0.0f;
 			
 		_friction = 0.5f;
-		_rollingFriction = 0.003f;
+		_rollingFriction = 0.0f;
+		_spinningFriction = 0.0f;
 		_restitution = 0.1f;
 	}
 		
@@ -47,7 +48,13 @@ namespace RN
 		_rollingFriction = friction;
 		signal.Emit(this);
 	}
-		
+	
+	void BulletMaterial::SetSpinningFriction(float friction)
+	{
+		_spinningFriction = friction;
+		signal.Emit(this);
+	}
+
 	void BulletMaterial::SetRestitution(float restitution)
 	{
 		_restitution = restitution;

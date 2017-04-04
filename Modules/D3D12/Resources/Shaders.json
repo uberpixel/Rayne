@@ -47,6 +47,32 @@
 		]
 	},
 	{
+		"file": ":RayneD3D12:/Sky.hlsl",
+		"shaders":
+		[
+			{
+				"name": "sky_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"uniforms": ["transform_view", "transform_projection", "material_diffusecolor"],
+					"textures": 0,
+					"samplers": 0
+				}
+			},
+			{
+				"name": "sky_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"uniforms": 0,
+					"textures": 1,
+					"samplers": 1
+				}
+			}
+		]
+	},
+	{
 		"file": ":RayneD3D12:/GenerateMipMaps.hlsl",
 		"shaders":
 		[

@@ -409,6 +409,8 @@ namespace RN
 		RNAPI static Mesh *WithColoredCube(const Vector3 &size, const Color &color);
 		RNAPI static Mesh *WithTexturedCube(const Vector3 &size);
 
+		RNAPI static Mesh *WithTexturedPlane(const Quaternion &rotation, const Vector3 &position = Vector3(0.0f, 0.0f, 0.0f), const Vector2 &size = Vector2(0.5f, 0.5f));
+
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
 
 		RNAPI void BeginChanges();

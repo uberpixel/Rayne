@@ -475,13 +475,32 @@ namespace RN
 		return lib;
 	}
 
-	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options)
+	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default default)
 	{
 		Shader *shader;
 		if(type == Shader::Type::Vertex)
-			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);	//TODO: Options as second param!
+		{
+			if(default == Shader::Default::Sky)
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+			}
+			else
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+			}
+		}
+			
 		else if(type == Shader::Type::Fragment)
-			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+		{
+			if(default == Shader::Default::Sky)
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+			}
+			else
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+			}
+		}
 
 		return shader;
 	}
@@ -806,6 +825,12 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::ProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.projectionMatrix.m, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), drawable->inverseModelMatrix.m, descriptor->GetSize());
@@ -835,6 +860,12 @@ namespace RN
 				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), _internals->currentRenderPass.inverseProjectionMatrix.m, descriptor->GetSize());
 					break;
 				}
 
