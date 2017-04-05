@@ -27,7 +27,7 @@ namespace RN
 
 		void AddUniformStateIfNeeded(size_t cameraID)
 		{
-			if(_cameraSpecifics.size() <= cameraID)
+			while(_cameraSpecifics.size() <= cameraID)
 			{
 				_cameraSpecifics.push_back({ nullptr, nullptr });
 				dirty = true;
@@ -71,8 +71,8 @@ namespace RN
 		std::vector<D3D12SwapChain*> swapChains;
 		std::vector<D3D12FrameResource> frameResources;
 
-		D3D12RenderPass currentRenderPass;
-		size_t currentCameraID;
+		size_t currentRenderPassIndex;
+		size_t currentDrawableResourceIndex;
 		size_t totalDrawableCount;
 	};
 

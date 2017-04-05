@@ -19,7 +19,9 @@ namespace RN
 	{
 	public:
 		BulletConstraint(btTypedConstraint *shape);
-			
+		
+		BTAPI void SetCfm(float cfm);
+
 		BTAPI btTypedConstraint *GetBulletConstraint() const { return _constraint; }
 			
 	protected:
@@ -39,6 +41,16 @@ namespace RN
 		BTAPI static BulletFixedConstraint *WithBodiesAndOffsets(BulletRigidBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, BulletRigidBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
 			
 		RNDeclareMetaAPI(BulletFixedConstraint, BTAPI)
+	};
+
+	class BulletPointToPointConstraint : public BulletConstraint
+	{
+	public:
+		BTAPI BulletPointToPointConstraint(BulletRigidBody *body1, const RN::Vector3 &offset1, BulletRigidBody *body2, const RN::Vector3 &offset2);
+
+		BTAPI static BulletPointToPointConstraint *WithBodiesAndOffsets(BulletRigidBody *body1, const RN::Vector3 &offset1, BulletRigidBody *body2, const RN::Vector3 &offset2);
+
+		RNDeclareMetaAPI(BulletPointToPointConstraint, BTAPI)
 	};
 }
 

@@ -97,9 +97,9 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 
 float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 {
-	float4 color = 1.0f;
+	float4 color = vert.diffuse;
 #if RN_UV0
-	color = texture0.Sample(samplr, vert.texCoords).rgba;
+	color *= texture0.Sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
 	clip(color.a - discardThreshold);
@@ -111,8 +111,8 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+	return color * (vert.ambient + saturate(dot(normalize(vert.normal), normalize(light_position))));
 #else
-	return color * (vert.ambient + vert.diffuse);
+	return color * (vert.ambient);
 #endif
 }

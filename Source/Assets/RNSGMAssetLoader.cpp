@@ -140,8 +140,8 @@ namespace RN
 				}
 			}
 
+			Color diffuseColor;
 			uint8 colorCount = file->ReadUint8();
-
 			for(uint8 u = 0; u < colorCount; u ++)
 			{
 				RN_UNUSED uint8 usagehint = file->ReadUint8();
@@ -151,12 +151,13 @@ namespace RN
 				color.b = file->ReadFloat();
 				color.a = file->ReadFloat();
 
-				//if(usagehint == 0 && u == 0)
-				//	descriptor->S(color);
+				if(usagehint == 0 && u == 0)
+					diffuseColor = color;
 			}
 
 			Dictionary *info = new Dictionary();
 			info->SetObjectForKey(textures, RNCSTR("textures"));
+			info->SetObjectForKey(Value::WithColor(diffuseColor), RNCSTR("diffusecolor"));
 
 			materialPlaceholder->AddObject(info);
 
@@ -195,11 +196,17 @@ namespace RN
 
 				descriptor.AddTexture(texture);
 
-				//TODO: Maybe only assume discard if the first texture has an alpha channel?
-				if(texture->HasColorChannel(Texture::ColorChannel::Alpha))
+				//Activate discarding of transparent pixels if first texture has alpha
+				if(index == 0 && texture->HasColorChannel(Texture::ColorChannel::Alpha))
 					wantsDiscard = true;
 
 			});
+
+			Value *diffuseColor = info->GetObjectForKey<Value>(RNCSTR("diffusecolor"));
+			if(diffuseColor)
+			{
+				descriptor.diffuseColor = diffuseColor->GetValue<Color>();
+			}
 
 			materials.emplace_back(std::make_pair(wantsDiscard, descriptor));
 

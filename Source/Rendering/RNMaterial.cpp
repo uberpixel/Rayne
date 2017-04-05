@@ -17,7 +17,7 @@ namespace RN
 		vertexShader(nullptr),
 		depthMode(DepthMode::Less),
 		depthWriteEnabled(true),
-		ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
+		ambientColor(0.5f, 0.5f, 0.5f, 1.0f),
 		diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 		specularColor(1.0f, 1.0f, 1.0f, 4.0f),
 		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
