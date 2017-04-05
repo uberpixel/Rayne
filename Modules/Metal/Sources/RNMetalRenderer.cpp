@@ -43,10 +43,11 @@ namespace RN
 
 	Window *MetalRenderer::CreateAWindow(const Vector2 &size, Screen *screen)
 	{
-		RN_ASSERT(!_mainWindow, "Metal renderer only supports one window");
+		MetalWindow *window = new MetalWindow(size, screen, this);
+		if(!_mainWindow)
+			_mainWindow = window;
 
-		_mainWindow = new MetalWindow(size, screen, this);
-		return _mainWindow;
+		return window;
 	}
 
 	Window *MetalRenderer::GetMainWindow()
@@ -77,88 +78,159 @@ namespace RN
 		});
 
 		[commandBuffer commit];
+
+		//TODO: make async
 		[commandBuffer waitUntilCompleted];
 
 		_mipMapTextures->RemoveAllObjects();
 	}
 
 
-	void MetalRenderer::RenderIntoWindow(Window *window, Function &&function)
+	void MetalRenderer::Render(Function &&function)
 	{
-		_internals->pass.window = static_cast<MetalWindow *>(window);
-		_internals->pass.drawable = [_internals->pass.window->_internals->metalView nextDrawable];
-		_internals->pass.depthTexture = [_internals->pass.window->_internals->metalView nextDepthBuffer];
+		_internals->renderPasses.clear();
+		_internals->swapChains.clear();
+		_internals->currentRenderState = nullptr;
+		_internals->currentRenderPassIndex = 0;
 
-		if(_internals->pass.drawable)
-		{
-			CreateMipMaps();
+		CreateMipMaps();
 
-			_internals->renderPass.commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
-			function();
-
-			[_internals->renderPass.commandBuffer presentDrawable:_internals->pass.drawable];
-			[_internals->renderPass.commandBuffer commit];
-			[_internals->renderPass.commandBuffer release];
-
-			_internals->renderPass.commandBuffer = nil;
-			_internals->pass.drawable = nil;
-		}
-	}
-	void MetalRenderer::RenderIntoCamera(Camera *camera, Function &&function)
-	{
-		// Set up
-		_internals->renderPass.camera = camera;
-		_internals->renderPass.framebuffer = camera->GetFramebuffer();
-
-		const Color &clearColor = camera->GetClearColor();
-
-		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-		MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-		[colorAttachment setTexture:[_internals->pass.drawable texture]];
-		[colorAttachment setLoadAction:MTLLoadActionClear];
-		[colorAttachment setStoreAction:MTLStoreActionStore];
-		[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
-
-		MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-		[depthAttachment setTexture:_internals->pass.depthTexture];
-		[depthAttachment setLoadAction:MTLLoadActionClear];
-		[depthAttachment setStoreAction:MTLStoreActionStore];
-
-		MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-		[stencilAttachment setTexture:_internals->pass.depthTexture];
-		[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-		[stencilAttachment setStoreAction:MTLStoreActionDontCare];
-
-		_internals->renderPass.renderCommand = [[_internals->renderPass.commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
-		_internals->renderPass.activeState = nullptr;
-		_internals->renderPass.drawableHead = nullptr;
-
-		[descriptor release];
-
-		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
-		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
-
-		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
-
-		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
-
+		//Submit camera is called for each camera and creates lists of drawables per camera
 		function();
 
-		MetalDrawable *drawable = _internals->renderPass.drawableHead;
-		while(drawable)
+		for(MetalSwapChain *swapChain : _internals->swapChains)
 		{
-			RenderDrawable(drawable);
-			drawable = drawable->_next;
+			swapChain->AcquireBackBuffer();
+			swapChain->Prepare();
 		}
 
-		// Clean up
-		[_internals->renderPass.renderCommand endEncoding];
-		[_internals->renderPass.renderCommand release];
-		_internals->renderPass.renderCommand = nil;
+		_internals->commandBuffer = [[_internals->commandQueue commandBuffer] retain];
 
-		_internals->renderPass.activeState = nullptr;
+		_internals->currentRenderPassIndex = 0;
+		for(MetalRenderPass &renderPass : _internals->renderPasses)
+		{
+			//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
+			//There does not appear to be a way to only clear part of the framebuffer...
+			const Color &clearColor = renderPass.camera->GetClearColor();
+			MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			[colorAttachment setTexture:renderPass.framebuffer->GetRenderTarget()];
+			[colorAttachment setLoadAction:MTLLoadActionClear];
+			[colorAttachment setStoreAction:MTLStoreActionStore];
+			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+
+			if(renderPass.framebuffer->GetDepthTexture())
+			{
+				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+				id<MTLTexture> depthTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				[depthAttachment setTexture:depthTexture];
+				[depthAttachment setLoadAction:MTLLoadActionClear];
+				[depthAttachment setStoreAction:MTLStoreActionStore];
+			}
+
+			if(renderPass.framebuffer->GetStencilTexture())
+			{
+				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+				id<MTLTexture> stencilTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				[stencilAttachment setTexture:stencilTexture];
+				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+			}
+
+			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
+			[descriptor release];
+
+			Rect cameraRect = renderPass.camera->GetFrame();
+			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+			{
+				Vector2 framebufferSize = renderPass.framebuffer->GetSize();
+				cameraRect.x = 0.0f;
+				cameraRect.y = 0.0f;
+				cameraRect.width = framebufferSize.x;
+				cameraRect.height = framebufferSize.y;
+			}
+			MTLViewport viewPort;
+			viewPort.originX = cameraRect.x;
+			viewPort.originY = cameraRect.y;
+			viewPort.width = cameraRect.width;
+			viewPort.height = cameraRect.height;
+			viewPort.znear = 0.0f;
+			viewPort.zfar = 1.0f;
+			[_internals->commandEncoder setViewport:viewPort];
+
+			for(MetalDrawable *drawable : renderPass.drawables)
+			{
+				RenderDrawable(drawable);
+			}
+
+			[_internals->commandEncoder endEncoding];
+			[_internals->commandEncoder release];
+			_internals->commandEncoder = nil;
+
+			_internals->currentRenderPassIndex += 1;
+		}
+
+		for(MetalSwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->Finalize();
+			swapChain->PresentBackBuffer(_internals->commandBuffer);
+		}
+		[_internals->commandBuffer commit];
+		[_internals->commandBuffer release];
+		_internals->commandBuffer = nil;
+	}
+	void MetalRenderer::SubmitCamera(Camera *camera, Function &&function)
+	{
+		// Set up
+		MetalRenderPass currentRenderPass;
+		currentRenderPass.camera = camera;
+		currentRenderPass.drawables.resize(0);
+		currentRenderPass.framebuffer = nullptr;
+
+		if(camera->GetFramebuffer())
+			currentRenderPass.framebuffer = camera->GetFramebuffer()->Downcast<MetalFramebuffer>();
+
+		MetalSwapChain *newSwapChain = nullptr;
+		if(!currentRenderPass.framebuffer)
+		{
+			MetalWindow *window = _mainWindow;
+			newSwapChain = _mainWindow->GetSwapChain();
+			currentRenderPass.framebuffer = newSwapChain->GetFramebuffer();
+		}
+		else
+		{
+			newSwapChain = currentRenderPass.framebuffer->GetSwapChain();
+		}
+
+		if(newSwapChain)
+		{
+			bool notIncluded = true;
+			for(MetalSwapChain *swapChain : _internals->swapChains)
+			{
+				if(swapChain == newSwapChain)
+				{
+					notIncluded = false;
+					break;
+				}
+			}
+			if(notIncluded)
+			{
+				_internals->swapChains.push_back(newSwapChain);
+			}
+		}
+
+		currentRenderPass.viewMatrix = camera->GetViewMatrix();
+		currentRenderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+
+		currentRenderPass.projectionMatrix = camera->GetProjectionMatrix();
+		currentRenderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+
+		currentRenderPass.projectionViewMatrix = currentRenderPass.projectionMatrix * currentRenderPass.viewMatrix;
+		_internals->currentRenderPassIndex = _internals->renderPasses.size();
+		_internals->renderPasses.push_back(currentRenderPass);
+
+		// Create drawables
+		function();
 	}
 
 	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options)
@@ -223,10 +295,9 @@ namespace RN
 		return lib;
 	}
 
-	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, ShaderOptions *options)
+	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader)
 	{
-		Shader *shader = nullptr;
-
+		Shader *actualShader = nullptr;
 		{
 			LockGuard<Lockable> lock(_lock);
 
@@ -235,13 +306,16 @@ namespace RN
 				_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
 			}
 
-			if(type == Shader::Type::Vertex)
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
-			else if(type == Shader::Type::Fragment)
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+			if(shader == Shader::Default::Gouraud)
+			{
+				if(type == Shader::Type::Vertex)
+					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				else if(type == Shader::Type::Fragment)
+					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+			}
 		}
 
-		return shader;
+		return actualShader;
 	}
 
 	bool MetalRenderer::SupportsTextureFormat(const String *format) const
@@ -377,10 +451,6 @@ namespace RN
 	Drawable *MetalRenderer::CreateDrawable()
 	{
 		MetalDrawable *drawable = new MetalDrawable();
-		drawable->_pipelineState = nullptr;
-		drawable->_next = nullptr;
-		drawable->_prev = nullptr;
-
 		return drawable;
 	}
 
@@ -395,6 +465,8 @@ namespace RN
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 		Material *material = drawable->material;
 
+		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+
 		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
 			switch(descriptor->GetIdentifier())
 			{
@@ -408,27 +480,27 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
 				{
-					Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
+					Matrix result = renderPass.viewMatrix * drawable->modelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
 				{
-					Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+					Matrix result = renderPass.projectionViewMatrix * drawable->modelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::ViewMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.viewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.viewMatrix.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.projectionViewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionViewMatrix.m, descriptor->GetSize());
 					break;
 				}
 
@@ -440,27 +512,27 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::InverseModelViewMatrix:
 				{
-					Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+					Matrix result = renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrix:
 				{
-					Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+					Matrix result = renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseViewMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseViewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseViewMatrix.m, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
 					break;
 				}
 
@@ -519,6 +591,9 @@ namespace RN
 	void MetalRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		MetalDrawable *drawable = static_cast<MetalDrawable *>(tdrawable);
+		drawable->AddCameraSepecificsIfNeeded(_internals->currentRenderPassIndex);
+
+		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		if(drawable->dirty)
 		{
@@ -526,48 +601,34 @@ namespace RN
 			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(this, state);
+			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state);
 			drawable->dirty = false;
 		}
 
 		// Update uniforms
 		{
-			for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
-			{
-				FillUniformBuffer(uniformBuffer, drawable, drawable->_pipelineState->vertexShader);
-			}
-
-			for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
-			{
-				FillUniformBuffer(uniformBuffer, drawable, drawable->_pipelineState->fragmentShader);
-			}
+			//TODO: support multiple uniform buffer
+			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->vertexShader);
+			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->fragmentShader);
 		}
 
-		// Push into the queue
-		drawable->_prev = nullptr;
-
 		_lock.Lock();
-
-		drawable->_next = _internals->renderPass.drawableHead;
-
-		if(drawable->_next)
-			drawable->_next->_prev = drawable;
-
-		_internals->renderPass.drawableHead = drawable;
-		_internals->renderPass.drawableCount ++;
-
+		renderPass.drawables.push_back(drawable);
 		_lock.Unlock();
 	}
 
 	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
 	{
-		id<MTLRenderCommandEncoder> encoder = _internals->renderPass.renderCommand;
+		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
 
-		if(_internals->renderPass.activeState != drawable->_pipelineState)
+		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
 		{
-			[encoder setRenderPipelineState: drawable->_pipelineState->state];
+			[encoder setRenderPipelineState: drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->state];
 
-			_internals->renderPass.activeState = drawable->_pipelineState;
+			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
 		}
 
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
@@ -578,8 +639,10 @@ namespace RN
 		// Set Uniforms
 		const Array *vertexBuffers = drawable->material->GetVertexBuffers();
 
-		for(MetalUniformBuffer *uniformBuffer : drawable->_vertexBuffers)
+		//TODO: support multiple uniform buffer
+		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
 		{
+			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer;
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}
@@ -587,8 +650,9 @@ namespace RN
 		const Array *fragmentBuffers = drawable->material->GetFragmentBuffers();
 		bufferIndex = 0;
 
-		for(MetalUniformBuffer *uniformBuffer : drawable->_fragmentBuffers)
+		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
 		{
+			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer;
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}

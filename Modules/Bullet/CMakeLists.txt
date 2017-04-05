@@ -55,8 +55,6 @@ set(INCLUDE_DIRECTORIES
 rayne_add_library(RayneBullet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneBullet)
 
-rayne_use_modules(RayneBullet RayneD3D12)
-
 target_include_directories(RayneBullet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneBullet PRIVATE "${DEFINES}")
 

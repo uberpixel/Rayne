@@ -14,6 +14,7 @@
 
 namespace RN
 {
+	class Scene;
 	class SceneAttachment : public Object
 	{
 	public:

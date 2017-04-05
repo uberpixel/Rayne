@@ -14,6 +14,7 @@
 namespace RN
 {
 	class MetalRenderer;
+	class MetalSwapChain;
 	struct MetalWindowInternals;
 
 	class MetalWindow : public Window
@@ -28,12 +29,17 @@ namespace RN
 		MTLAPI void Hide() final;
 
 		MTLAPI Vector2 GetSize() const final;
+		MTLAPI Framebuffer *GetFramebuffer() const final;
+
+		MetalSwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
 		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);
 
 		PIMPL<MetalWindowInternals> _internals;
 		MetalRenderer *_renderer;
+
+		MetalSwapChain *_swapChain;
 
 		RNDeclareMetaAPI(MetalWindow, MTLAPI)
 	};

@@ -16,11 +16,12 @@
 #include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
+#include "RNMetalFramebuffer.h"
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
-- (id<MTLTexture>)nextDepthBuffer;
 - (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
+- (CGSize)getSize;
 @end
 
 @interface RNMetalWindow : NSWindow
@@ -33,63 +34,64 @@ namespace RN
 	class Camera;
 	class MetalGPUBuffer;
 
-	struct MetalWindowPass
-	{
-		MetalWindow *window;
-
-		id<CAMetalDrawable> drawable;
-		id<MTLTexture> depthTexture;
-	};
-
 	struct MetalDrawable : public Drawable
 	{
+		//TODO: Maybe store these per camera/renderpass!?
+		struct CameraSpecific
+		{
+			const MetalRenderingState *pipelineState;
+			MetalUniformBuffer *vertexBuffer;
+			MetalUniformBuffer *fragmentBuffer;
+		};
+
 		~MetalDrawable()
 		{
-			for(MetalUniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(MetalUniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
+			for(CameraSpecific specific : _cameraSpecifics)
+			{
+				if(specific.vertexBuffer)
+					delete specific.vertexBuffer;
+
+				if(specific.fragmentBuffer)
+					delete specific.fragmentBuffer;
+			}
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const MetalRenderingState *state)
+		void AddCameraSepecificsIfNeeded(size_t cameraID)
 		{
-			if(state == _pipelineState)
-				return;
+			while(_cameraSpecifics.size() <= cameraID)
+			{
+				_cameraSpecifics.push_back({nullptr, nullptr, nullptr});
+				dirty = true;
+			}
+		}
 
-			_pipelineState = state;
+		void UpdateRenderingState(size_t cameraID, Renderer *renderer, const MetalRenderingState *state)
+		{
+			_cameraSpecifics[cameraID].pipelineState = state;
 
-			for(MetalUniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(MetalUniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
+			if(_cameraSpecifics[cameraID].vertexBuffer)
+				delete _cameraSpecifics[cameraID].vertexBuffer;
 
-			_vertexBuffers.clear();
-			_fragmentBuffers.clear();
+			if(_cameraSpecifics[cameraID].fragmentBuffer)
+				delete _cameraSpecifics[cameraID].fragmentBuffer;
 
 			//TODO: Support multiple uniform buffers
 			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_vertexBuffers.push_back(new MetalUniformBuffer(renderer, totalSize, 1));
+				_cameraSpecifics[cameraID].vertexBuffer = new MetalUniformBuffer(renderer, totalSize, 1);
 
 			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_fragmentBuffers.push_back(new MetalUniformBuffer(renderer, totalSize, 1));
+				_cameraSpecifics[cameraID].fragmentBuffer = new MetalUniformBuffer(renderer, totalSize, 1);
 		}
 
-		const MetalRenderingState *_pipelineState;
-		std::vector<MetalUniformBuffer *> _vertexBuffers;
-		std::vector<MetalUniformBuffer *> _fragmentBuffers;
-		MetalDrawable *_next;
-		MetalDrawable *_prev;
+		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
 	struct MetalRenderPass
 	{
 		Camera *camera;
-		Framebuffer *framebuffer;
-		id<MTLCommandBuffer> commandBuffer;
-		id<MTLRenderCommandEncoder> renderCommand;
-		const MetalRenderingState *activeState;
+		MetalFramebuffer *framebuffer;
 
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
@@ -98,25 +100,30 @@ namespace RN
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
 
-		MetalDrawable *drawableHead;
-		size_t drawableCount;
+		std::vector<MetalDrawable *> drawables;
 	};
 
 
 	struct MetalRendererInternals
 	{
+		std::vector<MetalRenderPass> renderPasses;
+		MetalStateCoordinator stateCoordinator;
+
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
 
-		MetalWindowPass pass;
-		MetalRenderPass renderPass;
-		MetalStateCoordinator stateCoordinator;
+		id<MTLCommandBuffer> commandBuffer;
+		id<MTLRenderCommandEncoder> commandEncoder;
+
+		std::vector<MetalSwapChain *>swapChains;
+
+		size_t currentRenderPassIndex;
+		const MetalRenderingState *currentRenderState;
 	};
 
 	struct MetalWindowInternals
 	{
 		NSWindow *window;
-		RNMetalView *metalView;
 	};
 }
 

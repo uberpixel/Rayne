@@ -10,6 +10,7 @@
 #include "RNMetalWindow.h"
 #include "RNMetalInternals.h"
 #include "RNMetalRenderer.h"
+#include "RNMetalSwapChain.h"
 
 namespace RN
 {
@@ -19,12 +20,13 @@ namespace RN
 		Window(screen),
 		_renderer(nullptr)
 	{
-		_internals->metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) andDevice:renderer->_internals->device];
-
 		_internals->window = [[RNMetalWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
-		[_internals->window setContentView:_internals->metalView];
+
+		_swapChain = new MetalSwapChain(size, renderer->_internals->device);
+
+		[_internals->window setContentView:_swapChain->_metalView];
 
 		NSScreen *nsscreen = (NSScreen *)screen->GetNSScreen();
 		NSRect frame = [_internals->window frame];
@@ -75,5 +77,10 @@ namespace RN
 		NSRect rect = [_internals->window frame];
 
 		return Vector2(rect.size.width, rect.size.height);
+	}
+
+	Framebuffer *MetalWindow::GetFramebuffer() const
+	{
+		return _swapChain->GetFramebuffer();
 	}
 }

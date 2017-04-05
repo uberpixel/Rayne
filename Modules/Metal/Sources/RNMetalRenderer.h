@@ -36,8 +36,8 @@ namespace RN
 		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
 		MTLAPI Window *GetMainWindow() final;
 
-		MTLAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		MTLAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		MTLAPI void Render(Function &&function) final;
+		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
 
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -51,7 +51,7 @@ namespace RN
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI Shader *GetDefaultShader(Shader::Type type, ShaderOptions *options) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 

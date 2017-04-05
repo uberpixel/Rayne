@@ -475,7 +475,7 @@ namespace RN
 		return lib;
 	}
 
-	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default default)
+	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader)
 	{
 		Shader *shader;
 		if(type == Shader::Type::Vertex)
