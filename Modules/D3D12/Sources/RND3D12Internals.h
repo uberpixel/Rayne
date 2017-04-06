@@ -74,6 +74,8 @@ namespace RN
 		size_t currentRenderPassIndex;
 		size_t currentDrawableResourceIndex;
 		size_t totalDrawableCount;
+
+		size_t totalDescriptorTables;
 	};
 
 	class D3D12CommandList : public Object

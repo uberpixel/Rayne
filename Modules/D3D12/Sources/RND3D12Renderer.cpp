@@ -24,6 +24,7 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_mipMapTextures(new Array()),
+		_currentRootSignature(nullptr),
 		_currentSrvCbvHeap(nullptr),
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array()),
@@ -42,42 +43,6 @@ namespace RN
 
 		_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		// Create a root signature.
-		{
-			CD3DX12_DESCRIPTOR_RANGE srvCbvRanges[2];
-			CD3DX12_ROOT_PARAMETER rootParameters[2];
-
-			// Perfomance TIP: Order from most frequent to least frequent.
-			srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
-			srvCbvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0);
-			rootParameters[0].InitAsDescriptorTable(1, &srvCbvRanges[0], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-			rootParameters[1].InitAsDescriptorTable(1, &srvCbvRanges[1], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-
-			// Create sampler
-			D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
-			samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;//D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-			samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-			samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-			samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-			samplerDesc.MipLODBias = 0.0f;
-			samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-			samplerDesc.MinLOD = 0.0f;
-			samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-			samplerDesc.MaxAnisotropy = 16;
-			samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-			samplerDesc.ShaderRegister = 0;
-			samplerDesc.RegisterSpace = 0;
-			samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-			rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-			ID3DBlob *signature;
-			ID3DBlob *error;
-			D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-			underlyingDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_rootSignature));
-		}
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"));
 	}
@@ -305,7 +270,10 @@ namespace RN
 		_internals->totalDrawableCount = 0;
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
+		_internals->totalDescriptorTables = 0;
 		_internals->swapChains.clear();
+		_currentRootSignature = nullptr;
+		_currentSrvCbvIndex = 0;
 
 		_completedFenceValue = _fence->GetCompletedValue();
 
@@ -352,11 +320,6 @@ namespace RN
 		}
 
 		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
-		commandList->SetGraphicsRootSignature(_rootSignature);
-
-		// Set the one big descriptor heap for the whole frame
-		ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap };
-		commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 		
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
@@ -369,6 +332,16 @@ namespace RN
 				//Draw drawables
 				for(D3D12Drawable *drawable : renderPass.drawables)
 				{
+					//TODO: Sort drawables by camera and root signature
+					if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
+					{
+						_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
+						commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
+
+						// Set the one big descriptor heap for the whole frame
+						ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap };
+						commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+					}
 					RenderDrawable(commandList, drawable);
 				}
 
@@ -710,9 +683,9 @@ namespace RN
 
 		ID3D12DescriptorHeap *srvCbvHeap;
 
-		// Layout: 5 textures + 1 cbv
+		// Layout: textures + 1 cbv
 		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
-		srvCbvHeapDesc.NumDescriptors = (5 + 1)*_internals->totalDrawableCount;
+		srvCbvHeapDesc.NumDescriptors = _internals->totalDescriptorTables;
 		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&srvCbvHeap));
@@ -743,11 +716,13 @@ namespace RN
 
 			for(D3D12Drawable *drawable : renderPass.drawables)
 			{
+				const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[cameraID].pipelineState->rootSignature;
+
 				//Create texture descriptors
 				const Array *textures = drawable->material->GetTextures();
 				textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
-					//Root signature expects 5 textures max
-					if(i >= 5)
+					//Respect the textures limit of the root signature
+					if(i >= rootSignature->textureCount)
 					{
 						stop = true;
 						return;
@@ -768,8 +743,8 @@ namespace RN
 					}
 				});
 
-				//Create null texture descriptors for those textures not used within the limit of 5
-				for(int i = 5 - textures->GetCount(); i > 0; i--)
+				//Create null texture descriptors for those that are too many in the root signature
+				for(int i = rootSignature->textureCount - textures->GetCount(); i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
@@ -956,18 +931,24 @@ namespace RN
 		_lock.Lock();
 		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		renderPass.drawables.push_back(drawable);
+
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
 		_lock.Unlock();
 	}
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
+		const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6 + 5, _srvCbvDescriptorSize);
-		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
-
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentDrawableIndex*6, _srvCbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
 		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
+		_currentSrvCbvIndex += rootSignature->textureCount;
+
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
+		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
+		_currentSrvCbvIndex += rootSignature->constantBufferCount;
 
 		commandList->SetPipelineState(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->state);
 

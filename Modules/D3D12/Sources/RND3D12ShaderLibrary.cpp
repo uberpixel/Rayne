@@ -111,7 +111,7 @@ namespace RN
 						Number *anisotropy = dict->GetObjectForKey<Number>(RNCSTR("anisotropy"));
 
 						Shader::Sampler::WrapMode wrapMode = Shader::Sampler::WrapMode::Repeat;
-						Shader::Sampler::Filter filterType = Shader::Sampler::Filter::Linear;
+						Shader::Sampler::Filter filterType = Shader::Sampler::Filter::Anisotropic;
 						uint8 anisotropyValue = Shader::Sampler::GetDefaultAnisotropy();
 
 						if(wrap)
@@ -127,6 +127,10 @@ namespace RN
 							if(filter->IsEqual(RNCSTR("nearest")))
 							{
 								filterType = Shader::Sampler::Filter::Nearest;
+							}
+							else if(filter->IsEqual(RNCSTR("linear")))
+							{
+								filterType = Shader::Sampler::Filter::Linear;
 							}
 						}
 

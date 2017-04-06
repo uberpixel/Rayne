@@ -224,9 +224,9 @@ namespace RN
 
 
 	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, uint8 anisotropy) :
-		filter(filter),
-		wrapMode(wrapMode),
-		anisotropy(anisotropy)
+		_filter(filter),
+		_wrapMode(wrapMode),
+		_anisotropy(anisotropy)
 	{}
 
 	Shader::Sampler::~Sampler()

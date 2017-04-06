@@ -18,6 +18,7 @@ namespace RN
 {
 	struct D3D12Drawable;
 	struct D3D12RendererInternals;
+	struct D3D12RootSignature;
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
@@ -95,9 +96,9 @@ namespace RN
 
 		Lockable _lock;
 
-		ID3D12RootSignature *_rootSignature;
-
+		const D3D12RootSignature *_currentRootSignature;
 		ID3D12DescriptorHeap *_currentSrvCbvHeap;
+		size_t _currentSrvCbvIndex;
 		UINT _srvCbvDescriptorSize;
 		UINT _rtvDescriptorSize;
 

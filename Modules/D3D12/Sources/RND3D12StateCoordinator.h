@@ -23,32 +23,36 @@ namespace RN
 
 	struct D3D12UniformState
 	{
-		//VkDescriptorSet descriptorSet;
 		D3D12UniformBuffer *uniformBuffer;
 	};
 
 	struct D3D12DepthStencilState
 	{
 		D3D12DepthStencilState() = default;
-/*		D3D12DepthStencilState(Material *material, id<MTLDepthStencilState> tstate) :
-			mode(material->GetDepthMode()),
-			depthWriteEnabled(material->GetDepthWriteEnabled()),
-			state(tstate)
-		{}*/
 
 		~D3D12DepthStencilState()
 		{
-//			[state release];
+
 		}
 
 		DepthMode mode;
 		bool depthWriteEnabled;
-//		id<MTLDepthStencilState> state;
 
 		RN_INLINE bool MatchesMaterial(Material *material) const
 		{
 			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled);
 		}
+	};
+
+	struct D3D12RootSignature
+	{
+		~D3D12RootSignature();
+
+		uint8 textureCount;
+		Array *samplers;
+		uint8 constantBufferCount;
+
+		ID3D12RootSignature *signature;
 	};
 
 	struct D3D12PipelineState
@@ -58,18 +62,20 @@ namespace RN
 		size_t pixelFormat;
 		size_t depthStencilFormat;
 		ID3D12PipelineState *state;
+
+		const D3D12RootSignature *rootSignature;
 	};
 
-	struct D3D12RenderingStateCollection
+	struct D3D12PipelineStateCollection
 	{
-		D3D12RenderingStateCollection() = default;
-		D3D12RenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, void *vertex, void *fragment) :
+		D3D12PipelineStateCollection() = default;
+		D3D12PipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, void *vertex, void *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
 		{}
 
-		~D3D12RenderingStateCollection()
+		~D3D12PipelineStateCollection()
 		{
 			for(D3D12PipelineState *state : states)
 				delete state;
@@ -88,23 +94,19 @@ namespace RN
 		D3D12StateCoordinator();
 		~D3D12StateCoordinator();
 
-/*		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
-		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);*/
-
+		const D3D12RootSignature *GetRootSignature(Material *material);
 		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
 
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
-		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
-
-		std::mutex _samplerLock;
-//		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;
+		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, Camera *camera, Material *material);
 
 		std::vector<D3D12DepthStencilState *> _depthStencilStates;
 		const D3D12DepthStencilState *_lastDepthStencilState;
 
-		std::vector<D3D12RenderingStateCollection *> _renderingStates;
+		std::vector<D3D12PipelineStateCollection *> _renderingStates;
+		std::vector<D3D12RootSignature *> _rootSignatures;
 	};
 }
 

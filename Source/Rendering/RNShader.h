@@ -107,24 +107,29 @@ namespace RN
 			enum class Filter
 			{
 				Linear,
-				Nearest
+				Nearest,
+				Anisotropic
 			};
 
-			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Linear, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, uint8 anisotropy = GetDefaultAnisotropy());
 			RNAPI ~Sampler();
 
 			bool operator== (const Sampler &other) const
 			{
-				return (filter == other.filter && wrapMode == other.wrapMode && anisotropy == other.anisotropy);
+				return (_filter == other._filter && _wrapMode == other._wrapMode && _anisotropy == other._anisotropy);
 			}
 
 			RNAPI static uint32 GetDefaultAnisotropy();
 			RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
+			RNAPI WrapMode GetWrapMode() const { return _wrapMode; }
+			RNAPI Filter GetFilter() const { return _filter; }
+			RNAPI uint8 GetAnisotropy() const { return _anisotropy; }
+
 		private:
-			WrapMode wrapMode;
-			Filter filter;
-			uint32 anisotropy;
+			WrapMode _wrapMode;
+			Filter _filter;
+			uint8 _anisotropy;
 
 			__RNDeclareMetaInternal(Sampler)
 		};

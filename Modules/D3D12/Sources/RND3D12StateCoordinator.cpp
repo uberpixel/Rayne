@@ -49,17 +49,10 @@ namespace RN
 		"CUSTOM"
 	};
 
-/*	MTLCompareFunction CompareFunctionLookup[] =
-		{
-			MTLCompareFunctionNever,
-			MTLCompareFunctionAlways,
-			MTLCompareFunctionLess,
-			MTLCompareFunctionLessEqual,
-			MTLCompareFunctionEqual,
-			MTLCompareFunctionNotEqual,
-			MTLCompareFunctionGreaterEqual,
-			MTLCompareFunctionGreater
-		};*/
+	D3D12RootSignature::~D3D12RootSignature()
+	{
+		signature->Release();
+	}
 
 	D3D12PipelineState::~D3D12PipelineState()
 	{
@@ -67,114 +60,161 @@ namespace RN
 	}
 
 	D3D12StateCoordinator::D3D12StateCoordinator() :
-//		_device(nullptr),
 		_lastDepthStencilState(nullptr)
 	{}
 
 	D3D12StateCoordinator::~D3D12StateCoordinator()
 	{
-/*		for(D3D12RenderingStateCollection *collection : _renderingStates)
-			delete collection;
-
-		for(D3D12DepthStencilState *state : _depthStencilStates)
-			delete state;
-
-		for(auto &pair : _samplers)
-			[pair.first release];*/
+		//TODO: Clean up correctly...
 	}
 
-/*	void D3D12StateCoordinator::SetDevice(id<MTLDevice> device)
+	const D3D12RootSignature *D3D12StateCoordinator::GetRootSignature(Material *material)
 	{
-		_device = device;
-	}*/
+		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(material->GetVertexShader());
+		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
+		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
+		const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
+		uint16 textureCount = fmax(vertexSignature->GetTextureCount(), fragmentSignature->GetTextureCount());
+		const Array *vertexSamplers = vertexSignature->GetSamplers();
+		const Array *fragmentSamplers = fragmentSignature->GetSamplers();
+		Array *samplerArray = new Array(vertexSamplers);
+		samplerArray->AddObjectsFromArray(fragmentSamplers);
+		samplerArray->Autorelease();
 
-
-/*	id<MTLDepthStencilState> D3D12StateCoordinator::GetDepthStencilStateForMaterial(Material *material)
-	{
-		if(RN_EXPECT_TRUE(_lastDepthStencilState != nullptr) && _lastDepthStencilState->MatchesMaterial(material))
-			return _lastDepthStencilState->state;
-
-		for(const D3D12DepthStencilState *state : _depthStencilStates)
+		for(D3D12RootSignature *signature : _rootSignatures)
 		{
-			if(state->MatchesMaterial(material))
+			
+			if(signature->textureCount != textureCount)
 			{
-				_lastDepthStencilState = state;
-				return _lastDepthStencilState->state;
+				continue;
 			}
+
+			//TODO: Support multiple constant buffers
+			if(signature->constantBufferCount != 1)
+			{
+				continue;
+			}
+
+			if(samplerArray->GetCount() != signature->samplers->GetCount())
+			{
+				continue;
+			}
+			
+			bool notEqual = false;
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+				if(!(sampler == samplerArray->GetObjectAtIndex(index)))
+				{
+					notEqual = true;
+					stop = true;
+				}
+			});
+			if(notEqual)
+			{
+				continue;
+			}
+
+			return signature;
 		}
 
-		MTLDepthStencilDescriptor *descriptor = [[MTLDepthStencilDescriptor alloc] init];
-		[descriptor setDepthCompareFunction:CompareFunctionLookup[static_cast<uint32_t>(material->GetDepthMode())]];
-		[descriptor setDepthWriteEnabled:material->GetDepthWriteEnabled()];
+		D3D12RootSignature *signature = new D3D12RootSignature();
+		signature->constantBufferCount = 1; //TODO: Support multiple constant buffers
+		signature->samplers = samplerArray->Retain();
+		signature->textureCount = textureCount;
 
-		id<MTLDepthStencilState> state = [_device newDepthStencilStateWithDescriptor:descriptor];
-		_lastDepthStencilState = new D3D12DepthStencilState(material, state);
+		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
+		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
+		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
 
-		_depthStencilStates.push_back(const_cast<D3D12DepthStencilState *>(_lastDepthStencilState));
-		[descriptor release];
+		if(numberOfTables > 0)
+		{
+			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
+			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
+		}
 
-		return _lastDepthStencilState->state;
+		// Perfomance TIP: Order from most frequent to least frequent.
+		int tableIndex = 0;
+		if(signature->textureCount > 0)
+		{
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);
+			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
+			tableIndex += 1;
+		}
+		if(signature->constantBufferCount > 0)
+		{
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);
+			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
+			tableIndex += 1;
+		}
+		
+		// Create samplers
+		D3D12_STATIC_SAMPLER_DESC *samplerDescriptors = nullptr;
+		if(signature->samplers->GetCount() > 0)
+		{
+			samplerDescriptors = new D3D12_STATIC_SAMPLER_DESC[signature->samplers->GetCount()];
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+				D3D12_STATIC_SAMPLER_DESC &samplerDesc = samplerDescriptors[index];
+
+				D3D12_FILTER filter = D3D12_FILTER_ANISOTROPIC;
+				switch(sampler->GetFilter())
+				{
+				case Shader::Sampler::Filter::Anisotropic:
+					filter = D3D12_FILTER_ANISOTROPIC;
+					break;
+				case Shader::Sampler::Filter::Linear:
+					filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+					break;
+				case Shader::Sampler::Filter::Nearest:
+					filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+					break;
+				}
+
+				D3D12_TEXTURE_ADDRESS_MODE addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+				switch(sampler->GetWrapMode())
+				{
+				case Shader::Sampler::WrapMode::Repeat:
+					addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+					break;
+				case Shader::Sampler::WrapMode::Clamp:
+					addressMode = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+					break;
+				}
+
+				samplerDesc.Filter = filter;
+				samplerDesc.AddressU = addressMode;
+				samplerDesc.AddressV = addressMode;
+				samplerDesc.AddressW = addressMode;
+				samplerDesc.MipLODBias = 0.0f;
+				samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+				samplerDesc.MinLOD = 0.0f;
+				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+				samplerDesc.MaxAnisotropy = sampler->GetAnisotropy();
+				samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+				samplerDesc.ShaderRegister = index;
+				samplerDesc.RegisterSpace = 0;
+				samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	//TODO: Restrict visibility to the shader actually using it
+			});
+		}
+
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+		ID3DBlob *signatureBlob;
+		ID3DBlob *error;
+		D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
+
+		if(srvCbvRanges)
+			delete[] srvCbvRanges;
+		if(rootParameters)
+			delete[] rootParameters;
+		if(samplerDescriptors)
+			delete[] samplerDescriptors;
+
+		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
+		renderer->GetD3D12Device()->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&signature->signature));
+
+		_rootSignatures.push_back(signature);
+		return signature;
 	}
-
-	id<MTLSamplerState> D3D12StateCoordinator::GetSamplerStateForTextureParameter(const Texture::Parameter &parameter)
-	{
-		std::lock_guard<std::mutex> lock(_samplerLock);
-
-		for(auto &pair : _samplers)
-		{
-			if(pair.second == parameter)
-				return pair.first;
-		}
-
-
-		MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
-
-		switch(parameter.wrapMode)
-		{
-			case Texture::WrapMode::Clamp:
-				[descriptor setRAddressMode:MTLSamplerAddressModeClampToEdge];
-				[descriptor setSAddressMode:MTLSamplerAddressModeClampToEdge];
-				[descriptor setTAddressMode:MTLSamplerAddressModeClampToEdge];
-				break;
-			case Texture::WrapMode::Repeat:
-				[descriptor setRAddressMode:MTLSamplerAddressModeRepeat];
-				[descriptor setSAddressMode:MTLSamplerAddressModeRepeat];
-				[descriptor setTAddressMode:MTLSamplerAddressModeRepeat];
-				break;
-		}
-
-		MTLSamplerMipFilter mipFilter;
-
-		switch(parameter.filter)
-		{
-			case Texture::Filter::Linear:
-				[descriptor setMinFilter:MTLSamplerMinMagFilterLinear];
-				[descriptor setMagFilter:MTLSamplerMinMagFilterLinear];
-
-				mipFilter = MTLSamplerMipFilterLinear;
-				break;
-
-			case Texture::Filter::Nearest:
-				[descriptor setMinFilter:MTLSamplerMinMagFilterNearest];
-				[descriptor setMagFilter:MTLSamplerMinMagFilterNearest];
-
-				mipFilter = MTLSamplerMipFilterNearest;
-				break;
-		}
-
-		[descriptor setMipFilter:mipFilter];
-
-		NSUInteger anisotropy = std::min(static_cast<uint32>(16), std::max(static_cast<uint32>(1), parameter.anisotropy));
-		[descriptor setMaxAnisotropy:anisotropy];
-
-		id<MTLSamplerState> sampler = [_device newSamplerStateWithDescriptor:descriptor];
-		[descriptor release];
-
-		_samplers.emplace_back(std::make_pair(sampler, parameter));
-
-		return sampler;
-	}*/
-
 
 	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
@@ -186,25 +226,26 @@ namespace RN
 		void *vertexFunction = vertexShader->_shader;
 		void *fragmentFunction = fragmentShader->_shader;
 
-		for(D3D12RenderingStateCollection *collection : _renderingStates)
+		for(D3D12PipelineStateCollection *collection : _renderingStates)
 		{
 			if(collection->descriptor.IsEqual(descriptor))
 			{
 				if(collection->fragmentShader == fragmentFunction && collection->vertexShader == vertexFunction)
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, camera);
+					return GetRenderPipelineStateInCollection(collection, mesh, camera, material);
 				}
 			}
 		}
 
-		D3D12RenderingStateCollection *collection = new D3D12RenderingStateCollection(descriptor, vertexFunction, fragmentFunction);
+		D3D12PipelineStateCollection *collection = new D3D12PipelineStateCollection(descriptor, vertexFunction, fragmentFunction);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, camera);
+		return GetRenderPipelineStateInCollection(collection, mesh, camera, material);
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, Camera *camera, Material *material)
 	{
+		//TODO: Get these from the framebuffer and maybe replace camera param with framebuffer!?
 		DXGI_FORMAT pixelFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
@@ -215,6 +256,8 @@ namespace RN
 				return state;
 		}
 
+		const D3D12RootSignature *rootSignature = GetRootSignature(material);
+
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
 		ID3DBlob *vertexShader = static_cast<ID3DBlob*>(collection->vertexShader);
@@ -222,7 +265,7 @@ namespace RN
 
 		// Describe and create the graphics pipeline state object (PSO).
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-		psoDesc.pRootSignature = renderer->_rootSignature;
+		psoDesc.pRootSignature = rootSignature->signature;
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs = CreateVertexElementDescriptorsFromMesh(mesh);
 		psoDesc.InputLayout = { inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()) };
 		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
@@ -244,6 +287,7 @@ namespace RN
 		D3D12PipelineState *state = new D3D12PipelineState();
 		state->pixelFormat = pixelFormat;
 		state->depthStencilFormat = depthStencilFormat;
+		state->rootSignature = rootSignature;
 		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
 		if(FAILED(success))
@@ -252,7 +296,6 @@ namespace RN
 		}
 
 		collection->states.push_back(state);
-
 		return state;
 	}
 
@@ -288,9 +331,10 @@ namespace RN
 		Shader *fragmentShader = material->GetFragmentShader();
 		D3D12UniformBuffer *vertexBuffer = nullptr;
 		//D3D12UniformBuffer *fragmentBuffer = nullptr;
-		if(vertexShader && vertexShader->GetSignature() && fragmentShader->GetSignature())
+		if(vertexShader && vertexShader->GetSignature() && fragmentShader && fragmentShader->GetSignature())
 		{
-			size_t totalSize = vertexShader->GetSignature()->GetTotalUniformSize();
+			//TODO: this could break depending on the shader, better use a buffer per shader...
+			size_t totalSize = fmax(vertexShader->GetSignature()->GetTotalUniformSize(), fragmentShader->GetSignature()->GetTotalUniformSize());
 			if(totalSize > 0)
 				vertexBuffer = new D3D12UniformBuffer(renderer, totalSize);
 		}
