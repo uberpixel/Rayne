@@ -942,13 +942,20 @@ namespace RN
 		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 		const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
-		commandList->SetGraphicsRootDescriptorTable(0, srvGPUHandle);
-		_currentSrvCbvIndex += rootSignature->textureCount;
+		UINT rootParameter = 0;
+		if(rootSignature->textureCount)
+		{
+			CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
+			commandList->SetGraphicsRootDescriptorTable(rootParameter++, srvGPUHandle);
+			_currentSrvCbvIndex += rootSignature->textureCount;
+		}
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
-		commandList->SetGraphicsRootDescriptorTable(1, cbvGPUHandle);
-		_currentSrvCbvIndex += rootSignature->constantBufferCount;
+		if(rootSignature->constantBufferCount)
+		{
+			CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
+			commandList->SetGraphicsRootDescriptorTable(rootParameter++, cbvGPUHandle);
+			_currentSrvCbvIndex += rootSignature->constantBufferCount;
+		}
 
 		commandList->SetPipelineState(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->state);
 
