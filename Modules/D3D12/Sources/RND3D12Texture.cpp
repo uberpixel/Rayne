@@ -466,52 +466,6 @@ namespace RN
 		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());*/
 	}
 
-	void D3D12Texture::SetParameter(const Parameter &parameter)
-	{
-		//TODO: Have the state coordinator pool these.
-		Texture::SetParameter(parameter);
-		
-		D3D12_TEXTURE_ADDRESS_MODE addressMode;
-		switch(parameter.wrapMode)
-		{
-		case Texture::WrapMode::Clamp:
-			addressMode = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			break;
-		case Texture::WrapMode::Repeat:
-			addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-			break;
-		}
-
-		D3D12_FILTER filter;
-		switch(parameter.filter)
-		{
-		case Texture::Filter::Nearest:
-			filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-			break;
-		case Texture::Filter::Linear:
-			filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-			break;
-		}
-
-		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
-
-		// Create sampler
-		_samplerDesc = {};
-		_samplerDesc.Filter = filter;
-		_samplerDesc.AddressU = addressMode;
-		_samplerDesc.AddressV = addressMode;
-		_samplerDesc.AddressW = addressMode;
-		_samplerDesc.MipLODBias = 0.0f;
-		_samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-		_samplerDesc.MinLOD = 0.0f;
-		_samplerDesc.MaxLOD = _descriptor.mipMaps;
-		_samplerDesc.MaxAnisotropy = parameter.anisotropy;
-		_samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-		_samplerDesc.ShaderRegister = 0;
-		_samplerDesc.RegisterSpace = 0;
-		_samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-	}
-
 	void D3D12Texture::GenerateMipMaps()
 	{
 		_needsMipMaps = true;

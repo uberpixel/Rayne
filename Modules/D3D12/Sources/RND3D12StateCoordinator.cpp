@@ -63,11 +63,6 @@ namespace RN
 
 	D3D12PipelineState::~D3D12PipelineState()
 	{
-		for(D3D12RenderingStateArgument *argument : vertexArguments)
-			delete argument;
-		for(D3D12RenderingStateArgument *argument : fragmentArguments)
-			delete argument;
-
 		state->Release();
 	}
 

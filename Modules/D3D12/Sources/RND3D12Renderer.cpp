@@ -483,34 +483,34 @@ namespace RN
 		return lib;
 	}
 
-	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader)
+	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader)
 	{
-		Shader *shader;
+		Shader *realShader;
 		if(type == Shader::Type::Vertex)
 		{
-			if(default == Shader::Default::Sky)
+			if(shader == Shader::Default::Sky)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
 			}
 			else
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
 			}
 		}
 			
 		else if(type == Shader::Type::Fragment)
 		{
-			if(default == Shader::Default::Sky)
+			if(shader == Shader::Default::Sky)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
 			}
 			else
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 			}
 		}
 
-		return shader;
+		return realShader;
 	}
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const

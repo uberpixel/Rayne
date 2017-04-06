@@ -31,10 +31,10 @@ namespace RN
 		_signatureDescription->Release();
 	}
 
-	const ShaderOptions *D3D12SpecificShaderLibrary::GetCleanedShaderOptions(const ShaderOptions *options) const
+	const Shader::Options *D3D12SpecificShaderLibrary::GetCleanedShaderOptions(const Shader::Options *options) const
 	{
 		const Dictionary *oldDefines = options->GetDefines();
-		ShaderOptions *newOptions = ShaderOptions::WithNothing();
+		Shader::Options *newOptions = Shader::Options::WithNone();
 		if(!_signatureDescription)
 			return newOptions;
 
@@ -94,26 +94,86 @@ namespace RN
 		return uniformDescriptors->Autorelease();
 	}
 
-	const Shader::Signature *D3D12SpecificShaderLibrary::GetShaderSignature(const ShaderOptions *options) const
+	static Array *GetSamplers(const Array *samplers)
+	{
+		Array *samplerArray = new Array();
+		if(samplers)
+		{
+			samplers->Enumerate([&](Object *sampler, size_t index, bool &stop) {
+				String *name = sampler->Downcast<String>();
+				if(!name)
+				{
+					Dictionary *dict = sampler->Downcast<Dictionary>();
+					if(dict)
+					{
+						String *wrap = dict->GetObjectForKey<String>(RNCSTR("wrap"));
+						String *filter = dict->GetObjectForKey<String>(RNCSTR("filter"));
+						Number *anisotropy = dict->GetObjectForKey<Number>(RNCSTR("anisotropy"));
+
+						Shader::Sampler::WrapMode wrapMode = Shader::Sampler::WrapMode::Repeat;
+						Shader::Sampler::Filter filterType = Shader::Sampler::Filter::Linear;
+						uint8 anisotropyValue = Shader::Sampler::GetDefaultAnisotropy();
+
+						if(wrap)
+						{
+							if(wrap->IsEqual(RNCSTR("clamp")))
+							{
+								wrapMode = Shader::Sampler::WrapMode::Clamp;
+							}
+						}
+
+						if(filter)
+						{
+							if(filter->IsEqual(RNCSTR("nearest")))
+							{
+								filterType = Shader::Sampler::Filter::Nearest;
+							}
+						}
+
+						if(anisotropy)
+						{
+							anisotropyValue = anisotropy->GetUint32Value();
+						}
+
+						Shader::Sampler *sampler = new Shader::Sampler(wrapMode, filterType, anisotropyValue);
+						samplerArray->AddObject(sampler->Autorelease());
+					}
+				}
+				else
+				{
+					if(name->IsEqual(RNCSTR("default")))
+					{
+						Shader::Sampler *sampler = new Shader::Sampler();
+						samplerArray->AddObject(sampler->Autorelease());
+					}
+				}
+			});
+		}
+
+		return samplerArray->Autorelease();
+	}
+
+	const Shader::Signature *D3D12SpecificShaderLibrary::GetShaderSignature(const Shader::Options *options) const
 	{
 		if(!_signatureDescription)
 		{
 			Array *uniformDescriptors = new Array();
-			Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), 0, 0);
+			Array *samplers = new Array();
+			Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), 0);
 			return signature->Autorelease();
 		}
 
-		uint8 samplerCount = 0;
 		uint8 textureCount = 0;
 		uint32 offset = 0;
 
 		Number *textureObject = _signatureDescription->GetObjectForKey<Number>(RNCSTR("textures"));
 		if(textureObject) textureCount = textureObject->GetUint8Value();
-		Number *samplerObject = _signatureDescription->GetObjectForKey<Number>(RNCSTR("samplers"));
-		if(samplerObject) samplerCount = samplerObject->GetUint8Value();
 
 		Array *uniformArray = _signatureDescription->GetObjectForKey<Array>(RNCSTR("uniforms"));
 		Array *uniformDescriptors = GetUniformDescriptors(uniformArray, offset)->Retain();
+
+		Array *samplerDataArray = _signatureDescription->GetObjectForKey<Array>(RNCSTR("samplers"));
+		Array *samplerArray = GetSamplers(samplerDataArray);
 
 		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
 		if(signatureOptions)
@@ -130,24 +190,25 @@ namespace RN
 
 					Number *optionTextureObject = dict->GetObjectForKey<Number>(RNCSTR("textures"));
 					if(optionTextureObject) textureCount += optionTextureObject->GetUint32Value();
-					Number *optionSamplerObject = dict->GetObjectForKey<Number>(RNCSTR("samplers"));
-					if(optionSamplerObject) samplerCount += optionSamplerObject->GetUint32Value();
+
+					Array *optionSamplerdataArray = dict->GetObjectForKey<Array>(RNCSTR("samplers"));
+					Array *optionSamplerArray = GetSamplers(optionSamplerdataArray);
+					samplerArray->AddObjectsFromArray(optionSamplerArray);
 
 					Array *optionUniformArray = dict->GetObjectForKey<Array>(RNCSTR("uniforms"));
 					Array *optionUniformDescriptors = GetUniformDescriptors(optionUniformArray, offset);
-
 					uniformDescriptors->AddObjectsFromArray(optionUniformDescriptors);
 				}
 			});
 		}
 
-		Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), samplerCount, textureCount);
+		Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), samplerArray->Autorelease(), textureCount);
 		return signature->Autorelease();
 	}
 
-	Shader *D3D12SpecificShaderLibrary::GetShaderWithOptions(ShaderLibrary *library, const ShaderOptions *options)
+	Shader *D3D12SpecificShaderLibrary::GetShaderWithOptions(ShaderLibrary *library, const Shader::Options *options)
 	{
-		const ShaderOptions *newOptions = GetCleanedShaderOptions(options);
+		const Shader::Options *newOptions = GetCleanedShaderOptions(options);
 
 		D3D12Shader *shader = _shaders->GetObjectForKey<D3D12Shader>(newOptions);
 		if(shader)
@@ -212,7 +273,7 @@ namespace RN
 		_specificShaderLibraries->Release();
 	}
 
-	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name, const ShaderOptions *options)
+	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
 		D3D12SpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<D3D12SpecificShaderLibrary>(name);
 		if(!specificLibrary)
@@ -221,7 +282,7 @@ namespace RN
 		if(options)
 			return specificLibrary->GetShaderWithOptions(this, options);
 
-		return specificLibrary->GetShaderWithOptions(this, ShaderOptions::WithNothing());
+		return specificLibrary->GetShaderWithOptions(this, Shader::Options::WithNone());
 	}
 
 	Shader *D3D12ShaderLibrary::GetInstancedShaderForShader(Shader *shader)

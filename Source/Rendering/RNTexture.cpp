@@ -16,8 +16,6 @@ namespace RN
 
 	RNExceptionImp(InvalidTextureFormat)
 
-	static uint32 _defaultAnisotropy = 1;
-
 	Texture::Texture(const Descriptor &descriptor) :
 		_descriptor(descriptor)
 	{}
@@ -29,20 +27,5 @@ namespace RN
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		return coordinator->GetAssetWithName<Texture>(name, settings);
-	}
-
-	void Texture::SetParameter(const Parameter &parameter)
-	{
-		_parameter = parameter;
-	}
-
-	uint32 Texture::GetDefaultAnisotropy()
-	{
-		return _defaultAnisotropy;
-	}
-	void Texture::SetDefaultAnisotropy(uint32 anisotropy)
-	{
-		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
-		_defaultAnisotropy = anisotropy;
 	}
 }

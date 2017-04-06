@@ -8,12 +8,71 @@
 
 #include "RNShader.h"
 #include "RNShaderLibrary.h"
+#include "RNMesh.h"
 
 namespace RN
 {
 	RNDefineMeta(Shader, Object)
+	RNDefineScopedMeta(Shader, Options, Object)
 	RNDefineScopedMeta(Shader, UniformDescriptor, Object)
+	RNDefineScopedMeta(Shader, Sampler, Object)
 	RNDefineScopedMeta(Shader, Signature, Object)
+
+	static uint8 _defaultAnisotropy = 16;
+
+	Shader::Options *Shader::Options::WithMesh(Mesh *mesh)
+	{
+		Shader::Options *options = new Shader::Options(mesh);
+		return options->Autorelease();
+	}
+
+	Shader::Options *Shader::Options::WithNone()
+	{
+		Shader::Options *options = new Shader::Options();
+		return options->Autorelease();
+	}
+
+	Shader::Options::Options() : _defines(new Dictionary())
+	{
+	}
+
+	Shader::Options::Options(Mesh *mesh) : _defines(new Dictionary())
+	{
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
+			AddDefine(RNCSTR("RN_NORMALS"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
+			AddDefine(RNCSTR("RN_TANGENTS"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
+			AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
+			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+	}
+
+	void Shader::Options::EnableDiscard()
+	{
+		AddDefine(RNCSTR("RN_DISCARD"), RNCSTR("1"));
+	}
+
+	void Shader::Options::AddDefine(String *name, String *value)
+	{
+		_defines->SetObjectForKey(value, name);
+	}
+
+	bool Shader::Options::IsEqual(const Object *other) const
+	{
+		const Shader::Options *options = other->Downcast<Shader::Options>();
+		if(RN_EXPECT_FALSE(!options))
+			return false;
+
+		if(!options->_defines->IsEqual(_defines))
+			return false;
+
+		return true;
+	}
+	size_t Shader::Options::GetHash() const
+	{
+		return _defines->GetHash();
+	}
 
 	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset) :
 		_name(name->Copy()),
@@ -164,9 +223,30 @@ namespace RN
 	}
 
 
-	Shader::Signature::Signature(Array *uniformDescriptors, uint8 samplerCount, uint8 textureCount) :
+	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, uint8 anisotropy) :
+		filter(filter),
+		wrapMode(wrapMode),
+		anisotropy(anisotropy)
+	{}
+
+	Shader::Sampler::~Sampler()
+	{}
+
+	uint32 Shader::Sampler::GetDefaultAnisotropy()
+	{
+		return _defaultAnisotropy;
+	}
+
+	void Shader::Sampler::SetDefaultAnisotropy(uint32 anisotropy)
+	{
+		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
+		_defaultAnisotropy = anisotropy;
+	}
+
+
+	Shader::Signature::Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount) :
 		_uniformDescriptors(uniformDescriptors->Retain()),
-		_samplerCount(samplerCount),
+		_samplers(samplers->Retain()),
 		_textureCount(textureCount),
 		_totalUniformSize(0)
 	{
@@ -181,11 +261,11 @@ namespace RN
 	}
 
 
-	Shader::Shader(ShaderLibrary *library, Type type, const ShaderOptions *options, const Signature *signature) :
+	Shader::Shader(ShaderLibrary *library, Type type, const Shader::Options *options, const Signature *signature) :
 		_options(options->Retain()), _library(library), _type(type), _signature(signature->Retain())
 	{}
 
-	Shader::Shader(ShaderLibrary *library, Type type, const ShaderOptions *options) :
+	Shader::Shader(ShaderLibrary *library, Type type, const Shader::Options *options) :
 		_options(options->Retain()), _library(library), _type(type), _signature(nullptr)
 	{}
 
@@ -200,7 +280,7 @@ namespace RN
 		return _type;
 	}
 
-	const ShaderOptions *Shader::GetShaderOptions() const
+	const Shader::Options *Shader::GetOptions() const
 	{
 		//TODO: maybe retain and autorelease!?
 		return _options;

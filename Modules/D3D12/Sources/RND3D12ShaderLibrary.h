@@ -22,13 +22,13 @@ namespace RN
 		friend class D3D12ShaderLibrary;
 
 		~D3D12SpecificShaderLibrary();
-		Shader *GetShaderWithOptions(ShaderLibrary *library, const ShaderOptions *options);
+		Shader *GetShaderWithOptions(ShaderLibrary *library, const Shader::Options *options);
 
 	private:
 		D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
 
-		const ShaderOptions *GetCleanedShaderOptions(const ShaderOptions *options) const;
-		const Shader::Signature *GetShaderSignature(const ShaderOptions *options) const;
+		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
+		const Shader::Signature *GetShaderSignature(const Shader::Options *options) const;
 
 		Dictionary *_shaders;
 
@@ -47,7 +47,7 @@ namespace RN
 
 		D3DAPI ~D3D12ShaderLibrary() override;
 
-		D3DAPI Shader *GetShaderWithName(const String *name, const ShaderOptions *options = nullptr) final;
+		D3DAPI Shader *GetShaderWithName(const String *name, const Shader::Options *options = nullptr) final;
 		D3DAPI Shader *GetInstancedShaderForShader(Shader *shader) final;
 
 	private:

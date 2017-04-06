@@ -13,7 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNArray.h"
-#include "../Rendering/RNTexture.h"
+#include "RNTexture.h"
 #include "RNShader.h"
 #include "RNShaderLibrary.h"
 

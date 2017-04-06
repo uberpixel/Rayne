@@ -19,11 +19,34 @@
 namespace RN
 {
 	class ShaderLibrary;
-	class ShaderOptions;
+	class Mesh;
 
 	class Shader : public Object
 	{
 	public:
+		class Options : public Object
+		{
+		public:
+			RNAPI static Options *WithMesh(Mesh *mesh);
+			RNAPI static Options *WithNone();
+
+			RNAPI void EnableDiscard();
+
+			RNAPI void AddDefine(String *name, String *value);
+
+			RNAPI bool IsEqual(const Object *other) const override;
+			RNAPI size_t GetHash() const override;
+
+			const Dictionary *GetDefines() const { return _defines; }
+		private:
+			RNAPI Options();
+			RNAPI Options(Mesh *mesh);
+
+			Dictionary *_defines;
+
+			__RNDeclareMetaInternal(Options)
+		};
+
 		class UniformDescriptor : public Object
 		{
 		public:
@@ -72,10 +95,44 @@ namespace RN
 			__RNDeclareMetaInternal(UniformDescriptor)
 		};
 
+		class Sampler : public Object
+		{
+		public:
+			enum class WrapMode
+			{
+				Clamp,
+				Repeat
+			};
+
+			enum class Filter
+			{
+				Linear,
+				Nearest
+			};
+
+			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Linear, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI ~Sampler();
+
+			bool operator== (const Sampler &other) const
+			{
+				return (filter == other.filter && wrapMode == other.wrapMode && anisotropy == other.anisotropy);
+			}
+
+			RNAPI static uint32 GetDefaultAnisotropy();
+			RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
+
+		private:
+			WrapMode wrapMode;
+			Filter filter;
+			uint32 anisotropy;
+
+			__RNDeclareMetaInternal(Sampler)
+		};
+
 		class Signature : public Object
 		{
 		public:
-			RNAPI Signature(Array *uniformDescriptors, uint8 samplerCount, uint8 textureCount);
+			RNAPI Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount);
 			RNAPI virtual ~Signature();
 
 			RNAPI const Array *GetUniformDescriptors() const
@@ -83,9 +140,9 @@ namespace RN
 				return _uniformDescriptors;
 			}
 
-			RNAPI uint8 GetSamplerCount() const
+			RNAPI const Array *GetSamplers() const
 			{
-				return _samplerCount;
+				return _samplers;
 			}
 
 			RNAPI uint8 GetTextureCount() const
@@ -100,13 +157,12 @@ namespace RN
 
 		private:
 			Array *_uniformDescriptors;
-			uint8 _samplerCount;
+			Array *_samplers;
 			uint8 _textureCount;
 			size_t _totalUniformSize;
 
 			__RNDeclareMetaInternal(Signature)
 		};
-
 
 		enum class Type
 		{
@@ -124,19 +180,19 @@ namespace RN
 		RNAPI virtual const String *GetName() const = 0;
 
 		RNAPI Type GetType() const;
-		RNAPI const ShaderOptions *GetShaderOptions() const;
+		RNAPI const Shader::Options *GetOptions() const;
 		RNAPI const Signature *GetSignature() const;
 		RNAPI ShaderLibrary *GetLibrary() const;
 
 	protected:
-		RNAPI Shader(ShaderLibrary *library, Type type, const ShaderOptions *options, const Signature *signature);
-		RNAPI Shader(ShaderLibrary *library, Type type, const ShaderOptions *options);
+		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options, const Signature *signature);
+		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options);
 		RNAPI virtual ~Shader();
 
 		void SetSignature(const Signature *signature);
 
 	private:
-		const ShaderOptions *_options;
+		const Shader::Options *_options;
 		WeakRef<ShaderLibrary> _library;
 		Type _type;
 		const Signature *_signature;

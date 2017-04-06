@@ -32,8 +32,6 @@ namespace RN
 		D3DAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
 		D3DAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
-		D3DAPI void SetParameter(const Parameter &parameter) final;
-
 		D3DAPI void GenerateMipMaps() final;
 		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
 

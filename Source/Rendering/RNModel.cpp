@@ -56,9 +56,9 @@ namespace RN
 		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
 		MaterialDescriptor tempDescriptor = materialDescriptor;
 		if(!tempDescriptor.vertexShader)
-			tempDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, ShaderOptions::WithMesh(leftMesh), Shader::Default::Sky);
+			tempDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(leftMesh), Shader::Default::Sky);
 		if(!tempDescriptor.fragmentShader)
-			tempDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, ShaderOptions::WithMesh(leftMesh), Shader::Default::Sky);
+			tempDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(leftMesh), Shader::Default::Sky);
 
 		MaterialDescriptor leftMaterialDescriptor = tempDescriptor;
 		if(left)

@@ -159,39 +159,6 @@ namespace RN
 			};
 		};
 
-		enum class WrapMode
-		{
-			Clamp,
-			Repeat
-		};
-
-		enum class Filter
-		{
-			Linear,
-			Nearest
-		};
-
-		struct Parameter
-		{
-			Parameter() :
-				filter(Filter::Linear),
-				wrapMode(WrapMode::Repeat),
-				depthCompare(false),
-				anisotropy(Texture::GetDefaultAnisotropy())
-			{}
-
-			bool operator== (const Parameter &other) const
-			{
-				return (filter == other.filter && wrapMode == other.wrapMode && depthCompare == other.depthCompare && anisotropy == other.anisotropy);
-			}
-
-			Filter filter;
-			WrapMode wrapMode;
-
-			bool depthCompare;
-			uint32 anisotropy;
-		};
-
 		enum class ColorChannel
 		{
 			Red,
@@ -207,23 +174,16 @@ namespace RN
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const = 0;
 
-		RNAPI virtual void SetParameter(const Parameter &parameter);
-
 		RNAPI virtual void GenerateMipMaps() = 0;
 		RNAPI virtual bool HasColorChannel(ColorChannel channel) const = 0;
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
-		const Parameter &GetParameter() const RN_NOEXCEPT { return _parameter; }
-
-		RNAPI static uint32 GetDefaultAnisotropy();
-		RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
 	protected:
 		RNAPI Texture(const Descriptor &descriptor);
 		RNAPI ~Texture();
 
 		Descriptor _descriptor;
-		Parameter _parameter;
 
 		__RNDeclareMetaInternal(Texture)
 	};

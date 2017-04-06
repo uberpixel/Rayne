@@ -26,7 +26,7 @@
 				{
 					"uniforms": 0,
 					"textures": 0,
-					"samplers": 0,
+					"samplers": [],
 					"options":
 					[
 						"RN_NORMALS",
@@ -34,7 +34,7 @@
 						{
 							"option": "RN_UV0",
 							"textures": 1,
-							"samplers": 1,
+							"samplers": ["default"],
 							"uniforms": ["material_texturetilefactor"]
 						},
 						{
@@ -67,7 +67,7 @@
 				{
 					"uniforms": 0,
 					"textures": 1,
-					"samplers": 1
+					"samplers": [{"wrap": "clamp"}]
 				}
 			}
 		]

@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const ShaderOptions *options, const Signature *signature) :
+	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Signature *signature) :
 		Shader(library, type, options, signature), _shader(nullptr), _name(entryPoint->Retain())
 	{
 #ifdef _DEBUG

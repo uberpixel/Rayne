@@ -351,7 +351,7 @@ namespace RN
 			// Load the material
 			bool wantsDiscard = materialPair.first;
 			MaterialDescriptor &descriptor = materialPair.second;
-			ShaderOptions *shaderOptions = ShaderOptions::WithMesh(mesh);
+			Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
 			if(wantsDiscard)
 				shaderOptions->EnableDiscard();
 
