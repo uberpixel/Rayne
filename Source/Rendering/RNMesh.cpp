@@ -698,13 +698,84 @@ namespace RN
 		return mesh->Autorelease();
 	}
 
-
-	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t segments)
+	Mesh *Mesh::WithTexturedDome(float radius, size_t slices, size_t rings)
 	{
-		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
-							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
-							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
-							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, segments*slices, (segments - 2)*(slices - 1)*6);
+		if(rings % 2 == 0)
+		{
+			rings += 1;
+		}
+		slices += 1;
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, rings*slices, (rings - 1)*(slices - 1) * 6);
+
+		mesh->BeginChanges();
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+		ElementIterator<Vector2> uvs = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		for(int ring = 0; ring < rings; ring++)
+		{
+			for(int slice = 0; slice < slices; slice++)
+			{
+				//float y = 2.0f * segment / segments - 1.0f;
+				float y = -cos(k::Pi * ring / (rings - 1));
+				float r = sqrt(1.0f - y*y);
+				float x = r * sin(2.0f * k::Pi * slice / (slices - 1));
+				float z = r * cos(2.0f * k::Pi * slice / (slices - 1));
+
+				Vector3 position(x, y, z);
+				*vertices++ = position * radius;
+				*normals++ = position.GetNormalized();
+				*uvs++ = Vector2(static_cast<float>(slice) / static_cast<float>(slices - 1), 1.0f-fabs(position.y));
+			}
+		}
+
+		for(size_t i = 0; i < rings - 1; i++)
+		{
+			for(size_t j = 0; j < slices-1; j++)
+			{
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j + 1;
+
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+			}
+		}
+
+		//This would add empty faces for the douplicated vertical vertices, needs (slices) NOT (slices - 1) in the index count calculation
+/*		for (size_t i = 0; i < rings - 1; i++)
+		{
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+			*indices++ = i * slices + 0;
+
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+		}*/
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
+		return mesh->Autorelease();
+	}
+
+
+	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t rings)
+	{
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, rings*slices, (rings - 1)*(slices) * 6);
 
 		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
@@ -714,43 +785,46 @@ namespace RN
 		ElementIterator<Vector4> colors = chunk.GetIterator<Vector4>(VertexAttribute::Feature::Color0);
 		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
-		for(size_t i = 0; i < segments; i ++)
+		for (int ring = 0; ring < rings; ring++)
 		{
-			for(size_t j = 0; j < slices; j ++)
+			for (int slice = 0; slice < slices; slice++)
 			{
-				float theta = float(i) / (segments - 1) * (k::Pi);
-				float phi   = float(j) / (slices - 1)   * (k::Pi * 2);
+				//float y = 2.0f * segment / segments - 1.0f;
+				float y = -cos(k::Pi * ring / (rings - 1));
+				float r = sqrt(1.0f - y*y);
+				float x = r * sin(2.0f * k::Pi * slice / (slices));
+				float z = r * cos(2.0f * k::Pi * slice / (slices));
 
-				Vector3 position(radius *  Math::Sin(theta) * Math::Cos(phi), radius * -Math::Sin(theta) * Math::Sin(phi), radius *  Math::Cos(theta));
-				*vertices ++ = position;
-				*normals ++ = position.GetNormalized();
-				*colors ++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+				Vector3 position(x, y, z);
+				*vertices++ = position * radius;
+				*normals++ = position.GetNormalized();
+				*colors++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
-		for(size_t i = 0; i < segments - 3; i ++)
+		for (size_t i = 0; i < rings - 1; i++)
 		{
-			for(size_t j = 0; j < slices - 1; j ++)
+			for (size_t j = 0; j < slices - 1; j++)
 			{
-				*indices ++ = i * slices + j;
-				*indices ++ = (i + 1) * slices + j + 1;
-				*indices ++ = i * slices + j + 1;
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j + 1;
 
-				*indices ++ = i * slices + j;
-				*indices ++ = (i + 1) * slices + j;
-				*indices ++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
 			}
 		}
 
-		for(size_t i = 0; i < slices - 1; i ++)
+		for (size_t i = 0; i < rings - 1; i++)
 		{
-			*indices ++ = (segments - 2) * slices;
-			*indices ++ = i;
-			*indices ++ = i + 2;
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+			*indices++ = i * slices + 0;
 
-			*indices ++ = (segments - 2) * slices + 1;
-			*indices ++ = (segments - 3) * slices + i + 1;
-			*indices ++ = (segments - 3) * slices + i;
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
 		}
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something

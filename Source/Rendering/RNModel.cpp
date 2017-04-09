@@ -105,6 +105,26 @@ namespace RN
 		return sky->Autorelease();
 	}
 
+	Model *Model::WithSkydome(const MaterialDescriptor &materialDescriptor, const String *texture)
+	{
+		Model *sky = new Model();
+		LODStage *stage = sky->AddLODStage(1.0f);
+
+		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 100, 101);
+		MaterialDescriptor domeMaterialDescriptor = materialDescriptor;
+		if(!domeMaterialDescriptor.vertexShader)
+			domeMaterialDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(domeMesh), Shader::Default::Sky);
+		if(!domeMaterialDescriptor.fragmentShader)
+			domeMaterialDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(domeMesh), Shader::Default::Sky);
+
+		if(texture)
+			domeMaterialDescriptor.AddTexture(Texture::WithName(texture));
+		Material *domeMaterial = Material::WithDescriptor(domeMaterialDescriptor);
+		stage->AddMesh(domeMesh, domeMaterial);
+
+		return sky->Autorelease();
+	}
+
 
 	Model::LODStage *Model::AddLODStage(float distance)
 	{

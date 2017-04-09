@@ -19,7 +19,9 @@ namespace RN
 		_collisionFilter(btBroadphaseProxy::DefaultFilter),
 		_collisionFilterMask(btBroadphaseProxy::AllFilter),
 		_owner(nullptr),
-		_material(nullptr)
+		_material(nullptr),
+		_contactCallback(nullptr),
+		_simulationStepCallback(nullptr)
 	{}
 		
 	BulletCollisionObject::~BulletCollisionObject()
@@ -59,7 +61,12 @@ namespace RN
 		
 	void BulletCollisionObject::SetContactCallback(std::function<void (BulletCollisionObject *, const BulletContactInfo&)> &&callback)
 	{
-		_callback = std::move(callback);
+		_contactCallback = std::move(callback);
+	}
+
+	void BulletCollisionObject::SetSimulationCallback(std::function<void()> &&callback)
+	{
+		_simulationStepCallback = std::move(callback);
 	}
 		
 	void BulletCollisionObject::SetPositionOffset(RN::Vector3 offset)

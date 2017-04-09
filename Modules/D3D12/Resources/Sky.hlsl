@@ -11,7 +11,7 @@ SamplerState samplr : register(s0);
 
 cbuffer uniforms : register(b0)
 {
-	matrix viewMatrix;
+	matrix modelViewMatrix;
 	matrix projectionMatrix;
 	float4 diffuseColor;
 };
@@ -34,7 +34,7 @@ FragmentVertex sky_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	float3 rotatedPosition = mul(viewMatrix, vert.position);
+	float3 rotatedPosition = mul(modelViewMatrix, vert.position);
 	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
 	result.texCoords = vert.texCoords;
 	result.diffuse = diffuseColor;

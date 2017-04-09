@@ -34,7 +34,7 @@ namespace RN
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _constraintSolver, _collisionConfiguration);
 		_dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 
-		_dynamicsWorld->setInternalTickCallback(&BulletWorld::SimulationStepTickCallback);
+		_dynamicsWorld->setInternalTickCallback(&BulletWorld::SimulationStepTickCallback, this);
 
 		//_dynamicsWorld->getSolverInfo().m_globalCfm = 0.1f;
 	}
@@ -63,28 +63,38 @@ namespace RN
 				btManifoldPoint &contactPoint = contactManifold->getContactPoint(i);
 				if(contactPoint.getDistance() < contactManifold->getContactBreakingThreshold())
 				{
-					if(objectA->_callback)
+					if(objectA->_contactCallback)
 					{
 						BulletContactInfo contactInfo;
 						contactInfo.distance = contactPoint.getDistance();
 						contactInfo.node = objectB->GetParent();
 						contactInfo.normal = RN::Vector3(contactPoint.m_normalWorldOnB.getX(), contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
 						contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnB.getX(), contactPoint.m_positionWorldOnB.getY(), contactPoint.m_positionWorldOnB.getZ());
-						objectA->_callback(objectB, contactInfo);
+						objectA->_contactCallback(objectB, contactInfo);
 					}
 
-					if(objectB->_callback)
+					if(objectB->_contactCallback)
 					{
 						BulletContactInfo contactInfo;
 						contactInfo.distance = contactPoint.getDistance();
 						contactInfo.node = objectA->GetParent();
 						contactInfo.normal = -RN::Vector3(contactPoint.m_normalWorldOnB.getX(), contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
 						contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnA.getX(), contactPoint.m_positionWorldOnA.getY(), contactPoint.m_positionWorldOnA.getZ());
-						objectB->_callback(objectA, contactInfo);
+						objectB->_contactCallback(objectA, contactInfo);
 					}
 
 					break;
 				}
+			}
+		}
+
+		BulletWorld *bulletWorld = static_cast<BulletWorld *>(world->getWorldUserInfo());
+		for(auto iterator = bulletWorld->_collisionObjects.begin(); iterator != bulletWorld->_collisionObjects.end(); iterator++)
+		{
+			BulletCollisionObject *object = *iterator;
+			if(object->_simulationStepCallback)
+			{
+				object->_simulationStepCallback();
 			}
 		}
 	}

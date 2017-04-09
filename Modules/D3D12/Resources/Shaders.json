@@ -55,7 +55,7 @@
 				"type": "vertex",
 				"signature":
 				{
-					"uniforms": ["transform_view", "transform_projection", "material_diffusecolor"],
+					"uniforms": ["transform_modelview", "transform_projection", "material_diffusecolor"],
 					"textures": 0,
 					"samplers": 0
 				}

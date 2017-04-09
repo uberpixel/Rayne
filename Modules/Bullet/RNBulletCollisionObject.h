@@ -30,6 +30,7 @@ namespace RN
 		BTAPI void SetCollisionFilterMask(short int mask);
 		BTAPI void SetMaterial(BulletMaterial *material);
 		BTAPI void SetContactCallback(std::function<void(BulletCollisionObject *, const BulletContactInfo&)> &&callback);
+		BTAPI void SetSimulationCallback(std::function<void()> &&callback);
 		BTAPI virtual void SetPositionOffset(RN::Vector3 offset);
 			
 		short int GetCollisionFilter() const { return _collisionFilter; }
@@ -54,7 +55,8 @@ namespace RN
 		BulletWorld *_owner;
 		BulletMaterial *_material;
 			
-		std::function<void(BulletCollisionObject *, const BulletContactInfo&)> _callback;
+		std::function<void(BulletCollisionObject *, const BulletContactInfo&)> _contactCallback;
+		std::function<void()> _simulationStepCallback;
 			
 		short int _collisionFilter;
 		short int _collisionFilterMask;
