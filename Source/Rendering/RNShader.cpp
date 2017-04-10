@@ -89,8 +89,7 @@ namespace RN
 			_identifier = Time;
 			_type = PrimitiveType::Float;
 		}
-
-		if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")))
+		else if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")))
 		{
 			_identifier = ModelMatrix;
 			_type = PrimitiveType::Matrix;
@@ -179,6 +178,11 @@ namespace RN
 		{
 			_identifier = DiscardThreshold;
 			_type = PrimitiveType::Float;
+		}
+		else if (name->IsEqual(RNCSTR("camera_position")) || name->IsEqual(RNCSTR("cameraPosition")))
+		{
+			_identifier = CameraPosition;
+			_type = PrimitiveType::Vector3;
 		}
 	}
 

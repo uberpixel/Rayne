@@ -110,7 +110,7 @@ namespace RN
 		Model *sky = new Model();
 		LODStage *stage = sky->AddLODStage(1.0f);
 
-		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 100, 101);
+		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 80, 81);
 		MaterialDescriptor domeMaterialDescriptor = materialDescriptor;
 		if(!domeMaterialDescriptor.vertexShader)
 			domeMaterialDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(domeMesh), Shader::Default::Sky);

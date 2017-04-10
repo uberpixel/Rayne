@@ -71,7 +71,8 @@ namespace RN
 				EmissiveColor,
 				TextureTileFactor,
 				DiscardThreshold,
-				Time
+				Time,
+				CameraPosition
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);

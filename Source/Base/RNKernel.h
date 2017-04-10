@@ -44,6 +44,7 @@ namespace RN
 		RNAPI void Run();
 		RNAPI void Exit();
 
+		double GetTotalTime() const{ return _time; }
 		float GetScaleFactor() const { return 1.0f; }
 
 		Application *GetApplication() const { return _application; }

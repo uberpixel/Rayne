@@ -777,6 +777,13 @@ namespace RN
 
 			switch(descriptor->GetIdentifier())
 			{
+				case Shader::UniformDescriptor::Identifier::Time:
+				{
+					float temp = static_cast<float>(Kernel::GetSharedInstance()->GetTotalTime());
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::ModelMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), drawable->modelMatrix.m, descriptor->GetSize());
@@ -888,6 +895,13 @@ namespace RN
 				{
 					float temp = material->GetDiscardThreshold();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraPosition:
+				{
+					RN::Vector3 cameraPosition = renderPass.camera->GetWorldPosition();
+					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
 					break;
 				}
 
