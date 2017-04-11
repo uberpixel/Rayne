@@ -116,32 +116,34 @@ namespace RN
 			return signature;
 		}
 
+		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
+
 		D3D12RootSignature *signature = new D3D12RootSignature();
 		signature->constantBufferCount = 1; //TODO: Support multiple constant buffers
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
 
 		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
-		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
-		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
+		CD3DX12_DESCRIPTOR_RANGE1 *srvCbvRanges = nullptr;
+		CD3DX12_ROOT_PARAMETER1 *rootParameters = nullptr;
 
 		if(numberOfTables > 0)
 		{
-			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
-			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
+			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE1[numberOfTables];
+			rootParameters = new CD3DX12_ROOT_PARAMETER1[numberOfTables];
 		}
 
 		// Perfomance TIP: Order from most frequent to least frequent.
 		int tableIndex = 0;
 		if(signature->textureCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
 			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
 			tableIndex += 1;
 		}
 		if(signature->constantBufferCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
 			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
 			tableIndex += 1;
 		}
@@ -195,22 +197,42 @@ namespace RN
 			});
 		}
 
-		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init_1_1(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		ID3DBlob *signatureBlob;
-		ID3DBlob *error;
-		D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+		//If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-		if(srvCbvRanges)
-			delete[] srvCbvRanges;
-		if(rootParameters)
-			delete[] rootParameters;
-		if(samplerDescriptors)
-			delete[] samplerDescriptors;
+		if(FAILED(renderer->GetD3D12Device()->GetDevice()->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+		{
+			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+		}
 
-		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
+		ID3DBlob *signatureBlob = nullptr;
+		ID3DBlob *error = nullptr;
+		HRESULT success = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signatureBlob, &error);
+
+		if(FAILED(success))
+		{
+			String *errorString = RNCSTR("");
+			if(error)
+			{
+				errorString = RNSTR((char*)error->GetBufferPointer());
+				error->Release();
+			}
+
+			RNDebug(RNSTR("Failed to create root signature with error: " << errorString));
+		}
+
 		renderer->GetD3D12Device()->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&signature->signature));
+
+		if (srvCbvRanges)
+			delete[] srvCbvRanges;
+		if (rootParameters)
+			delete[] rootParameters;
+		if (samplerDescriptors)
+			delete[] samplerDescriptors;
 
 		_rootSignatures.push_back(signature);
 		return signature;
