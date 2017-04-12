@@ -47,7 +47,7 @@ namespace RN
 		D3D12StateCoordinator *_coordinator;
 
 		DXGI_FORMAT _format;
-		ID3D12Resource *_textureBuffer;
+		ID3D12Resource *_resource;
 		D3D12_RESOURCE_STATES _currentState;
 
 		bool _isReady;

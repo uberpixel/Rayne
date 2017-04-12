@@ -9,6 +9,7 @@
 #include "d3dx12.h"
 #include "RND3D12StateCoordinator.h"
 #include "RND3D12Renderer.h"
+#include "RND3D12Framebuffer.h"
 #include "RND3D12UniformBuffer.h"
 
 namespace RN
@@ -238,7 +239,7 @@ namespace RN
 		return signature;
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
@@ -254,7 +255,7 @@ namespace RN
 			{
 				if(collection->fragmentShader == fragmentFunction && collection->vertexShader == vertexFunction)
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, camera, material);
+					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, material);
 				}
 			}
 		}
@@ -262,13 +263,13 @@ namespace RN
 		D3D12PipelineStateCollection *collection = new D3D12PipelineStateCollection(descriptor, vertexFunction, fragmentFunction);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, camera, material);
+		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, material);
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, Camera *camera, Material *material)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material)
 	{
 		//TODO: Get these from the framebuffer and maybe replace camera param with framebuffer!?
-		DXGI_FORMAT pixelFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		DXGI_FORMAT pixelFormat = framebuffer->_colorFormat;
 		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 		//TODO: Fix this shit

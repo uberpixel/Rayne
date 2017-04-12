@@ -65,7 +65,7 @@ namespace RN
 
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888;
+		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
 		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
 		_framebuffer = new D3D12Framebuffer(_size, descriptor, this, _renderer);
 

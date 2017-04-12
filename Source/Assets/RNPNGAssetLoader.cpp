@@ -75,7 +75,7 @@ namespace RN
 			case PNG_COLOR_TYPE_RGB:
 			{
 				data = new uint8[width * height * 4];
-				format = Texture::Format::RGBA8888;
+				format = Texture::Format::RGBA8888SRGB;
 				bytesPerRow = 4 * width;
 
 				uint8 *temp = data;
@@ -101,7 +101,7 @@ namespace RN
 			case PNG_COLOR_TYPE_RGBA:
 			{
 				data = new uint8[width * height * 4];
-				format = Texture::Format::RGBA8888;
+				format = Texture::Format::RGBA8888SRGB;
 				bytesPerRow = 4 * width;
 
 				uint32 *temp = reinterpret_cast<uint32 *>(data);
@@ -129,10 +129,19 @@ namespace RN
 
 
 		bool mipMapped = true;
+		bool isLinear = false;
 		Number *wrapper;
 
 		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
 			mipMapped = wrapper->GetBoolValue();
+
+		if ((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
+			isLinear = wrapper->GetBoolValue();
+
+		if(isLinear)
+		{
+			format = Texture::Format::RGBA8888;
+		}
 
 		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, width, height, mipMapped);
 		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);

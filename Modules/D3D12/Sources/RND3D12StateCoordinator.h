@@ -20,6 +20,7 @@ namespace RN
 	RNExceptionType(D3D12StructArgumentUnsupported)
 
 	class D3D12UniformBuffer;
+	class D3D12Framebuffer;
 
 	struct D3D12UniformState
 	{
@@ -95,12 +96,12 @@ namespace RN
 		~D3D12StateCoordinator();
 
 		const D3D12RootSignature *GetRootSignature(Material *material);
-		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer);
 		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
 
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
-		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, Camera *camera, Material *material);
+		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material);
 
 		std::vector<D3D12DepthStencilState *> _depthStencilStates;
 		const D3D12DepthStencilState *_lastDepthStencilState;

@@ -15,6 +15,7 @@ namespace RN
 {
 	RNDefineMeta(D3D12Texture, Texture)
 
+	//TODO: Place these into a utility header or something
 	static D3D12_RESOURCE_DIMENSION D3D12ImageTypeFromTextureType(Texture::Descriptor::Type type)
 	{
 		switch(type)
@@ -39,6 +40,8 @@ namespace RN
 	{
 		switch(format)
 		{
+			case Texture::Format::RGBA8888SRGB:
+				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 			case Texture::Format::RGBA8888:
 				return DXGI_FORMAT_R8G8B8A8_UNORM;
 			case Texture::Format::RGB10A2:
@@ -306,16 +309,16 @@ namespace RN
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		imageDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 		// create the final texture buffer
-		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_textureBuffer));
+		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_resource));
 		_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 
 	D3D12Texture::~D3D12Texture()
 	{
-		_textureBuffer->Release();
+		_resource->Release();
 	}
 
 	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -363,7 +366,7 @@ namespace RN
 		});
 
 		// Now we copy the upload buffer contents to the default heap
-		UpdateSubresources(commandList->GetCommandList(), _textureBuffer, textureUploadBuffer, 0, 0, 1, &textureData);
+		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, 0, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -493,6 +496,7 @@ namespace RN
 
 		switch(_format)
 		{
+			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R10G10B10A2_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R8_UNORM, true, false, false, false)
@@ -514,7 +518,7 @@ namespace RN
 
 	void D3D12Texture::TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState)
 	{
-		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_textureBuffer, _currentState, targetState));
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_resource, _currentState, targetState));
 		_currentState = targetState;
 	}
 }

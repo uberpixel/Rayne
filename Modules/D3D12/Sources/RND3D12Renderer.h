@@ -19,6 +19,7 @@ namespace RN
 	struct D3D12Drawable;
 	struct D3D12RendererInternals;
 	struct D3D12RootSignature;
+	struct D3D12RenderPass;
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
@@ -79,7 +80,7 @@ namespace RN
 		void CreateMipMaps();
 
 		void CreateDescriptorHeap();
-		void SetCameraAsRendertarget(D3D12CommandList *commandList, Camera *camera);
+		void SetupRendertargets(D3D12CommandList *commandList, const D3D12RenderPass &renderpass);
 
 		Array *_mipMapTextures;
 

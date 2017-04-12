@@ -14,6 +14,53 @@ namespace RN
 {
 	RNDefineMeta(D3D12Framebuffer, Framebuffer)
 
+	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
+	{
+		switch (format)
+		{
+		case Texture::Format::RGBA8888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::RGBA8888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::RGB10A2:
+			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::R8:
+			return DXGI_FORMAT_R8_UNORM;
+		case Texture::Format::RG88:
+			return DXGI_FORMAT_R8G8_UNORM;
+		case Texture::Format::RGB888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::R16F:
+			return DXGI_FORMAT_R16_FLOAT;
+		case Texture::Format::RG16F:
+			return DXGI_FORMAT_R16G16_FLOAT;
+		case Texture::Format::RGB16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::RGBA16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::R32F:
+			return DXGI_FORMAT_R32_FLOAT;
+		case Texture::Format::RG32F:
+			return DXGI_FORMAT_R32G32_FLOAT;
+		case Texture::Format::RGB32F:
+			return DXGI_FORMAT_R32G32B32_FLOAT;
+		case Texture::Format::RGBA32F:
+			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case Texture::Format::Depth24I:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth32F:
+			return DXGI_FORMAT_D32_FLOAT;
+		case Texture::Format::Stencil8:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth24Stencil8:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth32FStencil8:
+			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+		default:
+			return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer) :
 		Framebuffer(size, descriptor),
 		_renderer(renderer),
@@ -29,6 +76,8 @@ namespace RN
 		{
 			_renderTargets[i] = swapChain->GetD3D12Buffer(i);
 		}
+
+		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
 
 		if(descriptor.depthFormat != Texture::Format::Invalid)
 		{
