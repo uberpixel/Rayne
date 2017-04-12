@@ -18,7 +18,7 @@ namespace RN
 	{
 		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888;
+		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
 		return renderer->CreateFramebuffer(size, descriptor);
@@ -27,7 +27,7 @@ namespace RN
 	Camera::Camera() :
 		_cameraSceneEntry(this),
 		_framebuffer(nullptr),
-		_flags(0)
+		_flags(Camera::Flags::Defaults)
 	{
 		Initialize();
 	}
@@ -98,11 +98,9 @@ namespace RN
 	Camera::~Camera()
 	{
 		SafeRelease(_framebuffer);
-
-/*		SafeRelease(_sky);
 		SafeRelease(_material);
 
-		for(PostProcessingPipeline *pipeline : _PPPipelines)
+/*		for(PostProcessingPipeline *pipeline : _PPPipelines)
 			pipeline->Unlock();
 
 		if(_lightManager)
@@ -137,8 +135,7 @@ namespace RN
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_prefersLightManager = false;
 
-//		_material   = nullptr;
-//		_sky = nullptr;
+		_material   = nullptr;
 
 		_priority  = 0;
 		_lodCamera = nullptr;
@@ -171,17 +168,11 @@ namespace RN
 		_flags = flags;
 	}
 
-/*	void Camera::SetMaterial(Material *material)
+	void Camera::SetMaterial(Material *material)
 	{
 		SafeRelease(_material);
 		_material = SafeRetain(material);
-	}*/
-
-/*	void Camera::SetSky(Model *sky)
-	{
-		SafeRelease(_sky);
-		_sky = SafeRetain(sky);
-	}*/
+	}
 
 	void Camera::SetLODCamera(Camera *camera)
 	{
@@ -421,13 +412,7 @@ namespace RN
 
 		UpdateProjection(renderer);
 
-/*		if(_flags & Flags::Fullscreen)
-		{
-			Vector2 size = Window::GetSharedInstance()->GetSize();
-			SetFrame(Rect(Vector2(), size));
-		}
-
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+/*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
 			pipeline->PostUpdate(this, GetWorldPosition(), GetWorldRotation(), _frame);

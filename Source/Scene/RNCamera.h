@@ -19,31 +19,31 @@
 namespace RN
 {
 	class Window;
+	class Material;
 	class Camera : public SceneNode
 	{
 	public:
 		friend class Scene;
 
 		RN_OPTIONS(Flags, uint32,
-				   NoSky        = (1 << 5),
 				   NoSorting    = (1 << 6),
 				   NoRender     = (1 << 7),
-				   NoFlush      = (1 << 8),
-				   NoDepthWrite = (1 << 9),
-				   ForceFlush   = (1 << 10),
+				   NoDepthWrite = (1 << 8),
+
+				   ClearFramebufferColor = (4 << 9),
+				   ClearFramebufferDepth = (4 << 10),
 
 				   InheritPosition   = (1 << 12),
 				   InheritFrame      = (1 << 13),
 				   InheritProjection = (1 << 14),
 
-				   Fullscreen = (1 << 20),
 				   Orthogonal = (1 << 21),
 				   Hidden     = (1 << 22),
 
 				   UseFog          = (1 << 24),
 				   UseClipPlanes   = (1 << 25),
 
-				   Defaults = (Fullscreen | UseFog),
+				   Defaults = (UseFog | ClearFramebufferDepth),
 				   Inherit  = (InheritFrame | InheritPosition | InheritProjection));
 
 
@@ -68,9 +68,8 @@ namespace RN
 		RNAPI void SetFrame(const Rect &frame);
 		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetClearColor(const Color &color);
-//		RNAPI void SetMaterial(Material *material);
+		RNAPI void SetMaterial(Material *material);
 //		RNAPI void SetLightManager(LightManager *lightManager);
-//		RNAPI void SetSky(Model *sky);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetFOV(float fov);
@@ -99,10 +98,9 @@ namespace RN
 		Framebuffer *GetFramebuffer() const { return _framebuffer; }
 		const Color &GetClearColor() const { return _clearColor; }
 		RNAPI const Rect &GetFrame();
-//		Material *GetMaterial() const { return _material; }
+		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
 		Camera *GetLODCamera() const { return _lodCamera ? _lodCamera : const_cast<Camera *>(this); }
-//		Model *GetSky() const { return _sky; }
 //		LightManager *GetLightManager();
 		int32 GetPriority() const { return _priority; }
 		float GetFOV() const { return _fov; }
@@ -186,9 +184,8 @@ namespace RN
 
 		bool _prefersLightManager;
 
-//		Material *_material;
+		Material *_material;
 		Camera *_lodCamera;
-//		Model *_sky;
 
 //		std::vector<PostProcessingPipeline *> _PPPipelines;
 //		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;

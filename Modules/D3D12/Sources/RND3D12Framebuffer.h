@@ -38,6 +38,10 @@ namespace RN
 		ID3D12Resource *_depthStencilBuffer;
 
 		DXGI_FORMAT _colorFormat;
+		DXGI_FORMAT _depthFormat;
+
+		D3D12_RTV_DIMENSION _colorDimension;
+		D3D12_DSV_DIMENSION _depthDimension;
 
 		RNDeclareMetaAPI(D3D12Framebuffer, D3DAPI)
 	};

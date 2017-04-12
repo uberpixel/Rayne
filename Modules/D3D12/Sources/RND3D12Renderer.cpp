@@ -311,12 +311,16 @@ namespace RN
 
 		//Close and submit the command list
 		rnCommandList->End();
-		rnCommandList->SetFinishedCallback([temporaryResources](){
+		rnCommandList->SetFinishedCallback([temporaryResources, descriptorHeap, mipMapRootSignature, psoMipMaps](){
 			//Cleanup
 			for(IUnknown *resource : temporaryResources)
 			{
 				resource->Release();
 			}
+
+			descriptorHeap->Release();
+			mipMapRootSignature->Release();
+			psoMipMaps->Release();
 		});
 		SubmitCommandList(rnCommandList);
 
@@ -679,13 +683,13 @@ namespace RN
 		//Create the render target view
 		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
 		renderTargetViewDesc.Format = renderpass.framebuffer->_colorFormat;
-		renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDesc.ViewDimension = renderpass.framebuffer->_colorDimension;
 		underlyingDevice->CreateRenderTargetView(renderpass.framebuffer->GetRenderTarget(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Create depth stencil view
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Format = renderpass.framebuffer->_depthFormat;
+		depthStencilViewDesc.ViewDimension = renderpass.framebuffer->_depthDimension;
 		depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
 		underlyingDevice->CreateDepthStencilView(renderpass.framebuffer->GetDepthBuffer(), &depthStencilViewDesc, dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
@@ -722,11 +726,18 @@ namespace RN
 		d3dCommandList->RSSetViewports(1, &viewport);
 		d3dCommandList->RSSetScissorRects(1, &viewportRect);
 
-		// Clear
-		//TODO: It would probably be better to just clear the whole rendertarget at once...
-		const Color &clearColor = renderpass.camera->GetClearColor();
-		d3dCommandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &viewportRect);
-		d3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &viewportRect);
+		// Cameras always clear the whole framebuffer to be more consistent with the metal renderer
+		D3D12_RECT clearRect{ 0, 0, renderpass.framebuffer->GetSize().x, renderpass.framebuffer->GetSize().y };
+		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferColor)
+		{
+			const Color &clearColor = renderpass.camera->GetClearColor();
+			d3dCommandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &clearRect);
+		}
+		
+		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferDepth)
+		{
+			d3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &clearRect);
+		}
 	}
 
 	void D3D12Renderer::CreateDescriptorHeap()
@@ -977,14 +988,20 @@ namespace RN
 		D3D12Drawable *drawable = static_cast<D3D12Drawable *>(tdrawable);
 		drawable->AddUniformStateIfNeeded(_internals->currentDrawableResourceIndex);
 
+		_lock.Lock();
+		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		_lock.Unlock();
+
+		Material *material = renderPass.camera->GetMaterial();
+		if (!material)
+			material = drawable->material;
+
 		if(drawable->dirty)
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
-
-			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer);
-			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, drawable->material);
+			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer);
+			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, material);
 			_lock.Unlock();
 
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
@@ -994,15 +1011,13 @@ namespace RN
 		GPUBuffer *gpuBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 		size_t offset = 0;
-		FillUniformBuffer(buffer, drawable, drawable->material->GetVertexShader(), offset);
-		FillUniformBuffer(buffer, drawable, drawable->material->GetFragmentShader(), offset);
+		FillUniformBuffer(buffer, drawable, material->GetVertexShader(), offset);
+		FillUniformBuffer(buffer, drawable, material->GetFragmentShader(), offset);
 		gpuBuffer->Invalidate();
 
 		// Push into the queue
 		_lock.Lock();
-		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		renderPass.drawables.push_back(drawable);
-
 		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
 		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
 		_lock.Unlock();

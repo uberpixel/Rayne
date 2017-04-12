@@ -66,9 +66,12 @@ namespace RN
 		_renderer(renderer),
 		_swapChain(swapChain),
 		_renderTargets(nullptr),
-		_depthStencilBuffer(nullptr)
+		_depthStencilBuffer(nullptr),
+		_colorDimension(D3D12_RTV_DIMENSION_TEXTURE2D),
+		_depthDimension(D3D12_DSV_DIMENSION_TEXTURE2D)
 	{
-		ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
+		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
+		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
 
 		_renderTargets = new ID3D12Resource*[swapChain->GetBufferCount()];
 
@@ -77,16 +80,16 @@ namespace RN
 			_renderTargets[i] = swapChain->GetD3D12Buffer(i);
 		}
 
-		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
-
 		if(descriptor.depthFormat != Texture::Format::Invalid)
 		{
+			ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
+
 			// Create depthbuffer
 			D3D12_CLEAR_VALUE depthClearValue = {};
-			depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+			depthClearValue.Format = _depthFormat;
 			depthClearValue.DepthStencil.Depth = 1.0f;
 			depthClearValue.DepthStencil.Stencil = 0;
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D24_UNORM_S8_UINT, size.x, size.y, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL), D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&_depthStencilBuffer));
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Tex2D(_depthFormat, size.x, size.y, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL), D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&_depthStencilBuffer));
 		}
 	}
 
