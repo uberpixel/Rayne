@@ -291,11 +291,11 @@ namespace RN
 	}
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithSource(const String *source)
 	{
-		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, source);
+		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, source, &_internals->stateCoordinator);
 		return lib;
 	}
 
-	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader)
+	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader)
 	{
 		Shader *actualShader = nullptr;
 		{
@@ -440,7 +440,7 @@ namespace RN
 		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor];
 		[metalDescriptor release];
 
-		return new MetalTexture(this, &_internals->stateCoordinator, texture, descriptor);
+		return new MetalTexture(this, texture, descriptor);
 	}
 
 	Framebuffer *MetalRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
@@ -664,11 +664,22 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 		{
 			MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
-
-			[encoder setFragmentSamplerState:(id<MTLSamplerState>)texture->__GetUnderlyingSampler() atIndex:i];
 			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
 		}
 
+		//Set samplers
+		count = 0;
+		for(void *sampler : drawable->material->GetVertexShader()->Downcast<MetalShader>()->_samplers)
+		{
+			id<MTLSamplerState> samplerState = static_cast<id<MTLSamplerState>>(sampler);
+			[encoder setVertexSamplerState:samplerState atIndex:count++];
+		}
+		count = 0;
+		for(void *sampler : drawable->material->GetFragmentShader()->Downcast<MetalShader>()->_samplers)
+		{
+			id<MTLSamplerState> samplerState = static_cast<id<MTLSamplerState>>(sampler);
+			[encoder setFragmentSamplerState:samplerState atIndex:count++];
+		}
 
 		// Mesh
 		MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetVertexBuffer());

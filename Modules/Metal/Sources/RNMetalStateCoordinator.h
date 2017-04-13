@@ -85,7 +85,7 @@ namespace RN
 		MTLAPI void SetDevice(id<MTLDevice> device);
 
 		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
-		MTLAPI id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);
+		MTLAPI id<MTLSamplerState> GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor);
 
 		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
 
@@ -96,7 +96,7 @@ namespace RN
 		id<MTLDevice> _device;
 
 		std::mutex _samplerLock;
-		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;
+		std::vector<std::pair<id<MTLSamplerState>, const Shader::Sampler *>> _samplers;
 
 		std::vector<MetalDepthStencilState *> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;

@@ -9,29 +9,22 @@
 #import <Metal/Metal.h>
 #include "RNMetalTexture.h"
 #include "RNMetalRenderer.h"
-#include "RNMetalStateCoordinator.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalTexture, Texture)
 
-	MetalTexture::MetalTexture(MetalRenderer *renderer, MetalStateCoordinator *coordinator, void *texture, const Descriptor &descriptor) :
+	MetalTexture::MetalTexture(MetalRenderer *renderer, void *texture, const Descriptor &descriptor) :
 		Texture(descriptor),
 		_renderer(renderer),
-		_coordinator(coordinator),
-		_texture(texture),
-		_sampler(nullptr)
+		_texture(texture)
 	{
-		SetParameter(GetParameter());
 	}
 
 	MetalTexture::~MetalTexture()
 	{
 		id<MTLTexture> texture = (id<MTLTexture>)_texture;
 		[texture release];
-
-		id<MTLSamplerState> sampler = (id<MTLSamplerState>)_sampler;
-		[sampler release];
 	}
 
 	void MetalTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -60,17 +53,6 @@ namespace RN
 	void MetalTexture::GenerateMipMaps()
 	{
 		_renderer->CreateMipMapForTexture(this);
-	}
-
-	void MetalTexture::SetParameter(const Parameter &parameter)
-	{
-		Texture::SetParameter(parameter);
-
-		id<MTLSamplerState> sampler = (id<MTLSamplerState>)_sampler;
-		[sampler release];
-
-		sampler = [_coordinator->GetSamplerStateForTextureParameter(parameter) retain];
-		_sampler = sampler;
 	}
 
 	bool MetalTexture::HasColorChannel(ColorChannel channel) const
@@ -121,6 +103,9 @@ namespace RN
 	{
 		switch(format)
 		{
+			case Format::RGBA8888SRGB:
+				return MTLPixelFormatRGBA8Unorm_sRGB;
+			case Format::RGB888:
 			case Format::RGBA8888:
 				return MTLPixelFormatRGBA8Unorm;
 			case Format::RGB10A2:
@@ -133,12 +118,14 @@ namespace RN
 				return MTLPixelFormatR16Float;
 			case Format::RG16F:
 				return MTLPixelFormatRG16Float;
+			case Format::RGB16F:
 			case Format::RGBA16F:
 				return MTLPixelFormatRGBA16Float;
 			case Format::R32F:
 				return MTLPixelFormatR32Float;
 			case Format::RG32F:
 				return MTLPixelFormatRG32Float;
+			case Format::RGB32F:
 			case Format::RGBA32F:
 				return MTLPixelFormatRGBA32Float;
 			case Format::Depth32F:
@@ -151,6 +138,8 @@ namespace RN
 				return MTLPixelFormatDepth32Float_Stencil8;
 			case Format::Depth24Stencil8:
 				return MTLPixelFormatDepth24Unorm_Stencil8;
+			case Format::Invalid:
+				return MTLPixelFormatInvalid;
 		}
 	}
 }

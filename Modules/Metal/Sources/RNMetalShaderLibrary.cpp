@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(MetalSpecializedShaderLibrary, Object)
 
-	MetalSpecializedShaderLibrary::MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const ShaderOptions *options) :
+	MetalSpecializedShaderLibrary::MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const Shader::Options *options) :
 		_options(options->Retain()),
 		_shaders(new Dictionary())
 	{
@@ -76,7 +76,7 @@ namespace RN
 		_shaders->Release();
 	}
 
-	Shader *MetalSpecializedShaderLibrary::GetShaderWithName(const String *name, ShaderLibrary *library, id<MTLDevice> device)
+	Shader *MetalSpecializedShaderLibrary::GetShaderWithName(const String *name, ShaderLibrary *library, id<MTLDevice> device, MetalStateCoordinator *coordinator)
 	{
 		MetalShader *shader = _shaders->GetObjectForKey<MetalShader>(name);
 		if(shader)
@@ -108,15 +108,15 @@ namespace RN
 			}
 		}
 
-		shader = new MetalShader(library, type, _options, function);
+		shader = new MetalShader(library, type, _options, function, coordinator);
 		_shaders->SetObjectForKey(shader, name);
 		return shader->Autorelease();
 	}
 
 	RNDefineMeta(MetalShaderLibrary, ShaderLibrary)
 
-	MetalShaderLibrary::MetalShaderLibrary(id<MTLDevice> device, const String *source) :
-		_device(device), _source(source->Retain()), _specializedLibraries(new Dictionary())
+	MetalShaderLibrary::MetalShaderLibrary(id<MTLDevice> device, const String *source, MetalStateCoordinator *coordinator) :
+		_device(device), _source(source->Retain()), _specializedLibraries(new Dictionary()), _coordinator(coordinator)
 	{
 
 	}
@@ -125,10 +125,10 @@ namespace RN
 		_specializedLibraries->Release();
 	}
 
-	Shader *MetalShaderLibrary::GetShaderWithName(const String *name, const ShaderOptions *options)
+	Shader *MetalShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
 		if(!options)
-			options = ShaderOptions::WithNothing();
+			options = Shader::Options::WithNone();
 
 		MetalSpecializedShaderLibrary *specializedLibrary = _specializedLibraries->GetObjectForKey<MetalSpecializedShaderLibrary>(options);
 
@@ -138,18 +138,18 @@ namespace RN
 			_specializedLibraries->SetObjectForKey(specializedLibrary, options);
 		}
 
-		return specializedLibrary->GetShaderWithName(name, this, _device);
+		return specializedLibrary->GetShaderWithName(name, this, _device, _coordinator);
 	}
 
 	Shader *MetalShaderLibrary::GetInstancedShaderForShader(Shader *shader)
 	{
-		MetalSpecializedShaderLibrary *specializedLibrary = _specializedLibraries->GetObjectForKey<MetalSpecializedShaderLibrary>(shader->GetShaderOptions());
+		MetalSpecializedShaderLibrary *specializedLibrary = _specializedLibraries->GetObjectForKey<MetalSpecializedShaderLibrary>(shader->GetOptions());
 
 		if(!specializedLibrary)
 		{
 			return nullptr;
 		}
 
-		return specializedLibrary->GetShaderWithName(shader->GetName()->StringByAppendingString(RNCSTR("_instanced")), this, _device);
+		return specializedLibrary->GetShaderWithName(shader->GetName()->StringByAppendingString(RNCSTR("_instanced")), this, _device, _coordinator);
 	}
 }

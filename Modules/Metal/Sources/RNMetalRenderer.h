@@ -51,7 +51,7 @@ namespace RN
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI Shader *GetDefaultShader(Shader::Type type, ShaderOptions *options, Shader::Default shader) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 

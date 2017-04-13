@@ -58,7 +58,10 @@ namespace RN
 			delete state;
 
 		for(auto &pair : _samplers)
+		{
 			[pair.first release];
+			pair.second->Release();
+		}
 	}
 
 	void MetalStateCoordinator::SetDevice(id<MTLDevice> device)
@@ -94,27 +97,27 @@ namespace RN
 		return _lastDepthStencilState->state;
 	}
 
-	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForTextureParameter(const Texture::Parameter &parameter)
+	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor)
 	{
 		std::lock_guard<std::mutex> lock(_samplerLock);
 
 		for(auto &pair : _samplers)
 		{
-			if(pair.second == parameter)
+			if(pair.second == samplerDescriptor)
 				return pair.first;
 		}
 
 
 		MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
 
-		switch(parameter.wrapMode)
+		switch(samplerDescriptor->GetWrapMode())
 		{
-			case Texture::WrapMode::Clamp:
+			case Shader::Sampler::WrapMode::Clamp:
 				[descriptor setRAddressMode:MTLSamplerAddressModeClampToEdge];
 				[descriptor setSAddressMode:MTLSamplerAddressModeClampToEdge];
 				[descriptor setTAddressMode:MTLSamplerAddressModeClampToEdge];
 				break;
-			case Texture::WrapMode::Repeat:
+			case Shader::Sampler::WrapMode::Repeat:
 				[descriptor setRAddressMode:MTLSamplerAddressModeRepeat];
 				[descriptor setSAddressMode:MTLSamplerAddressModeRepeat];
 				[descriptor setTAddressMode:MTLSamplerAddressModeRepeat];
@@ -123,16 +126,22 @@ namespace RN
 
 		MTLSamplerMipFilter mipFilter;
 
-		switch(parameter.filter)
+		switch(samplerDescriptor->GetFilter())
 		{
-			case Texture::Filter::Linear:
+			case Shader::Sampler::Filter::Anisotropic:
+			{
+				NSUInteger anisotropy = std::min(static_cast<uint8>(16), std::max(static_cast<uint8>(1), samplerDescriptor->GetAnisotropy()));
+				[descriptor setMaxAnisotropy:anisotropy];
+			}
+
+			case Shader::Sampler::Filter::Linear:
 				[descriptor setMinFilter:MTLSamplerMinMagFilterLinear];
 				[descriptor setMagFilter:MTLSamplerMinMagFilterLinear];
 
 				mipFilter = MTLSamplerMipFilterLinear;
 				break;
 
-			case Texture::Filter::Nearest:
+			case Shader::Sampler::Filter::Nearest:
 				[descriptor setMinFilter:MTLSamplerMinMagFilterNearest];
 				[descriptor setMagFilter:MTLSamplerMinMagFilterNearest];
 
@@ -142,13 +151,10 @@ namespace RN
 
 		[descriptor setMipFilter:mipFilter];
 
-		NSUInteger anisotropy = std::min(static_cast<uint32>(16), std::max(static_cast<uint32>(1), parameter.anisotropy));
-		[descriptor setMaxAnisotropy:anisotropy];
-
 		id<MTLSamplerState> sampler = [_device newSamplerStateWithDescriptor:descriptor];
 		[descriptor release];
 
-		_samplers.emplace_back(std::make_pair(sampler, parameter));
+		_samplers.emplace_back(std::make_pair(sampler, samplerDescriptor->Retain()));
 
 		return sampler;
 	}

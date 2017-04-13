@@ -8,14 +8,16 @@
 
 #import <Metal/Metal.h>
 #include "RNMetalShader.h"
+#include "RNMetalStateCoordinator.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	MetalShader::MetalShader(ShaderLibrary *library, Type type, const ShaderOptions *options, void *shader) :
+	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
 		Shader(library, type, options),
-		_shader(shader)
+		_shader(shader),
+		_coordinator(coordinator)
 	{
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
@@ -41,8 +43,8 @@ namespace RN
 		//TODO: Support custom arguments
 		//TODO: Support more than one uniform buffer
 
-		uint8 samplerCount = 0;
 		uint8 textureCount = 0;
+		Array *samplers = new Array();
 		Array *uniformDescriptors = new Array();
 
 		for(MTLArgument *argument in arguments)
@@ -71,7 +73,12 @@ namespace RN
 				break;
 
 				case MTLArgumentTypeSampler:
-					samplerCount += 1;
+				{
+					//TODO: Allow other than default samplers
+					Sampler *sampler = new Sampler();
+					samplers->AddObject(sampler->Autorelease());
+				}
+
 				break;
 
 				default:
@@ -79,7 +86,12 @@ namespace RN
 			}
 		}
 
-		Signature *signature = new Signature(uniformDescriptors, samplerCount, textureCount);
+		Signature *signature = new Signature(uniformDescriptors, samplers, textureCount);
 		SetSignature(signature->Autorelease());
+
+		samplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
+			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
+			_samplers.push_back(blubb);
+		});
 	}
 }

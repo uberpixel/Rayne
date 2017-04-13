@@ -27,7 +27,7 @@
 	{
 		_layer = [CAMetalLayer layer];
 		[_layer setDevice:device];
-		[_layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
+		[_layer setPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB];
 		[_layer setFramebufferOnly:YES];
 		[_layer setContentsScale:2.0];	//TODO: Use device contentScale
 
