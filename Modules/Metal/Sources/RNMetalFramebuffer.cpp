@@ -26,15 +26,18 @@ namespace RN
 		if(descriptor.options & Options::PrivateStorage)
 		{
 			Renderer *renderer = Renderer::GetActiveRenderer();
+			Texture::Format stencilFormat = descriptor.stencilFormat;
 
 			if(descriptor.depthFormat != Texture::Format::Invalid)
 			{
 				switch(descriptor.depthFormat)
 				{
-					case Texture::Format::Depth24I:
-					case Texture::Format::Depth24Stencil8:
-					case Texture::Format::Depth32F:
 					case Texture::Format::Depth32FStencil8:
+					case Texture::Format::Depth24Stencil8:
+						stencilFormat = descriptor.depthFormat;
+						break;
+					case Texture::Format::Depth24I:
+					case Texture::Format::Depth32F:
 						break;
 
 					default:
@@ -48,13 +51,13 @@ namespace RN
 
 				_depthTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 
-				if(descriptor.stencilFormat == descriptor.depthFormat)
+				if(stencilFormat == descriptor.depthFormat)
 					_stencilTexture = _depthTexture->Retain();
 			}
 
-			if(descriptor.stencilFormat != Texture::Format::Invalid && descriptor.stencilFormat != descriptor.depthFormat)
+			if(stencilFormat != Texture::Format::Invalid && stencilFormat != descriptor.depthFormat)
 			{
-				switch(descriptor.depthFormat)
+				switch(stencilFormat)
 				{
 					case Texture::Format::Stencil8:
 					case Texture::Format::Depth24Stencil8:
@@ -66,7 +69,7 @@ namespace RN
 				}
 
 
-				Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.stencilFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
+				Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(stencilFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
 				textureDescriptor.accessOptions = GPUResource::AccessOptions::Private;
 				textureDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
 
@@ -93,15 +96,19 @@ namespace RN
 
 				_colorTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 			}
+			
+			Texture::Format stencilFormat = descriptor.stencilFormat;
 
 			if(descriptor.depthFormat != Texture::Format::Invalid)
 			{
 				switch(descriptor.depthFormat)
 				{
-					case Texture::Format::Depth24I:
 					case Texture::Format::Depth24Stencil8:
-					case Texture::Format::Depth32F:
 					case Texture::Format::Depth32FStencil8:
+						stencilFormat = descriptor.depthFormat;
+						break;
+					case Texture::Format::Depth24I:
+					case Texture::Format::Depth32F:
 						break;
 
 					default:
@@ -115,13 +122,13 @@ namespace RN
 
 				_depthTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 
-				if(descriptor.stencilFormat == descriptor.depthFormat)
+				if(stencilFormat == descriptor.depthFormat)
 					_stencilTexture = _depthTexture->Retain();
 			}
 
-			if(descriptor.stencilFormat != Texture::Format::Invalid && descriptor.stencilFormat != descriptor.depthFormat)
+			if(stencilFormat != Texture::Format::Invalid && stencilFormat != descriptor.depthFormat)
 			{
-				switch(descriptor.depthFormat)
+				switch(stencilFormat)
 				{
 					case Texture::Format::Stencil8:
 					case Texture::Format::Depth24Stencil8:
@@ -133,7 +140,7 @@ namespace RN
 				}
 
 
-				Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.stencilFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
+				Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(stencilFormat, static_cast<uint32>(size.x), static_cast<uint32>(size.y), false);
 				textureDescriptor.accessOptions = GPUResource::AccessOptions::Private;
 				textureDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
 

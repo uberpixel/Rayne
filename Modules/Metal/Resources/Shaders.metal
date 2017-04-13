@@ -139,8 +139,9 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #endif
 )
 {
+	float4 color = vert.diffuse;
 #if RN_UV0
-	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+	color *= texture.sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
 		if(color.a < uniforms.discardThreshold)
@@ -153,9 +154,9 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+	return color * (vert.ambient + saturate(dot(normalize(vert.normal), normalize(light_position))));
 #else
-	return color * (vert.ambient + vert.diffuse);
+	return color * (vert.ambient);
 #endif
 }
 
@@ -205,8 +206,9 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #endif
 )
 {
+	float4 color = vert.diffuse;
 #if RN_UV0
-	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+	color *= texture.sample(samplr, vert.texCoords).rgba;
 
 #if RN_DISCARD
 		if(color.a < uniforms.discardThreshold)
@@ -219,9 +221,9 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+	return color * (vert.ambient + saturate(dot(normalize(vert.normal), normalize(light_position))));
 #else
-	return color * (vert.ambient + vert.diffuse);
+	return color * (vert.ambient);
 #endif
 }
 

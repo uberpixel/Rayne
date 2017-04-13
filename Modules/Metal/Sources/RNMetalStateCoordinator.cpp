@@ -187,7 +187,8 @@ namespace RN
 
 	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Camera *camera)
 	{
-		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm;
+		//TODO: Don't hardcode these!
+		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
 		MTLPixelFormat stencilFormat = MTLPixelFormatDepth24Unorm_Stencil8;
 

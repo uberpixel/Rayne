@@ -11,5 +11,23 @@
 				"type": "fragment"
 			}
 		]
+	},
+	{
+		"file": ":RayneMetal:/Sky.metal",
+		"shaders":
+		[
+			{
+				"name": "sky_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "sky_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}]
+				}
+			}
+		]
 	}
 ]

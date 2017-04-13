@@ -313,6 +313,13 @@ namespace RN
 				else if(type == Shader::Type::Fragment)
 					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 			}
+			else if(shader == Shader::Default::Sky)
+			{
+				if(type == Shader::Type::Vertex)
+					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				else if(type == Shader::Type::Fragment)
+					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+			}
 		}
 
 		return actualShader;
@@ -503,6 +510,12 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionViewMatrix.m, descriptor->GetSize());
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::ProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionMatrix.m, descriptor->GetSize());
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
 				{
@@ -533,6 +546,12 @@ namespace RN
 				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
+					
+				case Shader::UniformDescriptor::Identifier::InverseProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionMatrix.m, descriptor->GetSize());
 					break;
 				}
 
@@ -621,7 +640,6 @@ namespace RN
 
 	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
 	{
-		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
 
 		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
@@ -634,12 +652,10 @@ namespace RN
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
 		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
 
-		size_t bufferIndex = 0;
-
+		
 		// Set Uniforms
-		const Array *vertexBuffers = drawable->material->GetVertexBuffers();
-
 		//TODO: support multiple uniform buffer
+		size_t bufferIndex = 0;
 		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
 		{
 			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer;
@@ -647,9 +663,7 @@ namespace RN
 			[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}
 
-		const Array *fragmentBuffers = drawable->material->GetFragmentBuffers();
 		bufferIndex = 0;
-
 		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
 		{
 			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer;

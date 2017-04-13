@@ -15,9 +15,12 @@ namespace RN
 	RNDefineMeta(MetalUniformBuffer, Object)
 
 	MetalUniformBuffer::MetalUniformBuffer(Renderer *renderer, size_t size, uint32 index) :
-		_bufferIndex(0),
-		_index(index)
+		_index(index),
+		_bufferIndex(0)
 	{
+		if((size % 16) > 0)
+			size += 16 - (size % 16);
+		
 		for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
 			_buffers[i] = renderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly);
 	}
