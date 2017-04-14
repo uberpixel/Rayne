@@ -593,7 +593,8 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
-					
+				
+				//TODO: Use an extra reusable buffer for lights.
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
 					uint32 lightCount = renderPass.directionalLights.size();
