@@ -85,7 +85,7 @@ namespace RN
 			}
 		}
 
-		Signature *signature = new Signature(uniformDescriptors, samplers, textureCount);
+		Signature *signature = new Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), textureCount);
 		SetSignature(signature->Autorelease());
 
 		samplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){

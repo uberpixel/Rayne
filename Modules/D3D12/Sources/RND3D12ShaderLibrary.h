@@ -28,7 +28,7 @@ namespace RN
 		D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
 
 		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
-		const Shader::Signature *GetShaderSignature(const Shader::Options *options) const;
+		const Array *GetSamplerSignature(const Shader::Options *options) const;
 
 		Dictionary *_shaders;
 

@@ -199,7 +199,7 @@ namespace RN
 		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options);
 		RNAPI virtual ~Shader();
 
-		void SetSignature(const Signature *signature);
+		RNAPI void SetSignature(const Signature *signature);
 
 	private:
 		const Shader::Options *_options;

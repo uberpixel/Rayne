@@ -13,8 +13,8 @@ namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Signature *signature) :
-		Shader(library, type, options, signature), _shader(nullptr), _name(entryPoint->Retain())
+	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers) :
+		Shader(library, type, options), _shader(nullptr), _name(entryPoint->Retain())
 	{
 #ifdef _DEBUG
 		// Enable better shader debugging with the graphics debugging tools.
@@ -69,66 +69,71 @@ namespace RN
 			RNDebug(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
 			throw ShaderCompilationException(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
 		}
-		
-/*
-		NSArray *attributes = [function vertexAttributes];
-		size_t count = [attributes count];
 
-		for(size_t i = 0; i < count; i ++)
+		ID3D12ShaderReflection* pReflector = nullptr;
+		D3DReflect(_shader->GetBufferPointer(), _shader->GetBufferSize(), IID_PPV_ARGS(&pReflector));
+
+		uint8 textureCount = 0;
+		Array *reflectionSamplers = new Array();
+		Array *uniformDescriptors = new Array();
+
+		D3D12_SHADER_DESC shaderDescription;
+		pReflector->GetDesc(&shaderDescription);
+
+		for (UINT i = 0; i < shaderDescription.BoundResources; i++)
 		{
-			MTLVertexAttribute *attribute = [attributes objectAtIndex:i];
-			if([attribute isActive])
+			D3D12_SHADER_INPUT_BIND_DESC resourceBindingDescription;
+			pReflector->GetResourceBindingDesc(i, &resourceBindingDescription);
+
+			if(resourceBindingDescription.Type == D3D_SIT_TEXTURE)
 			{
-				PrimitiveType type;
-				switch([attribute attributeType])
-				{
-					case MTLDataTypeFloat:
-						type = PrimitiveType::Float;
-						break;
-					case MTLDataTypeFloat2:
-						type = PrimitiveType::Vector2;
-						break;
-					case MTLDataTypeFloat3:
-						type = PrimitiveType::Vector3;
-						break;
-					case MTLDataTypeFloat4:
-						type = PrimitiveType::Vector4;
-						break;
-
-					case MTLDataTypeFloat4x4:
-						type = PrimitiveType::Matrix;
-					break;
-
-					case MTLDataTypeInt:
-						type = PrimitiveType::Int32;
-						break;
-					case MTLDataTypeUInt:
-						type = PrimitiveType::Uint32;
-						break;
-
-					case MTLDataTypeShort:
-						type = PrimitiveType::Int16;
-						break;
-					case MTLDataTypeUShort:
-						type = PrimitiveType::Uint16;
-						break;
-
-					case MTLDataTypeChar:
-						type = PrimitiveType::Int8;
-						break;
-					case MTLDataTypeUChar:
-						type = PrimitiveType::Uint8;
-						break;
-
-					default:
-						continue;
-				}
-
-				D3D12Attribute *attributeCopy = new D3D12Attribute(RNSTR([[attribute name] UTF8String]), type, [attribute attributeIndex]);
-				_attributes->AddObject(attributeCopy);
-				attributeCopy->Release();
+				textureCount += 1;
 			}
-		}*/
+			else if(resourceBindingDescription.Type == D3D_SIT_SAMPLER)
+			{
+				Sampler *sampler = new Sampler();
+				reflectionSamplers->AddObject(sampler->Autorelease());
+			}
+		}
+
+		for(UINT i = 0; i < shaderDescription.ConstantBuffers; i++)
+		{
+			ID3D12ShaderReflectionConstantBuffer* pConstBuffer = pReflector->GetConstantBufferByIndex(i);
+			D3D12_SHADER_BUFFER_DESC bufferDescription;
+			pConstBuffer->GetDesc(&bufferDescription);
+
+			// Load the description of each variable for use later on when binding a buffer
+			for(UINT j = 0; j < bufferDescription.Variables; j++)
+			{
+				// Get the variable description
+				ID3D12ShaderReflectionVariable* pVariable = pConstBuffer->GetVariableByIndex(j);
+				D3D12_SHADER_VARIABLE_DESC variableDescription;
+				pVariable->GetDesc(&variableDescription);
+
+				// Get the variable type description
+				ID3D12ShaderReflectionType* variableType = pVariable->GetType();
+				D3D12_SHADER_TYPE_DESC variableTypeDescription;
+				variableType->GetDesc(&variableTypeDescription);
+
+				String *name = RNSTR(variableDescription.Name)->Retain();
+				uint32 offset = variableDescription.StartOffset;
+				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
+				uniformDescriptors->AddObject(descriptor->Autorelease());
+			}
+		}
+
+		pReflector->Release();
+
+
+		if(samplers->GetCount() > 0)
+		{
+			RN_ASSERT(reflectionSamplers->GetCount() == samplers->GetCount(), "Sampler count missmatch!");
+			reflectionSamplers->RemoveAllObjects();
+			reflectionSamplers->AddObjectsFromArray(samplers);
+		}
+
+		Signature *signature = new Signature(uniformDescriptors->Autorelease(), reflectionSamplers->Autorelease(), textureCount);
+		Shader::SetSignature(signature->Autorelease());
 	}
 
 	D3D12Shader::~D3D12Shader()

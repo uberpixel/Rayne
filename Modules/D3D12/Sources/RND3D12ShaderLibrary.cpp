@@ -157,24 +157,13 @@ namespace RN
 		return samplerArray->Autorelease();
 	}
 
-	const Shader::Signature *D3D12SpecificShaderLibrary::GetShaderSignature(const Shader::Options *options) const
+	const Array *D3D12SpecificShaderLibrary::GetSamplerSignature(const Shader::Options *options) const
 	{
 		if(!_signatureDescription)
 		{
-			Array *uniformDescriptors = new Array();
 			Array *samplers = new Array();
-			Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), 0);
-			return signature->Autorelease();
+			return samplers->Autorelease();
 		}
-
-		uint8 textureCount = 0;
-		uint32 offset = 0;
-
-		Number *textureObject = _signatureDescription->GetObjectForKey<Number>(RNCSTR("textures"));
-		if(textureObject) textureCount = textureObject->GetUint8Value();
-
-		Array *uniformArray = _signatureDescription->GetObjectForKey<Array>(RNCSTR("uniforms"));
-		Array *uniformDescriptors = GetUniformDescriptors(uniformArray, offset)->Retain();
 
 		Array *samplerDataArray = _signatureDescription->GetObjectForKey<Array>(RNCSTR("samplers"));
 		Array *samplerArray = GetSamplers(samplerDataArray);
@@ -191,23 +180,14 @@ namespace RN
 					{
 						return;
 					}
-
-					Number *optionTextureObject = dict->GetObjectForKey<Number>(RNCSTR("textures"));
-					if(optionTextureObject) textureCount += optionTextureObject->GetUint32Value();
-
 					Array *optionSamplerdataArray = dict->GetObjectForKey<Array>(RNCSTR("samplers"));
 					Array *optionSamplerArray = GetSamplers(optionSamplerdataArray);
 					samplerArray->AddObjectsFromArray(optionSamplerArray);
-
-					Array *optionUniformArray = dict->GetObjectForKey<Array>(RNCSTR("uniforms"));
-					Array *optionUniformDescriptors = GetUniformDescriptors(optionUniformArray, offset);
-					uniformDescriptors->AddObjectsFromArray(optionUniformDescriptors);
 				}
 			});
 		}
 
-		Shader::Signature *signature = new Shader::Signature(uniformDescriptors->Autorelease(), samplerArray->Autorelease(), textureCount);
-		return signature->Autorelease();
+		return samplerArray->Autorelease();
 	}
 
 	Shader *D3D12SpecificShaderLibrary::GetShaderWithOptions(ShaderLibrary *library, const Shader::Options *options)
@@ -218,8 +198,8 @@ namespace RN
 		if(shader)
 			return shader;
 
-		const Shader::Signature *signature = GetShaderSignature(newOptions);
-		shader = new D3D12Shader(library, _fileName, _entryPoint, _type, newOptions, signature);
+		const Array *samplers = GetSamplerSignature(newOptions);
+		shader = new D3D12Shader(library, _fileName, _entryPoint, _type, newOptions, samplers);
 		_shaders->SetObjectForKey(shader, newOptions);
 
 		return shader->Autorelease();
