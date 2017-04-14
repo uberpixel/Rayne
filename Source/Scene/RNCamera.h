@@ -20,10 +20,12 @@ namespace RN
 {
 	class Window;
 	class Material;
+	class Light;
 	class Camera : public SceneNode
 	{
 	public:
 		friend class Scene;
+		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
 				   NoSorting    = (1 << 6),
@@ -130,7 +132,7 @@ namespace RN
 		void UpdateFrustum();
 
 		Vector3 __ToWorld(const Vector3 &dir);
-//		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
+		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
 
 		IntrusiveList<Camera>::Member _cameraSceneEntry;

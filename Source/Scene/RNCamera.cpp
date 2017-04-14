@@ -7,6 +7,7 @@
 //
 
 #include "RNCamera.h"
+#include "RNLight.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Rendering/RNWindow.h"
 
@@ -341,7 +342,7 @@ namespace RN
 		}
 	}*/
 
-/*	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
+	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
 		//Get camera frustum extends to be covered by the split
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
@@ -381,12 +382,12 @@ namespace RN
 
 		//Update the projection matrix
 		_dirtyProjection = true;
-		UpdateProjection();
+		UpdateProjection(nullptr); //Because the target is always a valid framebuffer, we don't need to pass the renderer as parameter here
 
 		//Return the resulting matrix
 		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
 		return projview;
-	}*/
+	}
 
 	// Helper
 	void Camera::Update(float delta)

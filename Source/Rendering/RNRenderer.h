@@ -73,6 +73,7 @@ namespace RN
 
 	class RendererDescriptor;
 	class RenderingDevice;
+	class Light;
 
 	class Renderer : public Object
 	{
@@ -111,6 +112,8 @@ namespace RN
 		RNAPI virtual Drawable *CreateDrawable() = 0;
 		RNAPI virtual void DeleteDrawable(Drawable *drawable) = 0;
 		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
+
+		RNAPI virtual void SubmitLight(const Light *light) = 0;
 
 		RendererDescriptor *GetDescriptor() const { return _descriptor; }
 		RenderingDevice *GetDevice() const { return _device; }

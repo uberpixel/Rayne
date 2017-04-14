@@ -184,6 +184,16 @@ namespace RN
 			_identifier = CameraPosition;
 			_type = PrimitiveType::Vector3;
 		}
+		else if (name->IsEqual(RNCSTR("lights_directionalcount")) || name->IsEqual(RNCSTR("directionalLightsCount")))
+		{
+			_identifier = DirectionalLightsCount;
+			_type = PrimitiveType::Uint32;
+		}
+		else if (name->IsEqual(RNCSTR("lights_directional")) || name->IsEqual(RNCSTR("directionalLights")))
+		{
+			_identifier = DirectionalLights;
+			_type = PrimitiveType::Vector4;
+		}
 	}
 
 	Shader::UniformDescriptor::~UniformDescriptor()
@@ -193,6 +203,15 @@ namespace RN
 
 	size_t Shader::UniformDescriptor::GetSize() const
 	{
+		switch(_identifier)
+		{
+			case DirectionalLights:
+				return (12 + 16) * 5;	//TODO: use define or something for the 5
+
+			default:
+				break;
+		}
+
 		switch(_type)
 		{
 		case PrimitiveType::Uint8:
@@ -228,8 +247,8 @@ namespace RN
 
 
 	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, uint8 anisotropy) :
-		_filter(filter),
 		_wrapMode(wrapMode),
+		_filter(filter),
 		_anisotropy(anisotropy)
 	{}
 
@@ -254,9 +273,11 @@ namespace RN
 		_textureCount(textureCount),
 		_totalUniformSize(0)
 	{
-		_uniformDescriptors->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
-			_totalUniformSize += descriptor->GetSize();
-		});
+		if(_uniformDescriptors->GetCount() > 0)
+		{
+			Shader::UniformDescriptor *lastDescriptor = _uniformDescriptors->GetLastObject<Shader::UniformDescriptor>();
+			_totalUniformSize = lastDescriptor->GetOffset() + lastDescriptor->GetSize();
+		}
 	}
 
 	Shader::Signature::~Signature()

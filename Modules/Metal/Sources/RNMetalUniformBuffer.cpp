@@ -18,6 +18,7 @@ namespace RN
 		_index(index),
 		_bufferIndex(0)
 	{
+		//This seems to be working as alignement, but could cause problems with arrays of structs in the buffer
 		if((size % 16) > 0)
 			size += 16 - (size % 16);
 		

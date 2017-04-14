@@ -9,10 +9,6 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 
-//#define vertex
-//#define fragment
-//#define constant const
-
 // Exported defines:
 // RN_NORMALS
 // RN_COLOR
@@ -20,13 +16,6 @@
 // RN_DISCARD
 
 using namespace metal;
-
-#define RN_FRAGMENT_UNIFORM 0
-
-#if RN_DISCARD
-#undef RN_FRAGMENT_UNIFORM
-#define RN_FRAGMENT_UNIFORM 1
-#endif
 
 #ifndef RN_NORMALS
 #define RN_NORMALS 0
@@ -40,8 +29,12 @@ using namespace metal;
 #define RN_UV0 0
 #endif
 
-// Variables in constant address space
-constant float3 light_position = float3(1.0, 1.0, 1.0);
+
+struct LightDirectional
+{
+	packed_float3 direction;
+	packed_float4 color;
+};
 
 struct Uniforms
 {
@@ -52,22 +45,24 @@ struct Uniforms
 	matrix_float4x4 modelMatrix;
 #endif
 
-	float4 ambientColor;
-	float4 diffuseColor;
-
 #if RN_UV0
 	float textureTileFactor;
 #endif
 };
 
-#if RN_FRAGMENT_UNIFORM
 struct FragmentUniforms
 {
+	float4 ambientColor;
+	float4 diffuseColor;
+
 #if RN_DISCARD
 	float discardThreshold;
 #endif
+
+	uint directionalLightsCount;
+	LightDirectional directionalLights[5];
 };
-#endif
+
 
 struct InputVertex
 {
@@ -100,10 +95,19 @@ struct FragmentVertex
 #if RN_UV0
 	float2 texCoords;
 #endif
-
-	float4 ambient;
-	float4 diffuse;
 };
+
+float4 getDirectionalLights(float3 normal, uint count, constant LightDirectional directionalLights[5]);
+float4 getDirectionalLights(float3 normal, uint count, constant LightDirectional directionalLights[5])
+{
+	float4 light = float4(0.0);
+	for(uint i = 0; i < count; i++)
+	{
+		light += saturate(dot(normal, directionalLights[i].direction)) * directionalLights[i].color;
+	}
+
+	return light;
+}
 
 // Non instanced
 
@@ -123,9 +127,6 @@ vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uni
 	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
 #endif
 
-	result.ambient = uniforms.ambientColor;
-	result.diffuse = uniforms.diffuseColor;
-
 	return result;
 }
 
@@ -134,12 +135,10 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
 #endif
-#if RN_FRAGMENT_UNIFORM
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
-#endif
 )
 {
-	float4 color = vert.diffuse;
+	float4 color = uniforms.diffuseColor;
 #if RN_UV0
 	color *= texture.sample(samplr, vert.texCoords).rgba;
 
@@ -154,9 +153,10 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + saturate(dot(normalize(vert.normal), normalize(light_position))));
+	float4 light = getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
+	return color * (uniforms.ambientColor + light);
 #else
-	return color * (vert.ambient);
+	return color * (uniforms.ambientColor);
 #endif
 }
 
@@ -191,9 +191,6 @@ vertex FragmentVertex gouraud_vertex_instanced(InputVertex vert [[stage_in]], co
 	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
 #endif
 
-	result.ambient = uniforms.ambientColor;
-	result.diffuse = uniforms.diffuseColor;
-
 	return result;
 }
 
@@ -201,12 +198,10 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
 #endif
-#if RN_FRAGMENT_UNIFORM
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
-#endif
 )
 {
-	float4 color = vert.diffuse;
+	float4 color = uniforms.diffuseColor;
 #if RN_UV0
 	color *= texture.sample(samplr, vert.texCoords).rgba;
 
@@ -221,9 +216,10 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + saturate(dot(normalize(vert.normal), normalize(light_position))));
+	float4 light = getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
+	return color * (uniforms.ambientColor + light);
 #else
-	return color * (vert.ambient);
+	return color * (uniforms.ambientColor);
 #endif
 }
 

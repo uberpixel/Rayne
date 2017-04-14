@@ -72,7 +72,11 @@ namespace RN
 				TextureTileFactor,
 				DiscardThreshold,
 				Time,
-				CameraPosition
+				CameraPosition,
+				DirectionalLights,
+				DirectionalLightsCount,
+				PointLights,
+				SpotLights
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);

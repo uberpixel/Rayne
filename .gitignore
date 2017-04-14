@@ -18,3 +18,4 @@ CMakeLists.txt.user
 # Came
 /cmake-build-*
 Modules/Oculus/Vendor/OculusSDK/
+xcode-build

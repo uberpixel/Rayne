@@ -88,6 +88,28 @@ namespace RN
 		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
+	struct MetalPointLight
+	{
+		Vector3 position;
+		Color color;
+		float range;
+	};
+
+	struct MetalSpotLight
+	{
+		Vector3 position;
+		Vector3 direction;
+		Color color;
+		float range;
+		float angle;
+	};
+
+	struct MetalDirectionalLight
+	{
+		Vector3 direction;
+		Color color;
+	};
+
 	struct MetalRenderPass
 	{
 		Camera *camera;
@@ -101,6 +123,10 @@ namespace RN
 		Matrix inverseProjectionViewMatrix;
 
 		std::vector<MetalDrawable *> drawables;
+
+		std::vector<MetalPointLight> pointLights;
+		std::vector<MetalSpotLight> spotLights;
+		std::vector<MetalDirectionalLight> directionalLights;
 	};
 
 

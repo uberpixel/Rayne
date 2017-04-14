@@ -62,7 +62,6 @@ namespace RN
 						offset];
 
 						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
-						//offset += descriptor->GetSize();
 						uniformDescriptors->AddObject(descriptor->Autorelease());
 					}
 					break;

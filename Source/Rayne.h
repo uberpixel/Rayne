@@ -92,6 +92,7 @@
 #include "Scene/RNSceneManager.h"
 #include "Scene/RNSceneNode.h"
 #include "Scene/RNSceneNodeAttachment.h"
+#include "Scene/RNLight.h"
 
 #include "System/RNFile.h"
 #include "System/RNFileManager.h"

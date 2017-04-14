@@ -90,6 +90,7 @@ set(RAYNE_SOURCES
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
     Scene/RNSceneNodeAttachment.cpp
+    Scene/RNLight.cpp
     System/RNFile.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -200,6 +201,7 @@ set(RAYNE_HEADERS
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h
     Scene/RNSceneNodeAttachment.h
+    Scene/RNLight.h
     System/RNFile.h
     System/RNFileManager.h
     System/RNScreen.h

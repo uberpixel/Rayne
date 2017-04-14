@@ -60,6 +60,7 @@ namespace RN
 		MTLAPI Drawable *CreateDrawable() final;
 		MTLAPI void DeleteDrawable(Drawable *drawable) final;
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
+		MTLAPI void SubmitLight(const Light *light) final;
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);

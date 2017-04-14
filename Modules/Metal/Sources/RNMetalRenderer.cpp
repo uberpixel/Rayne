@@ -16,6 +16,7 @@
 #include "RNMetalDevice.h"
 #include "RNMetalRendererDescriptor.h"
 #include "RNMetalFramebuffer.h"
+#include "../../../Source/Rendering/RNShader.h"
 
 namespace RN
 {
@@ -592,6 +593,21 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
+				{
+					uint32 lightCount = renderPass.directionalLights.size();
+					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, 4);
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalLights:
+				{
+					uint32 lightCount = renderPass.directionalLights.size();
+					if(lightCount > 0)
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], lightCount * (12 + 16));
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
@@ -605,6 +621,24 @@ namespace RN
 		});
 
 		gpuBuffer->Invalidate();
+	}
+
+	void MetalRenderer::SubmitLight(const Light *light)
+	{
+		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		if(light->GetType() == Light::Type::DirectionalLight)
+		{
+			if(renderPass.directionalLights.size() <= 5)
+				renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), light->GetColor()});
+		}
+		else if(light->GetType() == Light::Type::PointLight)
+		{
+			renderPass.pointLights.push_back(MetalPointLight{light->GetPosition(), light->GetColor(), light->GetRange()});
+		}
+		else if(light->GetType() == Light::Type::SpotLight)
+		{
+			renderPass.spotLights.push_back(MetalSpotLight{light->GetPosition(), light->GetForward(), light->GetColor(), light->GetRange(), light->GetAngleCos()});
+		}
 	}
 
 	void MetalRenderer::SubmitDrawable(Drawable *tdrawable)
@@ -624,6 +658,13 @@ namespace RN
 			drawable->dirty = false;
 		}
 
+		_lock.Lock();
+		renderPass.drawables.push_back(drawable);
+		_lock.Unlock();
+	}
+
+	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
+	{
 		// Update uniforms
 		{
 			//TODO: support multiple uniform buffer
@@ -633,13 +674,6 @@ namespace RN
 				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->fragmentShader);
 		}
 
-		_lock.Lock();
-		renderPass.drawables.push_back(drawable);
-		_lock.Unlock();
-	}
-
-	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
-	{
 		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
 
 		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
