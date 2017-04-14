@@ -43,6 +43,12 @@ namespace RN
 		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
+	struct D3D12LightDirectional
+	{
+		Vector3 direction;
+		Color color;
+	};
+
 	struct D3D12RenderPass
 	{
 		Camera *camera;
@@ -56,6 +62,7 @@ namespace RN
 		Matrix inverseProjectionViewMatrix;
 
 		std::vector<D3D12Drawable *> drawables;
+		std::vector<D3D12LightDirectional> directionalLights;
 	};
 
 	struct D3D12FrameResource

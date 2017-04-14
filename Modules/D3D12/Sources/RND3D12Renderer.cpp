@@ -817,14 +817,27 @@ namespace RN
 				}
 
 				//Create constant buffer descriptor
-				D3D12UniformBuffer *uniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->uniformBuffer;
-				D3D12GPUBuffer *actualBuffer = uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-				cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
-				cbvDesc.SizeInBytes = actualBuffer->GetLength();
-				GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-				currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+
+				D3D12UniformBuffer *vertexUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->vertexUniformBuffer;
+				if (vertexUniformBuffer)
+				{
+					D3D12GPUBuffer *actualBuffer = vertexUniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
+					cbvDesc.SizeInBytes = actualBuffer->GetLength();
+					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
+					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+				}
+
+				D3D12UniformBuffer *fragmentUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->fragmentUniformBuffer;
+				if(fragmentUniformBuffer)
+				{
+					D3D12GPUBuffer *actualBuffer = fragmentUniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
+					cbvDesc.SizeInBytes = actualBuffer->GetLength();
+					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
+					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+				}
 			}
 
 			cameraID += 1;
@@ -983,6 +996,21 @@ namespace RN
 		});
 	}
 
+	void D3D12Renderer::SubmitLight(const Light *light)
+	{
+		_lock.Lock();
+		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		_lock.Unlock();
+
+		if(light->GetType() == Light::Type::DirectionalLight)
+		{
+			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
+			{
+				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), light->GetColor() });
+			}
+		}
+	}
+
 	void D3D12Renderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		D3D12Drawable *drawable = static_cast<D3D12Drawable *>(tdrawable);
@@ -1008,12 +1036,23 @@ namespace RN
 			drawable->dirty = false;
 		}
 
-		GPUBuffer *gpuBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->uniformBuffer->Advance();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-		size_t offset = 0;
-		FillUniformBuffer(buffer, drawable, material->GetVertexShader(), offset);
-		FillUniformBuffer(buffer, drawable, material->GetFragmentShader(), offset);
-		gpuBuffer->Invalidate();
+		D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+		if(uniformState->vertexUniformBuffer)
+		{
+			GPUBuffer *gpuBuffer = uniformState->vertexUniformBuffer->Advance();
+			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+			size_t offset = 0;
+			FillUniformBuffer(buffer, drawable, material->GetVertexShader(), offset);
+			gpuBuffer->Invalidate();
+		}
+		if (uniformState->fragmentUniformBuffer)
+		{
+			GPUBuffer *gpuBuffer = uniformState->fragmentUniformBuffer->Advance();
+			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+			size_t offset = 0;
+			FillUniformBuffer(buffer, drawable, material->GetFragmentShader(), offset);
+			gpuBuffer->Invalidate();
+		}
 
 		// Push into the queue
 		_lock.Lock();

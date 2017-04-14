@@ -8,14 +8,17 @@
 				"type": "vertex",
 				"signature":
 				{
-					"uniforms": ["transform_modelviewprojection", "transform_model", "material_ambientcolor", "material_diffusecolor"],
+					"uniforms": ["transform_modelviewprojection", "transform_model"],
 					"textures": 0,
-					"samplers": 0,
+					"samplers": [],
 					"options":
 					[
 						"RN_NORMALS",
 						"RN_COLOR",
-						"RN_UV0"
+						{
+							"option": "RN_UV0",
+							"uniforms": ["material_texturetilefactor"]
+						}
 					]
 				}
 			},
@@ -24,7 +27,7 @@
 				"type": "fragment",
 				"signature":
 				{
-					"uniforms": 0,
+					"uniforms": ["material_ambientcolor", "material_diffusecolor"],
 					"textures": 0,
 					"samplers": [],
 					"options":
@@ -34,8 +37,7 @@
 						{
 							"option": "RN_UV0",
 							"textures": 1,
-							"samplers": ["default"],
-							"uniforms": ["material_texturetilefactor"]
+							"samplers": ["default"]
 						},
 						{
 							"option": "RN_DISCARD",
@@ -55,7 +57,7 @@
 				"type": "vertex",
 				"signature":
 				{
-					"uniforms": ["transform_modelview", "transform_projection", "material_diffusecolor"],
+					"uniforms": ["transform_modelview", "transform_projection"],
 					"textures": 0,
 					"samplers": 0
 				}
@@ -65,7 +67,7 @@
 				"type": "fragment",
 				"signature":
 				{
-					"uniforms": 0,
+					"uniforms": ["material_diffusecolor"],
 					"textures": 1,
 					"samplers": [{"wrap": "clamp"}]
 				}

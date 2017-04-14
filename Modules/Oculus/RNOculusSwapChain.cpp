@@ -34,8 +34,8 @@ namespace RN
 		RNInfo(GetHMDInfoDescription());
 
 		// Configure Stereo settings.
-		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 1.0f);
-		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 1.0f);
+		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 2.0f);	//TODO: Set last parameter back to 1
+		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 2.0f); //TODO: Set last parameter back to 1
 		ovrSizei bufferSize;
 		bufferSize.w = recommenedTex0Size.w + recommenedTex1Size.w;
 		bufferSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);

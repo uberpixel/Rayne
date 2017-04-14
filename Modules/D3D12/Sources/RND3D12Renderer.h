@@ -64,6 +64,7 @@ namespace RN
 		D3DAPI Drawable *CreateDrawable() final;
 		D3DAPI void DeleteDrawable(Drawable *drawable) final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
+		D3DAPI void SubmitLight(const Light *light) final;
 
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
 		D3D12CommandList *GetCommandList();

@@ -82,6 +82,9 @@ namespace RN
 		samplerArray->AddObjectsFromArray(fragmentSamplers);
 		samplerArray->Autorelease();
 
+		//TODO: Support multiple constant buffers per function signature
+		uint16 constantBufferCount = ((vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0) + ((fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0);
+
 		for(D3D12RootSignature *signature : _rootSignatures)
 		{
 			
@@ -90,8 +93,7 @@ namespace RN
 				continue;
 			}
 
-			//TODO: Support multiple constant buffers
-			if(signature->constantBufferCount != 1)
+			if(signature->constantBufferCount != constantBufferCount)
 			{
 				continue;
 			}
@@ -120,7 +122,7 @@ namespace RN
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
 		D3D12RootSignature *signature = new D3D12RootSignature();
-		signature->constantBufferCount = 1; //TODO: Support multiple constant buffers
+		signature->constantBufferCount = constantBufferCount;
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
 
@@ -268,9 +270,8 @@ namespace RN
 
 	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material)
 	{
-		//TODO: Get these from the framebuffer and maybe replace camera param with framebuffer!?
 		DXGI_FORMAT pixelFormat = framebuffer->_colorFormat;
-		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		DXGI_FORMAT depthStencilFormat = framebuffer->_depthFormat;
 
 		//TODO: Fix this shit
 		for(const D3D12PipelineState *state : collection->states)
@@ -353,22 +354,19 @@ namespace RN
 		Shader *vertexShader = material->GetVertexShader();
 		Shader *fragmentShader = material->GetFragmentShader();
 		D3D12UniformBuffer *vertexBuffer = nullptr;
-		//D3D12UniformBuffer *fragmentBuffer = nullptr;
-		if(vertexShader && vertexShader->GetSignature() && fragmentShader && fragmentShader->GetSignature())
+		D3D12UniformBuffer *fragmentBuffer = nullptr;
+		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			//TODO: this could break depending on the shader, better use a buffer per shader...
-			size_t totalSize = fmax(vertexShader->GetSignature()->GetTotalUniformSize(), fragmentShader->GetSignature()->GetTotalUniformSize());
-			if(totalSize > 0)
-				vertexBuffer = new D3D12UniformBuffer(renderer, totalSize);
+			vertexBuffer = new D3D12UniformBuffer(renderer, vertexShader->GetSignature()->GetTotalUniformSize());
 		}
-		/*if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
+		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
 			fragmentBuffer = new D3D12UniformBuffer(renderer, fragmentShader->GetSignature()->GetTotalUniformSize());
-		}*/
+		}
 
 		D3D12UniformState *state = new D3D12UniformState();
-		state->uniformBuffer = vertexBuffer;
-		//state->fragmentShaderUniformBuffer = fragmentBuffer;
+		state->vertexUniformBuffer = vertexBuffer;
+		state->fragmentUniformBuffer = fragmentBuffer;
 
 		return state;
 	}

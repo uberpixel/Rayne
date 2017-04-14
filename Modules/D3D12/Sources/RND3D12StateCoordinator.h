@@ -24,7 +24,8 @@ namespace RN
 
 	struct D3D12UniformState
 	{
-		D3D12UniformBuffer *uniformBuffer;
+		D3D12UniformBuffer *vertexUniformBuffer;
+		D3D12UniformBuffer *fragmentUniformBuffer;
 	};
 
 	struct D3D12DepthStencilState
