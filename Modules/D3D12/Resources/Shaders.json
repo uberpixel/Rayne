@@ -26,10 +26,7 @@
 						"RN_NORMALS",
 						"RN_COLOR",
 						"RN_DISCARD",
-						{
-							"option": "RN_UV0",
-							"samplers": ["default"]
-						}
+						"RN_UV0"
 					]
 				}
 			}

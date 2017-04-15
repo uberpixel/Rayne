@@ -984,6 +984,23 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
+				{
+					size_t lightCount = renderPass.directionalLights.size();
+					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalLights:
+				{
+					size_t lightCount = renderPass.directionalLights.size();
+					if(lightCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
+					}
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
 					//TODO: Implement custom shader variables!
@@ -1006,7 +1023,7 @@ namespace RN
 		{
 			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
 			{
-				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), light->GetColor() });
+				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetColor() });
 			}
 		}
 	}

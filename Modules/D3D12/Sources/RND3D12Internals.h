@@ -46,6 +46,7 @@ namespace RN
 	struct D3D12LightDirectional
 	{
 		Vector3 direction;
+		float padding;
 		Color color;
 	};
 

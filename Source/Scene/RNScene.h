@@ -14,6 +14,7 @@
 #include "../Rendering/RNRenderer.h"
 #include "RNSceneNode.h"
 #include "RNCamera.h"
+#include "RNLight.h"
 #include "RNSceneAttachment.h"
 
 namespace RN
@@ -53,6 +54,7 @@ namespace RN
 
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
+		Array *_lights;
 		Array *_attachments;
 
 		__RNDeclareMetaInternal(Scene)

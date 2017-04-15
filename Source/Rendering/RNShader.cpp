@@ -203,10 +203,11 @@ namespace RN
 
 	size_t Shader::UniformDescriptor::GetSize() const
 	{
+		//TODO: Handle alignement!
 		switch(_identifier)
 		{
 			case DirectionalLights:
-				return (12 + 16) * 5;	//TODO: use define or something for the 5
+				return (16 + 16) * 5;	//TODO: use define or something for the 5
 
 			default:
 				break;

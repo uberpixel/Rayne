@@ -12,9 +12,6 @@
 // RN_UV0
 // RN_DISCARD
 
-// Variables in constant address space
-static const float3 light_position = float3(-1.0, 1.0, 1.0);
-
 #if RN_UV0
 Texture2D texture0 : register(t0);
 SamplerState samplr : register(s0);
@@ -30,6 +27,12 @@ cbuffer vertexUniforms : register(b0)
 #endif
 };
 
+struct LightDirectional
+{
+	float4 direction;
+	float4 color;
+};
+
 cbuffer fragmentUniforms : register(b1)
 {
 	float4 ambientColor;
@@ -38,19 +41,10 @@ cbuffer fragmentUniforms : register(b1)
 #if RN_DISCARD
 	float discardThreshold;
 #endif
-};
 
-/*struct LightDirectional
-{
-	float3 direction;
-	float4 color;
-}
-
-cbuffer lightUniforms : register(b2)
-{
 	uint directionalLightsCount;
 	LightDirectional directionalLights[5];
-};*/
+};
 
 struct InputVertex
 {
@@ -85,17 +79,28 @@ struct FragmentVertex
 #endif
 };
 
+float4 getDirectionalLights(float3 normal, uint count, LightDirectional directionalLights[5])
+{
+	float4 light = 0.0f;
+	for(uint i = 0; i < count; i++)
+	{
+		light += saturate(dot(normal, directionalLights[i].direction.xyz)) * directionalLights[i].color;
+	}
+
+	return light;
+}
+
 FragmentVertex gouraud_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0));
+	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0f));
 
 #if RN_COLOR
 	result.color = vert.color;
 #endif
 #if RN_NORMALS
-	result.normal = mul(modelMatrix, float4(vert.normal, 0.0)).xyz;
+	result.normal = mul(modelMatrix, float4(vert.normal, 0.0f)).xyz;
 #endif
 #if RN_UV0
 	result.texCoords = vert.texCoords*textureTileFactor;
@@ -121,7 +126,8 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 #endif
 
 #if RN_NORMALS
-	return color * (ambientColor + saturate(dot(normalize(vert.normal), normalize(light_position))));
+	float4 light = getDirectionalLights(normalize(vert.normal), directionalLightsCount, directionalLights);
+	return color * (ambientColor + light);
 #else
 	return color * (ambientColor);
 #endif

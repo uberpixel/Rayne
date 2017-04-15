@@ -20,12 +20,14 @@ namespace RN
 {
 	RNDefineMeta(Scene, Object)
 
-	Scene::Scene() : _attachments(nullptr)
+	Scene::Scene() : _attachments(nullptr), _lights(new Array())
 	{}
 	Scene::~Scene()
 	{
 		if(_attachments)
 			_attachments->Release();
+
+		_lights->Release();
 	}
 
 	void Scene::Update(float delta)
@@ -131,6 +133,12 @@ namespace RN
 
 			renderer->SubmitCamera(camera, [&] {
 
+				//TODO: Handle lights to be rendered before other things differently...
+				_lights->Enumerate<Light>([renderer, camera](Light *light, size_t index, bool &stop){
+					if(light->CanRender(renderer, camera))
+						light->Render(renderer, camera);
+				});
+
 				WorkGroup *group = new WorkGroup();
 
 				for(size_t i = 0; i < 3; i ++)
@@ -153,8 +161,9 @@ namespace RN
 								{
 									SceneNode *node = iterator->Get();
 
-									if(node->CanRender(renderer, camera))
-										node->Render(renderer, camera);
+									if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+										if(node->CanRender(renderer, camera))
+											node->Render(renderer, camera);
 
 									iterator = iterator->GetNext();
 								}
@@ -180,8 +189,9 @@ namespace RN
 							{
 								SceneNode *node = iterator->Get();
 
-								if(node->CanRender(renderer, camera))
-									node->Render(renderer, camera);
+								if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+									if(node->CanRender(renderer, camera))
+										node->Render(renderer, camera);
 
 								iterator = iterator->GetNext();
 							}
@@ -244,6 +254,14 @@ namespace RN
 			return;
 		}
 
+		//TODO: Handle lights to be rendered before other things differently...
+		if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights->AddObject(light);
+			return;
+		}
+
 		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
 
 		node->Retain();
@@ -253,6 +271,14 @@ namespace RN
 	void Scene::RemoveNode(SceneNode *node)
 	{
 		RN_ASSERT(node->_scene == this, "RemoveNode() must be called on a Node owned by the scene");
+
+		//TODO: Handle lights to be rendered before other things differently...
+		if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights->RemoveObject(light);
+			return;
+		}
 
 		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
 
