@@ -28,4 +28,10 @@ namespace RN
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		return coordinator->GetAssetWithName<Texture>(name, settings);
 	}
+
+	Texture *Texture::WithDescriptor(const Descriptor &descriptor)
+	{
+		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+		return texture->Autorelease();
+	}
 }

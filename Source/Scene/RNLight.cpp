@@ -215,7 +215,6 @@ namespace RN
 	bool Light::ActivateDirectionalShadows()
 	{
 		return false;
-
 /*		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
 		
@@ -230,20 +229,22 @@ namespace RN
 		
 		_shadowTarget = _shadowParameter.shadowTarget->Retain();
 		
-		Shader::Sampler textureParameter;
-		textureParameter.wrapMode = Texture::WrapMode::Clamp;
-		textureParameter.filter = Texture::Filter::Linear;
-		textureParameter.anisotropy = 1.0f;
-		textureParameter.format = Texture::Format::Depth24I;
+		Shader::Sampler *textureParameter = new Shader::Sampler(Shader::Sampler::WrapMode::Clamp, Shader::Sampler::Filter::Linear, 1.0f);
+/*		textureParameter.format = Texture::Format::Depth24I;
 		textureParameter.depthCompare = true;
-		textureParameter.maxMipMaps = 0;
+		textureParameter.maxMipMaps = 0;*/
 		
-		Texture2DArray *depthtex = new Texture2DArray(textureParameter);
-		depthtex->SetSize(_shadowParameter.resolution, _shadowParameter.resolution, _shadowParameter.splits.size());
-		depthtex->Autorelease();
+/*		Texture::Descriptor textureDescriptor;
+		textureDescriptor.format = Texture::Format::Depth24I;
+		textureDescriptor.width = _shadowParameter.resolution;
+		textureDescriptor.height = _shadowParameter.resolution;
+		textureDescriptor.depth = _shadowParameter.splits.size();
+		//textureDescriptor.
+		//TODO: Make array texture...
+		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
 		
-		Shader *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
-		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
+		Shader *depthShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithNone(), Shader::Default::Depth);
+/*		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
 		Model *clearDepthSky = RN::Model::WithSkyCube(clearDepthShader);
 		for(int i = 0; i < clearDepthSky->GetMeshCount(0); i++)
 		{
@@ -252,49 +253,36 @@ namespace RN
 			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthTestMode(Material::DepthMode::Always);
 			clearDepthSky->GetMaterialAtIndex(0, i)->SetPolygonOffset(false);
 			clearDepthSky->GetMaterialAtIndex(0, i)->SetOverride(Material::Override::Shader | Material::Override::Depthtest | Material::Override::DepthtestMode | Material::Override::Depthwrite | Material::Override::PolygonOffset);
-		}
+		}*/
 		
-		_shadowCameraMatrices.clear();
+/*		_shadowCameraMatrices.clear();
 		
 		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
 			_shadowCameraMatrices.push_back(Matrix());
 			
-			Material *depthMaterial = new Material(depthShader);
-			depthMaterial->SetPolygonOffset(true);
+			MaterialDescriptor materialDescriptor;
+			materialDescriptor.vertexShader = depthShader;
+			Material *depthMaterial = Material::WithDescriptor(materialDescriptor);
+
+			//TODO: Polygon offset stuff
+	/*		depthMaterial->SetPolygonOffset(true);
 			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
 			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
-			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
+			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);*/
 			
-			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
-			storage->SetDepthTarget(depthtex, i);
-			storage->Autorelease();
+/*			Framebuffer *framebuffer = Renderer::GetActiveRenderer();
+			framebuffer->SetDepthTarget(depthtex, i);
+			framebuffer->Autorelease();
 			
-			Camera *tempcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
-			tempcam->SetClearMask(0);
-			tempcam->SetMaterial(depthMaterial->Autorelease());
-			tempcam->SetSky(clearDepthSky);
+			//TODO: Make sure these new cameras are updated after the main one, but rendered before...
+			Camera *tempcam = new Camera(framebuffer, Camera::Flags::ClearFramebufferDepth | Camera::Flags::Orthogonal, 1.0f);
+			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetLODCamera(_shadowTarget);
-			tempcam->SetLightManager(nullptr);
-			tempcam->SetPriority(kRNShadowCameraPriority);
 			tempcam->SetClipNear(1.0f);
-			tempcam->SceneNode::SetFlags(tempcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
 			tempcam->Autorelease();
 
 			_shadowDepthCameras.AddObject(tempcam);
-			AddDependency(tempcam);
-			
-			try
-			{
-				OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-					storage->BindAndUpdateBuffer();
-				}, true);
-			}
-			catch(Exception e)
-			{
-				RemoveShadowCameras();
-				return false;
-			}
 		}
 		
 		return true;*/

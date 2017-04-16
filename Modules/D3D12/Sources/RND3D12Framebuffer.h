@@ -11,6 +11,7 @@
 
 #include "RND3D12.h"
 #include "RND3D12SwapChain.h"
+#include "RND3D12Texture.h"
 
 namespace RN
 {
@@ -23,19 +24,27 @@ namespace RN
 		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer);
 		D3DAPI ~D3D12Framebuffer();
 
+		D3DAPI void SetColorTexture(Texture *texture) final;
+		D3DAPI void SetDepthTexture(Texture *texture) final;
+		D3DAPI void SetStencilTexture(Texture *texture) final;
+
 		D3DAPI Texture *GetColorTexture() const final;
 		D3DAPI Texture *GetDepthTexture() const final;
 		D3DAPI Texture *GetStencilTexture() const final;
 
-		ID3D12Resource *GetRenderTarget() const;
-		ID3D12Resource *GetDepthBuffer() const { return _depthStencilBuffer; }
+		ID3D12Resource *GetColorBuffer() const;
+		ID3D12Resource *GetDepthBuffer() const;
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
 		D3D12Renderer *_renderer;
+
+		ID3D12Resource **_swapChainColorBuffers;
 		WeakRef<D3D12SwapChain> _swapChain;
-		ID3D12Resource **_renderTargets;
-		ID3D12Resource *_depthStencilBuffer;
+
+		D3D12Texture *_colorTexture;
+		D3D12Texture *_depthTexture;
+		D3D12Texture *_stencilTexture;
 
 		DXGI_FORMAT _colorFormat;
 		DXGI_FORMAT _depthFormat;

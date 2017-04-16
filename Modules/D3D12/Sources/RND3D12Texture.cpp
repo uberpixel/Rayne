@@ -83,6 +83,80 @@ namespace RN
 		}
 	}
 
+	static D3D12_RESOURCE_FLAGS D3D12TextureFlagsFromTextureDescriptor(const Texture::Descriptor &descriptor)
+	{
+		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		{
+			switch(descriptor.format)
+			{
+			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::RGBA8888:
+			case Texture::Format::RGB10A2:
+			case Texture::Format::R8:
+			case Texture::Format::RG88:
+			case Texture::Format::RGB888:
+			case Texture::Format::R16F:
+			case Texture::Format::RG16F:
+			case Texture::Format::RGB16F:
+			case Texture::Format::RGBA16F:
+			case Texture::Format::R32F:
+			case Texture::Format::RG32F:
+			case Texture::Format::RGB32F:
+			case Texture::Format::RGBA32F:
+				return D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+			case Texture::Format::Depth24I:
+			case Texture::Format::Depth32F:
+			case Texture::Format::Stencil8:
+			case Texture::Format::Depth24Stencil8:
+			case Texture::Format::Depth32FStencil8:
+				return D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+			default:
+				return D3D12_RESOURCE_FLAG_NONE;
+			}
+		}
+
+		return D3D12_RESOURCE_FLAG_NONE;
+	}
+
+	static D3D12_RESOURCE_STATES D3D12TextureStateFromTextureDescriptor(const Texture::Descriptor &descriptor)
+	{
+		if (descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		{
+			switch (descriptor.format)
+			{
+			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::RGBA8888:
+			case Texture::Format::RGB10A2:
+			case Texture::Format::R8:
+			case Texture::Format::RG88:
+			case Texture::Format::RGB888:
+			case Texture::Format::R16F:
+			case Texture::Format::RG16F:
+			case Texture::Format::RGB16F:
+			case Texture::Format::RGBA16F:
+			case Texture::Format::R32F:
+			case Texture::Format::RG32F:
+			case Texture::Format::RGB32F:
+			case Texture::Format::RGBA32F:
+				return D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+			case Texture::Format::Depth24I:
+			case Texture::Format::Depth32F:
+			case Texture::Format::Stencil8:
+			case Texture::Format::Depth24Stencil8:
+			case Texture::Format::Depth32FStencil8:
+				return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+			default:
+				return D3D12_RESOURCE_STATE_RENDER_TARGET;
+			}
+		}
+
+		return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	}
+
 /*	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Descriptor::Type type)
 	{
 		switch(type)
@@ -309,11 +383,27 @@ namespace RN
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		imageDesc.Flags = D3D12TextureFlagsFromTextureDescriptor(descriptor);
 
-		// create the final texture buffer
-		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_resource));
-		_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
+		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		{
+			//TODO: Maybe don't hardcode!?
+			D3D12_CLEAR_VALUE clearValue = {};
+			clearValue.Format = _format;
+			clearValue.DepthStencil.Depth = 1.0f;
+			clearValue.DepthStencil.Stencil = 0;
+
+			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
+
+			// create the final texture buffer
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, &clearValue, IID_PPV_ARGS(&_resource));
+		}
+		else
+		{
+			// create the final texture buffer
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_resource));
+			_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
+		}
 	}
 
 	D3D12Texture::~D3D12Texture()

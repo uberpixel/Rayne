@@ -184,7 +184,8 @@ namespace RN
 		enum Default
 		{
 			Gouraud,
-			Sky
+			Sky,
+			Depth
 		};
 
 		RNAPI virtual const String *GetName() const = 0;

@@ -65,43 +65,63 @@ namespace RN
 		Framebuffer(size, descriptor),
 		_renderer(renderer),
 		_swapChain(swapChain),
-		_renderTargets(nullptr),
-		_depthStencilBuffer(nullptr),
+		_swapChainColorBuffers(nullptr),
+		_colorTexture(nullptr),
+		_depthTexture(nullptr),
+		_stencilTexture(nullptr),
 		_colorDimension(D3D12_RTV_DIMENSION_TEXTURE2D),
 		_depthDimension(D3D12_DSV_DIMENSION_TEXTURE2D)
 	{
 		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
 		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
 
-		_renderTargets = new ID3D12Resource*[swapChain->GetBufferCount()];
+		_swapChainColorBuffers = new ID3D12Resource*[swapChain->GetBufferCount()];
 
 		for(int i = 0; i < swapChain->GetBufferCount(); i++)
 		{
-			_renderTargets[i] = swapChain->GetD3D12Buffer(i);
+			_swapChainColorBuffers[i] = swapChain->GetD3D12Buffer(i);
 		}
 
 		if(descriptor.depthFormat != Texture::Format::Invalid)
 		{
-			ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
-
-			// Create depthbuffer
-			D3D12_CLEAR_VALUE depthClearValue = {};
-			depthClearValue.Format = _depthFormat;
-			depthClearValue.DepthStencil.Depth = 1.0f;
-			depthClearValue.DepthStencil.Stencil = 0;
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Tex2D(_depthFormat, size.x, size.y, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL), D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&_depthStencilBuffer));
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.depthFormat, size.x, size.y, false);
+			depthDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
+			Texture *depthTexture = Texture::WithDescriptor(depthDescriptor);
+			SetDepthTexture(depthTexture);
 		}
 	}
 
 	D3D12Framebuffer::~D3D12Framebuffer()
 	{
-		//TODO: Release render target d3d resources, might not be needed for swap chain buffers though, not sure
+		//TODO: Maybe release swap chain resources!?
 
-		if(_renderTargets)
-			delete _renderTargets;
+		if(_swapChainColorBuffers)
+			delete[] _swapChainColorBuffers;
 
-		if(_depthStencilBuffer)
-			_depthStencilBuffer->Release();
+		SafeRelease(_colorTexture);
+		SafeRelease(_depthTexture);
+		SafeRelease(_stencilTexture);
+	}
+
+	void D3D12Framebuffer::SetColorTexture(Texture *texture)
+	{
+		//TODO: Handle multiple textures
+		RN_ASSERT(_swapChain, "The color texture of a swap chain framebuffer can not be changed!");
+		SafeRelease(_colorTexture);
+		_colorTexture = texture->Downcast<D3D12Texture>()->Retain();
+	}
+
+	void D3D12Framebuffer::SetDepthTexture(Texture *texture)
+	{
+		SafeRelease(_depthTexture);
+		_depthTexture = texture->Downcast<D3D12Texture>()->Retain();
+	}
+
+	void D3D12Framebuffer::SetStencilTexture(Texture *texture)
+	{
+		//TODO: Handle shared depth/stencil textures
+		SafeRelease(_stencilTexture);
+		_stencilTexture = texture->Downcast<D3D12Texture>()->Retain();
 	}
 
 	Texture *D3D12Framebuffer::GetColorTexture() const
@@ -117,13 +137,18 @@ namespace RN
 		return nullptr;
 	}
 
-	ID3D12Resource *D3D12Framebuffer::GetRenderTarget() const
+	ID3D12Resource *D3D12Framebuffer::GetColorBuffer() const
 	{
 		if(_swapChain)
 		{
-			return _renderTargets[_swapChain->GetFrameIndex()];
+			return _swapChainColorBuffers[_swapChain->GetFrameIndex()];
 		}
 
-		return _renderTargets[0];
+		return _swapChainColorBuffers[0];
+	}
+
+	ID3D12Resource* D3D12Framebuffer::GetDepthBuffer() const
+	{
+		return _depthTexture->_resource;
 	}
 }

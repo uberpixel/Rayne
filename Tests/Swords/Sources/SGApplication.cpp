@@ -14,7 +14,7 @@ namespace SG
 	void Application::WillFinishLaunching(RN::Kernel *kernel)
 	{
 		RN::Application::WillFinishLaunching(kernel);
-		RN::Texture::SetDefaultAnisotropy(16);
+		RN::Shader::Sampler::SetDefaultAnisotropy(16);
 	}
 
 	void Application::DidFinishLaunching(RN::Kernel *kernel)

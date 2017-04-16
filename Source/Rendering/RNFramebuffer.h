@@ -47,6 +47,10 @@ namespace RN
 		RNAPI virtual Texture *GetDepthTexture() const = 0;
 		RNAPI virtual Texture *GetStencilTexture() const = 0;
 
+		RNAPI virtual void SetColorTexture(Texture *texture) = 0;
+		RNAPI virtual void SetDepthTexture(Texture *texture) = 0;
+		RNAPI virtual void SetStencilTexture(Texture *texture) = 0;
+
 	protected:
 		RNAPI Framebuffer(const Vector2 &size, const Descriptor &descriptor);
 		RNAPI ~Framebuffer();

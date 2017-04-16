@@ -22,9 +22,9 @@ namespace RN
 	{
 	public:
 		friend class D3D12Renderer;
+		friend class D3D12Framebuffer;
 
 		D3DAPI D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer);
-		//D3DAPI D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer, VkImage image, VkImageView imageView);
 		D3DAPI ~D3D12Texture() override;
 
 		D3DAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
@@ -34,11 +34,6 @@ namespace RN
 
 		D3DAPI void GenerateMipMaps() final;
 		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
-
-		/*VkImage GetImage() const { return _image; }
-		VkImageView GetImageView() const { return _imageView; }
-		VkFormat GetFormat() const { return _format; }
-		VkSampler GetSampler() const { return _sampler; }*/
 
 	private:
 		void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);

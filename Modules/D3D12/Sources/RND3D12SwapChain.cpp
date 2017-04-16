@@ -102,13 +102,13 @@ namespace RN
 	void D3D12SwapChain::Prepare(D3D12CommandList *commandList)
 	{
 		// Indicate that the back buffer will be used as a render target.
-		ID3D12Resource *renderTarget = GetFramebuffer()->GetRenderTarget();
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetColorBuffer();
 		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
 	void D3D12SwapChain::Finalize(D3D12CommandList *commandList)
 	{
-		ID3D12Resource *renderTarget = GetFramebuffer()->GetRenderTarget();
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetColorBuffer();
 		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	}
 

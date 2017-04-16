@@ -684,7 +684,7 @@ namespace RN
 		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
 		renderTargetViewDesc.Format = renderpass.framebuffer->_colorFormat;
 		renderTargetViewDesc.ViewDimension = renderpass.framebuffer->_colorDimension;
-		underlyingDevice->CreateRenderTargetView(renderpass.framebuffer->GetRenderTarget(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		underlyingDevice->CreateRenderTargetView(renderpass.framebuffer->GetColorBuffer(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Create depth stencil view
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
