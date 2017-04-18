@@ -9,6 +9,8 @@
 #include "RNLight.h"
 #include "RNCamera.h"
 #include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNFramebuffer.h"
+#include "RNScene.h"
 
 namespace RN
 {
@@ -214,8 +216,7 @@ namespace RN
 	
 	bool Light::ActivateDirectionalShadows()
 	{
-		return false;
-/*		if(_shadowDepthCameras.GetCount() > 0)
+		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
 		
 		RN_ASSERT(_shadowParameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
@@ -234,14 +235,13 @@ namespace RN
 		textureParameter.depthCompare = true;
 		textureParameter.maxMipMaps = 0;*/
 		
-/*		Texture::Descriptor textureDescriptor;
+		Texture::Descriptor textureDescriptor;
+		textureDescriptor.type = Texture::Descriptor::Type::Type2DArray;
 		textureDescriptor.format = Texture::Format::Depth24I;
 		textureDescriptor.width = _shadowParameter.resolution;
 		textureDescriptor.height = _shadowParameter.resolution;
 		textureDescriptor.depth = _shadowParameter.splits.size();
-		//textureDescriptor.
-		//TODO: Make array texture...
-		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
+//		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
 		
 		Shader *depthShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithNone(), Shader::Default::Depth);
 /*		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
@@ -255,7 +255,7 @@ namespace RN
 			clearDepthSky->GetMaterialAtIndex(0, i)->SetOverride(Material::Override::Shader | Material::Override::Depthtest | Material::Override::DepthtestMode | Material::Override::Depthwrite | Material::Override::PolygonOffset);
 		}*/
 		
-/*		_shadowCameraMatrices.clear();
+		_shadowCameraMatrices.clear();
 		
 		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
@@ -271,21 +271,30 @@ namespace RN
 			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
 			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);*/
 			
-/*			Framebuffer *framebuffer = Renderer::GetActiveRenderer();
-			framebuffer->SetDepthTarget(depthtex, i);
+			Framebuffer::Descriptor framebufferDescriptor;
+			framebufferDescriptor.options = Framebuffer::Options::PrivateStorage;
+			framebufferDescriptor.colorFormat = Texture::Format::Invalid;
+			framebufferDescriptor.depthFormat = Texture::Format::Depth32F;
+			framebufferDescriptor.stencilFormat = Texture::Format::Invalid;
+
+			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution), framebufferDescriptor);
+//			framebuffer->SetDepthTexture(depthtex);
 			framebuffer->Autorelease();
 			
 			//TODO: Make sure these new cameras are updated after the main one, but rendered before...
-			Camera *tempcam = new Camera(framebuffer, Camera::Flags::ClearFramebufferDepth | Camera::Flags::Orthogonal, 1.0f);
+			Camera *tempcam = new Camera();
+			tempcam->SetFramebuffer(framebuffer);
+			tempcam->SetFlags(Camera::Flags::ClearFramebufferDepth | Camera::Flags::Orthogonal);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetLODCamera(_shadowTarget);
 			tempcam->SetClipNear(1.0f);
 			tempcam->Autorelease();
 
+			_shadowTarget->GetScene()->AddNode(tempcam);
 			_shadowDepthCameras.AddObject(tempcam);
 		}
 		
-		return true;*/
+		return true;
 	}
 	
 	bool Light::ActivatePointShadows()

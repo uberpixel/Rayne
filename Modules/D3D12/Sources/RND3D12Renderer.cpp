@@ -640,7 +640,7 @@ namespace RN
 
 	Framebuffer *D3D12Renderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
 	{
-		return nullptr;
+		return new D3D12Framebuffer(size, descriptor, this);
 	}
 
 	Drawable *D3D12Renderer::CreateDrawable()
@@ -659,44 +659,52 @@ namespace RN
 		ID3D12Device *underlyingDevice = GetD3D12Device()->GetDevice();
 		ID3D12GraphicsCommandList *d3dCommandList = commandList->GetCommandList();
 
-		ID3D12DescriptorHeap *rtvHeap;
-		ID3D12DescriptorHeap *dsvHeap;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE *rtvHandlePtr = nullptr;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE *dsvHandlePtr = nullptr;
 
-		//TODO: Create heaps per framebuffer and not per camera
-		//Create new heaps
-		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = 1;
-		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+		if(renderpass.framebuffer->GetColorBuffer())
+		{
+			//TODO: Create heaps per framebuffer and not per camera
+			ID3D12DescriptorHeap *rtvHeap = nullptr;;
+			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+			rtvHeapDesc.NumDescriptors = 1;
+			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+			underlyingDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+			_internals->frameResources.push_back({ rtvHeap, _scheduledFenceValue });
 
-		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-		dsvHeapDesc.NumDescriptors = 1;
-		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap));
+			//Create the render target view
+			D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+			renderTargetViewDesc.Format = renderpass.framebuffer->_colorFormat;
+			renderTargetViewDesc.ViewDimension = renderpass.framebuffer->_colorDimension;
+			underlyingDevice->CreateRenderTargetView(renderpass.framebuffer->GetColorBuffer(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
-		_internals->frameResources.push_back({ rtvHeap, _scheduledFenceValue });
-		_internals->frameResources.push_back({ dsvHeap, _scheduledFenceValue });
+			rtvHandlePtr = new CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		}
+		
+		if(renderpass.framebuffer->GetDepthBuffer())
+		{
+			//TODO: Create heaps per framebuffer and not per camera
+			ID3D12DescriptorHeap *dsvHeap = nullptr;;
+			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+			dsvHeapDesc.NumDescriptors = 1;
+			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+			underlyingDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap));
+			_internals->frameResources.push_back({ dsvHeap, _scheduledFenceValue });
 
-		//TODO: Don't hardcode these descriptors!
-		//Create the render target view
-		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
-		renderTargetViewDesc.Format = renderpass.framebuffer->_colorFormat;
-		renderTargetViewDesc.ViewDimension = renderpass.framebuffer->_colorDimension;
-		underlyingDevice->CreateRenderTargetView(renderpass.framebuffer->GetColorBuffer(), &renderTargetViewDesc, rtvHeap->GetCPUDescriptorHandleForHeapStart());
+			// Create depth stencil view
+			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+			depthStencilViewDesc.Format = renderpass.framebuffer->_depthFormat;
+			depthStencilViewDesc.ViewDimension = renderpass.framebuffer->_depthDimension;
+			depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+			underlyingDevice->CreateDepthStencilView(renderpass.framebuffer->GetDepthBuffer(), &depthStencilViewDesc, dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
-		// Create depth stencil view
-		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-		depthStencilViewDesc.Format = renderpass.framebuffer->_depthFormat;
-		depthStencilViewDesc.ViewDimension = renderpass.framebuffer->_depthDimension;
-		depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-		underlyingDevice->CreateDepthStencilView(renderpass.framebuffer->GetDepthBuffer(), &depthStencilViewDesc, dsvHeap->GetCPUDescriptorHandleForHeapStart());
+			dsvHandlePtr = new CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap->GetCPUDescriptorHandleForHeapStart());
+		}
 
 		//Set the rendertargets
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
-		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(dsvHeap->GetCPUDescriptorHandleForHeapStart());
-		d3dCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+		d3dCommandList->OMSetRenderTargets(rtvHandlePtr?1:0, rtvHandlePtr, false, dsvHandlePtr);
 
 		//Setup viewport and scissor rect
 		Rect cameraRect = renderpass.camera->GetFrame();
@@ -728,16 +736,21 @@ namespace RN
 
 		// Cameras always clear the whole framebuffer to be more consistent with the metal renderer
 		D3D12_RECT clearRect{ 0, 0, renderpass.framebuffer->GetSize().x, renderpass.framebuffer->GetSize().y };
-		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferColor)
+		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferColor && rtvHandlePtr)
 		{
 			const Color &clearColor = renderpass.camera->GetClearColor();
-			d3dCommandList->ClearRenderTargetView(rtvHandle, &clearColor.r, 1, &clearRect);
+			d3dCommandList->ClearRenderTargetView(*rtvHandlePtr, &clearColor.r, 1, &clearRect);
 		}
 		
-		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferDepth)
+		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferDepth && dsvHandlePtr)
 		{
-			d3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &clearRect);
+			d3dCommandList->ClearDepthStencilView(*dsvHandlePtr, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &clearRect);
 		}
+
+		if (rtvHandlePtr)
+			delete rtvHandlePtr;
+		if (dsvHandlePtr)
+			delete dsvHandlePtr;
 	}
 
 	void D3D12Renderer::CreateDescriptorHeap()

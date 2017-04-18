@@ -72,18 +72,26 @@ namespace RN
 	const D3D12RootSignature *D3D12StateCoordinator::GetRootSignature(Material *material)
 	{
 		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(material->GetVertexShader());
-		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
 		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
-		const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
-		uint16 textureCount = fmax(vertexSignature->GetTextureCount(), fragmentSignature->GetTextureCount());
+		uint16 textureCount = vertexSignature->GetTextureCount();
 		const Array *vertexSamplers = vertexSignature->GetSamplers();
-		const Array *fragmentSamplers = fragmentSignature->GetSamplers();
 		Array *samplerArray = new Array(vertexSamplers);
-		samplerArray->AddObjectsFromArray(fragmentSamplers);
 		samplerArray->Autorelease();
 
 		//TODO: Support multiple constant buffers per function signature
-		uint16 constantBufferCount = ((vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0) + ((fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0);
+		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+
+		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
+		if(fragmentShader)
+		{
+			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
+			textureCount = fmax(textureCount, fragmentSignature->GetTextureCount());
+			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
+			samplerArray->AddObjectsFromArray(fragmentSamplers);
+
+			//TODO: Support multiple constant buffers per function signature
+			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+		}
 
 		for(D3D12RootSignature *signature : _rootSignatures)
 		{
@@ -249,7 +257,8 @@ namespace RN
 		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
 
 		void *vertexFunction = vertexShader->_shader;
-		void *fragmentFunction = fragmentShader->_shader;
+
+		void *fragmentFunction = fragmentShader? fragmentShader->_shader:nullptr;
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
 		{
@@ -293,19 +302,26 @@ namespace RN
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs = CreateVertexElementDescriptorsFromMesh(mesh);
 		psoDesc.InputLayout = { inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()) };
 		psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
-		psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
+		if(fragmentShader)
+			psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.DepthStencilState.DepthEnable = TRUE;
-		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-		psoDesc.DepthStencilState.StencilEnable = FALSE;
-		psoDesc.DSVFormat = depthStencilFormat;
+		if(framebuffer->GetDepthTexture())
+		{
+			psoDesc.DepthStencilState.DepthEnable = TRUE;
+			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+			psoDesc.DepthStencilState.StencilEnable = FALSE;
+			psoDesc.DSVFormat = depthStencilFormat;
+		}
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		psoDesc.NumRenderTargets = 1;
-		psoDesc.RTVFormats[0] = pixelFormat;
+		if(framebuffer->GetColorBuffer())
+		{
+			psoDesc.NumRenderTargets = 1;
+			psoDesc.RTVFormats[0] = pixelFormat;
+		}
 		psoDesc.SampleDesc.Count = 1;
 
 		D3D12PipelineState *state = new D3D12PipelineState();

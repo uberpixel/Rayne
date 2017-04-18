@@ -91,6 +91,55 @@ namespace RN
 		}
 	}
 
+	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer) :
+		Framebuffer(size, descriptor),
+		_renderer(renderer),
+		_swapChain(nullptr),
+		_swapChainColorBuffers(nullptr),
+		_colorTexture(nullptr),
+		_depthTexture(nullptr),
+		_stencilTexture(nullptr),
+		_colorDimension(D3D12_RTV_DIMENSION_TEXTURE2D),
+		_depthDimension(D3D12_DSV_DIMENSION_TEXTURE2D)
+	{
+		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
+		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
+
+		if (descriptor.colorFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor colorDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.colorFormat, size.x, size.y, false);
+			colorDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
+			Texture *colorTexture = Texture::WithDescriptor(colorDescriptor);
+			SetColorTexture(colorTexture);
+		}
+
+		if (descriptor.depthFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.depthFormat, size.x, size.y, false);
+			depthDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
+			Texture *depthTexture = Texture::WithDescriptor(depthDescriptor);
+			SetDepthTexture(depthTexture);
+		}
+	}
+
+	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer, Texture *colorTexture, Texture *depthTexture) :
+		Framebuffer(size, descriptor),
+		_renderer(renderer),
+		_swapChain(nullptr),
+		_swapChainColorBuffers(nullptr),
+		_colorTexture(nullptr),
+		_depthTexture(nullptr),
+		_stencilTexture(nullptr),
+		_colorDimension(D3D12_RTV_DIMENSION_TEXTURE2D),
+		_depthDimension(D3D12_DSV_DIMENSION_TEXTURE2D)
+	{
+		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
+		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
+
+		SetColorTexture(colorTexture);
+		SetDepthTexture(depthTexture);
+	}
+
 	D3D12Framebuffer::~D3D12Framebuffer()
 	{
 		//TODO: Maybe release swap chain resources!?
@@ -106,35 +155,41 @@ namespace RN
 	void D3D12Framebuffer::SetColorTexture(Texture *texture)
 	{
 		//TODO: Handle multiple textures
-		RN_ASSERT(_swapChain, "The color texture of a swap chain framebuffer can not be changed!");
+		RN_ASSERT(!_swapChain, "The color texture of a swap chain framebuffer can not be changed!");
 		SafeRelease(_colorTexture);
-		_colorTexture = texture->Downcast<D3D12Texture>()->Retain();
+
+		if(texture)
+			_colorTexture = texture->Downcast<D3D12Texture>()->Retain();
 	}
 
 	void D3D12Framebuffer::SetDepthTexture(Texture *texture)
 	{
 		SafeRelease(_depthTexture);
-		_depthTexture = texture->Downcast<D3D12Texture>()->Retain();
+
+		if (texture)
+			_depthTexture = texture->Downcast<D3D12Texture>()->Retain();
 	}
 
 	void D3D12Framebuffer::SetStencilTexture(Texture *texture)
 	{
 		//TODO: Handle shared depth/stencil textures
 		SafeRelease(_stencilTexture);
-		_stencilTexture = texture->Downcast<D3D12Texture>()->Retain();
+
+		if (texture)
+			_stencilTexture = texture->Downcast<D3D12Texture>()->Retain();
 	}
 
 	Texture *D3D12Framebuffer::GetColorTexture() const
 	{
-		return nullptr;
+		return _colorTexture;
 	}
 	Texture *D3D12Framebuffer::GetDepthTexture() const
 	{
-		return nullptr;
+		return _depthTexture;
 	}
 	Texture *D3D12Framebuffer::GetStencilTexture() const
 	{
-		return nullptr;
+		return _stencilTexture;
 	}
 
 	ID3D12Resource *D3D12Framebuffer::GetColorBuffer() const
@@ -144,11 +199,17 @@ namespace RN
 			return _swapChainColorBuffers[_swapChain->GetFrameIndex()];
 		}
 
-		return _swapChainColorBuffers[0];
+		if(!_colorTexture)
+			return nullptr;
+
+		return _colorTexture->_resource;
 	}
 
 	ID3D12Resource* D3D12Framebuffer::GetDepthBuffer() const
 	{
+		if(!_depthTexture)
+			return nullptr;
+
 		return _depthTexture->_resource;
 	}
 }

@@ -22,6 +22,9 @@ namespace RN
 		friend class D3D12StateCoordinator;
 
 		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer);
+		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer);
+		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer, Texture *colorTexture, Texture *depthTexture);
+
 		D3DAPI ~D3D12Framebuffer();
 
 		D3DAPI void SetColorTexture(Texture *texture) final;

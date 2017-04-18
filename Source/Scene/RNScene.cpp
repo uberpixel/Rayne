@@ -250,8 +250,6 @@ namespace RN
 
 			camera->_scene = this;
 			camera->Retain();
-
-			return;
 		}
 
 		//TODO: Handle lights to be rendered before other things differently...
@@ -259,7 +257,6 @@ namespace RN
 		{
 			Light *light = static_cast<Light *>(node);
 			_lights->AddObject(light);
-			return;
 		}
 
 		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
