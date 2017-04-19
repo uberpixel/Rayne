@@ -279,13 +279,18 @@ namespace RN
 
 	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material)
 	{
-		DXGI_FORMAT pixelFormat = framebuffer->_colorFormat;
-		DXGI_FORMAT depthStencilFormat = framebuffer->_depthFormat;
+		std::vector<DXGI_FORMAT> pixelFormats;
+		pixelFormats.reserve(framebuffer->_colorTargets.size());
+		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
+		{
+			pixelFormats.push_back(targetView->d3dTargetViewDesc.Format);
+		}
+		DXGI_FORMAT depthStencilFormat = (framebuffer->_depthStencilTarget)? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 
-		//TODO: Fix this shit
+		//TODO: Make sure all possible cases are covered...
 		for(const D3D12PipelineState *state : collection->states)
 		{
-			if(state->pixelFormat == pixelFormat && state->depthStencilFormat == depthStencilFormat)
+			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat)
 				return state;
 		}
 
@@ -307,7 +312,7 @@ namespace RN
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		if(framebuffer->GetDepthTexture())
+		if(framebuffer->_depthStencilTarget)
 		{
 			psoDesc.DepthStencilState.DepthEnable = TRUE;
 			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -317,15 +322,18 @@ namespace RN
 		}
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		if(framebuffer->GetColorBuffer())
+		psoDesc.NumRenderTargets = framebuffer->_colorTargets.size();
+		int counter = 0;
+		for(DXGI_FORMAT format : pixelFormats)
 		{
-			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = pixelFormat;
+			psoDesc.RTVFormats[counter++] = format;
+			if(counter >= 8)
+				break;
 		}
 		psoDesc.SampleDesc.Count = 1;
 
 		D3D12PipelineState *state = new D3D12PipelineState();
-		state->pixelFormat = pixelFormat;
+		state->pixelFormats = pixelFormats;
 		state->depthStencilFormat = depthStencilFormat;
 		state->rootSignature = rootSignature;
 		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));

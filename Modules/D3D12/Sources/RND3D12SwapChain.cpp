@@ -62,11 +62,7 @@ namespace RN
 		_swapChain = static_cast<IDXGISwapChain3 *>(swapChain);
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
-		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
-		_framebuffer = new D3D12Framebuffer(size, descriptor, this, _renderer);
+		_framebuffer = new D3D12Framebuffer(size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 	}
 
 	Vector2 D3D12SwapChain::GetSize() const
@@ -102,13 +98,13 @@ namespace RN
 	void D3D12SwapChain::Prepare(D3D12CommandList *commandList)
 	{
 		// Indicate that the back buffer will be used as a render target.
-		ID3D12Resource *renderTarget = GetFramebuffer()->GetColorBuffer();
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
 		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
 	void D3D12SwapChain::Finalize(D3D12CommandList *commandList)
 	{
-		ID3D12Resource *renderTarget = GetFramebuffer()->GetColorBuffer();
+		ID3D12Resource *renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
 		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	}
 

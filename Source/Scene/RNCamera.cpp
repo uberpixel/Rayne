@@ -17,12 +17,14 @@ namespace RN
 
 	static Framebuffer *CreateFramebuffer(const Vector2 &size)
 	{
-		Framebuffer::Descriptor descriptor;
+/*		Framebuffer::Descriptor descriptor;
 		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
+		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;*/
+
+		//TODO: Initialize with color texture!?
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->CreateFramebuffer(size, descriptor);
+		return renderer->CreateFramebuffer(size);
 	}
 
 	Camera::Camera() :

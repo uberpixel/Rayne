@@ -231,17 +231,22 @@ namespace RN
 		_shadowTarget = _shadowParameter.shadowTarget->Retain();
 		
 		Shader::Sampler *textureParameter = new Shader::Sampler(Shader::Sampler::WrapMode::Clamp, Shader::Sampler::Filter::Linear, 1.0f);
-/*		textureParameter.format = Texture::Format::Depth24I;
-		textureParameter.depthCompare = true;
+/*		textureParameter.depthCompare = true;
 		textureParameter.maxMipMaps = 0;*/
 		
 		Texture::Descriptor textureDescriptor;
-		textureDescriptor.type = Texture::Descriptor::Type::Type2DArray;
-		textureDescriptor.format = Texture::Format::Depth24I;
+		textureDescriptor.type = Texture::Type::Type2DArray;
+		textureDescriptor.format = Texture::Format::Depth32F;
+		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		textureDescriptor.width = _shadowParameter.resolution;
 		textureDescriptor.height = _shadowParameter.resolution;
 		textureDescriptor.depth = _shadowParameter.splits.size();
-//		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
+		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
+		Framebuffer::TargetView depthTargetView;
+		depthTargetView.texture = depthtex;
+		depthTargetView.mipmap = 0;
+		depthTargetView.slice = 0;
+		depthTargetView.length = 1;
 		
 		Shader *depthShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithNone(), Shader::Default::Depth);
 /*		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
@@ -270,15 +275,10 @@ namespace RN
 			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
 			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
 			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);*/
-			
-			Framebuffer::Descriptor framebufferDescriptor;
-			framebufferDescriptor.options = Framebuffer::Options::PrivateStorage;
-			framebufferDescriptor.colorFormat = Texture::Format::Invalid;
-			framebufferDescriptor.depthFormat = Texture::Format::Depth32F;
-			framebufferDescriptor.stencilFormat = Texture::Format::Invalid;
 
-			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution), framebufferDescriptor);
-//			framebuffer->SetDepthTexture(depthtex);
+			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
+			depthTargetView.slice = i;
+			framebuffer->SetDepthStencilTarget(depthTargetView);
 			framebuffer->Autorelease();
 			
 			//TODO: Make sure these new cameras are updated after the main one, but rendered before...

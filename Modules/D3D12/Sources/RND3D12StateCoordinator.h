@@ -61,7 +61,7 @@ namespace RN
 	{
 		~D3D12PipelineState();
 
-		size_t pixelFormat;
+		std::vector<DXGI_FORMAT> pixelFormats;
 		size_t depthStencilFormat;
 		ID3D12PipelineState *state;
 

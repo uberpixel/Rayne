@@ -63,11 +63,7 @@ namespace RN
 		ovr_GetTextureSwapChainLength(_session, _textureSwapChain, &textureCount);
 		_bufferCount = textureCount;
 
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
-		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
-		_framebuffer = new D3D12Framebuffer(_size, descriptor, this, _renderer);
+		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 
 		// Initialize VR structures, filling out description.
 		_eyeRenderDesc[0] = ovr_GetRenderDesc(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0]);

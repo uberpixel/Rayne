@@ -107,7 +107,7 @@ namespace RN
 
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 
-		RNAPI virtual Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) = 0;
+		RNAPI virtual Framebuffer *CreateFramebuffer(const Vector2 &size) = 0;
 
 		RNAPI virtual Drawable *CreateDrawable() = 0;
 		RNAPI virtual void DeleteDrawable(Drawable *drawable) = 0;

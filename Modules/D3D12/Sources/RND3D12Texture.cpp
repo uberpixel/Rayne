@@ -16,19 +16,19 @@ namespace RN
 	RNDefineMeta(D3D12Texture, Texture)
 
 	//TODO: Place these into a utility header or something
-	static D3D12_RESOURCE_DIMENSION D3D12ImageTypeFromTextureType(Texture::Descriptor::Type type)
+	static D3D12_RESOURCE_DIMENSION D3D12ImageTypeFromTextureType(Texture::Type type)
 	{
 		switch(type)
 		{
-		case Texture::Descriptor::Type::Type1D:
-		case Texture::Descriptor::Type::Type1DArray:
+		case Texture::Type::Type1D:
+		case Texture::Type::Type1DArray:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 
-		case Texture::Descriptor::Type::Type2D:
-		case Texture::Descriptor::Type::Type2DArray:
+		case Texture::Type::Type2D:
+		case Texture::Type::Type2DArray:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-		case Texture::Descriptor::Type::Type3D:
+		case Texture::Type::Type3D:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 
 		default:
@@ -85,7 +85,7 @@ namespace RN
 
 	static D3D12_RESOURCE_FLAGS D3D12TextureFlagsFromTextureDescriptor(const Texture::Descriptor &descriptor)
 	{
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
 		{
 			switch(descriptor.format)
 			{
@@ -122,7 +122,7 @@ namespace RN
 
 	static D3D12_RESOURCE_STATES D3D12TextureStateFromTextureDescriptor(const Texture::Descriptor &descriptor)
 	{
-		if (descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		if (descriptor.usageHint & Texture::UsageHint::RenderTarget)
 		{
 			switch (descriptor.format)
 			{
@@ -385,7 +385,7 @@ namespace RN
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		imageDesc.Flags = D3D12TextureFlagsFromTextureDescriptor(descriptor);
 
-		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
 			//TODO: Maybe don't hardcode!?
 			D3D12_CLEAR_VALUE clearValue = {};
@@ -401,8 +401,8 @@ namespace RN
 		else
 		{
 			// create the final texture buffer
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_resource));
 			_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, nullptr, IID_PPV_ARGS(&_resource));
 		}
 	}
 

@@ -21,39 +21,49 @@ namespace RN
 		friend class D3D12Renderer;
 		friend class D3D12StateCoordinator;
 
-		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12SwapChain *swapChain, D3D12Renderer *renderer);
-		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer);
-		D3DAPI D3D12Framebuffer(const Vector2 &size, const Descriptor &descriptor, D3D12Renderer *renderer, Texture *colorTexture, Texture *depthTexture);
+		struct D3D12ColorTargetView
+		{
+			TargetView targetView;
+			D3D12_RENDER_TARGET_VIEW_DESC d3dTargetViewDesc;
+		};
+
+		struct D3D12DepthStencilTargetView
+		{
+			TargetView targetView;
+			D3D12_DEPTH_STENCIL_VIEW_DESC d3dTargetViewDesc;
+		};
+
+		D3DAPI D3D12Framebuffer(const Vector2 &size, D3D12SwapChain *swapChain, D3D12Renderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		D3DAPI D3D12Framebuffer(const Vector2 &size, D3D12Renderer *renderer);
 
 		D3DAPI ~D3D12Framebuffer();
 
-		D3DAPI void SetColorTexture(Texture *texture) final;
-		D3DAPI void SetDepthTexture(Texture *texture) final;
-		D3DAPI void SetStencilTexture(Texture *texture) final;
+		D3DAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
+		D3DAPI void SetDepthStencilTarget(const TargetView &target) final;
 
-		D3DAPI Texture *GetColorTexture() const final;
-		D3DAPI Texture *GetDepthTexture() const final;
-		D3DAPI Texture *GetStencilTexture() const final;
+		D3DAPI Texture *GetColorTexture(uint32 index = 0) const final;
+		D3DAPI Texture *GetDepthStencilTexture() const final;
 
-		ID3D12Resource *GetColorBuffer() const;
-		ID3D12Resource *GetDepthBuffer() const;
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
+		D3DAPI ID3D12Resource *GetSwapChainColorBuffer() const;
 
 	private:
+		void PrepareAsRendertargetForFrame(uint32 frame);
+		void SetAsRendertarget(D3D12CommandList *commandList) const;
+		void ClearColorTargets(D3D12CommandList *commandList, const Color &color);
+		void ClearDepthStencilTarget(D3D12CommandList *commandList, float depth, uint8 stencil);
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE *_rtvHandle;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE *_dsvHandle;
+
 		D3D12Renderer *_renderer;
+		uint32 _frameLastUsed;
 
 		ID3D12Resource **_swapChainColorBuffers;
 		WeakRef<D3D12SwapChain> _swapChain;
 
-		D3D12Texture *_colorTexture;
-		D3D12Texture *_depthTexture;
-		D3D12Texture *_stencilTexture;
-
-		DXGI_FORMAT _colorFormat;
-		DXGI_FORMAT _depthFormat;
-
-		D3D12_RTV_DIMENSION _colorDimension;
-		D3D12_DSV_DIMENSION _depthDimension;
+		std::vector<D3D12ColorTargetView *> _colorTargets;
+		D3D12DepthStencilTargetView *_depthStencilTarget;
 
 		RNDeclareMetaAPI(D3D12Framebuffer, D3DAPI)
 	};

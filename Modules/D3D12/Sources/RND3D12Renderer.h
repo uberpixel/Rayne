@@ -59,7 +59,7 @@ namespace RN
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		D3DAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		D3DAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		D3DAPI Drawable *CreateDrawable() final;
 		D3DAPI void DeleteDrawable(Drawable *drawable) final;
@@ -69,6 +69,8 @@ namespace RN
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
 		D3D12CommandList *GetCommandList();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
+
+		void AddFrameResouce(IUnknown *resource, uint32 frame);
 
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }

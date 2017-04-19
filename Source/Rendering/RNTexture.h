@@ -50,24 +50,24 @@ namespace RN
 			Invalid
 		};
 
+		enum class Type
+		{
+			Type1D,
+			Type1DArray,
+			Type2D,
+			Type2DArray,
+			TypeCube,
+			TypeCubeArray,
+			Type3D
+		};
+
+		RN_OPTIONS(UsageHint, uint32,
+			ShaderRead = (1 << 0),
+			ShaderWrite = (1 << 1),
+			RenderTarget = (1 << 2));
+
 		struct Descriptor
 		{
-			enum class Type
-			{
-				Type1D,
-				Type1DArray,
-				Type2D,
-				Type2DArray,
-				TypeCube,
-				TypeCubeArray,
-				Type3D
-			};
-
-			RN_OPTIONS(UsageHint, uint32,
-					   ShaderRead = (1 << 0),
-					   ShaderWrite = (1 << 1),
-					   RenderTarget = (1 << 2));
-
 			Descriptor() :
 				type(Type::Type2D),
 				accessOptions(GPUResource::AccessOptions::ReadWrite),
