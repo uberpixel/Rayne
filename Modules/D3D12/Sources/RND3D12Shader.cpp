@@ -107,7 +107,7 @@ namespace RN
 				if(name->IsEqual(RNCSTR("directionalShadowSampler")))
 				{
 					//TODO: Store the register, so it doesn't have to be declared last in the shader
-					Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Nearest, Sampler::ComparisonFunction::Less);
+					Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
 					specificReflectionSamplers->AddObject(sampler->Autorelease());
 				}
 				else

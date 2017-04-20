@@ -77,6 +77,7 @@ namespace RN
 				DirectionalLightsCount,
 				DirectionalShadowMatrices,
 				DirectionalShadowMatricesCount,
+				DirectionalShadowInfo,
 				PointLights,
 				SpotLights
 			};

@@ -209,6 +209,11 @@ namespace RN
 			_identifier = DirectionalShadowMatricesCount;
 			_type = PrimitiveType::Uint32;
 		}
+		else if (name->IsEqual(RNCSTR("shadows_directional_info")) || name->IsEqual(RNCSTR("directionalShadowInfo")))
+		{
+			_identifier = DirectionalShadowInfo;
+			_type = PrimitiveType::Vector2;
+		}
 	}
 
 	Shader::UniformDescriptor::~UniformDescriptor()

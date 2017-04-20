@@ -67,6 +67,7 @@ namespace RN
 
 		std::vector<Matrix> directionalShadowMatrices;
 		D3D12Texture *directionalShadowDepthTexture;
+		Vector2 directionalShadowInfo;
 	};
 
 	struct D3D12FrameResource

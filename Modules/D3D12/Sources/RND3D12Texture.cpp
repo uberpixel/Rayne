@@ -257,7 +257,8 @@ namespace RN
 			clearValue.DepthStencil.Stencil = 0;*/
 
 			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
-			imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
+			if(descriptor.format >= Texture::Format::Depth24I)
+				imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
 
 			// create the final texture buffer
 			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, /*&clearValue*/nullptr, IID_PPV_ARGS(&_resource));

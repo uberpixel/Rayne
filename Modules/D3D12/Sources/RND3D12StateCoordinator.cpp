@@ -344,7 +344,7 @@ namespace RN
 
 		const D3D12RootSignature *rootSignature = GetRootSignature(material);
 
-		//TODO: Make sure all possible cases are covered... Depth bias for example...
+		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
 		for(const D3D12PipelineState *state : collection->states)
 		{
 			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
@@ -365,12 +365,26 @@ namespace RN
 		if(fragmentShader)
 			psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+
 		if(material->GetUsePolygonOffset())
 		{
 			psoDesc.RasterizerState.DepthBias = material->GetPolygonOffsetUnits();
 			psoDesc.RasterizerState.SlopeScaledDepthBias = material->GetPolygonOffsetFactor();
 		}
-		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+
+		switch(material->GetCullMode())
+		{
+		case CullMode::BackFace:
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+			break;
+		case CullMode::FrontFace:
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+			break;
+		case CullMode::None:
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+			break;
+		}
+		
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		if(framebuffer->_depthStencilTarget)
 		{

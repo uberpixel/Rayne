@@ -231,7 +231,10 @@ namespace RN
 		depthTargetView.slice = 0;
 		depthTargetView.length = 1;
 		
-		Shader *depthShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithNone(), Shader::Default::Depth);
+		Shader::Options *shaderOptions = Shader::Options::WithNone();
+		shaderOptions->EnableDiscard();
+		Shader *depthVertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::Default::Depth);
+		Shader *depthFragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::Default::Depth);
 /*		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
 		Model *clearDepthSky = RN::Model::WithSkyCube(clearDepthShader);
 		for(int i = 0; i < clearDepthSky->GetMeshCount(0); i++)
@@ -250,8 +253,10 @@ namespace RN
 			_shadowCameraMatrices.push_back(Matrix());
 			
 			MaterialDescriptor materialDescriptor;
-			materialDescriptor.vertexShader = depthShader;
+			materialDescriptor.vertexShader = depthVertexShader;
+			materialDescriptor.fragmentShader = depthFragmentShader;
 			Material *depthMaterial = Material::WithDescriptor(materialDescriptor);
+			depthMaterial->SetCullMode(CullMode::None);	//TODO: Should be overriden from original material
 			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
 			//depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);	//TODO: Override stuff
 

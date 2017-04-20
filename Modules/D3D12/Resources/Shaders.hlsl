@@ -49,6 +49,7 @@ cbuffer fragmentUniforms : register(b1)
 #endif
 
 	uint directionalShadowMatricesCount;
+	float2 directionalShadowInfo;
 	matrix directionalShadowMatrices[4];
 
 	uint directionalLightsCount;
@@ -89,6 +90,49 @@ struct FragmentVertex
 #endif
 };
 
+float getShadowPCF(float4 projected, float2 offset)
+{
+	return directionalShadowTexture.SampleCmpLevelZero(directionalShadowSampler, float3(projected.xy + offset * directionalShadowInfo, projected.z), projected.w);
+}
+
+//basic 2x2 blur, with hardware bilinear filtering if enabled
+float getShadowPCF2x2(float4 projected)
+{
+	float shadow = getShadowPCF(projected, float2(0.0, 0.0));
+	shadow += getShadowPCF(projected, float2(1.0, 0.0));
+	shadow += getShadowPCF(projected, float2(0.0, 1.0));
+	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	shadow *= 0.25f;
+	return shadow;
+}
+
+//basic 4x4 blur, with hardware bilinear filtering if enabled
+float getShadowPCF4x4(float4 projected)
+{
+	float shadow = getShadowPCF(projected, float2(-2.0, -2.0));
+	shadow += getShadowPCF(projected, float2(-1.0, -2.0));
+	shadow += getShadowPCF(projected, float2(0.0, -2.0));
+	shadow += getShadowPCF(projected, float2(1.0, -2.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, -1.0));
+	shadow += getShadowPCF(projected, float2(-1.0, -1.0));
+	shadow += getShadowPCF(projected, float2(0.0, -1.0));
+	shadow += getShadowPCF(projected, float2(1.0, -1.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 0.0));
+	shadow += getShadowPCF(projected, float2(-1.0, 0.0));
+	shadow += getShadowPCF(projected, float2(0.0, 0.0));
+	shadow += getShadowPCF(projected, float2(1.0, 0.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 1.0));
+	shadow += getShadowPCF(projected, float2(-1.0, 1.0));
+	shadow += getShadowPCF(projected, float2(0.0, 1.0));
+	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	
+	shadow *= 0.0625;
+	return shadow;
+}
+
 float getDirectionalShadowFactor(int light, float3 position)
 {
 	if(light != 0 || directionalShadowMatricesCount == 0)
@@ -96,24 +140,23 @@ float getDirectionalShadowFactor(int light, float3 position)
 
 	float4 projectedPosition[4];
 	uint mapToUse = -1;
-	for(int i = 0; i < directionalShadowMatricesCount; i++)
+	for(uint i = 0; i < directionalShadowMatricesCount; i++)
 	{
 		projectedPosition[i] = mul(directionalShadowMatrices[i], float4(position, 1.0));
 		projectedPosition[i].xyz /= projectedPosition[i].w;
 
-		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0f && abs(projectedPosition[i].y) < 1.0f)
+		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0f && abs(projectedPosition[i].y) < 1.0f && abs(projectedPosition[i].z) < 1.0f)
 		{
 			mapToUse = i;
 		}
 	}
 	
 	projectedPosition[mapToUse].y *= -1.0f;
-	projectedPosition[mapToUse].xyz *= 0.5f;
-	projectedPosition[mapToUse].xyz += 0.5f;
-	projectedPosition[mapToUse].w = projectedPosition[mapToUse].z;
-	projectedPosition[mapToUse].z = mapToUse;
+	projectedPosition[mapToUse].xy *= 0.5f;
+	projectedPosition[mapToUse].xy += 0.5f;
+	projectedPosition[mapToUse].w = mapToUse;
 
-	return directionalShadowTexture.SampleCmp(directionalShadowSampler, projectedPosition[mapToUse].xyz, projectedPosition[mapToUse].w+0.001f);
+	return getShadowPCF4x4(projectedPosition[mapToUse].xywz);
 }
 
 float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDirectional directionalLights[5])

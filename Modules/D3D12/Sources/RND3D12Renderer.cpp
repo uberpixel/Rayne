@@ -985,6 +985,12 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowInfo:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowInfo.x, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
 					//TODO: Implement custom shader variables!
@@ -1015,6 +1021,7 @@ namespace RN
 			{
 				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<D3D12Texture>();
 				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
+				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
 			}
 		}
 	}
