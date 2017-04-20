@@ -57,6 +57,10 @@ namespace RN
 		DepthMode depthMode;
 		bool depthWriteEnabled;
 
+		bool usePolygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
+
 		Color ambientColor;
 		Color diffuseColor;
 		Color specularColor;
@@ -94,6 +98,8 @@ namespace RN
 		RNAPI void SetFragmentBuffers(const Array *buffers);
 		RNAPI void SetVertexBuffers(const Array *buffers);
 
+		RNAPI void SetPolygonOffset(bool enable, float factor = 1.1f, float units = 0.1f);
+
 		RNAPI MaterialDescriptor GetDescriptor() const;
 
 		Shader *GetFragmentShader() const { return _fragmentShader; }
@@ -115,6 +121,10 @@ namespace RN
 		const Array *GetFragmentBuffers() const { return _fragmentBuffers; }
 		const Array *GetVertexBuffers() const { return _vertexBuffers; }
 
+		float GetUsePolygonOffset() const { return _usePolygonOffset; }
+		float GetPolygonOffsetFactor() const { return _polygonOffsetFactor; }
+		float GetPolygonOffsetUnits() const { return _polygonOffsetUnits; }
+
 	private:
 		Shader *_fragmentShader;
 		Shader *_vertexShader;
@@ -130,6 +140,10 @@ namespace RN
 		Color _diffuseColor;
 		Color _specularColor;
 		Color _emissiveColor;
+
+		bool _usePolygonOffset;
+		float _polygonOffsetFactor;
+		float _polygonOffsetUnits;
 
 		float _discardThreshold;
 		float _textureTileFactor;

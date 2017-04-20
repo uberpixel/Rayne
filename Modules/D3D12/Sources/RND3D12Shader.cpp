@@ -75,10 +75,13 @@ namespace RN
 
 		uint8 textureCount = 0;
 		Array *reflectionSamplers = new Array();
+		Array *specificReflectionSamplers = new Array();
 		Array *uniformDescriptors = new Array();
 
 		D3D12_SHADER_DESC shaderDescription;
 		pReflector->GetDesc(&shaderDescription);
+
+		_wantsDirectionalShadowTexture = false;
 
 		for (UINT i = 0; i < shaderDescription.BoundResources; i++)
 		{
@@ -87,12 +90,31 @@ namespace RN
 
 			if(resourceBindingDescription.Type == D3D_SIT_TEXTURE)
 			{
+				//TODO: Move this into the shader base class
+				String *name = RNSTR(resourceBindingDescription.Name);
+				if(name->IsEqual(RNCSTR("directionalShadowTexture")))
+				{
+					//TODO: Store the register, so it doesn't have to be declared last in the shader
+					_wantsDirectionalShadowTexture = true;
+				}
+
 				textureCount += 1;
 			}
 			else if(resourceBindingDescription.Type == D3D_SIT_SAMPLER)
 			{
-				Sampler *sampler = new Sampler();
-				reflectionSamplers->AddObject(sampler->Autorelease());
+				//TODO: Move this into the shader base class
+				String *name = RNSTR(resourceBindingDescription.Name);
+				if(name->IsEqual(RNCSTR("directionalShadowSampler")))
+				{
+					//TODO: Store the register, so it doesn't have to be declared last in the shader
+					Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Nearest, Sampler::ComparisonFunction::Less);
+					specificReflectionSamplers->AddObject(sampler->Autorelease());
+				}
+				else
+				{
+					Sampler *sampler = new Sampler();
+					reflectionSamplers->AddObject(sampler->Autorelease());
+				}
 			}
 		}
 
@@ -131,6 +153,8 @@ namespace RN
 			reflectionSamplers->RemoveAllObjects();
 			reflectionSamplers->AddObjectsFromArray(samplers);
 		}
+
+		reflectionSamplers->AddObjectsFromArray(specificReflectionSamplers);
 
 		Signature *signature = new Signature(uniformDescriptors->Autorelease(), reflectionSamplers->Autorelease(), textureCount);
 		Shader::SetSignature(signature->Autorelease());

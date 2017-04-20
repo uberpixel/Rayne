@@ -54,6 +54,8 @@ namespace RN
 		Array *samplers;
 		uint8 constantBufferCount;
 
+		bool wantsDirectionalShadowTexture; //TODO: Solve better...
+
 		ID3D12RootSignature *signature;
 	};
 

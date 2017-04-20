@@ -75,6 +75,8 @@ namespace RN
 				CameraPosition,
 				DirectionalLights,
 				DirectionalLightsCount,
+				DirectionalShadowMatrices,
+				DirectionalShadowMatricesCount,
 				PointLights,
 				SpotLights
 			};
@@ -116,12 +118,24 @@ namespace RN
 				Anisotropic
 			};
 
-			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, uint8 anisotropy = GetDefaultAnisotropy());
+			enum class ComparisonFunction
+			{
+				Never,
+				Less,
+				LessEqual,
+				Equal,
+				NotEqual,
+				GreaterEqual,
+				Greater,
+				Always
+			};
+
+			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
 			RNAPI ~Sampler();
 
 			bool operator== (const Sampler &other) const
 			{
-				return (_filter == other._filter && _wrapMode == other._wrapMode && _anisotropy == other._anisotropy);
+				return (_filter == other._filter && _wrapMode == other._wrapMode && _anisotropy == other._anisotropy && _comparisonFunction == other._comparisonFunction);
 			}
 
 			RNAPI static uint32 GetDefaultAnisotropy();
@@ -129,11 +143,13 @@ namespace RN
 
 			RNAPI WrapMode GetWrapMode() const { return _wrapMode; }
 			RNAPI Filter GetFilter() const { return _filter; }
+			RNAPI ComparisonFunction GetComparisonFunction() const { return _comparisonFunction; }
 			RNAPI uint8 GetAnisotropy() const { return _anisotropy; }
 
 		private:
 			WrapMode _wrapMode;
 			Filter _filter;
+			ComparisonFunction _comparisonFunction;
 			uint8 _anisotropy;
 
 			__RNDeclareMetaInternal(Sampler)

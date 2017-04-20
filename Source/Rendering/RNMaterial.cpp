@@ -23,6 +23,9 @@ namespace RN
 		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
 		discardThreshold(0.3f),
 		textureTileFactor(1.0),
+		usePolygonOffset(false),
+		polygonOffsetFactor(1.1f),
+		polygonOffsetUnits(0.1f),
 		cullMode(CullMode::BackFace),
 		_textures(new Array())
 	{}
@@ -38,6 +41,9 @@ namespace RN
 		emissiveColor(other.emissiveColor),
 		discardThreshold(other.discardThreshold),
 		textureTileFactor(other.textureTileFactor),
+		usePolygonOffset(other.usePolygonOffset),
+		polygonOffsetFactor(other.polygonOffsetFactor),
+		polygonOffsetUnits(other.polygonOffsetUnits),
 		cullMode(other.cullMode),
 		_textures(SafeCopy(other._textures))
 	{}
@@ -83,6 +89,9 @@ namespace RN
 		_emissiveColor(descriptor.emissiveColor),
 		_discardThreshold(descriptor.discardThreshold),
 		_textureTileFactor(descriptor.textureTileFactor),
+		_usePolygonOffset(descriptor.usePolygonOffset),
+		_polygonOffsetFactor(descriptor.polygonOffsetFactor),
+		_polygonOffsetUnits(descriptor.polygonOffsetUnits),
 		_cullMode(descriptor.cullMode)
 	{
 		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
@@ -103,6 +112,9 @@ namespace RN
 		_emissiveColor(other->_emissiveColor),
 		_discardThreshold(other->_discardThreshold),
 		_textureTileFactor(other->_textureTileFactor),
+		_usePolygonOffset(other->_usePolygonOffset),
+		_polygonOffsetFactor(other->_polygonOffsetFactor),
+		_polygonOffsetUnits(other->_polygonOffsetUnits),
 		_cullMode(other->_cullMode)
 	{}
 
@@ -173,6 +185,13 @@ namespace RN
 		_cullMode = mode;
 	}
 
+	void Material::SetPolygonOffset(bool enable, float factor, float units)
+	{
+		_usePolygonOffset = enable;
+		_polygonOffsetFactor = factor;
+		_polygonOffsetUnits = units;
+	}
+
 	MaterialDescriptor Material::GetDescriptor() const
 	{
 		MaterialDescriptor descriptor;
@@ -187,6 +206,9 @@ namespace RN
 		descriptor.emissiveColor = _emissiveColor;
 		descriptor.discardThreshold = _discardThreshold;
 		descriptor.textureTileFactor = _textureTileFactor;
+		descriptor.usePolygonOffset = _usePolygonOffset;
+		descriptor.polygonOffsetFactor = _polygonOffsetFactor;
+		descriptor.polygonOffsetUnits = _polygonOffsetUnits;
 		descriptor.cullMode = _cullMode;
 
 		return descriptor;

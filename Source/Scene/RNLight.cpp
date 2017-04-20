@@ -124,11 +124,8 @@ namespace RN
 	{
 		_shadowDepthCameras.RemoveAllObjects();
 		
-		if(_shadowTarget)
-		{
-			_shadowTarget->Release();
-			_shadowTarget = nullptr;
-		}
+		SafeRelease(_shadowTarget);
+		SafeRelease(_shadowDepthTexture);
 	}
 	
 	bool Light::ActivateShadows(const ShadowParameter &parameter)
@@ -192,11 +189,7 @@ namespace RN
 		{
 			if(parameter.shadowTarget != _shadowTarget)
 			{
-				if(_shadowTarget)
-				{
-					_shadowTarget->Release();
-					_shadowTarget = nullptr;
-				}
+				SafeRelease(_shadowTarget);
 				
 				if(parameter.shadowTarget)
 				{
@@ -222,17 +215,7 @@ namespace RN
 		RN_ASSERT(_shadowParameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
 		RN_ASSERT(_shadowParameter.splits.size() > 0, "The shadow parameter for directional lights needs one or more splits!");
 		
-		if(_shadowTarget)
-		{
-			_shadowTarget->Release();
-			_shadowTarget = nullptr;
-		}
-		
 		_shadowTarget = _shadowParameter.shadowTarget->Retain();
-		
-		Shader::Sampler *textureParameter = new Shader::Sampler(Shader::Sampler::WrapMode::Clamp, Shader::Sampler::Filter::Linear, 1.0f);
-/*		textureParameter.depthCompare = true;
-		textureParameter.maxMipMaps = 0;*/
 		
 		Texture::Descriptor textureDescriptor;
 		textureDescriptor.type = Texture::Type::Type2DArray;
@@ -241,9 +224,9 @@ namespace RN
 		textureDescriptor.width = _shadowParameter.resolution;
 		textureDescriptor.height = _shadowParameter.resolution;
 		textureDescriptor.depth = _shadowParameter.splits.size();
-		Texture *depthtex = Texture::WithDescriptor(textureDescriptor);
+		_shadowDepthTexture = Texture::WithDescriptor(textureDescriptor)->Retain();
 		Framebuffer::TargetView depthTargetView;
-		depthTargetView.texture = depthtex;
+		depthTargetView.texture = _shadowDepthTexture;
 		depthTargetView.mipmap = 0;
 		depthTargetView.slice = 0;
 		depthTargetView.length = 1;
@@ -269,12 +252,8 @@ namespace RN
 			MaterialDescriptor materialDescriptor;
 			materialDescriptor.vertexShader = depthShader;
 			Material *depthMaterial = Material::WithDescriptor(materialDescriptor);
-
-			//TODO: Polygon offset stuff
-	/*		depthMaterial->SetPolygonOffset(true);
-			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
-			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
-			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);*/
+			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
+			//depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);	//TODO: Override stuff
 
 			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
 			depthTargetView.slice = i;

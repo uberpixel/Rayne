@@ -78,6 +78,8 @@ namespace RN
 		Array *samplerArray = new Array(vertexSamplers);
 		samplerArray->Autorelease();
 
+		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
+
 		//TODO: Support multiple constant buffers per function signature
 		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
 
@@ -89,6 +91,8 @@ namespace RN
 			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
 			samplerArray->AddObjectsFromArray(fragmentSamplers);
 
+			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
+
 			//TODO: Support multiple constant buffers per function signature
 			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
 		}
@@ -97,6 +101,12 @@ namespace RN
 		{
 			
 			if(signature->textureCount != textureCount)
+			{
+				continue;
+			}
+
+			//TODO: Doesn't really require an extra root signature...
+			if(signature->wantsDirectionalShadowTexture != wantsDirectionalShadowTexture)
 			{
 				continue;
 			}
@@ -133,6 +143,7 @@ namespace RN
 		signature->constantBufferCount = constantBufferCount;
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
+		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
 
 		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
 		CD3DX12_DESCRIPTOR_RANGE1 *srvCbvRanges = nullptr;
@@ -168,17 +179,61 @@ namespace RN
 				D3D12_STATIC_SAMPLER_DESC &samplerDesc = samplerDescriptors[index];
 
 				D3D12_FILTER filter = D3D12_FILTER_ANISOTROPIC;
-				switch(sampler->GetFilter())
+				D3D12_COMPARISON_FUNC comparisonFunction = D3D12_COMPARISON_FUNC_NEVER;
+				if(sampler->GetComparisonFunction() == Shader::Sampler::ComparisonFunction::Never)
 				{
-				case Shader::Sampler::Filter::Anisotropic:
-					filter = D3D12_FILTER_ANISOTROPIC;
-					break;
-				case Shader::Sampler::Filter::Linear:
-					filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-					break;
-				case Shader::Sampler::Filter::Nearest:
-					filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-					break;
+					switch (sampler->GetFilter())
+					{
+					case Shader::Sampler::Filter::Anisotropic:
+						filter = D3D12_FILTER_ANISOTROPIC;
+						break;
+					case Shader::Sampler::Filter::Linear:
+						filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Nearest:
+						filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+						break;
+					}
+				}
+				else
+				{
+					switch (sampler->GetFilter())
+					{
+					case Shader::Sampler::Filter::Anisotropic:
+						filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+						break;
+					case Shader::Sampler::Filter::Linear:
+						filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Nearest:
+						filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+						break;
+					}
+
+					switch(sampler->GetComparisonFunction())
+					{
+					case Shader::Sampler::ComparisonFunction::Always:
+						comparisonFunction = D3D12_COMPARISON_FUNC_ALWAYS;
+						break;
+					case Shader::Sampler::ComparisonFunction::Equal:
+						comparisonFunction = D3D12_COMPARISON_FUNC_EQUAL;
+						break;
+					case Shader::Sampler::ComparisonFunction::GreaterEqual:
+						comparisonFunction = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+						break;
+					case Shader::Sampler::ComparisonFunction::Greater:
+						comparisonFunction = D3D12_COMPARISON_FUNC_GREATER;
+						break;
+					case Shader::Sampler::ComparisonFunction::Less:
+						comparisonFunction = D3D12_COMPARISON_FUNC_LESS;
+						break;
+					case Shader::Sampler::ComparisonFunction::LessEqual:
+						comparisonFunction = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+						break;
+					case Shader::Sampler::ComparisonFunction::NotEqual:
+						comparisonFunction = D3D12_COMPARISON_FUNC_NOT_EQUAL;
+						break;
+					}
 				}
 
 				D3D12_TEXTURE_ADDRESS_MODE addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -197,7 +252,7 @@ namespace RN
 				samplerDesc.AddressV = addressMode;
 				samplerDesc.AddressW = addressMode;
 				samplerDesc.MipLODBias = 0.0f;
-				samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+				samplerDesc.ComparisonFunc = comparisonFunction;
 				samplerDesc.MinLOD = 0.0f;
 				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 				samplerDesc.MaxAnisotropy = sampler->GetAnisotropy();
@@ -287,14 +342,14 @@ namespace RN
 		}
 		DXGI_FORMAT depthStencilFormat = (framebuffer->_depthStencilTarget)? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 
-		//TODO: Make sure all possible cases are covered...
+		const D3D12RootSignature *rootSignature = GetRootSignature(material);
+
+		//TODO: Make sure all possible cases are covered... Depth bias for example...
 		for(const D3D12PipelineState *state : collection->states)
 		{
-			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat)
+			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 				return state;
 		}
-
-		const D3D12RootSignature *rootSignature = GetRootSignature(material);
 
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
@@ -310,6 +365,11 @@ namespace RN
 		if(fragmentShader)
 			psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		if(material->GetUsePolygonOffset())
+		{
+			psoDesc.RasterizerState.DepthBias = material->GetPolygonOffsetUnits();
+			psoDesc.RasterizerState.SlopeScaledDepthBias = material->GetPolygonOffsetFactor();
+		}
 		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		if(framebuffer->_depthStencilTarget)

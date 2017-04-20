@@ -33,6 +33,8 @@ namespace RN
 		ID3DBlob *_shader;
 		const String *_name;
 
+		bool _wantsDirectionalShadowTexture; //TODO: Solve better...
+
 		RNDeclareMetaAPI(D3D12Shader, D3DAPI)
 	};
 }

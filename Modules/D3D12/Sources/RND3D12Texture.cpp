@@ -36,50 +36,70 @@ namespace RN
 		}
 	}
 
-	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
+	static DXGI_FORMAT D3D12TypelessFormatFromDepthFormat(Texture::Format format)
 	{
 		switch(format)
 		{
-			case Texture::Format::RGBA8888SRGB:
-				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-			case Texture::Format::RGBA8888:
-				return DXGI_FORMAT_R8G8B8A8_UNORM;
-			case Texture::Format::RGB10A2:
-				return DXGI_FORMAT_R10G10B10A2_UNORM;
-			case Texture::Format::R8:
-				return DXGI_FORMAT_R8_UNORM;
-			case Texture::Format::RG88:
-				return DXGI_FORMAT_R8G8_UNORM;
-			case Texture::Format::RGB888:
-				return DXGI_FORMAT_R8G8B8A8_UNORM;
-			case Texture::Format::R16F:
-				return DXGI_FORMAT_R16_FLOAT;
-			case Texture::Format::RG16F:
-				return DXGI_FORMAT_R16G16_FLOAT;
-			case Texture::Format::RGB16F:
-				return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			case Texture::Format::RGBA16F:
-				return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			case Texture::Format::R32F:
-				return DXGI_FORMAT_R32_FLOAT;
-			case Texture::Format::RG32F:
-				return DXGI_FORMAT_R32G32_FLOAT;
-			case Texture::Format::RGB32F:
-				return DXGI_FORMAT_R32G32B32_FLOAT;
-			case Texture::Format::RGBA32F:
-				return DXGI_FORMAT_R32G32B32A32_FLOAT;
 			case Texture::Format::Depth24I:
-				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+				return DXGI_FORMAT_R24G8_TYPELESS;
 			case Texture::Format::Depth32F:
-				return DXGI_FORMAT_D32_FLOAT;
+				return DXGI_FORMAT_R32_TYPELESS;
 			case Texture::Format::Stencil8:
-				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+				return DXGI_FORMAT_R24G8_TYPELESS;
 			case Texture::Format::Depth24Stencil8:
-				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+				return DXGI_FORMAT_R24G8_TYPELESS;
 			case Texture::Format::Depth32FStencil8:
-				return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+				return DXGI_FORMAT_R32G8X24_TYPELESS;
 			default:
 				return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+
+	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
+	{
+		switch (format)
+		{
+		case Texture::Format::RGBA8888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::RGBA8888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::RGB10A2:
+			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::R8:
+			return DXGI_FORMAT_R8_UNORM;
+		case Texture::Format::RG88:
+			return DXGI_FORMAT_R8G8_UNORM;
+		case Texture::Format::RGB888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::R16F:
+			return DXGI_FORMAT_R16_FLOAT;
+		case Texture::Format::RG16F:
+			return DXGI_FORMAT_R16G16_FLOAT;
+		case Texture::Format::RGB16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::RGBA16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::R32F:
+			return DXGI_FORMAT_R32_FLOAT;
+		case Texture::Format::RG32F:
+			return DXGI_FORMAT_R32G32_FLOAT;
+		case Texture::Format::RGB32F:
+			return DXGI_FORMAT_R32G32B32_FLOAT;
+		case Texture::Format::RGBA32F:
+			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case Texture::Format::Depth24I:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth32F:
+			return DXGI_FORMAT_R32_FLOAT;
+			//return DXGI_FORMAT_D32_FLOAT;
+		case Texture::Format::Stencil8:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth24Stencil8:
+			return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		case Texture::Format::Depth32FStencil8:
+			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+		default:
+			return DXGI_FORMAT_UNKNOWN;
 		}
 	}
 
@@ -157,229 +177,71 @@ namespace RN
 		return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	}
 
-/*	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Descriptor::Type type)
-	{
-		switch(type)
-		{
-		case Texture::Descriptor::Type::Type1D:
-			return VK_IMAGE_VIEW_TYPE_1D;
-		case Texture::Descriptor::Type::Type1DArray:
-			return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
-
-		case Texture::Descriptor::Type::Type2D:
-			return VK_IMAGE_VIEW_TYPE_2D;
-		case Texture::Descriptor::Type::Type2DArray:
-			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-
-		case Texture::Descriptor::Type::Type3D:
-			return VK_IMAGE_VIEW_TYPE_3D;
-
-		default:
-			throw InconsistencyException("Invalid texture type for Vulkan");
-		}
-	}
-
-	static bool VkFormatIsDepthFormat(VkFormat format)
-	{
-		switch(format)
-		{
-		case VK_FORMAT_X8_D24_UNORM_PACK32:
-		case VK_FORMAT_D16_UNORM:
-		case VK_FORMAT_D16_UNORM_S8_UINT:
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-		case VK_FORMAT_D32_SFLOAT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	static bool VkFormatIsStencilFormat(VkFormat format)
-	{
-		switch(format)
-		{
-		case VK_FORMAT_S8_UINT:
-		case VK_FORMAT_D16_UNORM_S8_UINT:
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			return true;
-
-		default:
-			return false;
-		}
-	}
-
-	static VkImageUsageFlags VkImageUsageFromDescriptor(const Texture::Descriptor &descriptor, VkFormat format)
-	{
-		VkImageUsageFlags flags = 0;
-
-		switch(descriptor.accessOptions)
-		{
-		case GPUResource::AccessOptions::ReadWrite:
-			flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			break;
-		case GPUResource::AccessOptions::WriteOnly:
-			flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			break;
-		case GPUResource::AccessOptions::Private:
-			flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			break;
-		}
-
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
-		{
-			bool depth = VkFormatIsDepthFormat(format);
-			bool stencil = VkFormatIsStencilFormat(format);
-
-			if(!depth && !stencil)
-				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			else
-				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		}
-		else
-		{
-			flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		}
-
-		return flags;
-	}
-
-	static VkImageAspectFlags VkImageAspectFlagsFromFormat(VkFormat format)
-	{
-		bool depth = VkFormatIsDepthFormat(format);
-		bool stencil = VkFormatIsStencilFormat(format);
-
-		if(!depth && !stencil)
-			return VK_IMAGE_ASPECT_COLOR_BIT;
-
-		VkImageAspectFlags flags = 0;
-
-		if(depth)
-			flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
-		if(depth)
-			flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
-
-		return flags;
-	}*/
-
-/*	D3D12Texture::D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer) :
-		Texture(descriptor),
-		_renderer(renderer),
-		_image(VK_NULL_HANDLE),
-		_imageView(VK_NULL_HANDLE),
-		_memory(VK_NULL_HANDLE),
-		_format(renderer->GetVulkanFormatForName(descriptor.GetFormat())),
-		_sampler(VK_NULL_HANDLE)
-	{
-		D3D12Device *device = renderer->GetD3D12Device();
-
-		VkImageCreateInfo imageInfo = {};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.pNext = nullptr;
-		imageInfo.imageType = VkImageTypeFromTextureType(descriptor.type);
-		imageInfo.format = _format;
-		imageInfo.extent = { descriptor.width, descriptor.height, descriptor.depth };
-		imageInfo.arrayLayers = 1;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.usage = VkImageUsageFromDescriptor(descriptor, imageInfo.format);
-		imageInfo.flags = 0;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
-		imageInfo.mipLevels = descriptor.mipMaps;
-
-		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
-		{
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		}
-		else
-		{
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.tiling = (descriptor.mipMaps > 1) ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR;
-		}
-
-		RNVulkanValidate(vk::CreateImage(device->GetDevice(), &imageInfo, _renderer->GetAllocatorCallback(), &_image));
-
-
-		vk::GetImageMemoryRequirements(device->GetDevice(), _image, &_requirements);
-
-		VkMemoryAllocateInfo allocateInfo = {};
-		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocateInfo.pNext = nullptr;
-		allocateInfo.allocationSize = _requirements.size;
-
-		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
-		{
-			device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocateInfo.memoryTypeIndex);
-		}
-		else
-		{
-			if(descriptor.mipMaps > 1)
-				device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocateInfo.memoryTypeIndex);
-			else
-				device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
-		}
-
-		RNVulkanValidate(vk::AllocateMemory(device->GetDevice(), &allocateInfo, _renderer->GetAllocatorCallback(), &_memory));
-		RNVulkanValidate(vk::BindImageMemory(device->GetDevice(), _image, _memory, 0));
-
-
-		VkImageViewCreateInfo imageViewInfo = {};
-		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewInfo.pNext = nullptr;
-		imageViewInfo.viewType = VkImageViewTypeFromTextureType(descriptor.type);
-		imageViewInfo.format = imageInfo.format;
-		imageViewInfo.flags = 0;
-		imageViewInfo.subresourceRange = {};
-		imageViewInfo.subresourceRange.aspectMask = VkImageAspectFlagsFromFormat(imageInfo.format);
-		imageViewInfo.subresourceRange.baseMipLevel = 0;
-		imageViewInfo.subresourceRange.levelCount = descriptor.mipMaps;
-		imageViewInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewInfo.subresourceRange.layerCount = 1;
-		imageViewInfo.image = _image;
-
-		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageViewInfo, _renderer->GetAllocatorCallback(), &_imageView));
-
-		if(!(descriptor.usageHint & Descriptor::UsageHint::RenderTarget))
-		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-		}
-		else if(descriptor.GetFormat()->IsEqual(RNCSTR("Depth24Stencil8")))
-		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-		}
-
-		SetParameter(_parameter);
-	}*/
 
 	D3D12Texture::D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer) :
 		Texture(descriptor),
 		_renderer(renderer),
-		_format(D3D12ImageFormatFromTextureFormat(descriptor.format)),
 		_isReady(false),
-		_needsMipMaps(false)
+		_needsMipMaps(false), 
+		_srvDescriptor{}
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 
+		_srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		_srvDescriptor.Format = D3D12ImageFormatFromTextureFormat(descriptor.format);
+		
+		//TODO: Support multisampled types and cubemaps
+		switch(descriptor.type)
+		{
+			case Texture::Type::Type1D:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+				_srvDescriptor.Texture1D.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.Texture1D.MostDetailedMip = 0;
+				_srvDescriptor.Texture1D.ResourceMinLODClamp = 0.0f;
+				break;
+			case Texture::Type::Type1DArray:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+				_srvDescriptor.Texture1DArray.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.Texture1DArray.MostDetailedMip = 0;
+				_srvDescriptor.Texture1DArray.ResourceMinLODClamp = 0.0f;
+				_srvDescriptor.Texture1DArray.FirstArraySlice = 0;
+				_srvDescriptor.Texture1DArray.ArraySize = descriptor.depth;
+				break;
+
+			case Texture::Type::Type2D:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+				_srvDescriptor.Texture2D.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.Texture2D.MostDetailedMip = 0;
+				_srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
+				_srvDescriptor.Texture2D.PlaneSlice = 0;
+				break;
+
+			case Texture::Type::Type2DArray:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+				_srvDescriptor.Texture2DArray.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.Texture2DArray.MostDetailedMip = 0;
+				_srvDescriptor.Texture2DArray.ResourceMinLODClamp = 0.0f;
+				_srvDescriptor.Texture2DArray.PlaneSlice = 0;
+				_srvDescriptor.Texture2DArray.FirstArraySlice = 0;
+				_srvDescriptor.Texture2DArray.ArraySize = descriptor.depth;
+				break;
+
+			case Texture::Type::Type3D:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+				_srvDescriptor.Texture3D.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.Texture3D.MostDetailedMip = 0;
+				_srvDescriptor.Texture3D.ResourceMinLODClamp = 0.0f;
+				break;
+		}
+
 		D3D12_RESOURCE_DESC imageDesc = {};
-		imageDesc.Dimension = D3D12ImageTypeFromTextureType(_descriptor.type);
+		imageDesc.Dimension = D3D12ImageTypeFromTextureType(descriptor.type);
 		imageDesc.Alignment = 0;
 		imageDesc.Width = descriptor.width;
 		imageDesc.Height = descriptor.height;
 		imageDesc.DepthOrArraySize = descriptor.depth;
 		imageDesc.MipLevels = descriptor.mipMaps;
-		imageDesc.Format = _format;
+		imageDesc.Format = _srvDescriptor.Format;
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -387,16 +249,18 @@ namespace RN
 
 		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
+			//TODO: Fix Typeless/Typed mess for depth targets that are used as shader resource... Maybe introduce an extra usage hint?
 			//TODO: Maybe don't hardcode!?
-			D3D12_CLEAR_VALUE clearValue = {};
+			/*D3D12_CLEAR_VALUE clearValue = {};
 			clearValue.Format = _format;
 			clearValue.DepthStencil.Depth = 1.0f;
-			clearValue.DepthStencil.Stencil = 0;
+			clearValue.DepthStencil.Stencil = 0;*/
 
 			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
+			imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
 
 			// create the final texture buffer
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, &clearValue, IID_PPV_ARGS(&_resource));
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, /*&clearValue*/nullptr, IID_PPV_ARGS(&_resource));
 		}
 		else
 		{
@@ -432,7 +296,7 @@ namespace RN
 		imageDesc.Height = region.height;
 		imageDesc.DepthOrArraySize = region.depth;
 		imageDesc.MipLevels = GetDescriptor().mipMaps;
-		imageDesc.Format = _format;
+		imageDesc.Format = _srvDescriptor.Format;
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -584,7 +448,7 @@ namespace RN
 			return false; \
 		}
 
-		switch(_format)
+		switch(_srvDescriptor.Format)
 		{
 			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM, true, true, true, true)

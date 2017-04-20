@@ -64,6 +64,9 @@ namespace RN
 
 		std::vector<D3D12Drawable *> drawables;
 		std::vector<D3D12LightDirectional> directionalLights;
+
+		std::vector<Matrix> directionalShadowMatrices;
+		D3D12Texture *directionalShadowDepthTexture;
 	};
 
 	struct D3D12FrameResource

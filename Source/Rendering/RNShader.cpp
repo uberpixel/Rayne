@@ -194,6 +194,21 @@ namespace RN
 			_identifier = DirectionalLights;
 			_type = PrimitiveType::Vector4;
 		}
+		else if (name->IsEqual(RNCSTR("lights_directional")) || name->IsEqual(RNCSTR("directionalLights")))
+		{
+			_identifier = DirectionalLights;
+			_type = PrimitiveType::Vector4;
+		}
+		else if (name->IsEqual(RNCSTR("shadows_directional_matrices")) || name->IsEqual(RNCSTR("directionalShadowMatrices")))
+		{
+			_identifier = DirectionalShadowMatrices;
+			_type = PrimitiveType::Matrix;
+		}
+		else if (name->IsEqual(RNCSTR("shadows_directional_matrices_count")) || name->IsEqual(RNCSTR("directionalShadowMatricesCount")))
+		{
+			_identifier = DirectionalShadowMatricesCount;
+			_type = PrimitiveType::Uint32;
+		}
 	}
 
 	Shader::UniformDescriptor::~UniformDescriptor()
@@ -208,6 +223,9 @@ namespace RN
 		{
 			case DirectionalLights:
 				return (16 + 16) * 5;	//TODO: use define or something for the 5
+
+			case DirectionalShadowMatrices:
+				return 64 * 4;	//TODO: use define or something for the 4
 
 			default:
 				break;
@@ -247,9 +265,10 @@ namespace RN
 	}
 
 
-	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, uint8 anisotropy) :
+	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, ComparisonFunction comparisonFunction, uint8 anisotropy) :
 		_wrapMode(wrapMode),
 		_filter(filter),
+		_comparisonFunction(comparisonFunction),
 		_anisotropy(anisotropy)
 	{}
 

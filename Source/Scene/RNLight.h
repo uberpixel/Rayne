@@ -10,6 +10,7 @@
 #define __RAYNE_LIGHT_H__
 
 #include "../Base/RNBase.h"
+#include "../Rendering/RNTexture.h"
 #include "RNSceneNode.h"
 
 namespace RN
@@ -107,6 +108,7 @@ namespace RN
 		
 		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
 		const Array *GetShadowDepthCameras() const { return &_shadowDepthCameras; }
+		Texture *GetShadowDepthTexture() const { return _shadowDepthTexture; }
 	
 	private:
 		void ReCalculateColor();
@@ -133,6 +135,7 @@ namespace RN
 		Camera *_shadowTarget;
 		std::vector<Matrix> _shadowCameraMatrices;
 		Array _shadowDepthCameras;
+		Texture *_shadowDepthTexture;
 		bool _suppressShadows;
 		ShadowParameter _shadowParameter;
 

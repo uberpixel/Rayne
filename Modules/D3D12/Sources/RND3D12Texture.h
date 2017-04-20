@@ -41,14 +41,12 @@ namespace RN
 		D3D12Renderer *_renderer;
 		D3D12StateCoordinator *_coordinator;
 
-		DXGI_FORMAT _format;
+		D3D12_SHADER_RESOURCE_VIEW_DESC _srvDescriptor;
 		ID3D12Resource *_resource;
 		D3D12_RESOURCE_STATES _currentState;
 
 		bool _isReady;
 		bool _needsMipMaps;
-		
-		D3D12_STATIC_SAMPLER_DESC _samplerDesc;
 
 		RNDeclareMetaAPI(D3D12Texture, D3DAPI)
 	};

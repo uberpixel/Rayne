@@ -731,15 +731,10 @@ namespace RN
 		nullSrvDesc.Texture2D.MostDetailedMip = 0;
 		nullSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-		// now we create a shader resource view (descriptor that points to the texture and describes it)
-		D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
-		textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-
 		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
 
 		size_t cameraID = 0;
-		for(D3D12RenderPass renderPass : _internals->renderPasses)
+		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
 		{
 			if(renderPass.drawables.size() == 0)
 				continue;
@@ -752,7 +747,7 @@ namespace RN
 				const Array *textures = drawable->material->GetTextures();
 				textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
 					//Respect the textures limit of the root signature
-					if(i >= rootSignature->textureCount)
+					if(i >= (rootSignature->textureCount - rootSignature->wantsDirectionalShadowTexture))
 					{
 						stop = true;
 						return;
@@ -761,20 +756,25 @@ namespace RN
 					//Check if texture finished uploading to the vram
 					if(texture->_isReady && !texture->_needsMipMaps)
 					{
-						textureSrvDesc.Format = texture->_format;
-						textureSrvDesc.Texture2D.MipLevels = texture->GetDescriptor().mipMaps;
-						device->CreateShaderResourceView(texture->_resource, &textureSrvDesc, currentCPUHandle);
-						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+						device->CreateShaderResourceView(texture->_resource, &texture->_srvDescriptor, currentCPUHandle);
 					}
 					else
 					{
 						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
-						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 					}
+
+					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 				});
 
+				//TODO: Find a cleaner more general solution
+				if(rootSignature->wantsDirectionalShadowTexture)
+				{
+					device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
+					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+				}
+
 				//Create null texture descriptors for those that are too many in the root signature
-				for(int i = rootSignature->textureCount - textures->GetCount(); i > 0; i--)
+				for(int i = rootSignature->textureCount - (textures->GetCount() + rootSignature->wantsDirectionalShadowTexture); i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
@@ -965,6 +965,26 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
+				{
+					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					if(matrixCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
+				{
+					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					if (matrixCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
+					}
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
 					//TODO: Implement custom shader variables!
@@ -988,6 +1008,13 @@ namespace RN
 			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
 			{
 				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetColor() });
+			}
+
+			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
+			if(light->HasShadows())
+			{
+				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<D3D12Texture>();
+				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
 			}
 		}
 	}

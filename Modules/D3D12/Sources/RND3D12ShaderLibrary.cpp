@@ -139,7 +139,8 @@ namespace RN
 							anisotropyValue = anisotropy->GetUint32Value();
 						}
 
-						Shader::Sampler *sampler = new Shader::Sampler(wrapMode, filterType, anisotropyValue);
+						//TODO: read comparison function from json
+						Shader::Sampler *sampler = new Shader::Sampler(wrapMode, filterType, Shader::Sampler::ComparisonFunction::Never, anisotropyValue);
 						samplerArray->AddObject(sampler->Autorelease());
 					}
 				}
