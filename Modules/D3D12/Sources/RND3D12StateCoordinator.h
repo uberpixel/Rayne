@@ -67,6 +67,7 @@ namespace RN
 		size_t depthStencilFormat;
 		ID3D12PipelineState *state;
 
+		MaterialDescriptor materialDescriptor;
 		const D3D12RootSignature *rootSignature;
 	};
 

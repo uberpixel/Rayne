@@ -343,12 +343,18 @@ namespace RN
 		DXGI_FORMAT depthStencilFormat = (framebuffer->_depthStencilTarget)? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 
 		const D3D12RootSignature *rootSignature = GetRootSignature(material);
+		const MaterialDescriptor &materialDescriptor = material->GetDescriptor();
 
 		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
 		for(const D3D12PipelineState *state : collection->states)
 		{
 			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
-				return state;
+			{
+				if(state->materialDescriptor.cullMode == materialDescriptor.cullMode && state->materialDescriptor.usePolygonOffset == materialDescriptor.usePolygonOffset && state->materialDescriptor.polygonOffsetFactor == materialDescriptor.polygonOffsetFactor && state->materialDescriptor.polygonOffsetUnits == materialDescriptor.polygonOffsetUnits)
+				{
+					return state;
+				}
+			}
 		}
 
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
@@ -365,20 +371,22 @@ namespace RN
 		if(fragmentShader)
 			psoDesc.PS = { reinterpret_cast<UINT8*>(fragmentShader->GetBufferPointer()), fragmentShader->GetBufferSize() };
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.RasterizerState.FrontCounterClockwise = true;
 
-		if(material->GetUsePolygonOffset())
+		if(materialDescriptor.usePolygonOffset)
 		{
-			psoDesc.RasterizerState.DepthBias = material->GetPolygonOffsetUnits();
-			psoDesc.RasterizerState.SlopeScaledDepthBias = material->GetPolygonOffsetFactor();
+			psoDesc.RasterizerState.DepthBias = materialDescriptor.polygonOffsetUnits;
+			psoDesc.RasterizerState.SlopeScaledDepthBias = materialDescriptor.polygonOffsetFactor;
+			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
 		}
 
-		switch(material->GetCullMode())
+		switch(materialDescriptor.cullMode)
 		{
 		case CullMode::BackFace:
-			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 			break;
 		case CullMode::FrontFace:
-			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 			break;
 		case CullMode::None:
 			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
@@ -410,6 +418,7 @@ namespace RN
 		state->pixelFormats = pixelFormats;
 		state->depthStencilFormat = depthStencilFormat;
 		state->rootSignature = rootSignature;
+		state->materialDescriptor = materialDescriptor;
 		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
 		if(FAILED(success))
