@@ -32,10 +32,15 @@ namespace RN
 	}
 
 	Model::Model(const Model *other) :
-		_lodStages(other->_lodStages->Copy()),
 		_boundingBox(other->_boundingBox),
 		_boundingSphere(other->_boundingSphere)
-	{}
+	{
+		_lodStages = new Array();
+		other->_lodStages->Enumerate<LODStage>([&](LODStage *stage, size_t index, bool &stop)
+		{
+			_lodStages->AddObject(stage->Copy());
+		});
+	}
 
 	Model::~Model()
 	{
