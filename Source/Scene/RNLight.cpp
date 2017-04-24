@@ -232,33 +232,21 @@ namespace RN
 		depthTargetView.length = 1;
 		
 		Shader::Options *shaderOptions = Shader::Options::WithNone();
-		shaderOptions->EnableDiscard();
-		Shader *depthVertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::Default::Depth);
-		Shader *depthFragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::Default::Depth);
-/*		Shader *clearDepthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowClearDepthShader, nullptr);
-		Model *clearDepthSky = RN::Model::WithSkyCube(clearDepthShader);
-		for(int i = 0; i < clearDepthSky->GetMeshCount(0); i++)
-		{
-			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthWrite(true);
-			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthTest(true);
-			clearDepthSky->GetMaterialAtIndex(0, i)->SetDepthTestMode(Material::DepthMode::Always);
-			clearDepthSky->GetMaterialAtIndex(0, i)->SetPolygonOffset(false);
-			clearDepthSky->GetMaterialAtIndex(0, i)->SetOverride(Material::Override::Shader | Material::Override::Depthtest | Material::Override::DepthtestMode | Material::Override::Depthwrite | Material::Override::PolygonOffset);
-		}*/
+		Shader *depthVertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
+		Shader *depthFragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
 		
 		_shadowCameraMatrices.clear();
-		
 		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
 			_shadowCameraMatrices.push_back(Matrix());
 			
 			MaterialDescriptor materialDescriptor;
-			materialDescriptor.vertexShader = depthVertexShader;
-			materialDescriptor.fragmentShader = depthFragmentShader;
+			//TODO: Get rid of the need for a shader if not needed for rendering!?
+			materialDescriptor.vertexShader[0] = depthVertexShader;
+			materialDescriptor.fragmentShader[0] = depthFragmentShader;
 			Material *depthMaterial = Material::WithDescriptor(materialDescriptor);
-			depthMaterial->SetCullMode(CullMode::None);	//TODO: Should be overriden from original material
 			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
-			//depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);	//TODO: Override stuff
+			depthMaterial->SetOverride(Material::Override::DefaultDepth);
 
 			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
 			depthTargetView.slice = i;
@@ -270,6 +258,7 @@ namespace RN
 			tempcam->SetFramebuffer(framebuffer);
 			tempcam->SetFlags(Camera::Flags::ClearFramebufferDepth | Camera::Flags::Orthogonal);
 			tempcam->SetMaterial(depthMaterial);
+			tempcam->SetShaderHint(Shader::UsageHint::Depth);
 			tempcam->SetLODCamera(_shadowTarget);
 			tempcam->SetClipNear(1.0f);
 			tempcam->Autorelease();

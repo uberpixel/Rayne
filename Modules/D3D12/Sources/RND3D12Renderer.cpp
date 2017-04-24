@@ -524,30 +524,45 @@ namespace RN
 		return lib;
 	}
 
-	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader)
+	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
 	{
 		Shader *realShader;
 		if(type == Shader::Type::Vertex)
 		{
-			if(shader == Shader::Default::Sky)
+			if(usageHint == Shader::UsageHint::Depth)
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
 			}
 			else
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				}
+				else
+				{
+					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				}
 			}
 		}
-			
 		else if(type == Shader::Type::Fragment)
 		{
-			if(shader == Shader::Default::Sky)
+			if(usageHint == Shader::UsageHint::Depth)
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
 			}
 			else
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				}
+				else
+				{
+					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+				}
 			}
 		}
 
@@ -1035,15 +1050,12 @@ namespace RN
 		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		_lock.Unlock();
 
-		Material *material = renderPass.camera->GetMaterial();
-		if (!material)
-			material = drawable->material;
-
+		Material *material = drawable->material;
 		if(drawable->dirty)
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer);
+			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.camera);
 			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, material);
 			_lock.Unlock();
 
@@ -1051,13 +1063,14 @@ namespace RN
 			drawable->dirty = false;
 		}
 
+		const D3D12PipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
 		D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 		if(uniformState->vertexUniformBuffer)
 		{
 			GPUBuffer *gpuBuffer = uniformState->vertexUniformBuffer->Advance();
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, material->GetVertexShader(), offset);
+			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.vertexShader, offset);
 			gpuBuffer->Invalidate();
 		}
 		if (uniformState->fragmentUniformBuffer)
@@ -1065,7 +1078,7 @@ namespace RN
 			GPUBuffer *gpuBuffer = uniformState->fragmentUniformBuffer->Advance();
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, material->GetFragmentShader(), offset);
+			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.fragmentShader, offset);
 			gpuBuffer->Invalidate();
 		}
 

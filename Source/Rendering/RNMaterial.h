@@ -51,8 +51,8 @@ namespace RN
 
 		RNAPI const Array *GetTextures() const;
 
-		Shader *fragmentShader;
-		Shader *vertexShader;
+		Shader *fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
+		Shader *vertexShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
 
 		DepthMode depthMode;
 		bool depthWriteEnabled;
@@ -77,11 +77,26 @@ namespace RN
 	class Material : public Object
 	{
 	public:
+
+		RN_OPTIONS(Override, uint32,
+			GroupDepth = (1 << 0),
+			GroupColors = (1 << 1),
+			GroupPolygonOffset = (1 << 2),
+			GroupShaders = (1 << 3),
+			DiscardThreshold = (1 << 4),
+			TextureTileFactor = (1 << 5),
+			CullMode = (1 << 6),
+
+			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
+		);
+
 		RNAPI Material(const MaterialDescriptor &descriptor);
 		RNAPI Material(const Material *other);
 		RNAPI ~Material() override;
 
 		RNAPI static Material *WithDescriptor(const MaterialDescriptor &descriptor);
+		
+		RNAPI void SetOverride(Override override);
 
 		RNAPI void SetDepthWriteEnabled(bool depthWrite);
 		RNAPI void SetDepthMode(DepthMode mode);
@@ -102,8 +117,11 @@ namespace RN
 
 		RNAPI MaterialDescriptor GetDescriptor() const;
 
-		Shader *GetFragmentShader() const { return _fragmentShader; }
-		Shader *GetVertexShader() const { return _vertexShader; }
+		uint32 GetOverride() const { return _override; }
+
+		//TODO: Replace CameraHint with Shader::Default and find a better name (Shader::Hint?)
+		RNAPI Shader *GetFragmentShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
+		RNAPI Shader *GetVertexShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
 
 		DepthMode GetDepthMode() const { return _depthMode; }
 		bool GetDepthWriteEnabled() const { return _depthWriteEnabled; }
@@ -126,8 +144,10 @@ namespace RN
 		float GetPolygonOffsetUnits() const { return _polygonOffsetUnits; }
 
 	private:
-		Shader *_fragmentShader;
-		Shader *_vertexShader;
+		Override _override;
+
+		Shader *_fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
+		Shader *_vertexShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
 
 		Array *_textures;
 		Array *_vertexBuffers;

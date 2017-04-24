@@ -69,9 +69,9 @@ namespace RN
 		//TODO: Clean up correctly...
 	}
 
-	const D3D12RootSignature *D3D12StateCoordinator::GetRootSignature(Material *material)
+	const D3D12RootSignature *D3D12StateCoordinator::GetRootSignature(const D3D12PipelineStateDescriptor &descriptor)
 	{
-		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(material->GetVertexShader());
+		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(descriptor.vertexShader);
 		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
 		uint16 textureCount = vertexSignature->GetTextureCount();
 		const Array *vertexSamplers = vertexSignature->GetSamplers();
@@ -83,7 +83,7 @@ namespace RN
 		//TODO: Support multiple constant buffers per function signature
 		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
 
-		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
+		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(descriptor.fragmentShader);
 		if(fragmentShader)
 		{
 			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
@@ -304,53 +304,53 @@ namespace RN
 		return signature;
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Camera *camera)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
-		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(material->GetVertexShader());
-		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(material->GetFragmentShader());
-
-		void *vertexFunction = vertexShader->_shader;
-
-		void *fragmentFunction = fragmentShader? fragmentShader->_shader:nullptr;
+		const Material *cameraMaterial = camera->GetMaterial();
+		D3D12PipelineStateDescriptor pipelineDescriptor;
+		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
+		{
+			pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
+		}
+		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
+		pipelineDescriptor.shaderHint = camera->GetShaderHint();
+		pipelineDescriptor.vertexShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? cameraMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.fragmentShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? cameraMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.cullMode = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::CullMode) && !(material->GetOverride() & Material::Override::CullMode)) ? cameraMaterial->GetCullMode() : material->GetCullMode();
+		pipelineDescriptor.usePolygonOffset = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetUsePolygonOffset() : material->GetUsePolygonOffset();
+		pipelineDescriptor.polygonOffsetFactor = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetFactor() : material->GetPolygonOffsetFactor();
+		pipelineDescriptor.polygonOffsetUnits = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetUnits() : material->GetPolygonOffsetUnits();
+		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
 		{
 			if(collection->descriptor.IsEqual(descriptor))
 			{
-				if(collection->fragmentShader == fragmentFunction && collection->vertexShader == vertexFunction)
+				if(collection->vertexShader == pipelineDescriptor.vertexShader && collection->fragmentShader == pipelineDescriptor.fragmentShader)
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, material);
+					return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
 				}
 			}
 		}
 
-		D3D12PipelineStateCollection *collection = new D3D12PipelineStateCollection(descriptor, vertexFunction, fragmentFunction);
+		D3D12PipelineStateCollection *collection = new D3D12PipelineStateCollection(descriptor, pipelineDescriptor.vertexShader, pipelineDescriptor.fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, material);
+		return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, const D3D12PipelineStateDescriptor &descriptor)
 	{
-		std::vector<DXGI_FORMAT> pixelFormats;
-		pixelFormats.reserve(framebuffer->_colorTargets.size());
-		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
-		{
-			pixelFormats.push_back(targetView->d3dTargetViewDesc.Format);
-		}
-		DXGI_FORMAT depthStencilFormat = (framebuffer->_depthStencilTarget)? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
-
-		const D3D12RootSignature *rootSignature = GetRootSignature(material);
-		const MaterialDescriptor &materialDescriptor = material->GetDescriptor();
+		const D3D12RootSignature *rootSignature = GetRootSignature(descriptor);
 
 		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
 		for(const D3D12PipelineState *state : collection->states)
 		{
-			if(state->pixelFormats == pixelFormats && state->depthStencilFormat == depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
+			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 			{
-				if(state->materialDescriptor.cullMode == materialDescriptor.cullMode && state->materialDescriptor.usePolygonOffset == materialDescriptor.usePolygonOffset && state->materialDescriptor.polygonOffsetFactor == materialDescriptor.polygonOffsetFactor && state->materialDescriptor.polygonOffsetUnits == materialDescriptor.polygonOffsetUnits)
+				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits)
 				{
 					return state;
 				}
@@ -359,8 +359,10 @@ namespace RN
 
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
-		ID3DBlob *vertexShader = static_cast<ID3DBlob*>(collection->vertexShader);
-		ID3DBlob *fragmentShader = static_cast<ID3DBlob*>(collection->fragmentShader);
+		D3D12Shader *vertexShaderRayne = collection->vertexShader->Downcast<D3D12Shader>();
+		D3D12Shader *fragmentShaderRayne = collection->fragmentShader->Downcast<D3D12Shader>();
+		ID3DBlob *vertexShader = vertexShaderRayne?static_cast<ID3DBlob*>(vertexShaderRayne->_shader) : nullptr;
+		ID3DBlob *fragmentShader = fragmentShaderRayne ? static_cast<ID3DBlob*>(fragmentShaderRayne->_shader) : nullptr;
 
 		// Describe and create the graphics pipeline state object (PSO).
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -373,14 +375,14 @@ namespace RN
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.RasterizerState.FrontCounterClockwise = true;
 
-		if(materialDescriptor.usePolygonOffset)
+		if(descriptor.usePolygonOffset)
 		{
-			psoDesc.RasterizerState.DepthBias = materialDescriptor.polygonOffsetUnits;
-			psoDesc.RasterizerState.SlopeScaledDepthBias = materialDescriptor.polygonOffsetFactor;
+			psoDesc.RasterizerState.DepthBias = descriptor.polygonOffsetUnits;
+			psoDesc.RasterizerState.SlopeScaledDepthBias = descriptor.polygonOffsetFactor;
 			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
 		}
 
-		switch(materialDescriptor.cullMode)
+		switch(descriptor.cullMode)
 		{
 		case CullMode::BackFace:
 			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
@@ -394,19 +396,19 @@ namespace RN
 		}
 		
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		if(framebuffer->_depthStencilTarget)
+		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
 		{
 			psoDesc.DepthStencilState.DepthEnable = TRUE;
 			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 			psoDesc.DepthStencilState.StencilEnable = FALSE;
-			psoDesc.DSVFormat = depthStencilFormat;
+			psoDesc.DSVFormat = descriptor.depthStencilFormat;
 		}
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		psoDesc.NumRenderTargets = framebuffer->_colorTargets.size();
+		psoDesc.NumRenderTargets = descriptor.colorFormats.size();
 		int counter = 0;
-		for(DXGI_FORMAT format : pixelFormats)
+		for(DXGI_FORMAT format : descriptor.colorFormats)
 		{
 			psoDesc.RTVFormats[counter++] = format;
 			if(counter >= 8)
@@ -415,10 +417,8 @@ namespace RN
 		psoDesc.SampleDesc.Count = 1;
 
 		D3D12PipelineState *state = new D3D12PipelineState();
-		state->pixelFormats = pixelFormats;
-		state->depthStencilFormat = depthStencilFormat;
+		state->descriptor = std::move(descriptor);
 		state->rootSignature = rootSignature;
-		state->materialDescriptor = materialDescriptor;
 		HRESULT success = renderer->GetD3D12Device()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
 
 		if(FAILED(success))
@@ -458,8 +458,8 @@ namespace RN
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
-		Shader *vertexShader = material->GetVertexShader();
-		Shader *fragmentShader = material->GetFragmentShader();
+		Shader *vertexShader = material->GetVertexShader(pipelineState->descriptor.shaderHint);
+		Shader *fragmentShader = material->GetFragmentShader(pipelineState->descriptor.shaderHint);
 		D3D12UniformBuffer *vertexBuffer = nullptr;
 		D3D12UniformBuffer *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())

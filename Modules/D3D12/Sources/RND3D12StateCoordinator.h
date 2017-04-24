@@ -59,22 +59,36 @@ namespace RN
 		ID3D12RootSignature *signature;
 	};
 
+	struct D3D12PipelineStateDescriptor
+	{
+		Shader::UsageHint shaderHint;
+
+		std::vector<DXGI_FORMAT> colorFormats;
+		DXGI_FORMAT depthStencilFormat;
+
+		Shader *vertexShader;
+		Shader *fragmentShader;
+
+		CullMode cullMode;
+		bool usePolygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
+	};
+
 	struct D3D12PipelineState
 	{
 		~D3D12PipelineState();
 
-		std::vector<DXGI_FORMAT> pixelFormats;
-		size_t depthStencilFormat;
-		ID3D12PipelineState *state;
-
-		MaterialDescriptor materialDescriptor;
+		D3D12PipelineStateDescriptor descriptor;
 		const D3D12RootSignature *rootSignature;
+
+		ID3D12PipelineState *state;
 	};
 
 	struct D3D12PipelineStateCollection
 	{
 		D3D12PipelineStateCollection() = default;
-		D3D12PipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, void *vertex, void *fragment) :
+		D3D12PipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, Shader *vertex, Shader *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
@@ -87,8 +101,8 @@ namespace RN
 		}
 
 		Mesh::VertexDescriptor descriptor;
-		void *vertexShader;
-		void *fragmentShader;
+		Shader *vertexShader;
+		Shader *fragmentShader;
 
 		std::vector<D3D12PipelineState *> states;
 	};
@@ -99,13 +113,13 @@ namespace RN
 		D3D12StateCoordinator();
 		~D3D12StateCoordinator();
 
-		const D3D12RootSignature *GetRootSignature(Material *material);
-		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer);
+		const D3D12RootSignature *GetRootSignature(const D3D12PipelineStateDescriptor &pipelineDescriptor);
+		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Camera *camera);
 		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
 
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
-		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, D3D12Framebuffer *framebuffer, Material *material);
+		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, const D3D12PipelineStateDescriptor &pipelineDescriptor);
 
 		std::vector<D3D12DepthStencilState *> _depthStencilStates;
 		const D3D12DepthStencilState *_lastDepthStencilState;

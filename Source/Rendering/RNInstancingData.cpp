@@ -165,26 +165,7 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 		{
 			Model::LODStage *stage = _model->GetLODStage(i);
-
-			for(size_t j = 0; j < stage->GetCount(); j ++)
-			{
-				Material *material = stage->GetMaterialAtIndex(j);
-				MaterialDescriptor descriptor = material->GetDescriptor();
-
-				Shader *vertex = descriptor.vertexShader;
-				Shader *fragment = descriptor.fragmentShader;
-
-				RN_ASSERT(vertex->GetLibrary(), "The shaders library was already deleted.");
-				RN_ASSERT(fragment->GetLibrary(), "The shaders library was already deleted.");
-				vertex = vertex->GetLibrary()->GetInstancedShaderForShader(vertex);
-				fragment = fragment->GetLibrary()->GetInstancedShaderForShader(fragment);
-
-				descriptor.vertexShader = vertex;
-				descriptor.fragmentShader = fragment;
-
-				stage->ReplaceMaterial(Material::WithDescriptor(descriptor), j);
-			}
-
+			//TODO: Maybe check if the material has an instancing shader associated with it
 			_stages.push_back(new InstancingLODStage(stage));
 		}
 

@@ -55,10 +55,15 @@ namespace RN
 
 		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
 		MaterialDescriptor tempDescriptor = materialDescriptor;
-		if(!tempDescriptor.vertexShader)
-			tempDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(leftMesh), Shader::Default::Sky);
-		if(!tempDescriptor.fragmentShader)
-			tempDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(leftMesh), Shader::Default::Sky);
+
+		Shader::Options *shaderOptions = Shader::Options::WithMesh(leftMesh);
+		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+		if(!tempDescriptor.vertexShader[0])
+			tempDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
+		if(!tempDescriptor.fragmentShader[0])
+			tempDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
+
+		//TODO: Add sky depth shader
 
 		MaterialDescriptor leftMaterialDescriptor = tempDescriptor;
 		if(left)
@@ -112,10 +117,15 @@ namespace RN
 
 		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 80, 81);
 		MaterialDescriptor domeMaterialDescriptor = materialDescriptor;
-		if(!domeMaterialDescriptor.vertexShader)
-			domeMaterialDescriptor.vertexShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(domeMesh), Shader::Default::Sky);
-		if(!domeMaterialDescriptor.fragmentShader)
-			domeMaterialDescriptor.fragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(domeMesh), Shader::Default::Sky);
+
+		Shader::Options *shaderOptions = Shader::Options::WithMesh(domeMesh);
+		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+		if(!domeMaterialDescriptor.vertexShader[0])
+			domeMaterialDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
+		if(!domeMaterialDescriptor.fragmentShader[0])
+			domeMaterialDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
+
+		//TODO: Add sky depth shader
 
 		if(texture)
 			domeMaterialDescriptor.AddTexture(Texture::WithName(texture));

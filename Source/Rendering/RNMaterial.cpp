@@ -13,8 +13,6 @@ namespace RN
 	RNDefineMeta(Material, Object)
 
 	MaterialDescriptor::MaterialDescriptor() :
-		fragmentShader(nullptr),
-		vertexShader(nullptr),
 		depthMode(DepthMode::Less),
 		depthWriteEnabled(true),
 		ambientColor(0.5f, 0.5f, 0.5f, 1.0f),
@@ -28,11 +26,15 @@ namespace RN
 		polygonOffsetUnits(0.1f),
 		cullMode(CullMode::BackFace),
 		_textures(new Array())
-	{}
+	{
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			vertexShader[i] = nullptr;
+			fragmentShader[i] = nullptr;
+		}
+	}
 
 	MaterialDescriptor::MaterialDescriptor(const MaterialDescriptor &other) :
-		fragmentShader(other.fragmentShader),
-		vertexShader(other.vertexShader),
 		depthMode(other.depthMode),
 		depthWriteEnabled(other.depthWriteEnabled),
 		ambientColor(other.ambientColor),
@@ -46,7 +48,13 @@ namespace RN
 		polygonOffsetUnits(other.polygonOffsetUnits),
 		cullMode(other.cullMode),
 		_textures(SafeCopy(other._textures))
-	{}
+	{
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			vertexShader[i] = other.vertexShader[i];
+			fragmentShader[i] = other.fragmentShader[i];
+		}
+	}
 
 	MaterialDescriptor::~MaterialDescriptor()
 	{
@@ -76,8 +84,7 @@ namespace RN
 
 
 	Material::Material(const MaterialDescriptor &descriptor) :
-		_fragmentShader(SafeRetain(descriptor.fragmentShader)),
-		_vertexShader(SafeRetain(descriptor.vertexShader)),
+		_override(0),
 		_textures(SafeCopy(descriptor.GetTextures())),
 		_vertexBuffers(nullptr),
 		_fragmentBuffers(nullptr),
@@ -94,13 +101,20 @@ namespace RN
 		_polygonOffsetUnits(descriptor.polygonOffsetUnits),
 		_cullMode(descriptor.cullMode)
 	{
-		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
-		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			_vertexShader[i] = SafeRetain(descriptor.vertexShader[i]);
+			_fragmentShader[i] = SafeRetain(descriptor.fragmentShader[i]);
+
+			RN_ASSERT(!_vertexShader[i] || _vertexShader[i]->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+			RN_ASSERT(!_fragmentShader[i] || _fragmentShader[i]->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
+		}
+
+		RN_ASSERT(_vertexShader[0], "Default vertex shader must be set");
 	}
 
 	Material::Material(const Material *other) :
-		_fragmentShader(SafeRetain(other->_fragmentShader)),
-		_vertexShader(SafeRetain(other->_vertexShader)),
+		_override(0),
 		_textures(SafeRetain(other->_textures)),
 		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
 		_fragmentBuffers(SafeCopy(other->_fragmentBuffers)),
@@ -116,7 +130,13 @@ namespace RN
 		_polygonOffsetFactor(other->_polygonOffsetFactor),
 		_polygonOffsetUnits(other->_polygonOffsetUnits),
 		_cullMode(other->_cullMode)
-	{}
+	{
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			_vertexShader[i] = SafeRetain(other->_vertexShader[i]);
+			_fragmentShader[i] = SafeRetain(other->_fragmentShader[i]);
+		}
+	}
 
 	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
 	{
@@ -128,9 +148,18 @@ namespace RN
 	{
 		SafeRelease(_vertexBuffers);
 		SafeRelease(_fragmentBuffers);
-		SafeRelease(_fragmentShader);
-		SafeRelease(_vertexShader);
 		SafeRelease(_textures);
+
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			SafeRelease(_fragmentShader[i]);
+			SafeRelease(_vertexShader[i]);
+		}
+	}
+
+	void Material::SetOverride(Override override)
+	{
+		_override = override;
 	}
 
 	void Material::SetDepthWriteEnabled(bool depthWrite)
@@ -192,12 +221,25 @@ namespace RN
 		_polygonOffsetUnits = units;
 	}
 
+	Shader *Material::GetFragmentShader(Shader::UsageHint type) const
+	{
+		if(!_fragmentShader[static_cast<uint8>(type)] && !_vertexShader[static_cast<uint8>(type)])
+			return _fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)];
+
+		return _fragmentShader[static_cast<uint8>(type)];
+	}
+	Shader *Material::GetVertexShader(Shader::UsageHint type) const
+	{
+		if(!_vertexShader[static_cast<uint8>(type)])
+			return _vertexShader[static_cast<uint8>(Shader::UsageHint::Default)];
+
+		return _vertexShader[static_cast<uint8>(type)];
+	}
+
 	MaterialDescriptor Material::GetDescriptor() const
 	{
 		MaterialDescriptor descriptor;
 		descriptor.SetTextures(GetTextures());
-		descriptor.fragmentShader = _fragmentShader;
-		descriptor.vertexShader = _vertexShader;
 		descriptor.depthMode = _depthMode;
 		descriptor.depthWriteEnabled = _depthWriteEnabled;
 		descriptor.ambientColor = _ambientColor;
@@ -210,6 +252,12 @@ namespace RN
 		descriptor.polygonOffsetFactor = _polygonOffsetFactor;
 		descriptor.polygonOffsetUnits = _polygonOffsetUnits;
 		descriptor.cullMode = _cullMode;
+
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			descriptor.vertexShader[i] = _vertexShader[i];
+			descriptor.fragmentShader[i] = _fragmentShader[i];
+		}
 
 		return descriptor;
 	}

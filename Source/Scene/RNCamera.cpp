@@ -135,6 +135,8 @@ namespace RN
 		_dirtyProjection = true;
 		_dirtyFrustum    = true;
 
+		_shaderHint = Shader::UsageHint::Default;
+
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_prefersLightManager = false;
 
@@ -170,6 +172,11 @@ namespace RN
 	void Camera::SetFlags(Flags flags)
 	{
 		_flags = flags;
+	}
+
+	void Camera::SetShaderHint(Shader::UsageHint hint)
+	{
+		_shaderHint = hint;
 	}
 
 	void Camera::SetMaterial(Material *material)

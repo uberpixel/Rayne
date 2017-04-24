@@ -14,12 +14,12 @@
 #include "../Math/RNPlane.h"
 #include "../Math/RNRect.h"
 #include "../Rendering/RNFramebuffer.h"
+#include "../Rendering/RNMaterial.h"
 #include "RNSceneNode.h"
 
 namespace RN
 {
 	class Window;
-	class Material;
 	class Light;
 	class Camera : public SceneNode
 	{
@@ -69,6 +69,7 @@ namespace RN
 		RNAPI void SetFramebuffer(Framebuffer *framebuffer);
 		RNAPI void SetFrame(const Rect &frame);
 		RNAPI void SetFlags(Flags flags);
+		RNAPI void SetShaderHint(Shader::UsageHint hint);
 		RNAPI void SetClearColor(const Color &color);
 		RNAPI void SetMaterial(Material *material);
 //		RNAPI void SetLightManager(LightManager *lightManager);
@@ -102,6 +103,7 @@ namespace RN
 		RNAPI const Rect &GetFrame();
 		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
+		Shader::UsageHint GetShaderHint() const { return _shaderHint; }
 		Camera *GetLODCamera() const { return _lodCamera ? _lodCamera : const_cast<Camera *>(this); }
 //		LightManager *GetLightManager();
 		int32 GetPriority() const { return _priority; }
@@ -173,6 +175,7 @@ namespace RN
 
 		Plane _clipPlane;
 //		LightManager *_lightManager;
+		Shader::UsageHint _shaderHint;
 
 		Matrix _projectionMatrix;
 		Matrix _inverseProjectionMatrix;

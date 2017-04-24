@@ -33,6 +33,35 @@
 		]
 	},
 	{
+		"file": ":RayneD3D12:/Depth.hlsl",
+		"shaders":
+		[
+			{
+				"name": "depth_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0"
+					]
+				}
+			},
+			{
+				"name": "depth_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_DISCARD",
+						"RN_UV0"
+					]
+				}
+			}
+		]
+	},
+	{
 		"file": ":RayneD3D12:/Sky.hlsl",
 		"shaders":
 		[

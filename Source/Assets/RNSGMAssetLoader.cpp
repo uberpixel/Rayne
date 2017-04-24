@@ -355,8 +355,12 @@ namespace RN
 			if(wantsDiscard)
 				shaderOptions->EnableDiscard();
 
-			descriptor.vertexShader = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions);
-			descriptor.fragmentShader = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions);
+			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
+			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
+			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Depth)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
+			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Depth)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
+			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Instancing)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing);
+			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Instancing)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing);
 
 			stage->AddMesh(mesh, Material::WithDescriptor(descriptor));
 			mesh->Autorelease();

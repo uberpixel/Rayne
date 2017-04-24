@@ -198,11 +198,13 @@ namespace RN
 			Compute
 		};
 
-		enum Default
+		enum UsageHint
 		{
-			Gouraud,
-			Sky,
-			Depth
+			Default,
+			Depth,
+			Instancing,
+
+			COUNT
 		};
 
 		RNAPI virtual const String *GetName() const = 0;
