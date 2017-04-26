@@ -35,9 +35,11 @@ namespace RN
 		D3DAPI void GenerateMipMaps() final;
 		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
 
-	private:
-		void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
+		ID3D12Resource *GetD3D12Resource() const { return _resource; }
 
+		D3DAPI void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
+
+	private:
 		D3D12Renderer *_renderer;
 		D3D12StateCoordinator *_coordinator;
 

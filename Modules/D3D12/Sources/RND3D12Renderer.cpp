@@ -457,6 +457,7 @@ namespace RN
 		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
+		renderPass.directionalShadowDepthTexture = nullptr;
 
 
 		Framebuffer *framebuffer = camera->GetFramebuffer();
@@ -782,14 +783,14 @@ namespace RN
 				});
 
 				//TODO: Find a cleaner more general solution
-				if(rootSignature->wantsDirectionalShadowTexture)
+				if(rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
 				{
 					device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 				}
 
 				//Create null texture descriptors for those that are too many in the root signature
-				for(int i = rootSignature->textureCount - (textures->GetCount() + rootSignature->wantsDirectionalShadowTexture); i > 0; i--)
+				for(int i = rootSignature->textureCount - (textures->GetCount() + (rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)); i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);

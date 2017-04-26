@@ -11,7 +11,7 @@
 
 #include <Rayne.h>
 
-#include "RNOculusCamera.h"
+#include "RNVRCamera.h"
 #include "RNBulletWorld.h"
 #include "RNBulletRigidBody.h"
 #include "RNBulletMaterial.h"
@@ -34,7 +34,7 @@ namespace SG
 		RN::Entity *_ground;
 
 		RN::Camera *_camera;
-		RN::OculusCamera *_oculusCamera;
+		RN::VRCamera *_oculusCamera;
 
 		RN::BulletWorld *_bulletWorld;
 		Player *_player;

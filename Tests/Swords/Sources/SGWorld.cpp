@@ -7,6 +7,7 @@
 //
 
 #include "SGWorld.h"
+#include "RNOpenVRWindow.h"
 
 namespace SG
 {
@@ -21,18 +22,27 @@ namespace SG
 
 		_camera = new RN::Camera();
 
-		_oculusCamera = new RN::OculusCamera(false);
+		RN::VRWindow *vrWindow = new RN::OpenVRWindow();
+		_oculusCamera = new RN::VRCamera(vrWindow);
 
 		_player = new Player(_oculusCamera, this, _bulletWorld);
 		AddNode(_player);
 
-		_player->AddChild(_camera);
-		_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 2.0f));
-		_camera->SetRotation(RN::Quaternion::WithEulerAngle(RN::Vector3(0.0f, -45.0f, 0.0f)));
+		_oculusCamera->GetHead()->AddChild(_camera);
 
 		AddNode(_oculusCamera);
 
 		CreateTestLevel();
+
+		RN::Light *sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		sunLight->SetWorldRotation(RN::Vector3(45.0f + 90, -45.0f, 0.0f));
+		AddNode(sunLight);
+		sunLight->ActivateShadows(RN::ShadowParameter(_camera));
+
+		RN::MaterialDescriptor skyMaterialDescriptor;
+		RN::Entity *skyEntity = new RN::Entity(RN::Model::WithSkycube(skyMaterialDescriptor, RNCSTR("models/uberpixel/sky_left.png"), RNCSTR("models/uberpixel/sky_front.png"), RNCSTR("models/uberpixel/sky_right.png"), RNCSTR("models/uberpixel/sky_back.png"), RNCSTR("models/uberpixel/sky_up.png"), RNCSTR("models/uberpixel/sky_down.png")));
+		skyEntity->SetScale(RN::Vector3(50000.0f));
+		AddNode(skyEntity->Autorelease());
 	}
 
 	void World::CreateTestLevel()
@@ -44,8 +54,8 @@ namespace SG
 	{
 		RN::Mesh *boxMesh = RN::Mesh::WithTexturedCube(RN::Vector3(100.0f, 0.5f, 100.0f));
 		RN::MaterialDescriptor boxMaterialDescriptor;
-		boxMaterialDescriptor.vertexShader = RN::Renderer::GetActiveRenderer()->GetDefaultShader(RN::Shader::Type::Vertex, RN::ShaderOptions::WithMesh(boxMesh));
-		boxMaterialDescriptor.fragmentShader = RN::Renderer::GetActiveRenderer()->GetDefaultShader(RN::Shader::Type::Fragment, RN::ShaderOptions::WithMesh(boxMesh));
+		boxMaterialDescriptor.vertexShader[0] = RN::Renderer::GetActiveRenderer()->GetDefaultShader(RN::Shader::Type::Vertex, RN::Shader::Options::WithMesh(boxMesh));
+		boxMaterialDescriptor.fragmentShader[0] = RN::Renderer::GetActiveRenderer()->GetDefaultShader(RN::Shader::Type::Fragment, RN::Shader::Options::WithMesh(boxMesh));
 		boxMaterialDescriptor.AddTexture(RN::Texture::WithName(RNCSTR("models/uberpixel/grass.png")));
 		RN::Material *boxMaterial = RN::Material::WithDescriptor(boxMaterialDescriptor);
 		boxMaterial->SetTextureTileFactor(100);

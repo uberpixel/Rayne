@@ -12,6 +12,7 @@
 #include "Rayne.h"
 #include "RNBulletKinematicController.h"
 #include "RNBulletWorld.h"
+#include "RNVRCamera.h"
 
 namespace SG
 {
@@ -19,11 +20,11 @@ namespace SG
 	class Player : public RN::SceneNode
 	{
 	public:
-		Player(RN::SceneNode *camera, World *world, RN::BulletWorld *bulletWorld);
+		Player(RN::VRCamera *camera, World *world, RN::BulletWorld *bulletWorld);
 		~Player() override;
 		
 		virtual void Update(float delta) override;
-		RN::SceneNode *GetCamera() const { return _camera; }
+		RN::VRCamera *GetCamera() const { return _camera; }
 
 	private:
 		void DidUpdate(ChangeSet changeSet) override;
@@ -31,7 +32,7 @@ namespace SG
 	private:
 		void ThrowBox(RN::SceneNode *origin);
 
-		RN::SceneNode *_camera;
+		RN::VRCamera *_camera;
 		RN::BulletKinematicController *_controller;
 		RN::BulletWorld *_bulletWorld;
 		World *_world;

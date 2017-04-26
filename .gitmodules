@@ -19,3 +19,6 @@
 [submodule "Modules/OpenAL/Vendor/openal-soft"]
 	path = Modules/OpenAL/Vendor/openal-soft
 	url = https://github.com/kcat/openal-soft.git
+[submodule "Modules/OpenVR/Vendor/OpenVR"]
+	path = Modules/OpenVR/Vendor/OpenVR
+	url = https://github.com/ValveSoftware/openvr.git
