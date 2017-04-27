@@ -47,7 +47,7 @@ namespace RN
 		_frameIndex = 0;
 		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 
-		
+		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Left);
 		vr::HmdMatrix34_t rightEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Right);
 		_hmdToEyeViewOffset[0].x = leftEyeMatrix.m[0][3];

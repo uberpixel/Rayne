@@ -30,7 +30,7 @@ namespace RN
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 
-		OVRAPI void UpdateTrackingData(float near, float far) final;
+		OVRAPI void Update(float delta, float near, float far) final;
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;

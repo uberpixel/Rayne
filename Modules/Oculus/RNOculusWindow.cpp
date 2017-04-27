@@ -73,7 +73,7 @@ namespace RN
 		return result;
 	}
 
-	void OculusWindow::UpdateTrackingData(float near, float far)
+	void OculusWindow::Update(float delta, float near, float far)
 	{
 		_swapChain->UpdatePredictedPose();
 

@@ -22,7 +22,7 @@ namespace RN
 		_intensity(10.0f),
 		_range(10.0f),
 		_angle(45.0f),
-		_angleCos(0.797),
+		_angleCos(0.797f),
 		_shadowTarget(nullptr),
 		_suppressShadows(false)
 	{

@@ -37,7 +37,7 @@ namespace RN
 
 		RNVRAPI virtual Framebuffer *GetFramebuffer() const override = 0;
 
-		RNVRAPI virtual void UpdateTrackingData(float near, float far) = 0;
+		RNVRAPI virtual void Update(float delta, float near, float far) = 0;
 
 		RNVRAPI virtual const VRHMDTrackingState &GetHMDTrackingState() const = 0;
 		RNVRAPI virtual const VRControllerTrackingState &GetControllerTrackingState(int hand) const = 0;

@@ -39,6 +39,9 @@ namespace RN
 			case UsageOptions::Uniform:
 				resourceType = D3D12Resource::ResourceType::Uniform;
 				break;
+			default:
+				resourceType = D3D12Resource::ResourceType::Uniform;
+				break;
 		}
 
 		_resource = new D3D12Resource(device, length, resourceType);

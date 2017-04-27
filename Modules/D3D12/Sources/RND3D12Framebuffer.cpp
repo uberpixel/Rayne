@@ -180,11 +180,15 @@ namespace RN
 		_rtvHandle(nullptr),
 		_dsvHandle(nullptr)
 	{
-		_swapChainColorBuffers = new ID3D12Resource*[swapChain->GetBufferCount()];
-
-		for(int i = 0; i < swapChain->GetBufferCount(); i++)
+		uint8 bufferCount = swapChain->GetBufferCount();
+		if(bufferCount > 0)
 		{
-			_swapChainColorBuffers[i] = swapChain->GetD3D12Buffer(i);
+			_swapChainColorBuffers = new ID3D12Resource*[bufferCount];
+
+			for(uint8 i = 0; i < bufferCount; i++)
+			{
+				_swapChainColorBuffers[i] = swapChain->GetD3D12Buffer(i);
+			}
 		}
 
 		D3D12ColorTargetView *targetView = new D3D12ColorTargetView();
@@ -405,7 +409,7 @@ namespace RN
 		if(!_depthStencilTarget)
 			return;
 
-		D3D12_RECT clearRect{ 0, 0, GetSize().x, GetSize().y };
+		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
 		commandList->GetCommandList()->ClearDepthStencilView(*_dsvHandle, D3D12_CLEAR_FLAG_DEPTH, depth, stencil, 1, &clearRect);
 	}
 }

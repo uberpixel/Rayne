@@ -7,7 +7,7 @@
 //
 
 #include "SGPlayer.h"
-#include "RNOpenVRCamera.h"
+#include "RNVRCamera.h"
 #include "SGWorld.h"
 #include "RNBulletRigidBody.h"
 

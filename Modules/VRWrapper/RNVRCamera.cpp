@@ -48,7 +48,7 @@ namespace RN
 
 	void VRCamera::Update(float delta)
 	{
-		_window->UpdateTrackingData(_eye[0]->GetClipNear(), _eye[0]->GetClipFar());
+		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 
 		_eye[0]->SetPosition(hmdState.eyeOffset[0]);

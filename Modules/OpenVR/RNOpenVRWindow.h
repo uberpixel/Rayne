@@ -32,7 +32,7 @@ namespace RN
 
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 
-		OVRAPI void UpdateTrackingData(float near, float far) final;
+		OVRAPI void Update(float delta, float near, float far) final;
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
@@ -42,6 +42,10 @@ namespace RN
 		OpenVRSwapChain *_swapChain;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
+
+		VRControllerHaptics _haptics[2];
+		uint16 _currentHapticsIndex[2];
+		float _remainingHapticsDelta;
 
 		RNDeclareMetaAPI(OpenVRWindow, OVRAPI)
 	};

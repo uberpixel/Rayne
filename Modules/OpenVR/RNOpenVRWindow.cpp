@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow()
+	OpenVRWindow::OpenVRWindow() : _currentHapticsIndex{500, 500}, _remainingHapticsDelta(0.0f)
 	{
 		_swapChain = new OpenVRSwapChain();
 	}
@@ -59,8 +59,9 @@ namespace RN
 		return result;
 	}
 
-	void OpenVRWindow::UpdateTrackingData(float near, float far)
+	void OpenVRWindow::Update(float delta, float near, float far)
 	{
+		uint16 handDevices[2] = { vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount };
 		_swapChain->UpdatePredictedPose();
 
 		vr::HmdMatrix44_t leftProjection = _swapChain->_hmd->GetProjectionMatrix(vr::Eye_Left, near, far);
@@ -71,7 +72,7 @@ namespace RN
 		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(leftProjection);
 		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(rightProjection);
 
-		if (_swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+		if(_swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 		{
 			vr::HmdMatrix34_t headPose = _swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
 			Matrix rotationPose = GetRotationMatrixForOVRMatrix(headPose);
@@ -80,7 +81,6 @@ namespace RN
 			_hmdTrackingState.position.z = headPose.m[2][3];
 			_hmdTrackingState.rotation = rotationPose.GetEulerAngle();
 		}
-
 
 		for(int nDevice = 1; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 		{
@@ -111,8 +111,9 @@ namespace RN
 				break;
 			}
 
-			if(handIndex != -1)
+			if(handIndex < 2)
 			{
+				handDevices[handIndex] = nDevice;
 				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
 				{
 					_controllerTrackingState[handIndex].active = true;
@@ -145,6 +146,35 @@ namespace RN
 				}
 			}
 		}
+
+		//Update haptics
+		_remainingHapticsDelta += delta;
+		uint16 hapticsIncrement = roundf(_remainingHapticsDelta / 0.003125f);
+		_remainingHapticsDelta -= static_cast<float>(hapticsIncrement)*0.003125f;
+
+		for(uint8 hand = 0; hand < 2; hand++)
+		{
+			uint16 device = handDevices[hand];
+			if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount && device < vr::k_unMaxTrackedDeviceCount)
+			{
+				if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount)
+				{
+					if(_haptics[hand].samples[_currentHapticsIndex[hand]] > 0)
+					{
+						uint32 sample = _haptics[hand].samples[_currentHapticsIndex[hand]];
+						sample *= 3999;
+						sample /= 255;
+						_swapChain->_hmd->TriggerHapticPulse(device, 0, sample);
+					}
+				}
+				else
+				{
+					_currentHapticsIndex[hand] = 300;
+				}
+
+				_currentHapticsIndex[hand] += hapticsIncrement;
+			}
+		}
 	}
 
 	const VRHMDTrackingState &OpenVRWindow::GetHMDTrackingState() const
@@ -159,10 +189,7 @@ namespace RN
 
 	void OpenVRWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)
 	{
-/*		ovrHapticsBuffer buffer;
-		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
-		buffer.SamplesCount = haptics.sampleCount;
-		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_swapChain->_session, hand?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);*/
+		_currentHapticsIndex[hand] = 0;
+		_haptics[hand] = haptics;
 	}
 }

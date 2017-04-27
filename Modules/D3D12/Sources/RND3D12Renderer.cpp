@@ -527,23 +527,23 @@ namespace RN
 
 	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
 	{
-		Shader *realShader;
+		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
 			if(usageHint == Shader::UsageHint::Depth)
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
 			}
 			else
 			{
 				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
 				}
 				else
 				{
-					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
 				}
 			}
 		}
@@ -551,23 +551,23 @@ namespace RN
 		{
 			if(usageHint == Shader::UsageHint::Depth)
 			{
-				realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
 			}
 			else
 			{
 				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
 				}
 				else
 				{
-					realShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 				}
 			}
 		}
 
-		return realShader;
+		return shader;
 	}
 
 	bool D3D12Renderer::SupportsTextureFormat(const String *format) const
