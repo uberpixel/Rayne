@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(OpenVRSwapChain, VRSwapChain)
+	RNDefineMeta(OpenVRSwapChain, D3D12SwapChain)
 
 	OpenVRSwapChain::OpenVRSwapChain()
 	{

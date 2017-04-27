@@ -119,10 +119,11 @@ namespace RN
 
 					vr::HmdMatrix34_t handPose = _swapChain->_frameDevicePose[nDevice].mDeviceToAbsoluteTracking;
 					Matrix rotationPose = GetRotationMatrixForOVRMatrix(handPose);
+					_controllerTrackingState[handIndex].rotation = rotationPose.GetEulerAngle();
 					_controllerTrackingState[handIndex].position.x = handPose.m[0][3];
 					_controllerTrackingState[handIndex].position.y = handPose.m[1][3];
 					_controllerTrackingState[handIndex].position.z = handPose.m[2][3];
-					_controllerTrackingState[handIndex].rotation = rotationPose.GetEulerAngle();
+					_controllerTrackingState[handIndex].position += _controllerTrackingState[handIndex].rotation.GetRotatedVector(Vector3(0.0f, -0.01f, 0.05f));
 
 					vr::VRControllerState_t controllerState;
 					_swapChain->_hmd->GetControllerState(nDevice, &controllerState, sizeof(controllerState));

@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(OculusWindow, Window)
+	RNDefineMeta(OculusWindow, VRWindow)
 
 	OculusWindow::OculusWindow()
 	{
@@ -87,48 +87,50 @@ namespace RN
 		ovrInputState inputState;
 		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
 		{
-			_touchTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
-			_touchTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
-			_touchTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
-			_touchTrackingState[0].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[0]);
-			_touchTrackingState[0].indexTrigger = inputState.IndexTrigger[0];
-			_touchTrackingState[0].handTrigger = inputState.HandTrigger[0];
+			_controllerTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
+			_controllerTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
+			_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
+			_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+			_controllerTrackingState[0].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[0]);
+			_controllerTrackingState[0].indexTrigger = inputState.IndexTrigger[0];
+			_controllerTrackingState[0].handTrigger = inputState.HandTrigger[0];
 
-			_touchTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
-			_touchTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
-			_touchTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
-			_touchTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
-			_touchTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
-			_touchTrackingState[1].handTrigger = inputState.HandTrigger[1];
+			_controllerTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
+			_controllerTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
+			_controllerTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
+			_controllerTrackingState[1].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+			_controllerTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
+			_controllerTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
+			_controllerTrackingState[1].handTrigger = inputState.HandTrigger[1];
 
-			_touchTrackingState[0].button[OculusTouchTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
-			_touchTrackingState[0].button[OculusTouchTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
-			_touchTrackingState[0].button[OculusTouchTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_LThumb;
-			_touchTrackingState[0].button[OculusTouchTrackingState::Button::Enter] = inputState.Buttons & ovrButton_Enter;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_LThumb;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Enter] = inputState.Buttons & ovrButton_Enter;
 
-			_touchTrackingState[1].button[OculusTouchTrackingState::Button::AX] = inputState.Buttons & ovrButton_A;
-			_touchTrackingState[1].button[OculusTouchTrackingState::Button::BY] = inputState.Buttons & ovrButton_B;
-			_touchTrackingState[1].button[OculusTouchTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_RThumb;
-			_touchTrackingState[1].button[OculusTouchTrackingState::Button::Enter] = false;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_A;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_B;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_RThumb;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Enter] = false;
 		}
 		else
 		{
-			_touchTrackingState[0].active = false;
-			_touchTrackingState[1].active = false;
+			_controllerTrackingState[0].active = false;
+			_controllerTrackingState[1].active = false;
 		}
 	}
 
-	const OculusHMDTrackingState &OculusWindow::GetHMDTrackingState() const
+	const VRHMDTrackingState &OculusWindow::GetHMDTrackingState() const
 	{
 		return _hmdTrackingState;
 	}
 
-	const OculusTouchTrackingState &OculusWindow::GetTouchTrackingState(int hand) const
+	const VRControllerTrackingState &OculusWindow::GetControllerTrackingState(int hand) const
 	{
-		return _touchTrackingState[hand];
+		return _controllerTrackingState[hand];
 	}
 
-	void OculusWindow::SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics)
+	void OculusWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)
 	{
 		ovrHapticsBuffer buffer;
 		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;

@@ -27,7 +27,7 @@ if(MSVC AND BUILD_D3D12_MODULE AND BUILD_OCULUS_MODULE)
 	rayne_use_modules(Swords RayneAssimp)
 	rayne_use_modules(Swords RayneBullet)
 	rayne_use_modules(Swords RayneVR)
-	#rayne_use_modules(Swords RayneOculus)
+	rayne_use_modules(Swords RayneOculus)
 	rayne_use_modules(Swords RayneOpenVR)
 	rayne_use_modules(Swords RayneD3D12)
 	

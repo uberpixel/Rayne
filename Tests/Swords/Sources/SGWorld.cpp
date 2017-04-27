@@ -8,6 +8,7 @@
 
 #include "SGWorld.h"
 #include "RNOpenVRWindow.h"
+#include "RNOculusWindow.h"
 
 namespace SG
 {
@@ -22,7 +23,8 @@ namespace SG
 
 		_camera = new RN::Camera();
 
-		RN::VRWindow *vrWindow = new RN::OpenVRWindow();
+//		RN::VRWindow *vrWindow = new RN::OpenVRWindow();
+		RN::VRWindow *vrWindow = new RN::OculusWindow();
 		_oculusCamera = new RN::VRCamera(vrWindow);
 
 		_player = new Player(_oculusCamera, this, _bulletWorld);

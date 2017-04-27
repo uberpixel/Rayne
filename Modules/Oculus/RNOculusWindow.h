@@ -10,12 +10,12 @@
 #define __RAYNE_OCULUSWINDOW_H_
 
 #include "RNOculus.h"
-#include "RNOculusTrackingState.h"
+#include "RNVRWindow.h"
 
 namespace RN
 {
 	class OculusSwapChain;
-	class OculusWindow : public Window
+	class OculusWindow : public VRWindow
 	{
 	public:
 /*		enum Eye
@@ -27,26 +27,19 @@ namespace RN
 		OVRAPI OculusWindow();
 		OVRAPI ~OculusWindow();
 
-		OVRAPI void SetTitle(const String *title) final { }
-		OVRAPI Screen *GetScreen() final { return nullptr; }
-
-		OVRAPI void Show() final { }
-		OVRAPI void Hide() final { }
-
 		OVRAPI Vector2 GetSize() const final;
-
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 
-		OVRAPI void UpdateTrackingData(float near, float far);
+		OVRAPI void UpdateTrackingData(float near, float far) final;
 
-		OVRAPI const OculusHMDTrackingState &GetHMDTrackingState() const;
-		OVRAPI const OculusTouchTrackingState &GetTouchTrackingState(int hand) const;
-		OVRAPI void SubmitTouchHaptics(int hand, const OculusTouchHaptics &haptics);
+		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
+		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
+		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
 
 	private:
 		OculusSwapChain *_swapChain;
-		OculusHMDTrackingState _hmdTrackingState;
-		OculusTouchTrackingState _touchTrackingState[2];
+		VRHMDTrackingState _hmdTrackingState;
+		VRControllerTrackingState _controllerTrackingState[2];
 
 		RNDeclareMetaAPI(OculusWindow, OVRAPI)
 	};

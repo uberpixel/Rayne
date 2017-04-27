@@ -6,7 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNVRSwapChain.h"
 #include "RNVRWindow.h"
 
 namespace RN

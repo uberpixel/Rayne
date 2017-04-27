@@ -9,7 +9,8 @@
 #ifndef __RAYNE_OPENVRSWAPCHAIN_H_
 #define __RAYNE_OPENVRSWAPCHAIN_H_
 
-#include "RNVRSwapChain.h"
+#include "RND3D12Renderer.h"
+#include "RND3D12SwapChain.h"
 #include "RND3D12Framebuffer.h"
 
 #include <openvr.h>
@@ -17,7 +18,7 @@
 
 namespace RN
 {
-	class OpenVRSwapChain : public VRSwapChain
+	class OpenVRSwapChain : public D3D12SwapChain
 	{
 	public:
 		friend class OpenVRWindow;
@@ -31,7 +32,7 @@ namespace RN
 
 		OVRAPI ID3D12Resource *GetD3D12Buffer(int i) const final;
 
-		OVRAPI void UpdatePredictedPose() final;
+		OVRAPI void UpdatePredictedPose();
 
 	protected:
 		OpenVRSwapChain();
