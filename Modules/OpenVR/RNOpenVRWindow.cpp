@@ -16,6 +16,7 @@ namespace RN
 	OpenVRWindow::OpenVRWindow() : _currentHapticsIndex{500, 500}, _remainingHapticsDelta(0.0f)
 	{
 		_swapChain = new OpenVRSwapChain();
+		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
 
 	OpenVRWindow::~OpenVRWindow()
@@ -134,11 +135,10 @@ namespace RN
 					_controllerTrackingState[handIndex].indexTrigger = controllerState.rAxis[1].x;
 					_controllerTrackingState[handIndex].handTrigger = controllerState.rAxis[2].x;
 
-					//TODO: Implement remaining buttons
 					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A);
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;// controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A + 1);
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Thumb] = false;// inputState.Buttons & ovrButton_LThumb;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Enter] = false;// inputState.Buttons & ovrButton_Enter;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
 				}
 				else
 				{

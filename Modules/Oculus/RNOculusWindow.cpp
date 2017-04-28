@@ -105,13 +105,13 @@ namespace RN
 
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_LThumb;
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Enter] = inputState.Buttons & ovrButton_Enter;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = inputState.Buttons & ovrButton_LThumb;
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = inputState.Buttons & ovrButton_Enter;
 
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_A;
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_B;
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Thumb] = inputState.Buttons & ovrButton_RThumb;
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Enter] = false;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Stick] = inputState.Buttons & ovrButton_RThumb;
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Start] = false;
 		}
 		else
 		{
