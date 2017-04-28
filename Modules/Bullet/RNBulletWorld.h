@@ -52,6 +52,8 @@ namespace RN
 
 		BTAPI btDynamicsWorld *GetBulletDynamicsWorld() { return _dynamicsWorld; }
 
+		BTAPI void SetPaused(bool paused);
+
 	private:
 		static void SimulationStepTickCallback(btDynamicsWorld *world, float timeStep);
 
@@ -64,6 +66,7 @@ namespace RN
 
 		double _stepSize;
 		int _maxSteps;
+		bool _paused;
 
 		std::unordered_set<BulletCollisionObject *> _collisionObjects;
 

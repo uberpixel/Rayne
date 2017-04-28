@@ -19,7 +19,7 @@ namespace RN
 {
 	RNDefineMeta(BulletWorld, SceneAttachment)
 
-	BulletWorld::BulletWorld(const Vector3 &gravity) : _maxSteps(50), _stepSize(1.0 / 120.0)
+	BulletWorld::BulletWorld(const Vector3 &gravity) : _maxSteps(50), _stepSize(1.0 / 120.0), _paused(false)
 	{
 		_pairCallback = new btGhostPairCallback();
 
@@ -111,6 +111,11 @@ namespace RN
 		_maxSteps = maxsteps;
 	}
 
+	void BulletWorld::SetPaused(bool paused)
+	{
+		_paused = paused;
+	}
+
 	void BulletWorld::SetSolverIterations(int iterations)
 	{
 		_dynamicsWorld->getSolverInfo().m_numIterations = iterations;
@@ -118,6 +123,9 @@ namespace RN
 
 	void BulletWorld::Update(float delta)
 	{
+		if(_paused)
+			return;
+
 		_dynamicsWorld->stepSimulation(delta, _maxSteps, _stepSize);
 	}
 

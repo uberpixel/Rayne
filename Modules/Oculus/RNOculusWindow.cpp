@@ -84,6 +84,39 @@ namespace RN
 		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.ThePose.Position);
 		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.ThePose.Orientation);
 
+		if(_swapChain->_submitResult == ovrSuccess_NotVisible)
+		{
+			//Check if application should quit! Stop most things.
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
+		}
+		else if(_swapChain->_submitResult == ovrError_DisplayLost)
+		{
+			//Recreate session/swap chain or quit application with an error message
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
+		}
+		else if(OVR_FAILURE(_swapChain->_submitResult))
+		{
+			//Quit the application
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
+		}
+		else
+		{
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
+		}
+
+		ovrSessionStatus sessionStatus;
+		ovr_GetSessionStatus(_swapChain->_session, &sessionStatus);
+
+		if(sessionStatus.ShouldQuit)
+		{
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
+		}
+		if(sessionStatus.ShouldRecenter)
+		{
+			ovr_RecenterTrackingOrigin(_swapChain->_session); // or ovr_ClearShouldRecenterFlag(_swapChain->_session) to ignore the request.
+		}
+
+
 		ovrInputState inputState;
 		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
 		{

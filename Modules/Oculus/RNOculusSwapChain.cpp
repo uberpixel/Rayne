@@ -12,7 +12,7 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
-	OculusSwapChain::OculusSwapChain()
+	OculusSwapChain::OculusSwapChain() : _submitResult(0)
 	{
 		_session = nullptr;
 
@@ -136,7 +136,7 @@ namespace RN
 
 		// Submit frame with one layer we have.
 		ovrLayerHeader* layers = &_layer.Header;
-		ovrResult result = ovr_SubmitFrame(_session, 0, nullptr, &layers, 1);	//TODO: Frameindex as second param
+		_submitResult = ovr_SubmitFrame(_session, 0, nullptr, &layers, 1);	//TODO: Frameindex as second param
 		//isVisible = (result == ovrSuccess);	//TODO: Pause application and rendering if not true
 	}
 

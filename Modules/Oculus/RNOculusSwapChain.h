@@ -49,6 +49,8 @@ namespace RN
 		ovrVector3f _hmdToEyeViewOffset[2];
 		ovrTrackingState _hmdState;
 
+		ovrResult _submitResult;
+
 		RNDeclareMetaAPI(OculusSwapChain, OVRAPI)
 	};
 }
