@@ -83,6 +83,19 @@ namespace RN
 			_hmdTrackingState.rotation = rotationPose.GetEulerAngle();
 		}
 
+		_hmdTrackingState.mode = vr::VROverlay()->IsDashboardVisible() ? VRHMDTrackingState::Mode::Paused : VRHMDTrackingState::Mode::Rendering;
+		vr::VREvent_t event;
+		while(_swapChain->_hmd->PollNextEvent(&event, sizeof(event)))
+		{
+			//TODO: Handle more OpenVR events
+			switch(event.eventType)
+			{
+			case vr::VREvent_Quit:
+				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
+				break;
+			}
+		}
+
 		for(int nDevice = 1; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 		{
 			uint8 handIndex = -1;

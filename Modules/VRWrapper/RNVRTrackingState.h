@@ -15,11 +15,20 @@ namespace RN
 {
 	struct VRHMDTrackingState
 	{
+		enum Mode
+		{
+			Rendering,
+			Paused,
+			Disconnected
+		};
+
 		Vector3 eyeOffset[2];
 		Matrix eyeProjection[2];
 
 		Vector3 position;
 		Quaternion rotation;
+
+		Mode mode;
 	};
 
 	struct VRControllerTrackingState
@@ -28,8 +37,8 @@ namespace RN
 		{
 			AX,
 			BY,
-			Thumb,
-			Enter,
+			Stick,
+			Start,
 			BUTTON_COUNT
 		};
 
