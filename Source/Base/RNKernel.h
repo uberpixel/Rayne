@@ -49,6 +49,7 @@ namespace RN
 
 		Application *GetApplication() const { return _application; }
 		Settings *GetSettings() const { return _settings; }
+		const ArgumentParser &GetArguments() const { return _arguments; }
 
 		template<class T>
 		T *GetManifestEntryForKey(const String *key) const
