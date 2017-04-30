@@ -25,7 +25,7 @@ namespace RN
 			return 0;
 
 		default:
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 		}
 		return 0;
 	}
@@ -75,8 +75,8 @@ namespace RN
 	void D3D12Window::SetTitle(const String *title)
 	{
 		char *text = title->GetUTF8String();
-		wchar_t *wtext = new wchar_t[strlen(text) + 1];
-		mbstowcs(wtext, text, strlen(text) + 1);//Plus null
+		wchar_t *wtext = new wchar_t[title->GetLength() + 1];
+		mbstowcs(wtext, text, title->GetLength() + 1);//Plus null
 		LPWSTR ptr = wtext;
 
 		SetWindowTextW(_hwnd, ptr);
