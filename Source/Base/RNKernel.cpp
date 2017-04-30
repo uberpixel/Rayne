@@ -266,7 +266,7 @@ namespace RN
 				Window *window = _renderer->GetMainWindow();
 				if(!window)
 				{
-					window = _renderer->CreateAWindow(Vector2(1920, 1080), Screen::GetMainScreen());
+					window = _renderer->CreateAWindow(Vector2(960, 540), Screen::GetMainScreen());
 					window->SetTitle(_application->GetTitle());
 					window->Show();
 				}
@@ -342,11 +342,17 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 		MSG message;
-		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		while(PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE))
 		{
 			if(message.message == WM_INPUT)
 			{
 				InputManager::GetSharedInstance()->__HandleRawInput((HRAWINPUT)message.lParam);
+			}
+
+			if(message.message == WM_CLOSE || message.message == WM_DESTROY || message.message == WM_QUIT)
+			{
+				//TODO: Find a better way to signal the app to close or maybe just close it? This sets the ESC key to true...
+				InputManager::GetSharedInstance()->_keyPressed[0x1B] = true;
 			}
 
 			TranslateMessage(&message);

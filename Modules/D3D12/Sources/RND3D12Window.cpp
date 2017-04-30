@@ -15,6 +15,21 @@ namespace RN
 {
 	RNDefineMeta(D3D12Window, Window)
 
+	//TODO: Related to Kernel HandleSystemEvents
+	LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg)
+		{
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+
+		default:
+			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		}
+		return 0;
+	}
+
 	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, uint8 bufferCount) : 
 		Window(screen)
 	{
@@ -26,7 +41,7 @@ namespace RN
 			WNDCLASSEXW windowClass = { 0 };
 			windowClass.cbSize = sizeof(WNDCLASSEX);
 			windowClass.style = CS_HREDRAW | CS_VREDRAW;
-			windowClass.lpfnWndProc = &DefWindowProcW;
+			windowClass.lpfnWndProc = &MainWndProc;
 			windowClass.hInstance = hInstance;
 			windowClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
 			windowClass.lpszClassName = L"RND3D12WindowClass";

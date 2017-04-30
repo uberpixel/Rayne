@@ -412,6 +412,10 @@ namespace RN
 		{
 			return _keyPressed[0x46];
 		}
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[0x1B];
+		}
 #endif
 
 		return false;
