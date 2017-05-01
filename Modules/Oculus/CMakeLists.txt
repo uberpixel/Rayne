@@ -22,11 +22,7 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_OCULUS)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib RayneD3D12 RayneVR)
-else()
-        set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Release/VS2015/LibOVR.lib RayneD3D12 RayneVR)
-endif()
+set(RAYNE_LIBRARIES Rayne  RayneD3D12 RayneVR)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Include"
@@ -35,6 +31,7 @@ set(INCLUDE_DIRECTORIES
 
 rayne_add_library(RayneOculus "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOculus)
+target_link_libraries(RayneOculus debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Release/VS2015/LibOVR.lib)
 
 rayne_use_modules(RayneOculus RayneD3D12)
 
