@@ -90,14 +90,63 @@ namespace RN
 		case Texture::Format::Depth24I:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case Texture::Format::Depth32F:
-			return DXGI_FORMAT_R32_FLOAT;
-			//return DXGI_FORMAT_D32_FLOAT;
+			return DXGI_FORMAT_D32_FLOAT;
 		case Texture::Format::Stencil8:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case Texture::Format::Depth24Stencil8:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case Texture::Format::Depth32FStencil8:
 			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+		default:
+			return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+
+	static DXGI_FORMAT D3D12ImageShaderInputFormatFromTextureFormat(Texture::Format format)
+	{
+		switch (format)
+		{
+		case Texture::Format::RGBA8888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::RGBA8888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::RGB10A2:
+			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::R8:
+			return DXGI_FORMAT_R8_UNORM;
+		case Texture::Format::RG88:
+			return DXGI_FORMAT_R8G8_UNORM;
+		case Texture::Format::RGB888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::R16F:
+			return DXGI_FORMAT_R16_FLOAT;
+		case Texture::Format::RG16F:
+			return DXGI_FORMAT_R16G16_FLOAT;
+		case Texture::Format::RGB16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::RGBA16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::R32F:
+			return DXGI_FORMAT_R32_FLOAT;
+		case Texture::Format::RG32F:
+			return DXGI_FORMAT_R32G32_FLOAT;
+		case Texture::Format::RGB32F:
+			return DXGI_FORMAT_R32G32B32_FLOAT;
+		case Texture::Format::RGBA32F:
+			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case Texture::Format::Depth24I:
+			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		case Texture::Format::Depth32F:
+			return DXGI_FORMAT_R32_FLOAT;
+		case Texture::Format::Stencil8:
+			return DXGI_FORMAT_X24_TYPELESS_G8_UINT;
+
+		//TODO: Only depth of DepthStencil formats it currently accesible in shader, two resource views with different formats would be needed
+		case Texture::Format::Depth24Stencil8:
+			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		case Texture::Format::Depth32FStencil8:
+			return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+
 		default:
 			return DXGI_FORMAT_UNKNOWN;
 		}
@@ -188,7 +237,7 @@ namespace RN
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 
 		_srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		_srvDescriptor.Format = D3D12ImageFormatFromTextureFormat(descriptor.format);
+		_srvDescriptor.Format = D3D12ImageShaderInputFormatFromTextureFormat(descriptor.format);
 		
 		//TODO: Support multisampled types and cubemaps
 		switch(descriptor.type)
@@ -241,7 +290,7 @@ namespace RN
 		imageDesc.Height = descriptor.height;
 		imageDesc.DepthOrArraySize = descriptor.depth;
 		imageDesc.MipLevels = descriptor.mipMaps;
-		imageDesc.Format = _srvDescriptor.Format;
+		imageDesc.Format = D3D12ImageFormatFromTextureFormat(descriptor.format);
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -249,19 +298,27 @@ namespace RN
 
 		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
-			//TODO: Fix Typeless/Typed mess for depth targets that are used as shader resource... Maybe introduce an extra usage hint?
-			//TODO: Maybe don't hardcode!?
-			/*D3D12_CLEAR_VALUE clearValue = {};
-			clearValue.Format = _format;
-			clearValue.DepthStencil.Depth = 1.0f;
-			clearValue.DepthStencil.Stencil = 0;*/
+			D3D12_CLEAR_VALUE clearValue = {};
+			clearValue.Format = imageDesc.Format;
 
-			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
+			//TODO: descriptor.usageHint & UsageHint::ShaderRead could be checked here, but makes error handling tricky and maybe there is no disadvantage in always using a typeless format here...
 			if(descriptor.format >= Texture::Format::Depth24I)
+			{
 				imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
+				clearValue.DepthStencil.Depth = descriptor.preferredClearDepth;
+				clearValue.DepthStencil.Stencil = descriptor.preferredClearStencil;
+			}
+			else
+			{
+				clearValue.Color[0] = descriptor.preferredClearColor.r;
+				clearValue.Color[1] = descriptor.preferredClearColor.g;
+				clearValue.Color[2] = descriptor.preferredClearColor.b;
+				clearValue.Color[3] = descriptor.preferredClearColor.a;
+			}
 
 			// create the final texture buffer
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, /*&clearValue*/nullptr, IID_PPV_ARGS(&_resource));
+			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
+			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, &clearValue, IID_PPV_ARGS(&_resource));
 		}
 		else
 		{

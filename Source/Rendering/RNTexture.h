@@ -76,7 +76,10 @@ namespace RN
 				height(1),
 				depth(1),
 				mipMaps(1),
-				format(Format::RGBA8888)
+				format(Format::RGBA8888),
+				preferredClearColor(Color::White()),
+				preferredClearDepth(1.0f),
+				preferredClearStencil(0)
 			{
 
 			}
@@ -121,6 +124,10 @@ namespace RN
 			uint32 depth;
 			uint32 mipMaps;
 			Format format;
+
+			Color preferredClearColor;
+			float preferredClearDepth;
+			uint8 preferredClearStencil;
 		};
 
 		struct Region
