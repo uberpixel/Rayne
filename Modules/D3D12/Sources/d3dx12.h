@@ -26,6 +26,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
+#include <mutex>
 
 #if defined( __cplusplus )
 
@@ -1870,6 +1871,16 @@ inline HRESULT D3DX12SerializeVersionedRootSignature(
     _Outptr_ ID3DBlob** ppBlob,
     _Always_(_Outptr_opt_result_maybenull_) ID3DBlob** ppErrorBlob)
 {
+	//TODO: Maybe get function pointer in one place with others?
+	static std::once_flag onceFlagModel;
+	static PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE serializeVersionedRootSignature = nullptr;
+	std::call_once(onceFlagModel, []() {
+		serializeVersionedRootSignature = (PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE)GetProcAddress(GetModuleHandleA("d3d12.dll"), "D3D12SerializeVersionedRootSignature");
+	});
+
+	if(!serializeVersionedRootSignature)
+		MaxVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+
     switch (MaxVersion)
     {
         case D3D_ROOT_SIGNATURE_VERSION_1_0:
@@ -1945,7 +1956,7 @@ inline HRESULT D3DX12SerializeVersionedRootSignature(
             break;
 
         case D3D_ROOT_SIGNATURE_VERSION_1_1:
-            return D3D12SerializeVersionedRootSignature(pRootSignatureDesc, ppBlob, ppErrorBlob);
+            return serializeVersionedRootSignature(pRootSignatureDesc, ppBlob, ppErrorBlob);
     }
 
     return E_INVALIDARG;
