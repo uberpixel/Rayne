@@ -33,7 +33,7 @@ namespace RN
 		RNAPI void SetClearColor(const Color &color);
 		RNAPI void SetClearDepthStencil(float depth, uint8 stencil);
 
-		Framebuffer *GetFramebuffer() const { return _framebuffer; }
+		RNAPI Framebuffer *GetFramebuffer() const;
 		Flags GetFlags() const { return _flags; }
 		RNAPI const Rect &GetFrame() const;
 		const Color &GetClearColor() const { return _clearColor; }

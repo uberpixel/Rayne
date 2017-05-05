@@ -462,20 +462,9 @@ namespace RN
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
 		renderPass.directionalShadowDepthTexture = nullptr;
 
-		//TODO: Always return a valid framebuffer
 		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
 		D3D12SwapChain *newSwapChain = nullptr;
-		if(!framebuffer)
-		{
-			D3D12Window *window = static_cast<D3D12Window *>(_mainWindow);
-			newSwapChain = window->GetSwapChain();
-			framebuffer = newSwapChain->GetFramebuffer();
-		}
-		else
-		{
-			newSwapChain = framebuffer->Downcast<D3D12Framebuffer>()->GetSwapChain();
-		}
-
+		newSwapChain = framebuffer->Downcast<D3D12Framebuffer>()->GetSwapChain();
 		renderPass.framebuffer = framebuffer->Downcast<D3D12Framebuffer>();
 		
 		if(newSwapChain)

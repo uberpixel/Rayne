@@ -52,7 +52,6 @@ namespace RN
 
 	struct D3D12RenderPass
 	{
-//		Camera *camera;
 		RenderPass *renderPass;
 		D3D12Framebuffer *framebuffer;
 		Shader::UsageHint shaderHint;

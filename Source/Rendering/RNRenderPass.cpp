@@ -52,6 +52,16 @@ namespace RN
 	}
 
 	//Getter
+	Framebuffer *RenderPass::GetFramebuffer() const
+	{
+		if(!_framebuffer)
+		{
+			return Renderer::GetActiveRenderer()->GetMainWindow()->GetFramebuffer();
+		}
+
+		return _framebuffer;
+	}
+
 	const Rect &RenderPass::GetFrame() const
 	{
 		if(std::abs(_frame.GetArea()) > 0.0001)
