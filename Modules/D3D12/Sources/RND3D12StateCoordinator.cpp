@@ -310,6 +310,8 @@ namespace RN
 
 		const Material *cameraMaterial = overrideMaterial;
 		D3D12PipelineStateDescriptor pipelineDescriptor;
+		pipelineDescriptor.sampleCount = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain())? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleCount : 1;
+
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
 		{
 			pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
@@ -348,7 +350,7 @@ namespace RN
 		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
 		for(const D3D12PipelineState *state : collection->states)
 		{
-			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
+			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 			{
 				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits)
 				{
@@ -414,7 +416,7 @@ namespace RN
 			if(counter >= 8)
 				break;
 		}
-		psoDesc.SampleDesc.Count = 1;
+		psoDesc.SampleDesc.Count = descriptor.sampleCount;;
 
 		D3D12PipelineState *state = new D3D12PipelineState();
 		state->descriptor = std::move(descriptor);

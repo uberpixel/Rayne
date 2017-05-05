@@ -69,7 +69,7 @@ namespace RN
 		colorTargetView->targetView.texture->Retain();
 		colorTargetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
-		//TODO: Support multisampled render targets and plane slices
+		//TODO: Support multisampled array render targets and plane slices
 		switch(targetView.texture->GetDescriptor().type)
 		{
 		case Texture::Type::Type1D:
@@ -93,6 +93,12 @@ namespace RN
 			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 			colorTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
 			colorTargetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+			break;
+		}
+
+		case Texture::Type::Type2DMS:
+		{
+			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
 			break;
 		}
 
@@ -129,7 +135,7 @@ namespace RN
 		depthStencilTargetView->targetView.texture->Retain();
 		depthStencilTargetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
-		//TODO: Support multisampled render targets
+		//TODO: Support multisampled array render targets
 		switch (targetView.texture->GetDescriptor().type)
 		{
 		case Texture::Type::Type1D:
@@ -152,6 +158,12 @@ namespace RN
 		{
 			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 			depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+			break;
+		}
+
+		case Texture::Type::Type2DMS:
+		{
+			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
 			break;
 		}
 

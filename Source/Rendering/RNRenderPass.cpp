@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(RenderPass, Object)
 
-	RenderPass::RenderPass() : _flags(Flags::Defaults), _framebuffer(nullptr), _clearDepth(1.0f), _clearStencil(0)
+	RenderPass::RenderPass() : _flags(Flags::Defaults), _framebuffer(nullptr), _clearDepth(1.0f), _clearStencil(0), _nextRenderPasses(new Array())
 	{
 		
 	}
@@ -78,5 +78,15 @@ namespace RN
 		Vector2 mainWindowSize = Renderer::GetActiveRenderer()->GetMainWindow()->GetSize();
 		Rect frame(Vector2(), mainWindowSize);
 		return frame;
+	}
+
+	void RenderPass::AddRenderPass(RenderPass *renderPass) const
+	{
+		_nextRenderPasses->AddObject(renderPass);
+	}
+
+	void RenderPass::RemoveRenderPass(RenderPass *renderPass) const
+	{
+		_nextRenderPasses->RemoveObject(renderPass);
 	}
 }

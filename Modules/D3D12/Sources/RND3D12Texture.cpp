@@ -25,6 +25,7 @@ namespace RN
 			return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 
 		case Texture::Type::Type2D:
+		case Texture::Type::Type2DMS:
 		case Texture::Type::Type2DArray:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
@@ -32,7 +33,7 @@ namespace RN
 			return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 
 		default:
-			throw InconsistencyException("Invalid texture type for Vulkan");
+			throw InconsistencyException("Invalid texture type for D3D12");
 		}
 	}
 
@@ -291,7 +292,7 @@ namespace RN
 		imageDesc.DepthOrArraySize = descriptor.depth;
 		imageDesc.MipLevels = descriptor.mipMaps;
 		imageDesc.Format = D3D12ImageFormatFromTextureFormat(descriptor.format);
-		imageDesc.SampleDesc.Count = 1;
+		imageDesc.SampleDesc.Count = descriptor.sampleCount;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		imageDesc.Flags = D3D12TextureFlagsFromTextureDescriptor(descriptor);

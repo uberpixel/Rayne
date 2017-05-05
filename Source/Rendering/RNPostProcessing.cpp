@@ -12,45 +12,32 @@
 
 namespace RN
 {
-	RNDefineMeta(PostProcessingStage, Object)
+	RNDefineMeta(PostProcessingAPIStage, RenderPass)
+	RNDefineMeta(PostProcessingStage, RenderPass)
 
-	PostProcessingStage::PostProcessingStage()
+	PostProcessingAPIStage::PostProcessingAPIStage(Type type) : _type(type)
 	{
-		Initialize();
+
+	}
+
+	PostProcessingAPIStage::~PostProcessingAPIStage()
+	{
+		
+	}
+
+
+
+	PostProcessingStage::PostProcessingStage() : _material(nullptr)
+	{
+
 	}
 
 	PostProcessingStage::~PostProcessingStage()
 	{
-		SafeRelease(_inputFramebuffer);
-		SafeRelease(_outputFramebuffer);
 		SafeRelease(_material);
 	}
 
-	void PostProcessingStage::Initialize()
-	{
-		_inputFramebuffer = nullptr;
-		_outputFramebuffer = nullptr;
-		_material   = nullptr;
-	}
-
 	// Setter
-	void PostProcessingStage::SetFrame(const Rect &frame)
-	{
-		_frame = std::move(frame.GetIntegral());
-	}
-
-	void PostProcessingStage::SetInputFramebuffer(Framebuffer *framebuffer)
-	{
-		SafeRelease(_inputFramebuffer);
-		_inputFramebuffer = framebuffer->Retain();
-	}
-
-	void PostProcessingStage::SetOutputFramebuffer(Framebuffer *framebuffer)
-	{
-		SafeRelease(_outputFramebuffer);
-		_outputFramebuffer = framebuffer->Retain();
-	}
-
 	void PostProcessingStage::SetMaterial(Material *material)
 	{
 		SafeRelease(_material);

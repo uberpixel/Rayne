@@ -65,6 +65,7 @@ namespace RN
 
 		std::vector<DXGI_FORMAT> colorFormats;
 		DXGI_FORMAT depthStencilFormat;
+		uint8 sampleCount;
 
 		Shader *vertexShader;
 		Shader *fragmentShader;

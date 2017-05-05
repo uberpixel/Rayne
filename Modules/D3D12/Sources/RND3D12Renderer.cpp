@@ -390,6 +390,12 @@ namespace RN
 		_internals->currentDrawableResourceIndex = 0;
 		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
 		{
+			if(renderPass.type != D3D12RenderPass::Type::Default)
+			{
+				RenderAPIRenderPass(_currentCommandList, renderPass);
+				_internals->currentRenderPassIndex += 1;
+				continue;
+			}
 			SetupRendertargets(_currentCommandList, renderPass);
 
 			if(renderPass.drawables.size() > 0)
@@ -443,13 +449,18 @@ namespace RN
 		}
 	}
 
+	//TODO: Merge parts of this with SubmitRenderPass and call it in here
 	void D3D12Renderer::SubmitCamera(Camera *camera, Function &&function)
 	{
 		D3D12RenderPass renderPass;
+		renderPass.drawables.resize(0);
+
+		renderPass.type = D3D12RenderPass::Type::Default;
 		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.previousRenderPass = nullptr;
+
 		renderPass.shaderHint = camera->GetShaderHint();
 		renderPass.overrideMaterial = camera->GetMaterial();
-		renderPass.drawables.resize(0);
 
 		renderPass.viewPosition = camera->GetWorldPosition();
 		renderPass.viewMatrix = camera->GetViewMatrix();
@@ -478,6 +489,7 @@ namespace RN
 					break;
 				}
 			}
+
 			if(notIncluded)
 			{
 				_internals->swapChains.push_back(newSwapChain);
@@ -495,6 +507,88 @@ namespace RN
 
 		if(numberOfDrawables > 0)
 			_internals->currentDrawableResourceIndex += 1;
+
+
+		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop)
+		{
+			SubmitRenderPass(nextPass, renderPass.renderPass);
+		});
+	}
+
+	void D3D12Renderer::SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass)
+	{
+		D3D12RenderPass d3dRenderPass;
+		d3dRenderPass.drawables.resize(0);
+
+		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
+		if(!apiStage)
+		{
+			d3dRenderPass.type = D3D12RenderPass::Type::Default;
+		}
+		else
+		{
+			switch(apiStage->GetType())
+			{
+			case PostProcessingAPIStage::Type::ResolveMSAA:
+				d3dRenderPass.type = D3D12RenderPass::Type::ResolveMSAA;
+				break;
+			case PostProcessingAPIStage::Type::CopyBuffer:
+				d3dRenderPass.type = D3D12RenderPass::Type::Copy;
+				break;
+			}
+		}
+		d3dRenderPass.renderPass = renderPass;
+		d3dRenderPass.previousRenderPass = previousRenderPass;
+
+		d3dRenderPass.shaderHint = Shader::UsageHint::Default;
+		d3dRenderPass.overrideMaterial = nullptr;
+
+		d3dRenderPass.directionalShadowDepthTexture = nullptr;
+
+		Framebuffer *framebuffer = renderPass->GetFramebuffer();
+		D3D12SwapChain *newSwapChain = nullptr;
+		newSwapChain = framebuffer->Downcast<D3D12Framebuffer>()->GetSwapChain();
+		d3dRenderPass.framebuffer = framebuffer->Downcast<D3D12Framebuffer>();
+
+		if(newSwapChain)
+		{
+			bool notIncluded = true;
+			for (D3D12SwapChain *swapChain : _internals->swapChains)
+			{
+				if (swapChain == newSwapChain)
+				{
+					notIncluded = false;
+					break;
+				}
+			}
+
+			if (notIncluded)
+			{
+				_internals->swapChains.push_back(newSwapChain);
+			}
+		}
+
+		_internals->currentRenderPassIndex = _internals->renderPasses.size();
+		_internals->renderPasses.push_back(d3dRenderPass);
+
+		if(!apiStage)
+		{
+			//TODO: Create drawables here!
+
+
+			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+			_internals->totalDrawableCount += numberOfDrawables;
+
+			if (numberOfDrawables > 0)
+				_internals->currentDrawableResourceIndex += 1;
+		}
+
+		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop)
+		{
+			SubmitRenderPass(nextPass, renderPass);
+		});
 	}
 
 	GPUBuffer *D3D12Renderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
@@ -1117,6 +1211,88 @@ namespace RN
 		commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
 
 		_currentDrawableIndex += 1;
+	}
+
+	void D3D12Renderer::RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass)
+	{
+		//TODO: Handle multiple and not existing textures
+		Texture *sourceTexture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+		D3D12Texture *sourceD3DTexture = sourceTexture->Downcast<D3D12Texture>();
+		D3D12_RESOURCE_STATES oldSourceState = sourceD3DTexture->_currentState;
+
+		RN::D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
+		Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
+
+		ID3D12Resource *destinationResource;
+		D3D12_RESOURCE_STATES oldDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		DXGI_FORMAT targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		D3D12Texture *destinationD3DTexture = nullptr;
+		if(destinationTexture)
+		{
+			destinationD3DTexture = destinationTexture->Downcast<D3D12Texture>();
+			targetFormat = destinationD3DTexture->_srvDescriptor.Format;
+			oldDestinationState = destinationD3DTexture->_currentState;
+			destinationResource = destinationD3DTexture->_resource;
+		}
+		else
+		{
+			//TODO: Maybe don't hardcode swapchain format here...
+			targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+			destinationResource = destinationFramebuffer->GetSwapChainColorBuffer();
+		}
+
+		if(renderPass.type == D3D12RenderPass::Type::ResolveMSAA)
+		{
+			sourceD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+
+			if (destinationTexture)
+			{
+				destinationD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+			}
+
+			//TODO: Handle multiple subresources?
+			commandList->GetCommandList()->ResolveSubresource(destinationResource, 0, sourceD3DTexture->_resource, 0, targetFormat);
+
+			sourceD3DTexture->TransitionToState(commandList, oldSourceState);
+			if(destinationD3DTexture)
+			{
+				destinationD3DTexture->TransitionToState(commandList, oldDestinationState);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+		}
+		else
+		{
+			sourceD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+			if (destinationTexture)
+			{
+				destinationD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
+			}
+
+			//TODO: Handle multiple subresources?
+			commandList->GetCommandList()->CopyResource(destinationResource, sourceD3DTexture->_resource);
+
+			sourceD3DTexture->TransitionToState(commandList, oldSourceState);
+			if (destinationD3DTexture)
+			{
+				destinationD3DTexture->TransitionToState(commandList, oldDestinationState);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+		}
 	}
 
 	void D3D12Renderer::AddFrameResouce(IUnknown *resource, uint32 frame)

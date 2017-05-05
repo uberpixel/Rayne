@@ -42,6 +42,7 @@ namespace RN
 
 		D3DAPI void Render(Function &&function) final;
 		D3DAPI void SubmitCamera(Camera *camera, Function &&function) final;
+		D3DAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		D3DAPI bool SupportsTextureFormat(const String *format) const final;
 		D3DAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -78,6 +79,8 @@ namespace RN
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
 		void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
+
+		void RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass);
 
 		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();

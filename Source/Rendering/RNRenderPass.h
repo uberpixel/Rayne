@@ -11,8 +11,9 @@
 #define __RAYNE_RENDERPASS_H__
 
 #include "../Base/RNBase.h"
-#include "../Rendering/RNFramebuffer.h"
+#include "../Objects/RNArray.h"
 #include "../Math/RNRect.h"
+#include "RNFramebuffer.h"
 
 namespace RN
 {
@@ -40,6 +41,11 @@ namespace RN
 		float GetClearDepth() const { return _clearDepth; }
 		uint8 GetClearStencil() const { return _clearStencil; }
 
+		RNAPI void AddRenderPass(RenderPass *renderPass) const;
+		RNAPI void RemoveRenderPass(RenderPass *renderPass) const;
+		
+		const Array *GetNextRenderPasses() const { return _nextRenderPasses; }
+
 	private:
 		Flags _flags;
 		Rect _frame;
@@ -47,6 +53,8 @@ namespace RN
 		Color _clearColor;
 		float _clearDepth;
 		uint8 _clearStencil;
+
+		Array *_nextRenderPasses;
 
 		__RNDeclareMetaInternal(RenderPass)
 	};

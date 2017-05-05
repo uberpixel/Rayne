@@ -55,6 +55,7 @@ namespace RN
 			Type1D,
 			Type1DArray,
 			Type2D,
+			Type2DMS,
 			Type2DArray,
 			TypeCube,
 			TypeCubeArray,
@@ -76,7 +77,8 @@ namespace RN
 				height(1),
 				depth(1),
 				mipMaps(1),
-				format(Format::RGBA8888),
+				format(Format::RGBA8888SRGB),
+				sampleCount(1),
 				preferredClearColor(Color::White()),
 				preferredClearDepth(1.0f),
 				preferredClearStencil(0)
@@ -124,6 +126,7 @@ namespace RN
 			uint32 depth;
 			uint32 mipMaps;
 			Format format;
+			uint8 sampleCount;
 
 			Color preferredClearColor;
 			float preferredClearDepth;

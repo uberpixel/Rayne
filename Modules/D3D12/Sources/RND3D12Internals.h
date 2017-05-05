@@ -40,6 +40,7 @@ namespace RN
 			_cameraSpecifics[cameraID].uniformState = uniformState;
 		}
 
+		//TODO: This can get somewhat big with lots of post processing stages...
 		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
@@ -52,7 +53,17 @@ namespace RN
 
 	struct D3D12RenderPass
 	{
+		enum Type
+		{
+			Default,
+			ResolveMSAA,
+			Copy
+		};
+
+		Type type;
 		RenderPass *renderPass;
+		RenderPass *previousRenderPass;
+
 		D3D12Framebuffer *framebuffer;
 		Shader::UsageHint shaderHint;
 		Material *overrideMaterial;
