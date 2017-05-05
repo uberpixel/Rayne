@@ -75,9 +75,11 @@ set(RAYNE_SOURCES
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
+    Rendering/RNPostProcessing.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRendererDescriptor.cpp
     Rendering/RNRenderingDevice.cpp
+    Rendering/RNRenderPass.cpp
     Rendering/RNShader.cpp
     Rendering/RNShaderLibrary.cpp
     Rendering/RNTexture.cpp
@@ -185,10 +187,12 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNModel.h
+    Rendering/RNPostProcessing.h
     Rendering/RNRenderer.h
     Rendering/RNRendererDescriptor.h
     Rendering/RNRendererTypes.h
     Rendering/RNRenderingDevice.h
+    Rendering/RNRenderPass.h
     Rendering/RNShader.h
     Rendering/RNShaderLibrary.h
     Rendering/RNTexture.h

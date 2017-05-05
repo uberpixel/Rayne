@@ -410,6 +410,7 @@ namespace RN
 			return;
 
 		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
+		//TODO: Needs D3D12_CLEAR_FLAG_STENCIL to also clear stencil buffer
 		commandList->GetCommandList()->ClearDepthStencilView(*_dsvHandle, D3D12_CLEAR_FLAG_DEPTH, depth, stencil, 1, &clearRect);
 	}
 }

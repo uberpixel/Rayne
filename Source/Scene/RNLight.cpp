@@ -255,8 +255,8 @@ namespace RN
 			
 			//TODO: Make sure these new cameras are updated after the main one, but rendered before...
 			Camera *tempcam = new Camera();
-			tempcam->SetFramebuffer(framebuffer);
-			tempcam->SetFlags(Camera::Flags::ClearFramebufferDepth | Camera::Flags::Orthogonal);
+			tempcam->GetRenderPass()->SetFramebuffer(framebuffer);
+			tempcam->SetFlags(Camera::Flags::Orthogonal);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetShaderHint(Shader::UsageHint::Depth);
 			tempcam->SetLODCamera(_shadowTarget);

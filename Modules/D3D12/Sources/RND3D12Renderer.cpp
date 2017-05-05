@@ -459,8 +459,8 @@ namespace RN
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
 		renderPass.directionalShadowDepthTexture = nullptr;
 
-
-		Framebuffer *framebuffer = camera->GetFramebuffer();
+		//TODO: Always return a valid framebuffer
+		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
 		D3D12SwapChain *newSwapChain = nullptr;
 		if(!framebuffer)
 		{
@@ -680,15 +680,8 @@ namespace RN
 		renderpass.framebuffer->SetAsRendertarget(commandList);
 
 		//Setup viewport and scissor rect
-		Rect cameraRect = renderpass.camera->GetFrame();
-		if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
-		{
-			Vector2 framebufferSize = renderpass.framebuffer->GetSize();
-			cameraRect.x = 0.0f;
-			cameraRect.y = 0.0f;
-			cameraRect.width = framebufferSize.x;
-			cameraRect.height = framebufferSize.y;
-		}
+		//TODO: Make RenderPass part of D3D12RenderPass
+		Rect cameraRect = renderpass.camera->GetRenderPass()->GetFrame();
 
 		D3D12_VIEWPORT viewport;
 		viewport.Width = cameraRect.width;
@@ -709,14 +702,15 @@ namespace RN
 
 		
 		// Cameras always clear the whole framebuffer to be more consistent with the metal renderer
-		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferColor)
+		//TODO: Make RenderPass part of D3D12RenderPass
+		if(renderpass.camera->GetRenderPass()->GetFlags() & RenderPass::Flags::ClearColor)
 		{
-			renderpass.framebuffer->ClearColorTargets(commandList, renderpass.camera->GetClearColor());
+			renderpass.framebuffer->ClearColorTargets(commandList, renderpass.camera->GetRenderPass()->GetClearColor());
 		}
 		
-		if(renderpass.camera->GetFlags() & Camera::Flags::ClearFramebufferDepth)
+		if(renderpass.camera->GetRenderPass()->GetFlags() & RenderPass::Flags::ClearDepthStencil)
 		{
-			renderpass.framebuffer->ClearDepthStencilTarget(commandList, 1.0f, 0);
+			renderpass.framebuffer->ClearDepthStencilTarget(commandList, renderpass.camera->GetRenderPass()->GetClearDepth(), renderpass.camera->GetRenderPass()->GetClearStencil());
 		}
 	}
 

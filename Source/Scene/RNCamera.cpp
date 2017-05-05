@@ -15,98 +15,28 @@ namespace RN
 {
 	RNDefineMeta(Camera, SceneNode)
 
-	static Framebuffer *CreateFramebuffer(const Vector2 &size)
-	{
-/*		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;*/
-
-		//TODO: Initialize with color texture!?
-
-		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->CreateFramebuffer(size);
-	}
-
-	Camera::Camera() :
+	Camera::Camera(RenderPass *renderPass) :
 		_cameraSceneEntry(this),
-		_framebuffer(nullptr),
 		_flags(Camera::Flags::Defaults)
 	{
+		if(!renderPass)
+		{
+			_renderPass = new RenderPass();
+		}
+		else
+		{
+			_renderPass = renderPass->Retain();
+		}
+
 		Initialize();
 	}
-
-	Camera::Camera(const Vector2 &size) :
-		_cameraSceneEntry(this),
-		_framebuffer(CreateFramebuffer(size)),
-		_flags(0)
-	{
-		Initialize();
-	}
-
-/*	Camera::Camera(const Vector2 &size, Texture *target) :
-		Camera(size, target, Flags::Defaults)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture *target, Flags flags) :
-		Camera(size, target, flags, RenderStorage::BufferFormatComplete)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat) :
-		Camera(size, targetFormat, Flags::Defaults)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags) :
-		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
-	{}
-
-
-	Camera::Camera(const Vector2 &size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		RenderStorage *storage = new RenderStorage(format);
-		storage->AddRenderTarget(target);
-
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
-		storage->AddRenderTarget(targetFormat);
-
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}
-
-	Camera::Camera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}*/
 
 	Camera::~Camera()
 	{
-		SafeRelease(_framebuffer);
+		SafeRelease(_renderPass);
 		SafeRelease(_material);
 
-/*		for(PostProcessingPipeline *pipeline : _PPPipelines)
-			pipeline->Unlock();
-
-		if(_lightManager)
+/*		if(_lightManager)
 		{
 			_lightManager->camera = nullptr;
 			_lightManager->Unlock();
@@ -136,8 +66,6 @@ namespace RN
 		_dirtyFrustum    = true;
 
 		_shaderHint = Shader::UsageHint::Default;
-
-		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_prefersLightManager = false;
 
 		_material   = nullptr;
@@ -149,24 +77,10 @@ namespace RN
 	}
 
 	// Setter
-	void Camera::SetFrame(const Rect &frame)
+	void Camera::SetRenderPass(RenderPass *renderPass)
 	{
-		if(_frame != frame)
-		{
-			_frame = std::move(frame.GetIntegral());
-			_dirtyProjection = true;
-		}
-	}
-
-	void Camera::SetFramebuffer(Framebuffer *framebuffer)
-	{
-		SafeRelease(_framebuffer);
-		_framebuffer = framebuffer->Retain();
-	}
-
-	void Camera::SetClearColor(const Color &clearColor)
-	{
-		_clearColor = clearColor;
+		SafeRelease(_renderPass);
+		_renderPass = renderPass->Retain();
 	}
 
 	void Camera::SetFlags(Flags flags)
@@ -291,76 +205,9 @@ namespace RN
 		}
 	}
 
-	// Post Processing
-/*	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string &name, int32 priority)
-	{
-		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name, priority);
-		try
-		{
-			AddPostProcessingPipeline(pipeline);
-			return pipeline->Autorelease();
-		}
-		catch(Exception e)
-		{
-			delete pipeline;
-			throw e;
-		}
-	}
-
-	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string &name)
-	{
-		LockGuard<Object *> lock(this);
-
-		auto iterator = _namedPPPipelines.find(name);
-		return (iterator != _namedPPPipelines.end()) ? iterator->second : nullptr;
-	}
-
-	void Camera::AddPostProcessingPipeline(PostProcessingPipeline *pipeline)
-	{
-		LockGuard<Object *> lock(this);
-
-		if(GetPostProcessingPipeline(pipeline->_name) || pipeline->host)
-			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
-
-		_PPPipelines.push_back(pipeline);
-		_namedPPPipelines.emplace(pipeline->_name, pipeline);
-
-		pipeline->host = this;
-		pipeline->Initialize();
-		pipeline->Retain();
-
-		std::stable_sort(_PPPipelines.begin(), _PPPipelines.end(), [&](PostProcessingPipeline *left, PostProcessingPipeline *right) {
-			return (left->_priority < right->_priority);
-		});
-	}
-
-	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
-	{
-		LockGuard<Object *> lock(this);
-
-		for(auto i = _PPPipelines.begin(); i != _PPPipelines.end(); i ++)
-		{
-			if(*i == pipeline)
-			{
-				_PPPipelines.erase(i);
-				_namedPPPipelines.erase(pipeline->_name);
-
-				pipeline->host = nullptr;
-				pipeline->Unlock();
-				break;
-			}
-		}
-	}*/
-
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		//TODO: Fix for cameras without frame or framebuffer, rendering into the default window
-		Rect frame = _frame;
-		if(std::abs(frame.GetArea()) < 0.0001)
-		{
-			frame.width = _framebuffer->GetSize().x;
-			frame.height = _framebuffer->GetSize().y;
-		}
+		Rect frame = _renderPass->GetFrame();
 
 		//Get camera frustum extends to be covered by the split
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
@@ -450,27 +297,10 @@ namespace RN
 		}
 
 		float tempAspect = _aspect;
-
 		if(std::abs(tempAspect) <= 0.0001)
 		{
-			if(!_framebuffer)
-			{
-				Window *window = renderer->GetMainWindow();
-				Vector2 size = window->GetSize();
-
-				tempAspect = size.x / size.y;
-			}
-			else
-			{
-				if(std::abs(_frame.GetArea()) < 0.0001)
-				{
-					tempAspect = _framebuffer->GetSize().x / _framebuffer->GetSize().y;
-				}
-				else
-				{
-					tempAspect = _frame.width / _frame.height;
-				}
-			}
+			Vector2 size = _renderPass->GetFrame().GetSize();
+			tempAspect = size.x / size.y;
 		}
 
 		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, tempAspect, _clipNear, _clipFar);
@@ -577,11 +407,6 @@ namespace RN
 			temp = _inverseViewMatrix * temp;
 			return Vector3(temp);
 		}
-	}
-
-	const Rect &Camera::GetFrame()
-	{
-		return _frame;
 	}
 
 /*	LightManager *Camera::GetLightManager()
