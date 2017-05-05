@@ -266,7 +266,9 @@ namespace RN
 				Window *window = _renderer->GetMainWindow();
 				if(!window)
 				{
-					window = _renderer->CreateAWindow(Vector2(960, 540), Screen::GetMainScreen());
+					//TODO: Take resolution and swap chain descriptor from settings file!
+					Window::SwapChainDescriptor swapChainDescriptor;
+					window = _renderer->CreateAWindow(Vector2(960, 540), Screen::GetMainScreen(), swapChainDescriptor);
 					window->SetTitle(_application->GetTitle());
 					window->Show();
 				}

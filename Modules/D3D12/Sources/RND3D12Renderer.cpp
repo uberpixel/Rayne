@@ -77,9 +77,9 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen)
+	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
 	{
-		D3D12Window *window = new D3D12Window(size, screen, this, 4);
+		D3D12Window *window = new D3D12Window(size, screen, this, descriptor);
 
 		if(!_mainWindow)
 			_mainWindow = window;

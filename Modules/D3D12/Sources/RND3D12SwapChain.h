@@ -36,7 +36,7 @@ namespace RN
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer; }
 
-		uint8 GetBufferCount() const { return _bufferCount; }
+		uint8 GetBufferCount() const { return _descriptor.bufferCount; }
 
 	protected:
 		D3DAPI D3D12SwapChain(){}
@@ -44,14 +44,13 @@ namespace RN
 		D3D12Renderer *_renderer;
 		D3D12Framebuffer *_framebuffer;
 		Vector2 _size;
-		uint8 _bufferCount;
 		size_t _frameIndex;
+		Window::SwapChainDescriptor _descriptor;
 
 	private:
-		D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, uint8 bufferCount);
+		D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
 		void ResizeSwapchain(const Vector2 &size, HWND hwnd);
-		
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;

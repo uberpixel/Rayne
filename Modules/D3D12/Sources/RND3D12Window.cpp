@@ -30,7 +30,7 @@ namespace RN
 		return 0;
 	}
 
-	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, uint8 bufferCount) : 
+	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen)
 	{
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
@@ -64,7 +64,7 @@ namespace RN
 		_hwnd = CreateWindowExW(0, L"RND3D12WindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 		SetForegroundWindow(_hwnd);
 
-		_swapChain = new D3D12SwapChain(size, _hwnd, renderer, bufferCount);
+		_swapChain = new D3D12SwapChain(size, _hwnd, renderer, descriptor);
 	}
 
 	D3D12Window::~D3D12Window()

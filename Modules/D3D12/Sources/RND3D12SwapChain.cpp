@@ -15,13 +15,13 @@ namespace RN
 {
 	RNDefineMeta(D3D12SwapChain, Object)
 
-		D3D12SwapChain::D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, uint8 bufferCount) :
+		D3D12SwapChain::D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		_renderer(renderer),
 		_frameIndex(0),
 		_size(size),
-		_bufferCount(bufferCount)
+		_descriptor(descriptor)
 	{
-		for(int i = 0; i < bufferCount; i++)
+		for(int i = 0; i < descriptor.bufferCount; i++)
 			_fenceValues[i] = 0;
 
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
@@ -45,7 +45,7 @@ namespace RN
 		IDXGIFactory4 *factory = _renderer->GetD3D12Descriptor()->GetFactory();
 
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-		swapChainDesc.BufferCount = _bufferCount;
+		swapChainDesc.BufferCount = _descriptor.bufferCount;
 		swapChainDesc.BufferDesc.Width = size.x;
 		swapChainDesc.BufferDesc.Height = size.y;
 		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -62,7 +62,7 @@ namespace RN
 		_swapChain = static_cast<IDXGISwapChain3 *>(swapChain);
 		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 
-		_framebuffer = new D3D12Framebuffer(size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer = new D3D12Framebuffer(size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 	}
 
 	Vector2 D3D12SwapChain::GetSize() const

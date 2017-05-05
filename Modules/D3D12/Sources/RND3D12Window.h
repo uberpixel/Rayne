@@ -37,7 +37,7 @@ namespace RN
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
-		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, uint8 bufferCount);
+		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor);
 		HWND _hwnd;
 
 		D3D12SwapChain *_swapChain;

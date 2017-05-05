@@ -99,6 +99,31 @@ namespace RN
 				return descriptor;
 			}
 
+			static Descriptor With2DRenderTargetFormat(Format format, uint32 width, uint32 height)
+			{
+				Descriptor descriptor;
+				descriptor.type = Type::Type2DMS;
+				descriptor.width = width;
+				descriptor.height = height;
+				descriptor.format = format;
+				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+
+				return descriptor;
+			}
+
+			static Descriptor With2DRenderTargetFormatAndMSAA(Format format, uint32 width, uint32 height, uint8 sampleCount)
+			{
+				Descriptor descriptor;
+				descriptor.type = Type::Type2DMS;
+				descriptor.width = width;
+				descriptor.height = height;
+				descriptor.format = format;
+				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+				descriptor.sampleCount = sampleCount;
+
+				return descriptor;
+			}
+
 			void CalculateMipMapCount()
 			{
 				mipMaps = 1 + static_cast<uint32>(floor(log2(std::max(static_cast<double>(width), static_cast<double>(height)))));

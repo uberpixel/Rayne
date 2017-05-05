@@ -21,6 +21,15 @@ namespace RN
 	public:
 		struct TargetView
 		{
+			static TargetView WithTexture(Texture *texture, uint16 mipmap = 0, uint16 slice = 0, uint16 length = 1)
+			{
+				TargetView targetView;
+				targetView.texture = texture;
+				targetView.mipmap = mipmap;
+				targetView.slice = slice;
+				targetView.length = length;
+			}
+
 			Texture *texture;
 			uint16 mipmap;
 			uint16 slice;
