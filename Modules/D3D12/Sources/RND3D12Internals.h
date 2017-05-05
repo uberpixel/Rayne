@@ -52,9 +52,13 @@ namespace RN
 
 	struct D3D12RenderPass
 	{
-		Camera *camera;
+//		Camera *camera;
+		RenderPass *renderPass;
 		D3D12Framebuffer *framebuffer;
+		Shader::UsageHint shaderHint;
+		Material *overrideMaterial;
 
+		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;

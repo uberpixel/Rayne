@@ -114,7 +114,7 @@ namespace RN
 		~D3D12StateCoordinator();
 
 		const D3D12RootSignature *GetRootSignature(const D3D12PipelineStateDescriptor &pipelineDescriptor);
-		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Camera *camera);
+		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
 
 	private:

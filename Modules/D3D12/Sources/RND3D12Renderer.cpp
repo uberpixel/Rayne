@@ -446,9 +446,12 @@ namespace RN
 	void D3D12Renderer::SubmitCamera(Camera *camera, Function &&function)
 	{
 		D3D12RenderPass renderPass;
-		renderPass.camera = camera;
+		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.shaderHint = camera->GetShaderHint();
+		renderPass.overrideMaterial = camera->GetMaterial();
 		renderPass.drawables.resize(0);
 
+		renderPass.viewPosition = camera->GetWorldPosition();
 		renderPass.viewMatrix = camera->GetViewMatrix();
 		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
@@ -680,8 +683,7 @@ namespace RN
 		renderpass.framebuffer->SetAsRendertarget(commandList);
 
 		//Setup viewport and scissor rect
-		//TODO: Make RenderPass part of D3D12RenderPass
-		Rect cameraRect = renderpass.camera->GetRenderPass()->GetFrame();
+		Rect cameraRect = renderpass.renderPass->GetFrame();
 
 		D3D12_VIEWPORT viewport;
 		viewport.Width = cameraRect.width;
@@ -702,15 +704,14 @@ namespace RN
 
 		
 		// Cameras always clear the whole framebuffer to be more consistent with the metal renderer
-		//TODO: Make RenderPass part of D3D12RenderPass
-		if(renderpass.camera->GetRenderPass()->GetFlags() & RenderPass::Flags::ClearColor)
+		if(renderpass.renderPass->GetFlags() & RenderPass::Flags::ClearColor)
 		{
-			renderpass.framebuffer->ClearColorTargets(commandList, renderpass.camera->GetRenderPass()->GetClearColor());
+			renderpass.framebuffer->ClearColorTargets(commandList, renderpass.renderPass->GetClearColor());
 		}
 		
-		if(renderpass.camera->GetRenderPass()->GetFlags() & RenderPass::Flags::ClearDepthStencil)
+		if(renderpass.renderPass->GetFlags() & RenderPass::Flags::ClearDepthStencil)
 		{
-			renderpass.framebuffer->ClearDepthStencilTarget(commandList, renderpass.camera->GetRenderPass()->GetClearDepth(), renderpass.camera->GetRenderPass()->GetClearStencil());
+			renderpass.framebuffer->ClearDepthStencilTarget(commandList, renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 		}
 	}
 
@@ -953,7 +954,7 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::CameraPosition:
 				{
-					RN::Vector3 cameraPosition = renderPass.camera->GetWorldPosition();
+					RN::Vector3 cameraPosition = renderPass.viewPosition;
 					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
 					break;
 				}
@@ -1050,7 +1051,7 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.camera);
+			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, material);
 			_lock.Unlock();
 

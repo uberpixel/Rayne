@@ -304,18 +304,18 @@ namespace RN
 		return signature;
 	}
 
-	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Camera *camera)
+	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
-		const Material *cameraMaterial = camera->GetMaterial();
+		const Material *cameraMaterial = overrideMaterial;
 		D3D12PipelineStateDescriptor pipelineDescriptor;
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
 		{
 			pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
 		}
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
-		pipelineDescriptor.shaderHint = camera->GetShaderHint();
+		pipelineDescriptor.shaderHint = shaderHint;
 		pipelineDescriptor.vertexShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? cameraMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? cameraMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.cullMode = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::CullMode) && !(material->GetOverride() & Material::Override::CullMode)) ? cameraMaterial->GetCullMode() : material->GetCullMode();
