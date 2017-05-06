@@ -7,6 +7,7 @@
 //
 
 #include "RNVRCamera.h"
+#include "../../Source/Rendering/RNPostProcessing.h"
 
 namespace RN
 {
@@ -27,12 +28,33 @@ namespace RN
 
 		AddChild(_head);
 
+		Vector2 eyeSize(windowSize.x / 2, windowSize.y);
+		Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, 8));
+		Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, 8));
+		Framebuffer *msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
+		msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture->Autorelease()));
+		msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture->Autorelease()));
+
+		Texture *resolvedTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y));
+		Framebuffer *resolvedFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
+		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture->Autorelease()));
+
+		PostProcessingAPIStage *resolvePass[2];
+		PostProcessingAPIStage *copyPass[2];
+
 		for(int i = 0; i < 2; i++)
 		{
-			_eye[i] = new Camera();
-			_eye[i]->SetFramebuffer(_debugWindow? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
+			resolvePass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
+			resolvePass[i]->SetFramebuffer(resolvedFramebuffer->Autorelease());
 
-			_eye[i]->SetFrame(Rect(i * windowSize.x / 2, 0, windowSize.x / 2, windowSize.y));
+			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::CopyBuffer);
+			resolvePass[i]->AddRenderPass(copyPass[i]->Autorelease());
+			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
+			copyPass[i]->SetFrame(Rect(i * windowSize.x / 2, 0, windowSize.x / 2, windowSize.y));
+
+			_eye[i] = new Camera();
+			_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
+			_eye[i]->GetRenderPass()->AddRenderPass(resolvePass[i]);
 			_head->AddChild(_eye[i]);
 		}
 	}

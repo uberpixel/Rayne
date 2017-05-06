@@ -56,7 +56,7 @@ namespace RN
 		{
 			if(_shader)
 				_shader->Release();
-
+			
 			_shader = nullptr;
 
 			String *errorString = RNCSTR("");

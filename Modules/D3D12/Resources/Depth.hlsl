@@ -17,7 +17,12 @@ SamplerState linearRepeatSampler : register(s0);
 
 cbuffer vertexUniforms : register(b0)
 {
+#if RN_SKY
+	matrix modelViewMatrix;
+	matrix projectionMatrix;
+#else
 	matrix modelViewProjectionMatrix;
+#endif
 
 #if RN_UV0
 	float textureTileFactor;
@@ -53,7 +58,12 @@ FragmentVertex depth_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
+#if RN_SKY
+	float3 rotatedPosition = mul(modelViewMatrix, vert.position);
+	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
+#else
 	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0f));
+#endif
 
 #if RN_UV0
 	result.texCoords = vert.texCoords*textureTileFactor;
@@ -63,7 +73,7 @@ FragmentVertex depth_vertex(InputVertex vert)
 }
 
 
-float4 depth_fragment(FragmentVertex vert) : SV_TARGET
+void depth_fragment(FragmentVertex vert)
 {
 	float4 color = 1.0f;
 #if RN_UV0
@@ -73,6 +83,5 @@ float4 depth_fragment(FragmentVertex vert) : SV_TARGET
 	clip(color.a - discardThreshold);
 #endif
 #endif
-
-	return color;
+	return;
 }

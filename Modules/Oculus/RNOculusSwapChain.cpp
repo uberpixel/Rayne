@@ -12,9 +12,10 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
-	OculusSwapChain::OculusSwapChain() : _submitResult(0)
+	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0)
 	{
 		_session = nullptr;
+		_descriptor = descriptor;
 
 		ovrResult result = ovr_Initialize(nullptr);
 		if(OVR_FAILURE(result))
@@ -34,8 +35,8 @@ namespace RN
 		RNInfo(GetHMDInfoDescription());
 
 		// Configure Stereo settings.
-		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 2.0f);	//TODO: Set last parameter back to 1
-		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 2.0f); //TODO: Set last parameter back to 1
+		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 1.0f);
+		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 1.0f);
 		ovrSizei bufferSize;
 		bufferSize.w = recommenedTex0Size.w + recommenedTex1Size.w;
 		bufferSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
@@ -61,9 +62,9 @@ namespace RN
 			return;
 		int textureCount = 0;
 		ovr_GetTextureSwapChainLength(_session, _textureSwapChain, &textureCount);
-		_bufferCount = textureCount;
+		_descriptor.bufferCount = textureCount;
 
-		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 		// Initialize VR structures, filling out description.
 		_eyeRenderDesc[0] = ovr_GetRenderDesc(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0]);

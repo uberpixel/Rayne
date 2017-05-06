@@ -36,7 +36,7 @@ namespace RN
 
 		RNAPI Framebuffer *GetFramebuffer() const;
 		Flags GetFlags() const { return _flags; }
-		RNAPI const Rect &GetFrame() const;
+		RNAPI Rect GetFrame() const;
 		const Color &GetClearColor() const { return _clearColor; }
 		float GetClearDepth() const { return _clearDepth; }
 		uint8 GetClearStencil() const { return _clearStencil; }

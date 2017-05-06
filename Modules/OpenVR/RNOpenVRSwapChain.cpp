@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(OpenVRSwapChain, D3D12SwapChain)
 
-	OpenVRSwapChain::OpenVRSwapChain()
+	OpenVRSwapChain::OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor)
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 		_hmd = vr::VR_Init(&eError, vr::VRApplication_Scene);
@@ -28,6 +28,7 @@ namespace RN
 		RNInfo(GetHMDInfoDescription());
 
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
+		_descriptor = descriptor;
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
@@ -43,7 +44,7 @@ namespace RN
 		_leftEyeTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 		_rightEyeTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 
-		_bufferCount = 1;
+		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
 		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 

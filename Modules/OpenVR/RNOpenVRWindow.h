@@ -25,7 +25,7 @@ namespace RN
 			Right
 		};*/
 
-		OVRAPI OpenVRWindow();
+		OVRAPI OpenVRWindow(const SwapChainDescriptor &descriptor = SwapChainDescriptor());
 		OVRAPI ~OpenVRWindow();
 
 		OVRAPI Vector2 GetSize() const final;

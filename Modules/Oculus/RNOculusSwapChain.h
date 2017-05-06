@@ -36,7 +36,7 @@ namespace RN
 		OVRAPI void UpdatePredictedPose();
 
 	private:
-		OculusSwapChain();
+		OculusSwapChain(const Window::SwapChainDescriptor &descriptor);
 		const String *GetHMDInfoDescription() const;
 
 		ovrSession _session;

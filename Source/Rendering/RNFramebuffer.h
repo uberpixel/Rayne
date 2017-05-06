@@ -28,6 +28,7 @@ namespace RN
 				targetView.mipmap = mipmap;
 				targetView.slice = slice;
 				targetView.length = length;
+				return targetView;
 			}
 
 			Texture *texture;

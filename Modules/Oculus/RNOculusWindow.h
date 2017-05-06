@@ -24,7 +24,7 @@ namespace RN
 			Right
 		};*/
 
-		OVRAPI OculusWindow();
+		OVRAPI OculusWindow(const SwapChainDescriptor &descriptor = SwapChainDescriptor());
 		OVRAPI ~OculusWindow();
 
 		OVRAPI Vector2 GetSize() const final;
@@ -33,6 +33,8 @@ namespace RN
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
 		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
+
+		OVRAPI void OculusWindow::Update(float delta, float near, float far) final;
 
 	private:
 		OculusSwapChain *_swapChain;

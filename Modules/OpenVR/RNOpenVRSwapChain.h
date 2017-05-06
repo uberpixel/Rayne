@@ -35,7 +35,7 @@ namespace RN
 		OVRAPI void UpdatePredictedPose();
 
 	protected:
-		OpenVRSwapChain();
+		OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor);
 
 	private:
 		const String *GetHMDInfoDescription() const;

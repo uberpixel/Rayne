@@ -1280,8 +1280,11 @@ namespace RN
 				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
 			}
 
-			//TODO: Handle multiple subresources?
-			commandList->GetCommandList()->CopyResource(destinationResource, sourceD3DTexture->_resource);
+			//TODO: Handle multiple subresources and 3D/Arrays?
+			CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationResource, 0);
+			CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DTexture->_resource, 0);
+			Rect frame = renderPass.renderPass->GetFrame();
+			commandList->GetCommandList()->CopyTextureRegion(&destinationLocation, frame.x, frame.y, 0, &sourceLocation, nullptr);
 
 			sourceD3DTexture->TransitionToState(commandList, oldSourceState);
 			if (destinationD3DTexture)

@@ -13,9 +13,9 @@ namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow() : _currentHapticsIndex{500, 500}, _remainingHapticsDelta(0.0f)
+	OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{500, 500}, _remainingHapticsDelta(0.0f)
 	{
-		_swapChain = new OpenVRSwapChain();
+		_swapChain = new OpenVRSwapChain(descriptor);
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
 

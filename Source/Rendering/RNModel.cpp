@@ -67,6 +67,10 @@ namespace RN
 			tempDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
 		if(!tempDescriptor.fragmentShader[0])
 			tempDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
+		if (!tempDescriptor.vertexShader[1])
+			tempDescriptor.vertexShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
+		if (!tempDescriptor.fragmentShader[1])
+			tempDescriptor.fragmentShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
 
 		//TODO: Add sky depth shader
 
@@ -129,6 +133,10 @@ namespace RN
 			domeMaterialDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
 		if(!domeMaterialDescriptor.fragmentShader[0])
 			domeMaterialDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
+		if (!domeMaterialDescriptor.vertexShader[1])
+			domeMaterialDescriptor.vertexShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
+		if (!domeMaterialDescriptor.fragmentShader[1])
+			domeMaterialDescriptor.fragmentShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
 
 		//TODO: Add sky depth shader
 

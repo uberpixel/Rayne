@@ -13,9 +13,9 @@ namespace RN
 {
 	RNDefineMeta(OculusWindow, VRWindow)
 
-	OculusWindow::OculusWindow()
+	OculusWindow::OculusWindow(const Window::SwapChainDescriptor &descriptor)
 	{
-		_swapChain = new OculusSwapChain();
+		_swapChain = new OculusSwapChain(descriptor);
 	}
 
 	OculusWindow::~OculusWindow()

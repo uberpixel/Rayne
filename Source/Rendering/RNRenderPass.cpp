@@ -62,7 +62,7 @@ namespace RN
 		return _framebuffer;
 	}
 
-	const Rect &RenderPass::GetFrame() const
+	Rect RenderPass::GetFrame() const
 	{
 		if(std::abs(_frame.GetArea()) > 0.0001)
 		{
@@ -76,8 +76,8 @@ namespace RN
 		}
 		
 		Vector2 mainWindowSize = Renderer::GetActiveRenderer()->GetMainWindow()->GetSize();
-		Rect frame(Vector2(), mainWindowSize);
-		return frame;
+		Rect windowFrame(Vector2(), mainWindowSize);
+		return windowFrame;
 	}
 
 	void RenderPass::AddRenderPass(RenderPass *renderPass) const
