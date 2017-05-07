@@ -46,6 +46,7 @@ cbuffer fragmentUniforms : register(b1)
 
 #if RN_DISCARD
 	float discardThreshold;
+	float alphaToCoverageClamp;
 #endif
 
 	uint directionalShadowMatricesCount;
@@ -199,7 +200,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 
 #if RN_DISCARD
 	clip(color.a - discardThreshold);
-	color.a = smoothstep(discardThreshold, 1.0f, color.a);
+	color.a = smoothstep(discardThreshold, alphaToCoverageClamp, color.a);
 #endif
 #endif
 

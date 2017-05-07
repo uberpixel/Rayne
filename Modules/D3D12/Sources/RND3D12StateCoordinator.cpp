@@ -311,6 +311,7 @@ namespace RN
 		const Material *cameraMaterial = overrideMaterial;
 		D3D12PipelineStateDescriptor pipelineDescriptor;
 		pipelineDescriptor.sampleCount = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain())? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleCount : 1;
+		pipelineDescriptor.sampleQuality = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
 
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
 		{
@@ -324,6 +325,7 @@ namespace RN
 		pipelineDescriptor.usePolygonOffset = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetUsePolygonOffset() : material->GetUsePolygonOffset();
 		pipelineDescriptor.polygonOffsetFactor = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetFactor() : material->GetPolygonOffsetFactor();
 		pipelineDescriptor.polygonOffsetUnits = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetUnits() : material->GetPolygonOffsetUnits();
+		pipelineDescriptor.useAlphaToCoverage = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::UseAlphaToCoverage) && !(material->GetOverride() & Material::Override::UseAlphaToCoverage)) ? cameraMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
@@ -350,9 +352,9 @@ namespace RN
 		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
 		for(const D3D12PipelineState *state : collection->states)
 		{
-			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
+			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 			{
-				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits)
+				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
 				{
 					return state;
 				}
@@ -398,8 +400,7 @@ namespace RN
 		}
 		
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		//TODO: Implement as material property
-		psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
+		psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
 
 		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
 		{
@@ -419,7 +420,8 @@ namespace RN
 			if(counter >= 8)
 				break;
 		}
-		psoDesc.SampleDesc.Count = descriptor.sampleCount;;
+		psoDesc.SampleDesc.Count = descriptor.sampleCount;
+		psoDesc.SampleDesc.Quality = descriptor.sampleQuality;
 
 		D3D12PipelineState *state = new D3D12PipelineState();
 		state->descriptor = std::move(descriptor);

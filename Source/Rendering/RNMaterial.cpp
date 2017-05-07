@@ -20,6 +20,8 @@ namespace RN
 		specularColor(1.0f, 1.0f, 1.0f, 4.0f),
 		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
 		discardThreshold(0.3f),
+		alphaToCoverageClamp(1.0f),
+		useAlphaToCoverage(false),
 		textureTileFactor(1.0),
 		usePolygonOffset(false),
 		polygonOffsetFactor(1.1f),
@@ -42,6 +44,8 @@ namespace RN
 		specularColor(other.specularColor),
 		emissiveColor(other.emissiveColor),
 		discardThreshold(other.discardThreshold),
+		alphaToCoverageClamp(other.alphaToCoverageClamp),
+		useAlphaToCoverage(other.useAlphaToCoverage),
 		textureTileFactor(other.textureTileFactor),
 		usePolygonOffset(other.usePolygonOffset),
 		polygonOffsetFactor(other.polygonOffsetFactor),
@@ -95,6 +99,8 @@ namespace RN
 		_specularColor(descriptor.specularColor),
 		_emissiveColor(descriptor.emissiveColor),
 		_discardThreshold(descriptor.discardThreshold),
+		_alphaToCoverageClamp(descriptor.alphaToCoverageClamp),
+		_useAlphaToCoverage(descriptor.useAlphaToCoverage),
 		_textureTileFactor(descriptor.textureTileFactor),
 		_usePolygonOffset(descriptor.usePolygonOffset),
 		_polygonOffsetFactor(descriptor.polygonOffsetFactor),
@@ -125,6 +131,8 @@ namespace RN
 		_specularColor(other->_specularColor),
 		_emissiveColor(other->_emissiveColor),
 		_discardThreshold(other->_discardThreshold),
+		_useAlphaToCoverage(other->_useAlphaToCoverage),
+		_alphaToCoverageClamp(other->_alphaToCoverageClamp),
 		_textureTileFactor(other->_textureTileFactor),
 		_usePolygonOffset(other->_usePolygonOffset),
 		_polygonOffsetFactor(other->_polygonOffsetFactor),
@@ -247,6 +255,8 @@ namespace RN
 		descriptor.specularColor = _specularColor;
 		descriptor.emissiveColor = _emissiveColor;
 		descriptor.discardThreshold = _discardThreshold;
+		descriptor.useAlphaToCoverage = _useAlphaToCoverage;
+		descriptor.alphaToCoverageClamp = _alphaToCoverageClamp;
 		descriptor.textureTileFactor = _textureTileFactor;
 		descriptor.usePolygonOffset = _usePolygonOffset;
 		descriptor.polygonOffsetFactor = _polygonOffsetFactor;

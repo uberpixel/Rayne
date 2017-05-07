@@ -71,6 +71,7 @@ namespace RN
 				EmissiveColor,
 				TextureTileFactor,
 				DiscardThreshold,
+				AlphaToCoverageClamp,
 				Time,
 				CameraPosition,
 				DirectionalLights,

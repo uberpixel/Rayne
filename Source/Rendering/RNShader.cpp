@@ -179,6 +179,11 @@ namespace RN
 			_identifier = DiscardThreshold;
 			_type = PrimitiveType::Float;
 		}
+		else if (name->IsEqual(RNCSTR("material_alphatocoverageclamp")) || name->IsEqual(RNCSTR("alphaToCoverageClamp")))
+		{
+			_identifier = AlphaToCoverageClamp;
+			_type = PrimitiveType::Float;
+		}
 		else if (name->IsEqual(RNCSTR("camera_position")) || name->IsEqual(RNCSTR("cameraPosition")))
 		{
 			_identifier = CameraPosition;

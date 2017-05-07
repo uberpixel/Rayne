@@ -353,7 +353,10 @@ namespace RN
 			MaterialDescriptor &descriptor = materialPair.second;
 			Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
 			if(wantsDiscard)
+			{
 				shaderOptions->EnableDiscard();
+				descriptor.useAlphaToCoverage = true;
+			}
 
 			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
 			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);

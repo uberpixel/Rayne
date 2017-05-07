@@ -66,6 +66,7 @@ namespace RN
 		std::vector<DXGI_FORMAT> colorFormats;
 		DXGI_FORMAT depthStencilFormat;
 		uint8 sampleCount;
+		uint8 sampleQuality;
 
 		Shader *vertexShader;
 		Shader *fragmentShader;
@@ -74,6 +75,8 @@ namespace RN
 		bool usePolygonOffset;
 		float polygonOffsetFactor;
 		float polygonOffsetUnits;
+
+		bool useAlphaToCoverage;
 	};
 
 	struct D3D12PipelineState

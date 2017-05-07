@@ -67,6 +67,8 @@ namespace RN
 		Color emissiveColor;
 
 		float discardThreshold;
+		bool useAlphaToCoverage;
+		float alphaToCoverageClamp;
 		float textureTileFactor;
 		CullMode cullMode;
 
@@ -86,6 +88,7 @@ namespace RN
 			DiscardThreshold = (1 << 4),
 			TextureTileFactor = (1 << 5),
 			CullMode = (1 << 6),
+			UseAlphaToCoverage = (1 << 7),
 
 			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
 		);
@@ -139,9 +142,12 @@ namespace RN
 		const Array *GetFragmentBuffers() const { return _fragmentBuffers; }
 		const Array *GetVertexBuffers() const { return _vertexBuffers; }
 
-		float GetUsePolygonOffset() const { return _usePolygonOffset; }
+		bool GetUsePolygonOffset() const { return _usePolygonOffset; }
 		float GetPolygonOffsetFactor() const { return _polygonOffsetFactor; }
 		float GetPolygonOffsetUnits() const { return _polygonOffsetUnits; }
+
+		bool GetUseAlphaToCoverage() const { return _useAlphaToCoverage; }
+		float GetAlphaToCoverageClamp() const { return _alphaToCoverageClamp; }
 
 	private:
 		Override _override;
@@ -166,6 +172,8 @@ namespace RN
 		float _polygonOffsetUnits;
 
 		float _discardThreshold;
+		bool _useAlphaToCoverage;
+		float _alphaToCoverageClamp;
 		float _textureTileFactor;
 		CullMode _cullMode;
 

@@ -79,6 +79,7 @@ namespace RN
 				mipMaps(1),
 				format(Format::RGBA8888SRGB),
 				sampleCount(1),
+				sampleQuality(0),
 				preferredClearColor(Color::White()),
 				preferredClearDepth(1.0f),
 				preferredClearStencil(0)
@@ -111,7 +112,7 @@ namespace RN
 				return descriptor;
 			}
 
-			static Descriptor With2DRenderTargetFormatAndMSAA(Format format, uint32 width, uint32 height, uint8 sampleCount)
+			static Descriptor With2DRenderTargetFormatAndMSAA(Format format, uint32 width, uint32 height, uint8 sampleCount, uint8 sampleQuality = 0)
 			{
 				Descriptor descriptor;
 				descriptor.type = Type::Type2DMS;
@@ -120,6 +121,7 @@ namespace RN
 				descriptor.format = format;
 				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
 				descriptor.sampleCount = sampleCount;
+				descriptor.sampleQuality = sampleQuality;
 
 				return descriptor;
 			}
@@ -151,7 +153,8 @@ namespace RN
 			uint32 depth;
 			uint32 mipMaps;
 			Format format;
-			uint8 sampleCount;
+			uint8 sampleCount; //TODO: Should be verified against the values supported by the hardware. Should be possible to querie the supported values.
+			uint8 sampleQuality; //TODO: Should be verified against the values supported by the hardware. Should be possible to querie the supported values.
 
 			Color preferredClearColor;
 			float preferredClearDepth;

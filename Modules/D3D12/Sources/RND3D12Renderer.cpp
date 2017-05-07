@@ -1035,6 +1035,13 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
+				{
+					float temp = material->GetAlphaToCoverageClamp();
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::CameraPosition:
 				{
 					RN::Vector3 cameraPosition = renderPass.viewPosition;

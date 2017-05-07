@@ -195,6 +195,7 @@ namespace RN
 		if(wantsDiscard)
 		{
 			shaderOptions->EnableDiscard();
+			descriptor.useAlphaToCoverage = true;
 		}
 
 		descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
