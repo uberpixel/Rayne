@@ -13,10 +13,11 @@ namespace RN
 {
 	RNDefineMeta(VRCamera, SceneNode)
 
-		VRCamera::VRCamera(VRWindow *window, Window *debugWindow) :
+		VRCamera::VRCamera(VRWindow *window, RenderPass *previewRenderPass, Window *debugWindow) :
 		_window(window->Retain()),
 		_debugWindow(debugWindow?debugWindow->Retain():nullptr),
-		_head(new SceneNode())
+		_head(new SceneNode()),
+		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr)
 	{
 		Vector2 windowSize = _window->GetSize();
 		if(_debugWindow)
@@ -28,6 +29,7 @@ namespace RN
 
 		AddChild(_head);
 
+		//TODO: Make msaa optional and adjustable
 		Vector2 eyeSize(windowSize.x / 2, windowSize.y);
 		Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, 8));
 		Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, 8));
@@ -57,10 +59,16 @@ namespace RN
 			_eye[i]->GetRenderPass()->AddRenderPass(resolvePass[i]);
 			_head->AddChild(_eye[i]);
 		}
+
+		if(_previewRenderPass)
+		{
+			resolvePass[0]->AddRenderPass(_previewRenderPass);
+		}
 	}
 
 	VRCamera::~VRCamera()
 	{
+		SafeRelease(_previewRenderPass);
 		SafeRelease(_window);
 		SafeRelease(_debugWindow);
 		SafeRelease(_head);

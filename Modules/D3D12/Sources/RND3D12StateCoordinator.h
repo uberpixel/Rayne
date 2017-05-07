@@ -119,7 +119,7 @@ namespace RN
 
 		const D3D12RootSignature *GetRootSignature(const D3D12PipelineStateDescriptor &pipelineDescriptor);
 		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
-		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material);
+		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState);
 
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);

@@ -103,7 +103,7 @@ namespace RN
 			static Descriptor With2DRenderTargetFormat(Format format, uint32 width, uint32 height)
 			{
 				Descriptor descriptor;
-				descriptor.type = Type::Type2DMS;
+				descriptor.type = Type::Type2D;
 				descriptor.width = width;
 				descriptor.height = height;
 				descriptor.format = format;

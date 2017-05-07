@@ -320,6 +320,8 @@ namespace RN
 			// create the final texture buffer
 			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
 			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, &clearValue, IID_PPV_ARGS(&_resource));
+
+			_isReady = true;
 		}
 		else
 		{

@@ -19,7 +19,7 @@ namespace RN
 	class VRCamera : public SceneNode
 	{
 	public:
-		RNVRAPI VRCamera(VRWindow *window, Window *debugWindow = nullptr);
+		RNVRAPI VRCamera(VRWindow *window, RenderPass *previewRenderPass = nullptr, Window *debugWindow = nullptr);
 		RNVRAPI ~VRCamera();
 
 		RNVRAPI void Update(float delta) override;
@@ -35,6 +35,7 @@ namespace RN
 		Window *_debugWindow;
 		SceneNode *_head;
 		Camera *_eye[2];
+		RenderPass *_previewRenderPass;
 
 		RNDeclareMetaAPI(VRCamera, RNVRAPI)
 	};

@@ -93,6 +93,8 @@ namespace RN
 		D3D12Window *_mainWindow;
 		ShaderLibrary *_defaultShaderLibrary;
 
+		D3D12Drawable *_defaultPostProcessingDrawable;
+
 		ID3D12CommandQueue *_commandQueue;
 		D3D12CommandList *_currentCommandList;
 		Array *_submittedCommandLists;

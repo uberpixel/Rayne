@@ -30,7 +30,8 @@ namespace RN
 		_executedCommandLists(new Array()),
 		_commandListPool(new Array()),
 		_scheduledFenceValue(0),
-		_completedFenceValue(0)
+		_completedFenceValue(0),
+		_defaultPostProcessingDrawable(nullptr)
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -49,7 +50,7 @@ namespace RN
 
 	D3D12Renderer::~D3D12Renderer()
 	{
-		
+		//TODO: Cleanup
 	}
 
 	D3D12CommandList *D3D12Renderer::GetCommandList()
@@ -522,6 +523,7 @@ namespace RN
 		d3dRenderPass.drawables.resize(0);
 
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
+		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
 		if(!apiStage)
 		{
 			d3dRenderPass.type = D3D12RenderPass::Type::Default;
@@ -542,7 +544,7 @@ namespace RN
 		d3dRenderPass.previousRenderPass = previousRenderPass;
 
 		d3dRenderPass.shaderHint = Shader::UsageHint::Default;
-		d3dRenderPass.overrideMaterial = nullptr;
+		d3dRenderPass.overrideMaterial = ppStage? ppStage->GetMaterial() : nullptr;
 
 		d3dRenderPass.directionalShadowDepthTexture = nullptr;
 
@@ -572,10 +574,24 @@ namespace RN
 		_internals->currentRenderPassIndex = _internals->renderPasses.size();
 		_internals->renderPasses.push_back(d3dRenderPass);
 
-		if(!apiStage)
+		if(ppStage)
 		{
-			//TODO: Create drawables here!
+			//Submit fullscreen quad drawable
+			if(!_defaultPostProcessingDrawable)
+			{
+				Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
+				MaterialDescriptor descriptor;
+				descriptor.vertexShader[0] = GetDefaultShader(Shader::Type::Vertex, nullptr);
+				descriptor.fragmentShader[0] = GetDefaultShader(Shader::Type::Fragment, nullptr);
+				Material *planeMaterial = Material::WithDescriptor(descriptor);
 
+				_lock.Lock();
+				_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
+				_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
+				_defaultPostProcessingDrawable->material = planeMaterial->Retain();
+				_lock.Unlock();
+			}
+			SubmitDrawable(_defaultPostProcessingDrawable);
 
 			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
 			_internals->totalDrawableCount += numberOfDrawables;
@@ -622,7 +638,7 @@ namespace RN
 			}
 			else
 			{
-				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
@@ -641,7 +657,7 @@ namespace RN
 			}
 			else
 			{
-				const String *skyDefine = options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY"));
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
@@ -839,6 +855,7 @@ namespace RN
 
 				//Create texture descriptors
 				const Array *textures = drawable->material->GetTextures();
+				uint8 textureCount = textures->GetCount();
 				textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
 					//Respect the textures limit of the root signature
 					if(i >= (rootSignature->textureCount - rootSignature->wantsDirectionalShadowTexture))
@@ -863,12 +880,36 @@ namespace RN
 				//TODO: Find a cleaner more general solution
 				if(rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
 				{
+					textureCount += 1;
 					device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
 				}
 
+				//TODO: Find a cleaner more general solution
+				if((rootSignature->textureCount - textureCount) > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+				{
+					Texture *texture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture();
+					if(texture)
+					{
+						textureCount += 1;
+						D3D12Texture *d3dTexture = texture->Downcast<D3D12Texture>();
+
+						//Check if texture finished uploading to the vram
+						if(d3dTexture->_isReady && !d3dTexture->_needsMipMaps)
+						{
+							device->CreateShaderResourceView(d3dTexture->_resource, &d3dTexture->_srvDescriptor, currentCPUHandle);
+						}
+						else
+						{
+							device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+						}
+
+						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					}
+				}
+
 				//Create null texture descriptors for those that are too many in the root signature
-				for(int i = rootSignature->textureCount - (textures->GetCount() + (rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)); i > 0; i--)
+				for(int i = rootSignature->textureCount - textureCount; i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
@@ -878,7 +919,7 @@ namespace RN
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 
 				D3D12UniformBuffer *vertexUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->vertexUniformBuffer;
-				if (vertexUniformBuffer)
+				if(vertexUniformBuffer)
 				{
 					D3D12GPUBuffer *actualBuffer = vertexUniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
 					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
@@ -904,7 +945,9 @@ namespace RN
 
 	void D3D12Renderer::FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset)
 	{
-		Material *material = drawable->material;
+		//TODO: Solve material overrides better...
+		Material *drawableMaterial = drawable->material;
+		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 		const D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		buffer += offset;
@@ -999,30 +1042,50 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AmbientColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiffuseColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpecularColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::EmissiveColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::TextureTileFactor) && !(drawableMaterial->GetOverride() & Material::Override::TextureTileFactor))
+						material = overrideMaterial;
+
 					float temp = material->GetTextureTileFactor();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
@@ -1030,6 +1093,10 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
+						material = overrideMaterial;
+
 					float temp = material->GetDiscardThreshold();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
@@ -1037,6 +1104,10 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
+					Material* material = drawableMaterial;
+					if (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
+						material = overrideMaterial;
+
 					float temp = material->GetAlphaToCoverageClamp();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
@@ -1142,7 +1213,7 @@ namespace RN
 			//TODO: Fix the camera situation...
 			_lock.Lock();
 			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
-			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState, material);
+			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);

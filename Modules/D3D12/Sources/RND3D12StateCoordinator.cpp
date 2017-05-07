@@ -461,12 +461,12 @@ namespace RN
 		return inputElementDescs;
 	}
 
-	D3D12UniformState *D3D12StateCoordinator::GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState, Material *material)
+	D3D12UniformState *D3D12StateCoordinator::GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
-		Shader *vertexShader = material->GetVertexShader(pipelineState->descriptor.shaderHint);
-		Shader *fragmentShader = material->GetFragmentShader(pipelineState->descriptor.shaderHint);
+		Shader *vertexShader = pipelineState->descriptor.vertexShader;
+		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
 		D3D12UniformBuffer *vertexBuffer = nullptr;
 		D3D12UniformBuffer *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())

@@ -132,6 +132,12 @@ namespace RN
 			Camera *camera = member->Get();
 			camera->PostUpdate(renderer);
 
+			if (camera->GetFlags() & Camera::Flags::NoRender)
+			{
+				member = member->GetPrevious(); //TODO: Switch back to GetNext()...
+				continue;
+			}
+
 			renderer->SubmitCamera(camera, [&] {
 
 				//TODO: Handle lights to be rendered before other things differently...
