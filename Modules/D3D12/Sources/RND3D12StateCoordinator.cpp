@@ -398,6 +398,9 @@ namespace RN
 		}
 		
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		//TODO: Implement as material property
+		psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
+
 		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
 		{
 			psoDesc.DepthStencilState.DepthEnable = TRUE;

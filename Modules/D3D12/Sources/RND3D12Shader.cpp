@@ -40,7 +40,7 @@ namespace RN
 
 		Data *shaderData = Data::WithContentsOfFile(fileName);
 		char *text = fileName->GetUTF8String();
-
+		
 		std::vector<D3D_SHADER_MACRO> shaderDefines;
 		options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
 			shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});

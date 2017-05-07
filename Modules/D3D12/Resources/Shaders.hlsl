@@ -199,6 +199,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 
 #if RN_DISCARD
 	clip(color.a - discardThreshold);
+	color.a = smoothstep(discardThreshold, 1.0f, color.a);
 #endif
 #endif
 
