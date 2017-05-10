@@ -41,13 +41,14 @@ namespace RN
 		const String *GetHMDInfoDescription() const;
 
 		Texture *_targetTexture;
-		Texture *_leftEyeTexture;
-		Texture *_rightEyeTexture;
 		Vector3 _hmdToEyeViewOffset[2];
+		bool _isFirstRender;
 
 		vr::IVRSystem *_hmd;
 		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
 		vr::TrackedDevicePose_t _predictedDevicePose[vr::k_unMaxTrackedDeviceCount];
+
+		static const uint32 kEyePadding;
 
 		RNDeclareMetaAPI(OpenVRSwapChain, OVRAPI)
 	};

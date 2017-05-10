@@ -34,6 +34,11 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
+	uint32 OpenVRWindow::GetEyePadding() const
+	{
+		return OpenVRSwapChain::kEyePadding;
+	}
+
 	static Matrix GetMatrixForOVRMatrix(const vr::HmdMatrix44_t &ovrMatrix)
 	{
 		Matrix result;

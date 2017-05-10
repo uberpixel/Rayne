@@ -13,7 +13,9 @@ namespace RN
 {
 	RNDefineMeta(OpenVRSwapChain, D3D12SwapChain)
 
-	OpenVRSwapChain::OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor)
+	const uint32 OpenVRSwapChain::kEyePadding = 8; //Use a padding of 8 pixels as recommended by the oculus docs.
+
+	OpenVRSwapChain::OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor) : _isFirstRender(true)
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 		_hmd = vr::VR_Init(&eError, vr::VRApplication_Scene);
@@ -33,16 +35,11 @@ namespace RN
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
-		_size = Vector2(recommendedWidth * 2, recommendedHeight);
+		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
 
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, recommendedWidth * 2, recommendedHeight, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, recommendedWidth * 2 + kEyePadding, recommendedHeight, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-
-		textureDescriptor.width = recommendedWidth;
-		textureDescriptor.height = recommendedHeight;
-		_leftEyeTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-		_rightEyeTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
@@ -62,8 +59,6 @@ namespace RN
 	OpenVRSwapChain::~OpenVRSwapChain()
 	{
 		SafeRelease(_targetTexture);
-		SafeRelease(_leftEyeTexture);
-		SafeRelease(_rightEyeTexture);
 		if(_hmd) vr::VR_Shutdown();
 	}
 
@@ -90,58 +85,37 @@ namespace RN
 
 	void OpenVRSwapChain::Prepare(D3D12CommandList *commandList)
 	{
+		if (_isFirstRender)
+			return;
 
+		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	}
 
 	void OpenVRSwapChain::Finalize(D3D12CommandList *commandList)
 	{
-		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		_leftEyeTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
-		_rightEyeTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
-
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(_targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource(), 0);
-		CD3DX12_TEXTURE_COPY_LOCATION leftEyeLocation(_leftEyeTexture->Downcast<D3D12Texture>()->GetD3D12Resource(), 0);
-		CD3DX12_TEXTURE_COPY_LOCATION rightEyeLocation(_rightEyeTexture->Downcast<D3D12Texture>()->GetD3D12Resource(), 0);
-
-		D3D12_BOX eyeBox;
-		eyeBox.top = 0;
-		eyeBox.bottom = _size.y;
-		eyeBox.left = 0;
-		eyeBox.right = _size.x / 2;
-		eyeBox.back = 1;
-		eyeBox.front = 0;
-		commandList->GetCommandList()->CopyTextureRegion(&leftEyeLocation, 0, 0, 0, &sourceLocation, &eyeBox);
-
-		eyeBox.left = _size.x / 2;
-		eyeBox.right = _size.x;
-		commandList->GetCommandList()->CopyTextureRegion(&rightEyeLocation, 0, 0, 0, &sourceLocation, &eyeBox);
-
-		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		_leftEyeTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		_rightEyeTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		_isFirstRender = false;
 	}
 
 	void OpenVRSwapChain::PresentBackBuffer()
 	{
-		vr::D3D12TextureData_t d3d12LeftTexture;
-		d3d12LeftTexture.m_pResource = _leftEyeTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
-		d3d12LeftTexture.m_pCommandQueue = _renderer->GetCommandQueue();
-		d3d12LeftTexture.m_nNodeMask = 0;
-		vr::Texture_t leftEyeTexture = { (void *)&d3d12LeftTexture, vr::TextureType_DirectX12, vr::ColorSpace_Gamma };
-
-		vr::D3D12TextureData_t d3d12RightTexture;
-		d3d12RightTexture.m_pResource = _rightEyeTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
-		d3d12RightTexture.m_pCommandQueue = _renderer->GetCommandQueue();
-		d3d12RightTexture.m_nNodeMask = 0;
-		vr::Texture_t rightEyeTexture = { (void *)&d3d12RightTexture, vr::TextureType_DirectX12, vr::ColorSpace_Gamma };
+		vr::D3D12TextureData_t d3d12EyeTexture;
+		d3d12EyeTexture.m_pResource = _targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
+		d3d12EyeTexture.m_pCommandQueue = _renderer->GetCommandQueue();
+		d3d12EyeTexture.m_nNodeMask = 0;
+		vr::Texture_t eyeTexture = { (void *)&d3d12EyeTexture, vr::TextureType_DirectX12, vr::ColorSpace_Gamma };
 
 		vr::VRTextureBounds_t bounds;
-		bounds.uMin = 0.0f;
-		bounds.uMax = 1.0f;
 		bounds.vMin = 0.0f;
 		bounds.vMax = 1.0f;
-		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture, &bounds, vr::Submit_Default);
-		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture, &bounds, vr::Submit_Default);
+
+		bounds.uMin = 0.0f;
+		bounds.uMax = 0.5f - kEyePadding * 0.5f / _size.x;
+		vr::VRCompositor()->Submit(vr::Eye_Left, &eyeTexture, &bounds, vr::Submit_Default);
+
+		bounds.uMin = 0.5f + kEyePadding * 0.5f / _size.x;
+		bounds.uMax = 1.0f;
+		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
 	}
 
 	ID3D12Resource *OpenVRSwapChain::GetD3D12Buffer(int i) const

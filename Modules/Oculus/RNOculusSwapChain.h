@@ -51,6 +51,8 @@ namespace RN
 
 		ovrResult _submitResult;
 
+		static const uint32 kEyePadding;
+
 		RNDeclareMetaAPI(OculusSwapChain, OVRAPI)
 	};
 }

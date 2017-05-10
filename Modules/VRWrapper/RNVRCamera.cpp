@@ -29,7 +29,8 @@ namespace RN
 
 		AddChild(_head);
 
-		Vector2 eyeSize(windowSize.x / 2, windowSize.y);
+		//TODO: Maybe handle different resolutions per eye
+		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 		Framebuffer *msaaFramebuffer = nullptr;
 		Framebuffer *resolvedFramebuffer = nullptr;
 		PostProcessingAPIStage *resolvePass[2];
@@ -61,7 +62,7 @@ namespace RN
 
 			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::CopyBuffer);
 			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
-			copyPass[i]->SetFrame(Rect(i * windowSize.x / 2, 0, windowSize.x / 2, windowSize.y));
+			copyPass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
 
 			if(msaaSampleCount > 1)
 			{

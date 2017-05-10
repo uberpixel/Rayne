@@ -31,6 +31,7 @@ namespace RN
 		OVRAPI Vector2 GetSize() const final;
 
 		OVRAPI Framebuffer *GetFramebuffer() const final;
+		OVRAPI uint32 GetEyePadding() const final;
 
 		OVRAPI void Update(float delta, float near, float far) final;
 

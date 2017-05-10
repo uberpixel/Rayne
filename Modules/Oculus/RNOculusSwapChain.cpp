@@ -12,6 +12,8 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
+	const uint32 OculusSwapChain::kEyePadding = 8; //Use a padding of 8 pixels as recommended by the oculus docs.
+
 	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0)
 	{
 		_session = nullptr;
@@ -38,7 +40,7 @@ namespace RN
 		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 1.0f);
 		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 1.0f);
 		ovrSizei bufferSize;
-		bufferSize.w = recommenedTex0Size.w + recommenedTex1Size.w;
+		bufferSize.w = recommenedTex0Size.w + recommenedTex1Size.w + kEyePadding;
 		bufferSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
 		_size.x = bufferSize.w;
 		_size.y = bufferSize.h;
@@ -81,12 +83,12 @@ namespace RN
 		_layer.Fov[1] = _eyeRenderDesc[1].Fov;
 		_layer.Viewport[0].Pos.x = 0;
 		_layer.Viewport[0].Pos.y = 0;
-		_layer.Viewport[0].Size.w = bufferSize.w / 2;
-		_layer.Viewport[0].Size.h = bufferSize.h;
-		_layer.Viewport[1].Pos.x = bufferSize.w / 2;
+		_layer.Viewport[0].Size.w = recommenedTex0Size.w;
+		_layer.Viewport[0].Size.h = recommenedTex0Size.h;
+		_layer.Viewport[1].Pos.x = recommenedTex0Size.w + kEyePadding;
 		_layer.Viewport[1].Pos.y = 0;
-		_layer.Viewport[1].Size.w = bufferSize.w / 2;
-		_layer.Viewport[1].Size.h = bufferSize.h;
+		_layer.Viewport[1].Size.w = recommenedTex1Size.w;
+		_layer.Viewport[1].Size.h = recommenedTex1Size.h;
 
 		ovr_SetTrackingOriginType(_session, ovrTrackingOrigin_FloorLevel);
 	}

@@ -33,6 +33,11 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
+	uint32 OculusWindow::GetEyePadding() const
+	{
+		return OculusSwapChain::kEyePadding;
+	}
+
 	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
 	{
 		Vector3 result;

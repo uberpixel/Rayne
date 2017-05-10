@@ -36,6 +36,7 @@ namespace RN
 		RNVRAPI virtual Vector2 GetSize() const override = 0;
 
 		RNVRAPI virtual Framebuffer *GetFramebuffer() const override = 0;
+		RNVRAPI virtual uint32 GetEyePadding() const = 0;
 
 		RNVRAPI virtual void Update(float delta, float near, float far) = 0;
 
