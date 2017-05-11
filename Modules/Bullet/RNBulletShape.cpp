@@ -8,6 +8,9 @@
 
 #include "RNBulletShape.h"
 #include "btBulletDynamicsCommon.h"
+#include <Math/RNVector.h>
+#include "BulletCollision/Gimpact/btGImpactShape.h"
+#include "LinearMath/btConvexHullComputer.h"
 
 namespace RN
 {
@@ -19,6 +22,9 @@ namespace RN
 	RNDefineMeta(BulletCapsuleShape, BulletShape)
 	RNDefineMeta(BulletStaticPlaneShape, BulletShape)
 	RNDefineMeta(BulletTriangleMeshShape, BulletShape)
+	RNDefineMeta(BulletConvexTriangleMeshShape, BulletShape)
+	RNDefineMeta(BulletGImpactShape, BulletShape)
+	RNDefineMeta(BulletConvexHullShape, BulletShape)
 	RNDefineMeta(BulletCompoundShape, BulletShape)
 		
 	BulletShape::BulletShape() :
@@ -206,10 +212,164 @@ namespace RN
 			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
 		}
 	}
+
+
+
+	BulletConvexTriangleMeshShape::BulletConvexTriangleMeshShape(Mesh *mesh)
+	{
+		_triangleMesh = new btTriangleMesh();
+
+		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
+		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
+		if (!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
+		{
+			return;
+		}
+
+		Mesh::Chunk chunk = mesh->GetTrianglesChunk();
+		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
+
+		for (size_t i = 0; i < mesh->GetIndicesCount() / 3; i++)
+		{
+			if (i > 0) vertexIterator++;
+			const Vector3 &vertex1 = *(vertexIterator++);
+			const Vector3 &vertex2 = *(vertexIterator++);
+			const Vector3 &vertex3 = *(vertexIterator);
+			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
+		}
+
+		_shape = new btConvexTriangleMeshShape(_triangleMesh, true);
+	}
+
+	BulletConvexTriangleMeshShape::~BulletConvexTriangleMeshShape()
+	{
+		delete _triangleMesh;
+	}
+
+	BulletConvexTriangleMeshShape *BulletConvexTriangleMeshShape::WithMesh(Mesh *mesh)
+	{
+		BulletConvexTriangleMeshShape *shape = new BulletConvexTriangleMeshShape(mesh);
+		return shape->Autorelease();
+	}
+
+
+
+	BulletGImpactShape::BulletGImpactShape(Mesh *mesh)
+	{
+		_triangleMesh = new btTriangleMesh();
+
+		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
+		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
+		if (!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
+		{
+			return;
+		}
+
+		Mesh::Chunk chunk = mesh->GetTrianglesChunk();
+		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
+
+		for (size_t i = 0; i < mesh->GetIndicesCount() / 3; i++)
+		{
+			if (i > 0) vertexIterator++;
+			const Vector3 &vertex1 = *(vertexIterator++);
+			const Vector3 &vertex2 = *(vertexIterator++);
+			const Vector3 &vertex3 = *(vertexIterator);
+			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
+		}
+
+		_shape = new btGImpactMeshShape(_triangleMesh);
+		static_cast<btGImpactMeshShape*>(_shape)->updateBound();
+	}
+
+	BulletGImpactShape::~BulletGImpactShape()
+	{
+		delete _triangleMesh;
+	}
+
+	BulletGImpactShape *BulletGImpactShape::WithMesh(Mesh *mesh)
+	{
+		BulletGImpactShape *shape = new BulletGImpactShape(mesh);
+		return shape->Autorelease();
+	}
+
+
+
+	BulletConvexHullShape::BulletConvexHullShape(Mesh *mesh, float margin)
+	{
+		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
+		if (!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
+		{
+			return;
+		}
+
+		Mesh::Chunk chunk = mesh->GetChunk();
+		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
+//		Mesh::ElementIterator<Vector3> normalIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Normals);
+
+		std::vector<float> vertices;
+		for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
+		{
+			if(i > 0)
+			{
+				vertexIterator++;
+//				normalIterator++;
+			}
+			const Vector3 &vertex = *vertexIterator;
+//			const Vector3 &normal = *normalIterator;
+//			Vector3 hull = vertex - normal.GetNormalized(shape->getMargin());
+
+			vertices.push_back(vertex.x);
+			vertices.push_back(vertex.y);
+			vertices.push_back(vertex.z);
+
+//			shape->addPoint(btVector3(vertex.x, vertex.y, vertex.z), false);
+		}
+
+		btConvexHullComputer *convexHullComputer = new btConvexHullComputer();
+		btScalar actualMargin = convexHullComputer->compute(&vertices[0], 3 * sizeof(float), mesh->GetVerticesCount(), margin, 0.001f);
 		
+		btConvexHullShape *shape = new btConvexHullShape(convexHullComputer->vertices[0].m_floats, convexHullComputer->vertices.size());
+		shape->setMargin(actualMargin);
+		shape->recalcLocalAabb();
+
+		_shape = shape;
+	}
+
+	BulletConvexHullShape *BulletConvexHullShape::WithMesh(Mesh *mesh, float margin)
+	{
+		BulletConvexHullShape *shape = new BulletConvexHullShape(mesh, margin);
+		return shape->Autorelease();
+	}
+
+
+	
 	BulletCompoundShape::BulletCompoundShape()
 	{
 		_shape = new btCompoundShape();
+	}
+
+	BulletCompoundShape::BulletCompoundShape(Model *model, float margin)
+	{
+		_shape = new btCompoundShape();
+
+		Model::LODStage *lodStage = model->GetLODStage(0);
+		size_t meshes = lodStage->GetCount();
+		for (size_t i = 0; i < meshes; i++)
+		{
+			Mesh *mesh = lodStage->GetMeshAtIndex(i);
+			BulletConvexHullShape *shape = BulletConvexHullShape::WithMesh(mesh, margin);
+			AddChild(shape, Vector3(), Quaternion());
+		}
+	}
+
+	BulletCompoundShape::BulletCompoundShape(const Array *meshes, float margin)
+	{
+		_shape = new btCompoundShape();
+
+		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
+			BulletConvexHullShape *shape = BulletConvexHullShape::WithMesh(mesh, margin);
+			AddChild(shape, Vector3(), Quaternion());
+		});
 	}
 		
 	BulletCompoundShape::~BulletCompoundShape()
@@ -225,10 +385,16 @@ namespace RN
 		btCompoundShape *compoundShape = static_cast<btCompoundShape *>(_shape);
 			
 		_shapes.push_back(shape->Retain());
-			
+		
 		btTransform transform;
 		transform.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
 		transform.setOrigin(btVector3(position.x, position.y, position.z));
 		compoundShape->addChildShape(transform, shape->GetBulletShape());
+	}
+
+	BulletCompoundShape *BulletCompoundShape::WithModel(Model *model, float margin)
+	{
+		BulletCompoundShape *shape = new BulletCompoundShape(model, margin);
+		return shape->Autorelease();
 	}
 }

@@ -16,6 +16,8 @@ class btTriangleMesh;
 
 namespace RN
 {
+	class Mesh;
+
 	class BulletShape : public Object
 	{
 	public:
@@ -114,13 +116,58 @@ namespace RN
 			
 		RNDeclareMetaAPI(BulletTriangleMeshShape, BTAPI)
 	};
+
+	class BulletGImpactShape : public BulletShape
+	{
+	public:
+		BTAPI BulletGImpactShape(Mesh *mesh);
+		BTAPI ~BulletGImpactShape() override;
+
+		BTAPI static BulletGImpactShape *WithMesh(Mesh *mesh);
+
+	private:
+		btTriangleMesh *_triangleMesh;
+
+		RNDeclareMetaAPI(BulletGImpactShape, BTAPI)
+	};
+
+	class BulletConvexTriangleMeshShape : public BulletShape
+	{
+	public:
+		BTAPI BulletConvexTriangleMeshShape(Mesh *mesh);
+		BTAPI ~BulletConvexTriangleMeshShape() override;
+
+		BTAPI static BulletConvexTriangleMeshShape *WithMesh(Mesh *mesh);
+
+	private:
+		btTriangleMesh *_triangleMesh;
+
+		RNDeclareMetaAPI(BulletConvexTriangleMeshShape, BTAPI)
+	};
+
+	class BulletConvexHullShape : public BulletShape
+	{
+	public:
+		BTAPI BulletConvexHullShape(Mesh *mesh, float margin = 0.04f);
+
+		BTAPI static BulletConvexHullShape *WithMesh(Mesh *mesh, float margin = 0.04f);
+
+	private:
+
+		RNDeclareMetaAPI(BulletConvexHullShape, BTAPI)
+	};
 		
 	class BulletCompoundShape : public BulletShape
 	{
 	public:
 		BTAPI BulletCompoundShape();
+		BTAPI BulletCompoundShape(Model *model, float margin = 0.04f);
+		BTAPI BulletCompoundShape(const Array *meshes, float margin = 0.04f);
 		BTAPI ~BulletCompoundShape();
+
 		BTAPI void AddChild(BulletShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
+
+		BTAPI static BulletCompoundShape *WithModel(Model *model, float margin = 0.04f);
 			
 	private:
 		std::vector<BulletShape *> _shapes;
