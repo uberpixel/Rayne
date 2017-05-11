@@ -304,25 +304,19 @@ namespace RN
 
 		Mesh::Chunk chunk = mesh->GetChunk();
 		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
-//		Mesh::ElementIterator<Vector3> normalIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Normals);
 
 		std::vector<float> vertices;
+		vertices.reserve(mesh->GetVerticesCount() * 3);
 		for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
 		{
 			if(i > 0)
 			{
 				vertexIterator++;
-//				normalIterator++;
 			}
 			const Vector3 &vertex = *vertexIterator;
-//			const Vector3 &normal = *normalIterator;
-//			Vector3 hull = vertex - normal.GetNormalized(shape->getMargin());
-
 			vertices.push_back(vertex.x);
 			vertices.push_back(vertex.y);
 			vertices.push_back(vertex.z);
-
-//			shape->addPoint(btVector3(vertex.x, vertex.y, vertex.z), false);
 		}
 
 		btConvexHullComputer *convexHullComputer = new btConvexHullComputer();
