@@ -326,6 +326,7 @@ namespace RN
 		shape->setMargin(actualMargin);
 		shape->recalcLocalAabb();
 
+		delete convexHullComputer;
 		_shape = shape;
 	}
 
