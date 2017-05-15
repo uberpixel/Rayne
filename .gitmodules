@@ -22,3 +22,6 @@
 [submodule "Modules/OpenVR/Vendor/OpenVR"]
 	path = Modules/OpenVR/Vendor/OpenVR
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "Modules/SteamAudio/Vendor/libsoundio"]
+	path = Modules/SteamAudio/Vendor/libsoundio
+	url = https://github.com/andrewrk/libsoundio.git

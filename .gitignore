@@ -19,3 +19,4 @@ CMakeLists.txt.user
 /cmake-build-*
 Modules/Oculus/Vendor/OculusSDK/
 xcode-build
+Modules/SteamAudio/Vendor/steamaudio

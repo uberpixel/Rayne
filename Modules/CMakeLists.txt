@@ -10,6 +10,7 @@ option(BUILD_OPENVR_MODULE "Build the OpenVR module" ON)
 option(BUILD_BULLET_MODULE "Build the Bullet physics module" ON)
 option(BUILD_OGG_MODULE "Build the ogg audio file module" ON)
 option(BUILD_OPENAL_MODULE "Build the OpenAL audio module" ON)
+option(BUILD_STEAMAUDIO_MODULE "Build the Steam Audio module" ON)
 
 if(APPLE AND ${BUILD_METAL_MODULE})
     add_subdirectory("Metal")
@@ -35,6 +36,10 @@ endif()
 
 if(${BUILD_OPENAL_MODULE})
     add_subdirectory("OpenAL")
+endif()
+
+if(${BUILD_STEAMAUDIO_MODULE})
+    add_subdirectory("SteamAudio")
 endif()
 
 if((MSVC AND ${BUILD_OCULUS_MODULE}) OR ${BUILD_OPENVR_MODULE})
