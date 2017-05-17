@@ -9,6 +9,11 @@
 #include "RNOculusSwapChain.h"
 #include "RNOculusWindow.h"
 
+#include "OVR_CAPI_Audio.h"
+#include <initguid.h>
+#include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
+
 namespace RN
 {
 	RNDefineMeta(OculusWindow, VRWindow)
@@ -176,4 +181,40 @@ namespace RN
 		buffer.Samples = haptics.samples;
 		ovr_SubmitControllerVibration(_swapChain->_session, hand?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
 	}
+
+	static String *StringForLPWSTR(LPWSTR lpwstr)
+	{
+		int length = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, nullptr, 0, nullptr, nullptr);
+		char *chars = new char[length+1];
+		WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, chars, length, nullptr, nullptr);
+		chars[length] = '\0';
+
+		String *result = new String(chars);
+		delete[] chars;
+
+		return result->Autorelease();
+	}
+
+	const String *OculusWindow::GetPreferredAudioOutputDeviceID() const
+	{
+		WCHAR idString[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
+		if(OVR_SUCCESS(ovr_GetAudioDeviceOutGuidStr(idString)))
+		{
+			return RNSTR(StringForLPWSTR(idString));
+		}
+
+		return nullptr;
+	}
+
+	const String *OculusWindow::GetPreferredAudioInputDeviceID() const
+	{
+		WCHAR idString[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
+		if(OVR_SUCCESS(ovr_GetAudioDeviceInGuidStr(idString)))
+		{
+			return RNSTR(StringForLPWSTR(idString));
+		}
+
+		return nullptr;
+	}
 }
+

@@ -13,17 +13,37 @@
 
 namespace RN
 {
+	class SteamAudioWorld;
 	class SteamAudioEffect : public Object
 	{
 	public:
-		SAAPI SteamAudioEffect();
+		SAAPI SteamAudioEffect(SteamAudioWorld *audioWorld);
 		SAAPI ~SteamAudioEffect() override;
 
-		SAAPI virtual float ProcessSample(float sample) const;
-			
+		SAAPI virtual void ProcessFrame(float *frameIn, float *frameOut, uint32 size) const;
+	
+	protected:
+		SteamAudioWorld *_audioWorld;
+
 	private:
 			
 		RNDeclareMetaAPI(SteamAudioEffect, SAAPI)
+	};
+
+	class SteamAudioEffectBinaural : public SteamAudioEffect
+	{
+	public:
+		SAAPI SteamAudioEffectBinaural(SteamAudioWorld *audioWorld);
+		SAAPI ~SteamAudioEffectBinaural() override;
+
+		SAAPI void SetDirectionToSource(Vector3 direction);
+
+		SAAPI void ProcessFrame(float *frameIn, float *frameOut, uint32 size) const final;
+
+	private:
+		Vector3 _direction;
+
+		RNDeclareMetaAPI(SteamAudioEffectBinaural, SAAPI)
 	};
 }
 

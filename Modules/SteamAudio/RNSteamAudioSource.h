@@ -13,10 +13,13 @@
 
 namespace RN
 {
-	class SteamAudioSource : public Object
+	class SteamAudioWorld;
+	class SteamAudioSampler;
+	class SteamAudioSourceInternals;
+	class SteamAudioSource : public SceneNode
 	{
 	public:
-		SAAPI SteamAudioSource(AudioAsset *asset);
+		SAAPI SteamAudioSource(AudioAsset *asset, SteamAudioWorld *audioWorld);
 		SAAPI ~SteamAudioSource() override;
 			
 		SAAPI void Play();
@@ -28,14 +31,14 @@ namespace RN
 		SAAPI void SetRange(float min, float max);
 		SAAPI void SetSelfdestruct(bool selfdestruct);
 
-		SAAPI void Update(float delta);
-		SAAPI float GetSample(uint8 channel) const;
+		SAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
 			
 		bool IsPlaying() const { return _isPlaying; }
 		bool IsRepeating() const { return _isRepeating; }
 			
 	private:
-		AudioAsset *_asset;
+		SteamAudioSampler *_sampler;
+		SteamAudioSourceInternals *_internals;
 			
 		bool _isPlaying;
 		bool _isRepeating;
@@ -45,9 +48,11 @@ namespace RN
 		float _pitch;
 
 		double _currentTime;
-		double _totalTime;
 
 		Array *_effects;
+
+		static float *_sharedInputBuffer;
+		static float *_sharedOutputBuffer;
 			
 		RNDeclareMetaAPI(SteamAudioSource, SAAPI)
 	};

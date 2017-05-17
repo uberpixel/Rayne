@@ -7,35 +7,65 @@
 //
 
 #include "RNSteamAudioSource.h"
+#include "RNSteamAudioWorld.h"
+#include "RNSteamAudioSampler.h"
+#include "RNSteamAudioInternals.h"
 
 namespace RN
 {
-	RNDefineMeta(SteamAudioSource, Object)
+	RNDefineMeta(SteamAudioSource, SceneNode)
 
-		SteamAudioSource::SteamAudioSource(AudioAsset *asset) :
-		_asset(asset),
+	//TODO: Don't hardcode the size of these...
+	float *SteamAudioSource::_sharedInputBuffer = new float[512];
+	float *SteamAudioSource::_sharedOutputBuffer = new float[512 * 15];
+
+	SteamAudioSource::SteamAudioSource(AudioAsset *asset, SteamAudioWorld *audioWorld) :
 		_isPlaying(false),
 		_isRepeating(false),
 		_isSelfdestructing(false),
-		_currentTime(0.0f),
-		_gain(1.0f),
 		_pitch(1.0f),
-		_effects(new Array())
+		_gain(1.0f),
+		_currentTime(0.0f),
+		_sampler(new SteamAudioSampler(asset)),
+		_internals(new SteamAudioSourceInternals())
 	{
-		_asset->Retain();
-		_totalTime = _asset->GetData()->GetLength() / (_asset->GetBitsPerSample() / 8) / _asset->GetChannels() / _asset->GetSampleRate();
+		_internals->inputBuffer.format.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
+		_internals->inputBuffer.format.numSpeakers = 1;
+		_internals->inputBuffer.format.channelLayout = IPL_CHANNELLAYOUT_MONO;
+		_internals->inputBuffer.format.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+
+		_internals->outputBuffer.format.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
+		_internals->outputBuffer.format.numSpeakers = 4;	//TODO: Experiment with the value, it apparently HAS to be set to something...
+		_internals->outputBuffer.format.ambisonicsOrder = 2;	//TODO: Experiment with the value
+		_internals->outputBuffer.format.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
+		_internals->outputBuffer.format.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
+		_internals->outputBuffer.format.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+
+		iplCreatePanningEffect(audioWorld->GetBinauralRenderer(), _internals->inputBuffer.format, _internals->outputBuffer.format, &_internals->panningEffect);
 	}
 		
 	SteamAudioSource::~SteamAudioSource()
 	{
-		_asset->Release();
+		_sampler->Release();
+
+		if(_internals->panningEffect)
+		{
+			iplDestroyPanningEffect(&_internals->panningEffect);
+		}
+
+		if(_internals->convolutionEffect)
+		{
+			iplDestroyConvolutionEffect(&_internals->convolutionEffect);
+		}
+
+		delete _internals;
 	}
 		
 	void SteamAudioSource::SetRepeat(bool repeat)
 	{
 		_isRepeating = repeat;
 	}
-		
+	
 	void SteamAudioSource::SetPitch(float pitch)
 	{
 		_pitch = pitch;
@@ -66,44 +96,22 @@ namespace RN
 		_isPlaying = false;
 	}
 
-	float SteamAudioSource::GetSample(uint8 channel) const
+	void SteamAudioSource::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
-		if (!_isPlaying)
-			return 0.0f;
-
-		uint64 samplePosition = _currentTime * _asset->GetSampleRate() *_asset->GetChannels() + channel;
-
-		float sample = 0.0f;
-		if(_asset->GetBitsPerSample() == 16)
+		double sampleLength = frameLength / static_cast<double>(sampleCount);
+		for(int i = 0; i < sampleCount; i++)
 		{
-			int16 *samples = static_cast<int16*>(_asset->GetData()->GetBytes());
-			sample = samples[samplePosition];
-			sample /= 65536/2;
-			sample *= _gain;
+			_sharedInputBuffer[i] = _sampler->GetSample(_currentTime, 0);
+			_currentTime += sampleLength * _pitch;
 		}
 
-		return sample;
-	}
+		_internals->inputBuffer.numSamples = sampleCount;
+		_internals->inputBuffer.interleavedBuffer = _sharedInputBuffer;
 
-	void SteamAudioSource::Update(float delta)
-	{
-		if(!_isPlaying)
-			return;
+		_internals->outputBuffer.numSamples = sampleCount;
+		_internals->outputBuffer.interleavedBuffer = _sharedOutputBuffer;
+		*outputBuffer = _sharedOutputBuffer;
 
-		_currentTime += delta * _pitch;
-		while(_currentTime > _totalTime)
-		{
-			if(_isRepeating)
-			{
-				_currentTime -= _totalTime;
-			}
-			else
-			{
-				_currentTime = 0.0f;
-				_isPlaying = false;
-
-				//TODO: Selfdestruct here if desired?
-			}
-		}
+		iplApplyPanningEffect(_internals->panningEffect, _internals->inputBuffer, IPLVector3{ cosf(_currentTime), 0.0f, -sinf(_currentTime) }, _internals->outputBuffer);
 	}
 }

@@ -12,68 +12,104 @@
 
 namespace RN
 {
+	RNDefineMeta(SteamAudioDevice, Object)
 	RNDefineMeta(SteamAudioWorld, SceneAttachment)
 
 	Array *SteamAudioWorld::_audioSources = new Array();
+	float *SteamAudioWorld::_ambisonicsFrameData = nullptr;
+	float *SteamAudioWorld::_outputFrameData = nullptr;
+	uint32 SteamAudioWorld::_frameSize = 0;
+	void *SteamAudioWorld::_ambisonicsBinauralEffect = nullptr;
 	
-	void SteamAudioWorld::WriteCallback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max)
+	void SteamAudioWorld::WriteCallback(struct SoundIoOutStream *outstream, int sample_count_min, int sample_count_max)
 	{
+		if (_audioSources->GetCount() == 0)
+			return;
+
 		const struct SoundIoChannelLayout *layout = &outstream->layout;
-		float float_sample_rate = outstream->sample_rate;
-		float seconds_per_frame = 1.0f / float_sample_rate;
+		float seconds_per_sample = 1.0f / static_cast<float>(outstream->sample_rate);
 		struct SoundIoChannelArea *areas;
-		int frames_left = std::max(1024, frame_count_min);
+		int samples_left = std::max(static_cast<int>(_frameSize), sample_count_min);
 
-		while(frames_left > 0)
+		while(samples_left > 0)
 		{
-			int frame_count = frames_left;
+			int sampleCount = samples_left;
 
-			soundio_outstream_begin_write(outstream, &areas, &frame_count);
-
-			if(!frame_count)
+			soundio_outstream_begin_write(outstream, &areas, &sampleCount);
+			if(!sampleCount)
 				break;
 
-			for(int frame = 0; frame < frame_count; frame += 1)
-			{
-				float sample = 0.0f;
-				_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop){
-					if(source)
-					{
-						sample += source->GetSample(0);
-						source->Update(seconds_per_frame);
-					}
-				});
+			IPLAudioFormat inputFormat;
+			inputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
+			inputFormat.numSpeakers = 4;	//TODO: Experiment with the value, it apparently HAS to be set to something...
+			inputFormat.ambisonicsOrder = 2;	//TODO: Experiment with the value
+			inputFormat.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
+			inputFormat.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
+			inputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+			IPLAudioBuffer inputBuffer[2];
+			inputBuffer[0].format = inputFormat;
+			inputBuffer[1].format = inputFormat;
+			inputBuffer[0].numSamples = sampleCount;
+			inputBuffer[1].numSamples = sampleCount;
+			inputBuffer[1].interleavedBuffer = _ambisonicsFrameData;
 
-				for(int channel = 0; channel < layout->channel_count; channel += 1)
+			float secondsPerFrame = seconds_per_sample * sampleCount;
+			_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
+				float *outData = nullptr;
+				source->Update(secondsPerFrame, sampleCount, &outData);
+
+				inputBuffer[0].interleavedBuffer = outData;
+				iplMixAudioBuffers(2, inputBuffer, inputBuffer[1]);
+			});
+
+			IPLAudioFormat outputFormat;
+			outputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
+			outputFormat.channelLayout = IPL_CHANNELLAYOUT_STEREO;
+			outputFormat.numSpeakers = 2;
+			outputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+
+			IPLAudioBuffer outputBuffer;
+			outputBuffer.format = outputFormat;
+			outputBuffer.numSamples = sampleCount;
+			outputBuffer.interleavedBuffer = _outputFrameData;
+			iplApplyAmbisonicsBinauralEffect(_ambisonicsBinauralEffect, inputBuffer[1], outputBuffer);
+
+			for(int sample = 0; sample < sampleCount; sample++)
+			{
+				for(int channel = 0; channel < layout->channel_count; channel++)
 				{
-					float *ptr = (float*)(areas[channel].ptr + areas[channel].step * frame);
-					*ptr = sample;
+					float *ptr = reinterpret_cast<float*>(areas[channel].ptr + areas[channel].step * sample);
+					*ptr = _outputFrameData[sample * layout->channel_count + channel];
 				}
 			}
 
 			soundio_outstream_end_write(outstream);
 
-			frames_left -= frame_count;
+			samples_left -= sampleCount;
 		}
 	}
 
-		
-	SteamAudioWorld::SteamAudioWorld(String *deviceName) :
+	//TODO: Allow to initialize with preferred device names and fall back to defaults
+	SteamAudioWorld::SteamAudioWorld(SteamAudioDevice *outputDevice, uint32 sampleRate, uint32 frameSize) :
 		_audioListener(nullptr)
 	{
+		RN_ASSERT(!outputDevice || outputDevice->type == SteamAudioDevice::Type::Output, "outputDevice has to be an output device!");
+
 		//Initialize libsoundio
 		_soundio = soundio_create();
 		soundio_connect(_soundio);
 		soundio_flush_events(_soundio);
 
-		int default_out_device_index = soundio_default_output_device_index(_soundio);
-		if(default_out_device_index < 0)
+		int deviceIndex = soundio_default_output_device_index(_soundio);
+		if (outputDevice)
+			deviceIndex = outputDevice->index;
+		if(deviceIndex < 0)
 		{
 			RNDebug("No audio output device found.");
 			return;
 		}
 
-		_device = soundio_get_output_device(_soundio, default_out_device_index);
+		_device = soundio_get_output_device(_soundio, deviceIndex);
 		if(!_device)
 		{
 			RNDebug("Failed opening audio device.");
@@ -84,7 +120,7 @@ namespace RN
 
 		_outstream = soundio_outstream_create(_device);
 		_outstream->format = SoundIoFormatFloat32NE;
-		_outstream->sample_rate = 44100;
+		_outstream->sample_rate = sampleRate;
 		_outstream->write_callback = WriteCallback;
 
 		int err;
@@ -104,37 +140,32 @@ namespace RN
 		}
 
 		//Initialize Steam Audio
-/*		IPLContext context{nullptr, nullptr, nullptr};
-		const int32 samplingrate = 44100;
-		const int32 framesize = 1024;
+		IPLContext context{nullptr, nullptr, nullptr};
+		const int32 samplingrate = sampleRate;
+		const int32 framesize = frameSize;
 		IPLRenderingSettings settings{samplingrate, framesize};
-		IPLhandle renderer{nullptr};
 		IPLHrtfParams hrtfParams{IPL_HRTFDATABASETYPE_DEFAULT, nullptr, 0, nullptr, nullptr};
-		iplCreateBinauralRenderer(context, settings, hrtfParams, &renderer); //TODO: HRTF is only a good idea with headphones, add option to disable
+		iplCreateBinauralRenderer(context, settings, hrtfParams, &_binauralRenderer); //TODO: HRTF is only a good idea with headphones, add option to disable
 
-		IPLAudioFormat mono;
-		mono.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
-		mono.channelLayout = IPL_CHANNELLAYOUT_MONO;
-		mono.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+		IPLAudioFormat inputFormat;
+		inputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
+		inputFormat.numSpeakers = 4;	//TODO: Experiment with the value, it apparently HAS to be set to something...
+		inputFormat.ambisonicsOrder = 2;	//TODO: Experiment with the value
+		inputFormat.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
+		inputFormat.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
+		inputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
 
-		IPLAudioFormat stereo;
-		stereo.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
-		stereo.channelLayout = IPL_CHANNELLAYOUT_STEREO;
-		stereo.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
+		IPLAudioFormat outputFormat;
+		outputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
+		outputFormat.channelLayout = IPL_CHANNELLAYOUT_STEREO;
+		outputFormat.numSpeakers = 2;
+		outputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
 
-		IPLhandle effect{nullptr};
-		iplCreateBinauralEffect(renderer, mono, stereo, &effect);
+		iplCreateAmbisonicsBinauralEffect(_binauralRenderer, inputFormat, outputFormat, &_ambisonicsBinauralEffect);
 
-		IPLAudioBuffer inbuffer{mono, framesize, inputaudio.data()};
-		std::vector<float> outputaudioframe(2 * framesize);
-		IPLAudioBuffer outbuffer{stereo, framesize, outputaudioframe.data()};
-
-		for(uint32 i = 0; i < numframes; ++i)
-		{
-			iplApplyBinauralEffect(effect, inbuffer, IPLVector3{ 1.0f, 1.0f, 1.0f }, IPL_HRTFINTERPOLATION_NEAREST, outbuffer);
-			std::copy(std::begin(outputaudioframe), std::end(outputaudioframe), std::back_inserter(outputaudio));
-			inbuffer.interleavedBuffer += framesize;
-		}*/
+		_frameSize = frameSize;
+		_ambisonicsFrameData = new float[_frameSize * 15];
+		_outputFrameData = new float[_frameSize * 2];
 	}
 		
 	SteamAudioWorld::~SteamAudioWorld()
@@ -143,27 +174,60 @@ namespace RN
 		soundio_device_unref(_device);
 		soundio_destroy(_soundio);
 
-/*		iplDestroyBinauralEffect(&effect);
-		iplDestroyBinauralRenderer(&renderer);*/
+		iplDestroyAmbisonicsBinauralEffect(&_ambisonicsBinauralEffect);
+		iplDestroyBinauralRenderer(&_binauralRenderer);
 
 		SafeRelease(_audioSources);
+
+		if(_frameSize > 0)
+		{
+			delete[] _ambisonicsFrameData;
+			delete[] _outputFrameData;
+			_ambisonicsFrameData = nullptr;
+			_outputFrameData = nullptr;
+			_frameSize = 0;
+		}
 	}
 
-	Array *SteamAudioWorld::GetDeviceNames()
+	Array *SteamAudioWorld::GetDevices()
 	{
-/*		const char *bytes = static_cast<const char*>(alcGetString(nullptr, ALC_ALL_DEVICES_SPECIFIER));
-		Array *devices = new Array();
-		String *deviceString = String::WithString(bytes, true);
-		while(deviceString->GetLength() > 0)
-		{
-			devices->AddObject(deviceString);
-			bytes += deviceString->GetLength() + 1;
-			deviceString = String::WithString(bytes, true);
-		}
-		
-		return devices;*/
+		//Initialize libsoundio
+		SoundIo *soundio = soundio_create();
+		SoundIoDevice *device;
+		soundio_connect(soundio);
+		soundio_flush_events(soundio);
 
-		return nullptr;
+		Array *deviceArray = new Array();
+
+		//Get all output devices, put the default one first
+		int outputDeviceCount = soundio_output_device_count(soundio);
+		for(int i = 0; i < outputDeviceCount; i++)
+		{
+			device = soundio_get_output_device(soundio, i);
+			if(device)
+			{
+				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Output, i, device->name, device->id, false);
+				deviceArray->AddObject(saDevice->Autorelease());
+				soundio_device_unref(device);
+			}
+		}
+
+		//Get all input devices, put the default one first
+		int inputDeviceCount = soundio_input_device_count(soundio);
+		for(int i = 0; i < inputDeviceCount; i++)
+		{
+			device = soundio_get_input_device(soundio, i);
+			if(device)
+			{
+				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Input, i, device->name, device->id, false);
+				deviceArray->AddObject(saDevice->Autorelease());
+				soundio_device_unref(device);
+			}
+		}
+
+		soundio_destroy(soundio);
+
+		return deviceArray->Autorelease();
 	}
 		
 	void SteamAudioWorld::Update(float delta)
@@ -182,16 +246,14 @@ namespace RN
 			_audioListener->InsertIntoWorld(this);
 	}
 		
-	SteamAudioSource *SteamAudioWorld::PlaySound(AudioAsset *resource)
+	void SteamAudioWorld::PlaySound(AudioAsset *resource)
 	{
 		if(_audioListener)
 		{
-			SteamAudioSource *source = new SteamAudioSource(resource);
+			SteamAudioSource *source = new SteamAudioSource(resource, this);
 			source->SetSelfdestruct(true);
 			source->Play();
-			_audioSources->AddObject(source);
-			return source;
+			_audioSources->AddObject(source->Autorelease());
 		}
-		return nullptr;
 	}
 }

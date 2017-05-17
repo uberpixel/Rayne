@@ -25,19 +25,23 @@ set(SOURCES
         RNSteamAudioInit.cpp
         RNSteamAudioWorld.cpp
         RNSteamAudioListener.cpp
+        RNSteamAudioSampler.cpp
         RNSteamAudioSource.cpp
-        RNSteamAudioEffect.cpp)
+        RNSteamAudioEffect.cpp
+        RNSteamAudioInternals.cpp)
 
 set(HEADERS
 	RNSteamAudio.h
         RNSteamAudioWorld.h
         RNSteamAudioListener.h
+        RNSteamAudioSampler.h
         RNSteamAudioSource.h
-        RNSteamAudioEffect.h)
+        RNSteamAudioEffect.h
+        RNSteamAudioInternals.h)
 
 set(DEFINES RN_BUILD_STEAMAUDIO SOUNDIO_STATIC_LIBRARY)
 
-set(RAYNE_LIBRARIES Rayne libsoundio_static ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/Windows/x64/phonons.lib)
+set(RAYNE_LIBRARIES Rayne libsoundio_static ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/Windows/x64/phonon.lib)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libsoundio"
