@@ -24,7 +24,6 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNSteamAudioInit.cpp
         RNSteamAudioWorld.cpp
-        RNSteamAudioListener.cpp
         RNSteamAudioSampler.cpp
         RNSteamAudioSource.cpp
         RNSteamAudioEffect.cpp
@@ -33,7 +32,6 @@ set(SOURCES
 set(HEADERS
 	RNSteamAudio.h
         RNSteamAudioWorld.h
-        RNSteamAudioListener.h
         RNSteamAudioSampler.h
         RNSteamAudioSource.h
         RNSteamAudioEffect.h

@@ -13,19 +13,19 @@
 
 namespace RN
 {
-	class SteamAudioWorld;
 	class SteamAudioSampler;
 	class SteamAudioSourceInternals;
 	class SteamAudioSource : public SceneNode
 	{
 	public:
-		SAAPI SteamAudioSource(AudioAsset *asset, SteamAudioWorld *audioWorld);
+		SAAPI SteamAudioSource(AudioAsset *asset, bool hasIndirectSound = true);
 		SAAPI ~SteamAudioSource() override;
 			
 		SAAPI void Play();
 		SAAPI void Stop();
 
 		SAAPI void SetRepeat(bool repeat);
+		SAAPI void SetRadius(float radius);
 		SAAPI void SetPitch(float pitch);
 		SAAPI void SetGain(float gain);
 		SAAPI void SetRange(float min, float max);
@@ -46,10 +46,12 @@ namespace RN
 
 		float _gain;
 		float _pitch;
+		float _radius;
+
+		float _delay;
+		float _speed;
 
 		double _currentTime;
-
-		Array *_effects;
 
 		static float *_sharedInputBuffer;
 		static float *_sharedOutputBuffer;

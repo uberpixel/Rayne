@@ -37,7 +37,16 @@ namespace RN
 	float SteamAudioSampler::GetSample(double time, uint8 channel)
 	{
 		if(_isRepeating)
-			time = fmod(time, _totalTime);
+		{
+			if(time < 0.0f)
+			{
+				time = _totalTime-fmod(-time, _totalTime);
+			}
+			else
+			{
+				time = fmod(time, _totalTime);
+			}
+		}
 		else
 			time = std::min(time, _totalTime);
 

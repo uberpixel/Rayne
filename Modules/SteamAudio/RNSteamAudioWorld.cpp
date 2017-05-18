@@ -15,21 +15,22 @@ namespace RN
 	RNDefineMeta(SteamAudioDevice, Object)
 	RNDefineMeta(SteamAudioWorld, SceneAttachment)
 
-	Array *SteamAudioWorld::_audioSources = new Array();
-	float *SteamAudioWorld::_ambisonicsFrameData = nullptr;
-	float *SteamAudioWorld::_outputFrameData = nullptr;
-	uint32 SteamAudioWorld::_frameSize = 0;
-	void *SteamAudioWorld::_ambisonicsBinauralEffect = nullptr;
+	SteamAudioWorld *SteamAudioWorld::_instance = nullptr;
+
+	SteamAudioWorld* SteamAudioWorld::GetInstance()
+	{
+		return _instance;
+	}
 	
 	void SteamAudioWorld::WriteCallback(struct SoundIoOutStream *outstream, int sample_count_min, int sample_count_max)
 	{
-		if (_audioSources->GetCount() == 0)
+		if(!_instance || _instance->_audioSources->GetCount() == 0)
 			return;
 
 		const struct SoundIoChannelLayout *layout = &outstream->layout;
 		float seconds_per_sample = 1.0f / static_cast<float>(outstream->sample_rate);
 		struct SoundIoChannelArea *areas;
-		int samples_left = std::max(static_cast<int>(_frameSize), sample_count_min);
+		int samples_left = std::max(static_cast<int>(_instance->_frameSize), sample_count_min);
 
 		while(samples_left > 0)
 		{
@@ -41,8 +42,8 @@ namespace RN
 
 			IPLAudioFormat inputFormat;
 			inputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
-			inputFormat.numSpeakers = 4;	//TODO: Experiment with the value, it apparently HAS to be set to something...
-			inputFormat.ambisonicsOrder = 2;	//TODO: Experiment with the value
+			inputFormat.numSpeakers = 16;	//TODO: Experiment with the value, it apparently HAS to be set to something...
+			inputFormat.ambisonicsOrder = 3;	//TODO: Experiment with the value
 			inputFormat.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
 			inputFormat.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
 			inputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
@@ -51,10 +52,33 @@ namespace RN
 			inputBuffer[1].format = inputFormat;
 			inputBuffer[0].numSamples = sampleCount;
 			inputBuffer[1].numSamples = sampleCount;
-			inputBuffer[1].interleavedBuffer = _ambisonicsFrameData;
+			inputBuffer[1].interleavedBuffer = _instance->_ambisonicsFrameData;
+
+			Vector3 listenerPosition;
+			Vector3 listenerForward(0.0f, 0.0f, -1.0f);
+			Vector3 listenerUp(0.0f, 1.0f, 0.0f);
+			SceneNode *listener = SteamAudioWorld::_instance->_listener;
+			if(listener)
+			{
+				listenerPosition = listener->GetWorldPosition();
+				listenerForward = listener->GetForward();
+				listenerUp = listener->GetUp();
+			}
+
+			if(_instance->_scene)
+			{
+				iplGetMixedEnvironmentalAudio(_instance->GetEnvironmentalRenderer(),
+					IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
+					IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
+					IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z }, inputBuffer[1]);
+			}
+			else
+			{
+				memset(_instance->_ambisonicsFrameData, 0, sizeof(float) * 512 * inputFormat.numSpeakers);
+			}
 
 			float secondsPerFrame = seconds_per_sample * sampleCount;
-			_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
+			_instance->_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
 				float *outData = nullptr;
 				source->Update(secondsPerFrame, sampleCount, &outData);
 
@@ -71,15 +95,15 @@ namespace RN
 			IPLAudioBuffer outputBuffer;
 			outputBuffer.format = outputFormat;
 			outputBuffer.numSamples = sampleCount;
-			outputBuffer.interleavedBuffer = _outputFrameData;
-			iplApplyAmbisonicsBinauralEffect(_ambisonicsBinauralEffect, inputBuffer[1], outputBuffer);
+			outputBuffer.interleavedBuffer = _instance->_outputFrameData;
+			iplApplyAmbisonicsBinauralEffect(_instance->_ambisonicsBinauralEffect, inputBuffer[1], outputBuffer);
 
 			for(int sample = 0; sample < sampleCount; sample++)
 			{
 				for(int channel = 0; channel < layout->channel_count; channel++)
 				{
 					float *ptr = reinterpret_cast<float*>(areas[channel].ptr + areas[channel].step * sample);
-					*ptr = _outputFrameData[sample * layout->channel_count + channel];
+					*ptr = _instance->_outputFrameData[sample * layout->channel_count + channel];
 				}
 			}
 
@@ -91,8 +115,9 @@ namespace RN
 
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
 	SteamAudioWorld::SteamAudioWorld(SteamAudioDevice *outputDevice, uint32 sampleRate, uint32 frameSize) :
-		_audioListener(nullptr)
+		_listener(nullptr), _audioSources(new Array()), _ambisonicsFrameData(nullptr), _outputFrameData(nullptr), _frameSize(0), _ambisonicsBinauralEffect(nullptr), _scene(nullptr)
 	{
+		RN_ASSERT(!_instance, "There already is a SteamAudioWorld!");
 		RN_ASSERT(!outputDevice || outputDevice->type == SteamAudioDevice::Type::Output, "outputDevice has to be an output device!");
 
 		//Initialize libsoundio
@@ -149,8 +174,8 @@ namespace RN
 
 		IPLAudioFormat inputFormat;
 		inputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
-		inputFormat.numSpeakers = 4;	//TODO: Experiment with the value, it apparently HAS to be set to something...
-		inputFormat.ambisonicsOrder = 2;	//TODO: Experiment with the value
+		inputFormat.numSpeakers = 16;	//TODO: Experiment with the value, it apparently HAS to be set to something...
+		inputFormat.ambisonicsOrder = 3;	//TODO: Experiment with the value
 		inputFormat.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
 		inputFormat.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
 		inputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
@@ -163,9 +188,24 @@ namespace RN
 
 		iplCreateAmbisonicsBinauralEffect(_binauralRenderer, inputFormat, outputFormat, &_ambisonicsBinauralEffect);
 
+
+		IPLSimulationSettings simulationSettings;
+		simulationSettings.ambisonicsOrder = 3;
+		simulationSettings.irDuration = 2.0f;
+		simulationSettings.maxConvolutionSources = 50;
+		simulationSettings.numBounces = 32;
+		simulationSettings.numDiffuseSamples = 4096;
+		simulationSettings.numRays = 64000;
+		simulationSettings.sceneType = IPL_SCENETYPE_PHONON;
+
+		iplCreateEnvironment(context, nullptr, simulationSettings, nullptr, nullptr, &_environment);	//TODO: 4th paramter should be a scene object for indirect sound modeling
+		iplCreateEnvironmentalRenderer(context, _environment, settings, inputFormat, &_environmentalRenderer);
+
 		_frameSize = frameSize;
-		_ambisonicsFrameData = new float[_frameSize * 15];
+		_ambisonicsFrameData = new float[_frameSize * 16];
 		_outputFrameData = new float[_frameSize * 2];
+
+		_instance = this;
 	}
 		
 	SteamAudioWorld::~SteamAudioWorld()
@@ -187,6 +227,8 @@ namespace RN
 			_outputFrameData = nullptr;
 			_frameSize = 0;
 		}
+
+		_instance = nullptr;
 	}
 
 	Array *SteamAudioWorld::GetDevices()
@@ -235,25 +277,34 @@ namespace RN
 //		soundio_flush_events(_soundio);	//TODO: Call this and handle changing devices
 	}
 		
-	void SteamAudioWorld::SetListener(SteamAudioListener *attachment)
+	void SteamAudioWorld::SetListener(SceneNode *listener)
 	{
-		if(_audioListener)
-			_audioListener->RemoveFromWorld();
+		if(_listener)
+			_listener->Release();
 			
-		_audioListener = attachment;
-			
-		if(_audioListener)
-			_audioListener->InsertIntoWorld(this);
+		_listener = nullptr;
+
+		if(listener)
+			_listener = listener->Retain();
 	}
 		
 	void SteamAudioWorld::PlaySound(AudioAsset *resource)
 	{
-		if(_audioListener)
+		if(_listener)
 		{
-			SteamAudioSource *source = new SteamAudioSource(resource, this);
+			SteamAudioSource *source = new SteamAudioSource(resource);
 			source->SetSelfdestruct(true);
 			source->Play();
-			_audioSources->AddObject(source->Autorelease());
 		}
+	}
+
+	void SteamAudioWorld::AddAudioSource(SteamAudioSource *source) const
+	{
+		_audioSources->AddObject(source);
+	}
+
+	void SteamAudioWorld::RemoveAudioSource(SteamAudioSource *source) const
+	{
+		_audioSources->RemoveObject(source);
 	}
 }

@@ -12,7 +12,6 @@
 #include "RNSteamAudio.h"
 
 #include "RNSteamAudioSource.h"
-#include "RNSteamAudioListener.h"
 
 struct SoundIo;
 struct SoundIoDevice;
@@ -23,7 +22,7 @@ namespace RN
 	class SteamAudioDevice : public Object
 	{
 	public:
-		friend SteamAudioWorld;
+		friend class SteamAudioWorld;
 		enum Type
 		{
 			Input,
@@ -47,34 +46,49 @@ namespace RN
 	class SteamAudioWorld : public SceneAttachment
 	{
 	public:
+		friend class SteamAudioSource;
+		SAAPI static SteamAudioWorld *GetInstance();
+
 		SAAPI SteamAudioWorld(SteamAudioDevice *outputDevice = nullptr, uint32 sampleRate = 44100, uint32 frameSize = 512);
 		SAAPI ~SteamAudioWorld() override;
 			
-		SAAPI void SetListener(SteamAudioListener *attachment);
+		SAAPI void SetListener(SceneNode *listener);
+		SceneNode *GetListener() const { return _listener; };
+
 		SAAPI void PlaySound(AudioAsset*resource);
 
 		SAAPI static Array *GetDevices();
 
 		SAAPI void *GetBinauralRenderer() const { return _binauralRenderer; }
+		SAAPI void *GetEnvironmentalRenderer() const { return _environmentalRenderer; }
 
 	protected:
 		void Update(float delta) override;
 			
 	private:
-		SteamAudioListener *_audioListener;
+		static void WriteCallback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max);
+		static SteamAudioWorld *_instance;
+
+		void AddAudioSource(SteamAudioSource *source) const;
+		void RemoveAudioSource(SteamAudioSource *source) const;
+
+		SceneNode *_listener;
 
 		SoundIo *_soundio;
 		SoundIoDevice *_device;
 		SoundIoOutStream *_outstream;
 
-		void *_binauralRenderer;
-		static void *_ambisonicsBinauralEffect;
+		void *_scene;
+		void *_environment;
 
-		static void WriteCallback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max);
-		static Array *_audioSources;
-		static uint32 _frameSize;
-		static float *_ambisonicsFrameData;
-		static float *_outputFrameData;
+		void *_binauralRenderer;
+		void *_environmentalRenderer;
+		void *_ambisonicsBinauralEffect;
+
+		Array *_audioSources;
+		uint32 _frameSize;
+		float *_ambisonicsFrameData;
+		float *_outputFrameData;
 			
 		RNDeclareMetaAPI(SteamAudioWorld, SAAPI)
 	};

@@ -12,7 +12,7 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
-	const uint32 OculusSwapChain::kEyePadding = 8; //Use a padding of 8 pixels as recommended by the oculus docs.
+	const uint32 OculusSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, doesn't appear to be enough though...)
 
 	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0)
 	{
