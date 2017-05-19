@@ -14,6 +14,15 @@
 
 namespace RN
 {
+	struct SteamAudioWorldInternals
+	{
+		IPLContext context;
+		IPLRenderingSettings settings;
+
+		IPLAudioFormat internalAmbisonicsFormat;
+		IPLAudioFormat outputFormat;
+	};
+
 	struct SteamAudioSourceInternals
 	{
 		IPLhandle panningEffect;

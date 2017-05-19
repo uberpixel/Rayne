@@ -18,7 +18,9 @@ namespace RN
 	class SteamAudioSource : public SceneNode
 	{
 	public:
-		SAAPI SteamAudioSource(AudioAsset *asset, bool hasIndirectSound = true);
+		friend class SteamAudioWorld;
+
+		SAAPI SteamAudioSource(AudioAsset *asset, bool wantsIndirectSound = true);
 		SAAPI ~SteamAudioSource() override;
 			
 		SAAPI void Play();
@@ -37,9 +39,14 @@ namespace RN
 		bool IsRepeating() const { return _isRepeating; }
 			
 	private:
+		void ResetScene();
+		void FinalizeScene();
+
 		SteamAudioSampler *_sampler;
 		SteamAudioSourceInternals *_internals;
-			
+		
+		bool _wantsIndirectSound;
+
 		bool _isPlaying;
 		bool _isRepeating;
 		bool _isSelfdestructing;
@@ -52,9 +59,6 @@ namespace RN
 		float _speed;
 
 		double _currentTime;
-
-		static float *_sharedInputBuffer;
-		static float *_sharedOutputBuffer;
 			
 		RNDeclareMetaAPI(SteamAudioSource, SAAPI)
 	};
