@@ -18,6 +18,7 @@ namespace RN
 		_asset(asset),
 		_isRepeating(false)
 	{
+		RN_ASSERT(_asset, "No audio asset!");
 		RN_ASSERT(_asset->GetBitsPerSample() == 8 || _asset->GetBitsPerSample() == 16, "Only 8 and 16 bit audio assets are currently supported.");
 
 		_asset->Retain();
@@ -34,7 +35,7 @@ namespace RN
 		_isRepeating = repeat;
 	}
 
-	float SteamAudioSampler::GetSample(double time, uint8 channel)
+	float SteamAudioSampler::GetSample(double time, uint8 channel) const
 	{
 		if(_isRepeating)
 		{

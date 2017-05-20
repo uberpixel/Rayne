@@ -11,6 +11,7 @@
 
 #include "RNSteamAudio.h"
 #include "RNSteamAudioSource.h"
+#include "RNSteamAudioPlayer.h"
 
 struct SoundIo;
 struct SoundIoDevice;
@@ -66,6 +67,7 @@ namespace RN
 	{
 	public:
 		friend class SteamAudioSource;
+		friend class SteamAudioPlayer;
 
 		SAAPI static SteamAudioWorld *GetInstance();
 		SAAPI static Array *GetDevices();
@@ -76,7 +78,10 @@ namespace RN
 		SAAPI void SetListener(SceneNode *listener);
 		SceneNode *GetListener() const { return _listener; };
 
-		SAAPI void PlaySound(AudioAsset*resource);
+		SAAPI SteamAudioPlayer *PlaySound(AudioAsset*resource) const;
+
+		void SetIndirectAudio(bool enable) { _doIndirectAudio = enable; }
+		void SetDirectAudio(bool enable) { _doDirectAudio = enable; }
 
 		SAAPI void AddMaterial(const SteamAudioMaterial &material);
 		SAAPI void AddStaticGeometry(const SteamAudioGeometry &geometry);
@@ -94,6 +99,9 @@ namespace RN
 
 		void AddAudioSource(SteamAudioSource *source) const;
 		void RemoveAudioSource(SteamAudioSource *source) const;
+
+		void AddAudioPlayer(SteamAudioPlayer *player) const;
+		void RemoveAudioPlayer(SteamAudioPlayer *player) const;
 
 		SceneNode *_listener;
 
@@ -114,6 +122,7 @@ namespace RN
 		void *_environmentalRenderer;
 
 		Array *_audioSources;
+		Array *_audioPlayers;
 		uint32 _frameSize;
 
 		float *_mixedAmbisonicsFrameData0;
@@ -122,6 +131,9 @@ namespace RN
 
 		float *_sharedSourceInputFrameData;
 		float *_sharedSourceOutputFrameData;
+
+		bool _doIndirectAudio;
+		bool _doDirectAudio;
 
 		std::vector<SteamAudioMaterial> _sceneMaterials;
 		std::vector<SteamAudioGeometry> _sceneGeometry;

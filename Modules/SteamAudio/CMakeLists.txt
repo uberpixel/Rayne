@@ -26,7 +26,7 @@ set(SOURCES
         RNSteamAudioWorld.cpp
         RNSteamAudioSampler.cpp
         RNSteamAudioSource.cpp
-        RNSteamAudioEffect.cpp
+        RNSteamAudioPlayer.cpp
         RNSteamAudioInternals.cpp)
 
 set(HEADERS
@@ -34,7 +34,7 @@ set(HEADERS
         RNSteamAudioWorld.h
         RNSteamAudioSampler.h
         RNSteamAudioSource.h
-        RNSteamAudioEffect.h
+        RNSteamAudioPlayer.h
         RNSteamAudioInternals.h)
 
 set(DEFINES RN_BUILD_STEAMAUDIO SOUNDIO_STATIC_LIBRARY)

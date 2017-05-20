@@ -1,0 +1,101 @@
+//
+//  RNSteamAudioPlayer.cpp
+//  Rayne-SteamAudio
+//
+//  Copyright 2017 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+#include "RNSteamAudioPlayer.h"
+#include "RNSteamAudioWorld.h"
+#include "RNSteamAudioSampler.h"
+#include "RNSteamAudioInternals.h"
+
+namespace RN
+{
+	RNDefineMeta(SteamAudioPlayer, Object)
+
+		SteamAudioPlayer::SteamAudioPlayer(AudioAsset *asset) :
+		_isPlaying(false),
+		_isRepeating(false),
+		_pitch(1.0f),
+		_gain(1.0f),
+		_currentTime(0.0f),
+		_sampler(new SteamAudioSampler(asset))
+	{
+		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
+		RN_ASSERT(asset->GetChannels() <= 2, "Currently only mono and stereo files can be played!");
+
+		_inputChannels = asset->GetChannels();
+		SteamAudioWorld::_instance->AddAudioPlayer(this);
+	}
+	
+	SteamAudioPlayer::~SteamAudioPlayer()
+	{
+		if(SteamAudioWorld::_instance)
+			SteamAudioWorld::_instance->RemoveAudioPlayer(this);
+
+		_sampler->Release();
+	}
+		
+	void SteamAudioPlayer::SetRepeat(bool repeat)
+	{
+		_sampler->SetRepeat(repeat);
+		_isRepeating = repeat;
+	}
+	
+	void SteamAudioPlayer::SetPitch(float pitch)
+	{
+		_pitch = pitch;
+	}
+		
+	void SteamAudioPlayer::SetGain(float gain)
+	{
+		_gain = gain;
+	}
+
+	void SteamAudioPlayer::Play()
+	{
+		_isPlaying = true;
+	}
+
+	void SteamAudioPlayer::Stop()
+	{
+		_isPlaying = false;
+	}
+
+	void SteamAudioPlayer::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
+	{
+		double sampleLength = frameLength / static_cast<double>(sampleCount);
+
+		//handle mono input
+		if(_inputChannels == 1)
+		{
+			for (int n = 0; n < sampleCount; n++)
+			{
+				//TODO: support more output layouts
+				for (int i = 0; i < 2; i++)
+				{
+					SteamAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, 0) * _gain;
+				}
+				_currentTime += sampleLength * _pitch;
+			}
+		}
+
+		//handle stereo input
+		if(_inputChannels == 2)
+		{
+			for(int n = 0; n < sampleCount; n++)
+			{
+				//TODO: support more output layouts
+				for(int i = 0; i < 2; i++)
+				{
+					SteamAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, i) * _gain;
+				}
+				_currentTime += sampleLength * _pitch;
+			}
+		}
+
+		*outputBuffer = SteamAudioWorld::_instance->_sharedSourceOutputFrameData;
+	}
+}

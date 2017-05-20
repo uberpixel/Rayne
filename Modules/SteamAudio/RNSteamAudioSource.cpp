@@ -16,9 +16,10 @@ namespace RN
 	RNDefineMeta(SteamAudioSource, SceneNode)
 
 	SteamAudioSource::SteamAudioSource(AudioAsset *asset, bool wantsIndirectSound) :
+		_channel(0),
 		_isPlaying(false),
 		_isRepeating(false),
-		_isSelfdestructing(false),
+//		_isSelfdestructing(false),
 		_pitch(1.0f),
 		_gain(1.0f),
 		_currentTime(0.0f),
@@ -104,15 +105,21 @@ namespace RN
 		_gain = gain;
 	}
 		
-	void SteamAudioSource::SetRange(float min, float max)
+/*	void SteamAudioSource::SetRange(float min, float max)
 	{
 
-	}
+	}*/
 		
-	void SteamAudioSource::SetSelfdestruct(bool selfdestruct)
+/*	void SteamAudioSource::SetSelfdestruct(bool selfdestruct)
 	{
 		_isSelfdestructing = selfdestruct;
+	}*/
+
+	void SteamAudioSource::SetChannel(uint8 channel)
+	{
+		_channel = channel;
 	}
+
 		
 	void SteamAudioSource::Play()
 	{
@@ -154,7 +161,7 @@ namespace RN
 		double localTime = _currentTime;
 		for(int i = 0; i < sampleCount; i++)
 		{
-			SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime -_delay, 0) *directSoundPath.distanceAttenuation * directSoundPath.occlusionFactor * _gain;
+			SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) *directSoundPath.distanceAttenuation * directSoundPath.occlusionFactor * _gain;
 			localTime += sampleLength * _pitch;
 			_delay += _speed;
 		}
@@ -174,7 +181,7 @@ namespace RN
 			localTime = _currentTime;
 			for (int i = 0; i < sampleCount; i++)
 			{
-				SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime, 0) * _gain;
+				SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime, _channel) * _gain;
 				localTime += sampleLength * _pitch;
 			}
 			iplSetDryAudioForConvolutionEffect(_internals->convolutionEffect, IPLVector3{ sourcePosition.x, sourcePosition.y, sourcePosition.z }, _internals->inputBuffer);

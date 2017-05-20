@@ -30,8 +30,9 @@ namespace RN
 		SAAPI void SetRadius(float radius);
 		SAAPI void SetPitch(float pitch);
 		SAAPI void SetGain(float gain);
-		SAAPI void SetRange(float min, float max);
-		SAAPI void SetSelfdestruct(bool selfdestruct);
+/*		SAAPI void SetRange(float min, float max);
+		SAAPI void SetSelfdestruct(bool selfdestruct);*/
+		SAAPI void SetChannel(uint8 channel);
 
 		SAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
 			
@@ -42,6 +43,7 @@ namespace RN
 		void ResetScene();
 		void FinalizeScene();
 
+		uint8 _channel;
 		SteamAudioSampler *_sampler;
 		SteamAudioSourceInternals *_internals;
 		
@@ -49,7 +51,7 @@ namespace RN
 
 		bool _isPlaying;
 		bool _isRepeating;
-		bool _isSelfdestructing;
+//		bool _isSelfdestructing;
 
 		float _gain;
 		float _pitch;

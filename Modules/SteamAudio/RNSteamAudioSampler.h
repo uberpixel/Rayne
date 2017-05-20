@@ -21,7 +21,7 @@ namespace RN
 		SAAPI ~SteamAudioSampler() override;
 
 		SAAPI void SetRepeat(bool repeat);
-		SAAPI float GetSample(double time, uint8 channel);
+		SAAPI float GetSample(double time, uint8 channel) const;
 
 		//TODO: Implement an optional effects pipeline
 			
