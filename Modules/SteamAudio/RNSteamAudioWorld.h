@@ -80,9 +80,6 @@ namespace RN
 
 		SAAPI SteamAudioPlayer *PlaySound(AudioAsset*resource) const;
 
-		void SetIndirectAudio(bool enable) { _doIndirectAudio = enable; }
-		void SetDirectAudio(bool enable) { _doDirectAudio = enable; }
-
 		SAAPI void AddMaterial(const SteamAudioMaterial &material);
 		SAAPI void AddStaticGeometry(const SteamAudioGeometry &geometry);
 		SAAPI void UpdateScene();
@@ -131,9 +128,6 @@ namespace RN
 
 		float *_sharedSourceInputFrameData;
 		float *_sharedSourceOutputFrameData;
-
-		bool _doIndirectAudio;
-		bool _doDirectAudio;
 
 		std::vector<SteamAudioMaterial> _sceneMaterials;
 		std::vector<SteamAudioGeometry> _sceneGeometry;

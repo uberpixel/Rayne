@@ -55,7 +55,7 @@ namespace RN
 		}
 
 		//Get indirect audio samples if possible
-		if(_instance->_scene && _instance->_doIndirectAudio)
+		if(_instance->_scene)
 		{
 			iplGetMixedEnvironmentalAudio(_instance->GetEnvironmentalRenderer(),
 				IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
@@ -68,9 +68,12 @@ namespace RN
 		}
 
 		//Get direct audio samples and mix
-		if(_instance->_environmentalRenderer && _instance->_doDirectAudio)
+		if(_instance->_environmentalRenderer)
 		{
 			_instance->_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
+				if(!source->IsPlaying())
+					return;
+
 				float *outData = nullptr;
 				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
 
@@ -98,6 +101,9 @@ namespace RN
 			mixingBuffer[1].interleavedBuffer = _instance->_outputFrameData;
 
 			_instance->_audioPlayers->Enumerate<SteamAudioPlayer>([&](SteamAudioPlayer *source, size_t index, bool &stop) {
+				if(!source->IsPlaying())
+					return;
+
 				float *outData = nullptr;
 				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
 
@@ -154,9 +160,7 @@ namespace RN
 		_environmentalRenderer(nullptr),
 		_internals(new SteamAudioWorldInternals()),
 		_ambisonicsOrder(ambisonicsOrder),
-		_isUpdatingScene(true),
-		_doIndirectAudio(true),
-		_doDirectAudio(true)
+		_isUpdatingScene(true)
 	{
 		RN_ASSERT(!_instance, "There already is a SteamAudioWorld!");
 		RN_ASSERT(!outputDevice || outputDevice->type == SteamAudioDevice::Type::Output, "outputDevice has to be an output device!");
