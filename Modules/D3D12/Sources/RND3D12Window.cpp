@@ -24,6 +24,17 @@ namespace RN
 			PostQuitMessage(0);
 			return 0;
 
+		case WM_NCCREATE:
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams));
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+
+		case WM_SIZE:
+		{
+			D3D12Window *window = reinterpret_cast<D3D12Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			if(window)
+				window->UpdateSize();
+		}
+
 		default:
 			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 		}
@@ -124,5 +135,10 @@ namespace RN
 	Framebuffer *D3D12Window::GetFramebuffer() const
 	{
 		return _swapChain->GetFramebuffer();
+	}
+
+	void D3D12Window::UpdateSize() const
+	{
+		_swapChain->ResizeSwapchain(GetSize());
 	}
 }

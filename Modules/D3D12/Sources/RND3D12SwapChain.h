@@ -47,14 +47,16 @@ namespace RN
 		size_t _frameIndex;
 		Window::SwapChainDescriptor _descriptor;
 
+		Vector2 _newSize;
+
 	private:
 		D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
-		void ResizeSwapchain(const Vector2 &size, HWND hwnd);
+		void ResizeSwapchain(const Vector2 &size);
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;
-		UINT _fenceValues[3];
+		UINT _fenceValues[5];
 		HANDLE _fenceEvent;
 
 		RNDeclareMetaAPI(D3D12SwapChain, D3DAPI)

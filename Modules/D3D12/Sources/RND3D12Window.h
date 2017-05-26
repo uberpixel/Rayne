@@ -33,6 +33,8 @@ namespace RN
 		D3DAPI Vector2 GetSize() const final;
 		D3DAPI Framebuffer *GetFramebuffer() const final;
 
+		D3DAPI void UpdateSize() const;
+
 		HWND GetHWND() const { return _hwnd; }
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 

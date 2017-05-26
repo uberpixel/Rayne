@@ -184,7 +184,7 @@ namespace RN
 	}
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12SwapChain *swapChain, D3D12Renderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
-		Framebuffer(size),
+		Framebuffer(Vector2()),
 		_renderer(renderer),
 		_swapChain(swapChain),
 		_swapChainColorBuffers(nullptr),
@@ -192,40 +192,7 @@ namespace RN
 		_rtvHandle(nullptr),
 		_dsvHandle(nullptr)
 	{
-		uint8 bufferCount = swapChain->GetBufferCount();
-		if(bufferCount > 0)
-		{
-			_swapChainColorBuffers = new ID3D12Resource*[bufferCount];
-
-			for(uint8 i = 0; i < bufferCount; i++)
-			{
-				_swapChainColorBuffers[i] = swapChain->GetD3D12Buffer(i);
-			}
-		}
-
-		D3D12ColorTargetView *targetView = new D3D12ColorTargetView();
-		targetView->targetView.texture = nullptr;
-		targetView->targetView.mipmap = 0;
-		targetView->targetView.slice = 0;
-		targetView->targetView.length = 1;
-		targetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(colorFormat);
-		targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
-		targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
-		_colorTargets.push_back(targetView);
-
-		if(depthStencilFormat != Texture::Format::Invalid)
-		{
-			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(depthStencilFormat, size.x, size.y, false);
-			depthDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
-
-			TargetView target;
-			target.texture = Texture::WithDescriptor(depthDescriptor);
-			target.mipmap = 0;
-			target.slice = 0;
-			target.length = 1;
-			SetDepthStencilTarget(target);
-		}
+		DidUpdateSwapChain(size, colorFormat, depthStencilFormat);
 	}
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12Renderer *renderer) :
@@ -311,7 +278,6 @@ namespace RN
 		{
 			_depthStencilTarget->targetView.texture->Release();
 			delete _depthStencilTarget;
-			
 		}
 		
 		_depthStencilTarget = targetView;
@@ -424,5 +390,66 @@ namespace RN
 		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
 		//TODO: Needs D3D12_CLEAR_FLAG_STENCIL to also clear stencil buffer
 		commandList->GetCommandList()->ClearDepthStencilView(*_dsvHandle, D3D12_CLEAR_FLAG_DEPTH, depth, stencil, 1, &clearRect);
+	}
+
+	void D3D12Framebuffer::WillUpdateSwapChain()
+	{
+		if(_swapChainColorBuffers)
+		{
+			uint8 bufferCount = _swapChain->GetBufferCount();
+			for(uint8 i = 0; i < bufferCount; i++)
+			{
+				_swapChainColorBuffers[i]->Release();
+			}
+
+			delete[] _swapChainColorBuffers;
+			_swapChainColorBuffers = nullptr;
+		}
+
+		for(D3D12ColorTargetView *targetView : _colorTargets)
+		{
+			delete targetView;
+		}
+		_colorTargets.clear();
+	}
+
+	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
+	{
+		_size = size;
+
+		uint8 bufferCount = _swapChain->GetBufferCount();
+		if(bufferCount > 0)
+		{
+			_swapChainColorBuffers = new ID3D12Resource*[bufferCount];
+
+			for(uint8 i = 0; i < bufferCount; i++)
+			{
+				_swapChainColorBuffers[i] = _swapChain->GetD3D12Buffer(i);
+			}
+		}
+
+		D3D12ColorTargetView *targetView = new D3D12ColorTargetView();
+		targetView->targetView.texture = nullptr;
+		targetView->targetView.mipmap = 0;
+		targetView->targetView.slice = 0;
+		targetView->targetView.length = 1;
+		targetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(colorFormat);
+		targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
+		targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+		_colorTargets.push_back(targetView);
+
+		if(depthStencilFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(depthStencilFormat, size.x, size.y, false);
+			depthDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
+
+			TargetView target;
+			target.texture = Texture::WithDescriptor(depthDescriptor);
+			target.mipmap = 0;
+			target.slice = 0;
+			target.length = 1;
+			SetDepthStencilTarget(target);
+		}
 	}
 }
