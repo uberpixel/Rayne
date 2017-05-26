@@ -60,6 +60,17 @@ namespace RN
 		_newSize = size;
 	}
 
+	void D3D12SwapChain::SetFullscreen(bool fullscreen) const
+	{
+		if(FAILED(_swapChain->SetFullscreenState(!fullscreen, nullptr)))
+		{
+			// Transitions to fullscreen mode can fail when running apps over
+			// terminal services or for some other unexpected reason.  Consider
+			// notifying the user in some way when this happens.
+			RN_ASSERT(false, "Failed changing from/to fullscreen.");
+		}
+	}
+
 	Vector2 D3D12SwapChain::GetSize() const
 	{
 		return _size;

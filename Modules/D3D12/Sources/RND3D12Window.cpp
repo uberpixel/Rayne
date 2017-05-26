@@ -125,6 +125,11 @@ namespace RN
 		ShowWindow(_hwnd, SW_HIDE);
 	}
 
+	void D3D12Window::SetFullscreen(bool fullscreen)
+	{
+		_swapChain->SetFullscreen(fullscreen);
+	}
+
 	Vector2 D3D12Window::GetSize() const
 	{
 		RECT windowRect;

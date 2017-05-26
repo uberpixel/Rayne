@@ -49,8 +49,9 @@ namespace RN
 		RNAPI Framebuffer(const Vector2 &size);
 		RNAPI ~Framebuffer();
 
-	private:
 		Vector2 _size;
+
+	private:
 
 		__RNDeclareMetaInternal(Framebuffer)
 	};

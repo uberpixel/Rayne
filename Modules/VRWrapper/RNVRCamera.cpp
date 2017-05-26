@@ -105,6 +105,8 @@ namespace RN
 
 	void VRCamera::Update(float delta)
 	{
+
+
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 

@@ -53,6 +53,8 @@ namespace RN
 		D3D12SwapChain(const Vector2 &size, HWND hwnd, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
 		void ResizeSwapchain(const Vector2 &size);
+		void SetFullscreen(bool fullscreen) const;
+
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;

@@ -29,6 +29,7 @@ namespace RN
 
 		D3DAPI void Show() final;
 		D3DAPI void Hide() final;
+		D3DAPI void SetFullscreen(bool fullscreen) final;
 
 		D3DAPI Vector2 GetSize() const final;
 		D3DAPI Framebuffer *GetFramebuffer() const final;

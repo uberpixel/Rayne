@@ -20,7 +20,6 @@ namespace RN
 	public:
 		friend class D3D12Renderer;
 		friend class D3D12StateCoordinator;
-		friend class D3D12SwapChain;
 
 		struct D3D12ColorTargetView
 		{
@@ -48,14 +47,14 @@ namespace RN
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 		D3DAPI ID3D12Resource *GetSwapChainColorBuffer() const;
 
+		D3DAPI void WillUpdateSwapChain();
+		D3DAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+
 	private:
 		void PrepareAsRendertargetForFrame(uint32 frame);
 		void SetAsRendertarget(D3D12CommandList *commandList) const;
 		void ClearColorTargets(D3D12CommandList *commandList, const Color &color);
 		void ClearDepthStencilTarget(D3D12CommandList *commandList, float depth, uint8 stencil);
-
-		void WillUpdateSwapChain();
-		void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE *_rtvHandle;
 		CD3DX12_CPU_DESCRIPTOR_HANDLE *_dsvHandle;

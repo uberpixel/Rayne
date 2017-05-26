@@ -37,7 +37,7 @@ namespace RN
 		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
 		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
 
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, recommendedWidth * 2 + kEyePadding, recommendedHeight, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 
@@ -80,7 +80,21 @@ namespace RN
 
 	void OpenVRSwapChain::AcquireBackBuffer()
 	{
-		
+/*		uint32 recommendedWidth;
+		uint32 recommendedHeight;
+		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
+		Vector2 newSize(recommendedWidth * 2 + kEyePadding, recommendedHeight);
+
+		if(newSize.GetSquaredDistance(_size) > 0.001f)
+		{
+			_size = newSize;
+			//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
+			_targetTexture->Release();
+			Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
+			textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
+			_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
+			_framebuffer->DidUpdateSwapChain(_size, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		}*/
 	}
 
 	void OpenVRSwapChain::Prepare(D3D12CommandList *commandList)

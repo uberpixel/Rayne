@@ -32,6 +32,7 @@ namespace RN
 
 		RNVRAPI virtual void Show() override { }
 		RNVRAPI virtual void Hide() override { }
+		RNVRAPI virtual void SetFullscreen(bool fullscreen) override {}
 
 		RNVRAPI virtual Vector2 GetSize() const override = 0;
 

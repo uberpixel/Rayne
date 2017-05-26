@@ -37,6 +37,8 @@ namespace RN
 		RNAPI virtual void Show() = 0;
 		RNAPI virtual void Hide() = 0;
 
+		RNAPI virtual void SetFullscreen(bool fullscreen) = 0;
+
 		RNAPI virtual Vector2 GetSize() const = 0;
 
 		RNAPI virtual Framebuffer *GetFramebuffer() const = 0;
