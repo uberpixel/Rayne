@@ -43,6 +43,8 @@ namespace RN
 		bool _isPlaying;
 		bool _isRepeating;
 
+		bool _isBuffering;
+
 		float _gain;
 		float _pitch;
 

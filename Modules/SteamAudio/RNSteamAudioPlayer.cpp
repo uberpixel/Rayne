@@ -21,7 +21,8 @@ namespace RN
 		_pitch(1.0f),
 		_gain(1.0f),
 		_currentTime(0.0f),
-		_sampler(new SteamAudioSampler(asset))
+		_sampler(new SteamAudioSampler(asset)),
+		_isBuffering(true)
 	{
 		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
 		RN_ASSERT(asset->GetChannels() <= 2, "Currently only mono and stereo files can be played!");
@@ -67,6 +68,42 @@ namespace RN
 	void SteamAudioPlayer::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
 		double sampleLength = frameLength / static_cast<double>(sampleCount);
+
+		if(_sampler->GetAsset()->GetType() == AudioAsset::Type::Ringbuffer)
+		{
+			//Buffer for audio data to play
+			if(_sampler->GetAsset()->GetBufferedSize() < frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) || _isBuffering)
+			{
+				_isBuffering = true;
+				if(_sampler->GetAsset()->GetBufferedSize() > frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 4)
+					_isBuffering = false;
+
+				for(int n = 0; n < sampleCount; n++)
+				{
+					//TODO: support more output layouts
+					for(int i = 0; i < 2; i++)
+					{
+						SteamAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = 0.0f;
+					}
+				}
+
+				*outputBuffer = SteamAudioWorld::_instance->_sharedSourceOutputFrameData;
+				return;
+			}
+			else
+			{
+				//Skip samples if data is written faster than played
+				uint32 maxBufferedLength = frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 16;
+				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
+				{
+					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 4;
+					double skipTime = skipBytes / _sampler->GetAsset()->GetBytesPerSample() / static_cast<double>(_sampler->GetAsset()->GetSampleRate());
+					_currentTime += skipTime;
+					_sampler->GetAsset()->PopData(nullptr, skipBytes);
+				}
+				_sampler->GetAsset()->PopData(nullptr, frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()));
+			}
+		}
 
 		//handle mono input
 		if(_inputChannels == 1)

@@ -44,7 +44,7 @@ namespace RN
 
 		RN::AudioAsset *audio = new RN::AudioAsset();
 		RN::Data *data = new RN::Data(reinterpret_cast<uint8*>(audioData), samples * channels * 2);
-		audio->SetRawAudioData(data, 16, sample_rate, channels);
+		audio->SetRawAudioData(data, 2, sample_rate, channels);
 		free(audioData);
 
 		return audio;

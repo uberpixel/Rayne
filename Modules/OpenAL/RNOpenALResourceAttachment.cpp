@@ -18,7 +18,7 @@ namespace RN
 	OpenALResourceAttachment::OpenALResourceAttachment(RN::AudioAsset *resource)
 	{
 		alGenBuffers(1, &_bufferID);
-		alBufferData(_bufferID, GetALFormat(resource->GetChannels(), resource->GetBitsPerSample()), resource->GetData()->GetBytes(), static_cast<int>(resource->GetData()->GetLength()), resource->GetSampleRate());
+		alBufferData(_bufferID, GetALFormat(resource->GetChannels(), resource->GetBytesPerSample()*8), resource->GetData()->GetBytes(), static_cast<int>(resource->GetData()->GetLength()), resource->GetSampleRate());
 	}
 		
 	OpenALResourceAttachment::~OpenALResourceAttachment()

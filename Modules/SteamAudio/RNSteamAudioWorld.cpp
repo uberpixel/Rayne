@@ -23,10 +23,63 @@ namespace RN
 	{
 		return _instance;
 	}
+
+	void SteamAudioWorld::ReadCallback(struct SoundIoInStream *inStream, int minSampleCount, int maxSampleCount)
+	{
+		if(!_instance)
+			return;
+
+		struct SoundIoChannelArea *areas;
+		int err;
+		int remainingSamples = maxSampleCount;// std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
+		while(remainingSamples > 0)
+		{
+			int sampleCount = remainingSamples;
+			char *data = reinterpret_cast<char *>(_instance->_inputFrameData);
+
+			if(soundio_instream_begin_read(inStream, &areas, &sampleCount) != 0)
+				return;
+
+			if(!sampleCount)
+				break;
+
+			if(!areas)
+			{
+				// Due to an overflow there is a hole. Fill the ring buffer with
+				// silence for the size of the hole.
+				memset(_instance->_inputFrameData, 0, sampleCount * inStream->bytes_per_frame);
+			}
+			else
+			{
+				for(int sample = 0; sample < sampleCount; sample += 1)
+				{
+					//TODO: Support multiple input channels
+					for(int channel = 0; channel < 1/*inStream->layout.channel_count*/; channel += 1)
+					{
+						
+						memcpy(data, areas[channel].ptr, inStream->bytes_per_sample);
+						//_instance->_inputFrameData[sample] = *static_cast<float*>(areas[channel].ptr);
+						areas[channel].ptr += areas[channel].step;
+						data += inStream->bytes_per_sample;
+					}
+				}
+			}
+
+			int err;
+			if(err = soundio_instream_end_read(inStream))
+			{
+				const char *errorstr = soundio_strerror(err);
+				return;
+			}
+
+			_instance->_inputBuffer->PushData(_instance->_inputFrameData, sampleCount * inStream->bytes_per_sample);
+			remainingSamples -= sampleCount;
+		}
+	}
 	
 	void SteamAudioWorld::WriteCallback(struct SoundIoOutStream *outStream, int minSampleCount, int maxSampleCount)
 	{
-		if(!_instance || _instance->_audioSources->GetCount() == 0 || _instance->_isUpdatingScene)
+		if(!_instance || _instance->_isUpdatingScene)
 			return;
 
 		const struct SoundIoChannelLayout *layout = &outStream->layout;
@@ -147,12 +200,18 @@ namespace RN
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
 	SteamAudioWorld::SteamAudioWorld(SteamAudioDevice *outputDevice, uint8 ambisonicsOrder, uint32 sampleRate, uint32 frameSize) :
 		_listener(nullptr),
+		_inDevice(nullptr),
+		_outDevice(nullptr),
+		_inStream(nullptr),
+		_outStream(nullptr),
 		_audioSources(new Array()),
 		_audioPlayers(new Array()),
+		_inputBuffer(nullptr),
 		_mixedAmbisonicsFrameData0(nullptr),
 		_mixedAmbisonicsFrameData1(nullptr),
 		_outputFrameData(nullptr),
 		_frameSize(frameSize),
+		_sampleRate(sampleRate),
 		_ambisonicsBinauralEffect(nullptr),
 		_scene(nullptr),
 		_sceneMesh(nullptr),
@@ -170,44 +229,7 @@ namespace RN
 		soundio_connect(_soundio);
 		soundio_flush_events(_soundio);
 
-		int deviceIndex = soundio_default_output_device_index(_soundio);
-		if (outputDevice)
-			deviceIndex = outputDevice->index;
-		if(deviceIndex < 0)
-		{
-			RNDebug("No audio output device found.");
-			return;
-		}
-
-		_device = soundio_get_output_device(_soundio, deviceIndex);
-		if(!_device)
-		{
-			RNDebug("Failed opening audio device.");
-			return;
-		}
-
-		RNInfo("Using audio device: " << _device->name);
-
-		_outstream = soundio_outstream_create(_device);
-		_outstream->format = SoundIoFormatFloat32NE;
-		_outstream->sample_rate = sampleRate;
-		_outstream->write_callback = WriteCallback;
-
-		int err;
-		if((err = soundio_outstream_open(_outstream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}
-
-		if(_outstream->layout_error)
-			RNDebug("Unable to set channel layout with error:" << soundio_strerror(_outstream->layout_error));
-
-		if((err = soundio_outstream_start(_outstream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}
+		SetOutputDevice(outputDevice);
 
 		//Initialize Steam Audio
 		_internals->context.allocateCallback = nullptr;
@@ -238,6 +260,7 @@ namespace RN
 		_mixedAmbisonicsFrameData0 = new float[_frameSize * std::max(_internals->internalAmbisonicsFormat.numSpeakers, 2)]; //TODO: Don't hardcode maximum number of supported output channels (2) here
 		_mixedAmbisonicsFrameData1 = new float[_frameSize * std::max(_internals->internalAmbisonicsFormat.numSpeakers, 2)]; //TODO: Don't hardcode maximum number of supported output channels (2) here
 		_outputFrameData = new float[_frameSize * 2]; //TODO: Don't hardcode maximum number of supported output channels (2) here
+		_inputFrameData = new float[_frameSize * 1]; //TODO: Don't hardcode maximum number of supported input channels (1) here
 
 		_sharedSourceInputFrameData = new float[_frameSize];
 		_sharedSourceOutputFrameData = new float[_frameSize * std::max(_internals->internalAmbisonicsFormat.numSpeakers, 2)]; //TODO: Don't hardcode maximum number of supported output channels (2) here
@@ -251,9 +274,20 @@ namespace RN
 		SafeRelease(_audioSources);
 		SafeRelease(_audioPlayers);
 
-		soundio_outstream_destroy(_outstream);
-		soundio_device_unref(_device);
-		soundio_destroy(_soundio);
+		if(_inStream)
+			soundio_instream_destroy(_inStream);
+
+		if(_inDevice)
+			soundio_device_unref(_inDevice);
+
+		if(_outStream)
+			soundio_outstream_destroy(_outStream);
+
+		if(_outDevice)
+			soundio_device_unref(_outDevice);
+
+		if(_soundio)
+			soundio_destroy(_soundio);
 
 		if(_environmentalRenderer)
 		{
@@ -288,12 +322,14 @@ namespace RN
 			delete[] _mixedAmbisonicsFrameData0;
 			delete[] _mixedAmbisonicsFrameData1;
 			delete[] _outputFrameData;
+			delete[] _inputFrameData;
 			delete[] _sharedSourceInputFrameData;
 			delete[] _sharedSourceOutputFrameData;
 
 			_mixedAmbisonicsFrameData0 = nullptr;
 			_mixedAmbisonicsFrameData1 = nullptr;
 			_outputFrameData = nullptr;
+			_inputFrameData = nullptr;
 			_sharedSourceInputFrameData = nullptr;
 			_sharedSourceOutputFrameData = nullptr;
 
@@ -302,6 +338,128 @@ namespace RN
 
 		_instance = nullptr;
 		delete _internals;
+	}
+
+	void SteamAudioWorld::SetOutputDevice(SteamAudioDevice *outputDevice)
+	{
+		RN_ASSERT(!outputDevice || outputDevice->type == SteamAudioDevice::Type::Output, "Not an output device!");
+
+		if(_outStream)
+		{
+			soundio_outstream_destroy(_outStream);
+			_outStream = nullptr;
+		}
+
+		if(_outDevice)
+		{
+			soundio_device_unref(_outDevice);
+			_outDevice = nullptr;
+		}
+
+		if(!outputDevice)
+			return;
+
+
+		int deviceIndex = outputDevice->index;
+		if(deviceIndex < 0)
+		{
+			RNDebug("Not a valid audio device.");
+			return;
+		}
+
+		_outDevice = soundio_get_output_device(_soundio, deviceIndex);
+		if(!_outDevice)
+		{
+			RNDebug("Failed opening audio device.");
+			return;
+		}
+
+		RNInfo("Using audio device: " << _outDevice->name);
+
+		_outStream = soundio_outstream_create(_outDevice);
+		_outStream->format = SoundIoFormatFloat32NE;
+		_outStream->sample_rate = _sampleRate;
+		_outStream->write_callback = WriteCallback;
+
+		int err;
+		if((err = soundio_outstream_open(_outStream)))
+		{
+			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
+			return;
+		}
+
+		if(_outStream->layout_error)
+			RNDebug("Unable to set channel layout with error:" << soundio_strerror(_outStream->layout_error));
+
+		if((err = soundio_outstream_start(_outStream)))
+		{
+			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
+			return;
+		}
+	}
+
+	void SteamAudioWorld::SetInputDevice(SteamAudioDevice *inputDevice, AudioAsset *targetAsset)
+	{
+		RN_ASSERT(!inputDevice || inputDevice->type == SteamAudioDevice::Type::Input, "Not an input device!");
+		RN_ASSERT(!targetAsset || (targetAsset->GetData()->GetLength() > 2 * _frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
+
+		if(_inStream)
+		{
+			soundio_instream_destroy(_inStream);
+			_inStream = nullptr;
+		}
+
+		if(_inDevice)
+		{
+			soundio_device_unref(_inDevice);
+			_inDevice = nullptr;
+		}
+
+		SafeRelease(_inputBuffer);
+
+		if(!inputDevice)
+			return;
+
+		_inputBuffer = targetAsset->Retain();
+
+		int deviceIndex = inputDevice->index;
+		if(deviceIndex < 0)
+		{
+			RNDebug("Not a valid audio device.");
+			return;
+		}
+
+		_inDevice = soundio_get_input_device(_soundio, deviceIndex);
+		if(!_inDevice)
+		{
+			RNDebug("Failed opening audio device.");
+			return;
+		}
+
+		RNInfo("Using audio device: " << _inDevice->name);
+
+		_inStream = soundio_instream_create(_inDevice);
+		_inStream->format = SoundIoFormatFloat32NE;
+		_inStream->sample_rate = _sampleRate;
+		_inStream->layout = _inDevice->current_layout;
+		_inStream->software_latency = 0.2f;
+		_inStream->read_callback = ReadCallback;
+
+		int err;
+		if((err = soundio_instream_open(_inStream)))
+		{
+			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
+			return;
+		}
+
+		if(_inStream->layout_error)
+			RNDebug("Unable to set channel layout with error:" << soundio_strerror(_inStream->layout_error));
+
+		if((err = soundio_instream_start(_inStream)))
+		{
+			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
+			return;
+		}
 	}
 
 	void SteamAudioWorld::AddMaterial(const SteamAudioMaterial &material)
@@ -348,11 +506,11 @@ namespace RN
 
 		IPLSimulationSettings simulationSettings;
 		simulationSettings.ambisonicsOrder = _ambisonicsOrder;
-		simulationSettings.irDuration = 1.0f;
-		simulationSettings.maxConvolutionSources = 5;
+		simulationSettings.irDuration = 0.5f;
+		simulationSettings.maxConvolutionSources = 20;
 		simulationSettings.numBounces = 16;
 		simulationSettings.numDiffuseSamples = 512;
-		simulationSettings.numRays = 32000;
+		simulationSettings.numRays = 64000;
 		simulationSettings.sceneType = IPL_SCENETYPE_PHONON;
 
 		if(_sceneGeometry.size() > 0)
@@ -475,27 +633,29 @@ namespace RN
 
 		Array *deviceArray = new Array();
 
-		//Get all output devices, put the default one first
+		//Get all output devices
+		int defaultOutputDeviceIndex = soundio_default_output_device_index(soundio);
 		int outputDeviceCount = soundio_output_device_count(soundio);
 		for (int i = 0; i < outputDeviceCount; i++)
 		{
 			device = soundio_get_output_device(soundio, i);
-			if (device)
+			if(device && !device->is_raw)
 			{
-				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Output, i, device->name, device->id, false);
+				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Output, i, device->name, device->id, i == defaultOutputDeviceIndex);
 				deviceArray->AddObject(saDevice->Autorelease());
 				soundio_device_unref(device);
 			}
 		}
 
-		//Get all input devices, put the default one first
+		//Get all input devices
+		int defaultInputDeviceIndex = soundio_default_input_device_index(soundio);
 		int inputDeviceCount = soundio_input_device_count(soundio);
 		for (int i = 0; i < inputDeviceCount; i++)
 		{
 			device = soundio_get_input_device(soundio, i);
-			if (device)
+			if (device && !device->is_raw)
 			{
-				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Input, i, device->name, device->id, false);
+				SteamAudioDevice *saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Input, i, device->name, device->id, i == defaultInputDeviceIndex);
 				deviceArray->AddObject(saDevice->Autorelease());
 				soundio_device_unref(device);
 			}
@@ -504,5 +664,59 @@ namespace RN
 		soundio_destroy(soundio);
 
 		return deviceArray->Autorelease();
+	}
+
+	SteamAudioDevice *SteamAudioWorld::GetDefaultInputDevice()
+	{
+		SoundIo *soundio = soundio_create();
+		soundio_connect(soundio);
+		soundio_flush_events(soundio);
+
+		int deviceIndex = soundio_default_input_device_index(soundio);
+		if(deviceIndex < 0)
+		{
+			RNDebug("No audio output device found.");
+			return nullptr;
+		}
+
+		SteamAudioDevice *saDevice = nullptr;
+		SoundIoDevice *device = soundio_get_input_device(soundio, deviceIndex);
+		if(device)
+		{
+			saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Input, deviceIndex, device->name, device->id, true);
+			saDevice->Autorelease();
+			soundio_device_unref(device);
+		}
+
+		soundio_destroy(soundio);
+
+		return saDevice;
+	}
+
+	SteamAudioDevice *SteamAudioWorld::GetDefaultOutputDevice()
+	{
+		SoundIo *soundio = soundio_create();
+		soundio_connect(soundio);
+		soundio_flush_events(soundio);
+
+		int deviceIndex = soundio_default_output_device_index(soundio);
+		if(deviceIndex < 0)
+		{
+			RNDebug("No audio output device found.");
+			return nullptr;
+		}
+
+		SteamAudioDevice *saDevice = nullptr;
+		SoundIoDevice *device = soundio_get_output_device(soundio, deviceIndex);
+		if(device)
+		{
+			saDevice = new SteamAudioDevice(SteamAudioDevice::Type::Output, deviceIndex, device->name, device->id, true);
+			saDevice->Autorelease();
+			soundio_device_unref(device);
+		}
+
+		soundio_destroy(soundio);
+
+		return saDevice;
 	}
 }

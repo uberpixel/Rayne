@@ -13,22 +13,73 @@ namespace RN
 {
 	RNDefineMeta(AudioAsset, Asset)
 	
-	AudioAsset::AudioAsset()
+	AudioAsset::AudioAsset() : _type(Type::Static), _readPosition(0), _writePosition(0)
 	{
-		
+
+	}
+
+	AudioAsset::AudioAsset(Type type, size_t size, int bytesPerSample, int sampleRate, int channels) : _type(type), _bytesPerSample(bytesPerSample), _sampleRate(sampleRate), _channels(channels), _readPosition(0), _writePosition(0), _bufferedSize(0)
+	{
+		_data = Data::WithBytes(nullptr, size)->Retain();
 	}
 	
 	AudioAsset::~AudioAsset()
 	{
-		_data->Release();
+		SafeRelease(_data);
 	}
 	
-	void AudioAsset::SetRawAudioData(Data *data, int bitsPerSample, int sampleRate, int channels)
+	void AudioAsset::SetRawAudioData(Data *data, int bytesPerSample, int sampleRate, int channels)
 	{
 		_data = data->Retain();
-		_bitsPerSample = bitsPerSample;
+		_bytesPerSample = bytesPerSample;
 		_sampleRate = sampleRate;
 		_channels = channels;
+	}
+
+	void AudioAsset::PushData(const void *bytes, size_t size)
+	{
+		RN_ASSERT(_type == Type::Ringbuffer, "PushData can only be called on an AudioAsset initialized as Ringbuffer.");
+
+		size_t remainingLength = size;
+		while(remainingLength)
+		{
+			size_t fittingLength = remainingLength;
+			fittingLength = std::min(fittingLength, _data->GetLength() - _writePosition);
+			_data->ReplaceBytes(bytes, Range(_writePosition, fittingLength));
+			_writePosition += fittingLength;
+			_writePosition %= _data->GetLength();
+
+			_bufferedSize += fittingLength;
+			remainingLength -= fittingLength;
+		}
+	}
+
+	void AudioAsset::PopData(void *bytes, size_t size)
+	{
+		RN_ASSERT(_type == Type::Ringbuffer, "PopData can only be called on an AudioAsset initialized as Ringbuffer.");
+
+		if(!bytes)
+		{
+			_readPosition += size;
+			_bufferedSize -= size;
+			_readPosition %= _data->GetLength();
+			return;
+		}
+
+		uint8 *data = static_cast<uint8 *>(bytes);
+		size_t remainingLength = size;
+		while(remainingLength)
+		{
+			size_t fittingLength = remainingLength;
+			fittingLength = std::min(fittingLength, _data->GetLength() - _readPosition);
+			_data->GetBytesInRange(data, Range(_readPosition, fittingLength));
+			_readPosition += fittingLength;
+			data += fittingLength;
+			_readPosition %= _data->GetLength();
+
+			_bufferedSize -= fittingLength;
+			remainingLength -= fittingLength;
+		}
 	}
 
 	AudioAsset *AudioAsset::WithName(const String *name, const Dictionary *settings)
@@ -36,4 +87,11 @@ namespace RN
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
 		return coordinator->GetAssetWithName<AudioAsset>(name, settings);
 	}
+
+	AudioAsset* AudioAsset::WithRingbuffer(size_t size, int bitsPerSample, int sampleRate, int channels)
+	{
+		AudioAsset *asset = new AudioAsset(Type::Ringbuffer, size, bitsPerSample, sampleRate, channels);
+		return asset->Autorelease();
+	}
+
 }

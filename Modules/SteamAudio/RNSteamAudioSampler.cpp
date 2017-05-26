@@ -19,10 +19,10 @@ namespace RN
 		_isRepeating(false)
 	{
 		RN_ASSERT(_asset, "No audio asset!");
-		RN_ASSERT(_asset->GetBitsPerSample() == 8 || _asset->GetBitsPerSample() == 16, "Only 8 and 16 bit audio assets are currently supported.");
+		RN_ASSERT(_asset->GetBytesPerSample() == 1 || _asset->GetBytesPerSample() == 2 || _asset->GetBytesPerSample() == 4, "Only 8 and 16 and 32 bit audio assets are currently supported.");
 
 		_asset->Retain();
-		_totalTime = _asset->GetData()->GetLength() / (_asset->GetBitsPerSample() / 8) / _asset->GetChannels() / _asset->GetSampleRate();
+		_totalTime = static_cast<double>(_asset->GetData()->GetLength()) / static_cast<double>(_asset->GetBytesPerSample()) / static_cast<double>(_asset->GetChannels()) / static_cast<double>(_asset->GetSampleRate());
 	}
 		
 	SteamAudioSampler::~SteamAudioSampler()
@@ -37,7 +37,7 @@ namespace RN
 
 	float SteamAudioSampler::GetSample(double time, uint8 channel) const
 	{
-		if(_isRepeating)
+		if(_isRepeating || _asset->GetType() == AudioAsset::Type::Ringbuffer)
 		{
 			if(time < 0.0f)
 			{
@@ -69,9 +69,9 @@ namespace RN
 		}
 
 		float value = 0.0f;
-		switch(_asset->GetBitsPerSample())
+		switch(_asset->GetBytesPerSample())
 		{
-			case 8:
+			case 1:
 			{
 				int8 *values = static_cast<int8*>(_asset->GetData()->GetBytes());
 				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
@@ -79,12 +79,20 @@ namespace RN
 				value /= 128.0f;
 				break;
 			}
-			case 16:
+			case 2:
 			{
 				int16 *values = static_cast<int16*>(_asset->GetData()->GetBytes());
 				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
 				value += values[upperSamplePosition] * interpolationFactor;
 				value /= 32768.0f;
+				break;
+			}
+			case 4:
+			{
+				float *values = static_cast<float*>(_asset->GetData()->GetBytes());
+				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
+				value += values[upperSamplePosition] * interpolationFactor;
+				break;
 			}
 
 			//TODO: Maybe add 24 and 32 bit support

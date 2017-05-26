@@ -19,23 +19,43 @@ namespace RN
 	class AudioAsset : public Asset
 	{
 	public:
+		enum Type
+		{
+			Static,
+			Ringbuffer
+		};
+
 		RNAPI AudioAsset();
+		RNAPI AudioAsset(Type type, size_t size, int bytesPerSample, int sampleRate, int channels);
+
 		RNAPI ~AudioAsset();
 		
-		RNAPI void SetRawAudioData(Data *data, int bitsPerSample, int sampleRate, int channels);
+		RNAPI void SetRawAudioData(Data *data, int bytesPerSample, int sampleRate, int channels);
+
+		RNAPI void PushData(const void *bytes, size_t size);
+		RNAPI void PopData(void *bytes, size_t size);
 		
 		RNAPI Data *GetData() const { return _data; }
-		RNAPI uint32 GetBitsPerSample() const { return _bitsPerSample; }
+		RNAPI uint32 GetBytesPerSample() const { return _bytesPerSample; }
 		RNAPI uint32 GetSampleRate() const { return _sampleRate; }
 		RNAPI uint32 GetChannels() const { return _channels; }
+		RNAPI uint32 GetBufferedSize() const { return _bufferedSize; }
+		RNAPI Type GetType() const { return _type; }
 		
 		RNAPI static AudioAsset *WithName(const String *name, const Dictionary *settings = nullptr);
+		RNAPI static AudioAsset *WithRingbuffer(size_t size, int bytesPerSample, int sampleRate, int channels);
 		
 	protected:
+		Type _type;
+
 		Data *_data;
-		uint32 _bitsPerSample;
+		uint32 _bytesPerSample;
 		uint32 _sampleRate;
 		uint32 _channels;
+
+		uint32 _readPosition;
+		uint32 _writePosition;
+		uint32 _bufferedSize;
 		
 	private:
 		

@@ -23,6 +23,8 @@ namespace RN
 		SAAPI void SetRepeat(bool repeat);
 		SAAPI float GetSample(double time, uint8 channel) const;
 
+		SAAPI AudioAsset *GetAsset() const { return _asset; }
+
 		//TODO: Implement an optional effects pipeline
 			
 	private:

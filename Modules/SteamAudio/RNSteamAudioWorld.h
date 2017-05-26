@@ -15,6 +15,7 @@
 
 struct SoundIo;
 struct SoundIoDevice;
+struct SoundIoInStream;
 struct SoundIoOutStream;
 
 namespace RN
@@ -71,9 +72,14 @@ namespace RN
 
 		SAAPI static SteamAudioWorld *GetInstance();
 		SAAPI static Array *GetDevices();
+		SAAPI static SteamAudioDevice *GetDefaultInputDevice();
+		SAAPI static SteamAudioDevice *GetDefaultOutputDevice();
 
-		SAAPI SteamAudioWorld(SteamAudioDevice *outputDevice = nullptr, uint8 ambisonicsOrder = 3, uint32 sampleRate = 44100, uint32 frameSize = 512);
+		SAAPI SteamAudioWorld(SteamAudioDevice *outputDevice = GetDefaultOutputDevice(), uint8 ambisonicsOrder = 3, uint32 sampleRate = 48000, uint32 frameSize = 512);
 		SAAPI ~SteamAudioWorld() override;
+
+		SAAPI void SetOutputDevice(SteamAudioDevice *outputDevice);
+		SAAPI void SetInputDevice(SteamAudioDevice *inputDevice, AudioAsset *targetAsset);
 			
 		SAAPI void SetListener(SceneNode *listener);
 		SceneNode *GetListener() const { return _listener; };
@@ -91,6 +97,7 @@ namespace RN
 		void Update(float delta) override;
 			
 	private:
+		static void ReadCallback(struct SoundIoInStream *inStream, int minSampleCount, int maxSampleCount);
 		static void WriteCallback(struct SoundIoOutStream *outStream, int minSampleCount, int maxSampleCount);
 		static SteamAudioWorld *_instance;
 
@@ -103,8 +110,10 @@ namespace RN
 		SceneNode *_listener;
 
 		SoundIo *_soundio;
-		SoundIoDevice *_device;
-		SoundIoOutStream *_outstream;
+		SoundIoDevice *_inDevice;
+		SoundIoDevice *_outDevice;
+		SoundIoInStream *_inStream;
+		SoundIoOutStream *_outStream;
 
 		uint8 _ambisonicsOrder;
 
@@ -118,13 +127,16 @@ namespace RN
 
 		void *_environmentalRenderer;
 
+		AudioAsset *_inputBuffer;
 		Array *_audioSources;
 		Array *_audioPlayers;
 		uint32 _frameSize;
+		uint32 _sampleRate;
 
 		float *_mixedAmbisonicsFrameData0;
 		float *_mixedAmbisonicsFrameData1;
 		float *_outputFrameData;
+		float *_inputFrameData;
 
 		float *_sharedSourceInputFrameData;
 		float *_sharedSourceOutputFrameData;
