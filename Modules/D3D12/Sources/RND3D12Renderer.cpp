@@ -51,6 +51,7 @@ namespace RN
 	D3D12Renderer::~D3D12Renderer()
 	{
 		//TODO: Cleanup
+		_mainWindow->Release();
 	}
 
 	D3D12CommandList *D3D12Renderer::GetCommandList()
@@ -83,7 +84,7 @@ namespace RN
 		D3D12Window *window = new D3D12Window(size, screen, this, descriptor);
 
 		if(!_mainWindow)
-			_mainWindow = window;
+			_mainWindow = window->Retain();
 
 		return window;
 	}

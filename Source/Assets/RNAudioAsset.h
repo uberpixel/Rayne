@@ -39,7 +39,7 @@ namespace RN
 		RNAPI uint32 GetBytesPerSample() const { return _bytesPerSample; }
 		RNAPI uint32 GetSampleRate() const { return _sampleRate; }
 		RNAPI uint32 GetChannels() const { return _channels; }
-		RNAPI uint32 GetBufferedSize() const { return _bufferedSize; }
+		RNAPI uint32 GetBufferedSize() const { return _bufferedSize.load(); }
 		RNAPI Type GetType() const { return _type; }
 		
 		RNAPI static AudioAsset *WithName(const String *name, const Dictionary *settings = nullptr);
@@ -55,7 +55,7 @@ namespace RN
 
 		uint32 _readPosition;
 		uint32 _writePosition;
-		uint32 _bufferedSize;
+		std::atomic<uint32> _bufferedSize;
 		
 	private:
 		

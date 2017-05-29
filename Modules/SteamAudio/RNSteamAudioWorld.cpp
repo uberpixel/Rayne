@@ -31,7 +31,7 @@ namespace RN
 
 		struct SoundIoChannelArea *areas;
 		int err;
-		int remainingSamples = maxSampleCount;// std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
+		int remainingSamples = std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
 		while(remainingSamples > 0)
 		{
 			int sampleCount = remainingSamples;
@@ -379,6 +379,7 @@ namespace RN
 		_outStream = soundio_outstream_create(_outDevice);
 		_outStream->format = SoundIoFormatFloat32NE;
 		_outStream->sample_rate = _sampleRate;
+		_outStream->software_latency = _frameSize / static_cast<float>(_sampleRate);
 		_outStream->write_callback = WriteCallback;
 
 		int err;
@@ -442,7 +443,7 @@ namespace RN
 		_inStream->format = SoundIoFormatFloat32NE;
 		_inStream->sample_rate = _sampleRate;
 		_inStream->layout = _inDevice->current_layout;
-		_inStream->software_latency = 0.2f;
+		_inStream->software_latency = _frameSize/static_cast<float>(_sampleRate);
 		_inStream->read_callback = ReadCallback;
 
 		int err;

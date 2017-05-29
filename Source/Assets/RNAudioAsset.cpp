@@ -41,15 +41,17 @@ namespace RN
 		RN_ASSERT(_type == Type::Ringbuffer, "PushData can only be called on an AudioAsset initialized as Ringbuffer.");
 
 		size_t remainingLength = size;
+		size_t offset = 0;
 		while(remainingLength)
 		{
 			size_t fittingLength = remainingLength;
 			fittingLength = std::min(fittingLength, _data->GetLength() - _writePosition);
-			_data->ReplaceBytes(bytes, Range(_writePosition, fittingLength));
+			_data->ReplaceBytes(static_cast<const uint8 *>(bytes) + offset, Range(_writePosition, fittingLength));
+			offset += fittingLength;
 			_writePosition += fittingLength;
 			_writePosition %= _data->GetLength();
 
-			_bufferedSize += fittingLength;
+			_bufferedSize.fetch_add(fittingLength);
 			remainingLength -= fittingLength;
 		}
 	}
@@ -61,7 +63,7 @@ namespace RN
 		if(!bytes)
 		{
 			_readPosition += size;
-			_bufferedSize -= size;
+			_bufferedSize.fetch_sub(size);
 			_readPosition %= _data->GetLength();
 			return;
 		}
@@ -77,7 +79,7 @@ namespace RN
 			data += fittingLength;
 			_readPosition %= _data->GetLength();
 
-			_bufferedSize -= fittingLength;
+			_bufferedSize.fetch_sub(fittingLength);
 			remainingLength -= fittingLength;
 		}
 	}

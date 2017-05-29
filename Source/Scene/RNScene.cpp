@@ -252,11 +252,8 @@ namespace RN
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
 			Camera *camera = static_cast<Camera *>(node);
-
 			_cameras.PushBack(camera->_cameraSceneEntry);
-
 			camera->_scene = this;
-			camera->Retain();
 		}
 
 		//TODO: Handle lights to be rendered before other things differently...
@@ -281,7 +278,6 @@ namespace RN
 		{
 			Light *light = static_cast<Light *>(node);
 			_lights->RemoveObject(light);
-			return;
 		}
 
 		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);

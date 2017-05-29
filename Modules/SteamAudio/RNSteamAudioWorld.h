@@ -75,7 +75,7 @@ namespace RN
 		SAAPI static SteamAudioDevice *GetDefaultInputDevice();
 		SAAPI static SteamAudioDevice *GetDefaultOutputDevice();
 
-		SAAPI SteamAudioWorld(SteamAudioDevice *outputDevice = GetDefaultOutputDevice(), uint8 ambisonicsOrder = 3, uint32 sampleRate = 48000, uint32 frameSize = 512);
+		SAAPI SteamAudioWorld(SteamAudioDevice *outputDevice = GetDefaultOutputDevice(), uint8 ambisonicsOrder = 3, uint32 sampleRate = 48000, uint32 frameSize = 480);
 		SAAPI ~SteamAudioWorld() override;
 
 		SAAPI void SetOutputDevice(SteamAudioDevice *outputDevice);

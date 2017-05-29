@@ -271,6 +271,7 @@ namespace RN
 					window = _renderer->CreateAWindow(Vector2(1920, 1080), Screen::GetMainScreen(), swapChainDescriptor);
 					window->SetTitle(_application->GetTitle());
 					window->Show();
+					window->Autorelease();
 				}
 			}
 

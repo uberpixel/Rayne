@@ -72,10 +72,11 @@ namespace RN
 		if(_sampler->GetAsset()->GetType() == AudioAsset::Type::Ringbuffer)
 		{
 			//Buffer for audio data to play
-			if(_sampler->GetAsset()->GetBufferedSize() < frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) || _isBuffering)
+			uint32 assetFrameSamples = std::round(frameLength * _sampler->GetAsset()->GetSampleRate() * _sampler->GetAsset()->GetBytesPerSample());
+			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples || _isBuffering)
 			{
 				_isBuffering = true;
-				if(_sampler->GetAsset()->GetBufferedSize() > frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 4)
+				if(_sampler->GetAsset()->GetBufferedSize() >= assetFrameSamples * 2)
 					_isBuffering = false;
 
 				for(int n = 0; n < sampleCount; n++)
@@ -93,15 +94,16 @@ namespace RN
 			else
 			{
 				//Skip samples if data is written faster than played
-				uint32 maxBufferedLength = frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 16;
+				uint32 maxBufferedLength = assetFrameSamples * 4;
 				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
 				{
-					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()) * 4;
+					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples * 2;
 					double skipTime = skipBytes / _sampler->GetAsset()->GetBytesPerSample() / static_cast<double>(_sampler->GetAsset()->GetSampleRate());
 					_currentTime += skipTime;
 					_sampler->GetAsset()->PopData(nullptr, skipBytes);
 				}
-				_sampler->GetAsset()->PopData(nullptr, frameLength*_sampler->GetAsset()->GetSampleRate()*(_sampler->GetAsset()->GetBytesPerSample()));
+				
+				_sampler->GetAsset()->PopData(nullptr, assetFrameSamples);
 			}
 		}
 
