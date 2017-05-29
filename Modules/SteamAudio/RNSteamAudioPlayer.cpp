@@ -21,8 +21,7 @@ namespace RN
 		_pitch(1.0f),
 		_gain(1.0f),
 		_currentTime(0.0f),
-		_sampler(new SteamAudioSampler(asset)),
-		_isBuffering(true)
+		_sampler(new SteamAudioSampler(asset))
 	{
 		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
 		RN_ASSERT(asset->GetChannels() <= 2, "Currently only mono and stereo files can be played!");
@@ -73,12 +72,8 @@ namespace RN
 		{
 			//Buffer for audio data to play
 			uint32 assetFrameSamples = std::round(frameLength * _sampler->GetAsset()->GetSampleRate() * _sampler->GetAsset()->GetBytesPerSample());
-			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples || _isBuffering)
+			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples)
 			{
-				_isBuffering = true;
-				if(_sampler->GetAsset()->GetBufferedSize() >= assetFrameSamples * 2)
-					_isBuffering = false;
-
 				for(int n = 0; n < sampleCount; n++)
 				{
 					//TODO: support more output layouts
@@ -97,7 +92,7 @@ namespace RN
 				uint32 maxBufferedLength = assetFrameSamples * 4;
 				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
 				{
-					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples * 2;
+					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples;
 					double skipTime = skipBytes / _sampler->GetAsset()->GetBytesPerSample() / static_cast<double>(_sampler->GetAsset()->GetSampleRate());
 					_currentTime += skipTime;
 					_sampler->GetAsset()->PopData(nullptr, skipBytes);

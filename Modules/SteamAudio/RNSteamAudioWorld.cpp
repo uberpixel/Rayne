@@ -31,10 +31,10 @@ namespace RN
 
 		struct SoundIoChannelArea *areas;
 		int err;
-		int remainingSamples = std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
+		int remainingSamples = maxSampleCount;
 		while(remainingSamples > 0)
 		{
-			int sampleCount = remainingSamples;
+			int sampleCount = std::min(std::max(static_cast<int>(_instance->_frameSize), minSampleCount), remainingSamples);
 			char *data = reinterpret_cast<char *>(_instance->_inputFrameData);
 
 			if(soundio_instream_begin_read(inStream, &areas, &sampleCount) != 0)

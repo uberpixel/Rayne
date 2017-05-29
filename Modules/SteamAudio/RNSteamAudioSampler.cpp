@@ -60,10 +60,10 @@ namespace RN
 		lowerSamplePosition = lowerSamplePosition * channelCount + channel;
 		upperSamplePosition = upperSamplePosition * channelCount + channel;
 
-		if(upperSamplePosition > _asset->GetData()->GetLength())
+		if(upperSamplePosition >= _asset->GetData()->GetLength() / _asset->GetBytesPerSample())
 		{
-			if (_isRepeating)
-				upperSamplePosition %= _asset->GetData()->GetLength();
+			if(_isRepeating || _asset->GetType() == AudioAsset::Type::Ringbuffer)
+				upperSamplePosition %= _asset->GetData()->GetLength() / _asset->GetBytesPerSample();
 			else
 				upperSamplePosition = lowerSamplePosition;
 		}
@@ -74,24 +74,24 @@ namespace RN
 			case 1:
 			{
 				int8 *values = static_cast<int8*>(_asset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
-				value += values[upperSamplePosition] * interpolationFactor;
+				value = values[lowerSamplePosition] * interpolationFactor;
+				value += values[upperSamplePosition] * (1.0f-interpolationFactor);
 				value /= 128.0f;
 				break;
 			}
 			case 2:
 			{
 				int16 *values = static_cast<int16*>(_asset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
-				value += values[upperSamplePosition] * interpolationFactor;
+				value = values[lowerSamplePosition] * interpolationFactor;
+				value += values[upperSamplePosition] * (1.0f - interpolationFactor);
 				value /= 32768.0f;
 				break;
 			}
 			case 4:
 			{
 				float *values = static_cast<float*>(_asset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * (1.0f - interpolationFactor);
-				value += values[upperSamplePosition] * interpolationFactor;
+				value = values[lowerSamplePosition] * interpolationFactor;
+				value += values[upperSamplePosition] * (1.0f - interpolationFactor);
 				break;
 			}
 
