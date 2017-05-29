@@ -38,20 +38,20 @@ namespace RN
 
 		Texture *resolvedTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y));
 		resolvedFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
-		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture->Autorelease()));
+		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture));
 
 		if(msaaSampleCount > 1)
 		{
 			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, 8));
 			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, 8));
 			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
-			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture->Autorelease()));
-			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture->Autorelease()));
+			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
+			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
 		}
 		else
 		{
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y));
-			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture->Autorelease()));
+			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
 		
 

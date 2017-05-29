@@ -188,7 +188,7 @@ namespace RN
 			});
 		}
 
-		return samplerArray->Autorelease();
+		return samplerArray;
 	}
 
 	Shader *D3D12SpecificShaderLibrary::GetShaderWithOptions(ShaderLibrary *library, const Shader::Options *options)
