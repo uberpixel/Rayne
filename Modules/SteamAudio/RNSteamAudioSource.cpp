@@ -152,7 +152,9 @@ namespace RN
 			IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
 			IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z },
 			IPLVector3{ sourcePosition.x, sourcePosition.y, sourcePosition.z },
-			_radius, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
+			_radius, IPL_DIRECTOCCLUSION_NOTRANSMISSION, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
+
+		//TODO: implement direct sound effect with optional transmission
 
 		_speed = directSoundPath.propagationDelay - _delay;
 		_speed /= sampleCount;
