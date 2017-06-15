@@ -267,7 +267,7 @@ namespace RN
 				if(!window)
 				{
 					//TODO: Take resolution and swap chain descriptor from settings file!
-					Window::SwapChainDescriptor swapChainDescriptor;
+					Window::SwapChainDescriptor swapChainDescriptor(Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 					window = _renderer->CreateAWindow(Vector2(1920, 1080), Screen::GetMainScreen(), swapChainDescriptor);
 					window->SetTitle(_application->GetTitle());
 					window->Show();

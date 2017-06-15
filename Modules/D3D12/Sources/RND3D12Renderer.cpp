@@ -822,7 +822,7 @@ namespace RN
 
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 
-		ID3D12DescriptorHeap *srvCbvHeap;
+		ID3D12DescriptorHeap *srvCbvHeap = nullptr;
 
 		// Layout: textures + 1 cbv
 		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};

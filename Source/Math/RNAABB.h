@@ -164,13 +164,15 @@ namespace RN
 
 		for(size_t i=0; i<4; i++)
 		{
-			minExtend.x = std::min(corners[i].x, minExtend.x);
-			minExtend.y = std::min(corners[i].y, minExtend.y);
-			minExtend.z = std::min(corners[i].z, minExtend.z);
+			//This used to use std::min, but could trigger an exception in visual studio debug builds
+			//if both values are equal, even though the standard explicitly allows it...
+			minExtend.x = (corners[i].x < minExtend.x) ? corners[i].x : minExtend.x;
+			minExtend.y = (corners[i].y < minExtend.y) ? corners[i].y : minExtend.y;
+			minExtend.z = (corners[i].z < minExtend.z) ? corners[i].z : minExtend.z;
 
-			maxExtend.x = std::max(corners[i].x, maxExtend.x);
-			maxExtend.y = std::max(corners[i].y, maxExtend.y);
-			maxExtend.z = std::max(corners[i].z, maxExtend.z);
+			maxExtend.x = (corners[i].x < maxExtend.x) ? corners[i].x : maxExtend.x;
+			maxExtend.y = (corners[i].y < maxExtend.y) ? corners[i].y : maxExtend.y;
+			maxExtend.z = (corners[i].z < maxExtend.z) ? corners[i].z : maxExtend.z;
 		}
 	}
 }
