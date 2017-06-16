@@ -36,6 +36,8 @@ namespace RN
 		ENAPI ENetHost();
 		ENAPI ~ENetHost();
 
+		void ENetHost::SendPackage(Data *data, uint32 receiverID = 0);
+
 		ENAPI Status GetStatus() const { return _status; }
 
 	protected:
