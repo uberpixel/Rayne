@@ -21,8 +21,10 @@ namespace RN
 		_size(size),
 		_descriptor(descriptor),
 		_swapChain(nullptr),
-		_framebuffer(nullptr)
+		_framebuffer(nullptr),
+		_fenceValues(nullptr)
 	{
+		_fenceValues = new UINT[descriptor.bufferCount];
 		for (int i = 0; i < descriptor.bufferCount; i++)
 			_fenceValues[i] = 0;
 
@@ -53,6 +55,7 @@ namespace RN
 
 	D3D12SwapChain::~D3D12SwapChain()
 	{
+		delete[] _fenceValues;
 	}
 
 	void D3D12SwapChain::ResizeSwapchain(const Vector2& size)

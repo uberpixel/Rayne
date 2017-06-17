@@ -471,11 +471,11 @@ namespace RN
 		D3D12UniformBuffer *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = new D3D12UniformBuffer(renderer, vertexShader->GetSignature()->GetTotalUniformSize());
+			vertexBuffer = new D3D12UniformBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = new D3D12UniformBuffer(renderer, fragmentShader->GetSignature()->GetTotalUniformSize());
+			fragmentBuffer = new D3D12UniformBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
 		}
 
 		D3D12UniformState *state = new D3D12UniformState();

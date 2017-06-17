@@ -12,8 +12,6 @@
 #include "RND3D12.h"
 #include "RND3D12StateCoordinator.h"
 
-#define kRND3D12UniformBufferCount 3
-
 namespace RN
 {
 	class Renderer;
@@ -22,17 +20,19 @@ namespace RN
 	class D3D12UniformBuffer : public Object
 	{
 	public:
-		D3D12UniformBuffer(Renderer *renderer, size_t size);
+		D3D12UniformBuffer(size_t size);
 		~D3D12UniformBuffer();
 
-		GPUBuffer *Advance();
+		GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
 		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
 		size_t GetCurrentBufferIndex() const { return _bufferIndex; }
 
 	private:
-		GPUBuffer *_buffers[kRND3D12UniformBufferCount];
+		std::vector<GPUBuffer*> _buffers;
+		std::vector<size_t> _bufferFrames;
 		size_t _bufferIndex;
+		size_t _size;
 
 		RNDeclareMetaAPI(D3D12UniformBuffer, D3DAPI)
 	};

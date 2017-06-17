@@ -14,27 +14,48 @@ namespace RN
 {
 	RNDefineMeta(D3D12UniformBuffer, Object)
 
-	D3D12UniformBuffer::D3D12UniformBuffer(Renderer *renderer, size_t size) :
-		_bufferIndex(0)
+	D3D12UniformBuffer::D3D12UniformBuffer(size_t size) :
+		_bufferIndex(0),
+		_size(size)
 	{
-		D3D12Renderer *realRenderer = renderer->Downcast<D3D12Renderer>();
-
-		//Three buffers for triplebuffering
-		for(size_t i = 0; i < kRND3D12UniformBufferCount; i++)
-		{
-			_buffers[i] = renderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
-		}
+		D3D12Renderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
+		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
+		_buffers.push_back(buffer);
+		_bufferFrames.push_back(0);
 	}
 
 	D3D12UniformBuffer::~D3D12UniformBuffer()
 	{
-		for(size_t i = 0; i < kRND3D12UniformBufferCount; i ++)
+		for(size_t i = 0; i < _buffers.size(); i ++)
 			_buffers[i]->Release();
 	}
 
-	GPUBuffer *D3D12UniformBuffer::Advance()
+	GPUBuffer *D3D12UniformBuffer::Advance(size_t currentFrame, size_t completedFrame)
 	{
-		_bufferIndex = (_bufferIndex + 1) % kRND3D12UniformBufferCount;
+		_bufferIndex = (_bufferIndex + 1) % _buffers.size();
+
+		if(_bufferFrames[_bufferIndex] > completedFrame)
+		{
+			D3D12Renderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
+			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
+
+			_bufferIndex += 1;
+			if(_bufferIndex >= _buffers.size())
+			{
+				_buffers.push_back(buffer);
+				_bufferFrames.push_back(currentFrame);
+			}
+			else
+			{
+				_buffers.insert(_buffers.begin() + _bufferIndex, buffer);
+				_bufferFrames.insert(_bufferFrames.begin() + _bufferIndex, currentFrame);
+			}
+		}
+		else
+		{
+			_bufferFrames[_bufferIndex] = currentFrame;
+		}
+
 		return _buffers[_bufferIndex];
 
 		return nullptr;

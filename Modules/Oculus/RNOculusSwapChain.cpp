@@ -140,7 +140,6 @@ namespace RN
 		// Submit frame with one layer we have.
 		ovrLayerHeader* layers = &_layer.Header;
 		_submitResult = ovr_SubmitFrame(_session, 0, nullptr, &layers, 1);	//TODO: Frameindex as second param
-		//isVisible = (result == ovrSuccess);	//TODO: Pause application and rendering if not true
 	}
 
 	ID3D12Resource *OculusSwapChain::GetD3D12Buffer(int i) const

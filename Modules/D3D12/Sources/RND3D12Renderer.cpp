@@ -1225,7 +1225,7 @@ namespace RN
 		D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 		if(uniformState->vertexUniformBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->vertexUniformBuffer->Advance();
+			GPUBuffer *gpuBuffer = uniformState->vertexUniformBuffer->Advance(_scheduledFenceValue, _completedFenceValue);
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
 			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.vertexShader, offset);
@@ -1233,7 +1233,7 @@ namespace RN
 		}
 		if (uniformState->fragmentUniformBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->fragmentUniformBuffer->Advance();
+			GPUBuffer *gpuBuffer = uniformState->fragmentUniformBuffer->Advance(_scheduledFenceValue, _completedFenceValue);
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
 			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.fragmentShader, offset);

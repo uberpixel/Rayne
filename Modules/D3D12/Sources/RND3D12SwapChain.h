@@ -58,7 +58,7 @@ namespace RN
 		IDXGISwapChain3 *_swapChain;
 
 		ID3D12Fence *_fence;
-		UINT _fenceValues[5];
+		UINT *_fenceValues;
 		HANDLE _fenceEvent;
 
 		RNDeclareMetaAPI(D3D12SwapChain, D3DAPI)
