@@ -23,6 +23,7 @@ namespace RN
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
+	class D3D12DescriptorHeap;
 	class D3D12CommandList;
 	class D3D12CommandListWithCallback;
 
@@ -68,6 +69,7 @@ namespace RN
 		D3DAPI void SubmitLight(const Light *light) final;
 
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
+		D3D12DescriptorHeap *GetDescriptorHeap(size_t size);
 		D3D12CommandList *GetCommandList();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
 
@@ -96,6 +98,7 @@ namespace RN
 		D3D12Drawable *_defaultPostProcessingDrawable;
 
 		ID3D12CommandQueue *_commandQueue;
+
 		D3D12CommandList *_currentCommandList;
 		Array *_submittedCommandLists;
 		Array *_executedCommandLists;
@@ -106,9 +109,12 @@ namespace RN
 		Lockable _lock;
 
 		const D3D12RootSignature *_currentRootSignature;
-		ID3D12DescriptorHeap *_currentSrvCbvHeap;
+
+		D3D12DescriptorHeap *_currentSrvCbvHeap;
 		size_t _currentSrvCbvIndex;
-		UINT _srvCbvDescriptorSize;
+		Array *_boundDescriptorHeaps;
+		Array *_descriptorHeapPool;
+
 		UINT _rtvDescriptorSize;
 
 		ID3D12Fence *_fence;

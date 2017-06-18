@@ -105,6 +105,36 @@ namespace RN
 		size_t totalDescriptorTables;
 	};
 
+	class D3D12DescriptorHeap : public Object
+	{
+	public:
+		friend RN::D3D12Renderer;
+
+		~D3D12DescriptorHeap();
+
+		void Reset(size_t size);
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(UINT index) const;
+		CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(UINT index) const;
+
+	protected:
+		D3D12DescriptorHeap(ID3D12Device *device);
+
+		ID3D12DescriptorHeap *_heap;
+		ID3D12Device *_device;
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE _handleCPU;
+		CD3DX12_GPU_DESCRIPTOR_HANDLE _handleGPU;
+		size_t _handleIncrement;
+
+		size_t _size;
+
+	private:
+		UINT _fenceValue;
+
+		RNDeclareMetaAPI(D3D12DescriptorHeap, D3DAPI)
+	};
+
 	class D3D12CommandList : public Object
 	{
 	public:

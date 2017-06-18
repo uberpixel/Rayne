@@ -25,10 +25,12 @@ namespace RN
 		_mainWindow(nullptr),
 		_mipMapTextures(new Array()),
 		_currentRootSignature(nullptr),
-		_currentSrvCbvHeap(nullptr),
 		_submittedCommandLists(new Array()),
 		_executedCommandLists(new Array()),
 		_commandListPool(new Array()),
+		_currentSrvCbvHeap(nullptr),
+		_boundDescriptorHeaps(new Array()),
+		_descriptorHeapPool(new Array()),
 		_scheduledFenceValue(0),
 		_completedFenceValue(0),
 		_defaultPostProcessingDrawable(nullptr)
@@ -43,7 +45,6 @@ namespace RN
 		underlyingDevice->CreateCommandQueue(&queueDescriptor, IID_PPV_ARGS(&_commandQueue));
 
 		_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		_srvCbvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"));
 	}
@@ -77,6 +78,25 @@ namespace RN
 		_lock.Lock();
 		_submittedCommandLists->AddObject(commandList);
 		_lock.Unlock();
+	}
+
+	D3D12DescriptorHeap *D3D12Renderer::GetDescriptorHeap(size_t size)
+	{
+		D3D12DescriptorHeap *descriptorHeap = nullptr;
+		if(_descriptorHeapPool->GetCount() == 0)
+		{
+			descriptorHeap = new D3D12DescriptorHeap(GetD3D12Device()->GetDevice());
+		}
+		else
+		{
+			descriptorHeap = _descriptorHeapPool->GetLastObject<D3D12DescriptorHeap>();
+			descriptorHeap->Retain();
+			_descriptorHeapPool->RemoveObjectAtIndex(_descriptorHeapPool->GetCount() - 1);
+		}
+
+		descriptorHeap->Reset(size);
+
+		return descriptorHeap->Autorelease();
 	}
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
@@ -356,6 +376,17 @@ namespace RN
 			}
 		}
 
+		//Add descriptor heaps that aren't in use by the GPU anymore back to the pool
+		for(int i = _boundDescriptorHeaps->GetCount() - 1; i >= 0; i--)
+		{
+			if(_boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i)->_fenceValue <= _completedFenceValue)
+			{
+				D3D12DescriptorHeap *descriptorHeap = _boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i);
+				_descriptorHeapPool->AddObject(descriptorHeap);
+				_boundDescriptorHeaps->RemoveObjectAtIndex(i);
+			}
+		}
+
 		//Free other frame resources such as descriptor heaps, that are not in use by the gpu anymore
 		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
 		{
@@ -378,6 +409,8 @@ namespace RN
 		}
 
 		CreateDescriptorHeap();
+		_boundDescriptorHeaps->AddObject(_currentSrvCbvHeap);
+		_currentSrvCbvHeap->_fenceValue = _scheduledFenceValue;
 
 		_currentCommandList = GetCommandList();
 
@@ -412,7 +445,7 @@ namespace RN
 						commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
 
 						// Set the one big descriptor heap for the whole frame
-						ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap };
+						ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
 						commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 					}
 					RenderDrawable(commandList, drawable);
@@ -822,16 +855,7 @@ namespace RN
 
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 
-		ID3D12DescriptorHeap *srvCbvHeap = nullptr;
-
-		// Layout: textures + 1 cbv
-		D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
-		srvCbvHeapDesc.NumDescriptors = _internals->totalDescriptorTables;
-		srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&srvCbvHeap));
-		_currentSrvCbvHeap = srvCbvHeap;
-		_internals->frameResources.push_back({ srvCbvHeap, _scheduledFenceValue });
+		_currentSrvCbvHeap = GetDescriptorHeap(_internals->totalDescriptorTables);
 
 		// Describe null SRVs. Null descriptors are used to "unbind" textures
 		D3D12_SHADER_RESOURCE_VIEW_DESC nullSrvDesc = {};
@@ -842,7 +866,8 @@ namespace RN
 		nullSrvDesc.Texture2D.MostDetailedMip = 0;
 		nullSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(srvCbvHeap->GetCPUDescriptorHandleForHeapStart(), 0, _srvCbvDescriptorSize);
+		size_t heapIndex = 0;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(heapIndex);
 
 		size_t cameraID = 0;
 		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
@@ -875,7 +900,7 @@ namespace RN
 						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 					}
 
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				});
 
 				//TODO: Find a cleaner more general solution
@@ -883,7 +908,7 @@ namespace RN
 				{
 					textureCount += 1;
 					device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
 				//TODO: Find a cleaner more general solution
@@ -905,7 +930,7 @@ namespace RN
 							device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
 						}
 
-						currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 					}
 				}
 
@@ -913,7 +938,7 @@ namespace RN
 				for(int i = rootSignature->textureCount - textureCount; i > 0; i--)
 				{
 					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
 				//Create constant buffer descriptor
@@ -926,7 +951,7 @@ namespace RN
 					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
 					cbvDesc.SizeInBytes = actualBuffer->GetLength();
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
 				D3D12UniformBuffer *fragmentUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->fragmentUniformBuffer;
@@ -936,7 +961,7 @@ namespace RN
 					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
 					cbvDesc.SizeInBytes = actualBuffer->GetLength();
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-					currentCPUHandle.Offset(1, _srvCbvDescriptorSize);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 			}
 
@@ -1256,15 +1281,13 @@ namespace RN
 		UINT rootParameter = 0;
 		if(rootSignature->textureCount)
 		{
-			CD3DX12_GPU_DESCRIPTOR_HANDLE srvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
-			commandList->SetGraphicsRootDescriptorTable(rootParameter++, srvGPUHandle);
+			commandList->SetGraphicsRootDescriptorTable(rootParameter++, _currentSrvCbvHeap->GetGPUHandle(_currentSrvCbvIndex));
 			_currentSrvCbvIndex += rootSignature->textureCount;
 		}
 
 		if(rootSignature->constantBufferCount)
 		{
-			CD3DX12_GPU_DESCRIPTOR_HANDLE cbvGPUHandle(_currentSrvCbvHeap->GetGPUDescriptorHandleForHeapStart(), _currentSrvCbvIndex, _srvCbvDescriptorSize);
-			commandList->SetGraphicsRootDescriptorTable(rootParameter++, cbvGPUHandle);
+			commandList->SetGraphicsRootDescriptorTable(rootParameter++, _currentSrvCbvHeap->GetGPUHandle(_currentSrvCbvIndex));
 			_currentSrvCbvIndex += rootSignature->constantBufferCount;
 		}
 

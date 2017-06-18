@@ -11,6 +11,51 @@
 
 namespace RN
 {
+	RNDefineMeta(D3D12DescriptorHeap, Object)
+
+	D3D12DescriptorHeap::D3D12DescriptorHeap(ID3D12Device *device) : _device(device), _heap(nullptr), _size(0), _fenceValue(0)
+	{
+		//TODO: maybe generalize for the different heap types... currently only srv/cbv/uav heap
+		_handleIncrement = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+
+	D3D12DescriptorHeap::~D3D12DescriptorHeap()
+	{
+		_heap->Release();
+	}
+
+	void D3D12DescriptorHeap::Reset(size_t size)
+	{
+		if(_size < size)
+		{
+			if(_heap)
+			{
+				Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>()->AddFrameResouce(_heap, _fenceValue);
+			}
+
+			D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
+			srvCbvHeapDesc.NumDescriptors = size;
+			srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			_device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_heap));
+
+			_handleCPU = _heap->GetCPUDescriptorHandleForHeapStart();
+			_handleGPU = _heap->GetGPUDescriptorHandleForHeapStart();
+
+			_size = size;
+		}
+	}
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorHeap::GetCPUHandle(UINT index) const
+	{
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(_handleCPU, index, _handleIncrement);
+	}
+	CD3DX12_GPU_DESCRIPTOR_HANDLE D3D12DescriptorHeap::GetGPUHandle(UINT index) const
+	{
+		return CD3DX12_GPU_DESCRIPTOR_HANDLE(_handleGPU, index, _handleIncrement);
+	}
+
+
 	RNDefineMeta(D3D12CommandList, Object)
 
 	D3D12CommandList::D3D12CommandList(ID3D12Device *device) : _device(device), _isOpen(true), _finishedCallback(nullptr)

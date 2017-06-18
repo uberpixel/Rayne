@@ -378,7 +378,7 @@ namespace RN
 		if(_colorTargets.size() == 0)
 			return;
 
-		D3D12_RECT clearRect{ 0, 0, GetSize().x, GetSize().y };
+		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
 		commandList->GetCommandList()->ClearRenderTargetView(*_rtvHandle, &color.r, 1, &clearRect);
 	}
 
