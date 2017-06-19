@@ -25,9 +25,6 @@
 [submodule "Modules/SteamAudio/Vendor/libsoundio"]
 	path = Modules/SteamAudio/Vendor/libsoundio
 	url = https://github.com/andrewrk/libsoundio.git
-[submodule "Modules/ENet/Vendor/protobuf"]
-	path = Modules/ENet/Vendor/protobuf
-	url = https://github.com/google/protobuf.git
 [submodule "Modules/ENet/Vendor/enet"]
 	path = Modules/ENet/Vendor/enet
 	url = https://github.com/lsalzman/enet.git

@@ -10,25 +10,30 @@
 #define __RAYNE_ENETSERVER_H_
 
 #include "RNENetHost.h"
+#include <queue>
 
 namespace RN
 {
 	class ENetServer : public ENetHost
 	{
 	public:
-		ENAPI ENetServer(uint32 port = 1234, uint16 maxConnections = 16);
+		ENAPI ENetServer(uint32 port = 1234, uint16 maxConnections = 16, uint32 channelCount = 0);
 		ENAPI ~ENetServer();
 
 		ENAPI void Connect(String *ip, uint32 port);
 		ENAPI void Disconnect();
 
 	protected:
-		virtual void Update(float delta) override;
+		ENAPI virtual void Update(float delta) override;
 			
 	private:
 		void HandleDisconnect();
+		uint16 GetUserID();
+		void ReleaseUserID(uint16 userID);
 
 		uint16 _maxConnections;
+		uint16 _nextUserID;
+		std::queue<uint16> _freeUserIDs;
 			
 		RNDeclareMetaAPI(ENetServer, ENAPI)
 	};

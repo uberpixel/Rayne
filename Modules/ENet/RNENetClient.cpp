@@ -14,13 +14,12 @@ namespace RN
 {
 	RNDefineMeta(ENetClient, ENetHost)
 
-	ENetClient::ENetClient() : _connectionTimeOut(5.0f), _enetPeer(nullptr)
+	ENetClient::ENetClient(uint32 channelCount) : _connectionTimeOut(5.0f)
 	{
 		_status = Status::Disconnected;
+		_channelCount = channelCount;
 
-		_enetHost = enet_host_create(nullptr /* the address to bind the server host to */,
-			1,
-			2      /* allow up to 2 channels to be used, 0 and 1 */,
+		_enetHost = enet_host_create(nullptr, 1, _channelCount,
 			0      /* assume any amount of incoming bandwidth */,
 			0      /* assume any amount of outgoing bandwidth */);
 
@@ -48,13 +47,16 @@ namespace RN
 		enet_address_set_host(&address, _ip->GetUTF8String());
 		address.port = _port;
 
-		/* Initiate the connection, allocating the two channels 0 and 1. */
-		_enetPeer = enet_host_connect(_enetHost, &address, 2, 0);
-		if(_enetPeer == NULL)
+		Peer peer;
+		peer.id = 0;
+		peer.peer = enet_host_connect(_enetHost, &address, _channelCount, 0);
+		if(peer.peer == NULL)
 		{
 			RNDebug("Couldn't connect to server!");
 			return;
 		}
+
+		_peers.push_back(peer);
 	}
 
 	void ENetClient::Disconnect()
@@ -63,20 +65,25 @@ namespace RN
 			return;
 
 		_status = Status::Disconnecting;
-		enet_peer_disconnect(_enetPeer, 0);
+		enet_peer_disconnect(_peers[0].peer, 0);
 	}
 
 	void ENetClient::HandleDisconnect()
 	{
-		enet_peer_reset(_enetPeer);
-		_enetPeer = nullptr;
+		enet_peer_reset(_peers[0].peer);
+		_peers.clear();
+
+		RNDebug("Disconnected!");
 	}
 
 	void ENetClient::Update(float delta)
 	{
+		if(_status == Status::Disconnected)
+			return;
+
 		_connectionTimeOut -= delta;
 
-		if(_enetPeer && _connectionTimeOut <= 0.0f)
+		if(_peers.size() > 0 && _connectionTimeOut <= 0.0f)
 		{
 			HandleDisconnect();
 		}
@@ -89,20 +96,21 @@ namespace RN
 			switch(event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
+					RNDebug("Connected!");
 					_status = Status::Connected;
 					break;
 
 				case ENET_EVENT_TYPE_RECEIVE:
-					RNDebug("Received package: " << event.packet->data);
-					/* Clean up the packet now that we're done using it. */
+				{
+					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
 					enet_packet_destroy(event.packet);
+
+					ReceivedPackage(data, 0, event.channelID);
 					break;
+				}
 
 				case ENET_EVENT_TYPE_DISCONNECT:
 					HandleDisconnect();
-
-					/* Reset the peer's client information. */
-					event.peer->data = NULL;
 					break;
 			}
 		}

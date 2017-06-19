@@ -24,6 +24,12 @@ namespace RN
 	public:
 		friend class ENetWorld;
 
+		struct Peer
+		{
+			uint32 id;
+			ENetPeer *peer;
+		};
+
 		enum Status
 		{
 			Disconnected,
@@ -36,19 +42,23 @@ namespace RN
 		ENAPI ENetHost();
 		ENAPI ~ENetHost();
 
-		void ENetHost::SendPackage(Data *data, uint32 receiverID = 0);
+		ENAPI void SendPackage(Data *data, uint32 receiverID = 0, uint32 channel = 0);
+		ENAPI virtual void ReceivedPackage(Data *data, uint32 senderID, uint32 channel) {};
 
 		ENAPI Status GetStatus() const { return _status; }
 
 	protected:
-		virtual void Update(float delta) = 0;
+		ENAPI virtual void Update(float delta) = 0;
 
 		Status _status;
 
 		String *_ip;
 		uint32 _port;
 
+		std::vector<Peer> _peers;
+
 		::ENetHost *_enetHost;
+		uint32 _channelCount;
 			
 	private:
 			

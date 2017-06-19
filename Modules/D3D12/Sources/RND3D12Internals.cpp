@@ -28,6 +28,8 @@ namespace RN
 	{
 		if(_size < size)
 		{
+			RN_ASSERT(size <= 1000000, "Descriptor heap is too big and may not be supported on some hardware!");
+
 			if(_heap)
 			{
 				Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>()->AddFrameResouce(_heap, _fenceValue);

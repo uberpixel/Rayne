@@ -4,10 +4,7 @@ project(RayneENet)
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 
-option(protobuf_BUILD_TESTS "Build tests" OFF)
-set(protobuf_BUILD_SHARED_LIBS_DEFAULT OFF)
 add_subdirectory("Vendor/enet")
-add_subdirectory("Vendor/protobuf/cmake")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)

@@ -14,19 +14,20 @@ namespace RN
 {
 	RNDefineMeta(ENetServer, ENetHost)
 
-	ENetServer::ENetServer(uint32 port, uint16 maxConnections) : _maxConnections(maxConnections)
+	ENetServer::ENetServer(uint32 port, uint16 maxConnections, uint32 channelCount) : _maxConnections(maxConnections), _nextUserID(1)
 	{
 		_status = Status::Server;
 		_ip = nullptr;
 		_port = port;
+		_channelCount = channelCount;
 
 		ENetAddress address;
 		address.host = ENET_HOST_ANY;
 		address.port = _port;
 
-		_enetHost = enet_host_create(&address /* the address to bind the server host to */,
+		_enetHost = enet_host_create(&address,
 			_maxConnections,
-			2      /* allow up to 2 channels to be used, 0 and 1 */,
+			_channelCount,
 			0      /* assume any amount of incoming bandwidth */,
 			0      /* assume any amount of outgoing bandwidth */);
 
@@ -42,6 +43,25 @@ namespace RN
 		enet_host_destroy(_enetHost);
 	}
 
+	uint16 ENetServer::GetUserID()
+	{
+		if(_freeUserIDs.size() > 0)
+		{
+			uint16 userID = _freeUserIDs.front();
+			_freeUserIDs.pop();
+			return userID;
+		}
+		else
+		{
+			return _nextUserID++;
+		}
+	}
+
+	void ENetServer::ReleaseUserID(uint16 userID)
+	{
+		_freeUserIDs.push(userID);
+	}
+
 	void ENetServer::Update(float delta)
 	{
 		ENetEvent event;
@@ -50,21 +70,30 @@ namespace RN
 			switch(event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
+					//enet_address_get_host_ip()
 					RNDebug("A new client connected from " << event.peer->address.host << ":" << event.peer->address.port);
-					/* Store any relevant client information here. */
-					event.peer->data = "Client information";
+					Peer peer;
+					peer.id = GetUserID();
+					peer.peer = event.peer;
+					_peers.push_back(peer);
+
+					event.peer->data = new uint16(peer.id);
 					break;
 
 				case ENET_EVENT_TYPE_RECEIVE:
-					RNDebug("Received package: \"" << event.packet->data << "\" with length " << event.packet->dataLength << " from peer \"" << event.peer->data << "\" at channel " << event.channelID);
-					/* Clean up the packet now that we're done using it. */
+				{
+					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
 					enet_packet_destroy(event.packet);
+
+					ReceivedPackage(data, *static_cast<uint16*>(event.peer->data), event.channelID);
 					break;
+				}
 
 				case ENET_EVENT_TYPE_DISCONNECT:
 					RNDebug("Client disconnected: " << event.peer->data);
-					/* Reset the peer's client information. */
-					event.peer->data = NULL;
+					ReleaseUserID(*static_cast<uint16*>(event.peer->data));
+					delete static_cast<uint16*>(event.peer->data);
+					event.peer->data = nullptr;
 					break;
 			}
 		}

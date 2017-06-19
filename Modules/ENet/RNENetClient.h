@@ -16,19 +16,18 @@ namespace RN
 	class ENetClient : public ENetHost
 	{
 	public:
-		ENAPI ENetClient();
+		ENAPI ENetClient(uint32 channelCount = 1);
 		ENAPI ~ENetClient();
 
 		ENAPI void Connect(String *ip, uint32 port = 1234);
 		ENAPI void Disconnect();
 
 	protected:
-		virtual void Update(float delta) override;
+		ENAPI virtual void Update(float delta) override;
 			
 	private:
 		void HandleDisconnect();
 
-		ENetPeer *_enetPeer;
 		float _connectionTimeOut;
 			
 		RNDeclareMetaAPI(ENetClient, ENAPI)
