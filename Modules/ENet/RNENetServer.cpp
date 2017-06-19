@@ -76,8 +76,9 @@ namespace RN
 					peer.id = GetUserID();
 					peer.peer = event.peer;
 					_peers.push_back(peer);
-
 					event.peer->data = new uint16(peer.id);
+
+					HandleNewConnection(peer.id);
 					break;
 
 				case ENET_EVENT_TYPE_RECEIVE:

@@ -25,6 +25,7 @@ namespace RN
 
 	protected:
 		ENAPI virtual void Update(float delta) override;
+		ENAPI virtual void HandleNewConnection(uint16 userID) {};
 			
 	private:
 		void HandleDisconnect();
