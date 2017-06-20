@@ -87,7 +87,7 @@ namespace RN
 		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();
 
-		void CreateDescriptorHeap();
+		void PolpulateDescriptorHeap();
 		void SetupRendertargets(D3D12CommandList *commandList, const D3D12RenderPass &renderpass);
 
 		Array *_mipMapTextures;

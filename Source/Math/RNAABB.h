@@ -170,9 +170,9 @@ namespace RN
 			minExtend.y = (corners[i].y < minExtend.y) ? corners[i].y : minExtend.y;
 			minExtend.z = (corners[i].z < minExtend.z) ? corners[i].z : minExtend.z;
 
-			maxExtend.x = (corners[i].x < maxExtend.x) ? corners[i].x : maxExtend.x;
-			maxExtend.y = (corners[i].y < maxExtend.y) ? corners[i].y : maxExtend.y;
-			maxExtend.z = (corners[i].z < maxExtend.z) ? corners[i].z : maxExtend.z;
+			maxExtend.x = (corners[i].x > maxExtend.x) ? corners[i].x : maxExtend.x;
+			maxExtend.y = (corners[i].y > maxExtend.y) ? corners[i].y : maxExtend.y;
+			maxExtend.z = (corners[i].z > maxExtend.z) ? corners[i].z : maxExtend.z;
 		}
 	}
 }

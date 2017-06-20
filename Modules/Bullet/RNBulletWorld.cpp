@@ -12,8 +12,6 @@
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
-#include "BulletDynamics/MLCPSolvers/btDantzigSolver.h"
-#include "BulletDynamics/MLCPSolvers/btMLCPSolver.h"
 
 namespace RN
 {
@@ -29,14 +27,12 @@ namespace RN
 		_collisionConfiguration = new btDefaultCollisionConfiguration();
 		_dispatcher = new btCollisionDispatcher(_collisionConfiguration);
 
-		_constraintSolver = new btSequentialImpulseConstraintSolver();//new btMLCPSolver(new btDantzigSolver());
+		_constraintSolver = new btSequentialImpulseConstraintSolver();
 
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _constraintSolver, _collisionConfiguration);
 		_dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 
 		_dynamicsWorld->setInternalTickCallback(&BulletWorld::SimulationStepTickCallback, this);
-
-		//_dynamicsWorld->getSolverInfo().m_globalCfm = 0.1f;
 	}
 
 	BulletWorld::~BulletWorld()

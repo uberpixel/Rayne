@@ -408,7 +408,7 @@ namespace RN
 			swapChain->AcquireBackBuffer();
 		}
 
-		CreateDescriptorHeap();
+		PolpulateDescriptorHeap();
 		_boundDescriptorHeaps->AddObject(_currentSrvCbvHeap);
 		_currentSrvCbvHeap->_fenceValue = _scheduledFenceValue;
 
@@ -848,7 +848,7 @@ namespace RN
 		}
 	}
 
-	void D3D12Renderer::CreateDescriptorHeap()
+	void D3D12Renderer::PolpulateDescriptorHeap()
 	{
 		if(_internals->totalDrawableCount == 0)
 			return;
