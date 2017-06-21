@@ -323,47 +323,34 @@ namespace RN
 		if(_colorTargets.size() > 0)
 		{
 			//TODO: Create heaps per framebuffer and not per camera
-			ID3D12DescriptorHeap *rtvHeap = nullptr;
-			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-			rtvHeapDesc.NumDescriptors = _colorTargets.size();
-			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
-			_renderer->AddFrameResouce(rtvHeap, frame);
-
-			uint32 rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvCPUHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart(), 0, rtvDescriptorSize);
+			D3D12DescriptorHeap *rtvHeap = _renderer->GetDescriptorHeap(_colorTargets.size(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+			_renderer->SubmitDescriptorHeap(rtvHeap);
 
 			//Create the render target view
+			uint32 counter = 0;
 			if(_swapChain)
 			{
-				device->CreateRenderTargetView(_swapChainColorBuffers[_swapChain->GetFrameIndex()], &_colorTargets[0]->d3dTargetViewDesc, rtvCPUHandle);
+				device->CreateRenderTargetView(_swapChainColorBuffers[_swapChain->GetFrameIndex()], &_colorTargets[0]->d3dTargetViewDesc, rtvHeap->GetCPUHandle(counter++));
 			}
 			else
 			{
 				for(D3D12ColorTargetView *targetView : _colorTargets)
 				{
-					device->CreateRenderTargetView(targetView->targetView.texture->Downcast<D3D12Texture>()->_resource, &targetView->d3dTargetViewDesc, rtvCPUHandle);
-					rtvCPUHandle.Offset(1, rtvDescriptorSize);
+					device->CreateRenderTargetView(targetView->targetView.texture->Downcast<D3D12Texture>()->_resource, &targetView->d3dTargetViewDesc, rtvHeap->GetCPUHandle(counter++));
 				}
 			}
 
-			_rtvHandle = new CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+			_rtvHandle = new CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvHeap->GetCPUHandle(0));
 		}
 
 		if(_depthStencilTarget)
 		{
 			//TODO: Create heaps per framebuffer and not per camera
-			ID3D12DescriptorHeap *dsvHeap = nullptr;;
-			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-			dsvHeapDesc.NumDescriptors = 1;
-			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap));
-			_renderer->AddFrameResouce(dsvHeap, frame);
+			D3D12DescriptorHeap *dsvHeap = _renderer->GetDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+			_renderer->SubmitDescriptorHeap(dsvHeap);
 
-			device->CreateDepthStencilView(_depthStencilTarget->targetView.texture->Downcast<D3D12Texture>()->_resource, &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUDescriptorHandleForHeapStart());
-			_dsvHandle = new CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap->GetCPUDescriptorHandleForHeapStart());
+			device->CreateDepthStencilView(_depthStencilTarget->targetView.texture->Downcast<D3D12Texture>()->_resource, &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
+			_dsvHandle = new CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap->GetCPUHandle(0));
 		}
 	}
 

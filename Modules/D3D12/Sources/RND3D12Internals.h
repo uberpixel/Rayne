@@ -1,13 +1,13 @@
 //
-//  RNVulkanInternals.h
+//  RND3D12Internals.h
 //  Rayne
 //
-//  Copyright 2016 by Überpixel. All rights reserved.
+//  Copyright 2017 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_VULKANINTERNALS_H__
-#define __RAYNE_VULKANINTERNALS_H__
+#ifndef __RAYNE_D3D12INTERNALS_H__
+#define __RAYNE_D3D12INTERNALS_H__
 
 #include "RND3D12Renderer.h"
 #include "RND3D12UniformBuffer.h"
@@ -118,8 +118,10 @@ namespace RN
 		CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(UINT index) const;
 
 	protected:
-		D3D12DescriptorHeap(ID3D12Device *device);
+		D3D12DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
 
+		D3D12_DESCRIPTOR_HEAP_TYPE _heapType;
+		D3D12_DESCRIPTOR_HEAP_FLAGS _heapFlags;
 		ID3D12DescriptorHeap *_heap;
 		ID3D12Device *_device;
 
@@ -166,4 +168,4 @@ namespace RN
 	};
 }
 
-#endif /* __RAYNE_VULKANINTERNALS_H__ */
+#endif /* __RAYNE_D3D12INTERNALS_H__ */

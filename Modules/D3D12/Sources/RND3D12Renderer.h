@@ -69,7 +69,8 @@ namespace RN
 		D3DAPI void SubmitLight(const Light *light) final;
 
 		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
-		D3D12DescriptorHeap *GetDescriptorHeap(size_t size);
+		D3D12DescriptorHeap *GetDescriptorHeap(size_t size, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
+		void SubmitDescriptorHeap(D3D12DescriptorHeap *heap);
 		D3D12CommandList *GetCommandList();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
 

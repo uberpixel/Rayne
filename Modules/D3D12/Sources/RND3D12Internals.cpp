@@ -13,10 +13,9 @@ namespace RN
 {
 	RNDefineMeta(D3D12DescriptorHeap, Object)
 
-	D3D12DescriptorHeap::D3D12DescriptorHeap(ID3D12Device *device) : _device(device), _heap(nullptr), _size(0), _fenceValue(0)
+	D3D12DescriptorHeap::D3D12DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags) : _device(device), _heapType(type), _heapFlags(flags), _heap(nullptr), _size(0), _fenceValue(0)
 	{
-		//TODO: maybe generalize for the different heap types... currently only srv/cbv/uav heap
-		_handleIncrement = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		_handleIncrement = _device->GetDescriptorHandleIncrementSize(_heapType);
 	}
 
 	D3D12DescriptorHeap::~D3D12DescriptorHeap()
@@ -37,8 +36,8 @@ namespace RN
 
 			D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};
 			srvCbvHeapDesc.NumDescriptors = size;
-			srvCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			srvCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			srvCbvHeapDesc.Type = _heapType;
+			srvCbvHeapDesc.Flags = _heapFlags;
 			_device->CreateDescriptorHeap(&srvCbvHeapDesc, IID_PPV_ARGS(&_heap));
 
 			_handleCPU = _heap->GetCPUDescriptorHandleForHeapStart();

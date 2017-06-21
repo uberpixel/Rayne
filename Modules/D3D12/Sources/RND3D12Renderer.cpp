@@ -80,23 +80,37 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	D3D12DescriptorHeap *D3D12Renderer::GetDescriptorHeap(size_t size)
+	D3D12DescriptorHeap *D3D12Renderer::GetDescriptorHeap(size_t size, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
 	{
 		D3D12DescriptorHeap *descriptorHeap = nullptr;
-		if(_descriptorHeapPool->GetCount() == 0)
+
+		_descriptorHeapPool->Enumerate<D3D12DescriptorHeap>([&](D3D12DescriptorHeap *heap, size_t index, bool &stop) {
+			if(heap->_heapType == type && heap->_heapFlags == flags)
+			{
+				descriptorHeap = heap;
+				stop = true;
+			}
+		});
+
+		if(!descriptorHeap)
 		{
-			descriptorHeap = new D3D12DescriptorHeap(GetD3D12Device()->GetDevice());
+			descriptorHeap = new D3D12DescriptorHeap(GetD3D12Device()->GetDevice(), type, flags);
 		}
 		else
 		{
-			descriptorHeap = _descriptorHeapPool->GetLastObject<D3D12DescriptorHeap>();
 			descriptorHeap->Retain();
-			_descriptorHeapPool->RemoveObjectAtIndex(_descriptorHeapPool->GetCount() - 1);
+			_descriptorHeapPool->RemoveObject(descriptorHeap);
 		}
 
 		descriptorHeap->Reset(size);
 
 		return descriptorHeap->Autorelease();
+	}
+
+	void D3D12Renderer::SubmitDescriptorHeap(D3D12DescriptorHeap *heap)
+	{
+		_boundDescriptorHeaps->AddObject(heap);
+		heap->_fenceValue = _scheduledFenceValue;
 	}
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
@@ -409,8 +423,7 @@ namespace RN
 		}
 
 		PolpulateDescriptorHeap();
-		_boundDescriptorHeaps->AddObject(_currentSrvCbvHeap);
-		_currentSrvCbvHeap->_fenceValue = _scheduledFenceValue;
+		SubmitDescriptorHeap(_currentSrvCbvHeap);
 
 		_currentCommandList = GetCommandList();
 
@@ -855,7 +868,7 @@ namespace RN
 
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 
-		_currentSrvCbvHeap = GetDescriptorHeap(_internals->totalDescriptorTables);
+		_currentSrvCbvHeap = GetDescriptorHeap(_internals->totalDescriptorTables, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 
 		// Describe null SRVs. Null descriptors are used to "unbind" textures
 		D3D12_SHADER_RESOURCE_VIEW_DESC nullSrvDesc = {};
