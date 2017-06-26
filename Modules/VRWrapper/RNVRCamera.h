@@ -31,11 +31,14 @@ namespace RN
 		RNVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) const;
 
 	private:
+		void CreatePostprocessingPipeline();
+
 		VRWindow *_window;
 		Window *_debugWindow;
 		SceneNode *_head;
 		Camera *_eye[2];
 		RenderPass *_previewRenderPass;
+		uint8 _msaaSampleCount;
 
 		RNDeclareMetaAPI(VRCamera, RNVRAPI)
 	};

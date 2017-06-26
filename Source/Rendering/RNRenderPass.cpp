@@ -89,4 +89,9 @@ namespace RN
 	{
 		_nextRenderPasses->RemoveObject(renderPass);
 	}
+
+	void RenderPass::RemoveAllRenderPasses() const
+	{
+		_nextRenderPasses->RemoveAllObjects();
+	}
 }

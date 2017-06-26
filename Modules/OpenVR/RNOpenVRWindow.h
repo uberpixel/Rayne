@@ -39,6 +39,8 @@ namespace RN
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
 		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
 
+		OVRAPI void UpdateSize(const Vector2 &size);
+
 	private:
 		OpenVRSwapChain *_swapChain;
 		VRHMDTrackingState _hmdTrackingState;
@@ -47,6 +49,9 @@ namespace RN
 		VRControllerHaptics _haptics[2];
 		uint16 _currentHapticsIndex[2];
 		float _remainingHapticsDelta;
+
+		float _lastSizeChangeTimer;
+		Vector2 _lastSize;
 
 		RNDeclareMetaAPI(OpenVRWindow, OVRAPI)
 	};

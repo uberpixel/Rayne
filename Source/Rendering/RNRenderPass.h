@@ -43,7 +43,7 @@ namespace RN
 
 		RNAPI void AddRenderPass(RenderPass *renderPass) const;
 		RNAPI void RemoveRenderPass(RenderPass *renderPass) const;
-		
+		RNAPI void RemoveAllRenderPasses() const;
 		const Array *GetNextRenderPasses() const { return _nextRenderPasses; }
 
 	private:

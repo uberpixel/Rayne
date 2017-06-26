@@ -39,6 +39,7 @@ namespace RN
 
 	private:
 		const String *GetHMDInfoDescription() const;
+		void ResizeSwapchain(const Vector2 &size);
 
 		Texture *_targetTexture;
 		Vector3 _hmdToEyeViewOffset[2];

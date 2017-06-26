@@ -15,6 +15,8 @@
 #include "../Objects/RNObject.h"
 #include "../Rendering/RNFramebuffer.h"
 
+#define kRNWindowDidChangeSize RNCSTR("kRNWindowDidChangeSize")
+
 namespace RN
 {
 	class Window : public Object

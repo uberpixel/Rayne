@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{500, 500}, _remainingHapticsDelta(0.0f)
+		OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
 	{
 		_swapChain = new OpenVRSwapChain(descriptor);
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
@@ -67,6 +67,24 @@ namespace RN
 
 	void OpenVRWindow::Update(float delta, float near, float far)
 	{
+		uint32 recommendedWidth;
+		uint32 recommendedHeight;
+		_swapChain->_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
+		Vector2 newSize(recommendedWidth * 2 + OpenVRSwapChain::kEyePadding, recommendedHeight);
+
+		if(newSize.GetSquaredDistance(_lastSize) > 0.001f)
+		{
+			_lastSizeChangeTimer = 0.0f;
+		}
+		_lastSize = newSize;
+
+		if(_lastSizeChangeTimer > 0.1f && newSize.GetSquaredDistance(_swapChain->_size) > 0.001f)
+		{
+			UpdateSize(newSize);
+		}
+
+		_lastSizeChangeTimer += delta;
+
 		uint16 handDevices[2] = { vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount };
 		_swapChain->UpdatePredictedPose();
 
@@ -193,6 +211,13 @@ namespace RN
 				_currentHapticsIndex[hand] += hapticsIncrement;
 			}
 		}
+	}
+
+	void OpenVRWindow::UpdateSize(const Vector2 &size)
+	{
+		//TODO: Enable again once SteamVR is fixed...
+//		_swapChain->ResizeSwapchain(size);
+//		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
 
 	const VRHMDTrackingState &OpenVRWindow::GetHMDTrackingState() const

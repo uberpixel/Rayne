@@ -17,7 +17,8 @@ namespace RN
 		_window(window->Retain()),
 		_debugWindow(debugWindow?debugWindow->Retain():nullptr),
 		_head(new SceneNode()),
-		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr)
+		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
+		_msaaSampleCount(msaaSampleCount)
 	{
 		Vector2 windowSize = _window->GetSize();
 		if(_debugWindow)
@@ -31,6 +32,41 @@ namespace RN
 
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
+
+		for(int i = 0; i < 2; i++)
+		{
+			_eye[i] = new Camera();
+			_head->AddChild(_eye[i]);
+		}
+
+		CreatePostprocessingPipeline();
+
+		NotificationManager::GetSharedInstance()->AddSubscriber(kRNWindowDidChangeSize, [this](Notification *notification) {
+			if(notification->GetName()->IsEqual(kRNWindowDidChangeSize) && notification->GetInfo<RN::VRWindow>() == _window)
+			{
+				CreatePostprocessingPipeline();
+			}
+		}, this);
+	}
+
+	VRCamera::~VRCamera()
+	{
+		NotificationManager::GetSharedInstance()->RemoveSubscriber(kRNWindowDidChangeSize, this);
+
+		SafeRelease(_previewRenderPass);
+		SafeRelease(_window);
+		SafeRelease(_debugWindow);
+		SafeRelease(_head);
+		SafeRelease(_eye[0]);
+		SafeRelease(_eye[1]);
+	}
+
+	void VRCamera::CreatePostprocessingPipeline()
+	{
+		Vector2 windowSize = _window->GetSize();
+
+		//TODO: Maybe handle different resolutions per eye
+		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 		Framebuffer *msaaFramebuffer = nullptr;
 		Framebuffer *resolvedFramebuffer = nullptr;
 		PostProcessingAPIStage *resolvePass[2];
@@ -40,10 +76,10 @@ namespace RN
 		resolvedFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
 		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture));
 
-		if(msaaSampleCount > 1)
+		if(_msaaSampleCount > 1)
 		{
-			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, 8));
-			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, 8));
+			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, _msaaSampleCount));
+			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, _msaaSampleCount));
 			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
 			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
 			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
@@ -53,18 +89,17 @@ namespace RN
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y));
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
-		
+
 
 		for(int i = 0; i < 2; i++)
 		{
-			_eye[i] = new Camera();
-			_head->AddChild(_eye[i]);
+			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
 
 			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::CopyBuffer);
 			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
 			copyPass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
 
-			if(msaaSampleCount > 1)
+			if(_msaaSampleCount > 1)
 			{
 				resolvePass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 				resolvePass[i]->SetFramebuffer(resolvedFramebuffer->Autorelease());
@@ -75,14 +110,14 @@ namespace RN
 			}
 			else
 			{
-				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
-				_eye[i]->GetRenderPass()->AddRenderPass(copyPass[i]);
+				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer->Autorelease());
+				_eye[i]->GetRenderPass()->AddRenderPass(copyPass[i]->Autorelease());
 			}
 		}
 
 		if(_previewRenderPass)
 		{
-			if (msaaSampleCount > 1)
+			if(_msaaSampleCount > 1)
 			{
 				resolvePass[0]->AddRenderPass(_previewRenderPass);
 			}
@@ -93,20 +128,8 @@ namespace RN
 		}
 	}
 
-	VRCamera::~VRCamera()
-	{
-		SafeRelease(_previewRenderPass);
-		SafeRelease(_window);
-		SafeRelease(_debugWindow);
-		SafeRelease(_head);
-		SafeRelease(_eye[0]);
-		SafeRelease(_eye[1]);
-	}
-
 	void VRCamera::Update(float delta)
 	{
-
-
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 

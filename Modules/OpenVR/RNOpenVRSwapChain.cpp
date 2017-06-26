@@ -77,24 +77,22 @@ namespace RN
 		return description;
 	}
 
+	void OpenVRSwapChain::ResizeSwapchain(const Vector2& size)
+	{
+		_size = size;
+		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
+		SafeRelease(_targetTexture);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
+		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
+		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
+		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		_isFirstRender = true;
+	}
+
 
 	void OpenVRSwapChain::AcquireBackBuffer()
 	{
-/*		uint32 recommendedWidth;
-		uint32 recommendedHeight;
-		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
-		Vector2 newSize(recommendedWidth * 2 + kEyePadding, recommendedHeight);
-
-		if(newSize.GetSquaredDistance(_size) > 0.001f)
-		{
-			_size = newSize;
-			//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
-			_targetTexture->Release();
-			Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
-			textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
-			_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-			_framebuffer->DidUpdateSwapChain(_size, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
-		}*/
+		
 	}
 
 	void OpenVRSwapChain::Prepare(D3D12CommandList *commandList)
@@ -125,6 +123,7 @@ namespace RN
 
 		bounds.uMin = 0.0f;
 		bounds.uMax = 0.5f - kEyePadding * 0.5f / _size.x;
+
 		vr::VRCompositor()->Submit(vr::Eye_Left, &eyeTexture, &bounds, vr::Submit_Default);
 
 		bounds.uMin = 0.5f + kEyePadding * 0.5f / _size.x;

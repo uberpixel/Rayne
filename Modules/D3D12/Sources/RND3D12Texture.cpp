@@ -333,7 +333,8 @@ namespace RN
 
 	D3D12Texture::~D3D12Texture()
 	{
-		_resource->Release();
+		D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
+		renderer->AddFrameResouce(_resource);
 	}
 
 	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)

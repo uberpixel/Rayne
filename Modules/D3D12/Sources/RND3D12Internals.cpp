@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(D3D12DescriptorHeap, Object)
 
-	D3D12DescriptorHeap::D3D12DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags) : _device(device), _heapType(type), _heapFlags(flags), _heap(nullptr), _size(0), _fenceValue(0)
+	D3D12DescriptorHeap::D3D12DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags) : _device(device), _heapType(type), _heapFlags(flags), _heap(nullptr), _size(0)
 	{
 		_handleIncrement = _device->GetDescriptorHandleIncrementSize(_heapType);
 	}
@@ -31,7 +31,7 @@ namespace RN
 
 			if(_heap)
 			{
-				Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>()->AddFrameResouce(_heap, _fenceValue);
+				Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>()->AddFrameResouce(_heap);
 			}
 
 			D3D12_DESCRIPTOR_HEAP_DESC srvCbvHeapDesc = {};

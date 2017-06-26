@@ -1413,8 +1413,8 @@ namespace RN
 		}
 	}
 
-	void D3D12Renderer::AddFrameResouce(IUnknown *resource, uint32 frame)
+	void D3D12Renderer::AddFrameResouce(IUnknown *resource)
 	{
-		_internals->frameResources.push_back({ resource, frame });
+		_internals->frameResources.push_back({ resource, _scheduledFenceValue });
 	}
 }

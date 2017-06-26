@@ -392,17 +392,17 @@ namespace RN
 			delete[] _swapChainColorBuffers;
 			_swapChainColorBuffers = nullptr;
 		}
+	}
+
+	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
+	{
+		_size = size;
 
 		for(D3D12ColorTargetView *targetView : _colorTargets)
 		{
 			delete targetView;
 		}
 		_colorTargets.clear();
-	}
-
-	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
-	{
-		_size = size;
 
 		uint8 bufferCount = _swapChain->GetBufferCount();
 		if(bufferCount > 0)

@@ -74,7 +74,7 @@ namespace RN
 		D3D12CommandList *GetCommandList();
 		void SubmitCommandList(D3D12CommandList *commandBuffer);
 
-		void AddFrameResouce(IUnknown *resource, uint32 frame);
+		void AddFrameResouce(IUnknown *resource);
 
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }

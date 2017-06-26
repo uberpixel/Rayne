@@ -142,8 +142,9 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
-	void D3D12Window::UpdateSize() const
+	void D3D12Window::UpdateSize()
 	{
 		_swapChain->ResizeSwapchain(GetSize());
+		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
 }
