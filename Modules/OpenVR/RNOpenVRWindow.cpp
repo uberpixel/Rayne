@@ -78,7 +78,7 @@ namespace RN
 		}
 		_lastSize = newSize;
 
-		if(_lastSizeChangeTimer > 0.1f && newSize.GetSquaredDistance(_swapChain->_size) > 0.001f)
+		if(_lastSizeChangeTimer > 0.5f && newSize.GetSquaredDistance(_swapChain->_size) > 0.001f)
 		{
 			UpdateSize(newSize);
 		}
@@ -216,8 +216,8 @@ namespace RN
 	void OpenVRWindow::UpdateSize(const Vector2 &size)
 	{
 		//TODO: Enable again once SteamVR is fixed...
-//		_swapChain->ResizeSwapchain(size);
-//		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
+		_swapChain->ResizeSwapchain(size);
+		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
 
 	const VRHMDTrackingState &OpenVRWindow::GetHMDTrackingState() const

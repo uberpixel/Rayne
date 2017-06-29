@@ -26,15 +26,14 @@ namespace RN
 	protected:
 		ENAPI virtual void Update(float delta) override;
 		ENAPI virtual void HandleNewConnection(uint16 userID) {};
+
+		uint16 _maxConnections;
+		std::vector<uint16> _activeUserIDs;
 			
 	private:
 		void HandleDisconnect();
 		uint16 GetUserID();
 		void ReleaseUserID(uint16 userID);
-
-		uint16 _maxConnections;
-		uint16 _nextUserID;
-		std::queue<uint16> _freeUserIDs;
 			
 		RNDeclareMetaAPI(ENetServer, ENAPI)
 	};

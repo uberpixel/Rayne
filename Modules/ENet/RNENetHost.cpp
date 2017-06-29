@@ -35,7 +35,7 @@ namespace RN
 
 		Peer &peer = _peers[0];
 		uint32 counter = 1;
-		while(peer.id != receiverID && counter >= _peers.size())
+		while(peer.id != receiverID && counter < _peers.size())
 		{
 			peer = _peers[counter++];
 		}

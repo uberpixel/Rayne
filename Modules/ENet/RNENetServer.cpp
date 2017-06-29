@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(ENetServer, ENetHost)
 
-	ENetServer::ENetServer(uint32 port, uint16 maxConnections, uint32 channelCount) : _maxConnections(maxConnections), _nextUserID(1)
+	ENetServer::ENetServer(uint32 port, uint16 maxConnections, uint32 channelCount) : _maxConnections(maxConnections)
 	{
 		_status = Status::Server;
 		_ip = nullptr;
@@ -45,21 +45,38 @@ namespace RN
 
 	uint16 ENetServer::GetUserID()
 	{
-		if(_freeUserIDs.size() > 0)
+		for(uint16 freeID = 1; freeID < _maxConnections; freeID++)
 		{
-			uint16 userID = _freeUserIDs.front();
-			_freeUserIDs.pop();
-			return userID;
-		}
-		else
-		{
-			return _nextUserID++;
+			bool alreadyUsed = false;
+
+			//TODO: Maybe use some kind of dictionary to make this faster... probably never going to be a problem though.
+			for(uint16 id : _activeUserIDs)
+			{
+				if(id == freeID)
+				{
+					alreadyUsed = true;
+					break;
+				}
+			}
+
+			if(!alreadyUsed)
+			{
+				_activeUserIDs.push_back(freeID);
+				return freeID;
+			}
 		}
 	}
 
 	void ENetServer::ReleaseUserID(uint16 userID)
 	{
-		_freeUserIDs.push(userID);
+		for(int i = 0; i < _activeUserIDs.size(); i++)
+		{
+			if(_activeUserIDs[i] == userID)
+			{
+				_activeUserIDs.erase(_activeUserIDs.begin() + i);
+				break;
+			}
+		}
 	}
 
 	void ENetServer::Update(float delta)
