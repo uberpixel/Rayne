@@ -26,7 +26,7 @@ namespace RN
 
 		struct Peer
 		{
-			uint32 id;
+			uint16 id;
 			ENetPeer *peer;
 		};
 
@@ -42,7 +42,7 @@ namespace RN
 		ENAPI ENetHost();
 		ENAPI ~ENetHost();
 
-		ENAPI void SendPackage(Data *data, uint32 receiverID = 0, uint32 channel = 0);
+		ENAPI void SendPackage(Data *data, uint16 receiverID = 0, uint32 channel = 0);
 		ENAPI virtual void ReceivedPackage(Data *data, uint32 senderID, uint32 channel) {};
 
 		ENAPI Status GetStatus() const { return _status; }
@@ -50,12 +50,15 @@ namespace RN
 	protected:
 		ENAPI virtual void Update(float delta) = 0;
 
+		ENAPI virtual void HandleDidConnect(uint16 userID) {};
+		ENAPI virtual void HandleDidDisconnect(uint16 userID) {};
+
 		Status _status;
 
 		String *_ip;
 		uint32 _port;
 
-		std::vector<Peer> _peers;
+		std::map<uint16, Peer> _peers;
 
 		::ENetHost *_enetHost;
 		uint32 _channelCount;

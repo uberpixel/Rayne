@@ -26,7 +26,7 @@ namespace RN
 		ENAPI virtual void Update(float delta) override;
 			
 	private:
-		void HandleDisconnect();
+		void ForceDisconnect();
 
 		float _connectionTimeOut;
 			

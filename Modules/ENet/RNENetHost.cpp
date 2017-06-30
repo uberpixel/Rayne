@@ -26,21 +26,16 @@ namespace RN
 		ENetWorld::GetInstance()->RemoveHost(this);
 	}
 
-	void ENetHost::SendPackage(Data *data, uint32 receiverID, uint32 channel)
+	void ENetHost::SendPackage(Data *data, uint16 receiverID, uint32 channel)
 	{
 		if(_peers.size() == 0)
 			return;
 
 		ENetPacket * packet = enet_packet_create(data->GetBytes(), data->GetLength(), 0);
 
-		uint32 counter = 0;
-		Peer peer = _peers[counter++];
-		while(peer.id != receiverID && counter < _peers.size())
+		if(_peers.find(receiverID) != _peers.end())
 		{
-			peer = _peers[counter++];
+			enet_peer_send(_peers[receiverID].peer, 0, packet);
 		}
-
-		if(peer.id == receiverID)
-			enet_peer_send(peer.peer, 0, packet);
 	}
 }

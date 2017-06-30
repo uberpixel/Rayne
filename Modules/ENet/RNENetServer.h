@@ -25,13 +25,11 @@ namespace RN
 
 	protected:
 		ENAPI virtual void Update(float delta) override;
-		ENAPI virtual void HandleNewConnection(uint16 userID) {};
 
 		uint16 _maxConnections;
 		std::set<uint16> _activeUserIDs;
 			
 	private:
-		void HandleDisconnect();
 		uint16 GetUserID();
 		void ReleaseUserID(uint16 userID);
 			

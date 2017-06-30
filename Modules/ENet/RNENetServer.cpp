@@ -74,11 +74,12 @@ namespace RN
 					Peer peer;
 					peer.id = GetUserID();
 					peer.peer = event.peer;
-					_peers.push_back(peer);
+					enet_peer_timeout(peer.peer, 0, 0, 5000);
+					_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
 					event.peer->data = malloc(sizeof(uint16));
 					*static_cast<uint16*>(event.peer->data) = peer.id;
 
-					HandleNewConnection(peer.id);
+					HandleDidConnect(peer.id);
 					break;
 				}
 
@@ -87,28 +88,23 @@ namespace RN
 					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
 					enet_packet_destroy(event.packet);
 
-					ReceivedPackage(data, *static_cast<uint16*>(event.peer->data), event.channelID);
+					uint16 id = *static_cast<uint16*>(event.peer->data);
+					ReceivedPackage(data, id, event.channelID);
 					break;
 				}
 
 				case ENET_EVENT_TYPE_DISCONNECT:
+				{
 					RNDebug("Client disconnected: " << event.peer->data);
-					size_t counter = 0;
-					for(Peer peer : _peers)
-					{
-						if(peer.id == *static_cast<uint16*>(event.peer->data))
-						{
-							_peers.erase(_peers.begin() + counter);
-							break;
-						}
-
-						counter += 1;
-					}
-
-					ReleaseUserID(*static_cast<uint16*>(event.peer->data));
+					uint16 id = *static_cast<uint16*>(event.peer->data);
+					_peers.erase(id);
+					ReleaseUserID(id);
 					free(event.peer->data);
 					event.peer->data = nullptr;
+
+					HandleDidDisconnect(id);
 					break;
+				}
 			}
 		}
 	}

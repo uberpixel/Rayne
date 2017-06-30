@@ -56,7 +56,7 @@ namespace RN
 			return;
 		}
 
-		_peers.push_back(peer);
+		_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
 	}
 
 	void ENetClient::Disconnect()
@@ -68,12 +68,14 @@ namespace RN
 		enet_peer_disconnect(_peers[0].peer, 0);
 	}
 
-	void ENetClient::HandleDisconnect()
+	void ENetClient::ForceDisconnect()
 	{
 		enet_peer_reset(_peers[0].peer);
 		_peers.clear();
 
 		RNDebug("Disconnected!");
+
+		HandleDidDisconnect(0);
 	}
 
 	void ENetClient::Update(float delta)
@@ -88,7 +90,7 @@ namespace RN
 
 		if(_peers.size() > 0 && _connectionTimeOut <= 0.0f)
 		{
-			HandleDisconnect();
+			ForceDisconnect();
 		}
 
 		ENetEvent event;
@@ -101,6 +103,7 @@ namespace RN
 				case ENET_EVENT_TYPE_CONNECT:
 					RNDebug("Connected!");
 					_status = Status::Connected;
+					HandleDidConnect(0);
 					break;
 
 				case ENET_EVENT_TYPE_RECEIVE:
@@ -113,7 +116,7 @@ namespace RN
 				}
 
 				case ENET_EVENT_TYPE_DISCONNECT:
-					HandleDisconnect();
+					ForceDisconnect();
 					break;
 			}
 		}
