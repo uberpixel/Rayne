@@ -26,12 +26,12 @@ namespace RN
 		ENetWorld::GetInstance()->RemoveHost(this);
 	}
 
-	void ENetHost::SendPackage(Data *data, uint16 receiverID, uint32 channel)
+	void ENetHost::SendPackage(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
 		if(_peers.size() == 0)
 			return;
 
-		ENetPacket * packet = enet_packet_create(data->GetBytes(), data->GetLength(), 0);
+		ENetPacket * packet = enet_packet_create(data->GetBytes(), data->GetLength(), reliable? ENET_PACKET_FLAG_RELIABLE : 0);
 
 		if(_peers.find(receiverID) != _peers.end())
 		{
