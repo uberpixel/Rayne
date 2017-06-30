@@ -10,7 +10,7 @@
 #define __RAYNE_ENETSERVER_H_
 
 #include "RNENetHost.h"
-#include <queue>
+#include <set>
 
 namespace RN
 {
@@ -28,7 +28,7 @@ namespace RN
 		ENAPI virtual void HandleNewConnection(uint16 userID) {};
 
 		uint16 _maxConnections;
-		std::vector<uint16> _activeUserIDs;
+		std::set<uint16> _activeUserIDs;
 			
 	private:
 		void HandleDisconnect();

@@ -291,12 +291,9 @@ namespace RN
 		}
 
 		WillUpdate(ChangeSet::Position);
-
-		Quaternion temp;
-		temp = temp / _parent->GetWorldRotation();
-
-		_position = temp.GetRotatedVector(pos) - temp.GetRotatedVector(GetWorldPosition());
-
+		Vector3 tempPosition = pos - _parent->GetWorldPosition();
+		Quaternion tempRotation = Quaternion()/_parent->GetWorldRotation();
+		_position = tempRotation.GetRotatedVector(tempPosition);
 		DidUpdate(ChangeSet::Position);
 	}
 

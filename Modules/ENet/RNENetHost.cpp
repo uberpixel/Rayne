@@ -33,8 +33,8 @@ namespace RN
 
 		ENetPacket * packet = enet_packet_create(data->GetBytes(), data->GetLength(), 0);
 
-		Peer &peer = _peers[0];
-		uint32 counter = 1;
+		uint32 counter = 0;
+		Peer peer = _peers[counter++];
 		while(peer.id != receiverID && counter < _peers.size())
 		{
 			peer = _peers[counter++];

@@ -412,12 +412,12 @@ namespace RN
 			{
 				_parent->UpdateInternalData();
 
-				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
-				_worldRotation = _parent->_worldRotation * _rotation;
-				_worldScale = _parent->_worldScale * _scale;
-				_worldEuler = _parent->_worldEuler + _euler;
+				_worldPosition = _parent->GetWorldPosition() + _parent->GetWorldRotation().GetRotatedVector(_position);
+				_worldRotation = _parent->GetWorldRotation() * _rotation;
+				_worldScale = _parent->GetWorldScale() * _scale;
+				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
 
-				_worldTransform = _parent->_worldTransform * _localTransform;
+				_worldTransform = _parent->GetWorldTransform() * _localTransform;
 			}
 			else
 			{

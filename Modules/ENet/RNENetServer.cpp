@@ -47,21 +47,9 @@ namespace RN
 	{
 		for(uint16 freeID = 1; freeID < _maxConnections; freeID++)
 		{
-			bool alreadyUsed = false;
-
-			//TODO: Maybe use some kind of dictionary to make this faster... probably never going to be a problem though.
-			for(uint16 id : _activeUserIDs)
+			if(!_activeUserIDs.count(freeID))
 			{
-				if(id == freeID)
-				{
-					alreadyUsed = true;
-					break;
-				}
-			}
-
-			if(!alreadyUsed)
-			{
-				_activeUserIDs.push_back(freeID);
+				_activeUserIDs.insert(freeID);
 				return freeID;
 			}
 		}
@@ -69,14 +57,7 @@ namespace RN
 
 	void ENetServer::ReleaseUserID(uint16 userID)
 	{
-		for(int i = 0; i < _activeUserIDs.size(); i++)
-		{
-			if(_activeUserIDs[i] == userID)
-			{
-				_activeUserIDs.erase(_activeUserIDs.begin() + i);
-				break;
-			}
-		}
+		_activeUserIDs.erase(userID);
 	}
 
 	void ENetServer::Update(float delta)
@@ -87,16 +68,19 @@ namespace RN
 			switch(event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
+				{
 					//enet_address_get_host_ip()
 					RNDebug("A new client connected from " << event.peer->address.host << ":" << event.peer->address.port);
 					Peer peer;
 					peer.id = GetUserID();
 					peer.peer = event.peer;
 					_peers.push_back(peer);
-					event.peer->data = new uint16(peer.id);
+					event.peer->data = malloc(sizeof(uint16));
+					*static_cast<uint16*>(event.peer->data) = peer.id;
 
 					HandleNewConnection(peer.id);
 					break;
+				}
 
 				case ENET_EVENT_TYPE_RECEIVE:
 				{
@@ -109,8 +93,20 @@ namespace RN
 
 				case ENET_EVENT_TYPE_DISCONNECT:
 					RNDebug("Client disconnected: " << event.peer->data);
+					size_t counter = 0;
+					for(Peer peer : _peers)
+					{
+						if(peer.id == *static_cast<uint16*>(event.peer->data))
+						{
+							_peers.erase(_peers.begin() + counter);
+							break;
+						}
+
+						counter += 1;
+					}
+
 					ReleaseUserID(*static_cast<uint16*>(event.peer->data));
-					delete static_cast<uint16*>(event.peer->data);
+					free(event.peer->data);
 					event.peer->data = nullptr;
 					break;
 			}

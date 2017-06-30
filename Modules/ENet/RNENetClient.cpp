@@ -81,6 +81,9 @@ namespace RN
 		if(_status == Status::Disconnected)
 			return;
 
+		if(delta > 0.5f)
+			delta = 0.5f;
+
 		_connectionTimeOut -= delta;
 
 		if(_peers.size() > 0 && _connectionTimeOut <= 0.0f)
