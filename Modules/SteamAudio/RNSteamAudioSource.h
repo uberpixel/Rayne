@@ -20,11 +20,13 @@ namespace RN
 	public:
 		friend class SteamAudioWorld;
 
-		SAAPI SteamAudioSource(AudioAsset *asset, bool wantsIndirectSound = true);
+		SAAPI SteamAudioSource(AudioAsset *asset = nullptr, bool wantsIndirectSound = true);
 		SAAPI ~SteamAudioSource() override;
 			
 		SAAPI void Play();
 		SAAPI void Stop();
+
+		SAAPI void SetAudioAsset(AudioAsset *asset);
 
 		SAAPI void SetRepeat(bool repeat);
 		SAAPI void SetRadius(float radius);
@@ -33,11 +35,13 @@ namespace RN
 /*		SAAPI void SetRange(float min, float max);
 		SAAPI void SetSelfdestruct(bool selfdestruct);*/
 		SAAPI void SetChannel(uint8 channel);
+		SAAPI void SetTimeOfFlight(bool tof);
 
 		SAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
 			
 		bool IsPlaying() const { return _isPlaying; }
 		bool IsRepeating() const { return _isRepeating; }
+		bool HasTimeOfFlight() const { return _hasTimeOfFlight; }
 			
 	private:
 		void ResetScene();
@@ -52,6 +56,7 @@ namespace RN
 		bool _isPlaying;
 		bool _isRepeating;
 //		bool _isSelfdestructing;
+		bool _hasTimeOfFlight;
 
 		float _gain;
 		float _pitch;

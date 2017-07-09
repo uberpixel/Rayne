@@ -20,11 +20,13 @@ namespace RN
 	public:
 		friend class SteamAudioWorld;
 
-		SAAPI SteamAudioPlayer(AudioAsset *asset);
+		SAAPI SteamAudioPlayer(AudioAsset *asset = nullptr);
 		SAAPI ~SteamAudioPlayer() override;
 			
 		SAAPI void Play();
 		SAAPI void Stop();
+
+		SAAPI void SetAudioAsset(AudioAsset *asset);
 
 		SAAPI void SetRepeat(bool repeat);
 		SAAPI void SetPitch(float pitch);

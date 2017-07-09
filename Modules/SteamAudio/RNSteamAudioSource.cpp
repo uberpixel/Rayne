@@ -20,6 +20,7 @@ namespace RN
 		_isPlaying(false),
 		_isRepeating(false),
 //		_isSelfdestructing(false),
+		_hasTimeOfFlight(true),
 		_pitch(1.0f),
 		_gain(1.0f),
 		_currentTime(0.0f),
@@ -65,6 +66,11 @@ namespace RN
 		}
 
 		delete _internals;
+	}
+
+	void SteamAudioSource::SetAudioAsset(AudioAsset *asset)
+	{
+		_sampler->SetAudioAsset(asset);
 	}
 
 	void SteamAudioSource::ResetScene()
@@ -120,6 +126,11 @@ namespace RN
 		_channel = channel;
 	}
 
+	void SteamAudioSource::SetTimeOfFlight(bool tof)
+	{
+		_hasTimeOfFlight = tof;
+	}
+
 		
 	void SteamAudioSource::Play()
 	{
@@ -133,6 +144,37 @@ namespace RN
 
 	void SteamAudioSource::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
+		if(!_sampler->GetAsset())
+		{
+			*outputBuffer = nullptr;
+			return;
+		}
+
+		if(_sampler->GetAsset()->GetType() == AudioAsset::Type::Ringbuffer)
+		{
+			//Buffer for audio data to play
+			uint32 assetFrameSamples = std::round(frameLength * _sampler->GetAsset()->GetSampleRate() * _sampler->GetAsset()->GetBytesPerSample());
+			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples)
+			{
+				*outputBuffer = nullptr;
+				return;
+			}
+			else
+			{
+				//Skip samples if data is written faster than played
+				uint32 maxBufferedLength = assetFrameSamples * 4;
+				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
+				{
+					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples;
+					double skipTime = skipBytes / _sampler->GetAsset()->GetBytesPerSample() / static_cast<double>(_sampler->GetAsset()->GetSampleRate());
+					_currentTime += skipTime;
+					_sampler->GetAsset()->PopData(nullptr, skipBytes);
+				}
+
+				_sampler->GetAsset()->PopData(nullptr, assetFrameSamples);
+			}
+		}
+
 		Vector3 listenerPosition;
 		Vector3 listenerForward(0.0f, 0.0f, -1.0f);
 		Vector3 listenerUp(0.0f, 1.0f, 0.0f);
@@ -156,14 +198,23 @@ namespace RN
 
 		//TODO: implement direct sound effect with optional transmission
 
-		_speed = directSoundPath.propagationDelay - _delay;
-		_speed /= sampleCount;
+		if(_hasTimeOfFlight)
+		{
+			_speed = directSoundPath.propagationDelay - _delay;
+			_speed /= sampleCount;
+		}
+		else
+		{
+			_speed = 0.0f;
+			_delay = 0.0f;
+		}
+		
 
 		double sampleLength = frameLength / static_cast<double>(sampleCount);
 		double localTime = _currentTime;
 		for(int i = 0; i < sampleCount; i++)
 		{
-			SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) *directSoundPath.distanceAttenuation * directSoundPath.occlusionFactor * _gain;
+			SteamAudioWorld::_instance->_sharedSourceInputFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) * directSoundPath.distanceAttenuation * directSoundPath.occlusionFactor * _gain;
 			localTime += sampleLength * _pitch;
 			_delay += _speed;
 		}
@@ -178,7 +229,7 @@ namespace RN
 		iplApplyPanningEffect(_internals->panningEffect, _internals->inputBuffer, directSoundPath.direction, _internals->outputBuffer);
 
 		//Calculate indirect sound
-		if(_internals->convolutionEffect)
+		if(_internals->convolutionEffect && _hasTimeOfFlight)
 		{
 			localTime = _currentTime;
 			for (int i = 0; i < sampleCount; i++)

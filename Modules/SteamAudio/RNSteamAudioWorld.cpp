@@ -130,6 +130,9 @@ namespace RN
 				float *outData = nullptr;
 				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
 
+				if(!outData)
+					return;
+
 				mixingBuffer[0].interleavedBuffer = outData;
 				iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
 				float *tempPointer = mixingBuffer[2].interleavedBuffer;
@@ -159,6 +162,9 @@ namespace RN
 
 				float *outData = nullptr;
 				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
+
+				if(!outData)
+					return;
 
 				mixingBuffer[0].interleavedBuffer = outData;
 				iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);

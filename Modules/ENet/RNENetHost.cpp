@@ -35,7 +35,7 @@ namespace RN
 
 		if(_peers.find(receiverID) != _peers.end())
 		{
-			enet_peer_send(_peers[receiverID].peer, 0, packet);
+			enet_peer_send(_peers[receiverID].peer, channel, packet);
 		}
 	}
 }

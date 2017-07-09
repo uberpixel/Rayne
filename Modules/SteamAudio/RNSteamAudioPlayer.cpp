@@ -37,6 +37,11 @@ namespace RN
 
 		_sampler->Release();
 	}
+
+	void SteamAudioPlayer::SetAudioAsset(AudioAsset *asset)
+	{
+		_sampler->SetAudioAsset(asset);
+	}
 		
 	void SteamAudioPlayer::SetRepeat(bool repeat)
 	{
@@ -66,6 +71,12 @@ namespace RN
 
 	void SteamAudioPlayer::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
+		if(!_sampler->GetAsset())
+		{
+			*outputBuffer = nullptr;
+			return;
+		}
+
 		double sampleLength = frameLength / static_cast<double>(sampleCount);
 
 		if(_sampler->GetAsset()->GetType() == AudioAsset::Type::Ringbuffer)
@@ -74,16 +85,7 @@ namespace RN
 			uint32 assetFrameSamples = std::round(frameLength * _sampler->GetAsset()->GetSampleRate() * _sampler->GetAsset()->GetBytesPerSample());
 			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples)
 			{
-				for(int n = 0; n < sampleCount; n++)
-				{
-					//TODO: support more output layouts
-					for(int i = 0; i < 2; i++)
-					{
-						SteamAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = 0.0f;
-					}
-				}
-
-				*outputBuffer = SteamAudioWorld::_instance->_sharedSourceOutputFrameData;
+				*outputBuffer = nullptr;
 				return;
 			}
 			else

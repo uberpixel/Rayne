@@ -17,9 +17,10 @@ namespace RN
 	class SteamAudioSampler : public Object
 	{
 	public:
-		SAAPI SteamAudioSampler(AudioAsset *asset);
+		SAAPI SteamAudioSampler(AudioAsset *asset = nullptr);
 		SAAPI ~SteamAudioSampler() override;
 
+		SAAPI void SetAudioAsset(AudioAsset *asset);
 		SAAPI void SetRepeat(bool repeat);
 		SAAPI float GetSample(double time, uint8 channel) const;
 
