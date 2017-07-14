@@ -22,9 +22,13 @@ namespace RN
 
 		SAAPI void SetAudioAsset(AudioAsset *asset);
 		SAAPI void SetRepeat(bool repeat);
-		SAAPI float GetSample(double time, uint8 channel) const;
+		SAAPI float GetSample(double time, uint8 channel);
 
-		SAAPI AudioAsset *GetAsset() const { return _asset; }
+		SAAPI AudioAsset *GetAsset()
+		{
+			LockGuard<Lockable> lock(_lock);
+			return _asset;
+		}
 
 		//TODO: Implement an optional effects pipeline
 			
@@ -32,6 +36,7 @@ namespace RN
 		AudioAsset *_asset;
 		double _totalTime;
 		bool _isRepeating;
+		Lockable _lock;
 			
 		RNDeclareMetaAPI(SteamAudioSampler, SAAPI)
 	};

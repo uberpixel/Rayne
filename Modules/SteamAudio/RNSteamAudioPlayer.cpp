@@ -24,9 +24,7 @@ namespace RN
 		_sampler(new SteamAudioSampler(asset))
 	{
 		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
-		RN_ASSERT(asset->GetChannels() <= 2, "Currently only mono and stereo files can be played!");
 
-		_inputChannels = asset->GetChannels();
 		SteamAudioWorld::_instance->AddAudioPlayer(this);
 	}
 	
@@ -40,7 +38,13 @@ namespace RN
 
 	void SteamAudioPlayer::SetAudioAsset(AudioAsset *asset)
 	{
+		RN_ASSERT(!asset || asset->GetChannels() <= 2, "Currently only mono and stereo files can be played!");
 		_sampler->SetAudioAsset(asset);
+
+		if(asset)
+		{
+			_inputChannels = asset->GetChannels();
+		}
 	}
 		
 	void SteamAudioPlayer::SetRepeat(bool repeat)

@@ -28,6 +28,8 @@ namespace RN
 
 	void SteamAudioSampler::SetAudioAsset(AudioAsset *asset)
 	{
+		LockGuard<Lockable> lock(_lock);
+
 		SafeRelease(_asset);
 		if(!asset)
 		{
@@ -45,12 +47,18 @@ namespace RN
 		_isRepeating = repeat;
 	}
 
-	float SteamAudioSampler::GetSample(double time, uint8 channel) const
+	float SteamAudioSampler::GetSample(double time, uint8 channel)
 	{
+		_lock.Lock();
+
 		if(!_asset)
+		{
+			_lock.Unlock();
 			return 0.0f;
+		}
 
 		AudioAsset *tempAsset = _asset->Retain();
+		_lock.Unlock();
 
 		if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
 		{
@@ -114,7 +122,6 @@ namespace RN
 		}
 
 		tempAsset->Release();
-
 		return value;
 	}
 }

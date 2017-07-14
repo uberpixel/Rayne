@@ -144,7 +144,8 @@ namespace RN
 
 	void SteamAudioSource::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
-		if(!_sampler->GetAsset())
+		AudioAsset *asset = _sampler->GetAsset();
+		if(!asset)
 		{
 			*outputBuffer = nullptr;
 			return;
@@ -162,7 +163,7 @@ namespace RN
 			else
 			{
 				//Skip samples if data is written faster than played
-				uint32 maxBufferedLength = assetFrameSamples * 4;
+				uint32 maxBufferedLength = assetFrameSamples * 20;
 				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
 				{
 					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples;
