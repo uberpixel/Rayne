@@ -17,6 +17,22 @@ namespace RN
 {
 	static Kernel *__sharedInstance = nullptr;
 
+#if RN_ENABLE_VTUNE
+	static __itt_string_handle *__inputTask;
+	static __itt_string_handle *__updateTask;
+	static __itt_string_handle *__renderingTask;
+
+	#define START_TASK(task) \
+			__itt_task_begin(VTuneDomain, __itt_null, __itt_null, __inputTask)
+	#define END_TASK() \
+			__itt_task_end(VTuneDomain)
+#else
+
+	#define START_TASK(task) (void)(0)
+	#define END_TASK() (void)(0)
+
+#endif
+
 	Kernel::Kernel(Application *application, const ArgumentParser &arguments) :
 		_arguments(arguments),
 		_application(application),
@@ -36,6 +52,12 @@ namespace RN
 	void Kernel::Bootstrap()
 	{
 		__sharedInstance = this;
+
+#if RN_ENABLE_VTUNE
+		__inputTask = __itt_string_handle_createA("Input");
+		__updateTask = __itt_string_handle_createA("Scene update");
+		__renderingTask = __itt_string_handle_createA("Rendering");
+#endif
 
 		try
 		{
@@ -305,19 +327,27 @@ namespace RN
 			} while(!finishWork);
 		}
 
+		START_TASK(__input_task);
 		// System event handling
 		HandleSystemEvents();
 
 		// Update input and then run scene updates
 		if(_isActive)
 			_inputManager->Update(static_cast<float>(_delta));
+		END_TASK();
 
+		START_TASK(__updateTask);
 		_sceneManager->Update(static_cast<float>(_delta));
+		END_TASK();
 
 		if(_renderer)
 		{
 			_renderer->Render([&] {
+
+				START_TASK(__renderingTask);
 				_sceneManager->Render(_renderer);
+				END_TASK();
+
 			});
 		}
 
