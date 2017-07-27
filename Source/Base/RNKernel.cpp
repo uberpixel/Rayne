@@ -249,6 +249,10 @@ namespace RN
 		NSAutoreleasePool *nsautoreleasePool = [[NSAutoreleasePool alloc] init];
 #endif
 
+#if RN_ENABLE_VTUNE
+		__itt_frame_begin_v3(VTuneDomain, nullptr);
+#endif
+
 		AutoreleasePool pool;
 
 		Clock::time_point now = Clock::now();
@@ -326,6 +330,10 @@ namespace RN
 
 		// Make sure the run loop wakes up again afterwards
 		_runLoop->WakeUp();
+
+#if RN_ENABLE_VTUNE
+		__itt_frame_end_v3(VTuneDomain, nullptr);
+#endif
 	}
 
 	void Kernel::HandleSystemEvents()

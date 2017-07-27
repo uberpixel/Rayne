@@ -5,7 +5,7 @@ include(../CMake/CompilerCheck.cmake)
 include(../CMake/LibraryTarget.cmake)
 
 if(MSVC)
-    include(../CMake/FindWindowsSDK.cmake)
+    include(../CMake/Modules/FindWindowsSDK.cmake)
     get_windowssdk_library_dirs(${WINDOWSSDK_PREFERRED_DIR} WINDOWS_SDK_LIBRARY_PATH)
 endif()
 
@@ -258,8 +258,6 @@ elseif(UNIX)
             Input/RNInputLinux.h)
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
-
 
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
@@ -297,12 +295,24 @@ if(UNIX OR MINGW)
     endif()
 endif()
 
+set(RAYNE_HAS_VTUNE 0)
+
+if(${RAYNE_VTUNE})
+    set(RAYNE_ENABLE_VTUNE 1)
+else()
+    set(RAYNE_ENABLE_VTUNE 1)
+endif()
+
 if(WIN32)
+    find_package(VTune)
+
     if(MINGW)
         find_library(DBGHELP_LIBRARY Dbghelp)
         find_library(PSAPI_LIBRARY Psapi)
 
-        set(LINK_LIBRARIES ${DBGHELP_LIBRARY} ${PSAPI_LIBRARY})
+        set(LINK_LIBRARIES
+                ${DBGHELP_LIBRARY}
+                ${PSAPI_LIBRARY})
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -latomic")
     endif()
 
@@ -317,7 +327,21 @@ if(WIN32)
         message(FATAL_ERROR "Setup API library not found")
     endif()
 
-    set(LINK_LIBRARIES ${LINK_LIBRARIES} ${SETUPAPI_LIBRARY})
+    set(LINK_LIBRARIES
+            ${LINK_LIBRARIES}
+            ${SETUPAPI_LIBRARY})
+
+    if(VTUNE_FOUND)
+        set(RAYNE_HAS_VTUNE 1)
+
+        set(LINK_LIBRARIES
+                ${LINK_LIBRARIES}
+                ${VTune_LIBRARY})
+
+        set(INCLUDE_DIRECTORIES
+                ${INCLUDE_DIRECTORIES}
+                ${VTune_INCLUDE_DIRS})
+    endif()
 
 endif()
 
@@ -334,6 +358,9 @@ set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic)
 
 set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
 set(TARGET_HEADERS ${RAYNE_HEADERS})
+
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
 rayne_add_library(Rayne "${TARGET_SOURCES}" "${TARGET_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 

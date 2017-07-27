@@ -8,6 +8,7 @@
 
 #include "RNThread.h"
 #include "RNThreadLocalStorage.h"
+#include "../Base/RNBaseInternal.h"
 #include "../Objects/RNAutoreleasePool.h"
 
 #if RN_PLATFORM_WINDOWS
@@ -193,6 +194,10 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 					RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
 #endif
+
+#if RN_ENABLE_VTUNE
+					__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
+#endif
 				}
 				
 				_function();
@@ -225,7 +230,7 @@ namespace RN
 		LockGuard<Lockable> lock(_generalMutex);
 
 		_name->Release();
-		_name = name ? name->Copy() : nullptr;
+		_name = SafeCopy(name);
 
 		if(!_name)
 			_name = RNCSTR("")->Retain();
@@ -240,6 +245,10 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 			RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
+#endif
+
+#if RN_ENABLE_VTUNE
+			__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
 #endif
 		}
 	}

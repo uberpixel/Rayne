@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 2.8.4)
 project(RayneAll)
 
 # General settings, independent of target
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/CMake")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules;${CMAKE_MODULE_PATH}")
 
 option(RAYNE_THREAD_SANITIZER "Enable Clang thread sanitizer if available" OFF)
 option(RAYNE_ADDRESS_SANITIZER "Enable Clang address sanitizer if available" OFF)
 option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
-option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
+option(RAYNE_VTUNE "Enable VTune if avaialable" ON)
 
+option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE")

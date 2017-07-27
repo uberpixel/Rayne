@@ -14,4 +14,16 @@
 	#import <IOKit/graphics/IOGraphicsLib.h>
 #endif
 
+
+#if RN_ENABLE_VTUNE
+
+#include <ittnotify.h>
+
+namespace RN
+{
+	extern __itt_domain *VTuneDomain;
+}
+
+#endif
+
 #endif /* __RAYNE_BASEINTERNAL_H__ */

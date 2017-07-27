@@ -66,6 +66,9 @@
 namespace RN
 {
 	static MemoryPool *__functionPool;
+#if RN_ENABLE_VTUNE
+	__itt_domain *VTuneDomain;
+#endif
 
 	struct __KernelBootstrapHelper
 	{
@@ -148,6 +151,11 @@ namespace RN
 	void Initialize(int argc, const char *argv[], Application *app)
 	{
 		RN_ASSERT(app, "Application mustn't be NULL");
+
+#if RN_ENABLE_VTUNE
+		VTuneDomain = __itt_domain_create("Rayne");
+		__itt_thread_set_nameA("Main thread");
+#endif
 
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool {
