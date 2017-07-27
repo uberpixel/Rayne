@@ -23,7 +23,7 @@ namespace RN
 	static __itt_string_handle *__renderingTask;
 
 	#define START_TASK(task) \
-			__itt_task_begin(VTuneDomain, __itt_null, __itt_null, __inputTask)
+			__itt_task_begin(VTuneDomain, __itt_null, __itt_null, (task))
 	#define END_TASK() \
 			__itt_task_end(VTuneDomain)
 #else
@@ -327,7 +327,7 @@ namespace RN
 			} while(!finishWork);
 		}
 
-		START_TASK(__input_task);
+		START_TASK(__inputTask);
 		// System event handling
 		HandleSystemEvents();
 
