@@ -28,7 +28,7 @@ namespace RN
 
 	Vector2 MetalSwapChain::GetSize() const
 	{
-		return Vector2([_metalView frame].size.width, [_metalView frame].size.height);
+		return Vector2([_metalView getSize].width, [_metalView getSize].height);
 	}
 
 	void MetalSwapChain::AcquireBackBuffer()

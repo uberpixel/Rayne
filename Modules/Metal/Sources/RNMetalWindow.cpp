@@ -74,9 +74,7 @@ namespace RN
 
 	Vector2 MetalWindow::GetSize() const
 	{
-		NSRect rect = [_internals->window frame];
-
-		return Vector2(rect.size.width, rect.size.height);
+		return _swapChain->GetSize();
 	}
 
 	Framebuffer *MetalWindow::GetFramebuffer() const

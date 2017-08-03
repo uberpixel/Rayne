@@ -428,8 +428,7 @@ namespace RN
 
 		if(depthStencilFormat != Texture::Format::Invalid)
 		{
-			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(depthStencilFormat, size.x, size.y, false);
-			depthDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DRenderTargetFormat(depthStencilFormat, size.x, size.y);
 
 			TargetView target;
 			target.texture = Texture::WithDescriptor(depthDescriptor);

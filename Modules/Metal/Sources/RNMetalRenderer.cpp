@@ -437,7 +437,10 @@ namespace RN
 		if(descriptor.usageHint & Texture::UsageHint::ShaderWrite)
 			usage |= MTLTextureUsageShaderWrite;
 		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
+		{
 			usage |= MTLTextureUsageRenderTarget;
+			metalDescriptor.storageMode = MTLStorageModePrivate;
+		}
 
 		metalDescriptor.usage = usage;
 
