@@ -13,16 +13,12 @@ namespace RN
 {
 	RNDefineMeta(MetalSwapChain, Object)
 
-	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device) : _drawable(nullptr)
+	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor) : _drawable(nullptr)
 	{
 		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) andDevice:device];
 		CGSize realSize = [_metalView getSize];
 
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
-		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
-		_framebuffer = new MetalFramebuffer(Vector2(realSize.width, realSize.height), descriptor, this);
+		_framebuffer = new MetalFramebuffer(Vector2(realSize.width, realSize.height), this, descriptor.colorFormat, descriptor.depthStencilFormat);
 	}
 
 	MetalSwapChain::~MetalSwapChain()

@@ -32,8 +32,10 @@ namespace RN
 		MTLAPI virtual id GetMetalDrawable() const;
 		MetalFramebuffer *GetFramebuffer() const { return _framebuffer; }
 
+		uint8 GetBufferCount() const { return 4; } //TODO: Return something better!?
+
 	private:
-		MetalSwapChain(const Vector2 size, id<MTLDevice> device);
+		MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor);
 
 		RNMetalView *_metalView;
 		MetalFramebuffer *_framebuffer;

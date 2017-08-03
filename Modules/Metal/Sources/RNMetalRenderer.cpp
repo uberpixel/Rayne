@@ -42,9 +42,9 @@ namespace RN
 	}
 
 
-	Window *MetalRenderer::CreateAWindow(const Vector2 &size, Screen *screen)
+	Window *MetalRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
 	{
-		MetalWindow *window = new MetalWindow(size, screen, this);
+		MetalWindow *window = new MetalWindow(size, screen, this, descriptor);
 		if(!_mainWindow)
 			_mainWindow = window;
 
@@ -112,7 +112,7 @@ namespace RN
 		{
 			//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
 			//There does not appear to be a way to only clear part of the framebuffer...
-			const Color &clearColor = renderPass.camera->GetClearColor();
+			const Color &clearColor = renderPass.camera->GetRenderPass()->GetClearColor();
 			MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
 			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
 			[colorAttachment setTexture:renderPass.framebuffer->GetRenderTarget()];
@@ -120,19 +120,19 @@ namespace RN
 			[colorAttachment setStoreAction:MTLStoreActionStore];
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 
-			if(renderPass.framebuffer->GetDepthTexture())
+			if(renderPass.framebuffer->GetDepthStencilTexture())
 			{
 				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-				id<MTLTexture> depthTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				id<MTLTexture> depthTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 				[depthAttachment setTexture:depthTexture];
 				[depthAttachment setLoadAction:MTLLoadActionClear];
 				[depthAttachment setStoreAction:MTLStoreActionStore];
 			}
 
-			if(renderPass.framebuffer->GetStencilTexture())
+			if(renderPass.framebuffer->GetDepthStencilTexture())
 			{
 				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-				id<MTLTexture> stencilTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				id<MTLTexture> stencilTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 				[stencilAttachment setTexture:stencilTexture];
 				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
 				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
@@ -141,7 +141,7 @@ namespace RN
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
 
-			Rect cameraRect = renderPass.camera->GetFrame();
+			Rect cameraRect = renderPass.camera->GetRenderPass()->GetFrame();
 			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
 			{
 				Vector2 framebufferSize = renderPass.framebuffer->GetSize();
@@ -188,8 +188,8 @@ namespace RN
 		currentRenderPass.drawables.resize(0);
 		currentRenderPass.framebuffer = nullptr;
 
-		if(camera->GetFramebuffer())
-			currentRenderPass.framebuffer = camera->GetFramebuffer()->Downcast<MetalFramebuffer>();
+		if(camera->GetRenderPass()->GetFramebuffer())
+			currentRenderPass.framebuffer = camera->GetRenderPass()->GetFramebuffer()->Downcast<MetalFramebuffer>();
 
 		MetalSwapChain *newSwapChain = nullptr;
 		if(!currentRenderPass.framebuffer)
@@ -296,34 +296,56 @@ namespace RN
 		return lib;
 	}
 
-	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader)
+	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint)
 	{
-		Shader *actualShader = nullptr;
+		LockGuard<Lockable> lock(_lock);
+
+		if(!_defaultShaderLibrary)
 		{
-			LockGuard<Lockable> lock(_lock);
-
-			if(!_defaultShaderLibrary)
-			{
-				_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
-			}
-
-			if(shader == Shader::Default::Gouraud)
-			{
-				if(type == Shader::Type::Vertex)
-					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
-				else if(type == Shader::Type::Fragment)
-					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
-			}
-			else if(shader == Shader::Default::Sky)
-			{
-				if(type == Shader::Type::Vertex)
-					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
-				else if(type == Shader::Type::Fragment)
-					actualShader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
-			}
+			_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
 		}
 
-		return actualShader;
+		Shader *shader = nullptr;
+		if(type == Shader::Type::Vertex)
+		{
+/*			if(hint == Shader::UsageHint::Depth)
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
+			}
+			else
+			{*/
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				}
+				else
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				}
+//			}
+		}
+		else if(type == Shader::Type::Fragment)
+		{
+/*			if(hint == Shader::UsageHint::Depth)
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
+			}
+			else
+			{*/
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				}
+				else
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+				}
+//			}
+		}
+
+		return shader;
 	}
 
 	bool MetalRenderer::SupportsTextureFormat(const String *format) const
@@ -410,11 +432,11 @@ namespace RN
 
 		MTLTextureUsage usage = 0;
 
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderRead)
+		if(descriptor.usageHint & Texture::UsageHint::ShaderRead)
 			usage |= MTLTextureUsageShaderRead;
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::ShaderWrite)
+		if(descriptor.usageHint & Texture::UsageHint::ShaderWrite)
 			usage |= MTLTextureUsageShaderWrite;
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
 			usage |= MTLTextureUsageRenderTarget;
 
 		metalDescriptor.usage = usage;
@@ -422,25 +444,25 @@ namespace RN
 
 		switch(descriptor.type)
 		{
-			case Texture::Descriptor::Type::Type1D:
+			case Texture::Type::Type1D:
 				metalDescriptor.textureType = MTLTextureType1D;
 				break;
-			case Texture::Descriptor::Type::Type1DArray:
+			case Texture::Type::Type1DArray:
 				metalDescriptor.textureType = MTLTextureType1DArray;
 				break;
-			case Texture::Descriptor::Type::Type2D:
+			case Texture::Type::Type2D:
 				metalDescriptor.textureType = MTLTextureType2D;
 				break;
-			case Texture::Descriptor::Type::Type2DArray:
+			case Texture::Type::Type2DArray:
 				metalDescriptor.textureType = MTLTextureType2DArray;
 				break;
-			case Texture::Descriptor::Type::TypeCube:
+			case Texture::Type::TypeCube:
 				metalDescriptor.textureType = MTLTextureTypeCube;
 				break;
-			case Texture::Descriptor::Type::TypeCubeArray:
+			case Texture::Type::TypeCubeArray:
 				metalDescriptor.textureType = MTLTextureTypeCubeArray;
 				break;
-			case Texture::Descriptor::Type::Type3D:
+			case Texture::Type::Type3D:
 				metalDescriptor.textureType = MTLTextureType3D;
 				break;
 		}
@@ -451,9 +473,9 @@ namespace RN
 		return new MetalTexture(this, texture, descriptor);
 	}
 
-	Framebuffer *MetalRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
+	Framebuffer *MetalRenderer::CreateFramebuffer(const Vector2 &size)
 	{
-		return new MetalFramebuffer(size, descriptor);
+		return new MetalFramebuffer(size);
 	}
 
 	Drawable *MetalRenderer::CreateDrawable()

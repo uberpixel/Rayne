@@ -16,7 +16,7 @@ namespace RN
 {
 	RNDefineMeta(MetalWindow, Window)
 
-	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer) :
+	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
 		_renderer(nullptr)
 	{
@@ -24,7 +24,7 @@ namespace RN
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
 
-		_swapChain = new MetalSwapChain(size, renderer->_internals->device);
+		_swapChain = new MetalSwapChain(size, renderer->_internals->device, descriptor);
 
 		[_internals->window setContentView:_swapChain->_metalView];
 

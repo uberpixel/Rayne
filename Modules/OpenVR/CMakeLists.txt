@@ -34,7 +34,9 @@ set(INCLUDE_DIRECTORIES
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOpenVR)
 
-rayne_use_modules(RayneOpenVR RayneD3D12)
+if(MSVC AND ${BUILD_D3D12_MODULE})
+    rayne_use_modules(RayneOpenVR RayneD3D12)
+endif()
 
 target_include_directories(RayneOpenVR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 #target_link_libraries(RayneOpenVR "${LINK_LIBRARIES}")

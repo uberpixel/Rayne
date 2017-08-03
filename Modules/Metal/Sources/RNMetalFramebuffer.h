@@ -19,21 +19,24 @@ namespace RN
 	class MetalFramebuffer : public Framebuffer
 	{
 	public:
-		MTLAPI MetalFramebuffer(const Vector2 &size, const Descriptor &descriptor, MetalSwapChain *swapChain);
-		MTLAPI MetalFramebuffer(const Vector2 &size, const Descriptor &descriptor);
+		MTLAPI MetalFramebuffer(const Vector2 &size, MetalSwapChain *swapChain, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		MTLAPI MetalFramebuffer(const Vector2 &size);
 		MTLAPI ~MetalFramebuffer();
 
-		MTLAPI Texture *GetColorTexture() const final;
-		MTLAPI Texture *GetDepthTexture() const final;
-		MTLAPI Texture *GetStencilTexture() const final;
+		MTLAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
+		MTLAPI void SetDepthStencilTarget(const TargetView &target) final;
 
-		id<MTLTexture> GetRenderTarget() const;
+		MTLAPI Texture *GetColorTexture(uint32 index = 0) const final;
+		MTLAPI Texture *GetDepthStencilTexture() const final;
+
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
+		id<MTLTexture> GetRenderTarget() const;
 
 	private:
-		Texture *_colorTexture;
-		Texture *_depthTexture;
-		Texture *_stencilTexture;
+		void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+
+		std::vector<TargetView *> _colorTargets;
+		TargetView *_depthStencilTarget;
 
 		WeakRef<MetalSwapChain> _swapChain;
 

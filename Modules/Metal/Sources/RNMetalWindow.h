@@ -28,13 +28,15 @@ namespace RN
 		MTLAPI void Show() final;
 		MTLAPI void Hide() final;
 
+		MTLAPI void SetFullscreen(bool fullscreen) final {};
+
 		MTLAPI Vector2 GetSize() const final;
 		MTLAPI Framebuffer *GetFramebuffer() const final;
 
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
-		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer);
+		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
 		PIMPL<MetalWindowInternals> _internals;
 		MetalRenderer *_renderer;

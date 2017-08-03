@@ -33,11 +33,12 @@ namespace RN
 		MTLAPI MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device);
 		MTLAPI ~MetalRenderer();
 
-		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
 		MTLAPI Window *GetMainWindow() final;
 
 		MTLAPI void Render(Function &&function) final;
 		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
+		MTLAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final {}; //TODO: Implement
 
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -51,11 +52,11 @@ namespace RN
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::Default shader) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		MTLAPI Drawable *CreateDrawable() final;
 		MTLAPI void DeleteDrawable(Drawable *drawable) final;

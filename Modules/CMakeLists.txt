@@ -55,6 +55,6 @@ if(MSVC AND ${BUILD_OCULUS_MODULE})
     add_subdirectory("Oculus")
 endif()
 
-if(${BUILD_OPENVR_MODULE})
+if(MSVC AND ${BUILD_OPENVR_MODULE})
     add_subdirectory("OpenVR")
 endif()

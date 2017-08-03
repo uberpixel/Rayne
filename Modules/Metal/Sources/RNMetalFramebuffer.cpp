@@ -16,14 +16,14 @@ namespace RN
 {
 	RNDefineMeta(MetalFramebuffer, Framebuffer)
 
-	MetalFramebuffer::MetalFramebuffer(const Vector2 &size, const Descriptor &descriptor, MetalSwapChain *swapChain) :
-		Framebuffer(size, descriptor),
-		_colorTexture(nullptr),
-		_depthTexture(nullptr),
-		_stencilTexture(nullptr),
+	MetalFramebuffer::MetalFramebuffer(const Vector2 &size, MetalSwapChain *swapChain, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
+		Framebuffer(size),
+		_depthStencilTarget(nullptr),
 		_swapChain(swapChain)
 	{
-		if(descriptor.options & Options::PrivateStorage)
+		DidUpdateSwapChain(size, colorFormat, depthStencilFormat);
+
+/*		if(descriptor.options & Options::PrivateStorage)
 		{
 			Renderer *renderer = Renderer::GetActiveRenderer();
 			Texture::Format stencilFormat = descriptor.stencilFormat;
@@ -75,17 +75,15 @@ namespace RN
 
 				_stencilTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 			}
-		}
+		}*/
 	}
 
-	MetalFramebuffer::MetalFramebuffer(const Vector2 &size, const Descriptor &descriptor) :
-		Framebuffer(size, descriptor),
-		_colorTexture(nullptr),
-		_depthTexture(nullptr),
-		_stencilTexture(nullptr),
+	MetalFramebuffer::MetalFramebuffer(const Vector2 &size) :
+		Framebuffer(size),
+		_depthStencilTarget(nullptr),
 		_swapChain(nullptr)
 	{
-		if(descriptor.options & Options::PrivateStorage)
+/*		if(descriptor.options & Options::PrivateStorage)
 		{
 			Renderer *renderer = Renderer::GetActiveRenderer();
 
@@ -146,39 +144,68 @@ namespace RN
 
 				_stencilTexture = renderer->CreateTextureWithDescriptor(textureDescriptor);
 			}
-		}
+		}*/
 	}
 
 	MetalFramebuffer::~MetalFramebuffer()
 	{
-		SafeRelease(_colorTexture);
-		SafeRelease(_depthTexture);
-		SafeRelease(_stencilTexture);
+
 	}
 
-	Texture *MetalFramebuffer::GetColorTexture() const
+	void MetalFramebuffer::SetColorTarget(const TargetView &target, uint32 index)
 	{
-		if(GetDescriptor().options & Options::PrivateStorage)
-			return _colorTexture;
+		RN_ASSERT(!_swapChain, "A swap chain framebuffer can not have additional color targets!");
+		RN_ASSERT(target.texture, "The color target needs a texture!");
+		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
+		target.texture->Retain();
 
-		throw InvalidCallException("GetColorTexture() can only be called on private storage framebuffer");
+		TargetView *newTarget = new TargetView(target);
+
+		if(index < _colorTargets.size())
+		{
+			_colorTargets[index]->texture->Release();
+			delete _colorTargets[index];
+			_colorTargets[index] = newTarget;
+		}
+		else
+		{
+			_colorTargets.push_back(newTarget);
+		}
 	}
 
-	Texture *MetalFramebuffer::GetDepthTexture() const
+	void MetalFramebuffer::SetDepthStencilTarget(const TargetView &target)
 	{
-		if(GetDescriptor().options & Options::PrivateStorage)
-			return _depthTexture;
+		RN_ASSERT(target.texture, "The depth stencil target needs a texture!");
+		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
+		target.texture->Retain();
 
-		throw InvalidCallException("GetDepthTexture() can only be called on private storage framebuffer");
+		TargetView *newTarget = new TargetView(target);
+
+		if(_depthStencilTarget)
+		{
+			_depthStencilTarget->texture->Release();
+			delete _depthStencilTarget;
+		}
+
+		_depthStencilTarget = newTarget;
 	}
 
-	Texture *MetalFramebuffer::GetStencilTexture() const
+	Texture *MetalFramebuffer::GetColorTexture(uint32 index) const
 	{
-		if(GetDescriptor().options & Options::PrivateStorage)
-			return _stencilTexture;
+		if(index >= _colorTargets.size())
+			return nullptr;
 
-		throw InvalidCallException("GetStencilTexture() can only be called on private storage framebuffer");
+		return _colorTargets[index]->texture;
 	}
+
+	Texture *MetalFramebuffer::GetDepthStencilTexture() const
+	{
+		if(!_depthStencilTarget)
+			return nullptr;
+
+		return _depthStencilTarget->texture;
+	}
+
 
 	id<MTLTexture> MetalFramebuffer::GetRenderTarget() const
 	{
@@ -188,9 +215,32 @@ namespace RN
 			return [drawable texture];
 		}
 
-		if(GetDescriptor().options & Options::PrivateStorage)
-			return static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(_colorTexture)->__GetUnderlyingTexture());
+		RN_ASSERT(_colorTargets.size() > 0, "The framebuffer has no color target!");
+		return static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(_colorTargets[0]->texture)->__GetUnderlyingTexture());
+	}
 
-		throw InvalidCallException("GetColorTexture() can only be called on private storage framebuffer");
+	void MetalFramebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
+	{
+		_size = size;
+
+		for(TargetView *targetView : _colorTargets)
+		{
+			delete targetView;
+		}
+		_colorTargets.clear();
+
+
+		if(depthStencilFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(depthStencilFormat, size.x, size.y, false);
+			depthDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
+
+			TargetView target;
+			target.texture = Texture::WithDescriptor(depthDescriptor);
+			target.mipmap = 0;
+			target.slice = 0;
+			target.length = 1;
+			SetDepthStencilTarget(target);
+		}
 	}
 }
