@@ -18,7 +18,7 @@ namespace RN
 
 	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
-		_renderer(nullptr)
+		_renderer(renderer)
 	{
 		_internals->window = [[RNMetalWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
 		[_internals->window setBackgroundColor:[NSColor blackColor]];

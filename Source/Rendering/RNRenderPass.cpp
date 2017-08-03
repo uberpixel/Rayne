@@ -74,8 +74,9 @@ namespace RN
 			Rect frame(Vector2(), _framebuffer->GetSize());
 			return frame;
 		}
-		
-		Vector2 mainWindowSize = Renderer::GetActiveRenderer()->GetMainWindow()->GetSize();
+
+		Renderer *renderer = Renderer::GetActiveRenderer();
+		Vector2 mainWindowSize = renderer->GetMainWindow()->GetSize();
 		Rect windowFrame(Vector2(), mainWindowSize);
 		return windowFrame;
 	}

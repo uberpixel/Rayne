@@ -46,7 +46,7 @@ namespace RN
 	{
 		MetalWindow *window = new MetalWindow(size, screen, this, descriptor);
 		if(!_mainWindow)
-			_mainWindow = window;
+			_mainWindow = window->Retain();
 
 		return window;
 	}
