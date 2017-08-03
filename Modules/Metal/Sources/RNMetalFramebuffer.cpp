@@ -206,17 +206,53 @@ namespace RN
 		return _depthStencilTarget->texture;
 	}
 
-
-	id<MTLTexture> MetalFramebuffer::GetRenderTarget() const
+	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass) const
 	{
-		if(_swapChain)
+		//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
+		//There does not appear to be a way to only clear part of the framebuffer...
+		const Color &clearColor = renderPass->GetClearColor();
+		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
+
+		for(TargetView *target : _colorTargets)
 		{
-			id<CAMetalDrawable> drawable = _swapChain->GetMetalDrawable();
-			return [drawable texture];
+			id<MTLTexture> texture = nil;
+			if(!target->texture)
+			{
+				RN_ASSERT(_swapChain, "Empty color target view texture, but no swapchain!");
+
+				id<CAMetalDrawable> drawable = _swapChain->GetMetalDrawable();
+				texture = [drawable texture];
+			}
+			else
+			{
+				texture = static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(target->texture)->__GetUnderlyingTexture());
+			}
+
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			[colorAttachment setTexture:texture];
+			[colorAttachment setLoadAction:MTLLoadActionClear];
+			[colorAttachment setStoreAction:MTLStoreActionStore];
+			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 		}
 
-		RN_ASSERT(_colorTargets.size() > 0, "The framebuffer has no color target!");
-		return static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(_colorTargets[0]->texture)->__GetUnderlyingTexture());
+		if(GetDepthStencilTexture())
+		{
+			id<MTLTexture> depthStencilTexture = static_cast< id<MTLTexture> >(GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+
+			//TODO: Check if texture format supports depth
+			MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+			[depthAttachment setTexture:depthStencilTexture];
+			[depthAttachment setLoadAction:MTLLoadActionClear];
+			[depthAttachment setStoreAction:MTLStoreActionStore];
+
+			//TODO: Check if texture format supports stencil
+/*			MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+			[stencilAttachment setTexture:depthStencilTexture];
+			[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+			[stencilAttachment setStoreAction:MTLStoreActionDontCare];*/
+		}
+
+		return descriptor;
 	}
 
 	void MetalFramebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
@@ -229,6 +265,12 @@ namespace RN
 		}
 		_colorTargets.clear();
 
+		TargetView *colorTarget = new TargetView;
+		colorTarget->texture = nullptr;
+		colorTarget->mipmap = 0;
+		colorTarget->slice = 0;
+		colorTarget->length = 1;
+		_colorTargets.push_back(colorTarget);
 
 		if(depthStencilFormat != Texture::Format::Invalid)
 		{

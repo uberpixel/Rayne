@@ -30,7 +30,8 @@ namespace RN
 		MTLAPI Texture *GetDepthStencilTexture() const final;
 
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
-		id<MTLTexture> GetRenderTarget() const;
+
+		MTLRenderPassDescriptor *GetRenderPassDescriptor(RenderPass *renderPass) const;
 
 	private:
 		void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);

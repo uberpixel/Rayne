@@ -221,6 +221,7 @@ namespace RN
 		textureDescriptor.type = Texture::Type::Type2DArray;
 		textureDescriptor.format = Texture::Format::Depth32F;
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget | Texture::UsageHint::ShaderRead;
+		textureDescriptor.accessOptions = GPUResource::AccessOptions::Private;
 		textureDescriptor.width = _shadowParameter.resolution;
 		textureDescriptor.height = _shadowParameter.resolution;
 		textureDescriptor.depth = _shadowParameter.splits.size();

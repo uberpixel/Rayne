@@ -110,34 +110,7 @@ namespace RN
 		_internals->currentRenderPassIndex = 0;
 		for(MetalRenderPass &renderPass : _internals->renderPasses)
 		{
-			//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
-			//There does not appear to be a way to only clear part of the framebuffer...
-			const Color &clearColor = renderPass.camera->GetRenderPass()->GetClearColor();
-			MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
-			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
-			[colorAttachment setTexture:renderPass.framebuffer->GetRenderTarget()];
-			[colorAttachment setLoadAction:MTLLoadActionClear];
-			[colorAttachment setStoreAction:MTLStoreActionStore];
-			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
-
-			if(renderPass.framebuffer->GetDepthStencilTexture())
-			{
-				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-				id<MTLTexture> depthTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
-				[depthAttachment setTexture:depthTexture];
-				[depthAttachment setLoadAction:MTLLoadActionClear];
-				[depthAttachment setStoreAction:MTLStoreActionStore];
-			}
-
-			if(renderPass.framebuffer->GetDepthStencilTexture())
-			{
-				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-				id<MTLTexture> stencilTexture = static_cast< id<MTLTexture> >(renderPass.framebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
-				[stencilAttachment setTexture:stencilTexture];
-				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
-			}
-
+			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.camera->GetRenderPass());
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
 
@@ -180,6 +153,7 @@ namespace RN
 		[_internals->commandBuffer release];
 		_internals->commandBuffer = nil;
 	}
+
 	void MetalRenderer::SubmitCamera(Camera *camera, Function &&function)
 	{
 		// Set up
@@ -425,7 +399,6 @@ namespace RN
 
 		metalDescriptor.width = descriptor.width;
 		metalDescriptor.height = descriptor.height;
-		metalDescriptor.depth = descriptor.depth;
 		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.accessOptions);
 		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
 		metalDescriptor.pixelFormat = MetalTexture::PixelFormatForTextureFormat(descriptor.format);
@@ -449,24 +422,34 @@ namespace RN
 		{
 			case Texture::Type::Type1D:
 				metalDescriptor.textureType = MTLTextureType1D;
+				metalDescriptor.depth = descriptor.depth;
 				break;
 			case Texture::Type::Type1DArray:
 				metalDescriptor.textureType = MTLTextureType1DArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
 				break;
 			case Texture::Type::Type2D:
 				metalDescriptor.textureType = MTLTextureType2D;
+				metalDescriptor.depth = descriptor.depth;
 				break;
 			case Texture::Type::Type2DArray:
 				metalDescriptor.textureType = MTLTextureType2DArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
 				break;
 			case Texture::Type::TypeCube:
 				metalDescriptor.textureType = MTLTextureTypeCube;
+				metalDescriptor.depth = descriptor.depth;
 				break;
 			case Texture::Type::TypeCubeArray:
 				metalDescriptor.textureType = MTLTextureTypeCubeArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
 				break;
 			case Texture::Type::Type3D:
 				metalDescriptor.textureType = MTLTextureType3D;
+				metalDescriptor.depth = descriptor.depth;
 				break;
 		}
 

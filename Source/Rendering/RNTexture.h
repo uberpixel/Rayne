@@ -108,6 +108,7 @@ namespace RN
 				descriptor.height = height;
 				descriptor.format = format;
 				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+				descriptor.accessOptions = GPUResource::AccessOptions::Private;
 
 				return descriptor;
 			}
@@ -120,6 +121,7 @@ namespace RN
 				descriptor.height = height;
 				descriptor.format = format;
 				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+				descriptor.accessOptions = GPUResource::AccessOptions::Private;
 				descriptor.sampleCount = sampleCount;
 				descriptor.sampleQuality = sampleQuality;
 
