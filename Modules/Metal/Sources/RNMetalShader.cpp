@@ -17,7 +17,8 @@ namespace RN
 	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
 		Shader(library, type, options),
 		_shader(shader),
-		_coordinator(coordinator)
+		_coordinator(coordinator),
+		_wantsDirectionalShadowTexture(false)
 	{
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
@@ -45,6 +46,7 @@ namespace RN
 
 		uint8 textureCount = 0;
 		Array *samplers = new Array();
+		Array *specificSamplers = new Array();
 		Array *uniformDescriptors = new Array();
 
 		for(MTLArgument *argument in arguments)
@@ -57,9 +59,8 @@ namespace RN
 					bufferStructType];
 					for(MTLStructMember *member in [structType members])
 					{
-						String *name = RNSTR([[member name] UTF8String])->Retain();
-						uint32 offset = [member
-						offset];
+						String *name = RNSTR([[member name] UTF8String]);
+						uint32 offset = [member offset];
 
 						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
 						uniformDescriptors->AddObject(descriptor->Autorelease());
@@ -68,17 +69,38 @@ namespace RN
 				}
 
 				case MTLArgumentTypeTexture:
+				{
+					//TODO: Move this into the shader base class
+					String *name = RNSTR([[argument name] UTF8String]);
+					if(name->IsEqual(RNCSTR("directionalShadowTexture")))
+					{
+						//TODO: Store the register, so it doesn't have to be declared last in the shader
+						_wantsDirectionalShadowTexture = true;
+					}
+
 					textureCount += 1;
-				break;
+					break;
+				}
 
 				case MTLArgumentTypeSampler:
 				{
-					//TODO: Allow other than default samplers
-					Sampler *sampler = new Sampler();
-					samplers->AddObject(sampler->Autorelease());
-				}
+					//TODO: Move this into the shader base class
+					String *name = RNSTR([[argument name] UTF8String]);
+					if(name->IsEqual(RNCSTR("directionalShadowSampler")))
+					{
+						//TODO: Store the register, so it doesn't have to be declared last in the shader
+						Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
+						specificSamplers->AddObject(sampler->Autorelease());
+					}
+					else
+					{
+						//TODO: Allow other than default samplers
+						Sampler *sampler = new Sampler();
+						samplers->AddObject(sampler->Autorelease());
+					}
 
-				break;
+					break;
+				}
 
 				default:
 					break;
@@ -89,6 +111,11 @@ namespace RN
 		SetSignature(signature->Autorelease());
 
 		samplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
+			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
+			_samplers.push_back(blubb);
+		});
+
+		specificSamplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
 			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
 			_samplers.push_back(blubb);
 		});

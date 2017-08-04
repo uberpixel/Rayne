@@ -242,6 +242,7 @@ namespace RN
 		state->stencilFormat = stencilFormat;
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
+		state->wantsShadowTexture = collection->fragmentShader->_wantsDirectionalShadowTexture; //TODO: also support in vertex shader/generalize special texture handling
 
 		collection->states.push_back(state);
 

@@ -33,6 +33,7 @@ namespace RN
 	class Framebuffer;
 	class Camera;
 	class MetalGPUBuffer;
+	class MetalTexture;
 
 	struct MetalDrawable : public Drawable
 	{
@@ -112,9 +113,22 @@ namespace RN
 
 	struct MetalRenderPass
 	{
-		Camera *camera;
-		MetalFramebuffer *framebuffer;
+		enum Type
+		{
+			Default,
+			ResolveMSAA,
+			Copy
+		};
 
+		Type type;
+		RenderPass *renderPass;
+		RenderPass *previousRenderPass;
+
+		MetalFramebuffer *framebuffer;
+		Shader::UsageHint shaderHint;
+		Material *overrideMaterial;
+
+		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;
@@ -127,6 +141,10 @@ namespace RN
 		std::vector<MetalPointLight> pointLights;
 		std::vector<MetalSpotLight> spotLights;
 		std::vector<MetalDirectionalLight> directionalLights;
+
+		std::vector<Matrix> directionalShadowMatrices;
+		MetalTexture *directionalShadowDepthTexture;
+		Vector2 directionalShadowInfo;
 	};
 
 

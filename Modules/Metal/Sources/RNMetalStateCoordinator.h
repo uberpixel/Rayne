@@ -51,6 +51,7 @@ namespace RN
 		id<MTLRenderPipelineState> state;
 		Shader *vertexShader;
 		Shader *fragmentShader;
+		bool wantsShadowTexture;
 	};
 
 	struct MetalRenderingStateCollection

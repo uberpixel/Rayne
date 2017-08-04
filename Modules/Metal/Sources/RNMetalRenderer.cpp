@@ -110,11 +110,11 @@ namespace RN
 		_internals->currentRenderPassIndex = 0;
 		for(MetalRenderPass &renderPass : _internals->renderPasses)
 		{
-			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.camera->GetRenderPass());
+			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass);
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
 
-			Rect cameraRect = renderPass.camera->GetRenderPass()->GetFrame();
+			Rect cameraRect = renderPass.renderPass->GetFrame();
 			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
 			{
 				Vector2 framebufferSize = renderPass.framebuffer->GetSize();
@@ -157,25 +157,31 @@ namespace RN
 	void MetalRenderer::SubmitCamera(Camera *camera, Function &&function)
 	{
 		// Set up
-		MetalRenderPass currentRenderPass;
-		currentRenderPass.camera = camera;
-		currentRenderPass.drawables.resize(0);
-		currentRenderPass.framebuffer = nullptr;
+		MetalRenderPass renderPass;
+		renderPass.type = MetalRenderPass::Type::Default;
+		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.previousRenderPass = nullptr;
 
-		if(camera->GetRenderPass()->GetFramebuffer())
-			currentRenderPass.framebuffer = camera->GetRenderPass()->GetFramebuffer()->Downcast<MetalFramebuffer>();
+		renderPass.drawables.resize(0);
+		renderPass.framebuffer = nullptr;
 
+		renderPass.shaderHint = camera->GetShaderHint();
+		renderPass.overrideMaterial = camera->GetMaterial();
+
+		renderPass.viewPosition = camera->GetWorldPosition();
+		renderPass.viewMatrix = camera->GetViewMatrix();
+		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+
+		renderPass.projectionMatrix = camera->GetProjectionMatrix();
+		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+
+		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
+		renderPass.directionalShadowDepthTexture = nullptr;
+
+		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
 		MetalSwapChain *newSwapChain = nullptr;
-		if(!currentRenderPass.framebuffer)
-		{
-			MetalWindow *window = _mainWindow;
-			newSwapChain = _mainWindow->GetSwapChain();
-			currentRenderPass.framebuffer = newSwapChain->GetFramebuffer();
-		}
-		else
-		{
-			newSwapChain = currentRenderPass.framebuffer->GetSwapChain();
-		}
+		newSwapChain = framebuffer->Downcast<MetalFramebuffer>()->GetSwapChain();
+		renderPass.framebuffer = framebuffer->Downcast<MetalFramebuffer>();
 
 		if(newSwapChain)
 		{
@@ -194,15 +200,8 @@ namespace RN
 			}
 		}
 
-		currentRenderPass.viewMatrix = camera->GetViewMatrix();
-		currentRenderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
-
-		currentRenderPass.projectionMatrix = camera->GetProjectionMatrix();
-		currentRenderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
-
-		currentRenderPass.projectionViewMatrix = currentRenderPass.projectionMatrix * currentRenderPass.viewMatrix;
 		_internals->currentRenderPassIndex = _internals->renderPasses.size();
-		_internals->renderPasses.push_back(currentRenderPass);
+		_internals->renderPasses.push_back(renderPass);
 
 		// Create drawables
 		function();
@@ -433,6 +432,10 @@ namespace RN
 				metalDescriptor.textureType = MTLTextureType2D;
 				metalDescriptor.depth = descriptor.depth;
 				break;
+			case Texture::Type::Type2DMS:
+				metalDescriptor.textureType = MTLTextureType2DMultisample;
+				metalDescriptor.depth = descriptor.depth;
+				break;
 			case Texture::Type::Type2DArray:
 				metalDescriptor.textureType = MTLTextureType2DArray;
 				metalDescriptor.depth = 1;
@@ -479,14 +482,22 @@ namespace RN
 	{
 		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-		Material *material = drawable->material;
+
+		//TODO: Solve material overrides better...
+		Material *drawableMaterial = drawable->material;
+		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 
 		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
 			switch(descriptor->GetIdentifier())
 			{
-				//TODO: time, projection and inverseProjection are currently missing!
+				case Shader::UniformDescriptor::Identifier::Time:
+				{
+					float temp = static_cast<float>(Kernel::GetSharedInstance()->GetTotalTime());
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::ModelMatrix:
 				{
@@ -519,7 +530,7 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionViewMatrix.m, descriptor->GetSize());
 					break;
 				}
-					
+
 				case Shader::UniformDescriptor::Identifier::ProjectionMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionMatrix.m, descriptor->GetSize());
@@ -557,7 +568,7 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
 					break;
 				}
-					
+
 				case Shader::UniformDescriptor::Identifier::InverseProjectionMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionMatrix.m, descriptor->GetSize());
@@ -566,30 +577,50 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AmbientColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiffuseColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpecularColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::EmissiveColor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
+						material = overrideMaterial;
+
 					std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::TextureTileFactor) && !(drawableMaterial->GetOverride() & Material::Override::TextureTileFactor))
+						material = overrideMaterial;
+
 					float temp = material->GetTextureTileFactor();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
@@ -597,24 +628,73 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
 				{
+					Material* material = drawableMaterial;
+					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
+						material = overrideMaterial;
+
 					float temp = material->GetDiscardThreshold();
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
-				
-				//TODO: Use an extra reusable buffer for lights.
+
+				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
+				{
+					Material* material = drawableMaterial;
+					if (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
+						material = overrideMaterial;
+
+					float temp = material->GetAlphaToCoverageClamp();
+					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraPosition:
+				{
+					RN::Vector3 cameraPosition = renderPass.viewPosition;
+					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
-					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, 4);
+					size_t lightCount = renderPass.directionalLights.size();
+					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLights:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
+					size_t lightCount = renderPass.directionalLights.size();
 					if(lightCount > 0)
-						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], lightCount * (12 + 16));
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
+				{
+					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					if(matrixCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
+				{
+					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					if (matrixCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::DirectionalShadowInfo:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowInfo.x, descriptor->GetSize());
 					break;
 				}
 
@@ -637,8 +717,16 @@ namespace RN
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
-			if(renderPass.directionalLights.size() <= 5)
+			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
 				renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), light->GetColor()});
+
+			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
+			if(light->HasShadows())
+			{
+				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<MetalTexture>();
+				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
+				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
+			}
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
@@ -716,10 +804,18 @@ namespace RN
 
 		// Set textures
 		const Array *textures = drawable->material->GetTextures();
-		size_t count = textures->GetCount();
+		size_t count = textures->GetCount() + _internals->currentRenderState->wantsShadowTexture; //TODO: handle shadow texture better
 
+		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		for(size_t i = 0; i < count; i ++)
 		{
+			//TODO: handle shadow texture better
+			if(i == count - 1 && _internals->currentRenderState->wantsShadowTexture)
+			{
+				[encoder setFragmentTexture:(id<MTLTexture>)renderPass.directionalShadowDepthTexture->__GetUnderlyingTexture() atIndex:i];
+				continue;
+			}
+
 			MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
 			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
 		}

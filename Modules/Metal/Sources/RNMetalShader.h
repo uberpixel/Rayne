@@ -33,6 +33,8 @@ namespace RN
 		std::vector<void*> _samplers;
 		MetalStateCoordinator *_coordinator;
 
+		bool _wantsDirectionalShadowTexture;
+
 		RNDeclareMetaAPI(MetalShader, MTLAPI)
 	};
 }
