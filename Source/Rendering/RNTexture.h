@@ -23,8 +23,10 @@ namespace RN
 		enum class Format
 		{
 			RGBA8888SRGB,
+			BGRA8888SRGB,
 
 			RGBA8888,
+			BGRA8888,
 			RGB10A2,
 
 			R8,

@@ -8,6 +8,8 @@
 
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalShader.h"
+#include "RNMetalFramebuffer.h"
+#include "RNMetalTexture.h"
 
 namespace RN
 {
@@ -70,31 +72,40 @@ namespace RN
 	}
 
 
-	id<MTLDepthStencilState> MetalStateCoordinator::GetDepthStencilStateForMaterial(Material *material)
+	id<MTLDepthStencilState> MetalStateCoordinator::GetDepthStencilStateForMaterial(Material *material, const MetalRenderingState *renderingState)
 	{
-		if(RN_EXPECT_TRUE(_lastDepthStencilState != nullptr) && _lastDepthStencilState->MatchesMaterial(material))
-			return _lastDepthStencilState->state;
+		if(RN_EXPECT_TRUE(_lastDepthStencilState != nullptr) && _lastDepthStencilState->MatchesMaterial(material, renderingState->depthFormat, renderingState->stencilFormat))
+			return _lastDepthStencilState->depthStencilState;
 
 		for(const MetalDepthStencilState *state : _depthStencilStates)
 		{
-			if(state->MatchesMaterial(material))
+			if(state->MatchesMaterial(material, renderingState->depthFormat, renderingState->stencilFormat))
 			{
 				_lastDepthStencilState = state;
-				return _lastDepthStencilState->state;
+				return _lastDepthStencilState->depthStencilState;
 			}
 		}
 
 		MTLDepthStencilDescriptor *descriptor = [[MTLDepthStencilDescriptor alloc] init];
-		[descriptor setDepthCompareFunction:CompareFunctionLookup[static_cast<uint32_t>(material->GetDepthMode())]];
-		[descriptor setDepthWriteEnabled:material->GetDepthWriteEnabled()];
+		
+		if(renderingState->depthFormat != MTLPixelFormatInvalid)
+		{
+			[descriptor setDepthWriteEnabled:material->GetDepthWriteEnabled()];
+			[descriptor setDepthCompareFunction:CompareFunctionLookup[static_cast<uint32_t>(material->GetDepthMode())]];
+		}
+		else
+		{
+			[descriptor setDepthWriteEnabled:NO];
+			[descriptor setDepthCompareFunction:CompareFunctionLookup[0]];
+		}
 
 		id<MTLDepthStencilState> state = [_device newDepthStencilStateWithDescriptor:descriptor];
-		_lastDepthStencilState = new MetalDepthStencilState(material, state);
+		_lastDepthStencilState = new MetalDepthStencilState(material, state, renderingState->depthFormat, renderingState->stencilFormat);
 
 		_depthStencilStates.push_back(const_cast<MetalDepthStencilState *>(_lastDepthStencilState));
 		[descriptor release];
 
-		return _lastDepthStencilState->state;
+		return _lastDepthStencilState->depthStencilState;
 	}
 
 	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor)
@@ -160,7 +171,7 @@ namespace RN
 	}
 
 
-	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 
@@ -173,7 +184,7 @@ namespace RN
 			{
 				if(collection->fragmentShader->IsEqual(fragmentShader) && collection->vertexShader->IsEqual(vertexShader))
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, camera);
+					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer);
 				}
 			}
 		}
@@ -181,17 +192,17 @@ namespace RN
 		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, camera);
+		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer);
 
 	}
 
-	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Camera *camera)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer)
 	{
-		//TODO: Don't hardcode these!
-		MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-		MTLPixelFormat depthFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-		MTLPixelFormat stencilFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-
+		MetalFramebuffer *metalFramebuffer = framebuffer->Downcast<MetalFramebuffer>();
+		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat();
+		MTLPixelFormat depthFormat = metalFramebuffer->GetMetalDepthFormat();
+		MTLPixelFormat stencilFormat = metalFramebuffer->GetMetalStencilFormat();
+		
 		for(const MetalRenderingState *state : collection->states)
 		{
 			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)

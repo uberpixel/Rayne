@@ -20,7 +20,7 @@
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
-- (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format;
 - (CGSize)getSize;
 @end
 

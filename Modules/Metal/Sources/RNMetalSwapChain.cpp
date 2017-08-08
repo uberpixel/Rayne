@@ -8,6 +8,7 @@
 
 #include "RNMetalSwapChain.h"
 #include "RNMetalInternals.h"
+#include "RNMetalTexture.h"
 
 namespace RN
 {
@@ -15,7 +16,7 @@ namespace RN
 
 	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor) : _drawable(nullptr)
 	{
-		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) andDevice:device];
+		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) device:device andFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
 		CGSize realSize = [_metalView getSize];
 
 		_framebuffer = new MetalFramebuffer(Vector2(realSize.width, realSize.height), this, descriptor.colorFormat, descriptor.depthStencilFormat);

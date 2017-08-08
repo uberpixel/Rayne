@@ -105,9 +105,13 @@ namespace RN
 		{
 			case Format::RGBA8888SRGB:
 				return MTLPixelFormatRGBA8Unorm_sRGB;
+			case Format::BGRA8888SRGB:
+				return MTLPixelFormatBGRA8Unorm_sRGB;
 			case Format::RGB888:
 			case Format::RGBA8888:
 				return MTLPixelFormatRGBA8Unorm;
+			case Format::BGRA8888:
+				return MTLPixelFormatBGRA8Unorm;
 			case Format::RGB10A2:
 				return MTLPixelFormatRGB10A2Unorm;
 			case Format::R8:

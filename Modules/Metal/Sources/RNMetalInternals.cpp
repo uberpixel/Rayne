@@ -21,13 +21,13 @@
 	return [_layer nextDrawable];
 }
 
-- (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format
 {
 	if((self = [super initWithFrame:frameRect]))
 	{
 		_layer = [CAMetalLayer layer];
 		[_layer setDevice:device];
-		[_layer setPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB];
+		[_layer setPixelFormat:format];
 		[_layer setFramebufferOnly:YES];
 		[_layer setContentsScale:2.0];	//TODO: Use device contentScale
 

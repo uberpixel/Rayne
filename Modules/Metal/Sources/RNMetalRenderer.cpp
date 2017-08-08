@@ -748,7 +748,7 @@ namespace RN
 		if(drawable->dirty)
 		{
 			_lock.Lock();
-			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, nullptr);
+			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer);
 			_lock.Unlock();
 
 			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state);
@@ -762,28 +762,25 @@ namespace RN
 
 	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
 	{
+		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
+		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
+		{
+			[encoder setRenderPipelineState: drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->state];
+			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
+		}
+		
+		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material, _internals->currentRenderState)];
+		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
+		
 		// Update uniforms
 		{
 			//TODO: support multiple uniform buffer
 			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->vertexShader);
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, _internals->currentRenderState->vertexShader);
 			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->fragmentShader);
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, _internals->currentRenderState->fragmentShader);
 		}
 
-		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
-
-		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
-		{
-			[encoder setRenderPipelineState: drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->state];
-
-			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
-		}
-
-		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material)];
-		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
-
-		
 		// Set Uniforms
 		//TODO: support multiple uniform buffer
 		size_t bufferIndex = 0;
@@ -801,23 +798,38 @@ namespace RN
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}
+		
+		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		// Set textures
 		const Array *textures = drawable->material->GetTextures();
-		size_t count = textures->GetCount() + _internals->currentRenderState->wantsShadowTexture; //TODO: handle shadow texture better
+		size_t count = _internals->currentRenderState->fragmentShader->GetSignature()->GetTextureCount();
 
-		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		for(size_t i = 0; i < count; i ++)
 		{
 			//TODO: handle shadow texture better
 			if(i == count - 1 && _internals->currentRenderState->wantsShadowTexture)
 			{
-				[encoder setFragmentTexture:(id<MTLTexture>)renderPass.directionalShadowDepthTexture->__GetUnderlyingTexture() atIndex:i];
+				if(renderPass.directionalShadowDepthTexture)
+				{
+					[encoder setFragmentTexture:(id<MTLTexture>)renderPass.directionalShadowDepthTexture->__GetUnderlyingTexture() atIndex:i];
+				}
+				else
+				{
+					[encoder setFragmentTexture:nil atIndex:i];
+				}
 				continue;
 			}
 
-			MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
-			[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
+			if(i < textures->GetCount())
+			{
+				MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
+				[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
+			}
+			else
+			{
+				[encoder setFragmentTexture:nil atIndex:i];
+			}
 		}
 
 		//Set samplers

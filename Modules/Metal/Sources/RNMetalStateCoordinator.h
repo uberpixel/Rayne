@@ -14,30 +14,6 @@
 
 namespace RN
 {
-	struct MetalDepthStencilState
-	{
-		MetalDepthStencilState() = default;
-		MetalDepthStencilState(Material *material, id<MTLDepthStencilState> tstate) :
-			mode(material->GetDepthMode()),
-			depthWriteEnabled(material->GetDepthWriteEnabled()),
-			state(tstate)
-		{}
-
-		~MetalDepthStencilState()
-		{
-			[state release];
-		}
-
-		DepthMode mode;
-		bool depthWriteEnabled;
-		id<MTLDepthStencilState> state;
-
-		RN_INLINE bool MatchesMaterial(Material *material) const
-		{
-			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled);
-		}
-	};
-
 	struct MetalRenderingState
 	{
 		~MetalRenderingState()
@@ -75,6 +51,35 @@ namespace RN
 
 		std::vector<MetalRenderingState *> states;
 	};
+	
+	
+	struct MetalDepthStencilState
+	{
+		MetalDepthStencilState() = default;
+		MetalDepthStencilState(Material *material, id<MTLDepthStencilState> depthStencilState, MTLPixelFormat depth, MTLPixelFormat stencil) :
+		mode(material->GetDepthMode()),
+		depthWriteEnabled(material->GetDepthWriteEnabled()),
+		depthStencilState(depthStencilState),
+		depthFormat(depth),
+		stencilFormat(stencil)
+		{}
+		
+		~MetalDepthStencilState()
+		{
+			[depthStencilState release];
+		}
+		
+		DepthMode mode;
+		bool depthWriteEnabled;
+		id<MTLDepthStencilState> depthStencilState;
+		MTLPixelFormat depthFormat;
+		MTLPixelFormat stencilFormat;
+		
+		RN_INLINE bool MatchesMaterial(Material *material, MTLPixelFormat depth, MTLPixelFormat stencil) const
+		{
+			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled && depth == depthFormat && stencil == stencilFormat);
+		}
+	};
 
 
 	class MetalStateCoordinator
@@ -85,14 +90,14 @@ namespace RN
 
 		MTLAPI void SetDevice(id<MTLDevice> device);
 
-		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
+		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material, const MetalRenderingState *renderingState);
 		MTLAPI id<MTLSamplerState> GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor);
 
-		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
-		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Camera *camera);
+		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer);
 
 		id<MTLDevice> _device;
 

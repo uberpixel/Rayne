@@ -158,12 +158,15 @@ namespace RN
 		RN_ASSERT(target.texture, "The color target needs a texture!");
 		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
 		target.texture->Retain();
-
-		TargetView *newTarget = new TargetView(target);
+		
+		id<MTLTexture> mtlTexture = static_cast< id<MTLTexture> >(target.texture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+		MetalTargetView *newTarget = new MetalTargetView;
+		newTarget->targetView = target;
+		newTarget->pixelFormat = [mtlTexture pixelFormat];
 
 		if(index < _colorTargets.size())
 		{
-			_colorTargets[index]->texture->Release();
+			_colorTargets[index]->targetView.texture->Release();
 			delete _colorTargets[index];
 			_colorTargets[index] = newTarget;
 		}
@@ -179,11 +182,14 @@ namespace RN
 		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
 		target.texture->Retain();
 
-		TargetView *newTarget = new TargetView(target);
+		id<MTLTexture> mtlTexture = static_cast< id<MTLTexture> >(target.texture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+		MetalTargetView *newTarget = new MetalTargetView;
+		newTarget->targetView = target;
+		newTarget->pixelFormat = [mtlTexture pixelFormat];
 
 		if(_depthStencilTarget)
 		{
-			_depthStencilTarget->texture->Release();
+			_depthStencilTarget->targetView.texture->Release();
 			delete _depthStencilTarget;
 		}
 
@@ -195,7 +201,7 @@ namespace RN
 		if(index >= _colorTargets.size())
 			return nullptr;
 
-		return _colorTargets[index]->texture;
+		return _colorTargets[index]->targetView.texture;
 	}
 
 	Texture *MetalFramebuffer::GetDepthStencilTexture() const
@@ -203,7 +209,7 @@ namespace RN
 		if(!_depthStencilTarget)
 			return nullptr;
 
-		return _depthStencilTarget->texture;
+		return _depthStencilTarget->targetView.texture;
 	}
 
 	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass) const
@@ -213,10 +219,12 @@ namespace RN
 		const Color &clearColor = renderPass->GetClearColor();
 		MTLRenderPassDescriptor *descriptor = [[MTLRenderPassDescriptor alloc] init];
 
-		for(TargetView *target : _colorTargets)
+		int counter = 0;
+		for(MetalTargetView *metalTarget : _colorTargets)
 		{
+			const TargetView &target = metalTarget->targetView;
 			id<MTLTexture> texture = nil;
-			if(!target->texture)
+			if(!target.texture)
 			{
 				RN_ASSERT(_swapChain, "Empty color target view texture, but no swapchain!");
 
@@ -225,31 +233,39 @@ namespace RN
 			}
 			else
 			{
-				texture = static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(target->texture)->__GetUnderlyingTexture());
+				texture = static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(target.texture)->__GetUnderlyingTexture());
 			}
 
-			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:0];
+			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:counter];
 			[colorAttachment setTexture:texture];
 			[colorAttachment setLoadAction:MTLLoadActionClear];
 			[colorAttachment setStoreAction:MTLStoreActionStore];
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+			
+			counter += 1;
 		}
 
 		if(GetDepthStencilTexture())
 		{
 			id<MTLTexture> depthStencilTexture = static_cast< id<MTLTexture> >(GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 
-			//TODO: Check if texture format supports depth
-			MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
-			[depthAttachment setTexture:depthStencilTexture];
-			[depthAttachment setLoadAction:MTLLoadActionClear];
-			[depthAttachment setStoreAction:MTLStoreActionStore];
+			//TODO: Improve check
+			if([depthStencilTexture pixelFormat] != MTLPixelFormatX24_Stencil8 && [depthStencilTexture pixelFormat] != MTLPixelFormatX32_Stencil8)
+			{
+				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
+				[depthAttachment setTexture:depthStencilTexture];
+				[depthAttachment setLoadAction:MTLLoadActionClear];
+				[depthAttachment setStoreAction:MTLStoreActionStore];
+			}
 
-			//TODO: Check if texture format supports stencil
-/*			MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
-			[stencilAttachment setTexture:depthStencilTexture];
-			[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-			[stencilAttachment setStoreAction:MTLStoreActionDontCare];*/
+			//TODO: Improve check
+			if([depthStencilTexture pixelFormat] == MTLPixelFormatDepth24Unorm_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatDepth32Float_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX24_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX32_Stencil8)
+			{
+				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
+				[stencilAttachment setTexture:depthStencilTexture];
+				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+			}
 		}
 
 		return descriptor;
@@ -259,17 +275,18 @@ namespace RN
 	{
 		_size = size;
 
-		for(TargetView *targetView : _colorTargets)
+		for(MetalTargetView *targetView : _colorTargets)
 		{
 			delete targetView;
 		}
 		_colorTargets.clear();
 
-		TargetView *colorTarget = new TargetView;
-		colorTarget->texture = nullptr;
-		colorTarget->mipmap = 0;
-		colorTarget->slice = 0;
-		colorTarget->length = 1;
+		MetalTargetView *colorTarget = new MetalTargetView;
+		colorTarget->targetView.texture = nullptr;
+		colorTarget->targetView.mipmap = 0;
+		colorTarget->targetView.slice = 0;
+		colorTarget->targetView.length = 1;
+		colorTarget->pixelFormat = MetalTexture::PixelFormatForTextureFormat(colorFormat);
 		_colorTargets.push_back(colorTarget);
 
 		if(depthStencilFormat != Texture::Format::Invalid)
@@ -283,5 +300,43 @@ namespace RN
 			target.length = 1;
 			SetDepthStencilTarget(target);
 		}
+	}
+	
+	MTLPixelFormat MetalFramebuffer::GetMetalColorFormat() const
+	{
+		if(_colorTargets.size() > 0)
+		{
+			return _colorTargets[0]->pixelFormat;
+		}
+		
+		return MTLPixelFormatInvalid;
+	}
+	
+ 	MTLPixelFormat MetalFramebuffer::GetMetalDepthFormat() const
+	{
+		if(_depthStencilTarget)
+		{
+			MTLPixelFormat depthStencilFormat = _depthStencilTarget->pixelFormat;
+			if(depthStencilFormat != MTLPixelFormatX24_Stencil8 && depthStencilFormat != MTLPixelFormatX32_Stencil8)
+			{
+				return depthStencilFormat;
+			}
+		}
+		
+		return MTLPixelFormatInvalid;
+	}
+	
+ 	MTLPixelFormat MetalFramebuffer::GetMetalStencilFormat() const
+	{
+		if(_depthStencilTarget)
+		{
+			MTLPixelFormat depthStencilFormat = _depthStencilTarget->pixelFormat;
+			if(depthStencilFormat == MTLPixelFormatX24_Stencil8 || depthStencilFormat == MTLPixelFormatX32_Stencil8 || depthStencilFormat == MTLPixelFormatDepth24Unorm_Stencil8 || depthStencilFormat == MTLPixelFormatDepth32Float_Stencil8)
+			{
+				return depthStencilFormat;
+			}
+		}
+		
+		return MTLPixelFormatInvalid;
 	}
 }

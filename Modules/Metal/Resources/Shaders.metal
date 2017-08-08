@@ -40,10 +40,7 @@ struct Uniforms
 {
 	matrix_float4x4 viewProjectionMatrix;
 	matrix_float4x4 modelViewProjectionMatrix;
-
-#if RN_NORMALS
 	matrix_float4x4 modelMatrix;
-#endif
 
 #if RN_UV0
 	float textureTileFactor;
@@ -58,6 +55,10 @@ struct FragmentUniforms
 #if RN_DISCARD
 	float discardThreshold;
 #endif
+	
+	uint directionalShadowMatricesCount;
+	float2 directionalShadowInfo;
+	matrix_float4x4 directionalShadowMatrices[4];
 
 	uint directionalLightsCount;
 	LightDirectional directionalLights[5];
@@ -85,6 +86,7 @@ struct InputVertex
 struct FragmentVertex
 {
 	float4 position [[position]];
+	float3 worldPosition;
 
 #if RN_COLOR
 	float4 color;
@@ -97,17 +99,89 @@ struct FragmentVertex
 #endif
 };
 
-float4 getDirectionalLights(float3 normal, uint count, constant LightDirectional directionalLights[5]);
-float4 getDirectionalLights(float3 normal, uint count, constant LightDirectional directionalLights[5])
+float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
-	float4 light = float4(0.0);
+	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w);
+}
+
+//basic 2x2 blur, with hardware bilinear filtering if enabled
+/*float getShadowPCF2x2(float4 projected)
+{
+	float shadow = getShadowPCF(projected, float2(0.0, 0.0));
+	shadow += getShadowPCF(projected, float2(1.0, 0.0));
+	shadow += getShadowPCF(projected, float2(0.0, 1.0));
+	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	shadow *= 0.25f;
+	return shadow;
+}
+
+//basic 4x4 blur, with hardware bilinear filtering if enabled
+float getShadowPCF4x4(float4 projected)
+{
+	float shadow = getShadowPCF(projected, float2(-2.0, -2.0));
+	shadow += getShadowPCF(projected, float2(-1.0, -2.0));
+	shadow += getShadowPCF(projected, float2(0.0, -2.0));
+	shadow += getShadowPCF(projected, float2(1.0, -2.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, -1.0));
+	shadow += getShadowPCF(projected, float2(-1.0, -1.0));
+	shadow += getShadowPCF(projected, float2(0.0, -1.0));
+	shadow += getShadowPCF(projected, float2(1.0, -1.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 0.0));
+	shadow += getShadowPCF(projected, float2(-1.0, 0.0));
+	shadow += getShadowPCF(projected, float2(0.0, 0.0));
+	shadow += getShadowPCF(projected, float2(1.0, 0.0));
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 1.0));
+	shadow += getShadowPCF(projected, float2(-1.0, 1.0));
+	shadow += getShadowPCF(projected, float2(0.0, 1.0));
+	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	
+	shadow *= 0.0625;
+	return shadow;
+}*/
+
+float getDirectionalShadowFactor(int light, float3 position, uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getDirectionalShadowFactor(int light, float3 position, uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	if(light != 0 || matrixCount == 0)
+		return 1.0f;
+
+	float4 projectedPosition[4];
+	uint mapToUse = -1;
+	for(uint i = 0; i < matrixCount; i++)
+	{
+		projectedPosition[i] = shadowMatrices[i] * float4(position, 1.0);
+		projectedPosition[i].xyz /= projectedPosition[i].w;
+
+		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0f && abs(projectedPosition[i].y) < 1.0f && abs(projectedPosition[i].z) < 1.0f)
+		{
+			mapToUse = i;
+		}
+	}
+	
+	projectedPosition[mapToUse].y *= -1.0f;
+	projectedPosition[mapToUse].xy *= 0.5f;
+	projectedPosition[mapToUse].xy += 0.5f;
+	projectedPosition[mapToUse].w = mapToUse;
+
+	return getShadowPCF(projectedPosition[mapToUse].xywz, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+}
+
+float4 getDirectionalLights(float3 position, float3 normal, uint count, constant LightDirectional directionalLights[5], uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float4 getDirectionalLights(float3 position, float3 normal, uint count, constant LightDirectional directionalLights[5], uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	float4 light = 0.0f;
 	for(uint i = 0; i < count; i++)
 	{
-		light += saturate(dot(normal, directionalLights[i].direction)) * directionalLights[i].color;
+		light += saturate(dot(normal, -directionalLights[i].direction)) * directionalLights[i].color;// * getDirectionalShadowFactor(i, position, matrixCount, shadowMatrices, shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	}
-
+	light.a = 1.0f;
 	return light;
 }
+
 
 // Non instanced
 
@@ -116,6 +190,7 @@ vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uni
 	FragmentVertex result;
 
 	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0);
+	result.worldPosition = (uniforms.modelMatrix * float4(vert.position, 1.0f)).xyz;
 
 #if RN_COLOR
 	result.color = vert.color;
@@ -133,14 +208,17 @@ vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uni
 
 fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0
-	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
+	, texture2d<float> texture [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]
+	, depth2d_array<float> directionalShadowTexture [[texture(1)]], sampler directionalShadowSampler [[sampler(1)]]
+#else
+	, depth2d_array<float> directionalShadowTexture [[texture(0)]], sampler directionalShadowSampler [[sampler(0)]]
 #endif
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
 )
 {
 	float4 color = uniforms.diffuseColor;
 #if RN_UV0
-	color *= texture.sample(samplr, vert.texCoords).rgba;
+	color *= texture.sample(linearRepeatSampler, vert.texCoords).rgba;
 
 #if RN_DISCARD
 		if(color.a < uniforms.discardThreshold)
@@ -153,7 +231,7 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	float4 light = getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
+	float4 light = getDirectionalLights(vert.worldPosition, normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights, uniforms.directionalShadowMatricesCount, uniforms.directionalShadowMatrices, uniforms.directionalShadowInfo, directionalShadowTexture, directionalShadowSampler);
 	return color * (uniforms.ambientColor + light);
 #else
 	return color * (uniforms.ambientColor);
@@ -216,7 +294,7 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	float4 light = getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
+	float4 light = float4(1.0);//getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
 	return color * (uniforms.ambientColor + light);
 #else
 	return color * (uniforms.ambientColor);

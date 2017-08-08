@@ -19,6 +19,12 @@ namespace RN
 	class MetalFramebuffer : public Framebuffer
 	{
 	public:
+		struct MetalTargetView
+		{
+			TargetView targetView;
+			MTLPixelFormat pixelFormat;
+		};
+		
 		MTLAPI MetalFramebuffer(const Vector2 &size, MetalSwapChain *swapChain, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 		MTLAPI MetalFramebuffer(const Vector2 &size);
 		MTLAPI ~MetalFramebuffer();
@@ -32,12 +38,15 @@ namespace RN
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
 
 		MTLRenderPassDescriptor *GetRenderPassDescriptor(RenderPass *renderPass) const;
+		MTLAPI MTLPixelFormat GetMetalColorFormat() const;
+		MTLAPI MTLPixelFormat GetMetalDepthFormat() const;
+		MTLAPI MTLPixelFormat GetMetalStencilFormat() const;
 
 	private:
 		void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
-		std::vector<TargetView *> _colorTargets;
-		TargetView *_depthStencilTarget;
+		std::vector<MetalTargetView *> _colorTargets;
+		MetalTargetView *_depthStencilTarget;
 
 		WeakRef<MetalSwapChain> _swapChain;
 
