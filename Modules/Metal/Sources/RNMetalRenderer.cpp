@@ -753,6 +753,11 @@ namespace RN
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material, _internals->currentRenderState)];
 		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
 		
+		if(drawable->material->GetUsePolygonOffset())
+		{
+			[encoder setDepthBias:drawable->material->GetPolygonOffsetUnits() slopeScale:drawable->material->GetPolygonOffsetFactor() clamp:FLT_MAX];
+		}
+		
 		// Update uniforms
 		{
 			//TODO: support multiple uniform buffer

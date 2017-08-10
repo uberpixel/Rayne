@@ -136,7 +136,6 @@ namespace RN
 		}
 
 		MTLSamplerMipFilter mipFilter;
-
 		switch(samplerDescriptor->GetFilter())
 		{
 			case Shader::Sampler::Filter::Anisotropic:
@@ -159,8 +158,42 @@ namespace RN
 				mipFilter = MTLSamplerMipFilterNearest;
 				break;
 		}
-
 		[descriptor setMipFilter:mipFilter];
+		
+		switch(samplerDescriptor->GetComparisonFunction())
+		{
+			case Shader::Sampler::ComparisonFunction::Never:
+				[descriptor setCompareFunction:MTLCompareFunctionNever];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::Less:
+				[descriptor setCompareFunction:MTLCompareFunctionLess];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::LessEqual:
+				[descriptor setCompareFunction:MTLCompareFunctionLessEqual];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::Equal:
+				[descriptor setCompareFunction:MTLCompareFunctionEqual];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::NotEqual:
+				[descriptor setCompareFunction:MTLCompareFunctionNotEqual];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::GreaterEqual:
+				[descriptor setCompareFunction:MTLCompareFunctionGreaterEqual];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::Greater:
+				[descriptor setCompareFunction:MTLCompareFunctionGreater];
+				break;
+				
+			case Shader::Sampler::ComparisonFunction::Always:
+				[descriptor setCompareFunction:MTLCompareFunctionAlways];
+				break;
+		}
 
 		id<MTLSamplerState> sampler = [_device newSamplerStateWithDescriptor:descriptor];
 		[descriptor release];

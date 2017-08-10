@@ -102,7 +102,7 @@ struct FragmentVertex
 float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
 float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
-	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w + 0.01);
+	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w);
 }
 
 //basic 2x2 blur, with hardware bilinear filtering if enabled
