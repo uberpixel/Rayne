@@ -56,14 +56,18 @@ namespace RN
 		}
 	}
 
-	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
+	DXGI_FORMAT D3D12Texture::ImageFormatFromTextureFormat(Texture::Format format)
 	{
 		switch (format)
 		{
 		case Texture::Format::RGBA8888SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::BGRA8888SRGB:
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 		case Texture::Format::RGBA8888:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::BGRA8888:
+			return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case Texture::Format::RGB10A2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
 		case Texture::Format::R8:
@@ -109,8 +113,12 @@ namespace RN
 		{
 		case Texture::Format::RGBA8888SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::BGRA8888SRGB:
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 		case Texture::Format::RGBA8888:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::BGRA8888:
+			return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case Texture::Format::RGB10A2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
 		case Texture::Format::R8:
@@ -291,7 +299,7 @@ namespace RN
 		imageDesc.Height = descriptor.height;
 		imageDesc.DepthOrArraySize = descriptor.depth;
 		imageDesc.MipLevels = descriptor.mipMaps;
-		imageDesc.Format = D3D12ImageFormatFromTextureFormat(descriptor.format);
+		imageDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(descriptor.format);
 		imageDesc.SampleDesc.Count = descriptor.sampleCount;
 		imageDesc.SampleDesc.Quality = 0;
 		imageDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -513,7 +521,9 @@ namespace RN
 		switch(_srvDescriptor.Format)
 		{
 			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_B8G8R8A8_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R10G10B10A2_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_R8_UNORM, true, false, false, false)
 			ColorChannel(DXGI_FORMAT_R8G8_UNORM, true, true, false, false)

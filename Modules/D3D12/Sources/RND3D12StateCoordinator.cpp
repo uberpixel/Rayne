@@ -315,7 +315,12 @@ namespace RN
 
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
 		{
-			pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
+			if(targetView->d3dTargetViewDesc.Format == DXGI_FORMAT_UNKNOWN)
+			{
+				pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
+			}
+			else
+				pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
 		}
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 		pipelineDescriptor.shaderHint = shaderHint;
@@ -325,7 +330,7 @@ namespace RN
 		pipelineDescriptor.usePolygonOffset = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetUsePolygonOffset() : material->GetUsePolygonOffset();
 		pipelineDescriptor.polygonOffsetFactor = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetFactor() : material->GetPolygonOffsetFactor();
 		pipelineDescriptor.polygonOffsetUnits = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetUnits() : material->GetPolygonOffsetUnits();
-		pipelineDescriptor.useAlphaToCoverage = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::UseAlphaToCoverage) && !(material->GetOverride() & Material::Override::UseAlphaToCoverage)) ? cameraMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
+		pipelineDescriptor.useAlphaToCoverage = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupAlphaToCoverage) && !(material->GetOverride() & Material::Override::GroupAlphaToCoverage)) ? cameraMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)

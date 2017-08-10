@@ -39,6 +39,8 @@ namespace RN
 
 		D3DAPI void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
 
+		static DXGI_FORMAT ImageFormatFromTextureFormat(Texture::Format format);
+
 	private:
 		D3D12Renderer *_renderer;
 		D3D12StateCoordinator *_coordinator;

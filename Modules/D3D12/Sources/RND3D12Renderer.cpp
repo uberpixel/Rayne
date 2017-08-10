@@ -627,10 +627,7 @@ namespace RN
 			if(!_defaultPostProcessingDrawable)
 			{
 				Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
-				MaterialDescriptor descriptor;
-				descriptor.vertexShader[0] = GetDefaultShader(Shader::Type::Vertex, nullptr);
-				descriptor.fragmentShader[0] = GetDefaultShader(Shader::Type::Fragment, nullptr);
-				Material *planeMaterial = Material::WithDescriptor(descriptor);
+				Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
 
 				_lock.Lock();
 				_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
@@ -1351,8 +1348,7 @@ namespace RN
 		}
 		else
 		{
-			//TODO: Maybe don't hardcode swapchain format here...
-			targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+			targetFormat = destinationFramebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
 			destinationResource = destinationFramebuffer->GetSwapChainColorBuffer();
 		}
 

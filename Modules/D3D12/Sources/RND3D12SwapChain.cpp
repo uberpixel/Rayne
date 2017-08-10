@@ -15,6 +15,26 @@ namespace RN
 {
 	RNDefineMeta(D3D12SwapChain, Object)
 
+	static DXGI_FORMAT SwapChainFormatFromTextureFormat(Texture::Format format)
+	{
+		switch(format)
+		{
+		case Texture::Format::RGBA8888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::BGRA8888SRGB:
+			return DXGI_FORMAT_B8G8R8A8_UNORM;
+		case Texture::Format::RGBA8888:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::BGRA8888:
+			return DXGI_FORMAT_B8G8R8A8_UNORM;
+		case Texture::Format::RGB10A2:
+			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		default:
+			return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+
+
 	D3D12SwapChain::D3D12SwapChain(const Vector2& size, HWND hwnd, D3D12Renderer* renderer, const Window::SwapChainDescriptor& descriptor) :
 		_renderer(renderer),
 		_frameIndex(0),
@@ -37,7 +57,7 @@ namespace RN
 		swapChainDesc.BufferCount = _descriptor.bufferCount;
 		swapChainDesc.BufferDesc.Width = size.x;
 		swapChainDesc.BufferDesc.Height = size.y;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.BufferDesc.Format = SwapChainFormatFromTextureFormat(descriptor.colorFormat);
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0; //no vsync
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1; //no vsync
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;

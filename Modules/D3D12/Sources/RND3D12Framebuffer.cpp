@@ -15,59 +15,12 @@ namespace RN
 {
 	RNDefineMeta(D3D12Framebuffer, Framebuffer)
 
-	static DXGI_FORMAT D3D12ImageFormatFromTextureFormat(Texture::Format format)
-	{
-		switch (format)
-		{
-		case Texture::Format::RGBA8888SRGB:
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::RGBA8888:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::RGB10A2:
-			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		case Texture::Format::R8:
-			return DXGI_FORMAT_R8_UNORM;
-		case Texture::Format::RG88:
-			return DXGI_FORMAT_R8G8_UNORM;
-		case Texture::Format::RGB888:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::R16F:
-			return DXGI_FORMAT_R16_FLOAT;
-		case Texture::Format::RG16F:
-			return DXGI_FORMAT_R16G16_FLOAT;
-		case Texture::Format::RGB16F:
-			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::RGBA16F:
-			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::R32F:
-			return DXGI_FORMAT_R32_FLOAT;
-		case Texture::Format::RG32F:
-			return DXGI_FORMAT_R32G32_FLOAT;
-		case Texture::Format::RGB32F:
-			return DXGI_FORMAT_R32G32B32_FLOAT;
-		case Texture::Format::RGBA32F:
-			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case Texture::Format::Depth24I:
-			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth32F:
-			return DXGI_FORMAT_D32_FLOAT;
-		case Texture::Format::Stencil8:
-			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth24Stencil8:
-			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth32FStencil8:
-			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-		default:
-			return DXGI_FORMAT_UNKNOWN;
-		}
-	}
-
 	static D3D12Framebuffer::D3D12ColorTargetView *D3D12ColorTargetViewFromTargetView(const Framebuffer::TargetView &targetView)
 	{
 		D3D12Framebuffer::D3D12ColorTargetView *colorTargetView = new D3D12Framebuffer::D3D12ColorTargetView();
 		colorTargetView->targetView = targetView;
 		colorTargetView->targetView.texture->Retain();
-		colorTargetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
+		colorTargetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
 		//TODO: Support multisampled array render targets and plane slices
 		switch(targetView.texture->GetDescriptor().type)
@@ -133,7 +86,7 @@ namespace RN
 		D3D12Framebuffer::D3D12DepthStencilTargetView *depthStencilTargetView = new D3D12Framebuffer::D3D12DepthStencilTargetView();
 		depthStencilTargetView->targetView = targetView;
 		depthStencilTargetView->targetView.texture->Retain();
-		depthStencilTargetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
+		depthStencilTargetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
 		//TODO: Support multisampled array render targets
 		switch (targetView.texture->GetDescriptor().type)
@@ -420,7 +373,7 @@ namespace RN
 		targetView->targetView.mipmap = 0;
 		targetView->targetView.slice = 0;
 		targetView->targetView.length = 1;
-		targetView->d3dTargetViewDesc.Format = D3D12ImageFormatFromTextureFormat(colorFormat);
+		targetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(colorFormat);
 		targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 		targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
 		targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
