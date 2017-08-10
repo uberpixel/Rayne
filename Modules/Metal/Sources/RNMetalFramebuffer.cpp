@@ -241,6 +241,8 @@ namespace RN
 			[colorAttachment setLoadAction:MTLLoadActionClear];
 			[colorAttachment setStoreAction:MTLStoreActionStore];
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
+			[colorAttachment setSlice:metalTarget->targetView.slice];
+			[colorAttachment setLevel:metalTarget->targetView.mipmap];
 			
 			counter += 1;
 		}
@@ -256,6 +258,8 @@ namespace RN
 				[depthAttachment setTexture:depthStencilTexture];
 				[depthAttachment setLoadAction:MTLLoadActionClear];
 				[depthAttachment setStoreAction:MTLStoreActionStore];
+				[depthAttachment setSlice:_depthStencilTarget->targetView.slice];
+				[depthAttachment setLevel:_depthStencilTarget->targetView.mipmap];
 			}
 
 			//TODO: Improve check
@@ -265,6 +269,8 @@ namespace RN
 				[stencilAttachment setTexture:depthStencilTexture];
 				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
 				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+				[stencilAttachment setSlice:_depthStencilTarget->targetView.slice];
+				[stencilAttachment setLevel:_depthStencilTarget->targetView.mipmap];
 			}
 		}
 

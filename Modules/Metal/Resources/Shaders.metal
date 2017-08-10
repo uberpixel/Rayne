@@ -102,7 +102,7 @@ struct FragmentVertex
 float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
 float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
-	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w);
+	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w + 0.01);
 }
 
 //basic 2x2 blur, with hardware bilinear filtering if enabled
@@ -176,7 +176,7 @@ float4 getDirectionalLights(float3 position, float3 normal, uint count, constant
 	float4 light = 0.0f;
 	for(uint i = 0; i < count; i++)
 	{
-		light += saturate(dot(normal, -directionalLights[i].direction)) * directionalLights[i].color;// * getDirectionalShadowFactor(i, position, matrixCount, shadowMatrices, shadowInfo, directionalShadowTexture, directionalShadowSampler);
+		light += saturate(dot(normal, -directionalLights[i].direction)) * directionalLights[i].color * getDirectionalShadowFactor(i, position, matrixCount, shadowMatrices, shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	}
 	light.a = 1.0f;
 	return light;

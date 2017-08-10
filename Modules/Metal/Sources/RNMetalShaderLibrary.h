@@ -15,22 +15,31 @@
 namespace RN
 {
 	class MetalStateCoordinator;
-	class MetalSpecializedShaderLibrary : public Object
+	class MetalSpecificShaderLibrary : public Object
 	{
 	public:
 		friend class MetalShaderLibrary;
 
-		~MetalSpecializedShaderLibrary();
+		~MetalSpecificShaderLibrary();
 
-		Shader *GetShaderWithName(const String *name, ShaderLibrary *library, id<MTLDevice> device, MetalStateCoordinator *coordinator);
-
-		RNDeclareMetaAPI(MetalSpecializedShaderLibrary, MTLAPI)
+		Shader *GetShaderWithName(const String *name, ShaderLibrary *library, MetalStateCoordinator *coordinator);
+		
+		Shader *GetShaderWithOptions(id<MTLDevice> device, MetalStateCoordinator *coordinator, ShaderLibrary *library, const Shader::Options *options);
 
 	private:
-		MetalSpecializedShaderLibrary(id<MTLDevice> device, const String *source, const Shader::Options *options);
-		void *_metalLibrary;
-		const Shader::Options *_options;
+		MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
+		
+		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
+		const Array *GetSamplerSignature(const Shader::Options *options) const;
+		
 		Dictionary *_shaders;
+		
+		const String *_entryPoint;
+		const String *_fileName;
+		Shader::Type _type;
+		Dictionary *_signatureDescription;
+		
+		RNDeclareMetaAPI(MetalSpecificShaderLibrary, MTLAPI)
 	};
 
 	class MetalShaderLibrary : public ShaderLibrary
@@ -44,11 +53,10 @@ namespace RN
 		MTLAPI Shader *GetInstancedShaderForShader(Shader *shader) final;
 
 	private:
-		MetalShaderLibrary(id<MTLDevice> device, const String *source, MetalStateCoordinator *coordinator);
+		MetalShaderLibrary(id<MTLDevice> device, const String *file, MetalStateCoordinator *coordinator);
 
 		id<MTLDevice> _device;
-		const String *_source;
-		Dictionary *_specializedLibraries;
+		Dictionary *_specificShaderLibraries;
 		MetalStateCoordinator *_coordinator;
 
 		RNDeclareMetaAPI(MetalShaderLibrary, MTLAPI)

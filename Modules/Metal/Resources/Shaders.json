@@ -1,14 +1,34 @@
 [
 	{
 		"file": ":RayneMetal:/Shaders.metal",
-		"shaders": [
+		"shaders":
+		[
 			{
 				"name": "gouraud_vertex",
-				"type": "vertex"
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						"RN_UV0"
+					]
+				}
 			},
 			{
 				"name": "gouraud_fragment",
-				"type": "fragment"
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						"RN_DISCARD",
+						"RN_UV0"
+					]
+				}
 			}
 		]
 	},
@@ -26,6 +46,36 @@
 				"signature":
 				{
 					"samplers": [{"wrap": "clamp"}]
+				}
+			}
+		]
+	},
+	{
+		"file": ":RayneMetal:/Depth.metal",
+		"shaders":
+		[
+			{
+				"name": "depth_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0",
+						"RN_SKY"
+					]
+				}
+			},
+			{
+				"name": "depth_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_DISCARD",
+						"RN_UV0"
+					]
 				}
 			}
 		]

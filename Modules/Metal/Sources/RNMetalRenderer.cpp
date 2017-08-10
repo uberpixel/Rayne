@@ -241,31 +241,12 @@ namespace RN
 
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithFile(const String *file)
 	{
-		Data *data = Data::WithContentsOfFile(file);
-
-		Array *mainArray = JSONSerialization::ObjectFromData<Array>(data, 0);
-		String *source = new String();
-
-		mainArray->Enumerate<Dictionary>([&](Dictionary *libraryDictionary, size_t index, bool &stop) {
-
-			String *file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file~metal"));
-			if(!file)
-				file = libraryDictionary->GetObjectForKey<String>(RNCSTR("file"));
-			if(!file)
-				return;
-
-			String *content = String::WithContentsOfFile(file, Encoding::UTF8);
-
-			source->Append(content);
-			source->Append("\n");
-
-		});
-
-		return CreateShaderLibraryWithSource(source->Autorelease());
+		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, file, &_internals->stateCoordinator);
+		return lib;
 	}
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithSource(const String *source)
 	{
-		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, source, &_internals->stateCoordinator);
+		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, nullptr, &_internals->stateCoordinator);
 		return lib;
 	}
 
@@ -281,12 +262,12 @@ namespace RN
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
-/*			if(hint == Shader::UsageHint::Depth)
+			if(hint == Shader::UsageHint::Depth)
 			{
 				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
 			}
 			else
-			{*/
+			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
@@ -296,16 +277,16 @@ namespace RN
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
 				}
-//			}
+			}
 		}
 		else if(type == Shader::Type::Fragment)
 		{
-/*			if(hint == Shader::UsageHint::Depth)
+			if(hint == Shader::UsageHint::Depth)
 			{
 				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
 			}
 			else
-			{*/
+			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
@@ -315,7 +296,7 @@ namespace RN
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 				}
-//			}
+			}
 		}
 
 		return shader;

@@ -18,7 +18,7 @@ namespace RN
 	class MetalShader : public Shader
 	{
 	public:
-		friend class MetalSpecializedShaderLibrary;
+		friend class MetalSpecificShaderLibrary;
 		friend class MetalStateCoordinator;
 		friend class MetalRenderer;
 
