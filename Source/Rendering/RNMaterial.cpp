@@ -223,13 +223,13 @@ namespace RN
 			return _properties;
 		
 		Properties properties = _properties;
-		if(overrideMaterial->GetOverride() & Override::GroupDepth && !(_override & Override::GroupDepth))
+		if(!(overrideMaterial->GetOverride() & Override::GroupDepth) && !(_override & Override::GroupDepth))
 		{
 			properties.depthMode = overrideMaterial->_properties.depthMode;
 			properties.depthWriteEnabled = overrideMaterial->_properties.depthWriteEnabled;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::GroupColors && !(_override & Override::GroupColors))
+		if(!(overrideMaterial->GetOverride() & Override::GroupColors) && !(_override & Override::GroupColors))
 		{
 			properties.ambientColor = overrideMaterial->_properties.ambientColor;
 			properties.diffuseColor = overrideMaterial->_properties.diffuseColor;
@@ -237,30 +237,30 @@ namespace RN
 			properties.emissiveColor = overrideMaterial->_properties.emissiveColor;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::DiscardThreshold && !(_override & Override::DiscardThreshold))
+		if(!(overrideMaterial->GetOverride() & Override::DiscardThreshold) && !(_override & Override::DiscardThreshold))
 		{
 			properties.discardThreshold = overrideMaterial->_properties.discardThreshold;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::GroupAlphaToCoverage && !(_override & Override::GroupAlphaToCoverage))
+		if(!(overrideMaterial->GetOverride() & Override::GroupAlphaToCoverage) && !(_override & Override::GroupAlphaToCoverage))
 		{
 			properties.useAlphaToCoverage = overrideMaterial->_properties.useAlphaToCoverage;
 			properties.alphaToCoverageClamp = overrideMaterial->_properties.alphaToCoverageClamp;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::TextureTileFactor && !(_override & Override::TextureTileFactor))
+		if(!(overrideMaterial->GetOverride() & Override::TextureTileFactor) && !(_override & Override::TextureTileFactor))
 		{
 			properties.textureTileFactor = overrideMaterial->_properties.textureTileFactor;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::GroupPolygonOffset && !(_override & Override::GroupPolygonOffset))
+		if(!(overrideMaterial->GetOverride() & Override::GroupPolygonOffset) && !(_override & Override::GroupPolygonOffset))
 		{
 			properties.usePolygonOffset = overrideMaterial->_properties.usePolygonOffset;
 			properties.polygonOffsetFactor = overrideMaterial->_properties.polygonOffsetFactor;
 			properties.polygonOffsetUnits = overrideMaterial->_properties.polygonOffsetUnits;
 		}
 		
-		if(overrideMaterial->GetOverride() & Override::CullMode && !(_override & Override::CullMode))
+		if(!(overrideMaterial->GetOverride() & Override::CullMode) && !(_override & Override::CullMode))
 		{
 			properties.cullMode = overrideMaterial->_properties.cullMode;
 		}

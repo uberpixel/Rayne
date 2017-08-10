@@ -460,14 +460,10 @@ namespace RN
 		delete drawable;
 	}
 
-	void MetalRenderer::FillUniformBuffer(MetalUniformBuffer *uniformBuffer, MetalDrawable *drawable, Shader *shader)
+	void MetalRenderer::FillUniformBuffer(MetalUniformBuffer *uniformBuffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
 	{
 		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-
-		//TODO: Solve material overrides better...
-		Material *drawableMaterial = drawable->material;
-		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 
 		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
@@ -559,73 +555,45 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AmbientColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.ambientColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiffuseColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.diffuseColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpecularColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.specularColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::EmissiveColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.emissiveColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::TextureTileFactor) && !(drawableMaterial->GetOverride() & Material::Override::TextureTileFactor))
-						material = overrideMaterial;
-
-					float temp = material->GetTextureTileFactor();
+					float temp = materialProperties.textureTileFactor;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
-						material = overrideMaterial;
-
-					float temp = material->GetDiscardThreshold();
+					float temp = materialProperties.discardThreshold;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
-					Material* material = drawableMaterial;
-					if (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
-						material = overrideMaterial;
-
-					float temp = material->GetAlphaToCoverageClamp();
+					float temp = materialProperties.alphaToCoverageClamp;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
@@ -766,9 +734,9 @@ namespace RN
 		{
 			//TODO: support multiple uniform buffer
 			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, _internals->currentRenderState->vertexShader);
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, _internals->currentRenderState->vertexShader, mergedMaterialProperties);
 			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, _internals->currentRenderState->fragmentShader);
+				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, _internals->currentRenderState->fragmentShader, mergedMaterialProperties);
 		}
 
 		// Set Uniforms

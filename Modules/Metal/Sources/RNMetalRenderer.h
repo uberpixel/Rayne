@@ -65,7 +65,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
-		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader);
+		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();

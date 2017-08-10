@@ -106,6 +106,7 @@ float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_a
 }
 
 //basic 2x2 blur, with hardware bilinear filtering if enabled
+float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
 float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
 	float shadow = getShadowPCF(projected, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
@@ -117,6 +118,7 @@ float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> 
 }
 
 //basic 4x4 blur, with hardware bilinear filtering if enabled
+float getShadowPCF4x4(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
 float getShadowPCF4x4(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
 	float shadow = getShadowPCF(projected, float2(-2.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
