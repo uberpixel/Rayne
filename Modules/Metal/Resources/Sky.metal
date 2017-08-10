@@ -40,6 +40,7 @@ vertex SkyFragmentVertex sky_vertex(SkyInputVertex vert [[stage_in]], constant S
 
 	float3 rotatedPosition = (matrix_float3x3(uniforms.modelViewMatrix[0].xyz, uniforms.modelViewMatrix[1].xyz, uniforms.modelViewMatrix[2].xyz) * vert.position).xyz;
 	result.position = (uniforms.projectionMatrix * float4(rotatedPosition, 1.0)).xyww;
+	result.position.w *= 1.0001;
 	result.texCoords = vert.texCoords;
 	result.diffuse = uniforms.diffuseColor;
 

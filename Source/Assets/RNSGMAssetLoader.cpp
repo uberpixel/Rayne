@@ -98,7 +98,7 @@ namespace RN
 		uint8 materialCount = file->ReadUint8();
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		std::vector<std::pair<bool, MaterialDescriptor>> materials;
+		std::vector<std::pair<bool, Material*>> materials;
 
 		// Get Materials
 		Array *materialPlaceholder = new Array();
@@ -170,7 +170,7 @@ namespace RN
 
 			Array *textures = info->GetObjectForKey<Array>(RNCSTR("textures"));
 
-			MaterialDescriptor descriptor;
+			Material *material = Material::WithShaders(nullptr, nullptr);
 			bool wantsDiscard = false;
 
 			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
@@ -194,7 +194,7 @@ namespace RN
 					texture = AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(file, nullptr);
 				}
 
-				descriptor.AddTexture(texture);
+				material->AddTexture(texture);
 
 				//Activate discarding of transparent pixels if first texture has alpha
 				if(index == 0 && texture->HasColorChannel(Texture::ColorChannel::Alpha))
@@ -205,10 +205,10 @@ namespace RN
 			Value *diffuseColor = info->GetObjectForKey<Value>(RNCSTR("diffusecolor"));
 			if(diffuseColor)
 			{
-				descriptor.diffuseColor = diffuseColor->GetValue<Color>();
+				material->SetDiffuseColor(diffuseColor->GetValue<Color>());
 			}
 
-			materials.emplace_back(std::make_pair(wantsDiscard, descriptor));
+			materials.emplace_back(std::make_pair(wantsDiscard, material->Retain()));
 
 		});
 
@@ -350,22 +350,22 @@ namespace RN
 
 			// Load the material
 			bool wantsDiscard = materialPair.first;
-			MaterialDescriptor &descriptor = materialPair.second;
+			Material *material = materialPair.second;
 			Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
 			if(wantsDiscard)
 			{
 				shaderOptions->EnableDiscard();
-				descriptor.useAlphaToCoverage = true;
+				material->SetAlphaToCoverage(true);
 			}
 
-			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
-			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
-			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Depth)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
-			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Depth)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
-			descriptor.vertexShader[static_cast<uint8>(Shader::UsageHint::Instancing)] = renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing);
-			descriptor.fragmentShader[static_cast<uint8>(Shader::UsageHint::Instancing)] = renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing);
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
 
-			stage->AddMesh(mesh, Material::WithDescriptor(descriptor));
+			stage->AddMesh(mesh, material->Autorelease());
 			mesh->Autorelease();
 		}
 	}

@@ -53,96 +53,79 @@ namespace RN
 		return coordinator->GetAssetWithName<Model>(name, settings);
 	}
 
-	Model *Model::WithSkycube(const MaterialDescriptor &materialDescriptor, const String *left, const String *front, const String *right, const String *back, const String *up, const String *down)
+	Model *Model::WithSkycube(const String *left, const String *front, const String *right, const String *back, const String *up, const String *down)
 	{
 		Model *sky = new Model();
 		LODStage *stage = sky->AddLODStage(1.0f);
 
 		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
-		MaterialDescriptor tempDescriptor = materialDescriptor;
+		Material *baseMaterial = Material::WithShaders(nullptr, nullptr);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(leftMesh);
 		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
-		if(!tempDescriptor.vertexShader[0])
-			tempDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
-		if(!tempDescriptor.fragmentShader[0])
-			tempDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
-		if (!tempDescriptor.vertexShader[1])
-			tempDescriptor.vertexShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
-		if (!tempDescriptor.fragmentShader[1])
-			tempDescriptor.fragmentShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
+		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
+		baseMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));
+		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		baseMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
 
 		//TODO: Add sky depth shader
 
-		MaterialDescriptor leftMaterialDescriptor = tempDescriptor;
+		Material *leftMaterial = Material::WithMaterial(baseMaterial);
 		if(left)
-			leftMaterialDescriptor.AddTexture(Texture::WithName(left));
-		Material *leftMaterial = Material::WithDescriptor(leftMaterialDescriptor);
+			leftMaterial->AddTexture(Texture::WithName(left));
 		stage->AddMesh(leftMesh, leftMaterial);
 
 		Mesh *frontMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, -0.5f));
-		MaterialDescriptor frontMaterialDescriptor = tempDescriptor;
+		Material *frontMaterial = Material::WithMaterial(baseMaterial);
 		if(front)
-			frontMaterialDescriptor.AddTexture(Texture::WithName(front));
-		Material *frontMaterial = Material::WithDescriptor(frontMaterialDescriptor);
+			frontMaterial->AddTexture(Texture::WithName(front));
 		stage->AddMesh(frontMesh, frontMaterial);
 
 		Mesh *rightMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(-90.0f, 90.0f, 0.0f)), RN::Vector3(0.5f, 0.0f, 0.0f));
-		MaterialDescriptor rightMaterialDescriptor = tempDescriptor;
+		Material *rightMaterial = Material::WithMaterial(baseMaterial);
 		if(right)
-			rightMaterialDescriptor.AddTexture(Texture::WithName(right));
-		Material *rightMaterial = Material::WithDescriptor(rightMaterialDescriptor);
+			rightMaterial->AddTexture(Texture::WithName(right));
 		stage->AddMesh(rightMesh, rightMaterial);
 
 		Mesh *backMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(180.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, 0.5f));
-		MaterialDescriptor backMaterialDescriptor = tempDescriptor;
+		Material *backMaterial = Material::WithMaterial(baseMaterial);
 		if(back)
-			backMaterialDescriptor.AddTexture(Texture::WithName(back));
-		Material *backMaterial = Material::WithDescriptor(backMaterialDescriptor);
+			backMaterial->AddTexture(Texture::WithName(back));
 		stage->AddMesh(backMesh, backMaterial);
 
 		Mesh *upMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 180.0f, 0.0f)), RN::Vector3(0.0f, 0.5f, 0.0f));
-		MaterialDescriptor upMaterialDescriptor = tempDescriptor;
+		Material *upMaterial = Material::WithMaterial(baseMaterial);
 		if(up)
-			upMaterialDescriptor.AddTexture(Texture::WithName(up));
-		Material *upMaterial = Material::WithDescriptor(upMaterialDescriptor);
+			upMaterial->AddTexture(Texture::WithName(up));
 		stage->AddMesh(upMesh, upMaterial);
 
 		Mesh *downMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 0.0f, 0.0f)), RN::Vector3(0.0f, -0.5f, 0.0f));
-		MaterialDescriptor downMaterialDescriptor = tempDescriptor;
+		Material *downMaterial = Material::WithMaterial(baseMaterial);
 		if(down)
-			downMaterialDescriptor.AddTexture(Texture::WithName(down));
-		Material *downMaterial = Material::WithDescriptor(downMaterialDescriptor);
+			downMaterial->AddTexture(Texture::WithName(down));
 		stage->AddMesh(downMesh, downMaterial);
-
 
 		return sky->Autorelease();
 	}
 
-	Model *Model::WithSkydome(const MaterialDescriptor &materialDescriptor, const String *texture)
+	Model *Model::WithSkydome(const String *texture)
 	{
 		Model *sky = new Model();
 		LODStage *stage = sky->AddLODStage(1.0f);
 
 		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 80, 81);
-		MaterialDescriptor domeMaterialDescriptor = materialDescriptor;
+		Material *domeMaterial = Material::WithShaders(nullptr, nullptr);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(domeMesh);
 		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
-		if(!domeMaterialDescriptor.vertexShader[0])
-			domeMaterialDescriptor.vertexShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default);
-		if(!domeMaterialDescriptor.fragmentShader[0])
-			domeMaterialDescriptor.fragmentShader[0] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default);
-		if (!domeMaterialDescriptor.vertexShader[1])
-			domeMaterialDescriptor.vertexShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth);
-		if (!domeMaterialDescriptor.fragmentShader[1])
-			domeMaterialDescriptor.fragmentShader[1] = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
 
-		//TODO: Add sky depth shader
+		domeMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
+		domeMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));
+		domeMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		domeMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
 
 		if(texture)
-			domeMaterialDescriptor.AddTexture(Texture::WithName(texture));
-		Material *domeMaterial = Material::WithDescriptor(domeMaterialDescriptor);
+			domeMaterial->AddTexture(Texture::WithName(texture));
 		stage->AddMesh(domeMesh, domeMaterial);
 
 		return sky->Autorelease();

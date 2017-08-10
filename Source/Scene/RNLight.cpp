@@ -241,11 +241,8 @@ namespace RN
 		{
 			_shadowCameraMatrices.push_back(Matrix());
 			
-			MaterialDescriptor materialDescriptor;
 			//TODO: Get rid of the need for a shader if not needed for rendering!?
-			materialDescriptor.vertexShader[0] = depthVertexShader;
-			materialDescriptor.fragmentShader[0] = depthFragmentShader;
-			Material *depthMaterial = Material::WithDescriptor(materialDescriptor);
+			Material *depthMaterial = Material::WithShaders(depthVertexShader, depthFragmentShader);
 			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
 			depthMaterial->SetOverride(Material::Override::DefaultDepth);
 

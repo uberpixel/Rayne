@@ -106,42 +106,42 @@ float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_a
 }
 
 //basic 2x2 blur, with hardware bilinear filtering if enabled
-/*float getShadowPCF2x2(float4 projected)
+float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
-	float shadow = getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	float shadow = getShadowPCF(projected, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	shadow *= 0.25f;
 	return shadow;
 }
 
 //basic 4x4 blur, with hardware bilinear filtering if enabled
-float getShadowPCF4x4(float4 projected)
+float getShadowPCF4x4(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
 {
-	float shadow = getShadowPCF(projected, float2(-2.0, -2.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -2.0));
-	shadow += getShadowPCF(projected, float2(0.0, -2.0));
-	shadow += getShadowPCF(projected, float2(1.0, -2.0));
+	float shadow = getShadowPCF(projected, float2(-2.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	
-	shadow += getShadowPCF(projected, float2(-2.0, -1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -1.0));
-	shadow += getShadowPCF(projected, float2(0.0, -1.0));
-	shadow += getShadowPCF(projected, float2(1.0, -1.0));
+	shadow += getShadowPCF(projected, float2(-2.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	
-	shadow += getShadowPCF(projected, float2(-2.0, 0.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
+	shadow += getShadowPCF(projected, float2(-2.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	
-	shadow += getShadowPCF(projected, float2(-2.0, 1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 1.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
+	shadow += getShadowPCF(projected, float2(-2.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
 	
 	shadow *= 0.0625;
 	return shadow;
-}*/
+}
 
 float getDirectionalShadowFactor(int light, float3 position, uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
 float getDirectionalShadowFactor(int light, float3 position, uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
@@ -167,7 +167,7 @@ float getDirectionalShadowFactor(int light, float3 position, uint matrixCount, c
 	projectedPosition[mapToUse].xy += 0.5f;
 	projectedPosition[mapToUse].w = mapToUse;
 
-	return getShadowPCF(projectedPosition[mapToUse].xywz, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	return getShadowPCF4x4(projectedPosition[mapToUse].xywz, shadowInfo, directionalShadowTexture, directionalShadowSampler);
 }
 
 float4 getDirectionalLights(float3 position, float3 normal, uint count, constant LightDirectional directionalLights[5], uint matrixCount, constant matrix_float4x4 shadowMatrices[4], float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);

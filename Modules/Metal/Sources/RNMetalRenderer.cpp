@@ -101,6 +101,7 @@ namespace RN
 
 		for(MetalSwapChain *swapChain : _internals->swapChains)
 		{
+			//TODO: do this the first time the swap chain is actually used
 			swapChain->AcquireBackBuffer();
 			swapChain->Prepare();
 		}
@@ -729,7 +730,7 @@ namespace RN
 		if(drawable->dirty)
 		{
 			_lock.Lock();
-			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer);
+			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			_lock.Unlock();
 
 			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state);
@@ -750,12 +751,15 @@ namespace RN
 			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
 		}
 		
-		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(drawable->material, _internals->currentRenderState)];
-		[encoder setCullMode:static_cast<MTLCullMode>(drawable->material->GetCullMode())];
+		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
 		
-		if(drawable->material->GetUsePolygonOffset())
+		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(mergedMaterialProperties, _internals->currentRenderState)];
+		[encoder setCullMode:static_cast<MTLCullMode>(mergedMaterialProperties.cullMode)];
+		
+		if(mergedMaterialProperties.usePolygonOffset)
 		{
-			[encoder setDepthBias:drawable->material->GetPolygonOffsetUnits() slopeScale:drawable->material->GetPolygonOffsetFactor() clamp:FLT_MAX];
+			[encoder setDepthBias:mergedMaterialProperties.polygonOffsetUnits slopeScale:mergedMaterialProperties.polygonOffsetFactor clamp:FLT_MAX];
 		}
 		
 		// Update uniforms
@@ -784,8 +788,6 @@ namespace RN
 			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
 			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
 		}
-		
-		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		// Set textures
 		const Array *textures = drawable->material->GetTextures();

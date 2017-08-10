@@ -107,8 +107,8 @@ namespace RN
 		RNAPI ~Model();
 
 		RNAPI static Model *WithName(const String *name, const Dictionary *settings = nullptr);
-		RNAPI static Model *WithSkycube(const MaterialDescriptor &materialDescriptor, const String *left, const String *front, const String *right, const String *back, const String *up, const String *down);
-		RNAPI static Model *WithSkydome(const MaterialDescriptor &materialDescriptor, const String *texture);
+		RNAPI static Model *WithSkycube(const String *left, const String *front, const String *right, const String *back, const String *up, const String *down);
+		RNAPI static Model *WithSkydome(const String *texture);
 
 		RNAPI LODStage *AddLODStage(float distance);
 		RNAPI void RemoveLODStage(size_t index);

@@ -56,9 +56,9 @@ namespace RN
 	struct MetalDepthStencilState
 	{
 		MetalDepthStencilState() = default;
-		MetalDepthStencilState(Material *material, id<MTLDepthStencilState> depthStencilState, MTLPixelFormat depth, MTLPixelFormat stencil) :
-		mode(material->GetDepthMode()),
-		depthWriteEnabled(material->GetDepthWriteEnabled()),
+		MetalDepthStencilState(const Material::Properties &materialProperties, id<MTLDepthStencilState> depthStencilState, MTLPixelFormat depth, MTLPixelFormat stencil) :
+		mode(materialProperties.depthMode),
+		depthWriteEnabled(materialProperties.depthWriteEnabled),
 		depthStencilState(depthStencilState),
 		depthFormat(depth),
 		stencilFormat(stencil)
@@ -75,9 +75,9 @@ namespace RN
 		MTLPixelFormat depthFormat;
 		MTLPixelFormat stencilFormat;
 		
-		RN_INLINE bool MatchesMaterial(Material *material, MTLPixelFormat depth, MTLPixelFormat stencil) const
+		RN_INLINE bool MatchesMaterial(const Material::Properties &materialProperties, MTLPixelFormat depth, MTLPixelFormat stencil) const
 		{
-			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled && depth == depthFormat && stencil == stencilFormat);
+			return (materialProperties.depthMode == mode && materialProperties.depthWriteEnabled == depthWriteEnabled && depth == depthFormat && stencil == stencilFormat);
 		}
 	};
 
@@ -90,10 +90,10 @@ namespace RN
 
 		MTLAPI void SetDevice(id<MTLDevice> device);
 
-		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material, const MetalRenderingState *renderingState);
+		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(const Material::Properties &materialProperties, const MetalRenderingState *renderingState);
 		MTLAPI id<MTLSamplerState> GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor);
 
-		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer);
+		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
