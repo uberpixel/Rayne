@@ -138,7 +138,7 @@ namespace RN
 		bool GetUseAlphaToCoverage() const { return _properties.useAlphaToCoverage; }
 		float GetAlphaToCoverageClamp() const { return _properties.alphaToCoverageClamp; }
 		
-		const Properties GetMergedProperties(Material *overrideMaterial) const;
+		RNAPI const Properties GetMergedProperties(Material *overrideMaterial) const;
 
 	private:
 		Override _override;

@@ -981,9 +981,8 @@ namespace RN
 
 	void D3D12Renderer::FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset)
 	{
-		//TODO: Solve material overrides better...
-		Material *drawableMaterial = drawable->material;
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
+		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		buffer += offset;
@@ -1078,73 +1077,45 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AmbientColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetAmbientColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.ambientColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiffuseColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetDiffuseColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.diffuseColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpecularColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetSpecularColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.specularColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::EmissiveColor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupColors) && !(drawableMaterial->GetOverride() & Material::Override::GroupColors))
-						material = overrideMaterial;
-
-					std::memcpy(buffer + descriptor->GetOffset(), &material->GetEmissiveColor().r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.emissiveColor.r, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::TextureTileFactor) && !(drawableMaterial->GetOverride() & Material::Override::TextureTileFactor))
-						material = overrideMaterial;
-
-					float temp = material->GetTextureTileFactor();
+					float temp = mergedMaterialProperties.textureTileFactor;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
 				{
-					Material* material = drawableMaterial;
-					if(overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
-						material = overrideMaterial;
-
-					float temp = material->GetDiscardThreshold();
+					float temp = mergedMaterialProperties.discardThreshold;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
-					Material* material = drawableMaterial;
-					if (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::DiscardThreshold) && !(drawableMaterial->GetOverride() & Material::Override::DiscardThreshold))
-						material = overrideMaterial;
-
-					float temp = material->GetAlphaToCoverageClamp();
+					float temp = mergedMaterialProperties.alphaToCoverageClamp;
 					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
 					break;
 				}

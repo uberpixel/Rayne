@@ -307,8 +307,7 @@ namespace RN
 	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
-
-		const Material *cameraMaterial = overrideMaterial;
+		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
 		D3D12PipelineStateDescriptor pipelineDescriptor;
 		pipelineDescriptor.sampleCount = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain())? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleCount : 1;
 		pipelineDescriptor.sampleQuality = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
@@ -324,13 +323,13 @@ namespace RN
 		}
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 		pipelineDescriptor.shaderHint = shaderHint;
-		pipelineDescriptor.vertexShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? cameraMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
-		pipelineDescriptor.fragmentShader = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? cameraMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
-		pipelineDescriptor.cullMode = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::CullMode) && !(material->GetOverride() & Material::Override::CullMode)) ? cameraMaterial->GetCullMode() : material->GetCullMode();
-		pipelineDescriptor.usePolygonOffset = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetUsePolygonOffset() : material->GetUsePolygonOffset();
-		pipelineDescriptor.polygonOffsetFactor = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetFactor() : material->GetPolygonOffsetFactor();
-		pipelineDescriptor.polygonOffsetUnits = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupPolygonOffset) && !(material->GetOverride() & Material::Override::GroupPolygonOffset)) ? cameraMaterial->GetPolygonOffsetUnits() : material->GetPolygonOffsetUnits();
-		pipelineDescriptor.useAlphaToCoverage = (cameraMaterial && !(cameraMaterial->GetOverride() & Material::Override::GroupAlphaToCoverage) && !(material->GetOverride() & Material::Override::GroupAlphaToCoverage)) ? cameraMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
+		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.cullMode = mergedMaterialProperties.cullMode;
+		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
+		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
+		pipelineDescriptor.polygonOffsetUnits = mergedMaterialProperties.polygonOffsetUnits;
+		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
