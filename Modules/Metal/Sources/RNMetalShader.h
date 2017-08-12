@@ -26,11 +26,12 @@ namespace RN
 		MTLAPI const String *GetName() const override;
 
 	private:
-		MetalShader(ShaderLibrary *library, Type type, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator);
+		MetalShader(ShaderLibrary *library, Type type, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator);
 		void SetReflectedArguments(NSArray *arguments);
 
 		void *_shader;
 		std::vector<void*> _samplers;
+		const Array *_rnSamplers; //TODO: Fix naming...
 		MetalStateCoordinator *_coordinator;
 
 		bool _wantsDirectionalShadowTexture;

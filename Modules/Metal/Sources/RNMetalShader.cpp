@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
+	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
 		Shader(library, type, options),
 		_shader(shader),
 		_coordinator(coordinator),
@@ -23,6 +23,8 @@ namespace RN
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
 		// owned object
+		
+		_rnSamplers = samplers->Retain();
 	}
 
 	MetalShader::~MetalShader()
@@ -105,6 +107,13 @@ namespace RN
 				default:
 					break;
 			}
+		}
+		
+		if(_rnSamplers->GetCount() > 0)
+		{
+			RN_ASSERT(samplers->GetCount() == _rnSamplers->GetCount(), "Sampler count missmatch!");
+			samplers->RemoveAllObjects();
+			samplers->AddObjectsFromArray(_rnSamplers);
 		}
 
 		Signature *signature = new Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), textureCount);

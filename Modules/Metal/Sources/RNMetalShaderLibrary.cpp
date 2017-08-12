@@ -276,7 +276,8 @@ namespace RN
 			}
 		}*/
 		
-		shader = new MetalShader(library, _type, newOptions, function, coordinator);
+		const Array *samplers = GetSamplerSignature(newOptions);
+		shader = new MetalShader(library, _type, samplers, newOptions, function, coordinator);
 		_shaders->SetObjectForKey(shader, newOptions);
 		return shader->Autorelease();
 	}
