@@ -34,17 +34,20 @@ namespace RN
 
 		MTLAPI Texture *GetColorTexture(uint32 index = 0) const final;
 		MTLAPI Texture *GetDepthStencilTexture() const final;
+		
+		MTLAPI uint8 GetSampleCount() const final;
 
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
 
 		MTLRenderPassDescriptor *GetRenderPassDescriptor(RenderPass *renderPass) const;
-		MTLAPI MTLPixelFormat GetMetalColorFormat() const;
+		MTLAPI MTLPixelFormat GetMetalColorFormat(uint8 texture) const;
 		MTLAPI MTLPixelFormat GetMetalDepthFormat() const;
 		MTLAPI MTLPixelFormat GetMetalStencilFormat() const;
 
 	private:
 		void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
+		uint8 _sampleCount;
 		std::vector<MetalTargetView *> _colorTargets;
 		MetalTargetView *_depthStencilTarget;
 

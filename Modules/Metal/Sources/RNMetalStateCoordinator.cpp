@@ -231,12 +231,13 @@ namespace RN
 	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer)
 	{
 		MetalFramebuffer *metalFramebuffer = framebuffer->Downcast<MetalFramebuffer>();
-		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat();
+		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat(0);
 		MTLPixelFormat depthFormat = metalFramebuffer->GetMetalDepthFormat();
 		MTLPixelFormat stencilFormat = metalFramebuffer->GetMetalStencilFormat();
 		
 		for(const MetalRenderingState *state : collection->states)
 		{
+			//TODO: include things like different pixel formats and sample rate...
 			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)
 				return state;
 		}
@@ -247,7 +248,8 @@ namespace RN
 		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
 		pipelineStateDescriptor.fragmentFunction = static_cast<id>(collection->fragmentShader->_shader);
 		pipelineStateDescriptor.vertexDescriptor = descriptor;
-		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat;
+		pipelineStateDescriptor.sampleCount = metalFramebuffer->GetSampleCount();
+		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
 

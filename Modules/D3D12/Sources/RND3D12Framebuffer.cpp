@@ -138,6 +138,7 @@ namespace RN
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12SwapChain *swapChain, D3D12Renderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(Vector2()),
+		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(swapChain),
 		_swapChainColorBuffers(nullptr),
@@ -150,6 +151,7 @@ namespace RN
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12Renderer *renderer) :
 		Framebuffer(size),
+		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(nullptr),
 		_swapChainColorBuffers(nullptr),
@@ -208,6 +210,8 @@ namespace RN
 		RN_ASSERT(target.texture, "The color target needs a texture!");
 		target.texture->Retain();
 
+		_sampleCount = target.texture->GetDescriptor().sampleCount;
+
 		D3D12ColorTargetView *targetView = D3D12ColorTargetViewFromTargetView(target);
 		if(index < _colorTargets.size())
 		{
@@ -250,6 +254,11 @@ namespace RN
 			return nullptr;
 
 		return _depthStencilTarget->targetView.texture;
+	}
+
+	uint8 D3D12Framebuffer::GetSampleCount() const
+	{
+		return _sampleCount;
 	}
 
 	ID3D12Resource *D3D12Framebuffer::GetSwapChainColorBuffer() const

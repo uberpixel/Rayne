@@ -43,6 +43,7 @@ namespace RN
 
 		D3DAPI Texture *GetColorTexture(uint32 index = 0) const final;
 		D3DAPI Texture *GetDepthStencilTexture() const final;
+		D3DAPI uint8 GetSampleCount() const final;
 
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 		D3DAPI ID3D12Resource *GetSwapChainColorBuffer() const;
@@ -58,6 +59,8 @@ namespace RN
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE *_rtvHandle;
 		CD3DX12_CPU_DESCRIPTOR_HANDLE *_dsvHandle;
+
+		uint8 _sampleCount;
 
 		D3D12Renderer *_renderer;
 		uint32 _frameLastUsed;

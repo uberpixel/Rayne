@@ -309,7 +309,7 @@ namespace RN
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
 		D3D12PipelineStateDescriptor pipelineDescriptor;
-		pipelineDescriptor.sampleCount = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain())? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleCount : 1;
+		pipelineDescriptor.sampleCount = framebuffer->GetSampleRate();
 		pipelineDescriptor.sampleQuality = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
 
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)

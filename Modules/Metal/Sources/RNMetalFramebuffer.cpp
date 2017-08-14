@@ -18,6 +18,7 @@ namespace RN
 
 	MetalFramebuffer::MetalFramebuffer(const Vector2 &size, MetalSwapChain *swapChain, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(size),
+		_sampleCount(1),
 		_depthStencilTarget(nullptr),
 		_swapChain(swapChain)
 	{
@@ -80,6 +81,7 @@ namespace RN
 
 	MetalFramebuffer::MetalFramebuffer(const Vector2 &size) :
 		Framebuffer(size),
+		_sampleCount(1),
 		_depthStencilTarget(nullptr),
 		_swapChain(nullptr)
 	{
@@ -156,8 +158,11 @@ namespace RN
 	{
 		RN_ASSERT(!_swapChain, "A swap chain framebuffer can not have additional color targets!");
 		RN_ASSERT(target.texture, "The color target needs a texture!");
+		RN_ASSERT((_colorTargets.size() == 0 && !_depthStencilTarget) || _sampleCount == target.texture->GetDescriptor().sampleCount, "Texture sample count differs from other framebuffer textures sample count");
 		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
+		
 		target.texture->Retain();
+		_sampleCount = target.texture->GetDescriptor().sampleCount;
 		
 		id<MTLTexture> mtlTexture = static_cast< id<MTLTexture> >(target.texture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 		MetalTargetView *newTarget = new MetalTargetView;
@@ -180,7 +185,10 @@ namespace RN
 	{
 		RN_ASSERT(target.texture, "The depth stencil target needs a texture!");
 		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
+		RN_ASSERT(_colorTargets.size() == 0 || _sampleCount == target.texture->GetDescriptor().sampleCount, "Texture sample count differs from other framebuffer textures sample count");
+		
 		target.texture->Retain();
+		_sampleCount = target.texture->GetDescriptor().sampleCount;
 
 		id<MTLTexture> mtlTexture = static_cast< id<MTLTexture> >(target.texture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 		MetalTargetView *newTarget = new MetalTargetView;
@@ -210,6 +218,11 @@ namespace RN
 			return nullptr;
 
 		return _depthStencilTarget->targetView.texture;
+	}
+	
+	uint8 MetalFramebuffer::GetSampleCount() const
+	{
+		return _sampleCount;
 	}
 
 	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass) const
@@ -308,11 +321,11 @@ namespace RN
 		}
 	}
 	
-	MTLPixelFormat MetalFramebuffer::GetMetalColorFormat() const
+	MTLPixelFormat MetalFramebuffer::GetMetalColorFormat(uint8 texture) const
 	{
-		if(_colorTargets.size() > 0)
+		if(_colorTargets.size() > 0)//texture)
 		{
-			return _colorTargets[0]->pixelFormat;
+			return _colorTargets[/*texture*/0]->pixelFormat;
 		}
 		
 		return MTLPixelFormatInvalid;

@@ -383,6 +383,7 @@ namespace RN
 		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.accessOptions);
 		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
 		metalDescriptor.pixelFormat = MetalTexture::PixelFormatForTextureFormat(descriptor.format);
+		metalDescriptor.sampleCount = descriptor.sampleCount;
 
 		MTLTextureUsage usage = 0;
 

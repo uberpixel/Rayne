@@ -41,6 +41,7 @@ namespace RN
 
 		RNAPI virtual Texture *GetColorTexture(uint32 index = 0) const = 0;
 		RNAPI virtual Texture *GetDepthStencilTexture() const = 0;
+		RNAPI virtual uint8 GetSampleCount() const = 0;
 
 		RNAPI virtual void SetColorTarget(const TargetView &target, uint32 index = 0) = 0;
 		RNAPI virtual void SetDepthStencilTarget(const TargetView &target) = 0;
