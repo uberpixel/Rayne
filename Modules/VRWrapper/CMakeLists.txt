@@ -22,8 +22,13 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_VR)
 
-set(RAYNE_LIBRARIES Rayne RayneD3D12)
-set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
+if(APPLE)
+	set(RAYNE_LIBRARIES Rayne RayneMetal)
+	set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/../Metal/include/Sources")
+else()
+	set(RAYNE_LIBRARIES Rayne RayneD3D12)
+	set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
+endif()
 
 rayne_add_library(RayneVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVR)

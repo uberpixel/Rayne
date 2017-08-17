@@ -13,10 +13,11 @@
 
 namespace RN
 {
+	class OpenALWorld;
 	class OpenALListener : public SceneNodeAttachment
 	{
 	public:
-		friend class OpenALWorld;
+		friend OpenALWorld;
 			
 		OALAPI OpenALListener();
 		OALAPI ~OpenALListener() override;

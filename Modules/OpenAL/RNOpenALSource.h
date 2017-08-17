@@ -13,10 +13,11 @@
 
 namespace RN
 {
+	class OpenALWorld;
 	class OpenALSource : public SceneNode
 	{
 	public:
-		friend class OpenALWorld;
+		friend OpenALWorld;
 			
 		OALAPI OpenALSource(AudioAsset *asset);
 		OALAPI ~OpenALSource() override;
