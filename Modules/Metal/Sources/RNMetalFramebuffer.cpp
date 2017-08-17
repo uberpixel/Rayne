@@ -225,7 +225,7 @@ namespace RN
 		return _sampleCount;
 	}
 
-	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass) const
+	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass, MetalFramebuffer *resolveFramebuffer) const
 	{
 		//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
 		//There does not appear to be a way to only clear part of the framebuffer...
@@ -252,7 +252,15 @@ namespace RN
 			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:counter];
 			[colorAttachment setTexture:texture];
 			[colorAttachment setLoadAction:MTLLoadActionClear];
-			[colorAttachment setStoreAction:MTLStoreActionStore];
+			if(resolveFramebuffer && resolveFramebuffer->GetColorTexture())
+			{
+				[colorAttachment setStoreAction:MTLStoreActionMultisampleResolve];
+				[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetColorTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+			}
+			else
+			{
+				[colorAttachment setStoreAction:MTLStoreActionStore];
+			}
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 			[colorAttachment setSlice:metalTarget->targetView.slice];
 			[colorAttachment setLevel:metalTarget->targetView.mipmap];
@@ -270,7 +278,15 @@ namespace RN
 				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
 				[depthAttachment setTexture:depthStencilTexture];
 				[depthAttachment setLoadAction:MTLLoadActionClear];
-				[depthAttachment setStoreAction:MTLStoreActionStore];
+				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
+				{
+					[depthAttachment setStoreAction:MTLStoreActionMultisampleResolve];
+					[depthAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+				}
+				else
+				{
+					[depthAttachment setStoreAction:MTLStoreActionStore];
+				}
 				[depthAttachment setSlice:_depthStencilTarget->targetView.slice];
 				[depthAttachment setLevel:_depthStencilTarget->targetView.mipmap];
 			}

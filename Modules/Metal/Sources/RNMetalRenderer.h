@@ -22,6 +22,7 @@ namespace RN
 	class MetalWindow;
 	class MetalTexture;
 	class MetalUniformBuffer;
+	class MetalRenderPass;
 	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
@@ -38,7 +39,7 @@ namespace RN
 
 		MTLAPI void Render(Function &&function) final;
 		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
-		MTLAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final {}; //TODO: Implement
+		MTLAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -52,7 +53,7 @@ namespace RN
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint = Shader::UsageHint::Default) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -65,8 +66,10 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
+		void RenderAPIRenderPass(id<MTLCommandEncoder> commandEncoder, const MetalRenderPass &renderPass);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
+		Shader *GetPPBlitShader(Shader::Type type);
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
@@ -74,6 +77,9 @@ namespace RN
 
 		PIMPL<MetalRendererInternals> _internals;
 		MetalWindow *_mainWindow;
+		
+		MetalDrawable *_defaultPostProcessingDrawable;
+		Material *_ppBlitMaterial;
 
 		Lockable _lock;
 

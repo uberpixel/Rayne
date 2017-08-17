@@ -79,5 +79,23 @@
 				}
 			}
 		]
+	},
+	{
+		"file": ":RayneMetal:/PostProcessing.metal",
+		"shaders":
+		[
+			{
+				"name": "pp_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_blit_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}]
+				}
+			}
+		]
 	}
 ]

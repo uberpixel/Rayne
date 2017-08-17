@@ -127,6 +127,7 @@ namespace RN
 		MetalFramebuffer *framebuffer;
 		Shader::UsageHint shaderHint;
 		Material *overrideMaterial;
+		MetalFramebuffer *resolveFramebuffer;
 
 		Vector3 viewPosition;
 		Matrix viewMatrix;
