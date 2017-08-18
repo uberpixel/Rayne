@@ -52,7 +52,7 @@ namespace RN
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new MetalFramebuffer(_size, this, Texture::Format::BGRA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer = new MetalFramebuffer(_size, this, Texture::Format::BGRA8888SRGB, Texture::Format::Invalid);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Left);
@@ -104,7 +104,7 @@ namespace RN
 		textureDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
 		MetalRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<MetalRenderer>();
 		_targetTexture = renderer->CreateTextureWithDescriptorAndIOSurface(textureDescriptor, _targetSurface)->Downcast<MetalTexture>();
-		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::BGRA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::BGRA8888SRGB, Texture::Format::Invalid);
 	}
 
 
@@ -139,6 +139,12 @@ namespace RN
 		bounds.uMin = 0.5f + kEyePadding * 0.5f / _size.x;
 		bounds.uMax = 1.0f;
 		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
+	}
+	
+	void OpenVRMetalSwapChain::PostPresent(id<MTLCommandBuffer> commandBuffer)
+	{
+		[commandBuffer waitUntilScheduled];
+		vr::VRCompositor()->PostPresentHandoff();
 	}
 	
 	id OpenVRMetalSwapChain::GetMTLTexture() const

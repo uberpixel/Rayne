@@ -209,6 +209,7 @@ namespace RN
 
 		MetalShader *vertexShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(shaderHint) : material->GetVertexShader(shaderHint));
 		MetalShader *fragmentShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetFragmentShader(shaderHint) : material->GetFragmentShader(shaderHint));
+		bool wantsAlphaToCoverage = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupAlphaToCoverage) && !(material->GetOverride() & Material::Override::GroupAlphaToCoverage))? overrideMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
 
 		for(MetalRenderingStateCollection *collection : _renderingStates)
 		{
@@ -216,7 +217,7 @@ namespace RN
 			{
 				if(collection->fragmentShader->IsEqual(fragmentShader) && collection->vertexShader->IsEqual(vertexShader))
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer);
+					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage);
 				}
 			}
 		}
@@ -224,11 +225,11 @@ namespace RN
 		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer);
+		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage);
 
 	}
 
-	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage)
 	{
 		MetalFramebuffer *metalFramebuffer = framebuffer->Downcast<MetalFramebuffer>();
 		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat(0);
@@ -238,7 +239,7 @@ namespace RN
 		for(const MetalRenderingState *state : collection->states)
 		{
 			//TODO: include things like different pixel formats and sample rate...
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat)
+			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == wantsAlphaToCoverage)
 				return state;
 		}
 
@@ -252,6 +253,7 @@ namespace RN
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
+		pipelineStateDescriptor.alphaToCoverageEnabled = wantsAlphaToCoverage;
 
 		id<MTLRenderPipelineState> pipelineState = nil;
 		if(collection->vertexShader->GetSignature() && collection->fragmentShader->GetSignature())
@@ -288,6 +290,7 @@ namespace RN
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
 		state->wantsShadowTexture = collection->fragmentShader->_wantsDirectionalShadowTexture; //TODO: also support in vertex shader/generalize special texture handling
+		state->wantsAlphaToCoverage = wantsAlphaToCoverage;
 
 		collection->states.push_back(state);
 

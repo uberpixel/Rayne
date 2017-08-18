@@ -35,7 +35,7 @@ namespace RN
 
 	void MetalSwapChain::AcquireBackBuffer()
 	{
-		_drawable = [_metalView nextDrawable];
+		_drawable = nil;//[_metalView nextDrawable];
 	}
 	void MetalSwapChain::Prepare()
 	{
@@ -47,7 +47,12 @@ namespace RN
 	}
 	void MetalSwapChain::PresentBackBuffer(id<MTLCommandBuffer> commandBuffer)
 	{
-		[commandBuffer presentDrawable:_drawable];
+		//[commandBuffer presentDrawable:_drawable];
+	}
+	
+	void MetalSwapChain::PostPresent(id<MTLCommandBuffer> commandBuffer)
+	{
+		
 	}
 
 	id MetalSwapChain::GetMTLTexture() const

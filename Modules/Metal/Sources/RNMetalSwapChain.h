@@ -28,6 +28,7 @@ namespace RN
 		MTLAPI virtual void Prepare();
 		MTLAPI virtual void Finalize();
 		MTLAPI virtual void PresentBackBuffer(id<MTLCommandBuffer> commandBuffer);
+		MTLAPI virtual void PostPresent(id<MTLCommandBuffer> commandBuffer);
 
 		MTLAPI virtual id GetMTLTexture() const;
 		MetalFramebuffer *GetFramebuffer() const { return _framebuffer; }

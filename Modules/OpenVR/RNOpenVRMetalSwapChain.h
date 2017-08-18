@@ -29,6 +29,7 @@ namespace RN
 		OVRAPI void Prepare() final;
 		OVRAPI void Finalize() final;
 		OVRAPI void PresentBackBuffer(id<MTLCommandBuffer> commandBuffer) final;
+		OVRAPI void PostPresent(id<MTLCommandBuffer> commandBuffer) final;
 		
 		OVRAPI id GetMTLTexture() const final;
 

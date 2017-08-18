@@ -113,6 +113,12 @@ namespace RN
 		_internals->currentRenderPassIndex = 0;
 		for(MetalRenderPass &renderPass : _internals->renderPasses)
 		{
+			if(renderPass.framebuffer->GetSwapChain() && !renderPass.framebuffer->GetSwapChain()->GetMTLTexture())
+			{
+				_internals->currentRenderPassIndex += 1;
+				continue;
+			}
+			
 			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer);
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
@@ -160,6 +166,12 @@ namespace RN
 			swapChain->PresentBackBuffer(_internals->commandBuffer);
 		}
 		[_internals->commandBuffer commit];
+		
+		for(MetalSwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->PostPresent(_internals->commandBuffer);
+		}
+		
 		[_internals->commandBuffer release];
 		_internals->commandBuffer = nil;
 	}
@@ -864,8 +876,8 @@ namespace RN
 		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
 		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
 		{
-			[encoder setRenderPipelineState: drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->state];
 			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
+			[encoder setRenderPipelineState: _internals->currentRenderState->state];
 		}
 		
 		Shader *vertexShader = _internals->currentRenderState->vertexShader;
