@@ -28,7 +28,7 @@ struct FragmentVertex
 vertex FragmentVertex pp_vertex(InputVertex vert [[stage_in]])
 {
 	FragmentVertex result;
-	result.position = float4(vert.position.xy, 1.0, 1.0001).xyww;
+	result.position = float4(vert.position.xy, 1.0, 1.0001);
 	result.texCoords = vert.texCoords;
 
 	return result;

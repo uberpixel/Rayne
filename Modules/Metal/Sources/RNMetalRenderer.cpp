@@ -385,7 +385,8 @@ namespace RN
 			});
 	}
 
-	MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options)
+	//TODO: Move into an utility class
+	MTLResourceOptions MetalRenderer::MetalResourceOptionsFromOptions(GPUResource::AccessOptions options)
 	{
 		switch(options)
 		{
@@ -576,72 +577,19 @@ namespace RN
 
 	Texture *MetalRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
 	{
-		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
-
-		metalDescriptor.width = descriptor.width;
-		metalDescriptor.height = descriptor.height;
-		metalDescriptor.resourceOptions = MetalResourceOptionsFromOptions(descriptor.accessOptions);
-		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
-		metalDescriptor.pixelFormat = MetalTexture::PixelFormatForTextureFormat(descriptor.format);
-		metalDescriptor.sampleCount = descriptor.sampleCount;
-
-		MTLTextureUsage usage = 0;
-
-		if(descriptor.usageHint & Texture::UsageHint::ShaderRead)
-			usage |= MTLTextureUsageShaderRead;
-		if(descriptor.usageHint & Texture::UsageHint::ShaderWrite)
-			usage |= MTLTextureUsageShaderWrite;
-		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
-		{
-			usage |= MTLTextureUsageRenderTarget;
-			metalDescriptor.storageMode = MTLStorageModePrivate;
-		}
-
-		metalDescriptor.usage = usage;
-
-
-		switch(descriptor.type)
-		{
-			case Texture::Type::Type1D:
-				metalDescriptor.textureType = MTLTextureType1D;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-			case Texture::Type::Type1DArray:
-				metalDescriptor.textureType = MTLTextureType1DArray;
-				metalDescriptor.depth = 1;
-				metalDescriptor.arrayLength = descriptor.depth;
-				break;
-			case Texture::Type::Type2D:
-				metalDescriptor.textureType = MTLTextureType2D;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-			case Texture::Type::Type2DMS:
-				metalDescriptor.textureType = MTLTextureType2DMultisample;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-			case Texture::Type::Type2DArray:
-				metalDescriptor.textureType = MTLTextureType2DArray;
-				metalDescriptor.depth = 1;
-				metalDescriptor.arrayLength = descriptor.depth;
-				break;
-			case Texture::Type::TypeCube:
-				metalDescriptor.textureType = MTLTextureTypeCube;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-			case Texture::Type::TypeCubeArray:
-				metalDescriptor.textureType = MTLTextureTypeCubeArray;
-				metalDescriptor.depth = 1;
-				metalDescriptor.arrayLength = descriptor.depth;
-				break;
-			case Texture::Type::Type3D:
-				metalDescriptor.textureType = MTLTextureType3D;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-		}
-
+		MTLTextureDescriptor *metalDescriptor = MetalTexture::DescriptorForTextureDescriptor(descriptor);
 		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor];
 		[metalDescriptor release];
 
+		return new MetalTexture(this, texture, descriptor);
+	}
+	
+	Texture *MetalRenderer::CreateTextureWithDescriptorAndIOSurface(const Texture::Descriptor &descriptor, IOSurfaceRef ioSurface)
+	{
+		MTLTextureDescriptor *metalDescriptor = MetalTexture::DescriptorForTextureDescriptor(descriptor, true);
+		id<MTLTexture> texture = [_internals->device newTextureWithDescriptor:metalDescriptor iosurface:ioSurface plane:0];
+		[metalDescriptor release];
+		
 		return new MetalTexture(this, texture, descriptor);
 	}
 

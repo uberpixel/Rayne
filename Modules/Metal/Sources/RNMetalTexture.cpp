@@ -146,4 +146,77 @@ namespace RN
 				return MTLPixelFormatInvalid;
 		}
 	}
+	
+	MTLTextureDescriptor *MetalTexture::DescriptorForTextureDescriptor(const Descriptor &descriptor, bool isIOSurfaceBacked)
+	{
+		MTLTextureDescriptor *metalDescriptor = [[MTLTextureDescriptor alloc] init];
+		
+		metalDescriptor.width = descriptor.width;
+		metalDescriptor.height = descriptor.height;
+		metalDescriptor.resourceOptions = MetalRenderer::MetalResourceOptionsFromOptions(descriptor.accessOptions);
+		metalDescriptor.mipmapLevelCount = descriptor.mipMaps;
+		metalDescriptor.pixelFormat = MetalTexture::PixelFormatForTextureFormat(descriptor.format);
+		metalDescriptor.sampleCount = descriptor.sampleCount;
+		
+		MTLTextureUsage usage = 0;
+		
+		if(descriptor.usageHint & Texture::UsageHint::ShaderRead)
+			usage |= MTLTextureUsageShaderRead;
+		if(descriptor.usageHint & Texture::UsageHint::ShaderWrite)
+			usage |= MTLTextureUsageShaderWrite;
+		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
+		{
+			usage |= MTLTextureUsageRenderTarget;
+			metalDescriptor.storageMode = MTLStorageModePrivate;
+		}
+		
+		if(isIOSurfaceBacked)
+		{
+			metalDescriptor.storageMode = MTLStorageModeManaged;
+		}
+		
+		metalDescriptor.usage = usage;
+		
+		
+		switch(descriptor.type)
+		{
+			case Texture::Type::Type1D:
+				metalDescriptor.textureType = MTLTextureType1D;
+				metalDescriptor.depth = descriptor.depth;
+				break;
+			case Texture::Type::Type1DArray:
+				metalDescriptor.textureType = MTLTextureType1DArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
+				break;
+			case Texture::Type::Type2D:
+				metalDescriptor.textureType = MTLTextureType2D;
+				metalDescriptor.depth = descriptor.depth;
+				break;
+			case Texture::Type::Type2DMS:
+				metalDescriptor.textureType = MTLTextureType2DMultisample;
+				metalDescriptor.depth = descriptor.depth;
+				break;
+			case Texture::Type::Type2DArray:
+				metalDescriptor.textureType = MTLTextureType2DArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
+				break;
+			case Texture::Type::TypeCube:
+				metalDescriptor.textureType = MTLTextureTypeCube;
+				metalDescriptor.depth = descriptor.depth;
+				break;
+			case Texture::Type::TypeCubeArray:
+				metalDescriptor.textureType = MTLTextureTypeCubeArray;
+				metalDescriptor.depth = 1;
+				metalDescriptor.arrayLength = descriptor.depth;
+				break;
+			case Texture::Type::Type3D:
+				metalDescriptor.textureType = MTLTextureType3D;
+				metalDescriptor.depth = descriptor.depth;
+				break;
+		}
+		
+		return metalDescriptor;
+	}
 }

@@ -14,28 +14,61 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
         RNOpenVRInit.cpp
-        RNOpenVRSwapChain.cpp
         RNOpenVRWindow.cpp)
 
 set(HEADERS
 		RNOpenVR.h
-        RNOpenVRSwapChain.h
         RNOpenVRWindow.h)
 
 set(DEFINES RN_BUILD_OPENVR)
 
-set(RAYNE_LIBRARIES Rayne openvr_api64 RayneD3D12 RayneVR)
+set(RAYNE_LIBRARIES Rayne RayneVR)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OpenVR/headers"
-        "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources"
         "${CMAKE_CURRENT_BINARY_DIR}/../VRWrapper/include")
+
+
+if(MSVC AND ${BUILD_D3D12_MODULE})
+    set(SOURCES
+        ${SOURCES}
+        RNOpenVRD3D12SwapChain.cpp)
+
+    set(HEADERS
+        ${HEADERS}
+        RNOpenVRD3D12SwapChain.h)
+
+    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api64 RayneD3D12)
+
+    set(INCLUDE_DIRECTORIES
+        ${INCLUDE_DIRECTORIES}
+        "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
+elseif(APPLE AND ${BUILD_METAL_MODULE})
+    set(SOURCES
+        ${SOURCES}
+        RNOpenVRMetalSwapChain.cpp)
+
+    set(HEADERS
+        ${HEADERS}
+        RNOpenVRMetalSwapChain.h)
+
+    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api RayneMetal)
+
+    set(INCLUDE_DIRECTORIES
+        ${INCLUDE_DIRECTORIES}
+        "${CMAKE_CURRENT_BINARY_DIR}/../Metal/include/Sources")
+endif()
 
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOpenVR)
 
 if(MSVC AND ${BUILD_D3D12_MODULE})
     rayne_use_modules(RayneOpenVR RayneD3D12)
+elseif(APPLE AND ${BUILD_METAL_MODULE})
+    rayne_use_modules(RayneOpenVR RayneMetal)
+    target_compile_options(RayneOpenVR PRIVATE "-xobjective-c++")
+    FIND_LIBRARY(IOSURFACE_LIBRARY IOSurface)
+    target_link_libraries(RayneOpenVR ${IOSURFACE_LIBRARY})
 endif()
 
 target_include_directories(RayneOpenVR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")

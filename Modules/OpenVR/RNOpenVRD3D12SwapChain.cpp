@@ -1,21 +1,21 @@
 //
-//  RNOpenVRSwapChain.cpp
+//  RNOpenVRD3D12SwapChain.cpp
 //  Rayne-OpenVR
 //
 //  Copyright 2017 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNOpenVRSwapChain.h"
+#include "RNOpenVRD3D12SwapChain.h"
 #include "RND3D12Internals.h"
 
 namespace RN
 {
-	RNDefineMeta(OpenVRSwapChain, D3D12SwapChain)
+	RNDefineMeta(OpenVRD3D12SwapChain, D3D12SwapChain)
 
-	const uint32 OpenVRSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
+	const uint32 OpenVRD3D12SwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
 
-	OpenVRSwapChain::OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor) : _isFirstRender(true)
+	OpenVRD3D12SwapChain::OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor) : _isFirstRender(true)
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 		_hmd = vr::VR_Init(&eError, vr::VRApplication_Scene);
@@ -56,13 +56,13 @@ namespace RN
 		_hmdToEyeViewOffset[1].z = rightEyeMatrix.m[2][3];
 	}
 
-	OpenVRSwapChain::~OpenVRSwapChain()
+	OpenVRD3D12SwapChain::~OpenVRD3D12SwapChain()
 	{
 		SafeRelease(_targetTexture);
 		if(_hmd) vr::VR_Shutdown();
 	}
 
-	const String *OpenVRSwapChain::GetHMDInfoDescription() const
+	const String *OpenVRD3D12SwapChain::GetHMDInfoDescription() const
 	{
 		if (!_hmd)
 			return RNCSTR("No HMD found.");
@@ -77,7 +77,7 @@ namespace RN
 		return description;
 	}
 
-	void OpenVRSwapChain::ResizeSwapchain(const Vector2& size)
+	void OpenVRD3D12SwapChain::ResizeSwapchain(const Vector2& size)
 	{
 		_size = size;
 		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
@@ -90,12 +90,12 @@ namespace RN
 	}
 
 
-	void OpenVRSwapChain::AcquireBackBuffer()
+	void OpenVRD3D12SwapChain::AcquireBackBuffer()
 	{
 		
 	}
 
-	void OpenVRSwapChain::Prepare(D3D12CommandList *commandList)
+	void OpenVRD3D12SwapChain::Prepare(D3D12CommandList *commandList)
 	{
 		if (_isFirstRender)
 			return;
@@ -103,13 +103,13 @@ namespace RN
 		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	}
 
-	void OpenVRSwapChain::Finalize(D3D12CommandList *commandList)
+	void OpenVRD3D12SwapChain::Finalize(D3D12CommandList *commandList)
 	{
 		_targetTexture->Downcast<D3D12Texture>()->TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		_isFirstRender = false;
 	}
 
-	void OpenVRSwapChain::PresentBackBuffer()
+	void OpenVRD3D12SwapChain::PresentBackBuffer()
 	{
 		vr::D3D12TextureData_t d3d12EyeTexture;
 		d3d12EyeTexture.m_pResource = _targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
@@ -131,12 +131,12 @@ namespace RN
 		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
 	}
 
-	ID3D12Resource *OpenVRSwapChain::GetD3D12Buffer(int i) const
+	ID3D12Resource *OpenVRD3D12SwapChain::GetD3D12Buffer(int i) const
 	{
 		return _targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
 	}
 
-	void OpenVRSwapChain::UpdatePredictedPose()
+	void OpenVRD3D12SwapChain::UpdatePredictedPose()
 	{
 		vr::VRCompositor()->WaitGetPoses(_frameDevicePose, vr::k_unMaxTrackedDeviceCount, _predictedDevicePose, vr::k_unMaxTrackedDeviceCount);
 	}

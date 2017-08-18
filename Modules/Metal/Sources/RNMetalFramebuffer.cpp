@@ -240,9 +240,7 @@ namespace RN
 			if(!target.texture)
 			{
 				RN_ASSERT(_swapChain, "Empty color target view texture, but no swapchain!");
-
-				id<CAMetalDrawable> drawable = _swapChain->GetMetalDrawable();
-				texture = [drawable texture];
+				texture = _swapChain->GetMTLTexture();
 			}
 			else
 			{
@@ -251,7 +249,14 @@ namespace RN
 
 			MTLRenderPassColorAttachmentDescriptor *colorAttachment = [[descriptor colorAttachments] objectAtIndexedSubscript:counter];
 			[colorAttachment setTexture:texture];
-			[colorAttachment setLoadAction:MTLLoadActionClear];
+			if(renderPass->GetFlags() & RenderPass::Flags::ClearColor)
+			{
+				[colorAttachment setLoadAction:MTLLoadActionClear];
+			}
+			else
+			{
+				[colorAttachment setLoadAction:MTLLoadActionLoad];
+			}
 			if(resolveFramebuffer && resolveFramebuffer->GetColorTexture())
 			{
 				[colorAttachment setStoreAction:MTLStoreActionMultisampleResolve];
@@ -277,7 +282,14 @@ namespace RN
 			{
 				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
 				[depthAttachment setTexture:depthStencilTexture];
-				[depthAttachment setLoadAction:MTLLoadActionClear];
+				if(renderPass->GetFlags() & RenderPass::Flags::ClearDepthStencil)
+				{
+					[depthAttachment setLoadAction:MTLLoadActionClear];
+				}
+				else
+				{
+					[depthAttachment setLoadAction:MTLLoadActionLoad];
+				}
 				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
 				{
 					[depthAttachment setStoreAction:MTLStoreActionMultisampleResolve];

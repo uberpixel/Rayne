@@ -1,49 +1,50 @@
 //
-//  RNOpenVRSwapChain.h
+//  RNOpenVRMetalSwapChain.h
 //  Rayne-OpenVR
 //
 //  Copyright 2017 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_OPENVRSWAPCHAIN_H_
-#define __RAYNE_OPENVRSWAPCHAIN_H_
+#ifndef __RAYNE_OPENVRMETALSWAPCHAIN_H_
+#define __RAYNE_OPENVRMETALSWAPCHAIN_H_
 
-#include "RND3D12Renderer.h"
-#include "RND3D12SwapChain.h"
-#include "RND3D12Framebuffer.h"
+#include "RNMetalRenderer.h"
+#include "RNMetalSwapChain.h"
+#include "RNMetalFramebuffer.h"
 
 #include <openvr.h>
 #include "RNOpenVR.h"
 
 namespace RN
 {
-	class OpenVRSwapChain : public D3D12SwapChain
+	class OpenVRMetalSwapChain : public MetalSwapChain
 	{
 	public:
 		friend class OpenVRWindow;
 
-		OVRAPI ~OpenVRSwapChain();
-
+		OVRAPI ~OpenVRMetalSwapChain();
+		
 		OVRAPI void AcquireBackBuffer() final;
-		OVRAPI void Prepare(D3D12CommandList *commandList) final;
-		OVRAPI void Finalize(D3D12CommandList *commandList) final;
-		OVRAPI void PresentBackBuffer() final;
-
-		OVRAPI ID3D12Resource *GetD3D12Buffer(int i) const final;
+		OVRAPI void Prepare() final;
+		OVRAPI void Finalize() final;
+		OVRAPI void PresentBackBuffer(id<MTLCommandBuffer> commandBuffer) final;
+		
+		OVRAPI id GetMTLTexture() const final;
 
 		OVRAPI void UpdatePredictedPose();
 
 	protected:
-		OpenVRSwapChain(const Window::SwapChainDescriptor &descriptor);
+		OVRAPI OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor);
 
 	private:
 		const String *GetHMDInfoDescription() const;
 		void ResizeSwapchain(const Vector2 &size);
 
-		Texture *_targetTexture;
+		MetalTexture *_targetTexture;
+		IOSurfaceRef _targetSurface;
+		
 		Vector3 _hmdToEyeViewOffset[2];
-		bool _isFirstRender;
 
 		vr::IVRSystem *_hmd;
 		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
@@ -51,9 +52,9 @@ namespace RN
 
 		static const uint32 kEyePadding;
 
-		RNDeclareMetaAPI(OpenVRSwapChain, OVRAPI)
+		RNDeclareMetaAPI(OpenVRMetalSwapChain, OVRAPI)
 	};
 }
 
 
-#endif /* __RAYNE_OPENVRSWAPCHAIN_H_ */
+#endif /* __RAYNE_OPENVRMETALSWAPCHAIN_H_ */

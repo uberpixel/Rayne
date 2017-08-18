@@ -18,8 +18,9 @@ namespace RN
 	{
 		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) device:device andFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
 		CGSize realSize = [_metalView getSize];
+		_size = Vector2(realSize.width, realSize.height);
 
-		_framebuffer = new MetalFramebuffer(Vector2(realSize.width, realSize.height), this, descriptor.colorFormat, descriptor.depthStencilFormat);
+		_framebuffer = new MetalFramebuffer(_size, this, descriptor.colorFormat, descriptor.depthStencilFormat);
 	}
 
 	MetalSwapChain::~MetalSwapChain()
@@ -29,7 +30,7 @@ namespace RN
 
 	Vector2 MetalSwapChain::GetSize() const
 	{
-		return Vector2([_metalView getSize].width, [_metalView getSize].height);
+		return _size;
 	}
 
 	void MetalSwapChain::AcquireBackBuffer()
@@ -49,8 +50,8 @@ namespace RN
 		[commandBuffer presentDrawable:_drawable];
 	}
 
-	id MetalSwapChain::GetMetalDrawable() const
+	id MetalSwapChain::GetMTLTexture() const
 	{
-		return _drawable;
+		return [_drawable texture];
 	}
 }

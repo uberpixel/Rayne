@@ -15,7 +15,11 @@
 
 namespace RN
 {
-	class OpenVRSwapChain;
+#if RN_PLATFORM_MAC_OS
+	class OpenVRMetalSwapChain;
+#elif RN_PLATFORM_WINDOWS
+	class OpenVRD3D12SwapChain;
+#endif
 	class OpenVRWindow : public VRWindow
 	{
 	public:
@@ -42,7 +46,12 @@ namespace RN
 		OVRAPI void UpdateSize(const Vector2 &size);
 
 	private:
-		OpenVRSwapChain *_swapChain;
+#if RN_PLATFORM_MAC_OS
+		OpenVRMetalSwapChain *_swapChain;
+#elif RN_PLATFORM_WINDOWS
+		OpenVRD3D12SwapChain *_swapChain;
+#endif
+		
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
 

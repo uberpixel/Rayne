@@ -6,16 +6,25 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNOpenVRSwapChain.h"
 #include "RNOpenVRWindow.h"
+
+#if RN_PLATFORM_MAC_OS
+#include "RNOpenVRMetalSwapChain.h"
+#elif RN_PLATFORM_WINDOWS
+#include "RNOpenVRD3D12SwapChain.h"
+#endif
 
 namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-		OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
+	OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
 	{
-		_swapChain = new OpenVRSwapChain(descriptor);
+#if RN_PLATFORM_MAC_OS
+		_swapChain = new OpenVRMetalSwapChain(descriptor);
+#elif RN_PLATFORM_WINDOWS
+		_swapChain = new OpenVRD3D12SwapChain(descriptor);
+#endif
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
 
@@ -36,7 +45,11 @@ namespace RN
 
 	uint32 OpenVRWindow::GetEyePadding() const
 	{
-		return OpenVRSwapChain::kEyePadding;
+#if RN_PLATFORM_MAC_OS
+		return OpenVRMetalSwapChain::kEyePadding;
+#elif RN_PLATFORM_WINDOWS
+		return OpenVRD3D12SwapChain::kEyePadding;
+#endif
 	}
 
 	static Matrix GetMatrixForOVRMatrix(const vr::HmdMatrix44_t &ovrMatrix)
@@ -70,7 +83,7 @@ namespace RN
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_swapChain->_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
-		Vector2 newSize(recommendedWidth * 2 + OpenVRSwapChain::kEyePadding, recommendedHeight);
+		Vector2 newSize(recommendedWidth * 2 + GetEyePadding(), recommendedHeight);
 
 		if(newSize.GetSquaredDistance(_lastSize) > 0.001f)
 		{
@@ -78,7 +91,7 @@ namespace RN
 		}
 		_lastSize = newSize;
 
-		if(_lastSizeChangeTimer > 0.5f && newSize.GetSquaredDistance(_swapChain->_size) > 0.001f)
+		if(_lastSizeChangeTimer > 0.5f && newSize.GetSquaredDistance(_swapChain->GetSize()) > 0.001f)
 		{
 			UpdateSize(newSize);
 		}

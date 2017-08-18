@@ -56,6 +56,7 @@ namespace RN
 		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint = Shader::UsageHint::Default) final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
+		MTLAPI Texture *CreateTextureWithDescriptorAndIOSurface(const Texture::Descriptor &descriptor, IOSurfaceRef ioSurface);
 
 		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
@@ -63,6 +64,8 @@ namespace RN
 		MTLAPI void DeleteDrawable(Drawable *drawable) final;
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
 		MTLAPI void SubmitLight(const Light *light) final;
+		
+		MTLAPI static MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options);
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);

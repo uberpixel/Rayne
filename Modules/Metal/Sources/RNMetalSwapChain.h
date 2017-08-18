@@ -29,16 +29,25 @@ namespace RN
 		MTLAPI virtual void Finalize();
 		MTLAPI virtual void PresentBackBuffer(id<MTLCommandBuffer> commandBuffer);
 
-		MTLAPI virtual id GetMetalDrawable() const;
+		MTLAPI virtual id GetMTLTexture() const;
 		MetalFramebuffer *GetFramebuffer() const { return _framebuffer; }
 
 		uint8 GetBufferCount() const { return 4; } //TODO: Return something better!?
+		
+	protected:
+		MTLAPI MetalSwapChain(){}
+		
+		MetalFramebuffer *_framebuffer;
+		size_t _frameIndex;
+		Window::SwapChainDescriptor _descriptor;
+		
+		Vector2 _size;
+		Vector2 _newSize;
 
 	private:
 		MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor);
 
 		RNMetalView *_metalView;
-		MetalFramebuffer *_framebuffer;
 		id _drawable;
 
 		RNDeclareMetaAPI(MetalSwapChain, MTLAPI)
