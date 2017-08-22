@@ -70,7 +70,6 @@ namespace RN
 				SpecularColor,
 				EmissiveColor,
 				TextureTileFactor,
-				DiscardThreshold,
 				AlphaToCoverageClamp,
 				Time,
 				CameraPosition,

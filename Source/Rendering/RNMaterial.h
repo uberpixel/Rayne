@@ -56,7 +56,6 @@ namespace RN
 			float polygonOffsetFactor;
 			float polygonOffsetUnits;
 			
-			float discardThreshold;
 			bool useAlphaToCoverage;
 			float alphaToCoverageClamp;
 			float textureTileFactor;
@@ -68,10 +67,9 @@ namespace RN
 			GroupColors = (1 << 1),
 			GroupPolygonOffset = (1 << 2),
 			GroupShaders = (1 << 3),
-			DiscardThreshold = (1 << 4),
+			GroupAlphaToCoverage = (1 << 4),
 			TextureTileFactor = (1 << 5),
 			CullMode = (1 << 6),
-			GroupAlphaToCoverage = (1 << 7),
 
 			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
 		);
@@ -100,7 +98,6 @@ namespace RN
 		RNAPI void SetSpecularColor(const Color &color);
 		RNAPI void SetEmissiveColor(const Color &color);
 
-		RNAPI void SetDiscardThreshold(float threshold);
 		RNAPI void SetTextureTileFactor(float factor);
 		RNAPI void SetCullMode(CullMode mode);
 
@@ -124,7 +121,6 @@ namespace RN
 		const Color &GetEmissiveColor() const { return _properties.emissiveColor; }
 
 		const Array *GetTextures() const { return _textures; }
-		float GetDiscardThreshold() const { return _properties.discardThreshold; }
 		float GetTextureTileFactor() const { return _properties.textureTileFactor; }
 		CullMode GetCullMode() const { return _properties.cullMode; }
 

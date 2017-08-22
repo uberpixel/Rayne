@@ -10,7 +10,7 @@
 // RN_NORMALS
 // RN_COLOR
 // RN_UV0
-// RN_DISCARD
+// RN_ALPHA
 
 #if RN_UV0
 Texture2D texture0 : register(t0);
@@ -44,8 +44,7 @@ cbuffer fragmentUniforms : register(b1)
 	float4 ambientColor;
 	float4 diffuseColor;
 
-#if RN_DISCARD
-	float discardThreshold;
+#if RN_ALPHA
 	float alphaToCoverageClamp;
 #endif
 
@@ -198,9 +197,10 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 #if RN_UV0
 	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
 
-#if RN_DISCARD
-	clip(color.a - discardThreshold);
+#if RN_ALPHA
 	color.a = smoothstep(discardThreshold, alphaToCoverageClamp, color.a);
+	if(color.a < 0.001)
+		return color;
 #endif
 #endif
 

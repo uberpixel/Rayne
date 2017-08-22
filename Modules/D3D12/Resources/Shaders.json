@@ -25,7 +25,7 @@
 					[
 						"RN_NORMALS",
 						"RN_COLOR",
-						"RN_DISCARD",
+						"RN_ALPHA",
 						"RN_UV0"
 					]
 				}
@@ -55,7 +55,7 @@
 				{
 					"options":
 					[
-						"RN_DISCARD",
+						"RN_ALPHA",
 						"RN_UV0"
 					]
 				}

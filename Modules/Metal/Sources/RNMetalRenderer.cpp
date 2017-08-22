@@ -745,13 +745,6 @@ namespace RN
 					break;
 				}
 
-				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
-				{
-					float temp = materialProperties.discardThreshold;
-					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
-					break;
-				}
-
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
 					float temp = materialProperties.alphaToCoverageClamp;

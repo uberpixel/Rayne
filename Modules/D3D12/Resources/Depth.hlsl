@@ -8,7 +8,7 @@
 
 // Exported defines:
 // RN_UV0
-// RN_DISCARD
+// RN_ALPHA
 
 #if RN_UV0
 Texture2D texture0 : register(t0);
@@ -29,15 +29,6 @@ cbuffer vertexUniforms : register(b0)
 #endif
 };
 
-#if RN_UV0
-cbuffer fragmentUniforms : register(b1)
-{
-#if RN_DISCARD
-	float discardThreshold;
-#endif
-};
-#endif
-
 struct InputVertex
 {
 	float3 position : POSITION;
@@ -49,7 +40,7 @@ struct InputVertex
 struct FragmentVertex
 {
 	float4 position : SV_POSITION;
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 	float2 texCoords : TEXCOORD0;
 #endif
 };
@@ -65,7 +56,7 @@ FragmentVertex depth_vertex(InputVertex vert)
 	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0f));
 #endif
 
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 	result.texCoords = vert.texCoords*textureTileFactor;
 #endif
 
@@ -73,15 +64,12 @@ FragmentVertex depth_vertex(InputVertex vert)
 }
 
 
-void depth_fragment(FragmentVertex vert)
+float4 depth_fragment(FragmentVertex vert) : SV_TARGET
 {
 	float4 color = 1.0f;
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
-
-#if RN_DISCARD
-	clip(color.a - discardThreshold);
-#endif
+	return color;
 #endif
 	return;
 }

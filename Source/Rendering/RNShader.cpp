@@ -174,11 +174,6 @@ namespace RN
 			_identifier = TextureTileFactor;
 			_type = PrimitiveType::Float;
 		}
-		else if(name->IsEqual(RNCSTR("material_discardthreshold")) || name->IsEqual(RNCSTR("discardThreshold")))
-		{
-			_identifier = DiscardThreshold;
-			_type = PrimitiveType::Float;
-		}
 		else if (name->IsEqual(RNCSTR("material_alphatocoverageclamp")) || name->IsEqual(RNCSTR("alphaToCoverageClamp")))
 		{
 			_identifier = AlphaToCoverageClamp;

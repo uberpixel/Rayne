@@ -24,7 +24,6 @@ namespace RN
 		_properties.diffuseColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
 		_properties.specularColor = Color(1.0f, 1.0f, 1.0f, 4.0f);
 		_properties.emissiveColor = Color(0.0f, 0.0f, 0.0f, 0.0f);
-		_properties.discardThreshold = 0.3f;
 		_properties.alphaToCoverageClamp = 1.0f;
 		_properties.useAlphaToCoverage = false;
 		_properties.textureTileFactor = 1.0f;
@@ -63,7 +62,6 @@ namespace RN
 		_properties.diffuseColor = other->_properties.diffuseColor;
 		_properties.specularColor = other->_properties.specularColor;
 		_properties.emissiveColor = other->_properties.emissiveColor;
-		_properties.discardThreshold = other->_properties.discardThreshold;
 		_properties.alphaToCoverageClamp = other->_properties.alphaToCoverageClamp;
 		_properties.useAlphaToCoverage = other->_properties.useAlphaToCoverage;
 		_properties.textureTileFactor = other->_properties.textureTileFactor;
@@ -157,11 +155,6 @@ namespace RN
 		_vertexBuffers = SafeCopy(buffers);
 	}
 
-	void Material::SetDiscardThreshold(float threshold)
-	{
-		_properties.discardThreshold = threshold;
-	}
-
 	void Material::SetTextureTileFactor(float factor)
 	{
 		_properties.textureTileFactor = factor;
@@ -235,11 +228,6 @@ namespace RN
 			properties.diffuseColor = overrideMaterial->_properties.diffuseColor;
 			properties.specularColor = overrideMaterial->_properties.specularColor;
 			properties.emissiveColor = overrideMaterial->_properties.emissiveColor;
-		}
-		
-		if(!(overrideMaterial->GetOverride() & Override::DiscardThreshold) && !(_override & Override::DiscardThreshold))
-		{
-			properties.discardThreshold = overrideMaterial->_properties.discardThreshold;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupAlphaToCoverage) && !(_override & Override::GroupAlphaToCoverage))
