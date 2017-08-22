@@ -110,7 +110,7 @@ namespace RN
 
 	void OpenVRMetalSwapChain::AcquireBackBuffer()
 	{
-		
+		_frameIndex += 1;
 	}
 
 	void OpenVRMetalSwapChain::Prepare()

@@ -44,6 +44,8 @@ namespace RN
 		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
 
 		OVRAPI void UpdateSize(const Vector2 &size);
+		
+		OVRAPI void PreparePreviewWindow(Window *window) const final;
 
 	private:
 #if RN_PLATFORM_MAC_OS

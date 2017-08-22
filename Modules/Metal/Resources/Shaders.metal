@@ -13,7 +13,7 @@
 // RN_NORMALS
 // RN_COLOR
 // RN_UV0
-// RN_DISCARD
+// RN_ALPHA
 
 using namespace metal;
 
@@ -51,10 +51,6 @@ struct FragmentUniforms
 {
 	float4 ambientColor;
 	float4 diffuseColor;
-
-#if RN_DISCARD
-	float discardThreshold;
-#endif
 	
 	uint directionalShadowMatricesCount;
 	float2 directionalShadowInfo;
@@ -222,9 +218,9 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	color *= texture.sample(linearRepeatSampler, vert.texCoords).rgba;
 
-#if RN_DISCARD
-		if(color.a < uniforms.discardThreshold)
-			discard_fragment();
+#if RN_ALPHA
+		if(color.a <= 0.001)
+			return color;
 #endif
 #endif
 
@@ -285,9 +281,9 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	color *= texture.sample(samplr, vert.texCoords).rgba;
 
-#if RN_DISCARD
-		if(color.a < uniforms.discardThreshold)
-			discard_fragment();
+#if RN_ALPHA
+		if(color.a < 0.001)
+			return color;
 #endif
 #endif
 

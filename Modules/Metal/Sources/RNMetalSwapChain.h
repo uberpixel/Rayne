@@ -24,6 +24,7 @@ namespace RN
 
 		MTLAPI Vector2 GetSize() const;
 
+		MTLAPI virtual void SetFrameDivider(uint8 divider);
 		MTLAPI virtual void AcquireBackBuffer();
 		MTLAPI virtual void Prepare();
 		MTLAPI virtual void Finalize();
@@ -44,6 +45,7 @@ namespace RN
 		
 		Vector2 _size;
 		Vector2 _newSize;
+		uint8 _frameDivider;
 
 	private:
 		MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor);

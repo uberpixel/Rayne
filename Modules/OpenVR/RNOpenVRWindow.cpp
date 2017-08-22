@@ -248,4 +248,13 @@ namespace RN
 		_currentHapticsIndex[hand] = 0;
 		_haptics[hand] = haptics;
 	}
+	
+	void OpenVRWindow::PreparePreviewWindow(Window *window) const
+	{
+#if RN_PLATFORM_MAC_OS
+		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(3);
+#elif RN_PLATFORM_WINDOWS
+		
+#endif
+	}
 }

@@ -263,9 +263,12 @@ namespace RN
 		else
 		{
 			MTLRenderPipelineReflection * reflection;
-			pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:NULL];
+			
+			NSError *error = nil;
+			pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:&error];
 
-			// TODO: Error handling, plox
+			//TODO: Include error...
+			RN_ASSERT(!error, "PipelineState creation failed");
 
 			if(!collection->vertexShader->GetSignature())
 			{

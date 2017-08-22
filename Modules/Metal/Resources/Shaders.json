@@ -12,6 +12,7 @@
 					[
 						"RN_NORMALS",
 						"RN_COLOR",
+						"RN_ALPHA",
 						"RN_UV0"
 					]
 				}
@@ -25,7 +26,7 @@
 					[
 						"RN_NORMALS",
 						"RN_COLOR",
-						"RN_DISCARD",
+						"RN_ALPHA",
 						"RN_UV0"
 					]
 				}
@@ -62,6 +63,7 @@
 					"options":
 					[
 						"RN_UV0",
+						"RN_ALPHA",
 						"RN_SKY"
 					]
 				}
@@ -73,7 +75,7 @@
 				{
 					"options":
 					[
-						"RN_DISCARD",
+						"RN_ALPHA",
 						"RN_UV0"
 					]
 				}

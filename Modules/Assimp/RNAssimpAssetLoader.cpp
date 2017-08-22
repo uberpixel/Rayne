@@ -194,7 +194,7 @@ namespace RN
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
 		if(wantsDiscard)
 		{
-			shaderOptions->EnableDiscard();
+			shaderOptions->EnableAlpha();
 			material->SetAlphaToCoverage(true);
 		}
 		

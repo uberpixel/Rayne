@@ -8,14 +8,14 @@
 
 // Exported defines:
 // RN_UV0
-// RN_DISCARD
+// RN_ALPHA
 // RN_SKY
 
 #include <metal_stdlib>
 #include <simd/simd.h>
 
-#ifndef RN_DISCARD
-#define RN_DISCARD 0
+#ifndef RN_ALPHA
+#define RN_ALPHA 0
 #endif
 
 #ifndef RN_UV0
@@ -37,15 +37,15 @@ struct VertexUniforms
 	matrix_float4x4 modelViewProjectionMatrix;
 #endif
 
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	float textureTileFactor;
 #endif
 };
 
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 struct FragmentUniforms
 {
-#if RN_DISCARD
+#if RN_ALPHA
 	float discardThreshold;
 #endif
 };
@@ -54,7 +54,7 @@ struct FragmentUniforms
 struct InputVertex
 {
 	float3 position [[attribute(0)]];
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	float2 texCoords [[attribute(1)]];
 #endif
 };
@@ -62,7 +62,7 @@ struct InputVertex
 struct FragmentVertex
 {
 	float4 position [[position]];
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	float2 texCoords;
 #endif
 };
@@ -78,7 +78,7 @@ vertex FragmentVertex depth_vertex(InputVertex vert [[stage_in]], constant Verte
 	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0f);
 #endif
 
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	result.texCoords = vert.texCoords*uniforms.textureTileFactor;
 #endif
 
@@ -87,17 +87,15 @@ vertex FragmentVertex depth_vertex(InputVertex vert [[stage_in]], constant Verte
 
 
 fragment float4 depth_fragment(FragmentVertex vert [[stage_in]]
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	, texture2d<float> texture0 [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
 #endif
 )
 {
 	float4 color = 1.0f;
-#if RN_UV0 && RN_DISCARD
+#if RN_UV0 && RN_ALPHA
 	color *= texture0.sample(linearRepeatSampler, vert.texCoords).rgba;
-	if(color.a < uniforms.discardThreshold)
-			discard_fragment();
 #endif
 	return color;
 }

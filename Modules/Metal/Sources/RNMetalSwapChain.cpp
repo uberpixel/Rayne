@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(MetalSwapChain, Object)
 
-	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor) : _drawable(nullptr)
+	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor) : _frameIndex(0), _frameDivider(1), _drawable(nullptr)
 	{
 		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) device:device andFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
 		CGSize realSize = [_metalView getSize];
@@ -32,10 +32,24 @@ namespace RN
 	{
 		return _size;
 	}
+	
+	void MetalSwapChain::SetFrameDivider(uint8 divider)
+	{
+		_frameDivider = divider;
+	}
 
 	void MetalSwapChain::AcquireBackBuffer()
 	{
-		_drawable = nil;//[_metalView nextDrawable];
+		_frameIndex += 1;
+		
+		if(_frameDivider && _frameIndex%_frameDivider == 0)
+		{
+			_drawable = [_metalView nextDrawable];
+		}
+		else
+		{
+			_drawable = nullptr;
+		}
 	}
 	void MetalSwapChain::Prepare()
 	{
@@ -47,7 +61,8 @@ namespace RN
 	}
 	void MetalSwapChain::PresentBackBuffer(id<MTLCommandBuffer> commandBuffer)
 	{
-		//[commandBuffer presentDrawable:_drawable];
+		if(_drawable)
+			[commandBuffer presentDrawable:_drawable];
 	}
 	
 	void MetalSwapChain::PostPresent(id<MTLCommandBuffer> commandBuffer)
@@ -57,6 +72,9 @@ namespace RN
 
 	id MetalSwapChain::GetMTLTexture() const
 	{
-		return [_drawable texture];
+		if(_drawable)
+			return [_drawable texture];
+		else
+			return nil;
 	}
 }

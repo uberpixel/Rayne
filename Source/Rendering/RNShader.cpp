@@ -48,9 +48,9 @@ namespace RN
 			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
 	}
 
-	void Shader::Options::EnableDiscard()
+	void Shader::Options::EnableAlpha()
 	{
-		AddDefine(RNCSTR("RN_DISCARD"), RNCSTR("1"));
+		AddDefine(RNCSTR("RN_ALPHA"), RNCSTR("1"));
 	}
 
 	void Shader::Options::AddDefine(String *name, String *value)

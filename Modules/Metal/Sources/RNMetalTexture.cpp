@@ -77,9 +77,9 @@ namespace RN
 		switch([(id <MTLTexture>)_texture pixelFormat])
 		{
 			ColorChannel(MTLPixelFormatRGBA8Unorm, true, true, true, true)
-//			ColorChannel(MTLPixelFormatRGBA8Unorm_sRGB, true, true, true, true)
+			ColorChannel(MTLPixelFormatRGBA8Unorm_sRGB, true, true, true, true)
 			ColorChannel(MTLPixelFormatBGRA8Unorm, true, true, true, true)
-//			ColorChannel(MTLPixelFormatBGRA8Unorm_sRGB, true, true, true, true)
+			ColorChannel(MTLPixelFormatBGRA8Unorm_sRGB, true, true, true, true)
 			ColorChannel(MTLPixelFormatRGB10A2Unorm, true, true, true, true)
 			ColorChannel(MTLPixelFormatR8Unorm, true, false, false, false)
 			ColorChannel(MTLPixelFormatRG8Unorm, true, true, false, false)
