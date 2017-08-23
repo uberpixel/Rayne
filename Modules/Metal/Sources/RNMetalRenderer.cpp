@@ -57,6 +57,11 @@ namespace RN
 	{
 		return _mainWindow;
 	}
+	
+	void MetalRenderer::SetMainWindow(Window *window)
+	{
+		_mainWindow = window;
+	}
 
 
 	void MetalRenderer::CreateMipMapForTexture(MetalTexture *texture)

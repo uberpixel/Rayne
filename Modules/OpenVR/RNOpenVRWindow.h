@@ -34,8 +34,11 @@ namespace RN
 			Right
 		};*/
 
-		OVRAPI OpenVRWindow(const SwapChainDescriptor &descriptor = SwapChainDescriptor());
+		OVRAPI OpenVRWindow();
 		OVRAPI ~OpenVRWindow();
+		
+		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
+		OVRAPI void StopRendering() final;
 
 		OVRAPI Vector2 GetSize() const final;
 
@@ -51,6 +54,7 @@ namespace RN
 		OVRAPI void UpdateSize(const Vector2 &size);
 		
 		OVRAPI void PreparePreviewWindow(Window *window) const final;
+		OVRAPI RenderingDevice *GetOutputDevice() const final;
 
 	private:
 		const String *GetHMDInfoDescription() const;

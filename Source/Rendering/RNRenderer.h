@@ -84,6 +84,7 @@ namespace RN
 
 		RNAPI virtual Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) = 0;
 		RNAPI virtual Window *GetMainWindow() = 0;
+		RNAPI virtual void SetMainWindow(Window *window) = 0;
 
 		RNAPI void Activate();
 		RNAPI virtual void Deactivate();

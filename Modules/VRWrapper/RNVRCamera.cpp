@@ -20,6 +20,8 @@ namespace RN
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount)
 	{
+		_window->StartRendering();
+		
 		Vector2 windowSize = _window->GetSize();
 		if(_debugWindow)
 		{
@@ -59,6 +61,8 @@ namespace RN
 		SafeRelease(_head);
 		SafeRelease(_eye[0]);
 		SafeRelease(_eye[1]);
+		
+		_window->StopRendering();
 	}
 
 	void VRCamera::CreatePostprocessingPipeline()

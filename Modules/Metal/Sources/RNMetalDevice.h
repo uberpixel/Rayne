@@ -16,15 +16,11 @@ namespace RN
 	class MetalDevice : public RenderingDevice
 	{
 	public:
-		friend class MetalRendererDescriptor;
-
+		MetalDevice(id<MTLDevice> device);
 		id<MTLDevice> GetDevice() const { return _device; }
 
 	private:
 		static Descriptor DescriptorFromDevice(id<MTLDevice> device);
-
-		MetalDevice(id<MTLDevice> device);
-
 		id<MTLDevice> _device;
 
 		RNDeclareMetaAPI(MetalDevice, MTLAPI)

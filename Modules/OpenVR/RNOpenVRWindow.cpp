@@ -18,12 +18,12 @@ namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
+	OpenVRWindow::OpenVRWindow() : _swapChain(nullptr), _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 		_vrSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
 		
-		if (eError != vr::VRInitError_None)
+		if(eError != vr::VRInitError_None)
 		{
 			_vrSystem = nullptr;
 			RNDebug("OpenVR: Unable to init VR runtime: " << vr::VR_GetVRInitErrorAsEnglishDescription(eError));
@@ -31,19 +31,27 @@ namespace RN
 		}
 		
 		RNInfo(GetHMDInfoDescription());
-		
-#if RN_PLATFORM_MAC_OS
-		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
-#elif RN_PLATFORM_WINDOWS
-		_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
-#endif
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
 
 	OpenVRWindow::~OpenVRWindow()
 	{
-		_swapChain->Release();
+		SafeRelease(_swapChain);
 		if(_vrSystem) vr::VR_Shutdown();
+	}
+	
+	void OpenVRWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	{
+#if RN_PLATFORM_MAC_OS
+		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
+#elif RN_PLATFORM_WINDOWS
+		_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
+#endif
+	}
+	
+	void OpenVRWindow::StopRendering()
+	{
+		SafeRelease(_swapChain);
 	}
 	
 	const String *OpenVRWindow::GetHMDInfoDescription() const
@@ -128,6 +136,9 @@ namespace RN
 
 	void OpenVRWindow::Update(float delta, float near, float far)
 	{
+		if(!_swapChain)
+			return;
+		
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
@@ -276,7 +287,6 @@ namespace RN
 
 	void OpenVRWindow::UpdateSize(const Vector2 &size)
 	{
-		//TODO: Enable again once SteamVR is fixed...
 		_swapChain->ResizeSwapchain(size);
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
@@ -306,9 +316,19 @@ namespace RN
 #endif
 	}
 	
-/*	void OpenVRWindow::GetOutputDevice()
+	RenderingDevice *OpenVRWindow::GetOutputDevice() const
 	{
-		id<MTLDevice> vrDevice = nil;
-		vrSystem->GetOutputDevice((uint64_t*)&vrDevice, vr::TextureType_IOSurface);
-	}*/
+#if RN_PLATFORM_MAC_OS
+		id<MTLDevice> mtlDevice = nil;
+		_vrSystem->GetOutputDevice((uint64_t*)&mtlDevice, vr::TextureType_IOSurface);
+		MetalDevice *device = nullptr;
+		if(mtlDevice)
+		{
+			device = new MetalDevice(mtlDevice);
+		}
+		return device;
+#elif RN_PLATFORM_WINDOWS
+		
+#endif
+	}
 }

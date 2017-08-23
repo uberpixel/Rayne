@@ -38,6 +38,11 @@ namespace RN
 		{
 			descriptor.vendorID = 0x1002;
 		}
+		
+		if([device isRemovable])
+		{
+			descriptor.type = Type::External;
+		}
 
 		NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 		descriptor.driverVersion = RNVersionMake(version.majorVersion, version.minorVersion, version.patchVersion);

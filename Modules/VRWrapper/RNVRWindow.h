@@ -26,6 +26,9 @@ namespace RN
 
 		RNVRAPI VRWindow();
 		RNVRAPI ~VRWindow();
+		
+		RNVRAPI virtual void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) = 0;
+		RNVRAPI virtual void StopRendering() = 0;
 
 		RNVRAPI virtual void SetTitle(const String *title) override { }
 		RNVRAPI virtual Screen *GetScreen() override { return nullptr; }
@@ -46,6 +49,7 @@ namespace RN
 		RNVRAPI virtual void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) = 0;
 		
 		RNVRAPI virtual void PreparePreviewWindow(Window *window) const {}
+		RNVRAPI virtual RenderingDevice *GetOutputDevice() const = 0;
 
 		RNDeclareMetaAPI(VRWindow, RNVRAPI)
 	};

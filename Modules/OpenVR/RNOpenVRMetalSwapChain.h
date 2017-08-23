@@ -12,6 +12,7 @@
 #include "RNMetalRenderer.h"
 #include "RNMetalSwapChain.h"
 #include "RNMetalFramebuffer.h"
+#include "RNMetalDevice.h"
 
 #include <openvr.h>
 #include "RNOpenVR.h"

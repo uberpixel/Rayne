@@ -36,6 +36,7 @@ namespace RN
 
 		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
 		MTLAPI Window *GetMainWindow() final;
+		MTLAPI void SetMainWindow(Window *window) final;
 
 		MTLAPI void Render(Function &&function) final;
 		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
@@ -79,7 +80,7 @@ namespace RN
 		Set *_mipMapTextures;
 
 		PIMPL<MetalRendererInternals> _internals;
-		MetalWindow *_mainWindow;
+		Window *_mainWindow;
 		
 		MetalDrawable *_defaultPostProcessingDrawable;
 		Material *_ppBlitMaterial;
