@@ -20,10 +20,22 @@ namespace RN
 
 	OpenVRWindow::OpenVRWindow(const SwapChainDescriptor &descriptor) : _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
 	{
+		vr::EVRInitError eError = vr::VRInitError_None;
+		_vrSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
+		
+		if (eError != vr::VRInitError_None)
+		{
+			_vrSystem = nullptr;
+			RNDebug("OpenVR: Unable to init VR runtime: " << vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+			return;
+		}
+		
+		RNInfo(GetHMDInfoDescription());
+		
 #if RN_PLATFORM_MAC_OS
-		_swapChain = new OpenVRMetalSwapChain(descriptor);
+		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
 #elif RN_PLATFORM_WINDOWS
-		_swapChain = new OpenVRD3D12SwapChain(descriptor);
+		_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
 #endif
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
@@ -31,6 +43,42 @@ namespace RN
 	OpenVRWindow::~OpenVRWindow()
 	{
 		_swapChain->Release();
+		if(_vrSystem) vr::VR_Shutdown();
+	}
+	
+	const String *OpenVRWindow::GetHMDInfoDescription() const
+	{
+		if (!_vrSystem)
+			return RNCSTR("No HMD found.");
+		
+		
+		int firstHMDDeviceIndex = 0;
+		for(int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
+		{
+			if(_vrSystem->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD)
+			{
+				firstHMDDeviceIndex = nDevice;
+				break;
+			}
+		}
+		
+		char *propertyString = new char[vr::k_unMaxPropertyStringSize];
+		
+		_vrSystem->GetStringTrackedDeviceProperty(firstHMDDeviceIndex, vr::Prop_RenderModelName_String, propertyString, vr::k_unMaxPropertyStringSize);
+		String *description = new String("Using HMD: ");
+		description->Append(propertyString);
+		
+		_vrSystem->GetStringTrackedDeviceProperty(firstHMDDeviceIndex, vr::Prop_ManufacturerName_String, propertyString, vr::k_unMaxPropertyStringSize);
+		description->Append(", Vendor: ");
+		description->Append(propertyString);
+		
+		_vrSystem->GetStringTrackedDeviceProperty(firstHMDDeviceIndex, vr::Prop_TrackingFirmwareVersion_String, propertyString, vr::k_unMaxPropertyStringSize);
+		description->Append(", Firmware: ");
+		description->Append(propertyString);
+		
+		delete[] propertyString;
+		
+		return description;
 	}
 
 	Vector2 OpenVRWindow::GetSize() const
@@ -82,7 +130,7 @@ namespace RN
 	{
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
-		_swapChain->_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
+		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
 		Vector2 newSize(recommendedWidth * 2 + GetEyePadding(), recommendedHeight);
 
 		if(newSize.GetSquaredDistance(_lastSize) > 0.001f)
@@ -101,8 +149,8 @@ namespace RN
 		uint16 handDevices[2] = { vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount };
 		_swapChain->UpdatePredictedPose();
 
-		vr::HmdMatrix44_t leftProjection = _swapChain->_hmd->GetProjectionMatrix(vr::Eye_Left, near, far);
-		vr::HmdMatrix44_t rightProjection = _swapChain->_hmd->GetProjectionMatrix(vr::Eye_Right, near, far);
+		vr::HmdMatrix44_t leftProjection = _vrSystem->GetProjectionMatrix(vr::Eye_Left, near, far);
+		vr::HmdMatrix44_t rightProjection = _vrSystem->GetProjectionMatrix(vr::Eye_Right, near, far);
 
 		_hmdTrackingState.eyeOffset[0] = _swapChain->_hmdToEyeViewOffset[0];
 		_hmdTrackingState.eyeOffset[1] = _swapChain->_hmdToEyeViewOffset[1];
@@ -121,7 +169,7 @@ namespace RN
 
 		_hmdTrackingState.mode = vr::VROverlay()->IsDashboardVisible() ? VRHMDTrackingState::Mode::Paused : VRHMDTrackingState::Mode::Rendering;
 		vr::VREvent_t event;
-		while(_swapChain->_hmd->PollNextEvent(&event, sizeof(event)))
+		while(_vrSystem->PollNextEvent(&event, sizeof(event)))
 		{
 			//TODO: Handle more OpenVR events
 			switch(event.eventType)
@@ -135,11 +183,11 @@ namespace RN
 		for(int nDevice = 1; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 		{
 			uint8 handIndex = -1;
-			switch(_swapChain->_hmd->GetTrackedDeviceClass(nDevice))
+			switch(_vrSystem->GetTrackedDeviceClass(nDevice))
 			{
 			case vr::TrackedDeviceClass_Controller:
 			{
-				vr::ETrackedControllerRole role = _swapChain->_hmd->GetControllerRoleForTrackedDeviceIndex(nDevice);
+				vr::ETrackedControllerRole role = _vrSystem->GetControllerRoleForTrackedDeviceIndex(nDevice);
 				switch(role)
 				{
 				case vr::TrackedControllerRole_LeftHand:
@@ -177,7 +225,7 @@ namespace RN
 					_controllerTrackingState[handIndex].position += _controllerTrackingState[handIndex].rotation.GetRotatedVector(Vector3(0.0f, -0.01f, 0.05f));
 
 					vr::VRControllerState_t controllerState;
-					_swapChain->_hmd->GetControllerState(nDevice, &controllerState, sizeof(controllerState));
+					_vrSystem->GetControllerState(nDevice, &controllerState, sizeof(controllerState));
 
 					_controllerTrackingState[handIndex].thumbstick.x = controllerState.rAxis[0].x;
 					_controllerTrackingState[handIndex].thumbstick.y = controllerState.rAxis[0].y;
@@ -213,7 +261,7 @@ namespace RN
 						uint32 sample = _haptics[hand].samples[_currentHapticsIndex[hand]];
 						sample *= 3999;
 						sample /= 255;
-						_swapChain->_hmd->TriggerHapticPulse(device, 0, sample);
+						_vrSystem->TriggerHapticPulse(device, 0, sample);
 					}
 				}
 				else
@@ -252,9 +300,15 @@ namespace RN
 	void OpenVRWindow::PreparePreviewWindow(Window *window) const
 	{
 #if RN_PLATFORM_MAC_OS
-		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(3);
+		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(0);
 #elif RN_PLATFORM_WINDOWS
 		
 #endif
 	}
+	
+/*	void OpenVRWindow::GetOutputDevice()
+	{
+		id<MTLDevice> vrDevice = nil;
+		vrSystem->GetOutputDevice((uint64_t*)&vrDevice, vr::TextureType_IOSurface);
+	}*/
 }

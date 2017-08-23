@@ -24,7 +24,8 @@ namespace RN
 		enum Type
 		{
 			ResolveMSAA,
-			CopyBuffer
+			Blit,
+			Convert
 		};
 
 		RNAPI PostProcessingAPIStage(Type type);

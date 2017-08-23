@@ -119,6 +119,13 @@ namespace RN
 				continue;
 			}
 			
+			if(renderPass.type != MetalRenderPass::Type::Default && renderPass.type != MetalRenderPass::Type::Convert)
+			{
+				RenderAPIRenderPass(renderPass);
+				_internals->currentRenderPassIndex += 1;
+				continue;
+			}
+			
 			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer);
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
@@ -141,9 +148,9 @@ namespace RN
 			viewPort.zfar = 1.0f;
 			[_internals->commandEncoder setViewport:viewPort];
 			
-			if(renderPass.type != MetalRenderPass::Type::Default)
+			if(renderPass.type == MetalRenderPass::Type::Convert)
 			{
-				RenderAPIRenderPass(_internals->commandEncoder, renderPass);
+				RenderAPIRenderPass(renderPass);
 			}
 			else
 			{
@@ -176,59 +183,66 @@ namespace RN
 		_internals->commandBuffer = nil;
 	}
 	
-	void MetalRenderer::RenderAPIRenderPass(id<MTLCommandEncoder> commandEncoder, const MetalRenderPass &renderPass)
+	void MetalRenderer::RenderAPIRenderPass(const MetalRenderPass &renderPass)
 	{
-		MetalFramebuffer *sourceFramebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
-		Texture *sourceTexture = sourceFramebuffer->GetColorTexture(0);
-		
-		renderPass.drawables[0]->material->RemoveAllTextures();
-		renderPass.drawables[0]->material->AddTexture(sourceTexture);
-		RenderDrawable(renderPass.drawables[0]);
-		
-		//TODO: Handle multiple and not existing textures
-/*		MetalFramebuffer *sourceFramebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
-		Texture *sourceTexture = sourceFramebuffer->GetColorTexture(0);
-		MetalFramebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
-		Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
-		
-		id<MTLTexture> sourceMTLTexture = nullptr;
-		id<MTLTexture> destinationMTLTexture = nullptr;
-		
-		if(sourceTexture)
+		switch(renderPass.type)
 		{
-			sourceMTLTexture = static_cast< id<MTLTexture> >(sourceTexture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
-		}
-		else
-		{
-			sourceMTLTexture = [sourceFramebuffer->GetSwapChain()->GetMetalDrawable() texture];
-		}
-		
-		if(destinationTexture)
-		{
-			destinationMTLTexture = static_cast< id<MTLTexture> >(destinationTexture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
-		}
-		else
-		{
-			destinationMTLTexture = [destinationFramebuffer->GetSwapChain()->GetMetalDrawable() texture];
-		}
-		
-		
-		MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass);
-		id<MTLBlitCommandEncoder> commandEncoder = [[_internals->commandBuffer blitCommandEncoder] retain];
-		[descriptor release];
-		
-		if(renderPass.type == MetalRenderPass::Type::ResolveMSAA)
-		{
+			case MetalRenderPass::Type::Convert:
+			{
+				MetalFramebuffer *sourceFramebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
+				Texture *sourceTexture = sourceFramebuffer->GetColorTexture(0);
+				
+				renderPass.drawables[0]->material->RemoveAllTextures();
+				renderPass.drawables[0]->material->AddTexture(sourceTexture);
+				RenderDrawable(renderPass.drawables[0]);
+				break;
+			}
+				
+			case MetalRenderPass::Type::Blit:
+			{
+				//TODO: Handle multiple and not existing textures
+				MetalFramebuffer *sourceFramebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
+				Texture *sourceTexture = sourceFramebuffer->GetColorTexture(0);
+				MetalFramebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::MetalFramebuffer>();
+				Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
+				
+				id<MTLTexture> sourceMTLTexture = nullptr;
+				id<MTLTexture> destinationMTLTexture = nullptr;
+				
+				if(sourceTexture)
+				{
+					sourceMTLTexture = static_cast< id<MTLTexture> >(sourceTexture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				}
+				else
+				{
+					sourceMTLTexture = sourceFramebuffer->GetSwapChain()->GetMTLTexture();
+				}
+				
+				if(destinationTexture)
+				{
+					destinationMTLTexture = static_cast< id<MTLTexture> >(destinationTexture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+				}
+				else
+				{
+					destinationMTLTexture = destinationFramebuffer->GetSwapChain()->GetMTLTexture();
+				}
+				
+				MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, nullptr);
+				id<MTLBlitCommandEncoder> commandEncoder = [[_internals->commandBuffer blitCommandEncoder] retain];
+				[descriptor release];
+				
+				Rect targetRect = renderPass.renderPass->GetFrame();
+				[commandEncoder copyFromTexture:sourceMTLTexture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0) sourceSize:MTLSizeMake(sourceTexture->GetDescriptor().width, sourceTexture->GetDescriptor().height, sourceTexture->GetDescriptor().depth) toTexture:destinationMTLTexture destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(targetRect.x, targetRect.y, 0)];
+				
+				[commandEncoder endEncoding];
+				[commandEncoder release];
+				
+				break;
+			}
 			
+			default:
+				break;
 		}
-		else
-		{
-			[commandEncoder copyFromTexture:sourceMTLTexture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0) sourceSize:MTLSizeMake(sourceTexture->GetDescriptor().width, sourceTexture->GetDescriptor().height, sourceTexture->GetDescriptor().depth) toTexture:destinationMTLTexture destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(0, 0, 0)];
-		}
-		
-		[_internals->commandEncoder endEncoding];
-		[_internals->commandEncoder release];
-		_internals->commandEncoder = nil;*/
 	}
 
 	void MetalRenderer::SubmitCamera(Camera *camera, Function &&function)
@@ -314,17 +328,26 @@ namespace RN
 			switch(apiStage->GetType())
 			{
 				case PostProcessingAPIStage::Type::ResolveMSAA:
+				{
 					metalRenderPass.type = MetalRenderPass::Type::ResolveMSAA;
 					break;
-				case PostProcessingAPIStage::Type::CopyBuffer:
+				}
+					
+				case PostProcessingAPIStage::Type::Convert:
 				{
-					metalRenderPass.type = MetalRenderPass::Type::Copy;
+					metalRenderPass.type = MetalRenderPass::Type::Convert;
 					
 					if(!_ppBlitMaterial)
 					{
 						_ppBlitMaterial = Material::WithShaders(GetPPBlitShader(Shader::Type::Vertex), GetPPBlitShader(Shader::Type::Fragment))->Retain();
 					}
 					metalRenderPass.overrideMaterial = _ppBlitMaterial;
+					break;
+				}
+				
+				case PostProcessingAPIStage::Type::Blit:
+				{
+					metalRenderPass.type = MetalRenderPass::Type::Blit;
 					break;
 				}
 			}
@@ -370,6 +393,7 @@ namespace RN
 			_internals->currentRenderPassIndex = _internals->renderPasses.size();
 			_internals->renderPasses.push_back(metalRenderPass);
 			
+			if(metalRenderPass.type == MetalRenderPass::Type::Convert)
 			{
 				//Submit fullscreen quad drawable
 				if(!_defaultPostProcessingDrawable)

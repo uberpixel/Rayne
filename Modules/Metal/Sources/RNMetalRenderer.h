@@ -22,7 +22,7 @@ namespace RN
 	class MetalWindow;
 	class MetalTexture;
 	class MetalUniformBuffer;
-	class MetalRenderPass;
+	struct MetalRenderPass;
 	class GPUBuffer;
 
 	class MetalRenderer : public Renderer
@@ -69,7 +69,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
-		void RenderAPIRenderPass(id<MTLCommandEncoder> commandEncoder, const MetalRenderPass &renderPass);
+		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
 		Shader *GetPPBlitShader(Shader::Type type);

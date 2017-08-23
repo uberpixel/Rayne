@@ -13,6 +13,11 @@
 #include "RNOpenVR.h"
 #include "RNVRTrackingState.h"
 
+namespace vr
+{
+	class IVRSystem;
+}
+
 namespace RN
 {
 #if RN_PLATFORM_MAC_OS
@@ -48,12 +53,15 @@ namespace RN
 		OVRAPI void PreparePreviewWindow(Window *window) const final;
 
 	private:
+		const String *GetHMDInfoDescription() const;
+		
 #if RN_PLATFORM_MAC_OS
 		OpenVRMetalSwapChain *_swapChain;
 #elif RN_PLATFORM_WINDOWS
 		OpenVRD3D12SwapChain *_swapChain;
 #endif
 		
+		vr::IVRSystem *_vrSystem;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
 

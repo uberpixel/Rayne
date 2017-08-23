@@ -36,10 +36,9 @@ namespace RN
 		OVRAPI void UpdatePredictedPose();
 
 	protected:
-		OVRAPI OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor);
+		OVRAPI OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system);
 
 	private:
-		const String *GetHMDInfoDescription() const;
 		void ResizeSwapchain(const Vector2 &size);
 
 		MetalTexture *_targetTexture;
@@ -47,7 +46,7 @@ namespace RN
 		
 		Vector3 _hmdToEyeViewOffset[2];
 
-		vr::IVRSystem *_hmd;
+		vr::IVRSystem *_vrSystem;
 		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
 		vr::TrackedDevicePose_t _predictedDevicePose[vr::k_unMaxTrackedDeviceCount];
 

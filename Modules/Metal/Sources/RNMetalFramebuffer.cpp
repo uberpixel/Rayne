@@ -257,10 +257,18 @@ namespace RN
 			{
 				[colorAttachment setLoadAction:MTLLoadActionLoad];
 			}
-			if(resolveFramebuffer && resolveFramebuffer->GetColorTexture())
+			if(resolveFramebuffer)
 			{
 				[colorAttachment setStoreAction:MTLStoreActionMultisampleResolve];
-				[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetColorTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+				
+				if(resolveFramebuffer->GetColorTexture())
+				{
+					[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetColorTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+				}
+				else if(resolveFramebuffer->GetSwapChain())
+				{
+					[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetSwapChain()->GetMTLTexture())];
+				}
 			}
 			else
 			{

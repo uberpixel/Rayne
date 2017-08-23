@@ -16,26 +16,14 @@ namespace RN
 
 	const uint32 OpenVRMetalSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
 
-	OpenVRMetalSwapChain::OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor)
+	OpenVRMetalSwapChain::OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : _vrSystem(system)
 	{
-		vr::EVRInitError eError = vr::VRInitError_None;
-		_hmd = vr::VR_Init(&eError, vr::VRApplication_Scene);
-
-		if (eError != vr::VRInitError_None)
-		{
-			_hmd = nullptr;
-			RNDebug("OpenVR: Unable to init VR runtime: " << vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-			return;
-		}
-
-		RNInfo(GetHMDInfoDescription());
-
 		MetalRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<MetalRenderer>();
 		_descriptor = descriptor;
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
-		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
+		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
 		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
 		
 		NSDictionary *surfaceDefinition = @{
@@ -55,8 +43,8 @@ namespace RN
 		_framebuffer = new MetalFramebuffer(_size, this, Texture::Format::BGRA8888SRGB, Texture::Format::Invalid);
 
 		//TODO: Update every frame, maybe move to window
-		vr::HmdMatrix34_t leftEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Left);
-		vr::HmdMatrix34_t rightEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Right);
+		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
+		vr::HmdMatrix34_t rightEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Right);
 		_hmdToEyeViewOffset[0].x = leftEyeMatrix.m[0][3];
 		_hmdToEyeViewOffset[0].y = leftEyeMatrix.m[1][3];
 		_hmdToEyeViewOffset[0].z = leftEyeMatrix.m[2][3];
@@ -69,22 +57,6 @@ namespace RN
 	{
 		SafeRelease(_targetTexture);
 		CFRelease(_targetSurface);
-		if(_hmd) vr::VR_Shutdown();
-	}
-
-	const String *OpenVRMetalSwapChain::GetHMDInfoDescription() const
-	{
-		if (!_hmd)
-			return RNCSTR("No HMD found.");
-
-		//TODO: Implement similar to the oculus module
-		String *description = new String("Using HMD: ");
-/*		description->Append(_hmdDescription.ProductName);
-		description->Append(", Vendor: ");
-		description->Append(_hmdDescription.Manufacturer);
-		description->Append(", Firmware: %i.%i", _hmdDescription.FirmwareMajor, _hmdDescription.FirmwareMinor);*/
-
-		return description;
 	}
 
 	void OpenVRMetalSwapChain::ResizeSwapchain(const Vector2& size)

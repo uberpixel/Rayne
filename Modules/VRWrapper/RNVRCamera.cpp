@@ -67,18 +67,59 @@ namespace RN
 
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
+
+#if RN_PLATFORM_MAC_OS
+		Framebuffer *msaaFramebuffer = nullptr;
+		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
+		PostProcessingAPIStage *resolvePass[2];
+		
+		if(_msaaSampleCount > 1)
+		{
+			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::BGRA8888SRGB, windowSize.x, windowSize.y, _msaaSampleCount));
+			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, windowSize.x, windowSize.y, _msaaSampleCount));
+			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
+			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
+			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
+		}
+		else
+		{
+			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, windowSize.x, windowSize.y));
+			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
+		}
+		
+		
+		for(int i = 0; i < 2; i++)
+		{
+			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
+			_eye[i]->GetRenderPass()->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
+
+			if(_msaaSampleCount > 1)
+			{
+				resolvePass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
+				resolvePass[i]->SetFramebuffer(resolvedFramebuffer);
+				resolvePass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
+				
+				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
+				_eye[i]->GetRenderPass()->AddRenderPass(resolvePass[i]);
+			}
+			else
+			{
+				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
+			}
+		}
+#else
 		Framebuffer *msaaFramebuffer = nullptr;
 		Framebuffer *resolvedFramebuffer = nullptr;
 		PostProcessingAPIStage *resolvePass[2];
 		PostProcessingAPIStage *copyPass[2];
-
-		Texture *resolvedTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y));
+		
+		Texture *resolvedTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::BGRA8888SRGB, eyeSize.x, eyeSize.y));
 		resolvedFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
 		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture));
-
+		
 		if(_msaaSampleCount > 1)
 		{
-			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::RGBA8888SRGB, eyeSize.x, eyeSize.y, _msaaSampleCount));
+			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::BGRA8888SRGB, eyeSize.x, eyeSize.y, _msaaSampleCount));
 			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, _msaaSampleCount));
 			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
 			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
@@ -89,22 +130,22 @@ namespace RN
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y));
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
-
-
+		
+		
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
-
-			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::CopyBuffer);
+			
+			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::Blit);
 			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
 			copyPass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
-
+			
 			if(_msaaSampleCount > 1)
 			{
 				resolvePass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 				resolvePass[i]->SetFramebuffer(resolvedFramebuffer->Autorelease());
 				resolvePass[i]->AddRenderPass(copyPass[i]->Autorelease());
-
+				
 				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
 				_eye[i]->GetRenderPass()->AddRenderPass(resolvePass[i]);
 			}
@@ -114,6 +155,7 @@ namespace RN
 				_eye[i]->GetRenderPass()->AddRenderPass(copyPass[i]->Autorelease());
 			}
 		}
+#endif
 
 		if(_previewRenderPass)
 		{
