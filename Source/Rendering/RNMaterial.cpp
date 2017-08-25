@@ -189,10 +189,11 @@ namespace RN
 		_properties.polygonOffsetUnits = units;
 	}
 	
-	void Material::SetAlphaToCoverage(bool enabled, float clamp)
+	void Material::SetAlphaToCoverage(bool enabled, float min, float max)
 	{
 		_properties.useAlphaToCoverage = enabled;
-		_properties.alphaToCoverageClamp = clamp;
+		_properties.alphaToCoverageClamp.x = min;
+		_properties.alphaToCoverageClamp.y = max;
 	}
 
 	Shader *Material::GetFragmentShader(Shader::UsageHint type) const

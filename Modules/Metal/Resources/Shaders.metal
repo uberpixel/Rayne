@@ -51,6 +51,10 @@ struct FragmentUniforms
 {
 	float4 ambientColor;
 	float4 diffuseColor;
+
+#if RN_ALPHA
+	float2 alphaToCoverageClamp;
+#endif
 	
 	uint directionalShadowMatricesCount;
 	float2 directionalShadowInfo;
@@ -219,8 +223,9 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 	color *= texture.sample(linearRepeatSampler, vert.texCoords).rgba;
 
 #if RN_ALPHA
-		if(color.a <= 0.001)
-			return color;
+	color.a = smoothstep(uniforms.alphaToCoverageClamp.x, uniforms.alphaToCoverageClamp.y, color.a);
+	if(color.a < 0.001)
+		return color;
 #endif
 #endif
 
@@ -284,6 +289,12 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #if RN_ALPHA
 		if(color.a < 0.001)
 			return color;
+#endif
+
+#if RN_ALPHA
+	color.a = smoothstep(uniforms.alphaToCoverageClamp.x, uniforms.alphaToCoverageClamp.y, color.a);
+	if(color.a < 0.001)
+		return color;
 #endif
 #endif
 

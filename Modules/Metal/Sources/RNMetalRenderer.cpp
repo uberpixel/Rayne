@@ -776,8 +776,7 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
-					float temp = materialProperties.alphaToCoverageClamp;
-					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.alphaToCoverageClamp.x, descriptor->GetSize());
 					break;
 				}
 

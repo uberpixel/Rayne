@@ -57,7 +57,7 @@ namespace RN
 			float polygonOffsetUnits;
 			
 			bool useAlphaToCoverage;
-			float alphaToCoverageClamp;
+			Vector2 alphaToCoverageClamp;
 			float textureTileFactor;
 			CullMode cullMode;
 		};
@@ -105,7 +105,7 @@ namespace RN
 		RNAPI void SetVertexBuffers(const Array *buffers);
 
 		RNAPI void SetPolygonOffset(bool enable, float factor = 1.1f, float units = 0.1f);
-		RNAPI void SetAlphaToCoverage(bool enabled, float clamp = 1.0);
+		RNAPI void SetAlphaToCoverage(bool enabled, float min = 0.3, float max = 0.8);
 
 		uint32 GetOverride() const { return _override; }
 
@@ -132,7 +132,7 @@ namespace RN
 		float GetPolygonOffsetUnits() const { return _properties.polygonOffsetUnits; }
 
 		bool GetUseAlphaToCoverage() const { return _properties.useAlphaToCoverage; }
-		float GetAlphaToCoverageClamp() const { return _properties.alphaToCoverageClamp; }
+		Vector2 GetAlphaToCoverageClamp() const { return _properties.alphaToCoverageClamp; }
 		
 		RNAPI const Properties GetMergedProperties(Material *overrideMaterial) const;
 

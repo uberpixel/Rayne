@@ -177,7 +177,7 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("material_alphatocoverageclamp")) || name->IsEqual(RNCSTR("alphaToCoverageClamp")))
 		{
 			_identifier = AlphaToCoverageClamp;
-			_type = PrimitiveType::Float;
+			_type = PrimitiveType::Vector2;
 		}
 		else if (name->IsEqual(RNCSTR("camera_position")) || name->IsEqual(RNCSTR("cameraPosition")))
 		{

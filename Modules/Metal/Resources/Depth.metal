@@ -45,9 +45,7 @@ struct VertexUniforms
 #if RN_UV0 && RN_ALPHA
 struct FragmentUniforms
 {
-#if RN_ALPHA
-	float discardThreshold;
-#endif
+	float2 alphaToCoverageClamp;
 };
 #endif
 
@@ -95,7 +93,8 @@ fragment float4 depth_fragment(FragmentVertex vert [[stage_in]]
 {
 	float4 color = 1.0f;
 #if RN_UV0 && RN_ALPHA
-	color *= texture0.sample(linearRepeatSampler, vert.texCoords).rgba;
+	color.a *= texture0.sample(linearRepeatSampler, vert.texCoords).a;
+	color.a = smoothstep(uniforms.alphaToCoverageClamp.x, uniforms.alphaToCoverageClamp.y, color.a);
 #endif
 	return color;
 }

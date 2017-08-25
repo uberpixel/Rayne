@@ -451,6 +451,7 @@ namespace RN
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
+			//TODO: support multiple texcoords/other stuff
 			D3D12_INPUT_ELEMENT_DESC element = {};
 			element.SemanticName = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
 			element.SemanticIndex = 0;

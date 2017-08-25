@@ -45,7 +45,7 @@ cbuffer fragmentUniforms : register(b1)
 	float4 diffuseColor;
 
 #if RN_ALPHA
-	float alphaToCoverageClamp;
+	float2 alphaToCoverageClamp;
 #endif
 
 	uint directionalShadowMatricesCount;
@@ -198,7 +198,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
 
 #if RN_ALPHA
-	color.a = smoothstep(discardThreshold, alphaToCoverageClamp, color.a);
+	color.a = smoothstep(alphaToCoverageClamp.x, alphaToCoverageClamp.y, color.a);
 	if(color.a < 0.001)
 		return color;
 #endif
