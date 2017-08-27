@@ -14,9 +14,7 @@ using namespace metal;
 struct InputVertex
 {
 	float3 position [[attribute(0)]];
-
-	float3 normal [[attribute(1)]];
-	float2 texCoords [[attribute(2)]];
+	float2 texCoords [[attribute(5)]];
 };
 
 struct FragmentVertex
@@ -25,7 +23,7 @@ struct FragmentVertex
 	float2 texCoords;
 };
 
-vertex FragmentVertex pp_vertex(InputVertex vert [[stage_in]])
+vertex FragmentVertex pp_vertex(const InputVertex vert [[stage_in]])
 {
 	FragmentVertex result;
 	result.position = float4(vert.position.xy, 1.0, 1.0001);
@@ -34,7 +32,7 @@ vertex FragmentVertex pp_vertex(InputVertex vert [[stage_in]])
 	return result;
 }
 
-fragment float4 pp_blit_fragment(FragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler linearClampSampler [[sampler(0)]])
+fragment [[early_fragment_tests]] float4 pp_blit_fragment(FragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler linearClampSampler [[sampler(0)]])
 {
 	float4 color = texture0.sample(linearClampSampler, vert.texCoords).rgba;
 	return color;

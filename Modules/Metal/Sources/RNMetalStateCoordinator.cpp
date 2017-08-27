@@ -33,6 +33,21 @@ namespace RN
 			MTLVertexFormatFloat4,
 			MTLVertexFormatFloat4
 		};
+	
+	uint32 _vertexFeatureLookup[]
+	{
+		0, //"POSITION",
+		1, //"NORMAL",
+		2, //"TANGENT",
+		3, //"COLOR",
+		4, //"COLOR",
+		5, //"TEXCOORD",
+		6, //"TEXCOORD",
+		
+		//"INDEX",
+		
+		7 //"CUSTOM"
+	};
 
 	MTLCompareFunction CompareFunctionLookup[] =
 		{
@@ -243,12 +258,12 @@ namespace RN
 				return state;
 		}
 
-		MTLVertexDescriptor *descriptor = CreateVertexDescriptorFromMesh(mesh);
+		MTLVertexDescriptor *vertexDescriptor = CreateVertexDescriptorFromMesh(mesh);
 
 		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
 		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
 		pipelineStateDescriptor.fragmentFunction = static_cast<id>(collection->fragmentShader->_shader);
-		pipelineStateDescriptor.vertexDescriptor = descriptor;
+		pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
 		pipelineStateDescriptor.sampleCount = metalFramebuffer->GetSampleCount();
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
@@ -282,7 +297,7 @@ namespace RN
 		}
 
 		[pipelineStateDescriptor release];
-		[descriptor release];
+		[vertexDescriptor release];
 
 		// Create the rendering state
 		MetalRenderingState *state = new MetalRenderingState();
@@ -307,20 +322,28 @@ namespace RN
 		descriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 		descriptor.layouts[0].stepRate = 1;
 
-		size_t offset = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
+		
+		for(int i = 0; i < 7; i++)
+		{
+			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[i];
+			attributeDescriptor.format = MTLVertexFormatFloat2;
+			attributeDescriptor.offset = 0;
+			attributeDescriptor.bufferIndex = 0;
+		}
 
+		size_t index = 0;
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[offset];
+			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[_vertexFeatureLookup[static_cast<int>(attribute.GetFeature())]];
 			attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];
 			attributeDescriptor.offset = attribute.GetOffset();
 			attributeDescriptor.bufferIndex = 0;
 
-			offset ++;
+			index ++;
 		}
 
 		return descriptor;

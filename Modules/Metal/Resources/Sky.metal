@@ -23,7 +23,7 @@ struct SkyInputVertex
 {
 	float3 position [[attribute(0)]];
 	float2 normal [[attribute(1)]];
-	float2 texCoords [[attribute(2)]];
+	float2 texCoords [[attribute(5)]];
 };
 
 struct SkyFragmentVertex
@@ -34,7 +34,7 @@ struct SkyFragmentVertex
 	float4 diffuse;
 };
 
-vertex SkyFragmentVertex sky_vertex(SkyInputVertex vert [[stage_in]], constant SkyUniforms &uniforms [[buffer(1)]])
+vertex SkyFragmentVertex sky_vertex(const SkyInputVertex vert [[stage_in]], constant SkyUniforms &uniforms [[buffer(1)]])
 {
 	SkyFragmentVertex result;
 
@@ -47,7 +47,7 @@ vertex SkyFragmentVertex sky_vertex(SkyInputVertex vert [[stage_in]], constant S
 	return result;
 }
 
-fragment float4 sky_fragment(SkyFragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler sampler0 [[sampler(0)]])
+fragment [[early_fragment_tests]] float4 sky_fragment(SkyFragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler sampler0 [[sampler(0)]])
 {
 	float4 color = texture0.sample(sampler0, vert.texCoords).rgba;
 	return color * vert.diffuse;

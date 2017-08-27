@@ -55,6 +55,8 @@ namespace RN
 		
 		OVRAPI void PreparePreviewWindow(Window *window) const final;
 		OVRAPI RenderingDevice *GetOutputDevice() const final;
+		
+		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
 
 	private:
 		const String *GetHMDInfoDescription() const;

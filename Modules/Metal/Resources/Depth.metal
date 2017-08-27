@@ -53,7 +53,7 @@ struct InputVertex
 {
 	float3 position [[attribute(0)]];
 #if RN_UV0 && RN_ALPHA
-	float2 texCoords [[attribute(1)]];
+	float2 texCoords [[attribute(5)]];
 #endif
 };
 
@@ -65,7 +65,7 @@ struct FragmentVertex
 #endif
 };
 
-vertex FragmentVertex depth_vertex(InputVertex vert [[stage_in]], constant VertexUniforms &uniforms [[buffer(1)]])
+vertex FragmentVertex depth_vertex(const InputVertex vert [[stage_in]], constant VertexUniforms &uniforms [[buffer(1)]])
 {
 	FragmentVertex result;
 
@@ -84,7 +84,11 @@ vertex FragmentVertex depth_vertex(InputVertex vert [[stage_in]], constant Verte
 }
 
 
-fragment float4 depth_fragment(FragmentVertex vert [[stage_in]]
+fragment
+#if !RN_ALPHA
+[[early_fragment_tests]]
+#endif
+float4 depth_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0 && RN_ALPHA
 	, texture2d<float> texture0 [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]
 	, constant FragmentUniforms &uniforms [[buffer(1)]]

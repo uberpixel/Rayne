@@ -50,6 +50,8 @@ namespace RN
 		
 		RNVRAPI virtual void PreparePreviewWindow(Window *window) const {}
 		RNVRAPI virtual RenderingDevice *GetOutputDevice() const = 0;
+		
+		RNVRAPI virtual Mesh *GetHiddenAreaMesh(uint8 eye) const {return nullptr;}
 
 		RNDeclareMetaAPI(VRWindow, RNVRAPI)
 	};

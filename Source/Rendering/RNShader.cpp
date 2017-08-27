@@ -187,7 +187,7 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("lights_directionalcount")) || name->IsEqual(RNCSTR("directionalLightsCount")))
 		{
 			_identifier = DirectionalLightsCount;
-			_type = PrimitiveType::Uint32;
+			_type = PrimitiveType::Int16;
 		}
 		else if (name->IsEqual(RNCSTR("lights_directional")) || name->IsEqual(RNCSTR("directionalLights")))
 		{
@@ -207,7 +207,7 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("shadows_directional_matrices_count")) || name->IsEqual(RNCSTR("directionalShadowMatricesCount")))
 		{
 			_identifier = DirectionalShadowMatricesCount;
-			_type = PrimitiveType::Uint32;
+			_type = PrimitiveType::Int16;
 		}
 		else if (name->IsEqual(RNCSTR("shadows_directional_info")) || name->IsEqual(RNCSTR("directionalShadowInfo")))
 		{

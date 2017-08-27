@@ -331,4 +331,20 @@ namespace RN
 		
 #endif
 	}
+	
+	Mesh *OpenVRWindow::GetHiddenAreaMesh(uint8 eye) const
+	{
+		vr::HiddenAreaMesh_t hiddenAreaMesh = _vrSystem->GetHiddenAreaMesh(static_cast<vr::Hmd_Eye>(eye));
+		
+		if(hiddenAreaMesh.unTriangleCount <= 0)
+			return nullptr;
+		
+		Mesh *mesh = new Mesh({Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2)}, hiddenAreaMesh.unTriangleCount * 3, 0);
+		
+		mesh->BeginChanges();
+		mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, hiddenAreaMesh.pVertexData);
+		mesh->EndChanges();
+		
+		return mesh->Autorelease();
+	}
 }
