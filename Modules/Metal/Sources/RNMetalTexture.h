@@ -29,8 +29,6 @@ namespace RN
 
 		MTLAPI void GenerateMipMaps() final;
 
-		MTLAPI bool HasColorChannel(ColorChannel channel) const final;
-
 		static MTLPixelFormat PixelFormatForTextureFormat(Format format);
 		static MTLTextureDescriptor *DescriptorForTextureDescriptor(const Descriptor &descriptor, bool isIOSurfaceBacked = false);
 

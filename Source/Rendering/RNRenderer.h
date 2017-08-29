@@ -106,6 +106,7 @@ namespace RN
 		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source) = 0;
 
 		RNAPI virtual Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint shader = Shader::UsageHint::Default) = 0;
+		RNAPI virtual ShaderLibrary *GetDefaultShaderLibrary() = 0;
 
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 

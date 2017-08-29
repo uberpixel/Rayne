@@ -24,6 +24,9 @@ namespace RN
 		{
 			RGBA8888SRGB,
 			BGRA8888SRGB,
+			
+			RGB888SRGB,
+			BGR888SRGB,
 
 			RGBA8888,
 			BGRA8888,
@@ -220,7 +223,7 @@ namespace RN
 		RNAPI virtual void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const = 0;
 
 		RNAPI virtual void GenerateMipMaps() = 0;
-		RNAPI virtual bool HasColorChannel(ColorChannel channel) const = 0;
+		RNAPI virtual bool HasColorChannel(ColorChannel channel) const;
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
 

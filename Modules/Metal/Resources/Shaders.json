@@ -97,6 +97,14 @@
 				{
 					"samplers": [{"wrap": "clamp"}]
 				}
+			},
+			{
+				"name": "pp_mask_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_mask_fragment",
+				"type": "fragment"
 			}
 		]
 	}

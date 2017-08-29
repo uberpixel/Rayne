@@ -29,6 +29,7 @@ namespace RN
 		Shader *fragmentShader;
 		bool wantsShadowTexture;
 		bool wantsAlphaToCoverage;
+		uint8 colorWriteMask;
 	};
 
 	struct MetalRenderingStateCollection
@@ -98,7 +99,7 @@ namespace RN
 
 	private:
 		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
-		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage);
+		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage, uint8 colorWriteMask);
 
 		id<MTLDevice> _device;
 

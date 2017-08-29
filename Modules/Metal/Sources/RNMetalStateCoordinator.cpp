@@ -225,6 +225,7 @@ namespace RN
 		MetalShader *vertexShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(shaderHint) : material->GetVertexShader(shaderHint));
 		MetalShader *fragmentShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetFragmentShader(shaderHint) : material->GetFragmentShader(shaderHint));
 		bool wantsAlphaToCoverage = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupAlphaToCoverage) && !(material->GetOverride() & Material::Override::GroupAlphaToCoverage))? overrideMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
+		uint8 colorWriteMask = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::ColorWriteMask) && !(material->GetOverride() & Material::Override::ColorWriteMask))? overrideMaterial->GetColorWriteMask() : material->GetColorWriteMask();
 
 		for(MetalRenderingStateCollection *collection : _renderingStates)
 		{
@@ -232,7 +233,7 @@ namespace RN
 			{
 				if(collection->fragmentShader->IsEqual(fragmentShader) && collection->vertexShader->IsEqual(vertexShader))
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage);
+					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage, colorWriteMask);
 				}
 			}
 		}
@@ -240,11 +241,11 @@ namespace RN
 		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage);
+		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage, colorWriteMask);
 
 	}
 
-	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage, uint8 colorWriteMask)
 	{
 		MetalFramebuffer *metalFramebuffer = framebuffer->Downcast<MetalFramebuffer>();
 		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat(0);
@@ -254,7 +255,7 @@ namespace RN
 		for(const MetalRenderingState *state : collection->states)
 		{
 			//TODO: include things like different pixel formats and sample rate...
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == wantsAlphaToCoverage)
+			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == wantsAlphaToCoverage && state->colorWriteMask == colorWriteMask)
 				return state;
 		}
 
@@ -266,6 +267,7 @@ namespace RN
 		pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
 		pipelineStateDescriptor.sampleCount = metalFramebuffer->GetSampleCount();
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
+		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(colorWriteMask);
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
 		pipelineStateDescriptor.alphaToCoverageEnabled = wantsAlphaToCoverage;
@@ -309,6 +311,7 @@ namespace RN
 		state->fragmentShader = collection->fragmentShader;
 		state->wantsShadowTexture = collection->fragmentShader->_wantsDirectionalShadowTexture; //TODO: also support in vertex shader/generalize special texture handling
 		state->wantsAlphaToCoverage = wantsAlphaToCoverage;
+		state->colorWriteMask = colorWriteMask;
 
 		collection->states.push_back(state);
 

@@ -475,19 +475,16 @@ namespace RN
 		//TODO: Find a better solution to get rid of this method?
 		LockGuard<Lockable> lock(_lock);
 		
-		if(!_defaultShaderLibrary)
-		{
-			_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
-		}
+		ShaderLibrary *shaderLibrary = GetDefaultShaderLibrary();
 		
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
-			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex"));
+			shader = shaderLibrary->GetShaderWithName(RNCSTR("pp_vertex"));
 		}
 		else if(type == Shader::Type::Fragment)
 		{
-			shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment"));
+			shader = shaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment"));
 		}
 		
 		return shader;
@@ -497,28 +494,25 @@ namespace RN
 	{
 		LockGuard<Lockable> lock(_lock);
 
-		if(!_defaultShaderLibrary)
-		{
-			_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
-		}
+		ShaderLibrary *shaderLibrary = GetDefaultShaderLibrary();
 
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
 			if(hint == Shader::UsageHint::Depth)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
+				shader = shaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
 			}
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
 				}
 				else
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
 				}
 			}
 		}
@@ -526,23 +520,33 @@ namespace RN
 		{
 			if(hint == Shader::UsageHint::Depth)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
+				shader = shaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
 			}
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
 				}
 				else
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 				}
 			}
 		}
 
 		return shader;
+	}
+	
+	ShaderLibrary *MetalRenderer::GetDefaultShaderLibrary()
+	{
+		if(!_defaultShaderLibrary)
+		{
+			_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
+		}
+		
+		return _defaultShaderLibrary;
 	}
 
 	bool MetalRenderer::SupportsTextureFormat(const String *format) const

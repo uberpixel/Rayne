@@ -29,7 +29,7 @@ set(INCLUDE_DIRECTORIES
         "${CMAKE_CURRENT_BINARY_DIR}/../VRWrapper/include")
 
 
-if(MSVC AND ${BUILD_D3D12_MODULE})
+if(MSVC AND ${RN_BUILD_D3D12_MODULE})
     set(SOURCES
         ${SOURCES}
         RNOpenVRD3D12SwapChain.cpp)
@@ -43,7 +43,7 @@ if(MSVC AND ${BUILD_D3D12_MODULE})
     set(INCLUDE_DIRECTORIES
         ${INCLUDE_DIRECTORIES}
         "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
-elseif(APPLE AND ${BUILD_METAL_MODULE})
+elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     set(SOURCES
         ${SOURCES}
         RNOpenVRMetalSwapChain.cpp)
@@ -62,9 +62,9 @@ endif()
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOpenVR)
 
-if(MSVC AND ${BUILD_D3D12_MODULE})
+if(MSVC AND ${RN_BUILD_D3D12_MODULE})
     rayne_use_modules(RayneOpenVR RayneD3D12)
-elseif(APPLE AND ${BUILD_METAL_MODULE})
+elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     rayne_use_modules(RayneOpenVR RayneMetal)
     target_compile_options(RayneOpenVR PRIVATE "-xobjective-c++")
     FIND_LIBRARY(IOSURFACE_LIBRARY IOSurface)

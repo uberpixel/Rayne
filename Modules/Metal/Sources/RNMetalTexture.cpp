@@ -55,53 +55,6 @@ namespace RN
 		_renderer->CreateMipMapForTexture(this);
 	}
 
-	bool MetalTexture::HasColorChannel(ColorChannel channel) const
-	{
-#define ColorChannel(format, r, g, b, a) \
-		case format: \
-		{ \
-			switch(channel) \
-			{ \
-				case ColorChannel::Red: \
-					return r; \
-				case ColorChannel::Green: \
-					return g; \
-				case ColorChannel::Blue: \
-					return b; \
-				case ColorChannel::Alpha: \
-					return a; \
-			} \
-			return false; \
-		}
-
-		switch([(id <MTLTexture>)_texture pixelFormat])
-		{
-			ColorChannel(MTLPixelFormatRGBA8Unorm, true, true, true, true)
-			ColorChannel(MTLPixelFormatRGBA8Unorm_sRGB, true, true, true, true)
-			ColorChannel(MTLPixelFormatBGRA8Unorm, true, true, true, true)
-			ColorChannel(MTLPixelFormatBGRA8Unorm_sRGB, true, true, true, true)
-			ColorChannel(MTLPixelFormatRGB10A2Unorm, true, true, true, true)
-			ColorChannel(MTLPixelFormatR8Unorm, true, false, false, false)
-			ColorChannel(MTLPixelFormatRG8Unorm, true, true, false, false)
-
-			ColorChannel(MTLPixelFormatR16Float, true, false, false, false)
-			ColorChannel(MTLPixelFormatRG16Float, true, true, false, false)
-			ColorChannel(MTLPixelFormatRGBA16Float, true, true, true, true)
-
-			ColorChannel(MTLPixelFormatR32Float, true, false, false, false)
-			ColorChannel(MTLPixelFormatRG32Float, true, true, false, false)
-			ColorChannel(MTLPixelFormatRGBA32Float, true, true, true, true)
-
-			ColorChannel(MTLPixelFormatDepth32Float, false, false, false, false)
-			ColorChannel(MTLPixelFormatStencil8, false, false, false, false)
-			ColorChannel(MTLPixelFormatDepth24Unorm_Stencil8, false, false, false, false)
-			ColorChannel(MTLPixelFormatDepth32Float_Stencil8, false, false, false, false)
-
-			default:
-				return false;
-		}
-	}
-
 	MTLPixelFormat MetalTexture::PixelFormatForTextureFormat(Format format)
 	{
 		switch(format)
@@ -109,6 +62,10 @@ namespace RN
 			case Format::RGBA8888SRGB:
 				return MTLPixelFormatRGBA8Unorm_sRGB;
 			case Format::BGRA8888SRGB:
+				return MTLPixelFormatBGRA8Unorm_sRGB;
+			case Format::RGB888SRGB:
+				return MTLPixelFormatRGBA8Unorm_sRGB;
+			case Format::BGR888SRGB:
 				return MTLPixelFormatBGRA8Unorm_sRGB;
 			case Format::RGB888:
 			case Format::RGBA8888:

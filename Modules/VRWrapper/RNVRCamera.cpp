@@ -38,7 +38,25 @@ namespace RN
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i] = new Camera();
+			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i)));
 			_head->AddChild(_eye[i]);
+			_hiddenAreaEntity[i] = nullptr;
+			
+			Mesh *hiddenAreaMesh = _window->GetHiddenAreaMesh(i);
+			if(hiddenAreaMesh)
+			{
+				ShaderLibrary *shaderLibrary = RN::Renderer::GetActiveRenderer()->GetDefaultShaderLibrary();
+				Material *hiddenAreaMaterial = Material::WithShaders(shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_vertex"), Shader::Options::WithMesh(hiddenAreaMesh)), shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_fragment")));
+				hiddenAreaMaterial->SetCullMode(CullMode::None);
+				hiddenAreaMaterial->SetColorWriteMask(false, false, false, false);
+				
+				Model *hiddenAreaModel = new Model(hiddenAreaMesh, hiddenAreaMaterial);
+				_hiddenAreaEntity[i] = new Entity(hiddenAreaModel->Autorelease());
+				_hiddenAreaEntity[i]->SetPriority(RN::SceneNode::Priority::UpdateEarly);
+				_hiddenAreaEntity[i]->SetRenderGroup((1 << (1 + i)));
+				
+				_eye[i]->AddChild(_hiddenAreaEntity[i]);
+			}
 		}
 
 		CreatePostprocessingPipeline();
@@ -72,7 +90,7 @@ namespace RN
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 
-#if RN_PLATFORM_MAC_OS
+#if 0//RN_PLATFORM_MAC_OS
 		Framebuffer *msaaFramebuffer = nullptr;
 		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
 		PostProcessingAPIStage *resolvePass[2];

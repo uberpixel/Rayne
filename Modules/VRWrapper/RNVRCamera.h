@@ -37,6 +37,7 @@ namespace RN
 		Window *_debugWindow;
 		SceneNode *_head;
 		Camera *_eye[2];
+		Entity *_hiddenAreaEntity[2];
 		RenderPass *_previewRenderPass;
 		uint8 _msaaSampleCount;
 

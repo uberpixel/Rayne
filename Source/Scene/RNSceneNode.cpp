@@ -145,7 +145,7 @@ namespace RN
 		_flags = 0;
 
 		_priority = Priority::UpdateNormal;
-		_renderGroup = 0;
+		_renderGroup = 1;
 		_collisionGroup = 0;
 	}
 
@@ -235,7 +235,8 @@ namespace RN
 		if(_scene)
 		{
 			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
-				_scene->RemoveNode(node);
+				if(node->_scene != nullptr)
+					_scene->RemoveNode(node);
 			});
 		}
 
@@ -341,6 +342,9 @@ namespace RN
 	bool SceneNode::CanRender(Renderer *renderer, Camera *camera) const
 	{
 		if(_flags.load(std::memory_order_acquire) & Flags::Hidden)
+			return false;
+		
+		if((_renderGroup & camera->GetRenderGroup()) == 0)
 			return false;
 
 		return camera->InFrustum(GetBoundingSphere());

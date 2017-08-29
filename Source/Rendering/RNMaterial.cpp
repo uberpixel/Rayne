@@ -18,6 +18,7 @@ namespace RN
 		_vertexBuffers(nullptr),
 		_fragmentBuffers(nullptr)
 	{
+		_properties.colorWriteMask = 0xf;
 		_properties.depthMode = DepthMode::Less;
 		_properties.depthWriteEnabled = true;
 	  	_properties.ambientColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
@@ -56,6 +57,7 @@ namespace RN
 		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
 		_fragmentBuffers(SafeCopy(other->_fragmentBuffers))
 	{
+		_properties.colorWriteMask = other->_properties.colorWriteMask;
 		_properties.depthMode = other->_properties.depthMode;
 		_properties.depthWriteEnabled = other->_properties.depthWriteEnabled;
 		_properties.ambientColor = other->_properties.ambientColor;
@@ -133,6 +135,20 @@ namespace RN
 	void Material::SetOverride(Override override)
 	{
 		_override = override;
+	}
+	
+	void Material::SetColorWriteMask(bool writeRed, bool writeGreen, bool writeBlue, bool writeAlpha)
+	{
+		_properties.colorWriteMask = 0;
+		
+		if(writeRed)
+			_properties.colorWriteMask |= (1 << 0);
+		if(writeGreen)
+			_properties.colorWriteMask |= (1 << 1);
+		if(writeBlue)
+			_properties.colorWriteMask |= (1 << 2);
+		if(writeAlpha)
+			_properties.colorWriteMask |= (1 << 3);
 	}
 
 	void Material::SetDepthWriteEnabled(bool depthWrite)
@@ -217,6 +233,12 @@ namespace RN
 			return _properties;
 		
 		Properties properties = _properties;
+		
+		if(!(overrideMaterial->GetOverride() & Override::ColorWriteMask) && !(_override & Override::ColorWriteMask))
+		{
+			properties.colorWriteMask = overrideMaterial->_properties.colorWriteMask;
+		}
+		
 		if(!(overrideMaterial->GetOverride() & Override::GroupDepth) && !(_override & Override::GroupDepth))
 		{
 			properties.depthMode = overrideMaterial->_properties.depthMode;

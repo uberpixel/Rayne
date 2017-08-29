@@ -44,6 +44,8 @@ namespace RN
 		
 		struct Properties
 		{
+			uint8 colorWriteMask;
+			
 			DepthMode depthMode;
 			bool depthWriteEnabled;
 			
@@ -70,6 +72,7 @@ namespace RN
 			GroupAlphaToCoverage = (1 << 4),
 			TextureTileFactor = (1 << 5),
 			CullMode = (1 << 6),
+		   	ColorWriteMask = (1 << 7),
 
 			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
 		);
@@ -89,6 +92,8 @@ namespace RN
 		RNAPI void SetVertexShader(Shader *shader, Shader::UsageHint type = Shader::UsageHint::Default);
 		
 		RNAPI void SetOverride(Override override);
+		
+		RNAPI void SetColorWriteMask(bool writeRed, bool writeGreen, bool writeBlue, bool writeAlpha);
 
 		RNAPI void SetDepthWriteEnabled(bool depthWrite);
 		RNAPI void SetDepthMode(DepthMode mode);
@@ -111,6 +116,8 @@ namespace RN
 
 		RNAPI Shader *GetFragmentShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
 		RNAPI Shader *GetVertexShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
+		
+		uint8 GetColorWriteMask() const { return _properties.colorWriteMask; }
 
 		DepthMode GetDepthMode() const { return _properties.depthMode; }
 		bool GetDepthWriteEnabled() const { return _properties.depthWriteEnabled; }

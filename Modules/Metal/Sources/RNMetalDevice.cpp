@@ -39,9 +39,12 @@ namespace RN
 			descriptor.vendorID = 0x1002;
 		}
 		
-		if([device isRemovable])
+		if(@available(macOS 10.13, *))
 		{
-			descriptor.type = Type::External;
+			if([device isRemovable])
+			{
+				descriptor.type = Type::External;
+			}
 		}
 
 		NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];

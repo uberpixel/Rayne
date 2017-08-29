@@ -75,7 +75,7 @@ namespace RN
 			case PNG_COLOR_TYPE_RGB:
 			{
 				data = new uint8[width * height * 4];
-				format = Texture::Format::RGBA8888SRGB;
+				format = Texture::Format::RGB888SRGB;
 				bytesPerRow = 4 * width;
 
 				uint8 *temp = data;

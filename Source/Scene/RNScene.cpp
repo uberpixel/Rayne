@@ -20,7 +20,7 @@ namespace RN
 {
 	RNDefineMeta(Scene, Object)
 
-	Scene::Scene() : _attachments(nullptr), _lights(new Array())
+	Scene::Scene() : _lights(new Array()), _attachments(nullptr)
 	{}
 	Scene::~Scene()
 	{

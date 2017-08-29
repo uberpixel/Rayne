@@ -360,7 +360,7 @@ namespace RN
 			NSDate *date = [NSDate date];
 			NSEvent *event;
 
-			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+			while((event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
 			{
 				[NSApp sendEvent:event];
 				[NSApp updateWindows];
