@@ -258,7 +258,7 @@ namespace RN
 		renderPass.renderPass = camera->GetRenderPass();
 		renderPass.previousRenderPass = nullptr;
 
-		renderPass.drawables.resize(0);
+		renderPass.drawables.clear();
 		renderPass.framebuffer = nullptr;
 
 		renderPass.shaderHint = camera->GetShaderHint();
@@ -317,7 +317,7 @@ namespace RN
 		metalRenderPass.renderPass = renderPass;
 		metalRenderPass.previousRenderPass = previousRenderPass;
 		
-		metalRenderPass.drawables.resize(0);
+		metalRenderPass.drawables.clear();
 		metalRenderPass.framebuffer = nullptr;
 		metalRenderPass.resolveFramebuffer = nullptr;
 		
