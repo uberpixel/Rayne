@@ -45,6 +45,11 @@ void RNSetThreadName(char *threadName)
 
 namespace RN
 {
+	namespace __Private
+	{
+		extern void CleanThreadData();
+	}
+
 	__RNDefineMetaAndGFYMSVC(Thread, Object)
 	
 	static Thread *__MainThread;
@@ -90,12 +95,15 @@ namespace RN
 	{
 		return __MainThread;
 	}
-	
+
+	void Thread::CleanUp()
+	{
+		__Private::CleanThreadData();
+	}
 	
 	void Thread::WaitForExit()
 	{
-		if(OnThread())
-			return;
+		RN_ASSERT(!OnThread(), "Thread::WaitForExit() must not be called from the thread itself");
 		
 		Retain();
 		
@@ -159,6 +167,7 @@ namespace RN
 				pair.first(pair.second);
 		}
 
+		CleanUp();
 		Release();
 	}
 	
