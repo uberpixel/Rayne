@@ -10,7 +10,7 @@
 // RN_UV0
 // RN_ALPHA
 
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 Texture2D texture0 : register(t0);
 SamplerState linearRepeatSampler : register(s0);
 #endif
@@ -24,7 +24,7 @@ cbuffer vertexUniforms : register(b0)
 	matrix modelViewProjectionMatrix;
 #endif
 
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 	float textureTileFactor;
 #endif
 };

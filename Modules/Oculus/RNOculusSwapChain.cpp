@@ -48,7 +48,7 @@ namespace RN
 		ovrTextureSwapChainDesc swapChainDesc = {};
 		swapChainDesc.Type = ovrTexture_2D;
 		swapChainDesc.ArraySize = 1;
-		swapChainDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+		swapChainDesc.Format = OVR_FORMAT_B8G8R8A8_UNORM_SRGB;
 		swapChainDesc.Width = bufferSize.w;
 		swapChainDesc.Height = bufferSize.h;
 		swapChainDesc.MipLevels = 1;
