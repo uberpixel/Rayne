@@ -29,10 +29,17 @@ cbuffer vertexUniforms : register(b0)
 #endif
 };
 
+#if RN_UV0 && RN_ALPHA
+cbuffer FragmentUniforms : register(b1)
+{
+	float2 alphaToCoverageClamp;
+};
+#endif
+
 struct InputVertex
 {
 	float3 position : POSITION;
-#if RN_UV0
+#if RN_UV0 && RN_ALPHA
 	float2 texCoords : TEXCOORD0;
 #endif
 };
@@ -64,12 +71,16 @@ FragmentVertex depth_vertex(InputVertex vert)
 }
 
 
-float4 depth_fragment(FragmentVertex vert) : SV_TARGET
+float4 depth_fragment(
+#if RN_UV0 && RN_ALPHA
+	FragmentVertex vert
+#endif
+	) : SV_TARGET
 {
 	float4 color = 1.0f;
 #if RN_UV0 && RN_ALPHA
 	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
-	return color;
+	color.a = smoothstep(alphaToCoverageClamp.x, alphaToCoverageClamp.y, color.a);
 #endif
-	return;
+	return color;
 }

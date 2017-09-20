@@ -46,7 +46,7 @@ namespace RN
 		ovrTextureSwapChain _textureSwapChain;
 
 		ovrEyeRenderDesc _eyeRenderDesc[2];
-		ovrVector3f _hmdToEyeViewOffset[2];
+		ovrPosef _hmdToEyeViewPose[2];
 		ovrTrackingState _hmdState;
 
 		ovrResult _submitResult;

@@ -18,14 +18,24 @@ namespace RN
 {
 	RNDefineMeta(OculusWindow, VRWindow)
 
-	OculusWindow::OculusWindow(const Window::SwapChainDescriptor &descriptor)
+	OculusWindow::OculusWindow()
 	{
-		_swapChain = new OculusSwapChain(descriptor);
+		
 	}
 
 	OculusWindow::~OculusWindow()
 	{
-		_swapChain->Release();
+		StopRendering();
+	}
+
+	void OculusWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	{
+		_swapChain = new OculusSwapChain(descriptor);
+	}
+
+	void OculusWindow::StopRendering()
+	{
+		SafeRelease(_swapChain);
 	}
 
 	Vector2 OculusWindow::GetSize() const
@@ -87,8 +97,8 @@ namespace RN
 	{
 		_swapChain->UpdatePredictedPose();
 
-		_hmdTrackingState.eyeOffset[0] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewOffset[0]);
-		_hmdTrackingState.eyeOffset[1] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewOffset[1]);
+		_hmdTrackingState.eyeOffset[0] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[0].Position);
+		_hmdTrackingState.eyeOffset[1] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[1].Position);
 		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[0], near, far, ovrProjection_None));
 		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[1], near, far, ovrProjection_None));
 		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.ThePose.Position);
@@ -214,6 +224,11 @@ namespace RN
 			return RNSTR(StringForLPWSTR(idString));
 		}
 
+		return nullptr;
+	}
+
+	RenderingDevice *OculusWindow::GetOutputDevice() const
+	{
 		return nullptr;
 	}
 }

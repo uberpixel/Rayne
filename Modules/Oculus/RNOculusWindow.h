@@ -24,8 +24,11 @@ namespace RN
 			Right
 		};*/
 
-		OVRAPI OculusWindow(const SwapChainDescriptor &descriptor = SwapChainDescriptor());
+		OVRAPI OculusWindow();
 		OVRAPI ~OculusWindow();
+
+		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
+		OVRAPI void StopRendering() final;
 
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
@@ -37,6 +40,8 @@ namespace RN
 
 		OVRAPI const String *GetPreferredAudioOutputDeviceID() const;
 		OVRAPI const String *GetPreferredAudioInputDeviceID() const;
+
+		OVRAPI RenderingDevice *GetOutputDevice() const final;
 
 		OVRAPI void Update(float delta, float near, float far) final;
 

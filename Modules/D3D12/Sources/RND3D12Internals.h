@@ -57,7 +57,8 @@ namespace RN
 		{
 			Default,
 			ResolveMSAA,
-			Copy
+			Blit,
+			Convert
 		};
 
 		Type type;

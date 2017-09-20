@@ -76,6 +76,8 @@ namespace RN
 			return DXGI_FORMAT_R8G8_UNORM;
 		case Texture::Format::RGB888:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::RGB888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		case Texture::Format::R16F:
 			return DXGI_FORMAT_R16_FLOAT;
 		case Texture::Format::RG16F:
@@ -127,6 +129,8 @@ namespace RN
 			return DXGI_FORMAT_R8G8_UNORM;
 		case Texture::Format::RGB888:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::RGB888SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		case Texture::Format::R16F:
 			return DXGI_FORMAT_R16_FLOAT;
 		case Texture::Format::RG16F:
@@ -168,11 +172,14 @@ namespace RN
 			switch(descriptor.format)
 			{
 			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::BGRA8888SRGB:
 			case Texture::Format::RGBA8888:
+			case Texture::Format::BGRA8888:
 			case Texture::Format::RGB10A2:
 			case Texture::Format::R8:
 			case Texture::Format::RG88:
 			case Texture::Format::RGB888:
+			case Texture::Format::RGB888SRGB:
 			case Texture::Format::R16F:
 			case Texture::Format::RG16F:
 			case Texture::Format::RGB16F:
@@ -205,11 +212,14 @@ namespace RN
 			switch (descriptor.format)
 			{
 			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::BGRA8888SRGB:
 			case Texture::Format::RGBA8888:
+			case Texture::Format::BGRA8888:
 			case Texture::Format::RGB10A2:
 			case Texture::Format::R8:
 			case Texture::Format::RG88:
 			case Texture::Format::RGB888:
+			case Texture::Format::RGB888SRGB:
 			case Texture::Format::R16F:
 			case Texture::Format::RG16F:
 			case Texture::Format::RGB16F:

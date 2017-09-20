@@ -71,8 +71,8 @@ namespace RN
 		// Initialize VR structures, filling out description.
 		_eyeRenderDesc[0] = ovr_GetRenderDesc(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0]);
 		_eyeRenderDesc[1] = ovr_GetRenderDesc(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1]);
-		_hmdToEyeViewOffset[0] = _eyeRenderDesc[0].HmdToEyeOffset;
-		_hmdToEyeViewOffset[1] = _eyeRenderDesc[1].HmdToEyeOffset;
+		_hmdToEyeViewPose[0] = _eyeRenderDesc[0].HmdToEyePose;
+		_hmdToEyeViewPose[1] = _eyeRenderDesc[1].HmdToEyePose;
 
 		// Initialize our single full screen Fov layer.
 		_layer.Header.Type = ovrLayerType_EyeFov;
@@ -153,6 +153,6 @@ namespace RN
 	{
 		double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);	//TODO: Frameindex as second param
 		_hmdState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
-		ovr_CalcEyePoses(_hmdState.HeadPose.ThePose, _hmdToEyeViewOffset, _layer.RenderPose);
+		ovr_CalcEyePoses(_hmdState.HeadPose.ThePose, _hmdToEyeViewPose, _layer.RenderPose);
 	}
 }

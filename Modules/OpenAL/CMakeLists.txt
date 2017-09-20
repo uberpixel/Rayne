@@ -5,7 +5,8 @@ include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 
 #set(CMAKE_PLATFORM_NO_VERSIONED_SONAME 1)
-SET(LIBTYPE STATIC)
+#static linking against an LGPL licensed lib is a somewhat bad idea...
+#SET(LIBTYPE STATIC)
 
 option(ALSOFT_UTILS "Build and install utility programs" OFF)
 option(ALSOFT_EXAMPLES "Build and install example programs" OFF)
@@ -50,6 +51,6 @@ rayne_set_module_output_directory(RayneOpenAL)
 target_include_directories(RayneOpenAL SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOpenAL PRIVATE "${DEFINES}")
 
-#add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenAL/. DESTINATION lib/Rayne/RayneOpenAL)

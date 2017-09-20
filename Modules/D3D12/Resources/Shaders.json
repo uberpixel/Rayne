@@ -43,6 +43,7 @@
 				{
 					"options":
 					[
+						"RN_ALPHA",
 						"RN_UV0",
 						"RN_SKY"
 					]

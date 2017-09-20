@@ -123,6 +123,11 @@ namespace RN
 		return window;
 	}
 
+	void D3D12Renderer::SetMainWindow(Window *window)
+	{
+		_mainWindow = window;
+	}
+
 	Window *D3D12Renderer::GetMainWindow()
 	{
 		return _mainWindow;
@@ -582,8 +587,11 @@ namespace RN
 			case PostProcessingAPIStage::Type::ResolveMSAA:
 				d3dRenderPass.type = D3D12RenderPass::Type::ResolveMSAA;
 				break;
-			case PostProcessingAPIStage::Type::CopyBuffer:
-				d3dRenderPass.type = D3D12RenderPass::Type::Copy;
+			case PostProcessingAPIStage::Type::Blit:
+				d3dRenderPass.type = D3D12RenderPass::Type::Blit;
+				break;
+			case PostProcessingAPIStage::Type::Convert:
+				d3dRenderPass.type = D3D12RenderPass::Type::Convert;
 				break;
 			}
 		}
@@ -669,6 +677,11 @@ namespace RN
 	{
 		D3D12ShaderLibrary *lib = new D3D12ShaderLibrary(nullptr);
 		return lib;
+	}
+
+	ShaderLibrary *D3D12Renderer::GetDefaultShaderLibrary()
+	{
+		return _defaultShaderLibrary;
 	}
 
 	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
@@ -1106,17 +1119,9 @@ namespace RN
 					break;
 				}
 
-				case Shader::UniformDescriptor::Identifier::DiscardThreshold:
-				{
-					float temp = mergedMaterialProperties.discardThreshold;
-					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
-					break;
-				}
-
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
-					float temp = mergedMaterialProperties.alphaToCoverageClamp;
-					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.alphaToCoverageClamp.x, descriptor->GetSize());
 					break;
 				}
 
@@ -1256,7 +1261,6 @@ namespace RN
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
-		D3D12SwapChain *swapChain = _mainWindow->GetSwapChain();
 		const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 
 		UINT rootParameter = 0;
@@ -1349,7 +1353,7 @@ namespace RN
 				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
 			}
 		}
-		else
+		else if(renderPass.type == D3D12RenderPass::Type::Blit)
 		{
 			sourceD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
@@ -1377,6 +1381,10 @@ namespace RN
 			{
 				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
 			}
+		}
+		else if(renderPass.type == D3D12RenderPass::Type::Convert)
+		{
+			
 		}
 	}
 

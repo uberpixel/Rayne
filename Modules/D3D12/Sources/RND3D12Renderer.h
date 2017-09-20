@@ -39,6 +39,7 @@ namespace RN
 		D3DAPI ~D3D12Renderer();
 
 		D3DAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
+		D3DAPI void SetMainWindow(Window *window) final;
 		D3DAPI Window *GetMainWindow() final;
 
 		D3DAPI void Render(Function &&function) final;
@@ -58,6 +59,7 @@ namespace RN
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
 		D3DAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint = Shader::UsageHint::Default) final;
+		D3DAPI ShaderLibrary *GetDefaultShaderLibrary();
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
@@ -93,7 +95,7 @@ namespace RN
 
 		Array *_mipMapTextures;
 
-		D3D12Window *_mainWindow;
+		Window *_mainWindow;
 		ShaderLibrary *_defaultShaderLibrary;
 
 		D3D12Drawable *_defaultPostProcessingDrawable;
