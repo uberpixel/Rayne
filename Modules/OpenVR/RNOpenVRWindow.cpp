@@ -36,7 +36,7 @@ namespace RN
 
 	OpenVRWindow::~OpenVRWindow()
 	{
-		SafeRelease(_swapChain);
+		StopRendering();
 		if(_vrSystem) vr::VR_Shutdown();
 	}
 	
@@ -328,7 +328,7 @@ namespace RN
 		}
 		return device;
 #elif RN_PLATFORM_WINDOWS
-		
+		return nullptr;
 #endif
 	}
 	
