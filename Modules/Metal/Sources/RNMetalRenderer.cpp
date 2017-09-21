@@ -27,12 +27,14 @@ namespace RN
 		_mipMapTextures(new Set()),
 		_mainWindow(nullptr),
 		_defaultPostProcessingDrawable(nullptr),
-		_ppBlitMaterial(nullptr),
+		_ppConvertMaterial(nullptr),
 		_defaultShaderLibrary(nullptr)
 	{
 		_internals->device = device->GetDevice();
 		_internals->commandQueue = [_internals->device newCommandQueue];
 		_internals->stateCoordinator.SetDevice(_internals->device);
+		
+		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -40,7 +42,8 @@ namespace RN
 		[_internals->commandQueue release];
 		[_internals->device release];
 
-		_mipMapTextures->Release();
+		SafeRelease(_mipMapTextures);
+		SafeRelease(_defaultShaderLibrary);
 	}
 
 
@@ -342,11 +345,11 @@ namespace RN
 				{
 					metalRenderPass.type = MetalRenderPass::Type::Convert;
 					
-					if(!_ppBlitMaterial)
+					if(!_ppConvertMaterial)
 					{
-						_ppBlitMaterial = Material::WithShaders(GetPPBlitShader(Shader::Type::Vertex), GetPPBlitShader(Shader::Type::Fragment))->Retain();
+						_ppConvertMaterial = Material::WithShaders(_defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex")), _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment")))->Retain();
 					}
-					metalRenderPass.overrideMaterial = _ppBlitMaterial;
+					metalRenderPass.overrideMaterial = _ppConvertMaterial;
 					break;
 				}
 				
@@ -398,7 +401,7 @@ namespace RN
 			_internals->currentRenderPassIndex = _internals->renderPasses.size();
 			_internals->renderPasses.push_back(metalRenderPass);
 			
-			if(metalRenderPass.type == MetalRenderPass::Type::Convert)
+			if(ppStage || metalRenderPass.type == MetalRenderPass::Type::Convert)
 			{
 				//Submit fullscreen quad drawable
 				if(!_defaultPostProcessingDrawable)
@@ -469,32 +472,12 @@ namespace RN
 		MetalShaderLibrary *lib = new MetalShaderLibrary(_internals->device, nullptr, &_internals->stateCoordinator);
 		return lib;
 	}
-	
-	Shader *MetalRenderer::GetPPBlitShader(Shader::Type type)
-	{
-		//TODO: Find a better solution to get rid of this method?
-		LockGuard<Lockable> lock(_lock);
-		
-		ShaderLibrary *shaderLibrary = GetDefaultShaderLibrary();
-		
-		Shader *shader = nullptr;
-		if(type == Shader::Type::Vertex)
-		{
-			shader = shaderLibrary->GetShaderWithName(RNCSTR("pp_vertex"));
-		}
-		else if(type == Shader::Type::Fragment)
-		{
-			shader = shaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment"));
-		}
-		
-		return shader;
-	}
 
 	Shader *MetalRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint)
 	{
 		LockGuard<Lockable> lock(_lock);
 
-		ShaderLibrary *shaderLibrary = GetDefaultShaderLibrary();
+		ShaderLibrary *shaderLibrary = _defaultShaderLibrary;
 
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
@@ -541,11 +524,6 @@ namespace RN
 	
 	ShaderLibrary *MetalRenderer::GetDefaultShaderLibrary()
 	{
-		if(!_defaultShaderLibrary)
-		{
-			_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
-		}
-		
 		return _defaultShaderLibrary;
 	}
 

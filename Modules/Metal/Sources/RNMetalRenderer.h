@@ -75,7 +75,6 @@ namespace RN
 		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
 		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
-		Shader *GetPPBlitShader(Shader::Type type);
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
@@ -85,7 +84,7 @@ namespace RN
 		Window *_mainWindow;
 		
 		MetalDrawable *_defaultPostProcessingDrawable;
-		Material *_ppBlitMaterial;
+		Material *_ppConvertMaterial;
 
 		Lockable _lock;
 
