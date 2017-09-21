@@ -90,5 +90,31 @@
 				"type": "compute"
 			}
 		]
+	},
+	{
+		"file": ":RayneD3D12:/PostProcessing.hlsl",
+		"shaders":
+		[
+			{
+				"name": "pp_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_blit_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}]
+				}
+			},
+			{
+				"name": "pp_mask_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_mask_fragment",
+				"type": "fragment"
+			}
+		]
 	}
 ]

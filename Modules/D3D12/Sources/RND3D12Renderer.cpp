@@ -33,7 +33,8 @@ namespace RN
 		_descriptorHeapPool(new Array()),
 		_scheduledFenceValue(0),
 		_completedFenceValue(0),
-		_defaultPostProcessingDrawable(nullptr)
+		_defaultPostProcessingDrawable(nullptr),
+		_ppConvertMaterial(nullptr)
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -443,7 +444,7 @@ namespace RN
 		_internals->currentDrawableResourceIndex = 0;
 		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
 		{
-			if(renderPass.type != D3D12RenderPass::Type::Default)
+			if(renderPass.type != D3D12RenderPass::Type::Default && renderPass.type != D3D12RenderPass::Type::Convert)
 			{
 				RenderAPIRenderPass(_currentCommandList, renderPass);
 				_internals->currentRenderPassIndex += 1;
@@ -451,6 +452,10 @@ namespace RN
 			}
 			SetupRendertargets(_currentCommandList, renderPass);
 
+			if(renderPass.type == D3D12RenderPass::Type::Convert)
+			{
+				RenderAPIRenderPass(_currentCommandList, renderPass);
+			}
 			if(renderPass.drawables.size() > 0)
 			{
 				//Draw drawables
@@ -576,6 +581,15 @@ namespace RN
 
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
+
+		d3dRenderPass.renderPass = renderPass;
+		d3dRenderPass.previousRenderPass = previousRenderPass;
+
+		d3dRenderPass.shaderHint = Shader::UsageHint::Default;
+		d3dRenderPass.overrideMaterial = ppStage ? ppStage->GetMaterial() : nullptr;
+
+		d3dRenderPass.directionalShadowDepthTexture = nullptr;
+
 		if(!apiStage)
 		{
 			d3dRenderPass.type = D3D12RenderPass::Type::Default;
@@ -584,24 +598,29 @@ namespace RN
 		{
 			switch(apiStage->GetType())
 			{
-			case PostProcessingAPIStage::Type::ResolveMSAA:
-				d3dRenderPass.type = D3D12RenderPass::Type::ResolveMSAA;
-				break;
-			case PostProcessingAPIStage::Type::Blit:
-				d3dRenderPass.type = D3D12RenderPass::Type::Blit;
-				break;
-			case PostProcessingAPIStage::Type::Convert:
-				d3dRenderPass.type = D3D12RenderPass::Type::Convert;
-				break;
+				case PostProcessingAPIStage::Type::ResolveMSAA:
+				{
+					d3dRenderPass.type = D3D12RenderPass::Type::ResolveMSAA;
+					break;
+				}
+				case PostProcessingAPIStage::Type::Blit:
+				{
+					d3dRenderPass.type = D3D12RenderPass::Type::Blit;
+					break;
+				}
+				case PostProcessingAPIStage::Type::Convert:
+				{
+					d3dRenderPass.type = D3D12RenderPass::Type::Convert;
+
+					if(!_ppConvertMaterial)
+					{
+						_ppConvertMaterial = Material::WithShaders(_defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex")), _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment")));
+					}
+					d3dRenderPass.overrideMaterial = _ppConvertMaterial;
+					break;
+				}
 			}
 		}
-		d3dRenderPass.renderPass = renderPass;
-		d3dRenderPass.previousRenderPass = previousRenderPass;
-
-		d3dRenderPass.shaderHint = Shader::UsageHint::Default;
-		d3dRenderPass.overrideMaterial = ppStage? ppStage->GetMaterial() : nullptr;
-
-		d3dRenderPass.directionalShadowDepthTexture = nullptr;
 
 		Framebuffer *framebuffer = renderPass->GetFramebuffer();
 		D3D12SwapChain *newSwapChain = nullptr;
@@ -629,7 +648,7 @@ namespace RN
 		_internals->currentRenderPassIndex = _internals->renderPasses.size();
 		_internals->renderPasses.push_back(d3dRenderPass);
 
-		if(ppStage)
+		if(ppStage || d3dRenderPass.type == D3D12RenderPass::Type::Convert)
 		{
 			//Submit fullscreen quad drawable
 			if(!_defaultPostProcessingDrawable)
@@ -686,6 +705,8 @@ namespace RN
 
 	Shader *D3D12Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
 	{
+		LockGuard<Lockable> lock(_lock);
+
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
@@ -1307,7 +1328,14 @@ namespace RN
 		D3D12Texture *sourceD3DTexture = sourceTexture->Downcast<D3D12Texture>();
 		D3D12_RESOURCE_STATES oldSourceState = sourceD3DTexture->_currentState;
 
-		RN::D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
+		if (renderPass.type == D3D12RenderPass::Type::Convert)
+		{
+			renderPass.drawables[0]->material->RemoveAllTextures();
+			renderPass.drawables[0]->material->AddTexture(sourceTexture);
+			return;
+		}
+
+		D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
 		Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
 
 		ID3D12Resource *destinationResource;
@@ -1381,10 +1409,6 @@ namespace RN
 			{
 				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
 			}
-		}
-		else if(renderPass.type == D3D12RenderPass::Type::Convert)
-		{
-			
 		}
 	}
 

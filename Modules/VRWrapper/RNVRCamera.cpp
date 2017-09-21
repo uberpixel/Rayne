@@ -20,8 +20,6 @@ namespace RN
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount)
 	{
-		_window->StartRendering();
-		
 		Vector2 windowSize = _window->GetSize();
 		if(_debugWindow)
 		{
@@ -79,8 +77,6 @@ namespace RN
 		SafeRelease(_head);
 		SafeRelease(_eye[0]);
 		SafeRelease(_eye[1]);
-		
-		_window->StopRendering();
 	}
 
 	void VRCamera::CreatePostprocessingPipeline()
@@ -158,7 +154,7 @@ namespace RN
 		{
 			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
 			
-			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::Blit);
+			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::Convert);
 			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
 			copyPass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
 			

@@ -99,6 +99,7 @@ namespace RN
 		ShaderLibrary *_defaultShaderLibrary;
 
 		D3D12Drawable *_defaultPostProcessingDrawable;
+		Material *_ppConvertMaterial;
 
 		ID3D12CommandQueue *_commandQueue;
 

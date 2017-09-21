@@ -18,7 +18,7 @@ namespace RN
 {
 	RNDefineMeta(OculusWindow, VRWindow)
 
-	OculusWindow::OculusWindow()
+	OculusWindow::OculusWindow() : _swapChain(nullptr)
 	{
 		
 	}
