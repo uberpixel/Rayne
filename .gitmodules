@@ -25,3 +25,6 @@
 [submodule "Modules/ENet/Vendor/enet"]
 	path = Modules/ENet/Vendor/enet
 	url = https://github.com/lsalzman/enet.git
+[submodule "Modules/OpenVR/Vendor/OpenVR"]
+	path = Modules/OpenVR/Vendor/OpenVR
+	url = https://github.com/Slin/openvr.git
