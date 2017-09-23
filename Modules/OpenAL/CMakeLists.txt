@@ -4,9 +4,7 @@ project(RayneOpenAL)
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 
-#set(CMAKE_PLATFORM_NO_VERSIONED_SONAME 1)
-#static linking against an LGPL licensed lib is a somewhat bad idea...
-#SET(LIBTYPE STATIC)
+set(CMAKE_PLATFORM_NO_VERSIONED_SONAME 1)
 
 option(ALSOFT_UTILS "Build and install utility programs" OFF)
 option(ALSOFT_EXAMPLES "Build and install example programs" OFF)
