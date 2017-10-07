@@ -9,15 +9,15 @@
 #ifndef __RAYNE_OPENVRD3D12SWAPCHAIN_H_
 #define __RAYNE_OPENVRD3D12SWAPCHAIN_H_
 
-#include "RND3D12Renderer.h"
-#include "RND3D12Framebuffer.h"
 #include "RND3D12SwapChain.h"
 
-#include <openvr.h>
 #include "RNOpenVR.h"
+#include <openvr.h>
 
+struct ID3D12Resource;
 namespace RN
 {
+	class D3D12CommandList;
 	class OpenVRD3D12SwapChain : public D3D12SwapChain
 	{
 	public:

@@ -6,13 +6,16 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNOpenVRWindow.h"
+#include <RayneConfig.h>
 
 #if RN_PLATFORM_MAC_OS
 #include "RNOpenVRMetalSwapChain.h"
 #elif RN_PLATFORM_WINDOWS
 #include "RNOpenVRD3D12SwapChain.h"
+#include "RND3D12Framebuffer.h"
 #endif
+
+#include "RNOpenVRWindow.h"
 
 namespace RN
 {

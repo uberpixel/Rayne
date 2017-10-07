@@ -7,7 +7,10 @@
 //
 
 #include "RNOpenVRD3D12SwapChain.h"
+
 #include "RND3D12Internals.h"
+#include "RND3D12Renderer.h"
+#include "RND3D12Framebuffer.h"
 
 namespace RN
 {
