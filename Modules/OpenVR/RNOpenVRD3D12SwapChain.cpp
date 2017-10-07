@@ -15,26 +15,14 @@ namespace RN
 
 	const uint32 OpenVRD3D12SwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
 
-	OpenVRD3D12SwapChain::OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor) : _isFirstRender(true)
+	OpenVRD3D12SwapChain::OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : _isFirstRender(true), _vrSystem(system)
 	{
-		vr::EVRInitError eError = vr::VRInitError_None;
-		_hmd = vr::VR_Init(&eError, vr::VRApplication_Scene);
-
-		if (eError != vr::VRInitError_None)
-		{
-			_hmd = nullptr;
-			RNDebug("OpenVR: Unable to init VR runtime: " << vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-			return;
-		}
-
-		RNInfo(GetHMDInfoDescription());
-
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		_descriptor = descriptor;
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
-		_hmd->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
+		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
 		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
 
 		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
@@ -46,8 +34,8 @@ namespace RN
 		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
 
 		//TODO: Update every frame, maybe move to window
-		vr::HmdMatrix34_t leftEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Left);
-		vr::HmdMatrix34_t rightEyeMatrix = _hmd->GetEyeToHeadTransform(vr::Eye_Right);
+		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
+		vr::HmdMatrix34_t rightEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Right);
 		_hmdToEyeViewOffset[0].x = leftEyeMatrix.m[0][3];
 		_hmdToEyeViewOffset[0].y = leftEyeMatrix.m[1][3];
 		_hmdToEyeViewOffset[0].z = leftEyeMatrix.m[2][3];
@@ -59,22 +47,6 @@ namespace RN
 	OpenVRD3D12SwapChain::~OpenVRD3D12SwapChain()
 	{
 		SafeRelease(_targetTexture);
-		if(_hmd) vr::VR_Shutdown();
-	}
-
-	const String *OpenVRD3D12SwapChain::GetHMDInfoDescription() const
-	{
-		if (!_hmd)
-			return RNCSTR("No HMD found.");
-
-		//TODO: Implement similar to the oculus module
-		String *description = new String("Using HMD: ");
-/*		description->Append(_hmdDescription.ProductName);
-		description->Append(", Vendor: ");
-		description->Append(_hmdDescription.Manufacturer);
-		description->Append(", Firmware: %i.%i", _hmdDescription.FirmwareMajor, _hmdDescription.FirmwareMinor);*/
-
-		return description;
 	}
 
 	void OpenVRD3D12SwapChain::ResizeSwapchain(const Vector2& size)

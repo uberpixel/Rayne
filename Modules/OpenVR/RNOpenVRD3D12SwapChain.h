@@ -10,8 +10,8 @@
 #define __RAYNE_OPENVRD3D12SWAPCHAIN_H_
 
 #include "RND3D12Renderer.h"
-#include "RND3D12SwapChain.h"
 #include "RND3D12Framebuffer.h"
+#include "RND3D12SwapChain.h"
 
 #include <openvr.h>
 #include "RNOpenVR.h"
@@ -35,17 +35,16 @@ namespace RN
 		OVRAPI void UpdatePredictedPose();
 
 	protected:
-		OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor);
+		OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system);
 
 	private:
-		const String *GetHMDInfoDescription() const;
 		void ResizeSwapchain(const Vector2 &size);
 
 		Texture *_targetTexture;
 		Vector3 _hmdToEyeViewOffset[2];
 		bool _isFirstRender;
 
-		vr::IVRSystem *_hmd;
+		vr::IVRSystem *_vrSystem;
 		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
 		vr::TrackedDevicePose_t _predictedDevicePose[vr::k_unMaxTrackedDeviceCount];
 

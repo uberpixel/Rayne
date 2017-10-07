@@ -146,26 +146,27 @@ namespace RN
 		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
 
 		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
-		CD3DX12_DESCRIPTOR_RANGE1 *srvCbvRanges = nullptr;
-		CD3DX12_ROOT_PARAMETER1 *rootParameters = nullptr;
+
+		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
+		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
 
 		if(numberOfTables > 0)
 		{
-			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE1[numberOfTables];
-			rootParameters = new CD3DX12_ROOT_PARAMETER1[numberOfTables];
+			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
+			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
 		}
 
 		// Perfomance TIP: Order from most frequent to least frequent.
 		int tableIndex = 0;
 		if(signature->textureCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
 			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
 			tableIndex += 1;
 		}
 		if(signature->constantBufferCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
 			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
 			tableIndex += 1;
 		}
@@ -263,21 +264,21 @@ namespace RN
 			});
 		}
 
-		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init_1_1(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+/*		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
 		//If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
 		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
 		if(FAILED(renderer->GetD3D12Device()->GetDevice()->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
 		{
 			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-		}
+		}*/
 
 		ID3DBlob *signatureBlob = nullptr;
 		ID3DBlob *error = nullptr;
-		HRESULT success = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signatureBlob, &error);
+		HRESULT success = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
 
 		if(FAILED(success))
 		{

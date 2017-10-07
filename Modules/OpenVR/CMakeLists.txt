@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(RayneOpenVR)
 
+#option(BUILD_SHARED "Builds the library as shared library" ON)
 add_subdirectory("Vendor/OpenVR")
 
 include(../../CMake/LibraryTarget.cmake)

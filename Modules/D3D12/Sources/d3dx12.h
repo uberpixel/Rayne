@@ -1095,6 +1095,8 @@ struct CD3DX12_ROOT_SIGNATURE_DESC : public D3D12_ROOT_SIGNATURE_DESC
     }
 };
 
+//Not part of initial win 10 release!
+/*
 //------------------------------------------------------------------------------------------------
 struct CD3DX12_DESCRIPTOR_RANGE1 : public D3D12_DESCRIPTOR_RANGE1
 {
@@ -1414,7 +1416,7 @@ struct CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC : public D3D12_VERSIONED_ROOT_SIGNA
         desc.Desc_1_1.pStaticSamplers = _pStaticSamplers;
         desc.Desc_1_1.Flags = flags;
     }
-};
+};*/
 
 //------------------------------------------------------------------------------------------------
 struct CD3DX12_CPU_DESCRIPTOR_HANDLE : public D3D12_CPU_DESCRIPTOR_HANDLE
@@ -1860,6 +1862,8 @@ inline ID3D12CommandList * const * CommandListCast(ID3D12GraphicsCommandList * c
     return reinterpret_cast<ID3D12CommandList * const *>(pp);
 }
 
+//Not part of initial win 10 release!
+/*
 //------------------------------------------------------------------------------------------------
 // D3D12 exports a new method for serializing root signatures in the Windows 10 Anniversary Update.
 // To help enable root signature 1.1 features when they are available and not require maintaining
@@ -1961,6 +1965,7 @@ inline HRESULT D3DX12SerializeVersionedRootSignature(
 
     return E_INVALIDARG;
 }
+*/
 
 #endif // defined( __cplusplus )
 
