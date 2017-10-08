@@ -49,6 +49,13 @@ rayne_set_module_output_directory(RayneOpenAL)
 target_include_directories(RayneOpenAL SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOpenAL PRIVATE "${DEFINES}")
 
-add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+#Work around some xcode specific soname issues...
+if(${CMAKE_GENERATOR} STREQUAL "Xcode")
+        SET_TARGET_PROPERTIES(OpenAL PROPERTIES VERSION "version")
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:OpenAL>/libopenal.version.dylib" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:OpenAL>/libopenal.version.dylib" "$<TARGET_FILE_DIR:OpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+else()
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenAL/. DESTINATION lib/Rayne/RayneOpenAL)
