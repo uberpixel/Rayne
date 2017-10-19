@@ -49,6 +49,7 @@ namespace RN
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
+		OVRAPI const VRControllerTrackingState &GetTrackerTrackingState() const final;
 		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
 
 		OVRAPI void UpdateSize(const Vector2 &size);
@@ -70,9 +71,10 @@ namespace RN
 		vr::IVRSystem *_vrSystem;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
+		VRControllerTrackingState _trackerTrackingState;
 
-		VRControllerHaptics _haptics[2];
-		uint16 _currentHapticsIndex[2];
+		VRControllerHaptics _haptics[3];
+		uint16 _currentHapticsIndex[3];
 		float _remainingHapticsDelta;
 
 		float _lastSizeChangeTimer;

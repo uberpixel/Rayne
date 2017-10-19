@@ -36,6 +36,7 @@ namespace RN
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const final;
+		OVRAPI const VRControllerTrackingState &GetTrackerTrackingState() const final;
 		OVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) final;
 
 		OVRAPI const String *GetPreferredAudioOutputDeviceID() const;
@@ -49,6 +50,7 @@ namespace RN
 		OculusSwapChain *_swapChain;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
+		VRControllerTrackingState _trackerTrackingState;
 
 		RNDeclareMetaAPI(OculusWindow, OVRAPI)
 	};

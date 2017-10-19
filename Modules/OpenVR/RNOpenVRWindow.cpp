@@ -160,7 +160,7 @@ namespace RN
 
 		_lastSizeChangeTimer += delta;
 
-		uint16 handDevices[2] = { vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount };
+		uint16 trackedDevices[3] = { vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount, vr::k_unMaxTrackedDeviceCount };
 		_swapChain->UpdatePredictedPose();
 
 		vr::HmdMatrix44_t leftProjection = _vrSystem->GetProjectionMatrix(vr::Eye_Left, near, far);
@@ -194,66 +194,98 @@ namespace RN
 			}
 		}
 
+		for(int i = 0; i < 3; i++)
+		{
+			if(i < 2)
+			{
+				_controllerTrackingState[i].active = false;;
+			}
+			else
+			{
+				_trackerTrackingState.active = false;;
+			}
+		}
+
 		for(int nDevice = 1; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 		{
-			uint8 handIndex = -1;
+			//trackerIndex of 0 and 1 are controllers, higher are additional trackers.
+			uint8 trackerIndex = -1;
 			switch(_vrSystem->GetTrackedDeviceClass(nDevice))
 			{
-			case vr::TrackedDeviceClass_Controller:
-			{
-				vr::ETrackedControllerRole role = _vrSystem->GetControllerRoleForTrackedDeviceIndex(nDevice);
-				switch(role)
+				case vr::TrackedDeviceClass_Controller:
 				{
-				case vr::TrackedControllerRole_LeftHand:
-					handIndex = 0;
-					break;
+					vr::ETrackedControllerRole role = _vrSystem->GetControllerRoleForTrackedDeviceIndex(nDevice);
+					switch(role)
+					{
+						case vr::TrackedControllerRole_LeftHand:
+							trackerIndex = 0;
+							break;
 
-				case vr::TrackedControllerRole_RightHand:
-					handIndex = 1;
-					break;
+						case vr::TrackedControllerRole_RightHand:
+							trackerIndex = 1;
+							break;
 
-				default:
+						default:
+							break;
+					}
+					
+					break;
+				}
+
+				case vr::TrackedDeviceClass_GenericTracker:
+				{
+					trackerIndex = 2;
 					break;
 				}
 					
-				break;
-			}
-					
-			default:
-				break;
+				default:
+					break;
 			}
 
-			if(handIndex < 2)
+			if(trackerIndex != static_cast<uint8>(-1))
 			{
-				handDevices[handIndex] = nDevice;
+				trackedDevices[trackerIndex] = nDevice;
+				VRControllerTrackingState controller;
+
 				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
 				{
-					_controllerTrackingState[handIndex].active = true;
+					controller.active = true;
 
 					vr::HmdMatrix34_t handPose = _swapChain->_frameDevicePose[nDevice].mDeviceToAbsoluteTracking;
 					Matrix rotationPose = GetRotationMatrixForOVRMatrix(handPose);
-					_controllerTrackingState[handIndex].rotation = rotationPose.GetEulerAngle();
-					_controllerTrackingState[handIndex].position.x = handPose.m[0][3];
-					_controllerTrackingState[handIndex].position.y = handPose.m[1][3];
-					_controllerTrackingState[handIndex].position.z = handPose.m[2][3];
-					_controllerTrackingState[handIndex].position += _controllerTrackingState[handIndex].rotation.GetRotatedVector(Vector3(0.0f, -0.01f, 0.05f));
+					controller.rotation = rotationPose.GetEulerAngle();
+					controller.position.x = handPose.m[0][3];
+					controller.position.y = handPose.m[1][3];
+					controller.position.z = handPose.m[2][3];
+
+					if(trackerIndex < 2)
+						controller.position += controller.rotation.GetRotatedVector(Vector3(0.0f, -0.01f, 0.05f));
 
 					vr::VRControllerState_t controllerState;
 					_vrSystem->GetControllerState(nDevice, &controllerState, sizeof(controllerState));
 
-					_controllerTrackingState[handIndex].thumbstick.x = controllerState.rAxis[0].x;
-					_controllerTrackingState[handIndex].thumbstick.y = controllerState.rAxis[0].y;
-					_controllerTrackingState[handIndex].indexTrigger = controllerState.rAxis[1].x;
-					_controllerTrackingState[handIndex].handTrigger = controllerState.rAxis[2].x;
+					controller.thumbstick.x = controllerState.rAxis[0].x;
+					controller.thumbstick.y = controllerState.rAxis[0].y;
+					controller.indexTrigger = controllerState.rAxis[1].x;
+					controller.handTrigger = controllerState.rAxis[2].x;
 
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A);
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
+					controller.button[VRControllerTrackingState::Button::AX] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A);
+					controller.button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
+					controller.button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
+					controller.button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
 				}
 				else
 				{
-					_controllerTrackingState[handIndex].active = false;
+					controller.active = false;
+				}
+
+				if (trackerIndex < 2)
+				{
+					_controllerTrackingState[trackerIndex] = controller;
+				}
+				else
+				{
+					_trackerTrackingState = controller;
 				}
 			}
 		}
@@ -263,9 +295,9 @@ namespace RN
 		uint16 hapticsIncrement = roundf(_remainingHapticsDelta / 0.003125f);
 		_remainingHapticsDelta -= static_cast<float>(hapticsIncrement)*0.003125f;
 
-		for(uint8 hand = 0; hand < 2; hand++)
+		for(uint8 hand = 0; hand < 3; hand++)
 		{
-			uint16 device = handDevices[hand];
+			uint16 device = trackedDevices[hand];
 			if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount && device < vr::k_unMaxTrackedDeviceCount)
 			{
 				if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount)
@@ -302,6 +334,11 @@ namespace RN
 	const VRControllerTrackingState &OpenVRWindow::GetControllerTrackingState(int hand) const
 	{
 		return _controllerTrackingState[hand];
+	}
+
+	const VRControllerTrackingState &OpenVRWindow::GetTrackerTrackingState() const
+	{
+		return _trackerTrackingState;
 	}
 
 	void OpenVRWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)

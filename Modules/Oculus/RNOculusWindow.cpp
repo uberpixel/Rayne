@@ -183,6 +183,11 @@ namespace RN
 		return _controllerTrackingState[hand];
 	}
 
+	const VRControllerTrackingState &OculusWindow::GetTrackerTrackingState() const
+	{
+		return _trackerTrackingState;
+	}
+
 	void OculusWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)
 	{
 		ovrHapticsBuffer buffer;
