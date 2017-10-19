@@ -40,6 +40,7 @@ namespace RN
 			_head->AddChild(_eye[i]);
 			_hiddenAreaEntity[i] = nullptr;
 			
+#if !RN_PLATFORM_WINDOWS
 			Mesh *hiddenAreaMesh = _window->GetHiddenAreaMesh(i);
 			if(hiddenAreaMesh)
 			{
@@ -55,6 +56,7 @@ namespace RN
 				
 				_eye[i]->AddChild(_hiddenAreaEntity[i]);
 			}
+#endif
 		}
 
 		CreatePostprocessingPipeline();

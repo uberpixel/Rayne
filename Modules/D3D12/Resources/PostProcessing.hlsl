@@ -36,15 +36,3 @@ float4 pp_blit_fragment(FragmentVertex vert) : SV_TARGET
 	return color;
 }
 
-FragmentVertex pp_mask_vertex(InputVertex vert)
-{
-	FragmentVertex result;
-	result.position = float4(vert.position.xy * 2.0 - 1.0, 0.0001, 1.0);
-
-	return result;
-}
-
-float4 pp_mask_fragment(FragmentVertex vert) : SV_TARGET
-{
-	return float4(1.0, 1.0, 1.0, 1.0);
-}

@@ -106,7 +106,13 @@
 				{
 					"samplers": [{"wrap": "clamp"}]
 				}
-			},
+			}
+		]
+	},
+	{
+		"file": ":RayneD3D12:/PostProcessingMask.hlsl",
+		"shaders":
+		[
 			{
 				"name": "pp_mask_vertex",
 				"type": "vertex"
