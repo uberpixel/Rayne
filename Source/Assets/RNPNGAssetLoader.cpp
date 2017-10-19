@@ -49,7 +49,7 @@ namespace RN
 		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
 
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-		png_infop pngInfo      = png_create_info_struct(pngPointer);
+		png_infop pngInfo = png_create_info_struct(pngPointer);
 
 		png_init_io(pngPointer, rawFile);
 		png_set_sig_bytes(pngPointer, 0);

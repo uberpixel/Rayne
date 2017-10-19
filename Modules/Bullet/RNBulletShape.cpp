@@ -138,7 +138,7 @@ namespace RN
 	}
 		
 		
-	BulletTriangleMeshShape::BulletTriangleMeshShape(Model *model)
+	BulletTriangleMeshShape::BulletTriangleMeshShape(Model *model, Vector3 scale)
 	{
 		_triangleMesh = new btTriangleMesh();
 		
@@ -147,28 +147,28 @@ namespace RN
 		for(size_t i = 0; i < meshes; i++)
 		{
 			Mesh *mesh = lodStage->GetMeshAtIndex(i);
-			AddMesh(mesh);
+			AddMesh(mesh, scale);
 		}
 			
 		_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
 	}
 		
-	BulletTriangleMeshShape::BulletTriangleMeshShape(Mesh *mesh)
+	BulletTriangleMeshShape::BulletTriangleMeshShape(Mesh *mesh, Vector3 scale)
 	{
 		_triangleMesh = new btTriangleMesh();
 			
-		AddMesh(mesh);
+		AddMesh(mesh, scale);
 			
 		_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
 	}
 		
-	BulletTriangleMeshShape::BulletTriangleMeshShape(const Array *meshes)
+	BulletTriangleMeshShape::BulletTriangleMeshShape(const Array *meshes, Vector3 scale)
 	{
 		_triangleMesh = new btTriangleMesh();
 			
 		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
 				
-			AddMesh(mesh);
+			AddMesh(mesh, scale);
 				
 		});
 			
@@ -180,9 +180,9 @@ namespace RN
 		delete _triangleMesh;
 	}
 		
-	BulletTriangleMeshShape *BulletTriangleMeshShape::WithModel(Model *model)
+	BulletTriangleMeshShape *BulletTriangleMeshShape::WithModel(Model *model, Vector3 scale)
 	{
-		BulletTriangleMeshShape *shape = new BulletTriangleMeshShape(model);
+		BulletTriangleMeshShape *shape = new BulletTriangleMeshShape(model, scale);
 		return shape->Autorelease();
 	}
 		
@@ -191,7 +191,7 @@ namespace RN
 		return Vector3(0.0f, 0.0f, 0.0f);
 	}
 		
-	void BulletTriangleMeshShape::AddMesh(Mesh *mesh)
+	void BulletTriangleMeshShape::AddMesh(Mesh *mesh, Vector3 scale)
 	{
 		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
@@ -206,9 +206,9 @@ namespace RN
 		for(size_t i = 0; i < mesh->GetIndicesCount()/3; i++)
 		{
 			if(i > 0) vertexIterator++;
-			const Vector3 &vertex1 = *(vertexIterator++);
-			const Vector3 &vertex2 = *(vertexIterator++);
-			const Vector3 &vertex3 = *(vertexIterator);
+			const Vector3 &vertex1 = *(vertexIterator++) * scale;
+			const Vector3 &vertex2 = *(vertexIterator++) * scale;
+			const Vector3 &vertex3 = *(vertexIterator) * scale;
 			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
 		}
 	}

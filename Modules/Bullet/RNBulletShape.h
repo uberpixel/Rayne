@@ -100,18 +100,18 @@ namespace RN
 	class BulletTriangleMeshShape : public BulletShape
 	{
 	public:
-		BTAPI BulletTriangleMeshShape(Model *model);
-		BTAPI BulletTriangleMeshShape(Mesh *mesh);
-		BTAPI BulletTriangleMeshShape(const Array *meshes);
+		BTAPI BulletTriangleMeshShape(Model *model, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		BTAPI BulletTriangleMeshShape(Mesh *mesh, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		BTAPI BulletTriangleMeshShape(const Array *meshes, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
 		BTAPI ~BulletTriangleMeshShape() override;
 			
 		BTAPI Vector3 CalculateLocalInertia(float mass) override;
 			
-		BTAPI static BulletTriangleMeshShape *WithModel(Model *model);
+		BTAPI static BulletTriangleMeshShape *WithModel(Model *model, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
 	private:
-		void AddMesh(Mesh *mesh);
+		void AddMesh(Mesh *mesh, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 		btTriangleMesh *_triangleMesh;
 			
 		RNDeclareMetaAPI(BulletTriangleMeshShape, BTAPI)
