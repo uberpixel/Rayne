@@ -42,9 +42,10 @@ namespace RN
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : active(false), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false} {}
+		VRControllerTrackingState() : active(false), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false}, controllerID(-1) {}
 
 		bool active;
+		uint8 controllerID;
 
 		Vector3 position;
 		Quaternion rotation;

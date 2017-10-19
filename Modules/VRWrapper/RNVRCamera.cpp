@@ -209,18 +209,18 @@ namespace RN
 		return _window->GetHMDTrackingState();
 	}
 
-	const VRControllerTrackingState &VRCamera::GetControllerTrackingState(int hand) const
+	const VRControllerTrackingState &VRCamera::GetControllerTrackingState(uint8 index) const
 	{
-		return _window->GetControllerTrackingState(hand);
+		return _window->GetControllerTrackingState(index);
 	}
 
-	const VRControllerTrackingState &VRCamera::GetTrackerTrackingState() const
+	const VRControllerTrackingState &VRCamera::GetTrackerTrackingState(uint8 index) const
 	{
-		return _window->GetTrackerTrackingState();
+		return _window->GetTrackerTrackingState(index);
 	}
 
-	void VRCamera::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) const
+	void VRCamera::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const
 	{
-		_window->SubmitControllerHaptics(hand, haptics);
+		_window->SubmitControllerHaptics(controllerID, haptics);
 	}
 }

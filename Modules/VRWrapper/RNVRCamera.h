@@ -28,9 +28,9 @@ namespace RN
 		RNVRAPI Camera *GetEye(uint8 eye) const { return _eye[eye]; }
 
 		RNVRAPI const VRHMDTrackingState &GetHMDTrackingState() const;
-		RNVRAPI const VRControllerTrackingState &GetControllerTrackingState(int hand) const;
-		RNVRAPI const VRControllerTrackingState &GetTrackerTrackingState() const;
-		RNVRAPI void SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics) const;
+		RNVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const;
+		RNVRAPI const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const;
+		RNVRAPI void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const;
 
 	private:
 		void CreatePostprocessingPipeline();

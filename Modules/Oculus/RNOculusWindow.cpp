@@ -141,6 +141,7 @@ namespace RN
 		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
 		{
 			_controllerTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
+			_controllerTrackingState[0].controllerID = 0;
 			_controllerTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
 			_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
 			_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
@@ -149,6 +150,7 @@ namespace RN
 			_controllerTrackingState[0].handTrigger = inputState.HandTrigger[0];
 
 			_controllerTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
+			_controllerTrackingState[1].controllerID = 1;
 			_controllerTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
 			_controllerTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
 			_controllerTrackingState[1].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
@@ -178,23 +180,23 @@ namespace RN
 		return _hmdTrackingState;
 	}
 
-	const VRControllerTrackingState &OculusWindow::GetControllerTrackingState(int hand) const
+	const VRControllerTrackingState &OculusWindow::GetControllerTrackingState(uint8 index) const
 	{
-		return _controllerTrackingState[hand];
+		return _controllerTrackingState[index];
 	}
 
-	const VRControllerTrackingState &OculusWindow::GetTrackerTrackingState() const
+	const VRControllerTrackingState &OculusWindow::GetTrackerTrackingState(uint8 index) const
 	{
 		return _trackerTrackingState;
 	}
 
-	void OculusWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)
+	void OculusWindow::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics)
 	{
 		ovrHapticsBuffer buffer;
 		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
 		buffer.SamplesCount = haptics.sampleCount;
 		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_swapChain->_session, hand?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
+		ovr_SubmitControllerVibration(_swapChain->_session, controllerID?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
 	}
 
 	static String *StringForLPWSTR(LPWSTR lpwstr)

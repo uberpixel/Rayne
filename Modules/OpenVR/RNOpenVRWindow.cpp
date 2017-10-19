@@ -246,6 +246,7 @@ namespace RN
 			{
 				trackedDevices[trackerIndex] = nDevice;
 				VRControllerTrackingState controller;
+				controller.controllerID = trackerIndex;
 
 				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
 				{
@@ -331,20 +332,20 @@ namespace RN
 		return _hmdTrackingState;
 	}
 
-	const VRControllerTrackingState &OpenVRWindow::GetControllerTrackingState(int hand) const
+	const VRControllerTrackingState &OpenVRWindow::GetControllerTrackingState(uint8 index) const
 	{
-		return _controllerTrackingState[hand];
+		return _controllerTrackingState[index];
 	}
 
-	const VRControllerTrackingState &OpenVRWindow::GetTrackerTrackingState() const
+	const VRControllerTrackingState &OpenVRWindow::GetTrackerTrackingState(uint8 index) const
 	{
 		return _trackerTrackingState;
 	}
 
-	void OpenVRWindow::SubmitControllerHaptics(int hand, const VRControllerHaptics &haptics)
+	void OpenVRWindow::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics)
 	{
-		_currentHapticsIndex[hand] = 0;
-		_haptics[hand] = haptics;
+		_currentHapticsIndex[controllerID] = 0;
+		_haptics[controllerID] = haptics;
 	}
 	
 	void OpenVRWindow::PreparePreviewWindow(Window *window) const
