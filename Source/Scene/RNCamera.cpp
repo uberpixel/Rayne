@@ -221,7 +221,7 @@ namespace RN
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(frame.width, frame.height, 1.0f);
 
 		//Place the light camera 500 units above the splits center
-		Vector3 pos = center-light->GetForward()*500.0f;
+		Vector3 pos = center-light->GetForward()*5000.0f;
 
 		//Transform the position to light space
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
@@ -239,7 +239,8 @@ namespace RN
 		SetPosition(pos);
 
 		//Set the light camera frustum
-		_clipFar = 500.0f + dist * 2.0f;
+		_clipNear = 10;
+		_clipFar = 5000 + dist * 2.0f;
 		_orthoLeft = -dist;
 		_orthoRight = dist;
 		_orthoBottom = -dist;

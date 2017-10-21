@@ -295,7 +295,7 @@ namespace RN
 
 			size_t indicesOffset = file->GetOffset();
 
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16);
+			attributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, indicesSize < 4? PrimitiveType::Uint16 : PrimitiveType::Uint32);
 
 
 			// Load the mesh data

@@ -15,6 +15,7 @@
 #include "RND3D12Framebuffer.h"
 #include "RND3D12Internals.h"
 #include "RND3D12SwapChain.h"
+#include "Rendering/RNMesh.h"
 
 namespace RN
 {
@@ -1312,7 +1313,7 @@ namespace RN
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		indexBufferView.BufferLocation = indices->GetD3D12Resource()->GetGPUVirtualAddress();
-		indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+		indexBufferView.Format = drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 		indexBufferView.SizeInBytes = indices->GetLength();
 		commandList->IASetIndexBuffer(&indexBufferView);
 
