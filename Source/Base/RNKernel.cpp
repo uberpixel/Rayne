@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "RNScopeAllocator.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../Rendering/RNRendererDescriptor.h"
@@ -52,6 +53,8 @@ namespace RN
 	void Kernel::Bootstrap()
 	{
 		__sharedInstance = this;
+
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 
 #if RN_ENABLE_VTUNE
 		__inputTask = __itt_string_handle_createA("Input");
@@ -203,11 +206,13 @@ namespace RN
 
 	void Kernel::FinishBootstrap()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->DidFinishLaunching(this);
 	}
 
 	void Kernel::TearDown()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->WillExit();
 
 		Screen::TeardownScreens();
@@ -262,6 +267,8 @@ namespace RN
 
 	void Kernel::HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity)
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
+
 		if(RN_EXPECT_FALSE(_exit))
 		{
 			_runLoop->Stop();

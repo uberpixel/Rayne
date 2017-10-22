@@ -7,6 +7,7 @@
 //
 
 #include "../Base/RNNotificationManager.h"
+#include "../Base/RNScopeAllocator.h"
 #include "../Debug/RNLogger.h"
 #include "Devices/RNPS4Controller.h"
 #include "RNInputManager.h"
@@ -107,12 +108,13 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 	void InputManager::__HandleRawInput(HRAWINPUT lParam)
 	{
-		UINT dwSize;
-		GetRawInputData(lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-		LPBYTE lpb = new BYTE[dwSize];
-		if(lpb == NULL){ return; }
+		ScopeAllocator allocator;
 
-		RN_ASSERT(GetRawInputData(lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize , "GetRawInputData does not return correct size !");
+		UINT dwSize;
+		GetRawInputData(lParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
+		auto lpb = allocator.AllocBytes<BYTE>(dwSize);
+
+		RN_ASSERT(GetRawInputData(lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize , "GetRawInputData does not return correct size!");
 
 		RAWINPUT* rawInput = (RAWINPUT*)lpb;
 
@@ -126,8 +128,6 @@ namespace RN
 			_mouseMovement.x += rawInput->data.mouse.lLastX;
 			_mouseMovement.y += rawInput->data.mouse.lLastY;
 		}
-
-		delete[] lpb;
 	}
 #endif
 
