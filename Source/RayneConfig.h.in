@@ -98,6 +98,8 @@
 	#define RN_COMPILER_MINGW 1
 #endif
 
+#define RN_COMPILER_GCC_LIKE (RN_COMPILER_CLANG || RN_COMPILER_GCC || RN_COMPILER_MINGW)
+
 namespace RN
 {
 	namespace numeric
