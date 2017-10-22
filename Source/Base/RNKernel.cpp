@@ -54,8 +54,6 @@ namespace RN
 	{
 		__sharedInstance = this;
 
-		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
-
 #if RN_ENABLE_VTUNE
 		__inputTask = __itt_string_handle_createA("Input");
 		__updateTask = __itt_string_handle_createA("Scene update");
@@ -68,6 +66,8 @@ namespace RN
 											std::bind(&Kernel::HandleObserver, this, std::placeholders::_1,
 													  std::placeholders::_2));
 			_mainThread = new Thread();
+			
+			RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 
 
 			_runLoop = _mainThread->GetRunLoop();
