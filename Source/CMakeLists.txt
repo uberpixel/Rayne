@@ -21,11 +21,13 @@ set(RAYNE_SOURCES
     Base/RNApplication.cpp
     Base/RNArgumentParser.cpp
     Base/RNBase.cpp
+    Base/RNBumpAllocator.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
     Base/RNMemoryPool.cpp
     Base/RNNotification.cpp
     Base/RNNotificationManager.cpp
+    Base/RNScopeAllocator.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Assets/RNAsset.cpp
@@ -115,6 +117,7 @@ set(RAYNE_HEADERS
     Base/RNApplication.h
     Base/RNArgumentParser.h
     Base/RNBase.h
+    Base/RNBumpAllocator.h
     Base/RNOptions.h
     Base/RNException.h
     Base/RNExpected.h
@@ -124,6 +127,7 @@ set(RAYNE_HEADERS
     Base/RNMemoryPool.h
     Base/RNNotification.h
     Base/RNNotificationManager.h
+    Base/RNScopeAllocator.h
     Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
