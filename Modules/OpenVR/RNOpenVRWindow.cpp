@@ -199,10 +199,12 @@ namespace RN
 			if(i < 2)
 			{
 				_controllerTrackingState[i].active = false;;
+				_controllerTrackingState[i].tracking = false;
 			}
 			else
 			{
-				_trackerTrackingState.active = false;;
+				_trackerTrackingState.active = false;
+				_trackerTrackingState.tracking = false;
 			}
 		}
 
@@ -247,10 +249,11 @@ namespace RN
 				trackedDevices[trackerIndex] = nDevice;
 				VRControllerTrackingState controller;
 				controller.controllerID = trackerIndex;
+				controller.active = true;
 
 				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
 				{
-					controller.active = true;
+					controller.tracking = true;
 
 					vr::HmdMatrix34_t handPose = _swapChain->_frameDevicePose[nDevice].mDeviceToAbsoluteTracking;
 					Matrix rotationPose = GetRotationMatrixForOVRMatrix(handPose);
@@ -274,10 +277,6 @@ namespace RN
 					controller.button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
 					controller.button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
 					controller.button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
-				}
-				else
-				{
-					controller.active = false;
 				}
 
 				if (trackerIndex < 2)

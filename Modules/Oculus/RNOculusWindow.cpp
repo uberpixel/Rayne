@@ -141,6 +141,7 @@ namespace RN
 		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
 		{
 			_controllerTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
+			_controllerTrackingState[0].tracking = (_swapChain->_hmdState.HandStatusFlags[0] & ovrStatus_PositionTracked);
 			_controllerTrackingState[0].controllerID = 0;
 			_controllerTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
 			_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
@@ -150,6 +151,7 @@ namespace RN
 			_controllerTrackingState[0].handTrigger = inputState.HandTrigger[0];
 
 			_controllerTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
+			_controllerTrackingState[1].tracking = (_swapChain->_hmdState.HandStatusFlags[1] & ovrStatus_PositionTracked);
 			_controllerTrackingState[1].controllerID = 1;
 			_controllerTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
 			_controllerTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
@@ -171,7 +173,9 @@ namespace RN
 		else
 		{
 			_controllerTrackingState[0].active = false;
+			_controllerTrackingState[0].tracking = false;
 			_controllerTrackingState[1].active = false;
+			_controllerTrackingState[1].tracking = false;
 		}
 	}
 

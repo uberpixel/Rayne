@@ -42,9 +42,10 @@ namespace RN
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : active(false), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false}, controllerID(-1) {}
+		VRControllerTrackingState() : active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false} {}
 
 		bool active;
+		bool tracking;
 		uint8 controllerID;
 
 		Vector3 position;
