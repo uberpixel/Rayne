@@ -129,7 +129,7 @@ namespace RN
 
 				//Do the actual resize and notify the framebuffer about it
 				_framebuffer->WillUpdateSwapChain();
-				_swapChain->ResizeBuffers(_descriptor.bufferCount, _size.x, _size.y, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+				_swapChain->ResizeBuffers(_descriptor.bufferCount, _size.x, _size.y, SwapChainFormatFromTextureFormat(_descriptor.colorFormat), 0);
 				_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 				_frameIndex = _swapChain->GetCurrentBackBufferIndex();
