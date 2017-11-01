@@ -121,7 +121,16 @@ namespace RN
 		}
 		else
 		{
-			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
+			ovrSessionStatus status;
+			ovr_GetSessionStatus(_swapChain->_session, &status);
+			if(status.HasInputFocus)
+			{
+				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
+			}
+			else
+			{
+				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
+			}
 		}
 
 		ovrSessionStatus sessionStatus;

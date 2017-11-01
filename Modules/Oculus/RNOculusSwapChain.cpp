@@ -14,7 +14,7 @@ namespace RN
 
 	const uint32 OculusSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, doesn't appear to be enough though...)
 
-	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0)
+	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0), _frameCounter(0)
 	{
 		_session = nullptr;
 		_descriptor = descriptor;
@@ -116,6 +116,8 @@ namespace RN
 
 	void OculusSwapChain::AcquireBackBuffer()
 	{
+		_submitResult = ovr_WaitToBeginFrame(_session, ++_frameCounter);
+
 		// Get next available index of the texture swap chain
 		int currentIndex = 0;
 		ovr_GetTextureSwapChainCurrentIndex(_session, _textureSwapChain, &currentIndex);
@@ -124,7 +126,14 @@ namespace RN
 
 	void OculusSwapChain::Prepare(D3D12CommandList *commandList)
 	{
-
+		if(OVR_SUCCESS(_submitResult))
+		{
+			ovrResult tempResult = ovr_BeginFrame(_session, _frameCounter);
+			if(_submitResult != ovrSuccess_NotVisible || !OVR_SUCCESS(tempResult))
+			{
+				_submitResult = tempResult;
+			}
+		}
 	}
 
 	void OculusSwapChain::Finalize(D3D12CommandList *commandList)
@@ -139,7 +148,14 @@ namespace RN
 
 		// Submit frame with one layer we have.
 		ovrLayerHeader* layers = &_layer.Header;
-		_submitResult = ovr_SubmitFrame(_session, 0, nullptr, &layers, 1);	//TODO: Frameindex as second param
+		if(OVR_SUCCESS(_submitResult))
+		{
+			ovrResult tempResult = ovr_EndFrame(_session, _frameCounter, nullptr, &layers, 1);
+			if(_submitResult != ovrSuccess_NotVisible || !OVR_SUCCESS(tempResult))
+			{
+				_submitResult = tempResult;
+			}
+		}
 	}
 
 	ID3D12Resource *OculusSwapChain::GetD3D12Buffer(int i) const
