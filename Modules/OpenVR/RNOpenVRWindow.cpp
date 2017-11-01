@@ -249,7 +249,7 @@ namespace RN
 				trackedDevices[trackerIndex] = nDevice;
 				VRControllerTrackingState controller;
 				controller.controllerID = trackerIndex;
-				controller.active = true;
+				controller.active = _swapChain->_frameDevicePose[nDevice].bDeviceIsConnected;
 
 				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
 				{
