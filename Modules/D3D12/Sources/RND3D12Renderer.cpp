@@ -60,6 +60,7 @@ namespace RN
 	D3D12CommandList *D3D12Renderer::GetCommandList()
 	{
 		D3D12CommandList *commandList = nullptr;
+		_lock.Lock();
 		if(_commandListPool->GetCount() == 0)
 		{
 			commandList = new D3D12CommandList(GetD3D12Device()->GetDevice());
@@ -71,6 +72,7 @@ namespace RN
 			_commandListPool->RemoveObjectAtIndex(_commandListPool->GetCount() - 1);
 			commandList->Begin();
 		}
+		_lock.Unlock();
 		
 		return commandList->Autorelease();
 	}
@@ -111,8 +113,11 @@ namespace RN
 
 	void D3D12Renderer::SubmitDescriptorHeap(D3D12DescriptorHeap *heap)
 	{
-		_boundDescriptorHeaps->AddObject(heap);
-		heap->_fenceValue = _scheduledFenceValue;
+		if(heap)
+		{
+			_boundDescriptorHeaps->AddObject(heap);
+			heap->_fenceValue = _scheduledFenceValue;
+		}
 	}
 
 	Window *D3D12Renderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
@@ -432,73 +437,79 @@ namespace RN
 		PolpulateDescriptorHeap();
 		SubmitDescriptorHeap(_currentSrvCbvHeap);
 
-		_currentCommandList = GetCommandList();
-
-		for(D3D12SwapChain *swapChain : _internals->swapChains)
+		if(_internals->swapChains.size() > 0)
 		{
-			swapChain->Prepare(_currentCommandList);
-		}
+			_currentCommandList = GetCommandList();
 
-		ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
-		
-		_internals->currentRenderPassIndex = 0;
-		_internals->currentDrawableResourceIndex = 0;
-		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
-		{
-			if(renderPass.type != D3D12RenderPass::Type::Default && renderPass.type != D3D12RenderPass::Type::Convert)
+			for(D3D12SwapChain *swapChain : _internals->swapChains)
 			{
-				RenderAPIRenderPass(_currentCommandList, renderPass);
-				_internals->currentRenderPassIndex += 1;
-				continue;
+				swapChain->Prepare(_currentCommandList);
 			}
-			SetupRendertargets(_currentCommandList, renderPass);
 
-			if(renderPass.type == D3D12RenderPass::Type::Convert)
+			ID3D12GraphicsCommandList *commandList = _currentCommandList->GetCommandList();
+
+			_internals->currentRenderPassIndex = 0;
+			_internals->currentDrawableResourceIndex = 0;
+			for(const D3D12RenderPass &renderPass : _internals->renderPasses)
 			{
-				RenderAPIRenderPass(_currentCommandList, renderPass);
-			}
-			if(renderPass.drawables.size() > 0)
-			{
-				//Draw drawables
-				for(D3D12Drawable *drawable : renderPass.drawables)
+				if(renderPass.type != D3D12RenderPass::Type::Default && renderPass.type != D3D12RenderPass::Type::Convert)
 				{
-					//TODO: Sort drawables by camera and root signature
-					if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
-					{
-						_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
-						commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
+					RenderAPIRenderPass(_currentCommandList, renderPass);
+					_internals->currentRenderPassIndex += 1;
+					continue;
+				}
+				SetupRendertargets(_currentCommandList, renderPass);
 
-						// Set the one big descriptor heap for the whole frame
-						ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
-						commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+				if(renderPass.type == D3D12RenderPass::Type::Convert)
+				{
+					RenderAPIRenderPass(_currentCommandList, renderPass);
+				}
+				if(renderPass.drawables.size() > 0)
+				{
+					//Draw drawables
+					for(D3D12Drawable *drawable : renderPass.drawables)
+					{
+						//TODO: Sort drawables by camera and root signature
+						if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
+						{
+							_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
+							commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
+
+							// Set the one big descriptor heap for the whole frame
+							ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
+							commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+						}
+						RenderDrawable(commandList, drawable);
 					}
-					RenderDrawable(commandList, drawable);
+
+					_internals->currentDrawableResourceIndex += 1;
 				}
 
-				_internals->currentDrawableResourceIndex += 1;
+				_internals->currentRenderPassIndex += 1;
 			}
 
-			_internals->currentRenderPassIndex += 1;
-		}
+			for(D3D12SwapChain *swapChain : _internals->swapChains)
+			{
+				swapChain->Finalize(_currentCommandList);
+			}
 
-		for(D3D12SwapChain *swapChain : _internals->swapChains)
-		{
-			swapChain->Finalize(_currentCommandList);
+			_currentCommandList->End();
+			SubmitCommandList(_currentCommandList);
+			_currentCommandList = nullptr;
 		}
-		
-		_currentCommandList->End();
-		SubmitCommandList(_currentCommandList);
-		_currentCommandList = nullptr;
 
 		// Execute all command lists
 		std::vector<ID3D12CommandList*> commandLists;
+		_lock.Lock();
 		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
 			commandLists.push_back(list->GetCommandList());
 			list->_fenceValue = _scheduledFenceValue;
 		});
 		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
 		_submittedCommandLists->RemoveAllObjects();
-		_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
+		_lock.Unlock();
+		if(commandLists.size() > 0)
+			_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
 
 		_commandQueue->Signal(_fence, _scheduledFenceValue++);
 
@@ -896,8 +907,11 @@ namespace RN
 	void D3D12Renderer::PolpulateDescriptorHeap()
 	{
 		if(_internals->totalDrawableCount == 0)
+		{
+			_currentSrvCbvHeap = nullptr;
 			return;
-
+		}
+			
 		ID3D12Device *device = GetD3D12Device()->GetDevice();
 
 		_currentSrvCbvHeap = GetDescriptorHeap(_internals->totalDescriptorTables, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
