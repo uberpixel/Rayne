@@ -781,7 +781,7 @@ namespace RN
 					size_t lightCount = renderPass.directionalLights.size();
 					if(lightCount > 0)
 					{
-						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (12 + 16) * lightCount);
 					}
 					break;
 				}
