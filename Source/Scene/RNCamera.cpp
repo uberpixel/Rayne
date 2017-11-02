@@ -240,7 +240,7 @@ namespace RN
 
 		//Set the light camera frustum
 		_clipNear = 10;
-		_clipFar = 5000 + dist * 2.0f;
+		_clipFar = 5000 + dist * 5.0f;
 		_orthoLeft = -dist;
 		_orthoRight = dist;
 		_orthoBottom = -dist;
