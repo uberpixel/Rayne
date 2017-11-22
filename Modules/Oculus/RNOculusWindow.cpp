@@ -38,6 +38,11 @@ namespace RN
 		SafeRelease(_swapChain);
 	}
 
+	bool OculusWindow::IsRendering() const
+	{
+		return true;
+	}
+
 	Vector2 OculusWindow::GetSize() const
 	{
 		return _swapChain->GetSize();

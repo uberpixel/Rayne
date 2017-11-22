@@ -29,6 +29,7 @@ namespace RN
 
 		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
 		OVRAPI void StopRendering() final;
+		OVRAPI bool IsRendering() const final;
 
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;

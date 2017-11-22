@@ -39,7 +39,7 @@ namespace RN
 	
 	void VRCamera::SetupCameras()
 	{
-		if(!_window->IsRendering() || _debugWindow)
+		if(!_window->IsRendering() && !_debugWindow)
 			return;
 		
 		Vector2 windowSize = _window->GetSize();

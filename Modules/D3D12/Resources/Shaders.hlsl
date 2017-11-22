@@ -150,6 +150,9 @@ float getDirectionalShadowFactor(int light, float3 position)
 			mapToUse = i;
 		}
 	}
+
+	if(mapToUse == -1)
+		return 1.0f;
 	
 	projectedPosition[mapToUse].y *= -1.0f;
 	projectedPosition[mapToUse].xy *= 0.5f;
