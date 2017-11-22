@@ -21,6 +21,8 @@ namespace RN
 	public:
 		RNVRAPI VRCamera(VRWindow *window, RenderPass *previewRenderPass = nullptr, uint8 msaaSampleCount = 8, Window *debugWindow = nullptr);
 		RNVRAPI ~VRCamera();
+		
+		RNVRAPI void SetupCameras();
 
 		RNVRAPI void Update(float delta) override;
 
@@ -31,6 +33,9 @@ namespace RN
 		RNVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const;
 		RNVRAPI const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const;
 		RNVRAPI void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const;
+		
+		RNVRAPI void SetClipFar(float clipFar);
+		RNVRAPI void SetClipNear(float clipNear);
 
 	private:
 		void CreatePostprocessingPipeline();

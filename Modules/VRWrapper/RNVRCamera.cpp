@@ -18,8 +18,30 @@ namespace RN
 		_debugWindow(debugWindow?debugWindow->Retain():nullptr),
 		_head(new SceneNode()),
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
-		_msaaSampleCount(msaaSampleCount)
+		_msaaSampleCount(msaaSampleCount),
+		_eye{nullptr, nullptr}
 	{
+		AddChild(_head);
+		SetupCameras();
+	}
+
+	VRCamera::~VRCamera()
+	{
+		NotificationManager::GetSharedInstance()->RemoveSubscriber(kRNWindowDidChangeSize, this);
+
+		SafeRelease(_previewRenderPass);
+		SafeRelease(_window);
+		SafeRelease(_debugWindow);
+		SafeRelease(_head);
+		SafeRelease(_eye[0]);
+		SafeRelease(_eye[1]);
+	}
+	
+	void VRCamera::SetupCameras()
+	{
+		if(!_window->IsRendering() || _debugWindow)
+			return;
+		
 		Vector2 windowSize = _window->GetSize();
 		if(_debugWindow)
 		{
@@ -27,12 +49,10 @@ namespace RN
 			_debugWindow->SetTitle(RNCSTR("VR Debug Window"));
 			_debugWindow->Show();
 		}
-
-		AddChild(_head);
-
+		
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
-
+		
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i] = new Camera();
@@ -58,27 +78,15 @@ namespace RN
 			}
 #endif
 		}
-
+		
 		CreatePostprocessingPipeline();
-
+		
 		NotificationManager::GetSharedInstance()->AddSubscriber(kRNWindowDidChangeSize, [this](Notification *notification) {
 			if(notification->GetName()->IsEqual(kRNWindowDidChangeSize) && notification->GetInfo<RN::VRWindow>() == _window)
 			{
 				CreatePostprocessingPipeline();
 			}
 		}, this);
-	}
-
-	VRCamera::~VRCamera()
-	{
-		NotificationManager::GetSharedInstance()->RemoveSubscriber(kRNWindowDidChangeSize, this);
-
-		SafeRelease(_previewRenderPass);
-		SafeRelease(_window);
-		SafeRelease(_debugWindow);
-		SafeRelease(_head);
-		SafeRelease(_eye[0]);
-		SafeRelease(_eye[1]);
 	}
 
 	void VRCamera::CreatePostprocessingPipeline()
@@ -192,6 +200,9 @@ namespace RN
 
 	void VRCamera::Update(float delta)
 	{
+		if(!_eye[0] || !_eye[1])
+			return;
+		
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 
@@ -222,5 +233,31 @@ namespace RN
 	void VRCamera::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const
 	{
 		_window->SubmitControllerHaptics(controllerID, haptics);
+	}
+	
+	void VRCamera::SetClipFar(float clipFar)
+	{
+		if(_eye[0])
+		{
+			_eye[0]->SetClipFar(clipFar);
+		}
+		
+		if(_eye[1])
+		{
+			_eye[1]->SetClipFar(clipFar);
+		}
+	}
+	
+	void VRCamera::SetClipNear(float clipNear)
+	{
+		if(_eye[0])
+		{
+			_eye[0]->SetClipNear(clipNear);
+		}
+		
+		if(_eye[1])
+		{
+			_eye[1]->SetClipNear(clipNear);
+		}
 	}
 }

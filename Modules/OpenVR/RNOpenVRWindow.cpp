@@ -21,8 +21,16 @@ namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow() : _swapChain(nullptr), _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
+	OpenVRWindow::OpenVRWindow() : _vrSystem(nullptr), _swapChain(nullptr), _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
 	{
+		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
+		
+		if(!vr::VR_IsHmdPresent())
+		{
+			RNDebug("OpenVR: No headset connected.");
+			return;
+		}
+			
 		vr::EVRInitError eError = vr::VRInitError_None;
 		_vrSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
 		
@@ -34,17 +42,20 @@ namespace RN
 		}
 		
 		RNInfo(GetHMDInfoDescription());
-		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 	}
 
 	OpenVRWindow::~OpenVRWindow()
 	{
 		StopRendering();
 		if(_vrSystem) vr::VR_Shutdown();
+		_vrSystem = nullptr;
 	}
 	
 	void OpenVRWindow::StartRendering(const SwapChainDescriptor &descriptor)
 	{
+		if(!_vrSystem)
+			return;
+		
 #if RN_PLATFORM_MAC_OS
 		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
 #elif RN_PLATFORM_WINDOWS
@@ -55,6 +66,11 @@ namespace RN
 	void OpenVRWindow::StopRendering()
 	{
 		SafeRelease(_swapChain);
+	}
+	
+	bool OpenVRWindow::IsRendering() const
+	{
+		return (_swapChain != nullptr);
 	}
 	
 	const String *OpenVRWindow::GetHMDInfoDescription() const
@@ -94,11 +110,17 @@ namespace RN
 
 	Vector2 OpenVRWindow::GetSize() const
 	{
+		if(!_swapChain)
+			return Vector2();
+		
 		return _swapChain->GetSize();
 	}
 
 	Framebuffer *OpenVRWindow::GetFramebuffer() const
 	{
+		if(!_swapChain)
+			return nullptr;
+		
 		return _swapChain->GetFramebuffer();
 	}
 
@@ -322,6 +344,9 @@ namespace RN
 
 	void OpenVRWindow::UpdateSize(const Vector2 &size)
 	{
+		if(!_swapChain)
+			return;
+		
 		_swapChain->ResizeSwapchain(size);
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
@@ -350,7 +375,7 @@ namespace RN
 	void OpenVRWindow::PreparePreviewWindow(Window *window) const
 	{
 #if RN_PLATFORM_MAC_OS
-		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(0);
+		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(1);
 #elif RN_PLATFORM_WINDOWS
 		
 #endif
@@ -358,6 +383,9 @@ namespace RN
 	
 	RenderingDevice *OpenVRWindow::GetOutputDevice() const
 	{
+		if(!_vrSystem)
+			return nullptr;
+		
 #if RN_PLATFORM_MAC_OS
 		id<MTLDevice> mtlDevice = nil;
 		_vrSystem->GetOutputDevice((uint64_t*)&mtlDevice, vr::TextureType_IOSurface);
@@ -374,6 +402,9 @@ namespace RN
 	
 	Mesh *OpenVRWindow::GetHiddenAreaMesh(uint8 eye) const
 	{
+		if(!_vrSystem)
+			return nullptr;
+		
 		vr::HiddenAreaMesh_t hiddenAreaMesh = _vrSystem->GetHiddenAreaMesh(static_cast<vr::Hmd_Eye>(eye));
 		
 		if(hiddenAreaMesh.unTriangleCount <= 0)

@@ -29,6 +29,7 @@ namespace RN
 		
 		RNVRAPI virtual void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) = 0;
 		RNVRAPI virtual void StopRendering() = 0;
+		RNVRAPI virtual bool IsRendering() const = 0;
 
 		RNVRAPI virtual void SetTitle(const String *title) override { }
 		RNVRAPI virtual Screen *GetScreen() override { return nullptr; }
