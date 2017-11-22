@@ -72,7 +72,6 @@ vertex FragmentVertex depth_vertex(const InputVertex vert [[stage_in]], constant
 #if RN_SKY
 	float3 rotatedPosition = (uniforms.modelViewMatrix * float4(vert.position, 0.0)).xyz;
 	result.position = (uniforms.projectionMatrix * float4(rotatedPosition, 1.0)).xyww;
-	result.position.w *= 1.0001;
 #else
 	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0f);
 #endif

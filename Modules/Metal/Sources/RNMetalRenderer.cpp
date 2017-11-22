@@ -348,6 +348,7 @@ namespace RN
 					if(!_ppConvertMaterial)
 					{
 						_ppConvertMaterial = Material::WithShaders(_defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex")), _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment")))->Retain();
+						_ppConvertMaterial->SetDepthMode(DepthMode::LessOrEqual);
 					}
 					metalRenderPass.overrideMaterial = _ppConvertMaterial;
 					break;
@@ -401,7 +402,7 @@ namespace RN
 			_internals->currentRenderPassIndex = _internals->renderPasses.size();
 			_internals->renderPasses.push_back(metalRenderPass);
 			
-			if(ppStage || metalRenderPass.type == MetalRenderPass::Type::Convert)
+			if(ppStage || metalRenderPass.type == MetalRenderPass::Type::Convert)
 			{
 				//Submit fullscreen quad drawable
 				if(!_defaultPostProcessingDrawable)

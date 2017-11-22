@@ -60,6 +60,7 @@ namespace RN
 
 		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
 		Material *baseMaterial = Material::WithShaders(nullptr, nullptr);
+		baseMaterial->SetDepthMode(DepthMode::LessOrEqual);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(leftMesh);
 		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
@@ -115,6 +116,7 @@ namespace RN
 
 		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 80, 81);
 		Material *domeMaterial = Material::WithShaders(nullptr, nullptr);
+		domeMaterial->SetDepthMode(DepthMode::LessOrEqual);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(domeMesh);
 		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
