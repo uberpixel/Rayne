@@ -348,7 +348,6 @@ namespace RN
 					if(!_ppConvertMaterial)
 					{
 						_ppConvertMaterial = Material::WithShaders(_defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex")), _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment")))->Retain();
-						_ppConvertMaterial->SetDepthMode(DepthMode::LessOrEqual);
 					}
 					metalRenderPass.overrideMaterial = _ppConvertMaterial;
 					break;

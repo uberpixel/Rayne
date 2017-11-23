@@ -41,7 +41,7 @@ fragment [[early_fragment_tests]] float4 pp_blit_fragment(FragmentVertex vert [[
 vertex FragmentVertex pp_mask_vertex(const InputVertex vert [[stage_in]])
 {
 	FragmentVertex result;
-	result.position = float4(vert.position.xy * 2.0 - 1.0, 0.0, 1.0);
+	result.position = float4(vert.position.xy * 2.0 - 1.0, 0.0001, 1.0);
 
 	return result;
 }
