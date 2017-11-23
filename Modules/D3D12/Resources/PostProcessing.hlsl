@@ -24,7 +24,7 @@ struct FragmentVertex
 FragmentVertex pp_vertex(InputVertex vert)
 {
 	FragmentVertex result;
-	result.position = float4(vert.position.xy, 1.0, 1.0001);
+	result.position = float4(vert.position.xy, 0.0, 1.0);
 	result.texCoords = vert.texCoords;
 
 	return result;
