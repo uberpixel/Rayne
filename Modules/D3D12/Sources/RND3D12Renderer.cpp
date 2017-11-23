@@ -459,11 +459,7 @@ namespace RN
 					continue;
 				}
 				SetupRendertargets(_currentCommandList, renderPass);
-
-				if(renderPass.type == D3D12RenderPass::Type::Convert)
-				{
-					RenderAPIRenderPass(_currentCommandList, renderPass);
-				}
+				
 				if(renderPass.drawables.size() > 0)
 				{
 					//Draw drawables
@@ -674,6 +670,13 @@ namespace RN
 				_defaultPostProcessingDrawable->material = planeMaterial->Retain();
 				_lock.Unlock();
 			}
+
+/*			Texture *sourceTexture = d3dRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+			if(d3dRenderPass.type == D3D12RenderPass::Type::Convert)
+			{
+				_defaultPostProcessingDrawable->material->RemoveAllTextures();
+				_defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
+			}*/
 			SubmitDrawable(_defaultPostProcessingDrawable);
 
 			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
@@ -879,8 +882,8 @@ namespace RN
 		viewport.Height = cameraRect.height;
 		viewport.TopLeftX = cameraRect.x;
 		viewport.TopLeftY = cameraRect.y;
-		viewport.MaxDepth = 1.0;
-		viewport.MinDepth = 0.0;
+		viewport.MaxDepth = 1;
+		viewport.MinDepth = 0;
 
 		D3D12_RECT viewportRect;
 		viewportRect.right = static_cast<LONG>(cameraRect.width + cameraRect.x);
@@ -1342,13 +1345,6 @@ namespace RN
 		Texture *sourceTexture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
 		D3D12Texture *sourceD3DTexture = sourceTexture->Downcast<D3D12Texture>();
 		D3D12_RESOURCE_STATES oldSourceState = sourceD3DTexture->_currentState;
-
-		if (renderPass.type == D3D12RenderPass::Type::Convert)
-		{
-			renderPass.drawables[0]->material->RemoveAllTextures();
-			renderPass.drawables[0]->material->AddTexture(sourceTexture);
-			return;
-		}
 
 		D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
 		Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
