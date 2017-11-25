@@ -159,7 +159,10 @@ float getDirectionalShadowFactor(int light, float3 position)
 	projectedPosition[mapToUse].xy += 0.5f;
 	projectedPosition[mapToUse].w = mapToUse;
 
-	return getShadowPCF4x4(projectedPosition[mapToUse].xywz);
+	if(mapToUse < 3)
+		return getShadowPCF2x2(projectedPosition[mapToUse].xywz);
+	else
+		return getShadowPCF4x4(projectedPosition[mapToUse].xywz);
 }
 
 float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDirectional directionalLights[5])

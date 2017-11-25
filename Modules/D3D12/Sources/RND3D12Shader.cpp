@@ -77,7 +77,7 @@ namespace RN
 		Array *reflectionSamplers = new Array();
 		Array *specificReflectionSamplers = new Array();
 		Array *uniformDescriptors = new Array();
-
+		
 		D3D12_SHADER_DESC shaderDescription;
 		pReflector->GetDesc(&shaderDescription);
 

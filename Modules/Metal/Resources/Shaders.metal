@@ -163,14 +163,14 @@ float getDirectionalShadowFactor(short light, float3 position, constant Fragment
 			mapToUse = i;
 		}
 	}
+
+	if(mapToUse == -1)
+		return 1.0;
 	
 	projectedPosition[mapToUse].y *= -1.0f;
 	projectedPosition[mapToUse].xy *= 0.5f;
 	projectedPosition[mapToUse].xy += 0.5f;
 	projectedPosition[mapToUse].w = mapToUse;
-
-	if(mapToUse == -1)
-		return 1.0;
 
 	if(mapToUse < 3)
 		return getShadowPCF4x4(projectedPosition[mapToUse].xywz, uniforms.directionalShadowInfo, directionalShadowTexture, directionalShadowSampler);
