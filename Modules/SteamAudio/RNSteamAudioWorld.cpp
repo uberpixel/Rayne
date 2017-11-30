@@ -84,15 +84,16 @@ namespace RN
 
 		const struct SoundIoChannelLayout *layout = &outStream->layout;
 		float sampleLength = 1.0f / static_cast<float>(outStream->sample_rate);
-		float secondsPerFrame = sampleLength * _instance->_frameSize;
+		int currentSampleCount = std::max(std::min(_instance->_frameSize, static_cast<uint32>(maxSampleCount)), static_cast<uint32>(minSampleCount));
+		float secondsPerFrame = sampleLength * currentSampleCount;
 
 		IPLAudioBuffer mixingBuffer[3];
 		mixingBuffer[0].format = _instance->_internals->internalAmbisonicsFormat;
 		mixingBuffer[1].format = _instance->_internals->internalAmbisonicsFormat;
 		mixingBuffer[2].format = _instance->_internals->internalAmbisonicsFormat;
-		mixingBuffer[0].numSamples = _instance->_frameSize;
-		mixingBuffer[1].numSamples = _instance->_frameSize;
-		mixingBuffer[2].numSamples = _instance->_frameSize;
+		mixingBuffer[0].numSamples = currentSampleCount;
+		mixingBuffer[1].numSamples = currentSampleCount;
+		mixingBuffer[2].numSamples = currentSampleCount;
 		mixingBuffer[1].interleavedBuffer = _instance->_mixedAmbisonicsFrameData0;
 		mixingBuffer[2].interleavedBuffer = _instance->_mixedAmbisonicsFrameData1;
 
@@ -117,7 +118,7 @@ namespace RN
 		}
 		else
 		{
-			memset(_instance->_mixedAmbisonicsFrameData0, 0, sizeof(float) * _instance->_frameSize * _instance->_internals->internalAmbisonicsFormat.numSpeakers);
+			memset(_instance->_mixedAmbisonicsFrameData0, 0, sizeof(float) * currentSampleCount * _instance->_internals->internalAmbisonicsFormat.numSpeakers);
 		}
 
 		//Get direct audio samples and mix
@@ -128,7 +129,7 @@ namespace RN
 					return;
 
 				float *outData = nullptr;
-				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
+				source->Update(secondsPerFrame, currentSampleCount, &outData);
 
 				if(!outData)
 					return;
@@ -144,7 +145,7 @@ namespace RN
 		//Turn ambisonics data into binaural stereo data TODO: Also support ambisonic panning effect here!
 		IPLAudioBuffer outputBuffer;
 		outputBuffer.format = _instance->_internals->outputFormat;
-		outputBuffer.numSamples = _instance->_frameSize;
+		outputBuffer.numSamples = currentSampleCount;
 		outputBuffer.interleavedBuffer = _instance->_outputFrameData;
 		iplApplyAmbisonicsBinauralEffect(_instance->_ambisonicsBinauralEffect, mixingBuffer[1], outputBuffer);
 
@@ -161,7 +162,7 @@ namespace RN
 					return;
 
 				float *outData = nullptr;
-				source->Update(secondsPerFrame, _instance->_frameSize, &outData);
+				source->Update(secondsPerFrame, currentSampleCount, &outData);
 
 				if(!outData)
 					return;
@@ -173,12 +174,12 @@ namespace RN
 				mixingBuffer[1].interleavedBuffer = tempPointer;
 			});
 
-			memcpy(_instance->_outputFrameData, mixingBuffer[1].interleavedBuffer, layout->channel_count * _instance->_frameSize * sizeof(float));
+			memcpy(_instance->_outputFrameData, mixingBuffer[1].interleavedBuffer, layout->channel_count * currentSampleCount * sizeof(float));
 		}
 
 		//Write audio data to the device
 		struct SoundIoChannelArea *areas;
-		int remainingSamples = std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
+		int remainingSamples = static_cast<int>(currentSampleCount);
 
 		while(remainingSamples > 0)
 		{
@@ -560,7 +561,7 @@ namespace RN
 					const uint16 index2 = *(indexIterator++);
 					const uint16 index3 = *(indexIterator);
 
-					triangles.push_back(IPLTriangle{ static_cast<IPLint32>(index1), static_cast<IPLint32>(index2), static_cast<IPLint32>(index3) });
+					triangles.push_back(IPLTriangle{ {static_cast<IPLint32>(index1), static_cast<IPLint32>(index2), static_cast<IPLint32>(index3)} });
 					materials.push_back(geometry.materialIndex);
 				}
 			}
@@ -577,7 +578,7 @@ namespace RN
 		_sceneGeometry.clear();
 
 		iplCreateEnvironment(_internals->context, nullptr, simulationSettings, _scene, nullptr, &_environment);	//TODO: 4th paramter should be a scene object for indirect sound modeling
-		iplCreateEnvironmentalRenderer(_internals->context, _environment, _internals->settings, _internals->internalAmbisonicsFormat, &_environmentalRenderer);
+		iplCreateEnvironmentalRenderer(_internals->context, _environment, _internals->settings, _internals->internalAmbisonicsFormat, nullptr, nullptr, &_environmentalRenderer);
 
 		_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
 			source->FinalizeScene();

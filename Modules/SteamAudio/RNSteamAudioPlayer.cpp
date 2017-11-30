@@ -21,10 +21,11 @@ namespace RN
 		_pitch(1.0f),
 		_gain(1.0f),
 		_currentTime(0.0f),
-		_sampler(new SteamAudioSampler(asset))
+		_sampler(new SteamAudioSampler(nullptr))
 	{
 		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
-
+		
+		SetAudioAsset(asset);
 		SteamAudioWorld::_instance->AddAudioPlayer(this);
 	}
 	
