@@ -61,4 +61,6 @@ rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneSteamAudio/
 
 if(APPLE)
         add_custom_command(TARGET RayneSteamAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/OSX/libphonon.dylib" "$<TARGET_FILE_DIR:RayneSteamAudio>/libphonon.dylib")
+else()
+        add_custom_command(TARGET RayneSteamAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/bin/Windows/x64/phonon.dll" "$<TARGET_FILE_DIR:RayneSteamAudio>/phonon.dll")
 endif()
