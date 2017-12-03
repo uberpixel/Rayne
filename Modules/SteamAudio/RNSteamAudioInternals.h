@@ -16,7 +16,7 @@ namespace RN
 {
 	struct SteamAudioWorldInternals
 	{
-		IPLContext context;
+		IPLhandle context;
 		IPLRenderingSettings settings;
 
 		IPLAudioFormat internalAmbisonicsFormat;

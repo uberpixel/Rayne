@@ -111,7 +111,7 @@ namespace RN
 		//Get indirect audio samples if possible
 		if(_instance->_scene)
 		{
-			iplGetMixedEnvironmentalAudio(_instance->GetEnvironmentalRenderer(),
+			iplGetMixedEnvironmentalAudio(_instance->_environmentalRenderer,
 				IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
 				IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
 				IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z }, mixingBuffer[1]);
@@ -211,22 +211,22 @@ namespace RN
 		_outDevice(nullptr),
 		_inStream(nullptr),
 		_outStream(nullptr),
-		_audioSources(new Array()),
-		_audioPlayers(new Array()),
-		_inputBuffer(nullptr),
-		_mixedAmbisonicsFrameData0(nullptr),
-		_mixedAmbisonicsFrameData1(nullptr),
-		_outputFrameData(nullptr),
-		_frameSize(frameSize),
-		_sampleRate(sampleRate),
-		_ambisonicsBinauralEffect(nullptr),
+		_ambisonicsOrder(ambisonicsOrder),
+		_isUpdatingScene(true),
 		_scene(nullptr),
 		_sceneMesh(nullptr),
 		_environment(nullptr),
+		_ambisonicsBinauralEffect(nullptr),
 		_environmentalRenderer(nullptr),
-		_internals(new SteamAudioWorldInternals()),
-		_ambisonicsOrder(ambisonicsOrder),
-		_isUpdatingScene(true)
+		_inputBuffer(nullptr),
+		_audioSources(new Array()),
+		_audioPlayers(new Array()),
+		_frameSize(frameSize),
+		_sampleRate(sampleRate),
+		_mixedAmbisonicsFrameData0(nullptr),
+		_mixedAmbisonicsFrameData1(nullptr),
+		_outputFrameData(nullptr),
+		_internals(new SteamAudioWorldInternals())
 	{
 		RN_ASSERT(!_instance, "There already is a SteamAudioWorld!");
 		RN_ASSERT(!outputDevice || outputDevice->type == SteamAudioDevice::Type::Output, "outputDevice has to be an output device!");
@@ -239,10 +239,8 @@ namespace RN
 		SetOutputDevice(outputDevice);
 
 		//Initialize Steam Audio
-		_internals->context.allocateCallback = nullptr;
-		_internals->context.freeCallback = nullptr;
-		_internals->context.logCallback = nullptr;
-
+		iplCreateContext(nullptr, nullptr, nullptr, &_internals->context);
+		
 		_internals->settings.samplingRate = sampleRate;
 		_internals->settings.frameSize = frameSize;
 		_internals->settings.convolutionType = IPL_CONVOLUTIONTYPE_PHONON;
@@ -342,6 +340,8 @@ namespace RN
 
 			_frameSize = 0;
 		}
+		
+		iplDestroyContext(&_internals->context);
 
 		_instance = nullptr;
 		delete _internals;

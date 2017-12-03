@@ -14,7 +14,7 @@
 namespace RN
 {
 	class SteamAudioSampler;
-	class SteamAudioSourceInternals;
+	struct SteamAudioSourceInternals;
 	class SteamAudioSource : public SceneNode
 	{
 	public:

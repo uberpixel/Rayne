@@ -16,12 +16,12 @@ namespace RN
 	RNDefineMeta(SteamAudioPlayer, Object)
 
 		SteamAudioPlayer::SteamAudioPlayer(AudioAsset *asset) :
+		_sampler(new SteamAudioSampler(nullptr)),
 		_isPlaying(false),
 		_isRepeating(false),
-		_pitch(1.0f),
 		_gain(1.0f),
-		_currentTime(0.0f),
-		_sampler(new SteamAudioSampler(nullptr))
+		_pitch(1.0f),
+		_currentTime(0.0f)
 	{
 		RN_ASSERT(SteamAudioWorld::_instance, "You need to create a SteamAudioWorld before creating audio players!");
 		
