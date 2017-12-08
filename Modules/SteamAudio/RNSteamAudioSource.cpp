@@ -190,14 +190,15 @@ namespace RN
 		}
 
 		//Calculate direct sound
-		IPLDirectSoundPath directSoundPath;/* = iplGetDirectSoundPath(SteamAudioWorld::_instance->GetEnvironmentalRenderer(),
+		IPLDirectSoundPath directSoundPath = iplGetDirectSoundPath(SteamAudioWorld::_instance->GetEnvironmentalRenderer(),
 			IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
 			IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
 			IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z },
 			IPLVector3{ sourcePosition.x, sourcePosition.y, sourcePosition.z },
-			_radius, IPL_DIRECTOCCLUSION_NOTRANSMISSION, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);*/
+			_radius, IPL_DIRECTOCCLUSION_NOTRANSMISSION, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
 		
-		RN::Vector3 direction = sourcePosition-listenerPosition;
+/*		IPLDirectSoundPath directSoundPath;
+ 		RN::Vector3 direction = sourcePosition-listenerPosition;
 		float attenuation = 1.0f;//1.0f/direction.GetLength();
 //		direction = listener->GetWorldRotation().GetConjugated().GetRotatedVector(direction);
 		direction.Normalize();
@@ -210,7 +211,7 @@ namespace RN
 		directSoundPath.transmissionFactor[0] = 1.0f;
 		directSoundPath.transmissionFactor[1] = 1.0f;
 		directSoundPath.transmissionFactor[2] = 1.0f;
-		directSoundPath.propagationDelay = 0.0f;
+		directSoundPath.propagationDelay = 0.0f;*/
 
 		//TODO: implement direct sound effect with optional transmission
 

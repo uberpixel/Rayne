@@ -515,7 +515,7 @@ namespace RN
 		IPLSimulationSettings simulationSettings;
 		simulationSettings.ambisonicsOrder = _ambisonicsOrder;
 		simulationSettings.irDuration = 0.5f;
-		simulationSettings.maxConvolutionSources = 20;
+		simulationSettings.maxConvolutionSources = 0;
 		simulationSettings.numBounces = 16;
 		simulationSettings.numDiffuseSamples = 512;
 		simulationSettings.numRays = 64000;
