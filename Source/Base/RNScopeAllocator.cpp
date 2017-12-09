@@ -32,19 +32,19 @@ namespace RN
 	static ThreadLocalStorage<ScopeAllocator *> __topAllocator;
 
 	ScopeAllocator::ScopeAllocator() :
-		ScopeAllocator(GetThreadAllocator()._allocator)
+		ScopeAllocator(GetThreadAllocator()->_allocator)
 	{}
 
-	ScopeAllocator::ScopeAllocator(const ScopeAllocator &other) :
-		ScopeAllocator(other._allocator)
+	ScopeAllocator::ScopeAllocator(const ScopeAllocator *other) :
+		ScopeAllocator(other->_allocator)
 	{}
 
-	ScopeAllocator::ScopeAllocator(BumpAllocator &allocator) :
+	ScopeAllocator::ScopeAllocator(BumpAllocator *allocator) :
 		_allocator(allocator),
 		_finalizerChain(nullptr),
 		_nonFinalizerSize(0)
 	{
-		_previous = &GetThreadAllocator();
+		_previous = GetThreadAllocator();
 		__topAllocator.SetValue(this);
 	}
 	ScopeAllocator::~ScopeAllocator()
@@ -65,22 +65,22 @@ namespace RN
 		}
 
 		if(putBack > 0)
-			_allocator.PutBack(putBack);
+			_allocator->PutBack(putBack);
 
 		RN_ASSERT(__topAllocator.GetValue() == this, "Something broke the allocator chain!");
 		__topAllocator.SetValue(_previous);
 	}
 
-	ScopeAllocator &ScopeAllocator::GetThreadAllocator()
+	ScopeAllocator *ScopeAllocator::GetThreadAllocator()
 	{
-		return *__topAllocator.GetValue();
+		return __topAllocator.GetValue();
 	}
 
 	void *ScopeAllocator::AllocWithDestructor(size_t size, size_t alignment, void (*fn)(void *ptr))
 	{
 		size_t total = size + alignment + sizeof(__ScopeAllocatorFinalizer);
 
-		__ScopeAllocatorFinalizer *finalizer = (__ScopeAllocatorFinalizer *)_allocator.Alloc(total);
+		__ScopeAllocatorFinalizer *finalizer = (__ScopeAllocatorFinalizer *)_allocator->Alloc(total);
 		uint8 *base = reinterpret_cast<uint8 *>(finalizer);
 		uint8 *buffer = base + sizeof(__ScopeAllocatorFinalizer);
 
@@ -98,7 +98,7 @@ namespace RN
 	void *ScopeAllocator::Alloc(size_t size, size_t alignment)
 	{
 		size_t total = size + alignment;
-		uintptr_t buffer = (uintptr_t)_allocator.Alloc(total);
+		uintptr_t buffer = (uintptr_t)_allocator->Alloc(total);
 
 		// Round up to match alignment
 		uintptr_t aligned = AlignUp(buffer, alignment);
@@ -109,7 +109,7 @@ namespace RN
 		{
 			size_t extra = alignment - difference;
 
-			_allocator.PutBack(extra);
+			_allocator->PutBack(extra);
 			total -= extra;
 		}
 

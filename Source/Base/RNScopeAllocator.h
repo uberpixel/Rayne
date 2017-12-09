@@ -20,11 +20,11 @@ namespace RN
 	{
 	public:
 		RNAPI ScopeAllocator();
-		RNAPI ScopeAllocator(const ScopeAllocator &other);
-		RNAPI ScopeAllocator(BumpAllocator &allocator);
+		RNAPI ScopeAllocator(const ScopeAllocator *other);
+		RNAPI ScopeAllocator(BumpAllocator *allocator);
 		RNAPI ~ScopeAllocator();
 
-		RNAPI ScopeAllocator &GetThreadAllocator();
+		RNAPI ScopeAllocator *GetThreadAllocator();
 
 		template<class T, typename ...Args>
 		T *Alloc(Args &&...args)
@@ -56,7 +56,7 @@ namespace RN
 		RNAPI void *AllocWithDestructor(size_t size, size_t alignment, void (*fn)(void *ptr));
 		RNAPI void *Alloc(size_t size, size_t alignment);
 
-		BumpAllocator &_allocator;
+		BumpAllocator *_allocator;
 		__ScopeAllocatorFinalizer *_finalizerChain;
 		size_t _nonFinalizerSize;
 		ScopeAllocator *_previous;

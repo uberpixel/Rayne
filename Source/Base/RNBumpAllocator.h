@@ -23,7 +23,7 @@ namespace RN
 		RNAPI void PutBack(size_t size);
 		RNAPI void Reset();
 
-		RNAPI static BumpAllocator &GetThreadAllocator();
+		RNAPI static BumpAllocator *GetThreadAllocator();
 
 		size_t GetCurrentSize() const noexcept { return _currentSize; }
 		size_t GetMaxSize() const noexcept { return _maxSize; }

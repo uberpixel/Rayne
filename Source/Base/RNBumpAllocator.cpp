@@ -16,7 +16,7 @@ namespace RN
 	static constexpr size_t kBumpAllocatorMultiplier = 4096;
 	static ThreadLocalStorage<BumpAllocator *> __localAllocators;
 
-	BumpAllocator &BumpAllocator::GetThreadAllocator()
+	BumpAllocator *BumpAllocator::GetThreadAllocator()
 	{
 		BumpAllocator *allocator = __localAllocators.GetValue();
 		if(!allocator)
@@ -29,7 +29,7 @@ namespace RN
 			}, allocator);
 		}
 
-		return *allocator;
+		return allocator;
 	}
 
 	BumpAllocator::BumpAllocator(size_t size) :
