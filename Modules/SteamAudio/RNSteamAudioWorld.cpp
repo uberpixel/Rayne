@@ -81,125 +81,135 @@ namespace RN
 	{
 		if(!_instance || _instance->_isUpdatingScene)
 			return;
-
-		const struct SoundIoChannelLayout *layout = &outStream->layout;
-		float sampleLength = 1.0f / static_cast<float>(outStream->sample_rate);
-		int currentSampleCount = std::max(std::min(_instance->_frameSize, static_cast<uint32>(maxSampleCount)), static_cast<uint32>(minSampleCount));
-		float secondsPerFrame = sampleLength * currentSampleCount;
-
-		IPLAudioBuffer mixingBuffer[3];
-		mixingBuffer[0].format = _instance->_internals->internalAmbisonicsFormat;
-		mixingBuffer[1].format = _instance->_internals->internalAmbisonicsFormat;
-		mixingBuffer[2].format = _instance->_internals->internalAmbisonicsFormat;
-		mixingBuffer[0].numSamples = currentSampleCount;
-		mixingBuffer[1].numSamples = currentSampleCount;
-		mixingBuffer[2].numSamples = currentSampleCount;
-		mixingBuffer[1].interleavedBuffer = _instance->_mixedAmbisonicsFrameData0;
-		mixingBuffer[2].interleavedBuffer = _instance->_mixedAmbisonicsFrameData1;
-
-		Vector3 listenerPosition;
-		Vector3 listenerForward(0.0f, 0.0f, -1.0f);
-		Vector3 listenerUp(0.0f, 1.0f, 0.0f);
-		SceneNode *listener = SteamAudioWorld::_instance->_listener;
-		if(listener)
-		{
-			listenerPosition = listener->GetWorldPosition();
-			listenerForward = listener->GetForward();
-			listenerUp = listener->GetUp();
-		}
-
-		//Get indirect audio samples if possible
-		if(_instance->_scene)
-		{
-			iplGetMixedEnvironmentalAudio(_instance->_environmentalRenderer,
-				IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
-				IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
-				IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z }, mixingBuffer[1]);
-		}
-		else
-		{
-			memset(_instance->_mixedAmbisonicsFrameData0, 0, sizeof(float) * currentSampleCount * _instance->_internals->internalAmbisonicsFormat.numSpeakers);
-		}
-
-		//Get direct audio samples and mix
-		if(_instance->_environmentalRenderer)
-		{
-			_instance->_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
-				if(!source->IsPlaying())
-					return;
-
-				float *outData = nullptr;
-				source->Update(secondsPerFrame, currentSampleCount, &outData);
-
-				if(!outData)
-					return;
-
-				mixingBuffer[0].interleavedBuffer = outData;
-				iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
-				float *tempPointer = mixingBuffer[2].interleavedBuffer;
-				mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
-				mixingBuffer[1].interleavedBuffer = tempPointer;
-			});
-		}
-
-		//Turn ambisonics data into binaural stereo data TODO: Also support ambisonic panning effect here!
-		IPLAudioBuffer outputBuffer;
-		outputBuffer.format = _instance->_internals->outputFormat;
-		outputBuffer.numSamples = currentSampleCount;
-		outputBuffer.interleavedBuffer = _instance->_outputFrameData;
-		iplApplyAmbisonicsBinauralEffect(_instance->_ambisonicsBinauralEffect, mixingBuffer[1], outputBuffer);
-
-		//Mix final output with audio players
-		if(_instance->_audioPlayers->GetCount() > 0)
-		{
-			mixingBuffer[0].format = _instance->_internals->outputFormat;
-			mixingBuffer[1].format = _instance->_internals->outputFormat;
-			mixingBuffer[2].format = _instance->_internals->outputFormat;
-			mixingBuffer[1].interleavedBuffer = _instance->_outputFrameData;
-
-			_instance->_audioPlayers->Enumerate<SteamAudioPlayer>([&](SteamAudioPlayer *source, size_t index, bool &stop) {
-				if(!source->IsPlaying())
-					return;
-
-				float *outData = nullptr;
-				source->Update(secondsPerFrame, currentSampleCount, &outData);
-
-				if(!outData)
-					return;
-
-				mixingBuffer[0].interleavedBuffer = outData;
-				iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
-				float *tempPointer = mixingBuffer[2].interleavedBuffer;
-				mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
-				mixingBuffer[1].interleavedBuffer = tempPointer;
-			});
-
-			memcpy(_instance->_outputFrameData, mixingBuffer[1].interleavedBuffer, layout->channel_count * currentSampleCount * sizeof(float));
-		}
-
-		//Write audio data to the device
+		
 		struct SoundIoChannelArea *areas;
-		int remainingSamples = static_cast<int>(currentSampleCount);
-
+		int remainingSamples = maxSampleCount;
+		
 		while(remainingSamples > 0)
 		{
 			int sampleCount = remainingSamples;
-
-			soundio_outstream_begin_write(outStream, &areas, &sampleCount);
+			
+			if(soundio_outstream_begin_write(outStream, &areas, &sampleCount) > 0)
+				break;
 			if(!sampleCount)
 				break;
 
-			for(int sample = 0; sample < sampleCount; sample++)
+			const struct SoundIoChannelLayout *layout = &outStream->layout;
+			float sampleLength = 1.0f / static_cast<float>(outStream->sample_rate);
+			int currentSampleCount = 0;//std::max(std::min(static_cast<int>(_instance->_frameSize), maxSampleCount), minSampleCount);
+			int processedSampleCount = 0;
+			
+			while(processedSampleCount < sampleCount)
 			{
-				for(int channel = 0; channel < layout->channel_count; channel++)
+				currentSampleCount = std::min(static_cast<int>(_instance->_frameSize), sampleCount - processedSampleCount);
+				float secondsPerFrame = sampleLength * currentSampleCount;
+
+				IPLAudioBuffer mixingBuffer[3];
+				mixingBuffer[0].format = _instance->_internals->internalAmbisonicsFormat;
+				mixingBuffer[1].format = _instance->_internals->internalAmbisonicsFormat;
+				mixingBuffer[2].format = _instance->_internals->internalAmbisonicsFormat;
+				mixingBuffer[0].numSamples = currentSampleCount;
+				mixingBuffer[1].numSamples = currentSampleCount;
+				mixingBuffer[2].numSamples = currentSampleCount;
+				mixingBuffer[1].interleavedBuffer = _instance->_mixedAmbisonicsFrameData0;
+				mixingBuffer[2].interleavedBuffer = _instance->_mixedAmbisonicsFrameData1;
+
+				Vector3 listenerPosition;
+				Vector3 listenerForward(0.0f, 0.0f, -1.0f);
+				Vector3 listenerUp(0.0f, 1.0f, 0.0f);
+				SceneNode *listener = SteamAudioWorld::_instance->_listener;
+				if(listener)
 				{
-					float *ptr = reinterpret_cast<float*>(areas[channel].ptr + areas[channel].step * sample);
-					*ptr = _instance->_outputFrameData[sample * layout->channel_count + channel];
+					listenerPosition = listener->GetWorldPosition();
+					listenerForward = listener->GetForward();
+					listenerUp = listener->GetUp();
 				}
+
+				//Get indirect audio samples if possible
+				if(_instance->_scene)
+				{
+					iplGetMixedEnvironmentalAudio(_instance->_environmentalRenderer,
+						IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
+						IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
+						IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z }, mixingBuffer[1]);
+				}
+				else
+				{
+					memset(_instance->_mixedAmbisonicsFrameData0, 0, sizeof(float) * currentSampleCount * _instance->_internals->internalAmbisonicsFormat.numSpeakers);
+				}
+
+				//Get direct audio samples and mix
+				if(_instance->_environmentalRenderer)
+				{
+					_instance->_audioSources->Enumerate<SteamAudioSource>([&](SteamAudioSource *source, size_t index, bool &stop) {
+						if(!source->IsPlaying())
+							return;
+
+						float *outData = nullptr;
+						source->Update(secondsPerFrame, currentSampleCount, &outData);
+
+						if(!outData)
+							return;
+
+						mixingBuffer[0].interleavedBuffer = outData;
+						iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
+						float *tempPointer = mixingBuffer[2].interleavedBuffer;
+						mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
+						mixingBuffer[1].interleavedBuffer = tempPointer;
+					});
+				}
+
+				//Turn ambisonics data into binaural stereo data TODO: Also support ambisonic panning effect here!
+				IPLAudioBuffer outputBuffer;
+				outputBuffer.format = _instance->_internals->outputFormat;
+				outputBuffer.numSamples = currentSampleCount;
+				outputBuffer.interleavedBuffer = _instance->_outputFrameData;
+				iplApplyAmbisonicsBinauralEffect(_instance->_ambisonicsBinauralEffect, mixingBuffer[1], outputBuffer);
+
+				//Mix final output with audio players
+				if(_instance->_audioPlayers->GetCount() > 0)
+				{
+					mixingBuffer[0].format = _instance->_internals->outputFormat;
+					mixingBuffer[1].format = _instance->_internals->outputFormat;
+					mixingBuffer[2].format = _instance->_internals->outputFormat;
+					mixingBuffer[1].interleavedBuffer = _instance->_outputFrameData;
+
+					_instance->_audioPlayers->Enumerate<SteamAudioPlayer>([&](SteamAudioPlayer *source, size_t index, bool &stop) {
+						if(!source->IsPlaying())
+							return;
+
+						float *outData = nullptr;
+						source->Update(secondsPerFrame, currentSampleCount, &outData);
+
+						if(!outData)
+							return;
+
+						mixingBuffer[0].interleavedBuffer = outData;
+						iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
+						float *tempPointer = mixingBuffer[2].interleavedBuffer;
+						mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
+						mixingBuffer[1].interleavedBuffer = tempPointer;
+					});
+
+					memcpy(_instance->_outputFrameData, mixingBuffer[1].interleavedBuffer, layout->channel_count * currentSampleCount * sizeof(float));
+				}
+				
+				//Write audio data to the device
+				int actualSample = 0;
+				for(int sample = processedSampleCount; sample < processedSampleCount+currentSampleCount; sample++)
+				{
+					for(int channel = 0; channel < layout->channel_count; channel++)
+					{
+						float *ptr = reinterpret_cast<float*>(areas[channel].ptr + areas[channel].step * sample);
+						*ptr = _instance->_outputFrameData[actualSample * layout->channel_count + channel];
+					}
+					actualSample++;
+				}
+				
+				processedSampleCount += currentSampleCount;
 			}
-
+			
 			soundio_outstream_end_write(outStream);
-
 			remainingSamples -= sampleCount;
 		}
 	}

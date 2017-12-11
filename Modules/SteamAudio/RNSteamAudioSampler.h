@@ -23,6 +23,7 @@ namespace RN
 		SAAPI void SetAudioAsset(AudioAsset *asset);
 		SAAPI void SetRepeat(bool repeat);
 		SAAPI float GetSample(double time, uint8 channel);
+		SAAPI double GetTotalTime() const;
 
 		SAAPI AudioAsset *GetAsset()
 		{

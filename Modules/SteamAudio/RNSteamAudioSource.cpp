@@ -141,6 +141,16 @@ namespace RN
 	{
 		_isPlaying = false;
 	}
+	
+	void SteamAudioSource::Seek(double time)
+	{
+		_currentTime = time;
+	}
+	
+	bool SteamAudioSource::HasEnded() const
+	{
+		return (_currentTime >= _sampler->GetTotalTime());
+	}
 
 	void SteamAudioSource::Update(double frameLength, uint32 sampleCount, float **outputBuffer)
 	{
@@ -196,22 +206,6 @@ namespace RN
 			IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z },
 			IPLVector3{ sourcePosition.x, sourcePosition.y, sourcePosition.z },
 			_radius, IPL_DIRECTOCCLUSION_NOTRANSMISSION, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
-		
-/*		IPLDirectSoundPath directSoundPath;
- 		RN::Vector3 direction = sourcePosition-listenerPosition;
-		float attenuation = 1.0f;//1.0f/direction.GetLength();
-//		direction = listener->GetWorldRotation().GetConjugated().GetRotatedVector(direction);
-		direction.Normalize();
-		directSoundPath.direction = IPLVector3{direction.x, direction.y, direction.z};
-		directSoundPath.distanceAttenuation = attenuation;
-		directSoundPath.occlusionFactor = 1.0f;
-		directSoundPath.airAbsorption[0] = 1.0f;
-		directSoundPath.airAbsorption[1] = 1.0f;
-		directSoundPath.airAbsorption[2] = 1.0f;
-		directSoundPath.transmissionFactor[0] = 1.0f;
-		directSoundPath.transmissionFactor[1] = 1.0f;
-		directSoundPath.transmissionFactor[2] = 1.0f;
-		directSoundPath.propagationDelay = 0.0f;*/
 
 		//TODO: implement direct sound effect with optional transmission
 

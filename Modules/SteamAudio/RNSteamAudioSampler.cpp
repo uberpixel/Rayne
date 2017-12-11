@@ -46,6 +46,11 @@ namespace RN
 	{
 		_isRepeating = repeat;
 	}
+	
+	double SteamAudioSampler::GetTotalTime() const
+	{
+		return _totalTime;
+	}
 
 	float SteamAudioSampler::GetSample(double time, uint8 channel)
 	{
@@ -59,7 +64,7 @@ namespace RN
 
 		AudioAsset *tempAsset = _asset->Retain();
 		_lock.Unlock();
-
+		
 		if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
 		{
 			if(time < 0.0f)
@@ -72,10 +77,15 @@ namespace RN
 			}
 		}
 		else
-			time = std::min(time, _totalTime);
+		{
+			if(time >= _totalTime || time < 0.0f)
+			{
+				return 0.0f;
+			}
+		}
 
-		uint8 channelCount = tempAsset->GetChannels();
 		uint32 sampleRate = tempAsset->GetSampleRate();
+		uint8 channelCount = tempAsset->GetChannels();
 		uint64 lowerSamplePosition = time * sampleRate;
 		uint64 upperSamplePosition = time * sampleRate + 1;
 		double interpolationFactor = (static_cast<double>(upperSamplePosition) / static_cast<double>(sampleRate) - time) * static_cast<double>(sampleRate);

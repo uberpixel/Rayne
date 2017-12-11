@@ -25,6 +25,7 @@ namespace RN
 			
 		SAAPI void Play();
 		SAAPI void Stop();
+		SAAPI void Seek(double time);
 
 		SAAPI void SetAudioAsset(AudioAsset *asset);
 
@@ -42,6 +43,7 @@ namespace RN
 		bool IsPlaying() const { return _isPlaying; }
 		bool IsRepeating() const { return _isRepeating; }
 		bool HasTimeOfFlight() const { return _hasTimeOfFlight; }
+		bool HasEnded() const;
 			
 	private:
 		void ResetScene();
