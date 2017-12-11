@@ -83,7 +83,7 @@ namespace RN
 			return;
 		
 		struct SoundIoChannelArea *areas;
-		int remainingSamples = maxSampleCount;
+		int remainingSamples = std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
 		
 		while(remainingSamples > 0)
 		{
