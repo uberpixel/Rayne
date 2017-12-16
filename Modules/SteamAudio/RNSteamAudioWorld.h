@@ -92,6 +92,8 @@ namespace RN
 
 		SAAPI void *GetBinauralRenderer() const { return _binauralRenderer; }
 		SAAPI void *GetEnvironmentalRenderer() const { return _environmentalRenderer; }
+		
+		SAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
 	protected:
 		void Update(float delta) override;
@@ -143,6 +145,8 @@ namespace RN
 
 		std::vector<SteamAudioMaterial> _sceneMaterials;
 		std::vector<SteamAudioGeometry> _sceneGeometry;
+		
+		std::function<void (double)> _customWriteCallback;
 
 		SteamAudioWorldInternals *_internals;
 			

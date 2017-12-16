@@ -103,6 +103,11 @@ namespace RN
 			{
 				currentSampleCount = std::min(static_cast<int>(_instance->_frameSize), sampleCount - processedSampleCount);
 				float secondsPerFrame = sampleLength * currentSampleCount;
+				
+				if(_instance->_customWriteCallback)
+				{
+					_instance->_customWriteCallback(secondsPerFrame);
+				}
 
 				IPLAudioBuffer mixingBuffer[3];
 				mixingBuffer[0].format = _instance->_internals->internalAmbisonicsFormat;
@@ -736,5 +741,10 @@ namespace RN
 		soundio_destroy(soundio);
 
 		return saDevice;
+	}
+	
+	void SteamAudioWorld::SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback)
+	{
+		_customWriteCallback = customWriteCallback;
 	}
 }
