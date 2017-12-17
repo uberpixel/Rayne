@@ -20,7 +20,7 @@ set(SOURCES
         RNENetServer.cpp)
 
 set(HEADERS
-		RNENet.h
+	RNENet.h
         RNENetWorld.h
         RNENetHost.h
         RNENetClient.h
@@ -28,7 +28,12 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_ENET)
 
-set(RAYNE_LIBRARIES Rayne enet ws2_32.lib winmm.lib)
+if(APPLE)
+        set(RAYNE_LIBRARIES Rayne enet)
+else()
+        set(RAYNE_LIBRARIES Rayne enet ws2_32.lib winmm.lib)
+endif()
+
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/enet/include"

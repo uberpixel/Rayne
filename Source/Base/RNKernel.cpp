@@ -100,6 +100,7 @@ namespace RN
 			_time = 0;
 
 			ReadManifest();
+			SetMaxFPS(0);
 
 			_application->__PrepareForWillFinishLaunching(this);
 			_fileManager->__PrepareWithManifest();
@@ -264,6 +265,19 @@ namespace RN
 		_application->DidResignActive();
 	}
 #endif
+	
+	void Kernel::SetMaxFPS(uint32 maxFPS)
+	{
+		_maxFPS = maxFPS;
+		if(maxFPS)
+		{
+			_minDelta = 1.0 / maxFPS;
+		}
+		else
+		{
+			_minDelta = 0.0;
+		}
+	}
 
 	void Kernel::HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity)
 	{
@@ -346,6 +360,22 @@ namespace RN
 
 		_application->DidStep(static_cast<float>(_delta));
 		_lastFrame = now;
+		
+		// FPS cap
+		if(_maxFPS > 0)
+		{
+			now = Clock::now();
+			
+			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
+			double delta = milliseconds / 1000.0;
+			
+			if(_minDelta > delta)
+			{
+				uint32 sleepTime = static_cast<uint32>((_minDelta - delta) * 1000000);
+				if(sleepTime > 1000)
+					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+			}
+		}
 
 #if RN_PLATFORM_MAC_OS
 		[nsautoreleasePool release];
