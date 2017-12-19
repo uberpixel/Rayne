@@ -100,24 +100,30 @@ namespace RN
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 
-#if !RN_PLATFORM_MAC_OS
 		Framebuffer *msaaFramebuffer = nullptr;
 		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
 		PostProcessingAPIStage *resolvePass = nullptr;
 		
+		Texture::Format colorFormat = _window->GetSwapChainDescriptor().colorFormat;
+		Texture::Format depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
+		if(depthFormat == Texture::Format::Invalid)
+		{
+			depthFormat = Texture::Format::Depth24Stencil8;
+		}
+
 		if(_msaaSampleCount > 1)
 		{
-			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::BGRA8888SRGB, windowSize.x, windowSize.y, _msaaSampleCount));
-			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, windowSize.x, windowSize.y, _msaaSampleCount));
+			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(colorFormat, windowSize.x, windowSize.y, _msaaSampleCount));
+			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(depthFormat, windowSize.x, windowSize.y, _msaaSampleCount));
 			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(windowSize);
 			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
 			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
 		}
 
-		//TODO: Should run whenever msaa is 1 and not rendering to a rift
-		if(_debugWindow && _msaaSampleCount <= 1)
+		//TODO: Maybe instead of checking depthStencilFormat, check for oculus window?
+		if(_msaaSampleCount <= 1 && (_window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
 		{
-			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, windowSize.x, windowSize.y));
+			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(depthFormat, windowSize.x, windowSize.y));
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
 		
@@ -155,72 +161,6 @@ namespace RN
 				_eye[0]->GetRenderPass()->AddRenderPass(_previewRenderPass);
 			}
 		}
-#else
-		Framebuffer *msaaFramebuffer = nullptr;
-		Framebuffer *resolvedFramebuffer = nullptr;
-		PostProcessingAPIStage *resolvePass[2];
-		PostProcessingAPIStage *copyPass[2];
-		
-		Texture *resolvedTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::BGRA8888SRGB, eyeSize.x, eyeSize.y));
-		resolvedFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
-		resolvedFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(resolvedTexture));
-		
-		if(_msaaSampleCount > 1)
-		{
-			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::BGRA8888SRGB, eyeSize.x, eyeSize.y, _msaaSampleCount));
-			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y, _msaaSampleCount));
-			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(eyeSize);
-			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
-			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
-
-			#if !RN_PLATFORM_MAC_OS
-//			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y));
-//			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
-			#endif
-		}
-		else
-		{
-			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::Depth24Stencil8, eyeSize.x, eyeSize.y));
-			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
-		}
-		
-		
-		for(int i = 0; i < 2; i++)
-		{
-			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
-			
-			copyPass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::Blit);
-			copyPass[i]->SetFramebuffer(_debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer());
-			copyPass[i]->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
-			
-			if(_msaaSampleCount > 1)
-			{
-				resolvePass[i] = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
-				resolvePass[i]->SetFramebuffer(resolvedFramebuffer->Autorelease());
-				resolvePass[i]->AddRenderPass(copyPass[i]->Autorelease());
-				
-				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
-				_eye[i]->GetRenderPass()->AddRenderPass(resolvePass[i]);
-			}
-			else
-			{
-				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer->Autorelease());
-				_eye[i]->GetRenderPass()->AddRenderPass(copyPass[i]->Autorelease());
-			}
-		}
-
-		if (_previewRenderPass)
-		{
-			if (_msaaSampleCount > 1)
-			{
-				resolvePass[0]->AddRenderPass(_previewRenderPass);
-			}
-			else
-			{
-				_eye[0]->GetRenderPass()->AddRenderPass(_previewRenderPass);
-			}
-		}
-#endif
 	}
 
 	void VRCamera::Update(float delta)

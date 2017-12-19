@@ -44,6 +44,7 @@ namespace RN
 		OVRAPI const String *GetPreferredAudioInputDeviceID() const;
 
 		OVRAPI RenderingDevice *GetOutputDevice() const final;
+		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
 		OVRAPI void Update(float delta, float near, float far) final;
 

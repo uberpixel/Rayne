@@ -976,16 +976,42 @@ namespace RN
 				//TODO: Find a cleaner more general solution
 				if((rootSignature->textureCount - textureCount) > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
 				{
-					Texture *texture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture();
+					D3D12Framebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<D3D12Framebuffer>();
+					ID3D12Resource *resource = nullptr;
+
+					Texture *texture = framebuffer->GetColorTexture();
+					D3D12Texture *d3dTexture = nullptr;
+					D3D12_SHADER_RESOURCE_VIEW_DESC srvDescriptor;
 					if(texture)
 					{
+						d3dTexture = texture->Downcast<D3D12Texture>();
+						resource = d3dTexture->_resource;
+						srvDescriptor = d3dTexture->_srvDescriptor;
+					}
+					else
+					{
+						resource = framebuffer->GetSwapChainColorBuffer();
+
+						//TODO: Don't hardcode format
+						srvDescriptor.Format = DXGI_FORMAT_B8G8R8A8_UNORM;// framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
+						srvDescriptor.ViewDimension = static_cast<D3D12_SRV_DIMENSION>(framebuffer->_colorTargets[0]->d3dTargetViewDesc.ViewDimension);
+						srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+						
+						//TODO: Don't hardcode to 2D texture!
+						srvDescriptor.Texture2D.MipLevels = 1;
+						srvDescriptor.Texture2D.MostDetailedMip = 0;
+						srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
+						srvDescriptor.Texture2D.PlaneSlice = 0;
+					}
+
+					if(resource)
+					{
 						textureCount += 1;
-						D3D12Texture *d3dTexture = texture->Downcast<D3D12Texture>();
 
 						//Check if texture finished uploading to the vram
-						if(d3dTexture->_isReady && !d3dTexture->_needsMipMaps)
+						if(!d3dTexture || (d3dTexture->_isReady && !d3dTexture->_needsMipMaps))
 						{
-							device->CreateShaderResourceView(d3dTexture->_resource, &d3dTexture->_srvDescriptor, currentCPUHandle);
+							device->CreateShaderResourceView(resource, &srvDescriptor, currentCPUHandle);
 						}
 						else
 						{
@@ -1404,6 +1430,11 @@ namespace RN
 			case DXGI_FORMAT_D24_UNORM_S8_UINT:
 			{
 				targetDepthFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			}
+			case DXGI_FORMAT_D32_FLOAT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R32_FLOAT;
 				break;
 			}
 			case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:

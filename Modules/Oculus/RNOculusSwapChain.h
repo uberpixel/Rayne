@@ -37,6 +37,7 @@ namespace RN
 		OVRAPI void UpdatePredictedPose();
 
 		bool HasDepthBuffer() const final { return _depthSwapChain; }
+		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; };
 
 	private:
 		OculusSwapChain(const Window::SwapChainDescriptor &descriptor);

@@ -257,5 +257,10 @@ namespace RN
 	{
 		return nullptr;
 	}
+
+	const Window::SwapChainDescriptor &OculusWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetDescriptor();
+	}
 }
 
