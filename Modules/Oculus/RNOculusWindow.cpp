@@ -12,7 +12,6 @@
 #include "OVR_CAPI_Audio.h"
 #include <initguid.h>
 #include <mmdeviceapi.h>
-#include <functiondiscoverykeys_devpkey.h>
 
 namespace RN
 {
@@ -104,10 +103,12 @@ namespace RN
 
 		_hmdTrackingState.eyeOffset[0] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[0].Position);
 		_hmdTrackingState.eyeOffset[1] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[1].Position);
-		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[0], near, far, ovrProjection_None));
-		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_layer.Fov[1], near, far, ovrProjection_None));
+		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[0], near, far, ovrProjection_None));
+		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[1], near, far, ovrProjection_None));
 		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.ThePose.Position);
 		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.ThePose.Orientation);
+
+		_swapChain->SetProjection(_hmdTrackingState.eyeProjection[0].m[10], _hmdTrackingState.eyeProjection[0].m[14], _hmdTrackingState.eyeProjection[0].m[11]);
 
 		if(_swapChain->_submitResult == ovrSuccess_NotVisible)
 		{

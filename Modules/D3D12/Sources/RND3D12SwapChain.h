@@ -31,12 +31,14 @@ namespace RN
 		D3DAPI virtual void Finalize(D3D12CommandList *commandList);
 		D3DAPI virtual void PresentBackBuffer();
 
-		D3DAPI virtual ID3D12Resource *GetD3D12Buffer(int i) const;
+		D3DAPI virtual ID3D12Resource *GetD3D12ColorBuffer(int i) const;
+		D3DAPI virtual ID3D12Resource *GetD3D12DepthBuffer(int i) const;
 
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		D3D12Framebuffer *GetFramebuffer() const { return _framebuffer; }
 
 		uint8 GetBufferCount() const { return _descriptor.bufferCount; }
+		virtual bool HasDepthBuffer() const { return false; }
 
 	protected:
 		D3DAPI D3D12SwapChain(){}

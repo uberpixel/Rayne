@@ -31,19 +31,24 @@ namespace RN
 		OVRAPI void Finalize(D3D12CommandList *commandList) final;
 		OVRAPI void PresentBackBuffer() final;
 
-		OVRAPI ID3D12Resource *GetD3D12Buffer(int i) const final;
+		OVRAPI ID3D12Resource *GetD3D12ColorBuffer(int i) const final;
+		OVRAPI ID3D12Resource *GetD3D12DepthBuffer(int i) const final;
 
 		OVRAPI void UpdatePredictedPose();
+
+		bool HasDepthBuffer() const final { return _depthSwapChain; }
 
 	private:
 		OculusSwapChain(const Window::SwapChainDescriptor &descriptor);
 		const String *GetHMDInfoDescription() const;
+		OVRAPI void SetProjection(float m22, float m23, float m32);
 
 		ovrSession _session;
 		ovrGraphicsLuid _luID;
 		ovrHmdDesc _hmdDescription;
-		ovrLayerEyeFov _layer;
-		ovrTextureSwapChain _textureSwapChain;
+		ovrLayerEyeFovDepth _imageLayer;
+		ovrTextureSwapChain _colorSwapChain;
+		ovrTextureSwapChain _depthSwapChain;
 
 		ovrEyeRenderDesc _eyeRenderDesc[2];
 		ovrPosef _hmdToEyeViewPose[2];

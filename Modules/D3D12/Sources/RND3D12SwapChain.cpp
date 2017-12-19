@@ -99,12 +99,17 @@ namespace RN
 		return _size;
 	}
 
-	ID3D12Resource* D3D12SwapChain::GetD3D12Buffer(int i) const
+	ID3D12Resource* D3D12SwapChain::GetD3D12ColorBuffer(int i) const
 	{
 		ID3D12Resource* bufferResource;
 		_swapChain->GetBuffer(i, IID_PPV_ARGS(&bufferResource));
 
 		return bufferResource;
+	}
+
+	ID3D12Resource* D3D12SwapChain::GetD3D12DepthBuffer(int i) const
+	{
+		return nullptr;
 	}
 
 	void D3D12SwapChain::AcquireBackBuffer()

@@ -142,6 +142,7 @@ namespace RN
 		_renderer(renderer),
 		_swapChain(swapChain),
 		_swapChainColorBuffers(nullptr),
+		_swapChainDepthBuffers(nullptr),
 		_depthStencilTarget(nullptr),
 		_rtvHandle(nullptr),
 		_dsvHandle(nullptr)
@@ -155,6 +156,7 @@ namespace RN
 		_renderer(renderer),
 		_swapChain(nullptr),
 		_swapChainColorBuffers(nullptr),
+		_swapChainDepthBuffers(nullptr),
 		_depthStencilTarget(nullptr),
 		_rtvHandle(nullptr),
 		_dsvHandle(nullptr)
@@ -185,6 +187,9 @@ namespace RN
 
 		if(_swapChainColorBuffers)
 			delete[] _swapChainColorBuffers;
+
+		if(_swapChainDepthBuffers)
+			delete[] _swapChainDepthBuffers;
 
 		for(D3D12ColorTargetView *targetView : _colorTargets)
 		{
@@ -227,13 +232,14 @@ namespace RN
 
 	void D3D12Framebuffer::SetDepthStencilTarget(const TargetView &target)
 	{
+		RN_ASSERT(!_swapChain || !_swapChain->HasDepthBuffer(), "A swap chain framebuffer can not have additional depth targets, if the swap chain has them!");
 		RN_ASSERT(target.texture, "The depth stencil target needs a texture!");
-		target.texture->Retain();
+		SafeRetain(target.texture);
 
 		D3D12DepthStencilTargetView *targetView = D3D12DepthStencilTargetViewFromTargetView(target);
 		if(_depthStencilTarget)
 		{
-			_depthStencilTarget->targetView.texture->Release();
+			SafeRelease(_depthStencilTarget->targetView.texture);
 			delete _depthStencilTarget;
 		}
 		
@@ -267,6 +273,17 @@ namespace RN
 		if(_swapChain)
 		{
 			return _swapChainColorBuffers[_swapChain->GetFrameIndex()];
+		}
+
+		return nullptr;
+	}
+
+	ID3D12Resource *D3D12Framebuffer::GetSwapChainDepthBuffer() const
+	{
+		RN_ASSERT(_swapChain, "GetSwapChainDepthBuffer should only be called if there is a swap chain associated with the framebuffer.");
+		if (_swapChain)
+		{
+			return _swapChainDepthBuffers[_swapChain->GetFrameIndex()];
 		}
 
 		return nullptr;
@@ -311,7 +328,15 @@ namespace RN
 			D3D12DescriptorHeap *dsvHeap = _renderer->GetDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 			_renderer->SubmitDescriptorHeap(dsvHeap);
 
-			device->CreateDepthStencilView(_depthStencilTarget->targetView.texture->Downcast<D3D12Texture>()->_resource, &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
+			if(_swapChain && _swapChainDepthBuffers)
+			{
+				device->CreateDepthStencilView(_swapChainDepthBuffers[_swapChain->GetFrameIndex()], &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
+			}
+			else
+			{
+				device->CreateDepthStencilView(_depthStencilTarget->targetView.texture->Downcast<D3D12Texture>()->_resource, &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
+			}
+
 			_dsvHandle = new CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap->GetCPUHandle(0));
 		}
 	}
@@ -354,6 +379,18 @@ namespace RN
 			delete[] _swapChainColorBuffers;
 			_swapChainColorBuffers = nullptr;
 		}
+
+		if(_swapChainDepthBuffers)
+		{
+			uint8 bufferCount = _swapChain->GetBufferCount();
+			for (uint8 i = 0; i < bufferCount; i++)
+			{
+				_swapChainDepthBuffers[i]->Release();
+			}
+
+			delete[] _swapChainDepthBuffers;
+			_swapChainDepthBuffers = nullptr;
+		}
 	}
 
 	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
@@ -370,10 +407,18 @@ namespace RN
 		if(bufferCount > 0)
 		{
 			_swapChainColorBuffers = new ID3D12Resource*[bufferCount];
-
 			for(uint8 i = 0; i < bufferCount; i++)
 			{
-				_swapChainColorBuffers[i] = _swapChain->GetD3D12Buffer(i);
+				_swapChainColorBuffers[i] = _swapChain->GetD3D12ColorBuffer(i);
+			}
+
+			if(_swapChain->HasDepthBuffer())
+			{
+				_swapChainDepthBuffers = new ID3D12Resource*[bufferCount];
+				for (uint8 i = 0; i < bufferCount; i++)
+				{
+					_swapChainDepthBuffers[i] = _swapChain->GetD3D12DepthBuffer(i);
+				}
 			}
 		}
 
@@ -388,7 +433,7 @@ namespace RN
 		targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
 		_colorTargets.push_back(targetView);
 
-		if(depthStencilFormat != Texture::Format::Invalid)
+		if(!_swapChainDepthBuffers && depthStencilFormat != Texture::Format::Invalid)
 		{
 			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DRenderTargetFormat(depthStencilFormat, size.x, size.y);
 
@@ -398,6 +443,20 @@ namespace RN
 			target.slice = 0;
 			target.length = 1;
 			SetDepthStencilTarget(target);
+		}
+
+		if(_swapChainDepthBuffers)
+		{
+			D3D12DepthStencilTargetView *targetView = new D3D12DepthStencilTargetView();
+			targetView->targetView.texture = nullptr;
+			targetView->targetView.mipmap = 0;
+			targetView->targetView.slice = 0;
+			targetView->targetView.length = 1;
+			targetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(depthStencilFormat);
+			targetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+			targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
+
+			_depthStencilTarget = targetView;
 		}
 	}
 }

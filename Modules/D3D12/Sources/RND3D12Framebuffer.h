@@ -47,6 +47,7 @@ namespace RN
 
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
 		D3DAPI ID3D12Resource *GetSwapChainColorBuffer() const;
+		D3DAPI ID3D12Resource *GetSwapChainDepthBuffer() const;
 
 		D3DAPI void WillUpdateSwapChain();
 		D3DAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
@@ -66,6 +67,7 @@ namespace RN
 		uint32 _frameLastUsed;
 
 		ID3D12Resource **_swapChainColorBuffers;
+		ID3D12Resource **_swapChainDepthBuffers;
 		WeakRef<D3D12SwapChain> _swapChain;
 
 		std::vector<D3D12ColorTargetView *> _colorTargets;

@@ -1342,83 +1342,187 @@ namespace RN
 	void D3D12Renderer::RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass)
 	{
 		//TODO: Handle multiple and not existing textures
-		Texture *sourceTexture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
-		D3D12Texture *sourceD3DTexture = sourceTexture->Downcast<D3D12Texture>();
-		D3D12_RESOURCE_STATES oldSourceState = sourceD3DTexture->_currentState;
+		Texture *sourceColorTexture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+		D3D12Texture *sourceD3DColorTexture = nullptr;
+		D3D12_RESOURCE_STATES oldColorSourceState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		if(sourceColorTexture)
+		{
+			sourceD3DColorTexture = sourceColorTexture->Downcast<D3D12Texture>();
+			oldColorSourceState = sourceD3DColorTexture->_currentState;
+		}
+
+		Texture *sourceDepthTexture = renderPass.previousRenderPass->GetFramebuffer()->GetDepthStencilTexture();
+		D3D12Texture *sourceD3DDepthTexture = nullptr;
+		D3D12_RESOURCE_STATES oldDepthSourceState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		if (sourceColorTexture)
+		{
+			sourceD3DDepthTexture = sourceDepthTexture->Downcast<D3D12Texture>();
+			oldDepthSourceState = sourceD3DDepthTexture->_currentState;
+		}
 
 		D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
-		Texture *destinationTexture = destinationFramebuffer->GetColorTexture(0);
 
-		ID3D12Resource *destinationResource;
-		D3D12_RESOURCE_STATES oldDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-		DXGI_FORMAT targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-		D3D12Texture *destinationD3DTexture = nullptr;
-		if(destinationTexture)
+		Texture *destinationColorTexture = destinationFramebuffer->GetColorTexture(0);
+		D3D12Texture *destinationD3DColorTexture = nullptr;
+		ID3D12Resource *destinationColorResource = nullptr;
+		D3D12_RESOURCE_STATES oldColorDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		DXGI_FORMAT targetColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		if(destinationColorTexture)
 		{
-			destinationD3DTexture = destinationTexture->Downcast<D3D12Texture>();
-			targetFormat = destinationD3DTexture->_srvDescriptor.Format;
-			oldDestinationState = destinationD3DTexture->_currentState;
-			destinationResource = destinationD3DTexture->_resource;
+			destinationD3DColorTexture = destinationColorTexture->Downcast<D3D12Texture>();
+			targetColorFormat = destinationD3DColorTexture->_srvDescriptor.Format;
+			oldColorDestinationState = destinationD3DColorTexture->_currentState;
+			destinationColorResource = destinationD3DColorTexture->_resource;
 		}
 		else
 		{
-			targetFormat = destinationFramebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
-			destinationResource = destinationFramebuffer->GetSwapChainColorBuffer();
+			targetColorFormat = destinationFramebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
+			destinationColorResource = destinationFramebuffer->GetSwapChainColorBuffer();
+		}
+
+
+		Texture *destinationDepthTexture = destinationFramebuffer->GetDepthStencilTexture();
+		D3D12Texture *destinationD3DDepthTexture = nullptr;
+		ID3D12Resource *destinationDepthResource = nullptr;
+		D3D12_RESOURCE_STATES oldDepthDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		DXGI_FORMAT targetDepthFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		if(destinationDepthTexture)
+		{
+			destinationD3DDepthTexture = destinationDepthTexture->Downcast<D3D12Texture>();
+			targetDepthFormat = destinationD3DDepthTexture->_srvDescriptor.Format;
+			oldDepthDestinationState = destinationD3DDepthTexture->_currentState;
+			destinationDepthResource = destinationD3DDepthTexture->_resource;
+		}
+		else if(destinationFramebuffer->GetSwapChain() && destinationFramebuffer->GetSwapChain()->HasDepthBuffer())
+		{
+			targetDepthFormat = destinationFramebuffer->_depthStencilTarget->d3dTargetViewDesc.Format;
+			destinationDepthResource = destinationFramebuffer->GetSwapChainDepthBuffer();
+		}
+
+		switch(targetDepthFormat)
+		{
+			case DXGI_FORMAT_D24_UNORM_S8_UINT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			}
+			case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+				break;
+			}
 		}
 
 		if(renderPass.type == D3D12RenderPass::Type::ResolveMSAA)
 		{
-			sourceD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+			sourceD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
 
-			if (destinationTexture)
+			if(destinationColorTexture)
 			{
-				destinationD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+				destinationD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 			}
 			else
 			{
-				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST));
 			}
 
 			//TODO: Handle multiple subresources?
-			commandList->GetCommandList()->ResolveSubresource(destinationResource, 0, sourceD3DTexture->_resource, 0, targetFormat);
+			commandList->GetCommandList()->ResolveSubresource(destinationColorResource, 0, sourceD3DColorTexture->_resource, 0, targetColorFormat);
 
-			sourceD3DTexture->TransitionToState(commandList, oldSourceState);
-			if(destinationD3DTexture)
+			sourceD3DColorTexture->TransitionToState(commandList, oldColorSourceState);
+			if(destinationD3DColorTexture)
 			{
-				destinationD3DTexture->TransitionToState(commandList, oldDestinationState);
+				destinationD3DColorTexture->TransitionToState(commandList, oldColorDestinationState);
 			}
 			else
 			{
-				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+
+			if(sourceD3DDepthTexture && destinationDepthResource)
+			{
+				sourceD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+
+				if(destinationDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+				}
+
+				//TODO: Handle multiple subresources?
+				commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, 0, sourceD3DDepthTexture->_resource, 0, targetDepthFormat);
+
+				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
+				if(destinationD3DDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, oldDepthDestinationState);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+				}
 			}
 		}
 		else if(renderPass.type == D3D12RenderPass::Type::Blit)
 		{
-			sourceD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			sourceD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-			if (destinationTexture)
+			if(destinationColorTexture)
 			{
-				destinationD3DTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+				destinationD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 			}
 			else
 			{
-				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
 			}
 
 			//TODO: Handle multiple subresources and 3D/Arrays?
-			CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationResource, 0);
-			CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DTexture->_resource, 0);
+			CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationColorResource, 0);
+			CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DColorTexture->_resource, 0);
 			Rect frame = renderPass.renderPass->GetFrame();
 			commandList->GetCommandList()->CopyTextureRegion(&destinationLocation, frame.x, frame.y, 0, &sourceLocation, nullptr);
 
-			sourceD3DTexture->TransitionToState(commandList, oldSourceState);
-			if (destinationD3DTexture)
+			sourceD3DColorTexture->TransitionToState(commandList, oldColorSourceState);
+			if(destinationD3DColorTexture)
 			{
-				destinationD3DTexture->TransitionToState(commandList, oldDestinationState);
+				destinationD3DColorTexture->TransitionToState(commandList, oldColorDestinationState);
 			}
 			else
 			{
-				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+
+			if(sourceD3DDepthTexture && destinationDepthResource)
+			{
+				sourceD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+				if(destinationDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
+				}
+
+				//TODO: Handle multiple subresources and 3D/Arrays?
+				CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationDepthResource, 0);
+				CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DDepthTexture->_resource, 0);
+				Rect frame = renderPass.renderPass->GetFrame();
+				commandList->GetCommandList()->CopyTextureRegion(&destinationLocation, frame.x, frame.y, 0, &sourceLocation, nullptr);
+
+				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
+				if (destinationD3DDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, oldDepthDestinationState);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+				}
 			}
 		}
 	}
