@@ -151,13 +151,12 @@ namespace RN
 
 		if(_previewRenderPass)
 		{
-			if(_msaaSampleCount > 1)
+			if(resolvePass)
 			{
 				resolvePass->AddRenderPass(_previewRenderPass);
 			}
 			else
 			{
-				_previewRenderPass->SetFrame(_eye[0]->GetRenderPass()->GetFrame());
 				_eye[0]->GetRenderPass()->AddRenderPass(_previewRenderPass);
 			}
 		}
