@@ -418,4 +418,9 @@ namespace RN
 		
 		return mesh->Autorelease();
 	}
+	
+	const Window::SwapChainDescriptor &OpenVRWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetDescriptor();
+	}
 }

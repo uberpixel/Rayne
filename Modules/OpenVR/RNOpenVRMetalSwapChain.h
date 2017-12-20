@@ -35,6 +35,8 @@ namespace RN
 		OVRAPI id GetMTLTexture() const final;
 
 		OVRAPI void UpdatePredictedPose();
+		
+		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
 
 	protected:
 		OVRAPI OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system);

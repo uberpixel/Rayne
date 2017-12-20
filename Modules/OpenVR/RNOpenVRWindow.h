@@ -59,6 +59,7 @@ namespace RN
 		OVRAPI RenderingDevice *GetOutputDevice() const final;
 		
 		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
+		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
 	private:
 		const String *GetHMDInfoDescription() const;
