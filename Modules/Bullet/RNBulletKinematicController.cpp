@@ -84,6 +84,9 @@ namespace RN
 		
 	void BulletKinematicController::Update(float delta)
 	{
+		auto bulletWorld = GetOwner()->GetBulletDynamicsWorld();
+		_controller->updateAction(bulletWorld, delta);
+
 		btTransform transform = _ghost->getWorldTransform();
 		btVector3 &position = transform.getOrigin();
 			
@@ -119,7 +122,7 @@ namespace RN
 		auto bulletWorld = world->GetBulletDynamicsWorld();
 			
 		bulletWorld->addCollisionObject(_ghost, GetCollisionFilter(), GetCollisionFilterMask());
-		bulletWorld->addAction(_controller);
+//		bulletWorld->addAction(_controller);
 	}
 		
 	void BulletKinematicController::RemoveFromWorld(BulletWorld *world)
@@ -129,6 +132,6 @@ namespace RN
 		auto bulletWorld = world->GetBulletDynamicsWorld();
 			
 		bulletWorld->removeCollisionObject(_ghost);
-		bulletWorld->removeAction(_controller);
+//		bulletWorld->removeAction(_controller);
 	}
 }
