@@ -43,6 +43,7 @@ namespace RN
 			const MetalRenderingState *pipelineState;
 			MetalUniformBuffer *vertexBuffer;
 			MetalUniformBuffer *fragmentBuffer;
+			bool dirty;
 		};
 
 		~MetalDrawable()
@@ -61,8 +62,7 @@ namespace RN
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({nullptr, nullptr, nullptr});
-				dirty = true;
+				_cameraSpecifics.push_back({nullptr, nullptr, nullptr, true});
 			}
 		}
 
@@ -84,6 +84,16 @@ namespace RN
 			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
 				_cameraSpecifics[cameraID].fragmentBuffer = new MetalUniformBuffer(renderer, totalSize, 1);
+			
+			_cameraSpecifics[cameraID].dirty = false;
+		}
+		
+		virtual void MakeDirty() override
+		{
+			for(int i = 0; i < _cameraSpecifics.size(); i++)
+			{
+				_cameraSpecifics[i].dirty = true;
+			}
 		}
 
 		std::vector<CameraSpecific> _cameraSpecifics;

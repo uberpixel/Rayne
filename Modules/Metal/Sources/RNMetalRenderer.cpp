@@ -859,14 +859,13 @@ namespace RN
 
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		if(drawable->dirty)
+		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].dirty)
 		{
 			_lock.Lock();
 			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			_lock.Unlock();
 
 			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state);
-			drawable->dirty = false;
 		}
 
 		_lock.Lock();
