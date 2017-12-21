@@ -111,7 +111,7 @@ namespace RN
 					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
 					enet_packet_destroy(event.packet);
 
-					ReceivedPackage(data, 0, event.channelID);
+					ReceivedPacket(data, 0, event.channelID);
 					break;
 				}
 

@@ -1293,6 +1293,8 @@ namespace RN
 			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 
+			RN_ASSERT(pipelineState && uniformState, "Failed to create pipeline or uniform state for drawable!");
+
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
 			drawable->dirty = false;
 		}

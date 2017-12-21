@@ -89,7 +89,7 @@ namespace RN
 					enet_packet_destroy(event.packet);
 
 					uint16 id = *static_cast<uint16*>(event.peer->data);
-					ReceivedPackage(data, id, event.channelID);
+					ReceivedPacket(data, id, event.channelID);
 					break;
 				}
 

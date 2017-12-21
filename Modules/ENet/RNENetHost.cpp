@@ -26,7 +26,7 @@ namespace RN
 		ENetWorld::GetInstance()->RemoveHost(this);
 	}
 
-	void ENetHost::SendPackage(Data *data, uint16 receiverID, uint32 channel, bool reliable)
+	void ENetHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
 		if(_peers.size() == 0)
 			return;

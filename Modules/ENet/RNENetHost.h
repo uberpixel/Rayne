@@ -42,8 +42,8 @@ namespace RN
 		ENAPI ENetHost();
 		ENAPI ~ENetHost();
 
-		ENAPI void SendPackage(Data *data, uint16 receiverID = 0, uint32 channel = 0, bool reliable = false);
-		ENAPI virtual void ReceivedPackage(Data *data, uint32 senderID, uint32 channel) {};
+		ENAPI void SendPacket(Data *data, uint16 receiverID = 0, uint32 channel = 0, bool reliable = false);
+		ENAPI virtual void ReceivedPacket(Data *data, uint32 senderID, uint32 channel) {};
 
 		ENAPI Status GetStatus() const { return _status; }
 
