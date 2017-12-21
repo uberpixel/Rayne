@@ -84,6 +84,11 @@ namespace RN
 		
 	void BulletKinematicController::Update(float delta)
 	{
+		if(delta < k::EpsilonFloat)
+		{
+			return;
+		}
+			
 		auto bulletWorld = GetOwner()->GetBulletDynamicsWorld();
 		_controller->updateAction(bulletWorld, delta);
 
