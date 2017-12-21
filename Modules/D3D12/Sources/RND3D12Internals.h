@@ -21,6 +21,7 @@ namespace RN
 		{
 			const D3D12PipelineState *pipelineState;
 			D3D12UniformState *uniformState; //TODO: Check if needs to be deleted when done
+			bool dirty;
 		};
 
 		~D3D12Drawable(){}
@@ -29,8 +30,7 @@ namespace RN
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({ nullptr, nullptr });
-				dirty = true;
+				_cameraSpecifics.push_back({ nullptr, nullptr, true });
 			}
 		}
 
@@ -38,6 +38,15 @@ namespace RN
 		{
 			_cameraSpecifics[cameraID].pipelineState = pipelineState;
 			_cameraSpecifics[cameraID].uniformState = uniformState;
+			_cameraSpecifics[cameraID].dirty = false;
+		}
+
+		virtual void MakeDirty() override
+		{
+			for(int i = 0; i < _cameraSpecifics.size(); i++)
+			{
+				_cameraSpecifics[i].dirty = true;
+			}
 		}
 
 		//TODO: This can get somewhat big with lots of post processing stages...

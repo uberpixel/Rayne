@@ -1285,7 +1285,7 @@ namespace RN
 		_lock.Unlock();
 
 		Material *material = drawable->material;
-		if(drawable->dirty)
+		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].dirty)
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
@@ -1294,9 +1294,7 @@ namespace RN
 			_lock.Unlock();
 
 			RN_ASSERT(pipelineState && uniformState, "Failed to create pipeline or uniform state for drawable!");
-
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
-			drawable->dirty = false;
 		}
 
 		const D3D12PipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;

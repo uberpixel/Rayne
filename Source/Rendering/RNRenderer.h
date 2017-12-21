@@ -33,7 +33,6 @@ namespace RN
 	{
 		Drawable()
 		{
-			dirty = true;
 			mesh = nullptr;
 			material = nullptr;
 			count = 1;
@@ -45,12 +44,12 @@ namespace RN
 		{
 			if(mesh != tmesh)
 			{
-				dirty = true;
+				MakeDirty();
 				mesh = tmesh;
 			}
 			if(material != tmaterial)
 			{
-				dirty = true;
+				MakeDirty();
 				material = tmaterial;
 			}
 
@@ -62,13 +61,13 @@ namespace RN
 			modelMatrix = node->GetWorldTransform();
 			inverseModelMatrix = modelMatrix.GetInverse();
 		}
+		virtual void MakeDirty(){}
 
 		Mesh *mesh;
 		Material *material;
 		Matrix modelMatrix;
 		Matrix inverseModelMatrix;
 		size_t count;
-		bool dirty;
 	};
 
 	class RendererDescriptor;
