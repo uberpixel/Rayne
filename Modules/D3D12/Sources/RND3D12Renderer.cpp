@@ -993,7 +993,7 @@ namespace RN
 						resource = framebuffer->GetSwapChainColorBuffer();
 
 						//TODO: Don't hardcode format
-						srvDescriptor.Format = DXGI_FORMAT_B8G8R8A8_UNORM;// framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
+						srvDescriptor.Format = framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
 						srvDescriptor.ViewDimension = static_cast<D3D12_SRV_DIMENSION>(framebuffer->_colorTargets[0]->d3dTargetViewDesc.ViewDimension);
 						srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 						

@@ -85,7 +85,7 @@ namespace RN
 		swapChainDesc.Height = bufferSize.h;
 		swapChainDesc.MipLevels = 1;
 		swapChainDesc.SampleCount = 1;
-		swapChainDesc.MiscFlags = ovrTextureMisc_DX_Typeless;
+		swapChainDesc.MiscFlags = 0;// ovrTextureMisc_DX_Typeless;
 		swapChainDesc.StaticImage = ovrFalse;
 		swapChainDesc.BindFlags = ovrTextureBind_DX_RenderTarget;
 

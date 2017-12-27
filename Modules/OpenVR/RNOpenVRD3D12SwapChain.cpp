@@ -22,19 +22,20 @@ namespace RN
 	{
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		_descriptor = descriptor;
+		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB; //OpenVR expects RGBA!
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
 		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
 
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
@@ -57,10 +58,10 @@ namespace RN
 		_size = size;
 		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
 		SafeRelease(_targetTexture);
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::RGBA8888SRGB, _size.x, _size.y, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::RGBA8888SRGB, Texture::Format::Depth24Stencil8);
+		_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 		_isFirstRender = true;
 	}
 
@@ -106,7 +107,7 @@ namespace RN
 		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
 	}
 
-	ID3D12Resource *OpenVRD3D12SwapChain::GetD3D12Buffer(int i) const
+	ID3D12Resource *OpenVRD3D12SwapChain::GetD3D12ColorBuffer(int i) const
 	{
 		return _targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
 	}

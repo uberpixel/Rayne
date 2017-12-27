@@ -30,7 +30,8 @@ namespace RN
 		OVRAPI void Finalize(D3D12CommandList *commandList) final;
 		OVRAPI void PresentBackBuffer() final;
 
-		OVRAPI ID3D12Resource *GetD3D12Buffer(int i) const final;
+		OVRAPI ID3D12Resource *GetD3D12ColorBuffer(int i) const final;
+		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
 
 		OVRAPI void UpdatePredictedPose();
 
