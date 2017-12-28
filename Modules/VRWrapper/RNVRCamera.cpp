@@ -164,6 +164,8 @@ namespace RN
 
 	void VRCamera::Update(float delta)
 	{
+		SceneNode::Update(delta);
+
 		if(!_eye[0] || !_eye[1])
 			return;
 		
