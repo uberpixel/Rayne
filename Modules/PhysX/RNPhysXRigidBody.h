@@ -9,22 +9,25 @@
 #ifndef __RAYNE_PHYSXRIGIDBODY_H_
 #define __RAYNE_PHYSXRIGIDBODY_H_
 
-#include "RNPhysX.h"
+#include "RNPhysXCollisionObject.h"
+
+namespace physx
+{
+	class PxRigidActor;
+}
 
 namespace RN
 {
-	class PhysXRigidBody : public SceneNodeAttachment
+	class PhysXShape;
+	class PhysXRigidBody : public PhysXCollisionObject
 	{
 	public:
-/*		PXAPI BulletRigidBody(BulletShape *shape, float mass);
-		PXAPI BulletRigidBody(BulletShape *shape, float mass, const Vector3 &inertia);
+		PXAPI PhysXRigidBody(PhysXShape *shape, float mass);
+		PXAPI ~PhysXRigidBody() override;
 			
-		PXAPI ~BulletRigidBody() override;
+		PXAPI static PhysXRigidBody *WithShape(PhysXShape *shape, float mass);
 			
-		PXAPI static BulletRigidBody *WithShape(BulletShape *shape, float mass);
-		PXAPI static BulletRigidBody *WithShapeAndInertia(BulletShape *shape, float mass, const Vector3 &inertia);*/
-			
-		PXAPI void SetMass(float mass);
+/*		PXAPI void SetMass(float mass);
 		PXAPI void SetMass(float mass, const Vector3 &inertia);
 		PXAPI void SetLinearVelocity(const Vector3 &velocity);
 		PXAPI void SetAngularVelocity(const Vector3 &velocity);
@@ -48,23 +51,23 @@ namespace RN
 			
 		PXAPI Vector3 GetCenterOfMass() const;
 		PXAPI Matrix GetCenterOfMassTransform() const;
-			
+			*/
 /*		PXAPI btCollisionObject *GetBulletCollisionObject() const override;
 		PXAPI btRigidBody *GetBulletRigidBody() { return _rigidBody; }*/
 
-		PXAPI void SetPositionOffset(RN::Vector3 offset) final;
+//		PXAPI void SetPositionOffset(RN::Vector3 offset) final;
 			
 	protected:
 /*		void DidUpdate(SceneNode::ChangeSet changeSet) override;
-		void UpdateFromMaterial(BulletMaterial *material) override;
+		void UpdateFromMaterial(BulletMaterial *material) override;*/
 		
-		void InsertIntoWorld(BulletWorld *world) override;
-		void RemoveFromWorld(BulletWorld *world) override;*/
+		void InsertIntoWorld(PhysXWorld *world) override;
+		void RemoveFromWorld(PhysXWorld *world) override;
 			
 	private:
-/*		BulletShape *_shape;
-		btRigidBody *_rigidBody;
-		BulletRigidBodyMotionState *_motionState;*/
+		PhysXShape *_shape;
+		
+		physx::PxRigidActor *_actor;
 			
 		RNDeclareMetaAPI(PhysXRigidBody, PXAPI)
 	};

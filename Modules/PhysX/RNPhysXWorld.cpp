@@ -18,7 +18,7 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _stepSize(1.0 / 90.0), _paused(false)
+	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _remainingTime(0.0), _stepSize(1.0 / 90.0), _paused(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
@@ -29,7 +29,7 @@ namespace RN
 		if(debug)
 		{
 			_pvd = physx::PxCreatePvd(*_foundation);
-			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10); //First parameter is ip of system running the physx visual debugger
+			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5435, 100); //First parameter is ip of system running the physx visual debugger
 			_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 		}
 
@@ -49,17 +49,25 @@ namespace RN
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
 		_scene = _physics->createScene(sceneDesc);
+
+		_controllerManager = PxCreateControllerManager(*_scene);
 	}
 
 	PhysXWorld::~PhysXWorld()
 	{
+		//TODO: delete all collision objects
 		_scene->release();
 		_dispatcher->release();
 		_cooking->release();
 		_physics->release();
-		physx::PxPvdTransport* transport = _pvd->getTransport();
-		_pvd->release();
-		transport->release();
+
+		if(_pvd)
+		{
+			physx::PxPvdTransport* transport = _pvd->getTransport();
+			_pvd->release();
+			transport->release();
+		}
+		
 		_foundation->release();
 
 		_sharedInstance = nullptr;
@@ -92,9 +100,8 @@ namespace RN
 		{
 			_remainingTime -= _stepSize;
 			_scene->simulate(_stepSize);
+			_scene->fetchResults(true);
 		}
-
-		_scene->fetchResults(true);
 	}
 
 
@@ -106,29 +113,32 @@ namespace RN
 	}
 
 
-/*	void PhysXWorld::InsertCollisionObject(BulletCollisionObject *attachment)
+	void PhysXWorld::InsertCollisionObject(PhysXCollisionObject *attachment)
 	{
-		//TODO: Add lock!?
+		Lock();
 		auto iterator = _collisionObjects.find(attachment);
 		if(iterator == _collisionObjects.end())
 		{
 			attachment->InsertIntoWorld(this);
-			_collisionObjects.insert(attachment);
+			_collisionObjects.insert(attachment->Retain());
 		}
+		Unlock();
 	}
 
-	void PhysXWorld::RemoveCollisionObject(BulletCollisionObject *attachment)
+	void PhysXWorld::RemoveCollisionObject(PhysXCollisionObject *attachment)
 	{
-		//TODO: Add lock!?
+		Lock();
 		auto iterator = _collisionObjects.find(attachment);
 		if(iterator != _collisionObjects.end())
 		{
 			attachment->RemoveFromWorld(this);
 			_collisionObjects.erase(attachment);
+			attachment->Release();
 		}
+		Unlock();
 	}
 
-	void PhysXWorld::InsertConstraint(BulletConstraint *constraint)
+/*	void PhysXWorld::InsertConstraint(BulletConstraint *constraint)
 	{
 		_dynamicsWorld->addConstraint(constraint->GetBulletConstraint());
 	}*/

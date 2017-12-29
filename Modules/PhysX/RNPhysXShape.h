@@ -20,19 +20,21 @@ namespace physx
 namespace RN
 {
 	class Mesh;
+	class PhysXRigidBody;
 
 	class PhysXShape : public Object
 	{
 	public:
 		PhysXShape(physx::PxShape *shape);
 			
-		PXAPI physx::PxShape *GetBulletShape() const { return _shape; }
+		PXAPI physx::PxShape *GetPhysXShape() const { return _shape; }
 			
 	protected:
 		PhysXShape();
 		~PhysXShape() override;
 			
 		physx::PxShape *_shape;
+		PhysXMaterial *_material;
 			
 		RNDeclareMetaAPI(PhysXShape, PXAPI)
 	};
@@ -80,18 +82,11 @@ namespace RN
 	class PhysXTriangleMeshShape : public PhysXShape
 	{
 	public:
-		PXAPI PhysXTriangleMeshShape(Model *model, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
-		PXAPI PhysXTriangleMeshShape(Mesh *mesh, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
-		PXAPI PhysXTriangleMeshShape(const Array *meshes, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		PXAPI PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
-		PXAPI ~PhysXTriangleMeshShape() override;
-			
-		PXAPI static PhysXTriangleMeshShape *WithModel(Model *model, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		PXAPI static PhysXTriangleMeshShape *WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
 	private:
-		void AddMesh(Mesh *mesh, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
-//		btTriangleMesh *_triangleMesh;
-			
 		RNDeclareMetaAPI(PhysXTriangleMeshShape, PXAPI)
 	};
 
@@ -110,17 +105,20 @@ namespace RN
 	class PhysXCompoundShape : public PhysXShape
 	{
 	public:
+		friend PhysXRigidBody;
 		PXAPI PhysXCompoundShape();
-		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material);
-		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material);
+		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
+		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool fromConcaveMesh);
 		PXAPI ~PhysXCompoundShape();
 
 		PXAPI void AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 
-		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material);
+		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
 			
 	private:
 		std::vector<PhysXShape *> _shapes;
+		std::vector<RN::Vector3> _positions;
+		std::vector<RN::Quaternion> _rotations;
 			
 		RNDeclareMetaAPI(PhysXCompoundShape, PXAPI)
 	};

@@ -22,22 +22,24 @@ namespace RN
 	RNDefineMeta(PhysXCompoundShape, PhysXShape)
 		
 	PhysXShape::PhysXShape() :
-		_shape(nullptr)
+		_shape(nullptr), _material(nullptr)
 	{}
 		
 	PhysXShape::PhysXShape(physx::PxShape *shape) :
-		_shape(shape)
+		_shape(shape), _material(nullptr)
 	{}
 		
 	PhysXShape::~PhysXShape()
 	{
-		_shape->release();
+		if(_shape) _shape->release();
+		SafeRelease(_material);
 	}
 		
 		
 		
 	PhysXSphereShape::PhysXSphereShape(float radius, PhysXMaterial *material)
 	{
+		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_shape = physics->createShape(physx::PxSphereGeometry(radius), *material->GetPhysXMaterial());
 	}
@@ -52,6 +54,7 @@ namespace RN
 		
 	PhysXBoxShape::PhysXBoxShape(const Vector3 &halfExtents, PhysXMaterial *material)
 	{
+		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_shape = physics->createShape(physx::PxBoxGeometry(halfExtents.x, halfExtents.y, halfExtents.z), *material->GetPhysXMaterial());
 	}
@@ -65,6 +68,7 @@ namespace RN
 		
 	PhysXCapsuleShape::PhysXCapsuleShape(float radius, float height, PhysXMaterial *material)
 	{
+		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_shape = physics->createShape(physx::PxCapsuleGeometry(radius, height * 0.5f), *material->GetPhysXMaterial());
 	}
@@ -78,6 +82,7 @@ namespace RN
 		
 	PhysXStaticPlaneShape::PhysXStaticPlaneShape(PhysXMaterial *material)
 	{
+		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_shape = physics->createShape(physx::PxPlaneGeometry(), *material->GetPhysXMaterial());
 	}
@@ -88,116 +93,77 @@ namespace RN
 		return shape->Autorelease();
 	}
 		
-		
-	PhysXTriangleMeshShape::PhysXTriangleMeshShape(Model *model, Vector3 scale)
-	{
-		_triangleMesh = new btTriangleMesh();
-		
-		Model::LODStage *lodStage = model->GetLODStage(0);
-		size_t meshes = lodStage->GetCount();
-		for(size_t i = 0; i < meshes; i++)
-		{
-			Mesh *mesh = lodStage->GetMeshAtIndex(i);
-			AddMesh(mesh, scale);
-		}
-			
-		_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
-	}
-		
-	PhysXTriangleMeshShape::PhysXTriangleMeshShape(Mesh *mesh, Vector3 scale)
-	{
-		_triangleMesh = new btTriangleMesh();
-			
-		AddMesh(mesh, scale);
-			
-		_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
-	}
-		
-	PhysXTriangleMeshShape::PhysXTriangleMeshShape(const Array *meshes, Vector3 scale)
-	{
-		_triangleMesh = new btTriangleMesh();
-			
-		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
-				
-			AddMesh(mesh, scale);
-				
-		});
-			
-		_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
-	}
-		
-	PhysXTriangleMeshShape::~PhysXTriangleMeshShape()
-	{
-		delete _triangleMesh;
-	}
-		
-	PhysXTriangleMeshShape *PhysXTriangleMeshShape::WithModel(Model *model, Vector3 scale)
-	{
-		PhysXTriangleMeshShape *shape = new PhysXTriangleMeshShape(model, scale);
-		return shape->Autorelease();
-	}
-		
-	void PhysXTriangleMeshShape::AddMesh(Mesh *mesh, Vector3 scale)
+	PhysXTriangleMeshShape::PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale)
 	{
 		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
-		if(!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
-		{
-			return;
-		}
+		const Mesh::VertexAttribute *indexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices);
+		RN_ASSERT(vertexAttribute && vertexAttribute->GetType() == PrimitiveType::Vector3, "Mesh needs to have vertices of Vector3!");
+		RN_ASSERT(indexAttribute, "Mesh needs indices!");
 
-		Mesh::Chunk chunk = mesh->GetTrianglesChunk();
-		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
+		physx::PxTriangleMeshDesc meshDesc;
+		meshDesc.points.count = mesh->GetVerticesCount();
+		meshDesc.points.stride = mesh->GetStride();
+		meshDesc.points.data = mesh->GetCPUVertexBuffer();
 
-		for(size_t i = 0; i < mesh->GetIndicesCount()/3; i++)
-		{
-			if(i > 0) vertexIterator++;
-			const Vector3 &vertex1 = *(vertexIterator++) * scale;
-			const Vector3 &vertex2 = *(vertexIterator++) * scale;
-			const Vector3 &vertex3 = *(vertexIterator) * scale;
-			_triangleMesh->addTriangle(btVector3(vertex1.x, vertex1.y, vertex1.z), btVector3(vertex2.x, vertex2.y, vertex2.z), btVector3(vertex3.x, vertex3.y, vertex3.z), false);
-		}
+		meshDesc.triangles.count = mesh->GetIndicesCount() / 3;
+		meshDesc.triangles.stride = indexAttribute->GetSize()*3;
+		meshDesc.triangles.data = mesh->GetCPUIndicesBuffer();
+		if(indexAttribute->GetSize() == 2)
+			meshDesc.flags = physx::PxMeshFlag::e16_BIT_INDICES;
+
+		physx::PxDefaultMemoryOutputStream writeBuffer;
+		physx::PxTriangleMeshCookingResult::Enum result;
+		physx::PxCooking *cooking = PhysXWorld::GetSharedInstance()->GetPhysXCooking();
+		bool status = cooking->cookTriangleMesh(meshDesc, writeBuffer, &result);
+		RN_ASSERT(status, "Couldn't cook mesh!");
+
+		physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+
+		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
+		physx::PxTriangleMesh *triangleMesh = physics->createTriangleMesh(readBuffer);
+
+		physx::PxShape* shape = physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh), *material->GetPhysXMaterial());
+
+		_material = material->Retain();
+		_shape = shape;
+	}
+		
+	PhysXTriangleMeshShape *PhysXTriangleMeshShape::WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale)
+	{
+		PhysXTriangleMeshShape *shape = new PhysXTriangleMeshShape(mesh, material, scale);
+		return shape->Autorelease();
 	}
 
 	PhysXConvexHullShape::PhysXConvexHullShape(Mesh *mesh, PhysXMaterial *material)
 	{
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
-		if (!vertexAttribute || vertexAttribute->GetType() != PrimitiveType::Vector3)
-		{
-			return;
-		}
+		RN_ASSERT(vertexAttribute && vertexAttribute->GetType() == PrimitiveType::Vector3, "Mesh needs to have vertices of Vector3!");
 
-		Mesh::Chunk chunk = mesh->GetChunk();
-		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
+		physx::PxConvexMeshDesc convexDesc;
+		convexDesc.points.count = mesh->GetVerticesCount();
+		convexDesc.points.stride = mesh->GetStride();
+		convexDesc.points.data = mesh->GetCPUVertexBuffer();
+		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
 
-		std::vector<float> vertices;
-		vertices.reserve(mesh->GetVerticesCount() * 3);
-		for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
-		{
-			if(i > 0)
-			{
-				vertexIterator++;
-			}
-			const Vector3 &vertex = *vertexIterator;
-			vertices.push_back(vertex.x);
-			vertices.push_back(vertex.y);
-			vertices.push_back(vertex.z);
-		}
+		physx::PxDefaultMemoryOutputStream buf;
+		physx::PxConvexMeshCookingResult::Enum result;
+		physx::PxCooking *cooking = PhysXWorld::GetSharedInstance()->GetPhysXCooking();
+		RN_ASSERT(cooking->cookConvexMesh(convexDesc, buf, &result), "Couldn't cook mesh!");
+		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
 
-		btConvexHullComputer *convexHullComputer = new btConvexHullComputer();
-		btScalar actualMargin = convexHullComputer->compute(&vertices[0], 3 * sizeof(float), mesh->GetVerticesCount(), margin, 0.001f);
-		
-		btConvexHullShape *shape = new btConvexHullShape(convexHullComputer->vertices[0].m_floats, convexHullComputer->vertices.size());
-		shape->setMargin(actualMargin);
-		shape->recalcLocalAabb();
+		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
+		physx::PxConvexMesh* convexMesh = physics->createConvexMesh(input);
 
-		delete convexHullComputer;
+		physx::PxShape* shape = physics->createShape(physx::PxConvexMeshGeometry(convexMesh), *material->GetPhysXMaterial());
+
+		_material = material->Retain();
 		_shape = shape;
 	}
 
 	PhysXConvexHullShape *PhysXConvexHullShape::WithMesh(Mesh *mesh, PhysXMaterial *material)
 	{
-		PhysXConvexHullShape *shape = new PhysXConvexHullShape(mesh, margin);
+		PhysXConvexHullShape *shape = new PhysXConvexHullShape(mesh, material);
 		return shape->Autorelease();
 	}
 
@@ -205,30 +171,43 @@ namespace RN
 	
 	PhysXCompoundShape::PhysXCompoundShape()
 	{
-		_shape = new btCompoundShape();
+
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material)
+	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material, bool fromConcaveMesh)
 	{
-		_shape = new btCompoundShape();
-
 		Model::LODStage *lodStage = model->GetLODStage(0);
 		size_t meshes = lodStage->GetCount();
 		for (size_t i = 0; i < meshes; i++)
 		{
 			Mesh *mesh = lodStage->GetMeshAtIndex(i);
-			PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, margin);
-			AddChild(shape, Vector3(), Quaternion());
+
+			if(fromConcaveMesh)
+			{
+				PhysXTriangleMeshShape *shape = PhysXTriangleMeshShape::WithMesh(mesh, material);
+				AddChild(shape, Vector3(), Quaternion());
+			}
+			else
+			{
+				PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, material);
+				AddChild(shape, Vector3(), Quaternion());
+			}
 		}
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material)
+	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool fromConcaveMesh)
 	{
-		_shape = new btCompoundShape();
-
 		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
-			PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, margin);
-			AddChild(shape, Vector3(), Quaternion());
+			if(fromConcaveMesh)
+			{
+				PhysXTriangleMeshShape *shape = PhysXTriangleMeshShape::WithMesh(mesh, material);
+				AddChild(shape, Vector3(), Quaternion());
+			}
+			else
+			{
+				PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, material);
+				AddChild(shape, Vector3(), Quaternion());
+			}
 		});
 	}
 		
@@ -240,21 +219,16 @@ namespace RN
 		}
 	}
 		
-	void PhysXCompoundShape::AddChild(BulletShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation)
+	void PhysXCompoundShape::AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation)
 	{
-		btCompoundShape *compoundShape = static_cast<btCompoundShape *>(_shape);
-			
 		_shapes.push_back(shape->Retain());
-		
-		btTransform transform;
-		transform.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-		transform.setOrigin(btVector3(position.x, position.y, position.z));
-		compoundShape->addChildShape(transform, shape->GetBulletShape());
+		_positions.push_back(position);
+		_rotations.push_back(rotation);
 	}
 
-	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material)
+	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, bool fromConcaveMesh)
 	{
-		PhysXCompoundShape *shape = new PhysXCompoundShape(model, margin);
+		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, fromConcaveMesh);
 		return shape->Autorelease();
 	}
 }

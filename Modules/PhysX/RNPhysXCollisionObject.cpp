@@ -7,7 +7,7 @@
 //
 
 #include "RNPhysXCollisionObject.h"
-//#include "RNPhysXMaterial.h"
+#include "RNPhysXWorld.h"
 
 #include "PxPhysicsAPI.h"
 
@@ -23,11 +23,6 @@ namespace RN
 		
 	PhysXCollisionObject::~PhysXCollisionObject()
 	{
-/*		if(_material)
-		{
-			_connection->Disconnect();
-			_material->Release();
-		}*/
 	}
 		
 		
@@ -41,20 +36,6 @@ namespace RN
 		_collisionFilterMask = mask;
 		ReInsertIntoWorld();
 	}
-/*	void PhysXCollisionObject::SetMaterial(BulletMaterial *tmaterial)
-	{
-		if(_material)
-		{
-			_connection->Disconnect();
-			_material->Release();
-		}
-			
-		if((_material = SafeRetain(tmaterial)))
-		{
-			_connection = _material->signal.Connect(std::bind(&PhysXCollisionObject::UpdateFromMaterial, this, std::placeholders::_1));
-			UpdateFromMaterial(_material);
-		}
-	}*/
 		
 /*	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const BulletContactInfo&)> &&callback)
 	{

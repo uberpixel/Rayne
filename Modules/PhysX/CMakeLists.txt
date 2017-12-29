@@ -17,7 +17,8 @@ set(SOURCES
         RNPhysXInternals.cpp
         RNPhysXCollisionObject.cpp
         RNPhysXMaterial.cpp
-        RNPhysXShape.cpp)
+        RNPhysXShape.cpp
+        RNPhysXKinematicController.cpp)
 
 set(HEADERS
 	RNPhysX.h
@@ -26,12 +27,15 @@ set(HEADERS
         RNPhysXInternals.h
         RNPhysXCollisionObject.h
         RNPhysXMaterial.h
-        RNPhysXShape.h)
+        RNPhysXShape.h
+        RNPhysXKinematicController.h)
 
 set(DEFINES RN_BUILD_PHYSX)
 
 if(NOT APPLE)
-        set(RAYNE_LIBRARIES Rayne "DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3DEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CommonDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CharacterKinematicDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxFoundationDEBUG_x64.lib OPTIMIZED ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3Common_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CharacterKinematic_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxFoundation_x64.lib")
+        set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxFoundationDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxPvdSDKDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3DEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CommonDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CharacterKinematicDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CookingDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3ExtensionsDEBUG.lib)
+
+ #       set(RAYNE_LIBRARIES Rayne "DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3DEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CommonDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CharacterKinematicDEBUG_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxFoundationDEBUG_x64.lib OPTIMIZED ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3Common_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PhysX_3.4/Lib/vc14win64/PhysX3CharacterKinematic_x64.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX-3.4/PxShared/lib/vc14win64/PxFoundation_x64.lib")
 else()
         set(RAYNE_LIBRARIES Rayne debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/opus/win32/VS2015/x64/Debug/opus.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/opus/win32/VS2015/x64/Release/opus.lib)
 endif()

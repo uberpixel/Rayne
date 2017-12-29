@@ -8,45 +8,59 @@
 
 #include "RNPhysXRigidBody.h"
 #include "RNPhysXWorld.h"
-#include "RNPhysXInternals.h"
+#include "PxPhysicsAPI.h"
 
 namespace RN
 {
-	RNDefineMeta(PhysXRigidBody, SceneNodeAttachment)
+	RNDefineMeta(PhysXRigidBody, PhysXCollisionObject)
 		
-		PhysXRigidBody::PhysXRigidBody(BulletShape *shape, float mass) :
+		PhysXRigidBody::PhysXRigidBody(PhysXShape *shape, float mass) :
 		_shape(shape->Retain()),
-		_rigidBody(nullptr),
-		_motionState(new BulletRigidBodyMotionState())
+		_actor(nullptr)/*,
+		_motionState(new BulletRigidBodyMotionState())*/
 	{
-		Vector3 inertia = _shape->CalculateLocalInertia(mass);
-		btVector3 btInertia = btVector3(inertia.x, inertia.y, inertia.z);
-			
-		btRigidBody::btRigidBodyConstructionInfo info(mass, _motionState, _shape->GetBulletShape(), btInertia);
-			
-		_rigidBody = new btRigidBody(info);
-		_rigidBody->setUserPointer(this);
+		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
+		if(mass > 0.0f)
+			_actor = physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
+		else
+			_actor = physics->createRigidStatic(physx::PxTransform(physx::PxIdentity));
+
+		if(shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
+		{
+			PhysXCompoundShape *compound = shape->Downcast<PhysXCompoundShape>();
+			for(PhysXShape *tempShape : compound->_shapes)
+			{
+				_actor->attachShape(*tempShape->GetPhysXShape());
+			}
+		}
+		else
+		{
+			_actor->attachShape(*shape->GetPhysXShape());
+		}
+		
+		if(mass > 0.0f)
+		{
+			physx::PxRigidDynamic *dynamicActor = static_cast<physx::PxRigidDynamic*>(_actor);
+			physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, mass);
+		}
+
+		_actor->userData = this;
 	}
 		
 	PhysXRigidBody::~PhysXRigidBody()
 	{
+		_actor->release();
 		_shape->Release();
-		delete _rigidBody;
 	}
 	
-/*		
-	PhysXRigidBody *PhysXRigidBody::WithShape(BulletShape *shape, float mass)
+		
+	PhysXRigidBody *PhysXRigidBody::WithShape(PhysXShape *shape, float mass)
 	{
-		BulletRigidBody *body = new BulletRigidBody(shape, mass);
-		return body->Autorelease();
-	}
-	PhysXRigidBody *PhysXRigidBody::WithShapeAndInertia(BulletShape *shape, float mass, const Vector3 &inertia)
-	{
-		BulletRigidBody *body = new BulletRigidBody(shape, mass, inertia);
+		PhysXRigidBody *body = new PhysXRigidBody(shape, mass);
 		return body->Autorelease();
 	}
 	
-	btCollisionObject *PhysXRigidBody::GetBulletCollisionObject() const
+/*	btCollisionObject *PhysXRigidBody::GetBulletCollisionObject() const
 	{
 		return _rigidBody;
 	}
@@ -176,34 +190,25 @@ namespace RN
 		_rigidBody->setSpinningFriction(material->GetSpinningFriction());
 		_rigidBody->setRestitution(material->GetRestitution());
 		_rigidBody->setDamping(material->GetLinearDamping(), material->GetAngularDamping());
+	}*/
+		
+		
+	void PhysXRigidBody::InsertIntoWorld(PhysXWorld *world)
+	{
+		PhysXCollisionObject::InsertIntoWorld(world);
+		physx::PxScene *scene = world->GetPhysXScene();
+		scene->addActor(*_actor);
 	}
 		
-		
-	void BulletRigidBody::InsertIntoWorld(BulletWorld *world)
+	void PhysXRigidBody::RemoveFromWorld(PhysXWorld *world)
 	{
-		BulletCollisionObject::InsertIntoWorld(world);
-		_motionState->SetSceneNode(this);
+		PhysXCollisionObject::RemoveFromWorld(world);
 			
-		{
-			btTransform transform;
-				
-			_motionState->getWorldTransform(transform);
-			_rigidBody->setCenterOfMassTransform(transform);
-		}
-			
-		auto bulletWorld = world->GetBulletDynamicsWorld();
-		bulletWorld->addRigidBody(_rigidBody, GetCollisionFilter(), GetCollisionFilterMask());
-	}
-		
-	void BulletRigidBody::RemoveFromWorld(BulletWorld *world)
-	{
-		BulletCollisionObject::RemoveFromWorld(world);
-			
-		auto bulletWorld = world->GetBulletDynamicsWorld();
-		bulletWorld->removeRigidBody(_rigidBody);
+		physx::PxScene *scene = world->GetPhysXScene();
+		scene->removeActor(*_actor);
 	}
 
-	void BulletRigidBody::SetPositionOffset(RN::Vector3 offset)
+/*	void BulletRigidBody::SetPositionOffset(RN::Vector3 offset)
 	{
 		BulletCollisionObject::SetPositionOffset(offset);
 		_motionState->SetPositionOffset(offset);

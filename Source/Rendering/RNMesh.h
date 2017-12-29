@@ -442,8 +442,11 @@ namespace RN
 		const std::vector<VertexAttribute> &GetVertexAttributes() const { return _vertexAttributes; }
 		const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
 
-		GPUBuffer *GetVertexBuffer() const { return _vertexBuffer; }
-		GPUBuffer *GetIndicesBuffer() const { return _indicesBuffer; }
+		GPUBuffer *GetGPUVertexBuffer() const { return _vertexBuffer; }
+		GPUBuffer *GetGPUIndicesBuffer() const { return _indicesBuffer; }
+
+		void *GetCPUVertexBuffer() const { return _vertexBufferCPU; }
+		void *GetCPUIndicesBuffer() const { return _indicesBufferCPU; }
 
 	private:
 		void ParseAttributes();
