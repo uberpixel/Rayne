@@ -20,3 +20,4 @@ CMakeLists.txt.user
 Modules/Oculus/Vendor/OculusSDK/
 xcode-build
 Modules/SteamAudio/Vendor/steamaudio
+/Modules/PhysX/Vendor/PhysX-3.4

@@ -46,9 +46,19 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
     endif()
 
     if(NOT ("${_RAYNE_LIBRARIES}" STREQUAL ""))
+ #       set(LIBRARY_CONFIGURATION "")
         foreach(LIBRARY ${_RAYNE_LIBRARIES})
-
             set(LIBRARY_NAME ${LIBRARY})
+
+#            if("${LIBRARY_NAME}" STREQUAL "debug")
+#                set(LIBRARY_CONFIGURATION "debug")
+#                continue()
+#            endif()
+
+#            if("${LIBRARY_NAME}" STREQUAL "optimized")
+#                set(LIBRARY_CONFIGURATION "optimized")
+#                continue()
+#            endif()
 
             if("${_TYPE}" STREQUAL "STATIC")
                 set(LIBRARY_NAME "${LIBRARY_NAME}-static")
