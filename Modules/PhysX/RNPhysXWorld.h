@@ -13,7 +13,8 @@
 
 #include "RNPhysXMaterial.h"
 #include "RNPhysXShape.h"
-#include "RNPhysXRigidBody.h"
+#include "RNPhysXDynamicBody.h"
+#include "RNPhysXStaticBody.h"
 
 namespace physx
 {
@@ -28,14 +29,6 @@ namespace physx
 
 namespace RN
 {
-	struct BulletContactInfo
-	{
-		SceneNode *node;
-		Vector3 position;
-		Vector3 normal;
-		float distance;
-	};
-
 	class PhysXWorld : public SceneAttachment
 	{
 	public:
@@ -48,7 +41,7 @@ namespace RN
 		PXAPI void SetStepSize(double stepsize);
 		PXAPI void SetPaused(bool paused);
 
-		PXAPI BulletContactInfo CastRay(const Vector3 &from, const Vector3 &to);
+		PXAPI PhysXContactInfo CastRay(const Vector3 &from, const Vector3 &to);
 
 		PXAPI void InsertCollisionObject(PhysXCollisionObject *attachment);
 		PXAPI void RemoveCollisionObject(PhysXCollisionObject *attachment);

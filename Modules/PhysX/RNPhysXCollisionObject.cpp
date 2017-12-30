@@ -16,8 +16,8 @@ namespace RN
 	RNDefineMeta(PhysXCollisionObject, SceneNodeAttachment)
 		
 		PhysXCollisionObject::PhysXCollisionObject() :
-		_collisionFilter(0),
-		_collisionFilterMask(0xffff),
+		_collisionFilterGroup(0),
+		_collisionFilterMask(0xffffffff),
 		_owner(nullptr)
 	{}
 		
@@ -26,23 +26,18 @@ namespace RN
 	}
 		
 		
-	void PhysXCollisionObject::SetCollisionFilter(short int filter)
+	void PhysXCollisionObject::SetCollisionFilter(uint32 group, uint32 mask)
 	{
-		_collisionFilter = filter;
-		ReInsertIntoWorld();
-	}
-	void PhysXCollisionObject::SetCollisionFilterMask(short int mask)
-	{
+		_collisionFilterGroup = group;
 		_collisionFilterMask = mask;
-		ReInsertIntoWorld();
 	}
 		
-/*	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const BulletContactInfo&)> &&callback)
+	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const PhysXContactInfo&)> &&callback)
 	{
 		_contactCallback = std::move(callback);
 	}
 
-	void PhysXCollisionObject::SetSimulationCallback(std::function<void()> &&callback)
+/*	void PhysXCollisionObject::SetSimulationCallback(std::function<void()> &&callback)
 	{
 		_simulationStepCallback = std::move(callback);
 	}*/
@@ -54,7 +49,7 @@ namespace RN
 		
 	void PhysXCollisionObject::ReInsertIntoWorld()
 	{
-		if(_owner)
+/*		if(_owner)
 		{
 			auto world = _owner;
 				
@@ -62,7 +57,7 @@ namespace RN
 //			world->RemoveCollisionObject(this);
 //			world->InsertCollisionObject(this);
 			world->Unlock();
-		}
+		}*/
 	}
 		
 	void PhysXCollisionObject::InsertIntoWorld(PhysXWorld *world)

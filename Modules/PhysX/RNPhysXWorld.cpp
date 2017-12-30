@@ -29,7 +29,7 @@ namespace RN
 		if(debug)
 		{
 			_pvd = physx::PxCreatePvd(*_foundation);
-			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5435, 100); //First parameter is ip of system running the physx visual debugger
+			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 100); //First parameter is ip of system running the physx visual debugger
 			_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 		}
 
@@ -49,6 +49,14 @@ namespace RN
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
 		_scene = _physics->createScene(sceneDesc);
+
+		physx::PxPvdSceneClient* pvdClient = _scene->getScenePvdClient();
+		if(pvdClient)
+		{
+			pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+			pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+			pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+		}
 
 		_controllerManager = PxCreateControllerManager(*_scene);
 	}
@@ -102,13 +110,18 @@ namespace RN
 			_scene->simulate(_stepSize);
 			_scene->fetchResults(true);
 		}
+
+		for(PhysXCollisionObject *object : _collisionObjects)
+		{
+			object->UpdatePosition();
+		}
 	}
 
 
 
-	BulletContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to)
+	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to)
 	{
-		BulletContactInfo hit;
+		PhysXContactInfo hit;
 		return hit;
 	}
 

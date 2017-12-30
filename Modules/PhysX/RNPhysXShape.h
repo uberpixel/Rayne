@@ -20,7 +20,8 @@ namespace physx
 namespace RN
 {
 	class Mesh;
-	class PhysXRigidBody;
+	class PhysXDynamicBody;
+	class PhysXStaticBody;
 
 	class PhysXShape : public Object
 	{
@@ -105,7 +106,8 @@ namespace RN
 	class PhysXCompoundShape : public PhysXShape
 	{
 	public:
-		friend PhysXRigidBody;
+		friend PhysXDynamicBody;
+		friend PhysXStaticBody;
 		PXAPI PhysXCompoundShape();
 		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
 		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool fromConcaveMesh);

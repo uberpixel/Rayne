@@ -14,6 +14,14 @@
 namespace RN
 {
 	class PhysXWorld;
+
+	struct PhysXContactInfo
+	{
+		SceneNode *node;
+		Vector3 position;
+		Vector3 normal;
+		float distance;
+	};
 		
 	class PhysXCollisionObject : public SceneNodeAttachment
 	{
@@ -22,15 +30,16 @@ namespace RN
 			
 		PXAPI PhysXCollisionObject();
 		PXAPI ~PhysXCollisionObject() override;
+
+		virtual void UpdatePosition() {}
 			
-		PXAPI void SetCollisionFilter(short int filter);
-		PXAPI void SetCollisionFilterMask(short int mask);
-//		PXAPI void SetContactCallback(std::function<void(BulletCollisionObject *, const BulletContactInfo&)> &&callback);
+		PXAPI virtual void SetCollisionFilter(uint32 group, uint32 mask);
+		PXAPI void SetContactCallback(std::function<void(PhysXCollisionObject *, const PhysXContactInfo&)> &&callback);
 //		PXAPI void SetSimulationCallback(std::function<void()> &&callback);
 		PXAPI virtual void SetPositionOffset(RN::Vector3 offset);
-			
-		short int GetCollisionFilter() const { return _collisionFilter; }
-		short int GetCollisionFilterMask() const { return _collisionFilterMask; }
+		
+		uint32 GetCollisionFilterGroup() const { return _collisionFilterGroup; }
+		uint32 GetCollisionFilterMask() const { return _collisionFilterMask; }
 			
 //		PXAPI virtual btCollisionObject *GetBulletCollisionObject() const = 0;
 			
@@ -44,15 +53,15 @@ namespace RN
 		virtual void InsertIntoWorld(PhysXWorld *world);
 		virtual void RemoveFromWorld(PhysXWorld *world);
 		Vector3 offset;
+
+		uint32 _collisionFilterGroup;
+		uint32 _collisionFilterMask;
 			
 	private:
 		PhysXWorld *_owner;
 			
-//		std::function<void(BulletCollisionObject *, const BulletContactInfo&)> _contactCallback;
+		std::function<void(PhysXCollisionObject *, const PhysXContactInfo&)> _contactCallback;
 //		std::function<void()> _simulationStepCallback;
-			
-		short int _collisionFilter;
-		short int _collisionFilterMask;
 			
 		RNDeclareMetaAPI(PhysXCollisionObject, PXAPI)
 	};

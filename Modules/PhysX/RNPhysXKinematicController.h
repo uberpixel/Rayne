@@ -27,6 +27,11 @@ namespace RN
 		PXAPI ~PhysXKinematicController() override;
 			
 		PXAPI void Move(const Vector3 &direction, float delta);
+		PXAPI void Gravity(float gforce, float delta);
+		PXAPI float SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
+
+		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
+
 	/*	PXAPI void SetFallSpeed(float speed);
 		PXAPI void SetJumpSpeed(float speed);
 		PXAPI void SetMaxJumpHeight(float maxHeight);
@@ -46,6 +51,9 @@ namespace RN
 			
 		physx::PxController *_controller;
 		PhysXMaterial *_material;
+
+		float _gravity;
+		float _totalHeight;
 			
 		RNDeclareMetaAPI(PhysXKinematicController, PXAPI)
 	};

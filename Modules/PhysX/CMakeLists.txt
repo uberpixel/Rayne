@@ -13,7 +13,8 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNPhysXInit.cpp
         RNPhysXWorld.cpp
-        RNPhysXRigidBody.cpp
+        RNPhysXDynamicBody.cpp
+        RNPhysXStaticBody.cpp
         RNPhysXInternals.cpp
         RNPhysXCollisionObject.cpp
         RNPhysXMaterial.cpp
@@ -23,7 +24,8 @@ set(SOURCES
 set(HEADERS
 	RNPhysX.h
         RNPhysXWorld.h
-        RNPhysXRigidBody.h
+        RNPhysXDynamicBody.h
+        RNPhysXStaticBody.h
         RNPhysXInternals.h
         RNPhysXCollisionObject.h
         RNPhysXMaterial.h

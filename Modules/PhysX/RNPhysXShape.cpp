@@ -41,7 +41,7 @@ namespace RN
 	{
 		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
-		_shape = physics->createShape(physx::PxSphereGeometry(radius), *material->GetPhysXMaterial());
+		_shape = physics->createShape(physx::PxSphereGeometry(radius), *material->GetPhysXMaterial(), true);
 	}
 		
 	PhysXSphereShape *PhysXSphereShape::WithRadius(float radius, PhysXMaterial *material)
@@ -56,7 +56,7 @@ namespace RN
 	{
 		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
-		_shape = physics->createShape(physx::PxBoxGeometry(halfExtents.x, halfExtents.y, halfExtents.z), *material->GetPhysXMaterial());
+		_shape = physics->createShape(physx::PxBoxGeometry(halfExtents.x, halfExtents.y, halfExtents.z), *material->GetPhysXMaterial(), true);
 	}
 		
 	PhysXBoxShape *PhysXBoxShape::WithHalfExtents(const Vector3 &halfExtents, PhysXMaterial *material)
@@ -70,7 +70,7 @@ namespace RN
 	{
 		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
-		_shape = physics->createShape(physx::PxCapsuleGeometry(radius, height * 0.5f), *material->GetPhysXMaterial());
+		_shape = physics->createShape(physx::PxCapsuleGeometry(radius, height * 0.5f), *material->GetPhysXMaterial(), true);
 	}
 		
 	PhysXCapsuleShape *PhysXCapsuleShape::WithRadius(float radius, float height, PhysXMaterial *material)
@@ -84,7 +84,7 @@ namespace RN
 	{
 		_material = material->Retain();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
-		_shape = physics->createShape(physx::PxPlaneGeometry(), *material->GetPhysXMaterial());
+		_shape = physics->createShape(physx::PxPlaneGeometry(), *material->GetPhysXMaterial(), true);
 	}
 		
 	PhysXStaticPlaneShape *PhysXStaticPlaneShape::WithMaterial(PhysXMaterial *material)
@@ -123,7 +123,7 @@ namespace RN
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		physx::PxTriangleMesh *triangleMesh = physics->createTriangleMesh(readBuffer);
 
-		physx::PxShape* shape = physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh), *material->GetPhysXMaterial());
+		physx::PxShape* shape = physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh), *material->GetPhysXMaterial(), true);
 
 		_material = material->Retain();
 		_shape = shape;
@@ -155,7 +155,7 @@ namespace RN
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		physx::PxConvexMesh* convexMesh = physics->createConvexMesh(input);
 
-		physx::PxShape* shape = physics->createShape(physx::PxConvexMeshGeometry(convexMesh), *material->GetPhysXMaterial());
+		physx::PxShape* shape = physics->createShape(physx::PxConvexMeshGeometry(convexMesh), *material->GetPhysXMaterial(), true);
 
 		_material = material->Retain();
 		_shape = shape;
