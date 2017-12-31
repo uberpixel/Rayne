@@ -27,8 +27,6 @@ namespace RN
 			
 		PXAPI static PhysXStaticBody *WithShape(PhysXShape *shape);
 
-		void Update(float delta);
-
 		void SetCollisionFilter(uint32 group, uint32 mask) override;
 			
 /*		PXAPI btCollisionObject *GetBulletCollisionObject() const override;
