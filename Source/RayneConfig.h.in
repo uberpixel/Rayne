@@ -75,6 +75,14 @@
 #define RN_BUILD_RELEASE 0
 #endif
 
+#if !defined(NDEBUG) && RN_BUILD_RELEASE
+#define NDEBUG 1
+#endif
+
+#if !defined(_DEBUG) && RN_BUILD_DEBUG
+#define _DEBUG 1
+#endif
+
 #define RN_COMPILER_GCC 0
 #define RN_COMPILER_CLANG 0
 #define RN_COMPILER_MSVC 0
