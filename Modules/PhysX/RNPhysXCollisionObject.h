@@ -27,6 +27,7 @@ namespace RN
 	{
 	public:
 		friend class PhysXWorld;
+		friend class PhysXSimulationCallback;
 			
 		PXAPI PhysXCollisionObject();
 		PXAPI ~PhysXCollisionObject() override;

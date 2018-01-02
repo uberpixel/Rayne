@@ -15,6 +15,7 @@
 #include "RNPhysXShape.h"
 #include "RNPhysXDynamicBody.h"
 #include "RNPhysXStaticBody.h"
+#include <unordered_set>
 
 namespace physx
 {
@@ -29,6 +30,8 @@ namespace physx
 
 namespace RN
 {
+	class PhysXSimulationCallback;
+
 	class PhysXWorld : public SceneAttachment
 	{
 	public:
@@ -70,6 +73,7 @@ namespace RN
 		double _stepSize;
 		bool _paused;
 
+		PhysXSimulationCallback *_simulationCallback;
 		std::unordered_set<PhysXCollisionObject *> _collisionObjects;
 
 		RNDeclareMetaAPI(PhysXWorld, PXAPI)
