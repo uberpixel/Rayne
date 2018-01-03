@@ -28,24 +28,31 @@ namespace RN
 				PhysXCollisionObject *objectA = static_cast<PhysXCollisionObject*>(pairHeader.actors[0]->userData);
 				PhysXCollisionObject *objectB = static_cast<PhysXCollisionObject*>(pairHeader.actors[1]->userData);
 
-				if(objectA->_contactCallback)
-				{
-					PhysXContactInfo contactInfo;
-					contactInfo.distance = 0.0f;
-					contactInfo.node = objectB->GetParent();
-//					contactInfo.normal = RN::Vector3(contactPair., contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
-//					contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnB.getX(), contactPoint.m_positionWorldOnB.getY(), contactPoint.m_positionWorldOnB.getZ());
-					objectA->_contactCallback(objectB, contactInfo, contactState);
-				}
+				physx::PxContactPairPoint contactPoint;
+				int nbPoints = contactPair.extractContacts(&contactPoint, 1);
 
-				if(objectB->_contactCallback)
+				if(nbPoints > 0)
 				{
-					PhysXContactInfo contactInfo;
-					contactInfo.distance = 0.0f;
-					contactInfo.node = objectA->GetParent();
-//					contactInfo.normal = -RN::Vector3(contactPoint.m_normalWorldOnB.getX(), contactPoint.m_normalWorldOnB.getY(), contactPoint.m_normalWorldOnB.getZ());
-//					contactInfo.position = RN::Vector3(contactPoint.m_positionWorldOnA.getX(), contactPoint.m_positionWorldOnA.getY(), contactPoint.m_positionWorldOnA.getZ());
-					objectB->_contactCallback(objectA, contactInfo, contactState);
+					if (objectA->_contactCallback)
+					{
+						PhysXContactInfo contactInfo;
+						contactInfo.distance = contactPoint.separation;
+						contactInfo.node = objectB->GetParent();
+
+						contactInfo.normal = RN::Vector3(contactPoint.normal.x, contactPoint.normal.y, contactPoint.normal.z);
+						contactInfo.position = RN::Vector3(contactPoint.position.x, contactPoint.position.y, contactPoint.position.z);
+						objectA->_contactCallback(objectB, contactInfo, contactState);
+					}
+
+					if (objectB->_contactCallback)
+					{
+						PhysXContactInfo contactInfo;
+						contactInfo.distance = contactPoint.separation;
+						contactInfo.node = objectA->GetParent();
+						contactInfo.normal = -RN::Vector3(contactPoint.normal.x, contactPoint.normal.y, contactPoint.normal.z);
+						contactInfo.position = RN::Vector3(contactPoint.position.x, contactPoint.position.y, contactPoint.position.z);
+						objectB->_contactCallback(objectA, contactInfo, contactState);
+					}
 				}
 			}
 		}
