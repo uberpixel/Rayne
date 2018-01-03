@@ -28,6 +28,13 @@ namespace RN
 	public:
 		friend class PhysXWorld;
 		friend class PhysXSimulationCallback;
+
+		enum ContactState
+		{
+			Begin,
+			Continue,
+			End
+		};
 			
 		PXAPI PhysXCollisionObject();
 		PXAPI ~PhysXCollisionObject() override;
@@ -35,7 +42,7 @@ namespace RN
 		virtual void UpdatePosition() {}
 			
 		PXAPI virtual void SetCollisionFilter(uint32 group, uint32 mask);
-		PXAPI void SetContactCallback(std::function<void(PhysXCollisionObject *, const PhysXContactInfo&)> &&callback);
+		PXAPI void SetContactCallback(std::function<void(PhysXCollisionObject *, const PhysXContactInfo&, ContactState)> &&callback);
 //		PXAPI void SetSimulationCallback(std::function<void()> &&callback);
 		PXAPI virtual void SetPositionOffset(RN::Vector3 offset);
 		
@@ -61,7 +68,7 @@ namespace RN
 	private:
 		PhysXWorld *_owner;
 			
-		std::function<void(PhysXCollisionObject *, const PhysXContactInfo&)> _contactCallback;
+		std::function<void(PhysXCollisionObject *, const PhysXContactInfo&, ContactState)> _contactCallback;
 //		std::function<void()> _simulationStepCallback;
 			
 		RNDeclareMetaAPI(PhysXCollisionObject, PXAPI)

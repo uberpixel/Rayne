@@ -32,7 +32,7 @@ namespace RN
 		_collisionFilterMask = mask;
 	}
 		
-	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const PhysXContactInfo&)> &&callback)
+	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const PhysXContactInfo&, ContactState)> &&callback)
 	{
 		_contactCallback = std::move(callback);
 	}
