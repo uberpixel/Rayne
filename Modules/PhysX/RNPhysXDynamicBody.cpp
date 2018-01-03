@@ -37,6 +37,8 @@ namespace RN
 		physx::PxRigidBodyExt::updateMassAndInertia(*_actor, mass);
 
 		_actor->userData = this;
+
+		_actor->setContactReportThreshold(0.1f);
 	}
 		
 	PhysXDynamicBody::~PhysXDynamicBody()

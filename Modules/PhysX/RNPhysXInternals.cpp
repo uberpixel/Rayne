@@ -17,10 +17,10 @@ namespace RN
 		{
 			const physx::PxContactPair &contactPair = pairs[i];
 
-			if(contactPair.events & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND || contactPair.events & physx::PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+			if(contactPair.events & physx::PxPairFlag::eNOTIFY_THRESHOLD_FORCE_FOUND || contactPair.events & physx::PxPairFlag::eNOTIFY_THRESHOLD_FORCE_PERSISTS)
 			{
 				PhysXCollisionObject::ContactState contactState = PhysXCollisionObject::ContactState::Begin;
-				if(contactPair.events & physx::PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+				if(contactPair.events & physx::PxPairFlag::eNOTIFY_THRESHOLD_FORCE_PERSISTS)
 				{
 					contactState = PhysXCollisionObject::ContactState::Continue;
 				}
