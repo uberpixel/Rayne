@@ -131,11 +131,11 @@ namespace RN
 		if(_paused)
 			return;
 
-		_remainingTime += delta;
-		while(_remainingTime+k::EpsilonFloat >= _stepSize)
+//		_remainingTime += delta;
+//		while(_remainingTime+k::EpsilonFloat >= _stepSize)
 		{
-			_remainingTime -= _stepSize;
-			_scene->simulate(_stepSize);
+//			_remainingTime -= _stepSize;
+			_scene->simulate(delta);	//TODO: Fix this to use fixed steps with interpolation...
 			_scene->fetchResults(true);
 		}
 
