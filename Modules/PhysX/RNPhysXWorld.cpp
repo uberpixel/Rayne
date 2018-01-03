@@ -130,6 +130,9 @@ namespace RN
 	{
 		if(_paused)
 			return;
+		
+		if(delta > 4*_stepSize)
+			return;
 
 //		_remainingTime += delta;
 //		while(_remainingTime+k::EpsilonFloat >= _stepSize)
