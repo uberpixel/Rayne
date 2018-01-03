@@ -25,8 +25,6 @@ namespace RN
 		desc.position.set(-offset.x, 10.0 - offset.y, -offset.z);
 		desc.material = _material->GetPhysXMaterial();
 
-		_totalHeight = height + radius * 2.0f;
-
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
 		_controller = manager->createController(desc);
 	}
@@ -55,7 +53,7 @@ namespace RN
 	void PhysXKinematicController::Gravity(float gforce, float delta)
 	{
 		float groundDistance = SweepTest(RN::Vector3(0.0f, -10000.0f, 0.0f));
-		groundDistance -= _totalHeight*0.5f;
+		groundDistance += GetFeetOffset().y+_controller->getContactOffset()*2.0f;
 		if(groundDistance < 0.4f && _gravity < k::EpsilonFloat)
 		{
 			_gravity = 0.0f;
@@ -113,6 +111,12 @@ namespace RN
 		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
 
 //		_controller->invalidateCache();
+	}
+
+	Vector3 PhysXKinematicController::GetFeetOffset() const
+	{
+		physx::PxVec3 offset = _controller->getFootPosition() - _controller->getPosition();
+		return Vector3(offset.x, offset.y, offset.z);
 	}
 
 /*	void BulletKinematicController::SetFallSpeed(float speed)

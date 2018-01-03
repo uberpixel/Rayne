@@ -31,6 +31,7 @@ namespace RN
 		PXAPI float SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
 
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
+		PXAPI Vector3 GetFeetOffset() const;
 
 	/*	PXAPI void SetFallSpeed(float speed);
 		PXAPI void SetJumpSpeed(float speed);
@@ -53,7 +54,6 @@ namespace RN
 		PhysXMaterial *_material;
 
 		float _gravity;
-		float _totalHeight;
 			
 		RNDeclareMetaAPI(PhysXKinematicController, PXAPI)
 	};
