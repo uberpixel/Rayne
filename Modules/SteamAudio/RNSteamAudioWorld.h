@@ -92,6 +92,7 @@ namespace RN
 
 		SAAPI void *GetBinauralRenderer() const { return _binauralRenderer; }
 		SAAPI void *GetEnvironmentalRenderer() const { return _environmentalRenderer; }
+		SAAPI void *GetEnvironment() const { return _environment; }
 		
 		SAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 

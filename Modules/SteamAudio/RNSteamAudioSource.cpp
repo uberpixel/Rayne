@@ -200,7 +200,7 @@ namespace RN
 		}
 
 		//Calculate direct sound
-		IPLDirectSoundPath directSoundPath = iplGetDirectSoundPath(SteamAudioWorld::_instance->GetEnvironmentalRenderer(),
+		IPLDirectSoundPath directSoundPath = iplGetDirectSoundPath(SteamAudioWorld::_instance->GetEnvironment(),
 			IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
 			IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
 			IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z },
