@@ -16,7 +16,8 @@ namespace RN
 		
 		PhysXDynamicBody::PhysXDynamicBody(PhysXShape *shape, float mass) :
 		_shape(shape->Retain()),
-		_actor(nullptr)
+		_actor(nullptr),
+		_didUpdatePosition(false)
 	{
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_actor = physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
@@ -194,23 +195,29 @@ namespace RN
 	void PhysXDynamicBody::ApplyImpulse(const Vector3 &impulse, const Vector3 &origin)
 	{
 		_rigidBody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
-	}
+	}*/
 		
 		
 		
 	void PhysXDynamicBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-		BulletCollisionObject::DidUpdate(changeSet);
-			
+		PhysXCollisionObject::DidUpdate(changeSet);
+		
+		if(_didUpdatePosition)
+		{
+			_didUpdatePosition = false;
+			return;
+		}
+
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			btTransform transform;
-				
-			_motionState->getWorldTransform(transform);
-			_rigidBody->setCenterOfMassTransform(transform);
+			Vector3 position = GetWorldPosition();
+			Quaternion rotation = GetWorldRotation();
+			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 		}
 	}
-	void PhysXDynamicBody::UpdateFromMaterial(BulletMaterial *material)
+
+/*	void PhysXDynamicBody::UpdateFromMaterial(BulletMaterial *material)
 	{
 		_rigidBody->setFriction(material->GetFriction());
 		_rigidBody->setRollingFriction(material->GetRollingFriction());
@@ -221,6 +228,7 @@ namespace RN
 
 	void PhysXDynamicBody::UpdatePosition()
 	{
+		_didUpdatePosition = true;
 		const physx::PxTransform &transform = _actor->getGlobalPose();
 		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z));
 		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));

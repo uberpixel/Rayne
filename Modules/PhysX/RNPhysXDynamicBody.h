@@ -56,14 +56,14 @@ namespace RN
 /*		PXAPI Vector3 GetCenterOfMass() const;
 		PXAPI Matrix GetCenterOfMassTransform() const;
 			*/
-/*		PXAPI btCollisionObject *GetBulletCollisionObject() const override;
-		PXAPI btRigidBody *GetBulletRigidBody() { return _rigidBody; }*/
+//		PXAPI btCollisionObject *GetBulletCollisionObject() const override;
+		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
 
 //		PXAPI void SetPositionOffset(RN::Vector3 offset) final;
 			
 	protected:
-/*		void DidUpdate(SceneNode::ChangeSet changeSet) override;
-		void UpdateFromMaterial(BulletMaterial *material) override;*/
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
+//		void UpdateFromMaterial(BulletMaterial *material) override;
 		
 		void InsertIntoWorld(PhysXWorld *world) override;
 		void RemoveFromWorld(PhysXWorld *world) override;
@@ -71,6 +71,8 @@ namespace RN
 	private:
 		PhysXShape *_shape;
 		physx::PxRigidDynamic *_actor;
+
+		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(PhysXDynamicBody, PXAPI)
 	};

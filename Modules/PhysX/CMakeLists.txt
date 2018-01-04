@@ -19,6 +19,7 @@ set(SOURCES
         RNPhysXCollisionObject.cpp
         RNPhysXMaterial.cpp
         RNPhysXShape.cpp
+        RNPhysXConstraint.cpp
         RNPhysXKinematicController.cpp)
 
 set(HEADERS
@@ -30,6 +31,7 @@ set(HEADERS
         RNPhysXCollisionObject.h
         RNPhysXMaterial.h
         RNPhysXShape.h
+        RNPhysXConstraint.h
         RNPhysXKinematicController.h)
 
 set(DEFINES RN_BUILD_PHYSX)
