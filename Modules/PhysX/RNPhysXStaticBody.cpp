@@ -16,7 +16,8 @@ namespace RN
 		
 	PhysXStaticBody::PhysXStaticBody(PhysXShape *shape) :
 		_shape(shape->Retain()),
-		_actor(nullptr)
+		_actor(nullptr),
+		_didUpdatePosition(false)
 	{
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_actor = physics->createRigidStatic(physx::PxTransform(physx::PxIdentity));
@@ -35,10 +36,16 @@ namespace RN
 		}
 
 		_actor->userData = this;
+
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		scene->addActor(*_actor);
 	}
 		
 	PhysXStaticBody::~PhysXStaticBody()
 	{
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		scene->removeActor(*_actor);
+
 		_actor->release();
 		_shape->Release();
 	}
@@ -85,50 +92,33 @@ namespace RN
 		free(shapes);*/
 	}
 	
-/*	btCollisionObject *PhysXStaticBody::GetBulletCollisionObject() const
-	{
-		return _rigidBody;
-	}
-		
 	void PhysXStaticBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-		BulletCollisionObject::DidUpdate(changeSet);
-			
+		PhysXCollisionObject::DidUpdate(changeSet);
+
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			btTransform transform;
-				
-			_motionState->getWorldTransform(transform);
-			_rigidBody->setCenterOfMassTransform(transform);
-		}
-	}*/
-		
-		
-	void PhysXStaticBody::InsertIntoWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::InsertIntoWorld(world);
-		physx::PxScene *scene = world->GetPhysXScene();
-		scene->addActor(*_actor);
+			if(!_didUpdatePosition)
+			{
+				Vector3 position = GetWorldPosition();
+				Quaternion rotation = GetWorldRotation();
+				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			}
 
-		const Vector3 &position = GetParent()->GetWorldPosition();
-		const Quaternion &rotation = GetParent()->GetWorldRotation();
-		physx::PxTransform transform;
-		transform.p.x = position.x;
-		transform.p.y = position.y;
-		transform.p.z = position.z;
-		transform.q.x = rotation.x;
-		transform.q.y = rotation.y;
-		transform.q.z = rotation.z;
-		transform.q.w = rotation.w;
-		_actor->setGlobalPose(transform);
-	}
-		
-	void PhysXStaticBody::RemoveFromWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::RemoveFromWorld(world);
+			_didUpdatePosition = false;
+		}
+
+		if(changeSet & SceneNode::ChangeSet::Attachments)
+		{
+			if(!_owner && GetParent())
+			{
+				Vector3 position = GetWorldPosition();
+				Quaternion rotation = GetWorldRotation();
+				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			}
 			
-		physx::PxScene *scene = world->GetPhysXScene();
-		scene->removeActor(*_actor);
+			_owner = GetParent();
+		}
 	}
 
 /*	void PhysXStaticBody::SetPositionOffset(RN::Vector3 offset)

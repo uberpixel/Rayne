@@ -311,17 +311,25 @@ namespace RN
 
 	void SceneNode::AddAttachment(SceneNodeAttachment *attachment)
 	{
+		WillUpdate(ChangeSet::Attachments);
+
 		if(!_attachments)
 			_attachments = new Array();
 
 		_attachments->AddObject(attachment);
 		attachment->_node = this;
+
+		DidUpdate(ChangeSet::Attachments);
 	}
 
 	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
 	{
+		WillUpdate(ChangeSet::Attachments);
+
 		attachment->_node = nullptr;
 		_attachments->RemoveObject(attachment);
+
+		DidUpdate(ChangeSet::Attachments);
 	}
 
 	const Array *SceneNode::GetChildren() const

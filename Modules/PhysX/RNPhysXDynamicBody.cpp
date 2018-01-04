@@ -38,12 +38,16 @@ namespace RN
 		physx::PxRigidBodyExt::updateMassAndInertia(*_actor, mass);
 
 		_actor->userData = this;
-
 		_actor->setContactReportThreshold(0.1f);
+
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		scene->addActor(*_actor);
 	}
 		
 	PhysXDynamicBody::~PhysXDynamicBody()
 	{
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		scene->removeActor(*_actor);
 		_actor->release();
 		_shape->Release();
 	}
@@ -89,11 +93,6 @@ namespace RN
 		PhysXDynamicBody *body = new PhysXDynamicBody(shape, mass);
 		return body->Autorelease();
 	}
-	
-/*	btCollisionObject *PhysXDynamicBody::GetBulletCollisionObject() const
-	{
-		return _rigidBody;
-	}*/
 		
 	void PhysXDynamicBody::SetMass(float mass)
 	{
@@ -203,17 +202,27 @@ namespace RN
 	{
 		PhysXCollisionObject::DidUpdate(changeSet);
 		
-		if(_didUpdatePosition)
-		{
-			_didUpdatePosition = false;
-			return;
-		}
-
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetWorldPosition();
-			Quaternion rotation = GetWorldRotation();
-			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			if(!_didUpdatePosition)
+			{
+				Vector3 position = GetWorldPosition();
+				Quaternion rotation = GetWorldRotation();
+				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			}
+			_didUpdatePosition = false;
+		}
+
+		if(changeSet & SceneNode::ChangeSet::Attachments)
+		{
+			if(!_owner && GetParent())
+			{
+				Vector3 position = GetWorldPosition();
+				Quaternion rotation = GetWorldRotation();
+				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			}
+
+			_owner = GetParent();
 		}
 	}
 
@@ -235,36 +244,10 @@ namespace RN
 	}
 		
 		
-	void PhysXDynamicBody::InsertIntoWorld(PhysXWorld *world)
+/*	void PhysXDynamicBody::InsertIntoWorld(PhysXWorld *world)
 	{
 		PhysXCollisionObject::InsertIntoWorld(world);
 		physx::PxScene *scene = world->GetPhysXScene();
 		scene->addActor(*_actor);
-
-		const Vector3 &position = GetParent()->GetWorldPosition();
-		const Quaternion &rotation = GetParent()->GetWorldRotation();
-		physx::PxTransform transform;
-		transform.p.x = position.x;
-		transform.p.y = position.y;
-		transform.p.z = position.z;
-		transform.q.x = rotation.x;
-		transform.q.y = rotation.y;
-		transform.q.z = rotation.z;
-		transform.q.w = rotation.w;
-		_actor->setGlobalPose(transform);
-	}
-		
-	void PhysXDynamicBody::RemoveFromWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::RemoveFromWorld(world);
-			
-		physx::PxScene *scene = world->GetPhysXScene();
-		scene->removeActor(*_actor);
-	}
-
-/*	void PhysXDynamicBody::SetPositionOffset(RN::Vector3 offset)
-	{
-		BulletCollisionObject::SetPositionOffset(offset);
-		_motionState->SetPositionOffset(offset);
 	}*/
 }

@@ -35,16 +35,14 @@ namespace RN
 //		PXAPI void SetPositionOffset(RN::Vector3 offset) final;
 			
 	protected:
-/*		void DidUpdate(SceneNode::ChangeSet changeSet) override;*/
-		
-		void InsertIntoWorld(PhysXWorld *world) override;
-		void RemoveFromWorld(PhysXWorld *world) override;
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
 	private:
 		PhysXShape *_shape;
-		
 		physx::PxRigidStatic *_actor;
 			
+		bool _didUpdatePosition;
+
 		RNDeclareMetaAPI(PhysXStaticBody, PXAPI)
 	};
 }

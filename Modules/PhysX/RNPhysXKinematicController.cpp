@@ -15,14 +15,14 @@ namespace RN
 {
 	RNDefineMeta(PhysXKinematicController, PhysXCollisionObject)
 		
-	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material) : _gravity(0.0f)
+	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material) : _gravity(0.0f), _didUpdatePosition(false)
 	{
 		_material = material->Retain();
 
 		physx::PxCapsuleControllerDesc desc;
 		desc.height = height;
 		desc.radius = radius;
-		desc.position.set(-offset.x, 10.0 - offset.y, -offset.z);
+		desc.position.set(0.0f, 10.0, 0.0f);
 		desc.material = _material->GetPhysXMaterial();
 
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
@@ -46,6 +46,7 @@ namespace RN
 		physx::PxControllerFilters controllerFilter(&filterData);
 		physx::PxControllerCollisionFlags collisionFlags = _controller->move(physx::PxVec3(direction.x, direction.y, direction.z), 0.0f, delta, controllerFilter);
 
+		_didUpdatePosition = true;
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
 		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + offset);
 	}
@@ -148,35 +149,32 @@ namespace RN
 	void BulletKinematicController::Jump()
 	{
 		_controller->jump();
-	}
-		
-	btCollisionObject *BulletKinematicController::GetBulletCollisionObject() const
-	{
-		return _ghost;
 	}*/
 		
-/*	void BulletKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
+	void PhysXKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-		BulletCollisionObject::DidUpdate(changeSet);
+		PhysXCollisionObject::DidUpdate(changeSet);
 			
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetWorldPosition() - offset;
-			_controller->warp(btVector3(position.x, position.y, position.z));
-		}
-	}*/
-		
-		
-	void PhysXKinematicController::InsertIntoWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::InsertIntoWorld(world);
+			if(!_didUpdatePosition)
+			{
+				Vector3 position = GetParent()->GetWorldPosition() - offset;
+				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
+			}
 
-		Vector3 position = GetParent()->GetWorldPosition() - offset;
-		_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
-	}
-		
-	void PhysXKinematicController::RemoveFromWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::RemoveFromWorld(world);
+			_didUpdatePosition = false;
+		}
+
+		if(changeSet & SceneNode::ChangeSet::Attachments)
+		{
+			if(!_owner && GetParent())
+			{
+				Vector3 position = GetParent()->GetWorldPosition() - offset;
+				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
+			}
+
+			_owner = GetParent();
+		}
 	}
 }

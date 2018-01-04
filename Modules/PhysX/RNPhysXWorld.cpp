@@ -76,6 +76,7 @@ namespace RN
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = PhysXWorldFilterShader;
 		sceneDesc.simulationEventCallback = _simulationCallback;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
 		_scene = _physics->createScene(sceneDesc);
 
 		physx::PxPvdSceneClient* pvdClient = _scene->getScenePvdClient();
@@ -142,9 +143,17 @@ namespace RN
 			_scene->fetchResults(true);
 		}
 
-		for(PhysXCollisionObject *object : _collisionObjects)
+
+		physx::PxU32 actorCount = 0;
+		physx::PxActor **actors = _scene->getActiveActors(actorCount);
+		for(int i = 0; i < actorCount; i++)
 		{
-			object->UpdatePosition();
+			void *userData = actors[i]->userData;
+			if(userData)
+			{
+				PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(userData);
+				collisionObject->UpdatePosition();
+			}
 		}
 	}
 
@@ -155,35 +164,4 @@ namespace RN
 		PhysXContactInfo hit;
 		return hit;
 	}
-
-
-	void PhysXWorld::InsertCollisionObject(PhysXCollisionObject *attachment)
-	{
-		Lock();
-		auto iterator = _collisionObjects.find(attachment);
-		if(iterator == _collisionObjects.end())
-		{
-			attachment->InsertIntoWorld(this);
-			_collisionObjects.insert(attachment->Retain());
-		}
-		Unlock();
-	}
-
-	void PhysXWorld::RemoveCollisionObject(PhysXCollisionObject *attachment)
-	{
-		Lock();
-		auto iterator = _collisionObjects.find(attachment);
-		if(iterator != _collisionObjects.end())
-		{
-			attachment->RemoveFromWorld(this);
-			_collisionObjects.erase(attachment);
-			attachment->Release();
-		}
-		Unlock();
-	}
-
-/*	void PhysXWorld::InsertConstraint(BulletConstraint *constraint)
-	{
-		_dynamicsWorld->addConstraint(constraint->GetBulletConstraint());
-	}*/
 }

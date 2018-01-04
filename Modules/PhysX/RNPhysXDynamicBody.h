@@ -64,9 +64,6 @@ namespace RN
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 //		void UpdateFromMaterial(BulletMaterial *material) override;
-		
-		void InsertIntoWorld(PhysXWorld *world) override;
-		void RemoveFromWorld(PhysXWorld *world) override;
 			
 	private:
 		PhysXShape *_shape;

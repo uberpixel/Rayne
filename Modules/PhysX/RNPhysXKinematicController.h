@@ -40,20 +40,16 @@ namespace RN
 		PXAPI void SetGravity(float gravity);*/
 			
 /*		PXAPI bool IsOnGround();
-		PXAPI void Jump();
-			
-		PXAPI btCollisionObject *GetBulletCollisionObject() const override;*/
+		PXAPI void Jump();*/
 			
 	protected:
-		//void DidUpdate(SceneNode::ChangeSet changeSet) override;
-			
-		void InsertIntoWorld(PhysXWorld *world) override;
-		void RemoveFromWorld(PhysXWorld *world) override;
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
 		physx::PxController *_controller;
 		PhysXMaterial *_material;
 
 		float _gravity;
+		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(PhysXKinematicController, PXAPI)
 	};

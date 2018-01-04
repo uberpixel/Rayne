@@ -36,37 +36,10 @@ namespace RN
 	{
 		_contactCallback = std::move(callback);
 	}
-
-/*	void PhysXCollisionObject::SetSimulationCallback(std::function<void()> &&callback)
-	{
-		_simulationStepCallback = std::move(callback);
-	}*/
 		
 	void PhysXCollisionObject::SetPositionOffset(RN::Vector3 offset)
 	{
 		this->offset = offset;
-	}
-		
-	void PhysXCollisionObject::ReInsertIntoWorld()
-	{
-/*		if(_owner)
-		{
-			auto world = _owner;
-				
-			world->Lock();
-//			world->RemoveCollisionObject(this);
-//			world->InsertCollisionObject(this);
-			world->Unlock();
-		}*/
-	}
-		
-	void PhysXCollisionObject::InsertIntoWorld(PhysXWorld *world)
-	{
-		_owner = world;
-	}
-	void PhysXCollisionObject::RemoveFromWorld(PhysXWorld *world)
-	{
-		_owner = nullptr;
 	}
 		
 		
@@ -89,16 +62,4 @@ namespace RN
 			}
 		}*/
 	}
-		
-/*	void PhysXCollisionObject::DidAddToParent()
-	{
-		if(!_owner)
-			BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
-	}
-		
-	void PhysXCollisionObject::WillRemoveFromParent()
-	{
-		if(_owner)
-			_owner->RemoveCollisionObject(this);
-	}*/
 }

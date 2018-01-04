@@ -46,11 +46,6 @@ namespace RN
 
 		PXAPI PhysXContactInfo CastRay(const Vector3 &from, const Vector3 &to);
 
-		PXAPI void InsertCollisionObject(PhysXCollisionObject *attachment);
-		PXAPI void RemoveCollisionObject(PhysXCollisionObject *attachment);
-
-//		PXAPI void InsertConstraint(BulletConstraint *constraint);
-
 		PXAPI physx::PxPhysics *GetPhysXInstance() const { return _physics; }
 		PXAPI physx::PxCooking *GetPhysXCooking() const { return _cooking; }
 		PXAPI physx::PxScene *GetPhysXScene() const { return _scene; }
@@ -74,7 +69,6 @@ namespace RN
 		bool _paused;
 
 		PhysXSimulationCallback *_simulationCallback;
-		std::unordered_set<PhysXCollisionObject *> _collisionObjects;
 
 		RNDeclareMetaAPI(PhysXWorld, PXAPI)
 	};
