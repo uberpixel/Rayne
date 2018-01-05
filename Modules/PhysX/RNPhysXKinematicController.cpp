@@ -46,9 +46,7 @@ namespace RN
 		physx::PxControllerFilters controllerFilter(&filterData);
 		physx::PxControllerCollisionFlags collisionFlags = _controller->move(physx::PxVec3(direction.x, direction.y, direction.z), 0.0f, delta, controllerFilter);
 
-		_didUpdatePosition = true;
-		const physx::PxExtendedVec3 &position = _controller->getPosition();
-		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + offset);
+		UpdatePosition();
 	}
 
 	void PhysXKinematicController::Gravity(float gforce, float delta)
@@ -159,7 +157,7 @@ namespace RN
 		{
 			if(!_didUpdatePosition)
 			{
-				Vector3 position = GetParent()->GetWorldPosition() - offset;
+				Vector3 position = GetParent()->GetWorldPosition() - _offset;
 				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 			}
 
@@ -170,11 +168,23 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetParent()->GetWorldPosition() - offset;
+				Vector3 position = GetParent()->GetWorldPosition() - _offset;
 				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 			}
 
 			_owner = GetParent();
 		}
+	}
+
+	void PhysXKinematicController::UpdatePosition()
+	{
+		if(!_owner)
+		{
+			return;
+		}
+
+		_didUpdatePosition = true;
+		const physx::PxExtendedVec3 &position = _controller->getPosition();
+		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);
 	}
 }

@@ -117,6 +117,15 @@ namespace RN
 		Unlock();
 	}
 
+	Vector3 PhysXWorld::GetGravity()
+	{
+		Lock();
+		const physx::PxVec3 &gravity = _scene->getGravity();
+		Unlock();
+
+		return Vector3(gravity.x, gravity.y, gravity.z);
+	}
+
 	void PhysXWorld::SetStepSize(double stepsize)
 	{
 		_stepSize = stepsize;

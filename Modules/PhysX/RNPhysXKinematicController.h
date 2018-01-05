@@ -25,6 +25,8 @@ namespace RN
 	public:
 		PXAPI PhysXKinematicController(float radius, float height, PhysXMaterial *material);
 		PXAPI ~PhysXKinematicController() override;
+
+		PXAPI void UpdatePosition() override;
 			
 		PXAPI void Move(const Vector3 &direction, float delta);
 		PXAPI void Gravity(float gforce, float delta);

@@ -74,17 +74,6 @@ namespace RN
 			_shape->GetPhysXShape()->setSimulationFilterData(filterData);
 			_shape->GetPhysXShape()->setQueryFilterData(filterData);
 		}
-
-
-/*		const uint32 numShapes = _actor->getNbShapes();
-		physx::PxShape** shapes = (physx::PxShape**)malloc(sizeof(physx::PxShape*)*numShapes);
-		_actor->getShapes(shapes, numShapes);
-		for(uint32 i = 0; i < numShapes; i++)
-		{
-			physx::PxShape* shape = shapes[i];
-			shape->setSimulationFilterData(filterData);
-		}
-		free(shapes);*/
 	}
 	
 		
@@ -107,19 +96,6 @@ namespace RN
 	{
 		_actor->setAngularVelocity(physx::PxVec3(velocity.x, velocity.y, velocity.z));
 	}
-/*	void PhysXDynamicBody::SetCCDMotionThreshold(float threshold)
-	{
-		_rigidBody->setCcdMotionThreshold(threshold);
-	}
-	void PhysXDynamicBody::SetCCDSweptSphereRadius(float radius)
-	{
-		_rigidBody->setCcdSweptSphereRadius(radius);
-	}
-		
-	void PhysXDynamicBody::SetGravity(const RN::Vector3 &gravity)
-	{
-		_rigidBody->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
-	}*/
 		
 	void PhysXDynamicBody::SetDamping(float linear, float angular)
 	{
@@ -145,27 +121,7 @@ namespace RN
 	}
 		
 		
-/*	Vector3 PhysXDynamicBody::GetCenterOfMass() const
-	{
-		const btVector3& center = _rigidBody->getCenterOfMassPosition();
-		return Vector3(center.x(), center.y(), center.z());
-	}
-	Matrix PhysXDynamicBody::GetCenterOfMassTransform() const
-	{
-		const btTransform& transform = _rigidBody->getCenterOfMassTransform();
-			
-		btQuaternion rotation = transform.getRotation();
-		btVector3 position    = transform.getOrigin();
-			
-		Matrix matrix;
-			
-		matrix.Translate(Vector3(position.x(), position.y(), position.z()));
-		matrix.Rotate(Quaternion(rotation.x(), rotation.y(), rotation.z(), rotation.w()));
-			
-		return matrix;
-	}
-		
-		
+/*
 	void PhysXDynamicBody::ApplyForce(const Vector3 &force)
 	{
 		_rigidBody->applyCentralForce(btVector3(force.x, force.y, force.z));
@@ -206,7 +162,7 @@ namespace RN
 		{
 			if(!_didUpdatePosition)
 			{
-				Vector3 position = GetWorldPosition();
+				Vector3 position = GetWorldPosition() - _offset;
 				Quaternion rotation = GetWorldRotation();
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
@@ -217,7 +173,7 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetWorldPosition();
+				Vector3 position = GetWorldPosition() - _offset;
 				Quaternion rotation = GetWorldRotation();
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
@@ -237,17 +193,14 @@ namespace RN
 
 	void PhysXDynamicBody::UpdatePosition()
 	{
+		if(!_owner)
+		{
+			return;
+		}
+
 		_didUpdatePosition = true;
 		const physx::PxTransform &transform = _actor->getGlobalPose();
-		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z));
+		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
 		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	}
-		
-		
-/*	void PhysXDynamicBody::InsertIntoWorld(PhysXWorld *world)
-	{
-		PhysXCollisionObject::InsertIntoWorld(world);
-		physx::PxScene *scene = world->GetPhysXScene();
-		scene->addActor(*_actor);
-	}*/
 }

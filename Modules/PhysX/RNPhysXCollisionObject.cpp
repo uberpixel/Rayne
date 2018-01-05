@@ -39,7 +39,8 @@ namespace RN
 		
 	void PhysXCollisionObject::SetPositionOffset(RN::Vector3 offset)
 	{
-		this->offset = offset;
+		_offset = offset;
+		UpdatePosition();
 	}
 		
 		

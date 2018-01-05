@@ -79,17 +79,6 @@ namespace RN
 			_shape->GetPhysXShape()->setSimulationFilterData(filterData);
 			_shape->GetPhysXShape()->setQueryFilterData(filterData);
 		}
-
-
-/*		const uint32 numShapes = _actor->getNbShapes();
-		physx::PxShape** shapes = (physx::PxShape**)malloc(sizeof(physx::PxShape*)*numShapes);
-		_actor->getShapes(shapes, numShapes);
-		for (uint32 i = 0; i < numShapes; i++)
-		{
-			physx::PxShape* shape = shapes[i];
-			shape->setSimulationFilterData(filterData);
-		}
-		free(shapes);*/
 	}
 	
 	void PhysXStaticBody::DidUpdate(SceneNode::ChangeSet changeSet)
@@ -100,7 +89,7 @@ namespace RN
 		{
 			if(!_didUpdatePosition)
 			{
-				Vector3 position = GetWorldPosition();
+				Vector3 position = GetWorldPosition() - _offset;
 				Quaternion rotation = GetWorldRotation();
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
@@ -112,7 +101,7 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetWorldPosition();
+				Vector3 position = GetWorldPosition() - _offset;
 				Quaternion rotation = GetWorldRotation();
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
@@ -121,9 +110,16 @@ namespace RN
 		}
 	}
 
-/*	void PhysXStaticBody::SetPositionOffset(RN::Vector3 offset)
+	void PhysXStaticBody::UpdatePosition()
 	{
-		BulletCollisionObject::SetPositionOffset(offset);
-		_motionState->SetPositionOffset(offset);
-	}*/
+		if(!_owner)
+		{
+			return;
+		}
+
+		_didUpdatePosition = true;
+		const physx::PxTransform &transform = _actor->getGlobalPose();
+		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
+		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+	}
 }

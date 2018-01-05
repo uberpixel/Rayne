@@ -39,6 +39,7 @@ namespace RN
 		PXAPI ~PhysXWorld();
 
 		PXAPI void SetGravity(const Vector3 &gravity);
+		PXAPI Vector3 GetGravity();
 
 		PXAPI void Update(float delta) override;
 		PXAPI void SetStepSize(double stepsize);

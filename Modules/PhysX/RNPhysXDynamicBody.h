@@ -36,11 +36,7 @@ namespace RN
 		PXAPI void SetAngularVelocity(const Vector3 &velocity);
 		PXAPI void SetDamping(float linear, float angular);
 		PXAPI void SetMaxAngularVelocity(float max);
-
-/*		PXAPI void SetCCDMotionThreshold(float threshold);
-		PXAPI void SetCCDSweptSphereRadius(float radius);
-		PXAPI void SetGravity(const Vector3 &gravity);
-			
+/*
 		PXAPI void ApplyForce(const Vector3 &force);
 		PXAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
 		PXAPI void ClearForces();
@@ -52,14 +48,8 @@ namespace RN
 			
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
-			
-/*		PXAPI Vector3 GetCenterOfMass() const;
-		PXAPI Matrix GetCenterOfMassTransform() const;
-			*/
-//		PXAPI btCollisionObject *GetBulletCollisionObject() const override;
-		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
 
-//		PXAPI void SetPositionOffset(RN::Vector3 offset) final;
+		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
 			
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
