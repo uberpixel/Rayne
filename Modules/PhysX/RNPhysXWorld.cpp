@@ -132,7 +132,7 @@ namespace RN
 		if(_paused)
 			return;
 		
-		if(delta > 4*_stepSize)
+		if(delta > 4*_stepSize || delta < k::EpsilonFloat)
 			return;
 
 //		_remainingTime += delta;
