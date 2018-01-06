@@ -15,6 +15,7 @@
 #include "RNPhysXShape.h"
 #include "RNPhysXDynamicBody.h"
 #include "RNPhysXStaticBody.h"
+#include "RNPhysXConstraint.h"
 #include <unordered_set>
 
 namespace physx
