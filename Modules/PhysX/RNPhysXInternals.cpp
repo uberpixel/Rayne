@@ -33,7 +33,7 @@ namespace RN
 
 				if(nbPoints > 0)
 				{
-					if (objectA->_contactCallback)
+					if(objectA->_contactCallback)
 					{
 						PhysXContactInfo contactInfo;
 						contactInfo.distance = contactPoint.separation;
@@ -44,7 +44,7 @@ namespace RN
 						objectA->_contactCallback(objectB, contactInfo, contactState);
 					}
 
-					if (objectB->_contactCallback)
+					if(objectB->_contactCallback)
 					{
 						PhysXContactInfo contactInfo;
 						contactInfo.distance = contactPoint.separation;
