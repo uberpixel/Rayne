@@ -24,6 +24,8 @@ namespace RN
 	public:
 		PhysXConstraint(physx::PxJoint *shape);
 		PXAPI physx::PxJoint *GetPhysXConstraint() const { return _constraint; }
+		PXAPI void SetMassScale(float scale1, float scale2);
+		PXAPI void SetInertiaScale(float scale1, float scale2);
 			
 	protected:
 		PhysXConstraint();

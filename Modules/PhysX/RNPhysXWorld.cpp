@@ -32,7 +32,7 @@ namespace RN
 		}
 
 		// generate contacts for all that were not filtered above
-		pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
+		pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT| physx::PxPairFlag::eDETECT_CCD_CONTACT;
 
 		// trigger the contact callback for pairs (A,B) where 
 		// the filtermask of A contains the ID of B and vice versa.
@@ -76,7 +76,7 @@ namespace RN
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = PhysXWorldFilterShader;
 		sceneDesc.simulationEventCallback = _simulationCallback;
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD;
 		_scene = _physics->createScene(sceneDesc);
 
 		physx::PxPvdSceneClient* pvdClient = _scene->getScenePvdClient();

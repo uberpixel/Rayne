@@ -27,6 +27,18 @@ namespace RN
 	{
 		_constraint->release();
 	}
+
+	void PhysXConstraint::SetMassScale(float scale1, float scale2)
+	{
+		_constraint->setInvMassScale0(1.0f / scale1);
+		_constraint->setInvMassScale1(1.0f / scale2);
+	}
+
+	void PhysXConstraint::SetInertiaScale(float scale1, float scale2)
+	{
+		_constraint->setInvInertiaScale0(1.0f / scale1);
+		_constraint->setInvInertiaScale1(1.0f / scale2);
+	}
 	
 		
 	PhysXFixedConstraint::PhysXFixedConstraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2)

@@ -108,6 +108,11 @@ namespace RN
 	{
 		_actor->setMaxAngularVelocity(max);
 	}
+
+	void PhysXDynamicBody::SetMaxDepenetrationVelocity(float max)
+	{
+		_actor->setMaxDepenetrationVelocity(max);
+	}
 		
 	Vector3 PhysXDynamicBody::GetLinearVelocity() const
 	{
@@ -118,6 +123,11 @@ namespace RN
 	{
 		const physx::PxVec3& velocity = _actor->getAngularVelocity();
 		return Vector3(velocity.x, velocity.y, velocity.z);
+	}
+
+	void PhysXDynamicBody::SetEnableCCD(bool enable)
+	{
+		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, enable);
 	}
 		
 		
