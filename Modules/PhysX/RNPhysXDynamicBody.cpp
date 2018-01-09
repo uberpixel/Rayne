@@ -129,6 +129,11 @@ namespace RN
 	{
 		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, enable);
 	}
+
+	void PhysXDynamicBody::SetEnableGravity(bool enable)
+	{
+		_actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !enable);
+	}
 		
 		
 /*

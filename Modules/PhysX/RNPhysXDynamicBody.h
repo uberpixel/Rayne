@@ -38,6 +38,7 @@ namespace RN
 		PXAPI void SetMaxAngularVelocity(float max);
 		PXAPI void SetMaxDepenetrationVelocity(float max);
 		PXAPI void SetEnableCCD(bool enable);
+		PXAPI void SetEnableGravity(bool enable);
 /*
 		PXAPI void ApplyForce(const Vector3 &force);
 		PXAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
