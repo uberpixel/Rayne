@@ -166,8 +166,59 @@ namespace RN
 	{
 		_rigidBody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
 	}*/
-		
-		
+
+	void PhysXDynamicBody::SetEnableKinematic(bool enable)
+	{
+		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, enable);
+	}
+
+	void PhysXDynamicBody::SetKinematicTarget(const Vector3 &position, const Quaternion &rotation)
+	{
+		_actor->setKinematicTarget(physx::PxTransform(position.x, position.y, position.z, physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+	}
+	
+	float PhysXDynamicBody::SweepTest(const Vector3 &direction) const
+	{
+		const physx::PxTransform &pose = _actor->getGlobalPose();
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		float length = direction.GetLength();
+		Vector3 normalizedDirection = direction.GetNormalized();
+		physx::PxSweepBuffer hit;
+		physx::PxFilterData filterData;
+		filterData.word0 = _collisionFilterMask;
+
+		if(_shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
+		{
+			PhysXCompoundShape *compound = _shape->Downcast<PhysXCompoundShape>();
+			for(PhysXShape *tempShape : compound->_shapes)
+			{
+				physx::PxShape *shape = tempShape->GetPhysXShape();
+				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+			}
+			for (PhysXShape *tempShape : compound->_shapes)
+			{
+				physx::PxShape *shape = tempShape->GetPhysXShape();
+				scene->sweep(shape->getGeometry().capsule(), pose, physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+			}
+			for (PhysXShape *tempShape : compound->_shapes)
+			{
+				physx::PxShape *shape = tempShape->GetPhysXShape();
+				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+			}
+		}
+		else
+		{
+			physx::PxShape *shape = _shape->GetPhysXShape();
+			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+			scene->sweep(shape->getGeometry().capsule(), pose, physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+		}
+
+		if (hit.getNbAnyHits() == 0)
+			return 0.0f;
+
+		return hit.getAnyHit(0).distance;
+	}
 		
 	void PhysXDynamicBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{

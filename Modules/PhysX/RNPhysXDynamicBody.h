@@ -39,6 +39,9 @@ namespace RN
 		PXAPI void SetMaxDepenetrationVelocity(float max);
 		PXAPI void SetEnableCCD(bool enable);
 		PXAPI void SetEnableGravity(bool enable);
+		PXAPI void SetEnableKinematic(bool enable);
+
+		PXAPI void SetKinematicTarget(const Vector3 &position, const Quaternion &rotation);
 /*
 		PXAPI void ApplyForce(const Vector3 &force);
 		PXAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
@@ -51,6 +54,8 @@ namespace RN
 			
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
+
+		PXAPI float SweepTest(const Vector3 &direction) const;
 
 		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
 			
