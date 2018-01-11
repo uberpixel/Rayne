@@ -30,6 +30,7 @@ namespace RN
 		PXAPI void UpdatePosition() override;
 
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
+		PXAPI void SetCollisionFilterID(uint32 id, uint32 ignoreid) override;
 			
 		PXAPI void SetMass(float mass);
 		PXAPI void SetLinearVelocity(const Vector3 &velocity);
@@ -55,7 +56,7 @@ namespace RN
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
 
-		PXAPI float SweepTest(const Vector3 &direction) const;
+		PXAPI float SweepTest(const Vector3 &direction, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;
 
 		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
 			

@@ -18,6 +18,8 @@ namespace RN
 		PhysXCollisionObject::PhysXCollisionObject() :
 		_collisionFilterGroup(0),
 		_collisionFilterMask(0xffffffff),
+		_collisionFilterID(0),
+		_collisionFilterIgnoreID(0),
 		_owner(nullptr)
 	{}
 		
@@ -30,6 +32,12 @@ namespace RN
 	{
 		_collisionFilterGroup = group;
 		_collisionFilterMask = mask;
+	}
+
+	void PhysXCollisionObject::SetCollisionFilterID(uint32 id, uint32 ignoreid)
+	{
+		_collisionFilterID = id;
+		_collisionFilterIgnoreID = ignoreid;
 	}
 		
 	void PhysXCollisionObject::SetContactCallback(std::function<void (PhysXCollisionObject *, const PhysXContactInfo&, ContactState)> &&callback)

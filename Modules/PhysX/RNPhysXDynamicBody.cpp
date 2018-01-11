@@ -59,6 +59,34 @@ namespace RN
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+
+		if(_shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
+		{
+			PhysXCompoundShape *compound = _shape->Downcast<PhysXCompoundShape>();
+			for(PhysXShape *tempShape : compound->_shapes)
+			{
+				tempShape->GetPhysXShape()->setSimulationFilterData(filterData);
+				tempShape->GetPhysXShape()->setQueryFilterData(filterData);
+			}
+		}
+		else
+		{
+			_shape->GetPhysXShape()->setSimulationFilterData(filterData);
+			_shape->GetPhysXShape()->setQueryFilterData(filterData);
+		}
+	}
+
+	void PhysXDynamicBody::SetCollisionFilterID(uint32 id, uint32 ignoreid)
+	{
+		PhysXCollisionObject::SetCollisionFilterID(id, ignoreid);
+
+		physx::PxFilterData filterData;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
 
 		if(_shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
 		{
@@ -177,12 +205,18 @@ namespace RN
 		_actor->setKinematicTarget(physx::PxTransform(position.x, position.y, position.z, physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 	}
 	
-	float PhysXDynamicBody::SweepTest(const Vector3 &direction) const
+	float PhysXDynamicBody::SweepTest(const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
 	{
-		const physx::PxTransform &pose = _actor->getGlobalPose();
+		physx::PxTransform pose = _actor->getGlobalPose();
+		pose.p += physx::PxVec3(offsetPosition.x, offsetPosition.y, offsetPosition.z);
+		pose.q *= physx::PxQuat(offsetRotation.x, offsetRotation.y, offsetRotation.z, offsetRotation.w);
+
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		float length = direction.GetLength();
-		Vector3 normalizedDirection = direction.GetNormalized();
+		physx::PxVec3 normalizedDirection = physx::PxVec3(direction.x, direction.y, direction.z);
+		if(normalizedDirection.magnitude() < k::EpsilonFloat)
+			normalizedDirection = physx::PxVec3(0.0f, 0.0f, -1.0f);
+		normalizedDirection.normalize();
 		physx::PxSweepBuffer hit;
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterMask;
@@ -195,12 +229,12 @@ namespace RN
 				physx::PxShape *shape = tempShape->GetPhysXShape();
 				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 			}
-			for (PhysXShape *tempShape : compound->_shapes)
+			for(PhysXShape *tempShape : compound->_shapes)
 			{
 				physx::PxShape *shape = tempShape->GetPhysXShape();
-				scene->sweep(shape->getGeometry().capsule(), pose, physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
 			}
-			for (PhysXShape *tempShape : compound->_shapes)
+			for(PhysXShape *tempShape : compound->_shapes)
 			{
 				physx::PxShape *shape = tempShape->GetPhysXShape();
 				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
@@ -210,7 +244,7 @@ namespace RN
 		{
 			physx::PxShape *shape = _shape->GetPhysXShape();
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-			scene->sweep(shape->getGeometry().capsule(), pose, physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		}
 
