@@ -117,9 +117,12 @@ namespace RN
 			return;
 		}
 
-		_didUpdatePosition = true;
 		const physx::PxTransform &transform = _actor->getGlobalPose();
+
+		_didUpdatePosition = true;
 		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
+
+		_didUpdatePosition = true;
 		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	}
 }

@@ -90,7 +90,7 @@ namespace RN
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
 		if(hit.getNbAnyHits() == 0)
-			return 0.0f;
+			return -1.0f;
 
 		return hit.getAnyHit(0).distance;
 	}
@@ -183,8 +183,9 @@ namespace RN
 			return;
 		}
 
-		_didUpdatePosition = true;
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
+
+		_didUpdatePosition = true;
 		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);
 	}
 }

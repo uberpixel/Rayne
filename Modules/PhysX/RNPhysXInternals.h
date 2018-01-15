@@ -14,6 +14,21 @@
 
 namespace RN
 {
+	class PhysXCallback
+	{
+	public:
+		static physx::PxFilterFlags PhysXCallback::CollisionFilterShader(
+			physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0,
+			physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1,
+			physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
+	};
+
+	class PhysXQueryFilterCallback : public physx::PxQueryFilterCallback
+	{
+		physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData& filterData, const physx::PxShape* shape, const physx::PxRigidActor* actor, physx::PxHitFlags& queryFlags) final;
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit) final;
+	};
+
 	class PhysXSimulationCallback : public physx::PxSimulationEventCallback
 	{
 	public:

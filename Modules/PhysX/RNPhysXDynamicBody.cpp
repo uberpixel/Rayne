@@ -9,6 +9,7 @@
 #include "RNPhysXDynamicBody.h"
 #include "RNPhysXWorld.h"
 #include "PxPhysicsAPI.h"
+#include "RNPhysXInternals.h"
 
 namespace RN
 {
@@ -219,7 +220,13 @@ namespace RN
 		normalizedDirection.normalize();
 		physx::PxSweepBuffer hit;
 		physx::PxFilterData filterData;
-		filterData.word0 = _collisionFilterMask;
+		float closestHitDistance = -1.0f;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+
+		PhysXQueryFilterCallback filterCallback;
 
 		if(_shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
 		{
@@ -232,7 +239,13 @@ namespace RN
 			for(PhysXShape *tempShape : compound->_shapes)
 			{
 				physx::PxShape *shape = tempShape->GetPhysXShape();
-				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
+
+				if(hit.getNbAnyHits() > 0)
+				{
+					if(hit.getAnyHit(0).distance < closestHitDistance || closestHitDistance < -0.5f)
+						closestHitDistance = hit.getAnyHit(0).distance;
+				}
 			}
 			for(PhysXShape *tempShape : compound->_shapes)
 			{
@@ -244,14 +257,60 @@ namespace RN
 		{
 			physx::PxShape *shape = _shape->GetPhysXShape();
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC));
+			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+
+			if(hit.getNbAnyHits() > 0)
+			{
+				if(hit.getAnyHit(0).distance < closestHitDistance || closestHitDistance < -0.5f)
+					closestHitDistance = hit.getAnyHit(0).distance;
+			}
 		}
 
-		if (hit.getNbAnyHits() == 0)
-			return 0.0f;
+		return closestHitDistance;
+	}
 
-		return hit.getAnyHit(0).distance;
+	Quaternion PhysXDynamicBody::RotationSweepTest(bool &wasBlocked, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
+	{
+		wasBlocked = false;
+
+		Quaternion rotationDiff = targetRoation / (GetWorldRotation() * offsetRotation);
+		rotationDiff.Normalize();
+		Vector4 axisAngleDiff = rotationDiff.GetAxisAngle();
+		if(axisAngleDiff.w < stepSize)
+			return GetWorldRotation();
+
+		uint32 maxSteps = axisAngleDiff.w / stepSize + 1;
+		float actualStepSize = 1.0f / static_cast<float>(maxSteps);
+		float slerpFactor = actualStepSize;
+
+		Quaternion lastRotation = offsetRotation;
+		Quaternion newRotation = offsetRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
+		Vector3 lastDirection = lastRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
+		Vector3 newDirection = newRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
+		Vector3 directionDiff = newDirection - lastDirection;
+		directionDiff.Normalize(sweepSize);
+
+		while(slerpFactor < 1.0f)
+		{
+			float distance = SweepTest(directionDiff * 2.0f, offsetPosition - directionDiff, newRotation);
+			if(distance > -1.0f)
+			{
+				wasBlocked = true;
+				return lastRotation;
+			}
+
+			slerpFactor += actualStepSize;
+			lastRotation = newRotation;
+			newRotation = offsetRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
+
+			lastDirection = lastRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
+			newDirection = newRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
+			directionDiff = newDirection - lastDirection;
+			directionDiff.Normalize(sweepSize);
+		}
+
+		return newRotation;
 	}
 		
 	void PhysXDynamicBody::DidUpdate(SceneNode::ChangeSet changeSet)
@@ -298,9 +357,12 @@ namespace RN
 			return;
 		}
 
-		_didUpdatePosition = true;
 		const physx::PxTransform &transform = _actor->getGlobalPose();
+
+		_didUpdatePosition = true;
 		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
+
+		_didUpdatePosition = true;
 		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	}
 }

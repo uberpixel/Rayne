@@ -19,32 +19,6 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	physx::PxFilterFlags PhysXWorldFilterShader(
-		physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0,
-		physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1,
-		physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
-	{
-		// let triggers through
-		if(physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
-		{
-			pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
-			return physx::PxFilterFlag::eDEFAULT;
-		}
-
-		// generate contacts for all that were not filtered above
-		pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT | physx::PxPairFlag::eDETECT_CCD_CONTACT | physx::PxPairFlag::eNOTIFY_THRESHOLD_FORCE_FOUND | physx::PxPairFlag::eNOTIFY_THRESHOLD_FORCE_PERSISTS | physx::PxPairFlag::eNOTIFY_CONTACT_POINTS;
-
-		// trigger the contact callback for pairs (A,B) where 
-		// the filtermask of A contains the ID of B and vice versa.
-		bool filterMask = (filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1);
-		bool filterID = (filterData0.word3 == 0 && filterData1.word3 == 0) || (filterData0.word2 != filterData1.word3 && filterData0.word3 != filterData1.word2);
-		if(filterMask && filterID)
-			return physx::PxFilterFlag::eDEFAULT;
-
-		return physx::PxFilterFlag::eKILL;
-	}
-
-
 	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _remainingTime(0.0), _stepSize(1.0 / 90.0), _paused(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
@@ -76,7 +50,7 @@ namespace RN
 		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
 		_dispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = _dispatcher;
-		sceneDesc.filterShader = PhysXWorldFilterShader;
+		sceneDesc.filterShader = PhysXCallback::CollisionFilterShader;
 		sceneDesc.simulationEventCallback = _simulationCallback;
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD;
 		_scene = _physics->createScene(sceneDesc);
