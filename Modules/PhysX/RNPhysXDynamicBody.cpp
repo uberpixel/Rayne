@@ -210,7 +210,7 @@ namespace RN
 	{
 		physx::PxTransform pose = _actor->getGlobalPose();
 		pose.p += physx::PxVec3(offsetPosition.x, offsetPosition.y, offsetPosition.z);
-		pose.q *= physx::PxQuat(offsetRotation.x, offsetRotation.y, offsetRotation.z, offsetRotation.w);
+		pose.q = physx::PxQuat(offsetRotation.x, offsetRotation.y, offsetRotation.z, offsetRotation.w) * pose.q;
 
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		float length = direction.GetLength();
@@ -274,7 +274,8 @@ namespace RN
 	{
 		wasBlocked = false;
 
-		Quaternion rotationDiff = targetRoation / (GetWorldRotation() * offsetRotation);
+		Quaternion startRotation = offsetRotation*GetWorldRotation();
+		Quaternion rotationDiff = targetRoation / startRotation;
 		rotationDiff.Normalize();
 		Vector4 axisAngleDiff = rotationDiff.GetAxisAngle();
 		if(axisAngleDiff.w < stepSize)
@@ -284,8 +285,8 @@ namespace RN
 		float actualStepSize = 1.0f / static_cast<float>(maxSteps);
 		float slerpFactor = actualStepSize;
 
-		Quaternion lastRotation = offsetRotation;
-		Quaternion newRotation = offsetRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
+		Quaternion lastRotation = startRotation;
+		Quaternion newRotation = startRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
 		Vector3 lastDirection = lastRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
 		Vector3 newDirection = newRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
 		Vector3 directionDiff = newDirection - lastDirection;
@@ -293,7 +294,7 @@ namespace RN
 
 		while(slerpFactor < 1.0f)
 		{
-			float distance = SweepTest(directionDiff * 2.0f, offsetPosition - directionDiff, newRotation);
+			float distance = SweepTest(directionDiff * 2.0f, offsetPosition - directionDiff, newRotation / GetWorldRotation());
 			if(distance > -1.0f)
 			{
 				wasBlocked = true;
@@ -302,7 +303,7 @@ namespace RN
 
 			slerpFactor += actualStepSize;
 			lastRotation = newRotation;
-			newRotation = offsetRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
+			newRotation = startRotation.GetLerpSpherical(targetRoation, slerpFactor).GetNormalized();
 
 			lastDirection = lastRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
 			newDirection = newRotation.GetRotatedVector(Vector3(0.0f, 0.0f, -1.0f));
