@@ -206,7 +206,7 @@ namespace RN
 		_actor->setKinematicTarget(physx::PxTransform(position.x, position.y, position.z, physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 	}
 	
-	float PhysXDynamicBody::SweepTest(const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
+	bool PhysXDynamicBody::SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
 	{
 		physx::PxTransform pose = _actor->getGlobalPose();
 		pose.p += physx::PxVec3(offsetPosition.x, offsetPosition.y, offsetPosition.z);
@@ -220,7 +220,6 @@ namespace RN
 		normalizedDirection.normalize();
 		physx::PxSweepBuffer hit;
 		physx::PxFilterData filterData;
-		float closestHitDistance = -1.0f;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;
 		filterData.word2 = _collisionFilterID;
@@ -241,10 +240,14 @@ namespace RN
 				physx::PxShape *shape = tempShape->GetPhysXShape();
 				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
 
-				if(hit.getNbAnyHits() > 0)
+				for(int i = 0; i < hit.getNbAnyHits(); i++)
 				{
-					if(hit.getAnyHit(0).distance < closestHitDistance || closestHitDistance < -0.5f)
-						closestHitDistance = hit.getAnyHit(0).distance;
+					PhysXContactInfo contact;
+					contact.distance = hit.getAnyHit(i).distance;
+					contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
+					contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
+					contact.node = static_cast<SceneNode*>(hit.getAnyHit(i).actor->userData);
+					contactInfo.push_back(contact);
 				}
 			}
 			for(PhysXShape *tempShape : compound->_shapes)
@@ -260,20 +263,22 @@ namespace RN
 			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
-			if(hit.getNbAnyHits() > 0)
+			for(int i = 0; i <hit.getNbAnyHits(); i++)
 			{
-				if(hit.getAnyHit(0).distance < closestHitDistance || closestHitDistance < -0.5f)
-					closestHitDistance = hit.getAnyHit(0).distance;
+				PhysXContactInfo contact;
+				contact.distance = hit.getAnyHit(i).distance;
+				contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
+				contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
+				contact.node = static_cast<SceneNode*>(hit.getAnyHit(i).actor->userData);
+				contactInfo.push_back(contact);
 			}
 		}
 
-		return closestHitDistance;
+		return (contactInfo.size() > 0);
 	}
 
-	Quaternion PhysXDynamicBody::RotationSweepTest(bool &wasBlocked, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
+	Quaternion PhysXDynamicBody::RotationSweepTest(std::vector<PhysXContactInfo> &contactInfo, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
 	{
-		wasBlocked = false;
-
 		Quaternion startRotation = offsetRotation*GetWorldRotation();
 		Quaternion rotationDiff = targetRoation / startRotation;
 		rotationDiff.Normalize();
@@ -294,10 +299,9 @@ namespace RN
 
 		while(slerpFactor < 1.0f)
 		{
-			float distance = SweepTest(directionDiff * 2.0f, offsetPosition - directionDiff, newRotation / GetWorldRotation());
-			if(distance > -1.0f)
+			bool isBlocked = SweepTest(contactInfo, directionDiff * 2.0f, offsetPosition - directionDiff, newRotation / GetWorldRotation());
+			if(isBlocked)
 			{
-				wasBlocked = true;
 				return lastRotation;
 			}
 
