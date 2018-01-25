@@ -30,7 +30,6 @@ namespace RN
 		NDAPI void Gravity(float gforce, float delta);
 		NDAPI float SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
 
-		NDAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
 		NDAPI Vector3 GetFeetOffset() const;
 
 	/*	PXAPI void SetFallSpeed(float speed);

@@ -15,6 +15,24 @@ namespace RN
 
 	NewtonWorld *NewtonWorld::_sharedInstance = nullptr;
 
+	int NewtonWorld::AABBOverlapCallback(const NewtonMaterial* const material, const NewtonBody* const body0, const NewtonBody* const body1, int threadIndex)
+	{
+		NewtonCollisionObject *object0 = static_cast<NewtonCollisionObject*>(NewtonBodyGetUserData(body0));
+		NewtonCollisionObject *object1 = static_cast<NewtonCollisionObject*>(NewtonBodyGetUserData(body1));
+
+		bool filterMask = (object0->GetCollisionFilterGroup() & object1->GetCollisionFilterMask()) && (object1->GetCollisionFilterGroup() & object0->GetCollisionFilterMask());
+		bool filterID = (object0->GetCollisionFilterIgnoreID() == 0 && object1->GetCollisionFilterIgnoreID() == 0) || (object0->GetCollisionFilterID() != object1->GetCollisionFilterIgnoreID() && object0->GetCollisionFilterIgnoreID() != object1->GetCollisionFilterID());
+		if(filterMask && filterID)
+			return 1;
+
+		return 0;
+	}
+
+	void NewtonWorld::ProcessCallback(const NewtonJoint* const contact, float timestep, int threadIndex)
+	{
+		
+	}
+
 	NewtonWorld::NewtonWorld(const Vector3 &gravity, bool debug) : _paused(false), _gravity(gravity)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
@@ -25,6 +43,7 @@ namespace RN
 
 		// Create the Newton world.
 		_newtonInstance = NewtonCreate();
+		NewtonMaterialSetCollisionCallback(_newtonInstance, 0, 0, AABBOverlapCallback, ProcessCallback);
 	}
 
 	NewtonWorld::~NewtonWorld()
@@ -47,6 +66,11 @@ namespace RN
 //		Lock();
 		return _gravity;
 //		Unlock();
+	}
+
+	void NewtonWorld::SetSubsteps(uint8 substeps)
+	{
+		NewtonSetNumberOfSubsteps(_newtonInstance, substeps);
 	}
 
 	void NewtonWorld::SetPaused(bool paused)

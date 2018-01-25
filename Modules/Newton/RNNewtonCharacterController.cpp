@@ -17,7 +17,15 @@ namespace RN
 
 	unsigned int NewtonCharacterController::SweepTestPreFilter(const NewtonBody* const body, const NewtonCollision* const collision, void* const userData)
 	{
-		return 1;
+		NewtonCollisionObject *object0 = static_cast<NewtonCollisionObject*>(NewtonBodyGetUserData(body));
+		NewtonCollisionObject *object1 = static_cast<NewtonCollisionObject*>(userData);
+
+		bool filterMask = (object0->GetCollisionFilterGroup() & object1->GetCollisionFilterMask()) && (object1->GetCollisionFilterGroup() & object0->GetCollisionFilterMask());
+		bool filterID = (object0->GetCollisionFilterIgnoreID() == 0 && object1->GetCollisionFilterIgnoreID() == 0) || (object0->GetCollisionFilterID() != object1->GetCollisionFilterIgnoreID() && object0->GetCollisionFilterIgnoreID() != object1->GetCollisionFilterID());
+		if(filterMask && filterID)
+			return 1;
+
+		return 0;
 	}
 
 /*	float NewtonCharacterController::SweepTestFilter(const NewtonBody* const body, const NewtonCollision* constshapeHit, const float* const hitContact, const float* const hitNormal, long collisionID, void* constuserData, float intersectParam)
@@ -56,7 +64,7 @@ namespace RN
 	{
 		float groundDistance = SweepTest(RN::Vector3(0.0f, -1000.0f, 0.0f));
 		groundDistance -= _stepHeight;
-		if(groundDistance < k::EpsilonFloat && _gravity < k::EpsilonFloat)
+		if(groundDistance < 0.0f && _gravity < k::EpsilonFloat)
 		{
 			_gravity = 0.0f;
 		}
@@ -73,14 +81,13 @@ namespace RN
 			}
 		}
 
-		if(groundDistance > 0.0f)
-			Move(RN::Vector3(0.0f, -groundDistance, 0.0f), delta);
+		Move(RN::Vector3(0.0f, -groundDistance, 0.0f), delta);
 	}
 
 	float NewtonCharacterController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
 	{
 		Vector3 startPosition = GetWorldPosition() + offset + Vector3(0.0f, _stepHeight, 0.0f);
-		Matrix poseMatrix = /*Matrix::WithRotation(GetWorldRotation())**/Matrix::WithTranslation(startPosition);
+		Matrix poseMatrix = Matrix::WithTranslation(startPosition) * Matrix::WithRotation(GetWorldRotation());
 		Vector3 targetPosition = GetWorldPosition() + offset + Vector3(0.0f, _stepHeight, 0.0f) + direction;
 
 		::NewtonWorld *newtonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
@@ -88,23 +95,6 @@ namespace RN
 		NewtonWorldConvexCast(newtonInstance, poseMatrix.m, &targetPosition.x, _shape->GetNewtonShape(), &params, (void*)this, SweepTestPreFilter, nullptr, 0, 0);
 
 		return direction.GetLength()*params;
-	}
-
-	void NewtonCharacterController::SetCollisionFilter(uint32 group, uint32 mask)
-	{
-		NewtonCollisionObject::SetCollisionFilter(group, mask);
-
-/*		physx::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-
-		physx::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		shape->setSimulationFilterData(filterData);
-		shape->setQueryFilterData(filterData);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);*/
-
-//		_controller->invalidateCache();
 	}
 
 	Vector3 NewtonCharacterController::GetFeetOffset() const

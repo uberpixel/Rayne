@@ -21,9 +21,22 @@ namespace RN
 		{
 			NewtonWorld *newtonWorld = NewtonWorld::GetSharedInstance();
 			Vector3 gravity = newtonWorld->GetGravity();
+
+			float Ixx;
+			float Iyy;
+			float Izz;
+			float mass;
+			NewtonBodyGetMass(body, &mass, &Ixx, &Iyy, &Izz);
+			gravity *= mass;
 			NewtonBodySetForce(body, &gravity.x);
 		}
 
+		userObject->UpdatePosition();
+	}
+
+	void NewtonRigidBody::TransformCallback(const NewtonBody *body, const float *matrix, int threadIndex)
+	{
+		NewtonRigidBody *userObject = static_cast<NewtonRigidBody*>(NewtonBodyGetUserData(body));
 		userObject->UpdatePosition();
 	}
 		
@@ -39,23 +52,17 @@ namespace RN
 		SetMass(mass);
 
 		if(mass > k::EpsilonFloat)
+		{
 			NewtonBodySetForceAndTorqueCallback(_body, NewtonRigidBody::ForceAndTorqueCallback);
+			NewtonBodySetTransformCallback(_body, TransformCallback);
+		}
+			
 	}
 		
 	NewtonRigidBody::~NewtonRigidBody()
 	{
 		NewtonDestroyBody(_body);
 		_shape->Release();
-	}
-
-	void NewtonRigidBody::SetCollisionFilter(uint32 group, uint32 mask)
-	{
-		NewtonCollisionObject::SetCollisionFilter(group, mask);
-	}
-
-	void NewtonRigidBody::SetCollisionFilterID(uint32 id, uint32 ignoreid)
-	{
-		NewtonCollisionObject::SetCollisionFilterID(id, ignoreid);
 	}
 	
 		
@@ -80,12 +87,12 @@ namespace RN
 
 	void NewtonRigidBody::SetLinearVelocity(const Vector3 &velocity)
 	{
-		NewtonBodySetVelocityNoSleep(_body, &velocity.x);
+		NewtonBodySetVelocity(_body, &velocity.x);
 	}
 
 	void NewtonRigidBody::SetAngularVelocity(const Vector3 &velocity)
 	{
-		NewtonBodySetOmegaNoSleep(_body, &velocity.x);
+		NewtonBodySetOmega(_body, &velocity.x);
 	}
 		
 	void NewtonRigidBody::SetDamping(float linear, float angular)

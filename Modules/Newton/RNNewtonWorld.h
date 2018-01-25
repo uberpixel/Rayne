@@ -19,6 +19,8 @@
 #include <unordered_set>
 
 class NewtonWorld;
+class NewtonMaterial;
+class NewtonJoint;
 
 namespace RN
 {
@@ -31,6 +33,8 @@ namespace RN
 		NDAPI void SetGravity(const Vector3 &gravity);
 		NDAPI Vector3 GetGravity();
 
+		NDAPI void SetSubsteps(uint8 substeps);
+
 		NDAPI void Update(float delta) override;
 		NDAPI void SetPaused(bool paused);
 
@@ -42,6 +46,8 @@ namespace RN
 
 	private:
 		static NewtonWorld *_sharedInstance;
+		static int AABBOverlapCallback(const NewtonMaterial* const material, const NewtonBody* const body0, const NewtonBody* const body1, int threadIndex);
+		static void ProcessCallback(const NewtonJoint* const contact, float timestep, int threadIndex);
 
 		::NewtonWorld* _newtonInstance;
 

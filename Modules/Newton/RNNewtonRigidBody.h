@@ -25,9 +25,6 @@ namespace RN
 		NDAPI static NewtonRigidBody *WithShape(NewtonShape *shape, float mass);
 
 		NDAPI void UpdatePosition() override;
-
-		NDAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
-		NDAPI void SetCollisionFilterID(uint32 id, uint32 ignoreid) override;
 			
 		NDAPI void SetMass(float mass);
 		NDAPI void SetLinearVelocity(const Vector3 &velocity);
@@ -59,6 +56,7 @@ namespace RN
 			
 	private:
 		static void ForceAndTorqueCallback(const NewtonBody *body, float delta, int threadIndex);
+		static void TransformCallback(const NewtonBody *body, const float *matrix, int threadIndex);
 
 		NewtonShape *_shape;
 		::NewtonBody *_body;

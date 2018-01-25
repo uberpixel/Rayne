@@ -48,6 +48,8 @@ namespace RN
 		
 		uint32 GetCollisionFilterGroup() const { return _collisionFilterGroup; }
 		uint32 GetCollisionFilterMask() const { return _collisionFilterMask; }
+		uint32 GetCollisionFilterID() const { return _collisionFilterID; }
+		uint32 GetCollisionFilterIgnoreID() const { return _collisionFilterIgnoreID; }
 			
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
