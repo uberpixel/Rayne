@@ -22,3 +22,4 @@ xcode-build
 Modules/SteamAudio/Vendor/steamaudio
 /Modules/PhysX/Vendor/PhysX-3.4
 BUILD_VS
+Modules/Newton/Vendor/newton-dynamics
