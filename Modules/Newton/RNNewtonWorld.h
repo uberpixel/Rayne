@@ -14,7 +14,7 @@
 //#include "RNPhysXMaterial.h"
 #include "RNNewtonShape.h"
 #include "RNNewtonRigidBody.h"
-//#include "RNPhysXConstraint.h"
+#include "RNNewtonConstraint.h"
 #include "RNNewtonCharacterController.h"
 #include <unordered_set>
 

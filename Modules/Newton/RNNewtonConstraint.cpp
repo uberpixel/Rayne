@@ -1,57 +1,79 @@
 //
-//  RNPhysXConstraint.cpp
-//  Rayne-PhysX
+//  RNNewtonConstraint.cpp
+//  Rayne-Newton
 //
 //  Copyright 2018 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNPhysXConstraint.h"
-#include "PxPhysicsAPI.h"
-#include "RNPhysXWorld.h"
+#include "RNNewtonConstraint.h"
+#include "Newton.h"
+#include "RNNewtonWorld.h"
+
+#include "dCustomKinematicController.h"
 
 namespace RN
 {
-	RNDefineMeta(PhysXConstraint, Object)
-	RNDefineMeta(PhysXFixedConstraint, PhysXConstraint)
+	RNDefineMeta(NewtonConstraint, Object)
+	RNDefineMeta(NewtonFixedConstraint, NewtonConstraint)
+	RNDefineMeta(NewtonKinematicConstraint, NewtonConstraint)
 		
-	PhysXConstraint::PhysXConstraint() :
+	NewtonConstraint::NewtonConstraint() :
 		_constraint(nullptr)
 	{}
 		
-	PhysXConstraint::PhysXConstraint(physx::PxJoint *constraint) :
+	NewtonConstraint::NewtonConstraint(NewtonJoint *constraint) :
 		_constraint(constraint)
 	{}
 		
-	PhysXConstraint::~PhysXConstraint()
+	NewtonConstraint::~NewtonConstraint()
 	{
-		_constraint->release();
-	}
-
-	void PhysXConstraint::SetMassScale(float scale1, float scale2)
-	{
-		_constraint->setInvMassScale0(1.0f / scale1);
-		_constraint->setInvMassScale1(1.0f / scale2);
-	}
-
-	void PhysXConstraint::SetInertiaScale(float scale1, float scale2)
-	{
-		_constraint->setInvInertiaScale0(1.0f / scale1);
-		_constraint->setInvInertiaScale1(1.0f / scale2);
+		if(_constraint)
+		{
+			::NewtonWorld *netwonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
+			NewtonDestroyJoint(netwonInstance, _constraint);
+		}
 	}
 	
-		
-	PhysXFixedConstraint::PhysXFixedConstraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2)
+	
+	NewtonFixedConstraint::NewtonFixedConstraint(NewtonRigidBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, NewtonRigidBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2)
 	{
-		physx::PxFixedJoint *joint = physx::PxFixedJointCreate(*PhysXWorld::GetSharedInstance()->GetPhysXInstance(),
-			body1->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
-			body2->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
-		_constraint = joint;
+		//TODO: Implement
+//		::NewtonWorld *netwonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
+//		_constraint = NewtonConstraintCreateUserJoint(netwonInstance, 0, SubmitCallback, body1->GetNewtonBody(), body2->GetNewtonBody());
 	}
 		
-	PhysXFixedConstraint *PhysXFixedConstraint::WithBodiesAndOffsets(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2)
+	NewtonFixedConstraint *NewtonFixedConstraint::WithBodiesAndOffsets(NewtonRigidBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, NewtonRigidBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2)
 	{
-		PhysXFixedConstraint *constraint = new PhysXFixedConstraint(body1, offset1, rotation1, body2, offset2, rotation2);
+		NewtonFixedConstraint *constraint = new NewtonFixedConstraint(body1, offset1, rotation1, body2, offset2, rotation2);
+		return constraint->Autorelease();
+	}
+
+
+	NewtonKinematicConstraint::NewtonKinematicConstraint(class NewtonRigidBody* body, const RN::Vector3& offset)
+	{
+		_joint = new dCustomKinematicController(body->GetNewtonBody(), dVector(offset.x, offset.y, offset.z, 1.0));
+
+		float mass, Ixx, Iyy, Izz;
+		NewtonBodyGetMass(body->GetNewtonBody(), &mass, &Ixx, &Iyy, &Izz);
+		_joint->SetMaxAngularFriction(80.0f);
+		_joint->SetMaxLinearFriction(40.0f);
+	}
+
+	NewtonKinematicConstraint::~NewtonKinematicConstraint()
+	{
+		delete _joint;
+	}
+
+	void NewtonKinematicConstraint::SetPose(Vector3 position, Quaternion rotation)
+	{
+		_joint->SetTargetPosit(dVector(position.x, position.y, position.z, 1.0));
+		_joint->SetTargetRotation(dQuaternion(rotation.w, rotation.x, rotation.y, rotation.z));
+	}
+
+	NewtonKinematicConstraint* NewtonKinematicConstraint::WithBodyAndPose(class NewtonRigidBody* body, const RN::Vector3& offset)
+	{
+		NewtonKinematicConstraint *constraint = new NewtonKinematicConstraint(body, offset);
 		return constraint->Autorelease();
 	}
 }

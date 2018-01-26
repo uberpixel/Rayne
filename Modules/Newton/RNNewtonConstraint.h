@@ -1,50 +1,62 @@
 //
-//  RNPhysXConstraint.h
-//  Rayne-PhysX
+//  RNNewtonConstraint.h
+//  Rayne-Newton
 //
 //  Copyright 2018 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_PHYSXCONSTRAINT_H_
-#define __RAYNE_PHYSXCONSTRAINT_H_
+#ifndef __RAYNE_NEWTONCONSTRAINT_H_
+#define __RAYNE_NEWTONCONSTRAINT_H_
 
-#include "RNPhysX.h"
-#include "RNPhysXDynamicBody.h"
+#include "RNNewton.h"
+#include "RNNewtonRigidBody.h"
 
-namespace physx
-{
-	class PxJoint;
-}
+class NewtonJoint;
+class dCustomKinematicController;
 
 namespace RN
 {
-	class PhysXConstraint : public Object
+	class NewtonConstraint : public Object
 	{
 	public:
-		PhysXConstraint(physx::PxJoint *shape);
-		PXAPI physx::PxJoint *GetPhysXConstraint() const { return _constraint; }
-		PXAPI void SetMassScale(float scale1, float scale2);
-		PXAPI void SetInertiaScale(float scale1, float scale2);
+		NDAPI NewtonConstraint(NewtonJoint *constraint);
+		NDAPI NewtonJoint *GetNewtonConstraint() const { return _constraint; }
 			
 	protected:
-		PhysXConstraint();
-		~PhysXConstraint() override;
+		NewtonConstraint();
+		~NewtonConstraint() override;
 
-		physx::PxJoint *_constraint;
+		NewtonJoint *_constraint;
 			
-		RNDeclareMetaAPI(PhysXConstraint, PXAPI)
+		RNDeclareMetaAPI(NewtonConstraint, NDAPI)
 	};
 		
-	class PhysXFixedConstraint : public PhysXConstraint
+	class NewtonFixedConstraint : public NewtonConstraint
 	{
 	public:
-		PXAPI PhysXFixedConstraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+		NDAPI NewtonFixedConstraint(NewtonRigidBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, NewtonRigidBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
 			
-		PXAPI static PhysXFixedConstraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+		NDAPI static NewtonFixedConstraint *WithBodiesAndOffsets(NewtonRigidBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, NewtonRigidBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
 			
-		RNDeclareMetaAPI(PhysXFixedConstraint, PXAPI)
+		RNDeclareMetaAPI(NewtonFixedConstraint, NDAPI)
+	};
+
+	class NewtonKinematicConstraint : public NewtonConstraint
+	{
+	public:
+		NDAPI NewtonKinematicConstraint(NewtonRigidBody *body, const RN::Vector3 &offset);
+		NDAPI ~NewtonKinematicConstraint();
+
+		NDAPI static NewtonKinematicConstraint *WithBodyAndPose(NewtonRigidBody *body, const RN::Vector3 &offset);
+
+		NDAPI void SetPose(Vector3 position, Quaternion rotation);
+
+	private:
+		dCustomKinematicController *_joint;
+
+		RNDeclareMetaAPI(NewtonKinematicConstraint, NDAPI)
 	};
 }
 
-#endif /* defined(__RAYNE_PHYSXCONSTRAINT_H_) */
+#endif /* defined(__RAYNE_NEWTONCONSTRAINT_H_) */
