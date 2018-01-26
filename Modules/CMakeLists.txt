@@ -12,8 +12,9 @@ option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" OFF)
 option(RN_BUILD_NEWTON_MODULE "Build the Newton Game Dynamics physics module" OFF)
 option(RN_BUILD_OGG_MODULE "Build the ogg audio file module" ON)
 option(RN_BUILD_OPENAL_MODULE "Build the OpenAL audio module" ON)
-option(RN_BUILD_STEAMAUDIO_MODULE "Build the Steam Audio module" ON)
-option(RN_BUILD_ENET_MODULE "Build the ENet module" ON)
+option(RN_BUILD_STEAMAUDIO_MODULE "Build the Steam Audio module" OFF)
+option(RN_BUILD_ENET_MODULE "Build the ENet module" OFF)
+option(RN_BUILD_RECAST_MODULE "Build the Recast navmesh module" OFF)
 
 if(APPLE AND ${RN_BUILD_METAL_MODULE})
     add_subdirectory("Metal")
@@ -55,6 +56,10 @@ endif()
 
 if(${RN_BUILD_ENET_MODULE})
     add_subdirectory("ENet")
+endif()
+
+if(${RN_BUILD_RECAST_MODULE})
+    add_subdirectory("Recast")
 endif()
 
 if((MSVC AND ${RN_BUILD_OCULUS_MODULE}) OR ${RN_BUILD_OPENVR_MODULE})
