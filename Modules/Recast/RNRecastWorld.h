@@ -1,43 +1,34 @@
 //
-//  RNENetWorld.h
-//  Rayne-ENet
+//  RNRecastWorld.h
+//  Rayne-Recast
 //
-//  Copyright 2017 by Überpixel. All rights reserved.
+//  Copyright 2018 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_ENETWORLD_H_
-#define __RAYNE_ENETWORLD_H_
+#ifndef __RAYNE_RECASTWORLD_H_
+#define __RAYNE_RECASTWORLD_H_
 
-#include "RNENet.h"
-#include "RNENetClient.h"
-#include "RNENetServer.h"
+#include "RNRecast.h"
 
 namespace RN
 {
-	class ENetWorld : public SceneAttachment
+	class RecastWorld : public SceneAttachment
 	{
 	public:
-		friend class ENetHost;
+		RCAPI static RecastWorld *GetInstance();
 
-		ENAPI static ENetWorld *GetInstance();
-
-		ENAPI ENetWorld();
-		ENAPI ~ENetWorld() override;
+		RCAPI RecastWorld();
+		RCAPI ~RecastWorld() override;
 
 	protected:
 		void Update(float delta) override;
 			
 	private:
-		void AddHost(ENetHost *host);
-		void RemoveHost(ENetHost *host);
-
-		static ENetWorld *_instance;
-
-		Array *_hosts;
+		static RecastWorld *_instance;
 			
-		RNDeclareMetaAPI(ENetWorld, ENAPI)
+		RNDeclareMetaAPI(RecastWorld, RCAPI)
 	};
 }
 
-#endif /* defined(__RAYNE_ENETWORLD_H_) */
+#endif /* defined(__RAYNE_RECASTWORLD_H_) */

@@ -1,30 +1,29 @@
 //
-//  RNENetWorld.cpp
-//  Rayne-ENet
+//  RNRecastWorld.cpp
+//  Rayne-Recast
 //
-//  Copyright 2017 by Überpixel. All rights reserved.
+//  Copyright 2018 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNENetWorld.h"
-#include "enet/enet.h"
+#include "RNRecastWorld.h"
 
 namespace RN
 {
-	RNDefineMeta(ENetWorld, SceneAttachment)
+	RNDefineMeta(RecastWorld, SceneAttachment)
 
-	ENetWorld *ENetWorld::_instance = nullptr;
+	RecastWorld *RecastWorld::_instance = nullptr;
 
-	ENetWorld* ENetWorld::GetInstance()
+	RecastWorld* RecastWorld::GetInstance()
 	{
 		return _instance;
 	}
 
-	ENetWorld::ENetWorld() : _hosts(new Array())
+	RecastWorld::RecastWorld()
 	{
 		RN_ASSERT(!_instance, "There already is an ENetWorld!");
 
-		if(enet_initialize() != 0)
+//		if(enet_initialize() != 0)
 		{
 			RNDebug("Failed initializing enet.");
 			return;
@@ -33,28 +32,13 @@ namespace RN
 		_instance = this;
 	}
 		
-	ENetWorld::~ENetWorld()
+	RecastWorld::~RecastWorld()
 	{
-		_hosts->Release();
-
 		_instance = nullptr;
-		enet_deinitialize();
 	}
 
-	void ENetWorld::Update(float delta)
+	void RecastWorld::Update(float delta)
 	{
-		_hosts->Enumerate<ENetHost>([&](ENetHost *host, size_t index, bool &stop) {
-			host->Update(delta);
-		});
-	}
-
-	void ENetWorld::AddHost(ENetHost *host)
-	{
-		_hosts->AddObject(host);
-	}
-
-	void ENetWorld::RemoveHost(ENetHost *host)
-	{
-		_hosts->RemoveObject(host);
+		
 	}
 }

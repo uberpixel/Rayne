@@ -1,20 +1,20 @@
 //
-//  RNENet.h
-//  Rayne-ENet
+//  RNRecast.h
+//  Rayne-Recast
 //
-//  Copyright 2017 by Überpixel. All rights reserved.
+//  Copyright 2018 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_ENET_H_
-#define __RAYNE_ENET_H_
+#ifndef __RAYNE_RECAST_H_
+#define __RAYNE_RECAST_H_
 
 #include <Rayne.h>
 
-#if defined(RN_BUILD_ENET)
-	#define ENAPI RN_EXPORT
+#if defined(RN_BUILD_RECAST)
+	#define RCAPI RN_EXPORT
 #else
-	#define ENAPI RN_IMPORT
+	#define RCAPI RN_IMPORT
 #endif
 
-#endif /* __RAYNE_ENET_H_ */
+#endif /* __RAYNE_RECAST_H_ */
