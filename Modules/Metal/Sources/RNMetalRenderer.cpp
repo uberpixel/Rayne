@@ -983,7 +983,7 @@ namespace RN
 		}
 
 		// Mesh
-		MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetVertexBuffer());
+		MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
 		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:0];
 		
 		DrawMode drawMode = drawable->mesh->GetDrawMode();
@@ -1010,7 +1010,7 @@ namespace RN
 		
 		if(drawable->mesh->GetIndicesCount() > 0)
 		{
-			MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
+			MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
 			MTLIndexType indexType = drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? MTLIndexTypeUInt16 : MTLIndexTypeUInt32;
 
 			if(drawable->count == 1)
