@@ -101,7 +101,7 @@ namespace RN
 			_analogRight->SetValue(right - 128);
 			
 			uint8 buttons = data[5]; //Triangle, Circle, Cross, Square (bit7, bit6, bit5, bit4)
-			_buttonCross->SetPressed(buttons & (1<<7));
+			_buttonCross->SetPressed(buttons & (1<<5));
 		}
 	}
 

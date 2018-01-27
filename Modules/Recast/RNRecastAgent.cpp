@@ -36,7 +36,7 @@ namespace RN
 		delete _agentParams;
 	}
 	
-	void RecastAgent::SetTarget(Vector3 target, Vector3 velocity)
+	void RecastAgent::SetTarget(Vector3 target)
 	{
 /*		const dtCrowdAgent* ag = crowd->getAgent(i);
 		if (!ag->active) continue;
@@ -84,6 +84,19 @@ namespace RN
 	void RecastAgent::Stop()
 	{
 		RecastWorld::GetInstance()->GetCrowdManager()->resetMoveTarget(_agentIndex);
+	}
+	
+	void RecastAgent::UpdateSettings(Settings settings)
+	{
+		_agentParams->radius = settings.radius;
+		_agentParams->height = settings.height;
+		_agentParams->maxAcceleration = settings.maxAcceleration;
+		_agentParams->maxSpeed = settings.maxSpeed;
+		
+		if(_agentIndex != -1)
+		{
+			RecastWorld::GetInstance()->GetCrowdManager()->updateAgentParameters(_agentIndex, _agentParams);
+		}
 	}
 	
 	void RecastAgent::Update(float delta)

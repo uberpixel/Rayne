@@ -35,8 +35,9 @@ namespace RN
 		RCAPI RecastAgent(Settings settings);
 		RCAPI ~RecastAgent();
 		
-		RCAPI void SetTarget(Vector3 target, Vector3 velocity);
+		RCAPI void SetTarget(Vector3 target);
 		RCAPI void Stop();
+		RCAPI void UpdateSettings(Settings settings);
 		
 		RCAPI void Update(float delta) override;
 		RCAPI void DidUpdate(SceneNode::ChangeSet changeSet) override;
