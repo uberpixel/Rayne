@@ -39,6 +39,11 @@ namespace RN
 		void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) final {}
 		void onAdvance(const physx::PxRigidBody*const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) final {}
 	};
+	
+/*	class PhysXRaycastCallback : public physx::PxRaycastCallback
+	{
+		
+	}*/
 }
 
 #endif /* defined(__RAYNE_PHYSXINTERNALS_H_) */

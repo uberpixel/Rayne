@@ -144,9 +144,24 @@ namespace RN
 
 
 
-	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to)
+	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to, uint32 filterMask)
 	{
 		PhysXContactInfo hit;
+		hit.distance = -1.0f;
+		
+		Vector3 diff = to-from;
+		float distance = diff.GetLength();
+		diff.Normalize();
+		physx::PxRaycastBuffer callback;
+		physx::PxFilterData filterData;
+		filterData.word0 = filterMask;
+		_scene->raycast(physx::PxVec3(from.x, from.y, from.z), physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		
+		if(callback.getNbAnyHits() > 0)
+		{
+			hit.distance = callback.getAnyHit(0).distance;
+		}
+		
 		return hit;
 	}
 }
