@@ -82,19 +82,34 @@ namespace RN
 		// Init build configuration from GUI
 		rcConfig cfg;
 		memset(&cfg, 0, sizeof(cfg));
-		cfg.cs = 0.2f;
+		cfg.cs = 0.3f;
 		cfg.ch = 0.2f;
-		cfg.walkableSlopeAngle = 0.5f;
+		cfg.walkableSlopeAngle = 45.0f;
 		cfg.walkableHeight = (int)ceilf(1.8f / cfg.ch);
 		cfg.walkableClimb = (int)floorf(0.4f / cfg.ch);
 		cfg.walkableRadius = (int)ceilf(0.25f / cfg.cs);
-		cfg.maxEdgeLen = (int)(10.0f / 0.2f);
-		cfg.maxSimplificationError = 0.2f;
-		cfg.minRegionArea = (int)rcSqr(1.0f);		// Note: area = size*size
+		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
+		cfg.maxSimplificationError = 1.3f;
+		cfg.minRegionArea = (int)rcSqr(8.0f);		// Note: area = size*size
 		cfg.mergeRegionArea = (int)rcSqr(0.5f);	// Note: area = size*size
-		cfg.maxVertsPerPoly = (int)3;
-		cfg.detailSampleDist = 0;
-		cfg.detailSampleMaxError = 0.2f * 0.1f;
+		cfg.maxVertsPerPoly = (int)6;
+		cfg.detailSampleDist = 6.0f;
+		cfg.detailSampleMaxError = 1.0f;
+		
+/*		_cellSize = 0.3f;
+		_cellHeight = 0.2f;
+		_agentHeight = 2.0f;
+		_agentRadius = 0.6f;
+		_agentMaxClimb = 0.9f;
+		_agentMaxSlope = 45.0f;
+		_regionMinSize = 8;
+		_regionMergeSize = 20;
+		_edgeMaxLen = 12.0f;
+		_edgeMaxError = 1.3f;
+		_vertsPerPoly = 6.0f;
+		_detailSampleDist = 6.0f;
+		_detailSampleMaxError = 1.0f;
+		_partitionType = Watershed;*/
 		
 		// Set the area where the navigation will be build.
 		// Here the bounds of the input mesh are used, but the
@@ -147,7 +162,7 @@ namespace RN
 		
 		Mesh::Chunk chunk = mesh->GetChunk();
 		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
-		float *vertices = new float[vertexCount];
+		float *vertices = new float[vertexCount*3];
 		for(size_t i = 0; i < vertexCount; i++)
 		{
 			const Vector3 &vertex = *vertexIterator;
@@ -159,18 +174,19 @@ namespace RN
 				vertexIterator++;
 		}
 		
-		Mesh::ElementIterator<int> indexIterator = chunk.GetIterator<int>(Mesh::VertexAttribute::Feature::Indices);
+		//TODO: Support other than 16bit indices
+		Mesh::ElementIterator<uint16> indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
 		int *indices = new int[indexCount];
-		for (size_t i = 0; i < mesh->GetIndicesCount() / 3; i++)
+		for (size_t i = 0; i < indexCount; i++)
 		{
 			indices[i] = *indexIterator;
 			
-			if(i < vertexCount-1)
-				vertexIterator++;
+			if(i < indexCount-1)
+				indexIterator++;
 		}
 		
-		rcMarkWalkableTriangles(recastContext, cfg.walkableSlopeAngle, vertices, vertexCount, indices, vertexCount/3, triareas);
-		if(!rcRasterizeTriangles(recastContext, vertices, vertexCount, indices, triareas, vertexCount/3, *solid, cfg.walkableClimb))
+		rcMarkWalkableTriangles(recastContext, cfg.walkableSlopeAngle, vertices, vertexCount, indices, indexCount/3, triareas);
+		if(!rcRasterizeTriangles(recastContext, vertices, vertexCount, indices, triareas, indexCount/3, *solid, cfg.walkableClimb))
 		{
 			recastContext->log(RC_LOG_ERROR, "buildNavigation: Could not rasterize triangles.");
 			return;
@@ -431,7 +447,7 @@ namespace RN
 		params.walkableClimb = 0.4;
 		rcVcopy(params.bmin, _polyMesh->bmin);
 		rcVcopy(params.bmax, _polyMesh->bmax);
-		params.cs = 0.2f;
+		params.cs = 0.3f;
 		params.ch = 0.2f;
 		params.buildBvTree = true;
 		
