@@ -51,7 +51,6 @@ namespace RN
 		PhysXMaterial *_material;
 
 		float _gravity;
-		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(PhysXKinematicController, PXAPI)
 	};

@@ -249,6 +249,8 @@ namespace RN
 
 		pressed ? Start() : End();
 		_pressed = pressed;
+		
+		UpdateValue(Number::WithBool(_pressed));
 	}
 
 	bool ButtonControl::IsToggle() const

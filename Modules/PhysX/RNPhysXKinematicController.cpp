@@ -15,7 +15,7 @@ namespace RN
 {
 	RNDefineMeta(PhysXKinematicController, PhysXCollisionObject)
 		
-	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material) : _gravity(0.0f), _didUpdatePosition(false)
+	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material) : _gravity(0.0f)
 	{
 		_material = material->Retain();
 
@@ -155,13 +155,8 @@ namespace RN
 			
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			if(!_didUpdatePosition)
-			{
-				Vector3 position = GetParent()->GetWorldPosition() - _offset;
-				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
-			}
-
-			_didUpdatePosition = false;
+			Vector3 position = GetParent()->GetWorldPosition() - _offset;
+			_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -184,8 +179,6 @@ namespace RN
 		}
 
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
-
-		_didUpdatePosition = true;
-		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);
+		SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);
 	}
 }

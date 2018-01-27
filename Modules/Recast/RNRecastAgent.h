@@ -45,7 +45,6 @@ namespace RN
 		dtCrowdAgentParams *_agentParams;
 		uint32 _agentIndex;
 		SceneNode *_owner;
-		bool _didUpdatePosition;
 		
 		RNDeclareMetaAPI(RecastAgent, RCAPI)
 	};

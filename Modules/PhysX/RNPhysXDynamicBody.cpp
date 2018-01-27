@@ -17,8 +17,7 @@ namespace RN
 		
 		PhysXDynamicBody::PhysXDynamicBody(PhysXShape *shape, float mass) :
 		_shape(shape->Retain()),
-		_actor(nullptr),
-		_didUpdatePosition(false)
+		_actor(nullptr)
 	{
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		_actor = physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
@@ -324,13 +323,9 @@ namespace RN
 		
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			if(!_didUpdatePosition)
-			{
-				Vector3 position = GetWorldPosition() - _offset;
-				Quaternion rotation = GetWorldRotation();
-				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
-			}
-			_didUpdatePosition = false;
+			Vector3 position = GetWorldPosition() - _offset;
+			Quaternion rotation = GetWorldRotation();
+			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -363,11 +358,7 @@ namespace RN
 		}
 
 		const physx::PxTransform &transform = _actor->getGlobalPose();
-
-		_didUpdatePosition = true;
-		GetParent()->SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
-
-		_didUpdatePosition = true;
-		GetParent()->SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
+		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
 	}
 }

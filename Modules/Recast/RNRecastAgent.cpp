@@ -15,7 +15,7 @@ namespace RN
 {
 	RNDefineMeta(RecastAgent, SceneNodeAttachment)
 
-	RecastAgent::RecastAgent(Settings settings) : _owner(nullptr), _didUpdatePosition(false), _agentIndex(-1)
+	RecastAgent::RecastAgent(Settings settings) : _owner(nullptr), _agentIndex(-1)
 	{
 		_agentParams = new dtCrowdAgentParams();
 		_agentParams->radius = settings.radius;
@@ -93,7 +93,6 @@ namespace RN
 		const dtCrowdAgent *agent = RecastWorld::GetInstance()->GetCrowdManager()->getAgent(_agentIndex);
 		Vector3 position(agent->npos[0], agent->npos[1], agent->npos[2]);
 		
-		_didUpdatePosition = true;
 		SetWorldPosition(position);
 	}
 	
@@ -104,14 +103,10 @@ namespace RN
 		//TODO: Implement teleport
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			if(!_didUpdatePosition)
-			{
-				Vector3 position = GetWorldPosition();
-				position = RecastWorld::GetInstance()->GetClosestPosition(position);
-				RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
-				_agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
-			}
-			_didUpdatePosition = false;
+			Vector3 position = GetWorldPosition();
+			position = RecastWorld::GetInstance()->GetClosestPosition(position);
+			RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
+			_agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
 		}
 		
 		if(changeSet & SceneNode::ChangeSet::Attachments)

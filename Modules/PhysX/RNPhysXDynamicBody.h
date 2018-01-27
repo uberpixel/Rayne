@@ -68,8 +68,6 @@ namespace RN
 	private:
 		PhysXShape *_shape;
 		physx::PxRigidDynamic *_actor;
-
-		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(PhysXDynamicBody, PXAPI)
 	};

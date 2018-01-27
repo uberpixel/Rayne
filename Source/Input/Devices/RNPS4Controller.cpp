@@ -45,15 +45,19 @@ namespace RN
 
 		_analogRight = new Linear2DAxisControl(RNCSTR("Analog Right"));
 		_analogRight->SetRange(Vector2(-128), Vector2(128), Vector2(12));
+		
+		_buttonCross = new ButtonControl(RNCSTR("Button Cross"), Type::Button);
 
 		AddControl(_analogLeft);
 		AddControl(_analogRight);
+		AddControl(_buttonCross);
 	}
 
 	PS4Controller::~PS4Controller()
 	{
 		_analogLeft->Release();
 		_analogRight->Release();
+		_buttonCross->Release();
 
 		SafeRelease(_device);
 	}
@@ -95,6 +99,9 @@ namespace RN
 
 			_analogLeft->SetValue(left - 128);
 			_analogRight->SetValue(right - 128);
+			
+			uint8 buttons = data[5]; //Triangle, Circle, Cross, Square (bit7, bit6, bit5, bit4)
+			_buttonCross->SetPressed(buttons & (1<<7));
 		}
 	}
 
