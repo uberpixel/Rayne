@@ -87,14 +87,28 @@ namespace RN
 		cfg.walkableSlopeAngle = 45.0f;
 		cfg.walkableHeight = (int)ceilf(1.8f / cfg.ch);
 		cfg.walkableClimb = (int)floorf(0.4f / cfg.ch);
-		cfg.walkableRadius = (int)ceilf(0.25f / cfg.cs);
+		cfg.walkableRadius = (int)ceilf(0.4f / cfg.cs);
 		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
 		cfg.maxSimplificationError = 1.3f;
 		cfg.minRegionArea = (int)rcSqr(8.0f);		// Note: area = size*size
-		cfg.mergeRegionArea = (int)rcSqr(0.5f);	// Note: area = size*size
+		cfg.mergeRegionArea = (int)rcSqr(20.0f);	// Note: area = size*size
 		cfg.maxVertsPerPoly = (int)6;
-		cfg.detailSampleDist = 6.0f;
-		cfg.detailSampleMaxError = 1.0f;
+		cfg.detailSampleDist = 6.0 < 0.9f ? 0 : cfg.cs * 6.0;;
+		cfg.detailSampleMaxError = 1.0f * cfg.cs;
+		
+/*		_recastConfig.cs = _cellSize;
+		_recastConfig.ch = _cellHeight;
+		_recastConfig.walkableSlopeAngle = _agentMaxSlope;
+		_recastConfig.walkableHeight = (int)ceilf(_agentHeight / _recastConfig.ch);
+		_recastConfig.walkableClimb = (int)floorf(_agentMaxClimb / _recastConfig.ch);
+		_recastConfig.walkableRadius = (int)ceilf(_agentRadius / _recastConfig.cs);
+		_recastConfig.maxEdgeLen = (int)(_edgeMaxLen / _cellSize);
+		_recastConfig.maxSimplificationError = _edgeMaxError;
+		_recastConfig.minRegionArea = (int)rcSqr(_regionMinSize);		// Note: area = size*size
+		_recastConfig.mergeRegionArea = (int)rcSqr(_regionMergeSize);	// Note: area = size*size
+		_recastConfig.maxVertsPerPoly = (int)_vertsPerPoly;
+		_recastConfig.detailSampleDist = _detailSampleDist < 0.9f ? 0 : _cellSize * _detailSampleDist;
+		_recastConfig.detailSampleMaxError = _cellHeight * _detailSampleMaxError;*/
 		
 /*		_cellSize = 0.3f;
 		_cellHeight = 0.2f;
@@ -399,9 +413,12 @@ namespace RN
 		int navDataSize = 0;
 		
 		// Update poly flags from areas.
-		/*			for(int i = 0; i < _polyMesh->npolys; ++i)
-		 {
-		 if(_polyMesh->areas[i] == RC_WALKABLE_AREA)
+		for(int i = 0; i < _polyMesh->npolys; ++i)
+		{
+			_polyMesh->areas[i] = 0;
+			_polyMesh->flags[i] = 1;
+		}
+/*		 if(_polyMesh->areas[i] == RC_WALKABLE_AREA)
 		 _polyMesh->areas[i] = SAMPLE_POLYAREA_GROUND;
 		 
 		 if(_polyMesh->areas[i] == SAMPLE_POLYAREA_GROUND ||
@@ -443,7 +460,7 @@ namespace RN
 		//			params.offMeshConUserID = m_geom->getOffMeshConnectionId();
 		//			params.offMeshConCount = m_geom->getOffMeshConnectionCount();
 		params.walkableHeight = 1.8;
-		params.walkableRadius = 0.25;
+		params.walkableRadius = 0.4;
 		params.walkableClimb = 0.4;
 		rcVcopy(params.bmin, _polyMesh->bmin);
 		rcVcopy(params.bmax, _polyMesh->bmax);

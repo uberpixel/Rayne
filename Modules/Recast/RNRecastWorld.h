@@ -28,6 +28,7 @@ namespace RN
 		RCAPI dtCrowd *GetCrowdManager() const { return _crowdManager; }
 		
 		RCAPI void SetRecastMesh(RecastMesh *navMesh, uint8 maxAgents);
+		RN::Vector3 GetClosestPosition(Vector3 postion);
 
 		RCAPI RecastWorld();
 		RCAPI ~RecastWorld() override;

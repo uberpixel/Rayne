@@ -59,6 +59,20 @@ namespace RN
 			_crowdManager->init(maxAgents, 0.3f, _navMesh->GetDetourNavMesh());
 		}
 	}
+	
+	RN::Vector3 RecastWorld::GetClosestPosition(Vector3 postion)
+	{
+		// Find nearest point on navmesh and set move request to that location.
+		const dtNavMeshQuery* navquery = _crowdManager->getNavMeshQuery();
+		const dtQueryFilter* filter = _crowdManager->getFilter(0);
+		const float ext[3] = {10.0f, 10.0f, 10.0f};//_crowdManager->getQueryExtents();
+		
+		Vector3 closestPosition;
+		dtPolyRef targetPolyRef;
+		navquery->findNearestPoly(&postion.x, ext, filter, &targetPolyRef, &closestPosition.x);
+		
+		return closestPosition;
+	}
 
 	void RecastWorld::Update(float delta)
 	{
