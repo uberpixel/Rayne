@@ -15,13 +15,13 @@ namespace RN
 {
 	RNDefineMeta(RecastAgent, SceneNodeAttachment)
 
-	RecastAgent::RecastAgent() : _owner(nullptr), _didUpdatePosition(false), _agentIndex(-1)
+	RecastAgent::RecastAgent(Settings settings) : _owner(nullptr), _didUpdatePosition(false), _agentIndex(-1)
 	{
 		_agentParams = new dtCrowdAgentParams();
-		_agentParams->radius = 0.25f;
-		_agentParams->height = 1.8f;
-		_agentParams->maxAcceleration = 10.0f;
-		_agentParams->maxSpeed = 10.0f;
+		_agentParams->radius = settings.radius;
+		_agentParams->height = settings.height;
+		_agentParams->maxAcceleration = settings.maxAcceleration;
+		_agentParams->maxSpeed = settings.maxSpeed;
 		_agentParams->collisionQueryRange = 1.5f;
 		_agentParams->pathOptimizationRange = 20.0f;
 		_agentParams->separationWeight = 0.1f;

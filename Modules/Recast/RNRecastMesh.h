@@ -31,7 +31,7 @@ namespace RN
 		RCAPI dtNavMesh *GetDetourNavMesh();
 		RCAPI dtNavMeshQuery *GetDetourQuery();
 		
-		static RecastMesh *WithModel(Model *model);
+		RCAPI static RecastMesh *WithModel(Model *model);
 	private:
 		bool _isDirty;
 		

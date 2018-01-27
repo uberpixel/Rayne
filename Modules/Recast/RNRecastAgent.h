@@ -19,7 +19,20 @@ namespace RN
 	class RecastAgent : public SceneNodeAttachment
 	{
 	public:
-		RCAPI RecastAgent();
+		class Settings
+		{
+		public:
+			Settings() : radius(0.25), height(1.8f), maxAcceleration(5.0f), maxSpeed(2.0f)
+			{
+				
+			}
+			float radius;
+			float height;
+			float maxAcceleration;
+			float maxSpeed;
+		};
+		
+		RCAPI RecastAgent(Settings settings);
 		RCAPI ~RecastAgent();
 		
 		RCAPI void SetTarget(Vector3 target, Vector3 velocity);
