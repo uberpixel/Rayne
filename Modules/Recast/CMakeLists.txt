@@ -13,6 +13,9 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNRecastInit.cpp
         RNRecastWorld.cpp
+        RNRecastMesh.cpp
+        RNRecastAgent.cpp
+
         Vendor/recast/Recast/Source/Recast.cpp
         Vendor/recast/Recast/Source/RecastAlloc.cpp
         Vendor/recast/Recast/Source/RecastArea.cpp
@@ -22,14 +25,48 @@ set(SOURCES
         Vendor/recast/Recast/Source/RecastMesh.cpp
         Vendor/recast/Recast/Source/RecastMeshDetail.cpp
         Vendor/recast/Recast/Source/RecastRasterization.cpp
-        Vendor/recast/Recast/Source/RecastRegion.cpp)
+        Vendor/recast/Recast/Source/RecastRegion.cpp
+
+        Vendor/recast/Detour/Source/DetourAlloc.cpp
+        Vendor/recast/Detour/Source/DetourCommon.cpp
+        Vendor/recast/Detour/Source/DetourNavMesh.cpp
+        Vendor/recast/Detour/Source/DetourNavMeshBuilder.cpp
+        Vendor/recast/Detour/Source/DetourNavMeshQuery.cpp
+        Vendor/recast/Detour/Source/DetourNode.cpp
+
+        Vendor/recast/DetourCrowd/Source/DetourCrowd.cpp
+        Vendor/recast/DetourCrowd/Source/DetourLocalBoundary.cpp
+        Vendor/recast/DetourCrowd/Source/DetourObstacleAvoidance.cpp
+        Vendor/recast/DetourCrowd/Source/DetourPathCorridor.cpp
+        Vendor/recast/DetourCrowd/Source/DetourPathQueue.cpp
+        Vendor/recast/DetourCrowd/Source/DetourProximityGrid.cpp)
 
 set(HEADERS
 	RNRecast.h
         RNRecastWorld.h
+        RNRecastMesh.h
+        RNRecastAgent.h
+
         Vendor/recast/Recast/Include/Recast.h
         Vendor/recast/Recast/Include/RecastAlloc.h
-        Vendor/recast/Recast/Include/RecastAssert.h)
+        Vendor/recast/Recast/Include/RecastAssert.h
+
+        Vendor/recast/Detour/Include/DetourAlloc.h
+        Vendor/recast/Detour/Include/DetourAssert.h
+        Vendor/recast/Detour/Include/DetourCommon.h
+        Vendor/recast/Detour/Include/DetourMath.h
+        Vendor/recast/Detour/Include/DetourNavMesh.h
+        Vendor/recast/Detour/Include/DetourNavMeshBuilder.h
+        Vendor/recast/Detour/Include/DetourNavMeshQuery.h
+        Vendor/recast/Detour/Include/DetourNode.h
+        Vendor/recast/Detour/Include/DetourStatus.h
+
+        Vendor/recast/DetourCrowd/Include/DetourCrowd.h
+        Vendor/recast/DetourCrowd/Include/DetourLocalBoundary.h
+        Vendor/recast/DetourCrowd/Include/DetourObstacleAvoidance.h
+        Vendor/recast/DetourCrowd/Include/DetourPathCorridor.h
+        Vendor/recast/DetourCrowd/Include/DetourPathQueue.h
+        Vendor/recast/DetourCrowd/Include/DetourProximityGrid.h)
 
 set(DEFINES RN_BUILD_RECAST)
 

@@ -7,6 +7,8 @@
 //
 
 #include "RNRecastWorld.h"
+#include "Recast.h"
+#include "DetourCrowd.h"
 
 namespace RN
 {
@@ -19,26 +21,48 @@ namespace RN
 		return _instance;
 	}
 
-	RecastWorld::RecastWorld()
+	RecastWorld::RecastWorld() : _navMesh(nullptr)
 	{
-		RN_ASSERT(!_instance, "There already is an ENetWorld!");
+		RN_ASSERT(!_instance, "There already is a RecastWorld!");
 
-//		if(enet_initialize() != 0)
-		{
-			RNDebug("Failed initializing enet.");
-			return;
-		}
+		_recastContext = new rcContext();
+		_crowdManager = new dtCrowd();
+		
+/*		dtObstacleAvoidanceParams params;
+		memcpy(&params, _crowdManager->getObstacleAvoidanceParams(0), sizeof(dtObstacleAvoidanceParams));
+		
+		// Good (45)
+		params.velBias = 0.5f;
+		params.adaptiveDivs = 7;
+		params.adaptiveRings = 2;
+		params.adaptiveDepth = 3;
+		_crowdManager->setObstacleAvoidanceParams(0, &params);*/
 
 		_instance = this;
 	}
 		
 	RecastWorld::~RecastWorld()
 	{
+		delete _recastContext;
+		delete _crowdManager;
+		
 		_instance = nullptr;
+	}
+	
+	void RecastWorld::SetRecastMesh(RecastMesh *navMesh, uint8 maxAgents)
+	{
+		SafeRelease(_navMesh);
+		_navMesh = navMesh;
+		SafeRetain(_navMesh);
+		if(_navMesh)
+		{
+			_crowdManager->init(maxAgents, 0.3f, _navMesh->GetDetourNavMesh());
+		}
 	}
 
 	void RecastWorld::Update(float delta)
 	{
-		
+		if(_navMesh)
+			_crowdManager->update(delta, nullptr);
 	}
 }

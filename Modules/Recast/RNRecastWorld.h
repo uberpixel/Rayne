@@ -11,12 +11,23 @@
 
 #include "RNRecast.h"
 
+#include "RNRecastMesh.h"
+#include "RNRecastAgent.h"
+
+class rcContext;
+class dtCrowd;
+
 namespace RN
 {
 	class RecastWorld : public SceneAttachment
 	{
 	public:
 		RCAPI static RecastWorld *GetInstance();
+		
+		RCAPI rcContext *GetRecastContext() const { return _recastContext; }
+		RCAPI dtCrowd *GetCrowdManager() const { return _crowdManager; }
+		
+		RCAPI void SetRecastMesh(RecastMesh *navMesh, uint8 maxAgents);
 
 		RCAPI RecastWorld();
 		RCAPI ~RecastWorld() override;
@@ -26,6 +37,10 @@ namespace RN
 			
 	private:
 		static RecastWorld *_instance;
+		
+		RecastMesh *_navMesh;
+		rcContext *_recastContext;
+		dtCrowd *_crowdManager;
 			
 		RNDeclareMetaAPI(RecastWorld, RCAPI)
 	};
