@@ -397,6 +397,15 @@ namespace RN
 		}
 
 		RNInfo("Using audio device: " << _outDevice->name);
+		
+		if(_sampleRate > _outDevice->sample_rates->max)
+		{
+			_sampleRate = _outDevice->sample_rates->max;
+		}
+		if(_sampleRate < _outDevice->sample_rates->min)
+		{
+			_sampleRate = _outDevice->sample_rates->min;
+		}
 
 		_outStream = soundio_outstream_create(_outDevice);
 		_outStream->format = SoundIoFormatFloat32NE;
@@ -530,10 +539,10 @@ namespace RN
 		IPLSimulationSettings simulationSettings;
 		simulationSettings.ambisonicsOrder = _ambisonicsOrder;
 		simulationSettings.irDuration = 0.5f;
-		simulationSettings.maxConvolutionSources = 5;
+		simulationSettings.maxConvolutionSources = 2;
 		simulationSettings.numBounces = 16;
-		simulationSettings.numDiffuseSamples = 512;
-		simulationSettings.numRays = 64000;
+		simulationSettings.numDiffuseSamples = 16;
+		simulationSettings.numRays = 32000;
 		simulationSettings.sceneType = IPL_SCENETYPE_PHONON;
 
 		if(_sceneGeometry.size() > 0)

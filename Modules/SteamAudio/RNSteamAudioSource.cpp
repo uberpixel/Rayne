@@ -86,7 +86,7 @@ namespace RN
 	{
 		if(_wantsIndirectSound && SteamAudioWorld::_instance->GetEnvironmentalRenderer() && SteamAudioWorld::_instance->_scene)
 		{
-			iplCreateConvolutionEffect(SteamAudioWorld::_instance->GetEnvironmentalRenderer(), "", IPL_SIMTYPE_REALTIME, _internals->inputBuffer.format, _internals->outputBuffer.format, &_internals->convolutionEffect); //TODO: Allow baking for static sources instead of doing everything in realtime.
+			iplCreateConvolutionEffect(SteamAudioWorld::_instance->GetEnvironmentalRenderer(), IPLBakedDataIdentifier(), IPL_SIMTYPE_REALTIME, _internals->inputBuffer.format, _internals->outputBuffer.format, &_internals->convolutionEffect); //TODO: Allow baking for static sources instead of doing everything in realtime.
 		}
 	}
 		
@@ -205,7 +205,7 @@ namespace RN
 			IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
 			IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z },
 			IPLVector3{ sourcePosition.x, sourcePosition.y, sourcePosition.z },
-			_radius, IPL_DIRECTOCCLUSION_NOTRANSMISSION, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
+			_radius, /*IPL_DIRECTOCCLUSION_NOTRANSMISSION*/ IPL_DIRECTOCCLUSION_NONE, (_radius > 0.001f)?IPL_DIRECTOCCLUSION_VOLUMETRIC : IPL_DIRECTOCCLUSION_RAYCAST);
 
 		//TODO: implement direct sound effect with optional transmission
 

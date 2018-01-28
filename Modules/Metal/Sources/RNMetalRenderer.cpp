@@ -964,7 +964,16 @@ namespace RN
 			}
 			else
 			{
-				[encoder setFragmentTexture:nil atIndex:i];
+				//TODO: handle post processing texture better
+				if(i == textures->GetCount() && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+				{
+					MetalTexture *colorBuffer = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture()->Downcast<MetalTexture>();
+					[encoder setFragmentTexture:(id<MTLTexture>)colorBuffer->__GetUnderlyingTexture() atIndex:i];
+				}
+				else
+				{
+					[encoder setFragmentTexture:nil atIndex:i];
+				}
 			}
 		}
 
