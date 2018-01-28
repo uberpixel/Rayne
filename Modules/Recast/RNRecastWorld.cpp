@@ -65,7 +65,7 @@ namespace RN
 		// Find nearest point on navmesh and set move request to that location.
 		const dtNavMeshQuery* navquery = _crowdManager->getNavMeshQuery();
 		const dtQueryFilter* filter = _crowdManager->getFilter(0);
-		const float ext[3] = {10.0f, 10.0f, 10.0f};//_crowdManager->getQueryExtents();
+		const float *ext = _crowdManager->getQueryExtents();
 		
 		Vector3 closestPosition;
 		dtPolyRef targetPolyRef;

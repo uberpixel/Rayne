@@ -22,7 +22,7 @@ namespace RN
 		class Settings
 		{
 		public:
-			Settings() : radius(0.25), height(1.8f), maxAcceleration(5.0f), maxSpeed(2.0f)
+			Settings() : radius(0.2), height(1.8f), maxAcceleration(5.0f), maxSpeed(2.0f)
 			{
 				
 			}

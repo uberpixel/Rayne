@@ -87,7 +87,7 @@ namespace RN
 		cfg.walkableSlopeAngle = 45.0f;
 		cfg.walkableHeight = (int)ceilf(1.8f / cfg.ch);
 		cfg.walkableClimb = (int)floorf(0.4f / cfg.ch);
-		cfg.walkableRadius = (int)ceilf(0.25 / cfg.cs);
+		cfg.walkableRadius = (int)ceilf(0.2 / cfg.cs);
 		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
 		cfg.maxSimplificationError = 1.3f;
 		cfg.minRegionArea = (int)rcSqr(8.0f);		// Note: area = size*size
@@ -460,7 +460,7 @@ namespace RN
 		//			params.offMeshConUserID = m_geom->getOffMeshConnectionId();
 		//			params.offMeshConCount = m_geom->getOffMeshConnectionCount();
 		params.walkableHeight = 1.8;
-		params.walkableRadius = 0.25;
+		params.walkableRadius = 0.2;
 		params.walkableClimb = 0.4;
 		rcVcopy(params.bmin, _polyMesh->bmin);
 		rcVcopy(params.bmax, _polyMesh->bmax);
