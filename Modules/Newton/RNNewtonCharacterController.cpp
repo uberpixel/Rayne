@@ -33,7 +33,7 @@ namespace RN
 		return intersectParam;
 	}*/
 		
-	NewtonCharacterController::NewtonCharacterController(float radius, float height, float stepHeight) : _gravity(0.0f), _stepHeight(stepHeight), _totalHeight(height + radius * 2.0f), _didUpdatePosition(false)
+	NewtonCharacterController::NewtonCharacterController(float radius, float height, float stepHeight) : _gravity(0.0f), _stepHeight(stepHeight), _totalHeight(height + radius * 2.0f)
 	{
 		RN_ASSERT(height > stepHeight, "Height needs to be bigger than step height!");
 		_shape = NewtonCapsuleShape::WithRadius(radius, height - stepHeight)->Retain();
@@ -139,15 +139,10 @@ namespace RN
 			
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			if(!_didUpdatePosition)
-			{
-/*				Vector3 position = GetWorldPosition() - _offset;
-				Quaternion rotation = GetWorldRotation();
-				Matrix poseMatrix = Matrix::WithRotation(rotation) * Matrix::WithTranslation(position);
-				NewtonBodySetMatrix(_body, poseMatrix.m);*/
-			}
-
-			_didUpdatePosition = false;
+/*			Vector3 position = GetWorldPosition() - _offset;
+			Quaternion rotation = GetWorldRotation();
+			Matrix poseMatrix = Matrix::WithRotation(rotation) * Matrix::WithTranslation(position);
+			NewtonBodySetMatrix(_body, poseMatrix.m);*/
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -174,6 +169,6 @@ namespace RN
 /*		const physx::PxExtendedVec3 &position = _controller->getPosition();
 
 		_didUpdatePosition = true;
-		GetParent()->SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);*/
+		SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);*/
 	}
 }

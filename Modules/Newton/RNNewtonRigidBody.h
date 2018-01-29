@@ -62,7 +62,6 @@ namespace RN
 		::NewtonBody *_body;
 
 		bool _useGravity;
-		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(NewtonRigidBody, NDAPI)
 	};

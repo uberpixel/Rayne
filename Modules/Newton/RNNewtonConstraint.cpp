@@ -11,12 +11,14 @@
 #include "RNNewtonWorld.h"
 
 #include "dCustomKinematicController.h"
+#include "KCJoint.h"
 
 namespace RN
 {
 	RNDefineMeta(NewtonConstraint, Object)
 	RNDefineMeta(NewtonFixedConstraint, NewtonConstraint)
 	RNDefineMeta(NewtonKinematicConstraint, NewtonConstraint)
+	RNDefineMeta(NewtonKinematicConstraint2, NewtonConstraint)
 		
 	NewtonConstraint::NewtonConstraint() :
 		_constraint(nullptr)
@@ -74,6 +76,43 @@ namespace RN
 	NewtonKinematicConstraint* NewtonKinematicConstraint::WithBodyAndPose(class NewtonRigidBody* body, const RN::Vector3& offset)
 	{
 		NewtonKinematicConstraint *constraint = new NewtonKinematicConstraint(body, offset);
+		return constraint->Autorelease();
+	}
+
+
+	NewtonKinematicConstraint2::NewtonKinematicConstraint2(class NewtonRigidBody* body, const RN::Vector3& offset)
+	{
+		::NewtonWorld *netwonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
+
+		_joint = new KCJoint();
+		_joint->m_pickMode = 1;
+		_joint->m_maxLinearFriction = 1000;
+		_joint->m_maxAngularFriction = 100;
+		_joint->m_body0 = body->GetNewtonBody();
+		NewtonBodyGetPosition(_joint->m_body0, &_joint->m_targetPosit.m_x);
+		_joint->m_joint = NewtonConstraintCreateUserJoint(netwonInstance, 6, KCJoint::KCJointCallback, _joint->m_body0, 0);
+		NewtonUserJointSetSolverModel(_joint->m_joint, 2);
+		NewtonJointSetUserData(_joint->m_joint, _joint);
+		NewtonBodySetAutoSleep(_joint->m_body0, 0);
+	}
+
+	NewtonKinematicConstraint2::~NewtonKinematicConstraint2()
+	{
+		::NewtonWorld *netwonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
+		NewtonDestroyJoint(netwonInstance, _joint->m_joint);
+		delete _joint;
+	}
+
+	void NewtonKinematicConstraint2::SetPose(Vector3 position, Quaternion rotation)
+	{
+		_joint->m_targetPosit = dVector(position.x, position.y, position.z, 1.0);
+		_joint->m_targetRot = dQuaternion(rotation.w, rotation.x, rotation.y, rotation.z);
+		NewtonBodySetSleepState(_joint->m_body0, 0);
+	}
+
+	NewtonKinematicConstraint2* NewtonKinematicConstraint2::WithBodyAndPose(class NewtonRigidBody* body, const RN::Vector3& offset)
+	{
+		NewtonKinematicConstraint2 *constraint = new NewtonKinematicConstraint2(body, offset);
 		return constraint->Autorelease();
 	}
 }

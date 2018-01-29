@@ -14,6 +14,7 @@
 
 class NewtonJoint;
 class dCustomKinematicController;
+class KCJoint;
 
 namespace RN
 {
@@ -56,6 +57,22 @@ namespace RN
 		dCustomKinematicController *_joint;
 
 		RNDeclareMetaAPI(NewtonKinematicConstraint, NDAPI)
+	};
+
+	class NewtonKinematicConstraint2 : public NewtonConstraint
+	{
+	public:
+		NDAPI NewtonKinematicConstraint2(NewtonRigidBody *body, const RN::Vector3 &offset);
+		NDAPI ~NewtonKinematicConstraint2();
+
+		NDAPI static NewtonKinematicConstraint2 *WithBodyAndPose(NewtonRigidBody *body, const RN::Vector3 &offset);
+
+		NDAPI void SetPose(Vector3 position, Quaternion rotation);
+
+	private:
+		KCJoint *_joint;
+
+		RNDeclareMetaAPI(NewtonKinematicConstraint2, NDAPI)
 	};
 }
 

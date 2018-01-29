@@ -42,8 +42,7 @@ namespace RN
 		
 	NewtonRigidBody::NewtonRigidBody(NewtonShape *shape, float mass) :
 		_shape(shape->Retain()),
-		_body(nullptr),
-		_didUpdatePosition(false)
+		_body(nullptr)
 	{
 		Matrix initialPose;
 		::NewtonWorld *newtonInstance = NewtonWorld::GetSharedInstance()->GetNewtonInstance();
@@ -277,14 +276,10 @@ namespace RN
 		
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			if(!_didUpdatePosition)
-			{
-				Vector3 position = GetWorldPosition() - _offset;
-				Quaternion rotation = GetWorldRotation();
-				Matrix poseMatrix = Matrix::WithTranslation(position) * Matrix::WithRotation(rotation);
-				NewtonBodySetMatrix(_body, poseMatrix.m);
-			}
-			_didUpdatePosition = false;
+			Vector3 position = GetWorldPosition() - _offset;
+			Quaternion rotation = GetWorldRotation();
+			Matrix poseMatrix = Matrix::WithTranslation(position) * Matrix::WithRotation(rotation);
+			NewtonBodySetMatrix(_body, poseMatrix.m);
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -323,10 +318,7 @@ namespace RN
 		NewtonBodyGetRotation(_body, q);
 		Quaternion rotation(q[1], q[2], q[3], q[0]);
 
-		_didUpdatePosition = true;
-		GetParent()->SetWorldPosition(position + _offset);
-
-		_didUpdatePosition = true;
-		GetParent()->SetWorldRotation(rotation);
+		SetWorldPosition(position + _offset);
+		SetWorldRotation(rotation);
 	}
 }

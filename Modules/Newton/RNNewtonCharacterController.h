@@ -53,7 +53,6 @@ namespace RN
 		float _gravity;
 		float _stepHeight;
 		float _totalHeight;
-		bool _didUpdatePosition;
 			
 		RNDeclareMetaAPI(NewtonCharacterController, NDAPI)
 	};

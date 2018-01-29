@@ -30,7 +30,8 @@ set(HEADERS
  #       RNNewtonMaterial.h
         RNNewtonShape.h
         RNNewtonConstraint.h
-        RNNewtonCharacterController.h)
+        RNNewtonCharacterController.h
+        Vendor/newton-extensions/KCJoint.h)
 
 set(DEFINES RN_BUILD_NEWTON _NEWTON_STATIC_LIB _CUSTOM_JOINTS_STATIC_LIB)
 
@@ -45,7 +46,8 @@ set(INCLUDE_DIRECTORIES
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-dynamics/sdk/dgNewton"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-dynamics/sdk/dMath"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-dynamics/sdk/dContainers"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-dynamics/sdk/dCustomJoints")
+        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-dynamics/sdk/dCustomJoints"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/newton-extensions")
 
 rayne_add_library(RayneNewton "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 
