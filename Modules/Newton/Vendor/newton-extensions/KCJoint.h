@@ -52,7 +52,7 @@ public:
       dVector pointVeloc = v + w.CrossProduct(matrix0.RotateVector (m_localHandle - cg));
       dVector relPosit (m_targetPosit - p0);
       dVector relVeloc (relPosit.Scale (invTimestep) - pointVeloc);
-      dVector relAccel (relVeloc.Scale (invTimestep * 0.3f)); 
+      dVector relAccel (relVeloc.Scale (invTimestep * 0.9f)); //was 0.3f
 
       //////////////////
       //
@@ -99,7 +99,7 @@ public:
             rotation.m_q3 *= -1.0f; 
          }
 
-         dVector relOmega (rotation.CalcAverageOmega (m_targetRot, invTimestep).Scale(0.3) - w);
+         dVector relOmega (rotation.CalcAverageOmega (m_targetRot, invTimestep).Scale(0.1) - w); //was 0.3f
          mag = relOmega.DotProduct3(relOmega);
          if (mag > 1.0e-6f) 
          {

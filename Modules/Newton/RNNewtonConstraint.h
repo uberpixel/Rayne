@@ -68,6 +68,7 @@ namespace RN
 		NDAPI static NewtonKinematicConstraint2 *WithBodyAndPose(NewtonRigidBody *body, const RN::Vector3 &offset);
 
 		NDAPI void SetPose(Vector3 position, Quaternion rotation);
+		NDAPI void SetMaxFriction(float linear, float angular);
 
 	private:
 		KCJoint *_joint;

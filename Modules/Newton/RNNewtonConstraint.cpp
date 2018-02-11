@@ -86,8 +86,8 @@ namespace RN
 
 		_joint = new KCJoint();
 		_joint->m_pickMode = 1;
-		_joint->m_maxLinearFriction = 1000;
-		_joint->m_maxAngularFriction = 100;
+		_joint->m_maxLinearFriction = 500;
+		_joint->m_maxAngularFriction = 200;
 		_joint->m_body0 = body->GetNewtonBody();
 		NewtonBodyGetPosition(_joint->m_body0, &_joint->m_targetPosit.m_x);
 		_joint->m_joint = NewtonConstraintCreateUserJoint(netwonInstance, 6, KCJoint::KCJointCallback, _joint->m_body0, 0);
@@ -108,6 +108,12 @@ namespace RN
 		_joint->m_targetPosit = dVector(position.x, position.y, position.z, 1.0);
 		_joint->m_targetRot = dQuaternion(rotation.w, rotation.x, rotation.y, rotation.z);
 		NewtonBodySetSleepState(_joint->m_body0, 0);
+	}
+
+	void NewtonKinematicConstraint2::SetMaxFriction(float linear, float angular)
+	{
+		_joint->m_maxLinearFriction = linear;
+		_joint->m_maxAngularFriction = angular;
 	}
 
 	NewtonKinematicConstraint2* NewtonKinematicConstraint2::WithBodyAndPose(class NewtonRigidBody* body, const RN::Vector3& offset)

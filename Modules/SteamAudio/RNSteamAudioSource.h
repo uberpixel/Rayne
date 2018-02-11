@@ -43,7 +43,7 @@ namespace RN
 		bool IsPlaying() const { return _isPlaying; }
 		bool IsRepeating() const { return _isRepeating; }
 		bool HasTimeOfFlight() const { return _hasTimeOfFlight; }
-		bool HasEnded() const;
+		SAAPI bool HasEnded() const;
 			
 	private:
 		void ResetScene();
