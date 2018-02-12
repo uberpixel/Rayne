@@ -225,15 +225,23 @@ namespace RN
 		angularVelocity /= 180.0f;
 		angularVelocity /= delta;
 
-		RN::Vector3 linearForce = speed - GetLinearVelocity();// *delta;
-//		linearForce /= delta;
-//		linearForce *= _mass;
-		RN::Vector3 angularForce = angularVelocity - GetAngularVelocity();// *delta;
-//		angularForce /= delta;
+		RN::Vector3 linearForce = speed - GetLinearVelocity();
+		linearForce /= delta;
+//		linearForce *= _actor->getMass();
+		linearForce *= 10.0f;
+		RN::Vector3 angularForce = angularVelocity - GetAngularVelocity();
+		angularForce /= delta;
 //		angularForce *= _mass;
+		angularForce *= 10.0f;
+
+		if(linearForce.GetLength() > 5000.0f)
+			linearForce.Normalize(5000.0f);
+
+		if(angularForce.GetLength() > 15000.0f)
+			angularForce.Normalize(15000.0f);
 		
-		_actor->addForce(physx::PxVec3(linearForce.x, linearForce.y, linearForce.z), physx::PxForceMode::eVELOCITY_CHANGE);
-		_actor->addTorque(physx::PxVec3(angularForce.x, angularForce.y, angularForce.z), physx::PxForceMode::eVELOCITY_CHANGE);
+		_actor->addForce(physx::PxVec3(linearForce.x, linearForce.y, linearForce.z), physx::PxForceMode::eACCELERATION);
+		_actor->addTorque(physx::PxVec3(angularForce.x, angularForce.y, angularForce.z), physx::PxForceMode::eACCELERATION);
 	}
 	
 	bool PhysXDynamicBody::SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
