@@ -44,7 +44,7 @@ namespace RN
 		PXAPI Vector3 GetGravity();
 
 		PXAPI void Update(float delta) override;
-		PXAPI void SetStepSize(double stepsize);
+		PXAPI void SetSubsteps(uint8 substeps);
 		PXAPI void SetPaused(bool paused);
 
 		PXAPI PhysXContactInfo CastRay(const Vector3 &from, const Vector3 &to, uint32 filterMask = 0xffffffff);
@@ -67,8 +67,7 @@ namespace RN
 		physx::PxDefaultCpuDispatcher *_dispatcher;
 		physx::PxControllerManager *_controllerManager;
 
-		double _remainingTime;
-		double _stepSize;
+		uint8 _substeps;
 		bool _paused;
 
 		PhysXSimulationCallback *_simulationCallback;

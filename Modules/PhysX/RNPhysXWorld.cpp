@@ -19,7 +19,7 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _remainingTime(0.0), _stepSize(1.0 / 90.0), _paused(false)
+	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _substeps(1), _paused(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
@@ -102,9 +102,9 @@ namespace RN
 		return Vector3(gravity.x, gravity.y, gravity.z);
 	}
 
-	void PhysXWorld::SetStepSize(double stepsize)
+	void PhysXWorld::SetSubsteps(uint8 substeps)
 	{
-		_stepSize = stepsize;
+		_substeps = substeps;
 	}
 
 	void PhysXWorld::SetPaused(bool paused)
@@ -117,14 +117,12 @@ namespace RN
 		if(_paused)
 			return;
 		
-		if(delta > 4*_stepSize || delta < k::EpsilonFloat)
+		if(delta > 0.1f || delta < k::EpsilonFloat)
 			return;
 
-//		_remainingTime += delta;
-//		while(_remainingTime+k::EpsilonFloat >= _stepSize)
+		for(int i = 0; i < _substeps; i++)
 		{
-//			_remainingTime -= _stepSize;
-			_scene->simulate(delta);	//TODO: Fix this to use fixed steps with interpolation...
+			_scene->simulate(delta/static_cast<double>(_substeps));	//TODO: Fix this to use fixed steps with interpolation...
 			_scene->fetchResults(true);
 		}
 

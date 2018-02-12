@@ -164,33 +164,34 @@ namespace RN
 	}
 		
 		
-/*
+
 	void PhysXDynamicBody::ApplyForce(const Vector3 &force)
 	{
-		_rigidBody->applyCentralForce(btVector3(force.x, force.y, force.z));
+		_actor->addForce(physx::PxVec3(force.x, force.y, force.z));
 	}
-	void PhysXDynamicBody::ApplyForce(const Vector3 &force, const Vector3 &origin)
+/*	void PhysXDynamicBody::ApplyForce(const Vector3 &force, const Vector3 &origin)
 	{
 		_rigidBody->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
-	}
+	}*/
 	void PhysXDynamicBody::ClearForces()
 	{
-		_rigidBody->clearForces();
+		_actor->clearForce();
+//		_actor->clearTorque();
 	}
 		
 	void PhysXDynamicBody::ApplyTorque(const Vector3 &torque)
 	{
-		_rigidBody->applyTorque(btVector3(torque.x, torque.y, torque.z));
+		_actor->addTorque(physx::PxVec3(torque.x, torque.y, torque.z));
 	}
 	void PhysXDynamicBody::ApplyTorqueImpulse(const Vector3 &torque)
 	{
-		_rigidBody->applyTorqueImpulse(btVector3(torque.x, torque.y, torque.z));
+		_actor->addTorque(physx::PxVec3(torque.x, torque.y, torque.z), physx::PxForceMode::eIMPULSE);
 	}
 	void PhysXDynamicBody::ApplyImpulse(const Vector3 &impulse)
 	{
-		_rigidBody->applyCentralImpulse(btVector3(impulse.x, impulse.y, impulse.z));
+		_actor->addForce(physx::PxVec3(impulse.x, impulse.y, impulse.z), physx::PxForceMode::eIMPULSE);
 	}
-	void PhysXDynamicBody::ApplyImpulse(const Vector3 &impulse, const Vector3 &origin)
+/*	void PhysXDynamicBody::ApplyImpulse(const Vector3 &impulse, const Vector3 &origin)
 	{
 		_rigidBody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
 	}*/
@@ -203,6 +204,36 @@ namespace RN
 	void PhysXDynamicBody::SetKinematicTarget(const Vector3 &position, const Quaternion &rotation)
 	{
 		_actor->setKinematicTarget(physx::PxTransform(position.x, position.y, position.z, physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+	}
+
+	void PhysXDynamicBody::AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta)
+	{
+		//Linear velocity
+		RN::Vector3 speed = position - GetWorldPosition();
+		speed /= delta;
+
+		//Angular velocity
+		RN::Quaternion startRotation = GetWorldRotation();
+		if(rotation.GetDotProduct(startRotation) > 0.0f)
+			startRotation = startRotation.GetConjugated();
+		RN::Quaternion rotationSpeed = rotation*startRotation;
+		RN::Vector4 axisAngleSpeed = rotationSpeed.GetAxisAngle();
+		if(axisAngleSpeed.w > 180.0f)
+			axisAngleSpeed.w -= 360.0f;
+		RN::Vector3 angularVelocity(axisAngleSpeed.x, axisAngleSpeed.y, axisAngleSpeed.z);
+		angularVelocity *= axisAngleSpeed.w*M_PI;
+		angularVelocity /= 180.0f;
+		angularVelocity /= delta;
+
+		RN::Vector3 linearForce = speed - GetLinearVelocity();// *delta;
+//		linearForce /= delta;
+//		linearForce *= _mass;
+		RN::Vector3 angularForce = angularVelocity - GetAngularVelocity();// *delta;
+//		angularForce /= delta;
+//		angularForce *= _mass;
+		
+		_actor->addForce(physx::PxVec3(linearForce.x, linearForce.y, linearForce.z), physx::PxForceMode::eVELOCITY_CHANGE);
+		_actor->addTorque(physx::PxVec3(angularForce.x, angularForce.y, angularForce.z), physx::PxForceMode::eVELOCITY_CHANGE);
 	}
 	
 	bool PhysXDynamicBody::SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const

@@ -43,15 +43,16 @@ namespace RN
 		PXAPI void SetEnableKinematic(bool enable);
 
 		PXAPI void SetKinematicTarget(const Vector3 &position, const Quaternion &rotation);
-/*
+		PXAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);
+
 		PXAPI void ApplyForce(const Vector3 &force);
-		PXAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
+//		PXAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
 		PXAPI void ClearForces();
 			
 		PXAPI void ApplyTorque(const Vector3 &torque);
 		PXAPI void ApplyTorqueImpulse(const Vector3 &torque);
 		PXAPI void ApplyImpulse(const Vector3 &impulse);
-		PXAPI void ApplyImpulse(const Vector3 &impulse, const Vector3 &origin);*/
+//		PXAPI void ApplyImpulse(const Vector3 &impulse, const Vector3 &origin);
 			
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
