@@ -9,6 +9,8 @@ option(RN_BUILD_OCULUS_MODULE "Build the Oculus module" ON)
 option(RN_BUILD_OPENVR_MODULE "Build the OpenVR module" ON)
 option(RN_BUILD_BULLET_MODULE "Build the Bullet physics module" ON)
 option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" OFF)
+option(RN_BUILD_SPLASH_MODULE "Build the Splash physics module" OFF)
+option(RN_BUILD_ODE_MODULE "Build the ODE physics module" OFF)
 option(RN_BUILD_NEWTON_MODULE "Build the Newton Game Dynamics physics module" OFF)
 option(RN_BUILD_OGG_MODULE "Build the ogg audio file module" ON)
 option(RN_BUILD_OPENAL_MODULE "Build the OpenAL audio module" ON)
@@ -36,6 +38,14 @@ endif()
 
 if(${RN_BUILD_PHYSX_MODULE})
     add_subdirectory("PhysX")
+endif()
+
+if(${RN_BUILD_SPLASH_MODULE})
+    add_subdirectory("Splash")
+endif()
+
+if(${RN_BUILD_ODE_MODULE})
+    add_subdirectory("ODE")
 endif()
 
 if(${RN_BUILD_NEWTON_MODULE})
