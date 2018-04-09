@@ -56,6 +56,9 @@ namespace RN
 //		ODEAPI btRigidBody *GetODERigidBody() { return _rigidBody; }
 
 		ODEAPI void SetPositionOffset(RN::Vector3 offset) final;
+		ODEAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);
+
+		ODEAPI void Update(float delta) final;
 			
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
@@ -68,6 +71,7 @@ namespace RN
 		ODEShape *_shape;
 		dxBody *_body;
 		dxGeom *_geometry;
+		float _mass;
 //		BulletRigidBodyMotionState *_motionState;
 			
 		RNDeclareMetaAPI(ODEBody, ODEAPI)

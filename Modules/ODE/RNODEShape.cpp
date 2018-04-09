@@ -126,18 +126,19 @@ namespace RN
 		Mesh::Chunk chunk = mesh->GetChunk();
 		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
 
+		uint32 indexOffset = _vertices.size();
 		for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
 		{
 			if(i > 0) vertexIterator++;
 			const Vector3 &vertex = *vertexIterator;
-			_vertices.push_back(vertex);
+			_vertices.push_back(vertex * scale);
 		}
 
 		if(indexAttribute->GetSize() == 2)
 		{
 			for(size_t i = 0; i < mesh->GetIndicesCount(); i++)
 			{
-				uint16 index = static_cast<uint16*>(mesh->GetCPUIndicesBuffer())[i];
+				uint32 index = indexOffset + static_cast<uint32>(static_cast<uint16*>(mesh->GetCPUIndicesBuffer())[i]);
 				_indices.push_back(index);
 			}
 		}
@@ -145,7 +146,7 @@ namespace RN
 		{
 			for(size_t i = 0; i < mesh->GetIndicesCount(); i++)
 			{
-				uint32 index = static_cast<uint32*>(mesh->GetCPUIndicesBuffer())[i];
+				uint32 index = indexOffset + static_cast<uint32*>(mesh->GetCPUIndicesBuffer())[i];
 				_indices.push_back(index);
 			}
 		}

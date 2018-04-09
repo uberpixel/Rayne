@@ -23,7 +23,7 @@ namespace RN
 		_world = dWorldCreate();
 		_space = dHashSpaceCreate(0);
 		dWorldSetGravity(_world, gravity.x, gravity.y, gravity.z);
-//		dWorldSetCFM(_world, 1e-5);
+		dWorldSetCFM(_world, 0.03);
 		_contactGroup = dJointGroupCreate(0);
 
 		_sharedInstance = this;
@@ -45,12 +45,13 @@ namespace RN
 		dxBody *body1 = dGeomGetBody(object1);
 		dxBody *body2 = dGeomGetBody(object2);
 
-		dContact contact;
-		contact.surface.mode = 0;
-		contact.surface.mu = 0.01f; //friction
-		int numberOfContacts = dCollide(object1, object2, 1, &contact.geom, sizeof(dContact));
-		if(numberOfContacts)
+		dContact contacts[10];
+		int numberOfContacts = dCollide(object1, object2, 10, &contacts[0].geom, sizeof(dContact));
+		for(int i = 0; i < numberOfContacts; i++)
 		{
+			dContact &contact = contacts[i];
+			contact.surface.mode = 0;
+			contact.surface.mu = 0.05f; //friction
 			dxJoint *joint = dJointCreateContact(world->_world, world->_contactGroup, &contact);
 			dJointAttach(joint, body1, body2);
 		}
@@ -83,9 +84,12 @@ namespace RN
 		if(_paused || delta < k::EpsilonFloat)
 			return;
 
-		dSpaceCollide(_space, this, &ODEWorld::SimulationStepTickCallback);
-		dWorldStep(_world, delta);
-		dJointGroupEmpty(_contactGroup);
+		for(int i = 0; i < 10; i++)
+		{
+			dSpaceCollide(_space, this, &ODEWorld::SimulationStepTickCallback);
+			dWorldQuickStep(_world, delta*0.1f);
+			dJointGroupEmpty(_contactGroup);
+		}
 	}
 
 
