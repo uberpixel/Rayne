@@ -21,6 +21,7 @@ namespace RN
 		
 	SplashBody::~SplashBody()
 	{
+		SplashWorld::GetSharedInstance()->RemoveBody(this);
 		_shape->Release();
 	}
 	
@@ -40,10 +41,28 @@ namespace RN
 	{
 		_angularVelocity = velocity;
 	}
+
+	void SplashBody::AccelerateToTarget(const Vector3 &targetPosition, const Quaternion &targetRotation, float delta)
+	{
+		_linearVelocity = targetPosition - GetWorldPosition();
+		_linearVelocity /= delta;
+	}
 		
 	void SplashBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-		
+		SceneNodeAttachment::DidUpdate(changeSet);
+
+/*		if(changeSet & SceneNode::ChangeSet::Position)
+		{
+			Vector3 position = GetWorldPosition() - _offset;
+			Quaternion rotation = GetWorldRotation();
+			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+		}*/
+
+		if(changeSet & SceneNode::ChangeSet::Attachments)
+		{
+			SplashWorld::GetSharedInstance()->InsertBody(this);
+		}
 	}
 
 	void SplashBody::SetPositionOffset(const Vector3 &offset)
@@ -73,6 +92,6 @@ namespace RN
 
 	void SplashBody::Move(float delta)
 	{
-
+		SetWorldPosition(GetWorldPosition() + _linearVelocity * delta);
 	}
 }

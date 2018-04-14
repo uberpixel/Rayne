@@ -30,6 +30,8 @@ namespace RN
 		SPAPI const Vector3 &GetLinearVelocity() const { return _linearVelocity; }
 		SPAPI const Vector3 &GetAngularVelocity() const { return _angularVelocity; }
 
+		SPAPI void AccelerateToTarget(const Vector3 &targetPosition, const Quaternion &targetRotation, float delta);
+
 		SPAPI void SetPositionOffset(const Vector3 &offset);
 
 		SPAPI void Update(float delta) override;

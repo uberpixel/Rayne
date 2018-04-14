@@ -29,6 +29,7 @@ namespace RN
 		LODStage *stage = AddLODStage(distances[0]);
 
 		stage->AddMesh(mesh, material);
+		CalculateBoundingVolumes();
 	}
 
 	Model::Model(const Model *other) :
@@ -106,6 +107,8 @@ namespace RN
 			downMaterial->AddTexture(Texture::WithName(down));
 		stage->AddMesh(downMesh, downMaterial);
 
+		sky->CalculateBoundingVolumes();
+
 		return sky->Autorelease();
 	}
 
@@ -129,6 +132,8 @@ namespace RN
 		if(texture)
 			domeMaterial->AddTexture(Texture::WithName(texture));
 		stage->AddMesh(domeMesh, domeMaterial);
+
+		sky->CalculateBoundingVolumes();
 
 		return sky->Autorelease();
 	}
