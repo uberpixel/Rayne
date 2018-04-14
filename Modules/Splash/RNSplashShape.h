@@ -10,7 +10,6 @@
 #define __RAYNE_SPLASHSHAPE_H_
 
 #include "RNSplash.h"
-#include "RNSplashQuickhull.h"
 
 namespace RN
 {
@@ -26,38 +25,28 @@ namespace RN
 			
 		RNDeclareMetaAPI(SplashShape, SPAPI)
 	};
-		
-/*	class SplashSphereShape : public SplashShape
-	{
-	public:
-		SPAPI SplashSphereShape(float radius);
-			
-		SPAPI static SplashSphereShape *WithRadius(float radius);
-			
-		RNDeclareMetaAPI(SplashSphereShape, SPAPI)
-	};
-		
-	class SplashBoxShape : public SplashShape
-	{
-	public:
-		SPAPI SplashBoxShape(const Vector3 &halfExtents);
-			
-		SPAPI static SplashBoxShape *WithHalfExtents(const Vector3& halfExtents);
-			
-		RNDeclareMetaAPI(SplashBoxShape, SPAPI)
-	};*/
 
 	class SplashConvexHullShape : public SplashShape
 	{
 	public:
 		SPAPI SplashConvexHullShape(Mesh *mesh);
+		SPAPI SplashConvexHullShape(Model *model);
 
 		SPAPI static SplashConvexHullShape *WithMesh(Mesh *mesh);
+		SPAPI static SplashConvexHullShape *WithModel(Model *model);
 
 	private:
-		Vector3 _center;
-		float _radius;
-		SplashQuickhull _hull;
+		struct HullPlane
+		{
+			Plane plane;
+			uint32 indices[3];
+		};
+
+		void AddMesh(std::vector<Vector3> &vertices, Mesh *mesh);
+		void SetVertices(const std::vector<Vector3> &vertices);
+
+		std::vector<Vector3> _vertices;
+		std::vector<uint32> _indices;
 
 		RNDeclareMetaAPI(SplashConvexHullShape, SPAPI)
 	};
