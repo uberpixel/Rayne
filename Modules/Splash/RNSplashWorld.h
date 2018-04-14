@@ -10,6 +10,7 @@
 #define __RAYNE_SPLASHWORLD_H_
 
 #include "RNSplash.h"
+#include "RNSplashBody.h"
 
 namespace RN
 {
@@ -32,19 +33,24 @@ namespace RN
 		SPAPI void SetGravity(const Vector3 &gravity);
 
 		SPAPI void Update(float delta) override;
-		SPAPI void SetStepSize(double stepsize, int maxsteps);
+		SPAPI void SetStepsPerFrame(uint16 stepCount);
 
-		SPAPI void InsertCollisionObject(SplashBody *attachment);
-		SPAPI void RemoveCollisionObject(SplashBody *attachment);
+		SPAPI void InsertBody(SplashBody *attachment);
+		SPAPI void RemoveBody(SplashBody *attachment);
 
 		SPAPI void SetPaused(bool paused);
 
+		static SplashWorld *GetSharedInstance() { return _sharedInstance; }
+
 	private:
-		double _stepSize;
-		int _maxSteps;
+		void StepSimulation(float delta);
+
+		uint16 _stepsPerFrame;
 		bool _paused;
 
-		std::unordered_set<SplashBody *> _collisionObjects;
+		std::unordered_set<SplashBody *> _bodies;
+
+		static SplashWorld *_sharedInstance;
 
 		RNDeclareMetaAPI(SplashWorld, SPAPI)
 	};

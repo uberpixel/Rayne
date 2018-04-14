@@ -13,20 +13,23 @@ namespace RN
 {
 	RNDefineMeta(SplashWorld, SceneAttachment)
 
-	SplashWorld::SplashWorld(const Vector3 &gravity) : _maxSteps(50), _stepSize(1.0 / 120.0), _paused(false)
-	{
+	SplashWorld *SplashWorld::_sharedInstance = nullptr;
 
+	SplashWorld::SplashWorld(const Vector3 &gravity) : _stepsPerFrame(1), _paused(false)
+	{
+		RN_ASSERT(!_sharedInstance, "There can only be one SplashWorld at a time!");
+
+		_sharedInstance = this;
 	}
 
 	SplashWorld::~SplashWorld()
 	{
-
+		_sharedInstance = nullptr;
 	}
 
-	void SplashWorld::SetStepSize(double stepsize, int maxsteps)
+	void SplashWorld::SetStepsPerFrame(uint16 stepCount)
 	{
-		_stepSize = stepsize;
-		_maxSteps = maxsteps;
+		_stepsPerFrame = stepCount;
 	}
 
 	void SplashWorld::SetPaused(bool paused)
@@ -38,28 +41,56 @@ namespace RN
 	{
 		if(_paused)
 			return;
-	}
 
-
-	void SplashWorld::InsertCollisionObject(SplashBody *attachment)
-	{
-		//TODO: Add lock!?
-		auto iterator = _collisionObjects.find(attachment);
-		if(iterator == _collisionObjects.end())
+		float stepSize = delta / static_cast<float>(_stepsPerFrame);
+		for(uint16 i = 0; i < _stepsPerFrame; i++)
 		{
-//			attachment->InsertIntoWorld(this);
-			_collisionObjects.insert(attachment);
+			StepSimulation(stepSize);
 		}
 	}
 
-	void SplashWorld::RemoveCollisionObject(SplashBody *attachment)
+	void SplashWorld::StepSimulation(float delta)
+	{
+		for(SplashBody *body : _bodies)
+		{
+			body->CalculateForces(delta);
+			body->PrepareCollision(delta);
+		}
+
+		for(auto iter = _bodies.begin(); iter != _bodies.end(); ++iter)
+		{
+			SplashBody *body = *iter;
+			auto iter2 = iter;
+			for(++iter2; iter2 != _bodies.end(); ++iter2)
+			{
+				SplashBody *other = *iter2;
+				body->Collide(other, delta);
+			}
+		}
+
+		for(SplashBody *body : _bodies)
+		{
+			body->Move(delta);
+		}
+	}
+
+	void SplashWorld::InsertBody(SplashBody *attachment)
 	{
 		//TODO: Add lock!?
-		auto iterator = _collisionObjects.find(attachment);
-		if(iterator != _collisionObjects.end())
+		auto iterator = _bodies.find(attachment);
+		if(iterator == _bodies.end())
 		{
-//			attachment->RemoveFromWorld(this);
-			_collisionObjects.erase(attachment);
+			_bodies.insert(attachment);
+		}
+	}
+
+	void SplashWorld::RemoveBody(SplashBody *attachment)
+	{
+		//TODO: Add lock!?
+		auto iterator = _bodies.find(attachment);
+		if(iterator != _bodies.end())
+		{
+			_bodies.erase(attachment);
 		}
 	}
 }

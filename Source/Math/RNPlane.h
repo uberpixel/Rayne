@@ -88,7 +88,7 @@ namespace RN
 
 	RN_INLINE float Plane::GetDistance(const Vector3 &position) const
 	{
-		return _position.GetDotProduct(_normal) - _d;
+		return position.GetDotProduct(_normal) - _d;
 	}
 
 	RN_INLINE void Plane::CalculateD()

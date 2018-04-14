@@ -10,6 +10,7 @@
 #define __RAYNE_SPLASHSHAPE_H_
 
 #include "RNSplash.h"
+#include "RNSplashQuickhull.h"
 
 namespace RN
 {
@@ -26,7 +27,7 @@ namespace RN
 		RNDeclareMetaAPI(SplashShape, SPAPI)
 	};
 		
-	class SplashSphereShape : public SplashShape
+/*	class SplashSphereShape : public SplashShape
 	{
 	public:
 		SPAPI SplashSphereShape(float radius);
@@ -44,7 +45,7 @@ namespace RN
 		SPAPI static SplashBoxShape *WithHalfExtents(const Vector3& halfExtents);
 			
 		RNDeclareMetaAPI(SplashBoxShape, SPAPI)
-	};
+	};*/
 
 	class SplashConvexHullShape : public SplashShape
 	{
@@ -54,6 +55,9 @@ namespace RN
 		SPAPI static SplashConvexHullShape *WithMesh(Mesh *mesh);
 
 	private:
+		Vector3 _center;
+		float _radius;
+		SplashQuickhull _hull;
 
 		RNDeclareMetaAPI(SplashConvexHullShape, SPAPI)
 	};

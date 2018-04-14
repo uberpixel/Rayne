@@ -27,16 +27,27 @@ namespace RN
 		SPAPI void SetLinearVelocity(const Vector3 &velocity);
 		SPAPI void SetAngularVelocity(const Vector3 &velocity);
 
-		SPAPI void SetPositionOffset(RN::Vector3 offset);
+		SPAPI const Vector3 &GetLinearVelocity() const { return _linearVelocity; }
+		SPAPI const Vector3 &GetAngularVelocity() const { return _angularVelocity; }
+
+		SPAPI void SetPositionOffset(const Vector3 &offset);
+
+		SPAPI void Update(float delta) override;
+		SPAPI void CalculateForces(float delta);
+		SPAPI void PrepareCollision(float delta);
+		SPAPI void Collide(SplashBody *other, float delta);
+		SPAPI void Move(float delta);
 			
 	protected:
-		void DidUpdate(SceneNode::ChangeSet changeSet);
-		
-		void InsertIntoWorld(SplashWorld *world);
-		void RemoveFromWorld(SplashWorld *world);
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
 	private:
+		Vector3 _offset;
 		SplashShape *_shape;
+
+		float _mass;
+		Vector3 _linearVelocity;
+		Vector3 _angularVelocity;
 			
 		RNDeclareMetaAPI(SplashBody, SPAPI)
 	};

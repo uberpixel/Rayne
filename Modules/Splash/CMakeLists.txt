@@ -14,13 +14,15 @@ set(SOURCES
         RNSplashInit.cpp
         RNSplashWorld.cpp
         RNSplashBody.cpp
-        RNSplashShape.cpp)
+        RNSplashShape.cpp
+        RNSplashQuickhull.cpp)
 
 set(HEADERS
-		RNSplash.h
+	RNSplash.h
         RNSplashWorld.h
         RNSplashBody.h
-        RNSplashShape.h)
+        RNSplashShape.h
+        RNSplashQuickhull.h)
 
 set(DEFINES RN_BUILD_SPLASH)
 

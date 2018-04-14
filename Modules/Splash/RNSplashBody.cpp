@@ -33,31 +33,46 @@ namespace RN
 	
 	void SplashBody::SetLinearVelocity(const Vector3 &velocity)
 	{
-
+		_linearVelocity = velocity;
 	}
+
 	void SplashBody::SetAngularVelocity(const Vector3 &velocity)
 	{
-
+		_angularVelocity = velocity;
 	}
 		
 	void SplashBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		
 	}
-		
-		
-	void SplashBody::InsertIntoWorld(SplashWorld *world)
+
+	void SplashBody::SetPositionOffset(const Vector3 &offset)
 	{
-		
+		_offset = offset;
 	}
-		
-	void SplashBody::RemoveFromWorld(SplashWorld *world)
+
+	void SplashBody::Update(float delta)
 	{
 		
 	}
 
-	void SplashBody::SetPositionOffset(RN::Vector3 offset)
+	void SplashBody::CalculateForces(float delta)
 	{
 		
+	}
+
+	void SplashBody::PrepareCollision(float delta)
+	{
+		
+	}
+
+	void SplashBody::Collide(SplashBody *other, float delta)
+	{
+		
+	}
+
+	void SplashBody::Move(float delta)
+	{
+
 	}
 }

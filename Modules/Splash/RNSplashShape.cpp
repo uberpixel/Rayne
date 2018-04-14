@@ -7,12 +7,13 @@
 //
 
 #include "RNSplashShape.h"
+#include "RNSplashQuickhull.h"
 
 namespace RN
 {
 	RNDefineMeta(SplashShape, Object)
-	RNDefineMeta(SplashSphereShape, SplashShape)
-	RNDefineMeta(SplashBoxShape, SplashShape)
+//	RNDefineMeta(SplashSphereShape, SplashShape)
+//	RNDefineMeta(SplashBoxShape, SplashShape)
 	RNDefineMeta(SplashConvexHullShape, SplashShape)
 	RNDefineMeta(SplashCompoundShape, SplashShape)
 		
@@ -26,7 +27,7 @@ namespace RN
 
 	}
 		
-	SplashSphereShape::SplashSphereShape(float radius)
+/*	SplashSphereShape::SplashSphereShape(float radius)
 	{
 		
 	}
@@ -47,7 +48,7 @@ namespace RN
 	{
 		SplashBoxShape *shape = new SplashBoxShape(halfExtents);
 		return shape->Autorelease();
-	}
+	}*/
 
 
 	SplashConvexHullShape::SplashConvexHullShape(Mesh *mesh)
@@ -61,8 +62,8 @@ namespace RN
 		Mesh::Chunk chunk = mesh->GetChunk();
 		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
 
-		std::vector<float> vertices;
-		vertices.reserve(mesh->GetVerticesCount() * 3);
+		std::vector<Vector3> vertices;
+		vertices.reserve(mesh->GetVerticesCount());
 		for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
 		{
 			if(i > 0)
@@ -70,12 +71,23 @@ namespace RN
 				vertexIterator++;
 			}
 			const Vector3 &vertex = *vertexIterator;
-			vertices.push_back(vertex.x);
-			vertices.push_back(vertex.y);
-			vertices.push_back(vertex.z);
+
+			bool skip = false;
+			for(const Vector3 &other : vertices)
+			{
+				if(vertex.GetDistance(other) < k::EpsilonFloat*5.0f)
+				{
+					skip = true;
+				}
+			}
+
+			if(!skip)
+			{
+				vertices.push_back(vertex);
+			}
 		}
 
-
+		_hull.SetVertices(vertices);
 	}
 
 	SplashConvexHullShape *SplashConvexHullShape::WithMesh(Mesh *mesh)
