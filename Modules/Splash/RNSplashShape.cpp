@@ -24,6 +24,21 @@ namespace RN
 
 	}
 
+	SplashShape *SplashShape::GetTransformedCopy(const Matrix &transformation) const
+	{
+		return nullptr;
+	}
+
+	const Vector3 &SplashShape::GetClosestDistanceVector(SplashShape *other)
+	{
+		return Vector3();
+	}
+
+	SplashConvexHullShape::SplashConvexHullShape()
+	{
+		
+	}
+
 	SplashConvexHullShape::SplashConvexHullShape(Mesh *mesh)
 	{
 		std::vector<Vector3> vertices;
@@ -261,6 +276,60 @@ namespace RN
 			counter += 1;
 		}
 	}
+
+	SplashShape *SplashConvexHullShape::GetTransformedCopy(const Matrix &transformation) const
+	{
+		SplashConvexHullShape *newShape = new SplashConvexHullShape();
+		newShape->_indices = _indices;
+		newShape->_vertices.reserve(_vertices.size());
+
+		for(const Vector3 &vertex : _vertices)
+		{
+			Vector3 transformedVertex = transformation * vertex;
+			newShape->_vertices.push_back(transformedVertex);
+		}
+
+		return newShape;
+	}
+
+	const Vector3 &SplashConvexHullShape::GetClosestDistanceVector(SplashShape *other)
+	{
+		SplashConvexHullShape *otherShape = other->Downcast<SplashConvexHullShape>();
+		Vector3 closestVertices[3];
+		float closestDistance[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
+
+		for(const Vector3 &vertex1 : _vertices)
+		{
+			for(const Vector3 &vertex2 : otherShape->_vertices)
+			{
+				Vector3 result = vertex1 - vertex2;
+				float distance = result.x*result.x + result.y*result.y + result.z*result.z;
+				for(int i = 0; i < 3; i++)
+				{
+					if(closestDistance[i] > distance)
+					{
+						float tempDistance = closestDistance[i];
+						closestDistance[i] = distance;
+
+						Vector3 tempVertex = closestVertices[i];
+						closestVertices[i] = result;
+
+						if(i > 0)
+						{
+							closestDistance[i - 1] = tempDistance;
+							closestVertices[i - 1] = tempVertex;
+						}
+					}
+				}
+			}
+		}
+
+		Plane plane = Plane::WithTriangle(closestVertices[0], closestVertices[1], closestVertices[2]);
+		float distance = plane.GetDistance(Vector3());
+
+		return plane.GetNormal() * distance;
+	}
+
 
 	void SplashConvexHullShape::AddMesh(std::vector<Vector3> &vertices, Mesh *mesh)
 	{

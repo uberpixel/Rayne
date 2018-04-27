@@ -19,6 +19,9 @@ namespace RN
 	{
 	public:
 		SplashShape();
+
+		virtual SplashShape *GetTransformedCopy(const Matrix &transformation) const;
+		virtual const Vector3 &GetClosestDistanceVector(SplashShape *other);
 			
 	protected:
 		~SplashShape() override;
@@ -32,6 +35,9 @@ namespace RN
 		SPAPI SplashConvexHullShape(Mesh *mesh);
 		SPAPI SplashConvexHullShape(Model *model);
 
+		SplashShape *GetTransformedCopy(const Matrix &transformation) const final;
+		const Vector3 &GetClosestDistanceVector(SplashShape *other) final;
+
 		SPAPI static SplashConvexHullShape *WithMesh(Mesh *mesh);
 		SPAPI static SplashConvexHullShape *WithModel(Model *model);
 
@@ -41,6 +47,8 @@ namespace RN
 			Plane plane;
 			uint32 indices[3];
 		};
+
+		SPAPI SplashConvexHullShape();
 
 		void AddMesh(std::vector<Vector3> &vertices, Mesh *mesh);
 		void SetVertices(const std::vector<Vector3> &vertices);
@@ -60,6 +68,9 @@ namespace RN
 		SPAPI ~SplashCompoundShape();
 
 		SPAPI void AddChild(SplashShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
+
+		SplashShape *GetTransformedCopy(const Matrix &transformation) const final;
+		const Vector3 &GetClosestDistanceVector(SplashShape *other) const final;
 
 		SPAPI static SplashCompoundShape *WithModel(Model *model);
 			
