@@ -14,19 +14,19 @@ namespace RN
 {
 	RNDefineMeta(VulkanTexture, Texture)
 
-	static VkImageType VkImageTypeFromTextureType(Texture::Descriptor::Type type)
+	static VkImageType VkImageTypeFromTextureType(Texture::Type type)
 	{
 		switch(type)
 		{
-			case Texture::Descriptor::Type::Type1D:
-			case Texture::Descriptor::Type::Type1DArray:
+			case Texture::Type::Type1D:
+			case Texture::Type::Type1DArray:
 				return VK_IMAGE_TYPE_1D;
 
-			case Texture::Descriptor::Type::Type2D:
-			case Texture::Descriptor::Type::Type2DArray:
+			case Texture::Type::Type2D:
+			case Texture::Type::Type2DArray:
 				return VK_IMAGE_TYPE_2D;
 
-			case Texture::Descriptor::Type::Type3D:
+			case Texture::Type::Type3D:
 				return VK_IMAGE_TYPE_3D;
 
 			default:
@@ -77,21 +77,21 @@ namespace RN
 		}
 	}
 
-	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Descriptor::Type type)
+	static VkImageViewType VkImageViewTypeFromTextureType(Texture::Type type)
 	{
 		switch(type)
 		{
-			case Texture::Descriptor::Type::Type1D:
+			case Texture::Type::Type1D:
 				return VK_IMAGE_VIEW_TYPE_1D;
-			case Texture::Descriptor::Type::Type1DArray:
+			case Texture::Type::Type1DArray:
 				return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 
-			case Texture::Descriptor::Type::Type2D:
+			case Texture::Type::Type2D:
 				return VK_IMAGE_VIEW_TYPE_2D;
-			case Texture::Descriptor::Type::Type2DArray:
+			case Texture::Type::Type2DArray:
 				return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 
-			case Texture::Descriptor::Type::Type3D:
+			case Texture::Type::Type3D:
 				return VK_IMAGE_VIEW_TYPE_3D;
 
 			default:
@@ -148,7 +148,7 @@ namespace RN
 				break;
 		}
 
-		if(descriptor.usageHint & Texture::Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
 		{
 			bool depth = VkFormatIsDepthFormat(format);
 			bool stencil = VkFormatIsStencilFormat(format);
@@ -188,10 +188,8 @@ namespace RN
 		Texture(descriptor),
 		_renderer(renderer),
 		_image(VK_NULL_HANDLE),
-		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
-		_format(VkImageFormatFromTextureFormat(descriptor.format)),
-		_sampler(VK_NULL_HANDLE)
+		_format(VkImageFormatFromTextureFormat(descriptor.format))
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
@@ -210,7 +208,7 @@ namespace RN
 		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
 		imageInfo.mipLevels = descriptor.mipMaps;
 
-		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
 			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -231,7 +229,7 @@ namespace RN
 		allocateInfo.pNext = nullptr;
 		allocateInfo.allocationSize = _requirements.size;
 
-		if(descriptor.usageHint & Descriptor::UsageHint::RenderTarget)
+		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
 			device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocateInfo.memoryTypeIndex);
 		}
@@ -247,7 +245,7 @@ namespace RN
 		RNVulkanValidate(vk::BindImageMemory(device->GetDevice(), _image, _memory, 0));
 
 
-		VkImageViewCreateInfo imageViewInfo = {};
+/*		VkImageViewCreateInfo imageViewInfo = {};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewInfo.pNext = nullptr;
 		imageViewInfo.viewType = VkImageViewTypeFromTextureType(descriptor.type);
@@ -263,7 +261,7 @@ namespace RN
 
 		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageViewInfo, _renderer->GetAllocatorCallback(), &_imageView));
 
-		if(!(descriptor.usageHint & Descriptor::UsageHint::RenderTarget))
+		if(!(descriptor.usageHint & UsageHint::RenderTarget))
 		{
 			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 			commandBuffer->Begin();
@@ -278,19 +276,15 @@ namespace RN
 			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 			commandBuffer->End();
 			_renderer->SubmitCommandBuffer(commandBuffer);
-		}
-
-		SetParameter(_parameter);
+		}*/
 	}
 
 	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image, VkImageView imageView) :
 		Texture(descriptor),
 		_renderer(renderer),
 		_image(image),
-		_imageView(imageView),
 		_memory(VK_NULL_HANDLE),
-		_format(VK_FORMAT_B8G8R8A8_UNORM),
-		_sampler(VK_NULL_HANDLE)
+		_format(VK_FORMAT_B8G8R8A8_UNORM)
 	{
 
 	}
@@ -299,8 +293,8 @@ namespace RN
 	{
 		VulkanDevice *device = _renderer->GetVulkanDevice();
 
-		if(_imageView != VK_NULL_HANDLE)
-			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
+//		if(_imageView != VK_NULL_HANDLE)
+//			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
 
 		if(_image != VK_NULL_HANDLE)
 			vk::DestroyImage(device->GetDevice(), _image, _renderer->GetAllocatorCallback());
@@ -308,8 +302,8 @@ namespace RN
 		if(_memory != VK_NULL_HANDLE)
 			vk::FreeMemory(device->GetDevice(), _memory, _renderer->GetAllocatorCallback());
 
-		if(_sampler != VK_NULL_HANDLE)
-			vk::DestroySampler(device->GetDevice(), _sampler, _renderer->GetAllocatorCallback());
+//		if(_sampler != VK_NULL_HANDLE)
+//			vk::DestroySampler(device->GetDevice(), _sampler, _renderer->GetAllocatorCallback());
 	}
 
 	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -507,7 +501,7 @@ namespace RN
 		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());
 	}
 
-	void VulkanTexture::SetParameter(const Parameter &parameter)
+/*	void VulkanTexture::SetParameter(const Parameter &parameter)
 	{
 		//TODO: Have the state coordinator pool these.
 		Texture::SetParameter(parameter);
@@ -555,55 +549,11 @@ namespace RN
 		samplerInfo.anisotropyEnable = (parameter.anisotropy > 0)? VK_TRUE:VK_FALSE;
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		RNVulkanValidate(vk::CreateSampler(device, &samplerInfo, _renderer->GetAllocatorCallback(), &_sampler));
-	}
+	}*/
 
 	void VulkanTexture::GenerateMipMaps()
 	{
 		_renderer->CreateMipMapForTexture(this);
-	}
-
-	bool VulkanTexture::HasColorChannel(ColorChannel channel) const
-	{
-#define ColorChannel(format, r, g, b, a) \
-		case format: \
-		{ \
-			switch(channel) \
-			{ \
-				case ColorChannel::Red: \
-					return r; \
-				case ColorChannel::Green: \
-					return g; \
-				case ColorChannel::Blue: \
-					return b; \
-				case ColorChannel::Alpha: \
-					return a; \
-			} \
-			return false; \
-		}
-
-		switch(GetFormat())
-		{
-			ColorChannel(VK_FORMAT_R8G8B8A8_UNORM, true, true, true, true)
-			ColorChannel(VK_FORMAT_A2R10G10B10_UNORM_PACK32, true, true, true, true)
-			ColorChannel(VK_FORMAT_R8_UNORM, true, false, false, false)
-			ColorChannel(VK_FORMAT_R8G8_UNORM, true, true, false, false)
-
-			ColorChannel(VK_FORMAT_R16_SFLOAT, true, false, false, false)
-			ColorChannel(VK_FORMAT_R16G16_SFLOAT, true, true, false, false)
-			ColorChannel(VK_FORMAT_R16G16B16A16_SFLOAT, true, true, true, true)
-
-			ColorChannel(VK_FORMAT_R32_SFLOAT, true, false, false, false)
-			ColorChannel(VK_FORMAT_R32G32_SFLOAT, true, true, false, false)
-			ColorChannel(VK_FORMAT_R32G32B32A32_SFLOAT, true, true, true, true)
-
-			ColorChannel(VK_FORMAT_D32_SFLOAT, false, false, false, false)
-			ColorChannel(VK_FORMAT_S8_UINT, false, false, false, false)
-			ColorChannel(VK_FORMAT_D24_UNORM_S8_UINT, false, false, false, false)
-			ColorChannel(VK_FORMAT_D32_SFLOAT_S8_UINT, false, false, false, false)
-
-			default:
-				return false;
-		}
 	}
 
 	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout)

@@ -20,41 +20,29 @@ namespace RN
 	class VulkanFramebuffer : public Framebuffer
 	{
 	public:
-		VKAPI VulkanFramebuffer(const Vector2 &size, const Descriptor &descriptor, VkSwapchainKHR swapChain, VulkanRenderer *renderer);
-		VKAPI ~VulkanFramebuffer();
-
-		VKAPI Texture *GetColorTexture() const final;
-		VKAPI Texture *GetDepthTexture() const final;
-		VKAPI Texture *GetStencilTexture() const final;
-
-		VKAPI Texture *GetColorTexture(size_t index) const;
-		VKAPI Texture *GetDepthTexture(size_t index) const;
-		VKAPI Texture *GetStencilTexture(size_t index) const;
-
-		VkRenderPass GetRenderPass() const { return _renderPass; }
-		VkFramebuffer GetFramebuffer(size_t index) const;
-
-	private:
-		struct FramebufferData
+		struct VulkanTargetView
 		{
-			FramebufferData() :
-				colorTexture(nullptr),
-				depthTexture(nullptr),
-				stencilTexture(nullptr)
-			{}
-
-			VkFramebuffer framebuffer;
-			VulkanTexture *colorTexture;
-			VulkanTexture *depthTexture;
-			VulkanTexture *stencilTexture;
+			TargetView targetView;
 		};
 
-		void InitializeRenderPass(size_t index);
+		VKAPI VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer);
+		VKAPI VulkanFramebuffer(const Vector2 &size, VkSwapchainKHR swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		VKAPI ~VulkanFramebuffer();
 
+		VKAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
+		VKAPI void SetDepthStencilTarget(const TargetView &target) final;
+
+		VKAPI Texture *GetColorTexture(uint32 index = 0) const final;
+		VKAPI Texture *GetDepthStencilTexture() const final;
+
+		VKAPI virtual uint8 GetSampleCount() const final;
+
+	private:
 		VulkanRenderer *_renderer;
+		uint8 _sampleCount;
 
-		VkRenderPass _renderPass;
-		std::vector<FramebufferData *> _framebuffers;
+		std::vector<VulkanTargetView *> _colorTargets;
+		VulkanTargetView *_depthStencilTarget;
 
 		RNDeclareMetaAPI(VulkanFramebuffer, VKAPI)
 	};

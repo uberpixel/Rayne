@@ -27,9 +27,7 @@ namespace RN
 		VKAPI void GenerateMipMaps() final;
 
 		VkImage GetImage() const { return _image; }
-		VkImageView GetImageView() const { return _imageView; }
 		VkFormat GetFormat() const { return _format; }
-		VkSampler GetSampler() const { return _sampler; }
 
 		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
 
@@ -44,9 +42,6 @@ namespace RN
 		VkImage _image;
 		VkDeviceMemory _memory;
 		VkMemoryRequirements _requirements;
-
-//		VkImageView _imageView;
-//		VkSampler _sampler;
 
 		RNDeclareMetaAPI(VulkanTexture, VKAPI);
 	};
