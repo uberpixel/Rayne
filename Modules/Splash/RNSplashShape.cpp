@@ -289,7 +289,7 @@ namespace RN
 			newShape->_vertices.push_back(transformedVertex);
 		}
 
-		return newShape;
+		return newShape->Autorelease();
 	}
 
 	const Vector3 &SplashConvexHullShape::GetClosestDistanceVector(SplashShape *other)

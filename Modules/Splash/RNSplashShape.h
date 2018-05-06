@@ -69,8 +69,8 @@ namespace RN
 
 		SPAPI void AddChild(SplashShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 
-		SplashShape *GetTransformedCopy(const Matrix &transformation) const final;
-		const Vector3 &GetClosestDistanceVector(SplashShape *other) const final;
+//		SplashShape *GetTransformedCopy(const Matrix &transformation) const final;
+//		const Vector3 &GetClosestDistanceVector(SplashShape *other) const final;
 
 		SPAPI static SplashCompoundShape *WithModel(Model *model);
 			

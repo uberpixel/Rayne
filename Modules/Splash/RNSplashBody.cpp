@@ -13,8 +13,8 @@ namespace RN
 {
 	RNDefineMeta(SplashBody, SceneNodeAttachment)
 		
-	SplashBody::SplashBody(SplashShape *shape) :
-		_shape(shape->Retain())
+	SplashBody::SplashBody(SplashShape *shape, float mass) :
+		_shape(shape->Retain()), _mass(mass)
 	{
 		
 	}
@@ -26,9 +26,9 @@ namespace RN
 	}
 	
 		
-	SplashBody *SplashBody::WithShape(SplashShape *shape)
+	SplashBody *SplashBody::WithShape(SplashShape *shape, float mass)
 	{
-		SplashBody *body = new SplashBody(shape);
+		SplashBody *body = new SplashBody(shape, mass);
 		return body->Autorelease();
 	}
 	
@@ -75,19 +75,37 @@ namespace RN
 		
 	}
 
-	void SplashBody::CalculateForces(float delta)
+	void SplashBody::AddForce(const RN::Vector3 force)
 	{
-		
+		if(_mass > 0)
+		{
+			_linearAcceleration += force / _mass;
+		}
+	}
+
+	void SplashBody::CalculateVelocities(float delta)
+	{
+		_linearVelocity += _linearAcceleration;
+		_linearAcceleration = Vector3();
 	}
 
 	void SplashBody::PrepareCollision(float delta)
 	{
-		
+		SafeRelease(_transformedShape);
+		_transformedShape = _shape->GetTransformedCopy(GetParent()->GetWorldTransform());
+		SafeRetain(_transformedShape);
 	}
 
 	void SplashBody::Collide(SplashBody *other, float delta)
 	{
-		
+		if(!_transformedShape || !other->_transformedShape) return;
+
+		RN::Vector3 closestDistance = _transformedShape->GetClosestDistanceVector(other->_transformedShape);
+
+		if(closestDistance.GetDotProduct(_linearVelocity) > 0.0f)
+		{
+			
+		}
 	}
 
 	void SplashBody::Move(float delta)

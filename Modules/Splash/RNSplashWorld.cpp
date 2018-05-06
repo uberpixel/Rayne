@@ -53,7 +53,7 @@ namespace RN
 	{
 		for(SplashBody *body : _bodies)
 		{
-			body->CalculateForces(delta);
+			body->CalculateVelocities(delta);
 			body->PrepareCollision(delta);
 		}
 

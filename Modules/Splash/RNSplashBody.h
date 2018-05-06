@@ -18,11 +18,11 @@ namespace RN
 	class SplashBody : public SceneNodeAttachment
 	{
 	public:
-		SPAPI SplashBody(SplashShape *shape);
+		SPAPI SplashBody(SplashShape *shape, float mass);
 			
 		SPAPI ~SplashBody();
 			
-		SPAPI static SplashBody *WithShape(SplashShape *shape);
+		SPAPI static SplashBody *WithShape(SplashShape *shape, float mass);
 			
 		SPAPI void SetLinearVelocity(const Vector3 &velocity);
 		SPAPI void SetAngularVelocity(const Vector3 &velocity);
@@ -32,10 +32,12 @@ namespace RN
 
 		SPAPI void AccelerateToTarget(const Vector3 &targetPosition, const Quaternion &targetRotation, float delta);
 
+		SPAPI void AddForce(const RN::Vector3 force);
+
 		SPAPI void SetPositionOffset(const Vector3 &offset);
 
 		SPAPI void Update(float delta) override;
-		SPAPI void CalculateForces(float delta);
+		SPAPI void CalculateVelocities(float delta);
 		SPAPI void PrepareCollision(float delta);
 		SPAPI void Collide(SplashBody *other, float delta);
 		SPAPI void Move(float delta);
@@ -46,8 +48,10 @@ namespace RN
 	private:
 		Vector3 _offset;
 		SplashShape *_shape;
+		SplashShape *_transformedShape;
 
 		float _mass;
+		Vector3 _linearAcceleration;
 		Vector3 _linearVelocity;
 		Vector3 _angularVelocity;
 			
