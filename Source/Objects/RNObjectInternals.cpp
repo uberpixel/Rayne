@@ -84,6 +84,10 @@ namespace RN
 		size_t cacheLineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
 #endif
 
+#if RN_PLATFORM_ANDROID
+		size_t cacheLineSize = 128; //Best guess as used by SDL2...
+#endif
+
 		return cacheLineSize; /* Leave here to trigger an error on all unsupported platforms */
 	}
 

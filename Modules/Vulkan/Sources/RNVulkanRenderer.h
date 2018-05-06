@@ -29,11 +29,13 @@ namespace RN
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();
 
-		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
 		VKAPI Window *GetMainWindow() final;
+		VKAPI void SetMainWindow(Window *window) final;
 
-		VKAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		VKAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		VKAPI void Render(Function &&function) final;
+		VKAPI void SubmitCamera(Camera *camera, Function &&function) final;
+//		VKAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		VKAPI bool SupportsTextureFormat(const String *format) const final;
 		VKAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -47,18 +49,20 @@ namespace RN
 		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options, GPUResource::AccessOptions accessOptions) final;
 
-		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
+		VKAPI ShaderLibrary *GetDefaultShaderLibrary() final;
 
-		VKAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		VKAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint = Shader::UsageHint::Default) final;
 
 		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		VKAPI Drawable *CreateDrawable() final;
-		VKAPI void DeleteDrawable(Drawable *drawable);
+		VKAPI void DeleteDrawable(Drawable *drawable) final;
 		VKAPI void SubmitDrawable(Drawable *drawable) final;
+		VKAPI void SubmitLight(const Light *light) final;
 
 		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }
 		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }

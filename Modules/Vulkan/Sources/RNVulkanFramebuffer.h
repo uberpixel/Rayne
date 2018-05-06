@@ -20,7 +20,7 @@ namespace RN
 	class VulkanFramebuffer : public Framebuffer
 	{
 	public:
-		VKAPI VulkanFramebuffer(const Vector2 &size, const Descriptor &descriptor, VkSwapchainKHR swapChain,VulkanRenderer *renderer);
+		VKAPI VulkanFramebuffer(const Vector2 &size, const Descriptor &descriptor, VkSwapchainKHR swapChain, VulkanRenderer *renderer);
 		VKAPI ~VulkanFramebuffer();
 
 		VKAPI Texture *GetColorTexture() const final;

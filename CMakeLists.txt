@@ -78,9 +78,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 
-# Boost
-set(VENDOR_BOOST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/boost/libs)
-
 set(CMAKE_DEBUG_POSTFIX "")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "")
 set(CMAKE_MINSIZEREL_POSTFIX "")
@@ -95,7 +92,7 @@ endif()
 
 #Force default to build static libraries.
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
-option(SKIP_INSTALL_ALL "Skip PNG intall" ON)
+option(SKIP_INSTALL_ALL "Skip PNG install" ON)
 
 #Force static zlib to be used
 set(ZLIB_FOUND 1)
@@ -108,9 +105,9 @@ option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
 option(JANSSON_EXAMPLES "Build Jansson examples" OFF)
 
 # Include all Rayne targets
+add_subdirectory("Vendor")
 add_subdirectory("Source")
 add_subdirectory("Modules")
 add_subdirectory("Tests")
-add_subdirectory("Vendor")
 
 add_custom_target(Rayne-Install make install COMMENT "Installing Rayne and modules...")

@@ -147,8 +147,10 @@ namespace RN
 		};
 	};
 
+#if RN_SUPPORTS_TRIVIALLY_COPYABLE
 	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
+#endif
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */

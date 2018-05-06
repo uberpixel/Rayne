@@ -254,6 +254,12 @@ elseif(WIN32)
 
     set(RAYNE_PLATFORM_HEADERS_PRIVATE
             Input/RNInputWindows.h)
+elseif(ANDROID)
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputAndroid.cpp)
+
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputAndroid.h)
 elseif(UNIX)
     set(RAYNE_PLATFORM_SOURCES
             Input/RNInputLinux.cpp)
@@ -261,7 +267,6 @@ elseif(UNIX)
     set(RAYNE_PLATFORM_HEADERS_PRIVATE
             Input/RNInputLinux.h)
 endif()
-
 
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
@@ -290,7 +295,7 @@ if(APPLE)
     set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
 
-if(UNIX OR MINGW)
+if((UNIX OR MINGW) AND (NOT ANDROID))
     set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2 -mfpmath=sse -msse -msse2)
 
     if(NOT APPLE)
@@ -349,7 +354,7 @@ if(WIN32)
 
 endif()
 
-if(UNIX AND (NOT APPLE))
+if(UNIX AND (NOT APPLE) AND (NOT ANDROID))
     find_package(XCB REQUIRED)
     find_library(PTHREAD_LIBRARY pthread)
     find_library(DL_LIBRARY dl)

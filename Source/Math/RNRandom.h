@@ -60,11 +60,11 @@ namespace RN
 			RNAPI virtual int32 GetRandomInt32();
 
 		private:
-			uint32 _N;
-			uint32 _M;
-			uint32 _A;
-			uint32 _U;
-			uint32 _L;
+			uint32 ___N;
+			uint32 __M;
+			uint32 __A;
+			uint32 __U;
+			uint32 __L;
 
 			uint32 *_bytes;
 			uint32 _offset;
