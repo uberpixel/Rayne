@@ -718,9 +718,9 @@ namespace RN
 		ElementIterator<Vector2> uvs = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
 		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
-		for(int ring = 0; ring < rings; ring++)
+		for(size_t ring = 0; ring < rings; ring++)
 		{
-			for(int slice = 0; slice < slices; slice++)
+			for(size_t slice = 0; slice < slices; slice++)
 			{
 				//float y = 2.0f * segment / segments - 1.0f;
 				float y = -cos(k::Pi * ring / (rings - 1));
@@ -785,9 +785,9 @@ namespace RN
 		ElementIterator<Vector4> colors = chunk.GetIterator<Vector4>(VertexAttribute::Feature::Color0);
 		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
-		for (int ring = 0; ring < rings; ring++)
+		for(size_t ring = 0; ring < rings; ring++)
 		{
-			for (int slice = 0; slice < slices; slice++)
+			for(size_t slice = 0; slice < slices; slice++)
 			{
 				//float y = 2.0f * segment / segments - 1.0f;
 				float y = -cos(k::Pi * ring / (rings - 1));
@@ -802,9 +802,9 @@ namespace RN
 			}
 		}
 
-		for (size_t i = 0; i < rings - 1; i++)
+		for(size_t i = 0; i < rings - 1; i++)
 		{
-			for (size_t j = 0; j < slices - 1; j++)
+			for(size_t j = 0; j < slices - 1; j++)
 			{
 				*indices++ = i * slices + j;
 				*indices++ = (i + 1) * slices + j + 1;
@@ -816,7 +816,7 @@ namespace RN
 			}
 		}
 
-		for (size_t i = 0; i < rings - 1; i++)
+		for(size_t i = 0; i < rings - 1; i++)
 		{
 			*indices++ = i * slices + slices - 1;
 			*indices++ = (i + 1) * slices + 0;

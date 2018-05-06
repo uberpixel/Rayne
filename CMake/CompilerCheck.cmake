@@ -226,7 +226,6 @@ if(WIN32)
     set(RAYNE_RNAPI_IMPORT "__declspec(dllimport)")
 else()
     set(RAYNE_RNAPI_EXPORT "")
-    set(RAYNE_RNAPI_EXPORT "")
     set(RAYNE_RNAPI_IMPORT "")
 endif()
 

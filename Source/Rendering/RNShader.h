@@ -86,13 +86,13 @@ namespace RN
 			RNAPI UniformDescriptor(const String *name, size_t offset);
 			RNAPI virtual ~UniformDescriptor();
 
-			RNAPI const String *GetName() const { return _name; }
-			RNAPI PrimitiveType GetType() const { return _type; }
-			RNAPI size_t GetOffset() const { return _offset; }
+			const String *GetName() const { return _name; }
+			PrimitiveType GetType() const { return _type; }
+			size_t GetOffset() const { return _offset; }
 			RNAPI size_t GetSize() const;
-			RNAPI Identifier GetIdentifier() const { return _identifier; }
+			Identifier GetIdentifier() const { return _identifier; }
 
-			RNAPI const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
+			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
 
 		private:
 			String *_name;
@@ -142,10 +142,10 @@ namespace RN
 			RNAPI static uint32 GetDefaultAnisotropy();
 			RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
-			RNAPI WrapMode GetWrapMode() const { return _wrapMode; }
-			RNAPI Filter GetFilter() const { return _filter; }
-			RNAPI ComparisonFunction GetComparisonFunction() const { return _comparisonFunction; }
-			RNAPI uint8 GetAnisotropy() const { return _anisotropy; }
+			WrapMode GetWrapMode() const { return _wrapMode; }
+			Filter GetFilter() const { return _filter; }
+			ComparisonFunction GetComparisonFunction() const { return _comparisonFunction; }
+			uint8 GetAnisotropy() const { return _anisotropy; }
 
 		private:
 			WrapMode _wrapMode;
@@ -162,22 +162,22 @@ namespace RN
 			RNAPI Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount);
 			RNAPI virtual ~Signature();
 
-			RNAPI const Array *GetUniformDescriptors() const
+			const Array *GetUniformDescriptors() const
 			{
 				return _uniformDescriptors;
 			}
 
-			RNAPI const Array *GetSamplers() const
+			const Array *GetSamplers() const
 			{
 				return _samplers;
 			}
 
-			RNAPI uint8 GetTextureCount() const
+			uint8 GetTextureCount() const
 			{
 				return _textureCount;
 			}
 
-			RNAPI size_t GetTotalUniformSize() const
+			size_t GetTotalUniformSize() const
 			{
 				return _totalUniformSize;
 			}

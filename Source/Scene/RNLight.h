@@ -81,7 +81,7 @@ namespace RN
 		
 		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
 		RNAPI void DeactivateShadows();
-		RNAPI bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
+		bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
 		RNAPI void SetSuppressShadows(bool suppress);
 		RNAPI void UpdateShadowParameters(const ShadowParameter &parameter);
 		
