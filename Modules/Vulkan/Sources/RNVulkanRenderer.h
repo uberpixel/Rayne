@@ -12,7 +12,6 @@
 #include "RNVulkan.h"
 #include "RNVulkanDevice.h"
 #include "RNVulkanRendererDescriptor.h"
-#include "RNVulkanBackBuffer.h"
 
 namespace RN
 {

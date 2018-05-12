@@ -23,7 +23,6 @@ generate_dispatch_table(RNVulkanDispatchTable.h)
 generate_dispatch_table(RNVulkanDispatchTable.cpp)
 
 set(SOURCES
-        Sources/RNVulkanBackBuffer.cpp
         Sources/RNVulkanDebug.cpp
         Sources/RNVulkanDevice.cpp
         Sources/RNVulkanDispatchTable.cpp
@@ -35,6 +34,7 @@ set(SOURCES
         Sources/RNVulkanRendererDescriptor.cpp
         Sources/RNVulkanTexture.cpp
         Sources/RNVulkanWindow.cpp
+        Sources/RNVulkanSwapChain.cpp
         Sources/RNVulkanInit.cpp
         Sources/RNVulkanInternals.cpp
         Sources/RNVulkanShader.cpp
@@ -44,7 +44,6 @@ set(SOURCES
 set(HEADERS
         Sources/RNVulkan.h
         Sources/RNVulkanDebug.h
-        Sources/RNVulkanBackBuffer.h
         Sources/RNVulkanDevice.h
         Sources/RNVulkanDispatchTable.h
         Sources/RNVulkanFramebuffer.h
@@ -54,6 +53,7 @@ set(HEADERS
         Sources/RNVulkanRendererDescriptor.h
         Sources/RNVulkanTexture.h
         Sources/RNVulkanWindow.h
+        Sources/RNVulkanSwapChain.h
         Sources/RNVulkanInternals.h
         Sources/RNVulkanShader.h
         Sources/RNVulkanShaderLibrary.h

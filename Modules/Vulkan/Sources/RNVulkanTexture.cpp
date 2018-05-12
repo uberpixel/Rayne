@@ -34,7 +34,7 @@ namespace RN
 		}
 	}
 
-	static VkFormat VkImageFormatFromTextureFormat(Texture::Format format)
+	static VkFormat VulkanTexture::VulkanImageFormatFromTextureFormat(Texture::Format format)
 	{
 		switch(format)
 		{
@@ -189,7 +189,7 @@ namespace RN
 		_renderer(renderer),
 		_image(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
-		_format(VkImageFormatFromTextureFormat(descriptor.format))
+		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
@@ -279,12 +279,12 @@ namespace RN
 		}*/
 	}
 
-	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image, VkImageView imageView) :
+	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image) :
 		Texture(descriptor),
 		_renderer(renderer),
 		_image(image),
 		_memory(VK_NULL_HANDLE),
-		_format(VK_FORMAT_B8G8R8A8_UNORM)
+		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
 	{
 
 	}
@@ -556,15 +556,27 @@ namespace RN
 		_renderer->CreateMipMapForTexture(this);
 	}
 
-	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout)
+/*	void VulkanTexture::TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout)
+	{
+		TransitionToLayout(buffer, targetLayout, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT);
+		_currentLayout = targetLayout;
+	}
+
+	void VulkanTexture::TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask)
+	{
+		SetImageLayout(buffer, _image, baseMipmap, mipmapCount, aspectMask, _currentLayout, targetLayout);
+		_currentLayout = targetLayout;
+	}*/
+
+	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout)
 	{
 		VkImageMemoryBarrier imageMemoryBarrier = {};
 		imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageMemoryBarrier.pNext = nullptr;
 		imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageMemoryBarrier.oldLayout = oldImageLayout;
-		imageMemoryBarrier.newLayout = newImageLayout;
+		imageMemoryBarrier.oldLayout = fromLayout;
+		imageMemoryBarrier.newLayout = toLayout;
 		imageMemoryBarrier.image = image;
 		imageMemoryBarrier.subresourceRange.aspectMask = aspectMask;
 		imageMemoryBarrier.subresourceRange.baseMipLevel = baseMipmap;
@@ -578,27 +590,27 @@ namespace RN
 
 		// Old layout is color attachment
 		// Make sure any writes to the color buffer have been finished
-		if(oldImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		if(fromLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 		// Old layout is shader read (sampler, input attachment)
 		// Make sure any shader reads from the image have been finished
-		if(oldImageLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		if(fromLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		if(oldImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		if(fromLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		// Target layouts (new)
 
 		// New layout is transfer destination (copy, blit)
 		// Make sure any copyies to the image have been finished
-		if(newImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		if(toLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		// New layout is transfer source (copy, blit)
 		// Make sure any reads from and writes to the image have been finished
-		if(newImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+		if(toLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
 		{
 			//imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -606,37 +618,37 @@ namespace RN
 
 		// New layout is color attachment
 		// Make sure any writes to the color buffer hav been finished
-		if(newImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		if(toLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 		{
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		}
 
-		if(newImageLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		if(toLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 		{
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 		}
 
 		// New layout is depth attachment
 		// Make sure any writes to depth/stencil buffer have been finished
-		if(newImageLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		if(toLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 			imageMemoryBarrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 		// New layout is shader read (sampler, input attachment)
 		// Make sure any writes to the image have been finished
-		if(newImageLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		if(toLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
 			imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		}
 
-		if(oldImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+		if(fromLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
 		// Undefined layout
 		// Only allowed as initial layout!
 		// Make sure any writes to the image have been finished
-		if(oldImageLayout == VK_IMAGE_LAYOUT_UNDEFINED) //TODO: Check if there is a case where this is needed...
+		if(fromLayout == VK_IMAGE_LAYOUT_UNDEFINED) //TODO: Check if there is a case where this is needed...
 			imageMemoryBarrier.srcAccessMask = 0;// VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		// Put barrier on top

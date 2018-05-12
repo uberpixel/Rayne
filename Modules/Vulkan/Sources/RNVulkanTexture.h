@@ -17,7 +17,11 @@ namespace RN
 	class VulkanTexture : public Texture
 	{
 	public:
-		VKAPI ~VulkanTexture();
+		friend class VulkanRenderer;
+
+		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer);
+		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image);
+		VKAPI ~VulkanTexture() override;
 
 		VKAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		VKAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
@@ -26,22 +30,34 @@ namespace RN
 
 		VKAPI void GenerateMipMaps() final;
 
-		VkImage GetImage() const { return _image; }
-		VkFormat GetFormat() const { return _format; }
+		VkImage GetVulkanImage() const { return _image; }
+		VkFormat GetVulkanFormat() const { return _format; }
 
-		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
+/*		VKAPI void TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask);
+		VKAPI void TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout);*/
+
+		static VkFormat VulkanImageFormatFromTextureFormat(Texture::Format format);
+
+		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout);
 
 	private:
-		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer);
-		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image);
+/*		D3D12Renderer *_renderer;
+		D3D12StateCoordinator *_coordinator;
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC _srvDescriptor;
+		ID3D12Resource *_resource;
+		D3D12_RESOURCE_STATES _currentState;
+
+		bool _isReady;
+		bool _needsMipMaps;*/
 
 		VulkanRenderer *_renderer;
 
 		VkFormat _format;
-
 		VkImage _image;
 		VkDeviceMemory _memory;
 		VkMemoryRequirements _requirements;
+		VkImageLayout _currentLayout;
 
 		RNDeclareMetaAPI(VulkanTexture, VKAPI);
 	};

@@ -213,7 +213,6 @@ namespace RN
 	{
 		RN_ASSERT(!_swapChain, "A swap chain framebuffer can not have additional color targets!");
 		RN_ASSERT(target.texture, "The color target needs a texture!");
-		target.texture->Retain();
 
 		_sampleCount = target.texture->GetDescriptor().sampleCount;
 
@@ -234,7 +233,6 @@ namespace RN
 	{
 		RN_ASSERT(!_swapChain || !_swapChain->HasDepthBuffer(), "A swap chain framebuffer can not have additional depth targets, if the swap chain has them!");
 		RN_ASSERT(target.texture, "The depth stencil target needs a texture!");
-		SafeRetain(target.texture);
 
 		D3D12DepthStencilTargetView *targetView = D3D12DepthStencilTargetViewFromTargetView(target);
 		if(_depthStencilTarget)
