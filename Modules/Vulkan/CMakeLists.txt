@@ -1,20 +1,8 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.7)
 project(Vulkan)
 
 find_package(PythonInterp 3 REQUIRED)
-if(NOT PYTHON_EXECUTABLE)
-    if(WIN32)
-        set(PYTHON_EXECUTABLE "C:/Program Files (x86)/Python36/python.exe")
-    endif()
-endif()
-
-if(WIN32)
-    if(DEFINED ENV{VK_SDK_PATH})
-        set(VULKAN_BASE "$ENV{VK_SDK_PATH}")
-    else()
-        set(VULKAN_BASE NOTFOUND)
-    endif()
-endif()
+find_package(Vulkan REQUIRED)
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/CopyResources.cmake)
@@ -92,7 +80,7 @@ rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
 
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
-target_include_directories(RayneVulkan SYSTEM PRIVATE ${VULKAN_BASE}/Include)
+target_include_directories(RayneVulkan SYSTEM PRIVATE ${Vulkan_INCLUDE_DIR})
 target_compile_definitions(RayneVulkan PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneVulkan/. DESTINATION lib/Rayne/RayneVulkan)
