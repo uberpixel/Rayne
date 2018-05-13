@@ -15,13 +15,13 @@ namespace RN
 {
 	RNExceptionType(VulkanStructArgumentUnsupported)
 
-	class VulkanUniformBuffer;
 	class VulkanFramebuffer;
+	class VulkanGPUBuffer;
 
 	struct VulkanUniformState
 	{
-		VulkanUniformBuffer *vertexUniformBuffer;
-		VulkanUniformBuffer *fragmentUniformBuffer;
+		VulkanGPUBuffer *vertexUniformBuffer;
+		VulkanGPUBuffer *fragmentUniformBuffer;
 	};
 
 	struct VulkanDepthStencilState
@@ -120,7 +120,7 @@ namespace RN
 		VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState);
 
 	private:
-		const std::vector<VkVertexInputAttributeDescription> &CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
 		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &pipelineDescriptor);
 
 		std::vector<VulkanDepthStencilState *> _depthStencilStates;

@@ -41,7 +41,7 @@ namespace RN
 	class VulkanShaderLibrary : public ShaderLibrary
 	{
 	public:
-		friend class D3D12Renderer;
+		friend class VulkanRenderer;
 
 		VKAPI ~VulkanShaderLibrary() override;
 

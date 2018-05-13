@@ -80,15 +80,16 @@ namespace RN
 		void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
 		//void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
 
-		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
+//		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
-		void PolpulateDescriptorHeap();
-		void SetupRendertargets(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderpass);
+//		void PolpulateDescriptorHeap();
+//		void SetupRendertargets(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderpass);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
 
 		Window *_mainWindow;
+		ShaderLibrary *_defaultShaderLibrary;
 
 		PIMPL<VulkanRendererInternals> _internals;
 
@@ -96,7 +97,7 @@ namespace RN
 
 		Dictionary *_defaultShaders;
 
-		Set *_mipMapTextures;
+		Array *_mipMapTextures;
 
 		VkDescriptorPool _descriptorPool;
 		VkQueue _workQueue;
@@ -104,6 +105,7 @@ namespace RN
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;
 
+		size_t _currentDrawableIndex;
 		size_t _currentFrame;
 
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)

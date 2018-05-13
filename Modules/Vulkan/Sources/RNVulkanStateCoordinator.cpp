@@ -127,6 +127,7 @@ namespace RN
 		}
 
 		VulkanRenderer *renderer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer());
+		VulkanDevice *device = renderer->GetVulkanDevice();
 
 		VulkanRootSignature *signature = new VulkanRootSignature();
 		signature->constantBufferCount = constantBufferCount;
@@ -145,8 +146,6 @@ namespace RN
 		setUniformLayoutBinding.descriptorCount = 1;
 
 		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
-
-		size_t textureCount = material->GetTextures()->GetCount();
 		for(size_t i = 0; i < textureCount; i++)
 		{
 			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
@@ -165,7 +164,7 @@ namespace RN
 		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
 
 		VkDescriptorSetLayout descriptorSetLayout;
-		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, _renderer->GetAllocatorCallback(), &descriptorSetLayout));
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device->GetDevice(), &descriptorSetLayoutCreateInfo, renderer->GetAllocatorCallback(), &descriptorSetLayout));
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -174,7 +173,7 @@ namespace RN
 		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 
 		VkPipelineLayout pipelineLayout;
-		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, _renderer->GetAllocatorCallback(), &pipelineLayout));
+		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &pipelineLayout));
 
 
 
@@ -182,7 +181,7 @@ namespace RN
 
 
 
-		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
+/*		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
 
 		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
 		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
@@ -302,7 +301,7 @@ namespace RN
 		}
 
 		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);*/
 
 		/*		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
 				//If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
@@ -313,7 +312,7 @@ namespace RN
 					featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 				}*/
 
-		ID3DBlob *signatureBlob = nullptr;
+/*		ID3DBlob *signatureBlob = nullptr;
 		ID3DBlob *error = nullptr;
 		HRESULT success = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
 
@@ -336,7 +335,9 @@ namespace RN
 		if (rootParameters)
 			delete[] rootParameters;
 		if (samplerDescriptors)
-			delete[] samplerDescriptors;
+			delete[] samplerDescriptors;*/
+
+
 
 		_rootSignatures.push_back(signature);
 		return signature;
@@ -391,7 +392,7 @@ namespace RN
 		//TODO: Maybe solve nicer...
 		for(const VulkanPipelineState *state : collection->states)
 		{
-			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
+			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat/* && rootSignature->signature == state->rootSignature->signature*/)
 			{
 				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
 				{
@@ -401,6 +402,7 @@ namespace RN
 		}
 
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+		VulkanDevice *device = renderer->GetVulkanDevice();
 
 		//Collect shaders
 		VulkanShader *vertexShaderRayne = collection->vertexShader->Downcast<VulkanShader>();
@@ -424,11 +426,91 @@ namespace RN
 		vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
 		vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
 
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
+		inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssemblyState.flags = 0;
+		inputAssemblyState.primitiveRestartEnable = VK_FALSE;
+
+		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
+		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
+		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizationState.lineWidth = 1.0f;
+		rasterizationState.flags = 0;
+		rasterizationState.depthClampEnable = VK_TRUE;
+		if(descriptor.usePolygonOffset)
+		{
+			rasterizationState.depthBiasConstantFactor = descriptor.polygonOffsetUnits;
+			rasterizationState.depthBiasSlopeFactor = descriptor.polygonOffsetFactor;
+			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
+		}
+		switch(descriptor.cullMode)
+		{
+			case CullMode::BackFace:
+				rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+				break;
+			case CullMode::FrontFace:
+				rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
+				break;
+			case CullMode::None:
+				rasterizationState.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
+				break;
+		}
+
+		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
+		blendAttachmentState.colorWriteMask = 0xf;
+		blendAttachmentState.blendEnable = VK_FALSE;
+
+		VkPipelineColorBlendStateCreateInfo colorBlendState = {};
+		colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlendState.pNext = NULL;
+		colorBlendState.attachmentCount = 1;
+		colorBlendState.pAttachments = &blendAttachmentState;
+
+		//psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
+
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		if(descriptor.depthStencilFormat != VK_FORMAT_UNDEFINED)
+		{
+			depthStencilState.depthTestEnable = VK_TRUE;
+			depthStencilState.depthWriteEnable = VK_TRUE;
+			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+			depthStencilState.front = depthStencilState.back;
+		}
+		else
+		{
+			depthStencilState.depthTestEnable = VK_FALSE;
+			depthStencilState.depthWriteEnable = VK_FALSE;
+		}
+
+		VkPipelineViewportStateCreateInfo viewportState = {};
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.viewportCount = 1;
+		viewportState.scissorCount = 1;
+		viewportState.flags = 0;
+
+		VkPipelineMultisampleStateCreateInfo multisampleState = {};
+		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+		std::vector<VkDynamicState> dynamicStateEnables = {
+			VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_SCISSOR
+		};
+
+		VkPipelineDynamicStateCreateInfo dynamicState = {};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.pDynamicStates = dynamicStateEnables.data();
+		dynamicState.dynamicStateCount = dynamicStateEnables.size();
+
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineCreateInfo.pNext = NULL;
-		pipelineCreateInfo.layout = pipelineLayout;
-		pipelineCreateInfo.renderPass = framebuffer->GetRenderPass();
+//		pipelineCreateInfo.layout = pipelineLayout;
+//		pipelineCreateInfo.renderPass = framebuffer->GetRenderPass();
 		pipelineCreateInfo.flags = 0;
 		pipelineCreateInfo.pVertexInputState = &vertexInputState;
 		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
@@ -443,57 +525,24 @@ namespace RN
 
 		VkPipeline pipeline;
 		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
-		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, _renderer->GetAllocatorCallback(), &pipeline));
+		RNVulkanValidate(vk::CreateGraphicsPipelines(device->GetDevice(),  VK_NULL_HANDLE, 1, &pipelineCreateInfo, renderer->GetAllocatorCallback(), &pipeline));
 
 		// Create the rendering state
 		VulkanPipelineState *state = new VulkanPipelineState();
+		state->descriptor = std::move(descriptor);
+		state->rootSignature = rootSignature;
 		state->state = pipeline;
-		state->descriptorSetLayout = descriptorSetLayout;
-		state->pipelineLayout = pipelineLayout;
-		state->textureCount = material->GetTextures()->GetCount();
 
 		collection->states.push_back(state);
+		return state;
 
 
 
 
 		// Describe and create the graphics pipeline state object (PSO).
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+/*		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = rootSignature->signature;
 
-		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		psoDesc.RasterizerState.FrontCounterClockwise = true;
-		if(descriptor.usePolygonOffset)
-		{
-			psoDesc.RasterizerState.DepthBias = descriptor.polygonOffsetUnits;
-			psoDesc.RasterizerState.SlopeScaledDepthBias = descriptor.polygonOffsetFactor;
-			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
-		}
-
-		switch(descriptor.cullMode)
-		{
-			case CullMode::BackFace:
-				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
-				break;
-			case CullMode::FrontFace:
-				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
-				break;
-			case CullMode::None:
-				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-				break;
-		}
-
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
-
-		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
-		{
-			psoDesc.DepthStencilState.DepthEnable = TRUE;
-			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-			psoDesc.DepthStencilState.StencilEnable = FALSE;
-			psoDesc.DSVFormat = descriptor.depthStencilFormat;
-		}
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		psoDesc.NumRenderTargets = descriptor.colorFormats.size();
@@ -505,23 +554,10 @@ namespace RN
 				break;
 		}
 		psoDesc.SampleDesc.Count = descriptor.sampleCount;
-		psoDesc.SampleDesc.Quality = descriptor.sampleQuality;
-
-		VulkanPipelineState *state = new VulkanPipelineState();
-		state->descriptor = std::move(descriptor);
-		state->rootSignature = rootSignature;
-		HRESULT success = renderer->GetVulkanDevice()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
-
-		if(FAILED(success))
-		{
-			return nullptr;
-		}
-
-		collection->states.push_back(state);
-		return state;
+		psoDesc.SampleDesc.Quality = descriptor.sampleQuality;*/
 	}
 
-	const std::vector<VkVertexInputAttributeDescription> &VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
@@ -556,16 +592,16 @@ namespace RN
 
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		VulkanUniformBuffer *vertexBuffer = nullptr;
-		VulkanUniformBuffer *fragmentBuffer = nullptr;
-		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		VulkanGPUBuffer *vertexBuffer = nullptr;
+		VulkanGPUBuffer *fragmentBuffer = nullptr;
+/*		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = new VulkanUniformBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
+			vertexBuffer = new VulkanGPUBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = new VulkanUniformBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
-		}
+			fragmentBuffer = new VulkanGPUBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
+		}*/
 
 		VulkanUniformState *state = new VulkanUniformState();
 		state->vertexUniformBuffer = vertexBuffer;
@@ -577,31 +613,7 @@ namespace RN
 
 
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
-	{
-		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
-
-		VulkanShader *vertexShader = static_cast<VulkanShader *>(material->GetVertexShader());
-		VulkanShader *fragmentShader = static_cast<VulkanShader *>(material->GetFragmentShader());
-
-		for(VulkanPipelineStateCollection *collection : _renderingStates)
-		{
-			if(collection->descriptor.IsEqual(descriptor))
-			{
-				if(collection->vertexShader == vertexShader && collection->fragmentShader == fragmentShader)
-				{
-					return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
-				}
-			}
-		}
-
-		VulkanPipelineStateCollection *collection = new VulkanPipelineStateCollection(descriptor, vertexShader, fragmentShader);
-		_renderingStates.push_back(collection);
-
-		return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
-	}
-
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
+/*	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
 	{
 		for(VulkanPipelineState *state : collection->states)
 		{
@@ -813,5 +825,5 @@ namespace RN
 		state->uniformBuffer = gpuBuffer;
 
 		return state;
-	}
+	}*/
 }

@@ -12,6 +12,7 @@
 #include "RNVulkanGPUBuffer.h"
 #include "RNVulkanShader.h"
 #include "RNVulkanShaderLibrary.h"
+#include "RNVulkanFramebuffer.h"
 
 namespace RN
 {
@@ -22,7 +23,7 @@ namespace RN
 		_mainWindow(nullptr),
 		_currentFrame(0),
 		_defaultShaders(new Dictionary()),
-		_mipMapTextures(new Set()),
+		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array())
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
@@ -49,7 +50,9 @@ namespace RN
 		descriptorPoolInfo.poolSizeCount = poolSizes.size();
 		descriptorPoolInfo.pPoolSizes = poolSizes.data();
 		descriptorPoolInfo.maxSets = 100000;
-		RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, _renderer->GetAllocatorCallback(), &_descriptorPool));
+		RNVulkanValidate(vk::CreateDescriptorPool(device->GetDevice(), &descriptorPoolInfo, GetAllocatorCallback(), &_descriptorPool));
+
+		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"));
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -132,7 +135,7 @@ namespace RN
 		_submittedCommandBuffers->RemoveAllObjects();
 	}
 
-	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor())
+	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
 	{
 		VulkanWindow *window = new VulkanWindow(size, screen, this, descriptor);
 
@@ -229,11 +232,11 @@ namespace RN
 			{
 				if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
 				{
-					RenderAPIRenderPass(_currentCommandBuffer, renderPass);
+//					RenderAPIRenderPass(_currentCommandBuffer, renderPass);
 					_internals->currentRenderPassIndex += 1;
 					continue;
 				}
-				SetupRendertargets(_currentCommandBuffer, renderPass);
+//				SetupRendertargets(_currentCommandBuffer, renderPass);
 
 /*				if(renderPass.drawables.size() > 0)
 				{
@@ -355,6 +358,117 @@ namespace RN
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
 			SubmitRenderPass(nextPass, renderPass.renderPass);
 		});
+	}
+
+	void VulkanRenderer::SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass)
+	{
+		VulkanRenderPass vulkanRenderPass;
+		vulkanRenderPass.drawables.resize(0);
+
+		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
+		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
+
+		vulkanRenderPass.renderPass = renderPass;
+		vulkanRenderPass.previousRenderPass = previousRenderPass;
+
+		vulkanRenderPass.shaderHint = Shader::UsageHint::Default;
+		vulkanRenderPass.overrideMaterial = ppStage ? ppStage->GetMaterial() : nullptr;
+
+		vulkanRenderPass.directionalShadowDepthTexture = nullptr;
+
+		if(!apiStage)
+		{
+			vulkanRenderPass.type = VulkanRenderPass::Type::Default;
+		}
+		else
+		{
+			switch(apiStage->GetType())
+			{
+				case PostProcessingAPIStage::Type::ResolveMSAA:
+				{
+					vulkanRenderPass.type = VulkanRenderPass::Type::ResolveMSAA;
+					break;
+				}
+				case PostProcessingAPIStage::Type::Blit:
+				{
+					vulkanRenderPass.type = VulkanRenderPass::Type::Blit;
+					break;
+				}
+				case PostProcessingAPIStage::Type::Convert:
+				{
+					vulkanRenderPass.type = VulkanRenderPass::Type::Convert;
+
+/*					if(!_ppConvertMaterial)
+					{
+						_ppConvertMaterial = Material::WithShaders(_defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_vertex")), _defaultShaderLibrary->GetShaderWithName(RNCSTR("pp_blit_fragment")));
+					}
+					vulkanRenderPass.overrideMaterial = _ppConvertMaterial;*/
+					break;
+				}
+			}
+		}
+
+		Framebuffer *framebuffer = renderPass->GetFramebuffer();
+		VulkanSwapChain *newSwapChain = nullptr;
+		newSwapChain = framebuffer->Downcast<VulkanFramebuffer>()->GetSwapChain();
+		vulkanRenderPass.framebuffer = framebuffer->Downcast<VulkanFramebuffer>();
+
+		if(newSwapChain)
+		{
+			bool notIncluded = true;
+			for (VulkanSwapChain *swapChain : _internals->swapChains)
+			{
+				if (swapChain == newSwapChain)
+				{
+					notIncluded = false;
+					break;
+				}
+			}
+
+			if (notIncluded)
+			{
+				_internals->swapChains.push_back(newSwapChain);
+			}
+		}
+
+		_internals->currentRenderPassIndex = _internals->renderPasses.size();
+		_internals->renderPasses.push_back(vulkanRenderPass);
+
+		if(ppStage || vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
+		{
+			//Submit fullscreen quad drawable
+/*			if(!_defaultPostProcessingDrawable)
+			{
+				Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
+				Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
+
+				_lock.Lock();
+				_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
+				_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
+				_defaultPostProcessingDrawable->material = planeMaterial->Retain();
+				_lock.Unlock();
+			}*/
+
+			/*			Texture *sourceTexture = d3dRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+						if(d3dRenderPass.type == D3D12RenderPass::Type::Convert)
+						{
+							_defaultPostProcessingDrawable->material->RemoveAllTextures();
+							_defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
+						}*/
+//			SubmitDrawable(_defaultPostProcessingDrawable);
+
+/*			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+			_internals->totalDrawableCount += numberOfDrawables;
+
+			if(numberOfDrawables > 0)
+				_internals->currentDrawableResourceIndex += 1;*/
+		}
+
+		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop)
+												{
+													SubmitRenderPass(nextPass, renderPass);
+												});
 	}
 
 /*	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
@@ -571,10 +685,10 @@ namespace RN
 		VulkanCommandBuffer *commandBuffer = GetCommandBuffer();
 		commandBuffer->Begin();
 
-		_mipMapTextures->Enumerate<VulkanTexture>([&](VulkanTexture *texture, bool &stop) {
+		_mipMapTextures->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 			for(uint16 i = 0; i < texture->GetDescriptor().mipMaps-1; i++)
 			{
 				VkImageBlit imageBlit = {};
@@ -603,12 +717,12 @@ namespace RN
 				imageBlit.dstOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i+1);
 				imageBlit.dstOffsets[1].z = 1;
 
-				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
+				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetVulkanImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
 
-				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			}
 
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		});
 
 		commandBuffer->End();
@@ -629,57 +743,67 @@ namespace RN
 		return (new VulkanGPUBuffer(this, data, length, usageOptions));
 	}
 
-	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options)
+	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file)
 	{
-		VulkanShaderLibrary *library = new VulkanShaderLibrary(this, file, options);
-		return library;
+		return new VulkanShaderLibrary(file);
 	}
-	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options)
+
+	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithSource(const String *source)
 	{
 		RN_ASSERT(-1, "NOT IMPLEMENTED!");
 		return nullptr;
 	}
 
-	ShaderProgram *VulkanRenderer::GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup)
+	ShaderLibrary *VulkanRenderer::GetDefaultShaderLibrary()
 	{
-		Dictionary *defines = new Dictionary();
+		return _defaultShaderLibrary;
+	}
 
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_NORMALS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_TANGENTS"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_COLOR"));
-		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_UV0"));
+	Shader *VulkanRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
+	{
+		LockGuard<Lockable> lock(_lock);
 
-		if(lookup->discard)
-			defines->SetObjectForKey(Number::WithInt32(1), RNCSTR("RN_DISCARD"));
-
-		ShaderCompileOptions *options = new ShaderCompileOptions();
-		options->SetDefines(defines);
-
-		ShaderLibrary *library;
-
+		Shader *shader = nullptr;
+		if(type == Shader::Type::Vertex)
 		{
-			LockGuard<Lockable> lock(_lock);
-			library = _defaultShaders->GetObjectForKey<ShaderLibrary>(options);
-
-			if(!library)
+			if(usageHint == Shader::UsageHint::Depth)
 			{
-				library = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"), options);
-				_defaultShaders->SetObjectForKey(library, options);
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
+			}
+			else
+			{
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				}
+				else
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+				}
+			}
+		}
+		else if(type == Shader::Type::Fragment)
+		{
+			if(usageHint == Shader::UsageHint::Depth)
+			{
+				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
+			}
+			else
+			{
+				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				}
+				else
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+				}
 			}
 		}
 
-		options->Release();
-		defines->Release();
-
-		Shader *vertex = library->GetShaderWithName(RNCSTR("gouraud_vertex"));
-		Shader *fragment = library->GetShaderWithName(RNCSTR("gouraud_fragment"));
-
-		ShaderProgram *program = new ShaderProgram(vertex, fragment);
-		return program->Autorelease();
+		return shader;
 	}
 
 	Texture *VulkanRenderer::CreateTextureWithDescriptor(const Texture::Descriptor &descriptor)
@@ -688,9 +812,9 @@ namespace RN
 		return texture;
 	}
 
-	Framebuffer *VulkanRenderer::CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor)
+	Framebuffer *VulkanRenderer::CreateFramebuffer(const Vector2 &size)
 	{
-		return new VulkanFramebuffer(size, descriptor,  _mainWindow->GetSwapChain(), this);
+		return new VulkanFramebuffer(size, this);
 	}
 
 	void VulkanRenderer::FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable)
@@ -698,8 +822,8 @@ namespace RN
 		GPUBuffer *gpuBuffer = uniformBuffer;//uniformBuffer->Advance();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 
-		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-		std::memcpy(buffer, result.m, sizeof(Matrix));
+//		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
+//		std::memcpy(buffer, result.m, sizeof(Matrix));
 
 	/*	const VulkanUniformBuffer::Member *member;*/
 
@@ -783,6 +907,29 @@ namespace RN
 		}*/
 
 		gpuBuffer->Invalidate();
+	}
+
+	void VulkanRenderer::SubmitLight(const Light *light)
+	{
+/*		_lock.Lock();
+		VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		_lock.Unlock();
+
+		if(light->GetType() == Light::Type::DirectionalLight)
+		{
+			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
+			{
+				renderPass.directionalLights.push_back(VulkanLightDirectional{ light->GetForward(), 0.0f, light->GetColor() });
+			}
+
+			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
+			if(light->HasShadows())
+			{
+				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<VulkanTexture>();
+				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
+				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
+			}
+		}*/
 	}
 
 	Drawable *VulkanRenderer::CreateDrawable()
