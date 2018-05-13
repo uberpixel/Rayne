@@ -8,6 +8,8 @@
 
 #include "RNVulkanWindow.h"
 #include "RNVulkanRenderer.h"
+#include "RNVulkanSwapChain.h"
+#include "RNVulkanFramebuffer.h"
 
 namespace RN
 {

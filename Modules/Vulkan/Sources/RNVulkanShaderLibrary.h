@@ -14,25 +14,46 @@
 
 namespace RN
 {
+	class VulkanSpecificShaderLibrary : public Object
+	{
+	public:
+		friend class VulkanShaderLibrary;
+
+		~VulkanSpecificShaderLibrary();
+		Shader *GetShaderWithOptions(ShaderLibrary *library, const Shader::Options *options);
+
+	private:
+		VulkanSpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
+
+		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
+		const Array *GetSamplerSignature(const Shader::Options *options) const;
+
+		Dictionary *_shaders;
+
+		const String *_entryPoint;
+		const String *_fileName;
+		Shader::Type _type;
+		Dictionary *_signatureDescription;
+
+		RNDeclareMetaAPI(VulkanSpecificShaderLibrary, VKAPI)
+	};
+
 	class VulkanShaderLibrary : public ShaderLibrary
 	{
 	public:
-		friend class VulkanRenderer;
+		friend class D3D12Renderer;
 
 		VKAPI ~VulkanShaderLibrary() override;
 
-		VKAPI Shader *GetShaderWithName(const String *name) final;
-		VKAPI Array *GetShaderNames() const final;
+		VKAPI Shader *GetShaderWithName(const String *name, const Shader::Options *options = nullptr) final;
+		VKAPI Shader *GetInstancedShaderForShader(Shader *shader) final;
 
 	private:
-		VulkanShaderLibrary(class VulkanRenderer *renderer, const String *file, const ShaderCompileOptions *options);
+		VulkanShaderLibrary(const String *file);
 
-		class VulkanRenderer *_renderer;
+		Dictionary *_specificShaderLibraries;
 
-		VkShaderModule _shaderModule;
-		Dictionary *_shaders;
-
-		RNDeclareMetaAPI(VulkanShaderLibrary, VKAPI)
+	RNDeclareMetaAPI(VulkanShaderLibrary, VKAPI)
 	};
 }
 

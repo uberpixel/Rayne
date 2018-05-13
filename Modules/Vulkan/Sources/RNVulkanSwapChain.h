@@ -15,7 +15,7 @@ namespace RN
 {
 	class VulkanRenderer;
 	class VulkanFramebuffer;
-	class VulkanCommandList;
+	class VulkanCommandBuffer;
 
 	class VulkanSwapChain : public Object
 	{
@@ -27,19 +27,15 @@ namespace RN
 		VKAPI Vector2 GetSize() const;
 
 		VKAPI virtual void AcquireBackBuffer();
-		VKAPI virtual void Prepare(VulkanCommandList *commandList);
-		VKAPI virtual void Finalize(VulkanCommandList *commandList);
+		VKAPI virtual void Prepare(VulkanCommandBuffer *commandBuffer);
+		VKAPI virtual void Finalize(VulkanCommandBuffer *commandBuffer);
 		VKAPI virtual void PresentBackBuffer(VkQueue queue);
 
 		VKAPI virtual VkImage GetVulkanColorBuffer(int i) const;
 		VKAPI virtual VkImage GetVulkanDepthBuffer(int i) const;
 
-
-/*
-		VkSemaphore GetPresentSemaphore() const { return _presentSemaphore; }
-		VkSemaphore GetRenderSemaphore() const { return _renderSemaphore; }
-*/
-
+/*		VkSemaphore GetPresentSemaphore() const { return _presentSemaphore; }
+		VkSemaphore GetRenderSemaphore() const { return _renderSemaphore; }*/
 
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		VulkanFramebuffer *GetFramebuffer() const { return _framebuffer; }

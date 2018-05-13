@@ -315,12 +315,15 @@ namespace RN
 
 		for(D3D12Framebuffer::D3D12ColorTargetView *targetView : framebuffer->_colorTargets)
 		{
+			//TODO: Fix this bullshit
 			if(targetView->d3dTargetViewDesc.Format == DXGI_FORMAT_UNKNOWN)
 			{
 				pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
 			}
 			else
+			{
 				pipelineDescriptor.colorFormats.push_back(targetView->d3dTargetViewDesc.Format);
+			}
 		}
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->d3dTargetViewDesc.Format : DXGI_FORMAT_UNKNOWN;
 		pipelineDescriptor.shaderHint = shaderHint;

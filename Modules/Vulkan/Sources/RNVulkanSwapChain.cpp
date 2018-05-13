@@ -305,14 +305,14 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		_fenceValues[_frameIndex] = fenceValue + 1;*/
 	}
 
-	void VulkanSwapChain::Prepare(VulkanCommandList* commandList)
+	void VulkanSwapChain::Prepare(VulkanCommandBuffer *commandBuffer)
 	{
 		// Indicate that the back buffer will be used as a render target.
 //		ID3D12Resource* renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
 //		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
-	void VulkanSwapChain::Finalize(VulkanCommandList* commandList)
+	void VulkanSwapChain::Finalize(VulkanCommandBuffer *commandBuffer)
 	{
 //		ID3D12Resource* renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
 //		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

@@ -271,13 +271,13 @@ namespace RN
 		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
 	}
 
-	void VulkanFramebuffer::SetAsRendertarget(VulkanCommandList *commandList) const
+	void VulkanFramebuffer::SetAsRendertarget(VulkanCommandBuffer *commandBuffer) const
 	{
 		//Set the rendertargets
 //		commandList->GetCommandList()->OMSetRenderTargets(_colorTargets.size() ? 1 : 0, _rtvHandle, false, _dsvHandle);
 	}
 
-	void VulkanFramebuffer::ClearColorTargets(VulkanCommandList *commandList, const Color &color)
+	void VulkanFramebuffer::ClearColorTargets(VulkanCommandBuffer *commandBuffer, const Color &color)
 	{
 		if(_colorTargets.size() == 0)
 			return;
@@ -286,7 +286,7 @@ namespace RN
 //		commandList->GetCommandList()->ClearRenderTargetView(*_rtvHandle, &color.r, 1, &clearRect);
 	}
 
-	void VulkanFramebuffer::ClearDepthStencilTarget(VulkanCommandList *commandList, float depth, uint8 stencil)
+	void VulkanFramebuffer::ClearDepthStencilTarget(VulkanCommandBuffer *commandBuffer, float depth, uint8 stencil)
 	{
 		if(!_depthStencilTarget)
 			return;

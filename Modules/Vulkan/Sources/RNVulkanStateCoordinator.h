@@ -13,30 +13,84 @@
 
 namespace RN
 {
+	RNExceptionType(VulkanStructArgumentUnsupported)
+
+	class VulkanUniformBuffer;
+	class VulkanFramebuffer;
+
+	struct VulkanUniformState
+	{
+		VulkanUniformBuffer *vertexUniformBuffer;
+		VulkanUniformBuffer *fragmentUniformBuffer;
+	};
+
+	struct VulkanDepthStencilState
+	{
+		VulkanDepthStencilState() = default;
+
+		~VulkanDepthStencilState()
+		{
+
+		}
+
+		DepthMode mode;
+		bool depthWriteEnabled;
+
+		RN_INLINE bool MatchesMaterial(Material *material) const
+		{
+			return (material->GetDepthMode() == mode && material->GetDepthWriteEnabled() == depthWriteEnabled);
+		}
+	};
+
+	struct VulkanRootSignature
+	{
+		~VulkanRootSignature();
+
+		uint8 textureCount;
+		Array *samplers;
+		uint8 constantBufferCount;
+
+		bool wantsDirectionalShadowTexture; //TODO: Solve better...
+
+		VkDescriptorSet descriptorSet;
+	};
+
+	struct VulkanPipelineStateDescriptor
+	{
+		Shader::UsageHint shaderHint;
+
+		std::vector<VkFormat> colorFormats;
+		VkFormat depthStencilFormat;
+		uint8 sampleCount;
+		uint8 sampleQuality;
+
+		Shader *vertexShader;
+		Shader *fragmentShader;
+
+		CullMode cullMode;
+		bool usePolygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
+
+		bool useAlphaToCoverage;
+	};
+
 	struct VulkanPipelineState
 	{
-		~VulkanPipelineState()
-		{
-			//vk::DestroyPipeline(device, state, nullptr);
-		}
+		~VulkanPipelineState();
+
+		VulkanPipelineStateDescriptor descriptor;
+		const VulkanRootSignature *rootSignature;
 
 		VkPipeline state;
 		VkDescriptorSetLayout descriptorSetLayout;
 		VkPipelineLayout pipelineLayout;
-		uint8 textureCount;
 	};
 
-	struct VulkanUniformState
-	{
-		VkDescriptorSet descriptorSet;
-		GPUBuffer *uniformBuffer;
-	};
-
-	class VulkanShader;
 	struct VulkanPipelineStateCollection
 	{
 		VulkanPipelineStateCollection() = default;
-		VulkanPipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, VulkanShader *vertex, VulkanShader *fragment) :
+		VulkanPipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, Shader *vertex, Shader *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
@@ -49,31 +103,31 @@ namespace RN
 		}
 
 		Mesh::VertexDescriptor descriptor;
-		class VulkanShader *vertexShader;
-		class VulkanShader *fragmentShader;
+		Shader *vertexShader;
+		Shader *fragmentShader;
 
 		std::vector<VulkanPipelineState *> states;
 	};
 
-
-	class VulkanRenderer;
 	class VulkanStateCoordinator
 	{
 	public:
-		VKAPI VulkanStateCoordinator();
-		VKAPI ~VulkanStateCoordinator();
+		VulkanStateCoordinator();
+		~VulkanStateCoordinator();
 
-		VKAPI const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
-		VKAPI VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState, Material *material);
-		VKAPI void SetRenderer(VulkanRenderer *renderer);
+		const VulkanRootSignature *GetRootSignature(const VulkanPipelineStateDescriptor &pipelineDescriptor);
+		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
+		VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState);
 
 	private:
-		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera);
+		const std::vector<VkVertexInputAttributeDescription> &CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &pipelineDescriptor);
 
-		VulkanRenderer *_renderer;
-		VkDescriptorPool _descriptorPool;
+		std::vector<VulkanDepthStencilState *> _depthStencilStates;
+		const VulkanDepthStencilState *_lastDepthStencilState;
 
 		std::vector<VulkanPipelineStateCollection *> _renderingStates;
+		std::vector<VulkanRootSignature *> _rootSignatures;
 	};
 }
 

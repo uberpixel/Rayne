@@ -27,15 +27,29 @@ namespace RN
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
-		_internals->stateCoordinator.SetRenderer(this);
-		_internals->renderPass.drawableHead = nullptr;
-
+		//Create command pool
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		cmdPoolInfo.queueFamilyIndex = device->GetWorkQueue();
 		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
+
+		//Create descriptor pool
+		VkDescriptorPoolSize uniformBufferPoolSize = {};
+		uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		uniformBufferPoolSize.descriptorCount = 1000;
+		VkDescriptorPoolSize textureBufferPoolSize = {};
+		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		textureBufferPoolSize.descriptorCount = 1000;
+		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
+
+		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		descriptorPoolInfo.pNext = NULL;
+		descriptorPoolInfo.poolSizeCount = poolSizes.size();
+		descriptorPoolInfo.pPoolSizes = poolSizes.data();
+		descriptorPoolInfo.maxSets = 100000;
+		RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, _renderer->GetAllocatorCallback(), &_descriptorPool));
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -118,33 +132,232 @@ namespace RN
 		_submittedCommandBuffers->RemoveAllObjects();
 	}
 
-	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen)
+	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor())
 	{
-		RN_ASSERT(!_mainWindow, "Vulkan renderer only supports one window");
+		VulkanWindow *window = new VulkanWindow(size, screen, this, descriptor);
 
-		_mainWindow = new VulkanWindow(size, screen, this);
-		return _mainWindow;
+		if(!_mainWindow)
+			_mainWindow = window->Retain();
+
+		return window;
 	}
+
+	void VulkanRenderer::SetMainWindow(Window *window)
+	{
+		_mainWindow = window;
+	}
+
 	Window *VulkanRenderer::GetMainWindow()
 	{
 		return _mainWindow;
 	}
 
-	void VulkanRenderer::RenderIntoWindow(Window *twindow, Function &&function)
+	void VulkanRenderer::Render(Function &&function)
 	{
-		CreateMipMaps(); // Needs the global command buffer
-		ProcessCommandBuffers();
+		_currentDrawableIndex = 0;
+		_internals->renderPasses.clear();
+		_internals->totalDrawableCount = 0;
+		_internals->currentRenderPassIndex = 0;
+		_internals->currentDrawableResourceIndex = 0;
+		_internals->totalDescriptorTables = 0;
+		_internals->swapChains.clear();
+/*		_currentRootSignature = nullptr;
+		_currentSrvCbvIndex = 0;
 
-		VulkanWindow *window = static_cast<VulkanWindow *>(twindow);
+		_completedFenceValue = _fence->GetCompletedValue();*/
 
-		window->AcquireBackBuffer();
+		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
+/*		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
+		{
+			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= _completedFenceValue)
+			{
+				D3D12CommandList *commandList = _executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i);
+				commandList->Finish();
+				_commandListPool->AddObject(commandList);
+				_executedCommandLists->RemoveObjectAtIndex(i);
+			}
+		}
+
+		//Add descriptor heaps that aren't in use by the GPU anymore back to the pool
+		for(int i = _boundDescriptorHeaps->GetCount() - 1; i >= 0; i--)
+		{
+			if(_boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i)->_fenceValue <= _completedFenceValue)
+			{
+				D3D12DescriptorHeap *descriptorHeap = _boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i);
+				_descriptorHeapPool->AddObject(descriptorHeap);
+				_boundDescriptorHeaps->RemoveObjectAtIndex(i);
+			}
+		}
+
+		//Free other frame resources such as descriptor heaps, that are not in use by the gpu anymore
+		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
+		{
+			D3D12FrameResource &frameResource = _internals->frameResources[i];
+			if(frameResource.frame <= _completedFenceValue)
+			{
+				frameResource.resource->Release();
+				_internals->frameResources.erase(_internals->frameResources.begin() + i);
+			}
+		}*/
+
+		CreateMipMaps();
+
+		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
-		window->PresentBackBuffer();
+
+		for(VulkanSwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->AcquireBackBuffer();
+		}
+
+		//PolpulateDescriptorHeap();
+		//SubmitDescriptorHeap(_currentSrvCbvHeap);
+
+		if(_internals->swapChains.size() > 0)
+		{
+			_currentCommandBuffer = GetCommandBuffer();
+
+			for(VulkanSwapChain *swapChain : _internals->swapChains)
+			{
+				swapChain->Prepare(_currentCommandBuffer);
+			}
+
+			//VkCommandBuffer commandBuffer = _currentCommandBuffer->GetCommandBuffer();
+			_internals->currentRenderPassIndex = 0;
+			_internals->currentDrawableResourceIndex = 0;
+			for(const VulkanRenderPass &renderPass : _internals->renderPasses)
+			{
+				if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
+				{
+					RenderAPIRenderPass(_currentCommandBuffer, renderPass);
+					_internals->currentRenderPassIndex += 1;
+					continue;
+				}
+				SetupRendertargets(_currentCommandBuffer, renderPass);
+
+/*				if(renderPass.drawables.size() > 0)
+				{
+					//Draw drawables
+					for(D3D12Drawable *drawable : renderPass.drawables)
+					{
+						//TODO: Sort drawables by camera and root signature
+						if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
+						{
+							_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
+							commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
+
+							// Set the one big descriptor heap for the whole frame
+							ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
+							commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
+						}
+						RenderDrawable(commandList, drawable);
+					}
+
+					_internals->currentDrawableResourceIndex += 1;
+				}*/
+
+				_internals->currentRenderPassIndex += 1;
+			}
+
+			for(VulkanSwapChain *swapChain : _internals->swapChains)
+			{
+				swapChain->Finalize(_currentCommandBuffer);
+			}
+
+			_currentCommandBuffer->End();
+			SubmitCommandBuffer(_currentCommandBuffer);
+			_currentCommandBuffer = nullptr;
+		}
+
+		// Execute all command lists
+/*		std::vector<ID3D12CommandList*> commandLists;
+		_lock.Lock();
+		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
+			commandLists.push_back(list->GetCommandList());
+			list->_fenceValue = _scheduledFenceValue;
+		});
+		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
+		_submittedCommandLists->RemoveAllObjects();
+		_lock.Unlock();
+		if(commandLists.size() > 0)
+			_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
+
+		_commandQueue->Signal(_fence, _scheduledFenceValue++);*/
+
+		for(VulkanSwapChain *swapChain : _internals->swapChains)
+		{
+			swapChain->PresentBackBuffer(_workQueue);
+		}
 
 		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
 		_currentFrame ++;
 	}
-	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
+
+	//TODO: Merge parts of this with SubmitRenderPass and call it in here
+	void VulkanRenderer::SubmitCamera(Camera *camera, Function &&function)
+	{
+		VulkanRenderPass renderPass;
+		renderPass.drawables.resize(0);
+
+		renderPass.type = VulkanRenderPass::Type::Default;
+		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.previousRenderPass = nullptr;
+
+		renderPass.shaderHint = camera->GetShaderHint();
+		renderPass.overrideMaterial = camera->GetMaterial();
+
+		renderPass.viewPosition = camera->GetWorldPosition();
+		renderPass.viewMatrix = camera->GetViewMatrix();
+		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+
+		renderPass.projectionMatrix = camera->GetProjectionMatrix();
+		//renderPass.projectionMatrix.m[5] *= -1.0f;
+		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+
+		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
+		renderPass.directionalShadowDepthTexture = nullptr;
+
+		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
+		VulkanSwapChain *newSwapChain = nullptr;
+		newSwapChain = framebuffer->Downcast<VulkanFramebuffer>()->GetSwapChain();
+		renderPass.framebuffer = framebuffer->Downcast<VulkanFramebuffer>();
+
+		if(newSwapChain)
+		{
+			bool notIncluded = true;
+			for(VulkanSwapChain *swapChain : _internals->swapChains)
+			{
+				if(swapChain == newSwapChain)
+				{
+					notIncluded = false;
+					break;
+				}
+			}
+
+			if(notIncluded)
+			{
+				_internals->swapChains.push_back(newSwapChain);
+			}
+		}
+
+		_internals->currentRenderPassIndex = _internals->renderPasses.size();
+		_internals->renderPasses.push_back(renderPass);
+
+		// Create drawables
+		function();
+
+		size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+		_internals->totalDrawableCount += numberOfDrawables;
+
+		if(numberOfDrawables > 0) _internals->currentDrawableResourceIndex += 1;
+
+		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
+			SubmitRenderPass(nextPass, renderPass.renderPass);
+		});
+	}
+
+/*	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
 	{
 		_internals->renderPass.drawableHead = nullptr;
 
@@ -273,7 +486,7 @@ namespace RN
 		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
 
 		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
-	}
+	}*/
 
 	bool VulkanRenderer::SupportsTextureFormat(const String *format) const
 	{
@@ -574,12 +787,8 @@ namespace RN
 
 	Drawable *VulkanRenderer::CreateDrawable()
 	{
-		VulkanDrawable *drawable = new VulkanDrawable();
-		drawable->_pipelineState = nullptr;
-		drawable->_next = nullptr;
-		drawable->_prev = nullptr;
-
-		return drawable;
+		VulkanDrawable *newDrawable = new VulkanDrawable();
+		return newDrawable;
 	}
 
 	void VulkanRenderer::DeleteDrawable(Drawable *drawable)
@@ -589,7 +798,7 @@ namespace RN
 
 	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
-		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);
+/*		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);
 
 		if(drawable->dirty)
 		{
@@ -618,12 +827,12 @@ namespace RN
 		_internals->renderPass.drawableHead = drawable;
 		_internals->renderPass.drawableCount ++;
 
-		_lock.Unlock();
+		_lock.Unlock();*/
 	}
 
 	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
 	{
-		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
+/*		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
 		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
 
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());
@@ -635,6 +844,6 @@ namespace RN
 		// Bind mesh index buffer
 		vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, VK_INDEX_TYPE_UINT16);
 		// Render mesh vertex buffer using it's indices
-		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);*/
 	}
 }

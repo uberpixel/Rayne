@@ -34,7 +34,7 @@ namespace RN
 		}
 	}
 
-	static VkFormat VulkanTexture::VulkanImageFormatFromTextureFormat(Texture::Format format)
+	VkFormat VulkanTexture::VulkanImageFormatFromTextureFormat(Texture::Format format)
 	{
 		switch(format)
 		{

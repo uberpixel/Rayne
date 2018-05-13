@@ -12,34 +12,74 @@
 #include "RNVulkan.h"
 #include "RNVulkanStateCoordinator.h"
 #include "RNVulkanRenderer.h"
+#include "RNVulkanSwapChain.h"
 
 namespace RN
 {
 	struct VulkanDrawable : public Drawable
 	{
-		~VulkanDrawable()
+		struct CameraSpecific
 		{
+			const VulkanPipelineState *pipelineState;
+			VulkanUniformState *uniformState; //TODO: Check if needs to be deleted when done
+			bool dirty;
+		};
 
+		~VulkanDrawable(){}
+
+		void AddUniformStateIfNeeded(size_t cameraID)
+		{
+			while(_cameraSpecifics.size() <= cameraID)
+			{
+				_cameraSpecifics.push_back({ nullptr, nullptr, true });
+			}
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
+		void UpdateRenderingState(size_t cameraID, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
 		{
-			if(pipelineState == _pipelineState && uniformState == _uniformState)
-				return;
-
-			_pipelineState = pipelineState;
-			_uniformState = uniformState;
+			_cameraSpecifics[cameraID].pipelineState = pipelineState;
+			_cameraSpecifics[cameraID].uniformState = uniformState;
+			_cameraSpecifics[cameraID].dirty = false;
 		}
 
-		const VulkanPipelineState *_pipelineState;
-		VulkanUniformState *_uniformState;
+		virtual void MakeDirty() override
+		{
+			for(int i = 0; i < _cameraSpecifics.size(); i++)
+			{
+				_cameraSpecifics[i].dirty = true;
+			}
+		}
 
-		VulkanDrawable *_next;
-		VulkanDrawable *_prev;
+		//TODO: This can get somewhat big with lots of post processing stages...
+		std::vector<CameraSpecific> _cameraSpecifics;
+	};
+
+	struct VulkanLightDirectional
+	{
+		Vector3 direction;
+		float padding;
+		Color color;
 	};
 
 	struct VulkanRenderPass
 	{
+		enum Type
+		{
+			Default,
+			ResolveMSAA,
+			Blit,
+			Convert
+		};
+
+		Type type;
+		RenderPass *renderPass;
+		RenderPass *previousRenderPass;
+
+		VulkanFramebuffer *framebuffer;
+		Shader::UsageHint shaderHint;
+		Material *overrideMaterial;
+
+		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;
@@ -47,8 +87,26 @@ namespace RN
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
 
-		VulkanDrawable *drawableHead;
-		size_t drawableCount;
+		std::vector<VulkanDrawable *> drawables;
+		std::vector<VulkanLightDirectional> directionalLights;
+
+		std::vector<Matrix> directionalShadowMatrices;
+		VulkanTexture *directionalShadowDepthTexture;
+		Vector2 directionalShadowInfo;
+	};
+
+	struct VulkanRendererInternals
+	{
+		std::vector<VulkanRenderPass> renderPasses;
+		VulkanStateCoordinator stateCoordinator;
+
+		std::vector<VulkanSwapChain*> swapChains;
+
+		size_t currentRenderPassIndex;
+		size_t currentDrawableResourceIndex;
+		size_t totalDrawableCount;
+
+		size_t totalDescriptorTables;
 	};
 
 	class VulkanCommandBuffer : public Object
@@ -89,12 +147,6 @@ namespace RN
 		std::function<void()> _finishedCallback;
 
 		RNDeclareMetaAPI(VulkanCommandBufferWithCallback, VKAPI)
-	};
-
-	struct VulkanRendererInternals
-	{
-		VulkanRenderPass renderPass;
-		VulkanStateCoordinator stateCoordinator;
 	};
 }
 

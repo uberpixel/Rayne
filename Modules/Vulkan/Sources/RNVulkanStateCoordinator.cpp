@@ -36,44 +36,546 @@ namespace RN
 			VK_FORMAT_R32G32B32A32_SFLOAT
 		};
 
-	VulkanStateCoordinator::VulkanStateCoordinator() :
-		_renderer(nullptr), _descriptorPool(VK_NULL_HANDLE)
-	{
 
+	VulkanRootSignature::~VulkanRootSignature()
+	{
+		//signature->Release();
 	}
+
+	VulkanPipelineState::~VulkanPipelineState()
+	{
+		//state->Release();
+	}
+
+	VulkanStateCoordinator::VulkanStateCoordinator() :
+		_lastDepthStencilState(nullptr)
+	{}
 
 	VulkanStateCoordinator::~VulkanStateCoordinator()
 	{
+		//TODO: Clean up correctly...
 		for(VulkanPipelineStateCollection *collection : _renderingStates)
 			delete collection;
 	}
 
-	VKAPI void VulkanStateCoordinator::SetRenderer(VulkanRenderer *renderer)
+	const VulkanRootSignature *VulkanStateCoordinator::GetRootSignature(const VulkanPipelineStateDescriptor &descriptor)
 	{
-		_renderer = renderer;
+		VulkanShader *vertexShader = static_cast<VulkanShader *>(descriptor.vertexShader);
+		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
+		uint16 textureCount = vertexSignature->GetTextureCount();
+		const Array *vertexSamplers = vertexSignature->GetSamplers();
+		Array *samplerArray = new Array(vertexSamplers);
+		samplerArray->Autorelease();
 
-		if(!_descriptorPool)
+		bool wantsDirectionalShadowTexture = false;//vertexShader->_wantsDirectionalShadowTexture;
+
+		//TODO: Support multiple constant buffers per function signature
+		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+
+		VulkanShader *fragmentShader = static_cast<VulkanShader *>(descriptor.fragmentShader);
+		if(fragmentShader)
 		{
-			VkDescriptorPoolSize uniformBufferPoolSize = {};
-			uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uniformBufferPoolSize.descriptorCount = 1000;
+			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
+			textureCount = fmax(textureCount, fragmentSignature->GetTextureCount());
+			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
+			samplerArray->AddObjectsFromArray(fragmentSamplers);
 
-			VkDescriptorPoolSize textureBufferPoolSize = {};
-			textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			textureBufferPoolSize.descriptorCount = 1000;
+			//wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
 
-			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
-
-			VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			descriptorPoolInfo.pNext = NULL;
-			descriptorPoolInfo.poolSizeCount = poolSizes.size();
-			descriptorPoolInfo.pPoolSizes = poolSizes.data();
-			descriptorPoolInfo.maxSets = 100000;
-
-			RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, _renderer->GetAllocatorCallback(), &_descriptorPool));
+			//TODO: Support multiple constant buffers per function signature
+			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
 		}
+
+		for(VulkanRootSignature *signature : _rootSignatures)
+		{
+
+			if(signature->textureCount != textureCount)
+			{
+				continue;
+			}
+
+			//TODO: Doesn't really require an extra root signature...
+			if(signature->wantsDirectionalShadowTexture != wantsDirectionalShadowTexture)
+			{
+				continue;
+			}
+
+			if(signature->constantBufferCount != constantBufferCount)
+			{
+				continue;
+			}
+
+			if(samplerArray->GetCount() != signature->samplers->GetCount())
+			{
+				continue;
+			}
+
+			bool notEqual = false;
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+				if(!(sampler == samplerArray->GetObjectAtIndex(index)))
+				{
+					notEqual = true;
+					stop = true;
+				}
+			});
+			if(notEqual)
+			{
+				continue;
+			}
+
+			return signature;
+		}
+
+		VulkanRenderer *renderer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer());
+
+		VulkanRootSignature *signature = new VulkanRootSignature();
+		signature->constantBufferCount = constantBufferCount;
+		signature->samplers = samplerArray->Retain();
+		signature->textureCount = textureCount;
+		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
+
+
+
+
+
+		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		setUniformLayoutBinding.binding = 0;
+		setUniformLayoutBinding.descriptorCount = 1;
+
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
+
+		size_t textureCount = material->GetTextures()->GetCount();
+		for(size_t i = 0; i < textureCount; i++)
+		{
+			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			setImageLayoutBinding.binding = i + 1;
+			setImageLayoutBinding.descriptorCount = 1;
+
+			setLayoutBindings.push_back(setImageLayoutBinding);
+		}
+
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorSetLayoutCreateInfo.pNext = NULL;
+		descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
+		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
+
+		VkDescriptorSetLayout descriptorSetLayout;
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, _renderer->GetAllocatorCallback(), &descriptorSetLayout));
+
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutCreateInfo.pNext = NULL;
+		pipelineLayoutCreateInfo.setLayoutCount = 1;
+		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
+
+		VkPipelineLayout pipelineLayout;
+		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, _renderer->GetAllocatorCallback(), &pipelineLayout));
+
+
+
+
+
+
+
+		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
+
+		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
+		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
+
+		if(numberOfTables > 0)
+		{
+			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
+			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
+		}
+
+		// Perfomance TIP: Order from most frequent to least frequent.
+		int tableIndex = 0;
+		if(signature->textureCount > 0)
+		{
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
+			tableIndex += 1;
+		}
+		if(signature->constantBufferCount > 0)
+		{
+			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
+			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
+			tableIndex += 1;
+		}
+
+		// Create samplers
+		D3D12_STATIC_SAMPLER_DESC *samplerDescriptors = nullptr;
+		if(signature->samplers->GetCount() > 0)
+		{
+			samplerDescriptors = new D3D12_STATIC_SAMPLER_DESC[signature->samplers->GetCount()];
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+				D3D12_STATIC_SAMPLER_DESC &samplerDesc = samplerDescriptors[index];
+
+				D3D12_FILTER filter = D3D12_FILTER_ANISOTROPIC;
+				D3D12_COMPARISON_FUNC comparisonFunction = D3D12_COMPARISON_FUNC_NEVER;
+				if(sampler->GetComparisonFunction() == Shader::Sampler::ComparisonFunction::Never)
+				{
+					switch (sampler->GetFilter())
+					{
+						case Shader::Sampler::Filter::Anisotropic:
+							filter = D3D12_FILTER_ANISOTROPIC;
+							break;
+						case Shader::Sampler::Filter::Linear:
+							filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+							break;
+						case Shader::Sampler::Filter::Nearest:
+							filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+							break;
+					}
+				}
+				else
+				{
+					switch (sampler->GetFilter())
+					{
+						case Shader::Sampler::Filter::Anisotropic:
+							filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+							break;
+						case Shader::Sampler::Filter::Linear:
+							filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+							break;
+						case Shader::Sampler::Filter::Nearest:
+							filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+							break;
+					}
+
+					switch(sampler->GetComparisonFunction())
+					{
+						case Shader::Sampler::ComparisonFunction::Always:
+							comparisonFunction = D3D12_COMPARISON_FUNC_ALWAYS;
+							break;
+						case Shader::Sampler::ComparisonFunction::Equal:
+							comparisonFunction = D3D12_COMPARISON_FUNC_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::GreaterEqual:
+							comparisonFunction = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::Greater:
+							comparisonFunction = D3D12_COMPARISON_FUNC_GREATER;
+							break;
+						case Shader::Sampler::ComparisonFunction::Less:
+							comparisonFunction = D3D12_COMPARISON_FUNC_LESS;
+							break;
+						case Shader::Sampler::ComparisonFunction::LessEqual:
+							comparisonFunction = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::NotEqual:
+							comparisonFunction = D3D12_COMPARISON_FUNC_NOT_EQUAL;
+							break;
+					}
+				}
+
+				D3D12_TEXTURE_ADDRESS_MODE addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+				switch(sampler->GetWrapMode())
+				{
+					case Shader::Sampler::WrapMode::Repeat:
+						addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+						break;
+					case Shader::Sampler::WrapMode::Clamp:
+						addressMode = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+						break;
+				}
+
+				samplerDesc.Filter = filter;
+				samplerDesc.AddressU = addressMode;
+				samplerDesc.AddressV = addressMode;
+				samplerDesc.AddressW = addressMode;
+				samplerDesc.MipLODBias = 0.0f;
+				samplerDesc.ComparisonFunc = comparisonFunction;
+				samplerDesc.MinLOD = 0.0f;
+				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+				samplerDesc.MaxAnisotropy = sampler->GetAnisotropy();
+				samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+				samplerDesc.ShaderRegister = index;
+				samplerDesc.RegisterSpace = 0;
+				samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	//TODO: Restrict visibility to the shader actually using it
+			});
+		}
+
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+		/*		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+				//If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+				featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+				if(FAILED(renderer->GetD3D12Device()->GetDevice()->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+				{
+					featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+				}*/
+
+		ID3DBlob *signatureBlob = nullptr;
+		ID3DBlob *error = nullptr;
+		HRESULT success = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
+
+		if(FAILED(success))
+		{
+			String *errorString = RNCSTR("");
+			if(error)
+			{
+				errorString = RNSTR((char*)error->GetBufferPointer());
+				error->Release();
+			}
+
+			RNDebug(RNSTR("Failed to create root signature with error: " << errorString));
+		}
+
+		renderer->GetVulkanDevice()->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&signature->signature));
+
+		if (srvCbvRanges)
+			delete[] srvCbvRanges;
+		if (rootParameters)
+			delete[] rootParameters;
+		if (samplerDescriptors)
+			delete[] samplerDescriptors;
+
+		_rootSignatures.push_back(signature);
+		return signature;
 	}
+
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
+	{
+		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
+		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
+		VulkanPipelineStateDescriptor pipelineDescriptor;
+		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
+		pipelineDescriptor.sampleQuality = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
+
+		for(VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
+		{
+			//TODO: Handle VK_FORMAT_UNDEFINED?
+			pipelineDescriptor.colorFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
+		}
+		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
+		pipelineDescriptor.shaderHint = shaderHint;
+		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.cullMode = mergedMaterialProperties.cullMode;
+		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
+		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
+		pipelineDescriptor.polygonOffsetUnits = mergedMaterialProperties.polygonOffsetUnits;
+		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
+		//TODO: Support all override flags and all the relevant material properties
+
+		for(VulkanPipelineStateCollection *collection : _renderingStates)
+		{
+			if(collection->descriptor.IsEqual(descriptor))
+			{
+				if(collection->vertexShader == pipelineDescriptor.vertexShader && collection->fragmentShader == pipelineDescriptor.fragmentShader)
+				{
+					return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
+				}
+			}
+		}
+
+		VulkanPipelineStateCollection *collection = new VulkanPipelineStateCollection(descriptor, pipelineDescriptor.vertexShader, pipelineDescriptor.fragmentShader);
+		_renderingStates.push_back(collection);
+
+		return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
+	}
+
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &descriptor)
+	{
+		const VulkanRootSignature *rootSignature = GetRootSignature(descriptor);
+
+		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
+		//TODO: Maybe solve nicer...
+		for(const VulkanPipelineState *state : collection->states)
+		{
+			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
+			{
+				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
+				{
+					return state;
+				}
+			}
+		}
+
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+		//Collect shaders
+		VulkanShader *vertexShaderRayne = collection->vertexShader->Downcast<VulkanShader>();
+		VulkanShader *fragmentShaderRayne = collection->fragmentShader->Downcast<VulkanShader>();
+		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+		shaderStages[0] = vertexShaderRayne->_shaderStage;
+		shaderStages[1] = fragmentShaderRayne->_shaderStage;
+
+		//Handle vertex attributes
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = mesh->GetStride();
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh);
+
+		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputState.pNext = NULL;
+		vertexInputState.vertexBindingDescriptionCount = 1;
+		vertexInputState.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
+		vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineCreateInfo.pNext = NULL;
+		pipelineCreateInfo.layout = pipelineLayout;
+		pipelineCreateInfo.renderPass = framebuffer->GetRenderPass();
+		pipelineCreateInfo.flags = 0;
+		pipelineCreateInfo.pVertexInputState = &vertexInputState;
+		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+		pipelineCreateInfo.pRasterizationState = &rasterizationState;
+		pipelineCreateInfo.pColorBlendState = &colorBlendState;
+		pipelineCreateInfo.pMultisampleState = &multisampleState;
+		pipelineCreateInfo.pViewportState = &viewportState;
+		pipelineCreateInfo.pDepthStencilState = &depthStencilState;
+		pipelineCreateInfo.pDynamicState = &dynamicState;
+		pipelineCreateInfo.stageCount = shaderStages.size();
+		pipelineCreateInfo.pStages = shaderStages.data();
+
+		VkPipeline pipeline;
+		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
+		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, _renderer->GetAllocatorCallback(), &pipeline));
+
+		// Create the rendering state
+		VulkanPipelineState *state = new VulkanPipelineState();
+		state->state = pipeline;
+		state->descriptorSetLayout = descriptorSetLayout;
+		state->pipelineLayout = pipelineLayout;
+		state->textureCount = material->GetTextures()->GetCount();
+
+		collection->states.push_back(state);
+
+
+
+
+		// Describe and create the graphics pipeline state object (PSO).
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.pRootSignature = rootSignature->signature;
+
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.RasterizerState.FrontCounterClockwise = true;
+		if(descriptor.usePolygonOffset)
+		{
+			psoDesc.RasterizerState.DepthBias = descriptor.polygonOffsetUnits;
+			psoDesc.RasterizerState.SlopeScaledDepthBias = descriptor.polygonOffsetFactor;
+			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
+		}
+
+		switch(descriptor.cullMode)
+		{
+			case CullMode::BackFace:
+				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+				break;
+			case CullMode::FrontFace:
+				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+				break;
+			case CullMode::None:
+				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+				break;
+		}
+
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
+
+		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
+		{
+			psoDesc.DepthStencilState.DepthEnable = TRUE;
+			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+			psoDesc.DepthStencilState.StencilEnable = FALSE;
+			psoDesc.DSVFormat = descriptor.depthStencilFormat;
+		}
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = descriptor.colorFormats.size();
+		int counter = 0;
+		for(DXGI_FORMAT format : descriptor.colorFormats)
+		{
+			psoDesc.RTVFormats[counter++] = format;
+			if(counter >= 8)
+				break;
+		}
+		psoDesc.SampleDesc.Count = descriptor.sampleCount;
+		psoDesc.SampleDesc.Quality = descriptor.sampleQuality;
+
+		VulkanPipelineState *state = new VulkanPipelineState();
+		state->descriptor = std::move(descriptor);
+		state->rootSignature = rootSignature;
+		HRESULT success = renderer->GetVulkanDevice()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&state->state));
+
+		if(FAILED(success))
+		{
+			return nullptr;
+		}
+
+		collection->states.push_back(state);
+		return state;
+	}
+
+	const std::vector<VkVertexInputAttributeDescription> &VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+
+		size_t offset = 0;
+		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
+		for(const Mesh::VertexAttribute &attribute : attributes)
+		{
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
+				continue;
+
+			//TODO: Remove the if (unused bindings confuse the validation layers...)
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0)
+			{
+				VkVertexInputAttributeDescription attributeDescription = {};
+				attributeDescription.location = offset;
+				attributeDescription.binding = 0;
+				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
+				attributeDescription.offset = attribute.GetOffset();
+
+				attributeDescriptions.push_back(attributeDescription);
+			}
+
+			offset ++;
+		}
+
+		return attributeDescriptions;
+	}
+
+	VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState)
+	{
+		VulkanRenderer *renderer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer());
+
+		Shader *vertexShader = pipelineState->descriptor.vertexShader;
+		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
+		VulkanUniformBuffer *vertexBuffer = nullptr;
+		VulkanUniformBuffer *fragmentBuffer = nullptr;
+		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		{
+			vertexBuffer = new VulkanUniformBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
+		}
+		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
+		{
+			fragmentBuffer = new VulkanUniformBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
+		}
+
+		VulkanUniformState *state = new VulkanUniformState();
+		state->vertexUniformBuffer = vertexBuffer;
+		state->fragmentUniformBuffer = fragmentBuffer;
+
+		return state;
+	}
+
+
+
 
 	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
 	{
@@ -212,44 +714,7 @@ namespace RN
 			framebuffer = Renderer::GetActiveRenderer()->GetMainWindow()->Downcast<VulkanWindow>()->GetFramebuffer();
 
 
-		// Binding description
-		VkVertexInputBindingDescription bindingDescription = {};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = mesh->GetStride();
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-
-		size_t offset = 0;
-		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
-
-		for(const Mesh::VertexAttribute &attribute : attributes)
-		{
-			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
-				continue;
-
-			//TODO: Remove the if (unused bindings confuse the validation layers...)
-			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0)
-			{
-				VkVertexInputAttributeDescription attributeDescription = {};
-				attributeDescription.location = offset;
-				attributeDescription.binding = 0;
-				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
-				attributeDescription.offset = attribute.GetOffset();
-
-				attributeDescriptions.push_back(attributeDescription);
-			}
-
-			offset ++;
-		}
-
-		VkPipelineVertexInputStateCreateInfo inputState = {};
-		inputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		inputState.pNext = NULL;
-		inputState.vertexBindingDescriptionCount = 1;
-		inputState.pVertexBindingDescriptions = &bindingDescription;
-		inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
-		inputState.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

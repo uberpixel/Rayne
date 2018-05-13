@@ -46,9 +46,9 @@ namespace RN
 	private:
 		//void InitializeRenderPass();
 		void PrepareAsRendertargetForFrame(uint32 frame);
-		void SetAsRendertarget(VulkanCommandList *commandList) const;
-		void ClearColorTargets(VulkanCommandList *commandList, const Color &color);
-		void ClearDepthStencilTarget(VulkanCommandList *commandList, float depth, uint8 stencil);
+		void SetAsRendertarget(VulkanCommandBuffer *commandList) const;
+		void ClearColorTargets(VulkanCommandBuffer *commandList, const Color &color);
+		void ClearDepthStencilTarget(VulkanCommandBuffer *commandList, float depth, uint8 stencil);
 
 		VulkanRenderer *_renderer;
 		uint8 _sampleCount;
