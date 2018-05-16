@@ -27,8 +27,8 @@ namespace RN
 		VKAPI Vector2 GetSize() const;
 
 		VKAPI virtual void AcquireBackBuffer();
-		VKAPI virtual void Prepare(VulkanCommandBuffer *commandBuffer);
-		VKAPI virtual void Finalize(VulkanCommandBuffer *commandBuffer);
+		VKAPI virtual void Prepare(VkCommandBuffer commandBuffer);
+		VKAPI virtual void Finalize(VkCommandBuffer commandBuffer);
 		VKAPI virtual void PresentBackBuffer(VkQueue queue);
 
 		VKAPI virtual VkImage GetVulkanColorBuffer(int i) const;

@@ -102,43 +102,45 @@ namespace RN
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(Vector2()),
+		_isDirty(true),
 		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(swapChain),
-		_depthStencilTarget(nullptr)
-//		_rtvHandle(nullptr),
-//		_dsvHandle(nullptr)
+		_depthStencilTarget(nullptr),
+		_renderPass(nullptr),
+		_frameBuffer(nullptr)
 	{
 		DidUpdateSwapChain(size, colorFormat, depthStencilFormat);
 	}
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer) :
 		Framebuffer(size),
+		_isDirty(true),
 		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(nullptr),
-		_depthStencilTarget(nullptr)
-//		_rtvHandle(nullptr),
-//		_dsvHandle(nullptr)
+		_depthStencilTarget(nullptr),
+		_renderPass(nullptr),
+		_frameBuffer(nullptr)
 	{
-		/*		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
-				_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
+/*		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
+		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
 
-				if (descriptor.colorFormat != Texture::Format::Invalid)
-				{
-					Texture::Descriptor colorDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.colorFormat, size.x, size.y, false);
-					colorDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
-					Texture *colorTexture = Texture::WithDescriptor(colorDescriptor);
-					SetColorTexture(colorTexture);
-				}
+		if (descriptor.colorFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor colorDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.colorFormat, size.x, size.y, false);
+			colorDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
+			Texture *colorTexture = Texture::WithDescriptor(colorDescriptor);
+			SetColorTexture(colorTexture);
+		}
 
-				if (descriptor.depthFormat != Texture::Format::Invalid)
-				{
-					Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.depthFormat, size.x, size.y, false);
-					depthDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
-					Texture *depthTexture = Texture::WithDescriptor(depthDescriptor);
-					SetDepthTexture(depthTexture);
-				}*/
+		if (descriptor.depthFormat != Texture::Format::Invalid)
+		{
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DTextureAndFormat(descriptor.depthFormat, size.x, size.y, false);
+			depthDescriptor.usageHint |= Texture::Descriptor::UsageHint::RenderTarget;
+			Texture *depthTexture = Texture::WithDescriptor(depthDescriptor);
+			SetDepthTexture(depthTexture);
+		}*/
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -156,11 +158,6 @@ namespace RN
 			_depthStencilTarget->targetView.texture->Release();
 			delete _depthStencilTarget;
 		}
-
-/*		if (_rtvHandle)
-			delete _rtvHandle;
-		if (_dsvHandle)
-			delete _dsvHandle;*/
 	}
 
 	void VulkanFramebuffer::SetColorTarget(const TargetView &target, uint32 index)
@@ -181,6 +178,8 @@ namespace RN
 		{
 			_colorTargets.push_back(targetView);
 		}
+
+		_isDirty = true;
 	}
 
 	void VulkanFramebuffer::SetDepthStencilTarget(const TargetView &target)
@@ -196,6 +195,7 @@ namespace RN
 		}
 
 		_depthStencilTarget = targetView;
+		_isDirty = true;
 	}
 
 	Texture *VulkanFramebuffer::GetColorTexture(uint32 index) const
@@ -219,20 +219,19 @@ namespace RN
 		return _sampleCount;
 	}
 
-	void VulkanFramebuffer::PrepareAsRendertargetForFrame(uint32 frame)
+	void VulkanFramebuffer::PrepareAsRendertargetForFrame()
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-		_frameLastUsed = frame;
 
-		uint32 attachmentCount = _colorTargets.size();
+		if(_isDirty)
+		{
+			_renderPass = _renderer->GetVulkanRenderPass(this);
+		}
+
 		std::vector<VkImageView> attachments;
-		if(_swapChain) attachmentCount = 1;
-		if(_depthStencilTarget) attachmentCount += 1;
-
 		if(_colorTargets.size() > 0)
 		{
 			//Create the render target view
-			uint32 counter = 0;
 			if(_swapChain)
 			{
 				VkImageView imageView;
@@ -262,7 +261,7 @@ namespace RN
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.pNext = nullptr;
 		frameBufferCreateInfo.renderPass = _renderPass;
-		frameBufferCreateInfo.attachmentCount = attachmentCount;
+		frameBufferCreateInfo.attachmentCount = attachments.size();
 		frameBufferCreateInfo.pAttachments = &attachments[0];
 		frameBufferCreateInfo.width = static_cast<uint32>(_size.x);
 		frameBufferCreateInfo.height = static_cast<uint32>(_size.y);
@@ -271,29 +270,25 @@ namespace RN
 		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
 	}
 
-	void VulkanFramebuffer::SetAsRendertarget(VulkanCommandBuffer *commandBuffer) const
+	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const
 	{
-		//Set the rendertargets
-//		commandList->GetCommandList()->OMSetRenderTargets(_colorTargets.size() ? 1 : 0, _rtvHandle, false, _dsvHandle);
-	}
+		VkClearValue clearValues[2];
+		clearValues[0].color = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+		clearValues[1].depthStencil = {depth, stencil};
 
-	void VulkanFramebuffer::ClearColorTargets(VulkanCommandBuffer *commandBuffer, const Color &color)
-	{
-		if(_colorTargets.size() == 0)
-			return;
+		VkRenderPassBeginInfo renderPassBeginInfo = {};
+		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassBeginInfo.pNext = NULL;
+		renderPassBeginInfo.renderPass = _renderPass;
+		renderPassBeginInfo.framebuffer = _frameBuffer;
+		renderPassBeginInfo.renderArea.offset.x = 0;
+		renderPassBeginInfo.renderArea.offset.y = 0;
+		renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(_size.x);
+		renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(_size.y);
+		renderPassBeginInfo.clearValueCount = 2;
+		renderPassBeginInfo.pClearValues = clearValues;
 
-//		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
-//		commandList->GetCommandList()->ClearRenderTargetView(*_rtvHandle, &color.r, 1, &clearRect);
-	}
-
-	void VulkanFramebuffer::ClearDepthStencilTarget(VulkanCommandBuffer *commandBuffer, float depth, uint8 stencil)
-	{
-		if(!_depthStencilTarget)
-			return;
-
-//		D3D12_RECT clearRect{ 0, 0, static_cast<LONG>(GetSize().x), static_cast<LONG>(GetSize().y) };
-		//TODO: Needs D3D12_CLEAR_FLAG_STENCIL to also clear stencil buffer
-//		commandList->GetCommandList()->ClearDepthStencilView(*_dsvHandle, D3D12_CLEAR_FLAG_DEPTH, depth, stencil, 1, &clearRect);
+		vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
 	void VulkanFramebuffer::WillUpdateSwapChain()
@@ -486,95 +481,5 @@ namespace RN
 
 		commandBuffer->End();
 		renderer->SubmitCommandBuffer(commandBuffer);
-	}*/
-
-/*	void VulkanFramebuffer::InitializeRenderPass()
-	{
-		VkAttachmentDescription attachments[3];
-		uint32_t count = 0;
-
-		VkAttachmentReference colorReference = {};
-		colorReference.attachment = 0;
-		colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkAttachmentReference depthReference = {};
-		depthReference.attachment = 1;
-		depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription subpass = {};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.flags = 0;
-		subpass.inputAttachmentCount = 0;
-		subpass.pInputAttachments = nullptr;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = nullptr;
-		subpass.pResolveAttachments = nullptr;
-		subpass.pDepthStencilAttachment = nullptr;
-		subpass.preserveAttachmentCount = 0;
-		subpass.pPreserveAttachments = nullptr;
-
-		if(_colorTargets.size() > 0)
-		{
-			attachments[count].format = data->colorTexture->GetFormat();
-			attachments[count].flags = 0;
-			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachments[count].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachments[count].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachments[count].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			attachments[count].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			subpass.pColorAttachments = &colorReference;
-
-			count ++;
-		}
-
-		if(data->depthTexture)
-		{
-			attachments[count].format = data->depthTexture->GetFormat();
-			attachments[count].flags = 0;
-			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachments[count].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachments[count].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachments[count].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			attachments[count].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-			subpass.pDepthStencilAttachment = &depthReference;
-
-			count ++;
-		}
-
-		if(data->stencilTexture && data->stencilTexture != data->depthTexture)
-		{
-			attachments[count].format = data->stencilTexture->GetFormat();
-			attachments[count].flags = 0;
-			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachments[count].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachments[count].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachments[count].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			attachments[count].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-			subpass.pDepthStencilAttachment = &depthReference;
-
-			count ++;
-		}
-
-		VkRenderPassCreateInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.pNext = nullptr;
-		renderPassInfo.attachmentCount = count;
-		renderPassInfo.pAttachments = attachments;
-		renderPassInfo.subpassCount = 1;
-		renderPassInfo.pSubpasses = &subpass;
-		renderPassInfo.dependencyCount = 0;
-		renderPassInfo.pDependencies = nullptr;
-
-		VulkanDevice *device = _renderer->GetVulkanDevice();
-		RNVulkanValidate(vk::CreateRenderPass(device->GetDevice(), &renderPassInfo, _renderer->GetAllocatorCallback(), &_renderPass));
 	}*/
 }

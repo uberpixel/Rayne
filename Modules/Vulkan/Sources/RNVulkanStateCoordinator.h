@@ -59,10 +59,10 @@ namespace RN
 	{
 		Shader::UsageHint shaderHint;
 
-		std::vector<VkFormat> colorFormats;
+		//uint8 sampleCount;
+		//uint8 sampleQuality;
+		VkRenderPass renderPass;
 		VkFormat depthStencilFormat;
-		uint8 sampleCount;
-		uint8 sampleQuality;
 
 		Shader *vertexShader;
 		Shader *fragmentShader;
@@ -109,6 +109,24 @@ namespace RN
 		std::vector<VulkanPipelineState *> states;
 	};
 
+	struct VulkanRenderPassState
+	{
+		std::vector<VkFormat> imageFormats;
+		VkRenderPass renderPass;
+
+		RN_INLINE bool operator==(const VulkanRenderPassState &descriptor)
+		{
+			if(imageFormats.size() != descriptor.imageFormats.size()) return false;
+
+			for(int i = 0; i < imageFormats.size(); i++)
+			{
+				if(imageFormats[i] != descriptor.imageFormats[i]) return false;
+			}
+
+			return true;
+		}
+	};
+
 	class VulkanStateCoordinator
 	{
 	public:
@@ -118,6 +136,7 @@ namespace RN
 		const VulkanRootSignature *GetRootSignature(const VulkanPipelineStateDescriptor &pipelineDescriptor);
 		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 		VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState);
+		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer);
 
 	private:
 		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
@@ -126,6 +145,7 @@ namespace RN
 		std::vector<VulkanDepthStencilState *> _depthStencilStates;
 		const VulkanDepthStencilState *_lastDepthStencilState;
 
+		std::vector<VulkanRenderPassState*> _renderPassStates;
 		std::vector<VulkanPipelineStateCollection *> _renderingStates;
 		std::vector<VulkanRootSignature *> _rootSignatures;
 	};

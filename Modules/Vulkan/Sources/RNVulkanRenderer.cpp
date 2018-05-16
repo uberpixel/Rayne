@@ -22,7 +22,6 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_currentFrame(0),
-		_defaultShaders(new Dictionary()),
 		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array())
 	{
@@ -58,7 +57,11 @@ namespace RN
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
-		_defaultShaders->Release();
+	}
+
+	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer)
+	{
+		return _internals->stateCoordinator.GetRenderPassState(framebuffer)->renderPass;
 	}
 
 	void VulkanRenderer::CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -219,13 +222,13 @@ namespace RN
 		if(_internals->swapChains.size() > 0)
 		{
 			_currentCommandBuffer = GetCommandBuffer();
+			VkCommandBuffer commandBuffer = _currentCommandBuffer->GetCommandBuffer();
 
 			for(VulkanSwapChain *swapChain : _internals->swapChains)
 			{
-				swapChain->Prepare(_currentCommandBuffer);
+				swapChain->Prepare(commandBuffer);
 			}
 
-			//VkCommandBuffer commandBuffer = _currentCommandBuffer->GetCommandBuffer();
 			_internals->currentRenderPassIndex = 0;
 			_internals->currentDrawableResourceIndex = 0;
 			for(const VulkanRenderPass &renderPass : _internals->renderPasses)
@@ -236,7 +239,7 @@ namespace RN
 					_internals->currentRenderPassIndex += 1;
 					continue;
 				}
-//				SetupRendertargets(_currentCommandBuffer, renderPass);
+				SetupRendertargets(commandBuffer, renderPass);
 
 /*				if(renderPass.drawables.size() > 0)
 				{
@@ -262,14 +265,31 @@ namespace RN
 				_internals->currentRenderPassIndex += 1;
 			}
 
+			vk::CmdEndRenderPass(commandBuffer);
+
 			for(VulkanSwapChain *swapChain : _internals->swapChains)
 			{
-				swapChain->Finalize(_currentCommandBuffer);
+				swapChain->Finalize(commandBuffer);
 			}
 
 			_currentCommandBuffer->End();
 			SubmitCommandBuffer(_currentCommandBuffer);
 			_currentCommandBuffer = nullptr;
+
+			//VkSemaphore presentSemaphore = backbuffer->GetPresentSemaphore();
+			//VkSemaphore renderSemaphore = backbuffer->GetRenderSemaphore();
+			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &commandBuffer;
+			submitInfo.waitSemaphoreCount = 0;//1;
+			//submitInfo.pWaitSemaphores = &presentSemaphore;
+			submitInfo.signalSemaphoreCount = 0;//1;
+			//submitInfo.pSignalSemaphores = &renderSemaphore;
+			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+
+			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 		}
 
 		// Execute all command lists
@@ -294,6 +314,34 @@ namespace RN
 
 		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
 		_currentFrame ++;
+	}
+
+	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
+	{
+		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame
+		renderpass.framebuffer->PrepareAsRendertargetForFrame();
+		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
+
+		//Setup viewport and scissor rect
+		Rect cameraRect = renderpass.renderPass->GetFrame();
+
+		// Update dynamic viewport state
+		VkViewport viewport = {};
+		viewport.width = cameraRect.width;
+		viewport.height = cameraRect.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		vk::CmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		// Update dynamic scissor state
+		VkRect2D scissor = {};
+		scissor.extent.width = static_cast<uint32_t>(cameraRect.width);
+		scissor.extent.height = static_cast<uint32_t>(cameraRect.height);
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+
+		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
 	//TODO: Merge parts of this with SubmitRenderPass and call it in here
@@ -522,24 +570,8 @@ namespace RN
 		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
 
 
-		VkClearValue clearValues[2];
-		clearValues[0].color = {camera->GetClearColor().r, camera->GetClearColor().g, camera->GetClearColor().b,
-								camera->GetClearColor().a};
-		clearValues[1].depthStencil = {1.0f, 0};
 
-		VkRenderPassBeginInfo renderPassBeginInfo = {};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.pNext = NULL;
-		renderPassBeginInfo.renderPass = framebuffer->GetRenderPass();
-		renderPassBeginInfo.framebuffer = framebuffer->GetFramebuffer(framebufferIndex);
-		renderPassBeginInfo.renderArea.offset.x = 0;
-		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(size.x);
-		renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(size.y);
-		renderPassBeginInfo.clearValueCount = 2;
-		renderPassBeginInfo.pClearValues = clearValues;
 
-		vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		// Update dynamic viewport state
 		VkViewport viewport = {};

@@ -44,21 +44,21 @@ namespace RN
 		VKAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
 	private:
-		//void InitializeRenderPass();
-		void PrepareAsRendertargetForFrame(uint32 frame);
-		void SetAsRendertarget(VulkanCommandBuffer *commandList) const;
-		void ClearColorTargets(VulkanCommandBuffer *commandList, const Color &color);
-		void ClearDepthStencilTarget(VulkanCommandBuffer *commandList, float depth, uint8 stencil);
+		void PrepareAsRendertargetForFrame();
+		void SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const;
 
 		VulkanRenderer *_renderer;
 		uint8 _sampleCount;
 		uint32 _frameLastUsed;
+
+		bool _isDirty;
 
 		WeakRef<VulkanSwapChain> _swapChain;
 
 		std::vector<VulkanTargetView *> _colorTargets;
 		VulkanTargetView *_depthStencilTarget;
 
+		//std::map<RenderPass *, VkRenderPass> _renderPasses;
 		VkRenderPass _renderPass;
 		VkFramebuffer _frameBuffer;
 

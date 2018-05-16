@@ -40,6 +40,12 @@ namespace RN
 		{
 			case Texture::Format::RGBA8888:
 				return VK_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::RGBA8888SRGB:
+				return VK_FORMAT_R8G8B8A8_SRGB;
+			case Texture::Format::BGRA8888:
+				return VK_FORMAT_B8G8R8A8_UNORM;
+			case Texture::Format::BGRA8888SRGB:
+				return VK_FORMAT_B8G8R8A8_SRGB;
 			case Texture::Format::RGB10A2:
 				return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
 			case Texture::Format::R8:
@@ -48,6 +54,8 @@ namespace RN
 				return VK_FORMAT_R8G8_UNORM;
 			case Texture::Format::RGB888:
 				return VK_FORMAT_R8G8B8A8_UNORM;
+			case Texture::Format::RGB888SRGB:
+				return VK_FORMAT_R8G8B8A8_SRGB;
 			case Texture::Format::R16F:
 				return VK_FORMAT_R16_SFLOAT;
 			case Texture::Format::RG16F:
@@ -74,6 +82,9 @@ namespace RN
 				return VK_FORMAT_D24_UNORM_S8_UINT;
 			case Texture::Format::Depth32FStencil8:
 				return VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+			default:
+				return VK_FORMAT_UNDEFINED;
 		}
 	}
 

@@ -22,10 +22,13 @@ namespace RN
 	class VulkanTexture;
 	class VulkanCommandBuffer;
 	class VulkanCommandBufferWithCallback;
+	class VulkanFramebuffer;
 
 	class VulkanRenderer : public Renderer
 	{
 	public:
+		friend VulkanFramebuffer;
+
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();
 
@@ -83,7 +86,8 @@ namespace RN
 //		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
 //		void PolpulateDescriptorHeap();
-//		void SetupRendertargets(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderpass);
+		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
+		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
@@ -94,8 +98,6 @@ namespace RN
 		PIMPL<VulkanRendererInternals> _internals;
 
 		Lockable _lock;
-
-		Dictionary *_defaultShaders;
 
 		Array *_mipMapTextures;
 

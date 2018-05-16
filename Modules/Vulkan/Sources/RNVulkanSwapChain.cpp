@@ -305,17 +305,40 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		_fenceValues[_frameIndex] = fenceValue + 1;*/
 	}
 
-	void VulkanSwapChain::Prepare(VulkanCommandBuffer *commandBuffer)
+	void VulkanSwapChain::Prepare(VkCommandBuffer commandBuffer)
 	{
-		// Indicate that the back buffer will be used as a render target.
-//		ID3D12Resource* renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
-//		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		VkImageMemoryBarrier postPresentBarrier = {};
+		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		postPresentBarrier.pNext = NULL;
+		postPresentBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		postPresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+		postPresentBarrier.image = static_cast<VulkanTexture *>(_framebuffer->GetColorTexture(_frameIndex))->GetVulkanImage();
+		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
 	}
 
-	void VulkanSwapChain::Finalize(VulkanCommandBuffer *commandBuffer)
+	void VulkanSwapChain::Finalize(VkCommandBuffer commandBuffer)
 	{
-//		ID3D12Resource* renderTarget = GetFramebuffer()->GetSwapChainColorBuffer();
-//		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		// Add a present memory barrier to the end of the command buffer
+		// This will transform the frame buffer color attachment to a
+		// new layout for presenting it to the windowing system integration
+		VkImageMemoryBarrier prePresentBarrier = {};
+		prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		prePresentBarrier.pNext = NULL;
+		prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+		prePresentBarrier.image = static_cast<VulkanTexture *>(_framebuffer->GetColorTexture(_frameIndex))->GetVulkanImage();
+
+		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
 	}
 
 	void VulkanSwapChain::PresentBackBuffer(VkQueue queue)
