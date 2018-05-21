@@ -273,7 +273,7 @@ namespace RN
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const
 	{
 		VkClearValue clearValues[2];
-		clearValues[0].color = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+		clearValues[0].color = {1.0, 0.0, 0.0, 1.0};//clearColor.r, clearColor.g, clearColor.b, clearColor.a};
 		clearValues[1].depthStencil = {depth, stencil};
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -313,12 +313,13 @@ namespace RN
 		_size = size;
 
 		VulkanDevice *device = _renderer->GetVulkanDevice();
-		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-		commandBuffer->Begin();
 
 		uint8 bufferCount = _swapChain->GetBufferCount();
 		if(bufferCount > 0)
 		{
+			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+			commandBuffer->Begin();
+
 			for(uint8 i = 0; i < bufferCount; i++)
 			{
 				VkImage colorBuffer = _swapChain->GetVulkanColorBuffer(i);
@@ -350,6 +351,9 @@ namespace RN
 					_swapChainDepthBuffers[i] = _swapChain->GetD3D12DepthBuffer(i);
 				}*/
 			}
+
+			commandBuffer->End();
+			_renderer->SubmitCommandBuffer(commandBuffer);
 		}
 
 		if(!_depthStencilTarget && depthStencilFormat != Texture::Format::Invalid)

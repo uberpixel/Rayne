@@ -23,7 +23,8 @@ namespace RN
 		_mainWindow(nullptr),
 		_currentFrame(0),
 		_mipMapTextures(new Array()),
-		_submittedCommandBuffers(new Array())
+		_submittedCommandBuffers(new Array()),
+		_executedCommandBuffers(new Array())
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -111,33 +112,6 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	void VulkanRenderer::ProcessCommandBuffers()
-	{
-		std::vector<VkCommandBuffer> buffers;
-		_lock.Lock();
-		if(_submittedCommandBuffers->GetCount() == 0)
-		{
-			_lock.Unlock();
-			return;
-		}
-
-		buffers.reserve(_submittedCommandBuffers->GetCount());
-		_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
-			buffers.push_back(buffer->_commandBuffer);
-		});
-		_lock.Unlock();
-
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = buffers.size();
-		submitInfo.pCommandBuffers = buffers.data();
-
-		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
-		RNVulkanValidate(vk::QueueWaitIdle(_workQueue));
-
-		_submittedCommandBuffers->RemoveAllObjects();
-	}
-
 	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor)
 	{
 		VulkanWindow *window = new VulkanWindow(size, screen, this, descriptor);
@@ -222,6 +196,8 @@ namespace RN
 		if(_internals->swapChains.size() > 0)
 		{
 			_currentCommandBuffer = GetCommandBuffer();
+			_currentCommandBuffer->Retain();
+			_currentCommandBuffer->Begin();
 			VkCommandBuffer commandBuffer = _currentCommandBuffer->GetCommandBuffer();
 
 			for(VulkanSwapChain *swapChain : _internals->swapChains)
@@ -271,25 +247,6 @@ namespace RN
 			{
 				swapChain->Finalize(commandBuffer);
 			}
-
-			_currentCommandBuffer->End();
-			SubmitCommandBuffer(_currentCommandBuffer);
-			_currentCommandBuffer = nullptr;
-
-			//VkSemaphore presentSemaphore = backbuffer->GetPresentSemaphore();
-			//VkSemaphore renderSemaphore = backbuffer->GetRenderSemaphore();
-			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-			VkSubmitInfo submitInfo = {};
-			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &commandBuffer;
-			submitInfo.waitSemaphoreCount = 0;//1;
-			//submitInfo.pWaitSemaphores = &presentSemaphore;
-			submitInfo.signalSemaphoreCount = 0;//1;
-			//submitInfo.pSignalSemaphores = &renderSemaphore;
-			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
-
-			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 		}
 
 		// Execute all command lists
@@ -307,12 +264,59 @@ namespace RN
 
 		_commandQueue->Signal(_fence, _scheduledFenceValue++);*/
 
+
+
+		std::vector<VkSemaphore> presentSemaphores;
+		std::vector<VkSemaphore> renderSemaphores;
+		for(VulkanSwapChain *swapChain : _internals->swapChains)
+		{
+			presentSemaphores.push_back(swapChain->GetCurrentPresentSemaphore());
+			renderSemaphores.push_back(swapChain->GetCurrentRenderSemaphore());
+		}
+
+		_currentCommandBuffer->End();
+		SubmitCommandBuffer(_currentCommandBuffer);
+		_currentCommandBuffer = nullptr;
+
+		std::vector<VkCommandBuffer> buffers;
+		_lock.Lock();
+		if(_submittedCommandBuffers->GetCount() == 0)
+		{
+			_lock.Unlock();
+			return;
+		}
+
+		buffers.reserve(_submittedCommandBuffers->GetCount());
+		_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
+			buffers.push_back(buffer->_commandBuffer);
+			_executedCommandBuffers->AddObject(buffer);
+		});
+		_submittedCommandBuffers->RemoveAllObjects();
+		_lock.Unlock();
+
+		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = buffers.size();
+		submitInfo.pCommandBuffers = buffers.data();
+		submitInfo.waitSemaphoreCount = presentSemaphores.size();
+		submitInfo.pWaitSemaphores = presentSemaphores.data();
+		submitInfo.signalSemaphoreCount = renderSemaphores.size();
+		submitInfo.pSignalSemaphores = renderSemaphores.data();
+		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+
+		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
 			swapChain->PresentBackBuffer(_workQueue);
 		}
 
+		RNVulkanValidate(vk::QueueWaitIdle(_workQueue));
 		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
+
+		_executedCommandBuffers->RemoveAllObjects();
+
 		_currentFrame ++;
 	}
 
@@ -749,7 +753,7 @@ namespace RN
 				imageBlit.dstOffsets[1].y = texture->GetDescriptor().GetHeightForMipMapLevel(i+1);
 				imageBlit.dstOffsets[1].z = 1;
 
-				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), VK_IMAGE_LAYOUT_GENERAL, texture->GetVulkanImage(), VK_IMAGE_LAYOUT_GENERAL, 1, &imageBlit, VK_FILTER_LINEAR);
+				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->GetVulkanImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
 
 				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			}

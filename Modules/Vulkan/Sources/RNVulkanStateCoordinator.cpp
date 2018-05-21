@@ -697,6 +697,8 @@ namespace RN
 		VulkanDevice *device = renderer->GetVulkanDevice();
 		RNVulkanValidate(vk::CreateRenderPass(device->GetDevice(), &renderPassInfo, renderer->GetAllocatorCallback(), &state->renderPass));
 
+		_renderPassStates.push_back(state);
+
 		return state;
 	}
 

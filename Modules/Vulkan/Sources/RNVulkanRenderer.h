@@ -76,7 +76,6 @@ namespace RN
 		VulkanCommandBuffer *GetCommandBuffer();
 		VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
 		void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
-		void ProcessCommandBuffers();
 
 	private:
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
@@ -106,6 +105,8 @@ namespace RN
 		VulkanCommandBuffer *_currentCommandBuffer;
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;
+		Array *_executedCommandBuffers;
+		Array *_commandListPool;
 
 		size_t _currentDrawableIndex;
 		size_t _currentFrame;

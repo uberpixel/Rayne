@@ -38,6 +38,7 @@ namespace RN
 VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
 		_renderer(renderer),
 		_frameIndex(0),
+		_semaphoreIndex(0),
 		_size(size),
 		_descriptor(descriptor),
 		_hwnd(hwnd),
@@ -48,43 +49,8 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 	{
 		_device = _renderer->GetVulkanDevice()->GetDevice();
 
-		VkSemaphoreCreateInfo semaphore = {};
-		semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		RNVulkanValidate(vk::CreateSemaphore(_device, &semaphore, nullptr, &_presentSemaphore));
-		RNVulkanValidate(vk::CreateSemaphore(_device, &semaphore, nullptr, &_renderSemaphore));
-
 		CreateSurface();
 		CreateSwapChain();
-
-
-/*		_fenceValues = new UINT[descriptor.bufferCount];
-		for (int i = 0; i < descriptor.bufferCount; i++)
-			_fenceValues[i] = 0;
-
-		ID3D12Device* device = _renderer->GetD3D12Device()->GetDevice();
-		device->CreateFence(_fenceValues[_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
-		_fenceValues[_frameIndex] ++;
-		_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-		swapChainDesc.BufferCount = _descriptor.bufferCount;
-		swapChainDesc.BufferDesc.Width = size.x;
-		swapChainDesc.BufferDesc.Height = size.y;
-		swapChainDesc.BufferDesc.Format = SwapChainFormatFromTextureFormat(descriptor.colorFormat);
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0; //no vsync
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1; //no vsync
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.OutputWindow = hwnd;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.Windowed = true;
-
-		IDXGISwapChain* swapChain;
-		IDXGIFactory4* factory = _renderer->GetD3D12Descriptor()->GetFactory();
-		factory->CreateSwapChain(_renderer->GetCommandQueue(), &swapChainDesc, &swapChain);
-		_swapChain = static_cast<IDXGISwapChain3 *>(swapChain);
-		_framebuffer = new D3D12Framebuffer(size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);*/
 	}
 
 	VulkanSwapChain::~VulkanSwapChain()
@@ -167,7 +133,7 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		if(_extents.width == extent.width && _extents.height == extent.height)
 			return;
 
-		uint32_t imageCount = std::max(caps.minImageCount, std::min(caps.maxImageCount, static_cast<uint32_t>(kRNVulkanRenderStages)));
+		uint32_t imageCount = std::max(caps.minImageCount, std::min(caps.maxImageCount, static_cast<uint32_t>(_descriptor.bufferCount)));
 
 		assert(caps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 		assert(caps.supportedTransforms & caps.currentTransform);
@@ -193,7 +159,7 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		VkSwapchainCreateInfoKHR swapchainInfo = {};
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapchainInfo.surface = _surface;
-		swapchainInfo.minImageCount = _descriptor.bufferCount;
+		swapchainInfo.minImageCount = imageCount;
 		swapchainInfo.imageFormat = _format.format;
 		swapchainInfo.imageColorSpace = _format.colorSpace;
 		swapchainInfo.imageExtent = extent;
@@ -213,6 +179,18 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		vk::GetSwapchainImagesKHR(device->GetDevice(), _swapchain, &count, nullptr);
 		vk::GetSwapchainImagesKHR(device->GetDevice(), _swapchain, &count, _colorBuffers);
 		_descriptor.bufferCount = static_cast<uint8>(count);
+
+		VkSemaphoreCreateInfo semaphoreInfo = {};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		for(size_t i = _presentSemaphores.size(); i < count; i++)
+		{
+			VkSemaphore presentSemaphore;
+			VkSemaphore renderSemaphore;
+			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &presentSemaphore));
+			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &renderSemaphore));
+			_presentSemaphores.push_back(presentSemaphore);
+			_renderSemaphores.push_back(renderSemaphore);
+		}
 
 		// Destroy the old swapchain
 		if(swapchainInfo.oldSwapchain != VK_NULL_HANDLE)
@@ -264,7 +242,9 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 
 	void VulkanSwapChain::AcquireBackBuffer()
 	{
-		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentSemaphore, VK_NULL_HANDLE, &_frameIndex));
+		_semaphoreIndex += 1;
+		_semaphoreIndex %= _descriptor.bufferCount;
+		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentSemaphores[_semaphoreIndex], VK_NULL_HANDLE, &_frameIndex));
 
 /*		const UINT64 fenceValue = _fenceValues[_frameIndex];
 		_renderer->GetCommandQueue()->Signal(_fence, fenceValue);*/
@@ -346,12 +326,11 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		VkPresentInfoKHR present_info = {};
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &_renderSemaphore;
+		present_info.pWaitSemaphores = &_renderSemaphores[_semaphoreIndex];
 		present_info.swapchainCount = 1;
 		present_info.pSwapchains = &_swapchain;
 		present_info.pImageIndices = &_frameIndex;
 
 		RNVulkanValidate(vk::QueuePresentKHR(queue, &present_info));
-		RNVulkanValidate(vk::QueueWaitIdle(queue));
 	}
 }

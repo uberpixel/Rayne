@@ -34,8 +34,8 @@ namespace RN
 		VKAPI virtual VkImage GetVulkanColorBuffer(int i) const;
 		VKAPI virtual VkImage GetVulkanDepthBuffer(int i) const;
 
-/*		VkSemaphore GetPresentSemaphore() const { return _presentSemaphore; }
-		VkSemaphore GetRenderSemaphore() const { return _renderSemaphore; }*/
+		VkSemaphore GetCurrentPresentSemaphore() const { return _presentSemaphores[_semaphoreIndex]; }
+		VkSemaphore GetCurrentRenderSemaphore() const { return _renderSemaphores[_semaphoreIndex]; }
 
 		size_t GetFrameIndex() const { return _frameIndex;  }
 		VulkanFramebuffer *GetFramebuffer() const { return _framebuffer; }
@@ -50,6 +50,7 @@ namespace RN
 		VulkanFramebuffer *_framebuffer;
 		Vector2 _size;
 		uint32 _frameIndex;
+		uint32 _semaphoreIndex;
 		Window::SwapChainDescriptor _descriptor;
 
 		Vector2 _newSize;
@@ -65,8 +66,8 @@ namespace RN
 		HWND _hwnd;
 
 		VkDevice _device;
-		VkSemaphore _presentSemaphore;
-		VkSemaphore _renderSemaphore;
+		std::vector<VkSemaphore> _presentSemaphores;
+		std::vector<VkSemaphore> _renderSemaphores;
 
 		VkImage _colorBuffers[32];
 

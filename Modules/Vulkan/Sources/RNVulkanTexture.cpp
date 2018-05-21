@@ -215,20 +215,20 @@ namespace RN
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.usage = VkImageUsageFromDescriptor(descriptor, imageInfo.format);
 		imageInfo.flags = 0;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
 		imageInfo.mipLevels = descriptor.mipMaps;
 
 		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		}
 		else
 		{
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			imageInfo.tiling = (descriptor.mipMaps > 1)? VK_IMAGE_TILING_OPTIMAL:VK_IMAGE_TILING_LINEAR;
 		}
+
+		_currentLayout = imageInfo.initialLayout;
 
 		RNVulkanValidate(vk::CreateImage(device->GetDevice(), &imageInfo, _renderer->GetAllocatorCallback(), &_image));
 
@@ -385,7 +385,8 @@ namespace RN
 		VulkanCommandBufferWithCallback *commandBuffer = _renderer->GetCommandBufferWithCallback();
 		commandBuffer->Begin();
 		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		_currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 		VkImageCopy copyRegion = {};
 
@@ -408,7 +409,8 @@ namespace RN
 		copyRegion.extent.depth = region.depth;
 
 		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		_currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		commandBuffer->End();
 
 		commandBuffer->SetFinishedCallback([this, device, uploadImage, uploadMemory]() {
