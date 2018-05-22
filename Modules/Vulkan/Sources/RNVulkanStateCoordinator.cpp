@@ -135,26 +135,20 @@ namespace RN
 		signature->textureCount = textureCount;
 		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
 
-
-		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		setUniformLayoutBinding.binding = 0;
-		setUniformLayoutBinding.descriptorCount = 1;
-
-		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
-		for(size_t i = 0; i < textureCount; i++)
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+		for(size_t i = 0; i < constantBufferCount; i++)
 		{
-			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-			setImageLayoutBinding.binding = i + 1;
-			setImageLayoutBinding.descriptorCount = 1;
-
-			setLayoutBindings.push_back(setImageLayoutBinding);
+			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+			setUniformLayoutBinding.binding = setLayoutBindings.size();
+			setUniformLayoutBinding.descriptorCount = 1;
+			setLayoutBindings.push_back(setUniformLayoutBinding);
 		}
 
+
 		// Create samplers
+		std::vector<VkSampler> samplers;
 		if(signature->samplers->GetCount() > 0)
 		{
 			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
@@ -225,9 +219,9 @@ namespace RN
 				samplerInfo.mipLodBias = 0.0f;
 				samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 				samplerInfo.minLod = 0.0f;
-				samplerInfo.maxLod = std::numeric_limits<float>::max();
-				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();
-				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
+				samplerInfo.maxLod = 20;//std::numeric_limits<float>::max();
+				samplerInfo.maxAnisotropy = 1;//sampler->GetAnisotropy();
+				samplerInfo.anisotropyEnable = 0;//(sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
 				samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 				samplerInfo.unnormalizedCoordinates = VK_FALSE;
 
@@ -235,17 +229,29 @@ namespace RN
 				RNVulkanValidate(vk::CreateSampler(device->GetDevice(), &samplerInfo, renderer->GetAllocatorCallback(), &vkSampler));
 				//TODO: Store and release samplers with the pipeline? Maybe can immediately be released after creating pipeline?
 
+				samplers.push_back(vkSampler);
+
 				VkDescriptorSetLayoutBinding staticSamplerBinding = {};
 				staticSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-				staticSamplerBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-				staticSamplerBinding.binding = 0;
+				staticSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
+				staticSamplerBinding.binding = setLayoutBindings.size();
 				staticSamplerBinding.descriptorCount = 1;
-				staticSamplerBinding.pImmutableSamplers = &vkSampler;
+				staticSamplerBinding.pImmutableSamplers = &samplers[samplers.size()-1];
 
 				setLayoutBindings.push_back(staticSamplerBinding);
 			});
 		}
 
+		for(size_t i = 0; i < textureCount; i++)
+		{
+			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+			setImageLayoutBinding.binding = setLayoutBindings.size();
+			setImageLayoutBinding.descriptorCount = 1;
+
+			setLayoutBindings.push_back(setImageLayoutBinding);
+		}
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
 		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -253,16 +259,15 @@ namespace RN
 		descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
 		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
 
-		VkDescriptorSetLayout descriptorSetLayout;
-		RNVulkanValidate(vk::CreateDescriptorSetLayout(device->GetDevice(), &descriptorSetLayoutCreateInfo, renderer->GetAllocatorCallback(), &descriptorSetLayout));
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device->GetDevice(), &descriptorSetLayoutCreateInfo, renderer->GetAllocatorCallback(), &signature->descriptorSetLayout));
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutCreateInfo.pNext = NULL;
 		pipelineLayoutCreateInfo.setLayoutCount = 1;
-		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
+		pipelineLayoutCreateInfo.pSetLayouts = &signature->descriptorSetLayout;
 
-		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &(signature->pipelineLayout)));
+		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &signature->pipelineLayout));
 
 		_rootSignatures.push_back(signature);
 		return signature;

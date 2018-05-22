@@ -1,6 +1,6 @@
 [
 	{
-		"file": ":RayneVulkan:/vert.spv",
+		"file": ":RayneVulkan:/Shaders.vert.spv",
 		"shaders": [
 			{
 				"name": "gouraud_vertex",
@@ -9,11 +9,55 @@
 		]
 	},
 	{
-		"file": ":RayneVulkan:/frag.spv",
+		"file": ":RayneVulkan:/Shaders.frag.spv",
 		"shaders": [
 			{
 				"name": "gouraud_fragment",
 				"type": "fragment"
+			}
+		]
+	},
+	{
+		"file": ":RayneVulkan:/Depth.vert.spv",
+		"shaders":
+		[
+			{
+				"name": "depth_vertex",
+				"type": "vertex"
+			}
+		]
+	},
+	{
+		"file": ":RayneVulkan:/Depth.frag.spv",
+		"shaders":
+		[
+			{
+				"name": "depth_fragment",
+				"type": "fragment"
+			}
+		]
+	},
+	{
+		"file": ":RayneVulkan:/Sky.vert.spv",
+		"shaders":
+		[
+			{
+				"name": "sky_vertex",
+				"type": "vertex"
+			}
+		]
+	},
+	{
+		"file": ":RayneVulkan:/Sky.frag.spv",
+		"shaders":
+		[
+			{
+				"name": "sky_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}]
+				}
 			}
 		]
 	}

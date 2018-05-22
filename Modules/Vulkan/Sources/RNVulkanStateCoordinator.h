@@ -54,6 +54,7 @@ namespace RN
 
 		bool wantsDirectionalShadowTexture; //TODO: Solve better...
 
+		VkDescriptorSetLayout descriptorSetLayout;
 		VkPipelineLayout pipelineLayout;
 	};
 
@@ -85,7 +86,6 @@ namespace RN
 		const VulkanRootSignature *rootSignature;
 
 		VkPipeline state;
-		VkDescriptorSetLayout descriptorSetLayout;
 	};
 
 	struct VulkanPipelineStateCollection

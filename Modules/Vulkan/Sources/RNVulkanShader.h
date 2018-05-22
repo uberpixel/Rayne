@@ -32,6 +32,8 @@ namespace RN
 		VkShaderModule _module;
 		const String *_name;
 
+		bool _wantsDirectionalShadowTexture; //TODO: Solve better...
+
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
 	};
 }

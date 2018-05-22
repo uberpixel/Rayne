@@ -321,8 +321,8 @@ namespace RN
 
 	Shader::~Shader()
 	{
-		_options->Release();
-		_signature->Release();
+		SafeRelease(_options);
+		SafeRelease(_signature);
 	}
 
 	Shader::Type Shader::GetType() const

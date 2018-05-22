@@ -31,3 +31,6 @@
 [submodule "Modules/Recast/Vendor/recast"]
 	path = Modules/Recast/Vendor/recast
 	url = https://github.com/recastnavigation/recastnavigation.git
+[submodule "Vendor/SPIRV-Cross"]
+	path = Vendor/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git

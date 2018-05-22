@@ -102,7 +102,6 @@ namespace RN
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(Vector2()),
-		_isDirty(true),
 		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(swapChain),
@@ -115,7 +114,6 @@ namespace RN
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer) :
 		Framebuffer(size),
-		_isDirty(true),
 		_sampleCount(1),
 		_renderer(renderer),
 		_swapChain(nullptr),
@@ -179,7 +177,7 @@ namespace RN
 			_colorTargets.push_back(targetView);
 		}
 
-		_isDirty = true;
+		//TODO: Update renderpass once all changes have been made
 	}
 
 	void VulkanFramebuffer::SetDepthStencilTarget(const TargetView &target)
@@ -195,7 +193,8 @@ namespace RN
 		}
 
 		_depthStencilTarget = targetView;
-		_isDirty = true;
+
+		//TODO: Update renderpass once all changes have been made
 	}
 
 	Texture *VulkanFramebuffer::GetColorTexture(uint32 index) const
@@ -222,11 +221,6 @@ namespace RN
 	void VulkanFramebuffer::PrepareAsRendertargetForFrame()
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-
-		if(_isDirty)
-		{
-			_renderPass = _renderer->GetVulkanRenderPass(this);
-		}
 
 		std::vector<VkImageView> attachments;
 		if(_colorTargets.size() > 0)
@@ -381,6 +375,8 @@ namespace RN
 
 			_depthStencilTarget = targetView;
 		}*/
+
+		_renderPass = _renderer->GetVulkanRenderPass(this);
 	}
 
 

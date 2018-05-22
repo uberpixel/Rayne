@@ -41,9 +41,12 @@ namespace RN
 		uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uniformBufferPoolSize.descriptorCount = 1000;
 		VkDescriptorPoolSize textureBufferPoolSize = {};
-		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		textureBufferPoolSize.descriptorCount = 1000;
-		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
+		VkDescriptorPoolSize samplerBufferPoolSize = {};
+		samplerBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLER;
+		samplerBufferPoolSize.descriptorCount = 1000;
+		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, samplerBufferPoolSize, textureBufferPoolSize };
 
 		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
 		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -218,13 +221,13 @@ namespace RN
 				}
 				SetupRendertargets(commandBuffer, renderPass);
 
-/*				if(renderPass.drawables.size() > 0)
+				if(renderPass.drawables.size() > 0)
 				{
 					//Draw drawables
-					for(D3D12Drawable *drawable : renderPass.drawables)
+					for(VulkanDrawable *drawable : renderPass.drawables)
 					{
 						//TODO: Sort drawables by camera and root signature
-						if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
+						/*if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
 						{
 							_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 							commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
@@ -232,12 +235,12 @@ namespace RN
 							// Set the one big descriptor heap for the whole frame
 							ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
 							commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
-						}
-						RenderDrawable(commandList, drawable);
+						}*/
+						RenderDrawable(commandBuffer, drawable);
 					}
 
 					_internals->currentDrawableResourceIndex += 1;
-				}*/
+				}
 
 				_internals->currentRenderPassIndex += 1;
 			}
@@ -367,7 +370,7 @@ namespace RN
 		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
 		renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		//renderPass.projectionMatrix.m[5] *= -1.0f;
+		renderPass.projectionMatrix.m[5] *= -1.0f;
 		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
@@ -1049,121 +1052,6 @@ namespace RN
 		});
 	}
 
-/*	void VulkanRenderer::FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable)
-	{
-		GPUBuffer *gpuBuffer = uniformBuffer;//uniformBuffer->Advance();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-*/
-//		Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-//		std::memcpy(buffer, result.m, sizeof(Matrix));
-
-	/*	const VulkanUniformBuffer::Member *member;*/
-
-		// Matrices
-//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelMatrix)))
-/*		{
-			std::memcpy(buffer + sizeof(Matrix), drawable->modelMatrix.m, sizeof(Matrix));
-		}*/
-/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewMatrix)))
-		{
-			Matrix result = _internals->renderPass.viewMatrix * drawable->modelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ModelViewProjectionMatrix)))
-		{
-			Matrix result = _internals->renderPass.projectionViewMatrix * drawable->modelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.viewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::ViewProjectionMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.projectionViewMatrix.m, sizeof(Matrix));
-		}
-
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), drawable->inverseModelMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewMatrix)))
-		{
-			Matrix result = _internals->renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseModelViewProjectionMatrix)))
-		{
-			Matrix result = _internals->renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-			std::memcpy(buffer + member->GetOffset(), result.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseViewMatrix.m, sizeof(Matrix));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::InverseViewProjectionMatrix)))
-		{
-			std::memcpy(buffer + member->GetOffset(), _internals->renderPass.inverseProjectionViewMatrix.m, sizeof(Matrix));
-		}*/
-
-		// Color
-/*		Material *material = drawable->material;
-
-//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::AmbientColor)))
-		{
-			std::memcpy(buffer + sizeof(Matrix)*2, &material->GetAmbientColor().r, sizeof(Color));
-		}
-//		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiffuseColor)))
-		{
-			std::memcpy(buffer + sizeof(Matrix)*2 + sizeof(Color), &material->GetDiffuseColor().r, sizeof(Color));
-		}*/
-/*		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::SpecularColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetSpecularColor().r, sizeof(Color));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::EmissiveColor)))
-		{
-			std::memcpy(buffer + member->GetOffset(), &material->GetEmissiveColor().r, sizeof(Color));
-		}
-
-		// Misc
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::DiscardThreshold)))
-		{
-			float temp = material->GetDiscardThreshold();
-			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
-		}
-		if((member = uniformBuffer->GetMemberForFeature(MetalUniformBuffer::Feature::TextureTileFactor)))
-		{
-			float temp = material->GetTextureTileFactor();
-			std::memcpy(buffer + member->GetOffset(), &temp, sizeof(float));
-		}*/
-
-/*		gpuBuffer->Invalidate();
-	}*/
-
-/*	void VulkanRenderer::SubmitLight(const Light *light)
-	{
-		_lock.Lock();
-		VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
-		_lock.Unlock();
-
-		if(light->GetType() == Light::Type::DirectionalLight)
-		{
-			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-			{
-				renderPass.directionalLights.push_back(VulkanLightDirectional{ light->GetForward(), 0.0f, light->GetColor() });
-			}
-
-			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
-			if(light->HasShadows())
-			{
-				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<VulkanTexture>();
-				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
-				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
-			}
-		}
-	}*/
-
 	Drawable *VulkanRenderer::CreateDrawable()
 	{
 		VulkanDrawable *newDrawable = new VulkanDrawable();
@@ -1174,26 +1062,6 @@ namespace RN
 	{
 		delete drawable;
 	}
-
-/*
-	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
-	{
-		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->pipelineLayout, 0, 1, &drawable->_uniformState->descriptorSet, 0, NULL);
-		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawable->_pipelineState->state);
-
-		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetVertexBuffer());
-		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetIndicesBuffer());
-
-		VkDeviceSize offsets[1] = { 0 };
-		// Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
-		// Bind mesh index buffer
-		vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, VK_INDEX_TYPE_UINT16);
-		// Render mesh vertex buffer using it's indices
-		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
-	}*/
-
-
 
 	void VulkanRenderer::SubmitLight(const Light *light)
 	{
@@ -1246,11 +1114,11 @@ namespace RN
 		descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		descriptorSetAllocateInfo.pNext = NULL;
 		descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
-		descriptorSetAllocateInfo.pSetLayouts = &pipelineState->descriptorSetLayout;
+		descriptorSetAllocateInfo.pSetLayouts = &pipelineState->rootSignature->descriptorSetLayout;
 		descriptorSetAllocateInfo.descriptorSetCount = 1;
 
-		VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet;
 		RNVulkanValidate(vk::AllocateDescriptorSets(GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet));
+		VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet;
 
 		VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 		std::vector<VkDescriptorBufferInfo> constantBufferDescriptorInfoArray;
@@ -1322,6 +1190,9 @@ namespace RN
 			writeImageDescriptorSet.descriptorCount = 1;
 
 			writeDescriptorSets.push_back(writeImageDescriptorSet);
+
+			//TODO: Support more than 1 texture
+			stop = true;
 		});
 
 		vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);

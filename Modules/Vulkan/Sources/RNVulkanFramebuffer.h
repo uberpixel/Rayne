@@ -51,8 +51,6 @@ namespace RN
 		uint8 _sampleCount;
 		uint32 _frameLastUsed;
 
-		bool _isDirty;
-
 		WeakRef<VulkanSwapChain> _swapChain;
 
 		std::vector<VulkanTargetView *> _colorTargets;

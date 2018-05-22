@@ -40,7 +40,9 @@ set(SOURCES
         Sources/RNVulkanShader.cpp
         Sources/RNVulkanShaderLibrary.cpp
         Sources/RNVulkanStateCoordinator.cpp
-        Sources/RNVulkanConstantBuffer.cpp)
+        Sources/RNVulkanConstantBuffer.cpp
+        ../../Vendor/SPIRV-Cross/spirv_cross.cpp
+        ../../Vendor/SPIRV-Cross/spirv_cfg.cpp)
 
 set(HEADERS
         Sources/RNVulkan.h
@@ -59,7 +61,8 @@ set(HEADERS
         Sources/RNVulkanShader.h
         Sources/RNVulkanShaderLibrary.h
         Sources/RNVulkanStateCoordinator.h
-        Sources/RNVulkanConstantBuffer.h)
+        Sources/RNVulkanConstantBuffer.h
+        ../../Vendor/SPIRV-Cross/spirv_cross.hpp)
 
 set(RESOURCES
         Resources)
@@ -75,7 +78,7 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 set(RAYNE_LIBRARIES Rayne)
-set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor")
+set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor" "${CMAKE_CURRENT_SOURCE_DIR}/../../Vendor/SPIRV-Cross")
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVulkan)

@@ -8,12 +8,12 @@
 
 #version 450
 
-layout (binding = 0) uniform UBO 
+layout (set = 0, binding = 0) uniform UBO 
 {
 	mat4 modelViewProjectionMatrix;
 	mat4 modelMatrix;
-	vec4 ambient;
-	vec4 diffuse;
+	vec4 ambientColor;
+	vec4 diffuseColor;
 } ubo;
 
 layout (location = 0) in vec3 inPosition;
@@ -29,8 +29,8 @@ void main()
 {
 	outTexcoords = inTexcoords;
 	outNormals = (ubo.modelMatrix * vec4(inNormals, 0.0)).xyz;
-	outAmbient = ubo.ambient;
-	outDiffuse = ubo.diffuse;
+	outAmbient = ubo.ambientColor;
+	outDiffuse = ubo.diffuseColor;
 
 	gl_Position = ubo.modelViewProjectionMatrix*vec4(inPosition, 1.0);
 }

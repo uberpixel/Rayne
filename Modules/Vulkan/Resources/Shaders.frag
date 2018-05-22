@@ -17,11 +17,12 @@ layout (location = 3) in vec4 inDiffuse;
 
 layout (location = 0) out vec4 fragColor0;
 
-layout (binding = 1) uniform sampler2D samplerColorMap;
+layout (set = 0, binding = 1) uniform sampler linearSampler;
+layout (set = 0, binding = 2) uniform texture2D colorMap;
 
 void main()
 {
-	vec4 color = texture(samplerColorMap, inTexcoords);
+	vec4 color = texture(sampler2D(colorMap, linearSampler), inTexcoords);
 	color *= inAmbient + inDiffuse * clamp(dot(normalize(inNormals), normalize(light_position)), 0.0, 1.0);
 	fragColor0 = color;
 }
