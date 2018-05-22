@@ -16,12 +16,14 @@ namespace RN
 	RNExceptionType(VulkanStructArgumentUnsupported)
 
 	class VulkanFramebuffer;
-	class VulkanGPUBuffer;
+	class VulkanConstantBuffer;
 
 	struct VulkanUniformState
 	{
-		VulkanGPUBuffer *vertexUniformBuffer;
-		VulkanGPUBuffer *fragmentUniformBuffer;
+		VulkanConstantBuffer *vertexConstantBuffer;
+		VulkanConstantBuffer *fragmentConstantBuffer;
+
+		VkDescriptorSet descriptorSet;
 	};
 
 	struct VulkanDepthStencilState
@@ -52,7 +54,7 @@ namespace RN
 
 		bool wantsDirectionalShadowTexture; //TODO: Solve better...
 
-		VkDescriptorSet descriptorSet;
+		VkPipelineLayout pipelineLayout;
 	};
 
 	struct VulkanPipelineStateDescriptor
@@ -84,7 +86,6 @@ namespace RN
 
 		VkPipeline state;
 		VkDescriptorSetLayout descriptorSetLayout;
-		VkPipelineLayout pipelineLayout;
 	};
 
 	struct VulkanPipelineStateCollection

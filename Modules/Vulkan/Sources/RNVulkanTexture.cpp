@@ -255,8 +255,27 @@ namespace RN
 		RNVulkanValidate(vk::AllocateMemory(device->GetDevice(), &allocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		RNVulkanValidate(vk::BindImageMemory(device->GetDevice(), _image, _memory, 0));
 
+		if(!(descriptor.usageHint & UsageHint::RenderTarget))
+		{
+			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+			commandBuffer->Begin();
+			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			_currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			commandBuffer->End();
+			_renderer->SubmitCommandBuffer(commandBuffer);
+		}
+		else if(descriptor.format == Format::Depth24Stencil8)
+		{
+			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+			commandBuffer->Begin();
+			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			_currentLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			commandBuffer->End();
+			_renderer->SubmitCommandBuffer(commandBuffer);
+		}
 
-/*		VkImageViewCreateInfo imageViewInfo = {};
+
+		VkImageViewCreateInfo imageViewInfo = {};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewInfo.pNext = nullptr;
 		imageViewInfo.viewType = VkImageViewTypeFromTextureType(descriptor.type);
@@ -271,23 +290,6 @@ namespace RN
 		imageViewInfo.image = _image;
 
 		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageViewInfo, _renderer->GetAllocatorCallback(), &_imageView));
-
-		if(!(descriptor.usageHint & UsageHint::RenderTarget))
-		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-		}
-		else if(descriptor.format == Format::Depth24Stencil8)
-		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-		}*/
 	}
 
 	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image) :
@@ -386,6 +388,7 @@ namespace RN
 		commandBuffer->Begin();
 		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VkImageLayout oldLayout = _currentLayout;
 		_currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 		VkImageCopy copyRegion = {};
@@ -409,8 +412,8 @@ namespace RN
 		copyRegion.extent.depth = region.depth;
 
 		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		_currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout);
+		_currentLayout = oldLayout;
 		commandBuffer->End();
 
 		commandBuffer->SetFinishedCallback([this, device, uploadImage, uploadMemory]() {
@@ -513,56 +516,6 @@ namespace RN
 		vk::DestroyImage(device, downloadImage, _renderer->GetAllocatorCallback());
 		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());
 	}
-
-/*	void VulkanTexture::SetParameter(const Parameter &parameter)
-	{
-		//TODO: Have the state coordinator pool these.
-		Texture::SetParameter(parameter);
-
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-		if(_sampler)
-			vk::DestroySampler(device, _sampler, _renderer->GetAllocatorCallback());
-
-		VkSamplerAddressMode addressMode;
-		switch(parameter.wrapMode)
-		{
-			case Texture::WrapMode::Clamp:
-				addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-				break;
-			case Texture::WrapMode::Repeat:
-				addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				break;
-		}
-
-		VkFilter filter;
-		switch(parameter.filter)
-		{
-			case Texture::Filter::Nearest:
-				filter = VK_FILTER_NEAREST;
-				break;
-			case Texture::Filter::Linear:
-				filter = VK_FILTER_LINEAR;
-				break;
-		}
-
-		// Create sampler
-		VkSamplerCreateInfo samplerInfo = {};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = filter;
-		samplerInfo.minFilter = filter;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.addressModeU = addressMode;
-		samplerInfo.addressModeV = addressMode;
-		samplerInfo.addressModeW = addressMode;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = _descriptor.mipMaps;
-		samplerInfo.maxAnisotropy = parameter.anisotropy;
-		samplerInfo.anisotropyEnable = (parameter.anisotropy > 0)? VK_TRUE:VK_FALSE;
-		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		RNVulkanValidate(vk::CreateSampler(device, &samplerInfo, _renderer->GetAllocatorCallback(), &_sampler));
-	}*/
 
 	void VulkanTexture::GenerateMipMaps()
 	{

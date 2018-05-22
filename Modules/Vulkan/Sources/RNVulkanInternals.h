@@ -23,6 +23,7 @@ namespace RN
 			const VulkanPipelineState *pipelineState;
 			VulkanUniformState *uniformState; //TODO: Check if needs to be deleted when done
 			bool dirty;
+			VkDescriptorSet descriptorSet;
 		};
 
 		~VulkanDrawable(){}

@@ -11,7 +11,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanWindow.h"
-#include "RNVulkanGPUBuffer.h"
+#include "RNVulkanConstantBuffer.h"
 
 namespace RN
 {
@@ -136,9 +136,6 @@ namespace RN
 		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
 
 
-
-
-
 		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
 		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -149,13 +146,106 @@ namespace RN
 		for(size_t i = 0; i < textureCount; i++)
 		{
 			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 			setImageLayoutBinding.binding = i + 1;
 			setImageLayoutBinding.descriptorCount = 1;
 
 			setLayoutBindings.push_back(setImageLayoutBinding);
 		}
+
+		// Create samplers
+		if(signature->samplers->GetCount() > 0)
+		{
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+
+				VkFilter filter = VK_FILTER_LINEAR;
+				switch(sampler->GetFilter())
+				{
+					case Shader::Sampler::Filter::Anisotropic:
+						filter = VK_FILTER_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Linear:
+						filter = VK_FILTER_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Nearest:
+						filter = VK_FILTER_NEAREST;
+						break;
+				}
+
+				VkCompareOp comparisonFunction = VK_COMPARE_OP_NEVER;
+				if(sampler->GetComparisonFunction() != Shader::Sampler::ComparisonFunction::Never)
+				{
+					switch(sampler->GetComparisonFunction())
+					{
+						case Shader::Sampler::ComparisonFunction::Always:
+							comparisonFunction = VK_COMPARE_OP_ALWAYS;
+							break;
+						case Shader::Sampler::ComparisonFunction::Equal:
+							comparisonFunction = VK_COMPARE_OP_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::GreaterEqual:
+							comparisonFunction = VK_COMPARE_OP_GREATER_OR_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::Greater:
+							comparisonFunction = VK_COMPARE_OP_GREATER;
+							break;
+						case Shader::Sampler::ComparisonFunction::Less:
+							comparisonFunction = VK_COMPARE_OP_LESS;
+							break;
+						case Shader::Sampler::ComparisonFunction::LessEqual:
+							comparisonFunction = VK_COMPARE_OP_LESS_OR_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::NotEqual:
+							comparisonFunction = VK_COMPARE_OP_NOT_EQUAL;
+							break;
+					}
+				}
+
+				VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+				switch(sampler->GetWrapMode())
+				{
+					case Shader::Sampler::WrapMode::Repeat:
+						addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+						break;
+					case Shader::Sampler::WrapMode::Clamp:
+						addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+						break;
+				}
+
+				// Create sampler
+				VkSamplerCreateInfo samplerInfo = {};
+				samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+				samplerInfo.magFilter = filter;
+				samplerInfo.minFilter = filter;
+				samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+				samplerInfo.addressModeU = addressMode;
+				samplerInfo.addressModeV = addressMode;
+				samplerInfo.addressModeW = addressMode;
+				samplerInfo.mipLodBias = 0.0f;
+				samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+				samplerInfo.minLod = 0.0f;
+				samplerInfo.maxLod = std::numeric_limits<float>::max();
+				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();
+				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
+				samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+				samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+				VkSampler vkSampler;
+				RNVulkanValidate(vk::CreateSampler(device->GetDevice(), &samplerInfo, renderer->GetAllocatorCallback(), &vkSampler));
+				//TODO: Store and release samplers with the pipeline? Maybe can immediately be released after creating pipeline?
+
+				VkDescriptorSetLayoutBinding staticSamplerBinding = {};
+				staticSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+				staticSamplerBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+				staticSamplerBinding.binding = 0;
+				staticSamplerBinding.descriptorCount = 1;
+				staticSamplerBinding.pImmutableSamplers = &vkSampler;
+
+				setLayoutBindings.push_back(staticSamplerBinding);
+			});
+		}
+
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
 		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -172,172 +262,7 @@ namespace RN
 		pipelineLayoutCreateInfo.setLayoutCount = 1;
 		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 
-		VkPipelineLayout pipelineLayout;
-		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &pipelineLayout));
-
-
-
-
-
-
-
-/*		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
-
-		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
-		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
-
-		if(numberOfTables > 0)
-		{
-			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
-			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
-		}
-
-		// Perfomance TIP: Order from most frequent to least frequent.
-		int tableIndex = 0;
-		if(signature->textureCount > 0)
-		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
-			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-			tableIndex += 1;
-		}
-		if(signature->constantBufferCount > 0)
-		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
-			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-			tableIndex += 1;
-		}
-
-		// Create samplers
-		D3D12_STATIC_SAMPLER_DESC *samplerDescriptors = nullptr;
-		if(signature->samplers->GetCount() > 0)
-		{
-			samplerDescriptors = new D3D12_STATIC_SAMPLER_DESC[signature->samplers->GetCount()];
-			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
-				D3D12_STATIC_SAMPLER_DESC &samplerDesc = samplerDescriptors[index];
-
-				D3D12_FILTER filter = D3D12_FILTER_ANISOTROPIC;
-				D3D12_COMPARISON_FUNC comparisonFunction = D3D12_COMPARISON_FUNC_NEVER;
-				if(sampler->GetComparisonFunction() == Shader::Sampler::ComparisonFunction::Never)
-				{
-					switch (sampler->GetFilter())
-					{
-						case Shader::Sampler::Filter::Anisotropic:
-							filter = D3D12_FILTER_ANISOTROPIC;
-							break;
-						case Shader::Sampler::Filter::Linear:
-							filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-							break;
-						case Shader::Sampler::Filter::Nearest:
-							filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-							break;
-					}
-				}
-				else
-				{
-					switch (sampler->GetFilter())
-					{
-						case Shader::Sampler::Filter::Anisotropic:
-							filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
-							break;
-						case Shader::Sampler::Filter::Linear:
-							filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-							break;
-						case Shader::Sampler::Filter::Nearest:
-							filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-							break;
-					}
-
-					switch(sampler->GetComparisonFunction())
-					{
-						case Shader::Sampler::ComparisonFunction::Always:
-							comparisonFunction = D3D12_COMPARISON_FUNC_ALWAYS;
-							break;
-						case Shader::Sampler::ComparisonFunction::Equal:
-							comparisonFunction = D3D12_COMPARISON_FUNC_EQUAL;
-							break;
-						case Shader::Sampler::ComparisonFunction::GreaterEqual:
-							comparisonFunction = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
-							break;
-						case Shader::Sampler::ComparisonFunction::Greater:
-							comparisonFunction = D3D12_COMPARISON_FUNC_GREATER;
-							break;
-						case Shader::Sampler::ComparisonFunction::Less:
-							comparisonFunction = D3D12_COMPARISON_FUNC_LESS;
-							break;
-						case Shader::Sampler::ComparisonFunction::LessEqual:
-							comparisonFunction = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-							break;
-						case Shader::Sampler::ComparisonFunction::NotEqual:
-							comparisonFunction = D3D12_COMPARISON_FUNC_NOT_EQUAL;
-							break;
-					}
-				}
-
-				D3D12_TEXTURE_ADDRESS_MODE addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				switch(sampler->GetWrapMode())
-				{
-					case Shader::Sampler::WrapMode::Repeat:
-						addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-						break;
-					case Shader::Sampler::WrapMode::Clamp:
-						addressMode = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-						break;
-				}
-
-				samplerDesc.Filter = filter;
-				samplerDesc.AddressU = addressMode;
-				samplerDesc.AddressV = addressMode;
-				samplerDesc.AddressW = addressMode;
-				samplerDesc.MipLODBias = 0.0f;
-				samplerDesc.ComparisonFunc = comparisonFunction;
-				samplerDesc.MinLOD = 0.0f;
-				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-				samplerDesc.MaxAnisotropy = sampler->GetAnisotropy();
-				samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-				samplerDesc.ShaderRegister = index;
-				samplerDesc.RegisterSpace = 0;
-				samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	//TODO: Restrict visibility to the shader actually using it
-			});
-		}
-
-		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(numberOfTables, rootParameters, signature->samplers->GetCount(), samplerDescriptors, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);*/
-
-		/*		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-				//If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
-				featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-				if(FAILED(renderer->GetD3D12Device()->GetDevice()->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
-				{
-					featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-				}*/
-
-/*		ID3DBlob *signatureBlob = nullptr;
-		ID3DBlob *error = nullptr;
-		HRESULT success = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error);
-
-		if(FAILED(success))
-		{
-			String *errorString = RNCSTR("");
-			if(error)
-			{
-				errorString = RNSTR((char*)error->GetBufferPointer());
-				error->Release();
-			}
-
-			RNDebug(RNSTR("Failed to create root signature with error: " << errorString));
-		}
-
-		renderer->GetVulkanDevice()->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&signature->signature));
-
-		if (srvCbvRanges)
-			delete[] srvCbvRanges;
-		if (rootParameters)
-			delete[] rootParameters;
-		if (samplerDescriptors)
-			delete[] samplerDescriptors;*/
-
-
+		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &(signature->pipelineLayout)));
 
 		_rootSignatures.push_back(signature);
 		return signature;
@@ -387,7 +312,7 @@ namespace RN
 		//TODO: Maybe solve nicer...
 		for(const VulkanPipelineState *state : collection->states)
 		{
-			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat/* && rootSignature->signature == state->rootSignature->signature*/)
+			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
 			{
 				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
 				{
@@ -504,7 +429,7 @@ namespace RN
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineCreateInfo.pNext = NULL;
-//		pipelineCreateInfo.layout = pipelineLayout;
+		pipelineCreateInfo.layout = rootSignature->pipelineLayout;
 		pipelineCreateInfo.renderPass = descriptor.renderPass;
 		pipelineCreateInfo.flags = 0;
 		pipelineCreateInfo.pVertexInputState = &vertexInputState;
@@ -587,20 +512,20 @@ namespace RN
 
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		VulkanGPUBuffer *vertexBuffer = nullptr;
-		VulkanGPUBuffer *fragmentBuffer = nullptr;
-/*		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		VulkanConstantBuffer *vertexBuffer = nullptr;
+		VulkanConstantBuffer *fragmentBuffer = nullptr;
+		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = new VulkanGPUBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
+			vertexBuffer = new VulkanConstantBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = new VulkanGPUBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
-		}*/
+			fragmentBuffer = new VulkanConstantBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
+		}
 
 		VulkanUniformState *state = new VulkanUniformState();
-		state->vertexUniformBuffer = vertexBuffer;
-		state->fragmentUniformBuffer = fragmentBuffer;
+		state->vertexConstantBuffer = vertexBuffer;
+		state->fragmentConstantBuffer = fragmentBuffer;
 
 		return state;
 	}
@@ -704,154 +629,7 @@ namespace RN
 
 
 
-	/*	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
-		{
-			for(VulkanPipelineState *state : collection->states)
-			{
-				if(state->textureCount == material->GetTextures()->GetCount())
-					return state;
-			}
-
-			VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-
-			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
-			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-			inputAssemblyState.flags = 0;
-			inputAssemblyState.primitiveRestartEnable = VK_FALSE;
-
-			VkPipelineRasterizationStateCreateInfo rasterizationState = {};
-			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-			rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-			rasterizationState.lineWidth = 1.0f;
-			rasterizationState.flags = 0;
-			rasterizationState.depthClampEnable = VK_TRUE;
-
-			VkPipelineColorBlendAttachmentState blendAttachmentState = {};
-			blendAttachmentState.colorWriteMask = 0xf;
-			blendAttachmentState.blendEnable = VK_FALSE;
-
-			VkPipelineColorBlendStateCreateInfo colorBlendState = {};
-			colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-			colorBlendState.pNext = NULL;
-			colorBlendState.attachmentCount = 1;
-			colorBlendState.pAttachments = &blendAttachmentState;
-
-			VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
-			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-			depthStencilState.depthTestEnable = VK_TRUE;
-			depthStencilState.depthWriteEnable = VK_TRUE;
-			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
-			depthStencilState.front = depthStencilState.back;
-
-			VkPipelineViewportStateCreateInfo viewportState = {};
-			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-			viewportState.viewportCount = 1;
-			viewportState.scissorCount = 1;
-			viewportState.flags = 0;
-
-			VkPipelineMultisampleStateCreateInfo multisampleState = {};
-			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-			std::vector<VkDynamicState> dynamicStateEnables = {
-				VK_DYNAMIC_STATE_VIEWPORT,
-				VK_DYNAMIC_STATE_SCISSOR
-			};
-
-			VkPipelineDynamicStateCreateInfo dynamicState = {};
-			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-			dynamicState.pDynamicStates = dynamicStateEnables.data();
-			dynamicState.dynamicStateCount = dynamicStateEnables.size();
-
-			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
-			shaderStages[0] = collection->vertexShader->_shaderStage;
-			shaderStages[1] = collection->fragmentShader->_shaderStage;
-
-
-			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-			setUniformLayoutBinding.binding = 0;
-			setUniformLayoutBinding.descriptorCount = 1;
-
-			std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
-
-			size_t textureCount = material->GetTextures()->GetCount();
-			for(size_t i = 0; i < textureCount; i++)
-			{
-				VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-				setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-				setImageLayoutBinding.binding = i + 1;
-				setImageLayoutBinding.descriptorCount = 1;
-
-				setLayoutBindings.push_back(setImageLayoutBinding);
-			}
-
-			VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
-			descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			descriptorSetLayoutCreateInfo.pNext = NULL;
-			descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
-			descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
-
-			VkDescriptorSetLayout descriptorSetLayout;
-			RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, _renderer->GetAllocatorCallback(), &descriptorSetLayout));
-
-			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			pipelineLayoutCreateInfo.pNext = NULL;
-			pipelineLayoutCreateInfo.setLayoutCount = 1;
-			pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-
-			VkPipelineLayout pipelineLayout;
-			RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, _renderer->GetAllocatorCallback(), &pipelineLayout));
-
-			VulkanFramebuffer *framebuffer = nullptr;
-			if(camera)
-				camera->GetFramebuffer()->Downcast<VulkanFramebuffer>();
-			if(!framebuffer)
-				framebuffer = Renderer::GetActiveRenderer()->GetMainWindow()->Downcast<VulkanWindow>()->GetFramebuffer();
-
-
-
-
-			VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
-			pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-			pipelineCreateInfo.pNext = NULL;
-			pipelineCreateInfo.layout = pipelineLayout;
-			pipelineCreateInfo.renderPass = framebuffer->GetRenderPass();
-			pipelineCreateInfo.flags = 0;
-			pipelineCreateInfo.pVertexInputState = &inputState;
-			pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
-			pipelineCreateInfo.pRasterizationState = &rasterizationState;
-			pipelineCreateInfo.pColorBlendState = &colorBlendState;
-			pipelineCreateInfo.pMultisampleState = &multisampleState;
-			pipelineCreateInfo.pViewportState = &viewportState;
-			pipelineCreateInfo.pDepthStencilState = &depthStencilState;
-			pipelineCreateInfo.pDynamicState = &dynamicState;
-			pipelineCreateInfo.stageCount = shaderStages.size();
-			pipelineCreateInfo.pStages = shaderStages.data();
-
-			VkPipeline pipeline;
-			//TODO: Use pipeline cache for creating related pipelines! (second parameter)
-			RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, _renderer->GetAllocatorCallback(), &pipeline));
-
-			// Create the rendering state
-			VulkanPipelineState *state = new VulkanPipelineState();
-			state->state = pipeline;
-			state->descriptorSetLayout = descriptorSetLayout;
-			state->pipelineLayout = pipelineLayout;
-			state->textureCount = material->GetTextures()->GetCount();
-
-			collection->states.push_back(state);
-
-			return state;
-		}
-
+	/*
 		VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState, Material *material)
 		{
 			VkDevice device = _renderer->GetVulkanDevice()->GetDevice();

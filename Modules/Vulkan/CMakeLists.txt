@@ -39,7 +39,8 @@ set(SOURCES
         Sources/RNVulkanInternals.cpp
         Sources/RNVulkanShader.cpp
         Sources/RNVulkanShaderLibrary.cpp
-        Sources/RNVulkanStateCoordinator.cpp)
+        Sources/RNVulkanStateCoordinator.cpp
+        Sources/RNVulkanConstantBuffer.cpp)
 
 set(HEADERS
         Sources/RNVulkan.h
@@ -57,7 +58,8 @@ set(HEADERS
         Sources/RNVulkanInternals.h
         Sources/RNVulkanShader.h
         Sources/RNVulkanShaderLibrary.h
-        Sources/RNVulkanStateCoordinator.h)
+        Sources/RNVulkanStateCoordinator.h
+        Sources/RNVulkanConstantBuffer.h)
 
 set(RESOURCES
         Resources)

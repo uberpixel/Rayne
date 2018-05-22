@@ -23,11 +23,13 @@ namespace RN
 	class VulkanCommandBuffer;
 	class VulkanCommandBufferWithCallback;
 	class VulkanFramebuffer;
+	class VulkanStateCoordinator;
 
 	class VulkanRenderer : public Renderer
 	{
 	public:
 		friend VulkanFramebuffer;
+		friend VulkanStateCoordinator;
 
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();
@@ -79,8 +81,8 @@ namespace RN
 
 	private:
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
-		void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
-		//void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
+		//void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
+		void FillUniformBuffer(uint8 *buffer, VulkanDrawable *drawable, Shader *shader, size_t &offset);
 
 //		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 

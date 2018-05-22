@@ -55,6 +55,7 @@ namespace RN
 
 		VkFormat _format;
 		VkImage _image;
+		VkImageView _imageView;
 		VkDeviceMemory _memory;
 		VkMemoryRequirements _requirements;
 		VkImageLayout _currentLayout;
