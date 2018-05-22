@@ -1173,9 +1173,12 @@ namespace RN
 			writeDescriptorSets.push_back(writeConstantDescriptorSet);
 		}
 
+		binding += pipelineState->rootSignature->samplers->GetCount();
+
 		std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
+		imageBufferDescriptorInfoArray.reserve(material->GetTextures()->GetCount());
 		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-			VkDescriptorImageInfo imageBufferDescriptorInfo;
+			VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 			imageBufferDescriptorInfo.imageView = texture->_imageView;
 			imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
@@ -1184,15 +1187,14 @@ namespace RN
 			writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writeImageDescriptorSet.pNext = NULL;
 			writeImageDescriptorSet.dstSet = descriptorSet;
-			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 			writeImageDescriptorSet.dstBinding = binding++;
 			writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[index];
 			writeImageDescriptorSet.descriptorCount = 1;
 
 			writeDescriptorSets.push_back(writeImageDescriptorSet);
 
-			//TODO: Support more than 1 texture
-			stop = true;
+			if(index >= pipelineState->rootSignature->textureCount - 1) stop = true;
 		});
 
 		vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);

@@ -264,7 +264,7 @@ namespace RN
 			commandBuffer->End();
 			_renderer->SubmitCommandBuffer(commandBuffer);
 		}
-		else if(descriptor.format == Format::Depth24Stencil8)
+		else if(descriptor.format == Format::Depth24Stencil8) //TODO:Adapt to all depth and stencil format
 		{
 			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 			commandBuffer->Begin();
@@ -306,8 +306,8 @@ namespace RN
 	{
 		VulkanDevice *device = _renderer->GetVulkanDevice();
 
-//		if(_imageView != VK_NULL_HANDLE)
-//			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
+		if(_imageView != VK_NULL_HANDLE)
+			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
 
 		if(_image != VK_NULL_HANDLE)
 			vk::DestroyImage(device->GetDevice(), _image, _renderer->GetAllocatorCallback());

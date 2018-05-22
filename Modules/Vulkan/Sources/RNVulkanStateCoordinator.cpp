@@ -141,7 +141,7 @@ namespace RN
 			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
 			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-			setUniformLayoutBinding.binding = setLayoutBindings.size();
+			setUniformLayoutBinding.binding = i;
 			setUniformLayoutBinding.descriptorCount = 1;
 			setLayoutBindings.push_back(setUniformLayoutBinding);
 		}
@@ -219,9 +219,9 @@ namespace RN
 				samplerInfo.mipLodBias = 0.0f;
 				samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 				samplerInfo.minLod = 0.0f;
-				samplerInfo.maxLod = 20;//std::numeric_limits<float>::max();
-				samplerInfo.maxAnisotropy = 1;//sampler->GetAnisotropy();
-				samplerInfo.anisotropyEnable = 0;//(sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
+				samplerInfo.maxLod = std::numeric_limits<float>::max();
+				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();
+				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
 				samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 				samplerInfo.unnormalizedCoordinates = VK_FALSE;
 

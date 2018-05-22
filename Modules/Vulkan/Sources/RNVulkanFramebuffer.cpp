@@ -17,79 +17,87 @@ namespace RN
 
 	static VulkanFramebuffer::VulkanTargetView *VulkanTargetViewFromTargetView(const Framebuffer::TargetView &targetView)
 	{
-		VulkanFramebuffer::VulkanTargetView *colorTargetView = new VulkanFramebuffer::VulkanTargetView();
-		colorTargetView->targetView = targetView;
-		colorTargetView->targetView.texture->Retain();
+		VulkanFramebuffer::VulkanTargetView *vulkanTargetView = new VulkanFramebuffer::VulkanTargetView();
+		vulkanTargetView->targetView = targetView;
+		vulkanTargetView->targetView.texture->Retain();
 
-		colorTargetView->vulkanTargetViewDescriptor = {};
-		colorTargetView->vulkanTargetViewDescriptor.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		colorTargetView->vulkanTargetViewDescriptor.pNext = NULL;
-		colorTargetView->vulkanTargetViewDescriptor.format = VulkanTexture::VulkanImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
-		colorTargetView->vulkanTargetViewDescriptor.components = {
+		vulkanTargetView->vulkanTargetViewDescriptor = {};
+		vulkanTargetView->vulkanTargetViewDescriptor.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		vulkanTargetView->vulkanTargetViewDescriptor.pNext = NULL;
+		vulkanTargetView->vulkanTargetViewDescriptor.format = VulkanTexture::VulkanImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
+		vulkanTargetView->vulkanTargetViewDescriptor.components = {
 			VK_COMPONENT_SWIZZLE_R,
 			VK_COMPONENT_SWIZZLE_G,
 			VK_COMPONENT_SWIZZLE_B,
 			VK_COMPONENT_SWIZZLE_A
 		};
-		colorTargetView->vulkanTargetViewDescriptor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		colorTargetView->vulkanTargetViewDescriptor.flags = 0;
-		colorTargetView->vulkanTargetViewDescriptor.image = targetView.texture->Downcast<VulkanTexture>()->GetVulkanImage();
-		colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseMipLevel = targetView.mipmap;
+
+		if(targetView.texture->GetDescriptor().format == Texture::Format::Depth24Stencil8)
+		{
+			vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		else
+		{
+			vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+		vulkanTargetView->vulkanTargetViewDescriptor.flags = 0;
+		vulkanTargetView->vulkanTargetViewDescriptor.image = targetView.texture->Downcast<VulkanTexture>()->GetVulkanImage();
+		vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseMipLevel = targetView.mipmap;
 
 		//TODO: Support multisampled array render targets and plane slices
 		switch(targetView.texture->GetDescriptor().type)
 		{
 			case Texture::Type::Type1D:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = 0;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_1D;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = 0;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_1D;
 				break;
 			}
 
 			case Texture::Type::Type1DArray:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 				break;
 			}
 
 			case Texture::Type::Type2D:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				break;
 			}
 
 			case Texture::Type::Type2DMS:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				break;
 			}
 
 			case Texture::Type::Type2DArray:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 				break;
 			}
 
 			case Texture::Type::Type3D:
 			{
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				colorTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
-				colorTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_3D;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
+				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = targetView.length;
+				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_3D;
 				break;
 			}
 
@@ -97,7 +105,7 @@ namespace RN
 				RN_ASSERT(false, "Unsupported render target type ");
 		}
 
-		return colorTargetView;
+		return vulkanTargetView;
 	}
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
@@ -249,6 +257,8 @@ namespace RN
 			RNVulkanValidate(vk::CreateImageView(device, &_depthStencilTarget->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
 			attachments.push_back(imageView);
 		}
+
+		//TODO: Remove image views!
 
 		//TODO: Create framebuffer per framebuffer and not per camera
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
