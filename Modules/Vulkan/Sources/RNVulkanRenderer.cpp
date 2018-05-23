@@ -136,34 +136,64 @@ namespace RN
 		return _mainWindow;
 	}
 
-	void VulkanRenderer::Render(Function &&function)
+	void VulkanRenderer::UpdateFrameFences()
 	{
-		_currentDrawableIndex = 0;
-		_internals->renderPasses.clear();
-		_internals->totalDrawableCount = 0;
-		_internals->currentRenderPassIndex = 0;
-		_internals->currentDrawableResourceIndex = 0;
-		_internals->totalDescriptorTables = 0;
-		_internals->swapChains.clear();
-/*		_currentRootSignature = nullptr;
-		_currentSrvCbvIndex = 0;
-
-		_completedFenceValue = _fence->GetCompletedValue();*/
-
-		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
-/*		for(int i = _executedCommandLists->GetCount() - 1; i >= 0; i--)
+		//Check fence status
+		int index = 0;
+		int freeFenceIndex = -1;
+		for(VkFence fence : _frameFences)
 		{
-			if(_executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i)->_fenceValue <= _completedFenceValue)
+			if(_frameFenceValues[index] != -1)
 			{
-				D3D12CommandList *commandList = _executedCommandLists->GetObjectAtIndex<D3D12CommandList>(i);
-				commandList->Finish();
-				_commandListPool->AddObject(commandList);
-				_executedCommandLists->RemoveObjectAtIndex(i);
+				VkResult status = vk::GetFenceStatus(GetVulkanDevice()->GetDevice(), fence);
+				if(status == VK_SUCCESS)
+				{
+					ReleaseFrameResources(_frameFenceValues[index]);
+					vk::ResetFences(GetVulkanDevice()->GetDevice(), 1, &fence);
+
+					_frameFenceValues[index] = -1;
+					freeFenceIndex = index;
+				}
+			}
+			else
+			{
+				freeFenceIndex = index;
+			}
+
+			index += 1;
+		}
+
+		if(freeFenceIndex == -1)
+		{
+			VkFenceCreateInfo fenceInfo = {};
+			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+			VkFence frameFence;
+			RNVulkanValidate(vk::CreateFence(GetVulkanDevice()->GetDevice(), &fenceInfo, GetAllocatorCallback(), &frameFence));
+			_frameFences.push_back(frameFence);
+			_frameFenceValues.push_back(0);
+
+			freeFenceIndex = _frameFences.size() - 1;
+		}
+
+		_frameFenceValues[freeFenceIndex] = _currentFrame;
+		_currentFrameFenceIndex = freeFenceIndex;
+	}
+
+	void VulkanRenderer::ReleaseFrameResources(uint32 frame)
+	{
+		//Delete command lists that finished execution on the graphics card (the command allocator needs to be alive the whole time)
+		for(int i = _executedCommandBuffers->GetCount() - 1; i >= 0; i--)
+		{
+			VulkanCommandBuffer *commandBuffer = _executedCommandBuffers->GetObjectAtIndex<VulkanCommandBuffer>(i);
+			if(commandBuffer->_frameValue <= frame)
+			{
+				_executedCommandBuffers->RemoveObjectAtIndex(i);
 			}
 		}
 
 		//Add descriptor heaps that aren't in use by the GPU anymore back to the pool
-		for(int i = _boundDescriptorHeaps->GetCount() - 1; i >= 0; i--)
+/*		for(int i = _boundDescriptorHeaps->GetCount() - 1; i >= 0; i--)
 		{
 			if(_boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i)->_fenceValue <= _completedFenceValue)
 			{
@@ -183,6 +213,20 @@ namespace RN
 				_internals->frameResources.erase(_internals->frameResources.begin() + i);
 			}
 		}*/
+	}
+
+	void VulkanRenderer::Render(Function &&function)
+	{
+		_currentDrawableIndex = 0;
+		_internals->renderPasses.clear();
+		_internals->totalDrawableCount = 0;
+		_internals->currentRenderPassIndex = 0;
+		_internals->currentDrawableResourceIndex = 0;
+		_internals->totalDescriptorTables = 0;
+		_internals->swapChains.clear();
+//		_currentRootSignature = nullptr;
+
+		UpdateFrameFences();
 
 		CreateMipMaps();
 
@@ -193,9 +237,6 @@ namespace RN
 		{
 			swapChain->AcquireBackBuffer();
 		}
-
-		//PolpulateDescriptorHeap();
-		//SubmitDescriptorHeap(_currentSrvCbvHeap);
 
 		if(_internals->swapChains.size() > 0)
 		{
@@ -215,7 +256,7 @@ namespace RN
 			{
 				if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
 				{
-//					RenderAPIRenderPass(_currentCommandBuffer, renderPass);
+					RenderAPIRenderPass(_currentCommandBuffer, renderPass);
 					_internals->currentRenderPassIndex += 1;
 					continue;
 				}
@@ -253,23 +294,7 @@ namespace RN
 			}
 		}
 
-		// Execute all command lists
-/*		std::vector<ID3D12CommandList*> commandLists;
-		_lock.Lock();
-		_submittedCommandLists->Enumerate<D3D12CommandList>([&](D3D12CommandList *list, size_t index, bool &stop) {
-			commandLists.push_back(list->GetCommandList());
-			list->_fenceValue = _scheduledFenceValue;
-		});
-		_executedCommandLists->AddObjectsFromArray(_submittedCommandLists);
-		_submittedCommandLists->RemoveAllObjects();
-		_lock.Unlock();
-		if(commandLists.size() > 0)
-			_commandQueue->ExecuteCommandLists(commandLists.size(), &commandLists[0]);
-
-		_commandQueue->Signal(_fence, _scheduledFenceValue++);*/
-
-
-
+		//Prepare command buffer submission
 		std::vector<VkSemaphore> presentSemaphores;
 		std::vector<VkSemaphore> renderSemaphores;
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
@@ -292,12 +317,14 @@ namespace RN
 
 		buffers.reserve(_submittedCommandBuffers->GetCount());
 		_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
+			buffer->_frameValue = _currentFrame;
 			buffers.push_back(buffer->_commandBuffer);
 			_executedCommandBuffers->AddObject(buffer);
 		});
 		_submittedCommandBuffers->RemoveAllObjects();
 		_lock.Unlock();
 
+		//Submit command buffers
 		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -309,17 +336,12 @@ namespace RN
 		submitInfo.pSignalSemaphores = renderSemaphores.data();
 		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
 
-		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, _frameFences[_currentFrameFenceIndex]));
 
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
 			swapChain->PresentBackBuffer(_workQueue);
 		}
-
-		RNVulkanValidate(vk::QueueWaitIdle(_workQueue));
-		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
-
-		_executedCommandBuffers->RemoveAllObjects();
 
 		_currentFrame ++;
 	}
@@ -526,121 +548,6 @@ namespace RN
 													SubmitRenderPass(nextPass, renderPass);
 												});
 	}
-
-/*	void VulkanRenderer::RenderIntoCamera(Camera *camera, Function &&function)
-	{
-		_internals->renderPass.drawableHead = nullptr;
-
-		_internals->renderPass.viewMatrix = camera->GetViewMatrix();
-		_internals->renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
-
-		_internals->renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		_internals->renderPass.projectionMatrix.m[5] *= -1.0f;
-		_internals->renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
-
-		_internals->renderPass.projectionViewMatrix = _internals->renderPass.projectionMatrix * _internals->renderPass.viewMatrix;
-
-		// Submit drawables
-		function();
-
-		VulkanFramebuffer *framebuffer = static_cast<VulkanFramebuffer *>(camera->GetFramebuffer());
-		Vector2 size = _mainWindow->GetSize();
-
-		//Happens to be 0 when the window is closed.
-		if(size.x < 0.01f || size.y < 0.01f)
-		{
-			size.x = 1.0f;
-			size.y = 1.0f;
-		}
-
-		if(!framebuffer)
-			framebuffer = _mainWindow->GetFramebuffer();
-
-		VulkanBackBuffer *backbuffer = _mainWindow->GetActiveBackbuffer();
-		uint32_t framebufferIndex = backbuffer->GetImageIndex();
-
-		VulkanCommandBuffer *bufferObject = GetCommandBuffer();
-		bufferObject->Begin();
-		VkCommandBuffer commandBuffer = bufferObject->GetCommandBuffer();
-
-		VkImageMemoryBarrier postPresentBarrier = {};
-		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		postPresentBarrier.pNext = NULL;
-		postPresentBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		postPresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-		postPresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture(framebufferIndex))->GetImage();
-
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
-
-
-
-
-
-		// Update dynamic viewport state
-		VkViewport viewport = {};
-		viewport.width = size.x;
-		viewport.height = size.y;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		vk::CmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		// Update dynamic scissor state
-		VkRect2D scissor = {};
-		scissor.extent.width = static_cast<uint32_t>(size.x);
-		scissor.extent.height = static_cast<uint32_t>(size.y);
-		scissor.offset.x = 0;
-		scissor.offset.y = 0;
-
-		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		VulkanDrawable *drawable = _internals->renderPass.drawableHead;
-		while(drawable)
-		{
-			RenderDrawable(commandBuffer, drawable);
-			drawable = drawable->_next;
-		}
-
-		vk::CmdEndRenderPass(commandBuffer);
-
-		// Add a present memory barrier to the end of the command buffer
-		// This will transform the frame buffer color attachment to a
-		// new layout for presenting it to the windowing system integration
-		VkImageMemoryBarrier prePresentBarrier = {};
-		prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		prePresentBarrier.pNext = NULL;
-		prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-		prePresentBarrier.image = static_cast<VulkanTexture *>(framebuffer->GetColorTexture(framebufferIndex))->GetImage();
-
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
-		bufferObject->End();
-
-		VkSemaphore presentSemaphore = backbuffer->GetPresentSemaphore();
-		VkSemaphore renderSemaphore = backbuffer->GetRenderSemaphore();
-		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &presentSemaphore;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &renderSemaphore;
-		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
-
-		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
-	}*/
 
 	bool VulkanRenderer::SupportsTextureFormat(const String *format) const
 	{
@@ -1106,18 +1013,21 @@ namespace RN
 
 			RN_ASSERT(pipelineState && uniformState, "Failed to create pipeline or uniform state for drawable!");
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
+
+			//TODO: Release old descriptorset data
+		//	drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet
+
+			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			descriptorSetAllocateInfo.pNext = NULL;
+			descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
+			descriptorSetAllocateInfo.pSetLayouts = &pipelineState->rootSignature->descriptorSetLayout;
+			descriptorSetAllocateInfo.descriptorSetCount = 1;
+
+			RNVulkanValidate(vk::AllocateDescriptorSets(GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet));
 		}
 
 		const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
-
-		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
-		descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		descriptorSetAllocateInfo.pNext = NULL;
-		descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
-		descriptorSetAllocateInfo.pSetLayouts = &pipelineState->rootSignature->descriptorSetLayout;
-		descriptorSetAllocateInfo.descriptorSetCount = 1;
-
-		RNVulkanValidate(vk::AllocateDescriptorSets(GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet));
 		VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet;
 
 		VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
@@ -1227,5 +1137,198 @@ namespace RN
 		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
 
 		_currentDrawableIndex += 1;
+	}
+
+	void VulkanRenderer::RenderAPIRenderPass(VulkanCommandBuffer *commandList, const VulkanRenderPass &renderPass)
+	{
+		//TODO: Handle multiple and not existing textures
+/*		Texture *sourceColorTexture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+		VulkanTexture *sourceD3DColorTexture = nullptr;
+		D3D12_RESOURCE_STATES oldColorSourceState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		if(sourceColorTexture)
+		{
+			sourceD3DColorTexture = sourceColorTexture->Downcast<D3D12Texture>();
+			oldColorSourceState = sourceD3DColorTexture->_currentState;
+		}
+
+		Texture *sourceDepthTexture = renderPass.previousRenderPass->GetFramebuffer()->GetDepthStencilTexture();
+		D3D12Texture *sourceD3DDepthTexture = nullptr;
+		D3D12_RESOURCE_STATES oldDepthSourceState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		if (sourceColorTexture)
+		{
+			sourceD3DDepthTexture = sourceDepthTexture->Downcast<D3D12Texture>();
+			oldDepthSourceState = sourceD3DDepthTexture->_currentState;
+		}
+
+		D3D12Framebuffer *destinationFramebuffer = renderPass.renderPass->GetFramebuffer()->Downcast<RN::D3D12Framebuffer>();
+
+		Texture *destinationColorTexture = destinationFramebuffer->GetColorTexture(0);
+		D3D12Texture *destinationD3DColorTexture = nullptr;
+		ID3D12Resource *destinationColorResource = nullptr;
+		D3D12_RESOURCE_STATES oldColorDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		DXGI_FORMAT targetColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		if(destinationColorTexture)
+		{
+			destinationD3DColorTexture = destinationColorTexture->Downcast<D3D12Texture>();
+			targetColorFormat = destinationD3DColorTexture->_srvDescriptor.Format;
+			oldColorDestinationState = destinationD3DColorTexture->_currentState;
+			destinationColorResource = destinationD3DColorTexture->_resource;
+		}
+		else
+		{
+			targetColorFormat = destinationFramebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
+			destinationColorResource = destinationFramebuffer->GetSwapChainColorBuffer();
+		}
+
+
+		Texture *destinationDepthTexture = destinationFramebuffer->GetDepthStencilTexture();
+		D3D12Texture *destinationD3DDepthTexture = nullptr;
+		ID3D12Resource *destinationDepthResource = nullptr;
+		D3D12_RESOURCE_STATES oldDepthDestinationState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		DXGI_FORMAT targetDepthFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		if(destinationDepthTexture)
+		{
+			destinationD3DDepthTexture = destinationDepthTexture->Downcast<D3D12Texture>();
+			targetDepthFormat = destinationD3DDepthTexture->_srvDescriptor.Format;
+			oldDepthDestinationState = destinationD3DDepthTexture->_currentState;
+			destinationDepthResource = destinationD3DDepthTexture->_resource;
+		}
+		else if(destinationFramebuffer->GetSwapChain() && destinationFramebuffer->GetSwapChain()->HasDepthBuffer())
+		{
+			targetDepthFormat = destinationFramebuffer->_depthStencilTarget->d3dTargetViewDesc.Format;
+			destinationDepthResource = destinationFramebuffer->GetSwapChainDepthBuffer();
+		}
+
+		switch(targetDepthFormat)
+		{
+			case DXGI_FORMAT_D24_UNORM_S8_UINT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			}
+			case DXGI_FORMAT_D32_FLOAT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R32_FLOAT;
+				break;
+			}
+			case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+			{
+				targetDepthFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+				break;
+			}
+		}
+
+		if(renderPass.type == D3D12RenderPass::Type::ResolveMSAA)
+		{
+			sourceD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+
+			if(destinationColorTexture)
+			{
+				destinationD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+			}
+
+			//TODO: Handle multiple subresources?
+			commandList->GetCommandList()->ResolveSubresource(destinationColorResource, 0, sourceD3DColorTexture->_resource, 0, targetColorFormat);
+
+			sourceD3DColorTexture->TransitionToState(commandList, oldColorSourceState);
+			if(destinationD3DColorTexture)
+			{
+				destinationD3DColorTexture->TransitionToState(commandList, oldColorDestinationState);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+
+			if(sourceD3DDepthTexture && destinationDepthResource)
+			{
+				sourceD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+
+				if(destinationDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+				}
+
+				//TODO: Handle multiple subresources?
+				commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, 0, sourceD3DDepthTexture->_resource, 0, targetDepthFormat);
+
+				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
+				if(destinationD3DDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, oldDepthDestinationState);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
+				}
+			}
+		}
+		else if(renderPass.type == D3D12RenderPass::Type::Blit)
+		{
+			sourceD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+			if(destinationColorTexture)
+			{
+				destinationD3DColorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
+			}
+
+			//TODO: Handle multiple subresources and 3D/Arrays?
+			CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationColorResource, 0);
+			CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DColorTexture->_resource, 0);
+			Rect frame = renderPass.renderPass->GetFrame();
+			commandList->GetCommandList()->CopyTextureRegion(&destinationLocation, frame.x, frame.y, 0, &sourceLocation, nullptr);
+
+			sourceD3DColorTexture->TransitionToState(commandList, oldColorSourceState);
+			if(destinationD3DColorTexture)
+			{
+				destinationD3DColorTexture->TransitionToState(commandList, oldColorDestinationState);
+			}
+			else
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationColorResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
+
+			if(sourceD3DDepthTexture && destinationDepthResource)
+			{
+				sourceD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+				if(destinationDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+				}
+
+				//TODO: Handle multiple subresources and 3D/Arrays?
+				CD3DX12_TEXTURE_COPY_LOCATION destinationLocation(destinationDepthResource, 0);
+				CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(sourceD3DDepthTexture->_resource, 0);
+				Rect frame = renderPass.renderPass->GetFrame();
+				commandList->GetCommandList()->CopyTextureRegion(&destinationLocation, frame.x, frame.y, 0, &sourceLocation, nullptr);
+
+				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
+				if (destinationD3DDepthTexture)
+				{
+					destinationD3DDepthTexture->TransitionToState(commandList, oldDepthDestinationState);
+				}
+				else
+				{
+					commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(destinationDepthResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+				}
+			}
+		}*/
 	}
 }

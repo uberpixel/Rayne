@@ -81,17 +81,18 @@ namespace RN
 
 	private:
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
-		//void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
 		void FillUniformBuffer(uint8 *buffer, VulkanDrawable *drawable, Shader *shader, size_t &offset);
 
-//		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
+		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
-//		void PolpulateDescriptorHeap();
 		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
 		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
+
+		void UpdateFrameFences();
+		void ReleaseFrameResources(uint32 frame);
 
 		Window *_mainWindow;
 		ShaderLibrary *_defaultShaderLibrary;
@@ -108,7 +109,10 @@ namespace RN
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;
 		Array *_executedCommandBuffers;
-		Array *_commandListPool;
+
+		std::vector<VkFence> _frameFences;
+		std::vector<uint32> _frameFenceValues;
+		uint32 _currentFrameFenceIndex;
 
 		size_t _currentDrawableIndex;
 		size_t _currentFrame;

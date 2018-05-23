@@ -67,7 +67,7 @@ namespace RN
 		Array *samplerArray = new Array(vertexSamplers);
 		samplerArray->Autorelease();
 
-		bool wantsDirectionalShadowTexture = false;//vertexShader->_wantsDirectionalShadowTexture;
+		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
 
 		//TODO: Support multiple constant buffers per function signature
 		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
@@ -80,7 +80,7 @@ namespace RN
 			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
 			samplerArray->AddObjectsFromArray(fragmentSamplers);
 
-			//wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
+			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
 
 			//TODO: Support multiple constant buffers per function signature
 			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;

@@ -32,7 +32,7 @@ namespace RN
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({ nullptr, nullptr, true });
+				_cameraSpecifics.push_back({ nullptr, nullptr, true, VK_NULL_HANDLE });
 			}
 		}
 
@@ -129,6 +129,7 @@ namespace RN
 		VkCommandBuffer _commandBuffer;
 		VkDevice _device;
 		VkCommandPool _pool;
+		uint32 _frameValue;
 
 		RNDeclareMetaAPI(VulkanCommandBuffer, VKAPI)
 	};

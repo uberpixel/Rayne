@@ -147,14 +147,14 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		const bool useVSync = true;
 
 		VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR; // FIFO is the only mode universally supported
-		for(auto m : modes)
+/*		for(auto m : modes)
 		{
 			if((useVSync && m == VK_PRESENT_MODE_MAILBOX_KHR) || (!useVSync && m == VK_PRESENT_MODE_IMMEDIATE_KHR))
 			{
 				mode = m;
 				break;
 			}
-		}
+		}*/
 
 		VkSwapchainCreateInfoKHR swapchainInfo = {};
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -246,9 +246,6 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		_semaphoreIndex %= _descriptor.bufferCount;
 		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentSemaphores[_semaphoreIndex], VK_NULL_HANDLE, &_frameIndex));
 
-/*		const UINT64 fenceValue = _fenceValues[_frameIndex];
-		_renderer->GetCommandQueue()->Signal(_fence, fenceValue);*/
-
 		//Update the swap chain and frame buffer size if the window size changed
 /*		if(_newSize.GetLength() > 0.001f)
 		{
@@ -272,17 +269,6 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 
 			_newSize = Vector2();
 		}*/
-
-/*		_frameIndex = _swapChain->GetCurrentBackBufferIndex();
-
-		UINT completedFenceValue = _fence->GetCompletedValue();
-		if(completedFenceValue < _fenceValues[_frameIndex])
-		{
-			_fence->SetEventOnCompletion(_fenceValues[_frameIndex], _fenceEvent);
-			WaitForSingleObjectEx(_fenceEvent, INFINITE, false);
-		}
-
-		_fenceValues[_frameIndex] = fenceValue + 1;*/
 	}
 
 	void VulkanSwapChain::Prepare(VkCommandBuffer commandBuffer)
