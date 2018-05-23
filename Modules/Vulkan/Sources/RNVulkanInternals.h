@@ -77,6 +77,7 @@ namespace RN
 		RenderPass *previousRenderPass;
 
 		VulkanFramebuffer *framebuffer;
+		VulkanFramebuffer *resolveFramebuffer;
 		Shader::UsageHint shaderHint;
 		Material *overrideMaterial;
 

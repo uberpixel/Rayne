@@ -23,6 +23,7 @@ namespace RN
 				return VK_IMAGE_TYPE_1D;
 
 			case Texture::Type::Type2D:
+			case Texture::Type::Type2DMS:
 			case Texture::Type::Type2DArray:
 				return VK_IMAGE_TYPE_2D;
 
@@ -97,6 +98,7 @@ namespace RN
 			case Texture::Type::Type1DArray:
 				return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 
+			case Texture::Type::Type2DMS:
 			case Texture::Type::Type2D:
 				return VK_IMAGE_VIEW_TYPE_2D;
 			case Texture::Type::Type2DArray:

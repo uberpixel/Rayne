@@ -44,7 +44,7 @@ namespace RN
 		VKAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
 	private:
-		void PrepareAsRendertargetForFrame();
+		void PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer);
 		void SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const;
 
 		VulkanRenderer *_renderer;

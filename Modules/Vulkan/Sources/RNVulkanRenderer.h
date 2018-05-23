@@ -86,7 +86,7 @@ namespace RN
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
 		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
-		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer);
+		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
@@ -116,6 +116,7 @@ namespace RN
 
 		size_t _currentDrawableIndex;
 		size_t _currentFrame;
+		size_t _completedFrame;
 
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};

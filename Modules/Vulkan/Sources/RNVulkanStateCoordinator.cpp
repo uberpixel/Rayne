@@ -273,15 +273,15 @@ namespace RN
 		return signature;
 	}
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
 		VulkanPipelineStateDescriptor pipelineDescriptor;
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
-		//pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
+		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
 		//pipelineDescriptor.sampleQuality = 0;//(framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
-		pipelineDescriptor.renderPass = framebuffer->_renderPass;
+		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer)->renderPass;
 		pipelineDescriptor.shaderHint = shaderHint;
 		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
@@ -319,7 +319,7 @@ namespace RN
 		{
 			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
 			{
-				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
+				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
 				{
 					return state;
 				}
@@ -393,8 +393,6 @@ namespace RN
 		colorBlendState.attachmentCount = 1;
 		colorBlendState.pAttachments = &blendAttachmentState;
 
-		//psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
-
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		if(descriptor.depthStencilFormat != VK_FORMAT_UNDEFINED)
@@ -419,7 +417,10 @@ namespace RN
 
 		VkPipelineMultisampleStateCreateInfo multisampleState = {};
 		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
+		multisampleState.sampleShadingEnable = descriptor.sampleCount > 1? VK_TRUE : VK_FALSE;
+		multisampleState.alphaToCoverageEnable = descriptor.useAlphaToCoverage? VK_TRUE : VK_FALSE;
+		//TODO: Maybe set minSampleShading?
 
 		std::vector<VkDynamicState> dynamicStateEnables = {
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -463,13 +464,8 @@ namespace RN
 
 
 
-
-		// Describe and create the graphics pipeline state object (PSO).
-/*		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-		psoDesc.pRootSignature = rootSignature->signature;
-
+/*
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		psoDesc.NumRenderTargets = descriptor.colorFormats.size();
 		int counter = 0;
 		for(DXGI_FORMAT format : descriptor.colorFormats)
@@ -477,9 +473,7 @@ namespace RN
 			psoDesc.RTVFormats[counter++] = format;
 			if(counter >= 8)
 				break;
-		}
-		psoDesc.SampleDesc.Count = descriptor.sampleCount;
-		psoDesc.SampleDesc.Quality = descriptor.sampleQuality;*/
+		}*/
 	}
 
 	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
@@ -513,8 +507,6 @@ namespace RN
 
 	VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState)
 	{
-		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
 		VulkanConstantBuffer *vertexBuffer = nullptr;
@@ -535,12 +527,23 @@ namespace RN
 		return state;
 	}
 
-	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer)
+	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer)
 	{
+		//TODO: Maybe handle swapchain case better...
+		RN_ASSERT(!resolveFramebuffer || framebuffer->_colorTargets.size() <= resolveFramebuffer->_colorTargets.size(), "Resolve framebuffer needs a target for each target in the framebuffer!");
+
 		VulkanRenderPassState renderPassState;
 		for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
 			renderPassState.imageFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
+		}
+
+		if(resolveFramebuffer)
+		{
+			for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
+			{
+				renderPassState.resolveFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
+			}
 		}
 
 		if(framebuffer->_depthStencilTarget)
@@ -555,69 +558,110 @@ namespace RN
 
 		VulkanRenderPassState *state = new VulkanRenderPassState;
 		state->imageFormats = renderPassState.imageFormats;
-
-		VkAttachmentDescription attachments[2];
-		uint32_t count = 0;
-
-		VkAttachmentReference colorReference = {};
-		colorReference.attachment = 0;
-		colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkAttachmentReference depthReference = {};
-		depthReference.attachment = 1;
-		depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		state->resolveFormats = renderPassState.resolveFormats;
 
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.flags = 0;
 		subpass.inputAttachmentCount = 0;
 		subpass.pInputAttachments = nullptr;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = nullptr;
 		subpass.pResolveAttachments = nullptr;
 		subpass.pDepthStencilAttachment = nullptr;
 		subpass.preserveAttachmentCount = 0;
 		subpass.pPreserveAttachments = nullptr;
 
-		if(framebuffer->_colorTargets.size() > 0)
+		std::vector<VkAttachmentDescription> attachments;
+		std::vector<VkAttachmentReference> colorAttachmentRefs;
+		std::vector<VkAttachmentReference> resolveAttachmentRefs;
+
+		uint32 counter = 0;
+		for(VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
-			attachments[count].format = framebuffer->_colorTargets[0]->vulkanTargetViewDescriptor.format;
-			attachments[count].flags = 0;
-			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachments[count].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachments[count].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachments[count].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			attachments[count].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			VkAttachmentReference colorReference = {};
+			colorReference.attachment = attachments.size();
+			colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			colorAttachmentRefs.push_back(colorReference);
 
-			subpass.pColorAttachments = &colorReference;
+			VkAttachmentDescription attachment = {};
+			attachment.format = targetView->vulkanTargetViewDescriptor.format;
+			attachment.flags = 0;
+			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachments.push_back(attachment);
 
-			count ++;
+			if(resolveFramebuffer)
+			{
+				VkAttachmentReference resolveReference = {};
+				resolveReference.attachment = attachments.size();
+				resolveReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				resolveAttachmentRefs.push_back(resolveReference);
+
+				VkAttachmentDescription attachment = {};
+				if(resolveFramebuffer->_swapChain)
+				{
+					attachment.format = resolveFramebuffer->_colorTargets[0]->vulkanTargetViewDescriptor.format;
+				}
+				else
+				{
+					attachment.format = resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor.format;
+				}
+				attachment.flags = 0;
+				attachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
+				attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				attachments.push_back(attachment);
+			}
+
+			counter += 1;
+
+			if(framebuffer->_swapChain || (resolveFramebuffer && resolveFramebuffer->_swapChain)) break;
+		}
+
+		subpass.colorAttachmentCount = colorAttachmentRefs.size();
+		subpass.pColorAttachments = colorAttachmentRefs.data();
+
+		if(resolveFramebuffer)
+		{
+			subpass.pResolveAttachments = resolveAttachmentRefs.data();
 		}
 
 		if(framebuffer->_depthStencilTarget)
 		{
-			attachments[count].format = framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format;
-			attachments[count].flags = 0;
-			attachments[count].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[count].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachments[count].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachments[count].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachments[count].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachments[count].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			attachments[count].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			VkAttachmentReference depthReference = {};
+			depthReference.attachment = attachments.size();
+			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentDescription attachment = {};
+			attachment.format = framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format;
+			attachment.flags = 0;
+			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			attachments.push_back(attachment);
 
 			subpass.pDepthStencilAttachment = &depthReference;
 
-			count ++;
+			//TODO: Figure out depth resolve!?
 		}
 
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.pNext = nullptr;
-		renderPassInfo.attachmentCount = count;
-		renderPassInfo.pAttachments = attachments;
+		renderPassInfo.attachmentCount = attachments.size();
+		renderPassInfo.pAttachments = attachments.data();
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 0;
@@ -631,73 +675,4 @@ namespace RN
 
 		return state;
 	}
-
-
-
-	/*
-		VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState, Material *material)
-		{
-			VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-
-			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
-			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			descriptorSetAllocateInfo.pNext = NULL;
-			descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
-			descriptorSetAllocateInfo.pSetLayouts = &pipelineState->descriptorSetLayout;
-			descriptorSetAllocateInfo.descriptorSetCount = 1;
-
-			VkDescriptorSet descriptorSet;
-			RNVulkanValidate(vk::AllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet));
-
-			VulkanGPUBuffer *gpuBuffer = _renderer->CreateBufferWithLength(sizeof(Matrix)*2 + sizeof(Color)*2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<VulkanGPUBuffer>();
-
-			VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
-			uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
-			uniformBufferDescriptorInfo.offset = 0;
-			uniformBufferDescriptorInfo.range = gpuBuffer->GetLength();
-
-			VkWriteDescriptorSet writeUniformDescriptorSet = {};
-			writeUniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeUniformDescriptorSet.pNext = NULL;
-			writeUniformDescriptorSet.dstSet = descriptorSet;
-			writeUniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			writeUniformDescriptorSet.dstBinding = 0;
-			writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
-			writeUniformDescriptorSet.descriptorCount = 1;
-
-			std::vector<VkDescriptorImageInfo*> imageBufferDescriptorInfoArray;
-			std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet };
-
-			material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-				VkDescriptorImageInfo *imageBufferDescriptorInfo = new VkDescriptorImageInfo;
-				imageBufferDescriptorInfo->sampler = texture->GetSampler();
-				imageBufferDescriptorInfo->imageView = texture->GetImageView();
-				imageBufferDescriptorInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-				imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
-
-				VkWriteDescriptorSet writeImageDescriptorSet = {};
-				writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				writeImageDescriptorSet.pNext = NULL;
-				writeImageDescriptorSet.dstSet = descriptorSet;
-				writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				writeImageDescriptorSet.dstBinding = index + 1;
-				writeImageDescriptorSet.pImageInfo = imageBufferDescriptorInfoArray[index];
-				writeImageDescriptorSet.descriptorCount = 1;
-
-				writeDescriptorSets.push_back(writeImageDescriptorSet);
-			});
-
-			vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
-
-			for(VkDescriptorImageInfo *imageBufferDescriptor : imageBufferDescriptorInfoArray)
-			{
-				delete imageBufferDescriptor;
-			}
-
-			VulkanUniformState *state = new VulkanUniformState();
-			state->descriptorSet = descriptorSet;
-			state->uniformBuffer = gpuBuffer;
-
-			return state;
-		}*/
 }

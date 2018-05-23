@@ -23,6 +23,7 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_currentFrame(0),
+		_completedFrame(0),
 		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array()),
 		_executedCommandBuffers(new Array())
@@ -64,9 +65,9 @@ namespace RN
 		_mipMapTextures->Release();
 	}
 
-	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer)
+	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer)
 	{
-		return _internals->stateCoordinator.GetRenderPassState(framebuffer)->renderPass;
+		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer)->renderPass;
 	}
 
 	void VulkanRenderer::CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -148,6 +149,7 @@ namespace RN
 				VkResult status = vk::GetFenceStatus(GetVulkanDevice()->GetDevice(), fence);
 				if(status == VK_SUCCESS)
 				{
+					_completedFrame = _frameFenceValues[index];
 					ReleaseFrameResources(_frameFenceValues[index]);
 					vk::ResetFences(GetVulkanDevice()->GetDevice(), 1, &fence);
 
@@ -343,13 +345,15 @@ namespace RN
 			swapChain->PresentBackBuffer(_workQueue);
 		}
 
+		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
+
 		_currentFrame ++;
 	}
 
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
-		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame
-		renderpass.framebuffer->PrepareAsRendertargetForFrame();
+		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer);
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -383,6 +387,8 @@ namespace RN
 		renderPass.type = VulkanRenderPass::Type::Default;
 		renderPass.renderPass = camera->GetRenderPass();
 		renderPass.previousRenderPass = nullptr;
+
+		renderPass.resolveFramebuffer = nullptr;
 
 		renderPass.shaderHint = camera->GetShaderHint();
 		renderPass.overrideMaterial = camera->GetMaterial();
@@ -424,6 +430,22 @@ namespace RN
 		_internals->currentRenderPassIndex = _internals->renderPasses.size();
 		_internals->renderPasses.push_back(renderPass);
 
+		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
+			PostProcessingAPIStage *apiStage = nextPass->Downcast<PostProcessingAPIStage>();
+			if(apiStage && apiStage->GetType() == PostProcessingAPIStage::Type::ResolveMSAA)
+			{
+				//MSAA framebuffer needs to be set before creating the drawables
+
+				Framebuffer *framebuffer = apiStage->GetFramebuffer();
+				VulkanSwapChain *newSwapChain = nullptr;
+				newSwapChain = framebuffer->Downcast<VulkanFramebuffer>()->GetSwapChain();
+				VulkanFramebuffer *vulkanFramebuffer = framebuffer->Downcast<VulkanFramebuffer>();
+
+				_internals->renderPasses[_internals->currentRenderPassIndex].resolveFramebuffer = vulkanFramebuffer;
+			}
+		});
+
 		// Create drawables
 		function();
 
@@ -432,7 +454,6 @@ namespace RN
 
 		if(numberOfDrawables > 0) _internals->currentDrawableResourceIndex += 1;
 
-		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
 			SubmitRenderPass(nextPass, renderPass.renderPass);
 		});
@@ -441,13 +462,16 @@ namespace RN
 	void VulkanRenderer::SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass)
 	{
 		VulkanRenderPass vulkanRenderPass;
-		vulkanRenderPass.drawables.resize(0);
+		vulkanRenderPass.drawables.clear();
 
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
 
 		vulkanRenderPass.renderPass = renderPass;
 		vulkanRenderPass.previousRenderPass = previousRenderPass;
+
+		vulkanRenderPass.framebuffer = nullptr;
+		vulkanRenderPass.resolveFramebuffer = nullptr;
 
 		vulkanRenderPass.shaderHint = Shader::UsageHint::Default;
 		vulkanRenderPass.overrideMaterial = ppStage ? ppStage->GetMaterial() : nullptr;
@@ -509,44 +533,50 @@ namespace RN
 			}
 		}
 
-		_internals->currentRenderPassIndex = _internals->renderPasses.size();
-		_internals->renderPasses.push_back(vulkanRenderPass);
-
-		if(ppStage || vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
+		if(vulkanRenderPass.type != VulkanRenderPass::Type::ResolveMSAA)
 		{
-			//Submit fullscreen quad drawable
-/*			if(!_defaultPostProcessingDrawable)
+			_internals->currentRenderPassIndex = _internals->renderPasses.size();
+			_internals->renderPasses.push_back(vulkanRenderPass);
+
+			if(ppStage || vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
 			{
-				Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
-				Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
+				//Submit fullscreen quad drawable
+				/*			if(!_defaultPostProcessingDrawable)
+							{
+								Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
+								Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
 
-				_lock.Lock();
-				_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
-				_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
-				_defaultPostProcessingDrawable->material = planeMaterial->Retain();
-				_lock.Unlock();
-			}*/
+								_lock.Lock();
+								_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
+								_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
+								_defaultPostProcessingDrawable->material = planeMaterial->Retain();
+								_lock.Unlock();
+							}*/
 
-			/*			Texture *sourceTexture = d3dRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
-						if(d3dRenderPass.type == D3D12RenderPass::Type::Convert)
-						{
-							_defaultPostProcessingDrawable->material->RemoveAllTextures();
-							_defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
-						}*/
-//			SubmitDrawable(_defaultPostProcessingDrawable);
+				/*			Texture *sourceTexture = d3dRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+							if(d3dRenderPass.type == D3D12RenderPass::Type::Convert)
+							{
+								_defaultPostProcessingDrawable->material->RemoveAllTextures();
+								_defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
+							}*/
+				//			SubmitDrawable(_defaultPostProcessingDrawable);
 
-/*			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
-			_internals->totalDrawableCount += numberOfDrawables;
+				/*			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+							_internals->totalDrawableCount += numberOfDrawables;
 
-			if(numberOfDrawables > 0)
-				_internals->currentDrawableResourceIndex += 1;*/
+							if(numberOfDrawables > 0)
+								_internals->currentDrawableResourceIndex += 1;*/
+			}
+		}
+		else
+		{
+			_internals->renderPasses[_internals->currentRenderPassIndex].resolveFramebuffer = vulkanRenderPass.framebuffer;
 		}
 
 		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
-		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop)
-												{
-													SubmitRenderPass(nextPass, renderPass);
-												});
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
+			SubmitRenderPass(nextPass, renderPass);
+		});
 	}
 
 	bool VulkanRenderer::SupportsTextureFormat(const String *format) const
@@ -1007,7 +1037,7 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
+			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			VulkanUniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 
@@ -1036,7 +1066,7 @@ namespace RN
 		size_t binding = 0;
 		if(uniformState->vertexConstantBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->vertexConstantBuffer->Advance(0, 0);
+			GPUBuffer *gpuBuffer = uniformState->vertexConstantBuffer->Advance(_currentFrame, _completedFrame);
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
 			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.vertexShader, offset);
@@ -1060,7 +1090,7 @@ namespace RN
 		}
 		if (uniformState->fragmentConstantBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->fragmentConstantBuffer->Advance(0, 0);
+			GPUBuffer *gpuBuffer = uniformState->fragmentConstantBuffer->Advance(_currentFrame, _completedFrame);
 			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
 			size_t offset = 0;
 			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.fragmentShader, offset);

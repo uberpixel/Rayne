@@ -226,9 +226,11 @@ namespace RN
 		return _sampleCount;
 	}
 
-	void VulkanFramebuffer::PrepareAsRendertargetForFrame()
+	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer)
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+
+		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer);
 
 		std::vector<VkImageView> attachments;
 		if(_colorTargets.size() > 0)
@@ -242,11 +244,29 @@ namespace RN
 			}
 			else
 			{
+				int counter = 0;
 				for(VulkanTargetView *targetView : _colorTargets)
 				{
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device, &targetView->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
 					attachments.push_back(imageView);
+
+					//TODO: Add some error handling for wrong target counts for msaa
+					if(resolveFramebuffer)
+					{
+						VkImageView imageView;
+						if(resolveFramebuffer->_swapChain)
+						{
+							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+						}
+						else
+						{
+							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+						}
+						attachments.push_back(imageView);
+					}
+
+					counter += 1;
 				}
 			}
 		}
@@ -260,13 +280,13 @@ namespace RN
 
 		//TODO: Remove image views!
 
-		//TODO: Create framebuffer per framebuffer and not per camera
+		//TODO: Create framebuffer per framebuffer and not per camera, but also still handle msaa resolve somehow
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.pNext = nullptr;
 		frameBufferCreateInfo.renderPass = _renderPass;
 		frameBufferCreateInfo.attachmentCount = attachments.size();
-		frameBufferCreateInfo.pAttachments = &attachments[0];
+		frameBufferCreateInfo.pAttachments = attachments.data();
 		frameBufferCreateInfo.width = static_cast<uint32>(_size.x);
 		frameBufferCreateInfo.height = static_cast<uint32>(_size.y);
 		frameBufferCreateInfo.layers = 1;
@@ -277,7 +297,7 @@ namespace RN
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const
 	{
 		VkClearValue clearValues[2];
-		clearValues[0].color = {1.0, 0.0, 0.0, 1.0};//clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+		clearValues[0].color = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
 		clearValues[1].depthStencil = {depth, stencil};
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -385,8 +405,6 @@ namespace RN
 
 			_depthStencilTarget = targetView;
 		}*/
-
-		_renderPass = _renderer->GetVulkanRenderPass(this);
 	}
 
 

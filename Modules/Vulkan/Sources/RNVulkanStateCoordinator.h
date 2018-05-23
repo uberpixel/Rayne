@@ -62,7 +62,7 @@ namespace RN
 	{
 		Shader::UsageHint shaderHint;
 
-		//uint8 sampleCount;
+		uint8 sampleCount;
 		//uint8 sampleQuality;
 		VkRenderPass renderPass;
 		VkFormat depthStencilFormat;
@@ -113,15 +113,22 @@ namespace RN
 	struct VulkanRenderPassState
 	{
 		std::vector<VkFormat> imageFormats;
+		std::vector<VkFormat> resolveFormats;
 		VkRenderPass renderPass;
 
 		RN_INLINE bool operator==(const VulkanRenderPassState &descriptor)
 		{
 			if(imageFormats.size() != descriptor.imageFormats.size()) return false;
+			if(resolveFormats.size() != descriptor.resolveFormats.size()) return false;
 
 			for(int i = 0; i < imageFormats.size(); i++)
 			{
 				if(imageFormats[i] != descriptor.imageFormats[i]) return false;
+			}
+
+			for(int i = 0; i < resolveFormats.size(); i++)
+			{
+				if(resolveFormats[i] != descriptor.resolveFormats[i]) return false;
 			}
 
 			return true;
@@ -135,9 +142,9 @@ namespace RN
 		~VulkanStateCoordinator();
 
 		const VulkanRootSignature *GetRootSignature(const VulkanPipelineStateDescriptor &pipelineDescriptor);
-		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
+		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 		VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState);
-		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer);
+		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer);
 
 	private:
 		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
