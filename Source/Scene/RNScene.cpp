@@ -283,7 +283,7 @@ namespace RN
 		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
 
 		node->UpdateScene(nullptr);
-		node->Release();
+		node->Autorelease();
 	}
 
 	void Scene::AddAttachment(SceneAttachment *attachment)
