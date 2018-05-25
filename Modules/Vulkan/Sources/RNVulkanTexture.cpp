@@ -214,7 +214,7 @@ namespace RN
 		imageInfo.extent = { descriptor.width, descriptor.height, descriptor.depth };
 		imageInfo.arrayLayers = 1;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.samples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
 		imageInfo.usage = VkImageUsageFromDescriptor(descriptor, imageInfo.format);
 		imageInfo.flags = 0;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -257,25 +257,36 @@ namespace RN
 		RNVulkanValidate(vk::AllocateMemory(device->GetDevice(), &allocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		RNVulkanValidate(vk::BindImageMemory(device->GetDevice(), _image, _memory, 0));
 
-		if(!(descriptor.usageHint & UsageHint::RenderTarget))
+		if((descriptor.usageHint & UsageHint::RenderTarget))
 		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			_currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
+			if(VkFormatIsDepthFormat(_format) || VkFormatIsStencilFormat(_format))
+			{
+				VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+				commandBuffer->Begin();
+				uint32 aspectFlagBits = 0;
+				if(VkFormatIsDepthFormat(_format))
+				{
+					aspectFlagBits |= VK_IMAGE_ASPECT_DEPTH_BIT;
+				}
+				if(VkFormatIsStencilFormat(_format))
+				{
+					aspectFlagBits |= VK_IMAGE_ASPECT_STENCIL_BIT;
+				}
+				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, aspectFlagBits, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
+				_currentLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				commandBuffer->End();
+				_renderer->SubmitCommandBuffer(commandBuffer);
+			}
+			else //Any color rendertarget
+			{
+				VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+				commandBuffer->Begin();
+				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
+				_currentLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				commandBuffer->End();
+				_renderer->SubmitCommandBuffer(commandBuffer);
+			}
 		}
-		else if(descriptor.format == Format::Depth24Stencil8) //TODO:Adapt to all depth and stencil format
-		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-			_currentLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-		}
-
 
 		VkImageViewCreateInfo imageViewInfo = {};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -316,9 +327,6 @@ namespace RN
 
 		if(_memory != VK_NULL_HANDLE)
 			vk::FreeMemory(device->GetDevice(), _memory, _renderer->GetAllocatorCallback());
-
-//		if(_sampler != VK_NULL_HANDLE)
-//			vk::DestroySampler(device->GetDevice(), _sampler, _renderer->GetAllocatorCallback());
 	}
 
 	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
@@ -388,9 +396,13 @@ namespace RN
 
 		VulkanCommandBufferWithCallback *commandBuffer = _renderer->GetCommandBufferWithCallback();
 		commandBuffer->Begin();
-		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BarrierIntent::UploadDestination);
 		VkImageLayout oldLayout = _currentLayout;
+		if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED || oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
+		{
+			oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
 		_currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 		VkImageCopy copyRegion = {};
@@ -414,7 +426,7 @@ namespace RN
 		copyRegion.extent.depth = region.depth;
 
 		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout, BarrierIntent::ShaderSource);
 		_currentLayout = oldLayout;
 		commandBuffer->End();
 
@@ -430,7 +442,7 @@ namespace RN
 	{
 		//TODO: Force main thread, or make it more flexible
 
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+/*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
 		VkImage downloadImage;
 		VkDeviceMemory downloadMemory;
@@ -516,7 +528,7 @@ namespace RN
 		vk::UnmapMemory(device, downloadMemory);
 
 		vk::DestroyImage(device, downloadImage, _renderer->GetAllocatorCallback());
-		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());
+		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());*/
 	}
 
 	void VulkanTexture::GenerateMipMaps()
@@ -536,7 +548,7 @@ namespace RN
 		_currentLayout = targetLayout;
 	}*/
 
-	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout)
+	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent)
 	{
 		VkImageMemoryBarrier imageMemoryBarrier = {};
 		imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -553,6 +565,49 @@ namespace RN
 
 		imageMemoryBarrier.srcAccessMask = 0;
 		imageMemoryBarrier.dstAccessMask = 0;
+
+		VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+
+		if(intent == BarrierIntent::ShaderSource)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		}
+
+		if(intent == BarrierIntent::CopySource)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+			if(fromLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) srcStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+
+		if(intent == BarrierIntent::CopyDestination)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+
+		if(intent == BarrierIntent::UploadSource)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+
+		if(intent == BarrierIntent::UploadDestination)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+
+		if(intent == BarrierIntent::RenderTarget)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+			if(toLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) destStageFlags = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		}
 
 		// Source layouts (old)
 
@@ -590,6 +645,7 @@ namespace RN
 		{
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			//destStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 
 		if(toLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
@@ -618,10 +674,6 @@ namespace RN
 		// Make sure any writes to the image have been finished
 		if(fromLayout == VK_IMAGE_LAYOUT_UNDEFINED) //TODO: Check if there is a case where this is needed...
 			imageMemoryBarrier.srcAccessMask = 0;// VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-
-		// Put barrier on top
-		VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
 		// Put barrier inside setup command buffer
 		vk::CmdPipelineBarrier(buffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);

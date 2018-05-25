@@ -19,6 +19,16 @@ namespace RN
 	public:
 		friend class VulkanRenderer;
 
+		enum BarrierIntent
+		{
+			UploadSource,
+			UploadDestination,
+			CopySource,
+			CopyDestination,
+			ShaderSource,
+			RenderTarget
+		};
+
 		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer);
 		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image);
 		VKAPI ~VulkanTexture() override;
@@ -38,7 +48,7 @@ namespace RN
 
 		static VkFormat VulkanImageFormatFromTextureFormat(Texture::Format format);
 
-		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout);
+		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent);
 
 	private:
 /*		D3D12Renderer *_renderer;

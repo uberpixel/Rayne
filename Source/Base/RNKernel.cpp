@@ -100,7 +100,7 @@ namespace RN
 			_time = 0;
 
 			ReadManifest();
-			SetMaxFPS(0);
+			SetMaxFPS(500);
 
 			_application->__PrepareForWillFinishLaunching(this);
 			_fileManager->__PrepareWithManifest();

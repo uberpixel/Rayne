@@ -193,7 +193,7 @@ namespace RN
 			};
 		};
 
-		//The compute shader expects 2 floats, the source texture and the destination texture
+		//The compute shader expects 3 floats, the source texture and the destination texture
 		CD3DX12_DESCRIPTOR_RANGE srvCbvRanges[2];
 		CD3DX12_ROOT_PARAMETER rootParameters[3];
 		srvCbvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
@@ -309,6 +309,15 @@ namespace RN
 			//Transition temporary resource from copy dest to unordered access
 			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
+			D3D12_RESOURCE_BARRIER uavToSrvBarrier = {};
+			uavToSrvBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			uavToSrvBarrier.Transition.pResource = textureResource;
+			uavToSrvBarrier.Transition.Subresource = 0;
+			uavToSrvBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			uavToSrvBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+			commandList->ResourceBarrier(1, &uavToSrvBarrier);
+
 			//Loop through the mipmaps copying from the bigger mipmap to the smaller one with downsampling in a compute shader
 			for(uint32_t TopMip = 0; TopMip < textureDescriptor.mipMaps-1; TopMip++)
 			{
@@ -345,11 +354,14 @@ namespace RN
 
 				//Wait for all accesses to the destination texture UAV to be finished before generating the next mipmap, as it will be the source texture for the next mipmap
 				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(textureResource));
+
+				uavToSrvBarrier.Transition.Subresource = TopMip + 1;
+				commandList->ResourceBarrier(1, &uavToSrvBarrier);
 			}
 
 			//Copy temp resource back into the original one
 			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture->_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST));
-			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureResource, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE));
 			commandList->CopyResource(texture->_resource, textureResource);
 
 			//When done with the texture, transition it's state back to be a pixel shader resource

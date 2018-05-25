@@ -276,15 +276,15 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		VkImageMemoryBarrier postPresentBarrier = {};
 		postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		postPresentBarrier.pNext = NULL;
-		postPresentBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		postPresentBarrier.srcAccessMask = 0;
 		postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		postPresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
 		postPresentBarrier.image = static_cast<VulkanTexture *>(_framebuffer->GetColorTexture(_frameIndex))->GetVulkanImage();
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
+		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
 	}
 
 	void VulkanSwapChain::Finalize(VkCommandBuffer commandBuffer)
@@ -296,7 +296,7 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		prePresentBarrier.pNext = NULL;
 		prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		prePresentBarrier.dstAccessMask = 0;
 		prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -304,7 +304,7 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
 		prePresentBarrier.image = static_cast<VulkanTexture *>(_framebuffer->GetColorTexture(_frameIndex))->GetVulkanImage();
 
-		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
+		vk::CmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
 	}
 
 	void VulkanSwapChain::PresentBackBuffer(VkQueue queue)

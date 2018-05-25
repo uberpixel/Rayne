@@ -80,7 +80,10 @@ namespace RN
 //		layers.push_back("VK_LAYER_RENDERDOC_Capture");
 //		layers.push_back("VK_LAYER_LUNARG_api_dump");
 
-		layers.push_back("VK_LAYER_LUNARG_standard_validation");
+//		layers.push_back("VK_LAYER_LUNARG_standard_validation");
+
+		layers.push_back("VK_LAYER_LUNARG_monitor");
+//		layers.push_back("VK_LAYER_LUNARG_assistant_layer");
 #endif
 
 		return layers;

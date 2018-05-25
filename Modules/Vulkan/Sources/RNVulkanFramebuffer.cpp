@@ -294,11 +294,33 @@ namespace RN
 		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
 	}
 
-	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, const Color &clearColor, float depth, uint8 stencil) const
+	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const
 	{
-		VkClearValue clearValues[2];
-		clearValues[0].color = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
-		clearValues[1].depthStencil = {depth, stencil};
+		std::vector<VkClearValue> clearColors;
+
+		int counter = 0;
+		for(VulkanTargetView *targetView : _colorTargets)
+		{
+			VkClearValue clearValue;
+			clearValue.color = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+			clearColors.push_back(clearValue);
+
+			if(resolveFramebuffer)
+			{
+				clearColors.push_back(clearValue);
+			}
+
+			counter += 1;
+
+			if(_swapChain || (resolveFramebuffer && resolveFramebuffer->_swapChain)) break;
+		}
+
+		if(_depthStencilTarget)
+		{
+			VkClearValue clearValue;
+			clearValue.depthStencil = {depth, stencil};
+			clearColors.push_back(clearValue);
+		}
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -309,8 +331,8 @@ namespace RN
 		renderPassBeginInfo.renderArea.offset.y = 0;
 		renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(_size.x);
 		renderPassBeginInfo.renderArea.extent.height = static_cast<uint32_t>(_size.y);
-		renderPassBeginInfo.clearValueCount = 2;
-		renderPassBeginInfo.pClearValues = clearValues;
+		renderPassBeginInfo.clearValueCount = clearColors.size();
+		renderPassBeginInfo.pClearValues = clearColors.data();
 
 		vk::CmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
@@ -355,7 +377,7 @@ namespace RN
 				colorTextureDescriptor.format = colorFormat;
 
 				VulkanTexture *bufferTexture = new VulkanTexture(colorTextureDescriptor, _renderer, colorBuffer);
-				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), colorBuffer, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+//				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), colorBuffer, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 				TargetView targetView;
 				targetView.texture = bufferTexture->Autorelease();

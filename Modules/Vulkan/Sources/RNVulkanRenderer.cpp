@@ -26,7 +26,8 @@ namespace RN
 		_completedFrame(0),
 		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array()),
-		_executedCommandBuffers(new Array())
+		_executedCommandBuffers(new Array()),
+		_currentCommandBuffer(nullptr)
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -228,6 +229,32 @@ namespace RN
 		_internals->swapChains.clear();
 //		_currentRootSignature = nullptr;
 
+		_lock.Lock();
+		if(_submittedCommandBuffers->GetCount() > 0)
+		{
+			std::vector<VkCommandBuffer> buffers;
+
+			buffers.reserve(_submittedCommandBuffers->GetCount());
+			_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
+				buffer->_frameValue = _currentFrame;
+				buffers.push_back(buffer->_commandBuffer);
+			});
+
+			//Submit command buffers
+			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = buffers.size();
+			submitInfo.pCommandBuffers = buffers.data();
+			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+
+			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+
+			vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
+			_submittedCommandBuffers->RemoveAllObjects();
+		}
+		_lock.Unlock();
+
 		UpdateFrameFences();
 
 		CreateMipMaps();
@@ -240,11 +267,12 @@ namespace RN
 			swapChain->AcquireBackBuffer();
 		}
 
+		_currentCommandBuffer = GetCommandBuffer();
+		_currentCommandBuffer->Retain();
+		_currentCommandBuffer->Begin();
+
 		if(_internals->swapChains.size() > 0)
 		{
-			_currentCommandBuffer = GetCommandBuffer();
-			_currentCommandBuffer->Retain();
-			_currentCommandBuffer->Begin();
 			VkCommandBuffer commandBuffer = _currentCommandBuffer->GetCommandBuffer();
 
 			for(VulkanSwapChain *swapChain : _internals->swapChains)
@@ -354,7 +382,7 @@ namespace RN
 	{
 		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
 		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer);
-		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
+		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
 		Rect cameraRect = renderpass.renderPass->GetFrame();
@@ -664,8 +692,8 @@ namespace RN
 
 		_mipMapTextures->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::CopySource);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 1, texture->GetDescriptor().mipMaps-1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanTexture::BarrierIntent::CopyDestination);
 			for(uint16 i = 0; i < texture->GetDescriptor().mipMaps-1; i++)
 			{
 				VkImageBlit imageBlit = {};
@@ -696,10 +724,10 @@ namespace RN
 
 				vk::CmdBlitImage(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->GetVulkanImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
 
-				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), i + 1, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::CopySource);
 			}
 
-			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, texture->GetDescriptor().mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanTexture::BarrierIntent::ShaderSource);
 		});
 
 		commandBuffer->End();
