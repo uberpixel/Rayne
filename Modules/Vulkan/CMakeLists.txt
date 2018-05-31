@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.7)
 project(Vulkan)
 
-find_package(PythonInterp 3 REQUIRED)
+find_package(PythonInterp 3)
 find_package(Vulkan REQUIRED)
+
+if(NOT PYTHONINTERP_FOUND)
+#    if(APPLE)
+        set(PYTHON_EXECUTABLE python3)
+#    else()
+#        message( FATAL_ERROR "Python 3 not found" )
+#    endif()
+endif()
+
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/CopyResources.cmake)
@@ -78,7 +87,7 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 set(RAYNE_LIBRARIES Rayne)
-set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor" "${CMAKE_CURRENT_SOURCE_DIR}/../../Vendor/SPIRV-Cross")
+#set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor" "${CMAKE_CURRENT_SOURCE_DIR}/../../Vendor/SPIRV-Cross")
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVulkan)

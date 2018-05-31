@@ -35,13 +35,20 @@ namespace RN
 	}
 
 
+#if RN_PLATFORM_WINDOWS
 VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
+		_hwnd(hwnd),
+#elif RN_PLATFORM_ANDROID
+VulkanSwapChain::VulkanSwapChain(const Vector2& size, ANativeWindow *window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
+		_window(window),
+#else
+VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
+#endif
 		_renderer(renderer),
 		_frameIndex(0),
 		_semaphoreIndex(0),
 		_size(size),
 		_descriptor(descriptor),
-		_hwnd(hwnd),
 		_surface(VK_NULL_HANDLE),
 		_swapchain(VK_NULL_HANDLE),
 		_framebuffer(nullptr)
@@ -82,6 +89,14 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 		surfaceInfo.window = _window;
 
 		RNVulkanValidate(vk::CreateXcbSurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
+#endif
+#if RN_PLATFORM_ANDROID
+		VkAndroidSurfaceCreateInfoKHR createInfo;
+		createInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+		createInfo.pNext = nullptr;
+		createInfo.flags = 0;
+		createInfo.window = _window;
+        RNVulkanValidate(vk::CreateAndroidSurfaceKHR(instance->GetInstance(), &createInfo, nullptr, &_surface));
 #endif
 
 		VkBool32 surfaceSupported;

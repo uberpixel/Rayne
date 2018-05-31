@@ -265,6 +265,13 @@ namespace RN
 		_application->DidResignActive();
 	}
 #endif
+
+#if RN_PLATFORM_ANDROID
+	void Kernel::SetAndroidApp(android_app *app)
+	{
+		_androidApp = app;
+	}
+#endif
 	
 	void Kernel::SetMaxFPS(uint32 maxFPS)
 	{
@@ -429,6 +436,17 @@ namespace RN
 		xcb_generic_event_t *event;
 		while((event = xcb_poll_for_event(_connection)))
 		{}
+#endif
+#if RN_PLATFORM_ANDROID
+		int events;
+		android_poll_source *source;
+
+		// Poll all pending events.
+		if(ALooper_pollAll(0, NULL, &events, (void **)&source) >= 0)
+		{
+			// Process each polled events
+			if(source != NULL) source->process(_androidApp, source);
+		}
 #endif
 	}
 

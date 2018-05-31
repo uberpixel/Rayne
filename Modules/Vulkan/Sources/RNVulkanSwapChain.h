@@ -56,14 +56,20 @@ namespace RN
 		Vector2 _newSize;
 
 	private:
-		VulkanSwapChain(const Vector2 &size, HWND hwnd, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor);
+#if RN_PLATFORM_WINDOWS
+		VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
+		HWND _hwnd;
+#elif RN_PLATFORM_ANDROID
+		VulkanSwapChain(const Vector2& size, ANativeWindow *window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
+		ANativeWindow *_window;
+#else
+		VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
+#endif
 
 		void CreateSurface();
 		void CreateSwapChain();
 		void ResizeSwapchain(const Vector2 &size);
 		void SetFullscreen(bool fullscreen) const;
-
-		HWND _hwnd;
 
 		VkDevice _device;
 		std::vector<VkSemaphore> _presentSemaphores;

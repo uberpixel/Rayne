@@ -13,6 +13,10 @@
 #elif RN_PLATFORM_WINDOWS
 	#include "../Base/RNUnistd.h"
 #endif
+#if RN_PLATFORM_ANDROID
+	#include "../Base/RNKernel.h"
+#endif
+
 #include <sys/stat.h>
 
 #include "RNData.h"
@@ -98,6 +102,36 @@ namespace RN
 
 	Expected<Data *> Data::WithContentsOfFile(const String *file)
 	{
+#if RN_PLATFORM_ANDROID
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+		AAsset *asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
+		if(asset)
+		{
+			off_t size = AAsset_getLength(asset);
+			uint8 *bytes = (uint8 *)malloc(size);
+			size_t bytesRead = 0;
+
+			while(bytesRead < size)
+			{
+				ssize_t result = AAsset_read(asset, bytes + bytesRead, size - bytesRead);
+				if(result < 0)
+				{
+					if(errno == EINTR)
+						continue;
+
+					AAsset_close(asset);
+					return InconsistencyException("Failed to read file");
+				}
+				else
+					bytesRead += result;
+			}
+
+			AAsset_close(asset);
+			Data *data = new Data(bytes, size, true, true);
+            return data->Autorelease();
+		}
+#endif
+
 		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
 		if(!path)
 			return InvalidArgumentException(RNSTR("Couldn't open file " << file));

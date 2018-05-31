@@ -53,6 +53,9 @@
 #if RN_PLATFORM_LINUX
 	#include <xcb/xcb.h>
 #endif
+#if RN_PLATFORM_ANDROID
+	#include <android_native_app_glue.h>
+#endif
 
 // ---------------------------
 // Platform independent includes
@@ -134,7 +137,7 @@ namespace RN
 	class Kernel;
 	class Application;
 
-	RNAPI RN_NORETURN void Initialize(int argc, const char *argv[], Application *app);
+	RNAPI RN_NORETURN void Initialize(int argc, const char *argv[], Application *app, void *object = nullptr);
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 
 	/**

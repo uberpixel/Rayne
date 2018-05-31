@@ -76,6 +76,11 @@ namespace RN
 		void __DidResignActive();
 #endif
 
+#if RN_PLATFORM_ANDROID
+		RNAPI void SetAndroidApp(android_app *app);
+		android_app *GetAndroidApp() const { return _androidApp; }
+#endif
+
 	private:
 		Kernel(Application *app, const ArgumentParser &arguments);
 		~Kernel();
@@ -110,6 +115,9 @@ namespace RN
 
 #if RN_PLATFORM_LINUX
 		xcb_connection_t *_connection;
+#endif
+#if RN_PLATFORM_ANDROID
+		android_app *_androidApp;
 #endif
 
 		RunLoopObserver *_observer;

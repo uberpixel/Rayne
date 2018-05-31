@@ -48,7 +48,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		base->AppendPathExtension(RNCSTR("dll"));
 #endif
-#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 		base->AppendPathExtension(RNCSTR("so"));
 #endif
 

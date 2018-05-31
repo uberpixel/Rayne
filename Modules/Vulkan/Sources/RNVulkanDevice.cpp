@@ -75,6 +75,9 @@ namespace RN
 			const xcb_screen_t *screen = Screen::GetMainScreen()->GetXCBScreen();
 			bool result = (vk::GetPhysicalDeviceXcbPresentationSupportKHR(_physicalDevice, i, Kernel::GetSharedInstance()->GetXCBConnection(), screen->root_visual) == VK_TRUE);
 #endif
+#if RN_PLATFORM_ANDROID
+			bool result = true;
+#endif
 
 			if(result && (queue.queueFlags & flags) == flags)
 			{

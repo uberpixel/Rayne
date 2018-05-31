@@ -58,6 +58,9 @@ namespace RN
 		_hwnd = ::CreateWindowExW(0, L"RNVulkanWindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 
 		::SetForegroundWindow(_hwnd);
+
+		// Create the swap chain
+        _swapChain = new VulkanSwapChain(size, _hwnd, renderer, descriptor);
 #endif
 #if RN_PLATFORM_LINUX
 
@@ -97,10 +100,16 @@ namespace RN
 		xcb_configure_window(connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, coords);
 
 		xcb_flush(connection);
-#endif
 
 		// Create the swap chain
-		_swapChain = new VulkanSwapChain(size, _hwnd, renderer, descriptor);
+        _swapChain = new VulkanSwapChain(size, _window, renderer, descriptor);
+#endif
+#if RN_PLATFORM_ANDROID
+		_window = Kernel::GetSharedInstance()->GetAndroidApp()->window;
+
+		// Create the swap chain
+        _swapChain = new VulkanSwapChain(size, _window, renderer, descriptor);
+#endif
 	}
 
 	VulkanWindow::~VulkanWindow()

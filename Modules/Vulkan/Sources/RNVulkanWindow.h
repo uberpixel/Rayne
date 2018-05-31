@@ -55,6 +55,9 @@ namespace RN
 		xcb_window_t _window;
 		xcb_intern_atom_reply_t *_destroyWindow;
 #endif
+#if RN_PLATFORM_ANDROID
+		ANativeWindow *_window;
+#endif
 
 		RNDeclareMetaAPI(VulkanWindow, VKAPI)
 	};

@@ -98,7 +98,65 @@ namespace RN
 
 	void FileManager::Directory::ParseDirectory()
 	{
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_ANDROID
+		int errorAndroid = errno;
+
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+		AAssetDir *dir = AAssetManager_openDir(app->activity->assetManager, GetPath()->GetUTF8String());
+		if(!dir)
+		{
+			errno = errorAndroid;
+			throw InconsistencyException(RNSTR("Couldn't open directory " << GetPath()));
+		}
+
+		const char *assetName;
+		while((assetName = AAssetDir_getNextFileName(dir)))
+		{
+			if(assetName[0] != '\0' && assetName[0] != '.')
+			{
+				RNDebug("Asset name: " << assetName);
+
+				Node *node = nullptr;
+				node = new File(RNSTR(assetName), this);
+
+				if(node)
+				{
+					// Only allow nodes matching the platform modifier, ie ~osx or ~win
+					if(node->GetModifier())
+					{
+						if(!node->GetModifier()->IsEqual(_platformModifier))
+						{
+							node->Release();
+							continue;
+						}
+					}
+
+					// Make sure only the platform modifier node is allowed into the VFS,
+					// the regular version is removed if necessary
+					Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
+					if(other)
+					{
+						if(!node->GetModifier())
+						{
+							node->Release();
+							continue;
+						}
+
+						_children->RemoveObject(other);
+					}
+
+					_children->AddObject(node);
+					_childMap->SetObjectForKey(node, node->GetName());
+
+					node->Release();
+				}
+			}
+		}
+
+		AAssetDir_close(dir);
+		return;
+
+#elif RN_PLATFORM_POSIX
 		int error = errno;
 		DIR *dir = opendir(GetPath()->GetUTF8String());
 
@@ -247,7 +305,7 @@ namespace RN
 #if RN_PLATFORM_POSIX
 	char *realpath_expand(const char *path, char *buffer)
 	{
-#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 		char *home;
 
 		if(path[0] == '~' && (home = getenv("HOME")))
@@ -555,7 +613,7 @@ namespace RN
 
 				return RNSTR(buffer);
 #endif
-#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 				char buffer[PATH_MAX];
 				size_t size = PATH_MAX;
 				readlink("/proc/self/exe", buffer, size);
@@ -573,6 +631,9 @@ namespace RN
 				}
 
 				return RNSTR(buffer);
+#endif
+#if RN_PLATFORM_ANDROID
+				return RNCSTR("");
 #endif
 
 				break;
@@ -638,6 +699,9 @@ namespace RN
 
 				return RNSTR(buffer);
 #endif
+#if RN_PLATFORM_ANDROID
+				return RNCSTR("");
+#endif
 
 				break;
 			}
@@ -672,6 +736,9 @@ namespace RN
 				String *path = RNSTR(home << "/." << application);
 				mkdir(path->GetUTF8String(), S_IRWXU);
 				return path;
+#endif
+#if RN_PLATFORM_ANDROID
+				return RNSTR(Kernel::GetSharedInstance()->GetAndroidApp()->activity->internalDataPath);
 #endif
 				break;
 			}

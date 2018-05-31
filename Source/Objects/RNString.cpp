@@ -840,7 +840,7 @@ namespace RN
 			Range range(GetLength() - 1, 1);
 			size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
 
-			if(delimiter == kRNNotFound)
+			if(delimiter == kRNNotFound && GetLength() > 0)
 				Append("%c", kRNPathDelimiter);
 		}
 

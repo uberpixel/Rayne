@@ -16,6 +16,10 @@
 #include <locale>
 #endif
 
+#if RN_PLATFORM_ANDROID
+#include <android/log.h>
+#endif
+
 #if RN_PLATFORM_MAC_OS
 
 @interface RNApplication : NSApplication <NSApplicationDelegate>
@@ -63,6 +67,50 @@
 
 #endif
 
+#if RN_PLATFORM_ANDROID
+// Helpder class to forward the cout/cerr output to logcat derived from:
+// http://stackoverflow.com/questions/8870174/is-stdcout-usable-in-android-ndk
+class AndroidBuffer : public std::streambuf
+{
+	public:
+		AndroidBuffer(android_LogPriority priority)
+		{
+			priority_ = priority;
+			this->setp(buffer_, buffer_ + kBufferSize - 1);
+		}
+
+	private:
+		static const int32_t kBufferSize = 128;
+		int32_t overflow(int32_t c)
+		{
+			if(c == traits_type::eof())
+			{
+				*this->pptr() = traits_type::to_char_type(c);
+				this->sbumpc();
+			}
+			return this->sync() ? traits_type::eof() : traits_type::not_eof(c);
+		}
+
+		int32_t sync()
+		{
+			int32_t rc = 0;
+			if(this->pbase() != this->pptr())
+			{
+				char writebuf[kBufferSize + 1];
+				memcpy(writebuf, this->pbase(), this->pptr() - this->pbase());
+				writebuf[this->pptr() - this->pbase()] = '\0';
+
+				rc = __android_log_write(priority_, "std", writebuf) > 0;
+				this->setp(buffer_, buffer_ + kBufferSize - 1);
+			}
+			return rc;
+		}
+
+		android_LogPriority priority_ = ANDROID_LOG_INFO;
+		char buffer_[kBufferSize];
+};
+#endif
+
 namespace RN
 {
 	static MemoryPool *__functionPool;
@@ -73,7 +121,7 @@ namespace RN
 	struct __KernelBootstrapHelper
 	{
 	public:
-		static Kernel *BootstrapKernel(Application *app, const ArgumentParser &arguments)
+		static Kernel *BootstrapKernel(Application *app, const ArgumentParser &arguments, void *object)
 		{
 			__functionPool = new MemoryPool();
 
@@ -102,6 +150,14 @@ namespace RN
 #endif
 
 			Kernel *result = new Kernel(app, arguments);
+
+#if RN_PLATFORM_ANDROID
+			android_app *androidApp = static_cast<android_app*>(object);
+			RN_ASSERT(androidApp, "Object needs to be a pointer to the android_app object for Android builds.");
+
+			result->SetAndroidApp(androidApp);
+#endif
+
 #if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
 				result->Bootstrap();
@@ -128,7 +184,7 @@ namespace RN
 		}
 	};
 
-	RNAPI Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments);
+	RNAPI Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments, void *object);
 	RNAPI void __TearDownKernel(Kernel *kernel);
 
 
@@ -137,9 +193,9 @@ namespace RN
 		return __functionPool;
 	}
 
-	Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments)
+	Kernel *__BootstrapKernel(Application *app, const ArgumentParser &arguments, void *object)
 	{
-		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app, arguments);
+		Kernel *result = __KernelBootstrapHelper::BootstrapKernel(app, arguments, object);
 		return result;
 	}
 
@@ -148,7 +204,7 @@ namespace RN
 		__KernelBootstrapHelper::TearDownKernel(kernel);
 	}
 
-	void Initialize(int argc, const char *argv[], Application *app)
+	void Initialize(int argc, const char *argv[], Application *app, void *object)
 	{
 		RN_ASSERT(app, "Application mustn't be NULL");
 
@@ -194,9 +250,14 @@ namespace RN
 		}
 #endif
 
+#if RN_PLATFORM_ANDROID
+		std::cout.rdbuf(new AndroidBuffer(ANDROID_LOG_INFO));
+		std::cerr.rdbuf(new AndroidBuffer(ANDROID_LOG_ERROR));
+#endif
+
 		ArgumentParser arguments(argc, argv);
 
-		Kernel *result = __BootstrapKernel(app, arguments);
+		Kernel *result = __BootstrapKernel(app, arguments, object);
 #if RN_PLATFORM_MAC_OS
 		[(RNApplication *)[RNApplication sharedApplication] setKernel:result];
 #endif

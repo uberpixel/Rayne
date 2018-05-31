@@ -363,6 +363,14 @@ if(UNIX AND (NOT APPLE) AND (NOT ANDROID))
     set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${XCB_INCLUDE_DIRS})
 endif()
 
+if(ANDROID)
+    #set(RAYNE_PLATFORM_SOURCES ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+    #set(RAYNE_HEADERS ${RAYNE_HEADERS} ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.h)
+    set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${ANDROID_NDK}/sources/android/native_app_glue)
+
+    set(LINK_LIBRARIES ${LINK_LIBRARIES} android log)
+endif()
+
 set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic)
 
 set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
