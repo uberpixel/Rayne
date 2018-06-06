@@ -8,6 +8,7 @@
 
 #include "../System/RNFileManager.h"
 #include "RNModule.h"
+#include "../Debug/RNLogger.h"
 
 #if RN_PLATFORM_POSIX
 #include <dlfcn.h>
@@ -119,6 +120,7 @@ namespace RN
 				{
 					_path->Release();
 					_path = RNSTR(info.dli_fname)->Retain();
+					RNDebug(RNSTR("Already loaded library: ") << _path);
 
 					int flags = RTLD_GLOBAL;
 

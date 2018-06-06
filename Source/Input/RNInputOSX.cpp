@@ -265,6 +265,9 @@ namespace RN
 		_linearAxisCount(0),
 		_rotationAxisCount(0)
 	{
+		if(!_device)
+			return;
+			
 		CFRetain(_device);
 
 		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(_device, NULL, kIOHIDOptionsTypeNone);
@@ -279,6 +282,9 @@ namespace RN
 
 	OSXPlatformDevice::~OSXPlatformDevice()
 	{
+		if(!_device)
+			return;
+		
 		CFRelease(_device);
 		CFRelease(_queue);
 
@@ -518,6 +524,29 @@ namespace RN
 
 		_eventTap = CGEventTapCreate(kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, mask, &OSXMouseDevice::EventCallback, this);
 		_runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, _eventTap, 0);
+		
+		if(device == nullptr)
+		{
+			DeltaAxisControl *xAxisControl = new DeltaAxisControl(RNSTR(kDeltaAxisName[0] << "1"), AxisControl::Axis::X);
+			AddControl(xAxisControl);
+			xAxisControl->Release();
+			
+			DeltaAxisControl *yAxisControl = new DeltaAxisControl(RNSTR(kDeltaAxisName[1] << "2"), AxisControl::Axis::Y);
+			AddControl(yAxisControl);
+			yAxisControl->Release();
+			
+			ButtonControl *leftButtonControl = new ButtonControl(RNSTR("Button " << 1), ButtonControl::Type::Button);
+			AddControl(leftButtonControl);
+			leftButtonControl->Release();
+			
+			ButtonControl *rightButtonControl = new ButtonControl(RNSTR("Button " << 2), ButtonControl::Type::Button);
+			AddControl(rightButtonControl);
+			rightButtonControl->Release();
+			
+			ButtonControl *middleButtonControl = new ButtonControl(RNSTR("Button " << 3), ButtonControl::Type::Button);
+			AddControl(middleButtonControl);
+			middleButtonControl->Release();
+		}
 
 		_deltaXAxis = GetControlWithName<DeltaAxisControl>(RNSTR(kDeltaAxisName[0] << "1"));
 		_deltaYAxis = GetControlWithName<DeltaAxisControl>(RNSTR(kDeltaAxisName[1] << "2"));
@@ -824,6 +853,20 @@ namespace RN
 
 		IOHIDManagerScheduleWithRunLoop(_hidManager, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
 		IOHIDManagerOpen(_hidManager, kIOHIDOptionsTypeNone);
+		
+		
+		if(!_hasMouse)
+		{
+			InputDevice::Descriptor descriptor(InputDevice::Category::Mouse);
+			descriptor.SetVendor(RNCSTR("blubb"));
+			descriptor.SetName(RNCSTR("mouse"));
+			descriptor.SetVendorID(Number::WithUint32(1));
+			descriptor.SetProductID(Number::WithUint32(1));
+			
+			OSXMouseDevice *device = new OSXMouseDevice(descriptor, nullptr);
+			device->Register();
+			device->Activate();
+		}
 	}
 
 	void TearDownPlatformDeviceTree()

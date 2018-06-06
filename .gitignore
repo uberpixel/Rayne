@@ -24,3 +24,4 @@ Modules/SteamAudio/Vendor/steamaudio
 BUILD_VS
 Modules/Newton/Vendor/newton-dynamics
 Modules/ODE/Vendor/BUILD
+/Build-Xcode
