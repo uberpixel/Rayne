@@ -70,6 +70,10 @@ namespace RN
 		RNAPI HIDDevice *GetHIDDevice(uint16 vendorID, uint16 productID) const;
 
 		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
+		
+#if RN_PLATFORM_MAC_OS
+		void ProcessKeyEvent(uint16 keyCode, bool state);
+#endif
 
 	private:
 		InputManager();
@@ -84,6 +88,9 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		void __HandleRawInput(HRAWINPUT lParam);
 		Vector3 _mouseMovement;
+#endif
+		
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS
 		bool _keyPressed[256];
 #endif
 

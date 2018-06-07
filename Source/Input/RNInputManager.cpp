@@ -64,10 +64,12 @@ namespace RN
 		_hidDevices(new Array())
 	{
 		__sharedInstance = this;
+		
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS
+		memset(_keyPressed, 0, 256*sizeof(bool));
+#endif
 
 #if RN_PLATFORM_WINDOWS
-		memset(_keyPressed, 0, 256*sizeof(bool));
-
 		RAWINPUTDEVICE Rid[2];
 
 		Rid[0].usUsagePage = 0x01;
@@ -128,6 +130,13 @@ namespace RN
 			_mouseMovement.x += rawInput->data.mouse.lLastX;
 			_mouseMovement.y += rawInput->data.mouse.lLastY;
 		}
+	}
+#endif
+	
+#if RN_PLATFORM_MAC_OS
+	void InputManager::ProcessKeyEvent(uint16 keyCode, bool state)
+	{
+		if(keyCode < 256) _keyPressed[keyCode] = state;
 	}
 #endif
 
@@ -415,6 +424,38 @@ namespace RN
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[0x1B];
+		}
+#endif
+		
+#if RN_PLATFORM_MAC_OS
+		//TODO: Support all keys
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[13];
+		}
+		if(name->IsEqual(RNCSTR("A")))
+		{
+			return _keyPressed[0];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[1];
+		}
+		if(name->IsEqual(RNCSTR("D")))
+		{
+			return _keyPressed[2];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[14];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[3];
+		}
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[53];
 		}
 #endif
 

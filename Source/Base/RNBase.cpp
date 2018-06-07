@@ -38,11 +38,18 @@
 - (void)sendEvent:(NSEvent *)event
 {
 	if([event type] == NSEventTypeKeyUp && ([event modifierFlags] & NSEventModifierFlagCommand))
+	{
 		[[self keyWindow] sendEvent:event];
+	}
+	
+	if([event type] == NSEventTypeKeyDown || [event type] == NSEventTypeKeyUp)
+	{
+		RN::InputManager *inputManager = RN::InputManager::GetSharedInstance();
+		if(inputManager) inputManager->ProcessKeyEvent([event keyCode], [event type] == NSEventTypeKeyDown);
+	}
 
 	[super sendEvent:event];
 }
-
 
 - (void)applicationWillBecomeActive:(NSNotification *)notification
 {
