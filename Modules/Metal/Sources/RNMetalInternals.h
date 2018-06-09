@@ -17,6 +17,7 @@
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
 #include "RNMetalFramebuffer.h"
+#include "RNMetalRenderer.h"
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
@@ -41,8 +42,8 @@ namespace RN
 		struct CameraSpecific
 		{
 			const MetalRenderingState *pipelineState;
-			MetalUniformBuffer *vertexBuffer;
-			MetalUniformBuffer *fragmentBuffer;
+			MetalUniformBufferReference *vertexBuffer;
+			MetalUniformBufferReference *fragmentBuffer;
 			bool dirty;
 		};
 
@@ -76,14 +77,16 @@ namespace RN
 			if(_cameraSpecifics[cameraID].fragmentBuffer)
 				delete _cameraSpecifics[cameraID].fragmentBuffer;
 
+			MetalRenderer *metalRenderer = renderer->Downcast<MetalRenderer>();
+			
 			//TODO: Support multiple uniform buffers
 			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_cameraSpecifics[cameraID].vertexBuffer = new MetalUniformBuffer(renderer, totalSize, 1);
+				_cameraSpecifics[cameraID].vertexBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();//new MetalUniformBuffer(renderer, totalSize, 1);
 
 			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_cameraSpecifics[cameraID].fragmentBuffer = new MetalUniformBuffer(renderer, totalSize, 1);
+				_cameraSpecifics[cameraID].fragmentBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();
 			
 			_cameraSpecifics[cameraID].dirty = false;
 		}

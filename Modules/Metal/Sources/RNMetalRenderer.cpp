@@ -35,6 +35,7 @@ namespace RN
 		_internals->stateCoordinator.SetDevice(_internals->device);
 		
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneMetal:/Shaders.json"));
+		_uniformBufferPool = new MetalUniformBufferPool();
 	}
 
 	MetalRenderer::~MetalRenderer()
@@ -44,6 +45,8 @@ namespace RN
 
 		SafeRelease(_mipMapTextures);
 		SafeRelease(_defaultShaderLibrary);
+		
+		delete _uniformBufferPool;
 	}
 
 
@@ -108,6 +111,9 @@ namespace RN
 
 		//Submit camera is called for each camera and creates lists of drawables per camera
 		function();
+		
+		//Advance to next gpu buffer for uniforms and create new uniform buffer if pool is not big enough for any new objects
+		_uniformBufferPool->Update(this);
 
 		for(MetalSwapChain *swapChain : _internals->swapChains)
 		{
@@ -180,6 +186,10 @@ namespace RN
 			swapChain->Finalize();
 			swapChain->PresentBackBuffer(_internals->commandBuffer);
 		}
+		
+		//Invalidate all uniform buffers to make the GPU get the latest changes from CPU
+		_uniformBufferPool->InvalidateAllBuffers();
+		
 		[_internals->commandBuffer commit];
 		
 		for(MetalSwapChain *swapChain : _internals->swapChains)
@@ -461,6 +471,11 @@ namespace RN
 
 		return (new MetalGPUBuffer(buffer));
 	}
+	
+	MetalUniformBufferReference *MetalRenderer::GetUniformBufferReference(size_t size, size_t index)
+	{
+		return _uniformBufferPool->GetUniformBufferReference(size, index);
+	}
 
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithFile(const String *file)
 	{
@@ -632,10 +647,10 @@ namespace RN
 		delete drawable;
 	}
 
-	void MetalRenderer::FillUniformBuffer(MetalUniformBuffer *uniformBuffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
+	void MetalRenderer::FillUniformBuffer(MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
 	{
-		GPUBuffer *gpuBuffer = uniformBuffer->Advance();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
+		GPUBuffer *gpuBuffer = uniformBufferReference->uniformBuffer->GetActiveBuffer();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
 
 		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
@@ -822,8 +837,6 @@ namespace RN
 					break;
 			}
 		});
-
-		gpuBuffer->Invalidate();
 	}
 
 	void MetalRenderer::SubmitLight(const Light *light)
@@ -924,17 +937,17 @@ namespace RN
 		size_t bufferIndex = 0;
 		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
 		{
-			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer;
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			MetalUniformBufferReference *uniformBufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer;
+			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
+			[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 		}
 
 		bufferIndex = 0;
 		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
 		{
-			MetalUniformBuffer *uniformBuffer = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer;
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBuffer->GetActiveBuffer());
-			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:0 atIndex:uniformBuffer->GetIndex()];
+			MetalUniformBufferReference *uniformBufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer;
+			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
+			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 		}
 
 		// Set textures

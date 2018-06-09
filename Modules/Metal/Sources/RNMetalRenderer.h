@@ -24,6 +24,8 @@ namespace RN
 	class MetalUniformBuffer;
 	struct MetalRenderPass;
 	class GPUBuffer;
+	class MetalUniformBufferReference;
+	class MetalUniformBufferPool;
 
 	class MetalRenderer : public Renderer
 	{
@@ -69,11 +71,13 @@ namespace RN
 		MTLAPI void SubmitLight(const Light *light) final;
 		
 		MTLAPI static MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options);
+		
+		MTLAPI MetalUniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
 		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
-		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
+		void FillUniformBuffer(MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();
@@ -88,6 +92,7 @@ namespace RN
 
 		Lockable _lock;
 
+		MetalUniformBufferPool *_uniformBufferPool;
 		ShaderLibrary *_defaultShaderLibrary;
 
 		RNDeclareMetaAPI(MetalRenderer, MTLAPI)
