@@ -184,7 +184,8 @@ float4 getDirectionalLights(float3 position, float3 normal, constant FragmentUni
 	float4 light = 0.0f;
 	for(short i = 0; i < uniforms.directionalLightsCount; i++)
 	{
-		light += saturate(dot(normal, -uniforms.directionalLights[i].direction)) * uniforms.directionalLights[i].color * getDirectionalShadowFactor(i, position, uniforms, directionalShadowTexture, directionalShadowSampler);
+		float3 direction = -uniforms.directionalLights[i].direction;
+		light += saturate(dot(normal, direction)) * uniforms.directionalLights[i].color * getDirectionalShadowFactor(i, position, uniforms, directionalShadowTexture, directionalShadowSampler);
 	}
 	light.a = 1.0f;
 	return light;
