@@ -474,6 +474,7 @@ namespace RN
 	
 	MetalUniformBufferReference *MetalRenderer::GetUniformBufferReference(size_t size, size_t index)
 	{
+		LockGuard<Lockable> lock(_lock);
 		return _uniformBufferPool->GetUniformBufferReference(size, index);
 	}
 
