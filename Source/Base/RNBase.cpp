@@ -75,6 +75,21 @@
 #endif
 
 #if RN_PLATFORM_ANDROID
+void Android_handle_cmd(android_app *app, int32_t cmd)
+{
+    switch(cmd)
+    {
+        case APP_CMD_INIT_WINDOW:
+            // The window is being shown, get it ready.
+            break;
+        case APP_CMD_TERM_WINDOW:
+            // The window is being hidden or closed, clean it up.
+            break;
+        default:
+            RNDebug("event not handled: " << cmd);
+    }
+}
+
 // Helpder class to forward the cout/cerr output to logcat derived from:
 // http://stackoverflow.com/questions/8870174/is-stdcout-usable-in-android-ndk
 class AndroidBuffer : public std::streambuf
@@ -162,6 +177,7 @@ namespace RN
 			android_app *androidApp = static_cast<android_app*>(object);
 			RN_ASSERT(androidApp, "Object needs to be a pointer to the android_app object for Android builds.");
 
+			androidApp->onAppCmd = Android_handle_cmd;
 			result->SetAndroidApp(androidApp);
 #endif
 

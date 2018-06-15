@@ -43,15 +43,26 @@ namespace RN
 		AssetLoader(config)
 	{}
 
+	static void png_read_from_rnfile(png_structp png_ptr, png_bytep data, png_size_t length)
+    {
+		png_size_t check;
+
+		if(png_ptr == NULL)
+			return;
+
+		File *file = static_cast<File*>(png_get_io_ptr(png_ptr));
+		file->Read(data, length);
+    }
+
 	Asset *PNGAssetLoader::Load(File *file, const LoadOptions &options)
 	{
-		FILE *rawFile = file->CreateFile();
 		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
 
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 		png_infop pngInfo = png_create_info_struct(pngPointer);
 
-		png_init_io(pngPointer, rawFile);
+		png_set_read_fn(pngPointer, file, png_read_from_rnfile);
+
 		png_set_sig_bytes(pngPointer, 0);
 		png_set_error_fn(pngPointer, nullptr, nullptr, __PNGEmptyLogFunction);
 
@@ -125,7 +136,6 @@ namespace RN
 		}
 
 		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
-		fclose(rawFile);
 
 
 		bool mipMapped = true;

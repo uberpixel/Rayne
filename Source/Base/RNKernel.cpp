@@ -310,8 +310,12 @@ namespace RN
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		_delta = milliseconds / 1000.0;
 
-
+#if RN_PLATFORM_ANDROID
+		//Wait for android app window to be available before finishing the boostrap which is usually followed by RN::Window creation
+		if(RN_EXPECT_FALSE(_firstFrame) && _androidApp->window)
+#else
 		if(RN_EXPECT_FALSE(_firstFrame))
+#endif
 		{
 			HandleSystemEvents();
 

@@ -408,6 +408,10 @@ namespace RN
 
 	String *FileManager::GetNormalizedPathFromFullPath(const String *fullPath)
 	{
+#if RN_PLATFORM_ANDROID
+		return RNSTR(fullPath);
+#endif
+
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
 		int error = errno;
@@ -613,7 +617,7 @@ namespace RN
 
 				return RNSTR(buffer);
 #endif
-#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+#if RN_PLATFORM_LINUX
 				char buffer[PATH_MAX];
 				size_t size = PATH_MAX;
 				readlink("/proc/self/exe", buffer, size);

@@ -91,12 +91,10 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		RNVulkanValidate(vk::CreateXcbSurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
 #endif
 #if RN_PLATFORM_ANDROID
-		VkAndroidSurfaceCreateInfoKHR createInfo;
-		createInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
-		createInfo.pNext = nullptr;
-		createInfo.flags = 0;
+		VkAndroidSurfaceCreateInfoKHR createInfo = {VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR};
 		createInfo.window = _window;
-        RNVulkanValidate(vk::CreateAndroidSurfaceKHR(instance->GetInstance(), &createInfo, nullptr, &_surface));
+		VkResult result = vk::CreateAndroidSurfaceKHR(instance->GetInstance(), &createInfo, nullptr, &_surface);
+        RNVulkanValidate(result);
 #endif
 
 		VkBool32 surfaceSupported;

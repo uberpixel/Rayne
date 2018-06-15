@@ -30,6 +30,9 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		_requiredExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #endif
+#if RN_PLATFORM_ANDROID
+		_requiredExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#endif
 
 #if RN_VULKAN_ENABLE_VALIDATION
 		_requiredExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -61,68 +64,57 @@ namespace RN
 		{
 			// Load the module and verify that we have vkGetInstanceProcAddr() available
 			_module = ::LoadLibrary("vulkan-1.dll");
-
-			PFN_vkGetInstanceProcAddr procAddr = nullptr;
-
-			if(_module)
-				procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(::GetProcAddress(_module, "vkGetInstanceProcAddr"));
-
-			if(!_module || !procAddr)
-			{
-				RNError("Couldn't load Vulkan library");
-
-				if(_module)
-				{
-					::FreeLibrary(_module);
-					_module = nullptr;
-				}
-
-				return false;
-			}
 		}
 
-		// Create a Vulkan Instance
 		PFN_vkGetInstanceProcAddr procAddr = nullptr;
 
 		if(_module)
 			procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(::GetProcAddress(_module, "vkGetInstanceProcAddr"));
 
-		vk::init_dispatch_table_top(procAddr);
+		if(!_module || !procAddr)
+		{
+			RNError("Couldn't load Vulkan library");
+
+			if(_module)
+			{
+				::FreeLibrary(_module);
+				_module = nullptr;
+			}
+
+			return false;
+		}
 #endif
 
 #if RN_PLATFORM_POSIX
 		if(!_module)
 		{
+#if RN_PLATFORM_ANDROID
+			_module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+#else
 			_module = dlopen("/usr/lib/x86_64-linux-gnu/libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
-
-			PFN_vkGetInstanceProcAddr procAddr = nullptr;
-
-			if(_module)
-				procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(_module, "vkGetInstanceProcAddr"));
-
-			if(!_module || !procAddr)
-			{
-				RNError("Couldn't load Vulkan library");
-
-				if(_module)
-				{
-					dlclose(_module);
-					_module = nullptr;
-				}
-
-				return false;
-			}
+#endif
 		}
 
-		// Create a Vulkan Instance
 		PFN_vkGetInstanceProcAddr procAddr = nullptr;
 
 		if(_module)
 			procAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(_module, "vkGetInstanceProcAddr"));
 
-		vk::init_dispatch_table_top(procAddr);
+		if(!_module || !procAddr)
+		{
+			RNError("Couldn't load Vulkan library");
+
+			if(_module)
+			{
+				dlclose(_module);
+				_module = nullptr;
+			}
+
+			return false;
+		}
 #endif
 
+		vk::init_dispatch_table_top(procAddr);
 
 		// TODO: Verify extensions
 		std::vector<const char *> layers = DebugInstanceLayers();
@@ -133,7 +125,7 @@ namespace RN
 		appInfo.applicationVersion = 0;
 		appInfo.pEngineName = "Rayne";
 		appInfo.engineVersion = GetAPIVersion();
-		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 3);
+		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 13);
 
 		VkInstanceCreateInfo instanceInfo = {};
 		instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -153,6 +145,7 @@ namespace RN
 		}
 
 		vk::init_dispatch_table_middle(_instance, false);
+
 		SetupVulkanDebugging(_instance);
 
 		// Load the list of devices

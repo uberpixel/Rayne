@@ -13,8 +13,10 @@ namespace RN
 	RNDefineMeta(Window, Object)
 
 	Window::Window(Screen *screen) :
-		_screen(screen->Retain())
-	{}
+		_screen(screen)
+	{
+		SafeRetain(_screen);
+	}
 
 	Window::Window() :
 		_screen(nullptr)
@@ -22,7 +24,6 @@ namespace RN
 
 	Window::~Window()
 	{
-		if(_screen)
-			_screen->Release();
+		SafeRelease(_screen);
 	}
 }

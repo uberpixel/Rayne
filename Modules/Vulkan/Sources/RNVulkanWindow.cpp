@@ -222,6 +222,11 @@ namespace RN
 
 		return size;
 #endif
+#if RN_PLATFORM_ANDROID
+		int width = ANativeWindow_getWidth(_window);
+		int height = ANativeWindow_getHeight(_window);
+		return Vector2(width, height);
+#endif
 	}
 
 	Framebuffer *VulkanWindow::GetFramebuffer() const

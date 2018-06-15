@@ -38,7 +38,6 @@ namespace RN
 				_name->AppendPathComponent(_name->GetLastPathComponent());
 		}
 
-
 		// Resolve the files
 		String *basePath = _name->StringByDeletingLastPathComponent();
 		String *base = _name->GetLastPathComponent();
@@ -69,6 +68,12 @@ namespace RN
 
 		});
 
+#if RN_PLATFORM_ANDROID
+		if(!_path) //TODO: Fix path resolving for android
+		{
+			_path = _name;
+		}
+#endif
 
 		if(!_path)
 			throw InvalidArgumentException(RNSTR("Couldn't resolve module name: " << name));
@@ -134,7 +139,9 @@ namespace RN
 					_ownsHandle = true;
 
 					if(!_handle)
+					{
 						error = RNSTR(dlerror());
+					}
 				}
 				else
 				{

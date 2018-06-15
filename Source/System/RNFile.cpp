@@ -292,6 +292,13 @@ namespace RN
 		{
 			android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 			AAsset *asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
+
+			if(!asset)
+			{
+				name = RNSTR(RNCSTR("Resources/") << name);
+				asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
+			}
+
 			if(asset)
 			{
 				File *file = new File(asset, name, mode);

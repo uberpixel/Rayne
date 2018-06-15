@@ -103,8 +103,21 @@ namespace RN
 	Expected<Data *> Data::WithContentsOfFile(const String *file)
 	{
 #if RN_PLATFORM_ANDROID
+		//TODO: Extract folder structure from app bundle instead and fix path resolving...
+		if(file->HasPrefix(RNCSTR(":RayneVulkan:")))
+		{
+			String *tempFileName = file->GetSubstring(Range(13, file->GetLength()-13));
+			file = RNSTR(RNCSTR("Resources/Modules/RayneVulkan/Resources") << tempFileName);
+		}
+
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		AAsset *asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
+		if(!asset)
+		{
+			file = RNSTR(RNCSTR("Resources/") << file);
+			asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
+		}
+
 		if(asset)
 		{
 			off_t size = AAsset_getLength(asset);
