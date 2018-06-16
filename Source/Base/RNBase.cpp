@@ -102,7 +102,7 @@ class AndroidBuffer : public std::streambuf
 		}
 
 	private:
-		static const int32_t kBufferSize = 128;
+		static const int32_t kBufferSize = 1280;
 		int32_t overflow(int32_t c)
 		{
 			if(c == traits_type::eof())
@@ -276,6 +276,8 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		std::cout.rdbuf(new AndroidBuffer(ANDROID_LOG_INFO));
 		std::cerr.rdbuf(new AndroidBuffer(ANDROID_LOG_ERROR));
+		std::cout.setf(std::ios::unitbuf);
+		std::cerr.setf(std::ios::unitbuf);
 #endif
 
 		ArgumentParser arguments(argc, argv);

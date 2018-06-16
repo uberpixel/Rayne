@@ -108,7 +108,7 @@ namespace RN
 		_window = Kernel::GetSharedInstance()->GetAndroidApp()->window;
 
 		// Create the swap chain
-        _swapChain = new VulkanSwapChain(size, _window, renderer, descriptor);
+        _swapChain = new VulkanSwapChain(GetSize(), _window, renderer, descriptor);
 #endif
 	}
 
