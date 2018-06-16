@@ -26,3 +26,4 @@ Modules/Newton/Vendor/newton-dynamics
 Modules/ODE/Vendor/BUILD
 /Build-Xcode
 /Build-iOS
+Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
