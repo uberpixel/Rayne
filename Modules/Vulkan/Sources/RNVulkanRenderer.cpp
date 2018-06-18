@@ -313,10 +313,10 @@ namespace RN
 					_internals->currentDrawableResourceIndex += 1;
 				}
 
+				vk::CmdEndRenderPass(commandBuffer);
+
 				_internals->currentRenderPassIndex += 1;
 			}
-
-			vk::CmdEndRenderPass(commandBuffer);
 
 			for(VulkanSwapChain *swapChain : _internals->swapChains)
 			{

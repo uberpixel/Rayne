@@ -55,6 +55,8 @@
 #endif
 #if RN_PLATFORM_ANDROID
 	#include <android_native_app_glue.h>
+
+	#define kRNAndroidWindowDidChange RNCSTR("kRNAndroidWindowDidChange")
 #endif
 
 // ---------------------------

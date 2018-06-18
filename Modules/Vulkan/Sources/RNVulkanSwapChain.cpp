@@ -60,6 +60,18 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		CreateSwapChain();
 	}
 
+	VulkanSwapChain::VulkanSwapChain() :
+		_renderer(nullptr),
+		_frameIndex(0),
+		_semaphoreIndex(0),
+		_size(Vector2()),
+		_surface(VK_NULL_HANDLE),
+		_swapchain(VK_NULL_HANDLE),
+		_framebuffer(nullptr)
+	{
+
+	}
+
 	VulkanSwapChain::~VulkanSwapChain()
 	{
 		//delete[] _fenceValues;

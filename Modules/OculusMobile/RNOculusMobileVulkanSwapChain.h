@@ -15,6 +15,11 @@
 
 #include "VrApi.h"
 
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
+
 #include "RNOculusMobile.h"
 
 namespace RN
@@ -41,24 +46,37 @@ namespace RN
 		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor);
 		const String *GetHMDInfoDescription() const;
 		OVRAPI void SetProjection(float m22, float m23, float m32);
+		ovrMatrix4f GetTanAngleMatrixForEye(uint8 eye);
+
+		void CreateSharedVulkanImage();
+
+		void CreateEGLContext();
+		void DestroyEGLContext();
+
+		void CreateGLESFramebuffer();
+		void DestroyGLESFramebuffer();
+
+		void UpdateVRMode();
 
 		ovrJava _java;
 		ovrTextureSwapChain *_colorSwapChain;
+		ovrMobile *_session;
+		uint32 _swapChainBufferCount;
+		uint32 _actualFrameIndex;
+		double _predictedDisplayTime;
+		ovrTracking2 _hmdState;
+		Vector2 _eyeRenderSize;
 
-/*		ovrSession _session;
-		ovrGraphicsLuid _luID;
-		ovrHmdDesc _hmdDescription;
-		ovrLayerEyeFovDepth _imageLayer;
-		ovrTextureSwapChain _colorSwapChain;
-		ovrTextureSwapChain _depthSwapChain;
+		ANativeWindow *_nativeWindow;
+		EGLDisplay _eglDisplay;
+		EGLConfig _eglConfig;
+		EGLSurface _eglTinySurface;
+		EGLContext _eglContext;
 
-		ovrEyeRenderDesc _eyeRenderDesc[2];
-		ovrPosef _hmdToEyeViewPose[2];
-		ovrTrackingState _hmdState;
+		GLuint *_glesFramebuffers;
+		GLuint _glTexture;
 
-		ovrResult _submitResult;*/
-
-		long long _frameCounter;
+		VkImage _vulkanTexture;
 
 		static const uint32 kEyePadding;
 

@@ -44,14 +44,18 @@ namespace RN
 		virtual bool HasDepthBuffer() const { return false; }
 
 	protected:
-		VKAPI VulkanSwapChain(){}
+		VKAPI VulkanSwapChain();
 
 		VulkanRenderer *_renderer;
+		VkDevice _device;
 		VulkanFramebuffer *_framebuffer;
 		Vector2 _size;
 		uint32 _frameIndex;
 		uint32 _semaphoreIndex;
 		Window::SwapChainDescriptor _descriptor;
+
+		std::vector<VkSemaphore> _presentSemaphores;
+        std::vector<VkSemaphore> _renderSemaphores;
 
 		Vector2 _newSize;
 
@@ -70,10 +74,6 @@ namespace RN
 		void CreateSwapChain();
 		void ResizeSwapchain(const Vector2 &size);
 		void SetFullscreen(bool fullscreen) const;
-
-		VkDevice _device;
-		std::vector<VkSemaphore> _presentSemaphores;
-		std::vector<VkSemaphore> _renderSemaphores;
 
 		VkImage _colorBuffers[32];
 

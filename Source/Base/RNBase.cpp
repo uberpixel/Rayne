@@ -81,6 +81,7 @@ void Android_handle_cmd(android_app *app, int32_t cmd)
     {
         case APP_CMD_INIT_WINDOW:
             // The window is being shown, get it ready.
+            RN::NotificationManager::GetSharedInstance()->PostNotification(kRNAndroidWindowDidChange, nullptr);
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
@@ -102,7 +103,7 @@ class AndroidBuffer : public std::streambuf
 		}
 
 	private:
-		static const int32_t kBufferSize = 1280;
+		static const int32_t kBufferSize = 1024;
 		int32_t overflow(int32_t c)
 		{
 			if(c == traits_type::eof())

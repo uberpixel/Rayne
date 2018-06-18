@@ -8,6 +8,7 @@
 
 #include "RNOculusMobileVulkanSwapChain.h"
 #include "RNOculusMobileWindow.h"
+#include "VrApi_Helpers.h"
 
 namespace RN
 {
@@ -97,14 +98,16 @@ namespace RN
 	{
 		_swapChain->UpdatePredictedPose();
 
-/*		_hmdTrackingState.eyeOffset[0] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[0].Position);
-		_hmdTrackingState.eyeOffset[1] = GetVectorForOVRVector(_swapChain->_hmdToEyeViewPose[1].Position);
-		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[0], near, far, ovrProjection_None));
-		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[1], near, far, ovrProjection_None));
-		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.ThePose.Position);
-		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.ThePose.Orientation);
+		float eyeDistance = vrapi_GetInterpupillaryDistance(&_swapChain->_hmdState);
+		_hmdTrackingState.eyeOffset[0] = Vector3(-eyeDistance/2.0f, 0.0f, 0.0f);
+		_hmdTrackingState.eyeOffset[1] = Vector3(eyeDistance/2.0f, 0.0f, 0.0f);
+		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(_swapChain->_hmdState.Eye[0].ProjectionMatrix);//ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[0], near, far, ovrProjection_None));
+		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(_swapChain->_hmdState.Eye[1].ProjectionMatrix);//ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[1], near, far, ovrProjection_None));
 
-		_swapChain->SetProjection(_hmdTrackingState.eyeProjection[0].m[10], _hmdTrackingState.eyeProjection[0].m[14], _hmdTrackingState.eyeProjection[0].m[11]);
+		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.Pose.Position);
+		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.Pose.Orientation);
+
+/*		_swapChain->SetProjection(_hmdTrackingState.eyeProjection[0].m[10], _hmdTrackingState.eyeProjection[0].m[14], _hmdTrackingState.eyeProjection[0].m[11]);
 
 		if(_swapChain->_submitResult == ovrSuccess_NotVisible)
 		{
@@ -181,13 +184,13 @@ namespace RN
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Stick] = inputState.Buttons & ovrButton_RThumb;
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Start] = false;
 		}
-		else
+		else*/
 		{
 			_controllerTrackingState[0].active = false;
 			_controllerTrackingState[0].tracking = false;
 			_controllerTrackingState[1].active = false;
 			_controllerTrackingState[1].tracking = false;
-		}*/
+		}
 	}
 
 	const VRHMDTrackingState &OculusMobileWindow::GetHMDTrackingState() const
