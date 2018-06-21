@@ -9,6 +9,7 @@
 #include "RNOculusMobileVulkanSwapChain.h"
 #include "RNOculusMobileWindow.h"
 #include "VrApi_Helpers.h"
+#include "VrApi_Input.h"
 
 namespace RN
 {
@@ -96,6 +97,8 @@ namespace RN
 
 	void OculusMobileWindow::Update(float delta, float near, float far)
 	{
+		if(!_swapChain->_session) return;
+
 		_swapChain->UpdatePredictedPose();
 
 		float eyeDistance = vrapi_GetInterpupillaryDistance(&_swapChain->_hmdState);
@@ -148,48 +151,55 @@ namespace RN
 		if(sessionStatus.ShouldRecenter)
 		{
 			ovr_RecenterTrackingOrigin(_swapChain->_session); // or ovr_ClearShouldRecenterFlag(_swapChain->_session) to ignore the request.
-		}
+		}*/
 
+		_controllerTrackingState[0].active = false;
+		_controllerTrackingState[0].tracking = false;
+		_controllerTrackingState[1].active = false;
+		_controllerTrackingState[1].tracking = false;
 
-		ovrInputState inputState;
-		if(OVR_SUCCESS(ovr_GetInputState(_swapChain->_session, ovrControllerType_Touch, &inputState)))
+		ovrInputCapabilityHeader capsHeader;
+		if(vrapi_EnumerateInputDevices(_swapChain->_session, 0, &capsHeader) >= 0)
 		{
-			_controllerTrackingState[0].active = (inputState.ControllerType & ovrControllerType_LTouch);
-			_controllerTrackingState[0].tracking = (_swapChain->_hmdState.HandStatusFlags[0] & ovrStatus_PositionTracked);
-			_controllerTrackingState[0].controllerID = 0;
-			_controllerTrackingState[0].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].ThePose.Position);
-			_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[0].ThePose.Orientation);
-			_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
-			_controllerTrackingState[0].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[0]);
-			_controllerTrackingState[0].indexTrigger = inputState.IndexTrigger[0];
-			_controllerTrackingState[0].handTrigger = inputState.HandTrigger[0];
+			if(capsHeader.Type == ovrControllerType_TrackedRemote)
+			{
+				ovrInputTrackedRemoteCapabilities remoteCaps;
+				remoteCaps.Header = capsHeader;
+				if(vrapi_GetInputDeviceCapabilities(_swapChain->_session, &remoteCaps.Header) >= 0)
+				{
+					_controllerTrackingState[0].active = true;
+					_controllerTrackingState[0].tracking = true;
+					_controllerTrackingState[0].controllerID = 0;
 
-			_controllerTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
-			_controllerTrackingState[1].tracking = (_swapChain->_hmdState.HandStatusFlags[1] & ovrStatus_PositionTracked);
-			_controllerTrackingState[1].controllerID = 1;
-			_controllerTrackingState[1].position = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].ThePose.Position);
-			_controllerTrackingState[1].rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HandPoses[1].ThePose.Orientation);
-			_controllerTrackingState[1].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
-			_controllerTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
-			_controllerTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
-			_controllerTrackingState[1].handTrigger = inputState.HandTrigger[1];
+					ovrInputStateTrackedRemote remoteState;
+					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
+					if(vrapi_GetCurrentInputState(_swapChain->_session, remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
+					{
+						_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = false;
+						_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = false;
+						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = remoteState.Buttons & ovrButton_Enter;
+						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
 
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = inputState.Buttons & ovrButton_LThumb;
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = inputState.Buttons & ovrButton_Enter;
+						Vector2 trackpadPosition;
+						if(remoteState.TrackpadStatus > 0)
+						{
+							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
+							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) - trackpadMax / 2.0f) / trackpadMax;
+						}
+						_controllerTrackingState[0].thumbstick = trackpadPosition;
+						_controllerTrackingState[0].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
+						_controllerTrackingState[0].handTrigger = 0.0f;
+					}
 
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_A;
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_B;
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Stick] = inputState.Buttons & ovrButton_RThumb;
-			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Start] = false;
-		}
-		else*/
-		{
-			_controllerTrackingState[0].active = false;
-			_controllerTrackingState[0].tracking = false;
-			_controllerTrackingState[1].active = false;
-			_controllerTrackingState[1].tracking = false;
+					ovrTracking trackingState;
+					if(vrapi_GetInputTrackingState(_swapChain->_session, remoteCaps.Header.DeviceID, _swapChain->_predictedDisplayTime, &trackingState) >= 0)
+					{
+						_controllerTrackingState[0].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
+						_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
+						//_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+					}
+				}
+			}
 		}
 	}
 

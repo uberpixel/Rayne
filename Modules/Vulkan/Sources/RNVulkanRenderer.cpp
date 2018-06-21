@@ -27,7 +27,8 @@ namespace RN
 		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array()),
 		_executedCommandBuffers(new Array()),
-		_currentCommandBuffer(nullptr)
+		_currentCommandBuffer(nullptr),
+		_commandBufferPool(new Array())
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -93,20 +94,20 @@ namespace RN
 
 	VulkanCommandBuffer *VulkanRenderer::GetCommandBuffer()
 	{
-		VulkanCommandBuffer *commandBuffer = new VulkanCommandBuffer(GetVulkanDevice()->GetDevice(), _commandPool);
-		_lock.Lock();
-		commandBuffer->_commandBuffer = CreateVulkanCommandBuffer();
-		_lock.Unlock();
+		VulkanCommandBuffer *commandBuffer = nullptr;
 
-		return commandBuffer->Autorelease();
-	}
-
-	VulkanCommandBufferWithCallback *VulkanRenderer::GetCommandBufferWithCallback()
-	{
-		VulkanCommandBufferWithCallback *commandBuffer = new VulkanCommandBufferWithCallback(GetVulkanDevice()->GetDevice(), _commandPool);
-		_lock.Lock();
-		commandBuffer->_commandBuffer = CreateVulkanCommandBuffer();
-		_lock.Unlock();
+		if(_commandBufferPool->GetCount() == 0)
+		{
+			commandBuffer = new VulkanCommandBuffer(GetVulkanDevice()->GetDevice(), _commandPool);
+			commandBuffer->_commandBuffer = CreateVulkanCommandBuffer();
+		}
+		else
+		{
+			commandBuffer = _commandBufferPool->GetLastObject<VulkanCommandBuffer>();
+			commandBuffer->Retain();
+			_commandBufferPool->RemoveObjectAtIndex(_commandBufferPool->GetCount() - 1);
+			commandBuffer->Reset();
+		}
 
 		return commandBuffer->Autorelease();
 	}
@@ -191,6 +192,7 @@ namespace RN
 			VulkanCommandBuffer *commandBuffer = _executedCommandBuffers->GetObjectAtIndex<VulkanCommandBuffer>(i);
 			if(commandBuffer->_frameValue <= frame)
 			{
+				_commandBufferPool->AddObject(commandBuffer);
 				_executedCommandBuffers->RemoveObjectAtIndex(i);
 			}
 		}
@@ -204,18 +206,22 @@ namespace RN
 				_descriptorHeapPool->AddObject(descriptorHeap);
 				_boundDescriptorHeaps->RemoveObjectAtIndex(i);
 			}
-		}
+		}*/
 
-		//Free other frame resources such as descriptor heaps, that are not in use by the gpu anymore
+		//Free other frame resources such as unused framebuffers and imageviews
 		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
 		{
-			D3D12FrameResource &frameResource = _internals->frameResources[i];
-			if(frameResource.frame <= _completedFenceValue)
+			VulkanFrameResource &frameResource = _internals->frameResources[i];
+			if(frameResource.frame <= frame)
 			{
-				frameResource.resource->Release();
+				if(frameResource.finishedCallback)
+				{
+					frameResource.finishedCallback();
+				}
+
 				_internals->frameResources.erase(_internals->frameResources.begin() + i);
 			}
-		}*/
+		}
 	}
 
 	void VulkanRenderer::Render(Function &&function)
@@ -1392,5 +1398,10 @@ namespace RN
 				}
 			}
 		}*/
+	}
+
+	void VulkanRenderer::AddFrameFinishedCallback(std::function<void()> callback)
+	{
+		_internals->frameResources.push_back({ _currentFrame, callback });
 	}
 }

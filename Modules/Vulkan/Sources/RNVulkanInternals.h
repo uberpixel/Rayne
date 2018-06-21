@@ -97,18 +97,10 @@ namespace RN
 		Vector2 directionalShadowInfo;
 	};
 
-	struct VulkanRendererInternals
+	struct VulkanFrameResource
 	{
-		std::vector<VulkanRenderPass> renderPasses;
-		VulkanStateCoordinator stateCoordinator;
-
-		std::vector<VulkanSwapChain*> swapChains;
-
-		size_t currentRenderPassIndex;
-		size_t currentDrawableResourceIndex;
-		size_t totalDrawableCount;
-
-		size_t totalDescriptorTables;
+		size_t frame;
+		std::function<void()> finishedCallback;
 	};
 
 	class VulkanCommandBuffer : public Object
@@ -119,14 +111,14 @@ namespace RN
 		~VulkanCommandBuffer();
 
 		void Begin();
+		void Reset();
 		void End();
 
 		VkCommandBuffer GetCommandBuffer() const {return _commandBuffer;}
 
-	protected:
+	private:
 		VulkanCommandBuffer(VkDevice device, VkCommandPool pool);
 
-	private:
 		VkCommandBuffer _commandBuffer;
 		VkDevice _device;
 		VkCommandPool _pool;
@@ -135,21 +127,19 @@ namespace RN
 		RNDeclareMetaAPI(VulkanCommandBuffer, VKAPI)
 	};
 
-	class VulkanCommandBufferWithCallback : public VulkanCommandBuffer
+	struct VulkanRendererInternals
 	{
-	public:
-		friend RN::VulkanRenderer;
+		std::vector<VulkanRenderPass> renderPasses;
+		VulkanStateCoordinator stateCoordinator;
 
-		~VulkanCommandBufferWithCallback();
-		void SetFinishedCallback(std::function<void()> callback);
+		std::vector<VulkanSwapChain*> swapChains;
+		std::vector<VulkanFrameResource> frameResources;
 
-	protected:
-		VulkanCommandBufferWithCallback(VkDevice device, VkCommandPool pool);
+		size_t currentRenderPassIndex;
+		size_t currentDrawableResourceIndex;
+		size_t totalDrawableCount;
 
-	private:
-		std::function<void()> _finishedCallback;
-
-		RNDeclareMetaAPI(VulkanCommandBufferWithCallback, VKAPI)
+		size_t totalDescriptorTables;
 	};
 }
 

@@ -394,7 +394,7 @@ namespace RN
 
 		vk::UnmapMemory(device, uploadMemory);
 
-		VulkanCommandBufferWithCallback *commandBuffer = _renderer->GetCommandBufferWithCallback();
+		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 		commandBuffer->Begin();
 		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
 		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BarrierIntent::UploadDestination);
@@ -430,7 +430,7 @@ namespace RN
 		_currentLayout = oldLayout;
 		commandBuffer->End();
 
-		commandBuffer->SetFinishedCallback([this, device, uploadImage, uploadMemory]() {
+		_renderer->AddFrameFinishedCallback([this, device, uploadImage, uploadMemory]() {
 			vk::DestroyImage(device, uploadImage, _renderer->GetAllocatorCallback());
 			vk::FreeMemory(device, uploadMemory, _renderer->GetAllocatorCallback());
 		});

@@ -292,6 +292,15 @@ namespace RN
 		frameBufferCreateInfo.layers = 1;
 
 		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
+
+		_renderer->AddFrameFinishedCallback([this, device, attachments]() {
+			vk::DestroyFramebuffer(device, _frameBuffer, _renderer->GetAllocatorCallback());
+
+			for(VkImageView imageView : attachments)
+			{
+				vk::DestroyImageView(device, imageView, _renderer->GetAllocatorCallback());
+			}
+		});
 	}
 
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const

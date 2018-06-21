@@ -9,6 +9,7 @@
 #include "RNOculusMobileVulkanSwapChain.h"
 #include "RNVulkanInternals.h"
 
+#include <unistd.h>
 #include <sys/prctl.h>					// for prctl( PR_SET_NAME )
 #include <android/log.h>
 #include <android/window.h>				// for AWINDOW_FLAG_KEEP_SCREEN_ON
@@ -18,6 +19,7 @@
 #include "VrApi_Vulkan.h"
 #include "VrApi_Helpers.h"
 #include "VrApi_SystemUtils.h"
+#include "VrApi_Input.h"
 
 namespace RN
 {
@@ -40,6 +42,8 @@ namespace RN
 		_java.Vm = app->activity->vm;
 		_java.Vm->AttachCurrentThread(&_java.Env, NULL);
 		_java.ActivityObject = app->activity->clazz;
+
+		_mainThreadID = gettid();
 
 		// Note that AttachCurrentThread will reset the thread name.
 		prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
@@ -118,7 +122,7 @@ namespace RN
         RNDebug(RNCSTR(name) << blubb);*/
 
 		//Create opengl swap chain with 3 buffers, but only expose the vulkan texture to renderer as swapchain with only 1 buffer
-		_descriptor.bufferCount = 3;
+		_descriptor.bufferCount = 4;
 		_colorSwapChain = vrapi_CreateTextureSwapChain(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
 
@@ -197,8 +201,10 @@ namespace RN
     			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
     			if(_session)
     			{
+    				//vrapi_SetDisplayRefreshRate(_session, 72.0f);
+    				vrapi_SetRemoteEmulation(_session, false);
     				vrapi_SetClockLevels(_session, 5, 5);
- //   				vrapi_SetPerfThread(app->Ovr, VRAPI_PERF_THREAD_TYPE_MAIN, app->MainThreadTid);
+					vrapi_SetPerfThread(_session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
 //    				vrapi_SetPerfThread(app->Ovr, VRAPI_PERF_THREAD_TYPE_RENDERER, app->RenderThreadTid);
     			}
     		}
@@ -259,12 +265,12 @@ namespace RN
 				gameLayer.Textures[eye].ColorSwapChain = _colorSwapChain;
 				gameLayer.Textures[eye].SwapChainIndex = _semaphoreIndex;
 				gameLayer.Textures[eye].TexCoordsFromTanAngles = GetTanAngleMatrixForEye(eye);
-/*				gameLayer.Textures[eye].TextureRect.x = (eye * (_eyeRenderSize.x + kEyePadding))/_size.x;
+				gameLayer.Textures[eye].TextureRect.x = (eye * (_eyeRenderSize.x + kEyePadding))/_size.x;
 				gameLayer.Textures[eye].TextureRect.y = 0.0f;
 				gameLayer.Textures[eye].TextureRect.width = _eyeRenderSize.x/_size.x;
-				gameLayer.Textures[eye].TextureRect.height = 1.0f;*/
+				gameLayer.Textures[eye].TextureRect.height = 1.0f;
 			}
-			//gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
+			gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
 
 			const ovrLayerHeader2 * layers[] = { &gameLayer.Header };
 

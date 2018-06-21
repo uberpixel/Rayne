@@ -12,7 +12,6 @@
 namespace RN
 {
 	RNDefineMeta(VulkanCommandBuffer, Object)
-	RNDefineMeta(VulkanCommandBufferWithCallback, VulkanCommandBuffer)
 
 	VulkanCommandBuffer::VulkanCommandBuffer(VkDevice device, VkCommandPool pool) : _device(device), _pool(pool)
 	{
@@ -33,23 +32,13 @@ namespace RN
 		RNVulkanValidate(vk::BeginCommandBuffer(_commandBuffer, &cmdBufInfo));
 	}
 
+	void VulkanCommandBuffer::Reset()
+	{
+		RNVulkanValidate(vk::ResetCommandBuffer(_commandBuffer, 0));
+	}
+
 	void VulkanCommandBuffer::End()
 	{
 		RNVulkanValidate(vk::EndCommandBuffer(_commandBuffer));
-	}
-
-	VulkanCommandBufferWithCallback::VulkanCommandBufferWithCallback(VkDevice device, VkCommandPool pool) : VulkanCommandBuffer(device, pool)
-	{
-
-	}
-
-	VulkanCommandBufferWithCallback::~VulkanCommandBufferWithCallback()
-	{
-		_finishedCallback();
-	}
-
-	void VulkanCommandBufferWithCallback::SetFinishedCallback(std::function<void()> callback)
-	{
-		_finishedCallback = callback;
 	}
 }

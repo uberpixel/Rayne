@@ -47,6 +47,7 @@ namespace RN
 
 		void UpdateVRMode();
 
+		int _mainThreadID;
 		ovrJava _java;
 		ovrTextureSwapChain *_colorSwapChain;
 		ovrMobile *_session;

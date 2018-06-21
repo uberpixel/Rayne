@@ -79,6 +79,8 @@ namespace RN
 		VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
 		void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
+		void AddFrameFinishedCallback(std::function<void()> callback);
+
 	private:
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
 		void FillUniformBuffer(uint8 *buffer, VulkanDrawable *drawable, Shader *shader, size_t &offset);
@@ -109,6 +111,7 @@ namespace RN
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;
 		Array *_executedCommandBuffers;
+		Array *_commandBufferPool;
 
 		std::vector<VkFence> _frameFences;
 		std::vector<uint32> _frameFenceValues;
