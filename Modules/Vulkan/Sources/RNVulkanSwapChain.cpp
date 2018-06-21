@@ -52,7 +52,6 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		_surface(VK_NULL_HANDLE),
 		_swapchain(VK_NULL_HANDLE),
 		_framebuffer(nullptr)
-		//_fenceValues(nullptr)
 	{
 		_device = _renderer->GetVulkanDevice()->GetDevice();
 
@@ -74,8 +73,6 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 
 	VulkanSwapChain::~VulkanSwapChain()
 	{
-		//delete[] _fenceValues;
-
 		SafeRelease(_framebuffer);
 	}
 

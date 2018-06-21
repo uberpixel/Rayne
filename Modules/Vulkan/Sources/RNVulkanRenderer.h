@@ -24,6 +24,8 @@ namespace RN
 	class VulkanCommandBufferWithCallback;
 	class VulkanFramebuffer;
 	class VulkanStateCoordinator;
+	class VulkanConstantBufferPool;
+	class VulkanConstantBufferReference;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -75,15 +77,16 @@ namespace RN
 		VkQueue GetWorkQueue() const { return _workQueue; }
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
 
-		VulkanCommandBuffer *GetCommandBuffer();
-		VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
-		void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
+		VKAPI VulkanCommandBuffer *GetCommandBuffer();
+		VKAPI VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
+		VKAPI void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
-		void AddFrameFinishedCallback(std::function<void()> callback);
+		VKAPI void AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset = 0);
+		VKAPI VulkanConstantBufferReference *GetConstantBufferReference(size_t size, size_t index);
 
 	private:
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
-		void FillUniformBuffer(uint8 *buffer, VulkanDrawable *drawable, Shader *shader, size_t &offset);
+		void FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader);
 
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
@@ -112,6 +115,8 @@ namespace RN
 		Array *_submittedCommandBuffers;
 		Array *_executedCommandBuffers;
 		Array *_commandBufferPool;
+
+		VulkanConstantBufferPool *_constantBufferPool;
 
 		std::vector<VkFence> _frameFences;
 		std::vector<uint32> _frameFenceValues;

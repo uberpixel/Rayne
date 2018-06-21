@@ -507,22 +507,24 @@ namespace RN
 
 	VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState)
 	{
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		VulkanConstantBuffer *vertexBuffer = nullptr;
-		VulkanConstantBuffer *fragmentBuffer = nullptr;
+		VulkanConstantBufferReference *vertexBuffer = nullptr;
+		VulkanConstantBufferReference *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = new VulkanConstantBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
+			vertexBuffer = renderer->GetConstantBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 0);
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = new VulkanConstantBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
+			fragmentBuffer = renderer->GetConstantBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 0);
 		}
 
 		VulkanUniformState *state = new VulkanUniformState();
-		state->vertexConstantBuffer = vertexBuffer;
-		state->fragmentConstantBuffer = fragmentBuffer;
+		state->vertexConstantBuffer = SafeRetain(vertexBuffer);
+		state->fragmentConstantBuffer = SafeRetain(fragmentBuffer);
 
 		return state;
 	}

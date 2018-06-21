@@ -12,29 +12,70 @@
 #include "RNVulkan.h"
 #include "RNVulkanStateCoordinator.h"
 
+#define kRNMinimumConstantBufferSize 1*1000*1000
+#define kRNConstantBufferAlignement 256
+
 namespace RN
 {
 	class Renderer;
 	class GPUBuffer;
+	class VulkanConstantBufferPool;
 
 	class VulkanConstantBuffer : public Object
 	{
 	public:
-		VulkanConstantBuffer(size_t size);
+		friend VulkanConstantBufferPool;
+
+		VulkanConstantBuffer(Renderer *renderer, size_t size);
 		~VulkanConstantBuffer();
 
-		GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
-		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
+		VKAPI GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
+		VKAPI GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
-		size_t GetCurrentBufferIndex() const { return _bufferIndex; }
+		VKAPI size_t Allocate(size_t size);
+		VKAPI void Free(size_t offset, size_t size);
 
 	private:
 		std::vector<GPUBuffer*> _buffers;
 		std::vector<size_t> _bufferFrames;
 		size_t _bufferIndex;
-		size_t _size;
+
+		size_t _sizeUsed;
+		size_t _offsetToFreeData;
+		size_t _totalSize;
 
 		RNDeclareMetaAPI(VulkanConstantBuffer, VKAPI)
+	};
+
+	class VulkanConstantBufferReference : public Object
+	{
+	public:
+		VulkanConstantBufferReference();
+		~VulkanConstantBufferReference();
+
+		uint32 shaderResourceIndex;
+		uint32 offset;
+		uint32 size;
+		VulkanConstantBuffer *constantBuffer;
+
+	private:
+
+	RNDeclareMetaAPI(VulkanConstantBufferReference, VKAPI)
+	};
+
+
+	class VulkanConstantBufferPool
+	{
+	public:
+		VulkanConstantBufferPool();
+		~VulkanConstantBufferPool();
+		VulkanConstantBufferReference *GetConstantBufferReference(uint32 size, uint32 index);
+		void Update(Renderer *renderer, size_t currentFrame, size_t completedFrame);
+		void InvalidateAllBuffers();
+
+	private:
+		Array *_constantBuffers;
+		Array *_newReferences;
 	};
 }
 

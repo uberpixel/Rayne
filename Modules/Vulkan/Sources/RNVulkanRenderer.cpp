@@ -60,11 +60,13 @@ namespace RN
 		RNVulkanValidate(vk::CreateDescriptorPool(device->GetDevice(), &descriptorPoolInfo, GetAllocatorCallback(), &_descriptorPool));
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"));
+		_constantBufferPool = new VulkanConstantBufferPool();
 	}
 
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
+		delete _constantBufferPool;
 	}
 
 	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer)
@@ -268,6 +270,8 @@ namespace RN
 		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
 
+		_constantBufferPool->Update(this, _currentFrame, _completedFrame);
+
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
 			swapChain->AcquireBackBuffer();
@@ -330,6 +334,8 @@ namespace RN
 			}
 		}
 
+		_constantBufferPool->InvalidateAllBuffers();
+
 		//Prepare command buffer submission
 		std::vector<VkSemaphore> presentSemaphores;
 		std::vector<VkSemaphore> renderSemaphores;
@@ -378,8 +384,6 @@ namespace RN
 		{
 			swapChain->PresentBackBuffer(_workQueue);
 		}
-
-		vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
 
 		_currentFrame ++;
 	}
@@ -758,6 +762,11 @@ namespace RN
 		return (new VulkanGPUBuffer(this, data, length, usageOptions));
 	}
 
+	VulkanConstantBufferReference *VulkanRenderer::GetConstantBufferReference(size_t size, size_t index)
+	{
+		_constantBufferPool->GetConstantBufferReference(size, index);
+	}
+
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file)
 	{
 		return new VulkanShaderLibrary(file);
@@ -832,16 +841,16 @@ namespace RN
 		return new VulkanFramebuffer(size, this);
 	}
 
-	void VulkanRenderer::FillUniformBuffer(uint8 *buffer, VulkanDrawable *drawable, Shader *shader, size_t &offset)
+	void VulkanRenderer::FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader)
 	{
+		GPUBuffer *gpuBuffer = constantBufferReference->constantBuffer->GetActiveBuffer();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + constantBufferReference->offset;
+
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		buffer += offset;
-
 		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
-			offset = descriptor->GetOffset() + descriptor->GetSize();
 
 			switch(descriptor->GetIdentifier())
 			{
@@ -1095,7 +1104,19 @@ namespace RN
 			RNVulkanValidate(vk::AllocateDescriptorSets(GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet));
 		}
 
+		// Push into the queue
+		_lock.Lock();
+		renderPass.drawables.push_back(drawable);
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
+		_lock.Unlock();
+	}
+
+	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
+	{
 		const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
+		const VulkanRootSignature *rootSignature = pipelineState->rootSignature;
+
 		VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet;
 
 		VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
@@ -1104,16 +1125,13 @@ namespace RN
 		size_t binding = 0;
 		if(uniformState->vertexConstantBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->vertexConstantBuffer->Advance(_currentFrame, _completedFrame);
-			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.vertexShader, offset);
-			gpuBuffer->Invalidate();
+			FillUniformBuffer(uniformState->vertexConstantBuffer, drawable, pipelineState->descriptor.vertexShader);
 
+			GPUBuffer *gpuBuffer = uniformState->vertexConstantBuffer->constantBuffer->GetActiveBuffer();
 			VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 			constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
-			constantBufferDescriptorInfo.offset = 0;
-			constantBufferDescriptorInfo.range = gpuBuffer->GetLength();
+			constantBufferDescriptorInfo.offset = uniformState->vertexConstantBuffer->offset;
+			constantBufferDescriptorInfo.range = uniformState->vertexConstantBuffer->size;
 			constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 			VkWriteDescriptorSet writeConstantDescriptorSet = {};
@@ -1126,18 +1144,15 @@ namespace RN
 			writeConstantDescriptorSet.descriptorCount = 1;
 			writeDescriptorSets.push_back(writeConstantDescriptorSet);
 		}
-		if (uniformState->fragmentConstantBuffer)
+		if(uniformState->fragmentConstantBuffer)
 		{
-			GPUBuffer *gpuBuffer = uniformState->fragmentConstantBuffer->Advance(_currentFrame, _completedFrame);
-			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.fragmentShader, offset);
-			gpuBuffer->Invalidate();
+			FillUniformBuffer(uniformState->fragmentConstantBuffer, drawable, pipelineState->descriptor.fragmentShader);
 
+			GPUBuffer *gpuBuffer = uniformState->fragmentConstantBuffer->constantBuffer->GetActiveBuffer();
 			VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 			constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
-			constantBufferDescriptorInfo.offset = 0;
-			constantBufferDescriptorInfo.range = gpuBuffer->GetLength();
+			constantBufferDescriptorInfo.offset = uniformState->fragmentConstantBuffer->offset;
+			constantBufferDescriptorInfo.range = uniformState->fragmentConstantBuffer->size;
 			constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 			VkWriteDescriptorSet writeConstantDescriptorSet = {};
@@ -1154,8 +1169,8 @@ namespace RN
 		binding += pipelineState->rootSignature->samplers->GetCount();
 
 		std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
-		imageBufferDescriptorInfoArray.reserve(material->GetTextures()->GetCount());
-		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
+		imageBufferDescriptorInfoArray.reserve(drawable->material->GetTextures()->GetCount());
+		drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 			VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 			imageBufferDescriptorInfo.imageView = texture->_imageView;
 			imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1177,18 +1192,7 @@ namespace RN
 
 		vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 
-		// Push into the queue
-		_lock.Lock();
-		renderPass.drawables.push_back(drawable);
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
-		_lock.Unlock();
-	}
 
-	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)
-	{
-		const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
-		const VulkanRootSignature *rootSignature = pipelineState->rootSignature;
 
 		vk::CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rootSignature->pipelineLayout, 0, 1, &drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet, 0, NULL);
 		vk::CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineState->state);
@@ -1400,8 +1404,8 @@ namespace RN
 		}*/
 	}
 
-	void VulkanRenderer::AddFrameFinishedCallback(std::function<void()> callback)
+	void VulkanRenderer::AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset)
 	{
-		_internals->frameResources.push_back({ _currentFrame, callback });
+		_internals->frameResources.push_back({ _currentFrame + frameOffset, callback });
 	}
 }

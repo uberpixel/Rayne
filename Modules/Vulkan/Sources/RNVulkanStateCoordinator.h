@@ -16,12 +16,12 @@ namespace RN
 	RNExceptionType(VulkanStructArgumentUnsupported)
 
 	class VulkanFramebuffer;
-	class VulkanConstantBuffer;
+	class VulkanConstantBufferReference;
 
 	struct VulkanUniformState
 	{
-		VulkanConstantBuffer *vertexConstantBuffer;
-		VulkanConstantBuffer *fragmentConstantBuffer;
+		VulkanConstantBufferReference *vertexConstantBuffer;
+		VulkanConstantBufferReference *fragmentConstantBuffer;
 
 		VkDescriptorSet descriptorSet;
 	};

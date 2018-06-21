@@ -58,7 +58,7 @@
 #define RN_PLATFORM_POSIX ${RAYNE_PLATFORM_POSIX}
 #define RN_PLATFORM_ANDROID ${RAYNE_PLATFORM_ANDROID}
 
-#if (defined(_M_ARM) || defined(__arm__) || defined(__aarch64__))
+#if (defined(_M_ARM) || defined(__arm__) || defined(__aarch64__))
 	#define RN_PLATFORM_INTEL 0
 	#define RN_PLATFORM_ARM 1
 #else
@@ -66,7 +66,7 @@
 	#define RN_PLATFORM_ARM 0
 #endif
 
-#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__))
+#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__))
 #define RN_PLATFORM_32BIT 0
 #define RN_PLATFORM_64BIT 1
 #else
