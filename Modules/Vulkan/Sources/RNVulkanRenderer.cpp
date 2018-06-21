@@ -35,7 +35,7 @@ namespace RN
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		cmdPoolInfo.queueFamilyIndex = device->GetWorkQueue();
-		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;//VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
 
 		//Create descriptor pool
@@ -389,6 +389,8 @@ namespace RN
 
 		// Update dynamic viewport state
 		VkViewport viewport = {};
+		viewport.x = cameraRect.x;
+		viewport.y = cameraRect.y;
 		viewport.width = cameraRect.width;
 		viewport.height = cameraRect.height;
 		viewport.minDepth = 0.0f;
@@ -400,8 +402,8 @@ namespace RN
 		VkRect2D scissor = {};
 		scissor.extent.width = static_cast<uint32_t>(cameraRect.width);
 		scissor.extent.height = static_cast<uint32_t>(cameraRect.height);
-		scissor.offset.x = 0;
-		scissor.offset.y = 0;
+		scissor.offset.x = cameraRect.x;
+		scissor.offset.y = cameraRect.y;
 
 		vk::CmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
@@ -433,6 +435,8 @@ namespace RN
 		renderPass.directionalShadowDepthTexture = nullptr;
 
 		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
+		if(!framebuffer) return;
+
 		VulkanSwapChain *newSwapChain = nullptr;
 		newSwapChain = framebuffer->Downcast<VulkanFramebuffer>()->GetSwapChain();
 		renderPass.framebuffer = framebuffer->Downcast<VulkanFramebuffer>();

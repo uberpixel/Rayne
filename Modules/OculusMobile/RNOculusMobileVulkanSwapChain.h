@@ -15,11 +15,6 @@
 
 #include "VrApi.h"
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
-
 #include "RNOculusMobile.h"
 
 namespace RN
@@ -50,33 +45,17 @@ namespace RN
 
 		void CreateSharedVulkanImage();
 
-		void CreateEGLContext();
-		void DestroyEGLContext();
-
-		void CreateGLESFramebuffer();
-		void DestroyGLESFramebuffer();
-
 		void UpdateVRMode();
 
 		ovrJava _java;
 		ovrTextureSwapChain *_colorSwapChain;
 		ovrMobile *_session;
-		uint32 _swapChainBufferCount;
 		uint32 _actualFrameIndex;
 		double _predictedDisplayTime;
 		ovrTracking2 _hmdState;
 		Vector2 _eyeRenderSize;
 
 		ANativeWindow *_nativeWindow;
-		EGLDisplay _eglDisplay;
-		EGLConfig _eglConfig;
-		EGLSurface _eglTinySurface;
-		EGLContext _eglContext;
-
-		GLuint *_glesFramebuffers;
-		GLuint _glTexture;
-
-		VkImage _vulkanTexture;
 
 		static const uint32 kEyePadding;
 

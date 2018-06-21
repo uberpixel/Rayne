@@ -586,7 +586,7 @@ namespace RN
 			attachment.format = targetView->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
-			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -612,7 +612,7 @@ namespace RN
 				}
 				attachment.flags = 0;
 				attachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
-				attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

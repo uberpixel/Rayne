@@ -19,7 +19,8 @@ namespace RN
 		_head(new SceneNode()),
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount),
-		_eye{nullptr, nullptr}
+		_eye{nullptr, nullptr},
+		_hasPostprocessingPipeline(false)
 	{
 		AddChild(_head);
 		SetupCameras();
@@ -95,13 +96,17 @@ namespace RN
 
 	void VRCamera::CreatePostprocessingPipeline()
 	{
+		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
+		RN_ASSERT(resolvedFramebuffer, "The VRWindow has no framebuffer!");
+
+		_hasPostprocessingPipeline = true;
+
 		Vector2 windowSize = _window->GetSize();
 
 		//TODO: Maybe handle different resolutions per eye
 		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 
 		Framebuffer *msaaFramebuffer = nullptr;
-		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
 		PostProcessingAPIStage *resolvePass = nullptr;
 		
 		Texture::Format colorFormat = _window->GetSwapChainDescriptor().colorFormat;
@@ -166,8 +171,7 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
-		if(!_eye[0] || !_eye[1])
-			return;
+		if(!_eye[0] || !_eye[1]) return;
 		
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
