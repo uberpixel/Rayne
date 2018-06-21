@@ -270,7 +270,9 @@ namespace RN
 		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
 
+		_lock.Lock();
 		_constantBufferPool->Update(this, _currentFrame, _completedFrame);
+		_lock.Unlock();
 
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
@@ -764,7 +766,8 @@ namespace RN
 
 	VulkanConstantBufferReference *VulkanRenderer::GetConstantBufferReference(size_t size, size_t index)
 	{
-		_constantBufferPool->GetConstantBufferReference(size, index);
+		VulkanConstantBufferReference *reference = _constantBufferPool->GetConstantBufferReference(size, index);
+		return reference;
 	}
 
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file)

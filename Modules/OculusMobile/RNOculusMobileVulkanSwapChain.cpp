@@ -121,7 +121,13 @@ namespace RN
         vrapi_GetInstanceExtensionsVulkan(name, &blubb);
         RNDebug(RNCSTR(name) << blubb);*/
 
-		//Create opengl swap chain with 3 buffers, but only expose the vulkan texture to renderer as swapchain with only 1 buffer
+		int hasFoveation = 0;
+		vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
+        if(hasFoveation == VRAPI_TRUE)
+        {
+			vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 3);
+        }
+
 		_descriptor.bufferCount = 4;
 		_colorSwapChain = vrapi_CreateTextureSwapChain(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
@@ -270,7 +276,7 @@ namespace RN
 				gameLayer.Textures[eye].TextureRect.width = _eyeRenderSize.x/_size.x;
 				gameLayer.Textures[eye].TextureRect.height = 1.0f;
 			}
-			gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
+			//gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
 
 			const ovrLayerHeader2 * layers[] = { &gameLayer.Header };
 
