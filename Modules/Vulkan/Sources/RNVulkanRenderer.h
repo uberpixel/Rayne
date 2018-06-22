@@ -76,6 +76,7 @@ namespace RN
 
 		VkQueue GetWorkQueue() const { return _workQueue; }
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
+		VkDescriptorPool GetDescriptorPool() const { return _descriptorPool; }
 
 		VKAPI VulkanCommandBuffer *GetCommandBuffer();
 		VKAPI VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
@@ -85,6 +86,7 @@ namespace RN
 		VKAPI VulkanConstantBufferReference *GetConstantBufferReference(size_t size, size_t index);
 
 	private:
+		void UpdateDescriptorSets();
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
 		void FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader);
 

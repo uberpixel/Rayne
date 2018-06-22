@@ -293,8 +293,9 @@ namespace RN
 
 		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
 
-		_renderer->AddFrameFinishedCallback([this, device, attachments]() {
-			vk::DestroyFramebuffer(device, _frameBuffer, _renderer->GetAllocatorCallback());
+		VkFramebuffer framebuffer = _frameBuffer;
+		_renderer->AddFrameFinishedCallback([this, device, attachments, framebuffer]() {
+			vk::DestroyFramebuffer(device, framebuffer, _renderer->GetAllocatorCallback());
 
 			for(VkImageView imageView : attachments)
 			{

@@ -128,7 +128,7 @@ namespace RN
 			vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 3);
         }
 
-		_descriptor.bufferCount = 4;
+		_descriptor.bufferCount = 3;
 		_colorSwapChain = vrapi_CreateTextureSwapChain(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
 

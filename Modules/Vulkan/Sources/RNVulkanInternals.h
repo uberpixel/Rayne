@@ -16,6 +16,110 @@
 
 namespace RN
 {
+	class BufferedDescriptorSet
+	{
+		public:
+			BufferedDescriptorSet() : _layout(VK_NULL_HANDLE), _currentIndex(0), _resetFrame(0)
+			{
+
+			}
+
+			~BufferedDescriptorSet()
+			{
+				VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+                vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), _descriptorSets.size(), _descriptorSets.data());
+			}
+
+			void UpdateLayout(VkDescriptorSetLayout layout, size_t currentFrame)
+			{
+				_layout = layout;
+				_resetFrame = currentFrame;
+			}
+
+			void Advance(size_t currentFrame, size_t completedFrame)
+			{
+				if(_descriptorSets.size() == 0)
+				{
+					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+					VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+					descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+					descriptorSetAllocateInfo.pNext = NULL;
+					descriptorSetAllocateInfo.descriptorPool = renderer->GetDescriptorPool();
+					descriptorSetAllocateInfo.pSetLayouts = &_layout;
+					descriptorSetAllocateInfo.descriptorSetCount = 1;
+
+					VkDescriptorSet descriptorSet;
+					RNVulkanValidate(vk::AllocateDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &descriptorSet));
+
+					_descriptorSets.push_back(descriptorSet);
+					_usedFrames.push_back(currentFrame);
+				}
+
+				_currentIndex = (_currentIndex + 1) % _descriptorSets.size();
+
+				if(_usedFrames[_currentIndex] <= completedFrame && _usedFrames[_currentIndex] <= _resetFrame)
+				{
+					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+					vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), 1, &_descriptorSets[_currentIndex]);
+
+					VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+					descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+					descriptorSetAllocateInfo.pNext = NULL;
+					descriptorSetAllocateInfo.descriptorPool = renderer->GetDescriptorPool();
+					descriptorSetAllocateInfo.pSetLayouts = &_layout;
+					descriptorSetAllocateInfo.descriptorSetCount = 1;
+
+					VkDescriptorSet descriptorSet;
+					RNVulkanValidate(vk::AllocateDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &_descriptorSets[_currentIndex]));
+				}
+
+				if(_usedFrames[_currentIndex] > completedFrame)
+				{
+					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+					VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+					descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+					descriptorSetAllocateInfo.pNext = NULL;
+					descriptorSetAllocateInfo.descriptorPool = renderer->GetDescriptorPool();
+					descriptorSetAllocateInfo.pSetLayouts = &_layout;
+					descriptorSetAllocateInfo.descriptorSetCount = 1;
+
+					VkDescriptorSet descriptorSet;
+					RNVulkanValidate(vk::AllocateDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &descriptorSet));
+
+					_currentIndex += 1;
+					if(_currentIndex >= _descriptorSets.size())
+					{
+						_descriptorSets.push_back(descriptorSet);
+						_usedFrames.push_back(currentFrame);
+					}
+					else
+					{
+						_descriptorSets.insert(_descriptorSets.begin() + _currentIndex, descriptorSet);
+						_usedFrames.insert(_usedFrames.begin() + _currentIndex, currentFrame);
+					}
+				}
+				else
+				{
+					_usedFrames[_currentIndex] = currentFrame;
+				}
+			}
+
+			VkDescriptorSet GetActiveDescriptorSet()
+			{
+				return _descriptorSets[_currentIndex];
+			}
+
+		private:
+			VkDescriptorSetLayout _layout;
+
+			size_t _currentIndex;
+			size_t _resetFrame;
+			std::vector<VkDescriptorSet> _descriptorSets;
+			std::vector<size_t> _usedFrames;
+	};
+
 	struct VulkanDrawable : public Drawable
 	{
 		struct CameraSpecific
@@ -23,7 +127,7 @@ namespace RN
 			const VulkanPipelineState *pipelineState;
 			VulkanUniformState *uniformState; //TODO: Check if needs to be deleted when done
 			bool dirty;
-			VkDescriptorSet descriptorSet;
+			BufferedDescriptorSet *descriptorSet;
 		};
 
 		~VulkanDrawable(){}

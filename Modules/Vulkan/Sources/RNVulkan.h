@@ -24,13 +24,12 @@ namespace RN
 	void VulkanErrorBreak(VkResult result);
 }
 
-#define kRNVulkanRenderStages 3
-
 #define RNVulkanValidate(expression) \
     do { \
         VkResult _result = (expression); \
         if(_result != VK_SUCCESS) \
         { \
+        	RNDebug(RNCSTR("blubb")); \
             RN::VulkanErrorBreak(_result); \
         } \
     } while(0)
