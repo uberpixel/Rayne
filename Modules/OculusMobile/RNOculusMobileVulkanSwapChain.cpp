@@ -121,25 +121,14 @@ namespace RN
         vrapi_GetInstanceExtensionsVulkan(name, &blubb);
         RNDebug(RNCSTR(name) << blubb);*/
 
-		int hasFoveation = 0;
-		vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
-        if(hasFoveation == VRAPI_TRUE)
-        {
-			vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 3);
-        }
-
 		_descriptor.bufferCount = 3;
 		_colorSwapChain = vrapi_CreateTextureSwapChain(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
 
-		VkSemaphoreCreateInfo semaphoreInfo = {};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		for(size_t i = 0; i < _descriptor.bufferCount; i++)
 		{
-			VkSemaphore presentSemaphore;
-			VkSemaphore renderSemaphore;
-			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &presentSemaphore));
-			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &renderSemaphore));
+			VkSemaphore presentSemaphore = VK_NULL_HANDLE;
+			VkSemaphore renderSemaphore = VK_NULL_HANDLE;
 			_presentSemaphores.push_back(presentSemaphore);
 			_renderSemaphores.push_back(renderSemaphore);
 		}
@@ -209,9 +198,19 @@ namespace RN
     			{
     				//vrapi_SetDisplayRefreshRate(_session, 72.0f);
     				vrapi_SetRemoteEmulation(_session, false);
-    				vrapi_SetClockLevels(_session, 5, 5);
+    				vrapi_SetClockLevels(_session, 4, 4);
 					vrapi_SetPerfThread(_session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
 //    				vrapi_SetPerfThread(app->Ovr, VRAPI_PERF_THREAD_TYPE_RENDERER, app->RenderThreadTid);
+
+					//vrapi_SetExtraLatencyMode(_session, VRAPI_EXTRA_LATENCY_MODE_ON);
+
+					int hasFoveation = 0;
+					vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
+					if(hasFoveation == VRAPI_TRUE)
+					{
+						RNDebug(RNCSTR("Enable Foveated Rendering"));
+						vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 3);
+					}
     			}
     		}
     	}
@@ -228,24 +227,8 @@ namespace RN
 
 	void OculusMobileVulkanSwapChain::AcquireBackBuffer()
 	{
-		_semaphoreIndex += 1;
-		_semaphoreIndex %= _descriptor.bufferCount;
-
-		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-        VkSubmitInfo submitInfo = {};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 0;
-        submitInfo.pCommandBuffers = nullptr;
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.pWaitSemaphores = nullptr;
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &_presentSemaphores[_semaphoreIndex];
-        submitInfo.pWaitDstStageMask = &pipelineStageFlags;
-        RNVulkanValidate(vk::QueueSubmit(_renderer->GetWorkQueue(), 1, &submitInfo, nullptr));
-
 		if(!_session) return;
 
-		_actualFrameIndex++;
 		_predictedDisplayTime = vrapi_GetPredictedDisplayTime(_session, _actualFrameIndex);
 	}
 
@@ -287,21 +270,18 @@ namespace RN
 			frameDescription.DisplayTime = _predictedDisplayTime;
 			frameDescription.LayerCount = 1;
 			frameDescription.Layers = layers;
+
+			vk::DeviceWaitIdle(_device);
 			ovrResult result = vrapi_SubmitFrame2(_session, &frameDescription);
+			vk::DeviceWaitIdle(_device);
+
+			//RNDebug(RNCSTR("Frame Submitted"));
+
+			_semaphoreIndex += 1;
+            _semaphoreIndex %= _descriptor.bufferCount;
+
+            _actualFrameIndex++;
 		}
-
-
-		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 0;
-		submitInfo.pCommandBuffers = nullptr;
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &_renderSemaphores[_semaphoreIndex];
-		submitInfo.signalSemaphoreCount = 0;
-		submitInfo.pSignalSemaphores = nullptr;
-		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
-		RNVulkanValidate(vk::QueueSubmit(queue, 1, &submitInfo, nullptr));
 	}
 
     VkImage OculusMobileVulkanSwapChain::GetVulkanColorBuffer(int i) const

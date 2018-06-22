@@ -32,9 +32,6 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		_requiredExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-		//_requiredExtensions.push_back("VK_KHR_get_physical_device_properties2");
-		//_requiredExtensions.push_back("VK_KHR_external_memory_capabilities");
-		//_requiredDeviceExtensions.push_back("VK_KHR_external_memory"); //TODO: allow to request extensions from application? This one is usually not gonna be needed...
 		_requiredDeviceExtensions.push_back("VK_KHR_external_memory_fd");
 #endif
 

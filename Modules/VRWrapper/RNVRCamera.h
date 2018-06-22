@@ -48,8 +48,6 @@ namespace RN
 		RenderPass *_previewRenderPass;
 		uint8 _msaaSampleCount;
 
-		bool _hasPostprocessingPipeline;
-
 		RNDeclareMetaAPI(VRCamera, RNVRAPI)
 	};
 }

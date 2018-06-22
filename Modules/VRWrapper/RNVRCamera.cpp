@@ -14,13 +14,12 @@ namespace RN
 	RNDefineMeta(VRCamera, SceneNode)
 
 		VRCamera::VRCamera(VRWindow *window, RenderPass *previewRenderPass, uint8 msaaSampleCount, Window *debugWindow) :
-		_window(window->Retain()),
-		_debugWindow(debugWindow?debugWindow->Retain():nullptr),
+		_window(window? window->Retain() : nullptr),
+		_debugWindow(debugWindow? debugWindow->Retain() : nullptr),
 		_head(new SceneNode()),
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount),
-		_eye{nullptr, nullptr},
-		_hasPostprocessingPipeline(false)
+		_eye{nullptr, nullptr}
 	{
 		AddChild(_head);
 		SetupCameras();
@@ -40,19 +39,25 @@ namespace RN
 	
 	void VRCamera::SetupCameras()
 	{
-		if(!_window->IsRendering() && !_debugWindow)
-			return;
+		if(!_window && !_debugWindow) return;
+
+		if(_window && !_window->IsRendering()) return;
 		
-		Vector2 windowSize = _window->GetSize();
+		Vector2 windowSize;
+		float eyePadding = 0.0f;
+
+		if(_window)
+		{
+			windowSize = _window->GetSize();
+			eyePadding = _window->GetEyePadding();
+		}
+
 		if(_debugWindow)
 		{
 			windowSize = _debugWindow->GetSize();
 			_debugWindow->SetTitle(RNCSTR("VR Debug Window"));
 			_debugWindow->Show();
 		}
-		
-		//TODO: Maybe handle different resolutions per eye
-		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
 		
 		for(int i = 0; i < 2; i++)
 		{
@@ -62,23 +67,29 @@ namespace RN
 			_hiddenAreaEntity[i] = nullptr;
 			
 #if !RN_PLATFORM_WINDOWS
-			Mesh *hiddenAreaMesh = _window->GetHiddenAreaMesh(i);
-			if(hiddenAreaMesh)
+			if(_window)
 			{
-				ShaderLibrary *shaderLibrary = RN::Renderer::GetActiveRenderer()->GetDefaultShaderLibrary();
-				Material *hiddenAreaMaterial = Material::WithShaders(shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_vertex"), Shader::Options::WithMesh(hiddenAreaMesh)), shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_fragment")));
-				hiddenAreaMaterial->SetCullMode(CullMode::None);
-				hiddenAreaMaterial->SetColorWriteMask(false, false, false, false);
-				
-				Model *hiddenAreaModel = new Model(hiddenAreaMesh, hiddenAreaMaterial);
-				_hiddenAreaEntity[i] = new Entity(hiddenAreaModel->Autorelease());
-				_hiddenAreaEntity[i]->SetPriority(RN::SceneNode::Priority::UpdateEarly);
-				_hiddenAreaEntity[i]->SetRenderGroup((1 << (1 + i)));
-				
-				_eye[i]->AddChild(_hiddenAreaEntity[i]);
+				Mesh *hiddenAreaMesh = _window->GetHiddenAreaMesh(i);
+				if(hiddenAreaMesh)
+				{
+					ShaderLibrary *shaderLibrary = RN::Renderer::GetActiveRenderer()->GetDefaultShaderLibrary();
+					Material *hiddenAreaMaterial = Material::WithShaders(shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_vertex"), Shader::Options::WithMesh(hiddenAreaMesh)), shaderLibrary->GetShaderWithName(RNCSTR("pp_mask_fragment")));
+					hiddenAreaMaterial->SetCullMode(CullMode::None);
+					hiddenAreaMaterial->SetColorWriteMask(false, false, false, false);
+
+					Model *hiddenAreaModel = new Model(hiddenAreaMesh, hiddenAreaMaterial);
+					_hiddenAreaEntity[i] = new Entity(hiddenAreaModel->Autorelease());
+					_hiddenAreaEntity[i]->SetPriority(RN::SceneNode::Priority::UpdateEarly);
+					_hiddenAreaEntity[i]->SetRenderGroup((1 << (1 + i)));
+
+					_eye[i]->AddChild(_hiddenAreaEntity[i]);
+				}
 			}
 #endif
 		}
+
+		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
+        _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
 #if !RN_PLATFORM_MAC_OS
 		_eye[0]->GetRenderPass()->SetFlags(0);
@@ -99,18 +110,29 @@ namespace RN
 		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
 		RN_ASSERT(resolvedFramebuffer, "The VRWindow has no framebuffer!");
 
-		_hasPostprocessingPipeline = true;
+		Vector2 windowSize;
+		float eyePadding = 0.0f;
+		Texture::Format colorFormat = Texture::Format::RGBA8888;
+        Texture::Format depthFormat = Texture::Format::Invalid;
 
-		Vector2 windowSize = _window->GetSize();
+		if(_window)
+		{
+			windowSize = _window->GetSize();
+			eyePadding = _window->GetEyePadding();
 
-		//TODO: Maybe handle different resolutions per eye
-		Vector2 eyeSize((windowSize.x - _window->GetEyePadding()) / 2, windowSize.y);
+			colorFormat = _window->GetSwapChainDescriptor().colorFormat;
+            depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
+		}
+
+		if(_debugWindow)
+		{
+			windowSize = _debugWindow->GetSize();
+			RNDebug(RNCSTR("Window size: ") << windowSize.x << RNCSTR(" x ") << windowSize.y);
+		}
 
 		Framebuffer *msaaFramebuffer = nullptr;
 		PostProcessingAPIStage *resolvePass = nullptr;
-		
-		Texture::Format colorFormat = _window->GetSwapChainDescriptor().colorFormat;
-		Texture::Format depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
+
 		if(depthFormat == Texture::Format::Invalid)
 		{
 			depthFormat = Texture::Format::Depth24Stencil8;
@@ -126,7 +148,7 @@ namespace RN
 		}
 
 		//TODO: Maybe instead of checking depthStencilFormat, check for oculus window?
-		if(_msaaSampleCount <= 1 && (_window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
+		if(_msaaSampleCount <= 1 && (!_window || _window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
 		{
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(depthFormat, windowSize.x, windowSize.y));
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
@@ -135,7 +157,12 @@ namespace RN
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
-			_eye[i]->GetRenderPass()->SetFrame(Rect(i * (windowSize.x + _window->GetEyePadding()) / 2, 0, (windowSize.x - _window->GetEyePadding()) / 2, windowSize.y));
+			_eye[i]->GetRenderPass()->SetFrame(Rect(i * (windowSize.x + eyePadding) / 2, 0, (windowSize.x - eyePadding) / 2, windowSize.y));
+
+#if RN_PLATFORM_ANDROID
+			if(_debugWindow)
+				_eye[i]->GetRenderPass()->SetFrame(Rect(0.0f, i * (windowSize.y + eyePadding) / 2, windowSize.x, (windowSize.y - eyePadding) / 2));
+#endif
 
 			if(_msaaSampleCount > 1)
 			{
@@ -171,7 +198,7 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
-		if(!_eye[0] || !_eye[1]) return;
+		if(!_window || !_eye[0] || !_eye[1]) return;
 		
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();

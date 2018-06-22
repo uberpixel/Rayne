@@ -301,7 +301,7 @@ namespace RN
 			{
 				vk::DestroyImageView(device, imageView, _renderer->GetAllocatorCallback());
 			}
-		}, _swapChain? _swapChain->GetBufferCount() : 0);
+		});
 	}
 
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const

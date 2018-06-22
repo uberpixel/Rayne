@@ -82,11 +82,11 @@ namespace RN
 
 //		layers.push_back("VK_LAYER_LUNARG_standard_validation");
 
-		layers.push_back("VK_LAYER_GOOGLE_threading");
+/*		layers.push_back("VK_LAYER_GOOGLE_threading");
 		layers.push_back("VK_LAYER_LUNARG_parameter_validation");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");
 		layers.push_back("VK_LAYER_LUNARG_core_validation");
-		layers.push_back("VK_LAYER_GOOGLE_unique_objects");
+		layers.push_back("VK_LAYER_GOOGLE_unique_objects");*/
 
 //		layers.push_back("VK_LAYER_LUNARG_monitor");
 //		layers.push_back("VK_LAYER_LUNARG_assistant_layer");

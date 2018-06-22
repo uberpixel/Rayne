@@ -343,8 +343,10 @@ namespace RN
 		std::vector<VkSemaphore> renderSemaphores;
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
-			presentSemaphores.push_back(swapChain->GetCurrentPresentSemaphore());
-			renderSemaphores.push_back(swapChain->GetCurrentRenderSemaphore());
+			VkSemaphore presentSemaphore = swapChain->GetCurrentPresentSemaphore();
+			VkSemaphore renderSemaphore = swapChain->GetCurrentRenderSemaphore();
+			if(presentSemaphore != VK_NULL_HANDLE) presentSemaphores.push_back(presentSemaphore);
+			if(renderSemaphore != VK_NULL_HANDLE) renderSemaphores.push_back(renderSemaphore);
 		}
 
 		_currentCommandBuffer->End();
