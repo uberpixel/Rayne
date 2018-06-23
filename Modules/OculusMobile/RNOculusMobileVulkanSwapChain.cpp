@@ -25,7 +25,7 @@ namespace RN
 {
 	RNDefineMeta(OculusMobileVulkanSwapChain, VulkanSwapChain)
 
-	const uint32 OculusMobileVulkanSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, doesn't appear to be enough though...)
+	const uint32 OculusMobileVulkanSwapChain::kEyePadding = 0; //No padding needed?
 
 	OculusMobileVulkanSwapChain::OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor) : _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _nativeWindow(nullptr)
 	{
@@ -34,7 +34,7 @@ namespace RN
 
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
-		_descriptor.colorFormat = Texture::Format::RGBA8888;
+		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
 
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
@@ -74,7 +74,7 @@ namespace RN
 		_size.x = _eyeRenderSize.x * 2 + kEyePadding;
 		_size.y = _eyeRenderSize.y;
 
-		ovrTextureFormat textureFormat = VRAPI_TEXTURE_FORMAT_8888;//_sRGB;
+		ovrTextureFormat textureFormat = VRAPI_TEXTURE_FORMAT_8888_sRGB;
 /*		switch(descriptor.colorFormat)
 		{
 			case Texture::Format::BGRA8888SRGB:
@@ -122,7 +122,7 @@ namespace RN
         RNDebug(RNCSTR(name) << blubb);*/
 
 		_descriptor.bufferCount = 3;
-		_colorSwapChain = vrapi_CreateTextureSwapChain(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
+		_colorSwapChain = vrapi_CreateTextureSwapChain2(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
 
 		for(size_t i = 0; i < _descriptor.bufferCount; i++)
@@ -196,20 +196,20 @@ namespace RN
     			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
     			if(_session)
     			{
-    				//vrapi_SetDisplayRefreshRate(_session, 72.0f);
+    				vrapi_SetDisplayRefreshRate(_session, 72.0f);
     				vrapi_SetRemoteEmulation(_session, false);
     				vrapi_SetClockLevels(_session, 4, 4);
 					vrapi_SetPerfThread(_session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
 //    				vrapi_SetPerfThread(app->Ovr, VRAPI_PERF_THREAD_TYPE_RENDERER, app->RenderThreadTid);
 
-					//vrapi_SetExtraLatencyMode(_session, VRAPI_EXTRA_LATENCY_MODE_ON);
+					vrapi_SetExtraLatencyMode(_session, VRAPI_EXTRA_LATENCY_MODE_ON);
 
-					int hasFoveation = 0;
-					vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
-					if(hasFoveation == VRAPI_TRUE)
+//					int hasFoveation = 0;
+//					vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
+//					if(hasFoveation == VRAPI_TRUE)
 					{
 						RNDebug(RNCSTR("Enable Foveated Rendering"));
-						vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 3);
+						vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 2);
 					}
     			}
     		}
@@ -229,6 +229,10 @@ namespace RN
 	{
 		if(!_session) return;
 
+		_semaphoreIndex += 1;
+		_frameIndex = _semaphoreIndex %= _descriptor.bufferCount;
+
+		_actualFrameIndex++;
 		_predictedDisplayTime = vrapi_GetPredictedDisplayTime(_session, _actualFrameIndex);
 	}
 
@@ -271,16 +275,7 @@ namespace RN
 			frameDescription.LayerCount = 1;
 			frameDescription.Layers = layers;
 
-			vk::DeviceWaitIdle(_device);
-			ovrResult result = vrapi_SubmitFrame2(_session, &frameDescription);
-			vk::DeviceWaitIdle(_device);
-
-			//RNDebug(RNCSTR("Frame Submitted"));
-
-			_semaphoreIndex += 1;
-            _semaphoreIndex %= _descriptor.bufferCount;
-
-            _actualFrameIndex++;
+			vrapi_SubmitFrame2(_session, &frameDescription);
 		}
 	}
 
