@@ -35,7 +35,6 @@ namespace RN
 		VKAPI VkImage GetVulkanDepthBuffer(int i) const final;
 
 		OVRAPI void UpdatePredictedPose();
-		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
 
 	private:
 		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor);

@@ -23,8 +23,11 @@ namespace RN
 		OALAPI ~OpenALSource() override;
 			
 		OALAPI void Update(float delta) override;
-			
+
+		OALAPI void SetAudioAsset(AudioAsset *asset);
 		OALAPI void Play();
+		OALAPI void Stop();
+		OALAPI void Seek(float time);
 		OALAPI void SetRepeat(bool repeat);
 		OALAPI void SetPitch(float pitch);
 		OALAPI void SetGain(float gain);
@@ -32,6 +35,7 @@ namespace RN
 		OALAPI void SetSelfdestruct(bool selfdestruct);
 			
 		OALAPI bool IsPlaying() { return _isPlaying; }
+		OALAPI bool HasEnded() { return _hasEnded; }
 		OALAPI bool IsRepeating() { return _isRepeating; }
 			
 	private:
@@ -44,6 +48,7 @@ namespace RN
 		bool _isPlaying;
 		bool _isRepeating;
 		bool _isSelfdestructing;
+		bool _hasEnded;
 			
 		RNDeclareMetaAPI(OpenALSource, OALAPI)
 	};

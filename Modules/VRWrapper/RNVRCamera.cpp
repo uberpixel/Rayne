@@ -65,6 +65,10 @@ namespace RN
 			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i)));
 			_head->AddChild(_eye[i]);
 			_hiddenAreaEntity[i] = nullptr;
+
+#if RN_PLATFORM_ANDROID
+			_eye[i]->SetFlags(_eye[i]->GetFlags() | Camera::Flags::UseSimpleCulling);
+#endif
 			
 #if !RN_PLATFORM_WINDOWS
 			if(_window)
@@ -127,7 +131,9 @@ namespace RN
 		if(_debugWindow)
 		{
 			windowSize = _debugWindow->GetSize();
-			RNDebug(RNCSTR("Window size: ") << windowSize.x << RNCSTR(" x ") << windowSize.y);
+
+			colorFormat = _debugWindow->GetSwapChainDescriptor().colorFormat;
+			depthFormat = _debugWindow->GetSwapChainDescriptor().depthStencilFormat;
 		}
 
 		Framebuffer *msaaFramebuffer = nullptr;

@@ -196,7 +196,7 @@ namespace RN
     			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
     			if(_session)
     			{
-    				vrapi_SetDisplayRefreshRate(_session, 72.0f);
+    				//vrapi_SetDisplayRefreshRate(_session, 72.0f);
     				vrapi_SetRemoteEmulation(_session, false);
     				vrapi_SetClockLevels(_session, 4, 4);
 					vrapi_SetPerfThread(_session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);

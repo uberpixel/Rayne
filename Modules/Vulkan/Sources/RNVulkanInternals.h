@@ -54,6 +54,8 @@ namespace RN
 
 					_descriptorSets.push_back(descriptorSet);
 					_usedFrames.push_back(currentFrame);
+
+					return;
 				}
 
 				_currentIndex = (_currentIndex + 1) % _descriptorSets.size();

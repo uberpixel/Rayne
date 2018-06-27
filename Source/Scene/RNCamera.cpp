@@ -318,6 +318,13 @@ namespace RN
 
 		_dirtyFrustum = false;
 
+		if(_flags & Flags::UseSimpleCulling)
+		{
+			_frustumCenter = Vector3(0.0f, 0.0f, _clipFar*0.5f);
+            _frustumRadius = _clipFar * 1.5;
+			return;
+		}
+
 		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
 		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
 		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
@@ -437,6 +444,9 @@ namespace RN
 	{
 		if(_frustumCenter.GetDistance(position) > _frustumRadius + radius)
 			return false;
+
+		if(_flags & Flags::UseSimpleCulling)
+			return true;
 
 		if(frustums._frustumLeft.GetDistance(position) > radius)
 			return false;

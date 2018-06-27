@@ -636,9 +636,9 @@ namespace RN
 			subpass.pResolveAttachments = resolveAttachmentRefs.data();
 		}
 
+		VkAttachmentReference depthReference = {};
 		if(framebuffer->_depthStencilTarget)
 		{
-			VkAttachmentReference depthReference = {};
 			depthReference.attachment = attachments.size();
 			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 

@@ -14,6 +14,11 @@ option(ALSOFT_HRTF_DEFS "Install HRTF definition files" OFF)
 option(ALSOFT_AMBDEC_PRESETS "Install AmbDec preset files" OFF)
 option(ALSOFT_INSTALL "Install headers and libraries" OFF)
 option(ALSOFT_EMBED_HRTF_DATA "Embed the HRTF data files (increases library footprint)" ON)
+
+if(ANDROID)
+        option(ALSOFT_REQUIRE_OPENSL "Require OpenSL backend" ON)
+endif()
+
 add_subdirectory("Vendor/openal-soft")
 
 set(VERSION_MAJOR 0)

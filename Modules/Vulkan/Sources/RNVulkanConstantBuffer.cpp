@@ -83,7 +83,7 @@ namespace RN
 		}
 	}
 
-	VulkanConstantBufferReference::VulkanConstantBufferReference()
+	VulkanConstantBufferReference::VulkanConstantBufferReference() : shaderResourceIndex(0), offset(0), size(0), constantBuffer(nullptr)
 	{
 
 	}

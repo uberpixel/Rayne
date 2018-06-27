@@ -41,6 +41,7 @@ namespace RN
 
 				   UseFog          = (1 << 24),
 				   UseClipPlanes   = (1 << 25),
+				   UseSimpleCulling = (1 << 26),
 
 				   Defaults = (UseFog));
 

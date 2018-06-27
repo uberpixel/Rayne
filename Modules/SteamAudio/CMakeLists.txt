@@ -42,8 +42,10 @@ if(APPLE)
         find_package(CoreAudio)
         find_library(AUDIOUNIT_LIBRARY NAMES AudioUnit)
         set(RAYNE_LIBRARIES Rayne ${COREAUDIO_LIBRARY} ${AUDIOUNIT_LIBRARY} libsoundio_static ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/OSX/libphonon.dylib)
-else()
+elseif(WIN32)
         set(RAYNE_LIBRARIES Rayne libsoundio_static ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/Windows/x64/phonon.lib)
+elseif(ANDROID)
+        set(RAYNE_LIBRARIES Rayne libsoundio_static ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/Android/libphonon.so)
 endif()
 
 set(INCLUDE_DIRECTORIES
@@ -61,6 +63,8 @@ rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneSteamAudio/
 
 if(APPLE)
         add_custom_command(TARGET RayneSteamAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/OSX/libphonon.dylib" "$<TARGET_FILE_DIR:RayneSteamAudio>/libphonon.dylib")
-else()
+elseif(WIN32)
         add_custom_command(TARGET RayneSteamAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/bin/Windows/x64/phonon.dll" "$<TARGET_FILE_DIR:RayneSteamAudio>/phonon.dll")
+elseif(ANDROID)
+        add_custom_command(TARGET RayneSteamAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/lib/Android/libphonon.so" "$<TARGET_FILE_DIR:RayneSteamAudio>/libphonon.so")
 endif()

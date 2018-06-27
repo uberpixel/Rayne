@@ -43,6 +43,11 @@ namespace RN
 		uint8 GetBufferCount() const { return _descriptor.bufferCount; }
 		virtual bool HasDepthBuffer() const { return false; }
 
+		virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const
+		{
+			return _descriptor;
+		}
+
 	protected:
 		VKAPI VulkanSwapChain();
 

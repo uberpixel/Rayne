@@ -45,6 +45,8 @@ namespace RN
 
 		RNAPI virtual Framebuffer *GetFramebuffer() const = 0;
 
+		RNAPI virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const = 0;
+
 	protected:
 		RNAPI Window();
 		RNAPI Window(Screen *screen);

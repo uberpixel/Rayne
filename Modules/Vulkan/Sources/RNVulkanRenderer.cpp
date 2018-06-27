@@ -1157,7 +1157,7 @@ namespace RN
 						writeConstantDescriptorSet.dstSet = descriptorSet;
 						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 						writeConstantDescriptorSet.dstBinding = binding++;
-						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfo;
+						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
@@ -1178,7 +1178,7 @@ namespace RN
 						writeConstantDescriptorSet.dstSet = descriptorSet;
 						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 						writeConstantDescriptorSet.dstBinding = binding++;
-						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfo;
+						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}

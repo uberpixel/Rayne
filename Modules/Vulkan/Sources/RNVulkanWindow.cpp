@@ -178,6 +178,8 @@ namespace RN
 
 		return result;
 #endif
+
+		return nullptr;
 	}
 
 	void VulkanWindow::Show()
@@ -238,5 +240,10 @@ namespace RN
 	{
 		_swapChain->ResizeSwapchain(GetSize());
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
+	}
+
+	const Window::SwapChainDescriptor &VulkanWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetSwapChainDescriptor();
 	}
 }

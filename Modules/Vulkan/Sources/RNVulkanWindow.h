@@ -37,6 +37,8 @@ namespace RN
 
 		VKAPI void UpdateSize();
 
+		VKAPI virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const override;
+
 #if RN_PLATFORM_WINDOWS
 		HWND GetHWND() const { return _hwnd; }
 #endif

@@ -21,24 +21,39 @@ namespace RN
 		_asset(asset),
 		_isPlaying(false),
 		_isRepeating(false),
-		_isSelfdestructing(false)
+		_isSelfdestructing(false),
+		_hasEnded(false)
 	{
-		_asset->Retain();
+		SafeRetain(_asset);
 		_oldPosition = GetWorldPosition();
 			
 		alGenSources(1, &_source);
 		alSourcef(_source, AL_PITCH, 1);
 		alSourcef(_source, AL_GAIN, 1);
 		alSourcei(_source, AL_LOOPING, AL_FALSE);
-			
-		OpenALResourceAttachment *attachment = OpenALResourceAttachment::GetAttachmentForResource(asset);
-		alSourcei(_source, AL_BUFFER, attachment->GetBufferID());
+
+		SetAudioAsset(asset);
 	}
 		
 	OpenALSource::~OpenALSource()
 	{
 		alDeleteSources(1, &_source);
-		_asset->Release();
+		SafeRelease(_asset);
+	}
+
+	void OpenALSource::SetAudioAsset(AudioAsset *asset)
+	{
+		alSourcei(_source, AL_BUFFER, 0);
+
+		SafeRelease(_asset);
+		_asset = asset;
+		SafeRetain(_asset);
+
+		if(_asset)
+		{
+			OpenALResourceAttachment *attachment = OpenALResourceAttachment::GetAttachmentForResource(asset);
+			alSourcei(_source, AL_BUFFER, attachment->GetBufferID());
+		}
 	}
 		
 	void OpenALSource::SetRepeat(bool repeat)
@@ -74,7 +89,19 @@ namespace RN
 
 		alSourcePlay(_source);
 		_isPlaying = true;
+		_hasEnded = false;
 	}
+
+	void OpenALSource::Stop()
+	{
+		alSourceStop(_source);
+        _isPlaying = false;
+	}
+
+    void OpenALSource::Seek(float time)
+    {
+		alSourcef(_source, AL_SEC_OFFSET, time);
+    }
 		
 	void OpenALSource::Update(float delta)
 	{
@@ -95,6 +122,7 @@ namespace RN
 		if(sourceState == AL_STOPPED)
 		{
 			_isPlaying = false;
+			_hasEnded = true;
 			if(_isSelfdestructing)
 			{
 				if(GetScene())

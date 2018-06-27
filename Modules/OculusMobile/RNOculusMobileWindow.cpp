@@ -244,7 +244,7 @@ namespace RN
 
 	const Window::SwapChainDescriptor &OculusMobileWindow::GetSwapChainDescriptor() const
 	{
-		return _swapChain->GetDescriptor();
+		return _swapChain->GetSwapChainDescriptor();
 	}
 }
 
