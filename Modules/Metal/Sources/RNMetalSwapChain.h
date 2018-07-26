@@ -33,6 +33,8 @@ namespace RN
 
 		MTLAPI virtual id GetMTLTexture() const;
 		MetalFramebuffer *GetFramebuffer() const { return _framebuffer; }
+		
+		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const { return _descriptor; }
 
 		uint8 GetBufferCount() const { return 4; } //TODO: Return something better!?
 		

@@ -81,4 +81,9 @@ namespace RN
 	{
 		return _swapChain->GetFramebuffer();
 	}
+	
+	const Window::SwapChainDescriptor &MetalWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetSwapChainDescriptor();
+	}
 }

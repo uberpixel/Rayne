@@ -46,7 +46,7 @@ vertex SkyFragmentVertex sky_vertex(const SkyInputVertex vert [[stage_in]], cons
 	return result;
 }
 
-fragment [[early_fragment_tests]] float4 sky_fragment(SkyFragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler sampler0 [[sampler(0)]])
+[[early_fragment_tests]] fragment float4 sky_fragment(SkyFragmentVertex vert [[stage_in]], texture2d<float> texture0 [[texture(0)]], sampler sampler0 [[sampler(0)]])
 {
 	float4 color = texture0.sample(sampler0, vert.texCoords).rgba;
 	return color * vert.diffuse;

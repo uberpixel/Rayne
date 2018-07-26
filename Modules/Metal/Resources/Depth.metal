@@ -83,11 +83,10 @@ vertex FragmentVertex depth_vertex(const InputVertex vert [[stage_in]], constant
 	return result;
 }
 
-
-fragment
 #if !RN_ALPHA
 [[early_fragment_tests]]
 #endif
+fragment
 float4 depth_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0 && RN_ALPHA
 	, texture2d<float> texture0 [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]

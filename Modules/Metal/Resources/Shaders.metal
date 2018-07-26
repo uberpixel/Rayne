@@ -215,10 +215,10 @@ vertex FragmentVertex gouraud_vertex(const InputVertex vert [[stage_in]], consta
 }
 
 
-fragment
 #if !RN_ALPHA
 [[early_fragment_tests]]
 #endif
+fragment
 float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	, texture2d<float> texture [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]
@@ -286,10 +286,10 @@ vertex FragmentVertex gouraud_vertex_instanced(const InputVertex vert [[stage_in
 	return result;
 }
 
-fragment
 #if !RN_ALPHA
 [[early_fragment_tests]]
 #endif
+fragment
 float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
