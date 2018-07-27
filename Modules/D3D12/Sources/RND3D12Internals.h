@@ -86,6 +86,8 @@ namespace RN
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
 
+		Color cameraAmbientColor;
+
 		std::vector<D3D12Drawable *> drawables;
 		std::vector<D3D12LightDirectional> directionalLights;
 
