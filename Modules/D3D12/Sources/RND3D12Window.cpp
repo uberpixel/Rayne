@@ -147,4 +147,9 @@ namespace RN
 		_swapChain->ResizeSwapchain(GetSize());
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
+
+	const Window::SwapChainDescriptor &D3D12Window::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetSwapChainDescriptor();
+	}
 }

@@ -40,6 +40,8 @@ namespace RN
 		uint8 GetBufferCount() const { return _descriptor.bufferCount; }
 		virtual bool HasDepthBuffer() const { return false; }
 
+		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const { return _descriptor; }
+
 	protected:
 		D3DAPI D3D12SwapChain(){}
 

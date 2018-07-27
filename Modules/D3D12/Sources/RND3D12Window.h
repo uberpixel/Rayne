@@ -38,6 +38,7 @@ namespace RN
 
 		HWND GetHWND() const { return _hwnd; }
 		D3D12SwapChain *GetSwapChain() const { return _swapChain; }
+		virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const override;
 
 	private:
 		D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor);
