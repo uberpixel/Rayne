@@ -184,6 +184,11 @@ namespace RN
 			_identifier = CameraPosition;
 			_type = PrimitiveType::Vector3;
 		}
+		else if (name->IsEqual(RNCSTR("camera_ambientcolor")) || name->IsEqual(RNCSTR("cameraAmbientColor")))
+		{
+			_identifier = CameraAmbientColor;
+			_type = PrimitiveType::Color;
+		}
 		else if (name->IsEqual(RNCSTR("lights_directionalcount")) || name->IsEqual(RNCSTR("directionalLightsCount")))
 		{
 			_identifier = DirectionalLightsCount;

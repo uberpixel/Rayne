@@ -73,6 +73,7 @@ namespace RN
 				AlphaToCoverageClamp,
 				Time,
 				CameraPosition,
+				CameraAmbientColor,
 				DirectionalLights,
 				DirectionalLightsCount,
 				DirectionalShadowMatrices,

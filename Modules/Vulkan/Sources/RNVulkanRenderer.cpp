@@ -448,6 +448,8 @@ namespace RN
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
 		renderPass.directionalShadowDepthTexture = nullptr;
 
+		renderPass.cameraAmbientColor = camera->GetAmbientColor();
+
 		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
 		if(!framebuffer) return;
 
@@ -983,6 +985,13 @@ namespace RN
 				{
 					RN::Vector3 cameraPosition = renderPass.viewPosition;
 					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraAmbientColor:
+				{
+					RN::Color cameraAmbientColor = renderPass.cameraAmbientColor;
+					std::memcpy(buffer + descriptor->GetOffset(), &cameraAmbientColor.r, descriptor->GetSize());
 					break;
 				}
 

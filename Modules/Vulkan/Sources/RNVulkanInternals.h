@@ -195,6 +195,8 @@ namespace RN
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
 
+		Color cameraAmbientColor;
+
 		std::vector<VulkanDrawable *> drawables;
 		std::vector<VulkanLightDirectional> directionalLights;
 

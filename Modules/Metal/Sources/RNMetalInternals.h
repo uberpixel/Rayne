@@ -150,6 +150,8 @@ namespace RN
 		Matrix inverseProjectionMatrix;
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
+		
+		Color cameraAmbientColor;
 
 		std::vector<MetalDrawable *> drawables;
 
