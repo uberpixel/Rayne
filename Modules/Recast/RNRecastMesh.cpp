@@ -459,7 +459,7 @@ namespace RN
 		//			params.offMeshConFlags = m_geom->getOffMeshConnectionFlags();
 		//			params.offMeshConUserID = m_geom->getOffMeshConnectionId();
 		//			params.offMeshConCount = m_geom->getOffMeshConnectionCount();
-		params.walkableHeight = 1.8;
+		params.walkableHeight = 1.5;
 		params.walkableRadius = 0.2;
 		params.walkableClimb = 0.4;
 		rcVcopy(params.bmin, _polyMesh->bmin);
