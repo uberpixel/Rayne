@@ -24,6 +24,12 @@ namespace RN
 			Right
 		};*/
 
+		enum Origin
+		{
+			Floor,
+			Head
+		};
+
 		RNVRAPI VRWindow();
 		RNVRAPI ~VRWindow();
 		
@@ -54,6 +60,8 @@ namespace RN
 		RNVRAPI virtual RenderingDevice *GetOutputDevice() const = 0;
 		
 		RNVRAPI virtual Mesh *GetHiddenAreaMesh(uint8 eye) const {return nullptr;}
+
+		RNVRAPI virtual Origin GetOrigin() const { return Origin::Floor; }
 
 		RNDeclareMetaAPI(VRWindow, RNVRAPI)
 	};

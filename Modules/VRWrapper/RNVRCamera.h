@@ -33,6 +33,8 @@ namespace RN
 		RNVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const;
 		RNVRAPI const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const;
 		RNVRAPI void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const;
+
+		RNVRAPI const VRWindow::Origin GetOrigin() const;
 		
 		RNVRAPI void SetClipFar(float clipFar);
 		RNVRAPI void SetClipNear(float clipNear);

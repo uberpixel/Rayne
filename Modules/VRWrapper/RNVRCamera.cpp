@@ -238,6 +238,11 @@ namespace RN
 	{
 		_window->SubmitControllerHaptics(controllerID, haptics);
 	}
+
+	const VRWindow::Origin VRCamera::GetOrigin() const
+	{
+		return _window->GetOrigin();
+	}
 	
 	void VRCamera::SetClipFar(float clipFar)
 	{
