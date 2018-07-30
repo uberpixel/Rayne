@@ -264,7 +264,6 @@ namespace RN
 				gameLayer.Textures[eye].TextureRect.height = 1.0f;
 			}
 			gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
-			//gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_INHIBIT_SRGB_FRAMEBUFFER;
 
 			const ovrLayerHeader2 * layers[] = { &gameLayer.Header };
 

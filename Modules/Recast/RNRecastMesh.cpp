@@ -82,15 +82,15 @@ namespace RN
 		// Init build configuration from GUI
 		rcConfig cfg;
 		memset(&cfg, 0, sizeof(cfg));
-		cfg.cs = 0.3f;
-		cfg.ch = 0.2f;
+		cfg.cs = 0.1f;
+		cfg.ch = 0.1f;
 		cfg.walkableSlopeAngle = 45.0f;
 		cfg.walkableHeight = (int)ceilf(1.8f / cfg.ch);
 		cfg.walkableClimb = (int)floorf(0.4f / cfg.ch);
 		cfg.walkableRadius = (int)ceilf(0.2 / cfg.cs);
 		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
-		cfg.maxSimplificationError = 1.3f;
-		cfg.minRegionArea = (int)rcSqr(8.0f);		// Note: area = size*size
+		cfg.maxSimplificationError = 0.3f;
+		cfg.minRegionArea = (int)rcSqr(2.0f);		// Note: area = size*size
 		cfg.mergeRegionArea = (int)rcSqr(20.0f);	// Note: area = size*size
 		cfg.maxVertsPerPoly = (int)6;
 		cfg.detailSampleDist = 6.0 < 0.9f ? 0 : cfg.cs * 6.0;;
@@ -464,8 +464,8 @@ namespace RN
 		params.walkableClimb = 0.4;
 		rcVcopy(params.bmin, _polyMesh->bmin);
 		rcVcopy(params.bmax, _polyMesh->bmax);
-		params.cs = 0.3f;
-		params.ch = 0.2f;
+		params.cs = 0.1f;
+		params.ch = 0.1f;
 		params.buildBvTree = true;
 		
 		if(!dtCreateNavMeshData(&params, &navData, &navDataSize))
