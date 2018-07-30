@@ -182,7 +182,7 @@ namespace RN
                 _nativeWindow = app->window;
 
     			ovrModeParmsVulkan params = vrapi_DefaultModeParmsVulkan(&_java, (unsigned long long)_renderer->GetWorkQueue());
-				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW;
+				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW | VRAPI_MODE_FLAG_FRONT_BUFFER_SRGB;
                 params.ModeParms.WindowSurface = (size_t)_nativeWindow;
                 _session = vrapi_EnterVrMode((ovrModeParms *)&params);
 
@@ -204,9 +204,9 @@ namespace RN
 
 					vrapi_SetExtraLatencyMode(_session, VRAPI_EXTRA_LATENCY_MODE_ON);
 
-//					int hasFoveation = 0;
-//					vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
-//					if(hasFoveation == VRAPI_TRUE)
+					int hasFoveation = 0;
+					vrapi_GetPropertyInt(&_java, (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
+					if(hasFoveation == VRAPI_TRUE)
 					{
 						RNDebug(RNCSTR("Enable Foveated Rendering"));
 						vrapi_SetPropertyInt(&_java, VRAPI_FOVEATION_LEVEL, 2);
@@ -263,7 +263,8 @@ namespace RN
 				gameLayer.Textures[eye].TextureRect.width = _eyeRenderSize.x/_size.x;
 				gameLayer.Textures[eye].TextureRect.height = 1.0f;
 			}
-			//gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
+			gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
+			//gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_INHIBIT_SRGB_FRAMEBUFFER;
 
 			const ovrLayerHeader2 * layers[] = { &gameLayer.Header };
 
