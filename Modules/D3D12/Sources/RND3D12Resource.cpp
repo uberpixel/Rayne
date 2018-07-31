@@ -54,11 +54,13 @@ namespace RN
 
 	D3D12Resource::~D3D12Resource()
 	{
+		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
+
 		if(_resource)
-			_resource->Release();
+			renderer->AddFrameResouce(_resource);
 
 		if(_transferResource)
-			_transferResource->Release();
+			renderer->AddFrameResouce(_transferResource);
 	}
 
 	void *D3D12Resource::GetUploadBuffer()
