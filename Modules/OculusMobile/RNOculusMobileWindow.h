@@ -48,7 +48,7 @@ namespace RN
 
 		OVRAPI void Update(float delta, float near, float far) final;
 
-		RNVRAPI Origin GetOrigin() const final { return Origin::Head; }
+		RNVRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Head; }
 
 	private:
 		OculusMobileVulkanSwapChain *_swapChain;
