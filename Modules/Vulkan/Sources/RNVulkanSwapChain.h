@@ -71,6 +71,9 @@ namespace RN
 #elif RN_PLATFORM_ANDROID
 		VulkanSwapChain(const Vector2& size, ANativeWindow *window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
 		ANativeWindow *_window;
+#elif RN_PLATFORM_LINUX
+		VulkanSwapChain(const Vector2& size, xcb_window_t window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
+		xcb_window_t _window;
 #else
 		VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor);
 #endif

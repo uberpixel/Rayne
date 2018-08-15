@@ -3,6 +3,11 @@ project(RayneOpenVR)
 
 #option(BUILD_SHARED "Builds the library as shared library" ON)
 option(BUILD_UNIVERSAL "Builds the shared or framework as a universal (fat, 32- & 64-bit) binary" OFF)
+
+if(UNIX AND NOT APPLE)
+option(USE_LIBCXX "Uses libc++ instead of libstdc++" OFF)
+endif()
+
 add_subdirectory("Vendor/OpenVR")
 
 include(../../CMake/LibraryTarget.cmake)
@@ -59,6 +64,20 @@ elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     set(INCLUDE_DIRECTORIES
         ${INCLUDE_DIRECTORIES}
         "${CMAKE_CURRENT_BINARY_DIR}/../Metal/include/Sources")
+elseif(UNIX AND NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
+    set(SOURCES
+            ${SOURCES}
+            RNOpenVRVulkanSwapChain.cpp)
+
+    set(HEADERS
+            ${HEADERS}
+            RNOpenVRVulkanSwapChain.h)
+
+    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api RayneVulkan)
+
+    set(INCLUDE_DIRECTORIES
+            ${INCLUDE_DIRECTORIES}
+            "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources")
 endif()
 
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
@@ -71,6 +90,8 @@ elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     target_compile_options(RayneOpenVR PRIVATE "-xobjective-c++")
     FIND_LIBRARY(IOSURFACE_LIBRARY IOSurface)
     target_link_libraries(RayneOpenVR ${IOSURFACE_LIBRARY})
+elseif(UNIX AND NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
+    rayne_use_modules(RayneOpenVR RayneVulkan)
 endif()
 
 target_include_directories(RayneOpenVR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")

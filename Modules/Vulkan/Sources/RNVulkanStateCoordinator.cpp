@@ -149,6 +149,7 @@ namespace RN
 
 		// Create samplers
 		std::vector<VkSampler> samplers;
+		samplers.reserve(signature->samplers->GetCount());
 		if(signature->samplers->GetCount() > 0)
 		{
 			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {

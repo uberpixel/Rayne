@@ -41,6 +41,9 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, HWND hwnd, VulkanRenderer*
 #elif RN_PLATFORM_ANDROID
 VulkanSwapChain::VulkanSwapChain(const Vector2& size, ANativeWindow *window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
 		_window(window),
+#elif RN_PLATFORM_LINUX
+VulkanSwapChain::VulkanSwapChain(const Vector2& size, xcb_window_t window, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
+		_window(window),
 #else
 VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, const Window::SwapChainDescriptor& descriptor) :
 #endif

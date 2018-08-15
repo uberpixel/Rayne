@@ -1147,7 +1147,9 @@ namespace RN
 
 					VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 					std::vector<VkDescriptorBufferInfo> constantBufferDescriptorInfoArray;
+					constantBufferDescriptorInfoArray.reserve(2);
 					std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+					writeDescriptorSets.reserve(2 + drawable->material->GetTextures()->GetCount());
 					size_t binding = 0;
 					if(uniformState->vertexConstantBuffer)
 					{
