@@ -26,7 +26,7 @@ namespace RN
 		OVRAPI void AcquireBackBuffer() final;
 		OVRAPI void Prepare(VkCommandBuffer commandBuffer) final;
 		OVRAPI void Finalize(VkCommandBuffer commandBuffer) final;
-		OVRAPI void PresentBackBuffer() final;
+		OVRAPI void PresentBackBuffer(VkQueue queue) final;
 
 		OVRAPI VkImage GetVulkanColorBuffer(int i) const final;
 		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }

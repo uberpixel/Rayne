@@ -12,6 +12,7 @@
 #include "RNVRWindow.h"
 #include "RNOpenVR.h"
 #include "RNVRTrackingState.h"
+#include "RNOpenVRVulkanSwapChain.h"
 
 namespace vr
 {
@@ -68,6 +69,8 @@ namespace RN
 		OpenVRMetalSwapChain *_swapChain;
 #elif RN_PLATFORM_WINDOWS
 		OpenVRD3D12SwapChain *_swapChain;
+#elif RN_PLATFORM_LINUX
+		OpenVRVulkanSwapChain *_swapChain;
 #endif
 		
 		vr::IVRSystem *_vrSystem;

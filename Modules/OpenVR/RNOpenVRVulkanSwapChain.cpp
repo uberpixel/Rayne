@@ -85,7 +85,7 @@ namespace RN
 		_isFirstRender = false;
 	}
 
-	void OpenVRVulkanSwapChain::PresentBackBuffer()
+	void OpenVRVulkanSwapChain::PresentBackBuffer(VkQueue queue)
 	{
 /*		vr::D3D12TextureData_t d3d12EyeTexture;
 		d3d12EyeTexture.m_pResource = _targetTexture->Downcast<VulkanTexture>()->GetVulkanImage();
@@ -107,7 +107,7 @@ namespace RN
 		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);*/
 	}
 
-	VkImage OpenVRVulkanSwapChain::GetD3D12ColorBuffer(int i) const
+	VkImage OpenVRVulkanSwapChain::GetVulkanColorBuffer(int i) const
 	{
 		return _targetTexture->Downcast<VulkanTexture>()->GetVulkanImage();
 	}

@@ -21,6 +21,7 @@ Modules/Oculus/Vendor/OculusSDK/
 xcode-build
 Modules/SteamAudio/Vendor/steamaudio
 /Modules/PhysX/Vendor/PhysX-3.4
+/Modules/PhysX/Vendor/PhysX-3.4-CMake
 BUILD_VS
 Modules/Newton/Vendor/newton-dynamics
 Modules/ODE/Vendor/BUILD

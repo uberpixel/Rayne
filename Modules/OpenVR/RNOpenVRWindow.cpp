@@ -13,6 +13,9 @@
 #elif RN_PLATFORM_WINDOWS
 #include "RNOpenVRD3D12SwapChain.h"
 #include "RND3D12Framebuffer.h"
+#elif RN_PLATFORM_LINUX
+#include "RNOpenVRVulkanSwapChain.h"
+#include "RNVulkanFramebuffer.h"
 #endif
 
 #include "RNOpenVRWindow.h"
@@ -60,6 +63,8 @@ namespace RN
 		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
 #elif RN_PLATFORM_WINDOWS
 		_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
+#elif RN_PLATFORM_LINUX
+		_swapChain = new OpenVRVulkanSwapChain(descriptor, _vrSystem);
 #endif
 	}
 	
@@ -130,6 +135,8 @@ namespace RN
 		return OpenVRMetalSwapChain::kEyePadding;
 #elif RN_PLATFORM_WINDOWS
 		return OpenVRD3D12SwapChain::kEyePadding;
+#elif RN_PLATFORM_LINUX
+		return OpenVRVulkanSwapChain::kEyePadding;
 #endif
 	}
 
@@ -377,7 +384,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		window->Downcast<MetalWindow>()->GetSwapChain()->SetFrameDivider(1);
 #elif RN_PLATFORM_WINDOWS
-		
+
+#elif RN_PLATFORM_LINUX
+
 #endif
 	}
 	
@@ -396,6 +405,8 @@ namespace RN
 		}
 		return device;
 #elif RN_PLATFORM_WINDOWS
+		return nullptr;
+#elif RN_PLATFORM_LINUX
 		return nullptr;
 #endif
 	}
