@@ -65,7 +65,7 @@ namespace RN
 	{
 		__sharedInstance = this;
 		
-#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		memset(_keyPressed, 0, 256*sizeof(bool));
 #endif
 
@@ -133,10 +133,21 @@ namespace RN
 	}
 #endif
 	
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 	void InputManager::ProcessKeyEvent(uint16 keyCode, bool state)
 	{
 		if(keyCode < 256) _keyPressed[keyCode] = state;
+	}
+#endif
+
+#if RN_PLATFORM_LINUX
+	void InputManager::ProcessMouseMoveEvent(Vector3 position)
+	{
+		if(_previousMousePosition.GetLength() > 0.0f)
+		{
+			_mouseMovement += position - _previousMousePosition;
+		}
+		_previousMousePosition = position;
 	}
 #endif
 
@@ -233,7 +244,7 @@ namespace RN
 
 		});
 
-#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 		_mouseDelta += _mouseMovement;
 		_mouseMovement = Vector3();
 #endif
@@ -456,6 +467,38 @@ namespace RN
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[53];
+		}
+#endif
+
+#if RN_PLATFORM_LINUX
+		//TODO: Support all keys
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[25];
+		}
+		if(name->IsEqual(RNCSTR("A")))
+		{
+			return _keyPressed[38];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[39];
+		}
+		if(name->IsEqual(RNCSTR("D")))
+		{
+			return _keyPressed[40];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[26];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[41];
+		}
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[9];
 		}
 #endif
 

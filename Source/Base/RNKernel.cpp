@@ -439,7 +439,79 @@ namespace RN
 
 		xcb_generic_event_t *event;
 		while((event = xcb_poll_for_event(_connection)))
-		{}
+		{
+			switch(event->response_type & ~0x80)
+			{
+				case XCB_BUTTON_PRESS:
+				{
+/*					xcb_button_press_event_t *bp = (xcb_button_press_event_t *)event;
+
+					switch(bp->detail)
+					{
+						case 4:
+							printf ("Wheel Button up in window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+									bp->event, bp->event_x, bp->event_y );
+							break;
+						case 5:
+							printf ("Wheel Button down in window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+									bp->event, bp->event_x, bp->event_y );
+							break;
+						default:
+							printf ("Button %"PRIu8" pressed in window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+									bp->detail, bp->event, bp->event_x, bp->event_y );
+							break;
+					}*/
+					break;
+				}
+				case XCB_BUTTON_RELEASE:
+				{
+/*					xcb_button_release_event_t *br = (xcb_button_release_event_t *)event;
+
+					printf ("Button %"PRIu8" released in window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+							br->detail, br->event, br->event_x, br->event_y );*/
+					break;
+				}
+				case XCB_MOTION_NOTIFY:
+				{
+					xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)event;
+					InputManager::GetSharedInstance()->ProcessMouseMoveEvent(Vector3(motion->event_x, motion->event_y, 0));
+					break;
+				}
+				case XCB_ENTER_NOTIFY:
+				{
+/*					xcb_enter_notify_event_t *enter = (xcb_enter_notify_event_t *)event;
+
+					printf ("Mouse entered window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+							enter->event, enter->event_x, enter->event_y );*/
+					break;
+				}
+				case XCB_LEAVE_NOTIFY:
+				{
+/*					xcb_leave_notify_event_t *leave = (xcb_leave_notify_event_t *)event;
+
+					printf ("Mouse left window %"PRIu32", at coordinates (%"PRIi16",%"PRIi16")\n",
+							leave->event, leave->event_x, leave->event_y );*/
+					break;
+				}
+				case XCB_KEY_PRESS:
+				{
+					xcb_key_press_event_t *kp = (xcb_key_press_event_t *)event;
+					InputManager::GetSharedInstance()->ProcessKeyEvent(kp->detail, true);
+					break;
+				}
+				case XCB_KEY_RELEASE:
+				{
+					xcb_key_release_event_t *kr = (xcb_key_release_event_t *)event;
+					InputManager::GetSharedInstance()->ProcessKeyEvent(kr->detail, false);
+					break;
+				}
+
+				default:
+					break;
+			}
+
+			free(event);
+		}
 #endif
 #if RN_PLATFORM_ANDROID
 		int events;

@@ -71,8 +71,11 @@ namespace RN
 
 		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
 		
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		void ProcessKeyEvent(uint16 keyCode, bool state);
+#endif
+#if RN_PLATFORM_LINUX
+		void ProcessMouseMoveEvent(Vector3 position);
 #endif
 
 	private:
@@ -90,8 +93,13 @@ namespace RN
 		Vector3 _mouseMovement;
 #endif
 		
-#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		bool _keyPressed[256];
+#endif
+
+#if RN_PLATFORM_LINUX
+		Vector3 _previousMousePosition;
+		Vector3 _mouseMovement;
 #endif
 
 		struct Target
