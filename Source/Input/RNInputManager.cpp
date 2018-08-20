@@ -12,6 +12,15 @@
 #include "Devices/RNPS4Controller.h"
 #include "RNInputManager.h"
 
+#if RN_PLATFORM_LINUX
+#include <X11/X.h>
+#include <X11/Xlib.h>
+//#include <X11/Intrinsic.h>
+#include <X11/extensions/Xfixes.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
+#endif
+
 namespace RN
 {
 	class InputBindPoint : public Object
@@ -64,7 +73,7 @@ namespace RN
 		_hidDevices(new Array())
 	{
 		__sharedInstance = this;
-		
+
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		memset(_keyPressed, 0, 256*sizeof(bool));
 #endif
@@ -83,6 +92,56 @@ namespace RN
 		Rid[1].hwndTarget = 0;
 
 		RN_ASSERT(RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])), "Raw input shit is broken, yo!");
+#endif
+
+#if RN_PLATFORM_LINUX
+		_xDisplay = XOpenDisplay(NULL);
+		if(!_xDisplay)
+		{
+			RNDebug("Failed to open X display for input.");
+			return;
+		}
+
+		int event, error;
+		if(!XQueryExtension(_xDisplay, "XInputExtension", &_xiOpcode, &event, &error))
+		{
+			RNDebug("X Input extension not available.");
+			return;
+		}
+
+		int major = 2;
+		int minor = 2;
+		int rc = XIQueryVersion(_xDisplay, &major, &minor);
+		if(rc == BadRequest)
+		{
+			RNDebug("No XI2 support.");
+			return;
+		}
+		else if(rc != Success)
+		{
+			RNDebug("Internal Error! This is a bug in Xlib.");
+		}
+
+		RNDebug("XI2 supported.");
+
+
+		XIEventMask evmask;
+
+		uint8 maskLen = (XI_LASTEVENT + 7)/8;
+		unsigned char mask1[maskLen];
+		memset(mask1, 0, sizeof(mask1));
+
+		/* select for button and key events from all master devices */
+		XISetMask(mask1, XI_RawMotion);
+		XISetMask(mask1, XI_RawKeyPress);
+		XISetMask(mask1, XI_RawKeyRelease);
+
+		evmask.deviceid = XIAllMasterDevices;
+		evmask.mask_len = sizeof(mask1);
+		evmask.mask = mask1;
+
+		XISelectEvents(_xDisplay, DefaultRootWindow(_xDisplay), &evmask, 1);
+		XFlush(_xDisplay);
 #endif
 
 		PS4Controller::RegisterDriver();
@@ -133,21 +192,10 @@ namespace RN
 	}
 #endif
 	
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
+#if RN_PLATFORM_MAC_OS
 	void InputManager::ProcessKeyEvent(uint16 keyCode, bool state)
 	{
 		if(keyCode < 256) _keyPressed[keyCode] = state;
-	}
-#endif
-
-#if RN_PLATFORM_LINUX
-	void InputManager::ProcessMouseMoveEvent(Vector3 position)
-	{
-		if(_previousMousePosition.GetLength() > 0.0f)
-		{
-			_mouseMovement += position - _previousMousePosition;
-		}
-		_previousMousePosition = position;
 	}
 #endif
 
@@ -243,6 +291,56 @@ namespace RN
 			});
 
 		});
+
+#if RN_PLATFORM_LINUX
+		XEvent ev;
+		while(XPending(_xDisplay) > 0)
+		{
+			XNextEvent(_xDisplay, &ev);
+			XGenericEventCookie *cookie = &ev.xcookie;
+			if(cookie->type != GenericEvent || cookie->extension != _xiOpcode || !XGetEventData(_xDisplay, cookie)) continue;
+
+			switch(cookie->evtype)
+			{
+				case XI_RawMotion:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+
+					double *raw_valuator = re->raw_values;
+					double *valuator = re->valuators.values;
+					for(int i = 0; i < re->valuators.mask_len * 8; i++)
+					{
+						if(XIMaskIsSet(re->valuators.mask, i))
+						{
+							if(i == 0)
+								_mouseMovement.x += static_cast<float>(*raw_valuator);
+							if(i == 1)
+								_mouseMovement.y += static_cast<float>(*raw_valuator);
+
+							valuator++;
+							raw_valuator++;
+						}
+					}
+					break;
+				}
+
+				case XI_RawKeyPress:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+					_keyPressed[re->detail] = true;
+					break;
+				}
+
+				case XI_RawKeyRelease:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+					_keyPressed[re->detail] = false;
+					break;
+				}
+			}
+			XFreeEventData(_xDisplay, cookie);
+		}
+#endif
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 		_mouseDelta += _mouseMovement;

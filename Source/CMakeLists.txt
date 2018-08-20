@@ -359,7 +359,7 @@ if(UNIX AND (NOT APPLE) AND (NOT ANDROID))
     find_library(PTHREAD_LIBRARY pthread)
     find_library(DL_LIBRARY dl)
 
-    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY} ${XCB_LIBRARIES} -ludev -levdev)
+    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY} ${XCB_LIBRARIES} -lX11 -lXi) #-ludev -levdev would be needed for hid stuff, but require root...
     set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${XCB_INCLUDE_DIRS})
 endif()
 

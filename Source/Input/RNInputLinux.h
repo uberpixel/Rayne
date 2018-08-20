@@ -12,8 +12,8 @@
 #include "../Base/RNBase.h"
 #include "RNInputManager.h"
 
-struct udev_device;
-struct libevdev;
+/*struct udev_device;
+struct libevdev;*/
 
 namespace RN
 {
@@ -48,7 +48,7 @@ namespace RN
     class LinuxPlatformDevice : public InputDevice
     {
     public:
-        LinuxPlatformDevice(const Descriptor &descriptor, udev_device *device);
+        LinuxPlatformDevice(const Descriptor &descriptor);//, udev_device *device);
 
         ~LinuxPlatformDevice();
 
@@ -56,7 +56,7 @@ namespace RN
         bool __Activate() override;
         bool __Deactivate() override;
 
-        udev_device *GetRawDevice() const { return _udevDevice; }
+//        udev_device *GetRawDevice() const { return _udevDevice; }
 
     protected:
 		void AddControl(InputControl *control) override;
@@ -69,8 +69,8 @@ namespace RN
  /*       std::vector<HIDElement *> _allElements;
         std::unordered_map<IOHIDElementCookie, HIDElement *> _elements;*/
 
-        udev_device *_udevDevice;
-	 	libevdev *_device;
+ /*       udev_device *_udevDevice;
+	 	libevdev *_device;*/
 	 	int _fileHandle;
 
         bool _hasDataAvailable;

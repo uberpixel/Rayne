@@ -71,7 +71,7 @@ namespace RN
 
 		value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
 		value_list[0] = xcbscreen->black_pixel;
-		value_list[1] = XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION;
+		value_list[1] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 		_window = xcb_generate_id(connection);
 

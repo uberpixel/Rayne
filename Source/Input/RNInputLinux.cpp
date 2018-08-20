@@ -8,10 +8,10 @@
 
 #include "../Debug/RNLogger.h"
 #include "RNInputLinux.h"
-#include <libudev.h>
+/*#include <libudev.h>
 #include <libevdev-1.0/libevdev/libevdev.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <unistd.h>*/
 
 #define kInputQueueSize 512
 
@@ -115,9 +115,9 @@ namespace RN
 
 
 
-    LinuxPlatformDevice::LinuxPlatformDevice(const Descriptor &descriptor, udev_device *device) :
+    LinuxPlatformDevice::LinuxPlatformDevice(const Descriptor &descriptor) ://, udev_device *device) :
             InputDevice(descriptor),
-			_udevDevice(device),
+			//_udevDevice(device),
             _hasDataAvailable(false),
             _buttonCount(0),
             _sliderCount(0),
@@ -125,7 +125,7 @@ namespace RN
             _linearAxisCount(0),
             _rotationAxisCount(0)
     {
-        if(!_udevDevice)
+ /*       if(!_udevDevice)
             return;
 
         udev_device_ref(_udevDevice);
@@ -163,18 +163,18 @@ namespace RN
 			break;
 		}
 
-		udev_enumerate_unref(enumerate);
+		udev_enumerate_unref(enumerate);*/
     }
 
     LinuxPlatformDevice::~LinuxPlatformDevice()
     {
-        if(!_udevDevice)
-            return;
+ //       if(!_udevDevice)
+ //           return;
 
-		libevdev_free(_device);
+//		libevdev_free(_device);
 		//close(_fileHandle);
 
-        udev_device_unref(_udevDevice);
+//        udev_device_unref(_udevDevice);
 
  /*
         for(HIDElement *element : _allElements)
@@ -222,7 +222,7 @@ namespace RN
 
     void LinuxPlatformDevice::BuildControlTree()
     {
-    	for(int eventType = 0; eventType < EV_CNT; eventType++)
+ /*   	for(int eventType = 0; eventType < EV_CNT; eventType++)
 		{
     		if(libevdev_has_event_type(_device, eventType))
 			{
@@ -317,7 +317,7 @@ namespace RN
 						break;
 				}
 			}
-		}
+		}*/
 
 /*        size_t count = static_cast<size_t>(CFArrayGetCount(elements));
 
@@ -530,7 +530,7 @@ namespace RN
 
 
     // Device management
-    InputDevice::Category LinuxPlatformGetHIDDeviceCategory(udev_device *device)
+/*    InputDevice::Category LinuxPlatformGetHIDDeviceCategory(udev_device *device)
     {
         InputDevice::Category category = 0;
 
@@ -628,7 +628,7 @@ namespace RN
                 stop = true;
             }
         });
-    }
+    }*/
 
     void BuildPlatformDeviceTree()
     {
