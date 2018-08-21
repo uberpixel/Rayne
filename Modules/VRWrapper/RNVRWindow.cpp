@@ -22,8 +22,8 @@ namespace RN
 		
 	}
 
-	void *VRWindow::GetWindowHandle() const
+	uint64 VRWindow::GetWindowHandle() const
 	{
-		return nullptr;
+		return -1;
 	}
 }

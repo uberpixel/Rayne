@@ -8,6 +8,7 @@
 
 #include "RNWindow.h"
 #include "../Debug/RNLogger.h"
+#include "../Base/RNKernel.h"
 
 namespace RN
 {
@@ -30,8 +31,8 @@ namespace RN
 
 	void Window::TrapMouseCursor()
 	{
-		void *windowHandle = GetWindowHandle();
-		if(!windowHandle)
+		uint64 windowHandle = GetWindowHandle();
+		if(windowHandle == -1)
 		{
 			RNDebug("TrapMouseCursor is not supported by this window type.");
 			return;
@@ -54,43 +55,75 @@ namespace RN
 #elif RN_PLATFORM_MAC_OS
 
 #elif RN_PLATFORM_LINUX
-
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_grab_pointer(connection, 1, windowHandle, 0, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, windowHandle, XCB_NONE, XCB_CURRENT_TIME);
 #endif
 	}
 
 	void Window::ReleaseMouseCursor()
 	{
+		uint64 windowHandle = GetWindowHandle();
+		if(windowHandle == -1)
+		{
+			RNDebug("ReleaseMouseCursor is not supported by this window type.");
+			return;
+		}
+
 #if RN_PLATFORM_WINDOWS
 		ClipCursor(nullptr);
-
 #elif RN_PLATFORM_MAC_OS
 
 #elif RN_PLATFORM_LINUX
-
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_ungrab_pointer(connection, XCB_CURRENT_TIME);
 #endif
 	}
 
 	void Window::ShowMouseCursor()
 	{
+		uint64 windowHandle = GetWindowHandle();
+		if(windowHandle == -1)
+		{
+			RNDebug("ShowMouseCursor is not supported by this window type.");
+			return;
+		}
+
 #if RN_PLATFORM_WINDOWS
 		ShowCursor(true);
-
 #elif RN_PLATFORM_MAC_OS
 
-#elif RN_PLATFORM_LINUX
 
+#elif RN_PLATFORM_LINUX
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
+		xcb_change_window_attributes(connection, windowHandle, XCB_CW_CURSOR, nullptr);
 #endif
 	}
 
 	void Window::HideMouseCursor()
 	{
+		uint64 windowHandle = GetWindowHandle();
+		if(windowHandle == -1)
+		{
+			RNDebug("HideMouseCursor is not supported by this window type.");
+			return;
+		}
+
 #if RN_PLATFORM_WINDOWS
 		ShowCursor(false);
-
 #elif RN_PLATFORM_MAC_OS
 
 #elif RN_PLATFORM_LINUX
+		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
 
+		xcb_pixmap_t pixmap = xcb_generate_id(connection);
+		xcb_create_pixmap(connection, 1, pixmap, windowHandle, 1, 1);
+
+		xcb_cursor_t cursor = xcb_generate_id(connection);
+		xcb_create_cursor(connection, cursor, pixmap, pixmap, 0, 0, 0, 0, 0, 0, 1, 1);
+		xcb_free_pixmap(connection, pixmap);
+
+		xcb_change_window_attributes(connection, windowHandle, XCB_CW_CURSOR, &cursor);
+		xcb_free_cursor(connection, cursor);
 #endif
 	}
 }
