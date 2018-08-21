@@ -68,6 +68,7 @@ namespace RN
 			return;
 		}
 
+		//1:1 mapping for center are according to docs would be 1536x1536, returned is 1024*1024
 		_eyeRenderSize.x = vrapi_GetSystemPropertyInt(&_java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH);
 		_eyeRenderSize.y = vrapi_GetSystemPropertyInt(&_java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_HEIGHT);
 
@@ -196,7 +197,7 @@ namespace RN
     			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
     			if(_session)
     			{
-    				//vrapi_SetDisplayRefreshRate(_session, 72.0f);
+    				vrapi_SetDisplayRefreshRate(_session, 72.0f);
     				vrapi_SetRemoteEmulation(_session, false);
     				vrapi_SetClockLevels(_session, 4, 4);
 					vrapi_SetPerfThread(_session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
