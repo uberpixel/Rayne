@@ -63,6 +63,8 @@ namespace RN
 
 		RNVRAPI virtual Origin GetOrigin() const { return Origin::Floor; }
 
+		RNVRAPI virtual void *GetWindowHandle() const override;
+
 		RNDeclareMetaAPI(VRWindow, RNVRAPI)
 	};
 }

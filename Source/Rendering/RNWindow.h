@@ -47,6 +47,14 @@ namespace RN
 
 		RNAPI virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const = 0;
 
+		RNAPI virtual void *GetWindowHandle() const = 0;
+
+		RNAPI void TrapMouseCursor();
+		RNAPI void ReleaseMouseCursor();
+
+		RNAPI void ShowMouseCursor();
+		RNAPI void HideMouseCursor();
+
 	protected:
 		RNAPI Window();
 		RNAPI Window(Screen *screen);

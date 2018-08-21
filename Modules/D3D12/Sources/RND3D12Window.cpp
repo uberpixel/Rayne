@@ -152,4 +152,9 @@ namespace RN
 	{
 		return _swapChain->GetSwapChainDescriptor();
 	}
+
+	void *D3D12Window::GetWindowHandle() const
+	{
+		return _hwnd;
+	}
 }
