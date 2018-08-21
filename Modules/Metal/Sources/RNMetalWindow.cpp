@@ -86,4 +86,9 @@ namespace RN
 	{
 		return _swapChain->GetSwapChainDescriptor();
 	}
+	
+	uint64 MetalWindow::GetWindowHandle() const
+	{
+		return reinterpret_cast<uint64>(_internals->window);
+	}
 }

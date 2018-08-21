@@ -10,6 +10,10 @@
 #include "../Debug/RNLogger.h"
 #include "../Base/RNKernel.h"
 
+#if RN_PLATFORM_MAC_OS
+#include <AppKit/AppKit.h>
+#endif
+
 namespace RN
 {
 	RNDefineMeta(Window, Object)
@@ -53,7 +57,9 @@ namespace RN
 
 		ClipCursor(&clientRect);
 #elif RN_PLATFORM_MAC_OS
-
+		NSWindow *window = reinterpret_cast<NSWindow*>(windowHandle);
+		CGAssociateMouseAndMouseCursorPosition(false);
+		CGWarpMouseCursorPosition(CGPointMake(window.frame.origin.x + window.frame.size.width / 2, window.frame.origin.y + window.frame.size.height / 2));
 #elif RN_PLATFORM_LINUX
 		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
 		xcb_grab_pointer(connection, 1, windowHandle, 0, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, windowHandle, XCB_NONE, XCB_CURRENT_TIME);
@@ -72,7 +78,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		ClipCursor(nullptr);
 #elif RN_PLATFORM_MAC_OS
-
+		CGAssociateMouseAndMouseCursorPosition(true);
 #elif RN_PLATFORM_LINUX
 		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
 		xcb_ungrab_pointer(connection, XCB_CURRENT_TIME);
@@ -91,8 +97,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		ShowCursor(true);
 #elif RN_PLATFORM_MAC_OS
-
-
+		[NSCursor unhide];
 #elif RN_PLATFORM_LINUX
 		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
 		xcb_change_window_attributes(connection, windowHandle, XCB_CW_CURSOR, nullptr);
@@ -111,7 +116,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		ShowCursor(false);
 #elif RN_PLATFORM_MAC_OS
-
+		[NSCursor hide];
 #elif RN_PLATFORM_LINUX
 		xcb_connection_t *connection = Kernel::GetSharedInstance()->GetXCBConnection();
 

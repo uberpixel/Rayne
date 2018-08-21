@@ -35,6 +35,8 @@ namespace RN
 
 		MetalSwapChain *GetSwapChain() const { return _swapChain; }
 		virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const override;
+		
+		MTLAPI uint64 GetWindowHandle() const final;
 
 	private:
 		MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer, const Window::SwapChainDescriptor &descriptor);
