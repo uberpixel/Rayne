@@ -167,7 +167,7 @@ namespace RN
 			bool stencil = VkFormatIsStencilFormat(format);
 
 			if(!depth && !stencil)
-				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
 			else
 				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
@@ -201,6 +201,7 @@ namespace RN
 		Texture(descriptor),
 		_renderer(renderer),
 		_image(VK_NULL_HANDLE),
+		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
 		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
 	{
@@ -309,6 +310,7 @@ namespace RN
 		Texture(descriptor),
 		_renderer(renderer),
 		_image(image),
+		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
 		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
 	{

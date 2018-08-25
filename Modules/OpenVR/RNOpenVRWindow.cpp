@@ -8,14 +8,16 @@
 
 #include <RayneConfig.h>
 
-#if RN_PLATFORM_MAC_OS
+#ifdef RN_OPENVR_SUPPORTS_METAL
 #include "RNOpenVRMetalSwapChain.h"
-#elif RN_PLATFORM_WINDOWS
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_D3D12
 #include "RNOpenVRD3D12SwapChain.h"
-#include "RND3D12Framebuffer.h"
-#elif RN_PLATFORM_LINUX
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
 #include "RNOpenVRVulkanSwapChain.h"
-#include "RNVulkanFramebuffer.h"
 #endif
 
 #include "RNOpenVRWindow.h"
@@ -59,18 +61,70 @@ namespace RN
 		if(!_vrSystem)
 			return;
 		
-#if RN_PLATFORM_MAC_OS
-		_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
-#elif RN_PLATFORM_WINDOWS
-		_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
-#elif RN_PLATFORM_LINUX
-		_swapChain = new OpenVRVulkanSwapChain(descriptor, _vrSystem);
+#ifdef RN_OPENVR_SUPPORTS_METAL
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Metal")))
+		{
+			_swapChain = new OpenVRMetalSwapChain(descriptor, _vrSystem);
+			_swapChainType = SwapChainType::Metal;
+			return;
+		}
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_D3D12
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("D3D12")))
+		{
+			_swapChain = new OpenVRD3D12SwapChain(descriptor, _vrSystem);
+			_swapChainType = SwapChainType::D3D12;
+			return;
+		}
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Vulkan")))
+		{
+			_swapChain = new OpenVRVulkanSwapChain(descriptor, _vrSystem);
+			_swapChainType = SwapChainType::Vulkan;
+			return;
+		}
 #endif
 	}
 	
 	void OpenVRWindow::StopRendering()
 	{
-		SafeRelease(_swapChain);
+		if(_swapChain)
+		{
+#ifdef RN_OPENVR_SUPPORTS_METAL
+			if(_swapChainType == SwapChainType::Metal)
+			{
+				OpenVRMetalSwapChain *swapChain = static_cast<OpenVRMetalSwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+				return;
+			}
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_D3D12
+			if(_swapChainType == SwapChainType::D3D12)
+			{
+				OpenVRD3D12SwapChain *swapChain = static_cast<OpenVRD3D12SwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+				return;
+			}
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
+			if(_swapChainType == SwapChainType::Vulkan)
+			{
+				OpenVRVulkanSwapChain *swapChain = static_cast<OpenVRVulkanSwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+				return;
+			}
+#endif
+		}
+
+		RN_ASSERT(0, "The active renderer is not supported by the OpenVR module!");
 	}
 	
 	bool OpenVRWindow::IsRendering() const
@@ -118,7 +172,7 @@ namespace RN
 		if(!_swapChain)
 			return Vector2();
 		
-		return _swapChain->GetSize();
+		return _swapChain->GetOpenVRSwapChainSize();
 	}
 
 	Framebuffer *OpenVRWindow::GetFramebuffer() const
@@ -126,18 +180,12 @@ namespace RN
 		if(!_swapChain)
 			return nullptr;
 		
-		return _swapChain->GetFramebuffer();
+		return _swapChain->GetOpenVRSwapChainFramebuffer();
 	}
 
 	uint32 OpenVRWindow::GetEyePadding() const
 	{
-#if RN_PLATFORM_MAC_OS
-		return OpenVRMetalSwapChain::kEyePadding;
-#elif RN_PLATFORM_WINDOWS
-		return OpenVRD3D12SwapChain::kEyePadding;
-#elif RN_PLATFORM_LINUX
-		return OpenVRVulkanSwapChain::kEyePadding;
-#endif
+		return OpenVRSwapChain::kEyePadding;
 	}
 
 	static Matrix GetMatrixForOVRMatrix(const vr::HmdMatrix44_t &ovrMatrix)
@@ -182,7 +230,7 @@ namespace RN
 		}
 		_lastSize = newSize;
 
-		if(_lastSizeChangeTimer > 0.5f && newSize.GetSquaredDistance(_swapChain->GetSize()) > 0.001f)
+		if(_lastSizeChangeTimer > 0.5f && newSize.GetSquaredDistance(_swapChain->GetOpenVRSwapChainSize()) > 0.001f)
 		{
 			UpdateSize(newSize);
 		}
@@ -354,7 +402,7 @@ namespace RN
 		if(!_swapChain)
 			return;
 		
-		_swapChain->ResizeSwapchain(size);
+		_swapChain->ResizeOpenVRSwapChain(size);
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}
 
@@ -432,6 +480,6 @@ namespace RN
 	
 	const Window::SwapChainDescriptor &OpenVRWindow::GetSwapChainDescriptor() const
 	{
-		return _swapChain->GetDescriptor();
+		return _swapChain->GetOpenVRSwapChainDescriptor();
 	}
 }

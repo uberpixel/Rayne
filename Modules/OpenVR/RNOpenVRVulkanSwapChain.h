@@ -9,14 +9,12 @@
 #ifndef __RAYNE_OPENVRVULKANSWAPCHAIN_H_
 #define __RAYNE_OPENVRVULKANSWAPCHAIN_H_
 
+#include "RNOpenVRSwapChain.h"
 #include "RNVulkanSwapChain.h"
-
-#include "RNOpenVR.h"
-#include <openvr.h>
 
 namespace RN
 {
-	class OpenVRVulkanSwapChain : public VulkanSwapChain
+	class OpenVRVulkanSwapChain : public VulkanSwapChain, OpenVRSwapChain
 	{
 	public:
 		friend class OpenVRWindow;
@@ -29,25 +27,17 @@ namespace RN
 		OVRAPI void PresentBackBuffer(VkQueue queue) final;
 
 		OVRAPI VkImage GetVulkanColorBuffer(int i) const final;
-		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
 
-		OVRAPI void UpdatePredictedPose();
+		OVRAPI void ResizeOpenVRSwapChain(const Vector2 &size) final;
+		OVRAPI Vector2 GetOpenVRSwapChainSize() const final { return GetSize(); }
+		OVRAPI const Window::SwapChainDescriptor &GetOpenVRSwapChainDescriptor() const final { return _descriptor; }
+		OVRAPI Framebuffer *GetOpenVRSwapChainFramebuffer() const final;
 
 	protected:
 		OpenVRVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system);
 
 	private:
-		void ResizeSwapchain(const Vector2 &size);
-
-		Texture *_targetTexture;
-		Vector3 _hmdToEyeViewOffset[2];
 		bool _isFirstRender;
-
-		vr::IVRSystem *_vrSystem;
-		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
-		vr::TrackedDevicePose_t _predictedDevicePose[vr::k_unMaxTrackedDeviceCount];
-
-		static const uint32 kEyePadding;
 
 		RNDeclareMetaAPI(OpenVRVulkanSwapChain, OVRAPI)
 	};

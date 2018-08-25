@@ -197,31 +197,21 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		swapchainInfo.clipped = VK_TRUE;
 		swapchainInfo.oldSwapchain = _swapchain;
 
-		RNVulkanValidate(vk::CreateSwapchainKHR(device->GetDevice(), &swapchainInfo, nullptr, &_swapchain));
+		RNVulkanValidate(vk::CreateSwapchainKHR(_device, &swapchainInfo, nullptr, &_swapchain));
 		_extents = extent;
 
 		uint32_t count = _descriptor.bufferCount;
-		vk::GetSwapchainImagesKHR(device->GetDevice(), _swapchain, &count, nullptr);
-		vk::GetSwapchainImagesKHR(device->GetDevice(), _swapchain, &count, _colorBuffers);
+		vk::GetSwapchainImagesKHR(_device, _swapchain, &count, nullptr);
+		vk::GetSwapchainImagesKHR(_device, _swapchain, &count, _colorBuffers);
 		_descriptor.bufferCount = static_cast<uint8>(count);
 
-		VkSemaphoreCreateInfo semaphoreInfo = {};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		for(size_t i = _presentSemaphores.size(); i < count; i++)
-		{
-			VkSemaphore presentSemaphore;
-			VkSemaphore renderSemaphore;
-			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &presentSemaphore));
-			RNVulkanValidate(vk::CreateSemaphore(_device, &semaphoreInfo, nullptr, &renderSemaphore));
-			_presentSemaphores.push_back(presentSemaphore);
-			_renderSemaphores.push_back(renderSemaphore);
-		}
+		CreateSemaphores();
 
 		// Destroy the old swapchain
 		if(swapchainInfo.oldSwapchain != VK_NULL_HANDLE)
 		{
-			RNVulkanValidate(vk::DeviceWaitIdle(device->GetDevice()));
-			vk::DestroySwapchainKHR(device->GetDevice(), swapchainInfo.oldSwapchain, nullptr);
+			RNVulkanValidate(vk::DeviceWaitIdle(_device));
+			vk::DestroySwapchainKHR(_device, swapchainInfo.oldSwapchain, nullptr);
 		}
 
 		if(!_framebuffer)
@@ -233,6 +223,21 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 			_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 		}
 	};
+
+	void VulkanSwapChain::CreateSemaphores()
+	{
+		VkSemaphoreCreateInfo semaphoreInfo = {};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		for (size_t i = _presentSemaphores.size(); i < _descriptor.bufferCount; i++)
+		{
+			VkSemaphore presentSemaphore;
+			VkSemaphore renderSemaphore;
+			RNVulkanValidate(vk::CreateSemaphore(_renderer->GetVulkanDevice()->GetDevice(), &semaphoreInfo, nullptr, &presentSemaphore));
+			RNVulkanValidate(vk::CreateSemaphore(_renderer->GetVulkanDevice()->GetDevice(), &semaphoreInfo, nullptr, &renderSemaphore));
+			_presentSemaphores.push_back(presentSemaphore);
+			_renderSemaphores.push_back(renderSemaphore);
+		}
+	}
 
 	void VulkanSwapChain::ResizeSwapchain(const Vector2& size)
 	{

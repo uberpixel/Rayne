@@ -43,7 +43,7 @@ namespace RN
 		}
 
 #if RN_PLATFORM_WINDOWS
-		HWND hwnd = static_cast<HWND>(windowHandle);
+		HWND hwnd = reinterpret_cast<HWND>(windowHandle);
 
 		RECT clientRect;
 		GetClientRect(hwnd, &clientRect);

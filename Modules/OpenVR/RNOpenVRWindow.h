@@ -20,25 +20,21 @@ namespace vr
 
 namespace RN
 {
-#if RN_PLATFORM_MAC_OS
-	class OpenVRMetalSwapChain;
-#elif RN_PLATFORM_WINDOWS
-	class OpenVRD3D12SwapChain;
-#elif RN_PLATFORM_LINUX
-	class OpenVRVulkanSwapChain;
-#endif
+	class OpenVRSwapChain;
+
 	class OpenVRWindow : public VRWindow
 	{
 	public:
-/*		enum Eye
+		enum SwapChainType
 		{
-			Left,
-			Right
-		};*/
+			Metal,
+			D3D12,
+			Vulkan
+		};
 
 		OVRAPI OpenVRWindow();
 		OVRAPI ~OpenVRWindow();
-		
+
 		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
 		OVRAPI void StopRendering() final;
 		OVRAPI bool IsRendering() const final;
@@ -56,24 +52,19 @@ namespace RN
 		OVRAPI void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) final;
 
 		OVRAPI void UpdateSize(const Vector2 &size);
-		
+
 		OVRAPI void PreparePreviewWindow(Window *window) const final;
 		OVRAPI RenderingDevice *GetOutputDevice() const final;
-		
+
 		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
 	private:
 		const String *GetHMDInfoDescription() const;
-		
-#if RN_PLATFORM_MAC_OS
-		OpenVRMetalSwapChain *_swapChain;
-#elif RN_PLATFORM_WINDOWS
-		OpenVRD3D12SwapChain *_swapChain;
-#elif RN_PLATFORM_LINUX
-		OpenVRVulkanSwapChain *_swapChain;
-#endif
-		
+
+		OpenVRSwapChain *_swapChain;
+		SwapChainType _swapChainType;
+
 		vr::IVRSystem *_vrSystem;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];

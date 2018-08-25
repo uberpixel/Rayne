@@ -250,7 +250,7 @@ namespace RN
 	uint64 VulkanWindow::GetWindowHandle() const
 	{
 #if RN_PLATFORM_WINDOWS
-		return _hwnd;
+		return reinterpret_cast<uint64>(_hwnd);
 #elif RN_PLATFORM_LINUX
 		return _window;
 #elif RN_PLATFORM_ANDROID

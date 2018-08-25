@@ -718,7 +718,7 @@ namespace RN
 				NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
 				url = [url URLByAppendingPathComponent:[NSString stringWithUTF8String:application->GetUTF8String()]];
 
-				[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:NULL];
+	//			[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:NULL];
 
 				return RNSTR([[url path] UTF8String]);
 
@@ -731,14 +731,14 @@ namespace RN
 
 				String *path = RNSTR(tpath << "/" << application);
 
-				::CreateDirectory(path->GetUTF8String(), NULL);
+//				::CreateDirectory(path->GetUTF8String(), NULL);
 				return path;
 #endif
 #if RN_PLATFORM_LINUX
 				char *home = getenv("HOME");
 				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
 				String *path = RNSTR(home << "/." << application);
-				mkdir(path->GetUTF8String(), S_IRWXU);
+//				mkdir(path->GetUTF8String(), S_IRWXU);
 				return path;
 #endif
 #if RN_PLATFORM_ANDROID

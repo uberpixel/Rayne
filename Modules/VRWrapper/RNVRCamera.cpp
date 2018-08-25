@@ -66,9 +66,8 @@ namespace RN
 			_head->AddChild(_eye[i]);
 			_hiddenAreaEntity[i] = nullptr;
 
-#if RN_PLATFORM_ANDROID
+			//TODO: Fix culling for VR!?
 			_eye[i]->SetFlags(_eye[i]->GetFlags() | Camera::Flags::UseSimpleCulling);
-#endif
 			
 #if !RN_PLATFORM_WINDOWS
 			if(_window)
@@ -95,9 +94,9 @@ namespace RN
 		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
         _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
-//		_eye[0]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor);
+		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor);
 #if !RN_PLATFORM_MAC_OS
-		_eye[0]->GetRenderPass()->SetFlags(0);
+//		_eye[0]->GetRenderPass()->SetFlags(0);
 #endif
 		
 		CreatePostprocessingPipeline();
@@ -185,7 +184,7 @@ namespace RN
 		{
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
-			_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
+			_eye[1]->GetRenderPass()->AddRenderPass(resolvePass);
 		}
 
 		if(_previewRenderPass)

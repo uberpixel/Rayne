@@ -50,6 +50,7 @@ namespace RN
 
 	protected:
 		VKAPI VulkanSwapChain();
+		VKAPI void CreateSemaphores();
 
 		VulkanRenderer *_renderer;
 		VkDevice _device;

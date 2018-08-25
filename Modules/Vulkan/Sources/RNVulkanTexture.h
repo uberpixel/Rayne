@@ -46,6 +46,9 @@ namespace RN
 /*		VKAPI void TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask);
 		VKAPI void TransitionToLayout(VkCommandBuffer buffer, VkImageLayout targetLayout);*/
 
+		VkImageLayout GetCurrentLayout() const { return _currentLayout; }
+		void SetCurrentLayout(VkImageLayout layout) { _currentLayout = layout; }
+
 		static VkFormat VulkanImageFormatFromTextureFormat(Texture::Format format);
 
 		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent);

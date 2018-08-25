@@ -85,6 +85,6 @@ if(ANDROID AND ${RN_BUILD_OCULUSMOBILE_MODULE})
     add_subdirectory("OculusMobile")
 endif()
 
-if((MSVC OR UNIX) AND ${RN_BUILD_OPENVR_MODULE})
+if((WIN32 OR UNIX) AND ${RN_BUILD_OPENVR_MODULE})
     add_subdirectory("OpenVR")
 endif()

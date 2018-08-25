@@ -153,8 +153,8 @@ namespace RN
 		return _swapChain->GetSwapChainDescriptor();
 	}
 
-	void *D3D12Window::GetWindowHandle() const
+	uint64 D3D12Window::GetWindowHandle() const
 	{
-		return _hwnd;
+		return reinterpret_cast<uint64>(_hwnd);
 	}
 }

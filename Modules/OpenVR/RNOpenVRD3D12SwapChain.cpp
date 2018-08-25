@@ -16,9 +16,7 @@ namespace RN
 {
 	RNDefineMeta(OpenVRD3D12SwapChain, D3D12SwapChain)
 
-	const uint32 OpenVRD3D12SwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
-
-	OpenVRD3D12SwapChain::OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : _isFirstRender(true), _vrSystem(system)
+	OpenVRD3D12SwapChain::OpenVRD3D12SwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : OpenVRSwapChain(system), _isFirstRender(true)
 	{
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		_descriptor = descriptor;
@@ -53,7 +51,7 @@ namespace RN
 		SafeRelease(_targetTexture);
 	}
 
-	void OpenVRD3D12SwapChain::ResizeSwapchain(const Vector2& size)
+	void OpenVRD3D12SwapChain::ResizeOpenVRSwapChain(const Vector2& size)
 	{
 		_size = size;
 		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
@@ -112,8 +110,8 @@ namespace RN
 		return _targetTexture->Downcast<D3D12Texture>()->GetD3D12Resource();
 	}
 
-	void OpenVRD3D12SwapChain::UpdatePredictedPose()
+	Framebuffer *OpenVRD3D12SwapChain::GetOpenVRSwapChainFramebuffer() const
 	{
-		vr::VRCompositor()->WaitGetPoses(_frameDevicePose, vr::k_unMaxTrackedDeviceCount, _predictedDevicePose, vr::k_unMaxTrackedDeviceCount);
+		return GetFramebuffer()->Downcast<Framebuffer>();
 	}
 }
