@@ -262,5 +262,24 @@ namespace RN
 	{
 		return _swapChain->GetDescriptor();
 	}
+
+	VRWindow::Availability OculusWindow::GetAvailability()
+	{
+		VRWindow::Availability availability = Availability::None;
+		ovrDetectResult result = ovr_Detect(10);
+		if(!result.IsOculusServiceRunning)
+		{
+			return availability;
+		}
+		availability = Availability::Software;
+
+		if(!result.IsOculusHMDConnected)
+		{
+			return availability;
+		}
+		availability = Availability::HMD;
+
+		return availability;
+	}
 }
 

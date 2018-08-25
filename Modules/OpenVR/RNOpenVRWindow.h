@@ -59,6 +59,9 @@ namespace RN
 		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
+		OVRAPI static VRWindow::Availability GetAvailability();
+		OVRAPI static bool IsSteamVRRunning();
+
 	private:
 		const String *GetHMDInfoDescription() const;
 

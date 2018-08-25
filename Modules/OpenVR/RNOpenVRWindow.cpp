@@ -482,4 +482,71 @@ namespace RN
 	{
 		return _swapChain->GetOpenVRSwapChainDescriptor();
 	}
+
+	VRWindow::Availability OpenVRWindow::GetAvailability()
+	{
+		VRWindow::Availability availability = Availability::None;
+		if(!vr::VR_IsRuntimeInstalled())
+		{
+			return availability;
+		}
+		availability = Availability::Software;
+
+		if(!vr::VR_IsHmdPresent())
+		{
+			return availability;
+		}
+		availability = Availability::HMD;
+
+		return availability;
+	}
+
+	bool OpenVRWindow::IsSteamVRRunning()
+	{
+		DWORD aProcesses[1024], cbNeeded, cProcesses;
+		unsigned int i;
+
+		if(!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
+		{
+			return false;
+		}
+
+
+		// Calculate how many process identifiers were returned.
+		cProcesses = cbNeeded / sizeof(DWORD);
+
+		for(i = 0; i < cProcesses; i++)
+		{
+			if(aProcesses[i] != 0)
+			{
+				DWORD processID = aProcesses[i];
+				TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+
+				// Get a handle to the process.
+				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+
+				// Get the process name.
+				if(NULL != hProcess)
+				{
+					HMODULE hMod;
+					DWORD cbNeeded;
+
+					if(EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+					{
+						GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+					}
+				}
+
+				if(RNSTR(szProcessName)->IsEqual(RNSTR("vrmonitor.exe")))
+				{
+					return true;
+				}
+
+				// Release the handle to the process.
+				CloseHandle(hProcess);
+			}
+		}
+
+		return false;
+	}
 }

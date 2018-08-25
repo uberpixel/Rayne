@@ -94,10 +94,8 @@ namespace RN
 		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
         _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
-		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor);
-#if !RN_PLATFORM_MAC_OS
-//		_eye[0]->GetRenderPass()->SetFlags(0);
-#endif
+		_eye[0]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
+		_eye[1]->GetRenderPass()->SetFlags(0);
 		
 		CreatePostprocessingPipeline();
 		

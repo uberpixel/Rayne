@@ -30,6 +30,13 @@ namespace RN
 			Head
 		};
 
+		enum Availability
+		{
+			None,
+			Software,
+			HMD
+		};
+
 		RNVRAPI VRWindow();
 		RNVRAPI ~VRWindow();
 		

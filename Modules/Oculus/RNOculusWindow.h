@@ -48,6 +48,8 @@ namespace RN
 
 		OVRAPI void Update(float delta, float near, float far) final;
 
+		OVRAPI static VRWindow::Availability GetAvailability();
+
 	private:
 		OculusSwapChain *_swapChain;
 		VRHMDTrackingState _hmdTrackingState;
