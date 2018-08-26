@@ -112,6 +112,7 @@ namespace RN
 
 	struct VulkanRenderPassState
 	{
+		RenderPass::Flags flags;
 		std::vector<VkFormat> imageFormats;
 		std::vector<VkFormat> resolveFormats;
 		VkRenderPass renderPass;
@@ -120,6 +121,7 @@ namespace RN
 		{
 			if(imageFormats.size() != descriptor.imageFormats.size()) return false;
 			if(resolveFormats.size() != descriptor.resolveFormats.size()) return false;
+			if(flags != descriptor.flags) return false;
 
 			for(int i = 0; i < imageFormats.size(); i++)
 			{
@@ -142,9 +144,9 @@ namespace RN
 		~VulkanStateCoordinator();
 
 		const VulkanRootSignature *GetRootSignature(const VulkanPipelineStateDescriptor &pipelineDescriptor);
-		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
+		const VulkanPipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags);
 		VulkanUniformState *GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState);
-		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer);
+		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
 
 	private:
 		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);

@@ -93,7 +93,7 @@ namespace RN
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
 		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
-		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer);
+		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();

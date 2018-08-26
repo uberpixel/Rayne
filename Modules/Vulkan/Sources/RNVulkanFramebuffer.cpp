@@ -226,11 +226,11 @@ namespace RN
 		return _sampleCount;
 	}
 
-	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer)
+	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags)
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
-		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer);
+		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer, flags);
 
 		std::vector<VkImageView> attachments;
 		if(_colorTargets.size() > 0)

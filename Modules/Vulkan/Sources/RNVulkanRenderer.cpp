@@ -70,9 +70,9 @@ namespace RN
 		delete _constantBufferPool;
 	}
 
-	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer)
+	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags)
 	{
-		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer)->renderPass;
+		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer, flags)->renderPass;
 	}
 
 	void VulkanRenderer::CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -395,7 +395,7 @@ namespace RN
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
 		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
-		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer);
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags());
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -1098,7 +1098,7 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
+			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial, renderPass.renderPass->GetFlags());
 			VulkanUniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 

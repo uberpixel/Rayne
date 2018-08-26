@@ -274,7 +274,7 @@ namespace RN
 		return signature;
 	}
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
@@ -282,7 +282,7 @@ namespace RN
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
 		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
 		//pipelineDescriptor.sampleQuality = 0;//(framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
-		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer)->renderPass;
+		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer, flags)->renderPass;
 		pipelineDescriptor.shaderHint = shaderHint;
 		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
@@ -530,12 +530,13 @@ namespace RN
 		return state;
 	}
 
-	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer)
+	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags)
 	{
 		//TODO: Maybe handle swapchain case better...
 		RN_ASSERT(!resolveFramebuffer || framebuffer->_colorTargets.size() <= resolveFramebuffer->_colorTargets.size(), "Resolve framebuffer needs a target for each target in the framebuffer!");
 
 		VulkanRenderPassState renderPassState;
+		renderPassState.flags = flags;
 		for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
 			renderPassState.imageFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
@@ -560,6 +561,7 @@ namespace RN
 		}
 
 		VulkanRenderPassState *state = new VulkanRenderPassState;
+		state->flags = renderPassState.flags;
 		state->imageFormats = renderPassState.imageFormats;
 		state->resolveFormats = renderPassState.resolveFormats;
 
@@ -589,7 +591,7 @@ namespace RN
 			attachment.format = targetView->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
-			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachment.loadOp = (flags & RenderPass::Flags::ClearColor)? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -615,7 +617,7 @@ namespace RN
 				}
 				attachment.flags = 0;
 				attachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
-				attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+				attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -647,7 +649,7 @@ namespace RN
 			attachment.format = framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
-			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachment.loadOp = (flags & RenderPass::Flags::ClearDepthStencil) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
