@@ -183,6 +183,10 @@ namespace RN
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
 			_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
+
+#if RN_PLATFORM_ANDROID
+			_eye[1]->GetRenderPass()->AddRenderPass(resolvePass);
+#endif
 		}
 
 		if(_previewRenderPass)
