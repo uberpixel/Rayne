@@ -17,7 +17,7 @@ namespace RN
 	class VulkanInstance
 	{
 	public:
-		VKAPI VulkanInstance();
+		VKAPI VulkanInstance(Array *instanceExtensions, Array *deviceExtensions);
 		VKAPI ~VulkanInstance();
 
 		VKAPI bool LoadVulkan();

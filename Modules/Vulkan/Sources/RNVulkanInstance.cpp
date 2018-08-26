@@ -16,7 +16,7 @@
 
 namespace RN
 {
-	VulkanInstance::VulkanInstance() :
+	VulkanInstance::VulkanInstance(Array *instanceExtensions, Array *deviceExtensions) :
 		_instance(nullptr),
 		_module(nullptr),
 		_allocationCallbacks(nullptr),
@@ -40,6 +40,20 @@ namespace RN
 #endif
 
 		_requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+		if(instanceExtensions)
+		{
+			instanceExtensions->Enumerate<String>([&](String *extension, size_t index, bool &stop) {
+				_requiredExtensions.push_back(extension->GetUTF8String());
+			});
+		}
+
+		if(deviceExtensions)
+		{
+			deviceExtensions->Enumerate<String>([&](String *extension, size_t index, bool &stop) {
+				_requiredDeviceExtensions.push_back(extension->GetUTF8String());
+			});
+		}
 	}
 
 	VulkanInstance::~VulkanInstance()

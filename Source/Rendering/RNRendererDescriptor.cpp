@@ -55,10 +55,30 @@ namespace RN
 		return (new Dictionary())->Autorelease();
 	}
 
-	Dictionary *RendererDescriptor::GetParameters()
+	Dictionary *RendererDescriptor::GetParameters(Dictionary *additionalSettings)
 	{
 		Dictionary *settings = GetSettings();
-		return settings->GetObjectForKey<Dictionary>(RNCSTR("parameters"));
+		Dictionary *parameters = settings->GetObjectForKey<Dictionary>(RNCSTR("parameters"));
+		if(!parameters)
+		{
+			parameters = additionalSettings;
+		}
+		else
+		{
+			//TODO: Merge future renderer settings. Currently only used to enable api validation on macos and for vulkan extensions
+
+			Array *instanceExtensions = parameters->GetObjectForKey<Array>(RNCSTR("instanceextensions"));
+			Array *deviceExtensions = parameters->GetObjectForKey<Array>(RNCSTR("deviceextensions"));
+
+			Array *additionalInstanceExtensions = additionalSettings->GetObjectForKey<Array>(RNCSTR("instanceextensions"));
+			Array *additionalDeviceExtensions = additionalSettings->GetObjectForKey<Array>(RNCSTR("deviceextensions"));
+
+			//TODO: Maybe handle duplicated extensions?
+			instanceExtensions->AddObjectsFromArray(additionalInstanceExtensions);
+			deviceExtensions->AddObjectsFromArray(additionalDeviceExtensions);
+		}
+
+		return parameters;
 	}
 
 
@@ -68,9 +88,9 @@ namespace RN
 		return RendererDescriptor::GetExtensionPoint()->GetExtensions();
 	}
 
-	Array *RendererDescriptor::GetAvailableRenderers()
+	Array *RendererDescriptor::GetAvailableRenderers(Dictionary *additionalSettings)
 	{
-		Dictionary *settings = GetParameters();
+		Dictionary *settings = GetParameters(additionalSettings);
 
 		return GetRenderers()->GetObjectsPassingTest<RendererDescriptor>([&](RendererDescriptor *descriptor, bool &stop) -> bool {
 
@@ -80,23 +100,23 @@ namespace RN
 		});
 	}
 
-	RendererDescriptor *RendererDescriptor::GetPreferredRenderer()
+	RendererDescriptor *RendererDescriptor::GetPreferredRenderer(Dictionary *additionalSettings)
 	{
 		Dictionary *settings = GetSettings();
 		String *preferredIdentifier = settings->GetObjectForKey<String>(RNCSTR("identifier"));
 
 		if(preferredIdentifier)
-			return __GetRendererWithIdentifier(preferredIdentifier);
+			return __GetRendererWithIdentifier(preferredIdentifier, additionalSettings);
 
 		return nullptr;
 	}
 
-	RendererDescriptor *RendererDescriptor::GetRendererWithIdentifier(const String *identifier)
+	RendererDescriptor *RendererDescriptor::GetRendererWithIdentifier(const String *identifier, Dictionary *additionalSettings)
 	{
-		return __GetRendererWithIdentifier(identifier);
+		return __GetRendererWithIdentifier(identifier, additionalSettings);
 	}
 
-	RendererDescriptor *RendererDescriptor::__GetRendererWithIdentifier(const String *identifier)
+	RendererDescriptor *RendererDescriptor::__GetRendererWithIdentifier(const String *identifier, Dictionary *additionalSettings)
 	{
 		RendererDescriptor *descriptor = nullptr;
 
@@ -111,14 +131,14 @@ namespace RN
 		});
 
 		if(descriptor)
-			descriptor->__PrepareWithSettings(GetParameters());
+			descriptor->__PrepareWithSettings(GetParameters(additionalSettings));
 
 		return descriptor;
 	}
 
-	Renderer *RendererDescriptor::ActivateRenderer(RendererDescriptor *descriptor)
+	Renderer *RendererDescriptor::ActivateRenderer(RendererDescriptor *descriptor, Dictionary *additionalSettings)
 	{
-		descriptor->__PrepareWithSettings(GetParameters());
+		descriptor->__PrepareWithSettings(GetParameters(additionalSettings));
 
 		if(!descriptor->CanCreateRenderer())
 			throw InconsistencyException("Tried to activate renderer that is not available");
@@ -129,7 +149,7 @@ namespace RN
 		if(devices->GetCount() == 0)
 			throw InconsistencyException("Tried to activate renderer without devices");
 
-		RenderingDevice *device = Kernel::GetSharedInstance()->GetApplication()->GetPreferredRenderingDevice(devices);
+		RenderingDevice *device = Kernel::GetSharedInstance()->GetApplication()->GetPreferredRenderingDevice(descriptor, devices);
 		if(!device || !devices->ContainsObject(device))
 			throw InconsistencyException("Invalid preferred rendering device");
 

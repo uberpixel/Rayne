@@ -253,8 +253,11 @@ namespace RN
 		return nullptr;
 	}
 
-	RenderingDevice *OculusWindow::GetOutputDevice() const
+	RenderingDevice *OculusWindow::GetOutputDevice(RendererDescriptor *descriptor) const
 	{
+		if(descriptor->GetAPI()->IsEqual(RNCSTR("Vulkan")))
+			return nullptr;
+
 		return nullptr;
 	}
 

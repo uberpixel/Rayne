@@ -64,13 +64,16 @@ namespace RN
 		RNVRAPI virtual void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) = 0;
 		
 		RNVRAPI virtual void PreparePreviewWindow(Window *window) const {}
-		RNVRAPI virtual RenderingDevice *GetOutputDevice() const = 0;
+		RNVRAPI virtual RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const = 0;
 		
 		RNVRAPI virtual Mesh *GetHiddenAreaMesh(uint8 eye) const {return nullptr;}
 
 		RNVRAPI virtual Origin GetOrigin() const { return Origin::Floor; }
 
 		RNVRAPI virtual uint64 GetWindowHandle() const override;
+
+		RNVRAPI virtual Array *GetRequiredVulkanInstanceExtensions() const { return nullptr; };
+		RNVRAPI virtual Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const { return nullptr; };
 
 		RNDeclareMetaAPI(VRWindow, RNVRAPI)
 	};

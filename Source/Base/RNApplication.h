@@ -36,7 +36,7 @@ namespace RN
 		RNAPI virtual void DidResignActive();
 
 		RNAPI virtual RendererDescriptor *GetPreferredRenderer() const;
-		RNAPI virtual RenderingDevice *GetPreferredRenderingDevice(const Array *devices) const;
+		RNAPI virtual RenderingDevice *GetPreferredRenderingDevice(RN::RendererDescriptor *descriptor, const Array *devices) const;
 
 		RNAPI Array *GetLoggingEngines() const;
 

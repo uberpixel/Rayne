@@ -45,7 +45,10 @@ namespace RN
 
 	void VulkanRendererDescriptor::PrepareWithSettings(const Dictionary *settings)
 	{
-		_instance = new VulkanInstance();
+		Array *instanceExtensions = settings->GetObjectForKey<Array>(RNCSTR("instanceextensions"));
+		Array *deviceExtensions = settings->GetObjectForKey<Array>(RNCSTR("deviceextensions"));
+		_instance = new VulkanInstance(instanceExtensions, deviceExtensions);
+
 		if(!_instance->LoadVulkan())
 		{
 			delete _instance;

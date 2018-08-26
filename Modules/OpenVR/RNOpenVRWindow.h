@@ -54,10 +54,15 @@ namespace RN
 		OVRAPI void UpdateSize(const Vector2 &size);
 
 		OVRAPI void PreparePreviewWindow(Window *window) const final;
-		OVRAPI RenderingDevice *GetOutputDevice() const final;
+		OVRAPI RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const final;
 
 		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
+		OVRAPI Array *GetRequiredVulkanInstanceExtensions() const final;
+		OVRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;
+#endif
 
 		OVRAPI static VRWindow::Availability GetAvailability();
 		OVRAPI static bool IsSteamVRRunning();

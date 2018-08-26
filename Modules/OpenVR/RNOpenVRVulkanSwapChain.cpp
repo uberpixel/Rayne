@@ -128,8 +128,7 @@ namespace RN
 
 		bounds.uMin = 0.5f + kEyePadding * 0.5f / _size.x;
 		bounds.uMax = 1.0f;
-		vr::EVRCompositorError error = vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
-		RNDebug("error: " << error);
+		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
 	}
 
 	VkImage OpenVRVulkanSwapChain::GetVulkanColorBuffer(int i) const

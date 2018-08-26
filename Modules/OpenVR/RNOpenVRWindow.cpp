@@ -14,10 +14,13 @@
 
 #ifdef RN_OPENVR_SUPPORTS_D3D12
 #include "RNOpenVRD3D12SwapChain.h"
+#include "RND3D12Device.h"
 #endif
 
 #ifdef RN_OPENVR_SUPPORTS_VULKAN
 #include "RNOpenVRVulkanSwapChain.h"
+#include "RNVulkanRendererDescriptor.h"
+#include "RNVulkanDevice.h"
 #endif
 
 #include "RNOpenVRWindow.h"
@@ -438,25 +441,69 @@ namespace RN
 #endif
 	}
 	
-	RenderingDevice *OpenVRWindow::GetOutputDevice() const
+	RenderingDevice *OpenVRWindow::GetOutputDevice(RendererDescriptor *descriptor) const
 	{
 		if(!_vrSystem)
 			return nullptr;
-		
-#if RN_PLATFORM_MAC_OS
-		id<MTLDevice> mtlDevice = nil;
-		_vrSystem->GetOutputDevice((uint64_t*)&mtlDevice, vr::TextureType_IOSurface);
-		MetalDevice *device = nullptr;
-		if(mtlDevice)
+
+#ifdef RN_OPENVR_SUPPORTS_METAL
+		if(descriptor->GetAPI()->IsEqual(RNCSTR("Metal")))
 		{
-			device = new MetalDevice(mtlDevice);
+			id<MTLDevice> mtlDevice = nil;
+			_vrSystem->GetOutputDevice((uint64_t*)&mtlDevice, vr::TextureType_IOSurface);
+			MetalDevice *device = nullptr;
+			if(mtlDevice)
+			{
+				device = new MetalDevice(mtlDevice);
+			}
+			return device;
 		}
-		return device;
-#elif RN_PLATFORM_WINDOWS
-		return nullptr;
-#elif RN_PLATFORM_LINUX
-		return nullptr;
 #endif
+
+#ifdef RN_OPENVR_SUPPORTS_D3D12
+		if(descriptor->GetAPI()->IsEqual(RNCSTR("D3D12")))
+		{
+			LUID adapterLUID;
+			_vrSystem->GetOutputDevice(reinterpret_cast<uint64_t*>(&adapterLUID), vr::TextureType_DirectX12);
+
+			D3D12Device *outputDevice = nullptr;
+			descriptor->GetDevices()->Enumerate<D3D12Device>([&](D3D12Device *device, size_t index, bool &stop){
+				DXGI_ADAPTER_DESC adapterDescription;
+				device->GetAdapter()->GetDesc(&adapterDescription);
+				if(adapterDescription.AdapterLuid.LowPart == adapterLUID.LowPart && adapterDescription.AdapterLuid.HighPart == adapterLUID.HighPart)
+				{
+					outputDevice = device;
+					stop = true;
+				}
+			});
+			
+			return outputDevice;
+		}
+#endif
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
+		if(descriptor->GetAPI()->IsEqual(RNCSTR("Vulkan")))
+		{
+			VulkanRendererDescriptor *vulkanDescriptor = descriptor->Downcast<VulkanRendererDescriptor>();
+			
+			VkInstance instance = vulkanDescriptor->GetInstance()->GetInstance();
+			VkPhysicalDevice physicalDevice;
+			_vrSystem->GetOutputDevice(reinterpret_cast<uint64_t*>(&physicalDevice), vr::TextureType_Vulkan, instance);
+
+			VulkanDevice *outputDevice = nullptr;
+			descriptor->GetDevices()->Enumerate<VulkanDevice>([&](VulkanDevice *device, size_t index, bool &stop) {
+				if(device->GetPhysicalDevice() == physicalDevice)
+				{
+					outputDevice = device;
+					stop = true;
+				}
+			});
+
+			return outputDevice;
+		}
+#endif
+
+		return nullptr;
 	}
 	
 	Mesh *OpenVRWindow::GetHiddenAreaMesh(uint8 eye) const
@@ -549,4 +596,41 @@ namespace RN
 
 		return false;
 	}
+
+#ifdef RN_OPENVR_SUPPORTS_VULKAN
+	OVRAPI Array *OpenVRWindow::GetRequiredVulkanInstanceExtensions() const
+	{
+		uint32_t buffersize;
+		buffersize = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(nullptr, 0);
+		char *extensions = (char*)malloc(buffersize);
+		vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensions, buffersize);
+
+		String *result = RNSTR(extensions);
+		free(extensions);
+
+		Array *extensionArray = result->GetComponentsSeparatedByString(RNCSTR(" "));
+		return extensionArray;
+	}
+
+	OVRAPI Array *OpenVRWindow::GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *renderingDevice) const
+	{
+		if(!descriptor->GetAPI()->IsEqual(RNCSTR("Vulkan")))
+		{
+			return nullptr;
+		}
+
+		VulkanDevice *vulkanDevice = renderingDevice->Downcast<VulkanDevice>();
+
+		uint32_t buffersize;
+		buffersize = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(vulkanDevice->GetPhysicalDevice(), nullptr, 0);
+		char *extensions = (char*)malloc(buffersize);
+		vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(vulkanDevice->GetPhysicalDevice(), extensions, buffersize);
+
+		String *result = RNSTR(extensions);
+		free(extensions);
+
+		Array *extensionArray = result->GetComponentsSeparatedByString(RNCSTR(" "));
+		return extensionArray;
+	}
+#endif
 }
