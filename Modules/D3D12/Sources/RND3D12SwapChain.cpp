@@ -58,8 +58,8 @@ namespace RN
 		swapChainDesc.BufferDesc.Width = size.x;
 		swapChainDesc.BufferDesc.Height = size.y;
 		swapChainDesc.BufferDesc.Format = SwapChainFormatFromTextureFormat(descriptor.colorFormat);
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0; //no vsync
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1; //no vsync
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.OutputWindow = hwnd;
@@ -170,6 +170,6 @@ namespace RN
 
 	void D3D12SwapChain::PresentBackBuffer()
 	{
-		_swapChain->Present(0, 0); //First parameter is related to vsync
+		_swapChain->Present(_descriptor.vsync, 0);
 	}
 }

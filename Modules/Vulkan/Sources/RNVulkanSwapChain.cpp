@@ -169,17 +169,17 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		std::vector<VkPresentModeKHR> modes;
 		device->GetPresentModes(_surface, modes);
 
-		const bool useVSync = true;
+		const bool useVSync = _descriptor.vsync;
 
 		VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR; // FIFO is the only mode universally supported
-/*		for(auto m : modes)
+		for(auto m : modes)
 		{
-			if((useVSync && m == VK_PRESENT_MODE_MAILBOX_KHR) || (!useVSync && m == VK_PRESENT_MODE_IMMEDIATE_KHR))
+			if(!useVSync && (m == VK_PRESENT_MODE_IMMEDIATE_KHR || m == VK_PRESENT_MODE_MAILBOX_KHR))
 			{
 				mode = m;
 				break;
 			}
-		}*/
+		}
 
 		VkSwapchainCreateInfoKHR swapchainInfo = {};
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

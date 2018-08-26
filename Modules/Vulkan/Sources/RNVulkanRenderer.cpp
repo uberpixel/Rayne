@@ -442,7 +442,10 @@ namespace RN
 		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
 		renderPass.projectionMatrix = camera->GetProjectionMatrix();
+		renderPass.projectionMatrix.m[1] *= -1.0f;
 		renderPass.projectionMatrix.m[5] *= -1.0f;
+		renderPass.projectionMatrix.m[9] *= -1.0f;
+		renderPass.projectionMatrix.m[13] *= -1.0f;
 		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;

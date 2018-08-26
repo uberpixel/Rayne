@@ -25,10 +25,11 @@ namespace RN
 		//TODO: Maybe make a RNSwapChain and move this there?
 		struct SwapChainDescriptor
 		{
-			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA8888SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4){}
+			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA8888SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4), vsync(true){}
 			Texture::Format colorFormat;
 			Texture::Format depthStencilFormat;
 			uint8 bufferCount;
+			bool vsync;
 		};
 
 		RNAPI ~Window();
