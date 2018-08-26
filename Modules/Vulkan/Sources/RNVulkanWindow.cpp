@@ -254,7 +254,7 @@ namespace RN
 #elif RN_PLATFORM_LINUX
 		return _window;
 #elif RN_PLATFORM_ANDROID
-		return _window;
+		return reinterpret_cast<uint64>(_window);
 #endif
 	}
 }
