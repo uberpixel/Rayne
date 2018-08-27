@@ -10,11 +10,7 @@
 #include "RNVulkanInternals.h"
 
 #include <unistd.h>
-#include <sys/prctl.h>					// for prctl( PR_SET_NAME )
 #include <android/log.h>
-#include <android/window.h>				// for AWINDOW_FLAG_KEEP_SCREEN_ON
-#include <android/native_window_jni.h>	// for native window JNI
-#include <android_native_app_glue.h>
 
 #include "VrApi_Vulkan.h"
 #include "VrApi_Helpers.h"
@@ -27,7 +23,7 @@ namespace RN
 
 	const uint32 OculusMobileVulkanSwapChain::kEyePadding = 0; //No padding needed?
 
-	OculusMobileVulkanSwapChain::OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor) : _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _nativeWindow(nullptr)
+	OculusMobileVulkanSwapChain::OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, ovrJava java) : _java(java), _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _nativeWindow(nullptr)
 	{
 		_renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		_device = _renderer->GetVulkanDevice()->GetDevice();
@@ -36,25 +32,7 @@ namespace RN
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
 		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
 
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
-
-		_java.Vm = app->activity->vm;
-		_java.Vm->AttachCurrentThread(&_java.Env, NULL);
-		_java.ActivityObject = app->activity->clazz;
-
 		_mainThreadID = gettid();
-
-		// Note that AttachCurrentThread will reset the thread name.
-		prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
-
-		ovrInitParms initParams = vrapi_DefaultInitParms(&_java);
-		initParams.GraphicsAPI = VRAPI_GRAPHICS_API_VULKAN_1;
-		int32_t initResult = vrapi_Initialize(&initParams);
-		if(initResult != VRAPI_INITIALIZE_SUCCESS)
-		{
-			return;
-		}
 
 		RNInfo(GetHMDInfoDescription());
 
@@ -113,15 +91,6 @@ namespace RN
 			}
 		}, this);
 
-/*		char name[1024];
-		uint32_t blubb = 1024;
-		vrapi_GetDeviceExtensionsVulkan(name, &blubb);
-		RNDebug(RNCSTR(name) << blubb);
-
-		blubb = 1024;
-        vrapi_GetInstanceExtensionsVulkan(name, &blubb);
-        RNDebug(RNCSTR(name) << blubb);*/
-
 		_descriptor.bufferCount = 3;
 		_colorSwapChain = vrapi_CreateTextureSwapChain2(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
@@ -135,6 +104,8 @@ namespace RN
 		}
 
 		_framebuffer = new VulkanFramebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+
+		UpdateVRMode();
 	}
 
 	OculusMobileVulkanSwapChain::~OculusMobileVulkanSwapChain()
@@ -152,9 +123,6 @@ namespace RN
 		}
 
 		vrapi_DestroySystemVulkan();
-
-		vrapi_Shutdown();
-		_java.Vm->DetachCurrentThread();
 	}
 
 	const String *OculusMobileVulkanSwapChain::GetHMDInfoDescription() const

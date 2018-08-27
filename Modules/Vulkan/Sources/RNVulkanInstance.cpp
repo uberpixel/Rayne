@@ -32,7 +32,6 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		_requiredExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-		_requiredDeviceExtensions.push_back("VK_KHR_external_memory_fd");
 #endif
 
 #if RN_VULKAN_ENABLE_VALIDATION

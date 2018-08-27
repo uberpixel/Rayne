@@ -18,12 +18,6 @@ namespace RN
 	class OculusMobileWindow : public VRWindow
 	{
 	public:
-/*		enum Eye
-		{
-			Left,
-			Right
-		};*/
-
 		OVRAPI OculusMobileWindow();
 		OVRAPI ~OculusMobileWindow();
 
@@ -43,14 +37,18 @@ namespace RN
 		OVRAPI const String *GetPreferredAudioOutputDeviceID() const;
 		OVRAPI const String *GetPreferredAudioInputDeviceID() const;
 
-		OVRAPI RenderingDevice *GetOutputDevice() const final;
+		OVRAPI RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
 		OVRAPI void Update(float delta, float near, float far) final;
 
-		RNVRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Head; }
+		OVRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Head; }
+
+		OVRAPI Array *GetRequiredVulkanInstanceExtensions() const final;
+        OVRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;
 
 	private:
+		void *_java;
 		OculusMobileVulkanSwapChain *_swapChain;
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];

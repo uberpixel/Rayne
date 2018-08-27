@@ -26,18 +26,18 @@ namespace RN
 
 		OVRAPI ~OculusMobileVulkanSwapChain();
 
-		VKAPI void AcquireBackBuffer() final;
-		VKAPI void Prepare(VkCommandBuffer commandBuffer) final;
-		VKAPI void Finalize(VkCommandBuffer commandBuffer) final;
-		VKAPI void PresentBackBuffer(VkQueue queue) final;
+		OVRAPI void AcquireBackBuffer() final;
+		OVRAPI void Prepare(VkCommandBuffer commandBuffer) final;
+		OVRAPI void Finalize(VkCommandBuffer commandBuffer) final;
+		OVRAPI void PresentBackBuffer(VkQueue queue) final;
 
-		VKAPI VkImage GetVulkanColorBuffer(int i) const final;
-		VKAPI VkImage GetVulkanDepthBuffer(int i) const final;
+		OVRAPI VkImage GetVulkanColorBuffer(int i) const final;
+		OVRAPI VkImage GetVulkanDepthBuffer(int i) const final;
 
 		OVRAPI void UpdatePredictedPose();
 
 	private:
-		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor);
+		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, ovrJava java);
 		const String *GetHMDInfoDescription() const;
 		OVRAPI void SetProjection(float m22, float m23, float m32);
 		ovrMatrix4f GetTanAngleMatrixForEye(uint8 eye);

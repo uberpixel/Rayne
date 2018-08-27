@@ -8,6 +8,13 @@
 
 #include "RNOculusMobileVulkanSwapChain.h"
 #include "RNOculusMobileWindow.h"
+
+#include <sys/prctl.h> // for prctl( PR_SET_NAME )
+#include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
+#include <android/native_window_jni.h> // for native window JNI
+#include <android_native_app_glue.h>
+
+#include "VrApi_Vulkan.h"
 #include "VrApi_Helpers.h"
 #include "VrApi_Input.h"
 
@@ -17,17 +24,43 @@ namespace RN
 
 	OculusMobileWindow::OculusMobileWindow() : _swapChain(nullptr)
 	{
-		
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
+
+		ovrJava *java = new ovrJava;
+		java->Vm = app->activity->vm;
+		java->Vm->AttachCurrentThread(&java->Env, NULL);
+		java->ActivityObject = app->activity->clazz;
+
+		_java = static_cast<ovrJava*>(java);
+
+		// Note that AttachCurrentThread will reset the thread name.
+		prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
+
+		ovrInitParms initParams = vrapi_DefaultInitParms(java);
+		initParams.GraphicsAPI = VRAPI_GRAPHICS_API_VULKAN_1;
+		int32_t initResult = vrapi_Initialize(&initParams);
+		if(initResult != VRAPI_INITIALIZE_SUCCESS)
+		{
+			return;
+		}
 	}
 
 	OculusMobileWindow::~OculusMobileWindow()
 	{
 		StopRendering();
+
+		vrapi_Shutdown();
+
+		ovrJava *java = static_cast<ovrJava*>(_java);
+        java->Vm->DetachCurrentThread();
+        delete java;
 	}
 
 	void OculusMobileWindow::StartRendering(const SwapChainDescriptor &descriptor)
 	{
-		_swapChain = new OculusMobileVulkanSwapChain(descriptor);
+		ovrJava *java = static_cast<ovrJava*>(_java);
+		_swapChain = new OculusMobileVulkanSwapChain(descriptor, *java);
 	}
 
 	void OculusMobileWindow::StopRendering()
@@ -237,7 +270,7 @@ namespace RN
 		return nullptr;
 	}
 
-	RenderingDevice *OculusMobileWindow::GetOutputDevice() const
+	RenderingDevice *OculusMobileWindow::GetOutputDevice(RendererDescriptor *descriptor) const
 	{
 		return nullptr;
 	}
@@ -246,5 +279,25 @@ namespace RN
 	{
 		return _swapChain->GetSwapChainDescriptor();
 	}
+
+	Array *OculusMobileWindow::GetRequiredVulkanInstanceExtensions() const
+	{
+		char names[4096];
+		uint32_t size = sizeof(names);
+        vrapi_GetInstanceExtensionsVulkan(names, &size);
+
+        String *extensionString = RNSTR(names);
+        return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+	}
+
+    Array *OculusMobileWindow::GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const
+    {
+    	char names[4096];
+		uint32_t size = sizeof(names);
+		vrapi_GetDeviceExtensionsVulkan(names, &size);
+
+		String *extensionString = RNSTR(names);
+		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+    }
 }
 
