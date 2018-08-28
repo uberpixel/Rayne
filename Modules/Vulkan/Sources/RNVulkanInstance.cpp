@@ -105,7 +105,12 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 			_module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
 #else
-			_module = dlopen("/usr/lib/x86_64-linux-gnu/libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
+			//_module = dlopen("/usr/lib/x86_64-linux-gnu/libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
+			_module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
+			if(!_module)
+			{
+				RNDebug("fuck: " << dlerror());
+			}
 #endif
 		}
 

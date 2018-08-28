@@ -550,6 +550,7 @@ namespace RN
 
 	bool OpenVRWindow::IsSteamVRRunning()
 	{
+#if RN_PLATFORM_WINDOWS
 		DWORD aProcesses[1024], cbNeeded, cProcesses;
 		unsigned int i;
 
@@ -593,7 +594,7 @@ namespace RN
 				CloseHandle(hProcess);
 			}
 		}
-
+#endif
 		return false;
 	}
 
