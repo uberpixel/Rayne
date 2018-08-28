@@ -13,13 +13,14 @@
 #include "RNMetalSwapChain.h"
 #include "RNMetalFramebuffer.h"
 #include "RNMetalDevice.h"
+#include "RNOpenVRSwapChain.h"
 
 #include <openvr.h>
 #include "RNOpenVR.h"
 
 namespace RN
 {
-	class OpenVRMetalSwapChain : public MetalSwapChain
+	class OpenVRMetalSwapChain : public MetalSwapChain, OpenVRSwapChain
 	{
 	public:
 		friend class OpenVRWindow;
@@ -33,27 +34,19 @@ namespace RN
 		OVRAPI void PostPresent(id<MTLCommandBuffer> commandBuffer) final;
 		
 		OVRAPI id GetMTLTexture() const final;
-
-		OVRAPI void UpdatePredictedPose();
 		
-		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
+		OVRAPI void ResizeOpenVRSwapChain(const Vector2 &size) final;
+		OVRAPI Vector2 GetOpenVRSwapChainSize() const final { return GetSize(); };
+		OVRAPI Framebuffer *GetOpenVRSwapChainFramebuffer() const final;
+		
+		const Window::SwapChainDescriptor &GetOpenVRSwapChainDescriptor() const final { return _descriptor; }
 
 	protected:
 		OVRAPI OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system);
 
 	private:
-		void ResizeSwapchain(const Vector2 &size);
-
 		MetalTexture *_targetTexture;
 		IOSurfaceRef _targetSurface;
-		
-		Vector3 _hmdToEyeViewOffset[2];
-
-		vr::IVRSystem *_vrSystem;
-		vr::TrackedDevicePose_t _frameDevicePose[vr::k_unMaxTrackedDeviceCount];
-		vr::TrackedDevicePose_t _predictedDevicePose[vr::k_unMaxTrackedDeviceCount];
-
-		static const uint32 kEyePadding;
 
 		RNDeclareMetaAPI(OpenVRMetalSwapChain, OVRAPI)
 	};

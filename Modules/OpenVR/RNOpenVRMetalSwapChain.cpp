@@ -14,9 +14,7 @@ namespace RN
 {
 	RNDefineMeta(OpenVRMetalSwapChain, MetalSwapChain)
 
-	const uint32 OpenVRMetalSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, but it isn't enough)
-
-	OpenVRMetalSwapChain::OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : _vrSystem(system)
+	OpenVRMetalSwapChain::OpenVRMetalSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : OpenVRSwapChain(system)
 	{
 		MetalRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<MetalRenderer>();
 		_descriptor = descriptor;
@@ -59,7 +57,7 @@ namespace RN
 		CFRelease(_targetSurface);
 	}
 
-	void OpenVRMetalSwapChain::ResizeSwapchain(const Vector2& size)
+	void OpenVRMetalSwapChain::ResizeOpenVRSwapChain(const Vector2& size)
 	{
 		_size = size;
 		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
@@ -123,9 +121,9 @@ namespace RN
 	{
 		return static_cast<id>(_targetTexture->__GetUnderlyingTexture());
 	}
-
-	void OpenVRMetalSwapChain::UpdatePredictedPose()
+	
+	Framebuffer *OpenVRMetalSwapChain::GetOpenVRSwapChainFramebuffer() const
 	{
-		vr::VRCompositor()->WaitGetPoses(_frameDevicePose, vr::k_unMaxTrackedDeviceCount, _predictedDevicePose, vr::k_unMaxTrackedDeviceCount);
+		return GetFramebuffer()->Downcast<Framebuffer>();
 	}
 }
