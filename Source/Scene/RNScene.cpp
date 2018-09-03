@@ -125,16 +125,16 @@ namespace RN
 #if kRNSceneUseRenderPool
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
-		//TODO: Change order back to normal, currently just swapped to have shadow depth rendered before the main camera
-		IntrusiveList<Camera>::Member *member = _cameras.GetTail();
+		//TODO: Do something to have shadowmap cameras rendered first.
+		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
 		while(member)
 		{
 			Camera *camera = member->Get();
 			camera->PostUpdate(renderer);
 
-			if (camera->GetFlags() & Camera::Flags::NoRender)
+			if(camera->GetFlags() & Camera::Flags::NoRender)
 			{
-				member = member->GetPrevious(); //TODO: Switch back to GetNext()...
+				member = member->GetNext();
 				continue;
 			}
 
@@ -211,7 +211,7 @@ namespace RN
 				group->Release();
 			});
 
-			member = member->GetPrevious();	//TODO: Switch back to GetNext()...
+			member = member->GetNext();
 		}
 
 #else
