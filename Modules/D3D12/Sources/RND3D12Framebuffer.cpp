@@ -279,7 +279,7 @@ namespace RN
 	ID3D12Resource *D3D12Framebuffer::GetSwapChainDepthBuffer() const
 	{
 		RN_ASSERT(_swapChain, "GetSwapChainDepthBuffer should only be called if there is a swap chain associated with the framebuffer.");
-		if (_swapChain)
+		if(_swapChain)
 		{
 			return _swapChainDepthBuffers[_swapChain->GetFrameIndex()];
 		}

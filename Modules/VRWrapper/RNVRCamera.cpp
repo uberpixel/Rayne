@@ -21,6 +21,7 @@ namespace RN
 		_msaaSampleCount(msaaSampleCount),
 		_eye{nullptr, nullptr}
 	{
+		SetPriority(SceneNode::Priority::UpdateEarly);
 		AddChild(_head);
 		SetupCameras();
 	}

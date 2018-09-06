@@ -7,6 +7,7 @@
 //
 
 #include "RNOculusSwapChain.h"
+#include "RND3D12Internals.h"
 
 namespace RN
 {
@@ -98,7 +99,7 @@ namespace RN
 		ovr_GetTextureSwapChainLength(_session, _colorSwapChain, &textureCount);
 		_descriptor.bufferCount = textureCount;
 
-		if (descriptor.depthStencilFormat != Texture::Format::Invalid)
+		if(descriptor.depthStencilFormat != Texture::Format::Invalid)
 		{
 			ovrTextureSwapChainDesc depthSwapChainDesc = {};
 			depthSwapChainDesc.Type = ovrTexture_2D;
@@ -214,6 +215,8 @@ namespace RN
 
 	void OculusSwapChain::Prepare(D3D12CommandList *commandList)
 	{
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_framebuffer->GetSwapChainDepthBuffer(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
 		if(OVR_SUCCESS(_submitResult))
 		{
 			ovrResult tempResult = ovr_BeginFrame(_session, _frameCounter);
@@ -226,7 +229,7 @@ namespace RN
 
 	void OculusSwapChain::Finalize(D3D12CommandList *commandList)
 	{
-
+		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_framebuffer->GetSwapChainDepthBuffer(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 	}
 
 	void OculusSwapChain::PresentBackBuffer()

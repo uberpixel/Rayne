@@ -259,14 +259,6 @@ namespace RN
 	void Camera::Update(float delta)
 	{
 		SceneNode::Update(delta);
-
-		UpdateFrustum();
-
-/*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PushUpdate(this, delta);
-		}*/
 	}
 
 	void Camera::PostUpdate(Renderer *renderer)
@@ -278,12 +270,7 @@ namespace RN
 		_viewMatrix = _inverseViewMatrix.GetInverse();
 
 		UpdateProjection(renderer);
-
-/*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PostUpdate(this, GetWorldPosition(), GetWorldRotation(), _frame);
-		}*/
+		UpdateFrustum();
 	}
 
 	void Camera::UpdateProjection(Renderer *renderer)

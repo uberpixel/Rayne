@@ -39,7 +39,7 @@ namespace RN
 	}
 
 	SceneNode::SceneNode(const Vector3 &position, const Quaternion &rotation) :
-		SceneNode()
+		SceneNode(position)
 	{
 		SetRotation(rotation);
 	}
