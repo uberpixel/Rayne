@@ -284,7 +284,12 @@ namespace RN
 					contact.distance = hit.getAnyHit(i).distance;
 					contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
 					contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
-					contact.node = static_cast<SceneNode*>(hit.getAnyHit(i).actor->userData);
+					contact.node = nullptr;
+					SceneNodeAttachment *attachment = static_cast<SceneNodeAttachment*>(hit.getAnyHit(i).actor->userData);
+					if(attachment)
+					{
+						contact.node = attachment->GetParent();
+					}
 					contactInfo.push_back(contact);
 				}
 			}
@@ -307,7 +312,12 @@ namespace RN
 				contact.distance = hit.getAnyHit(i).distance;
 				contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
 				contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
-				contact.node = static_cast<SceneNode*>(hit.getAnyHit(i).actor->userData);
+				contact.node = nullptr;
+				SceneNodeAttachment *attachment = static_cast<SceneNodeAttachment*>(hit.getAnyHit(i).actor->userData);
+				if(attachment)
+				{
+					contact.node = attachment->GetParent();
+				}
 				contactInfo.push_back(contact);
 			}
 		}
