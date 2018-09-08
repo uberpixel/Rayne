@@ -210,7 +210,7 @@ namespace RN
 					{
 						_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = false;
 						_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = false;
-						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = remoteState.Buttons & ovrButton_Enter;
+						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
 						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
 
 						Vector2 trackpadPosition;
@@ -219,7 +219,7 @@ namespace RN
 							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
 							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) - trackpadMax / 2.0f) / trackpadMax;
 						}
-						_controllerTrackingState[0].thumbstick = trackpadPosition;
+						_controllerTrackingState[0].trackpad = trackpadPosition;
 						_controllerTrackingState[0].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
 						_controllerTrackingState[0].handTrigger = 0.0f;
 					}
