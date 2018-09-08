@@ -348,18 +348,33 @@ namespace RN
 					vr::VRControllerState_t controllerState;
 					_vrSystem->GetControllerState(nDevice, &controllerState, sizeof(controllerState));
 
-					controller.thumbstick.x = controllerState.rAxis[0].x;
-					controller.thumbstick.y = controllerState.rAxis[0].y;
 					controller.indexTrigger = controllerState.rAxis[1].x;
 					controller.handTrigger = controllerState.rAxis[2].x;
 
 					controller.button[VRControllerTrackingState::Button::AX] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A);
 					controller.button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
-					controller.button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
+					if(_vrSystem->GetInt32TrackedDeviceProperty(nDevice, vr::Prop_Axis0Type_Int32) == vr::k_eControllerAxis_Joystick)
+					{
+						controller.trackpad = Vector2();
+						controller.thumbstick.x = controllerState.rAxis[0].x;
+						controller.thumbstick.y = controllerState.rAxis[0].y;
+
+						controller.button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
+						controller.button[VRControllerTrackingState::Button::Pad] = false;
+					}
+					else
+					{
+						controller.thumbstick = Vector2();
+						controller.trackpad.x = controllerState.rAxis[0].x;
+						controller.trackpad.y = controllerState.rAxis[0].y;
+
+						controller.button[VRControllerTrackingState::Button::Stick] = false;
+						controller.button[VRControllerTrackingState::Button::Pad] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
+					}
 					controller.button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
 				}
 
-				if (trackerIndex < 2)
+				if(trackerIndex < 2)
 				{
 					_controllerTrackingState[trackerIndex] = controller;
 				}

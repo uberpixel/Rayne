@@ -33,16 +33,25 @@ namespace RN
 
 	struct VRControllerTrackingState
 	{
+		enum Type
+		{
+			Orientation,
+			Position
+		};
+
 		enum Button
 		{
 			AX,
 			BY,
 			Stick,
+			Pad,
 			Start,
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false} {}
+		VRControllerTrackingState() : type(Type::Position), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false} {}
+
+		Type type;
 
 		bool active;
 		bool tracking;
@@ -54,6 +63,7 @@ namespace RN
 		float indexTrigger;
 		float handTrigger;
 		Vector2 thumbstick;
+		Vector2 trackpad;
 
 		bool button[Button::BUTTON_COUNT];
 	};
