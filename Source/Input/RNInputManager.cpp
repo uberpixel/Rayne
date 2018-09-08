@@ -506,17 +506,58 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 		//TODO: Support all keys
-		if(name->IsEqual(RNCSTR("W")))
+		if(name->IsEqual(RNCSTR("0")))
 		{
-			return _keyPressed[0x57];
+			return _keyPressed[0x30];
 		}
+		if(name->IsEqual(RNCSTR("1")))
+		{
+			return _keyPressed[0x31];
+		}
+		if(name->IsEqual(RNCSTR("2")))
+		{
+			return _keyPressed[0x32];
+		}
+		if(name->IsEqual(RNCSTR("3")))
+		{
+			return _keyPressed[0x33];
+		}
+		if(name->IsEqual(RNCSTR("4")))
+		{
+			return _keyPressed[0x34];
+		}
+		if(name->IsEqual(RNCSTR("5")))
+		{
+			return _keyPressed[0x35];
+		}
+		if(name->IsEqual(RNCSTR("6")))
+		{
+			return _keyPressed[0x36];
+		}
+		if(name->IsEqual(RNCSTR("7")))
+		{
+			return _keyPressed[0x37];
+		}
+		if(name->IsEqual(RNCSTR("8")))
+		{
+			return _keyPressed[0x38];
+		}
+		if(name->IsEqual(RNCSTR("9")))
+		{
+			return _keyPressed[0x39];
+		}
+
 		if(name->IsEqual(RNCSTR("A")))
 		{
 			return _keyPressed[0x41];
 		}
-		if(name->IsEqual(RNCSTR("S")))
+		if(name->IsEqual(RNCSTR("B")))
 		{
-			return _keyPressed[0x53];
+			return _keyPressed[0x42];
+		}
+		if(name->IsEqual(RNCSTR("C")))
+		{
+			return _keyPressed[0x43];
 		}
 		if(name->IsEqual(RNCSTR("D")))
 		{
@@ -530,6 +571,87 @@ namespace RN
 		{
 			return _keyPressed[0x46];
 		}
+		if(name->IsEqual(RNCSTR("G")))
+		{
+			return _keyPressed[0x47];
+		}
+		if(name->IsEqual(RNCSTR("H")))
+		{
+			return _keyPressed[0x48];
+		}
+		if(name->IsEqual(RNCSTR("I")))
+		{
+			return _keyPressed[0x49];
+		}
+		if(name->IsEqual(RNCSTR("J")))
+		{
+			return _keyPressed[0x4A];
+		}
+		if(name->IsEqual(RNCSTR("K")))
+		{
+			return _keyPressed[0x4B];
+		}
+		if(name->IsEqual(RNCSTR("L")))
+		{
+			return _keyPressed[0x4C];
+		}
+		if(name->IsEqual(RNCSTR("M")))
+		{
+			return _keyPressed[0x4D];
+		}
+		if(name->IsEqual(RNCSTR("N")))
+		{
+			return _keyPressed[0x4E];
+		}
+		if(name->IsEqual(RNCSTR("O")))
+		{
+			return _keyPressed[0x4F];
+		}
+		if(name->IsEqual(RNCSTR("P")))
+		{
+			return _keyPressed[0x50];
+		}
+		if(name->IsEqual(RNCSTR("Q")))
+		{
+			return _keyPressed[0x51];
+		}
+		if(name->IsEqual(RNCSTR("R")))
+		{
+			return _keyPressed[0x52];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[0x53];
+		}
+		if(name->IsEqual(RNCSTR("T")))
+		{
+			return _keyPressed[0x54];
+		}
+		if(name->IsEqual(RNCSTR("U")))
+		{
+			return _keyPressed[0x55];
+		}
+		if(name->IsEqual(RNCSTR("V")))
+		{
+			return _keyPressed[0x56];
+		}
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[0x57];
+		}
+		if(name->IsEqual(RNCSTR("X")))
+		{
+			return _keyPressed[0x58];
+		}
+		if(name->IsEqual(RNCSTR("Y")))
+		{
+			return _keyPressed[0x59];
+		}
+		if(name->IsEqual(RNCSTR("Z")))
+		{
+			return _keyPressed[0x5A];
+		}
+
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[0x1B];
