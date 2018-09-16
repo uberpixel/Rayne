@@ -200,35 +200,37 @@ namespace RN
 				remoteCaps.Header = capsHeader;
 				if(vrapi_GetInputDeviceCapabilities(_swapChain->_session, &remoteCaps.Header) >= 0)
 				{
-					_controllerTrackingState[0].active = true;
-					_controllerTrackingState[0].tracking = true;
-					_controllerTrackingState[0].controllerID = 0;
+					int handIndex = (remoteCaps.ControllerCapabilities & ovrControllerCaps_RightHand)?1:0;
+
+					_controllerTrackingState[handIndex].active = true;
+					_controllerTrackingState[handIndex].tracking = true;
+					_controllerTrackingState[handIndex].controllerID = 0;
 
 					ovrInputStateTrackedRemote remoteState;
 					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
 					if(vrapi_GetCurrentInputState(_swapChain->_session, remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
 					{
-						_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = false;
-						_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = false;
-						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
-						_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
 
 						Vector2 trackpadPosition;
 						if(remoteState.TrackpadStatus > 0)
 						{
 							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
-							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) - trackpadMax / 2.0f) / trackpadMax;
+							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
 						}
-						_controllerTrackingState[0].trackpad = trackpadPosition;
-						_controllerTrackingState[0].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
-						_controllerTrackingState[0].handTrigger = 0.0f;
+						_controllerTrackingState[handIndex].trackpad = trackpadPosition;
+						_controllerTrackingState[handIndex].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
+						_controllerTrackingState[handIndex].handTrigger = 0.0f;
 					}
 
 					ovrTracking trackingState;
 					if(vrapi_GetInputTrackingState(_swapChain->_session, remoteCaps.Header.DeviceID, _swapChain->_predictedDisplayTime, &trackingState) >= 0)
 					{
-						_controllerTrackingState[0].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
-						_controllerTrackingState[0].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
+						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
+						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
 						//_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
 					}
 				}
