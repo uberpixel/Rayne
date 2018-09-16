@@ -95,7 +95,14 @@ namespace RN
 	void OpenALSource::Stop()
 	{
 		alSourceStop(_source);
+		alSourcePause(_source);
         _isPlaying = false;
+	}
+	
+	void OpenALSource::Pause()
+	{
+		alSourcePause(_source);
+		_isPlaying = false;
 	}
 
     void OpenALSource::Seek(float time)

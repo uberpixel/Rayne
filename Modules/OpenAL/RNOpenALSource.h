@@ -27,6 +27,7 @@ namespace RN
 		OALAPI void SetAudioAsset(AudioAsset *asset);
 		OALAPI void Play();
 		OALAPI void Stop();
+		OALAPI void Pause();
 		OALAPI void Seek(float time);
 		OALAPI void SetRepeat(bool repeat);
 		OALAPI void SetPitch(float pitch);
