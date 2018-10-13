@@ -73,6 +73,7 @@ namespace RN
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 
 		RNAPI void Update(float delta) override;
+		RNAPI void PostUpdate(Renderer *renderer);
 
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 
@@ -105,7 +106,6 @@ namespace RN
 		const Matrix &GetInverseViewMatrix() const { return _inverseViewMatrix; }
 
 	private:
-		void PostUpdate(Renderer *renderer);
 		void UpdateProjection(Renderer *renderer);
 		void UpdateFrustum();
 

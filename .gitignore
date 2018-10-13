@@ -37,3 +37,4 @@ Modules/ODE/Vendor/BUILD
 /Build-Xcode
 /Build-iOS
 /cmake-build-*
+/Build-Xcode-UI

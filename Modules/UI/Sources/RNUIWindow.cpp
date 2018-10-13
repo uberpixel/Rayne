@@ -117,20 +117,11 @@ namespace RN
 				SafeRelease(_mesh);
 				_mesh = CreateMesh();
 
-
-				ShaderLookupRequest *lookup = new ShaderLookupRequest();
-
-				MaterialDescriptor descriptor;
-				descriptor.depthWriteEnabled = false;
-				descriptor.depthMode = DepthMode::Always;
-				descriptor.AddTexture(_backingStore->GetTexture());
-				descriptor.SetShaderProgram(Renderer::GetActiveRenderer()->GetDefaultShader(_mesh, lookup));
-
-				lookup->Release();
-
-
 				SafeRelease(_material);
-				_material = new Material(descriptor);
+				_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(_mesh)), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(_mesh)));
+				_material->SetDepthWriteEnabled(false);
+				_material->SetDepthMode(DepthMode::Always);
+				_material->AddTexture(_backingStore->GetTexture());
 
 				{
 					Model::LODStage *stage = _model->GetLODStage(0);

@@ -23,10 +23,18 @@ namespace RN
 		{
 			if(!_camera)
 			{
-				uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::NoClear;
-
-				_camera = new Camera(Vector2(1024, 768), Texture::Format::RGBA16F, flags);
-				_camera->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
+				Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::RGBA16F, 1024, 768));
+				
+				Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(1024, 768));
+				framebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(texture));
+				
+				RenderPass *renderPass = new RenderPass();
+				renderPass->SetFlags(0);
+				renderPass->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
+				renderPass->SetFramebuffer(framebuffer);
+				
+				_camera = new Camera(renderPass);
+				_camera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite);
 				_camera->SetClipNear(-500.0f);
 			}
 
@@ -84,7 +92,7 @@ namespace RN
 			_camera->Update(0.0f);
 			_camera->PostUpdate(renderer);
 
-			renderer->RenderIntoCamera(_camera, [&] {
+			renderer->SubmitCamera(_camera, [&] {
 
 				for(Window *window : _windows)
 					window->Render(renderer);
