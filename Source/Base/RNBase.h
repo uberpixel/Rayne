@@ -36,8 +36,13 @@
 		#define _USE_MATH_DEFINES
 	#endif
 
+	//#define _AMD64_
+
+	//#include <ntdef.h>
 	#include <WinSock2.h>
 	#include <windows.h>
+	#include <NTDDNDIS.h>
+
 	#include <commdlg.h>
 	#include <ShlObj.h>
 	#include <Psapi.h>
@@ -47,6 +52,11 @@
 #endif
 #if RN_PLATFORM_LINUX
 	#include <xcb/xcb.h>
+#endif
+#if RN_PLATFORM_ANDROID
+	#include <android_native_app_glue.h>
+
+	#define kRNAndroidWindowDidChange RNCSTR("kRNAndroidWindowDidChange")
 #endif
 
 // ---------------------------
@@ -129,7 +139,7 @@ namespace RN
 	class Kernel;
 	class Application;
 
-	RNAPI RN_NORETURN void Initialize(int argc, const char *argv[], Application *app);
+	RNAPI RN_NORETURN void Initialize(int argc, const char *argv[], Application *app, void *object = nullptr);
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 
 	/**

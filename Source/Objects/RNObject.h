@@ -25,6 +25,8 @@ namespace RN
 	class Object
 	{
 	public:
+		friend class AutoreleasePool;
+
 		RNAPI Object *Retain();
 		RNAPI const Object *Retain() const;
 		RNAPI void Release() const;

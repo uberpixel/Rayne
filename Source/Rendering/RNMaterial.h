@@ -13,7 +13,7 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNArray.h"
-#include "../Rendering/RNTexture.h"
+#include "RNTexture.h"
 #include "RNShader.h"
 #include "RNShaderLibrary.h"
 
@@ -38,48 +38,62 @@ namespace RN
 		FrontFace
 	};
 
-	class MaterialDescriptor
-	{
-	public:
-		RNAPI MaterialDescriptor();
-		RNAPI MaterialDescriptor(const MaterialDescriptor &other);
-		RNAPI ~MaterialDescriptor();
-
-		RNAPI void SetTextures(const Array *textures);
-		RNAPI void AddTexture(Texture *texture);
-		RNAPI void RemoveAllTextures();
-
-		RNAPI const Array *GetTextures() const;
-
-		RNAPI void SetShaderProgram(const ShaderProgram *program);
-
-		Shader *fragmentShader;
-		Shader *vertexShader;
-
-		DepthMode depthMode;
-		bool depthWriteEnabled;
-
-		Color ambientColor;
-		Color diffuseColor;
-		Color specularColor;
-		Color emissiveColor;
-
-		float discardThreshold;
-		float textureTileFactor;
-		CullMode cullMode;
-
-	private:
-		Array *_textures;
-	};
-
 	class Material : public Object
 	{
 	public:
-		RNAPI Material(const MaterialDescriptor &descriptor);
+		
+		struct Properties
+		{
+			uint8 colorWriteMask;
+			
+			DepthMode depthMode;
+			bool depthWriteEnabled;
+			
+			Color ambientColor;
+			Color diffuseColor;
+			Color specularColor;
+			Color emissiveColor;
+			
+			bool usePolygonOffset;
+			float polygonOffsetFactor;
+			float polygonOffsetUnits;
+			
+			bool useAlphaToCoverage;
+			Vector2 alphaToCoverageClamp;
+			float textureTileFactor;
+			CullMode cullMode;
+		};
+
+		RN_OPTIONS(Override, uint32,
+			GroupDepth = (1 << 0),
+			GroupColors = (1 << 1),
+			GroupPolygonOffset = (1 << 2),
+			GroupShaders = (1 << 3),
+			GroupAlphaToCoverage = (1 << 4),
+			TextureTileFactor = (1 << 5),
+			CullMode = (1 << 6),
+		   	ColorWriteMask = (1 << 7),
+
+			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
+		);
+
+		RNAPI Material(Shader *vertexShader, Shader *fragmentShader);
 		RNAPI Material(const Material *other);
 		RNAPI ~Material() override;
-
-		RNAPI static Material *WithDescriptor(const MaterialDescriptor &descriptor);
+		
+		RNAPI static Material *WithShaders(Shader *vertexShader, Shader *fragmentShader);
+		RNAPI static Material *WithMaterial(const Material *material);
+		
+		RNAPI void SetTextures(const Array *textures);
+		RNAPI void AddTexture(Texture *texture);
+		RNAPI void RemoveAllTextures();
+		
+		RNAPI void SetFragmentShader(Shader *shader, Shader::UsageHint type = Shader::UsageHint::Default);
+		RNAPI void SetVertexShader(Shader *shader, Shader::UsageHint type = Shader::UsageHint::Default);
+		
+		RNAPI void SetOverride(Override override);
+		
+		RNAPI void SetColorWriteMask(bool writeRed, bool writeGreen, bool writeBlue, bool writeAlpha);
 
 		RNAPI void SetDepthWriteEnabled(bool depthWrite);
 		RNAPI void SetDepthMode(DepthMode mode);
@@ -89,53 +103,57 @@ namespace RN
 		RNAPI void SetSpecularColor(const Color &color);
 		RNAPI void SetEmissiveColor(const Color &color);
 
-		RNAPI void SetDiscardThreshold(float threshold);
 		RNAPI void SetTextureTileFactor(float factor);
 		RNAPI void SetCullMode(CullMode mode);
 
 		RNAPI void SetFragmentBuffers(const Array *buffers);
 		RNAPI void SetVertexBuffers(const Array *buffers);
 
-		RNAPI MaterialDescriptor GetDescriptor() const;
+		RNAPI void SetPolygonOffset(bool enable, float factor = 1.1f, float units = 0.1f);
+		RNAPI void SetAlphaToCoverage(bool enabled, float min = 0.3, float max = 0.8);
 
-		Shader *GetFragmentShader() const { return _fragmentShader; }
-		Shader *GetVertexShader() const { return _vertexShader; }
+		uint32 GetOverride() const { return _override; }
 
-		DepthMode GetDepthMode() const { return _depthMode; }
-		bool GetDepthWriteEnabled() const { return _depthWriteEnabled; }
+		RNAPI Shader *GetFragmentShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
+		RNAPI Shader *GetVertexShader(Shader::UsageHint type = Shader::UsageHint::Default) const;
+		
+		uint8 GetColorWriteMask() const { return _properties.colorWriteMask; }
 
-		const Color &GetAmbientColor() const { return _ambientColor; }
-		const Color &GetDiffuseColor() const { return _diffuseColor; }
-		const Color &GetSpecularColor() const { return _specularColor; }
-		const Color &GetEmissiveColor() const { return _emissiveColor; }
+		DepthMode GetDepthMode() const { return _properties.depthMode; }
+		bool GetDepthWriteEnabled() const { return _properties.depthWriteEnabled; }
+
+		const Color &GetAmbientColor() const { return _properties.ambientColor; }
+		const Color &GetDiffuseColor() const { return _properties.diffuseColor; }
+		const Color &GetSpecularColor() const { return _properties.specularColor; }
+		const Color &GetEmissiveColor() const { return _properties.emissiveColor; }
 
 		const Array *GetTextures() const { return _textures; }
-		float GetDiscardThreshold() const { return _discardThreshold; }
-		float GetTextureTileFactor() const { return _textureTileFactor; }
-		CullMode GetCullMode() const { return _cullMode; }
+		float GetTextureTileFactor() const { return _properties.textureTileFactor; }
+		CullMode GetCullMode() const { return _properties.cullMode; }
 
 		const Array *GetFragmentBuffers() const { return _fragmentBuffers; }
 		const Array *GetVertexBuffers() const { return _vertexBuffers; }
 
+		bool GetUsePolygonOffset() const { return _properties.usePolygonOffset; }
+		float GetPolygonOffsetFactor() const { return _properties.polygonOffsetFactor; }
+		float GetPolygonOffsetUnits() const { return _properties.polygonOffsetUnits; }
+
+		bool GetUseAlphaToCoverage() const { return _properties.useAlphaToCoverage; }
+		Vector2 GetAlphaToCoverageClamp() const { return _properties.alphaToCoverageClamp; }
+		
+		RNAPI const Properties GetMergedProperties(Material *overrideMaterial) const;
+
 	private:
-		Shader *_fragmentShader;
-		Shader *_vertexShader;
+		Override _override;
+
+		Shader *_fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
+		Shader *_vertexShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
 
 		Array *_textures;
 		Array *_vertexBuffers;
 		Array *_fragmentBuffers;
 
-		DepthMode _depthMode;
-		bool _depthWriteEnabled;
-
-		Color _ambientColor;
-		Color _diffuseColor;
-		Color _specularColor;
-		Color _emissiveColor;
-
-		float _discardThreshold;
-		float _textureTileFactor;
-		CullMode _cullMode;
+		Properties _properties;
 
 		__RNDeclareMetaInternal(Material)
 	};

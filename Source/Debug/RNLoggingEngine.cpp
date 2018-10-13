@@ -15,14 +15,19 @@ namespace RN
 
 	LoggingEngine::LoggingEngine(bool threadBound) :
 		_threadBound(threadBound),
-		_level(Logger::Level::Info)
+		_formatter(nullptr)
 	{}
 
-	void LoggingEngine::SetLevel(Logger::Level level)
+	LoggingEngine::~LoggingEngine()
 	{
-		_level.store(level, std::memory_order_release);
+		SafeRelease(_formatter);
 	}
 
+	void LoggingEngine::SetLogFormatter(LogFormatter *formatter)
+	{
+		SafeRelease(_formatter);
+		_formatter = SafeRetain(formatter);
+	}
 
 	const char *kLogLevelStrings[] = {
 		"(dbg)",
@@ -60,9 +65,9 @@ namespace RN
 		return _open;
 	}
 
-	void StreamLoggingEngine::Log(Logger::Level level, const LogMessage &message, const std::string &header)
+	void StreamLoggingEngine::Log(const String *message)
 	{
-		_stream << header << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.message->GetUTF8String() << "\n";
+		_stream << message->GetUTF8String() << "\n";
 	}
 	void StreamLoggingEngine::LogBreak()
 	{}
@@ -100,10 +105,10 @@ namespace RN
 		return _open;
 	}
 
-	void WideCharStreamLoggingEngine::Log(Logger::Level level, const LogMessage &message, const std::string &header)
+	void WideCharStreamLoggingEngine::Log(const String *message)
 	{
 		std::stringstream stream;
-		stream << header << ": " << kLogLevelStrings[static_cast<size_t>(level)] << " " << message.message->GetUTF8String() << "\n";
+		stream << message->GetUTF8String() << "\n";
 
 		Log(stream.str().c_str());
 	}

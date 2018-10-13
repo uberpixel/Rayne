@@ -16,12 +16,15 @@ namespace RN
 {
 	class D3D12Renderer;
 	class D3D12StateCoordinator;
+	class D3D12CommandList;
 
 	class D3D12Texture : public Texture
 	{
 	public:
 		friend class D3D12Renderer;
+		friend class D3D12Framebuffer;
 
+		D3DAPI D3D12Texture(const Descriptor &descriptor, D3D12Renderer *renderer);
 		D3DAPI ~D3D12Texture() override;
 
 		D3DAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
@@ -30,21 +33,24 @@ namespace RN
 		D3DAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
 		D3DAPI void GenerateMipMaps() final;
-		D3DAPI void SetParameter(const Parameter &parameter) final;
 		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
 
-		D3DAPI void *__GetUnderlyingTexture() const { return _texture; }
-		D3DAPI void *__GetUnderlyingSampler() const { return _sampler; }
+		ID3D12Resource *GetD3D12Resource() const { return _resource; }
+
+		D3DAPI void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
+
+		static DXGI_FORMAT ImageFormatFromTextureFormat(Texture::Format format);
 
 	private:
-		D3D12Texture(D3D12Renderer *renderer, D3D12StateCoordinator *coordinator, void *texture, const Descriptor &descriptor);
-
 		D3D12Renderer *_renderer;
 		D3D12StateCoordinator *_coordinator;
-		void *_texture;
-		void *_sampler;
 
-		void *_data;
+		D3D12_SHADER_RESOURCE_VIEW_DESC _srvDescriptor;
+		ID3D12Resource *_resource;
+		D3D12_RESOURCE_STATES _currentState;
+
+		bool _isReady;
+		bool _needsMipMaps;
 
 		RNDeclareMetaAPI(D3D12Texture, D3DAPI)
 	};

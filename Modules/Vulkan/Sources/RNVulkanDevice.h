@@ -20,6 +20,8 @@ namespace RN
 	public:
 		friend class VulkanInstance;
 
+		~VulkanDevice();
+
 		VKAPI bool CreateDevice(const std::vector<const char *> &extensions);
 		bool IsValidDevice() const { return (_workQueue != kRNNotFound); }
 
@@ -35,10 +37,14 @@ namespace RN
 		VKAPI VkBool32 GetMemoryWithType(uint32_t typeBits, VkFlags properties, uint32_t &typeIndex) const;
 		VKAPI size_t GetMemoryWithType(VkMemoryPropertyFlagBits required) const;
 
+		VKAPI void SetExtensions(Array *extensions) final;
+
 	private:
 		VulkanDevice(VulkanInstance *instance, VkPhysicalDevice device);
 
 		static Descriptor DescriptorForDevice(VkPhysicalDevice device);
+
+		RN::Array *_deviceExtensions;
 
 		VulkanInstance *_instance;
 		VkPhysicalDevice _physicalDevice;

@@ -26,11 +26,13 @@ namespace RN
 		RNAPI void Drain();
 		
 		RNAPI static AutoreleasePool *GetCurrentPool();
+
+		std::vector<const Object *> _objects;
 		
 	private:
 		AutoreleasePool *_parent;
 		std::thread::id _owner;
-		std::vector<const Object *> _objects;
+		
 	};
 }
 

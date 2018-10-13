@@ -14,6 +14,34 @@
 
 namespace RN
 {
+	class MetalStateCoordinator;
+	class MetalSpecificShaderLibrary : public Object
+	{
+	public:
+		friend class MetalShaderLibrary;
+
+		~MetalSpecificShaderLibrary();
+
+		Shader *GetShaderWithName(const String *name, ShaderLibrary *library, MetalStateCoordinator *coordinator);
+		
+		Shader *GetShaderWithOptions(id<MTLDevice> device, MetalStateCoordinator *coordinator, ShaderLibrary *library, const Shader::Options *options);
+
+	private:
+		MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
+		
+		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
+		const Array *GetSamplerSignature(const Shader::Options *options) const;
+		
+		Dictionary *_shaders;
+		
+		const String *_entryPoint;
+		const String *_fileName;
+		Shader::Type _type;
+		Dictionary *_signatureDescription;
+		
+		RNDeclareMetaAPI(MetalSpecificShaderLibrary, MTLAPI)
+	};
+
 	class MetalShaderLibrary : public ShaderLibrary
 	{
 	public:
@@ -21,13 +49,15 @@ namespace RN
 
 		MTLAPI ~MetalShaderLibrary() override;
 
-		MTLAPI Shader *GetShaderWithName(const String *name) final;
-		MTLAPI Array *GetShaderNames() const final;
+		MTLAPI Shader *GetShaderWithName(const String *name, const Shader::Options *options) final;
+		MTLAPI Shader *GetInstancedShaderForShader(Shader *shader) final;
 
 	private:
-		MetalShaderLibrary(void *library);
+		MetalShaderLibrary(id<MTLDevice> device, const String *file, MetalStateCoordinator *coordinator);
 
-		void *_library;
+		id<MTLDevice> _device;
+		Dictionary *_specificShaderLibraries;
+		MetalStateCoordinator *_coordinator;
 
 		RNDeclareMetaAPI(MetalShaderLibrary, MTLAPI)
 	};

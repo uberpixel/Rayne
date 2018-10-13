@@ -16,8 +16,6 @@ namespace RN
 
 	RNExceptionImp(InvalidTextureFormat)
 
-	static uint32 _defaultAnisotropy = 1;
-
 	Texture::Texture(const Descriptor &descriptor) :
 		_descriptor(descriptor)
 	{}
@@ -31,24 +29,59 @@ namespace RN
 		return coordinator->GetAssetWithName<Texture>(name, settings);
 	}
 
-	void Texture::SetParameter(const Parameter &parameter)
+	Texture *Texture::WithDescriptor(const Descriptor &descriptor)
 	{
-		_parameter = parameter;
+		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+		return texture->Autorelease();
 	}
-
-	const String *Texture::Descriptor::__TranslateFormat(Format format)
+	
+	bool Texture::HasColorChannel(ColorChannel channel) const
 	{
-		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->GetTextureFormatName(format);
-	}
-
-	uint32 Texture::GetDefaultAnisotropy()
-	{
-		return _defaultAnisotropy;
-	}
-	void Texture::SetDefaultAnisotropy(uint32 anisotropy)
-	{
-		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
-		_defaultAnisotropy = anisotropy;
+		#define ColorChannel(format, r, g, b, a) \
+		case format: \
+		{ \
+			switch(channel) \
+			{ \
+				case ColorChannel::Red: \
+					return r; \
+				case ColorChannel::Green: \
+					return g; \
+				case ColorChannel::Blue: \
+					return b; \
+				case ColorChannel::Alpha: \
+					return a; \
+			} \
+		return false; \
+		}
+		
+		switch(_descriptor.format)
+		{
+			ColorChannel(Format::RGBA8888SRGB, true, true, true, true)
+			ColorChannel(Format::BGRA8888SRGB, true, true, true, true)
+				
+			ColorChannel(Format::RGB888SRGB, true, true, true, false)
+			ColorChannel(Format::BGR888SRGB, true, true, true, false)
+				
+			ColorChannel(Format::RGBA8888, true, true, true, true)
+			ColorChannel(Format::BGRA8888, true, true, true, true)
+			ColorChannel(Format::RGB10A2, true, true, true, true)
+				
+			ColorChannel(Format::R8, true, false, false, false)
+			ColorChannel(Format::RG88, true, true, false, false)
+			ColorChannel(Format::RGB888, true, true, true, false)
+				
+			ColorChannel(Format::R16F, true, false, false, false)
+			ColorChannel(Format::RG16F, true, true, false, false)
+			ColorChannel(Format::RGB16F, true, true, true, false)
+			ColorChannel(Format::RGBA16F, true, true, true, true)
+				
+			ColorChannel(Format::R32F, true, false, false, false)
+			ColorChannel(Format::RG32F, true, true, false, false)
+			ColorChannel(Format::RGB32F, true, true, true, false)
+			ColorChannel(Format::RGBA32F, true, true, true, true)
+				
+			default:
+				return false;
+		}
 	}
 }

@@ -11,7 +11,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanWindow.h"
-#include "RNVulkanGPUBuffer.h"
+#include "RNVulkanConstantBuffer.h"
 
 namespace RN
 {
@@ -36,78 +36,321 @@ namespace RN
 			VK_FORMAT_R32G32B32A32_SFLOAT
 		};
 
-	VulkanStateCoordinator::VulkanStateCoordinator() :
-		_renderer(nullptr), _descriptorPool(VK_NULL_HANDLE)
-	{
 
+	VulkanRootSignature::~VulkanRootSignature()
+	{
+		//signature->Release();
 	}
+
+	VulkanPipelineState::~VulkanPipelineState()
+	{
+		//state->Release();
+	}
+
+	VulkanStateCoordinator::VulkanStateCoordinator() :
+		_lastDepthStencilState(nullptr)
+	{}
 
 	VulkanStateCoordinator::~VulkanStateCoordinator()
 	{
+		//TODO: Clean up correctly...
 		for(VulkanPipelineStateCollection *collection : _renderingStates)
 			delete collection;
 	}
 
-	VKAPI void VulkanStateCoordinator::SetRenderer(VulkanRenderer *renderer)
+	const VulkanRootSignature *VulkanStateCoordinator::GetRootSignature(const VulkanPipelineStateDescriptor &descriptor)
 	{
-		_renderer = renderer;
+		VulkanShader *vertexShader = static_cast<VulkanShader *>(descriptor.vertexShader);
+		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
+		uint16 textureCount = vertexSignature->GetTextureCount();
+		const Array *vertexSamplers = vertexSignature->GetSamplers();
+		Array *samplerArray = new Array(vertexSamplers);
+		samplerArray->Autorelease();
 
-		if(!_descriptorPool)
+		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
+
+		//TODO: Support multiple constant buffers per function signature
+		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+
+		VulkanShader *fragmentShader = static_cast<VulkanShader *>(descriptor.fragmentShader);
+		if(fragmentShader)
 		{
-			VkDescriptorPoolSize uniformBufferPoolSize = {};
-			uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uniformBufferPoolSize.descriptorCount = 1;
+			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
+			textureCount = fmax(textureCount, fragmentSignature->GetTextureCount());
+			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
+			samplerArray->AddObjectsFromArray(fragmentSamplers);
 
-			VkDescriptorPoolSize textureBufferPoolSize = {};
-			textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			textureBufferPoolSize.descriptorCount = 1;
+			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
 
-			std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, textureBufferPoolSize };
-
-			VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			descriptorPoolInfo.pNext = NULL;
-			descriptorPoolInfo.poolSizeCount = poolSizes.size();
-			descriptorPoolInfo.pPoolSizes = poolSizes.data();
-			descriptorPoolInfo.maxSets = 100000;
-
-			RNVulkanValidate(vk::CreateDescriptorPool(_renderer->GetVulkanDevice()->GetDevice(), &descriptorPoolInfo, _renderer->GetAllocatorCallback(), &_descriptorPool));
+			//TODO: Support multiple constant buffers per function signature
+			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
 		}
+
+		for(VulkanRootSignature *signature : _rootSignatures)
+		{
+
+			if(signature->textureCount != textureCount)
+			{
+				continue;
+			}
+
+			//TODO: Doesn't really require an extra root signature...
+			if(signature->wantsDirectionalShadowTexture != wantsDirectionalShadowTexture)
+			{
+				continue;
+			}
+
+			if(signature->constantBufferCount != constantBufferCount)
+			{
+				continue;
+			}
+
+			if(samplerArray->GetCount() != signature->samplers->GetCount())
+			{
+				continue;
+			}
+
+			bool notEqual = false;
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+				if(!(sampler == samplerArray->GetObjectAtIndex(index)))
+				{
+					notEqual = true;
+					stop = true;
+				}
+			});
+			if(notEqual)
+			{
+				continue;
+			}
+
+			return signature;
+		}
+
+		VulkanRenderer *renderer = static_cast<VulkanRenderer *>(Renderer::GetActiveRenderer());
+		VulkanDevice *device = renderer->GetVulkanDevice();
+
+		VulkanRootSignature *signature = new VulkanRootSignature();
+		signature->constantBufferCount = constantBufferCount;
+		signature->samplers = samplerArray->Retain();
+		signature->textureCount = textureCount;
+		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
+
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+		for(size_t i = 0; i < constantBufferCount; i++)
+		{
+			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+			setUniformLayoutBinding.binding = i;
+			setUniformLayoutBinding.descriptorCount = 1;
+			setLayoutBindings.push_back(setUniformLayoutBinding);
+		}
+
+
+		// Create samplers
+		std::vector<VkSampler> samplers;
+		samplers.reserve(signature->samplers->GetCount());
+		if(signature->samplers->GetCount() > 0)
+		{
+			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+
+				VkFilter filter = VK_FILTER_LINEAR;
+				switch(sampler->GetFilter())
+				{
+					case Shader::Sampler::Filter::Anisotropic:
+						filter = VK_FILTER_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Linear:
+						filter = VK_FILTER_LINEAR;
+						break;
+					case Shader::Sampler::Filter::Nearest:
+						filter = VK_FILTER_NEAREST;
+						break;
+				}
+
+				VkCompareOp comparisonFunction = VK_COMPARE_OP_NEVER;
+				if(sampler->GetComparisonFunction() != Shader::Sampler::ComparisonFunction::Never)
+				{
+					switch(sampler->GetComparisonFunction())
+					{
+						case Shader::Sampler::ComparisonFunction::Always:
+							comparisonFunction = VK_COMPARE_OP_ALWAYS;
+							break;
+						case Shader::Sampler::ComparisonFunction::Equal:
+							comparisonFunction = VK_COMPARE_OP_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::GreaterEqual:
+							comparisonFunction = VK_COMPARE_OP_GREATER_OR_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::Greater:
+							comparisonFunction = VK_COMPARE_OP_GREATER;
+							break;
+						case Shader::Sampler::ComparisonFunction::Less:
+							comparisonFunction = VK_COMPARE_OP_LESS;
+							break;
+						case Shader::Sampler::ComparisonFunction::LessEqual:
+							comparisonFunction = VK_COMPARE_OP_LESS_OR_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::NotEqual:
+							comparisonFunction = VK_COMPARE_OP_NOT_EQUAL;
+							break;
+					}
+				}
+
+				VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+				switch(sampler->GetWrapMode())
+				{
+					case Shader::Sampler::WrapMode::Repeat:
+						addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+						break;
+					case Shader::Sampler::WrapMode::Clamp:
+						addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+						break;
+				}
+
+				// Create sampler
+				VkSamplerCreateInfo samplerInfo = {};
+				samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+				samplerInfo.magFilter = filter;
+				samplerInfo.minFilter = filter;
+				samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+				samplerInfo.addressModeU = addressMode;
+				samplerInfo.addressModeV = addressMode;
+				samplerInfo.addressModeW = addressMode;
+				samplerInfo.mipLodBias = 0.0f;
+				samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+				samplerInfo.minLod = 0.0f;
+				samplerInfo.maxLod = std::numeric_limits<float>::max();
+				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();
+				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
+				samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+				samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+				VkSampler vkSampler;
+				RNVulkanValidate(vk::CreateSampler(device->GetDevice(), &samplerInfo, renderer->GetAllocatorCallback(), &vkSampler));
+				//TODO: Store and release samplers with the pipeline? Maybe can immediately be released after creating pipeline?
+
+				samplers.push_back(vkSampler);
+
+				VkDescriptorSetLayoutBinding staticSamplerBinding = {};
+				staticSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+				staticSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
+				staticSamplerBinding.binding = setLayoutBindings.size();
+				staticSamplerBinding.descriptorCount = 1;
+				staticSamplerBinding.pImmutableSamplers = &samplers[samplers.size()-1];
+
+				setLayoutBindings.push_back(staticSamplerBinding);
+			});
+		}
+
+		for(size_t i = 0; i < textureCount; i++)
+		{
+			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+			setImageLayoutBinding.binding = setLayoutBindings.size();
+			setImageLayoutBinding.descriptorCount = 1;
+
+			setLayoutBindings.push_back(setImageLayoutBinding);
+		}
+
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
+		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorSetLayoutCreateInfo.pNext = NULL;
+		descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
+		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
+
+		RNVulkanValidate(vk::CreateDescriptorSetLayout(device->GetDevice(), &descriptorSetLayoutCreateInfo, renderer->GetAllocatorCallback(), &signature->descriptorSetLayout));
+
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutCreateInfo.pNext = NULL;
+		pipelineLayoutCreateInfo.setLayoutCount = 1;
+		pipelineLayoutCreateInfo.pSetLayouts = &signature->descriptorSetLayout;
+
+		RNVulkanValidate(vk::CreatePipelineLayout(device->GetDevice(), &pipelineLayoutCreateInfo, renderer->GetAllocatorCallback(), &signature->pipelineLayout));
+
+		_rootSignatures.push_back(signature);
+		return signature;
 	}
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera)
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
-
-		VulkanShader *vertexShader = static_cast<VulkanShader *>(material->GetVertexShader());
-		VulkanShader *fragmentShader = static_cast<VulkanShader *>(material->GetFragmentShader());
+		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
+		VulkanPipelineStateDescriptor pipelineDescriptor;
+		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
+		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
+		//pipelineDescriptor.sampleQuality = 0;//(framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
+		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer, flags)->renderPass;
+		pipelineDescriptor.shaderHint = shaderHint;
+		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.cullMode = mergedMaterialProperties.cullMode;
+		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
+		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
+		pipelineDescriptor.polygonOffsetUnits = mergedMaterialProperties.polygonOffsetUnits;
+		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
+		//TODO: Support all override flags and all the relevant material properties
 
 		for(VulkanPipelineStateCollection *collection : _renderingStates)
 		{
 			if(collection->descriptor.IsEqual(descriptor))
 			{
-				if(collection->vertexShader == vertexShader && collection->fragmentShader == fragmentShader)
+				if(collection->vertexShader == pipelineDescriptor.vertexShader && collection->fragmentShader == pipelineDescriptor.fragmentShader)
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
+					return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
 				}
 			}
 		}
 
-		VulkanPipelineStateCollection *collection = new VulkanPipelineStateCollection(descriptor, vertexShader, fragmentShader);
+		VulkanPipelineStateCollection *collection = new VulkanPipelineStateCollection(descriptor, pipelineDescriptor.vertexShader, pipelineDescriptor.fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, material, camera);
+		return GetRenderPipelineStateInCollection(collection, mesh, pipelineDescriptor);
 	}
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, Material *material, Camera *camera)
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &descriptor)
 	{
-		for(VulkanPipelineState *state : collection->states)
+		const VulkanRootSignature *rootSignature = GetRootSignature(descriptor);
+
+		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
+		//TODO: Maybe solve nicer...
+		for(const VulkanPipelineState *state : collection->states)
 		{
-			if(state->textureCount == material->GetTextures()->GetCount())
-				return state;
+			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
+			{
+				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
+				{
+					return state;
+				}
+			}
 		}
 
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+		VulkanDevice *device = renderer->GetVulkanDevice();
+
+		//Collect shaders
+		VulkanShader *vertexShaderRayne = collection->vertexShader->Downcast<VulkanShader>();
+		VulkanShader *fragmentShaderRayne = collection->fragmentShader->Downcast<VulkanShader>();
+		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+		shaderStages[0] = vertexShaderRayne->_shaderStage;
+		shaderStages[1] = fragmentShaderRayne->_shaderStage;
+
+		//Handle vertex attributes
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = mesh->GetStride();
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh);
+
+		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputState.pNext = NULL;
+		vertexInputState.vertexBindingDescriptionCount = 1;
+		vertexInputState.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
+		vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
 		inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -118,10 +361,28 @@ namespace RN
 		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizationState.lineWidth = 1.0f;
 		rasterizationState.flags = 0;
 		rasterizationState.depthClampEnable = VK_TRUE;
+		if(descriptor.usePolygonOffset)
+		{
+			rasterizationState.depthBiasConstantFactor = descriptor.polygonOffsetUnits;
+			rasterizationState.depthBiasSlopeFactor = descriptor.polygonOffsetFactor;
+			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
+		}
+		switch(descriptor.cullMode)
+		{
+			case CullMode::BackFace:
+				rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+				break;
+			case CullMode::FrontFace:
+				rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
+				break;
+			case CullMode::None:
+				rasterizationState.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
+				break;
+		}
 
 		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
 		blendAttachmentState.colorWriteMask = 0xf;
@@ -135,11 +396,19 @@ namespace RN
 
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthTestEnable = VK_TRUE;
-		depthStencilState.depthWriteEnable = VK_TRUE;
-		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-		depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
-		depthStencilState.front = depthStencilState.back;
+		if(descriptor.depthStencilFormat != VK_FORMAT_UNDEFINED)
+		{
+			depthStencilState.depthTestEnable = VK_TRUE;
+			depthStencilState.depthWriteEnable = VK_TRUE;
+			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+			depthStencilState.front = depthStencilState.back;
+		}
+		else
+		{
+			depthStencilState.depthTestEnable = VK_FALSE;
+			depthStencilState.depthWriteEnable = VK_FALSE;
+		}
 
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -149,7 +418,10 @@ namespace RN
 
 		VkPipelineMultisampleStateCreateInfo multisampleState = {};
 		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
+		multisampleState.sampleShadingEnable = VK_FALSE;//descriptor.sampleCount > 1? VK_TRUE : VK_FALSE;
+		multisampleState.alphaToCoverageEnable = descriptor.useAlphaToCoverage? VK_TRUE : VK_FALSE;
+		//TODO: Maybe set minSampleShading?
 
 		std::vector<VkDynamicState> dynamicStateEnables = {
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -161,67 +433,56 @@ namespace RN
 		dynamicState.pDynamicStates = dynamicStateEnables.data();
 		dynamicState.dynamicStateCount = dynamicStateEnables.size();
 
-		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
-		shaderStages[0] = collection->vertexShader->_shaderStage;
-		shaderStages[1] = collection->fragmentShader->_shaderStage;
+		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineCreateInfo.pNext = NULL;
+		pipelineCreateInfo.layout = rootSignature->pipelineLayout;
+		pipelineCreateInfo.renderPass = descriptor.renderPass;
+		pipelineCreateInfo.flags = 0;
+		pipelineCreateInfo.pVertexInputState = &vertexInputState;
+		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+		pipelineCreateInfo.pRasterizationState = &rasterizationState;
+		pipelineCreateInfo.pColorBlendState = &colorBlendState;
+		pipelineCreateInfo.pMultisampleState = &multisampleState;
+		pipelineCreateInfo.pViewportState = &viewportState;
+		pipelineCreateInfo.pDepthStencilState = &depthStencilState;
+		pipelineCreateInfo.pDynamicState = &dynamicState;
+		pipelineCreateInfo.stageCount = shaderStages.size();
+		pipelineCreateInfo.pStages = shaderStages.data();
+
+		VkPipeline pipeline;
+		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
+		RNVulkanValidate(vk::CreateGraphicsPipelines(device->GetDevice(),  VK_NULL_HANDLE, 1, &pipelineCreateInfo, renderer->GetAllocatorCallback(), &pipeline));
+
+		// Create the rendering state
+		VulkanPipelineState *state = new VulkanPipelineState();
+		state->descriptor = std::move(descriptor);
+		state->rootSignature = rootSignature;
+		state->state = pipeline;
+
+		collection->states.push_back(state);
+		return state;
 
 
-		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		setUniformLayoutBinding.binding = 0;
-		setUniformLayoutBinding.descriptorCount = 1;
 
-		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = { setUniformLayoutBinding };
-
-		size_t textureCount = material->GetTextures()->GetCount();
-		for(size_t i = 0; i < textureCount; i++)
+/*
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.NumRenderTargets = descriptor.colorFormats.size();
+		int counter = 0;
+		for(DXGI_FORMAT format : descriptor.colorFormats)
 		{
-			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-			setImageLayoutBinding.binding = i + 1;
-			setImageLayoutBinding.descriptorCount = 1;
+			psoDesc.RTVFormats[counter++] = format;
+			if(counter >= 8)
+				break;
+		}*/
+	}
 
-			setLayoutBindings.push_back(setImageLayoutBinding);
-		}
-
-		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
-		descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		descriptorSetLayoutCreateInfo.pNext = NULL;
-		descriptorSetLayoutCreateInfo.pBindings = setLayoutBindings.data();
-		descriptorSetLayoutCreateInfo.bindingCount = setLayoutBindings.size();
-
-		VkDescriptorSetLayout descriptorSetLayout;
-		RNVulkanValidate(vk::CreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, _renderer->GetAllocatorCallback(), &descriptorSetLayout));
-
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutCreateInfo.pNext = NULL;
-		pipelineLayoutCreateInfo.setLayoutCount = 1;
-		pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-
-		VkPipelineLayout pipelineLayout;
-		RNVulkanValidate(vk::CreatePipelineLayout(device, &pipelineLayoutCreateInfo, _renderer->GetAllocatorCallback(), &pipelineLayout));
-
-		VulkanFramebuffer *framebuffer = nullptr;
-		if(camera)
-			camera->GetFramebuffer()->Downcast<VulkanFramebuffer>();
-		if(!framebuffer)
-			framebuffer = Renderer::GetActiveRenderer()->GetMainWindow()->Downcast<VulkanWindow>()->GetFramebuffer();
-
-
-		// Binding description
-		VkVertexInputBindingDescription bindingDescription = {};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = mesh->GetStride();
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
+	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
 		size_t offset = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
-
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
@@ -242,109 +503,180 @@ namespace RN
 			offset ++;
 		}
 
-		VkPipelineVertexInputStateCreateInfo inputState = {};
-		inputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		inputState.pNext = NULL;
-		inputState.vertexBindingDescriptionCount = 1;
-		inputState.pVertexBindingDescriptions = &bindingDescription;
-		inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
-		inputState.pVertexAttributeDescriptions = attributeDescriptions.data();
+		return attributeDescriptions;
+	}
 
-		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
-		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineCreateInfo.pNext = NULL;
-		pipelineCreateInfo.layout = pipelineLayout;
-		pipelineCreateInfo.renderPass = framebuffer->GetRenderPass();
-		pipelineCreateInfo.flags = 0;
-		pipelineCreateInfo.pVertexInputState = &inputState;
-		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
-		pipelineCreateInfo.pRasterizationState = &rasterizationState;
-		pipelineCreateInfo.pColorBlendState = &colorBlendState;
-		pipelineCreateInfo.pMultisampleState = &multisampleState;
-		pipelineCreateInfo.pViewportState = &viewportState;
-		pipelineCreateInfo.pDepthStencilState = &depthStencilState;
-		pipelineCreateInfo.pDynamicState = &dynamicState;
-		pipelineCreateInfo.stageCount = shaderStages.size();
-		pipelineCreateInfo.pStages = shaderStages.data();
+	VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState)
+	{
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 
-		VkPipeline pipeline;
-		//TODO: Use pipeline cache for creating related pipelines! (second parameter)
-		RNVulkanValidate(vk::CreateGraphicsPipelines(device,  VK_NULL_HANDLE, 1, &pipelineCreateInfo, _renderer->GetAllocatorCallback(), &pipeline));
+		Shader *vertexShader = pipelineState->descriptor.vertexShader;
+		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
+		VulkanConstantBufferReference *vertexBuffer = nullptr;
+		VulkanConstantBufferReference *fragmentBuffer = nullptr;
+		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		{
+			vertexBuffer = renderer->GetConstantBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 0);
+		}
+		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
+		{
+			fragmentBuffer = renderer->GetConstantBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 0);
+		}
 
-		// Create the rendering state
-		VulkanPipelineState *state = new VulkanPipelineState();
-		state->state = pipeline;
-		state->descriptorSetLayout = descriptorSetLayout;
-		state->pipelineLayout = pipelineLayout;
-		state->textureCount = material->GetTextures()->GetCount();
-
-		collection->states.push_back(state);
+		VulkanUniformState *state = new VulkanUniformState();
+		state->vertexConstantBuffer = SafeRetain(vertexBuffer);
+		state->fragmentConstantBuffer = SafeRetain(fragmentBuffer);
 
 		return state;
 	}
 
-	VulkanUniformState *VulkanStateCoordinator::GetUniformStateForPipelineState(const VulkanPipelineState *pipelineState, Material *material)
+	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags)
 	{
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		//TODO: Maybe handle swapchain case better...
+		RN_ASSERT(!resolveFramebuffer || framebuffer->_colorTargets.size() <= resolveFramebuffer->_colorTargets.size(), "Resolve framebuffer needs a target for each target in the framebuffer!");
 
-		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
-		descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		descriptorSetAllocateInfo.pNext = NULL;
-		descriptorSetAllocateInfo.descriptorPool = _descriptorPool;
-		descriptorSetAllocateInfo.pSetLayouts = &pipelineState->descriptorSetLayout;
-		descriptorSetAllocateInfo.descriptorSetCount = 1;
-
-		VkDescriptorSet descriptorSet;
-		RNVulkanValidate(vk::AllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet));
-
-		VulkanGPUBuffer *gpuBuffer = _renderer->CreateBufferWithLength(sizeof(Matrix)*2 + sizeof(Color)*2, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite)->Downcast<VulkanGPUBuffer>();
-
-		VkDescriptorBufferInfo uniformBufferDescriptorInfo = {};
-		uniformBufferDescriptorInfo.buffer = gpuBuffer->GetVulkanBuffer();
-		uniformBufferDescriptorInfo.offset = 0;
-		uniformBufferDescriptorInfo.range = gpuBuffer->GetLength();
-
-		VkWriteDescriptorSet writeUniformDescriptorSet = {};
-		writeUniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeUniformDescriptorSet.pNext = NULL;
-		writeUniformDescriptorSet.dstSet = descriptorSet;
-		writeUniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		writeUniformDescriptorSet.dstBinding = 0;
-		writeUniformDescriptorSet.pBufferInfo = &uniformBufferDescriptorInfo;
-		writeUniformDescriptorSet.descriptorCount = 1;
-
-		std::vector<VkDescriptorImageInfo*> imageBufferDescriptorInfoArray;
-		std::vector<VkWriteDescriptorSet> writeDescriptorSets = { writeUniformDescriptorSet };
-
-		material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-			VkDescriptorImageInfo *imageBufferDescriptorInfo = new VkDescriptorImageInfo;
-			imageBufferDescriptorInfo->sampler = texture->GetSampler();
-			imageBufferDescriptorInfo->imageView = texture->GetImageView();
-			imageBufferDescriptorInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-			imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
-
-			VkWriteDescriptorSet writeImageDescriptorSet = {};
-			writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeImageDescriptorSet.pNext = NULL;
-			writeImageDescriptorSet.dstSet = descriptorSet;
-			writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			writeImageDescriptorSet.dstBinding = index + 1;
-			writeImageDescriptorSet.pImageInfo = imageBufferDescriptorInfoArray[index];
-			writeImageDescriptorSet.descriptorCount = 1;
-
-			writeDescriptorSets.push_back(writeImageDescriptorSet);
-		});
-
-		vk::UpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
-
-		for(VkDescriptorImageInfo *imageBufferDescriptor : imageBufferDescriptorInfoArray)
+		VulkanRenderPassState renderPassState;
+		renderPassState.flags = flags;
+		for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
-			delete imageBufferDescriptor;
+			renderPassState.imageFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
 		}
 
-		VulkanUniformState *state = new VulkanUniformState();
-		state->descriptorSet = descriptorSet;
-		state->uniformBuffer = gpuBuffer;
+		if(resolveFramebuffer)
+		{
+			for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
+			{
+				renderPassState.resolveFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
+			}
+		}
+
+		if(framebuffer->_depthStencilTarget)
+		{
+			renderPassState.imageFormats.push_back(framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format);
+		}
+
+		for(VulkanRenderPassState *state : _renderPassStates)
+		{
+			if((*state) == renderPassState) return state;
+		}
+
+		VulkanRenderPassState *state = new VulkanRenderPassState;
+		state->flags = renderPassState.flags;
+		state->imageFormats = renderPassState.imageFormats;
+		state->resolveFormats = renderPassState.resolveFormats;
+
+		VkSubpassDescription subpass = {};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.flags = 0;
+		subpass.inputAttachmentCount = 0;
+		subpass.pInputAttachments = nullptr;
+		subpass.pResolveAttachments = nullptr;
+		subpass.pDepthStencilAttachment = nullptr;
+		subpass.preserveAttachmentCount = 0;
+		subpass.pPreserveAttachments = nullptr;
+
+		std::vector<VkAttachmentDescription> attachments;
+		std::vector<VkAttachmentReference> colorAttachmentRefs;
+		std::vector<VkAttachmentReference> resolveAttachmentRefs;
+
+		uint32 counter = 0;
+		for(VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
+		{
+			VkAttachmentReference colorReference = {};
+			colorReference.attachment = attachments.size();
+			colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			colorAttachmentRefs.push_back(colorReference);
+
+			VkAttachmentDescription attachment = {};
+			attachment.format = targetView->vulkanTargetViewDescriptor.format;
+			attachment.flags = 0;
+			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
+			attachment.loadOp = (flags & RenderPass::Flags::ClearColor)? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachments.push_back(attachment);
+
+			if(resolveFramebuffer)
+			{
+				VkAttachmentReference resolveReference = {};
+				resolveReference.attachment = attachments.size();
+				resolveReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				resolveAttachmentRefs.push_back(resolveReference);
+
+				VkAttachmentDescription attachment = {};
+				if(resolveFramebuffer->_swapChain)
+				{
+					attachment.format = resolveFramebuffer->_colorTargets[0]->vulkanTargetViewDescriptor.format;
+				}
+				else
+				{
+					attachment.format = resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor.format;
+				}
+				attachment.flags = 0;
+				attachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
+				attachment.loadOp = (flags & RenderPass::Flags::ClearColor)? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD;
+				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				attachments.push_back(attachment);
+			}
+
+			counter += 1;
+
+			if(framebuffer->_swapChain || (resolveFramebuffer && resolveFramebuffer->_swapChain)) break;
+		}
+
+		subpass.colorAttachmentCount = colorAttachmentRefs.size();
+		subpass.pColorAttachments = colorAttachmentRefs.data();
+
+		if(resolveFramebuffer)
+		{
+			subpass.pResolveAttachments = resolveAttachmentRefs.data();
+		}
+
+		VkAttachmentReference depthReference = {};
+		if(framebuffer->_depthStencilTarget)
+		{
+			depthReference.attachment = attachments.size();
+			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentDescription attachment = {};
+			attachment.format = framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format;
+			attachment.flags = 0;
+			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
+			attachment.loadOp = (flags & RenderPass::Flags::ClearDepthStencil) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			attachments.push_back(attachment);
+
+			subpass.pDepthStencilAttachment = &depthReference;
+
+			//TODO: Figure out depth resolve!?
+		}
+
+		VkRenderPassCreateInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.pNext = nullptr;
+		renderPassInfo.attachmentCount = attachments.size();
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 0;
+		renderPassInfo.pDependencies = nullptr;
+
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+		VulkanDevice *device = renderer->GetVulkanDevice();
+		RNVulkanValidate(vk::CreateRenderPass(device->GetDevice(), &renderPassInfo, renderer->GetAllocatorCallback(), &state->renderPass));
+
+		_renderPassStates.push_back(state);
 
 		return state;
 	}

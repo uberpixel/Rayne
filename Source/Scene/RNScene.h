@@ -14,6 +14,8 @@
 #include "../Rendering/RNRenderer.h"
 #include "RNSceneNode.h"
 #include "RNCamera.h"
+#include "RNLight.h"
+#include "RNSceneAttachment.h"
 
 namespace RN
 {
@@ -27,6 +29,9 @@ namespace RN
 
 		RNAPI void AddNode(SceneNode *node);
 		RNAPI void RemoveNode(SceneNode *node);
+
+		RNAPI void AddAttachment(SceneAttachment *attachment);
+		RNAPI void RemoveAttachment(SceneAttachment *attachment);
 
 	protected:
 		RNAPI Scene();
@@ -49,6 +54,8 @@ namespace RN
 
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
+		Array *_lights;
+		Array *_attachments;
 
 		__RNDeclareMetaInternal(Scene)
 	};

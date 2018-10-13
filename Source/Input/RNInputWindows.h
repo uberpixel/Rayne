@@ -13,14 +13,13 @@
 #include "RNInputManager.h"
 #include "RNHIDDevice.h"
 
-#include <ntdef.h>
-#include <winbase.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 	#include <setupapi.h>
+	#include <initguid.h>
 	#include <winioctl.h>
+	#include <bcrypt.h>
 
 	/* Copied from inc/ddk/hidclass.h, part of the Windows DDK. */
 	#define HID_OUT_CTL_CODE(id)  \
@@ -86,22 +85,18 @@ namespace RN
 		RNAPI void Open() final;
 		RNAPI void Close() final;
 
+		RNAPI Data *ReadReport(uint32 reportID) const final;
+		RNAPI Data *ReadFeatureReport(uint32 reportID) const final;
+
+		RNAPI size_t WriteReport(uint32 reportID, const Data *data) final;
+
 		RNAPI const String *GetManufacturerString() const final;
 		RNAPI const String *GetProductString() const final;
 		RNAPI const String *GetSerialString() const final;
 
-		RNAPI size_t ReadReport(uint8 *data, size_t length, std::chrono::milliseconds timeout) final;
-		RNAPI size_t ReadReport(uint8 *data, size_t length) final;
-
-		RNAPI size_t WriteReport(const uint8 *data, size_t length) final;
-
-		RNAPI size_t SendFeatureReport(const uint8 *data, size_t length) final;
-		RNAPI size_t GetFeatureReport(uint8 *data, size_t length) const final;
-
-		RNAPI const String *GetIndexedString(size_t index) const final;
-
 		RNAPI size_t GetInputReportLength() const final;
 		RNAPI size_t GetOutputReportLength() const final;
+		RNAPI size_t GetFeatureReportLength() const final;
 
 		RNAPI uint32 GetVendorID() const final;
 		RNAPI uint32 GetProductID() const final;

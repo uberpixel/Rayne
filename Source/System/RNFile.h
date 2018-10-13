@@ -64,6 +64,11 @@ namespace RN
 		static int __FileWithPath(const String *name, Mode mode);
 		File(int fd, const String *path, Mode mode);
 
+#if RN_PLATFORM_ANDROID
+		File(AAsset *asset, const String *path, Mode mode);
+		AAsset *_asset;
+#endif
+
 		int _fd;
 		size_t _size;
 		Mode _mode;

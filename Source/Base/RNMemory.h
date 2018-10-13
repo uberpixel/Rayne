@@ -9,13 +9,13 @@
 #ifndef __RAYNE_MEMORY_H__
 #define __RAYNE_MEMORY_H__
 
-#include <new>
-
 #ifdef RN_BUILD_LIBRARY
 	#include <RayneConfig.h>
 #else
 	#include "../RayneConfig.h"
 #endif
+
+#include <new>
 
 namespace RN
 {
@@ -54,44 +54,7 @@ namespace RN
 	};
 }
 
-#if RN_PLATFORM_WINDOWS
-RN_INLINE void *operator new(size_t size)
-{
-	return RN::Memory::Allocate(size);
-}
-RN_INLINE void *operator new[](size_t size)
-{
-	return RN::Memory::AllocateArray(size);
-}
-RN_INLINE void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
-{
-	return RN::Memory::Allocate(size, n);
-}
-RN_INLINE void *operator new[](size_t size, const std::nothrow_t &n) RN_NOEXCEPT
-{
-	return RN::Memory::AllocateArray(size, n);
-}
-
-
-RN_INLINE void operator delete(void *ptr) RN_NOEXCEPT
-{
-	return RN::Memory::Free(ptr);
-}
-RN_INLINE void operator delete[](void *ptr) RN_NOEXCEPT
-{
-	return RN::Memory::FreeArray(ptr);
-}
-RN_INLINE void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
-{
-	return RN::Memory::Free(ptr, n);
-}
-RN_INLINE void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
-{
-	return RN::Memory::FreeArray(ptr, n);
-}
-#endif
-
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 void *operator new(size_t size);
 void *operator new[](size_t size);
 void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;

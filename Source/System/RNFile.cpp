@@ -17,6 +17,10 @@
 #define O_BINARY 0x0
 #endif
 
+#if RN_PLATFORM_ANDROID
+	#include "../Base/RNKernel.h"
+#endif
+
 namespace RN
 {
 	RNDefineMeta(File, Object)
@@ -26,6 +30,9 @@ namespace RN
 	RNExceptionImp(FileGeneric)
 
 	File::File(int fd, const String *path, Mode mode) :
+#if RN_PLATFORM_ANDROID
+		_asset(nullptr),
+#endif
 		_fd(fd),
 		_mode(mode),
 		_path(path->Copy())
@@ -34,20 +41,56 @@ namespace RN
 		lseek(fd, 0, SEEK_SET);
 	}
 
+#if RN_PLATFORM_ANDROID
+	File::File(AAsset *asset, const String *path, Mode mode) :
+    		_fd(-1),
+    		_asset(asset),
+    		_mode(mode),
+    		_path(path->Copy())
+    {
+    	_size = static_cast<size_t>(AAsset_getLength(_asset));
+    }
+#endif
+
 	File::~File()
 	{
-		close(_fd);
+#if RN_PLATFORM_ANDROID
+		if(_asset)
+		{
+			AAsset_close(_asset);
+		}
+		else
+#endif
+		{
+			close(_fd);
+		}
+
 		SafeRelease(_path);
 	}
 
 
 	size_t File::GetOffset() const
 	{
+#if RN_PLATFORM_ANDROID
+		if(_asset)
+		{
+			return AAsset_seek(_asset, 0, SEEK_CUR);
+		}
+#endif
 		return static_cast<size_t>(lseek(_fd, 0, SEEK_CUR));
 	}
 	void File::Seek(size_t offset, bool fromStart)
 	{
-		lseek(_fd, static_cast<off_t>(offset), fromStart ? SEEK_SET : SEEK_CUR);
+#if RN_PLATFORM_ANDROID
+		if(_asset)
+		{
+			AAsset_seek(_asset, static_cast<off_t>(offset), fromStart ? SEEK_SET : SEEK_CUR);
+		}
+		else
+#endif
+		{
+			lseek(_fd, static_cast<off_t>(offset), fromStart ? SEEK_SET : SEEK_CUR);
+		}
 	}
 
 
@@ -65,8 +108,19 @@ namespace RN
 		});
 
 		do {
+			ssize_t bytesRead = 0;
 
-			ssize_t bytesRead = read(_fd, bytes + totalRead, left);
+#if RN_PLATFORM_ANDROID
+			if(_asset)
+			{
+				bytesRead = AAsset_read(_asset, bytes + totalRead, left);
+			}
+			else
+#endif
+			{
+				bytesRead = read(_fd, bytes + totalRead, left);
+			}
+
 			if(bytesRead == 0)
 				break;
 
@@ -194,7 +248,7 @@ namespace RN
 	}
 
 
-	int  File::__FileWithPath(const String *name, Mode mode)
+	int File::__FileWithPath(const String *name, Mode mode)
 	{
 		int oflag = O_BINARY;
 
@@ -233,6 +287,26 @@ namespace RN
 	{
 		FileManager *coordinator = FileManager::GetSharedInstance();
 
+#if RN_PLATFORM_ANDROID
+		if(mode & Mode::Read)
+		{
+			android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+			AAsset *asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
+
+			if(!asset)
+			{
+				name = RNSTR(RNCSTR("Resources/") << name);
+				asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
+			}
+
+			if(asset)
+			{
+				File *file = new File(asset, name, mode);
+				return file->Autorelease();
+			}
+		}
+#endif
+
 		if(mode & Mode::Write)
 		{
 			bool isDirectory;
@@ -267,7 +341,7 @@ namespace RN
 	type File::name() \
 	{ \
 		type buffer; \
-		__unused size_t read = Read(&buffer, sizeof(type)); \
+		RN_UNUSED size_t read = Read(&buffer, sizeof(type)); \
 		return buffer; \
 	}
 

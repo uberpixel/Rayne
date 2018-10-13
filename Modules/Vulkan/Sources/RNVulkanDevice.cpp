@@ -58,7 +58,8 @@ namespace RN
 		RenderingDevice(GetNameForDevice(device), DescriptorForDevice(device)),
 		_instance(instance),
 		_physicalDevice(device),
-		_workQueue(kRNNotFound)
+		_workQueue(kRNNotFound),
+		_deviceExtensions(nullptr)
 	{
 		std::vector<VkQueueFamilyProperties> queues;
 		GetQueueProperties(queues);
@@ -75,6 +76,9 @@ namespace RN
 			const xcb_screen_t *screen = Screen::GetMainScreen()->GetXCBScreen();
 			bool result = (vk::GetPhysicalDeviceXcbPresentationSupportKHR(_physicalDevice, i, Kernel::GetSharedInstance()->GetXCBConnection(), screen->root_visual) == VK_TRUE);
 #endif
+#if RN_PLATFORM_ANDROID
+			bool result = true;
+#endif
 
 			if(result && (queue.queueFlags & flags) == flags)
 			{
@@ -84,6 +88,11 @@ namespace RN
 		}
 
 		vk::GetPhysicalDeviceMemoryProperties(device, &_memoryProperties);
+	}
+
+	VulkanDevice::~VulkanDevice()
+	{
+		SafeRelease(_deviceExtensions);
 	}
 
 	void VulkanDevice::GetQueueProperties(std::vector<VkQueueFamilyProperties> &queues)
@@ -148,9 +157,17 @@ namespace RN
 
 	bool VulkanDevice::CreateDevice(const std::vector<const char *> &extensions)
 	{
+		std::vector<const char *> deviceExtensions(extensions);
+		if(_deviceExtensions)
+		{
+			_deviceExtensions->Enumerate<String>([&](String *extension, size_t index, bool &stop){
+				deviceExtensions.push_back(extension->GetUTF8String());
+			});
+		}
+
+
 		VkPhysicalDeviceFeatures features;
 		vk::GetPhysicalDeviceFeatures(_physicalDevice, &features);
-
 
 		const std::vector<float> queuePriorities(1, 0.0f);
 		VkDeviceQueueCreateInfo queueInfo = {};
@@ -159,14 +176,13 @@ namespace RN
 		queueInfo.queueCount = 1;
 		queueInfo.pQueuePriorities = queuePriorities.data();
 
-
 		std::vector<const char *> layers = DebugDeviceLayers();
 
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
-		deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-		deviceInfo.ppEnabledExtensionNames = extensions.data();
+		deviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		deviceInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		deviceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
 		deviceInfo.ppEnabledLayerNames = layers.data();
 		deviceInfo.pEnabledFeatures = &features;
@@ -176,5 +192,11 @@ namespace RN
 		RNVulkanValidate(result);
 
 		return (result == VK_SUCCESS);
+	}
+
+	void VulkanDevice::SetExtensions(Array *extensions)
+	{
+		_deviceExtensions = extensions;
+		SafeRetain(_deviceExtensions);
 	}
 }

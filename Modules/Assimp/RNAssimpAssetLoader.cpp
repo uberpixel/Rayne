@@ -155,7 +155,7 @@ namespace RN
 		for(size_t i = 0; i < scene->mNumMeshes; i++)
 		{
 			auto pair = LoadAssimpMeshGroup(filepath, scene, i, options);
-			stage->AddMesh(pair.first, pair.second);
+			stage->AddMesh(pair.first, pair.second->Autorelease());
 		}
 	}
 
@@ -167,8 +167,8 @@ namespace RN
 		aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		ShaderLookupRequest *lookup = new ShaderLookupRequest();
-		MaterialDescriptor descriptor;
+		Material *material = RN::Material::WithShaders(nullptr, nullptr);
+		bool wantsDiscard = false;
 
 		if(aimaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
@@ -187,14 +187,25 @@ namespace RN
 				texture = LoadTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
 			}
 
-			descriptor.AddTexture(texture);
-			lookup->discard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
+			material->AddTexture(texture);
+			wantsDiscard = texture->HasColorChannel(Texture::ColorChannel::Alpha);
 		}
 
-		descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));
-		lookup->Release();
+		Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
+		if(wantsDiscard)
+		{
+			shaderOptions->EnableAlpha();
+			material->SetAlphaToCoverage(true);
+		}
+		
+		material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+		material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+		material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+		material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
 
-		return std::make_pair(mesh, Material::WithDescriptor(descriptor));
+		return std::make_pair(mesh, material->Retain());
 	}
 
 

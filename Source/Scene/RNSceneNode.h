@@ -27,6 +27,7 @@ namespace RN
 	class Scene;
 	class Camera;
 	class Renderer;
+	class SceneNodeAttachment;
 
 	class SceneNode : public Object
 	{
@@ -129,7 +130,11 @@ namespace RN
 		RNAPI void RemoveChild(SceneNode *child);
 		RNAPI void RemoveFromParent();
 
+		RNAPI void AddAttachment(SceneNodeAttachment *attachment);
+		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
+
 		RNAPI SceneNode *GetParent() const;
+		Scene *GetScene() const { return _scene; };
 		Priority GetPriority() const { return _priority; }
 		Flags GetFlags() const { return _flags.load(); }
 
@@ -144,11 +149,7 @@ namespace RN
 		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) const;
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) const;
 
-		virtual void Update(float delta)
-		{}
-
-		virtual void UpdateEditMode(float delta)
-		{}
+		RNAPI virtual void Update(float delta);
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
@@ -192,6 +193,8 @@ namespace RN
 		ObservableValue<Vector3, SceneNode> _scale;
 		ObservableValue<Quaternion, SceneNode> _rotation;
 		Vector3 _euler;
+
+		Array *_attachments;
 
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;
@@ -288,12 +291,9 @@ namespace RN
 		}
 
 		WillUpdate(ChangeSet::Position);
-
-		Quaternion temp;
-		temp = temp / _parent->GetWorldRotation();
-
-		_position = temp.GetRotatedVector(pos) - temp.GetRotatedVector(GetWorldPosition());
-
+		Vector3 tempPosition = pos - _parent->GetWorldPosition();
+		Quaternion tempRotation = Quaternion()/_parent->GetWorldRotation();
+		_position = tempRotation.GetRotatedVector(tempPosition);
 		DidUpdate(ChangeSet::Position);
 	}
 

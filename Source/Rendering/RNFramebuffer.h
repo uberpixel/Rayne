@@ -19,41 +19,40 @@ namespace RN
 	class Framebuffer : public Object
 	{
 	public:
-		RN_OPTIONS(Options, uint32,
-				PrivateStorage = (1 << 0));
-
-		struct Descriptor
+		struct TargetView
 		{
-			Descriptor() :
-				options(0),
-				colorFormat(Texture::Format::RGBA8888),
-				depthFormat(Texture::Format::Invalid),
-				stencilFormat(Texture::Format::Invalid)
-			{}
+			static TargetView WithTexture(Texture *texture, uint16 mipmap = 0, uint16 slice = 0, uint16 length = 1)
+			{
+				TargetView targetView;
+				targetView.texture = texture;
+				targetView.mipmap = mipmap;
+				targetView.slice = slice;
+				targetView.length = length;
+				return targetView;
+			}
 
-			Descriptor(const Descriptor &) = default;
-			Descriptor &operator =(const Descriptor &) = default;
-
-			Options options;
-			Texture::Format colorFormat;
-			Texture::Format depthFormat;
-			Texture::Format stencilFormat;
+			Texture *texture;
+			uint16 mipmap;
+			uint16 slice;
+			uint16 length;
 		};
 
-		const Descriptor &GetDescriptor() const { return _descriptor; }
 		const Vector2 &GetSize() const { return _size; }
 
-		RNAPI virtual Texture *GetColorTexture() const = 0;
-		RNAPI virtual Texture *GetDepthTexture() const = 0;
-		RNAPI virtual Texture *GetStencilTexture() const = 0;
+		RNAPI virtual Texture *GetColorTexture(uint32 index = 0) const = 0;
+		RNAPI virtual Texture *GetDepthStencilTexture() const = 0;
+		RNAPI virtual uint8 GetSampleCount() const = 0;
+
+		RNAPI virtual void SetColorTarget(const TargetView &target, uint32 index = 0) = 0;
+		RNAPI virtual void SetDepthStencilTarget(const TargetView &target) = 0;
 
 	protected:
-		RNAPI Framebuffer(const Vector2 &size, const Descriptor &descriptor);
+		RNAPI Framebuffer(const Vector2 &size);
 		RNAPI ~Framebuffer();
 
-	private:
 		Vector2 _size;
-		Descriptor _descriptor;
+
+	private:
 
 		__RNDeclareMetaInternal(Framebuffer)
 	};

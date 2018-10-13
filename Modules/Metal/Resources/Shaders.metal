@@ -9,24 +9,13 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 
-//#define vertex
-//#define fragment
-//#define constant const
-
 // Exported defines:
 // RN_NORMALS
 // RN_COLOR
 // RN_UV0
-// RN_DISCARD
+// RN_ALPHA
 
 using namespace metal;
-
-#define RN_FRAGMENT_UNIFORM 0
-
-#if RN_DISCARD
-#undef RN_FRAGMENT_UNIFORM
-#define RN_FRAGMENT_UNIFORM 1
-#endif
 
 #ifndef RN_NORMALS
 #define RN_NORMALS 0
@@ -40,34 +29,41 @@ using namespace metal;
 #define RN_UV0 0
 #endif
 
-// Variables in constant address space
-constant float3 light_position = float3(1.0, 1.0, 1.0);
+
+struct LightDirectional
+{
+	packed_float3 direction;
+	packed_float4 color;
+};
 
 struct Uniforms
 {
 	matrix_float4x4 viewProjectionMatrix;
 	matrix_float4x4 modelViewProjectionMatrix;
-
-#if RN_NORMALS
 	matrix_float4x4 modelMatrix;
-#endif
-
-	float4 ambientColor;
-	float4 diffuseColor;
 
 #if RN_UV0
 	float textureTileFactor;
 #endif
 };
 
-#if RN_FRAGMENT_UNIFORM
 struct FragmentUniforms
 {
-#if RN_DISCARD
-	float discardThreshold;
+	float4 ambientColor;
+	float4 diffuseColor;
+
+#if RN_ALPHA
+	float2 alphaToCoverageClamp;
 #endif
+	
+	short directionalShadowMatricesCount;
+	float2 directionalShadowInfo;
+	matrix_float4x4 directionalShadowMatrices[4];
+
+	short directionalLightsCount;
+	LightDirectional directionalLights[5];
 };
-#endif
+
 
 struct InputVertex
 {
@@ -77,19 +73,20 @@ struct InputVertex
 	float3 normal [[attribute(1)]];
 #endif
 #if RN_COLOR
-	float4 color [[attribute(1 + RN_NORMALS)]];
+	float4 color [[attribute(3)]];
 #endif
 #if RN_UV0
-	float2 texCoords [[attribute(1 + RN_NORMALS + RN_COLOR)]];
+	float2 texCoords [[attribute(5)]];
 #endif
 #if RN_TANGENTS
-	float4 tangents [[attribute(1 + RN_NORMALS + RN_COLOR + RN_UV0)]];
+	float4 tangents [[attribute(2)]];
 #endif
 };
 
 struct FragmentVertex
 {
 	float4 position [[position]];
+	float3 worldPosition;
 
 #if RN_COLOR
 	float4 color;
@@ -100,18 +97,109 @@ struct FragmentVertex
 #if RN_UV0
 	float2 texCoords;
 #endif
-
-	float4 ambient;
-	float4 diffuse;
 };
+
+float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getShadowPCF(float4 projected, float2 offset, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	return directionalShadowTexture.sample_compare(directionalShadowSampler, projected.xy + offset * shadowInfo, projected.z, projected.w);
+}
+
+//basic 2x2 blur, with hardware bilinear filtering if enabled
+float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getShadowPCF2x2(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	float shadow = getShadowPCF(projected, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow *= 0.25f;
+	return shadow;
+}
+
+//basic 4x4 blur, with hardware bilinear filtering if enabled
+float getShadowPCF4x4(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getShadowPCF4x4(float4 projected, float2 shadowInfo, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	float shadow = getShadowPCF(projected, float2(-2.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, -2.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	
+	shadow += getShadowPCF(projected, float2(-2.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, -1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 0.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	
+	shadow += getShadowPCF(projected, float2(-2.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(-1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(0.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	shadow += getShadowPCF(projected, float2(1.0, 1.0), shadowInfo, directionalShadowTexture, directionalShadowSampler);
+	
+	shadow *= 0.0625;
+	return shadow;
+}
+
+float getDirectionalShadowFactor(short light, float3 position, constant FragmentUniforms &uniforms, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float getDirectionalShadowFactor(short light, float3 position, constant FragmentUniforms &uniforms, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	if(light != 0 || uniforms.directionalShadowMatricesCount == 0)
+		return 1.0f;
+
+	float4 projectedPosition[4];
+	short mapToUse = -1;
+	for(short i = 0; i < uniforms.directionalShadowMatricesCount; i++)
+	{
+		projectedPosition[i] = uniforms.directionalShadowMatrices[i] * float4(position, 1.0);
+		projectedPosition[i].xyz /= projectedPosition[i].w;
+
+		if(mapToUse < 0 && abs(projectedPosition[i].x) < 1.0f && abs(projectedPosition[i].y) < 1.0f && abs(projectedPosition[i].z) < 1.0f)
+		{
+			mapToUse = i;
+		}
+	}
+
+	if(mapToUse == -1)
+		return 1.0;
+	
+	projectedPosition[mapToUse].y *= -1.0f;
+	projectedPosition[mapToUse].xy *= 0.5f;
+	projectedPosition[mapToUse].xy += 0.5f;
+	projectedPosition[mapToUse].w = mapToUse;
+
+	if(mapToUse < 3)
+		return getShadowPCF4x4(projectedPosition[mapToUse].xywz, uniforms.directionalShadowInfo, directionalShadowTexture, directionalShadowSampler);
+	else
+		return getShadowPCF2x2(projectedPosition[mapToUse].xywz, uniforms.directionalShadowInfo, directionalShadowTexture, directionalShadowSampler);
+}
+
+float4 getDirectionalLights(float3 position, float3 normal, constant FragmentUniforms &uniforms, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler);
+float4 getDirectionalLights(float3 position, float3 normal, constant FragmentUniforms &uniforms, depth2d_array<float> directionalShadowTexture, sampler directionalShadowSampler)
+{
+	float4 light = 0.0f;
+	for(short i = 0; i < uniforms.directionalLightsCount; i++)
+	{
+		float3 direction = -uniforms.directionalLights[i].direction;
+		light += saturate(dot(normal, direction)) * uniforms.directionalLights[i].color * getDirectionalShadowFactor(i, position, uniforms, directionalShadowTexture, directionalShadowSampler);
+	}
+	light.a = 1.0f;
+	return light;
+}
+
 
 // Non instanced
 
-vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]])
+vertex FragmentVertex gouraud_vertex(const InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]])
 {
 	FragmentVertex result;
 
 	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0);
+	result.worldPosition = (uniforms.modelMatrix * float4(vert.position, 1.0f)).xyz;
 
 #if RN_COLOR
 	result.color = vert.color;
@@ -123,28 +211,32 @@ vertex FragmentVertex gouraud_vertex(InputVertex vert [[stage_in]], constant Uni
 	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
 #endif
 
-	result.ambient = uniforms.ambientColor;
-	result.diffuse = uniforms.diffuseColor;
-
 	return result;
 }
 
 
-fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
+#if !RN_ALPHA
+[[early_fragment_tests]]
+#endif
+fragment
+float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #if RN_UV0
-	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
+	, texture2d<float> texture [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]]
+	, depth2d_array<float> directionalShadowTexture [[texture(1)]], sampler directionalShadowSampler [[sampler(1)]]
+#else
+	, depth2d_array<float> directionalShadowTexture [[texture(0)]], sampler directionalShadowSampler [[sampler(0)]]
 #endif
-#if RN_FRAGMENT_UNIFORM
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
-#endif
 )
 {
+	float4 color = uniforms.diffuseColor;
 #if RN_UV0
-	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+	color *= texture.sample(linearRepeatSampler, vert.texCoords).rgba;
 
-#if RN_DISCARD
-		if(color.a < uniforms.discardThreshold)
-			discard_fragment();
+#if RN_ALPHA
+	color.a = smoothstep(uniforms.alphaToCoverageClamp.x, uniforms.alphaToCoverageClamp.y, color.a);
+	if(color.a < 0.001)
+		return color;
 #endif
 #endif
 
@@ -153,9 +245,10 @@ fragment float4 gouraud_fragment(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+	float4 light = getDirectionalLights(vert.worldPosition, normalize(vert.normal), uniforms, directionalShadowTexture, directionalShadowSampler);
+	return color * (uniforms.ambientColor + light);
 #else
-	return color * (vert.ambient + vert.diffuse);
+	return color * (uniforms.ambientColor);
 #endif
 }
 
@@ -172,7 +265,7 @@ struct InstanceBufferMatrixUniform
 	matrix_float4x4 _inverseModelMatrix;
 };
 
-vertex FragmentVertex gouraud_vertex_instanced(InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]], constant InstanceBufferUniform *instanceUniforms [[buffer(2)]], constant InstanceBufferMatrixUniform *matricesUniform [[buffer(3)]], ushort iid [[instance_id]])
+vertex FragmentVertex gouraud_vertex_instanced(const InputVertex vert [[stage_in]], constant Uniforms &uniforms [[buffer(1)]], constant InstanceBufferUniform *instanceUniforms [[buffer(2)]], constant InstanceBufferMatrixUniform *matricesUniform [[buffer(3)]], ushort iid [[instance_id]])
 {
 	int index = instanceUniforms[iid].index;
 
@@ -190,27 +283,28 @@ vertex FragmentVertex gouraud_vertex_instanced(InputVertex vert [[stage_in]], co
 	result.texCoords = vert.texCoords * uniforms.textureTileFactor;
 #endif
 
-	result.ambient = uniforms.ambientColor;
-	result.diffuse = uniforms.diffuseColor;
-
 	return result;
 }
 
-fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
+#if !RN_ALPHA
+[[early_fragment_tests]]
+#endif
+fragment
+float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #if RN_UV0
 	, texture2d<float> texture [[texture(0)]], sampler samplr [[sampler(0)]]
 #endif
-#if RN_FRAGMENT_UNIFORM
 	, constant FragmentUniforms &uniforms [[buffer(1)]]
-#endif
 )
 {
+	float4 color = uniforms.diffuseColor;
 #if RN_UV0
-	float4 color = texture.sample(samplr, vert.texCoords).rgba;
+	color *= texture.sample(samplr, vert.texCoords).rgba;
 
-#if RN_DISCARD
-		if(color.a < uniforms.discardThreshold)
-			discard_fragment();
+#if RN_ALPHA
+	color.a = smoothstep(uniforms.alphaToCoverageClamp.x, uniforms.alphaToCoverageClamp.y, color.a);
+	if(color.a < 0.001)
+		return color;
 #endif
 #endif
 
@@ -219,9 +313,10 @@ fragment float4 gouraud_fragment_instanced(FragmentVertex vert [[stage_in]]
 #endif
 
 #if RN_NORMALS
-	return color * (vert.ambient + vert.diffuse * saturate(dot(normalize(vert.normal), normalize(light_position))));
+	float4 light = float4(1.0);//getDirectionalLights(normalize(vert.normal), uniforms.directionalLightsCount, uniforms.directionalLights);
+	return color * (uniforms.ambientColor + light);
 #else
-	return color * (vert.ambient + vert.diffuse);
+	return color * (uniforms.ambientColor);
 #endif
 }
 

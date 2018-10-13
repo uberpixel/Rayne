@@ -9,56 +9,56 @@
 #ifndef __RAYNE_VULKANFRAMEBUFFER_H_
 #define __RAYNE_VULKANFRAMEBUFFER_H_
 
-#include <Rayne.h>
 #include "RNVulkan.h"
 #include "RNVulkanTexture.h"
+#include "RNVulkanSwapChain.h"
 
 namespace RN
 {
-	class VulkanRenderer;
-
 	class VulkanFramebuffer : public Framebuffer
 	{
 	public:
-		VKAPI VulkanFramebuffer(const Vector2 &size, const Descriptor &descriptor, VkSwapchainKHR swapChain,VulkanRenderer *renderer);
-		VKAPI ~VulkanFramebuffer();
+		friend class VulkanRenderer;
+		friend class VulkanStateCoordinator;
 
-		VKAPI Texture *GetColorTexture() const final;
-		VKAPI Texture *GetDepthTexture() const final;
-		VKAPI Texture *GetStencilTexture() const final;
-
-		VKAPI Texture *GetColorTexture(size_t index) const;
-		VKAPI Texture *GetDepthTexture(size_t index) const;
-		VKAPI Texture *GetStencilTexture(size_t index) const;
-
-		VkRenderPass GetRenderPass() const { return _renderPass; }
-		VkCommandBuffer GetDrawCommandBuffer(size_t index) const;
-		VkCommandBuffer GetPreDrawCommandBuffer(size_t index) const;
-		VkFramebuffer GetFramebuffer(size_t index) const;
-
-	private:
-		struct FramebufferData
+		struct VulkanTargetView
 		{
-			FramebufferData() :
-				colorTexture(nullptr),
-				depthTexture(nullptr),
-				stencilTexture(nullptr)
-			{}
-
-			VkFramebuffer framebuffer;
-			VkCommandBuffer preDrawCommandBuffer;
-			VkCommandBuffer drawCommandBuffer;
-			VulkanTexture *colorTexture;
-			VulkanTexture *depthTexture;
-			VulkanTexture *stencilTexture;
+			TargetView targetView;
+			VkImageViewCreateInfo vulkanTargetViewDescriptor;
 		};
 
-		void InitializeRenderPass(size_t index);
+		VKAPI VulkanFramebuffer(const Vector2 &size, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		VKAPI VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer);
+		VKAPI ~VulkanFramebuffer();
+
+		VKAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
+		VKAPI void SetDepthStencilTarget(const TargetView &target) final;
+
+		VKAPI Texture *GetColorTexture(uint32 index = 0) const final;
+		VKAPI Texture *GetDepthStencilTexture() const final;
+		VKAPI uint8 GetSampleCount() const final;
+
+		VulkanSwapChain *GetSwapChain() const { return _swapChain; }
+
+		VKAPI void WillUpdateSwapChain();
+		VKAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+
+	private:
+		void PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
+		void SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const;
 
 		VulkanRenderer *_renderer;
+		uint8 _sampleCount;
+		uint32 _frameLastUsed;
 
+		WeakRef<VulkanSwapChain> _swapChain;
+
+		std::vector<VulkanTargetView *> _colorTargets;
+		VulkanTargetView *_depthStencilTarget;
+
+		//std::map<RenderPass *, VkRenderPass> _renderPasses;
 		VkRenderPass _renderPass;
-		std::vector<FramebufferData *> _framebuffers;
+		VkFramebuffer _frameBuffer;
 
 		RNDeclareMetaAPI(VulkanFramebuffer, VKAPI)
 	};

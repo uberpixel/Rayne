@@ -26,6 +26,12 @@ namespace RN
 	{
 		SafeRelease(_name);
 	}
+	
+	bool RenderingDevice::IsEqual(const Object *other) const
+	{
+		const RenderingDevice *device = other->Downcast<RenderingDevice>();
+		return (device && _name->IsEqual(device->_name) && _apiVersion == device->_apiVersion && _driverVersion == device->_driverVersion && _vendorID == device->_vendorID && _type == device->_type);
+	}
 
 	const String *RenderingDevice::GetDescription() const
 	{

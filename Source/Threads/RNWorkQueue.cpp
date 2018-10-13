@@ -93,8 +93,8 @@ namespace RN
 		_suspended(0),
 		_barrier(false)
 	{
-		size_t multiplier;
-		size_t maxThreads;
+		size_t multiplier = 16;
+		size_t maxThreads = 32;
 
 		switch(priority)
 		{

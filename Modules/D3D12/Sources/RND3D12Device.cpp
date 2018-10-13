@@ -42,7 +42,8 @@ namespace RN
 
 	bool D3D12Device::CreateDevice()
 	{
-		HRESULT result = ::D3D12CreateDevice(_adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&_device));
+		//TODO: Handle different feature levels
+		HRESULT result = ::D3D12CreateDevice(_adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&_device));
 		return (result == S_OK);
 	}
 }

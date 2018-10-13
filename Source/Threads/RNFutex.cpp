@@ -82,6 +82,17 @@ namespace RN
 			return data;
 		}
 
+		void CleanThreadData()
+		{
+			ThreadData *data = _threadData->GetValue();
+			if(data)
+			{
+				_threadData->SetValue(nullptr);
+
+				delete data;
+			}
+		}
+
 		void QueueThreadData(const void *address, ThreadData *data)
 		{
 			LockGuard<SpinLock> lock(_threadLock);

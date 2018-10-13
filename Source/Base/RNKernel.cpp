@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "RNScopeAllocator.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../Rendering/RNRendererDescriptor.h"
@@ -16,6 +17,22 @@
 namespace RN
 {
 	static Kernel *__sharedInstance = nullptr;
+
+#if RN_ENABLE_VTUNE
+	static __itt_string_handle *__inputTask;
+	static __itt_string_handle *__updateTask;
+	static __itt_string_handle *__renderingTask;
+
+	#define START_TASK(task) \
+			__itt_task_begin(VTuneDomain, __itt_null, __itt_null, (task))
+	#define END_TASK() \
+			__itt_task_end(VTuneDomain)
+#else
+
+	#define START_TASK(task) (void)(0)
+	#define END_TASK() (void)(0)
+
+#endif
 
 	Kernel::Kernel(Application *application, const ArgumentParser &arguments) :
 		_arguments(arguments),
@@ -37,12 +54,20 @@ namespace RN
 	{
 		__sharedInstance = this;
 
+#if RN_ENABLE_VTUNE
+		__inputTask = __itt_string_handle_createA("Input");
+		__updateTask = __itt_string_handle_createA("Scene update");
+		__renderingTask = __itt_string_handle_createA("Rendering");
+#endif
+
 		try
 		{
 			_observer = new RunLoopObserver(RunLoopObserver::Activity::Finalize, true,
 											std::bind(&Kernel::HandleObserver, this, std::placeholders::_1,
 													  std::placeholders::_2));
 			_mainThread = new Thread();
+			
+			RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 
 
 			_runLoop = _mainThread->GetRunLoop();
@@ -74,8 +99,8 @@ namespace RN
 			_delta = 0;
 			_time = 0;
 
-			SetMaxFPS(60);
 			ReadManifest();
+			SetMaxFPS(500);
 
 			_application->__PrepareForWillFinishLaunching(this);
 			_fileManager->__PrepareWithManifest();
@@ -182,11 +207,13 @@ namespace RN
 
 	void Kernel::FinishBootstrap()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->DidFinishLaunching(this);
 	}
 
 	void Kernel::TearDown()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->WillExit();
 
 		Screen::TeardownScreens();
@@ -218,6 +245,7 @@ namespace RN
 		__sharedInstance = nullptr;
 	}
 
+#if RN_PLATFORM_MAC_OS
 	void Kernel::__WillBecomeActive()
 	{
 		_application->WillBecomeActive();
@@ -236,15 +264,32 @@ namespace RN
 		_isActive = false;
 		_application->DidResignActive();
 	}
+#endif
 
+#if RN_PLATFORM_ANDROID
+	void Kernel::SetAndroidApp(android_app *app)
+	{
+		_androidApp = app;
+	}
+#endif
+	
 	void Kernel::SetMaxFPS(uint32 maxFPS)
 	{
 		_maxFPS = maxFPS;
-		_minDelta = 1.0 / maxFPS;
+		if(maxFPS)
+		{
+			_minDelta = 1.0 / maxFPS;
+		}
+		else
+		{
+			_minDelta = 0.0;
+		}
 	}
 
 	void Kernel::HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity)
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
+
 		if(RN_EXPECT_FALSE(_exit))
 		{
 			_runLoop->Stop();
@@ -254,6 +299,10 @@ namespace RN
 		NSAutoreleasePool *nsautoreleasePool = [[NSAutoreleasePool alloc] init];
 #endif
 
+#if RN_ENABLE_VTUNE
+		__itt_frame_begin_v3(VTuneDomain, nullptr);
+#endif
+
 		AutoreleasePool pool;
 
 		Clock::time_point now = Clock::now();
@@ -261,21 +310,14 @@ namespace RN
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		_delta = milliseconds / 1000.0;
 
-
+#if RN_PLATFORM_ANDROID
+		//Wait for android app window to be available before finishing the boostrap which is usually followed by RN::Window creation
+		if(RN_EXPECT_FALSE(_firstFrame) && _androidApp->window)
+#else
 		if(RN_EXPECT_FALSE(_firstFrame))
+#endif
 		{
 			HandleSystemEvents();
-
-			if(_renderer)
-			{
-				Window *window = _renderer->GetMainWindow();
-				if(!window)
-				{
-					window = _renderer->CreateAWindow(Vector2(1024, 768), Screen::GetMainScreen());
-					window->SetTitle(_application->GetTitle());
-					window->Show();
-				}
-			}
 
 			_delta = 0.0;
 
@@ -303,33 +345,41 @@ namespace RN
 			} while(!finishWork);
 		}
 
+		START_TASK(__inputTask);
 		// System event handling
 		HandleSystemEvents();
 
 		// Update input and then run scene updates
 		if(_isActive)
 			_inputManager->Update(static_cast<float>(_delta));
+		END_TASK();
 
+		START_TASK(__updateTask);
 		_sceneManager->Update(static_cast<float>(_delta));
+		END_TASK();
 
 		if(_renderer)
 		{
-			_renderer->RenderIntoWindow(_renderer->GetMainWindow(), [&] {
+			_renderer->Render([&] {
+
+				START_TASK(__renderingTask);
 				_sceneManager->Render(_renderer);
+				END_TASK();
+
 			});
 		}
 
 		_application->DidStep(static_cast<float>(_delta));
 		_lastFrame = now;
-
+		
 		// FPS cap
 		if(_maxFPS > 0)
 		{
 			now = Clock::now();
-
+			
 			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 			double delta = milliseconds / 1000.0;
-
+			
 			if(_minDelta > delta)
 			{
 				uint32 sleepTime = static_cast<uint32>((_minDelta - delta) * 1000000);
@@ -344,6 +394,10 @@ namespace RN
 
 		// Make sure the run loop wakes up again afterwards
 		_runLoop->WakeUp();
+
+#if RN_ENABLE_VTUNE
+		__itt_frame_end_v3(VTuneDomain, nullptr);
+#endif
 	}
 
 	void Kernel::HandleSystemEvents()
@@ -354,7 +408,7 @@ namespace RN
 			NSDate *date = [NSDate date];
 			NSEvent *event;
 
-			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+			while((event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
 			{
 				[NSApp sendEvent:event];
 				[NSApp updateWindows];
@@ -363,11 +417,17 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 		MSG message;
-		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		while(PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE))
 		{
 			if(message.message == WM_INPUT)
 			{
 				InputManager::GetSharedInstance()->__HandleRawInput((HRAWINPUT)message.lParam);
+			}
+
+			if(message.message == WM_CLOSE || message.message == WM_DESTROY || message.message == WM_QUIT)
+			{
+				//TODO: Find a better way to signal the app to close or maybe just close it? This sets the ESC key to true...
+				InputManager::GetSharedInstance()->_keyPressed[0x1B] = true;
 			}
 
 			TranslateMessage(&message);
@@ -379,7 +439,26 @@ namespace RN
 
 		xcb_generic_event_t *event;
 		while((event = xcb_poll_for_event(_connection)))
-		{}
+		{
+			switch(event->response_type & ~0x80)
+			{
+				default:
+					break;
+			}
+
+			free(event);
+		}
+#endif
+#if RN_PLATFORM_ANDROID
+		int events;
+		android_poll_source *source;
+
+		// Poll all pending events.
+		if(ALooper_pollAll(0, NULL, &events, (void **)&source) >= 0)
+		{
+			// Process each polled events
+			if(source != NULL) source->process(_androidApp, source);
+		}
 #endif
 	}
 

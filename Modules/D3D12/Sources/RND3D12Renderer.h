@@ -13,79 +13,19 @@
 #include "RND3D12Window.h"
 #include "RND3D12Device.h"
 #include "RND3D12RendererDescriptor.h"
-#include "RND3D12StateCoordinator.h"
-#include "RND3D12UniformBuffer.h"
 
 namespace RN
 {
 	struct D3D12Drawable;
-	class D3D12RendererInternals;
+	struct D3D12RendererInternals;
+	struct D3D12RootSignature;
+	struct D3D12RenderPass;
 	class D3D12Window;
 	class D3D12Texture;
 	class D3D12UniformBuffer;
-
-	struct D3D12Drawable : public Drawable
-	{
-		~D3D12Drawable()
-		{
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-		}
-
-		void UpdateRenderingState(Renderer *renderer, const D3D12RenderingState *state)
-		{
-			if(state == _pipelineState)
-				return;
-
-			_pipelineState = state;
-
-			for(D3D12UniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(D3D12UniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-
-			_vertexBuffers.clear();
-			_fragmentBuffers.clear();
-
-			for(D3D12RenderingStateArgument *argument : state->vertexArguments)
-			{
-				switch(argument->type)
-				{
-					case D3D12RenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_vertexBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
-
-			for(D3D12RenderingStateArgument *argument : state->fragmentArguments)
-			{
-				switch(argument->type)
-				{
-					case D3D12RenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_fragmentBuffers.push_back(new D3D12UniformBuffer(renderer, static_cast<D3D12RenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
-		}
-
-		const D3D12RenderingState *_pipelineState;
-		std::vector<D3D12UniformBuffer *> _vertexBuffers;
-		std::vector<D3D12UniformBuffer *> _fragmentBuffers;
-		D3D12Drawable *_next;
-		D3D12Drawable *_prev;
-	};
+	class D3D12DescriptorHeap;
+	class D3D12CommandList;
+	class D3D12CommandListWithCallback;
 
 	class D3D12Renderer : public Renderer
 	{
@@ -98,62 +38,94 @@ namespace RN
 		D3DAPI D3D12Renderer(D3D12RendererDescriptor *descriptor, D3D12Device *device);
 		D3DAPI ~D3D12Renderer();
 
-		D3DAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		D3DAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
+		D3DAPI void SetMainWindow(Window *window) final;
 		D3DAPI Window *GetMainWindow() final;
 
-		D3DAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		D3DAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		D3DAPI void Render(Function &&function) final;
+		D3DAPI void SubmitCamera(Camera *camera, Function &&function) final;
+		D3DAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		D3DAPI bool SupportsTextureFormat(const String *format) const final;
 		D3DAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		D3DAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		D3DAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		D3DAPI size_t GetSizeForType(PrimitiveType type) const final;
 
 		D3DAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		D3DAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 
-		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		D3DAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		D3DAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint = Shader::UsageHint::Default) final;
+		D3DAPI ShaderLibrary *GetDefaultShaderLibrary();
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 
-		D3DAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		D3DAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		D3DAPI Drawable *CreateDrawable() final;
+		D3DAPI void DeleteDrawable(Drawable *drawable) final;
 		D3DAPI void SubmitDrawable(Drawable *drawable) final;
+		D3DAPI void SubmitLight(const Light *light) final;
+
+		ID3D12CommandQueue *GetCommandQueue() const { return _commandQueue; }
+		D3D12DescriptorHeap *GetDescriptorHeap(size_t size, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
+		void SubmitDescriptorHeap(D3D12DescriptorHeap *heap);
+		D3D12CommandList *GetCommandList();
+		void SubmitCommandList(D3D12CommandList *commandBuffer);
+
+		void AddFrameResouce(IUnknown *resource);
 
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
 
-		ID3D12DescriptorHeap *GetRTVHeap() const { return _rtvHeap; }
-		UINT GetRTVHeapSize() const { return _rtvDescriptorSize; }
-		ID3D12DescriptorHeap *GetCBVHeap() const { return _cbvHeap; }
-
 	protected:
-		void RenderDrawable(D3D12Drawable *drawable);
-		void FillUniformBuffer(D3D12UniformBuffer *buffer, D3D12Drawable *drawable);
+		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
+		void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
 
-		void CreateMipMapForeTexture(D3D12Texture *texture);
+		void RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass);
+
+		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();
 
-		Set *_mipMapTextures;
-		Dictionary *_textureFormatLookup;
+		void PolpulateDescriptorHeap();
+		void SetupRendertargets(D3D12CommandList *commandList, const D3D12RenderPass &renderpass);
 
-		D3D12Window *_mainWindow;
+		Array *_mipMapTextures;
+
+		Window *_mainWindow;
+		ShaderLibrary *_defaultShaderLibrary;
+
+		D3D12Drawable *_defaultPostProcessingDrawable;
+		Material *_ppConvertMaterial;
+
+		ID3D12CommandQueue *_commandQueue;
+
+		D3D12CommandList *_currentCommandList;
+		Array *_submittedCommandLists;
+		Array *_executedCommandLists;
+		Array *_commandListPool;
+
+		PIMPL<D3D12RendererInternals> _internals;
 
 		Lockable _lock;
-		Dictionary *_defaultShaders;
 
-		ID3D12RootSignature *_rootSignature;
+		const D3D12RootSignature *_currentRootSignature;
 
-		ID3D12DescriptorHeap *_rtvHeap;
+		D3D12DescriptorHeap *_currentSrvCbvHeap;
+		size_t _currentSrvCbvIndex;
+		Array *_boundDescriptorHeaps;
+		Array *_descriptorHeapPool;
+
 		UINT _rtvDescriptorSize;
-		ID3D12DescriptorHeap *_cbvHeap;
-		UINT _cbvDescriptorSize;
+
+		ID3D12Fence *_fence;
+		UINT _scheduledFenceValue;
+		UINT _completedFenceValue;
+
+		size_t _currentDrawableIndex;
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};

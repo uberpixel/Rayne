@@ -8,6 +8,7 @@
 
 #include "RNSceneNode.h"
 #include "RNScene.h"
+#include "RNSceneNodeAttachment.h"
 
 namespace RN
 {
@@ -23,7 +24,8 @@ namespace RN
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
-		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation)
+		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
+		_attachments(nullptr)
 	{
 		Initialize();
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });
@@ -37,7 +39,7 @@ namespace RN
 	}
 
 	SceneNode::SceneNode(const Vector3 &position, const Quaternion &rotation) :
-		SceneNode()
+		SceneNode(position)
 	{
 		SetRotation(rotation);
 	}
@@ -69,6 +71,9 @@ namespace RN
 	SceneNode::~SceneNode()
 	{
 		_children->Release();
+
+		if(_attachments)
+			_attachments->Release();
 	}
 
 
@@ -140,7 +145,7 @@ namespace RN
 		_flags = 0;
 
 		_priority = Priority::UpdateNormal;
-		_renderGroup = 0;
+		_renderGroup = 1;
 		_collisionGroup = 0;
 	}
 
@@ -230,7 +235,8 @@ namespace RN
 		if(_scene)
 		{
 			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
-				_scene->RemoveNode(node);
+				if(node->_scene != nullptr)
+					_scene->RemoveNode(node);
 			});
 		}
 
@@ -303,6 +309,29 @@ namespace RN
 			parent->RemoveChild(this);
 	}
 
+	void SceneNode::AddAttachment(SceneNodeAttachment *attachment)
+	{
+		WillUpdate(ChangeSet::Attachments);
+
+		if(!_attachments)
+			_attachments = new Array();
+
+		_attachments->AddObject(attachment);
+		attachment->_node = this;
+
+		DidUpdate(ChangeSet::Attachments);
+	}
+
+	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
+	{
+		WillUpdate(ChangeSet::Attachments);
+
+		attachment->_node = nullptr;
+		_attachments->RemoveObject(attachment);
+
+		DidUpdate(ChangeSet::Attachments);
+	}
+
 	const Array *SceneNode::GetChildren() const
 	{
 		return _children;
@@ -322,6 +351,9 @@ namespace RN
 	{
 		if(_flags.load(std::memory_order_acquire) & Flags::Hidden)
 			return false;
+		
+		if((_renderGroup & camera->GetRenderGroup()) == 0)
+			return false;
 
 		return camera->InFrustum(GetBoundingSphere());
 	}
@@ -334,10 +366,27 @@ namespace RN
 	// MARK: Updates
 	// ------------------
 
+	void SceneNode::Update(float delta)
+	{
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([delta](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->Update(delta);
+			});
+		}
+	}
+
 	void SceneNode::WillUpdate(ChangeSet changeSet)
 	{
 		if(_parent)
 			_parent->ChildWillUpdate(this, changeSet);
+
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->__WillUpdate(changeSet);
+			});
+		}
 	}
 
 	void SceneNode::DidUpdate(ChangeSet changeSet)
@@ -354,6 +403,13 @@ namespace RN
 
 		if(_parent)
 			_parent->ChildDidUpdate(this, changeSet);
+
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->__DidUpdate(changeSet);
+			});
+		}
 	}
 
 	void SceneNode::UpdateInternalData() const
@@ -368,12 +424,12 @@ namespace RN
 			{
 				_parent->UpdateInternalData();
 
-				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
-				_worldRotation = _parent->_worldRotation * _rotation;
-				_worldScale = _parent->_worldScale * _scale;
-				_worldEuler = _parent->_worldEuler + _euler;
+				_worldPosition = _parent->GetWorldPosition() + _parent->GetWorldRotation().GetRotatedVector(_position);
+				_worldRotation = _parent->GetWorldRotation() * _rotation;
+				_worldScale = _parent->GetWorldScale() * _scale;
+				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
 
-				_worldTransform = _parent->_worldTransform * _localTransform;
+				_worldTransform = _parent->GetWorldTransform() * _localTransform;
 			}
 			else
 			{

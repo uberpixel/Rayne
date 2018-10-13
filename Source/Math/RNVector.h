@@ -866,9 +866,11 @@ namespace RN
 		return *this*(1.0f-factor)+other*factor;
 	}
 
+#if RN_SUPPORTS_TRIVIALLY_COPYABLE
 	static_assert(std::is_trivially_copyable<Vector2>::value, "Vector2 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector3>::value, "Vector3 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector4>::value, "Vector4 must be trivially copyable");
+#endif
 }
 
 #endif /* __RAYNE_VECTOR_H__ */

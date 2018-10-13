@@ -12,130 +12,152 @@ namespace RN
 {
 	RNDefineMeta(Material, Object)
 
-	MaterialDescriptor::MaterialDescriptor() :
-		fragmentShader(nullptr),
-		vertexShader(nullptr),
-		depthMode(DepthMode::Less),
-		depthWriteEnabled(true),
-		ambientColor(1.0f, 1.0f, 1.0f, 1.0f),
-		diffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
-		specularColor(1.0f, 1.0f, 1.0f, 4.0f),
-		emissiveColor(0.0f, 0.0f, 0.0f, 0.0f),
-		discardThreshold(0.3f),
-		textureTileFactor(1.0),
-		cullMode(CullMode::BackFace),
-		_textures(new Array())
-	{}
-
-	MaterialDescriptor::MaterialDescriptor(const MaterialDescriptor &other) :
-		fragmentShader(other.fragmentShader),
-		vertexShader(other.vertexShader),
-		depthMode(other.depthMode),
-		depthWriteEnabled(other.depthWriteEnabled),
-		ambientColor(other.ambientColor),
-		diffuseColor(other.diffuseColor),
-		specularColor(other.specularColor),
-		emissiveColor(other.emissiveColor),
-		discardThreshold(other.discardThreshold),
-		textureTileFactor(other.textureTileFactor),
-		cullMode(other.cullMode),
-		_textures(SafeCopy(other._textures))
-	{}
-
-	MaterialDescriptor::~MaterialDescriptor()
-	{
-		SafeRelease(_textures);
-	}
-
-
-	void MaterialDescriptor::SetTextures(const Array *textures)
-	{
-		_textures->Release();
-		_textures = textures->Copy();
-	}
-
-	void MaterialDescriptor::AddTexture(Texture *texture)
-	{
-		_textures->AddObject(texture);
-	}
-	void MaterialDescriptor::RemoveAllTextures()
-	{
-		_textures->RemoveAllObjects();
-	}
-	const Array *MaterialDescriptor::GetTextures() const
-	{
-		return _textures;
-	}
-
-	void MaterialDescriptor::SetShaderProgram(const ShaderProgram *program)
-	{
-		fragmentShader = program->GetFragmentShader();
-		vertexShader = program->GetVertexShader();
-	}
-
-
-
-
-
-	Material::Material(const MaterialDescriptor &descriptor) :
-		_fragmentShader(SafeRetain(descriptor.fragmentShader)),
-		_vertexShader(SafeRetain(descriptor.vertexShader)),
-		_textures(SafeCopy(descriptor.GetTextures())),
+	Material::Material(Shader *vertexShader, Shader *fragmentShader) :
+		_override(0),
+		_textures(new Array()),
 		_vertexBuffers(nullptr),
-		_fragmentBuffers(nullptr),
-		_depthMode(descriptor.depthMode),
-		_depthWriteEnabled(descriptor.depthWriteEnabled),
-		_ambientColor(descriptor.ambientColor),
-		_diffuseColor(descriptor.diffuseColor),
-		_specularColor(descriptor.specularColor),
-		_emissiveColor(descriptor.emissiveColor),
-		_discardThreshold(descriptor.discardThreshold),
-		_textureTileFactor(descriptor.textureTileFactor),
-		_cullMode(descriptor.cullMode)
+		_fragmentBuffers(nullptr)
 	{
-		RN_ASSERT(!_fragmentShader || _fragmentShader->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
-		RN_ASSERT(_vertexShader->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+		_properties.colorWriteMask = 0xf;
+		_properties.depthMode = DepthMode::Less;
+		_properties.depthWriteEnabled = true;
+	  	_properties.ambientColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
+		_properties.diffuseColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
+		_properties.specularColor = Color(1.0f, 1.0f, 1.0f, 4.0f);
+		_properties.emissiveColor = Color(0.0f, 0.0f, 0.0f, 0.0f);
+		_properties.alphaToCoverageClamp = 1.0f;
+		_properties.useAlphaToCoverage = false;
+		_properties.textureTileFactor = 1.0f;
+		_properties.usePolygonOffset = false;
+		_properties.polygonOffsetFactor = 1.1f;
+		_properties.polygonOffsetUnits = 0.1f;
+		_properties.cullMode = CullMode::BackFace;
+		
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			if(i == 0)
+			{
+				_vertexShader[i] = SafeRetain(vertexShader);
+				_fragmentShader[i] = SafeRetain(fragmentShader);
+			}
+			else
+			{
+				_vertexShader[i] = nullptr;
+				_fragmentShader[i] = nullptr;
+			}
+
+			RN_ASSERT(!_vertexShader[i] || _vertexShader[i]->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+			RN_ASSERT(!_fragmentShader[i] || _fragmentShader[i]->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
+		}
 	}
 
 	Material::Material(const Material *other) :
-		_fragmentShader(SafeRetain(other->_fragmentShader)),
-		_vertexShader(SafeRetain(other->_vertexShader)),
-		_textures(SafeRetain(other->_textures)),
+		_override(other->_override),
+		_textures(SafeCopy(other->_textures)),
 		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
-		_fragmentBuffers(SafeCopy(other->_fragmentBuffers)),
-		_depthMode(other->_depthMode),
-		_depthWriteEnabled(other->_depthWriteEnabled),
-		_ambientColor(other->_ambientColor),
-		_diffuseColor(other->_diffuseColor),
-		_specularColor(other->_specularColor),
-		_emissiveColor(other->_emissiveColor),
-		_discardThreshold(other->_discardThreshold),
-		_textureTileFactor(other->_textureTileFactor),
-		_cullMode(other->_cullMode)
-	{}
-
-	Material *Material::WithDescriptor(const MaterialDescriptor &descriptor)
+		_fragmentBuffers(SafeCopy(other->_fragmentBuffers))
 	{
-		Material *material = new Material(descriptor);
-		return material->Autorelease();
+		_properties.colorWriteMask = other->_properties.colorWriteMask;
+		_properties.depthMode = other->_properties.depthMode;
+		_properties.depthWriteEnabled = other->_properties.depthWriteEnabled;
+		_properties.ambientColor = other->_properties.ambientColor;
+		_properties.diffuseColor = other->_properties.diffuseColor;
+		_properties.specularColor = other->_properties.specularColor;
+		_properties.emissiveColor = other->_properties.emissiveColor;
+		_properties.alphaToCoverageClamp = other->_properties.alphaToCoverageClamp;
+		_properties.useAlphaToCoverage = other->_properties.useAlphaToCoverage;
+		_properties.textureTileFactor = other->_properties.textureTileFactor;
+		_properties.usePolygonOffset = other->_properties.usePolygonOffset;
+		_properties.polygonOffsetFactor = other->_properties.polygonOffsetFactor;
+		_properties.polygonOffsetUnits = other->_properties.polygonOffsetUnits;
+		_properties.cullMode = other->_properties.cullMode;
+		
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			_vertexShader[i] = SafeRetain(other->_vertexShader[i]);
+			_fragmentShader[i] = SafeRetain(other->_fragmentShader[i]);
+		}
 	}
 
 	Material::~Material()
 	{
 		SafeRelease(_vertexBuffers);
 		SafeRelease(_fragmentBuffers);
-		SafeRelease(_fragmentShader);
-		SafeRelease(_vertexShader);
 		SafeRelease(_textures);
+
+		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		{
+			SafeRelease(_fragmentShader[i]);
+			SafeRelease(_vertexShader[i]);
+		}
+	}
+	
+ 	Material *Material::WithShaders(Shader *vertexShader, Shader *fragmentShader)
+	{
+		Material *material = new Material(vertexShader, fragmentShader);
+		return material->Autorelease();
+	}
+	
+ 	Material *Material::WithMaterial(const Material *material)
+	{
+		Material *copyMaterial = new Material(material);
+		return copyMaterial->Autorelease();
+	}
+	
+ 	void Material::SetTextures(const Array *textures)
+	{
+		SafeRelease(textures);
+		_textures = textures->Copy();
+	}
+	
+ 	void Material::AddTexture(Texture *texture)
+	{
+		_textures->AddObject(texture);
+	}
+	
+	void Material::RemoveAllTextures()
+	{
+		_textures->RemoveAllObjects();
+	}
+	
+	void Material::SetFragmentShader(Shader *shader, Shader::UsageHint type)
+	{
+		_fragmentShader[type] = SafeRetain(shader);
+		RN_ASSERT(!_fragmentShader[type] || _fragmentShader[type]->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
+	}
+	
+	void Material::SetVertexShader(Shader *shader, Shader::UsageHint type)
+	{
+		_vertexShader[type] = SafeRetain(shader);
+		RN_ASSERT(!_vertexShader[type] || _vertexShader[type]->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
+	}
+
+	void Material::SetOverride(Override override)
+	{
+		_override = override;
+	}
+	
+	void Material::SetColorWriteMask(bool writeRed, bool writeGreen, bool writeBlue, bool writeAlpha)
+	{
+		_properties.colorWriteMask = 0;
+		
+		if(writeRed)
+			_properties.colorWriteMask |= (1 << 0);
+		if(writeGreen)
+			_properties.colorWriteMask |= (1 << 1);
+		if(writeBlue)
+			_properties.colorWriteMask |= (1 << 2);
+		if(writeAlpha)
+			_properties.colorWriteMask |= (1 << 3);
 	}
 
 	void Material::SetDepthWriteEnabled(bool depthWrite)
 	{
-		_depthWriteEnabled = depthWrite;
+		_properties.depthWriteEnabled = depthWrite;
 	}
 	void Material::SetDepthMode(DepthMode mode)
 	{
-		_depthMode = mode;
+		_properties.depthMode = mode;
 	}
 
 	void Material::SetFragmentBuffers(const Array *buffers)
@@ -149,54 +171,111 @@ namespace RN
 		_vertexBuffers = SafeCopy(buffers);
 	}
 
-	void Material::SetDiscardThreshold(float threshold)
-	{
-		_discardThreshold = threshold;
-	}
-
 	void Material::SetTextureTileFactor(float factor)
 	{
-		_textureTileFactor = factor;
+		_properties.textureTileFactor = factor;
 	}
 
 	void Material::SetAmbientColor(const Color &color)
 	{
-		_ambientColor = color;
+		_properties.ambientColor = color;
 	}
 	void Material::SetDiffuseColor(const Color &color)
 	{
-		_diffuseColor = color;
+		_properties.diffuseColor = color;
 	}
 	void Material::SetSpecularColor(const Color &color)
 	{
-		_specularColor = color;
+		_properties.specularColor = color;
 	}
 	void Material::SetEmissiveColor(const Color &color)
 	{
-		_emissiveColor = color;
+		_properties.emissiveColor = color;
 	}
 
 	void Material::SetCullMode(CullMode mode)
 	{
-		_cullMode = mode;
+		_properties.cullMode = mode;
 	}
 
-	MaterialDescriptor Material::GetDescriptor() const
+	void Material::SetPolygonOffset(bool enable, float factor, float units)
 	{
-		MaterialDescriptor descriptor;
-		descriptor.SetTextures(GetTextures());
-		descriptor.fragmentShader = _fragmentShader;
-		descriptor.vertexShader = _vertexShader;
-		descriptor.depthMode = _depthMode;
-		descriptor.depthWriteEnabled = _depthWriteEnabled;
-		descriptor.ambientColor = _ambientColor;
-		descriptor.diffuseColor = _diffuseColor;
-		descriptor.specularColor = _specularColor;
-		descriptor.emissiveColor = _emissiveColor;
-		descriptor.discardThreshold = _discardThreshold;
-		descriptor.textureTileFactor = _textureTileFactor;
-		descriptor.cullMode = _cullMode;
+		_properties.usePolygonOffset = enable;
+		_properties.polygonOffsetFactor = factor;
+		_properties.polygonOffsetUnits = units;
+	}
+	
+	void Material::SetAlphaToCoverage(bool enabled, float min, float max)
+	{
+		_properties.useAlphaToCoverage = enabled;
+		_properties.alphaToCoverageClamp.x = min;
+		_properties.alphaToCoverageClamp.y = max;
+	}
 
-		return descriptor;
+	Shader *Material::GetFragmentShader(Shader::UsageHint type) const
+	{
+		if(!_fragmentShader[static_cast<uint8>(type)] && !_vertexShader[static_cast<uint8>(type)])
+			return _fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)];
+
+		return _fragmentShader[static_cast<uint8>(type)];
+	}
+	Shader *Material::GetVertexShader(Shader::UsageHint type) const
+	{
+		if(!_vertexShader[static_cast<uint8>(type)])
+			return _vertexShader[static_cast<uint8>(Shader::UsageHint::Default)];
+
+		return _vertexShader[static_cast<uint8>(type)];
+	}
+
+	const Material::Properties Material::GetMergedProperties(Material *overrideMaterial) const
+	{
+		if(!overrideMaterial)
+			return _properties;
+		
+		Properties properties = _properties;
+		
+		if(!(overrideMaterial->GetOverride() & Override::ColorWriteMask) && !(_override & Override::ColorWriteMask))
+		{
+			properties.colorWriteMask = overrideMaterial->_properties.colorWriteMask;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::GroupDepth) && !(_override & Override::GroupDepth))
+		{
+			properties.depthMode = overrideMaterial->_properties.depthMode;
+			properties.depthWriteEnabled = overrideMaterial->_properties.depthWriteEnabled;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::GroupColors) && !(_override & Override::GroupColors))
+		{
+			properties.ambientColor = overrideMaterial->_properties.ambientColor;
+			properties.diffuseColor = overrideMaterial->_properties.diffuseColor;
+			properties.specularColor = overrideMaterial->_properties.specularColor;
+			properties.emissiveColor = overrideMaterial->_properties.emissiveColor;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::GroupAlphaToCoverage) && !(_override & Override::GroupAlphaToCoverage))
+		{
+			properties.useAlphaToCoverage = overrideMaterial->_properties.useAlphaToCoverage;
+			properties.alphaToCoverageClamp = overrideMaterial->_properties.alphaToCoverageClamp;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::TextureTileFactor) && !(_override & Override::TextureTileFactor))
+		{
+			properties.textureTileFactor = overrideMaterial->_properties.textureTileFactor;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::GroupPolygonOffset) && !(_override & Override::GroupPolygonOffset))
+		{
+			properties.usePolygonOffset = overrideMaterial->_properties.usePolygonOffset;
+			properties.polygonOffsetFactor = overrideMaterial->_properties.polygonOffsetFactor;
+			properties.polygonOffsetUnits = overrideMaterial->_properties.polygonOffsetUnits;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::CullMode) && !(_override & Override::CullMode))
+		{
+			properties.cullMode = overrideMaterial->_properties.cullMode;
+		}
+
+		return properties;
 	}
 }

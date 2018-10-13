@@ -15,8 +15,6 @@
 namespace RN
 {
 	class MetalRenderer;
-	class MetalStateCoordinator;
-
 	class MetalTexture : public Texture
 	{
 	public:
@@ -30,20 +28,17 @@ namespace RN
 		MTLAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
 
 		MTLAPI void GenerateMipMaps() final;
-		MTLAPI void SetParameter(const Parameter &parameter) final;
 
-		MTLAPI bool HasColorChannel(ColorChannel channel) const final;
+		static MTLPixelFormat PixelFormatForTextureFormat(Format format);
+		static MTLTextureDescriptor *DescriptorForTextureDescriptor(const Descriptor &descriptor, bool isIOSurfaceBacked = false);
 
 		void *__GetUnderlyingTexture() const { return _texture; }
-		void *__GetUnderlyingSampler() const { return _sampler; }
 
 	private:
-		MetalTexture(MetalRenderer *renderer, MetalStateCoordinator *coordinator, void *texture, const Descriptor &descriptor);
+		MetalTexture(MetalRenderer *renderer, void *texture, const Descriptor &descriptor);
 
 		MetalRenderer *_renderer;
-		MetalStateCoordinator *_coordinator;
 		void *_texture;
-		void *_sampler;
 
 		RNDeclareMetaAPI(MetalTexture, MTLAPI)
 	};

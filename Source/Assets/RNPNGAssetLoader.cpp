@@ -14,7 +14,6 @@
 
 #include "RNPNGAssetLoader.h"
 #include "RNAssetManager.h"
-#include "RNBitmap.h"
 
 namespace RN
 {
@@ -29,7 +28,7 @@ namespace RN
 	{
 		uint8 magic[] = {137, 80, 78, 71, 13, 10, 26, 10};
 
-		Config config({ Texture::GetMetaClass(), Bitmap::GetMetaClass() });
+		Config config(Texture::GetMetaClass());
 		config.SetExtensions(Set::WithObjects({RNCSTR("png")}));
 		config.SetMagicBytes(Data::WithBytes(magic, 8), 0);
 		config.supportsBackgroundLoading = true;
@@ -44,15 +43,26 @@ namespace RN
 		AssetLoader(config)
 	{}
 
+	static void png_read_from_rnfile(png_structp png_ptr, png_bytep data, png_size_t length)
+    {
+		png_size_t check;
+
+		if(png_ptr == NULL)
+			return;
+
+		File *file = static_cast<File*>(png_get_io_ptr(png_ptr));
+		file->Read(data, length);
+    }
+
 	Asset *PNGAssetLoader::Load(File *file, const LoadOptions &options)
 	{
-		FILE *rawFile = file->CreateFile();
 		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
 
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 		png_infop pngInfo = png_create_info_struct(pngPointer);
 
-		png_init_io(pngPointer, rawFile);
+		png_set_read_fn(pngPointer, file, png_read_from_rnfile);
+
 		png_set_sig_bytes(pngPointer, 0);
 		png_set_error_fn(pngPointer, nullptr, nullptr, __PNGEmptyLogFunction);
 
@@ -65,20 +75,19 @@ namespace RN
 
 		png_bytepp rows = png_get_rows(pngPointer, pngInfo);
 
+
 		uint8 *data = nullptr;
 		size_t bytesPerRow;
 
-		BitmapInfo::Format bitmapFormat;
-		Texture::Format textureFormat;
+		Texture::Format format;
 
 		switch(colorType)
 		{
 			case PNG_COLOR_TYPE_RGB:
 			{
-				data = new uint8[width * height * 3];
-				bitmapFormat = BitmapInfo::Format::RGB888;
-				textureFormat = Texture::Format::RGB888;
-				bytesPerRow = 3 * width;
+				data = new uint8[width * height * 4];
+				format = Texture::Format::RGB888SRGB;
+				bytesPerRow = 4 * width;
 
 				uint8 *temp = data;
 
@@ -93,6 +102,7 @@ namespace RN
 						*temp ++ = ptr[0];
 						*temp ++ = ptr[1];
 						*temp ++ = ptr[2];
+						*temp ++ = 255;
 					}
 				}
 
@@ -102,8 +112,7 @@ namespace RN
 			case PNG_COLOR_TYPE_RGBA:
 			{
 				data = new uint8[width * height * 4];
-				bitmapFormat = BitmapInfo::Format::RGBA8888;
-				textureFormat = Texture::Format::RGBA8888;
+				format = Texture::Format::RGBA8888SRGB;
 				bytesPerRow = 4 * width;
 
 				uint32 *temp = reinterpret_cast<uint32 *>(data);
@@ -127,73 +136,33 @@ namespace RN
 		}
 
 		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
-		fclose(rawFile);
 
-		if(options.meta == Bitmap::GetMetaClass())
+
+		bool mipMapped = true;
+		bool isLinear = false;
+		Number *wrapper;
+
+		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
+			mipMapped = wrapper->GetBoolValue();
+
+		if ((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
+			isLinear = wrapper->GetBoolValue();
+
+		if(isLinear)
 		{
-			BitmapInfo info;
-			info.bytesPerRow = bytesPerRow;
-			info.width = width;
-			info.height = height;
-			info.format = bitmapFormat;
-
-			Bitmap *bitmap = new Bitmap(data, info);
-			delete[] data;
-
-			return bitmap->Autorelease();
+			format = Texture::Format::RGBA8888;
 		}
-		else
-		{
-			bool ownsData = true;
-			Renderer *renderer = Renderer::GetActiveRenderer();
 
-			if(!renderer->GetTextureFormatName(textureFormat))
-			{
-				if(textureFormat == Texture::Format::RGB888 && renderer->GetTextureFormatName(Texture::Format::RGBA8888))
-				{
-					BitmapInfo info;
-					info.bytesPerRow = bytesPerRow;
-					info.width = width;
-					info.height = height;
-					info.format = bitmapFormat;
+		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, width, height, mipMapped);
+		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
-					Bitmap *bitmap = new Bitmap(data, info);
-					delete[] data;
+		texture->SetData(0, data, bytesPerRow);
 
-					Bitmap *converted = bitmap->GetBitmapWithFormat(BitmapInfo::Format::RGBA8888);
-					bitmap->Release();
+		if(mipMapped)
+			texture->GenerateMipMaps();
 
-					data = const_cast<uint8 *>(converted->GetData()->GetBytes<uint8>());
-					bytesPerRow = converted->GetInfo().bytesPerRow;
+		delete[] data;
 
-					textureFormat = Texture::Format::RGBA8888;
-					ownsData = false;
-				}
-				else
-				{
-					delete[] data;
-					throw InconsistencyException(RNSTR("File " << file << " is in a format that's not recognized by the renderer as valid texture format"));
-				}
-			}
-
-			bool mipMapped = true;
-			Number *wrapper;
-
-			if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
-				mipMapped = wrapper->GetBoolValue();
-
-			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
-			Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
-
-			texture->SetData(0, data, bytesPerRow);
-
-			if(mipMapped)
-				texture->GenerateMipMaps();
-
-			if(ownsData)
-				delete[] data;
-
-			return texture->Autorelease();
-		}
+		return texture->Autorelease();
 	}
 }

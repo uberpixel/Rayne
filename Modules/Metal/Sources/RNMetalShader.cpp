@@ -8,103 +8,29 @@
 
 #import <Metal/Metal.h>
 #include "RNMetalShader.h"
+#include "RNMetalStateCoordinator.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalShader, Shader)
 
-	static Shader::Type __GetTypeFromMetalShader(id<MTLFunction> function)
-	{
-		switch([function functionType])
-		{
-			case MTLFunctionTypeFragment:
-				return Shader::Type::Fragment;
-			case MTLFunctionTypeVertex:
-				return Shader::Type::Vertex;
-			case MTLFunctionTypeKernel:
-				return Shader::Type::Compute;
-		}
-
-		throw InconsistencyException("Invalid metal function");
-	}
-
-	MetalShader::MetalShader(void *shader, ShaderLibrary *library) :
-		Shader(__GetTypeFromMetalShader((id<MTLFunction>)shader), library),
+	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
+		Shader(library, type, options),
 		_shader(shader),
-		_attributes(new Array())
+		_coordinator(coordinator),
+		_wantsDirectionalShadowTexture(false)
 	{
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
 		// owned object
-
-		id<MTLFunction> function = (id<MTLFunction>)_shader;
-
-		NSArray *attributes = [function vertexAttributes];
-		size_t count = [attributes count];
-
-		for(size_t i = 0; i < count; i ++)
-		{
-			MTLVertexAttribute *attribute = [attributes objectAtIndex:i];
-			if([attribute isActive])
-			{
-				PrimitiveType type;
-				switch([attribute attributeType])
-				{
-					case MTLDataTypeFloat:
-						type = PrimitiveType::Float;
-						break;
-					case MTLDataTypeFloat2:
-						type = PrimitiveType::Vector2;
-						break;
-					case MTLDataTypeFloat3:
-						type = PrimitiveType::Vector3;
-						break;
-					case MTLDataTypeFloat4:
-						type = PrimitiveType::Vector4;
-						break;
-
-					case MTLDataTypeFloat4x4:
-						type = PrimitiveType::Matrix;
-					break;
-
-					case MTLDataTypeInt:
-						type = PrimitiveType::Int32;
-						break;
-					case MTLDataTypeUInt:
-						type = PrimitiveType::Uint32;
-						break;
-
-					case MTLDataTypeShort:
-						type = PrimitiveType::Int16;
-						break;
-					case MTLDataTypeUShort:
-						type = PrimitiveType::Uint16;
-						break;
-
-					case MTLDataTypeChar:
-						type = PrimitiveType::Int8;
-						break;
-					case MTLDataTypeUChar:
-						type = PrimitiveType::Uint8;
-						break;
-
-					default:
-						continue;
-				}
-
-				MetalAttribute *attributeCopy = new MetalAttribute(RNSTR([[attribute name] UTF8String]), type, [attribute attributeIndex]);
-				_attributes->AddObject(attributeCopy);
-				attributeCopy->Release();
-			}
-		}
-
+		
+		_rnSamplers = samplers->Retain();
 	}
+
 	MetalShader::~MetalShader()
 	{
 		id<MTLFunction> function = (id<MTLFunction>)_shader;
 		[function release];
-
-		_attributes->Release();
 	}
 
 	const String *MetalShader::GetName() const
@@ -115,8 +41,92 @@ namespace RN
 		return RNSTR([name UTF8String]);
 	}
 
-	const Array *MetalShader::GetAttributes() const
+	void MetalShader::SetReflectedArguments(NSArray *arguments)
 	{
-		return _attributes;
+		//TODO: Support custom arguments
+		//TODO: Support more than one uniform buffer
+
+		uint8 textureCount = 0;
+		Array *samplers = new Array();
+		Array *specificSamplers = new Array();
+		Array *uniformDescriptors = new Array();
+
+		for(MTLArgument *argument in arguments)
+		{
+			switch([argument type])
+			{
+				case MTLArgumentTypeBuffer:
+				{
+					MTLStructType *structType = [argument
+					bufferStructType];
+					for(MTLStructMember *member in [structType members])
+					{
+						String *name = RNSTR([[member name] UTF8String]);
+						uint32 offset = [member offset];
+
+						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
+						uniformDescriptors->AddObject(descriptor->Autorelease());
+					}
+					break;
+				}
+
+				case MTLArgumentTypeTexture:
+				{
+					//TODO: Move this into the shader base class
+					String *name = RNSTR([[argument name] UTF8String]);
+					if(name->IsEqual(RNCSTR("directionalShadowTexture")))
+					{
+						//TODO: Store the register, so it doesn't have to be declared last in the shader
+						_wantsDirectionalShadowTexture = true;
+					}
+
+					textureCount += 1;
+					break;
+				}
+
+				case MTLArgumentTypeSampler:
+				{
+					//TODO: Move this into the shader base class
+					String *name = RNSTR([[argument name] UTF8String]);
+					if(name->IsEqual(RNCSTR("directionalShadowSampler")))
+					{
+						//TODO: Store the register, so it doesn't have to be declared last in the shader
+						Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
+						specificSamplers->AddObject(sampler->Autorelease());
+					}
+					else
+					{
+						//TODO: Allow other than default samplers
+						Sampler *sampler = new Sampler();
+						samplers->AddObject(sampler->Autorelease());
+					}
+
+					break;
+				}
+
+				default:
+					break;
+			}
+		}
+		
+		if(_rnSamplers->GetCount() > 0)
+		{
+			RN_ASSERT(samplers->GetCount() == _rnSamplers->GetCount(), "Sampler count missmatch!");
+			samplers->RemoveAllObjects();
+			samplers->AddObjectsFromArray(_rnSamplers);
+		}
+
+		Signature *signature = new Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), textureCount);
+		SetSignature(signature->Autorelease());
+
+		samplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
+			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
+			_samplers.push_back(blubb);
+		});
+
+		specificSamplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
+			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
+			_samplers.push_back(blubb);
+		});
 	}
 }

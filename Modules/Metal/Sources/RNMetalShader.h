@@ -14,36 +14,27 @@
 
 namespace RN
 {
+	class MetalStateCoordinator;
 	class MetalShader : public Shader
 	{
 	public:
-		friend class MetalShaderLibrary;
+		friend class MetalSpecificShaderLibrary;
 		friend class MetalStateCoordinator;
-
-		class MetalAttribute : public Attribute
-		{
-		public:
-			MetalAttribute(const String *name, PrimitiveType type, size_t index) :
-				Attribute(name, type),
-				_index(index)
-			{}
-
-			size_t GetIndex() const { return _index; }
-
-		private:
-			size_t _index;
-		};
+		friend class MetalRenderer;
 
 		MTLAPI ~MetalShader() override;
-
 		MTLAPI const String *GetName() const override;
-		MTLAPI const Array *GetAttributes() const override;
 
 	private:
-		MetalShader(void *shader, ShaderLibrary *library);
+		MetalShader(ShaderLibrary *library, Type type, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator);
+		void SetReflectedArguments(NSArray *arguments);
 
 		void *_shader;
-		Array *_attributes;
+		std::vector<void*> _samplers;
+		const Array *_rnSamplers; //TODO: Fix naming...
+		MetalStateCoordinator *_coordinator;
+
+		bool _wantsDirectionalShadowTexture;
 
 		RNDeclareMetaAPI(MetalShader, MTLAPI)
 	};

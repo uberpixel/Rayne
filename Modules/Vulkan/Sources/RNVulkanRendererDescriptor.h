@@ -22,8 +22,8 @@ namespace RN
 		VKAPI Renderer *CreateRenderer(RenderingDevice *device) override;
 		VKAPI bool CanCreateRenderer() const override;
 
-		const Array *GetDevices() const { return _instance->GetDevices(); }
-		void PrepareWithSettings(const Dictionary *settings);
+		const Array *GetDevices() const override { return _instance->GetDevices(); }
+		VKAPI void PrepareWithSettings(const Dictionary *settings) override;
 
 		VulkanInstance *GetInstance() const { return _instance; }
 

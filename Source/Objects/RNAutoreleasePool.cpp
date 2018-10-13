@@ -44,6 +44,19 @@ namespace RN
 	{
 		RN_ASSERT(object, "Object mustn't be NULL");
 
+		//TODO: Maybe delete and remove this as friend of Object
+#if RN_BUILD_DEBUG
+		int counter = 0;
+		for(const Object *obj : _objects)
+		{
+			if(obj == object)
+			{
+				counter += 1;
+				RN_ASSERT(counter < object->_refCount, "Object will be overreleased by autorelease pool!");
+			}
+		}
+#endif
+
 		_objects.push_back(object);
 		
 		if(_objects.size() == _objects.capacity())
@@ -56,7 +69,9 @@ namespace RN
 		std::swap(objects, _objects);
 
 		for(const Object *object : objects)
+		{
 			object->Release();
+		}
 
 		_objects = std::vector<const Object *>();
 		_objects.reserve(kRNAutoreleasePoolInitialGrowth);

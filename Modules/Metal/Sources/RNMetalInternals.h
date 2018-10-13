@@ -16,11 +16,13 @@
 #include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
+#include "RNMetalFramebuffer.h"
+#include "RNMetalRenderer.h"
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
-- (id<MTLTexture>)nextDepthBuffer;
-- (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device;
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format;
+- (CGSize)getSize;
 @end
 
 @interface RNMetalWindow : NSWindow
@@ -32,112 +34,157 @@ namespace RN
 	class Framebuffer;
 	class Camera;
 	class MetalGPUBuffer;
-
-	struct MetalWindowPass
-	{
-		MetalWindow *window;
-
-		id<CAMetalDrawable> drawable;
-		id<MTLTexture> depthTexture;
-	};
+	class MetalTexture;
 
 	struct MetalDrawable : public Drawable
 	{
+		//TODO: Maybe store these per camera/renderpass!?
+		struct CameraSpecific
+		{
+			const MetalRenderingState *pipelineState;
+			MetalUniformBufferReference *vertexBuffer;
+			MetalUniformBufferReference *fragmentBuffer;
+			bool dirty;
+		};
+
 		~MetalDrawable()
 		{
-			for(MetalUniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(MetalUniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
+			for(CameraSpecific specific : _cameraSpecifics)
+			{
+				if(specific.vertexBuffer)
+					delete specific.vertexBuffer;
+
+				if(specific.fragmentBuffer)
+					delete specific.fragmentBuffer;
+			}
 		}
 
-		void UpdateRenderingState(Renderer *renderer, const MetalRenderingState *state)
+		void AddCameraSepecificsIfNeeded(size_t cameraID)
 		{
-			if(state == _pipelineState)
-				return;
-
-			_pipelineState = state;
-
-			for(MetalUniformBuffer *buffer : _vertexBuffers)
-				delete buffer;
-			for(MetalUniformBuffer *buffer : _fragmentBuffers)
-				delete buffer;
-
-			_vertexBuffers.clear();
-			_fragmentBuffers.clear();
-
-			for(MetalRenderingStateArgument *argument : state->vertexArguments)
+			while(_cameraSpecifics.size() <= cameraID)
 			{
-				switch(argument->type)
-				{
-					case MetalRenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_vertexBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
-			}
-
-			for(MetalRenderingStateArgument *argument : state->fragmentArguments)
-			{
-				switch(argument->type)
-				{
-					case MetalRenderingStateArgument::Type::Buffer:
-					{
-						if(argument->index > 0)
-							_fragmentBuffers.push_back(new MetalUniformBuffer(renderer, static_cast<MetalRenderingStateUniformBufferArgument *>(argument)));
-					}
-
-					default:
-						break;
-				}
+				_cameraSpecifics.push_back({nullptr, nullptr, nullptr, true});
 			}
 		}
 
-		const MetalRenderingState *_pipelineState;
-		std::vector<MetalUniformBuffer *> _vertexBuffers;
-		std::vector<MetalUniformBuffer *> _fragmentBuffers;
-		MetalDrawable *_next;
-		MetalDrawable *_prev;
+		void UpdateRenderingState(size_t cameraID, Renderer *renderer, const MetalRenderingState *state)
+		{
+			_cameraSpecifics[cameraID].pipelineState = state;
+
+			if(_cameraSpecifics[cameraID].vertexBuffer)
+				delete _cameraSpecifics[cameraID].vertexBuffer;
+
+			if(_cameraSpecifics[cameraID].fragmentBuffer)
+				delete _cameraSpecifics[cameraID].fragmentBuffer;
+
+			MetalRenderer *metalRenderer = renderer->Downcast<MetalRenderer>();
+			
+			//TODO: Support multiple uniform buffers
+			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
+			if(totalSize > 0)
+				_cameraSpecifics[cameraID].vertexBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();//new MetalUniformBuffer(renderer, totalSize, 1);
+
+			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
+			if(totalSize > 0)
+				_cameraSpecifics[cameraID].fragmentBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();
+			
+			_cameraSpecifics[cameraID].dirty = false;
+		}
+		
+		virtual void MakeDirty() override
+		{
+			for(int i = 0; i < _cameraSpecifics.size(); i++)
+			{
+				_cameraSpecifics[i].dirty = true;
+			}
+		}
+
+		std::vector<CameraSpecific> _cameraSpecifics;
+	};
+
+	struct MetalPointLight
+	{
+		Vector3 position;
+		Color color;
+		float range;
+	};
+
+	struct MetalSpotLight
+	{
+		Vector3 position;
+		Vector3 direction;
+		Color color;
+		float range;
+		float angle;
+	};
+
+	struct MetalDirectionalLight
+	{
+		Vector3 direction;
+		Color color;
 	};
 
 	struct MetalRenderPass
 	{
-		Camera *camera;
-		Framebuffer *framebuffer;
-		id<MTLCommandBuffer> commandBuffer;
-		id<MTLRenderCommandEncoder> renderCommand;
-		const MetalRenderingState *activeState;
+		enum Type
+		{
+			Default,
+			ResolveMSAA,
+			Blit,
+			Convert
+		};
 
+		Type type;
+		RenderPass *renderPass;
+		RenderPass *previousRenderPass;
+
+		MetalFramebuffer *framebuffer;
+		Shader::UsageHint shaderHint;
+		Material *overrideMaterial;
+		MetalFramebuffer *resolveFramebuffer;
+
+		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;
 		Matrix projectionViewMatrix;
 		Matrix inverseProjectionViewMatrix;
+		
+		Color cameraAmbientColor;
 
-		MetalDrawable *drawableHead;
-		size_t drawableCount;
+		std::vector<MetalDrawable *> drawables;
+
+		std::vector<MetalPointLight> pointLights;
+		std::vector<MetalSpotLight> spotLights;
+		std::vector<MetalDirectionalLight> directionalLights;
+
+		std::vector<Matrix> directionalShadowMatrices;
+		MetalTexture *directionalShadowDepthTexture;
+		Vector2 directionalShadowInfo;
 	};
 
 
 	struct MetalRendererInternals
 	{
+		std::vector<MetalRenderPass> renderPasses;
+		MetalStateCoordinator stateCoordinator;
+
 		id<MTLDevice> device;
 		id<MTLCommandQueue> commandQueue;
 
-		MetalWindowPass pass;
-		MetalRenderPass renderPass;
-		MetalStateCoordinator stateCoordinator;
+		id<MTLCommandBuffer> commandBuffer;
+		id<MTLRenderCommandEncoder> commandEncoder;
+
+		std::vector<MetalSwapChain *>swapChains;
+
+		size_t currentRenderPassIndex;
+		const MetalRenderingState *currentRenderState;
 	};
 
 	struct MetalWindowInternals
 	{
 		NSWindow *window;
-		RNMetalView *metalView;
 	};
 }
 

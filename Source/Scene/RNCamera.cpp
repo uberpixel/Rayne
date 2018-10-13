@@ -7,6 +7,7 @@
 //
 
 #include "RNCamera.h"
+#include "RNLight.h"
 #include "../Rendering/RNRenderer.h"
 #include "../Rendering/RNWindow.h"
 
@@ -14,100 +15,28 @@ namespace RN
 {
 	RNDefineMeta(Camera, SceneNode)
 
-	static Framebuffer *CreateFramebuffer(const Vector2 &size, Texture::Format targetFormat)
-	{
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = targetFormat;
-
-		Renderer *renderer = Renderer::GetActiveRenderer();
-		return renderer->CreateFramebuffer(size, descriptor);
-	}
-
-	Camera::Camera() :
+	Camera::Camera(RenderPass *renderPass) :
 		_cameraSceneEntry(this),
-		_framebuffer(nullptr),
-		_flags(0),
-		_window(nullptr)
+		_flags(Camera::Flags::Defaults)
 	{
+		if(!renderPass)
+		{
+			_renderPass = new RenderPass();
+		}
+		else
+		{
+			_renderPass = renderPass->Retain();
+		}
+
 		Initialize();
 	}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags) :
-		_cameraSceneEntry(this),
-		_framebuffer(CreateFramebuffer(size, targetFormat)),
-		_flags(flags),
-		_window(nullptr)
-	{
-		Initialize();
-	}
-
-/*	Camera::Camera(const Vector2 &size, Texture *target) :
-		Camera(size, target, Flags::Defaults)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture *target, Flags flags) :
-		Camera(size, target, flags, RenderStorage::BufferFormatComplete)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat) :
-		Camera(size, targetFormat, Flags::Defaults)
-	{}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags) :
-		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
-	{}
-
-
-	Camera::Camera(const Vector2 &size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		RenderStorage *storage = new RenderStorage(format);
-		storage->AddRenderTarget(target);
-
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}
-
-	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
-		storage->AddRenderTarget(targetFormat);
-
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}
-
-	Camera::Camera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor),
-		_storage(nullptr),
-		_lightManager(nullptr)
-	{
-		SetFlags(flags);
-		SetRenderStorage(storage);
-		Initialize();
-	}*/
 
 	Camera::~Camera()
 	{
-		SafeRelease(_framebuffer);
-
-/*		SafeRelease(_sky);
+		SafeRelease(_renderPass);
 		SafeRelease(_material);
 
-		for(PostProcessingPipeline *pipeline : _PPPipelines)
-			pipeline->Unlock();
-
-		if(_lightManager)
+/*		if(_lightManager)
 		{
 			_lightManager->camera = nullptr;
 			_lightManager->Unlock();
@@ -118,7 +47,7 @@ namespace RN
 	void Camera::Initialize()
 	{
 		_fov      = 70.0f;
-		_aspect   = 1.0f;
+		_aspect   = 0.0f;
 
 		_clipNear = 0.1f;
 		_clipFar  = 500.0f;
@@ -136,11 +65,10 @@ namespace RN
 		_dirtyProjection = true;
 		_dirtyFrustum    = true;
 
-		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
+		_shaderHint = Shader::UsageHint::Default;
 		_prefersLightManager = false;
 
-//		_material   = nullptr;
-//		_sky = nullptr;
+		_material   = nullptr;
 
 		_priority  = 0;
 		_lodCamera = nullptr;
@@ -149,18 +77,10 @@ namespace RN
 	}
 
 	// Setter
-	void Camera::SetFrame(const Rect &frame)
+	void Camera::SetRenderPass(RenderPass *renderPass)
 	{
-		if(_frame != frame)
-		{
-			_frame = std::move(frame.GetIntegral());
-			_dirtyProjection = true;
-		}
-	}
-
-	void Camera::SetClearColor(const Color &clearColor)
-	{
-		_clearColor = clearColor;
+		SafeRelease(_renderPass);
+		_renderPass = renderPass->Retain();
 	}
 
 	void Camera::SetFlags(Flags flags)
@@ -168,17 +88,16 @@ namespace RN
 		_flags = flags;
 	}
 
-/*	void Camera::SetMaterial(Material *material)
+	void Camera::SetShaderHint(Shader::UsageHint hint)
+	{
+		_shaderHint = hint;
+	}
+
+	void Camera::SetMaterial(Material *material)
 	{
 		SafeRelease(_material);
 		_material = SafeRetain(material);
-	}*/
-
-/*	void Camera::SetSky(Model *sky)
-	{
-		SafeRelease(_sky);
-		_sky = SafeRetain(sky);
-	}*/
+	}
 
 	void Camera::SetLODCamera(Camera *camera)
 	{
@@ -270,8 +189,10 @@ namespace RN
 	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
 	{
 		_projectionMatrix = projectionMatrix;
+		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 		_dirtyFrustum = true;
 		_dirtyProjection = false;
+		UpdateFrustum();
 	}
 
 	void Camera::DidUpdate(ChangeSet changeSet)
@@ -284,69 +205,10 @@ namespace RN
 		}
 	}
 
-	// Post Processing
-/*	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string &name, int32 priority)
+	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name, priority);
-		try
-		{
-			AddPostProcessingPipeline(pipeline);
-			return pipeline->Autorelease();
-		}
-		catch(Exception e)
-		{
-			delete pipeline;
-			throw e;
-		}
-	}
+		Rect frame = _renderPass->GetFrame();
 
-	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string &name)
-	{
-		LockGuard<Object *> lock(this);
-
-		auto iterator = _namedPPPipelines.find(name);
-		return (iterator != _namedPPPipelines.end()) ? iterator->second : nullptr;
-	}
-
-	void Camera::AddPostProcessingPipeline(PostProcessingPipeline *pipeline)
-	{
-		LockGuard<Object *> lock(this);
-
-		if(GetPostProcessingPipeline(pipeline->_name) || pipeline->host)
-			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
-
-		_PPPipelines.push_back(pipeline);
-		_namedPPPipelines.emplace(pipeline->_name, pipeline);
-
-		pipeline->host = this;
-		pipeline->Initialize();
-		pipeline->Retain();
-
-		std::stable_sort(_PPPipelines.begin(), _PPPipelines.end(), [&](PostProcessingPipeline *left, PostProcessingPipeline *right) {
-			return (left->_priority < right->_priority);
-		});
-	}
-
-	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
-	{
-		LockGuard<Object *> lock(this);
-
-		for(auto i = _PPPipelines.begin(); i != _PPPipelines.end(); i ++)
-		{
-			if(*i == pipeline)
-			{
-				_PPPipelines.erase(i);
-				_namedPPPipelines.erase(pipeline->_name);
-
-				pipeline->host = nullptr;
-				pipeline->Unlock();
-				break;
-			}
-		}
-	}*/
-
-/*	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
-	{
 		//Get camera frustum extends to be covered by the split
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
 		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
@@ -356,10 +218,10 @@ namespace RN
 
 		//Calculate the size of a pixel in world units
 		float dist = center.GetDistance(farcorner1);
-		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
+		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(frame.width, frame.height, 1.0f);
 
 		//Place the light camera 500 units above the splits center
-		Vector3 pos = center-light->GetForward()*500.0f;
+		Vector3 pos = center-light->GetForward()*5000.0f;
 
 		//Transform the position to light space
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
@@ -377,7 +239,8 @@ namespace RN
 		SetPosition(pos);
 
 		//Set the light camera frustum
-		_clipFar = 500.0f + dist * 2.0f;
+		_clipNear = 10;
+		_clipFar = 5000 + dist * 5.0f;
 		_orthoLeft = -dist;
 		_orthoRight = dist;
 		_orthoBottom = -dist;
@@ -385,38 +248,17 @@ namespace RN
 
 		//Update the projection matrix
 		_dirtyProjection = true;
-		UpdateProjection();
+		UpdateProjection(nullptr); //Because the target is always a valid framebuffer, we don't need to pass the renderer as parameter here
 
 		//Return the resulting matrix
 		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
 		return projview;
-	}*/
+	}
 
 	// Helper
 	void Camera::Update(float delta)
 	{
 		SceneNode::Update(delta);
-
-		UpdateFrustum();
-
-/*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PushUpdate(this, delta);
-		}*/
-	}
-
-	void Camera::UpdateEditMode(float delta)
-	{
-		SceneNode::UpdateEditMode(delta);
-
-		UpdateFrustum();
-
-/*		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PushUpdate(this, delta);
-		}*/
 	}
 
 	void Camera::PostUpdate(Renderer *renderer)
@@ -428,43 +270,28 @@ namespace RN
 		_viewMatrix = _inverseViewMatrix.GetInverse();
 
 		UpdateProjection(renderer);
-
-/*		if(_flags & Flags::Fullscreen)
-		{
-			Vector2 size = Window::GetSharedInstance()->GetSize();
-			SetFrame(Rect(Vector2(), size));
-		}
-
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
-		{
-			PostProcessingPipeline *pipeline = *i;
-			pipeline->PostUpdate(this, GetWorldPosition(), GetWorldRotation(), _frame);
-		}*/
+		UpdateFrustum();
 	}
 
 	void Camera::UpdateProjection(Renderer *renderer)
 	{
+		if(!_dirtyProjection)
+			return;
+
 		if(_flags & Flags::Orthogonal)
 		{
 			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
 			return;
 		}
 
-		if(!_framebuffer)
+		float tempAspect = _aspect;
+		if(std::abs(tempAspect) <= 0.0001)
 		{
-			if(!_window)
-				_window = renderer->GetMainWindow();
-
-			Vector2 size = _window->GetSize();
-
-			_aspect = size.x / size.y;
-		}
-		else
-		{
-			_aspect = _frame.width / _frame.height;
+			Vector2 size = _renderPass->GetFrame().GetSize();
+			tempAspect = size.x / size.y;
 		}
 
-		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
+		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, tempAspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 
 		_dirtyFrustum = true;
@@ -477,6 +304,13 @@ namespace RN
 			return;
 
 		_dirtyFrustum = false;
+
+		if(_flags & Flags::UseSimpleCulling)
+		{
+			_frustumCenter = Vector3(0.0f, 0.0f, _clipFar*0.5f);
+            _frustumRadius = _clipFar * 1.5;
+			return;
+		}
 
 		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
 		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
@@ -570,11 +404,6 @@ namespace RN
 		}
 	}
 
-	const Rect &Camera::GetFrame()
-	{
-		return _frame;
-	}
-
 /*	LightManager *Camera::GetLightManager()
 	{
 		if(!_lightManager && _prefersLightManager)
@@ -602,6 +431,9 @@ namespace RN
 	{
 		if(_frustumCenter.GetDistance(position) > _frustumRadius + radius)
 			return false;
+
+		if(_flags & Flags::UseSimpleCulling)
+			return true;
 
 		if(frustums._frustumLeft.GetDistance(position) > radius)
 			return false;

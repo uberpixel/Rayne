@@ -47,18 +47,22 @@ namespace RN
 		return nullptr;
 	}
 
-	RenderingDevice *Application::GetPreferredRenderingDevice(const Array *devices) const
+	RenderingDevice *Application::GetPreferredRenderingDevice(RN::RendererDescriptor *descriptor, const Array *devices) const
 	{
 		return devices->GetFirstObject<RenderingDevice>();
 	}
 	
 	Array *Application::GetLoggingEngines() const
 	{
+		DebugLogFormatter *formatter = new DebugLogFormatter();
+
 #if RN_PLATFORM_WINDOWS
 		LoggingEngine *engine = new WideCharStreamLoggingEngine(std::wcout, true);
+		engine->SetLogFormatter(formatter->Autorelease());
 		return Array::WithObjects({ engine->Autorelease() });
 #else
 		LoggingEngine *engine = new StreamLoggingEngine(std::cout, true);
+		engine->SetLogFormatter(formatter->Autorelease());
 		return Array::WithObjects({ engine->Autorelease() });
 #endif
 	}

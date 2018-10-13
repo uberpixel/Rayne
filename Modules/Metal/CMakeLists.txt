@@ -23,6 +23,7 @@ set(SOURCES
         Sources/RNMetalTexture.cpp
         Sources/RNMetalUniformBuffer.cpp
         Sources/RNMetalWindow.cpp
+        Sources/RNMetalSwapChain.cpp
         Sources/RNMetalInit.cpp)
 
 set(RESOURCES
@@ -41,7 +42,8 @@ set(HEADERS
         Sources/RNMetalStateCoordinator.h
         Sources/RNMetalTexture.h
         Sources/RNMetalUniformBuffer.h
-        Sources/RNMetalWindow.h)
+        Sources/RNMetalWindow.h
+        Sources/RNMetalSwapChain.h)
 
 set(DEFINES
         "RN_BUILD_METAL")

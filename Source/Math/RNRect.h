@@ -42,6 +42,11 @@ namespace RN
 		float GetLeft() const;
 		float GetRight() const;
 
+		float GetArea() const
+		{
+			return width*height;
+		}
+
 		Vector2 GetOrigin() const
 		{
 			return Vector2(x, y);

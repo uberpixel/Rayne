@@ -8,6 +8,8 @@
 
 #include "RNVulkanWindow.h"
 #include "RNVulkanRenderer.h"
+#include "RNVulkanSwapChain.h"
+#include "RNVulkanFramebuffer.h"
 
 namespace RN
 {
@@ -18,13 +20,10 @@ namespace RN
 
 	RNDefineMeta(VulkanWindow, Window);
 
-	VulkanWindow::VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer) :
+	VulkanWindow::VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
 		_renderer(renderer),
-		_surface(VK_NULL_HANDLE),
-		_swapchain(VK_NULL_HANDLE),
-		_activeBackBuffer(nullptr),
-		_framebuffer(nullptr)
+		_swapChain(nullptr)
 	{
 #if RN_PLATFORM_WINDOWS
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
@@ -59,6 +58,9 @@ namespace RN
 		_hwnd = ::CreateWindowExW(0, L"RNVulkanWindowClass", L"", style, offset.x, offset.y, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, this);
 
 		::SetForegroundWindow(_hwnd);
+
+		// Create the swap chain
+        _swapChain = new VulkanSwapChain(size, _hwnd, renderer, descriptor);
 #endif
 #if RN_PLATFORM_LINUX
 
@@ -69,7 +71,7 @@ namespace RN
 
 		value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
 		value_list[0] = xcbscreen->black_pixel;
-		value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+		value_list[1] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 		_window = xcb_generate_id(connection);
 
@@ -98,11 +100,16 @@ namespace RN
 		xcb_configure_window(connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, coords);
 
 		xcb_flush(connection);
-#endif
 
 		// Create the swap chain
-		InitializeSurface();
-		ResizeSwapchain(size);
+        _swapChain = new VulkanSwapChain(size, _window, renderer, descriptor);
+#endif
+#if RN_PLATFORM_ANDROID
+		_window = Kernel::GetSharedInstance()->GetAndroidApp()->window;
+
+		// Create the swap chain
+        _swapChain = new VulkanSwapChain(GetSize(), _window, renderer, descriptor);
+#endif
 	}
 
 	VulkanWindow::~VulkanWindow()
@@ -110,151 +117,8 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		::DestroyWindow(_hwnd);
 #endif
-
-		SafeRelease(_framebuffer);
+		SafeRelease(_swapChain);
 	}
-
-	void VulkanWindow::InitializeSurface()
-	{
-		VulkanDevice *device = _renderer->GetVulkanDevice();
-		VulkanInstance *instance = _renderer->GetVulkanInstance();
-
-#if RN_PLATFORM_WINDOWS
-		VkWin32SurfaceCreateInfoKHR surfaceInfo = {};
-		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		surfaceInfo.hinstance = ::GetModuleHandle(nullptr);
-		surfaceInfo.hwnd = _hwnd;
-
-		RNVulkanValidate(vk::CreateWin32SurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
-#endif
-#if RN_PLATFORM_LINUX
-		VkXcbSurfaceCreateInfoKHR surfaceInfo = {};
-		surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-		surfaceInfo.pNext = nullptr;
-		surfaceInfo.flags = 0;
-		surfaceInfo.connection = Kernel::GetSharedInstance()->GetXCBConnection();
-		surfaceInfo.window = _window;
-
-		RNVulkanValidate(vk::CreateXcbSurfaceKHR(instance->GetInstance(), &surfaceInfo, nullptr, &_surface));
-#endif
-
-		VkBool32 surfaceSupported;
-		vk::GetPhysicalDeviceSurfaceSupportKHR(device->GetPhysicalDevice(), 0, _surface, &surfaceSupported);
-
-		RN_ASSERT(surfaceSupported == VK_TRUE, "VkSurface unsupported!");
-
-		std::vector<VkSurfaceFormatKHR> formats;
-		device->GetSurfaceFormats(_surface, formats);
-
-		_format = formats.at(0);
-
-		_extents.width = static_cast<uint32_t>(-1);
-		_extents.height = static_cast<uint32_t>(-1);
-	}
-
-	void VulkanWindow::ResizeSwapchain(const Vector2 &size)
-	{
-		VulkanDevice *device = _renderer->GetVulkanDevice();
-
-		VkSurfaceCapabilitiesKHR caps;
-		RNVulkanValidate(vk::GetPhysicalDeviceSurfaceCapabilitiesKHR(device->GetPhysicalDevice(), _surface, &caps));
-
-		VkExtent2D extent = caps.currentExtent;
-
-		if(extent.width == static_cast<uint32_t>(-1))
-		{
-			extent.width = static_cast<uint32_t>(size.x);
-			extent.height = static_cast<uint32_t>(size.y);
-		}
-
-		extent.width = std::max(caps.minImageExtent.width, std::min(caps.maxImageExtent.width, extent.width));
-		extent.height = std::max(caps.minImageExtent.height, std::min(caps.maxImageExtent.height, extent.height));
-
-		if(_extents.width == extent.width && _extents.height == extent.height)
-			return;
-
-		uint32_t imageCount = std::max(caps.minImageCount, std::min(caps.maxImageCount, static_cast<uint32_t>(kRNVulkanRenderStages)));
-
-		assert(caps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-		assert(caps.supportedTransforms & caps.currentTransform);
-		assert(caps.supportedCompositeAlpha & (VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR));
-
-		VkCompositeAlphaFlagBitsKHR compositeAlpha = (caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) ? VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR : VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-		std::vector<VkPresentModeKHR> modes;
-		device->GetPresentModes(_surface, modes);
-
-		const bool useVSync = true;
-
-		VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR; // FIFO is the only mode universally supported
-		for(auto m : modes)
-		{
-			if((useVSync && m == VK_PRESENT_MODE_MAILBOX_KHR) || (!useVSync && m == VK_PRESENT_MODE_IMMEDIATE_KHR))
-			{
-				mode = m;
-				break;
-			}
-		}
-
-		VkSwapchainCreateInfoKHR swapchainInfo = {};
-		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		swapchainInfo.surface = _surface;
-		swapchainInfo.minImageCount = imageCount;
-		swapchainInfo.imageFormat = _format.format;
-		swapchainInfo.imageColorSpace = _format.colorSpace;
-		swapchainInfo.imageExtent = extent;
-		swapchainInfo.imageArrayLayers = 1;
-		swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		swapchainInfo.preTransform = caps.currentTransform;
-		swapchainInfo.compositeAlpha = compositeAlpha;
-		swapchainInfo.presentMode = mode;
-		swapchainInfo.clipped = VK_TRUE;
-		swapchainInfo.oldSwapchain = _swapchain;
-
-		RNVulkanValidate(vk::CreateSwapchainKHR(device->GetDevice(), &swapchainInfo, nullptr, &_swapchain));
-		_extents = extent;
-
-		// Destroy the old swapchain
-		if(swapchainInfo.oldSwapchain != VK_NULL_HANDLE)
-		{
-			RNVulkanValidate(vk::DeviceWaitIdle(device->GetDevice()));
-			vk::DestroySwapchainKHR(device->GetDevice(), swapchainInfo.oldSwapchain, nullptr);
-		}
-
-		// Create the swapchain
-		for(size_t i = 0; i < imageCount; i ++)
-		{
-			VulkanBackBuffer *buffer = new VulkanBackBuffer(device->GetDevice(), _swapchain);
-			_backBuffers.push(buffer);
-		}
-
-		SafeRelease(_framebuffer);
-
-		Framebuffer::Descriptor descriptor;
-		descriptor.options = Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = Texture::Format::RGBA8888;
-		descriptor.depthFormat = Texture::Format::Depth24Stencil8;
-		descriptor.stencilFormat = Texture::Format::Depth24Stencil8;
-		descriptor.stencilFormat = Texture::Format::Depth24Stencil8;
-
-		_framebuffer = new VulkanFramebuffer(size, descriptor, _swapchain, _renderer);
-	}
-
-	void VulkanWindow::AcquireBackBuffer()
-	{
-		_activeBackBuffer = _backBuffers.front();
-		_activeBackBuffer->AcquireNextImage();
-
-		_backBuffers.pop();
-	}
-
-	void VulkanWindow::PresentBackBuffer()
-	{
-		_activeBackBuffer->Present(_renderer->GetWorkQueue());
-		_backBuffers.push(_activeBackBuffer);
-	}
-
 
 	void VulkanWindow::SetTitle(const String *title)
 	{
@@ -314,6 +178,8 @@ namespace RN
 
 		return result;
 #endif
+
+		return nullptr;
 	}
 
 	void VulkanWindow::Show()
@@ -336,6 +202,11 @@ namespace RN
 #endif
 	}
 
+	void VulkanWindow::SetFullscreen(bool fullscreen)
+	{
+		_swapChain->SetFullscreen(fullscreen);
+	}
+
 	Vector2 VulkanWindow::GetSize() const
 	{
 #if RN_PLATFORM_WINDOWS
@@ -352,6 +223,38 @@ namespace RN
 		free(geometry);
 
 		return size;
+#endif
+#if RN_PLATFORM_ANDROID
+		int width = ANativeWindow_getWidth(_window);
+		int height = ANativeWindow_getHeight(_window);
+		return Vector2(width, height);
+#endif
+	}
+
+	Framebuffer *VulkanWindow::GetFramebuffer() const
+	{
+		return _swapChain->GetFramebuffer();
+	}
+
+	void VulkanWindow::UpdateSize()
+	{
+		_swapChain->ResizeSwapchain(GetSize());
+		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
+	}
+
+	const Window::SwapChainDescriptor &VulkanWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetSwapChainDescriptor();
+	}
+
+	uint64 VulkanWindow::GetWindowHandle() const
+	{
+#if RN_PLATFORM_WINDOWS
+		return reinterpret_cast<uint64>(_hwnd);
+#elif RN_PLATFORM_LINUX
+		return _window;
+#elif RN_PLATFORM_ANDROID
+		return reinterpret_cast<uint64>(_window);
 #endif
 	}
 }

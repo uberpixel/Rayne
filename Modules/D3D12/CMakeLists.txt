@@ -14,7 +14,9 @@ set(SOURCES
         Sources/RND3D12.cpp
         Sources/RND3D12Device.cpp
         Sources/RND3D12Framebuffer.cpp
+        Sources/RND3D12Resource.cpp
         Sources/RND3D12GPUBuffer.cpp
+        Sources/RND3D12Internals.cpp
         Sources/RND3D12Renderer.cpp
         Sources/RND3D12RendererDescriptor.cpp
         Sources/RND3D12Shader.cpp
@@ -22,14 +24,18 @@ set(SOURCES
         Sources/RND3D12StateCoordinator.cpp
         Sources/RND3D12Texture.cpp
         Sources/RND3D12UniformBuffer.cpp
+        Sources/RND3D12SwapChain.cpp
         Sources/RND3D12Window.cpp
         Sources/RND3D12.cpp)
 
 set(HEADERS
+        Sources/d3dx12.h
         Sources/RND3D12.h
         Sources/RND3D12Device.h
         Sources/RND3D12Framebuffer.h
+        Sources/RND3D12Resource.h
         Sources/RND3D12GPUBuffer.h
+        Sources/RND3D12Internals.h
         Sources/RND3D12Renderer.h
         Sources/RND3D12RendererDescriptor.h
         Sources/RND3D12Shader.h
@@ -37,6 +43,7 @@ set(HEADERS
         Sources/RND3D12StateCoordinator.h
         Sources/RND3D12Texture.h
         Sources/RND3D12UniformBuffer.h
+        Sources/RND3D12SwapChain.h
         Sources/RND3D12Window.h)
 
 set(RESOURCES Resources)

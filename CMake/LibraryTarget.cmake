@@ -39,6 +39,10 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
         target_compile_options(${TARGET_NAME} PUBLIC -m64)
     endif()
 
+    if(ANDROID)
+        target_include_directories("${TARGET_NAME}" SYSTEM PRIVATE ${ANDROID_NDK}/sources/android/native_app_glue)
+    endif()
+
     if(NOT ("${_HEADERS}" STREQUAL ""))
         foreach(HEADER ${_HEADERS})
             add_custom_command(TARGET "${TARGET_NAME}" PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
@@ -46,9 +50,19 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
     endif()
 
     if(NOT ("${_RAYNE_LIBRARIES}" STREQUAL ""))
+ #       set(LIBRARY_CONFIGURATION "")
         foreach(LIBRARY ${_RAYNE_LIBRARIES})
-
             set(LIBRARY_NAME ${LIBRARY})
+
+#            if("${LIBRARY_NAME}" STREQUAL "debug")
+#                set(LIBRARY_CONFIGURATION "debug")
+#                continue()
+#            endif()
+
+#            if("${LIBRARY_NAME}" STREQUAL "optimized")
+#                set(LIBRARY_CONFIGURATION "optimized")
+#                continue()
+#            endif()
 
             if("${_TYPE}" STREQUAL "STATIC")
                 set(LIBRARY_NAME "${LIBRARY_NAME}-static")
@@ -95,6 +109,11 @@ macro(rayne_set_module_output_directory _TARGET)
             ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug/${_TARGET}")
 
         set_target_properties(${_TARGET} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}"
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}"
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}")
+
+        set_target_properties(${_TARGET} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/${_TARGET}"
             LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Release/${_TARGET}"
             ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Release/${_TARGET}")
@@ -115,6 +134,11 @@ macro(rayne_set_test_output_directory _TARGET)
             RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/Tests/${_TARGET}"
             LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Debug/Tests/${_TARGET}"
             ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Tests/${_TARGET}")
+
+        set_target_properties(${_TARGET} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/RelWithDebInfo/Tests/${_TARGET}"
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/RelWithDebInfo/Tests/${_TARGET}"
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/RelWithDebInfo/Tests/${_TARGET}")
 
         set_target_properties(${_TARGET} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/Tests/${_TARGET}"

@@ -4,6 +4,11 @@ project(Rayne)
 include(../CMake/CompilerCheck.cmake)
 include(../CMake/LibraryTarget.cmake)
 
+if(MSVC)
+    include(../CMake/Modules/FindWindowsSDK.cmake)
+    get_windowssdk_library_dirs(${WINDOWSSDK_PREFERRED_DIR} WINDOWS_SDK_LIBRARY_PATH)
+endif()
+
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
@@ -16,11 +21,13 @@ set(RAYNE_SOURCES
     Base/RNApplication.cpp
     Base/RNArgumentParser.cpp
     Base/RNBase.cpp
+    Base/RNBumpAllocator.cpp
     Base/RNException.cpp
     Base/RNKernel.cpp
     Base/RNMemoryPool.cpp
     Base/RNNotification.cpp
     Base/RNNotificationManager.cpp
+    Base/RNScopeAllocator.cpp
     Base/RNSettings.cpp
     Base/RNUnicode.cpp
     Assets/RNAsset.cpp
@@ -30,6 +37,8 @@ set(RAYNE_SOURCES
     Assets/RNBitmap.cpp
     Assets/RNPNGAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
+    Assets/RNAudioAsset.cpp
+    Debug/RNLogFormatter.cpp
     Debug/RNLogger.cpp
     Debug/RNLoggingEngine.cpp
     Input/Devices/RNPS4Controller.cpp
@@ -69,9 +78,11 @@ set(RAYNE_SOURCES
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
+    Rendering/RNPostProcessing.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRendererDescriptor.cpp
     Rendering/RNRenderingDevice.cpp
+    Rendering/RNRenderPass.cpp
     Rendering/RNShader.cpp
     Rendering/RNShaderLibrary.cpp
     Rendering/RNTexture.cpp
@@ -80,8 +91,11 @@ set(RAYNE_SOURCES
     Scene/RNEntity.cpp
     Scene/RNInstancingNode.cpp
     Scene/RNScene.cpp
+    Scene/RNSceneAttachment.cpp
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
+    Scene/RNSceneNodeAttachment.cpp
+    Scene/RNLight.cpp
     System/RNFile.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -101,9 +115,11 @@ set(RAYNE_HEADERS
     Assets/RNAssetManager.h
     Assets/RNAssetLoader.h
     Assets/RNBitmap.h
+    Assets/RNAudioAsset.h
     Base/RNApplication.h
     Base/RNArgumentParser.h
     Base/RNBase.h
+    Base/RNBumpAllocator.h
     Base/RNOptions.h
     Base/RNException.h
     Base/RNExpected.h
@@ -113,6 +129,7 @@ set(RAYNE_HEADERS
     Base/RNMemoryPool.h
     Base/RNNotification.h
     Base/RNNotificationManager.h
+    Base/RNScopeAllocator.h
     Base/RNScopedFunction.h
     Base/RNScopeGuard.h
     Base/RNSettings.h
@@ -124,6 +141,7 @@ set(RAYNE_HEADERS
     Data/RNIntrusiveList.h
     Data/RNRingBuffer.h
     Data/RNSpatialMap.h
+    Debug/RNLogFormatter.h
     Debug/RNLogger.h
     Debug/RNLoggingEngine.h
     Input/Devices/RNPS4Controller.h
@@ -175,10 +193,12 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNModel.h
+    Rendering/RNPostProcessing.h
     Rendering/RNRenderer.h
     Rendering/RNRendererDescriptor.h
     Rendering/RNRendererTypes.h
     Rendering/RNRenderingDevice.h
+    Rendering/RNRenderPass.h
     Rendering/RNShader.h
     Rendering/RNShaderLibrary.h
     Rendering/RNTexture.h
@@ -187,8 +207,11 @@ set(RAYNE_HEADERS
     Scene/RNEntity.h
     Scene/RNInstancingNode.h
     Scene/RNScene.h
+    Scene/RNSceneAttachment.h
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h
+    Scene/RNSceneNodeAttachment.h
+    Scene/RNLight.h
     System/RNFile.h
     System/RNFileManager.h
     System/RNScreen.h
@@ -233,6 +256,12 @@ elseif(WIN32)
 
     set(RAYNE_PLATFORM_HEADERS_PRIVATE
             Input/RNInputWindows.h)
+elseif(ANDROID)
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputAndroid.cpp)
+
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputAndroid.h)
 elseif(UNIX)
     set(RAYNE_PLATFORM_SOURCES
             Input/RNInputLinux.cpp)
@@ -241,17 +270,14 @@ elseif(UNIX)
             Input/RNInputLinux.h)
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
-
-
 set(INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_BINARY_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../Vendor/utf8_v2_3_4/source
         ${CMAKE_CURRENT_SOURCE_DIR}/../Vendor/concurrentqueue
-        "${jansson_BINARY_DIR}/include"
-        "${libpng_SOURCE_DIR}"
-        "${libpng_BINARY_DIR}"
-        "${zlib_SOURCE_DIR}")
+        ${jansson_BINARY_DIR}/include
+        ${libpng_SOURCE_DIR}
+        ${libpng_BINARY_DIR}
+        ${zlib_SOURCE_DIR})
 
 set(COMPILE_OPTIONS "")
 set(LINK_LIBRARIES "")
@@ -265,44 +291,95 @@ if(APPLE)
     find_library(IOKIT_LIBRARY IOKit)
 
     set(COMPILE_OPTIONS -xobjective-c++)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
 
     set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 endif()
 
-if(UNIX OR MINGW)
+if((UNIX OR MINGW) AND (NOT ANDROID))
     set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2 -mfpmath=sse -msse -msse2)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
+    if(NOT APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    endif()
+endif()
+
+set(RAYNE_HAS_VTUNE 0)
+
+if(${RAYNE_VTUNE})
+    set(RAYNE_ENABLE_VTUNE 1)
+else()
+    set(RAYNE_ENABLE_VTUNE 1)
 endif()
 
 if(WIN32)
+    find_package(VTune)
+
     if(MINGW)
         find_library(DBGHELP_LIBRARY Dbghelp)
         find_library(PSAPI_LIBRARY Psapi)
 
-        set(LINK_LIBRARIES ${DBGHELP_LIBRARY} ${PSAPI_LIBRARY})
+        set(LINK_LIBRARIES
+                ${DBGHELP_LIBRARY}
+                ${PSAPI_LIBRARY})
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -latomic")
     endif()
 
-    find_library(SETUPAPI_LIBRARY setupapi)
-    set(LINK_LIBRARIES ${LINK_LIBRARIES} ${SETUPAPI_LIBRARY})
+    if(MSVC)
+        find_library(SETUPAPI_LIBRARY SetupAPI
+                PATHS ${WINDOWS_SDK_LIBRARY_PATH})
+    else()
+        find_library(SETUPAPI_LIBRARY SetupAPI)
+    endif()
+
+    if(NOT SETUPAPI_LIBRARY)
+        message(FATAL_ERROR "Setup API library not found")
+    endif()
+
+    set(LINK_LIBRARIES
+            ${LINK_LIBRARIES}
+            ${SETUPAPI_LIBRARY})
+
+    if(VTUNE_FOUND)
+        set(RAYNE_HAS_VTUNE 1)
+
+        set(LINK_LIBRARIES
+                ${LINK_LIBRARIES}
+                ${VTune_LIBRARY})
+
+        set(INCLUDE_DIRECTORIES
+                ${INCLUDE_DIRECTORIES}
+                ${VTune_INCLUDE_DIRS})
+    endif()
 
 endif()
 
-if(UNIX AND (NOT APPLE))
+if(UNIX AND (NOT APPLE) AND (NOT ANDROID))
     find_package(XCB REQUIRED)
     find_library(PTHREAD_LIBRARY pthread)
     find_library(DL_LIBRARY dl)
 
-    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY} ${XCB_LIBRARIES})
+    set(LINK_LIBRARIES ${PTHREAD_LIBRARY} ${DL_LIBRARY} ${XCB_LIBRARIES} -lX11 -lXi) #-ludev -levdev would be needed for hid stuff, but require root...
     set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${XCB_INCLUDE_DIRS})
+endif()
+
+if(ANDROID)
+    #set(RAYNE_PLATFORM_SOURCES ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+    #set(RAYNE_HEADERS ${RAYNE_HEADERS} ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.h)
+    set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${ANDROID_NDK}/sources/android/native_app_glue)
+
+    set(LINK_LIBRARIES ${LINK_LIBRARIES} android log)
 endif()
 
 set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic)
 
 set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
 set(TARGET_HEADERS ${RAYNE_HEADERS})
+
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/RayneConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/RayneConfig.h)
 
 rayne_add_library(Rayne "${TARGET_SOURCES}" "${TARGET_HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 

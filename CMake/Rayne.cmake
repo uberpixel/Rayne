@@ -5,11 +5,25 @@ macro(rayne_link_with _TARGET)
 
     target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 
+    if(ANDROID)
+        target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include ${ANDROID_NDK}/sources/android/native_app_glue)
+
+        add_library(android-app-glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+        target_link_libraries(${_TARGET} android-app-glue android log)
+
+        set_property(TARGET "${_TARGET}" APPEND_STRING PROPERTY LINK_FLAGS " -u ANativeActivity_onCreate")
+    endif()
+
     if(WIN32)
         set_target_properties(${_TARGET} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/${_TARGET}"
                 LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Debug/${_TARGET}"
                 ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug/${_TARGET}")
+
+        set_target_properties(${_TARGET} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}"
+                RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}"
+                RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/RelWithDebInfo/${_TARGET}")
 
         set_target_properties(${_TARGET} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/${_TARGET}"
@@ -27,18 +41,50 @@ macro(rayne_use_modules _TARGET _MODULES)
     foreach(_MODULE ${_MODULES})
         set(_MODULE_TARGET "${_MODULE}")
         target_link_libraries(${_TARGET} ${_MODULE_TARGET})
-        target_include_directories(Basic SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
+        target_include_directories(${_TARGET} SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
 
         add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "$<TARGET_FILE_DIR:${_TARGET}>/Resources/Modules/${_MODULE}")
+
+        if(WIN32)
+            add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${_MODULE_TARGET}>" "$<TARGET_FILE_DIR:${_TARGET}>/$<TARGET_FILE_NAME:${_MODULE_TARGET}>")
+        endif()
+
+        if(ANDROID)
+            list(GET ANDROID_ASSETS_DIRECTORIES 0 android-assets-dir)
+            string(LENGTH ${android-assets-dir} length)
+            MATH(EXPR length "${length}-2")
+            string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
+            add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${android-assets-dir})
+
+            add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "${android-assets-dir}/Resources/Modules/${_MODULE}")
+        endif()
     endforeach()
 endmacro()
 
 macro(rayne_copy_resources _TARGET _RESOURCES)
+    if(ANDROID)
+        list(GET ANDROID_ASSETS_DIRECTORIES 0 android-assets-dir)
+        string(LENGTH ${android-assets-dir} length)
+        MATH(EXPR length "${length}-2")
+        string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
+        add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${android-assets-dir})
+    endif()
+
     foreach(_RESOURCE ${_RESOURCES})
-        if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
-            add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+        if(ANDROID)
+            if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
+                add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "${android-assets-dir}/${_RESOURCE}")
+
+                #message(FATAL_ERROR "info: ${android-assets-dir}/${_RESOURCE}")
+            else()
+                add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "${android-assets-dir}/${_RESOURCE}")
+            endif()
         else()
-            add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+            if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
+                add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+            else()
+                add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+            endif()
         endif()
     endforeach()
 endmacro()

@@ -7,9 +7,19 @@
 //
 
 #include "../Base/RNNotificationManager.h"
+#include "../Base/RNScopeAllocator.h"
 #include "../Debug/RNLogger.h"
 #include "Devices/RNPS4Controller.h"
 #include "RNInputManager.h"
+
+#if RN_PLATFORM_LINUX
+#include <X11/X.h>
+#include <X11/Xlib.h>
+//#include <X11/Intrinsic.h>
+#include <X11/extensions/Xfixes.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
+#endif
 
 namespace RN
 {
@@ -64,9 +74,11 @@ namespace RN
 	{
 		__sharedInstance = this;
 
-#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		memset(_keyPressed, 0, 256*sizeof(bool));
+#endif
 
+#if RN_PLATFORM_WINDOWS
 		RAWINPUTDEVICE Rid[2];
 
 		Rid[0].usUsagePage = 0x01;
@@ -80,6 +92,56 @@ namespace RN
 		Rid[1].hwndTarget = 0;
 
 		RN_ASSERT(RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])), "Raw input shit is broken, yo!");
+#endif
+
+#if RN_PLATFORM_LINUX
+		_xDisplay = XOpenDisplay(NULL);
+		if(!_xDisplay)
+		{
+			RNDebug("Failed to open X display for input.");
+			return;
+		}
+
+		int event, error;
+		if(!XQueryExtension(_xDisplay, "XInputExtension", &_xiOpcode, &event, &error))
+		{
+			RNDebug("X Input extension not available.");
+			return;
+		}
+
+		int major = 2;
+		int minor = 2;
+		int rc = XIQueryVersion(_xDisplay, &major, &minor);
+		if(rc == BadRequest)
+		{
+			RNDebug("No XI2 support.");
+			return;
+		}
+		else if(rc != Success)
+		{
+			RNDebug("Internal Error! This is a bug in Xlib.");
+		}
+
+		RNDebug("XI2 supported.");
+
+
+		XIEventMask evmask;
+
+		uint8 maskLen = (XI_LASTEVENT + 7)/8;
+		unsigned char mask1[maskLen];
+		memset(mask1, 0, sizeof(mask1));
+
+		/* select for button and key events from all master devices */
+		XISetMask(mask1, XI_RawMotion);
+		XISetMask(mask1, XI_RawKeyPress);
+		XISetMask(mask1, XI_RawKeyRelease);
+
+		evmask.deviceid = XIAllMasterDevices;
+		evmask.mask_len = sizeof(mask1);
+		evmask.mask = mask1;
+
+		XISelectEvents(_xDisplay, DefaultRootWindow(_xDisplay), &evmask, 1);
+		XFlush(_xDisplay);
 #endif
 
 		PS4Controller::RegisterDriver();
@@ -107,12 +169,13 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 	void InputManager::__HandleRawInput(HRAWINPUT lParam)
 	{
-		UINT dwSize;
-		GetRawInputData(lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-		LPBYTE lpb = new BYTE[dwSize];
-		if(lpb == NULL){ return; }
+		ScopeAllocator allocator;
 
-		RN_ASSERT(GetRawInputData(lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize , "GetRawInputData does not return correct size !");
+		UINT dwSize;
+		GetRawInputData(lParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
+		auto lpb = allocator.AllocBytes<BYTE>(dwSize);
+
+		RN_ASSERT(GetRawInputData(lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize , "GetRawInputData does not return correct size!");
 
 		RAWINPUT* rawInput = (RAWINPUT*)lpb;
 
@@ -126,8 +189,13 @@ namespace RN
 			_mouseMovement.x += rawInput->data.mouse.lLastX;
 			_mouseMovement.y += rawInput->data.mouse.lLastY;
 		}
-
-		delete[] lpb;
+	}
+#endif
+	
+#if RN_PLATFORM_MAC_OS
+	void InputManager::ProcessKeyEvent(uint16 keyCode, bool state)
+	{
+		if(keyCode < 256) _keyPressed[keyCode] = state;
 	}
 #endif
 
@@ -224,7 +292,57 @@ namespace RN
 
 		});
 
-#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_LINUX
+		XEvent ev;
+		while(XPending(_xDisplay) > 0)
+		{
+			XNextEvent(_xDisplay, &ev);
+			XGenericEventCookie *cookie = &ev.xcookie;
+			if(cookie->type != GenericEvent || cookie->extension != _xiOpcode || !XGetEventData(_xDisplay, cookie)) continue;
+
+			switch(cookie->evtype)
+			{
+				case XI_RawMotion:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+
+					double *raw_valuator = re->raw_values;
+					double *valuator = re->valuators.values;
+					for(int i = 0; i < re->valuators.mask_len * 8; i++)
+					{
+						if(XIMaskIsSet(re->valuators.mask, i))
+						{
+							if(i == 0)
+								_mouseMovement.x += static_cast<float>(*raw_valuator);
+							if(i == 1)
+								_mouseMovement.y += static_cast<float>(*raw_valuator);
+
+							valuator++;
+							raw_valuator++;
+						}
+					}
+					break;
+				}
+
+				case XI_RawKeyPress:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+					_keyPressed[re->detail] = true;
+					break;
+				}
+
+				case XI_RawKeyRelease:
+				{
+					XIRawEvent *re = (XIRawEvent *) cookie->data;
+					_keyPressed[re->detail] = false;
+					break;
+				}
+			}
+			XFreeEventData(_xDisplay, cookie);
+		}
+#endif
+
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 		_mouseDelta += _mouseMovement;
 		_mouseMovement = Vector3();
 #endif
@@ -387,21 +505,220 @@ namespace RN
 		}
 
 #if RN_PLATFORM_WINDOWS
-		if(name->IsEqual(RNCSTR("W")))
+		//TODO: Support all keys
+		if(name->IsEqual(RNCSTR("0")))
 		{
-			return _keyPressed[0x57];
+			return _keyPressed[0x30];
 		}
+		if(name->IsEqual(RNCSTR("1")))
+		{
+			return _keyPressed[0x31];
+		}
+		if(name->IsEqual(RNCSTR("2")))
+		{
+			return _keyPressed[0x32];
+		}
+		if(name->IsEqual(RNCSTR("3")))
+		{
+			return _keyPressed[0x33];
+		}
+		if(name->IsEqual(RNCSTR("4")))
+		{
+			return _keyPressed[0x34];
+		}
+		if(name->IsEqual(RNCSTR("5")))
+		{
+			return _keyPressed[0x35];
+		}
+		if(name->IsEqual(RNCSTR("6")))
+		{
+			return _keyPressed[0x36];
+		}
+		if(name->IsEqual(RNCSTR("7")))
+		{
+			return _keyPressed[0x37];
+		}
+		if(name->IsEqual(RNCSTR("8")))
+		{
+			return _keyPressed[0x38];
+		}
+		if(name->IsEqual(RNCSTR("9")))
+		{
+			return _keyPressed[0x39];
+		}
+
 		if(name->IsEqual(RNCSTR("A")))
 		{
 			return _keyPressed[0x41];
+		}
+		if(name->IsEqual(RNCSTR("B")))
+		{
+			return _keyPressed[0x42];
+		}
+		if(name->IsEqual(RNCSTR("C")))
+		{
+			return _keyPressed[0x43];
+		}
+		if(name->IsEqual(RNCSTR("D")))
+		{
+			return _keyPressed[0x44];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[0x45];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[0x46];
+		}
+		if(name->IsEqual(RNCSTR("G")))
+		{
+			return _keyPressed[0x47];
+		}
+		if(name->IsEqual(RNCSTR("H")))
+		{
+			return _keyPressed[0x48];
+		}
+		if(name->IsEqual(RNCSTR("I")))
+		{
+			return _keyPressed[0x49];
+		}
+		if(name->IsEqual(RNCSTR("J")))
+		{
+			return _keyPressed[0x4A];
+		}
+		if(name->IsEqual(RNCSTR("K")))
+		{
+			return _keyPressed[0x4B];
+		}
+		if(name->IsEqual(RNCSTR("L")))
+		{
+			return _keyPressed[0x4C];
+		}
+		if(name->IsEqual(RNCSTR("M")))
+		{
+			return _keyPressed[0x4D];
+		}
+		if(name->IsEqual(RNCSTR("N")))
+		{
+			return _keyPressed[0x4E];
+		}
+		if(name->IsEqual(RNCSTR("O")))
+		{
+			return _keyPressed[0x4F];
+		}
+		if(name->IsEqual(RNCSTR("P")))
+		{
+			return _keyPressed[0x50];
+		}
+		if(name->IsEqual(RNCSTR("Q")))
+		{
+			return _keyPressed[0x51];
+		}
+		if(name->IsEqual(RNCSTR("R")))
+		{
+			return _keyPressed[0x52];
 		}
 		if(name->IsEqual(RNCSTR("S")))
 		{
 			return _keyPressed[0x53];
 		}
+		if(name->IsEqual(RNCSTR("T")))
+		{
+			return _keyPressed[0x54];
+		}
+		if(name->IsEqual(RNCSTR("U")))
+		{
+			return _keyPressed[0x55];
+		}
+		if(name->IsEqual(RNCSTR("V")))
+		{
+			return _keyPressed[0x56];
+		}
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[0x57];
+		}
+		if(name->IsEqual(RNCSTR("X")))
+		{
+			return _keyPressed[0x58];
+		}
+		if(name->IsEqual(RNCSTR("Y")))
+		{
+			return _keyPressed[0x59];
+		}
+		if(name->IsEqual(RNCSTR("Z")))
+		{
+			return _keyPressed[0x5A];
+		}
+
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[0x1B];
+		}
+#endif
+		
+#if RN_PLATFORM_MAC_OS
+		//TODO: Support all keys
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[13];
+		}
+		if(name->IsEqual(RNCSTR("A")))
+		{
+			return _keyPressed[0];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[1];
+		}
 		if(name->IsEqual(RNCSTR("D")))
 		{
-			return _keyPressed[0x44];
+			return _keyPressed[2];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[14];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[3];
+		}
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[53];
+		}
+#endif
+
+#if RN_PLATFORM_LINUX
+		//TODO: Support all keys
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			return _keyPressed[25];
+		}
+		if(name->IsEqual(RNCSTR("A")))
+		{
+			return _keyPressed[38];
+		}
+		if(name->IsEqual(RNCSTR("S")))
+		{
+			return _keyPressed[39];
+		}
+		if(name->IsEqual(RNCSTR("D")))
+		{
+			return _keyPressed[40];
+		}
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			return _keyPressed[26];
+		}
+		if(name->IsEqual(RNCSTR("F")))
+		{
+			return _keyPressed[41];
+		}
+		if (name->IsEqual(RNCSTR("ESC")))
+		{
+			return _keyPressed[9];
 		}
 #endif
 

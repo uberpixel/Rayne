@@ -19,147 +19,26 @@ namespace RN
 {
 	RNExceptionType(D3D12StructArgumentUnsupported)
 
-	class D3D12RenderingStateUniformBufferMember
+	class D3D12UniformBuffer;
+	class D3D12Framebuffer;
+
+	struct D3D12UniformState
 	{
-	public:
-/*		D3D12RenderingStateUniformBufferMember(MTLStructMember *member)
-		{
-			_name = RNSTR([[member name] UTF8String])->Retain();
-			_offset = [member offset];
-
-			switch([member dataType])
-			{
-				case MTLDataTypeUChar:
-					_type = PrimitiveType::Uint8;
-					break;
-				case MTLDataTypeUShort:
-					_type = PrimitiveType::Uint16;
-					break;
-				case MTLDataTypeUInt:
-					_type = PrimitiveType::Uint32;
-					break;
-				case MTLDataTypeChar:
-					_type = PrimitiveType::Int8;
-					break;
-				case MTLDataTypeShort:
-					_type = PrimitiveType::Int16;
-					break;
-				case MTLDataTypeInt:
-					_type = PrimitiveType::Int32;
-					break;
-				case MTLDataTypeFloat:
-					_type = PrimitiveType::Float;
-					break;
-				case MTLDataTypeFloat4x4:
-					_type = PrimitiveType::Matrix;
-					break;
-				case MTLDataTypeFloat2:
-					_type = PrimitiveType::Vector2;
-					break;
-				case MTLDataTypeFloat3:
-					_type = PrimitiveType::Vector3;
-					break;
-				case MTLDataTypeFloat4:
-					_type = PrimitiveType::Vector4;
-					break;
-				default:
-					throw D3D12StructArgumentUnsupportedException("Unknown argument");
-			}
-		}*/
-
-		~D3D12RenderingStateUniformBufferMember()
-		{
-			SafeRelease(_name);
-		}
-
-		const String *GetName() const { return _name; }
-		size_t GetOffset() const { return _offset; }
-
-	private:
-		String *_name;
-		PrimitiveType _type;
-		size_t _offset;
+		D3D12UniformBuffer *vertexUniformBuffer;
+		D3D12UniformBuffer *fragmentUniformBuffer;
 	};
-
-	struct D3D12RenderingStateArgument
-	{
-		enum class Type
-		{
-			Unknown,
-			Buffer,
-			Texture,
-			Sampler
-		};
-
-/*		D3D12RenderingStateArgument(MTLArgument *argument) :
-			index([argument index])
-		{
-			switch([argument type])
-			{
-				case MTLArgumentTypeBuffer:
-					type = Type::Buffer;
-					break;
-				case MTLArgumentTypeTexture:
-					type = Type::Texture;
-					break;
-				case MTLArgumentTypeSampler:
-					type = Type::Sampler;
-					break;
-				default:
-					type = Type::Unknown;
-					break;
-			}
-		}*/
-
-		virtual ~D3D12RenderingStateArgument()
-		{}
-
-		size_t index;
-		Type type;
-	};
-
-	struct D3D12RenderingStateUniformBufferArgument : public D3D12RenderingStateArgument
-	{
-/*		D3D12RenderingStateUniformBufferArgument(MTLArgument *argument) :
-			D3D12RenderingStateArgument(argument),
-			size([argument bufferDataSize])
-		{
-			MTLStructType *structType = [argument bufferStructType];
-
-			for(MTLStructMember *member in [structType members])
-			{
-				members.emplace_back(new D3D12RenderingStateUniformBufferMember(member));
-			}
-		}*/
-
-		~D3D12RenderingStateUniformBufferArgument()
-		{
-			for(auto member : members)
-				delete member;
-		}
-
-		std::vector<D3D12RenderingStateUniformBufferMember *> members;
-		size_t size;
-	};
-
 
 	struct D3D12DepthStencilState
 	{
 		D3D12DepthStencilState() = default;
-/*		D3D12DepthStencilState(Material *material, id<MTLDepthStencilState> tstate) :
-			mode(material->GetDepthMode()),
-			depthWriteEnabled(material->GetDepthWriteEnabled()),
-			state(tstate)
-		{}*/
 
 		~D3D12DepthStencilState()
 		{
-//			[state release];
+
 		}
 
 		DepthMode mode;
 		bool depthWriteEnabled;
-//		id<MTLDepthStencilState> state;
 
 		RN_INLINE bool MatchesMaterial(Material *material) const
 		{
@@ -167,38 +46,69 @@ namespace RN
 		}
 	};
 
-	struct D3D12RenderingState
+	struct D3D12RootSignature
 	{
-		~D3D12RenderingState();
+		~D3D12RootSignature();
 
-		size_t pixelFormat;
-		size_t depthStencilFormat;
-		ID3D12PipelineState *state;
+		uint8 textureCount;
+		Array *samplers;
+		uint8 constantBufferCount;
 
-		std::vector<D3D12RenderingStateArgument *> vertexArguments;
-		std::vector<D3D12RenderingStateArgument *> fragmentArguments;
+		bool wantsDirectionalShadowTexture; //TODO: Solve better...
+
+		ID3D12RootSignature *signature;
 	};
 
-	struct D3D12RenderingStateCollection
+	struct D3D12PipelineStateDescriptor
 	{
-		D3D12RenderingStateCollection() = default;
-		D3D12RenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, void *vertex, void *fragment) :
+		Shader::UsageHint shaderHint;
+
+		std::vector<DXGI_FORMAT> colorFormats;
+		DXGI_FORMAT depthStencilFormat;
+		uint8 sampleCount;
+		uint8 sampleQuality;
+
+		Shader *vertexShader;
+		Shader *fragmentShader;
+
+		CullMode cullMode;
+		bool usePolygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
+
+		bool useAlphaToCoverage;
+	};
+
+	struct D3D12PipelineState
+	{
+		~D3D12PipelineState();
+
+		D3D12PipelineStateDescriptor descriptor;
+		const D3D12RootSignature *rootSignature;
+
+		ID3D12PipelineState *state;
+	};
+
+	struct D3D12PipelineStateCollection
+	{
+		D3D12PipelineStateCollection() = default;
+		D3D12PipelineStateCollection(const Mesh::VertexDescriptor &tdescriptor, Shader *vertex, Shader *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex),
 			fragmentShader(fragment)
 		{}
 
-		~D3D12RenderingStateCollection()
+		~D3D12PipelineStateCollection()
 		{
-			for(D3D12RenderingState *state : states)
+			for(D3D12PipelineState *state : states)
 				delete state;
 		}
 
 		Mesh::VertexDescriptor descriptor;
-		void *vertexShader;
-		void *fragmentShader;
+		Shader *vertexShader;
+		Shader *fragmentShader;
 
-		std::vector<D3D12RenderingState *> states;
+		std::vector<D3D12PipelineState *> states;
 	};
 
 	class D3D12StateCoordinator
@@ -207,24 +117,19 @@ namespace RN
 		D3D12StateCoordinator();
 		~D3D12StateCoordinator();
 
-/*		id<MTLDepthStencilState> GetDepthStencilStateForMaterial(Material *material);
-		id<MTLSamplerState> GetSamplerStateForTextureParameter(const Texture::Parameter &parameter);*/
-
-		const D3D12RenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Camera *camera);
+		const D3D12RootSignature *GetRootSignature(const D3D12PipelineStateDescriptor &pipelineDescriptor);
+		const D3D12PipelineState *GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
+		D3D12UniformState *GetUniformStateForPipelineState(const D3D12PipelineState *pipelineState);
 
 	private:
-		D3D12_INPUT_LAYOUT_DESC CreateVertexDescriptorFromMesh(Mesh *mesh);
-		const D3D12RenderingState *GetRenderPipelineStateInCollection(D3D12RenderingStateCollection *collection, Mesh *mesh, Camera *camera);
-
-//		id<MTLDevice> _device;
-
-		std::mutex _samplerLock;
-//		std::vector<std::pair<id<MTLSamplerState>, Texture::Parameter>> _samplers;
+		std::vector<D3D12_INPUT_ELEMENT_DESC> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
+		const D3D12PipelineState *GetRenderPipelineStateInCollection(D3D12PipelineStateCollection *collection, Mesh *mesh, const D3D12PipelineStateDescriptor &pipelineDescriptor);
 
 		std::vector<D3D12DepthStencilState *> _depthStencilStates;
 		const D3D12DepthStencilState *_lastDepthStencilState;
 
-		std::vector<D3D12RenderingStateCollection *> _renderingStates;
+		std::vector<D3D12PipelineStateCollection *> _renderingStates;
+		std::vector<D3D12RootSignature *> _rootSignatures;
 	};
 }
 

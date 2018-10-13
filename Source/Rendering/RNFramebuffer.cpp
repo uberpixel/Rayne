@@ -13,9 +13,8 @@ namespace RN
 {
 	RNDefineMeta(Framebuffer, Object)
 
-	Framebuffer::Framebuffer(const Vector2 &size, const Descriptor &descriptor) :
-		_size(size),
-		_descriptor(descriptor)
+	Framebuffer::Framebuffer(const Vector2 &size) :
+		_size(size)
 	{}
 	Framebuffer::~Framebuffer()
 	{}

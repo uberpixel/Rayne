@@ -22,7 +22,14 @@ namespace RN
 	public:
 		enum class Format
 		{
+			RGBA8888SRGB,
+			BGRA8888SRGB,
+			
+			RGB888SRGB,
+			BGR888SRGB,
+
 			RGBA8888,
+			BGRA8888,
 			RGB10A2,
 
 			R8,
@@ -48,24 +55,25 @@ namespace RN
 			Invalid
 		};
 
+		enum class Type
+		{
+			Type1D,
+			Type1DArray,
+			Type2D,
+			Type2DMS,
+			Type2DArray,
+			TypeCube,
+			TypeCubeArray,
+			Type3D
+		};
+
+		RN_OPTIONS(UsageHint, uint32,
+			ShaderRead = (1 << 0),
+			ShaderWrite = (1 << 1),
+			RenderTarget = (1 << 2));
+
 		struct Descriptor
 		{
-			enum class Type
-			{
-				Type1D,
-				Type1DArray,
-				Type2D,
-				Type2DArray,
-				TypeCube,
-				TypeCubeArray,
-				Type3D
-			};
-
-			RN_OPTIONS(UsageHint, uint32,
-					   ShaderRead = (1 << 0),
-					   ShaderWrite = (1 << 1),
-					   RenderTarget = (1 << 2));
-
 			Descriptor() :
 				type(Type::Type2D),
 				accessOptions(GPUResource::AccessOptions::ReadWrite),
@@ -73,9 +81,15 @@ namespace RN
 				width(1),
 				height(1),
 				depth(1),
-				mipMaps(1)
+				mipMaps(1),
+				format(Format::RGBA8888SRGB),
+				sampleCount(1),
+				sampleQuality(0),
+				preferredClearColor(Color::White()),
+				preferredClearDepth(1.0f),
+				preferredClearStencil(0)
 			{
-				SetFormat(__TranslateFormat(Format::RGBA8888));
+
 			}
 
 			static Descriptor With2DTextureAndFormat(Format format, uint32 width, uint32 height, bool mipMapped)
@@ -83,10 +97,38 @@ namespace RN
 				Descriptor descriptor;
 				descriptor.width = width;
 				descriptor.height = height;
-				descriptor.SetFormat(__TranslateFormat(format));
+				descriptor.format = format;
 
 				if(mipMapped)
 					descriptor.CalculateMipMapCount();
+
+				return descriptor;
+			}
+
+			static Descriptor With2DRenderTargetFormat(Format format, uint32 width, uint32 height)
+			{
+				Descriptor descriptor;
+				descriptor.type = Type::Type2D;
+				descriptor.width = width;
+				descriptor.height = height;
+				descriptor.format = format;
+				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+				descriptor.accessOptions = GPUResource::AccessOptions::Private;
+
+				return descriptor;
+			}
+
+			static Descriptor With2DRenderTargetFormatAndMSAA(Format format, uint32 width, uint32 height, uint8 sampleCount, uint8 sampleQuality = 0)
+			{
+				Descriptor descriptor;
+				descriptor.type = Type::Type2DMS;
+				descriptor.width = width;
+				descriptor.height = height;
+				descriptor.format = format;
+				descriptor.usageHint = UsageHint::ShaderRead | UsageHint::RenderTarget;
+				descriptor.accessOptions = GPUResource::AccessOptions::Private;
+				descriptor.sampleCount = sampleCount;
+				descriptor.sampleQuality = sampleQuality;
 
 				return descriptor;
 			}
@@ -110,18 +152,6 @@ namespace RN
 				return std::max(newHeight, 1);
 			}
 
-			void SetFormat(Format format)
-			{
-				SetFormat(__TranslateFormat(format));
-			}
-
-			void SetFormat(const String *format)
-			{
-				_format = SafeCopy(format);
-			}
-
-			const String *GetFormat() const { return _format; }
-
 			Type type;
 			GPUResource::AccessOptions accessOptions;
 			UsageHint usageHint;
@@ -129,11 +159,13 @@ namespace RN
 			uint32 height;
 			uint32 depth;
 			uint32 mipMaps;
+			Format format;
+			uint8 sampleCount; //TODO: Should be verified against the values supported by the hardware. Should be possible to querie the supported values.
+			uint8 sampleQuality; //TODO: Should be verified against the values supported by the hardware. Should be possible to querie the supported values.
 
-		private:
-			RNAPI static const String *__TranslateFormat(Format format);
-
-			StrongRef<String> _format;
+			Color preferredClearColor;
+			float preferredClearDepth;
+			uint8 preferredClearStencil;
 		};
 
 		struct Region
@@ -174,39 +206,6 @@ namespace RN
 			};
 		};
 
-		enum class WrapMode
-		{
-			Clamp,
-			Repeat
-		};
-
-		enum class Filter
-		{
-			Linear,
-			Nearest
-		};
-
-		struct Parameter
-		{
-			Parameter() :
-				filter(Filter::Linear),
-				wrapMode(WrapMode::Repeat),
-				depthCompare(false),
-				anisotropy(Texture::GetDefaultAnisotropy())
-			{}
-
-			bool operator== (const Parameter &other) const
-			{
-				return (filter == other.filter && wrapMode == other.wrapMode && depthCompare == other.depthCompare && anisotropy == other.anisotropy);
-			}
-
-			Filter filter;
-			WrapMode wrapMode;
-
-			bool depthCompare;
-			uint32 anisotropy;
-		};
-
 		enum class ColorChannel
 		{
 			Red,
@@ -216,29 +215,23 @@ namespace RN
 		};
 
 		RNAPI static Texture *WithName(const String *name, const Dictionary *settings = nullptr);
+		RNAPI static Texture *WithDescriptor(const Descriptor &descriptor);
 
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) = 0;
 		RNAPI virtual void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const = 0;
 
-		RNAPI virtual void SetParameter(const Parameter &parameter);
-
 		RNAPI virtual void GenerateMipMaps() = 0;
-		RNAPI virtual bool HasColorChannel(ColorChannel channel) const = 0;
+		RNAPI virtual bool HasColorChannel(ColorChannel channel) const;
 
 		const Descriptor &GetDescriptor() const RN_NOEXCEPT { return _descriptor; }
-		const Parameter &GetParameter() const RN_NOEXCEPT { return _parameter; }
-
-		RNAPI static uint32 GetDefaultAnisotropy();
-		RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
 
 	protected:
 		RNAPI Texture(const Descriptor &descriptor);
 		RNAPI ~Texture();
 
 		Descriptor _descriptor;
-		Parameter _parameter;
 
 		__RNDeclareMetaInternal(Texture)
 	};

@@ -12,87 +12,121 @@
 #include "RNVulkan.h"
 #include "RNVulkanDevice.h"
 #include "RNVulkanRendererDescriptor.h"
-#include "RNVulkanBackBuffer.h"
 
 namespace RN
 {
 	class VulkanWindow;
 	struct VulkanRendererInternals;
 	struct VulkanDrawable;
+	struct VulkanRenderPass;
 	class VulkanTexture;
+	class VulkanCommandBuffer;
+	class VulkanCommandBufferWithCallback;
+	class VulkanFramebuffer;
+	class VulkanStateCoordinator;
+	class VulkanConstantBufferPool;
+	class VulkanConstantBufferReference;
 
 	class VulkanRenderer : public Renderer
 	{
 	public:
+		friend VulkanFramebuffer;
+		friend VulkanStateCoordinator;
+
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();
 
-		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		VKAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
+		VKAPI void SetMainWindow(Window *window) final;
 		VKAPI Window *GetMainWindow() final;
 
-		VKAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		VKAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		VKAPI void Render(Function &&function) final;
+		VKAPI void SubmitCamera(Camera *camera, Function &&function) final;
+		VKAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		VKAPI bool SupportsTextureFormat(const String *format) const final;
 		VKAPI bool SupportsDrawMode(DrawMode mode) const final;
 
 		VKAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
-		VKAPI const String *GetTextureFormatName(const Texture::Format format) const final;
-		VKAPI VkFormat GetVulkanFormatForName(const String *name);
 
+
+		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+
+		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
+
+		VKAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint = Shader::UsageHint::Default) final;
+		VKAPI ShaderLibrary *GetDefaultShaderLibrary() final;
+
+		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
 		VKAPI void CreateMipMapForTexture(VulkanTexture *texture);
 		VKAPI void CreateMipMaps();
 
-		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
-		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions options, GPUResource::AccessOptions accessOptions) final;
-
-		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
-
-		VKAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
-
-		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
-
-		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		VKAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		VKAPI Drawable *CreateDrawable() final;
+		VKAPI void DeleteDrawable(Drawable *drawable) final;
 		VKAPI void SubmitDrawable(Drawable *drawable) final;
+		VKAPI void SubmitLight(const Light *light) final;
 
 		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }
 		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }
 
 		VkQueue GetWorkQueue() const { return _workQueue; }
-		VkResult CreateCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
-		VkResult CreateCommandBuffer(VkCommandBuffer &buffer);
-
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
+		VkDescriptorPool GetDescriptorPool() const { return _descriptorPool; }
 
-		VkCommandBuffer GetGlobalCommandBuffer() const { return _commandBuffer; }
-		void SubmitGlobalCommandBuffer();
-		void BeginGlobalCommandBuffer();
+		VKAPI VulkanCommandBuffer *GetCommandBuffer();
+		VKAPI VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
+		VKAPI void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
+
+		VKAPI void AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset = 0);
+		VKAPI VulkanConstantBufferReference *GetConstantBufferReference(size_t size, size_t index);
 
 	private:
-		void FillUniformBuffer(GPUBuffer *uniformBuffer, VulkanDrawable *drawable);
+		void UpdateDescriptorSets();
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
+		void FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader);
 
-		VulkanWindow *_mainWindow;
+		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
+
+		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
+		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
+
+		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
+		VkCommandBuffer CreateVulkanCommandBuffer();
+
+		void UpdateFrameFences();
+		void ReleaseFrameResources(uint32 frame);
+
+		Window *_mainWindow;
+		ShaderLibrary *_defaultShaderLibrary;
 
 		PIMPL<VulkanRendererInternals> _internals;
 
 		Lockable _lock;
 
-		Dictionary *_textureFormatLookup;
-		Dictionary *_defaultShaders;
+		Array *_mipMapTextures;
 
-		Set *_mipMapTextures;
-
+		VkDescriptorPool _descriptorPool;
 		VkQueue _workQueue;
-
+		VulkanCommandBuffer *_currentCommandBuffer;
 		VkCommandPool _commandPool;
-		VkCommandBuffer _commandBuffer;
+		Array *_submittedCommandBuffers;
+		Array *_executedCommandBuffers;
+		Array *_commandBufferPool;
 
+		VulkanConstantBufferPool *_constantBufferPool;
+
+		std::vector<VkFence> _frameFences;
+		std::vector<uint32> _frameFenceValues;
+		uint32 _currentFrameFenceIndex;
+
+		size_t _currentDrawableIndex;
 		size_t _currentFrame;
+		size_t _completedFrame;
 
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};

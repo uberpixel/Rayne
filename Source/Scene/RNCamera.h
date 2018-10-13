@@ -13,65 +13,51 @@
 #include "../Base/RNBase.h"
 #include "../Math/RNPlane.h"
 #include "../Math/RNRect.h"
-#include "../Rendering/RNFramebuffer.h"
+#include "../Rendering/RNRenderPass.h"
+#include "../Rendering/RNMaterial.h"
 #include "RNSceneNode.h"
 
 namespace RN
 {
 	class Window;
+	class Light;
 	class Camera : public SceneNode
 	{
 	public:
 		friend class Scene;
+		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
-				   NoSky        = (1 << 5),
 				   NoSorting    = (1 << 6),
 				   NoRender     = (1 << 7),
-				   NoFlush      = (1 << 8),
-				   NoDepthWrite = (1 << 9),
-				   NoClear      = (1 << 10),
-				   ForceFlush   = (1 << 11),
-
+				   NoDepthWrite = (1 << 8),
 
 				   InheritPosition   = (1 << 12),
 				   InheritFrame      = (1 << 13),
 				   InheritProjection = (1 << 14),
 
-				   Fullscreen = (1 << 20),
 				   Orthogonal = (1 << 21),
 				   Hidden     = (1 << 22),
 
 				   UseFog          = (1 << 24),
 				   UseClipPlanes   = (1 << 25),
+				   UseSimpleCulling = (1 << 26),
 
-				   Defaults = (Fullscreen | UseFog),
-				   Inherit  = (InheritFrame | InheritPosition | InheritProjection));
+				   Defaults = (UseFog));
 
 
 
-		RNAPI Camera();
-		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags);
-
-/*		RNAPI Camera(const Vector2 &size, Texture *target);
-		RNAPI Camera(const Vector2 &size, Texture *target, Flags flags);
-		RNAPI Camera(const Vector2 &size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
-
-		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat);
-		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags);
-		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
-
-		RNAPI Camera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);*/
+		RNAPI Camera(RenderPass *renderPass = nullptr);
+		RNAPI Camera(const Vector2 &size);
 		RNAPI ~Camera();
 
 		RNAPI void DidUpdate(ChangeSet changeSet) override;
 
-		RNAPI void SetFrame(const Rect &frame);
+		RNAPI void SetRenderPass(RenderPass *renderPass);
 		RNAPI void SetFlags(Flags flags);
-		RNAPI void SetClearColor(const Color &color);
-//		RNAPI void SetMaterial(Material *material);
+		RNAPI void SetShaderHint(Shader::UsageHint hint);
+		RNAPI void SetMaterial(Material *material);
 //		RNAPI void SetLightManager(LightManager *lightManager);
-//		RNAPI void SetSky(Model *sky);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetFOV(float fov);
@@ -87,9 +73,6 @@ namespace RN
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 
 		RNAPI void Update(float delta) override;
-		RNAPI void UpdateEditMode(float delta) override;
-
-		RNAPI void PostUpdate(Renderer *renderer);
 
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 
@@ -100,13 +83,11 @@ namespace RN
 		RNAPI const Vector3 &GetFrustumCenter();
 		RNAPI float GetFrustumRadius();
 
-		Framebuffer *GetFramebuffer() const { return _framebuffer; }
-		const Color &GetClearColor() const { return _clearColor; }
-		RNAPI const Rect &GetFrame();
-//		Material *GetMaterial() const { return _material; }
+		RenderPass *GetRenderPass() const { return _renderPass; }
+		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
+		Shader::UsageHint GetShaderHint() const { return _shaderHint; }
 		Camera *GetLODCamera() const { return _lodCamera ? _lodCamera : const_cast<Camera *>(this); }
-//		Model *GetSky() const { return _sky; }
 //		LightManager *GetLightManager();
 		int32 GetPriority() const { return _priority; }
 		float GetFOV() const { return _fov; }
@@ -123,26 +104,17 @@ namespace RN
 		const Matrix &GetViewMatrix() const { return _viewMatrix; }
 		const Matrix &GetInverseViewMatrix() const { return _inverseViewMatrix; }
 
-/*		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string &name, int32 priority);
-		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string &name);
-		RNAPI void AddPostProcessingPipeline(PostProcessingPipeline *pipeline);
-		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
-
-		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }*/
-
 	private:
+		void PostUpdate(Renderer *renderer);
 		void UpdateProjection(Renderer *renderer);
 		void UpdateFrustum();
 
 		Vector3 __ToWorld(const Vector3 &dir);
-//		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
+		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
 
 		IntrusiveList<Camera>::Member _cameraSceneEntry;
-		Framebuffer *_framebuffer;
 
-		Rect _frame;
-		Color _clearColor;
 		Flags _flags;
 		float _scaleFactor;
 		bool _fixedScaleFactor;
@@ -176,7 +148,7 @@ namespace RN
 
 		Plane _clipPlane;
 //		LightManager *_lightManager;
-		Window *_window;
+		Shader::UsageHint _shaderHint;
 
 		Matrix _projectionMatrix;
 		Matrix _inverseProjectionMatrix;
@@ -190,12 +162,9 @@ namespace RN
 
 		bool _prefersLightManager;
 
-//		Material *_material;
+		RenderPass *_renderPass;
+		Material *_material;
 		Camera *_lodCamera;
-//		Model *_sky;
-
-//		std::vector<PostProcessingPipeline *> _PPPipelines;
-//		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 
 		__RNDeclareMetaInternal(Camera);
 	};

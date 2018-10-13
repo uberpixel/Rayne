@@ -165,23 +165,7 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 		{
 			Model::LODStage *stage = _model->GetLODStage(i);
-
-			for(size_t j = 0; j < stage->GetCount(); j ++)
-			{
-				Material *material = stage->GetMaterialAtIndex(j);
-				MaterialDescriptor descriptor = material->GetDescriptor();
-
-				Shader *vertex = descriptor.vertexShader;
-				Shader *fragment = descriptor.fragmentShader;
-
-				vertex = vertex->GetLibrary()->GetShaderWithName(vertex->GetName()->StringByAppendingString(RNCSTR("_instanced")));
-				fragment = fragment->GetLibrary()->GetShaderWithName(fragment->GetName()->StringByAppendingString(RNCSTR("_instanced")));
-
-				descriptor.SetShaderProgram(ShaderProgram::WithVertexAndFragmentShaders(vertex, fragment));
-
-				stage->ReplaceMaterial(Material::WithDescriptor(descriptor), j);
-			}
-
+			//TODO: Maybe check if the material has an instancing shader associated with it
 			_stages.push_back(new InstancingLODStage(stage));
 		}
 

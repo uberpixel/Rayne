@@ -23,11 +23,13 @@
 #include "Assets/RNAssetManager.h"
 #include "Assets/RNAssetLoader.h"
 #include "Assets/RNBitmap.h"
+#include "Assets/RNAudioAsset.h"
 
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"
 #include "Data/RNRingBuffer.h"
 
+#include "Debug/RNLogFormatter.h"
 #include "Debug/RNLogger.h"
 #include "Debug/RNLoggingEngine.h"
 
@@ -76,9 +78,11 @@
 #include "Rendering/RNMaterial.h"
 #include "Rendering/RNMesh.h"
 #include "Rendering/RNModel.h"
+#include "Rendering/RNPostProcessing.h"
 #include "Rendering/RNRenderer.h"
 #include "Rendering/RNRendererDescriptor.h"
 #include "Rendering/RNRenderingDevice.h"
+#include "Rendering/RNRenderPass.h"
 #include "Rendering/RNShader.h"
 #include "Rendering/RNShaderLibrary.h"
 #include "Rendering/RNWindow.h"
@@ -87,8 +91,11 @@
 #include "Scene/RNEntity.h"
 #include "Scene/RNInstancingNode.h"
 #include "Scene/RNScene.h"
+#include "Scene/RNSceneAttachment.h"
 #include "Scene/RNSceneManager.h"
 #include "Scene/RNSceneNode.h"
+#include "Scene/RNSceneNodeAttachment.h"
+#include "Scene/RNLight.h"
 
 #include "System/RNFile.h"
 #include "System/RNFileManager.h"

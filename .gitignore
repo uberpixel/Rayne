@@ -21,5 +21,19 @@ CMakeLists.txt.user
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 
-# UI Module
+# Modules
 /Modules/UI/Vendor/skia
+Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
+Modules/Oculus/Vendor/OculusSDK/
+Modules/SteamAudio/Vendor/steamaudio
+/Modules/PhysX/Vendor/PhysX-3.4
+/Modules/PhysX/Vendor/PhysX-3.4-CMake
+Modules/Newton/Vendor/newton-dynamics
+
+# Build Folders
+xcode-build
+BUILD_VS
+Modules/ODE/Vendor/BUILD
+/Build-Xcode
+/Build-iOS
+/cmake-build-*

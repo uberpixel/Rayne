@@ -20,10 +20,15 @@ namespace RN
 {
 	RNDefineMeta(Scene, Object)
 
-	Scene::Scene()
+	Scene::Scene() : _lights(new Array()), _attachments(nullptr)
 	{}
 	Scene::~Scene()
-	{}
+	{
+		if(_attachments)
+			_attachments->Release();
+
+		_lights->Release();
+	}
 
 	void Scene::Update(float delta)
 	{
@@ -102,6 +107,14 @@ namespace RN
 			group->Release();
 		}
 
+		//Update scene attachments
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneAttachment>([delta](SceneAttachment *attachment, size_t index, bool &stop) {
+				attachment->Update(delta);
+			});
+		}
+
 		DidUpdate(delta);
 	}
 
@@ -112,13 +125,26 @@ namespace RN
 #if kRNSceneUseRenderPool
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
+		//TODO: Do something to have shadowmap cameras rendered first.
 		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
 		while(member)
 		{
 			Camera *camera = member->Get();
 			camera->PostUpdate(renderer);
 
-			renderer->RenderIntoCamera(camera, [&] {
+			if(camera->GetFlags() & Camera::Flags::NoRender)
+			{
+				member = member->GetNext();
+				continue;
+			}
+
+			renderer->SubmitCamera(camera, [&] {
+
+				//TODO: Handle lights to be rendered before other things differently...
+				_lights->Enumerate<Light>([renderer, camera](Light *light, size_t index, bool &stop){
+					if(light->CanRender(renderer, camera))
+						light->Render(renderer, camera);
+				});
 
 				WorkGroup *group = new WorkGroup();
 
@@ -142,8 +168,9 @@ namespace RN
 								{
 									SceneNode *node = iterator->Get();
 
-									if(node->CanRender(renderer, camera))
-										node->Render(renderer, camera);
+									if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+										if(node->CanRender(renderer, camera))
+											node->Render(renderer, camera);
 
 									iterator = iterator->GetNext();
 								}
@@ -169,8 +196,9 @@ namespace RN
 							{
 								SceneNode *node = iterator->Get();
 
-								if(node->CanRender(renderer, camera))
-									node->Render(renderer, camera);
+								if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+									if(node->CanRender(renderer, camera))
+										node->Render(renderer, camera);
 
 								iterator = iterator->GetNext();
 							}
@@ -181,7 +209,6 @@ namespace RN
 
 				group->Wait();
 				group->Release();
-
 			});
 
 			member = member->GetNext();
@@ -225,13 +252,15 @@ namespace RN
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
 			Camera *camera = static_cast<Camera *>(node);
-
 			_cameras.PushBack(camera->_cameraSceneEntry);
-
 			camera->_scene = this;
-			camera->Retain();
+		}
 
-			return;
+		//TODO: Handle lights to be rendered before other things differently...
+		if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights->AddObject(light);
 		}
 
 		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
@@ -244,10 +273,36 @@ namespace RN
 	{
 		RN_ASSERT(node->_scene == this, "RemoveNode() must be called on a Node owned by the scene");
 
+		//TODO: Handle lights to be rendered before other things differently...
+		if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights->RemoveObject(light);
+		}
+
 		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
 
 		node->UpdateScene(nullptr);
 		node->Autorelease();
+	}
+
+	void Scene::AddAttachment(SceneAttachment *attachment)
+	{
+		RN_ASSERT(attachment->_scene == nullptr, "AddAttachment() must be called on an Attachment not owned by the scene");
+
+		if(!_attachments)
+			_attachments = new Array();
+
+		_attachments->AddObject(attachment);
+		attachment->_scene = this;
+	}
+
+	void Scene::RemoveAttachment(SceneAttachment *attachment)
+	{
+		RN_ASSERT(attachment->_scene == this, "RemoveAttachment() must be called on an Attachment owned by the scene");
+
+		_attachments->RemoveObject(attachment);
+		attachment->_scene = nullptr;
 	}
 
 	void Scene::WillBecomeActive()

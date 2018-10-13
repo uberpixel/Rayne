@@ -10,23 +10,48 @@
 #define __RAYNE_METALFRAMEBUFFER_H_
 
 #include "RNMetal.h"
+#include "RNMetalSwapChain.h"
 
 namespace RN
 {
+	class MetalSwapChain;
+
 	class MetalFramebuffer : public Framebuffer
 	{
 	public:
-		MTLAPI MetalFramebuffer(const Vector2 &size, const Descriptor &descriptor);
+		struct MetalTargetView
+		{
+			TargetView targetView;
+			MTLPixelFormat pixelFormat;
+		};
+		
+		MTLAPI MetalFramebuffer(const Vector2 &size, MetalSwapChain *swapChain, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		MTLAPI MetalFramebuffer(const Vector2 &size);
 		MTLAPI ~MetalFramebuffer();
 
-		MTLAPI Texture *GetColorTexture() const final;
-		MTLAPI Texture *GetDepthTexture() const final;
-		MTLAPI Texture *GetStencilTexture() const final;
+		MTLAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
+		MTLAPI void SetDepthStencilTarget(const TargetView &target) final;
+
+		MTLAPI Texture *GetColorTexture(uint32 index = 0) const final;
+		MTLAPI Texture *GetDepthStencilTexture() const final;
+		
+		MTLAPI uint8 GetSampleCount() const final;
+
+		MetalSwapChain *GetSwapChain() const { return _swapChain; }
+
+		MTLRenderPassDescriptor *GetRenderPassDescriptor(RenderPass *renderPass, MetalFramebuffer *resolveFramebuffer) const;
+		MTLAPI MTLPixelFormat GetMetalColorFormat(uint8 texture) const;
+		MTLAPI MTLPixelFormat GetMetalDepthFormat() const;
+		MTLAPI MTLPixelFormat GetMetalStencilFormat() const;
+		
+		MTLAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
 
 	private:
-		Texture *_colorTexture;
-		Texture *_depthTexture;
-		Texture *_stencilTexture;
+		uint8 _sampleCount;
+		std::vector<MetalTargetView *> _colorTargets;
+		MetalTargetView *_depthStencilTarget;
+
+		WeakRef<MetalSwapChain> _swapChain;
 
 		RNDeclareMetaAPI(MetalFramebuffer, MTLAPI)
 	};

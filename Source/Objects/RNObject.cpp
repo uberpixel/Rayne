@@ -409,7 +409,7 @@ namespace RN
 
 	Object *Object::GetPrimitiveValueForKeyPath(const char *keyPath) const
 	{
-		char storage[32];
+		char storage[33];
 		const char *temp = strchr(keyPath, '.');
 
 		if(!temp)
@@ -456,7 +456,7 @@ namespace RN
 
 	void Object::SetValueForKeyPath(Object *value, const char *keyPath)
 	{
-		char storage[32];
+		char storage[33];
 		const char *temp = strchr(keyPath, '.');
 
 		if(!temp)

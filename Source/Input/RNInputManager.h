@@ -18,6 +18,11 @@
 #define kRNInputManagerHIDDeviceAdded RNCSTR("kRNInputManagerHIDDeviceAdded")
 #define kRNInputManagerHIDDeviceRemoved RNCSTR("kRNInputManagerHIDDeviceRemoved")
 
+#if RN_PLATFORM_LINUX
+struct _XDisplay;
+typedef struct _XDisplay Display;
+#endif
+
 namespace RN
 {
 	class InputManager
@@ -70,6 +75,10 @@ namespace RN
 		RNAPI HIDDevice *GetHIDDevice(uint16 vendorID, uint16 productID) const;
 
 		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
+		
+#if RN_PLATFORM_MAC_OS
+		void ProcessKeyEvent(uint16 keyCode, bool state);
+#endif
 
 	private:
 		InputManager();
@@ -84,7 +93,18 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		void __HandleRawInput(HRAWINPUT lParam);
 		Vector3 _mouseMovement;
+#endif
+		
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		bool _keyPressed[256];
+#endif
+
+#if RN_PLATFORM_LINUX
+		Display *_xDisplay;
+		int _xiOpcode;
+
+		Vector3 _previousMousePosition;
+		Vector3 _mouseMovement;
 #endif
 
 		struct Target

@@ -8,6 +8,7 @@
 
 #include "../Debug/RNLogger.h"
 #include "../Assets/RNAssetManager.h"
+#include "../Rendering/RNRenderer.h"
 #include "RNModel.h"
 
 namespace RN
@@ -28,13 +29,19 @@ namespace RN
 		LODStage *stage = AddLODStage(distances[0]);
 
 		stage->AddMesh(mesh, material);
+		CalculateBoundingVolumes();
 	}
 
 	Model::Model(const Model *other) :
-		_lodStages(other->_lodStages->Copy()),
 		_boundingBox(other->_boundingBox),
 		_boundingSphere(other->_boundingSphere)
-	{}
+	{
+		_lodStages = new Array();
+		other->_lodStages->Enumerate<LODStage>([&](LODStage *stage, size_t index, bool &stop)
+		{
+			_lodStages->AddObject(stage->Copy());
+		});
+	}
 
 	Model::~Model()
 	{
@@ -47,6 +54,89 @@ namespace RN
 		return coordinator->GetAssetWithName<Model>(name, settings);
 	}
 
+	Model *Model::WithSkycube(const String *left, const String *front, const String *right, const String *back, const String *up, const String *down)
+	{
+		Model *sky = new Model();
+		LODStage *stage = sky->AddLODStage(1.0f);
+
+		Mesh *leftMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(90.0f, 90.0f, 0.0f)), RN::Vector3(-0.5f, 0.0f, 0.0f));
+		Material *baseMaterial = Material::WithShaders(nullptr, nullptr);
+		baseMaterial->SetDepthMode(DepthMode::LessOrEqual);
+
+		Shader::Options *shaderOptions = Shader::Options::WithMesh(leftMesh);
+		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
+		baseMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));
+		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		baseMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+
+		//TODO: Add sky depth shader
+
+		Material *leftMaterial = Material::WithMaterial(baseMaterial);
+		if(left)
+			leftMaterial->AddTexture(Texture::WithName(left));
+		stage->AddMesh(leftMesh, leftMaterial);
+
+		Mesh *frontMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, -0.5f));
+		Material *frontMaterial = Material::WithMaterial(baseMaterial);
+		if(front)
+			frontMaterial->AddTexture(Texture::WithName(front));
+		stage->AddMesh(frontMesh, frontMaterial);
+
+		Mesh *rightMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(-90.0f, 90.0f, 0.0f)), RN::Vector3(0.5f, 0.0f, 0.0f));
+		Material *rightMaterial = Material::WithMaterial(baseMaterial);
+		if(right)
+			rightMaterial->AddTexture(Texture::WithName(right));
+		stage->AddMesh(rightMesh, rightMaterial);
+
+		Mesh *backMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(180.0f, 90.0f, 0.0f)), RN::Vector3(0.0f, 0.0f, 0.5f));
+		Material *backMaterial = Material::WithMaterial(baseMaterial);
+		if(back)
+			backMaterial->AddTexture(Texture::WithName(back));
+		stage->AddMesh(backMesh, backMaterial);
+
+		Mesh *upMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 180.0f, 0.0f)), RN::Vector3(0.0f, 0.5f, 0.0f));
+		Material *upMaterial = Material::WithMaterial(baseMaterial);
+		if(up)
+			upMaterial->AddTexture(Texture::WithName(up));
+		stage->AddMesh(upMesh, upMaterial);
+
+		Mesh *downMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 0.0f, 0.0f)), RN::Vector3(0.0f, -0.5f, 0.0f));
+		Material *downMaterial = Material::WithMaterial(baseMaterial);
+		if(down)
+			downMaterial->AddTexture(Texture::WithName(down));
+		stage->AddMesh(downMesh, downMaterial);
+
+		sky->CalculateBoundingVolumes();
+
+		return sky->Autorelease();
+	}
+
+	Model *Model::WithSkydome(const String *texture)
+	{
+		Model *sky = new Model();
+		LODStage *stage = sky->AddLODStage(1.0f);
+
+		Mesh *domeMesh = Mesh::WithTexturedDome(0.5f, 80, 81);
+		Material *domeMaterial = Material::WithShaders(nullptr, nullptr);
+		domeMaterial->SetDepthMode(DepthMode::LessOrEqual);
+
+		Shader::Options *shaderOptions = Shader::Options::WithMesh(domeMesh);
+		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+
+		domeMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
+		domeMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));
+		domeMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+		domeMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+
+		if(texture)
+			domeMaterial->AddTexture(Texture::WithName(texture));
+		stage->AddMesh(domeMesh, domeMaterial);
+
+		sky->CalculateBoundingVolumes();
+
+		return sky->Autorelease();
+	}
 
 
 	Model::LODStage *Model::AddLODStage(float distance)

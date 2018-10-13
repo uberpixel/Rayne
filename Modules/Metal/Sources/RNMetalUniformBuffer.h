@@ -13,103 +13,71 @@
 #include "RNMetalStateCoordinator.h"
 
 #define kRNMetalUniformBufferCount 3
+#define kRNMinimumUniformBufferSize 1*1000*1000
+#define kRNUniformBufferAlignement 256
 
 namespace RN
 {
 	class Renderer;
 	class GPUBuffer;
 	class MetalRenderingStateUniformBufferArgument;
-
+	class MetalUniformBufferPool;
+	
 	class MetalUniformBuffer : public Object
 	{
 	public:
-		RN_OPTIONS(Feature, uint32,
-				   Custom = 0,
-				   Time = (1 << 0),
-				   ModelMatrix = (1 << 1),
-				   ModelViewMatrix = (1 << 2),
-				   ModelViewProjectionMatrix = (1 << 3),
-				   ViewMatrix = (1 << 4),
-				   ViewProjectionMatrix = (1 << 5),
-				   ProjectionMatrix = (1 << 6),
-				   InverseModelMatrix = (1 << 7),
-				   InverseModelViewMatrix = (1 << 8),
-				   InverseModelViewProjectionMatrix = (1 << 9),
-				   InverseViewMatrix = (1 << 10),
-				   InverseViewProjectionMatrix = (1 << 11),
-				   InverseProjectionMatrix = (1 << 12),
-				   AmbientColor = (1 << 13),
-				   DiffuseColor = (1 << 14),
-				   SpecularColor = (1 << 15),
-				   EmissiveColor = (1 << 16),
-			       DiscardThreshold = (1 << 17),
-				   TextureTileFactor = (1 << 18));
-
-		class Member
-		{
-		public:
-			Member(const String *featureString, size_t offset) :
-				_featureString(featureString->Copy()),
-				_feature(Feature::Custom),
-				_offset(offset)
-			{}
-			Member(Feature feature, size_t offset) :
-				_featureString(nullptr),
-				_feature(feature),
-				_offset(offset)
-			{}
-
-			~Member()
-			{
-				SafeRelease(_featureString);
-			}
-
-			Member(const Member &other) :
-				_feature(other._feature),
-				_featureString(SafeRetain(other._featureString)),
-				_offset(other._offset)
-			{}
-
-			Member &operator =(const Member &other)
-			{
-				SafeRelease(_featureString);
-
-				_featureString = SafeRetain(other._featureString);
-				_feature = other._feature;
-				_offset = other._offset;
-
-				return *this;
-			}
-
-			Feature GetFeature() const { return _feature; }
-			size_t GetOffset() const { return _offset; }
-
-		private:
-			String *_featureString;
-			Feature _feature;
-			size_t _offset;
-		};
-
-		MTLAPI MetalUniformBuffer(Renderer *renderer, MetalRenderingStateUniformBufferArgument *uniformBuffer);
+		friend MetalUniformBufferPool;
+		
+		MTLAPI MetalUniformBuffer(Renderer *renderer, size_t size);
 		MTLAPI ~MetalUniformBuffer();
-
+		
 		MTLAPI GPUBuffer *Advance();
 		MTLAPI GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
-
-		MTLAPI const Member *GetMemberForFeature(Feature feature) const;
-
-		size_t GetIndex() const { return _index; }
-		bool IsActive() const { return _valid; }
-
+		
+		MTLAPI size_t Allocate(size_t size);
+		MTLAPI void Free(size_t offset, size_t size);
+		
 	private:
-		size_t _index;
 		GPUBuffer *_buffers[kRNMetalUniformBufferCount];
 		size_t _bufferIndex;
-		Feature _supportedFeatures;
-		std::vector<Member> _members;
-		bool _valid;
-
+		
+		size_t _sizeUsed;
+		size_t _offsetToFreeData;
+		size_t _totalSize;
+		
 		RNDeclareMetaAPI(MetalUniformBuffer, MTLAPI)
+	};
+	
+	
+	class MetalUniformBufferReference : public Object
+	{
+	public:
+		MetalUniformBufferReference();
+		~MetalUniformBufferReference();
+		
+		uint32 shaderResourceIndex;
+		uint32 offset;
+		uint32 size;
+		MetalUniformBuffer *uniformBuffer;
+		
+	private:
+		
+		RNDeclareMetaAPI(MetalUniformBufferReference, MTLAPI)
+	};
+	
+
+	class MetalUniformBufferPool
+	{
+	public:
+		MetalUniformBufferPool();
+		~MetalUniformBufferPool();
+		MetalUniformBufferReference *GetUniformBufferReference(uint32 size, uint32 index);
+		void Update(Renderer *renderer);
+		void InvalidateAllBuffers();
+		
+	private:
+		Array *_uniformBuffers;
+		Array *_newReferences;
 	};
 }
 

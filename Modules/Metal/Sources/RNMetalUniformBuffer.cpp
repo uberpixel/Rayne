@@ -13,81 +13,26 @@
 namespace RN
 {
 	RNDefineMeta(MetalUniformBuffer, Object)
+	RNDefineMeta(MetalUniformBufferReference, Object)
 
-	MetalUniformBuffer::MetalUniformBuffer(Renderer *renderer, MetalRenderingStateUniformBufferArgument *uniformBuffer) :
+	MetalUniformBuffer::MetalUniformBuffer(Renderer *renderer, size_t size) :
 		_bufferIndex(0),
-		_supportedFeatures(0),
-		_index(uniformBuffer->index),
-		_valid(true)
+		_sizeUsed(0),
+		_offsetToFreeData(0),
+		_totalSize(size)
 	{
-		AutoreleasePool pool;
-
-		for(MetalRenderingStateUniformBufferMember *member : uniformBuffer->members)
-		{
-			const String *name = member->GetName();
-			size_t offset = member->GetOffset();
-
-			if(name->IsEqual(RNCSTR("time")))
-				_members.emplace_back(Feature::Time, offset);
-			else if(name->IsEqual(RNCSTR("modelMatrix")))
-				_members.emplace_back(Feature::ModelMatrix, offset);
-			else if(name->IsEqual(RNCSTR("modelViewMatrix")))
-				_members.emplace_back(Feature::ModelViewMatrix, offset);
-			else if(name->IsEqual(RNCSTR("modelViewProjectionMatrix")))
-				_members.emplace_back(Feature::ModelViewProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("viewMatrix")))
-				_members.emplace_back(Feature::ViewMatrix, offset);
-			else if(name->IsEqual(RNCSTR("viewProjectionMatrix")))
-				_members.emplace_back(Feature::ViewProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("projectionMatrix")))
-				_members.emplace_back(Feature::ProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseModelMatrix")))
-				_members.emplace_back(Feature::InverseModelMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseModelViewMatrix")))
-				_members.emplace_back(Feature::InverseModelViewMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix")))
-				_members.emplace_back(Feature::InverseModelViewProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseViewMatrix")))
-				_members.emplace_back(Feature::InverseViewMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseViewProjectionMatrix")))
-				_members.emplace_back(Feature::InverseViewProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("inverseProjectionMatrix")))
-				_members.emplace_back(Feature::InverseProjectionMatrix, offset);
-			else if(name->IsEqual(RNCSTR("ambientColor")))
-				_members.emplace_back(Feature::AmbientColor, offset);
-			else if(name->IsEqual(RNCSTR("diffuseColor")))
-				_members.emplace_back(Feature::DiffuseColor, offset);
-			else if(name->IsEqual(RNCSTR("specularColor")))
-				_members.emplace_back(Feature::SpecularColor, offset);
-			else if(name->IsEqual(RNCSTR("emissiveColor")))
-				_members.emplace_back(Feature::EmissiveColor, offset);
-			else if(name->IsEqual(RNCSTR("discardThreshold")))
-				_members.emplace_back(Feature::DiscardThreshold, offset);
-			else if(name->IsEqual(RNCSTR("textureTileFactor")))
-				_members.emplace_back(Feature::TextureTileFactor, offset);
-			else
-			{
-				_members.emplace_back(name, offset);
-				_valid = false;
-			}
-
-			_supportedFeatures |= _members.back().GetFeature();
-		}
-
-		if(_valid)
-		{
-			for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
-				_buffers[i] = renderer->CreateBufferWithLength(uniformBuffer->size, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly);
-		}
+		//This seems to be working as alignement, but could cause problems with arrays of structs in the buffer
+		if((_totalSize % 16) > 0)
+			_totalSize += 16 - (_totalSize % 16);
+		
+		for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
+			_buffers[i] = renderer->CreateBufferWithLength(_totalSize, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly);
 	}
 
 	MetalUniformBuffer::~MetalUniformBuffer()
 	{
-		if(_valid)
-		{
-			for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
-				_buffers[i]->Release();
-		}
+		for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
+			_buffers[i]->Release();
 	}
 
 	GPUBuffer *MetalUniformBuffer::Advance()
@@ -95,18 +40,106 @@ namespace RN
 		_bufferIndex = (_bufferIndex + 1) % kRNMetalUniformBufferCount;
 		return _buffers[_bufferIndex];
 	}
-
-	const MetalUniformBuffer::Member *MetalUniformBuffer::GetMemberForFeature(Feature feature) const
+	
+	size_t MetalUniformBuffer::Allocate(size_t size)
 	{
-		if(!(_supportedFeatures & feature))
-			return nullptr;
-
-		for(const Member &member : _members)
+		if(_totalSize - _offsetToFreeData < size)
+			return -1;
+		
+		size_t newDataOffset = _offsetToFreeData;
+		_offsetToFreeData += size;
+		_offsetToFreeData += kRNUniformBufferAlignement - (_offsetToFreeData % kRNUniformBufferAlignement);
+		_sizeUsed += size;
+		return newDataOffset;
+	}
+	
+	void MetalUniformBuffer::Free(size_t offset, size_t size)
+	{
+		_sizeUsed -= size;
+		if(_sizeUsed <= 0)
 		{
-			if(member.GetFeature() == feature)
-				return &member;
+			_offsetToFreeData = 0;
 		}
-
-		return nullptr;
+	}
+	
+	MetalUniformBufferReference::MetalUniformBufferReference()
+	{
+		
+	}
+	
+	MetalUniformBufferReference::~MetalUniformBufferReference()
+	{
+		uniformBuffer->Free(offset, size);
+	}
+	
+	MetalUniformBufferPool::MetalUniformBufferPool() :
+		_uniformBuffers(new Array()),
+		_newReferences(new Array())
+	{
+		
+	}
+	
+	MetalUniformBufferPool::~MetalUniformBufferPool()
+	{
+		_uniformBuffers->Release();
+		_newReferences->Release();
+	}
+	
+	MetalUniformBufferReference *MetalUniformBufferPool::GetUniformBufferReference(uint32 size, uint32 index)
+	{
+		size_t bufferOffset = -1;
+		MetalUniformBuffer *uniformBuffer = nullptr;
+		_uniformBuffers->Enumerate<MetalUniformBuffer>([&](MetalUniformBuffer *buffer, uint32 index, bool &stop){
+			bufferOffset = buffer->Allocate(size);
+			if(bufferOffset != -1)
+			{
+				uniformBuffer = buffer;
+				stop = true;
+			}
+		});
+		
+		MetalUniformBufferReference *reference = new MetalUniformBufferReference();
+		reference->size = size;
+		reference->offset = bufferOffset;
+		reference->uniformBuffer = uniformBuffer;
+		reference->shaderResourceIndex = index;
+		
+		if(uniformBuffer) return reference->Autorelease();
+		
+		_newReferences->AddObject(reference);
+		return reference->Autorelease();
+	}
+	
+	void MetalUniformBufferPool::Update(Renderer *renderer)
+	{
+		_uniformBuffers->Enumerate<MetalUniformBuffer>([&](MetalUniformBuffer *buffer, uint32 index, bool &stop){
+			buffer->Advance();
+		});
+		
+		size_t requiredSize = 0;
+		_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
+			requiredSize += reference->size + kRNUniformBufferAlignement - (reference->size % kRNUniformBufferAlignement);
+		});
+		
+		if(requiredSize == 0) return;
+		
+		requiredSize = MAX(requiredSize, kRNMinimumUniformBufferSize);
+		MetalUniformBuffer *uniformBuffer = new MetalUniformBuffer(renderer, requiredSize);
+		
+		_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
+			reference->uniformBuffer = uniformBuffer;
+			reference->offset = uniformBuffer->Allocate(reference->size);
+		});
+		
+		_uniformBuffers->AddObject(uniformBuffer->Autorelease());
+		_newReferences->RemoveAllObjects();
+	}
+	
+	void MetalUniformBufferPool::InvalidateAllBuffers()
+	{
+		_uniformBuffers->Enumerate<MetalUniformBuffer>([&](MetalUniformBuffer *buffer, uint32 index, bool &stop){
+			if(buffer->_sizeUsed > 0)
+				buffer->GetActiveBuffer()->Invalidate();
+		});
 	}
 }

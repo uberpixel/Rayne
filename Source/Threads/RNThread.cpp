@@ -8,6 +8,7 @@
 
 #include "RNThread.h"
 #include "RNThreadLocalStorage.h"
+#include "../Base/RNBaseInternal.h"
 #include "../Objects/RNAutoreleasePool.h"
 
 #if RN_PLATFORM_WINDOWS
@@ -25,23 +26,30 @@ typedef struct tagTHREADNAME_INFO
 
 void RNSetThreadName(char *threadName)
 {
+#if RN_COMPILER_MSVC
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadName;
 	info.dwThreadID = -1;
 	info.dwFlags = 0;
 	
-	try
+	__try
 	{
 		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR *)&info);
 	}
-	catch(...)
+	__except(EXCEPTION_EXECUTE_HANDLER)
 	{}
+#endif
 }
 #endif
 
 namespace RN
 {
+	namespace __Private
+	{
+		extern void CleanThreadData();
+	}
+
 	__RNDefineMetaAndGFYMSVC(Thread, Object)
 	
 	static Thread *__MainThread;
@@ -87,12 +95,15 @@ namespace RN
 	{
 		return __MainThread;
 	}
-	
+
+	void Thread::CleanUp()
+	{
+		__Private::CleanThreadData();
+	}
 	
 	void Thread::WaitForExit()
 	{
-		if(OnThread())
-			return;
+		RN_ASSERT(!OnThread(), "Thread::WaitForExit() must not be called from the thread itself");
 		
 		Retain();
 		
@@ -156,6 +167,7 @@ namespace RN
 				pair.first(pair.second);
 		}
 
+		CleanUp();
 		Release();
 	}
 	
@@ -191,6 +203,10 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 					RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
 #endif
+
+#if RN_ENABLE_VTUNE
+					__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
+#endif
 				}
 				
 				_function();
@@ -223,7 +239,7 @@ namespace RN
 		LockGuard<Lockable> lock(_generalMutex);
 
 		_name->Release();
-		_name = name ? name->Copy() : nullptr;
+		_name = SafeCopy(name);
 
 		if(!_name)
 			_name = RNCSTR("")->Retain();
@@ -238,6 +254,10 @@ namespace RN
 #endif
 #if RN_PLATFORM_WINDOWS
 			RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
+#endif
+
+#if RN_ENABLE_VTUNE
+			__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
 #endif
 		}
 	}

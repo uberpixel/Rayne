@@ -24,11 +24,11 @@ namespace RN
 
 		RNAPI static NotificationManager *GetSharedInstance();
 
-		void PostNotification(const String *name, Object *object);
-		void PostNotification(Notification *notification);
+		RNAPI void PostNotification(const String *name, Object *object);
+		RNAPI void PostNotification(Notification *notification);
 
-		void AddSubscriber(const String *name, const std::function<void (Notification *)> &callback, void *token);
-		void RemoveSubscriber(const String *name, void *token);
+		RNAPI void AddSubscriber(const String *name, const std::function<void (Notification *)> &callback, void *token);
+		RNAPI void RemoveSubscriber(const String *name, void *token);
 
 	private:
 		struct Subscriber

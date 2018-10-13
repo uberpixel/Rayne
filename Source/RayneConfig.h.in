@@ -24,6 +24,9 @@
 #include <stddef.h>
 #endif
 
+#define RN_HAS_VTUNE ${RAYNE_HAS_VTUNE}
+#define RN_ENABLE_VTUNE (${RAYNE_ENABLE_VTUNE} && RN_HAS_VTUNE)
+
 #define RN_FUNCTION_SIGNATURE ${RAYNE_FUNCTION_SIGNATURE}
 #define RN_EXPECT_TRUE(x)  ${RAYNE_EXPECT_TRUE}
 #define RN_EXPECT_FALSE(x) ${RAYNE_EXPECT_FALSE}
@@ -34,6 +37,8 @@
 #define RN_NORETURN ${RAYNE_NORETURN}
 #define RN_INLINE ${RAYNE_INLINE}
 #define RN_NOINLINE ${RAYNE_NOINLINE}
+#define RN_UNUSED ${RAYNE_UNUSED}
+#define RN_SUPPORTS_TRIVIALLY_COPYABLE ${RAYNE_SUPPORTS_TRIVIALLY_COPYABLE}
 
 #define RN_EXPORT ${RAYNE_RNAPI_EXPORT}
 #define RN_IMPORT ${RAYNE_RNAPI_IMPORT}
@@ -51,11 +56,17 @@
 #define RN_PLATFORM_WINDOWS ${RAYNE_PLATFORM_WINDOWS}
 #define RN_PLATFORM_LINUX ${RAYNE_PLATFORM_LINUX}
 #define RN_PLATFORM_POSIX ${RAYNE_PLATFORM_POSIX}
+#define RN_PLATFORM_ANDROID ${RAYNE_PLATFORM_ANDROID}
 
-#define RN_PLATFORM_INTEL 1
-#define RN_PLATFORM_ARM 0
+#if (defined(_M_ARM) || defined(__arm__) || defined(__aarch64__))
+	#define RN_PLATFORM_INTEL 0
+	#define RN_PLATFORM_ARM 1
+#else
+	#define RN_PLATFORM_INTEL 1
+	#define RN_PLATFORM_ARM 0
+#endif
 
-#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__))
+#if (defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__))
 #define RN_PLATFORM_32BIT 0
 #define RN_PLATFORM_64BIT 1
 #else
@@ -69,6 +80,14 @@
 #else
 #define RN_BUILD_DEBUG   1
 #define RN_BUILD_RELEASE 0
+#endif
+
+#if !defined(NDEBUG) && RN_BUILD_RELEASE
+#define NDEBUG 1
+#endif
+
+#if !defined(_DEBUG) && RN_BUILD_DEBUG
+#define _DEBUG 1
 #endif
 
 #define RN_COMPILER_GCC 0
@@ -93,6 +112,8 @@
 	#undef RN_COMPILER_MINGW
 	#define RN_COMPILER_MINGW 1
 #endif
+
+#define RN_COMPILER_GCC_LIKE (RN_COMPILER_CLANG || RN_COMPILER_GCC || RN_COMPILER_MINGW)
 
 namespace RN
 {

@@ -133,6 +133,47 @@ namespace RN
 		return _serialString;
 	}
 
+	RNAPI Data *WindowsHIDDevice::ReadReport(uint32 reportID) const
+	{
+		return new Data();
+	}
+
+	RNAPI Data *WindowsHIDDevice::ReadFeatureReport(uint32 reportID) const
+	{
+		return new Data();
+	}
+
+	RNAPI size_t WindowsHIDDevice::WriteReport(uint32 reportID, const Data *data)
+	{
+		return 0;
+	}
+
+	RNAPI size_t WindowsHIDDevice::GetInputReportLength() const
+	{
+		return 0;
+	}
+
+	RNAPI size_t WindowsHIDDevice::GetOutputReportLength() const
+	{
+		return 0;
+	}
+
+	RNAPI size_t WindowsHIDDevice::GetFeatureReportLength() const
+	{
+		return 0;
+	}
+
+	RNAPI uint32 WindowsHIDDevice::GetVendorID() const
+	{
+		return 0;
+	}
+
+	RNAPI uint32 WindowsHIDDevice::GetProductID() const
+	{
+		return 0;
+	}
+
+/*
 	size_t WindowsHIDDevice::ReadReport(uint8 *data, size_t length, std::chrono::milliseconds timeout)
 	{
 		return __ReadReport(data, length, static_cast<int32>(timeout.count()));
@@ -306,7 +347,7 @@ namespace RN
 	{
 		return _productID;
 	}
-
+*/
 
 	void EnumerateDevices()
 	{

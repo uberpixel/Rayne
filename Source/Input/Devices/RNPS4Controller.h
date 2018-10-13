@@ -40,6 +40,8 @@ namespace RN
 
 		Linear2DAxisControl *_analogLeft;
 		Linear2DAxisControl *_analogRight;
+		
+		ButtonControl *_buttonCross;
 
 		uint8 _rumbleLarge;
 		uint8 _rumbleSmall;

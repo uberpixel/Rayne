@@ -49,6 +49,8 @@ namespace RN
 	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
+		_vertexBufferCPU(nullptr),
+		_indicesBufferCPU(nullptr),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
 		_drawMode(DrawMode::Triangle),
@@ -66,6 +68,11 @@ namespace RN
 	{
 		SafeRelease(_vertexBuffer);
 		SafeRelease(_indicesBuffer);
+		
+		if(_vertexBufferCPU)
+			free(_vertexBufferCPU);
+		if(_indicesBufferCPU)
+			free(_indicesBufferCPU);
 	}
 
 	void Mesh::ParseAttributes()
@@ -120,9 +127,13 @@ namespace RN
 			throw InconsistencyException("Mesh created without indices descriptor and non-zero indices count");
 
 		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
+		_vertexBufferCPU = malloc(_verticesSize);
 
 		if(hasIndices)
+		{
 			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
+			_indicesBufferCPU = malloc(_indicesSize);
+		}
 	}
 
 	void Mesh::BeginChanges()
@@ -138,11 +149,11 @@ namespace RN
 	{
 		if((-- _changeCounter) == 0)
 		{
-			if(_changedVertices)
-				_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
-
 			if(_changedIndices)
-				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize));
+
+			if(_changedVertices)
+				SubmitVertices(Range(0, _verticesSize));
 		}
 	}
 
@@ -156,14 +167,14 @@ namespace RN
 		if(feature == VertexAttribute::Feature::Indices)
 		{
 			const uint8 *data = static_cast<const uint8 *>(tdata);
-			uint8 *destination = static_cast<uint8 *>(_indicesBuffer->GetBuffer());
+			uint8 *destination = static_cast<uint8 *>(_indicesBufferCPU);
 
 			std::copy(data, data + _indicesSize, destination);
 
 			if(_changeCounter)
 				_changedIndices = true;
 			else
-				_indicesBuffer->InvalidateRange(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize));
 		}
 		else
 		{
@@ -171,7 +182,7 @@ namespace RN
 			{
 				if(attribute._feature == feature)
 				{
-					uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
+					uint8 *vertices = static_cast<uint8 *>(_vertexBufferCPU);
 					const uint8 *data = static_cast<const uint8 *>(tdata);
 
 					uint8 *buffer = vertices + attribute._offset;
@@ -187,7 +198,7 @@ namespace RN
 					if(_changeCounter)
 						_changedVertices = true;
 					else
-						_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+						SubmitVertices(Range(0, _verticesSize));
 
 					break;
 				}
@@ -201,7 +212,7 @@ namespace RN
 		{
 			if(attribute._name && attribute._name->IsEqual(name))
 			{
-				uint8 *vertices = static_cast<uint8 *>(_vertexBuffer->GetBuffer());
+				uint8 *vertices = static_cast<uint8 *>(_vertexBufferCPU);
 				const uint8 *data = static_cast<const uint8 *>(tdata);
 
 				uint8 *buffer = vertices + attribute._offset;
@@ -217,7 +228,7 @@ namespace RN
 				if(_changeCounter)
 					_changedVertices = true;
 				else
-					_vertexBuffer->InvalidateRange(Range(0, _verticesSize));
+					SubmitVertices(Range(0, _verticesSize));
 
 				break;
 			}
@@ -271,7 +282,7 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector2 vertex = *iterator ++;
+					const Vector2 &vertex = *(iterator++);
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
@@ -289,7 +300,7 @@ namespace RN
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
-					Vector3 vertex = *iterator ++;
+					const Vector3 &vertex = *(iterator++);
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);
@@ -324,9 +335,7 @@ namespace RN
 		_vertexData(nullptr),
 		_indexData(nullptr),
 		_mesh(mesh),
-		_triangles(triangles),
-		_dirtyVertices(false),
-		_dirtyIndices(false)
+		_triangles(triangles)
 	{
 		if(triangles)
 		{
@@ -337,22 +346,7 @@ namespace RN
 
 	Mesh::Chunk::~Chunk()
 	{
-		CommitChanges();
-	}
 
-	void Mesh::Chunk::CommitChanges()
-	{
-		if(_dirtyVertices)
-		{
-			_mesh->_vertexBuffer->InvalidateRange(Range(0, _mesh->_verticesSize));
-			_dirtyVertices = false;
-		}
-
-		if(_dirtyIndices)
-		{
-			_mesh->_indicesBuffer->InvalidateRange(Range(0, _mesh->_indicesSize));
-			_dirtyIndices = false;
-		}
 	}
 
 	// ---------------------
@@ -373,6 +367,7 @@ namespace RN
 							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Color),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -488,6 +483,11 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
 		return mesh->Autorelease();
 	}
 
@@ -498,6 +498,7 @@ namespace RN
 							   VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, 24, 36);
 
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -640,17 +641,143 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
 		return mesh->Autorelease();
 	}
 
 
-	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t segments)
+	Mesh *Mesh::WithTexturedPlane(const Quaternion &rotation, const Vector3 &position, const Vector2 &size)
 	{
-		Mesh *mesh = new Mesh({VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
-							   VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
-							   VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
-							   VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16)}, segments*slices, (segments - 2)*(slices - 1)*6);
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, 4, 6);
 
+		mesh->BeginChanges();
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(-size.x, 0.0f, size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(size.x, 0.0f, size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(size.x, 0.0f, -size.y));
+		*vertices++ = position + rotation.GetRotatedVector(Vector3(-size.x, 0.0f, -size.y));
+
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+		*normals++ = Vector3(0.0f, 1.0f, 0.0f);
+
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
+
+		*texcoords++ = Vector2(0.0f, 1.0f);
+		*texcoords++ = Vector2(1.0f, 1.0f);
+		*texcoords++ = Vector2(1.0f, 0.0f);
+		*texcoords++ = Vector2(0.0f, 0.0f);
+
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		*indices++ = 0;
+		*indices++ = 1;
+		*indices++ = 3;
+		*indices++ = 2;
+		*indices++ = 3;
+		*indices++ = 1;
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
+		return mesh->Autorelease();
+	}
+
+	Mesh *Mesh::WithTexturedDome(float radius, size_t slices, size_t rings)
+	{
+		if(rings % 2 == 0)
+		{
+			rings += 1;
+		}
+		slices += 1;
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, rings*slices, (rings - 1)*(slices - 1) * 6);
+
+		mesh->BeginChanges();
+		Chunk chunk = mesh->GetChunk();
+
+		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
+		ElementIterator<Vector3> normals = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Normals);
+		ElementIterator<Vector2> uvs = chunk.GetIterator<Vector2>(VertexAttribute::Feature::UVCoords0);
+		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
+
+		for(size_t ring = 0; ring < rings; ring++)
+		{
+			for(size_t slice = 0; slice < slices; slice++)
+			{
+				//float y = 2.0f * segment / segments - 1.0f;
+				float y = -cos(k::Pi * ring / (rings - 1));
+				float r = sqrt(1.0f - y*y);
+				float x = r * sin(2.0f * k::Pi * slice / (slices - 1));
+				float z = r * cos(2.0f * k::Pi * slice / (slices - 1));
+
+				Vector3 position(x, y, z);
+				*vertices++ = position * radius;
+				*normals++ = position.GetNormalized();
+				*uvs++ = Vector2(static_cast<float>(slice) / static_cast<float>(slices - 1), 1.0f-fabs(position.y));
+			}
+		}
+
+		for(size_t i = 0; i < rings - 1; i++)
+		{
+			for(size_t j = 0; j < slices-1; j++)
+			{
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j + 1;
+
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+			}
+		}
+
+		//This would add empty faces for the douplicated vertical vertices, needs (slices) NOT (slices - 1) in the index count calculation
+/*		for (size_t i = 0; i < rings - 1; i++)
+		{
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+			*indices++ = i * slices + 0;
+
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+		}*/
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
+
+		return mesh->Autorelease();
+	}
+
+
+	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t rings)
+	{
+		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
+			VertexAttribute(VertexAttribute::Feature::Color0, PrimitiveType::Vector4),
+			VertexAttribute(VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, rings*slices, (rings - 1)*(slices) * 6);
+
+		mesh->BeginChanges();
 		Chunk chunk = mesh->GetChunk();
 
 		ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(VertexAttribute::Feature::Vertices);
@@ -658,45 +785,75 @@ namespace RN
 		ElementIterator<Vector4> colors = chunk.GetIterator<Vector4>(VertexAttribute::Feature::Color0);
 		ElementIterator<uint16> indices = chunk.GetIterator<uint16>(VertexAttribute::Feature::Indices);
 
-		for(size_t i = 0; i < segments; i ++)
+		for(size_t ring = 0; ring < rings; ring++)
 		{
-			for(size_t j = 0; j < slices; j ++)
+			for(size_t slice = 0; slice < slices; slice++)
 			{
-				float theta = float(i) / (segments - 1) * (k::Pi);
-				float phi   = float(j) / (slices - 1)   * (k::Pi * 2);
+				//float y = 2.0f * segment / segments - 1.0f;
+				float y = -cos(k::Pi * ring / (rings - 1));
+				float r = sqrt(1.0f - y*y);
+				float x = r * sin(2.0f * k::Pi * slice / (slices));
+				float z = r * cos(2.0f * k::Pi * slice / (slices));
 
-				Vector3 position(radius *  Math::Sin(theta) * Math::Cos(phi), radius * -Math::Sin(theta) * Math::Sin(phi), radius *  Math::Cos(theta));
-				*vertices ++ = position;
-				*normals ++ = position.GetNormalized();
-				*colors ++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+				Vector3 position(x, y, z);
+				*vertices++ = position * radius;
+				*normals++ = position.GetNormalized();
+				*colors++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
-		for(size_t i = 0; i < segments - 3; i ++)
+		for(size_t i = 0; i < rings - 1; i++)
 		{
-			for(size_t j = 0; j < slices - 1; j ++)
+			for(size_t j = 0; j < slices - 1; j++)
 			{
-				*indices ++ = i * slices + j;
-				*indices ++ = (i + 1) * slices + j + 1;
-				*indices ++ = i * slices + j + 1;
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j + 1;
 
-				*indices ++ = i * slices + j;
-				*indices ++ = (i + 1) * slices + j;
-				*indices ++ = (i + 1) * slices + j + 1;
+				*indices++ = i * slices + j;
+				*indices++ = (i + 1) * slices + j;
+				*indices++ = (i + 1) * slices + j + 1;
 			}
 		}
 
-		for(size_t i = 0; i < slices - 1; i ++)
+		for(size_t i = 0; i < rings - 1; i++)
 		{
-			*indices ++ = (segments - 2) * slices;
-			*indices ++ = i;
-			*indices ++ = i + 2;
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
+			*indices++ = i * slices + 0;
 
-			*indices ++ = (segments - 2) * slices + 1;
-			*indices ++ = (segments - 3) * slices + i + 1;
-			*indices ++ = (segments - 3) * slices + i;
+			*indices++ = i * slices + slices - 1;
+			*indices++ = (i + 1) * slices + slices - 1;
+			*indices++ = (i + 1) * slices + 0;
 		}
+
+		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
+		mesh->_changedVertices = true;
+		mesh->_changedIndices = true;
+		mesh->EndChanges();
 
 		return mesh->Autorelease();
+	}
+
+	void Mesh::SubmitVertices(const Range &range)
+	{
+		if(!_vertexBufferCPU)
+			return;
+
+		//TODO: Don't copy full range if not needed.
+		void *target = _vertexBuffer->GetBuffer();
+		memcpy(target, _vertexBufferCPU, _verticesSize);
+		_vertexBuffer->InvalidateRange(range);
+	}
+
+	void Mesh::SubmitIndices(const Range &range)
+	{
+		if(!_indicesBufferCPU)
+			return;
+
+		//TODO: Don't copy full range if not needed.
+		void *target = _indicesBuffer->GetBuffer();
+		memcpy(target, _indicesBufferCPU, _indicesSize);
+		_indicesBuffer->InvalidateRange(range);
 	}
 }

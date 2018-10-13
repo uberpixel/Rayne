@@ -16,36 +16,6 @@ namespace RN
 {
 	static Logger *__sharedLogger = nullptr;
 
-	static std::string FormatTime(std::chrono::system_clock::time_point &time)
-	{
-		std::stringstream stream;
-		std::time_t timet = std::chrono::system_clock::to_time_t(time);
-
-#if RN_PLATFORM_POSIX
-		std::tm tm = std::tm{0};
-		localtime_r(&timet, &tm);
-#else
-		std::tm tm = *localtime(&timet);
-#endif
-
-		std::chrono::duration<double> sec = time - std::chrono::system_clock::from_time_t(timet) + std::chrono::seconds(tm.tm_sec);
-
-
-		stream.precision(3);
-		stream << tm.tm_mon + 1 << '/' << tm.tm_mday << '/' << tm.tm_year - 100 << ' ';
-
-#define PutTwoDigitNumber(n) if(n < 10) stream << '0'; stream << std::fixed << n
-
-		PutTwoDigitNumber(tm.tm_hour) << ':';
-		PutTwoDigitNumber(tm.tm_min) << ':';
-		PutTwoDigitNumber(sec.count());
-#undef PutTwoDigitNumber
-
-		return stream.str();
-	}
-
-
-
 	Logger::Logger()
 	{
 		_queue = new WorkQueue(WorkQueue::Priority::Background, WorkQueue::Flags::Serial, RNCSTR("net.uberpixel.rayne.queue.logger"));
@@ -84,7 +54,7 @@ namespace RN
 		return __sharedLogger;
 	}
 
-	void Logger::AddEngine(LoggingEngine *engine)
+	void Logger::AddEngine(LoggingEngine *engine, Level level)
 	{
 		LockGuard<Lockable> lock(_engineLock);
 
@@ -95,6 +65,7 @@ namespace RN
 		else
 			_engines->AddObject(engine);
 
+		engine->_level = level;
 		engine->Open();
 	}
 
@@ -120,10 +91,16 @@ namespace RN
 
 			if(_threadEngines->GetCount() > 0)
 			{
-				std::string time = FormatTime(message.time);
-
 				_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-					engine->Log(level, message, time);
+
+					const LogFormatter *formatter = engine->GetFormatter();
+					String *formatted = message.message;
+
+					if(formatter)
+						formatted = formatter->FormatLogMessage(message);
+
+					engine->Log(formatted);
+
 				});
 			}
 
@@ -134,11 +111,9 @@ namespace RN
 		_queue->Perform([message{std::move(message)}, this, level]() mutable {
 
 			{
-				LogContainer container(std::move(message), level);
-
 				UniqueLock<Lockable> lock(_lock);
 
-				while(!_messages.Push(std::move(container)))
+				while(!_messages.Push(std::move(message)))
 				{
 					lock.Unlock();
 					__FlushQueue();
@@ -211,9 +186,9 @@ namespace RN
 			engines = _engines->Copy();
 		}
 
-		std::vector<LogContainer> *messages = new std::vector<LogContainer>();
+		std::vector<LogMessage> *messages = new std::vector<LogMessage>();
 		{
-			LogContainer message;
+			LogMessage message;
 
 			while(_messages.Pop(message))
 				messages->push_back(std::move(message));
@@ -221,25 +196,20 @@ namespace RN
 
 		WorkGroup *group = new WorkGroup();
 
-		group->Perform(_queue, [messages]() {
-
-			for(auto iterator = messages->begin(); iterator != messages->end(); iterator ++)
-			{
-				LogContainer &container = *iterator;
-				container.FormatTime();
-			}
-
-		});
-
-
 		engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 
 			group->Perform(_queue, [engine, messages]() {
 
+				const LogFormatter *formatter = engine->GetFormatter();
+
 				for(auto iterator = messages->begin(); iterator != messages->end(); iterator ++)
 				{
-					LogContainer &container = *iterator;
-					engine->Log(container.level, container.message, container.formattedTime);
+					String *formatted = iterator->message;
+
+					if(formatter)
+						formatted = formatter->FormatLogMessage(*iterator);
+
+					engine->Log(formatted);
 				}
 
 			});
@@ -260,15 +230,5 @@ namespace RN
 		});
 
 		group->Release();
-	}
-
-
-
-	void Logger::LogContainer::FormatTime()
-	{
-		if(!formattedTime.empty())
-			return;
-
-		formattedTime = RN::FormatTime(message.time);
 	}
 }

@@ -194,11 +194,6 @@ namespace RN
 				return (_feature == VertexAttribute::Feature::Indices) ? 2 : _chunk->_mesh->GetStride();
 			}
 
-			void MarkDirty()
-			{
-				_feature == VertexAttribute::Feature::Indices ? (_chunk->_dirtyIndices = true) : (_chunk->_dirtyVertices = true);
-			}
-
 			size_t TranslateIndex(size_t index)
 			{
 				return _chunk->TranslateIndex(index);
@@ -226,7 +221,6 @@ namespace RN
 
 			T *operator ->()
 			{
-				MarkDirty();
 				return _ptr;
 			}
 
@@ -237,7 +231,6 @@ namespace RN
 
 			T &operator *()
 			{
-				__ChunkFriend::MarkDirty();
 				return *_ptr;
 			}
 
@@ -346,7 +339,7 @@ namespace RN
 			ElementIterator<T> GetIterator(VertexAttribute::Feature feature)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
-				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
+				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset; //TODO: First index is assumed to be 0, but could be different
 
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
 			}
@@ -360,8 +353,6 @@ namespace RN
 				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);
 				return result;
 			}
-
-			RNAPI void CommitChanges();
 
 		private:
 			RNAPI Chunk(Mesh *mesh, bool triangles);
@@ -388,14 +379,14 @@ namespace RN
 			void *GetVertexData()
 			{
 				if(!_vertexData)
-					_vertexData = _mesh->_vertexBuffer->GetBuffer();
+					_vertexData = _mesh->_vertexBufferCPU;
 
 				return _vertexData;
 			}
 			void *GetIndexData()
 			{
 				if(!_indexData)
-					_indexData = _mesh->_indicesBuffer->GetBuffer();
+					_indexData = _mesh->_indicesBufferCPU;
 
 				return _indexData;
 			}
@@ -406,9 +397,6 @@ namespace RN
 
 			Mesh *_mesh;
 			bool _triangles;
-
-			bool _dirtyVertices;
-			bool _dirtyIndices;
 		};
 
 
@@ -420,6 +408,9 @@ namespace RN
 
 		RNAPI static Mesh *WithColoredCube(const Vector3 &size, const Color &color);
 		RNAPI static Mesh *WithTexturedCube(const Vector3 &size);
+
+		RNAPI static Mesh *WithTexturedPlane(const Quaternion &rotation, const Vector3 &position = Vector3(0.0f, 0.0f, 0.0f), const Vector2 &size = Vector2(0.5f, 0.5f));
+		RNAPI static Mesh *WithTexturedDome(float radius, size_t slices, size_t segments);
 
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
 
@@ -435,6 +426,7 @@ namespace RN
 
 		RNAPI void CalculateBoundingVolumes();
 
+		//TODO: Having the two types is a bit confusing since they result in different iterator behaviour
 		Chunk GetChunk() { return Chunk(this, false); }
 		Chunk GetTrianglesChunk() { return Chunk(this, true); }
 
@@ -450,14 +442,22 @@ namespace RN
 		const std::vector<VertexAttribute> &GetVertexAttributes() const { return _vertexAttributes; }
 		const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
 
-		GPUBuffer *GetVertexBuffer() const { return _vertexBuffer; }
-		GPUBuffer *GetIndicesBuffer() const { return _indicesBuffer; }
+		GPUBuffer *GetGPUVertexBuffer() const { return _vertexBuffer; }
+		GPUBuffer *GetGPUIndicesBuffer() const { return _indicesBuffer; }
+
+		void *GetCPUVertexBuffer() const { return _vertexBufferCPU; }
+		void *GetCPUIndicesBuffer() const { return _indicesBufferCPU; }
 
 	private:
 		void ParseAttributes();
+		void SubmitIndices(const Range &range);
+		void SubmitVertices(const Range &range);
 
+		//TODO: Find a nice way to combine cpu and gpu buffers with consistent interface, optional storage and transfer between them
 		GPUBuffer *_vertexBuffer;
 		GPUBuffer *_indicesBuffer;
+		void *_vertexBufferCPU;
+		void *_indicesBufferCPU;
 
 		size_t _stride;
 		size_t _verticesCount;

@@ -40,7 +40,7 @@ namespace RN
 
 		static Matrix WithProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
 		static Matrix WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
-		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+//		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar); //TODO: Fix...
 
 		float GetDeterminant() const;
 		
@@ -147,8 +147,10 @@ namespace RN
 		};
 	};
 
+#if RN_SUPPORTS_TRIVIALLY_COPYABLE
 	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
+#endif
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */

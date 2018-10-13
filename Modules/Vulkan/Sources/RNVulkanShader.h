@@ -17,22 +17,22 @@ namespace RN
 	class VulkanShader : public Shader
 	{
 	public:
-		friend class VulkanShaderLibrary;
-		friend class VulkanRenderer;
+		friend class VulkanSpecificShaderLibrary;
 		friend class VulkanStateCoordinator;
+		friend class VulkanRenderer;
 
 		VKAPI ~VulkanShader() override;
 
-		VKAPI const String *GetName() const override;
-		VKAPI const Array *GetAttributes() const override;
+		VKAPI const String *GetName() const final;
 
 	private:
-		VulkanShader(const String *name, Shader::Type type, VkShaderModule module, ShaderLibrary *library);
+		VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers);
 
-		Array *_attributes;
 		VkPipelineShaderStageCreateInfo _shaderStage;
 		VkShaderModule _module;
-		String *_name;
+		const String *_name;
+
+		bool _wantsDirectionalShadowTexture; //TODO: Solve better...
 
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
 	};

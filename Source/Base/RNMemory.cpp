@@ -360,7 +360,7 @@ namespace RN
 	};
 }
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 void *operator new(size_t size)
 {
 	return RN::Memory::Allocate(size);

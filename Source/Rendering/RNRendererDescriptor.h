@@ -39,20 +39,20 @@ namespace RN
 		const String *GetAPI() const { return _api; }
 
 		RNAPI static Array *GetRenderers();
-		RNAPI static Array *GetAvailableRenderers();
+		RNAPI static Array *GetAvailableRenderers(Dictionary *additionalSettings = nullptr);
 
-		RNAPI static RendererDescriptor *GetPreferredRenderer();
-		RNAPI static RendererDescriptor *GetRendererWithIdentifier(const String *identifier);
+		RNAPI static RendererDescriptor *GetPreferredRenderer(Dictionary *additionalSettings = nullptr);
+		RNAPI static RendererDescriptor *GetRendererWithIdentifier(const String *identifier, Dictionary *additionalSettings = nullptr);
 
 	protected:
 		RNAPI RendererDescriptor(const String *identifier, const String *api);
 
 	private:
 		static Dictionary *GetSettings();
-		static Dictionary *GetParameters();
+		static Dictionary *GetParameters(Dictionary *additionalSettings);
 
-		static RendererDescriptor *__GetRendererWithIdentifier(const String *identifier);
-		static Renderer *ActivateRenderer(RendererDescriptor *descriptor);
+		static RendererDescriptor *__GetRendererWithIdentifier(const String *identifier, Dictionary *additionalSettings);
+		static Renderer *ActivateRenderer(RendererDescriptor *descriptor, Dictionary *additionalSettings = nullptr);
 
 		void __PrepareWithSettings(const Dictionary *settings);
 

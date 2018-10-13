@@ -12,50 +12,36 @@
 #include "RNMetalFramebuffer.h"
 
 @implementation RNMetalView
-	{
-		CAMetalLayer *_layer;
-		RN::Framebuffer *_depthbuffer[3];
-		size_t _depthbufferIndex;
-	};
-
-- (id<MTLTexture>)nextDepthBuffer
 {
-	RN::MetalTexture *texture = static_cast<RN::MetalTexture *>(_depthbuffer[_depthbufferIndex]->GetDepthTexture());
-	return (id<MTLTexture>)texture->__GetUnderlyingTexture();
-}
+	CAMetalLayer *_layer;
+};
 
 - (id<CAMetalDrawable>)nextDrawable
 {
-	_depthbufferIndex = (_depthbufferIndex + 1) % 3;
 	return [_layer nextDrawable];
 }
 
-- (instancetype)initWithFrame:(NSRect)frameRect andDevice:(id<MTLDevice>)device
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format
 {
 	if((self = [super initWithFrame:frameRect]))
 	{
 		_layer = [CAMetalLayer layer];
 		[_layer setDevice:device];
-		[_layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
+		[_layer setPixelFormat:format];
 		[_layer setFramebufferOnly:YES];
-		[_layer setContentsScale:2.0];
+		[_layer setContentsScale:2.0];	//TODO: Use device contentScale
 
 		[self setWantsLayer:YES];
 		[self setLayer:_layer];
-
-		RN::Vector2 size = RN::Vector2(frameRect.size.width * 2.0f, frameRect.size.height * 2.0f);
-		RN::MetalFramebuffer::Descriptor descriptor;
-		descriptor.options = RN::Framebuffer::Options::PrivateStorage;
-		descriptor.colorFormat = RN::Texture::Format::Invalid;
-		descriptor.depthFormat = RN::Texture::Format::Depth24I;
-
-		for(size_t i = 0; i < 3; i ++)
-		{
-			_depthbuffer[i] = new RN::MetalFramebuffer(size, descriptor);
-		}
 	}
 
 	return self;
+}
+
+- (CGSize)getSize
+{
+	//TODO: Use layer contentScale
+	return CGSizeMake(self.frame.size.width * 2.0f, self.frame.size.height * 2.0f);
 }
 
 @end

@@ -10,12 +10,14 @@
 #define __RAYNE_VULKANWINDOW_H_
 
 #include "RNVulkan.h"
-#include "RNVulkanBackBuffer.h"
-#include "RNVulkanFramebuffer.h"
+//#include "RNVulkanBackBuffer.h"
 
 namespace RN
 {
 	class VulkanRenderer;
+	class VulkanFramebuffer;
+	class VulkanSwapChain;
+
 	class VulkanWindow : public Window
 	{
 	public:
@@ -28,21 +30,27 @@ namespace RN
 
 		VKAPI void Show() final;
 		VKAPI void Hide() final;
+		VKAPI void SetFullscreen(bool fullscreen) final;
 
 		VKAPI Vector2 GetSize() const final;
+		VKAPI Framebuffer *GetFramebuffer() const final;
 
-		VKAPI void AcquireBackBuffer();
-		VKAPI void PresentBackBuffer();
+		VKAPI void UpdateSize();
 
-		VkSwapchainKHR GetSwapChain() const { return _swapchain; }
-		VulkanFramebuffer *GetFramebuffer() const { return _framebuffer; }
-		VulkanBackBuffer *GetActiveBackbuffer() const { return _activeBackBuffer; }
+		VKAPI virtual const Window::SwapChainDescriptor &GetSwapChainDescriptor() const override;
+
+		VKAPI uint64 GetWindowHandle() const final;
+
+#if RN_PLATFORM_WINDOWS
+		HWND GetHWND() const { return _hwnd; }
+#endif
+		VulkanSwapChain *GetSwapChain() const { return _swapChain; }
 
 	private:
-		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer);
+		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
-		void InitializeSurface();
-		void ResizeSwapchain(const Vector2 &size);
+		VulkanSwapChain *_swapChain;
+		VulkanRenderer *_renderer;
 
 #if RN_PLATFORM_WINDOWS
 		HWND _hwnd;
@@ -51,18 +59,9 @@ namespace RN
 		xcb_window_t _window;
 		xcb_intern_atom_reply_t *_destroyWindow;
 #endif
-
-		VulkanRenderer *_renderer;
-
-		std::queue<VulkanBackBuffer *> _backBuffers;
-		VulkanBackBuffer *_activeBackBuffer;
-		VulkanFramebuffer *_framebuffer;
-
-		VkSurfaceKHR _surface;
-		VkSurfaceFormatKHR _format;
-		VkSwapchainKHR _swapchain;
-
-		VkExtent2D _extents;
+#if RN_PLATFORM_ANDROID
+		ANativeWindow *_window;
+#endif
 
 		RNDeclareMetaAPI(VulkanWindow, VKAPI)
 	};

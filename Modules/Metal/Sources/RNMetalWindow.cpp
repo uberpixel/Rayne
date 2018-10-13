@@ -10,21 +10,23 @@
 #include "RNMetalWindow.h"
 #include "RNMetalInternals.h"
 #include "RNMetalRenderer.h"
+#include "RNMetalSwapChain.h"
 
 namespace RN
 {
 	RNDefineMeta(MetalWindow, Window)
 
-	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer) :
+	MetalWindow::MetalWindow(const Vector2 &size, Screen *screen, MetalRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
-		_renderer(nullptr)
+		_renderer(renderer)
 	{
-		_internals->metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) andDevice:renderer->_internals->device];
-
-		_internals->window = [[RNMetalWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
+		_internals->window = [[RNMetalWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable backing:NSBackingStoreBuffered defer:NO];
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
-		[_internals->window setContentView:_internals->metalView];
+
+		_swapChain = new MetalSwapChain(size, renderer->_internals->device, descriptor);
+
+		[_internals->window setContentView:_swapChain->_metalView];
 
 		NSScreen *nsscreen = (NSScreen *)screen->GetNSScreen();
 		NSRect frame = [_internals->window frame];
@@ -72,8 +74,21 @@ namespace RN
 
 	Vector2 MetalWindow::GetSize() const
 	{
-		NSRect rect = [_internals->window frame];
+		return _swapChain->GetSize();
+	}
 
-		return Vector2(rect.size.width, rect.size.height);
+	Framebuffer *MetalWindow::GetFramebuffer() const
+	{
+		return _swapChain->GetFramebuffer();
+	}
+	
+	const Window::SwapChainDescriptor &MetalWindow::GetSwapChainDescriptor() const
+	{
+		return _swapChain->GetSwapChainDescriptor();
+	}
+	
+	uint64 MetalWindow::GetWindowHandle() const
+	{
+		return reinterpret_cast<uint64>(_internals->window);
 	}
 }

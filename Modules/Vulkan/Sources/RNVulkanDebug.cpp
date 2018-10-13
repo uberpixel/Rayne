@@ -24,27 +24,22 @@ namespace RN
 		if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 		{
 			RNError("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
-			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 		{
 			RNWarning("[" << pLayerPrefix << "] (" << (void *)srcObject <<  ") Code " << msgCode << ": " << pMsg);
-			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 		{
 			RNDebug("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
-			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 		{
 			RNWarning("(Perf) [" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
-			return VK_TRUE;
 		}
 		else if(flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 		{
 			RNInfo("[" << pLayerPrefix << "] (" << (void *)srcObject << ") Code " << msgCode << ": " << pMsg);
-			return VK_TRUE;
 		}
 
 		return VK_FALSE;
@@ -86,13 +81,15 @@ namespace RN
 //		layers.push_back("VK_LAYER_LUNARG_api_dump");
 
 //		layers.push_back("VK_LAYER_LUNARG_standard_validation");
-/*		layers.push_back("VK_LAYER_LUNARG_param_checker");
-		layers.push_back("VK_LAYER_LUNARG_device_limits");
+
+/*		layers.push_back("VK_LAYER_GOOGLE_threading");
+		layers.push_back("VK_LAYER_LUNARG_parameter_validation");
 		layers.push_back("VK_LAYER_LUNARG_object_tracker");
-		layers.push_back("VK_LAYER_LUNARG_image");
-//		layers.push_back("VK_LAYER_LUNARG_draw_state");
-		layers.push_back("VK_LAYER_LUNARG_swapchain");
+		layers.push_back("VK_LAYER_LUNARG_core_validation");
 		layers.push_back("VK_LAYER_GOOGLE_unique_objects");*/
+
+//		layers.push_back("VK_LAYER_LUNARG_monitor");
+//		layers.push_back("VK_LAYER_LUNARG_assistant_layer");
 #endif
 
 		return layers;
@@ -103,17 +100,7 @@ namespace RN
 		std::vector<const char *> layers;
 
 #if RN_VULKAN_ENABLE_VALIDATION
-//		layers.push_back("VK_LAYER_RENDERDOC_Capture");
-//		layers.push_back("VK_LAYER_LUNARG_api_dump");
-
-//		layers.push_back("VK_LAYER_LUNARG_standard_validation");
-/*		layers.push_back("VK_LAYER_LUNARG_param_checker");
-		layers.push_back("VK_LAYER_LUNARG_device_limits");
-		layers.push_back("VK_LAYER_LUNARG_object_tracker");
-		layers.push_back("VK_LAYER_LUNARG_image");
-//		layers.push_back("VK_LAYER_LUNARG_draw_state");
-		layers.push_back("VK_LAYER_LUNARG_swapchain");
-		layers.push_back("VK_LAYER_GOOGLE_unique_objects");*/
+		//Deprecated!
 #endif
 
 		return layers;

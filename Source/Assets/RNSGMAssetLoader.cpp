@@ -98,7 +98,7 @@ namespace RN
 		uint8 materialCount = file->ReadUint8();
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
-		std::vector<std::pair<ShaderLookupRequest *, MaterialDescriptor>> materials;
+		std::vector<std::pair<bool, Material*>> materials;
 
 		// Get Materials
 		Array *materialPlaceholder = new Array();
@@ -117,7 +117,7 @@ namespace RN
 
 				for(uint8 n = 0; n < textureCount; n ++)
 				{
-					/*__unused uint8 usageHint =*/ file->ReadUint8();
+					/*RN_UNUSED uint8 usageHint =*/ file->ReadUint8();
 
 					size_t length = file->ReadUint16();
 					char *buffer = new char[length];
@@ -140,23 +140,24 @@ namespace RN
 				}
 			}
 
+			Color diffuseColor;
 			uint8 colorCount = file->ReadUint8();
-
 			for(uint8 u = 0; u < colorCount; u ++)
 			{
-				__unused uint8 usagehint = file->ReadUint8();
+				RN_UNUSED uint8 usagehint = file->ReadUint8();
 				Color color;
 				color.r = file->ReadFloat();
 				color.g = file->ReadFloat();
 				color.b = file->ReadFloat();
 				color.a = file->ReadFloat();
 
-				//if(usagehint == 0 && u == 0)
-				//	descriptor->S(color);
+				if(usagehint == 0 && u == 0)
+					diffuseColor = color;
 			}
 
 			Dictionary *info = new Dictionary();
 			info->SetObjectForKey(textures, RNCSTR("textures"));
+			info->SetObjectForKey(Value::WithColor(diffuseColor), RNCSTR("diffusecolor"));
 
 			materialPlaceholder->AddObject(info);
 
@@ -168,9 +169,9 @@ namespace RN
 		materialPlaceholder->Enumerate<Dictionary>([&](Dictionary *info, size_t index, bool &stop) {
 
 			Array *textures = info->GetObjectForKey<Array>(RNCSTR("textures"));
-			ShaderLookupRequest *lookup = new ShaderLookupRequest();
 
-			MaterialDescriptor descriptor;
+			Material *material = Material::WithShaders(nullptr, nullptr);
+			bool wantsDiscard = false;
 
 			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
 
@@ -193,15 +194,21 @@ namespace RN
 					texture = AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(file, nullptr);
 				}
 
-				descriptor.AddTexture(texture);
+				material->AddTexture(texture);
 
-				if(texture->HasColorChannel(Texture::ColorChannel::Alpha))
-					lookup->discard = true;
+				//Activate discarding of transparent pixels if first texture has alpha
+				if(index == 0 && texture->HasColorChannel(Texture::ColorChannel::Alpha))
+					wantsDiscard = true;
 
 			});
 
-			materials.emplace_back(std::make_pair(lookup, descriptor));
-			lookup->Autorelease();
+			Value *diffuseColor = info->GetObjectForKey<Value>(RNCSTR("diffusecolor"));
+			if(diffuseColor)
+			{
+				material->SetDiffuseColor(diffuseColor->GetValue<Color>());
+			}
+
+			materials.emplace_back(std::make_pair(wantsDiscard, material->Retain()));
 
 		});
 
@@ -288,7 +295,7 @@ namespace RN
 
 			size_t indicesOffset = file->GetOffset();
 
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16);
+			attributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, indicesSize < 4? PrimitiveType::Uint16 : PrimitiveType::Uint32);
 
 
 			// Load the mesh data
@@ -334,19 +341,31 @@ namespace RN
 			// Read the indices
 			file->Seek(indicesOffset);
 
-			GPUBuffer *indexBuffer = mesh->GetIndicesBuffer();
-			file->Read(indexBuffer->GetBuffer(), indicesCount * indicesSize);
-			indexBuffer->Invalidate();
+			uint8 *indicesBuffer = new uint8[indicesCount * indicesSize];
+			file->Read(indicesBuffer, indicesCount * indicesSize);
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indicesBuffer);
+			delete[] indicesBuffer;
 
 			mesh->EndChanges();
 
 			// Load the material
-			ShaderLookupRequest *lookup = materialPair.first;
-			MaterialDescriptor &descriptor = materialPair.second;
+			bool wantsDiscard = materialPair.first;
+			Material *material = materialPair.second;
+			Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
+			if(wantsDiscard)
+			{
+				shaderOptions->EnableAlpha();
+				material->SetAlphaToCoverage(true);
+			}
 
-			descriptor.SetShaderProgram(renderer->GetDefaultShader(mesh, lookup));
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
 
-			stage->AddMesh(mesh, Material::WithDescriptor(descriptor));
+			stage->AddMesh(mesh, material->Autorelease());
 			mesh->Autorelease();
 		}
 	}

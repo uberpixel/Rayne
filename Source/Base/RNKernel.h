@@ -43,13 +43,15 @@ namespace RN
 
 		RNAPI void Run();
 		RNAPI void Exit();
-
+		
 		RNAPI void SetMaxFPS(uint32 maxFPS);
 
+		double GetTotalTime() const{ return _time; }
 		float GetScaleFactor() const { return 1.0f; }
 
 		Application *GetApplication() const { return _application; }
 		Settings *GetSettings() const { return _settings; }
+		const ArgumentParser &GetArguments() const { return _arguments; }
 
 		template<class T>
 		T *GetManifestEntryForKey(const String *key) const
@@ -72,6 +74,11 @@ namespace RN
 		void __DidBecomeActive();
 		void __WillResignActive();
 		void __DidResignActive();
+#endif
+
+#if RN_PLATFORM_ANDROID
+		RNAPI void SetAndroidApp(android_app *app);
+		android_app *GetAndroidApp() const { return _androidApp; }
 #endif
 
 	private:
@@ -108,6 +115,9 @@ namespace RN
 
 #if RN_PLATFORM_LINUX
 		xcb_connection_t *_connection;
+#endif
+#if RN_PLATFORM_ANDROID
+		android_app *_androidApp;
 #endif
 
 		RunLoopObserver *_observer;

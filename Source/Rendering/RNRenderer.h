@@ -33,7 +33,6 @@ namespace RN
 	{
 		Drawable()
 		{
-			dirty = true;
 			mesh = nullptr;
 			material = nullptr;
 			count = 1;
@@ -45,12 +44,12 @@ namespace RN
 		{
 			if(mesh != tmesh)
 			{
-				dirty = true;
+				MakeDirty();
 				mesh = tmesh;
 			}
 			if(material != tmaterial)
 			{
-				dirty = true;
+				MakeDirty();
 				material = tmaterial;
 			}
 
@@ -62,17 +61,18 @@ namespace RN
 			modelMatrix = node->GetWorldTransform();
 			inverseModelMatrix = modelMatrix.GetInverse();
 		}
+		virtual void MakeDirty(){}
 
 		Mesh *mesh;
 		Material *material;
 		Matrix modelMatrix;
 		Matrix inverseModelMatrix;
 		size_t count;
-		bool dirty;
 	};
 
 	class RendererDescriptor;
 	class RenderingDevice;
+	class Light;
 
 	class Renderer : public Object
 	{
@@ -81,36 +81,41 @@ namespace RN
 
 		RNAPI ~Renderer();
 
-		RNAPI virtual Window *CreateAWindow(const Vector2 &size, Screen *screen) = 0;
+		RNAPI virtual Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) = 0;
 		RNAPI virtual Window *GetMainWindow() = 0;
+		RNAPI virtual void SetMainWindow(Window *window) = 0;
 
 		RNAPI void Activate();
 		RNAPI virtual void Deactivate();
 
-		RNAPI virtual void RenderIntoWindow(Window *window, Function &&function) = 0;
-		RNAPI virtual void RenderIntoCamera(Camera *camera, Function &&function) = 0;
+		RNAPI virtual void Render(Function &&function) = 0;
+		RNAPI virtual void SubmitCamera(Camera *camera, Function &&function) = 0;
+		RNAPI virtual void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) = 0;
 
 		RNAPI virtual bool SupportsTextureFormat(const String *format) const = 0;
 		RNAPI virtual bool SupportsDrawMode(DrawMode mode) const = 0;
 
 		RNAPI virtual size_t GetAlignmentForType(PrimitiveType type) const = 0;
 		RNAPI virtual size_t GetSizeForType(PrimitiveType type) const = 0;
-		RNAPI virtual const String *GetTextureFormatName(const Texture::Format format) const = 0;
 
 		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
 
-		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) = 0;
-		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) = 0;
+		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file) = 0;
+		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source) = 0;
 
-		RNAPI virtual ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) = 0;
+		RNAPI virtual Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint shader = Shader::UsageHint::Default) = 0;
+		RNAPI virtual ShaderLibrary *GetDefaultShaderLibrary() = 0;
 
 		RNAPI virtual Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) = 0;
 
-		RNAPI virtual Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) = 0;
+		RNAPI virtual Framebuffer *CreateFramebuffer(const Vector2 &size) = 0;
 
 		RNAPI virtual Drawable *CreateDrawable() = 0;
+		RNAPI virtual void DeleteDrawable(Drawable *drawable) = 0;
 		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
+
+		RNAPI virtual void SubmitLight(const Light *light) = 0;
 
 		RendererDescriptor *GetDescriptor() const { return _descriptor; }
 		RenderingDevice *GetDevice() const { return _device; }

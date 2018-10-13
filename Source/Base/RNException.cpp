@@ -11,7 +11,9 @@
 
 #if RN_PLATFORM_POSIX
 #include <cxxabi.h>
-#include <execinfo.h>
+#if !RN_PLATFORM_ANDROID
+	#include <execinfo.h>
+#endif
 #include <stdlib.h>
 #include <dlfcn.h>
 #endif
@@ -59,7 +61,7 @@ namespace RN
 		
 		std::string unknwonSymbol("<..>");
 		
-#if RN_PLATFORM_POSIX
+#if RN_PLATFORM_POSIX && !RN_PLATFORM_ANDROID
 		size = backtrace(symbols, kRNExceptionMaxSymbols);
 		
 		for(size_t i = 2; i < size; i ++)

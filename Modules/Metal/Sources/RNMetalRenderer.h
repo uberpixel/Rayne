@@ -22,7 +22,10 @@ namespace RN
 	class MetalWindow;
 	class MetalTexture;
 	class MetalUniformBuffer;
+	struct MetalRenderPass;
 	class GPUBuffer;
+	class MetalUniformBufferReference;
+	class MetalUniformBufferPool;
 
 	class MetalRenderer : public Renderer
 	{
@@ -33,50 +36,64 @@ namespace RN
 		MTLAPI MetalRenderer(MetalRendererDescriptor *descriptor, MetalDevice *device);
 		MTLAPI ~MetalRenderer();
 
-		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen) final;
+		MTLAPI Window *CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor = Window::SwapChainDescriptor()) final;
 		MTLAPI Window *GetMainWindow() final;
+		MTLAPI void SetMainWindow(Window *window) final;
 
-		MTLAPI void RenderIntoWindow(Window *window, Function &&function) final;
-		MTLAPI void RenderIntoCamera(Camera *camera, Function &&function) final;
+		MTLAPI void Render(Function &&function) final;
+		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
+		MTLAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
 
-		MTLAPI const String *GetTextureFormatName(const Texture::Format format) const final;
 		MTLAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		MTLAPI size_t GetSizeForType(PrimitiveType type) const final;
 
 		MTLAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 		MTLAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
 
-		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file, const ShaderCompileOptions *options) final;
-		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source, const ShaderCompileOptions *options) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
+		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		MTLAPI ShaderProgram *GetDefaultShader(const Mesh *mesh, const ShaderLookupRequest *lookup) final;
+		MTLAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint = Shader::UsageHint::Default) final;
+		
+		MTLAPI ShaderLibrary *GetDefaultShaderLibrary() final;
 
 		MTLAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
+		MTLAPI Texture *CreateTextureWithDescriptorAndIOSurface(const Texture::Descriptor &descriptor, IOSurfaceRef ioSurface);
 
-		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size, const Framebuffer::Descriptor &descriptor) final;
+		MTLAPI Framebuffer *CreateFramebuffer(const Vector2 &size) final;
 
 		MTLAPI Drawable *CreateDrawable() final;
+		MTLAPI void DeleteDrawable(Drawable *drawable) final;
 		MTLAPI void SubmitDrawable(Drawable *drawable) final;
+		MTLAPI void SubmitLight(const Light *light) final;
+		
+		MTLAPI static MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options);
+		
+		MTLAPI MetalUniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
 
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
-		void FillUniformBuffer(MetalUniformBuffer *buffer, MetalDrawable *drawable);
+		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
+		void FillUniformBuffer(MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();
 
 		Set *_mipMapTextures;
-		Dictionary *_textureFormatLookup;
 
 		PIMPL<MetalRendererInternals> _internals;
-		MetalWindow *_mainWindow;
+		Window *_mainWindow;
+		
+		MetalDrawable *_defaultPostProcessingDrawable;
+		Material *_ppConvertMaterial;
 
 		Lockable _lock;
 
-		Dictionary *_defaultShaders;
+		MetalUniformBufferPool *_uniformBufferPool;
+		ShaderLibrary *_defaultShaderLibrary;
 
 		RNDeclareMetaAPI(MetalRenderer, MTLAPI)
 	};

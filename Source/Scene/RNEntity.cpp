@@ -30,10 +30,11 @@ namespace RN
 
 	void Entity::ClearDrawables()
 	{
+		Renderer *renderer = Renderer::GetActiveRenderer();
 		for(auto &drawables : _drawables)
 		{
 			for(Drawable *drawable : drawables)
-				delete drawable;
+				renderer->DeleteDrawable(drawable);
 		}
 
 		_drawables.clear();

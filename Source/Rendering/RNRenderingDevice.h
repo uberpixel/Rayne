@@ -23,6 +23,7 @@ namespace RN
 			Integrated,
 			CPU,
 			Virtual,
+			External,
 			Other
 		};
 
@@ -36,6 +37,7 @@ namespace RN
 
 
 		RNAPI ~RenderingDevice() override;
+		RNAPI bool IsEqual(const Object *other) const override;
 
 		RNAPI const String *GetDescription() const override;
 
@@ -45,6 +47,7 @@ namespace RN
 		uint32 GetVendorID() const { return _vendorID; }
 		Type GetType() const { return _type; }
 
+		RNAPI virtual void SetExtensions(Array *extensions) {}
 
 	protected:
 		RNAPI RenderingDevice(const String *name, const Descriptor &descriptor);

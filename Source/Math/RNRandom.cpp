@@ -51,55 +51,55 @@ namespace RN
 			std::call_once(token, [&] {
 
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(20, 100), std::make_pair(30, 92),
-																 std::make_pair(40, 89), std::make_pair(50, 85),
-																 std::make_pair(60, 78), std::make_pair(70, 70),
-																 std::make_pair(80, 60), std::make_pair(90, 55),
-																 std::make_pair(100, 50)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20.0f, 100.0f), std::make_pair(30.0f, 92.0f),
+																 std::make_pair(40.0f, 89.0f), std::make_pair(50.0f, 85.0f),
+																 std::make_pair(60.0f, 78.0f), std::make_pair(70.0f, 70.0f),
+																 std::make_pair(80.0f, 60.0f), std::make_pair(90.0f, 55.0f),
+																 std::make_pair(100.0f, 50.0f)};
 					__ColorDefinitions.emplace_back("red", std::make_pair(-26.0f, 18.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(20, 100), std::make_pair(30, 93),
-																 std::make_pair(40, 88), std::make_pair(50, 86),
-																 std::make_pair(60, 85), std::make_pair(70, 70),
-																 std::make_pair(100, 70)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20.0f, 100.0f), std::make_pair(30.0f, 93.0f),
+																 std::make_pair(40.0f, 88.0f), std::make_pair(50.0f, 86.0f),
+																 std::make_pair(60.0f, 85.0f), std::make_pair(70.0f, 70.0f),
+																 std::make_pair(100.0f, 70.0f)};
 					__ColorDefinitions.emplace_back("orange", std::make_pair(19.0f, 46.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(25, 100), std::make_pair(40, 94),
-																 std::make_pair(50, 89), std::make_pair(60, 86),
-																 std::make_pair(70, 84), std::make_pair(80, 82),
-																 std::make_pair(90, 80), std::make_pair(100, 75)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(25.0f, 100.0f), std::make_pair(40.0f, 94.0f),
+																 std::make_pair(50.0f, 89.0f), std::make_pair(60.0f, 86.0f),
+																 std::make_pair(70.0f, 84.0f), std::make_pair(80.0f, 82.0f),
+																 std::make_pair(90.0f, 80.0f), std::make_pair(100.0f, 75.0f)};
 					__ColorDefinitions.emplace_back("yellow", std::make_pair(47.0f, 62.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(30, 100), std::make_pair(40, 90),
-																 std::make_pair(50, 85), std::make_pair(60, 81),
-																 std::make_pair(70, 74), std::make_pair(80, 64),
-																 std::make_pair(90, 50), std::make_pair(100, 40)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(30.0f, 100.0f), std::make_pair(40.0f, 90.0f),
+																 std::make_pair(50.0f, 85.0f), std::make_pair(60.0f, 81.0f),
+																 std::make_pair(70.0f, 74.0f), std::make_pair(80.0f, 64.0f),
+																 std::make_pair(90.0f, 50.0f), std::make_pair(100.0f, 40.0f)};
 					__ColorDefinitions.emplace_back("green", std::make_pair(63.0f, 178.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(20, 100), std::make_pair(30, 86),
-																 std::make_pair(40, 80), std::make_pair(50, 74),
-																 std::make_pair(60, 60), std::make_pair(70, 52),
-																 std::make_pair(80, 44), std::make_pair(90, 39),
-																 std::make_pair(100, 35)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20.0f, 100.0f), std::make_pair(30.0f, 86.0f),
+																 std::make_pair(40.0f, 80.0f), std::make_pair(50.0f, 74.0f),
+																 std::make_pair(60.0f, 60.0f), std::make_pair(70.0f, 52.0f),
+																 std::make_pair(80.0f, 44.0f), std::make_pair(90.0f, 39.0f),
+																 std::make_pair(100.0f, 35.0f)};
 					__ColorDefinitions.emplace_back("blue", std::make_pair(179.0f, 257.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(20, 100), std::make_pair(30, 87),
-																 std::make_pair(40, 79), std::make_pair(50, 70),
-																 std::make_pair(60, 65), std::make_pair(70, 59),
-																 std::make_pair(80, 52), std::make_pair(90, 45),
-																 std::make_pair(100, 42)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20.0f, 100.0f), std::make_pair(30.0f, 87.0f),
+																 std::make_pair(40.0f, 79.0f), std::make_pair(50.0f, 70.0f),
+																 std::make_pair(60.0f, 65.0f), std::make_pair(70.0f, 59.0f),
+																 std::make_pair(80.0f, 52.0f), std::make_pair(90.0f, 45.0f),
+																 std::make_pair(100.0f, 42.0f)};
 					__ColorDefinitions.emplace_back("purple", std::make_pair(258.0f, 282.0f), pair);
 				}
 				{
-					std::vector<std::pair<float, float>> pair = {std::make_pair(20, 100), std::make_pair(30, 90),
-																 std::make_pair(40, 86), std::make_pair(60, 84),
-																 std::make_pair(80, 80), std::make_pair(90, 75),
-																 std::make_pair(100, 73)};
+					std::vector<std::pair<float, float>> pair = {std::make_pair(20.0f, 100.0f), std::make_pair(30.0f, 90.0f),
+																 std::make_pair(40.0f, 86.0f), std::make_pair(60.0f, 84.0f),
+																 std::make_pair(80.0f, 80.0f), std::make_pair(90.0f, 75.0f),
+																 std::make_pair(100.0f, 73.0f)};
 					__ColorDefinitions.emplace_back("pink", std::make_pair(283.0f, 334.0f), pair);
 				}
 			});
@@ -284,13 +284,13 @@ namespace RN
 		// ---------------------
 
 		MersenneTwister::MersenneTwister() :
-			_N(624),
-			_M(397),
-			_A(0x9908b0dfUL),
-			_U(0x80000000UL),
-			_L(0x7fffffffUL)
+			___N(624),
+			__M(397),
+			__A(0x9908b0dfUL),
+			__U(0x80000000UL),
+			__L(0x7fffffffUL)
 		{
-			_bytes = new uint32[_N];
+			_bytes = new uint32[___N];
 			Seed(GetSeedValue());
 		}
 
@@ -315,7 +315,7 @@ namespace RN
 			_offset = 0;
 			_bytes[0] = seed & 0xffffffffUL;
 
-			for(uint32 i = 1; i < _N; i++)
+			for(uint32 i = 1; i < ___N; i++)
 			{
 				_bytes[i] = 1812433253UL * (_bytes[i - 1] ^ (_bytes[i - 1] >> 30)) + i;
 				_bytes[i] &= 0xffffffffUL;
@@ -326,22 +326,22 @@ namespace RN
 		{
 			uint32 y, a;
 
-			if(_offset >= _N)
+			if(_offset >= ___N)
 			{
 				_offset = 0;
 
-				for(uint32 i = 0; i < _N - 1; i++)
+				for(uint32 i = 0; i < ___N - 1; i++)
 				{
-					y = (_bytes[i] & _U) | (_bytes[i + 1] & _L);
-					a = (y & 0x1) ? _A : 0x0;
+					y = (_bytes[i] & __U) | (_bytes[i + 1] & __L);
+					a = (y & 0x1) ? __A : 0x0;
 
-					_bytes[i] = _bytes[(i + _M) % _N] ^ (y >> 1) ^ a;
+					_bytes[i] = _bytes[(i + __M) % ___N] ^ (y >> 1) ^ a;
 				}
 
-				y = (_bytes[_N - 1] & _U) | (_bytes[0] & _L);
-				a = (y & 0x1) ? _A : 0x0;
+				y = (_bytes[___N - 1] & __U) | (_bytes[0] & __L);
+				a = (y & 0x1) ? __A : 0x0;
 
-				_bytes[_N - 1] = _bytes[_M - 1] ^ (y >> 1) ^ a;
+				_bytes[___N - 1] = _bytes[__M - 1] ^ (y >> 1) ^ a;
 			}
 
 			y = _bytes[_offset++];

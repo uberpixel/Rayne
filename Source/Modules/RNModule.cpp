@@ -8,6 +8,7 @@
 
 #include "../System/RNFileManager.h"
 #include "RNModule.h"
+#include "../Debug/RNLogger.h"
 
 #if RN_PLATFORM_POSIX
 #include <dlfcn.h>
@@ -37,7 +38,6 @@ namespace RN
 				_name->AppendPathComponent(_name->GetLastPathComponent());
 		}
 
-
 		// Resolve the files
 		String *basePath = _name->StringByDeletingLastPathComponent();
 		String *base = _name->GetLastPathComponent();
@@ -48,7 +48,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		base->AppendPathExtension(RNCSTR("dll"));
 #endif
-#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 		base->AppendPathExtension(RNCSTR("so"));
 #endif
 
@@ -68,6 +68,12 @@ namespace RN
 
 		});
 
+#if RN_PLATFORM_ANDROID
+		if(!_path) //TODO: Fix path resolving for android
+		{
+			_path = _name;
+		}
+#endif
 
 		if(!_path)
 			throw InvalidArgumentException(RNSTR("Couldn't resolve module name: " << name));
@@ -119,6 +125,7 @@ namespace RN
 				{
 					_path->Release();
 					_path = RNSTR(info.dli_fname)->Retain();
+					RNDebug(RNSTR("Already loaded library: ") << _path);
 
 					int flags = RTLD_GLOBAL;
 
@@ -132,7 +139,9 @@ namespace RN
 					_ownsHandle = true;
 
 					if(!_handle)
+					{
 						error = RNSTR(dlerror());
+					}
 				}
 				else
 				{

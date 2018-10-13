@@ -74,7 +74,7 @@ namespace RN
 		}
 
 		Data *data = Data::WithContentsOfFile(original);
-		data->WriteToFile(location);
+		//data->WriteToFile(location);
 
 		_settings = SafeRetain(JSONSerialization::ObjectFromData<Dictionary>(data, 0));
 		__sharedInstance = this;

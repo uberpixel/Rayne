@@ -19,29 +19,178 @@
 namespace RN
 {
 	class ShaderLibrary;
+	class Mesh;
+
 	class Shader : public Object
 	{
 	public:
-		class Attribute : public Object
+		class Options : public Object
 		{
 		public:
-			virtual ~Attribute();
+			RNAPI static Options *WithMesh(Mesh *mesh);
+			RNAPI static Options *WithNone();
+
+			RNAPI void EnableAlpha();
+
+			RNAPI void AddDefine(String *name, String *value);
+
+			RNAPI bool IsEqual(const Object *other) const override;
+			RNAPI size_t GetHash() const override;
+
+			const Dictionary *GetDefines() const { return _defines; }
+		private:
+			RNAPI Options();
+			RNAPI Options(Mesh *mesh);
+
+			Dictionary *_defines;
+
+			__RNDeclareMetaInternal(Options)
+		};
+
+		class UniformDescriptor : public Object
+		{
+		public:
+			enum Identifier
+			{
+				Custom,
+				ModelMatrix,
+				ModelViewMatrix,
+				ModelViewProjectionMatrix,
+				ViewMatrix,
+				ViewProjectionMatrix,
+				ProjectionMatrix,
+				InverseModelMatrix,
+				InverseModelViewMatrix,
+				InverseModelViewProjectionMatrix,
+				InverseViewMatrix,
+				InverseViewProjectionMatrix,
+				InverseProjectionMatrix,
+				AmbientColor,
+				DiffuseColor,
+				SpecularColor,
+				EmissiveColor,
+				TextureTileFactor,
+				AlphaToCoverageClamp,
+				Time,
+				CameraPosition,
+				CameraAmbientColor,
+				DirectionalLights,
+				DirectionalLightsCount,
+				DirectionalShadowMatrices,
+				DirectionalShadowMatricesCount,
+				DirectionalShadowInfo,
+				PointLights,
+				SpotLights
+			};
+
+			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);
+			RNAPI UniformDescriptor(const String *name, size_t offset);
+			RNAPI virtual ~UniformDescriptor();
 
 			const String *GetName() const { return _name; }
 			PrimitiveType GetType() const { return _type; }
+			size_t GetOffset() const { return _offset; }
+			RNAPI size_t GetSize() const;
+			Identifier GetIdentifier() const { return _identifier; }
 
-			const String *GetDescription() const override { return RNSTR("<ShaderAttribute: name: " << _name << ", type: " << (int)_type << ">"); }
-
-		protected:
-			RNAPI Attribute(const String *name, PrimitiveType type);
+			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
 
 		private:
 			String *_name;
+			Identifier _identifier;
 			PrimitiveType _type;
+			size_t _offset;
 
-			__RNDeclareMetaInternal(Attribute)
+			__RNDeclareMetaInternal(UniformDescriptor)
 		};
 
+		class Sampler : public Object
+		{
+		public:
+			enum class WrapMode
+			{
+				Clamp,
+				Repeat
+			};
+
+			enum class Filter
+			{
+				Linear,
+				Nearest,
+				Anisotropic
+			};
+
+			enum class ComparisonFunction
+			{
+				Never,
+				Less,
+				LessEqual,
+				Equal,
+				NotEqual,
+				GreaterEqual,
+				Greater,
+				Always
+			};
+
+			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI ~Sampler();
+
+			bool operator== (const Sampler &other) const
+			{
+				return (_filter == other._filter && _wrapMode == other._wrapMode && _anisotropy == other._anisotropy && _comparisonFunction == other._comparisonFunction);
+			}
+
+			RNAPI static uint32 GetDefaultAnisotropy();
+			RNAPI static void SetDefaultAnisotropy(uint32 anisotropy);
+
+			WrapMode GetWrapMode() const { return _wrapMode; }
+			Filter GetFilter() const { return _filter; }
+			ComparisonFunction GetComparisonFunction() const { return _comparisonFunction; }
+			uint8 GetAnisotropy() const { return _anisotropy; }
+
+		private:
+			WrapMode _wrapMode;
+			Filter _filter;
+			ComparisonFunction _comparisonFunction;
+			uint8 _anisotropy;
+
+			__RNDeclareMetaInternal(Sampler)
+		};
+
+		class Signature : public Object
+		{
+		public:
+			RNAPI Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount);
+			RNAPI virtual ~Signature();
+
+			const Array *GetUniformDescriptors() const
+			{
+				return _uniformDescriptors;
+			}
+
+			const Array *GetSamplers() const
+			{
+				return _samplers;
+			}
+
+			uint8 GetTextureCount() const
+			{
+				return _textureCount;
+			}
+
+			size_t GetTotalUniformSize() const
+			{
+				return _totalUniformSize;
+			}
+
+		private:
+			Array *_uniformDescriptors;
+			Array *_samplers;
+			uint8 _textureCount;
+			size_t _totalUniformSize;
+
+			__RNDeclareMetaInternal(Signature)
+		};
 
 		enum class Type
 		{
@@ -50,19 +199,34 @@ namespace RN
 			Compute
 		};
 
-		RNAPI virtual const String *GetName() const = 0;
-		RNAPI virtual const Array *GetAttributes() const = 0;
+		enum UsageHint
+		{
+			Default,
+			Depth,
+			Instancing,
 
-		Type GetType() const { return _type; }
-		ShaderLibrary *GetLibrary() const { return _library; }
+			COUNT
+		};
+
+		RNAPI virtual const String *GetName() const = 0;
+
+		RNAPI Type GetType() const;
+		RNAPI const Shader::Options *GetOptions() const;
+		RNAPI const Signature *GetSignature() const;
+		RNAPI ShaderLibrary *GetLibrary() const;
 
 	protected:
-		RNAPI Shader(Type type, ShaderLibrary *library);
+		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options, const Signature *signature);
+		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options);
 		RNAPI virtual ~Shader();
 
+		RNAPI void SetSignature(const Signature *signature);
+
 	private:
+		const Shader::Options *_options;
+		WeakRef<ShaderLibrary> _library;
 		Type _type;
-		ShaderLibrary *_library;
+		const Signature *_signature;
 
 		__RNDeclareMetaInternal(Shader)
 	};

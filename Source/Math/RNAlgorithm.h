@@ -66,6 +66,23 @@ namespace RN
 		static_assert(std::is_integral<T>::value, "T must be integral");
 		return ((value & (value - 1)) == 0);
 	}
+
+	template<class T, class M>
+	static inline size_t AlignUp(T value, M multiplier)
+	{
+		static_assert(std::is_integral<T>::value, "value must be integral");
+		static_assert(std::is_integral<M>::value, "multiplier must be integral");
+
+		return ((value + multiplier -1) / multiplier) * multiplier;
+	}
+	template<class T, class M>
+	static inline size_t AlignDown(T value, M multiplier)
+	{
+		static_assert(std::is_integral<T>::value, "value must be integral");
+		static_assert(std::is_integral<M>::value, "multiplier must be integral");
+
+		return value - (value % multiplier);
+	}
 }
 
 #endif /* __RAYNE_ALGORITHM_H__ */
