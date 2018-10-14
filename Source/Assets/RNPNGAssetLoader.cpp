@@ -14,6 +14,7 @@
 
 #include "RNPNGAssetLoader.h"
 #include "RNAssetManager.h"
+#include "RNBitmap.h"
 
 namespace RN
 {
@@ -28,7 +29,7 @@ namespace RN
 	{
 		uint8 magic[] = {137, 80, 78, 71, 13, 10, 26, 10};
 
-		Config config(Texture::GetMetaClass());
+		Config config({ Texture::GetMetaClass(), Bitmap::GetMetaClass() });
 		config.SetExtensions(Set::WithObjects({RNCSTR("png")}));
 		config.SetMagicBytes(Data::WithBytes(magic, 8), 0);
 		config.supportsBackgroundLoading = true;
@@ -79,14 +80,16 @@ namespace RN
 		uint8 *data = nullptr;
 		size_t bytesPerRow;
 
-		Texture::Format format;
+		BitmapInfo::Format bitmapFormat;
+		Texture::Format textureFormat;
 
 		switch(colorType)
 		{
 			case PNG_COLOR_TYPE_RGB:
 			{
 				data = new uint8[width * height * 4];
-				format = Texture::Format::RGB888SRGB;
+				textureFormat = Texture::Format::RGB888SRGB;
+				bitmapFormat = BitmapInfo::Format::RGBA8888;
 				bytesPerRow = 4 * width;
 
 				uint8 *temp = data;
@@ -112,7 +115,8 @@ namespace RN
 			case PNG_COLOR_TYPE_RGBA:
 			{
 				data = new uint8[width * height * 4];
-				format = Texture::Format::RGBA8888SRGB;
+				textureFormat = Texture::Format::RGBA8888SRGB;
+				bitmapFormat = BitmapInfo::Format::RGBA8888;
 				bytesPerRow = 4 * width;
 
 				uint32 *temp = reinterpret_cast<uint32 *>(data);
@@ -136,33 +140,50 @@ namespace RN
 		}
 
 		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
-
-
-		bool mipMapped = true;
-		bool isLinear = false;
-		Number *wrapper;
-
-		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
-			mipMapped = wrapper->GetBoolValue();
-
-		if ((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
-			isLinear = wrapper->GetBoolValue();
-
-		if(isLinear)
+		
+		
+		if(options.meta == Bitmap::GetMetaClass())
 		{
-			format = Texture::Format::RGBA8888;
+			BitmapInfo info;
+			info.bytesPerRow = bytesPerRow;
+			info.width = width;
+			info.height = height;
+			info.format = bitmapFormat;
+			
+			Bitmap *bitmap = new Bitmap(data, info);
+			delete[] data;
+			
+			return bitmap->Autorelease();
 		}
+		else
+		{
+			bool mipMapped = true;
+			bool isLinear = false;
+			Number *wrapper;
 
-		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, width, height, mipMapped);
-		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+			if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
+				mipMapped = wrapper->GetBoolValue();
 
-		texture->SetData(0, data, bytesPerRow);
+			if ((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
+				isLinear = wrapper->GetBoolValue();
 
-		if(mipMapped)
-			texture->GenerateMipMaps();
+			if(isLinear)
+			{
+				textureFormat = Texture::Format::RGBA8888;
+				bitmapFormat = BitmapInfo::Format::RGBA8888;
+			}
 
-		delete[] data;
+			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
+			Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
-		return texture->Autorelease();
+			texture->SetData(0, data, bytesPerRow);
+
+			if(mipMapped)
+				texture->GenerateMipMaps();
+
+			delete[] data;
+
+			return texture->Autorelease();
+		}
 	}
 }

@@ -29,7 +29,7 @@ namespace RN
 			_internals->strokeStyle.setStyle(SkPaint::kStroke_Style);
 			_internals->fillStyle.setStyle(SkPaint::kFill_Style);
 
-			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888 : Texture::Format::RGB888;
+			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888SRGB : Texture::Format::RGB888SRGB;
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, false);
 			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
