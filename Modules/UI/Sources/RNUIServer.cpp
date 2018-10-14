@@ -23,22 +23,14 @@ namespace RN
 		{
 			if(!_camera)
 			{
-				Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(Texture::Format::RGBA16F, 1024, 768));
-				
-				Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(1024, 768));
-				framebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(texture));
-				
 				RenderPass *renderPass = new RenderPass();
 				renderPass->SetFlags(0);
 				renderPass->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
-				renderPass->SetFramebuffer(framebuffer);
 				
 				_camera = new Camera(renderPass);
 				_camera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite);
 				_camera->SetClipNear(-500.0f);
 			}
-
-			_frame = Rect(0, 0, 1024, 768);
 		}
 
 		Server::~Server()
@@ -87,7 +79,7 @@ namespace RN
 			for(Window *window : _windows)
 				window->Update();
 
-			Rect frame = Rect(Vector2(), Vector2(1024, 768));
+			Rect frame = _camera->GetRenderPass()->GetFrame();
 			_camera->SetOrthogonalFrustum(frame.GetBottom(), frame.GetTop(), frame.GetLeft(), frame.GetRight());
 			_camera->Update(0.0f);
 			_camera->PostUpdate(renderer);

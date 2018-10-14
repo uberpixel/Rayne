@@ -33,14 +33,13 @@ namespace RN
 
 			UIAPI void Render(Renderer *renderer);
 
-			float GetHeight() const { return _frame.height; }
-			float GetWidth() const { return _frame.width; }
+			float GetHeight() const { return _camera->GetRenderPass()->GetFrame().height; }
+			float GetWidth() const { return _camera->GetRenderPass()->GetFrame().width; }
 
 			Camera *GetCamera() const { return _camera; }
 		private:
 
 			Camera *_camera;
-			Rect _frame;
 
 			std::deque<Window *> _windows;
 

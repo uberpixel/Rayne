@@ -69,39 +69,8 @@ namespace RN
 
 		Mesh *Window::CreateMesh() const
 		{
-			Vector2 size = GetContentSize();
-
-			std::vector<Mesh::VertexAttribute> attributes;
-
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
-
-			Mesh *mesh = new Mesh(attributes, 4, 0);
-			mesh->SetDrawMode(DrawMode::TriangleStrip);
-
-			mesh->BeginChanges();
-
-			Mesh::Chunk chunk = mesh->GetChunk();
-
-			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(Mesh::VertexAttribute::Feature::Vertices);
-
-			*vertices ++ = Vector2(size.x, size.y);
-			*vertices ++ = Vector2(0.0f, size.y);
-			*vertices ++ = Vector2(size.x, 0.0f);
-			*vertices ++ = Vector2(0.0f, 0.0f);
-
-
-			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(Mesh::VertexAttribute::Feature::UVCoords0);
-
-			*uvCoords ++ = Vector2(1.0f, 0.0f);
-			*uvCoords ++ = Vector2(0.0f, 0.0f);
-			*uvCoords ++ = Vector2(1.0f, 1.0f);
-			*uvCoords ++ = Vector2(0.0f, 1.0f);
-
-			mesh->EndChanges();
-
-
-			return mesh;
+			Vector2 halfSize = GetContentSize() * 0.5f;
+			return Mesh::WithTexturedPlane(Quaternion(RN::Vector3(0.0f, 90.0f, 0.0f)), Vector3(halfSize.x, halfSize.y, 0.0f), halfSize);
 		}
 
 		void Window::Update()
@@ -115,7 +84,7 @@ namespace RN
 
 
 				SafeRelease(_mesh);
-				_mesh = CreateMesh();
+				_mesh = CreateMesh()->Retain();
 
 				SafeRelease(_material);
 				_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(_mesh)), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(_mesh)));
