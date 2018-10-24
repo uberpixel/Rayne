@@ -8,6 +8,7 @@
 
 #include "RNUIContext.h"
 #include "RNUIInternals.h"
+#include "RNUILabel.h"
 
 namespace RN
 {
@@ -23,7 +24,7 @@ namespace RN
 			SkImageInfo info = SkImageInfo::MakeN32(static_cast<int>(width), static_cast<int>(height), alpha ? kPremul_SkAlphaType : kOpaque_SkAlphaType);
 			_rowBytes = info.minRowBytes();
 
-			_internals->backingSurface.resize(info.getSafeSize(_rowBytes));
+			_internals->backingSurface.resize(info.computeByteSize(_rowBytes));
 			_internals->surface = SkSurface::MakeRasterDirect(info, _internals->backingSurface.data(), _rowBytes);
 
 			_internals->strokeStyle.setStyle(SkPaint::kStroke_Style);
@@ -84,6 +85,12 @@ namespace RN
 		void Context::SetStrokeColor(const Color &color)
 		{
 			_internals->strokeStyle.setColor(MakeColor(color));
+		}
+		
+		void Context::SetFont(Font *font)
+		{
+			_internals->fillStyle.setTypeface(font->_internals->typeface);
+			_internals->fillStyle.setTextSize(font->GetSize());
 		}
 
 		void Context::SetStrokeWidth(float strokeWidth)
@@ -158,6 +165,26 @@ namespace RN
 		{
 			SkCanvas *canvas = _internals->surface->getCanvas();
 			canvas->drawImageRect(image->_internals->image, MakeRect(rect), &_internals->fillStyle);
+		}
+		
+		void Context::DrawText(const String *text, const Rect &rect)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			_internals->fillStyle.setTextEncoding(SkPaint::kUTF8_TextEncoding);
+			
+			SkPaint::FontMetrics fm;
+			__unused SkScalar lineHeight = _internals->fillStyle.getFontMetrics(&fm);
+			
+			Data *data = text->GetDataWithEncoding(Encoding::UTF8);
+			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop, _internals->fillStyle);
+		}
+		
+		void Context::DrawLabel(const Label *label)
+		{
+			SkCanvas *canvas = _internals->surface->getCanvas();
+			
+			Rect rect = label->GetBounds();
+			canvas->drawTextBlob(label->_internals->textBlob, rect.x, rect.y, label->_internals->style);
 		}
 
 

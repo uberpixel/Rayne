@@ -12,12 +12,14 @@
 #include "RNUIConfig.h"
 #include "RNUIPath.h"
 #include "RNUIImage.h"
+#include "RNUIFont.h"
 
 namespace RN
 {
 	namespace UI
 	{
 		struct ContextInternals;
+		class Label;
 
 		enum class BlendMode
 		{
@@ -79,6 +81,8 @@ namespace RN
 			UIAPI void Clear(const Color &color);
 
 			UIAPI void DrawImage(const Image *image, const Rect &rect);
+			UIAPI void DrawText(const String *text, const Rect &rect);
+			UIAPI void DrawLabel(const Label *label);
 
 			UIAPI void FillPath(const Path *path);
 			UIAPI void FillPath(const Path *path, BlendMode blendMode, float alpha = 1.0);
@@ -94,6 +98,8 @@ namespace RN
 			UIAPI void SetFillColor(const Color &color);
 			UIAPI void SetStrokeColor(const Color &color);
 
+			UIAPI void SetFont(Font *font);
+			
 			UIAPI void SetStrokeWidth(float strokeWidth);
 			UIAPI void SetStrokeMiter(float strokeWidth);
 			UIAPI void SetStrokeCap(StrokeCap cap);

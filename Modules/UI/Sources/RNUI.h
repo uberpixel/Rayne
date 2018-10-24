@@ -16,11 +16,13 @@
 #include "RNUIPath.h"
 #include "RNUIEdgeInsets.h"
 #include "RNUIImage.h"
+#include "RNUIFont.h"
 
 #include "RNUIServer.h"
 
 #include "RNUIWindow.h"
 #include "RNUIView.h"
 #include "RNUIImageView.h"
+#include "RNUILabel.h"
 
 #endif /* __RAYNE_UI_H_ */

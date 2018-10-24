@@ -10,9 +10,6 @@
 #ifndef SkUserConfig_DEFINED
 #define SkUserConfig_DEFINED
 
-#define SK_SUPPORT_GPU 0
-#define SK_RELEASE 1
-
 /*  SkTypes.h, the root of the public header files, does the following trick:
 
     #include "SkPreConfig.h"
@@ -96,24 +93,12 @@
  */
 //#define SK_DEFAULT_IMAGE_CACHE_LIMIT (1024 * 1024)
 
-/*  Define this to provide font subsetter in PDF generation.
- */
-//#define SK_SFNTLY_SUBSETTER "sample/chromium/font_subsetter.h"
-
 /*  Define this to set the upper limit for text to support LCD. Values that
     are very large increase the cost in the font cache and draw slower, without
     improving readability. If this is undefined, Skia will use its default
     value (e.g. 48)
  */
 //#define SK_MAX_SIZE_FOR_LCDTEXT     48
-
-/*  If SK_DEBUG is defined, then you can optionally define SK_SUPPORT_UNITTEST
-    which will run additional self-tests at startup. These can take a long time,
-    so this flag is optional.
- */
-#ifdef SK_DEBUG
-//#define SK_SUPPORT_UNITTEST
-#endif
 
 /*  Change the ordering to work in X windows.
  */

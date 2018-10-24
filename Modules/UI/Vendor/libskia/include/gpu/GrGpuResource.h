@@ -8,8 +8,9 @@
 #ifndef GrGpuResource_DEFINED
 #define GrGpuResource_DEFINED
 
+#include "../private/GrTypesPriv.h"
+#include "../private/SkNoncopyable.h"
 #include "GrResourceKey.h"
-#include "GrTypesPriv.h"
 
 class GrContext;
 class GrGpu;
@@ -91,9 +92,13 @@ protected:
     bool internalHasPendingIO() const { return SkToBool(fPendingWrites | fPendingReads); }
 
     bool internalHasRef() const { return SkToBool(fRefCnt); }
+    bool internalHasUniqueRef() const { return fRefCnt == 1; }
 
 private:
     friend class GrIORefProxy; // needs to forward on wrapped IO calls
+    // This is for a unit test.
+    template <typename T>
+    friend void testingOnly_getIORefCnts(const T*, int* refCnt, int* readCnt, int* writeCnt);
 
     void addPendingRead() const {
         this->validate();
@@ -128,8 +133,6 @@ private:
     mutable int32_t fPendingReads;
     mutable int32_t fPendingWrites;
 
-    // This class is used to manage conversion of refs to pending reads/writes.
-    friend class GrGpuResourceRef;
     friend class GrResourceCache; // to check IO ref counts.
 
     template <typename, GrIOType> friend class GrPendingIOResource;
@@ -151,7 +154,7 @@ public:
      * @return true if the object has been released or abandoned,
      *         false otherwise.
      */
-    bool wasDestroyed() const { return NULL == fGpu; }
+    bool wasDestroyed() const { return nullptr == fGpu; }
 
     /**
      * Retrieves the context that owns the object. Note that it is possible for
@@ -245,6 +248,15 @@ public:
      **/
     virtual void dumpMemoryStatistics(SkTraceMemoryDump* traceMemoryDump) const;
 
+    /**
+     * Describes the type of gpu resource that is represented by the implementing
+     * class (e.g. texture, buffer object, stencil).  This data is used for diagnostic
+     * purposes by dumpMemoryStatistics().
+     *
+     * The value returned is expected to be long lived and will not be copied by the caller.
+     */
+    virtual const char* getResourceType() const = 0;
+
     static uint32_t CreateUniqueID();
 
 protected:
@@ -270,16 +282,23 @@ protected:
     virtual void onAbandon() { }
 
     /**
-     * This entry point should be called whenever gpuMemorySize() should report a different size.
-     * The cache will call gpuMemorySize() to update the current size of the resource.
-     */
-    void didChangeGpuMemorySize() const;
-
-    /**
-     * Allows subclasses to add additional backing information to the SkTraceMemoryDump. Called by
-     * onMemoryDump. The default implementation adds no backing information.
+     * Allows subclasses to add additional backing information to the SkTraceMemoryDump.
      **/
     virtual void setMemoryBacking(SkTraceMemoryDump*, const SkString&) const {}
+
+    /**
+     * Returns a string that uniquely identifies this resource.
+     */
+    SkString getResourceName() const;
+
+    /**
+     * A helper for subclasses that override dumpMemoryStatistics(). This method using a format
+     * consistent with the default implementation of dumpMemoryStatistics() but allows the caller
+     * to customize various inputs.
+     */
+    void dumpMemoryStatisticsPriv(SkTraceMemoryDump* traceMemoryDump, const SkString& resourceName,
+                                  const char* type, size_t size) const;
+
 
 private:
     /**
@@ -307,28 +326,29 @@ private:
     void makeUnbudgeted();
 
 #ifdef SK_DEBUG
-    friend class GrGpu; // for assert in GrGpu to access getGpu
+    friend class GrGpu;  // for assert in GrGpu to access getGpu
 #endif
+
     // An index into a heap when this resource is purgeable or an array when not. This is maintained
     // by the cache.
-    int                         fCacheArrayIndex;
+    int fCacheArrayIndex;
     // This value reflects how recently this resource was accessed in the cache. This is maintained
     // by the cache.
-    uint32_t                    fTimestamp;
-    uint32_t                    fExternalFlushCntWhenBecamePurgeable;
+    uint32_t fTimestamp;
+    GrStdSteadyClock::time_point fTimeWhenBecamePurgeable;
 
     static const size_t kInvalidGpuMemorySize = ~static_cast<size_t>(0);
-    GrScratchKey                fScratchKey;
-    GrUniqueKey                 fUniqueKey;
+    GrScratchKey fScratchKey;
+    GrUniqueKey fUniqueKey;
 
     // This is not ref'ed but abandon() or release() will be called before the GrGpu object
     // is destroyed. Those calls set will this to NULL.
-    GrGpu*                      fGpu;
-    mutable size_t              fGpuMemorySize;
+    GrGpu* fGpu;
+    mutable size_t fGpuMemorySize;
 
-    SkBudgeted                  fBudgeted;
-    bool                        fRefsWrappedObjects;
-    const UniqueID              fUniqueID;
+    SkBudgeted fBudgeted;
+    bool fRefsWrappedObjects;
+    const UniqueID fUniqueID;
 
     typedef GrIORef<GrGpuResource> INHERITED;
     friend class GrIORef<GrGpuResource>; // to access notifyAllCntsAreZero and notifyRefCntIsZero.

@@ -14,11 +14,13 @@ set(SOURCES
         Sources/RNUIContext.cpp
         Sources/RNUIPath.cpp
         Sources/RNUIView.cpp
+        Sources/RNUILabel.cpp
         Sources/RNUIWindow.cpp
         Sources/RNUIServer.cpp
         Sources/RNUIInit.cpp
         Sources/RNUIEdgeInsets.h
         Sources/RNUIImage.cpp
+        Sources/RNUIFont.cpp
         Sources/RNUIImageView.cpp
         Sources/RNUIInternals.h)
 
@@ -29,19 +31,21 @@ set(HEADERS
         Sources/RNUIContext.h
         Sources/RNUIPath.h
         Sources/RNUIView.h
+        Sources/RNUILabel.h
         Sources/RNUIWindow.h
         Sources/RNUIServer.h
         Sources/RNUIConfig.h
         Sources/RNUIEdgeInsets.h
         Sources/RNUIImage.h
+        Sources/RNUIFont.h
         Sources/RNUIImageView.h
         Sources/RNUI.h)
 
 set(DEFINES
         "RN_BUILD_UI")
 
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a)
-set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)
+set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskiashaper.a)
+set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/gpu ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)
 
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
