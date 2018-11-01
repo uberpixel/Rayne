@@ -53,6 +53,7 @@ namespace RN
 			Model *GetModel() const { return _model; }
 
 			UIAPI void Update();
+			UIAPI void DrawViews();
 			UIAPI void Render(Renderer *renderer);
 
 		private:

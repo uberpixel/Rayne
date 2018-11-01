@@ -18,6 +18,12 @@ namespace RN
 	class Plane
 	{
 	public:
+		struct ContactInfo
+		{
+			Vector3 position;
+			float distance;
+		};
+		
 		Plane();
 		static Plane WithPositionNormal(const Vector3 &position, const Vector3 &normal);
 		static Plane WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
@@ -30,7 +36,7 @@ namespace RN
 		Vector3 GetNormal() const { return _normal; }
 		float GetD() const { return _d; }
 
-//		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
+		ContactInfo CastRay(const Vector3 &position, const Vector3 &direction) const;
 
 	private:
 		void CalculateD();
@@ -96,23 +102,24 @@ namespace RN
 		_d = _normal.GetDotProduct(_position);
 	}
 
-/*	RN_INLINE Hit Plane::CastRay(const Vector3 &position, const Vector3 &direction) const
+	RN_INLINE Plane::ContactInfo Plane::CastRay(const Vector3 &position, const Vector3 &direction) const
 	{
-		Hit hit;
+		ContactInfo contact;
+		contact.distance = -1.0f;
 		Vector3 normalizedDirection = direction.GetNormalized();
 		float angleCos = normalizedDirection.GetDotProduct(_normal);
 		if(angleCos >= -k::EpsilonFloat && angleCos <= k::EpsilonFloat)
-			return hit;
+			return contact;
 
 		if(((GetDistance(position) > 0)?1:-1) == ((angleCos)?1:-1))
-			return hit;
+			return contact;
 
 		float fac = (_position-position).GetDotProduct(_normal)/angleCos;
-		hit.position = position + normalizedDirection * fac;
-		hit.distance = fac;
+		contact.position = position + normalizedDirection * fac;
+		contact.distance = fac;
 
-		return hit;
-	}*/
+		return contact;
+	}
 }
 
 #endif //__RAYNE_PLANE_H__

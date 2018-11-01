@@ -36,8 +36,8 @@ namespace RN
 			UIAPI Rect ConvertRectToView(const Rect &frame, View *view) const;
 			UIAPI Rect ConvertRectFromView(const Rect &frame, View *view) const;
 
-			UIAPI const Rect &GetFrame() const { return _frame; }
-			UIAPI const Rect &GetBounds() const { return _bounds; }
+			const Rect &GetFrame() const { return _frame; }
+			const Rect &GetBounds() const { return _bounds; }
 
 			UIAPI void AddSubview(View *subview);
 			UIAPI void RemoveSubview(View *subview);
@@ -45,6 +45,7 @@ namespace RN
 			UIAPI void RemoveFromSuperview();
 			UIAPI void BringSubviewToFront(View *subview);
 			UIAPI void SendSubviewToBack(View *subview);
+			const Array *GetSubviews() const { return _subviews; }
 
 			UIAPI virtual void SetFrame(const Rect &frame);
 			UIAPI virtual void SetBounds(const Rect &bounds);

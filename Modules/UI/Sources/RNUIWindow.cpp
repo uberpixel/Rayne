@@ -21,17 +21,14 @@ namespace RN
 			_server(nullptr),
 			_backingStore(nullptr),
 			_needsNewBackingStore(true),
+			_model(nullptr),
 			_mesh(nullptr),
-			_material(nullptr)
+			_material(nullptr),
+			_drawable(nullptr)
 		{
-			_drawable = Renderer::GetActiveRenderer()->CreateDrawable();
-
 			_contentView = new View(Rect(0, 0, frame.width, frame.height));
 			_contentView->_window = this;
 			_contentView->SetBackgroundColor(Color::White());
-
-			_model = new Model();
-			_model->AddLODStage(_model->GetDefaultLODFactors()[0]);
 		}
 
 		Window::~Window()
@@ -81,55 +78,55 @@ namespace RN
 
 				Vector2 size = GetContentSize();
 				_backingStore = new Context(static_cast<size_t>(size.x), static_cast<size_t>(size.y), true);
-
-
-				SafeRelease(_mesh);
-				_mesh = CreateMesh()->Retain();
-
-				SafeRelease(_material);
-				_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(_mesh)), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(_mesh)));
-				_material->SetDepthWriteEnabled(false);
-				_material->SetDepthMode(DepthMode::Always);
-				_material->AddTexture(_backingStore->GetTexture());
-
-				{
-					Model::LODStage *stage = _model->GetLODStage(0);
-
-					if(stage->GetCount() > 0)
-					{
-						stage->ReplaceMaterial(_material, 0);
-						stage->ReplaceMesh(_mesh, 0);
-					}
-					else
-					{
-						stage->AddMesh(_mesh, _material);
-					}
-				}
-
-
-				Vector3 translation;
-
-				if(_server)
-				{
-					float height = _server->GetHeight();
-					translation = Vector3(_frame.x, (height - _frame.height) - _frame.y, 0);
-				}
-
-				_drawable->Update(_mesh, _material, nullptr);
-				_drawable->modelMatrix = Matrix::WithTranslation(translation);
-				_drawable->inverseModelMatrix = _drawable->modelMatrix.GetInverse();
-
-				_needsNewBackingStore = false;
 			}
 			
+			if(_server)
+			{
+				if(!_drawable)
+				{
+					_model = new Model();
+					_model->AddLODStage(_model->GetDefaultLODFactors()[0]);
+					
+					_drawable = Renderer::GetActiveRenderer()->CreateDrawable();
+					
+					SafeRelease(_mesh);
+					_mesh = CreateMesh()->Retain();
+					
+					SafeRelease(_material);
+					_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, Shader::Options::WithMesh(_mesh)), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, Shader::Options::WithMesh(_mesh)));
+					_material->SetDepthWriteEnabled(false);
+					_material->SetDepthMode(DepthMode::Always);
+					
+					Model::LODStage *stage = _model->GetLODStage(0);
+					stage->AddMesh(_mesh, _material);
+				}
+				
+				if(_needsNewBackingStore)
+				{
+					_material->SetTextures(RN::Array::WithObjects({_backingStore->GetTexture()}));
+					_drawable->Update(_mesh, _material, nullptr);
+				}
+				
+				float height = _server->GetHeight();
+				Vector3 translation = Vector3(_frame.x, (height - _frame.height) - _frame.y, 0);
+				
+				_drawable->modelMatrix = Matrix::WithTranslation(translation);
+				_drawable->inverseModelMatrix = _drawable->modelMatrix.GetInverse();
+			}
+			
+			_needsNewBackingStore = false;
 			_contentView->LayoutIfNeeded();
+		}
+		
+		void Window::DrawViews()
+		{
+			_contentView->__DrawInContext(_backingStore);
+			_backingStore->UpdateTexture(false);
 		}
 
 		void Window::Render(Renderer *renderer)
 		{
-			_contentView->__DrawInContext(_backingStore);
-			_backingStore->UpdateTexture(false);
-
+			DrawViews();
 			renderer->SubmitDrawable(_drawable);
 		}
 	}

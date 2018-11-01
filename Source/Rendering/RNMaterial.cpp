@@ -106,7 +106,7 @@ namespace RN
 	
  	void Material::SetTextures(const Array *textures)
 	{
-		SafeRelease(textures);
+		SafeRelease(_textures);
 		_textures = textures->Copy();
 	}
 	
