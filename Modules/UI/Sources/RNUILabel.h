@@ -20,6 +20,13 @@ namespace RN
 		class Label : public View
 		{
 		public:
+			enum Alignment
+			{
+				Left,
+				Center,
+				Right
+			};
+			
 			friend Context;
 			UIAPI Label();
 			UIAPI Label(const Rect &frame);
@@ -28,6 +35,7 @@ namespace RN
 			UIAPI void SetText(String *text);
 			UIAPI void SetColor(Color color);
 			UIAPI void SetFont(Font *font);
+			UIAPI void SetAlignment(Alignment alignment);
 			
 			UIAPI virtual void Draw(Context *context) const override;
 
@@ -39,6 +47,7 @@ namespace RN
 			Color _color;
 			Font *_font;
 			bool _needsShaping;
+			Alignment _alignment;
 			
 			PIMPL<LabelInternals> _internals;
 

@@ -684,6 +684,10 @@ namespace RN
 		{
 			return _keyPressed[3];
 		}
+		if(name->IsEqual(RNCSTR("M")))
+		{
+			return _keyPressed[46];
+		}
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[53];

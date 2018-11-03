@@ -23,6 +23,7 @@ namespace RN
 			UIAPI ~ImageView();
 
 			UIAPI void SetImage(Image *image);
+			Image *GetImage() const { return _image; }
 
 			UIAPI void Draw(Context *context) const override;
 

@@ -32,7 +32,10 @@ namespace RN
 		{
 			View::Draw(context);
 
-			context->DrawImage(_image, GetBounds());
+			if(_image)
+			{
+				context->DrawImage(_image, GetBounds());
+			}
 		}
 	}
 }

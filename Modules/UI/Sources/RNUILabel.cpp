@@ -65,6 +65,29 @@ namespace RN
 			_internals->style.setTextSize(_font->GetSize());
 		}
 		
+		void Label::SetAlignment(Alignment alignment)
+		{
+			_alignment = alignment;
+			
+			SkPaint::Align align = SkPaint::kLeft_Align;
+			switch(_alignment)
+			{
+				case Alignment::Left:
+					align = SkPaint::kLeft_Align;
+					break;
+					
+				case Alignment::Center:
+					align = SkPaint::kCenter_Align;
+					break;
+					
+				case Alignment::Right:
+					align = SkPaint::kRight_Align;
+					break;
+			}
+			
+			_internals->style.setTextAlign(align);
+		}
+		
 
 		// ---------------------
 		// MARK: -
