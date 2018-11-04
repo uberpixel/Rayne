@@ -43,10 +43,8 @@ def main():
 
 	os.chdir(skiaPath)
 
-	#subprocess.call(["bin/gn", "help", "gen"])
-	subprocess.call(["bin/gn", "gen", "build/ninja", "--args=\'{0}\'".format(argString)])
-	#os.system('bin\\gn gen build\\ninja --args=\'{0}\''.format(argString))
-	#os.system('ninja -C skia/build/ninja skiashaper')
+	subprocess.call(["bin/gn", "gen", "build/ninja", "--args={0}".format(argString)])
+	subprocess.call(["ninja", "-C", "build/ninja", "skia", "skiashaper"])
 
 if __name__ == '__main__':
 	main()
