@@ -399,6 +399,8 @@ namespace RN
 			textureUploadBuffer->Release();
 		});
 
+		TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+
 		// Now we copy the upload buffer contents to the default heap
 		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, 0, 1, &textureData);
 
@@ -554,6 +556,8 @@ namespace RN
 
 	void D3D12Texture::TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState)
 	{
+		if (_currentState == targetState) return;
+
 		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_resource, _currentState, targetState));
 		_currentState = targetState;
 	}

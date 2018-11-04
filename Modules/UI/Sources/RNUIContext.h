@@ -73,7 +73,7 @@ namespace RN
 		class Context : public Object
 		{
 		public:
-			UIAPI Context(size_t width, size_t height, bool alpha = false);
+			UIAPI Context(size_t width, size_t height, bool alpha = false, bool mipmaps = false);
 			UIAPI ~Context();
 
 			UIAPI void SaveState();
@@ -81,7 +81,7 @@ namespace RN
 			UIAPI void Clear(const Color &color);
 
 			UIAPI void DrawImage(const Image *image, const Rect &rect);
-			UIAPI void DrawText(const String *text, const Rect &rect);
+			UIAPI void DrawTextRect(const String *text, const Rect &rect);
 			UIAPI void DrawLabel(const Label *label);
 
 			UIAPI void FillPath(const Path *path);
@@ -109,7 +109,7 @@ namespace RN
 			UIAPI void Rotate(float degrees);
 
 			Texture *GetTexture() const { return _texture; }
-			UIAPI void UpdateTexture(bool generateMipMaps = false);
+			UIAPI void UpdateTexture();
 
 		private:
 			PIMPL<ContextInternals> _internals;
@@ -118,6 +118,7 @@ namespace RN
 			size_t _height;
 			size_t _rowBytes;
 			bool _hasAlpha;
+			bool _hasMipmaps;
 
 			Texture *_texture;
 

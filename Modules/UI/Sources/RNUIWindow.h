@@ -32,7 +32,7 @@ namespace RN
 				Minimizable = (1 << 2),
 				Maximizable = (1 << 3));
 
-			UIAPI Window(Style style, const Rect &frame);
+			UIAPI Window(Style style, const Rect &frame, bool wantsMipmaps = false);
 			UIAPI ~Window();
 
 			UIAPI void SetMinimumSize(const Vector2 &size);
@@ -63,6 +63,7 @@ namespace RN
 			Matrix _transform;
 
 			Server *_server;
+			bool _wantsMipmaps;
 			Context *_backingStore;
 			bool _needsNewBackingStore;
 

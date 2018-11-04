@@ -26,7 +26,7 @@ namespace RN
 			UIAPI ~Font();
 			float GetSize() const { return _size; };
 			
-			static Font *WithFamilyName(const String *familyName, float size);
+			UIAPI static Font *WithFamilyName(const String *familyName, float size);
 			
 		private:
 			UIAPI Font();

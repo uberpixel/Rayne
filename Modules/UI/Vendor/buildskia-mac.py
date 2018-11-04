@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 
 args = [
@@ -42,10 +43,10 @@ def main():
 
 	os.chdir(skiaPath)
 
-	#os.system('bin/gn gen build/cmake --ide=json --json-ide-script=../../gn/gn_to_cmake.py --args=\'{0}\''.format(argString))
-	os.system('bin/gn gen build/ninja --args=\'{0}\''.format(argString))
-	os.system('ninja -C build/ninja skiashaper')
-	#os.system('ninja -C out/Rayne skia.h')
+	#subprocess.call(["bin/gn", "help", "gen"])
+	subprocess.call(["bin/gn", "gen", "build/ninja", "--args=\'{0}\'".format(argString)])
+	#os.system('bin\\gn gen build\\ninja --args=\'{0}\''.format(argString))
+	#os.system('ninja -C skia/build/ninja skiashaper')
 
 if __name__ == '__main__':
 	main()

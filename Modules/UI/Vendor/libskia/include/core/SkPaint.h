@@ -227,7 +227,7 @@ public:
         kLCDRenderText_Flag      = 0x200,  //!< mask for setting LCD text
         kEmbeddedBitmapText_Flag = 0x400,  //!< mask for setting font embedded bitmaps
         kAutoHinting_Flag        = 0x800,  //!< mask for setting auto-hinting
-        kVerticalText_Flag       = 0x1000, //!< mask for setting vertical text
+                                           // 0x1000 used to be kVertical
         kAllFlags                = 0xFFFF, //!< mask of all Flags
     };
 
@@ -395,26 +395,6 @@ public:
     */
     void setAutohinted(bool useAutohinter);
 
-    /** Returns true if glyphs are drawn top to bottom instead of left to right.
-
-        Equivalent to getFlags() masked with kVerticalText_Flag.
-
-        @return  kVerticalText_Flag state
-    */
-    bool isVerticalText() const {
-        return SkToBool(this->getFlags() & kVerticalText_Flag);
-    }
-
-    /** Returns true if text advance positions the next glyph below the previous glyph instead of to the
-        right of previous glyph.
-
-        Sets kVerticalText_Flag if vertical is true.
-        Clears kVerticalText_Flag if vertical is false.
-
-        @param verticalText  setting for kVerticalText_Flag
-    */
-    void setVerticalText(bool verticalText);
-
     /** Returns true if approximate bold by increasing the stroke width when creating glyph bitmaps
         from outlines.
 
@@ -501,7 +481,7 @@ public:
     */
     SkColor getColor() const { return fColor4f.toSkColor(); }
 
-    /** Retrieves alpha and RGB, unpmreultiplied, as four floating point values. RGB are
+    /** Retrieves alpha and RGB, unpremultiplied, as four floating point values. RGB are
         are extended sRGB values (sRGB gamut, and encoded with the sRGB transfer function).
 
         @return  unpremultiplied RGBA
@@ -651,7 +631,7 @@ public:
         @param src       SkPath read to create a filled version
         @param dst       resulting SkPath; may be the same as src, but may not be nullptr
         @param cullRect  optional limit passed to SkPathEffect
-        @param resScale  if > 1, increase precision, else if (0 < res < 1) reduce precision
+        @param resScale  if > 1, increase precision, else if (0 < resScale < 1) reduce precision
                          to favor speed and size
         @return          true if the path represents style fill, or false if it represents hairline
     */
@@ -866,47 +846,6 @@ public:
     */
     void setLooper(sk_sp<SkDrawLooper> drawLooper);
 
-    /** \enum SkPaint::Align
-        Align adjusts the text relative to the text position.
-        Align affects glyphs drawn with: SkCanvas::drawText, SkCanvas::drawPosText,
-        SkCanvas::drawPosTextH, SkCanvas::drawTextRSXform, SkCanvas::drawTextBlob,
-        and SkCanvas::drawString;
-        as well as calls that place text glyphs like getTextWidths() and getTextPath().
-
-        The text position is set by the font for both horizontal and vertical text.
-        Typically, for horizontal text, the position is to the left side of the glyph on the
-        base line; and for vertical text, the position is the horizontal center of the glyph
-        at the caps height.
-
-        Align adjusts the glyph position to center it or move it to abut the position
-        using the metrics returned by the font.
-
-        Align defaults to kLeft_Align.
-    */
-    enum Align {
-        kLeft_Align,   //!< positions glyph by computed font offset
-        kCenter_Align, //!< centers line of glyphs by its width or height
-        kRight_Align,  //!< moves lines of glyphs by its width or height
-    };
-
-    /** May be used to verify that align is a legal value.
-    */
-    static constexpr int kAlignCount = 3;
-
-    /** Returns SkPaint::Align.
-        Returns kLeft_Align if SkPaint::Align has not been set.
-
-        @return  text placement relative to position
-    */
-    Align   getTextAlign() const { return (Align)fBitfields.fTextAlign; }
-
-    /** Sets SkPaint::Align to align.
-        Has no effect if align is an invalid value.
-
-        @param align  text placement relative to position
-    */
-    void    setTextAlign(Align align);
-
     /** Returns text size in points.
 
         @return  typographic height of text
@@ -920,31 +859,31 @@ public:
     */
     void setTextSize(SkScalar textSize);
 
-    /** Returns text scale x.
+    /** Returns text scale on x-axis.
         Default value is 1.
 
         @return  text horizontal scale
     */
     SkScalar getTextScaleX() const { return fTextScaleX; }
 
-    /** Sets text scale x.
+    /** Sets text scale on x-axis.
         Default value is 1.
 
         @param scaleX  text horizontal scale
     */
     void setTextScaleX(SkScalar scaleX);
 
-    /** Returns text skew x.
+    /** Returns text skew on x-axis.
         Default value is zero.
 
-        @return  additional shear in x-axis relative to y-axis
+        @return  additional shear on x-axis relative to y-axis
     */
     SkScalar getTextSkewX() const { return fTextSkewX; }
 
-    /** Sets text skew x.
+    /** Sets text skew on x-axis.
         Default value is zero.
 
-        @param skewX  additional shear in x-axis relative to y-axis
+        @param skewX  additional shear on x-axis relative to y-axis
     */
     void setTextSkewX(SkScalar skewX);
 
@@ -1108,14 +1047,11 @@ public:
         Results are scaled by text size but does not take into account
         dimensions required by text scale x, text skew x, fake bold,
         style stroke, and SkPathEffect.
-        Results can be additionally scaled by scale; a scale of zero
-        is ignored.
 
         @param metrics  storage for SkPaint::FontMetrics from SkTypeface; may be nullptr
-        @param scale    additional multiplier for returned values
         @return         recommended spacing between lines
     */
-    SkScalar getFontMetrics(FontMetrics* metrics, SkScalar scale = 0) const;
+    SkScalar getFontMetrics(FontMetrics* metrics) const;
 
     /** Returns the recommended spacing between lines: the sum of metrics
         descent, ascent, and leading.
@@ -1125,7 +1061,7 @@ public:
 
         @return  recommended spacing between lines
     */
-    SkScalar getFontSpacing() const { return this->getFontMetrics(nullptr, 0); }
+    SkScalar getFontSpacing() const { return this->getFontMetrics(nullptr); }
 
     /** Converts text into glyph indices.
         Returns the number of glyph indices represented by text.
@@ -1187,8 +1123,7 @@ public:
     */
     int countText(const void* text, size_t byteLength) const;
 
-    /** Returns the advance width of text if kVerticalText_Flag is clear,
-        and the height of text if kVerticalText_Flag is set.
+    /** Returns the advance width of text.
         The advance is the normal distance to move before drawing additional text.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the font metrics,
         and text size, text scale x, text skew x, stroke width, and
@@ -1203,8 +1138,7 @@ public:
     */
     SkScalar measureText(const void* text, size_t length, SkRect* bounds) const;
 
-    /** Returns the advance width of text if kVerticalText_Flag is clear,
-        and the height of text if kVerticalText_Flag is set.
+    /** Returns the advance width of text.
         The advance is the normal distance to move before drawing additional text.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the font metrics,
         and text size to scale the metrics.
@@ -1219,10 +1153,7 @@ public:
     }
 
     /** Returns the bytes of text that fit within maxWidth.
-        If kVerticalText_Flag is clear, the text fragment fits if its advance width is less than or
-        equal to maxWidth.
-        If kVerticalText_Flag is set, the text fragment fits if its advance height is less than or
-        equal to maxWidth.
+        The text fragment fits if its advance width is less than or equal to maxWidth.
         Measures only while the advance is less than or equal to maxWidth.
         Returns the advance or the text fragment in measuredWidth if it not nullptr.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the font metrics,
@@ -1243,8 +1174,6 @@ public:
         Both widths and bounds may be nullptr.
         If widths is not nullptr, widths must be an array of glyph count entries.
         if bounds is not nullptr, bounds must be an array of glyph count entries.
-        If kVerticalText_Flag is clear, widths returns the horizontal advance.
-        If kVerticalText_Flag is set, widths returns the vertical advance.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the font metrics,
         and text size to scale the widths and bounds.
         Does not scale the advance by fake bold or SkPathEffect.
@@ -1263,7 +1192,7 @@ public:
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
         All of the glyph paths are stored in path.
-        Uses x, y, and SkPaint::Align to position path.
+        Uses x, y, to position path.
 
         @param text    character codes or glyph indices
         @param length  number of bytes of text
@@ -1278,7 +1207,7 @@ public:
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
         All of the glyph paths are stored in path.
-        Uses pos array and SkPaint::Align to position path.
+        Uses pos array to position path.
         pos contains a position for each glyph.
 
         @param text    character codes or glyph indices
@@ -1295,7 +1224,7 @@ public:
         the string.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
-        Uses x, y, and SkPaint::Align to position intervals.
+        Uses x, y to position intervals.
 
         Pass nullptr for intervals to determine the size of the interval array.
 
@@ -1318,7 +1247,7 @@ public:
         the string.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
-        Uses pos array and SkPaint::Align to position intervals.
+        Uses pos array to position intervals.
 
         Pass nullptr for intervals to determine the size of the interval array.
 
@@ -1340,7 +1269,7 @@ public:
         the string.
         Uses SkPaint::TextEncoding to decode text, SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
-        Uses xpos array, constY, and SkPaint::Align to position intervals.
+        Uses xpos array, constY to position intervals.
 
         Pass nullptr for intervals to determine the size of the interval array.
 
@@ -1348,8 +1277,8 @@ public:
 
         @param text       character codes or glyph indices
         @param length     number of bytes of text
-        @param xpos       positions of each glyph in x
-        @param constY     position of each glyph in y
+        @param xpos       positions of each glyph on x-axis
+        @param constY     position of each glyph on y-axis
         @param bounds     lower and upper line parallel to the advance
         @param intervals  returned intersections; may be nullptr
         @return           number of intersections; may be zero
@@ -1363,7 +1292,7 @@ public:
         the string.
         Uses SkTypeface to get the glyph paths,
         and text size, fake bold, and SkPathEffect to scale and modify the glyph paths.
-        Uses run array and SkPaint::Align to position intervals.
+        Uses run array to position intervals.
 
         SkPaint::TextEncoding must be set to SkPaint::kGlyphID_TextEncoding.
 
@@ -1385,8 +1314,8 @@ public:
         and text skew x, but not fake bold or SkPathEffect.
 
         If text size is large, text scale x is one, and text skew x is zero,
-        returns the same bounds as SkPaint::FontMetrics { FontMetrics::fXMin,
-        FontMetrics::fTop, FontMetrics::fXMax, FontMetrics::fBottom }.
+        returns the same bounds as:
+        { FontMetrics::fXMin, FontMetrics::fTop, FontMetrics::fXMax, FontMetrics::fBottom }.
 
         @return  union of bounds of all glyphs
     */
@@ -1502,14 +1431,13 @@ private:
         struct {
             // all of these bitfields should add up to 32
             unsigned        fFlags : 16;
-            unsigned        fTextAlign : 2;
             unsigned        fCapType : 2;
             unsigned        fJoinType : 2;
             unsigned        fStyle : 2;
             unsigned        fTextEncoding : 2;  // 3 values
             unsigned        fHinting : 2;
             unsigned        fFilterQuality : 2;
-            //unsigned      fFreeBits : 2;
+            //unsigned      fFreeBits : 4;
         } fBitfields;
         uint32_t fBitfieldsUInt;
     };

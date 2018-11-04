@@ -23,6 +23,7 @@ class SkCanvas;
 class SkImage;
 class SkSurface;
 struct SkYUVAIndex;
+struct SkYUVASizeInfo;
 
 /*
  * This class is intended to be used as:
@@ -136,7 +137,7 @@ public:
                                           PromiseDoneProc promiseDoneProc,
                                           TextureContext textureContexts[]);
 
-    // deprecated version that doesn't take yuvaSizes
+    // deprecated version that doesn't take yuvaSizeInfo
     sk_sp<SkImage> makeYUVAPromiseTexture(SkYUVColorSpace yuvColorSpace,
                                           const GrBackendFormat yuvaFormats[],
                                           const SkYUVAIndex yuvaIndices[4],

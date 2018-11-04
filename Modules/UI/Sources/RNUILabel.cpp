@@ -69,7 +69,7 @@ namespace RN
 		{
 			_alignment = alignment;
 			
-			SkPaint::Align align = SkPaint::kLeft_Align;
+/*			SkPaint::Align align = SkPaint::kLeft_Align;
 			switch(_alignment)
 			{
 				case Alignment::Left:
@@ -85,7 +85,7 @@ namespace RN
 					break;
 			}
 			
-			_internals->style.setTextAlign(align);
+			_internals->style.setTextAlign(align);*/
 		}
 		
 

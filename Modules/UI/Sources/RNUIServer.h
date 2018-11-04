@@ -10,6 +10,7 @@
 #define __RAYNE_UISERVER_H_
 
 #include "RNUIConfig.h"
+#include <deque>
 
 namespace RN
 {

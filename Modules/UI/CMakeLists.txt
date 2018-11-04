@@ -44,7 +44,11 @@ set(HEADERS
 set(DEFINES
         "RN_BUILD_UI")
 
+if(WIN32)
+set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skia.lib ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skiashaper.lib)
+elseif(APPLE)
 set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskiashaper.a)
+endif()
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/gpu ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)
 
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")

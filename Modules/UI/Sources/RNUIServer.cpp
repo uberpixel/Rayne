@@ -84,12 +84,12 @@ namespace RN
 			_camera->Update(0.0f);
 			_camera->PostUpdate(renderer);
 
-			renderer->SubmitCamera(_camera, [&] {
+/*			renderer->SubmitCamera(_camera, [_windows] {
 
 				for(Window *window : _windows)
 					window->Render(renderer);
 
-			});
+			});*/
 		}
 	}
 }

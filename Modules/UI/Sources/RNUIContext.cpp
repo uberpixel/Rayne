@@ -16,10 +16,11 @@ namespace RN
 	{
 		RNDefineMeta(Context, Object)
 
-		Context::Context(size_t width, size_t height, bool alpha) :
+		Context::Context(size_t width, size_t height, bool alpha, bool mipmaps) :
 			_width(width),
 			_height(height),
-			_hasAlpha(alpha)
+			_hasAlpha(alpha),
+			_hasMipmaps(mipmaps)
 		{
 			SkImageInfo info = SkImageInfo::MakeN32(static_cast<int>(width), static_cast<int>(height), alpha ? kPremul_SkAlphaType : kOpaque_SkAlphaType);
 			_rowBytes = info.minRowBytes();
@@ -30,8 +31,10 @@ namespace RN
 			_internals->strokeStyle.setStyle(SkPaint::kStroke_Style);
 			_internals->fillStyle.setStyle(SkPaint::kFill_Style);
 
+			SetAntiAlias(false);
+
 			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888SRGB : Texture::Format::RGB888SRGB;
-			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, false);
+			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, _hasMipmaps);
 			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
 		}
@@ -167,13 +170,13 @@ namespace RN
 			canvas->drawImageRect(image->_internals->image, MakeRect(rect), &_internals->fillStyle);
 		}
 		
-		void Context::DrawText(const String *text, const Rect &rect)
+		void Context::DrawTextRect(const String *text, const Rect &rect)
 		{
 			SkCanvas *canvas = _internals->surface->getCanvas();
 			_internals->fillStyle.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			
 			SkPaint::FontMetrics fm;
-			__unused SkScalar lineHeight = _internals->fillStyle.getFontMetrics(&fm);
+			SkScalar lineHeight = _internals->fillStyle.getFontMetrics(&fm);
 			
 			Data *data = text->GetDataWithEncoding(Encoding::UTF8);
 			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop, _internals->fillStyle);
@@ -200,11 +203,11 @@ namespace RN
 		}
 
 
-		void Context::UpdateTexture(bool generateMipMaps)
+		void Context::UpdateTexture()
 		{
 			_texture->SetData(0, _internals->backingSurface.data(), _rowBytes);
 
-			if(generateMipMaps)
+			if(_hasMipmaps)
 				_texture->GenerateMipMaps();
 		}
 	}

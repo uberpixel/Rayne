@@ -16,7 +16,7 @@ namespace RN
 	{
 		RNDefineMeta(Window, Object)
 
-		Window::Window(Style style, const Rect &frame) :
+		Window::Window(Style style, const Rect &frame, bool wantsMipmaps) :
 			_frame(frame),
 			_server(nullptr),
 			_backingStore(nullptr),
@@ -24,7 +24,8 @@ namespace RN
 			_model(nullptr),
 			_mesh(nullptr),
 			_material(nullptr),
-			_drawable(nullptr)
+			_drawable(nullptr),
+			_wantsMipmaps(wantsMipmaps)
 		{
 			_contentView = new View(Rect(0, 0, frame.width, frame.height));
 			_contentView->_window = this;
@@ -77,7 +78,7 @@ namespace RN
 				SafeRelease(_backingStore);
 
 				Vector2 size = GetContentSize();
-				_backingStore = new Context(static_cast<size_t>(size.x), static_cast<size_t>(size.y), true);
+				_backingStore = new Context(static_cast<size_t>(size.x), static_cast<size_t>(size.y), true, _wantsMipmaps);
 			}
 			
 			if(_server)
@@ -121,7 +122,7 @@ namespace RN
 		void Window::DrawViews()
 		{
 			_contentView->__DrawInContext(_backingStore);
-			_backingStore->UpdateTexture(false);
+			_backingStore->UpdateTexture();
 		}
 
 		void Window::Render(Renderer *renderer)

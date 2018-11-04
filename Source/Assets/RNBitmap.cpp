@@ -45,7 +45,7 @@ namespace RN
 		Update();
 	}
 
-	Bitmap::Bitmap(Data *data, const BitmapInfo &info, __unused bool dummy) :
+	Bitmap::Bitmap(Data *data, const BitmapInfo &info, bool dummy) :
 		_data(SafeRetain(data)),
 		_info(info)
 	{
