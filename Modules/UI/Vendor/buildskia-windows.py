@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 args = [
-	'extra_cflags=[\"/MDd\", \"-D_SCL_SECURE_NO_WARNINGS\", \"/WX-\"]',
+	'extra_cflags=[\"/MD\", \"-D_SCL_SECURE_NO_WARNINGS\", \"/WX-\"]',
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
