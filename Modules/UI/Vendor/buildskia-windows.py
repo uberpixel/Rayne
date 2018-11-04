@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 args = [
-	'extra_cflags=[\"/MD\", \"-D_SCL_SECURE_NO_WARNINGS\", \"/WX-\"]',
+	'extra_cflags=[\"/MD\"]',
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
@@ -27,7 +27,8 @@ args = [
 #	'skia_enable_gpu=false',
 	'skia_enable_tools=true',
 	'skia_enable_skottie=false',
-	'skia_enable_pdf=false'
+	'skia_enable_pdf=false',
+	'clang_win=\"C:/Program Files/LLVM\"'
 ]
 
 def main():
@@ -45,9 +46,7 @@ def main():
 
 	os.chdir(skiaPath)
 
-	subprocess.call(["bin/gn", "gen", "build/vs2015", "--ide=vs2015", "--args={0}".format(argString)])
-	#subprocess.call(["C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/MSBuild.exe", "build/vs2017/obj/skia.vcxproj"])
-	#subprocess.call(["C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/MSBuild.exe", "build/vs2017/obj/skiashaper.vcxproj"])
+	subprocess.call(["bin/gn", "gen", "build/vs2015", "--args={0}".format(argString)])
 	subprocess.call(["ninja", "-C", "build/vs2015", "skia", "skiashaper"])
 
 if __name__ == '__main__':

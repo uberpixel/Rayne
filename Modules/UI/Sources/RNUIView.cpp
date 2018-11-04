@@ -54,14 +54,14 @@ namespace RN
 			View *view = _superview;
 			while(view)
 			{
-				point.x += view->_frame.x - view->_bounds.x;
-				point.y += view->_frame.y - view->_bounds.y;
+				point.x += view->_frame.x + view->_bounds.x;
+				point.y += view->_frame.y + view->_bounds.y;
 
 				view = view->_superview;
 			}
 
-			point.x += _frame.x - _bounds.x;
-			point.y += _frame.y - _bounds.y;
+			point.x += _frame.x + _bounds.x;
+			point.y += _frame.y + _bounds.y;
 		}
 
 		void View::ConvertPointFromWindow(Vector2 &point) const
@@ -69,14 +69,14 @@ namespace RN
 			View *view = _superview;
 			while(view)
 			{
-				point.x -= view->_frame.x - view->_bounds.x;
-				point.y -= view->_frame.y - view->_bounds.y;
+				point.x -= view->_frame.x + view->_bounds.x;
+				point.y -= view->_frame.y + view->_bounds.y;
 
 				view = view->_superview;
 			}
 
-			point.x -= _frame.x - _bounds.x;
-			point.y -= _frame.y - _bounds.y;
+			point.x -= _frame.x + _bounds.x;
+			point.y -= _frame.y + _bounds.y;
 		}
 
 		Vector2 View::ConvertPointToView(const Vector2 &point, View *view) const
@@ -309,7 +309,7 @@ namespace RN
 
 		void View::SetBounds(const Rect &bounds)
 		{
-			if(_frame.GetSize() != bounds.GetSize())
+/*			if(_frame.GetSize() != bounds.GetSize())
 			{
 				Vector2 size = _frame.GetSize();
 
@@ -317,7 +317,7 @@ namespace RN
 				_frame.height = bounds.height;
 
 				//ResizeSubviewsFromOldSize(size);
-			}
+			}*/
 
 			_bounds = bounds;
 
@@ -447,6 +447,8 @@ namespace RN
 			}
 
 			Draw(context);
+
+			context->Translate(Vector2(_bounds.x, _bounds.y));
 
 			// Draw all children
 			size_t count = _subviews->GetCount();
