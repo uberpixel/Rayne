@@ -49,7 +49,8 @@ set(DEFINES
 if(WIN32)
 set(RAYNE_LIBRARIES Rayne)
 elseif(APPLE)
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskiashaper.a)
+#set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskiashaper.a)
+set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/libskia.a)
 endif()
 
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/gpu ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)
@@ -59,7 +60,8 @@ rayne_set_module_output_directory(RayneUI)
 #rayne_copy_resources(RayneUI ${RESOURCES})
 
 if(WIN32)
-target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/debug/skia.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/debug/skiashaper.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skiashaper.lib)
+#target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/debug/skia.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/debug/skiashaper.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skiashaper.lib)
+target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/debug/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/skia.lib)
 endif()
 
 target_include_directories(RayneUI SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")

@@ -38,10 +38,11 @@ namespace RN
 			
 			Rect rect = GetBounds();
 			Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
-			_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
-			_internals->textBlob = _internals->builder.make();
+			//_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
+			//_internals->textBlob = _internals->builder.make();
 			
-			SkRect textBounds = _internals->textBlob->bounds();
+			SkRect textBounds; //= _internals->textBlob->bounds();
+			_internals->style.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), &textBounds);
 			_contentSize = Vector2(textBounds.width(), textBounds.height());
 			
 			if(_alignment == Alignment::Left)

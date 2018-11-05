@@ -22,7 +22,7 @@ namespace RN
 		
 		Font::~Font()
 		{
-			delete _internals->shaper;
+			//delete _internals->shaper;
 			_internals->typeface = nullptr;
 		}
 		
@@ -34,7 +34,7 @@ namespace RN
 			
 			sk_sp<SkFontMgr> mgr(SkFontMgr::RefDefault());
 			font->_internals->typeface = SkTypeface::MakeFromName(familyName->GetUTF8String(), SkFontStyle());
-			font->_internals->shaper = new SkShaper(font->_internals->typeface);
+			//font->_internals->shaper = new SkShaper(font->_internals->typeface);
 			
 			return font->Autorelease();
 		}

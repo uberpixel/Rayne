@@ -176,10 +176,10 @@ namespace RN
 			_internals->fillStyle.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			
 			SkPaint::FontMetrics fm;
-			SkScalar lineHeight = _internals->fillStyle.getFontMetrics(&fm);
+			_internals->fillStyle.getFontMetrics(&fm);
 			
 			Data *data = text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop, _internals->fillStyle);
+			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop - fm.fDescent, _internals->fillStyle);
 		}
 		
 		void Context::DrawLabel(const Label *label)
@@ -187,7 +187,14 @@ namespace RN
 			SkCanvas *canvas = _internals->surface->getCanvas();
 			
 			Rect rect = label->GetBounds();
-			canvas->drawTextBlob(label->_internals->textBlob, rect.x, rect.y, label->_internals->style);
+			//canvas->drawTextBlob(label->_internals->textBlob, rect.x, rect.y, label->_internals->style);
+			
+			
+			SkPaint::FontMetrics fm;
+			label->_internals->style.getFontMetrics(&fm);
+			
+			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
+			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop - fm.fDescent, label->_internals->style);
 		}
 
 

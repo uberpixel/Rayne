@@ -18,7 +18,7 @@
 #include <include/core/SKFontMgr.h>
 #include <include/core/SKTypeface.h>
 #include <include/core/SkTextBlob.h>
-#include <include/modules/SkShaper.h>
+//#include <include/modules/SkShaper.h>
 #include "RNUIConfig.h"
 
 namespace RN
@@ -47,14 +47,14 @@ namespace RN
 		struct FontInternals
 		{
 			sk_sp<SkTypeface> typeface;
-			SkShaper *shaper;
+			//SkShaper *shaper;
 		};
 		
 		struct LabelInternals
 		{
 			SkPaint style;
-			SkTextBlobBuilder builder;
-			sk_sp<SkTextBlob> textBlob;
+			//SkTextBlobBuilder builder;
+			//sk_sp<SkTextBlob> textBlob;
 		};
 
 
