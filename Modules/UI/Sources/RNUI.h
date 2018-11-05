@@ -22,6 +22,7 @@
 
 #include "RNUIWindow.h"
 #include "RNUIView.h"
+#include "RNUIScrollView.h"
 #include "RNUIImageView.h"
 #include "RNUILabel.h"
 

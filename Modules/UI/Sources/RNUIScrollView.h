@@ -22,9 +22,19 @@ namespace RN
 			UIAPI ~ScrollView();
 
 			UIAPI void Draw(Context *context) const override;
-			UIAPI void Update(float delta, Vector2 cursorPosition, bool pressed);
+			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
+			
+			bool IsScrolling() const { return _isScrolling; }
 
 		private:
+			bool _isScrollEnabled;
+			bool _isScrolling;
+			bool _wasTouched;
+			
+			float _tapTimer;
+			
+			float _scrollSpeed;
+			Vector2 _previousCursorPosition;
 
 			RNDeclareMetaAPI(ScrollView, UIAPI)
 		};

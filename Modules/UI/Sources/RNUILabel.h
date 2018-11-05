@@ -37,6 +37,8 @@ namespace RN
 			UIAPI void SetFont(Font *font);
 			UIAPI void SetAlignment(Alignment alignment);
 			
+			Vector2 GetContentSize() const { return _contentSize; }
+			
 			UIAPI virtual void Draw(Context *context) const override;
 
 		protected:
@@ -48,6 +50,7 @@ namespace RN
 			Font *_font;
 			bool _needsShaping;
 			Alignment _alignment;
+			Vector2 _contentSize;
 			
 			PIMPL<LabelInternals> _internals;
 

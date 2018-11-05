@@ -38,8 +38,26 @@ namespace RN
 			
 			Rect rect = GetBounds();
 			Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
-			/*__unused SkPoint end = */_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width); //Result could be used to center text or for dynamic label height
+			_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
 			_internals->textBlob = _internals->builder.make();
+			
+			SkRect textBounds = _internals->textBlob->bounds();
+			_contentSize = Vector2(textBounds.width(), textBounds.height());
+			
+			if(_alignment == Alignment::Left)
+			{
+				rect.x = 0.0f;
+			}
+			else if(_alignment == Alignment::Center)
+			{
+				rect.x = (rect.width - textBounds.width()) / 2;
+			}
+			else if(_alignment == Alignment::Right)
+			{
+				rect.x = rect.width - textBounds.width();
+			}
+			
+			SetBounds(rect);
 		}
 		
 		void Label::SetText(String *text)
@@ -47,6 +65,8 @@ namespace RN
 			SafeRelease(_text);
 			_text = text;
 			SafeRetain(_text);
+			
+			SetNeedsLayout();
 		}
 		
 		void Label::SetColor(Color color)
@@ -63,29 +83,14 @@ namespace RN
 			
 			_internals->style.setTypeface(_font->_internals->typeface);
 			_internals->style.setTextSize(_font->GetSize());
+			
+			SetNeedsLayout();
 		}
 		
 		void Label::SetAlignment(Alignment alignment)
 		{
 			_alignment = alignment;
-			
-/*			SkPaint::Align align = SkPaint::kLeft_Align;
-			switch(_alignment)
-			{
-				case Alignment::Left:
-					align = SkPaint::kLeft_Align;
-					break;
-					
-				case Alignment::Center:
-					align = SkPaint::kCenter_Align;
-					break;
-					
-				case Alignment::Right:
-					align = SkPaint::kRight_Align;
-					break;
-			}
-			
-			_internals->style.setTextAlign(align);*/
+			SetNeedsLayout();
 		}
 		
 

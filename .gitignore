@@ -38,3 +38,4 @@ Modules/ODE/Vendor/BUILD
 /Build-iOS
 /cmake-build-*
 /Build-Xcode-UI
+/Modules/UI/Vendor/depot_tools
