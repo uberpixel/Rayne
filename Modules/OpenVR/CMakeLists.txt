@@ -96,7 +96,7 @@ if(WIN32)
         rayne_use_modules(RayneOpenVR RayneD3D12)
     endif()
 
-    if(${RN_BUILD_OPENVR_MODULE_FOR_VULKAN})
+    if(${RN_BUILD_VULKAN_MODULE})
         target_compile_definitions(RayneOpenVR PRIVATE -DRN_OPENVR_SUPPORTS_VULKAN)
         rayne_use_modules(RayneOpenVR RayneVulkan)
     endif()

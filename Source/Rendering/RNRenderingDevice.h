@@ -47,7 +47,7 @@ namespace RN
 		uint32 GetVendorID() const { return _vendorID; }
 		Type GetType() const { return _type; }
 
-		RNAPI virtual void SetExtensions(Array *extensions) {}
+		virtual void SetExtensions(Array *extensions) {}
 
 	protected:
 		RNAPI RenderingDevice(const String *name, const Descriptor &descriptor);
