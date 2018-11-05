@@ -17,12 +17,12 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label() : _text(nullptr), _font(nullptr)
+		Label::Label() : _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
 		{
 			_internals->style.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			_internals->style.setAntiAlias(true);
 		}
-		Label::Label(const Rect &frame) : View(frame), _text(nullptr), _font(nullptr)
+		Label::Label(const Rect &frame) : View(frame), _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
 		{
 			_internals->style.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			_internals->style.setAntiAlias(true);
