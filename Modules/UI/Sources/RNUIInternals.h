@@ -10,6 +10,7 @@
 #define __RAYNE_UIINTERNALS_H_
 
 //#include <skia.h>
+#include <include/core/SKGraphics.h>
 #include <include/core/SKPaint.h>
 #include <include/core/SKSurface.h>
 #include <include/core/SKPath.h>

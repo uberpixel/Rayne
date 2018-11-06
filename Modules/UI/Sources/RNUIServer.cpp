@@ -8,6 +8,7 @@
 
 #include "RNUIServer.h"
 #include "RNUIWindow.h"
+#include "RNUIInternals.h"
 
 namespace RN
 {
@@ -90,6 +91,11 @@ namespace RN
 					window->Render(renderer);
 
 			});*/
+		}
+
+		void Server::InitializeUI()
+		{
+			SkGraphics::Init();
 		}
 	}
 }

@@ -38,6 +38,8 @@ namespace RN
 			float GetWidth() const { return _camera->GetRenderPass()->GetFrame().width; }
 
 			Camera *GetCamera() const { return _camera; }
+
+			UIAPI static void InitializeUI();
 		private:
 
 			Camera *_camera;
