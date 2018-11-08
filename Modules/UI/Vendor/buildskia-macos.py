@@ -4,6 +4,7 @@ import sys
 import shutil
 
 args = [
+	'extra_cflags_cc=["-mmacosx-version-min=10.11"]',
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
@@ -26,9 +27,6 @@ args = [
 ]
 
 def main():
-	if sys.platform == 'darwin':
-		args.append('extra_cflags_cc=["-mmacosx-version-min=10.11"]')
-
 	argString = ' '.join(str(x) for x in args)
 
 	path = os.path.dirname(os.path.realpath(__file__))

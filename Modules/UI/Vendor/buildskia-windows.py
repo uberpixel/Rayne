@@ -4,7 +4,6 @@ import sys
 import shutil
 
 args = [
-	'extra_cflags=[\"/MD\"]',
 	'clang_win=\"C:/Program Files/LLVM\"',
 	'is_official_build=true',
 	'is_debug=false',
@@ -29,9 +28,6 @@ args = [
 ]
 
 def main():
-	if sys.platform == 'darwin':
-		args.append('extra_cflags_cc=["-mmacosx-version-min=10.11"]')
-
 	argString = ' '.join(str(x) for x in args)
 
 	path = os.path.dirname(os.path.realpath(__file__))
@@ -43,15 +39,24 @@ def main():
 
 	os.chdir(skiaPath)
 
-	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0}".format(argString)])
+	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0}, extra_cflags=[\"/MD\"]".format(argString)])
 	subprocess.call(["ninja", "-C", "build/windows/release", "skia"])
+
+	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0}, extra_cflags=[\"/MDd\"]".format(argString)])
+	subprocess.call(["ninja", "-C", "build/windows/debug", "skia"])
 
 	try:
 		os.mkdir("../libskia/windows/release/")
 	except OSError as exc:
 		pass
+
+	try:
+		os.mkdir("../libskia/windows/debug/")
+	except OSError as exc:
+		pass
 	
 	shutil.copyfile("build/windows/release/skia.lib", "../libskia/windows/release/skia.lib")
+	shutil.copyfile("build/windows/debug/skia.lib", "../libskia/windows/debug/skia.lib")
 
 if __name__ == '__main__':
 	main()
