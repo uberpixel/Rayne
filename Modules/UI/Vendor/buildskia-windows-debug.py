@@ -1,9 +1,11 @@
 import os
 import subprocess
 import sys
+import shutil
 
 args = [
 	'extra_cflags=[\"/MDd\"]',
+	'clang_win=\"C:/Program Files/LLVM\"',
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
@@ -11,10 +13,7 @@ args = [
 	'skia_use_freetype=true',
 	'skia_enable_atlas_text=false',
 	'skia_use_system_freetype2=false',
-	'skia_use_system_jsoncpp=false',
-	'skia_enable_skshaper=true',
-	'skia_use_icu=true',
-	'skia_use_system_icu=false',
+	'skia_use_icu=false',
 	'skia_use_system_libpng=false',
 	'skia_use_system_zlib=false',
 	'skia_use_system_expat=false',
@@ -25,10 +24,8 @@ args = [
 	'skia_use_piex=false',
 	'skia_use_zlib=false',
 #	'skia_enable_gpu=false',
-	'skia_enable_tools=true',
-	'skia_enable_skottie=false',
-	'skia_enable_pdf=false',
-	'clang_win=\"C:/Program Files/LLVM\"'
+	'skia_enable_tools=false',
+	'skia_enable_pdf=false'
 ]
 
 def main():
@@ -46,8 +43,15 @@ def main():
 
 	os.chdir(skiaPath)
 
-	subprocess.call(["bin/gn", "gen", "build/vs2015", "--args={0}".format(argString)])
-	subprocess.call(["ninja", "-C", "build/vs2015", "skia", "skiashaper"])
+	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0}".format(argString)])
+	subprocess.call(["ninja", "-C", "build/windows/debug", "skia"])
+
+	try:
+		os.mkdir("../libskia/windows/debug/")
+	except OSError as exc:
+		pass
+	
+	shutil.copyfile("build/windows/debug/skia.lib", "../libskia/windows/debug/skia.lib")
 
 if __name__ == '__main__':
 	main()
