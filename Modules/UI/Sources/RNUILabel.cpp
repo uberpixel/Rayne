@@ -55,7 +55,7 @@ namespace RN
 			}
 			else if(_alignment == Alignment::Right)
 			{
-				rect.x = rect.width - textBounds.width();
+				rect.x = rect.width - textBounds.right();
 			}
 			
 			SetBounds(rect);

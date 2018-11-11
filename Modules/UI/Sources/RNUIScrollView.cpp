@@ -14,7 +14,7 @@ namespace RN
 	{
 		RNDefineMeta(ScrollView, View)
 
-		ScrollView::ScrollView() : _isScrollEnabled(true), _isScrolling(false), _wasTouched(false), _tapTimer(0.0f), _scrollSpeed(0.0f)
+		ScrollView::ScrollView() : _isScrollEnabled(true), _isScrolling(false), _wasTouched(false), _tapTimer(0.0f), _pixelPerInch(200), _scrollSpeed(0.0f)
 		{
 
 		}
@@ -22,6 +22,11 @@ namespace RN
 		ScrollView::~ScrollView()
 		{
 			
+		}
+		
+		void ScrollView::SetPixelPerInch(float pixelPerInch)
+		{
+			_pixelPerInch = pixelPerInch;
 		}
 
 		void ScrollView::Draw(Context *context) const
@@ -46,7 +51,7 @@ namespace RN
 			if(_wasTouched && touched)
 			{
 				float scrollDistance = cursorPosition.y - _previousCursorPosition.y;
-				if(std::abs(scrollDistance) > 30.0f || (_tapTimer <= 0.0f && std::abs(scrollDistance) > 5.0f)) _isScrolling = true;
+				if(std::abs(scrollDistance) > _pixelPerInch/25.4f*5.0f || (_tapTimer <= 0.0f && std::abs(scrollDistance) > _pixelPerInch/25.4f)) _isScrolling = true;
 				
 				if(_isScrolling)
 				{

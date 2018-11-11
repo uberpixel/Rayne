@@ -24,6 +24,8 @@ namespace RN
 			UIAPI void Draw(Context *context) const override;
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
 			
+			UIAPI void SetPixelPerInch(float pixelPerInch);
+			
 			bool IsScrolling() const { return _isScrolling; }
 
 		private:
@@ -32,6 +34,7 @@ namespace RN
 			bool _wasTouched;
 			
 			float _tapTimer;
+			float _pixelPerInch;
 			
 			float _scrollSpeed;
 			Vector2 _previousCursorPosition;
