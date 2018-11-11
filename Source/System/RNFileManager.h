@@ -109,6 +109,9 @@ namespace RN
 
 		RNAPI String *GetPathForLocation(Location location) const;
 		RNAPI String *GetNormalizedPathFromFullPath(const String *fullPath);
+		
+		RNAPI bool RenameFile(const String *oldPath, const String *newPath, bool overwrite = true);
+		RNAPI bool CreateDirectory(const String *path);
 
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);

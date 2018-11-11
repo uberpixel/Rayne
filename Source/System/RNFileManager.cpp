@@ -750,6 +750,28 @@ namespace RN
 
 		return nullptr;
 	}
+	
+	bool FileManager::RenameFile(const String *oldPath, const String *newPath, bool overwrite)
+	{
+		if(overwrite) std::remove(newPath->GetUTF8String());
+		return std::rename(oldPath->GetUTF8String(), newPath->GetUTF8String()) == 0;
+	}
+	
+	bool FileManager::CreateDirectory(const String *path)
+	{
+#if RN_PLATFORM_MAC_OS
+		NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path->GetUTF8String()]];
+		NSError *error = nullptr;
+		[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:&error];
+		return error == nullptr;
+#endif
+#if RN_PLATFORM_WINDOWS
+		return ::CreateDirectory(path->GetUTF8String(), NULL);
+#endif
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+		return mkdir(path->GetUTF8String(), S_IRWXU) == 0;
+#endif
+	}
 
 	void FileManager::AddSearchPath(const String *path)
 	{
