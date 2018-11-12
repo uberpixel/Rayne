@@ -193,8 +193,22 @@ namespace RN
 			SkPaint::FontMetrics fm;
 			label->_internals->style.getFontMetrics(&fm);
 			
+			float alignmentXOffset = 0.0f;
+			if(label->_alignment == UI::Label::Alignment::Left)
+			{
+				alignmentXOffset = 0.0f;
+			}
+			else if(label->_alignment == UI::Label::Alignment::Center)
+			{
+				alignmentXOffset = (rect.width - label->_contentSize.x) / 2;
+			}
+			else if(label->_alignment == UI::Label::Alignment::Right)
+			{
+				alignmentXOffset = rect.width - label->_contentSize.x;
+			}
+			
 			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop - fm.fDescent, label->_internals->style);
+			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_internals->style);
 		}
 
 

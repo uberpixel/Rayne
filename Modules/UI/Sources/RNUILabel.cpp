@@ -36,7 +36,6 @@ namespace RN
 		{
 			if(!_font || !_text) return;
 			
-			Rect rect = GetBounds();
 			Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
 			//_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
 			//_internals->textBlob = _internals->builder.make();
@@ -44,21 +43,6 @@ namespace RN
 			SkRect textBounds; //= _internals->textBlob->bounds();
 			_internals->style.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), &textBounds);
 			_contentSize = Vector2(textBounds.width(), textBounds.height());
-			
-			if(_alignment == Alignment::Left)
-			{
-				rect.x = 0.0f;
-			}
-			else if(_alignment == Alignment::Center)
-			{
-				rect.x = (rect.width - textBounds.width()) / 2;
-			}
-			else if(_alignment == Alignment::Right)
-			{
-				rect.x = rect.width - textBounds.right();
-			}
-			
-			SetBounds(rect);
 		}
 		
 		void Label::SetText(String *text)
@@ -91,7 +75,6 @@ namespace RN
 		void Label::SetAlignment(Alignment alignment)
 		{
 			_alignment = alignment;
-			SetNeedsLayout();
 		}
 		
 
