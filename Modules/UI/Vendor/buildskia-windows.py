@@ -39,10 +39,10 @@ def main():
 
 	os.chdir(skiaPath)
 
-	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0}, extra_cflags=[\"/MD\"]".format(argString)])
+	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0} extra_cflags=[\"/MD\"]".format(argString)])
 	subprocess.call(["ninja", "-C", "build/windows/release", "skia"])
 
-	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0}, extra_cflags=[\"/MDd\"]".format(argString)])
+	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0} extra_cflags=[\"/MDd\"]".format(argString)])
 	subprocess.call(["ninja", "-C", "build/windows/debug", "skia"])
 
 	try:
