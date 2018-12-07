@@ -50,8 +50,9 @@ namespace RN
 	
 	SteamAudioSource::~SteamAudioSource()
 	{
-		if(SteamAudioWorld::_instance)
-			SteamAudioWorld::_instance->RemoveAudioSource(this);
+		//World retains the source because of this, so if constructor is called, the world doesn't have this source anymore...
+/*		if(SteamAudioWorld::_instance)
+			SteamAudioWorld::_instance->RemoveAudioSource(this);*/
 
 		_sampler->Release();
 

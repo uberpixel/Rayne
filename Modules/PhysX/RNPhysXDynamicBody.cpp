@@ -203,7 +203,8 @@ namespace RN
 
 	void PhysXDynamicBody::SetKinematicTarget(const Vector3 &position, const Quaternion &rotation)
 	{
-		_actor->setKinematicTarget(physx::PxTransform(position.x, position.y, position.z, physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+		Quaternion targetRotation = rotation * _rotationOffset;
+		_actor->setKinematicTarget(physx::PxTransform(position.x - _positionOffset.x, position.y - _positionOffset.y, position.z - _positionOffset.z, physx::PxQuat(targetRotation.x, targetRotation.y, targetRotation.z, targetRotation.w)));
 	}
 
 	void PhysXDynamicBody::AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta)
@@ -276,7 +277,7 @@ namespace RN
 			for(PhysXShape *tempShape : compound->_shapes)
 			{
 				physx::PxShape *shape = tempShape->GetPhysXShape();
-				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
+				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
 
 				for(int i = 0; i < hit.getNbAnyHits(); i++)
 				{
@@ -303,7 +304,7 @@ namespace RN
 		{
 			physx::PxShape *shape = _shape->GetPhysXShape();
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
+			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
 			for(int i = 0; i <hit.getNbAnyHits(); i++)
@@ -372,8 +373,8 @@ namespace RN
 		
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetWorldPosition() - _offset;
-			Quaternion rotation = GetWorldRotation();
+			Vector3 position = GetWorldPosition() - _positionOffset;
+			Quaternion rotation = GetWorldRotation() * _rotationOffset;
 			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 		}
 
@@ -381,8 +382,8 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetWorldPosition() - _offset;
-				Quaternion rotation = GetWorldRotation();
+				Vector3 position = GetWorldPosition() - _positionOffset;
+				Quaternion rotation = GetWorldRotation() * _rotationOffset;
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
 
@@ -407,7 +408,7 @@ namespace RN
 		}
 
 		const physx::PxTransform &transform = _actor->getGlobalPose();
-		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
-		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _positionOffset);
+		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w) * _rotationOffset.GetConjugated());
 	}
 }

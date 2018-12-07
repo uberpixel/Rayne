@@ -770,7 +770,7 @@ namespace RN
 	}
 
 
-	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t rings)
+	Mesh *Mesh::WithSphereMesh(float radius, size_t slices, size_t rings, Color color)
 	{
 		Mesh *mesh = new Mesh({ VertexAttribute(VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
 			VertexAttribute(VertexAttribute::Feature::Normals, PrimitiveType::Vector3),
@@ -798,7 +798,7 @@ namespace RN
 				Vector3 position(x, y, z);
 				*vertices++ = position * radius;
 				*normals++ = position.GetNormalized();
-				*colors++ = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+				*colors++ = Vector4(color.r, color.g, color.b, color.a);
 			}
 		}
 

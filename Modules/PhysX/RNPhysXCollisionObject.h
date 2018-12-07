@@ -45,6 +45,7 @@ namespace RN
 		PXAPI virtual void SetCollisionFilterID(uint32 id, uint32 ignoreid);
 		PXAPI void SetContactCallback(std::function<void(PhysXCollisionObject *, const PhysXContactInfo&, ContactState)> &&callback);
 		PXAPI virtual void SetPositionOffset(RN::Vector3 offset);
+		PXAPI virtual void SetRotationOffset(RN::Quaternion offset);
 		
 		uint32 GetCollisionFilterGroup() const { return _collisionFilterGroup; }
 		uint32 GetCollisionFilterMask() const { return _collisionFilterMask; }
@@ -52,7 +53,8 @@ namespace RN
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		
-		Vector3 _offset;
+		Vector3 _positionOffset;
+		Quaternion _rotationOffset;
 
 		uint32 _collisionFilterGroup;
 		uint32 _collisionFilterMask;

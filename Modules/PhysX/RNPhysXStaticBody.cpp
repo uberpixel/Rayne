@@ -86,8 +86,8 @@ namespace RN
 
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetWorldPosition() - _offset;
-			Quaternion rotation = GetWorldRotation();
+			Vector3 position = GetWorldPosition() - _positionOffset;
+			Quaternion rotation = GetWorldRotation() * _rotationOffset;
 			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 		}
 
@@ -95,8 +95,8 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetWorldPosition() - _offset;
-				Quaternion rotation = GetWorldRotation();
+				Vector3 position = GetWorldPosition() - _positionOffset;
+				Quaternion rotation = GetWorldRotation() * _rotationOffset;
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
 			
@@ -112,7 +112,7 @@ namespace RN
 		}
 
 		const physx::PxTransform &transform = _actor->getGlobalPose();
-		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _offset);
-		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _positionOffset);
+		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w) * _rotationOffset.GetConjugated());
 	}
 }

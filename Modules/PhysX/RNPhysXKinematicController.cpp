@@ -155,7 +155,7 @@ namespace RN
 			
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetParent()->GetWorldPosition() - _offset;
+			Vector3 position = GetParent()->GetWorldPosition() - _positionOffset;
 			_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 		}
 
@@ -163,7 +163,7 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetParent()->GetWorldPosition() - _offset;
+				Vector3 position = GetParent()->GetWorldPosition() - _positionOffset;
 				_controller->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 			}
 
@@ -179,6 +179,6 @@ namespace RN
 		}
 
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
-		SetWorldPosition(Vector3(position.x, position.y, position.z) + _offset);
+		SetWorldPosition(Vector3(position.x, position.y, position.z) + _positionOffset);
 	}
 }

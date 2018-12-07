@@ -59,7 +59,7 @@ namespace RN
 
 		_fogNear   = 100.0f;
 		_fogFar    = 500.0f;
-		_ambient   = Color(0.1f, 0.1f, 0.1f, 1.0f);
+		_ambient   = Color::White();
 		_clipPlane = Plane();
 
 		_dirtyProjection = true;

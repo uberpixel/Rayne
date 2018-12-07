@@ -33,8 +33,8 @@ namespace RN
 		SAAPI void SetRadius(float radius);
 		SAAPI void SetPitch(float pitch);
 		SAAPI void SetGain(float gain);
-/*		SAAPI void SetRange(float min, float max);
-		SAAPI void SetSelfdestruct(bool selfdestruct);*/
+//		SAAPI void SetRange(float min, float max);
+//		SAAPI void SetSelfdestruct(bool selfdestruct);
 		SAAPI void SetChannel(uint8 channel);
 		SAAPI void SetTimeOfFlight(bool tof);
 

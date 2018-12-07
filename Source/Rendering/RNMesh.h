@@ -412,7 +412,7 @@ namespace RN
 		RNAPI static Mesh *WithTexturedPlane(const Quaternion &rotation, const Vector3 &position = Vector3(0.0f, 0.0f, 0.0f), const Vector2 &size = Vector2(0.5f, 0.5f));
 		RNAPI static Mesh *WithTexturedDome(float radius, size_t slices, size_t segments);
 
-		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments);
+		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments, Color color);
 
 		RNAPI void BeginChanges();
 		RNAPI void EndChanges();

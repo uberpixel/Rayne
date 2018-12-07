@@ -85,6 +85,7 @@ namespace RN
 		SceneNode *GetListener() const { return _listener; };
 
 		SAAPI SteamAudioPlayer *PlaySound(AudioAsset*resource) const;
+		SAAPI SteamAudioSource *PlaySound(AudioAsset *resource, RN::Vector3 position) const;
 
 		SAAPI void AddMaterial(const SteamAudioMaterial &material);
 		SAAPI void AddStaticGeometry(const SteamAudioGeometry &geometry);
@@ -96,6 +97,8 @@ namespace RN
 		
 		SAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
+		SAAPI void RemoveAudioSource(SteamAudioSource *source) const;
+
 	protected:
 		void Update(float delta) override;
 			
@@ -105,7 +108,6 @@ namespace RN
 		static SteamAudioWorld *_instance;
 
 		void AddAudioSource(SteamAudioSource *source) const;
-		void RemoveAudioSource(SteamAudioSource *source) const;
 
 		void AddAudioPlayer(SteamAudioPlayer *player) const;
 		void RemoveAudioPlayer(SteamAudioPlayer *player) const;
