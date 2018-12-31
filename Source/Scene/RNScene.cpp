@@ -125,39 +125,69 @@ namespace RN
 #if kRNSceneUseRenderPool
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
-		//TODO: Do something to have shadowmap cameras rendered first.
-		IntrusiveList<Camera>::Member *member = _cameras.GetHead();
-		while(member)
+		for(int priority = 0; priority < 3; priority++)
 		{
-			Camera *camera = member->Get();
-			camera->PostUpdate(renderer);
-
-			if(camera->GetFlags() & Camera::Flags::NoRender)
+			IntrusiveList<Camera>::Member *member = _cameras.GetHead();
+			while(member)
 			{
-				member = member->GetNext();
-				continue;
-			}
+				Camera *camera = member->Get();
+				camera->PostUpdate(renderer);
 
-			renderer->SubmitCamera(camera, [&] {
-
-				//TODO: Handle lights to be rendered before other things differently...
-				_lights->Enumerate<Light>([renderer, camera](Light *light, size_t index, bool &stop){
-					if(light->CanRender(renderer, camera))
-						light->Render(renderer, camera);
-				});
-
-				WorkGroup *group = new WorkGroup();
-
-				for(size_t i = 0; i < 3; i ++)
+				//Early out if camera is not supposed to render or if this isn't it's priority loop
+				if(camera->GetFlags() & Camera::Flags::NoRender || (priority == 0 && !(camera->GetFlags() & Camera::Flags::RenderEarly)) || (priority == 1 && (camera->GetFlags() & Camera::Flags::RenderEarly || camera->GetFlags() & Camera::Flags::RenderLate)) || (priority == 2 && !(camera->GetFlags() & Camera::Flags::RenderLate)))
 				{
-					IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
-					IntrusiveList<SceneNode>::Member *first = member;
+					member = member->GetNext();
+					continue;
+				}
 
-					size_t count = 0;
+				renderer->SubmitCamera(camera, [&] {
 
-					while(member)
+					//TODO: Handle lights to be rendered before other things differently...
+					_lights->Enumerate<Light>([renderer, camera](Light *light, size_t index, bool &stop){
+						if(light->CanRender(renderer, camera))
+							light->Render(renderer, camera);
+					});
+
+					WorkGroup *group = new WorkGroup();
+
+					for(size_t i = 0; i < 3; i ++)
 					{
-						if(count == kRNSceneUpdateBatchSize)
+						IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+						IntrusiveList<SceneNode>::Member *first = member;
+
+						size_t count = 0;
+
+						while(member)
+						{
+							if(count == kRNSceneUpdateBatchSize)
+							{
+								group->Perform(queue, [&, member, first] {
+
+									AutoreleasePool pool;
+									auto iterator = first;
+
+									while(iterator != member)
+									{
+										SceneNode *node = iterator->Get();
+
+										if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+											if(node->CanRender(renderer, camera))
+												node->Render(renderer, camera);
+
+										iterator = iterator->GetNext();
+									}
+
+								});
+
+								first = member;
+								count = 0;
+							}
+
+							member = member->GetNext();
+							count ++;
+						}
+
+						if(first != member)
 						{
 							group->Perform(queue, [&, member, first] {
 
@@ -176,42 +206,15 @@ namespace RN
 								}
 
 							});
-
-							first = member;
-							count = 0;
 						}
-
-						member = member->GetNext();
-						count ++;
 					}
 
-					if(first != member)
-					{
-						group->Perform(queue, [&, member, first] {
+					group->Wait();
+					group->Release();
+				});
 
-							AutoreleasePool pool;
-							auto iterator = first;
-
-							while(iterator != member)
-							{
-								SceneNode *node = iterator->Get();
-
-								if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
-									if(node->CanRender(renderer, camera))
-										node->Render(renderer, camera);
-
-								iterator = iterator->GetNext();
-							}
-
-						});
-					}
-				}
-
-				group->Wait();
-				group->Release();
-			});
-
-			member = member->GetNext();
+				member = member->GetNext();
+			}
 		}
 
 #else

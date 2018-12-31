@@ -251,10 +251,10 @@ namespace RN
 			framebuffer->SetDepthStencilTarget(depthTargetView);
 			framebuffer->Autorelease();
 			
-			//TODO: Make sure these new cameras are updated after the main one, but rendered before...
 			Camera *tempcam = new Camera();
 			tempcam->GetRenderPass()->SetFramebuffer(framebuffer);
-			tempcam->SetFlags(Camera::Flags::Orthogonal);
+			tempcam->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::RenderEarly);
+			tempcam->SceneNode::SetPriority(SceneNode::Priority::UpdateLate);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetShaderHint(Shader::UsageHint::Depth);
 			tempcam->SetLODCamera(_shadowTarget);

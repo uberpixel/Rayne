@@ -35,6 +35,9 @@ namespace RN
 				   InheritPosition   = (1 << 12),
 				   InheritFrame      = (1 << 13),
 				   InheritProjection = (1 << 14),
+				   
+				   RenderEarly = (1 << 19),
+				   RenderLate = (1 << 20),
 
 				   Orthogonal = (1 << 21),
 				   Hidden     = (1 << 22),
