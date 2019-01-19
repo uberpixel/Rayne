@@ -218,7 +218,7 @@ namespace RN
 	}
 	SceneNode::Flags SceneNode::RemoveFlags(Flags flags)
 	{
-		return _flags.fetch_and(flags, std::memory_order_acq_rel) & flags;
+		return _flags.fetch_and(~flags, std::memory_order_acq_rel) & ~flags;
 	}
 	SceneNode::Flags SceneNode::AddFlags(Flags flags)
 	{
