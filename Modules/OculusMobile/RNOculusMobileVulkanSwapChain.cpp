@@ -86,7 +86,7 @@ namespace RN
 		NotificationManager::GetSharedInstance()->AddSubscriber(kRNAndroidWindowDidChange, [this](Notification *notification) {
 			if(notification->GetName()->IsEqual(kRNAndroidWindowDidChange))
 			{
-				_nativeWindow = nullptr;
+				//_nativeWindow = nullptr;
 				UpdateVRMode();
 			}
 		}, this);
@@ -143,6 +143,7 @@ namespace RN
 
 	void OculusMobileVulkanSwapChain::UpdateVRMode()
     {
+    	RNDebug(RNCSTR("UpdateVRMode called"));
     	if(!_nativeWindow)
     	{
     		if(!_session)
@@ -165,6 +166,8 @@ namespace RN
     			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
     			if(_session)
     			{
+    				RNDebug(RNCSTR("UpdateVRMode new session"));
+
     				vrapi_SetDisplayRefreshRate(_session, 72.0f);
     				vrapi_SetRemoteEmulation(_session, false);
     				vrapi_SetClockLevels(_session, 0, 0);
@@ -185,10 +188,13 @@ namespace RN
     	}
     	else
     	{
+    		_nativeWindow = nullptr;
     		if(_session)
     		{
     			vrapi_LeaveVrMode(_session);
     			_session = nullptr;
+
+    			RNDebug(RNCSTR("UpdateVRMode session lost"));
     		}
     	}
     }
