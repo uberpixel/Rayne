@@ -114,8 +114,8 @@ namespace RN
 		AAsset *asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
 		if(!asset)
 		{
-			file = RNSTR(RNCSTR("Resources/") << file);
-			asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
+			RN::String *tempfile = RNSTR(RNCSTR("Resources/") << file);
+			asset = AAssetManager_open(app->activity->assetManager, tempfile->GetUTF8String(), 0);
 		}
 
 		if(asset)

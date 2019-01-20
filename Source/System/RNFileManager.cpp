@@ -742,7 +742,8 @@ namespace RN
 				return path;
 #endif
 #if RN_PLATFORM_ANDROID
-				return RNSTR(Kernel::GetSharedInstance()->GetAndroidApp()->activity->internalDataPath);
+				const char *dataPath = Kernel::GetSharedInstance()->GetAndroidApp()->activity->internalDataPath;
+				return RNSTR(dataPath);
 #endif
 				break;
 			}
