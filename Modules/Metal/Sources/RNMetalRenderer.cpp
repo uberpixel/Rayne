@@ -836,6 +836,35 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowInfo.x, descriptor->GetSize());
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::PointLights:
+				{
+					size_t lightCount = renderPass.pointLights.size();
+					if(lightCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
+					}
+					if(lightCount < 8) //TODO: Think about how max number of lights is filled up...
+					{
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8-lightCount));
+					}
+					break;
+				}
+				
+				case Shader::UniformDescriptor::Identifier::SpotLights:
+				{
+					size_t lightCount = renderPass.spotLights.size();
+					if(lightCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
+					}
+					if(lightCount < 8) //TODO: Think about how max number of lights is filled up...
+					{
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8-lightCount));
+					}
+					
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
@@ -867,11 +896,13 @@ namespace RN
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
-			renderPass.pointLights.push_back(MetalPointLight{light->GetPosition(), light->GetColor(), light->GetRange()});
+			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
+				renderPass.pointLights.push_back(MetalPointLight{light->GetWorldPosition(), light->GetRange(), light->GetColor()});
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
-			renderPass.spotLights.push_back(MetalSpotLight{light->GetPosition(), light->GetForward(), light->GetColor(), light->GetRange(), light->GetAngleCos()});
+			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
+				renderPass.spotLights.push_back(MetalSpotLight{light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetColor()});
 		}
 	}
 

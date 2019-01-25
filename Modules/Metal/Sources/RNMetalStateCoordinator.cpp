@@ -224,8 +224,8 @@ namespace RN
 
 		MetalShader *vertexShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(shaderHint) : material->GetVertexShader(shaderHint));
 		MetalShader *fragmentShader = static_cast<MetalShader *>((overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetFragmentShader(shaderHint) : material->GetFragmentShader(shaderHint));
-		bool wantsAlphaToCoverage = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupAlphaToCoverage) && !(material->GetOverride() & Material::Override::GroupAlphaToCoverage))? overrideMaterial->GetUseAlphaToCoverage() : material->GetUseAlphaToCoverage();
-		uint8 colorWriteMask = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::ColorWriteMask) && !(material->GetOverride() & Material::Override::ColorWriteMask))? overrideMaterial->GetColorWriteMask() : material->GetColorWriteMask();
+		
+		Material::Properties materialProperties = material->GetMergedProperties(overrideMaterial);
 
 		for(MetalRenderingStateCollection *collection : _renderingStates)
 		{
@@ -233,7 +233,7 @@ namespace RN
 			{
 				if(collection->fragmentShader->IsEqual(fragmentShader) && collection->vertexShader->IsEqual(vertexShader))
 				{
-					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage, colorWriteMask);
+					return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, materialProperties);
 				}
 			}
 		}
@@ -241,11 +241,11 @@ namespace RN
 		MetalRenderingStateCollection *collection = new MetalRenderingStateCollection(descriptor, vertexShader, fragmentShader);
 		_renderingStates.push_back(collection);
 
-		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, wantsAlphaToCoverage, colorWriteMask);
+		return GetRenderPipelineStateInCollection(collection, mesh, framebuffer, materialProperties);
 
 	}
 
-	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, bool wantsAlphaToCoverage, uint8 colorWriteMask)
+	const MetalRenderingState *MetalStateCoordinator::GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, const Material::Properties &materialProperties)
 	{
 		MetalFramebuffer *metalFramebuffer = framebuffer->Downcast<MetalFramebuffer>();
 		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat(0);
@@ -255,7 +255,7 @@ namespace RN
 		for(const MetalRenderingState *state : collection->states)
 		{
 			//TODO: include things like different pixel formats and sample rate...
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == wantsAlphaToCoverage && state->colorWriteMask == colorWriteMask)
+			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == materialProperties.useAlphaToCoverage && state->colorWriteMask == materialProperties.colorWriteMask && state->blendOperationRGB == materialProperties.blendOperationRGB && state->blendOperationAlpha == materialProperties.blendOperationAlpha && state->blendFactorSourceRGB == materialProperties.blendFactorSourceRGB && state->blendFactorSourceAlpha == materialProperties.blendFactorSourceAlpha && state->blendFactorDestinationRGB == materialProperties.blendFactorDestinationRGB && state->blendFactorDestinationAlpha == materialProperties.blendFactorDestinationAlpha)
 				return state;
 		}
 
@@ -267,10 +267,21 @@ namespace RN
 		pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
 		pipelineStateDescriptor.sampleCount = metalFramebuffer->GetSampleCount();
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
-		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(colorWriteMask);
+		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(materialProperties.colorWriteMask);
+		pipelineStateDescriptor.colorAttachments[0].blendingEnabled = false;
+		if(materialProperties.blendOperationRGB != BlendOperation::None && materialProperties.blendOperationAlpha != BlendOperation::None)
+		{
+			pipelineStateDescriptor.colorAttachments[0].blendingEnabled = true;
+			pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = static_cast<MTLBlendOperation>(materialProperties.blendOperationRGB);
+			pipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = static_cast<MTLBlendFactor>(materialProperties.blendFactorSourceRGB);
+			pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = static_cast<MTLBlendFactor>(materialProperties.blendFactorDestinationRGB);
+			pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = static_cast<MTLBlendOperation>(materialProperties.blendOperationAlpha);
+			pipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = static_cast<MTLBlendFactor>(materialProperties.blendFactorSourceAlpha);
+			pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = static_cast<MTLBlendFactor>(materialProperties.blendFactorDestinationAlpha);
+		}
 		pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
 		pipelineStateDescriptor.stencilAttachmentPixelFormat = stencilFormat;
-		pipelineStateDescriptor.alphaToCoverageEnabled = wantsAlphaToCoverage;
+		pipelineStateDescriptor.alphaToCoverageEnabled = materialProperties.useAlphaToCoverage;
 
 		id<MTLRenderPipelineState> pipelineState = nil;
 		if(collection->vertexShader->GetSignature() && collection->fragmentShader->GetSignature())
@@ -310,8 +321,14 @@ namespace RN
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
 		state->wantsShadowTexture = collection->fragmentShader->_wantsDirectionalShadowTexture; //TODO: also support in vertex shader/generalize special texture handling
-		state->wantsAlphaToCoverage = wantsAlphaToCoverage;
-		state->colorWriteMask = colorWriteMask;
+		state->wantsAlphaToCoverage = materialProperties.useAlphaToCoverage;
+		state->colorWriteMask = materialProperties.colorWriteMask;
+		state->blendOperationRGB = materialProperties.blendOperationRGB;
+		state->blendOperationAlpha = materialProperties.blendOperationAlpha;
+		state->blendFactorSourceRGB = materialProperties.blendFactorSourceRGB;
+		state->blendFactorDestinationRGB = materialProperties.blendFactorDestinationRGB;
+		state->blendFactorSourceAlpha = materialProperties.blendFactorSourceAlpha;
+		state->blendFactorDestinationAlpha = materialProperties.blendFactorDestinationAlpha;
 
 		collection->states.push_back(state);
 

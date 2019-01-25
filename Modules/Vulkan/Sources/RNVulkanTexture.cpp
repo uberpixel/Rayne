@@ -233,6 +233,24 @@ namespace RN
 
 		_currentLayout = imageInfo.initialLayout;
 
+		VkImageFormatProperties formatProperties;
+		vk::GetPhysicalDeviceImageFormatProperties(device->GetPhysicalDevice(), imageInfo.format, imageInfo.imageType, imageInfo.tiling, imageInfo.usage, imageInfo.flags, &formatProperties);
+
+		RN_ASSERT(formatProperties.sampleCounts & descriptor.sampleCount, "Requested sample count for texture format is not supported by this device");
+
+/*		uint32 requestedSampleCount = descriptor.sampleCount;
+		uint32 availableSampleCount = descriptor.sampleCount;
+		while(!(formatProperties.sampleCounts & availableSampleCount))
+		{
+			availableSampleCount = availableSampleCount >> 1;
+		}
+
+		imageInfo.samples = static_cast<VkSampleCountFlagBits>(availableSampleCount);
+		if(availableSampleCount != requestedSampleCount)
+		{
+			RNDebug(RNSTR("Requested sample count: " << requestedSampleCount << ", But available sample count: " << availableSampleCount));
+		}*/
+
 		RNVulkanValidate(vk::CreateImage(device->GetDevice(), &imageInfo, _renderer->GetAllocatorCallback(), &_image));
 
 

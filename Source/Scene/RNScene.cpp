@@ -124,6 +124,8 @@ namespace RN
 
 #if kRNSceneUseRenderPool
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
+		
+		std::vector<SceneNode*> drawLateSceneNodes;
 
 		for(int priority = 0; priority < 3; priority++)
 		{
@@ -147,6 +149,8 @@ namespace RN
 						if(light->CanRender(renderer, camera))
 							light->Render(renderer, camera);
 					});
+					
+					drawLateSceneNodes.clear();
 
 					WorkGroup *group = new WorkGroup();
 
@@ -169,10 +173,17 @@ namespace RN
 									while(iterator != member)
 									{
 										SceneNode *node = iterator->Get();
-
-										if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+										
+										if(node->HasFlags(SceneNode::Flags::DrawLate)) //TODO: Shitty
+										{
+											if(node->CanRender(renderer, camera))
+												drawLateSceneNodes.push_back(node);
+										}
+										else if(!node->IsKindOfClass(Light::GetMetaClass())) //TODO: Shitty
+										{
 											if(node->CanRender(renderer, camera))
 												node->Render(renderer, camera);
+										}
 
 										iterator = iterator->GetNext();
 									}
@@ -198,9 +209,16 @@ namespace RN
 								{
 									SceneNode *node = iterator->Get();
 
-									if(!node->IsKindOfClass(Light::GetMetaClass()))	//TODO: Shitty...
+									if(node->HasFlags(SceneNode::Flags::DrawLate)) //TODO: Shitty
+									{
+										if(node->CanRender(renderer, camera))
+											drawLateSceneNodes.push_back(node);
+									}
+									else if(!node->IsKindOfClass(Light::GetMetaClass())) //TODO: Shitty
+									{
 										if(node->CanRender(renderer, camera))
 											node->Render(renderer, camera);
+									}
 
 									iterator = iterator->GetNext();
 								}
@@ -208,6 +226,16 @@ namespace RN
 							});
 						}
 					}
+					
+					//Draw scene nodes with DrawLate flag
+					group->Perform(queue, [&] {
+						
+						AutoreleasePool pool;
+						for(SceneNode *node : drawLateSceneNodes)
+						{
+							node->Render(renderer, camera);
+						}
+					});
 
 					group->Wait();
 					group->Release();

@@ -74,13 +74,13 @@ namespace RN
 				Time,
 				CameraPosition,
 				CameraAmbientColor,
-				DirectionalLights,
 				DirectionalLightsCount,
+				DirectionalLights,
 				DirectionalShadowMatrices,
 				DirectionalShadowMatricesCount,
 				DirectionalShadowInfo,
 				PointLights,
-				SpotLights
+				SpotLights,
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);

@@ -76,6 +76,13 @@ namespace RN
 		float polygonOffsetUnits;
 
 		bool useAlphaToCoverage;
+
+		BlendOperation blendOperationRGB;
+		BlendOperation blendOperationAlpha;
+		BlendFactor blendFactorSourceRGB;
+		BlendFactor blendFactorSourceAlpha;
+		BlendFactor blendFactorDestinationRGB;
+		BlendFactor blendFactorDestinationAlpha;
 	};
 
 	struct VulkanPipelineState

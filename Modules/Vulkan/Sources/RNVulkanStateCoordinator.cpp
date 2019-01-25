@@ -36,6 +36,25 @@ namespace RN
 			VK_FORMAT_R32G32B32A32_SFLOAT
 		};
 
+	VkBlendFactor _blendFactorLookup[] =
+	{
+		VK_BLEND_FACTOR_ZERO,
+		VK_BLEND_FACTOR_ONE,
+		VK_BLEND_FACTOR_SRC_COLOR,
+		VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+		VK_BLEND_FACTOR_SRC_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+		VK_BLEND_FACTOR_DST_COLOR,
+		VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+		VK_BLEND_FACTOR_DST_ALPHA,
+		VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+		VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,
+		VK_BLEND_FACTOR_CONSTANT_COLOR,
+		VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR,
+		VK_BLEND_FACTOR_CONSTANT_ALPHA,
+		VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA
+	};
+
 
 	VulkanRootSignature::~VulkanRootSignature()
 	{
@@ -291,6 +310,12 @@ namespace RN
 		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
 		pipelineDescriptor.polygonOffsetUnits = mergedMaterialProperties.polygonOffsetUnits;
 		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
+		pipelineDescriptor.blendOperationRGB = mergedMaterialProperties.blendOperationRGB;
+        pipelineDescriptor.blendOperationAlpha = mergedMaterialProperties.blendOperationAlpha;
+        pipelineDescriptor.blendFactorSourceRGB = mergedMaterialProperties.blendFactorSourceRGB;
+        pipelineDescriptor.blendFactorDestinationRGB = mergedMaterialProperties.blendFactorDestinationRGB;
+        pipelineDescriptor.blendFactorSourceAlpha = mergedMaterialProperties.blendFactorSourceAlpha;
+        pipelineDescriptor.blendFactorDestinationAlpha = mergedMaterialProperties.blendFactorDestinationAlpha;
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(VulkanPipelineStateCollection *collection : _renderingStates)
@@ -320,7 +345,7 @@ namespace RN
 		{
 			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
 			{
-				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
+				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha)
 				{
 					return state;
 				}
@@ -387,6 +412,16 @@ namespace RN
 		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
 		blendAttachmentState.colorWriteMask = 0xf;
 		blendAttachmentState.blendEnable = VK_FALSE;
+		if(descriptor.blendOperationRGB != BlendOperation::None && descriptor.blendOperationAlpha != BlendOperation::None)
+		{
+			blendAttachmentState.blendEnable = VK_TRUE;
+			blendAttachmentState.colorBlendOp = static_cast<VkBlendOp>(descriptor.blendOperationRGB);
+			blendAttachmentState.alphaBlendOp = static_cast<VkBlendOp>(descriptor.blendOperationAlpha);
+			blendAttachmentState.srcColorBlendFactor = _blendFactorLookup[static_cast<uint32>(descriptor.blendFactorSourceRGB)];
+			blendAttachmentState.srcAlphaBlendFactor = _blendFactorLookup[static_cast<uint32>(descriptor.blendFactorSourceAlpha)];
+			blendAttachmentState.dstColorBlendFactor = _blendFactorLookup[static_cast<uint32>(descriptor.blendFactorDestinationRGB)];
+			blendAttachmentState.dstAlphaBlendFactor = _blendFactorLookup[static_cast<uint32>(descriptor.blendFactorDestinationAlpha)];
+		}
 
 		VkPipelineColorBlendStateCreateInfo colorBlendState = {};
 		colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

@@ -32,6 +32,12 @@ namespace RN
 		_properties.polygonOffsetFactor = 1.1f;
 		_properties.polygonOffsetUnits = 0.1f;
 		_properties.cullMode = CullMode::BackFace;
+		_properties.blendOperationRGB = BlendOperation::None;
+		_properties.blendOperationAlpha = BlendOperation::None;
+		_properties.blendFactorSourceRGB = BlendFactor::SourceAlpha;
+		_properties.blendFactorSourceAlpha = BlendFactor::SourceAlpha;
+		_properties.blendFactorDestinationRGB = BlendFactor::OneMinusSourceAlpha;
+		_properties.blendFactorDestinationAlpha = BlendFactor::OneMinusSourceAlpha;
 		
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
 		{
@@ -71,6 +77,12 @@ namespace RN
 		_properties.polygonOffsetFactor = other->_properties.polygonOffsetFactor;
 		_properties.polygonOffsetUnits = other->_properties.polygonOffsetUnits;
 		_properties.cullMode = other->_properties.cullMode;
+		_properties.blendOperationRGB = other->_properties.blendOperationRGB;
+		_properties.blendOperationAlpha = other->_properties.blendOperationAlpha;
+		_properties.blendFactorSourceRGB = other->_properties.blendFactorSourceRGB;
+		_properties.blendFactorSourceAlpha = other->_properties.blendFactorSourceAlpha;
+		_properties.blendFactorDestinationRGB = other->_properties.blendFactorDestinationRGB;
+		_properties.blendFactorDestinationAlpha = other->_properties.blendFactorDestinationAlpha;
 		
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
 		{
@@ -211,6 +223,25 @@ namespace RN
 		_properties.alphaToCoverageClamp.x = min;
 		_properties.alphaToCoverageClamp.y = max;
 	}
+	
+	void Material::SetBlendOperation(BlendOperation blendOperationRGB, BlendOperation blendOperationAlpha)
+	{
+		RN_ASSERT((blendOperationRGB != BlendOperation::None && blendOperationAlpha != BlendOperation::None) || blendOperationAlpha == blendOperationRGB, "Blend operation None can not be mixed with any of the others.");
+		_properties.blendOperationRGB = blendOperationRGB;
+		_properties.blendOperationAlpha = blendOperationAlpha;
+	}
+	
+	void Material::SetBlendFactorSource(BlendFactor blendFactorRGB, BlendFactor blendFactorAlpha)
+	{
+		_properties.blendFactorSourceRGB = blendFactorRGB;
+		_properties.blendFactorSourceAlpha = blendFactorAlpha;
+	}
+	
+	void Material::SetBlendFactorDestination(BlendFactor blendFactorRGB, BlendFactor blendFactorAlpha)
+	{
+		_properties.blendFactorDestinationRGB = blendFactorRGB;
+		_properties.blendFactorDestinationAlpha = blendFactorAlpha;
+	}
 
 	Shader *Material::GetFragmentShader(Shader::UsageHint type) const
 	{
@@ -257,6 +288,16 @@ namespace RN
 		{
 			properties.useAlphaToCoverage = overrideMaterial->_properties.useAlphaToCoverage;
 			properties.alphaToCoverageClamp = overrideMaterial->_properties.alphaToCoverageClamp;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::GroupBlending) && !(_override & Override::GroupBlending))
+		{
+			properties.blendOperationRGB = overrideMaterial->_properties.blendOperationRGB;
+			properties.blendOperationAlpha = overrideMaterial->_properties.blendOperationAlpha;
+			properties.blendFactorSourceRGB = overrideMaterial->_properties.blendFactorSourceRGB;
+			properties.blendFactorSourceAlpha = overrideMaterial->_properties.blendFactorSourceAlpha;
+			properties.blendFactorDestinationRGB = overrideMaterial->_properties.blendFactorDestinationRGB;
+			properties.blendFactorDestinationAlpha = overrideMaterial->_properties.blendFactorDestinationAlpha;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::TextureTileFactor) && !(_override & Override::TextureTileFactor))

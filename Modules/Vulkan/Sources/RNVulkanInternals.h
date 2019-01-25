@@ -161,10 +161,26 @@ namespace RN
 		std::vector<CameraSpecific> _cameraSpecifics;
 	};
 
-	struct VulkanLightDirectional
+	struct VulkanDirectionalLight
 	{
 		Vector3 direction;
 		float padding;
+		Color color;
+	};
+
+    struct VulkanPointLight
+	{
+		Vector3 position;
+		float range;
+		Color color;
+	};
+
+	struct VulkanSpotLight
+	{
+		Vector3 position;
+		float range;
+		Vector3 direction;
+		float angle;
 		Color color;
 	};
 
@@ -198,7 +214,9 @@ namespace RN
 		Color cameraAmbientColor;
 
 		std::vector<VulkanDrawable *> drawables;
-		std::vector<VulkanLightDirectional> directionalLights;
+		std::vector<VulkanDirectionalLight> directionalLights;
+		std::vector<VulkanPointLight> pointLights;
+		std::vector<VulkanSpotLight> spotLights;
 
 		std::vector<Matrix> directionalShadowMatrices;
 		VulkanTexture *directionalShadowDepthTexture;

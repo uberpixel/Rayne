@@ -105,17 +105,17 @@ namespace RN
 	struct MetalPointLight
 	{
 		Vector3 position;
-		Color color;
 		float range;
+		Color color;
 	};
 
 	struct MetalSpotLight
 	{
 		Vector3 position;
-		Vector3 direction;
-		Color color;
 		float range;
+		Vector3 direction;
 		float angle;
+		Color color;
 	};
 
 	struct MetalDirectionalLight

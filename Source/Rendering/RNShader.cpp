@@ -199,11 +199,6 @@ namespace RN
 			_identifier = DirectionalLights;
 			_type = PrimitiveType::Vector4;
 		}
-		else if (name->IsEqual(RNCSTR("lights_directional")) || name->IsEqual(RNCSTR("directionalLights")))
-		{
-			_identifier = DirectionalLights;
-			_type = PrimitiveType::Vector4;
-		}
 		else if (name->IsEqual(RNCSTR("shadows_directional_matrices")) || name->IsEqual(RNCSTR("directionalShadowMatrices")))
 		{
 			_identifier = DirectionalShadowMatrices;
@@ -218,6 +213,16 @@ namespace RN
 		{
 			_identifier = DirectionalShadowInfo;
 			_type = PrimitiveType::Vector2;
+		}
+		else if (name->IsEqual(RNCSTR("lights_point")) || name->IsEqual(RNCSTR("pointLights")))
+		{
+			_identifier = PointLights;
+			_type = PrimitiveType::Vector4;
+		}
+		else if (name->IsEqual(RNCSTR("lights_spot")) || name->IsEqual(RNCSTR("spotLights")))
+		{
+			_identifier = SpotLights;
+			_type = PrimitiveType::Vector4;
 		}
 	}
 
@@ -236,6 +241,12 @@ namespace RN
 
 			case DirectionalShadowMatrices:
 				return 64 * 4;	//TODO: use define or something for the 4
+				
+			case PointLights:
+				return (16 + 16) * 8;	//TODO: use define or something for the 5
+				
+			case SpotLights:
+				return (16 + 16 + 16) * 8;	//TODO: use define or something for the 5
 
 			default:
 				break;

@@ -30,6 +30,35 @@ namespace RN
 		GreaterOrEqual,
 		Greater
 	};
+	
+	enum class BlendFactor
+	{
+		Zero,
+		One,
+		SourceColor,
+		OneMinusSourceColor,
+		SourceAlpha,
+		OneMinusSourceAlpha,
+		DestinationColor,
+		OneMinusDestinationColor,
+		DestinationAlpha,
+		OneMinusDestinationAlpha,
+		SourceAlphaSaturated,
+		BlendColor,
+		OneMinusBlendColor,
+		BlendAlpha,
+		OneMinusBlendAlpha
+	};
+	
+	enum class BlendOperation
+	{
+		Add,
+		Subtract,
+		ReverseSubtract,
+		Min,
+		Max,
+		None
+	};
 
 	enum class CullMode
 	{
@@ -62,6 +91,13 @@ namespace RN
 			Vector2 alphaToCoverageClamp;
 			float textureTileFactor;
 			CullMode cullMode;
+			
+			BlendOperation blendOperationRGB;
+			BlendOperation blendOperationAlpha;
+			BlendFactor blendFactorSourceRGB;
+			BlendFactor blendFactorDestinationRGB;
+			BlendFactor blendFactorSourceAlpha;
+			BlendFactor blendFactorDestinationAlpha;
 		};
 
 		RN_OPTIONS(Override, uint32,
@@ -70,9 +106,10 @@ namespace RN
 			GroupPolygonOffset = (1 << 2),
 			GroupShaders = (1 << 3),
 			GroupAlphaToCoverage = (1 << 4),
-			TextureTileFactor = (1 << 5),
-			CullMode = (1 << 6),
-		   	ColorWriteMask = (1 << 7),
+			GroupBlending = (1 << 5),
+			TextureTileFactor = (1 << 6),
+			CullMode = (1 << 7),
+		   	ColorWriteMask = (1 << 8),
 
 			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
 		);
@@ -97,6 +134,10 @@ namespace RN
 
 		RNAPI void SetDepthWriteEnabled(bool depthWrite);
 		RNAPI void SetDepthMode(DepthMode mode);
+		
+		RNAPI void SetBlendOperation(BlendOperation blendOperationRGB, BlendOperation blendOperationAlpha);
+		RNAPI void SetBlendFactorSource(BlendFactor blendFactorRGB, BlendFactor blendFactorAlpha);
+		RNAPI void SetBlendFactorDestination(BlendFactor blendFactorRGB, BlendFactor blendFactorAlpha);
 
 		RNAPI void SetAmbientColor(const Color &color);
 		RNAPI void SetDiffuseColor(const Color &color);
