@@ -1050,7 +1050,7 @@ namespace RN
 					}
 					if(lightCount < 8)
 					{
-						std::memcpy(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, &renderPass.pointLights[0], (12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8 - lightCount));
 					}
 					break;
 				}
@@ -1064,7 +1064,7 @@ namespace RN
 					}
 					if(lightCount < 8)
                     {
-                    	std::memcpy(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, &renderPass.pointLights[0], (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
+                    	std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
                     }
 					break;
 				}
