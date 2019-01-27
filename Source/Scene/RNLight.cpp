@@ -24,6 +24,7 @@ namespace RN
 		_angle(45.0f),
 		_angleCos(0.797f),
 		_shadowTarget(nullptr),
+		_shadowDepthTexture(nullptr),
 		_suppressShadows(false)
 	{
 		SetBoundingSphere(Sphere(Vector3(), 1.0f));
@@ -37,7 +38,8 @@ namespace RN
 	
 	Light::Light(const Light *other) :
 		SceneNode(other),
-		_shadowTarget(nullptr)
+		_shadowTarget(nullptr),
+		_shadowDepthTexture(nullptr)
 	{
 		SetBoundingSphere(Sphere(Vector3(), 1.0f));
 		SetBoundingBox(AABB(Vector3(), 1.0f), false);
