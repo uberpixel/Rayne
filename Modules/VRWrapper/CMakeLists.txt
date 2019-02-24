@@ -11,14 +11,14 @@ set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
-        RNVRWindow.cpp
-        RNVRCamera.cpp)
+    RNVRWindow.cpp
+    RNVRCamera.cpp)
 
 set(HEADERS
 	RNVR.h
-        RNVRWindow.h
-        RNVRCamera.h
-        RNVRTrackingState.h)
+    RNVRWindow.h
+    RNVRCamera.h
+    RNVRTrackingState.h)
 
 set(DEFINES RN_BUILD_VR)
 

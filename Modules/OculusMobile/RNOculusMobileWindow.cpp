@@ -9,21 +9,29 @@
 #include "RNOculusMobileVulkanSwapChain.h"
 #include "RNOculusMobileWindow.h"
 
+#include <unistd.h>
+#include <android/log.h>
+
 #include <sys/prctl.h> // for prctl( PR_SET_NAME )
 #include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h> // for native window JNI
 #include <android_native_app_glue.h>
 
+#include "VrApi.h"
 #include "VrApi_Vulkan.h"
 #include "VrApi_Helpers.h"
 #include "VrApi_Input.h"
+#include "VrApi_SystemUtils.h"
 
 namespace RN
 {
 	RNDefineMeta(OculusMobileWindow, VRWindow)
 
-	OculusMobileWindow::OculusMobileWindow() : _swapChain(nullptr)
+	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0)
 	{
+		_swapChain[0] = nullptr;
+		_swapChain[1] = nullptr;
+
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 
@@ -44,6 +52,10 @@ namespace RN
 		{
 			return;
 		}
+
+		_mainThreadID = gettid();
+
+		RNInfo(GetHMDInfoDescription());
 	}
 
 	OculusMobileWindow::~OculusMobileWindow()
@@ -60,12 +72,82 @@ namespace RN
 	void OculusMobileWindow::StartRendering(const SwapChainDescriptor &descriptor)
 	{
 		ovrJava *java = static_cast<ovrJava*>(_java);
-		_swapChain = new OculusMobileVulkanSwapChain(descriptor, *java);
+
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+		ovrSystemCreateInfoVulkan systemInfo;
+		systemInfo.Instance = renderer->GetVulkanInstance()->GetInstance();
+		systemInfo.PhysicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
+		systemInfo.Device = renderer->GetVulkanDevice()->GetDevice();
+		ovrResult result = vrapi_CreateSystemVulkan(&systemInfo);
+		if(result != VRAPI_INITIALIZE_SUCCESS)
+		{
+			return;
+		}
+
+		//1:1 mapping for center according to docs would be 1536x1536, returned is 1024*1024
+		Vector2 eyeRenderSize;
+        eyeRenderSize.x = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH);
+        eyeRenderSize.y = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_HEIGHT);
+
+		_swapChain[0] = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
+		_swapChain[1] = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
+
+		_swapChain[1]->_presentEvent = [this](){
+			if(_session)
+			{
+				ovrLayerProjection2 gameLayer = vrapi_DefaultLayerProjection2();
+
+				gameLayer.HeadPose = _swapChain[0]->_hmdState.HeadPose;
+				for(int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++)
+				{
+					gameLayer.Textures[eye].ColorSwapChain = _swapChain[eye]->_colorSwapChain;
+					gameLayer.Textures[eye].SwapChainIndex = _swapChain[eye]->_semaphoreIndex;
+					gameLayer.Textures[eye].TexCoordsFromTanAngles = _swapChain[eye]->GetTanAngleMatrixForEye(eye);
+					gameLayer.Textures[eye].TextureRect.x = 0.0f;
+					gameLayer.Textures[eye].TextureRect.y = 0.0f;
+					gameLayer.Textures[eye].TextureRect.width = 1.0f;
+					gameLayer.Textures[eye].TextureRect.height = 1.0f;
+				}
+				gameLayer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
+
+				const ovrLayerHeader2 * layers[] = { &gameLayer.Header };
+
+				ovrSubmitFrameDescription2 frameDescription = {};
+				frameDescription.Flags = 0;
+				frameDescription.SwapInterval = 1;
+				frameDescription.FrameIndex = _actualFrameIndex;
+				frameDescription.DisplayTime = _predictedDisplayTime;
+				frameDescription.LayerCount = 1;
+				frameDescription.Layers = layers;
+
+				vrapi_SubmitFrame2(static_cast<ovrMobile*>(_session), &frameDescription);
+			}
+		};
+
+		NotificationManager::GetSharedInstance()->AddSubscriber(kRNAndroidWindowDidChange, [this](Notification *notification) {
+				if(notification->GetName()->IsEqual(kRNAndroidWindowDidChange))
+				{
+					UpdateVRMode();
+				}
+			}, this);
+
+		UpdateVRMode();
 	}
 
 	void OculusMobileWindow::StopRendering()
 	{
-		SafeRelease(_swapChain);
+		NotificationManager::GetSharedInstance()->RemoveSubscriber(kRNAndroidWindowDidChange, this);
+
+		if(_session)
+		{
+			vrapi_LeaveVrMode(static_cast<ovrMobile*>(_session));
+		}
+
+		SafeRelease(_swapChain[0]);
+		SafeRelease(_swapChain[1]);
+
+		vrapi_DestroySystemVulkan();
 	}
 
 	bool OculusMobileWindow::IsRendering() const
@@ -75,17 +157,23 @@ namespace RN
 
 	Vector2 OculusMobileWindow::GetSize() const
 	{
-		return _swapChain->GetSize();
+		return _swapChain[0]->GetSize();
 	}
 
 	Framebuffer *OculusMobileWindow::GetFramebuffer() const
 	{
-		return _swapChain->GetFramebuffer();
+		return _swapChain[0]->GetFramebuffer();
+	}
+
+	Framebuffer *OculusMobileWindow::GetFramebuffer(uint8 eye) const
+	{
+		RN_ASSERT(eye < 2, "Eye Index need to be 0 or 1");
+		return _swapChain[eye]->GetFramebuffer();
 	}
 
 	uint32 OculusMobileWindow::GetEyePadding() const
 	{
-		return OculusMobileVulkanSwapChain::kEyePadding;
+		return 0;
 	}
 
 	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
@@ -130,18 +218,27 @@ namespace RN
 
 	void OculusMobileWindow::Update(float delta, float near, float far)
 	{
-		if(!_swapChain->_session) return;
+		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
 
-		_swapChain->UpdatePredictedPose();
+		if(!_session) return;
 
-		float eyeDistance = vrapi_GetInterpupillaryDistance(&_swapChain->_hmdState);
+		_actualFrameIndex++;
+        _predictedDisplayTime = vrapi_GetPredictedDisplayTime(static_cast<ovrMobile*>(_session), _actualFrameIndex);
+
+		ovrTracking2 hmdState = vrapi_GetPredictedTracking2(static_cast<ovrMobile*>(_session), _predictedDisplayTime);
+		_swapChain[0]->_hmdState = hmdState;
+		_swapChain[1]->_hmdState = hmdState;
+
+		float eyeDistance = vrapi_GetInterpupillaryDistance(&hmdState);
 		_hmdTrackingState.eyeOffset[0] = Vector3(-eyeDistance/2.0f, 0.0f, 0.0f);
 		_hmdTrackingState.eyeOffset[1] = Vector3(eyeDistance/2.0f, 0.0f, 0.0f);
-		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(_swapChain->_hmdState.Eye[0].ProjectionMatrix);//ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[0], near, far, ovrProjection_None));
-		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(_swapChain->_hmdState.Eye[1].ProjectionMatrix);//ovrMatrix4f_Projection(_swapChain->_imageLayer.Fov[1], near, far, ovrProjection_None));
+		_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(hmdState.Eye[0].ProjectionMatrix);
+		_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(hmdState.Eye[1].ProjectionMatrix);
 
-		_hmdTrackingState.position = GetVectorForOVRVector(_swapChain->_hmdState.HeadPose.Pose.Position);
-		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(_swapChain->_hmdState.HeadPose.Pose.Orientation);
+		_hmdTrackingState.position = GetVectorForOVRVector(hmdState.HeadPose.Pose.Position);
+		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(hmdState.HeadPose.Pose.Orientation);
+
+		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 
 /*		_swapChain->SetProjection(_hmdTrackingState.eyeProjection[0].m[10], _hmdTrackingState.eyeProjection[0].m[14], _hmdTrackingState.eyeProjection[0].m[11]);
 
@@ -163,7 +260,7 @@ namespace RN
 		else
 		{
 			ovrSessionStatus status;
-			ovr_GetSessionStatus(_swapChain->_session, &status);
+			ovr_GetSessionStatus(_session, &status);
 			if(status.HasInputFocus)
 			{
 				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
@@ -175,7 +272,7 @@ namespace RN
 		}
 
 		ovrSessionStatus sessionStatus;
-		ovr_GetSessionStatus(_swapChain->_session, &sessionStatus);
+		ovr_GetSessionStatus(_session, &sessionStatus);
 
 		if(sessionStatus.ShouldQuit)
 		{
@@ -183,7 +280,7 @@ namespace RN
 		}
 		if(sessionStatus.ShouldRecenter)
 		{
-			ovr_RecenterTrackingOrigin(_swapChain->_session); // or ovr_ClearShouldRecenterFlag(_swapChain->_session) to ignore the request.
+			ovr_RecenterTrackingOrigin(_session); // or ovr_ClearShouldRecenterFlag(_session) to ignore the request.
 		}*/
 
 		_controllerTrackingState[0].active = false;
@@ -192,13 +289,13 @@ namespace RN
 		_controllerTrackingState[1].tracking = false;
 
 		ovrInputCapabilityHeader capsHeader;
-		if(vrapi_EnumerateInputDevices(_swapChain->_session, 0, &capsHeader) >= 0)
+		if(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), 0, &capsHeader) >= 0)
 		{
 			if(capsHeader.Type == ovrControllerType_TrackedRemote)
 			{
 				ovrInputTrackedRemoteCapabilities remoteCaps;
 				remoteCaps.Header = capsHeader;
-				if(vrapi_GetInputDeviceCapabilities(_swapChain->_session, &remoteCaps.Header) >= 0)
+				if(vrapi_GetInputDeviceCapabilities(static_cast<ovrMobile*>(_session), &remoteCaps.Header) >= 0)
 				{
 					int handIndex = (remoteCaps.ControllerCapabilities & ovrControllerCaps_RightHand)?1:0;
 
@@ -208,7 +305,7 @@ namespace RN
 
 					ovrInputStateTrackedRemote remoteState;
 					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
-					if(vrapi_GetCurrentInputState(_swapChain->_session, remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
+					if(vrapi_GetCurrentInputState(static_cast<ovrMobile*>(_session), remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
 					{
 						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
 						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
@@ -227,7 +324,7 @@ namespace RN
 					}
 
 					ovrTracking trackingState;
-					if(vrapi_GetInputTrackingState(_swapChain->_session, remoteCaps.Header.DeviceID, _swapChain->_predictedDisplayTime, &trackingState) >= 0)
+					if(vrapi_GetInputTrackingState(static_cast<ovrMobile*>(_session), remoteCaps.Header.DeviceID, _predictedDisplayTime, &trackingState) >= 0)
 					{
 						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
 						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
@@ -236,6 +333,83 @@ namespace RN
 				}
 			}
 		}
+	}
+
+	void OculusMobileWindow::UpdateVRMode()
+	{
+		RNDebug(RNCSTR("UpdateVRMode called"));
+
+		if(!_nativeWindow)
+		{
+			if(!_session)
+			{
+				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+				_nativeWindow = app->window;
+
+				VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+				ovrModeParmsVulkan params = vrapi_DefaultModeParmsVulkan(static_cast<ovrJava*>(_java), (unsigned long long)renderer->GetWorkQueue());
+				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW | VRAPI_MODE_FLAG_FRONT_BUFFER_SRGB;
+				params.ModeParms.WindowSurface = (size_t)_nativeWindow;
+				_session = vrapi_EnterVrMode((ovrModeParms *)&params);
+
+				// If entering VR mode failed then the ANativeWindow was not valid.
+				if(!_session)
+				{
+					RNDebug(RNCSTR("Invalid ANativeWindow!"));
+					_nativeWindow = nullptr;
+				}
+
+				// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
+				if(_session)
+				{
+					RNDebug(RNCSTR("UpdateVRMode new session"));
+
+					ovrMobile *session = static_cast<ovrMobile*>(_session);
+					vrapi_SetDisplayRefreshRate(session, 72.0f);
+					vrapi_SetRemoteEmulation(session, false);
+					vrapi_SetClockLevels(session, 4, 4);
+					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
+//    				vrapi_SetPerfThread(app->Ovr, VRAPI_PERF_THREAD_TYPE_RENDERER, app->RenderThreadTid);
+
+					vrapi_SetExtraLatencyMode(session, VRAPI_EXTRA_LATENCY_MODE_ON);
+
+					int hasFoveation = 0;
+					vrapi_GetPropertyInt(static_cast<ovrJava*>(_java), (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
+					if(hasFoveation == VRAPI_TRUE)
+					{
+						RNDebug(RNCSTR("Enable Foveated Rendering"));
+						vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, 2);
+					}
+				}
+			}
+		}
+		else
+		{
+			_nativeWindow = nullptr;
+			if(_session)
+			{
+				vrapi_LeaveVrMode(static_cast<ovrMobile*>(_session));
+				_session = nullptr;
+
+				RNDebug(RNCSTR("UpdateVRMode session lost"));
+			}
+		}
+	}
+
+	const String *OculusMobileWindow::GetHMDInfoDescription() const
+	{
+		return RNCSTR("Oculus Go (maybe...)");
+
+/*		if(!_session)
+			return RNCSTR("No HMD found.");
+
+		String *description = new String("Using HMD: ");
+		description->Append(_hmdDescription.ProductName);
+		description->Append(", Vendor: ");
+		description->Append(_hmdDescription.Manufacturer);
+		description->Append(", Firmware: %i.%i", _hmdDescription.FirmwareMajor, _hmdDescription.FirmwareMinor);
+
+		return description;*/
 	}
 
 	const VRHMDTrackingState &OculusMobileWindow::GetHMDTrackingState() const
@@ -259,7 +433,7 @@ namespace RN
 		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
 		buffer.SamplesCount = haptics.sampleCount;
 		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_swapChain->_session, controllerID?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);*/
+		ovr_SubmitControllerVibration(_session, controllerID?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);*/
 	}
 
 	const String *OculusMobileWindow::GetPreferredAudioOutputDeviceID() const
@@ -279,7 +453,7 @@ namespace RN
 
 	const Window::SwapChainDescriptor &OculusMobileWindow::GetSwapChainDescriptor() const
 	{
-		return _swapChain->GetSwapChainDescriptor();
+		return _swapChain[0]->GetSwapChainDescriptor();
 	}
 
 	Array *OculusMobileWindow::GetRequiredVulkanInstanceExtensions() const

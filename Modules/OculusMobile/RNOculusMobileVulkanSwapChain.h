@@ -34,30 +34,15 @@ namespace RN
 		OVRAPI VkImage GetVulkanColorBuffer(int i) const final;
 		OVRAPI VkImage GetVulkanDepthBuffer(int i) const final;
 
-		OVRAPI void UpdatePredictedPose();
-
 	private:
-		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, ovrJava java);
-		const String *GetHMDInfoDescription() const;
-		OVRAPI void SetProjection(float m22, float m23, float m32);
+		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, const Vector2 &size);
 		ovrMatrix4f GetTanAngleMatrixForEye(uint8 eye);
 
-		void CreateSharedVulkanImage();
-
-		void UpdateVRMode();
-
-		int _mainThreadID;
-		ovrJava _java;
-		ovrTextureSwapChain *_colorSwapChain;
-		ovrMobile *_session;
-		uint32 _actualFrameIndex;
-		double _predictedDisplayTime;
 		ovrTracking2 _hmdState;
-		Vector2 _eyeRenderSize;
 
-		ANativeWindow *_nativeWindow;
+		ovrTextureSwapChain *_colorSwapChain;
 
-		static const uint32 kEyePadding;
+		std::function<void()> _presentEvent;
 
 		RNDeclareMetaAPI(OculusMobileVulkanSwapChain, OVRAPI)
 	};

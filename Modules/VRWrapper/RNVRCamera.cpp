@@ -96,7 +96,12 @@ namespace RN
         _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
 		_eye[0]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
+
+#if RN_PLATFORM_ANDROID
+		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
+#else
 		_eye[1]->GetRenderPass()->SetFlags(0);
+#endif
 		
 		CreatePostprocessingPipeline();
 		
@@ -152,6 +157,7 @@ namespace RN
 			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
 		}
 
+		//TODO: Depth buffer handling for Android with 2 resolve buffers
 		//TODO: Maybe instead of checking depthStencilFormat, check for oculus window?
 		if(_msaaSampleCount <= 1 && (!_window || _window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
 		{
@@ -162,33 +168,43 @@ namespace RN
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
+
+#if !RN_PLATFORM_ANDROID
 			_eye[i]->GetRenderPass()->SetFrame(Rect(i * (windowSize.x + eyePadding) / 2, 0, (windowSize.x - eyePadding) / 2, windowSize.y));
+#endif
 
 #if RN_PLATFORM_ANDROID
 			if(_debugWindow)
 				_eye[i]->GetRenderPass()->SetFrame(Rect(0.0f, i * (windowSize.y + eyePadding) / 2, windowSize.x, (windowSize.y - eyePadding) / 2));
+			else
+				resolvedFramebuffer = _window->GetFramebuffer(i);
 #endif
 
 			if(_msaaSampleCount > 1)
 			{
 				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
+
+#if RN_PLATFORM_ANDROID
+                	resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
+                    resolvePass->SetFramebuffer(resolvedFramebuffer);
+                    _eye[i]->GetRenderPass()->AddRenderPass(resolvePass);
+#endif
 			}
 			else
 			{
 				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
+
 			}
 		}
 
+#if !RN_PLATFORM_ANDROID
 		if(_msaaSampleCount > 1)
 		{
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
 			_eye[1]->GetRenderPass()->AddRenderPass(resolvePass);
-
-#if RN_PLATFORM_ANDROID
-			_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
-#endif
 		}
+#endif
 
 		if(_previewRenderPass)
 		{

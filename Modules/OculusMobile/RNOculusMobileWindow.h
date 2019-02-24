@@ -12,6 +12,8 @@
 #include "RNOculusMobile.h"
 #include "RNVRWindow.h"
 
+
+
 namespace RN
 {
 	class OculusMobileVulkanSwapChain;
@@ -27,6 +29,7 @@ namespace RN
 
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
+		OVRAPI Framebuffer *GetFramebuffer(uint8 eye) const final;
 		OVRAPI uint32 GetEyePadding() const final;
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
@@ -48,8 +51,18 @@ namespace RN
         OVRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;
 
 	private:
+		const String *GetHMDInfoDescription() const;
+		void UpdateVRMode();
+
+		int _mainThreadID;
 		void *_java;
-		OculusMobileVulkanSwapChain *_swapChain;
+		void *_session;
+		void *_nativeWindow;
+
+		OculusMobileVulkanSwapChain *_swapChain[2];
+		uint32 _actualFrameIndex;
+        double _predictedDisplayTime;
+
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
 		VRControllerTrackingState _trackerTrackingState;
