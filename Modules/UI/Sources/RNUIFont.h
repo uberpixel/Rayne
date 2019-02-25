@@ -24,7 +24,7 @@ namespace RN
 			friend class Label;
 			
 			UIAPI ~Font();
-			float GetSize() const { return _size; };
+			float GetSize() const;
 			
 			UIAPI static Font *WithFamilyName(const String *familyName, float size);
 			
@@ -32,7 +32,6 @@ namespace RN
 			UIAPI Font();
 			
 			PIMPL<FontInternals> _internals;
-			float _size;
 			
 			RNDeclareMetaAPI(Font, UIAPI)
 		};

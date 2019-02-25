@@ -23,20 +23,24 @@ namespace RN
 		Font::~Font()
 		{
 			//delete _internals->shaper;
-			_internals->typeface = nullptr;
 		}
 		
 		Font *Font::WithFamilyName(const String *familyName, float size)
 		{
 			Font *font = new Font();
 			
-			font->_size = size;
-			
 			sk_sp<SkFontMgr> mgr(SkFontMgr::RefDefault());
-			font->_internals->typeface = SkTypeface::MakeFromName(familyName->GetUTF8String(), SkFontStyle());
+			sk_sp<SkTypeface> typeface = SkTypeface::MakeFromName(familyName->GetUTF8String(), SkFontStyle());
+			font->_internals->font.setTypeface(typeface);
+			font->_internals->font.setSize(size);
 			//font->_internals->shaper = new SkShaper(font->_internals->typeface);
 			
 			return font->Autorelease();
+		}
+
+		float Font::GetSize() const
+		{
+			return _internals->font.getSize();
 		}
 	}
 }

@@ -30,14 +30,6 @@ protected:
     void onDrawPath(const SkPath& path, const SkPaint& paint) override = 0;
     void onDrawRegion(const SkRegion& region, const SkPaint& paint) override = 0;
 
-    void onDrawText(const void* text, size_t byteLength, SkScalar x, SkScalar y,
-                    const SkPaint& paint) override = 0;
-    void onDrawPosText(const void* text, size_t byteLength, const SkPoint pos[],
-                       const SkPaint& paint) override = 0;
-    void onDrawPosTextH(const void* text, size_t byteLength, const SkScalar xpos[],
-                        SkScalar constY, const SkPaint& paint) override = 0;
-    void onDrawTextRSXform(const void* text, size_t byteLength, const SkRSXform xform[],
-                           const SkRect* cullRect, const SkPaint& paint) override = 0;
     void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
                         const SkPaint& paint) override = 0;
 
@@ -61,11 +53,15 @@ protected:
 #ifdef SK_BUILD_FOR_ANDROID_FRAMEWORK
     // This is under active development for Chrome and not used in Android. Hold off on adding
     // implementations in Android's SkCanvas subclasses until this stabilizes.
-    void onDrawImageSet(const SkCanvas::ImageSetEntry[], int count, float alpha, SkFilterQuality,
+    void onDrawImageSet(const SkCanvas::ImageSetEntry[], int count, SkFilterQuality,
                         SkBlendMode) override {};
+    void onDrawEdgeAARect(const SkRect& rect, SkCanvas::QuadAAFlags edgeAA, SkColor color,
+                          SkBlendMode mode) override {};
 #else
-    void onDrawImageSet(const SkCanvas::ImageSetEntry[], int count, float alpha, SkFilterQuality,
+    void onDrawImageSet(const SkCanvas::ImageSetEntry[], int count, SkFilterQuality,
                         SkBlendMode) override = 0;
+    void onDrawEdgeAARect(const SkRect& rect, SkCanvas::QuadAAFlags edgeAA, SkColor color,
+                          SkBlendMode mode) override = 0;
 #endif
 
     void onDrawBitmap(const SkBitmap& bitmap, SkScalar dx, SkScalar dy,

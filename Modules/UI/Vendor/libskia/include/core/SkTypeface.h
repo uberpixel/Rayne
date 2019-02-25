@@ -176,7 +176,7 @@ public:
      */
     static sk_sp<SkTypeface> MakeDeserialize(SkStream*);
 
-    enum Encoding {
+    enum Encoding : uint8_t {
         kUTF8_Encoding,
         kUTF16_Encoding,
         kUTF32_Encoding
@@ -434,7 +434,10 @@ private:
     };
     static SkFontStyle FromOldStyle(Style oldStyle);
     static SkTypeface* GetDefaultTypeface(Style style = SkTypeface::kNormal);
+
+    friend class SkFontPriv;       // GetDefaultTypeface
     friend class SkPaintPriv;      // GetDefaultTypeface
+    friend class SkFont;           // getGlyphToUnicodeMap
 
 private:
     SkFontID            fUniqueID;

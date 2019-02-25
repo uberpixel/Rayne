@@ -22,6 +22,19 @@ namespace RN
 			_hasAlpha(alpha),
 			_hasMipmaps(mipmaps)
 		{
+/*#if RN_PLATFORM_ANDROID
+			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+			sk_sp<GrVkBackendContext> vkContext = new GrVkBackendContext;
+            vkBackendContext.fInstance = renderer->GetVulkanInstance()->GetInstance();
+            vkBackendContext.fPhysicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
+            vkBackendContext.fDevice = renderer->GetVulkanDevice()->GetDevice();
+			vkBackendContext.fQueue = renderer->GetWorkQueue();
+			vkBackendContext.fGraphicsQueueIndex = 0;
+
+			vkBackendContext.fInterface.reset(GrVkCreateInterface(instance, vkPhysDevice, extensionFlags);
+#else*/
+
 			SkImageInfo info = SkImageInfo::MakeN32(static_cast<int>(width), static_cast<int>(height), alpha ? kPremul_SkAlphaType : kOpaque_SkAlphaType);
 			_rowBytes = info.minRowBytes();
 
@@ -36,7 +49,7 @@ namespace RN
 			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888SRGB : Texture::Format::RGB888SRGB;
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, _hasMipmaps);
 			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
-
+//#endif
 		}
 		Context::~Context()
 		{
@@ -88,12 +101,6 @@ namespace RN
 		void Context::SetStrokeColor(const Color &color)
 		{
 			_internals->strokeStyle.setColor(MakeColor(color));
-		}
-		
-		void Context::SetFont(Font *font)
-		{
-			_internals->fillStyle.setTypeface(font->_internals->typeface);
-			_internals->fillStyle.setTextSize(font->GetSize());
 		}
 
 		void Context::SetStrokeWidth(float strokeWidth)
@@ -170,16 +177,15 @@ namespace RN
 			canvas->drawImageRect(image->_internals->image, MakeRect(rect), &_internals->fillStyle);
 		}
 		
-		void Context::DrawTextRect(const String *text, const Rect &rect)
+		void Context::DrawTextRect(const String *text, const Font *font, const Rect &rect)
 		{
 			SkCanvas *canvas = _internals->surface->getCanvas();
-			_internals->fillStyle.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			
-			SkPaint::FontMetrics fm;
-			_internals->fillStyle.getFontMetrics(&fm);
+			SkFontMetrics fm;
+			font->_internals->font.getMetrics(&fm);
 			
 			Data *data = text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x, rect.y - fm.fTop - fm.fDescent, _internals->fillStyle);
+			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, rect.x, rect.y - fm.fTop - fm.fDescent, font->_internals->font, _internals->fillStyle);
 		}
 		
 		void Context::DrawLabel(const Label *label)
@@ -190,8 +196,8 @@ namespace RN
 			//canvas->drawTextBlob(label->_internals->textBlob, rect.x, rect.y, label->_internals->style);
 			
 			
-			SkPaint::FontMetrics fm;
-			label->_internals->style.getFontMetrics(&fm);
+			SkFontMetrics fm;
+			label->_font->_internals->font.getMetrics(&fm);
 			
 			float alignmentXOffset = 0.0f;
 			if(label->_alignment == UI::Label::Alignment::Left)
@@ -208,7 +214,7 @@ namespace RN
 			}
 			
 			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawText(static_cast<char*>(data->GetBytes()), data->GetLength(), rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_internals->style);
+			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_font->_internals->font, label->_internals->style);
 		}
 
 

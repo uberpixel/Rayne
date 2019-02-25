@@ -17,6 +17,7 @@
 #include <include/core/SKImage.h>
 #include <include/core/SKCanvas.h>
 #include <include/core/SKFontMgr.h>
+#include <include/core/SKFontMetrics.h>
 #include <include/core/SKTypeface.h>
 #include <include/core/SkTextBlob.h>
 //#include <include/modules/SkShaper.h>
@@ -47,7 +48,7 @@ namespace RN
 		
 		struct FontInternals
 		{
-			sk_sp<SkTypeface> typeface;
+			SkFont font;
 			//SkShaper *shaper;
 		};
 		

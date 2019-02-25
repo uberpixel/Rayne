@@ -63,7 +63,7 @@ public:
         kCW_Direction travel clockwise; the same added with kCCW_Direction
         travel counterclockwise.
     */
-    enum Direction {
+    enum Direction : int {
         kCW_Direction,  //!< contour travels clockwise
         kCCW_Direction, //!< contour travels counterclockwise
     };
@@ -160,13 +160,6 @@ public:
     */
     bool interpolate(const SkPath& ending, SkScalar weight, SkPath* out) const;
 
-#ifdef SK_BUILD_FOR_ANDROID_FRAMEWORK
-    /** To be deprecated soon.
-        Only valid for Android framework.
-    */
-    bool unique() const { return fPathRef->unique(); }
-#endif
-
     /** \enum SkPath::FillType
         FillType selects the rule used to fill SkPath. SkPath set to kWinding_FillType
         fills if the sum of contour edges is not zero, where clockwise edges add one, and
@@ -240,7 +233,8 @@ public:
         @return  computed or stored SkPath::Convexity
     */
     Convexity getConvexity() const {
-        for (Convexity convexity = fConvexity.load(); kUnknown_Convexity != convexity; ) {
+        Convexity convexity = this->getConvexityOrUnknown();
+        if (convexity != kUnknown_Convexity) {
             return convexity;
         }
         return this->internalGetConvexity();
@@ -251,7 +245,7 @@ public:
 
         @return  stored SkPath::Convexity
     */
-    Convexity getConvexityOrUnknown() const { return (Convexity)fConvexity; }
+    Convexity getConvexityOrUnknown() const { return fConvexity.load(std::memory_order_relaxed); }
 
     /** Stores convexity so that it is later returned by getConvexity() or getConvexityOrUnknown().
         convexity may differ from getConvexity(), although setting an incorrect value may
@@ -1676,7 +1670,6 @@ public:
     */
     uint32_t getGenerationID() const;
 
-#ifdef SK_SUPPORT_DIRECT_PATHREF_VALIDATION
     /** Returns if SkPath data is consistent. Corrupt SkPath data is detected if
         internal values are out of range or internal storage does not match
         array dimensions.
@@ -1684,19 +1677,15 @@ public:
         @return  true if SkPath data is consistent
     */
     bool isValid() const { return this->isValidImpl() && fPathRef->isValid(); }
-#else
-    bool isValid() const { return this->isValidImpl(); }
-    bool pathRefIsValid() const { return fPathRef->isValid(); }
-#endif
 
 private:
-    sk_sp<SkPathRef>                                     fPathRef;
-    int                                                  fLastMoveToIndex;
-    mutable SkAtomic<Convexity, sk_memory_order_relaxed> fConvexity;       // SkPath::Convexity
-   mutable SkAtomic<uint8_t, sk_memory_order_relaxed> fFirstDirection; // SkPathPriv::FirstDirection
-    uint8_t                                              fFillType    : 2;
-    uint8_t                                              fIsVolatile  : 1;
-    uint8_t                                              fIsBadForDAA : 1;
+    sk_sp<SkPathRef>               fPathRef;
+    int                            fLastMoveToIndex;
+    mutable std::atomic<Convexity> fConvexity;
+    mutable std::atomic<uint8_t>   fFirstDirection; // really an SkPathPriv::FirstDirection
+    uint8_t                        fFillType    : 2;
+    uint8_t                        fIsVolatile  : 1;
+    uint8_t                        fIsBadForDAA : 1;
 
     /** Resets all fields other than fPathRef to their initial 'empty' values.
      *  Assumes the caller has already emptied fPathRef.
@@ -1767,6 +1756,12 @@ private:
     }
 
     void setPt(int index, SkScalar x, SkScalar y);
+
+    // Bottlenecks for working with fConvexity and fFirstDirection.
+    // Notice the setters are const... these are mutable atomic fields.
+    void    setConvexity(Convexity) const;
+    void    setFirstDirection(uint8_t) const;
+    uint8_t getFirstDirection() const;
 
     friend class SkAutoPathBoundsUpdate;
     friend class SkAutoDisableOvalCheck;

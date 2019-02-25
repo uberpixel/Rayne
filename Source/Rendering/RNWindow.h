@@ -35,7 +35,7 @@ namespace RN
 		RNAPI ~Window();
 
 		RNAPI virtual void SetTitle(const String *title) = 0;
-		RNAPI virtual Screen *GetScreen() = 0;
+		RNAPI virtual Screen *GetScreen() = 0; 
 
 		RNAPI virtual void Show() = 0;
 		RNAPI virtual void Hide() = 0;

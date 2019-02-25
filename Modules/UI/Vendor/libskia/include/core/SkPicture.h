@@ -148,7 +148,7 @@ public:
 
         @return  identifier for SkPicture
     */
-    uint32_t uniqueID() const;
+    uint32_t uniqueID() const { return fUniqueID; }
 
     /** Returns storage containing SkData describing SkPicture, using optional custom
         encoders.
@@ -263,10 +263,14 @@ private:
     // V62: Don't negate size of custom encoded images (don't write origin x,y either)
     // V63: Store image bounds (including origin) instead of just width/height to support subsets
     // V64: Remove occluder feature from blur maskFilter
+    // V65: Float4 paint color
+    // V66: Add saveBehind
+    // V67: Blobs serialize fonts instead of paints
+    // V68: Paint doesn't serialize font-related stuff
 
     // Only SKPs within the min/current picture version range (inclusive) can be read.
     static const uint32_t     MIN_PICTURE_VERSION = 56;     // august 2017
-    static const uint32_t CURRENT_PICTURE_VERSION = 65;
+    static const uint32_t CURRENT_PICTURE_VERSION = 68;
 
     static_assert(MIN_PICTURE_VERSION <= 62, "Remove kFontAxes_bad from SkFontDescriptor.cpp");
 
@@ -278,7 +282,7 @@ private:
     struct SkPictInfo createHeader() const;
     class SkPictureData* backport() const;
 
-    mutable uint32_t fUniqueID;
+    uint32_t fUniqueID;
 };
 
 #endif

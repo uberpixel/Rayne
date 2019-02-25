@@ -19,12 +19,10 @@ namespace RN
 
 		Label::Label() : _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
 		{
-			_internals->style.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			_internals->style.setAntiAlias(true);
 		}
 		Label::Label(const Rect &frame) : View(frame), _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
 		{
-			_internals->style.setTextEncoding(SkPaint::kUTF8_TextEncoding);
 			_internals->style.setAntiAlias(true);
 		}
 		Label::~Label()
@@ -41,7 +39,7 @@ namespace RN
 			//_internals->textBlob = _internals->builder.make();
 			
 			SkRect textBounds; //= _internals->textBlob->bounds();
-			_internals->style.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), &textBounds);
+			_font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, &textBounds);
 			_contentSize = Vector2(textBounds.width(), textBounds.height());
 		}
 		
@@ -65,9 +63,6 @@ namespace RN
 			SafeRelease(_font);
 			_font = font;
 			SafeRetain(_font);
-			
-			_internals->style.setTypeface(_font->_internals->typeface);
-			_internals->style.setTextSize(_font->GetSize());
 			
 			SetNeedsLayout();
 		}

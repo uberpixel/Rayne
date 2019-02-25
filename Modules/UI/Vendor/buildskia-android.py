@@ -23,7 +23,8 @@ args = [
 	'skia_use_lua=false',
 	'skia_use_piex=false',
 	'skia_use_zlib=false',
-#	'skia_enable_gpu=false',
+	'skia_enable_gpu=false',
+	'skia_use_vulkan=false',
 	'skia_enable_tools=false',
 	'skia_enable_pdf=false'
 ]

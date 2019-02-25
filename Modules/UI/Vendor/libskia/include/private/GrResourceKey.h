@@ -50,20 +50,22 @@ protected:
     }
 
     bool operator==(const GrResourceKey& that) const {
-        return this->hash() == that.hash() &&
-                0 == memcmp(&fKey[kHash_MetaDataIdx + 1],
-                            &that.fKey[kHash_MetaDataIdx + 1],
-                            this->internalSize() - sizeof(uint32_t));
+        return this->hash() == that.hash() && 0 == memcmp(&fKey[kHash_MetaDataIdx + 1],
+                                                          &that.fKey[kHash_MetaDataIdx + 1],
+                                                          this->internalSize() - sizeof(uint32_t));
     }
 
     GrResourceKey& operator=(const GrResourceKey& that) {
-        SkASSERT(that.isValid());
         if (this != &that) {
-            size_t bytes = that.size();
-            SkASSERT(SkIsAlign4(bytes));
-            fKey.reset(SkToInt(bytes / sizeof(uint32_t)));
-            memcpy(fKey.get(), that.fKey.get(), bytes);
-            this->validate();
+            if (!that.isValid()) {
+                this->reset();
+            } else {
+                size_t bytes = that.size();
+                SkASSERT(SkIsAlign4(bytes));
+                fKey.reset(SkToInt(bytes / sizeof(uint32_t)));
+                memcpy(fKey.get(), that.fKey.get(), bytes);
+                this->validate();
+            }
         }
         return *this;
     }
@@ -90,7 +92,7 @@ protected:
             SkDebugf("domain: %d ", this->domain());
             SkDebugf("size: %dB ", this->internalSize());
             for (size_t i = 0; i < this->internalSize(); ++i) {
-                SkDebugf("%d ", fKey[i]);
+                SkDebugf("%d ", fKey[SkTo<int>(i)]);
             }
             SkDebugf("\n");
         }
@@ -144,18 +146,17 @@ private:
     };
     static const uint32_t kMetaDataCnt = kLastMetaDataIdx + 1;
 
-    size_t internalSize() const {
-        return fKey[kDomainAndSize_MetaDataIdx] >> 16;
-    }
+    size_t internalSize() const { return fKey[kDomainAndSize_MetaDataIdx] >> 16; }
 
     void validate() const {
+        SkASSERT(this->isValid());
         SkASSERT(fKey[kHash_MetaDataIdx] ==
                  GrResourceKeyHash(&fKey[kHash_MetaDataIdx] + 1,
                                    this->internalSize() - sizeof(uint32_t)));
         SkASSERT(SkIsAlign4(this->internalSize()));
     }
 
-    friend class TestResource; // For unit test to access kMetaDataCnt.
+    friend class TestResource;  // For unit test to access kMetaDataCnt.
 
     // bmp textures require 5 uint32_t values.
     SkAutoSTMalloc<kMetaDataCnt + 5, uint32_t> fKey;
@@ -210,15 +211,13 @@ public:
         return *this;
     }
 
-    bool operator==(const GrScratchKey& that) const {
-        return this->INHERITED::operator==(that);
-    }
+    bool operator==(const GrScratchKey& that) const { return this->INHERITED::operator==(that); }
     bool operator!=(const GrScratchKey& that) const { return !(*this == that); }
 
     class Builder : public INHERITED::Builder {
     public:
         Builder(GrScratchKey* key, ResourceType type, int data32Count)
-            : INHERITED::Builder(key, type, data32Count) {}
+                : INHERITED::Builder(key, type, data32Count) {}
     };
 };
 
@@ -262,17 +261,11 @@ public:
         return *this;
     }
 
-    bool operator==(const GrUniqueKey& that) const {
-        return this->INHERITED::operator==(that);
-    }
+    bool operator==(const GrUniqueKey& that) const { return this->INHERITED::operator==(that); }
     bool operator!=(const GrUniqueKey& that) const { return !(*this == that); }
 
-    void setCustomData(sk_sp<SkData> data) {
-        fData = std::move(data);
-    }
-    SkData* getCustomData() const {
-        return fData.get();
-    }
+    void setCustomData(sk_sp<SkData> data) { fData = std::move(data); }
+    SkData* getCustomData() const { return fData.get(); }
 
     const char* tag() const { return fTag; }
 
@@ -325,12 +318,12 @@ private:
 #define GR_DECLARE_STATIC_UNIQUE_KEY(name) static SkOnce name##_once
 
 /** Place inside function where the key is used. */
-#define GR_DEFINE_STATIC_UNIQUE_KEY(name)                                                       \
-    static SkAlignedSTStorage<1, GrUniqueKey> name##_storage;                                   \
-    name##_once(gr_init_static_unique_key_once, &name##_storage);                               \
-    static const GrUniqueKey& name = *reinterpret_cast<GrUniqueKey*>(name##_storage.get());
+#define GR_DEFINE_STATIC_UNIQUE_KEY(name)                         \
+    static SkAlignedSTStorage<1, GrUniqueKey> name##_storage;     \
+    name##_once(gr_init_static_unique_key_once, &name##_storage); \
+    static const GrUniqueKey& name = *reinterpret_cast<GrUniqueKey*>(name##_storage.get())
 
-static inline void gr_init_static_unique_key_once(SkAlignedSTStorage<1,GrUniqueKey>* keyStorage) {
+static inline void gr_init_static_unique_key_once(SkAlignedSTStorage<1, GrUniqueKey>* keyStorage) {
     GrUniqueKey* key = new (keyStorage->get()) GrUniqueKey;
     GrUniqueKey::Builder builder(key, GrUniqueKey::GenerateDomain(), 0);
 }
@@ -338,6 +331,7 @@ static inline void gr_init_static_unique_key_once(SkAlignedSTStorage<1,GrUniqueK
 // The cache listens for these messages to purge junk resources proactively.
 class GrUniqueKeyInvalidatedMessage {
 public:
+    GrUniqueKeyInvalidatedMessage() = default;
     GrUniqueKeyInvalidatedMessage(const GrUniqueKey& key, uint32_t contextUniqueID)
             : fKey(key), fContextID(contextUniqueID) {
         SkASSERT(SK_InvalidUniqueID != contextUniqueID);
@@ -352,11 +346,11 @@ public:
 
 private:
     GrUniqueKey fKey;
-    uint32_t fContextID;
+    uint32_t fContextID = SK_InvalidUniqueID;
 };
 
-static inline bool SkShouldPostMessageToBus(
-        const GrUniqueKeyInvalidatedMessage& msg, uint32_t msgBusUniqueID) {
+static inline bool SkShouldPostMessageToBus(const GrUniqueKeyInvalidatedMessage& msg,
+                                            uint32_t msgBusUniqueID) {
     return msg.contextID() == msgBusUniqueID;
 }
 

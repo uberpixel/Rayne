@@ -142,6 +142,9 @@ struct SK_API SkIRect {
     */
     int32_t y() const { return fTop; }
 
+    // Experimental
+    SkIPoint topLeft() const { return {fLeft, fTop}; }
+
     /** Returns span on the x-axis. This does not check if SkIRect is sorted, or if
         result fits in 32-bit signed integer; result may be negative.
 
@@ -934,7 +937,8 @@ struct SK_API SkRect {
 
     /** Returns four points in quad that enclose SkRect ordered as: top-left, top-right,
         bottom-right, bottom-left.
-        Consider adding param to control whether quad is clockwise or counterclockwise.
+
+        TODO: Consider adding parameter to control whether quad is clockwise or counterclockwise.
 
         @param quad  storage for corners of SkRect
     */

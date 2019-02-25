@@ -81,7 +81,7 @@ namespace RN
 			UIAPI void Clear(const Color &color);
 
 			UIAPI void DrawImage(const Image *image, const Rect &rect);
-			UIAPI void DrawTextRect(const String *text, const Rect &rect);
+			UIAPI void DrawTextRect(const String *text, const Font *font, const Rect &rect);
 			UIAPI void DrawLabel(const Label *label);
 
 			UIAPI void FillPath(const Path *path);
@@ -97,8 +97,6 @@ namespace RN
 
 			UIAPI void SetFillColor(const Color &color);
 			UIAPI void SetStrokeColor(const Color &color);
-
-			UIAPI void SetFont(Font *font);
 			
 			UIAPI void SetStrokeWidth(float strokeWidth);
 			UIAPI void SetStrokeMiter(float strokeWidth);
