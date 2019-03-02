@@ -857,7 +857,7 @@ namespace RN
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + constantBufferReference->offset;
 
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
-		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
+		const Material::Properties &mergedMaterialProperties = overrideMaterial? drawable->material->GetMergedProperties(overrideMaterial) : drawable->material->GetProperties();
 		const VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
@@ -973,8 +973,7 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
-					float temp = mergedMaterialProperties.textureTileFactor;
-					std::memcpy(buffer + descriptor->GetOffset(), &temp, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.textureTileFactor, descriptor->GetSize());
 					break;
 				}
 
@@ -986,15 +985,13 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::CameraPosition:
 				{
-					RN::Vector3 cameraPosition = renderPass.viewPosition;
-					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.viewPosition.x, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::CameraAmbientColor:
 				{
-					RN::Color cameraAmbientColor = renderPass.cameraAmbientColor;
-					std::memcpy(buffer + descriptor->GetOffset(), &cameraAmbientColor.r, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraAmbientColor.r, descriptor->GetSize());
 					break;
 				}
 
@@ -1028,7 +1025,7 @@ namespace RN
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
 				{
 					size_t matrixCount = renderPass.directionalShadowMatrices.size();
-					if (matrixCount > 0)
+					if(matrixCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
 					}
@@ -1172,6 +1169,34 @@ namespace RN
 	{
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
+
+		uint32 totalConstantBufferCount = 0;
+		uint32 totalTextureCount = 0;
+
+		for(const VulkanRenderPass &renderPass : _internals->renderPasses)
+        {
+        	if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
+        	{
+        		continue;
+        	}
+
+        	if(renderPass.drawables.size() > 0)
+        	{
+        		totalConstantBufferCount += renderPass.drawables.size() * 2;
+        		for(VulkanDrawable *drawable : renderPass.drawables)
+        		{
+					totalTextureCount += drawable->material->GetTextures()->GetCount();
+        		}
+        	}
+        }
+
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+        writeDescriptorSets.reserve(totalConstantBufferCount + totalTextureCount);
+		std::vector<VkDescriptorBufferInfo> constantBufferDescriptorInfoArray;
+        constantBufferDescriptorInfoArray.reserve(totalConstantBufferCount);
+        std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
+        imageBufferDescriptorInfoArray.reserve(totalTextureCount);
+
 		for(const VulkanRenderPass &renderPass : _internals->renderPasses)
 		{
 			if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
@@ -1182,7 +1207,6 @@ namespace RN
 
 			if(renderPass.drawables.size() > 0)
 			{
-				//Draw drawables
 				for(VulkanDrawable *drawable : renderPass.drawables)
 				{
 					const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
@@ -1191,10 +1215,6 @@ namespace RN
 					VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
 
 					VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-					std::vector<VkDescriptorBufferInfo> constantBufferDescriptorInfoArray;
-					constantBufferDescriptorInfoArray.reserve(2);
-					std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-					writeDescriptorSets.reserve(2 + drawable->material->GetTextures()->GetCount());
 					size_t binding = 0;
 					if(uniformState->vertexConstantBuffer)
 					{
@@ -1215,6 +1235,7 @@ namespace RN
 						writeConstantDescriptorSet.dstBinding = binding++;
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
+
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
 					if(uniformState->fragmentConstantBuffer)
@@ -1236,13 +1257,11 @@ namespace RN
 						writeConstantDescriptorSet.dstBinding = binding++;
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
+
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
 
 					binding += pipelineState->rootSignature->samplers->GetCount();
-
-					std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
-					imageBufferDescriptorInfoArray.reserve(drawable->material->GetTextures()->GetCount());
 					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 						imageBufferDescriptorInfo.imageView = texture->_imageView;
@@ -1255,15 +1274,13 @@ namespace RN
 						writeImageDescriptorSet.dstSet = descriptorSet;
 						writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 						writeImageDescriptorSet.dstBinding = binding++;
-						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[index];
+						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size()-1];
 						writeImageDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeImageDescriptorSet);
 
 						if(index >= pipelineState->rootSignature->textureCount - 1) stop = true;
 					});
-
-					vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 				}
 
 				_internals->currentDrawableResourceIndex += 1;
@@ -1271,6 +1288,11 @@ namespace RN
 
 			_internals->currentRenderPassIndex += 1;
         }
+
+        if(writeDescriptorSets.size() > 0)
+		{
+			vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+		}
 	}
 
 	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable)

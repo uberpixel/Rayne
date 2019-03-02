@@ -181,8 +181,10 @@ namespace RN
 
 		bool GetUseAlphaToCoverage() const { return _properties.useAlphaToCoverage; }
 		Vector2 GetAlphaToCoverageClamp() const { return _properties.alphaToCoverageClamp; }
+
+		const Properties &GetProperties() const { return _properties; }
 		
-		RNAPI const Properties GetMergedProperties(Material *overrideMaterial) const;
+		RNAPI Properties GetMergedProperties(Material *overrideMaterial) const;
 
 	private:
 		Override _override;

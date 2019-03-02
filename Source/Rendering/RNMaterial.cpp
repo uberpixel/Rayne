@@ -258,12 +258,11 @@ namespace RN
 		return _vertexShader[static_cast<uint8>(type)];
 	}
 
-	const Material::Properties Material::GetMergedProperties(Material *overrideMaterial) const
+	Material::Properties Material::GetMergedProperties(Material *overrideMaterial) const
 	{
-		if(!overrideMaterial)
-			return _properties;
-		
 		Properties properties = _properties;
+
+		if(!overrideMaterial) return properties;
 		
 		if(!(overrideMaterial->GetOverride() & Override::ColorWriteMask) && !(_override & Override::ColorWriteMask))
 		{

@@ -296,7 +296,7 @@ namespace RN
 	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
-		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
+		const Material::Properties &mergedMaterialProperties = overrideMaterial? material->GetMergedProperties(overrideMaterial) : material->GetProperties();
 		VulkanPipelineStateDescriptor pipelineDescriptor;
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
 		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
