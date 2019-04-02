@@ -313,10 +313,12 @@ namespace RN
 						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
 
 						Vector2 trackpadPosition;
-						if(remoteState.TrackpadStatus > 0)
+						if(remoteState.TrackpadStatus > 0 || remoteState.Buttons & ovrButton_Enter)
 						{
 							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
 							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
+
+							//RNDebug(RNSTR("absolute: (" << remoteState.TrackpadPosition.x << ", " << remoteState.TrackpadPosition.y << "), relative: (" << trackpadPosition.x << ", " << trackpadPosition.y << ")"));
 						}
 						_controllerTrackingState[handIndex].trackpad = trackpadPosition;
 						_controllerTrackingState[handIndex].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
@@ -329,6 +331,11 @@ namespace RN
 						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
 						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
 						//_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+
+						_controllerTrackingState[handIndex].velocityLinear = GetVectorForOVRVector(trackingState.HeadPose.LinearVelocity);
+						_controllerTrackingState[handIndex].velocityAngular.x = trackingState.HeadPose.AngularVelocity.y;
+						_controllerTrackingState[handIndex].velocityAngular.y = trackingState.HeadPose.AngularVelocity.x;
+						_controllerTrackingState[handIndex].velocityAngular.z = trackingState.HeadPose.AngularVelocity.z;
 					}
 				}
 			}

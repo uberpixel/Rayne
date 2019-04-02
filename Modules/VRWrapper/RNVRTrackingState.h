@@ -65,6 +65,9 @@ namespace RN
 		Vector2 thumbstick;
 		Vector2 trackpad;
 
+		Vector3 velocityLinear;
+		Vector3 velocityAngular;
+
 		bool button[Button::BUTTON_COUNT];
 	};
 

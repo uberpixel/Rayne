@@ -278,9 +278,8 @@ namespace RN
 			attachments.push_back(imageView);
 		}
 
-		//TODO: Remove image views!
-
 		//TODO: Create framebuffer per framebuffer and not per camera, but also still handle msaa resolve somehow
+		//TODO: Reuse framebuffer, cause creating imageviews and framebuffer is slow
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.pNext = nullptr;
