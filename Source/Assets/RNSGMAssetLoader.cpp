@@ -250,15 +250,7 @@ namespace RN
 				uv0Offset = offset;
 				offset += sizeof(Vector2);
 			}
-
-			if(hasTangent)
-			{
-				attributes.emplace_back(Mesh::VertexAttribute::Feature::Tangents, PrimitiveType::Vector4);
-				size += sizeof(Vector4);
-				tangentOffset = offset;
-				offset += sizeof(Vector4);
-			}
-
+			
 			if(uvCount > 1)
 			{
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector2);
@@ -273,6 +265,14 @@ namespace RN
 				size += sizeof(Color);
 				colorOffset = offset;
 				offset += sizeof(Color);
+			}
+			
+			if(hasTangent)
+			{
+				attributes.emplace_back(Mesh::VertexAttribute::Feature::Tangents, PrimitiveType::Vector4);
+				size += sizeof(Vector4);
+				tangentOffset = offset;
+				offset += sizeof(Vector4);
 			}
 			
 			(void)(offset);
@@ -330,10 +330,10 @@ namespace RN
 				CopyVertexData(sizeof(Vector2), uv0Offset, Mesh::VertexAttribute::Feature::UVCoords0);
 			if(uvCount > 1)
 				CopyVertexData(sizeof(Vector2), uv1Offset, Mesh::VertexAttribute::Feature::UVCoords1);
-			if(hasTangent)
-				CopyVertexData(sizeof(Vector4), tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
 			if(dataCount == 4)
 				CopyVertexData(sizeof(Color), colorOffset, Mesh::VertexAttribute::Feature::Color0);
+			if(hasTangent)
+				CopyVertexData(sizeof(Vector4), tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
 
 			delete[] buildBuffer;
 			delete[] buffer;

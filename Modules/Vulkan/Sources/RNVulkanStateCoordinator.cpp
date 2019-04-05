@@ -524,7 +524,7 @@ namespace RN
 				continue;
 
 			//TODO: Remove the if (unused bindings confuse the validation layers...)
-			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0)
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0 || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords1)
 			{
 				VkVertexInputAttributeDescription attributeDescription = {};
 				attributeDescription.location = offset;
