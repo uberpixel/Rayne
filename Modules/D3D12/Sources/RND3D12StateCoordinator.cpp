@@ -50,6 +50,21 @@ namespace RN
 		"CUSTOM"
 	};
 
+	uint8 _vertexFeatureIndexLookup[]
+	{
+		0,
+		0,
+		0,
+		0,
+		1,
+		0,
+		1,
+
+		0,
+
+		0
+	};
+
 	D3D12RootSignature::~D3D12RootSignature()
 	{
 		signature->Release();
@@ -458,7 +473,7 @@ namespace RN
 			//TODO: support multiple texcoords/other stuff
 			D3D12_INPUT_ELEMENT_DESC element = {};
 			element.SemanticName = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
-			element.SemanticIndex = 0;
+			element.SemanticIndex = _vertexFeatureIndexLookup[static_cast<int>(attribute.GetFeature())];
 			element.Format = _vertexFormatLookup[static_cast<int>(attribute.GetType())];
 			element.InputSlot = 0;
 			element.AlignedByteOffset = attribute.GetOffset();
