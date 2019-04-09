@@ -55,6 +55,18 @@ namespace RN
 		VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA
 	};
 
+	VulkanUniformState::~VulkanUniformState()
+	{
+		if(vertexConstantBuffer)
+		{
+			delete vertexConstantBuffer;
+		}
+		if(fragmentConstantBuffer)
+		{
+			delete fragmentConstantBuffer;
+		}
+	}
+
 
 	VulkanRootSignature::~VulkanRootSignature()
 	{
@@ -212,6 +224,9 @@ namespace RN
 							break;
 						case Shader::Sampler::ComparisonFunction::NotEqual:
 							comparisonFunction = VK_COMPARE_OP_NOT_EQUAL;
+							break;
+						case Shader::Sampler::ComparisonFunction::Never:
+							comparisonFunction = VK_COMPARE_OP_NEVER;
 							break;
 					}
 				}

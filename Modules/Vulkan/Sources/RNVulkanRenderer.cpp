@@ -1129,7 +1129,7 @@ namespace RN
 	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);
-		drawable->AddUniformStateIfNeeded(_internals->currentDrawableResourceIndex);
+		drawable->AddCameraSpecificsIfNeeded(_internals->currentDrawableResourceIndex);
 
 		_lock.Lock();
 		VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];

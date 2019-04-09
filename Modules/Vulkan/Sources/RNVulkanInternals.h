@@ -126,25 +126,55 @@ namespace RN
 	{
 		struct CameraSpecific
 		{
-			const VulkanPipelineState *pipelineState;
-			VulkanUniformState *uniformState; //TODO: Check if needs to be deleted when done
+			const VulkanPipelineState *pipelineState; //No need for cleanup here as it's shared, but maybe add reference counting to clear later.
+			VulkanUniformState *uniformState;
 			bool dirty;
 			BufferedDescriptorSet *descriptorSet;
 		};
 
-		~VulkanDrawable(){}
+		~VulkanDrawable()
+		{
+			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+			for(CameraSpecific &specific : _cameraSpecifics)
+			{
+				renderer->AddFrameFinishedCallback([specific](){
+					if(specific.descriptorSet)
+					{
+						delete specific.descriptorSet;
+					}
+					if(specific.uniformState)
+					{
+						delete specific.uniformState;
+					}
+				});
+			}
+		}
 
-		void AddUniformStateIfNeeded(size_t cameraID)
+		void AddCameraSpecificsIfNeeded(size_t cameraID)
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({ nullptr, nullptr, true, VK_NULL_HANDLE });
+				_cameraSpecifics.push_back({ nullptr, nullptr, true, nullptr });
 			}
 		}
 
 		void UpdateRenderingState(size_t cameraID, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
 		{
 			_cameraSpecifics[cameraID].pipelineState = pipelineState;
+			if(_cameraSpecifics[cameraID].uniformState)
+			{
+				VulkanUniformState *oldUniformState = _cameraSpecifics[cameraID].uniformState;
+				if(oldUniformState)
+				{
+					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+					renderer->AddFrameFinishedCallback([oldUniformState](){
+						if(oldUniformState)
+						{
+							delete oldUniformState;
+						}
+					});
+				}
+			}
 			_cameraSpecifics[cameraID].uniformState = uniformState;
 			_cameraSpecifics[cameraID].dirty = false;
 		}

@@ -24,6 +24,8 @@ namespace RN
 		VulkanConstantBufferReference *fragmentConstantBuffer;
 
 		VkDescriptorSet descriptorSet;
+
+		~VulkanUniformState();
 	};
 
 	struct VulkanDepthStencilState
