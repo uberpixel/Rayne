@@ -36,7 +36,7 @@ namespace RN
 		
 	void PhysXKinematicController::Move(const Vector3 &direction, float delta)
 	{
-		if(delta < k::EpsilonFloat)
+		if(delta < k::EpsilonFloat || direction.GetLength() < k::EpsilonFloat)
 		{
 			return;
 		}
