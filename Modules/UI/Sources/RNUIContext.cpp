@@ -49,6 +49,7 @@ namespace RN
 			Texture::Format format = _hasAlpha ? Texture::Format::RGBA8888SRGB : Texture::Format::RGB888SRGB;
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, _hasMipmaps);
 			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+			_texture->StartStreamingData(Texture::Region(0, 0, 0, _width, _height, 1));
 //#endif
 		}
 		Context::~Context()

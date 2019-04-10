@@ -200,6 +200,9 @@ namespace RN
 	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer) :
 		Texture(descriptor),
 		_renderer(renderer),
+		_uploadImage(VK_NULL_HANDLE),
+		_uploadMemory(VK_NULL_HANDLE),
+		_uploadData(nullptr),
 		_image(VK_NULL_HANDLE),
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
@@ -327,6 +330,9 @@ namespace RN
 	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image) :
 		Texture(descriptor),
 		_renderer(renderer),
+		_uploadImage(VK_NULL_HANDLE),
+		_uploadMemory(VK_NULL_HANDLE),
+		_uploadData(nullptr),
 		_image(image),
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
@@ -339,6 +345,9 @@ namespace RN
 	{
 		VulkanDevice *device = _renderer->GetVulkanDevice();
 
+		if(_uploadImage != VK_NULL_HANDLE)
+			StopStreamingData();
+
 		if(_imageView != VK_NULL_HANDLE)
 			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
 
@@ -349,23 +358,13 @@ namespace RN
 			vk::FreeMemory(device->GetDevice(), _memory, _renderer->GetAllocatorCallback());
 	}
 
-	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
-	{
-		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow);
-	}
-
-	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
-	{
-		SetData(region, mipmapLevel, 0, bytes, bytesPerRow);
-	}
-
-	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow)
+	void VulkanTexture::StartStreamingData(const Region &region)
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
-		VkImage uploadImage;
-		VkDeviceMemory uploadMemory;
 		VkMemoryRequirements uploadRequirements;
+
+		_isFirstUpload = true;
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -382,9 +381,9 @@ namespace RN
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
 		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-		RNVulkanValidate(vk::CreateImage(device, &imageInfo, _renderer->GetAllocatorCallback(), &uploadImage));
+		RNVulkanValidate(vk::CreateImage(device, &imageInfo, _renderer->GetAllocatorCallback(), &_uploadImage));
 
-		vk::GetImageMemoryRequirements(device, uploadImage, &uploadRequirements);
+		vk::GetImageMemoryRequirements(device, _uploadImage, &uploadRequirements);
 		VkMemoryAllocateInfo allocateInfo = {};
 		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocateInfo.pNext = nullptr;
@@ -392,11 +391,10 @@ namespace RN
 
 		_renderer->GetVulkanDevice()->GetMemoryWithType(uploadRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
 
-		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &uploadMemory));
-		RNVulkanValidate(vk::BindImageMemory(device, uploadImage, uploadMemory, 0));
+		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &_uploadMemory));
+		RNVulkanValidate(vk::BindImageMemory(device, _uploadImage, _uploadMemory, 0));
 
 		VkSubresourceLayout subResLayout;
-		void *data;
 
 		VkImageSubresource subRes = {};
 		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -404,19 +402,63 @@ namespace RN
 
 		// Get sub resources layout
 		// Includes row pitch, size offsets, etc.
-		vk::GetImageSubresourceLayout(device, uploadImage, &subRes, &subResLayout);
+		vk::GetImageSubresourceLayout(device, _uploadImage, &subRes, &subResLayout);
 
 		// Map image memory
-		RNVulkanValidate(vk::MapMemory(device, uploadMemory, 0, uploadRequirements.size, 0, &data));
+		RNVulkanValidate(vk::MapMemory(device, _uploadMemory, 0, uploadRequirements.size, 0, &_uploadData));
+	}
+
+	void VulkanTexture::StopStreamingData()
+	{
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		vk::UnmapMemory(device, _uploadMemory);
+
+		VkImage uploadImage = _uploadImage;
+		VkDeviceMemory uploadMemory = _uploadMemory;
+		VulkanRenderer *renderer = _renderer;
+		renderer->AddFrameFinishedCallback([renderer, device, uploadImage, uploadMemory]() {
+			vk::DestroyImage(device, uploadImage, renderer->GetAllocatorCallback());
+			vk::FreeMemory(device, uploadMemory, renderer->GetAllocatorCallback());
+		});
+
+		_uploadImage = VK_NULL_HANDLE;
+		_uploadMemory = VK_NULL_HANDLE;
+		_uploadData = nullptr;
+	}
+
+	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	{
+		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow);
+	}
+
+	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	{
+		SetData(region, mipmapLevel, 0, bytes, bytesPerRow);
+	}
+
+	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) {
+		bool isOneTimeUpload = true;
+		if(_uploadImage)
+		{
+			isOneTimeUpload = false;
+		}
+
+		if(isOneTimeUpload)
+		{
+			StartStreamingData(region);
+		}
 
 		// Copy image data into memory
-		memcpy(data, bytes, bytesPerRow*_descriptor.height);
-
-		vk::UnmapMemory(device, uploadMemory);
+		memcpy(_uploadData, bytes, bytesPerRow * _descriptor.height);
 
 		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 		commandBuffer->Begin();
-		SetImageLayout(commandBuffer->GetCommandBuffer(), uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
+		if(_isFirstUpload)
+		{
+			SetImageLayout(commandBuffer->GetCommandBuffer(), _uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
+			_isFirstUpload = false;
+		}
+
 		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BarrierIntent::UploadDestination);
 		VkImageLayout oldLayout = _currentLayout;
 		if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED || oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
@@ -431,7 +473,7 @@ namespace RN
 		copyRegion.srcSubresource.baseArrayLayer = 0;
 		copyRegion.srcSubresource.mipLevel = 0;
 		copyRegion.srcSubresource.layerCount = 1;
-		copyRegion.srcOffset = { 0, 0, 0 };
+		copyRegion.srcOffset = {0, 0, 0};
 
 		copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		copyRegion.dstSubresource.baseArrayLayer = slice;
@@ -445,17 +487,21 @@ namespace RN
 		copyRegion.extent.height = region.height;
 		copyRegion.extent.depth = region.depth;
 
-		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), uploadImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout, BarrierIntent::ShaderSource);
+		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), _uploadImage,
+						 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image,
+						 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps,
+					   VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout,
+					   BarrierIntent::ShaderSource);
 		_currentLayout = oldLayout;
 		commandBuffer->End();
 
-		_renderer->AddFrameFinishedCallback([this, device, uploadImage, uploadMemory]() {
-			vk::DestroyImage(device, uploadImage, _renderer->GetAllocatorCallback());
-			vk::FreeMemory(device, uploadMemory, _renderer->GetAllocatorCallback());
-		});
-
 		_renderer->SubmitCommandBuffer(commandBuffer);
+
+		if(isOneTimeUpload)
+		{
+			StopStreamingData();
+		}
 	}
 
 	void VulkanTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const

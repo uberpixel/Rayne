@@ -33,6 +33,9 @@ namespace RN
 		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image);
 		VKAPI ~VulkanTexture() override;
 
+		VKAPI void StartStreamingData(const Region &region);
+		VKAPI void StopStreamingData();
+
 		VKAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		VKAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow) final;
 		VKAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) final;
@@ -54,17 +57,12 @@ namespace RN
 		VKAPI static void SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent);
 
 	private:
-/*		D3D12Renderer *_renderer;
-		D3D12StateCoordinator *_coordinator;
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC _srvDescriptor;
-		ID3D12Resource *_resource;
-		D3D12_RESOURCE_STATES _currentState;
-
-		bool _isReady;
-		bool _needsMipMaps;*/
-
 		VulkanRenderer *_renderer;
+
+		VkImage _uploadImage;
+		VkDeviceMemory _uploadMemory;
+		void *_uploadData;
+		bool _isFirstUpload;
 
 		VkFormat _format;
 		VkImage _image;

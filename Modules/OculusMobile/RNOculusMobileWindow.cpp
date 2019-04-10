@@ -372,21 +372,21 @@ namespace RN
 					RNDebug(RNCSTR("UpdateVRMode new session"));
 
 					ovrMobile *session = static_cast<ovrMobile*>(_session);
-					vrapi_SetDisplayRefreshRate(session, 72.0f);
+					vrapi_SetDisplayRefreshRate(session, 72.0f); //72
 					vrapi_SetRemoteEmulation(session, false);
-					vrapi_SetClockLevels(session, 4, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
+					vrapi_SetClockLevels(session, 0, 0); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
 
 					vrapi_SetExtraLatencyMode(session, VRAPI_EXTRA_LATENCY_MODE_ON);
 
-					/*int hasFoveation = 0;
+					int hasFoveation = 0;
 					vrapi_GetPropertyInt(static_cast<ovrJava*>(_java), (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
 					if(hasFoveation == VRAPI_TRUE)
 					{
 						RNDebug(RNCSTR("Enable Foveated Rendering"));
 						vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, 2);
-					}*/
+					}
 				}
 			}
 		}

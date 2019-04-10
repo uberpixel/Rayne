@@ -6,6 +6,8 @@ import shutil
 args = [
 	'ndk=\"/Users/slin/Library/Android/sdk/ndk-bundle\" target_cpu=\"arm64\"',
 	'ndk_api=24',
+	'cc=\"clang\"',
+	'cxx=\"clang++\"',
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
