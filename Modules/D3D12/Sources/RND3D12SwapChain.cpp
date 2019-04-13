@@ -29,6 +29,8 @@ namespace RN
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case Texture::Format::RGB10A2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::RGBA16F:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
 		default:
 			return DXGI_FORMAT_UNKNOWN;
 		}

@@ -1261,6 +1261,34 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::PointLights:
+				{
+					size_t lightCount = renderPass.pointLights.size();
+					if(lightCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
+					}
+					if(lightCount < 8)
+					{
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8 - lightCount));
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::SpotLights:
+				{
+					size_t lightCount = renderPass.spotLights.size();
+					if(lightCount > 0)
+					{
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
+					}
+					if(lightCount < 8)
+					{
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
+					}
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
 					//TODO: Implement custom shader variables!
@@ -1292,6 +1320,20 @@ namespace RN
 				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<D3D12Texture>();
 				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
 				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
+			}
+		}
+		else if(light->GetType() == Light::Type::PointLight)
+		{
+			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
+			{
+				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetColor() });
+			}
+		}
+		else if(light->GetType() == Light::Type::SpotLight)
+		{
+			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
+			{
+				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetColor() });
 			}
 		}
 	}

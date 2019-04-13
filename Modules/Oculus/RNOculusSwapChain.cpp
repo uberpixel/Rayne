@@ -76,9 +76,14 @@ namespace RN
 				swapChainDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 				break;
 			}
+			case Texture::Format::RGBA16F:
+			{
+				swapChainDesc.Format = OVR_FORMAT_R16G16B16A16_FLOAT;
+				break;
+			}
 			default:
 			{
-				swapChainDesc.Format = OVR_FORMAT_B8G8R8A8_UNORM_SRGB;
+				RN_ASSERT(false, "The swap chain color format is not supported!");
 				break;
 			}
 		}

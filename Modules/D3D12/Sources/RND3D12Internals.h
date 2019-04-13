@@ -60,6 +60,22 @@ namespace RN
 		Color color;
 	};
 
+	struct VulkanPointLight
+	{
+		Vector3 position;
+		float range;
+		Color color;
+	};
+
+	struct VulkanSpotLight
+	{
+		Vector3 position;
+		float range;
+		Vector3 direction;
+		float angle;
+		Color color;
+	};
+
 	struct D3D12RenderPass
 	{
 		enum Type
@@ -90,6 +106,8 @@ namespace RN
 
 		std::vector<D3D12Drawable *> drawables;
 		std::vector<D3D12LightDirectional> directionalLights;
+		std::vector<VulkanPointLight> pointLights;
+		std::vector<VulkanSpotLight> spotLights;
 
 		std::vector<Matrix> directionalShadowMatrices;
 		D3D12Texture *directionalShadowDepthTexture;
