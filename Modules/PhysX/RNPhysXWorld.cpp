@@ -158,6 +158,7 @@ namespace RN
 		if(callback.getNbAnyHits() > 0)
 		{
 			hit.distance = callback.getAnyHit(0).distance;
+			hit.position = from + diff * hit.distance;
 		}
 		
 		return hit;

@@ -28,6 +28,7 @@ namespace RN
 	public:
 		friend class PhysXWorld;
 		friend class PhysXSimulationCallback;
+		friend class PhysXKinematicControllerCallback;
 
 		enum ContactState
 		{

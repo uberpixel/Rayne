@@ -20,10 +20,11 @@ namespace physx
 
 namespace RN
 {
+	class PhysXKinematicControllerCallback;
 	class PhysXKinematicController : public PhysXCollisionObject
 	{
 	public:
-		PXAPI PhysXKinematicController(float radius, float height, PhysXMaterial *material);
+		PXAPI PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset = 0.5f);
 		PXAPI ~PhysXKinematicController() override;
 
 		PXAPI void UpdatePosition() override;
@@ -49,6 +50,8 @@ namespace RN
 			
 		physx::PxController *_controller;
 		PhysXMaterial *_material;
+
+		PhysXKinematicControllerCallback *_callback;
 
 		float _gravity;
 			

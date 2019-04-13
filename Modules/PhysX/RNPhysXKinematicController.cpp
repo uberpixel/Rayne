@@ -8,6 +8,7 @@
 
 #include "RNPhysXKinematicController.h"
 #include "RNPhysXWorld.h"
+#include "RNPhysXInternals.h"
 
 #include "PxPhysicsAPI.h"
 
@@ -15,15 +16,20 @@ namespace RN
 {
 	RNDefineMeta(PhysXKinematicController, PhysXCollisionObject)
 		
-	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material) : _gravity(0.0f)
+	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset) : _gravity(0.0f)
 	{
 		_material = material->Retain();
+
+		_callback = new PhysXKinematicControllerCallback();
 
 		physx::PxCapsuleControllerDesc desc;
 		desc.height = height;
 		desc.radius = radius;
 		desc.position.set(0.0f, 10.0, 0.0f);
+		desc.stepOffset = stepOffset;
 		desc.material = _material->GetPhysXMaterial();
+		desc.reportCallback = _callback;
+		desc.userData = this;
 
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
 		_controller = manager->createController(desc);
@@ -32,6 +38,7 @@ namespace RN
 	PhysXKinematicController::~PhysXKinematicController()
 	{
 		_controller->release();
+		if(_callback) delete _callback;
 	}
 		
 	void PhysXKinematicController::Move(const Vector3 &direction, float delta)

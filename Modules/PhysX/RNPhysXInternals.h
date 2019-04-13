@@ -39,6 +39,14 @@ namespace RN
 		void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) final {}
 		void onAdvance(const physx::PxRigidBody*const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) final {}
 	};
+
+	class PhysXKinematicControllerCallback : public physx::PxUserControllerHitReport
+	{
+	public:
+		void onShapeHit(const physx::PxControllerShapeHit &hit) final;
+		void onControllerHit(const physx::PxControllersHit& hit) final;
+		void onObstacleHit(const physx::PxControllerObstacleHit &hit) final;
+	};
 	
 /*	class PhysXRaycastCallback : public physx::PxRaycastCallback
 	{

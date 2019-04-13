@@ -98,4 +98,29 @@ namespace RN
 			}
 		}
 	}
+
+	void PhysXKinematicControllerCallback::onShapeHit(const physx::PxControllerShapeHit &hit)
+	{
+		PhysXCollisionObject *objectA = static_cast<PhysXCollisionObject*>(hit.controller->getUserData());
+		PhysXCollisionObject *objectB = static_cast<PhysXCollisionObject*>(hit.actor->userData);
+		if(objectA->_contactCallback)
+		{
+			PhysXContactInfo contactInfo;
+			contactInfo.distance = 0.0f;
+			contactInfo.node = objectB->GetParent();
+			contactInfo.normal = RN::Vector3(hit.worldNormal.x, hit.worldNormal.y, hit.worldNormal.z);
+			contactInfo.position = RN::Vector3(hit.worldPos.x, hit.worldPos.y, hit.worldPos.z);
+			objectA->_contactCallback(objectB, contactInfo, PhysXCollisionObject::ContactState::Begin);
+		}
+	}
+
+	void PhysXKinematicControllerCallback::onControllerHit(const physx::PxControllersHit& hit)
+	{
+
+	}
+
+	void PhysXKinematicControllerCallback::onObstacleHit(const physx::PxControllerObstacleHit &hit)
+	{
+
+	}
 }
