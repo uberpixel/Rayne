@@ -164,6 +164,7 @@ namespace RN
 			_controllerTrackingState[0].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[0]);
 			_controllerTrackingState[0].indexTrigger = inputState.IndexTrigger[0];
 			_controllerTrackingState[0].handTrigger = inputState.HandTrigger[0];
+			_controllerTrackingState[0].velocityLinear = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[0].LinearVelocity);
 
 			_controllerTrackingState[1].active = (inputState.ControllerType & ovrControllerType_RTouch);
 			_controllerTrackingState[1].tracking = (_swapChain->_hmdState.HandStatusFlags[1] & ovrStatus_PositionTracked);
@@ -174,6 +175,7 @@ namespace RN
 			_controllerTrackingState[1].thumbstick = GetVectorForOVRVector(inputState.Thumbstick[1]);
 			_controllerTrackingState[1].indexTrigger = inputState.IndexTrigger[1];
 			_controllerTrackingState[1].handTrigger = inputState.HandTrigger[1];
+			_controllerTrackingState[1].velocityLinear = GetVectorForOVRVector(_swapChain->_hmdState.HandPoses[1].LinearVelocity);
 
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = inputState.Buttons & ovrButton_X;
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = inputState.Buttons & ovrButton_Y;
