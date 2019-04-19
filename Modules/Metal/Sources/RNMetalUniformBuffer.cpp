@@ -116,22 +116,36 @@ namespace RN
 			buffer->Advance();
 		});
 		
-		size_t requiredSize = 0;
-		_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
-			requiredSize += reference->size + kRNUniformBufferAlignement - (reference->size % kRNUniformBufferAlignement);
-		});
+		while(1)
+		{
+			size_t requiredSize = 0;
+			size_t lastIndexToRemove = 0;
+			_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
+				size_t sizeToAdd = reference->size + kRNUniformBufferAlignement - (reference->size % kRNUniformBufferAlignement);
+				if(requiredSize + sizeToAdd <= 1000000)
+				{
+					requiredSize += sizeToAdd;
+					lastIndexToRemove = index;
+					stop = true;
+				}
+			});
 		
-		if(requiredSize == 0) return;
-		
-		requiredSize = MAX(requiredSize, kRNMinimumUniformBufferSize);
-		MetalUniformBuffer *uniformBuffer = new MetalUniformBuffer(renderer, requiredSize);
-		
-		_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
-			reference->uniformBuffer = uniformBuffer;
-			reference->offset = uniformBuffer->Allocate(reference->size);
-		});
-		
-		_uniformBuffers->AddObject(uniformBuffer->Autorelease());
+			if(requiredSize == 0) break;
+			requiredSize = MAX(requiredSize, kRNMinimumUniformBufferSize);
+			
+			MetalUniformBuffer *uniformBuffer = new MetalUniformBuffer(renderer, requiredSize);
+			
+			for(int32 i = lastIndexToRemove; i >= 0; i--)
+			{
+				MetalUniformBufferReference *reference = _newReferences->GetObjectAtIndex<MetalUniformBufferReference>(i);
+				reference->uniformBuffer = uniformBuffer;
+				reference->offset = uniformBuffer->Allocate(reference->size);
+				
+				_newReferences->RemoveObjectAtIndex(i);
+			}
+			
+			_uniformBuffers->AddObject(uniformBuffer->Autorelease());
+		}
 		_newReferences->RemoveAllObjects();
 	}
 	
