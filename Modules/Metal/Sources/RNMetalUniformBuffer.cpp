@@ -116,16 +116,21 @@ namespace RN
 			buffer->Advance();
 		});
 		
+		if(_newReferences->GetCount() == 0) return;
+		
 		while(1)
 		{
 			size_t requiredSize = 0;
 			size_t lastIndexToRemove = 0;
 			_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
 				size_t sizeToAdd = reference->size + kRNUniformBufferAlignement - (reference->size % kRNUniformBufferAlignement);
-				if(requiredSize + sizeToAdd <= 1000000)
+				if(requiredSize + sizeToAdd <= 100000) //TODO: real limit is 1000000, but for some reason it exceeds this if used here
 				{
 					requiredSize += sizeToAdd;
 					lastIndexToRemove = index;
+				}
+				else
+				{
 					stop = true;
 				}
 			});
