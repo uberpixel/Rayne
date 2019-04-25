@@ -43,7 +43,8 @@ namespace RN
 	
 	size_t MetalUniformBuffer::Allocate(size_t size)
 	{
-		if(_totalSize - _offsetToFreeData < size)
+		int availableSize = static_cast<int>(_totalSize) - static_cast<int>(_offsetToFreeData);
+		if(availableSize < static_cast<int>(size))
 			return -1;
 		
 		size_t newDataOffset = _offsetToFreeData;
@@ -124,7 +125,7 @@ namespace RN
 			size_t lastIndexToRemove = 0;
 			_newReferences->Enumerate<MetalUniformBufferReference>([&](MetalUniformBufferReference *reference, uint32 index, bool &stop){
 				size_t sizeToAdd = reference->size + kRNUniformBufferAlignement - (reference->size % kRNUniformBufferAlignement);
-				if(requiredSize + sizeToAdd <= 100000) //TODO: real limit is 1000000, but for some reason it exceeds this if used here
+				if(requiredSize + sizeToAdd <= kRNMaximumUniformBufferSize)
 				{
 					requiredSize += sizeToAdd;
 					lastIndexToRemove = index;

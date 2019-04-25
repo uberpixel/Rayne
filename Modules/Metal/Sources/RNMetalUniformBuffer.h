@@ -14,6 +14,7 @@
 
 #define kRNMetalUniformBufferCount 3
 #define kRNMinimumUniformBufferSize 1*1000*1000
+#define kRNMaximumUniformBufferSize 100*1000*1000
 #define kRNUniformBufferAlignement 256
 
 namespace RN
