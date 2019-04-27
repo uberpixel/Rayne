@@ -49,12 +49,14 @@ namespace RN
 		_rtvDescriptorSize = underlyingDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneD3D12:/Shaders.json"));
+		_uniformBufferPool = new D3D12UniformBufferPool();
 	}
 
 	D3D12Renderer::~D3D12Renderer()
 	{
 		//TODO: Cleanup
 		_mainWindow->Release();
+		delete _uniformBufferPool;
 	}
 
 	D3D12CommandList *D3D12Renderer::GetCommandList()
@@ -279,7 +281,7 @@ namespace RN
 			const Texture::Descriptor &textureDescriptor = texture->GetDescriptor();
 
 			//Skip textures without mipmaps
-			if(textureDescriptor.mipMaps <= 1)
+			if(textureDescriptor.mipMaps <= 1 || !texture->_resource)
 				return;
 
 			//TODO: Do this only for textures not supporting unordered access
@@ -446,6 +448,7 @@ namespace RN
 			swapChain->AcquireBackBuffer();
 		}
 
+		_uniformBufferPool->Update(_scheduledFenceValue, _completedFenceValue);
 		PolpulateDescriptorHeap();
 		SubmitDescriptorHeap(_currentSrvCbvHeap);
 
@@ -500,6 +503,8 @@ namespace RN
 			{
 				swapChain->Finalize(_currentCommandList);
 			}
+
+			_uniformBufferPool->InvalidateAllBuffers();
 
 			_currentCommandList->End();
 			SubmitCommandList(_currentCommandList);
@@ -716,6 +721,12 @@ namespace RN
 		return new D3D12GPUBuffer(bytes, length, usageOptions);
 	}
 
+	D3D12UniformBufferReference *D3D12Renderer::GetUniformBufferReference(size_t size, size_t index)
+	{
+		D3D12UniformBufferReference *reference = _uniformBufferPool->GetUniformBufferReference(size, index);
+		return reference;
+	}
+
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file)
 	{
 		return new D3D12ShaderLibrary(file);
@@ -923,6 +934,9 @@ namespace RN
 
 	void D3D12Renderer::PolpulateDescriptorHeap()
 	{
+		_internals->currentRenderPassIndex = 0;
+		_internals->currentDrawableResourceIndex = 0;
+
 		if(_internals->totalDrawableCount == 0)
 		{
 			_currentSrvCbvHeap = nullptr;
@@ -945,15 +959,17 @@ namespace RN
 		size_t heapIndex = 0;
 		CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(heapIndex);
 
-		size_t cameraID = 0;
 		for(const D3D12RenderPass &renderPass : _internals->renderPasses)
 		{
 			if(renderPass.drawables.size() == 0)
+			{
+				_internals->currentRenderPassIndex += 1;
 				continue;
+			}
 
 			for(D3D12Drawable *drawable : renderPass.drawables)
 			{
-				const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[cameraID].pipelineState->rootSignature;
+				const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 
 				//Create texture descriptors
 				const Array *textures = drawable->material->GetTextures();
@@ -1046,42 +1062,48 @@ namespace RN
 				//Create constant buffer descriptor
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 
-				D3D12UniformBuffer *vertexUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->vertexUniformBuffer;
+				const D3D12PipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
+				D3D12UniformBufferReference *vertexUniformBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffer;
 				if(vertexUniformBuffer)
 				{
-					D3D12GPUBuffer *actualBuffer = vertexUniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
-					cbvDesc.SizeInBytes = actualBuffer->GetLength();
+					FillUniformBuffer(vertexUniformBuffer, drawable, pipelineState->descriptor.vertexShader);
+
+					D3D12GPUBuffer *actualBuffer = vertexUniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + vertexUniformBuffer->offset;
+					cbvDesc.SizeInBytes = vertexUniformBuffer->size + kRNUniformBufferAlignement - (vertexUniformBuffer->size % kRNUniformBufferAlignement);
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
-				D3D12UniformBuffer *fragmentUniformBuffer = drawable->_cameraSpecifics[cameraID].uniformState->fragmentUniformBuffer;
+				D3D12UniformBufferReference *fragmentUniformBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffer;
 				if(fragmentUniformBuffer)
 				{
-					D3D12GPUBuffer *actualBuffer = fragmentUniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress();
-					cbvDesc.SizeInBytes = actualBuffer->GetLength();
+					FillUniformBuffer(fragmentUniformBuffer, drawable, pipelineState->descriptor.fragmentShader);
+
+					D3D12GPUBuffer *actualBuffer = fragmentUniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + fragmentUniformBuffer->offset;
+					cbvDesc.SizeInBytes = fragmentUniformBuffer->size + kRNUniformBufferAlignement - (fragmentUniformBuffer->size % kRNUniformBufferAlignement);
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 			}
 
-			cameraID += 1;
+			_internals->currentRenderPassIndex += 1;
+			_internals->currentDrawableResourceIndex += 1;
 		}
 	}
 
-	void D3D12Renderer::FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset)
+	void D3D12Renderer::FillUniformBuffer(D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable, Shader *shader)
 	{
+		GPUBuffer *gpuBuffer = uniformBufferReference->uniformBuffer->GetActiveBuffer();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
+
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		buffer += offset;
-
 		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
-			offset = descriptor->GetOffset() + descriptor->GetSize();
-
+			
 			switch(descriptor->GetIdentifier())
 			{
 				case Shader::UniformDescriptor::Identifier::Time:
@@ -1358,25 +1380,6 @@ namespace RN
 
 			RN_ASSERT(pipelineState && uniformState, "Failed to create pipeline or uniform state for drawable!");
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
-		}
-
-		const D3D12PipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
-		D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-		if(uniformState->vertexUniformBuffer)
-		{
-			GPUBuffer *gpuBuffer = uniformState->vertexUniformBuffer->Advance(_scheduledFenceValue, _completedFenceValue);
-			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.vertexShader, offset);
-			gpuBuffer->Invalidate();
-		}
-		if (uniformState->fragmentUniformBuffer)
-		{
-			GPUBuffer *gpuBuffer = uniformState->fragmentUniformBuffer->Advance(_scheduledFenceValue, _completedFenceValue);
-			uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer());
-			size_t offset = 0;
-			FillUniformBuffer(buffer, drawable, pipelineState->descriptor.fragmentShader, offset);
-			gpuBuffer->Invalidate();
 		}
 
 		// Push into the queue

@@ -22,7 +22,8 @@ namespace RN
 	struct D3D12RenderPass;
 	class D3D12Window;
 	class D3D12Texture;
-	class D3D12UniformBuffer;
+	class D3D12UniformBufferPool;
+	class D3D12UniformBufferReference;
 	class D3D12DescriptorHeap;
 	class D3D12CommandList;
 	class D3D12CommandListWithCallback;
@@ -81,9 +82,11 @@ namespace RN
 		D3D12Device *GetD3D12Device() const { return static_cast<D3D12Device *>(GetDevice()); }
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
 
+		D3DAPI D3D12UniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
+
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
-		void FillUniformBuffer(uint8 *buffer, D3D12Drawable *drawable, Shader *shader, size_t &offset);
+		void FillUniformBuffer(D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable, Shader *shader);
 
 		void RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass);
 
@@ -107,6 +110,8 @@ namespace RN
 		Array *_submittedCommandLists;
 		Array *_executedCommandLists;
 		Array *_commandListPool;
+
+		D3D12UniformBufferPool *_uniformBufferPool;
 
 		PIMPL<D3D12RendererInternals> _internals;
 

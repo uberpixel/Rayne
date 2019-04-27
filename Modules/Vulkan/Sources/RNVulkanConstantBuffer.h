@@ -30,7 +30,7 @@ namespace RN
 		~VulkanConstantBuffer();
 
 		VKAPI GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
-		VKAPI GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
+		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
 		VKAPI size_t Allocate(size_t size);
 		VKAPI void Free(size_t offset, size_t size);

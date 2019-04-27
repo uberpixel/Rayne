@@ -491,20 +491,20 @@ namespace RN
 
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		D3D12UniformBuffer *vertexBuffer = nullptr;
-		D3D12UniformBuffer *fragmentBuffer = nullptr;
+		D3D12UniformBufferReference *vertexBuffer = nullptr;
+		D3D12UniformBufferReference *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = new D3D12UniformBuffer(vertexShader->GetSignature()->GetTotalUniformSize());
+			vertexBuffer = renderer->GetUniformBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 0);
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = new D3D12UniformBuffer(fragmentShader->GetSignature()->GetTotalUniformSize());
+			fragmentBuffer = renderer->GetUniformBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 0);
 		}
 
 		D3D12UniformState *state = new D3D12UniformState();
-		state->vertexUniformBuffer = vertexBuffer;
-		state->fragmentUniformBuffer = fragmentBuffer;
+		state->vertexUniformBuffer = SafeRetain(vertexBuffer);
+		state->fragmentUniformBuffer = SafeRetain(fragmentBuffer);
 
 		return state;
 	}

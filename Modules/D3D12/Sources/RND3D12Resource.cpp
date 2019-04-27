@@ -20,6 +20,7 @@ namespace RN
 		_resourceType(resourceType),
 		_length(length),
 		_transferResource(nullptr),
+		_transferPointer(nullptr),
 		_resource(nullptr),
 		_isTransfering(false),
 		_isRecording(false)
@@ -70,11 +71,13 @@ namespace RN
 
 		if(_resourceType == ResourceType::Uniform)
 		{
-			void *data;
-			CD3DX12_RANGE readRange(0, 0);
-			_resource->Map(0, &readRange, &data);
-
-			return data;
+			if(!_transferPointer)
+			{
+				CD3DX12_RANGE readRange(0, 0);
+				_resource->Map(0, &readRange, &_transferPointer);
+			}
+			
+			return _transferPointer;
 		}
 		else
 		{
@@ -100,6 +103,7 @@ namespace RN
 
 		_transferResource->Unmap(0, nullptr);
 		_isRecording = false;
+		_transferPointer = nullptr;
 
 		D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		D3D12CommandList *commandList = renderer->GetCommandList();

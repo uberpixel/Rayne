@@ -19,13 +19,13 @@ namespace RN
 {
 	RNExceptionType(D3D12StructArgumentUnsupported)
 
-	class D3D12UniformBuffer;
+	class D3D12UniformBufferReference;
 	class D3D12Framebuffer;
 
 	struct D3D12UniformState
 	{
-		D3D12UniformBuffer *vertexUniformBuffer;
-		D3D12UniformBuffer *fragmentUniformBuffer;
+		D3D12UniformBufferReference *vertexUniformBuffer;
+		D3D12UniformBufferReference *fragmentUniformBuffer;
 	};
 
 	struct D3D12DepthStencilState

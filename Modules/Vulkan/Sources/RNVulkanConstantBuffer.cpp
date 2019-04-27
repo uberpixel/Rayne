@@ -64,7 +64,8 @@ namespace RN
 
 	size_t VulkanConstantBuffer::Allocate(size_t size)
 	{
-		if(_totalSize - _offsetToFreeData < size)
+		RN::int32 freeSpace = static_cast<RN::int32>(_totalSize) - static_cast<RN::int32>(_offsetToFreeData);
+		if(freeSpace < static_cast<RN::int32>(size))
 			return -1;
 
 		size_t newDataOffset = _offsetToFreeData;
