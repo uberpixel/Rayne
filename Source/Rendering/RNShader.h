@@ -81,6 +81,7 @@ namespace RN
 				DirectionalShadowInfo,
 				PointLights,
 				SpotLights,
+				BoneMatrices
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);

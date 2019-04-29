@@ -68,7 +68,8 @@ namespace RN
 			file->Read(buffer, length);
 			
 			String *animationFile = RNSTR(buffer);
-			String *fullPath = path->StringByAppendingPathComponent(animationFile);
+			String *fullPath = path->StringByDeletingLastPathComponent();
+			fullPath = fullPath->StringByAppendingPathComponent(animationFile);
 			String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
 			
 			delete[] buffer;
@@ -278,6 +279,8 @@ namespace RN
 			size_t uv1Offset = 0;
 			size_t tangentOffset = 0;
 			size_t colorOffset = 0;
+			size_t boneWeightOffset = 0;
+			size_t boneIndicesOffset = 0;
 
 			if(uvCount > 0)
 			{
@@ -310,16 +313,21 @@ namespace RN
 				tangentOffset = offset;
 				offset += sizeof(Vector4);
 			}
-			
-			(void)(offset);
 
 			if(hasBones)
 			{
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneWeights, PrimitiveType::Vector4);
+				size += sizeof(Vector4);
+				boneWeightOffset = offset;
+				offset += sizeof(Vector4);
+				
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneIndices, PrimitiveType::Vector4);
-
-				size += sizeof(Vector4) * 2;
+				size += sizeof(Vector4);
+				boneIndicesOffset = offset;
+				offset += sizeof(Vector4);
 			}
+			
+			(void)(offset);
 
 			size_t verticesSize = size * verticesCount;
 
@@ -363,13 +371,26 @@ namespace RN
 			CopyVertexData(sizeof(Vector3), sizeof(Vector3), Mesh::VertexAttribute::Feature::Normals);
 
 			if(uvCount > 0)
+			{
 				CopyVertexData(sizeof(Vector2), uv0Offset, Mesh::VertexAttribute::Feature::UVCoords0);
+			}
 			if(uvCount > 1)
+			{
 				CopyVertexData(sizeof(Vector2), uv1Offset, Mesh::VertexAttribute::Feature::UVCoords1);
+			}
 			if(dataCount == 4)
+			{
 				CopyVertexData(sizeof(Color), colorOffset, Mesh::VertexAttribute::Feature::Color0);
+			}
 			if(hasTangent)
+			{
 				CopyVertexData(sizeof(Vector4), tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
+			}
+			if(hasBones)
+			{
+				CopyVertexData(sizeof(Vector4), boneWeightOffset, Mesh::VertexAttribute::Feature::BoneWeights);
+				CopyVertexData(sizeof(Vector4), boneIndicesOffset, Mesh::VertexAttribute::Feature::BoneIndices);
+			}
 
 			delete[] buildBuffer;
 			delete[] buffer;

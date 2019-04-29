@@ -44,9 +44,12 @@ namespace RN
 		5, //"TEXCOORD",
 		6, //"TEXCOORD",
 		
-		//"INDEX",
+		0, //Indices
 		
-		7 //"CUSTOM"
+		7, //BoneWeights,
+		8, //BoneIndices,
+		
+		9 //"CUSTOM"
 	};
 
 	MTLCompareFunction CompareFunctionLookup[] =

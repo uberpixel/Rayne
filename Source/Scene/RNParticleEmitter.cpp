@@ -324,7 +324,7 @@ namespace RN
 			UpdateMesh();
 		}
 
-		_drawable->Update(_mesh, _material, this);
+		_drawable->Update(_mesh, _material, nullptr, this);
 		renderer->SubmitDrawable(_drawable);
 	}
 	

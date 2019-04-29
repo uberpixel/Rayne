@@ -26,6 +26,7 @@
 #include "RNRendererTypes.h"
 #include "RNMesh.h"
 #include "RNMaterial.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
@@ -35,12 +36,13 @@ namespace RN
 		{
 			mesh = nullptr;
 			material = nullptr;
+			skeleton = nullptr;
 			count = 1;
 		}
 		virtual ~Drawable()
 		{}
 
-		void Update(Mesh *tmesh, Material *tmaterial, const SceneNode *node)
+		void Update(Mesh *tmesh, Material *tmaterial, Skeleton *tskeleton, const SceneNode *node)
 		{
 			if(mesh != tmesh)
 			{
@@ -51,6 +53,11 @@ namespace RN
 			{
 				MakeDirty();
 				material = tmaterial;
+			}
+			if(skeleton != tskeleton)
+			{
+				MakeDirty();
+				skeleton = tskeleton;
 			}
 
 			if(node)
@@ -65,6 +72,7 @@ namespace RN
 
 		Mesh *mesh;
 		Material *material;
+		Skeleton *skeleton;
 		Matrix modelMatrix;
 		Matrix inverseModelMatrix;
 		size_t count;

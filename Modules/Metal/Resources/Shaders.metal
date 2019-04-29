@@ -14,6 +14,7 @@
 // RN_COLOR
 // RN_UV0
 // RN_ALPHA
+// RN_ANIMATIONS
 
 using namespace metal;
 
@@ -29,6 +30,13 @@ using namespace metal;
 #define RN_UV0 0
 #endif
 
+#ifndef RN_ANIMATIONS
+#define RN_ANIMATIONS 0
+#endif
+
+#ifndef RN_MAX_BONES
+#define RN_MAX_BONES 100
+#endif
 
 struct LightDirectional
 {
@@ -44,6 +52,10 @@ struct Uniforms
 
 #if RN_UV0
 	float textureTileFactor;
+#endif
+
+#if RN_ANIMATIONS
+	matrix_float4x4 boneMatrices[RN_MAX_BONES];
 #endif
 };
 
@@ -80,6 +92,10 @@ struct InputVertex
 #endif
 #if RN_TANGENTS
 	float4 tangents [[attribute(2)]];
+#endif
+#if RN_ANIMATIONS
+	float4 boneWeights [[attribute(7)]];
+	float4 boneIndices [[attribute(8)]];
 #endif
 };
 
@@ -191,6 +207,20 @@ float4 getDirectionalLights(float3 position, float3 normal, constant FragmentUni
 	return light;
 }
 
+#if RN_ANIMATIONS
+float4 getAnimatedPosition(float4 position, float4 weights, float4 indices, constant Uniforms &uniforms)
+{
+	float4 pos1 = uniforms.boneMatrices[int(indices.x)] * position;
+	float4 pos2 = uniforms.boneMatrices[int(indices.y)] * position;
+	float4 pos3 = uniforms.boneMatrices[int(indices.z)] * position;
+	float4 pos4 = uniforms.boneMatrices[int(indices.w)] * position;
+
+	float4 pos = pos1 * weights.x + pos2 * weights.y + pos3 * weights.z + pos4 * weights.w;
+	pos.w = position.w;
+
+	return pos;
+}
+#endif
 
 // Non instanced
 
@@ -198,14 +228,25 @@ vertex FragmentVertex gouraud_vertex(const InputVertex vert [[stage_in]], consta
 {
 	FragmentVertex result;
 
-	result.position = uniforms.modelViewProjectionMatrix * float4(vert.position, 1.0);
-	result.worldPosition = (uniforms.modelMatrix * float4(vert.position, 1.0f)).xyz;
+#if RN_ANIMATIONS
+	float4 position = getAnimatedPosition(float4(vert.position, 1.0), vert.boneWeights, vert.boneIndices, uniforms);
+#else
+	float4 position = float4(vert.position, 1.0);
+#endif
+
+	result.position = uniforms.modelViewProjectionMatrix * position;
+	result.worldPosition = (uniforms.modelMatrix * position).xyz;
 
 #if RN_COLOR
 	result.color = vert.color;
 #endif
 #if RN_NORMALS
-	result.normal = (uniforms.modelMatrix * float4(vert.normal, 0.0)).xyz;
+#if RN_ANIMATIONS
+	float4 normal = getAnimatedPosition(float4(vert.normal, 0.0), vert.boneWeights, vert.boneIndices, uniforms);
+#else
+	float4 normal = float4(vert.normal, 0.0);
+#endif
+	result.normal = (uniforms.modelMatrix * normal).xyz;
 #endif
 #if RN_UV0
 	result.texCoords = vert.texCoords * uniforms.textureTileFactor;

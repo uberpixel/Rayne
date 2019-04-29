@@ -46,6 +46,10 @@ namespace RN
 			AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
 			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+		
+		//TODO: This should be based on the model having a skeleton...
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::BoneWeights))
+			AddDefine(RNCSTR("RN_ANIMATIONS"), RNCSTR("1"));
 	}
 
 	void Shader::Options::EnableAlpha()
@@ -224,6 +228,11 @@ namespace RN
 			_identifier = SpotLights;
 			_type = PrimitiveType::Vector4;
 		}
+		else if (name->IsEqual(RNCSTR("bone_matrices")) || name->IsEqual(RNCSTR("boneMatrices")))
+		{
+			_identifier = BoneMatrices;
+			_type = PrimitiveType::Matrix;
+		}
 	}
 
 	Shader::UniformDescriptor::~UniformDescriptor()
@@ -247,6 +256,9 @@ namespace RN
 				
 			case SpotLights:
 				return (16 + 16 + 16) * 8;	//TODO: use define or something for the 5
+				
+			case BoneMatrices:
+				return 64 * 100; //TODO: Handle the 100 bones limit in some better way
 
 			default:
 				break;

@@ -71,7 +71,7 @@ namespace RN
 		{
 			Drawable *drawable = renderer->CreateDrawable();
 
-			drawable->Update(_stage->GetMeshAtIndex(i), _stage->GetMaterialAtIndex(i)->Copy(), nullptr);
+			drawable->Update(_stage->GetMeshAtIndex(i), _stage->GetMaterialAtIndex(i)->Copy(), nullptr, nullptr);
 			_drawables.push_back(drawable);
 		}
 	}

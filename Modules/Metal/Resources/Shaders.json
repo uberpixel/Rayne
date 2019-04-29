@@ -13,7 +13,8 @@
 						"RN_NORMALS",
 						"RN_COLOR",
 						"RN_ALPHA",
-						"RN_UV0"
+						"RN_UV0",
+						"RN_ANIMATIONS"
 					]
 				}
 			},

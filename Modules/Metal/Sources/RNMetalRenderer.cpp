@@ -875,6 +875,20 @@ namespace RN
 					
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::BoneMatrices:
+				{
+					if(drawable->skeleton)
+					{
+						//TODO: Don't hardcode limit here
+						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						if(matrixCount > 0)
+						{
+							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
+						}
+					}
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{

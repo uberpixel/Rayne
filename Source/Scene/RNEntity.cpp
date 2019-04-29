@@ -92,7 +92,7 @@ namespace RN
 		{
 			Drawable *drawable = drawables[i];
 
-			drawable->Update(stage->GetMeshAtIndex(i), stage->GetMaterialAtIndex(i), this);
+			drawable->Update(stage->GetMeshAtIndex(i), stage->GetMaterialAtIndex(i), _model->GetSkeleton(), this);
 			renderer->SubmitDrawable(drawable);
 		}
 	}
