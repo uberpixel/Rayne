@@ -277,6 +277,16 @@ namespace RN
 			}
 		}
 		
+		for(int i = to; i < _maxParticles; i++)
+		{
+			*indexIterator++ = i * 4 + 0;
+			*indexIterator++ = i * 4 + 0;
+			*indexIterator++ = i * 4 + 0;
+			*indexIterator++ = i * 4 + 0;
+			*indexIterator++ = i * 4 + 0;
+			*indexIterator++ = i * 4 + 0;
+		}
+		
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
 		_mesh->_changedVertices = true;
 		_mesh->_changedIndices = true;
