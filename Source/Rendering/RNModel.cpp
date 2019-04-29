@@ -10,6 +10,7 @@
 #include "../Assets/RNAssetManager.h"
 #include "../Rendering/RNRenderer.h"
 #include "RNModel.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
@@ -19,7 +20,7 @@ namespace RN
 	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 
 	Model::Model() :
-		_lodStages(new Array())
+		_lodStages(new Array()), _skeleton(nullptr)
 	{}
 
 	Model::Model(Mesh *mesh, Material *material) :
@@ -41,11 +42,14 @@ namespace RN
 		{
 			_lodStages->AddObject(stage->Copy());
 		});
+		
+		_skeleton = SafeRetain(other->_skeleton);
 	}
 
 	Model::~Model()
 	{
 		_lodStages->Release();
+		SafeRelease(_skeleton);
 	}
 
 	Model *Model::WithName(const String *name, const Dictionary *settings)
@@ -187,6 +191,17 @@ namespace RN
 		}
 
 		return _lodStages->GetLastObject<LODStage>();
+	}
+	
+	void Model::SetSkeleton(Skeleton *skeleton)
+	{
+		SafeRelease(_skeleton);
+		_skeleton = SafeRetain(skeleton);
+	}
+	
+	Skeleton *Model::GetSkeleton()
+	{
+		return _skeleton;
 	}
 
 	void Model::CalculateBoundingVolumes()

@@ -22,9 +22,13 @@
 
 namespace RN
 {
+	class ParticleEmitter;
+	
 	class Mesh : public Asset
 	{
 	public:
+		friend ParticleEmitter;
+		
 		struct VertexAttribute
 		{
 		public:

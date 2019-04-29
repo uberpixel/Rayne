@@ -37,6 +37,7 @@ set(RAYNE_SOURCES
     Assets/RNBitmap.cpp
     Assets/RNPNGAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
+    Assets/RNSGAAssetLoader.cpp
     Assets/RNAudioAsset.cpp
     Debug/RNLogFormatter.cpp
     Debug/RNLogger.cpp
@@ -78,6 +79,7 @@ set(RAYNE_SOURCES
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
+    Rendering/RNSkeleton.cpp
     Rendering/RNPostProcessing.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRendererDescriptor.cpp
@@ -96,6 +98,8 @@ set(RAYNE_SOURCES
     Scene/RNSceneNode.cpp
     Scene/RNSceneNodeAttachment.cpp
     Scene/RNLight.cpp
+    Scene/RNParticle.cpp
+    Scene/RNParticleEmitter.cpp
     System/RNFile.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -164,6 +168,7 @@ set(RAYNE_HEADERS
     Math/RNSIMD.h
     Math/RNSphere.h
     Math/RNVector.h
+    Math/RNInterpolation.h
     Modules/RNExtensionPoint.h
     Modules/RNModule.h
     Modules/RNModuleManager.h
@@ -193,6 +198,7 @@ set(RAYNE_HEADERS
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNModel.h
+    Rendering/RNSkeleton.h
     Rendering/RNPostProcessing.h
     Rendering/RNRenderer.h
     Rendering/RNRendererDescriptor.h
@@ -212,6 +218,8 @@ set(RAYNE_HEADERS
     Scene/RNSceneNode.h
     Scene/RNSceneNodeAttachment.h
     Scene/RNLight.h
+    Scene/RNParticle.h
+    Scene/RNParticleEmitter.h
     System/RNFile.h
     System/RNFileManager.h
     System/RNScreen.h
@@ -235,6 +243,7 @@ set(RAYNE_HEADERS
 set(RAYNE_HEADERS_PRIVATE
     Assets/RNPNGAssetLoader.h
     Assets/RNSGMAssetLoader.h
+    Assets/RNSGAAssetLoader.h
     Assets/RNAssetManagerInternals.h
     Base/RNBaseInternal.h
     Objects/RNHashTableInternal.h

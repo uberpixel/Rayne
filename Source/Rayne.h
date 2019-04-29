@@ -50,6 +50,7 @@
 #include "Math/RNSIMD.h"
 #include "Math/RNSphere.h"
 #include "Math/RNVector.h"
+#include "Math/RNInterpolation.h"
 
 #include "Modules/RNExtensionPoint.h"
 #include "Modules/RNModule.h"
@@ -77,6 +78,7 @@
 #include "Rendering/RNGPUResource.h"
 #include "Rendering/RNMaterial.h"
 #include "Rendering/RNMesh.h"
+#include "Rendering/RNSkeleton.h"
 #include "Rendering/RNModel.h"
 #include "Rendering/RNPostProcessing.h"
 #include "Rendering/RNRenderer.h"
@@ -96,6 +98,8 @@
 #include "Scene/RNSceneNode.h"
 #include "Scene/RNSceneNodeAttachment.h"
 #include "Scene/RNLight.h"
+#include "Scene/RNParticle.h"
+#include "Scene/RNParticleEmitter.h"
 
 #include "System/RNFile.h"
 #include "System/RNFileManager.h"

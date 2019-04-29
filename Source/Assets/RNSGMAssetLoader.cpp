@@ -7,6 +7,7 @@
 //
 
 #include "../Rendering/RNRenderer.h"
+#include "../Rendering/RNSkeleton.h"
 #include "../System/RNFileManager.h"
 #include "../Threads/RNWorkQueue.h"
 #include "RNSGMAssetLoader.h"
@@ -57,6 +58,41 @@ namespace RN
 		String *basePath = path->StringByDeletingLastPathComponent();
 
 		LoadLODStage(file, model->AddLODStage(lodFactors[0]), options);
+		
+		uint8 hasAnimations = file->ReadInt8();
+		if(hasAnimations == 1)
+		{
+			size_t length = file->ReadUint16();
+			char *buffer = new char[length];
+			
+			file->Read(buffer, length);
+			
+			String *animationFile = RNSTR(buffer);
+			String *fullPath = path->StringByAppendingPathComponent(animationFile);
+			String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+			
+			delete[] buffer;
+			
+			Skeleton *skeleton = nullptr;
+			if(options.queue)
+			{
+				std::shared_future<StrongRef<Asset>> future = AssetManager::GetSharedInstance()->GetFutureAssetWithName<Skeleton>(normalized, nullptr);
+				WorkQueue *queue = WorkQueue::GetCurrentWorkQueue();
+				
+				if(queue)
+					queue->YieldWithFuture(future);
+				else
+					future.wait();
+				
+				skeleton = future.get()->Downcast<Skeleton>();
+			}
+			else
+			{
+				skeleton = AssetManager::GetSharedInstance()->GetAssetWithName<Skeleton>(normalized, nullptr);
+			}
+			
+			model->SetSkeleton(skeleton);
+		}
 
 		if(autoLoadLOD)
 		{

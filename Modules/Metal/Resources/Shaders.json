@@ -34,6 +34,20 @@
 		]
 	},
 	{
+		"file": ":RayneMetal:/Particles.metal",
+		"shaders":
+		[
+			{
+				"name": "particles_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "particles_fragment",
+				"type": "fragment"
+			}
+		]
+	},
+	{
 		"file": ":RayneMetal:/Sky.metal",
 		"shaders":
 		[
