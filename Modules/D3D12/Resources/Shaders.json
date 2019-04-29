@@ -33,6 +33,20 @@
 		]
 	},
 	{
+		"file": ":RayneD3D12:/Particles.hlsl",
+		"shaders":
+		[
+			{
+				"name": "particles_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "particles_fragment",
+				"type": "fragment"
+			}
+		]
+	},
+	{
 		"file": ":RayneD3D12:/Depth.hlsl",
 		"shaders":
 		[
