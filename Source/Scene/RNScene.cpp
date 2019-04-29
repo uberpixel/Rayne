@@ -227,6 +227,8 @@ namespace RN
 						}
 					}
 					
+					group->Wait();
+					
 					//Draw scene nodes with DrawLate flag
 					group->Perform(queue, [&] {
 						
