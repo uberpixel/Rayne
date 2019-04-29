@@ -47,6 +47,9 @@ namespace RN
 
 		"INDEX",
 
+		"BONEWEIGHTS",
+		"BONEINDICES",
+
 		"CUSTOM"
 	};
 
@@ -60,6 +63,9 @@ namespace RN
 		0,
 		1,
 
+		0,
+
+		0,
 		0,
 
 		0
