@@ -14,6 +14,34 @@
 
 namespace RN
 {
+	D3D12_BLEND_OP _blendOpLookup[] =
+	{
+		D3D12_BLEND_OP_ADD,
+		D3D12_BLEND_OP_SUBTRACT,
+		D3D12_BLEND_OP_REV_SUBTRACT,
+		D3D12_BLEND_OP_MIN,
+		D3D12_BLEND_OP_MAX
+	};
+
+	D3D12_BLEND _blendFactorLookup[] =
+	{
+		D3D12_BLEND_ZERO,
+		D3D12_BLEND_ONE,
+		D3D12_BLEND_SRC_COLOR,
+		D3D12_BLEND_INV_SRC_COLOR,
+		D3D12_BLEND_SRC_ALPHA,
+		D3D12_BLEND_INV_SRC_ALPHA,
+		D3D12_BLEND_DEST_COLOR,
+		D3D12_BLEND_INV_DEST_COLOR,
+		D3D12_BLEND_DEST_ALPHA,
+		D3D12_BLEND_INV_DEST_ALPHA,
+		D3D12_BLEND_SRC_ALPHA_SAT,
+		D3D12_BLEND_SRC1_COLOR,
+		D3D12_BLEND_INV_SRC1_COLOR,
+		D3D12_BLEND_SRC1_ALPHA,
+		D3D12_BLEND_INV_SRC1_ALPHA
+	};
+
 	DXGI_FORMAT _vertexFormatLookup[] =
 	{
 		DXGI_FORMAT_R8_UINT,
@@ -33,7 +61,7 @@ namespace RN
 		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		DXGI_FORMAT_R32G32B32A32_FLOAT
-		};
+	};
 
 	const char* _vertexFeatureLookup[]
 	{
@@ -354,7 +382,14 @@ namespace RN
 		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
 		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
 		pipelineDescriptor.polygonOffsetUnits = mergedMaterialProperties.polygonOffsetUnits;
+		pipelineDescriptor.blendOperationRGB = mergedMaterialProperties.blendOperationRGB;
+		pipelineDescriptor.blendOperationAlpha = mergedMaterialProperties.blendOperationAlpha;
+		pipelineDescriptor.blendFactorSourceRGB = mergedMaterialProperties.blendFactorSourceRGB;
+		pipelineDescriptor.blendFactorSourceAlpha = mergedMaterialProperties.blendFactorSourceAlpha;
+		pipelineDescriptor.blendFactorDestinationRGB = mergedMaterialProperties.blendFactorDestinationRGB;
+		pipelineDescriptor.blendFactorDestinationAlpha = mergedMaterialProperties.blendFactorDestinationAlpha;
 		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
+		pipelineDescriptor.colorWriteMask = mergedMaterialProperties.colorWriteMask;
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
@@ -383,8 +418,9 @@ namespace RN
 		{
 			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 			{
-				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage)
+				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits)
 				{
+					if(state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.colorWriteMask == descriptor.colorWriteMask)
 					return state;
 				}
 			}
@@ -428,8 +464,28 @@ namespace RN
 			break;
 		}
 		
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState.AlphaToCoverageEnable = descriptor.useAlphaToCoverage? TRUE : FALSE;
+		D3D12_BLEND_DESC blendDescription;
+		blendDescription.AlphaToCoverageEnable = descriptor.useAlphaToCoverage ? TRUE : FALSE;
+		blendDescription.IndependentBlendEnable = TRUE;
+
+		D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc;
+		renderTargetBlendDesc.BlendEnable = (descriptor.blendOperationRGB != BlendOperation::None && descriptor.blendOperationAlpha != BlendOperation::None);
+		renderTargetBlendDesc.LogicOpEnable = FALSE;
+		renderTargetBlendDesc.SrcBlend = _blendFactorLookup[static_cast<int>(descriptor.blendFactorSourceRGB)];
+		renderTargetBlendDesc.DestBlend = _blendFactorLookup[static_cast<int>(descriptor.blendFactorDestinationRGB)];
+		renderTargetBlendDesc.BlendOp = _blendOpLookup[static_cast<int>(descriptor.blendOperationRGB)];
+		renderTargetBlendDesc.SrcBlendAlpha = _blendFactorLookup[static_cast<int>(descriptor.blendFactorSourceAlpha)];
+		renderTargetBlendDesc.DestBlendAlpha = _blendFactorLookup[static_cast<int>(descriptor.blendFactorDestinationAlpha)];
+		renderTargetBlendDesc.BlendOpAlpha = _blendOpLookup[static_cast<int>(descriptor.blendOperationAlpha)];
+		renderTargetBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		renderTargetBlendDesc.RenderTargetWriteMask = descriptor.colorWriteMask;
+
+		for(UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+		{
+			blendDescription.RenderTarget[i] = renderTargetBlendDesc;
+		}
+
+		psoDesc.BlendState = blendDescription;
 
 		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
 		{

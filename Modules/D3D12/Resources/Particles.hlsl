@@ -21,14 +21,14 @@ struct InputVertex
 	float3 position : POSITION;
 	float2 texCoords : TEXCOORD0;
 	float2 texCoords2 : TEXCOORD1;
-	float3 color : COLOR;
+	float4 color : COLOR;
 };
 
 struct FragmentVertex
 {
 	float4 position : SV_POSITION;
 //	float2 texCoords : TEXCOORD0;
-	float3 color : COLOR;
+	float4 color : COLOR;
 };
 
 

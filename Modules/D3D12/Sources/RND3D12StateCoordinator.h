@@ -76,7 +76,15 @@ namespace RN
 		float polygonOffsetFactor;
 		float polygonOffsetUnits;
 
+		BlendOperation blendOperationRGB;
+		BlendOperation blendOperationAlpha;
+		BlendFactor blendFactorSourceRGB;
+		BlendFactor blendFactorSourceAlpha;
+		BlendFactor blendFactorDestinationRGB;
+		BlendFactor blendFactorDestinationAlpha;
 		bool useAlphaToCoverage;
+
+		uint32 colorWriteMask;
 	};
 
 	struct D3D12PipelineState
