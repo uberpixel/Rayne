@@ -34,6 +34,15 @@ def main():
     jsonDirectory, jsonFileName = os.path.split(sys.argv[1])
     destinationJson = list()
 
+    shaderConductorCmdPath = os.path.dirname(sys.argv[0])
+    if platform.system() == 'Darwin':
+        shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-osx-clang-x64-Release/Bin/ShaderConductorCmd')
+    else:
+        print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
+        return
+
+    print shaderConductorCmdPath
+
     for shaderFile in sourceJson:
         if not 'file' in shaderFile or not 'shaders' in shaderFile:
             continue
@@ -103,10 +112,10 @@ def main():
 
                 for permutationCounter, permutation in enumerate(permutations):
                     permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.' + outFormat)
-                    parameterList = ['/Users/slin/Documents/Dev/Rayne/Tools/ShaderConductor/Build/ninja-osx-clang-x64-Release/Bin/ShaderConductorCmd', '-I', sourceFile, '-O', permutationOutFile, '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
+                    parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
-                    returnCode = subprocess.call(parameterList)
+                    subprocess.call(parameterList)
 
                     if outFormat == 'metal' and platform.system() == 'Darwin':
                         bitcodeOutFile = permutationOutFile + '.air'
