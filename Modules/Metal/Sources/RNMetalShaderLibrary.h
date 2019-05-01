@@ -30,6 +30,7 @@ namespace RN
 		MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
 		
 		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
+		size_t GetPermutationIndexForOptions(const Shader::Options *options) const;
 		const Array *GetSamplerSignature(const Shader::Options *options) const;
 		
 		Dictionary *_shaders;

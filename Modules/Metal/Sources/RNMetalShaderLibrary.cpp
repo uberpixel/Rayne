@@ -68,6 +68,40 @@ namespace RN
 		return newOptions;
 	}
 	
+	size_t MetalSpecificShaderLibrary::GetPermutationIndexForOptions(const Shader::Options *options) const
+	{
+		if(!options || !_signatureDescription) return 0;
+		
+		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
+		if(!signatureOptions) return 0;
+		
+		const Dictionary *oldDefines = options->GetDefines();
+		size_t permutationIndex = 0;
+		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
+			Dictionary *dict = option->Downcast<Dictionary>();
+			String *name = nullptr;
+			if(!dict)
+			{
+				name = option->Downcast<String>();
+			}
+			else
+			{
+				name = dict->GetObjectForKey<String>(RNCSTR("option"));
+			}
+			
+			if(name)
+			{
+				String *obj = oldDefines->GetObjectForKey<String>(name);
+				if(obj)
+				{
+					permutationIndex |= (1 << index);
+				}
+			}
+		});
+		
+		return permutationIndex;
+	}
+	
 	static Array *GetUniformDescriptors(const Array *uniforms, uint32 &offset)
 	{
 		Array *uniformDescriptors = new Array();
@@ -200,49 +234,63 @@ namespace RN
 		if(shader)
 			return shader;
 		
-		MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
-		
-		if(newOptions)
-		{
-			const Dictionary *defines = newOptions->GetDefines();
-			if(defines)
-			{
-				NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
-				
-				defines->Enumerate<Object, Object>([&](Object *value, const Object *key, bool &stop) {
-					
-					if(key->IsKindOfClass(String::GetMetaClass()))
-					{
-						NSString *keyString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(key)->GetUTF8String()];
-						
-						if(value->IsKindOfClass(Number::GetMetaClass()))
-						{
-							NSNumber *valueNumber = [[NSNumber alloc] initWithLongLong:static_cast<Number *>(value)->GetInt64Value()];
-							[metalDefines setObject:valueNumber forKey:keyString];
-							[valueNumber release];
-						}
-						else if(value->IsKindOfClass(String::GetMetaClass()))
-						{
-							NSString *valueString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(value)->GetUTF8String()];
-							[metalDefines setObject:valueString forKey:keyString];
-							[valueString release];
-						}
-						
-						[keyString release];
-					}
-					
-				});
-				
-				[metalOptions setPreprocessorMacros:metalDefines];
-				[metalDefines release];
-			}
-		}
-		
-		String *content = String::WithContentsOfFile(_fileName, Encoding::UTF8);
+		bool isShaderBinary = _fileName->HasSuffix(RNCSTR(".metallib"));
 		
 		NSError *error = nil;
-		id<MTLLibrary> metalLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:content->GetUTF8String()] options:metalOptions error:&error];
-		[metalOptions release];
+		id<MTLLibrary> metalLibrary = nil;
+		if(!isShaderBinary)
+		{
+			MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
+			if(newOptions)
+			{
+				const Dictionary *defines = newOptions->GetDefines();
+				if(defines)
+				{
+					NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
+					
+					defines->Enumerate<Object, Object>([&](Object *value, const Object *key, bool &stop) {
+						
+						if(key->IsKindOfClass(String::GetMetaClass()))
+						{
+							NSString *keyString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(key)->GetUTF8String()];
+							
+							if(value->IsKindOfClass(Number::GetMetaClass()))
+							{
+								NSNumber *valueNumber = [[NSNumber alloc] initWithLongLong:static_cast<Number *>(value)->GetInt64Value()];
+								[metalDefines setObject:valueNumber forKey:keyString];
+								[valueNumber release];
+							}
+							else if(value->IsKindOfClass(String::GetMetaClass()))
+							{
+								NSString *valueString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(value)->GetUTF8String()];
+								[metalDefines setObject:valueString forKey:keyString];
+								[valueString release];
+							}
+							
+							[keyString release];
+						}
+						
+					});
+					
+					[metalOptions setPreprocessorMacros:metalDefines];
+					[metalDefines release];
+				}
+			}
+			
+			String *content = String::WithContentsOfFile(_fileName, Encoding::UTF8);
+			metalLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:content->GetUTF8String()] options:metalOptions error:&error];
+			
+			[metalOptions release];
+		}
+		else
+		{
+			size_t permutationIndex = GetPermutationIndexForOptions(newOptions);
+			RN::String *permutationFileName = _fileName->StringByDeletingPathExtension();
+			permutationFileName->Append(RNSTR("." << permutationIndex));
+			permutationFileName->Append(".metallib");
+			RN::String *filePath = RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
+			metalLibrary = [device newLibraryWithFile:[NSString stringWithUTF8String:filePath->GetUTF8String()] error:&error];
+		}
 		
 		if(!metalLibrary)
 			throw ShaderCompilationException([[error localizedDescription] UTF8String]);
