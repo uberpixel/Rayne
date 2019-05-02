@@ -40,3 +40,6 @@
 [submodule "Tools/ShaderProcessor/Vendor/ShaderConductor"]
 	path = Tools/ShaderProcessor/Vendor/ShaderConductor
 	url = https://github.com/Slin/ShaderConductor.git
+[submodule "Modules/OculusAudio/Vendor/rtaudio"]
+	path = Modules/OculusAudio/Vendor/rtaudio
+	url = https://github.com/thestk/rtaudio.git

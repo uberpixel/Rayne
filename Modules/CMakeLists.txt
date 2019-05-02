@@ -16,6 +16,7 @@ option(RN_BUILD_NEWTON_MODULE "Build the Newton Game Dynamics physics module" OF
 option(RN_BUILD_OGG_MODULE "Build the ogg audio file module" ON)
 option(RN_BUILD_OPENAL_MODULE "Build the OpenAL audio module" ON)
 option(RN_BUILD_STEAMAUDIO_MODULE "Build the Steam Audio module" OFF)
+option(RN_BUILD_OCULUSAUDIO_MODULE "Build the Oculus Audio module" OFF)
 option(RN_BUILD_ENET_MODULE "Build the ENet module" OFF)
 option(RN_BUILD_RECAST_MODULE "Build the Recast navmesh module" OFF)
 option(BUILD_UI_MODULE "Build the UI module" ON)
@@ -64,6 +65,10 @@ endif()
 
 if(${RN_BUILD_STEAMAUDIO_MODULE})
     add_subdirectory("SteamAudio")
+endif()
+
+if(${RN_BUILD_OCULUSAUDIO_MODULE})
+    add_subdirectory("OculusAudio")
 endif()
 
 if(${RN_BUILD_ENET_MODULE})
