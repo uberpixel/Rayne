@@ -52,6 +52,8 @@ namespace RN
 		OculusAudioSampler *_sampler;
 		OculusAudioSourceInternals *_internals;
 		
+		uint32 _oculusAudioSourceIndex;
+		
 		bool _wantsIndirectSound;
 
 		bool _isPlaying;

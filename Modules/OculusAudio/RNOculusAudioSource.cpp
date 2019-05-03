@@ -19,6 +19,7 @@ namespace RN
 		_channel(0),
 		_sampler(new OculusAudioSampler(asset)),
 		_internals(new OculusAudioSourceInternals()),
+		_oculusAudioSourceIndex(-1),
 		_wantsIndirectSound(wantsIndirectSound),
 		_isPlaying(false),
 		_isRepeating(false),
@@ -164,12 +165,12 @@ namespace RN
 		double localTime = _currentTime;
 		for(int i = 0; i < sampleCount; i++)
 		{
-			OculusAudioWorld::_instance->_sharedSourceOutputFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) * _gain;
+			OculusAudioWorld::_instance->_sharedFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) * _gain;
 			localTime += sampleLength * _pitch;
 			_delay += _speed;
 		}
 
 		_currentTime = localTime;
-		*outputBuffer = OculusAudioWorld::_instance->_sharedSourceOutputFrameData;
+		*outputBuffer = OculusAudioWorld::_instance->_sharedFrameData;
 	}
 }

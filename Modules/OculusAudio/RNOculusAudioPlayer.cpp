@@ -117,7 +117,7 @@ namespace RN
 				//TODO: support more output layouts
 				for (int i = 0; i < 2; i++)
 				{
-					OculusAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, 0) * _gain;
+					OculusAudioWorld::_instance->_sharedFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, 0) * _gain;
 				}
 				_currentTime += sampleLength * _pitch;
 			}
@@ -131,12 +131,12 @@ namespace RN
 				//TODO: support more output layouts
 				for(int i = 0; i < 2; i++)
 				{
-					OculusAudioWorld::_instance->_sharedSourceOutputFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, i) * _gain;
+					OculusAudioWorld::_instance->_sharedFrameData[n * 2 + i] = _sampler->GetSample(_currentTime, i) * _gain;
 				}
 				_currentTime += sampleLength * _pitch;
 			}
 		}
 
-		*outputBuffer = OculusAudioWorld::_instance->_sharedSourceOutputFrameData;
+		*outputBuffer = OculusAudioWorld::_instance->_sharedFrameData;
 	}
 }

@@ -24,6 +24,7 @@ namespace RN
 	int OculusAudioWorld::AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData)
 	{
 		double *buffer = (double *)outputBuffer;
+		double bufferLength = 1.0/static_cast<double>(_instance->_sampleRate) * nBufferFrames;
 		
 		memset(buffer, 0, nBufferFrames * 2 * sizeof(double));
 		
@@ -33,22 +34,33 @@ namespace RN
 		//Mix audio sources
 		if(_instance->_audioSources->GetCount() > 0)
 		{
-			float spatializedBuffer[256 * 2];
-			
 			_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-				if(!source->IsPlaying())
+				if(!source->IsPlaying() || source->GetWorldPosition().GetDistance(_instance->_listener->GetWorldPosition()) > source->_minMaxRange.y)
+				{
+					if(source->_oculusAudioSourceIndex != -1)
+					{
+						_instance->ReleaseSourceIndex(source->_oculusAudioSourceIndex);
+						source->_oculusAudioSourceIndex = -1;
+					}
 					return;
+				}
+				
+				if(source->_oculusAudioSourceIndex == -1)
+				{
+					source->_oculusAudioSourceIndex = _instance->RetainSourceIndex();
+				}
+				
+				if(source->_oculusAudioSourceIndex == -1)
+				{
+					//Too many active audio sources
+					return;
+				}
 				
 				float *outData = nullptr;
-				source->Update(1.0/44100.0*nBufferFrames, nBufferFrames, &outData);
+				source->Update(bufferLength, nBufferFrames, &outData);
 				
 				if(!outData)
 					return;
-				
-				// This assumes that all sounds want to be spatialized!
-				// NOTE: In practice these should be 16-byte aligned, but for brevity
-				// we're just showing them declared like this
-				uint32_t Status = 0;
 				
 				RN::Vector3 sourcePosition = source->GetWorldPosition();
 				
@@ -58,30 +70,31 @@ namespace RN
 					sourcePosition = _instance->_listener->GetWorldRotation().GetConjugated().GetRotatedVector(sourcePosition);
 				}
 				
-				//ovrAudio_SetAudioSourceFlags(_instance->_internals->oculusAudioContext, index, ovrAudioSourceFlag_DirectTimeOfArrival);
-				
-				ovrAudio_SetAudioSourceAttenuationMode(_instance->_internals->oculusAudioContext, index, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
-				
-			   // Set the sound's position in space (using OVR coordinates)
-			   // NOTE: if a pose state has been specified by a previous call to
-			   // ovrAudio_ListenerPoseStatef then it will be transformed
-			   // by that as well
-			   ovrAudio_SetAudioSourcePos(_instance->_internals->oculusAudioContext, index, sourcePosition.x, sourcePosition.y, sourcePosition.z);
-			   
-			   // This sets the attenuation range from max volume to silent
-			   // NOTE: attenuation can be disabled or enabled
-			   ovrAudio_SetAudioSourceRange(_instance->_internals->oculusAudioContext, index, source->GetRange().x, source->GetRange().y);
-			   
-			   // Spatialize the sound into the output buffer.  Note that there
-			   // are two APIs, one for interleaved sample data and another for
-			   // separate left/right sample data
-			   ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, index, &Status, spatializedBuffer, outData);
+				//ovrAudio_SetAudioSourceFlags(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceFlag_DirectTimeOfArrival);
+
+				ovrAudio_SetAudioSourceAttenuationMode(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
+
+				// Set the sound's position in space (using OVR coordinates)
+				// NOTE: if a pose state has been specified by a previous call to
+				// ovrAudio_ListenerPoseStatef then it will be transformed
+				// by that as well
+				ovrAudio_SetAudioSourcePos(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourcePosition.x, sourcePosition.y, sourcePosition.z);
+
+				// This sets the attenuation range from max volume to silent
+				// NOTE: attenuation can be disabled or enabled
+				ovrAudio_SetAudioSourceRange(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
+
+				// Spatialize the sound into the output buffer.  Note that there
+				// are two APIs, one for interleaved sample data and another for
+				// separate left/right sample data
+				uint32_t Status = 0;
+				ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, &Status, _instance->_tempFrameData, outData);
 				
 				for(int i = 0; i < nBufferFrames; i++)
 				{
 					for(int j = 0; j < 2; j++)
 					{
-						buffer[i*2 + j] += spatializedBuffer[i*2 + j];
+						buffer[i*2 + j] += _instance->_tempFrameData[i*2 + j];
 					}
 				}
 			});
@@ -95,7 +108,7 @@ namespace RN
 					return;
 				
 				float *outData = nullptr;
-				source->Update(1.0/44100.0*nBufferFrames, nBufferFrames, &outData);
+				source->Update(bufferLength, nBufferFrames, &outData);
 				
 				if(!outData)
 					return;
@@ -165,171 +178,21 @@ namespace RN
 			remainingSamples -= sampleCount;
 		}
 	}
-	
-	void OculusAudioWorld::WriteCallback(struct SoundIoOutStream *outStream, int minSampleCount, int maxSampleCount)
-	{
-		if(!_instance || _instance->_isUpdatingScene)
-			return;
-		
-		struct SoundIoChannelArea *areas;
-		int remainingSamples = std::max(static_cast<int>(_instance->_frameSize), minSampleCount);
-		
-		while(remainingSamples > 0)
-		{
-			int sampleCount = remainingSamples;
-			
-			if(soundio_outstream_begin_write(outStream, &areas, &sampleCount) > 0)
-				break;
-			if(!sampleCount)
-				break;
-
-			const struct SoundIoChannelLayout *layout = &outStream->layout;
-			float sampleLength = 1.0f / static_cast<float>(outStream->sample_rate);
-			int currentSampleCount = 0;//std::max(std::min(static_cast<int>(_instance->_frameSize), maxSampleCount), minSampleCount);
-			int processedSampleCount = 0;
-			
-			while(processedSampleCount < sampleCount)
-			{
-				currentSampleCount = std::min(static_cast<int>(_instance->_frameSize), sampleCount - processedSampleCount);
-				float secondsPerFrame = sampleLength * currentSampleCount;
-				
-				if(_instance->_customWriteCallback)
-				{
-					_instance->_customWriteCallback(secondsPerFrame);
-				}
-
-				IPLAudioBuffer mixingBuffer[3];
-				mixingBuffer[0].format = _instance->_internals->internalAmbisonicsFormat;
-				mixingBuffer[1].format = _instance->_internals->internalAmbisonicsFormat;
-				mixingBuffer[2].format = _instance->_internals->internalAmbisonicsFormat;
-				mixingBuffer[0].numSamples = currentSampleCount;
-				mixingBuffer[1].numSamples = currentSampleCount;
-				mixingBuffer[2].numSamples = currentSampleCount;
-				mixingBuffer[1].interleavedBuffer = _instance->_mixedAmbisonicsFrameData0;
-				mixingBuffer[2].interleavedBuffer = _instance->_mixedAmbisonicsFrameData1;
-
-				Vector3 listenerPosition;
-				Vector3 listenerForward(0.0f, 0.0f, -1.0f);
-				Vector3 listenerUp(0.0f, 1.0f, 0.0f);
-				SceneNode *listener = OculusAudioWorld::_instance->_listener;
-				if(listener)
-				{
-					listenerPosition = listener->GetWorldPosition();
-					listenerForward = listener->GetForward();
-					listenerUp = listener->GetUp();
-				}
-
-				//Get indirect audio samples if possible
-				if(_instance->_scene)
-				{
-					iplGetMixedEnvironmentalAudio(_instance->_environmentalRenderer,
-						IPLVector3{ listenerPosition.x, listenerPosition.y, listenerPosition.z },
-						IPLVector3{ listenerForward.x, listenerForward.y, listenerForward.z },
-						IPLVector3{ listenerUp.x, listenerUp.y, listenerUp.z }, mixingBuffer[1]);
-				}
-				else
-				{
-					memset(_instance->_mixedAmbisonicsFrameData0, 0, sizeof(float) * currentSampleCount * _instance->_internals->internalAmbisonicsFormat.numSpeakers);
-				}
-
-				//Get direct audio samples and mix
-				if(_instance->_environmentalRenderer)
-				{
-					_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-						if(!source->IsPlaying())
-							return;
-
-						float *outData = nullptr;
-						source->Update(secondsPerFrame, currentSampleCount, &outData);
-
-						if(!outData)
-							return;
-
-						mixingBuffer[0].interleavedBuffer = outData;
-						iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
-						float *tempPointer = mixingBuffer[2].interleavedBuffer;
-						mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
-						mixingBuffer[1].interleavedBuffer = tempPointer;
-					});
-				}
-
-				//Turn ambisonics data into binaural stereo data TODO: Also support ambisonic panning effect here!
-				IPLAudioBuffer outputBuffer;
-				outputBuffer.format = _instance->_internals->outputFormat;
-				outputBuffer.numSamples = currentSampleCount;
-				outputBuffer.interleavedBuffer = _instance->_outputFrameData;
-				iplApplyAmbisonicsBinauralEffect(_instance->_ambisonicsBinauralEffect, mixingBuffer[1], outputBuffer);
-
-				//Mix final output with audio players
-				if(_instance->_audioPlayers->GetCount() > 0)
-				{
-					mixingBuffer[0].format = _instance->_internals->outputFormat;
-					mixingBuffer[1].format = _instance->_internals->outputFormat;
-					mixingBuffer[2].format = _instance->_internals->outputFormat;
-					mixingBuffer[1].interleavedBuffer = _instance->_outputFrameData;
-
-					_instance->_audioPlayers->Enumerate<OculusAudioPlayer>([&](OculusAudioPlayer *source, size_t index, bool &stop) {
-						if(!source->IsPlaying())
-							return;
-
-						float *outData = nullptr;
-						source->Update(secondsPerFrame, currentSampleCount, &outData);
-
-						if(!outData)
-							return;
-
-						mixingBuffer[0].interleavedBuffer = outData;
-						iplMixAudioBuffers(2, mixingBuffer, mixingBuffer[2]);
-						float *tempPointer = mixingBuffer[2].interleavedBuffer;
-						mixingBuffer[2].interleavedBuffer = mixingBuffer[1].interleavedBuffer;
-						mixingBuffer[1].interleavedBuffer = tempPointer;
-					});
-
-					memcpy(_instance->_outputFrameData, mixingBuffer[1].interleavedBuffer, layout->channel_count * currentSampleCount * sizeof(float));
-				}
-				
-				//Write audio data to the device
-				int actualSample = 0;
-				for(int sample = processedSampleCount; sample < processedSampleCount+currentSampleCount; sample++)
-				{
-					for(int channel = 0; channel < layout->channel_count; channel++)
-					{
-						float *ptr = reinterpret_cast<float*>(areas[channel].ptr + areas[channel].step * sample);
-						*ptr = _instance->_outputFrameData[actualSample * layout->channel_count + channel];
-					}
-					actualSample++;
-				}
-				
-				processedSampleCount += currentSampleCount;
-			}
-			
-			soundio_outstream_end_write(outStream);
-			remainingSamples -= sampleCount;
-		}
-	}*/
+*/
 
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
-	OculusAudioWorld::OculusAudioWorld(OculusAudioDevice *outputDevice, uint8 ambisonicsOrder, uint32 sampleRate, uint32 frameSize) :
+	OculusAudioWorld::OculusAudioWorld(OculusAudioDevice *outputDevice, uint32 sampleRate, uint32 frameSize, uint32 maxSources) :
 		_listener(nullptr),
-/*		_inDevice(nullptr),
-		_outDevice(nullptr),
-		_inStream(nullptr),
-		_outStream(nullptr),*/
-		_ambisonicsOrder(ambisonicsOrder),
-		_isUpdatingScene(true),
-		_scene(nullptr),
-		_sceneMesh(nullptr),
-		_environment(nullptr),
-		_ambisonicsBinauralEffect(nullptr),
-		_environmentalRenderer(nullptr),
 		_inputBuffer(nullptr),
 		_audioSources(new Array()),
 		_audioPlayers(new Array()),
 		_frameSize(frameSize),
 		_sampleRate(sampleRate),
-		_mixedAmbisonicsFrameData0(nullptr),
-		_mixedAmbisonicsFrameData1(nullptr),
-		_outputFrameData(nullptr),
+		_maxSourceCount(maxSources),
+		_isSourceAvailable(nullptr),
+		_sharedFrameData(nullptr),
+		_tempFrameData(nullptr),
+		_isUpdatingScene(true),
 		_internals(new OculusAudioWorldInternals())
 	{
 		RN_ASSERT(!_instance, "There already is a OculusAudioWorld!");
@@ -345,9 +208,9 @@ namespace RN
 		
 		ovrAudioContextConfiguration config = {};
 		config.acc_Size = sizeof(config);
-		config.acc_SampleRate = 44100;
-		config.acc_BufferLength = 256;
-		config.acc_MaxNumSources = 16;
+		config.acc_SampleRate = sampleRate;
+		config.acc_BufferLength = frameSize;
+		config.acc_MaxNumSources = _maxSourceCount;
 		
 		if(ovrAudio_CreateContext(&_internals->oculusAudioContext, &config) != ovrSuccess)
 		{
@@ -355,46 +218,23 @@ namespace RN
 			return;
 		}
 		
+		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 1);
+		//ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
+		//ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
+		
+		ovrAudioBoxRoomParameters brp = {};
+		brp.brp_Size = sizeof(brp);
+		brp.brp_ReflectLeft = brp.brp_ReflectRight = brp.brp_ReflectUp = brp.brp_ReflectDown = brp.brp_ReflectFront = brp.brp_ReflectBehind = 0.0;
+		brp.brp_Width = 11;
+		brp.brp_Height = 10;
+		brp.brp_Depth = 9;
+		ovrAudio_SetSimpleBoxRoomParameters(_internals->oculusAudioContext, &brp);
+		
 		SetOutputDevice(outputDevice);
 		
-		//Initialize libsoundio
-/*		_soundio = soundio_create();
-		soundio_connect(_soundio);
-		soundio_flush_events(_soundio);
-
-		SetOutputDevice(outputDevice);
-
-		//Initialize Steam Audio
-		iplCreateContext(nullptr, nullptr, nullptr, &_internals->context);
-		
-		_internals->settings.samplingRate = sampleRate;
-		_internals->settings.frameSize = frameSize;
-		_internals->settings.convolutionType = IPL_CONVOLUTIONTYPE_PHONON;
-
-		IPLHrtfParams hrtfParams{IPL_HRTFDATABASETYPE_DEFAULT, nullptr, 0, nullptr, nullptr};
-		iplCreateBinauralRenderer(_internals->context, _internals->settings, hrtfParams, &_binauralRenderer); //TODO: HRTF is only a good idea with headphones, add alternative
-
-		_internals->internalAmbisonicsFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_AMBISONICS;
-		_internals->internalAmbisonicsFormat.numSpeakers = (ambisonicsOrder + 1) * (ambisonicsOrder + 1);
-		_internals->internalAmbisonicsFormat.ambisonicsOrder = ambisonicsOrder;
-		_internals->internalAmbisonicsFormat.ambisonicsOrdering = IPL_AMBISONICSORDERING_ACN;
-		_internals->internalAmbisonicsFormat.ambisonicsNormalization = IPL_AMBISONICSNORMALIZATION_N3D;
-		_internals->internalAmbisonicsFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
-
-		_internals->outputFormat.channelLayoutType = IPL_CHANNELLAYOUTTYPE_SPEAKERS;
-		_internals->outputFormat.channelLayout = IPL_CHANNELLAYOUT_STEREO;
-		_internals->outputFormat.numSpeakers = 2;
-		_internals->outputFormat.channelOrder = IPL_CHANNELORDER_INTERLEAVED;
-
-		iplCreateAmbisonicsBinauralEffect(_binauralRenderer, _internals->internalAmbisonicsFormat, _internals->outputFormat, &_ambisonicsBinauralEffect);
-
-		_mixedAmbisonicsFrameData0 = new float[_frameSize * std::max(_internals->internalAmbisonicsFormat.numSpeakers, 2)]; //TODO: Don't hardcode maximum number of supported output channels (2) here
-		_mixedAmbisonicsFrameData1 = new float[_frameSize * std::max(_internals->internalAmbisonicsFormat.numSpeakers, 2)]; //TODO: Don't hardcode maximum number of supported output channels (2) here
-		_outputFrameData = new float[_frameSize * 2]; //TODO: Don't hardcode maximum number of supported output channels (2) here
-		_inputFrameData = new float[_frameSize * 1]; //TODO: Don't hardcode maximum number of supported input channels (1) here
-
-		_sharedSourceInputFrameData = new float[_frameSize];*/
-		_sharedSourceOutputFrameData = new float[_frameSize * 2]; //TODO: Don't hardcode number of output channels (2) here
+		_isSourceAvailable = new bool[_maxSourceCount];
+		_sharedFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
+		_tempFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
 
 		_instance = this;
 		UpdateScene();
@@ -405,69 +245,25 @@ namespace RN
 		SafeRelease(_audioSources);
 		SafeRelease(_audioPlayers);
 
-/*		if(_inStream)
-			soundio_instream_destroy(_inStream);
-
-		if(_inDevice)
-			soundio_device_unref(_inDevice);
-
-		if(_outStream)
-			soundio_outstream_destroy(_outStream);
-
-		if(_outDevice)
-			soundio_device_unref(_outDevice);
-
-		if(_soundio)
-			soundio_destroy(_soundio);
-
-		if(_environmentalRenderer)
+		if(_sharedFrameData)
 		{
-			iplDestroyEnvironmentalRenderer(&_environmentalRenderer);
-		}
-
-		if(_environment)
-		{
-			iplDestroyEnvironment(&_environment);
-		}
-
-		if(_sceneMesh)
-		{
-			iplDestroyStaticMesh(&_sceneMesh);
-			_sceneMesh = nullptr;
-		}
-
-		if(_scene)
-		{
-			iplDestroyScene(&_scene);
-		}
-
-		if(_ambisonicsBinauralEffect)
-		{
-			iplDestroyAmbisonicsBinauralEffect(&_ambisonicsBinauralEffect);
-		}
-
-		iplDestroyBinauralRenderer(&_binauralRenderer);
-*/
-		if(_frameSize > 0)
-		{
-/*			delete[] _mixedAmbisonicsFrameData0;
-			delete[] _mixedAmbisonicsFrameData1;
-			delete[] _outputFrameData;
-			delete[] _inputFrameData;
-			delete[] _sharedSourceInputFrameData;*/
-			delete[] _sharedSourceOutputFrameData;
-
-			_mixedAmbisonicsFrameData0 = nullptr;
-			_mixedAmbisonicsFrameData1 = nullptr;
-			_outputFrameData = nullptr;
-			_inputFrameData = nullptr;
-			_sharedSourceInputFrameData = nullptr;
-			_sharedSourceOutputFrameData = nullptr;
-
-			_frameSize = 0;
+			ovrAudio_FreeSamples(_sharedFrameData);
+			_sharedFrameData = nullptr;
 		}
 		
-//		iplDestroyContext(&_internals->context);
+		if(_tempFrameData)
+		{
+			ovrAudio_FreeSamples(_tempFrameData);
+			_tempFrameData = nullptr;
+		}
+
+		_frameSize = 0;
+		
+		if(_isSourceAvailable)
+		{
+			delete[] _isSourceAvailable;
+			_isSourceAvailable = nullptr;
+		}
 		
 		ovrAudio_DestroyContext(_internals->oculusAudioContext);
 		ovrAudio_Shutdown();
@@ -490,81 +286,18 @@ namespace RN
 		parameters.deviceId = outputDevice->index;
 		parameters.nChannels = 2;
 		parameters.firstChannel = 0;
-		unsigned int sampleRate = 44100;
-		unsigned int bufferFrames = 256; // 256 sample frames
-		double data[2];
 		try
 		{
-			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT64, sampleRate, &bufferFrames, &AudioCallback, (void *)&data);
+			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT64, _sampleRate, &_frameSize, &AudioCallback, nullptr);
 			_internals->rtAudioContext.startStream();
 		}
-		catch ( RtAudioError& e ) {
+		catch(RtAudioError& e)
+		{
 			e.printMessage();
-			exit( 0 );
-		}
-
-/*		if(_outStream)
-		{
-			soundio_outstream_destroy(_outStream);
-			_outStream = nullptr;
-		}
-
-		if(_outDevice)
-		{
-			soundio_device_unref(_outDevice);
-			_outDevice = nullptr;
-		}
-
-		if(!outputDevice)
-			return;
-
-
-		int deviceIndex = outputDevice->index;
-		if(deviceIndex < 0)
-		{
-			RNDebug("Not a valid audio device.");
 			return;
 		}
 
-		_outDevice = soundio_get_output_device(_soundio, deviceIndex);
-		if(!_outDevice)
-		{
-			RNDebug("Failed opening audio device.");
-			return;
-		}
-
-		RNInfo("Using audio device: " << _outDevice->name);
-		
-		if(_sampleRate > _outDevice->sample_rates->max)
-		{
-			_sampleRate = _outDevice->sample_rates->max;
-		}
-		if(_sampleRate < _outDevice->sample_rates->min)
-		{
-			_sampleRate = _outDevice->sample_rates->min;
-		}
-
-		_outStream = soundio_outstream_create(_outDevice);
-		_outStream->format = SoundIoFormatFloat32NE;
-		_outStream->sample_rate = _sampleRate;
-		_outStream->software_latency = _frameSize / static_cast<float>(_sampleRate);
-		_outStream->write_callback = WriteCallback;
-
-		int err;
-		if((err = soundio_outstream_open(_outStream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}
-
-		if(_outStream->layout_error)
-			RNDebug("Unable to set channel layout with error:" << soundio_strerror(_outStream->layout_error));
-
-		if((err = soundio_outstream_start(_outStream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}*/
+		RNInfo("Using audio device: " << outputDevice->name);
 	}
 
 	void OculusAudioWorld::SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset)
@@ -572,63 +305,7 @@ namespace RN
 		RN_ASSERT(!inputDevice || inputDevice->type == OculusAudioDevice::Type::Input, "Not an input device!");
 		RN_ASSERT(!targetAsset || (targetAsset->GetData()->GetLength() > 2 * _frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
 
-/*		if(_inStream)
-		{
-			soundio_instream_destroy(_inStream);
-			_inStream = nullptr;
-		}
-
-		if(_inDevice)
-		{
-			soundio_device_unref(_inDevice);
-			_inDevice = nullptr;
-		}
-
-		SafeRelease(_inputBuffer);
-
-		if(!inputDevice)
-			return;
-
-		_inputBuffer = targetAsset->Retain();
-
-		int deviceIndex = inputDevice->index;
-		if(deviceIndex < 0)
-		{
-			RNDebug("Not a valid audio device.");
-			return;
-		}
-
-		_inDevice = soundio_get_input_device(_soundio, deviceIndex);
-		if(!_inDevice)
-		{
-			RNDebug("Failed opening audio device.");
-			return;
-		}
-
-		RNInfo("Using audio device: " << _inDevice->name);
-
-		_inStream = soundio_instream_create(_inDevice);
-		_inStream->format = SoundIoFormatFloat32NE;
-		_inStream->sample_rate = _sampleRate;
-		_inStream->layout = _inDevice->current_layout;
-		_inStream->software_latency = _frameSize/static_cast<float>(_sampleRate);
-		_inStream->read_callback = ReadCallback;
-
-		int err;
-		if((err = soundio_instream_open(_inStream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}
-
-		if(_inStream->layout_error)
-			RNDebug("Unable to set channel layout with error:" << soundio_strerror(_inStream->layout_error));
-
-		if((err = soundio_instream_start(_inStream)))
-		{
-			RNDebug("Failed opening audio device with error:" << soundio_strerror(err));
-			return;
-		}*/
+//		RNInfo("Using audio device: " << _inDevice->name);
 	}
 
 	void OculusAudioWorld::AddMaterial(const OculusAudioMaterial &material)
@@ -750,13 +427,7 @@ namespace RN
 		
 	void OculusAudioWorld::Update(float delta)
 	{
-//		soundio_flush_events(_soundio);	//TODO: Call this and handle changing devices
 		
-/*		if(_listener)
-		{
-			ovrPoseStatef listenerPose;
-			ovrAudio_SetListenerPoseStatef(_internals->oculusAudioContext, &listenerPose);
-		}*/
 	}
 		
 	void OculusAudioWorld::SetListener(SceneNode *listener)
@@ -871,5 +542,25 @@ namespace RN
 	void OculusAudioWorld::SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback)
 	{
 		_customWriteCallback = customWriteCallback;
+	}
+	
+	uint32 OculusAudioWorld::RetainSourceIndex()
+	{
+		for(uint32 i = 0; i < _maxSourceCount; i++)
+		{
+			if(_isSourceAvailable[i])
+			{
+				_isSourceAvailable[i] = false;
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	void OculusAudioWorld::ReleaseSourceIndex(uint32 index)
+	{
+		_isSourceAvailable[index] = true;
+		ovrAudio_ResetAudioSource(_internals->oculusAudioContext, index);
 	}
 }

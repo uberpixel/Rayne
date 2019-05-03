@@ -69,7 +69,7 @@ namespace RN
 		OAAPI static OculusAudioDevice *GetDefaultInputDevice();
 		OAAPI static OculusAudioDevice *GetDefaultOutputDevice();
 
-		OAAPI OculusAudioWorld(OculusAudioDevice *outputDevice = GetDefaultOutputDevice(), uint8 ambisonicsOrder = 3, uint32 sampleRate = 48000, uint32 frameSize = 480);
+		OAAPI OculusAudioWorld(OculusAudioDevice *outputDevice = GetDefaultOutputDevice(), uint32 sampleRate = 48000, uint32 frameSize = 256, uint32 maxSources = 16);
 		OAAPI ~OculusAudioWorld() override;
 
 		OAAPI void SetOutputDevice(OculusAudioDevice *outputDevice);
@@ -84,10 +84,6 @@ namespace RN
 		OAAPI void AddMaterial(const OculusAudioMaterial &material);
 		OAAPI void AddStaticGeometry(const OculusAudioGeometry &geometry);
 		OAAPI void UpdateScene();
-
-		OAAPI void *GetBinauralRenderer() const { return _binauralRenderer; }
-		OAAPI void *GetEnvironmentalRenderer() const { return _environmentalRenderer; }
-		OAAPI void *GetEnvironment() const { return _environment; }
 		
 		OAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
@@ -104,41 +100,25 @@ namespace RN
 
 		void AddAudioPlayer(OculusAudioPlayer *player) const;
 		void RemoveAudioPlayer(OculusAudioPlayer *player) const;
+		
+		uint32 RetainSourceIndex();
+		void ReleaseSourceIndex(uint32 index);
 
 		SceneNode *_listener;
-
-/*		SoundIo *_soundio;
-		SoundIoDevice *_inDevice;
-		SoundIoDevice *_outDevice;
-		SoundIoInStream *_inStream;
-		SoundIoOutStream *_outStream;*/
-
-		uint8 _ambisonicsOrder;
-
-		bool _isUpdatingScene;
-		void *_scene;
-		void *_sceneMesh;
-		void *_environment;
-
-		void *_binauralRenderer;
-		void *_ambisonicsBinauralEffect;
-
-		void *_environmentalRenderer;
 
 		AudioAsset *_inputBuffer;
 		Array *_audioSources;
 		Array *_audioPlayers;
 		uint32 _frameSize;
 		uint32 _sampleRate;
+		uint32 _maxSourceCount;
+		
+		bool *_isSourceAvailable;
 
-		float *_mixedAmbisonicsFrameData0;
-		float *_mixedAmbisonicsFrameData1;
-		float *_outputFrameData;
-		float *_inputFrameData;
+		float *_sharedFrameData;
+		float *_tempFrameData;
 
-		float *_sharedSourceInputFrameData;
-		float *_sharedSourceOutputFrameData;
-
+		bool _isUpdatingScene;
 		std::vector<OculusAudioMaterial> _sceneMaterials;
 		std::vector<OculusAudioGeometry> _sceneGeometry;
 		
