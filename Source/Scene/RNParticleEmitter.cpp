@@ -33,7 +33,8 @@ namespace RN
 	_isSorted(false),
 	_isRenderedInversed(false),
 	_maxParticles(100),
-	_spawnRate(0.05f)
+	_spawnRate(0.05f),
+	_time(0.0f)
 	{
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 		

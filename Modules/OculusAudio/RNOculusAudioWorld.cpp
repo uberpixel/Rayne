@@ -23,33 +23,20 @@ namespace RN
 	
 	int OculusAudioWorld::AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData)
 	{
-		double *buffer = (double *)outputBuffer;
+		float *buffer = static_cast<float*>(outputBuffer);
 		double bufferLength = 1.0/static_cast<double>(_instance->_sampleRate) * nBufferFrames;
 		
-		memset(buffer, 0, nBufferFrames * 2 * sizeof(double));
+		memset(buffer, 0, nBufferFrames * 2 * sizeof(float));
 		
 		if(status)
 			std::cout << "Stream underflow detected!" << std::endl;
 		
+		uint32_t oculusAudioStatus = 0;
+		
 		//Mix audio sources
 		if(_instance->_audioSources->GetCount() > 0)
 		{
-			_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-				if(!source->IsPlaying() || source->GetWorldPosition().GetDistance(_instance->_listener->GetWorldPosition()) > source->_minMaxRange.y)
-				{
-					if(source->_oculusAudioSourceIndex != -1)
-					{
-						_instance->ReleaseSourceIndex(source->_oculusAudioSourceIndex);
-						source->_oculusAudioSourceIndex = -1;
-					}
-					return;
-				}
-				
-				if(source->_oculusAudioSourceIndex == -1)
-				{
-					source->_oculusAudioSourceIndex = _instance->RetainSourceIndex();
-				}
-				
+			_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {				
 				if(source->_oculusAudioSourceIndex == -1)
 				{
 					//Too many active audio sources
@@ -61,34 +48,11 @@ namespace RN
 				
 				if(!outData)
 					return;
-				
-				RN::Vector3 sourcePosition = source->GetWorldPosition();
-				
-				if(_instance->_listener)
-				{
-					sourcePosition -= _instance->_listener->GetWorldPosition();
-					sourcePosition = _instance->_listener->GetWorldRotation().GetConjugated().GetRotatedVector(sourcePosition);
-				}
-				
-				//ovrAudio_SetAudioSourceFlags(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceFlag_DirectTimeOfArrival);
-
-				ovrAudio_SetAudioSourceAttenuationMode(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
-
-				// Set the sound's position in space (using OVR coordinates)
-				// NOTE: if a pose state has been specified by a previous call to
-				// ovrAudio_ListenerPoseStatef then it will be transformed
-				// by that as well
-				ovrAudio_SetAudioSourcePos(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourcePosition.x, sourcePosition.y, sourcePosition.z);
-
-				// This sets the attenuation range from max volume to silent
-				// NOTE: attenuation can be disabled or enabled
-				ovrAudio_SetAudioSourceRange(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
 
 				// Spatialize the sound into the output buffer.  Note that there
 				// are two APIs, one for interleaved sample data and another for
 				// separate left/right sample data
-				uint32_t Status = 0;
-				ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, &Status, _instance->_tempFrameData, outData);
+				ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, &oculusAudioStatus, _instance->_tempFrameData, outData);
 				
 				for(int i = 0; i < nBufferFrames; i++)
 				{
@@ -99,6 +63,9 @@ namespace RN
 				}
 			});
 		}
+		
+		ovrAudio_MixInSharedReverbInterleaved(_instance->_internals->oculusAudioContext, &oculusAudioStatus, buffer);
+
 		
 		//Mix output with audio players
 		if(_instance->_audioPlayers->GetCount() > 0)
@@ -218,21 +185,16 @@ namespace RN
 			return;
 		}
 		
-		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 1);
-		//ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
-		//ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
+		ovrAudio_SetUnitScale(_internals->oculusAudioContext, 1.0f);
 		
-		ovrAudioBoxRoomParameters brp = {};
-		brp.brp_Size = sizeof(brp);
-		brp.brp_ReflectLeft = brp.brp_ReflectRight = brp.brp_ReflectUp = brp.brp_ReflectDown = brp.brp_ReflectFront = brp.brp_ReflectBehind = 0.0;
-		brp.brp_Width = 11;
-		brp.brp_Height = 10;
-		brp.brp_Depth = 9;
-		ovrAudio_SetSimpleBoxRoomParameters(_internals->oculusAudioContext, &brp);
+		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 1);
+		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
+		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
 		
 		SetOutputDevice(outputDevice);
 		
 		_isSourceAvailable = new bool[_maxSourceCount];
+		for(int i = 0; i < _maxSourceCount; i++) _isSourceAvailable[i] = true;
 		_sharedFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
 		_tempFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
 
@@ -288,7 +250,7 @@ namespace RN
 		parameters.firstChannel = 0;
 		try
 		{
-			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT64, _sampleRate, &_frameSize, &AudioCallback, nullptr);
+			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, nullptr);
 			_internals->rtAudioContext.startStream();
 		}
 		catch(RtAudioError& e)
@@ -306,6 +268,17 @@ namespace RN
 		RN_ASSERT(!targetAsset || (targetAsset->GetData()->GetLength() > 2 * _frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
 
 //		RNInfo("Using audio device: " << _inDevice->name);
+	}
+	
+	void OculusAudioWorld::SetSimpleRoom(float width, float height, float depth, float reflectionConstant)
+	{
+		ovrAudioBoxRoomParameters brp = {};
+		brp.brp_Size = sizeof(brp);
+		brp.brp_ReflectLeft = brp.brp_ReflectRight = brp.brp_ReflectUp = brp.brp_ReflectDown = brp.brp_ReflectFront = brp.brp_ReflectBehind = reflectionConstant;
+		brp.brp_Width = width;
+		brp.brp_Height = height;
+		brp.brp_Depth = depth;
+		ovrAudio_SetSimpleBoxRoomParameters(_internals->oculusAudioContext, &brp);
 	}
 
 	void OculusAudioWorld::AddMaterial(const OculusAudioMaterial &material)
@@ -427,7 +400,56 @@ namespace RN
 		
 	void OculusAudioWorld::Update(float delta)
 	{
+		//Update listener position
+		if(_listener)
+		{
+			Vector3 listenerPosition = _listener->GetWorldPosition();
+			Vector3 listenerForward = _listener->GetForward();
+			Vector3 listenerUp = _listener->GetUp();
+			ovrAudio_SetListenerVectors(_internals->oculusAudioContext, listenerPosition.x, listenerPosition.y, listenerPosition.z, listenerForward.x, listenerForward.y, listenerForward.z, listenerUp.x, listenerUp.y, listenerUp.z);
+		}
 		
+		//Update audio source properties
+		if(_audioSources->GetCount() > 0)
+		{
+			_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
+				if(!source->IsPlaying() || source->GetWorldPosition().GetDistance(_instance->_listener->GetWorldPosition()) > source->_minMaxRange.y)
+				{
+					if(source->_oculusAudioSourceIndex != -1)
+					{
+						_instance->ReleaseSourceIndex(source->_oculusAudioSourceIndex);
+						source->_oculusAudioSourceIndex = -1;
+					}
+					return;
+				}
+				
+				if(source->_oculusAudioSourceIndex == -1)
+				{
+					source->_oculusAudioSourceIndex = _instance->RetainSourceIndex();
+				}
+				
+				if(source->_oculusAudioSourceIndex == -1)
+				{
+					//Too many active audio sources
+					return;
+				}
+				
+				ovrAudio_SetAudioSourceFlags(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceFlag_DirectTimeOfArrival);
+				
+				ovrAudio_SetAudioSourceAttenuationMode(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
+				
+				// Set the sound's position in space (using OVR coordinates)
+				// NOTE: if a pose state has been specified by a previous call to
+				// ovrAudio_ListenerPoseStatef then it will be transformed
+				// by that as well
+				RN::Vector3 sourcePosition = source->GetWorldPosition();
+				ovrAudio_SetAudioSourcePos(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourcePosition.x, sourcePosition.y, sourcePosition.z);
+				
+				// This sets the attenuation range from max volume to silent
+				// NOTE: attenuation can be disabled or enabled
+				ovrAudio_SetAudioSourceRange(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
+			});
+		}
 	}
 		
 	void OculusAudioWorld::SetListener(SceneNode *listener)

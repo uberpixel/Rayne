@@ -80,6 +80,8 @@ namespace RN
 
 		OAAPI OculusAudioPlayer *PlaySound(AudioAsset*resource) const;
 		OAAPI OculusAudioSource *PlaySound(AudioAsset *resource, RN::Vector3 position) const;
+		
+		OAAPI void SetSimpleRoom(float width, float height, float depth, float reflectionConstant);
 
 		OAAPI void AddMaterial(const OculusAudioMaterial &material);
 		OAAPI void AddStaticGeometry(const OculusAudioGeometry &geometry);
