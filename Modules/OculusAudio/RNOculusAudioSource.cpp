@@ -18,7 +18,6 @@ namespace RN
 	OculusAudioSource::OculusAudioSource(AudioAsset *asset, bool wantsIndirectSound) :
 		_channel(0),
 		_sampler(new OculusAudioSampler(asset)),
-		_internals(new OculusAudioSourceInternals()),
 		_oculusAudioSourceIndex(-1),
 		_wantsIndirectSound(wantsIndirectSound),
 		_isPlaying(false),
@@ -44,8 +43,6 @@ namespace RN
 			OculusAudioWorld::_instance->RemoveAudioSource(this);*/
 
 		_sampler->Release();
-
-		delete _internals;
 	}
 
 	void OculusAudioSource::SetAudioAsset(AudioAsset *asset)

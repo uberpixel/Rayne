@@ -10,34 +10,12 @@
 #define __RAYNE_OculusAudioWORLD_H_
 
 #include "RNOculusAudio.h"
+#include "RNOculusAudioSystem.h"
 #include "RNOculusAudioSource.h"
 #include "RNOculusAudioPlayer.h"
 
 namespace RN
 {
-	class OculusAudioDevice : public Object
-	{
-	public:
-		friend class OculusAudioWorld;
-		enum Type
-		{
-			Input,
-			Output
-		};
-
-		~OculusAudioDevice() { name->Release(); }
-
-		const Type type;
-		const uint32 index;
-		const String *name;
-		const bool isDefault;
-
-	private:
-		OculusAudioDevice(Type type, uint32 index, std::string name, bool isDefault) : type(type), index(index), name(RNSTR(name)->Retain()), isDefault(isDefault) { }
-
-		RNDeclareMetaAPI(OculusAudioDevice, OAAPI)
-	};
-
 	struct OculusAudioMaterial
 	{
 		float lowFrequencyAbsorption;
@@ -65,16 +43,12 @@ namespace RN
 		friend class OculusAudioPlayer;
 
 		OAAPI static OculusAudioWorld *GetInstance();
-		OAAPI static Array *GetDevices();
-		OAAPI static OculusAudioDevice *GetDefaultInputDevice();
-		OAAPI static OculusAudioDevice *GetDefaultOutputDevice();
 
-		OAAPI OculusAudioWorld(OculusAudioDevice *outputDevice = GetDefaultOutputDevice(), uint32 sampleRate = 48000, uint32 frameSize = 256, uint32 maxSources = 16);
+		OAAPI OculusAudioWorld(OculusAudioSystem *audioSystem, uint32 maxSources = 16);
 		OAAPI ~OculusAudioWorld() override;
-
-		OAAPI void SetOutputDevice(OculusAudioDevice *outputDevice);
-		OAAPI void SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset);
-			
+		
+		OculusAudioSystem *GetAudioSystem() const { return _audioSystem; }
+		
 		OAAPI void SetListener(SceneNode *listener);
 		SceneNode *GetListener() const { return _listener; };
 
@@ -89,30 +63,29 @@ namespace RN
 		
 		OAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
-		OAAPI void RemoveAudioSource(OculusAudioSource *source) const;
-
 	protected:
 		void Update(float delta) override;
 			
 	private:
-		static int AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, unsigned int status, void *userData);
-		static OculusAudioWorld *_instance;
-
+		static void AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, unsigned int status);
+		
 		void AddAudioSource(OculusAudioSource *source) const;
+		void RemoveAudioSource(OculusAudioSource *source) const;
 
 		void AddAudioPlayer(OculusAudioPlayer *player) const;
 		void RemoveAudioPlayer(OculusAudioPlayer *player) const;
 		
 		uint32 RetainSourceIndex();
 		void ReleaseSourceIndex(uint32 index);
+		
+		static OculusAudioWorld *_instance;
 
+		OculusAudioSystem *_audioSystem;
 		SceneNode *_listener;
 
 		AudioAsset *_inputBuffer;
 		Array *_audioSources;
 		Array *_audioPlayers;
-		uint32 _frameSize;
-		uint32 _sampleRate;
 		uint32 _maxSourceCount;
 		
 		bool *_isSourceAvailable;

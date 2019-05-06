@@ -15,6 +15,7 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNOculusAudioInit.cpp
         RNOculusAudioWorld.cpp
+        RNOculusAudioSystem.cpp
         RNOculusAudioSampler.cpp
         RNOculusAudioSource.cpp
         RNOculusAudioPlayer.cpp
@@ -23,6 +24,7 @@ set(SOURCES
 set(HEADERS
 	RNOculusAudio.h
         RNOculusAudioWorld.h
+        RNOculusAudioSystem.h
         RNOculusAudioSampler.h
         RNOculusAudioSource.h
         RNOculusAudioPlayer.h

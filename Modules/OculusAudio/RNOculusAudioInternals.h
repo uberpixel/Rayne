@@ -10,31 +10,29 @@
 #define __RAYNE_OculusAudioINTERNALS_H_
 
 #include "RNOculusAudio.h"
-
 #include "OVR_Audio.h"
-#include "RtAudio.h"
+
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
+	#include "RtAudio.h"
+#elif RN_PLATFORM_ANDROID
+
+#endif
 
 namespace RN
 {
 	struct OculusAudioWorldInternals
 	{
-		RtAudio rtAudioContext;
 		ovrAudioContext oculusAudioContext;
-		/*IPLhandle context;
-		IPLRenderingSettings settings;
-
-		IPLAudioFormat internalAmbisonicsFormat;
-		IPLAudioFormat outputFormat;*/
 	};
 
-	struct OculusAudioSourceInternals
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
+	struct OculusAudioSystemRtAudioInternals
 	{
-		/*IPLhandle panningEffect;
-		IPLhandle convolutionEffect;
-
-		IPLAudioBuffer inputBuffer;
-		IPLAudioBuffer outputBuffer;*/
+		RtAudio rtAudioContext;
 	};
+#elif RN_PLATFORM_ANDROID
+	
+#endif
 }
 
 #endif /* defined(__RAYNE_OculusAudioINTERNALS_H_) */

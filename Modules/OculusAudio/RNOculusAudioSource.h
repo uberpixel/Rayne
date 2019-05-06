@@ -50,7 +50,6 @@ namespace RN
 	private:
 		uint8 _channel;
 		OculusAudioSampler *_sampler;
-		OculusAudioSourceInternals *_internals;
 		
 		uint32 _oculusAudioSourceIndex;
 		

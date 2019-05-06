@@ -11,7 +11,6 @@
 
 namespace RN
 {
-	RNDefineMeta(OculusAudioDevice, Object)
 	RNDefineMeta(OculusAudioWorld, SceneAttachment)
 
 	OculusAudioWorld *OculusAudioWorld::_instance = nullptr;
@@ -21,76 +20,77 @@ namespace RN
 		return _instance;
 	}
 	
-	int OculusAudioWorld::AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData)
+	void OculusAudioWorld::AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, unsigned int status)
 	{
-		float *buffer = static_cast<float*>(outputBuffer);
-		double bufferLength = 1.0/static_cast<double>(_instance->_sampleRate) * nBufferFrames;
-		
-		memset(buffer, 0, nBufferFrames * 2 * sizeof(float));
-		
-		if(status)
-			std::cout << "Stream underflow detected!" << std::endl;
-		
-		uint32_t oculusAudioStatus = 0;
-		
-		//Mix audio sources
-		if(_instance->_audioSources->GetCount() > 0)
+		if(outputBuffer)
 		{
-			_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {				
-				if(source->_oculusAudioSourceIndex == -1)
-				{
-					//Too many active audio sources
-					return;
-				}
-				
-				float *outData = nullptr;
-				source->Update(bufferLength, nBufferFrames, &outData);
-				
-				if(!outData)
-					return;
-
-				// Spatialize the sound into the output buffer.  Note that there
-				// are two APIs, one for interleaved sample data and another for
-				// separate left/right sample data
-				ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, &oculusAudioStatus, _instance->_tempFrameData, outData);
-				
-				for(int i = 0; i < nBufferFrames; i++)
-				{
-					for(int j = 0; j < 2; j++)
+			float *buffer = static_cast<float*>(outputBuffer);
+			double bufferLength = 1.0/static_cast<double>(_instance->_audioSystem->_sampleRate) * frameSize;
+			
+			memset(buffer, 0, frameSize * 2 * sizeof(float));
+			
+			if(status)
+				std::cout << "Stream underflow detected!" << std::endl;
+			
+			uint32_t oculusAudioStatus = 0;
+			
+			//Mix audio sources
+			if(_instance->_audioSources->GetCount() > 0)
+			{
+				_instance->_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
+					if(source->_oculusAudioSourceIndex == -1)
 					{
-						buffer[i*2 + j] += _instance->_tempFrameData[i*2 + j];
+						//Too many active audio sources
+						return;
 					}
-				}
-			});
-		}
-		
-		ovrAudio_MixInSharedReverbInterleaved(_instance->_internals->oculusAudioContext, &oculusAudioStatus, buffer);
+					
+					float *outData = nullptr;
+					source->Update(bufferLength, frameSize, &outData);
+					
+					if(!outData)
+						return;
 
-		
-		//Mix output with audio players
-		if(_instance->_audioPlayers->GetCount() > 0)
-		{
-			_instance->_audioPlayers->Enumerate<OculusAudioPlayer>([&](OculusAudioPlayer *source, size_t index, bool &stop) {
-				if(!source->IsPlaying())
-					return;
-				
-				float *outData = nullptr;
-				source->Update(bufferLength, nBufferFrames, &outData);
-				
-				if(!outData)
-					return;
-				
-				for(int i = 0; i < nBufferFrames; i++)
-				{
-					for(int j = 0; j < 2; j++)
+					// Spatialize the sound into the output buffer.  Note that there
+					// are two APIs, one for interleaved sample data and another for
+					// separate left/right sample data
+					ovrAudio_SpatializeMonoSourceInterleaved(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, &oculusAudioStatus, _instance->_tempFrameData, outData);
+					
+					for(int i = 0; i < frameSize; i++)
 					{
-						buffer[i*2 + j] += outData[i*2 + j];
+						for(int j = 0; j < 2; j++)
+						{
+							buffer[i*2 + j] += _instance->_tempFrameData[i*2 + j];
+						}
 					}
-				}
-			});
+				});
+			}
+			
+			ovrAudio_MixInSharedReverbInterleaved(_instance->_internals->oculusAudioContext, &oculusAudioStatus, buffer);
+
+			
+			//Mix output with audio players
+			if(_instance->_audioPlayers->GetCount() > 0)
+			{
+				_instance->_audioPlayers->Enumerate<OculusAudioPlayer>([&](OculusAudioPlayer *source, size_t index, bool &stop) {
+					if(!source->IsPlaying())
+						return;
+					
+					float *outData = nullptr;
+					source->Update(bufferLength, frameSize, &outData);
+					
+					if(!outData)
+						return;
+					
+					for(int i = 0; i < frameSize; i++)
+					{
+						for(int j = 0; j < 2; j++)
+						{
+							buffer[i*2 + j] += outData[i*2 + j];
+						}
+					}
+				});
+			}
 		}
-		
-		return 0;
 	}
 
 /*	void OculusAudioWorld::ReadCallback(struct SoundIoInStream *inStream, int minSampleCount, int maxSampleCount)
@@ -148,13 +148,12 @@ namespace RN
 */
 
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
-	OculusAudioWorld::OculusAudioWorld(OculusAudioDevice *outputDevice, uint32 sampleRate, uint32 frameSize, uint32 maxSources) :
+	OculusAudioWorld::OculusAudioWorld(OculusAudioSystem *audioSystem, uint32 maxSources) :
+		_audioSystem(audioSystem),
 		_listener(nullptr),
 		_inputBuffer(nullptr),
 		_audioSources(new Array()),
 		_audioPlayers(new Array()),
-		_frameSize(frameSize),
-		_sampleRate(sampleRate),
 		_maxSourceCount(maxSources),
 		_isSourceAvailable(nullptr),
 		_sharedFrameData(nullptr),
@@ -163,7 +162,7 @@ namespace RN
 		_internals(new OculusAudioWorldInternals())
 	{
 		RN_ASSERT(!_instance, "There already is a OculusAudioWorld!");
-		RN_ASSERT(!outputDevice || outputDevice->type == OculusAudioDevice::Type::Output, "outputDevice has to be an output device!");
+		RN_ASSERT(_audioSystem, "Audio system needs to be provided when creating an audio world!");
 
 		// Version checking is not strictly necessary but it's a good idea!
 		int major, minor, patch;
@@ -175,8 +174,8 @@ namespace RN
 		
 		ovrAudioContextConfiguration config = {};
 		config.acc_Size = sizeof(config);
-		config.acc_SampleRate = sampleRate;
-		config.acc_BufferLength = frameSize;
+		config.acc_SampleRate = _audioSystem->_sampleRate;
+		config.acc_BufferLength = _audioSystem->_frameSize;
 		config.acc_MaxNumSources = _maxSourceCount;
 		
 		if(ovrAudio_CreateContext(&_internals->oculusAudioContext, &config) != ovrSuccess)
@@ -191,21 +190,24 @@ namespace RN
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
 		
-		SetOutputDevice(outputDevice);
-		
 		_isSourceAvailable = new bool[_maxSourceCount];
 		for(int i = 0; i < _maxSourceCount; i++) _isSourceAvailable[i] = true;
-		_sharedFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
-		_tempFrameData = ovrAudio_AllocSamples(_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
+		_sharedFrameData = ovrAudio_AllocSamples(_audioSystem->_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
+		_tempFrameData = ovrAudio_AllocSamples(_audioSystem->_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
 
 		_instance = this;
 		UpdateScene();
+		
+		_audioSystem->Retain();
+		_audioSystem->SetAudioCallback(AudioCallback);
 	}
 		
 	OculusAudioWorld::~OculusAudioWorld()
 	{
 		SafeRelease(_audioSources);
 		SafeRelease(_audioPlayers);
+		
+		_audioSystem->Release();
 
 		if(_sharedFrameData)
 		{
@@ -218,8 +220,6 @@ namespace RN
 			ovrAudio_FreeSamples(_tempFrameData);
 			_tempFrameData = nullptr;
 		}
-
-		_frameSize = 0;
 		
 		if(_isSourceAvailable)
 		{
@@ -232,42 +232,6 @@ namespace RN
 
 		_instance = nullptr;
 		delete _internals;
-	}
-
-	void OculusAudioWorld::SetOutputDevice(OculusAudioDevice *outputDevice)
-	{
-		RN_ASSERT(!outputDevice || outputDevice->type == OculusAudioDevice::Type::Output, "Not an output device!");
-		
-//		if(_internals->rtAudioContext.isStreamRunning())
-//			_internals->rtAudioContext.stopStream();
-		
-		if(_internals->rtAudioContext.isStreamOpen())
-			_internals->rtAudioContext.closeStream();
-		
-		RtAudio::StreamParameters parameters;
-		parameters.deviceId = outputDevice->index;
-		parameters.nChannels = 2;
-		parameters.firstChannel = 0;
-		try
-		{
-			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, nullptr);
-			_internals->rtAudioContext.startStream();
-		}
-		catch(RtAudioError& e)
-		{
-			e.printMessage();
-			return;
-		}
-
-		RNInfo("Using audio device: " << outputDevice->name);
-	}
-
-	void OculusAudioWorld::SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset)
-	{
-		RN_ASSERT(!inputDevice || inputDevice->type == OculusAudioDevice::Type::Input, "Not an input device!");
-		RN_ASSERT(!targetAsset || (targetAsset->GetData()->GetLength() > 2 * _frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
-
-//		RNInfo("Using audio device: " << _inDevice->name);
 	}
 	
 	void OculusAudioWorld::SetSimpleRoom(float width, float height, float depth, float reflectionConstant)
@@ -489,76 +453,6 @@ namespace RN
 	void OculusAudioWorld::RemoveAudioPlayer(OculusAudioPlayer *player) const
 	{
 		_audioPlayers->RemoveObject(player);
-	}
-
-	Array *OculusAudioWorld::GetDevices()
-	{
-		RtAudio audioContext;
-		unsigned int devices = audioContext.getDeviceCount();
-		
-		Array *deviceArray = new Array();
-		
-		RtAudio::DeviceInfo info;
-		for(unsigned int i = 0; i < devices; i++)
-		{
-			info = audioContext.getDeviceInfo(i);
-			if(info.probed == true)
-			{
-				if(info.outputChannels > 0)
-				{
-					OculusAudioDevice *outputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Output, i, info.name, info.isDefaultOutput);
-					deviceArray->AddObject(outputDevice->Autorelease());
-				}
-				
-				if(info.inputChannels > 0)
-				{
-					OculusAudioDevice *inputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Input, i, info.name, info.isDefaultInput);
-					deviceArray->AddObject(inputDevice->Autorelease());
-				}
-			}
-		}
-		
-		return deviceArray->Autorelease();
-	}
-
-	OculusAudioDevice *OculusAudioWorld::GetDefaultOutputDevice()
-	{
-		RtAudio audioContext;
-		unsigned int devices = audioContext.getDeviceCount();
-		
-		RtAudio::DeviceInfo info;
-		for(unsigned int i = 0; i < devices; i++)
-		{
-			info = audioContext.getDeviceInfo(i);
-			if(info.probed == true && info.isDefaultOutput)
-			{
-				OculusAudioDevice *outputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Output, i, info.name, info.isDefaultOutput);
-				return outputDevice->Autorelease();
-			}
-		}
-		
-		RNDebug("No default audio output device found.");
-		return nullptr;
-	}
-
-	OculusAudioDevice *OculusAudioWorld::GetDefaultInputDevice()
-	{
-		RtAudio audioContext;
-		unsigned int devices = audioContext.getDeviceCount();
-		
-		RtAudio::DeviceInfo info;
-		for(unsigned int i = 0; i < devices; i++)
-		{
-			info = audioContext.getDeviceInfo(i);
-			if(info.probed == true && info.isDefaultInput)
-			{
-				OculusAudioDevice *inputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Input, i, info.name, info.isDefaultInput);
-				return inputDevice->Autorelease();
-			}
-		}
-		
-		RNDebug("No default audio output device found.");
-		return nullptr;
 	}
 	
 	void OculusAudioWorld::SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback)
