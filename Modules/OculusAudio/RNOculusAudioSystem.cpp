@@ -43,7 +43,7 @@ namespace RN
 	
 	RNDefineMeta(OculusAudioSystemRtAudio, OculusAudioSystem)
 	
-	OculusAudioSystemRtAudio::OculusAudioSystemRtAudio(uint32 sampleRate, uint32 frameSize) : OculusAudioSystem(sampleRate, frameSize), _internals(new OculusAudioSystemRtAudioInternals())
+	OculusAudioSystemRtAudio::OculusAudioSystemRtAudio(uint32 sampleRate, uint32 frameSize) : OculusAudioSystem(sampleRate, frameSize), _internals(new OculusAudioSystemRtAudioInternals()), _outputDevice(nullptr), _inputDevice(nullptr)
 	{
 		
 	}
@@ -70,19 +70,60 @@ namespace RN
 	{
 		RN_ASSERT(!outputDevice || outputDevice->type == OculusAudioDevice::Type::Output, "Not an output device!");
 		
-//		if(_internals->rtAudioContext.isStreamRunning())
-//			_internals->rtAudioContext.stopStream();
+		SafeRelease(_outputDevice);
+		_outputDevice = outputDevice;
+		SafeRetain(_outputDevice);
 		
+		UpdateStreamSettings();
+
+		RNInfo("Using audio output device: " << _outputDevice->name);
+	}
+
+	void OculusAudioSystemRtAudio::SetInputDevice(OculusAudioDevice *inputDevice)
+	{
+		RN_ASSERT(!inputDevice || inputDevice->type == OculusAudioDevice::Type::Input, "Not an input device!");
+		
+		SafeRelease(_inputDevice);
+		_inputDevice = inputDevice;
+		SafeRetain(_inputDevice);
+		
+		UpdateStreamSettings();
+		
+		RNInfo("Using audio input device: " << _inputDevice->name);
+	}
+	
+	void OculusAudioSystemRtAudio::UpdateStreamSettings()
+	{
 		if(_internals->rtAudioContext.isStreamOpen())
 			_internals->rtAudioContext.closeStream();
 		
-		RtAudio::StreamParameters parameters;
-		parameters.deviceId = outputDevice->index;
-		parameters.nChannels = 2;
-		parameters.firstChannel = 0;
+		RtAudio::StreamParameters outputParameters;
+		RtAudio::StreamParameters *outputParametersPtr = nullptr;
+		
+		RtAudio::StreamParameters inputParameters;
+		RtAudio::StreamParameters *inputParametersPtr = nullptr;
+		
+		if(_outputDevice)
+		{
+			outputParameters.deviceId = _outputDevice->index;
+			outputParameters.nChannels = 2;
+			outputParameters.firstChannel = 0;
+			
+			outputParametersPtr = &outputParameters;
+		}
+		
+		if(_inputDevice)
+		{
+			inputParameters.deviceId = _inputDevice->index;
+			inputParameters.nChannels = 1;
+			inputParameters.firstChannel = 0;
+			
+			inputParametersPtr = &inputParameters;
+		}
+		
 		try
 		{
-			_internals->rtAudioContext.openStream(&parameters, NULL, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, this);
+			_internals->rtAudioContext.openStream(outputParametersPtr, inputParametersPtr, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, this);
 			_internals->rtAudioContext.startStream();
 		}
 		catch(RtAudioError& e)
@@ -90,16 +131,6 @@ namespace RN
 			e.printMessage();
 			return;
 		}
-
-		RNInfo("Using audio device: " << outputDevice->name);
-	}
-
-	void OculusAudioSystemRtAudio::SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset)
-	{
-		RN_ASSERT(!inputDevice || inputDevice->type == OculusAudioDevice::Type::Input, "Not an input device!");
-		RN_ASSERT(!targetAsset || (targetAsset->GetData()->GetLength() > 2 * _frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
-
-//		RNInfo("Using audio device: " << _inDevice->name);
 	}
 
 	Array *OculusAudioSystemRtAudio::GetDevices()

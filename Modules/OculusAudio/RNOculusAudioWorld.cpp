@@ -22,6 +22,12 @@ namespace RN
 	
 	void OculusAudioWorld::AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, unsigned int status)
 	{
+		if(inputBuffer && _instance->_inputBuffer)
+		{
+			//TODO: Handle overflow? (push silence?)
+			_instance->_inputBuffer->PushData(inputBuffer, frameSize * sizeof(float));
+		}
+		
 		if(outputBuffer)
 		{
 			float *buffer = static_cast<float*>(outputBuffer);
@@ -29,6 +35,7 @@ namespace RN
 			
 			memset(buffer, 0, frameSize * 2 * sizeof(float));
 			
+			//TODO: Handle underflow?
 			if(status)
 				std::cout << "Stream underflow detected!" << std::endl;
 			
@@ -92,60 +99,24 @@ namespace RN
 			}
 		}
 	}
-
-/*	void OculusAudioWorld::ReadCallback(struct SoundIoInStream *inStream, int minSampleCount, int maxSampleCount)
+	
+	void OculusAudioWorld::RaycastCallback(ovrAudioVector3f origin, ovrAudioVector3f direction, ovrAudioVector3f* hit, ovrAudioVector3f* normal, void* pctx)
 	{
-		if(!_instance)
-			return;
-
-		struct SoundIoChannelArea *areas;
-		int err;
-		int remainingSamples = maxSampleCount;
-		while(remainingSamples > 0)
+		if(_instance->_raycastCallback)
 		{
-			int sampleCount = std::min(std::max(static_cast<int>(_instance->_frameSize), minSampleCount), remainingSamples);
-			char *data = reinterpret_cast<char *>(_instance->_inputFrameData);
-
-			if(soundio_instream_begin_read(inStream, &areas, &sampleCount) != 0)
-				return;
-
-			if(!sampleCount)
-				break;
-
-			if(!areas)
-			{
-				// Due to an overflow there is a hole. Fill the ring buffer with
-				// silence for the size of the hole.
-				memset(_instance->_inputFrameData, 0, sampleCount * inStream->bytes_per_frame);
-			}
-			else
-			{
-				for(int sample = 0; sample < sampleCount; sample += 1)
-				{
-					//TODO: Support multiple input channels
-					for(int channel = 0; channel < 1*//*inStream->layout.channel_count*//*; channel += 1)
-					{
-						
-						memcpy(data, areas[channel].ptr, inStream->bytes_per_sample);
-						//_instance->_inputFrameData[sample] = *static_cast<float*>(areas[channel].ptr);
-						areas[channel].ptr += areas[channel].step;
-						data += inStream->bytes_per_sample;
-					}
-				}
-			}
-
-			int err;
-			if(err = soundio_instream_end_read(inStream))
-			{
-				const char *errorstr = soundio_strerror(err);
-				return;
-			}
-
-			_instance->_inputBuffer->PushData(_instance->_inputFrameData, sampleCount * inStream->bytes_per_sample);
-			remainingSamples -= sampleCount;
+			RN::Vector3 tempHitPosition;
+			RN::Vector3 tempHitNormal;
+			_instance->_raycastCallback(RN::Vector3(origin.x, origin.y, origin.z), RN::Vector3(direction.x, direction.y, direction.z), tempHitPosition, tempHitNormal);
+			
+			hit->x = tempHitPosition.x;
+			hit->y = tempHitPosition.y;
+			hit->z = tempHitPosition.z;
+			
+			normal->x = tempHitNormal.x;
+			normal->y = tempHitNormal.y;
+			normal->z = tempHitNormal.z;
 		}
 	}
-*/
 
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
 	OculusAudioWorld::OculusAudioWorld(OculusAudioSystem *audioSystem, uint32 maxSources) :
@@ -158,7 +129,6 @@ namespace RN
 		_isSourceAvailable(nullptr),
 		_sharedFrameData(nullptr),
 		_tempFrameData(nullptr),
-		_isUpdatingScene(true),
 		_internals(new OculusAudioWorldInternals())
 	{
 		RN_ASSERT(!_instance, "There already is a OculusAudioWorld!");
@@ -244,6 +214,14 @@ namespace RN
 		brp.brp_Depth = depth;
 		ovrAudio_SetSimpleBoxRoomParameters(_internals->oculusAudioContext, &brp);
 	}
+	
+	void OculusAudioWorld::SetRaycastCallback(const std::function<void (Vector3, Vector3, Vector3 &, Vector3 &)> &raycastCallback)
+	{
+		if(raycastCallback)
+			ovrAudio_AssignRaycastCallback(_internals->oculusAudioContext, &RaycastCallback, nullptr);
+		else
+			ovrAudio_AssignRaycastCallback(_internals->oculusAudioContext, nullptr, nullptr);
+	}
 
 	void OculusAudioWorld::AddMaterial(const OculusAudioMaterial &material)
 	{
@@ -257,109 +235,43 @@ namespace RN
 
 	void OculusAudioWorld::UpdateScene()
 	{
-/*		_isUpdatingScene = true;
-
-		_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-			source->ResetScene();
-		});
-
-		if(_environmentalRenderer)
-		{
-			iplDestroyEnvironmentalRenderer(&_environmentalRenderer);
-			_environmentalRenderer = nullptr;
-		}
-
-		if(_environment)
-		{
-			iplDestroyEnvironment(&_environment);
-			_environment = nullptr;
-		}
-
-		if(_sceneMesh)
-		{
-			iplDestroyStaticMesh(&_sceneMesh);
-			_sceneMesh = nullptr;
-		}
-
-		if (_scene)
-		{
-			iplDestroyScene(&_scene);
-			_scene = nullptr;
-		}
-
-		IPLSimulationSettings simulationSettings;
-		simulationSettings.ambisonicsOrder = _ambisonicsOrder;
-		simulationSettings.irDuration = 0.5f;
-		simulationSettings.maxConvolutionSources = 2;
-		simulationSettings.numBounces = 16;
-		simulationSettings.numDiffuseSamples = 16;
-		simulationSettings.numRays = 32000;
-		simulationSettings.sceneType = IPL_SCENETYPE_PHONON;
-
-		if(_sceneGeometry.size() > 0)
-		{
-			iplCreateScene(_internals->context, nullptr, simulationSettings, _sceneMaterials.size(), &_scene);
-			//TODO: Create scene!
-
-			int counter = 0;
-			for(const OculusAudioMaterial &material : _sceneMaterials)
-			{
-				iplSetSceneMaterial(_scene, counter++, IPLMaterial{ material.lowFrequencyAbsorption, material.midFrequencyAbsorption, material.highFrequencyAbsorption, material.scattering });
-			}
-
-			std::vector<IPLVector3> vertices;
-			std::vector<IPLTriangle> triangles;
-			std::vector<IPLint32> materials;
-
-			for(const OculusAudioGeometry &geometry : _sceneGeometry)
-			{
-				const Mesh::VertexAttribute *vertexAttribute = geometry.mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
-				RN_ASSERT(vertexAttribute && vertexAttribute->GetType() == PrimitiveType::Vector3, "OculusAudioGeometry mesh has an unsupported vertex format.");
-
-				//Collect vertices
-				Mesh::Chunk chunk = geometry.mesh->GetChunk();
-				Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);
-				for(size_t i = 0; i < geometry.mesh->GetVerticesCount(); i++)
-				{
-					if(i > 0) vertexIterator++;
-					const Vector3 &vertex = *vertexIterator;
-					Vector3 transformedVertex = geometry.scale * geometry.rotation.GetRotatedVector(vertex) + geometry.position;
-					vertices.push_back(IPLVector3{ transformedVertex.x, transformedVertex.y, transformedVertex.z });
-				}
-
-				//Collect triangles and materials
-				Mesh::ElementIterator<uint16> indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
-				for(size_t i = 0; i < geometry.mesh->GetIndicesCount()/3; i++)
-				{
-					if(i > 0) indexIterator++;
-					const uint16 index1 = *(indexIterator++);
-					const uint16 index2 = *(indexIterator++);
-					const uint16 index3 = *(indexIterator);
-
-					triangles.push_back(IPLTriangle{ {static_cast<IPLint32>(index1), static_cast<IPLint32>(index2), static_cast<IPLint32>(index3)} });
-					materials.push_back(geometry.materialIndex);
-				}
-			}
-
-			iplCreateStaticMesh(_scene, vertices.size(), triangles.size(), &_sceneMesh);
-			iplSetStaticMeshVertices(_scene, _sceneMesh, &vertices[0]);
-			iplSetStaticMeshTriangles(_scene, _sceneMesh, &triangles[0]);
-			iplSetStaticMeshMaterials(_scene, _sceneMesh, &materials[0]);
-
-			iplFinalizeScene(_scene, nullptr);
-		}
-
-		_sceneMaterials.clear();
-		_sceneGeometry.clear();
-
-		iplCreateEnvironment(_internals->context, nullptr, simulationSettings, _scene, nullptr, &_environment);	//TODO: 4th paramter should be a scene object for indirect sound modeling
-		iplCreateEnvironmentalRenderer(_internals->context, _environment, _internals->settings, _internals->internalAmbisonicsFormat, nullptr, nullptr, &_environmentalRenderer);
-
-		_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-			source->FinalizeScene();
-		});
-
-		_isUpdatingScene = false;*/
+		/*
+		 
+		 OVRA_EXPORT ovrResult ovrAudio_SetPropagationQuality(ovrAudioContext context, float quality);
+		 OVRA_EXPORT ovrResult ovrAudio_SetPropagationThreadAffinity(ovrAudioContext context, uint64_t cpuMask);
+		 OVRA_EXPORT ovrResult ovrAudio_CreateAudioGeometry(ovrAudioContext context, ovrAudioGeometry* geometry);
+		 OVRA_EXPORT ovrResult ovrAudio_DestroyAudioGeometry(ovrAudioGeometry geometry);
+		 
+		 OVRA_EXPORT ovrResult ovrAudio_AudioGeometryUploadMesh(ovrAudioGeometry geometry, const ovrAudioMesh* mesh);
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryUploadMeshArrays(ovrAudioGeometry geometry,
+																	 const void* vertices, size_t verticesByteOffset, size_t vertexCount, size_t vertexStride, ovrAudioScalarType vertexType,
+																	 const void* indices, size_t indicesByteOffset, size_t indexCount, ovrAudioScalarType indexType,
+																	 const ovrAudioMeshGroup* groups, size_t groupCount);
+		
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometrySetTransform(ovrAudioGeometry geometry, const float matrix4x4[16]);
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryGetTransform(const ovrAudioGeometry geometry, float matrix4x4[16]);
+		
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryWriteMeshFile(const ovrAudioGeometry geometry, const char *filePath);
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryReadMeshFile(ovrAudioGeometry geometry, const char *filePath);
+		
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryWriteMeshFileObj(const ovrAudioGeometry geometry, const char *filePath);
+		*/
+		
+		/* Material API */
+		/*
+		OVRA_EXPORT ovrResult ovrAudio_CreateAudioMaterial(ovrAudioContext context, ovrAudioMaterial* material);
+		OVRA_EXPORT ovrResult ovrAudio_DestroyAudioMaterial(ovrAudioMaterial material);
+		
+		OVRA_EXPORT ovrResult ovrAudio_AudioMaterialSetFrequency(ovrAudioMaterial material, ovrAudioMaterialProperty property, float frequency, float value);
+		OVRA_EXPORT ovrResult ovrAudio_AudioMaterialGetFrequency(const ovrAudioMaterial material, ovrAudioMaterialProperty property, float frequency, float* value);
+		OVRA_EXPORT ovrResult ovrAudio_AudioMaterialReset(ovrAudioMaterial material, ovrAudioMaterialProperty property);
+		*/
+		
+		/* Serialization API */
+		/*
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryWriteMeshData(const ovrAudioGeometry geometry, const ovrAudioSerializer* serializer);
+		OVRA_EXPORT ovrResult ovrAudio_AudioGeometryReadMeshData(ovrAudioGeometry geometry, const ovrAudioSerializer* serializer);
+		*/
 	}
 		
 	void OculusAudioWorld::Update(float delta)
@@ -377,11 +289,11 @@ namespace RN
 		if(_audioSources->GetCount() > 0)
 		{
 			_audioSources->Enumerate<OculusAudioSource>([&](OculusAudioSource *source, size_t index, bool &stop) {
-				if(!source->IsPlaying() || source->GetWorldPosition().GetDistance(_instance->_listener->GetWorldPosition()) > source->_minMaxRange.y)
+				if(!source->IsPlaying() || source->GetWorldPosition().GetDistance(_listener->GetWorldPosition()) > source->_minMaxRange.y)
 				{
 					if(source->_oculusAudioSourceIndex != -1)
 					{
-						_instance->ReleaseSourceIndex(source->_oculusAudioSourceIndex);
+						ReleaseSourceIndex(source->_oculusAudioSourceIndex);
 						source->_oculusAudioSourceIndex = -1;
 					}
 					return;
@@ -389,7 +301,7 @@ namespace RN
 				
 				if(source->_oculusAudioSourceIndex == -1)
 				{
-					source->_oculusAudioSourceIndex = _instance->RetainSourceIndex();
+					source->_oculusAudioSourceIndex = RetainSourceIndex();
 				}
 				
 				if(source->_oculusAudioSourceIndex == -1)
@@ -398,22 +310,35 @@ namespace RN
 					return;
 				}
 				
-				ovrAudio_SetAudioSourceFlags(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceFlag_DirectTimeOfArrival);
+				uint32_t sourceFlags = 0;
+				if(source->HasTimeOfFlight()) sourceFlags |= ovrAudioSourceFlag_DirectTimeOfArrival;
+				ovrAudio_SetAudioSourceFlags(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourceFlags);
 				
-				ovrAudio_SetAudioSourceAttenuationMode(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
+				ovrAudio_SetAudioSourceAttenuationMode(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
+				
+				ovrAudio_SetAudioSourceRadius(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_radius);
 				
 				// Set the sound's position in space (using OVR coordinates)
 				// NOTE: if a pose state has been specified by a previous call to
 				// ovrAudio_ListenerPoseStatef then it will be transformed
 				// by that as well
 				RN::Vector3 sourcePosition = source->GetWorldPosition();
-				ovrAudio_SetAudioSourcePos(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourcePosition.x, sourcePosition.y, sourcePosition.z);
+				ovrAudio_SetAudioSourcePos(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourcePosition.x, sourcePosition.y, sourcePosition.z);
 				
 				// This sets the attenuation range from max volume to silent
 				// NOTE: attenuation can be disabled or enabled
-				ovrAudio_SetAudioSourceRange(_instance->_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
+				ovrAudio_SetAudioSourceRange(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
 			});
 		}
+	}
+	
+	void OculusAudioWorld::SetInputBuffer(AudioAsset *inputBuffer)
+	{
+		RN_ASSERT(!inputBuffer || (inputBuffer->GetData()->GetLength() > 2 * _audioSystem->_frameSize), "Requires an input buffer big enough to contain two frames of audio data!");
+		
+		SafeRelease(_inputBuffer);
+		_inputBuffer = inputBuffer;
+		SafeRetain(_inputBuffer);
 	}
 		
 	void OculusAudioWorld::SetListener(SceneNode *listener)

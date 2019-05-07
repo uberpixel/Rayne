@@ -14,6 +14,8 @@
 #include "RNOculusAudioSource.h"
 #include "RNOculusAudioPlayer.h"
 
+typedef struct ovrAudioVector3f_ ovrAudioVector3f;
+
 namespace RN
 {
 	struct OculusAudioMaterial
@@ -55,12 +57,14 @@ namespace RN
 		OAAPI OculusAudioPlayer *PlaySound(AudioAsset*resource) const;
 		OAAPI OculusAudioSource *PlaySound(AudioAsset *resource, RN::Vector3 position) const;
 		
+		OAAPI void SetRaycastCallback(const std::function<void (Vector3, Vector3, Vector3 &, Vector3 &)> &raycastCallback);
 		OAAPI void SetSimpleRoom(float width, float height, float depth, float reflectionConstant);
 
 		OAAPI void AddMaterial(const OculusAudioMaterial &material);
 		OAAPI void AddStaticGeometry(const OculusAudioGeometry &geometry);
 		OAAPI void UpdateScene();
 		
+		OAAPI void SetInputBuffer(AudioAsset *inputBuffer);
 		OAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
 	protected:
@@ -68,6 +72,7 @@ namespace RN
 			
 	private:
 		static void AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, unsigned int status);
+		static void RaycastCallback(ovrAudioVector3f origin, ovrAudioVector3f direction, ovrAudioVector3f* hit, ovrAudioVector3f* normal, void* pctx);
 		
 		void AddAudioSource(OculusAudioSource *source) const;
 		void RemoveAudioSource(OculusAudioSource *source) const;
@@ -92,8 +97,9 @@ namespace RN
 
 		float *_sharedFrameData;
 		float *_tempFrameData;
+		
+		std::function<void (Vector3, Vector3, Vector3 &, Vector3 &)> _raycastCallback;
 
-		bool _isUpdatingScene;
 		std::vector<OculusAudioMaterial> _sceneMaterials;
 		std::vector<OculusAudioGeometry> _sceneGeometry;
 		

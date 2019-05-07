@@ -37,12 +37,14 @@ namespace RN
 //		OAAPI void SetSelfdestruct(bool selfdestruct);
 		OAAPI void SetChannel(uint8 channel);
 		OAAPI void SetTimeOfFlight(bool tof);
+		OAAPI void SetReverb(bool reverb);
 
 		OAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
 			
 		bool IsPlaying() const { return _isPlaying; }
 		bool IsRepeating() const { return _isRepeating; }
 		bool HasTimeOfFlight() const { return _hasTimeOfFlight; }
+		bool HasReverb() const { return _hasReverb; }
 		OAAPI bool HasEnded() const;
 		
 		RN::Vector2 GetRange() const { return _minMaxRange; }
@@ -59,15 +61,13 @@ namespace RN
 		bool _isRepeating;
 //		bool _isSelfdestructing;
 		bool _hasTimeOfFlight;
+		bool _hasReverb;
 
 		float _gain;
 		float _pitch;
 		float _radius;
 		
 		RN::Vector2 _minMaxRange;
-
-		float _delay;
-		float _speed;
 
 		double _currentTime;
 			

@@ -47,7 +47,7 @@ namespace RN
 		OAAPI virtual OculusAudioDevice *GetDefaultOutputDevice() = 0;
 
 		OAAPI virtual void SetOutputDevice(OculusAudioDevice *outputDevice) = 0;
-		OAAPI virtual void SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset) = 0;
+		OAAPI virtual void SetInputDevice(OculusAudioDevice *inputDevice) = 0;
 		
 		static OculusAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 256);
 			
@@ -80,13 +80,17 @@ namespace RN
 		OAAPI OculusAudioDevice *GetDefaultOutputDevice() final;
 		
 		OAAPI void SetOutputDevice(OculusAudioDevice *outputDevice) final;
-		OAAPI void SetInputDevice(OculusAudioDevice *inputDevice, AudioAsset *targetAsset) final;
+		OAAPI void SetInputDevice(OculusAudioDevice *inputDevice) final;
 		
 	private:
 		OAAPI OculusAudioSystemRtAudio(uint32 sampleRate, uint32 frameSize);
 		static int AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, double streamTime, unsigned int status, void *userData);
 		
+		OAAPI void UpdateStreamSettings();
+		
 		OculusAudioSystemRtAudioInternals *_internals;
+		OculusAudioDevice *_outputDevice;
+		OculusAudioDevice *_inputDevice;
 		
 		RNDeclareMetaAPI(OculusAudioSystemRtAudio, OAAPI)
 	};

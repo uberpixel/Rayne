@@ -24,12 +24,11 @@ namespace RN
 		_isRepeating(false),
 //		_isSelfdestructing(false),
 		_hasTimeOfFlight(true),
+		_hasReverb(true),
 		_gain(1.0f),
 		_pitch(1.0f),
 		_radius(0.0f),
 		_minMaxRange(RN::Vector2(0.2f, 200.0f)),
-		_delay(0.0f),
-		_speed(0.0f),
 		_currentTime(0.0f)
 	{
 		RN_ASSERT(OculusAudioWorld::_instance, "You need to create a OculusAudioWorld before creating audio sources!");
@@ -146,25 +145,12 @@ namespace RN
 			}
 		}
 
-/*		if(_hasTimeOfFlight)
-		{
-			_speed = directSoundPath.propagationDelay - _delay;
-			_speed /= sampleCount;
-		}
-		else*/
-		{
-			_speed = 0.0f;
-			_delay = 0.0f;
-		}
-		
-
 		double sampleLength = frameLength / static_cast<double>(sampleCount);
 		double localTime = _currentTime;
 		for(int i = 0; i < sampleCount; i++)
 		{
-			OculusAudioWorld::_instance->_sharedFrameData[i] = _sampler->GetSample(localTime -_delay, _channel) * _gain;
+			OculusAudioWorld::_instance->_sharedFrameData[i] = _sampler->GetSample(localTime, _channel) * _gain;
 			localTime += sampleLength * _pitch;
-			_delay += _speed;
 		}
 
 		_currentTime = localTime;
