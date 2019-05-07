@@ -86,50 +86,84 @@ namespace RN
 
 		uint32 sampleRate = tempAsset->GetSampleRate();
 		uint8 channelCount = tempAsset->GetChannels();
-		uint64 lowerSamplePosition = time * sampleRate;
-		uint64 upperSamplePosition = time * sampleRate + 1;
-		double interpolationFactor = (static_cast<double>(upperSamplePosition) / static_cast<double>(sampleRate) - time) * static_cast<double>(sampleRate);
+		uint64 samplePositions[4];
+		samplePositions[0] = time * sampleRate + 2;
+		samplePositions[1] = time * sampleRate + 1;
+		samplePositions[2] = time * sampleRate - 0;
+		samplePositions[3] = time * sampleRate - 1;
+		double interpolationFactor = (static_cast<double>(samplePositions[1]) / static_cast<double>(sampleRate) - time) * static_cast<double>(sampleRate);
 
-		lowerSamplePosition = lowerSamplePosition * channelCount + channel;
-		upperSamplePosition = upperSamplePosition * channelCount + channel;
-
-		if(upperSamplePosition >= tempAsset->GetData()->GetLength() / tempAsset->GetBytesPerSample())
+		uint64 maxSamplePosition = tempAsset->GetData()->GetLength() / tempAsset->GetBytesPerSample();
+		for(int i = 0; i < 4; i++)
 		{
-			if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
-				upperSamplePosition %= tempAsset->GetData()->GetLength() / tempAsset->GetBytesPerSample();
-			else
-				upperSamplePosition = lowerSamplePosition;
+			samplePositions[i] = samplePositions[i] * channelCount + channel;
+			
+			if(samplePositions[i] >= maxSamplePosition)
+			{
+				if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
+				{
+					samplePositions[i] %= maxSamplePosition;
+				}
+				else
+				{
+					samplePositions[i] = maxSamplePosition - (channelCount-channel-1);
+				}
+			}
+			else if(samplePositions[i] < 0)
+			{
+				if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
+				{
+					int64 moduloresult = samplePositions[i] % maxSamplePosition;
+					samplePositions[i] = maxSamplePosition + moduloresult;
+				}
+				else
+				{
+					samplePositions[i] = channel;
+				}
+			}
 		}
 
-		float value = 0.0f;
+		
+
+		float valuesToInterpolate[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		switch(tempAsset->GetBytesPerSample())
 		{
 			case 1:
 			{
 				int8 *values = static_cast<int8*>(tempAsset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * interpolationFactor;
-				value += values[upperSamplePosition] * (1.0f-interpolationFactor);
-				value /= 128.0f;
+				for(int i = 0; i < 4; i++)
+				{
+					valuesToInterpolate[i] = values[samplePositions[i]] / 128.0f;
+				}
 				break;
 			}
 			case 2:
 			{
 				int16 *values = static_cast<int16*>(tempAsset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * interpolationFactor;
-				value += values[upperSamplePosition] * (1.0f - interpolationFactor);
-				value /= 32768.0f;
+				for(int i = 0; i < 4; i++)
+				{
+					valuesToInterpolate[i] = values[samplePositions[i]] / 32768.0f;
+				}
 				break;
 			}
 			case 4:
 			{
 				float *values = static_cast<float*>(tempAsset->GetData()->GetBytes());
-				value = values[lowerSamplePosition] * interpolationFactor;
-				value += values[upperSamplePosition] * (1.0f - interpolationFactor);
+				for(int i = 0; i < 4; i++)
+				{
+					valuesToInterpolate[i] = values[samplePositions[i]];
+				}
 				break;
 			}
 
 			//TODO: Maybe add 24 and 32 bit support
 		}
+		
+		float c0 = valuesToInterpolate[1];
+		float c1 = 0.5f * (valuesToInterpolate[2] - valuesToInterpolate[0]);
+		float c2 = valuesToInterpolate[0] - (2.5f * valuesToInterpolate[1]) + (2.0f * valuesToInterpolate[2]) - (0.5f * valuesToInterpolate[3]);
+		float c3 = (0.5f * (valuesToInterpolate[3] - valuesToInterpolate[0])) + (1.5f * (valuesToInterpolate[1] - valuesToInterpolate[2]));
+		float value = (((((c3 * interpolationFactor) + c2) * interpolationFactor) + c1) * interpolationFactor) + c0;
 
 		tempAsset->Release();
 		return value;
