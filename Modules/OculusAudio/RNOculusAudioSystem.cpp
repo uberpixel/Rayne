@@ -74,7 +74,24 @@ namespace RN
 		_outputDevice = outputDevice;
 		SafeRetain(_outputDevice);
 		
-		UpdateStreamSettings();
+		if(_internals->outputContext.isStreamOpen())
+			_internals->outputContext.closeStream();
+		
+		RtAudio::StreamParameters outputParameters;
+		outputParameters.deviceId = _outputDevice->index;
+		outputParameters.nChannels = 2;
+		outputParameters.firstChannel = 0;
+		
+		try
+		{
+			_internals->outputContext.openStream(&outputParameters, nullptr, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, this);
+			_internals->outputContext.startStream();
+		}
+		catch(RtAudioError& e)
+		{
+			e.printMessage();
+			return;
+		}
 
 		RNInfo("Using audio output device: " << _outputDevice->name);
 	}
@@ -87,62 +104,37 @@ namespace RN
 		_inputDevice = inputDevice;
 		SafeRetain(_inputDevice);
 		
-		UpdateStreamSettings();
-		
-		RNInfo("Using audio input device: " << _inputDevice->name);
-	}
-	
-	void OculusAudioSystemRtAudio::UpdateStreamSettings()
-	{
-		if(_internals->rtAudioContext.isStreamOpen())
-			_internals->rtAudioContext.closeStream();
-		
-		RtAudio::StreamParameters outputParameters;
-		RtAudio::StreamParameters *outputParametersPtr = nullptr;
+		if(_internals->inputContext.isStreamOpen())
+			_internals->inputContext.closeStream();
 		
 		RtAudio::StreamParameters inputParameters;
-		RtAudio::StreamParameters *inputParametersPtr = nullptr;
-		
-		if(_outputDevice)
-		{
-			outputParameters.deviceId = _outputDevice->index;
-			outputParameters.nChannels = 2;
-			outputParameters.firstChannel = 0;
-			
-			outputParametersPtr = &outputParameters;
-		}
-		
-		if(_inputDevice)
-		{
-			inputParameters.deviceId = _inputDevice->index;
-			inputParameters.nChannels = 1;
-			inputParameters.firstChannel = 0;
-			
-			inputParametersPtr = &inputParameters;
-		}
+		inputParameters.deviceId = _inputDevice->index;
+		inputParameters.nChannels = 1;
+		inputParameters.firstChannel = 0;
 		
 		try
 		{
-			_internals->rtAudioContext.openStream(outputParametersPtr, inputParametersPtr, RTAUDIO_FLOAT32, _sampleRate, &_frameSize, &AudioCallback, this);
-			_internals->rtAudioContext.startStream();
+			_internals->inputContext.openStream(nullptr, &inputParameters, RTAUDIO_FLOAT32, 16000, &_frameSize, &AudioCallback, this);
+			_internals->inputContext.startStream();
 		}
 		catch(RtAudioError& e)
 		{
 			e.printMessage();
 			return;
 		}
+		
+		RNInfo("Using audio input device: " << _inputDevice->name);
 	}
 
 	Array *OculusAudioSystemRtAudio::GetDevices()
 	{
-		unsigned int devices = _internals->rtAudioContext.getDeviceCount();
-		
 		Array *deviceArray = new Array();
-		
 		RtAudio::DeviceInfo info;
+		
+		unsigned int devices = _internals->outputContext.getDeviceCount();
 		for(unsigned int i = 0; i < devices; i++)
 		{
-			info = _internals->rtAudioContext.getDeviceInfo(i);
+			info = _internals->outputContext.getDeviceInfo(i);
 			if(info.probed == true)
 			{
 				if(info.outputChannels > 0)
@@ -150,7 +142,15 @@ namespace RN
 					OculusAudioDevice *outputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Output, i, info.name, info.isDefaultOutput);
 					deviceArray->AddObject(outputDevice->Autorelease());
 				}
-				
+			}
+		}
+		
+		devices = _internals->inputContext.getDeviceCount();
+		for(unsigned int i = 0; i < devices; i++)
+		{
+			info = _internals->inputContext.getDeviceInfo(i);
+			if(info.probed == true)
+			{
 				if(info.inputChannels > 0)
 				{
 					OculusAudioDevice *inputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Input, i, info.name, info.isDefaultInput);
@@ -166,8 +166,8 @@ namespace RN
 	{
 		try
 		{
-			unsigned int defaultDeviceIndex = _internals->rtAudioContext.getDefaultOutputDevice();
-			RtAudio::DeviceInfo info = _internals->rtAudioContext.getDeviceInfo(defaultDeviceIndex);
+			unsigned int defaultDeviceIndex = _internals->outputContext.getDefaultOutputDevice();
+			RtAudio::DeviceInfo info = _internals->outputContext.getDeviceInfo(defaultDeviceIndex);
 			OculusAudioDevice *outputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Output, defaultDeviceIndex, info.name, info.isDefaultOutput);
 			return outputDevice->Autorelease();
 		}
@@ -184,9 +184,9 @@ namespace RN
 	{
 		try
 		{
-			unsigned int defaultDeviceIndex = _internals->rtAudioContext.getDefaultInputDevice();
-			RtAudio::DeviceInfo info = _internals->rtAudioContext.getDeviceInfo(defaultDeviceIndex);
-			OculusAudioDevice *inputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Output, defaultDeviceIndex, info.name, info.isDefaultOutput);
+			unsigned int defaultDeviceIndex = _internals->inputContext.getDefaultInputDevice();
+			RtAudio::DeviceInfo info = _internals->inputContext.getDeviceInfo(defaultDeviceIndex);
+			OculusAudioDevice *inputDevice = new OculusAudioDevice(OculusAudioDevice::Type::Input, defaultDeviceIndex, info.name, info.isDefaultInput);
 			return inputDevice->Autorelease();
 		}
 		catch(RtAudioError error)

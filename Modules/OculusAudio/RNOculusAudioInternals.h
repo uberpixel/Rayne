@@ -28,7 +28,8 @@ namespace RN
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 	struct OculusAudioSystemRtAudioInternals
 	{
-		RtAudio rtAudioContext;
+		RtAudio outputContext;
+		RtAudio inputContext;
 	};
 #elif RN_PLATFORM_ANDROID
 	
