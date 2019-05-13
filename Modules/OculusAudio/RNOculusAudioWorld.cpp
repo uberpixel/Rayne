@@ -156,7 +156,7 @@ namespace RN
 		
 		ovrAudio_SetUnitScale(_internals->oculusAudioContext, 1.0f);
 		
-		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 1);
+		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 0);
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
 		
@@ -217,6 +217,7 @@ namespace RN
 	
 	void OculusAudioWorld::SetRaycastCallback(const std::function<void (Vector3, Vector3, Vector3 &, Vector3 &)> &raycastCallback)
 	{
+		_raycastCallback = raycastCallback;
 		if(raycastCallback)
 			ovrAudio_AssignRaycastCallback(_internals->oculusAudioContext, &RaycastCallback, nullptr);
 		else
@@ -330,6 +331,9 @@ namespace RN
 				ovrAudio_SetAudioSourceRange(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
 			});
 		}
+		
+		if(_raycastCallback)
+			ovrAudio_UpdateRoomModel(_internals->oculusAudioContext, 0.2f);
 	}
 	
 	void OculusAudioWorld::SetInputBuffer(AudioAsset *inputBuffer)
