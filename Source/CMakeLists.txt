@@ -93,6 +93,8 @@ set(RAYNE_SOURCES
     Scene/RNEntity.cpp
     Scene/RNInstancingNode.cpp
     Scene/RNScene.cpp
+    Scene/RNSceneBasic.cpp
+	Scene/RNSceneWithVisibilityLists.cpp
     Scene/RNSceneAttachment.cpp
     Scene/RNSceneManager.cpp
     Scene/RNSceneNode.cpp
@@ -213,6 +215,8 @@ set(RAYNE_HEADERS
     Scene/RNEntity.h
     Scene/RNInstancingNode.h
     Scene/RNScene.h
+    Scene/RNSceneBasic.h
+	Scene/RNSceneWithVisibilityLists.h
     Scene/RNSceneAttachment.h
     Scene/RNSceneManager.h
     Scene/RNSceneNode.h

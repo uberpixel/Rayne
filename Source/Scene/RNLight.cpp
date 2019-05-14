@@ -263,7 +263,7 @@ namespace RN
 			tempcam->SetClipNear(1.0f);
 			tempcam->Autorelease();
 
-			_shadowTarget->GetScene()->AddNode(tempcam);
+			_shadowTarget->GetSceneInfo()->GetScene()->AddNode(tempcam);
 			_shadowDepthCameras.AddObject(tempcam);
 		}
 		

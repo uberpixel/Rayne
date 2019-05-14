@@ -25,6 +25,7 @@
 namespace RN
 {
 	class Scene;
+	class SceneInfo;
 	class Camera;
 	class Renderer;
 	class SceneNodeAttachment;
@@ -33,6 +34,8 @@ namespace RN
 	{
 	public:
 		friend class Scene;
+		friend class SceneBasic;
+		friend class SceneWithVisibilityLists;
 
 		enum class Priority
 		{
@@ -42,9 +45,11 @@ namespace RN
 		};
 
 		RN_OPTIONS(Flags, uint32,
-				   DrawLate     = (1 << 0),
-				   Static       = (1 << 1),
-				   Hidden       = (1 << 2),
+				   Static       = (1 << 0),
+				   Hidden       = (1 << 1),
+				   
+				   DrawEarly    = (1 << 2),
+				   DrawLate     = (1 << 3),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),
@@ -134,7 +139,7 @@ namespace RN
 		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
 
 		RNAPI SceneNode *GetParent() const;
-		Scene *GetScene() const { return _scene; };
+		SceneInfo *GetSceneInfo() const { return _sceneInfo; };
 		Priority GetPriority() const { return _priority; }
 		Flags GetFlags() const { return _flags.load(); }
 
@@ -166,8 +171,8 @@ namespace RN
 		void Initialize();
 		RNAPI void UpdateInternalData() const;
 
-		void UpdateScene(Scene *scene);
-		void __CompleteAttachmentWithScene(Scene *scene);
+		void UpdateSceneInfo(SceneInfo *sceneInfo);
+		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
 
 		AABB _boundingBox;
 		Sphere _boundingSphere;
@@ -184,7 +189,7 @@ namespace RN
 		uint64 _uid;
 		uint64 _lid;
 
-		Scene *_scene;
+		SceneInfo *_sceneInfo;
 		IntrusiveList<SceneNode>::Member _sceneEntry;
 
 		ObservableScalar<Tag, SceneNode> _tag;

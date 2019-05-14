@@ -26,10 +26,10 @@ namespace RN
 		friend class SceneManager;
 
 		RNAPI ~Scene();
-
-		RNAPI void AddNode(SceneNode *node);
-		RNAPI void RemoveNode(SceneNode *node);
-
+		
+		RNAPI virtual void AddNode(SceneNode *node) = 0;
+		RNAPI virtual void RemoveNode(SceneNode *node) = 0;
+		
 		RNAPI void AddAttachment(SceneAttachment *attachment);
 		RNAPI void RemoveAttachment(SceneAttachment *attachment);
 
@@ -48,16 +48,27 @@ namespace RN
 		RNAPI virtual void WillRender(Renderer *renderer);
 		RNAPI virtual void DidRender(Renderer *renderer);
 
+		RNAPI virtual void Update(float delta);
+		RNAPI virtual void Render(Renderer *renderer) = 0;
+		
 	private:
-		void Update(float delta);
-		void Render(Renderer *renderer);
-
-		IntrusiveList<SceneNode> _nodes[3];
-		IntrusiveList<Camera> _cameras;
-		Array *_lights;
 		Array *_attachments;
 
 		__RNDeclareMetaInternal(Scene)
+	};
+	
+	class SceneInfo : public Object
+	{
+	public:
+		RNAPI SceneInfo(Scene *scene);
+		RNAPI ~SceneInfo();
+		
+		RNAPI Scene *GetScene() const;
+		
+	private:
+		Scene *_scene;
+		
+		__RNDeclareMetaInternal(SceneInfo)
 	};
 }
 

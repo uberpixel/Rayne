@@ -19,7 +19,7 @@ namespace RN
 	SceneNode::SceneNode() :
 		_uid(__SceneNodeIDs.fetch_add(1)),
 		_lid(static_cast<uint64>(-1)),
-		_scene(nullptr),
+		_sceneInfo(nullptr),
 		_sceneEntry(this),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
@@ -140,7 +140,7 @@ namespace RN
 	{
 		_children = new Array();
 		_parent = nullptr;
-		_scene = nullptr;
+		_sceneInfo = nullptr;
 		_updated = true;
 		_flags = 0;
 
@@ -230,36 +230,38 @@ namespace RN
 	// MARK: Scene
 	// -------------------
 
-	void SceneNode::UpdateScene(Scene *scene)
+	void SceneNode::UpdateSceneInfo(SceneInfo *sceneInfo)
 	{
-		if(_scene)
+		if(_sceneInfo)
 		{
 			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
-				if(node->_scene != nullptr)
-					_scene->RemoveNode(node);
+				if(node->_sceneInfo != nullptr)
+					_sceneInfo->GetScene()->RemoveNode(node);
 			});
 		}
 
-		_scene = scene;
+		SafeRelease(_sceneInfo);
+		_sceneInfo = sceneInfo;
+		SafeRetain(_sceneInfo);
 
-		if(_scene)
+		if(_sceneInfo)
 		{
 			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
-				scene->AddNode(node);
+				sceneInfo->GetScene()->AddNode(node);
 			});
 		}
 	}
 
-	void SceneNode::__CompleteAttachmentWithScene(Scene *scene)
+	void SceneNode::__CompleteAttachmentWithScene(SceneInfo *sceneInfo)
 	{
-		if(_scene == scene)
+		if((_sceneInfo && sceneInfo && _sceneInfo->GetScene() == sceneInfo->GetScene()) || (!_sceneInfo && !sceneInfo))
 			return;
 
-		if(_scene)
-			_scene->RemoveNode(this);
+		if(_sceneInfo)
+			_sceneInfo->GetScene()->RemoveNode(this);
 
-		if(scene)
-			scene->AddNode(this);
+		if(sceneInfo)
+			sceneInfo->GetScene()->AddNode(this);
 	}
 
 	// -------------------
@@ -278,7 +280,7 @@ namespace RN
 
 		child->_parent = this;
 		child->DidUpdate(ChangeSet::Parent);
-		child->__CompleteAttachmentWithScene(_scene);
+		child->__CompleteAttachmentWithScene(_sceneInfo);
 
 		DidAddChild(child);
 	}

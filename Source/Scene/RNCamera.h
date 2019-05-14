@@ -25,6 +25,8 @@ namespace RN
 	{
 	public:
 		friend class Scene;
+		friend class SceneBasic;
+		friend class SceneWithVisibilityLists;
 		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
