@@ -248,10 +248,9 @@ namespace RN
 			return _size;
 		}
 		
-		template<class T=Object>
-		const T **GetData() const
+		const Object **GetData() const
 		{
-			return _data;
+			return const_cast<const Object **>(_data);
 		}
 		
 		RNAPI void ShrinkToFit();

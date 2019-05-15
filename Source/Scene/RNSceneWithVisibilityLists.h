@@ -19,8 +19,11 @@ namespace RN
 		class Volume : public Object
 		{
 		public:
-			RNAPI virtual bool ContainsCamera(Camera *camera) const;
+			RNAPI virtual bool ContainsPosition(const RN::Vector3 &cameraPosition) const;
 			std::vector<SceneNode *> nodes;
+			
+			RN::Vector3 boundsMin;
+			Vector3 boundsMax;
 			
 			__RNDeclareMetaInternal(Volume)
 		};
@@ -28,10 +31,7 @@ namespace RN
 		class AxisAlignedBoxVolume : public Volume
 		{
 		public:
-			RNAPI bool ContainsCamera(Camera *camera) const final;
-			
-			Vector3 boundsMin;
-			Vector3 boundsMax;
+			RNAPI bool ContainsPosition(const RN::Vector3 &cameraPosition) const final;
 			
 			__RNDeclareMetaInternal(AxisAlignedBoxVolume)
 		};
@@ -49,7 +49,7 @@ namespace RN
 		RNAPI void Update(float delta) override;
 		RNAPI void Render(Renderer *renderer) override;
 		
-		RNAPI void RenderVolumeList(int drawPriority, Renderer *renderer, Camera *camera, Volume *volume);
+		RNAPI void RenderVolumeList(int drawPriority, Renderer *renderer, Camera *camera, const Volume *volume);
 
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
