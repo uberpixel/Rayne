@@ -109,7 +109,7 @@ namespace RN
     {
 		alSourcef(_source, AL_SEC_OFFSET, time);
     }
-		
+	
 	void OpenALSource::Update(float delta)
 	{
 		Vector3 position = GetWorldPosition();
@@ -132,8 +132,8 @@ namespace RN
 			_hasEnded = true;
 			if(_isSelfdestructing)
 			{
-				if(GetScene())
-					GetScene()->RemoveNode(this);
+				if(GetSceneInfo())
+					GetSceneInfo()->GetScene()->RemoveNode(this);
 			}
 		}
 	}
