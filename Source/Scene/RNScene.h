@@ -51,6 +51,8 @@ namespace RN
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void Render(Renderer *renderer) = 0;
 		
+		RNAPI void UpdateNode(SceneNode *node, float delta);
+		
 	private:
 		Array *_attachments;
 

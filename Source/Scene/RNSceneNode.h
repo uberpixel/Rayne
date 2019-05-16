@@ -34,8 +34,6 @@ namespace RN
 	{
 	public:
 		friend class Scene;
-		friend class SceneBasic;
-		friend class SceneWithVisibilityLists;
 
 		enum class Priority
 		{
@@ -155,6 +153,9 @@ namespace RN
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) const;
 
 		RNAPI virtual void Update(float delta);
+		
+		IntrusiveList<SceneNode>::Member _sceneEntry; //TODO: Make private but keep accessible to user made scene implementations
+		RNAPI void UpdateSceneInfo(SceneInfo *sceneInfo); //TODO: Make private but keep accessible to user made scene implementations
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
@@ -171,7 +172,6 @@ namespace RN
 		void Initialize();
 		RNAPI void UpdateInternalData() const;
 
-		void UpdateSceneInfo(SceneInfo *sceneInfo);
 		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
 
 		AABB _boundingBox;
@@ -190,7 +190,6 @@ namespace RN
 		uint64 _lid;
 
 		SceneInfo *_sceneInfo;
-		IntrusiveList<SceneNode>::Member _sceneEntry;
 
 		ObservableScalar<Tag, SceneNode> _tag;
 

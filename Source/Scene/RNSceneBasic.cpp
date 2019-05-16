@@ -56,13 +56,7 @@ namespace RN
 						while(iterator != member)
 						{
 							SceneNode *node = iterator->Get();
-
-							if(!node->HasFlags(SceneNode::Flags::Static))
-							{
-								node->Update(delta);
-								node->UpdateInternalData();
-							}
-
+							UpdateNode(node, delta);
 							iterator = iterator->GetNext();
 						}
 
@@ -87,13 +81,7 @@ namespace RN
 					while(iterator != member)
 					{
 						SceneNode *node = iterator->Get();
-
-						if(!node->HasFlags(SceneNode::Flags::Static))
-						{
-							node->Update(delta);
-							node->UpdateInternalData();
-						}
-
+						UpdateNode(node, delta);
 						iterator = iterator->GetNext();
 					}
 

@@ -34,6 +34,15 @@ namespace RN
 			});
 		}
 	}
+	
+	void Scene::UpdateNode(SceneNode *node, float delta)
+	{
+		if(!node->HasFlags(RN::SceneNode::Flags::Static))
+		{
+			node->Update(delta);
+			node->UpdateInternalData();
+		}
+	}
 
 	void Scene::AddAttachment(SceneAttachment *attachment)
 	{

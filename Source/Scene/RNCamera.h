@@ -25,8 +25,6 @@ namespace RN
 	{
 	public:
 		friend class Scene;
-		friend class SceneBasic;
-		friend class SceneWithVisibilityLists;
 		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
@@ -109,6 +107,8 @@ namespace RN
 		const Matrix &GetInverseProjectionMatrix() const { return _inverseProjectionMatrix; }
 		const Matrix &GetViewMatrix() const { return _viewMatrix; }
 		const Matrix &GetInverseViewMatrix() const { return _inverseViewMatrix; }
+		
+		IntrusiveList<Camera>::Member _cameraSceneEntry; //TODO: Make private but keep accessible to user made scene implementations
 
 	private:
 		void UpdateProjection(Renderer *renderer);
@@ -117,8 +117,6 @@ namespace RN
 		Vector3 __ToWorld(const Vector3 &dir);
 		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
-
-		IntrusiveList<Camera>::Member _cameraSceneEntry;
 
 		Flags _flags;
 		float _scaleFactor;

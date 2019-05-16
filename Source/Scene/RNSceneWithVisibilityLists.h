@@ -22,9 +22,6 @@ namespace RN
 			RNAPI virtual bool ContainsPosition(const RN::Vector3 &cameraPosition) const;
 			std::vector<SceneNode *> nodes;
 			
-			RN::Vector3 boundsMin;
-			Vector3 boundsMax;
-			
 			__RNDeclareMetaInternal(Volume)
 		};
 		
@@ -32,6 +29,9 @@ namespace RN
 		{
 		public:
 			RNAPI bool ContainsPosition(const RN::Vector3 &cameraPosition) const final;
+			
+			Vector3 boundsMin;
+			Vector3 boundsMax;
 			
 			__RNDeclareMetaInternal(AxisAlignedBoxVolume)
 		};

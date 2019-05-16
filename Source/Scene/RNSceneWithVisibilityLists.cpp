@@ -1,8 +1,8 @@
 //
-//  RNScene.cpp
+//  RNSceneWithVisibilityLists.cpp
 //  Rayne
 //
-//  Copyright 2015 by Überpixel. All rights reserved.
+//  Copyright 2019 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
@@ -74,13 +74,7 @@ namespace RN
 						while(iterator != member)
 						{
 							SceneNode *node = iterator->Get();
-							
-							if(!node->HasFlags(SceneNode::Flags::Static))
-							{
-								node->Update(delta);
-								node->UpdateInternalData();
-							}
-							
+							UpdateNode(node, delta);
 							iterator = iterator->GetNext();
 						}
 						
@@ -105,13 +99,7 @@ namespace RN
 					while(iterator != member)
 					{
 						SceneNode *node = iterator->Get();
-						
-						if(!node->HasFlags(SceneNode::Flags::Static))
-						{
-							node->Update(delta);
-							node->UpdateInternalData();
-						}
-						
+						UpdateNode(node, delta);
 						iterator = iterator->GetNext();
 					}
 					
@@ -161,77 +149,14 @@ namespace RN
 				camera->PostUpdate(renderer);
 				Vector3 cameraPosition = camera->GetWorldPosition();
 				
-				const Object **volumeObjects = _volumes->GetData();
-				
-				const Object **lowerVolumeObject = volumeObjects;
-				const Object **upperVolumeObject = volumeObjects + _volumes->GetCount();
-				lowerVolumeObject = std::lower_bound(lowerVolumeObject, upperVolumeObject, cameraPosition, [](const Object *objectA, const Vector3 &worldPosition) -> bool {
-					const Volume *volumeA = static_cast<const Volume *>(objectA);
-					
-					if(volumeA->boundsMax.x < worldPosition.x) return true;
-					
-					return false;
-				});
-				
-				if(lowerVolumeObject != upperVolumeObject)
-				{
-					upperVolumeObject = std::upper_bound(lowerVolumeObject, upperVolumeObject, *lowerVolumeObject, [](const Object *objectA, const Object *objectB) -> bool {
-						const Volume *volumeA = static_cast<const Volume *>(objectA);
-						const Volume *volumeB = static_cast<const Volume *>(objectB);
-						
-						if(volumeA->boundsMax.x < volumeB->boundsMax.x) return true;
-						
-						return false;
-					});
-				}
-				
-				if(lowerVolumeObject != upperVolumeObject && upperVolumeObject != volumeObjects + _volumes->GetCount())
-				{
-					lowerVolumeObject = std::lower_bound(lowerVolumeObject, upperVolumeObject, cameraPosition, [](const Object *objectA, const Vector3 &worldPosition) -> bool {
-						const Volume *volumeA = static_cast<const Volume *>(objectA);
-						
-						if(volumeA->boundsMax.y < worldPosition.y) return true;
-						
-						return false;
-					});
-					
-					if(lowerVolumeObject != upperVolumeObject)
-					{
-						upperVolumeObject = std::upper_bound(lowerVolumeObject, upperVolumeObject, *lowerVolumeObject, [](const Object *objectA, const Object *objectB) -> bool {
-							const Volume *volumeA = static_cast<const Volume *>(objectA);
-							const Volume *volumeB = static_cast<const Volume *>(objectB);
-							
-							if(volumeA->boundsMax.y < volumeB->boundsMax.y) return true;
-							
-							return false;
-						});
-					}
-					
-					if(lowerVolumeObject != upperVolumeObject)
-					{
-						lowerVolumeObject = std::lower_bound(lowerVolumeObject, upperVolumeObject, cameraPosition, [](const Object *objectA, const Vector3 &worldPosition) -> bool {
-							const Volume *volumeA = static_cast<const Volume *>(objectA);
-							
-							if(volumeA->boundsMax.z < worldPosition.z) return true;
-							
-							return false;
-						});
-					}
-				}
-				
 				const Volume *volume = nullptr;
-				int offset = 0;
-				while(lowerVolumeObject[offset] != volumeObjects[_volumes->GetCount()])
-				{
-					const Volume *lowerVolume = static_cast<const Volume *>(lowerVolumeObject[offset]);
-					if(lowerVolume->ContainsPosition(cameraPosition))
+				_volumes->Enumerate<Volume>([&](Volume *object, size_t index, bool &stop){
+					if(object->ContainsPosition(cameraPosition))
 					{
-						volume = lowerVolume;
-						break;
+						volume = object;
+						stop = true;
 					}
-					
-					offset += 1;
-				}
+				});
 				
 				renderer->SubmitCamera(camera, [&] {
 					for(int drawPriority = 0; drawPriority < 4; drawPriority++)
@@ -254,20 +179,11 @@ namespace RN
 	void SceneWithVisibilityLists::AddVolume(Volume *volume)
 	{
 		_volumes->AddObject(volume);
-/*		_volumes->Sort<Volume>([](const Volume *objectA, const Volume *objectB) -> bool {
-			if(objectA->boundsMax.x < objectB->boundsMax.x) return true;
-			if(objectA->boundsMax.x > objectB->boundsMax.x) return false;
-			if(objectA->boundsMax.y < objectB->boundsMax.y) return true;
-			if(objectA->boundsMax.y > objectB->boundsMax.y) return false;
-			if(objectA->boundsMax.z < objectB->boundsMax.z) return true;
-			
-			return false;
-		});*/
 		
 		_isAddingVolume = true;
 		for(SceneNode *node : volume->nodes)
 		{
-			if(!node->_sceneInfo)
+			if(!node->GetSceneInfo())
 				AddNode(node);
 			
 			SceneWithVisibilityListsInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneWithVisibilityListsInfo>();
