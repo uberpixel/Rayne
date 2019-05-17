@@ -39,50 +39,126 @@ namespace RN
 	{
 		switch(format)
 		{
-			case Texture::Format::RGBA8888:
+			case Texture::Format::RGBA_8:
 				return VK_FORMAT_R8G8B8A8_UNORM;
-			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::RGBA_8_SRGB:
 				return VK_FORMAT_R8G8B8A8_SRGB;
-			case Texture::Format::BGRA8888:
+			case Texture::Format::BGRA_8:
 				return VK_FORMAT_B8G8R8A8_UNORM;
-			case Texture::Format::BGRA8888SRGB:
+			case Texture::Format::BGRA_8_SRGB:
 				return VK_FORMAT_B8G8R8A8_SRGB;
-			case Texture::Format::RGB10A2:
+			case Texture::Format::RGB_10_A_2:
 				return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-			case Texture::Format::R8:
+			case Texture::Format::R_8:
 				return VK_FORMAT_R8_UNORM;
-			case Texture::Format::RG88:
+			case Texture::Format::RG_8:
 				return VK_FORMAT_R8G8_UNORM;
-			case Texture::Format::RGB888:
+			case Texture::Format::RGB_8:
 				return VK_FORMAT_R8G8B8A8_UNORM;
-			case Texture::Format::RGB888SRGB:
+			case Texture::Format::RGB_8_SRGB:
 				return VK_FORMAT_R8G8B8A8_SRGB;
-			case Texture::Format::R16F:
+			case Texture::Format::R_16F:
 				return VK_FORMAT_R16_SFLOAT;
-			case Texture::Format::RG16F:
+			case Texture::Format::RG_16F:
 				return VK_FORMAT_R16G16_SFLOAT;
-			case Texture::Format::RGB16F:
+			case Texture::Format::RGB_16F:
 				return VK_FORMAT_R16G16B16_SFLOAT;
-			case Texture::Format::RGBA16F:
+			case Texture::Format::RGBA_16F:
 				return VK_FORMAT_R16G16B16A16_SFLOAT;
-			case Texture::Format::R32F:
+			case Texture::Format::R_32F:
 				return VK_FORMAT_R32_SFLOAT;
-			case Texture::Format::RG32F:
+			case Texture::Format::RG_32F:
 				return VK_FORMAT_R32G32_SFLOAT;
-			case Texture::Format::RGB32F:
+			case Texture::Format::RGB_32F:
 				return VK_FORMAT_R32G32B32_SFLOAT;
-			case Texture::Format::RGBA32F:
+			case Texture::Format::RGBA_32F:
 				return VK_FORMAT_R32G32B32A32_SFLOAT;
-			case Texture::Format::Depth24I:
+			case Texture::Format::Depth_24I:
 				return VK_FORMAT_X8_D24_UNORM_PACK32;
-			case Texture::Format::Depth32F:
+			case Texture::Format::Depth_32F:
 				return VK_FORMAT_D32_SFLOAT;
-			case Texture::Format::Stencil8:
+			case Texture::Format::Stencil_8:
 				return VK_FORMAT_S8_UINT;
-			case Texture::Format::Depth24Stencil8:
+			case Texture::Format::Depth_24_Stencil_8:
 				return VK_FORMAT_D24_UNORM_S8_UINT;
-			case Texture::Format::Depth32FStencil8:
+			case Texture::Format::Depth_32F_Stencil_8:
 				return VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+			case Texture::Format::RGBA_BC1_SRGB:
+				return VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+			case Texture::Format::RGBA_BC2_SRGB:
+				return VK_FORMAT_BC2_SRGB_BLOCK;
+			case Texture::Format::RGBA_BC3_SRGB:
+				return VK_FORMAT_BC3_SRGB_BLOCK;
+			case Texture::Format::RGBA_BC7_SRGB:
+				return VK_FORMAT_BC7_SRGB_BLOCK;
+
+			case Texture::Format::RGBA_BC1:
+				return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+			case Texture::Format::RGBA_BC2:
+				return VK_FORMAT_BC2_UNORM_BLOCK;
+			case Texture::Format::RGBA_BC3:
+				return VK_FORMAT_BC3_UNORM_BLOCK;
+			case Texture::Format::RGBA_BC7:
+				return VK_FORMAT_BC7_UNORM_BLOCK;
+
+			case Texture::Format::RGBA_ASTC_4x4_SRGB:
+				return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_5x4_SRGB:
+				return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_5x5_SRGB:
+				return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_6x5_SRGB:
+				return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_6x6_SRGB:
+				return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x5_SRGB:
+				return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x6_SRGB:
+				return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x8_SRGB:
+				return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x5_SRGB:
+				return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x6_SRGB:
+				return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x8_SRGB:
+				return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x10_SRGB:
+				return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_12x10_SRGB:
+				return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+			case Texture::Format::RGBA_ASTC_12x12_SRGB:
+				return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+
+			case Texture::Format::RGBA_ASTC_4x4:
+				return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_5x4:
+				return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_5x5:
+				return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_6x5:
+				return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_6x6:
+				return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x5:
+				return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x6:
+				return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_8x8:
+				return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x5:
+				return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x6:
+				return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x8:
+				return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_10x10:
+				return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_12x10:
+				return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+			case Texture::Format::RGBA_ASTC_12x12:
+				return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
 
 			default:
 				return VK_FORMAT_UNDEFINED;

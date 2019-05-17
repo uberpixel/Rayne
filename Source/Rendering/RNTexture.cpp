@@ -56,29 +56,29 @@ namespace RN
 		
 		switch(_descriptor.format)
 		{
-			ColorChannel(Format::RGBA8888SRGB, true, true, true, true)
-			ColorChannel(Format::BGRA8888SRGB, true, true, true, true)
+			ColorChannel(Format::RGBA_8_SRGB, true, true, true, true)
+			ColorChannel(Format::BGRA_8_SRGB, true, true, true, true)
 				
-			ColorChannel(Format::RGB888SRGB, true, true, true, false)
-			ColorChannel(Format::BGR888SRGB, true, true, true, false)
+			ColorChannel(Format::RGB_8_SRGB, true, true, true, false)
+			ColorChannel(Format::BGR_8_SRGB, true, true, true, false)
 				
-			ColorChannel(Format::RGBA8888, true, true, true, true)
-			ColorChannel(Format::BGRA8888, true, true, true, true)
-			ColorChannel(Format::RGB10A2, true, true, true, true)
+			ColorChannel(Format::RGBA_8, true, true, true, true)
+			ColorChannel(Format::BGRA_8, true, true, true, true)
+			ColorChannel(Format::RGB_10_A_2, true, true, true, true)
 				
-			ColorChannel(Format::R8, true, false, false, false)
-			ColorChannel(Format::RG88, true, true, false, false)
-			ColorChannel(Format::RGB888, true, true, true, false)
+			ColorChannel(Format::R_8, true, false, false, false)
+			ColorChannel(Format::RG_8, true, true, false, false)
+			ColorChannel(Format::RGB_8, true, true, true, false)
 				
-			ColorChannel(Format::R16F, true, false, false, false)
-			ColorChannel(Format::RG16F, true, true, false, false)
-			ColorChannel(Format::RGB16F, true, true, true, false)
-			ColorChannel(Format::RGBA16F, true, true, true, true)
+			ColorChannel(Format::R_16F, true, false, false, false)
+			ColorChannel(Format::RG_16F, true, true, false, false)
+			ColorChannel(Format::RGB_16F, true, true, true, false)
+			ColorChannel(Format::RGBA_16F, true, true, true, true)
 				
-			ColorChannel(Format::R32F, true, false, false, false)
-			ColorChannel(Format::RG32F, true, true, false, false)
-			ColorChannel(Format::RGB32F, true, true, true, false)
-			ColorChannel(Format::RGBA32F, true, true, true, true)
+			ColorChannel(Format::R_32F, true, false, false, false)
+			ColorChannel(Format::RG_32F, true, true, false, false)
+			ColorChannel(Format::RGB_32F, true, true, true, false)
+			ColorChannel(Format::RGBA_32F, true, true, true, true)
 				
 			default:
 				return false;

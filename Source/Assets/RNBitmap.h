@@ -20,15 +20,15 @@ namespace RN
 	{
 		enum class Format
 		{
-			RGBA8888,
-			RGB888,
+			RGBA_8,
+			RGB_8,
 
-			RGBA4444,
-			RGBA5551,
-			RGB565,
+			RGBA_4,
+			RGB_5_A_1,
+			R_5_G_6_B_5,
 
-			RGB32F,
-			RGBA32F
+			RGB_32F,
+			RGBA_32F
 		};
 
 		BitmapInfo() = default;

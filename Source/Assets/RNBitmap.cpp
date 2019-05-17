@@ -70,7 +70,7 @@ namespace RN
 
 		switch(_info.format)
 		{
-			case BitmapInfo::Format::RGBA32F:
+			case BitmapInfo::Format::RGBA_32F:
 			{
 				const float *data = _data->GetBytes<float>(index);
 				pixel.r = data[0];
@@ -80,7 +80,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB32F:
+			case BitmapInfo::Format::RGB_32F:
 			{
 				const float *data = _data->GetBytes<float>(index);
 				pixel.r = data[0];
@@ -90,7 +90,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA8888:
+			case BitmapInfo::Format::RGBA_8:
 			{
 				const uint32_t *data = _data->GetBytes<uint32_t>(index);
 
@@ -101,7 +101,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB888:
+			case BitmapInfo::Format::RGB_8:
 			{
 				const uint16 *dataRG = _data->GetBytes<uint16>(index);
 				const uint8 *dataB = reinterpret_cast<const uint8 *>(dataRG + 1);
@@ -113,7 +113,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA4444:
+			case BitmapInfo::Format::RGBA_4:
 			{
 				const uint16_t *data = _data->GetBytes<uint16_t>(index);
 
@@ -124,7 +124,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA5551:
+			case BitmapInfo::Format::RGB_5_A_1:
 			{
 				const uint16_t *data = _data->GetBytes<uint16_t>(index);
 
@@ -135,7 +135,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB565:
+			case BitmapInfo::Format::R_5_G_6_B_5:
 			{
 				const uint16_t *data = _data->GetBytes<uint16_t>(index);
 
@@ -156,7 +156,7 @@ namespace RN
 
 		switch(_info.format)
 		{
-			case BitmapInfo::Format::RGBA32F:
+			case BitmapInfo::Format::RGBA_32F:
 			{
 				float *data = _data->GetBytes<float>(index);
 
@@ -167,7 +167,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB32F:
+			case BitmapInfo::Format::RGB_32F:
 			{
 				float *data = _data->GetBytes<float>(index);
 
@@ -177,7 +177,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA8888:
+			case BitmapInfo::Format::RGBA_8:
 			{
 				uint8_t *data = _data->GetBytes<uint8_t>(index);
 
@@ -188,7 +188,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB888:
+			case BitmapInfo::Format::RGB_8:
 			{
 				uint8_t *data = _data->GetBytes<uint8_t>(index);
 
@@ -198,7 +198,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA4444:
+			case BitmapInfo::Format::RGBA_4:
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 
@@ -209,7 +209,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGBA5551:
+			case BitmapInfo::Format::RGB_5_A_1:
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 
@@ -220,7 +220,7 @@ namespace RN
 
 				break;
 			}
-			case BitmapInfo::Format::RGB565:
+			case BitmapInfo::Format::R_5_G_6_B_5:
 			{
 				uint16_t *data = _data->GetBytes<uint16_t>(index);
 

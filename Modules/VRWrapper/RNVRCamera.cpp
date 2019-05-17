@@ -120,7 +120,7 @@ namespace RN
 
 		Vector2 windowSize;
 		float eyePadding = 0.0f;
-		Texture::Format colorFormat = Texture::Format::RGBA8888;
+		Texture::Format colorFormat = Texture::Format::RGBA_8;
         Texture::Format depthFormat = Texture::Format::Invalid;
 
 		if(_window)
@@ -145,7 +145,7 @@ namespace RN
 
 		if(depthFormat == Texture::Format::Invalid)
 		{
-			depthFormat = Texture::Format::Depth24Stencil8;
+			depthFormat = Texture::Format::Depth_24_Stencil_8;
 		}
 
 		if(_msaaSampleCount > 1)

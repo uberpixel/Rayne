@@ -88,8 +88,8 @@ namespace RN
 			case PNG_COLOR_TYPE_RGB:
 			{
 				data = new uint8[width * height * 4];
-				textureFormat = Texture::Format::RGB888SRGB;
-				bitmapFormat = BitmapInfo::Format::RGBA8888;
+				textureFormat = Texture::Format::RGB_8_SRGB;
+				bitmapFormat = BitmapInfo::Format::RGBA_8;
 				bytesPerRow = 4 * width;
 
 				uint8 *temp = data;
@@ -115,8 +115,8 @@ namespace RN
 			case PNG_COLOR_TYPE_RGBA:
 			{
 				data = new uint8[width * height * 4];
-				textureFormat = Texture::Format::RGBA8888SRGB;
-				bitmapFormat = BitmapInfo::Format::RGBA8888;
+				textureFormat = Texture::Format::RGBA_8_SRGB;
+				bitmapFormat = BitmapInfo::Format::RGBA_8;
 				bytesPerRow = 4 * width;
 
 				uint32 *temp = reinterpret_cast<uint32 *>(data);
@@ -169,8 +169,8 @@ namespace RN
 
 			if(isLinear)
 			{
-				textureFormat = Texture::Format::RGBA8888;
-				bitmapFormat = BitmapInfo::Format::RGBA8888;
+				textureFormat = Texture::Format::RGBA_8;
+				bitmapFormat = BitmapInfo::Format::RGBA_8;
 			}
 
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
