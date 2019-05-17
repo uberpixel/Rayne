@@ -12,6 +12,7 @@
 
 #include "RNPNGAssetLoader.h"
 #include "RNASTCAssetLoader.h"
+#include "RNDDSAssetLoader.h"
 #include "RNSGMAssetLoader.h"
 #include "RNSGAAssetLoader.h"
 
@@ -31,6 +32,7 @@ namespace RN
 
 		PNGAssetLoader::Register();
 		ASTCAssetLoader::Register();
+		DDSAssetLoader::Register();
 		SGMAssetLoader::Register();
 		SGAAssetLoader::Register();
 	}

@@ -140,7 +140,7 @@ namespace RN
 			file->Read(data, mipDataSize);
 
 			size_t mipBytesPerRow = mipDataSize / mipHeight;
-			texture->SetData(mipIndex, data, mipBytesPerRow);
+			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow);
 			mipIndex += 1;
 		}
 

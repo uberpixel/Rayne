@@ -213,6 +213,8 @@ namespace RN
 			textures->Enumerate<String>([&](String *file, size_t index, bool &stop) {
 
 				Texture *texture;
+				
+				if(file.)
 
 				if(options.queue)
 				{
