@@ -11,6 +11,7 @@
 #include "RNAssetManagerInternals.h"
 
 #include "RNPNGAssetLoader.h"
+#include "RNASTCAssetLoader.h"
 #include "RNSGMAssetLoader.h"
 #include "RNSGAAssetLoader.h"
 
@@ -29,6 +30,7 @@ namespace RN
 		__sharedInstance = this;
 
 		PNGAssetLoader::Register();
+		ASTCAssetLoader::Register();
 		SGMAssetLoader::Register();
 		SGAAssetLoader::Register();
 	}

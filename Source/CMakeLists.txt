@@ -36,6 +36,7 @@ set(RAYNE_SOURCES
     Assets/RNAssetLoader.cpp
     Assets/RNBitmap.cpp
     Assets/RNPNGAssetLoader.cpp
+    Assets/RNASTCAssetLoader.cpp
     Assets/RNSGMAssetLoader.cpp
     Assets/RNSGAAssetLoader.cpp
     Assets/RNAudioAsset.cpp
@@ -246,6 +247,7 @@ set(RAYNE_HEADERS
 
 set(RAYNE_HEADERS_PRIVATE
     Assets/RNPNGAssetLoader.h
+    Assets/RNASTCAssetLoader.h
     Assets/RNSGMAssetLoader.h
     Assets/RNSGAAssetLoader.h
     Assets/RNAssetManagerInternals.h

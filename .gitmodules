@@ -43,3 +43,6 @@
 [submodule "Modules/OculusAudio/Vendor/rtaudio"]
 	path = Modules/OculusAudio/Vendor/rtaudio
 	url = https://github.com/thestk/rtaudio.git
+[submodule "Tools/TextureCompression/Vendor/astc-encoder"]
+	path = Tools/TextureCompression/Vendor/astc-encoder
+	url = https://github.com/ARM-software/astc-encoder.git

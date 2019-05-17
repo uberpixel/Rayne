@@ -51,6 +51,9 @@ namespace RN
 			Stencil8,
 			Depth24Stencil8,
 			Depth32FStencil8,
+			
+			RGBA8888SRGB_ASTC_6X6,
+			RGBA8888_ASTC_6X6,
 
 			Invalid
 		};
