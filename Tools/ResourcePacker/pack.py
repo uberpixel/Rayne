@@ -50,6 +50,11 @@ def getTexturesForModelFile(file):
 
     return textures
 
+def needsToUpdateFile(sourceFile, targetFile):
+    if os.path.isfile(sourceFile) and os.path.isfile(targetFile):
+        if os.path.getmtime(targetFile) > os.path.getmtime(sourceFile):
+            return False
+    return True
 
 def main():
     if len(sys.argv) < 3:
@@ -78,10 +83,11 @@ def main():
         if not os.path.exists(currentTargetDirectory):
             os.makedirs(currentTargetDirectory)
 
-        alreadyCopiedFiles = dict()
+        filesToSkip = dict()
         for filename in files:
             sourceFilePath = os.path.join(currentSourceDirectory, filename)
             targetFilePath = os.path.join(currentTargetDirectory, filename)
+
             if sourceFilePath.endswith(".sgm"):
                 textures = getTexturesForModelFile(sourceFilePath)
                 for texture in textures:
@@ -90,16 +96,16 @@ def main():
                         textureInputFilename = textureFileName + '.png'
                         textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
                         if os.path.isfile(textureInputPath):
-                            print 'convert texture: ' + textureInputPath
                             textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
                             subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
-                            alreadyCopiedFiles[textureInputFilename] = True
+                            filesToSkip[textureInputFilename] = True
 
         for filename in files:
-            if not filename in alreadyCopiedFiles:
+            if not filename in filesToSkip:
                 sourceFilePath = os.path.join(currentSourceDirectory, filename)
                 targetFilePath = os.path.join(currentTargetDirectory, filename)
-                shutil.copy2(sourceFilePath, targetFilePath)
+                if needsToUpdateFile(sourceFilePath, targetFilePath):
+                    shutil.copy2(sourceFilePath, targetFilePath)
 
 
 if __name__ == '__main__':

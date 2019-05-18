@@ -32,6 +32,12 @@ def prepare():
         print 'not implemented for windows yet'
 
 
+def needsToUpdateFile(sourceFile, targetFile):
+    if os.path.isfile(sourceFile) and os.path.isfile(targetFile):
+        if os.path.getmtime(targetFile) > os.path.getmtime(sourceFile):
+            return False
+    return True
+
 
 def main():
     if len(sys.argv) < 2:
@@ -70,42 +76,51 @@ def main():
         return
 
     if '.png' in requestedFileExtensions:
-        if inputFileName + inputFileExtension != outputFileName + '.png':
-            shutil.copy2(inputFileName + inputFileExtension, outputFileName + '.png')
+        sourceFile = inputFileName + inputFileExtension
+        targetFile = outputFileName + '.png'
+        if sourceFile != targetFile:
+            if needsToUpdateFile(sourceFile, targetFile):
+                shutil.copy2(sourceFile, targetFile)
 
     if '.dds' in requestedFileExtensions:
         #Convert to BCn format in DDS container for desktop platforms
-        subprocess.call([nvTextureToolsPath, '-dds10', '-srgb', '-bc1', inputFileName + inputFileExtension, outputFileName + '.dds'])
+        sourceFile = inputFileName + inputFileExtension
+        targetFile = outputFileName + '.dds'
+        if needsToUpdateFile(sourceFile, targetFile):
+            subprocess.call([nvTextureToolsPath, '-dds10', '-srgb', '-bc1', inputFileName + inputFileExtension, outputFileName + '.dds'])
 
     if '.astc' in requestedFileExtensions:
         #Convert to ASTC format for mobile platforms
-        width = subprocess.check_output(['identify', '-format', '%[fx:w]', inputFileName + inputFileExtension])
-        height = subprocess.check_output(['identify', '-format', '%[fx:h]', inputFileName + inputFileExtension])
-        bitdepth = subprocess.check_output(['identify', '-format', '%[fx:z]', inputFileName + inputFileExtension])
+        sourceFile = inputFileName + inputFileExtension
+        targetFile = outputFileName + '.astc'
+        if needsToUpdateFile(sourceFile, targetFile):
+            width = subprocess.check_output(['identify', '-format', '%[fx:w]', sourceFile])
+            height = subprocess.check_output(['identify', '-format', '%[fx:h]', sourceFile])
+            bitdepth = subprocess.check_output(['identify', '-format', '%[fx:z]', sourceFile])
+            width = int(width)
+            height = int(height)
+            bitdepth = int(bitdepth)
+            numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
 
-        width = int(width)
-        height = int(height)
-        bitdepth = int(bitdepth)
-        numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
+            print 'Number of mipmap levels: ' + str(numLevels)
 
-        print 'Number of mipmap levels: ' + str(numLevels)
+            shutil.copy2(sourceFile, outputFileName + '.0' + inputFileExtension)
+            for i in range(1, numLevels):
+                subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-scale', '50%', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.' + str(i) + inputFileExtension])
 
-        shutil.copy2(inputFileName + inputFileExtension, outputFileName + '.0' + inputFileExtension)
-        for i in range(1, numLevels):
-            subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-scale', '50%', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.' + str(i) + inputFileExtension])
-
-        for i in range(0, numLevels):
-            #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
-            subprocess.call([astcencPath, '-c', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-medium'])
-            os.remove(outputFileName + '.' + str(i) + inputFileExtension)
-            
-        with open(outputFileName + '.astc', 'wb') as outputFile:
             for i in range(0, numLevels):
-                tempSourceFile = outputFileName + '.' + str(i) + '.astc'
-                if os.path.isfile(tempSourceFile):
-                    with open(tempSourceFile, 'rb') as source:
-                        outputFile.write(source.read())
-                    os.remove(tempSourceFile)
+                #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
+                subprocess.call([astcencPath, '-c', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-medium'])
+                os.remove(outputFileName + '.' + str(i) + inputFileExtension)
+                
+            with open(targetFile, 'wb') as outputFile:
+                for i in range(0, numLevels):
+                    tempSourceFile = outputFileName + '.' + str(i) + '.astc'
+                    if os.path.isfile(tempSourceFile):
+                        with open(tempSourceFile, 'rb') as source:
+                            outputFile.write(source.read())
+                        os.remove(tempSourceFile)
+
 
 if __name__ == '__main__':
     prepare()
