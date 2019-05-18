@@ -41,6 +41,9 @@ namespace RN
 		RNAPI void UnregisterAssetLoader(AssetLoader *loader);
 
 		RNAPI void SetDefaultQueue(WorkQueue *queue);
+		
+		RNAPI void SetPreferredTextureFileExtension(const String *preferredFileExtension);
+		RNAPI const String *GetPreferredTextureFileExtension() const;
 
 	private:
 		AssetManager();
@@ -68,6 +71,8 @@ namespace RN
 
 		Dictionary *_resources;
 		Dictionary *_requests;
+		
+		String *_preferredTextureFileExtension;
 
 		WorkQueue *_defaultQueue;
 	};

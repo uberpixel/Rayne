@@ -25,10 +25,10 @@ def main():
         print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
         return
 
+    #Convert to BCn format in DDS container for desktop platforms
     subprocess.call([nvTextureToolsPath, '-dds10', '-srgb', '-bc1', inputFileName + inputFileExtension, inputFileName + '.dds'])
 
-    return
-
+    #Convert to ASTC format for desktop platforms
     width = subprocess.check_output(['identify', '-format', '%[fx:w]', sys.argv[1]])
     height = subprocess.check_output(['identify', '-format', '%[fx:h]', sys.argv[1]])
 

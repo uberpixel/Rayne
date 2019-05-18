@@ -112,6 +112,12 @@ namespace RN
 			_sceneManager = new SceneManager();
 			_inputManager = new InputManager();
 			_moduleManager = new ModuleManager();
+			
+			if(_manifest)
+			{
+				String *preferredTextureFileExtension = GetManifestEntryForKey<String>(kRNManifestPreferredTextureFileExtensionKey);
+				if(preferredTextureFileExtension) _assetManager->SetPreferredTextureFileExtension(preferredTextureFileExtension);
+			}
 
 			_moduleManager->LoadModules();
 			Catalogue::GetSharedInstance()->RegisterPendingClasses();
@@ -194,11 +200,19 @@ namespace RN
 		Object *result;
 
 #if RN_PLATFORM_MAC_OS
-		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~osx")))))
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~macos")))))
 			return result;
 #endif
 #if RN_PLATFORM_WINDOWS
-		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~win")))))
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~windows")))))
+			return result;
+#endif
+#if RN_PLATFORM_LINUX
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~linux")))))
+			return result;
+#endif
+#if RN_PLATFORM_ANDROID
+		if((result = _manifest->GetObjectForKey(key->StringByAppendingString(RNCSTR("~android")))))
 			return result;
 #endif
 

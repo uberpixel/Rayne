@@ -157,11 +157,19 @@ namespace RN
 		Object *result;
 
 #if RN_PLATFORM_MAC_OS
-		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~osx")))))
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~macos")))))
 			return result;
 #endif
 #if RN_PLATFORM_WINDOWS
-		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~win")))))
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~windows")))))
+			return result;
+#endif
+#if RN_PLATFORM_LINUX
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~linux")))))
+			return result;
+#endif
+#if RN_PLATFORM_ANDROID
+		if((result = _settings->GetObjectForKey(key->StringByAppendingString(RNCSTR("~android")))))
 			return result;
 #endif
 

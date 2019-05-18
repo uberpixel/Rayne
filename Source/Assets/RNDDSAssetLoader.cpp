@@ -44,11 +44,6 @@ namespace RN
 
 	Asset *DDSAssetLoader::Load(File *file, const LoadOptions &options)
 	{
-/*		bool isLinear = false;
-		Number *wrapper;
-		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
-			isLinear = wrapper->GetBoolValue();*/
-		
 		file->Seek(4); // Skip over magic bytes
 		
 		DDS_HEADER ddsHeader;
@@ -63,6 +58,59 @@ namespace RN
 			{
 				hasHeaderDXT10 = true;
 				file->Read(&ddsHeaderDXT10, sizeof(DDS_HEADER_DXT10));
+			}
+		}
+		
+		if(!hasHeaderDXT10)
+		{
+			throw InconsistencyException(RNSTR("DDS File " << file << " does not use DX10 header which is not supported."));
+		}
+		
+		//Force textures to be linear/srgb even if file says something else
+		Number *wrapper;
+		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
+		{
+			if(wrapper->GetBoolValue())
+			{
+				switch(ddsHeaderDXT10.DDSFormat)
+				{
+					case DDS_FORMAT_BC1_UNORM_SRGB:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC1_UNORM;
+						break;
+					case DDS_FORMAT_BC2_UNORM_SRGB:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC2_UNORM;
+						break;
+					case DDS_FORMAT_BC3_UNORM_SRGB:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC3_UNORM;
+						break;
+					case DDS_FORMAT_BC7_UNORM_SRGB:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC7_UNORM;
+						break;
+						
+					default:
+						break;
+				}
+			}
+			else
+			{
+				switch(ddsHeaderDXT10.DDSFormat)
+				{
+					case DDS_FORMAT_BC1_UNORM:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC1_UNORM_SRGB;
+						break;
+					case DDS_FORMAT_BC2_UNORM:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC2_UNORM_SRGB;
+						break;
+					case DDS_FORMAT_BC3_UNORM:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC3_UNORM_SRGB;
+						break;
+					case DDS_FORMAT_BC7_UNORM:
+						ddsHeaderDXT10.DDSFormat = DDS_FORMAT_BC7_UNORM_SRGB;
+						break;
+						
+					default:
+						break;
+				}
 			}
 		}
 		
@@ -106,6 +154,7 @@ namespace RN
 		}
 		else
 		{
+			throw InconsistencyException(RNSTR("DDS File " << file << " uses unsupported texture format (supported is only BC1, BC2, BC3 and BC7)."));
 			return nullptr;
 		}
 		
@@ -127,7 +176,7 @@ namespace RN
 			if(!data) data = (uint8 *)malloc(mipDataSize);
 			file->Read(data, mipDataSize);
 
-			size_t mipBytesPerRow = std::max(1, ((mipWidth + 3) / 4)) * bytesPerBlock;//mipDataSize / mipHeight;
+			size_t mipBytesPerRow = std::max(1, ((mipWidth + 3) / 4)) * bytesPerBlock;
 			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow);
 			mipIndex += 1;
 			

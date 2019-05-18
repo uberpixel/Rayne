@@ -162,6 +162,13 @@ namespace RN
 					file->Read(buffer, length);
 
 					String *filename = RNSTR(buffer);
+					
+					if(filename->HasSuffix(RNCSTR(".*")))
+					{
+						filename = filename->GetSubstring(Range(0, filename->GetLength()-1));
+						filename->Append(AssetManager::GetSharedInstance()->GetPreferredTextureFileExtension());
+					}
+					
 					String *fullPath = path->StringByAppendingPathComponent(filename);
 
 					String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
@@ -214,8 +221,6 @@ namespace RN
 
 				Texture *texture;
 				
-				if(file.)
-
 				if(options.queue)
 				{
 					std::shared_future<StrongRef<Asset>> future = AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(file, nullptr);

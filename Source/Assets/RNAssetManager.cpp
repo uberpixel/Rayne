@@ -29,6 +29,14 @@ namespace RN
 		SetDefaultQueue(WorkQueue::GetGlobalQueue(WorkQueue::Priority::High));
 
 		__sharedInstance = this;
+		
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
+		_preferredTextureFileExtension = RNSTR("dds")->Retain();
+#elif RN_PLATFORM_ANDROID
+		_preferredTextureFileExtension = RNSTR("astc")->Retain();
+#else
+		_preferredTextureFileExtension = RNSTR("png")->Retain();
+#endif
 
 		PNGAssetLoader::Register();
 		ASTCAssetLoader::Register();
@@ -41,6 +49,8 @@ namespace RN
 		SafeRelease(_loaders);
 		SafeRelease(_requests);
 		SafeRelease(_resources);
+		
+		SafeRelease(_preferredTextureFileExtension);
 
 		SafeRelease(_defaultQueue);
 
@@ -86,6 +96,16 @@ namespace RN
 		_loaders->RemoveObject(loader);
 
 		UpdateMagicSize();
+	}
+	
+	void AssetManager::SetPreferredTextureFileExtension(const String *preferredFileExtension)
+	{
+		_preferredTextureFileExtension = RNSTR(preferredFileExtension)->Retain();
+	}
+	
+	const String *AssetManager::GetPreferredTextureFileExtension() const
+	{
+		return _preferredTextureFileExtension;
 	}
 
 	void AssetManager::UpdateMagicSize()

@@ -341,10 +341,16 @@ namespace RN
 		__sharedInstance = this;
 
 #if RN_PLATFORM_MAC_OS
-		_platformModifier = RNCSTR("~osx")->Retain();
+		_platformModifier = RNCSTR("~macos")->Retain();
 #endif
 #if RN_PLATFORM_WINDOWS
-		_platformModifier = RNCSTR("~win")->Retain();
+		_platformModifier = RNCSTR("~windows")->Retain();
+#endif
+#if RN_PLATFORM_LINUX
+		_platformModifier = RNCSTR("~linux")->Retain();
+#endif
+#if RN_PLATFORM_ANDROID
+		_platformModifier = RNCSTR("~android")->Retain();
 #endif
 	}
 	FileManager::~FileManager()

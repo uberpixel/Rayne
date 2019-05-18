@@ -29,6 +29,7 @@
 
 #define kRNManifestApplicationKey RNCSTR("RNApplication")
 #define kRNManifestSearchPathsKey RNCSTR("RNSearchPaths")
+#define kRNManifestPreferredTextureFileExtensionKey RNCSTR("RNPreferredTextureFileExtension")
 
 namespace RN
 {
