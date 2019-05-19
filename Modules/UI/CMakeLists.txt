@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.4)
 project(RayneUI)
 
 include(../../CMake/LibraryTarget.cmake)
-include(../../CMake/CopyResources.cmake)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)

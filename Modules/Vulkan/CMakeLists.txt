@@ -14,7 +14,6 @@ endif()
 
 
 include(../../CMake/LibraryTarget.cmake)
-include(../../CMake/CopyResources.cmake)
 
 macro(generate_dispatch_table out)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Sources/${out}
