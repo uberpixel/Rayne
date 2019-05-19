@@ -22,7 +22,7 @@ namespace RN
 	{
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
-		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
+		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
 
 		_size = size;
 

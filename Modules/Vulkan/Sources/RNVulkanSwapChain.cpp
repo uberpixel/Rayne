@@ -19,13 +19,13 @@ namespace RN
 	{
 		switch(format)
 		{
-		case Texture::Format::RGBA8888SRGB:
+		case Texture::Format::RGBA_8_SRGB:
 			return VK_FORMAT_R8G8B8A8_SRGB;
-		case Texture::Format::BGRA8888SRGB:
+		case Texture::Format::BGRA_8_SRGB:
 			return VK_FORMAT_B8G8R8A8_SRGB;
-		case Texture::Format::RGBA8888:
+		case Texture::Format::RGBA_8:
 			return VK_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::BGRA8888:
+		case Texture::Format::BGRA_8:
 			return VK_FORMAT_B8G8R8A8_UNORM;
 //		case Texture::Format::RGB10A2:
 //			return DXGI_FORMAT_R10G10B10A2_UNORM;

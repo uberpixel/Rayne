@@ -102,62 +102,62 @@ namespace RN
 			case Texture::Format::RGBA_BC7:
 				return VK_FORMAT_BC7_UNORM_BLOCK;
 
-			case Texture::Format::RGBA_ASTC_4x4_SRGB:
+			case Texture::Format::RGBA_ASTC_4X4_SRGB:
 				return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_5x4_SRGB:
+			case Texture::Format::RGBA_ASTC_5X4_SRGB:
 				return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_5x5_SRGB:
+			case Texture::Format::RGBA_ASTC_5X5_SRGB:
 				return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_6x5_SRGB:
+			case Texture::Format::RGBA_ASTC_6X5_SRGB:
 				return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_6x6_SRGB:
+			case Texture::Format::RGBA_ASTC_6X6_SRGB:
 				return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x5_SRGB:
+			case Texture::Format::RGBA_ASTC_8X5_SRGB:
 				return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x6_SRGB:
+			case Texture::Format::RGBA_ASTC_8X6_SRGB:
 				return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x8_SRGB:
+			case Texture::Format::RGBA_ASTC_8X8_SRGB:
 				return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x5_SRGB:
+			case Texture::Format::RGBA_ASTC_10X5_SRGB:
 				return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x6_SRGB:
+			case Texture::Format::RGBA_ASTC_10X6_SRGB:
 				return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x8_SRGB:
+			case Texture::Format::RGBA_ASTC_10X8_SRGB:
 				return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x10_SRGB:
+			case Texture::Format::RGBA_ASTC_10X10_SRGB:
 				return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_12x10_SRGB:
+			case Texture::Format::RGBA_ASTC_12X10_SRGB:
 				return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
-			case Texture::Format::RGBA_ASTC_12x12_SRGB:
+			case Texture::Format::RGBA_ASTC_12X12_SRGB:
 				return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
 
-			case Texture::Format::RGBA_ASTC_4x4:
+			case Texture::Format::RGBA_ASTC_4X4:
 				return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_5x4:
+			case Texture::Format::RGBA_ASTC_5X4:
 				return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_5x5:
+			case Texture::Format::RGBA_ASTC_5X5:
 				return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_6x5:
+			case Texture::Format::RGBA_ASTC_6X5:
 				return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_6x6:
+			case Texture::Format::RGBA_ASTC_6X6:
 				return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x5:
+			case Texture::Format::RGBA_ASTC_8X5:
 				return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x6:
+			case Texture::Format::RGBA_ASTC_8X6:
 				return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_8x8:
+			case Texture::Format::RGBA_ASTC_8X8:
 				return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x5:
+			case Texture::Format::RGBA_ASTC_10X5:
 				return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x6:
+			case Texture::Format::RGBA_ASTC_10X6:
 				return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x8:
+			case Texture::Format::RGBA_ASTC_10X8:
 				return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_10x10:
+			case Texture::Format::RGBA_ASTC_10X10:
 				return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_12x10:
+			case Texture::Format::RGBA_ASTC_12X10:
 				return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
-			case Texture::Format::RGBA_ASTC_12x12:
+			case Texture::Format::RGBA_ASTC_12X12:
 				return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
 
 			default:
@@ -285,6 +285,10 @@ namespace RN
 		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
+
+		VkFormatProperties properties;
+		vk::GetPhysicalDeviceFormatProperties(device->GetPhysicalDevice(), _format, &properties);
+		RN_ASSERT(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, "Requested texture format is not supported by this device");
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -470,15 +474,13 @@ namespace RN
 		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &_uploadMemory));
 		RNVulkanValidate(vk::BindImageMemory(device, _uploadImage, _uploadMemory, 0));
 
-		VkSubresourceLayout subResLayout;
-
 		VkImageSubresource subRes = {};
 		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		subRes.mipLevel = 0;
 
 		// Get sub resources layout
 		// Includes row pitch, size offsets, etc.
-		vk::GetImageSubresourceLayout(device, _uploadImage, &subRes, &subResLayout);
+		vk::GetImageSubresourceLayout(device, _uploadImage, &subRes, &_uploadSubresourceLayout);
 
 		// Map image memory
 		RNVulkanValidate(vk::MapMemory(device, _uploadMemory, 0, uploadRequirements.size, 0, &_uploadData));
@@ -502,17 +504,17 @@ namespace RN
 		_uploadData = nullptr;
 	}
 
-	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	void VulkanTexture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
 	{
-		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow);
+		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow, numberOfRows);
 	}
 
-	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
 	{
-		SetData(region, mipmapLevel, 0, bytes, bytesPerRow);
+		SetData(region, mipmapLevel, 0, bytes, bytesPerRow, numberOfRows);
 	}
 
-	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow) {
+	void VulkanTexture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow, size_t numberOfRows) {
 		bool isOneTimeUpload = true;
 		if(_uploadImage)
 		{
@@ -525,7 +527,12 @@ namespace RN
 		}
 
 		// Copy image data into memory
-		memcpy(_uploadData, bytes, bytesPerRow * _descriptor.height);
+		size_t rowIndex = 0;
+		while(rowIndex < numberOfRows)
+		{
+			memcpy(static_cast<uint8*>(_uploadData) + _uploadSubresourceLayout.offset + rowIndex * _uploadSubresourceLayout.rowPitch, static_cast<const uint8*>(bytes) + rowIndex * bytesPerRow, bytesPerRow);
+			rowIndex += 1;
+		}
 
 		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 		commandBuffer->Begin();

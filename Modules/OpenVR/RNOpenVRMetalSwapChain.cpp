@@ -32,13 +32,13 @@ namespace RN
 		};
 		_targetSurface = IOSurfaceCreate((CFDictionaryRef)surfaceDefinition);
 		
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::BGRA8888SRGB, _size.x, _size.y, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::BGRA_8_SRGB, _size.x, _size.y, false);
 		textureDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
 		_targetTexture = renderer->CreateTextureWithDescriptorAndIOSurface(textureDescriptor, _targetSurface)->Downcast<MetalTexture>();
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new MetalFramebuffer(_size, this, Texture::Format::BGRA8888SRGB, Texture::Format::Invalid);
+		_framebuffer = new MetalFramebuffer(_size, this, Texture::Format::BGRA_8_SRGB, Texture::Format::Invalid);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
@@ -70,11 +70,11 @@ namespace RN
 			(id)kIOSurfaceIsGlobal: @YES
 		};
 		_targetSurface = IOSurfaceCreate((CFDictionaryRef)surfaceDefinition);
-		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::BGRA8888SRGB, _size.x, _size.y, false);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(Texture::Format::BGRA_8_SRGB, _size.x, _size.y, false);
 		textureDescriptor.usageHint |= Texture::UsageHint::RenderTarget;
 		MetalRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<MetalRenderer>();
 		_targetTexture = renderer->CreateTextureWithDescriptorAndIOSurface(textureDescriptor, _targetSurface)->Downcast<MetalTexture>();
-		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::BGRA8888SRGB, Texture::Format::Invalid);
+		_framebuffer->DidUpdateSwapChain(_size, Texture::Format::BGRA_8_SRGB, Texture::Format::Invalid);
 	}
 
 

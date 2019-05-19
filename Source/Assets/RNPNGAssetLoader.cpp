@@ -176,7 +176,7 @@ namespace RN
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
 			Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 
-			texture->SetData(0, data, bytesPerRow);
+			texture->SetData(0, data, bytesPerRow, height);
 
 			if(mipMapped)
 				texture->GenerateMipMaps();

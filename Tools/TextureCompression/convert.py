@@ -104,7 +104,7 @@ def main():
 
             print 'Number of mipmap levels: ' + str(numLevels)
 
-            shutil.copy2(sourceFile, outputFileName + '.0' + inputFileExtension)
+            subprocess.call(['convert', sourceFile, '-flip', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
             for i in range(1, numLevels):
                 subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-scale', '50%', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.' + str(i) + inputFileExtension])
 

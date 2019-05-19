@@ -139,8 +139,8 @@ namespace RN
 			if(!data) data = (uint8 *)malloc(mipDataSize);
 			file->Read(data, mipDataSize);
 
-			size_t mipBytesPerRow = mipDataSize / mipHeight;
-			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow);
+			size_t mipBytesPerRow = xblocks * 16;
+			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow, yblocks);
 			mipIndex += 1;
 		}
 

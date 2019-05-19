@@ -105,7 +105,7 @@ namespace RN
 				if(_needsNewBackingStore)
 				{
 					_material->SetTextures(RN::Array::WithObjects({_backingStore->GetTexture()}));
-					_drawable->Update(_mesh, _material, nullptr);
+					_drawable->Update(_mesh, _material, nullptr, nullptr);
 				}
 				
 				float height = _server->GetHeight();
