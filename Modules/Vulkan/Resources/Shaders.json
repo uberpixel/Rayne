@@ -1,64 +1,173 @@
 [
-	{
-		"file": ":RayneVulkan:/Shaders.vert.spv",
-		"shaders": [
-			{
-				"name": "gouraud_vertex",
-				"type": "vertex"
-			}
-		]
-	},
-	{
-		"file": ":RayneVulkan:/Shaders.frag.spv",
-		"shaders": [
-			{
-				"name": "gouraud_fragment",
-				"type": "fragment"
-			}
-		]
-	},
-	{
-		"file": ":RayneVulkan:/Depth.vert.spv",
-		"shaders":
-		[
-			{
-				"name": "depth_vertex",
-				"type": "vertex"
-			}
-		]
-	},
-	{
-		"file": ":RayneVulkan:/Depth.frag.spv",
-		"shaders":
-		[
-			{
-				"name": "depth_fragment",
-				"type": "fragment"
-			}
-		]
-	},
-	{
-		"file": ":RayneVulkan:/Sky.vert.spv",
-		"shaders":
-		[
-			{
-				"name": "sky_vertex",
-				"type": "vertex"
-			}
-		]
-	},
-	{
-		"file": ":RayneVulkan:/Sky.frag.spv",
-		"shaders":
-		[
-			{
-				"name": "sky_fragment",
-				"type": "fragment",
-				"signature":
-				{
-					"samplers": [{"wrap": "clamp"}]
-				}
-			}
-		]
-	}
+    {
+        "file~metal": ":RayneVulkan:/Shaders.vs.metallib", 
+        "file~vulkan": ":RayneVulkan:/Shaders.vs.spirv", 
+        "shaders": [
+            {
+                "name": "gouraud_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Shaders.ps.metallib", 
+        "file~vulkan": ":RayneVulkan:/Shaders.ps.spirv", 
+        "shaders": [
+            {
+                "name": "gouraud_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Particles.vs.metallib", 
+        "file~vulkan": ":RayneVulkan:/Particles.vs.spirv", 
+        "shaders": [
+            {
+                "name": "particles_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Particles.ps.metallib", 
+        "file~vulkan": ":RayneVulkan:/Particles.ps.spirv", 
+        "shaders": [
+            {
+                "name": "particles_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Depth.vs.metallib", 
+        "file~vulkan": ":RayneVulkan:/Depth.vs.spirv", 
+        "shaders": [
+            {
+                "name": "depth_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_ALPHA", 
+                        "RN_UV0", 
+                        "RN_SKY"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Depth.ps.metallib", 
+        "file~vulkan": ":RayneVulkan:/Depth.ps.spirv", 
+        "shaders": [
+            {
+                "name": "depth_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Sky.vs.metallib", 
+        "file~vulkan": ":RayneVulkan:/Sky.vs.spirv", 
+        "shaders": [
+            {
+                "name": "sky_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/Sky.ps.metallib", 
+        "file~vulkan": ":RayneVulkan:/Sky.ps.spirv", 
+        "shaders": [
+            {
+                "name": "sky_fragment", 
+                "signature": {
+                    "samplers": [
+                        {
+                            "wrap": "clamp"
+                        }
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/PostProcessing.vs.metallib", 
+        "file~vulkan": ":RayneVulkan:/PostProcessing.vs.spirv", 
+        "shaders": [
+            {
+                "name": "pp_vertex", 
+                "signature": {
+                    "samplers": [
+                        {
+                            "wrap": "clamp"
+                        }
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneVulkan:/PostProcessing.ps.metallib", 
+        "file~vulkan": ":RayneVulkan:/PostProcessing.ps.spirv", 
+        "shaders": [
+            {
+                "name": "pp_blit_fragment", 
+                "signature": {
+                    "samplers": [
+                        {
+                            "wrap": "clamp"
+                        }
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }
 ]

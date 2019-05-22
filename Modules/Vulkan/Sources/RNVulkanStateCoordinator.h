@@ -50,9 +50,11 @@ namespace RN
 	{
 		~VulkanRootSignature();
 
-		uint8 textureCount;
+		bool hasVertexShaderConstantBuffer;
+		bool hasFragmentShaderConstantBuffer;
+
 		Array *samplers;
-		uint8 constantBufferCount;
+		uint8 textureCount;
 
 		bool wantsDirectionalShadowTexture; //TODO: Solve better...
 

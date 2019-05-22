@@ -1161,7 +1161,8 @@ namespace RN
 		_lock.Lock();
 		renderPass.drawables.push_back(drawable);
 		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
+		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->hasVertexShaderConstantBuffer) _internals->totalDescriptorTables += 1;
+		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->hasFragmentShaderConstantBuffer) _internals->totalDescriptorTables += 1;
 		_lock.Unlock();
 	}
 
@@ -1215,7 +1216,7 @@ namespace RN
 					VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
 
 					VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-					size_t binding = 0;
+					size_t binding = 1;
 					if(uniformState->vertexConstantBuffer)
 					{
 						FillUniformBuffer(uniformState->vertexConstantBuffer, drawable, pipelineState->descriptor.vertexShader);

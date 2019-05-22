@@ -57,16 +57,9 @@ namespace RN
 		_shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		_shaderStage.stage = stage;
 		_shaderStage.module = _module;
-		_shaderStage.pName = "main";//entryPoint->GetUTF8String();
+		_shaderStage.pName = entryPoint->GetUTF8String();
 
 		spirv_cross::Compiler reflector(static_cast<uint32_t*>(shaderData->GetBytes()), shaderData->GetLength() / 4);
-
-/*		std::vector<D3D_SHADER_MACRO> shaderDefines;
-		options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
-			shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});
-		});
-*/
-
 		spirv_cross::ShaderResources resources = reflector.get_shader_resources();
 
 		uint8 textureCount = 0;

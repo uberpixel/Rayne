@@ -70,6 +70,40 @@ namespace RN
 		return newOptions;
 	}
 
+	size_t VulkanSpecificShaderLibrary::GetPermutationIndexForOptions(const Shader::Options *options) const
+	{
+		if(!options || !_signatureDescription) return 0;
+
+		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
+		if(!signatureOptions) return 0;
+
+		const Dictionary *oldDefines = options->GetDefines();
+		size_t permutationIndex = 0;
+		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
+			Dictionary *dict = option->Downcast<Dictionary>();
+			String *name = nullptr;
+			if(!dict)
+			{
+				name = option->Downcast<String>();
+			}
+			else
+			{
+				name = dict->GetObjectForKey<String>(RNCSTR("option"));
+			}
+
+			if(name)
+			{
+				String *obj = oldDefines->GetObjectForKey<String>(name);
+				if(obj)
+				{
+					permutationIndex |= (1 << index);
+				}
+			}
+		});
+
+		return permutationIndex;
+	}
+
 	static Array *GetUniformDescriptors(const Array *uniforms, uint32 &offset)
 	{
 		Array *uniformDescriptors = new Array();
@@ -202,8 +236,14 @@ namespace RN
 		if(shader)
 			return shader;
 
+		size_t permutationIndex = GetPermutationIndexForOptions(newOptions);
+		RN::String *permutationFileName = _fileName->StringByDeletingPathExtension();
+		permutationFileName->Append(RNSTR("." << permutationIndex));
+		permutationFileName->Append(".spirv");
+		RN::String *filePath = permutationFileName;//RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
+
 		const Array *samplers = GetSamplerSignature(newOptions);
-		shader = new VulkanShader(library, _fileName, _entryPoint, _type, newOptions, samplers);
+		shader = new VulkanShader(library, filePath, _entryPoint, _type, newOptions, samplers);
 		_shaders->SetObjectForKey(shader, newOptions);
 
 		return shader->Autorelease();

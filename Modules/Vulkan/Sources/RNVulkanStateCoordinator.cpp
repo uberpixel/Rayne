@@ -36,6 +36,24 @@ namespace RN
 			VK_FORMAT_R32G32B32A32_SFLOAT
 		};
 
+	uint32 _vertexFeatureLookup[]
+	{
+		0, //"POSITION",
+		1, //"NORMAL",
+		2, //"TANGENT",
+		3, //"COLOR0",
+		4, //"COLOR1",
+		5, //"TEXCOORD0",
+		6, //"TEXCOORD1",
+
+		0, //Indices
+
+		7, //BoneWeights,
+		8, //BoneIndices,
+
+		9 //"CUSTOM"
+	};
+
 	VkBlendFactor _blendFactorLookup[] =
 	{
 		VK_BLEND_FACTOR_ZERO,
@@ -101,7 +119,8 @@ namespace RN
 		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
 
 		//TODO: Support multiple constant buffers per function signature
-		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+		bool hasVertexShaderConstantBuffer = (vertexSignature->GetTotalUniformSize() > 0);
+		bool hasFragmentShaderConstantBuffer = false;
 
 		VulkanShader *fragmentShader = static_cast<VulkanShader *>(descriptor.fragmentShader);
 		if(fragmentShader)
@@ -114,8 +133,9 @@ namespace RN
 			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
 
 			//TODO: Support multiple constant buffers per function signature
-			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+			hasFragmentShaderConstantBuffer = (fragmentSignature->GetTotalUniformSize() > 0);
 		}
+
 
 		for(VulkanRootSignature *signature : _rootSignatures)
 		{
@@ -131,7 +151,7 @@ namespace RN
 				continue;
 			}
 
-			if(signature->constantBufferCount != constantBufferCount)
+			if(signature->hasVertexShaderConstantBuffer != hasVertexShaderConstantBuffer || signature->hasFragmentShaderConstantBuffer != hasFragmentShaderConstantBuffer)
 			{
 				continue;
 			}
@@ -161,19 +181,22 @@ namespace RN
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
 		VulkanRootSignature *signature = new VulkanRootSignature();
-		signature->constantBufferCount = constantBufferCount;
+		signature->hasVertexShaderConstantBuffer = hasVertexShaderConstantBuffer;
+		signature->hasFragmentShaderConstantBuffer = hasFragmentShaderConstantBuffer;
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
 		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
 
 		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
-		for(size_t i = 0; i < constantBufferCount; i++)
+		for(size_t i = 0; i < 3; i++) //TODO: use fixed bindings based on shader stage and maybe more than one per stage to optimize bandwidth
 		{
 			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
 			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 			setUniformLayoutBinding.binding = i;
-			setUniformLayoutBinding.descriptorCount = 1;
+			setUniformLayoutBinding.descriptorCount = 0;
+			if(i == 1 && hasVertexShaderConstantBuffer) setUniformLayoutBinding.descriptorCount = 1;
+			if(i == 2 && hasFragmentShaderConstantBuffer) setUniformLayoutBinding.descriptorCount = 1;
 			setLayoutBindings.push_back(setUniformLayoutBinding);
 		}
 
@@ -542,7 +565,7 @@ namespace RN
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0 || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords1)
 			{
 				VkVertexInputAttributeDescription attributeDescription = {};
-				attributeDescription.location = offset;
+				attributeDescription.location = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
 				attributeDescription.binding = 0;
 				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
 				attributeDescription.offset = attribute.GetOffset();
@@ -566,11 +589,11 @@ namespace RN
 		VulkanConstantBufferReference *fragmentBuffer = nullptr;
 		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
 		{
-			vertexBuffer = renderer->GetConstantBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 0);
+			vertexBuffer = renderer->GetConstantBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 1);
 		}
 		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
 		{
-			fragmentBuffer = renderer->GetConstantBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 0);
+			fragmentBuffer = renderer->GetConstantBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 2);
 		}
 
 		VulkanUniformState *state = new VulkanUniformState();
