@@ -16,60 +16,72 @@ namespace RN
 	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers) :
 		Shader(library, type, options), _shader(nullptr), _name(entryPoint->Retain())
 	{
-
-
-#ifdef _DEBUG
-		// Enable better shader debugging with the graphics debugging tools.
-		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-		UINT compileFlags = 0;
-#endif
-
-		String *shaderTarget;
-
-		switch(GetType())
+		if(fileName->HasSuffix(RNCSTR(".cso")))
 		{
-			case Type::Vertex:
-				shaderTarget = RNCSTR("vs_5_1");
-				break;
-			case Type::Fragment:
-				shaderTarget = RNCSTR("ps_5_1");
-				break;
-			case Type::Compute:
-				shaderTarget = RNCSTR("cs_5_1");
-				break;
-		}
-
-		Data *shaderData = Data::WithContentsOfFile(fileName);
-		char *text = fileName->GetUTF8String();
-		
-		std::vector<D3D_SHADER_MACRO> shaderDefines;
-		options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
-			shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});
-		});
-
-		shaderDefines.push_back({0, 0});
-
-		_shader = nullptr;
-		ID3DBlob *error = nullptr;
-		HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, shaderDefines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
-
-		if(FAILED(success))
-		{
-			if(_shader)
-				_shader->Release();
-			
-			_shader = nullptr;
-
-			String *errorString = RNCSTR("");
-			if(error)
+			Data *shaderData = Data::WithContentsOfFile(fileName);
+			if(!shaderData || FAILED(D3DCreateBlob(shaderData->GetLength(), &_shader)))
 			{
-				errorString = RNSTR((char*)error->GetBufferPointer());
-				error->Release();
+				RNDebug(RNSTR("Failed to create blobb for shader: " << fileName));
+				throw ShaderCompilationException(RNSTR("Failed to create blobb for shader: " << fileName));
 			}
 
-			RNDebug(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
-			throw ShaderCompilationException(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
+			shaderData->GetBytesInRange(_shader->GetBufferPointer(), Range(0, shaderData->GetLength()));
+		}
+		else
+		{
+#ifdef _DEBUG
+			// Enable better shader debugging with the graphics debugging tools.
+			UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+			UINT compileFlags = 0;
+#endif
+
+			String *shaderTarget;
+
+			switch(GetType())
+			{
+				case Type::Vertex:
+					shaderTarget = RNCSTR("vs_5_1");
+					break;
+				case Type::Fragment:
+					shaderTarget = RNCSTR("ps_5_1");
+					break;
+				case Type::Compute:
+					shaderTarget = RNCSTR("cs_5_1");
+					break;
+			}
+
+			Data *shaderData = Data::WithContentsOfFile(fileName);
+			char *text = fileName->GetUTF8String();
+		
+			std::vector<D3D_SHADER_MACRO> shaderDefines;
+			options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
+				shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});
+			});
+
+			shaderDefines.push_back({0, 0});
+
+			_shader = nullptr;
+			ID3DBlob *error = nullptr;
+			HRESULT success = D3DCompile(shaderData->GetBytes(), shaderData->GetLength(), text, shaderDefines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint->GetUTF8String(), shaderTarget->GetUTF8String(), compileFlags, 0, &_shader, &error);
+
+			if(FAILED(success))
+			{
+				if(_shader)
+					_shader->Release();
+			
+				_shader = nullptr;
+
+				String *errorString = RNCSTR("");
+				if(error)
+				{
+					errorString = RNSTR((char*)error->GetBufferPointer());
+					error->Release();
+				}
+
+				RNDebug(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
+				throw ShaderCompilationException(RNSTR("Failed to compile shader: " << fileName << " with error: " << errorString));
+			}
 		}
 
 		ID3D12ShaderReflection* pReflector = nullptr;

@@ -240,6 +240,8 @@ namespace RN
 		RN::String *permutationFileName = _fileName->StringByDeletingPathExtension();
 		permutationFileName->Append(RNSTR("." << permutationIndex));
 		permutationFileName->Append(".spirv");
+
+		//TODO: Fix things to make this work on android!
 		RN::String *filePath = permutationFileName;//RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
 
 		const Array *samplers = GetSamplerSignature(newOptions);
