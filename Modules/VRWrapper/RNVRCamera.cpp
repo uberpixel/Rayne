@@ -175,9 +175,13 @@ namespace RN
 
 #if RN_PLATFORM_ANDROID
 			if(_debugWindow)
+			{
 				_eye[i]->GetRenderPass()->SetFrame(Rect(0.0f, i * (windowSize.y + eyePadding) / 2, windowSize.x, (windowSize.y - eyePadding) / 2));
+			}
 			else
+			{
 				resolvedFramebuffer = _window->GetFramebuffer(i);
+			}
 #endif
 
 			if(_msaaSampleCount > 1)

@@ -240,8 +240,7 @@ namespace RN
 
 		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 
-/*		_swapChain->SetProjection(_hmdTrackingState.eyeProjection[0].m[10], _hmdTrackingState.eyeProjection[0].m[14], _hmdTrackingState.eyeProjection[0].m[11]);
-
+/*
 		if(_swapChain->_submitResult == ovrSuccess_NotVisible)
 		{
 			//Check if application should quit! Stop most things.
@@ -289,8 +288,10 @@ namespace RN
 		_controllerTrackingState[1].tracking = false;
 
 		ovrInputCapabilityHeader capsHeader;
-		if(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), 0, &capsHeader) >= 0)
+		int i = 0;
+		while(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), i, &capsHeader) >= 0 && i < 2)
 		{
+			i += 1;
 			if(capsHeader.Type == ovrControllerType_TrackedRemote)
 			{
 				ovrInputTrackedRemoteCapabilities remoteCaps;
@@ -309,20 +310,47 @@ namespace RN
 					{
 						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
 						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = false;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = false;
+						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = false;
 
-						Vector2 trackpadPosition;
-						if(remoteState.TrackpadStatus > 0 || remoteState.Buttons & ovrButton_Enter)
-						{
-							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
-							trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
-
-							//RNDebug(RNSTR("absolute: (" << remoteState.TrackpadPosition.x << ", " << remoteState.TrackpadPosition.y << "), relative: (" << trackpadPosition.x << ", " << trackpadPosition.y << ")"));
-						}
-						_controllerTrackingState[handIndex].trackpad = trackpadPosition;
-						_controllerTrackingState[handIndex].indexTrigger = (remoteState.Buttons & ovrButton_A)? 1.0f:0.0f;
+						_controllerTrackingState[handIndex].trackpad = Vector2();
+						_controllerTrackingState[handIndex].indexTrigger = 0.0f;
 						_controllerTrackingState[handIndex].handTrigger = 0.0f;
+						_controllerTrackingState[handIndex].thumbstick = Vector2();
+
+						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasTrackpad))
+						{
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
+
+							if(remoteState.TrackpadStatus > 0 || remoteState.Buttons & ovrButton_Enter)
+							{
+								Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
+								Vector2 trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
+								_controllerTrackingState[handIndex].trackpad = trackpadPosition;
+							}
+						}
+
+						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelOculusGo) || (remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelGearVR))
+						{
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
+							_controllerTrackingState[handIndex].indexTrigger = (remoteState.Buttons & ovrButton_A) ? 1.0f : 0.0f;
+						}
+						else
+						{
+							if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasAnalogIndexTrigger))
+							{
+								_controllerTrackingState[handIndex].indexTrigger = remoteState.IndexTrigger;
+							}
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = (remoteState.Buttons & ovrButton_Enter);
+							_controllerTrackingState[handIndex].thumbstick = Vector2(remoteState.Joystick.x, remoteState.Joystick.y);
+						}
+
+
+						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasAnalogGripTrigger))
+						{
+							_controllerTrackingState[handIndex].handTrigger = remoteState.GripTrigger;
+						}
 					}
 
 					ovrTracking trackingState;
