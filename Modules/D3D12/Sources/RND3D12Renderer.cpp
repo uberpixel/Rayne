@@ -343,7 +343,7 @@ namespace RN
 				//Pass the destination texture pixel size to the shader as constants
 				commandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/dstWidth).Uint, 0);
 				commandList->SetComputeRoot32BitConstant(0, DWParam(1.0f/dstHeight).Uint, 1);
-				commandList->SetComputeRoot32BitConstant(0, DWParam((textureDescriptor.format == Texture::Format::RGBA8888SRGB)?2.2f:1.0f).Uint, 2);	//TODO: Adjust gamma curve based on the original texture format
+				commandList->SetComputeRoot32BitConstant(0, DWParam((textureDescriptor.format == Texture::Format::RGBA_8_SRGB)?2.2f:1.0f).Uint, 2);	//TODO: Adjust gamma curve based on the original texture format
 
 				//Pass the source and destination texture views to the shader via descriptor tables
 				commandList->SetComputeRootDescriptorTable(1, currentGPUHandle);

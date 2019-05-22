@@ -17,6 +17,7 @@ namespace RN
 
 	class VulkanFramebuffer;
 	class VulkanConstantBufferReference;
+	class VulkanShader;
 
 	struct VulkanUniformState
 	{
@@ -160,7 +161,7 @@ namespace RN
 		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
 
 	private:
-		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh);
+		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader);
 		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &pipelineDescriptor);
 
 		std::vector<VulkanDepthStencilState *> _depthStencilStates;

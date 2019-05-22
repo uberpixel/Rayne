@@ -72,7 +72,6 @@ namespace RN
 					descriptorSetAllocateInfo.pSetLayouts = &_layout;
 					descriptorSetAllocateInfo.descriptorSetCount = 1;
 
-					VkDescriptorSet descriptorSet;
 					RNVulkanValidate(vk::AllocateDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &_descriptorSets[_currentIndex]));
 				}
 

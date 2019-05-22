@@ -41,15 +41,15 @@ namespace RN
 	{
 		switch(format)
 		{
-			case Texture::Format::Depth24I:
+			case Texture::Format::Depth_24I:
 				return DXGI_FORMAT_R24G8_TYPELESS;
-			case Texture::Format::Depth32F:
+			case Texture::Format::Depth_32F:
 				return DXGI_FORMAT_R32_TYPELESS;
-			case Texture::Format::Stencil8:
+			case Texture::Format::Stencil_8:
 				return DXGI_FORMAT_R24G8_TYPELESS;
-			case Texture::Format::Depth24Stencil8:
+			case Texture::Format::Depth_24_Stencil_8:
 				return DXGI_FORMAT_R24G8_TYPELESS;
-			case Texture::Format::Depth32FStencil8:
+			case Texture::Format::Depth_32F_Stencil_8:
 				return DXGI_FORMAT_R32G8X24_TYPELESS;
 			default:
 				return DXGI_FORMAT_UNKNOWN;
@@ -60,49 +60,49 @@ namespace RN
 	{
 		switch (format)
 		{
-		case Texture::Format::RGBA8888SRGB:
+		case Texture::Format::RGBA_8_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::BGRA8888SRGB:
+		case Texture::Format::BGRA_8_SRGB:
 			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		case Texture::Format::RGBA8888:
+		case Texture::Format::RGBA_8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::BGRA8888:
+		case Texture::Format::BGRA_8:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case Texture::Format::RGB10A2:
+		case Texture::Format::RGB_10_A_2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		case Texture::Format::R8:
+		case Texture::Format::R_8:
 			return DXGI_FORMAT_R8_UNORM;
-		case Texture::Format::RG88:
+		case Texture::Format::RG_8:
 			return DXGI_FORMAT_R8G8_UNORM;
-		case Texture::Format::RGB888:
+		case Texture::Format::RGB_8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::RGB888SRGB:
+		case Texture::Format::RGB_8_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::R16F:
+		case Texture::Format::R_16F:
 			return DXGI_FORMAT_R16_FLOAT;
-		case Texture::Format::RG16F:
+		case Texture::Format::RG_16F:
 			return DXGI_FORMAT_R16G16_FLOAT;
-		case Texture::Format::RGB16F:
+		case Texture::Format::RGB_16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::RGBA16F:
+		case Texture::Format::RGBA_16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::R32F:
+		case Texture::Format::R_32F:
 			return DXGI_FORMAT_R32_FLOAT;
-		case Texture::Format::RG32F:
+		case Texture::Format::RG_32F:
 			return DXGI_FORMAT_R32G32_FLOAT;
-		case Texture::Format::RGB32F:
+		case Texture::Format::RGB_32F:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-		case Texture::Format::RGBA32F:
+		case Texture::Format::RGBA_32F:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case Texture::Format::Depth24I:
+		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth32F:
+		case Texture::Format::Depth_32F:
 			return DXGI_FORMAT_D32_FLOAT;
-		case Texture::Format::Stencil8:
+		case Texture::Format::Stencil_8:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth24Stencil8:
+		case Texture::Format::Depth_24_Stencil_8:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case Texture::Format::Depth32FStencil8:
+		case Texture::Format::Depth_32F_Stencil_8:
 			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 		default:
 			return DXGI_FORMAT_UNKNOWN;
@@ -113,51 +113,51 @@ namespace RN
 	{
 		switch (format)
 		{
-		case Texture::Format::RGBA8888SRGB:
+		case Texture::Format::RGBA_8_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::BGRA8888SRGB:
+		case Texture::Format::BGRA_8_SRGB:
 			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		case Texture::Format::RGBA8888:
+		case Texture::Format::RGBA_8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::BGRA8888:
+		case Texture::Format::BGRA_8:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case Texture::Format::RGB10A2:
+		case Texture::Format::RGB_10_A_2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		case Texture::Format::R8:
+		case Texture::Format::R_8:
 			return DXGI_FORMAT_R8_UNORM;
-		case Texture::Format::RG88:
+		case Texture::Format::RG_8:
 			return DXGI_FORMAT_R8G8_UNORM;
-		case Texture::Format::RGB888:
+		case Texture::Format::RGB_8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::RGB888SRGB:
+		case Texture::Format::RGB_8_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::R16F:
+		case Texture::Format::R_16F:
 			return DXGI_FORMAT_R16_FLOAT;
-		case Texture::Format::RG16F:
+		case Texture::Format::RG_16F:
 			return DXGI_FORMAT_R16G16_FLOAT;
-		case Texture::Format::RGB16F:
+		case Texture::Format::RGB_16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::RGBA16F:
+		case Texture::Format::RGBA_16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::R32F:
+		case Texture::Format::R_32F:
 			return DXGI_FORMAT_R32_FLOAT;
-		case Texture::Format::RG32F:
+		case Texture::Format::RG_32F:
 			return DXGI_FORMAT_R32G32_FLOAT;
-		case Texture::Format::RGB32F:
+		case Texture::Format::RGB_32F:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-		case Texture::Format::RGBA32F:
+		case Texture::Format::RGBA_32F:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case Texture::Format::Depth24I:
+		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		case Texture::Format::Depth32F:
+		case Texture::Format::Depth_32F:
 			return DXGI_FORMAT_R32_FLOAT;
-		case Texture::Format::Stencil8:
+		case Texture::Format::Stencil_8:
 			return DXGI_FORMAT_X24_TYPELESS_G8_UINT;
 
 		//TODO: Only depth of DepthStencil formats it currently accesible in shader, two resource views with different formats would be needed
-		case Texture::Format::Depth24Stencil8:
+		case Texture::Format::Depth_24_Stencil_8:
 			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		case Texture::Format::Depth32FStencil8:
+		case Texture::Format::Depth_32F_Stencil_8:
 			return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 
 		default:
@@ -171,30 +171,30 @@ namespace RN
 		{
 			switch(descriptor.format)
 			{
-			case Texture::Format::RGBA8888SRGB:
-			case Texture::Format::BGRA8888SRGB:
-			case Texture::Format::RGBA8888:
-			case Texture::Format::BGRA8888:
-			case Texture::Format::RGB10A2:
-			case Texture::Format::R8:
-			case Texture::Format::RG88:
-			case Texture::Format::RGB888:
-			case Texture::Format::RGB888SRGB:
-			case Texture::Format::R16F:
-			case Texture::Format::RG16F:
-			case Texture::Format::RGB16F:
-			case Texture::Format::RGBA16F:
-			case Texture::Format::R32F:
-			case Texture::Format::RG32F:
-			case Texture::Format::RGB32F:
-			case Texture::Format::RGBA32F:
+			case Texture::Format::RGBA_8_SRGB:
+			case Texture::Format::BGRA_8_SRGB:
+			case Texture::Format::RGBA_8:
+			case Texture::Format::BGRA_8:
+			case Texture::Format::RGB_10_A_2:
+			case Texture::Format::R_8:
+			case Texture::Format::RG_8:
+			case Texture::Format::RGB_8:
+			case Texture::Format::RGB_8_SRGB:
+			case Texture::Format::R_16F:
+			case Texture::Format::RG_16F:
+			case Texture::Format::RGB_16F:
+			case Texture::Format::RGBA_16F:
+			case Texture::Format::R_32F:
+			case Texture::Format::RG_32F:
+			case Texture::Format::RGB_32F:
+			case Texture::Format::RGBA_32F:
 				return D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-			case Texture::Format::Depth24I:
-			case Texture::Format::Depth32F:
-			case Texture::Format::Stencil8:
-			case Texture::Format::Depth24Stencil8:
-			case Texture::Format::Depth32FStencil8:
+			case Texture::Format::Depth_24I:
+			case Texture::Format::Depth_32F:
+			case Texture::Format::Stencil_8:
+			case Texture::Format::Depth_24_Stencil_8:
+			case Texture::Format::Depth_32F_Stencil_8:
 				return D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 			default:
@@ -211,30 +211,30 @@ namespace RN
 		{
 			switch (descriptor.format)
 			{
-			case Texture::Format::RGBA8888SRGB:
-			case Texture::Format::BGRA8888SRGB:
-			case Texture::Format::RGBA8888:
-			case Texture::Format::BGRA8888:
-			case Texture::Format::RGB10A2:
-			case Texture::Format::R8:
-			case Texture::Format::RG88:
-			case Texture::Format::RGB888:
-			case Texture::Format::RGB888SRGB:
-			case Texture::Format::R16F:
-			case Texture::Format::RG16F:
-			case Texture::Format::RGB16F:
-			case Texture::Format::RGBA16F:
-			case Texture::Format::R32F:
-			case Texture::Format::RG32F:
-			case Texture::Format::RGB32F:
-			case Texture::Format::RGBA32F:
+			case Texture::Format::RGBA_8_SRGB:
+			case Texture::Format::BGRA_8_SRGB:
+			case Texture::Format::RGBA_8:
+			case Texture::Format::BGRA_8:
+			case Texture::Format::RGB_10_A_2:
+			case Texture::Format::R_8:
+			case Texture::Format::RG_8:
+			case Texture::Format::RGB_8:
+			case Texture::Format::RGB_8_SRGB:
+			case Texture::Format::R_16F:
+			case Texture::Format::RG_16F:
+			case Texture::Format::RGB_16F:
+			case Texture::Format::RGBA_16F:
+			case Texture::Format::R_32F:
+			case Texture::Format::RG_32F:
+			case Texture::Format::RGB_32F:
+			case Texture::Format::RGBA_32F:
 				return D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-			case Texture::Format::Depth24I:
-			case Texture::Format::Depth32F:
-			case Texture::Format::Stencil8:
-			case Texture::Format::Depth24Stencil8:
-			case Texture::Format::Depth32FStencil8:
+			case Texture::Format::Depth_24I:
+			case Texture::Format::Depth_32F:
+			case Texture::Format::Stencil_8:
+			case Texture::Format::Depth_24_Stencil_8:
+			case Texture::Format::Depth_32F_Stencil_8:
 				return D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 			default:
@@ -321,7 +321,7 @@ namespace RN
 			clearValue.Format = imageDesc.Format;
 
 			//TODO: descriptor.usageHint & UsageHint::ShaderRead could be checked here, but makes error handling tricky and maybe there is no disadvantage in always using a typeless format here...
-			if(descriptor.format >= Texture::Format::Depth24I)
+			if(descriptor.format >= Texture::Format::Depth_24I)
 			{
 				imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
 				clearValue.DepthStencil.Depth = descriptor.preferredClearDepth;
@@ -355,17 +355,17 @@ namespace RN
 		renderer->AddFrameResouce(_resource);
 	}
 
-	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
 	{
-		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow);
+		SetData(Region(0, 0, 0, _descriptor.GetWidthForMipMapLevel(mipmapLevel), _descriptor.GetHeightForMipMapLevel(mipmapLevel), _descriptor.depth), mipmapLevel, bytes, bytesPerRow, numberOfRows);
 	}
 
-	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow)
+	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
 	{
-		SetData(region, mipmapLevel, 0, bytes, bytesPerRow);
+		SetData(region, mipmapLevel, 0, bytes, bytesPerRow, numberOfRows);
 	}
 	
-	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow)
+	void D3D12Texture::SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 

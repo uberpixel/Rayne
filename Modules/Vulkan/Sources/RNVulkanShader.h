@@ -31,6 +31,9 @@ namespace RN
 		VkPipelineShaderStageCreateInfo _shaderStage;
 		VkShaderModule _module;
 		const String *_name;
+		Data *_entryPoint;
+
+		bool _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
 
 		bool _wantsDirectionalShadowTexture; //TODO: Solve better...
 

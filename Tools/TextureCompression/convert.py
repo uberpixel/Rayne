@@ -71,6 +71,7 @@ def main():
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
     elif platform.system() == 'Windows':
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/windows-x64/astcenc.exe')
+        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/Release/nvcompress.exe')
     else:
         print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
         return

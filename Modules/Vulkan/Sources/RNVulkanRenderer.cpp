@@ -1266,7 +1266,7 @@ namespace RN
 					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 						imageBufferDescriptorInfo.imageView = texture->_imageView;
-						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 						imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
 
 						VkWriteDescriptorSet writeImageDescriptorSet = {};

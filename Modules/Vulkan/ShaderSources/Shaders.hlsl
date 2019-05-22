@@ -65,10 +65,11 @@ struct LightDirectional
 #endif
 
 	uint directionalShadowMatricesCount;
+	uint directionalLightsCount;
+	
 	float2 directionalShadowInfo;
 	matrix directionalShadowMatrices[4];
 
-	uint directionalLightsCount;
 	LightDirectional directionalLights[5];
 };
 

@@ -23,7 +23,7 @@ namespace RN
 
 		_renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		_descriptor = descriptor;
-		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB;
+		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;

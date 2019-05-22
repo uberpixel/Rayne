@@ -112,16 +112,16 @@ def main():
             for outFormat in outFormats:
                 if outFormat == 'dxil':
                     compilerOutFormat = 'dxil'
-                    destinationShaderFile['file~d3d12'] = os.path.join(resourceRelativePath, fileName + '.' + shaderType + '.' + outFormat).replace('\\', '/')
+                    destinationShaderFile['file~d3d12'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.' + outFormat
                 elif outFormat == 'cso':
                 	compilerOutFormat = 'cso'
-                	destinationShaderFile['file~d3d12'] = os.path.join(resourceRelativePath, fileName + '.' + shaderType + '.' + outFormat).replace('\\', '/')
+                	destinationShaderFile['file~d3d12'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.' + outFormat
                 elif outFormat == 'spirv':
                     compilerOutFormat = 'spirv'
-                    destinationShaderFile['file~vulkan'] = os.path.join(resourceRelativePath, fileName + '.' + shaderType + '.' + outFormat).replace('\\', '/')
+                    destinationShaderFile['file~vulkan'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.' + outFormat
                 elif outFormat == 'metal':
                     compilerOutFormat = 'msl_macos'
-                    destinationShaderFile['file~metal'] = os.path.join(resourceRelativePath, fileName + '.' + shaderType + '.metallib').replace('\\', '/')
+                    destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metallib'
 
                 for permutationCounter, permutation in enumerate(permutations):
                     permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.' + outFormat)

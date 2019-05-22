@@ -267,7 +267,7 @@ namespace RN
 
 		if(depth)
 			flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
-		if(depth)
+		if(stencil)
 			flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 		return flags;

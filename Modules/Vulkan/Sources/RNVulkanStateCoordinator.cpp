@@ -405,7 +405,7 @@ namespace RN
 		bindingDescription.binding = 0;
 		bindingDescription.stride = mesh->GetStride();
 		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh);
+		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh, vertexShaderRayne);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -492,7 +492,7 @@ namespace RN
 		VkPipelineMultisampleStateCreateInfo multisampleState = {};
 		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
-		multisampleState.sampleShadingEnable = VK_FALSE;//descriptor.sampleCount > 1? VK_TRUE : VK_FALSE;
+		multisampleState.sampleShadingEnable = VK_FALSE;
 		multisampleState.alphaToCoverageEnable = descriptor.useAlphaToCoverage? VK_TRUE : VK_FALSE;
 		//TODO: Maybe set minSampleShading?
 
@@ -550,7 +550,7 @@ namespace RN
 		}*/
 	}
 
-	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh)
+	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader)
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
@@ -561,11 +561,10 @@ namespace RN
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			//TODO: Remove the if (unused bindings confuse the validation layers...)
-			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices || attribute.GetFeature() == Mesh::VertexAttribute::Feature::Normals || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords0 || attribute.GetFeature() == Mesh::VertexAttribute::Feature::UVCoords1)
+			if(vertexShader->_hasInputVertexAttribute[static_cast<uint32>(attribute.GetFeature())])
 			{
 				VkVertexInputAttributeDescription attributeDescription = {};
-				attributeDescription.location = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
+				attributeDescription.location = _vertexFeatureLookup[static_cast<uint32>(attribute.GetFeature())];
 				attributeDescription.binding = 0;
 				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
 				attributeDescription.offset = attribute.GetOffset();

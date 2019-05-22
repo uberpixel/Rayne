@@ -20,7 +20,7 @@ namespace RN
 	{
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		_descriptor = descriptor;
-		_descriptor.colorFormat = Texture::Format::RGBA8888SRGB; //OpenVR expects RGBA!
+		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB; //OpenVR expects RGBA!
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;

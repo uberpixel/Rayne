@@ -19,17 +19,17 @@ namespace RN
 	{
 		switch(format)
 		{
-		case Texture::Format::RGBA8888SRGB:
+		case Texture::Format::RGBA_8_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::BGRA8888SRGB:
+		case Texture::Format::BGRA_8_SRGB:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case Texture::Format::RGBA8888:
+		case Texture::Format::RGBA_8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::BGRA8888:
+		case Texture::Format::BGRA_8:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case Texture::Format::RGB10A2:
+		case Texture::Format::RGB_10_A_2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		case Texture::Format::RGBA16F:
+		case Texture::Format::RGBA_16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
 		default:
 			return DXGI_FORMAT_UNKNOWN;

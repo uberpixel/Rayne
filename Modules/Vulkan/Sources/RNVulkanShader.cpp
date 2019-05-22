@@ -21,6 +21,8 @@ namespace RN
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
 		Data *shaderData = Data::WithContentsOfFile(fileName);
+		_entryPoint = Data::WithBytes(reinterpret_cast<uint8 *>(_name->GetUTF8String()), _name->GetLength()+1);
+		_entryPoint->Retain();
 
 		//Create the shader module
 		const char *shaderCode = static_cast<const char*>(shaderData->GetBytes());
@@ -57,7 +59,7 @@ namespace RN
 		_shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		_shaderStage.stage = stage;
 		_shaderStage.module = _module;
-		_shaderStage.pName = entryPoint->GetUTF8String();
+		_shaderStage.pName = _entryPoint->GetBytes<const char>();
 
 		spirv_cross::Compiler reflector(static_cast<uint32_t*>(shaderData->GetBytes()), shaderData->GetLength() / 4);
 		spirv_cross::ShaderResources resources = reflector.get_shader_resources();
@@ -68,6 +70,59 @@ namespace RN
 		Array *uniformDescriptors = new Array();
 
 		_wantsDirectionalShadowTexture = false;
+		for(uint32 i = 0; i < static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1; i++)
+		{
+			_hasInputVertexAttribute[i] = false;
+		}
+
+		if(stage == VK_SHADER_STAGE_VERTEX_BIT)
+		{
+			for(auto &resource : resources.stage_inputs)
+			{
+				String *name = RNSTR(resource.name);
+				if(name->IsEqual(RNCSTR("in_var_POSITION")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Vertices)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_NORMAL")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Normals)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_TANGENT")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Tangents)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_COLOR0")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color0)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_COLOR1")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color1)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD0")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords0)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD1")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords1)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_BONEWEIGHTS")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneWeights)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_BONEINDICES")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneIndices)] = true;
+				}
+				else if (name->IsEqual(RNCSTR("in_var_CUSTOM")))
+				{
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom)] = true;
+				}
+			}
+			
+		}
 
 		for(auto &resource : resources.separate_images)
 		{
@@ -135,6 +190,7 @@ namespace RN
 		vk::DestroyShaderModule(device->GetDevice(), _module, renderer->GetAllocatorCallback());
 
 		_name->Release();
+		_entryPoint->Release();
 	}
 
 	const String *VulkanShader::GetName() const

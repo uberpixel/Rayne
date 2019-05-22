@@ -56,27 +56,27 @@ namespace RN
 		swapChainDesc.ArraySize = 1;
 		switch(descriptor.colorFormat)
 		{
-			case Texture::Format::BGRA8888SRGB:
+			case Texture::Format::BGRA_8_SRGB:
 			{
 				swapChainDesc.Format = OVR_FORMAT_B8G8R8A8_UNORM_SRGB;
 				break;
 			}
-			case Texture::Format::BGRA8888:
+			case Texture::Format::BGRA_8:
 			{
 				swapChainDesc.Format = OVR_FORMAT_B8G8R8A8_UNORM;
 				break;
 			}
-			case Texture::Format::RGBA8888SRGB:
+			case Texture::Format::RGBA_8_SRGB:
 			{
 				swapChainDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
 				break;
 			}
-			case Texture::Format::RGBA8888:
+			case Texture::Format::RGBA_8:
 			{
 				swapChainDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 				break;
 			}
-			case Texture::Format::RGBA16F:
+			case Texture::Format::RGBA_16F:
 			{
 				swapChainDesc.Format = OVR_FORMAT_R16G16B16A16_FLOAT;
 				break;
@@ -111,22 +111,22 @@ namespace RN
 			depthSwapChainDesc.ArraySize = 1;
 			switch(descriptor.depthStencilFormat)
 			{
-				case Texture::Format::Depth24I:
+				case Texture::Format::Depth_24I:
 				{
 					depthSwapChainDesc.Format = OVR_FORMAT_D24_UNORM_S8_UINT;
 					break;
 				}
-				case Texture::Format::Depth24Stencil8:
+				case Texture::Format::Depth_24_Stencil_8:
 				{
 					depthSwapChainDesc.Format = OVR_FORMAT_D24_UNORM_S8_UINT;
 					break;
 				}
-				case Texture::Format::Depth32F:
+				case Texture::Format::Depth_32F:
 				{
 					depthSwapChainDesc.Format = OVR_FORMAT_D32_FLOAT;
 					break;
 				}
-				case Texture::Format::Depth32FStencil8:
+				case Texture::Format::Depth_32F_Stencil_8:
 				{
 					depthSwapChainDesc.Format = OVR_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
