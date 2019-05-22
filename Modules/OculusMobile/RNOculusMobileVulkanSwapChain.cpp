@@ -117,17 +117,16 @@ namespace RN
 	ovrMatrix4f OculusMobileVulkanSwapChain::GetTanAngleMatrixForEye(uint8 eye)
     {
     	ovrMatrix4f *projection = &_hmdState.Eye[eye].ProjectionMatrix;
-    	float eyeOffset = 0.0f;
-    	float eyeFactor = 1.0f;
 
     	const ovrMatrix4f tanAngleMatrix =
     	{ {
-    		{ eyeFactor * 0.5f * projection->M[0][0], 0.0f, 0.5f * projection->M[0][2] - 0.5f, 0.0f },
-    		{ 0.0f, -0.5f * projection->M[1][1], 0.5f * projection->M[1][2] - 0.5f, 0.0f },
+    		{ 0.5f * projection->M[0][0], 0.0f, 0.5f * projection->M[0][2] - 0.5f, 0.0f },
+    		{ 0.0f, -0.5f * projection->M[1][1], -0.5f * projection->M[1][2] - 0.5f, 0.0f },
     		{ 0.0f, 0.0f, -1.0f, 0.0f },
     		// Store the values to convert a clip-Z to a linear depth in the unused matrix elements.
     		{ projection->M[2][2], projection->M[2][3], projection->M[3][2], 1.0f }
     	} };
+
     	return tanAngleMatrix;
     }
 }
