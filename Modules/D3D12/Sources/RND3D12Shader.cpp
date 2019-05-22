@@ -16,6 +16,8 @@ namespace RN
 	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers) :
 		Shader(library, type, options), _shader(nullptr), _name(entryPoint->Retain())
 	{
+
+
 #ifdef _DEBUG
 		// Enable better shader debugging with the graphics debugging tools.
 		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -28,13 +30,13 @@ namespace RN
 		switch(GetType())
 		{
 			case Type::Vertex:
-				shaderTarget = RNCSTR("vs_5_0");
+				shaderTarget = RNCSTR("vs_5_1");
 				break;
 			case Type::Fragment:
-				shaderTarget = RNCSTR("ps_5_0");
+				shaderTarget = RNCSTR("ps_5_1");
 				break;
 			case Type::Compute:
-				shaderTarget = RNCSTR("cs_5_0");
+				shaderTarget = RNCSTR("cs_5_1");
 				break;
 		}
 
