@@ -82,11 +82,11 @@ namespace RN
 			//TODO: Support multiple uniform buffers
 			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_cameraSpecifics[cameraID].vertexBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();//new MetalUniformBuffer(renderer, totalSize, 1);
+				_cameraSpecifics[cameraID].vertexBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();
 
 			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
 			if(totalSize > 0)
-				_cameraSpecifics[cameraID].fragmentBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();
+				_cameraSpecifics[cameraID].fragmentBuffer = metalRenderer->GetUniformBufferReference(totalSize, 2)->Retain();
 			
 			_cameraSpecifics[cameraID].dirty = false;
 		}

@@ -20,6 +20,8 @@ def main():
     #outFormats = ['dxil', 'spirv', 'metal']
     #outFormats = ['spirv', 'metal']
 
+    enableDebugSymbols = True
+
     outDirName = sys.argv[2]
     resourceRelativePath = sys.argv[3]
     if not os.path.exists(outDirName):
@@ -37,6 +39,7 @@ def main():
 
     shaderConductorCmdPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
+        outFormats = ['spirv', 'metal']
         shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-osx-clang-x64-Release/Bin/ShaderConductorCmd')
     elif platform.system() == 'Windows':
     	preprocessHLSLPath = os.path.join(shaderConductorCmdPath, 'preprocessForHLSL.py')
@@ -46,7 +49,7 @@ def main():
         print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
         return
 
-    print shaderConductorCmdPath
+    hlslFile = False
 
     for shaderFile in sourceJson:
         if not 'file' in shaderFile or not 'shaders' in shaderFile:
@@ -136,7 +139,10 @@ def main():
                     if outFormat == 'metal' and platform.system() == 'Darwin':
                         bitcodeOutFile = permutationOutFile + '.air'
                         libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.metallib')
-                        subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                        if enableDebugSymbols:
+                            subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                        else:
+                            subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
                         subprocess.call(['xcrun', '-sdk', 'macosx', 'metallib', bitcodeOutFile, '-o', libOutFile])
                         os.remove(permutationOutFile)
                         os.remove(bitcodeOutFile)

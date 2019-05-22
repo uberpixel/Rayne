@@ -46,6 +46,8 @@ namespace RN
 			AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
 			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords1))
+			AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
 		
 		//TODO: This should be based on the model having a skeleton...
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::BoneWeights))

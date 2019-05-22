@@ -14,25 +14,25 @@
 namespace RN
 {
 	MTLVertexFormat _vertexFormatLookup[] =
-		{
-			MTLVertexFormatUChar2,
-			MTLVertexFormatUShort2,
-			MTLVertexFormatUInt,
+	{
+		MTLVertexFormatUChar2,
+		MTLVertexFormatUShort2,
+		MTLVertexFormatUInt,
 
-			MTLVertexFormatChar2,
-			MTLVertexFormatShort2,
-			MTLVertexFormatInt,
+		MTLVertexFormatChar2,
+		MTLVertexFormatShort2,
+		MTLVertexFormatInt,
 
-			MTLVertexFormatFloat,
+		MTLVertexFormatFloat,
 
-			MTLVertexFormatFloat2,
-			MTLVertexFormatFloat3,
-			MTLVertexFormatFloat4,
+		MTLVertexFormatFloat2,
+		MTLVertexFormatFloat3,
+		MTLVertexFormatFloat4,
 
-			MTLVertexFormatFloat4,
-			MTLVertexFormatFloat4,
-			MTLVertexFormatFloat4
-		};
+		MTLVertexFormatFloat4,
+		MTLVertexFormatFloat4,
+		MTLVertexFormatFloat4
+	};
 	
 	uint32 _vertexFeatureLookup[]
 	{
@@ -53,16 +53,16 @@ namespace RN
 	};
 
 	MTLCompareFunction CompareFunctionLookup[] =
-		{
-			MTLCompareFunctionNever,
-			MTLCompareFunctionAlways,
-			MTLCompareFunctionLess,
-			MTLCompareFunctionLessEqual,
-			MTLCompareFunctionEqual,
-			MTLCompareFunctionNotEqual,
-			MTLCompareFunctionGreaterEqual,
-			MTLCompareFunctionGreater
-		};
+	{
+		MTLCompareFunctionNever,
+		MTLCompareFunctionAlways,
+		MTLCompareFunctionLess,
+		MTLCompareFunctionLessEqual,
+		MTLCompareFunctionEqual,
+		MTLCompareFunctionNotEqual,
+		MTLCompareFunctionGreaterEqual,
+		MTLCompareFunctionGreater
+	};
 
 	MetalStateCoordinator::MetalStateCoordinator() :
 		_device(nullptr),
@@ -347,13 +347,14 @@ namespace RN
 
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		
-		for(int i = 0; i < 7; i++)
+		//TODO: Delete if not having this doesn't cause problems
+/*		for(int i = 0; i < 7; i++)
 		{
 			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[i];
 			attributeDescriptor.format = MTLVertexFormatFloat2;
 			attributeDescriptor.offset = 0;
 			attributeDescriptor.bufferIndex = 0;
-		}
+		}*/
 
 		size_t index = 0;
 		for(const Mesh::VertexAttribute &attribute : attributes)
