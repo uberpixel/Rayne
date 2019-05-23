@@ -96,7 +96,7 @@ namespace RN
 				String *obj = oldDefines->GetObjectForKey<String>(name);
 				if(obj)
 				{
-					permutationIndex |= (1 << index);
+					permutationIndex |= (static_cast<size_t>(1) << index);
 				}
 			}
 		});

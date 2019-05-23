@@ -144,7 +144,7 @@ namespace RN
 											SceneNode *node = iterator->Get();
 											
 											//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-											if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))
+											if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))))
 											{
 												if(node->CanRender(renderer, camera))
 													node->Render(renderer, camera);
@@ -175,7 +175,7 @@ namespace RN
 										SceneNode *node = iterator->Get();
 
 										//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-										if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))
+										if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))))
 										{
 											if(node->CanRender(renderer, camera))
 												node->Render(renderer, camera);

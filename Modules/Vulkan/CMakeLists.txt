@@ -6,7 +6,7 @@ find_package(Vulkan REQUIRED)
 
 if(NOT PYTHONINTERP_FOUND OR UNIX)
 #    if(APPLE)
-        set(PYTHON_EXECUTABLE python3)
+        set(PYTHON_EXECUTABLE python)
 #    else()
 #        message( FATAL_ERROR "Python 3 not found" )
 #    endif()
