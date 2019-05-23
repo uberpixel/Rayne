@@ -94,6 +94,25 @@ namespace RN
 			return DXGI_FORMAT_R32G32B32_FLOAT;
 		case Texture::Format::RGBA_32F:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+		case Texture::Format::RGBA_BC1_SRGB:
+			return DXGI_FORMAT_BC1_UNORM_SRGB;
+		case Texture::Format::RGBA_BC2_SRGB:
+			return DXGI_FORMAT_BC2_UNORM_SRGB;
+		case Texture::Format::RGBA_BC3_SRGB:
+			return DXGI_FORMAT_BC3_UNORM_SRGB;
+		case Texture::Format::RGBA_BC7_SRGB:
+			return DXGI_FORMAT_BC7_UNORM_SRGB;
+
+		case Texture::Format::RGBA_BC1:
+			return DXGI_FORMAT_BC1_UNORM;
+		case Texture::Format::RGBA_BC2:
+			return DXGI_FORMAT_BC2_UNORM;
+		case Texture::Format::RGBA_BC3:
+			return DXGI_FORMAT_BC3_UNORM;
+		case Texture::Format::RGBA_BC7:
+			return DXGI_FORMAT_BC7_UNORM;
+
 		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case Texture::Format::Depth_32F:
@@ -147,6 +166,25 @@ namespace RN
 			return DXGI_FORMAT_R32G32B32_FLOAT;
 		case Texture::Format::RGBA_32F:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+		case Texture::Format::RGBA_BC1_SRGB:
+			return DXGI_FORMAT_BC1_UNORM_SRGB;
+		case Texture::Format::RGBA_BC2_SRGB:
+			return DXGI_FORMAT_BC2_UNORM_SRGB;
+		case Texture::Format::RGBA_BC3_SRGB:
+			return DXGI_FORMAT_BC3_UNORM_SRGB;
+		case Texture::Format::RGBA_BC7_SRGB:
+			return DXGI_FORMAT_BC7_UNORM_SRGB;
+
+		case Texture::Format::RGBA_BC1:
+			return DXGI_FORMAT_BC1_UNORM;
+		case Texture::Format::RGBA_BC2:
+			return DXGI_FORMAT_BC2_UNORM;
+		case Texture::Format::RGBA_BC3:
+			return DXGI_FORMAT_BC3_UNORM;
+		case Texture::Format::RGBA_BC7:
+			return DXGI_FORMAT_BC7_UNORM;
+
 		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 		case Texture::Format::Depth_32F:
@@ -372,10 +410,10 @@ namespace RN
 		D3D12_RESOURCE_DESC imageDesc = {};
 		imageDesc.Dimension = D3D12ImageTypeFromTextureType(_descriptor.type);
 		imageDesc.Alignment = 0;
-		imageDesc.Width = region.width;
-		imageDesc.Height = region.height;
+		imageDesc.Width = std::max(region.width, 4u); //TODO: Not sure if this works for the last two mipmap levels, but needed for alignment requirements or something...
+		imageDesc.Height = std::max(region.height, 4u);
 		imageDesc.DepthOrArraySize = region.depth;
-		imageDesc.MipLevels = GetDescriptor().mipMaps;
+		imageDesc.MipLevels = 1;
 		imageDesc.Format = _srvDescriptor.Format;
 		imageDesc.SampleDesc.Count = 1;
 		imageDesc.SampleDesc.Quality = 0;
@@ -391,7 +429,7 @@ namespace RN
 		D3D12_SUBRESOURCE_DATA textureData = {};
 		textureData.pData = bytes;
 		textureData.RowPitch = bytesPerRow;
-		textureData.SlicePitch = bytesPerRow * region.height;
+		textureData.SlicePitch = bytesPerRow * numberOfRows;
 
 		D3D12CommandList *commandList = _renderer->GetCommandList();
 		commandList->SetFinishedCallback([this, textureUploadBuffer]{
@@ -402,7 +440,7 @@ namespace RN
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 
 		// Now we copy the upload buffer contents to the default heap
-		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, 0, 1, &textureData);
+		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, mipmapLevel, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -548,6 +586,15 @@ namespace RN
 			ColorChannel(DXGI_FORMAT_R32G32_FLOAT, true, true, false, false)
 			ColorChannel(DXGI_FORMAT_R32G32B32_FLOAT, true, true, true, false)
 			ColorChannel(DXGI_FORMAT_R32G32B32A32_FLOAT, true, true, true, true)
+
+			ColorChannel(DXGI_FORMAT_BC1_UNORM_SRGB, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC2_UNORM_SRGB, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC3_UNORM_SRGB, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC7_UNORM_SRGB, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC1_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC2_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC3_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC7_UNORM, true, true, true, true)
 
 			default:
 				return false;

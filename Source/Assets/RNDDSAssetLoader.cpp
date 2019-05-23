@@ -178,6 +178,7 @@ namespace RN
 
 			size_t mipBytesPerRow = std::max(1, ((mipWidth + 3) / 4)) * bytesPerBlock;
 			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow, std::max(1, ((mipHeight + 3) / 4)));
+			
 			mipIndex += 1;
 			
 			mipWidth /= 2;
