@@ -1,6 +1,5 @@
 [
     {
-        "file~d3d12": ":RayneVulkan:/Shaders.vs.cso", 
         "file~metal": ":RayneVulkan:/Shaders.vs.metallib", 
         "file~vulkan": ":RayneVulkan:/Shaders.vs.spirv", 
         "shaders": [
@@ -18,7 +17,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Shaders.ps.cso", 
         "file~metal": ":RayneVulkan:/Shaders.ps.metallib", 
         "file~vulkan": ":RayneVulkan:/Shaders.ps.spirv", 
         "shaders": [
@@ -37,7 +35,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Particles.vs.cso", 
         "file~metal": ":RayneVulkan:/Particles.vs.metallib", 
         "file~vulkan": ":RayneVulkan:/Particles.vs.spirv", 
         "shaders": [
@@ -56,7 +53,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Particles.ps.cso", 
         "file~metal": ":RayneVulkan:/Particles.ps.metallib", 
         "file~vulkan": ":RayneVulkan:/Particles.ps.spirv", 
         "shaders": [
@@ -75,7 +71,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Depth.vs.cso", 
         "file~metal": ":RayneVulkan:/Depth.vs.metallib", 
         "file~vulkan": ":RayneVulkan:/Depth.vs.spirv", 
         "shaders": [
@@ -93,7 +88,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Depth.ps.cso", 
         "file~metal": ":RayneVulkan:/Depth.ps.metallib", 
         "file~vulkan": ":RayneVulkan:/Depth.ps.spirv", 
         "shaders": [
@@ -110,24 +104,16 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Sky.vs.cso", 
         "file~metal": ":RayneVulkan:/Sky.vs.metallib", 
         "file~vulkan": ":RayneVulkan:/Sky.vs.spirv", 
         "shaders": [
             {
-                "name": "sky_vertex", 
-                "signature": {
-                    "options": [
-                        "RN_ALPHA", 
-                        "RN_UV0"
-                    ]
-                }, 
+                "name": "sky_vertex",
                 "type": "vertex"
             }
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/Sky.ps.cso", 
         "file~metal": ":RayneVulkan:/Sky.ps.metallib", 
         "file~vulkan": ":RayneVulkan:/Sky.ps.spirv", 
         "shaders": [
@@ -145,7 +131,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/PostProcessing.vs.cso", 
         "file~metal": ":RayneVulkan:/PostProcessing.vs.metallib", 
         "file~vulkan": ":RayneVulkan:/PostProcessing.vs.spirv", 
         "shaders": [
@@ -163,7 +148,6 @@
         ]
     }, 
     {
-        "file~d3d12": ":RayneVulkan:/PostProcessing.ps.cso", 
         "file~metal": ":RayneVulkan:/PostProcessing.ps.metallib", 
         "file~vulkan": ":RayneVulkan:/PostProcessing.ps.spirv", 
         "shaders": [

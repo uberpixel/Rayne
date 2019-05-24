@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-[[vk::binding(4)]] Texture2D texture0 : register(t0);
 [[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
+[[vk::binding(4)]] Texture2D texture0 : register(t0);
 
 [[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
 {

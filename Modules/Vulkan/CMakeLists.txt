@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(Vulkan)
 
-find_package(PythonInterp 3)
+find_package(PythonInterp 2)
 find_package(Vulkan REQUIRED)
 
 if(NOT PYTHONINTERP_FOUND OR UNIX)

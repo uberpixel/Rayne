@@ -47,7 +47,7 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_BULLET)
 
-set(RAYNE_LIBRARIES Rayne BulletCollision BulletDynamics LinearMath)
+set(RAYNE_LIBRARIES Rayne BulletDynamics BulletCollision LinearMath)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/bullet/src")
