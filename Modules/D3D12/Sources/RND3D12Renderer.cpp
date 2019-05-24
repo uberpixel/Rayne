@@ -1006,11 +1006,19 @@ namespace RN
 				});
 
 				//TODO: Find a cleaner more general solution
-				if(rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
+				if(rootSignature->wantsDirectionalShadowTexture)
 				{
 					textureCount += 1;
-					device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
-					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+					if(renderPass.directionalShadowDepthTexture)
+					{
+						device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
+						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+					}
+					else
+					{
+						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+					}
 				}
 
 				//TODO: Find a cleaner more general solution
