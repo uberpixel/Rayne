@@ -75,6 +75,7 @@ def main():
             elif shader['type'] == 'fragment':
                 shaderType = 'ps'
 
+            shaderSignature = None
             shaderOptions = None
             if 'signature' in shader:
                 shaderSignature = shader['signature']
