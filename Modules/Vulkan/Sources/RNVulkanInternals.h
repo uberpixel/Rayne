@@ -60,7 +60,7 @@ namespace RN
 
 				_currentIndex = (_currentIndex + 1) % _descriptorSets.size();
 
-				if(_usedFrames[_currentIndex] <= completedFrame && _usedFrames[_currentIndex] <= _resetFrame)
+				if(_usedFrames[_currentIndex] <= completedFrame && _usedFrames[_currentIndex] <= _resetFrame && completedFrame != -1)
 				{
 					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 					vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), 1, &_descriptorSets[_currentIndex]);
@@ -75,7 +75,7 @@ namespace RN
 					RNVulkanValidate(vk::AllocateDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), &descriptorSetAllocateInfo, &_descriptorSets[_currentIndex]));
 				}
 
-				if(_usedFrames[_currentIndex] > completedFrame)
+				if(_usedFrames[_currentIndex] > completedFrame || completedFrame == -1)
 				{
 					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 

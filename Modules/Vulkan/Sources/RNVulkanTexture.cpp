@@ -755,7 +755,18 @@ namespace RN
 			srcStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			destStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
+			if(fromLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+			{
+				srcStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			}
+
 			if(toLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) destStageFlags = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		}
+
+		if(intent == BarrierIntent::ExternalSource)
+		{
+			srcStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
 
 		// Source layouts (old)

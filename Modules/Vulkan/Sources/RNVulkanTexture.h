@@ -26,7 +26,8 @@ namespace RN
 			CopySource,
 			CopyDestination,
 			ShaderSource,
-			RenderTarget
+			RenderTarget,
+			ExternalSource
 		};
 
 		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer);

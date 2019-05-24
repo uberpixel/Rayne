@@ -29,14 +29,8 @@
 #endif
 
 #if RN_UV0
-[[vk::binding(5)]] Texture2D texture0 : register(t0);
 [[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
-
-[[vk::binding(6)]] Texture2DArray directionalShadowTexture : register(t1);
-[[vk::binding(4)]] SamplerComparisonState directionalShadowSampler : register(s1);
-#else
-[[vk::binding(4)]] Texture2DArray directionalShadowTexture : register(t0);
-[[vk::binding(3)]] SamplerComparisonState directionalShadowSampler : register(s0);
+[[vk::binding(4)]] Texture2D texture0 : register(t0);
 #endif
 
 [[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
@@ -64,12 +58,7 @@ struct LightDirectional
 	float2 alphaToCoverageClamp;
 #endif
 
-	uint directionalShadowMatricesCount;
 	uint directionalLightsCount;
-	
-	float2 directionalShadowInfo;
-	matrix directionalShadowMatrices[4];
-
 	LightDirectional directionalLights[5];
 };
 
@@ -104,87 +93,12 @@ struct FragmentVertex
 #endif
 };
 
-float getShadowPCF(float4 projected, float2 offset)
-{
-	return directionalShadowTexture.SampleCmpLevelZero(directionalShadowSampler, float3(projected.xy + offset * directionalShadowInfo, projected.z), projected.w);
-}
-
-//basic 2x2 blur, with hardware bilinear filtering if enabled
-float getShadowPCF2x2(float4 projected)
-{
-	float shadow = getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
-	shadow *= 0.25f;
-	return shadow;
-}
-
-//basic 4x4 blur, with hardware bilinear filtering if enabled
-float getShadowPCF4x4(float4 projected)
-{
-	float shadow = getShadowPCF(projected, float2(-2.0, -2.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -2.0));
-	shadow += getShadowPCF(projected, float2(0.0, -2.0));
-	shadow += getShadowPCF(projected, float2(1.0, -2.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, -1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -1.0));
-	shadow += getShadowPCF(projected, float2(0.0, -1.0));
-	shadow += getShadowPCF(projected, float2(1.0, -1.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, 0.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, 1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 1.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
-	
-	shadow *= 0.0625;
-	return shadow;
-}
-
-float getDirectionalShadowFactor(int light, float3 position)
-{
-	if(light != 0 || directionalShadowMatricesCount == 0)
-		return 1.0f;
-
-	float4 projectedPosition[4];
-	uint mapToUse = -1;
-	for(uint i = 0; i < directionalShadowMatricesCount; i++)
-	{
-		projectedPosition[i] = mul(directionalShadowMatrices[i], float4(position, 1.0));
-		projectedPosition[i].xyz /= projectedPosition[i].w;
-
-		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0f && abs(projectedPosition[i].y) < 1.0f && abs(projectedPosition[i].z) < 1.0f)
-		{
-			mapToUse = i;
-		}
-	}
-
-	if(mapToUse == -1)
-		return 1.0f;
-	
-	projectedPosition[mapToUse].y *= -1.0f;
-	projectedPosition[mapToUse].xy *= 0.5f;
-	projectedPosition[mapToUse].xy += 0.5f;
-	projectedPosition[mapToUse].w = mapToUse;
-
-	if(mapToUse < 3)
-		return getShadowPCF2x2(projectedPosition[mapToUse].xywz);
-	else
-		return getShadowPCF4x4(projectedPosition[mapToUse].xywz);
-}
-
 float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDirectional directionalLights[5])
 {
 	float4 light = 0.0f;
 	for(uint i = 0; i < count; i++)
 	{
-		light += saturate(dot(normal, -directionalLights[i].direction.xyz)) * directionalLights[i].color * getDirectionalShadowFactor(i, position);
+		light += saturate(dot(normal, -directionalLights[i].direction.xyz)) * directionalLights[i].color;
 	}
 	light.a = 1.0f;
 	return light;

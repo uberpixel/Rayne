@@ -23,7 +23,7 @@ namespace RN
 		Renderer(descriptor, device),
 		_mainWindow(nullptr),
 		_currentFrame(0),
-		_completedFrame(0),
+		_completedFrame(-1),
 		_mipMapTextures(new Array()),
 		_submittedCommandBuffers(new Array()),
 		_executedCommandBuffers(new Array()),
@@ -200,17 +200,6 @@ namespace RN
 			}
 		}
 
-		//Add descriptor heaps that aren't in use by the GPU anymore back to the pool
-/*		for(int i = _boundDescriptorHeaps->GetCount() - 1; i >= 0; i--)
-		{
-			if(_boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i)->_fenceValue <= _completedFenceValue)
-			{
-				D3D12DescriptorHeap *descriptorHeap = _boundDescriptorHeaps->GetObjectAtIndex<D3D12DescriptorHeap>(i);
-				_descriptorHeapPool->AddObject(descriptorHeap);
-				_boundDescriptorHeaps->RemoveObjectAtIndex(i);
-			}
-		}*/
-
 		//Free other frame resources such as unused framebuffers and imageviews
 		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
 		{
@@ -307,18 +296,8 @@ namespace RN
 				if(renderPass.drawables.size() > 0)
 				{
 					//Draw drawables
-					for(VulkanDrawable *drawable : renderPass.drawables)
+					for(VulkanDrawable *drawable : renderPass.drawables) //TODO: Sort drawables by camera and root signature
 					{
-						//TODO: Sort drawables by camera and root signature
-						/*if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
-						{
-							_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
-							commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
-
-							// Set the one big descriptor heap for the whole frame
-							ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
-							commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
-						}*/
 						RenderDrawable(commandBuffer, drawable);
 					}
 
