@@ -3,18 +3,10 @@
 
 using namespace metal;
 
-struct LightDirectional
-{
-    float4 direction;
-    float4 color;
-};
-
 struct type_fragmentUniforms
 {
     float4 ambientColor;
     float4 diffuseColor;
-    uint directionalLightsCount;
-    LightDirectional directionalLights[5];
 };
 
 struct gouraud_fragment_out
@@ -31,17 +23,17 @@ struct gouraud_fragment_in
 fragment gouraud_fragment_out gouraud_fragment(gouraud_fragment_in in [[stage_in]], constant type_fragmentUniforms& fragmentUniforms [[buffer(2)]], texture2d<float> texture0 [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]], float4 gl_FragCoord [[position]])
 {
     gouraud_fragment_out out = {};
-    float4 _61;
-    _61 = float4(0.0);
-    for (uint _64 = 0u; _64 < fragmentUniforms.directionalLightsCount; )
+    float4 _52;
+    _52 = float4(0.0);
+    for (uint _55 = 0u; _55 < 1u; )
     {
-        _61 += (fragmentUniforms.directionalLights[_64].color * fast::clamp(dot(normalize(in.in_var_NORMAL), -fragmentUniforms.directionalLights[_64].direction.xyz), 0.0, 1.0));
-        _64++;
+        _52 += float4(fast::clamp(dot(normalize(in.in_var_NORMAL), float3(1.0)), 0.0, 1.0));
+        _55++;
         continue;
     }
-    float4 _77 = _61;
-    _77.w = 1.0;
-    out.out_var_SV_TARGET = (fragmentUniforms.diffuseColor * texture0.sample(linearRepeatSampler, in.in_var_TEXCOORD0)) * (fragmentUniforms.ambientColor + _77);
+    float4 _62 = _52;
+    _62.w = 1.0;
+    out.out_var_SV_TARGET = (fragmentUniforms.diffuseColor * texture0.sample(linearRepeatSampler, in.in_var_TEXCOORD0)) * (fragmentUniforms.ambientColor + _62);
     return out;
 }
 

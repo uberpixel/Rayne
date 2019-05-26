@@ -3,19 +3,11 @@
 
 using namespace metal;
 
-struct LightDirectional
-{
-    float4 direction;
-    float4 color;
-};
-
 struct type_fragmentUniforms
 {
     float4 ambientColor;
     float4 diffuseColor;
     float2 alphaToCoverageClamp;
-    uint directionalLightsCount;
-    LightDirectional directionalLights[5];
 };
 
 struct gouraud_fragment_out
@@ -33,32 +25,32 @@ struct gouraud_fragment_in
 fragment gouraud_fragment_out gouraud_fragment(gouraud_fragment_in in [[stage_in]], constant type_fragmentUniforms& fragmentUniforms [[buffer(2)]], texture2d<float> texture0 [[texture(0)]], sampler linearRepeatSampler [[sampler(0)]], float4 gl_FragCoord [[position]])
 {
     gouraud_fragment_out out = {};
-    float4 _102;
+    float4 _87;
     for (;;)
     {
-        float4 _64 = fragmentUniforms.diffuseColor * texture0.sample(linearRepeatSampler, in.in_var_TEXCOORD0);
-        float _70 = smoothstep(fragmentUniforms.alphaToCoverageClamp.x, fragmentUniforms.alphaToCoverageClamp.y, _64.w);
-        float4 _71 = _64;
-        _71.w = _70;
-        if (_70 < 0.001000000047497451305389404296875)
+        float4 _58 = fragmentUniforms.diffuseColor * texture0.sample(linearRepeatSampler, in.in_var_TEXCOORD0);
+        float _64 = smoothstep(fragmentUniforms.alphaToCoverageClamp.x, fragmentUniforms.alphaToCoverageClamp.y, _58.w);
+        float4 _65 = _58;
+        _65.w = _64;
+        if (_64 < 0.001000000047497451305389404296875)
         {
-            _102 = _71;
+            _87 = _65;
             break;
         }
-        float4 _81;
-        _81 = float4(0.0);
-        for (uint _84 = 0u; _84 < fragmentUniforms.directionalLightsCount; )
+        float4 _72;
+        _72 = float4(0.0);
+        for (uint _75 = 0u; _75 < 1u; )
         {
-            _81 += (fragmentUniforms.directionalLights[_84].color * fast::clamp(dot(normalize(in.in_var_NORMAL), -fragmentUniforms.directionalLights[_84].direction.xyz), 0.0, 1.0));
-            _84++;
+            _72 += float4(fast::clamp(dot(normalize(in.in_var_NORMAL), float3(1.0)), 0.0, 1.0));
+            _75++;
             continue;
         }
-        float4 _97 = _81;
-        _97.w = 1.0;
-        _102 = (_71 * in.in_var_COLOR0) * (fragmentUniforms.ambientColor + _97);
+        float4 _82 = _72;
+        _82.w = 1.0;
+        _87 = (_65 * in.in_var_COLOR0) * (fragmentUniforms.ambientColor + _82);
         break;
     }
-    out.out_var_SV_TARGET = _102;
+    out.out_var_SV_TARGET = _87;
     return out;
 }
 

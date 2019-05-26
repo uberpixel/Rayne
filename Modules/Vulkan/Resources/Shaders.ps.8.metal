@@ -3,18 +3,10 @@
 
 using namespace metal;
 
-struct LightDirectional
-{
-    float4 direction;
-    float4 color;
-};
-
 struct type_fragmentUniforms
 {
     float4 ambientColor;
     float4 diffuseColor;
-    uint directionalLightsCount;
-    LightDirectional directionalLights[5];
 };
 
 struct gouraud_fragment_out

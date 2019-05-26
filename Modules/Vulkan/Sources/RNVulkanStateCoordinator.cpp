@@ -443,7 +443,7 @@ namespace RN
 				rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
 				break;
 			case CullMode::None:
-				rasterizationState.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
+				rasterizationState.cullMode = VK_CULL_MODE_NONE;
 				break;
 		}
 

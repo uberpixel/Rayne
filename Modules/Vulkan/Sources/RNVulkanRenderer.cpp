@@ -1243,6 +1243,12 @@ namespace RN
 
 					binding += pipelineState->rootSignature->samplers->GetCount();
 					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
+						if(index >= pipelineState->rootSignature->textureCount)
+						{
+							stop = true;
+							return;
+						}
+
 						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 						imageBufferDescriptorInfo.imageView = texture->_imageView;
 						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -1254,12 +1260,10 @@ namespace RN
 						writeImageDescriptorSet.dstSet = descriptorSet;
 						writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 						writeImageDescriptorSet.dstBinding = binding++;
-						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size()-1];
+						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
 						writeImageDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeImageDescriptorSet);
-
-						if(index >= pipelineState->rootSignature->textureCount - 1) stop = true;
 					});
 				}
 

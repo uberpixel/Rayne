@@ -58,8 +58,8 @@ struct LightDirectional
 	float2 alphaToCoverageClamp;
 #endif
 
-	uint directionalLightsCount;
-	LightDirectional directionalLights[5];
+/*	uint directionalLightsCount;
+	LightDirectional directionalLights[5];*/
 };
 
 struct InputVertex
@@ -93,12 +93,12 @@ struct FragmentVertex
 #endif
 };
 
-float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDirectional directionalLights[5])
+float4 getDirectionalLights(float3 position, float3 normal)//, uint count, LightDirectional directionalLights[5])
 {
 	float4 light = 0.0f;
-	for(uint i = 0; i < count; i++)
+	for(uint i = 0; i < 1; i++)
 	{
-		light += saturate(dot(normal, -directionalLights[i].direction.xyz)) * directionalLights[i].color;
+		light += saturate(dot(normal, -float3(-1.0f, -1.0f, -1.0f)));//directionalLights[i].direction.xyz));// * directionalLights[i].color;
 	}
 	light.a = 1.0f;
 	return light;
@@ -143,7 +143,7 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 #endif
 
 #if RN_NORMALS
-	float4 light = getDirectionalLights(vert.worldPosition, normalize(vert.normal), directionalLightsCount, directionalLights);
+	float4 light = getDirectionalLights(vert.worldPosition, normalize(vert.normal));//, directionalLightsCount, directionalLights);
 	return color * (ambientColor + light);
 #else
 	return color * (ambientColor);
