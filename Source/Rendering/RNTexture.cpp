@@ -26,7 +26,15 @@ namespace RN
 	Texture *Texture::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();
-		return coordinator->GetAssetWithName<Texture>(name, settings);
+
+		String *textureName = RNSTR(name);
+		if(name->HasSuffix(RNCSTR(".*")))
+		{
+			textureName = textureName->GetSubstring(Range(0, textureName->GetLength()-1));
+			textureName->Append(AssetManager::GetSharedInstance()->GetPreferredTextureFileExtension());
+		}
+
+		return coordinator->GetAssetWithName<Texture>(textureName, settings);
 	}
 
 	Texture *Texture::WithDescriptor(const Descriptor &descriptor)
