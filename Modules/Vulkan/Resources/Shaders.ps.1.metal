@@ -3,10 +3,19 @@
 
 using namespace metal;
 
+struct LightDirectional
+{
+    float4 direction;
+    float4 color;
+};
+
 struct type_fragmentUniforms
 {
     float4 ambientColor;
     float4 diffuseColor;
+    float spacer;
+    uint directionalLightsCount;
+    LightDirectional directionalLights[5];
 };
 
 struct gouraud_fragment_out
@@ -22,17 +31,17 @@ struct gouraud_fragment_in
 fragment gouraud_fragment_out gouraud_fragment(gouraud_fragment_in in [[stage_in]], constant type_fragmentUniforms& fragmentUniforms [[buffer(2)]], float4 gl_FragCoord [[position]])
 {
     gouraud_fragment_out out = {};
-    float4 _36;
-    _36 = float4(0.0);
-    for (uint _39 = 0u; _39 < 1u; )
+    float4 _41;
+    _41 = float4(0.0);
+    for (uint _44 = 0u; _44 < 1u; )
     {
-        _36 += float4(fast::clamp(dot(normalize(in.in_var_NORMAL), float3(1.0)), 0.0, 1.0));
-        _39++;
+        _41 += (fragmentUniforms.directionalLights[_44].color * fast::clamp(dot(normalize(in.in_var_NORMAL), -fragmentUniforms.directionalLights[_44].direction.xyz), 0.0, 1.0));
+        _44++;
         continue;
     }
-    float4 _46 = _36;
-    _46.w = 1.0;
-    out.out_var_SV_TARGET = fragmentUniforms.diffuseColor * (fragmentUniforms.ambientColor + _46);
+    float4 _57 = _41;
+    _57.w = 1.0;
+    out.out_var_SV_TARGET = fragmentUniforms.diffuseColor * (fragmentUniforms.ambientColor + _57);
     return out;
 }
 
