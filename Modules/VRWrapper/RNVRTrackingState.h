@@ -49,13 +49,16 @@ namespace RN
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : type(Type::Position), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false} {}
+		VRControllerTrackingState() : type(Type::Position), hasHaptics(true), hapticsSampleLength(0.0), hapticsMaxSamples(0), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false} {}
 
 		Type type;
+		bool hasHaptics;
+		double hapticsSampleLength;
+		uint32 hapticsMaxSamples;
 
 		bool active;
 		bool tracking;
-		uint8 controllerID;
+		uint32 controllerID;
 
 		Vector3 position;
 		Quaternion rotation;

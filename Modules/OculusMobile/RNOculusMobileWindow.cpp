@@ -284,10 +284,16 @@ namespace RN
 			ovr_RecenterTrackingOrigin(_session); // or ovr_ClearShouldRecenterFlag(_session) to ignore the request.
 		}*/
 
+		_controllerTrackingState[0].hasHaptics = false;
 		_controllerTrackingState[0].active = false;
 		_controllerTrackingState[0].tracking = false;
+		_controllerTrackingState[0].hapticsSampleLength = 0.0;
+		_controllerTrackingState[0].hapticsMaxSamples = 0;
 		_controllerTrackingState[1].active = false;
 		_controllerTrackingState[1].tracking = false;
+		_controllerTrackingState[1].hasHaptics = false;
+		_controllerTrackingState[1].hapticsSampleLength = 0.0;
+		_controllerTrackingState[1].hapticsMaxSamples = 0;
 
 		ovrInputCapabilityHeader capsHeader;
 		int i = 0;
@@ -302,9 +308,13 @@ namespace RN
 				{
 					int handIndex = (remoteCaps.ControllerCapabilities & ovrControllerCaps_RightHand)?1:0;
 
+					_controllerTrackingState[handIndex].hasHaptics = (remoteCaps.ControllerCapabilities & ovrControllerCaps_HasBufferedHapticVibration);
+					_controllerTrackingState[handIndex].hapticsSampleLength = static_cast<double>(remoteCaps.HapticSampleDurationMS)/1000.0;
+					_controllerTrackingState[handIndex].hapticsMaxSamples = remoteCaps.HapticSamplesMax;
+
 					_controllerTrackingState[handIndex].active = true;
 					_controllerTrackingState[handIndex].tracking = true;
-					_controllerTrackingState[handIndex].controllerID = 0;
+					_controllerTrackingState[handIndex].controllerID = remoteCaps.Header.DeviceID;
 
 					ovrInputStateTrackedRemote remoteState;
 					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
@@ -345,9 +355,15 @@ namespace RN
 								_controllerTrackingState[handIndex].indexTrigger = remoteState.IndexTrigger;
 							}
 							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = (remoteState.Buttons & ovrButton_Enter);
-							_controllerTrackingState[handIndex].thumbstick = Vector2(remoteState.Joystick.x, remoteState.Joystick.y);
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = (remoteState.Buttons & ovrButton_A) || (remoteState.Buttons & ovrButton_X);
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = (remoteState.Buttons & ovrButton_B) || (remoteState.Buttons & ovrButton_Y);
 						}
 
+						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasJoystick))
+						{
+							_controllerTrackingState[handIndex].thumbstick = Vector2(remoteState.Joystick.x, remoteState.Joystick.y);
+							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = (remoteState.Buttons & ovrButton_Joystick);
+						}
 
 						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasAnalogGripTrigger))
 						{
@@ -360,7 +376,7 @@ namespace RN
 					{
 						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
 						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
-						//_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+						_controllerTrackingState[handIndex].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
 
 						_controllerTrackingState[handIndex].velocityLinear = GetVectorForOVRVector(trackingState.HeadPose.LinearVelocity);
 						_controllerTrackingState[handIndex].velocityAngular.x = trackingState.HeadPose.AngularVelocity.y;
@@ -464,13 +480,18 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
-	void OculusMobileWindow::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics)
+	void OculusMobileWindow::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics)
 	{
-/*		ovrHapticsBuffer buffer;
-		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
-		buffer.SamplesCount = haptics.sampleCount;
-		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_session, controllerID?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);*/
+		if(!_session) return;
+		if(_controllerTrackingState[0].controllerID == controllerID && !_controllerTrackingState[0].hasHaptics) return;
+		if(_controllerTrackingState[1].controllerID == controllerID && !_controllerTrackingState[1].hasHaptics) return;
+
+		ovrHapticBuffer hapticBuffer;
+		hapticBuffer.BufferTime = _predictedDisplayTime;
+		hapticBuffer.NumSamples = haptics.sampleCount;
+		hapticBuffer.Terminated = false;
+		hapticBuffer.HapticBuffer = haptics.samples;
+		vrapi_SetHapticVibrationBuffer(static_cast<ovrMobile*>(_session), controllerID, &hapticBuffer);
 	}
 
 	const String *OculusMobileWindow::GetPreferredAudioOutputDeviceID() const

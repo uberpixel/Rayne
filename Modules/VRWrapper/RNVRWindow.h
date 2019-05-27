@@ -62,7 +62,7 @@ namespace RN
 		RNVRAPI virtual const VRHMDTrackingState &GetHMDTrackingState() const = 0;
 		RNVRAPI virtual const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const = 0;
 		RNVRAPI virtual const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const = 0;
-		RNVRAPI virtual void SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) = 0;
+		RNVRAPI virtual void SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics) = 0;
 		
 		RNVRAPI virtual void PreparePreviewWindow(Window *window) const {}
 		RNVRAPI virtual RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const = 0;

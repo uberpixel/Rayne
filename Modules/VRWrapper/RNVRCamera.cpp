@@ -256,7 +256,7 @@ namespace RN
 		return _window->GetTrackerTrackingState(index);
 	}
 
-	void VRCamera::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics) const
+	void VRCamera::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics) const
 	{
 		_window->SubmitControllerHaptics(controllerID, haptics);
 	}
