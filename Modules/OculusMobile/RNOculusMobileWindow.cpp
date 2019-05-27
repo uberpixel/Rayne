@@ -222,6 +222,8 @@ namespace RN
 
 		if(!_session) return;
 
+		vrapi_SetTrackingSpace(static_cast<ovrMobile*>(_session), VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
+
 		_actualFrameIndex++;
         _predictedDisplayTime = vrapi_GetPredictedDisplayTime(static_cast<ovrMobile*>(_session), _actualFrameIndex);
 
