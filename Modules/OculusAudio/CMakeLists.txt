@@ -4,7 +4,11 @@ project(RayneOculusAudio)
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 
-add_subdirectory("Vendor/rtaudio")
+if(ANDROID)
+        add_subdirectory("Vendor/Oboe")
+else()
+        add_subdirectory("Vendor/rtaudio")
+endif()
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -31,18 +35,17 @@ set(HEADERS
         RNOculusAudioInternals.h)
 
 set(DEFINES RN_BUILD_OCULUS_AUDIO)
+
 if(APPLE)
         set(RAYNE_LIBRARIES Rayne rtaudio ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Lib/macub/OVRAudio.framework/Versions/A/OVRAudio)
+        set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/rtaudio" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Include")
 elseif(WIN32)
         set(RAYNE_LIBRARIES Rayne rtaudio ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Lib/x64/ovraudio64.lib)
+        set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/rtaudio" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Include")
 elseif(ANDROID)
-        set(RAYNE_LIBRARIES Rayne rtaudio ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Lib/Android/arm64-v8a/libovraudiostatic64.a)
+        set(RAYNE_LIBRARIES Rayne oboe ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Lib/Android/arm64-v8a/libovraudio64.so)
+        set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Oboe/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Include")
 endif()
-
-set(INCLUDE_DIRECTORIES
-        "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/rtaudio"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Include")
 
 rayne_add_library(RayneOculusAudio "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOculusAudio)
@@ -54,8 +57,5 @@ rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOculusAudio
 
 if(APPLE)
         add_custom_command(TARGET RayneOculusAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/Lib/macub/OVRAudio.framework" "$<TARGET_FILE_DIR:RayneOculusAudio>/OVRAudio.framework")
-elseif(WIN32)
-        #add_custom_command(TARGET RayneOculusAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/bin/Windows/x64/phonon.dll" "$<TARGET_FILE_DIR:RayneOculusAudio>/phonon.dll")
-elseif(ANDROID)
-        #add_custom_command(TARGET RayneOculusAudio PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusAudio/lib/Android/libphonon.so" "$<TARGET_FILE_DIR:RayneOculusAudio>/libphonon.so")
 endif()
+

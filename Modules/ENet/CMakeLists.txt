@@ -28,10 +28,10 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_ENET)
 
-if(APPLE)
-        set(RAYNE_LIBRARIES Rayne enet)
-else()
+if(WIN32)
         set(RAYNE_LIBRARIES Rayne enet ws2_32.lib winmm.lib)
+else()
+        set(RAYNE_LIBRARIES Rayne enet)
 endif()
 
 set(INCLUDE_DIRECTORIES
