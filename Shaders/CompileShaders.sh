@@ -1,0 +1,2 @@
+python ../Tools/ShaderProcessor/convert.py NoShadows/Shaders.json spirv ../Modules/Vulkan/Resources :RayneVulkan:
+python ../Tools/ShaderProcessor/convert.py Shadows/Shaders.json metal ../Modules/Metal/Resources :RayneMetal:

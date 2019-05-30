@@ -6,8 +6,9 @@ import subprocess
 import platform
 
 def main():
-    if len(sys.argv) < 3:
-        print 'Specify shader json file followed by output directory path [and optional resource folder relative path] as parameters'
+    if len(sys.argv) < 4:
+        print 'Specify shader json file followed by requested formats as comma separated list with no spaces (dxil,cso,spirv,metal), output directory path [and optional resource folder relative path] as parameters'
+        return
 
     with open(sys.argv[1], 'r') as sourceJsonData:
         sourceJson = json.load(sourceJsonData)
@@ -16,14 +17,10 @@ def main():
         print('No data found.')
         return
 
-    outFormats = ['cso', 'spirv', 'metal']
-    #outFormats = ['dxil', 'spirv', 'metal']
-    #outFormats = ['spirv', 'metal']
-
     enableDebugSymbols = True
 
-    outDirName = sys.argv[2]
-    resourceRelativePath = sys.argv[3]
+    outDirName = sys.argv[3]
+    resourceRelativePath = sys.argv[4]
     if not os.path.exists(outDirName):
         try:
             os.makedirs(outDirName)
@@ -37,9 +34,10 @@ def main():
     jsonDirectory, jsonFileName = os.path.split(sys.argv[1])
     destinationJson = list()
 
+    supportedFormats = ['dxil', 'cso', 'spirv', 'metal']
     shaderConductorCmdPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
-        outFormats = ['spirv', 'metal']
+        supportedFormats = ['spirv', 'metal']
         shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-osx-clang-x64-Release/Bin/ShaderConductorCmd')
     elif platform.system() == 'Windows':
     	preprocessHLSLPath = os.path.join(shaderConductorCmdPath, 'preprocessForHLSL.py')
@@ -48,6 +46,12 @@ def main():
     else:
         print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
         return
+
+    requestedFormats = sys.argv[2].split(',')
+    outFormats = list()
+    for request in requestedFormats:
+        if request in supportedFormats:
+            outFormats.append(request)
 
     hlslFile = False
 

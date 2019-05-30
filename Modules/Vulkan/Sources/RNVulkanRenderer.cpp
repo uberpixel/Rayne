@@ -976,7 +976,7 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					size_t lightCount = renderPass.directionalLights.size();
+					uint32 lightCount = renderPass.directionalLights.size();
 					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
@@ -993,11 +993,8 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					size_t matrixCount = renderPass.directionalShadowMatrices.size();
-					if(matrixCount > 0)
-					{
-						std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
-					}
+					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
+					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
 
