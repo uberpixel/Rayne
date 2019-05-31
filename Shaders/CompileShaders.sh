@@ -1,2 +1,7 @@
-python ../Tools/ShaderProcessor/convert.py NoShadows/Shaders.json spirv ../Modules/Vulkan/Resources :RayneVulkan:
+cd $(dirname "$BASH_SOURCE")
+rm -rf ../Modules/Vulkan/Resources
+rm -rf ../Modules/Metal/Resources
+mkdir ../Modules/Vulkan/Resources
+mkdir ../Modules/Metal/Resources
+python ../Tools/ShaderProcessor/convert.py Shadows/Shaders.json spirv ../Modules/Vulkan/Resources :RayneVulkan:
 python ../Tools/ShaderProcessor/convert.py Shadows/Shaders.json metal ../Modules/Metal/Resources :RayneMetal:

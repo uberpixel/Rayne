@@ -1154,6 +1154,7 @@ namespace RN
         {
         	if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
         	{
+				_internals->currentRenderPassIndex += 1;
         		continue;
         	}
 
@@ -1162,9 +1163,15 @@ namespace RN
         		totalConstantBufferCount += renderPass.drawables.size() * 2;
         		for(VulkanDrawable *drawable : renderPass.drawables)
         		{
-					totalTextureCount += drawable->material->GetTextures()->GetCount();
+					const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
+
+					totalTextureCount += pipelineState->rootSignature->textureCount;
         		}
+
+				_internals->currentDrawableResourceIndex += 1;
         	}
+
+			_internals->currentRenderPassIndex += 1;
         }
 
 		std::vector<VkWriteDescriptorSet> writeDescriptorSets;
@@ -1173,6 +1180,9 @@ namespace RN
         constantBufferDescriptorInfoArray.reserve(totalConstantBufferCount);
         std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
         imageBufferDescriptorInfoArray.reserve(totalTextureCount);
+
+		_internals->currentRenderPassIndex = 0;
+		_internals->currentDrawableResourceIndex = 0;
 
 		for(const VulkanRenderPass &renderPass : _internals->renderPasses)
 		{
@@ -1238,9 +1248,9 @@ namespace RN
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
 
-					binding += pipelineState->rootSignature->samplers->GetCount();
+					binding += rootSignature->samplers->GetCount();
 					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-						if(index >= pipelineState->rootSignature->textureCount)
+						if(index >= rootSignature->textureCount || (index == rootSignature->textureCount-1 && rootSignature->wantsDirectionalShadowTexture))
 						{
 							stop = true;
 							return;
@@ -1262,6 +1272,25 @@ namespace RN
 
 						writeDescriptorSets.push_back(writeImageDescriptorSet);
 					});
+
+					if(rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
+					{
+						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
+						imageBufferDescriptorInfo.imageView = renderPass.directionalShadowDepthTexture->_imageView;
+						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
+
+						VkWriteDescriptorSet writeImageDescriptorSet = {};
+						writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						writeImageDescriptorSet.pNext = NULL;
+						writeImageDescriptorSet.dstSet = descriptorSet;
+						writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+						writeImageDescriptorSet.dstBinding = binding++;
+						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
+						writeImageDescriptorSet.descriptorCount = 1;
+
+						writeDescriptorSets.push_back(writeImageDescriptorSet);
+					}
 				}
 
 				_internals->currentDrawableResourceIndex += 1;

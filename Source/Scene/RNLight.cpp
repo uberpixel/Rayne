@@ -200,8 +200,7 @@ namespace RN
 			}
 			
 			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
-				//camera->GetMaterial()->SetPolygonOffsetFactor(parameter.splits[index].biasFactor);
-				//camera->GetMaterial()->SetPolygonOffsetUnits(parameter.splits[index].biasUnits);
+				camera->GetMaterial()->SetPolygonOffset(parameter.splits[index].biasFactor, parameter.splits[index].biasUnits);
 			});
 			
 			_shadowParameter = parameter;
