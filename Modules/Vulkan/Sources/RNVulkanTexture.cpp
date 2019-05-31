@@ -296,7 +296,7 @@ namespace RN
 		imageInfo.imageType = VkImageTypeFromTextureType(descriptor.type);
 		imageInfo.format = _format;
 		imageInfo.extent = { descriptor.width, descriptor.height, descriptor.depth };
-		imageInfo.arrayLayers = 1;
+		imageInfo.arrayLayers = descriptor.depth;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.samples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
 		imageInfo.usage = VkImageUsageFromDescriptor(descriptor, imageInfo.format);
