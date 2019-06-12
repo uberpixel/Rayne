@@ -130,6 +130,13 @@ namespace RN
 				case DDS_FORMAT::DDS_FORMAT_BC3_UNORM:
 					textureFormat = Texture::Format::RGBA_BC3;
 					break;
+				case DDS_FORMAT::DDS_FORMAT_BC4_UNORM:
+					bytesPerBlock = 8;
+					textureFormat = Texture::Format::RGBA_BC4;
+					break;
+				case DDS_FORMAT::DDS_FORMAT_BC5_UNORM:
+					textureFormat = Texture::Format::RGBA_BC5;
+					break;
 				case DDS_FORMAT::DDS_FORMAT_BC7_UNORM:
 					textureFormat = Texture::Format::RGBA_BC7;
 					break;

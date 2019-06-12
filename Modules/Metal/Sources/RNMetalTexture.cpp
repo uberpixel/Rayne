@@ -119,6 +119,10 @@ namespace RN
 				return MTLPixelFormatBC2_RGBA;
 			case Format::RGBA_BC3:
 				return MTLPixelFormatBC3_RGBA;
+			case Format::RGBA_BC4:
+				return MTLPixelFormatBC4_RUnorm;
+			case Format::RGBA_BC5:
+				return MTLPixelFormatBC5_RGUnorm;
 			case Format::RGBA_BC7:
 				return MTLPixelFormatBC7_RGBAUnorm;
 				

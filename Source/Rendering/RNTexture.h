@@ -60,6 +60,8 @@ namespace RN
 			RGBA_BC1,
 			RGBA_BC2,
 			RGBA_BC3,
+			RGBA_BC4,
+			RGBA_BC5,
 			RGBA_BC7,
 			
 			RGBA_ASTC_4X4_SRGB,

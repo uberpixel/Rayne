@@ -66,11 +66,14 @@ def main():
     targetDirectory = sys.argv[2]
 
     preferredTextureExtension = ''
+    textureExtensionsToSkipForCompressed = ['.png']
     if len(sys.argv) > 3:
         if sys.argv[3] == 'pc':
             preferredTextureExtension = '.dds'
+            textureExtensionsToSkipForCompressed = ['.png', '.astc']
         elif sys.argv[3] == 'mobile':
             preferredTextureExtension = '.astc'
+            textureExtensionsToSkipForCompressed = ['.png', '.dds']
         else:
             print 'Platform not supported'
 
@@ -93,12 +96,22 @@ def main():
                 for texture in textures:
                     textureFileName, textureFileExtension = os.path.splitext(texture)
                     if textureFileExtension == '.*':
+                        textureInputFilename = textureFileName + preferredTextureExtension
+                        textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
+                        if os.path.isfile(textureInputPath):
+                            for extension in textureExtensionsToSkipForCompressed:
+                                textureInputFilename = textureFileName + extension
+                                filesToSkip[textureInputFilename] = True
+                            continue #If a file in the preferred format exists, use it instead of compressing the png file
+
                         textureInputFilename = textureFileName + '.png'
                         textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
                         if os.path.isfile(textureInputPath):
                             textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
                             subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
-                            filesToSkip[textureInputFilename] = True
+                            for extension in textureExtensionsToSkipForCompressed:
+                                textureInputFilename = textureFileName + extension
+                                filesToSkip[textureInputFilename] = True
 
         for filename in files:
             if not filename in filesToSkip:
