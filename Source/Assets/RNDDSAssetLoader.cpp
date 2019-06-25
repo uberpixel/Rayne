@@ -172,12 +172,12 @@ namespace RN
 		
 		uint8 *data = nullptr;
 		
-		int32 mipWidth = ddsHeader.dwWidth;
-		int32 mipHeight = ddsHeader.dwHeight;
-		
 		int mipIndex = 0;
 		while(mipIndex < mipMapCount && file->GetOffset() < file->GetSize())
 		{
+			int32 mipWidth = std::max(ddsHeader.dwWidth >> mipIndex, static_cast<uint32>(1));
+			int32 mipHeight = std::max(ddsHeader.dwHeight >> mipIndex, static_cast<uint32>(1));
+
 			size_t mipDataSize = std::max(1, ((mipWidth + 3) / 4)) * std::max(1, ((mipHeight + 3) / 4)) * bytesPerBlock;
 			
 			if(!data) data = (uint8 *)malloc(mipDataSize);
@@ -187,9 +187,6 @@ namespace RN
 			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow, std::max(1, ((mipHeight + 3) / 4)));
 			
 			mipIndex += 1;
-			
-			mipWidth /= 2;
-			mipHeight /= 2;
 		}
 
 		delete[] data;

@@ -211,7 +211,7 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
-	void OculusWindow::SubmitControllerHaptics(uint8 controllerID, const VRControllerHaptics &haptics)
+	void OculusWindow::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics)
 	{
 		ovrHapticsBuffer buffer;
 		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
