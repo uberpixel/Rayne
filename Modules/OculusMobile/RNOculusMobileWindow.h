@@ -45,7 +45,7 @@ namespace RN
 
 		OVRAPI void Update(float delta, float near, float far) final;
 
-		OVRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Head; }
+		OVRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Floor; }
 
 		OVRAPI Array *GetRequiredVulkanInstanceExtensions() const final;
         OVRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;

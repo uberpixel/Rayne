@@ -323,6 +323,7 @@ namespace RN
 
 		if(!asset.IsValid())
 		{
+			RNDebug("Failed loading resource: " << name);
 			wrapper->SetException(asset.GetException());
 			std::rethrow_exception(asset.GetException());
 		}

@@ -42,13 +42,13 @@ namespace RN
 		//Create descriptor pool
 		VkDescriptorPoolSize uniformBufferPoolSize = {};
 		uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uniformBufferPoolSize.descriptorCount = 1000;
+		uniformBufferPoolSize.descriptorCount = 20000;
 		VkDescriptorPoolSize textureBufferPoolSize = {};
 		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-		textureBufferPoolSize.descriptorCount = 1000;
+		textureBufferPoolSize.descriptorCount = 10000;
 		VkDescriptorPoolSize samplerBufferPoolSize = {};
 		samplerBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLER;
-		samplerBufferPoolSize.descriptorCount = 1000;
+		samplerBufferPoolSize.descriptorCount = 10000;
 		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, samplerBufferPoolSize, textureBufferPoolSize };
 
 		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
