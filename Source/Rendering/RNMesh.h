@@ -22,12 +22,9 @@
 
 namespace RN
 {
-	class ParticleEmitter;
-	
 	class Mesh : public Asset
 	{
 	public:
-		friend ParticleEmitter;
 		
 		struct VertexAttribute
 		{
@@ -453,6 +450,9 @@ namespace RN
 
 		void *GetCPUVertexBuffer() const { return _vertexBufferCPU; }
 		void *GetCPUIndicesBuffer() const { return _indicesBufferCPU; }
+		
+		bool changedVertices;
+		bool changedIndices;
 
 	private:
 		void ParseAttributes();
@@ -478,8 +478,6 @@ namespace RN
 		VertexDescriptor _descriptor;
 
 		uint32 _changeCounter;
-		bool _changedVertices;
-		bool _changedIndices;
 
 		AABB _boundingBox;
 		Sphere _boundingSphere;

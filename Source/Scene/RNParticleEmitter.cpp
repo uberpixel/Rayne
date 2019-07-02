@@ -289,8 +289,8 @@ namespace RN
 		}
 		
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		_mesh->_changedVertices = true;
-		_mesh->_changedIndices = true;
+		_mesh->changedVertices = true;
+		_mesh->changedIndices = true;
 		_mesh->EndChanges();
 	}
 	

@@ -82,6 +82,7 @@ set(RAYNE_SOURCES
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
     Rendering/RNSkeleton.cpp
+    Rendering/RNShadowVolume.cpp
     Rendering/RNPostProcessing.cpp
     Rendering/RNRenderer.cpp
     Rendering/RNRendererDescriptor.cpp
@@ -203,6 +204,7 @@ set(RAYNE_HEADERS
     Rendering/RNMesh.h
     Rendering/RNModel.h
     Rendering/RNSkeleton.h
+    Rendering/RNShadowVolume.h
     Rendering/RNPostProcessing.h
     Rendering/RNRenderer.h
     Rendering/RNRendererDescriptor.h

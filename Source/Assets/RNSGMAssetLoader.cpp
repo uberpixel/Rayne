@@ -8,6 +8,7 @@
 
 #include "../Rendering/RNRenderer.h"
 #include "../Rendering/RNSkeleton.h"
+#include "../Rendering/RNShadowVolume.h"
 #include "../System/RNFileManager.h"
 #include "../Threads/RNWorkQueue.h"
 #include "RNSGMAssetLoader.h"
@@ -41,11 +42,18 @@ namespace RN
 	Asset *SGMAssetLoader::Load(File *file, const LoadOptions &options)
 	{
 		bool autoLoadLOD = false;
+		bool wantsShadowVolume = false;
 
 		if(options.settings->GetObjectForKey(RNCSTR("autoLoadLOD")))
 		{
 			Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("autoLoadLOD"));
 			autoLoadLOD = number->GetBoolValue();
+		}
+		
+		if(options.settings->GetObjectForKey(RNCSTR("wantsShadowVolume")))
+		{
+			Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("wantsShadowVolume"));
+			wantsShadowVolume = number->GetBoolValue();
 		}
 
 		// Load a full model
@@ -120,6 +128,13 @@ namespace RN
 
 				stageIndex ++;
 			}
+		}
+		
+		if(wantsShadowVolume)
+		{
+			ShadowVolume *shadowVolume = new ShadowVolume();
+			shadowVolume->SetModel(model, 0);
+			model->SetShadowVolume(shadowVolume->Autorelease());
 		}
 
 		model->CalculateBoundingVolumes();

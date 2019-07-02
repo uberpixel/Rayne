@@ -140,8 +140,8 @@ namespace RN
 	{
 		if((_changeCounter ++) == 0)
 		{
-			_changedVertices = false;
-			_changedIndices = false;
+			changedVertices = false;
+			changedIndices = false;
 		}
 	}
 
@@ -149,10 +149,10 @@ namespace RN
 	{
 		if((-- _changeCounter) == 0)
 		{
-			if(_changedIndices)
+			if(changedIndices)
 				SubmitIndices(Range(0, _indicesSize));
 
-			if(_changedVertices)
+			if(changedVertices)
 				SubmitVertices(Range(0, _verticesSize));
 		}
 	}
@@ -172,7 +172,7 @@ namespace RN
 			std::copy(data, data + _indicesSize, destination);
 
 			if(_changeCounter)
-				_changedIndices = true;
+				changedIndices = true;
 			else
 				SubmitIndices(Range(0, _indicesSize));
 		}
@@ -196,7 +196,7 @@ namespace RN
 					}
 
 					if(_changeCounter)
-						_changedVertices = true;
+						changedVertices = true;
 					else
 						SubmitVertices(Range(0, _verticesSize));
 
@@ -226,7 +226,7 @@ namespace RN
 				}
 
 				if(_changeCounter)
-					_changedVertices = true;
+					changedVertices = true;
 				else
 					SubmitVertices(Range(0, _verticesSize));
 
@@ -484,8 +484,8 @@ namespace RN
 		*indices ++ = 22;
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		mesh->_changedVertices = true;
-		mesh->_changedIndices = true;
+		mesh->changedVertices = true;
+		mesh->changedIndices = true;
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
@@ -642,8 +642,8 @@ namespace RN
 		*indices ++ = 22;
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		mesh->_changedVertices = true;
-		mesh->_changedIndices = true;
+		mesh->changedVertices = true;
+		mesh->changedIndices = true;
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
@@ -691,8 +691,8 @@ namespace RN
 		*indices++ = 1;
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		mesh->_changedVertices = true;
-		mesh->_changedIndices = true;
+		mesh->changedVertices = true;
+		mesh->changedIndices = true;
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
@@ -762,8 +762,8 @@ namespace RN
 		}*/
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		mesh->_changedVertices = true;
-		mesh->_changedIndices = true;
+		mesh->changedVertices = true;
+		mesh->changedIndices = true;
 		mesh->EndChanges();
 
 		return mesh->Autorelease();
@@ -828,8 +828,8 @@ namespace RN
 		}
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
-		mesh->_changedVertices = true;
-		mesh->_changedIndices = true;
+		mesh->changedVertices = true;
+		mesh->changedIndices = true;
 		mesh->EndChanges();
 
 		return mesh->Autorelease();

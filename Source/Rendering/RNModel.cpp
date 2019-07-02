@@ -11,6 +11,7 @@
 #include "../Rendering/RNRenderer.h"
 #include "RNModel.h"
 #include "RNSkeleton.h"
+#include "RNShadowVolume.h"
 
 namespace RN
 {
@@ -20,7 +21,7 @@ namespace RN
 	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 
 	Model::Model() :
-		_lodStages(new Array()), _skeleton(nullptr)
+		_lodStages(new Array()), _skeleton(nullptr), _shadowVolume(nullptr)
 	{}
 
 	Model::Model(Mesh *mesh, Material *material) :
@@ -199,9 +200,20 @@ namespace RN
 		_skeleton = SafeRetain(skeleton);
 	}
 	
-	Skeleton *Model::GetSkeleton()
+	Skeleton *Model::GetSkeleton() const
 	{
 		return _skeleton;
+	}
+	
+	void Model::SetShadowVolume(ShadowVolume *shadowVolume)
+	{
+		SafeRelease(_shadowVolume);
+		_shadowVolume = SafeRetain(shadowVolume);
+	}
+	
+	ShadowVolume *Model::GetShadowVolume() const
+	{
+		return _shadowVolume;
 	}
 
 	void Model::CalculateBoundingVolumes()

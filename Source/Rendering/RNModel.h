@@ -17,6 +17,7 @@
 namespace RN
 {
 	class Skeleton;
+	class ShadowVolume;
 	class Model : public Asset
 	{
 	public:
@@ -119,7 +120,10 @@ namespace RN
 		size_t GetLODStageCount() const { return _lodStages->GetCount(); }
 		
 		RNAPI void SetSkeleton(Skeleton *skeleton);
-		RNAPI Skeleton *GetSkeleton();
+		RNAPI Skeleton *GetSkeleton() const;
+		
+		RNAPI void SetShadowVolume(ShadowVolume *shadowVolume);
+		RNAPI ShadowVolume *GetShadowVolume() const;
 
 		RNAPI void CalculateBoundingVolumes();
 
@@ -132,6 +136,7 @@ namespace RN
 	private:
 		Array *_lodStages;
 		Skeleton *_skeleton;
+		ShadowVolume *_shadowVolume;
 
 		AABB _boundingBox;
 		Sphere _boundingSphere;
