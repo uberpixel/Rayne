@@ -218,11 +218,15 @@ namespace RN
 	}
 	SceneNode::Flags SceneNode::RemoveFlags(Flags flags)
 	{
+		WillUpdate(ChangeSet::Flags);
 		return _flags.fetch_and(~flags, std::memory_order_acq_rel) & ~flags;
+		DidUpdate(ChangeSet::Flags);
 	}
 	SceneNode::Flags SceneNode::AddFlags(Flags flags)
 	{
+		WillUpdate(ChangeSet::Flags);
 		return _flags.fetch_or(flags, std::memory_order_acq_rel) | flags;
+		DidUpdate(ChangeSet::Flags);
 	}
 
 	// -------------------

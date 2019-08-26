@@ -36,6 +36,7 @@ namespace RN
 		void ClearDrawables();
 
 		Model *_model;
+		
 		std::vector<std::vector<Drawable *>> _drawables;
 		InstancingEntity *_instancedData;
 

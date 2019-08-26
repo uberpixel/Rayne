@@ -97,7 +97,7 @@ def main():
         if needsToUpdateFile(sourceFile, targetFile):
             width = subprocess.check_output(['identify', '-format', '%[fx:w]', sourceFile])
             height = subprocess.check_output(['identify', '-format', '%[fx:h]', sourceFile])
-            bitdepth = subprocess.check_output(['identify', '-format', '%[fx:z]', sourceFile])
+            bitdepth = 8 #subprocess.check_output(['identify', '-format', '%[fx:z]', sourceFile])
             width = int(width)
             height = int(height)
             bitdepth = int(bitdepth)
