@@ -786,9 +786,14 @@ namespace RN
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+				}
+				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("particles_vertex"), options);
 				}
 				else
 				{
@@ -805,9 +810,14 @@ namespace RN
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
+				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+				}
+				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("particles_fragment"), options);
 				}
 				else
 				{
@@ -1039,6 +1049,20 @@ namespace RN
                     {
                     	std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
                     }
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::BoneMatrices:
+				{
+					if(drawable->skeleton)
+					{
+						//TODO: Don't hardcode limit here
+						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						if(matrixCount > 0)
+						{
+							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
+						}
+					}
 					break;
 				}
 

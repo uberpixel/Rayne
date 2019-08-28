@@ -38,11 +38,25 @@
 		[
 			{
 				"name": "particles_vertex",
-				"type": "vertex"
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0"
+					]
+				}
 			},
 			{
 				"name": "particles_fragment",
-				"type": "fragment"
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0"
+					]
+				}
 			}
 		]
 	},

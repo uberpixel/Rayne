@@ -37,6 +37,11 @@
         "shaders": [
             {
                 "name": "particles_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                }, 
                 "type": "vertex"
             }
         ]
@@ -46,6 +51,11 @@
         "shaders": [
             {
                 "name": "particles_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                }, 
                 "type": "fragment"
             }
         ]

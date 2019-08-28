@@ -18,9 +18,10 @@ namespace RN
 	
 	Particle::Particle()
 	{
+		rotation = 0.0f;
 		lifespan = 1.0f;
 		time = 0.0f;
-		storage.size = Vector2(1.0f);
+		size = Vector2(1.0f);
 	}
 	
 	Particle::~Particle()
@@ -43,10 +44,11 @@ namespace RN
 	{
 		Particle::Update(delta);
 		
-		storage.color = colorInterpolator.GetValue(time);
-		storage.size = sizeInterpolator.GetValue(time);
+		rotation = rotationInterpolator.GetValue(time);
+		color = colorInterpolator.GetValue(time);
+		size = sizeInterpolator.GetValue(time);
 		
 		velocity += gravity*delta;
-		storage.position += velocity*delta;
+		position += velocity*delta;
 	}
 }

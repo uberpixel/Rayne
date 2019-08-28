@@ -28,15 +28,11 @@ namespace RN
 		
 		float time;
 		float lifespan;
+		float rotation;
 		
-		struct Storage
-		{
-			Vector3 position;
-			Vector2 size;
-			Color color;
-		};
-
-		Storage storage;
+		Vector3 position;
+		Vector2 size;
+		Color color;
 	};
 	
 	
@@ -47,6 +43,7 @@ namespace RN
 		
 		Vector3 velocity;
 		Vector3 gravity;
+		Interpolator<float> rotationInterpolator;
 		Interpolator<Color> colorInterpolator;
 		Interpolator<Vector2> sizeInterpolator;
 	};

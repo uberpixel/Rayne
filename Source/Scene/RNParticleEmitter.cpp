@@ -215,25 +215,25 @@ namespace RN
 			{
 				Particle *particle = _particles[i];
 				
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
 				
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
 				
 				*texcoordsIterator++ = RN::Vector2(0.0f, 0.0f);
 				*texcoordsIterator++ = RN::Vector2(1.0f, 0.0f);
 				*texcoordsIterator++ = RN::Vector2(0.0f, 1.0f);
 				*texcoordsIterator++ = RN::Vector2(1.0f, 1.0f);
 				
-				*sizeIterator++ = -particle->storage.size / 2.0f;
-				*sizeIterator++ = RN::Vector2(particle->storage.size.x / 2.0f, -particle->storage.size.y / 2.0f);
-				*sizeIterator++ = RN::Vector2(-particle->storage.size.x / 2.0f, particle->storage.size.y / 2.0f);
-				*sizeIterator++ = particle->storage.size / 2.0f;
+				*sizeIterator++ = -particle->size / 2.0f;
+				*sizeIterator++ = RN::Vector2(particle->size.x / 2.0f, -particle->size.y / 2.0f);
+				*sizeIterator++ = RN::Vector2(-particle->size.x / 2.0f, particle->size.y / 2.0f);
+				*sizeIterator++ = particle->size / 2.0f;
 				
 				*indexIterator++ = i * 4 + 0;
 				*indexIterator++ = i * 4 + 1;
@@ -249,25 +249,25 @@ namespace RN
 			{
 				Particle *particle = _particles[i];
 				
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
-				*vertexIterator++ = particle->storage.position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
 				
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
-				*colorIterator++ = particle->storage.color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
 				
 				*texcoordsIterator++ = RN::Vector2(0.0f, 0.0f);
 				*texcoordsIterator++ = RN::Vector2(1.0f, 0.0f);
 				*texcoordsIterator++ = RN::Vector2(0.0f, 1.0f);
 				*texcoordsIterator++ = RN::Vector2(1.0f, 1.0f);
 				
-				*sizeIterator++ = -particle->storage.size / 2.0f;
-				*sizeIterator++ = RN::Vector2(particle->storage.size.x / 2.0f, -particle->storage.size.y / 2.0f);
-				*sizeIterator++ = RN::Vector2(-particle->storage.size.x / 2.0f, particle->storage.size.y / 2.0f);
-				*sizeIterator++ = particle->storage.size / 2.0f;
+				*sizeIterator++ = -particle->size / 2.0f;
+				*sizeIterator++ = RN::Vector2(particle->size.x / 2.0f, -particle->size.y / 2.0f);
+				*sizeIterator++ = RN::Vector2(-particle->size.x / 2.0f, particle->size.y / 2.0f);
+				*sizeIterator++ = particle->size / 2.0f;
 				
 				*indexIterator++ = i * 4 + 0;
 				*indexIterator++ = i * 4 + 1;
@@ -371,7 +371,7 @@ namespace RN
 	RN::Particle *GenericParticleEmitter::CreateParticle()
 	{
 		GenericParticle *particle = new GenericParticle();
-		particle->storage.position = _rng->GetRandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
+		particle->position = _rng->GetRandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
 		
 		float lifespan = _rng->GetRandomFloatRange(_lifeSpan.x, _lifeSpan.y);
 		particle->lifespan = lifespan;
@@ -385,8 +385,8 @@ namespace RN
 			Vector3 scale = GetWorldScale();
 			sizeScale = std::max(std::max(scale.x, scale.y), scale.z);
 			
-			particle->storage.position *= scale;
-			particle->storage.position += GetWorldPosition();
+			particle->position *= scale;
+			particle->position += GetWorldPosition();
 			particle->gravity *= scale;
 			particle->velocity *= scale;
 		}

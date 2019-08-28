@@ -6,20 +6,27 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_UV0
+#define RN_UV0 0
+#endif
 
-//Texture2D texture0 : register(t0);
-//SamplerState linearRepeatSampler : register(s0);
+#if RN_UV0
+Texture2D texture0 : register(t0);
+SamplerState linearRepeatSampler : register(s0);
+#endif
 
 [[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
 {
-	matrix inverseViewMatrix;
+	matrix inverseModelViewMatrix;
 	matrix modelViewProjectionMatrix;
 };
 
 struct InputVertex
 {
 	[[vk::location(0)]] float3 position : POSITION;
-//	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
+#if RN_UV0
+	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
+#endif
 	[[vk::location(6)]] float2 texCoords2 : TEXCOORD1;
 	[[vk::location(3)]] float4 color : COLOR;
 };
@@ -27,7 +34,9 @@ struct InputVertex
 struct FragmentVertex
 {
 	float4 position : SV_POSITION;
-//	float2 texCoords : TEXCOORD0;
+#if RN_UV0
+	float2 texCoords : TEXCOORD0;
+#endif
 	float4 color : COLOR;
 };
 
@@ -36,10 +45,12 @@ FragmentVertex particles_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0) + mul(inverseViewMatrix, float4(vert.texCoords2, 0.0, 0.0)));
+	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0) + mul(inverseModelViewMatrix, float4(vert.texCoords2, 0.0, 0.0)));
 	result.color = vert.color;
 
-//	result.texCoords = vert.texCoords;
+#if RN_UV0
+	result.texCoords = vert.texCoords;
+#endif
 
 	return result;
 }
@@ -47,7 +58,12 @@ FragmentVertex particles_vertex(InputVertex vert)
 
 float4 particles_fragment(FragmentVertex vert) : SV_TARGET
 {
-	float4 color = vert.color;//texture0.Sample(linearRepeatSampler, vert.texCoords).rgba * diffuseColor * cameraAmbientColor * light;
+	float4 color = vert.color;
+
+#if RN_UV0
+	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+#endif
+
 	color.rgb *= color.a;
 
 	return color;
