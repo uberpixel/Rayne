@@ -101,6 +101,10 @@ namespace RN
 		void SetStartSize(const Vector2 &startSize) { _startSize = startSize; }
 		Vector2 GetEndSize() const { return _endSize; }
 		void SetEndSize(const Vector2 &endSize) { _endSize = endSize; }
+		Vector2 GetStartRotation() const { return _startRotation; }
+		void SetStartRotation(const Vector2 &startRotation) { _startRotation = startRotation; }
+		Vector2 GetEndRotation() const { return _endRotation; }
+		void SetEndRotation(const Vector2 &endRotation) { _endRotation = endRotation; }
 		Vector3 GetGravity() const { return _gravity; }
 		void SetGravity(const Vector3 &gravity) { _gravity = gravity; }
 		Vector3 GetVelocity() const { return _velocity; }
@@ -122,6 +126,8 @@ namespace RN
 		Color _endColor;
 		Vector2 _startSize;
 		Vector2 _endSize;
+		Vector2 _startRotation;
+		Vector2 _endRotation;
 		Vector3 _gravity;
 		Vector3 _velocity;
 		Vector3 _velocityRandomizeMin;

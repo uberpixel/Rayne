@@ -19,13 +19,6 @@ namespace RN
 	// MARK: Particle Emitter
 	// ---------------------
 	
-	struct ParticleData
-	{
-		Vector3 position;
-		Vector2 size;
-		Color color;
-	};
-	
 	ParticleEmitter::ParticleEmitter() :
 	_material(nullptr),
 	_mesh(nullptr),
@@ -225,15 +218,24 @@ namespace RN
 				*colorIterator++ = particle->color;
 				*colorIterator++ = particle->color;
 				
-				*texcoordsIterator++ = RN::Vector2(0.0f, 0.0f);
-				*texcoordsIterator++ = RN::Vector2(1.0f, 0.0f);
-				*texcoordsIterator++ = RN::Vector2(0.0f, 1.0f);
-				*texcoordsIterator++ = RN::Vector2(1.0f, 1.0f);
+				*texcoordsIterator++ = Vector2(0.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
 				
-				*sizeIterator++ = -particle->size / 2.0f;
-				*sizeIterator++ = RN::Vector2(particle->size.x / 2.0f, -particle->size.y / 2.0f);
-				*sizeIterator++ = RN::Vector2(-particle->size.x / 2.0f, particle->size.y / 2.0f);
-				*sizeIterator++ = particle->size / 2.0f;
+				Vector2 halfSize = particle->size / 2.0f;
+				Vector2 halfDirectionTop;
+				halfDirectionTop.x = Math::Cos(particle->rotation) * halfSize.x - Math::Sin(particle->rotation) * halfSize.y;
+				halfDirectionTop.y = Math::Sin(particle->rotation) * halfSize.x + Math::Cos(particle->rotation) * halfSize.y;
+				
+				Vector2 halfDirectionBottom;
+				halfDirectionBottom.x = Math::Cos(particle->rotation) * halfSize.x + Math::Sin(particle->rotation) * halfSize.y;
+				halfDirectionBottom.y = Math::Sin(particle->rotation) * halfSize.x - Math::Cos(particle->rotation) * halfSize.y;
+				
+				*sizeIterator++ = -halfDirectionTop;
+				*sizeIterator++ = halfDirectionBottom;
+				*sizeIterator++ = -halfDirectionBottom;
+				*sizeIterator++ = halfDirectionTop;
 				
 				*indexIterator++ = i * 4 + 0;
 				*indexIterator++ = i * 4 + 1;
@@ -259,15 +261,23 @@ namespace RN
 				*colorIterator++ = particle->color;
 				*colorIterator++ = particle->color;
 				
-				*texcoordsIterator++ = RN::Vector2(0.0f, 0.0f);
-				*texcoordsIterator++ = RN::Vector2(1.0f, 0.0f);
-				*texcoordsIterator++ = RN::Vector2(0.0f, 1.0f);
-				*texcoordsIterator++ = RN::Vector2(1.0f, 1.0f);
+				*texcoordsIterator++ = Vector2(0.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
 				
-				*sizeIterator++ = -particle->size / 2.0f;
-				*sizeIterator++ = RN::Vector2(particle->size.x / 2.0f, -particle->size.y / 2.0f);
-				*sizeIterator++ = RN::Vector2(-particle->size.x / 2.0f, particle->size.y / 2.0f);
-				*sizeIterator++ = particle->size / 2.0f;
+				Vector2 halfSize = particle->size / 2.0f;
+				Vector2 upVector;
+				upVector.x = -Math::Sin(particle->rotation) * halfSize.x;
+				upVector.y = Math::Cos(particle->rotation) * halfSize.y;
+				Vector2 rightVector;
+				rightVector.x = Math::Cos(particle->rotation) * halfSize.x;
+				rightVector.y = Math::Sin(particle->rotation) * halfSize.y;
+				
+				*sizeIterator++ = -upVector - rightVector;
+				*sizeIterator++ = Vector2(upVector.x + rightVector.x, -upVector.y - rightVector.y);
+				*sizeIterator++ = Vector2(-upVector.x - rightVector.x, upVector.y + rightVector.y);
+				*sizeIterator++ = upVector + rightVector;
 				
 				*indexIterator++ = i * 4 + 0;
 				*indexIterator++ = i * 4 + 1;
@@ -346,6 +356,8 @@ namespace RN
 	_positionRandomizeMax(Vector3(0.5f, 0.5f, 0.5f)),
 	_startSize(Vector2(0.5f, 1.5f)),
 	_endSize(Vector2(1.5f, 2.5f)),
+	_startRotation(Vector2(0.0f, 0.0f)),
+	_endRotation(Vector2(0.0f, 0.0f)),
 	_lifeSpan(Vector2(2.0f, 4.0f))
 	{
 		
@@ -363,6 +375,8 @@ namespace RN
 	_positionRandomizeMax(emitter->_positionRandomizeMax),
 	_startSize(emitter->_startSize),
 	_endSize(emitter->_endSize),
+	_startRotation(emitter->_startRotation),
+	_endRotation(emitter->_endRotation),
 	_lifeSpan(emitter->_lifeSpan)
 	{
 		
@@ -398,6 +412,10 @@ namespace RN
 		particle->colorInterpolator.SetStartValue(_startColor);
 		particle->colorInterpolator.SetEndValue(_endColor);
 		particle->colorInterpolator.SetDuration(lifespan);
+		
+		particle->rotationInterpolator.SetStartValue(Math::DegreesToRadians(_rng->GetRandomFloatRange(_startRotation.x, _startRotation.y)));
+		particle->rotationInterpolator.SetEndValue(Math::DegreesToRadians(_rng->GetRandomFloatRange(_endRotation.x, _endRotation.y)));
+		particle->rotationInterpolator.SetDuration(lifespan);
 		
 		particle->Update(0.0f);
 		
