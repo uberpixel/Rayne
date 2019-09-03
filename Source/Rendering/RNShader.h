@@ -133,7 +133,7 @@ namespace RN
 				Always
 			};
 
-			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, float mipmapBias = 0.0f, uint8 anisotropy = GetDefaultAnisotropy());
 			RNAPI ~Sampler();
 
 			bool operator== (const Sampler &other) const
@@ -148,12 +148,14 @@ namespace RN
 			Filter GetFilter() const { return _filter; }
 			ComparisonFunction GetComparisonFunction() const { return _comparisonFunction; }
 			uint8 GetAnisotropy() const { return _anisotropy; }
+			float GetMipmapBias() const { return _mipmapBias; }
 
 		private:
 			WrapMode _wrapMode;
 			Filter _filter;
 			ComparisonFunction _comparisonFunction;
 			uint8 _anisotropy;
+			float _mipmapBias;
 
 			__RNDeclareMetaInternal(Sampler)
 		};

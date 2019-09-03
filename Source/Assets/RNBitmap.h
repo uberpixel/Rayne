@@ -20,6 +20,8 @@ namespace RN
 	{
 		enum class Format
 		{
+			Invalid,
+			
 			RGBA_8,
 			RGB_8,
 
