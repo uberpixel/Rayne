@@ -108,7 +108,7 @@ namespace RN
 				return;
 		}
 
-		_queue->Perform([message{std::move(message)}, this, level]() mutable {
+		_queue->Perform([message{std::move(message)}, this]() mutable {
 
 			{
 				UniqueLock<Lockable> lock(_lock);

@@ -146,6 +146,14 @@ namespace RN
 
 				break;
 			}
+				
+			case BitmapInfo::Format::Invalid:
+			{
+				pixel.r = 0.0f;
+				pixel.g = 0.0f;
+				pixel.b = 0.0f;
+				pixel.a = 0.0f;
+			}
 		}
 
 		return pixel;
@@ -228,6 +236,10 @@ namespace RN
 				data[1] = static_cast<uint8>(pixel.g * 255) >> 2;
 				data[2] = static_cast<uint8>(pixel.b * 255) >> 3;
 
+				break;
+			}
+			case BitmapInfo::Format::Invalid:
+			{
 				break;
 			}
 		}

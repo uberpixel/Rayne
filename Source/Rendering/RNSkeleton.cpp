@@ -29,9 +29,9 @@ namespace RN
 		nextFrame = next;
 	}
 	
-	Animation::Animation(const std::string &animname)
+	Animation::Animation(const String *animname)
 	{
-		name = animname;
+		name = animname->Copy();
 	}
 	
 	Animation::~Animation()
@@ -51,6 +51,8 @@ namespace RN
 			}
 			delete bone;
 		}
+		
+		name->Release();
 	}
 	
 	void Animation::MakeLoop()
@@ -74,12 +76,12 @@ namespace RN
 		return length;
 	}
 	
-	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute)
+	Bone::Bone(const Vector3 &pos, const String *bonename, bool root, bool absolute)
 	{
 		invBaseMatrix = Matrix::WithTranslation(pos*(-1.0f));
 		relBaseMatrix = Matrix::WithTranslation(pos);
 		
-		name = bonename;
+		name = bonename->Copy();
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
@@ -93,12 +95,12 @@ namespace RN
 		this->absolute = absolute;
 	}
 	
-	Bone::Bone(const Matrix &basemat, const std::string bonename, bool root, bool absolute)
+	Bone::Bone(const Matrix &basemat, const String *bonename, bool root, bool absolute)
 	{
 		invBaseMatrix = basemat;
 		relBaseMatrix = basemat.GetInverse();
 		
-		name = bonename;
+		name = bonename->Copy();
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
@@ -120,7 +122,7 @@ namespace RN
 		rotation = other.rotation;
 		scale = other.scale;
 		finalMatrix = other.finalMatrix;
-		name = other.name;
+		name = other.name->Retain();
 		isRoot = other.isRoot;
 		tempChildren = other.tempChildren;
 		currFrame = 0;
@@ -128,6 +130,11 @@ namespace RN
 		currTime = 0.0f;
 		finished = false;
 		absolute = other.absolute;
+	}
+	
+	Bone::~Bone()
+	{
+		name->Release();
 	}
 	
 	void Bone::Init(Bone *parent)
@@ -261,6 +268,7 @@ namespace RN
 	Skeleton::Skeleton()
 		: _blendanim(0), _curranim(0)
 	{
+		animations = new Dictionary();
 	}
 	
 	Skeleton::Skeleton(const Skeleton *other)
@@ -269,9 +277,7 @@ namespace RN
 		for(int i = 0; i < other->bones.size(); i++)
 			bones.push_back(other->bones[i]);
 		
-		animations = other->animations;
-		for(auto anim : animations)
-			anim.second->Retain();
+		animations = other->animations->Retain();
 		
 		for(int i = 0; i < bones.size(); i++)
 		{
@@ -289,11 +295,7 @@ namespace RN
 	
 	Skeleton::~Skeleton()
 	{
-		for (std::map<std::string, Animation*>::iterator it = animations.begin(); it != animations.end(); ++it)
-		{
-			if(it->second)
-				it->second->Release();
-		}
+		animations->Release();
 		
 		if(_blendanim)
 			_blendanim->Release();
@@ -373,9 +375,9 @@ namespace RN
 		}
 	}
 	
-	void Skeleton::SetAnimation(const std::string &animname)
+	void Skeleton::SetAnimation(const String *animname)
 	{
-		Animation *anim = animations[animname];
+		Animation *anim = animations->GetObjectForKey<Animation>(animname);
 		SetAnimation(anim);
 	}
 	
@@ -402,13 +404,11 @@ namespace RN
 		}
 	}
 	
-	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop)
+	void Skeleton::CopyAnimation(const String *from, const String *to, float start, float end, bool loop)
 	{
-		Animation *fromanim = animations[from];
+		Animation *fromanim = animations->GetObjectForKey<Animation>(from);
 		Animation *toanim = new Animation(to);
-		animations.insert(std::pair<std::string, Animation*>(to, toanim));
-		toanim->Autorelease();
-		toanim->Retain();
+		animations->SetObjectForKey(toanim->Autorelease(), to);
 		
 		for(auto firstbone : fromanim->bones)
 		{
@@ -452,20 +452,19 @@ namespace RN
 			toanim->MakeLoop();
 	}
 	
-	void Skeleton::RemoveAnimation(const std::string &animname)
+	void Skeleton::RemoveAnimation(const String *animname)
 	{
-		Animation *anim = animations[animname];
+		Animation *anim = animations->GetObjectForKey<Animation>(animname);
 		if(anim == _curranim)
-			_curranim = 0;
+			_curranim = nullptr;
 		
-		animations.erase(animname);
-		anim->Release();
+		animations->RemoveObjectForKey(animname);
 	}
 	
-	void Skeleton::SetBlendAnimation(const std::string &to, float blendtime, float targettime)
+	void Skeleton::SetBlendAnimation(const String *to, float blendtime, float targettime)
 	{
-		_curranim = animations[to];
-		_blendanim = new Animation("blend_to_"+to);
+		_curranim = animations->GetObjectForKey<Animation>(to);
+		_blendanim = new Animation(RNSTR("blend_to_" << to));
 		_blendanim->Autorelease();
 		_blendanim->Retain();
 		
@@ -488,11 +487,11 @@ namespace RN
 		SetAnimation(_blendanim);
 	}
 	
-	std::vector<Bone *> Skeleton::GetBones(const std::string name)
+	std::vector<Bone *> Skeleton::GetBones(const String *name)
 	{
 		std::vector<Bone *> out;
 		for(int i = 0; i < bones.size(); i++)
-			if(bones[i].name == name)
+			if(bones[i].name->IsEqual(name))
 				out.push_back(&bones[i]);
 		
 		return out;

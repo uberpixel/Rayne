@@ -36,13 +36,13 @@ namespace RN
 	class Animation : public Object
 	{
 	public:
-		RNAPI Animation(const std::string &animname);
+		RNAPI Animation(const String *animname);
 		RNAPI ~Animation();
 		
 		RNAPI void MakeLoop();
 		RNAPI float GetLength();
 		
-		std::string name;
+		String *name;
 		std::map<size_t, AnimationBone*> bones;
 		
 		__RNDeclareMetaInternal(Animation)
@@ -51,9 +51,11 @@ namespace RN
 	class Bone
 	{
 	public:
-		RNAPI Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute=false);
-		RNAPI Bone(const Matrix &basemat, const std::string bonename, bool root, bool absolute=false);
+		RNAPI Bone(const Vector3 &pos, const String *bonename, bool root, bool absolute=false);
+		RNAPI Bone(const Matrix &basemat, const String *bonename, bool root, bool absolute=false);
 		RNAPI Bone(const Bone &other);
+		
+		RNAPI ~Bone();
 		
 		RNAPI void Init(Bone *parent = 0);
 		RNAPI bool Update(Bone *parent, float timestep, bool restart);
@@ -69,7 +71,7 @@ namespace RN
 		
 		Matrix finalMatrix;
 		
-		std::string name;
+		String *name;
 		bool isRoot;
 		
 		std::vector<Bone*> children;
@@ -102,18 +104,18 @@ namespace RN
 		RNAPI bool Update(float timestep, bool restart = true);
 		RNAPI void SetTime(float time);
 		RNAPI void SetProgress(float progress);
-		RNAPI void SetAnimation(const std::string &animname);
+		RNAPI void SetAnimation(const String *animname);
 		RNAPI void SetAnimation(Animation *anim);
-		RNAPI void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
-		RNAPI void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
-		RNAPI void RemoveAnimation(const std::string &animname);
+		RNAPI void SetBlendAnimation(const String *to, float blendtime, float targettime = 0.0f);
+		RNAPI void CopyAnimation(const String *from, const String *to, float start, float end, bool loop = true);
+		RNAPI void RemoveAnimation(const String *animname);
 		
-		RNAPI std::vector<Bone *> GetBones(const std::string name);
+		RNAPI std::vector<Bone *> GetBones(const String *name);
 		RNAPI uint16 GetBoneCount() const { return bones.size(); }
 		RNAPI const std::vector<Matrix>& GetMatrices() const { return _matrices; }
 		
 		std::vector<Bone> bones;
-		std::map<std::string, Animation*> animations;
+		Dictionary *animations;
 		std::vector<Matrix> _matrices;
 		
 	private:

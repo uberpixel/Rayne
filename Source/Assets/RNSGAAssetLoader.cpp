@@ -60,7 +60,7 @@ namespace RN
 			
 			uint8 isroot = file->ReadUint8();
 			
-			Bone bone(bonepos, bonename, isroot);
+			Bone bone(bonepos, RNSTR(bonename), isroot);
 			delete[] bonename;
 			
 			uint16 numchildren = file->ReadUint16();
@@ -80,10 +80,8 @@ namespace RN
 			char *animname = new char[lenanimname];
 			file->Read(animname, lenanimname);
 			
-			Animation *anim = new Animation(animname);
-			anim->Autorelease();
-			anim->Retain();
-			skeleton->animations.insert(std::pair<std::string, Animation*>(animname, anim));
+			Animation *anim = new Animation(RNSTR(animname));
+			skeleton->animations->SetObjectForKey(anim->Autorelease(), RNSTR(animname));
 			delete[] animname;
 			
 			uint16 numanimbones = file->ReadUint16();
