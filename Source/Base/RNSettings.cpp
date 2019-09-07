@@ -22,7 +22,13 @@ namespace RN
 		FileManager *manager = FileManager::GetSharedInstance();
 
 		String *location = GetSettingsLocation();
+
+		//TODO: Remove once there is zip file walking.
+#if RN_PLATFORM_ANDROID
+		String *original = RNCSTR("settings.json");
+#else
 		String *original = manager->ResolveFullPath(RNCSTR("settings.json"), 0);
+#endif
 
 		if(manager->PathExists(location))
 		{
