@@ -39,3 +39,6 @@ Modules/ODE/Vendor/BUILD
 /cmake-build-*
 /Build-Xcode-UI
 /Modules/UI/Vendor/depot_tools
+/Modules/OculusAudio/Vendor/OculusAudio
+/Modules/UI/Vendor/libskia/third_party
+/Modules/UI/Vendor/libskia/include/third_party/vulkan

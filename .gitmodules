@@ -52,3 +52,6 @@
 [submodule "Modules/OculusAudio/Vendor/Oboe"]
 	path = Modules/OculusAudio/Vendor/Oboe
 	url = https://github.com/google/oboe.git
+[submodule "Modules/Gainput/Vendor/Gainput"]
+	path = Modules/Gainput/Vendor/Gainput
+	url = https://github.com/jkuhlmann/gainput.git
