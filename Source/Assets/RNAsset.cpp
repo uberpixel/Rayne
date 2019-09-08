@@ -45,4 +45,9 @@ namespace RN
 	{
 		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ", " << _name << ">");
 	}
+	
+	const String *Asset::GetName() const
+	{
+		return _name;
+	}
 }

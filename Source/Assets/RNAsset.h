@@ -23,6 +23,7 @@ namespace RN
 		RNAPI Asset();
 
 		RNAPI const String *GetDescription() const override;
+		RNAPI const String *GetName() const;
 
 	protected:
 		RNAPI void Dealloc() override;
