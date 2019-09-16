@@ -25,6 +25,7 @@ namespace RN
 			case Texture::Type::Type2D:
 			case Texture::Type::Type2DMS:
 			case Texture::Type::Type2DArray:
+			case Texture::Type::TypeCube:
 				return VK_IMAGE_TYPE_2D;
 
 			case Texture::Type::Type3D:
@@ -183,6 +184,9 @@ namespace RN
 			case Texture::Type::Type3D:
 				return VK_IMAGE_VIEW_TYPE_3D;
 
+			case Texture::Type::TypeCube:
+				return VK_IMAGE_VIEW_TYPE_CUBE;
+
 			default:
 				throw InconsistencyException("Invalid texture type for Vulkan");
 		}
@@ -312,6 +316,12 @@ namespace RN
 		else
 		{
 			imageInfo.tiling = (descriptor.mipMaps > 1)? VK_IMAGE_TILING_OPTIMAL:VK_IMAGE_TILING_LINEAR;
+		}
+
+		if(descriptor.type == Texture::Type::TypeCube)
+		{
+			imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+			imageInfo.arrayLayers = 6;
 		}
 
 		_currentLayout = imageInfo.initialLayout;
