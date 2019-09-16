@@ -376,7 +376,11 @@ namespace RN
 					{
 						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
 						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
-						_controllerTrackingState[handIndex].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+
+						if(!(remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelOculusGo) && (remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelGearVR))
+						{
+							_controllerTrackingState[handIndex].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+						}
 
 						_controllerTrackingState[handIndex].velocityLinear = GetVectorForOVRVector(trackingState.HeadPose.LinearVelocity);
 						_controllerTrackingState[handIndex].velocityAngular.x = trackingState.HeadPose.AngularVelocity.y;
