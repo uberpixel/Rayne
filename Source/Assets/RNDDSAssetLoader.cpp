@@ -172,7 +172,7 @@ namespace RN
 		
 		uint8 *data = nullptr;
 		
-		int mipIndex = 0;
+		uint32 mipIndex = 0;
 		while(mipIndex < mipMapCount && file->GetOffset() < file->GetSize())
 		{
 			int32 mipWidth = std::max(ddsHeader.dwWidth >> mipIndex, static_cast<uint32>(1));

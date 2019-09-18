@@ -90,7 +90,7 @@ namespace RN
 				AnimationBone *animbone = 0;
 				uint16 boneid = file->ReadUint16();
 				uint32 numframes = file->ReadUint32();
-				for(int f = 0; f < numframes; f++)
+				for(uint32 f = 0; f < numframes; f++)
 				{
 					float time = file->ReadFloat();
 					Vector3 animbonepos;
