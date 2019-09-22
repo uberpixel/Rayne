@@ -11,8 +11,6 @@
 #include "../System/RNFile.h"
 #include "../Assets/RNAssetManager.h"
 
-//#define RNDebugDrawSkeleton
-
 namespace RN
 {
 	RNDefineMeta(Skeleton, Asset)
@@ -76,7 +74,7 @@ namespace RN
 		return length;
 	}
 	
-	Bone::Bone(const Vector3 &pos, const String *bonename, bool root, bool absolute)
+	Bone::Bone(const Vector3 &pos, const String *bonename, bool root)
 	{
 		invBaseMatrix = Matrix::WithTranslation(pos*(-1.0f));
 		relBaseMatrix = Matrix::WithTranslation(pos);
@@ -92,10 +90,10 @@ namespace RN
 		nextFrame = 0;
 		currTime = 0.0f;
 		finished = false;
-		this->absolute = absolute;
+		absolute = false;
 	}
 	
-	Bone::Bone(const Matrix &basemat, const String *bonename, bool root, bool absolute)
+	Bone::Bone(const Matrix &basemat, const String *bonename, bool root)
 	{
 		invBaseMatrix = basemat;
 		relBaseMatrix = basemat.GetInverse();
@@ -111,7 +109,7 @@ namespace RN
 		nextFrame = 0;
 		currTime = 0.0f;
 		finished = false;
-		this->absolute = absolute;
+		absolute = false;
 	}
 	
 	Bone::Bone(const Bone &other)
@@ -202,43 +200,21 @@ namespace RN
 			running = false;
 		}
 		
-		//TODO: Remove absolute flag...
-		if(!absolute || !currFrame)
-		{
-			finalMatrix = relBaseMatrix;
-			finalMatrix.Translate(position);
-		}
-		else
-		{
-			finalMatrix = Matrix::WithTranslation(position);
-		}
+		finalMatrix = relBaseMatrix;
+		finalMatrix.Translate(position);
 		finalMatrix.Rotate(rotation);
 		finalMatrix.Scale(scale);
 		
-		if(parent != 0)
+		if(parent != 0 && !absolute)
 		{
-			finalMatrix = parent->finalMatrix*finalMatrix;
+			finalMatrix = parent->finalMatrix * finalMatrix * Matrix::WithScaling(Vector3(1.0f, 1.0f, 1.0f)/parent->scale);
 		}
 		
 		for(int i = 0; i < children.size(); i++)
 		{
-#if defined(RNDebugDrawSkeleton)
-			Vector3 pos1 = finalMatrix.Transform(Vector3())*0.0088889f;
-			Debug::AddLinePoint(pos1, Color::Red());
-#endif
-			
 			if(children[i]->Update(this, timestep, restart))
 				running = true;
 		}
-		
-#if defined(RNDebugDrawSkeleton)
-		if(children.size() == 0)
-		{
-			Vector3 pos1 = finalMatrix.Transform(Vector3())*0.0088889f;
-			Debug::AddLinePoint(pos1, Color::Red());
-			Debug::CloseLine();
-		}
-#endif
 		
 		finalMatrix = finalMatrix*invBaseMatrix;
 		return running;
@@ -345,10 +321,6 @@ namespace RN
 		{
 			_matrices[i] = bones[i].finalMatrix;
 		}
-		
-#if defined(RNDebugDrawSkeleton)
-		Debug::EndLine();
-#endif
 		
 		if(!running && _blendanim)
 		{

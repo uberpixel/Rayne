@@ -51,8 +51,8 @@ namespace RN
 	class Bone
 	{
 	public:
-		RNAPI Bone(const Vector3 &pos, const String *bonename, bool root, bool absolute=false);
-		RNAPI Bone(const Matrix &basemat, const String *bonename, bool root, bool absolute=false);
+		RNAPI Bone(const Vector3 &pos, const String *bonename, bool root);
+		RNAPI Bone(const Matrix &basemat, const String *bonename, bool root);
 		RNAPI Bone(const Bone &other);
 		
 		RNAPI ~Bone();
