@@ -343,6 +343,8 @@ namespace RN
 		pipelineDescriptor.shaderHint = shaderHint;
 		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
+		pipelineDescriptor.depthWriteEnabled = mergedMaterialProperties.depthWriteEnabled;
+		pipelineDescriptor.depthMode = mergedMaterialProperties.depthMode;
 		pipelineDescriptor.cullMode = mergedMaterialProperties.cullMode;
 		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
 		pipelineDescriptor.polygonOffsetFactor = mergedMaterialProperties.polygonOffsetFactor;
@@ -377,13 +379,13 @@ namespace RN
 	{
 		const VulkanRootSignature *rootSignature = GetRootSignature(descriptor);
 
-		//TODO: Make sure all possible cases are covered... Depth bias for example... cullmode...
+		//TODO: Make sure all possible cases are covered...
 		//TODO: Maybe solve nicer...
 		for(const VulkanPipelineState *state : collection->states)
 		{
 			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
 			{
-				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha)
+				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.depthWriteEnabled == descriptor.depthWriteEnabled && state->descriptor.depthMode == descriptor.depthMode && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha)
 				{
 					return state;
 				}
@@ -471,9 +473,49 @@ namespace RN
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		if(descriptor.depthStencilFormat != VK_FORMAT_UNDEFINED)
 		{
-			depthStencilState.depthTestEnable = VK_TRUE;
-			depthStencilState.depthWriteEnable = VK_TRUE;
-			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+			depthStencilState.depthTestEnable = descriptor.depthMode != DepthMode::Never;
+			depthStencilState.depthWriteEnable = descriptor.depthWriteEnabled;
+
+			switch(descriptor.depthMode)
+			{
+				case DepthMode::Never:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_NEVER;
+					break;
+
+				case DepthMode::Always:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+					break;
+
+				case DepthMode::Less:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+					break;
+
+				case DepthMode::LessOrEqual:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+					break;
+
+				case DepthMode::Equal:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_EQUAL;
+					break;
+
+				case DepthMode::NotEqual:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
+					break;
+
+				case DepthMode::GreaterOrEqual:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+					break;
+
+				case DepthMode::Greater:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_GREATER;
+					break;
+
+				default:
+					depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+					break;
+			}
+
+
 			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
 			depthStencilState.front = depthStencilState.back;
 		}
