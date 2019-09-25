@@ -159,35 +159,67 @@ namespace RN
 			
 			currTime += timestep;
 			
-			if(currFrame != nextFrame) //bone not animated
+			if(currFrame != nextFrame) //bone is animated
 			{
-				while(currTime > nextFrame->time)
+				float blend = 0.0f;
+				if(timestep >= 0.0f)
 				{
-					if(currFrame->time > nextFrame->time)
+					if(nextFrame == currFrame->prevFrame) nextFrame = currFrame->nextFrame;
+					while(currTime > nextFrame->time)
 					{
-						if(restart)
+						if(currFrame->time > nextFrame->time)
 						{
-							currTime -= currFrame->time;
+							if(restart)
+							{
+								currTime -= currFrame->time;
+							}
+							else
+							{
+								finished = true;
+								running = false;
+								currTime = currFrame->time;
+								break;
+							}
 						}
-						else
-						{
-							finished = true;
-							running = false;
-							currTime = currFrame->time;
-							break;
-						}
+						currFrame = nextFrame;
+						nextFrame = nextFrame->nextFrame;
+						timeDiff = nextFrame->time-currFrame->time;
 					}
-					currFrame = nextFrame;
-					nextFrame = nextFrame->nextFrame;
-					timeDiff = nextFrame->time-currFrame->time;
+					
+					blend = (currTime-currFrame->time)/timeDiff;
+				}
+				else
+				{
+					if(nextFrame == currFrame->nextFrame) nextFrame = currFrame->prevFrame;
+					while(currTime < nextFrame->time)
+					{
+						if(currFrame->time < nextFrame->time)
+						{
+							if(restart)
+							{
+								currTime += nextFrame->time;
+							}
+							else
+							{
+								finished = true;
+								running = false;
+								currTime = currFrame->time;
+								break;
+							}
+						}
+						currFrame = nextFrame;
+						nextFrame = nextFrame->prevFrame;
+						timeDiff = currFrame->time - nextFrame->time;
+					}
+					
+					blend = (currFrame->time-currTime)/timeDiff;
 				}
 			
-				float blend = (currTime-currFrame->time)/timeDiff;
 				position = currFrame->position.GetLerp(nextFrame->position, blend);
 				scale = currFrame->scale.GetLerp(nextFrame->scale, blend);
 				rotation = Quaternion::WithLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
 			}
-			else
+			else //bone is not animated
 			{
 				position = currFrame->position;
 				scale = currFrame->scale;
@@ -200,14 +232,22 @@ namespace RN
 			running = false;
 		}
 		
-		finalMatrix = relBaseMatrix;
+		if(absolute)
+		{
+			finalMatrix = Matrix::WithIdentity();
+		}
+		else
+		{
+			finalMatrix = relBaseMatrix;
+		}
+		
 		finalMatrix.Translate(position);
 		finalMatrix.Rotate(rotation);
 		finalMatrix.Scale(scale);
 		
 		if(parent != 0 && !absolute)
 		{
-			finalMatrix = parent->finalMatrix * finalMatrix * Matrix::WithScaling(Vector3(1.0f, 1.0f, 1.0f)/parent->scale);
+			finalMatrix = parent->finalMatrix * finalMatrix;
 		}
 		
 		for(int i = 0; i < children.size(); i++)

@@ -424,7 +424,7 @@ namespace RN
 					ovrMobile *session = static_cast<ovrMobile*>(_session);
 					vrapi_SetDisplayRefreshRate(session, 72.0f); //72
 					vrapi_SetRemoteEmulation(session, false);
-					vrapi_SetClockLevels(session, 0, 0); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
+					vrapi_SetClockLevels(session, 4, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
 
