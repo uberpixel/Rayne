@@ -1,0 +1,144 @@
+[
+    {
+        "file~d3d12": ":RayneD3D12:/Shaders.vs.cso", 
+        "shaders": [
+            {
+                "name": "gouraud_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Shaders.ps.cso", 
+        "shaders": [
+            {
+                "name": "gouraud_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_NORMALS", 
+                        "RN_COLOR", 
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Particles.vs.cso", 
+        "shaders": [
+            {
+                "name": "particles_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Particles.ps.cso", 
+        "shaders": [
+            {
+                "name": "particles_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Depth.vs.cso", 
+        "shaders": [
+            {
+                "name": "depth_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_ALPHA", 
+                        "RN_UV0", 
+                        "RN_SKY"
+                    ]
+                }, 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Depth.ps.cso", 
+        "shaders": [
+            {
+                "name": "depth_fragment", 
+                "signature": {
+                    "options": [
+                        "RN_ALPHA", 
+                        "RN_UV0"
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Sky.vs.cso", 
+        "shaders": [
+            {
+                "name": "sky_vertex", 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/Sky.ps.cso", 
+        "shaders": [
+            {
+                "name": "sky_fragment", 
+                "signature": {
+                    "samplers": [
+                        {
+                            "wrap": "clamp"
+                        }
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/PostProcessing.vs.cso", 
+        "shaders": [
+            {
+                "name": "pp_vertex", 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/PostProcessing.ps.cso", 
+        "shaders": [
+            {
+                "name": "pp_blit_fragment", 
+                "signature": {
+                    "samplers": [
+                        {
+                            "wrap": "clamp"
+                        }
+                    ]
+                }, 
+                "type": "fragment"
+            }
+        ]
+    }
+]
