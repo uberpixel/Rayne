@@ -190,13 +190,15 @@ namespace RN
 		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 		for(size_t i = 0; i < 3; i++) //TODO: use fixed bindings based on shader stage and maybe more than one per stage to optimize bandwidth
 		{
+			if(i == 1 && !hasVertexShaderConstantBuffer) continue;
+			if(i == 2 && !hasFragmentShaderConstantBuffer) continue;
+
 			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
 			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-			setUniformLayoutBinding.binding = i;
+			setUniformLayoutBinding.binding = setLayoutBindings.size();
 			setUniformLayoutBinding.descriptorCount = 0;
-			if(i == 1 && hasVertexShaderConstantBuffer) setUniformLayoutBinding.descriptorCount = 1;
-			if(i == 2 && hasFragmentShaderConstantBuffer) setUniformLayoutBinding.descriptorCount = 1;
+			if(i > 0) setUniformLayoutBinding.descriptorCount = 1;
 			setLayoutBindings.push_back(setUniformLayoutBinding);
 		}
 

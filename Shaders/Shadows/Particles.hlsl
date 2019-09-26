@@ -11,8 +11,8 @@
 #endif
 
 #if RN_UV0
-[[vk::binding(4)]] Texture2D texture0 : register(t0);
-[[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
+[[vk::binding(3)]] Texture2D texture0 : register(t0);
+[[vk::binding(2)]] SamplerState linearRepeatSampler : register(s0);
 #endif
 
 [[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
@@ -24,11 +24,11 @@
 struct InputVertex
 {
 	[[vk::location(0)]] float3 position : POSITION;
+	[[vk::location(3)]] float4 color : COLOR0;
 #if RN_UV0
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
 	[[vk::location(6)]] float2 texCoords2 : TEXCOORD1;
-	[[vk::location(3)]] float4 color : COLOR;
 };
 
 struct FragmentVertex
@@ -37,7 +37,7 @@ struct FragmentVertex
 #if RN_UV0
 	float2 texCoords : TEXCOORD0;
 #endif
-	float4 color : COLOR;
+	float4 color : COLOR0;
 };
 
 

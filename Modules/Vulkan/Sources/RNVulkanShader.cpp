@@ -92,7 +92,7 @@ namespace RN
 				{
 					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Tangents)] = true;
 				}
-				else if (name->IsEqual(RNCSTR("in_var_COLOR0")))
+				else if (name->IsEqual(RNCSTR("in_var_COLOR")) || name->IsEqual(RNCSTR("in_var_COLOR0")))
 				{
 					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color0)] = true;
 				}
@@ -100,7 +100,7 @@ namespace RN
 				{
 					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color1)] = true;
 				}
-				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD0")))
+				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD")) || name->IsEqual(RNCSTR("in_var_TEXCOORD0")))
 				{
 					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords0)] = true;
 				}
