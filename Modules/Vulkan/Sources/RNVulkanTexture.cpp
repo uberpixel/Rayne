@@ -321,7 +321,6 @@ namespace RN
 		if(descriptor.type == Texture::Type::TypeCube)
 		{
 			imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-			imageInfo.arrayLayers = 6;
 		}
 
 		_currentLayout = imageInfo.initialLayout;
