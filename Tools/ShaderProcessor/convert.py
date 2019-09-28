@@ -78,6 +78,8 @@ def main():
                 shaderType = 'vs'
             elif shader['type'] == 'fragment':
                 shaderType = 'ps'
+            elif shader['type'] == 'compute':
+                shaderType = 'cs'
 
             shaderSignature = None
             shaderOptions = None

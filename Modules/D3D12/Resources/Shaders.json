@@ -140,5 +140,14 @@
                 "type": "fragment"
             }
         ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/GenerateMipMaps.cs.cso", 
+        "shaders": [
+            {
+                "name": "GenerateMipMaps", 
+                "type": "compute"
+            }
+        ]
     }
 ]

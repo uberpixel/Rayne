@@ -27,6 +27,7 @@ namespace RN
 		case Texture::Type::Type2D:
 		case Texture::Type::Type2DMS:
 		case Texture::Type::Type2DArray:
+		case Texture::Type::TypeCube:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
 		case Texture::Type::Type3D:
@@ -110,6 +111,8 @@ namespace RN
 			return DXGI_FORMAT_BC2_UNORM;
 		case Texture::Format::RGBA_BC3:
 			return DXGI_FORMAT_BC3_UNORM;
+		case Texture::Format::RGBA_BC4:
+			return DXGI_FORMAT_BC4_UNORM;
 		case Texture::Format::RGBA_BC7:
 			return DXGI_FORMAT_BC7_UNORM;
 
@@ -182,6 +185,8 @@ namespace RN
 			return DXGI_FORMAT_BC2_UNORM;
 		case Texture::Format::RGBA_BC3:
 			return DXGI_FORMAT_BC3_UNORM;
+		case Texture::Format::RGBA_BC4:
+			return DXGI_FORMAT_BC4_UNORM;
 		case Texture::Format::RGBA_BC7:
 			return DXGI_FORMAT_BC7_UNORM;
 
@@ -338,6 +343,13 @@ namespace RN
 				_srvDescriptor.Texture3D.MostDetailedMip = 0;
 				_srvDescriptor.Texture3D.ResourceMinLODClamp = 0.0f;
 				break;
+
+			case Texture::Type::TypeCube:
+				_srvDescriptor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+				_srvDescriptor.TextureCube.MipLevels = descriptor.mipMaps;
+				_srvDescriptor.TextureCube.MostDetailedMip = 0;
+				_srvDescriptor.TextureCube.ResourceMinLODClamp = 0.0f;
+				break;
 		}
 
 		D3D12_RESOURCE_DESC imageDesc = {};
@@ -440,7 +452,7 @@ namespace RN
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 
 		// Now we copy the upload buffer contents to the default heap
-		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, mipmapLevel, 1, &textureData);
+		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, slice * _descriptor.mipMaps + mipmapLevel, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -594,6 +606,7 @@ namespace RN
 			ColorChannel(DXGI_FORMAT_BC1_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_BC2_UNORM, true, true, true, true)
 			ColorChannel(DXGI_FORMAT_BC3_UNORM, true, true, true, true)
+			ColorChannel(DXGI_FORMAT_BC4_UNORM, true, false, false, false)
 			ColorChannel(DXGI_FORMAT_BC7_UNORM, true, true, true, true)
 
 			default:

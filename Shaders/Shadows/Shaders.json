@@ -126,5 +126,15 @@
 				}
 			}
 		]
+	},
+	{
+		"file": "GenerateMipMaps.hlsl",
+		"shaders":
+		[
+			{
+				"name": "GenerateMipMaps",
+				"type": "compute"
+			}
+		]
 	}
 ]
