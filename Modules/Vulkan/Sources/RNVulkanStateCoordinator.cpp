@@ -277,7 +277,7 @@ namespace RN
 				samplerInfo.addressModeV = addressMode;
 				samplerInfo.addressModeW = addressMode;
 				samplerInfo.mipLodBias = 0.0f;
-				samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+				samplerInfo.compareOp = comparisonFunction;
 				samplerInfo.minLod = 0.0f;
 				samplerInfo.maxLod = std::numeric_limits<float>::max();
 				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();

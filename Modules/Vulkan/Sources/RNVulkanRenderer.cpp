@@ -1093,6 +1093,7 @@ namespace RN
 	{
 		_lock.Lock();
 		VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
+		renderPass.directionalShadowMatrices.clear();
 		_lock.Unlock();
 
 		if(light->GetType() == Light::Type::DirectionalLight)
@@ -1106,7 +1107,18 @@ namespace RN
 			if(light->HasShadows())
 			{
 				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<VulkanTexture>();
-				renderPass.directionalShadowMatrices = light->GetShadowMatrices();
+				light->GetShadowDepthCameras()->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+					Matrix shadowMatrix = camera->GetProjectionMatrix();
+					shadowMatrix.m[1] *= -1.0f;
+					shadowMatrix.m[5] *= -1.0f;
+					shadowMatrix.m[9] *= -1.0f;
+					shadowMatrix.m[13] *= -1.0f;
+
+					shadowMatrix = shadowMatrix * camera->GetWorldTransform().GetInverse();
+					renderPass.directionalShadowMatrices.push_back(shadowMatrix);
+				});
+				
+				//renderPass.directionalShadowMatrices = light->GetShadowMatrices();
 				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
 			}
 		}
