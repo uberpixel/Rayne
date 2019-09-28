@@ -30,6 +30,7 @@ namespace RN
 	private:
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
+		Array *_nodesToRemove;
 
 		__RNDeclareMetaInternal(SceneBasic)
 	};

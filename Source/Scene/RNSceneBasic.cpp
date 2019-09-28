@@ -19,14 +19,14 @@ namespace RN
 {
 	RNDefineMeta(SceneBasic, Scene)
 
-	SceneBasic::SceneBasic()
+	SceneBasic::SceneBasic() : _nodesToRemove(new Array())
 	{
 		
 	}
 	
 	SceneBasic::~SceneBasic()
 	{
-		
+		_nodesToRemove->Release();
 	}
 
 	void SceneBasic::Update(float delta)
@@ -91,6 +91,22 @@ namespace RN
 			group->Wait();
 			group->Release();
 		}
+
+		_nodesToRemove->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+
+			if (node->IsKindOfClass(Camera::GetMetaClass()))
+			{
+				Camera *camera = static_cast<Camera *>(node);
+				_cameras.Erase(camera->_cameraSceneEntry);
+			}
+
+			_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
+
+			node->UpdateSceneInfo(nullptr);
+			node->Autorelease();
+		});
+
+		_nodesToRemove->RemoveAllObjects();
 
 		Scene::Update(delta);
 
@@ -221,16 +237,9 @@ namespace RN
 	void SceneBasic::RemoveNode(SceneNode *node)
 	{
 		RN_ASSERT(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this, "RemoveNode() must be called on a Node owned by the scene");
-		
-		if(node->IsKindOfClass(Camera::GetMetaClass()))
-		{
-			Camera *camera = static_cast<Camera *>(node);
-			_cameras.Erase(camera->_cameraSceneEntry);
-		}
-		
-		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
-		
-		node->UpdateSceneInfo(nullptr);
-		node->Autorelease();
+
+		_nodesToRemove->Lock();
+		_nodesToRemove->AddObject(node);
+		_nodesToRemove->Unlock();
 	}
 }
