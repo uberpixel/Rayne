@@ -253,6 +253,7 @@ namespace RN
 		Texture::Descriptor descriptor;
 		descriptor.width = cubeWidth;
 		descriptor.height = cubeHeight;
+		descriptor.depth = 6;
 		descriptor.format = textureFormat;
 		descriptor.type = Texture::Type::TypeCube;
 		
