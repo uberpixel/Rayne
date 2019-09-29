@@ -76,6 +76,9 @@ namespace RN
 		float polygonOffsetFactor;
 		float polygonOffsetUnits;
 
+		DepthMode depthMode;
+		bool depthWriteEnabled;
+
 		BlendOperation blendOperationRGB;
 		BlendOperation blendOperationAlpha;
 		BlendFactor blendFactorSourceRGB;

@@ -390,6 +390,8 @@ namespace RN
 		pipelineDescriptor.blendFactorDestinationAlpha = mergedMaterialProperties.blendFactorDestinationAlpha;
 		pipelineDescriptor.useAlphaToCoverage = mergedMaterialProperties.useAlphaToCoverage;
 		pipelineDescriptor.colorWriteMask = mergedMaterialProperties.colorWriteMask;
+		pipelineDescriptor.depthMode = mergedMaterialProperties.depthMode;
+		pipelineDescriptor.depthWriteEnabled = mergedMaterialProperties.depthWriteEnabled;
 		//TODO: Support all override flags and all the relevant material properties
 
 		for(D3D12PipelineStateCollection *collection : _renderingStates)
@@ -418,10 +420,10 @@ namespace RN
 		{
 			if(state->descriptor.colorFormats == descriptor.colorFormats && state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.sampleQuality == descriptor.sampleQuality && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->signature == state->rootSignature->signature)
 			{
-				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits)
+				if(state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.depthMode == descriptor.depthMode && state->descriptor.depthWriteEnabled == descriptor.depthWriteEnabled)
 				{
 					if(state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.colorWriteMask == descriptor.colorWriteMask)
-					return state;
+						return state;
 				}
 			}
 		}
@@ -490,10 +492,49 @@ namespace RN
 		if(descriptor.depthStencilFormat != DXGI_FORMAT_UNKNOWN)
 		{
 			psoDesc.DepthStencilState.DepthEnable = TRUE;
-			psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+			switch(descriptor.depthMode)
+			{
+			case DepthMode::Never:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NEVER;
+				break;
+
+			case DepthMode::Always:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+				break;
+
+			case DepthMode::Less:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+				break;
+
+			case DepthMode::LessOrEqual:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+				break;
+
+			case DepthMode::Equal:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
+				break;
+
+			case DepthMode::NotEqual:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NOT_EQUAL;
+				break;
+
+			case DepthMode::GreaterOrEqual:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+				break;
+
+			case DepthMode::Greater:
+				psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+				break;
+			}
+			
+			psoDesc.DepthStencilState.DepthWriteMask = descriptor.depthWriteEnabled?D3D12_DEPTH_WRITE_MASK_ALL: D3D12_DEPTH_WRITE_MASK_ZERO;
 			psoDesc.DepthStencilState.StencilEnable = FALSE;
 			psoDesc.DSVFormat = descriptor.depthStencilFormat;
+		}
+		else
+		{
+			psoDesc.DepthStencilState.DepthEnable = FALSE;
+			psoDesc.DepthStencilState.StencilEnable = FALSE;
 		}
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
