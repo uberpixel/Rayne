@@ -91,10 +91,19 @@ namespace RN
 			group->Wait();
 			group->Release();
 		}
+		
+		FlushDeletionQueue();
 
+		Scene::Update(delta);
+
+		DidUpdate(delta);
+	}
+
+	void SceneBasic::FlushDeletionQueue()
+	{
 		_nodesToRemove->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
 
-			if (node->IsKindOfClass(Camera::GetMetaClass()))
+			if(node->IsKindOfClass(Camera::GetMetaClass()))
 			{
 				Camera *camera = static_cast<Camera *>(node);
 				_cameras.Erase(camera->_cameraSceneEntry);
@@ -107,10 +116,6 @@ namespace RN
 		});
 
 		_nodesToRemove->RemoveAllObjects();
-
-		Scene::Update(delta);
-
-		DidUpdate(delta);
 	}
 
 	void SceneBasic::Render(Renderer *renderer)

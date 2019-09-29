@@ -26,6 +26,8 @@ namespace RN
 
 		RNAPI void Update(float delta) override;
 		RNAPI void Render(Renderer *renderer) override;
+		
+		RNAPI void FlushDeletionQueue();
 
 	private:
 		IntrusiveList<SceneNode> _nodes[3];
