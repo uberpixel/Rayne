@@ -71,6 +71,7 @@ namespace RN
 		//uint8 sampleQuality;
 		VkRenderPass renderPass;
 		VkFormat depthStencilFormat;
+		
 		DepthMode depthMode;
 		bool depthWriteEnabled;
 
