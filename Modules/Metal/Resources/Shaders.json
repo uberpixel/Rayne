@@ -140,5 +140,32 @@
                 "type": "fragment"
             }
         ]
+    }, 
+    {
+        "file~metal": ":RayneMetal:/OpenVRMask.vs.metallib", 
+        "shaders": [
+            {
+                "name": "pp_mask_vertex", 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneMetal:/OpenVRMask.ps.metallib", 
+        "shaders": [
+            {
+                "name": "pp_mask_fragment", 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~metal": ":RayneMetal:/GenerateMipMaps.cs.metallib", 
+        "shaders": [
+            {
+                "name": "GenerateMipMaps", 
+                "type": "compute"
+            }
+        ]
     }
 ]

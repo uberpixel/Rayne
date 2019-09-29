@@ -140,5 +140,32 @@
                 "type": "fragment"
             }
         ]
+    }, 
+    {
+        "file~vulkan": ":RayneVulkan:/OpenVRMask.vs.spirv", 
+        "shaders": [
+            {
+                "name": "pp_mask_vertex", 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~vulkan": ":RayneVulkan:/OpenVRMask.ps.spirv", 
+        "shaders": [
+            {
+                "name": "pp_mask_fragment", 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
+        "file~vulkan": ":RayneVulkan:/GenerateMipMaps.cs.spirv", 
+        "shaders": [
+            {
+                "name": "GenerateMipMaps", 
+                "type": "compute"
+            }
+        ]
     }
 ]

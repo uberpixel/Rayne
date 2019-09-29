@@ -128,6 +128,20 @@
 		]
 	},
 	{
+		"file": "OpenVRMask.hlsl",
+		"shaders":
+		[
+			{
+				"name": "pp_mask_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_mask_fragment",
+				"type": "fragment"
+			}
+		]
+	},
+	{
 		"file": "GenerateMipMaps.hlsl",
 		"shaders":
 		[

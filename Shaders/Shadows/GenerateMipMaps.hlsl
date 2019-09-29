@@ -1,9 +1,9 @@
 
-Texture2D<float4> SrcTexture : register(t0);
-RWTexture2D<float4> DstTexture : register(u0);
-SamplerState BilinearClamp : register(s0);
+[[vk::binding(1)]] SamplerState BilinearClamp : register(s0);
+[[vk::binding(2)]] Texture2D<float4> SrcTexture : register(t0);
+[[vk::binding(3)]] RWTexture2D<float4> DstTexture : register(u0);
 
-cbuffer CB : register(b0)
+[[vk::binding(0)]] cbuffer CB : register(b0)
 {
 	float2 TexelSize;	// 1.0 / destination dimension
 	float GammaCurve;	// 1.0 for linear textures, 2.2 for srgb textures
