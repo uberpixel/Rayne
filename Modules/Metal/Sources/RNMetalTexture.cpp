@@ -288,7 +288,7 @@ namespace RN
 			case Texture::Type::TypeCube:
 				metalDescriptor.textureType = MTLTextureTypeCube;
 				metalDescriptor.depth = 1;
-				metalDescriptor.arrayLength = descriptor.depth;
+				metalDescriptor.arrayLength = 1;
 				break;
 			case Texture::Type::TypeCubeArray:
 				metalDescriptor.textureType = MTLTextureTypeCubeArray;
