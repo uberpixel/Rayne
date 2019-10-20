@@ -20,7 +20,6 @@ option(RN_BUILD_OCULUSAUDIO_MODULE "Build the Oculus Audio module" OFF)
 option(RN_BUILD_ENET_MODULE "Build the ENet module" OFF)
 option(RN_BUILD_RECAST_MODULE "Build the Recast navmesh module" OFF)
 option(RN_BUILD_UI_MODULE "Build the UI module" ON)
-option(RN_BUILD_GAINPUT_MODULE "Build the Gainput input module" OFF)
 
 if(APPLE AND ${RN_BUILD_METAL_MODULE})
     add_subdirectory("Metal")
@@ -82,10 +81,6 @@ endif()
 
 if(${RN_BUILD_UI_MODULE})
     add_subdirectory("UI")
-endif()
-
-if(${RN_BUILD_GAINPUT_MODULE})
-    add_subdirectory("Gainput")
 endif()
 
 if((MSVC AND ${RN_BUILD_OCULUS_MODULE}) OR ${RN_BUILD_OPENVR_MODULE} OR (ANDROID AND ${RN_BUILD_OCULUSMOBILE_MODULE}))
