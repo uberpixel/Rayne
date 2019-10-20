@@ -15,12 +15,22 @@ namespace RN
 {
 	struct VRHMDTrackingState
 	{
+		enum Type
+		{
+			ThreeDegreesOfFreedom,
+			SixDegreesOfFreedom
+		};
+
 		enum Mode
 		{
 			Rendering,
 			Paused,
 			Disconnected
 		};
+
+		VRHMDTrackingState() : type(Type::SixDegreesOfFreedom), mode(Paused) {}
+
+		Type type;
 
 		Vector3 eyeOffset[2];
 		Matrix eyeProjection[2];
@@ -35,8 +45,8 @@ namespace RN
 	{
 		enum Type
 		{
-			Orientation,
-			Position
+			ThreeDegreesOfFreedom,
+			SixDegreesOfFreedom
 		};
 
 		enum Button
@@ -45,11 +55,12 @@ namespace RN
 			BY,
 			Stick,
 			Pad,
+			PadTouched,
 			Start,
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : type(Type::Position), hasHaptics(true), hapticsSampleLength(0.0), hapticsMaxSamples(0), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false} {}
+		VRControllerTrackingState() : type(Type::SixDegreesOfFreedom), hasHaptics(true), hapticsSampleLength(0.0), hapticsMaxSamples(0), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false, false} {}
 
 		Type type;
 		bool hasHaptics;

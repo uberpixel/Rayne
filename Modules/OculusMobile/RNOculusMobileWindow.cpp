@@ -55,6 +55,8 @@ namespace RN
 
 		_mainThreadID = gettid();
 
+		_hmdTrackingState.type = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE) < VRAPI_HEADSET_TYPE_OCULUSQUEST? VRHMDTrackingState::Type::ThreeDegreesOfFreedom : VRHMDTrackingState::Type::SixDegreesOfFreedom;
+
 		RNInfo(GetHMDInfoDescription());
 	}
 
@@ -284,11 +286,13 @@ namespace RN
 			ovr_RecenterTrackingOrigin(_session); // or ovr_ClearShouldRecenterFlag(_session) to ignore the request.
 		}*/
 
+		_controllerTrackingState[0].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
 		_controllerTrackingState[0].hasHaptics = false;
 		_controllerTrackingState[0].active = false;
 		_controllerTrackingState[0].tracking = false;
 		_controllerTrackingState[0].hapticsSampleLength = 0.0;
 		_controllerTrackingState[0].hapticsMaxSamples = 0;
+		_controllerTrackingState[1].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
 		_controllerTrackingState[1].active = false;
 		_controllerTrackingState[1].tracking = false;
 		_controllerTrackingState[1].hasHaptics = false;
@@ -316,31 +320,34 @@ namespace RN
 					_controllerTrackingState[handIndex].tracking = true;
 					_controllerTrackingState[handIndex].controllerID = remoteCaps.Header.DeviceID;
 
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = false;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = false;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = false;
+					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::PadTouched] = false;
+
+					//_controllerTrackingState[handIndex].trackpad = Vector2();
+					_controllerTrackingState[handIndex].indexTrigger = 0.0f;
+					_controllerTrackingState[handIndex].handTrigger = 0.0f;
+					_controllerTrackingState[handIndex].thumbstick = Vector2();
+
 					ovrInputStateTrackedRemote remoteState;
 					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
 					if(vrapi_GetCurrentInputState(static_cast<ovrMobile*>(_session), remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
 					{
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = false;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = false;
-						_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = false;
-
-						_controllerTrackingState[handIndex].trackpad = Vector2();
-						_controllerTrackingState[handIndex].indexTrigger = 0.0f;
-						_controllerTrackingState[handIndex].handTrigger = 0.0f;
-						_controllerTrackingState[handIndex].thumbstick = Vector2();
-
 						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasTrackpad))
 						{
 							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
 
 							if(remoteState.TrackpadStatus > 0 || remoteState.Buttons & ovrButton_Enter)
 							{
-								Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
-								Vector2 trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
-								_controllerTrackingState[handIndex].trackpad = trackpadPosition;
+								_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::PadTouched] = true;
 							}
+
+							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
+							Vector2 trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
+							_controllerTrackingState[handIndex].trackpad = trackpadPosition;
 						}
 
 						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelOculusGo) || (remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelGearVR))
@@ -455,18 +462,31 @@ namespace RN
 
 	const String *OculusMobileWindow::GetHMDInfoDescription() const
 	{
-		return RNCSTR("Oculus Go (maybe...)");
-
-/*		if(!_session)
-			return RNCSTR("No HMD found.");
-
+		ovrJava *java = static_cast<ovrJava*>(_java);
 		String *description = new String("Using HMD: ");
-		description->Append(_hmdDescription.ProductName);
-		description->Append(", Vendor: ");
-		description->Append(_hmdDescription.Manufacturer);
-		description->Append(", Firmware: %i.%i", _hmdDescription.FirmwareMajor, _hmdDescription.FirmwareMinor);
 
-		return description;*/
+		switch(vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE))
+		{
+			case VRAPI_HEADSET_TYPE_R320:
+			case VRAPI_HEADSET_TYPE_R321:
+			case VRAPI_HEADSET_TYPE_R322:
+			case VRAPI_HEADSET_TYPE_R323:
+			case VRAPI_HEADSET_TYPE_R324:
+			case VRAPI_HEADSET_TYPE_R325:
+				description->Append(RNCSTR("GearVR"));
+				break;
+
+			case VRAPI_HEADSET_TYPE_OCULUSGO:
+			case VRAPI_HEADSET_TYPE_MIVR_STANDALONE:
+				description->Append(RNCSTR("Oculus GO"));
+				break;
+
+			case VRAPI_HEADSET_TYPE_OCULUSQUEST:
+				description->Append(RNCSTR("Oculus Quest"));
+				break;
+		}
+
+		return description->Autorelease();
 	}
 
 	const VRHMDTrackingState &OculusMobileWindow::GetHMDTrackingState() const
