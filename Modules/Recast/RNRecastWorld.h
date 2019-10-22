@@ -30,6 +30,8 @@ namespace RN
 		RCAPI void SetRecastMesh(RecastMesh *navMesh, uint8 maxAgents);
 		RCAPI RN::Vector3 GetClosestPosition(Vector3 postion);
 
+		RCAPI void SetPaused(bool paused);
+
 		RCAPI RecastWorld();
 		RCAPI ~RecastWorld() override;
 
@@ -42,6 +44,8 @@ namespace RN
 		RecastMesh *_navMesh;
 		rcContext *_recastContext;
 		dtCrowd *_crowdManager;
+
+		bool _paused;
 			
 		RNDeclareMetaAPI(RecastWorld, RCAPI)
 	};

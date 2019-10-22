@@ -21,7 +21,7 @@ namespace RN
 		return _instance;
 	}
 
-	RecastWorld::RecastWorld() : _navMesh(nullptr)
+	RecastWorld::RecastWorld() : _navMesh(nullptr), _paused(false)
 	{
 		RN_ASSERT(!_instance, "There already is a RecastWorld!");
 
@@ -74,9 +74,14 @@ namespace RN
 		return closestPosition;
 	}
 
+	void RecastWorld::SetPaused(bool paused)
+	{
+		_paused = paused;
+	}
+
 	void RecastWorld::Update(float delta)
 	{
-		if(_navMesh)
+		if(_navMesh && !_paused)
 			_crowdManager->update(delta, nullptr);
 	}
 }
