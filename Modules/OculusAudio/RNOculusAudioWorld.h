@@ -72,7 +72,10 @@ namespace RN
 			
 	private:
 		static void AudioCallback(void *outputBuffer, void *inputBuffer, unsigned int frameSize, unsigned int status);
+		
+#if !RN_PLATFORM_ANDROID
 		static void RaycastCallback(ovrAudioVector3f origin, ovrAudioVector3f direction, ovrAudioVector3f* hit, ovrAudioVector3f* normal, void* pctx);
+#endif
 		
 		void AddAudioSource(OculusAudioSource *source) const;
 		void RemoveAudioSource(OculusAudioSource *source) const;
@@ -105,7 +108,9 @@ namespace RN
 		
 		std::function<void (double)> _customWriteCallback;
 
+#if !RN_PLATFORM_ANDROID
 		OculusAudioWorldInternals *_internals;
+#endif
 			
 		RNDeclareMetaAPI(OculusAudioWorld, OAAPI)
 	};

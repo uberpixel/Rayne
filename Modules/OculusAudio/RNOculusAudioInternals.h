@@ -10,7 +10,10 @@
 #define __RAYNE_OculusAudioINTERNALS_H_
 
 #include "RNOculusAudio.h"
-#include "OVR_Audio.h"
+
+#if !RN_PLATFORM_ANDROID
+	#include "OVR_Audio.h"
+#endif
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 	#include "RtAudio.h"
@@ -20,10 +23,12 @@
 
 namespace RN
 {
+#if !RN_PLATFORM_ANDROID
 	struct OculusAudioWorldInternals
 	{
 		ovrAudioContext oculusAudioContext;
 	};
+#endif
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 	struct OculusAudioSystemRtAudioInternals

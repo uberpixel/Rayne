@@ -57,6 +57,7 @@ namespace RN
 					if(!outData)
 						return;
 
+#if !RN_PLATFORM_ANDROID
 					// Spatialize the sound into the output buffer.  Note that there
 					// are two APIs, one for interleaved sample data and another for
 					// separate left/right sample data
@@ -69,10 +70,21 @@ namespace RN
 							buffer[i*2 + j] += _instance->_tempFrameData[i*2 + j];
 						}
 					}
+#else
+					for(int i = 0; i < frameSize; i++)
+					{
+						for(int j = 0; j < 2; j++)
+						{
+							buffer[i*2 + j] += outData[i*2 + j];
+						}
+					}
+#endif
 				});
 			}
 			
+#if !RN_PLATFORM_ANDROID
 			ovrAudio_MixInSharedReverbInterleaved(_instance->_internals->oculusAudioContext, &oculusAudioStatus, buffer);
+#endif
 
 			
 			//Mix output with audio players
@@ -100,6 +112,7 @@ namespace RN
 		}
 	}
 	
+#if !RN_PLATFORM_ANDROID
 	void OculusAudioWorld::RaycastCallback(ovrAudioVector3f origin, ovrAudioVector3f direction, ovrAudioVector3f* hit, ovrAudioVector3f* normal, void* pctx)
 	{
 		if(_instance->_raycastCallback)
@@ -117,6 +130,7 @@ namespace RN
 			normal->z = tempHitNormal.z;
 		}
 	}
+#endif
 
 	//TODO: Allow to initialize with preferred device names and fall back to defaults
 	OculusAudioWorld::OculusAudioWorld(OculusAudioSystem *audioSystem, uint32 maxSources) :
@@ -128,12 +142,15 @@ namespace RN
 		_maxSourceCount(maxSources),
 		_isSourceAvailable(nullptr),
 		_sharedFrameData(nullptr),
-		_tempFrameData(nullptr),
-		_internals(new OculusAudioWorldInternals())
+		_tempFrameData(nullptr)
+#if !RN_PLATFORM_ANDROID
+		,_internals(new OculusAudioWorldInternals())
+#endif
 	{
 		RN_ASSERT(!_instance, "There already is a OculusAudioWorld!");
 		RN_ASSERT(_audioSystem, "Audio system needs to be provided when creating an audio world!");
 
+#if !RN_PLATFORM_ANDROID
 		// Version checking is not strictly necessary but it's a good idea!
 		int major, minor, patch;
 		const char *VERSION_STRING;
@@ -159,12 +176,18 @@ namespace RN
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_SimpleRoomModeling, 0);
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_LateReverberation, 1);
 		ovrAudio_Enable(_internals->oculusAudioContext, ovrAudioEnable_RandomizeReverb, 1);
-		
+#endif
 		_isSourceAvailable = new bool[_maxSourceCount];
 		for(int i = 0; i < _maxSourceCount; i++) _isSourceAvailable[i] = true;
+		
+#if !RN_PLATFORM_ANDROID
 		_sharedFrameData = ovrAudio_AllocSamples(_audioSystem->_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
 		_tempFrameData = ovrAudio_AllocSamples(_audioSystem->_frameSize * 2); //TODO: Don't hardcode number of output channels (2) here
-
+#else
+		_sharedFrameData = new float[_audioSystem->_frameSize * 2]; //TODO: Don't hardcode number of output channels (2) here
+		_tempFrameData = new float[_audioSystem->_frameSize * 2]; //TODO: Don't hardcode number of output channels (2) here
+#endif
+		
 		_instance = this;
 		UpdateScene();
 		
@@ -181,13 +204,21 @@ namespace RN
 
 		if(_sharedFrameData)
 		{
+#if !RN_PLATFORM_ANDROID
 			ovrAudio_FreeSamples(_sharedFrameData);
+#else
+			delete [] _sharedFrameData;
+#endif
 			_sharedFrameData = nullptr;
 		}
 		
 		if(_tempFrameData)
 		{
+#if !RN_PLATFORM_ANDROID
 			ovrAudio_FreeSamples(_tempFrameData);
+#else
+			delete [] _tempFrameData;
+#endif
 			_tempFrameData = nullptr;
 		}
 		
@@ -197,15 +228,21 @@ namespace RN
 			_isSourceAvailable = nullptr;
 		}
 		
+#if !RN_PLATFORM_ANDROID
 		ovrAudio_DestroyContext(_internals->oculusAudioContext);
 		ovrAudio_Shutdown();
+#endif
 
 		_instance = nullptr;
+		
+#if !RN_PLATFORM_ANDROID
 		delete _internals;
+#endif
 	}
 	
 	void OculusAudioWorld::SetSimpleRoom(float width, float height, float depth, float reflectionConstant)
 	{
+#if !RN_PLATFORM_ANDROID
 		ovrAudioBoxRoomParameters brp = {};
 		brp.brp_Size = sizeof(brp);
 		brp.brp_ReflectLeft = brp.brp_ReflectRight = brp.brp_ReflectUp = brp.brp_ReflectDown = brp.brp_ReflectFront = brp.brp_ReflectBehind = reflectionConstant;
@@ -213,15 +250,19 @@ namespace RN
 		brp.brp_Height = height;
 		brp.brp_Depth = depth;
 		ovrAudio_SetSimpleBoxRoomParameters(_internals->oculusAudioContext, &brp);
+#endif
 	}
 	
 	void OculusAudioWorld::SetRaycastCallback(const std::function<void (Vector3, Vector3, Vector3 &, Vector3 &)> &raycastCallback)
 	{
 		_raycastCallback = raycastCallback;
+		
+#if !RN_PLATFORM_ANDROID
 		if(raycastCallback)
 			ovrAudio_AssignRaycastCallback(_internals->oculusAudioContext, &RaycastCallback, nullptr);
 		else
 			ovrAudio_AssignRaycastCallback(_internals->oculusAudioContext, nullptr, nullptr);
+#endif
 	}
 
 	void OculusAudioWorld::AddMaterial(const OculusAudioMaterial &material)
@@ -277,6 +318,7 @@ namespace RN
 		
 	void OculusAudioWorld::Update(float delta)
 	{
+#if !RN_PLATFORM_ANDROID
 		//Update listener position
 		if(_listener)
 		{
@@ -285,6 +327,7 @@ namespace RN
 			Vector3 listenerUp = _listener->GetUp();
 			ovrAudio_SetListenerVectors(_internals->oculusAudioContext, listenerPosition.x, listenerPosition.y, listenerPosition.z, listenerForward.x, listenerForward.y, listenerForward.z, listenerUp.x, listenerUp.y, listenerUp.z);
 		}
+#endif
 		
 		//Update audio source properties
 		if(_audioSources->GetCount() > 0)
@@ -311,6 +354,7 @@ namespace RN
 					return;
 				}
 				
+#if !RN_PLATFORM_ANDROID
 				uint32_t sourceFlags = 0;
 				if(source->HasTimeOfFlight()) sourceFlags |= ovrAudioSourceFlag_DirectTimeOfArrival;
 				ovrAudio_SetAudioSourceFlags(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, sourceFlags);
@@ -329,11 +373,14 @@ namespace RN
 				// This sets the attenuation range from max volume to silent
 				// NOTE: attenuation can be disabled or enabled
 				ovrAudio_SetAudioSourceRange(_internals->oculusAudioContext, source->_oculusAudioSourceIndex, source->_minMaxRange.x, source->_minMaxRange.y);
+#endif
 			});
 		}
 		
+#if !RN_PLATFORM_ANDROID
 		if(_raycastCallback)
 			ovrAudio_UpdateRoomModel(_internals->oculusAudioContext, 0.2f);
+#endif
 	}
 	
 	void OculusAudioWorld::SetInputBuffer(AudioAsset *inputBuffer)
@@ -406,6 +453,9 @@ namespace RN
 	void OculusAudioWorld::ReleaseSourceIndex(uint32 index)
 	{
 		_isSourceAvailable[index] = true;
+		
+#if !RN_PLATFORM_ANDROID
 		ovrAudio_ResetAudioSource(_internals->oculusAudioContext, index);
+#endif
 	}
 }
