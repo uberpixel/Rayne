@@ -19,10 +19,10 @@ namespace RN
 	class MemoryPool
 	{
 	public:
-		MemoryPool();
+		RNAPI MemoryPool();
 
-		void *Allocate(size_t size);
-		void Free(void *ptr);
+		RNAPI void *Allocate(size_t size);
+		RNAPI void Free(void *ptr);
 
 	private:
 		class SizePool;

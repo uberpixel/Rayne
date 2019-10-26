@@ -308,13 +308,17 @@ namespace RN
 	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
 		D3D12SpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<D3D12SpecificShaderLibrary>(name);
-		if(!specificLibrary)
-			return nullptr;
+		RN_ASSERT(specificLibrary, "Shader with name does not exist in shader library.");
 
+		RN::Shader *shader = nullptr;
 		if(options)
-			return specificLibrary->GetShaderWithOptions(this, options);
+			shader = specificLibrary->GetShaderWithOptions(this, options);
+		else
+			shader = specificLibrary->GetShaderWithOptions(this, Shader::Options::WithNone());
 
-		return specificLibrary->GetShaderWithOptions(this, Shader::Options::WithNone());
+		RN_ASSERT(shader, "Shader with name does not exist in shader library.");
+
+		return shader;
 	}
 
 	Shader *D3D12ShaderLibrary::GetInstancedShaderForShader(Shader *shader)

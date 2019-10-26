@@ -142,6 +142,24 @@
         ]
     }, 
     {
+        "file~d3d12": ":RayneD3D12:/OpenVRMask.vs.cso", 
+        "shaders": [
+            {
+                "name": "pp_mask_vertex", 
+                "type": "vertex"
+            }
+        ]
+    }, 
+    {
+        "file~d3d12": ":RayneD3D12:/OpenVRMask.ps.cso", 
+        "shaders": [
+            {
+                "name": "pp_mask_fragment", 
+                "type": "fragment"
+            }
+        ]
+    }, 
+    {
         "file~d3d12": ":RayneD3D12:/GenerateMipMaps.cs.cso", 
         "shaders": [
             {

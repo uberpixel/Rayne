@@ -25,7 +25,7 @@ namespace RN
 		OAAPI float GetSample(double time, uint8 channel);
 		OAAPI double GetTotalTime() const;
 
-		OAAPI AudioAsset *GetAsset()
+		AudioAsset *GetAsset()
 		{
 			LockGuard<Lockable> lock(_lock);
 			return _asset;

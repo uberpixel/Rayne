@@ -40,13 +40,13 @@ namespace RN
 		class Pool
 		{
 		public:
-			Pool(size_t alignment = 8);
-			~Pool();
+			RNAPI Pool(size_t alignment = 8);
+			RNAPI ~Pool();
 			
-			void *Allocate(size_t size);
-			void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
+			RNAPI void *Allocate(size_t size);
+			RNAPI void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
 			
-			void Evict(bool willReuse = false);
+			RNAPI void Evict(bool willReuse = false);
 			
 		private:
 			PoolAllocator *_allocator;

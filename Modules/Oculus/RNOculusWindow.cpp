@@ -129,7 +129,7 @@ namespace RN
 		{
 			ovrSessionStatus status;
 			ovr_GetSessionStatus(_swapChain->_session, &status);
-			if(status.HasInputFocus)
+			if(status.HasInputFocus && status.HmdMounted)
 			{
 				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 			}

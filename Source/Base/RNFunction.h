@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	MemoryPool *__GetFunctionPool();
+	RNAPI MemoryPool *__GetFunctionPool();
 
 	class Function
 	{

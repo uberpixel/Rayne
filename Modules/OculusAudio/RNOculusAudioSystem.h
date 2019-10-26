@@ -49,7 +49,7 @@ namespace RN
 		OAAPI virtual void SetOutputDevice(OculusAudioDevice *outputDevice) = 0;
 		OAAPI virtual void SetInputDevice(OculusAudioDevice *inputDevice) = 0;
 		
-		static OculusAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 256);
+		OAAPI static OculusAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 256);
 			
 	protected:
 		OAAPI OculusAudioSystem(uint32 sampleRate, uint32 frameSize);

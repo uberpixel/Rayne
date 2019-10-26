@@ -134,12 +134,16 @@ namespace RN
 	
 	void Material::SetFragmentShader(Shader *shader, Shader::UsageHint type)
 	{
+		RN_ASSERT(shader, "A valid fragment shader needs to be assigned!");
+		SafeRelease(_fragmentShader[type]);
 		_fragmentShader[type] = SafeRetain(shader);
 		RN_ASSERT(!_fragmentShader[type] || _fragmentShader[type]->GetType() == Shader::Type::Fragment, "Fragment shader must be a fragment shader");
 	}
 	
 	void Material::SetVertexShader(Shader *shader, Shader::UsageHint type)
 	{
+		RN_ASSERT(shader, "A valid vertex shader needs to be assigned!");
+		SafeRelease(_vertexShader[type]);
 		_vertexShader[type] = SafeRetain(shader);
 		RN_ASSERT(!_vertexShader[type] || _vertexShader[type]->GetType() == Shader::Type::Vertex, "Vertex shader must be a vertex shader");
 	}
