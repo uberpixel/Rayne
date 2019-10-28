@@ -1133,7 +1133,7 @@ namespace RN
 		{
 			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
 			{
-				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngle(), light->GetColor() });
+				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetColor() });
 			}
 		}
 	}
