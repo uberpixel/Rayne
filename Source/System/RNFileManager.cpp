@@ -371,7 +371,7 @@ namespace RN
 		if(paths)
 		{
 			String *delimiter = RNCSTR("./");
-			String *base = GetPathForLocation(Location::ApplicationDirectory);
+			String *base = GetPathForLocation(Location::RootResourcesDirectory);
 
 			paths->Enumerate<String>([&](String *path, size_t index, bool &stop) {
 
@@ -590,7 +590,7 @@ namespace RN
 					NSBundle *bundle = [NSBundle mainBundle];
 					NSString *path = [bundle bundlePath];
 
-					return RNSTR([path UTF8String]);
+					return RNSTR([path UTF8String] << "/Contents");
 				}
 				else
 				{
