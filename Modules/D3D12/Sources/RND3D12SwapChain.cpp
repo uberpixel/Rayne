@@ -66,7 +66,7 @@ namespace RN
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.OutputWindow = hwnd;
 		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.Windowed = true;
+		swapChainDesc.Windowed = !descriptor.wantsFullscreen;
 
 		IDXGISwapChain* swapChain;
 		IDXGIFactory4* factory = _renderer->GetD3D12Descriptor()->GetFactory();

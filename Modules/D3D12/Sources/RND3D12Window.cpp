@@ -21,8 +21,12 @@ namespace RN
 		switch (uMsg)
 		{
 		case WM_DESTROY:
+		{
+			D3D12Window *window = reinterpret_cast<D3D12Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			NotificationManager::GetSharedInstance()->PostNotification(kRNWindowWillDestroy, window);
 			PostQuitMessage(0);
 			return 0;
+		}
 
 		case WM_NCCREATE:
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams));
@@ -42,7 +46,7 @@ namespace RN
 	}
 
 	D3D12Window::D3D12Window(const Vector2 &size, Screen *screen, D3D12Renderer *renderer, const Window::SwapChainDescriptor &descriptor) :
-		Window(screen)
+		Window(screen), _swapChain(nullptr)
 	{
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
 
@@ -144,8 +148,11 @@ namespace RN
 
 	void D3D12Window::UpdateSize()
 	{
-		_swapChain->ResizeSwapchain(GetSize());
-		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
+		if(_swapChain)
+		{
+			_swapChain->ResizeSwapchain(GetSize());
+			NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
+		}
 	}
 
 	const Window::SwapChainDescriptor &D3D12Window::GetSwapChainDescriptor() const

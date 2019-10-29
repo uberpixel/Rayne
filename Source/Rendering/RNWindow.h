@@ -16,6 +16,7 @@
 #include "../Rendering/RNFramebuffer.h"
 
 #define kRNWindowDidChangeSize RNCSTR("kRNWindowDidChangeSize")
+#define kRNWindowWillDestroy RNCSTR("kRNWindowWillDestroy")
 
 namespace RN
 {
@@ -25,11 +26,12 @@ namespace RN
 		//TODO: Maybe make a RNSwapChain and move this there?
 		struct SwapChainDescriptor
 		{
-			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA_8_SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4), vsync(true){}
+			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA_8_SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4), vsync(true), wantsFullscreen(false){}
 			Texture::Format colorFormat;
 			Texture::Format depthStencilFormat;
 			uint8 bufferCount;
 			bool vsync;
+			bool wantsFullscreen;
 		};
 
 		RNAPI ~Window();
