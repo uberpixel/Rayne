@@ -186,7 +186,7 @@ namespace RN
 			font->_internals->font.getMetrics(&fm);
 			
 			Data *data = text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, rect.x, rect.y - fm.fTop - fm.fDescent, font->_internals->font, _internals->fillStyle);
+			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x, rect.y - fm.fTop - fm.fDescent, font->_internals->font, _internals->fillStyle);
 		}
 		
 		void Context::DrawLabel(const Label *label)
@@ -215,7 +215,7 @@ namespace RN
 			}
 			
 			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_font->_internals->font, label->_internals->style);
+			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_font->_internals->font, label->_internals->style);
 		}
 
 

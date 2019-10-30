@@ -189,7 +189,7 @@ namespace RN
 			mipIndex += 1;
 		}
 
-		delete[] data;
+		if(data) free(data);
 
 		return texture->Autorelease();
 	}

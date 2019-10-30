@@ -53,6 +53,8 @@ set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/macos/libsk
 elseif(ANDROID)
 #set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskiashaper.a)
 set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskia.a)
+elseif(UNIX)
+set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/linux/libskia.a)
 endif()
 
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/gpu ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)

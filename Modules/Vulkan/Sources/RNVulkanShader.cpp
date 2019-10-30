@@ -161,7 +161,7 @@ namespace RN
 				uint32_t offset = reflector.get_member_decoration(resource.base_type_id, index, spv::DecorationOffset);
 
 				std::string membername = reflector.get_member_name(resource.base_type_id, index);
-				String *name = RNSTR(membername)->Retain();
+				String *name = RNSTR(membername);
 
 				if(name->GetLength() == 0) break;
 
@@ -177,7 +177,7 @@ namespace RN
 			reflectionSamplers->AddObjectsFromArray(samplers);
 		}
 
-		reflectionSamplers->AddObjectsFromArray(specificReflectionSamplers);
+		reflectionSamplers->AddObjectsFromArray(specificReflectionSamplers->Autorelease());
 
 		Signature *signature = new Signature(uniformDescriptors->Autorelease(), reflectionSamplers->Autorelease(), textureCount);
 		Shader::SetSignature(signature->Autorelease());

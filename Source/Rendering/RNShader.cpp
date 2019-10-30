@@ -54,6 +54,11 @@ namespace RN
 			AddDefine(RNCSTR("RN_ANIMATIONS"), RNCSTR("1"));
 	}
 
+    Shader::Options::~Options()
+    {
+	    SafeRelease(_defines);
+    }
+
 	void Shader::Options::EnableAlpha()
 	{
 		AddDefine(RNCSTR("RN_ALPHA"), RNCSTR("1"));

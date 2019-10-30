@@ -59,8 +59,8 @@ namespace RN
 	{
 		RN_ASSERT(attachment->_scene == this, "RemoveAttachment() must be called on an Attachment owned by the scene");
 
+        attachment->_scene = nullptr;
 		_attachments->RemoveObject(attachment);
-		attachment->_scene = nullptr;
 	}
 
 	void Scene::WillBecomeActive()

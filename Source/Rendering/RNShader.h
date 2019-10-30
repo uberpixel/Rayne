@@ -30,6 +30,8 @@ namespace RN
 			RNAPI static Options *WithMesh(Mesh *mesh);
 			RNAPI static Options *WithNone();
 
+            RNAPI ~Options();
+
 			RNAPI void EnableAlpha();
 
 			RNAPI void AddDefine(String *name, String *value);

@@ -189,6 +189,7 @@ namespace RN
 		}
 		
 		Array *cubemapFaceTextureFileNamePostfixes = new Array();
+        cubemapFaceTextureFileNamePostfixes->Autorelease();
 		cubemapFaceTextureFileNamePostfixes->AddObject(RNSTR("posx"));
 		cubemapFaceTextureFileNamePostfixes->AddObject(RNSTR("negx"));
 		cubemapFaceTextureFileNamePostfixes->AddObject(RNSTR("posy"));
@@ -353,7 +354,6 @@ namespace RN
 			//if(mipMapped)
 				//texture->GenerateMipMaps();
 		});
-		
 		
 		return texture->Autorelease();
 	}

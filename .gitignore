@@ -28,6 +28,7 @@ Modules/Oculus/Vendor/OculusSDK/
 Modules/SteamAudio/Vendor/steamaudio
 /Modules/PhysX/Vendor/PhysX-3.4
 /Modules/PhysX/Vendor/PhysX-3.4-CMake
+/Modules/PhysX/Vendor/PhysX
 Modules/Newton/Vendor/newton-dynamics
 
 # Build Folders

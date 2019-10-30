@@ -625,6 +625,7 @@ namespace RN
 #endif
 #if RN_PLATFORM_LINUX
 				char buffer[PATH_MAX];
+                std::fill(buffer, buffer + PATH_MAX, 0);
 				size_t size = PATH_MAX;
 				readlink("/proc/self/exe", buffer, size);
 
@@ -692,6 +693,7 @@ namespace RN
 #endif
 #if RN_PLATFORM_LINUX
 				char buffer[PATH_MAX];
+				std::fill(buffer, buffer + PATH_MAX, 0);
 				size_t size = PATH_MAX;
 				readlink("/proc/self/exe", buffer, size);
 

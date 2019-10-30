@@ -124,7 +124,7 @@ namespace RN
 		velocity /= delta;
 		alSourcefv(_source, AL_VELOCITY, &velocity.x);
 			
-		ALenum sourceState;
+		ALenum sourceState = AL_STOPPED;
 		alGetSourcei(_source, AL_SOURCE_STATE, &sourceState);
 		if(sourceState == AL_STOPPED)
 		{

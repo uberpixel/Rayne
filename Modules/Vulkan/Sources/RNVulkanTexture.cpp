@@ -100,6 +100,8 @@ namespace RN
 				return VK_FORMAT_BC2_UNORM_BLOCK;
 			case Texture::Format::RGBA_BC3:
 				return VK_FORMAT_BC3_UNORM_BLOCK;
+            case Texture::Format::RGBA_BC4:
+                return VK_FORMAT_BC4_UNORM_BLOCK;
 			case Texture::Format::RGBA_BC7:
 				return VK_FORMAT_BC7_UNORM_BLOCK;
 
@@ -299,24 +301,24 @@ namespace RN
 		imageInfo.pNext = nullptr;
 		imageInfo.imageType = VkImageTypeFromTextureType(descriptor.type);
 		imageInfo.format = _format;
-		imageInfo.extent = { descriptor.width, descriptor.height, descriptor.depth };
+		imageInfo.extent = { descriptor.width, descriptor.height, imageInfo.imageType != VK_IMAGE_TYPE_2D? descriptor.depth : 1 };
 		imageInfo.arrayLayers = descriptor.depth;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.samples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
 		imageInfo.usage = VkImageUsageFromDescriptor(descriptor, imageInfo.format);
 		imageInfo.flags = 0;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.mipLevels = descriptor.mipMaps;
 
-		if(descriptor.usageHint & UsageHint::RenderTarget)
+	/*	if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
 			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		}
 		else
 		{
 			imageInfo.tiling = (descriptor.mipMaps > 1)? VK_IMAGE_TILING_OPTIMAL:VK_IMAGE_TILING_LINEAR;
-		}
+		}*/
 
 		if(descriptor.type == Texture::Type::TypeCube)
 		{
@@ -359,10 +361,10 @@ namespace RN
 		}
 		else
 		{
-			if(descriptor.mipMaps > 1)
+			//if(descriptor.mipMaps > 1)
 				device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocateInfo.memoryTypeIndex);
-			else
-				device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
+			//else
+			//	device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
 		}
 
 		RNVulkanValidate(vk::AllocateMemory(device->GetDevice(), &allocateInfo, _renderer->GetAllocatorCallback(), &_memory));

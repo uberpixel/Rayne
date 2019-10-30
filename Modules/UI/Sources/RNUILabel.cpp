@@ -39,7 +39,7 @@ namespace RN
 			//_internals->textBlob = _internals->builder.make();
 			
 			SkRect textBounds; //= _internals->textBlob->bounds();
-			_font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), kUTF8_SkTextEncoding, &textBounds);
+			_font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
 			_contentSize = Vector2(textBounds.width(), textBounds.height());
 		}
 		

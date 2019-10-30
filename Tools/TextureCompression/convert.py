@@ -72,8 +72,11 @@ def main():
     elif platform.system() == 'Windows':
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/windows-x64/astcenc.exe')
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/Release/nvcompress.exe')
+    elif platform.system() == 'Linux':
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc.exe')
+        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
     else:
-        print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
+        print 'Script needs to be updated with nvtexturetools path for platform: ' + platform.system()
         return
 
     if '.png' in requestedFileExtensions:

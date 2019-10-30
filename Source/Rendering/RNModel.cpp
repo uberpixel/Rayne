@@ -41,7 +41,7 @@ namespace RN
 		_lodStages = new Array();
 		other->_lodStages->Enumerate<LODStage>([&](LODStage *stage, size_t index, bool &stop)
 		{
-			_lodStages->AddObject(stage->Copy());
+			_lodStages->AddObject(stage->Copy()->Autorelease());
 		});
 		
 		_skeleton = SafeRetain(other->_skeleton);

@@ -10,15 +10,15 @@
 #define __RAYNE_UIINTERNALS_H_
 
 //#include <skia.h>
-#include <include/core/SKGraphics.h>
-#include <include/core/SKPaint.h>
-#include <include/core/SKSurface.h>
-#include <include/core/SKPath.h>
-#include <include/core/SKImage.h>
-#include <include/core/SKCanvas.h>
-#include <include/core/SKFontMgr.h>
-#include <include/core/SKFontMetrics.h>
-#include <include/core/SKTypeface.h>
+#include <include/core/SkGraphics.h>
+#include <include/core/SkPaint.h>
+#include <include/core/SkSurface.h>
+#include <include/core/SkPath.h>
+#include <include/core/SkImage.h>
+#include <include/core/SkCanvas.h>
+#include <include/core/SkFontMgr.h>
+#include <include/core/SkFontMetrics.h>
+#include <include/core/SkTypeface.h>
 #include <include/core/SkTextBlob.h>
 //#include <include/modules/SkShaper.h>
 #include "RNUIConfig.h"

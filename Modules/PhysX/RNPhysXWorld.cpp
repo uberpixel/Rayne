@@ -10,6 +10,11 @@
 #include "PxPhysicsAPI.h"
 #include "RNPhysXInternals.h"
 
+//TODO: Remove when moving all platforms to physx 4.1
+#ifndef PX_FOUNDATION_VERSION
+#define PX_FOUNDATION_VERSION PX_PHYSICS_VERSION
+#endif
+
 namespace RN
 {
 	RNDefineMeta(PhysXWorld, SceneAttachment)
