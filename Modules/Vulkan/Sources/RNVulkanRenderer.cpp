@@ -262,6 +262,7 @@ namespace RN
 		function();
 
 		_constantBufferPool->Update(this, _currentFrame, _completedFrame);
+		UpdateDescriptorSets();
 
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
@@ -271,14 +272,6 @@ namespace RN
 		_currentCommandBuffer = GetCommandBuffer();
 		_currentCommandBuffer->Retain();
 		_currentCommandBuffer->Begin();
-
-        for(const VulkanRenderPass &renderPass : _internals->renderPasses)
-        {
-            //TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
-            renderPass.framebuffer->PrepareAsRendertargetForFrame(renderPass.resolveFramebuffer, renderPass.renderPass->GetFlags());
-        }
-
-        UpdateDescriptorSets();
 
 		if(_internals->swapChains.size() > 0)
 		{
@@ -381,6 +374,8 @@ namespace RN
 
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
+		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags());
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -1338,7 +1333,7 @@ namespace RN
 					}
 
                     //TODO: Find a cleaner more general solution
-                    if(textureCount > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+     /*               if(textureCount > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
                     {
                         VulkanFramebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<VulkanFramebuffer>();
                         Texture *texture = framebuffer->GetColorTexture();
@@ -1367,7 +1362,7 @@ namespace RN
                             writeDescriptorSets.push_back(writeImageDescriptorSet);
                             textureCount -= 1;
                         }
-                    }
+                    }*/
 				}
 
 				_internals->currentDrawableResourceIndex += 1;
