@@ -87,6 +87,20 @@ namespace RN
 		xcb_change_property(connection, XCB_PROP_MODE_REPLACE, _window, (*reply).atom, 4, 32, 1, &(*_destroyWindow).atom);
 		free(reply);
 
+		if(descriptor.wantsFullscreen)
+        {
+		    xcb_intern_atom_cookie_t stateCookie = xcb_intern_atom(connection, false, 13, "_NET_WM_STATE");
+		    xcb_intern_atom_reply_t *stateReply = xcb_intern_atom_reply(connection, stateCookie, NULL);
+
+            xcb_intern_atom_cookie_t fullscreenCookie = xcb_intern_atom(connection, false, 24, "_NET_WM_STATE_FULLSCREEN");
+            xcb_intern_atom_reply_t *fullscreenReply = xcb_intern_atom_reply(connection, fullscreenCookie, NULL);
+
+            xcb_change_property(connection, XCB_PROP_MODE_REPLACE, _window, stateReply->atom, XCB_ATOM_ATOM, 32, 1, &(fullscreenReply->atom));
+
+            free(stateReply);
+            free(fullscreenReply);
+        }
+
 		xcb_map_window(connection, _window);
 
 
@@ -205,6 +219,7 @@ namespace RN
 	void VulkanWindow::SetFullscreen(bool fullscreen)
 	{
 		_swapChain->SetFullscreen(fullscreen);
+
 	}
 
 	Vector2 VulkanWindow::GetSize() const
