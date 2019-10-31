@@ -249,6 +249,7 @@ namespace RN
 				VkImageView imageView;
 				RNVulkanValidate(vk::CreateImageView(device, &(_colorTargets[_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
 				attachments.push_back(imageView);
+                _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 			}
 			else
 			{
@@ -257,6 +258,7 @@ namespace RN
 				{
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device, &targetView->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
+                    targetView->tempVulkanImageView = imageView;
 					attachments.push_back(imageView);
 
 					//TODO: Add some error handling for wrong target counts for msaa
@@ -266,10 +268,12 @@ namespace RN
 						if(resolveFramebuffer->_swapChain)
 						{
 							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+                            resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 						}
 						else
 						{
 							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+                            resolveFramebuffer->_colorTargets[counter]->tempVulkanImageView = imageView;
 						}
 						attachments.push_back(imageView);
 					}
@@ -283,6 +287,7 @@ namespace RN
 		{
 			VkImageView imageView;
 			RNVulkanValidate(vk::CreateImageView(device, &_depthStencilTarget->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
+            _depthStencilTarget->tempVulkanImageView = imageView;
 			attachments.push_back(imageView);
 		}
 
@@ -549,4 +554,22 @@ namespace RN
 		commandBuffer->End();
 		renderer->SubmitCommandBuffer(commandBuffer);
 	}*/
+
+    VkImageView VulkanFramebuffer::GetCurrentFrameVulkanColorImageView() const
+    {
+        if(_colorTargets.size() > 0)
+        {
+            //Create the render target view
+            if(_swapChain)
+            {
+                return _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView;
+            }
+            else
+            {
+                return _colorTargets[0]->tempVulkanImageView;
+            }
+        }
+
+        return NULL;
+    }
 }

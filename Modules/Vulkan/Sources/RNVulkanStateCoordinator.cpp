@@ -422,6 +422,28 @@ namespace RN
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
 		inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		switch(mesh->GetDrawMode())
+        {
+            case DrawMode::Point:
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                break;
+
+            case DrawMode::Line:
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                break;
+
+            case DrawMode::LineStrip:
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+                break;
+
+            case DrawMode::Triangle:
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+
+            case DrawMode::TriangleStrip:
+                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+                break;
+        }
 		inputAssemblyState.flags = 0;
 		inputAssemblyState.primitiveRestartEnable = VK_FALSE;
 

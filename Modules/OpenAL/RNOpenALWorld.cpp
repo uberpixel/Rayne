@@ -24,7 +24,7 @@ namespace RN
 		if(deviceName)
 			_device = alcOpenDevice(deviceName->GetUTF8String());
 		else
-			_device = alcOpenDevice(nullptr);
+		    _device = alcOpenDevice(nullptr);
 		if(!_device)
 		{
 			RNDebug("rayne-openal: Could not open audio device.");

@@ -25,6 +25,7 @@ namespace RN
 		{
 			TargetView targetView;
 			VkImageViewCreateInfo vulkanTargetViewDescriptor;
+			VkImageView tempVulkanImageView;
 		};
 
 		VKAPI VulkanFramebuffer(const Vector2 &size, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat);
@@ -46,6 +47,7 @@ namespace RN
 	private:
 		void PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags);
 		void SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const;
+		VkImageView GetCurrentFrameVulkanColorImageView() const;
 
 		VulkanRenderer *_renderer;
 		uint8 _sampleCount;

@@ -28,7 +28,8 @@ namespace RN
 		_submittedCommandBuffers(new Array()),
 		_executedCommandBuffers(new Array()),
 		_currentCommandBuffer(nullptr),
-		_commandBufferPool(new Array())
+		_commandBufferPool(new Array()),
+        _defaultPostProcessingDrawable(nullptr)
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -261,7 +262,6 @@ namespace RN
 		function();
 
 		_constantBufferPool->Update(this, _currentFrame, _completedFrame);
-		UpdateDescriptorSets();
 
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
@@ -271,6 +271,14 @@ namespace RN
 		_currentCommandBuffer = GetCommandBuffer();
 		_currentCommandBuffer->Retain();
 		_currentCommandBuffer->Begin();
+
+        for(const VulkanRenderPass &renderPass : _internals->renderPasses)
+        {
+            //TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
+            renderPass.framebuffer->PrepareAsRendertargetForFrame(renderPass.resolveFramebuffer, renderPass.renderPass->GetFlags());
+        }
+
+        UpdateDescriptorSets();
 
 		if(_internals->swapChains.size() > 0)
 		{
@@ -373,8 +381,6 @@ namespace RN
 
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
-		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
-		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags());
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -571,31 +577,31 @@ namespace RN
 			if(ppStage || vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
 			{
 				//Submit fullscreen quad drawable
-				/*			if(!_defaultPostProcessingDrawable)
-							{
-								Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
-								Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
+                if(!_defaultPostProcessingDrawable)
+                {
+                    Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
+                    Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
 
-								_lock.Lock();
-								_defaultPostProcessingDrawable = static_cast<D3D12Drawable*>(CreateDrawable());
-								_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
-								_defaultPostProcessingDrawable->material = planeMaterial->Retain();
-								_lock.Unlock();
-							}*/
+                    _lock.Lock();
+                    _defaultPostProcessingDrawable = static_cast<VulkanDrawable*>(CreateDrawable());
+                    _defaultPostProcessingDrawable->mesh = planeMesh->Retain();
+                    _defaultPostProcessingDrawable->material = planeMaterial->Retain();
+                    _lock.Unlock();
+                }
 
-				/*			Texture *sourceTexture = d3dRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
-							if(d3dRenderPass.type == D3D12RenderPass::Type::Convert)
-							{
-								_defaultPostProcessingDrawable->material->RemoveAllTextures();
-								_defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
-							}*/
-				//			SubmitDrawable(_defaultPostProcessingDrawable);
+              /*  Texture *sourceTexture = vulkanRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+                if(vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
+                {
+                    _defaultPostProcessingDrawable->material->RemoveAllTextures();
+                    _defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
+                }*/
+                SubmitDrawable(_defaultPostProcessingDrawable);
 
-				/*			size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
-							_internals->totalDrawableCount += numberOfDrawables;
+                size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+                _internals->totalDrawableCount += numberOfDrawables;
 
-							if(numberOfDrawables > 0)
-								_internals->currentDrawableResourceIndex += 1;*/
+                if(numberOfDrawables > 0)
+                    _internals->currentDrawableResourceIndex += 1;
 			}
 		}
 		else
@@ -1285,8 +1291,9 @@ namespace RN
 					}
 
 					binding += rootSignature->samplers->GetCount();
+					int textureCount = rootSignature->textureCount;
 					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-						if(index >= rootSignature->textureCount || (index == rootSignature->textureCount-1 && rootSignature->wantsDirectionalShadowTexture))
+						if(textureCount <= 0 || (textureCount-1 <= 0 && rootSignature->wantsDirectionalShadowTexture))
 						{
 							stop = true;
 							return;
@@ -1307,9 +1314,10 @@ namespace RN
 						writeImageDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeImageDescriptorSet);
+                        textureCount -= 1;
 					});
 
-					if(rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
+					if(textureCount > 0 && rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
 					{
 						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 						imageBufferDescriptorInfo.imageView = renderPass.directionalShadowDepthTexture->_imageView;
@@ -1326,7 +1334,40 @@ namespace RN
 						writeImageDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeImageDescriptorSet);
+                        textureCount -= 1;
 					}
+
+                    //TODO: Find a cleaner more general solution
+                    if(textureCount > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+                    {
+                        VulkanFramebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<VulkanFramebuffer>();
+                        Texture *texture = framebuffer->GetColorTexture();
+                        VulkanTexture *vulkanTexture = nullptr;
+                        if(texture)
+                        {
+                            vulkanTexture = texture->Downcast<VulkanTexture>();
+                        }
+
+                        if(vulkanTexture)
+                        {
+                            VkDescriptorImageInfo imageBufferDescriptorInfo = {};
+                            imageBufferDescriptorInfo.imageView = framebuffer->GetCurrentFrameVulkanColorImageView();
+                            imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                            imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
+
+                            VkWriteDescriptorSet writeImageDescriptorSet = {};
+                            writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                            writeImageDescriptorSet.pNext = NULL;
+                            writeImageDescriptorSet.dstSet = descriptorSet;
+                            writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                            writeImageDescriptorSet.dstBinding = binding++;
+                            writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
+                            writeImageDescriptorSet.descriptorCount = 1;
+
+                            writeDescriptorSets.push_back(writeImageDescriptorSet);
+                            textureCount -= 1;
+                        }
+                    }
 				}
 
 				_internals->currentDrawableResourceIndex += 1;
@@ -1353,13 +1394,20 @@ namespace RN
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
 		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
 
-		VkDeviceSize offsets[1] = { 0 };
-		// Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
-		// Bind mesh index buffer
-		vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-		// Render mesh vertex buffer using it's indices
-		vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+        VkDeviceSize offsets[1] = { 0 };
+        // Bind mesh vertex buffer
+        vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
+		if(drawable->mesh->GetIndicesCount() > 0)
+        {
+            // Bind mesh index buffer
+            vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+            // Render mesh vertex buffer using it's indices
+            vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+        }
+		else
+        {
+		    vk::CmdDraw(commandBuffer, drawable->mesh->GetVerticesCount(), 1, 0, 0);
+        }
 
 		_currentDrawableIndex += 1;
 	}

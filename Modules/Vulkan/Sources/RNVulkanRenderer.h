@@ -128,6 +128,8 @@ namespace RN
 		size_t _currentFrame;
 		size_t _completedFrame;
 
+		VulkanDrawable *_defaultPostProcessingDrawable;
+
 		RNDeclareMetaAPI(VulkanRenderer, VKAPI)
 	};
 }
