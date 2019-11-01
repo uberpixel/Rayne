@@ -52,3 +52,6 @@
 [submodule "Modules/OculusAudio/Vendor/Oboe"]
 	path = Modules/OculusAudio/Vendor/Oboe
 	url = https://github.com/google/oboe.git
+[submodule "Modules/UI/Vendor/skia"]
+	path = Modules/UI/Vendor/skia
+	url = https://skia.googlesource.com/skia.git

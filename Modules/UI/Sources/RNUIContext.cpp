@@ -15,7 +15,7 @@ namespace RN
 	namespace UI
 	{
 		RNDefineMeta(Context, Object)
-
+		
 		Context::Context(size_t width, size_t height, bool alpha, bool mipmaps) :
 			_width(width),
 			_height(height),

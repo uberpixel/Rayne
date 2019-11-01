@@ -43,7 +43,8 @@ set(HEADERS
         Sources/RNUI.h)
 
 set(DEFINES
-        "RN_BUILD_UI")
+        "RN_BUILD_UI"
+        "SK_RELEASE")
 
 if(WIN32)
 set(RAYNE_LIBRARIES Rayne)
@@ -57,7 +58,7 @@ elseif(UNIX)
 set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/linux/libskia.a)
 endif()
 
-set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/core ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/gpu ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/include/config)
+set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/skia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/skia/include)
 
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
