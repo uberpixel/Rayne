@@ -13,6 +13,8 @@ namespace RN
 	RNDefineMeta(Bitmap, Asset)
 
 	size_t kBytesPerPixel[] = {
+		0,
+
 		4,
 		3,
 

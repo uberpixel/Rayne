@@ -47,6 +47,11 @@ namespace RN
 			SetAntiAlias(false);
 
 			Texture::Format format = _hasAlpha ? Texture::Format::RGBA_8_SRGB : Texture::Format::RGB_8_SRGB;
+			if(info.colorType() == kBGRA_8888_SkColorType)
+			{
+				format = _hasAlpha ? Texture::Format::BGRA_8_SRGB : Texture::Format::BGR_8_SRGB;
+			}
+
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(format, _width, _height, _hasMipmaps);
 			_texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
 			_texture->StartStreamingData(Texture::Region(0, 0, 0, _width, _height, 1));
@@ -215,7 +220,7 @@ namespace RN
 			}
 			
 			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y - fm.fTop - fm.fDescent, label->_font->_internals->font, label->_internals->style);
+			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y + label->_font->_internals->font.getSize() - fm.fDescent, label->_font->_internals->font, label->_internals->style);
 		}
 
 
