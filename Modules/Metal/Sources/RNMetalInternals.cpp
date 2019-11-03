@@ -21,7 +21,7 @@
 	return [_layer nextDrawable];
 }
 
-- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device screen:(RN::Screen*)screen andFormat:(MTLPixelFormat)format
 {
 	if((self = [super initWithFrame:frameRect]))
 	{
@@ -29,7 +29,12 @@
 		[_layer setDevice:device];
 		[_layer setPixelFormat:format];
 		[_layer setFramebufferOnly:YES];
-		[_layer setContentsScale:2.0];	//TODO: Use device contentScale
+		
+		if(screen && screen->GetNSScreen())
+		{
+			NSScreen *nsscreen = (NSScreen *)screen->GetNSScreen();
+			[_layer setContentsScale:[nsscreen backingScaleFactor]];
+		}
 
 		[self setWantsLayer:YES];
 		[self setLayer:_layer];

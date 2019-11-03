@@ -50,7 +50,7 @@ namespace RN
 		uint8 _frameDivider;
 
 	private:
-		MetalSwapChain(const Vector2 size, id<MTLDevice> device, const Window::SwapChainDescriptor &descriptor);
+		MetalSwapChain(const Vector2 size, id<MTLDevice> device, Screen *screen, const Window::SwapChainDescriptor &descriptor);
 
 		RNMetalView *_metalView;
 		id _drawable;

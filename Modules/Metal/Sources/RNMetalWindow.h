@@ -28,7 +28,7 @@ namespace RN
 		MTLAPI void Show() final;
 		MTLAPI void Hide() final;
 
-		MTLAPI void SetFullscreen(bool fullscreen) final {};
+		MTLAPI void SetFullscreen(bool fullscreen) final;
 
 		MTLAPI Vector2 GetSize() const final;
 		MTLAPI Framebuffer *GetFramebuffer() const final;
