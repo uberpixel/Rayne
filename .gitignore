@@ -22,7 +22,8 @@ CMakeLists.txt.user
 /Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 
 # Modules
-/Modules/UI/Vendor/skia
+.gclient
+.gclient_entries
 Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
 Modules/Oculus/Vendor/OculusSDK/
 Modules/SteamAudio/Vendor/steamaudio
