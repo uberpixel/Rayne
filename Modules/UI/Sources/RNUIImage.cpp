@@ -24,6 +24,7 @@ namespace RN
 				case BitmapInfo::Format::RGBA_8:
 					colorType = kRGBA_8888_SkColorType;
 					break;
+
 				case BitmapInfo::Format::R_5_G_6_B_5:
 					colorType = kRGB_565_SkColorType;
 					break;

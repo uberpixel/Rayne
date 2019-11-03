@@ -24,13 +24,19 @@ namespace RN
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
 
-		_swapChain = new MetalSwapChain(size, renderer->_internals->device, descriptor);
+		_swapChain = new MetalSwapChain(size, renderer->_internals->device, screen, descriptor);
 
 		[_internals->window setContentView:_swapChain->_metalView];
-
+		
 		NSScreen *nsscreen = (NSScreen *)screen->GetNSScreen();
-		NSRect frame = [_internals->window frame];
+		if(descriptor.wantsFullscreen)
+		{
+			NSDictionary *fullscreenOptions = @{NSFullScreenModeApplicationPresentationOptions : @(NSApplicationPresentationHideMenuBar | NSApplicationPresentationHideDock | NSApplicationPresentationFullScreen | NSApplicationPresentationDisableAppleMenu)};
+			[_swapChain->_metalView enterFullScreenMode:nsscreen withOptions:fullscreenOptions];
+			_swapChain->_metalView.wantsLayer = YES;
+		}
 
+		NSRect frame = [_internals->window frame];
 		CGFloat xPos = (NSWidth([nsscreen frame]) - NSWidth(frame)) * 0.5;
 		CGFloat yPos = (NSHeight([nsscreen frame]) - NSHeight(frame)) * 0.5;
 		[_internals->window setFrame:NSMakeRect(xPos, yPos, NSWidth(frame), NSHeight(frame)) display:YES];
@@ -70,6 +76,11 @@ namespace RN
 	void MetalWindow::Hide()
 	{
 		[_internals->window orderOut:nil];
+	}
+
+	void MetalWindow::SetFullscreen(bool fullscreen)
+	{
+		[_internals->window toggleFullScreen:nil];
 	}
 
 	Vector2 MetalWindow::GetSize() const

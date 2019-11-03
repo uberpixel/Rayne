@@ -41,6 +41,8 @@ def main():
 
 	os.chdir(skiaPath)
 
+	subprocess.call(["python", "tools/git-sync-deps"])
+
 	subprocess.call(["bin/gn", "gen", "build/linux", "--args={0}".format(argString)])
 	subprocess.call(["ninja", "-C", "build/linux", "skia"])
 

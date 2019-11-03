@@ -40,7 +40,7 @@ namespace RN
 			
 			SkRect textBounds; //= _internals->textBlob->bounds();
 			_font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
-			_contentSize = Vector2(textBounds.width(), textBounds.height());
+			_contentSize = Vector2(textBounds.fRight, _font->_internals->font.getSize());
 		}
 		
 		void Label::SetText(String *text)

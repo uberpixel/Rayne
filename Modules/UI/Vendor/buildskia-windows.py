@@ -8,7 +8,7 @@ args = [
 	'is_official_build=true',
 	'is_debug=false',
 	'is_component_build=false',
-#	'skia_use_fontconfig=false',
+	'skia_use_fontconfig=false',
 	'skia_use_freetype=true',
 	'skia_enable_atlas_text=false',
 	'skia_use_system_freetype2=false',
@@ -22,7 +22,7 @@ args = [
 	'skia_use_lua=false',
 	'skia_use_piex=false',
 	'skia_use_zlib=false',
-#	'skia_enable_gpu=false',
+	'skia_enable_gpu=false',
 	'skia_enable_tools=false',
 	'skia_enable_pdf=false'
 ]
@@ -39,19 +39,21 @@ def main():
 
 	os.chdir(skiaPath)
 
-	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0} extra_cflags=[\"/MD\"]".format(argString)])
+	subprocess.call(["python", "tools/git-sync-deps"])
+
+	subprocess.call(["bin/gn", "gen", "build/windows/release", "--args={0} extra_cflags=[\"/MD\", \"-DSK_RELEASE\"]".format(argString)])
 	subprocess.call(["ninja", "-C", "build/windows/release", "skia"])
 
-	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0} extra_cflags=[\"/MDd\"]".format(argString)])
+	subprocess.call(["bin/gn", "gen", "build/windows/debug", "--args={0} extra_cflags=[\"/MDd\", \"-DSK_RELEASE\"]".format(argString)])
 	subprocess.call(["ninja", "-C", "build/windows/debug", "skia"])
 
 	try:
-		os.mkdir("../libskia/windows/release/")
+		os.makedirs("../libskia/windows/release/")
 	except OSError as exc:
 		pass
 
 	try:
-		os.mkdir("../libskia/windows/debug/")
+		os.makedirs("../libskia/windows/debug/")
 	except OSError as exc:
 		pass
 	

@@ -21,7 +21,7 @@
 
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
-- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device andFormat:(MTLPixelFormat)format;
+- (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device screen:(RN::Screen*)screen andFormat:(MTLPixelFormat)format;
 - (CGSize)getSize;
 @end
 

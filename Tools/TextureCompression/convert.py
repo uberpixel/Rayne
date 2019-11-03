@@ -28,8 +28,18 @@ def prepare():
         subprocess.call(['make'], cwd=os.path.abspath(nvTextureToolsPath))
         
     elif platform.system() == 'Windows':
+        #Stop preparation if nvcompress file already exists
+        nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
+        nvTextureToolsExecutablePath = os.path.join(nvTextureToolsExecutablePath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/Release/nvcompress.exe')
+        if os.path.isfile(nvTextureToolsExecutablePath):
+            return
+
         #windows
-        print 'not implemented for windows yet'
+        nvTextureToolsPath = os.path.dirname(sys.argv[0])
+        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
+        os.makedirs(nvTextureToolsPath)
+        subprocess.call(['cmake', '..'], cwd=os.path.abspath(nvTextureToolsPath))
+        subprocess.call(['make'], cwd=os.path.abspath(nvTextureToolsPath))
 
 
 def needsToUpdateFile(sourceFile, targetFile):

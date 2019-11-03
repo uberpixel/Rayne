@@ -13,13 +13,13 @@
 .idea/serialmonitor_settings.xml
 
 # CMake
-/build/
-/cmake-build-*
+build/
+cmake-build-*
 CMakeLists.txt.user
 
 # Vulkan Renderer
-/Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
-/Modules/Vulkan/Sources/RNVulkanDispatchTable.h
+Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
+Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 
 # Modules
 .gclient
@@ -27,20 +27,20 @@ CMakeLists.txt.user
 Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
 Modules/Oculus/Vendor/OculusSDK/
 Modules/SteamAudio/Vendor/steamaudio
-/Modules/PhysX/Vendor/PhysX-3.4
-/Modules/PhysX/Vendor/PhysX-3.4-CMake
-/Modules/PhysX/Vendor/PhysX
+Modules/PhysX/Vendor/PhysX-3.4
+Modules/PhysX/Vendor/PhysX-3.4-CMake
+Modules/PhysX/Vendor/PhysX
 Modules/Newton/Vendor/newton-dynamics
+Modules/UI/Vendor/depot_tools
+Modules/OculusAudio/Vendor/OculusAudio
+Modules/UI/Vendor/libskia/third_party
+Modules/UI/Vendor/libskia/include/third_party/vulkan
 
 # Build Folders
 xcode-build
 BUILD_VS
 Modules/ODE/Vendor/BUILD
-/Build-Xcode
-/Build-iOS
-/cmake-build-*
-/Build-Xcode-UI
-/Modules/UI/Vendor/depot_tools
-/Modules/OculusAudio/Vendor/OculusAudio
-/Modules/UI/Vendor/libskia/third_party
-/Modules/UI/Vendor/libskia/include/third_party/vulkan
+Build-Xcode
+Build-iOS
+cmake-build-*
+Build-Xcode-UI
