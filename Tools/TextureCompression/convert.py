@@ -51,7 +51,7 @@ def needsToUpdateFile(sourceFile, targetFile):
 
 def main():
     if len(sys.argv) < 2:
-        print 'python convert.py input.png [output (with option extension for a specific format)]'
+        print 'python convert.py input.png [output (with optional extension for a specific format)]'
         return
 
     supportedFileExtensions = ['.png', '.dds', '.astc']
