@@ -439,10 +439,10 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
-	void OpenVRWindow::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics)
+	void OpenVRWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
 	{
-		_currentHapticsIndex[controllerID] = 0;
-		_haptics[controllerID] = haptics;
+		_currentHapticsIndex[index] = 0;
+		_haptics[index] = haptics;
 	}
 	
 	void OpenVRWindow::PreparePreviewWindow(Window *window) const
