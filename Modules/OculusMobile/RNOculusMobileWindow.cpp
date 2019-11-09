@@ -500,18 +500,17 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
-	void OculusMobileWindow::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics)
+	void OculusMobileWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
 	{
 		if(!_session) return;
-		if(_controllerTrackingState[0].controllerID == controllerID && !_controllerTrackingState[0].hasHaptics) return;
-		if(_controllerTrackingState[1].controllerID == controllerID && !_controllerTrackingState[1].hasHaptics) return;
+		if(!_controllerTrackingState[index].hasHaptics) return;
 
 		ovrHapticBuffer hapticBuffer;
 		hapticBuffer.BufferTime = _predictedDisplayTime;
 		hapticBuffer.NumSamples = haptics.sampleCount;
 		hapticBuffer.Terminated = false;
 		hapticBuffer.HapticBuffer = haptics.samples;
-		vrapi_SetHapticVibrationBuffer(static_cast<ovrMobile*>(_session), controllerID, &hapticBuffer);
+		vrapi_SetHapticVibrationBuffer(static_cast<ovrMobile*>(_session), _controllerTrackingState[index].controllerID, &hapticBuffer);
 	}
 
 	const String *OculusMobileWindow::GetPreferredAudioOutputDeviceID() const

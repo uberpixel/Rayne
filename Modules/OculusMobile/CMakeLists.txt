@@ -38,4 +38,6 @@ rayne_use_modules(RayneOculusMobile RayneVulkan)
 target_include_directories(RayneOculusMobile SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOculusMobile PRIVATE "${DEFINES}")
 
+add_custom_command(TARGET RayneOculusMobile PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Release/libvrapi.so "$<TARGET_FILE_DIR:RayneOculusMobile>")
+
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOculusMobile/. DESTINATION lib/Rayne/RayneOculusMobile)

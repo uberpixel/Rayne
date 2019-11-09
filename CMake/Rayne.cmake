@@ -51,7 +51,7 @@ macro(rayne_use_modules _TARGET _MODULES)
             add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "$<TARGET_FILE_DIR:${_TARGET}>/Resources/Modules/${_MODULE}")
         endif()
 
-        if(WIN32 OR (UNIX AND NOT APPLE))
+        if(WIN32 OR (UNIX AND NOT APPLE AND NOT ANDROID))
             add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${_MODULE_TARGET}>" "$<TARGET_FILE_DIR:${_TARGET}>/$<TARGET_FILE_NAME:${_MODULE_TARGET}>")
         endif()
 
