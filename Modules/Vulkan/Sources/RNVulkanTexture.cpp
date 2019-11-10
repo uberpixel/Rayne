@@ -385,7 +385,7 @@ namespace RN
 				{
 					aspectFlagBits |= VK_IMAGE_ASPECT_STENCIL_BIT;
 				}
-				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, aspectFlagBits, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
+				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth, aspectFlagBits, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
 				_currentLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				commandBuffer->End();
 				_renderer->SubmitCommandBuffer(commandBuffer);
@@ -394,7 +394,7 @@ namespace RN
 			{
 				VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 				commandBuffer->Begin();
-				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
+				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
 				_currentLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 				commandBuffer->End();
 				_renderer->SubmitCommandBuffer(commandBuffer);
@@ -549,11 +549,11 @@ namespace RN
 		commandBuffer->Begin();
 		if(_isFirstUpload)
 		{
-			SetImageLayout(commandBuffer->GetCommandBuffer(), _uploadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
+			SetImageLayout(commandBuffer->GetCommandBuffer(), _uploadImage, 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
 			_isFirstUpload = false;
 		}
 
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BarrierIntent::UploadDestination);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BarrierIntent::UploadDestination);
 		VkImageLayout oldLayout = _currentLayout;
 		if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED || oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
 		{
@@ -584,7 +584,7 @@ namespace RN
 		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), _uploadImage,
 						 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _image,
 						 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps,
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth,
 					   VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout,
 					   BarrierIntent::ShaderSource);
 		_currentLayout = oldLayout;
@@ -708,7 +708,7 @@ namespace RN
 		_currentLayout = targetLayout;
 	}*/
 
-	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent)
+	void VulkanTexture::SetImageLayout(VkCommandBuffer buffer, VkImage image, uint32 baseMipmap, uint32 mipmapCount, uint32 baseLayer, uint32 layerCount, VkImageAspectFlags aspectMask, VkImageLayout fromLayout, VkImageLayout toLayout, BarrierIntent intent)
 	{
 		VkImageMemoryBarrier imageMemoryBarrier = {};
 		imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -721,7 +721,8 @@ namespace RN
 		imageMemoryBarrier.subresourceRange.aspectMask = aspectMask;
 		imageMemoryBarrier.subresourceRange.baseMipLevel = baseMipmap;
 		imageMemoryBarrier.subresourceRange.levelCount = mipmapCount;
-		imageMemoryBarrier.subresourceRange.layerCount = 1;
+        imageMemoryBarrier.subresourceRange.baseArrayLayer = baseLayer;
+		imageMemoryBarrier.subresourceRange.layerCount = layerCount;
 
 		imageMemoryBarrier.srcAccessMask = 0;
 		imageMemoryBarrier.dstAccessMask = 0;

@@ -84,14 +84,14 @@ namespace RN
 			return;
 
 		VulkanTexture *texture = _targetTexture->Downcast<VulkanTexture>();
-		VulkanTexture::SetImageLayout(commandBuffer, texture->GetVulkanImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, texture->GetCurrentLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
+		VulkanTexture::SetImageLayout(commandBuffer, texture->GetVulkanImage(), 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, texture->GetCurrentLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
 		texture->SetCurrentLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
 
 	void OpenVRVulkanSwapChain::Finalize(VkCommandBuffer commandBuffer)
 	{
 		VulkanTexture *texture = _targetTexture->Downcast<VulkanTexture>();
-		VulkanTexture::SetImageLayout(commandBuffer, texture->GetVulkanImage(), 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, texture->GetCurrentLayout(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::ExternalSource);
+		VulkanTexture::SetImageLayout(commandBuffer, texture->GetVulkanImage(), 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, texture->GetCurrentLayout(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::ExternalSource);
 		texture->SetCurrentLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 		_isFirstRender = false;
