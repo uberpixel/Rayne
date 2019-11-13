@@ -10,11 +10,6 @@
 #include "PxPhysicsAPI.h"
 #include "RNPhysXInternals.h"
 
-//TODO: Remove when moving all platforms to physx 4.1
-#ifndef PX_FOUNDATION_VERSION
-#define PX_FOUNDATION_VERSION PX_PHYSICS_VERSION
-#endif
-
 namespace RN
 {
 	RNDefineMeta(PhysXWorld, SceneAttachment)
@@ -29,7 +24,7 @@ namespace RN
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
 
-		_foundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+		_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		RN_ASSERT(_foundation, "PxCreateFoundation failed!");
 
 		if(debug)
