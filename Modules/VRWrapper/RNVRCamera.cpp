@@ -19,7 +19,8 @@ namespace RN
 		_head(new SceneNode()),
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount),
-		_eye{nullptr, nullptr}
+		_eye{nullptr, nullptr},
+		_didUpdateVRWindow(false)
 	{
 		SetPriority(SceneNode::Priority::UpdateEarly);
 		AddChild(_head);
@@ -223,13 +224,20 @@ namespace RN
 		}
 	}
 
+	void VRCamera::UpdateVRWindow(float delta)
+	{
+		if(_didUpdateVRWindow || !_window || !_eye[0] || !_eye[1]) return;
+		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
+		_didUpdateVRWindow = true;
+	}
+
 	void VRCamera::Update(float delta)
 	{
 		SceneNode::Update(delta);
 
 		if(!_window || !_eye[0] || !_eye[1]) return;
 		
-		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
+		UpdateVRWindow(delta);
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 
 		_eye[0]->SetPosition(hmdState.eyeOffset[0]);
@@ -239,6 +247,8 @@ namespace RN
 
 		_head->SetRotation(hmdState.rotation);
 		_head->SetPosition(hmdState.position);
+		
+		_didUpdateVRWindow = false;
 	}
 
 	const VRHMDTrackingState &VRCamera::GetHMDTrackingState() const

@@ -25,6 +25,7 @@ namespace RN
 		RNVRAPI void SetupCameras();
 
 		RNVRAPI void Update(float delta) override;
+		RNVRAPI void UpdateVRWindow(float delta);
 
 		RNVRAPI SceneNode *GetHead() const { return _head; }
 		RNVRAPI Camera *GetEye(uint8 eye) const { return _eye[eye]; }
@@ -49,6 +50,7 @@ namespace RN
 		Entity *_hiddenAreaEntity[2];
 		RenderPass *_previewRenderPass;
 		uint8 _msaaSampleCount;
+		bool _didUpdateVRWindow;
 
 		RNDeclareMetaAPI(VRCamera, RNVRAPI)
 	};

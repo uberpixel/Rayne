@@ -23,10 +23,45 @@ namespace RN
 			friend class Context;
 			friend class Label;
 			
+			enum Weight
+			{
+				InvisibleWeight,
+				ThinWeight,
+				ExtraLightWeight,
+				LightWeight,
+				NormalWeight,
+				MediumWeight,
+				SemiBoldWeight,
+				BoldWeight,
+				ExtraBoldWeight,
+				BlackWeight,
+				ExtraBlackWeight
+			};
+			
+			enum Width
+			{
+				UltraCondensedWidth,
+				ExtraCondensedWidth,
+				CondensedWidth,
+				SemiCondensedWidth,
+				NormalWidth,
+				SemiExpandedWidth,
+				ExpandedWidth,
+				ExtraExpandedWidth,
+				UltraExpandedWidth
+			};
+			
+			enum Slant
+			{
+				UprightSlant,
+				ItalicSlant,
+				ObliqueSlant
+			};
+			
 			UIAPI ~Font();
 			float GetSize() const;
 			
-			UIAPI static Font *WithFamilyName(const String *familyName, float size);
+			UIAPI static Font *WithFamilyName(const String *familyName, float size, Weight weight = Weight::NormalWeight, Width width = Width::NormalWidth, Slant slant = Slant::UprightSlant);
 			
 		private:
 			UIAPI Font();
