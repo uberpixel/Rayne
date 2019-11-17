@@ -52,6 +52,8 @@ namespace RN
 			Context *GetBackingStore() const { return _backingStore; }
 			Model *GetModel() const { return _model; }
 
+			UIAPI void UpdateCursorPosition(const Vector2 &cursorPosition);
+			
 			UIAPI void Update();
 			UIAPI void DrawViews();
 			UIAPI void Render(Renderer *renderer);

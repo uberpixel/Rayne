@@ -25,5 +25,6 @@
 #include "RNUIScrollView.h"
 #include "RNUIImageView.h"
 #include "RNUILabel.h"
+#include "RNUIButton.h"
 
 #endif /* __RAYNE_UI_H_ */
