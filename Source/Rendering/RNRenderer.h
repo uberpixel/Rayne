@@ -86,6 +86,7 @@ namespace RN
 	{
 	public:
 		RNAPI static Renderer *GetActiveRenderer();
+		RNAPI static bool IsHeadless();
 
 		RNAPI ~Renderer();
 
