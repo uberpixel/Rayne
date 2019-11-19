@@ -21,6 +21,7 @@
 [submodule "Modules/Bullet/Vendor/bullet"]
 	path = Modules/Bullet/Vendor/bullet
 	url = https://github.com/bulletphysics/bullet3.git
+	shallow = true
 [submodule "Modules/OpenAL/Vendor/openal-soft"]
 	path = Modules/OpenAL/Vendor/openal-soft
 	url = https://github.com/kcat/openal-soft.git
@@ -67,7 +68,6 @@
 [submodule "Modules/OculusAudio/Vendor/Oboe"]
 	path = Modules/OculusAudio/Vendor/Oboe
 	url = https://github.com/google/oboe.git
-	shallow = true
 [submodule "Modules/UI/Vendor/skia"]
 	path = Modules/UI/Vendor/skia
 	url = https://skia.googlesource.com/skia.git
