@@ -1,78 +1,60 @@
 [submodule "Vendor/jansson"]
 	path = Vendor/jansson
 	url = https://github.com/akheron/jansson.git
-	shallow = true
 [submodule "Vendor/gtest"]
 	path = Vendor/gtest
 	url = https://github.com/google/googletest.git
-	shallow = true
 [submodule "Vendor/libpng"]
 	path = Vendor/libpng
 	url = git://git.code.sf.net/p/libpng/code
-	shallow = true
 [submodule "Vendor/zlib"]
 	path = Vendor/zlib
 	url = https://github.com/madler/zlib.git
-	shallow = true
 [submodule "Modules/Assimp/Vendor/Assimp"]
 	path = Modules/Assimp/Vendor/Assimp
 	url = https://github.com/assimp/assimp.git
-	shallow = true
 [submodule "Modules/Bullet/Vendor/bullet"]
 	path = Modules/Bullet/Vendor/bullet
 	url = https://github.com/bulletphysics/bullet3.git
-	shallow = true
 [submodule "Modules/OpenAL/Vendor/openal-soft"]
 	path = Modules/OpenAL/Vendor/openal-soft
 	url = https://github.com/kcat/openal-soft.git
-	shallow = true
 [submodule "Modules/SteamAudio/Vendor/libsoundio"]
 	path = Modules/SteamAudio/Vendor/libsoundio
 	url = https://github.com/andrewrk/libsoundio.git
-	shallow = true
 [submodule "Modules/ENet/Vendor/enet"]
 	path = Modules/ENet/Vendor/enet
 	url = https://github.com/lsalzman/enet.git
-	shallow = true
 [submodule "Modules/OpenVR/Vendor/OpenVR"]
 	path = Modules/OpenVR/Vendor/OpenVR
 	url = https://github.com/Slin/openvr.git
-	shallow = true
 [submodule "Modules/Recast/Vendor/recast"]
 	path = Modules/Recast/Vendor/recast
 	url = https://github.com/recastnavigation/recastnavigation.git
-	shallow = true
 [submodule "Vendor/SPIRV-Cross"]
 	path = Vendor/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
-	shallow = true
 [submodule "CMake/Toolchains/iOS"]
 	path = CMake/Toolchains/iOS
 	url = https://github.com/leetal/ios-cmake.git
 [submodule "Tools/ShaderProcessor/Vendor/ShaderConductor"]
 	path = Tools/ShaderProcessor/Vendor/ShaderConductor
 	url = https://github.com/Slin/ShaderConductor.git
-	shallow = true
 [submodule "Modules/OculusAudio/Vendor/rtaudio"]
 	path = Modules/OculusAudio/Vendor/rtaudio
 	url = https://github.com/thestk/rtaudio.git
-	shallow = true
 [submodule "Tools/TextureCompression/Vendor/astc-encoder"]
 	path = Tools/TextureCompression/Vendor/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
-	shallow = true
 [submodule "Tools/TextureCompression/Vendor/nvidia-texture-tools"]
 	path = Tools/TextureCompression/Vendor/nvidia-texture-tools
 	url = https://github.com/castano/nvidia-texture-tools.git
-	shallow = true
 [submodule "Modules/OculusAudio/Vendor/Oboe"]
 	path = Modules/OculusAudio/Vendor/Oboe
 	url = https://github.com/google/oboe.git
 [submodule "Modules/UI/Vendor/skia"]
 	path = Modules/UI/Vendor/skia
 	url = https://skia.googlesource.com/skia.git
-	shallow = true
 [submodule "Modules/PhysX/Vendor/PhysX"]
 	path = Modules/PhysX/Vendor/PhysX
 	url = https://github.com/NVIDIAGameWorks/PhysX.git
-	shallow = true
