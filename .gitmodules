@@ -48,7 +48,6 @@
 [submodule "CMake/Toolchains/iOS"]
 	path = CMake/Toolchains/iOS
 	url = https://github.com/leetal/ios-cmake.git
-	shallow = true
 [submodule "Tools/ShaderProcessor/Vendor/ShaderConductor"]
 	path = Tools/ShaderProcessor/Vendor/ShaderConductor
 	url = https://github.com/Slin/ShaderConductor.git
