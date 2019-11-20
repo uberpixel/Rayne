@@ -9,7 +9,6 @@ import shutil
 
 def prepare():
     if platform.system() == 'Darwin':
-
         #Stop preparation if nvcompress file already exists
         nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
         nvTextureToolsExecutablePath = os.path.join(nvTextureToolsExecutablePath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
@@ -35,6 +34,23 @@ def prepare():
             return
 
         #windows
+        nvTextureToolsPath = os.path.dirname(sys.argv[0])
+        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
+        os.makedirs(nvTextureToolsPath)
+        subprocess.call(['cmake', '..'], cwd=os.path.abspath(nvTextureToolsPath))
+        subprocess.call(['make'], cwd=os.path.abspath(nvTextureToolsPath))
+    elif platform.system() == 'Linux':
+        #Stop preparation if nvcompress file already exists
+        nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
+        nvTextureToolsExecutablePath = os.path.join(nvTextureToolsExecutablePath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
+        if os.path.isfile(nvTextureToolsExecutablePath):
+            return
+
+        #macOS
+        astcencPath = os.path.dirname(sys.argv[0])
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc')
+        subprocess.call(['chmod', '+x', astcencPath])
+
         nvTextureToolsPath = os.path.dirname(sys.argv[0])
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
         os.makedirs(nvTextureToolsPath)
