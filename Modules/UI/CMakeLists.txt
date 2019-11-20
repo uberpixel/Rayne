@@ -21,6 +21,7 @@ set(SOURCES
         Sources/RNUIImage.cpp
         Sources/RNUIFont.cpp
         Sources/RNUIImageView.cpp
+        Sources/RNUIButton.cpp
         Sources/RNUIScrollView.cpp
         Sources/RNUIInternals.h)
 
@@ -39,6 +40,7 @@ set(HEADERS
         Sources/RNUIImage.h
         Sources/RNUIFont.h
         Sources/RNUIImageView.h
+        Sources/RNUIButton.h
         Sources/RNUIScrollView.h
         Sources/RNUI.h)
 

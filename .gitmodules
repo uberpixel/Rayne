@@ -55,3 +55,6 @@
 [submodule "Modules/UI/Vendor/skia"]
 	path = Modules/UI/Vendor/skia
 	url = https://skia.googlesource.com/skia.git
+[submodule "Modules/PhysX/Vendor/PhysX"]
+	path = Modules/PhysX/Vendor/PhysX
+	url = https://github.com/NVIDIAGameWorks/PhysX.git

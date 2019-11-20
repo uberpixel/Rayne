@@ -125,7 +125,7 @@ namespace RN
 			_application->WillFinishLaunching(this);
 			_renderer = nullptr;
 
-			if(!_arguments.HasArgument("--headless", 'h'))
+			if(!_arguments.HasArgument("headless", 'h'))
 			{
 				RendererDescriptor *descriptor = _application->GetPreferredRenderer();
 

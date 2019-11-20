@@ -426,6 +426,17 @@ namespace RN
 				_scissorRect.height = std::min(_scissorRect.height, _clippingView->_scissorRect.GetBottom() - _scissorRect.y);
 			}
 		}
+	
+		void View::UpdateCursorPosition(const Vector2 &cursorPosition)
+		{
+			// Update all children
+			size_t count = _subviews->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				View *child = _subviews->GetObjectAtIndex<View>(i);
+				child->UpdateCursorPosition(cursorPosition);
+			}
+		}
 
 		// ---------------------
 		// MARK: -

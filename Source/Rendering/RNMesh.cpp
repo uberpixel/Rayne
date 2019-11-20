@@ -82,12 +82,18 @@ namespace RN
 		size_t offset = 0;
 		size_t initialAlignment = kRNNotFound;
 
-		Renderer *renderer = Renderer::GetActiveRenderer();
-
 		for(VertexAttribute &attribute : _vertexAttributes)
 		{
-			attribute._size = renderer->GetSizeForType(attribute._type);
 			attribute._typeSize = __PrimitiveTypeTable[static_cast<size_t>(attribute._type)].size;
+			if(!Renderer::IsHeadless())
+			{
+				Renderer *renderer = Renderer::GetActiveRenderer();
+				attribute._size = renderer->GetSizeForType(attribute._type);
+			}
+			else
+			{
+				attribute._size = attribute._typeSize;
+			}
 
 			switch(attribute._feature)
 			{
@@ -102,10 +108,20 @@ namespace RN
 
 				default:
 				{
-					size_t alignment = offset % renderer->GetAlignmentForType(attribute._type);
+					size_t alignment = 0;
+					if(Renderer::IsHeadless())
+					{
+						if(initialAlignment == kRNNotFound)
+							initialAlignment = 1;
+					}
+					else
+					{
+						Renderer *renderer = Renderer::GetActiveRenderer();
+						alignment = offset % renderer->GetAlignmentForType(attribute._type);
 
-					if(initialAlignment == kRNNotFound)
-						initialAlignment = renderer->GetAlignmentForType(attribute._type);
+						if(initialAlignment == kRNNotFound)
+							initialAlignment = renderer->GetAlignmentForType(attribute._type);
+					}
 
 					attribute._offset = offset + alignment;
 					offset += attribute._size + alignment;
@@ -126,13 +142,20 @@ namespace RN
 		if(! hasIndices && _indicesCount > 0)
 			throw InconsistencyException("Mesh created without indices descriptor and non-zero indices count");
 
-		_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
 		_vertexBufferCPU = malloc(_verticesSize);
-
 		if(hasIndices)
 		{
-			_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
 			_indicesBufferCPU = malloc(_indicesSize);
+		}
+		
+		if(!Renderer::IsHeadless())
+		{
+			Renderer *renderer = Renderer::GetActiveRenderer();
+			_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
+			if(hasIndices)
+			{
+				_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
+			}
 		}
 	}
 
@@ -837,7 +860,7 @@ namespace RN
 
 	void Mesh::SubmitVertices(const Range &range)
 	{
-		if(!_vertexBufferCPU)
+		if(!_vertexBufferCPU || !_vertexBuffer)
 			return;
 
 		//TODO: Don't copy full range if not needed.
@@ -848,7 +871,7 @@ namespace RN
 
 	void Mesh::SubmitIndices(const Range &range)
 	{
-		if(!_indicesBufferCPU)
+		if(!_indicesBufferCPU || !_indicesBuffer)
 			return;
 
 		//TODO: Don't copy full range if not needed.

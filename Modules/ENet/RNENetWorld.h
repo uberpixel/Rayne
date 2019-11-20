@@ -18,20 +18,18 @@ namespace RN
 	class ENetWorld : public SceneAttachment
 	{
 	public:
-		friend class ENetHost;
-
 		ENAPI static ENetWorld *GetInstance();
 
 		ENAPI ENetWorld();
 		ENAPI ~ENetWorld() override;
+		
+		void AddHost(ENetHost *host);
+		void RemoveHost(ENetHost *host);
 
 	protected:
 		void Update(float delta) override;
 			
 	private:
-		void AddHost(ENetHost *host);
-		void RemoveHost(ENetHost *host);
-
 		static ENetWorld *_instance;
 
 		Array *_hosts;

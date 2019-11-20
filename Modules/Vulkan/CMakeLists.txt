@@ -15,20 +15,18 @@ endif()
 
 include(../../CMake/LibraryTarget.cmake)
 
-macro(generate_dispatch_table out)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Sources/${out}
-            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/${out}
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table)
-endmacro()
-
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
 set(VERSION_PATCH 0)
 set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-generate_dispatch_table(RNVulkanDispatchTable.h)
-generate_dispatch_table(RNVulkanDispatchTable.cpp)
+add_custom_target(RayneVulkanGenerateDispatchTable_Header
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h
+        BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h)
+add_custom_target(RayneVulkanGenerateDispatchTable_Source
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp
+        BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp)
 
 set(SOURCES
         Sources/RNVulkanDebug.cpp
@@ -91,6 +89,8 @@ set(RAYNE_LIBRARIES Rayne)
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
+
+add_dependencies(RayneVulkan_copyHeaderTarget RayneVulkanGenerateDispatchTable_Header RayneVulkanGenerateDispatchTable_Source)
 
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Vulkan_INCLUDE_DIR})

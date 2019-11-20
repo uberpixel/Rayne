@@ -16,14 +16,12 @@ namespace RN
 
 	ENetHost::ENetHost() : _ip(nullptr), _port(0)
 	{
-		RN_ASSERT(ENetWorld::GetInstance(), "You need an ENetWorld before creating a host!");
-
-		ENetWorld::GetInstance()->AddHost(this);
+		
 	}
 		
 	ENetHost::~ENetHost()
 	{
-		ENetWorld::GetInstance()->RemoveHost(this);
+		
 	}
 
 	void ENetHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)

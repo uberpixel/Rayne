@@ -28,6 +28,11 @@ namespace RN
 	Renderer::~Renderer()
 	{}
 
+	bool Renderer::IsHeadless()
+	{
+		return !_activeRenderer;
+	}
+
 	Renderer *Renderer::GetActiveRenderer()
 	{
 		RN_ASSERT(_activeRenderer, "GetActiveRenderer() called, but no renderer is currently active");

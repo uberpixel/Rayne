@@ -149,7 +149,6 @@ namespace RN
 
 		uint8 materialCount = file->ReadUint8();
 
-		Renderer *renderer = Renderer::GetActiveRenderer();
 		std::vector<std::pair<bool, Material*>> materials;
 
 		// Get Materials
@@ -176,26 +175,29 @@ namespace RN
 
 					file->Read(buffer, length);
 
-					String *filename = RNSTR(buffer);
-					
-					if(filename->HasSuffix(RNCSTR(".*")))
+					if(!RN::Renderer::IsHeadless())
 					{
-						filename = filename->GetSubstring(Range(0, filename->GetLength()-1));
-						filename->Append(AssetManager::GetSharedInstance()->GetPreferredTextureFileExtension());
+						String *filename = RNSTR(buffer);
+						
+						if(filename->HasSuffix(RNCSTR(".*")))
+						{
+							filename = filename->GetSubstring(Range(0, filename->GetLength()-1));
+							filename->Append(AssetManager::GetSharedInstance()->GetPreferredTextureFileExtension());
+						}
+						
+						String *fullPath = path->StringByAppendingPathComponent(filename);
+
+						String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
+
+						if(options.queue)
+							AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
+						else
+							AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(normalized, nullptr);
+
+						textures->AddObject(normalized);
+
+						delete[] buffer;
 					}
-					
-					String *fullPath = path->StringByAppendingPathComponent(filename);
-
-					String *normalized = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(fullPath);
-
-					if(options.queue)
-						AssetManager::GetSharedInstance()->GetFutureAssetWithName<Texture>(normalized, nullptr);
-					else
-						AssetManager::GetSharedInstance()->GetAssetWithName<Texture>(normalized, nullptr);
-
-					textures->AddObject(normalized);
-
-					delete[] buffer;
 				}
 			}
 
@@ -437,12 +439,16 @@ namespace RN
 				material->SetAlphaToCoverage(true);
 			}
 
-			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
-			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
-			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
-			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
-			material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
-			material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+			if(!RN::Renderer::IsHeadless())
+			{
+				Renderer *renderer = Renderer::GetActiveRenderer();
+				material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+				material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default), Shader::UsageHint::Default);
+				material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+				material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
+				material->SetVertexShader(renderer->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+				material->SetFragmentShader(renderer->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Instancing), Shader::UsageHint::Instancing);
+			}
 
 			stage->AddMesh(mesh, material->Autorelease());
 			mesh->Autorelease();

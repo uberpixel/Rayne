@@ -30,6 +30,8 @@ namespace RN
 
 	void Entity::ClearDrawables()
 	{
+		if(Renderer::IsHeadless()) return;
+		
 		Renderer *renderer = Renderer::GetActiveRenderer();
 		for(auto &drawables : _drawables)
 		{
@@ -49,21 +51,24 @@ namespace RN
 
 		if(_model)
 		{
-			Renderer *renderer = Renderer::GetActiveRenderer();
-			size_t stages = _model->GetLODStageCount();
-
-			for(size_t i = 0; i < stages; i ++)
+			if(!Renderer::IsHeadless())
 			{
-				Model::LODStage *stage = _model->GetLODStage(i);
-				size_t groups = stage->GetCount();
+				Renderer *renderer = Renderer::GetActiveRenderer();
+				size_t stages = _model->GetLODStageCount();
 
-				_drawables.emplace_back(groups, nullptr);
-
-				auto &drawables = _drawables.back();
-
-				for(size_t j = 0; j < groups; j ++)
+				for(size_t i = 0; i < stages; i ++)
 				{
-					drawables[j] = 	renderer->CreateDrawable();
+					Model::LODStage *stage = _model->GetLODStage(i);
+					size_t groups = stage->GetCount();
+
+					_drawables.emplace_back(groups, nullptr);
+
+					auto &drawables = _drawables.back();
+
+					for(size_t j = 0; j < groups; j ++)
+					{
+						drawables[j] = 	renderer->CreateDrawable();
+					}
 				}
 			}
 
