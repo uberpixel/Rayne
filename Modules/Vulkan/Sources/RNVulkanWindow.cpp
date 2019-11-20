@@ -73,9 +73,16 @@ namespace RN
 		value_list[0] = xcbscreen->black_pixel;
 		value_list[1] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
+		RN::Vector2 actualSize = size;
+        if(descriptor.wantsFullscreen)
+        {
+            actualSize.x = xcbscreen->width_in_pixels;
+            actualSize.y = xcbscreen->height_in_pixels;
+        }
+
 		_window = xcb_generate_id(connection);
 
-		xcb_create_window(connection, XCB_COPY_FROM_PARENT, _window, xcbscreen->root, 0, 0, static_cast<uint16_t>(size.x), static_cast<uint16_t>(size.y), 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, xcbscreen->root_visual, value_mask, value_list);
+		xcb_create_window(connection, XCB_COPY_FROM_PARENT, _window, xcbscreen->root, 0, 0, static_cast<uint16_t>(actualSize.x), static_cast<uint16_t>(actualSize.y), 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, xcbscreen->root_visual, value_mask, value_list);
 
 
 		xcb_intern_atom_cookie_t cookie = xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS");
@@ -97,26 +104,29 @@ namespace RN
 
             xcb_change_property(connection, XCB_PROP_MODE_REPLACE, _window, stateReply->atom, XCB_ATOM_ATOM, 32, 1, &(fullscreenReply->atom));
 
-            free(stateReply);
             free(fullscreenReply);
+            free(stateReply);
         }
 
 		xcb_map_window(connection, _window);
 
 
-		Rect frame = screen->GetFrame();
+        if(!descriptor.wantsFullscreen)
+        {
+            Rect frame = screen->GetFrame();
 
-		Vector2 offset = Vector2(frame.width - size.x, frame.height - size.y);
-		offset *= 0.5;
-		offset += frame.GetOrigin();
+            Vector2 offset = Vector2(frame.width - actualSize.x, frame.height - actualSize.y);
+            offset *= 0.5;
+            offset += frame.GetOrigin();
 
-		const uint32_t coords[] = { static_cast<uint32_t>(offset.x), static_cast<uint32_t>(offset.y) };
-		xcb_configure_window(connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, coords);
+            const uint32_t coords[] = {static_cast<uint32_t>(offset.x), static_cast<uint32_t>(offset.y)};
+            xcb_configure_window(connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, coords);
+        }
 
-		xcb_flush(connection);
+        xcb_flush(connection);
 
 		// Create the swap chain
-        _swapChain = new VulkanSwapChain(size, _window, renderer, descriptor);
+        _swapChain = new VulkanSwapChain(actualSize, _window, renderer, descriptor);
 #endif
 #if RN_PLATFORM_ANDROID
 		_window = Kernel::GetSharedInstance()->GetAndroidApp()->window;

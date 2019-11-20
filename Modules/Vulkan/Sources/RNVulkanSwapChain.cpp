@@ -274,7 +274,15 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 	{
 		_semaphoreIndex += 1;
 		_semaphoreIndex %= _descriptor.bufferCount;
-		RNVulkanValidate(vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentSemaphores[_semaphoreIndex], VK_NULL_HANDLE, &_frameIndex));
+		VkResult result = vk::AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentSemaphores[_semaphoreIndex], VK_NULL_HANDLE, &_frameIndex);
+        if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+        {
+            CreateSwapChain();
+        }
+        else
+        {
+            RNVulkanValidate(result);
+        }
 
 		//Update the swap chain and frame buffer size if the window size changed
 /*		if(_newSize.GetLength() > 0.001f)
