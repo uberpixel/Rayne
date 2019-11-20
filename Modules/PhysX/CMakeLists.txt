@@ -39,7 +39,8 @@ elseif(ANDROID)
 elseif(UNIX)
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=linux
-        -DPX_OUTPUT_ARCH=x86)
+        -DPX_OUTPUT_ARCH=x86
+        -DCMAKE_BUILD_TYPE=Release)
 else()
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=windows
