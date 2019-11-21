@@ -89,6 +89,8 @@ namespace RN
 #endif
 #if RN_PLATFORM_LINUX
 
+		if(!Kernel::GetSharedInstance()->GetXCBConnection()) return;
+
 		const xcb_setup_t *setup = xcb_get_setup(Kernel::GetSharedInstance()->GetXCBConnection());
 
 		xcb_screen_iterator_t iterator = xcb_setup_roots_iterator(setup);

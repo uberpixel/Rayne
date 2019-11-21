@@ -75,6 +75,11 @@ namespace RN
 
 #if RN_PLATFORM_LINUX
 			_connection = xcb_connect(nullptr, nullptr);
+			if(xcb_connection_has_error(_connection))
+            {
+			    xcb_disconnect(_connection);
+			    _connection = nullptr;
+            }
 #endif
 
 			AutoreleasePool pool; // Wrap everyting into an autorelease pool from now on
@@ -234,7 +239,7 @@ namespace RN
 		WorkQueue::TearDownQueues();
 
 #if RN_PLATFORM_LINUX
-		xcb_disconnect(_connection);
+		if(_connection) xcb_disconnect(_connection);
 #endif
 
 		if(_renderer)
@@ -449,6 +454,8 @@ namespace RN
 		}
 #endif
 #if RN_PLATFORM_LINUX
+		if(!_connection) return;
+
 		xcb_flush(_connection);
 
 		xcb_generic_event_t *event;
