@@ -293,6 +293,8 @@ namespace RN
 		});
 
 #if RN_PLATFORM_LINUX
+		if(!_xDisplay) return;
+
 		XEvent ev;
 		while(XPending(_xDisplay) > 0)
 		{
