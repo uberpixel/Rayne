@@ -70,6 +70,7 @@ namespace RN
 
 	void ENetClient::ForceDisconnect()
 	{
+		_status = Status::Disconnected;
 		enet_peer_reset(_peers[0].peer);
 		_peers.clear();
 

@@ -22,6 +22,8 @@ namespace RN
 
 		ENAPI void Connect(String *ip, uint32 port);
 		ENAPI void Disconnect();
+		
+		ENAPI size_t GetNumberOfConnectedUsers() const;
 
 	protected:
 		ENAPI virtual void Update(float delta) override;

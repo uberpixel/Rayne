@@ -108,4 +108,9 @@ namespace RN
 			}
 		}
 	}
+
+	size_t ENetServer::GetNumberOfConnectedUsers() const
+	{
+		return _activeUserIDs.size();
+	}
 }
