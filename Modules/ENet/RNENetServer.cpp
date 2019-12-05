@@ -53,6 +53,8 @@ namespace RN
 				return freeID;
 			}
 		}
+		
+		return -1;
 	}
 
 	void ENetServer::ReleaseUserID(uint16 userID)
