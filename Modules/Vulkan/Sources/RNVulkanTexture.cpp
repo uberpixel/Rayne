@@ -294,7 +294,7 @@ namespace RN
 
 		VkFormatProperties properties;
 		vk::GetPhysicalDeviceFormatProperties(device->GetPhysicalDevice(), _format, &properties);
-		RN_ASSERT(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, "Requested texture format is not supported by this device");
+		RN_ASSERT(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, "Requested texture format is not supported by this device (%i)", descriptor.format);
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
