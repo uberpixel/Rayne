@@ -8,13 +8,15 @@
 
 #include "RNENetClient.h"
 #include "RNENetWorld.h"
+#include "RNENetInternals.h"
+
 #include "enet/enet.h"
 
 namespace RN
 {
 	RNDefineMeta(ENetClient, ENetHost)
 
-	ENetClient::ENetClient(uint32 channelCount) : _connectionTimeOut(5.0f)
+	ENetClient::ENetClient(uint32 channelCount) : _connectionTimeOut(5.0f), _encryptorSharedInternals(nullptr)
 	{
 		_status = Status::Disconnected;
 		_channelCount = channelCount;
@@ -32,7 +34,53 @@ namespace RN
 		
 	ENetClient::~ENetClient()
 	{
+		//TODO: Make sure the encryptor context is deleted!
 		enet_host_destroy(_enetHost);
+		if(_encryptorSharedInternals) delete _encryptorSharedInternals;
+	}
+
+	void ENetClient::EnableEncryption(String *trustedCertStorePath)
+	{
+#if RN_ENET_USE_BOTAN_DTLS_ENCRYPTION
+		if(!_encryptorSharedInternals)
+		{
+			_encryptorSharedInternals = new ENetClientEncryptorSharedInternals(trustedCertStorePath);
+		}
+		
+		ENetClientEncryptorContext *context = new ENetClientEncryptorContext;
+		context->client = this;
+		context->encryptor = nullptr;
+		
+		ENetEncryptor encryptor;
+		encryptor.context = context;
+		
+		encryptor.connected = [](void *context, size_t inPeerIndex){
+			ENetClientEncryptorContext *realContext = static_cast<ENetClientEncryptorContext*>(context);
+			realContext->encryptor = new ENetClientEncryptor(realContext->client);
+		};
+		
+		encryptor.disconnected = [](void *context, size_t inPeerIndex){
+			ENetClientEncryptorContext *realContext = static_cast<ENetClientEncryptorContext*>(context);
+			delete realContext->encryptor;
+			realContext->encryptor = nullptr;
+		};
+		
+		encryptor.destroy = [](void *context){
+			ENetClientEncryptorContext *realContext = static_cast<ENetClientEncryptorContext*>(context);
+			if(realContext->encryptor) delete realContext->encryptor;
+			delete realContext;
+		};
+		
+		encryptor.send = [](void * context, size_t inPeerIndex, const ENetBuffer * inBuffers, size_t inBufferCount, size_t inLimit, enet_uint8 * outData, size_t outLimit) -> size_t {
+			return 0;
+		};
+		
+		encryptor.receive = [](void * context, size_t inPeerIndex, const enet_uint8 * inData, size_t inLimit, enet_uint8 * outData, size_t outLimit) -> size_t {
+			return 0;
+		};
+		
+		enet_host_encrypt(_enetHost, &encryptor);
+#endif
 	}
 
 	void ENetClient::Connect(String *ip, uint32 port)
@@ -102,10 +150,12 @@ namespace RN
 			switch(event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
+				{
 					RNDebug("Connected!");
 					_status = Status::Connected;
 					HandleDidConnect(0);
 					break;
+				}
 
 				case ENET_EVENT_TYPE_RECEIVE:
 				{
@@ -117,8 +167,15 @@ namespace RN
 				}
 
 				case ENET_EVENT_TYPE_DISCONNECT:
+				{
 					ForceDisconnect();
 					break;
+				}
+					
+				case ENET_EVENT_TYPE_NONE:
+				{
+					break;
+				}
 			}
 		}
 	}

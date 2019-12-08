@@ -8,13 +8,15 @@
 
 #include "RNENetServer.h"
 #include "RNENetWorld.h"
+#include "RNENetInternals.h"
+
 #include "enet/enet.h"
 
 namespace RN
 {
 	RNDefineMeta(ENetServer, ENetHost)
 
-	ENetServer::ENetServer(uint32 port, uint16 maxConnections, uint32 channelCount) : _maxConnections(maxConnections)
+	ENetServer::ENetServer(uint32 port, uint16 maxConnections, uint32 channelCount) : _maxConnections(maxConnections), _encryptorSharedInternals(nullptr)
 	{
 		_status = Status::Server;
 		_ip = nullptr;
@@ -41,6 +43,59 @@ namespace RN
 	ENetServer::~ENetServer()
 	{
 		enet_host_destroy(_enetHost);
+		if(_encryptorSharedInternals) delete _encryptorSharedInternals;
+	}
+
+	void ENetServer::EnableEncryption(String *privateKeyPath, String *certificatePath)
+	{
+#if RN_ENET_USE_BOTAN_DTLS_ENCRYPTION
+		_encryptorSharedInternals = new ENetServerEncryptorSharedInternals(privateKeyPath, certificatePath);
+		
+		ENetServerEncryptorContext *context = new ENetServerEncryptorContext;
+		context->server = this;
+		context->encryptors = new ENetServerEncryptor*[_maxConnections];
+		for(int i = 0; i < _maxConnections; i++)
+		{
+			context->encryptors[i] = nullptr;
+		}
+		
+		ENetEncryptor encryptor;
+		encryptor.context = context;
+		
+		encryptor.connected = [](void *context, size_t inPeerIndex){
+			ENetServerEncryptorContext *realContext = static_cast<ENetServerEncryptorContext*>(context);
+			realContext->encryptors[inPeerIndex] = new ENetServerEncryptor(realContext->server, inPeerIndex);
+		};
+		
+		encryptor.disconnected = [](void *context, size_t inPeerIndex){
+			ENetServerEncryptorContext *realContext = static_cast<ENetServerEncryptorContext*>(context);
+			delete realContext->encryptors[inPeerIndex];
+			realContext->encryptors[inPeerIndex] = nullptr;
+		};
+		
+		encryptor.destroy = [](void *context){
+			ENetServerEncryptorContext *realContext = static_cast<ENetServerEncryptorContext*>(context);
+			for(int i = 0; i < realContext->server->_maxConnections; i++)
+			{
+				if(realContext->encryptors[i])
+				{
+					delete realContext->encryptors[i];
+				}
+			}
+			delete[] realContext->encryptors;
+			delete realContext;
+		};
+		
+		encryptor.send = [](void * context, size_t inPeerIndex, const ENetBuffer * inBuffers, size_t inBufferCount, size_t inLimit, enet_uint8 * outData, size_t outLimit) -> size_t {
+			return 0;
+		};
+		
+		encryptor.receive = [](void * context, size_t inPeerIndex, const enet_uint8 * inData, size_t inLimit, enet_uint8 * outData, size_t outLimit) -> size_t {
+			return 0;
+		};
+		
+		enet_host_encrypt(_enetHost, &encryptor);
+#endif
 	}
 
 	uint16 ENetServer::GetUserID()
@@ -105,6 +160,11 @@ namespace RN
 					event.peer->data = nullptr;
 
 					HandleDidDisconnect(id);
+					break;
+				}
+					
+				case ENET_EVENT_TYPE_NONE:
+				{
 					break;
 				}
 			}

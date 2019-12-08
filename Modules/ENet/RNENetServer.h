@@ -14,11 +14,17 @@
 
 namespace RN
 {
+	class ENetServerEncryptor;
+	class ENetServerEncryptorSharedInternals;
 	class ENetServer : public ENetHost
 	{
 	public:
+		friend ENetServerEncryptor;
+		
 		ENAPI ENetServer(uint32 port = 1234, uint16 maxConnections = 16, uint32 channelCount = 0);
 		ENAPI ~ENetServer();
+		
+		ENAPI void EnableEncryption(String *privateKeyPath, String *certificatePath);
 
 		ENAPI void Connect(String *ip, uint32 port);
 		ENAPI void Disconnect();
@@ -34,6 +40,8 @@ namespace RN
 	private:
 		uint16 GetUserID();
 		void ReleaseUserID(uint16 userID);
+		
+		ENetServerEncryptorSharedInternals *_encryptorSharedInternals;
 			
 		RNDeclareMetaAPI(ENetServer, ENAPI)
 	};

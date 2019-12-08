@@ -13,11 +13,17 @@
 
 namespace RN
 {
+	class ENetClientEncryptorSharedInternals;
+	class ENetClientEncryptor;
 	class ENetClient : public ENetHost
 	{
 	public:
+		friend ENetClientEncryptor;
+		
 		ENAPI ENetClient(uint32 channelCount = 1);
 		ENAPI ~ENetClient();
+		
+		ENAPI void EnableEncryption(String *trustedCertStorePath);
 
 		ENAPI void Connect(String *ip, uint32 port = 1234);
 		ENAPI void Disconnect();
@@ -29,6 +35,8 @@ namespace RN
 		void ForceDisconnect();
 
 		float _connectionTimeOut;
+		
+		ENetClientEncryptorSharedInternals *_encryptorSharedInternals;
 			
 		RNDeclareMetaAPI(ENetClient, ENAPI)
 	};
