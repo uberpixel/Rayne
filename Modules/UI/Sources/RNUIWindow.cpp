@@ -126,6 +126,7 @@ namespace RN
 		
 		void Window::DrawViews()
 		{
+			_backingStore->Clear(Color::ClearColor());
 			_contentView->__DrawInContext(_backingStore);
 			_backingStore->UpdateTexture();
 		}
