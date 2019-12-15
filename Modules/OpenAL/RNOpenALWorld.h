@@ -14,29 +14,37 @@
 #include "RNOpenALSource.h"
 #include "RNOpenALListener.h"
 
-typedef struct ALCdevice_struct ALCdevice;
-typedef struct ALCcontext_struct ALCcontext;
+typedef struct ALCdevice ALCdevice;
+typedef struct ALCcontext ALCcontext;
 namespace RN
 {
 	class OpenALWorld : public SceneAttachment
 	{
 	public:
-		OALAPI OpenALWorld(String *deviceName = nullptr);
+		OALAPI OpenALWorld(String *outputDeviceName = nullptr, String *inputDeviceName = nullptr);
 		OALAPI ~OpenALWorld() override;
-			
+		
+		OALAPI void SetInputAudioAsset(AudioAsset *bufferAsset);
+		
 		OALAPI void SetListener(OpenALListener *attachment);
 		OALAPI OpenALSource *PlaySound(AudioAsset*resource);
 
-		OALAPI static Array *GetDeviceNames();
+		OALAPI static Array *GetOutputDeviceNames();
+		OALAPI static Array *GetInputDeviceNames();
 
 	protected:
 		void Update(float delta) override;
 			
 	private:
 		OpenALListener *_audioListener;
-			
-		ALCdevice *_device;
+		
+		ALCdevice *_outputDevice;
+		ALCdevice *_inputDevice;
 		ALCcontext *_context;
+		
+		AudioAsset *_inputBuffer;
+		int16 *_inputBufferTemp;
+		float _time;
 			
 		RNDeclareMetaAPI(OpenALWorld, OALAPI)
 	};

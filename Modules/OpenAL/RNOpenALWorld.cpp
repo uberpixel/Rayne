@@ -18,43 +18,40 @@ namespace RN
 {
 	RNDefineMeta(OpenALWorld, SceneAttachment)
 		
-	OpenALWorld::OpenALWorld(String *deviceName) :
-		_audioListener(nullptr)
+	OpenALWorld::OpenALWorld(String *outputDeviceName, String *inputDeviceName) :
+		_audioListener(nullptr), _outputDevice(nullptr), _inputDevice(nullptr), _inputBuffer(nullptr), _inputBufferTemp(nullptr), _time(0.0f)
 	{
-		if(deviceName)
-			_device = alcOpenDevice(deviceName->GetUTF8String());
+		if(outputDeviceName)
+			_outputDevice = alcOpenDevice(outputDeviceName->GetUTF8String());
 		else
-		    _device = alcOpenDevice(nullptr);
-		if(!_device)
+		    _outputDevice = alcOpenDevice(nullptr);
+		if(!_outputDevice)
 		{
-			RNDebug("rayne-openal: Could not open audio device.");
+			RNDebug("rayne-openal: Could not open output audio device.");
 			return;
 		}
-
-/*		if(!alcIsExtensionPresent(_device, "ALC_SOFT_HRTF"))
+		
+		if(inputDeviceName)
 		{
-			RNDebug("Error: ALC_SOFT_HRTF not supported");
-			return;
-		}
-
-		int num_hrtf = 0;
-		alcGetIntegerv(_device, ALC_NUM_HRTF_SPECIFIERS_SOFT, 1, &num_hrtf);
-		if(!num_hrtf)
-			RNDebug("No HRTFs found");
-		else
-		{
-			RNDebug("Available HRTFs:");
-			for(int i = 0; i < num_hrtf; i++)
+			if(!inputDeviceName->IsEqual(RNCSTR("default")))
+				_inputDevice = alcCaptureOpenDevice(inputDeviceName->GetUTF8String(), 48000, AL_FORMAT_MONO16, 480);
+			else
+				_inputDevice = alcCaptureOpenDevice(nullptr, 48000, AL_FORMAT_MONO16, 480);
+			if(!_inputDevice)
 			{
-				const ALCchar *name = alcGetStringiSOFT(_device, ALC_HRTF_SPECIFIER_SOFT, i);
-				RNDebug("    " << i << ": " << name);
+				RNDebug("rayne-openal: Could not open input audio device.");
 			}
-		}*/
+			else
+			{
+				alcCaptureStart(_inputDevice);
+				_inputBufferTemp = new int16[1024];
+			}
+		}
 
 		//Enable HRTF
 		int attributes[3] = {ALC_HRTF_SOFT, ALC_TRUE, 0};
 			
-		_context = alcCreateContext(_device, attributes);
+		_context = alcCreateContext(_outputDevice, attributes);
 		alcMakeContextCurrent(_context);
 		if(!_context)
 		{
@@ -63,26 +60,52 @@ namespace RN
 		}
 
 		int hrtf_state = 0;
-		alcGetIntegerv(_device, ALC_HRTF_SOFT, 1, &hrtf_state);
+		alcGetIntegerv(_outputDevice, ALC_HRTF_SOFT, 1, &hrtf_state);
 		if(!hrtf_state)
 			RNDebug("HRTF not enabled!\n");
 		else
 		{
-			const ALchar *name = alcGetString(_device, ALC_HRTF_SPECIFIER_SOFT);
+			const ALchar *name = alcGetString(_outputDevice, ALC_HRTF_SPECIFIER_SOFT);
 			RNDebug("HRTF enabled, using " << name);
 		}
 	}
 		
 	OpenALWorld::~OpenALWorld()
 	{
+		if(_inputDevice)
+		{
+			alcCaptureStop(_inputDevice);
+			alcCaptureCloseDevice(_inputDevice);
+		}
+		
 		alcMakeContextCurrent(nullptr);
 		alcDestroyContext(_context);
-		alcCloseDevice(_device);
+		alcCloseDevice(_outputDevice);
+		
+		if(_inputBufferTemp)
+		{
+			delete[] _inputBufferTemp;
+		}
 	}
 
-	Array *OpenALWorld::GetDeviceNames()
+	Array *OpenALWorld::GetOutputDeviceNames()
 	{
-		const char *bytes = static_cast<const char*>(alcGetString(nullptr, ALC_ALL_DEVICES_SPECIFIER));
+		const char *bytes = static_cast<const char*>(alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+		Array *devices = new Array();
+		String *deviceString = String::WithString(bytes, true);
+		while(deviceString->GetLength() > 0)
+		{
+			devices->AddObject(deviceString);
+			bytes += deviceString->GetLength() + 1;
+			deviceString = String::WithString(bytes, true);
+		}
+		
+		return devices;
+	}
+
+	Array *OpenALWorld::GetInputDeviceNames()
+	{
+		const char *bytes = static_cast<const char*>(alcGetString(nullptr, ALC_CAPTURE_DEVICE_SPECIFIER));
 		Array *devices = new Array();
 		String *deviceString = String::WithString(bytes, true);
 		while(deviceString->GetLength() > 0)
@@ -97,7 +120,30 @@ namespace RN
 		
 	void OpenALWorld::Update(float delta)
 	{
+		if(_inputDevice && _inputBuffer)
+		{
+			ALint sampleCount = 0;
+			alcGetIntegerv(_inputDevice, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sampleCount);
+			alcCaptureSamples(_inputDevice, (ALCvoid *)_inputBufferTemp, sampleCount);
 			
+			//RNDebug("sample count: " << sampleCount);
+			
+			for(int i = 0; i < delta * 48000; i += 1)
+			{
+				float value = static_cast<float>(_inputBufferTemp[i])/32768.0f; //TODO: Fix this to convert to -1 to 1 range, buffer may be int not uint...
+				//if(buffer[i] > 0) RNDebug("ha: " << buffer[i]);
+				//value += std::sin(_time * k::Pi * 2.0f * 300.0f);
+				_inputBuffer->PushData(&value, 4);
+				
+				//_time += 1.0/48000.0;
+			}
+		}
+	}
+
+	void OpenALWorld::SetInputAudioAsset(AudioAsset *bufferAsset)
+	{
+		SafeRelease(_inputBuffer);
+		_inputBuffer = SafeRetain(bufferAsset);
 	}
 		
 	void OpenALWorld::SetListener(OpenALListener *attachment)

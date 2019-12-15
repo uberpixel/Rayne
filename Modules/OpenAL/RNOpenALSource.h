@@ -50,6 +50,11 @@ namespace RN
 		bool _isRepeating;
 		bool _isSelfdestructing;
 		bool _hasEnded;
+		
+		size_t _currentBuffer;
+		uint32 _ringBuffersID[3];
+		int16 *_ringBufferTemp;
+		float _sampleCounter;
 			
 		RNDeclareMetaAPI(OpenALSource, OALAPI)
 	};

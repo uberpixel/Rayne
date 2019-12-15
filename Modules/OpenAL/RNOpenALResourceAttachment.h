@@ -25,7 +25,6 @@ namespace RN
 			
 	private:
 		int GetALFormat(short channels, short bitsPerSample);
-			
 		uint32 _bufferID;
 	};
 }
