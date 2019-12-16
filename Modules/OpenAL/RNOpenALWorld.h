@@ -44,7 +44,6 @@ namespace RN
 		
 		AudioAsset *_inputBuffer;
 		int16 *_inputBufferTemp;
-		float _time;
 			
 		RNDeclareMetaAPI(OpenALWorld, OALAPI)
 	};

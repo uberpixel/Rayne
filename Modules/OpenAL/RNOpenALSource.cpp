@@ -24,8 +24,7 @@ namespace RN
 		_isSelfdestructing(false),
 		_hasEnded(false),
 		_currentBuffer(0),
-		_ringBufferTemp(nullptr),
-		_sampleCounter(0)
+		_ringBufferTemp(nullptr)
 	{
 		SafeRetain(_asset);
 		_oldPosition = GetWorldPosition();
@@ -165,7 +164,6 @@ namespace RN
 					for(size_t i = 0; i < 3840; i++)
 					{
 						_ringBufferTemp[i] = samplesBuffer[i] * 32000.0f;
-						//_sampleCounter += 1.0f/48000.0f;
 					}
 				}
 				else

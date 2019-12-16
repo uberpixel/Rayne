@@ -19,7 +19,7 @@ namespace RN
 	RNDefineMeta(OpenALWorld, SceneAttachment)
 		
 	OpenALWorld::OpenALWorld(String *outputDeviceName, String *inputDeviceName) :
-		_audioListener(nullptr), _outputDevice(nullptr), _inputDevice(nullptr), _inputBuffer(nullptr), _inputBufferTemp(nullptr), _time(0.0f)
+		_audioListener(nullptr), _outputDevice(nullptr), _inputDevice(nullptr), _inputBuffer(nullptr), _inputBufferTemp(nullptr)
 	{
 		if(outputDeviceName)
 			_outputDevice = alcOpenDevice(outputDeviceName->GetUTF8String());
@@ -44,7 +44,7 @@ namespace RN
 			else
 			{
 				alcCaptureStart(_inputDevice);
-				_inputBufferTemp = new int16[1024];
+				_inputBufferTemp = new int16[10240];
 			}
 		}
 
@@ -125,17 +125,11 @@ namespace RN
 			ALint sampleCount = 0;
 			alcGetIntegerv(_inputDevice, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sampleCount);
 			alcCaptureSamples(_inputDevice, (ALCvoid *)_inputBufferTemp, sampleCount);
-			
-			//RNDebug("sample count: " << sampleCount);
-			
-			for(int i = 0; i < delta * 48000; i += 1)
+
+			for(int i = 0; i < sampleCount; i += 1)
 			{
-				float value = static_cast<float>(_inputBufferTemp[i])/32768.0f; //TODO: Fix this to convert to -1 to 1 range, buffer may be int not uint...
-				//if(buffer[i] > 0) RNDebug("ha: " << buffer[i]);
-				//value += std::sin(_time * k::Pi * 2.0f * 300.0f);
+				float value = static_cast<float>(_inputBufferTemp[i])/32768.0f;
 				_inputBuffer->PushData(&value, 4);
-				
-				//_time += 1.0/48000.0;
 			}
 		}
 	}

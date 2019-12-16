@@ -54,7 +54,6 @@ namespace RN
 		size_t _currentBuffer;
 		uint32 _ringBuffersID[3];
 		int16 *_ringBufferTemp;
-		float _sampleCounter;
 			
 		RNDeclareMetaAPI(OpenALSource, OALAPI)
 	};
