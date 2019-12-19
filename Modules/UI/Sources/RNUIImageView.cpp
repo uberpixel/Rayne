@@ -34,6 +34,7 @@ namespace RN
 
 			if(_image)
 			{
+				context->SetFillColor(RN::Color::White());
 				context->DrawImage(_image, GetBounds());
 			}
 		}
