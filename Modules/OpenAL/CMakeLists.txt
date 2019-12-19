@@ -43,7 +43,15 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_OPENAL)
 
+set(COMPILE_OPTIONS "")
 set(RAYNE_LIBRARIES Rayne OpenAL)
+
+if(APPLE)
+        set(COMPILE_OPTIONS -xobjective-c++)
+        find_library(AVFOUNDATION_LIBRARY AVFoundation)
+        set(RAYNE_LIBRARIES ${AVFOUNDATION_LIBRARY} ${RAYNE_LIBRARIES})
+endif()
+
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/openal-soft/include")
@@ -53,6 +61,7 @@ rayne_set_module_output_directory(RayneOpenAL)
 
 target_include_directories(RayneOpenAL SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOpenAL PRIVATE "${DEFINES}")
+target_compile_options(RayneOpenAL PRIVATE ${COMPILE_OPTIONS})
 
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")

@@ -37,13 +37,10 @@ namespace RN
 
 		ovrJava *java = new ovrJava;
 		java->Vm = app->activity->vm;
-		java->Vm->AttachCurrentThread(&java->Env, NULL);
+		java->Env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
 		java->ActivityObject = app->activity->clazz;
 
 		_java = static_cast<ovrJava*>(java);
-
-		// Note that AttachCurrentThread will reset the thread name.
-		prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
 
 		ovrInitParms initParams = vrapi_DefaultInitParms(java);
 		initParams.GraphicsAPI = VRAPI_GRAPHICS_API_VULKAN_1;
@@ -67,7 +64,6 @@ namespace RN
 		vrapi_Shutdown();
 
 		ovrJava *java = static_cast<ovrJava*>(_java);
-        java->Vm->DetachCurrentThread();
         delete java;
 	}
 

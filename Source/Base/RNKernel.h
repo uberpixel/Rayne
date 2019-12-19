@@ -80,6 +80,8 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		RNAPI void SetAndroidApp(android_app *app);
 		android_app *GetAndroidApp() const { return _androidApp; }
+		RNAPI void SetJNIEnvForRayneMainThread(JNIEnv *jniEnv);
+		JNIEnv *GetJNIEnvForRayneMainThread() const { return _jniEnv; }
 #endif
 
 	private:
@@ -119,6 +121,7 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		android_app *_androidApp;
+		JNIEnv *_jniEnv;
 #endif
 
 		RunLoopObserver *_observer;

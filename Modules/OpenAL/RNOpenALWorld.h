@@ -21,10 +21,21 @@ namespace RN
 	class OpenALWorld : public SceneAttachment
 	{
 	public:
-		OALAPI OpenALWorld(String *outputDeviceName = nullptr, String *inputDeviceName = nullptr);
+		enum MicrophonePermissionState
+		{
+			MicrophonePermissionStateAuthorized,
+			MicrophonePermissionStateNotDetermined,
+			MicrophonePermissionStateForbidden
+		};
+		
+		OALAPI OpenALWorld(String *outputDeviceName = nullptr);
 		OALAPI ~OpenALWorld() override;
 		
+		OALAPI void SetInputDevice(String *inputDeviceName);
 		OALAPI void SetInputAudioAsset(AudioAsset *bufferAsset);
+		
+		OALAPI void RequestMicrophonePermission();
+		OALAPI MicrophonePermissionState GetMicrophonePermissionState();
 		
 		OALAPI void SetListener(OpenALListener *attachment);
 		OALAPI OpenALSource *PlaySound(AudioAsset*resource);

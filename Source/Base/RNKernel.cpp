@@ -290,6 +290,11 @@ namespace RN
 	{
 		_androidApp = app;
 	}
+
+	void Kernel::SetJNIEnvForRayneMainThread(JNIEnv *jniEnv)
+	{
+		_jniEnv = jniEnv;
+	}
 #endif
 	
 	void Kernel::SetMaxFPS(uint32 maxFPS)

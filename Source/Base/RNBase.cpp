@@ -181,6 +181,14 @@ namespace RN
 
 			androidApp->onAppCmd = Android_handle_cmd;
 			result->SetAndroidApp(androidApp);
+			
+			JNIEnv *env = nullptr;
+			androidApp->activity->vm->AttachCurrentThread(&env, nullptr);
+			
+			// Note that AttachCurrentThread will reset the thread name.
+			//prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
+			
+			result->SetJNIEnvForRayneMainThread(env);
 #endif
 
 #if RN_PLATFORM_MAC_OS
@@ -196,6 +204,10 @@ namespace RN
 
 		static void TearDownKernel(Kernel *kernel)
 		{
+#if RN_PLATFORM_ANDROID
+			kernel->GetAndroidApp()->activity->vm->DetachCurrentThread();
+#endif
+			
 #if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
 				kernel->TearDown();

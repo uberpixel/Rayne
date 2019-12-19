@@ -8,9 +8,9 @@ macro(rayne_link_with _TARGET)
     target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 
     if(ANDROID)
-        target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include ${ANDROID_NDK}/sources/android/native_app_glue)
+        target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include ${DIR_OF_RAYNE_CMAKE}/../Vendor/android_native_app_glue)
 
-        add_library(android-app-glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+        add_library(android-app-glue STATIC ${DIR_OF_RAYNE_CMAKE}/../Vendor/android_native_app_glue/android_native_app_glue.c)
         target_link_libraries(${_TARGET} android-app-glue android log)
 
         set_property(TARGET "${_TARGET}" APPEND_STRING PROPERTY LINK_FLAGS " -u ANativeActivity_onCreate")

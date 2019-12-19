@@ -193,7 +193,6 @@ namespace RN
 		alGetSourcei(_source, AL_SOURCE_STATE, &sourceState);
 		if(sourceState == AL_STOPPED)
 		{
-			RNDebug("no more audio to play");
 			_isPlaying = false;
 			_hasEnded = true;
 			if(_isSelfdestructing)
