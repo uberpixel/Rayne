@@ -51,7 +51,7 @@ namespace RN
 		ENAPI virtual void Update(float delta) = 0;
 
 		ENAPI virtual void HandleDidConnect(uint16 userID) {};
-		ENAPI virtual void HandleDidDisconnect(uint16 userID) {};
+		ENAPI virtual void HandleDidDisconnect(uint16 userID, uint16 data) {};
 
 		Status _status;
 

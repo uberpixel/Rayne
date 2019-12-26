@@ -131,7 +131,7 @@ namespace RN
 					Peer peer;
 					peer.id = GetUserID();
 					peer.peer = event.peer;
-					enet_peer_timeout(peer.peer, 0, 0, 5000);
+					enet_peer_timeout(peer.peer, 0, 0, 0);
 					_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
 					event.peer->data = malloc(sizeof(uint16));
 					*static_cast<uint16*>(event.peer->data) = peer.id;
@@ -159,7 +159,7 @@ namespace RN
 					free(event.peer->data);
 					event.peer->data = nullptr;
 
-					HandleDidDisconnect(id);
+					HandleDidDisconnect(id, event.data);
 					break;
 				}
 					
@@ -174,5 +174,10 @@ namespace RN
 	size_t ENetServer::GetNumberOfConnectedUsers() const
 	{
 		return _activeUserIDs.size();
+	}
+
+	void ENetServer::DisconnectUser(uint16 userID, uint16 data)
+	{
+		enet_peer_disconnect_later(_peers[userID].peer, data);
 	}
 }

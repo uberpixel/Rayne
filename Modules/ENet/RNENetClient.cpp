@@ -101,6 +101,7 @@ namespace RN
 		if(peer.peer == NULL)
 		{
 			RNDebug("Couldn't connect to server!");
+			_status = Status::Disconnected;
 			return;
 		}
 
@@ -124,7 +125,7 @@ namespace RN
 
 		RNDebug("Disconnected!");
 
-		HandleDidDisconnect(0);
+		HandleDidDisconnect(0, 0);
 	}
 
 	void ENetClient::Update(float delta)
