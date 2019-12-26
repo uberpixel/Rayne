@@ -74,7 +74,11 @@ namespace RN
 	
 		void Button::LayoutSubviews()
 		{
-			_label->SetFrame(GetBounds());
+			_label->LayoutIfNeeded();
+			Rect labelFrame = GetBounds();
+			labelFrame.y = (labelFrame.height - _label->GetContentSize().y) * 0.5f;
+			labelFrame.height = _label->GetContentSize().y;
+			_label->SetFrame(labelFrame);
 		}
 	
 		void Button::UpdateCursorPosition(const Vector2 &cursorPosition)
