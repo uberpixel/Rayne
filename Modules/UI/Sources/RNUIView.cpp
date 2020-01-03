@@ -19,6 +19,7 @@ namespace RN
 		View::View() :
 			_clipsToBounds(true),
 			_clipsToWindow(true),
+			_isHidden(false),
 			_dirtyLayout(false),
 			_subviews(new Array()),
 			_window(nullptr),
