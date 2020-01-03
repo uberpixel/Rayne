@@ -49,6 +49,9 @@ namespace RN
 
 			UIAPI virtual void SetFrame(const Rect &frame);
 			UIAPI virtual void SetBounds(const Rect &bounds);
+			
+			UIAPI void SetHidden(bool hidden);
+			bool GetIsHidden() const { return _isHidden; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
 
@@ -84,6 +87,7 @@ namespace RN
 
 			bool _clipsToBounds;
 			bool _clipsToWindow;
+			bool _isHidden;
 
 			EdgeInsets _clipInsets;
 			Rect _scissorRect;

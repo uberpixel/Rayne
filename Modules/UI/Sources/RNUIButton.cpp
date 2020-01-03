@@ -88,6 +88,8 @@ namespace RN
 			Vector2 transformedPosition = ConvertPointFromBase(cursorPosition);
 			_isHighlighted = GetBounds().ContainsPoint(transformedPosition);
 			
+			if(GetIsHidden()) _isHighlighted = false;
+			
 			if(_isHighlighted)
 			{
 				_label->SetColor(_textColorHighlight);

@@ -323,6 +323,11 @@ namespace RN
 
 			SetNeedsLayout();
 		}
+	
+		void View::SetHidden(bool hidden)
+		{
+			_isHidden = hidden;
+		}
 
 		void View::SetBackgroundColor(const Color &color)
 		{
@@ -448,6 +453,8 @@ namespace RN
 
 		void View::DrawInContext(Context *context) const
 		{
+			if(_isHidden) return;
+			
 			if(_clipsToBounds)
 				context->SetClipRect(_scissorRect);
 
