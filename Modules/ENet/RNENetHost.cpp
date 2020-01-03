@@ -36,4 +36,33 @@ namespace RN
 			enet_peer_send(_peers[receiverID].peer, channel, packet);
 		}
 	}
+
+	bool ENetHost::HasReliableDataInTransit()
+	{
+		for(auto iter : _peers)
+		{
+			if(iter.second.peer->reliableDataInTransit > 0)
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	void ENetHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
+	{
+		//Times are in milliseconds!
+		enet_peer_timeout(_peers[peerID].peer, limit, minimum, maximum);
+		
+/*		ENET_PEER_TIMEOUT_LIMIT                = 32,
+		ENET_PEER_TIMEOUT_MINIMUM              = 5000,
+		ENET_PEER_TIMEOUT_MAXIMUM              = 30000,*/
+	}
+
+	void ENetHost::SetPingInterval(uint16 peerID, size_t interval)
+	{
+		//Times are in milliseconds!
+		enet_peer_ping_interval(_peers[peerID].peer, interval);
+	}
 }

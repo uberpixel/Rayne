@@ -46,6 +46,9 @@ namespace RN
 		ENAPI virtual void ReceivedPacket(Data *data, uint32 senderID, uint32 channel) {};
 
 		ENAPI Status GetStatus() const { return _status; }
+		ENAPI bool HasReliableDataInTransit();
+		ENAPI void SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum);
+		ENAPI void SetPingInterval(uint16 peerID, size_t interval);
 
 	protected:
 		ENAPI virtual void Update(float delta) = 0;

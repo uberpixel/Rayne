@@ -33,9 +33,6 @@ namespace RN
 			
 	private:
 		void ForceDisconnect();
-
-		float _connectionTimeOut;
-		
 		ENetClientEncryptorSharedInternals *_encryptorSharedInternals;
 			
 		RNDeclareMetaAPI(ENetClient, ENAPI)

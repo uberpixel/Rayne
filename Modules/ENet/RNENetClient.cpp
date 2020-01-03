@@ -16,7 +16,7 @@ namespace RN
 {
 	RNDefineMeta(ENetClient, ENetHost)
 
-	ENetClient::ENetClient(uint32 channelCount) : _connectionTimeOut(5.0f), _encryptorSharedInternals(nullptr)
+	ENetClient::ENetClient(uint32 channelCount) : _encryptorSharedInternals(nullptr)
 	{
 		_status = Status::Disconnected;
 		_channelCount = channelCount;
@@ -133,21 +133,9 @@ namespace RN
 		if(_status == Status::Disconnected)
 			return;
 
-		if(delta > 0.5f)
-			delta = 0.5f;
-
-		_connectionTimeOut -= delta;
-
-		if(_peers.size() > 0 && _connectionTimeOut <= 0.0f)
-		{
-			ForceDisconnect();
-		}
-
 		ENetEvent event;
 		while(enet_host_service(_enetHost, &event, 0) > 0)
 		{
-			_connectionTimeOut = 5.0f;
-
 			switch(event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
