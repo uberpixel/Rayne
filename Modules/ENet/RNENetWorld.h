@@ -23,8 +23,8 @@ namespace RN
 		ENAPI ENetWorld();
 		ENAPI ~ENetWorld() override;
 		
-		void AddHost(ENetHost *host);
-		void RemoveHost(ENetHost *host);
+		ENAPI void AddHost(ENetHost *host);
+		ENAPI void RemoveHost(ENetHost *host);
 
 	protected:
 		void Update(float delta) override;

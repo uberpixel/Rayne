@@ -211,13 +211,13 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
-	void OculusWindow::SubmitControllerHaptics(uint32 controllerID, VRControllerHaptics &haptics)
+	void OculusWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
 	{
 		ovrHapticsBuffer buffer;
 		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
 		buffer.SamplesCount = haptics.sampleCount;
 		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_swapChain->_session, controllerID?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
+		ovr_SubmitControllerVibration(_swapChain->_session, index?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
 	}
 
 	static String *StringForLPWSTR(LPWSTR lpwstr)
