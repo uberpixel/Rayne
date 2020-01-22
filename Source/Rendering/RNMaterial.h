@@ -111,7 +111,7 @@ namespace RN
 			CullMode = (1 << 7),
 		   	ColorWriteMask = (1 << 8),
 
-			DefaultDepth = (0xffffffff & ~GroupPolygonOffset)
+			DefaultDepth = (0xffffffff & ~(GroupPolygonOffset|ColorWriteMask))
 		);
 
 		RNAPI Material(Shader *vertexShader, Shader *fragmentShader);

@@ -146,7 +146,7 @@ namespace RN
 					continue;
 				}
 				
-				camera->PostUpdate(renderer);
+				camera->PostUpdate();
 				Vector3 cameraPosition = camera->GetWorldPosition();
 				
 				const Volume *volume = nullptr;

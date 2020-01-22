@@ -277,6 +277,7 @@ namespace RN
 				samplerInfo.addressModeV = addressMode;
 				samplerInfo.addressModeW = addressMode;
 				samplerInfo.mipLodBias = 0.0f;
+				samplerInfo.compareEnable = comparisonFunction == VK_COMPARE_OP_NEVER ? VK_FALSE : VK_TRUE;
 				samplerInfo.compareOp = comparisonFunction;
 				samplerInfo.minLod = 0.0f;
 				samplerInfo.maxLod = std::numeric_limits<float>::max();
@@ -346,6 +347,7 @@ namespace RN
 		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.depthWriteEnabled = mergedMaterialProperties.depthWriteEnabled;
+		pipelineDescriptor.colorWriteMask = mergedMaterialProperties.colorWriteMask;
 		pipelineDescriptor.depthMode = mergedMaterialProperties.depthMode;
 		pipelineDescriptor.cullMode = mergedMaterialProperties.cullMode;
 		pipelineDescriptor.usePolygonOffset = mergedMaterialProperties.usePolygonOffset;
@@ -387,7 +389,7 @@ namespace RN
 		{
 			if(state->descriptor.renderPass == descriptor.renderPass && state->descriptor.depthStencilFormat == descriptor.depthStencilFormat && rootSignature->pipelineLayout == state->rootSignature->pipelineLayout)
 			{
-				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.depthWriteEnabled == descriptor.depthWriteEnabled && state->descriptor.depthMode == descriptor.depthMode && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha)
+				if(state->descriptor.sampleCount == descriptor.sampleCount && state->descriptor.colorWriteMask == descriptor.colorWriteMask && state->descriptor.depthWriteEnabled == descriptor.depthWriteEnabled && state->descriptor.depthMode == descriptor.depthMode && state->descriptor.cullMode == descriptor.cullMode && state->descriptor.usePolygonOffset == descriptor.usePolygonOffset && state->descriptor.polygonOffsetFactor == descriptor.polygonOffsetFactor && state->descriptor.polygonOffsetUnits == descriptor.polygonOffsetUnits && state->descriptor.useAlphaToCoverage == descriptor.useAlphaToCoverage && state->descriptor.blendOperationRGB == descriptor.blendOperationRGB && state->descriptor.blendOperationAlpha == descriptor.blendOperationAlpha && state->descriptor.blendFactorSourceRGB == descriptor.blendFactorSourceRGB && state->descriptor.blendFactorSourceAlpha == descriptor.blendFactorSourceAlpha && state->descriptor.blendFactorDestinationRGB == descriptor.blendFactorDestinationRGB && state->descriptor.blendFactorDestinationAlpha == descriptor.blendFactorDestinationAlpha)
 				{
 					return state;
 				}
@@ -454,11 +456,12 @@ namespace RN
 		rasterizationState.lineWidth = 1.0f;
 		rasterizationState.flags = 0;
 		rasterizationState.depthClampEnable = VK_TRUE;
+		rasterizationState.depthBiasEnable = VK_FALSE;
 		if(descriptor.usePolygonOffset)
 		{
-			rasterizationState.depthBiasConstantFactor = descriptor.polygonOffsetUnits;
+			rasterizationState.depthBiasEnable = VK_TRUE;
+			rasterizationState.depthBiasConstantFactor = descriptor.polygonOffsetUnits*0.5f;
 			rasterizationState.depthBiasSlopeFactor = descriptor.polygonOffsetFactor;
-			//psoDesc.RasterizerState.DepthBiasClamp = D3D12_FLOAT32_MAX;
 		}
 		switch(descriptor.cullMode)
 		{
@@ -474,7 +477,7 @@ namespace RN
 		}
 
 		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
-		blendAttachmentState.colorWriteMask = 0xf;
+		blendAttachmentState.colorWriteMask = descriptor.colorWriteMask;
 		blendAttachmentState.blendEnable = VK_FALSE;
 		if(descriptor.blendOperationRGB != BlendOperation::None && descriptor.blendOperationAlpha != BlendOperation::None)
 		{
@@ -559,7 +562,7 @@ namespace RN
 		multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampleState.rasterizationSamples = static_cast<VkSampleCountFlagBits>(descriptor.sampleCount);
 		multisampleState.sampleShadingEnable = VK_FALSE;
-		multisampleState.alphaToCoverageEnable = descriptor.useAlphaToCoverage? VK_TRUE : VK_FALSE;
+		multisampleState.alphaToCoverageEnable = (descriptor.useAlphaToCoverage && descriptor.colorWriteMask > 0)? VK_TRUE : VK_FALSE;
 		//TODO: Maybe set minSampleShading?
 
 		std::vector<VkDynamicState> dynamicStateEnables = {

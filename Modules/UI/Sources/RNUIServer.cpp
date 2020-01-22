@@ -83,7 +83,7 @@ namespace RN
 			Rect frame = _camera->GetRenderPass()->GetFrame();
 			_camera->SetOrthogonalFrustum(frame.GetBottom(), frame.GetTop(), frame.GetLeft(), frame.GetRight());
 			_camera->Update(0.0f);
-			_camera->PostUpdate(renderer);
+			_camera->PostUpdate();
 
 /*			renderer->SubmitCamera(_camera, [_windows] {
 

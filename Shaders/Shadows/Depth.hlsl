@@ -84,16 +84,14 @@ FragmentVertex depth_vertex(InputVertex vert)
 }
 
 
-float4 depth_fragment(
+void depth_fragment(
 #if RN_UV0 && RN_ALPHA
 	FragmentVertex vert
 #endif
-	) : SV_TARGET
+	)
 {
-	float4 color = 1.0f;
 #if RN_UV0 && RN_ALPHA
-	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
-	color.a = smoothstep(alphaToCoverageClamp.x, alphaToCoverageClamp.y, color.a);
+	float4 color = texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+	clip(color.a - 0.5f);
 #endif
-	return color;
 }

@@ -76,7 +76,7 @@ namespace RN
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 
 		RNAPI void Update(float delta) override;
-		RNAPI void PostUpdate(Renderer *renderer);
+		RNAPI void PostUpdate();
 
 		RNAPI Vector3 ToWorld(const Vector3 &dir);
 
@@ -111,7 +111,7 @@ namespace RN
 		IntrusiveList<Camera>::Member _cameraSceneEntry; //TODO: Make private but keep accessible to user made scene implementations
 
 	private:
-		void UpdateProjection(Renderer *renderer);
+		void UpdateProjection();
 		void UpdateFrustum();
 
 		Vector3 __ToWorld(const Vector3 &dir);
@@ -121,6 +121,7 @@ namespace RN
 		Flags _flags;
 		float _scaleFactor;
 		bool _fixedScaleFactor;
+		bool _dirtyPosition;
 		bool _dirtyProjection;
 		bool _dirtyFrustum;
 		int32 _priority;

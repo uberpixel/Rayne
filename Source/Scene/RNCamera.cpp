@@ -63,7 +63,8 @@ namespace RN
 		_clipPlane = Plane();
 
 		_dirtyProjection = true;
-		_dirtyFrustum    = true;
+		_dirtyPosition = true;
+		_dirtyFrustum = true;
 
 		_shaderHint = Shader::UsageHint::Default;
 		_prefersLightManager = false;
@@ -124,13 +125,11 @@ namespace RN
 	{
 		_clipNear = near;
 		_dirtyProjection = true;
-		_dirtyFrustum = true;
 	}
 	void Camera::SetClipFar(float far)
 	{
 		_clipFar = far;
 		_dirtyProjection = true;
-		_dirtyFrustum = true;
 	}
 
 	void Camera::SetFogColor(Color color)
@@ -183,15 +182,14 @@ namespace RN
 		_orthoBottom = bottom;
 
 		_dirtyProjection = true;
-		_dirtyFrustum = true;
 	}
 
 	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
 	{
+		_dirtyProjection = false;
+		_dirtyFrustum = true;
 		_projectionMatrix = projectionMatrix;
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
-		_dirtyFrustum = true;
-		_dirtyProjection = false;
 		UpdateFrustum();
 	}
 
@@ -201,7 +199,7 @@ namespace RN
 
 		if(changeSet & ChangeSet::Position)
 		{
-			_dirtyFrustum = true;
+			_dirtyPosition = true;
 		}
 	}
 
@@ -248,7 +246,7 @@ namespace RN
 
 		//Update the projection matrix
 		_dirtyProjection = true;
-		UpdateProjection(nullptr); //Because the target is always a valid framebuffer, we don't need to pass the renderer as parameter here
+		UpdateProjection(); //Because the target is always a valid framebuffer, we don't need to pass the renderer as parameter here
 
 		//Return the resulting matrix
 		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
@@ -261,19 +259,25 @@ namespace RN
 		SceneNode::Update(delta);
 	}
 
-	void Camera::PostUpdate(Renderer *renderer)
+	void Camera::PostUpdate()
 	{
-		_inverseViewMatrix = Matrix::WithTranslation(GetWorldPosition());
-		_inverseViewMatrix.Rotate(GetWorldRotation());
-		_inverseViewMatrix.Scale(GetScale());
+		if(_dirtyPosition)
+		{
+			_dirtyPosition = false;
+			_dirtyFrustum = true;
 
-		_viewMatrix = _inverseViewMatrix.GetInverse();
+			_inverseViewMatrix = Matrix::WithTranslation(GetWorldPosition());
+			_inverseViewMatrix.Rotate(GetWorldRotation());
+			_inverseViewMatrix.Scale(GetScale());
 
-		UpdateProjection(renderer);
+			_viewMatrix = _inverseViewMatrix.GetInverse();
+		}
+
+		UpdateProjection();
 		UpdateFrustum();
 	}
 
-	void Camera::UpdateProjection(Renderer *renderer)
+	void Camera::UpdateProjection()
 	{
 		if(!_dirtyProjection)
 			return;
@@ -294,15 +298,15 @@ namespace RN
 		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, tempAspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 
+		_dirtyProjection = false;
+
 		_dirtyFrustum = true;
 		UpdateFrustum();
 	}
 
 	void Camera::UpdateFrustum()
 	{
-		if(!_dirtyFrustum)
-			return;
-
+		if(!_dirtyFrustum) return;
 		_dirtyFrustum = false;
 
 		if(_flags & Flags::UseSimpleCulling)
@@ -345,6 +349,7 @@ namespace RN
 
 	Vector3 Camera::__ToWorld(const Vector3 &dir)
 	{
+		PostUpdate();
 		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 
 		if(_flags & Flags::Orthogonal)
@@ -376,6 +381,7 @@ namespace RN
 	// There should be a much better solution, but at least this works for now
 	Vector3 Camera::ToWorld(const Vector3 &dir)
 	{
+		PostUpdate();
 		Vector3 ndcPos(dir.x, dir.y, 0.0f);
 		if(_flags & Flags::Orthogonal)
 		{

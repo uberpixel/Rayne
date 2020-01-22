@@ -292,6 +292,14 @@ namespace RN
 					_internals->currentRenderPassIndex += 1;
 					continue;
 				}
+
+				//Set shadow depth texture layout for reading
+				if(renderPass.directionalShadowDepthTexture)
+				{
+					VulkanTexture::SetImageLayout(commandBuffer, renderPass.directionalShadowDepthTexture->GetVulkanImage(), 0, renderPass.directionalShadowDepthTexture->GetDescriptor().mipMaps, 0, renderPass.directionalShadowDepthTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_DEPTH_BIT, renderPass.directionalShadowDepthTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanTexture::BarrierIntent::ShaderSource);
+					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				}
+
 				SetupRendertargets(commandBuffer, renderPass);
 
 				if(renderPass.drawables.size() > 0)
@@ -306,6 +314,13 @@ namespace RN
 				}
 
 				vk::CmdEndRenderPass(commandBuffer);
+
+				//Set shadow depth texture layout for writing
+				if(renderPass.directionalShadowDepthTexture)
+				{
+					VulkanTexture::SetImageLayout(commandBuffer, renderPass.directionalShadowDepthTexture->GetVulkanImage(), 0, renderPass.directionalShadowDepthTexture->GetDescriptor().mipMaps, 0, renderPass.directionalShadowDepthTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_DEPTH_BIT, renderPass.directionalShadowDepthTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
+					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+				}
 
 				_internals->currentRenderPassIndex += 1;
 			}
@@ -421,11 +436,11 @@ namespace RN
 		renderPass.viewMatrix = camera->GetViewMatrix();
 		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
 
-		renderPass.projectionMatrix = camera->GetProjectionMatrix();
-		renderPass.projectionMatrix.m[1] *= -1.0f;
-		renderPass.projectionMatrix.m[5] *= -1.0f;
-		renderPass.projectionMatrix.m[9] *= -1.0f;
-		renderPass.projectionMatrix.m[13] *= -1.0f;
+		Matrix clipSpaceCorrectionMatrix;
+		clipSpaceCorrectionMatrix.m[5] = -1.0f;
+		clipSpaceCorrectionMatrix.m[10] = 0.5f;
+		clipSpaceCorrectionMatrix.m[14] = 0.5f;
+		renderPass.projectionMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
 		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
 		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
@@ -1108,13 +1123,26 @@ namespace RN
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())
 			{
-				renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<VulkanTexture>();
+				bool isShadowCamera = false;
 				light->GetShadowDepthCameras()->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
-					Matrix shadowMatrix = camera->GetProjectionMatrix();
-					shadowMatrix.m[1] *= -1.0f;
-					shadowMatrix.m[5] *= -1.0f;
-					shadowMatrix.m[9] *= -1.0f;
-					shadowMatrix.m[13] *= -1.0f;
+					if (renderPass.framebuffer == camera->GetRenderPass()->GetFramebuffer())
+					{
+						stop = true;
+						isShadowCamera = true;
+					}
+				});
+
+				if(!isShadowCamera)
+				{
+					renderPass.directionalShadowDepthTexture = light->GetShadowDepthTexture()->Downcast<VulkanTexture>();
+				}
+				
+				light->GetShadowDepthCameras()->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+					Matrix clipSpaceCorrectionMatrix;
+					clipSpaceCorrectionMatrix.m[5] = 1.0f;
+					clipSpaceCorrectionMatrix.m[10] = 0.5f;
+					clipSpaceCorrectionMatrix.m[14] = 0.5f;
+					Matrix shadowMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
 
 					shadowMatrix = shadowMatrix * camera->GetWorldTransform().GetInverse();
 					renderPass.directionalShadowMatrices.push_back(shadowMatrix);

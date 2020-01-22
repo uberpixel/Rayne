@@ -244,6 +244,7 @@ namespace RN
 			
 			//TODO: Get rid of the need for a shader if not needed for rendering!?
 			Material *depthMaterial = Material::WithShaders(depthVertexShader, depthFragmentShader);
+			depthMaterial->SetColorWriteMask(false, false, false, false);
 			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
 			depthMaterial->SetOverride(Material::Override::DefaultDepth);
 

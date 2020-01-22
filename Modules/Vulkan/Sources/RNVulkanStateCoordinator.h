@@ -72,6 +72,7 @@ namespace RN
 		VkRenderPass renderPass;
 		VkFormat depthStencilFormat;
 		
+		uint8 colorWriteMask;
 		DepthMode depthMode;
 		bool depthWriteEnabled;
 
