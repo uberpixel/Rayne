@@ -24,8 +24,8 @@
 #endif
 
 #if RN_UV0 && RN_ALPHA
-[[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
-[[vk::binding(4)]] Texture2D texture0 : register(t0);
+[[vk::binding(2)]] SamplerState linearRepeatSampler : register(s0);
+[[vk::binding(3)]] Texture2D texture0 : register(t0);
 #endif
 
 [[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
@@ -42,12 +42,13 @@
 #endif
 };
 
+/*
 #if RN_UV0 && RN_ALPHA
 [[vk::binding(2)]] cbuffer FragmentUniforms : register(b1)
 {
 	float2 alphaToCoverageClamp;
 };
-#endif
+#endif*/
 
 struct InputVertex
 {

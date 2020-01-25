@@ -257,6 +257,7 @@ namespace RN
 	void Camera::Update(float delta)
 	{
 		SceneNode::Update(delta);
+		_dirtyPosition = true;
 	}
 
 	void Camera::PostUpdate()
