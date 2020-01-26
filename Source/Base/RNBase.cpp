@@ -258,12 +258,12 @@ namespace RN
 
 			[[RNApplication sharedApplication] setDelegate:(RNApplication *)[RNApplication sharedApplication]];
 			[[RNApplication sharedApplication] activateIgnoringOtherApps:YES];
-			
+
 			@autoreleasepool {
-				
+
 				NSDate *date = [NSDate date];
 				NSEvent *event;
-				
+
 				while((event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
 				{
 					[NSApp sendEvent:event];
