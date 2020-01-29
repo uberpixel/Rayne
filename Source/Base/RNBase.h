@@ -55,8 +55,8 @@
 #endif
 #if RN_PLATFORM_ANDROID
 	#include <android_native_app_glue.h>
-	#ifndef JNI_VERSION_1_8
-		#define JNI_VERSION_1_8 0x00010008
+	#ifndef JNI_VERSION_1_6
+		#define JNI_VERSION_1_6 0x00010006
 	#endif
 
 	#define kRNAndroidWindowDidChange RNCSTR("kRNAndroidWindowDidChange")
