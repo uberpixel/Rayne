@@ -21,12 +21,12 @@ set(VERSION_PATCH 0)
 set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-add_custom_target(RayneVulkanGenerateDispatchTable_Header
+add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp
         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h
-        BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h)
-add_custom_target(RayneVulkanGenerateDispatchTable_Source
         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp
-        BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp)
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table
+        COMMENT "Generate Vulkan Dispatch Table")
+
 
 set(SOURCES
         Sources/RNVulkanDebug.cpp

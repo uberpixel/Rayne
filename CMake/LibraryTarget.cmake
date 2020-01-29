@@ -49,10 +49,9 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
         foreach(HEADER ${_HEADERS})
             add_custom_command(TARGET "${TARGET_NAME}_copyHeaderTarget" PRE_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/include"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}"
+                BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER})
             add_dependencies("${TARGET_NAME}" "${TARGET_NAME}_copyHeaderTarget")
-#            add_custom_command(TARGET "${TARGET_NAME}" PRE_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${HEADER}" "${CMAKE_CURRENT_BINARY_DIR}/include/${HEADER}")
         endforeach()
     endif()
 
