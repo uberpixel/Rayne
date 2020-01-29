@@ -90,7 +90,7 @@ rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
 
-add_dependencies(RayneVulkan_copyHeaderTarget RayneVulkanGenerateDispatchTable_Header RayneVulkanGenerateDispatchTable_Source)
+#add_dependencies(RayneVulkan_copyHeaderTarget RayneVulkanGenerateDispatchTable_Header RayneVulkanGenerateDispatchTable_Source)
 
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Vulkan_INCLUDE_DIR})
