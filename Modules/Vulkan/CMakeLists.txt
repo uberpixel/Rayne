@@ -27,12 +27,13 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTa
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table
         COMMENT "Generate Vulkan Dispatch Table")
 
+add_custom_target(VulkanGenerateDispatchTable DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp)
+
 
 set(SOURCES
         Sources/RNVulkanDebug.cpp
         Sources/RNVulkanDevice.cpp
         Sources/RNVulkanDispatchTable.cpp
-        Sources/RNVulkanDispatchTable.h # Required so the custom command triggers
         Sources/RNVulkanFramebuffer.cpp
         Sources/RNVulkanGPUBuffer.cpp
         Sources/RNVulkanInstance.cpp
@@ -90,7 +91,7 @@ rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
 
-#add_dependencies(RayneVulkan_copyHeaderTarget RayneVulkanGenerateDispatchTable_Header RayneVulkanGenerateDispatchTable_Source)
+add_dependencies(RayneVulkan_copyHeaderTarget VulkanGenerateDispatchTable)
 
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Vulkan_INCLUDE_DIR})
