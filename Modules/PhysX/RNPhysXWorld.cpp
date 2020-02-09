@@ -146,6 +146,7 @@ namespace RN
 	{
 		PhysXContactInfo hit;
 		hit.distance = -1.0f;
+		hit.node = nullptr;
 		
 		Vector3 diff = to-from;
 		float distance = diff.GetLength();
@@ -153,12 +154,24 @@ namespace RN
 		physx::PxRaycastBuffer callback;
 		physx::PxFilterData filterData;
 		filterData.word0 = filterMask;
-		_scene->raycast(physx::PxVec3(from.x, from.y, from.z), physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		bool didHit = _scene->raycast(physx::PxVec3(from.x, from.y, from.z), physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
 		
-		if(callback.getNbAnyHits() > 0)
+		if(didHit)
 		{
-			hit.distance = callback.getAnyHit(0).distance;
+			hit.distance = callback.block.distance;
 			hit.position = from + diff * hit.distance;
+			hit.normal.x = callback.block.normal.x;
+			hit.normal.y = callback.block.normal.y;
+			hit.normal.z = callback.block.normal.z;
+			
+			if(callback.block.actor)
+			{
+				void *userData = callback.block.actor->userData;
+				if(userData)
+				{
+					hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+				}
+			}
 		}
 		
 		return hit;
