@@ -203,8 +203,9 @@ namespace RN
 
 	void PhysXDynamicBody::SetKinematicTarget(const Vector3 &position, const Quaternion &rotation)
 	{
+		RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
 		Quaternion targetRotation = rotation * _rotationOffset;
-		_actor->setKinematicTarget(physx::PxTransform(position.x - _positionOffset.x, position.y - _positionOffset.y, position.z - _positionOffset.z, physx::PxQuat(targetRotation.x, targetRotation.y, targetRotation.z, targetRotation.w)));
+		_actor->setKinematicTarget(physx::PxTransform(position.x - positionOffset.x, position.y - positionOffset.y, position.z - positionOffset.z, physx::PxQuat(targetRotation.x, targetRotation.y, targetRotation.z, targetRotation.w)));
 	}
 
 	void PhysXDynamicBody::AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta)
@@ -373,7 +374,8 @@ namespace RN
 		
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			Vector3 position = GetWorldPosition() - _positionOffset;
+			RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
+			Vector3 position = GetWorldPosition() - positionOffset;
 			Quaternion rotation = GetWorldRotation() * _rotationOffset;
 			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 		}
@@ -382,7 +384,8 @@ namespace RN
 		{
 			if(!_owner && GetParent())
 			{
-				Vector3 position = GetWorldPosition() - _positionOffset;
+				RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
+				Vector3 position = GetWorldPosition() - positionOffset;
 				Quaternion rotation = GetWorldRotation() * _rotationOffset;
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 			}
@@ -408,7 +411,9 @@ namespace RN
 		}
 
 		const physx::PxTransform &transform = _actor->getGlobalPose();
-		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + _positionOffset);
-		SetWorldRotation(Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w) * _rotationOffset.GetConjugated());
+		RN::Quaternion rotation = Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w) * _rotationOffset.GetConjugated();
+		RN::Vector3 positionOffset = rotation.GetRotatedVector(_positionOffset);
+		SetWorldPosition(Vector3(transform.p.x, transform.p.y, transform.p.z) + positionOffset);
+		SetWorldRotation(rotation);
 	}
 }
