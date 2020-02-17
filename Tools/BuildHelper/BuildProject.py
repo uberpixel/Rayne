@@ -93,7 +93,7 @@ def main():
 		if not msbuildPath:
 			print("MSBuild not found!")
 			return
-		subprocess.call([msbuildPath, configName+'.vcxproj', '/p:configuration='+configCmakeBuildType, '/p:platform=x64'])
+		subprocess.call([msbuildPath, configName+'.vcxproj', '-maxcpucount', '/p:configuration='+configCmakeBuildType, '/p:platform=x64'])
 	elif platform == 'linux':
 		subprocess.call(['ninja'])
 	elif platform == 'macos':

@@ -49,6 +49,7 @@ else()
         -DTARGET_BUILD_PLATFORM=windows
         -DPX_OUTPUT_ARCH=x86
         -DPHYSX_CXX_FLAGS_DEBUG=/MDd)
+    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc${MSVC_TOOLSET_VERSION}.md)
 endif()
 
 ExternalProject_Add(physx
@@ -79,22 +80,22 @@ ExternalProject_Add(physx
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXVehicle_static_64.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXExtensions_static_64.a"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXPvdSDK_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXFoundation_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCommon_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysX_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCooking_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCharacterKinematic_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXVehicle_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXExtensions_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXPvdSDK_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXFoundation_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCommon_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysX_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCooking_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCharacterKinematic_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXVehicle_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXExtensions_static_64.lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXPvdSDK_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXFoundation_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXCommon_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysX_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXCooking_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXCharacterKinematic_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXVehicle_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXExtensions_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/debug/PhysXPvdSDK_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXFoundation_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXCommon_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysX_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXCooking_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXCharacterKinematic_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXVehicle_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXExtensions_static_64.lib"
+        "${RN_PHYSX_BUILD_DIR}/release/PhysXPvdSDK_static_64.lib"
     INSTALL_COMMAND "")
 
 
@@ -149,9 +150,9 @@ set(INCLUDE_DIRECTORIES
 rayne_add_library(RaynePhysX "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 
 if(WIN32)
-    target_link_libraries(RaynePhysX debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXFoundation_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCommon_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysX_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCooking_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXCharacterKinematic_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXVehicle_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXExtensions_static_64.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/debug/PhysXPvdSDK_static_64.lib
+    target_link_libraries(RaynePhysX debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXFoundation_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXCommon_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysX_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXCooking_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXCharacterKinematic_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXVehicle_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXExtensions_static_64.lib debug ${RN_PHYSX_BUILD_DIR}/debug/PhysXPvdSDK_static_64.lib
 
-    optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXFoundation_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCommon_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysX_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCooking_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXCharacterKinematic_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXVehicle_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXExtensions_static_64.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc141.md/release/PhysXPvdSDK_static_64.lib)
+    optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXFoundation_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXCommon_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysX_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXCooking_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXCharacterKinematic_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXVehicle_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXExtensions_static_64.lib optimized ${RN_PHYSX_BUILD_DIR}/release/PhysXPvdSDK_static_64.lib)
 endif()
 add_dependencies(RaynePhysX physx)
 
