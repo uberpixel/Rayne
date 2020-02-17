@@ -1,0 +1,78 @@
+apply plugin: 'com.android.application'
+
+def getVersionCodeFromProjectProperty = { ->
+    def code = project.hasProperty('projectBuildNumber') ? projectBuildNumber.toInteger() : 1
+    return code
+}
+
+def getVersionNameFromProjectProperty = { ->
+    def name = project.hasProperty('projectVersion') ? projectVersion : "1.0"
+    return name
+}
+
+def getCmakeArgumentsFromProjectProperty = { ->
+    def cmakeArguments = project.hasProperty('projectCmakeArguments') ? projectCmakeArguments.tokenize(',') : []
+    return cmakeArguments
+}
+
+android {
+    compileSdkVersion 29
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'src/main/libs'
+        }
+        debug {
+            jniLibs.srcDirs 'src/debug/libs'
+        }
+    }
+    defaultConfig {
+        applicationId "__RN_BUNDLE_ID__"
+        minSdkVersion 24
+        targetSdkVersion 29
+        versionCode getVersionCodeFromProjectProperty()
+        versionName getVersionNameFromProjectProperty()
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                arguments = getCmakeArgumentsFromProjectProperty()
+                arguments.add("-DANDROID_ASSETS_DIRECTORIES='"+"${sourceSets.main.assets.srcDirs}".toString()+"'")
+
+                cppFlags ""
+                targets __RN_CMAKE_TARGETS__
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+        }
+        debug {
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version "__RN_CMAKE_VERSION__"
+            path "../../../CMakeLists.txt"
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+}

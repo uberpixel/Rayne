@@ -43,3 +43,4 @@ Build-Xcode
 Build-iOS
 cmake-build-*
 Build-Xcode-UI
+/Tools/BuildHelper/Utilities.pyc
