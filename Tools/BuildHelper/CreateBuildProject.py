@@ -64,8 +64,9 @@ def main():
 	if not configCmakeParameters:
 		configCmakeParameters = ""
 
-	buildNumber = Utilities.getBuildNumber('VERSION')
-	versionString = Utilities.getVersion('VERSION')
+	versionFilePath = os.path.join(projectRootPath, "VERSION")
+	buildNumber = Utilities.getBuildNumber(versionFilePath)
+	versionString = Utilities.getVersion(versionFilePath)
 
 	buildDirectory = os.path.join(projectRootPath, configBuildDirectory)
 	buildDirectory = os.path.join(buildDirectory, platform+'_'+configuration)
