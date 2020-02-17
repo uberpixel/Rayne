@@ -56,7 +56,9 @@ def main():
 		sourceDirectory = os.path.join(sourceDirectory, 'app/build/outputs/apk/release')
 	elif platform == 'linux':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build')
-	else:
+	elif platform == 'windows':
+		sourceDirectory = os.path.join(sourceDirectory, 'Build/Release/Concealed')
+	elif platform == 'macos':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build/Concealed/Release')
 	
 	if not os.path.isdir(sourceDirectory):
