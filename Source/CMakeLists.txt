@@ -240,7 +240,6 @@ set(RAYNE_HEADERS
     Threads/RNRecursiveLockable.h
     Threads/RNRunLoop.h
     Threads/RNSemaphore.h
-    Threads/RNLockable.h
     Threads/RNThread.h
     Threads/RNThreadLocalStorage.h
     Threads/RNUniqueLock.h
