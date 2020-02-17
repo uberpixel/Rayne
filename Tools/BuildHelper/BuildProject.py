@@ -77,7 +77,23 @@ def main():
 	print(buildDirectory)
 
 	if platform == 'windows':
-		print 'Not yet supported'
+		vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild"])
+		vswhereLines = vswhereOutput.splitlines()
+		for vswhereLine in vswhereLines:
+			if vswhereLine.startswith("installationPath: "):
+				vsInstallationPath = vswhereLine.split(": ", 1)[1]
+		if not vsInstallationPath:
+			print("No visual studio installation with MSBuild found!")
+			return
+		msbuildSearchDirectory = os.path.join(vsInstallationPath, "MSBuild")
+		for root, dirs, files in os.walk(msbuildSearchDirectory):
+			for file in files:
+				if file == "MSBuild.exe":
+					msbuildPath = os.path.join(root, file)
+		if not msbuildPath:
+			print("MSBuild not found!")
+			return
+		subprocess.call([msbuildPath, configName+'.vcxproj', '/p:configuration='+configCmakeBuildType, '/p:platform=x64'])
 	elif platform == 'linux':
 		subprocess.call(['ninja'])
 	elif platform == 'macos':
