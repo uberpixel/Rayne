@@ -37,7 +37,7 @@ namespace RN
 	class PhysXWorld : public SceneAttachment
 	{
 	public:
-		PXAPI PhysXWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), bool debug = false);
+		PXAPI PhysXWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), String *pvdServerIP = nullptr);
 		PXAPI ~PhysXWorld();
 
 		PXAPI void SetGravity(const Vector3 &gravity);

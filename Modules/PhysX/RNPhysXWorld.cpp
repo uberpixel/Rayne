@@ -19,7 +19,7 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	PhysXWorld::PhysXWorld(const Vector3 &gravity, bool debug) : _pvd(nullptr), _substeps(1), _paused(false)
+	PhysXWorld::PhysXWorld(const Vector3 &gravity, String *pvdServerIP) : _pvd(nullptr), _substeps(1), _paused(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
@@ -27,10 +27,10 @@ namespace RN
 		_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		RN_ASSERT(_foundation, "PxCreateFoundation failed!");
 
-		if(debug)
+		if(pvdServerIP)
 		{
 			_pvd = physx::PxCreatePvd(*_foundation);
-			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 100); //First parameter is ip of system running the physx visual debugger
+			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate(pvdServerIP->GetUTF8String(), 5425, 100); //First parameter is ip of system running the physx visual debugger
 			_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 		}
 

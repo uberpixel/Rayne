@@ -188,18 +188,20 @@ namespace RN
 
 	void SceneNode::SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere)
 	{
+		WillUpdate(ChangeSet::Position);
 		_boundingBox = boundingBox;
 
 		if(calculateBoundingSphere)
 			_boundingSphere = Sphere(_boundingBox);
 
-		_updated = true;
+		DidUpdate(ChangeSet::Position);
 	}
 
 	void SceneNode::SetBoundingSphere(const Sphere &boundingSphere)
 	{
+		WillUpdate(ChangeSet::Position);
 		_boundingSphere = boundingSphere;
-		_updated = true;
+		DidUpdate(ChangeSet::Position);
 	}
 
 	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
@@ -398,7 +400,14 @@ namespace RN
 	void SceneNode::DidUpdate(ChangeSet changeSet)
 	{
 		if(changeSet & ChangeSet::Position)
+		{
 			_updated = true;
+			
+			//Updated flag Needs to be passed on to all children and their children
+			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
+				child->DidUpdate(ChangeSet::Position);
+			});
+		}
 
 		if(changeSet & ChangeSet::Parent && _parent == nullptr)
 		{
@@ -458,9 +467,6 @@ namespace RN
 			_transformedBoundingSphere.SetRotation(_worldRotation);
 
 			_updated = false;
-			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
-				child->_updated = true;
-			});
 		}
 	}
 }
