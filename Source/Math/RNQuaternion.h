@@ -303,29 +303,9 @@ namespace RN
 		float inverseFactor = 1.0f - factor;
 		return (end * factor) + (start * inverseFactor);
 	}
-	
-	RN_INLINE Quaternion Quaternion::WithLookAt(const Vector3 &tdir, const Vector3 &tup, bool forceup)
+
+	RN_INLINE Quaternion Quaternion::WithNormalizedVectors(const Vector3 &forward, const Vector3 &right, const Vector3 &up)
 	{
-		Quaternion temp;
-		
-		Vector3 dir = Vector3(tdir);
-		Vector3 up  = Vector3(tup);
-		Vector3 right = up.GetCrossProduct(dir);
-		right.Normalize();
-		
-		if(forceup)
-		{
-			dir = up.GetCrossProduct(right);
-			up.Normalize();
-			dir.Normalize();
-		}
-		else
-		{
-			up = dir.GetCrossProduct(right);
-			up.Normalize();
-			dir.Normalize();
-		}
-		
 		// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 		// article "Quaternion Calculus and Fast Animation".
 		// Implementation taken from Ogre3D.
@@ -337,12 +317,14 @@ namespace RN
 		kRot[0][1] = up.x;
 		kRot[1][1] = up.y;
 		kRot[2][1] = up.z;
-		kRot[0][2] = dir.x;
-		kRot[1][2] = dir.y;
-		kRot[2][2] = dir.z;
+		kRot[0][2] = forward.x;
+		kRot[1][2] = forward.y;
+		kRot[2][2] = forward.z;
 		
 		float fTrace = kRot[0][0] + kRot[1][1] + kRot[2][2];
 		float fRoot;
+		
+		Quaternion temp;
 		
 		if(fTrace > 0.0f)
 		{
@@ -381,6 +363,31 @@ namespace RN
 		temp.Normalize();
 		
 		return temp;
+	}
+	
+	RN_INLINE Quaternion Quaternion::WithLookAt(const Vector3 &tdir, const Vector3 &tup, bool forceup)
+	{
+		Quaternion temp;
+		
+		Vector3 dir = Vector3(tdir);
+		Vector3 up  = Vector3(tup);
+		Vector3 right = up.GetCrossProduct(dir);
+		right.Normalize();
+		
+		if(forceup)
+		{
+			dir = up.GetCrossProduct(right);
+			up.Normalize();
+			dir.Normalize();
+		}
+		else
+		{
+			up = dir.GetCrossProduct(right);
+			up.Normalize();
+			dir.Normalize();
+		}
+		
+		return WithNormalizedVectors(dir, right, up);
 	}
 	
 	RN_INLINE Quaternion &Quaternion::Normalize()

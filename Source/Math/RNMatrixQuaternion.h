@@ -116,6 +116,7 @@ namespace RN
 		static Quaternion WithLerpSpherical(const Quaternion &start, const Quaternion &end, float factor);
 		static Quaternion WithLerpLinear(const Quaternion &start, const Quaternion &end, float factor);
 		static Quaternion WithLookAt(const Vector3 &dir, const Vector3 &up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		static Quaternion WithNormalizedVectors(const Vector3 &forward, const Vector3 &right, const Vector3 &up);
 		
 		Quaternion &Normalize();
 		Quaternion GetNormalized() const;
