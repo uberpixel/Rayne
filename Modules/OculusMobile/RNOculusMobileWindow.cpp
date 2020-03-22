@@ -422,7 +422,6 @@ namespace RN
 
 					ovrMobile *session = static_cast<ovrMobile*>(_session);
 					vrapi_SetDisplayRefreshRate(session, 72.0f); //72
-					vrapi_SetRemoteEmulation(session, false);
 					vrapi_SetClockLevels(session, 5, 5); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
@@ -459,15 +458,6 @@ namespace RN
 
 		switch(vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE))
 		{
-			case VRAPI_HEADSET_TYPE_R320:
-			case VRAPI_HEADSET_TYPE_R321:
-			case VRAPI_HEADSET_TYPE_R322:
-			case VRAPI_HEADSET_TYPE_R323:
-			case VRAPI_HEADSET_TYPE_R324:
-			case VRAPI_HEADSET_TYPE_R325:
-				description->Append(RNCSTR("GearVR"));
-				break;
-
 			case VRAPI_HEADSET_TYPE_OCULUSGO:
 			case VRAPI_HEADSET_TYPE_MIVR_STANDALONE:
 				description->Append(RNCSTR("Oculus GO"));
