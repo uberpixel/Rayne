@@ -17,6 +17,7 @@
 
 [[vk::binding(2)]] cbuffer fragmentUniforms : register(b1)
 {
+	float4 cameraAmbientColor;
 	float4 diffuseColor;
 };
 
@@ -47,5 +48,6 @@ FragmentVertex sky_vertex(InputVertex vert)
 float4 sky_fragment(FragmentVertex vert) : SV_TARGET
 {
 	float4 color = texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+	color.rgb *= cameraAmbientColor.rgb;
 	return color * diffuseColor;
 }
