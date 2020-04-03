@@ -5,6 +5,7 @@ import urllib
 import zipfile
 import subprocess
 import Utilities
+import json
 
 
 def downloadItchIOButler(helperdir):
@@ -168,7 +169,7 @@ def main():
 
 		if platform == 'windows':
 			directoryToUpload = os.path.join(releasesDirectoryPath, 'windows_oculus')
-			directoryToUpload = os.path.join(directoryToUpload, configName)
+			#directoryToUpload = os.path.join(directoryToUpload, configName)
 			subprocess.call([oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060'])
 		elif platform == 'android':
 			apkToUpload = os.path.join(releasesDirectoryPath, 'android_oculus')
