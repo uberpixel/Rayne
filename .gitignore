@@ -2,7 +2,6 @@
 [Tt]humbs.db
 *.DS_Store
 *.orig
-
 # CLion
 .idea/*.iml
 .idea/workspace.xml
@@ -11,16 +10,13 @@
 .idea/misc.xml
 .idea/dictionaries
 .idea/serialmonitor_settings.xml
-
 # CMake
 build/
 cmake-build-*
 CMakeLists.txt.user
-
 # Vulkan Renderer
 Modules/Vulkan/Sources/RNVulkanDispatchTable.cpp
 Modules/Vulkan/Sources/RNVulkanDispatchTable.h
-
 # Modules
 .gclient
 .gclient_entries
@@ -34,7 +30,6 @@ Modules/UI/Vendor/depot_tools
 Modules/OculusAudio/Vendor/OculusAudio
 Modules/UI/Vendor/libskia/third_party
 Modules/UI/Vendor/libskia/include/third_party/vulkan
-
 # Build Folders
 xcode-build
 BUILD_VS
@@ -44,3 +39,4 @@ Build-iOS
 cmake-build-*
 Build-Xcode-UI
 /Tools/BuildHelper/Utilities.pyc
+/Tools/BuildHelper/Vendor/oculus/ovr-platform-util.exe

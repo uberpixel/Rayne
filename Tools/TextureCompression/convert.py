@@ -38,7 +38,24 @@ def prepare():
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
         os.makedirs(nvTextureToolsPath)
         subprocess.call(['cmake', '..'], cwd=os.path.abspath(nvTextureToolsPath))
-        subprocess.call(['make'], cwd=os.path.abspath(nvTextureToolsPath))
+
+        vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild"])
+        vswhereLines = vswhereOutput.splitlines()
+        for vswhereLine in vswhereLines:
+            if vswhereLine.startswith("installationPath: "):
+                vsInstallationPath = vswhereLine.split(": ", 1)[1]
+        if not vsInstallationPath:
+            print("No visual studio installation with MSBuild found!")
+            return
+        msbuildSearchDirectory = os.path.join(vsInstallationPath, "MSBuild")
+        for root, dirs, files in os.walk(msbuildSearchDirectory):
+            for file in files:
+                if file == "MSBuild.exe":
+                    msbuildPath = os.path.join(root, file)
+        if not msbuildPath:
+            print("MSBuild not found!")
+            return
+        subprocess.call([msbuildPath, 'NV.sln', '-target:nvcompress', '-maxcpucount', '/p:configuration=Release'], cwd=os.path.abspath(nvTextureToolsPath))
     elif platform.system() == 'Linux':
         #Stop preparation if nvcompress file already exists
         nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
