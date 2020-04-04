@@ -17,7 +17,8 @@ def prepare():
 
         #macOS
         astcencPath = os.path.dirname(sys.argv[0])
-        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/mac-x64/astcenc')
+        subprocess.call(['make'], cwd=os.path.abspath(os.path.join(astcencPath, 'Vendor/astc-encoder/Source')))
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
         subprocess.call(['chmod', '+x', astcencPath])
 
         nvTextureToolsPath = os.path.dirname(sys.argv[0])
@@ -63,10 +64,10 @@ def prepare():
         if os.path.isfile(nvTextureToolsExecutablePath):
             return
 
-        #macOS
-        astcencPath = os.path.dirname(sys.argv[0])
-        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc')
-        subprocess.call(['chmod', '+x', astcencPath])
+        #linux
+        #astcencPath = os.path.dirname(sys.argv[0])
+        #astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc')
+        #subprocess.call(['chmod', '+x', astcencPath])
 
         nvTextureToolsPath = os.path.dirname(sys.argv[0])
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
