@@ -110,7 +110,7 @@ def main():
     astcencPath = os.path.dirname(sys.argv[0])
     nvTextureToolsPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
-        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/mac-x64/astcenc')
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
         #compressonatorPath = os.path.join(astcencPath, 'Vendor/CMP3/CompressonatorCLI.sh')
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
     elif platform.system() == 'Windows':
@@ -158,7 +158,7 @@ def main():
 
             for i in range(0, numLevels):
                 #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
-                subprocess.call([astcencPath, '-c', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-medium'])
+                subprocess.call([astcencPath, '-cs', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-medium'])
                 os.remove(outputFileName + '.' + str(i) + inputFileExtension)
                 
             with open(targetFile, 'wb') as outputFile:
