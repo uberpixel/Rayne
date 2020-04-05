@@ -48,8 +48,10 @@ set(SOURCES
         Sources/RNVulkanShaderLibrary.cpp
         Sources/RNVulkanStateCoordinator.cpp
         Sources/RNVulkanConstantBuffer.cpp
-        ../../Vendor/SPIRV-Cross/spirv_cross.cpp
-        ../../Vendor/SPIRV-Cross/spirv_cfg.cpp)
+        ../../Vendor/SPIRV-Cross/spirv_cfg.cpp
+        ../../Vendor/SPIRV-Cross/spirv_cross_parsed_ir.cpp
+        ../../Vendor/SPIRV-Cross/spirv_parser.cpp
+        ../../Vendor/SPIRV-Cross/spirv_cross.cpp)
 
 set(HEADERS
         Sources/RNVulkan.h
@@ -69,6 +71,11 @@ set(HEADERS
         Sources/RNVulkanShaderLibrary.h
         Sources/RNVulkanStateCoordinator.h
         Sources/RNVulkanConstantBuffer.h
+        ../../Vendor/SPIRV-Cross/spirv.hpp
+        ../../Vendor/SPIRV-Cross/spirv_common.hpp
+        ../../Vendor/SPIRV-Cross/spirv_cfg.hpp
+        ../../Vendor/SPIRV-Cross/spirv_cross_parsed_ir.hpp
+        ../../Vendor/SPIRV-Cross/spirv_parser.hpp
         ../../Vendor/SPIRV-Cross/spirv_cross.hpp)
 
 set(RESOURCES
