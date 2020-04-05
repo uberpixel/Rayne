@@ -13,9 +13,6 @@
 [submodule "Modules/Assimp/Vendor/Assimp"]
 	path = Modules/Assimp/Vendor/Assimp
 	url = https://github.com/assimp/assimp.git
-[submodule "Modules/Bullet/Vendor/bullet"]
-	path = Modules/Bullet/Vendor/bullet
-	url = https://github.com/bulletphysics/bullet3.git
 [submodule "Modules/OpenAL/Vendor/openal-soft"]
 	path = Modules/OpenAL/Vendor/openal-soft
 	url = https://github.com/kcat/openal-soft.git

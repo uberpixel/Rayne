@@ -3,19 +3,34 @@ project(RayneBullet)
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
+include(ExternalProject)
 
-OPTION(USE_GRAPHICAL_BENCHMARK "Use Graphical Benchmark" OFF)
-OPTION(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC Runtime Library DLL (/MD or /MDd)" ON)
-OPTION(BUILD_CPU_DEMOS "Build original Bullet CPU examples" OFF)
-OPTION(USE_GLUT "Use Glut" OFF)
-OPTION(BUILD_ENET "Set when you want to build apps with enet UDP networking support" OFF)
-OPTION(BUILD_CLSOCKET "Set when you want to build apps with enet TCP networking support" OFF)
-OPTION(BUILD_OPENGL3_DEMOS "Set when you want to build the OpenGL3+ demos" OFF)
-OPTION(BUILD_BULLET2_DEMOS "Set when you want to build the Bullet 2 demos" OFF)
-OPTION(BUILD_EXTRAS "Set when you want to build the extras" OFF)
-OPTION(BUILD_UNIT_TESTS "Build Unit Tests" OFF)
-OPTION(BUILD_BULLET3 "Set when you want to build Bullet 3" OFF)
-add_subdirectory("Vendor/bullet")
+ExternalProject_Add(bullet
+        GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+        GIT_TAG refs/tags/2.89
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        CMAKE_CACHE_ARGS
+                "-DUSE_GRAPHICAL_BENCHMARK:BOOL=False"
+                "-DUSE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=True"
+                "-DBUILD_CPU_DEMOS:BOOL=False"
+                "-DUSE_GLUT:BOOL=False"
+                "-DBUILD_ENET:BOOL=False"
+                "-DBUILD_CLSOCKET:BOOL=False"
+                "-DBUILD_OPENGL3_DEMOS:BOOL=False"
+                "-DBUILD_BULLET2_DEMOS:BOOL=False"
+                "-DBUILD_EXTRAS:BOOL=False"
+                "-DBUILD_UNIT_TESTS:BOOL=False"
+                "-DBUILD_BULLET3:BOOL=False"
+        BUILD_BYPRODUCTS
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Debug/libLinearMath.a"
+
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Release/libBulletCollision.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Release/libLinearMath.a"
+        INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -47,13 +62,24 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_BULLET)
 
-set(RAYNE_LIBRARIES Rayne BulletDynamics BulletCollision LinearMath)
+set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/bullet/src")
 
 rayne_add_library(RayneBullet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneBullet)
+
+add_dependencies(RayneBullet bullet)
+
+target_link_libraries(RayneBullet 
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Debug/libLinearMath.a"
+
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Release/libBulletCollision.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Release/libLinearMath.a")
 
 target_include_directories(RayneBullet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneBullet PRIVATE "${DEFINES}")
