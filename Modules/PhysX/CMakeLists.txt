@@ -111,7 +111,12 @@ else()
 endif()
 
 ExternalProject_Add(physx
-    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/compiler/public"
+    GIT_REPOSITORY https://github.com/NVIDIAGameWorks/PhysX.git
+    GIT_TAG origin/4.1
+    GIT_SHALLOW ON
+    GIT_PROGRESS ON
+    PATCH_COMMAND sed -i " " -e s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt
+    SOURCE_SUBDIR physx/compiler/public
     CMAKE_ARGS "${PHYSX_CMAKE_ARGS}"
     BUILD_BYPRODUCTS ${RN_PHYSX_BUILD_BYPRODUCTS}
     INSTALL_COMMAND "")
