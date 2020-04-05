@@ -2,15 +2,25 @@ cmake_minimum_required(VERSION 2.8.4)
 project(RayneAssimp)
 
 include(../../CMake/LibraryTarget.cmake)
+include(ExternalProject)
 
-#Force some better default values...
-option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
-option(ASSIMP_BUILD_TESTS  "If the test suite for Assimp is built in addition to the library." OFF)
-option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." ON)
-option(ASSIMP_BUILD_ASSIMP_TOOLS "If the supplementary tools for Assimp are built in addition to the library." OFF)
-
-add_subdirectory(Vendor/Assimp)
-target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)
+ExternalProject_Add(assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG refs/tags/v5.0.1
+    GIT_SHALLOW ON
+    GIT_PROGRESS ON
+    PATCH_COMMAND grep -qxF "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" <SOURCE_DIR>/CMakeLists.txt || echo "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" >> <SOURCE_DIR>/CMakeLists.txt
+    CMAKE_CACHE_ARGS
+        "-DBUILD_SHARED_LIBS:BOOL=False"
+        "-DASSIMP_BUILD_TESTS:BOOL=False"
+        "-DASSIMP_NO_EXPORT:BOOL=True"
+        "-DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=False"
+    BUILD_BYPRODUCTS
+        "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/code/Debug/libassimpd.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/contrib/irrXML/Debug/libIrrXMLd.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/code/Release/libassimp.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/contrib/irrXML/Release/libIrrXML.a"
+    INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -30,16 +40,24 @@ set(DEFINES
         RN_BUILD_ASSIMP)
 
 set(RAYNE_LIBRARIES Rayne)
-set(LINK_LIBRARIES assimp)
 set(INCLUDE_DIRECTORIES
         ${Rayne_BINARY_DIR}/include
-        ${Assimp_SOURCE_DIR}/include)
+        ${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp/include
+        ${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/include)
 
 rayne_add_library(RayneAssimp "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneAssimp)
 
 target_include_directories(RayneAssimp SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
-target_link_libraries(RayneAssimp "${LINK_LIBRARIES}")
 target_compile_definitions(RayneAssimp PRIVATE "${DEFINES}")
+
+add_dependencies(RayneAssimp assimp)
+
+target_link_libraries(RayneAssimp "${LINK_LIBRARIES}"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/code/Debug/libassimpd.a"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/contrib/irrXML/Debug/libIrrXMLd.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/code/Release/libassimp.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/assimp-prefix/src/assimp-build/contrib/irrXML/Release/libIrrXML.a")
+
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneAssimp/. DESTINATION lib/Rayne/RayneAssimp)

@@ -65,7 +65,7 @@ set(DEFINES RN_BUILD_BULLET)
 set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/bullet/src")
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet/src")
 
 rayne_add_library(RayneBullet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneBullet)
