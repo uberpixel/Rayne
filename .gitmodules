@@ -34,18 +34,12 @@
 [submodule "Tools/ShaderProcessor/Vendor/ShaderConductor"]
 	path = Tools/ShaderProcessor/Vendor/ShaderConductor
 	url = https://github.com/Slin/ShaderConductor.git
-[submodule "Modules/OculusAudio/Vendor/rtaudio"]
-	path = Modules/OculusAudio/Vendor/rtaudio
-	url = https://github.com/thestk/rtaudio.git
 [submodule "Tools/TextureCompression/Vendor/astc-encoder"]
 	path = Tools/TextureCompression/Vendor/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
 [submodule "Tools/TextureCompression/Vendor/nvidia-texture-tools"]
 	path = Tools/TextureCompression/Vendor/nvidia-texture-tools
 	url = https://github.com/castano/nvidia-texture-tools.git
-[submodule "Modules/OculusAudio/Vendor/Oboe"]
-	path = Modules/OculusAudio/Vendor/Oboe
-	url = https://github.com/google/oboe.git
 [submodule "Modules/UI/Vendor/skia"]
 	path = Modules/UI/Vendor/skia
 	url = https://skia.googlesource.com/skia.git
