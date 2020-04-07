@@ -10,9 +10,6 @@
 [submodule "Vendor/zlib"]
 	path = Vendor/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "Modules/SteamAudio/Vendor/libsoundio"]
-	path = Modules/SteamAudio/Vendor/libsoundio
-	url = https://github.com/andrewrk/libsoundio.git
 [submodule "Modules/OpenVR/Vendor/OpenVR"]
 	path = Modules/OpenVR/Vendor/OpenVR
 	url = https://github.com/Slin/openvr.git
