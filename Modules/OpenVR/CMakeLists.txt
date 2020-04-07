@@ -1,17 +1,42 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(RayneOpenVR)
 
-#option(BUILD_SHARED "Builds the library as shared library" ON)
-option(BUILD_UNIVERSAL "Builds the shared or framework as a universal (fat, 32- & 64-bit) binary" OFF)
-
-if(UNIX AND NOT APPLE)
-option(USE_LIBCXX "Uses libc++ instead of libstdc++" OFF)
-endif()
-
-add_subdirectory("Vendor/OpenVR")
-
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
+include(ExternalProject)
+
+if(NOT UNIX OR APPLE)
+    set(USE_LIBCXX 1)
+else()
+    set(USE_LIBCXX 0)
+endif()
+
+if(WIN32)
+  set(PLATFORM_NAME "win64")
+elseif(UNIX AND NOT APPLE)
+  if(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
+    set(PLATFORM_NAME "linux64")
+  endif()
+elseif(APPLE)
+  if(CMAKE_SYSTEM_NAME MATCHES ".*Darwin.*" OR CMAKE_SYSTEM_NAME MATCHES ".*MacOS.*")
+    set(PLATFORM_NAME "osx64")
+  endif()
+endif()
+
+ExternalProject_Add(openvr
+        GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
+        GIT_TAG refs/tags/v1.10.30
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        CMAKE_CACHE_ARGS
+                "-DBUILD_UNIVERSAL:BOOL=False"
+                "-DBUILD_SHARED:BOOL=False"
+                "-DUSE_LIBCXX:BOOL=${USE_LIBCXX}"
+        BUILD_BYPRODUCTS
+                "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a"
+        INSTALL_COMMAND "")
+
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -34,13 +59,11 @@ set(DEFINES RN_BUILD_OPENVR)
 set(RAYNE_LIBRARIES Rayne RayneVR)
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OpenVR/headers"
+        "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/headers"
         "${CMAKE_CURRENT_BINARY_DIR}/../VRWrapper/include")
 
 
 if(WIN32)
-    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api64)
-
     if(${RN_BUILD_D3D12_MODULE})
         set(SOURCES ${SOURCES}  RNOpenVRD3D12SwapChain.cpp)
         set(HEADERS ${HEADERS} RNOpenVRD3D12SwapChain.h)
@@ -65,7 +88,7 @@ elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
         ${HEADERS}
         RNOpenVRMetalSwapChain.h)
 
-    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api RayneMetal)
+    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneMetal)
 
     set(INCLUDE_DIRECTORIES
         ${INCLUDE_DIRECTORIES}
@@ -79,7 +102,7 @@ elseif((UNIX AND NOT APPLE) AND ${RN_BUILD_VULKAN_MODULE})
             ${HEADERS}
             RNOpenVRVulkanSwapChain.h)
 
-    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} openvr_api RayneVulkan)
+    set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneVulkan)
 
     set(INCLUDE_DIRECTORIES
             ${INCLUDE_DIRECTORIES}
@@ -117,7 +140,11 @@ elseif((UNIX AND NOT APPLE) AND ${RN_BUILD_VULKAN_MODULE})
 endif()
 
 target_include_directories(RayneOpenVR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
-#target_link_libraries(RayneOpenVR "${LINK_LIBRARIES}")
 target_compile_definitions(RayneOpenVR PRIVATE "${DEFINES}")
+
+add_dependencies(RayneOpenVR openvr)
+target_link_libraries(RayneOpenVR 
+        debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenVR/. DESTINATION lib/Rayne/RayneOpenVR)

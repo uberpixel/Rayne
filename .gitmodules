@@ -10,9 +10,6 @@
 [submodule "Vendor/zlib"]
 	path = Vendor/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "Modules/OpenVR/Vendor/OpenVR"]
-	path = Modules/OpenVR/Vendor/OpenVR
-	url = https://github.com/Slin/openvr.git
 [submodule "Vendor/SPIRV-Cross"]
 	path = Vendor/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
