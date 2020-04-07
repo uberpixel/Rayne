@@ -14,6 +14,22 @@ endif()
 
 
 include(../../CMake/LibraryTarget.cmake)
+include(ExternalProject)
+
+ExternalProject_Add(spirvcross
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+        GIT_TAG refs/tags/2020-04-03
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        BUILD_BYPRODUCTS
+            ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cfg.cpp
+            ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross_parsed_ir.cpp
+            ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_parser.cpp
+            ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross.cpp
+        INSTALL_COMMAND "")
+
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -48,10 +64,10 @@ set(SOURCES
         Sources/RNVulkanShaderLibrary.cpp
         Sources/RNVulkanStateCoordinator.cpp
         Sources/RNVulkanConstantBuffer.cpp
-        ../../Vendor/SPIRV-Cross/spirv_cfg.cpp
-        ../../Vendor/SPIRV-Cross/spirv_cross_parsed_ir.cpp
-        ../../Vendor/SPIRV-Cross/spirv_parser.cpp
-        ../../Vendor/SPIRV-Cross/spirv_cross.cpp)
+        ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cfg.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross_parsed_ir.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_parser.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross.cpp)
 
 set(HEADERS
         Sources/RNVulkan.h
@@ -71,12 +87,13 @@ set(HEADERS
         Sources/RNVulkanShaderLibrary.h
         Sources/RNVulkanStateCoordinator.h
         Sources/RNVulkanConstantBuffer.h
-        ../../Vendor/SPIRV-Cross/spirv.hpp
-        ../../Vendor/SPIRV-Cross/spirv_common.hpp
-        ../../Vendor/SPIRV-Cross/spirv_cfg.hpp
-        ../../Vendor/SPIRV-Cross/spirv_cross_parsed_ir.hpp
-        ../../Vendor/SPIRV-Cross/spirv_parser.hpp
-        ../../Vendor/SPIRV-Cross/spirv_cross.hpp)
+        #../../Vendor/SPIRV-Cross/spirv.hpp
+        #../../Vendor/SPIRV-Cross/spirv_common.hpp
+        #../../Vendor/SPIRV-Cross/spirv_cfg.hpp
+        #../../Vendor/SPIRV-Cross/spirv_cross_parsed_ir.hpp
+        #../../Vendor/SPIRV-Cross/spirv_parser.hpp
+        #../../Vendor/SPIRV-Cross/spirv_cross.hpp
+        )
 
 set(RESOURCES
         Resources)
@@ -92,14 +109,15 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 set(RAYNE_LIBRARIES Rayne)
-#set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/Vendor" "${CMAKE_CURRENT_SOURCE_DIR}/../../Vendor/SPIRV-Cross")
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVulkan)
 rayne_copy_resources(RayneVulkan ${RESOURCES})
 
 add_dependencies(RayneVulkan_copyHeaderTarget VulkanGenerateDispatchTable)
+add_dependencies(RayneVulkan_copyHeaderTarget spirvcross)
 
+target_include_directories(RayneVulkan SYSTEM PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Vulkan_INCLUDE_DIR})
 target_compile_definitions(RayneVulkan PRIVATE "${DEFINES}")

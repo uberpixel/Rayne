@@ -22,6 +22,10 @@ ExternalProject_Add(bullet
                 "-DBUILD_EXTRAS:BOOL=False"
                 "-DBUILD_UNIT_TESTS:BOOL=False"
                 "-DBUILD_BULLET3:BOOL=False"
+                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
+                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
+                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
+                "-DANDROID_STL:STRING=${ANDROID_STL}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"

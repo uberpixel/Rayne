@@ -11,6 +11,11 @@ if(ANDROID)
         GIT_TAG refs/tags/1.3
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        CMAKE_CACHE_ARGS
+                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
+                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
+                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
+                "-DANDROID_STL:STRING=${ANDROID_STL}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"

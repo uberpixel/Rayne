@@ -21,10 +21,17 @@ ExternalProject_Add(openal
                 "-DALSOFT_INSTALL:BOOL=False"
                 "-DALSOFT_EMBED_HRTF_DATA:BOOL=True"
                 "-DALSOFT_REQUIRE_OPENSL:BOOL=${ANDROID}"
+                "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
+                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
+                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
+                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
+                "-DANDROID_STL:STRING=${ANDROID_STL}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
                 "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib"
+                "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so"
         INSTALL_COMMAND "")
+
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -54,7 +61,7 @@ set(RAYNE_LIBRARIES Rayne)
 if(APPLE)
         set(COMPILE_OPTIONS -xobjective-c++)
         find_library(AVFOUNDATION_LIBRARY AVFoundation)
-        set(RAYNE_LIBRARIES ${AVFOUNDATION_LIBRARY} ${RAYNE_LIBRARIES})
+        set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} ${AVFOUNDATION_LIBRARY})
 endif()
 
 set(INCLUDE_DIRECTORIES
@@ -69,9 +76,20 @@ target_compile_definitions(RayneOpenAL PRIVATE "${DEFINES}")
 target_compile_options(RayneOpenAL PRIVATE ${COMPILE_OPTIONS})
 
 add_dependencies(RayneOpenAL openal)
-target_link_libraries(RayneOpenAL 
-        debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
-        optimized "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib")
+if(APPLE)
+        target_link_libraries(RayneOpenAL 
+                debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
+                optimized "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib")
+elseif(ANDROID)
+        list(GET ANDROID_ASSETS_DIRECTORIES 0 android-assets-dir)
+        string(LENGTH ${android-assets-dir} length)
+        MATH(EXPR length "${length}-2")
+        string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
+
+        target_link_libraries(RayneOpenAL 
+                ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so ${android-assets-dir}/../libs/arm64-v8a/libopenal.so)
+endif()
 
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")

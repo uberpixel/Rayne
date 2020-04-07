@@ -10,9 +10,16 @@ ExternalProject_Add(enet
         GIT_TAG origin/master
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        CMAKE_CACHE_ARGS
+                "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
+                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
+                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
+                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
+                "-DANDROID_STL:STRING=${ANDROID_STL}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/libenet.a"
         INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
@@ -56,8 +63,13 @@ target_include_directories(RayneENet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneENet PRIVATE "${DEFINES}")
 
 add_dependencies(RayneENet enet)
-target_link_libraries(RayneENet 
-        debug "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
-        optimized "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a")
+if(ANDROID OR UNIX AND NOT APPLE)
+        target_link_libraries(RayneENet 
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/libenet.a")
+else()
+        target_link_libraries(RayneENet 
+                debug "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
+                optimized "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a")
+endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneENet/. DESTINATION lib/Rayne/RayneENet)

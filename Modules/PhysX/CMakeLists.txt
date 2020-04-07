@@ -11,11 +11,11 @@ set(PHYSX_CMAKE_ARGS
         -DPX_BUILDPUBLICSAMPLES=False
         -DPX_CMAKE_SUPPRESS_REGENERATION=True
         -DPX_GENERATE_STATIC_LIBRARIES=True
-        -DPHYSX_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx
-        -DPX_OUTPUT_LIB_DIR=${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx
-        -DPX_OUTPUT_BIN_DIR=${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx
-        -DPXSHARED_PATH=${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/pxshared
-        -DCMAKEMODULES_PATH=${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/externals/cmakemodules
+        -DPHYSX_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx/physx
+        -DPX_OUTPUT_LIB_DIR=${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx
+        -DPX_OUTPUT_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx
+        -DPXSHARED_PATH=${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx/pxshared
+        -DCMAKEMODULES_PATH=${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx/externals/cmakemodules
         -DCMAKEMODULES_NAME=CMakeModules
         -DCMAKEMODULES_VERSION=1.27)
 
@@ -26,25 +26,25 @@ if(APPLE)
         -DCMAKE_CXX_FLAGS=-Wno-atomic-implicit-seq-cst)
 
     set (RN_PHYSX_BUILD_BYPRODUCTS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXFoundation_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/debug/libPhysXPvdSDK_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXFoundation_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXPvdSDK_static_64.a"
 
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXFoundation_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64/release/libPhysXPvdSDK_static_64.a")
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXFoundation_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/mac.x86_64/release/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/mac.x86_64/release/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXPvdSDK_static_64.a")
 
-        set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/mac.x86_64)
+        set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64)
 elseif(ANDROID)
     set(PHYSX_CXX_FLAGS "-Wno-unknown-warning-option -Wno-invalid-noreturn -Wno-unused-private-field -Wno-unused-local-typedef -D__ANDROID__")
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
@@ -59,14 +59,14 @@ elseif(ANDROID)
         -DCMAKE_BUILD_TYPE=release)
 
     set(RN_PHYSX_BUILD_BYPRODUCTS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXPvdSDK_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXFoundation_static_64.a")
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXPvdSDK_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXFoundation_static_64.a")
 elseif(UNIX)
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=linux
@@ -76,20 +76,20 @@ elseif(UNIX)
         -DCMAKE_BUILD_TYPE=release)
 
     set(RN_PHYSX_BUILD_BYPRODUCTS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a")
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a")
 else()
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=windows
         -DPX_OUTPUT_ARCH=x86
         -DPHYSX_CXX_FLAGS_DEBUG=/MDd)
-    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/win.x86_64.vc${MSVC_TOOLSET_VERSION}.md)
+    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/win.x86_64.vc${MSVC_TOOLSET_VERSION}.md)
 
     set(RN_PHYSX_BUILD_BYPRODUCTS
         "${RN_PHYSX_BUILD_DIR}/debug/PhysXFoundation_static_64.lib"
@@ -115,9 +115,10 @@ ExternalProject_Add(physx
     GIT_TAG origin/4.1
     GIT_SHALLOW ON
     GIT_PROGRESS ON
-    PATCH_COMMAND sed -i " " -e s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt
+    PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt
     SOURCE_SUBDIR physx/compiler/public
     CMAKE_ARGS "${PHYSX_CMAKE_ARGS}"
+    UPDATE_COMMAND ""
     BUILD_BYPRODUCTS ${RN_PHYSX_BUILD_BYPRODUCTS}
     INSTALL_COMMAND "")
 
@@ -157,9 +158,9 @@ set(DEFINES RN_BUILD_PHYSX PX_PHYSX_STATIC_LIB)
 if(APPLE)
     set(RAYNE_LIBRARIES Rayne)
 elseif(ANDROID)
-    set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCharacterKinematic_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXExtensions_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysX_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXPvdSDK_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXVehicle_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCooking_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCommon_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXFoundation_static_64.a)
+    set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCharacterKinematic_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXExtensions_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysX_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXPvdSDK_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXVehicle_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCooking_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXCommon_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/android.arm64-v8a.fp-soft/release/libPhysXFoundation_static_64.a)
 elseif(UNIX)
-    set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCommon_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysX_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCooking_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a)
+    set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCommon_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysX_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCooking_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCharacterKinematic_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXVehicle_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a)
 else()
     set(RAYNE_LIBRARIES Rayne)
 endif()
@@ -167,8 +168,8 @@ endif()
 
 set(INCLUDE_DIRECTORIES
     "${Rayne_BINARY_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/pxshared/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/PhysX/physx/include")
+    "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx/pxshared/include"
+    "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx/physx/include")
 
 rayne_add_library(RaynePhysX "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 

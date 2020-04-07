@@ -8,7 +8,7 @@
 
 #include "RNVulkanShader.h"
 #include "RNVulkanRenderer.h"
-#include "../../../Vendor/SPIRV-Cross/spirv_cross.hpp"
+#include "spirv_cross.hpp"
 
 namespace RN
 {

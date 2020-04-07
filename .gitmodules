@@ -10,9 +10,6 @@
 [submodule "Vendor/zlib"]
 	path = Vendor/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "Vendor/SPIRV-Cross"]
-	path = Vendor/SPIRV-Cross
-	url = https://github.com/KhronosGroup/SPIRV-Cross.git
 [submodule "CMake/Toolchains/iOS"]
 	path = CMake/Toolchains/iOS
 	url = https://github.com/leetal/ios-cmake.git
