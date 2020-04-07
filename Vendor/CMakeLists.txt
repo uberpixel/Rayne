@@ -8,7 +8,6 @@ option(PNG_TESTS "Build libpng tests" OFF)
 
 add_subdirectory("zlib")
 add_subdirectory("jansson")
-add_subdirectory("gtest")
 add_subdirectory("libpng")
 
 #Exclude all unused targets from normal build
@@ -22,10 +21,6 @@ if(HAVE_OFF64_T)
     set_target_properties(minigzip64 PROPERTIES EXCLUDE_FROM_ALL TRUE)
     set_target_properties(minigzip64 PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif()
-set_target_properties(gtest_main PROPERTIES EXCLUDE_FROM_ALL TRUE)
-set_target_properties(gtest_main PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL TRUE)
-set_target_properties(gtest PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 if(BUILD_UNIT_TESTS)
     set_target_properties(objectTests PROPERTIES EXCLUDE_FROM_ALL TRUE)
     set_target_properties(objectTests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)

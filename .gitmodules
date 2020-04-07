@@ -1,9 +1,6 @@
 [submodule "Vendor/jansson"]
 	path = Vendor/jansson
 	url = https://github.com/akheron/jansson.git
-[submodule "Vendor/gtest"]
-	path = Vendor/gtest
-	url = https://github.com/google/googletest.git
 [submodule "Vendor/libpng"]
 	path = Vendor/libpng
 	url = git://git.code.sf.net/p/libpng/code

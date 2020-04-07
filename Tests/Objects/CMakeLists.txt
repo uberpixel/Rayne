@@ -15,5 +15,5 @@ set(RESOURCES
 
 rayne_copy_resources(${RESOURCES} objectTests)
 
-target_link_libraries(objectTests gtest gtest_main)
+target_link_libraries(objectTests ${gtest_LIBRARIES})
 target_link_libraries(objectTests Rayne)
