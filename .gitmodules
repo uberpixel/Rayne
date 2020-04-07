@@ -13,9 +13,6 @@
 [submodule "Modules/OpenVR/Vendor/OpenVR"]
 	path = Modules/OpenVR/Vendor/OpenVR
 	url = https://github.com/Slin/openvr.git
-[submodule "Modules/Recast/Vendor/recast"]
-	path = Modules/Recast/Vendor/recast
-	url = https://github.com/recastnavigation/recastnavigation.git
 [submodule "Vendor/SPIRV-Cross"]
 	path = Vendor/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
