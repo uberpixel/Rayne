@@ -10,9 +10,6 @@
 [submodule "Vendor/zlib"]
 	path = Vendor/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "Modules/OpenAL/Vendor/openal-soft"]
-	path = Modules/OpenAL/Vendor/openal-soft
-	url = https://github.com/kcat/openal-soft.git
 [submodule "Modules/SteamAudio/Vendor/libsoundio"]
 	path = Modules/SteamAudio/Vendor/libsoundio
 	url = https://github.com/andrewrk/libsoundio.git

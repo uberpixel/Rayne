@@ -71,7 +71,6 @@ rayne_add_library(RayneBullet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${
 rayne_set_module_output_directory(RayneBullet)
 
 add_dependencies(RayneBullet bullet)
-
 target_link_libraries(RayneBullet 
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"
