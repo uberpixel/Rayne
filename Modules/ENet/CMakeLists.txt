@@ -3,10 +3,17 @@ project(RayneENet)
 
 include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
+include(ExternalProject)
 
-add_subdirectory("Vendor/enet")
-
-set(RN_ENET_USE_BOTAN_DTLS_ENCRYPTION 0)
+ExternalProject_Add(enet
+        GIT_REPOSITORY https://github.com/lsalzman/enet.git
+        GIT_TAG origin/master
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        BUILD_BYPRODUCTS
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a"
+        INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -33,15 +40,14 @@ set(HEADERS
 set(DEFINES RN_BUILD_ENET)
 
 if(WIN32)
-        set(RAYNE_LIBRARIES Rayne enet ws2_32.lib winmm.lib)
+        set(RAYNE_LIBRARIES Rayne ws2_32.lib winmm.lib)
 else()
-        set(RAYNE_LIBRARIES Rayne enet)
+        set(RAYNE_LIBRARIES Rayne)
 endif()
 
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/enet/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/steamaudio/include")
+        "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet/include")
 
 rayne_add_library(RayneENet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneENet)
@@ -49,17 +55,9 @@ rayne_set_module_output_directory(RayneENet)
 target_include_directories(RayneENet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneENet PRIVATE "${DEFINES}")
 
-if(ENET_USE_BOTAN_DTLS_ENCRYPTION)
-        ExternalProject_Add(botan
-                URL "https://github.com/randombit/botan/archive/2.12.1.tar.gz"
-                CONFIGURE_COMMAND python ${CMAKE_CURRENT_BINARY_DIR}/botan-prefix/src/botan/configure.py --cc=clang --minimized-build --enable-modules=uuid,tls,auto_rng,system_rng
-                BUILD_COMMAND make ./libbotan-2.a
-                INSTALL_COMMAND "")
-        add_dependencies(RayneENet botan)
-        target_link_libraries(RayneENet ${CMAKE_CURRENT_BINARY_DIR}/botan-prefix/src/botan-build/libbotan-2.a)
-        target_include_directories(RayneENet PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/botan-prefix/src/botan-build/build/include)
-
-        target_compile_definitions(RayneENet PRIVATE "RN_ENET_USE_BOTAN_DTLS_ENCRYPTION")
-endif()
+add_dependencies(RayneENet enet)
+target_link_libraries(RayneENet 
+        debug "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneENet/. DESTINATION lib/Rayne/RayneENet)
