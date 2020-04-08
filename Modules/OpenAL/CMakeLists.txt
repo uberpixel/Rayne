@@ -93,9 +93,7 @@ endif()
 
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")
-#        SET_TARGET_PROPERTIES(OpenAL PROPERTIES VERSION "version")
         add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib" "$<TARGET_FILE_DIR:RayneOpenAL>/libopenal.1.dylib")
-#        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:OpenAL>/libopenal.1.20.1.dylib" "$<TARGET_FILE_DIR:OpenAL>/$<TARGET_FILE_NAME:OpenAL>")
 else()
 #        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
 endif()

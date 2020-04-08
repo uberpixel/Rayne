@@ -17,6 +17,7 @@ set(SOURCES
 set(HEADERS
 	RNVR.h
     RNVRWindow.h
+    RNVRStubWindow.h
     RNVRCamera.h
     RNVRTrackingState.h)
 
