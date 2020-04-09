@@ -23,18 +23,19 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_VR)
 
+set(RAYNE_LIBRARIES Rayne)
+
 if(APPLE)
 	if(${RN_BUILD_METAL_MODULE})
-		set(RAYNE_LIBRARIES Rayne RayneMetal)
+		set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneMetal)
 		set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/../Metal/include/Sources")
 	endif()
 elseif(ANDROID OR UNIX)
 	if(${RN_BUILD_VULKAN_MODULE})
-		set(RAYNE_LIBRARIES Rayne RayneVulkan)
+		set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneVulkan)
 		set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources")
 	endif()
 else(WIN32)
-	set(RAYNE_LIBRARIES Rayne)
 	set(INCLUDE_DIRECTORIES "${Rayne_BINARY_DIR}/include")
 
 	if(${RN_BUILD_D3D12_MODULE})
