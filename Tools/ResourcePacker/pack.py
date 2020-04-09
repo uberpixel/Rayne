@@ -58,20 +58,28 @@ def needsToUpdateFile(sourceFile, targetFile):
 
 def main():
     if len(sys.argv) < 3:
-        print 'python pack.py inputFolder outputFolder [platform (either \'pc\' or \'mobile\')]'
+        print 'python pack.py inputFolder outputFolder [platform (either \'pc\' or \'mobile\') --skip-textures]'
         return
 
     scriptDirectory = os.path.dirname(sys.argv[0])
     sourceDirectory = sys.argv[1]
     targetDirectory = sys.argv[2]
+    platform = None
+    if len(sys.argv) > 3 and platform in ['pc', 'mobile']:
+        platform = sys.argv[3]
+
+    skipTextures = False
+    for i in range(3, len(sys.argv), 1):
+        if sys.argv[i] == '--skip-textures':
+            skipTextures = True
 
     preferredTextureExtension = ''
     textureExtensionsToSkipForCompressed = ['.png']
-    if len(sys.argv) > 3:
-        if sys.argv[3] == 'pc':
+    if platform:
+        if platform == 'pc':
             preferredTextureExtension = '.dds'
             textureExtensionsToSkipForCompressed = ['.png', '.astc']
-        elif sys.argv[3] == 'mobile':
+        elif platform == 'mobile':
             preferredTextureExtension = '.astc'
             textureExtensionsToSkipForCompressed = ['.png', '.dds']
         else:
@@ -87,34 +95,41 @@ def main():
             os.makedirs(currentTargetDirectory)
 
         filesToSkip = dict()
-        for filename in files:
-            sourceFilePath = os.path.join(currentSourceDirectory, filename)
-            targetFilePath = os.path.join(currentTargetDirectory, filename)
 
-            if sourceFilePath.endswith(".sgm"):
-                textures = getTexturesForModelFile(sourceFilePath)
-                for texture in textures:
-                    textureFileName, textureFileExtension = os.path.splitext(texture)
-                    if textureFileExtension == '.*':
-                        textureInputFilename = textureFileName + preferredTextureExtension
-                        textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
-                        if os.path.isfile(textureInputPath):
-                            for extension in textureExtensionsToSkipForCompressed:
-                                textureInputFilename = textureFileName + extension
-                                filesToSkip[textureInputFilename] = True
-                            continue #If a file in the preferred format exists, use it instead of compressing the png file
+        if not skipTextures:
+            for filename in files:
+                sourceFilePath = os.path.join(currentSourceDirectory, filename)
+                targetFilePath = os.path.join(currentTargetDirectory, filename)
 
-                        textureInputFilename = textureFileName + '.png'
-                        textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
-                        if os.path.isfile(textureInputPath):
-                            textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
-                            subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
-                            for extension in textureExtensionsToSkipForCompressed:
-                                textureInputFilename = textureFileName + extension
-                                filesToSkip[textureInputFilename] = True
+                if sourceFilePath.endswith(".sgm"):
+                    textures = getTexturesForModelFile(sourceFilePath)
+                    for texture in textures:
+                        textureFileName, textureFileExtension = os.path.splitext(texture)
+                        if textureFileExtension == '.*':
+                            textureInputFilename = textureFileName + preferredTextureExtension
+                            textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
+                            if os.path.isfile(textureInputPath):
+                                for extension in textureExtensionsToSkipForCompressed:
+                                    textureInputFilename = textureFileName + extension
+                                    filesToSkip[textureInputFilename] = True
+                                continue #If a file in the preferred format exists, use it instead of compressing the png file
+
+                            textureInputFilename = textureFileName + '.png'
+                            textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
+                            if os.path.isfile(textureInputPath):
+                                textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
+                                subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
+                                for extension in textureExtensionsToSkipForCompressed:
+                                    textureInputFilename = textureFileName + extension
+                                    filesToSkip[textureInputFilename] = True
 
         for filename in files:
             if not filename in filesToSkip:
+                if skipTextures:
+                    filebasename, fileextension = os.path.splitext(filename)
+                    if fileextension in ['.dds', '.astc', '.png']:
+                        continue
+
                 sourceFilePath = os.path.join(currentSourceDirectory, filename)
                 targetFilePath = os.path.join(currentTargetDirectory, filename)
                 if needsToUpdateFile(sourceFilePath, targetFilePath):
