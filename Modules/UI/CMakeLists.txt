@@ -2,6 +2,141 @@ cmake_minimum_required(VERSION 2.8.4)
 project(RayneUI)
 
 include(../../CMake/LibraryTarget.cmake)
+include(ExternalProject)
+
+if(APPLE)
+        set(SKIA_ARGS
+                extra_cflags_cc=["-mmacosx-version-min=10.11"]
+                is_official_build=true
+                is_debug=false
+                is_component_build=false
+                skia_use_fontconfig=false
+                skia_use_freetype=true
+                skia_enable_atlas_text=false
+                skia_use_system_freetype2=false
+                skia_use_icu=false
+                skia_use_system_libpng=false
+                skia_use_system_zlib=false
+                skia_use_libjpeg_turbo_decode=false
+                skia_use_libjpeg_turbo_encode=false
+                skia_use_libpng_decode=false
+                skia_use_libpng_encode=false
+                skia_use_libwebp_decode=false
+                skia_use_libwebp_encode=false
+                skia_use_lua=false
+                skia_use_piex=false
+                skia_use_zlib=false
+                skia_enable_tools=false
+                skia_enable_pdf=false)
+elseif(ANDROID)
+        set(SKIA_ARGS
+                ndk=\"/Users/slin/Library/Android/sdk/ndk-bundle\" target_cpu=\"arm64\"
+                ndk_api=24
+                cc=\"clang\"
+                cxx=\"clang++\"
+                is_official_build=true
+                is_debug=false
+                is_component_build=false
+                skia_use_freetype=true
+                skia_enable_atlas_text=false
+                skia_use_system_freetype2=false
+                skia_use_system_expat=false
+                skia_use_icu=false
+                skia_use_system_libpng=false
+                skia_use_system_zlib=false
+                skia_use_libjpeg_turbo_decode=false
+                skia_use_libjpeg_turbo_encode=false
+                skia_use_libpng_decode=false
+                skia_use_libpng_encode=false
+                skia_use_libwebp_decode=false
+                skia_use_libwebp_encode=false
+                skia_use_lua=false
+                skia_use_piex=false
+                skia_use_zlib=false
+                skia_enable_gpu=false
+                skia_use_vulkan=false
+                skia_enable_tools=false
+                skia_enable_pdf=false)
+elseif(UNIX)
+        set(SKIA_ARGS
+                cc=\"clang\"
+                cxx=\"clang++\"
+                is_official_build=true
+                is_debug=false
+                is_component_build=false
+                skia_use_fontconfig=false
+                skia_use_freetype=true
+                skia_enable_atlas_text=false
+                skia_use_system_freetype2=false
+                skia_use_system_expat=false
+                skia_use_icu=false
+                skia_use_system_libpng=false
+                skia_use_system_zlib=false
+                skia_use_libjpeg_turbo_decode=false
+                skia_use_libjpeg_turbo_encode=false
+                skia_use_libpng_decode=false
+                skia_use_libpng_encode=false
+                skia_use_libwebp_decode=false
+                skia_use_libwebp_encode=false
+                skia_use_lua=false
+                skia_use_piex=false
+                skia_use_zlib=false
+                skia_enable_gpu=false
+                skia_use_vulkan=false
+                skia_enable_tools=false
+                skia_enable_pdf=false)
+else()
+        set(SKIA_WINDOWS_RUNTIME /MD)
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+                set(SKIA_WINDOWS_RUNTIME /MDd)
+        endif()
+
+        set(SKIA_ARGS
+                extra_cflags=[\"${SKIA_WINDOWS_RUNTIME}\", \"-DSK_RELEASE\"]
+                clang_win=\"C:/Program Files/LLVM\"
+                is_official_build=true
+                is_debug=false
+                is_component_build=false
+                skia_use_fontconfig=false
+                skia_use_freetype=true
+                skia_enable_atlas_text=false
+                skia_use_system_freetype2=false
+                skia_use_icu=false
+                skia_use_system_libpng=false
+                skia_use_system_zlib=false
+                skia_use_system_expat=false
+                skia_use_libjpeg_turbo_decode=false
+                skia_use_libjpeg_turbo_encode=false
+                skia_use_libpng_decode=false
+                skia_use_libpng_encode=false
+                skia_use_libwebp_decode=false
+                skia_use_libwebp_encode=false
+                skia_use_lua=false
+                skia_use_piex=false
+                skia_use_zlib=false
+                skia_enable_gpu=false
+                skia_enable_tools=false
+                skia_enable_pdf=false)
+endif()
+
+list(JOIN SKIA_ARGS " " SKIA_ARGS_STRING)
+
+ExternalProject_Add(skia
+        GIT_REPOSITORY https://skia.googlesource.com/skia.git
+        GIT_TAG origin/chrome/m83
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+        COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
+        BUILD_COMMAND ninja -C <BINARY_DIR> skia
+        BUILD_BYPRODUCTS
+                <BINARY_DIR>/libskia.a
+        INSTALL_COMMAND "")
+
+ExternalProject_Get_property(skia SOURCE_DIR)
+ExternalProject_Get_property(skia BINARY_DIR)
+set(SKIA_SOURCE_DIR ${SOURCE_DIR})
+set(SKIA_BINARY_DIR ${BINARY_DIR})
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -49,26 +184,24 @@ set(DEFINES
         "SK_RELEASE")
 
 if(WIN32)
-set(RAYNE_LIBRARIES Rayne)
+        set(RAYNE_LIBRARIES Rayne)
 elseif(APPLE)
-#set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/macos/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/macos/libskiashaper.a)
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/macos/libskia.a)
+        set(RAYNE_LIBRARIES Rayne ${SKIA_BINARY_DIR}/libskia.a)
 elseif(ANDROID)
-#set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskia.a ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskiashaper.a)
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/android/libskia.a)
+        set(RAYNE_LIBRARIES Rayne ${SKIA_BINARY_DIR}/libskia.a)
 elseif(UNIX)
-set(RAYNE_LIBRARIES Rayne ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/linux/libskia.a)
+        set(RAYNE_LIBRARIES Rayne ${SKIA_BINARY_DIR}/libskia.a)
 endif()
 
-set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/skia/ ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/skia/include)
+set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${SKIA_SOURCE_DIR} ${SKIA_SOURCE_DIR}/include)
 
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
 #rayne_copy_resources(RayneUI ${RESOURCES})
+add_dependencies(RayneUI skia)
 
 if(WIN32)
-#target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skia.lib debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skiashaper.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skiashaper.lib)
-target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skia.lib)
+        target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skia.lib)
 endif()
 
 target_include_directories(RayneUI SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
