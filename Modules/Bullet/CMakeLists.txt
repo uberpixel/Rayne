@@ -10,6 +10,7 @@ ExternalProject_Add(bullet
         GIT_TAG refs/tags/2.89
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DUSE_GRAPHICAL_BENCHMARK:BOOL=False"
                 "-DUSE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=True"

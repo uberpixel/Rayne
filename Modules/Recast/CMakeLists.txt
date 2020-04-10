@@ -10,6 +10,7 @@ ExternalProject_Add(recast
         GIT_TAG origin/master
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         BUILD_BYPRODUCTS

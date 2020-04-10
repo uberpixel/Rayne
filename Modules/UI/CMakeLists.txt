@@ -120,23 +120,9 @@ else()
 endif()
 
 list(JOIN SKIA_ARGS " " SKIA_ARGS_STRING)
+set(SKIA_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/skia-prefix/src/skia)
+set(SKIA_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/skia-prefix/src/skia-build)
 
-ExternalProject_Add(skia
-        GIT_REPOSITORY https://skia.googlesource.com/skia.git
-        GIT_TAG origin/chrome/m83
-        GIT_SHALLOW ON
-        GIT_PROGRESS ON
-        CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
-        COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
-        BUILD_COMMAND ninja -C <BINARY_DIR> skia
-        BUILD_BYPRODUCTS
-                <BINARY_DIR>/libskia.a
-        INSTALL_COMMAND "")
-
-ExternalProject_Get_property(skia SOURCE_DIR)
-ExternalProject_Get_property(skia BINARY_DIR)
-set(SKIA_SOURCE_DIR ${SOURCE_DIR})
-set(SKIA_BINARY_DIR ${BINARY_DIR})
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -198,7 +184,28 @@ set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${SKIA_SOURCE_DIR} ${SKIA_SO
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
 #rayne_copy_resources(RayneUI ${RESOURCES})
-add_dependencies(RayneUI skia)
+
+set(NEEDS_UPDATE_SKIA ON)
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/skia-prefix/src/skia-build/libskia.a)
+        set(NEEDS_UPDATE_SKIA OFF)
+endif()
+
+if(${NEEDS_UPDATE_SKIA})
+        ExternalProject_Add(skia
+                GIT_REPOSITORY https://skia.googlesource.com/skia.git
+                GIT_TAG origin/chrome/m83
+                GIT_SHALLOW ON
+                GIT_PROGRESS ON
+                UPDATE_COMMAND ""
+                CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+                COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
+                BUILD_COMMAND ninja -C <BINARY_DIR> skia
+                BUILD_BYPRODUCTS
+                        ${CMAKE_CURRENT_BINARY_DIR}/skia-prefix/src/skia-build/libskia.a
+                INSTALL_COMMAND "")
+
+        add_dependencies(RayneUI skia)
+endif()
 
 if(WIN32)
         target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skia.lib)

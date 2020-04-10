@@ -21,6 +21,7 @@ ExternalProject_Add(spirvcross
         GIT_TAG refs/tags/2020-04-03
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         BUILD_BYPRODUCTS

@@ -28,6 +28,7 @@ ExternalProject_Add(openvr
         GIT_TAG refs/tags/v1.10.30
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DBUILD_UNIVERSAL:BOOL=False"
                 "-DBUILD_SHARED:BOOL=False"

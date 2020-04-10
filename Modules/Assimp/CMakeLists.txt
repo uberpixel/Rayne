@@ -9,6 +9,7 @@ ExternalProject_Add(assimp
     GIT_TAG refs/tags/v5.0.1
     GIT_SHALLOW ON
     GIT_PROGRESS ON
+    UPDATE_COMMAND ""
     PATCH_COMMAND grep -qxF "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" <SOURCE_DIR>/CMakeLists.txt || echo "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" >> <SOURCE_DIR>/CMakeLists.txt
     CMAKE_CACHE_ARGS
         "-DBUILD_SHARED_LIBS:BOOL=False"

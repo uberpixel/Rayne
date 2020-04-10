@@ -10,6 +10,7 @@ ExternalProject_Add(libsoundio
         GIT_TAG refs/tags/2.0.0
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DBUILD_STATIC_LIBS:BOOL=True"
                 "-DBUILD_DYNAMIC_LIBS:BOOL=False"

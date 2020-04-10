@@ -11,6 +11,7 @@ if(ANDROID)
         GIT_TAG refs/tags/1.3
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
@@ -26,6 +27,7 @@ else()
         GIT_TAG refs/tags/5.1.0
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DBUILD_SHARED_LIBS:BOOL=False"
         BUILD_BYPRODUCTS

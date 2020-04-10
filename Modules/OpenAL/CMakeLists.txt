@@ -5,34 +5,6 @@ include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 include(ExternalProject)
 
-ExternalProject_Add(openal
-        GIT_REPOSITORY https://github.com/kcat/openal-soft.git
-        GIT_TAG refs/tags/openal-soft-1.20.1
-        GIT_SHALLOW ON
-        GIT_PROGRESS ON
-        CMAKE_CACHE_ARGS
-                #"-DCMAKE_PLATFORM_NO_VERSIONED_SONAME:BOOL=True"
-                "-DALSOFT_UTILS:BOOL=False"
-                "-DALSOFT_EXAMPLES:BOOL=False"
-                "-DALSOFT_TESTS:BOOL=False"
-                "-DALSOFT_CONFIG:BOOL=False"
-                "-DALSOFT_HRTF_DEFS:BOOL=False"
-                "-DALSOFT_AMBDEC_PRESETS:BOOL=False"
-                "-DALSOFT_INSTALL:BOOL=False"
-                "-DALSOFT_EMBED_HRTF_DATA:BOOL=True"
-                "-DALSOFT_REQUIRE_OPENSL:BOOL=${ANDROID}"
-                "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
-                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
-                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
-                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
-                "-DANDROID_STL:STRING=${ANDROID_STL}"
-        BUILD_BYPRODUCTS
-                "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
-                "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib"
-                "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so"
-        INSTALL_COMMAND "")
-
-
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
 set(VERSION_PATCH 0)
@@ -75,7 +47,43 @@ target_include_directories(RayneOpenAL SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOpenAL PRIVATE "${DEFINES}")
 target_compile_options(RayneOpenAL PRIVATE ${COMPILE_OPTIONS})
 
-add_dependencies(RayneOpenAL openal)
+set(NEEDS_UPDATE_OPENAL ON)
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib OR EXISTS ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib OR EXISTS ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
+        set(NEEDS_UPDATE_OPENAL OFF)
+endif()
+
+if(${NEEDS_UPDATE_OPENAL})
+        ExternalProject_Add(openal
+                GIT_REPOSITORY https://github.com/kcat/openal-soft.git
+                GIT_TAG refs/tags/openal-soft-1.20.1
+                GIT_SHALLOW ON
+                GIT_PROGRESS ON
+                UPDATE_COMMAND ""
+                CMAKE_CACHE_ARGS
+                        #"-DCMAKE_PLATFORM_NO_VERSIONED_SONAME:BOOL=True"
+                        "-DALSOFT_UTILS:BOOL=False"
+                        "-DALSOFT_EXAMPLES:BOOL=False"
+                        "-DALSOFT_TESTS:BOOL=False"
+                        "-DALSOFT_CONFIG:BOOL=False"
+                        "-DALSOFT_HRTF_DEFS:BOOL=False"
+                        "-DALSOFT_AMBDEC_PRESETS:BOOL=False"
+                        "-DALSOFT_INSTALL:BOOL=False"
+                        "-DALSOFT_EMBED_HRTF_DATA:BOOL=True"
+                        "-DALSOFT_REQUIRE_OPENSL:BOOL=${ANDROID}"
+                        "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
+                        "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
+                        "-DANDROID_ABI:STRING=${ANDROID_ABI}"
+                        "-DANDROID_NDK:STRING=${ANDROID_NDK}"
+                        "-DANDROID_STL:STRING=${ANDROID_STL}"
+                BUILD_BYPRODUCTS
+                        ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib
+                        ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib
+                        ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so
+                INSTALL_COMMAND "")
+
+        add_dependencies(RayneOpenAL openal)
+endif()
+
 if(APPLE)
         target_link_libraries(RayneOpenAL 
                 debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
