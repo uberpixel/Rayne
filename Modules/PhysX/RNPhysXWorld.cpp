@@ -69,9 +69,12 @@ namespace RN
 	PhysXWorld::~PhysXWorld()
 	{
 		//TODO: delete all collision objects
+		_controllerManager->release();
 		_scene->release();
 		_dispatcher->release();
+		delete _simulationCallback;
 		_cooking->release();
+		PxCloseExtensions();
 		_physics->release();
 
 		if(_pvd)

@@ -86,13 +86,8 @@ elseif(UNIX)
                 skia_enable_tools=false
                 skia_enable_pdf=false)
 else()
-        set(SKIA_WINDOWS_RUNTIME /MD)
-        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-                set(SKIA_WINDOWS_RUNTIME /MDd)
-        endif()
-
         set(SKIA_ARGS
-                extra_cflags=[\"${SKIA_WINDOWS_RUNTIME}\",\"-DSK_RELEASE\"]
+                extra_cflags=[\"$<IF:$<CONFIG:Debug>,/MDd,/MD>\",\"-DSK_RELEASE\"]
                 clang_win=\"C:/Program Files/LLVM\"
                 is_official_build=true
                 is_debug=false
@@ -190,10 +185,8 @@ ExternalProject_Add(skia
         GIT_TAG origin/chrome/m83
         GIT_SHALLOW ON
         GIT_PROGRESS ON
-        PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+#       PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
         CONFIGURE_COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
-#        CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
-#        COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
         BUILD_COMMAND ninja -C <BINARY_DIR> skia
         BUILD_BYPRODUCTS
                 ${SKIA_BINARY_DIR}/libskia.a
