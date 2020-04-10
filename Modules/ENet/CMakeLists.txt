@@ -63,6 +63,8 @@ ExternalProject_Add(enet
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/libenet.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/enet.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/enet.lib"
         INSTALL_COMMAND "")
 
 add_dependencies(RayneENet enet)
@@ -70,10 +72,14 @@ add_dependencies(RayneENet enet)
 if(ANDROID OR UNIX AND NOT APPLE)
         target_link_libraries(RayneENet 
                 "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/libenet.a")
-else()
+elseif(APPLE)
         target_link_libraries(RayneENet 
                 debug "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/libenet.a"
                 optimized "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/libenet.a")
+else()
+        target_link_libraries(RayneENet 
+                debug "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Debug/enet.lib"
+                optimized "${CMAKE_CURRENT_BINARY_DIR}/enet-prefix/src/enet-build/Release/enet.lib")
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneENet/. DESTINATION lib/Rayne/RayneENet)

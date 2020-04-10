@@ -74,6 +74,8 @@ ExternalProject_Add(openal
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so
+                ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/OpenAL32.lib
+                ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib
         INSTALL_COMMAND "")
 
 add_dependencies(RayneOpenAL openal)
@@ -91,13 +93,18 @@ elseif(ANDROID)
         target_link_libraries(RayneOpenAL 
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
         add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so ${android-assets-dir}/../libs/arm64-v8a/libopenal.so)
+elseif(UNIX)
+else()
+        target_link_libraries(RayneOpenAL 
+                debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/OpenAL32.lib"
+                optimized "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib")
 endif()
 
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")
-        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib" "$<TARGET_FILE_DIR:RayneOpenAL>/libopenal.1.dylib")
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/$<CONFIG>/libopenal.1.20.1.dylib" "$<TARGET_FILE_DIR:RayneOpenAL>/libopenal.1.dylib")
 else()
-#        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:OpenAL>" "$<TARGET_FILE_DIR:RayneOpenAL>/$<TARGET_FILE_NAME:OpenAL>")
+        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/$<CONFIG>/OpenAL32.dll" "$<TARGET_FILE_DIR:RayneOpenAL>/OpenAL32.dll")
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenAL/. DESTINATION lib/Rayne/RayneOpenAL)

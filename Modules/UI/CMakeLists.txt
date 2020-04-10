@@ -92,7 +92,7 @@ else()
         endif()
 
         set(SKIA_ARGS
-                extra_cflags=[\"${SKIA_WINDOWS_RUNTIME}\", \"-DSK_RELEASE\"]
+                extra_cflags=[\"${SKIA_WINDOWS_RUNTIME}\",\"-DSK_RELEASE\"]
                 clang_win=\"C:/Program Files/LLVM\"
                 is_official_build=true
                 is_debug=false
@@ -190,18 +190,20 @@ ExternalProject_Add(skia
         GIT_TAG origin/chrome/m83
         GIT_SHALLOW ON
         GIT_PROGRESS ON
-        UPDATE_COMMAND ""
-        CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
-        COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
+        PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+        CONFIGURE_COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
+#        CONFIGURE_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+#        COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
         BUILD_COMMAND ninja -C <BINARY_DIR> skia
         BUILD_BYPRODUCTS
-                ${CMAKE_CURRENT_BINARY_DIR}/skia-prefix/src/skia-build/libskia.a
+                ${SKIA_BINARY_DIR}/libskia.a
+                ${SKIA_BINARY_DIR}/skia.lib
         INSTALL_COMMAND "")
 
 add_dependencies(RayneUI skia)
 
 if(WIN32)
-        target_link_libraries(RayneUI debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/debug/skia.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/libskia/windows/release/skia.lib)
+        target_link_libraries(RayneUI ${SKIA_BINARY_DIR}/skia.lib)
 endif()
 
 target_include_directories(RayneUI SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")

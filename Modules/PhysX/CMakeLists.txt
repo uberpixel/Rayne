@@ -19,6 +19,8 @@ set(PHYSX_CMAKE_ARGS
         -DCMAKEMODULES_NAME=CMakeModules
         -DCMAKEMODULES_VERSION=1.27)
 
+set(PHYSX_PATCH_COMMAND "")
+
 if(APPLE)
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=mac
@@ -46,6 +48,8 @@ if(APPLE)
 
         set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64)
 elseif(ANDROID)
+    set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt)
+
     set(PHYSX_CXX_FLAGS "-Wno-unknown-warning-option -Wno-invalid-noreturn -Wno-unused-private-field -Wno-unused-local-typedef -D__ANDROID__")
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=android
@@ -115,7 +119,7 @@ ExternalProject_Add(physx
     GIT_TAG origin/4.1
     GIT_SHALLOW ON
     GIT_PROGRESS ON
-    PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt
+    PATCH_COMMAND ${PHYSX_PATCH_COMMAND}
     SOURCE_SUBDIR physx/compiler/public
     CMAKE_ARGS "${PHYSX_CMAKE_ARGS}"
     UPDATE_COMMAND ""
