@@ -185,7 +185,7 @@ ExternalProject_Add(skia
         GIT_TAG origin/chrome/m83
         GIT_SHALLOW ON
         GIT_PROGRESS ON
-#       PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
+        PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
         CONFIGURE_COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
         BUILD_COMMAND ninja -C <BINARY_DIR> skia
         BUILD_BYPRODUCTS

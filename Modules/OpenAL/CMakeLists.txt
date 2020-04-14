@@ -103,7 +103,7 @@ endif()
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")
         add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/$<CONFIG>/libopenal.1.20.1.dylib" "$<TARGET_FILE_DIR:RayneOpenAL>/libopenal.1.dylib")
-else()
+elseif(WIN32)
         add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/$<CONFIG>/OpenAL32.dll" "$<TARGET_FILE_DIR:RayneOpenAL>/OpenAL32.dll")
 endif()
 
