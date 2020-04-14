@@ -37,6 +37,7 @@ namespace RN
 			UIAPI void SetFont(Font *font);
 			UIAPI void SetAlignment(Alignment alignment);
 			
+			const String *GetText() const { return _text; }
 			Vector2 GetContentSize() const { return _contentSize; }
 			
 			UIAPI virtual void Draw(Context *context) const override;
