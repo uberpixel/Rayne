@@ -236,7 +236,7 @@ namespace RN
 	{
 		ReplaceCharacters(string, Range(index, 0));
 	}
-	
+
 	void String::Capitalize()
 	{
 		UniChar buffer[128];
@@ -274,6 +274,72 @@ namespace RN
 				}
 				
 				needsUppercase = false;
+			}
+			
+			read += left;
+		}
+	}
+	
+	void String::MakeUppercase()
+	{
+		UniChar buffer[128];
+		
+		size_t read = 0;
+		size_t length = _string->GetLength();
+		
+		while(read < length)
+		{
+			size_t left = std::min(length - read, static_cast<size_t>(128));
+			_string->GetCharactersInRange(buffer, Range(read, left));
+			
+			for(size_t i = 0; i < left; i ++)
+			{
+				CodePoint point(buffer[i]);
+				CodePoint uppercase = point.GetUpperCase();
+				
+				if(point != uppercase)
+				{
+					UniChar temp[2];
+					temp[0] = uppercase;
+					temp[1] = 0;
+					
+					UTF8String *string = new UTF8String(temp, 4, Encoding::UTF32, true);
+					_string->ReplaceCharactersInRange(Range(read + i, 1), string);
+					string->Release();
+				}
+			}
+			
+			read += left;
+		}
+	}
+
+	void String::MakeLowercase()
+	{
+		UniChar buffer[128];
+		
+		size_t read = 0;
+		size_t length = _string->GetLength();
+		
+		while(read < length)
+		{
+			size_t left = std::min(length - read, static_cast<size_t>(128));
+			_string->GetCharactersInRange(buffer, Range(read, left));
+			
+			for(size_t i = 0; i < left; i ++)
+			{
+				CodePoint point(buffer[i]);
+				CodePoint lowercase = point.GetLowerCase();
+				
+				if(point != lowercase)
+				{
+					UniChar temp[2];
+					temp[0] = lowercase;
+					temp[1] = 0;
+					
+					UTF8String *string = new UTF8String(temp, 4, Encoding::UTF32, true);
+					_string->ReplaceCharactersInRange(Range(read + i, 1), string);
+					string->Release();
+				}
 			}
 			
 			read += left;

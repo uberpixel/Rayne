@@ -61,6 +61,8 @@ namespace RN
 		RNAPI void Append(const char *string, ...);
 		RNAPI void Insert(const String *string, size_t index);
 		RNAPI void Capitalize();
+		RNAPI void MakeUppercase();
+		RNAPI void MakeLowercase();
 		
 		RNAPI void DeleteCharacters(const Range &range);
 		
