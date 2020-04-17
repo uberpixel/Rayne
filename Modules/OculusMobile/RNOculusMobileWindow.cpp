@@ -27,7 +27,7 @@ namespace RN
 {
 	RNDefineMeta(OculusMobileWindow, VRWindow)
 
-	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0)
+	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}
 	{
 		_swapChain[0] = nullptr;
 		_swapChain[1] = nullptr;
@@ -386,6 +386,16 @@ namespace RN
 						_controllerTrackingState[handIndex].velocityAngular.y = trackingState.HeadPose.AngularVelocity.x;
 						_controllerTrackingState[handIndex].velocityAngular.z = trackingState.HeadPose.AngularVelocity.z;
 					}
+
+					if(_currentHapticsIndex[handIndex] < _haptics[handIndex].sampleCount)
+					{
+						float strength = _haptics[handIndex].samples[_currentHapticsIndex[handIndex]++];
+						vrapi_SetHapticVibrationSimple(static_cast<ovrMobile*>(_session), _controllerTrackingState[handIndex].controllerID, strength);
+					}
+					else
+					{
+						vrapi_SetHapticVibrationSimple(static_cast<ovrMobile*>(_session), _controllerTrackingState[handIndex].controllerID, 0.0f);
+					}
 				}
 			}
 		}
@@ -491,12 +501,8 @@ namespace RN
 		if(!_session) return;
 		if(!_controllerTrackingState[index].hasHaptics) return;
 
-		ovrHapticBuffer hapticBuffer;
-		hapticBuffer.BufferTime = _predictedDisplayTime;
-		hapticBuffer.NumSamples = haptics.sampleCount;
-		hapticBuffer.Terminated = false;
-		hapticBuffer.HapticBuffer = haptics.samples;
-		vrapi_SetHapticVibrationBuffer(static_cast<ovrMobile*>(_session), _controllerTrackingState[index].controllerID, &hapticBuffer);
+		_currentHapticsIndex[index] = 0;
+		_haptics[index] = haptics;
 	}
 
 	const String *OculusMobileWindow::GetPreferredAudioOutputDeviceID() const

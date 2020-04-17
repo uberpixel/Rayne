@@ -88,13 +88,13 @@ namespace RN
 	struct VRControllerHaptics
 	{
 		VRControllerHaptics() : sampleCount(0) {}
-		void Push(uint8 sample)
+		void Push(float sample)
 		{
 			samples[sampleCount++] = sample;
 		}
 
-		uint8 samples[256];
-		uint16 sampleCount;
+		float samples[256];
+		uint8 sampleCount;
 	};
 }
 
