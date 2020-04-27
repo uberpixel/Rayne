@@ -50,6 +50,11 @@ namespace RN
 		return false;
 	}
 
+	double ENetHost::GetLastRoundtripTime(uint16 peerID)
+	{
+		return _peers[peerID].peer->lastRoundTripTime * 0.001;
+	}
+
 	void ENetHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
 	{
 		//Times are in milliseconds!

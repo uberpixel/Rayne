@@ -47,6 +47,7 @@ namespace RN
 
 		ENAPI Status GetStatus() const { return _status; }
 		ENAPI bool HasReliableDataInTransit();
+		ENAPI double GetLastRoundtripTime(uint16 peerID);
 		ENAPI void SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum);
 		ENAPI void SetPingInterval(uint16 peerID, size_t interval);
 
