@@ -25,6 +25,8 @@ namespace RN
 		
 		ENAPI void AddHost(ENetHost *host);
 		ENAPI void RemoveHost(ENetHost *host);
+		
+		ENAPI void Ping(String *address, size_t repetitions);
 
 	protected:
 		void Update(float delta) override;
