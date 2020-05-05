@@ -111,7 +111,7 @@ namespace RN
 		
 		if(_rnSamplers->GetCount() > 0)
 		{
-			RN_ASSERT(samplers->GetCount() == _rnSamplers->GetCount(), "Sampler count missmatch!");
+			RN_ASSERT(samplers->GetCount() <= _rnSamplers->GetCount(), "Sampler count missmatch!");
 			samplers->RemoveAllObjects();
 			samplers->AddObjectsFromArray(_rnSamplers);
 		}

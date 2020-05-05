@@ -97,14 +97,27 @@
 		[
 			{
 				"name": "sky_vertex",
-				"type": "vertex"
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_COLOR",
+						"RN_UV0"
+					]
+				}
 			},
 			{
 				"name": "sky_fragment",
 				"type": "fragment",
 				"signature":
 				{
-					"samplers": [{"wrap": "clamp"}]
+					"samplers": [{"wrap": "clamp"}],
+					"options":
+					[
+						"RN_COLOR",
+						"RN_UV0"
+					]
 				}
 			}
 		]
