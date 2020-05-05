@@ -340,6 +340,11 @@ namespace RN
 		DidUpdate(ChangeSet::Attachments);
 	}
 
+	const Array *SceneNode::GetAttachments() const
+	{
+		return _attachments;
+	}
+
 	const Array *SceneNode::GetChildren() const
 	{
 		return _children;

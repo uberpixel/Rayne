@@ -144,6 +144,7 @@ namespace RN
 		uint8 GetRenderGroup() const { return _renderGroup; };
 		uint8 GetCollisionGroup() const { return _collisionGroup; };
 
+		RNAPI const Array *GetAttachments() const;
 		RNAPI const Array *GetChildren() const;
 
 		RNAPI Matrix GetWorldTransform() const;
