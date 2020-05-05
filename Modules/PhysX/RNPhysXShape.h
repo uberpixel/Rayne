@@ -114,6 +114,8 @@ namespace RN
 		PXAPI ~PhysXCompoundShape();
 
 		PXAPI void AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
+		PhysXShape *GetShape(size_t index) const { return _shapes[index]; }
+		size_t GetNumberOfShapes() const { return _shapes.size(); }
 
 		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
 			

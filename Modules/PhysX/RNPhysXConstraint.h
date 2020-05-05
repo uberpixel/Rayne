@@ -45,6 +45,45 @@ namespace RN
 			
 		RNDeclareMetaAPI(PhysXFixedConstraint, PXAPI)
 	};
+
+	class PhysXRevoluteConstraint : public PhysXConstraint
+	{
+	public:
+		PXAPI PhysXRevoluteConstraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+			
+		PXAPI static PhysXRevoluteConstraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+			
+		RNDeclareMetaAPI(PhysXRevoluteConstraint, PXAPI)
+	};
+
+	class PhysXD6Constraint : public PhysXConstraint
+	{
+	public:
+		enum MotionAxis
+		{
+			TranslationX,
+			TranslationY,
+			TranslationZ,
+			RotationX,
+			RotationY,
+			RotationZ
+		};
+		
+		enum MotionType
+		{
+			Locked,
+			Limited,
+			Free
+		};
+		
+		PXAPI PhysXD6Constraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+		
+		PXAPI void SetMotion(MotionAxis axis, MotionType type);
+			
+		PXAPI static PhysXD6Constraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+			
+		RNDeclareMetaAPI(PhysXD6Constraint, PXAPI)
+	};
 }
 
 #endif /* defined(__RAYNE_PHYSXCONSTRAINT_H_) */

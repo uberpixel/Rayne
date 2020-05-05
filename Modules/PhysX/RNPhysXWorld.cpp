@@ -47,6 +47,7 @@ namespace RN
 		_simulationCallback = new PhysXSimulationCallback();
 
 		physx::PxSceneDesc sceneDesc(_physics->getTolerancesScale());
+		//sceneDesc.solverType = physx::PxSolverType::eTGS; //Enables the better, but somewhat slower solver
 		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
 		_dispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = _dispatcher;
@@ -178,5 +179,62 @@ namespace RN
 		}
 		
 		return hit;
+	}
+
+	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, uint32 filterMask)
+	{
+		const physx::PxU32 bufferSize = 256;
+		physx::PxOverlapHit hitBuffer[bufferSize];
+		physx::PxOverlapBuffer callback(hitBuffer, bufferSize);
+		
+		physx::PxFilterData filterData;
+		filterData.word0 = filterMask;
+		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
+		bool didOverlap = false;
+		if(shape->GetPhysXShape())
+		{
+			didOverlap = _scene->overlap(shape->GetPhysXShape()->getGeometry().any(), pose, callback, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		}
+		else if(shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
+		{
+			PhysXCompoundShape *compoundShape = shape->Downcast<PhysXCompoundShape>();
+			for(size_t i = 0; i < compoundShape->GetNumberOfShapes(); i++)
+			{
+				PhysXShape *tempShape = compoundShape->GetShape(i);
+				didOverlap = _scene->overlap(tempShape->GetPhysXShape()->getGeometry().any(), pose, callback, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+				
+				if(didOverlap) break;
+			}
+		}
+		else
+		{
+			RNDebug("CheckOverlap does not currently support this shape type!");
+		}
+		
+		std::vector<PhysXContactInfo> results;
+		
+		if(didOverlap)
+		{
+			for(uint32 i = 0; i < callback.nbTouches; i++)
+			{
+				PhysXContactInfo hit;
+				hit.distance = 0.0f;
+				hit.node = nullptr;
+				hit.position = position;
+				
+				if(callback.touches[i].actor)
+				{
+					void *userData = callback.touches[i].actor->userData;
+					if(userData)
+					{
+						hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+					}
+				}
+				
+				results.push_back(hit);
+			}
+		}
+		
+		return results;
 	}
 }

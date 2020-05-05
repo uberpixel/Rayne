@@ -48,6 +48,7 @@ namespace RN
 		PXAPI void SetPaused(bool paused);
 
 		PXAPI PhysXContactInfo CastRay(const Vector3 &from, const Vector3 &to, uint32 filterMask = 0xffffffff);
+		PXAPI std::vector<PhysXContactInfo> CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, uint32 filterMask = 0xffffffff);
 
 		PXAPI physx::PxPhysics *GetPhysXInstance() const { return _physics; }
 		PXAPI physx::PxCooking *GetPhysXCooking() const { return _cooking; }

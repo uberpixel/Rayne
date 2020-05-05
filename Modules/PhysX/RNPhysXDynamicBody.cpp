@@ -153,6 +153,17 @@ namespace RN
 		return Vector3(velocity.x, velocity.y, velocity.z);
 	}
 
+	void PhysXDynamicBody::SetSleeping(bool sleeping)
+	{
+		if(!sleeping) _actor->wakeUp();
+		else _actor->putToSleep();
+	}
+
+	bool PhysXDynamicBody::GetIsSleeping() const
+	{
+		return _actor->isSleeping();
+	}
+
 	void PhysXDynamicBody::SetEnableCCD(bool enable)
 	{
 		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, enable);
