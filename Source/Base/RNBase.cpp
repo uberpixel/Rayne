@@ -52,9 +52,15 @@
 	{
 		//https://developer.apple.com/documentation/appkit/nseventmodifierflags?language=objc
 		bool isPressed = false;
-		if((event.keyCode == 56 || event.keyCode == 60) && event.modifierFlags & NSEventModifierFlagShift) isPressed = true;
+		uint16 keyCode = [event keyCode];
+		if((keyCode == 56 || keyCode == 60))
+		{
+			keyCode = 56;
+			isPressed = (event.modifierFlags & NSEventModifierFlagShift);
+		}
+		
 		RN::InputManager *inputManager = RN::InputManager::GetSharedInstance();
-		if(inputManager) inputManager->ProcessKeyEvent([event keyCode], isPressed);
+		if(inputManager) inputManager->ProcessKeyEvent(keyCode, isPressed);
 	}
 
 	[super sendEvent:event];
