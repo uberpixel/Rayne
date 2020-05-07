@@ -808,6 +808,11 @@ namespace RN
 			return _keyPressed[6];
 		}
 		
+		if(name->IsEqual(RNCSTR("SHIFT")))
+		{
+			return _keyPressed[56] || _keyPressed[60];
+		}
+		
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[53];

@@ -47,6 +47,15 @@
 		RN::InputManager *inputManager = RN::InputManager::GetSharedInstance();
 		if(inputManager) inputManager->ProcessKeyEvent([event keyCode], [event type] == NSEventTypeKeyDown);
 	}
+	
+	if([event type] == NSEventTypeFlagsChanged)
+	{
+		//https://developer.apple.com/documentation/appkit/nseventmodifierflags?language=objc
+		bool isPressed = false;
+		if((event.keyCode == 56 || event.keyCode == 60) && event.modifierFlags & NSEventModifierFlagShift) isPressed = true;
+		RN::InputManager *inputManager = RN::InputManager::GetSharedInstance();
+		if(inputManager) inputManager->ProcessKeyEvent([event keyCode], isPressed);
+	}
 
 	[super sendEvent:event];
 }
