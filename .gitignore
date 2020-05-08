@@ -40,3 +40,4 @@ cmake-build-*
 Build-Xcode-UI
 /Tools/BuildHelper/Utilities.pyc
 /Tools/BuildHelper/Vendor/oculus/ovr-platform-util.exe
+/Tools/BuildHelper/Vendor

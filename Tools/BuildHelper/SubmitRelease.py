@@ -112,6 +112,7 @@ def main():
 		return
 
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
+	configName = configName.lower().replace(" ", "-")
 	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
 	configAppInfoOculus = Utilities.getSettingFromConfig(platform, "appinfo-file-oculus", buildConfigData)
 	if not configName:
