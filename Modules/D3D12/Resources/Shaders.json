@@ -96,6 +96,12 @@
         "shaders": [
             {
                 "name": "sky_vertex", 
+                "signature": {
+                    "options": [
+                        "RN_COLOR", 
+                        "RN_UV0"
+                    ]
+                }, 
                 "type": "vertex"
             }
         ]
@@ -106,6 +112,10 @@
             {
                 "name": "sky_fragment", 
                 "signature": {
+                    "options": [
+                        "RN_COLOR", 
+                        "RN_UV0"
+                    ], 
                     "samplers": [
                         {
                             "wrap": "clamp"
