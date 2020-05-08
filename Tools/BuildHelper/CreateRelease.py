@@ -57,9 +57,9 @@ def main():
 	elif platform == 'linux':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build')
 	elif platform == 'windows':
-		sourceDirectory = os.path.join(sourceDirectory, 'Build/Release/Concealed')
+		sourceDirectory = os.path.join(sourceDirectory, 'Build/Release/'+configName.replace(" ", ""))
 	elif platform == 'macos':
-		sourceDirectory = os.path.join(sourceDirectory, 'Build/Concealed/Release')
+		sourceDirectory = os.path.join(sourceDirectory, 'Build/'+configName+'/Release')
 	
 	if not os.path.isdir(sourceDirectory):
 		print "Build does not exist: " + sourceDirectory
