@@ -9,8 +9,10 @@
 #include "RNENetWorld.h"
 #include "enet/enet.h"
 
+#if !RN_PLATFORM_WINDOWS
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#endif
 
 namespace RN
 {
@@ -63,6 +65,7 @@ namespace RN
 
 	void ENetWorld::Ping(String *ip, size_t repetitions)
 	{
+#if !RN_PLATFORM_WINDOWS
 		RNDebug("Pinging " << ip << ".");
 		
 		struct PingPacket
@@ -181,5 +184,6 @@ namespace RN
 		averagePing /= pingTimes.size() - 2 * filterSize;
 		
 		RNDebug("Pinging Finished with average of " << averagePing << "ms");
+#endif
 	}
 }
