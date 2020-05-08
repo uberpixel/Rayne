@@ -57,8 +57,10 @@ namespace RN
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
 		
-		PXAPI void SetSleeping(bool sleeping);
+		PXAPI void SetEnableSleeping(bool enable);
 		PXAPI bool GetIsSleeping() const;
+		
+		PXAPI bool GetIsKinematic() const;
 
 		PXAPI bool SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;
 		PXAPI Quaternion RotationSweepTest(std::vector<PhysXContactInfo> &contactInfo, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;

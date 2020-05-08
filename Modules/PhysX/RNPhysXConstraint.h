@@ -15,6 +15,7 @@
 namespace physx
 {
 	class PxJoint;
+	class PxD6JointDrive;
 }
 
 namespace RN
@@ -26,6 +27,9 @@ namespace RN
 		PXAPI physx::PxJoint *GetPhysXConstraint() const { return _constraint; }
 		PXAPI void SetMassScale(float scale1, float scale2);
 		PXAPI void SetInertiaScale(float scale1, float scale2);
+		
+		PXAPI RN::Vector3 GetPositionOffset(size_t bodyIndex);
+		PXAPI RN::Quaternion GetRotationOffset(size_t bodyIndex);
 			
 	protected:
 		PhysXConstraint();
@@ -56,17 +60,42 @@ namespace RN
 		RNDeclareMetaAPI(PhysXRevoluteConstraint, PXAPI)
 	};
 
+	class PhysXD6Drive : public Object
+	{
+	friend class PhysXD6Constraint;
+	public:
+		PXAPI PhysXD6Drive(float stiffness, float damping, float forceLimit, bool isAcceleration);
+		PXAPI ~PhysXD6Drive();
+		
+		PXAPI void SetStiffness(float stiffness);
+		PXAPI void SetDamping(float damping);
+		
+	private:
+		physx::PxD6JointDrive *_drive;
+		RNDeclareMetaAPI(PhysXD6Drive, PXAPI)
+	};
+
 	class PhysXD6Constraint : public PhysXConstraint
 	{
 	public:
 		enum MotionAxis
 		{
-			TranslationX,
-			TranslationY,
-			TranslationZ,
-			RotationX,
-			RotationY,
-			RotationZ
+			MotionTranslationX,
+			MotionTranslationY,
+			MotionTranslationZ,
+			MotionRotationX,
+			MotionRotationY,
+			MotionRotationZ
+		};
+		
+		enum DriveAxis
+		{
+			DriveTranslationX,
+			DriveTranslationY,
+			DriveTranslationZ,
+			DriveTwist,
+			DriveSpin,
+			DriveSlerp
 		};
 		
 		enum MotionType
@@ -77,10 +106,17 @@ namespace RN
 		};
 		
 		PXAPI PhysXD6Constraint(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+		PXAPI ~PhysXD6Constraint();
 		
 		PXAPI void SetMotion(MotionAxis axis, MotionType type);
+		PXAPI void SetDrive(DriveAxis axis, PhysXD6Drive *drive);
+		PXAPI void SetDrivePosition(RN::Vector3 position, RN::Quaternion rotation);
+		PXAPI void SetDriveVelocity(RN::Vector3 linear, RN::Vector3 angular);
 			
 		PXAPI static PhysXD6Constraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const RN::Vector3 &offset1, const RN::Quaternion &rotation1, PhysXDynamicBody *body2, const RN::Vector3 &offset2, const RN::Quaternion &rotation2);
+		
+	private:
+		PhysXD6Drive *_drive[6];
 			
 		RNDeclareMetaAPI(PhysXD6Constraint, PXAPI)
 	};

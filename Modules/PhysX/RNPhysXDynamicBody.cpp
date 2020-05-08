@@ -153,7 +153,7 @@ namespace RN
 		return Vector3(velocity.x, velocity.y, velocity.z);
 	}
 
-	void PhysXDynamicBody::SetSleeping(bool sleeping)
+	void PhysXDynamicBody::SetEnableSleeping(bool sleeping)
 	{
 		if(!sleeping) _actor->wakeUp();
 		else _actor->putToSleep();
@@ -210,6 +210,11 @@ namespace RN
 	void PhysXDynamicBody::SetEnableKinematic(bool enable)
 	{
 		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, enable);
+	}
+
+	bool PhysXDynamicBody::GetIsKinematic() const
+	{
+		return _actor->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC;
 	}
 
 	void PhysXDynamicBody::SetKinematicTarget(const Vector3 &position, const Quaternion &rotation)
