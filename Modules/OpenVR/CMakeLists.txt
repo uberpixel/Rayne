@@ -24,8 +24,8 @@ elseif(APPLE)
 endif()
 
 ExternalProject_Add(openvr
-        GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
-        GIT_TAG refs/tags/v1.10.30
+        GIT_REPOSITORY https://github.com/Slin/openvr.git
+        GIT_TAG origin/master
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
@@ -36,6 +36,8 @@ ExternalProject_Add(openvr
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/openvr_api64.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/openvr_api64.lib"
         INSTALL_COMMAND "")
 
 
@@ -144,8 +146,14 @@ target_include_directories(RayneOpenVR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOpenVR PRIVATE "${DEFINES}")
 
 add_dependencies(RayneOpenVR openvr)
-target_link_libraries(RayneOpenVR 
+if(WIN32)
+    target_link_libraries(RayneOpenVR 
+        debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/openvr_api64.lib"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/openvr_api64.lib")
+else()
+    target_link_libraries(RayneOpenVR 
         debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a")
+endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenVR/. DESTINATION lib/Rayne/RayneOpenVR)
