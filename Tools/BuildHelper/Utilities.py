@@ -119,6 +119,7 @@ def copyAndroidBuildSystem(fromdir, todir, buildConfig):
 				fileContent = readFile.read()
 				fileContent = fileContent.replace("__RN_BUNDLE_ID__", bundleID)
 				fileContent = fileContent.replace("__RN_PROJECT_NAME__", projectName)
+				fileContent = fileContent.replace("__RN_LIBRARY_NAME__", projectName.replace(" ", ""))
 				fileContent = fileContent.replace("__RN_CMAKE_VERSION__", cmakeVersion)
 				fileContent = fileContent.replace("__RN_CMAKE_TARGETS__", cmakeTargets)
 				fileContent = fileContent.replace("__RN_PERMISSIONS__", permissionsString)

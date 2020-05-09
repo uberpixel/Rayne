@@ -24,7 +24,7 @@ __RN_PERMISSIONS__
             android:excludeFromRecents="true">
             <!-- Tell NativeActivity the name of or .so -->
             <meta-data android:name="android.app.lib_name"
-                android:value="__RN_PROJECT_NAME__" />
+                android:value="__RN_LIBRARY_NAME__" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.INFO" />
