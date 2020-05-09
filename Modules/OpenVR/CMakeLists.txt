@@ -24,8 +24,8 @@ elseif(APPLE)
 endif()
 
 ExternalProject_Add(openvr
-        GIT_REPOSITORY https://github.com/Slin/openvr.git
-        GIT_TAG origin/master
+        GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
+        GIT_TAG refs/tags/v1.11.11
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
@@ -33,6 +33,7 @@ ExternalProject_Add(openvr
                 "-DBUILD_UNIVERSAL:BOOL=False"
                 "-DBUILD_SHARED:BOOL=False"
                 "-DUSE_LIBCXX:BOOL=${USE_LIBCXX}"
+                #"-DCMAKE_CXX_FLAGS:STRING=-DVR_API_PUBLIC -DOPENVR_API_EXPORTS -DWIN32 /EHsc"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a"
@@ -57,7 +58,7 @@ set(HEADERS
         RNOpenVRWindow.h
         RNOpenVRSwapChain.h)
 
-set(DEFINES RN_BUILD_OPENVR)
+set(DEFINES RN_BUILD_OPENVR OPENVR_BUILD_STATIC)
 
 set(RAYNE_LIBRARIES Rayne RayneVR)
 set(INCLUDE_DIRECTORIES
