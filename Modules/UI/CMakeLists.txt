@@ -178,22 +178,37 @@ set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${SKIA_SOURCE_DIR} ${SKIA_SO
 
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
-#rayne_copy_resources(RayneUI ${RESOURCES})
 
 ExternalProject_Add(skia
         GIT_REPOSITORY https://skia.googlesource.com/skia.git
         GIT_TAG origin/chrome/m83
         GIT_SHALLOW ON
         GIT_PROGRESS ON
-        PATCH_COMMAND python <SOURCE_DIR>/tools/git-sync-deps
-        CONFIGURE_COMMAND <SOURCE_DIR>/bin/gn gen <BINARY_DIR> --root=<SOURCE_DIR> --args=${SKIA_ARGS_STRING}
-        BUILD_COMMAND ninja -C <BINARY_DIR> skia
-        BUILD_BYPRODUCTS
-                ${SKIA_BINARY_DIR}/libskia.a
-                ${SKIA_BINARY_DIR}/skia.lib
+        PATCH_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        BUILD_BYPRODUCTS ""
         INSTALL_COMMAND "")
 
-add_dependencies(RayneUI skia)
+#This one would cause external project to skip all commands after, by splitting this out of externalprojectadd it works...
+add_custom_target(skiaupdate
+        COMMAND python ${SKIA_SOURCE_DIR}/tools/git-sync-deps
+        VERBATIM
+        BYPRODUCTS
+                ${SKIA_BINARY_DIR}/libskia.a
+                ${SKIA_BINARY_DIR}/skia.lib)
+
+add_custom_target(skiabuild
+        COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_STRING}
+        COMMAND ninja -C ${SKIA_BINARY_DIR} skia
+        VERBATIM
+        BYPRODUCTS
+                ${SKIA_BINARY_DIR}/libskia.a
+                ${SKIA_BINARY_DIR}/skia.lib)
+
+add_dependencies(skiaupdate skia)
+add_dependencies(skiabuild skiaupdate)
+add_dependencies(RayneUI skiabuild)
 
 if(WIN32)
         target_link_libraries(RayneUI ${SKIA_BINARY_DIR}/skia.lib)
