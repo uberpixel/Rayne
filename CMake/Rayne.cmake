@@ -40,12 +40,9 @@ macro(rayne_link_with _TARGET)
 endmacro()
 
 macro(INTERNAL_rayne_copy_module_resources _TARGET _MODULE _DIRECTORY)
-    #add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${_DIRECTORY}/${_MODULE}")
     foreach(_RESOURCE ${${_MODULE}_MODULE_RESOURCES})
-        #message(SEND_ERROR "from $<TARGET_FILE_DIR:${_MODULE}>/${_RESOURCE} to ${_DIRECTORY}/${_MODULE}/${_RESOURCE}")
         add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E echo "from $<TARGET_FILE_DIR:${_MODULE}>/${_RESOURCE} to ${_DIRECTORY}/${_MODULE}/${_RESOURCE}")
         add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE}>/${_RESOURCE}" "${_DIRECTORY}/${_MODULE}/${_RESOURCE}")
-        #add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:${_MODULE}>/${_RESOURCE}" "${_DIRECTORY}/${_MODULE}/${_RESOURCE}")
     endforeach()
 endmacro()
 

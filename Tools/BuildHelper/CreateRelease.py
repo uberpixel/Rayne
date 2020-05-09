@@ -71,7 +71,7 @@ def main():
 		shutil.rmtree(destinationDirectory, ignore_errors=True)
 
 	if platform == 'windows':
-		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=shutil.ignore_patterns('*.lib', '*.exp', '../Builds/Steam/Build/Release/Concealed/RayneOgg.dll', 'RayneBullet', 'RayneOculus', 'RayneOpenAL', 'RayneVR', 'RayneOpenVR'))
+		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=shutil.ignore_patterns('*.lib', '*.exp'))
 	elif platform == 'linux':
 		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=None)
 	elif platform == 'macos':
