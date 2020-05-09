@@ -57,7 +57,7 @@ set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
 
 rayne_add_library(RayneMetal "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneMetal)
-rayne_copy_resources(RayneMetal ${RESOURCES})
+rayne_set_module_resources(RayneMetal ${RESOURCES})
 
 target_include_directories(RayneMetal SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_link_libraries(RayneMetal "${LINK_LIBRARIES}")

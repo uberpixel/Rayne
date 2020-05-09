@@ -55,7 +55,7 @@ set(LINK_LIBRARIES d3d12.lib d3dcompiler.lib dxgi.lib)
 
 rayne_add_library(RayneD3D12 "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneD3D12)
-rayne_copy_resources(RayneD3D12 ${RESOURCES})
+rayne_set_module_resources(RayneD3D12 ${RESOURCES})
 
 target_include_directories(RayneD3D12 SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_link_libraries(RayneD3D12 "${LINK_LIBRARIES}")

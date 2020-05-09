@@ -33,7 +33,8 @@ rayne_add_library(RayneOculus "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${
 rayne_set_module_output_directory(RayneOculus)
 target_link_libraries(RayneOculus debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Release/VS2015/LibOVR.lib)
 
-rayne_use_modules(RayneOculus RayneD3D12)
+target_link_libraries(RayneOculus RayneD3D12)
+target_include_directories(RayneOculus SYSTEM PRIVATE ${RayneD3D12_BINARY_DIR}/include)
 
 target_include_directories(RayneOculus SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 #target_link_libraries(RayneOculus "${LINK_LIBRARIES}")

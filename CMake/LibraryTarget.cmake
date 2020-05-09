@@ -80,20 +80,26 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
 
 endmacro()
 
+
 macro(rayne_add_library _NAME _SOURCES _HEADERS _RAYNE_LIBRARIES _VERSION _ABI)
 
     __rayne_create_target(${_NAME} SHARED "${_SOURCES}" "${_HEADERS}" "${_RAYNE_LIBRARIES}" "${_VERSION}" "${_ABI}")
 
 endmacro()
 
-macro(rayne_copy_resources _TARGET _RESOURCES)
+
+macro(rayne_set_module_resources _TARGET _RESOURCES)
+
+    SET(${_TARGET}_MODULE_RESOURCES "" CACHE INTERNAL "")
 
     foreach(_RESOURCE ${_RESOURCES})
 
         if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
             add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+            SET(${_TARGET}_MODULE_RESOURCES  ${${_TARGET}_MODULE_RESOURCES} ${_RESOURCE} CACHE INTERNAL "")
         else()
             add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")
+            set(${_TARGET}_MODULE_RESOURCES ${${_TARGET}_MODULE_RESOURCES} ${_RESOURCE} CACHE INTERNAL "")
         endif()
 
     endforeach()

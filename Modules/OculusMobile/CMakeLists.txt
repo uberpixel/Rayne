@@ -33,7 +33,8 @@ rayne_add_library(RayneOculusMobile "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES
 rayne_set_module_output_directory(RayneOculusMobile)
 target_link_libraries(RayneOculusMobile debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Debug/libvrapi.so optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Release/libvrapi.so)
 
-rayne_use_modules(RayneOculusMobile RayneVulkan)
+target_link_libraries(RayneOculusMobile RayneVulkan)
+target_include_directories(RayneOculusMobile SYSTEM PRIVATE ${RayneVulkan_BINARY_DIR}/include)
 
 target_include_directories(RayneOculusMobile SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneOculusMobile PRIVATE "${DEFINES}")

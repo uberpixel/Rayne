@@ -113,7 +113,7 @@ set(RAYNE_LIBRARIES Rayne)
 
 rayne_add_library(RayneVulkan "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneVulkan)
-rayne_copy_resources(RayneVulkan ${RESOURCES})
+rayne_set_module_resources(RayneVulkan ${RESOURCES})
 
 add_dependencies(RayneVulkan_copyHeaderTarget VulkanGenerateDispatchTable)
 add_dependencies(RayneVulkan_copyHeaderTarget spirvcross)
