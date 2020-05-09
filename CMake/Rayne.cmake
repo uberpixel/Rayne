@@ -57,7 +57,7 @@ macro(rayne_use_modules _TARGET _MODULES)
 
         if(APPLE)
             add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "$<TARGET_BUNDLE_CONTENT_DIR:${_TARGET}>/Resources/Resources/Modules/${_MODULE}")
-        elif(NOT ANDROID)
+        elseif(NOT ANDROID)
             INTERNAL_rayne_copy_module_resources(${_TARGET} ${_MODULE} $<TARGET_FILE_DIR:${_TARGET}>/Resources/Modules)
         endif()
 
