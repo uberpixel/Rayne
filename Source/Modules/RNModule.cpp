@@ -55,10 +55,10 @@ namespace RN
 		Array *paths = new Array();
 
 		paths->AddObject(basePath->StringByAppendingPathComponent(base));
+		paths->AddObject(coordinator->GetPathForLocation(FileManager::Location::ApplicationDirectory)->StringByAppendingPathComponent(base));
 		base->Insert(RNCSTR("lib"), 0);
 		paths->AddObject(basePath->StringByAppendingPathComponent(base));
-
-		paths->Autorelease();
+		paths->AddObject(coordinator->GetPathForLocation(FileManager::Location::ApplicationDirectory)->StringByAppendingPathComponent(base));
 
 		paths->Enumerate<String>([&](String *path, size_t index, bool &stop) {
 
@@ -67,6 +67,7 @@ namespace RN
 				stop = true;
 
 		});
+		paths->Release();
 
 #if RN_PLATFORM_ANDROID
 		if(!_path) //TODO: Fix path resolving for android
@@ -81,17 +82,14 @@ namespace RN
 		_path->Retain();
 		_name = _name->GetLastPathComponent();
 
-		String *error = nullptr;
-
 		// Resolve extra paths
 		if(isDirectory)
 		{
-			String *basePath = _path->StringByDeletingLastPathComponent();
-
-			_resourcePath = SafeRetain(basePath->StringByAppendingPathComponent(RNCSTR("Resources")));
+			String *relativeResourcePath = basePath->StringByAppendingPathComponent(RNCSTR("Resources"));
+			_resourcePath = SafeRetain(coordinator->ResolveFullPath(relativeResourcePath, 0));
 
 			if(!coordinator->PathExists(_resourcePath))
-				_resourcePath = nullptr;
+				SafeRetain(_resourcePath);
 
 			if(_resourcePath)
 			{
@@ -103,6 +101,7 @@ namespace RN
 			}
 		}
 
+		String *error = nullptr;
 		try
 		{
 			// Load the library
