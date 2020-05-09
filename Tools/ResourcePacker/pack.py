@@ -65,7 +65,7 @@ def main():
     sourceDirectory = sys.argv[1]
     targetDirectory = sys.argv[2]
     platform = None
-    if len(sys.argv) > 3 and platform in ['pc', 'mobile']:
+    if len(sys.argv) > 3 and sys.argv[3] in ['pc', 'mobile']:
         platform = sys.argv[3]
 
     skipTextures = False
