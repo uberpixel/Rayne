@@ -32,6 +32,32 @@ namespace RN
 			Vulkan
 		};
 
+		enum InputAction
+		{
+			ButtonLeftLower,
+			ButtonLeftUpper,
+			ButtonLeftStick,
+			ButtonLeftMenu,
+			ButtonRightLower,
+			ButtonRightUpper,
+			ButtonRightStick,
+			ButtonRightMenu,
+
+			TriggerLeftTrigger,
+			TriggerLeftGrab,
+			TriggerRightTrigger,
+			TriggerRightGrab,
+
+			AxisLeftStick,
+			AxisRightStick,
+
+			HapticsLeftHand,
+			HapticsRightHand,
+
+			PoseLeftHand,
+			PoseRightHand
+		};
+
 		OVRAPI OpenVRWindow();
 		OVRAPI ~OpenVRWindow();
 
@@ -78,9 +104,11 @@ namespace RN
 		VRControllerTrackingState _controllerTrackingState[2];
 		VRControllerTrackingState _trackerTrackingState;
 
-		VRControllerHaptics _haptics[3];
-		uint16 _currentHapticsIndex[3];
-		float _remainingHapticsDelta;
+		uint64_t _inputActionSetHandle;
+		uint64_t _inputActionHandle[16];
+
+		VRControllerHaptics _haptics[2];
+		uint16 _currentHapticsIndex[2];
 
 		float _lastSizeChangeTimer;
 		Vector2 _lastSize;

@@ -1,0 +1,134 @@
+{
+  "default_bindings":
+  [
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "vive_wand.json"
+    },
+    {
+      "controller_type": "touch_controller",
+      "binding_url": "valve_index.json"
+    }
+  ], 
+  "actions":
+  [
+    {
+      "name": "/actions/main/in/LeftLower",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/LeftUpper",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/LeftStick",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/LeftMenu",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/RightLower",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/RightUpper",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/RightStick",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/RightMenu",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/main/in/LeftTrigger",
+      "requirement" : "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/LeftGrab",
+      "requirement" : "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/RightTrigger",
+      "requirement" : "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/RightGrab",
+      "requirement" : "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/LeftStickPosition",
+      "requirement" : "suggested",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/in/RightStickPosition",
+      "requirement" : "suggested",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/out/LeftHandHaptics",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/main/out/RightHandHaptics",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/main/in/LeftHandPosition",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/main/in/RightHandPosition",
+      "type": "pose"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/main",
+      "usage": "leftright"
+    }
+  ],
+  "localization" : [
+   {
+      "language_tag": "en_us",
+
+      "/actions/main": "Main",
+
+      "/actions/main/in/LeftLower": "Left Hand Lower Button",
+      "/actions/main/in/LeftUpper": "Left Hand Higher Button",
+      "/actions/main/in/LeftStick": "Left Hand Stick Button",
+      "/actions/main/in/LeftMenu": "Left Menu Button",
+      "/actions/main/in/RightLower": "Right Hand Lower Button",
+      "/actions/main/in/RightUpper": "Right Hand Higher Button",
+      "/actions/main/in/RightStick": "Right Hand Stick Button",
+      "/actions/main/in/RightMenu": "Right Menu Button",
+      "/actions/main/in/LeftTrigger": "Left Hand Trigger",
+      "/actions/main/in/LeftGrab": "Left Hand Grab",
+      "/actions/main/in/RightTrigger": "Right Hand Trigger",
+      "/actions/main/in/RightGrab": "Right Hand Grab",
+      "/actions/main/in/LeftStickPosition": "Left Hand Analog Stick",
+      "/actions/main/in/RightStickPosition": "Right Hand Analog Stick",
+      "/actions/main/out/LeftHandHaptics": "Left Hand Haptics",
+      "/actions/main/out/RightHandHaptics": "Right Hand Haptics",
+      "/actions/main/in/LeftHandPosition": "Left Hand Position",
+      "/actions/main/in/RightHandPosition": "Right Hand Position"
+    }
+  ]
+}

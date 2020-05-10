@@ -58,6 +58,9 @@ set(HEADERS
         RNOpenVRWindow.h
         RNOpenVRSwapChain.h)
 
+set(RESOURCES
+        Resources)
+
 set(DEFINES RN_BUILD_OPENVR OPENVR_BUILD_STATIC)
 
 set(RAYNE_LIBRARIES Rayne RayneVR)
@@ -116,6 +119,7 @@ endif()
 
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOpenVR)
+rayne_set_module_resources(RayneOpenVR ${RESOURCES})
 
 if(WIN32)
     if(${RN_BUILD_D3D12_MODULE})

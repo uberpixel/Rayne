@@ -24,12 +24,13 @@
 #endif
 
 #include "RNOpenVRWindow.h"
+#include "../../Source/Math/RNMatrix.h"
 
 namespace RN
 {
 	RNDefineMeta(OpenVRWindow, VRWindow)
 
-	OpenVRWindow::OpenVRWindow() : _vrSystem(nullptr), _swapChain(nullptr), _currentHapticsIndex{ 500, 500 }, _remainingHapticsDelta(0.0f), _lastSizeChangeTimer(0.0f)
+	OpenVRWindow::OpenVRWindow() : _vrSystem(nullptr), _swapChain(nullptr), _currentHapticsIndex{ 0, 0 }, _lastSizeChangeTimer(0.0f)
 	{
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
 		
@@ -50,6 +51,36 @@ namespace RN
 		}
 		
 		RNInfo(GetHMDInfoDescription());
+
+		FileManager *fileManager = FileManager::GetSharedInstance();
+		RN::String *inputManifest = fileManager->ResolveFullPath(RNSTR(":RayneOpenVR:/inputmanifest.json"), 0);
+		RN_ASSERT(inputManifest, "Missing OpenVR input manifest! Forgot to add OpenVR to the rayne modules in manifest.json?"); //It's needed in the module list to make the :RayneOpenVR: placeholder work
+		vr::VRInput()->SetActionManifestPath(inputManifest->GetUTF8String());
+
+		vr::VRInput()->GetActionSetHandle("/actions/main", &_inputActionSetHandle);
+		
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftLower", &_inputActionHandle[InputAction::ButtonLeftLower]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftUpper", &_inputActionHandle[InputAction::ButtonLeftUpper]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftStick", &_inputActionHandle[InputAction::ButtonLeftStick]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftMenu", &_inputActionHandle[InputAction::ButtonLeftMenu]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightLower", &_inputActionHandle[InputAction::ButtonRightLower]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightUpper", &_inputActionHandle[InputAction::ButtonRightUpper]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightStick", &_inputActionHandle[InputAction::ButtonRightStick]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightMenu", &_inputActionHandle[InputAction::ButtonRightMenu]);
+
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftTrigger", &_inputActionHandle[InputAction::TriggerLeftTrigger]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftGrab", &_inputActionHandle[InputAction::TriggerLeftGrab]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightTrigger", &_inputActionHandle[InputAction::TriggerRightTrigger]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightGrab", &_inputActionHandle[InputAction::TriggerRightGrab]);
+
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftStickPosition", &_inputActionHandle[InputAction::AxisLeftStick]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightStickPosition", &_inputActionHandle[InputAction::AxisRightStick]);
+
+		vr::VRInput()->GetActionSetHandle("/actions/main/out/LeftHandHaptics", &_inputActionHandle[InputAction::HapticsLeftHand]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/out/RightHandHaptics", &_inputActionHandle[InputAction::HapticsRightHand]);
+
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftHandPosition", &_inputActionHandle[InputAction::PoseLeftHand]);
+		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightHandPosition", &_inputActionHandle[InputAction::PoseRightHand]);
 	}
 
 	OpenVRWindow::~OpenVRWindow()
@@ -274,145 +305,105 @@ namespace RN
 			}
 		}
 
-		for(int i = 0; i < 3; i++)
+		//Update input state
+		vr::VRActiveActionSet_t actionSet;
+		actionSet.ulActionSet = _inputActionSetHandle;
+		actionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+		actionSet.ulSecondaryActionSet = vr::k_ulInvalidActionSetHandle;
+		vr::VRInput()->UpdateActionState(&actionSet, sizeof(vr::VRActiveActionSet_t), 1);
+
+		vr::InputPoseActionData_t handPose[2];
+		vr::VRInput()->GetPoseActionDataForNextFrame(_inputActionHandle[InputAction::PoseLeftHand], vr::ETrackingUniverseOrigin::TrackingUniverseStanding, &handPose[0], sizeof(vr::InputPoseActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetPoseActionDataForNextFrame(_inputActionHandle[InputAction::PoseRightHand], vr::ETrackingUniverseOrigin::TrackingUniverseStanding, &handPose[1], sizeof(vr::InputPoseActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputAnalogActionData_t triggerTrigger[2];
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::TriggerLeftTrigger], &triggerTrigger[0], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::TriggerRightTrigger], &triggerTrigger[1], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputAnalogActionData_t grabTrigger[2];
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::TriggerLeftGrab], &grabTrigger[0], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::TriggerRightGrab], &grabTrigger[1], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputAnalogActionData_t stickPosition[2];
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::AxisLeftStick], &stickPosition[0], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetAnalogActionData(_inputActionHandle[InputAction::AxisRightStick], &stickPosition[1], sizeof(vr::InputAnalogActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputDigitalActionData_t lowerButton[2];
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonLeftLower], &lowerButton[0], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonRightLower], &lowerButton[1], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputDigitalActionData_t upperButton[2];
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonLeftUpper], &upperButton[0], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonRightUpper], &upperButton[1], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputDigitalActionData_t stickButton[2];
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonLeftStick], &stickButton[0], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonRightStick], &stickButton[1], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+
+		vr::InputDigitalActionData_t menuButton[2];
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonLeftMenu], &menuButton[0], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+		vr::VRInput()->GetDigitalActionData(_inputActionHandle[InputAction::ButtonRightMenu], &menuButton[1], sizeof(vr::InputDigitalActionData_t), vr::k_ulInvalidActionHandle);
+
+		for(int i = 0; i < 2; i++)
 		{
-			if(i < 2)
+			_controllerTrackingState[i].active = false;;
+			_controllerTrackingState[i].tracking = false;
+			if(handPose[i].bActive && handPose[i].pose.bDeviceIsConnected)
 			{
-				_controllerTrackingState[i].active = false;;
-				_controllerTrackingState[i].tracking = false;
+				_controllerTrackingState[i].active = true;
+				_controllerTrackingState[i].tracking = handPose[i].pose.bPoseIsValid;
+
+				vr::HmdMatrix34_t handMatrix = handPose[i].pose.mDeviceToAbsoluteTracking;
+				Matrix rotationPose = GetRotationMatrixForOVRMatrix(handMatrix);
+				_controllerTrackingState[i].rotation = rotationPose.GetEulerAngle();
+				_controllerTrackingState[i].position.x = handMatrix.m[0][3];
+				_controllerTrackingState[i].position.y = handMatrix.m[1][3];
+				_controllerTrackingState[i].position.z = handMatrix.m[2][3];
+			}
+
+			if(triggerTrigger[i].bActive)
+			{
+				_controllerTrackingState[i].indexTrigger = triggerTrigger[i].x;
 			}
 			else
 			{
-				_trackerTrackingState.active = false;
-				_trackerTrackingState.tracking = false;
+				_controllerTrackingState[i].indexTrigger = 0.0f;
+			}
+
+			if(grabTrigger[i].bActive)
+			{
+				_controllerTrackingState[i].handTrigger = grabTrigger[i].x;
+			}
+			else
+			{
+				_controllerTrackingState[i].handTrigger = 0.0f;
+			}
+
+			if(stickPosition[i].bActive)
+			{
+				_controllerTrackingState[i].thumbstick.x = stickPosition[i].x;
+				_controllerTrackingState[i].thumbstick.y = stickPosition[i].y;
+			}
+			else
+			{
+				_controllerTrackingState[i].thumbstick = RN::Vector2();
+			}
+
+			_controllerTrackingState[i].button[VRControllerTrackingState::Button::AX] = lowerButton[i].bActive && lowerButton[i].bState;
+			_controllerTrackingState[i].button[VRControllerTrackingState::Button::BY] = upperButton[i].bActive && upperButton[i].bState;
+			_controllerTrackingState[i].button[VRControllerTrackingState::Button::Stick] = stickButton[i].bActive && stickButton[i].bState;
+			_controllerTrackingState[i].button[VRControllerTrackingState::Button::Start] = menuButton[i].bActive && menuButton[i].bState;
+
+			if(_currentHapticsIndex[i] < _haptics[i].sampleCount)
+			{
+//				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
+//				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, 0.1, 320.0f, strength, vr::k_ulInvalidActionHandle);
 			}
 		}
 
-		for(int nDevice = 1; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
-		{
-			//trackerIndex of 0 and 1 are controllers, higher are additional trackers.
-			uint8 trackerIndex = -1;
-			switch(_vrSystem->GetTrackedDeviceClass(nDevice))
-			{
-				case vr::TrackedDeviceClass_Controller:
-				{
-					vr::ETrackedControllerRole role = _vrSystem->GetControllerRoleForTrackedDeviceIndex(nDevice);
-					switch(role)
-					{
-						case vr::TrackedControllerRole_LeftHand:
-							trackerIndex = 0;
-							break;
-
-						case vr::TrackedControllerRole_RightHand:
-							trackerIndex = 1;
-							break;
-
-						default:
-							break;
-					}
-					
-					break;
-				}
-
-				case vr::TrackedDeviceClass_GenericTracker:
-				{
-					trackerIndex = 2;
-					break;
-				}
-					
-				default:
-					break;
-			}
-
-			if(trackerIndex != static_cast<uint8>(-1))
-			{
-				trackedDevices[trackerIndex] = nDevice;
-				VRControllerTrackingState controller;
-				controller.controllerID = trackerIndex;
-				controller.active = _swapChain->_frameDevicePose[nDevice].bDeviceIsConnected;
-
-				if(_swapChain->_frameDevicePose[nDevice].bPoseIsValid)
-				{
-					controller.tracking = true;
-
-					vr::HmdMatrix34_t handPose = _swapChain->_frameDevicePose[nDevice].mDeviceToAbsoluteTracking;
-					Matrix rotationPose = GetRotationMatrixForOVRMatrix(handPose);
-					controller.rotation = rotationPose.GetEulerAngle();
-					controller.position.x = handPose.m[0][3];
-					controller.position.y = handPose.m[1][3];
-					controller.position.z = handPose.m[2][3];
-
-					if(trackerIndex < 2)
-						controller.position += controller.rotation.GetRotatedVector(Vector3(0.0f, -0.01f, 0.05f));
-
-					vr::VRControllerState_t controllerState;
-					_vrSystem->GetControllerState(nDevice, &controllerState, sizeof(controllerState));
-
-					controller.indexTrigger = controllerState.rAxis[1].x;
-					controller.handTrigger = controllerState.rAxis[2].x;
-
-					controller.button[VRControllerTrackingState::Button::AX] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A);
-					controller.button[VRControllerTrackingState::Button::BY] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//For touch this is the B/Y button
-					if(_vrSystem->GetInt32TrackedDeviceProperty(nDevice, vr::Prop_Axis0Type_Int32) == vr::k_eControllerAxis_Joystick)
-					{
-						controller.trackpad = Vector2();
-						controller.thumbstick.x = controllerState.rAxis[0].x;
-						controller.thumbstick.y = controllerState.rAxis[0].y;
-
-						controller.button[VRControllerTrackingState::Button::Stick] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
-						controller.button[VRControllerTrackingState::Button::Pad] = false;
-					}
-					else
-					{
-						controller.thumbstick = Vector2();
-						controller.trackpad.x = controllerState.rAxis[0].x;
-						controller.trackpad.y = controllerState.rAxis[0].y;
-
-						controller.button[VRControllerTrackingState::Button::Stick] = false;
-						controller.button[VRControllerTrackingState::Button::Pad] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad);
-					}
-					controller.button[VRControllerTrackingState::Button::Start] = controllerState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu);	//But it also kinda correspondsto this one... not sure what to do...
-				}
-
-				if(trackerIndex < 2)
-				{
-					_controllerTrackingState[trackerIndex] = controller;
-				}
-				else
-				{
-					_trackerTrackingState = controller;
-				}
-			}
-		}
-
-		//Update haptics
-		_remainingHapticsDelta += delta;
-		uint16 hapticsIncrement = roundf(_remainingHapticsDelta / 0.003125f);
-		_remainingHapticsDelta -= static_cast<float>(hapticsIncrement)*0.003125f;
-
-		for(uint8 hand = 0; hand < 3; hand++)
-		{
-			uint16 device = trackedDevices[hand];
-			if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount && device < vr::k_unMaxTrackedDeviceCount)
-			{
-				if(_currentHapticsIndex[hand] < _haptics[hand].sampleCount)
-				{
-					if(_haptics[hand].samples[_currentHapticsIndex[hand]] > 0)
-					{
-						uint32 sample = _haptics[hand].samples[_currentHapticsIndex[hand]];
-						sample *= 3999;
-						sample /= 255;
-						_vrSystem->TriggerHapticPulse(device, 0, sample);
-					}
-				}
-				else
-				{
-					_currentHapticsIndex[hand] = 300;
-				}
-
-				_currentHapticsIndex[hand] += hapticsIncrement;
-			}
-		}
+		//TODO: Add tracker support
+		_trackerTrackingState.active = false;
+		_trackerTrackingState.tracking = false;
 	}
 
 	void OpenVRWindow::UpdateSize(const Vector2 &size)
