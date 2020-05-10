@@ -56,6 +56,9 @@ namespace RN
 		VRControllerTrackingState _controllerTrackingState[2];
 		VRControllerTrackingState _trackerTrackingState;
 
+		VRControllerHaptics _haptics[2];
+		uint16 _currentHapticsIndex[2];
+
 		RNDeclareMetaAPI(OculusWindow, OVRAPI)
 	};
 }

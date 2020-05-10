@@ -194,6 +194,19 @@ namespace RN
 			_controllerTrackingState[1].active = false;
 			_controllerTrackingState[1].tracking = false;
 		}
+
+		for(int i = 0; i < 2; i++)
+		{
+			if(_currentHapticsIndex[i] < _haptics[i].sampleCount)
+			{
+				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
+				ovr_SetControllerVibration(_swapChain->_session, i==0?ovrControllerType_LTouch:ovrControllerType_RTouch, 1.0f, strength);
+			}
+			else
+			{
+				ovr_SetControllerVibration(_swapChain->_session, i==0?ovrControllerType_LTouch:ovrControllerType_RTouch, 1.0f, 0.0f);
+			}
+		}
 	}
 
 	const VRHMDTrackingState &OculusWindow::GetHMDTrackingState() const
@@ -213,11 +226,8 @@ namespace RN
 
 	void OculusWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
 	{
-		ovrHapticsBuffer buffer;
-		buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
-		buffer.SamplesCount = haptics.sampleCount;
-		buffer.Samples = haptics.samples;
-		ovr_SubmitControllerVibration(_swapChain->_session, index?ovrControllerType_RTouch:ovrControllerType_LTouch, &buffer);
+		_currentHapticsIndex[index] = 0;
+		_haptics[index] = haptics;
 	}
 
 	static String *StringForLPWSTR(LPWSTR lpwstr)

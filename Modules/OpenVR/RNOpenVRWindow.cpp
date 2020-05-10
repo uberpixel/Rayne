@@ -399,6 +399,10 @@ namespace RN
 				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
 				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta*2.0f, 320.0f, strength, vr::k_ulInvalidActionHandle);
 			}
+			else
+			{
+				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta*2.0f, 320.0f, 0.0f, vr::k_ulInvalidActionHandle);
+			}
 		}
 
 		//TODO: Add tracker support
