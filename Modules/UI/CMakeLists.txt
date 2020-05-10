@@ -193,10 +193,7 @@ ExternalProject_Add(skia
 #This one would cause external project to skip all commands after, by splitting this out of externalprojectadd it works...
 add_custom_target(skiaupdate
         COMMAND python ${SKIA_SOURCE_DIR}/tools/git-sync-deps
-        VERBATIM
-        BYPRODUCTS
-                ${SKIA_BINARY_DIR}/libskia.a
-                ${SKIA_BINARY_DIR}/skia.lib)
+        VERBATIM)
 
 add_custom_target(skiabuild
         COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_STRING}
