@@ -396,8 +396,8 @@ namespace RN
 
 			if(_currentHapticsIndex[i] < _haptics[i].sampleCount)
 			{
-//				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
-//				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, 0.1, 320.0f, strength, vr::k_ulInvalidActionHandle);
+				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
+				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta*2.0f, 320.0f, strength, vr::k_ulInvalidActionHandle);
 			}
 		}
 

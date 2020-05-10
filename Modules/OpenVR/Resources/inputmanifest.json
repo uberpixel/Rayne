@@ -8,6 +8,10 @@
     {
       "controller_type": "touch_controller",
       "binding_url": "valve_index.json"
+    },
+    {
+      "controller_type": "touch_controller",
+      "binding_url": "oculus_touch.json"
     }
   ], 
   "actions":

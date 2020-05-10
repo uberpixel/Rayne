@@ -105,7 +105,7 @@ namespace RN
 		VRControllerTrackingState _trackerTrackingState;
 
 		uint64_t _inputActionSetHandle;
-		uint64_t _inputActionHandle[16];
+		uint64_t _inputActionHandle[18];
 
 		VRControllerHaptics _haptics[2];
 		uint16 _currentHapticsIndex[2];
