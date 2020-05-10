@@ -88,7 +88,7 @@ namespace RN
 			String *relativeResourcePath = basePath->StringByAppendingPathComponent(RNCSTR("Resources"));
 			_resourcePath = SafeRetain(coordinator->ResolveFullPath(relativeResourcePath, 0));
 
-			if(!coordinator->PathExists(_resourcePath))
+			if(_resourcePath && !coordinator->PathExists(_resourcePath))
 				SafeRetain(_resourcePath);
 
 			if(_resourcePath)
