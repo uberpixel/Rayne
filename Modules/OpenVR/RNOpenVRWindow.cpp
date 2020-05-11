@@ -310,6 +310,7 @@ namespace RN
 		actionSet.ulActionSet = _inputActionSetHandle;
 		actionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
 		actionSet.ulSecondaryActionSet = vr::k_ulInvalidActionSetHandle;
+		actionSet.nPriority = 0;
 		vr::VRInput()->UpdateActionState(&actionSet, sizeof(vr::VRActiveActionSet_t), 1);
 
 		vr::InputPoseActionData_t handPose[2];
@@ -397,12 +398,13 @@ namespace RN
 			if(_currentHapticsIndex[i] < _haptics[i].sampleCount)
 			{
 				float strength = _haptics[i].samples[_currentHapticsIndex[i]++];
-				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta*2.0f, 320.0f, strength, vr::k_ulInvalidActionHandle);
+				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta, 320.0f, strength, vr::k_ulInvalidActionHandle);
 			}
-			else
+/*			else if(_currentHapticsIndex[i] > 0)
 			{
-				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta*2.0f, 320.0f, 0.0f, vr::k_ulInvalidActionHandle);
-			}
+				vr::VRInput()->TriggerHapticVibrationAction(_inputActionHandle[i == 0 ? InputAction::HapticsLeftHand : InputAction::HapticsRightHand], 0.0f, delta, 320.0f, 0.0f, vr::k_ulInvalidActionHandle);
+				_currentHapticsIndex[i] = 0;
+			}*/
 		}
 
 		//TODO: Add tracker support
