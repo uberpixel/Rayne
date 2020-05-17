@@ -496,7 +496,7 @@ namespace RN
 		}
 	}
 
-	bool InputManager::IsControlToggling(const String *name) const
+	bool InputManager:: IsControlToggling(const String *name) const
 	{
 		size_t count = _devices->GetCount();
 		for(size_t i = 0; i < count; i ++)
@@ -808,6 +808,10 @@ namespace RN
 			return _keyPressed[6];
 		}
 		
+		if(name->IsEqual(RNCSTR("SPACE")))
+		{
+			return _keyPressed[49];
+		}
 		if(name->IsEqual(RNCSTR("SHIFT")))
 		{
 			return _keyPressed[56] || _keyPressed[60];
