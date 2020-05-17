@@ -22,6 +22,16 @@ namespace RN
 	class PhysXDynamicBody : public PhysXCollisionObject
 	{
 	public:
+		enum LockAxis
+		{
+			LockAxisLinearX = (1 << 0),
+			LockAxisLinearY = (1 << 1),
+			LockAxisLinearZ = (1 << 2),
+			LockAxisAngularX = (1 << 3),
+			LockAxisAngularY = (1 << 4),
+			LockAxisAngularZ = (1 << 5)
+		};
+		
 		PXAPI PhysXDynamicBody(PhysXShape *shape, float mass);
 		PXAPI ~PhysXDynamicBody() override;
 			
@@ -41,6 +51,7 @@ namespace RN
 		PXAPI void SetEnableCCD(bool enable);
 		PXAPI void SetEnableGravity(bool enable);
 		PXAPI void SetEnableKinematic(bool enable);
+		PXAPI void LockMovement(RN::uint32 lockFlags);
 
 		PXAPI void SetKinematicTarget(const Vector3 &position, const Quaternion &rotation);
 		PXAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);

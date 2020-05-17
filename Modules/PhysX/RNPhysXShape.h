@@ -29,6 +29,7 @@ namespace RN
 		PhysXShape(physx::PxShape *shape);
 			
 		PXAPI physx::PxShape *GetPhysXShape() const { return _shape; }
+		PXAPI void SetPose(RN::Vector3 positionOffset, RN::Quaternion rotationOffset);
 			
 	protected:
 		PhysXShape();

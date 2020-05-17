@@ -34,6 +34,11 @@ namespace RN
 		if(_shape) _shape->release();
 		SafeRelease(_material);
 	}
+
+	void PhysXShape::SetPose(RN::Vector3 positionOffset, RN::Quaternion rotationOffset)
+	{
+		_shape->setLocalPose(physx::PxTransform(physx::PxVec3(positionOffset.x, positionOffset.y, positionOffset.z), physx::PxQuat(rotationOffset.x, rotationOffset.y, rotationOffset.z, rotationOffset.w)));
+	}
 		
 		
 		

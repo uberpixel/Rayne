@@ -15,7 +15,7 @@
 
 namespace physx
 {
-	class PxController;
+	class PxCapsuleController;
 }
 
 namespace RN
@@ -32,6 +32,8 @@ namespace RN
 		PXAPI void Move(const Vector3 &direction, float delta);
 		PXAPI void Gravity(float gforce, float delta);
 		PXAPI float SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
+		
+		PXAPI bool Resize(float height, bool checkIfBlocked = true);
 
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
 		PXAPI Vector3 GetFeetOffset() const;
@@ -48,7 +50,7 @@ namespace RN
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
-		physx::PxController *_controller;
+		physx::PxCapsuleController *_controller;
 		PhysXMaterial *_material;
 
 		PhysXKinematicControllerCallback *_callback;

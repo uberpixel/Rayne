@@ -8,6 +8,7 @@
 
 #include "RNPhysXInternals.h"
 #include "RNPhysXCollisionObject.h"
+#include "RNPhysXKinematicController.h"
 
 namespace RN
 {
@@ -122,5 +123,17 @@ namespace RN
 	void PhysXKinematicControllerCallback::onObstacleHit(const physx::PxControllerObstacleHit &hit)
 	{
 
+	}
+
+	bool PhysXKinematicControllerCallback::filter(const physx::PxController& a, const physx::PxController& b)
+	{
+		PhysXKinematicController *controllerA = static_cast<PhysXKinematicController*>(a.getUserData());
+		PhysXKinematicController *controllerB = static_cast<PhysXKinematicController*>(b.getUserData());
+		if(controllerA->GetCollisionFilterGroup() & controllerB->GetCollisionFilterMask() && controllerB->GetCollisionFilterGroup() & controllerA->GetCollisionFilterMask())
+		{
+			return true;
+		}
+		
+		return false;
 	}
 }

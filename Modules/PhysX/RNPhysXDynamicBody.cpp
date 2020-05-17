@@ -164,6 +164,11 @@ namespace RN
 		return _actor->isSleeping();
 	}
 
+	void PhysXDynamicBody::LockMovement(RN::uint32 lockFlags)
+	{
+		_actor->setRigidDynamicLockFlags(static_cast<physx::PxRigidDynamicLockFlags>(lockFlags));
+	}
+
 	void PhysXDynamicBody::SetEnableCCD(bool enable)
 	{
 		_actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, enable);

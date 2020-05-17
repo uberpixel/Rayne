@@ -32,7 +32,7 @@ namespace RN
 		desc.userData = this;
 
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
-		_controller = manager->createController(desc);
+		_controller = static_cast<physx::PxCapsuleController*>(manager->createController(desc));
 	}
 		
 	PhysXKinematicController::~PhysXKinematicController()
@@ -50,7 +50,7 @@ namespace RN
 
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterMask;
-		physx::PxControllerFilters controllerFilter(&filterData);
+		physx::PxControllerFilters controllerFilter(&filterData, nullptr, _callback);
 		physx::PxControllerCollisionFlags collisionFlags = _controller->move(physx::PxVec3(direction.x, direction.y, direction.z), 0.0f, delta, controllerFilter);
 
 		UpdatePosition();
@@ -78,7 +78,9 @@ namespace RN
 		}
 
 		if(groundDistance > 0.0f)
+		{
 			Move(RN::Vector3(0.0f, -groundDistance, 0.0f), delta);
+		}
 	}
 
 	float PhysXKinematicController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
@@ -100,6 +102,38 @@ namespace RN
 			return -1.0f;
 
 		return hit.getAnyHit(0).distance;
+	}
+
+	bool PhysXKinematicController::Resize(float height, bool checkIfBlocked)
+	{
+		bool isBlocked = false;
+		float oldHeight = _controller->getHeight();
+		if(checkIfBlocked && height > oldHeight)
+		{
+			float radius = _controller->getRadius();
+			float dh = std::max(height - oldHeight - 2.0f * radius, 0.0f);
+			physx::PxCapsuleGeometry geom(radius, dh * 0.5f);
+			float temporaryShapeHeight = dh + radius * 2.0f;
+			float offset = height - temporaryShapeHeight * 0.5f;
+
+			physx::PxExtendedVec3 position = _controller->getPosition();
+			physx::PxVec3 pos((float)position.x, (float)position.y + offset, (float)position.z);
+			physx::PxQuat orientation(k::Pi_2, physx::PxVec3(0.0f, 0.0f, 1.0f));
+
+			physx::PxFilterData filterData;
+			filterData.word0 = GetCollisionFilterMask();
+			filterData.word1 = GetCollisionFilterGroup();
+			physx::PxOverlapBuffer hit;
+			PhysXWorld *physXWorld = PhysXWorld::GetSharedInstance();
+			if(physXWorld->GetPhysXScene()->overlap(geom, physx::PxTransform(pos, orientation), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eANY_HIT|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eDYNAMIC))) isBlocked = true;
+		}
+		
+		if(!isBlocked)
+		{
+			_controller->resize(height);
+		}
+		
+		return !isBlocked;
 	}
 
 	void PhysXKinematicController::SetCollisionFilter(uint32 group, uint32 mask)

@@ -47,13 +47,13 @@ namespace RN
 		_simulationCallback = new PhysXSimulationCallback();
 
 		physx::PxSceneDesc sceneDesc(_physics->getTolerancesScale());
-		//sceneDesc.solverType = physx::PxSolverType::eTGS; //Enables the better, but somewhat slower solver
+		sceneDesc.solverType = physx::PxSolverType::eTGS; //Enables the better, but somewhat slower solver
 		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
 		_dispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = PhysXCallback::CollisionFilterShader;
 		sceneDesc.simulationEventCallback = _simulationCallback;
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD /*| physx::PxSceneFlag::eREQUIRE_RW_LOCK*/ | physx::PxSceneFlag::eADAPTIVE_FORCE | physx::PxSceneFlag::eENABLE_STABILIZATION;
 		_scene = _physics->createScene(sceneDesc);
 
 		physx::PxPvdSceneClient* pvdClient = _scene->getScenePvdClient();
@@ -64,6 +64,7 @@ namespace RN
 			pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 
+		_controllerManagerFilterCallback = new PhysXKinematicControllerCallback();
 		_controllerManager = PxCreateControllerManager(*_scene);
 	}
 
@@ -71,6 +72,7 @@ namespace RN
 	{
 		//TODO: delete all collision objects
 		_controllerManager->release();
+		delete _controllerManagerFilterCallback;
 		_scene->release();
 		_dispatcher->release();
 		delete _simulationCallback;
@@ -144,6 +146,11 @@ namespace RN
 		}
 	}
 
+	void PhysXWorld::WillUpdate(float delta)
+	{
+		SceneAttachment::WillUpdate(delta);
+		_controllerManager->computeInteractions(delta, _controllerManagerFilterCallback);
+	}
 
 
 	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to, uint32 filterMask)
