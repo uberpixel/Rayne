@@ -74,9 +74,25 @@ namespace RN
 	{}
 
 	void Scene::WillUpdate(float delta)
-	{}
+	{
+		//Update scene attachments
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneAttachment>([delta](SceneAttachment *attachment, size_t index, bool &stop) {
+				attachment->WillUpdate(delta);
+			});
+		}
+	}
 	void Scene::DidUpdate(float delta)
-	{}
+	{
+		//Update scene attachments
+		if(_attachments)
+		{
+			_attachments->Enumerate<SceneAttachment>([delta](SceneAttachment *attachment, size_t index, bool &stop) {
+				attachment->DidUpdate(delta);
+			});
+		}
+	}
 	void Scene::WillRender(Renderer *renderer)
 	{}
 	void Scene::DidRender(Renderer *renderer)

@@ -28,6 +28,8 @@ namespace RN
 	protected:
 		RNAPI SceneAttachment();
 		RNAPI virtual void Update(float delta);
+		RNAPI virtual void WillUpdate(float delta);
+		RNAPI virtual void DidUpdate(float delta);
 
 	private:
 		Scene *_scene;

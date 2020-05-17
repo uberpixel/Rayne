@@ -21,4 +21,14 @@ namespace RN
 	{
 		
 	}
+
+	void SceneAttachment::WillUpdate(float delta)
+	{
+		
+	}
+
+	void SceneAttachment::DidUpdate(float delta)
+	{
+		
+	}
 }
