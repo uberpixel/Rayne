@@ -136,4 +136,19 @@ namespace RN
 		
 		return false;
 	}
+
+	physx::PxControllerBehaviorFlags PhysXKinematicControllerCallback::getBehaviorFlags(const physx::PxShape& shape, const physx::PxActor& actor)
+	{
+		return physx::PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT | physx::PxControllerBehaviorFlag::eCCT_SLIDE;
+	}
+
+	physx::PxControllerBehaviorFlags PhysXKinematicControllerCallback::getBehaviorFlags(const physx::PxController &controller)
+	{
+		return physx::PxControllerBehaviorFlags(0);
+	}
+
+	physx::PxControllerBehaviorFlags PhysXKinematicControllerCallback::getBehaviorFlags(const physx::PxObstacle &obstacle)
+	{
+		return physx::PxControllerBehaviorFlags(0);
+	}
 }

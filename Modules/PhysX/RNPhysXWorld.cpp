@@ -53,7 +53,7 @@ namespace RN
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = PhysXCallback::CollisionFilterShader;
 		sceneDesc.simulationEventCallback = _simulationCallback;
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD /*| physx::PxSceneFlag::eREQUIRE_RW_LOCK*/ | physx::PxSceneFlag::eADAPTIVE_FORCE | physx::PxSceneFlag::eENABLE_STABILIZATION;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS | physx::PxSceneFlag::eENABLE_CCD /*| physx::PxSceneFlag::eREQUIRE_RW_LOCK*/ | physx::PxSceneFlag::eADAPTIVE_FORCE/* | physx::PxSceneFlag::eENABLE_STABILIZATION*/; // adaptive force and stabilization can not both be enabled!
 		_scene = _physics->createScene(sceneDesc);
 
 		physx::PxPvdSceneClient* pvdClient = _scene->getScenePvdClient();

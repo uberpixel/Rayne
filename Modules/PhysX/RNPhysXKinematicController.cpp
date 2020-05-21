@@ -29,6 +29,7 @@ namespace RN
 		desc.stepOffset = stepOffset;
 		desc.material = _material->GetPhysXMaterial();
 		desc.reportCallback = _callback;
+		desc.behaviorCallback = nullptr;//_callback;
 		desc.userData = this;
 
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
@@ -58,7 +59,9 @@ namespace RN
 
 	void PhysXKinematicController::Gravity(float gforce, float delta)
 	{
-		float groundDistance = SweepTest(RN::Vector3(0.0f, -10000.0f, 0.0f));
+		_isFalling = false;
+		PhysXContactInfo contact = SweepTest(RN::Vector3(0.0f, -10000.0f, 0.0f));
+		float groundDistance = contact.distance;
 		groundDistance += GetFeetOffset().y+_controller->getContactOffset()*2.0f;
 		if(groundDistance < 0.4f && _gravity < k::EpsilonFloat)
 		{
@@ -69,6 +72,7 @@ namespace RN
 			_gravity += gforce*delta;
 			if(_gravity < groundDistance)
 			{
+				_isFalling = true;
 				groundDistance = -_gravity*delta;
 			}
 			else
@@ -76,6 +80,8 @@ namespace RN
 				_gravity = 0.0f;
 			}
 		}
+		
+		_objectBelow = contact.node;
 
 		if(groundDistance > 0.0f)
 		{
@@ -83,7 +89,7 @@ namespace RN
 		}
 	}
 
-	float PhysXKinematicController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
+	PhysXContactInfo PhysXKinematicController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
 	{
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
@@ -97,11 +103,24 @@ namespace RN
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+		
+		PhysXContactInfo contact;
+		contact.distance = -1.0f;
+		contact.node = nullptr;
 
 		if(hit.getNbAnyHits() == 0)
-			return -1.0f;
+			return contact;
 
-		return hit.getAnyHit(0).distance;
+		contact.distance = hit.getAnyHit(0).distance;
+		if(hit.getAnyHit(0).actor)
+		{
+			PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(hit.getAnyHit(0).actor->userData);
+			if(collisionObject->GetParent())
+			{
+				contact.node = collisionObject->GetParent();
+			}
+		}
+		return contact;
 	}
 
 	bool PhysXKinematicController::Resize(float height, bool checkIfBlocked)

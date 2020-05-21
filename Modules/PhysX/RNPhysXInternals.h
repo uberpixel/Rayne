@@ -40,13 +40,17 @@ namespace RN
 		void onAdvance(const physx::PxRigidBody*const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) final {}
 	};
 
-	class PhysXKinematicControllerCallback : public physx::PxUserControllerHitReport, public physx::PxControllerFilterCallback
+	class PhysXKinematicControllerCallback : public physx::PxUserControllerHitReport, public physx::PxControllerFilterCallback, public physx::PxControllerBehaviorCallback
 	{
 	public:
 		void onShapeHit(const physx::PxControllerShapeHit &hit) final;
 		void onControllerHit(const physx::PxControllersHit& hit) final;
 		void onObstacleHit(const physx::PxControllerObstacleHit &hit) final;
 		bool filter(const physx::PxController& a, const physx::PxController& b) final;
+		
+		physx::PxControllerBehaviorFlags getBehaviorFlags(const physx::PxShape& shape, const physx::PxActor& actor) final;
+		physx::PxControllerBehaviorFlags getBehaviorFlags(const physx::PxController& controller) final;
+		physx::PxControllerBehaviorFlags getBehaviorFlags(const physx::PxObstacle& obstacle) final;
 	};
 	
 /*	class PhysXRaycastCallback : public physx::PxRaycastCallback

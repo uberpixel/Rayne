@@ -31,12 +31,15 @@ namespace RN
 			
 		PXAPI void Move(const Vector3 &direction, float delta);
 		PXAPI void Gravity(float gforce, float delta);
-		PXAPI float SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
+		PXAPI PhysXContactInfo SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
 		
 		PXAPI bool Resize(float height, bool checkIfBlocked = true);
 
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
 		PXAPI Vector3 GetFeetOffset() const;
+		
+		PXAPI SceneNode *GetObjectBelow() const { return _objectBelow; }
+		PXAPI bool GetIsFalling() const { return _isFalling; }
 
 	/*	PXAPI void SetFallSpeed(float speed);
 		PXAPI void SetJumpSpeed(float speed);
@@ -56,6 +59,8 @@ namespace RN
 		PhysXKinematicControllerCallback *_callback;
 
 		float _gravity;
+		SceneNode *_objectBelow;
+		bool _isFalling;
 			
 		RNDeclareMetaAPI(PhysXKinematicController, PXAPI)
 	};
