@@ -178,8 +178,11 @@ namespace RN
 	{
 		_actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !enable);
 	}
-		
-		
+	
+	void PhysXDynamicBody::SetSolverIterationCount(uint32 positionIterations, uint32 velocityIterations)
+	{
+		_actor->setSolverIterationCounts(positionIterations, velocityIterations);
+	}
 
 	void PhysXDynamicBody::ApplyForce(const Vector3 &force)
 	{

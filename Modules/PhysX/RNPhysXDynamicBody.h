@@ -51,7 +51,8 @@ namespace RN
 		PXAPI void SetEnableCCD(bool enable);
 		PXAPI void SetEnableGravity(bool enable);
 		PXAPI void SetEnableKinematic(bool enable);
-		PXAPI void LockMovement(RN::uint32 lockFlags);
+		PXAPI void LockMovement(uint32 lockFlags);
+		PXAPI void SetSolverIterationCount(uint32 positionIterations, uint32 velocityIterations);
 
 		PXAPI void SetKinematicTarget(const Vector3 &position, const Quaternion &rotation);
 		PXAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);
