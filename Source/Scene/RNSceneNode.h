@@ -251,6 +251,7 @@ namespace RN
 		WillUpdate(ChangeSet::Position);
 
 		_rotation *= rot;
+		_euler = _rotation->GetEulerAngle();
 
 		DidUpdate(ChangeSet::Position);
 	}

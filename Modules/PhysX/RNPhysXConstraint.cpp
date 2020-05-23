@@ -133,13 +133,14 @@ namespace RN
 	void PhysXD6Constraint::SetDrive(DriveAxis axis, PhysXD6Drive *drive)
 	{
 		SafeRelease(_drive[static_cast<int>(axis)]);
+		
 		physx::PxD6Joint *d6Joint = static_cast<physx::PxD6Joint*>(_constraint);
 		physx::PxD6JointDrive *jointdrive = drive?drive->_drive:nullptr;
 		
 		bool isValid = jointdrive->isValid();
 		if(!isValid)
 		{
-			RNDebug("wtf!?");
+			RNDebug("Invalid physx D6 constraint drive configuration.");
 		}
 		
 		d6Joint->setDrive(static_cast<physx::PxD6Drive::Enum>(axis), *jointdrive);

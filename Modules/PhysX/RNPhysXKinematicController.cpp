@@ -16,7 +16,7 @@ namespace RN
 {
 	RNDefineMeta(PhysXKinematicController, PhysXCollisionObject)
 		
-	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset) : _gravity(0.0f)
+	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset) : _gravity(0.0f), _objectBelow(nullptr)
 	{
 		_material = material->Retain();
 
