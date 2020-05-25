@@ -60,14 +60,14 @@ namespace RN
 	void PhysXKinematicController::Gravity(float gforce, float delta)
 	{
 		PhysXContactInfo contact = SweepTest(RN::Vector3(0.0f, -10000.0f, 0.0f));
-		float groundDistance = contact.distance + _controller->getRadius() + _controller->getHeight() * 0.5f;
+		float groundDistance = _controller->getPosition().y - contact.position.y + GetFeetOffset().y;
 		float fallDistance = 0.0f;
 		_fallSpeed += gforce * delta;
-		if((groundDistance + _fallSpeed * delta) < -GetFeetOffset().y || (!_isFalling && groundDistance + gforce * 2.0f * delta < -GetFeetOffset().y))
+		if((groundDistance + _fallSpeed * delta) < k::EpsilonFloat || (!_isFalling && groundDistance + gforce * 2.0f * delta < 0.0f))
 		{
 			_fallSpeed = 0.0f;
 			_isFalling = false;
-			fallDistance = -GetFeetOffset().y - groundDistance;
+			fallDistance = -groundDistance;
 		}
 		else
 		{
@@ -105,10 +105,13 @@ namespace RN
 		if(hit.getNbAnyHits() == 0)
 			return contact;
 
-		contact.distance = hit.getAnyHit(0).distance;
-		if(hit.getAnyHit(0).actor)
+		physx::PxSweepHit closestHit = hit.getAnyHit(0);
+		contact.distance = closestHit.distance;
+		contact.position = Vector3(closestHit.position.x, closestHit.position.y, closestHit.position.z);
+		contact.normal = Vector3(closestHit.normal.x, closestHit.normal.y, closestHit.normal.z);
+		if(closestHit.actor)
 		{
-			PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(hit.getAnyHit(0).actor->userData);
+			PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(closestHit.actor->userData);
 			if(collisionObject->GetParent())
 			{
 				contact.node = collisionObject->GetParent();
