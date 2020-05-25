@@ -58,7 +58,7 @@ namespace RN
 
 		PhysXKinematicControllerCallback *_callback;
 
-		float _gravity;
+		float _fallSpeed;
 		SceneNode *_objectBelow;
 		bool _isFalling;
 			

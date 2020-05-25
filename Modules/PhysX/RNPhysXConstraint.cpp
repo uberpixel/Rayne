@@ -102,7 +102,7 @@ namespace RN
 			_drive[i] = nullptr;
 		}
 		
-		joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
+		//joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
 		
 		_constraint = joint;
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");

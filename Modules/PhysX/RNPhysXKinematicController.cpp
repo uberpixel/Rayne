@@ -16,7 +16,7 @@ namespace RN
 {
 	RNDefineMeta(PhysXKinematicController, PhysXCollisionObject)
 		
-	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset) : _gravity(0.0f), _objectBelow(nullptr)
+	PhysXKinematicController::PhysXKinematicController(float radius, float height, PhysXMaterial *material, float stepOffset) : _fallSpeed(0.0f), _objectBelow(nullptr)
 	{
 		_material = material->Retain();
 
@@ -59,33 +59,26 @@ namespace RN
 
 	void PhysXKinematicController::Gravity(float gforce, float delta)
 	{
-		_isFalling = false;
 		PhysXContactInfo contact = SweepTest(RN::Vector3(0.0f, -10000.0f, 0.0f));
-		float groundDistance = contact.distance;
-		groundDistance += GetFeetOffset().y+_controller->getContactOffset()*2.0f;
-		if(groundDistance < 0.4f && _gravity < k::EpsilonFloat)
+		float groundDistance = contact.distance + _controller->getRadius() + _controller->getHeight() * 0.5f;
+		float fallDistance = 0.0f;
+		_fallSpeed += gforce * delta;
+		if((groundDistance + _fallSpeed * delta) < -GetFeetOffset().y || (!_isFalling && groundDistance + gforce * 2.0f * delta < -GetFeetOffset().y))
 		{
-			_gravity = 0.0f;
+			_fallSpeed = 0.0f;
+			_isFalling = false;
+			fallDistance = -GetFeetOffset().y - groundDistance;
 		}
 		else
 		{
-			_gravity += gforce*delta;
-			if(_gravity < groundDistance)
-			{
-				_isFalling = true;
-				groundDistance = -_gravity*delta;
-			}
-			else
-			{
-				_gravity = 0.0f;
-			}
+			fallDistance = _fallSpeed * delta;
+			_isFalling = true;
 		}
 		
 		_objectBelow = contact.node;
-
-		if(groundDistance > 0.0f)
+		if(std::abs(fallDistance) > k::EpsilonFloat)
 		{
-			Move(RN::Vector3(0.0f, -groundDistance, 0.0f), delta);
+			Move(RN::Vector3(0.0f, fallDistance, 0.0f), delta);
 		}
 	}
 
@@ -101,7 +94,8 @@ namespace RN
 		physx::PxShape *shape;
 		_controller->getActor()->getShapes(&shape, 1);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-		scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
+		scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		
 		PhysXContactInfo contact;
@@ -174,7 +168,9 @@ namespace RN
 
 	Vector3 PhysXKinematicController::GetFeetOffset() const
 	{
-		physx::PxVec3 offset = _controller->getFootPosition() - _controller->getPosition();
+		physx::PxVec3 footPosition = physx::toVec3(_controller->getFootPosition());
+		physx::PxVec3 position = physx::toVec3(_controller->getPosition());
+		physx::PxVec3 offset = footPosition - position;
 		return Vector3(offset.x, offset.y, offset.z);
 	}
 
