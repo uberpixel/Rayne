@@ -17,7 +17,6 @@
 #include "RNPhysXStaticBody.h"
 #include "RNPhysXConstraint.h"
 #include "RNPhysXKinematicController.h"
-#include <unordered_set>
 
 namespace physx
 {
@@ -44,8 +43,8 @@ namespace RN
 		PXAPI void SetGravity(const Vector3 &gravity);
 		PXAPI Vector3 GetGravity();
 
-		PXAPI void Update(float delta) override;
-		PXAPI void WillUpdate(float delta) override;
+		PXAPI void Update(float delta) final;
+		PXAPI void WillUpdate(float delta) final;
 		PXAPI void SetSubsteps(uint8 substeps);
 		PXAPI void SetPaused(bool paused);
 
