@@ -270,7 +270,7 @@ namespace RN
 		_actor->addTorque(physx::PxVec3(angularForce.x, angularForce.y, angularForce.z), physx::PxForceMode::eACCELERATION);
 	}
 	
-	bool PhysXDynamicBody::SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation) const
+	bool PhysXDynamicBody::SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition, const Quaternion &offsetRotation, float inflation) const
 	{
 		physx::PxTransform pose = _actor->getGlobalPose();
 		pose.p += physx::PxVec3(offsetPosition.x, offsetPosition.y, offsetPosition.z);
@@ -302,7 +302,7 @@ namespace RN
 			for(PhysXShape *tempShape : compound->_shapes)
 			{
 				physx::PxShape *shape = tempShape->GetPhysXShape();
-				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
+				scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback, nullptr, inflation);
 
 				for(int i = 0; i < hit.getNbAnyHits(); i++)
 				{
@@ -329,7 +329,7 @@ namespace RN
 		{
 			physx::PxShape *shape = _shape->GetPhysXShape();
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback);
+			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback, nullptr, inflation);
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
 			for(int i = 0; i <hit.getNbAnyHits(); i++)

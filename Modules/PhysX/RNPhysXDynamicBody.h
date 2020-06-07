@@ -74,7 +74,7 @@ namespace RN
 		
 		PXAPI bool GetIsKinematic() const;
 
-		PXAPI bool SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;
+		PXAPI bool SweepTest(std::vector<PhysXContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion(), float inflation = 0.0f) const;
 		PXAPI Quaternion RotationSweepTest(std::vector<PhysXContactInfo> &contactInfo, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;
 
 		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
