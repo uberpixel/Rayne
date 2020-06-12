@@ -80,19 +80,19 @@ namespace RN
 	public:
 		enum MotionAxis
 		{
-			MotionTranslationX,
-			MotionTranslationY,
-			MotionTranslationZ,
-			MotionRotationX,
-			MotionRotationY,
-			MotionRotationZ
+			motionLinearX,
+			motionLinearY,
+			motionLinearZ,
+			motionAngularX,
+			motionAngularY,
+			motionAngularZ
 		};
 		
 		enum DriveAxis
 		{
-			DriveTranslationX,
-			DriveTranslationY,
-			DriveTranslationZ,
+			DriveLinearX,
+			DriveLinearY,
+			DriveLinearZ,
 			DriveTwist,
 			DriveSpin,
 			DriveSlerp
