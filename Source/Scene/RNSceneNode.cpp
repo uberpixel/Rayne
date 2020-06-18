@@ -20,6 +20,7 @@ namespace RN
 		_uid(__SceneNodeIDs.fetch_add(1)),
 		_lid(static_cast<uint64>(-1)),
 		_sceneInfo(nullptr),
+		_scheduledForRemovalFromScene(false),
 		_sceneEntry(this),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
@@ -181,6 +182,8 @@ namespace RN
 
 	void SceneNode::SetPriority(Priority priority)
 	{
+		RN_ASSERT(_sceneInfo == nullptr, "SetPriority() must be called before adding the node to the scene.");
+		
 		WillUpdate(ChangeSet::Priority);
 		_priority = priority;
 		DidUpdate(ChangeSet::Priority);
@@ -260,14 +263,23 @@ namespace RN
 
 	void SceneNode::__CompleteAttachmentWithScene(SceneInfo *sceneInfo)
 	{
-		if((_sceneInfo && sceneInfo && _sceneInfo->GetScene() == sceneInfo->GetScene()) || (!_sceneInfo && !sceneInfo))
+		if((!_scheduledForRemovalFromScene && (_sceneInfo && sceneInfo && _sceneInfo->GetScene() == sceneInfo->GetScene())) || (!_sceneInfo && !sceneInfo))
 			return;
 
-		if(_sceneInfo)
+		if(_sceneInfo && !_scheduledForRemovalFromScene)
+		{
+			_scheduledForRemovalFromScene = true;
 			_sceneInfo->GetScene()->RemoveNode(this);
+		}
 
 		if(sceneInfo)
+		{
+			if(_scheduledForRemovalFromScene)
+			{
+				_scheduledForRemovalFromScene = false;
+			}
 			sceneInfo->GetScene()->AddNode(this);
+		}
 	}
 
 	// -------------------

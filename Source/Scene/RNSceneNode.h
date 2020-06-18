@@ -173,6 +173,7 @@ namespace RN
 		void Initialize();
 		RNAPI void UpdateInternalData() const;
 
+		void __RemoveSceneInfo();
 		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
 
 		AABB _boundingBox;
@@ -191,6 +192,7 @@ namespace RN
 		uint64 _lid;
 
 		SceneInfo *_sceneInfo;
+		bool _scheduledForRemovalFromScene;
 
 		ObservableScalar<Tag, SceneNode> _tag;
 

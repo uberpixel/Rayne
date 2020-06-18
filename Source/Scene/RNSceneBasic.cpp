@@ -224,6 +224,15 @@ namespace RN
 
 	void SceneBasic::AddNode(SceneNode *node)
 	{
+		//Remove from deletion list if scheduled for deletion if the scene didn't change.
+		if(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this && _nodesToRemove->ContainsObject(node))
+		{
+			_nodesToRemove->Lock();
+			_nodesToRemove->RemoveObject(node);
+			_nodesToRemove->Unlock();
+			return;
+		}
+		
 		RN_ASSERT(node->GetSceneInfo() == nullptr, "AddNode() must be called on a Node not owned by a scene");
 		
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
@@ -242,7 +251,7 @@ namespace RN
 	void SceneBasic::RemoveNode(SceneNode *node)
 	{
 		RN_ASSERT(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this, "RemoveNode() must be called on a Node owned by the scene");
-
+		
 		_nodesToRemove->Lock();
 		_nodesToRemove->AddObject(node);
 		_nodesToRemove->Unlock();
