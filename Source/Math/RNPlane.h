@@ -111,7 +111,7 @@ namespace RN
 		if(angleCos >= -k::EpsilonFloat && angleCos <= k::EpsilonFloat)
 			return contact;
 
-		if(((GetDistance(position) > 0)?1:-1) == ((angleCos)?1:-1))
+		if(((GetDistance(position) > 0)?1:-1) == ((angleCos > 0)?1:-1))
 			return contact;
 
 		float fac = (_position-position).GetDotProduct(_normal)/angleCos;
