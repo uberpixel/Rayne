@@ -131,6 +131,13 @@ namespace RN
 		joint->setLinearLimit(physx::PxD6Axis::Enum::eY, physx::PxJointLinearLimitPair(lowerLimit.y, upperLimit.y, physx::PxSpring(stiffness, damping)));
 		joint->setLinearLimit(physx::PxD6Axis::Enum::eZ, physx::PxJointLinearLimitPair(lowerLimit.z, upperLimit.z, physx::PxSpring(stiffness, damping)));
 	}
+
+	void PhysXD6Constraint::SetAngularLimit(Vector3 lowerLimit, Vector3 upperLimit, float stiffness, float damping)
+	{
+		physx::PxD6Joint *joint = static_cast<physx::PxD6Joint *>(_constraint);
+		joint->setTwistLimit(physx::PxJointAngularLimitPair(lowerLimit.x, upperLimit.x, physx::PxSpring(stiffness, damping)));
+		joint->setPyramidSwingLimit(physx::PxJointLimitPyramid(lowerLimit.y, upperLimit.y, lowerLimit.z, upperLimit.z, physx::PxSpring(stiffness, damping)));
+	}
 		
 	PhysXD6Constraint *PhysXD6Constraint::WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{

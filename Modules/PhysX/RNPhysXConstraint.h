@@ -110,6 +110,7 @@ namespace RN
 		
 		PXAPI void SetMotion(MotionAxis axis, MotionType type);
 		PXAPI void SetLinearLimit(Vector3 lowerLimit, Vector3 upperLimit, float stiffness, float damping);
+		PXAPI void SetAngularLimit(Vector3 lowerLimit, Vector3 upperLimit, float stiffness, float damping);
 		PXAPI void SetDrive(DriveAxis axis, PhysXD6Drive *drive);
 		PXAPI void SetDrivePosition(Vector3 position, Quaternion rotation);
 		PXAPI void SetDriveVelocity(Vector3 linear, Vector3 angular);
