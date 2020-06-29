@@ -14,9 +14,6 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
 
     # Create the target
     if(APPLE)
-
-        set(CMAKE_OSX_ARCHITECTURES x86_64)
-
         if(POLICY CMP0042)
             cmake_policy(SET CMP0042 NEW) # Set MACOSX_RPATH=YES by default
         endif()

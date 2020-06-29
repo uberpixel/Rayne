@@ -271,9 +271,11 @@ namespace RN
 		CFRetain(_device);
 
 		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(_device, NULL, kIOHIDOptionsTypeNone);
-		BuildControlTree(this, elements);
-
-		CFRelease(elements);
+        if(elements)
+        {
+            BuildControlTree(this, elements);
+            CFRelease(elements);
+        }
 
 		// Prepare the queue
 		for(HIDElement *element : _allElements)
@@ -600,6 +602,8 @@ namespace RN
 
 		for(auto &pair : _buttonEvents)
 		{
+            if(pair.first >= _buttonControls->GetCount()) continue;
+            
 			ButtonControl *control = _buttonControls->GetObjectAtIndex<ButtonControl>(pair.first);
 			control->SetPressed(pair.second);
 		}
