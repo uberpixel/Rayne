@@ -30,6 +30,8 @@ ExternalProject_Add(openvr
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
+                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+                "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
                 "-DBUILD_UNIVERSAL:BOOL=False"
                 "-DBUILD_SHARED:BOOL=False"
                 "-DUSE_LIBCXX:BOOL=${USE_LIBCXX}"

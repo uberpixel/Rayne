@@ -6,7 +6,8 @@ include(ExternalProject)
 
 if(APPLE)
         set(SKIA_ARGS
-                extra_cflags_cc=["-mmacosx-version-min=10.11"]
+                target_os=\"mac\"
+                host_cpu=\"arm64\"
                 is_official_build=true
                 is_debug=false
                 is_component_build=false
@@ -15,6 +16,14 @@ if(APPLE)
                 skia_enable_atlas_text=false
                 skia_use_system_freetype2=false
                 skia_use_icu=false
+                skia_use_libgifcodec=false
+                skia_use_harfbuzz=false
+                skia_use_gl=false
+                skia_use_expat=false
+                skia_enable_gpu=false
+                skia_enable_particles=false
+                skia_enable_skottie=false
+                skia_enable_skshaper=false
                 skia_use_system_libpng=false
                 skia_use_system_zlib=false
                 skia_use_libjpeg_turbo_decode=false
@@ -30,7 +39,8 @@ if(APPLE)
                 skia_enable_pdf=false)
 elseif(ANDROID)
         set(SKIA_ARGS
-                ndk=\"/Users/slin/Library/Android/sdk/ndk-bundle\" target_cpu=\"arm64\"
+                ndk=\"/Users/slin/Library/Android/sdk/ndk-bundle\"
+                target_cpu=\"arm64\"
                 ndk_api=24
                 cc=\"clang\"
                 cxx=\"clang++\"
@@ -184,6 +194,7 @@ ExternalProject_Add(skia
         GIT_TAG origin/chrome/m83
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        UPDATE_COMMAND ""
         PATCH_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
@@ -195,13 +206,31 @@ add_custom_target(skiaupdate
         COMMAND python ${SKIA_SOURCE_DIR}/tools/git-sync-deps
         VERBATIM)
 
-add_custom_target(skiabuild
-        COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_STRING}
-        COMMAND ninja -C ${SKIA_BINARY_DIR} skia
-        VERBATIM
-        BYPRODUCTS
-                ${SKIA_BINARY_DIR}/libskia.a
-                ${SKIA_BINARY_DIR}/skia.lib)
+if(APPLE)
+        set(SKIA_ARGS_X64 ${SKIA_ARGS} target_cpu=\"x64\" extra_cflags=[\"-mmacosx-version-min=10.12\",\"--target=x86_64-apple-macos10.12\"])
+        list(JOIN SKIA_ARGS_X64 " " SKIA_ARGS_X64_STRING)
+
+        set(SKIA_ARGS_ARM64 ${SKIA_ARGS} target_cpu=\"arm64\" extra_cflags=[\"-mmacosx-version-min=10.11\",\"--target=arm64-apple-macos11\"])
+        list(JOIN SKIA_ARGS_ARM64 " " SKIA_ARGS_ARM64_STRING)
+
+        add_custom_target(skiabuild
+        #        COMMAND sed -i.bak "/opts(\"crc32\")/{n$<SEMICOLON>s/.*/enabled = false/$<SEMICOLON>}" ${SKIA_SOURCE_DIR}/BUILD.gn
+                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/x64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_X64_STRING}
+                COMMAND ninja -C ${SKIA_BINARY_DIR}/x64 skia
+                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/arm64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_ARM64_STRING}
+                COMMAND ninja -C ${SKIA_BINARY_DIR}/arm64 skia
+                COMMAND lipo -create -output ${SKIA_BINARY_DIR}/libskia.a ${SKIA_BINARY_DIR}/x64/libskia.a ${SKIA_BINARY_DIR}/arm64/libskia.a
+                VERBATIM
+                BYPRODUCTS ${SKIA_BINARY_DIR}/libskia.a)
+else()
+        add_custom_target(skiabuild
+                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_STRING}
+                COMMAND ninja -C ${SKIA_BINARY_DIR} skia
+                VERBATIM
+                BYPRODUCTS
+                        ${SKIA_BINARY_DIR}/libskia.a
+                        ${SKIA_BINARY_DIR}/skia.lib)
+endif()
 
 add_dependencies(skiaupdate skia)
 add_dependencies(skiabuild skiaupdate)

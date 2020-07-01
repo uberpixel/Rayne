@@ -5,6 +5,8 @@ project(Rayne-Vendor)
 option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
 option(PNG_SHARED "Build shared lib" OFF)
 option(PNG_TESTS "Build libpng tests" OFF)
+option(PNG_EXECUTABLES "Build libpng executables" OFF)
+set(PNG_ARM_NEON "off" CACHE STRING "Enable ARM NEON optimizations: check|on|off; check is default")
 
 add_subdirectory("zlib")
 add_subdirectory("jansson")

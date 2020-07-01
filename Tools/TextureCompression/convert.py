@@ -19,6 +19,9 @@ def prepare():
         astcencPath = os.path.dirname(sys.argv[0])
         subprocess.call(['make'], cwd=os.path.abspath(os.path.join(astcencPath, 'Vendor/astc-encoder/Source')))
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
+        if not os.path.isfile(astcencPath):
+            astcencPath = os.path.dirname(sys.argv[0])
+            astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-nointrin')
         subprocess.call(['chmod', '+x', astcencPath])
 
         nvTextureToolsPath = os.path.dirname(sys.argv[0])
@@ -111,6 +114,9 @@ def main():
     nvTextureToolsPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
+        if not os.path.isfile(astcencPath):
+            astcencPath = os.path.dirname(sys.argv[0])
+            astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-nointrin')
         #compressonatorPath = os.path.join(astcencPath, 'Vendor/CMP3/CompressonatorCLI.sh')
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
     elif platform.system() == 'Windows':

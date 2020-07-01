@@ -56,6 +56,8 @@ ExternalProject_Add(openal
         UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 #"-DCMAKE_PLATFORM_NO_VERSIONED_SONAME:BOOL=True"
+                "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
+                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
                 "-DALSOFT_UTILS:BOOL=False"
                 "-DALSOFT_EXAMPLES:BOOL=False"
                 "-DALSOFT_TESTS:BOOL=False"
@@ -65,6 +67,7 @@ ExternalProject_Add(openal
                 "-DALSOFT_INSTALL:BOOL=False"
                 "-DALSOFT_EMBED_HRTF_DATA:BOOL=True"
                 "-DALSOFT_REQUIRE_OPENSL:BOOL=${ANDROID}"
+                "-DALSOFT_CPUEXT_NEON:BOOL=False"
                 "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
                 "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
