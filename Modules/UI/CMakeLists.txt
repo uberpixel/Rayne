@@ -207,7 +207,7 @@ add_custom_target(skiaupdate
         VERBATIM)
 
 if(APPLE)
-        if(CMAKE_HOST_SYSTEM_PROCESSOR EQUAL "arm")
+        if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
                 set(SKIA_ARGS_X64 ${SKIA_ARGS} target_cpu=\"x64\" extra_cflags=[\"-mmacosx-version-min=10.12\",\"--target=x86_64-apple-macos10.12\"])
                 list(JOIN SKIA_ARGS_X64 " " SKIA_ARGS_X64_STRING)
 
