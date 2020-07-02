@@ -207,21 +207,34 @@ add_custom_target(skiaupdate
         VERBATIM)
 
 if(APPLE)
-        set(SKIA_ARGS_X64 ${SKIA_ARGS} target_cpu=\"x64\" extra_cflags=[\"-mmacosx-version-min=10.12\",\"--target=x86_64-apple-macos10.12\"])
-        list(JOIN SKIA_ARGS_X64 " " SKIA_ARGS_X64_STRING)
+        if(CMAKE_HOST_SYSTEM_PROCESSOR EQUAL "arm")
+                set(SKIA_ARGS_X64 ${SKIA_ARGS} target_cpu=\"x64\" extra_cflags=[\"-mmacosx-version-min=10.12\",\"--target=x86_64-apple-macos10.12\"])
+                list(JOIN SKIA_ARGS_X64 " " SKIA_ARGS_X64_STRING)
 
-        set(SKIA_ARGS_ARM64 ${SKIA_ARGS} target_cpu=\"arm64\" extra_cflags=[\"-mmacosx-version-min=10.11\",\"--target=arm64-apple-macos11\"])
-        list(JOIN SKIA_ARGS_ARM64 " " SKIA_ARGS_ARM64_STRING)
+                set(SKIA_ARGS_ARM64 ${SKIA_ARGS} target_cpu=\"arm64\" extra_cflags=[\"-mmacosx-version-min=10.11\",\"--target=arm64-apple-macos11\"])
+                list(JOIN SKIA_ARGS_ARM64 " " SKIA_ARGS_ARM64_STRING)
 
-        add_custom_target(skiabuild
-        #        COMMAND sed -i.bak "/opts(\"crc32\")/{n$<SEMICOLON>s/.*/enabled = false/$<SEMICOLON>}" ${SKIA_SOURCE_DIR}/BUILD.gn
-                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/x64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_X64_STRING}
-                COMMAND ninja -C ${SKIA_BINARY_DIR}/x64 skia
-                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/arm64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_ARM64_STRING}
-                COMMAND ninja -C ${SKIA_BINARY_DIR}/arm64 skia
-                COMMAND lipo -create -output ${SKIA_BINARY_DIR}/libskia.a ${SKIA_BINARY_DIR}/x64/libskia.a ${SKIA_BINARY_DIR}/arm64/libskia.a
+                add_custom_target(skiabuild
+                #        COMMAND sed -i.bak "/opts(\"crc32\")/{n$<SEMICOLON>s/.*/enabled = false/$<SEMICOLON>}" ${SKIA_SOURCE_DIR}/BUILD.gn
+                        COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/x64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_X64_STRING}
+                        COMMAND ninja -C ${SKIA_BINARY_DIR}/x64 skia
+                        COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR}/arm64 --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_ARM64_STRING}
+                        COMMAND ninja -C ${SKIA_BINARY_DIR}/arm64 skia
+                        COMMAND lipo -create -output ${SKIA_BINARY_DIR}/libskia.a ${SKIA_BINARY_DIR}/x64/libskia.a ${SKIA_BINARY_DIR}/arm64/libskia.a
+                        VERBATIM
+                        BYPRODUCTS ${SKIA_BINARY_DIR}/libskia.a)
+        else()
+                set(SKIA_ARGS_X64 ${SKIA_ARGS} target_cpu=\"x64\" extra_cflags=[\"-mmacosx-version-min=10.12\"])
+                list(JOIN SKIA_ARGS_X64 " " SKIA_ARGS_X64_STRING)
+
+                add_custom_target(skiabuild
+                COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_X64_STRING}
+                COMMAND ninja -C ${SKIA_BINARY_DIR} skia
                 VERBATIM
-                BYPRODUCTS ${SKIA_BINARY_DIR}/libskia.a)
+                BYPRODUCTS
+                        ${SKIA_BINARY_DIR}/libskia.a
+                        ${SKIA_BINARY_DIR}/skia.lib)
+        endif()
 else()
         add_custom_target(skiabuild
                 COMMAND ${SKIA_SOURCE_DIR}/bin/gn gen ${SKIA_BINARY_DIR} --root=${SKIA_SOURCE_DIR} --args=${SKIA_ARGS_STRING}
