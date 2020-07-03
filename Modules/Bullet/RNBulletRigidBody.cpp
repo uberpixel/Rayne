@@ -103,6 +103,11 @@ namespace RN
 	{
 		_rigidBody->forceActivationState(canDeactivate?ACTIVE_TAG:DISABLE_DEACTIVATION);
 	}
+
+    void BulletRigidBody::Activate()
+    {
+        _rigidBody->activate();
+    }
 		
 	Vector3 BulletRigidBody::GetLinearVelocity() const
 	{

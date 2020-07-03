@@ -65,8 +65,16 @@ namespace RN
 		}
 		virtual void Update(const SceneNode *node)
 		{
-			modelMatrix = node->GetWorldTransform();
-			inverseModelMatrix = modelMatrix.GetInverse();
+            if(!node)
+            {
+                modelMatrix = Matrix();
+                inverseModelMatrix = Matrix();
+            }
+            else
+            {
+                modelMatrix = node->GetWorldTransform();
+                inverseModelMatrix = modelMatrix.GetInverse();
+            }
 		}
 		virtual void MakeDirty(){}
 

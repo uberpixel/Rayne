@@ -37,6 +37,7 @@ namespace RN
 		BTAPI void SetGravity(const Vector3 &gravity);
 		BTAPI void SetDamping(float linear, float angular);
 		BTAPI void SetAllowDeactivation(bool canDeactivate);
+        BTAPI void Activate();
 			
 		BTAPI void ApplyForce(const Vector3 &force);
 		BTAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);

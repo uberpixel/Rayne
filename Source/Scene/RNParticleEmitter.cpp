@@ -335,7 +335,7 @@ namespace RN
 			UpdateMesh();
 		}
 
-		_drawable->Update(_mesh, _material, nullptr, this);
+		_drawable->Update(_mesh, _material, nullptr, _isLocal?this:nullptr);
 		renderer->SubmitDrawable(_drawable);
 	}
 	
