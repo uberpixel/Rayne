@@ -145,7 +145,8 @@ namespace RN
 	{
 		const String *path = file->GetPath()->StringByDeletingLastPathComponent();
 
-		file->Seek(5); // Skip over magic bytes and version number
+		file->Seek(4); // Skip over magic bytes and version number
+        RN::uint32 version = file->ReadUint8();
 
 		uint8 materialCount = file->ReadUint8();
 
@@ -160,7 +161,7 @@ namespace RN
 
 			file->ReadUint8();
 
-			uint8 uvCount = file->ReadUint8();
+			uint8 uvCount = (version > 2)? file->ReadUint8() : 1;
 
 			for(uint8 u = 0; u < uvCount; u ++)
 			{
@@ -168,7 +169,10 @@ namespace RN
 
 				for(uint8 n = 0; n < textureCount; n ++)
 				{
+                    if(version > 2)
+                    {
 					/*RN_UNUSED uint8 usageHint =*/ file->ReadUint8();
+                    }
 
 					size_t length = file->ReadUint16();
 					char *buffer = new char[length];
@@ -202,19 +206,22 @@ namespace RN
 			}
 
 			Color diffuseColor;
-			uint8 colorCount = file->ReadUint8();
-			for(uint8 u = 0; u < colorCount; u ++)
-			{
-				RN_UNUSED uint8 usagehint = file->ReadUint8();
-				Color color;
-				color.r = file->ReadFloat();
-				color.g = file->ReadFloat();
-				color.b = file->ReadFloat();
-				color.a = file->ReadFloat();
+            if(version > 2)
+            {
+                uint8 colorCount = file->ReadUint8();
+                for(uint8 u = 0; u < colorCount; u ++)
+                {
+                    uint8 usagehint = file->ReadUint8();
+                    Color color;
+                    color.r = file->ReadFloat();
+                    color.g = file->ReadFloat();
+                    color.b = file->ReadFloat();
+                    color.a = file->ReadFloat();
 
-				if(usagehint == 0 && u == 0)
-					diffuseColor = color;
-			}
+                    if(usagehint == 0 && u == 0)
+                        diffuseColor = color;
+                }
+            }
 
 			Dictionary *info = new Dictionary();
 			info->SetObjectForKey(textures, RNCSTR("textures"));
@@ -460,6 +467,6 @@ namespace RN
 		file->Seek(4); // Skip the magic bytes, they've already been checked
 		uint32 version = file->ReadUint8();
 
-		return (version == 3);
+		return (version == 3 || version == 2);
 	}
 }
