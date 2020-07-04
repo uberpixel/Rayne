@@ -145,7 +145,7 @@ namespace RN
 	{
 		const String *path = file->GetPath()->StringByDeletingLastPathComponent();
 
-		file->Seek(4); // Skip over magic bytes and version number
+		file->Seek(4); // Skip over magic bytes
         RN::uint32 version = file->ReadUint8();
 
 		uint8 materialCount = file->ReadUint8();
@@ -292,7 +292,7 @@ namespace RN
 
 			auto &materialPair = materials[file->ReadUint8()];
 
-			uint32 verticesCount = file->ReadUint32();
+			uint32 verticesCount = (version == 1)?file->ReadUint16() : file->ReadUint32(); //Only difference to version 1 with magic number... makes index size support further down kinda useless :D
 			uint8 uvCount   = file->ReadUint8();
 			uint8 dataCount = file->ReadUint8();
 			bool hasTangent = file->ReadUint8();
@@ -467,6 +467,6 @@ namespace RN
 		file->Seek(4); // Skip the magic bytes, they've already been checked
 		uint32 version = file->ReadUint8();
 
-		return (version == 3 || version == 2);
+		return (version == 3 || version == 2 || version == 1);
 	}
 }
