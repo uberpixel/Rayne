@@ -64,6 +64,21 @@ namespace RN
 		AddDefine(RNCSTR("RN_ALPHA"), RNCSTR("1"));
 	}
 
+	void Shader::Options::EnablePointLights()
+	{
+		AddDefine(RNCSTR("RN_LIGHTS_POINT"), RNCSTR("1"));
+	}
+
+	void Shader::Options::EnableDirectionalLights()
+	{
+		AddDefine(RNCSTR("RN_LIGHTS_DIRECTIONAL"), RNCSTR("1"));
+	}
+
+	void Shader::Options::EnableDirectionalShadows()
+	{
+		AddDefine(RNCSTR("RN_SHADOWS_DIRECTIONAL"), RNCSTR("1"));
+	}
+
 	void Shader::Options::AddDefine(String *name, String *value)
 	{
 		_defines->SetObjectForKey(value, name);

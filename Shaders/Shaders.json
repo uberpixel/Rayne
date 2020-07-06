@@ -1,0 +1,175 @@
+[
+	{
+		"file": "Shaders.hlsl",
+		"shaders":
+		[
+			{
+				"name": "gouraud_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						"RN_UV0",
+						"RN_ANIMATIONS",
+						"RN_SHADOWS_DIRECTIONAL",
+						"RN_LIGHTS_DIRECTIONAL",
+						"RN_LIGHTS_POINT"
+					]
+				}
+			},
+			{
+				"name": "gouraud_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_NORMALS",
+						"RN_COLOR",
+						"RN_ALPHA",
+						"RN_UV0",
+						"RN_SHADOWS_DIRECTIONAL",
+						"RN_LIGHTS_DIRECTIONAL",
+						"RN_LIGHTS_POINT"
+					]
+				}
+			}
+		]
+	},
+	{
+		"file": "Particles.hlsl",
+		"shaders":
+		[
+			{
+				"name": "particles_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0"
+					]
+				}
+			},
+			{
+				"name": "particles_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0"
+					]
+				}
+			}
+		]
+	},
+	{
+		"file": "Depth.hlsl",
+		"shaders":
+		[
+			{
+				"name": "depth_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_ALPHA",
+						"RN_UV0",
+						"RN_SKY",
+						"RN_ANIMATIONS"
+					]
+				}
+			},
+			{
+				"name": "depth_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"options":
+					[
+						"RN_ALPHA",
+						"RN_UV0"
+					]
+				}
+			}
+		]
+	},
+	{
+		"file": "Sky.hlsl",
+		"shaders":
+		[
+			{
+				"name": "sky_vertex",
+				"type": "vertex",
+				"signature":
+				{
+					"options":
+					[
+						"RN_COLOR",
+						"RN_UV0"
+					]
+				}
+			},
+			{
+				"name": "sky_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}],
+					"options":
+					[
+						"RN_COLOR",
+						"RN_UV0"
+					]
+				}
+			}
+		]
+	},
+	{
+		"file": "PostProcessing.hlsl",
+		"shaders":
+		[
+			{
+				"name": "pp_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_blit_fragment",
+				"type": "fragment",
+				"signature":
+				{
+					"samplers": [{"wrap": "clamp"}]
+				}
+			}
+		]
+	},
+	{
+		"file": "OpenVRMask.hlsl",
+		"shaders":
+		[
+			{
+				"name": "pp_mask_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_mask_fragment",
+				"type": "fragment"
+			}
+		]
+	},
+	{
+		"file": "GenerateMipMaps.hlsl",
+		"shaders":
+		[
+			{
+				"name": "GenerateMipMaps",
+				"type": "compute"
+			}
+		]
+	}
+]

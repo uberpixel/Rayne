@@ -445,6 +445,33 @@ namespace RN
 				shaderOptions->EnableAlpha();
 				material->SetAlphaToCoverage(true);
 			}
+			
+			if(options.settings->GetObjectForKey(RNCSTR("enablePointLights")))
+			{
+				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("enablePointLights"));
+				if(number->GetBoolValue())
+				{
+					shaderOptions->EnablePointLights();
+				}
+			}
+			
+			if(options.settings->GetObjectForKey(RNCSTR("enableDirectionalLights")))
+			{
+				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("enableDirectionalLights"));
+				if(number->GetBoolValue())
+				{
+					shaderOptions->EnableDirectionalLights();
+					
+					if(options.settings->GetObjectForKey(RNCSTR("enableDirectionalShadows")))
+					{
+						Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("enableDirectionalShadows"));
+						if(number->GetBoolValue())
+						{
+							shaderOptions->EnableDirectionalShadows();
+						}
+					}
+				}
+			}
 
 			if(!RN::Renderer::IsHeadless())
 			{

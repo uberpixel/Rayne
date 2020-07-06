@@ -33,6 +33,9 @@ namespace RN
             RNAPI ~Options();
 
 			RNAPI void EnableAlpha();
+			RNAPI void EnablePointLights();
+			RNAPI void EnableDirectionalLights();
+			RNAPI void EnableDirectionalShadows();
 
 			RNAPI void AddDefine(String *name, String *value);
 

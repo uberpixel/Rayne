@@ -8,7 +8,11 @@
                     "options": [
                         "RN_NORMALS", 
                         "RN_COLOR", 
-                        "RN_UV0"
+                        "RN_UV0", 
+                        "RN_ANIMATIONS", 
+                        "RN_SHADOWS_DIRECTIONAL", 
+                        "RN_LIGHTS_DIRECTIONAL", 
+                        "RN_LIGHTS_POINT"
                     ]
                 }, 
                 "type": "vertex"
@@ -25,7 +29,10 @@
                         "RN_NORMALS", 
                         "RN_COLOR", 
                         "RN_ALPHA", 
-                        "RN_UV0"
+                        "RN_UV0", 
+                        "RN_SHADOWS_DIRECTIONAL", 
+                        "RN_LIGHTS_DIRECTIONAL", 
+                        "RN_LIGHTS_POINT"
                     ]
                 }, 
                 "type": "fragment"
@@ -69,7 +76,8 @@
                     "options": [
                         "RN_ALPHA", 
                         "RN_UV0", 
-                        "RN_SKY"
+                        "RN_SKY", 
+                        "RN_ANIMATIONS"
                     ]
                 }, 
                 "type": "vertex"
