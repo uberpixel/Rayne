@@ -15,7 +15,7 @@ namespace RN
 {
 	RNDefineMeta(RecastAgent, SceneNodeAttachment)
 
-	RecastAgent::RecastAgent(Settings settings) : _owner(nullptr), _agentIndex(-1)
+	RecastAgent::RecastAgent(Settings settings) : _owner(nullptr), _agentIndex(-1), _isEnabled(true)
 	{
 		_agentParams = new dtCrowdAgentParams();
 		_agentParams->radius = settings.radius;
@@ -25,8 +25,8 @@ namespace RN
 		_agentParams->collisionQueryRange = settings.collisionQueryRange;
 		_agentParams->pathOptimizationRange = settings.pathOptimizationRange;
 		_agentParams->separationWeight = settings.separationWeight;
-		_agentParams->updateFlags = DT_CROWD_ANTICIPATE_TURNS|DT_CROWD_OBSTACLE_AVOIDANCE;
-		_agentParams->obstacleAvoidanceType = 0;
+		_agentParams->updateFlags = settings.updateFlags;
+        _agentParams->obstacleAvoidanceType = 0;//settings.obstacleAvoidanceType;
 		_agentParams->queryFilterType = 0;
 		_agentParams->userData = this;
 	}
@@ -38,51 +38,24 @@ namespace RN
 	
 	void RecastAgent::SetTarget(Vector3 target)
 	{
-/*		const dtCrowdAgent* ag = crowd->getAgent(i);
-		if (!ag->active) continue;
-		calcVel(vel, ag->npos, p, ag->params.maxSpeed);
-		crowd->requestMoveVelocity(i, vel);*/
-		
+        if(_agentIndex == -1) return;
+        
 		// Find nearest point on navmesh and set move request to that location.
 		dtCrowd* crowd = RecastWorld::GetInstance()->GetCrowdManager();
 		const dtNavMeshQuery* navquery = crowd->getNavMeshQuery();
 		const dtQueryFilter* filter = crowd->getFilter(0);
-		const float* ext = crowd->getQueryExtents();
+		const float* ext = crowd->getQueryHalfExtents();
 		Vector3 closestTarget;
 		
 		dtPolyRef targetPolyRef;
 		navquery->findNearestPoly(&target.x, ext, filter, &targetPolyRef, &closestTarget.x);
 		crowd->requestMoveTarget(_agentIndex, targetPolyRef,  &closestTarget.x);
-//		crowd->requestMoveVelocity(_agentIndex, &velocity.x);
-		
-/*		if (adjust)
-		{
-			float vel[3];
-			// Request velocity
-			if (m_agentDebug.idx != -1)
-			{
-				const dtCrowdAgent* ag = crowd->getAgent(m_agentDebug.idx);
-				if (ag && ag->active)
-				{
-					calcVel(vel, ag->npos, p, ag->params.maxSpeed);
-					crowd->requestMoveVelocity(m_agentDebug.idx, vel);
-				}
-			}
-			else
-			{
-				for (int i = 0; i < crowd->getAgentCount(); ++i)
-				{
-					const dtCrowdAgent* ag = crowd->getAgent(i);
-					if (!ag->active) continue;
-					calcVel(vel, ag->npos, p, ag->params.maxSpeed);
-					crowd->requestMoveVelocity(i, vel);
-				}
-			}
-		}*/
 	}
 	
 	void RecastAgent::Stop()
 	{
+        if(_agentIndex == -1) return;
+        
 		RecastWorld::GetInstance()->GetCrowdManager()->resetMoveTarget(_agentIndex);
 	}
 	
@@ -98,15 +71,53 @@ namespace RN
 			RecastWorld::GetInstance()->GetCrowdManager()->updateAgentParameters(_agentIndex, _agentParams);
 		}
 	}
+
+    void RecastAgent::SetEnabled(bool enabled)
+    {
+        if(_isEnabled == enabled) return;
+        _isEnabled = enabled;
+        
+        if(_agentIndex != -1 && !_isEnabled)
+        {
+            RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
+            _agentIndex = -1;
+            _previousPosition = _currentPosition;
+        }
+        else if(_agentIndex == -1 && _isEnabled)
+        {
+            Vector3 position = GetWorldPosition() - _offset;
+            position = RecastWorld::GetInstance()->GetClosestPosition(position);
+            _agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
+            _previousPosition = _currentPosition = position + _offset;
+        }
+    }
+    
+    void RecastAgent::SetPositionOffset(const Vector3 offset)
+    {
+        _offset = offset;
+    }
+
+    Vector3 RecastAgent::GetMoveDirection()
+    {
+        return _currentPosition - _previousPosition;
+    }
 	
 	void RecastAgent::Update(float delta)
 	{
 		SceneNodeAttachment::Update(delta);
 		
-		const dtCrowdAgent *agent = RecastWorld::GetInstance()->GetCrowdManager()->getAgent(_agentIndex);
-		Vector3 position(agent->npos[0], agent->npos[1], agent->npos[2]);
+        if(_agentIndex != -1)
+        {
+            _previousPosition = _currentPosition;
+            const dtCrowdAgent *agent = RecastWorld::GetInstance()->GetCrowdManager()->getAgent(_agentIndex);
+            _currentPosition.x = agent->npos[0];
+            _currentPosition.y = agent->npos[1];
+            _currentPosition.z = agent->npos[2];
+            
+            _currentPosition += _offset;
 		
-		SetWorldPosition(position);
+            SetWorldPosition(_currentPosition);
+        }
 	}
 	
 	void RecastAgent::DidUpdate(SceneNode::ChangeSet changeSet)
@@ -114,28 +125,37 @@ namespace RN
 		SceneNodeAttachment::DidUpdate(changeSet);
 		
 		//TODO: Implement teleport
-		if(changeSet & SceneNode::ChangeSet::Position)
+		if(changeSet & SceneNode::ChangeSet::Position && _agentIndex != -1)
 		{
 			Vector3 position = GetWorldPosition();
-			position = RecastWorld::GetInstance()->GetClosestPosition(position);
-			RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
-			_agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
+            if(_currentPosition.GetSquaredDistance(position) > _agentParams->radius * _agentParams->radius * 0.25f) //if position differs more than half the agent radius, needed cause otherwise rotation changes will also trigger this breaking the pathfinding
+            {
+                position = RecastWorld::GetInstance()->GetClosestPosition(position) - _offset;
+                RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
+                _agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
+                _previousPosition = _currentPosition = position + _offset;
+            }
 		}
 		
 		if(changeSet & SceneNode::ChangeSet::Attachments)
 		{
 			if(!_owner && GetParent() && _agentIndex == -1)
 			{
-				Vector3 position = GetWorldPosition();
-				position = RecastWorld::GetInstance()->GetClosestPosition(position);
-				_agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
+                if(_isEnabled)
+                {
+                    Vector3 position = GetWorldPosition() - _offset;
+                    position = RecastWorld::GetInstance()->GetClosestPosition(position);
+                    _agentIndex = RecastWorld::GetInstance()->GetCrowdManager()->addAgent(&position.x, _agentParams);
+                    _previousPosition = _currentPosition = position + _offset;
+                }
 			}
 			else
 			{
-				if(!GetParent() && _agentIndex == -1)
+				if(!GetParent() && _agentIndex != -1)
 				{
 					RecastWorld::GetInstance()->GetCrowdManager()->removeAgent(_agentIndex);
 					_agentIndex = -1;
+                    _previousPosition = _currentPosition;
 				}
 			}
 			

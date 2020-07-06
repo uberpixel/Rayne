@@ -41,7 +41,6 @@ namespace RN
 
 	struct MetalRenderingStateCollection
 	{
-		MetalRenderingStateCollection() = default;
 		MetalRenderingStateCollection(const Mesh::VertexDescriptor &tdescriptor, MetalShader *vertex, MetalShader *fragment) :
 			descriptor(tdescriptor),
 			vertexShader(vertex->Retain()),

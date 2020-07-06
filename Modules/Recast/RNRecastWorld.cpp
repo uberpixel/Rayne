@@ -62,10 +62,10 @@ namespace RN
 	
 	RN::Vector3 RecastWorld::GetClosestPosition(Vector3 postion)
 	{
-		// Find nearest point on navmesh and set move request to that location.
+		// Find nearest point on navmesh
 		const dtNavMeshQuery* navquery = _crowdManager->getNavMeshQuery();
 		const dtQueryFilter* filter = _crowdManager->getFilter(0);
-		const float *ext = _crowdManager->getQueryExtents();
+		const float *ext = _crowdManager->getQueryHalfExtents();
 		
 		Vector3 closestPosition;
 		dtPolyRef targetPolyRef;

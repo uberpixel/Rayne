@@ -39,7 +39,7 @@ namespace RN
 		BTAPI btCollisionObject *GetBulletCollisionObject() const override;
 			
 	protected:
-		//void DidUpdate(SceneNode::ChangeSet changeSet) override;
+		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		void UpdateFromMaterial(BulletMaterial *material) override;
 			
 		void InsertIntoWorld(BulletWorld *world) override;
@@ -50,6 +50,8 @@ namespace RN
 			
 		btPairCachingGhostObject *_ghost;
 		btKinematicCharacterController *_controller;
+        
+        bool _isMoving;
 			
 		RNDeclareMetaAPI(BulletKinematicController, BTAPI)
 	};

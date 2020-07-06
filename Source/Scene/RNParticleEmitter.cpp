@@ -346,38 +346,38 @@ namespace RN
 	// ---------------------
 	
 	GenericParticleEmitter::GenericParticleEmitter() :
+    _lifeSpan(Vector2(2.0f, 4.0f)),
 	_startColor(Color()),
 	_endColor(Color(1.0f, 1.0f, 1.0f, 0.0f)),
+    _startSize(Vector2(0.5f, 1.5f)),
+    _endSize(Vector2(1.5f, 2.5f)),
+    _startRotation(Vector2(0.0f, 0.0f)),
+    _endRotation(Vector2(0.0f, 0.0f)),
 	_gravity(Vector3(0.0f, -0.1f, 0.0f)),
 	_velocity(Vector3(0.0f, 0.5f, 0.0f)),
 	_velocityRandomizeMin(Vector3(-0.5f, -0.5f, -0.5f)),
 	_velocityRandomizeMax(Vector3(0.5f, 0.5f, 0.5f)),
 	_positionRandomizeMin(Vector3(-0.5f, -0.5f, -0.5f)),
-	_positionRandomizeMax(Vector3(0.5f, 0.5f, 0.5f)),
-	_startSize(Vector2(0.5f, 1.5f)),
-	_endSize(Vector2(1.5f, 2.5f)),
-	_startRotation(Vector2(0.0f, 0.0f)),
-	_endRotation(Vector2(0.0f, 0.0f)),
-	_lifeSpan(Vector2(2.0f, 4.0f))
+	_positionRandomizeMax(Vector3(0.5f, 0.5f, 0.5f))
 	{
-		
+        
 	}
 	
 	GenericParticleEmitter::GenericParticleEmitter(const GenericParticleEmitter *emitter) :
 	ParticleEmitter(emitter),
+    _lifeSpan(emitter->_lifeSpan),
 	_startColor(emitter->_startColor),
 	_endColor(emitter->_endColor),
+    _startSize(emitter->_startSize),
+    _endSize(emitter->_endSize),
+    _startRotation(emitter->_startRotation),
+    _endRotation(emitter->_endRotation),
 	_gravity(emitter->_gravity),
 	_velocity(emitter->_velocity),
 	_velocityRandomizeMin(emitter->_velocityRandomizeMin),
 	_velocityRandomizeMax(emitter->_velocityRandomizeMax),
 	_positionRandomizeMin(emitter->_positionRandomizeMin),
-	_positionRandomizeMax(emitter->_positionRandomizeMax),
-	_startSize(emitter->_startSize),
-	_endSize(emitter->_endSize),
-	_startRotation(emitter->_startRotation),
-	_endRotation(emitter->_endRotation),
-	_lifeSpan(emitter->_lifeSpan)
+	_positionRandomizeMax(emitter->_positionRandomizeMax)
 	{
 		
 	}

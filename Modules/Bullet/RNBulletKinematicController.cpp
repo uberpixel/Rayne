@@ -19,7 +19,7 @@ namespace RN
 	RNDefineMeta(BulletKinematicController, BulletCollisionObject)
 		
 		BulletKinematicController::BulletKinematicController(BulletShape *shape, float stepHeight, BulletShape *ghostShape) :
-		_shape(shape->Retain()), _ghostShape(ghostShape?ghostShape:shape)
+		_shape(shape->Retain()), _ghostShape(ghostShape?ghostShape:shape), _isMoving(false)
 	{
 		_ghostShape->Retain();
 		_ghost = new btPairCachingGhostObject();
@@ -45,6 +45,12 @@ namespace RN
 	void BulletKinematicController::SetWalkDirection(const Vector3 &direction)
 	{
 		_controller->setWalkDirection(btVector3(direction.x, direction.y, direction.z));
+        
+        _isMoving = false;
+        if(direction.GetLength() > k::EpsilonFloat || (!IsOnGround() && std::abs(_controller->getFallSpeed()) > k::EpsilonFloat))
+        {
+            _isMoving = true;
+        }
 	}
 	void BulletKinematicController::SetFallSpeed(float speed)
 	{
@@ -84,11 +90,11 @@ namespace RN
 		
 	void BulletKinematicController::Update(float delta)
 	{
-		if(delta < k::EpsilonFloat)
+		if(delta < k::EpsilonFloat || !_isMoving)
 		{
 			return;
 		}
-			
+        
 		auto bulletWorld = GetOwner()->GetBulletDynamicsWorld();
 		_controller->updateAction(bulletWorld, delta);
 
@@ -98,16 +104,21 @@ namespace RN
 		GetParent()->SetWorldPosition(Vector3(position.x(), position.y(), position.z()) + offset);
 	}
 		
-/*	void BulletKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
+	void BulletKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		BulletCollisionObject::DidUpdate(changeSet);
 			
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
 			Vector3 position = GetWorldPosition() - offset;
-			_controller->warp(btVector3(position.x, position.y, position.z));
+            btTransform transform = _ghost->getWorldTransform();
+            btVector3 &currentPosition = transform.getOrigin();
+            
+            if(Vector3(currentPosition.x(), currentPosition.y(), currentPosition.z()).GetSquaredDistance(position) > k::EpsilonFloat * 10.0f)
+                _controller->warp(btVector3(position.x, position.y, position.z));
 		}
-	}*/
+	}
+
 	void BulletKinematicController::UpdateFromMaterial(BulletMaterial *material)
 	{
 		_ghost->setFriction(material->GetFriction());

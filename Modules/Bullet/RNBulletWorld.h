@@ -25,6 +25,8 @@ namespace RN
 
 	struct BulletContactInfo
 	{
+        BulletContactInfo() : node(nullptr), distance(-1.0f) {}
+        
 		SceneNode *node;
 		Vector3 position;
 		Vector3 normal;
