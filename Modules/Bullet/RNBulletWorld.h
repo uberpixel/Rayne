@@ -59,6 +59,8 @@ namespace RN
 	private:
 		static void SimulationStepTickCallback(btDynamicsWorld *world, float timeStep);
 
+        Lockable _lock;
+        
 		btDynamicsWorld *_dynamicsWorld;
 		btBroadphaseInterface *_broadphase;
 		btCollisionConfiguration *_collisionConfiguration;

@@ -196,6 +196,7 @@ namespace RN
 					
 #if RN_PLATFORM_MAC_OS
 					pthread_setname_np(_name->GetUTF8String());
+                    pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, NULL);
 #endif
 #if RN_PLATFORM_LINUX
 					pthread_setname_np(pthread_self(), _name->GetUTF8String());

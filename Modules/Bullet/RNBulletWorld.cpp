@@ -122,7 +122,9 @@ namespace RN
 		if(_paused)
 			return;
 
+        Lock();
 		_dynamicsWorld->stepSimulation(delta, _maxSteps, _stepSize);
+        Unlock();
 	}
 
 
@@ -156,28 +158,32 @@ namespace RN
 
 	void BulletWorld::InsertCollisionObject(BulletCollisionObject *attachment)
 	{
-		//TODO: Add lock!?
+        Lock();
 		auto iterator = _collisionObjects.find(attachment);
 		if(iterator == _collisionObjects.end())
 		{
 			attachment->InsertIntoWorld(this);
 			_collisionObjects.insert(attachment);
 		}
+        Unlock();
 	}
 
 	void BulletWorld::RemoveCollisionObject(BulletCollisionObject *attachment)
 	{
-		//TODO: Add lock!?
+        Lock();
 		auto iterator = _collisionObjects.find(attachment);
 		if(iterator != _collisionObjects.end())
 		{
 			attachment->RemoveFromWorld(this);
 			_collisionObjects.erase(attachment);
 		}
+        Unlock();
 	}
 
 	void BulletWorld::InsertConstraint(BulletConstraint *constraint)
 	{
+        Lock();
 		_dynamicsWorld->addConstraint(constraint->GetBulletConstraint());
+        Unlock();
 	}
 }

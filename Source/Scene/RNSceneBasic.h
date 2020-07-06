@@ -27,12 +27,14 @@ namespace RN
 		RNAPI void Update(float delta) override;
 		RNAPI void Render(Renderer *renderer) override;
 		
+        RNAPI void FlushAdditionQueue();
 		RNAPI void FlushDeletionQueue();
 
 	private:
 		IntrusiveList<SceneNode> _nodes[3];
 		IntrusiveList<Camera> _cameras;
 		Array *_nodesToRemove;
+        Array *_nodesToAdd;
 
 		__RNDeclareMetaInternal(SceneBasic)
 	};

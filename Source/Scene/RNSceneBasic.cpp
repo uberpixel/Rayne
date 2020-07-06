@@ -234,15 +234,16 @@ namespace RN
 		}
 		
 		RN_ASSERT(node->GetSceneInfo() == nullptr, "AddNode() must be called on a Node not owned by a scene");
-		
+    
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
 			Camera *camera = static_cast<Camera *>(node);
-			_cameras.PushBack(camera->_cameraSceneEntry);
+			_cameras.PushFront(camera->_cameraSceneEntry);
 		}
 		
-		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
-		
+        //PushFront to prevent race condition with scene iterating over the nodes.
+		_nodes[static_cast<size_t>(node->GetPriority())].PushFront(node->_sceneEntry);
+        
 		node->Retain();
 		SceneInfo *sceneInfo = new SceneInfo(this);
 		node->UpdateSceneInfo(sceneInfo->Autorelease());
