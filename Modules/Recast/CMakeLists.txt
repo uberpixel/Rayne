@@ -61,6 +61,9 @@ ExternalProject_Add(recast
                 ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourPathCorridor.h
                 ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourPathQueue.h
                 ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourProximityGrid.h
+
+                ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DebugUtils/Source/RecastDump.cpp
+                ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DebugUtils/Include/RecastDump.h
         INSTALL_COMMAND "")
 
 
@@ -101,35 +104,15 @@ set(SOURCES
         ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Source/DetourObstacleAvoidance.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Source/DetourPathCorridor.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Source/DetourPathQueue.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Source/DetourProximityGrid.cpp)
+        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Source/DetourProximityGrid.cpp
+
+        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DebugUtils/Source/RecastDump.cpp)
 
 set(HEADERS
 	RNRecast.h
         RNRecastWorld.h
         RNRecastMesh.h
-        RNRecastAgent.h
-
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Recast/Include/Recast.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Recast/Include/RecastAlloc.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Recast/Include/RecastAssert.h
-
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourAlloc.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourAssert.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourCommon.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourMath.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourNavMesh.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourNavMeshBuilder.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourNavMeshQuery.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourNode.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include/DetourStatus.h
-
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourCrowd.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourLocalBoundary.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourObstacleAvoidance.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourPathCorridor.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourPathQueue.h
-#        ${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include/DetourProximityGrid.h
-)
+        RNRecastAgent.h)
 
 set(DEFINES RN_BUILD_RECAST)
 
@@ -139,7 +122,8 @@ set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Recast/Include"
         "${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/Detour/Include"
-        "${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include")
+        "${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DetourCrowd/Include"
+        "${CMAKE_CURRENT_BINARY_DIR}/recast-prefix/src/recast/DebugUtils/Include")
 
 rayne_add_library(RayneRecast "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneRecast)

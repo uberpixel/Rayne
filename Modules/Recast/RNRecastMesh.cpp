@@ -11,6 +11,7 @@
 #include "DetourNavMesh.h"
 #include "DetourNavMeshBuilder.h"
 #include "DetourNavMeshQuery.h"
+#include "RecastDump.h"
 
 #include "RNRecastWorld.h"
 
@@ -18,20 +19,82 @@ namespace RN
 {
 	RNDefineMeta(RecastMesh, Object)
 
-	RecastMesh::RecastMesh(Model *model) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
+    struct DebugDumpFile : public duFileIO
+    {
+    public:
+        DebugDumpFile(RN::String *fileName)
+        {
+            _file = RN::File::WithName(fileName, RN::File::Mode::Write);
+            _file->Retain();
+        }
+        
+        ~DebugDumpFile()
+        {
+            _file->Release();
+        }
+        
+        bool isWriting() const override
+        {
+            return true;
+        }
+        
+        bool isReading() const override
+        {
+            return false;
+        }
+        
+        bool write(const void* ptr, const size_t size) override
+        {
+            _file->Write(ptr, size);
+        }
+        
+        bool read(void* ptr, const size_t size) override
+        {
+            _file->Read(ptr, size);
+        }
+        
+    private:
+        RN::File *_file;
+    };
+
+    RecastMesh::Configuration::Configuration() : cellSize(0.1f), cellHeight(0.1f), agentHeight(1.8f), agentRadius(0.2f), agentMaxClimb(0.4f), agentMaxSlope(45.0f), regionMinSize(2.0f), regionMergeSize(20.0f), edgeMaxLength(12.0f), edgeMaxError(0.3f), detailSampleDist(6.0f), detailSampleMaxError(1.0f), maxVertsPerPolygon(6)
+    {
+        float cellSize;
+        float cellHeight;
+        
+        float agentHeight;
+        float agentRadius;
+        float agentMaxClimb;
+        float agentMaxSlope;
+        
+        float regionMinSize;
+        float regionMergeSize;
+        
+        float edgeMaxLength;
+        float edgeMaxError;
+        
+        float detailSampleDist;
+        float detailSampleMaxError;
+    }
+
+	RecastMesh::RecastMesh(Model *model, const Configuration &configuration) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
 	{
 		//TODO: Fix this
 		RN_ASSERT(model->GetLODStage(0)->GetCount() == 1, "Currently only one mesh per navmesh model allowed!");
+        
+        _configuration = configuration;
 		AddMesh(model->GetLODStage(0)->GetMeshAtIndex(0));
 	}
 	
-	RecastMesh::RecastMesh(Array *meshes) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
+	RecastMesh::RecastMesh(Array *meshes, const Configuration &configuration) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
 	{
+        _configuration = configuration;
 		AddMesh(meshes->GetFirstObject<Mesh>());
 	}
 	
-	RecastMesh::RecastMesh(Mesh *mesh) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
+	RecastMesh::RecastMesh(Mesh *mesh, const Configuration &configuration) : _isDirty(false), _navMesh(nullptr), _navMeshQuery(nullptr)
 	{
+        _configuration = configuration;
 		AddMesh(mesh);
 	}
 	
@@ -66,8 +129,8 @@ namespace RN
 		const float* bmin = &bounds.minExtend.x;
 		const float* bmax = &bounds.maxExtend.x;
 		
-		const int vertexCount = mesh->GetVerticesCount();
-		const int indexCount = mesh->GetIndicesCount();
+		const uint32 vertexCount = mesh->GetVerticesCount();
+		const uint32 indexCount = mesh->GetIndicesCount();
 		
 		float m_totalBuildTimeMs;
 		
@@ -76,53 +139,23 @@ namespace RN
 		//
 		// Step 1. Initialize build config.
 		//
-		
-		//TODO: Initialize some of these from a mesh config class
-		
-		// Init build configuration from GUI
 		rcConfig cfg;
 		memset(&cfg, 0, sizeof(cfg));
-		cfg.cs = 0.1f;
-		cfg.ch = 0.1f;
-		cfg.walkableSlopeAngle = 45.0f;
-		cfg.walkableHeight = (int)ceilf(1.8f / cfg.ch);
-		cfg.walkableClimb = (int)floorf(0.4f / cfg.ch);
-		cfg.walkableRadius = (int)ceilf(0.2 / cfg.cs);
-		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
-		cfg.maxSimplificationError = 0.3f;
-		cfg.minRegionArea = (int)rcSqr(2.0f);		// Note: area = size*size
-		cfg.mergeRegionArea = (int)rcSqr(20.0f);	// Note: area = size*size
-		cfg.maxVertsPerPoly = (int)6;
-		cfg.detailSampleDist = 6.0 < 0.9f ? 0 : cfg.cs * 6.0;;
-		cfg.detailSampleMaxError = 1.0f * cfg.cs;
+		cfg.cs = _configuration.cellSize;
+		cfg.ch = _configuration.cellHeight;
+		cfg.walkableSlopeAngle = _configuration.agentMaxSlope;
+		cfg.walkableHeight = (int)ceilf(_configuration.agentHeight / cfg.ch);
+		cfg.walkableClimb = (int)floorf(_configuration.agentMaxClimb / cfg.ch);
+		cfg.walkableRadius = (int)ceilf(_configuration.agentRadius / cfg.cs);
+		cfg.maxEdgeLen = (int)(_configuration.edgeMaxLength / cfg.cs);
+		cfg.maxSimplificationError = _configuration.edgeMaxError;
+		cfg.minRegionArea = (int)rcSqr(_configuration.regionMinSize);		// Note: area = size*size
+		cfg.mergeRegionArea = (int)rcSqr(_configuration.regionMergeSize);	// Note: area = size*size
+		cfg.maxVertsPerPoly = (int)_configuration.maxVertsPerPolygon;
+		cfg.detailSampleDist = _configuration.detailSampleDist < 0.9f ? 0 : cfg.cs * _configuration.detailSampleDist;
+		cfg.detailSampleMaxError = _configuration.detailSampleMaxError * cfg.cs;
 		
-/*		_recastConfig.cs = _cellSize;
-		_recastConfig.ch = _cellHeight;
-		_recastConfig.walkableSlopeAngle = _agentMaxSlope;
-		_recastConfig.walkableHeight = (int)ceilf(_agentHeight / _recastConfig.ch);
-		_recastConfig.walkableClimb = (int)floorf(_agentMaxClimb / _recastConfig.ch);
-		_recastConfig.walkableRadius = (int)ceilf(_agentRadius / _recastConfig.cs);
-		_recastConfig.maxEdgeLen = (int)(_edgeMaxLen / _cellSize);
-		_recastConfig.maxSimplificationError = _edgeMaxError;
-		_recastConfig.minRegionArea = (int)rcSqr(_regionMinSize);		// Note: area = size*size
-		_recastConfig.mergeRegionArea = (int)rcSqr(_regionMergeSize);	// Note: area = size*size
-		_recastConfig.maxVertsPerPoly = (int)_vertsPerPoly;
-		_recastConfig.detailSampleDist = _detailSampleDist < 0.9f ? 0 : _cellSize * _detailSampleDist;
-		_recastConfig.detailSampleMaxError = _cellHeight * _detailSampleMaxError;*/
-		
-/*		_cellSize = 0.3f;
-		_cellHeight = 0.2f;
-		_agentHeight = 2.0f;
-		_agentRadius = 0.6f;
-		_agentMaxClimb = 0.9f;
-		_agentMaxSlope = 45.0f;
-		_regionMinSize = 8;
-		_regionMergeSize = 20;
-		_edgeMaxLen = 12.0f;
-		_edgeMaxError = 1.3f;
-		_vertsPerPoly = 6.0f;
-		_detailSampleDist = 6.0f;
-		_detailSampleMaxError = 1.0f;
+/*
 		_partitionType = Watershed;*/
 		
 		// Set the area where the navigation will be build.
@@ -188,16 +221,30 @@ namespace RN
 				vertexIterator++;
 		}
 		
-		//TODO: Support other than 16bit indices
-		Mesh::ElementIterator<uint16> indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
-		int *indices = new int[indexCount];
-		for (size_t i = 0; i < indexCount; i++)
-		{
-			indices[i] = *indexIterator;
-			
-			if(i < indexCount-1)
-				indexIterator++;
-		}
+        //This being a signed int is kinda shit, but that's what recast wants and I guess the range is big enough to not be a problem in any normal game case
+        int *indices = new int[indexCount];
+        if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16)
+        {
+            Mesh::ElementIterator<uint16> indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
+            for(size_t i = 0; i < indexCount; i++)
+            {
+                indices[i] = *indexIterator;
+                
+                if(i < indexCount-1)
+                    indexIterator++;
+            }
+        }
+        else
+        {
+            Mesh::ElementIterator<uint32> indexIterator = chunk.GetIterator<uint32>(Mesh::VertexAttribute::Feature::Indices);
+            for(size_t i = 0; i < indexCount; i++)
+            {
+                indices[i] = *indexIterator;
+                
+                if(i < indexCount-1)
+                    indexIterator++;
+            }
+        }
 		
 		rcMarkWalkableTriangles(recastContext, cfg.walkableSlopeAngle, vertices, vertexCount, indices, indexCount/3, triareas);
 		if(!rcRasterizeTriangles(recastContext, vertices, vertexCount, indices, triareas, indexCount/3, *solid, cfg.walkableClimb))
@@ -459,13 +506,13 @@ namespace RN
 		//			params.offMeshConFlags = m_geom->getOffMeshConnectionFlags();
 		//			params.offMeshConUserID = m_geom->getOffMeshConnectionId();
 		//			params.offMeshConCount = m_geom->getOffMeshConnectionCount();
-		params.walkableHeight = 1.5;
-		params.walkableRadius = 0.2;
-		params.walkableClimb = 0.4;
+		params.walkableHeight = _configuration.agentHeight;
+		params.walkableRadius = _configuration.agentRadius;
+		params.walkableClimb = _configuration.agentMaxClimb;
 		rcVcopy(params.bmin, _polyMesh->bmin);
 		rcVcopy(params.bmax, _polyMesh->bmax);
-		params.cs = 0.1f;
-		params.ch = 0.1f;
+		params.cs = _configuration.cellSize;
+		params.ch = _configuration.cellHeight;
 		params.buildBvTree = true;
 		
 		if(!dtCreateNavMeshData(&params, &navData, &navDataSize))
@@ -517,10 +564,26 @@ namespace RN
 		
 		return _navMeshQuery;
 	}
+
+    void RecastMesh::WritePolymeshToOBJFile(RN::String *fileName)
+    {
+        RN_ASSERT(_polyMesh, "No mesh to write!");
+        
+        DebugDumpFile file(fileName);
+        duDumpPolyMeshToObj(*_polyMesh, &file);
+    }
+
+    void RecastMesh::WriteDetailMeshToOBJFile(RN::String *fileName)
+    {
+        RN_ASSERT(_detailMesh, "No mesh to write!");
+        
+        DebugDumpFile file(fileName);
+        duDumpPolyMeshDetailToObj(*_detailMesh, &file);
+    }
 	
-	RecastMesh *RecastMesh::WithModel(Model *model)
+	RecastMesh *RecastMesh::WithModel(Model *model, const Configuration &configuration)
 	{
-		RecastMesh *mesh = new RecastMesh(model);
+		RecastMesh *mesh = new RecastMesh(model, configuration);
 		return mesh->Autorelease();
 	}
 }

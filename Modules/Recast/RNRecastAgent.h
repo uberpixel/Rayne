@@ -22,7 +22,7 @@ namespace RN
 		class Settings
 		{
 		public:
-			Settings() : radius(0.2), height(1.8f), maxAcceleration(5.0f), maxSpeed(2.0f)
+			Settings() : radius(0.2), height(1.8f), maxAcceleration(5.0f), maxSpeed(2.0f), collisionQueryRange(1.5f), pathOptimizationRange(20.0f), separationWeight(0.1f)
 			{
 				
 			}
@@ -30,6 +30,9 @@ namespace RN
 			float height;
 			float maxAcceleration;
 			float maxSpeed;
+            float collisionQueryRange;
+            float pathOptimizationRange;
+            float separationWeight;
 		};
 		
 		RCAPI RecastAgent(Settings settings);

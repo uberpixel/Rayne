@@ -194,7 +194,7 @@ namespace RN
 		protected:
 			size_t GetStride() const
 			{
-				return (_feature == VertexAttribute::Feature::Indices) ? 2 : _chunk->_mesh->GetStride();
+				return (_feature == VertexAttribute::Feature::Indices) ? _chunk->_indicesDescriptor->GetSize() : _chunk->_mesh->GetStride();
 			}
 
 			size_t TranslateIndex(size_t index)
@@ -342,6 +342,7 @@ namespace RN
 			ElementIterator<T> GetIterator(VertexAttribute::Feature feature)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
+                if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset; //TODO: First index is assumed to be 0, but could be different
 
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
@@ -351,6 +352,7 @@ namespace RN
 			ElementIterator<T> GetIteratorAtIndex(VertexAttribute::Feature feature, size_t index)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
+                if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 
 				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);

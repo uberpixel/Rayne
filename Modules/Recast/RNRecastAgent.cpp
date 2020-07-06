@@ -22,9 +22,9 @@ namespace RN
 		_agentParams->height = settings.height;
 		_agentParams->maxAcceleration = settings.maxAcceleration;
 		_agentParams->maxSpeed = settings.maxSpeed;
-		_agentParams->collisionQueryRange = 1.5f;
-		_agentParams->pathOptimizationRange = 20.0f;
-		_agentParams->separationWeight = 0.1f;
+		_agentParams->collisionQueryRange = settings.collisionQueryRange;
+		_agentParams->pathOptimizationRange = settings.pathOptimizationRange;
+		_agentParams->separationWeight = settings.separationWeight;
 		_agentParams->updateFlags = DT_CROWD_ANTICIPATE_TURNS|DT_CROWD_OBSTACLE_AVOIDANCE;
 		_agentParams->obstacleAvoidanceType = 0;
 		_agentParams->queryFilterType = 0;
