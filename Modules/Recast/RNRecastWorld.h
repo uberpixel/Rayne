@@ -19,6 +19,15 @@ class dtCrowd;
 
 namespace RN
 {
+    class RecastPath : public Object
+    {
+    public:
+        std::vector<Vector3> corners;
+        
+    private:
+        RNDeclareMetaAPI(RecastPath, RCAPI)
+    };
+
 	class RecastWorld : public SceneAttachment
 	{
 	public:
@@ -29,6 +38,8 @@ namespace RN
 		
 		RCAPI void SetRecastMesh(RecastMesh *navMesh, uint8 maxAgents);
 		RCAPI RN::Vector3 GetClosestPosition(Vector3 postion);
+        
+        RCAPI RecastPath *FindPath(const RN::Vector3 &from, const RN::Vector3 &to);
 
 		RCAPI void SetPaused(bool paused);
 

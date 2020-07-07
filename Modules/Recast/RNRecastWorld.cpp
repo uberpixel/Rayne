@@ -13,6 +13,7 @@
 namespace RN
 {
 	RNDefineMeta(RecastWorld, SceneAttachment)
+    RNDefineMeta(RecastPath, Object)
 
 	RecastWorld *RecastWorld::_instance = nullptr;
 
@@ -73,6 +74,42 @@ namespace RN
 		
 		return closestPosition;
 	}
+
+    RecastPath *RecastWorld::FindPath(const RN::Vector3 &from, const RN::Vector3 &to)
+    {
+        const dtNavMeshQuery* navquery = _crowdManager->getNavMeshQuery();
+        const dtQueryFilter* filter = _crowdManager->getFilter(0);
+        const float *ext = _crowdManager->getQueryHalfExtents();
+        
+        dtPolyRef startPoly;
+        dtPolyRef targetPoly;
+        navquery->findNearestPoly(&from.x, ext, filter, &startPoly, nullptr);
+        navquery->findNearestPoly(&to.x, ext, filter, &targetPoly, nullptr);
+        
+        RecastPath *finalPath = new RecastPath();
+        
+        if(startPoly && targetPoly)
+        {
+            int outCount;
+            std::vector<dtPolyRef> path(2048);
+            
+            navquery->findPath(startPoly, targetPoly, &from.x, &to.x, filter, path.data(), &outCount, static_cast<int>(path.capacity()));
+            
+            path.resize(outCount);
+            
+            if(outCount)
+            {
+                finalPath->corners.resize(2048);
+                
+                navquery->findStraightPath(&from.x, &to.x, path.data(), static_cast<int>(path.size()), reinterpret_cast<float *>(finalPath->corners.data()), nullptr, nullptr, &outCount, static_cast<int>(finalPath->corners.capacity()));
+                finalPath->corners.resize(outCount);
+                
+                std::reverse(finalPath->corners.begin(), finalPath->corners.end());
+            }
+        }
+        
+        return finalPath->Autorelease();
+    }
 
 	void RecastWorld::SetPaused(bool paused)
 	{
