@@ -96,36 +96,41 @@ namespace RN
 		_owner = nullptr;
 	}
 		
-		
 	void BulletCollisionObject::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
-/*		if(changeSet & SceneNode::ChangeSet::World)
+		if(changeSet & SceneNode::ChangeSet::World)
 		{
-			World *world = GetParent()->GetWorld();
+			SceneInfo *sceneInfo = GetParent()->GetSceneInfo();
 				
-			if(!world && _owner)
+			if(!sceneInfo && _owner)
 			{
 				_owner->RemoveCollisionObject(this);
 				return;
 			}
 				
-			if(world && !_owner)
+			if(sceneInfo && !_owner)
 			{
 				BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
 				return;
 			}
-		}*/
+		}
+        
+        if(changeSet & SceneNode::ChangeSet::Attachments)
+        {
+            SceneInfo *sceneInfo = GetParent()->GetSceneInfo();
+            
+            if(sceneInfo)
+            {
+                if(!_owner && GetParent())
+                {
+                    BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
+                }
+                else
+                {
+                    if(_owner)
+                        _owner->RemoveCollisionObject(this);
+                }
+            }
+        }
 	}
-		
-/*	void BulletCollisionObject::DidAddToParent()
-	{
-		if(!_owner)
-			BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
-	}
-		
-	void BulletCollisionObject::WillRemoveFromParent()
-	{
-		if(_owner)
-			_owner->RemoveCollisionObject(this);
-	}*/
 }

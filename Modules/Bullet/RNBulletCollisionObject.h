@@ -41,8 +41,6 @@ namespace RN
 			
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
-		//void DidAddToParent() override;
-		//void WillRemoveFromParent() override;
 		
 		BulletWorld *GetOwner() const { return _owner; }
 		void ReInsertIntoWorld();

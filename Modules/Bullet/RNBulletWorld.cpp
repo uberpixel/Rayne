@@ -17,8 +17,17 @@ namespace RN
 {
 	RNDefineMeta(BulletWorld, SceneAttachment)
 
+    BulletWorld *BulletWorld::_instance = nullptr;
+
+    BulletWorld* BulletWorld::GetSharedInstance()
+    {
+        return _instance;
+    }
+
 	BulletWorld::BulletWorld(const Vector3 &gravity) : _maxSteps(50), _stepSize(1.0 / 120.0), _paused(false)
 	{
+        RN_ASSERT(!_instance, "There already is a BulletWorld!");
+        
 		_pairCallback = new btGhostPairCallback();
 
 		_broadphase = new btDbvtBroadphase();
@@ -33,6 +42,8 @@ namespace RN
 		_dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 
 		_dynamicsWorld->setInternalTickCallback(&BulletWorld::SimulationStepTickCallback, this);
+        
+        _instance = this;
 	}
 
 	BulletWorld::~BulletWorld()

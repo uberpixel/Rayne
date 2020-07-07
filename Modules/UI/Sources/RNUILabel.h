@@ -38,7 +38,7 @@ namespace RN
 			UIAPI void SetAlignment(Alignment alignment);
 			
 			const String *GetText() const { return _text; }
-			Vector2 GetContentSize() const { return _contentSize; }
+            Vector2 GetContentSize() const;
 			
 			UIAPI virtual void Draw(Context *context) const override;
 
@@ -49,7 +49,6 @@ namespace RN
 			String *_text;
 			Color _color;
 			Font *_font;
-			bool _needsShaping;
 			Alignment _alignment;
 			Vector2 _contentSize;
 			

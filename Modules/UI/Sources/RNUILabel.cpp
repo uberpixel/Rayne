@@ -32,16 +32,23 @@ namespace RN
 
 		void Label::LayoutSubviews()
 		{
-			if(!_font || !_text) return;
-			
-			Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
-			//_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
-			//_internals->textBlob = _internals->builder.make();
-			
-			SkRect textBounds; //= _internals->textBlob->bounds();
-			_font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
-			_contentSize = Vector2(textBounds.fRight, _font->_internals->font.getSize());
+            View::LayoutSubviews();
+            _contentSize = GetContentSize();
 		}
+    
+        Vector2 Label::GetContentSize() const
+        {
+            if(!_font || !_text) return RN::Vector2();
+            
+            Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
+            //_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
+            //_internals->textBlob = _internals->builder.make();
+            
+            SkRect textBounds; //= _internals->textBlob->bounds();
+            _font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
+            
+            return Vector2(textBounds.fRight, _font->_internals->font.getSize());
+        }
 		
 		void Label::SetText(String *text)
 		{

@@ -241,6 +241,8 @@ namespace RN
 
 	void SceneNode::UpdateSceneInfo(SceneInfo *sceneInfo)
 	{
+        WillUpdate(ChangeSet::World);
+        
 		if(_sceneInfo)
 		{
 			_children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
@@ -259,6 +261,8 @@ namespace RN
 				sceneInfo->GetScene()->AddNode(node);
 			});
 		}
+        
+        DidUpdate(ChangeSet::World);
 	}
 
 	void SceneNode::__CompleteAttachmentWithScene(SceneInfo *sceneInfo)

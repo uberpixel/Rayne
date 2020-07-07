@@ -39,6 +39,8 @@ namespace RN
 		BTAPI BulletWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f));
 		BTAPI ~BulletWorld();
 
+        static BulletWorld* GetSharedInstance();
+
 		BTAPI void SetGravity(const Vector3 &gravity);
 
 		BTAPI void Update(float delta) override;
@@ -58,7 +60,8 @@ namespace RN
 
 	private:
 		static void SimulationStepTickCallback(btDynamicsWorld *world, float timeStep);
-
+        
+        static BulletWorld *_instance;
         Lockable _lock;
         
 		btDynamicsWorld *_dynamicsWorld;
