@@ -101,6 +101,7 @@ struct PointLight
 {
 	float4 ambientColor;
 	float4 diffuseColor;
+	float4 cameraAmbientColor;
 
 #if RN_ALPHA
 	float2 alphaToCoverageClamp;
@@ -346,8 +347,8 @@ float4 gouraud_fragment(FragmentVertex vert) : SV_TARGET
 		light += getPointLights(vert.worldPosition, normalize(vert.normal), pointLights);
 	#endif
 
-	return color * (ambientColor + light);
+	return color * (ambientColor + light) * cameraAmbientColor;
 #else
-	return color * (ambientColor);
+	return color * (ambientColor) * cameraAmbientColor;
 #endif
 }

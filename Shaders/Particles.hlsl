@@ -19,6 +19,8 @@
 {
 	matrix inverseModelViewMatrix;
 	matrix modelViewProjectionMatrix;
+
+	float4 cameraAmbientColor;
 };
 
 struct InputVertex
@@ -46,7 +48,7 @@ FragmentVertex particles_vertex(InputVertex vert)
 	FragmentVertex result;
 
 	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 1.0) + mul(inverseModelViewMatrix, float4(vert.texCoords2, 0.0, 0.0)));
-	result.color = vert.color;
+	result.color = vert.color*cameraAmbientColor;
 
 #if RN_UV0
 	result.texCoords = vert.texCoords;
