@@ -35,6 +35,7 @@ namespace RN
 			
 		BTAPI bool IsOnGround();
 		BTAPI void Jump();
+        BTAPI bool IsBlocked();
 			
 		BTAPI btCollisionObject *GetBulletCollisionObject() const override;
 			
@@ -51,7 +52,10 @@ namespace RN
 		btPairCachingGhostObject *_ghost;
 		btKinematicCharacterController *_controller;
         
+        RN::Vector3 _intendedMovement;
         bool _isMoving;
+        bool _isBlocked;
+        bool _isFirstUpdate;
 			
 		RNDeclareMetaAPI(BulletKinematicController, BTAPI)
 	};

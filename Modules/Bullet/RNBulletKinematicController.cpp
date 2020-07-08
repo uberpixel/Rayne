@@ -18,8 +18,8 @@ namespace RN
 {
 	RNDefineMeta(BulletKinematicController, BulletCollisionObject)
 		
-		BulletKinematicController::BulletKinematicController(BulletShape *shape, float stepHeight, BulletShape *ghostShape) :
-		_shape(shape->Retain()), _ghostShape(ghostShape?ghostShape:shape), _isMoving(false)
+    BulletKinematicController::BulletKinematicController(BulletShape *shape, float stepHeight, BulletShape *ghostShape) :
+        _shape(shape->Retain()), _ghostShape(ghostShape?ghostShape:shape), _isMoving(false), _isBlocked(false), _isFirstUpdate(true)
 	{
 		_ghostShape->Retain();
 		_ghost = new btPairCachingGhostObject();
@@ -45,6 +45,7 @@ namespace RN
 	void BulletKinematicController::SetWalkDirection(const Vector3 &direction)
 	{
 		_controller->setWalkDirection(btVector3(direction.x, direction.y, direction.z));
+        _intendedMovement = direction;
         
         _isMoving = false;
         if(direction.GetLength() > k::EpsilonFloat || (!IsOnGround() && std::abs(_controller->getFallSpeed()) > k::EpsilonFloat))
@@ -82,6 +83,11 @@ namespace RN
 	{
 		_controller->jump();
 	}
+
+    bool BulletKinematicController::IsBlocked()
+    {
+        return _isBlocked;
+    }
 		
 	btCollisionObject *BulletKinematicController::GetBulletCollisionObject() const
 	{
@@ -90,18 +96,30 @@ namespace RN
 		
 	void BulletKinematicController::Update(float delta)
 	{
-		if(delta < k::EpsilonFloat || !_isMoving)
+		if(delta < k::EpsilonFloat || (!_isMoving && !_isFirstUpdate))
 		{
 			return;
 		}
+        
+        _isFirstUpdate = false;
         
 		auto bulletWorld = GetOwner()->GetBulletDynamicsWorld();
 		_controller->updateAction(bulletWorld, delta);
 
 		btTransform transform = _ghost->getWorldTransform();
 		btVector3 &position = transform.getOrigin();
+        
+        RN::Vector3 newPosition(position.x(), position.y(), position.z());
+        newPosition += offset;
+        float moveDistance = GetWorldPosition().GetSquaredDistance(newPosition);
+        
+        _isBlocked = false;
+        if(moveDistance < _intendedMovement.GetDotProduct(_intendedMovement) * 0.5f)
+        {
+            _isBlocked = true;
+        }
 			
-		GetParent()->SetWorldPosition(Vector3(position.x(), position.y(), position.z()) + offset);
+		GetParent()->SetWorldPosition(newPosition);
 	}
 		
 	void BulletKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
