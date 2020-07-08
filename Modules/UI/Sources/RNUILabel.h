@@ -36,6 +36,7 @@ namespace RN
 			UIAPI void SetColor(Color color);
 			UIAPI void SetFont(Font *font);
 			UIAPI void SetAlignment(Alignment alignment);
+            UIAPI void SetLineHeight(float lineHeight);
 			
 			const String *GetText() const { return _text; }
             Vector2 GetContentSize() const;
@@ -46,11 +47,14 @@ namespace RN
 			UIAPI virtual void LayoutSubviews() override;
 
 		private:
-			String *_text;
+            RN::String *_text;
+            RN::Array *_lines;
 			Color _color;
 			Font *_font;
 			Alignment _alignment;
-			Vector2 _contentSize;
+            float _lineHeight;
+            
+            std::vector<Vector2> _lineBounds;
 			
 			PIMPL<LabelInternals> _internals;
 

@@ -199,28 +199,32 @@ namespace RN
 			SkCanvas *canvas = _internals->surface->getCanvas();
 			
 			Rect rect = label->GetBounds();
-			//canvas->drawTextBlob(label->_internals->textBlob, rect.x, rect.y, label->_internals->style);
-			
 			
 			SkFontMetrics fm;
 			label->_font->_internals->font.getMetrics(&fm);
 			
-			float alignmentXOffset = 0.0f;
-			if(label->_alignment == UI::Label::Alignment::Left)
-			{
-				alignmentXOffset = 0.0f;
-			}
-			else if(label->_alignment == UI::Label::Alignment::Center)
-			{
-				alignmentXOffset = (rect.width - label->_contentSize.x) / 2;
-			}
-			else if(label->_alignment == UI::Label::Alignment::Right)
-			{
-				alignmentXOffset = rect.width - label->_contentSize.x;
-			}
-			
-			Data *data = label->_text->GetDataWithEncoding(Encoding::UTF8);
-			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y + label->_font->_internals->font.getSize() - fm.fDescent, label->_font->_internals->font, label->_internals->style);
+            float lineOffset = 0.0f;
+            label->_lines->Enumerate<RN::String>([&](RN::String *text, size_t index, bool &stop)
+            {
+                float alignmentXOffset = 0.0f;
+                if(label->_alignment == UI::Label::Alignment::Left)
+                {
+                    alignmentXOffset = 0.0f;
+                }
+                else if(label->_alignment == UI::Label::Alignment::Center)
+                {
+                    alignmentXOffset = (rect.width - label->_lineBounds[index].x) / 2;
+                }
+                else if(label->_alignment == UI::Label::Alignment::Right)
+                {
+                    alignmentXOffset = rect.width - label->_lineBounds[index].x;
+                }
+                
+                Data *data = text->GetDataWithEncoding(Encoding::UTF8);
+                canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y + label->_font->_internals->font.getSize() - fm.fDescent + lineOffset, label->_font->_internals->font, label->_internals->style);
+                
+                lineOffset += label->_font->_internals->font.getSize() * label->_lineHeight;
+            });
 		}
 
 

@@ -17,11 +17,11 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label() : _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
+		Label::Label() : _text(nullptr), _lines(nullptr), _font(nullptr), _alignment(Alignment::Left), _lineHeight(1.0f)
 		{
 			_internals->style.setAntiAlias(true);
 		}
-		Label::Label(const Rect &frame) : View(frame), _text(nullptr), _font(nullptr), _alignment(Alignment::Left)
+		Label::Label(const Rect &frame) : View(frame), _text(nullptr), _lines(nullptr), _font(nullptr), _alignment(Alignment::Left)
 		{
 			_internals->style.setAntiAlias(true);
 		}
@@ -33,28 +33,47 @@ namespace RN
 		void Label::LayoutSubviews()
 		{
             View::LayoutSubviews();
-            _contentSize = GetContentSize();
+            
+            _lineBounds.clear();
+            _lines->Enumerate<RN::String>([&](RN::String *line, size_t index, bool &stop){
+                
+                SkRect textBounds;
+                Data *data = line->GetDataWithEncoding(Encoding::UTF8);
+                _font->_internals->font.measureText(data->GetBytes(), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
+                _lineBounds.push_back(Vector2(textBounds.fRight, _font->_internals->font.getSize()));
+                
+            });
 		}
     
         Vector2 Label::GetContentSize() const
         {
-            if(!_font || !_text) return RN::Vector2();
+            if(!_font || !_lines || _lines->GetCount() == 0) return RN::Vector2();
             
-            Data *data = _text->GetDataWithEncoding(Encoding::UTF8);
-            //_font->_internals->shaper->shape(&_internals->builder, _internals->style, static_cast<char*>(data->GetBytes()), data->GetLength(), true, { 0, 0 }, rect.width);
-            //_internals->textBlob = _internals->builder.make();
+            Vector2 contentSize;
+            contentSize.y = _lines->GetCount() * _font->_internals->font.getSize() * _lineHeight;
+            contentSize.y -= _font->_internals->font.getSize() * _lineHeight - _font->_internals->font.getSize(); //no additional padding below last line.
             
-            SkRect textBounds; //= _internals->textBlob->bounds();
-            _font->_internals->font.measureText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
+            _lines->Enumerate<RN::String>([&](RN::String *line, size_t index, bool &stop){
+                
+                SkRect textBounds;
+                Data *data = line->GetDataWithEncoding(Encoding::UTF8);
+                _font->_internals->font.measureText(data->GetBytes(), data->GetLength(), SkTextEncoding::kUTF8, &textBounds);
+                if(textBounds.fRight > contentSize.x) contentSize.x = textBounds.fRight;
+                
+            });
             
-            return Vector2(textBounds.fRight, _font->_internals->font.getSize());
+            return contentSize;
         }
 		
 		void Label::SetText(String *text)
 		{
-			SafeRelease(_text);
-			_text = text;
-			SafeRetain(_text);
+            SafeRelease(_text);
+            _text = text;
+            SafeRetain(_text);
+            
+			SafeRelease(_lines);
+            _lines = text->GetComponentsSeparatedByString(RNCSTR("\n"));
+            SafeRetain(_lines);
 			
 			SetNeedsLayout();
 		}
@@ -78,6 +97,11 @@ namespace RN
 		{
 			_alignment = alignment;
 		}
+    
+        void Label::SetLineHeight(float lineHeight)
+        {
+            _lineHeight = lineHeight;
+        }
 		
 
 		// ---------------------
