@@ -24,6 +24,7 @@ ExternalProject_Add(bullet
                 "-DBUILD_EXTRAS:BOOL=False"
                 "-DBUILD_UNIT_TESTS:BOOL=False"
                 "-DBUILD_BULLET3:BOOL=False"
+                "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
                 "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
                 "-DANDROID_NDK:STRING=${ANDROID_NDK}"
@@ -36,6 +37,10 @@ ExternalProject_Add(bullet
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Release/libBulletCollision.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Release/libLinearMath.a"
+
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/libBulletDynamics.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/libBulletCollision.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/libLinearMath.a"
         INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
@@ -69,6 +74,7 @@ set(HEADERS
 set(DEFINES RN_BUILD_BULLET)
 
 set(RAYNE_LIBRARIES Rayne)
+
 set(INCLUDE_DIRECTORIES
         "${Rayne_BINARY_DIR}/include"
         "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet/src")
@@ -77,7 +83,9 @@ rayne_add_library(RayneBullet "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${
 rayne_set_module_output_directory(RayneBullet)
 
 add_dependencies(RayneBullet bullet)
-target_link_libraries(RayneBullet 
+
+if(NOT ANDROID)
+        target_link_libraries(RayneBullet 
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Debug/libLinearMath.a"
@@ -85,6 +93,12 @@ target_link_libraries(RayneBullet
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Release/libBulletCollision.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Release/libLinearMath.a")
+else()
+        target_link_libraries(RayneBullet 
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/libBulletDynamics.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/libBulletCollision.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/libLinearMath.a")
+endif()
 
 target_include_directories(RayneBullet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneBullet PRIVATE "${DEFINES}")

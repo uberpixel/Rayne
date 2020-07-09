@@ -19,7 +19,7 @@ namespace RN
 	class VRCamera : public SceneNode
 	{
 	public:
-		RNVRAPI VRCamera(VRWindow *window, RenderPass *previewRenderPass = nullptr, uint8 msaaSampleCount = 8, Window *debugWindow = nullptr);
+		RNVRAPI VRCamera(VRWindow *window, RenderPass *previewRenderPass = nullptr, uint8 msaaSampleCount = 4, Window *debugWindow = nullptr);
 		RNVRAPI ~VRCamera();
 		
 		RNVRAPI void SetupCameras();

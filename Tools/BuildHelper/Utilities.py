@@ -100,8 +100,9 @@ def copyAndroidBuildSystem(fromdir, todir, buildConfig):
 	cmakeTargets = ", ".join(newCmakeTargetList)
 	androidPermissions = getSettingFromConfig("android", "permissions", buildConfig)
 	permissionsString = ""
-	for permission in androidPermissions:
-		permissionsString += "    <uses-permission android:name=\"" + permission + "\" />\n";
+	if androidPermissions:
+		for permission in androidPermissions:
+			permissionsString += "    <uses-permission android:name=\"" + permission + "\" />\n";
 
 	for root, subdirs, files in os.walk(fromdir):
 		relativeRoot = os.path.relpath(root, fromdir)
