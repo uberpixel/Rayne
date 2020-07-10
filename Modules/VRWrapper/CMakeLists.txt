@@ -16,6 +16,8 @@ set(SOURCES
 
 set(HEADERS
 	RNVR.h
+	RNVRApplication.h
+	RNVRApplicationImpl.h
     RNVRWindow.h
     RNVRStubWindow.h
     RNVRCamera.h
