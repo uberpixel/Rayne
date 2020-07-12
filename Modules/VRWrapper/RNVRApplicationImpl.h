@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(VRApplication, Application)
+//	RNDefineMeta(VRApplication, Application)
 
 	VRApplication::VRApplication() : _vrWindow(nullptr)
 	{
@@ -132,10 +132,8 @@ namespace RN
 #endif
 			_vrWindow->StartRendering(swapChainDescriptor);
 		}
-		else
+/*		else
 		{
-			kernel->SetMaxFPS(200.0f);
-			
 			RN::Window::SwapChainDescriptor swapchainDescriptor(RN::Texture::Format::RGBA_16F, RN::Texture::Format::Depth_32F);
 			swapchainDescriptor.vsync = false;
 			
@@ -151,6 +149,6 @@ namespace RN
 			
 			RN::Window *previewWindow = RN::Renderer::GetActiveRenderer()->CreateAWindow(windowSize, RN::Screen::GetMainScreen(), swapchainDescriptor);
 			previewWindow->Show();
-		}
+		}*/
 	}
 }

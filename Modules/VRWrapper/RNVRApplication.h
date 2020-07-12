@@ -41,12 +41,14 @@ namespace RN
 		virtual void DidFinishLaunching(Kernel *kernel) override;
 		
 		VRWindow *GetVRWindow() const  { return _vrWindow; }
+		
+	protected:
+		void SetupVR();
 
     private:
-        void SetupVR();
         VRWindow *_vrWindow;
 		
-		RNDeclareMeta(VRApplication)
+		//RNDeclareMeta(VRApplication)
 	};
 }
 
