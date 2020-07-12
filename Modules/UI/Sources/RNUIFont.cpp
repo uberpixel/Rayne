@@ -90,6 +90,8 @@ namespace RN
 				case Font::Slant::ObliqueSlant:
 					return SkFontStyle::Slant::kOblique_Slant;
 			}
+
+			return SkFontStyle::Slant::kUpright_Slant;
 		}
 		
 		Font *Font::WithFamilyName(const String *familyName, float size, Weight weight, Width width, Slant slant)

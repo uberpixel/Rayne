@@ -332,7 +332,7 @@ namespace RN
 			scene->sweep(shape->getGeometry().any(), pose, normalizedDirection, length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT | physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &filterCallback, nullptr, inflation);
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
-			for(int i = 0; i <hit.getNbAnyHits(); i++)
+			for(int i = 0; i < hit.getNbAnyHits(); i++)
 			{
 				PhysXContactInfo contact;
 				contact.distance = hit.getAnyHit(i).distance;

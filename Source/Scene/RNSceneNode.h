@@ -48,6 +48,7 @@ namespace RN
 				   
 				   DrawEarly    = (1 << 2),
 				   DrawLate     = (1 << 3),
+				   DrawLater	= (1 << 4),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),

@@ -142,7 +142,7 @@ namespace RN
 				renderer->SubmitCamera(camera, [&] {
 					WorkGroup *group = new WorkGroup();
 
-					for(int drawPriority = 0; drawPriority < 4; drawPriority++)
+					for(int drawPriority = 0; drawPriority < 5; drawPriority++)
 					{
 						for(size_t i = 0; i < 3; i ++)
 						{
@@ -165,7 +165,7 @@ namespace RN
 											SceneNode *node = iterator->Get();
 											
 											//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-											if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))))
+											if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate || node->GetFlags() & SceneNode::Flags::DrawLater)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 4 && (node->GetFlags() & SceneNode::Flags::DrawLater)))))
 											{
 												if(node->CanRender(renderer, camera))
 													node->Render(renderer, camera);
@@ -196,7 +196,7 @@ namespace RN
 										SceneNode *node = iterator->Get();
 
 										//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-										if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))))
+										if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate || node->GetFlags() & SceneNode::Flags::DrawLater)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 4 && (node->GetFlags() & SceneNode::Flags::DrawLater)))))
 										{
 											if(node->CanRender(renderer, camera))
 												node->Render(renderer, camera);
