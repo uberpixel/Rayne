@@ -264,9 +264,10 @@ namespace RN
 
 				material->AddTexture(texture);
 
+				//TODO: find a better way to do this / use options instead? This doesn't work with formats like ASTC that always have alpha.
 				//Activate discarding of transparent pixels if first texture has alpha
-				if(index == 0 && texture->HasColorChannel(Texture::ColorChannel::Alpha))
-					wantsDiscard = true;
+				//if(index == 0 && texture->HasColorChannel(Texture::ColorChannel::Alpha))
+				//	wantsDiscard = true;
 
 			});
 
