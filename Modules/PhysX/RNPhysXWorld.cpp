@@ -188,11 +188,11 @@ namespace RN
 		return hit;
 	}
 
-	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, uint32 filterMask)
+	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterMask)
 	{
 		const physx::PxU32 bufferSize = 256;
-		physx::PxOverlapHit hitBuffer[bufferSize];
-		physx::PxOverlapBuffer callback(hitBuffer, bufferSize);
+		physx::PxSweepHit hitBuffer[bufferSize];
+		physx::PxSweepBuffer callback(hitBuffer, bufferSize);
 		
 		physx::PxFilterData filterData;
 		filterData.word0 = filterMask;
@@ -200,7 +200,7 @@ namespace RN
 		bool didOverlap = false;
 		if(shape->GetPhysXShape())
 		{
-			didOverlap = _scene->overlap(shape->GetPhysXShape()->getGeometry().any(), pose, callback, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+			didOverlap = _scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation);
 		}
 		else if(shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
 		{
@@ -208,9 +208,10 @@ namespace RN
 			for(size_t i = 0; i < compoundShape->GetNumberOfShapes(); i++)
 			{
 				PhysXShape *tempShape = compoundShape->GetShape(i);
-				didOverlap = _scene->overlap(tempShape->GetPhysXShape()->getGeometry().any(), pose, callback, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
-				
-				if(didOverlap) break;
+				if(_scene->sweep(tempShape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation))
+				{
+					didOverlap = true;
+				}
 			}
 		}
 		else
