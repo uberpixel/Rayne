@@ -325,7 +325,7 @@ namespace RN
 				shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 			}
 		}
-		else
+		else if(_shape->GetPhysXShape())
 		{
 			physx::PxShape *shape = _shape->GetPhysXShape();
 			shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);

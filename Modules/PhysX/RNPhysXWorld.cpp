@@ -197,10 +197,30 @@ namespace RN
 		physx::PxFilterData filterData;
 		filterData.word0 = filterMask;
 		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
-		bool didOverlap = false;
+		std::vector<PhysXContactInfo> results;
 		if(shape->GetPhysXShape())
 		{
-			didOverlap = _scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation);
+			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation))
+			{
+				for(uint32 i = 0; i < callback.nbTouches; i++)
+				{
+					PhysXContactInfo hit;
+					hit.distance = 0.0f;
+					hit.node = nullptr;
+					hit.position = position;
+
+					if(callback.touches[i].actor)
+					{
+						void *userData = callback.touches[i].actor->userData;
+						if(userData)
+						{
+							hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+						}
+					}
+
+					results.push_back(hit);
+				}
+			}
 		}
 		else if(shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
 		{
@@ -210,37 +230,30 @@ namespace RN
 				PhysXShape *tempShape = compoundShape->GetShape(i);
 				if(_scene->sweep(tempShape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation))
 				{
-					didOverlap = true;
+					for(uint32 i = 0; i < callback.nbTouches; i++)
+					{
+						PhysXContactInfo hit;
+						hit.distance = 0.0f;
+						hit.node = nullptr;
+						hit.position = position;
+
+						if(callback.touches[i].actor)
+						{
+							void *userData = callback.touches[i].actor->userData;
+							if(userData)
+							{
+								hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+							}
+						}
+
+						results.push_back(hit);
+					}
 				}
 			}
 		}
 		else
 		{
 			RNDebug("CheckOverlap does not currently support this shape type!");
-		}
-		
-		std::vector<PhysXContactInfo> results;
-		
-		if(didOverlap)
-		{
-			for(uint32 i = 0; i < callback.nbTouches; i++)
-			{
-				PhysXContactInfo hit;
-				hit.distance = 0.0f;
-				hit.node = nullptr;
-				hit.position = position;
-				
-				if(callback.touches[i].actor)
-				{
-					void *userData = callback.touches[i].actor->userData;
-					if(userData)
-					{
-						hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
-					}
-				}
-				
-				results.push_back(hit);
-			}
 		}
 		
 		return results;
