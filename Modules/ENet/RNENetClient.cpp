@@ -112,6 +112,12 @@ namespace RN
 	{
 		if(_status == Status::Disconnected || _status == Status::Disconnecting)
 			return;
+		
+		if(_status == Status::Connecting)
+		{
+			ForceDisconnect();
+			return;
+		}
 
 		_status = Status::Disconnecting;
 		enet_peer_disconnect(_peers[0].peer, 0);
