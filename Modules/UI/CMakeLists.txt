@@ -39,7 +39,7 @@ if(APPLE)
                 skia_enable_pdf=false)
 elseif(ANDROID)
         set(SKIA_ARGS
-                ndk=\"/Users/slin/Library/Android/sdk/ndk-bundle\"
+                ndk=\"${CMAKE_ANDROID_NDK}\"
                 target_cpu=\"arm64\"
                 ndk_api=24
                 cc=\"clang\"
