@@ -12,7 +12,7 @@ ExternalProject_Add(bullet
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
-                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+                "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
                 "-DUSE_GRAPHICAL_BENCHMARK:BOOL=False"
                 "-DUSE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=True"
                 "-DBUILD_CPU_DEMOS:BOOL=False"

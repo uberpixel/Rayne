@@ -57,7 +57,7 @@ ExternalProject_Add(openal
         CMAKE_CACHE_ARGS
                 #"-DCMAKE_PLATFORM_NO_VERSIONED_SONAME:BOOL=True"
                 "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
-                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+                "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
                 "-DALSOFT_UTILS:BOOL=False"
                 "-DALSOFT_EXAMPLES:BOOL=False"
                 "-DALSOFT_TESTS:BOOL=False"

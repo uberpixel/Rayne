@@ -13,7 +13,7 @@ ExternalProject_Add(assimp
     PATCH_COMMAND grep -qxF "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" <SOURCE_DIR>/CMakeLists.txt || echo "target_compile_definitions(assimp PRIVATE -DNOUNCRYPT)" >> <SOURCE_DIR>/CMakeLists.txt
     CMAKE_CACHE_ARGS
         "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
-        "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+        "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
         "-DBUILD_SHARED_LIBS:BOOL=False"
         "-DASSIMP_BUILD_TESTS:BOOL=False"
         "-DASSIMP_NO_EXPORT:BOOL=True"
