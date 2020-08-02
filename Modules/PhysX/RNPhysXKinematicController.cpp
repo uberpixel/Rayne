@@ -35,7 +35,7 @@ namespace RN
 		physx::PxControllerManager *manager = PhysXWorld::GetSharedInstance()->GetPhysXControllerManager();
 		_controller = static_cast<physx::PxCapsuleController*>(manager->createController(desc));
 	}
-		
+	
 	PhysXKinematicController::~PhysXKinematicController()
 	{
 		_controller->release();

@@ -15,10 +15,13 @@ namespace RN
 {
 	RNDefineMeta(PhysXMaterial, Object)
 		
-	PhysXMaterial::PhysXMaterial()
+	PhysXMaterial::PhysXMaterial(float staticFriction, float dynamicFriction, float restitution)
 	{
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
-		_material = physics->createMaterial(0.5f, 0.5f, 0.1f);
+		_material = physics->createMaterial(staticFriction, dynamicFriction, restitution);
+		_material->setFrictionCombineMode(physx::PxCombineMode::Enum::eMULTIPLY);
+		//_material->setRestitutionCombineMode(PxCombineMode::Enum combMode);
+		_material->setFlag(physx::PxMaterialFlag::eIMPROVED_PATCH_FRICTION, true);
 	}
 		
 		

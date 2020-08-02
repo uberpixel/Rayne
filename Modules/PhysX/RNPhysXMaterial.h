@@ -21,7 +21,7 @@ namespace RN
 	class PhysXMaterial : public Object
 	{
 	public:
-		PXAPI PhysXMaterial();
+		PXAPI PhysXMaterial(float staticFriction = 0.5f, float dynamicFriction = 0.5f, float restitution = 0.1f);
 			
 		PXAPI void SetStaticFriction(float friction);
 		PXAPI void SetDynamicFriction(float friction);
