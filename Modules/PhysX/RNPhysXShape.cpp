@@ -179,40 +179,21 @@ namespace RN
 
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material, bool fromConcaveMesh)
+	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh)
 	{
 		Model::LODStage *lodStage = model->GetLODStage(0);
 		size_t meshes = lodStage->GetCount();
-		for (size_t i = 0; i < meshes; i++)
+		for(size_t i = 0; i < meshes; i++)
 		{
 			Mesh *mesh = lodStage->GetMeshAtIndex(i);
-
-			if(fromConcaveMesh)
-			{
-				PhysXTriangleMeshShape *shape = PhysXTriangleMeshShape::WithMesh(mesh, material);
-				AddChild(shape, Vector3(), Quaternion());
-			}
-			else
-			{
-				PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, material);
-				AddChild(shape, Vector3(), Quaternion());
-			}
+			AddChild(mesh, material, Vector3(), Quaternion(), useTriangleMesh);
 		}
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool fromConcaveMesh)
+	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh)
 	{
 		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
-			if(fromConcaveMesh)
-			{
-				PhysXTriangleMeshShape *shape = PhysXTriangleMeshShape::WithMesh(mesh, material);
-				AddChild(shape, Vector3(), Quaternion());
-			}
-			else
-			{
-				PhysXConvexHullShape *shape = PhysXConvexHullShape::WithMesh(mesh, material);
-				AddChild(shape, Vector3(), Quaternion());
-			}
+			AddChild(mesh, material, Vector3(), Quaternion(), useTriangleMesh);
 		});
 	}
 		
@@ -224,16 +205,26 @@ namespace RN
 		}
 	}
 		
-	void PhysXCompoundShape::AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation)
+	void PhysXCompoundShape::AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh)
 	{
+		PhysXShape *shape = nullptr;
+		if(useTriangleMesh)
+		{
+			shape = PhysXTriangleMeshShape::WithMesh(mesh, material);
+		}
+		else
+		{
+			shape = PhysXConvexHullShape::WithMesh(mesh, material);
+		}
+		
 		_shapes.push_back(shape->Retain());
 		_positions.push_back(position);
 		_rotations.push_back(rotation);
 	}
 
-	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, bool fromConcaveMesh)
+	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh)
 	{
-		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, fromConcaveMesh);
+		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, useTriangleMesh);
 		return shape->Autorelease();
 	}
 }

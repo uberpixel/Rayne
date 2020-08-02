@@ -110,15 +110,15 @@ namespace RN
 		friend PhysXDynamicBody;
 		friend PhysXStaticBody;
 		PXAPI PhysXCompoundShape();
-		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
-		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool fromConcaveMesh);
+		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh);
+		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh);
 		PXAPI ~PhysXCompoundShape();
 
-		PXAPI void AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
+		PXAPI void AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh);
 		PhysXShape *GetShape(size_t index) const { return _shapes[index]; }
 		size_t GetNumberOfShapes() const { return _shapes.size(); }
 
-		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool fromConcaveMesh);
+		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh);
 			
 	private:
 		std::vector<PhysXShape *> _shapes;
