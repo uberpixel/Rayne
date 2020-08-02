@@ -27,6 +27,8 @@ namespace RN
 		PXAPI physx::PxJoint *GetPhysXConstraint() const { return _constraint; }
 		PXAPI void SetMassScale(float scale1, float scale2);
 		PXAPI void SetInertiaScale(float scale1, float scale2);
+		PXAPI void SetInverseMassScale(float scale1, float scale2);
+		PXAPI void SetInverseInertiaScale(float scale1, float scale2);
 		
 		PXAPI Vector3 GetPositionOffset(size_t bodyIndex);
 		PXAPI Quaternion GetRotationOffset(size_t bodyIndex);

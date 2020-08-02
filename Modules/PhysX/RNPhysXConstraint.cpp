@@ -43,6 +43,18 @@ namespace RN
 		_constraint->setInvInertiaScale1(1.0f / scale2);
 	}
 
+	void PhysXConstraint::SetInverseMassScale(float scale1, float scale2)
+	{
+		_constraint->setInvMassScale0(scale1);
+		_constraint->setInvMassScale1(scale2);
+	}
+
+	void PhysXConstraint::SetInverseInertiaScale(float scale1, float scale2)
+	{
+		_constraint->setInvInertiaScale0(scale1);
+		_constraint->setInvInertiaScale1(scale2);
+	}
+
 	Vector3 PhysXConstraint::GetPositionOffset(size_t bodyIndex)
 	{
 		RN_ASSERT(bodyIndex < 2, "bodyIndex needs to be 0 or 1!");
@@ -60,8 +72,8 @@ namespace RN
 	PhysXFixedConstraint::PhysXFixedConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		physx::PxFixedJoint *joint = physx::PxFixedJointCreate(*PhysXWorld::GetSharedInstance()->GetPhysXInstance(),
-			body1->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
-			body2->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
+			body1?body1->GetPhysXActor():nullptr, physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
+			body2?body2->GetPhysXActor():nullptr, physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
 		
 		_constraint = joint;
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");

@@ -116,6 +116,11 @@ namespace RN
 		physx::PxRigidBodyExt::updateMassAndInertia(*_actor, mass);
 	}
 
+	float PhysXDynamicBody::GetMass() const
+	{
+		return _actor->getMass();
+	}
+
 	void PhysXDynamicBody::SetLinearVelocity(const Vector3 &velocity)
 	{
 		_actor->setLinearVelocity(physx::PxVec3(velocity.x, velocity.y, velocity.z));

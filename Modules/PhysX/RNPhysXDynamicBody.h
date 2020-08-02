@@ -66,6 +66,8 @@ namespace RN
 		PXAPI void ApplyImpulse(const Vector3 &impulse);
 //		PXAPI void ApplyImpulse(const Vector3 &impulse, const Vector3 &origin);
 			
+		PXAPI float GetMass() const;
+		
 		PXAPI Vector3 GetLinearVelocity() const;
 		PXAPI Vector3 GetAngularVelocity() const;
 		
