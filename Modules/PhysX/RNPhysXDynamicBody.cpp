@@ -35,7 +35,7 @@ namespace RN
 			_actor->attachShape(*shape->GetPhysXShape());
 		}
 		
-		physx::PxRigidBodyExt::updateMassAndInertia(*_actor, mass);
+		physx::PxRigidBodyExt::setMassAndUpdateInertia(*_actor, mass);
 
 		_actor->userData = this;
 		_actor->setContactReportThreshold(0.0f);
@@ -113,7 +113,7 @@ namespace RN
 		
 	void PhysXDynamicBody::SetMass(float mass)
 	{
-		physx::PxRigidBodyExt::updateMassAndInertia(*_actor, mass);
+		physx::PxRigidBodyExt::setMassAndUpdateInertia(*_actor, mass);
 	}
 
 	float PhysXDynamicBody::GetMass() const
