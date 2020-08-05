@@ -75,6 +75,8 @@ namespace RN
 			body1?body1->GetPhysXActor():nullptr, physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
 			body2?body2->GetPhysXActor():nullptr, physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
 		
+//		joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
+		
 		_constraint = joint;
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");
 	}
@@ -114,7 +116,7 @@ namespace RN
 			_drive[i] = nullptr;
 		}
 		
-		//joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
+//		joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
 		
 		_constraint = joint;
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");

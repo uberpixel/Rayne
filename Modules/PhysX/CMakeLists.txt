@@ -65,26 +65,26 @@ if(APPLE)
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/release/libPhysXExtensions_static_64.a"
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/release/libPhysXPvdSDK_static_64.a"
 
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXFoundation_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/debug/libPhysXPvdSDK_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXFoundation_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/debug/libPhysXPvdSDK_static_64.a"
 
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXFoundation_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/mac.x86_64/release/libPhysXCommon_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/mac.x86_64/release/libPhysX_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXCooking_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXCharacterKinematic_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXVehicle_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXExtensions_static_64.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64/release/libPhysXPvdSDK_static_64.a")
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXFoundation_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64/release/libPhysXPvdSDK_static_64.a")
 
-        set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/mac.x86_64)
-        set(PHYSX_PATCH_COMMAND sed -i.bak /CMAKE_OSX_ARCHITECTURES/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
+    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64)
+    set(PHYSX_PATCH_COMMAND sed -i.bak /CMAKE_OSX_ARCHITECTURES/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
         COMMAND sed -i.bak /arch/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
         COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt)
 elseif(ANDROID)
@@ -180,7 +180,7 @@ if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
         BUILD_BYPRODUCTS ${RN_PHYSX_BUILD_BYPRODUCTS}
         INSTALL_COMMAND "")
 
-        set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build)
+    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build)
 else()
     ExternalProject_Add(physx
         GIT_REPOSITORY https://github.com/NVIDIAGameWorks/PhysX.git
