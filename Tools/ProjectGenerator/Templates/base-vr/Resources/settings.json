@@ -1,0 +1,10 @@
+{
+	"RNResolution": {
+		"width": 960,
+		"height": 540
+	},
+
+	"RNRenderer": {
+		"identifier": "net.uberpixel.rendering.d3d12"
+	}
+}
