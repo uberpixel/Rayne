@@ -1,0 +1,6 @@
+.DS_Store
+*.blend1
+Resources/shaders
+Other/appinfo-oculus.json
+Builds
+Releases

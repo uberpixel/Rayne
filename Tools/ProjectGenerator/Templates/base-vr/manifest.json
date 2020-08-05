@@ -1,0 +1,18 @@
+{
+	"RNApplication": "__TMP_APPLICATION_NAME__",
+	"RNSearchPaths":
+	[
+		"./Resources"
+	],
+	"RNModules":
+	[
+		"Modules/RayneD3D12",
+		"Modules/RayneMetal",
+		"Modules/RayneVulkan",
+		"Modules/RayneOpenVR"
+	],
+	"RNPreferredTextureFileExtension~macos": "dds",
+	"RNPreferredTextureFileExtension~windows": "dds",
+	"RNPreferredTextureFileExtension~linux": "dds",
+	"RNPreferredTextureFileExtension~android": "astc"
+}

@@ -1,0 +1,50 @@
+[
+	{
+		"file": "Base.hlsl",
+		"shaders":
+		[
+			{
+				"name": "main_vertex",
+				"type": "vertex",
+
+				"signature":
+				{
+					"options":
+					[
+						"RN_ANIMATIONS",
+						"RN_UV0",
+						"RN_COLOR"
+					]
+				}
+			},
+			{
+				"name": "main_fragment",
+				"type": "fragment",
+
+				"signature":
+				{
+					"options":
+					[
+						"RN_UV0",
+						"RN_COLOR"
+					]
+				}
+			}
+		]
+	},
+
+	{
+		"file": "PostProcessing.hlsl",
+		"shaders":
+		[
+			{
+				"name": "pp_vertex",
+				"type": "vertex"
+			},
+			{
+				"name": "pp_blit_fragment",
+				"type": "fragment"
+			}
+		]
+	}
+]

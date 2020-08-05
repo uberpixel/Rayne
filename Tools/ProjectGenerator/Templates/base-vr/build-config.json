@@ -1,0 +1,31 @@
+{
+	"bundle-id": "__TMP_BUNDLE_ID__",
+	"name": "__TMP_APPLICATION_NAME__",
+	"build-directory": "Builds",
+	"build-directory~windows": "../../../ShortBuilds/__TMP__",
+	"release-directory": "Releases",
+	"cmake-build-type": "Release",
+	"cmake-parameters": "",
+	"cmake-targets~android":
+	[
+		"Rayne",
+		"RaynePhysX",
+		"RayneVulkan",
+		"RayneVR",
+		"RayneOculusMobile",
+		"zlibstatic",
+		"jansson",
+		"png_static",
+		"__TMP_APPLICATION_TARGET__"
+	],
+	"permissions~android":
+	[
+		
+	],
+	"keystore~android": "../../AndroidReleaseKeyStore",
+	"appinfo-file-oculus": "Other/appinfo-oculus.json",
+	"dependencies":
+	{
+		
+	}
+}

@@ -1,0 +1,7 @@
+*.png filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+*.sgm filter=lfs diff=lfs merge=lfs -text
+*.sga filter=lfs diff=lfs merge=lfs -text
+*.pxd filter=lfs diff=lfs merge=lfs -text
+
