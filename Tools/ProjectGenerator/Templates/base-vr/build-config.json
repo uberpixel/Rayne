@@ -2,7 +2,6 @@
 	"bundle-id": "__TMP_BUNDLE_ID__",
 	"name": "__TMP_APPLICATION_NAME__",
 	"build-directory": "Builds",
-	"build-directory~windows": "../../../ShortBuilds/__TMP__",
 	"release-directory": "Releases",
 	"cmake-build-type": "Release",
 	"cmake-parameters": "",
