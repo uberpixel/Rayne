@@ -35,10 +35,10 @@ Create a folder structure like the following (*Rayne* should be the directory co
   - Games
     - GameName
 
-Open a terminal and change the current directory to GameName.
-Run ```python3 ../../Rayne/Tools/ProjectGenerator/CreateProject.py``` (This is the only one that needs python3... the others need 2.7...)
+1. Open a terminal and change the current directory to GameName.
+2. Run ```python3 ../../Rayne/Tools/ProjectGenerator/CreateProject.py``` (This is the only one that needs python3... the others need 2.7...)
 *Template Name* has to be *base-vr* at the moment (it also works without VR, but handles some additional setup needed for VR), everything else can be chosen however you want.
-Run ```python ../../Rayne/Tools/BuildHelper/CreateBuildProject.py build-config.json platform independent``` replace *platform* with either *windows* (only works on windows), *macos* (only works on macOS), *linux* (only works on linux) or *android* (should work on any host system, only really tested on macOS though).
+3. Run ```python ../../Rayne/Tools/BuildHelper/CreateBuildProject.py build-config.json platform independent``` replace *platform* with either *windows* (only works on windows), *macos* (only works on macOS), *linux* (only works on linux) or *android* (should work on any host system, only really tested on macOS though).
 This will create a new *Builds* directory with another directory for the platform inside. For windows this will contain a Visual Studio solution, for macOS it will be an XCode workspace, on linux it will be ninja makefiles and for android it will be a gradle project that can be imported into Android Studio.
-Before you can successfully run the project, go to *Assets/Shaders* and run *CompileShaders.bat* / *CompileShaders.sh*.
-Then build and run and everything should work.
+4. Before you can successfully run the project, go to *Assets/Shaders* and run *CompileShaders.bat* / *CompileShaders.sh*.
+5. Then build and run and everything should work.
