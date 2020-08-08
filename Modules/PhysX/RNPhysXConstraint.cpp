@@ -68,6 +68,16 @@ namespace RN
 		const physx::PxTransform &transform = _constraint->getLocalPose(static_cast<physx::PxJointActorIndex::Enum>(bodyIndex));
 		return Quaternion(transform.q.x, transform.q.y, transform.q.z, transform.q.w);
 	}
+
+	void PhysXConstraint::SetBreakForce(float force, float torque)
+	{
+		_constraint->setBreakForce(force, torque);
+	}
+
+	bool PhysXConstraint::IsBroken() const
+	{
+		return (_constraint->getConstraintFlags() & physx::PxConstraintFlag::eBROKEN);
+	}
 		
 	PhysXFixedConstraint::PhysXFixedConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{

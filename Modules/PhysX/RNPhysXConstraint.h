@@ -32,6 +32,9 @@ namespace RN
 		
 		PXAPI Vector3 GetPositionOffset(size_t bodyIndex);
 		PXAPI Quaternion GetRotationOffset(size_t bodyIndex);
+		
+		PXAPI void SetBreakForce(float force, float torque);
+		PXAPI bool IsBroken() const;
 			
 	protected:
 		PhysXConstraint();
