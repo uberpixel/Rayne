@@ -27,6 +27,8 @@ def main():
 				continue
 			readFilePath = os.path.join(root, filename)
 
+			if filename == "gitattributes":
+				filename = ".gitattributes"
 			filename = filename.replace("__TMP__", prefixString)
 			writeFilePath = os.path.join(relativeRoot, filename)
 			
