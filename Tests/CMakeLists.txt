@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(Rayne-Tests)
 
-option(RN_BUILD_SAMPLES "Enable building the sample projects" OFF)
 option(RN_BUILD_TESTS "Enable building the sample projects" OFF)
-
-if(RN_BUILD_SAMPLES)
-	add_subdirectory("Basic")
-endif()
 
 if(RN_BUILD_TESTS)
 	message(FATAL_ERROR "gtest needs to be added correctly as external project!")
