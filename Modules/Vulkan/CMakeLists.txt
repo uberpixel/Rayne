@@ -4,7 +4,7 @@ project(Vulkan)
 find_package(PythonInterp 2)
 find_package(Vulkan REQUIRED)
 
-if(NOT PYTHONINTERP_FOUND OR UNIX)
+if(NOT PYTHONINTERP_FOUND)
 #    if(APPLE)
         set(PYTHON_EXECUTABLE python)
 #    else()
