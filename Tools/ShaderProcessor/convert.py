@@ -43,6 +43,9 @@ def main():
     	preprocessHLSLPath = os.path.join(shaderConductorCmdPath, 'preprocessForHLSL.py')
     	shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-win-vc141-x64-Release/Bin/ShaderConductorCmd.exe')
     	fxcCmdPath = 'C:/Program Files (x86)/Windows Kits/10/bin/x64/fxc.exe'
+    elif platform.system() == 'Linux':
+        supportedFormats = ['spirv', 'metal']
+        shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-linux-gcc-x64-Release/Bin/ShaderConductorCmd')
     else:
         print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
         return

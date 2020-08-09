@@ -23,14 +23,43 @@ Some of the working modules are:
 There are a couple of useful python scripts in the *Tools* directory. Most of these currently require Python 2.7.
 
 
-## Required Software
-* [CMake](https://cmake.org)
-* [Python](https://www.python.org)
-* [Ninja](https://ninja-build.org)
-
-
 ## Getting Started
 
+### Preparations
+#### Windows
+1. Install Visual Studio (2017 or newer)
+2. Install [CMake](https://cmake.org) and have it added to the PATH environment variable
+3. Install [Python 2.7](https://www.python.org) and [Python 3.x](https://www.python.org) and have them added to the PATH environment variable
+5. Run ```git submodule update --init``` from within the *Rayne* directory
+6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
+7. Contiune with *Creating a new Project*
+
+#### macOS
+1. Install a recent Version of Xcode (11 and newer should be fine, older hasn't been tested in a while).
+2. Install Homebrew: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
+3. Install Python 3.x: ```brew install python```
+4. Install Ninja: ```brew install ninja```
+5. Run ```git submodule update --init``` from within the *Rayne* directory
+6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
+7. Contiune with *Creating a new Project*
+
+#### Linux
+Depending on your linux distribution you may or may not want to use a different packet manager and the packets may be called differently, other packets could be missing or require an additional repository to install them from. The following has only been tested on Ubuntu 20.04 LTS.
+1. Install cmake: ```sudo apt install cmake```
+2. Install ninja: ```sudo apt install ninja-build```
+3. Install python 2.7: ```sudo apt install python2```
+4. Install python 3.x: ```sudo apt install python3```
+5. Install python 3 distutils, will already have been included in some python 3 releases: ```sudo apt install python3-distutils```
+6. Install X11 SDK: ```sudo apt install xorg-dev```
+7. Install libxfixes, which extends and improves the X11 SDK: ```sudo apt install libxfixes-dev```
+8. Install Vulkan SDK: ```sudo apt install libvulkan-dev```
+9. Install GCC: ```sudo apt install gcc```
+10. Install G++: ```sudo apt install g++```
+11. Run ```git submodule update --init``` from within the *Rayne* directory
+12. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
+13. Contiune with *Creating a new Project*
+
+### Creating a new Project
 Create a folder structure like the following (*Rayne* should be the directory containing this readme and everything else from this repo)
 - root
   - Rayne
