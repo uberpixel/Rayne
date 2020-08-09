@@ -119,6 +119,11 @@ elseif(UNIX)
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_BUILD_TYPE=release)
 
+    if(NOT DEFINED CMAKE_LIBRARY_ARCHITECTURE)
+        set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
+            -DCMAKE_LIBRARY_ARCHITECTURE=x86_64-linux-gnu)
+    endif()
+
     set(RN_PHYSX_BUILD_BYPRODUCTS
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXFoundation_static_64.a"
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXCommon_static_64.a"
