@@ -39,6 +39,7 @@ ExternalProject_Add(openvr
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/libopenvr_api.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/openvr_api64.lib"
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/openvr_api64.lib"
         INSTALL_COMMAND "")
@@ -156,10 +157,13 @@ if(WIN32)
     target_link_libraries(RayneOpenVR 
         debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/openvr_api64.lib"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/openvr_api64.lib")
-else()
+elseif(APPLE)
     target_link_libraries(RayneOpenVR 
         debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a")
+else()
+    target_link_libraries(RayneOpenVR 
+        "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/libopenvr_api.a")
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenVR/. DESTINATION lib/Rayne/RayneOpenVR)

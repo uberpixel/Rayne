@@ -19,7 +19,7 @@ namespace RN
 
 	OpenVRVulkanSwapChain::OpenVRVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, vr::IVRSystem *system) : OpenVRSwapChain(system), _isFirstRender(true)
 	{
-		vr::VRCompositor()->SetExplicitTimingMode(true);
+		vr::VRCompositor()->SetExplicitTimingMode(vr::EVRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
 
 		_renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		_descriptor = descriptor;

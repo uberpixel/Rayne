@@ -129,7 +129,8 @@ elseif(UNIX)
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXExtensions_static_64.a"
         "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/linux.clang/release/libPhysXPvdSDK_static_64.a")
 
-    set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/linux/CMakeLists.txt)
+    set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/linux/CMakeLists.txt
+        COMMAND sed -i.bak "s/PX_FORCE_INLINE Ps::aos::PsMatTransformV& getRelativeTransform/PX_FORCE_INLINE const Ps::aos::PsMatTransformV\\& getRelativeTransform/g" <SOURCE_DIR>/physx/source/geomutils/src/gjk/GuGJKType.h)
 else()
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=windows
