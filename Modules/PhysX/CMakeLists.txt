@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+cmake_policy(SET CMP0097 NEW)
 project(RaynePhysX)
 
 include(ExternalProject)
@@ -195,6 +196,7 @@ else()
         GIT_TAG origin/4.1
         GIT_SHALLOW ON
         GIT_PROGRESS ON
+        GIT_SUBMODULES ""
         PATCH_COMMAND ${PHYSX_PATCH_COMMAND}
         SOURCE_SUBDIR physx/compiler/public
         CMAKE_ARGS "${PHYSX_CMAKE_ARGS}"

@@ -112,7 +112,8 @@ def main():
 		return
 
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
-	configName = configName.lower().replace(" ", "-")
+	configName = configName.replace(" ", "-")
+	configNameLower = configName.lower()
 	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
 	configAppInfoOculus = Utilities.getSettingFromConfig(platform, "appinfo-file-oculus", buildConfigData)
 	if not configName:
@@ -138,13 +139,13 @@ def main():
 		subprocess.call([butlerFile, 'login'])
 
 		if platform == 'windows':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+configName+":windows"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+configNameLower+":windows"])
 		elif platform == 'linux':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+configName+":linux"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+configNameLower+":linux"])
 		elif platform == 'android':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+configName+":sidequest"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+configNameLower+":sidequest"])
 		elif platform == 'macos':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+configName+":macos"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+configNameLower+":macos"])
 
 	elif storefront == "oculus":
 		oculusUtilityFile = downloadOculusPlatformUtil(buildHelperPath)
@@ -174,7 +175,7 @@ def main():
 			subprocess.call([oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060'])
 		elif platform == 'android':
 			apkToUpload = os.path.join(releasesDirectoryPath, 'android_oculus')
-			apkToUpload = os.path.join(apkToUpload, configName+"-"+"oculus"+".apk")
+			apkToUpload = os.path.join(apkToUpload, configNameLower+"-"+"oculus"+".apk")
 			subprocess.call([oculusUtilityFile, 'upload-mobile-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha'])
 
 	elif storefront == "steam":
