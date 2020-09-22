@@ -10,7 +10,7 @@
 
 namespace __TMP__
 {
-	CameraManager::CameraManager() : _defaultPreviewWindowResolution(960, 540), _vrWindow(nullptr), _vrCamera(nullptr), _headCamera(nullptr), _previewCamera(nullptr), _previewWindow(nullptr), _copyEyeToScreenMaterial(nullptr), _vrDebugWindow(nullptr), _cameraTargetAmbientColor(RN::Color::Black()), _cameraTargetAmbientColorChangeRate(RN::Color::Black()), _cameraTargetAmbientColorCompletedCallback(nullptr), _cameraTargetAmbientColorIsWaitingForLastFrame(false), _resetPositionAndRotation(false)
+	CameraManager::CameraManager() : _defaultPreviewWindowResolution(960, 540), _vrWindow(nullptr), _vrCamera(nullptr), _headCamera(nullptr), _previewCamera(nullptr), _previewWindow(nullptr), _copyEyeToScreenMaterial(nullptr), _vrDebugWindow(nullptr), _cameraTargetAmbientColor(RN::Color::Black()), _cameraTargetAmbientColorChangeRate(RN::Color::Black()), _cameraTargetAmbientColorCompletedCallback(nullptr), _cameraTargetAmbientColorIsWaitingForLastFrame(false), _resetPositionAndRotation(true)
 	{
 		RN::Dictionary *resolutionDictionary = RN::Settings::GetSharedInstance()->GetEntryForKey<RN::Dictionary>(RNCSTR("RNResolution"));
 		if(resolutionDictionary)
