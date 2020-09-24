@@ -84,9 +84,9 @@ namespace RN
 	class PhysXTriangleMeshShape : public PhysXShape
 	{
 	public:
-		PXAPI PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		PXAPI PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, bool wantsDoubleSided = false, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
-		PXAPI static PhysXTriangleMeshShape *WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		PXAPI static PhysXTriangleMeshShape *WithMesh(Mesh *mesh, PhysXMaterial *material, bool wantsDoubleSided = false, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 			
 	private:
 		RNDeclareMetaAPI(PhysXTriangleMeshShape, PXAPI)
@@ -110,15 +110,15 @@ namespace RN
 		friend PhysXDynamicBody;
 		friend PhysXStaticBody;
 		PXAPI PhysXCompoundShape();
-		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh);
-		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh);
+		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);
+		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);
 		PXAPI ~PhysXCompoundShape();
 
-		PXAPI void AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh);
+		PXAPI void AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh, bool wantsDoubleSided = false);
 		PhysXShape *GetShape(size_t index) const { return _shapes[index]; }
 		size_t GetNumberOfShapes() const { return _shapes.size(); }
 
-		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh);
+		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);
 			
 	private:
 		std::vector<PhysXShape *> _shapes;
