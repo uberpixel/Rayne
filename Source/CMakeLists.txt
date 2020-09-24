@@ -105,6 +105,7 @@ set(RAYNE_SOURCES
     Scene/RNLight.cpp
     Scene/RNParticle.cpp
     Scene/RNParticleEmitter.cpp
+    Scene/RNVoxelEntity.cpp
     System/RNFile.cpp
     System/RNFileManager.cpp
     System/RNScreen.cpp
@@ -228,6 +229,7 @@ set(RAYNE_HEADERS
     Scene/RNLight.h
     Scene/RNParticle.h
     Scene/RNParticleEmitter.h
+    Scene/RNVoxelEntity.h
     System/RNFile.h
     System/RNFileManager.h
     System/RNScreen.h

@@ -102,6 +102,7 @@
 #include "Scene/RNLight.h"
 #include "Scene/RNParticle.h"
 #include "Scene/RNParticleEmitter.h"
+#include "Scene/RNVoxelEntity.h"
 
 #include "System/RNFile.h"
 #include "System/RNFileManager.h"

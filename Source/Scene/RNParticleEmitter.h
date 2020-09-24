@@ -70,8 +70,6 @@ namespace RN
 		Drawable *_drawable;
 		Material *_material;
 		Mesh *_mesh;
-		Matrix _transform;
-		Quaternion _rotation;
 		
 		bool _isLocal;
 		bool _isSorted;
