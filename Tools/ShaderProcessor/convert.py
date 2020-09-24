@@ -38,7 +38,7 @@ def main():
     shaderConductorCmdPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
         supportedFormats = ['spirv', 'metal']
-        shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-osx-clang-x64-Release/Bin/ShaderConductorCmd')
+        shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-osx-gcc-x64-Release/Bin/ShaderConductorCmd')
     elif platform.system() == 'Windows':
     	preprocessHLSLPath = os.path.join(shaderConductorCmdPath, 'preprocessForHLSL.py')
     	shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-win-vc141-x64-Release/Bin/ShaderConductorCmd.exe')
