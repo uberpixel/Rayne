@@ -208,32 +208,32 @@ namespace RN
 	
 	void VoxelEntity::SetSphere(Vector3 position, float radius)
 	{
-		Vector3 offset(_resolutionX * 0.5f, 0.0f, _resolutionZ * 0.5f);
-		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition());
+		Vector3 offset(_resolutionX * 0.5f, _resolutionY * 0.5f, _resolutionZ * 0.5f);
+		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition()) / GetWorldScale();
 		position += offset;
 		SetSphereLocal(position, radius / GetWorldScale().GetMin(), 255);
 	}
 	
 	void VoxelEntity::RemoveSphere(Vector3 position, float radius)
 	{
-		Vector3 offset(_resolutionX * 0.5f, 0.0f, _resolutionZ * 0.5f);
-		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition());
+		Vector3 offset(_resolutionX * 0.5f, _resolutionY * 0.5f, _resolutionZ * 0.5f);
+		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition()) / GetWorldScale();
 		position += offset;
 		SetSphereLocal(position, radius / GetWorldScale().GetMin(), 0);
 	}
 	
 	void VoxelEntity::SetCube(Vector3 position, Vector3 size)
 	{
-		Vector3 offset(_resolutionX * 0.5f, 0.0f, _resolutionZ * 0.5f);
-		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition());
+		Vector3 offset(_resolutionX * 0.5f, _resolutionY * 0.5f, _resolutionZ * 0.5f);
+		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition()) / GetWorldScale();
 		position += offset;
 		SetCubeLocal(position, size / GetWorldScale(), 255);
 	}
 	
 	void VoxelEntity::RemoveCube(Vector3 position, Vector3 size)
 	{
-		Vector3 offset(_resolutionX * 0.5f, 0.0f, _resolutionZ * 0.5f);
-		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition());
+		Vector3 offset(_resolutionX * 0.5f, _resolutionY * 0.5f, _resolutionZ * 0.5f);
+		position = GetWorldRotation().Conjugate().GetRotatedVector(position - GetWorldPosition()) / GetWorldScale();
 		position += offset;
 		SetCubeLocal(position, size / GetWorldScale(), 0);
 	}
@@ -563,7 +563,7 @@ namespace RN
 		std::unordered_map<std::pair<uint32, uint32>, uint32, __LookupHashMarchingCubes, __LookupCompareMarchingCubes> indexLookup;
 		std::vector<uint32> indices;
 		
-		Vector3 halfResolution(_resolutionX * 0.5f, 0.0f, _resolutionZ * 0.5f);
+		Vector3 halfResolution(_resolutionX * 0.5f, _resolutionY * 0.5f, _resolutionZ * 0.5f);
 		
 		ApplyBlur(Vector3(0.0f), Vector3(0.0f), 2);
 		
