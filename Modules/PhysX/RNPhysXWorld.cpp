@@ -48,7 +48,7 @@ namespace RN
 
 		physx::PxSceneDesc sceneDesc(_physics->getTolerancesScale());
 		sceneDesc.solverType = physx::PxSolverType::eTGS; //Enables the better, but somewhat slower solver
-		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
+		sceneDesc.gravity = physx::PxVec3(gravity.x, gravity.y, gravity.z);
 		_dispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.cpuDispatcher = _dispatcher;
 		sceneDesc.filterShader = PhysXCallback::CollisionFilterShader;
