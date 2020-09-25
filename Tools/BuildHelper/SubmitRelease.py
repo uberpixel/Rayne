@@ -138,14 +138,18 @@ def main():
 		subprocess.call([butlerFile, 'upgrade'])
 		subprocess.call([butlerFile, 'login'])
 
+		appName = Utilities.getSettingFromConfig(platform, "appname-itchio", buildConfigData)
+		if not appName:
+			appName = configNameLower
+
 		if platform == 'windows':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+configNameLower+":windows"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+appName+":windows"])
 		elif platform == 'linux':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+configNameLower+":linux"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+appName+":linux"])
 		elif platform == 'android':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+configNameLower+":sidequest"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+appName+":sidequest"])
 		elif platform == 'macos':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+configNameLower+":macos"])
+			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+appName+":macos"])
 
 	elif storefront == "oculus":
 		oculusUtilityFile = downloadOculusPlatformUtil(buildHelperPath)
