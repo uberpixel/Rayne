@@ -99,7 +99,7 @@ namespace RN
 		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
 
 #if RN_PLATFORM_ANDROID
-		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
+		_eye[0]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
 #else
 		_eye[0]->GetRenderPass()->SetFlags(0);
 #endif

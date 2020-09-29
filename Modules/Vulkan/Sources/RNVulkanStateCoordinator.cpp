@@ -742,29 +742,31 @@ namespace RN
 
 			if(resolveFramebuffer)
 			{
+				attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
 				VkAttachmentReference resolveReference = {};
 				resolveReference.attachment = attachments.size();
 				resolveReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 				resolveAttachmentRefs.push_back(resolveReference);
 
-				VkAttachmentDescription attachment = {};
+				VkAttachmentDescription resolveAttachment = {};
 				if(resolveFramebuffer->_swapChain)
 				{
-					attachment.format = resolveFramebuffer->_colorTargets[0]->vulkanTargetViewDescriptor.format;
+					resolveAttachment.format = resolveFramebuffer->_colorTargets[0]->vulkanTargetViewDescriptor.format;
 				}
 				else
 				{
-					attachment.format = resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor.format;
+					resolveAttachment.format = resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor.format;
 				}
-				attachment.flags = 0;
-				attachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
-				attachment.loadOp = (flags & RenderPass::Flags::ClearColor)? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD;
-				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				attachments.push_back(attachment);
+				resolveAttachment.flags = 0;
+				resolveAttachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
+				resolveAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				resolveAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				resolveAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				resolveAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				resolveAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				resolveAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				attachments.push_back(resolveAttachment);
 			}
 
 			counter += 1;
@@ -791,7 +793,7 @@ namespace RN
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
 			attachment.loadOp = (flags & RenderPass::Flags::ClearDepthStencil) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
