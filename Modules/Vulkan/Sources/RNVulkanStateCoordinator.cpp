@@ -732,7 +732,9 @@ namespace RN
 			attachment.format = targetView->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
-			attachment.loadOp = (flags & RenderPass::Flags::ClearColor)? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			if(flags & RenderPass::Flags::ClearColor) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			else if(flags & RenderPass::Flags::LoadColor) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			else attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.storeOp = resolveFramebuffer?VK_ATTACHMENT_STORE_OP_DONT_CARE:VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -790,7 +792,9 @@ namespace RN
 			attachment.format = framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = static_cast<VkSampleCountFlagBits>(framebuffer->_sampleCount);
-			attachment.loadOp = (flags & RenderPass::Flags::ClearDepthStencil) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			if(flags & RenderPass::Flags::ClearDepthStencil) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			else if(flags & RenderPass::Flags::LoadDepthStencil) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			else attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

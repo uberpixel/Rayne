@@ -96,10 +96,8 @@ namespace RN
 		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
         _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
-		_eye[1]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
-
 #if RN_PLATFORM_ANDROID
-		_eye[0]->GetRenderPass()->SetFlags(RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
+
 #else
 		_eye[0]->GetRenderPass()->SetFlags(0);
 #endif
