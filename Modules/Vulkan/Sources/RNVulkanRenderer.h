@@ -88,7 +88,7 @@ namespace RN
 	private:
 		void UpdateDescriptorSets();
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
-		void FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader);
+		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable);
 
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 

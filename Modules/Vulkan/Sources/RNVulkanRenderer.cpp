@@ -857,7 +857,7 @@ namespace RN
 		return new VulkanFramebuffer(size, this);
 	}
 
-	void VulkanRenderer::FillUniformBuffer(VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable, Shader *shader)
+	void VulkanRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable)
 	{
 		GPUBuffer *gpuBuffer = constantBufferReference->constantBuffer->GetActiveBuffer();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + constantBufferReference->offset;
@@ -866,7 +866,7 @@ namespace RN
 		const Material::Properties &mergedMaterialProperties = overrideMaterial? drawable->material->GetMergedProperties(overrideMaterial) : drawable->material->GetProperties();
 		const VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
+		argumentBuffer->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
 
 			switch(descriptor->GetIdentifier())
 			{
@@ -1203,8 +1203,7 @@ namespace RN
 		_lock.Lock();
 		renderPass.drawables.push_back(drawable);
 		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
-		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->hasVertexShaderConstantBuffer) _internals->totalDescriptorTables += 1;
-		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->hasFragmentShaderConstantBuffer) _internals->totalDescriptorTables += 1;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
 		_lock.Unlock();
 	}
 
@@ -1268,16 +1267,17 @@ namespace RN
 					VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
 
 					VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-					size_t binding = 1;
-					if(uniformState->vertexConstantBuffer)
+					size_t counter = 0;
+					for(VulkanConstantBufferReference *constantBuffer : uniformState->vertexConstantBuffers)
 					{
-						FillUniformBuffer(uniformState->vertexConstantBuffer, drawable, pipelineState->descriptor.vertexShader);
+						Shader::ArgumentBuffer *argument = uniformState->constantBufferToArgumentMapping[counter++];
+						FillUniformBuffer(argument,  constantBuffer, drawable);
 
-						GPUBuffer *gpuBuffer = uniformState->vertexConstantBuffer->constantBuffer->GetActiveBuffer();
+						GPUBuffer *gpuBuffer = constantBuffer->constantBuffer->GetActiveBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
-						constantBufferDescriptorInfo.offset = uniformState->vertexConstantBuffer->offset;
-						constantBufferDescriptorInfo.range = uniformState->vertexConstantBuffer->size;
+						constantBufferDescriptorInfo.offset = constantBuffer->offset;
+						constantBufferDescriptorInfo.range = constantBuffer->size;
 						constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 						VkWriteDescriptorSet writeConstantDescriptorSet = {};
@@ -1285,21 +1285,23 @@ namespace RN
 						writeConstantDescriptorSet.pNext = NULL;
 						writeConstantDescriptorSet.dstSet = descriptorSet;
 						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-						writeConstantDescriptorSet.dstBinding = binding++;
+						writeConstantDescriptorSet.dstBinding = argument->GetIndex();
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
-					if(uniformState->fragmentConstantBuffer)
-					{
-						FillUniformBuffer(uniformState->fragmentConstantBuffer, drawable, pipelineState->descriptor.fragmentShader);
 
-						GPUBuffer *gpuBuffer = uniformState->fragmentConstantBuffer->constantBuffer->GetActiveBuffer();
+					for(VulkanConstantBufferReference *constantBuffer : uniformState->fragmentConstantBuffers)
+					{
+						Shader::ArgumentBuffer *argument = uniformState->constantBufferToArgumentMapping[counter++];
+						FillUniformBuffer(argument, constantBuffer, drawable);
+
+						GPUBuffer *gpuBuffer = constantBuffer->constantBuffer->GetActiveBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
-						constantBufferDescriptorInfo.offset = uniformState->fragmentConstantBuffer->offset;
-						constantBufferDescriptorInfo.range = uniformState->fragmentConstantBuffer->size;
+						constantBufferDescriptorInfo.offset = constantBuffer->offset;
+						constantBufferDescriptorInfo.range = constantBuffer->size;
 						constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 						VkWriteDescriptorSet writeConstantDescriptorSet = {};
@@ -1307,58 +1309,38 @@ namespace RN
 						writeConstantDescriptorSet.pNext = NULL;
 						writeConstantDescriptorSet.dstSet = descriptorSet;
 						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-						writeConstantDescriptorSet.dstBinding = binding++;
+						writeConstantDescriptorSet.dstBinding = argument->GetIndex();
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
 
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
 
-					binding += rootSignature->samplers->GetCount();
-					int textureCount = rootSignature->textureCount;
-					drawable->material->GetTextures()->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
-						if(textureCount <= 0 || (textureCount-1 <= 0 && rootSignature->wantsDirectionalShadowTexture))
-						{
-							stop = true;
-							return;
-						}
-
-						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
-						imageBufferDescriptorInfo.imageView = texture->_imageView;
-						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-						imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
-
-						VkWriteDescriptorSet writeImageDescriptorSet = {};
-						writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						writeImageDescriptorSet.pNext = NULL;
-						writeImageDescriptorSet.dstSet = descriptorSet;
-						writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-						writeImageDescriptorSet.dstBinding = binding++;
-						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
-						writeImageDescriptorSet.descriptorCount = 1;
-
-						writeDescriptorSets.push_back(writeImageDescriptorSet);
-                        textureCount -= 1;
-					});
-
-					if(textureCount > 0 && rootSignature->wantsDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
+					//Support vertex shader textures
+					if(drawable->material->GetFragmentShader())
 					{
-						VkDescriptorImageInfo imageBufferDescriptorInfo = {};
-						imageBufferDescriptorInfo.imageView = renderPass.directionalShadowDepthTexture->_imageView;
-						imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-						imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
+						const Shader::Signature *signature = drawable->material->GetFragmentShader()->GetSignature();
 
-						VkWriteDescriptorSet writeImageDescriptorSet = {};
-						writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						writeImageDescriptorSet.pNext = NULL;
-						writeImageDescriptorSet.dstSet = descriptorSet;
-						writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-						writeImageDescriptorSet.dstBinding = binding++;
-						writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
-						writeImageDescriptorSet.descriptorCount = 1;
+						signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop) {
 
-						writeDescriptorSets.push_back(writeImageDescriptorSet);
-                        textureCount -= 1;
+							const VulkanTexture *materialTexture = argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture?renderPass.directionalShadowDepthTexture:drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+
+							VkDescriptorImageInfo imageBufferDescriptorInfo = {};
+							imageBufferDescriptorInfo.imageView = materialTexture->_imageView;
+							imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+							imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
+
+							VkWriteDescriptorSet writeImageDescriptorSet = {};
+							writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							writeImageDescriptorSet.pNext = NULL;
+							writeImageDescriptorSet.dstSet = descriptorSet;
+							writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+							writeImageDescriptorSet.dstBinding = argument->GetIndex();
+							writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
+							writeImageDescriptorSet.descriptorCount = 1;
+
+							writeDescriptorSets.push_back(writeImageDescriptorSet);
+						});
 					}
 
                     //TODO: Find a cleaner more general solution

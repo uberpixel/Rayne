@@ -35,8 +35,6 @@ namespace RN
 
 		bool _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
 
-		bool _wantsDirectionalShadowTexture; //TODO: Solve better...
-
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
 	};
 }

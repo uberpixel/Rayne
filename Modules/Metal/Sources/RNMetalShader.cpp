@@ -42,7 +42,8 @@ namespace RN
 
 	void MetalShader::SetReflectedArguments(NSArray *arguments)
 	{
-		//TODO: Support custom arguments
+		//TODO: Support custom uniforms
+		
 		Array *buffersArray = new Array();
 		Array *samplersArray = new Array();
 		Array *texturesArray = new Array();
@@ -55,8 +56,7 @@ namespace RN
 				{
 					Array *uniformDescriptors = new Array();
 					
-					MTLStructType *structType = [argument
-					bufferStructType];
+					MTLStructType *structType = [argument bufferStructType];
 					for(MTLStructMember *member in [structType members])
 					{
 						String *name = RNSTR([[member name] UTF8String]);
@@ -108,8 +108,7 @@ namespace RN
 					ArgumentSampler *argumentSampler = nullptr;
 					if(name->IsEqual(RNCSTR("directionalShadowSampler")))
 					{
-						argumentSampler = new ArgumentSampler(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
-						argumentSampler->Autorelease();
+						argumentSampler = new ArgumentSampler(name, static_cast<uint32>([argument index]), ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
 					}
 					else //TODO: Pre define some special names like linearRepeatSampler
 					{

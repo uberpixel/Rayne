@@ -69,7 +69,6 @@ namespace RN
 		Array *specificReflectionSamplers = new Array();
 		Array *uniformDescriptors = new Array();
 
-		_wantsDirectionalShadowTexture = false;
 		for(uint32 i = 0; i < static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1; i++)
 		{
 			_hasInputVertexAttribute[i] = false;
@@ -124,62 +123,93 @@ namespace RN
 			
 		}
 
+		Array *buffersArray = new Array();
+		Array *samplersArray = new Array();
+		Array *texturesArray = new Array();
+
 		for(auto &resource : resources.separate_images)
 		{
-			//TODO: Move this into the shader base class
 			String *name = RNSTR(resource.name);
+			uint8 materialTextureIndex = 0;
+
+			//TODO: Move this into the shader base class
 			if(name->IsEqual(RNCSTR("directionalShadowTexture")))
 			{
-				//TODO: Store the register, so it doesn't have to be declared last in the shader
-				_wantsDirectionalShadowTexture = true;
+				materialTextureIndex = ArgumentTexture::IndexDirectionalShadowTexture;
+			}
+			else if(name->HasPrefix(RNCSTR("texture")))
+			{
+				String *indexString = name->GetSubstring(Range(7, name->GetLength() - 7));
+				materialTextureIndex = std::stoi(indexString->GetUTF8String());
 			}
 
-			textureCount += 1;
+			uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
+			ArgumentTexture *argumentTexture = new ArgumentTexture(name, binding, materialTextureIndex);
+			texturesArray->AddObject(argumentTexture->Autorelease());
 		}
 
 		for(auto &resource : resources.separate_samplers)
 		{
 			//TODO: Move this into the shader base class
 			String *name = RNSTR(resource.name);
+			uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
+			ArgumentSampler *argumentSampler = nullptr;
 			if(name->IsEqual(RNCSTR("directionalShadowSampler")))
 			{
-				//TODO: Store the register, so it doesn't have to be declared last in the shader
-				Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
-				specificReflectionSamplers->AddObject(sampler->Autorelease());
+				argumentSampler = new ArgumentSampler(name, binding, ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
 			}
-			else
+			else //TODO: Pre define some special names like linearRepeatSampler
 			{
-				Sampler *sampler = new Sampler();
-				reflectionSamplers->AddObject(sampler->Autorelease());
+				samplers->Enumerate<ArgumentSampler>([&](ArgumentSampler *sampler, size_t index, bool &stop){
+					if(sampler->GetName()->IsEqual(name))
+					{
+						argumentSampler = sampler->Copy();
+						argumentSampler->SetIndex(binding);
+						stop = true;
+					}
+				});
+
+				if(!argumentSampler)
+				{
+					argumentSampler = new ArgumentSampler(name, binding);
+				}
 			}
+
+			samplersArray->AddObject(argumentSampler->Autorelease());
 		}
 
 		for(auto &resource : resources.uniform_buffers)
 		{
-			for(size_t index = 0; index < 10; index++)
-			{
-				uint32_t offset = reflector.get_member_decoration(resource.base_type_id, index, spv::DecorationOffset);
+			Array *uniformDescriptors = new Array();
 
-				std::string membername = reflector.get_member_name(resource.base_type_id, index);
-				String *name = RNSTR(membername);
+			auto &type = reflector.get_type(resource.base_type_id);
+			unsigned memberCount = type.member_types.size();
+			for(size_t index = 0; index < memberCount; index++)
+			{
+				size_t offset = reflector.type_struct_member_offset(type, index);
+
+				const std::string &memberName = reflector.get_member_name(type.self, index);
+				String *name = RNSTR(memberName);
 
 				if(name->GetLength() == 0) break;
 
 				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}
+
+			if(uniformDescriptors->GetCount() > 0)
+			{
+				uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease());
+				buffersArray->AddObject(argumentBuffer->Autorelease());
+			}
+			else
+			{
+				uniformDescriptors->Release();
+			}
 		}
 
-		if(samplers->GetCount() > 0)
-		{
-			RN_ASSERT(reflectionSamplers->GetCount() <= samplers->GetCount(), "Sampler count missmatch!");
-			reflectionSamplers->RemoveAllObjects();
-			reflectionSamplers->AddObjectsFromArray(samplers);
-		}
-
-		reflectionSamplers->AddObjectsFromArray(specificReflectionSamplers->Autorelease());
-
-		Signature *signature = new Signature(uniformDescriptors->Autorelease(), reflectionSamplers->Autorelease(), textureCount);
+		Signature *signature = new Signature(buffersArray->Autorelease(), samplersArray->Autorelease(), texturesArray->Autorelease());
 		Shader::SetSignature(signature->Autorelease());
 	}
 

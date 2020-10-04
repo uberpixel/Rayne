@@ -80,7 +80,7 @@ float4 sky_fragment(FragmentVertex vert) : SV_TARGET
 	float4 color = diffuseColor;
 
 #if RN_UV0
-	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+	color *= texture0.Sample(linearClampSampler, vert.texCoords).rgba;
 #endif
 
 #if RN_COLOR

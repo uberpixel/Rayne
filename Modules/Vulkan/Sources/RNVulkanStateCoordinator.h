@@ -21,8 +21,9 @@ namespace RN
 
 	struct VulkanUniformState
 	{
-		VulkanConstantBufferReference *vertexConstantBuffer;
-		VulkanConstantBufferReference *fragmentConstantBuffer;
+		std::vector<Shader::ArgumentBuffer*> constantBufferToArgumentMapping;
+		std::vector<VulkanConstantBufferReference *> vertexConstantBuffers;
+		std::vector<VulkanConstantBufferReference *> fragmentConstantBuffers;
 
 		VkDescriptorSet descriptorSet;
 
@@ -51,13 +52,12 @@ namespace RN
 	{
 		~VulkanRootSignature();
 
-		bool hasVertexShaderConstantBuffer;
-		bool hasFragmentShaderConstantBuffer;
-
+		std::vector<uint16> bindingIndex;
+		std::vector<uint8> bindingType;
 		Array *samplers;
-		uint8 textureCount;
 
-		bool wantsDirectionalShadowTexture; //TODO: Solve better...
+		uint8 textureCount;
+		uint8 constantBufferCount;
 
 		VkDescriptorSetLayout descriptorSetLayout;
 		VkPipelineLayout pipelineLayout;

@@ -75,14 +75,17 @@ namespace RN
 
 	VulkanUniformState::~VulkanUniformState()
 	{
-		if(vertexConstantBuffer)
+		for(VulkanConstantBufferReference *buffer : vertexConstantBuffers)
 		{
-			delete vertexConstantBuffer;
+			delete buffer;
 		}
-		if(fragmentConstantBuffer)
+		for(VulkanConstantBufferReference *buffer : fragmentConstantBuffers)
 		{
-			delete fragmentConstantBuffer;
+			delete buffer;
 		}
+
+		for(Shader::ArgumentBuffer *buffer : constantBufferToArgumentMapping)
+			buffer->Release();
 	}
 
 
@@ -109,60 +112,72 @@ namespace RN
 
 	const VulkanRootSignature *VulkanStateCoordinator::GetRootSignature(const VulkanPipelineStateDescriptor &descriptor)
 	{
-		VulkanShader *vertexShader = static_cast<VulkanShader *>(descriptor.vertexShader);
-		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
-		uint16 textureCount = vertexSignature->GetTextureCount();
-		const Array *vertexSamplers = vertexSignature->GetSamplers();
-		Array *samplerArray = new Array(vertexSamplers);
+		Array *samplerArray = new Array();
 		samplerArray->Autorelease();
+		std::vector<uint16> bindingIndex;
+		std::vector<uint8> bindingType;
 
-		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
-
-		//TODO: Support multiple constant buffers per function signature
-		bool hasVertexShaderConstantBuffer = (vertexSignature->GetTotalUniformSize() > 0);
-		bool hasFragmentShaderConstantBuffer = false;
-
+		VulkanShader *vertexShader = static_cast<VulkanShader *>(descriptor.vertexShader);
 		VulkanShader *fragmentShader = static_cast<VulkanShader *>(descriptor.fragmentShader);
-		if(fragmentShader)
+
+		const Shader::Signature *vertexShaderSignature = vertexShader? vertexShader->GetSignature() : nullptr;
+		const Shader::Signature *fragmentShaderSignature = fragmentShader? fragmentShader->GetSignature() : nullptr;
+
+		uint8 textureCount = 0;
+		uint8 constantBufferCount = 0;
+
+		if(vertexShaderSignature)
 		{
-			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
-			textureCount = fmax(textureCount, fragmentSignature->GetTextureCount());
-			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
-			samplerArray->AddObjectsFromArray(fragmentSamplers);
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(0);
+			});
 
-			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
+			vertexShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(1);
+			});
 
-			//TODO: Support multiple constant buffers per function signature
-			hasFragmentShaderConstantBuffer = (fragmentSignature->GetTotalUniformSize() > 0);
+			vertexShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(2);
+			});
+
+			textureCount += vertexShaderSignature->GetTextures()->GetCount();
+			constantBufferCount += vertexShaderSignature->GetBuffers()->GetCount();
+
+			samplerArray->AddObjectsFromArray(vertexShaderSignature->GetSamplers());
 		}
+		if(fragmentShaderSignature)
+		{
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(0);
+			});
 
+			fragmentShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(1);
+			});
+
+			fragmentShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(2);
+			});
+
+			textureCount += fragmentShaderSignature->GetTextures()->GetCount();
+			constantBufferCount += fragmentShaderSignature->GetBuffers()->GetCount();
+
+			samplerArray->AddObjectsFromArray(fragmentShaderSignature->GetSamplers());
+		}
 
 		for(VulkanRootSignature *signature : _rootSignatures)
 		{
-
-			if(signature->textureCount != textureCount)
-			{
-				continue;
-			}
-
-			//TODO: Doesn't really require an extra root signature...
-			if(signature->wantsDirectionalShadowTexture != wantsDirectionalShadowTexture)
-			{
-				continue;
-			}
-
-			if(signature->hasVertexShaderConstantBuffer != hasVertexShaderConstantBuffer || signature->hasFragmentShaderConstantBuffer != hasFragmentShaderConstantBuffer)
-			{
-				continue;
-			}
-
-			if(samplerArray->GetCount() != signature->samplers->GetCount())
-			{
-				continue;
-			}
+			if(signature->bindingIndex != bindingIndex) continue;
+			if(signature->bindingType != bindingType) continue;
 
 			bool notEqual = false;
-			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+			signature->samplers->Enumerate<Shader::ArgumentSampler>([&](Shader::ArgumentSampler *sampler, size_t index, bool &stop) {
 				if(!(sampler == samplerArray->GetObjectAtIndex(index)))
 				{
 					notEqual = true;
@@ -181,76 +196,120 @@ namespace RN
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
 		VulkanRootSignature *signature = new VulkanRootSignature();
-		signature->hasVertexShaderConstantBuffer = hasVertexShaderConstantBuffer;
-		signature->hasFragmentShaderConstantBuffer = hasFragmentShaderConstantBuffer;
+		signature->bindingIndex = bindingIndex;
+		signature->bindingType = bindingType;
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
-		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
+		signature->constantBufferCount = constantBufferCount;
 
 		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
-		for(size_t i = 0; i < 3; i++) //TODO: use fixed bindings based on shader stage and maybe more than one per stage to optimize bandwidth
-		{
-			if(i == 1 && !hasVertexShaderConstantBuffer) continue;
-			if(i == 2 && !hasFragmentShaderConstantBuffer) continue;
 
-			VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-			setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-			setUniformLayoutBinding.binding = setLayoutBindings.size();
-			setUniformLayoutBinding.descriptorCount = 0;
-			if(i > 0) setUniformLayoutBinding.descriptorCount = 1;
-			setLayoutBindings.push_back(setUniformLayoutBinding);
+		//Vertex buffer!?
+		VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+		setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		setUniformLayoutBinding.binding = setLayoutBindings.size();
+		setUniformLayoutBinding.descriptorCount = 0;
+		setLayoutBindings.push_back(setUniformLayoutBinding);
+
+		if(vertexShader)
+		{
+			const Shader::Signature *signature = vertexShader->GetSignature();
+
+			//Vertex shader constant buffers
+			signature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+				setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+				setUniformLayoutBinding.binding = buffer->GetIndex();
+				setUniformLayoutBinding.descriptorCount = 1;
+				setLayoutBindings.push_back(setUniformLayoutBinding);
+			});
+
+			//Vertex shader textures
+			signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *texture, size_t index, bool &stop){
+				VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+				setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+				setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+				setImageLayoutBinding.binding = texture->GetIndex();
+				setImageLayoutBinding.descriptorCount = 1;
+				setLayoutBindings.push_back(setImageLayoutBinding);
+			});
 		}
 
+		if(fragmentShader)
+		{
+			const Shader::Signature *signature = fragmentShader->GetSignature();
+
+			//Vertex shader constant buffers
+			signature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
+				setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				setUniformLayoutBinding.binding = buffer->GetIndex();
+				setUniformLayoutBinding.descriptorCount = 1;
+				setLayoutBindings.push_back(setUniformLayoutBinding);
+			});
+
+			//Fragment shader textures
+			signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *texture, size_t index, bool &stop){
+				VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
+				setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+				setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				setImageLayoutBinding.binding = texture->GetIndex();
+				setImageLayoutBinding.descriptorCount = 1;
+				setLayoutBindings.push_back(setImageLayoutBinding);
+			});
+		}
 
 		// Create samplers
 		std::vector<VkSampler> samplers;
 		samplers.reserve(signature->samplers->GetCount());
 		if(signature->samplers->GetCount() > 0)
 		{
-			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+			signature->samplers->Enumerate<Shader::ArgumentSampler>([&](Shader::ArgumentSampler *sampler, size_t index, bool &stop) {
 
 				VkFilter filter = VK_FILTER_LINEAR;
 				switch(sampler->GetFilter())
 				{
-					case Shader::Sampler::Filter::Anisotropic:
+					case Shader::ArgumentSampler::Filter::Anisotropic:
 						filter = VK_FILTER_LINEAR;
 						break;
-					case Shader::Sampler::Filter::Linear:
+					case Shader::ArgumentSampler::Filter::Linear:
 						filter = VK_FILTER_LINEAR;
 						break;
-					case Shader::Sampler::Filter::Nearest:
+					case Shader::ArgumentSampler::Filter::Nearest:
 						filter = VK_FILTER_NEAREST;
 						break;
 				}
 
 				VkCompareOp comparisonFunction = VK_COMPARE_OP_NEVER;
-				if(sampler->GetComparisonFunction() != Shader::Sampler::ComparisonFunction::Never)
+				if(sampler->GetComparisonFunction() != Shader::ArgumentSampler::ComparisonFunction::Never)
 				{
 					switch(sampler->GetComparisonFunction())
 					{
-						case Shader::Sampler::ComparisonFunction::Always:
+						case Shader::ArgumentSampler::ComparisonFunction::Always:
 							comparisonFunction = VK_COMPARE_OP_ALWAYS;
 							break;
-						case Shader::Sampler::ComparisonFunction::Equal:
+						case Shader::ArgumentSampler::ComparisonFunction::Equal:
 							comparisonFunction = VK_COMPARE_OP_EQUAL;
 							break;
-						case Shader::Sampler::ComparisonFunction::GreaterEqual:
+						case Shader::ArgumentSampler::ComparisonFunction::GreaterEqual:
 							comparisonFunction = VK_COMPARE_OP_GREATER_OR_EQUAL;
 							break;
-						case Shader::Sampler::ComparisonFunction::Greater:
+						case Shader::ArgumentSampler::ComparisonFunction::Greater:
 							comparisonFunction = VK_COMPARE_OP_GREATER;
 							break;
-						case Shader::Sampler::ComparisonFunction::Less:
+						case Shader::ArgumentSampler::ComparisonFunction::Less:
 							comparisonFunction = VK_COMPARE_OP_LESS;
 							break;
-						case Shader::Sampler::ComparisonFunction::LessEqual:
+						case Shader::ArgumentSampler::ComparisonFunction::LessEqual:
 							comparisonFunction = VK_COMPARE_OP_LESS_OR_EQUAL;
 							break;
-						case Shader::Sampler::ComparisonFunction::NotEqual:
+						case Shader::ArgumentSampler::ComparisonFunction::NotEqual:
 							comparisonFunction = VK_COMPARE_OP_NOT_EQUAL;
 							break;
-						case Shader::Sampler::ComparisonFunction::Never:
+						case Shader::ArgumentSampler::ComparisonFunction::Never:
 							comparisonFunction = VK_COMPARE_OP_NEVER;
 							break;
 					}
@@ -259,10 +318,10 @@ namespace RN
 				VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 				switch(sampler->GetWrapMode())
 				{
-					case Shader::Sampler::WrapMode::Repeat:
+					case Shader::ArgumentSampler::WrapMode::Repeat:
 						addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 						break;
-					case Shader::Sampler::WrapMode::Clamp:
+					case Shader::ArgumentSampler::WrapMode::Clamp:
 						addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 						break;
 				}
@@ -282,7 +341,7 @@ namespace RN
 				samplerInfo.minLod = 0.0f;
 				samplerInfo.maxLod = std::numeric_limits<float>::max();
 				samplerInfo.maxAnisotropy = sampler->GetAnisotropy();
-				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::Sampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
+				samplerInfo.anisotropyEnable = (sampler->GetFilter() == Shader::ArgumentSampler::Filter::Anisotropic)? VK_TRUE:VK_FALSE;
 				samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 				samplerInfo.unnormalizedCoordinates = VK_FALSE;
 
@@ -295,23 +354,12 @@ namespace RN
 				VkDescriptorSetLayoutBinding staticSamplerBinding = {};
 				staticSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 				staticSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
-				staticSamplerBinding.binding = setLayoutBindings.size();
+				staticSamplerBinding.binding = sampler->GetIndex();
 				staticSamplerBinding.descriptorCount = 1;
 				staticSamplerBinding.pImmutableSamplers = &samplers[samplers.size()-1];
 
 				setLayoutBindings.push_back(staticSamplerBinding);
 			});
-		}
-
-		for(size_t i = 0; i < textureCount; i++)
-		{
-			VkDescriptorSetLayoutBinding setImageLayoutBinding = {};
-			setImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-			setImageLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-			setImageLayoutBinding.binding = setLayoutBindings.size();
-			setImageLayoutBinding.descriptorCount = 1;
-
-			setLayoutBindings.push_back(setImageLayoutBinding);
 		}
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
@@ -651,22 +699,32 @@ namespace RN
 	{
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 
+		VulkanUniformState *state = new VulkanUniformState();
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		VulkanConstantBufferReference *vertexBuffer = nullptr;
-		VulkanConstantBufferReference *fragmentBuffer = nullptr;
-		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		if(vertexShader && vertexShader->GetSignature())
 		{
-			vertexBuffer = renderer->GetConstantBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 1);
-		}
-		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
-		{
-			fragmentBuffer = renderer->GetConstantBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 2);
+			vertexShader->GetSignature()->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if(totalSize > 0)
+				{
+					state->constantBufferToArgumentMapping.push_back(buffer->Retain());
+					state->vertexConstantBuffers.push_back(renderer->GetConstantBufferReference(buffer->GetTotalUniformSize(), buffer->GetIndex())->Retain());
+				}
+			});
 		}
 
-		VulkanUniformState *state = new VulkanUniformState();
-		state->vertexConstantBuffer = SafeRetain(vertexBuffer);
-		state->fragmentConstantBuffer = SafeRetain(fragmentBuffer);
+		if(fragmentShader && fragmentShader->GetSignature())
+		{
+			fragmentShader->GetSignature()->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if(totalSize > 0)
+				{
+					state->constantBufferToArgumentMapping.push_back(buffer->Retain());
+					state->fragmentConstantBuffers.push_back(renderer->GetConstantBufferReference(buffer->GetTotalUniformSize(), buffer->GetIndex())->Retain());
+				}
+			});
+		}
 
 		return state;
 	}

@@ -660,7 +660,7 @@ namespace RN
 		delete drawable;
 	}
 
-	void MetalRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
+	void MetalRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, const Material::Properties &materialProperties)
 	{
 		GPUBuffer *gpuBuffer = uniformBufferReference->uniformBuffer->GetActiveBuffer();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
@@ -991,14 +991,14 @@ namespace RN
 			uint32 counter = 0;
 			for(MetalUniformBufferReference *uniformBufferReference : cameraSpecifics.vertexShaderUniformBuffers)
 			{
-				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, metalVertexShader, mergedMaterialProperties);
+				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, mergedMaterialProperties);
 				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
 				[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 			}
 			
 			for(MetalUniformBufferReference *uniformBufferReference : drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers)
 			{
-				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, metalFragmentShader, mergedMaterialProperties);
+				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, mergedMaterialProperties);
 				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
 				[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 			}
