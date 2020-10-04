@@ -77,7 +77,7 @@ namespace RN
 	protected:
 		void RenderDrawable(MetalDrawable *drawable);
 		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
-		void FillUniformBuffer(MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
+		void FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties);
 
 		void CreateMipMapForTexture(MetalTexture *texture);
 		void CreateMipMaps();

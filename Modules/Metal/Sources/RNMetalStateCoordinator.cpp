@@ -126,7 +126,7 @@ namespace RN
 		return _lastDepthStencilState->depthStencilState;
 	}
 
-	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor)
+	id<MTLSamplerState> MetalStateCoordinator::GetSamplerStateForSampler(const Shader::ArgumentSampler *samplerDescriptor)
 	{
 		std::lock_guard<std::mutex> lock(_samplerLock);
 
@@ -141,12 +141,12 @@ namespace RN
 
 		switch(samplerDescriptor->GetWrapMode())
 		{
-			case Shader::Sampler::WrapMode::Clamp:
+			case Shader::ArgumentSampler::WrapMode::Clamp:
 				[descriptor setRAddressMode:MTLSamplerAddressModeClampToEdge];
 				[descriptor setSAddressMode:MTLSamplerAddressModeClampToEdge];
 				[descriptor setTAddressMode:MTLSamplerAddressModeClampToEdge];
 				break;
-			case Shader::Sampler::WrapMode::Repeat:
+			case Shader::ArgumentSampler::WrapMode::Repeat:
 				[descriptor setRAddressMode:MTLSamplerAddressModeRepeat];
 				[descriptor setSAddressMode:MTLSamplerAddressModeRepeat];
 				[descriptor setTAddressMode:MTLSamplerAddressModeRepeat];
@@ -156,20 +156,20 @@ namespace RN
 		MTLSamplerMipFilter mipFilter;
 		switch(samplerDescriptor->GetFilter())
 		{
-			case Shader::Sampler::Filter::Anisotropic:
+			case Shader::ArgumentSampler::Filter::Anisotropic:
 			{
 				NSUInteger anisotropy = std::min(static_cast<uint8>(16), std::max(static_cast<uint8>(1), samplerDescriptor->GetAnisotropy()));
 				[descriptor setMaxAnisotropy:anisotropy];
 			}
 
-			case Shader::Sampler::Filter::Linear:
+			case Shader::ArgumentSampler::Filter::Linear:
 				[descriptor setMinFilter:MTLSamplerMinMagFilterLinear];
 				[descriptor setMagFilter:MTLSamplerMinMagFilterLinear];
 
 				mipFilter = MTLSamplerMipFilterLinear;
 				break;
 
-			case Shader::Sampler::Filter::Nearest:
+			case Shader::ArgumentSampler::Filter::Nearest:
 				[descriptor setMinFilter:MTLSamplerMinMagFilterNearest];
 				[descriptor setMagFilter:MTLSamplerMinMagFilterNearest];
 
@@ -180,35 +180,35 @@ namespace RN
 		
 		switch(samplerDescriptor->GetComparisonFunction())
 		{
-			case Shader::Sampler::ComparisonFunction::Never:
+			case Shader::ArgumentSampler::ComparisonFunction::Never:
 				[descriptor setCompareFunction:MTLCompareFunctionNever];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::Less:
+			case Shader::ArgumentSampler::ComparisonFunction::Less:
 				[descriptor setCompareFunction:MTLCompareFunctionLess];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::LessEqual:
+			case Shader::ArgumentSampler::ComparisonFunction::LessEqual:
 				[descriptor setCompareFunction:MTLCompareFunctionLessEqual];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::Equal:
+			case Shader::ArgumentSampler::ComparisonFunction::Equal:
 				[descriptor setCompareFunction:MTLCompareFunctionEqual];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::NotEqual:
+			case Shader::ArgumentSampler::ComparisonFunction::NotEqual:
 				[descriptor setCompareFunction:MTLCompareFunctionNotEqual];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::GreaterEqual:
+			case Shader::ArgumentSampler::ComparisonFunction::GreaterEqual:
 				[descriptor setCompareFunction:MTLCompareFunctionGreaterEqual];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::Greater:
+			case Shader::ArgumentSampler::ComparisonFunction::Greater:
 				[descriptor setCompareFunction:MTLCompareFunctionGreater];
 				break;
 				
-			case Shader::Sampler::ComparisonFunction::Always:
+			case Shader::ArgumentSampler::ComparisonFunction::Always:
 				[descriptor setCompareFunction:MTLCompareFunctionAlways];
 				break;
 		}
@@ -323,7 +323,6 @@ namespace RN
 		state->stencilFormat = stencilFormat;
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
-		state->wantsShadowTexture = collection->fragmentShader->_wantsDirectionalShadowTexture; //TODO: also support in vertex shader/generalize special texture handling
 		state->wantsAlphaToCoverage = materialProperties.useAlphaToCoverage;
 		state->colorWriteMask = materialProperties.colorWriteMask;
 		state->blendOperationRGB = materialProperties.blendOperationRGB;

@@ -27,7 +27,6 @@ namespace RN
 		id<MTLRenderPipelineState> state;
 		Shader *vertexShader;
 		Shader *fragmentShader;
-		bool wantsShadowTexture;
 		bool wantsAlphaToCoverage;
 		uint8 colorWriteMask;
 		
@@ -99,7 +98,7 @@ namespace RN
 		MTLAPI void SetDevice(id<MTLDevice> device);
 
 		MTLAPI id<MTLDepthStencilState> GetDepthStencilStateForMaterial(const Material::Properties &materialProperties, const MetalRenderingState *renderingState);
-		MTLAPI id<MTLSamplerState> GetSamplerStateForSampler(const Shader::Sampler *samplerDescriptor);
+		MTLAPI id<MTLSamplerState> GetSamplerStateForSampler(const Shader::ArgumentSampler *samplerDescriptor);
 
 		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 
@@ -110,7 +109,7 @@ namespace RN
 		id<MTLDevice> _device;
 
 		std::mutex _samplerLock;
-		std::vector<std::pair<id<MTLSamplerState>, const Shader::Sampler *>> _samplers;
+		std::vector<std::pair<id<MTLSamplerState>, const Shader::ArgumentSampler *>> _samplers;
 
 		std::vector<MetalDepthStencilState *> _depthStencilStates;
 		const MetalDepthStencilState *_lastDepthStencilState;

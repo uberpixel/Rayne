@@ -15,7 +15,10 @@ namespace RN
 	RNDefineMeta(Shader, Object)
 	RNDefineScopedMeta(Shader, Options, Object)
 	RNDefineScopedMeta(Shader, UniformDescriptor, Object)
-	RNDefineScopedMeta(Shader, Sampler, Object)
+	RNDefineScopedMeta(Shader, Argument, Object)
+	RNDefineScopedMeta(Shader, ArgumentBuffer, Shader::Argument)
+	RNDefineScopedMeta(Shader, ArgumentSampler, Shader::Argument)
+	RNDefineScopedMeta(Shader, ArgumentTexture, Shader::Argument)
 	RNDefineScopedMeta(Shader, Signature, Object)
 
 	static uint8 _defaultAnisotropy = 16;
@@ -319,45 +322,79 @@ namespace RN
 		return 0;
 	}
 
-
-	Shader::Sampler::Sampler(WrapMode wrapMode, Filter filter, ComparisonFunction comparisonFunction, uint8 anisotropy) :
-		_wrapMode(wrapMode),
-		_filter(filter),
-		_comparisonFunction(comparisonFunction),
-		_anisotropy(anisotropy)
-	{}
-
-	Shader::Sampler::~Sampler()
-	{}
-
-	uint32 Shader::Sampler::GetDefaultAnisotropy()
+	Shader::Argument::Argument(String *name, uint32 index) : _index(index)
 	{
-		return _defaultAnisotropy;
+		_name = SafeRetain(name);
 	}
 
-	void Shader::Sampler::SetDefaultAnisotropy(uint32 anisotropy)
+	Shader::Argument::~Argument()
 	{
-		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
-		_defaultAnisotropy = anisotropy;
+		SafeRelease(_name);
 	}
 
-
-	Shader::Signature::Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount) :
-		_uniformDescriptors(uniformDescriptors->Retain()),
-		_samplers(samplers->Retain()),
-		_textureCount(textureCount),
-		_totalUniformSize(0)
+	Shader::ArgumentBuffer::ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors) :
+		Argument(name, index), _totalUniformSize(0)
 	{
-		if(_uniformDescriptors->GetCount() > 0)
+		_uniformDescriptors = SafeRetain(uniformDescriptors);
+		
+		if(_uniformDescriptors && _uniformDescriptors->GetCount() > 0)
 		{
 			Shader::UniformDescriptor *lastDescriptor = _uniformDescriptors->GetLastObject<Shader::UniformDescriptor>();
 			_totalUniformSize = lastDescriptor->GetOffset() + lastDescriptor->GetSize();
 		}
 	}
 
+	Shader::ArgumentBuffer::~ArgumentBuffer()
+	{
+		SafeRelease(_uniformDescriptors);
+	}
+
+	Shader::ArgumentSampler::ArgumentSampler(String *name, uint32 index, WrapMode wrapMode, Filter filter, ComparisonFunction comparisonFunction, uint8 anisotropy) :
+		Argument(name, index),
+		_wrapMode(wrapMode),
+		_filter(filter),
+		_comparisonFunction(comparisonFunction),
+		_anisotropy(anisotropy)
+	{}
+
+	Shader::ArgumentSampler::~ArgumentSampler()
+	{}
+
+	uint32 Shader::ArgumentSampler::GetDefaultAnisotropy()
+	{
+		return _defaultAnisotropy;
+	}
+
+	void Shader::ArgumentSampler::SetDefaultAnisotropy(uint32 anisotropy)
+	{
+		RN_ASSERT(anisotropy >= 1 && anisotropy <= 16, "Anisotropy must be [1, 16]");
+		_defaultAnisotropy = anisotropy;
+	}
+
+	Shader::ArgumentTexture::ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex) :
+		Argument(name, index), _materialTextureIndex(materialTextureIndex)
+	{
+		
+	}
+
+	Shader::ArgumentTexture::~ArgumentTexture()
+	{
+		
+	}
+
+
+	Shader::Signature::Signature(Array *buffers, Array *samplers, Array *textures)
+	{
+		_buffers = SafeRetain(buffers);
+		_samplers = SafeRetain(samplers);
+		_textures = SafeRetain(textures);
+	}
+
 	Shader::Signature::~Signature()
 	{
-		_uniformDescriptors->Release();
+		SafeRelease(_buffers);
+		SafeRelease(_samplers);
+		SafeRelease(_textures);
 	}
 
 

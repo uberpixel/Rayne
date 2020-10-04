@@ -17,8 +17,7 @@ namespace RN
 	MetalShader::MetalShader(ShaderLibrary *library, Type type, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator) :
 		Shader(library, type, options),
 		_shader(shader),
-		_coordinator(coordinator),
-		_wantsDirectionalShadowTexture(false)
+		_coordinator(coordinator)
 	{
 		// We don't need to retain the shader because it was created
 		// with [newFunctionWithName:] which returns an explicitly
@@ -44,12 +43,9 @@ namespace RN
 	void MetalShader::SetReflectedArguments(NSArray *arguments)
 	{
 		//TODO: Support custom arguments
-		//TODO: Support more than one uniform buffer
-
-		uint8 textureCount = 0;
-		Array *samplers = new Array();
-		Array *specificSamplers = new Array();
-		Array *uniformDescriptors = new Array();
+		Array *buffersArray = new Array();
+		Array *samplersArray = new Array();
+		Array *texturesArray = new Array();
 
 		for(MTLArgument *argument in arguments)
 		{
@@ -57,6 +53,8 @@ namespace RN
 			{
 				case MTLArgumentTypeBuffer:
 				{
+					Array *uniformDescriptors = new Array();
+					
 					MTLStructType *structType = [argument
 					bufferStructType];
 					for(MTLStructMember *member in [structType members])
@@ -67,20 +65,39 @@ namespace RN
 						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
 						uniformDescriptors->AddObject(descriptor->Autorelease());
 					}
+					
+					if(uniformDescriptors->GetCount() > 0)
+					{
+						ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), uniformDescriptors->Autorelease());
+						buffersArray->AddObject(argumentBuffer->Autorelease());
+					}
+					else
+					{
+						uniformDescriptors->Release();
+					}
+					
 					break;
 				}
 
 				case MTLArgumentTypeTexture:
 				{
-					//TODO: Move this into the shader base class
 					String *name = RNSTR([[argument name] UTF8String]);
+					uint8 materialTextureIndex = 0;
+					
+					//TODO: Move this into the shader base class
 					if(name->IsEqual(RNCSTR("directionalShadowTexture")))
 					{
-						//TODO: Store the register, so it doesn't have to be declared last in the shader
-						_wantsDirectionalShadowTexture = true;
+						materialTextureIndex = ArgumentTexture::IndexDirectionalShadowTexture;
 					}
+					else if(name->HasPrefix(RNCSTR("texture")))
+					{
+						String *indexString = name->GetSubstring(Range(7, name->GetLength() - 7));
+						materialTextureIndex = std::stoi(indexString->GetUTF8String());
+					}
+					
+					ArgumentTexture *argumentTexture = new ArgumentTexture(name, static_cast<uint32>([argument index]), materialTextureIndex);
+					texturesArray->AddObject(argumentTexture->Autorelease());
 
-					textureCount += 1;
 					break;
 				}
 
@@ -88,18 +105,34 @@ namespace RN
 				{
 					//TODO: Move this into the shader base class
 					String *name = RNSTR([[argument name] UTF8String]);
+					ArgumentSampler *argumentSampler = nullptr;
 					if(name->IsEqual(RNCSTR("directionalShadowSampler")))
 					{
-						//TODO: Store the register, so it doesn't have to be declared last in the shader
-						Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
-						specificSamplers->AddObject(sampler->Autorelease());
+						argumentSampler = new ArgumentSampler(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
+						argumentSampler->Autorelease();
 					}
-					else
+					else //TODO: Pre define some special names like linearRepeatSampler
 					{
-						//TODO: Allow other than default samplers
-						Sampler *sampler = new Sampler();
-						samplers->AddObject(sampler->Autorelease());
+						_rnSamplers->Enumerate<ArgumentSampler>([&](ArgumentSampler *sampler, size_t index, bool &stop){
+							if(sampler->GetName()->IsEqual(name))
+							{
+								argumentSampler = sampler->Copy();
+								argumentSampler->SetIndex(static_cast<uint32>([argument index]));
+								stop = true;
+							}
+						});
+						
+						if(!argumentSampler)
+						{
+							argumentSampler = new ArgumentSampler(name, static_cast<uint32>([argument index]));
+						}
 					}
+					
+					samplersArray->AddObject(argumentSampler->Autorelease());
+					
+					id<MTLSamplerState> samplerState = [_coordinator->GetSamplerStateForSampler(argumentSampler) retain];
+					_samplers.push_back(samplerState);
+					_samplerToIndexMapping.push_back([argument index]);
 
 					break;
 				}
@@ -108,25 +141,8 @@ namespace RN
 					break;
 			}
 		}
-		
-		if(_rnSamplers->GetCount() > 0)
-		{
-			RN_ASSERT(samplers->GetCount() <= _rnSamplers->GetCount(), "Sampler count missmatch!");
-			samplers->RemoveAllObjects();
-			samplers->AddObjectsFromArray(_rnSamplers);
-		}
 
-		Signature *signature = new Signature(uniformDescriptors->Autorelease(), samplers->Autorelease(), textureCount);
+		Signature *signature = new Signature(buffersArray->Autorelease(), samplersArray->Autorelease(), texturesArray->Autorelease());
 		SetSignature(signature->Autorelease());
-
-		samplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
-			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
-			_samplers.push_back(blubb);
-		});
-
-		specificSamplers->Enumerate<Sampler>([&](Sampler *sampler, size_t index, bool &stop){
-			id<MTLSamplerState> blubb = [_coordinator->GetSamplerStateForSampler(sampler) retain];
-			_samplers.push_back(blubb);
-		});
 	}
 }

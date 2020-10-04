@@ -31,10 +31,9 @@ namespace RN
 
 		void *_shader;
 		std::vector<void*> _samplers;
+		std::vector<uint16> _samplerToIndexMapping;
 		const Array *_rnSamplers; //TODO: Fix naming...
 		MetalStateCoordinator *_coordinator;
-
-		bool _wantsDirectionalShadowTexture;
 
 		RNDeclareMetaAPI(MetalShader, MTLAPI)
 	};

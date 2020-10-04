@@ -135,57 +135,46 @@ namespace RN
 		if(samplers)
 		{
 			samplers->Enumerate([&](Object *sampler, size_t index, bool &stop) {
-				String *name = sampler->Downcast<String>();
-				if(!name)
+				Dictionary *dict = sampler->Downcast<Dictionary>();
+				if(dict)
 				{
-					Dictionary *dict = sampler->Downcast<Dictionary>();
-					if(dict)
+					String *name = dict->GetObjectForKey<String>(RNCSTR("name"));
+					String *wrap = dict->GetObjectForKey<String>(RNCSTR("wrap"));
+					String *filter = dict->GetObjectForKey<String>(RNCSTR("filter"));
+					Number *anisotropy = dict->GetObjectForKey<Number>(RNCSTR("anisotropy"));
+					
+					Shader::ArgumentSampler::WrapMode wrapMode = Shader::ArgumentSampler::WrapMode::Repeat;
+					Shader::ArgumentSampler::Filter filterType = Shader::ArgumentSampler::Filter::Anisotropic;
+					uint8 anisotropyValue = Shader::ArgumentSampler::GetDefaultAnisotropy();
+					
+					if(wrap)
 					{
-						String *wrap = dict->GetObjectForKey<String>(RNCSTR("wrap"));
-						String *filter = dict->GetObjectForKey<String>(RNCSTR("filter"));
-						Number *anisotropy = dict->GetObjectForKey<Number>(RNCSTR("anisotropy"));
-						
-						Shader::Sampler::WrapMode wrapMode = Shader::Sampler::WrapMode::Repeat;
-						Shader::Sampler::Filter filterType = Shader::Sampler::Filter::Anisotropic;
-						uint8 anisotropyValue = Shader::Sampler::GetDefaultAnisotropy();
-						
-						if(wrap)
+						if(wrap->IsEqual(RNCSTR("clamp")))
 						{
-							if(wrap->IsEqual(RNCSTR("clamp")))
-							{
-								wrapMode = Shader::Sampler::WrapMode::Clamp;
-							}
+							wrapMode = Shader::ArgumentSampler::WrapMode::Clamp;
 						}
-						
-						if(filter)
-						{
-							if(filter->IsEqual(RNCSTR("nearest")))
-							{
-								filterType = Shader::Sampler::Filter::Nearest;
-							}
-							else if(filter->IsEqual(RNCSTR("linear")))
-							{
-								filterType = Shader::Sampler::Filter::Linear;
-							}
-						}
-						
-						if(anisotropy)
-						{
-							anisotropyValue = anisotropy->GetUint32Value();
-						}
-						
-						//TODO: read comparison function from json
-						Shader::Sampler *sampler = new Shader::Sampler(wrapMode, filterType, Shader::Sampler::ComparisonFunction::Never, anisotropyValue);
-						samplerArray->AddObject(sampler->Autorelease());
 					}
-				}
-				else
-				{
-					if(name->IsEqual(RNCSTR("default")))
+					
+					if(filter)
 					{
-						Shader::Sampler *sampler = new Shader::Sampler();
-						samplerArray->AddObject(sampler->Autorelease());
+						if(filter->IsEqual(RNCSTR("nearest")))
+						{
+							filterType = Shader::ArgumentSampler::Filter::Nearest;
+						}
+						else if(filter->IsEqual(RNCSTR("linear")))
+						{
+							filterType = Shader::ArgumentSampler::Filter::Linear;
+						}
 					}
+					
+					if(anisotropy)
+					{
+						anisotropyValue = anisotropy->GetUint32Value();
+					}
+					
+					//TODO: read comparison function from json
+					Shader::ArgumentSampler *sampler = new Shader::ArgumentSampler(name, -1, wrapMode, filterType, Shader::ArgumentSampler::ComparisonFunction::Never, anisotropyValue);
+					samplerArray->AddObject(sampler->Autorelease());
 				}
 			});
 		}

@@ -109,8 +109,45 @@ namespace RN
 
 			__RNDeclareMetaInternal(UniformDescriptor)
 		};
+		
+		class Argument : public Object
+		{
+		public:
+			String *GetName() const { return _name; }
+			uint32 GetIndex() const { return _index; }
+			void SetIndex(uint32 index) { _index = index; }
+		
+		protected:
+			Argument(String *name, uint32 index);
+			~Argument();
+			
+			uint32 _index;
+			String *_name;
+			
+			__RNDeclareMetaInternal(Argument)
+		};
+		
+		class ArgumentBuffer : public Argument
+		{
+		public:
+			ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors);
+			~ArgumentBuffer();
+			
+			size_t GetTotalUniformSize() const
+			{
+				return _totalUniformSize;
+			}
+			
+			const Array *GetUniformDescriptors() const { return _uniformDescriptors; }
+			
+		private:
+			Array *_uniformDescriptors;
+			size_t _totalUniformSize;
+			
+			__RNDeclareMetaInternal(ArgumentBuffer)
+		};
 
-		class Sampler : public Object
+		class ArgumentSampler : public Argument
 		{
 		public:
 			enum class WrapMode
@@ -138,10 +175,10 @@ namespace RN
 				Always
 			};
 
-			RNAPI Sampler(WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
-			RNAPI ~Sampler();
+			RNAPI ArgumentSampler(String *name, uint32 index, WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI ~ArgumentSampler();
 
-			bool operator== (const Sampler &other) const
+			bool operator== (const ArgumentSampler &other) const
 			{
 				return (_filter == other._filter && _wrapMode == other._wrapMode && _anisotropy == other._anisotropy && _comparisonFunction == other._comparisonFunction);
 			}
@@ -161,40 +198,53 @@ namespace RN
 			uint8 _anisotropy;
 			float _mipmapBias;
 
-			__RNDeclareMetaInternal(Sampler)
+			__RNDeclareMetaInternal(ArgumentSampler)
+		};
+		
+		class ArgumentTexture : public Argument
+		{
+		public:
+			enum Index
+			{
+				IndexDirectionalShadowTexture = 255
+			};
+			
+			ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex);
+			~ArgumentTexture();
+			
+			uint8 GetMaterialTextureIndex() const { return _materialTextureIndex; }
+			
+		private:
+			uint8 _materialTextureIndex;
+			
+			__RNDeclareMetaInternal(ArgumentTexture)
 		};
 
 		class Signature : public Object
 		{
 		public:
-			RNAPI Signature(Array *uniformDescriptors, Array *samplers, uint8 textureCount);
+			RNAPI Signature(Array *buffers, Array *samplers, Array *textures);
 			RNAPI virtual ~Signature();
 
-			const Array *GetUniformDescriptors() const
+			const Array *GetBuffers() const
 			{
-				return _uniformDescriptors;
+				return _buffers;
 			}
-
+			
 			const Array *GetSamplers() const
 			{
 				return _samplers;
 			}
-
-			uint8 GetTextureCount() const
+			
+			const Array *GetTextures() const
 			{
-				return _textureCount;
-			}
-
-			size_t GetTotalUniformSize() const
-			{
-				return _totalUniformSize;
+				return _textures;
 			}
 
 		private:
-			Array *_uniformDescriptors;
+			Array *_buffers;
 			Array *_samplers;
-			uint8 _textureCount;
-			size_t _totalUniformSize;
+			Array *_textures;
 
 			__RNDeclareMetaInternal(Signature)
 		};

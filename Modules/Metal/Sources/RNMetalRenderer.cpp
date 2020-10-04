@@ -660,14 +660,14 @@ namespace RN
 		delete drawable;
 	}
 
-	void MetalRenderer::FillUniformBuffer(MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
+	void MetalRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, Shader *shader, const Material::Properties &materialProperties)
 	{
 		GPUBuffer *gpuBuffer = uniformBufferReference->uniformBuffer->GetActiveBuffer();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
 
 		const MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
+		argument->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
 			switch(descriptor->GetIdentifier())
 			{
 				case Shader::UniformDescriptor::Identifier::Time:
@@ -985,85 +985,76 @@ namespace RN
 			[encoder setDepthBias:mergedMaterialProperties.polygonOffsetUnits slopeScale:mergedMaterialProperties.polygonOffsetFactor clamp:FLT_MAX];
 		}
 		
-		// Update uniforms
+		// Update uniform buffers and set them for rendering
 		{
-			//TODO: support multiple uniform buffer
-			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer, drawable, metalVertexShader, mergedMaterialProperties);
-			if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
-				FillUniformBuffer(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer, drawable, metalFragmentShader, mergedMaterialProperties);
-		}
-
-		// Set Uniforms
-		//TODO: support multiple uniform buffer
-		size_t bufferIndex = 0;
-		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer)
-		{
-			MetalUniformBufferReference *uniformBufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexBuffer;
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
-			[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
-		}
-
-		bufferIndex = 0;
-		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer)
-		{
-			MetalUniformBufferReference *uniformBufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentBuffer;
-			MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
-			[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
+			const MetalDrawable::CameraSpecific &cameraSpecifics = drawable->_cameraSpecifics[_internals->currentRenderPassIndex];
+			uint32 counter = 0;
+			for(MetalUniformBufferReference *uniformBufferReference : cameraSpecifics.vertexShaderUniformBuffers)
+			{
+				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, metalVertexShader, mergedMaterialProperties);
+				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
+				[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
+			}
+			
+			for(MetalUniformBufferReference *uniformBufferReference : drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers)
+			{
+				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, metalFragmentShader, mergedMaterialProperties);
+				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
+				[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
+			}
 		}
 
 		// Set textures
+		//TODO: Support vertex shader textures
 		const Array *textures = drawable->material->GetTextures();
-		size_t count = metalFragmentShader->GetSignature()->GetTextureCount();
-
-		for(size_t i = 0; i < count; i ++)
-		{
-			//TODO: handle shadow texture better
-			if(i == count - 1 && _internals->currentRenderState->wantsShadowTexture)
+		metalFragmentShader->GetSignature()->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop){
+			if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture)
 			{
 				if(renderPass.directionalShadowDepthTexture)
 				{
-					[encoder setFragmentTexture:(id<MTLTexture>)renderPass.directionalShadowDepthTexture->__GetUnderlyingTexture() atIndex:i];
+					[encoder setFragmentTexture:(id<MTLTexture>)renderPass.directionalShadowDepthTexture->__GetUnderlyingTexture() atIndex:argument->GetIndex()];
 				}
 				else
 				{
-					[encoder setFragmentTexture:nil atIndex:i];
+					[encoder setFragmentTexture:nil atIndex:argument->GetIndex()];
 				}
-				continue;
-			}
-
-			if(i < textures->GetCount())
-			{
-				MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(i);
-				[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:i];
 			}
 			else
 			{
-				//TODO: handle post processing texture better
-				if(i == textures->GetCount() && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+				uint8 materialTextureIndex = argument->GetMaterialTextureIndex();
+				if(materialTextureIndex < textures->GetCount())
 				{
-					MetalTexture *colorBuffer = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture()->Downcast<MetalTexture>();
-					[encoder setFragmentTexture:(id<MTLTexture>)colorBuffer->__GetUnderlyingTexture() atIndex:i];
+					MetalTexture *texture = textures->GetObjectAtIndex<MetalTexture>(materialTextureIndex);
+					[encoder setFragmentTexture:(id<MTLTexture>)texture->__GetUnderlyingTexture() atIndex:argument->GetIndex()];
 				}
 				else
 				{
-					[encoder setFragmentTexture:nil atIndex:i];
+					//TODO: handle post processing texture better
+					if(materialTextureIndex == textures->GetCount() && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+					{
+						MetalTexture *colorBuffer = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture()->Downcast<MetalTexture>();
+						[encoder setFragmentTexture:(id<MTLTexture>)colorBuffer->__GetUnderlyingTexture() atIndex:argument->GetIndex()];
+					}
+					else
+					{
+						[encoder setFragmentTexture:nil atIndex:argument->GetIndex()];
+					}
 				}
 			}
-		}
+		});
 
 		//Set samplers
-		count = 0;
+		size_t count = 0;
 		for(void *sampler : metalVertexShader->_samplers)
 		{
 			id<MTLSamplerState> samplerState = static_cast<id<MTLSamplerState>>(sampler);
-			[encoder setVertexSamplerState:samplerState atIndex:count++];
+			[encoder setVertexSamplerState:samplerState atIndex:metalFragmentShader->_samplerToIndexMapping[count++]];
 		}
 		count = 0;
 		for(void *sampler : metalFragmentShader->_samplers)
 		{
 			id<MTLSamplerState> samplerState = static_cast<id<MTLSamplerState>>(sampler);
-			[encoder setFragmentSamplerState:samplerState atIndex:count++];
+			[encoder setFragmentSamplerState:samplerState atIndex:metalFragmentShader->_samplerToIndexMapping[count++]];
 		}
 
 		// Mesh

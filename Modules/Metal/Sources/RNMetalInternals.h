@@ -42,20 +42,25 @@ namespace RN
 		struct CameraSpecific
 		{
 			const MetalRenderingState *pipelineState;
-			MetalUniformBufferReference *vertexBuffer;
-			MetalUniformBufferReference *fragmentBuffer;
 			bool dirty;
+			
+			std::vector<Shader::ArgumentBuffer*> argumentBufferToUniformBufferMapping;
+			std::vector<MetalUniformBufferReference*> vertexShaderUniformBuffers;
+			std::vector<MetalUniformBufferReference*> fragmentShaderUniformBuffers;
 		};
 
 		~MetalDrawable()
 		{
 			for(CameraSpecific specific : _cameraSpecifics)
 			{
-				if(specific.vertexBuffer)
-					delete specific.vertexBuffer;
-
-				if(specific.fragmentBuffer)
-					delete specific.fragmentBuffer;
+				for(MetalUniformBufferReference *buffer : specific.vertexShaderUniformBuffers)
+					delete buffer;
+				
+				for(MetalUniformBufferReference *buffer : specific.fragmentShaderUniformBuffers)
+					delete buffer;
+				
+				for(Shader::ArgumentBuffer *buffer : specific.argumentBufferToUniformBufferMapping)
+					buffer->Release();
 			}
 		}
 
@@ -63,30 +68,45 @@ namespace RN
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({nullptr, nullptr, nullptr, true});
+				_cameraSpecifics.push_back({nullptr, true});
 			}
 		}
 
 		void UpdateRenderingState(size_t cameraID, Renderer *renderer, const MetalRenderingState *state)
 		{
 			_cameraSpecifics[cameraID].pipelineState = state;
-
-			if(_cameraSpecifics[cameraID].vertexBuffer)
-				delete _cameraSpecifics[cameraID].vertexBuffer;
-
-			if(_cameraSpecifics[cameraID].fragmentBuffer)
-				delete _cameraSpecifics[cameraID].fragmentBuffer;
+			
+			for(Shader::ArgumentBuffer *buffer : _cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping)
+				buffer->Release();
+			_cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping.clear();
+			
+			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].vertexShaderUniformBuffers)
+				delete buffer;
+			
+			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].fragmentShaderUniformBuffers)
+				delete buffer;
 
 			MetalRenderer *metalRenderer = renderer->Downcast<MetalRenderer>();
 			
-			//TODO: Support multiple uniform buffers
-			size_t totalSize = state->vertexShader->GetSignature()->GetTotalUniformSize();
-			if(totalSize > 0)
-				_cameraSpecifics[cameraID].vertexBuffer = metalRenderer->GetUniformBufferReference(totalSize, 1)->Retain();
-
-			totalSize = state->fragmentShader->GetSignature()->GetTotalUniformSize();
-			if(totalSize > 0)
-				_cameraSpecifics[cameraID].fragmentBuffer = metalRenderer->GetUniformBufferReference(totalSize, 2)->Retain();
+			const Shader::Signature *vertexShaderSignature = state->vertexShader->GetSignature();
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if(totalSize > 0)
+				{
+					_cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping.push_back(buffer->Retain());
+					_cameraSpecifics[cameraID].vertexShaderUniformBuffers.push_back(metalRenderer->GetUniformBufferReference(totalSize, buffer->GetIndex())->Retain());
+				}
+			});
+			
+			const Shader::Signature *fragmentShaderSignature = state->fragmentShader->GetSignature();
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if(totalSize > 0)
+				{
+					_cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping.push_back(buffer->Retain());
+					_cameraSpecifics[cameraID].fragmentShaderUniformBuffers.push_back(metalRenderer->GetUniformBufferReference(totalSize, buffer->GetIndex())->Retain());
+				}
+			});
 			
 			_cameraSpecifics[cameraID].dirty = false;
 		}
