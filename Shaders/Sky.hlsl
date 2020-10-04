@@ -15,7 +15,7 @@
 #endif
 
 #if RN_UV0
-[[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
+[[vk::binding(3)]] SamplerState linearClampSampler : register(s0);
 [[vk::binding(4)]] Texture2D texture0 : register(t0);
 #endif
 

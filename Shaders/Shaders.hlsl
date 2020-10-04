@@ -12,47 +12,7 @@
 // RN_UV0
 // RN_ALPHA
 
-
-#ifndef RN_MAX_BONES
-#define RN_MAX_BONES 100
-#endif
-
-#ifndef RN_MAX_POINTLIGHTS
-#define RN_MAX_POINTLIGHTS 1
-#endif
-
-
-#ifndef RN_UV0
-#define RN_UV0 0
-#endif
-
-#ifndef RN_COLOR
-#define RN_COLOR 0
-#endif
-
-#ifndef RN_NORMALS
-#define RN_NORMALS 0
-#endif
-
-#ifndef RN_ALPHA
-#define RN_ALPHA 0
-#endif
-
-#ifndef RN_ANIMATIONS
-#define RN_ANIMATIONS 0
-#endif
-
-#ifndef RN_LIGHTS_DIRECTIONAL
-#define RN_LIGHTS_DIRECTIONAL 0
-#endif
-
-#ifndef RN_LIGHTS_POINT
-#define RN_LIGHTS_POINT 0
-#endif
-
-#ifndef RN_SHADOWS_DIRECTIONAL
-#define RN_SHADOWS_DIRECTIONAL 0
-#endif
+#include "rayne.hlsl"
 
 #if RN_UV0
 	#if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
@@ -75,30 +35,12 @@
 	matrix modelViewProjectionMatrix;
 	matrix modelMatrix;
 
-#if RN_ANIMATIONS
-	matrix boneMatrices[RN_MAX_BONES];
-#endif
+	RN_ANIMATION_VERTEX_UNIFORMS;
 
 #if RN_UV0
 	float textureTileFactor;
 #endif
 };
-
-#if RN_LIGHTS_DIRECTIONAL
-struct LightDirectional
-{
-	float4 direction;
-	float4 color;
-};
-#endif
-
-#if RN_LIGHTS_POINT
-struct PointLight
-{
-	float4 positionAndRange;
-	float4 color;
-};
-#endif
 
 [[vk::binding(2)]] cbuffer fragmentUniforms : register(b1)
 {
@@ -144,10 +86,8 @@ struct InputVertex
 #if RN_UV0
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
-#if RN_ANIMATIONS
-	[[vk::location(7)]] float4 boneWeights : BONEWEIGHTS;
-	[[vk::location(8)]] float4 boneIndices : BONEINDICES;
-#endif
+
+	RN_ANIMATION_VERTEX_DATA;
 };
 
 struct FragmentVertex
@@ -165,21 +105,6 @@ struct FragmentVertex
 	float2 texCoords : TEXCOORD0;
 #endif
 };
-
-#if RN_ANIMATIONS
-float4 getAnimatedPosition(float4 position, float4 weights, float4 indices)
-{
-	float4 pos1 = mul(boneMatrices[int(indices.x)], position);
-	float4 pos2 = mul(boneMatrices[int(indices.y)], position);
-	float4 pos3 = mul(boneMatrices[int(indices.z)], position);
-	float4 pos4 = mul(boneMatrices[int(indices.w)], position);
-
-	float4 pos = pos1 * weights.x + pos2 * weights.y + pos3 * weights.z + pos4 * weights.w;
-	pos.w = position.w;
-
-	return pos;
-}
-#endif
 
 #if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
 float getShadowPCF(float4 projected, float2 offset)
@@ -295,24 +220,14 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-#if RN_ANIMATIONS
-	float4 position = getAnimatedPosition(float4(vert.position, 1.0), vert.boneWeights, vert.boneIndices);
-#else
-	float4 position = float4(vert.position, 1.0);
-#endif
-
+	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert);
 	result.position = mul(modelViewProjectionMatrix, position);
 
 #if RN_COLOR
 	result.color = vert.color;
 #endif
 #if RN_NORMALS && (RN_LIGHTS_DIRECTIONAL || RN_LIGHTS_POINT)
-	#if RN_ANIMATIONS
-		float4 normal = getAnimatedPosition(float4(vert.normal, 0.0), vert.boneWeights, vert.boneIndices);
-	#else
-		float4 normal = float4(vert.normal, 0.0);
-	#endif
-
+	float4 normal = RN_ANIMATION_TRANSFORM(float4(vert.normal, 0.0), vert);
 	result.normal = mul(modelMatrix, normal).xyz;
 	result.worldPosition = mul(modelMatrix, position).xyz;
 #endif
