@@ -25,6 +25,8 @@ namespace RN
 	public:
 		RNAPI virtual Shader *GetShaderWithName(const String *name, const Shader::Options *options = nullptr) = 0;
 		RNAPI virtual Shader *GetInstancedShaderForShader(Shader *shader) = 0;
+		
+		RNAPI static Array *GetSamplers(const Array *samplers);
 
 	protected:
 		RNAPI ShaderLibrary();
