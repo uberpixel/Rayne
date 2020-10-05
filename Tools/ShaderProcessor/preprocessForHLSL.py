@@ -16,8 +16,18 @@ def main():
         print 'Error reading file (' + sys.argv[1] + ')'
         return
 
-    destinationString = ''
+    currentPosition = sourceString.find('#include "', 0)
+    while currentPosition != -1:
+        endPosition = sourceString.find('"', currentPosition + 10)
 
+        includeFile = sourceString[currentPosition + 10 : endPosition]
+        with open(includeFile, 'r') as includeShaderData:
+            includeString = includeShaderData.read()
+            sourceString = includeString.join([sourceString[:currentPosition], sourceString[endPosition+1:]])
+
+        currentPosition = sourceString.find('#include "', currentPosition)
+
+    destinationString = ''
     currentPosition = 0
     nextPosition = sourceString.find('[[vk::', currentPosition)
     while nextPosition != -1:

@@ -87,15 +87,14 @@ namespace RN
 		ID3D12ShaderReflection* pReflector = nullptr;
 		D3DReflect(_shader->GetBufferPointer(), _shader->GetBufferSize(), IID_PPV_ARGS(&pReflector));
 
-		uint8 textureCount = 0;
-		Array *reflectionSamplers = new Array();
-		Array *specificReflectionSamplers = new Array();
-		Array *uniformDescriptors = new Array();
+		//TODO: Support custom uniforms
+
+		Array *buffersArray = new Array();
+		Array *samplersArray = new Array();
+		Array *texturesArray = new Array();
 		
 		D3D12_SHADER_DESC shaderDescription;
 		pReflector->GetDesc(&shaderDescription);
-
-		_wantsDirectionalShadowTexture = false;
 
 		for (UINT i = 0; i < shaderDescription.BoundResources; i++)
 		{
@@ -104,36 +103,61 @@ namespace RN
 
 			if(resourceBindingDescription.Type == D3D_SIT_TEXTURE)
 			{
-				//TODO: Move this into the shader base class
 				String *name = RNSTR(resourceBindingDescription.Name);
+				uint8 materialTextureIndex = 0;
+
+				//TODO: Move this into the shader base class
 				if(name->IsEqual(RNCSTR("directionalShadowTexture")))
 				{
-					//TODO: Store the register, so it doesn't have to be declared last in the shader
-					_wantsDirectionalShadowTexture = true;
+					materialTextureIndex = ArgumentTexture::IndexDirectionalShadowTexture;
+				}
+				else if(name->IsEqual(RNCSTR("framebufferTexture")))
+				{
+					materialTextureIndex = ArgumentTexture::IndexFramebufferTexture;
+				}
+				else if(name->HasPrefix(RNCSTR("texture")))
+				{
+					String *indexString = name->GetSubstring(Range(7, name->GetLength() - 7));
+					materialTextureIndex = std::stoi(indexString->GetUTF8String());
 				}
 
-				textureCount += 1;
+				ArgumentTexture *argumentTexture = new ArgumentTexture(name, resourceBindingDescription.BindPoint, materialTextureIndex);
+				texturesArray->AddObject(argumentTexture->Autorelease());
 			}
 			else if(resourceBindingDescription.Type == D3D_SIT_SAMPLER)
 			{
 				//TODO: Move this into the shader base class
 				String *name = RNSTR(resourceBindingDescription.Name);
-				if(name->IsEqual(RNCSTR("directionalShadowSampler")))
+				ArgumentSampler *argumentSampler = nullptr;
+				if (name->IsEqual(RNCSTR("directionalShadowSampler")))
 				{
-					//TODO: Store the register, so it doesn't have to be declared last in the shader
-					Sampler *sampler = new Sampler(Sampler::WrapMode::Clamp, Sampler::Filter::Linear, Sampler::ComparisonFunction::Less);
-					specificReflectionSamplers->AddObject(sampler->Autorelease());
+					argumentSampler = new ArgumentSampler(name, resourceBindingDescription.BindPoint, ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
 				}
-				else
+				else //TODO: Pre define some special names like linearRepeatSampler
 				{
-					Sampler *sampler = new Sampler();
-					reflectionSamplers->AddObject(sampler->Autorelease());
+					samplers->Enumerate<ArgumentSampler>([&](ArgumentSampler *sampler, size_t index, bool &stop) {
+						if (sampler->GetName()->IsEqual(name))
+						{
+							argumentSampler = sampler->Copy();
+							argumentSampler->SetIndex(resourceBindingDescription.BindPoint);
+							stop = true;
+						}
+					});
+
+					if (!argumentSampler)
+					{
+						argumentSampler = new ArgumentSampler(name, resourceBindingDescription.BindPoint);
+					}
 				}
+
+				samplersArray->AddObject(argumentSampler->Autorelease());
 			}
 		}
 
 		for(UINT i = 0; i < shaderDescription.ConstantBuffers; i++)
 		{
+			Array *uniformDescriptors = new Array();
+			
 			ID3D12ShaderReflectionConstantBuffer* pConstBuffer = pReflector->GetConstantBufferByIndex(i);
 			D3D12_SHADER_BUFFER_DESC bufferDescription;
 			pConstBuffer->GetDesc(&bufferDescription);
@@ -156,21 +180,21 @@ namespace RN
 				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}
+
+			if (uniformDescriptors->GetCount() > 0)
+			{
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(bufferDescription.Name), i, uniformDescriptors->Autorelease());
+				buffersArray->AddObject(argumentBuffer->Autorelease());
+			}
+			else
+			{
+				uniformDescriptors->Release();
+			}
 		}
 
 		pReflector->Release();
 
-
-		if(samplers->GetCount() > 0)
-		{
-			RN_ASSERT(reflectionSamplers->GetCount() <= samplers->GetCount(), "Sampler count missmatch!");
-			reflectionSamplers->RemoveAllObjects();
-			reflectionSamplers->AddObjectsFromArray(samplers);
-		}
-
-		reflectionSamplers->AddObjectsFromArray(specificReflectionSamplers);
-
-		Signature *signature = new Signature(uniformDescriptors->Autorelease(), reflectionSamplers->Autorelease(), textureCount);
+		Signature *signature = new Signature(buffersArray->Autorelease(), samplersArray->Autorelease(), texturesArray->Autorelease());
 		Shader::SetSignature(signature->Autorelease());
 	}
 

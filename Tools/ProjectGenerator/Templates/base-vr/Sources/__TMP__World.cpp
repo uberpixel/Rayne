@@ -62,7 +62,7 @@ namespace __TMP__
 			_shaderLibrary = activeRenderer->CreateShaderLibraryWithFile(RNCSTR("shaders/Shaders.json"));
 		}
 
-		_cameraManager.Setup(vrWindow);
+		_cameraManager.Setup(_vrWindow);
 
 		RN::String *pvdServerIP = nullptr;
 #if RN_BUILD_DEBUG

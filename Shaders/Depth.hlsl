@@ -27,7 +27,7 @@
 	matrix modelViewProjectionMatrix;
 #endif
 
-	RN_ANIMATION_VERTEX_UNIFORMS;
+	RN_ANIMATION_VERTEX_UNIFORMS
 
 #if RN_UV0 && RN_ALPHA
 	float textureTileFactor;
@@ -48,7 +48,7 @@ struct InputVertex
 #if RN_UV0 && RN_ALPHA
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
-	RN_ANIMATION_VERTEX_DATA;
+	RN_ANIMATION_VERTEX_DATA
 };
 
 struct FragmentVertex
@@ -67,7 +67,7 @@ FragmentVertex depth_vertex(InputVertex vert)
 	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 1.0f)).xyz;
 	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
 #else
-	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert);
+	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
 	result.position = mul(modelViewProjectionMatrix, position);
 #endif
 

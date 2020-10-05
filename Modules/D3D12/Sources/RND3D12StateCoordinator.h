@@ -24,8 +24,9 @@ namespace RN
 
 	struct D3D12UniformState
 	{
-		D3D12UniformBufferReference *vertexUniformBuffer;
-		D3D12UniformBufferReference *fragmentUniformBuffer;
+		std::vector<Shader::ArgumentBuffer*> uniformBufferToArgumentMapping;
+		std::vector<D3D12UniformBufferReference *> vertexUniformBuffers;
+		std::vector<D3D12UniformBufferReference *> fragmentUniformBuffers;
 	};
 
 	struct D3D12DepthStencilState
@@ -50,11 +51,12 @@ namespace RN
 	{
 		~D3D12RootSignature();
 
-		uint8 textureCount;
+		std::vector<uint16> bindingIndex;
+		std::vector<uint8> bindingType;
 		Array *samplers;
-		uint8 constantBufferCount;
 
-		bool wantsDirectionalShadowTexture; //TODO: Solve better...
+		uint8 textureCount;
+		uint8 constantBufferCount;
 
 		ID3D12RootSignature *signature;
 	};

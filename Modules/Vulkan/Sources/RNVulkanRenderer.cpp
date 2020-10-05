@@ -1323,7 +1323,20 @@ namespace RN
 
 						signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop) {
 
-							const VulkanTexture *materialTexture = argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture?renderPass.directionalShadowDepthTexture:drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+							const VulkanTexture *materialTexture = nullptr;
+							if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture)
+							{
+								materialTexture = renderPass.directionalShadowDepthTexture
+							}
+							else if(index >= drawable->material->GetTextures()->GetCount())
+							{
+								stop = true;
+								return;
+							}
+							else
+							{
+								materialTexture = drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+							}
 
 							VkDescriptorImageInfo imageBufferDescriptorInfo = {};
 							imageBufferDescriptorInfo.imageView = materialTexture->_imageView;

@@ -979,128 +979,100 @@ namespace RN
 
 			for(D3D12Drawable *drawable : renderPass.drawables)
 			{
-				const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
+				Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.fragmentShader;
 
-				//Create texture descriptors
-				const Array *textures = drawable->material->GetTextures();
-				uint8 textureCount = textures->GetCount();
-				textures->Enumerate<D3D12Texture>([&](D3D12Texture *texture, size_t i, bool &stop) {
-					//Respect the textures limit of the root signature
-					if(i >= (rootSignature->textureCount - rootSignature->wantsDirectionalShadowTexture))
-					{
-						stop = true;
-						return;
-					}
-
-					//Check if texture finished uploading to the vram
-					if(texture->_isReady && !texture->_needsMipMaps)
-					{
-						device->CreateShaderResourceView(texture->_resource, &texture->_srvDescriptor, currentCPUHandle);
-					}
-					else
-					{
-						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
-					}
-
-					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
-				});
-
-				//TODO: Find a cleaner more general solution
-				if(rootSignature->wantsDirectionalShadowTexture)
+				if(fragmentShader)
 				{
-					textureCount += 1;
-					if(renderPass.directionalShadowDepthTexture)
-					{
-						device->CreateShaderResourceView(renderPass.directionalShadowDepthTexture->_resource, &renderPass.directionalShadowDepthTexture->_srvDescriptor, currentCPUHandle);
-						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
-					}
-					else
-					{
-						device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
-						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
-					}
-				}
-
-				//TODO: Find a cleaner more general solution
-				if((rootSignature->textureCount - textureCount) > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
-				{
-					D3D12Framebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<D3D12Framebuffer>();
-					ID3D12Resource *resource = nullptr;
-
-					Texture *texture = framebuffer->GetColorTexture();
-					D3D12Texture *d3dTexture = nullptr;
-					D3D12_SHADER_RESOURCE_VIEW_DESC srvDescriptor;
-					if(texture)
-					{
-						d3dTexture = texture->Downcast<D3D12Texture>();
-						resource = d3dTexture->_resource;
-						srvDescriptor = d3dTexture->_srvDescriptor;
-					}
-					else
-					{
-						resource = framebuffer->GetSwapChainColorBuffer();
-
-						//TODO: Don't hardcode format
-						srvDescriptor.Format = framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
-						srvDescriptor.ViewDimension = static_cast<D3D12_SRV_DIMENSION>(framebuffer->_colorTargets[0]->d3dTargetViewDesc.ViewDimension);
-						srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-						
-						//TODO: Don't hardcode to 2D texture!
-						srvDescriptor.Texture2D.MipLevels = 1;
-						srvDescriptor.Texture2D.MostDetailedMip = 0;
-						srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
-						srvDescriptor.Texture2D.PlaneSlice = 0;
-					}
-
-					if(resource)
-					{
-						textureCount += 1;
-
-						//Check if texture finished uploading to the vram
-						if(!d3dTexture || (d3dTexture->_isReady && !d3dTexture->_needsMipMaps))
+					//Create texture descriptors
+					const Array *textures = drawable->material->GetTextures();
+					fragmentShader->GetSignature()->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t i, bool &stop) {
+						ID3D12Resource *textureResource = nullptr;
+						D3D12_SHADER_RESOURCE_VIEW_DESC srvDescriptor = nullSrvDesc;
+						if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture)
 						{
-							device->CreateShaderResourceView(resource, &srvDescriptor, currentCPUHandle);
+							const D3D12Texture *materialTexture = renderPass.directionalShadowDepthTexture;
+							if(materialTexture && materialTexture->_isReady && !materialTexture->_needsMipMaps)
+							{
+								textureResource = materialTexture->_resource;
+								srvDescriptor = materialTexture->_srvDescriptor;
+							}
 						}
-						else
+						else if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexFramebufferTexture && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
 						{
-							device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
+							D3D12Framebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<D3D12Framebuffer>();
+							Texture *texture = framebuffer->GetColorTexture();
+							D3D12Texture *d3dTexture = nullptr;
+							if(texture)
+							{
+								d3dTexture = texture->Downcast<D3D12Texture>();
+									textureResource = d3dTexture->_resource;
+								srvDescriptor = d3dTexture->_srvDescriptor;
+							}
+							else
+							{
+								textureResource = framebuffer->GetSwapChainColorBuffer();
+
+								//TODO: Don't hardcode format
+								srvDescriptor.Format = framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
+								srvDescriptor.ViewDimension = static_cast<D3D12_SRV_DIMENSION>(framebuffer->_colorTargets[0]->d3dTargetViewDesc.ViewDimension);
+								srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+								//TODO: Don't hardcode to 2D texture!
+								srvDescriptor.Texture2D.MipLevels = 1;
+								srvDescriptor.Texture2D.MostDetailedMip = 0;
+								srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
+								srvDescriptor.Texture2D.PlaneSlice = 0;
+							}
+
+							if(textureResource)
+							{
+								//Check if texture finished uploading to the vram
+								if(d3dTexture && (d3dTexture->_isReady || d3dTexture->_needsMipMaps))
+								{
+									textureResource = nullptr;
+								}
+							}
+						}
+						else if(argument->GetMaterialTextureIndex() < textures->GetCount())
+						{
+							const D3D12Texture *materialTexture = textures->GetObjectAtIndex<D3D12Texture>(argument->GetMaterialTextureIndex());
+							if(materialTexture && materialTexture->_isReady && !materialTexture->_needsMipMaps)
+							{
+								textureResource = materialTexture->_resource;
+								srvDescriptor = materialTexture->_srvDescriptor;
+							}
 						}
 
+						device->CreateShaderResourceView(textureResource, &srvDescriptor, currentCPUHandle);
 						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
-					}
-				}
-
-				//Create null texture descriptors for those that are too many in the root signature
-				for(int i = rootSignature->textureCount - textureCount; i > 0; i--)
-				{
-					device->CreateShaderResourceView(nullptr, &nullSrvDesc, currentCPUHandle);
-					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+					});
 				}
 
 				//Create constant buffer descriptor
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 
-				const D3D12PipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
-				D3D12UniformBufferReference *vertexUniformBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffer;
-				if(vertexUniformBuffer)
+				D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+				size_t counter = 0;
+				for(D3D12UniformBufferReference *uniformBuffer : uniformState->vertexUniformBuffers)
 				{
-					FillUniformBuffer(vertexUniformBuffer, drawable, pipelineState->descriptor.vertexShader);
+					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
+					FillUniformBuffer(argument, uniformBuffer, drawable);
 
-					D3D12GPUBuffer *actualBuffer = vertexUniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + vertexUniformBuffer->offset;
-					cbvDesc.SizeInBytes = vertexUniformBuffer->size + kRNUniformBufferAlignement - (vertexUniformBuffer->size % kRNUniformBufferAlignement);
+					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
+					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
-				D3D12UniformBufferReference *fragmentUniformBuffer = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffer;
-				if(fragmentUniformBuffer)
+				for (D3D12UniformBufferReference *uniformBuffer : uniformState->fragmentUniformBuffers)
 				{
-					FillUniformBuffer(fragmentUniformBuffer, drawable, pipelineState->descriptor.fragmentShader);
+					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
+					FillUniformBuffer(argument, uniformBuffer, drawable);
 
-					D3D12GPUBuffer *actualBuffer = fragmentUniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + fragmentUniformBuffer->offset;
-					cbvDesc.SizeInBytes = fragmentUniformBuffer->size + kRNUniformBufferAlignement - (fragmentUniformBuffer->size % kRNUniformBufferAlignement);
+					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
+					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
@@ -1111,7 +1083,7 @@ namespace RN
 		}
 	}
 
-	void D3D12Renderer::FillUniformBuffer(D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable, Shader *shader)
+	void D3D12Renderer::FillUniformBuffer(Shader::ArgumentBuffer *argument, D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable)
 	{
 		GPUBuffer *gpuBuffer = uniformBufferReference->uniformBuffer->GetActiveBuffer();
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
@@ -1120,7 +1092,7 @@ namespace RN
 		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		shader->GetSignature()->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
+		argument->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
 			
 			switch(descriptor->GetIdentifier())
 			{
@@ -1398,10 +1370,10 @@ namespace RN
 		D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		_lock.Unlock();
 
-		Material *material = drawable->material;
 		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].dirty)
 		{
 			//TODO: Fix the camera situation...
+			Material *material = drawable->material;
 			_lock.Lock();
 			const D3D12PipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			D3D12UniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);

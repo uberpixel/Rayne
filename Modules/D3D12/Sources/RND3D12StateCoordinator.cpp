@@ -120,58 +120,73 @@ namespace RN
 
 	const D3D12RootSignature *D3D12StateCoordinator::GetRootSignature(const D3D12PipelineStateDescriptor &descriptor)
 	{
-		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(descriptor.vertexShader);
-		const Shader::Signature *vertexSignature = vertexShader->GetSignature();
-		uint16 textureCount = vertexSignature->GetTextureCount();
-		const Array *vertexSamplers = vertexSignature->GetSamplers();
-		Array *samplerArray = new Array(vertexSamplers);
+		Array *samplerArray = new Array();
 		samplerArray->Autorelease();
+		std::vector<uint16> bindingIndex;
+		std::vector<uint8> bindingType;
 
-		bool wantsDirectionalShadowTexture = vertexShader->_wantsDirectionalShadowTexture;
-
-		//TODO: Support multiple constant buffers per function signature
-		uint16 constantBufferCount = (vertexSignature->GetTotalUniformSize() > 0) ? 1 : 0;
-
+		D3D12Shader *vertexShader = static_cast<D3D12Shader *>(descriptor.vertexShader);
 		D3D12Shader *fragmentShader = static_cast<D3D12Shader *>(descriptor.fragmentShader);
-		if(fragmentShader)
+
+		const Shader::Signature *vertexShaderSignature = vertexShader ? vertexShader->GetSignature() : nullptr;
+		const Shader::Signature *fragmentShaderSignature = fragmentShader ? fragmentShader->GetSignature() : nullptr;
+
+		uint8 textureCount = 0;
+		uint8 constantBufferCount = 0;
+		
+		if(vertexShaderSignature)
 		{
-			const Shader::Signature *fragmentSignature = fragmentShader->GetSignature();
-			textureCount = fmax(textureCount, fragmentSignature->GetTextureCount());
-			const Array *fragmentSamplers = fragmentSignature->GetSamplers();
-			samplerArray->AddObjectsFromArray(fragmentSamplers);
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(0);
+			});
 
-			wantsDirectionalShadowTexture = (wantsDirectionalShadowTexture || fragmentShader->_wantsDirectionalShadowTexture);
+			vertexShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(1);
+			});
 
-			//TODO: Support multiple constant buffers per function signature
-			constantBufferCount += (fragmentSignature->GetTotalUniformSize() > 0) ? 1 : 0;
+			vertexShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(2);
+			});
+
+			textureCount += vertexShaderSignature->GetTextures()->GetCount();
+			constantBufferCount += vertexShaderSignature->GetBuffers()->GetCount();
+
+			samplerArray->AddObjectsFromArray(vertexShaderSignature->GetSamplers());
+		}
+		
+		if(fragmentShaderSignature)
+		{
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(0);
+			});
+
+			fragmentShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(1);
+			});
+
+			fragmentShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				bindingIndex.push_back(argument->GetIndex());
+				bindingType.push_back(2);
+			});
+
+			textureCount += fragmentShaderSignature->GetTextures()->GetCount();
+			constantBufferCount += fragmentShaderSignature->GetBuffers()->GetCount();
+
+			samplerArray->AddObjectsFromArray(fragmentShaderSignature->GetSamplers());
 		}
 
 		for(D3D12RootSignature *signature : _rootSignatures)
 		{
-			
-			if(signature->textureCount != textureCount)
-			{
-				continue;
-			}
-
-			//TODO: Doesn't really require an extra root signature...
-			if(signature->wantsDirectionalShadowTexture != wantsDirectionalShadowTexture)
-			{
-				continue;
-			}
-
-			if(signature->constantBufferCount != constantBufferCount)
-			{
-				continue;
-			}
-
-			if(samplerArray->GetCount() != signature->samplers->GetCount())
-			{
-				continue;
-			}
+			if(signature->bindingIndex != bindingIndex) continue;
+			if(signature->bindingType != bindingType) continue;
 			
 			bool notEqual = false;
-			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+			signature->samplers->Enumerate<Shader::ArgumentSampler>([&](Shader::ArgumentSampler *sampler, size_t index, bool &stop) {
 				if(!(sampler == samplerArray->GetObjectAtIndex(index)))
 				{
 					notEqual = true;
@@ -189,10 +204,11 @@ namespace RN
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
 		D3D12RootSignature *signature = new D3D12RootSignature();
-		signature->constantBufferCount = constantBufferCount;
+		signature->bindingIndex = bindingIndex;
+		signature->bindingType = bindingType;
 		signature->samplers = samplerArray->Retain();
 		signature->textureCount = textureCount;
-		signature->wantsDirectionalShadowTexture = wantsDirectionalShadowTexture;
+		signature->constantBufferCount = constantBufferCount;
 
 		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
 
@@ -225,22 +241,22 @@ namespace RN
 		if(signature->samplers->GetCount() > 0)
 		{
 			samplerDescriptors = new D3D12_STATIC_SAMPLER_DESC[signature->samplers->GetCount()];
-			signature->samplers->Enumerate<Shader::Sampler>([&](Shader::Sampler *sampler, size_t index, bool &stop) {
+			signature->samplers->Enumerate<Shader::ArgumentSampler>([&](Shader::ArgumentSampler *sampler, size_t index, bool &stop) {
 				D3D12_STATIC_SAMPLER_DESC &samplerDesc = samplerDescriptors[index];
 
 				D3D12_FILTER filter = D3D12_FILTER_ANISOTROPIC;
 				D3D12_COMPARISON_FUNC comparisonFunction = D3D12_COMPARISON_FUNC_NEVER;
-				if(sampler->GetComparisonFunction() == Shader::Sampler::ComparisonFunction::Never)
+				if(sampler->GetComparisonFunction() == Shader::ArgumentSampler::ComparisonFunction::Never)
 				{
 					switch (sampler->GetFilter())
 					{
-					case Shader::Sampler::Filter::Anisotropic:
+					case Shader::ArgumentSampler::Filter::Anisotropic:
 						filter = D3D12_FILTER_ANISOTROPIC;
 						break;
-					case Shader::Sampler::Filter::Linear:
+					case Shader::ArgumentSampler::Filter::Linear:
 						filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 						break;
-					case Shader::Sampler::Filter::Nearest:
+					case Shader::ArgumentSampler::Filter::Nearest:
 						filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 						break;
 					}
@@ -249,38 +265,38 @@ namespace RN
 				{
 					switch (sampler->GetFilter())
 					{
-					case Shader::Sampler::Filter::Anisotropic:
+					case Shader::ArgumentSampler::Filter::Anisotropic:
 						filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
 						break;
-					case Shader::Sampler::Filter::Linear:
+					case Shader::ArgumentSampler::Filter::Linear:
 						filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 						break;
-					case Shader::Sampler::Filter::Nearest:
+					case Shader::ArgumentSampler::Filter::Nearest:
 						filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
 						break;
 					}
 
 					switch(sampler->GetComparisonFunction())
 					{
-					case Shader::Sampler::ComparisonFunction::Always:
+					case Shader::ArgumentSampler::ComparisonFunction::Always:
 						comparisonFunction = D3D12_COMPARISON_FUNC_ALWAYS;
 						break;
-					case Shader::Sampler::ComparisonFunction::Equal:
+					case Shader::ArgumentSampler::ComparisonFunction::Equal:
 						comparisonFunction = D3D12_COMPARISON_FUNC_EQUAL;
 						break;
-					case Shader::Sampler::ComparisonFunction::GreaterEqual:
+					case Shader::ArgumentSampler::ComparisonFunction::GreaterEqual:
 						comparisonFunction = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 						break;
-					case Shader::Sampler::ComparisonFunction::Greater:
+					case Shader::ArgumentSampler::ComparisonFunction::Greater:
 						comparisonFunction = D3D12_COMPARISON_FUNC_GREATER;
 						break;
-					case Shader::Sampler::ComparisonFunction::Less:
+					case Shader::ArgumentSampler::ComparisonFunction::Less:
 						comparisonFunction = D3D12_COMPARISON_FUNC_LESS;
 						break;
-					case Shader::Sampler::ComparisonFunction::LessEqual:
+					case Shader::ArgumentSampler::ComparisonFunction::LessEqual:
 						comparisonFunction = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 						break;
-					case Shader::Sampler::ComparisonFunction::NotEqual:
+					case Shader::ArgumentSampler::ComparisonFunction::NotEqual:
 						comparisonFunction = D3D12_COMPARISON_FUNC_NOT_EQUAL;
 						break;
 					}
@@ -289,10 +305,10 @@ namespace RN
 				D3D12_TEXTURE_ADDRESS_MODE addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 				switch(sampler->GetWrapMode())
 				{
-				case Shader::Sampler::WrapMode::Repeat:
+				case Shader::ArgumentSampler::WrapMode::Repeat:
 					addressMode = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 					break;
-				case Shader::Sampler::WrapMode::Clamp:
+				case Shader::ArgumentSampler::WrapMode::Clamp:
 					addressMode = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 					break;
 				}
@@ -592,22 +608,32 @@ namespace RN
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
 
+		D3D12UniformState *state = new D3D12UniformState();
 		Shader *vertexShader = pipelineState->descriptor.vertexShader;
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
-		D3D12UniformBufferReference *vertexBuffer = nullptr;
-		D3D12UniformBufferReference *fragmentBuffer = nullptr;
-		if(vertexShader && vertexShader->GetSignature() && vertexShader->GetSignature()->GetTotalUniformSize())
+		if (vertexShader && vertexShader->GetSignature())
 		{
-			vertexBuffer = renderer->GetUniformBufferReference(vertexShader->GetSignature()->GetTotalUniformSize(), 0);
-		}
-		if(fragmentShader && fragmentShader->GetSignature() && fragmentShader->GetSignature()->GetTotalUniformSize())
-		{
-			fragmentBuffer = renderer->GetUniformBufferReference(fragmentShader->GetSignature()->GetTotalUniformSize(), 0);
+			vertexShader->GetSignature()->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop) {
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if (totalSize > 0)
+				{
+					state->uniformBufferToArgumentMapping.push_back(buffer->Retain());
+					state->vertexUniformBuffers.push_back(renderer->GetUniformBufferReference(buffer->GetTotalUniformSize(), buffer->GetIndex())->Retain());
+				}
+			});
 		}
 
-		D3D12UniformState *state = new D3D12UniformState();
-		state->vertexUniformBuffer = SafeRetain(vertexBuffer);
-		state->fragmentUniformBuffer = SafeRetain(fragmentBuffer);
+		if (fragmentShader && fragmentShader->GetSignature())
+		{
+			fragmentShader->GetSignature()->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop) {
+				size_t totalSize = buffer->GetTotalUniformSize();
+				if (totalSize > 0)
+				{
+					state->uniformBufferToArgumentMapping.push_back(buffer->Retain());
+					state->fragmentUniformBuffers.push_back(renderer->GetUniformBufferReference(buffer->GetTotalUniformSize(), buffer->GetIndex())->Retain());
+				}
+			});
+		}
 
 		return state;
 	}

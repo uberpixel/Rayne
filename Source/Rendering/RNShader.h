@@ -118,8 +118,8 @@ namespace RN
 			void SetIndex(uint32 index) { _index = index; }
 		
 		protected:
-			Argument(String *name, uint32 index);
-			~Argument();
+			RNAPI Argument(String *name, uint32 index);
+			RNAPI ~Argument();
 			
 			uint32 _index;
 			String *_name;
@@ -130,14 +130,10 @@ namespace RN
 		class ArgumentBuffer : public Argument
 		{
 		public:
-			ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors);
-			~ArgumentBuffer();
+			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors);
+			RNAPI ~ArgumentBuffer();
 			
-			size_t GetTotalUniformSize() const
-			{
-				return _totalUniformSize;
-			}
-			
+			size_t GetTotalUniformSize() const { return _totalUniformSize; }
 			const Array *GetUniformDescriptors() const { return _uniformDescriptors; }
 			
 		private:
@@ -206,11 +202,12 @@ namespace RN
 		public:
 			enum Index
 			{
-				IndexDirectionalShadowTexture = 255
+				IndexDirectionalShadowTexture = 255,
+				IndexFramebufferTexture = 254
 			};
 			
-			ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex);
-			~ArgumentTexture();
+			RNAPI ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex);
+			RNAPI ~ArgumentTexture();
 			
 			uint8 GetMaterialTextureIndex() const { return _materialTextureIndex; }
 			
@@ -226,20 +223,9 @@ namespace RN
 			RNAPI Signature(Array *buffers, Array *samplers, Array *textures);
 			RNAPI virtual ~Signature();
 
-			const Array *GetBuffers() const
-			{
-				return _buffers;
-			}
-			
-			const Array *GetSamplers() const
-			{
-				return _samplers;
-			}
-			
-			const Array *GetTextures() const
-			{
-				return _textures;
-			}
+			const Array *GetBuffers() const { return _buffers; }
+			const Array *GetSamplers() const { return _samplers; }
+			const Array *GetTextures() const { return _textures; }
 
 		private:
 			Array *_buffers;

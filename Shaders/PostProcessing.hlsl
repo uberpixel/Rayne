@@ -6,7 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-[[vk::binding(4)]] Texture2D texture0 : register(t0);
+[[vk::binding(4)]] Texture2D framebufferTexture : register(t0);
 [[vk::binding(3)]] SamplerState linearClampSampler : register(s0);
 
 struct InputVertex
@@ -32,7 +32,7 @@ FragmentVertex pp_vertex(InputVertex vert)
 
 float4 pp_blit_fragment(FragmentVertex vert) : SV_TARGET
 {
-	float4 color = texture0.Sample(linearClampSampler, vert.texCoords).rgba;
+	float4 color = framebufferTexture.Sample(linearClampSampler, vert.texCoords).rgba;
 	return color;
 }
 

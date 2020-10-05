@@ -35,7 +35,7 @@
 	matrix modelViewProjectionMatrix;
 	matrix modelMatrix;
 
-	RN_ANIMATION_VERTEX_UNIFORMS;
+	RN_ANIMATION_VERTEX_UNIFORMS
 
 #if RN_UV0
 	float textureTileFactor;
@@ -87,7 +87,7 @@ struct InputVertex
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
 
-	RN_ANIMATION_VERTEX_DATA;
+	RN_ANIMATION_VERTEX_DATA
 };
 
 struct FragmentVertex
@@ -220,14 +220,14 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert);
+	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
 	result.position = mul(modelViewProjectionMatrix, position);
 
 #if RN_COLOR
 	result.color = vert.color;
 #endif
 #if RN_NORMALS && (RN_LIGHTS_DIRECTIONAL || RN_LIGHTS_POINT)
-	float4 normal = RN_ANIMATION_TRANSFORM(float4(vert.normal, 0.0), vert);
+	float4 normal = RN_ANIMATION_TRANSFORM(float4(vert.normal, 0.0), vert)
 	result.normal = mul(modelMatrix, normal).xyz;
 	result.worldPosition = mul(modelMatrix, position).xyz;
 #endif

@@ -86,7 +86,7 @@ namespace RN
 
 	protected:
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
-		void FillUniformBuffer(D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable, Shader *shader);
+		void FillUniformBuffer(Shader::ArgumentBuffer *argument, D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable);
 
 		void RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass);
 

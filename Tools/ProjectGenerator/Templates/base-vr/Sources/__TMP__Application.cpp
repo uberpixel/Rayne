@@ -36,9 +36,9 @@ namespace __TMP__
 		RN::VRApplication::DidFinishLaunching(kernel);
 		
 #if RN_PLATFORM_ANDROID
-		RN::Shader::Sampler::SetDefaultAnisotropy(4);
+		RN::Shader::ArgumentSampler::SetDefaultAnisotropy(4);
 #else
-		RN::Shader::Sampler::SetDefaultAnisotropy(16);
+		RN::Shader::ArgumentSampler::SetDefaultAnisotropy(16);
 #endif
 
 		World *world = new World(GetVRWindow());

@@ -128,70 +128,6 @@ namespace RN
 		return uniformDescriptors->Autorelease();
 	}
 
-	static Array *GetSamplers(const Array *samplers)
-	{
-		Array *samplerArray = new Array();
-		if(samplers)
-		{
-			samplers->Enumerate([&](Object *sampler, size_t index, bool &stop) {
-				String *name = sampler->Downcast<String>();
-				if(!name)
-				{
-					Dictionary *dict = sampler->Downcast<Dictionary>();
-					if(dict)
-					{
-						String *wrap = dict->GetObjectForKey<String>(RNCSTR("wrap"));
-						String *filter = dict->GetObjectForKey<String>(RNCSTR("filter"));
-						Number *anisotropy = dict->GetObjectForKey<Number>(RNCSTR("anisotropy"));
-
-						Shader::Sampler::WrapMode wrapMode = Shader::Sampler::WrapMode::Repeat;
-						Shader::Sampler::Filter filterType = Shader::Sampler::Filter::Anisotropic;
-						uint8 anisotropyValue = Shader::Sampler::GetDefaultAnisotropy();
-
-						if(wrap)
-						{
-							if(wrap->IsEqual(RNCSTR("clamp")))
-							{
-								wrapMode = Shader::Sampler::WrapMode::Clamp;
-							}
-						}
-
-						if(filter)
-						{
-							if(filter->IsEqual(RNCSTR("nearest")))
-							{
-								filterType = Shader::Sampler::Filter::Nearest;
-							}
-							else if(filter->IsEqual(RNCSTR("linear")))
-							{
-								filterType = Shader::Sampler::Filter::Linear;
-							}
-						}
-
-						if(anisotropy)
-						{
-							anisotropyValue = anisotropy->GetUint32Value();
-						}
-
-						//TODO: read comparison function from json
-						Shader::Sampler *sampler = new Shader::Sampler(wrapMode, filterType, Shader::Sampler::ComparisonFunction::Never, anisotropyValue);
-						samplerArray->AddObject(sampler->Autorelease());
-					}
-				}
-				else
-				{
-					if(name->IsEqual(RNCSTR("default")))
-					{
-						Shader::Sampler *sampler = new Shader::Sampler();
-						samplerArray->AddObject(sampler->Autorelease());
-					}
-				}
-			});
-		}
-
-		return samplerArray->Autorelease();
-	}
-
 	const Array *D3D12SpecificShaderLibrary::GetSamplerSignature(const Shader::Options *options) const
 	{
 		if(!_signatureDescription)
@@ -201,7 +137,7 @@ namespace RN
 		}
 
 		Array *samplerDataArray = _signatureDescription->GetObjectForKey<Array>(RNCSTR("samplers"));
-		Array *samplerArray = GetSamplers(samplerDataArray);
+		Array *samplerArray = ShaderLibrary::GetSamplers(samplerDataArray);
 
 		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
 		if(signatureOptions)
@@ -216,7 +152,7 @@ namespace RN
 						return;
 					}
 					Array *optionSamplerdataArray = dict->GetObjectForKey<Array>(RNCSTR("samplers"));
-					Array *optionSamplerArray = GetSamplers(optionSamplerdataArray);
+					Array *optionSamplerArray = ShaderLibrary::GetSamplers(optionSamplerdataArray);
 					samplerArray->AddObjectsFromArray(optionSamplerArray);
 				}
 			});

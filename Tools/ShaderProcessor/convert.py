@@ -137,7 +137,7 @@ def main():
                     permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.' + outFormat)
 
                     if outFormat == 'cso':
-                    	parameterList = [fxcCmdPath, '-Fo', permutationOutFile, '-E', entryName, '-T', shaderType + '_5_1', hlslFile]
+                    	parameterList = [fxcCmdPath, '-I', '.', '-Fo', permutationOutFile, '-E', entryName, '-T', shaderType + '_5_1', hlslFile]
                     else:
                         parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
 
