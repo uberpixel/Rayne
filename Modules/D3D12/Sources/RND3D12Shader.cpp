@@ -183,7 +183,10 @@ namespace RN
 
 			if (uniformDescriptors->GetCount() > 0)
 			{
-				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(bufferDescription.Name), i, uniformDescriptors->Autorelease());
+				D3D12_SHADER_INPUT_BIND_DESC resourceBindingDescription;
+				pReflector->GetResourceBindingDescByName(bufferDescription.Name, &resourceBindingDescription);
+				
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(bufferDescription.Name), resourceBindingDescription.BindPoint, uniformDescriptors->Autorelease());
 				buffersArray->AddObject(argumentBuffer->Autorelease());
 			}
 			else

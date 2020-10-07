@@ -131,8 +131,10 @@ namespace RN
 		const Shader::Signature *vertexShaderSignature = vertexShader ? vertexShader->GetSignature() : nullptr;
 		const Shader::Signature *fragmentShaderSignature = fragmentShader ? fragmentShader->GetSignature() : nullptr;
 
-		uint8 textureCount = 0;
-		uint8 constantBufferCount = 0;
+		uint8 vertexTextureCount = 0;
+		uint8 fragmentTextureCount = 0;
+		uint8 vertexUniformBufferCount = 0;
+		uint8 fragmentUniformBufferCount = 0;
 		
 		if(vertexShaderSignature)
 		{
@@ -151,8 +153,8 @@ namespace RN
 				bindingType.push_back(2);
 			});
 
-			textureCount += vertexShaderSignature->GetTextures()->GetCount();
-			constantBufferCount += vertexShaderSignature->GetBuffers()->GetCount();
+			vertexTextureCount = vertexShaderSignature->GetTextures()->GetCount();
+			vertexUniformBufferCount = vertexShaderSignature->GetBuffers()->GetCount();
 
 			samplerArray->AddObjectsFromArray(vertexShaderSignature->GetSamplers());
 		}
@@ -174,14 +176,18 @@ namespace RN
 				bindingType.push_back(2);
 			});
 
-			textureCount += fragmentShaderSignature->GetTextures()->GetCount();
-			constantBufferCount += fragmentShaderSignature->GetBuffers()->GetCount();
+			fragmentTextureCount = fragmentShaderSignature->GetTextures()->GetCount();
+			fragmentUniformBufferCount = fragmentShaderSignature->GetBuffers()->GetCount();
 
 			samplerArray->AddObjectsFromArray(fragmentShaderSignature->GetSamplers());
 		}
 
 		for(D3D12RootSignature *signature : _rootSignatures)
 		{
+			if(signature->vertexTextureCount != vertexTextureCount) continue;
+			if(signature->vertexUniformBufferCount != vertexUniformBufferCount) continue;
+			if(signature->fragmentTextureCount != fragmentTextureCount) continue;
+			if(signature->fragmentUniformBufferCount != fragmentUniformBufferCount) continue;
 			if(signature->bindingIndex != bindingIndex) continue;
 			if(signature->bindingType != bindingType) continue;
 			
@@ -207,33 +213,52 @@ namespace RN
 		signature->bindingIndex = bindingIndex;
 		signature->bindingType = bindingType;
 		signature->samplers = samplerArray->Retain();
-		signature->textureCount = textureCount;
-		signature->constantBufferCount = constantBufferCount;
+		signature->vertexTextureCount = vertexTextureCount;
+		signature->vertexUniformBufferCount = vertexUniformBufferCount;
+		signature->fragmentTextureCount = fragmentTextureCount;
+		signature->fragmentUniformBufferCount = fragmentUniformBufferCount;
 
-		int numberOfTables = (signature->textureCount > 0) + (signature->constantBufferCount > 0);
+		int numberOfTables = (vertexTextureCount > 0 || vertexUniformBufferCount > 0) + (fragmentTextureCount > 0 || fragmentUniformBufferCount > 0);
 
 		CD3DX12_DESCRIPTOR_RANGE *srvCbvRanges = nullptr;
 		CD3DX12_ROOT_PARAMETER *rootParameters = nullptr;
 
 		if(numberOfTables > 0)
 		{
-			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[numberOfTables];
+			srvCbvRanges = new CD3DX12_DESCRIPTOR_RANGE[vertexTextureCount + vertexUniformBufferCount + fragmentTextureCount + fragmentUniformBufferCount];
 			rootParameters = new CD3DX12_ROOT_PARAMETER[numberOfTables];
 		}
 
 		// Perfomance TIP: Order from most frequent to least frequent.
 		int tableIndex = 0;
-		if(signature->textureCount > 0)
+		int parameterIndex = 0;
+		
+		if(vertexTextureCount > 0 || vertexUniformBufferCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, signature->textureCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
-			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-			tableIndex += 1;
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				srvCbvRanges[tableIndex + index].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, argument->GetIndex(), 0);
+			});
+			
+			vertexShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				srvCbvRanges[tableIndex + vertexUniformBufferCount + index].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, argument->GetIndex(), 0);
+			});
+			
+			rootParameters[parameterIndex++].InitAsDescriptorTable(vertexTextureCount + vertexUniformBufferCount, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_VERTEX);
+			tableIndex += vertexUniformBufferCount + vertexTextureCount;
 		}
-		if(signature->constantBufferCount > 0)
+
+		if(fragmentTextureCount > 0 || fragmentUniformBufferCount > 0)
 		{
-			srvCbvRanges[tableIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, signature->constantBufferCount, 0, 0);// , D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE);
-			rootParameters[tableIndex].InitAsDescriptorTable(1, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_ALL);	//TODO: Restrict visibility to the shader actually using it
-			tableIndex += 1;
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				srvCbvRanges[tableIndex + index].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, argument->GetIndex(), 0);
+			});
+
+			fragmentShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+				srvCbvRanges[tableIndex + fragmentUniformBufferCount + index].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, argument->GetIndex(), 0);
+			});
+
+			rootParameters[parameterIndex++].InitAsDescriptorTable(fragmentTextureCount + fragmentUniformBufferCount, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_PIXEL);
+			tableIndex += fragmentTextureCount + fragmentUniformBufferCount;
 		}
 		
 		// Create samplers

@@ -55,8 +55,10 @@ namespace RN
 		std::vector<uint8> bindingType;
 		Array *samplers;
 
-		uint8 textureCount;
-		uint8 constantBufferCount;
+		uint8 vertexTextureCount;
+		uint8 fragmentTextureCount;
+		uint8 vertexUniformBufferCount;
+		uint8 fragmentUniformBufferCount;
 
 		ID3D12RootSignature *signature;
 	};

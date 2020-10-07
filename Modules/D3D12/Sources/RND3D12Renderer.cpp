@@ -979,8 +979,39 @@ namespace RN
 
 			for(D3D12Drawable *drawable : renderPass.drawables)
 			{
-				Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.fragmentShader;
+				//The order of descriptors here needs to match the order in the root signature for each table
+				//
+				//Create constant buffer descriptors
+				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+				D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+				size_t counter = 0;
+				for(D3D12UniformBufferReference *uniformBuffer : uniformState->vertexUniformBuffers)
+				{
+					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
+					FillUniformBuffer(argument, uniformBuffer, drawable);
 
+					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
+					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
+					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+				}
+
+				//TODO: Add support for vertex shader textures here
+
+				for(D3D12UniformBufferReference *uniformBuffer : uniformState->fragmentUniformBuffers)
+				{
+					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
+					FillUniformBuffer(argument, uniformBuffer, drawable);
+
+					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
+					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
+					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
+					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
+					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
+				}
+				
+				Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.fragmentShader;
 				if(fragmentShader)
 				{
 					//Create texture descriptors
@@ -1046,35 +1077,6 @@ namespace RN
 						device->CreateShaderResourceView(textureResource, &srvDescriptor, currentCPUHandle);
 						currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 					});
-				}
-
-				//Create constant buffer descriptor
-				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-
-				D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-				size_t counter = 0;
-				for(D3D12UniformBufferReference *uniformBuffer : uniformState->vertexUniformBuffers)
-				{
-					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
-					FillUniformBuffer(argument, uniformBuffer, drawable);
-
-					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
-					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
-					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
-				}
-
-				for (D3D12UniformBufferReference *uniformBuffer : uniformState->fragmentUniformBuffers)
-				{
-					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
-					FillUniformBuffer(argument, uniformBuffer, drawable);
-
-					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
-					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
-					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
-					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
-					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 			}
 
@@ -1386,26 +1388,28 @@ namespace RN
 		// Push into the queue
 		_lock.Lock();
 		renderPass.drawables.push_back(drawable);
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->textureCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->constantBufferCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexTextureCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentTextureCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexUniformBufferCount;
+		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentUniformBufferCount;
 		_lock.Unlock();
 	}
 
 	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
 	{
 		const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
-
 		UINT rootParameter = 0;
-		if(rootSignature->textureCount)
+		
+		if(rootSignature->vertexTextureCount || rootSignature->vertexUniformBufferCount)
 		{
 			commandList->SetGraphicsRootDescriptorTable(rootParameter++, _currentSrvCbvHeap->GetGPUHandle(_currentSrvCbvIndex));
-			_currentSrvCbvIndex += rootSignature->textureCount;
+			_currentSrvCbvIndex += rootSignature->vertexTextureCount + rootSignature->vertexUniformBufferCount;
 		}
-
-		if(rootSignature->constantBufferCount)
+		
+		if(rootSignature->fragmentTextureCount || rootSignature->fragmentUniformBufferCount)
 		{
 			commandList->SetGraphicsRootDescriptorTable(rootParameter++, _currentSrvCbvHeap->GetGPUHandle(_currentSrvCbvIndex));
-			_currentSrvCbvIndex += rootSignature->constantBufferCount;
+			_currentSrvCbvIndex += rootSignature->fragmentTextureCount + rootSignature->fragmentUniformBufferCount;
 		}
 
 		commandList->SetPipelineState(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->state);
