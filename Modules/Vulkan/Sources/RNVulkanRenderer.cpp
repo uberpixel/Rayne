@@ -1262,7 +1262,6 @@ namespace RN
 				for(VulkanDrawable *drawable : renderPass.drawables)
 				{
 					const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
-					const VulkanRootSignature *rootSignature = pipelineState->rootSignature;
 
 					VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
 
@@ -1316,17 +1315,18 @@ namespace RN
 						writeDescriptorSets.push_back(writeConstantDescriptorSet);
 					}
 
-					//Support vertex shader textures
-					if(drawable->material->GetFragmentShader())
+					//TODO: Support vertex shader textures
+					Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
+					if(fragmentShader)
 					{
-						const Shader::Signature *signature = drawable->material->GetFragmentShader()->GetSignature();
+						const Shader::Signature *signature = fragmentShader->GetSignature();
 
 						signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop) {
 
 							const VulkanTexture *materialTexture = nullptr;
 							if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture)
 							{
-								materialTexture = renderPass.directionalShadowDepthTexture
+								materialTexture = renderPass.directionalShadowDepthTexture;
 							}
 							else if(index >= drawable->material->GetTextures()->GetCount())
 							{
