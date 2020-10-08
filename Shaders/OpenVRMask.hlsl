@@ -1,5 +1,5 @@
 //
-//  PostProcessing.hlsl
+//  OpenVRMask.hlsl
 //  Rayne
 //
 //  Copyright 2017 by Überpixel. All rights reserved.

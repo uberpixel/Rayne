@@ -15,22 +15,16 @@
 #include "rayne.hlsl"
 
 #if RN_UV0
-	#if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
-		[[vk::binding(5)]] Texture2D texture0 : register(t0);
-		[[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
-
-		[[vk::binding(6)]] Texture2DArray directionalShadowTexture : register(t1);
-		[[vk::binding(4)]] SamplerComparisonState directionalShadowSampler : register(s1);
-	#else
-		[[vk::binding(4)]] Texture2D texture0 : register(t0);
-		[[vk::binding(3)]] SamplerState linearRepeatSampler : register(s0);
-	#endif
-#elif RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
-	[[vk::binding(4)]] Texture2DArray directionalShadowTexture : register(t0);
-	[[vk::binding(3)]] SamplerComparisonState directionalShadowSampler : register(s0);
+	Texture2D texture0;
+	SamplerState linearRepeatSampler;
+#endif
+		
+#if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
+	Texture2DArray directionalShadowTexture;
+	SamplerComparisonState directionalShadowSampler;
 #endif
 
-[[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
+cbuffer vertexUniforms
 {
 	matrix modelViewProjectionMatrix;
 	matrix modelMatrix;
@@ -42,7 +36,7 @@
 #endif
 };
 
-[[vk::binding(2)]] cbuffer fragmentUniforms : register(b1)
+cbuffer fragmentUniforms
 {
 	float4 ambientColor;
 	float4 diffuseColor;

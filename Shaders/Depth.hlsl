@@ -14,11 +14,11 @@
 #include "rayne.hlsl"
 
 #if RN_UV0 && RN_ALPHA
-[[vk::binding(2)]] SamplerState linearRepeatSampler : register(s0);
-[[vk::binding(3)]] Texture2D texture0 : register(t0);
+SamplerState linearRepeatSampler;
+Texture2D texture0;
 #endif
 
-[[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
+cbuffer vertexUniforms
 {
 #if RN_SKY
 	matrix modelViewMatrix;

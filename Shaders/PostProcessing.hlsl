@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-[[vk::binding(4)]] Texture2D framebufferTexture : register(t0);
-[[vk::binding(3)]] SamplerState linearClampSampler : register(s0);
+Texture2D framebufferTexture;
+SamplerState linearClampSampler;
 
 struct InputVertex
 {

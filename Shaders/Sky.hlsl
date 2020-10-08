@@ -15,17 +15,17 @@
 #endif
 
 #if RN_UV0
-[[vk::binding(3)]] SamplerState linearClampSampler : register(s0);
-[[vk::binding(4)]] Texture2D texture0 : register(t0);
+SamplerState linearClampSampler;
+Texture2D texture0;
 #endif
 
-[[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
+cbuffer vertexUniforms
 {
 	matrix modelViewMatrix;
 	matrix projectionMatrix;
 };
 
-[[vk::binding(2)]] cbuffer fragmentUniforms : register(b1)
+cbuffer fragmentUniforms
 {
 	float4 cameraAmbientColor;
 	float4 diffuseColor;
@@ -60,8 +60,8 @@ FragmentVertex sky_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 1.0)).xyz;
-	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
+	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 0.0)).xyz;
+	result.position = mul(projectionMatrix, float4(rotatedPosition, 0.0)).xyww;
 
 #if RN_UV0
 	result.texCoords = vert.texCoords;

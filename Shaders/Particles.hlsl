@@ -11,11 +11,11 @@
 #endif
 
 #if RN_UV0
-[[vk::binding(3)]] Texture2D texture0 : register(t0);
-[[vk::binding(2)]] SamplerState linearRepeatSampler : register(s0);
+Texture2D texture0;
+SamplerState linearRepeatSampler;
 #endif
 
-[[vk::binding(1)]] cbuffer vertexUniforms : register(b0)
+cbuffer vertexUniforms
 {
 	matrix inverseModelViewMatrix;
 	matrix modelViewProjectionMatrix;
