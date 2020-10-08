@@ -260,7 +260,8 @@ namespace RN
 			rootParameters[parameterIndex++].InitAsDescriptorTable(fragmentTextureCount + fragmentUniformBufferCount, &srvCbvRanges[tableIndex], D3D12_SHADER_VISIBILITY_PIXEL);
 			tableIndex += fragmentTextureCount + fragmentUniformBufferCount;
 		}
-		
+
+		//TODO: Create samplers for both, vertex and fragment shaders
 		// Create samplers
 		D3D12_STATIC_SAMPLER_DESC *samplerDescriptors = nullptr;
 		if(signature->samplers->GetCount() > 0)
