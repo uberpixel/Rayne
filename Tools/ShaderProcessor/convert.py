@@ -4,10 +4,34 @@ import os
 import errno
 import subprocess
 import platform
+import pathlib
+
+def getNeedsUpdate(scriptFile, libraryFile, sourceFile, directory, pattern):
+    referenceChangeTime = os.path.getmtime(scriptFile)
+    libraryChangeTime = os.path.getmtime(libraryFile)
+    if libraryChangeTime > referenceChangeTime:
+        referenceChangeTime = libraryChangeTime
+    sourceChangeTime = os.path.getmtime(sourceFile)
+    if sourceChangeTime > referenceChangeTime:
+        referenceChangeTime = sourceChangeTime
+    pathlist = pathlib.Path(directory).glob(pattern)
+    counter = 0
+    for path in pathlist:
+        counter += 1
+        path_in_str = str(path)
+        fileChangeTime = os.path.getmtime(path_in_str)
+        if referenceChangeTime > fileChangeTime:
+            return True
+    return counter == 0
+
+def removePermutations(directory, pattern):
+    pathlist = pathlib.Path(directory).glob(pattern)
+    for path in pathlist:
+        path.unlink()
 
 def main():
     if len(sys.argv) < 4:
-        print 'Specify shader json file followed by requested formats as comma separated list with no spaces (dxil,cso,spirv,metal), output directory path [and optional resource folder relative path] as parameters'
+        print('Specify shader json file followed by requested formats as comma separated list with no spaces (dxil,cso,spirv,metal), output directory path [and optional resource folder relative path] as parameters')
         return
 
     with open(sys.argv[1], 'r') as sourceJsonData:
@@ -47,7 +71,7 @@ def main():
         supportedFormats = ['spirv', 'metal']
         shaderConductorCmdPath = os.path.join(shaderConductorCmdPath, 'Vendor/ShaderConductor/Build/ninja-linux-gcc-x64-Release/Bin/ShaderConductorCmd')
     else:
-        print 'Script needs to be updated with ShaderConductor path for platform: ' + platform.system()
+        print('Script needs to be updated with ShaderConductor path for platform: ' + platform.system())
         return
 
     requestedFormats = sys.argv[2].split(',')
@@ -119,6 +143,11 @@ def main():
             else:
                 permutations.append(list())
 
+            skipShaderCompiling = False
+            if not getNeedsUpdate(sys.argv[0], sys.argv[1], sourceFile, outDirName, fileName + "." + shaderType + ".*.*"):
+                print("Shaders for file " + sourceFile + " are already up to date. Skipping.")
+                skipShaderCompiling = True
+
             for outFormat in outFormats:
                 if outFormat == 'dxil':
                     compilerOutFormat = 'dxil'
@@ -131,7 +160,17 @@ def main():
                     destinationShaderFile['file~vulkan'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.' + outFormat
                 elif outFormat == 'metal':
                     compilerOutFormat = 'msl_macos'
-                    destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metallib'
+                    if platform.system() == 'Darwin':
+                        destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metallib'
+                    else:
+                        destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metal'
+
+                if not skipShaderCompiling:
+                    if outFormat == 'metal':
+                        removePermutations(outDirName, fileName + "." + shaderType + ".*.metal")
+                        removePermutations(outDirName, fileName + "." + shaderType + ".*.metallib")
+                    else:
+                        removePermutations(outDirName, fileName + "." + shaderType + ".*."+outFormat)
 
                 for permutationCounter, permutation in enumerate(permutations):
                     permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.' + outFormat)
@@ -144,18 +183,19 @@ def main():
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
 
-                    subprocess.call(parameterList)
+                    if not skipShaderCompiling:
+                        subprocess.call(parameterList)
 
-                    if outFormat == 'metal' and platform.system() == 'Darwin':
-                        bitcodeOutFile = permutationOutFile + '.air'
-                        libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.metallib')
-                        if enableDebugSymbols:
-                            subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
-                        else:
-                            subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
-                        subprocess.call(['xcrun', '-sdk', 'macosx', 'metallib', bitcodeOutFile, '-o', libOutFile])
-                        os.remove(permutationOutFile)
-                        os.remove(bitcodeOutFile)
+                        if outFormat == 'metal' and platform.system() == 'Darwin':
+                            bitcodeOutFile = permutationOutFile + '.air'
+                            libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.metallib')
+                            if enableDebugSymbols:
+                                subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                            else:
+                                subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                            subprocess.call(['xcrun', '-sdk', 'macosx', 'metallib', bitcodeOutFile, '-o', libOutFile])
+                            os.remove(permutationOutFile)
+                            os.remove(bitcodeOutFile)
 
             destinationJson.append(destinationShaderFile)
 
