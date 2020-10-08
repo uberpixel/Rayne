@@ -262,7 +262,9 @@ namespace RN
 				return state;
 		}
 
-		MTLVertexDescriptor *vertexDescriptor = CreateVertexDescriptorFromMesh(mesh);
+		//Hardcoding the binding index to 30 here as there is no way to figure out the ones in use before reflection, but need to create the pipeline for reflection to be available... 30 is the highest index allowed!
+		uint8 vertexBufferShaderResourceIndex = 30;
+		MTLVertexDescriptor *vertexDescriptor = CreateVertexDescriptorFromMesh(mesh, vertexBufferShaderResourceIndex);
 
 		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
 		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
@@ -323,6 +325,7 @@ namespace RN
 		state->stencilFormat = stencilFormat;
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
+		state->vertexBufferShaderResourceIndex = vertexBufferShaderResourceIndex;
 		state->wantsAlphaToCoverage = materialProperties.useAlphaToCoverage;
 		state->colorWriteMask = materialProperties.colorWriteMask;
 		state->blendOperationRGB = materialProperties.blendOperationRGB;
@@ -337,25 +340,14 @@ namespace RN
 		return state;
 	}
 
-	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
+	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh, uint8 bufferIndex)
 	{
 		MTLVertexDescriptor *descriptor = [[MTLVertexDescriptor alloc] init];
-		descriptor.layouts[0].stride = mesh->GetStride();
-		descriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
-		descriptor.layouts[0].stepRate = 1;
+		descriptor.layouts[30].stride = mesh->GetStride();
+		descriptor.layouts[30].stepFunction = MTLVertexStepFunctionPerVertex;
+		descriptor.layouts[30].stepRate = 1;
 
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
-		
-		//TODO: Delete if not having this doesn't cause problems
-/*		for(int i = 0; i < 7; i++)
-		{
-			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[i];
-			attributeDescriptor.format = MTLVertexFormatFloat2;
-			attributeDescriptor.offset = 0;
-			attributeDescriptor.bufferIndex = 0;
-		}*/
-
-		size_t index = 0;
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
@@ -364,9 +356,7 @@ namespace RN
 			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[_vertexFeatureLookup[static_cast<int>(attribute.GetFeature())]];
 			attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];
 			attributeDescriptor.offset = attribute.GetOffset();
-			attributeDescriptor.bufferIndex = 0;
-
-			index ++;
+			attributeDescriptor.bufferIndex = bufferIndex;
 		}
 
 		return descriptor;
