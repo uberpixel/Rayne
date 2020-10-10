@@ -10,9 +10,9 @@ import json
 
 def main():
 	if len(sys.argv) < 4:
-		print 'Missing Argument!'
-		print 'Correct Usage:'
-		print 'python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam or gamelift)'
+		print('Missing Argument!')
+		print('Correct Usage:')
+		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam or gamelift)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -35,13 +35,13 @@ def main():
 	platform = sys.argv[2]
 	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
 	if not platform in supportedPlatforms:
-		print 'Platform (' + platform + ') not supported!'
+		print('Platform (' + platform + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
 	supportedTypes = ['independent', 'oculus', 'steam', 'gamelift', 'test']
 	if not configuration in supportedTypes:
-		print 'Build type (' + configuration + ') not supported!'
+		print('Build type (' + configuration + ') not supported!')
 		return
 
 	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)

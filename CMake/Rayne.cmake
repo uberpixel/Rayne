@@ -1,14 +1,7 @@
 
 set(DIR_OF_RAYNE_CMAKE ${CMAKE_CURRENT_LIST_DIR})
 
-find_package(PythonInterp 2)
-if(NOT PYTHONINTERP_FOUND)
-#    if(APPLE)
-        set(PYTHON_EXECUTABLE python)
-#    else()
-#        message( FATAL_ERROR "Python 3 not found" )
-#    endif()
-endif()
+find_package(PythonInterp 3 REQUIRED)
 
 macro(rayne_link_with _TARGET)
     target_link_libraries(${_TARGET} Rayne)

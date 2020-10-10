@@ -9,9 +9,9 @@ import Utilities
 
 def main():
 	if len(sys.argv) < 4:
-		print 'Missing Argument!'
-		print 'Correct Usage:'
-		print 'python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus or steam)'
+		print('Missing Argument!')
+		print('Correct Usage:')
+		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus or steam)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -28,13 +28,13 @@ def main():
 	platform = sys.argv[2]
 	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
 	if not platform in supportedPlatforms:
-		print 'Platform (' + platform + ') not supported!'
+		print('Platform (' + platform + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
 	supportedTypes = ['independent', 'oculus', 'steam', 'gamelift', 'test']
 	if not configuration in supportedTypes:
-		print 'Build type (' + configuration + ') not supported!'
+		print('Build type (' + configuration + ') not supported!')
 		return
 
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
@@ -62,7 +62,7 @@ def main():
 		sourceDirectory = os.path.join(sourceDirectory, 'Build/'+configName+'/Release')
 	
 	if not os.path.isdir(sourceDirectory):
-		print "Build does not exist: " + sourceDirectory
+		print("Build does not exist: " + sourceDirectory)
 		return
 
 	destinationDirectory = os.path.join(projectRootPath, configReleaseDirectory)

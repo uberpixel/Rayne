@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(Vulkan)
 
-find_package(PythonInterp 2)
+find_package(PythonInterp 3 REQUIRED)
 find_package(Vulkan REQUIRED)
-
-if(NOT PYTHONINTERP_FOUND)
-#    if(APPLE)
-        set(PYTHON_EXECUTABLE python)
-#    else()
-#        message( FATAL_ERROR "Python 3 not found" )
-#    endif()
-endif()
-
 
 include(../../CMake/LibraryTarget.cmake)
 include(ExternalProject)

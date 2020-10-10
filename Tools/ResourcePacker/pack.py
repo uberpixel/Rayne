@@ -11,13 +11,13 @@ def getTexturesForModelFile(file):
         magic = modelFile.read(4)
         magic = struct.unpack('<i', magic)[0]
         if magic != 352658064:
-            print 'Not an sgm file!'
+            print('Not an sgm file!')
             return textures
 
         version = modelFile.read(1)
         version = struct.unpack('<B', version)[0]
         if version != 3:
-            print 'Unsupported sgm file version (' + str(version) + ')!'
+            print('Unsupported sgm file version (' + str(version) + ')!')
             return textures
 
         materialCount = modelFile.read(1)
@@ -40,7 +40,7 @@ def getTexturesForModelFile(file):
                     textureFilename = ''
                     for byte in range(0, textureFilenameLength):
                         textureFilenameByte = modelFile.read(1)
-                        textureFilename += struct.unpack('<s', textureFilenameByte)[0]
+                        textureFilename += str(struct.unpack('<s', textureFilenameByte)[0], 'utf-8')
 
                     textures.append(textureFilename[:-1]) #remove 0 byte at the end
 
@@ -58,7 +58,7 @@ def needsToUpdateFile(sourceFile, targetFile):
 
 def main():
     if len(sys.argv) < 3:
-        print 'python pack.py inputFolder outputFolder [platform (either \'pc\' or \'mobile\') --skip-textures]'
+        print('python pack.py inputFolder outputFolder [platform (either \'pc\' or \'mobile\') --skip-textures]')
         return
 
     scriptDirectory = os.path.dirname(sys.argv[0])
@@ -83,7 +83,7 @@ def main():
             preferredTextureExtension = '.astc'
             textureExtensionsToSkipForCompressed = ['.png', '.dds']
         else:
-            print 'Platform not supported'
+            print('Platform not supported')
 
     textureConverter = os.path.join(scriptDirectory, '../TextureCompression/convert.py')
 

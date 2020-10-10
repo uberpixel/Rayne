@@ -34,9 +34,9 @@ def downloadAndExtractURL(downloadURL, directory):
 
 def main():
 	if len(sys.argv) < 2:
-		print 'Missing Argument!'
-		print 'Correct Usage:'
-		print 'python Setup.py build-config.json'
+		print('Missing Argument!')
+		print('Correct Usage:')
+		print('python Setup.py build-config.json')
 		return
 
 	with open(sys.argv[1]) as json_file:

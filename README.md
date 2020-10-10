@@ -20,7 +20,7 @@ Some of the working modules are:
 * Recast
 * Assimp
 
-There are a couple of useful python scripts in the *Tools* directory. Most of these currently require Python 2.7.
+There are a couple of useful python scripts in the *Tools* directory.
 
 
 ## Getting Started
@@ -29,9 +29,9 @@ There are a couple of useful python scripts in the *Tools* directory. Most of th
 #### Windows
 1. Install Visual Studio (2017 or newer)
 2. Install [CMake](https://cmake.org) and have it added to the PATH environment variable
-3. Install [Python 2.7](https://www.python.org) and [Python 3.x](https://www.python.org) and have them added to the PATH environment variable
+3. Install [Python 3.x](https://www.python.org) and have them added to the PATH environment variable
 5. Run ```git submodule update --init``` from within the *Rayne* directory
-6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
+6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```py -3 BuildAll.py```
 7. Contiune with *Creating a new Project*
 
 #### macOS
@@ -47,7 +47,6 @@ There are a couple of useful python scripts in the *Tools* directory. Most of th
 Depending on your linux distribution you may or may not want to use a different packet manager and the packets may be called differently, other packets could be missing or require an additional repository to install them from. The following has only been tested on Ubuntu 20.04 LTS.
 1. Install cmake: ```sudo apt install cmake```
 2. Install ninja: ```sudo apt install ninja-build```
-3. Install python 2.7: ```sudo apt install python2```
 4. Install python 3.x: ```sudo apt install python3```
 5. Install python 3 distutils, will already have been included in some python 3 releases: ```sudo apt install python3-distutils```
 6. Install X11 SDK: ```sudo apt install xorg-dev```
@@ -67,11 +66,10 @@ Create a folder structure like the following (*Rayne* should be the directory co
     - GameName
 
 1. Open a terminal and change the current directory to GameName.
-2. Run ```python3 ../../Rayne/Tools/ProjectGenerator/CreateProject.py``` (This is the only one that needs python3... the others need 2.7...)
+2. Run ```python3 ../../Rayne/Tools/ProjectGenerator/CreateProject.py```
 *Template Name* has to be *base-vr* at the moment (it also works without VR, but handles some additional setup needed for VR), everything else can be chosen however you want.
-3. Run ```python ../../Rayne/Tools/BuildHelper/CreateBuildProject.py build-config.json platform independent``` replace *platform* with either *windows* (only works on windows), *macos* (only works on macOS), *linux* (only works on linux) or *android* (should work on any host system, only really tested on macOS though).
+3. Run ```python3 ../../Rayne/Tools/BuildHelper/CreateBuildProject.py build-config.json platform independent``` replace *platform* with either *windows* (only works on windows), *macos* (only works on macOS), *linux* (only works on linux) or *android* (should work on any host system, only really tested on macOS though).
 This will create a new *Builds* directory with another directory for the platform inside. For windows this will contain a Visual Studio solution, for macOS it will be an XCode workspace, on linux it will be ninja makefiles and for android it will be a gradle project that can be imported into Android Studio.
-4. Before you can successfully run the project, go to *Assets/Shaders* and run *CompileShaders.bat* / *CompileShaders.sh*.
 5. Then build and run and everything should work.
 
 

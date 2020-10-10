@@ -88,7 +88,7 @@ def needsToUpdateFile(sourceFile, targetFile):
 
 def main():
     if len(sys.argv) < 2:
-        print 'python convert.py input.png [output (with optional extension for a specific format)]'
+        print('python convert.py input.png [output (with optional extension for a specific format)]')
         return
 
     supportedFileExtensions = ['.png', '.dds', '.astc']
@@ -96,7 +96,7 @@ def main():
 
     inputFileName, inputFileExtension = os.path.splitext(sys.argv[1])
     if inputFileExtension != '.png':
-        print 'Currently only png files are supported as input'
+        print('Currently only png files are supported as input')
         return
 
     if len(sys.argv) >= 3:
@@ -105,7 +105,7 @@ def main():
             if outputFileExtension in supportedFileExtensions:
                 requestedFileExtensions = [outputFileExtension]
             else:
-                print 'Specified output files extension is not supported: ' + outputFileExtension + ' (needs to be one of ' + str(supportedFileExtensions) + ')'
+                print('Specified output files extension is not supported: ' + outputFileExtension + ' (needs to be one of ' + str(supportedFileExtensions) + ')')
                 return
     else:
         outputFileName = inputFileName
@@ -126,7 +126,7 @@ def main():
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc.exe')
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
     else:
-        print 'Script needs to be updated with nvtexturetools path for platform: ' + platform.system()
+        print('Script needs to be updated with nvtexturetools path for platform: ' + platform.system())
         return
 
     if '.png' in requestedFileExtensions:
@@ -156,7 +156,7 @@ def main():
             bitdepth = int(bitdepth)
             numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
 
-            print 'Number of mipmap levels: ' + str(numLevels)
+            print('Number of mipmap levels: ' + str(numLevels))
 
             #the encoder now seems to do the flipping itself, it also has a flip related flag, but doesn't appear to be needed
             #subprocess.call(['convert', sourceFile, '-flip', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])

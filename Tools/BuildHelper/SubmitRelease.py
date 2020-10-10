@@ -77,9 +77,9 @@ def downloadOculusPlatformUtil(helperdir):
 
 def main():
 	if len(sys.argv) < 4:
-		print 'Missing Argument!'
-		print 'Correct Usage:'
-		print 'python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio) [devicetype (quest, go)]'
+		print('Missing Argument!')
+		print('Correct Usage:')
+		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio) [devicetype (quest, go)]')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -102,13 +102,13 @@ def main():
 	platform = sys.argv[2]
 	supportedPlatforms = ['windows', 'linux', 'android', 'macos', 'test']
 	if not platform in supportedPlatforms:
-		print 'Platform (' + platform + ') not supported!'
+		print('Platform (' + platform + ') not supported!')
 		return
 
 	storefront = sys.argv[3]
 	supportedStorefronts = ['oculus', 'steam', 'itchio', 'test']
 	if not storefront in supportedStorefronts:
-		print 'Storefront (' + storefront + ') not supported!'
+		print('Storefront (' + storefront + ') not supported!')
 		return
 
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)

@@ -25,7 +25,7 @@ endif()
 
 ExternalProject_Add(openvr
         GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
-        GIT_TAG refs/tags/v1.11.11
+        GIT_TAG refs/tags/v1.14.15
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""

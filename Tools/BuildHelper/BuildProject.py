@@ -10,9 +10,9 @@ import Utilities
 
 def main():
 	if len(sys.argv) < 4:
-		print 'Missing Argument!'
-		print 'Correct Usage:'
-		print 'python BuildProject.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or gamelift)'
+		print('Missing Argument!')
+		print('Correct Usage:')
+		print('python BuildProject.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or gamelift)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -35,13 +35,13 @@ def main():
 	platform = sys.argv[2]
 	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
 	if not platform in supportedPlatforms:
-		print 'Platform (' + platform + ') not supported!'
+		print('Platform (' + platform + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
 	supportedTypes = ['independent', 'oculus', 'steam', 'gamelift', 'test']
 	if not configuration in supportedTypes:
-		print 'Build type (' + configuration + ') not supported!'
+		print('Build type (' + configuration + ') not supported!')
 		return
 
 	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)
@@ -79,13 +79,15 @@ def main():
 	if platform == 'windows':
 		vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild"])
 		vswhereLines = vswhereOutput.splitlines()
+		vsInstallationPath = None
 		for vswhereLine in vswhereLines:
-			if vswhereLine.startswith("installationPath: "):
-				vsInstallationPath = vswhereLine.split(": ", 1)[1]
+			if vswhereLine.startswith(b'installationPath: '):
+				vsInstallationPath = str(vswhereLine.split(b': ', 1)[1], 'utf-8')
 		if not vsInstallationPath:
 			print("No visual studio installation with MSBuild found!")
 			return
 		msbuildSearchDirectory = os.path.join(vsInstallationPath, "MSBuild")
+		msbuildPath = None
 		for root, dirs, files in os.walk(msbuildSearchDirectory):
 			for file in files:
 				if file == "MSBuild.exe":
@@ -103,9 +105,9 @@ def main():
 	elif platform == 'android':
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
-		print 'Keystore password?'
+		print('Keystore password?')
 		storePassword = getpass.getpass()
-		print 'Key password?'
+		print('Key password?')
 		keyPassword = getpass.getpass()
 		subprocess.call(['./gradlew', 'assembleRelease'])
 		subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])

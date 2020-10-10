@@ -151,6 +151,12 @@ endif()
 
 target_compile_definitions(__TMP_APPLICATION_TARGET__ PRIVATE ${__TMP___COMPILE_DEFINITIONS})
 
+if(WIN32)
+	add_custom_command(TARGET __TMP_APPLICATION_TARGET__ PRE_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/CompileShaders.bat)
+else()
+	add_custom_command(TARGET __TMP_APPLICATION_TARGET__ PRE_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/CompileShaders.sh)
+endif()
+
 if(APPLE)
 	set_target_properties(__TMP_APPLICATION_TARGET__ PROPERTIES MACOSX_BUNDLE TRUE)
 	set_target_properties(__TMP_APPLICATION_TARGET__ PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Other/Info.plist.in)

@@ -7,13 +7,13 @@ import platform
 
 def main():
     if len(sys.argv) != 3:
-        print 'Specify input and output file'
+        print('Specify input and output file')
 
     with open(sys.argv[1], 'r') as sourceShaderData:
         sourceString = sourceShaderData.read()
 
     if not sourceString:
-        print 'Error reading file (' + sys.argv[1] + ')'
+        print('Error reading file (' + sys.argv[1] + ')')
         return
 
     currentPosition = sourceString.find('#include "', 0)
