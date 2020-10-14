@@ -42,6 +42,8 @@ namespace RN
 	{
 		switch(format)
 		{
+			case Texture::Format::Depth_16I:
+				return DXGI_FORMAT_R16_TYPELESS;
 			case Texture::Format::Depth_24I:
 				return DXGI_FORMAT_R24G8_TYPELESS;
 			case Texture::Format::Depth_32F:
@@ -116,6 +118,8 @@ namespace RN
 		case Texture::Format::RGBA_BC7:
 			return DXGI_FORMAT_BC7_UNORM;
 
+		case Texture::Format::Depth_16I:
+			return DXGI_FORMAT_D16_UNORM;
 		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case Texture::Format::Depth_32F:
@@ -190,6 +194,8 @@ namespace RN
 		case Texture::Format::RGBA_BC7:
 			return DXGI_FORMAT_BC7_UNORM;
 
+		case Texture::Format::Depth_16I:
+			return DXGI_FORMAT_R16_UNORM;
 		case Texture::Format::Depth_24I:
 			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 		case Texture::Format::Depth_32F:
@@ -233,6 +239,7 @@ namespace RN
 			case Texture::Format::RGBA_32F:
 				return D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
+			case Texture::Format::Depth_16I:
 			case Texture::Format::Depth_24I:
 			case Texture::Format::Depth_32F:
 			case Texture::Format::Stencil_8:
@@ -273,6 +280,7 @@ namespace RN
 			case Texture::Format::RGBA_32F:
 				return D3D12_RESOURCE_STATE_RENDER_TARGET;
 
+			case Texture::Format::Depth_16I:
 			case Texture::Format::Depth_24I:
 			case Texture::Format::Depth_32F:
 			case Texture::Format::Stencil_8:
@@ -371,7 +379,7 @@ namespace RN
 			clearValue.Format = imageDesc.Format;
 
 			//TODO: descriptor.usageHint & UsageHint::ShaderRead could be checked here, but makes error handling tricky and maybe there is no disadvantage in always using a typeless format here...
-			if(descriptor.format >= Texture::Format::Depth_24I)
+			if(descriptor.format >= Texture::Format::Depth_16I)
 			{
 				imageDesc.Format = D3D12TypelessFormatFromDepthFormat(descriptor.format);
 				clearValue.DepthStencil.Depth = descriptor.preferredClearDepth;

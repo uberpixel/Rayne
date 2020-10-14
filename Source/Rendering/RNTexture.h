@@ -46,6 +46,7 @@ namespace RN
 			RGB_32F,
 			RGBA_32F,
 
+			Depth_16I,
 			Depth_24I,
 			Depth_32F,
 			Stencil_8,

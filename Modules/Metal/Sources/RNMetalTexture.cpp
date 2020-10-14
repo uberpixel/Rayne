@@ -96,6 +96,8 @@ namespace RN
 				return MTLPixelFormatDepth32Float;
 			case Format::Stencil_8:
 				return MTLPixelFormatStencil8;
+			case Format::Depth_16I:
+				return MTLPixelFormatDepth16Unorm;
 			case Format::Depth_24I:
 				return MTLPixelFormatDepth24Unorm_Stencil8;
 			case Format::Depth_32F_Stencil_8:

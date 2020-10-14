@@ -36,7 +36,7 @@ namespace RN
 		{
 			vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
-		else if(targetView.texture->GetDescriptor().format == Texture::Format::Depth_24I || targetView.texture->GetDescriptor().format == Texture::Format::Depth_32F)
+		else if(targetView.texture->GetDescriptor().format == Texture::Format::Depth_16I || targetView.texture->GetDescriptor().format == Texture::Format::Depth_24I || targetView.texture->GetDescriptor().format == Texture::Format::Depth_32F)
 		{
 			vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 		}

@@ -74,6 +74,8 @@ namespace RN
 				return VK_FORMAT_R32G32B32_SFLOAT;
 			case Texture::Format::RGBA_32F:
 				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case Texture::Format::Depth_16I:
+				return VK_FORMAT_D16_UNORM;
 			case Texture::Format::Depth_24I:
 				return VK_FORMAT_X8_D24_UNORM_PACK32;
 			case Texture::Format::Depth_32F:

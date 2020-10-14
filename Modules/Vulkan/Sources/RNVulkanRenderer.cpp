@@ -1324,7 +1324,7 @@ namespace RN
 						signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop) {
 
 							const VulkanTexture *materialTexture = nullptr;
-							if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture)
+							if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
 							{
 								materialTexture = renderPass.directionalShadowDepthTexture;
 							}

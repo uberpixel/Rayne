@@ -111,6 +111,11 @@ namespace RN
 			depthSwapChainDesc.ArraySize = 1;
 			switch(descriptor.depthStencilFormat)
 			{
+				case Texture::Format::Depth_16I:
+				{
+					depthSwapChainDesc.Format = OVR_FORMAT_D16_UNORM;
+					break;
+				}
 				case Texture::Format::Depth_24I:
 				{
 					depthSwapChainDesc.Format = OVR_FORMAT_D24_UNORM_S8_UINT;
