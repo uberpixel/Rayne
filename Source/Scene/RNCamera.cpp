@@ -344,8 +344,8 @@ namespace RN
 		frustums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f);
 		frustums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f);
 		frustums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f);
-		frustums._frustumNear = Plane::WithPositionNormal(position + direction * _clipNear, -direction);
-		frustums._frustumFar = Plane::WithPositionNormal(position + direction * _clipFar, direction);
+		frustums._frustumNear = Plane::WithPositionNormal(position + direction * std::min(_clipNear, _clipFar), -direction);
+		frustums._frustumFar = Plane::WithPositionNormal(position + direction * std::max(_clipNear, _clipFar), direction);
 	}
 
 	Vector3 Camera::__ToWorld(const Vector3 &dir)
@@ -360,9 +360,9 @@ namespace RN
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
 
 			// I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
-			Vector4 vec(_orthoLeft, _orthoBottom, -_clipNear, 2.0f);
+			Vector4 vec(_orthoLeft, _orthoBottom, -std::min(_clipNear, _clipFar), 2.0f);
 			vec *= temp2;
-			vec += Vector4(_orthoRight, _orthoTop, -_clipFar, 2.0f)*temp;
+			vec += Vector4(_orthoRight, _orthoTop, -std::max(_clipNear, _clipFar), 2.0f)*temp;
 
 			vec = _inverseViewMatrix * vec;
 			return Vector3(vec);

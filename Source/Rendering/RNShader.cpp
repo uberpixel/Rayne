@@ -327,6 +327,11 @@ namespace RN
 		_name = SafeRetain(name);
 	}
 
+	Shader::Argument::Argument(const Argument *other) : _index(other->_index)
+	{
+		_name = SafeRetain(other->_name);
+	}
+
 	Shader::Argument::~Argument()
 	{
 		SafeRelease(_name);
@@ -344,6 +349,11 @@ namespace RN
 		}
 	}
 
+	Shader::ArgumentBuffer::ArgumentBuffer(const ArgumentBuffer *other) : Argument(other)
+	{
+		_uniformDescriptors = SafeRetain(other->_uniformDescriptors);
+	}
+
 	Shader::ArgumentBuffer::~ArgumentBuffer()
 	{
 		SafeRelease(_uniformDescriptors);
@@ -355,6 +365,9 @@ namespace RN
 		_filter(filter),
 		_comparisonFunction(comparisonFunction),
 		_anisotropy(anisotropy)
+	{}
+
+	Shader::ArgumentSampler::ArgumentSampler(const ArgumentSampler *other) : Argument(other), _wrapMode(other->_wrapMode), _filter(other->_filter), _comparisonFunction(other->_comparisonFunction), _anisotropy(other->_anisotropy)
 	{}
 
 	Shader::ArgumentSampler::~ArgumentSampler()
@@ -376,6 +389,9 @@ namespace RN
 	{
 		
 	}
+
+	Shader::ArgumentTexture::ArgumentTexture(const ArgumentTexture *other) : Argument(other), _materialTextureIndex(other->_materialTextureIndex)
+	{}
 
 	Shader::ArgumentTexture::~ArgumentTexture()
 	{

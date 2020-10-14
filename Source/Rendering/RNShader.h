@@ -119,6 +119,7 @@ namespace RN
 		
 		protected:
 			RNAPI Argument(String *name, uint32 index);
+			RNAPI Argument(const Argument *other);
 			RNAPI ~Argument();
 			
 			uint32 _index;
@@ -131,6 +132,7 @@ namespace RN
 		{
 		public:
 			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors);
+			RNAPI ArgumentBuffer(const ArgumentBuffer *other);
 			RNAPI ~ArgumentBuffer();
 			
 			size_t GetTotalUniformSize() const { return _totalUniformSize; }
@@ -172,6 +174,7 @@ namespace RN
 			};
 
 			RNAPI ArgumentSampler(String *name, uint32 index, WrapMode wrapMode = WrapMode::Repeat, Filter filter = Filter::Anisotropic, ComparisonFunction comparisonFunction = ComparisonFunction::Never, uint8 anisotropy = GetDefaultAnisotropy());
+			RNAPI ArgumentSampler(const ArgumentSampler *other);
 			RNAPI ~ArgumentSampler();
 
 			bool operator== (const ArgumentSampler &other) const
@@ -207,6 +210,7 @@ namespace RN
 			};
 			
 			RNAPI ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex);
+			RNAPI ArgumentTexture(const ArgumentTexture *other);
 			RNAPI ~ArgumentTexture();
 			
 			uint8 GetMaterialTextureIndex() const { return _materialTextureIndex; }
