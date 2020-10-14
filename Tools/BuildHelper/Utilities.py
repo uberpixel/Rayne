@@ -87,22 +87,22 @@ def getSettingFromConfig(platform, setting, config, platformoverride=True):
 
 
 def copyAndroidBuildSystem(fromdir, todir, buildConfig):
-	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig)
-	projectName = getSettingFromConfig("android", "name", buildConfig)
-	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig))
+	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig).encode('utf-8')
+	projectName = getSettingFromConfig("android", "name", buildConfig).encode('utf-8')
+	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig)).encode('utf-8')
 	cmakeVersion = subprocess.check_output(['cmake', '--version'])
 	cmakeVersion = cmakeVersion.splitlines()[0]
-	cmakeVersion = cmakeVersion.split(" ")[2]
+	cmakeVersion = cmakeVersion.split(b" ")[2]
 	cmakeTargetsList = getSettingFromConfig("android", "cmake-targets", buildConfig)
 	newCmakeTargetList = list()
 	for target in cmakeTargetsList:
-		newCmakeTargetList.append("\""+target+"\"")
-	cmakeTargets = ", ".join(newCmakeTargetList)
+		newCmakeTargetList.append(("\""+target+"\"").encode('utf-8'))
+	cmakeTargets = b", ".join(newCmakeTargetList)
 	androidPermissions = getSettingFromConfig("android", "permissions", buildConfig)
-	permissionsString = ""
+	permissionsString = b""
 	if androidPermissions:
 		for permission in androidPermissions:
-			permissionsString += "    <uses-permission android:name=\"" + permission + "\" />\n";
+			permissionsString += b"    <uses-permission android:name=\"" + permission.encode('utf-8') + b"\" />\n";
 
 	for root, subdirs, files in os.walk(fromdir):
 		relativeRoot = os.path.relpath(root, fromdir)
@@ -118,12 +118,12 @@ def copyAndroidBuildSystem(fromdir, todir, buildConfig):
 			
 			with open(readFilePath, 'rb') as readFile:
 				fileContent = readFile.read()
-				fileContent = fileContent.replace("__RN_BUNDLE_ID__", bundleID)
-				fileContent = fileContent.replace("__RN_PROJECT_NAME__", projectName)
-				fileContent = fileContent.replace("__RN_LIBRARY_NAME__", projectName.replace(" ", ""))
-				fileContent = fileContent.replace("__RN_CMAKE_VERSION__", cmakeVersion)
-				fileContent = fileContent.replace("__RN_CMAKE_TARGETS__", cmakeTargets)
-				fileContent = fileContent.replace("__RN_PERMISSIONS__", permissionsString)
+				fileContent = fileContent.replace(b"__RN_BUNDLE_ID__", bundleID)
+				fileContent = fileContent.replace(b"__RN_PROJECT_NAME__", projectName)
+				fileContent = fileContent.replace(b"__RN_LIBRARY_NAME__", projectName.replace(b" ", b""))
+				fileContent = fileContent.replace(b"__RN_CMAKE_VERSION__", cmakeVersion)
+				fileContent = fileContent.replace(b"__RN_CMAKE_TARGETS__", cmakeTargets)
+				fileContent = fileContent.replace(b"__RN_PERMISSIONS__", permissionsString)
 
 				with open(writeFilePath, 'wb') as writeFile:
 					writeFile.write(fileContent)
