@@ -220,7 +220,7 @@ namespace RN
 		
 		Texture::Descriptor textureDescriptor;
 		textureDescriptor.type = Texture::Type::Type2DArray;
-		textureDescriptor.format = Texture::Format::Depth_32F;
+		textureDescriptor.format = _shadowParameter.depthTextureFormat;
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget | Texture::UsageHint::ShaderRead;
 		textureDescriptor.accessOptions = GPUResource::AccessOptions::Private;
 		textureDescriptor.width = _shadowParameter.resolution;
@@ -260,7 +260,8 @@ namespace RN
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetShaderHint(Shader::UsageHint::Depth);
 			tempcam->SetLODCamera(_shadowTarget);
-			tempcam->SetClipNear(1.0f);
+			tempcam->SetClipNear(_shadowParameter.clipNear);
+			tempcam->SetClipFar(_shadowParameter.clipFar);
 			tempcam->Autorelease();
 
 			_shadowTarget->GetSceneInfo()->GetScene()->AddNode(tempcam);
@@ -452,7 +453,7 @@ namespace RN
 					Camera *tempcam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 					tempcam->SetWorldRotation(GetWorldRotation());
 					
-					_shadowCameraMatrices[i] = tempcam->MakeShadowSplit(_shadowTarget, this, near, far);
+					_shadowCameraMatrices[i] = tempcam->MakeShadowSplit(_shadowTarget, this, _shadowParameter.directionalShadowDistance, near, far);
 					
 					near = far;
 				}

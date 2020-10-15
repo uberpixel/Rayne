@@ -36,6 +36,10 @@ namespace RN
 	{
 		ShadowParameter(size_t resolution = 512) :
 			resolution(resolution),
+			depthTextureFormat(Texture::Format::Depth_32F),
+			clipNear(0.0f),
+			clipFar(100000.0f),
+			directionalShadowDistance(5000.0f),
 			distanceBlendFactor(0.05f),
 			maxShadowDist(1.0f),
 			shadowTarget(nullptr)
@@ -45,6 +49,10 @@ namespace RN
 		
 		ShadowParameter(Camera *target, size_t resolution = 1024) :
 			resolution(resolution),
+			depthTextureFormat(Texture::Format::Depth_32F),
+			clipNear(0.0f),
+			clipFar(100000.0f),
+			directionalShadowDistance(5000.0f),
 			distanceBlendFactor(0.05f),
 			maxShadowDist(1.0f),
 			shadowTarget(target)
@@ -56,6 +64,10 @@ namespace RN
 		}
 		
 		size_t resolution;
+		Texture::Format depthTextureFormat;
+		float clipNear;
+		float clipFar;
+		float directionalShadowDistance;
 		
 		std::vector<ShadowSplit> splits;
 		float distanceBlendFactor;
