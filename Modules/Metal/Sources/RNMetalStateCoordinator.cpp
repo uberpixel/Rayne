@@ -300,8 +300,7 @@ namespace RN
 			NSError *error = nil;
 			pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:MTLPipelineOptionBufferTypeInfo reflection:&reflection error:&error];
 
-			//TODO: Include error...
-			RN_ASSERT(!error, "PipelineState creation failed");
+			RN_ASSERT(!error, "PipelineState creation failed with error: %s", error.localizedDescription.UTF8String);
 
 			if(!collection->vertexShader->GetSignature())
 			{
