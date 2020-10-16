@@ -125,7 +125,7 @@ namespace RN
                 {
                     BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
                 }
-                else
+                else if(_owner && !GetParent())
                 {
                     if(_owner)
                         _owner->RemoveCollisionObject(this);

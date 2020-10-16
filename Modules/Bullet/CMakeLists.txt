@@ -7,7 +7,7 @@ include(ExternalProject)
 
 ExternalProject_Add(bullet
         GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
-        GIT_TAG refs/tags/2.89
+        GIT_TAG refs/tags/3.06
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
