@@ -52,7 +52,7 @@ namespace RN
 
 		_mainThreadID = gettid();
 
-		_hmdTrackingState.type = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE) < VRAPI_HEADSET_TYPE_OCULUSQUEST? VRHMDTrackingState::Type::ThreeDegreesOfFreedom : VRHMDTrackingState::Type::SixDegreesOfFreedom;
+		_hmdTrackingState.type = /*vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE) < VRAPI_HEADSET_TYPE_OCULUSQUEST? VRHMDTrackingState::Type::ThreeDegreesOfFreedom :*/ VRHMDTrackingState::Type::SixDegreesOfFreedom;
 
 		RNInfo(GetHMDInfoDescription());
 	}
@@ -429,10 +429,22 @@ namespace RN
 				if(_session)
 				{
 					RNDebug(RNCSTR("UpdateVRMode new session"));
-
 					ovrMobile *session = static_cast<ovrMobile*>(_session);
-					vrapi_SetDisplayRefreshRate(session, 72.0f); //72
-					vrapi_SetClockLevels(session, 0, 0); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
+
+					int refreshRateCount = vrapi_GetSystemPropertyInt(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
+					float *availableRefreshRates = new float[refreshRateCount];
+					vrapi_GetSystemPropertyFloatArray(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES, availableRefreshRates, refreshRateCount);
+					float highestRefreshRate = availableRefreshRates[0];
+					for(int i = 0; i < refreshRateCount; i++)
+					{
+						RNDebug("Available Refresh Rate: " << availableRefreshRates[i]);
+						if(availableRefreshRates[i] > highestRefreshRate)
+						{
+							highestRefreshRate = availableRefreshRates[i];
+						}
+					}
+					vrapi_SetDisplayRefreshRate(session, highestRefreshRate);
+					vrapi_SetClockLevels(session, 1, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
 
@@ -466,7 +478,7 @@ namespace RN
 		ovrJava *java = static_cast<ovrJava*>(_java);
 		String *description = new String("Using HMD: ");
 
-		switch(vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE))
+	/*	switch(vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE))
 		{
 			case VRAPI_HEADSET_TYPE_OCULUSGO:
 			case VRAPI_HEADSET_TYPE_MIVR_STANDALONE:
@@ -476,7 +488,7 @@ namespace RN
 			case VRAPI_HEADSET_TYPE_OCULUSQUEST:
 				description->Append(RNCSTR("Oculus Quest"));
 				break;
-		}
+		}*/
 
 		return description->Autorelease();
 	}
