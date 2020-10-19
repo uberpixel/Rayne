@@ -223,28 +223,46 @@ namespace RN
 
 	FILE *File::CreateFile() const
 	{
-		const char *mode;
-
-		if(_mode & (Mode::Read | Mode::Write))
+#if RN_PLATFORM_ANDROID
+		if(_asset)
 		{
-			if(_mode & Mode::Append)
-				mode = "a+b";
-			else
-				mode = "w+b";
-		}
-		else if(_mode & Mode::Read)
-		{
-			mode = "rb";
+			return funopen(_asset, [](void *cookie, char *buf, int size) -> int {
+				return AAsset_read((AAsset *)cookie, buf, size);
+			}, [](void *cookie, const char *buf, int size) -> int {
+				return EACCES;
+			}, [](void *cookie, fpos_t offset, int whence) -> fpos_t {
+				return AAsset_seek((AAsset *)cookie, offset, whence);
+			}, [](void *cookie) -> int {
+				AAsset_close((AAsset *)cookie);
+				return 0;
+			});
 		}
 		else
+#endif
 		{
-			if(_mode & Mode::Append)
-				mode = "ab";
-			else
-				mode = "wb";
-		}
+			const char *mode;
 
-		return fdopen(dup(_fd), mode);
+			if(_mode & (Mode::Read | Mode::Write))
+			{
+				if(_mode & Mode::Append)
+					mode = "a+b";
+				else
+					mode = "w+b";
+			}
+			else if(_mode & Mode::Read)
+			{
+				mode = "rb";
+			}
+			else
+			{
+				if(_mode & Mode::Append)
+					mode = "ab";
+				else
+					mode = "wb";
+			}
+
+			return fdopen(dup(_fd), mode);
+		}
 	}
 
 
