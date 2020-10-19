@@ -444,7 +444,7 @@ namespace RN
 						}
 					}
 					vrapi_SetDisplayRefreshRate(session, highestRefreshRate);
-					vrapi_SetClockLevels(session, 1, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
+					vrapi_SetClockLevels(session, 3, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
 
@@ -477,6 +477,15 @@ namespace RN
 	{
 		ovrJava *java = static_cast<ovrJava*>(_java);
 		String *description = new String("Using HMD: ");
+		int deviceType = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_DEVICE_TYPE);
+		if(deviceType > VRAPI_DEVICE_TYPE_OCULUSQUEST_END)
+		{
+			description->Append(RNCSTR("Oculus Quest 2"));
+		}
+		else
+		{
+			description->Append(RNCSTR("Oculus Quest"));
+		}
 
 	/*	switch(vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_HEADSET_TYPE))
 		{
@@ -556,5 +565,19 @@ namespace RN
 		String *extensionString = RNSTR(names);
 		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
     }
+
+	VRWindow::DeviceType OculusMobileWindow::GetDeviceType() const
+	{
+		ovrJava *java = static_cast<ovrJava*>(_java);
+		int deviceType = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_DEVICE_TYPE);
+		if(deviceType > VRAPI_DEVICE_TYPE_OCULUSQUEST_END)
+		{
+			return VRWindow::DeviceType::OculusQuest2;
+		}
+		else
+		{
+			return VRWindow::DeviceType::OculusQuest;
+		}
+	}
 }
 

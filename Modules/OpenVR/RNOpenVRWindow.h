@@ -84,6 +84,8 @@ namespace RN
 
 		OVRAPI Mesh *GetHiddenAreaMesh(uint8 eye) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
+		
+		OVRAPI VRWindow::DeviceType GetDeviceType() const final { return VRWindow::DeviceType::OpenVR; }
 
 #ifdef RN_OPENVR_SUPPORTS_VULKAN
 		OVRAPI Array *GetRequiredVulkanInstanceExtensions() const final;

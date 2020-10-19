@@ -14,6 +14,7 @@ __RN_PERMISSIONS__
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
 
         <meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only"/>
+        <meta-data android:name="com.oculus.supportedDevices" android:value="quest|delmar"/>
 
         <activity android:name="android.app.NativeActivity"
             android:label="__RN_PROJECT_NAME__"
