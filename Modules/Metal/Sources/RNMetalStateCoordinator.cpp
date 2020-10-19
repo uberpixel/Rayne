@@ -274,7 +274,7 @@ namespace RN
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
 		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(materialProperties.colorWriteMask);
 		pipelineStateDescriptor.colorAttachments[0].blendingEnabled = false;
-		if(materialProperties.blendOperationRGB != BlendOperation::None && materialProperties.blendOperationAlpha != BlendOperation::None)
+		if(pixelFormat != MTLPixelFormatInvalid && materialProperties.blendOperationRGB != BlendOperation::None && materialProperties.blendOperationAlpha != BlendOperation::None)
 		{
 			pipelineStateDescriptor.colorAttachments[0].blendingEnabled = true;
 			pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = static_cast<MTLBlendOperation>(materialProperties.blendOperationRGB);
