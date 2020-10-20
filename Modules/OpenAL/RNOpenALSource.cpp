@@ -216,6 +216,7 @@ namespace RN
 			
 			ALint numberOfProcessedBuffers = 0;
 			alGetSourcei(_source, AL_BUFFERS_PROCESSED, &numberOfProcessedBuffers);
+			bool needsRestart = numberOfProcessedBuffers >=3 && _isPlaying;
 			while(numberOfProcessedBuffers > 0)
 			{
 				uint32 bufferedSamples = _asset->GetBufferedSize() / _asset->GetBytesPerSample();
@@ -263,6 +264,11 @@ namespace RN
 				alSourceQueueBuffers(_source, 1, &bufferID);
 				
 				numberOfProcessedBuffers -= 1;
+			}
+			
+			if(needsRestart)
+			{
+				alSourcePlay(_source);
 			}
 		}
 		
