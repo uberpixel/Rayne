@@ -13,6 +13,11 @@
 
 namespace RN
 {
+	namespace vorbis
+	{
+		struct stb_vorbis;
+	}
+
 	class OggAssetLoader : public AssetLoader
 	{
 	public:
@@ -24,6 +29,25 @@ namespace RN
 		OggAssetLoader(const Config &config);
 
 		RNDeclareMetaAPI(OggAssetLoader, OGGAPI)
+	};
+
+	class OggAudioDecoder : public AudioDecoder
+	{
+	public:
+		friend OggAssetLoader;
+		OGGAPI OggAudioDecoder(File *file);
+		OGGAPI uint32 DecodeFrameToAudioAsset(AudioAsset *audioAsset) final;
+		OGGAPI void Seek(float time) final;
+		
+	private:
+		File *_file;
+		vorbis::stb_vorbis *_vorbis;
+		short *_buffer;
+		uint8 _channelCount;
+		uint8 _bytesPerSample;
+		uint32 _sampleRate;
+		
+		RNDeclareMetaAPI(OggAudioDecoder, OGGAPI)
 	};
 }
 

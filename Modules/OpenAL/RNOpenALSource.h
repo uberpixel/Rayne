@@ -35,11 +35,13 @@ namespace RN
 		OALAPI void SetRange(float min, float max);
 		OALAPI void SetSelfdestruct(bool selfdestruct);
 			
-		OALAPI bool IsPlaying() { return _isPlaying; }
-		OALAPI bool HasEnded() { return _hasEnded; }
-		OALAPI bool IsRepeating() { return _isRepeating; }
+		OALAPI bool IsPlaying();
+		OALAPI bool HasEnded();
+		OALAPI bool IsRepeating();
 			
 	private:
+		void UpdatePosition(float delta);
+		
 		OpenALWorld *_owner;
 		AudioAsset *_asset;
 			
@@ -51,9 +53,10 @@ namespace RN
 		bool _isSelfdestructing;
 		bool _hasEnded;
 		
-		size_t _currentBuffer;
 		uint32 _ringBuffersID[3];
 		int16 *_ringBufferTemp;
+		
+		Lockable _lock;
 			
 		RNDeclareMetaAPI(OpenALSource, OALAPI)
 	};

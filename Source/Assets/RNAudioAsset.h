@@ -15,6 +15,25 @@
 namespace RN
 {
 	class AudioWorld;
+	class AudioAsset;
+
+	class AudioDecoder : public Object
+	{
+	public:
+		friend AudioAsset;
+		RNAPI virtual uint32 DecodeFrameToAudioAsset(AudioAsset *audioAsset) = 0;
+		RNAPI virtual void Seek(float time) = 0;
+		
+		uint32 GetFrameSize() const { return _frameSize; }
+		
+	protected:
+		AudioDecoder(uint32 frameSize) : _frameSize(frameSize) {}
+		uint32 _frameSize;
+		
+	private:
+		
+		__RNDeclareMetaInternal(AudioDecoder)
+	};
 	
 	class AudioAsset : public Asset
 	{
@@ -22,11 +41,13 @@ namespace RN
 		enum Type
 		{
 			Static,
-			Ringbuffer
+			Ringbuffer,
+			Decoder
 		};
 
 		RNAPI AudioAsset();
 		RNAPI AudioAsset(Type type, size_t size, int bytesPerSample, int sampleRate, int channels);
+		RNAPI AudioAsset(AudioDecoder *decoder, size_t size, int bytesPerSample, int sampleRate, int channels);
 
 		RNAPI ~AudioAsset();
 		
@@ -34,6 +55,9 @@ namespace RN
 
 		RNAPI void PushData(const void *bytes, size_t size);
 		RNAPI void PopData(void *bytes, size_t size);
+		
+		RNAPI bool Decode();
+		RNAPI void Seek(float time);
 		
 		Data *GetData() const { return _data; }
 		uint32 GetBytesPerSample() const { return _bytesPerSample; }
@@ -44,6 +68,7 @@ namespace RN
 		
 		RNAPI static AudioAsset *WithName(const String *name, const Dictionary *settings = nullptr);
 		RNAPI static AudioAsset *WithRingbuffer(size_t size, int bytesPerSample, int sampleRate, int channels);
+		RNAPI static AudioAsset *WithDecoder(AudioDecoder *decoder, size_t bufferSize, int bytesPerSample, int sampleRate, int channels);
 		
 	protected:
 		Type _type;
@@ -56,6 +81,8 @@ namespace RN
 		uint32 _readPosition;
 		uint32 _writePosition;
 		std::atomic<uint32> _bufferedSize;
+		
+		AudioDecoder *_decoder;
 		
 	private:
 		
