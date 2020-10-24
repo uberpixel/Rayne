@@ -37,11 +37,16 @@ namespace RN
 			UIAPI void SetFont(Font *font);
 			UIAPI void SetAlignment(Alignment alignment);
             UIAPI void SetLineHeight(float lineHeight);
+			UIAPI void SetOutlineWidth(float width);
+			UIAPI void SetOutlineColor(Color color);
+			UIAPI void SetShadowBlurStrength(float strength);
+			UIAPI void SetShadowColor(Color color);
+			UIAPI void SetShadowOffset(Vector2 offset);
 			
 			const String *GetText() const { return _text; }
             Vector2 GetContentSize() const;
 			
-			UIAPI virtual void Draw(Context *context) const override;
+			UIAPI virtual void Draw(Context *context) override;
 
 		protected:
 			UIAPI virtual void LayoutSubviews() override;
@@ -53,6 +58,11 @@ namespace RN
 			Font *_font;
 			Alignment _alignment;
             float _lineHeight;
+			float _outlineWidth;
+			Color _outlineColor;
+			float _shadowBlurStrength;
+			Color _shadowColor;
+			Vector2 _shadowOffset;
             
             std::vector<Vector2> _lineBounds;
 			

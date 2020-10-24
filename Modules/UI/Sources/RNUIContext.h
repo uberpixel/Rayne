@@ -82,7 +82,7 @@ namespace RN
 
 			UIAPI void DrawImage(const Image *image, const Rect &rect);
 			UIAPI void DrawTextRect(const String *text, const Font *font, const Rect &rect);
-			UIAPI void DrawLabel(const Label *label);
+			UIAPI void DrawLabel(const Label *label, Vector2 offset = Vector2());
 
 			UIAPI void FillPath(const Path *path);
 			UIAPI void FillPath(const Path *path, BlendMode blendMode, float alpha = 1.0);

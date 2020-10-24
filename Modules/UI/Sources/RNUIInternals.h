@@ -20,6 +20,7 @@
 #include <include/core/SkFontMetrics.h>
 #include <include/core/SkTypeface.h>
 #include <include/core/SkTextBlob.h>
+#include <include/core/SkMaskFilter.h>
 //#include <include/modules/SkShaper.h>
 #include "RNUIConfig.h"
 

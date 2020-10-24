@@ -449,10 +449,10 @@ namespace RN
 		// MARK: Drawing
 		// ---------------------
 
-		void View::Draw(Context *context) const
+		void View::Draw(Context *context)
 		{}
 
-		void View::DrawInContext(Context *context) const
+		void View::DrawInContext(Context *context)
 		{
 			if(_isHidden) return;
 			
@@ -478,7 +478,7 @@ namespace RN
 			}
 		}
 
-		void View::__DrawInContext(Context *context) const
+		void View::__DrawInContext(Context *context)
 		{
 			context->SaveState();
 			context->Translate(Vector2(_frame.x, _frame.y));

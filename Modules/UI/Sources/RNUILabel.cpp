@@ -102,6 +102,32 @@ namespace RN
         {
             _lineHeight = lineHeight;
         }
+	
+		void Label::SetOutlineWidth(float width)
+		{
+			_outlineWidth = width;
+			_internals->style.setStrokeWidth(_outlineWidth);
+		}
+		
+		void Label::SetOutlineColor(Color color)
+		{
+			_outlineColor = color;
+		}
+	
+		void Label::SetShadowBlurStrength(float strength)
+		{
+			_shadowBlurStrength = strength;
+		}
+		
+		void Label::SetShadowColor(Color color)
+		{
+			_shadowColor = color;
+		}
+		
+		void Label::SetShadowOffset(Vector2 offset)
+		{
+			_shadowOffset = offset;
+		}
 		
 
 		// ---------------------
@@ -109,15 +135,34 @@ namespace RN
 		// MARK: Drawing
 		// ---------------------
 
-		void Label::Draw(Context *context) const
+		void Label::Draw(Context *context)
 		{
 			View::Draw(context);
 			
 			if(_text && _text->GetLength() > 0)
 			{
-				if(_color.a > 0.05)
+				if(_shadowColor.a > 0.0f)
+				{
+					_internals->style.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, _shadowBlurStrength));
+					_internals->style.setColor(MakeColor(_shadowColor));
+					context->DrawLabel(this, _shadowOffset);
+					_internals->style.setMaskFilter(nullptr);
+					_internals->style.setColor(MakeColor(_color));
+				}
+				
+				if(_color.a > 0.0f)
 				{
 					context->DrawLabel(this);
+				}
+				
+				if(_outlineWidth > 0.0f && _outlineColor.a > 0.0f)
+				{
+					_internals->style.setMaskFilter(nullptr);
+					_internals->style.setStyle(SkPaint::Style::kStroke_Style);
+					_internals->style.setColor(MakeColor(_outlineColor));
+					context->DrawLabel(this);
+					_internals->style.setStyle(SkPaint::Style::kFill_Style);
+					_internals->style.setColor(MakeColor(_color));
 				}
 			}
 		}

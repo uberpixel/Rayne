@@ -115,7 +115,7 @@ namespace RN
 		}
 		void Context::SetStrokeMiter(float strokeWidth)
 		{
-			_internals->strokeStyle.setStrokeWidth(strokeWidth);
+			_internals->strokeStyle.setStrokeMiter(strokeWidth);
 		}
 
 		void Context::SetStrokeCap(StrokeCap cap)
@@ -194,7 +194,7 @@ namespace RN
 			canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x, rect.y - fm.fTop - fm.fDescent, font->_internals->font, _internals->fillStyle);
 		}
 		
-		void Context::DrawLabel(const Label *label)
+		void Context::DrawLabel(const Label *label, Vector2 offset)
 		{
 			SkCanvas *canvas = _internals->surface->getCanvas();
 			
@@ -221,7 +221,7 @@ namespace RN
                 }
                 
                 Data *data = text->GetDataWithEncoding(Encoding::UTF8);
-                canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset, rect.y + label->_font->_internals->font.getSize() - fm.fDescent + lineOffset, label->_font->_internals->font, label->_internals->style);
+                canvas->drawSimpleText(static_cast<char*>(data->GetBytes()), data->GetLength(), SkTextEncoding::kUTF8, rect.x + alignmentXOffset + offset.x, rect.y + label->_font->_internals->font.getSize() - fm.fDescent + lineOffset + offset.y, label->_font->_internals->font, label->_internals->style);
                 
                 lineOffset += label->_font->_internals->font.getSize() * label->_lineHeight;
             });

@@ -58,8 +58,8 @@ namespace RN
 			UIAPI void SetNeedsLayout();
 			UIAPI void LayoutIfNeeded();
 
-			UIAPI virtual void Draw(Context *context) const;
-			UIAPI virtual void DrawInContext(Context *context) const;
+			UIAPI virtual void Draw(Context *context);
+			UIAPI virtual void DrawInContext(Context *context);
 
 		protected:
 			UIAPI virtual void LayoutSubviews();
@@ -74,7 +74,7 @@ namespace RN
 			UIAPI virtual void UpdateCursorPosition(const Vector2 &cursorPosition);
 
 		private:
-			void __DrawInContext(Context *context) const;
+			void __DrawInContext(Context *context);
 
 			void ConvertPointToWindow(Vector2 &point) const;
 			void ConvertPointFromWindow(Vector2 &point) const;

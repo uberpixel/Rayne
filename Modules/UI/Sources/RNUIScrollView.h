@@ -21,7 +21,7 @@ namespace RN
 			UIAPI ScrollView();
 			UIAPI ~ScrollView();
 
-			UIAPI void Draw(Context *context) const override;
+			UIAPI void Draw(Context *context) override;
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
 			
 			UIAPI void SetPixelPerInch(float pixelPerInch);

@@ -28,7 +28,7 @@ namespace RN
 			_image = SafeRetain(image);
 		}
 
-		void ImageView::Draw(Context *context) const
+		void ImageView::Draw(Context *context)
 		{
 			View::Draw(context);
 
