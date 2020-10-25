@@ -71,9 +71,9 @@ namespace RN
 			return Mesh::WithTexturedPlane(Quaternion(RN::Vector3(0.0f, 90.0f, 0.0f)), Vector3(halfSize.x, halfSize.y, 0.0f), halfSize);
 		}
 	
-		void Window::UpdateCursorPosition(const Vector2 &cursorPosition)
+		bool Window::UpdateCursorPosition(const Vector2 &cursorPosition)
 		{
-			_contentView->UpdateCursorPosition(cursorPosition);
+			return _contentView->UpdateCursorPosition(cursorPosition);
 		}
 
 		void Window::Update()

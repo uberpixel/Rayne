@@ -71,7 +71,7 @@ namespace RN
 			UIAPI virtual void WillMoveToSuperview(View *superview);
 			UIAPI virtual void DidMoveToSuperview(View *superview);
 			
-			UIAPI virtual void UpdateCursorPosition(const Vector2 &cursorPosition);
+			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
 
 		private:
 			void __DrawInContext(Context *context);

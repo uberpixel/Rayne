@@ -77,6 +77,11 @@ namespace RN
 			
 			SetNeedsLayout();
 		}
+	
+		void Label::SetAntialiasing(bool enable)
+		{
+			_internals->style.setAntiAlias(enable);
+		}
 		
 		void Label::SetColor(Color color)
 		{

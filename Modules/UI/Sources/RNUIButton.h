@@ -42,7 +42,7 @@ namespace RN
 			
 		protected:
 			UIAPI virtual void LayoutSubviews() override;
-			UIAPI virtual void UpdateCursorPosition(const Vector2 &cursorPosition) override;
+			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition) override;
 
 		private:
 			Label *_label;

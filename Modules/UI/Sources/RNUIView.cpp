@@ -433,15 +433,22 @@ namespace RN
 			}
 		}
 	
-		void View::UpdateCursorPosition(const Vector2 &cursorPosition)
+		bool View::UpdateCursorPosition(const Vector2 &cursorPosition)
 		{
+			bool needsRedraw = false;
+			
 			// Update all children
 			size_t count = _subviews->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->UpdateCursorPosition(cursorPosition);
+				if(child->UpdateCursorPosition(cursorPosition))
+				{
+					needsRedraw = true;
+				}
 			}
+			
+			return needsRedraw;
 		}
 
 		// ---------------------

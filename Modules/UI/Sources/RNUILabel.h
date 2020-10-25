@@ -32,6 +32,7 @@ namespace RN
 			UIAPI Label(const Rect &frame);
 			UIAPI ~Label();
 			
+			UIAPI void SetAntialiasing(bool enable);
 			UIAPI void SetText(String *text);
 			UIAPI void SetColor(Color color);
 			UIAPI void SetFont(Font *font);

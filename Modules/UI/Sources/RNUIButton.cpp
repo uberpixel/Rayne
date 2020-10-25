@@ -81,9 +81,11 @@ namespace RN
 			_label->SetFrame(labelFrame);
 		}
 	
-		void Button::UpdateCursorPosition(const Vector2 &cursorPosition)
+		bool Button::UpdateCursorPosition(const Vector2 &cursorPosition)
 		{
-			View::UpdateCursorPosition(cursorPosition);
+			bool needsRedraw = View::UpdateCursorPosition(cursorPosition);
+			
+			bool wasHighlighted = _isHighlighted;
 			
 			Vector2 transformedPosition = ConvertPointFromBase(cursorPosition);
 			_isHighlighted = GetBounds().ContainsPoint(transformedPosition);
@@ -102,6 +104,8 @@ namespace RN
 				SetBackgroundColor(_backgroundColorNormal);
 				SetImage(_imageNormal);
 			}
+			
+			return needsRedraw || wasHighlighted != _isHighlighted;
 		}
 	}
 }
