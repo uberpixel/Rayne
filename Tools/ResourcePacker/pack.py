@@ -40,7 +40,7 @@ def getTexturesForModelFile(file):
                     textureFilename = ''
                     for byte in range(0, textureFilenameLength):
                         textureFilenameByte = modelFile.read(1)
-                        textureFilename += str(struct.unpack('<s', textureFilenameByte)[0], 'utf-8')
+                        textureFilename += struct.unpack('<s', textureFilenameByte)[0].decode('utf-8')
 
                     textures.append(textureFilename[:-1]) #remove 0 byte at the end
 

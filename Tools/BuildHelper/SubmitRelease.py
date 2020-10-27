@@ -29,7 +29,7 @@ def downloadItchIOButler(helperdir):
 	elif platform.system() == 'Linux':
 		butlerDownloadURL = 'https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default'
 	else:
-		print 'Platform ' + platform.system() + ' not supported.'
+		print('Platform ' + platform.system() + ' not supported.')
 		return None
 
 	butlerZipFilePath = os.path.join(butlerDirectory, 'butler.zip')
@@ -66,7 +66,7 @@ def downloadOculusPlatformUtil(helperdir):
 	elif platform.system() == 'Windows':
 		utilityDownloadURL = 'https://www.oculus.com/download_app/?id=1076686279105243'
 	else:
-		print 'Platform ' + platform.system() + ' not supported.'
+		print('Platform ' + platform.system() + ' not supported.')
 		return None
 
 	urllib.urlretrieve(utilityDownloadURL, utilityFile)
