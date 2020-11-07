@@ -46,6 +46,8 @@ namespace RN
 		OVRAPI RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
+		OVRAPI VRWindow::DeviceType GetDeviceType() const final { return VRWindow::DeviceType::OculusVR; }
+
 		OVRAPI void Update(float delta, float near, float far) final;
 
 		OVRAPI static VRWindow::Availability GetAvailability();
