@@ -654,6 +654,16 @@ namespace RN
 			return _keyPressed[0x5A];
 		}
 
+		if(name->IsEqual(RNCSTR("SPACE")))
+		{
+			return _keyPressed[0x20];
+		}
+
+		if(name->IsEqual(RNCSTR("SHIFT")))
+		{
+			return _keyPressed[0x10];
+		}
+
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[0x1B];
