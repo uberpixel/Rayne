@@ -76,6 +76,7 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 		memset(_keyPressed, 0, 256*sizeof(bool));
+		memset(_mouseButton, 0, 2 * sizeof(bool));
 #endif
 
 #if RN_PLATFORM_WINDOWS
@@ -188,6 +189,32 @@ namespace RN
 		{
 			_mouseMovement.x += rawInput->data.mouse.lLastX;
 			_mouseMovement.y += rawInput->data.mouse.lLastY;
+
+			if((rawInput->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) == RI_MOUSE_WHEEL)
+			{
+				 float wheelDelta = (float)(short)rawInput->data.mouse.usButtonData;
+				 _mouseMovement.z = wheelDelta / WHEEL_DELTA;;
+			}
+
+			if((rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) == RI_MOUSE_LEFT_BUTTON_DOWN)
+			{
+				_mouseButton[0] = true;
+			}
+
+			if((rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) == RI_MOUSE_LEFT_BUTTON_UP)
+			{
+				_mouseButton[0] = false;
+			}
+
+			if((rawInput->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) == RI_MOUSE_RIGHT_BUTTON_DOWN)
+			{
+				_mouseButton[1] = true;
+			}
+
+			if((rawInput->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) == RI_MOUSE_RIGHT_BUTTON_UP)
+			{
+				_mouseButton[1] = false;
+			}
 		}
 	}
 #endif
