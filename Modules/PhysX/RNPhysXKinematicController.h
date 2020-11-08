@@ -41,6 +41,8 @@ namespace RN
 		PXAPI SceneNode *GetObjectBelow() const { return _objectBelow; }
 		PXAPI bool GetIsFalling() const { return _isFalling; }
 
+		PXAPI void Jump(float force);
+
 	/*	PXAPI void SetFallSpeed(float speed);
 		PXAPI void SetJumpSpeed(float speed);
 		PXAPI void SetMaxJumpHeight(float maxHeight);

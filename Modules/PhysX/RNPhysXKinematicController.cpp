@@ -207,6 +207,12 @@ namespace RN
 	{
 		_controller->jump();
 	}*/
+
+	void PhysXKinematicController::Jump(float force)
+	{
+		_fallSpeed = force;
+		_isFalling = true;
+	}
 		
 	void PhysXKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
