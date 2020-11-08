@@ -37,11 +37,8 @@ def getTexturesForModelFile(file):
                     textureType = struct.unpack('<B', textureType)[0]
                     textureFilenameLength = modelFile.read(2)
                     textureFilenameLength = struct.unpack('<H', textureFilenameLength)[0]
-                    textureFilename = ''
-                    for byte in range(0, textureFilenameLength):
-                        textureFilenameByte = modelFile.read(1)
-                        textureFilename += struct.unpack('<s', textureFilenameByte)[0].decode('utf-8')
-
+                    textureFilenameBytes = modelFile.read(textureFilenameLength)
+                    textureFilename = struct.unpack('<'+str(textureFilenameLength)+'s', textureFilenameBytes)[0].decode('utf-8')
                     textures.append(textureFilename[:-1]) #remove 0 byte at the end
 
             colorCount = modelFile.read(1)
