@@ -333,7 +333,7 @@ namespace RN
 		if(_audioListener)
 		{
 			OpenALSource *source = new OpenALSource(resource);
-			_audioListener->GetParent()->AddChild(source);
+			_audioListener->GetParent()->AddChild(source->Autorelease());
 			source->SetSelfdestruct(true);
 			source->Play();
 			return source;

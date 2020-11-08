@@ -57,8 +57,8 @@ namespace RN
 		const String *GetPath() const { return _path; }
 
 		// Must be closed with close() and fclose() respectively
-		int CreateFileDescriptor() const;
-		FILE *CreateFile() const;
+		RNAPI int CreateFileDescriptor() const;
+		RNAPI FILE *CreateFilePtr() const;
 
 	private:
 		static int __FileWithPath(const String *name, Mode mode);

@@ -221,7 +221,7 @@ namespace RN
 		return dup(_fd);
 	}
 
-	FILE *File::CreateFile() const
+	FILE *File::CreateFilePtr() const
 	{
 #if RN_PLATFORM_ANDROID
 		if(_asset)

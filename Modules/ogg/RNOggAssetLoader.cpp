@@ -72,7 +72,7 @@ namespace RN
 	OggAudioDecoder::OggAudioDecoder(File *file) : AudioDecoder(4096), _file(file->Retain())
 	{
 		int error = 0;
-		_vorbis = vorbis::stb_vorbis_open_file(file->CreateFile(), 0, &error, nullptr);
+		_vorbis = vorbis::stb_vorbis_open_file(file->CreateFilePtr(), 0, &error, nullptr);
 		vorbis::stb_vorbis_info vorbisInfo = vorbis::stb_vorbis_get_info(_vorbis);
 		_frameSize = vorbisInfo.max_frame_size * 2;
 		_channelCount = vorbisInfo.channels;
