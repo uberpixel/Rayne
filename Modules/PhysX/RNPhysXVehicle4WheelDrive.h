@@ -39,6 +39,9 @@ namespace RN
 		PXAPI void SetAcceleration(float acceleration);
 		PXAPI void SetBreak(float strength);
 		PXAPI void SetSteering(float steer);
+		
+		PXAPI float GetCurrentSpeed();
+		PXAPI float GetCurrentRPM();
 			
 	private:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;

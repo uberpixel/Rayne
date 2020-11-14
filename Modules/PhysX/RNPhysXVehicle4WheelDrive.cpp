@@ -185,6 +185,22 @@ namespace RN
 		_wheelEntities = SafeRetain(wheelEntities);
 	}
 
+	float PhysXVehicle4WheelDrive::GetCurrentSpeed()
+	{
+		float wheelRadius = 0.35f;
+		float averageSpeed = 0.0f;
+		for(int i = 0; i < _vehicleDrive4W->mWheelsDynData.getNbWheelRotationSpeed(); i++)
+		{
+			averageSpeed += _vehicleDrive4W->mWheelsDynData.getWheelRotationSpeed(i);
+		}
+		return averageSpeed * wheelRadius / _wheelCount;
+	}
+
+	float PhysXVehicle4WheelDrive::GetCurrentRPM()
+	{
+		return 60.0f * _vehicleDrive4W->mDriveDynData.getEngineRotationSpeed() / (2.0f * k::Pi);
+	}
+
 	void PhysXVehicle4WheelDrive::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		PhysXCollisionObject::DidUpdate(changeSet);
