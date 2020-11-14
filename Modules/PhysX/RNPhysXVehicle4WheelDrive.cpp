@@ -66,7 +66,7 @@ namespace RN
 		chassisData.mMOI = physx::PxVec3((chassisDimensions.y * chassisDimensions.y + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.y * chassisDimensions.y) * chassisData.mMass / 12.0f);
 		//A bit of tweaking here.  The car will have more responsive turning if we reduce the
 		//y-component of the chassis moment of inertia.
-		chassisData.mMOI.y *= 0.8f;
+		chassisData.mMOI.y *= 0.5f;
 		
 		PhysXWorld *world = PhysXWorld::GetSharedInstance();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
@@ -122,6 +122,8 @@ namespace RN
 
 	void PhysXVehicle4WheelDrive::Update(float delta)
 	{
+		if(delta > 1.0f/20.0f) return;
+		
 		physx::PxVehicleWheels *vehicles[1] = {_vehicleDrive4W};
 		PxVehicleSuspensionRaycasts(_batchQuery, 1, vehicles, _wheelCount, static_cast<physx::PxRaycastQueryResult*>(_raycastQueryResults));
 		
@@ -159,6 +161,11 @@ namespace RN
 			_vehicleDrive4W->mDriveDynData.setAnalogInput(physx::PxVehicleDrive4WControl::eANALOG_INPUT_STEER_RIGHT, 0.0f);
 			_vehicleDrive4W->mDriveDynData.setAnalogInput(physx::PxVehicleDrive4WControl::eANALOG_INPUT_STEER_LEFT, steer);
 		}
+	}
+
+	void PhysXVehicle4WheelDrive::SetGear(uint32 gear)
+	{
+		_vehicleDrive4W->mDriveDynData.setTargetGear(gear);
 	}
 
 	void PhysXVehicle4WheelDrive::SetCollisionFilter(uint32 group, uint32 mask)
@@ -199,6 +206,11 @@ namespace RN
 	float PhysXVehicle4WheelDrive::GetCurrentRPM()
 	{
 		return 60.0f * _vehicleDrive4W->mDriveDynData.getEngineRotationSpeed() / (2.0f * k::Pi);
+	}
+
+	uint32 PhysXVehicle4WheelDrive::GetCurrentGear()
+	{
+		return _vehicleDrive4W->mDriveDynData.getCurrentGear();
 	}
 
 	void PhysXVehicle4WheelDrive::DidUpdate(SceneNode::ChangeSet changeSet)

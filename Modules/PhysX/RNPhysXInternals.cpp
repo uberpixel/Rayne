@@ -318,8 +318,8 @@ namespace RN
 
 		//Engine
 		physx::PxVehicleEngineData engine;
-		engine.mPeakTorque = 500.0f;
-		engine.mMaxOmega = 600.0f;//approx 6000 rpm
+		engine.mPeakTorque = 700.0f;
+		engine.mMaxOmega = 800.0f;//approx 8000 rpm
 		driveSimData->setEngineData(engine);
 
 		//Gears
