@@ -120,6 +120,8 @@ namespace RN
 		PXAPI void AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 		
 		PhysXShape *GetShape(size_t index) const { return _shapes[index]; }
+		RN::Vector3 GetPosition(size_t index) const { return _positions[index]; }
+		RN::Quaternion GetRotation(size_t index) const { return _rotations[index]; }
 		size_t GetNumberOfShapes() const { return _shapes.size(); }
 
 		PXAPI static PhysXCompoundShape *WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);

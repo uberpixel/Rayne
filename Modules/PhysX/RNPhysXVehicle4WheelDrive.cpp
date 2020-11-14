@@ -53,7 +53,7 @@ namespace RN
 		
 		
 		physx::PxVehicleChassisData chassisData;
-		chassisData.mMass = 1000.0f;
+		chassisData.mMass = 1400.0f;
 		
 		RN::Vector3 chassisDimensions(2.0f, 1.0f, 4.0f);
 		
@@ -63,23 +63,22 @@ namespace RN
 
 		//Now compute the chassis mass and moment of inertia.
 		//Use the moment of inertia of a cuboid as an approximate value for the chassis moi.
-		chassisData.mMOI = physx::PxVec3((chassisDimensions.y * chassisDimensions.y + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f,
-							 (chassisDimensions.x * chassisDimensions.x + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f,
-							 (chassisDimensions.x * chassisDimensions.x + chassisDimensions.y * chassisDimensions.y) * chassisData.mMass / 12.0f);
+		chassisData.mMOI = physx::PxVec3((chassisDimensions.y * chassisDimensions.y + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.y * chassisDimensions.y) * chassisData.mMass / 12.0f);
 		//A bit of tweaking here.  The car will have more responsive turning if we reduce the
 		//y-component of the chassis moment of inertia.
-		chassisData.mMOI.y*=0.8f;
+		chassisData.mMOI.y *= 0.8f;
 		
 		PhysXWorld *world = PhysXWorld::GetSharedInstance();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		
-		physx::PxVehicleWheelsSimData *wheelsSimData = physx::PxVehicleWheelsSimData::allocate(_wheelCount);
 		physx::PxVec3 *wheelCenterActorOffsets = new physx::PxVec3[_wheelCount];
-		wheelCenterActorOffsets[0] = physx::PxVec3(-1.0f, -0.5f, -2.0f);
-		wheelCenterActorOffsets[1] = physx::PxVec3(1.0f, -0.5f, -2.0f);
-		wheelCenterActorOffsets[2] = physx::PxVec3(-1.0f, -0.5f, 2.0f);
-		wheelCenterActorOffsets[3] = physx::PxVec3(1.0f, -0.5f, 2.0f);
-		PhysXVehicleInternal::SetupWheelsSimulationData(40.0f, 5.0f, 0.3f, 0.2f, _wheelCount, wheelCenterActorOffsets, chassisData.mCMOffset, chassisData.mMass, wheelsSimData, wheelCollisionGroup, wheelCollisionMask);
+		for(int i = 0; i < _wheelCount; i++)
+		{
+			RN::Vector3 wheelPosition = compoundShape->GetPosition(i);
+			wheelCenterActorOffsets[i] = physx::PxVec3(wheelPosition.x, wheelPosition.y, wheelPosition.z);
+		}
+		physx::PxVehicleWheelsSimData *wheelsSimData = physx::PxVehicleWheelsSimData::allocate(_wheelCount);
+		PhysXVehicleInternal::SetupWheelsSimulationData(25.0f, compoundShape, _wheelCount, wheelCenterActorOffsets, chassisData.mCMOffset, chassisData.mMass, wheelsSimData, wheelCollisionGroup, wheelCollisionMask);
 
 		physx::PxVehicleDriveSimData4W driveSimData;
 		PhysXVehicleInternal::SetupDriveSimData4W(&driveSimData, wheelsSimData);

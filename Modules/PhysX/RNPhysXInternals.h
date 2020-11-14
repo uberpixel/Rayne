@@ -66,7 +66,7 @@ namespace RN
 	class PhysXVehicleInternal
 	{
 	public:
-		static void SetupWheelsSimulationData(const float wheelMass, const float wheelMOI, const float wheelRadius, const float wheelWidth, const float numWheels, const physx::PxVec3* wheelCenterActorOffsets, const physx::PxVec3& chassisCMOffset, const float chassisMass, physx::PxVehicleWheelsSimData* wheelsSimData, uint32 wheelRaycastGroup, uint32 wheelRaycastMask);
+		static void SetupWheelsSimulationData(const float wheelMass, PhysXCompoundShape *compoundShape, const float numWheels, const physx::PxVec3* wheelCenterActorOffsets, const physx::PxVec3& chassisCMOffset, const float chassisMass, physx::PxVehicleWheelsSimData* wheelsSimData, uint32 wheelRaycastGroup, uint32 wheelRaycastMask);
 		
 		static void SetupDriveSimData4W(physx::PxVehicleDriveSimData4W *driveSimData, physx::PxVehicleWheelsSimData* wheelsSimData);
 		static void SetupVehicleActor(PhysXCompoundShape *compoundShape, const uint32 numWheels, const physx::PxVehicleChassisData& chassisData, const physx::PxFilterData& wheelSimFilterData, const physx::PxFilterData& chassisSimFilterData, physx::PxRigidDynamic *vehActor);

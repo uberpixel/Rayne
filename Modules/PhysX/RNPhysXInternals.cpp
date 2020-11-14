@@ -179,7 +179,7 @@ namespace RN
 		return physx::PxControllerBehaviorFlags(0);
 	}
 
-	void PhysXVehicleInternal::SetupWheelsSimulationData(const float wheelMass, const float wheelMOI, const float wheelRadius, const float wheelWidth, const float numWheels, const physx::PxVec3* wheelCenterActorOffsets, const physx::PxVec3& chassisCMOffset, const float chassisMass, physx::PxVehicleWheelsSimData* wheelsSimData, uint32 wheelRaycastGroup, uint32 wheelRaycastMask)
+	void PhysXVehicleInternal::SetupWheelsSimulationData(const float wheelMass, PhysXCompoundShape *compoundShape, const float numWheels, const physx::PxVec3* wheelCenterActorOffsets, const physx::PxVec3& chassisCMOffset, const float chassisMass, physx::PxVehicleWheelsSimData* wheelsSimData, uint32 wheelRaycastGroup, uint32 wheelRaycastMask)
 	{
 		//Set up the wheels.
 		physx::PxVehicleWheelData wheels[PX_MAX_NB_WHEELS];
@@ -187,10 +187,26 @@ namespace RN
 			//Set up the wheel data structures with mass, moi, radius, width.
 			for(uint32 i = 0; i < numWheels; i++)
 			{
+				physx::PxShape *shape = compoundShape->GetShape(i)->GetPhysXShape();
+				const physx::PxConvexMeshGeometry &meshGeometry = shape->getGeometry().convexMesh();
+				const physx::PxU32 numWheelVerts = meshGeometry.convexMesh->getNbVertices();
+				const physx::PxVec3* wheelVerts = meshGeometry.convexMesh->getVertices();
+				physx::PxVec3 wheelMin(PX_MAX_F32, PX_MAX_F32, PX_MAX_F32);
+				physx::PxVec3 wheelMax(-PX_MAX_F32, -PX_MAX_F32, -PX_MAX_F32);
+				for(uint32 j = 0; j < numWheelVerts; j++)
+				{
+					wheelMin.x = physx::PxMin(wheelMin.x,wheelVerts[j].x);
+					wheelMin.y = physx::PxMin(wheelMin.y,wheelVerts[j].y);
+					wheelMin.z = physx::PxMin(wheelMin.z,wheelVerts[j].z);
+					wheelMax.x = physx::PxMax(wheelMax.x,wheelVerts[j].x);
+					wheelMax.y = physx::PxMax(wheelMax.y,wheelVerts[j].y);
+					wheelMax.z = physx::PxMax(wheelMax.z,wheelVerts[j].z);
+				}
+				wheels[i].mWidth = wheelMax.x - wheelMin.x;
+				wheels[i].mRadius = physx::PxMax(wheelMax.y, wheelMax.z) * 0.975f;
+				
 				wheels[i].mMass = wheelMass;
-				wheels[i].mMOI = wheelMOI;
-				wheels[i].mRadius = wheelRadius;
-				wheels[i].mWidth = wheelWidth;
+				wheels[i].mMOI = 0.5f * wheelMass * wheels[i].mRadius * wheels[i].mRadius;
 			}
 
 			//Enable the handbrake for the rear wheels only.
@@ -224,7 +240,7 @@ namespace RN
 			//Set the suspension data.
 			for(uint32 i = 0; i < numWheels; i++)
 			{
-				suspensions[i].mMaxCompression = 0.3f;
+				suspensions[i].mMaxCompression = 0.2f;
 				suspensions[i].mMaxDroop = 0.1f;
 				suspensions[i].mSpringStrength = 35000.0f;
 				suspensions[i].mSpringDamperRate = 4500.0f;
