@@ -17,6 +17,7 @@
 #include "RNPhysXStaticBody.h"
 #include "RNPhysXConstraint.h"
 #include "RNPhysXKinematicController.h"
+#include "RNPhysXVehicle4WheelDrive.h"
 
 namespace physx
 {
@@ -42,6 +43,8 @@ namespace RN
 
 		PXAPI void SetGravity(const Vector3 &gravity);
 		PXAPI Vector3 GetGravity();
+		
+		PXAPI void InitializeVehicles();
 
 		PXAPI void Update(float delta) final;
 		PXAPI void WillUpdate(float delta) final;
@@ -68,6 +71,8 @@ namespace RN
 		physx::PxScene *_scene;
 		physx::PxDefaultCpuDispatcher *_dispatcher;
 		physx::PxControllerManager *_controllerManager;
+		
+		bool _hasVehicles;
 
 		uint8 _substeps;
 		bool _paused;

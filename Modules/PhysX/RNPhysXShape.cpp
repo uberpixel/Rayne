@@ -224,6 +224,13 @@ namespace RN
 		_rotations.push_back(rotation);
 	}
 
+	void PhysXCompoundShape::AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation)
+	{
+		_shapes.push_back(shape->Retain());
+		_positions.push_back(position);
+		_rotations.push_back(rotation);
+	}
+
 	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided)
 	{
 		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, useTriangleMesh, wantsDoubleSided);

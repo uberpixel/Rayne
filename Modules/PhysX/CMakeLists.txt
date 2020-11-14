@@ -221,7 +221,8 @@ set(SOURCES
         RNPhysXMaterial.cpp
         RNPhysXShape.cpp
         RNPhysXConstraint.cpp
-        RNPhysXKinematicController.cpp)
+        RNPhysXKinematicController.cpp
+        RNPhysXVehicle4WheelDrive.cpp)
 
 set(HEADERS
 	RNPhysX.h
@@ -233,7 +234,8 @@ set(HEADERS
         RNPhysXMaterial.h
         RNPhysXShape.h
         RNPhysXConstraint.h
-        RNPhysXKinematicController.h)
+        RNPhysXKinematicController.h
+        RNPhysXVehicle4WheelDrive.h)
 
 set(DEFINES RN_BUILD_PHYSX PX_PHYSX_STATIC_LIB)
 

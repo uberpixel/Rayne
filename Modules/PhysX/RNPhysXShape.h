@@ -22,6 +22,7 @@ namespace RN
 	class Mesh;
 	class PhysXDynamicBody;
 	class PhysXStaticBody;
+	class PhysXVehicleInternal;
 
 	class PhysXShape : public Object
 	{
@@ -109,12 +110,15 @@ namespace RN
 	public:
 		friend PhysXDynamicBody;
 		friend PhysXStaticBody;
+		friend PhysXVehicleInternal;
 		PXAPI PhysXCompoundShape();
 		PXAPI PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);
 		PXAPI PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided = false);
 		PXAPI ~PhysXCompoundShape();
 
 		PXAPI void AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh, bool wantsDoubleSided = false);
+		PXAPI void AddChild(PhysXShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
+		
 		PhysXShape *GetShape(size_t index) const { return _shapes[index]; }
 		size_t GetNumberOfShapes() const { return _shapes.size(); }
 

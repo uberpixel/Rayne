@@ -19,7 +19,7 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	PhysXWorld::PhysXWorld(const Vector3 &gravity, String *pvdServerIP) : _pvd(nullptr), _substeps(1), _paused(false)
+	PhysXWorld::PhysXWorld(const Vector3 &gravity, String *pvdServerIP) : _pvd(nullptr), _hasVehicles(false), _substeps(1), _paused(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
@@ -77,6 +77,10 @@ namespace RN
 		_dispatcher->release();
 		delete _simulationCallback;
 		_cooking->release();
+		if(_hasVehicles)
+		{
+			physx::PxCloseVehicleSDK();
+		}
 		PxCloseExtensions();
 		_physics->release();
 
@@ -106,6 +110,15 @@ namespace RN
 		Unlock();
 
 		return Vector3(gravity.x, gravity.y, gravity.z);
+	}
+
+	void PhysXWorld::InitializeVehicles()
+	{
+		PxInitVehicleSDK(*_physics);
+		PxVehicleSetBasisVectors(physx::PxVec3(0.0f, 1.0f, 0.0f), physx::PxVec3(0.0f, 0.0f, -1.0f));
+		PxVehicleSetUpdateMode(physx::PxVehicleUpdateMode::eVELOCITY_CHANGE);
+		
+		_hasVehicles = true;
 	}
 
 	void PhysXWorld::SetSubsteps(uint8 substeps)

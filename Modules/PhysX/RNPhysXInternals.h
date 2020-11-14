@@ -14,6 +14,8 @@
 
 namespace RN
 {
+	class PhysXCompoundShape;
+
 	class PhysXCallback
 	{
 	public:
@@ -21,6 +23,9 @@ namespace RN
 			physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0,
 			physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1,
 			physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
+		
+		static physx::PxFilterFlags VehicleFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
+		static physx::PxQueryHitType::Enum VehicleQueryPreFilter(physx::PxFilterData filterData0, physx::PxFilterData filterData1, const void* constantBlock, physx::PxU32 constantBlockSize, physx::PxHitFlags& queryFlags);
 	};
 
 	class PhysXQueryFilterCallback : public physx::PxQueryFilterCallback
@@ -57,6 +62,16 @@ namespace RN
 	{
 		
 	}*/
+
+	class PhysXVehicleInternal
+	{
+	public:
+		static void SetupWheelsSimulationData(const float wheelMass, const float wheelMOI, const float wheelRadius, const float wheelWidth, const float numWheels, const physx::PxVec3* wheelCenterActorOffsets, const physx::PxVec3& chassisCMOffset, const float chassisMass, physx::PxVehicleWheelsSimData* wheelsSimData, uint32 wheelRaycastGroup, uint32 wheelRaycastMask);
+		
+		static void SetupDriveSimData4W(physx::PxVehicleDriveSimData4W *driveSimData, physx::PxVehicleWheelsSimData* wheelsSimData);
+		static void SetupVehicleActor(PhysXCompoundShape *compoundShape, const uint32 numWheels, const physx::PxVehicleChassisData& chassisData, const physx::PxFilterData& wheelSimFilterData, const physx::PxFilterData& chassisSimFilterData, physx::PxRigidDynamic *vehActor);
+		static physx::PxVehicleDrivableSurfaceToTireFrictionPairs* CreateFrictionPairs(const physx::PxMaterial* defaultMaterial);
+	};
 }
 
 #endif /* defined(__RAYNE_PHYSXINTERNALS_H_) */
