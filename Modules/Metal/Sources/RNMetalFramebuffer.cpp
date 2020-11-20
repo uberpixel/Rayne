@@ -253,9 +253,13 @@ namespace RN
 			{
 				[colorAttachment setLoadAction:MTLLoadActionClear];
 			}
-			else
+			else if(renderPass->GetFlags() & RenderPass::Flags::LoadColor)
 			{
 				[colorAttachment setLoadAction:MTLLoadActionLoad];
+			}
+			else
+			{
+				[colorAttachment setLoadAction:MTLLoadActionDontCare];
 			}
 			if(resolveFramebuffer)
 			{
@@ -294,9 +298,13 @@ namespace RN
 				{
 					[depthAttachment setLoadAction:MTLLoadActionClear];
 				}
-				else
+				else if(renderPass->GetFlags() & RenderPass::Flags::LoadColor)
 				{
 					[depthAttachment setLoadAction:MTLLoadActionLoad];
+				}
+				else
+				{
+					[depthAttachment setLoadAction:MTLLoadActionDontCare];
 				}
 				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
 				{

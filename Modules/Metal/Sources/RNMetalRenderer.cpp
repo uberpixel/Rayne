@@ -984,6 +984,10 @@ namespace RN
 		{
 			[encoder setDepthBias:mergedMaterialProperties.polygonOffsetUnits slopeScale:mergedMaterialProperties.polygonOffsetFactor clamp:FLT_MAX];
 		}
+		else
+		{
+			[encoder setDepthBias:0.0f slopeScale:0.0f clamp:FLT_MAX];
+		}
 		
 		// Update uniform buffers and set them for rendering
 		{
