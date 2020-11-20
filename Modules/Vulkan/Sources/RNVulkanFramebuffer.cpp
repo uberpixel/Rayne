@@ -318,7 +318,13 @@ namespace RN
 
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const
 	{
+		uint16 numberOfClearColors = _colorTargets.size();
+		if(_swapChain || (resolveFramebuffer && resolveFramebuffer->_swapChain)) numberOfClearColors = 1;
+		if(resolveFramebuffer) numberOfClearColors *= 2;
+		numberOfClearColors += _depthStencilTarget? 1 : 0;
+
 		std::vector<VkClearValue> clearColors;
+		clearColors.reserve(numberOfClearColors);
 
 		int counter = 0;
 		for(VulkanTargetView *targetView : _colorTargets)
