@@ -129,6 +129,9 @@ def main():
         print('Script needs to be updated with nvtexturetools path for platform: ' + platform.system())
         return
 
+    #channelCheckOutput = subprocess.check_output(['identify', '-format', '\'%[channels]\'', inputFileName + inputFileExtension])
+    needsAlpha = False #(channelCheckOutput.find(b'a') != -1)
+
     if '.png' in requestedFileExtensions:
         sourceFile = inputFileName + inputFileExtension
         targetFile = outputFileName + '.png'
@@ -141,7 +144,10 @@ def main():
         sourceFile = inputFileName + inputFileExtension
         targetFile = outputFileName + '.dds'
         if needsToUpdateFile(sourceFile, targetFile):
-            subprocess.call([nvTextureToolsPath, '-dds10', '-srgb', '-bc1', inputFileName + inputFileExtension, outputFileName + '.dds'])
+            bcFormat = '-bc1'
+            if needsAlpha:
+                bcFormat = '-bc3'
+            subprocess.call([nvTextureToolsPath, '-dds10', '-srgb', bcFormat, inputFileName + inputFileExtension, outputFileName + '.dds'])
 
     if '.astc' in requestedFileExtensions:
         #Convert to ASTC format for mobile platforms
@@ -160,9 +166,9 @@ def main():
 
             #the encoder now seems to do the flipping itself, it also has a flip related flag, but doesn't appear to be needed
             #subprocess.call(['convert', sourceFile, '-flip', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
-            subprocess.call(['convert', sourceFile, '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
+            subprocess.call(['convert', sourceFile, '-define', 'png:color-type=6', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
             for i in range(1, numLevels):
-                subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-scale', '50%', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.' + str(i) + inputFileExtension])
+                subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-separate', '-scale', '50%', '-combine', '-define', 'png:bit-depth='+str(bitdepth), '-define', 'png:preserve-colormap=true', outputFileName + '.' + str(i) + inputFileExtension])
 
             for i in range(0, numLevels):
                 #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
