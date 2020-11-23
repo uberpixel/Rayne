@@ -6,6 +6,7 @@ import subprocess
 import platform
 import math
 import shutil
+from PIL import Image
 
 def prepare():
     if platform.system() == 'Darwin':
@@ -129,8 +130,8 @@ def main():
         print('Script needs to be updated with nvtexturetools path for platform: ' + platform.system())
         return
 
-    #channelCheckOutput = subprocess.check_output(['identify', '-format', '\'%[channels]\'', inputFileName + inputFileExtension])
-    needsAlpha = False #(channelCheckOutput.find(b'a') != -1)
+    image = Image.open(inputFileName + inputFileExtension)
+    needsAlpha = (image.mode.find('A') != -1)
 
     if '.png' in requestedFileExtensions:
         sourceFile = inputFileName + inputFileExtension
@@ -154,21 +155,15 @@ def main():
         sourceFile = inputFileName + inputFileExtension
         targetFile = outputFileName + '.astc'
         if needsToUpdateFile(sourceFile, targetFile):
-            width = subprocess.check_output(['identify', '-format', '%[fx:w]', sourceFile])
-            height = subprocess.check_output(['identify', '-format', '%[fx:h]', sourceFile])
-            bitdepth = 8 #subprocess.check_output(['identify', '-format', '%[fx:z]', sourceFile])
-            width = int(width)
-            height = int(height)
-            bitdepth = int(bitdepth)
+            width, height = image.size
             numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
 
             print('Number of mipmap levels: ' + str(numLevels))
 
-            #the encoder now seems to do the flipping itself, it also has a flip related flag, but doesn't appear to be needed
-            #subprocess.call(['convert', sourceFile, '-flip', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
-            subprocess.call(['convert', sourceFile, '-define', 'png:color-type=6', '-define', 'png:bit-depth='+str(bitdepth), outputFileName + '.0' + inputFileExtension])
+            image.save(outputFileName + '.0' + inputFileExtension)
             for i in range(1, numLevels):
-                subprocess.call(['convert', outputFileName + '.' + str(i-1) + inputFileExtension, '-separate', '-scale', '50%', '-combine', '-define', 'png:bit-depth='+str(bitdepth), '-define', 'png:preserve-colormap=true', outputFileName + '.' + str(i) + inputFileExtension])
+                image = image.resize((max(int(image.width / 2), 1), max(int(image.height / 2), 1)))
+                image.save(outputFileName + '.' + str(i) + inputFileExtension)
 
             for i in range(0, numLevels):
                 #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
