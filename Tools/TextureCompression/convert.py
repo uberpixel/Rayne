@@ -160,9 +160,22 @@ def main():
 
             print('Number of mipmap levels: ' + str(numLevels))
 
+            if needsAlpha:
+                alpha = image.getchannel('A')
+                rgbImage = image.convert('RGB')
+
             image.save(outputFileName + '.0' + inputFileExtension)
             for i in range(1, numLevels):
-                image = image.resize((max(int(image.width / 2), 1), max(int(image.height / 2), 1)))
+                if needsAlpha:
+                    alpha = alpha.resize((max(int(image.width / 2), 1), max(int(image.height / 2), 1)), Image.LANCZOS)
+                    rgbImage = rgbImage.resize((max(int(image.width / 2), 1), max(int(image.height / 2), 1)), Image.LANCZOS)
+
+                    image = rgbImage.copy()
+                    image.putalpha(alpha)
+                else:
+                    print(image.size)
+                    image = image.resize((max(int(image.width / 2), 1), max(int(image.height / 2), 1)), Image.LANCZOS)
+
                 image.save(outputFileName + '.' + str(i) + inputFileExtension)
 
             for i in range(0, numLevels):
