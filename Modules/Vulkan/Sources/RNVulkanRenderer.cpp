@@ -1328,7 +1328,7 @@ namespace RN
 							{
 								materialTexture = renderPass.directionalShadowDepthTexture;
 							}
-							else if(index >= drawable->material->GetTextures()->GetCount())
+							else if(argument->GetMaterialTextureIndex() >= drawable->material->GetTextures()->GetCount())
 							{
 								stop = true;
 								return;
