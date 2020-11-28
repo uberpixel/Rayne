@@ -188,6 +188,13 @@ def main():
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
 
+                    if outFormat == 'dxil' or outFormat == 'cso':
+                        parameterList.extend('-DRN_RENDERER_D3D12=1')
+                    elif outFormat == 'spirv':
+                        parameterList.extend('-DRN_RENDERER_VULKAN=1')
+                    elif outFormat == 'metal':
+                        parameterList.extend('-DRN_RENDERER_METAL=1')
+
                     if not skipShaderCompiling:
                         print(parameterList)
                         subprocess.call(parameterList)
