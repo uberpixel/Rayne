@@ -82,9 +82,11 @@ namespace RN
 			
 			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].vertexShaderUniformBuffers)
 				delete buffer;
+			_cameraSpecifics[cameraID].vertexShaderUniformBuffers.clear();
 			
 			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].fragmentShaderUniformBuffers)
 				delete buffer;
+			_cameraSpecifics[cameraID].fragmentShaderUniformBuffers.clear();
 
 			MetalRenderer *metalRenderer = renderer->Downcast<MetalRenderer>();
 			

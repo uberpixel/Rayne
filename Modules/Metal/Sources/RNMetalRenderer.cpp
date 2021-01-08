@@ -104,7 +104,6 @@ namespace RN
 	{
 		_internals->renderPasses.clear();
 		_internals->swapChains.clear();
-		_internals->currentRenderState = nullptr;
 		_internals->currentRenderPassIndex = 0;
 
 		CreateMipMaps();
@@ -140,6 +139,7 @@ namespace RN
 				continue;
 			}
 			
+			_internals->currentRenderState = nullptr; //This is a property of the encoder and needs to be set to nullptr here to force setting it again.
 			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer);
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
