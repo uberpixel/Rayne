@@ -314,8 +314,7 @@ namespace RN
 		_constStorage = nullptr;
 		
 		// Get the storage ready
-		if(count >= 0xfff)
-			mutableStorage = true;
+		RN_ASSERT(mutableStorage || count < 0xfff, "Constant string too big, use dynamic string instead! (>= 4095)");
 		
 		if(!mutableStorage)
 		{
