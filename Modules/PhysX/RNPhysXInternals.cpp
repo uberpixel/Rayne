@@ -318,8 +318,8 @@ namespace RN
 
 		//Engine
 		physx::PxVehicleEngineData engine;
-		engine.mPeakTorque = 700.0f;
-		engine.mMaxOmega = 800.0f;//approx 8000 rpm
+		engine.mPeakTorque = 1100.0f;
+		engine.mMaxOmega = 1000.0f;//approx 10000 rpm
 		driveSimData->setEngineData(engine);
 
 		//Gears
@@ -391,7 +391,7 @@ namespace RN
 		{
 			for(uint32 j = 0; j < 1; j++)
 			{
-				surfaceTirePairs->setTypePairFriction(i, j, 1.0f);
+				surfaceTirePairs->setTypePairFriction(i, j, 1.4f);
 			}
 		}
 		return surfaceTirePairs;

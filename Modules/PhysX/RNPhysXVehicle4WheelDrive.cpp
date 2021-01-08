@@ -66,7 +66,7 @@ namespace RN
 		chassisData.mMOI = physx::PxVec3((chassisDimensions.y * chassisDimensions.y + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.z * chassisDimensions.z) * chassisData.mMass / 12.0f, (chassisDimensions.x * chassisDimensions.x + chassisDimensions.y * chassisDimensions.y) * chassisData.mMass / 12.0f);
 		//A bit of tweaking here.  The car will have more responsive turning if we reduce the
 		//y-component of the chassis moment of inertia.
-		chassisData.mMOI.y *= 0.5f;
+		chassisData.mMOI.y *= 0.6f;
 		
 		PhysXWorld *world = PhysXWorld::GetSharedInstance();
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
