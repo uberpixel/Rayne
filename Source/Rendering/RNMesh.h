@@ -354,6 +354,9 @@ namespace RN
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
                 if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
+				
+				size_t stride = (feature == VertexAttribute::Feature::Indices) ? _indicesDescriptor->GetSize() : _mesh->GetStride();
+				ptr += stride * index;
 
 				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);
 				return result;
