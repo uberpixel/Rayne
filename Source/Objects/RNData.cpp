@@ -140,7 +140,7 @@ namespace RN
 			}
 
 			AAsset_close(asset);
-			Data *data = new Data(bytes, size, true, true);
+			Data *data = new Data(bytes, size, false, true);
             return data->Autorelease();
 		}
 #endif
@@ -176,7 +176,7 @@ namespace RN
 
 		close(fd);
 
-		Data *data = new Data(bytes, size, true, true);
+		Data *data = new Data(bytes, size, false, true);
 		return data->Autorelease();
 	}
 
