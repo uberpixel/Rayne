@@ -178,12 +178,29 @@ namespace RN
 				{
 					VulkanDevice *temp = new VulkanDevice(this, device);
 					if(temp->IsValidDevice())
+					{
 						_devices->AddObject(temp);
+					}
 
 					temp->Release();
 				}
 			}
 		}
+
+#if RN_BUILD_DEBUG
+		std::vector<VkPhysicalDevice> devices;
+		EnumerateDevices(devices);
+
+		for(auto device : devices)
+		{
+			std::vector<VkExtensionProperties> rawDeviceExtensions;
+			EnumerateDeviceExtensions(device, nullptr, rawDeviceExtensions);
+
+			std::unordered_set<std::string> deviceExtensions;
+			for(const auto &extension : rawDeviceExtensions)
+				RNDebug("Supported Vulkan Device Extension: " << extension.extensionName);
+		}
+#endif
 
 		return true;
 	}
