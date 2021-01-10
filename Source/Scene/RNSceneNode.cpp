@@ -460,7 +460,7 @@ namespace RN
 			{
 				_parent->UpdateInternalData();
 
-				_worldPosition = _parent->GetWorldPosition() + _parent->GetWorldRotation().GetRotatedVector(_position);
+				_worldPosition = _parent->GetWorldPosition() + _parent->GetWorldScale() * _parent->GetWorldRotation().GetRotatedVector(_position);
 				_worldRotation = _parent->GetWorldRotation() * _rotation;
 				_worldScale = _parent->GetWorldScale() * _scale;
 				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
