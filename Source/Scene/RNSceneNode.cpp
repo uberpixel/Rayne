@@ -17,7 +17,8 @@ namespace RN
 	std::atomic<uint64> __SceneNodeIDs;
 
 	SceneNode::SceneNode() :
-        _sceneEntry(this),
+        _sceneUpdateEntry(this),
+		_sceneRenderEntry(this),
 		_uid(__SceneNodeIDs.fetch_add(1)),
 		_lid(static_cast<uint64>(-1)),
 		_sceneInfo(nullptr),
@@ -60,7 +61,8 @@ namespace RN
 		_renderGroup    = other->_renderGroup;
 		_collisionGroup = other->_collisionGroup;
 
-		_priority = other->_priority;
+		_updatePriority = other->_updatePriority;
+		_renderPriority = other->_renderPriority;
 		_flags    = other->_flags.load();
 		_tag      = other->_tag;
 
@@ -91,7 +93,8 @@ namespace RN
 		_renderGroup    = (groups & 0xff);
 		_collisionGroup = (groups >> 8);
 
-		_priority = static_cast<Priority>(deserializer->DecodeInt32());
+		_updatePriority = static_cast<UpdatePriority>(deserializer->DecodeInt32());
+		_renderPriority = deserializer->DecodeInt32();
 		_flags    = static_cast<Flags>(deserializer->DecodeInt32());
 
 		_tag = static_cast<Tag>(deserializer->DecodeInt64());
@@ -117,7 +120,8 @@ namespace RN
 		serializer->EncodeQuarternion(_rotation);
 
 		serializer->EncodeInt32(_renderGroup | (_collisionGroup << 8));
-		serializer->EncodeInt32(static_cast<int32>(_priority));
+		serializer->EncodeInt32(static_cast<int32>(_updatePriority));
+		serializer->EncodeInt32(_renderPriority);
 		serializer->EncodeInt32(_flags);
 		serializer->EncodeInt64(_tag);
 		serializer->EncodeInt64(_lid);
@@ -145,7 +149,8 @@ namespace RN
 		_updated = true;
 		_flags = 0;
 
-		_priority = Priority::UpdateNormal;
+		_updatePriority = UpdatePriority::UpdateNormal;
+		_renderPriority = RenderPriority::RenderNormal;
 		_renderGroup = 1;
 		_collisionGroup = 0;
 	}
@@ -180,13 +185,23 @@ namespace RN
 		_collisionGroup = group;
 	}
 
-	void SceneNode::SetPriority(Priority priority)
+	void SceneNode::SetUpdatePriority(UpdatePriority priority)
 	{
-		RN_ASSERT(_sceneInfo == nullptr, "SetPriority() must be called before adding the node to the scene.");
+		RN_ASSERT(_sceneInfo == nullptr, "SetUpdatePriority() must be called before adding the node to the scene.");
 		
-		WillUpdate(ChangeSet::Priority);
-		_priority = priority;
-		DidUpdate(ChangeSet::Priority);
+		WillUpdate(ChangeSet::UpdatePriority);
+		_updatePriority = priority;
+		DidUpdate(ChangeSet::UpdatePriority);
+	}
+
+	void SceneNode::SetRenderPriority(int32 priority)
+	{
+		//TODO: Remove this requirement
+		RN_ASSERT(_sceneInfo == nullptr, "SetRenderPriority() must be called before adding the node to the scene.");
+		
+		WillUpdate(ChangeSet::RenderPriority);
+		_renderPriority = priority;
+		DidUpdate(ChangeSet::RenderPriority);
 	}
 
 	void SceneNode::SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere)

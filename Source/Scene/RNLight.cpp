@@ -17,6 +17,7 @@ namespace RN
 	RNDefineMeta(Light, SceneNode)
 	
 	Light::Light(Type lighttype) :
+		_lightSceneEntry(this),
 		_lightType(lighttype),
 		_color(Color::White()),
 		_intensity(10.0f),
@@ -256,7 +257,7 @@ namespace RN
 			Camera *tempcam = new Camera();
 			tempcam->GetRenderPass()->SetFramebuffer(framebuffer);
 			tempcam->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::RenderEarly);
-			tempcam->SceneNode::SetPriority(SceneNode::Priority::UpdateLate);
+			tempcam->SceneNode::SetUpdatePriority(SceneNode::UpdatePriority::UpdateLate);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetShaderHint(Shader::UsageHint::Depth);
 			tempcam->SetLODCamera(_shadowTarget);

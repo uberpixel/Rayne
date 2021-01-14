@@ -123,6 +123,8 @@ namespace RN
 		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
 		const Array *GetShadowDepthCameras() const { return &_shadowDepthCameras; }
 		Texture *GetShadowDepthTexture() const { return _shadowDepthTexture; }
+		
+		IntrusiveList<Light>::Member _lightSceneEntry; //TODO: Make private but keep accessible to user made scene implementations
 	
 	private:
 		void ReCalculateColor();

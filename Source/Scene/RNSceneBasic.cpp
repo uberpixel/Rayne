@@ -39,7 +39,7 @@ namespace RN
 		{
 			WorkGroup *group = new WorkGroup();
 
-			IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+			IntrusiveList<SceneNode>::Member *member = _updateNodes[i].GetHead();
 			IntrusiveList<SceneNode>::Member *first = member;
 
 			size_t count = 0;
@@ -108,8 +108,17 @@ namespace RN
 				Camera *camera = static_cast<Camera *>(node);
 				_cameras.Erase(camera->_cameraSceneEntry);
 			}
+			else if(node->IsKindOfClass(Light::GetMetaClass()))
+			{
+				Light *light = static_cast<Light *>(node);
+				_lights.Erase(light->_lightSceneEntry);
+			}
+			else
+			{
+				RemoveRenderNode(node);
+			}
 
-			_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
+			_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].Erase(node->_sceneUpdateEntry);
 
 			node->UpdateSceneInfo(nullptr);
 			node->Autorelease();
@@ -121,8 +130,6 @@ namespace RN
 	void SceneBasic::Render(Renderer *renderer)
 	{
 		WillRender(renderer);
-
-		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 
 		for(int cameraPriority = 0; cameraPriority < 3; cameraPriority++)
 		{
@@ -140,79 +147,27 @@ namespace RN
 				}
 
 				renderer->SubmitCamera(camera, [&] {
-					WorkGroup *group = new WorkGroup();
-
-					for(int drawPriority = 0; drawPriority < 5; drawPriority++)
+					
+					//TODO: Add back some multithreading while not breaking the priorities.
+					IntrusiveList<Light>::Member *lightMember = _lights.GetHead();
+					while(lightMember)
 					{
-						for(size_t i = 0; i < 3; i ++)
-						{
-							IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
-							IntrusiveList<SceneNode>::Member *first = member;
-
-							size_t count = 0;
-
-							while(member)
-							{
-								if(count == kRNSceneRenderBatchSize)
-								{
-									group->Perform(queue, [&, member, first] {
-
-										AutoreleasePool pool;
-										auto iterator = first;
-
-										while(iterator != member)
-										{
-											SceneNode *node = iterator->Get();
-											
-											//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-											if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate || node->GetFlags() & SceneNode::Flags::DrawLater)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 4 && (node->GetFlags() & SceneNode::Flags::DrawLater)))))
-											{
-												if(node->CanRender(renderer, camera))
-													node->Render(renderer, camera);
-											}
-
-											iterator = iterator->GetNext();
-										}
-									});
-
-									first = member;
-									count = 0;
-								}
-
-								member = member->GetNext();
-								count ++;
-							}
-
-							//Render remaining less than kRNSceneRenderBatchSize number of nodes
-							if(first != member)
-							{
-								group->Perform(queue, [&, member, first] {
-
-									AutoreleasePool pool;
-									auto iterator = first;
-
-									while(iterator != member)
-									{
-										SceneNode *node = iterator->Get();
-
-										//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-										if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (!node->IsKindOfClass(Light::GetMetaClass()) && ((drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate || node->GetFlags() & SceneNode::Flags::DrawLater)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 4 && (node->GetFlags() & SceneNode::Flags::DrawLater)))))
-										{
-											if(node->CanRender(renderer, camera))
-												node->Render(renderer, camera);
-										}
-
-										iterator = iterator->GetNext();
-									}
-
-								});
-							}
-						}
+						Light *light = lightMember->Get();
+						if(light->CanRender(renderer, camera))
+							light->Render(renderer, camera);
 						
-						group->Wait();
+						lightMember = lightMember->GetNext();
 					}
 					
-					group->Release();
+					IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
+					while(nodeMember)
+					{
+						SceneNode *node = nodeMember->Get();
+						if(node->CanRender(renderer, camera))
+							node->Render(renderer, camera);
+						
+						nodeMember = nodeMember->GetNext();
+					}
 				});
 
 				member = member->GetNext();
@@ -220,6 +175,34 @@ namespace RN
 		}
 
 		DidRender(renderer);
+	}
+
+	void SceneBasic::AddRenderNode(SceneNode *node)
+	{
+		int32 renderPriority = node->GetRenderPriority();
+		if(!_renderNodes.GetHead() || _renderNodes.GetHead()->Get()->GetRenderPriority() >= renderPriority)
+		{
+			_renderNodes.PushFront(node->_sceneRenderEntry);
+		}
+		else if(!_renderNodes.GetTail() || _renderNodes.GetTail()->Get()->GetRenderPriority() <= renderPriority)
+		{
+			_renderNodes.PushBack(node->_sceneRenderEntry);
+		}
+		else
+		{
+			IntrusiveList<SceneNode>::Member *member = _renderNodes.GetHead();
+			while(member->Get()->GetRenderPriority() > renderPriority)
+			{
+				member = member->GetNext();
+			}
+			
+			_renderNodes.InsertAfter(node->_sceneRenderEntry, member);
+		}
+	}
+
+	void SceneBasic::RemoveRenderNode(SceneNode *node)
+	{
+		_renderNodes.Erase(node->_sceneRenderEntry);
 	}
 
 	void SceneBasic::AddNode(SceneNode *node)
@@ -240,9 +223,18 @@ namespace RN
 			Camera *camera = static_cast<Camera *>(node);
 			_cameras.PushFront(camera->_cameraSceneEntry);
 		}
+		else if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights.PushFront(light->_lightSceneEntry);
+		}
+		else
+		{
+			AddRenderNode(node);
+		}
 		
         //PushFront to prevent race condition with scene iterating over the nodes.
-		_nodes[static_cast<size_t>(node->GetPriority())].PushFront(node->_sceneEntry);
+		_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].PushFront(node->_sceneUpdateEntry);
         
 		node->Retain();
 		SceneInfo *sceneInfo = new SceneInfo(this);

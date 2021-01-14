@@ -35,20 +35,26 @@ namespace RN
 	public:
 		friend class Scene;
 
-		enum class Priority
+		enum class UpdatePriority
 		{
 			UpdateEarly,
 			UpdateNormal,
 			UpdateLate
 		};
+		
+		enum RenderPriority : int32
+		{
+			RenderEarly = -1000,
+			RenderNormal = 0,
+			RenderLate = 1000,
+			RenderSky = 2000,
+			RenderTransparent = 3000,
+			RenderUI = 10000
+		};
 
 		RN_OPTIONS(Flags, uint32,
 				   Static       = (1 << 0),
 				   Hidden       = (1 << 1),
-				   
-				   DrawEarly    = (1 << 2),
-				   DrawLate     = (1 << 3),
-				   DrawLater	= (1 << 4),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),
@@ -62,11 +68,12 @@ namespace RN
 				   Flags = (1 << 1),
 				   Position = (1 << 2),
 				   Dependencies = (1 << 3),
-				   Priority = (1 << 4),
-				   Parent = (1 << 5),
-				   Attachments = (1 << 6),
-				   World = (1 << 7),
-				   Tag = (1 << 8));
+				   UpdatePriority = (1 << 4),
+				   RenderPriority = (1 << 5),
+				   Parent = (1 << 6),
+				   Attachments = (1 << 7),
+				   World = (1 << 8),
+				   Tag = (1 << 9));
 
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3 &position);
@@ -100,7 +107,8 @@ namespace RN
 		RNAPI void SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere=true);
 		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
 
-		RNAPI void SetPriority(Priority priority);
+		RNAPI void SetUpdatePriority(UpdatePriority priority);
+		RNAPI void SetRenderPriority(int32 priority);
 
 		RNAPI bool HasFlags(Flags flags) const;
 		RNAPI Flags RemoveFlags(Flags flags);
@@ -139,7 +147,8 @@ namespace RN
 
 		RNAPI SceneNode *GetParent() const;
 		SceneInfo *GetSceneInfo() const { return _sceneInfo; };
-		Priority GetPriority() const { return _priority; }
+		UpdatePriority GetUpdatePriority() const { return _updatePriority; }
+		int32 GetRenderPriority() const { return _renderPriority; }
 		Flags GetFlags() const { return _flags.load(); }
 
 		uint8 GetRenderGroup() const { return _renderGroup; };
@@ -156,7 +165,8 @@ namespace RN
 
 		RNAPI virtual void Update(float delta);
 		
-		IntrusiveList<SceneNode>::Member _sceneEntry; //TODO: Make private but keep accessible to user made scene implementations
+		IntrusiveList<SceneNode>::Member _sceneUpdateEntry; //TODO: Make private but keep accessible to user made scene implementations
+		IntrusiveList<SceneNode>::Member _sceneRenderEntry; //TODO: Make private but keep accessible to user made scene implementations
 		RNAPI void UpdateSceneInfo(SceneInfo *sceneInfo); //TODO: Make private but keep accessible to user made scene implementations
 
 	protected:
@@ -183,7 +193,8 @@ namespace RN
 		SceneNode *_parent;
 		Array *_children;
 
-		Priority _priority;
+		UpdatePriority _updatePriority;
+		int32 _renderPriority;
 		std::atomic<uint32> _flags;
 
 		uint8 _renderGroup;

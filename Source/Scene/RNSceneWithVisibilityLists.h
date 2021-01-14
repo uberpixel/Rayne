@@ -49,10 +49,14 @@ namespace RN
 		RNAPI void Update(float delta) override;
 		RNAPI void Render(Renderer *renderer) override;
 		
-		RNAPI void RenderVolumeList(int drawPriority, Renderer *renderer, Camera *camera, const Volume *volume);
+		RNAPI void RenderVolumeList(Renderer *renderer, Camera *camera, const Volume *volume);
+		
+		RNAPI void AddRenderNode(SceneNode *node);
+		RNAPI void RemoveRenderNode(SceneNode *node);
 
-		IntrusiveList<SceneNode> _nodes[3];
+		IntrusiveList<SceneNode> _updateNodes[3];
 		IntrusiveList<Camera> _cameras;
+		IntrusiveList<Light> _lights;
 		
 		Array *_volumes;
 		Volume *_defaultVolume;

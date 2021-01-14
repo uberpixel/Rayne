@@ -22,7 +22,7 @@ namespace RN
 		_eye{nullptr, nullptr},
 		_didUpdateVRWindow(false)
 	{
-		SetPriority(SceneNode::Priority::UpdateEarly);
+		SetUpdatePriority(SceneNode::UpdatePriority::UpdateEarly);
 		AddChild(_head);
 		SetupCameras();
 	}
@@ -84,7 +84,7 @@ namespace RN
 
 					Model *hiddenAreaModel = new Model(hiddenAreaMesh, hiddenAreaMaterial);
 					_hiddenAreaEntity[i] = new Entity(hiddenAreaModel->Autorelease());
-					_hiddenAreaEntity[i]->SetPriority(RN::SceneNode::Priority::UpdateEarly);
+					_hiddenAreaEntity[i]->SetUpdatePriority(RN::SceneNode::UpdatePriority::UpdateEarly);
 					_hiddenAreaEntity[i]->SetRenderGroup((1 << (1 + i)));
 
 					_eye[i]->AddChild(_hiddenAreaEntity[i]);

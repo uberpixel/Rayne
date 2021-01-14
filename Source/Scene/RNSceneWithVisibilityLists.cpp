@@ -57,7 +57,7 @@ namespace RN
 		{
 			WorkGroup *group = new WorkGroup();
 			
-			IntrusiveList<SceneNode>::Member *member = _nodes[i].GetHead();
+			IntrusiveList<SceneNode>::Member *member = _updateNodes[i].GetHead();
 			IntrusiveList<SceneNode>::Member *first = member;
 			
 			size_t count = 0;
@@ -115,16 +115,12 @@ namespace RN
 		DidUpdate(delta);
 	}
 	
-	void SceneWithVisibilityLists::RenderVolumeList(int drawPriority, Renderer *renderer, Camera *camera, const Volume *volume)
+	void SceneWithVisibilityLists::RenderVolumeList(Renderer *renderer, Camera *camera, const Volume *volume)
 	{
 		for(SceneNode *node : volume->nodes)
 		{
-			//Skip if this is not the nodes draw priority or other reason (node is a light for example)
-			if((drawPriority == 0 && node->IsKindOfClass(Light::GetMetaClass())) || (drawPriority == 1 && (node->GetFlags() & SceneNode::Flags::DrawEarly)) || (drawPriority == 2 && !(node->GetFlags() & SceneNode::Flags::DrawEarly || node->GetFlags() & SceneNode::Flags::DrawLate)) || (drawPriority == 3 && (node->GetFlags() & SceneNode::Flags::DrawLate)))
-			{
-				if(node->CanRender(renderer, camera))
-					node->Render(renderer, camera);
-			}
+			if(node->CanRender(renderer, camera))
+				node->Render(renderer, camera);
 		}
 	}
 	
@@ -149,6 +145,17 @@ namespace RN
 				camera->PostUpdate();
 				Vector3 cameraPosition = camera->GetWorldPosition();
 				
+				IntrusiveList<Light>::Member *lightMember = _lights.GetHead();
+				while(lightMember)
+				{
+					Light *light = lightMember->Get();
+					if(light->CanRender(renderer, camera))
+					{
+						light->Render(renderer, camera);
+					}
+					lightMember = lightMember->GetNext();
+				}
+				
 				const Volume *volume = nullptr;
 				_volumes->Enumerate<Volume>([&](Volume *object, size_t index, bool &stop){
 					if(object->ContainsPosition(cameraPosition))
@@ -159,13 +166,10 @@ namespace RN
 				});
 				
 				renderer->SubmitCamera(camera, [&] {
-					for(int drawPriority = 0; drawPriority < 4; drawPriority++)
+					RenderVolumeList(renderer, camera, _defaultVolume);
+					if(volume)
 					{
-						RenderVolumeList(drawPriority, renderer, camera, _defaultVolume);
-						if(volume)
-						{
-							RenderVolumeList(drawPriority, renderer, camera, volume);
-						}
+						RenderVolumeList(renderer, camera, volume);
 					}
 				});
 				
@@ -212,9 +216,14 @@ namespace RN
 			Camera *camera = static_cast<Camera *>(node);
 			_cameras.PushBack(camera->_cameraSceneEntry);
 		}
+		else if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights.PushBack(light->_lightSceneEntry);
+		}
 		
-		_nodes[static_cast<size_t>(node->GetPriority())].PushBack(node->_sceneEntry);
-			
+		_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].PushBack(node->_sceneUpdateEntry);
+		
 		node->Retain();
 		SceneWithVisibilityListsInfo *sceneInfo = new SceneWithVisibilityListsInfo(this);
 		node->UpdateSceneInfo(sceneInfo->Autorelease());
@@ -235,8 +244,13 @@ namespace RN
 			Camera *camera = static_cast<Camera *>(node);
 			_cameras.Erase(camera->_cameraSceneEntry);
 		}
+		else if(node->IsKindOfClass(Light::GetMetaClass()))
+		{
+			Light *light = static_cast<Light *>(node);
+			_lights.Erase(light->_lightSceneEntry);
+		}
 		
-		_nodes[static_cast<size_t>(node->GetPriority())].Erase(node->_sceneEntry);
+		_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].Erase(node->_sceneUpdateEntry);
 		
 		SceneWithVisibilityListsInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneWithVisibilityListsInfo>();
 		for(Volume *volume : sceneInfo->volumes)

@@ -29,9 +29,14 @@ namespace RN
 		
         RNAPI void FlushAdditionQueue();
 		RNAPI void FlushDeletionQueue();
+		
+		RNAPI void AddRenderNode(SceneNode *node);
+		RNAPI void RemoveRenderNode(SceneNode *node);
 
 	private:
-		IntrusiveList<SceneNode> _nodes[3];
+		IntrusiveList<SceneNode> _updateNodes[3];
+		IntrusiveList<SceneNode> _renderNodes;
+		IntrusiveList<Light> _lights;
 		IntrusiveList<Camera> _cameras;
 		Array *_nodesToRemove;
         Array *_nodesToAdd;

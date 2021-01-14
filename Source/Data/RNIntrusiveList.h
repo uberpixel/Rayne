@@ -83,6 +83,24 @@ namespace RN
 			_head = &value;
 			_count ++;
 		}
+		
+		void InsertAfter(Member &newValue, Member *previous)
+		{
+			newValue._next = previous->_next;
+			newValue._prev = previous;
+			
+			if(previous->_next)
+			{
+				previous->_next->_prev = &newValue;
+			}
+
+			if(RN_EXPECT_FALSE(!_tail) || _tail == previous)
+				_tail = &newValue;
+			
+			previous->_next = &newValue;
+			
+			_count ++;
+		}
 
 		Member *Erase(Member &value, bool returnNext = true)
 		{
