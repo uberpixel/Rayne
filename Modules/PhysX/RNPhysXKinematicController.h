@@ -38,8 +38,8 @@ namespace RN
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
 		PXAPI Vector3 GetFeetOffset() const;
 		
-		PXAPI SceneNode *GetObjectBelow() const { return _objectBelow; }
-		PXAPI bool GetIsFalling() const { return _isFalling; }
+		SceneNode *GetObjectBelow() const { return _objectBelow; }
+		bool GetIsFalling() const { return _isFalling; }
 
 		PXAPI void Jump(float force);
 
