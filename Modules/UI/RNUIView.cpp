@@ -317,6 +317,13 @@ namespace RN
 		{
 			_bounds = bounds;
 			//_needsMeshUpdate = true;
+			
+			size_t count = _subviews->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				View *child = _subviews->GetObjectAtIndex<View>(i);
+				child->SetPosition(RN::Vector3(_bounds.x + child->GetFrame().x, -_bounds.y - child->GetFrame().y, 0.0f));
+			}
 		}
 	
 		void View::SetHidden(bool hidden)
