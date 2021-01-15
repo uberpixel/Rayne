@@ -349,14 +349,14 @@ namespace RN
 			std::vector<RN::Mesh::VertexAttribute> meshVertexAttributes;
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Indices, RN::PrimitiveType::Uint32);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, RN::PrimitiveType::Vector2);
-			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords0, RN::PrimitiveType::Vector3);
+			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords1, RN::PrimitiveType::Vector3);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Color0, RN::PrimitiveType::Vector4);
 			
 			RN::Mesh *textMesh = new RN::Mesh(meshVertexAttributes, numberOfVertices, numberOfIndices);
 			textMesh->BeginChanges();
 			
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
-			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
+			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::UVCoords1, vertexUVBuffer);
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 			
@@ -385,7 +385,9 @@ namespace RN
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				
-				material->SetEmissiveColor(Color(-100000.0f, 100000.0f, -100000.0f, 100000.0f));
+				const Rect &scissorRect = GetScissorRect();
+				material->SetEmissiveColor(Color(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom()));
+				//material->SetEmissiveColor(Color(-100000.0f, 100000.0f, -100000.0f, 100000.0f));
 
 				model->GetLODStage(0)->AddMesh(textMesh->Autorelease(), material);
 				

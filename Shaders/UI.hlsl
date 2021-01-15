@@ -9,8 +9,17 @@
 #define RN_UV0 0
 #endif
 
+#ifndef RN_UV1
+#define RN_UV1 0
+#endif
+
 #ifndef RN_COLOR
 #define RN_COLOR 0
+#endif
+
+#if RN_UV0
+Texture2D texture0;
+SamplerState linearRepeatSampler;
 #endif
 
 cbuffer vertexUniforms
@@ -30,7 +39,11 @@ struct InputVertex
 #endif
 
 #if RN_UV0
-	[[vk::location(5)]] float3 texCoords : TEXCOORD0;
+	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
+#endif
+
+#if RN_UV1
+	[[vk::location(6)]] float3 curveTexCoords : TEXCOORD1;
 #endif
 };
 
@@ -41,7 +54,10 @@ struct FragmentVertex
 	half4 clipDistance : TEXCOORD1;
 
 #if RN_UV0
-	half3 texCoords : TEXCOORD2;
+	half2 texCoords : TEXCOORD2;
+#endif
+#if RN_UV1
+	half3 curveTexCoords : TEXCOORD3;
 #endif
 };
 
@@ -51,6 +67,10 @@ FragmentVertex ui_vertex(InputVertex vert)
 
 #if RN_UV0
 	result.texCoords = vert.texCoords;
+#endif
+
+#if RN_UV1
+	result.curveTexCoords = vert.curveTexCoords;
 #endif
 
 	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 0.0, 1.0));
@@ -75,20 +95,24 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 	half4 color = vert.color;
 
 #if RN_UV0
-	float curve = (vert.texCoords.x * vert.texCoords.x - vert.texCoords.y);
+	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+#endif
+
+#if RN_UV1
+	float curve = (vert.curveTexCoords.x * vert.curveTexCoords.x - vert.curveTexCoords.y);
 
 	float px = ddx(curve);
 	float py = ddy(curve);
 	float dist = curve / sqrt(px * px + py * py); //Normalize to pixelsize for anti aliasing
 
-	color.a *= saturate(0.5 - dist * vert.texCoords.z);
+	color.a *= saturate(0.5 - dist * vert.curveTexCoords.z);
 #endif
 
-	float blubb = min(vert.clipDistance.x, min(vert.clipDistance.y, min(vert.clipDistance.z, vert.clipDistance.w)));
-	float blubbpx = ddx(blubb);
-	float blubbpy = ddy(blubb);
-	float haha = blubb / sqrt(blubbpx * blubbpx + blubbpy * blubbpy);
-	color.a *= saturate(0.5 + haha);
+	float clipping = min(vert.clipDistance.x, min(vert.clipDistance.y, min(vert.clipDistance.z, vert.clipDistance.w)));
+	float clippingddx = ddx(clipping);
+	float clippingddy = ddy(clipping);
+	float clippingfactor = clipping / sqrt(clippingddx * clippingddx + clippingddy * clippingddy);
+	color.a *= saturate(0.5 + clippingfactor);
 
 	return color;
 }
