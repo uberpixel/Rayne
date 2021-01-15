@@ -201,6 +201,7 @@ else()
         SOURCE_SUBDIR physx/compiler/public
         CMAKE_ARGS "${PHYSX_CMAKE_ARGS}"
         UPDATE_COMMAND ""
+        BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<IF:$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>,release,debug>
         BUILD_BYPRODUCTS ${RN_PHYSX_BUILD_BYPRODUCTS}
         INSTALL_COMMAND "")
 endif()
