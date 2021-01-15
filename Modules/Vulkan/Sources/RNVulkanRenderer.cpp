@@ -789,56 +789,68 @@ namespace RN
 		return _defaultShaderLibrary;
 	}
 
-	Shader *VulkanRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint)
+	Shader *VulkanRenderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint)
 	{
 		LockGuard<Lockable> lock(_lock);
+
+		ShaderLibrary *shaderLibrary = _defaultShaderLibrary;
 
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
-			if(usageHint == Shader::UsageHint::Depth)
+			if(hint == Shader::UsageHint::Depth)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
+				shader = shaderLibrary->GetShaderWithName(RNCSTR("depth_vertex"), options);
 			}
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
+				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
 				}
 				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("particles_vertex"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_vertex"), options);
+				}
+				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_vertex"), options);
 				}
 				else
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("gouraud_vertex"), options);
 				}
 			}
 		}
 		else if(type == Shader::Type::Fragment)
 		{
-			if(usageHint == Shader::UsageHint::Depth)
+			if(hint == Shader::UsageHint::Depth)
 			{
-				shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
+				shader = shaderLibrary->GetShaderWithName(RNCSTR("depth_fragment"), options);
 			}
 			else
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
+				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
 				}
 				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("particles_fragment"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_fragment"), options);
+				}
+				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_fragment"), options);
 				}
 				else
 				{
-					shader = _defaultShaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("gouraud_fragment"), options);
 				}
 			}
 		}

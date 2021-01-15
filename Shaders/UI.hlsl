@@ -18,6 +18,7 @@ cbuffer vertexUniforms
 	matrix modelViewProjectionMatrix;
 	float4 diffuseColor;
 	float4 emissiveColor;
+	float4 cameraAmbientColor;
 };
 
 struct InputVertex
@@ -60,9 +61,9 @@ FragmentVertex ui_vertex(InputVertex vert)
 	result.clipDistance.w = vert.position.y + emissiveColor.w;
 
 #if RN_COLOR
-	result.color = vert.color * diffuseColor;
+	result.color = vert.color * diffuseColor * cameraAmbientColor;
 #else
-	result.color = diffuseColor;
+	result.color = diffuseColor * cameraAmbientColor;
 #endif
 
 	return result;
