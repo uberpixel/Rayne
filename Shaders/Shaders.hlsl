@@ -42,7 +42,7 @@ cbuffer fragmentUniforms
 	float4 diffuseColor;
 	float4 cameraAmbientColor;
 
-#if RN_ALPHA
+#if RN_UV0 && RN_ALPHA
 	float2 alphaToCoverageClamp;
 #endif
 

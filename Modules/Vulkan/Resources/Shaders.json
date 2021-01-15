@@ -136,6 +136,35 @@
         ]
     },
     {
+        "file~vulkan": ":RayneVulkan:/UI.vs.spirv",
+        "shaders": [
+            {
+                "name": "ui_vertex",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_COLOR"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~vulkan": ":RayneVulkan:/UI.ps.spirv",
+        "shaders": [
+            {
+                "name": "ui_fragment",
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
         "file~vulkan": ":RayneVulkan:/PostProcessing.vs.spirv",
         "shaders": [
             {

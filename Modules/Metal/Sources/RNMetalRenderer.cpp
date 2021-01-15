@@ -508,6 +508,7 @@ namespace RN
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
+				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
@@ -515,6 +516,10 @@ namespace RN
 				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_vertex"), options);
+				}
+				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_vertex"), options);
 				}
 				else
 				{
@@ -532,6 +537,7 @@ namespace RN
 			{
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
+				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
 				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
@@ -539,6 +545,10 @@ namespace RN
 				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_fragment"), options);
+				}
+				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				{
+					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_fragment"), options);
 				}
 				else
 				{

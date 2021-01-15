@@ -136,6 +136,35 @@
         ]
     },
     {
+        "file~metal": ":RayneMetal:/UI.vs.metallib",
+        "shaders": [
+            {
+                "name": "ui_vertex",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_COLOR"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/UI.ps.metallib",
+        "shaders": [
+            {
+                "name": "ui_fragment",
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
         "file~metal": ":RayneMetal:/PostProcessing.vs.metallib",
         "shaders": [
             {

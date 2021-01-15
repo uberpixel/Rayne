@@ -31,7 +31,7 @@ namespace RN
 		SetBoundingSphere(Sphere(Vector3(), 1.0f));
 		SetBoundingBox(AABB(Vector3(), 1.0f), false);
 		
-		SetPriority(SceneNode::Priority::UpdateLate);
+		SetUpdatePriority(SceneNode::UpdatePriority::UpdateLate);
 		SetCollisionGroup(25);
 		
 		ReCalculateColor();
@@ -39,6 +39,7 @@ namespace RN
 	
 	Light::Light(const Light *other) :
 		SceneNode(other),
+		_lightSceneEntry(this),
 		_shadowTarget(nullptr),
 		_shadowDepthTexture(nullptr)
 	{
