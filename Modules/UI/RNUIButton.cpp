@@ -14,12 +14,13 @@ namespace RN
 	{
 		RNDefineMeta(Button, ImageView)
 
-		Button::Button() : _imageNormal(nullptr), _imageHighlight(nullptr), _backgroundColorNormal(Color::ClearColor()), _backgroundColorHighlight(Color::ClearColor()), _textColorNormal(Color::White()), _textColorHighlight(Color::Gray()), _isHighlighted(false)
+		Button::Button(const TextAttributes &defaultTextAttributes) : _imageNormal(nullptr), _imageHighlight(nullptr), _backgroundColorNormal(Color::ClearColor()), _backgroundColorHighlight(Color::ClearColor()), _textColorNormal(Color::White()), _textColorHighlight(Color::Gray()), _isHighlighted(false)
 		{
-			_label = new Label();
+			_label = new Label(defaultTextAttributes);
 			AddSubview(_label->Autorelease());
 			
-			_label->SetColor(_textColorNormal);
+			_label->SetTextColor(_textColorNormal);
+			_label->SetVerticalAlignment(TextVerticalAlignmentCenter);
 			SetBackgroundColor(_backgroundColorNormal);
 			SetImage(_imageNormal);
 		}
@@ -28,6 +29,12 @@ namespace RN
 		{
 			SafeRelease(_imageNormal);
 			SafeRelease(_imageHighlight);
+		}
+	
+		void Button::SetFrame(const Rect &frame)
+		{
+			View::SetFrame(frame);
+			_label->SetBounds(GetBounds());
 		}
 
 		void Button::SetImageNormal(Image *image)
@@ -63,22 +70,13 @@ namespace RN
 		void Button::SetTextColorNormal(const Color &color)
 		{
 			_textColorNormal = color;
-			if(!_isHighlighted) _label->SetColor(_textColorNormal);
+			if(!_isHighlighted) _label->SetTextColor(_textColorNormal);
 		}
 	
 		void Button::SetTextColorHighlight(const Color &color)
 		{
 			_textColorHighlight = color;
-			if(_isHighlighted) _label->SetColor(_textColorHighlight);
-		}
-	
-		void Button::LayoutSubviews()
-		{
-			_label->LayoutIfNeeded();
-			Rect labelFrame = GetBounds();
-			labelFrame.y = (labelFrame.height - _label->GetContentSize().y) * 0.5f;
-			labelFrame.height = _label->GetContentSize().y;
-			_label->SetFrame(labelFrame);
+			if(_isHighlighted) _label->SetTextColor(_textColorHighlight);
 		}
 	
 		bool Button::UpdateCursorPosition(const Vector2 &cursorPosition)
@@ -94,13 +92,13 @@ namespace RN
 			
 			if(_isHighlighted)
 			{
-				_label->SetColor(_textColorHighlight);
+				_label->SetTextColor(_textColorHighlight);
 				SetBackgroundColor(_backgroundColorHighlight);
 				SetImage(_imageHighlight);
 			}
-			else
+			else if(wasHighlighted)
 			{
-				_label->SetColor(_textColorNormal);
+				_label->SetTextColor(_textColorNormal);
 				SetBackgroundColor(_backgroundColorNormal);
 				SetImage(_imageNormal);
 			}

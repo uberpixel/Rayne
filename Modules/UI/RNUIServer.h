@@ -24,22 +24,16 @@ namespace RN
 			UIAPI Server(Camera *camera);
 			UIAPI ~Server();
 
-			UIAPI static Server *GetMainServer();
 			UIAPI static Server *GetDefaultServer();
-
 			UIAPI void MakeDefaultServer();
 
 			UIAPI void AddWindow(UI::Window *window);
 			UIAPI void RemoveWindow(UI::Window *window);
 
-			UIAPI void Render(Renderer *renderer);
-
 			float GetHeight() const { return _camera->GetRenderPass()->GetFrame().height; }
 			float GetWidth() const { return _camera->GetRenderPass()->GetFrame().width; }
 
 			Camera *GetCamera() const { return _camera; }
-
-			UIAPI static void InitializeUI();
 		private:
 
 			Camera *_camera;

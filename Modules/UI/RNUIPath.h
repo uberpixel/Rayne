@@ -15,8 +15,6 @@ namespace RN
 {
 	namespace UI
 	{
-		struct PathInternals;
-
 		class Path : public Object
 		{
 		public:
@@ -40,8 +38,6 @@ namespace RN
 			UIAPI Rect GetBounds() const;
 
 		private:
-			PIMPL<PathInternals> _internals;
-
 			RNDeclareMetaAPI(Path, UIAPI)
 		};
 	}

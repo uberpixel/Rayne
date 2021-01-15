@@ -7,7 +7,6 @@
 //
 
 #include "RNUIPath.h"
-#include "RNUIInternals.h"
 
 namespace RN
 {
@@ -24,15 +23,15 @@ namespace RN
 
 		void Path::MoveToPoint(const Vector2 &point)
 		{
-			_internals->path.moveTo(point.x, point.y);
+			//_internals->path.moveTo(point.x, point.y);
 		}
 		void Path::AddLineToPoint(const Vector2 &point)
 		{
-			_internals->path.lineTo(point.x, point.y);
+			//_internals->path.lineTo(point.x, point.y);
 		}
 		void Path::ClosePath()
 		{
-			_internals->path.close();
+			//_internals->path.close();
 		}
 
 
@@ -57,21 +56,21 @@ namespace RN
 
 		void Path::AddRect(const Rect &rect)
 		{
-			_internals->path.addRect(MakeRect(rect));
+			//_internals->path.addRect(MakeRect(rect));
 		}
 		void Path::AddRoundedRect(const Rect &rect, float radius)
 		{
-			_internals->path.addRoundRect(MakeRect(rect), radius, radius);
+			//_internals->path.addRoundRect(MakeRect(rect), radius, radius);
 		}
 		void Path::AddRoundedRect(const Rect &rect, float radiusX, float radiusY)
 		{
-			_internals->path.addRoundRect(MakeRect(rect), radiusX, radiusY);
+			//_internals->path.addRoundRect(MakeRect(rect), radiusX, radiusY);
 		}
 
 		Rect Path::GetBounds() const
 		{
-			const SkRect &rect = _internals->path.getBounds();
-			return Rect(rect.fLeft, rect.fTop, rect.fRight - rect.fLeft, rect.fBottom - rect.fTop);
+			//const SkRect &rect = _internals->path.getBounds();
+			return Rect();//Rect(rect.fLeft, rect.fTop, rect.fRight - rect.fLeft, rect.fBottom - rect.fTop);
 		}
 	}
 }

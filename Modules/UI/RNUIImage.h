@@ -15,8 +15,6 @@ namespace RN
 {
 	namespace UI
 	{
-		struct ImageInternals;
-
 		class Image : public Object
 		{
 		public:
@@ -26,8 +24,6 @@ namespace RN
 			UIAPI static Image *WithName(const String *name);
 
 		private:
-			PIMPL<ImageInternals> _internals;
-
 			RNDeclareMetaAPI(Image, UIAPI)
 		};
 	}

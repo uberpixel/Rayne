@@ -7,7 +7,6 @@
 //
 
 #include "RNUIImage.h"
-#include "RNUIInternals.h"
 
 namespace RN
 {
@@ -17,7 +16,7 @@ namespace RN
 
 		Image::Image(const Bitmap *bitmap)
 		{
-			SkColorType colorType;
+			/*SkColorType colorType;
 
 			switch(bitmap->GetInfo().format)
 			{
@@ -39,7 +38,7 @@ namespace RN
 			SkImageInfo info = SkImageInfo::Make(bitmap->GetWidth(), bitmap->GetHeight(), colorType, kPremul_SkAlphaType, nullptr);
 			SkPixmap pixmap(info, bitmap->GetData()->GetBytes(), bitmap->GetInfo().bytesPerRow);
 
-			_internals->image = SkImage::MakeRasterCopy(pixmap);
+			_internals->image = SkImage::MakeRasterCopy(pixmap);*/
 		}
 
 		Image *Image::WithName(const String *name)

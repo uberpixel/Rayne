@@ -14,24 +14,28 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(View, Object)
+		RNDefineMeta(View, Entity)
 
 		View::View() :
 			_clipsToBounds(true),
 			_clipsToWindow(true),
 			_isHidden(false),
-			_dirtyLayout(false),
+			_needsMeshUpdate(true),
 			_subviews(new Array()),
 			_window(nullptr),
 			_superview(nullptr),
 			_clippingView(nullptr),
 			_backgroundColor(Color::ClearColor())
-		{}
-		View::View(const Rect &frame) :
-			View()
+		{
+			SetRenderGroup(1 << 7);
+			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
+		}
+
+		View::View(const Rect &frame) : View()
 		{
 			SetFrame(frame);
 		}
+		
 		View::~View()
 		{
 			size_t count = _subviews->GetCount();
@@ -168,8 +172,6 @@ namespace RN
 				subview->_clipsToWindow = _clipsToWindow;
 				subview->ViewHierarchyChanged();
 			}
-
-			_dirtyLayout = true;
 		}
 
 		void View::AddSubview(View *subview)
@@ -182,6 +184,7 @@ namespace RN
 			subview->WillMoveToSuperview(this);
 
 			_subviews->AddObject(subview);
+			AddChild(subview);
 
 			subview->_superview = this;
 			subview->_window = _window;
@@ -191,7 +194,6 @@ namespace RN
 			subview->Release();
 
 			DidAddSubview(subview);
-			SetNeedsLayout();
 		}
 
 		void View::RemoveSubview(View *subview)
@@ -205,14 +207,13 @@ namespace RN
 				subview->WillMoveToSuperview(nullptr);
 
 				_subviews->RemoveObjectAtIndex(index);
+				subview->RemoveFromParent();
 
 				subview->_superview = nullptr;
 				subview->_window = nullptr;
 
 				subview->DidMoveToSuperview(nullptr);
 				subview->Release();
-
-				SetNeedsLayout();
 			}
 		}
 
@@ -225,6 +226,7 @@ namespace RN
 
 				WillRemoveSubview(subview);
 				subview->WillMoveToSuperview(nullptr);
+				subview->RemoveFromParent();
 
 				subview->_superview = nullptr;
 				subview->_window = nullptr;
@@ -233,7 +235,6 @@ namespace RN
 			}
 
 			_subviews->RemoveAllObjects();
-			SetNeedsLayout();
 		}
 
 		void View::RemoveFromSuperview()
@@ -300,29 +301,22 @@ namespace RN
 			Vector2 oldSize = _frame.GetSize();
 
 			_frame = frame;
+			
+			SetPosition(RN::Vector3(_frame.x, -_frame.y, 0.0f));
 
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
-
-			SetNeedsLayout();
-			//ResizeSubviewsFromOldSize(oldSize);
+			
+			if(oldSize.GetSquaredDistance(_frame.GetSize()) > 0.0f)
+			{
+				_needsMeshUpdate = true;
+			}
 		}
 
 		void View::SetBounds(const Rect &bounds)
 		{
-/*			if(_frame.GetSize() != bounds.GetSize())
-			{
-				Vector2 size = _frame.GetSize();
-
-				_frame.width  = bounds.width;
-				_frame.height = bounds.height;
-
-				//ResizeSubviewsFromOldSize(size);
-			}*/
-
 			_bounds = bounds;
-
-			SetNeedsLayout();
+			//_needsMeshUpdate = true;
 		}
 	
 		void View::SetHidden(bool hidden)
@@ -333,66 +327,17 @@ namespace RN
 		void View::SetBackgroundColor(const Color &color)
 		{
 			_backgroundColor = color;
+			RN::Model *model = GetModel();
+			if(model)
+			{
+				model->GetLODStage(0)->GetMaterialAtIndex(0)->SetDiffuseColor(_backgroundColor);
+			}
 		}
 
 		// ---------------------
 		// MARK: -
 		// MARK: Layout
 		// ---------------------
-
-		void View::SetNeedsLayout()
-		{
-			_dirtyLayout = true;
-			_subviews->Enumerate<View>([&](View *subview, size_t index, bool &stop) {
-				subview->SetNeedsLayout();
-			});
-		}
-
-		void View::LayoutSubviews()
-		{}
-
-		void View::LayoutIfNeeded()
-		{
-			if(_dirtyLayout)
-			{
-				Vector2 converted  = ConvertPointToView(_bounds.GetOrigin(), nullptr);
-				float serverHeight = 0.0f;
-
-				if(_superview)
-				{
-					_intermediateTransform = _superview->_intermediateTransform * _transform;
-				}
-				else if(_window)
-				{
-					_intermediateTransform = _window->_transform * _transform;
-				}
-
-				if(_window)
-				{
-					converted.x += _window->_frame.x;
-					converted.y += _window->_frame.y;
-
-					//if(_window->_server)
-					//	serverHeight = _window->_server->GetHeight();
-				}
-
-				_finalTransform = _intermediateTransform;
-				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
-
-				CalculateScissorRect();
-				LayoutSubviews();
-
-				_dirtyLayout = false;
-			}
-
-			// Update all children
-			size_t count = _subviews->GetCount();
-			for(size_t i = 0; i < count; i ++)
-			{
-				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->LayoutIfNeeded();
-			}
-		}
 
 		void View::CalculateScissorRect()
 		{
@@ -450,49 +395,152 @@ namespace RN
 			
 			return needsRedraw;
 		}
+	
+		void View::UpdateModel()
+		{
+			float *vertexPositionBuffer = new float[4 * 2];
+			float *vertexUVBuffer = new float[4 * 3];
+			float *vertexColorBuffer = new float[4 * 4];
+			
+			uint32 *indexBuffer = new uint32[6];
+			
+			uint32 vertexOffset = 0;
+			uint32 indexIndexOffset = 0;
+			uint32 indexOffset = 0;
+			
+			vertexPositionBuffer[0 * 2 + 0] = 0.0f;
+			vertexPositionBuffer[0 * 2 + 1] = 0.0f;
+			
+			vertexPositionBuffer[1 * 2 + 0] = _frame.width;
+			vertexPositionBuffer[1 * 2 + 1] = 0.0f;
+			
+			vertexPositionBuffer[2 * 2 + 0] = _frame.width;
+			vertexPositionBuffer[2 * 2 + 1] = -_frame.height;
+			
+			vertexPositionBuffer[3 * 2 + 0] = 0.0f;
+			vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
+			
+			vertexUVBuffer[0 * 3 + 0] = 1.0f;
+			vertexUVBuffer[0 * 3 + 1] = 0.0f;
+			vertexUVBuffer[0 * 3 + 2] = -1.0f;
+			
+			vertexUVBuffer[1 * 3 + 0] = 1.0f;
+			vertexUVBuffer[1 * 3 + 1] = 0.0f;
+			vertexUVBuffer[1 * 3 + 2] = -1.0f;
+			
+			vertexUVBuffer[2 * 3 + 0] = 1.0f;
+			vertexUVBuffer[2 * 3 + 1] = 0.0f;
+			vertexUVBuffer[2 * 3 + 2] = -1.0f;
+			
+			vertexUVBuffer[3 * 3 + 0] = 1.0f;
+			vertexUVBuffer[3 * 3 + 1] = 0.0f;
+			vertexUVBuffer[3 * 3 + 2] = -1.0f;
+			
+			vertexColorBuffer[0 * 4 + 0] = 1.0f;
+			vertexColorBuffer[0 * 4 + 1] = 1.0f;
+			vertexColorBuffer[0 * 4 + 2] = 1.0f;
+			vertexColorBuffer[0 * 4 + 3] = 1.0f;
+			
+			vertexColorBuffer[1 * 4 + 0] = 1.0f;
+			vertexColorBuffer[1 * 4 + 1] = 1.0f;
+			vertexColorBuffer[1 * 4 + 2] = 1.0f;
+			vertexColorBuffer[1 * 4 + 3] = 1.0f;
+			
+			vertexColorBuffer[2 * 4 + 0] = 1.0f;
+			vertexColorBuffer[2 * 4 + 1] = 1.0f;
+			vertexColorBuffer[2 * 4 + 2] = 1.0f;
+			vertexColorBuffer[2 * 4 + 3] = 1.0f;
+			
+			vertexColorBuffer[3 * 4 + 0] = 1.0f;
+			vertexColorBuffer[3 * 4 + 1] = 1.0f;
+			vertexColorBuffer[3 * 4 + 2] = 1.0f;
+			vertexColorBuffer[3 * 4 + 3] = 1.0f;
+		
+			indexBuffer[0] = 0;
+			indexBuffer[1] = 3;
+			indexBuffer[2] = 1;
+			
+			indexBuffer[3] = 3;
+			indexBuffer[4] = 2;
+			indexBuffer[5] = 1;
+			
+			std::vector<Mesh::VertexAttribute> meshVertexAttributes;
+			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
+			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector3);
+			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Vector4);
+			
+			Mesh *mesh = new Mesh(meshVertexAttributes, 4, 6);
+			mesh->BeginChanges();
+			
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
+			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
+			
+			mesh->EndChanges();
+
+			delete[] vertexPositionBuffer;
+			delete[] vertexUVBuffer;
+			delete[] vertexColorBuffer;
+			delete[] indexBuffer;
+			
+			Model *model = GetModel();
+			if(!model)
+			{
+				Material *material = Material::WithShaders(nullptr, nullptr);
+				Shader::Options *shaderOptions = Shader::Options::WithMesh(mesh);
+				shaderOptions->EnableAlpha();
+				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+				material->SetAlphaToCoverage(false);
+				material->SetCullMode(CullMode::None);
+				//material->SetDepthMode(DepthMode::Always);
+				material->SetDepthWriteEnabled(false);
+				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
+				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
+				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+
+				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
+				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
+				
+				material->SetEmissiveColor(Color(-100000.0f, 100000.0f, -100000.0f, 100000.0f));
+
+				model = new Model();
+				model->AddLODStage(0.05f)->AddMesh(mesh->Autorelease(), material);
+				
+				SetModel(model->Autorelease());
+			}
+			else
+			{
+				model->GetLODStage(0)->ReplaceMesh(mesh->Autorelease(), 0);
+			}
+			
+			model->CalculateBoundingVolumes();
+			SetBoundingBox(model->GetBoundingBox());
+			
+			model->GetLODStage(0)->GetMaterialAtIndex(0)->SetDiffuseColor(_backgroundColor);
+		}
 
 		// ---------------------
 		// MARK: -
 		// MARK: Drawing
 		// ---------------------
 
-		void View::Draw(Context *context)
-		{}
-
-		void View::DrawInContext(Context *context)
+		void View::Draw()
 		{
-			if(_isHidden) return;
-			
-			if(_clipsToBounds)
-				context->SetClipRect(_scissorRect);
-
-			if(_backgroundColor.a > 0.05)
+			if(_needsMeshUpdate)
 			{
-				context->SetFillColor(_backgroundColor);
-				context->FillRect(Rect(0, 0, _frame.width, _frame.height));
+				UpdateModel();
+				_needsMeshUpdate = false;
 			}
-
-			Draw(context);
-
-			context->Translate(Vector2(_bounds.x, _bounds.y));
-
+			
 			// Draw all children
 			size_t count = _subviews->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->__DrawInContext(context);
+				child->Draw();
 			}
-		}
-
-		void View::__DrawInContext(Context *context)
-		{
-			context->SaveState();
-			context->Translate(Vector2(_frame.x, _frame.y));
-
-			DrawInContext(context);
-
-			context->RestoreState();
 		}
 	}
 }

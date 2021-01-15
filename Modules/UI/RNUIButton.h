@@ -20,8 +20,10 @@ namespace RN
 		class Button : public ImageView
 		{
 		public:
-			UIAPI Button();
+			UIAPI Button(const TextAttributes &defaultTextAttributes);
 			UIAPI ~Button();
+			
+			UIAPI void SetFrame(const Rect &frame) override;
 
 			UIAPI void SetImageNormal(Image *image);
 			UIAPI void SetImageHighlight(Image *image);
@@ -41,7 +43,6 @@ namespace RN
 			bool GetIsHighlighted() const { return _isHighlighted; }
 			
 		protected:
-			UIAPI virtual void LayoutSubviews() override;
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition) override;
 
 		private:

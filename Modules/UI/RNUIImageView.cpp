@@ -27,16 +27,5 @@ namespace RN
 			SafeRelease(_image);
 			_image = SafeRetain(image);
 		}
-
-		void ImageView::Draw(Context *context)
-		{
-			View::Draw(context);
-
-			if(_image)
-			{
-				context->SetFillColor(RN::Color::White());
-				context->DrawImage(_image, GetBounds());
-			}
-		}
 	}
 }

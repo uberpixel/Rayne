@@ -10,33 +10,25 @@
 #define __RAYNE_UILABEL_H_
 
 #include "RNUIView.h"
+#include "RNUIAttributedString.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		struct LabelInternals;
-		
 		class Label : public View
 		{
 		public:
-			enum Alignment
-			{
-				Left,
-				Center,
-				Right
-			};
-			
-			friend Context;
-			UIAPI Label();
-			UIAPI Label(const Rect &frame);
+			UIAPI Label(const TextAttributes &defaultAttributes);
 			UIAPI ~Label();
 			
-			UIAPI void SetAntialiasing(bool enable);
 			UIAPI void SetText(String *text);
-			UIAPI void SetColor(Color color);
-			UIAPI void SetFont(Font *font);
-			UIAPI void SetAlignment(Alignment alignment);
+			UIAPI void SetAttributedText(AttributedString *text);
+			
+			UIAPI void SetDefaultAttributes(const TextAttributes &attributes);
+			UIAPI void SetTextColor(const Color &color);
+			UIAPI void SetVerticalAlignment(TextVerticalAlignment alignment);
+			
             UIAPI void SetLineHeight(float lineHeight);
 			UIAPI void SetOutlineWidth(float width);
 			UIAPI void SetOutlineColor(Color color);
@@ -44,30 +36,22 @@ namespace RN
 			UIAPI void SetShadowColor(Color color);
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
-			const String *GetText() const { return _text; }
-            Vector2 GetContentSize() const;
-			
-			UIAPI virtual void Draw(Context *context) override;
+			const String *GetText() const { return _attributedText; }
 
 		protected:
-			UIAPI virtual void LayoutSubviews() override;
+			UIAPI virtual void UpdateModel() override;
 
 		private:
-            RN::String *_text;
-            RN::Array *_lines;
-			Color _color;
-			Font *_font;
-			Alignment _alignment;
+			AttributedString *_attributedText;
+			TextAttributes _defaultAttributes;
+			TextVerticalAlignment _verticalAlignment;
+			
             float _lineHeight;
 			float _outlineWidth;
 			Color _outlineColor;
 			float _shadowBlurStrength;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
-            
-            std::vector<Vector2> _lineBounds;
-			
-			PIMPL<LabelInternals> _internals;
 
 			RNDeclareMetaAPI(Label, UIAPI)
 		};

@@ -10,7 +10,6 @@
 #define __RAYNE_UILAYER_H_
 
 #include "RNUIConfig.h"
-#include "RNUIContext.h"
 #include "RNUIEdgeInsets.h"
 
 namespace RN
@@ -18,7 +17,7 @@ namespace RN
 	namespace UI
 	{
 		class Window;
-		class View : public Object
+		class View : public Entity
 		{
 		public:
 			friend class Window;
@@ -55,15 +54,11 @@ namespace RN
 
 			UIAPI void SetBackgroundColor(const Color &color);
 
-			UIAPI void SetNeedsLayout();
-			UIAPI void LayoutIfNeeded();
-
-			UIAPI virtual void Draw(Context *context);
-			UIAPI virtual void DrawInContext(Context *context);
+			UIAPI virtual void Draw();
+			
+			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
 
 		protected:
-			UIAPI virtual void LayoutSubviews();
-
 			UIAPI virtual void DidAddSubview(View *subview);
 			UIAPI virtual void WillRemoveSubview(View *subview);
 			UIAPI virtual void DidBringSubviewToFront(View *subview);
@@ -71,11 +66,11 @@ namespace RN
 			UIAPI virtual void WillMoveToSuperview(View *superview);
 			UIAPI virtual void DidMoveToSuperview(View *superview);
 			
-			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
+			UIAPI virtual void UpdateModel();
+			
+			bool _needsMeshUpdate;
 
 		private:
-			void __DrawInContext(Context *context);
-
 			void ConvertPointToWindow(Vector2 &point) const;
 			void ConvertPointFromWindow(Vector2 &point) const;
 
@@ -92,8 +87,6 @@ namespace RN
 			EdgeInsets _clipInsets;
 			Rect _scissorRect;
 
-			bool _dirtyLayout;
-
 			Color _backgroundColor;
 
 			Window *_window;
@@ -101,10 +94,6 @@ namespace RN
 			View *_superview;
 			View *_clippingView;
 			Array *_subviews;
-
-			Matrix _transform;
-			Matrix _intermediateTransform;
-			Matrix _finalTransform;
 
 			RNDeclareMetaAPI(View, UIAPI)
 		};

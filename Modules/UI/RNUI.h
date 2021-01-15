@@ -12,11 +12,10 @@
 #include <Rayne.h>
 
 #include "RNUIConfig.h"
-#include "RNUIContext.h"
 #include "RNUIPath.h"
 #include "RNUIEdgeInsets.h"
 #include "RNUIImage.h"
-#include "RNUIFont.h"
+#include "RNUIFontManager.h"
 
 #include "RNUIServer.h"
 

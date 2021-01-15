@@ -29,11 +29,6 @@ namespace RN
 			_pixelPerInch = pixelPerInch;
 		}
 
-		void ScrollView::Draw(Context *context)
-		{
-			View::Draw(context);
-		}
-
 		void ScrollView::Update(float delta, Vector2 cursorPosition, bool touched)
 		{
 			if(!_isScrollEnabled)

@@ -25,8 +25,6 @@ namespace RN
 			UIAPI void SetImage(Image *image);
 			Image *GetImage() const { return _image; }
 
-			UIAPI void Draw(Context *context) override;
-
 		private:
 			Image *_image;
 
