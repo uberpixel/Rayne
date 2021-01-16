@@ -17,9 +17,12 @@ namespace RN
 		
 	}
 
-	Material::Properties::Properties(const Properties &properties) : colorWriteMask(properties.colorWriteMask), depthMode(properties.depthMode), depthWriteEnabled(properties.depthWriteEnabled), ambientColor(properties.ambientColor), diffuseColor(properties.diffuseColor), specularColor(properties.specularColor), emissiveColor(properties.emissiveColor), usePolygonOffset(properties.usePolygonOffset), polygonOffsetFactor(properties.polygonOffsetFactor), polygonOffsetUnits(properties.polygonOffsetUnits), useAlphaToCoverage(properties.useAlphaToCoverage), alphaToCoverageClamp(properties.alphaToCoverageClamp), textureTileFactor(properties.textureTileFactor), cullMode(properties.cullMode), blendOperationRGB(properties.blendOperationRGB), blendOperationAlpha(properties.blendOperationAlpha), blendFactorSourceRGB(properties.blendFactorSourceRGB), blendFactorDestinationRGB(properties.blendFactorDestinationRGB), blendFactorSourceAlpha(properties.blendFactorSourceAlpha), blendFactorDestinationAlpha(properties.blendFactorDestinationAlpha)
+	Material::Properties::Properties(const Properties &properties) : colorWriteMask(properties.colorWriteMask), depthMode(properties.depthMode), depthWriteEnabled(properties.depthWriteEnabled), ambientColor(properties.ambientColor), diffuseColor(properties.diffuseColor), specularColor(properties.specularColor), emissiveColor(properties.emissiveColor), usePolygonOffset(properties.usePolygonOffset), polygonOffsetFactor(properties.polygonOffsetFactor), polygonOffsetUnits(properties.polygonOffsetUnits), useAlphaToCoverage(properties.useAlphaToCoverage), alphaToCoverageClamp(properties.alphaToCoverageClamp), textureTileFactor(properties.textureTileFactor), cullMode(properties.cullMode), blendOperationRGB(properties.blendOperationRGB), blendOperationAlpha(properties.blendOperationAlpha), blendFactorSourceRGB(properties.blendFactorSourceRGB), blendFactorDestinationRGB(properties.blendFactorDestinationRGB), blendFactorSourceAlpha(properties.blendFactorSourceAlpha), blendFactorDestinationAlpha(properties.blendFactorDestinationAlpha), _customShaderUniforms(nullptr)
 	{
-		_customShaderUniforms = SafeRetain(properties._customShaderUniforms);
+		if(properties._customShaderUniforms)
+		{
+			_customShaderUniforms = properties._customShaderUniforms->Copy();
+		}
 	}
 
 	Material::Properties::~Properties()
