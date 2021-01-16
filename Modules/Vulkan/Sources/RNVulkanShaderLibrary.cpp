@@ -104,33 +104,6 @@ namespace RN
 		return permutationIndex;
 	}
 
-	static Array *GetUniformDescriptors(const Array *uniforms, uint32 &offset)
-	{
-		Array *uniformDescriptors = new Array();
-		if(uniforms)
-		{
-			uniforms->Enumerate([&](Object *uniform, size_t index, bool &stop) {
-				String *name = uniform->Downcast<String>();
-				if(!name)
-				{
-					Dictionary *dict = uniform->Downcast<Dictionary>();
-					if(dict)
-					{
-						//TODO: WAHHHHH implement custom uniforms
-					}
-				}
-				else
-				{
-					Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
-					offset += descriptor->GetSize();
-					uniformDescriptors->AddObject(descriptor->Autorelease());
-				}
-			});
-		}
-
-		return uniformDescriptors->Autorelease();
-	}
-
 	const Array *VulkanSpecificShaderLibrary::GetSamplerSignature(const Shader::Options *options) const
 	{
 		if(!_signatureDescription)

@@ -25,6 +25,8 @@ namespace RN
 
 	enum class PrimitiveType
 	{
+		Invalid,
+		
 		Uint8,
 		Uint16,
 		Uint32,

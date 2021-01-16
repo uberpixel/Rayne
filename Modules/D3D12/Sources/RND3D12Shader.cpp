@@ -177,6 +177,51 @@ namespace RN
 
 				String *name = RNSTR(variableDescription.Name)->Retain();
 				uint32 offset = variableDescription.StartOffset;
+
+				PrimitiveType uniformType = PrimitiveType::Invalid;
+				if(variableTypeDescription.Type == D3D_SVT_FLOAT)
+				{
+					if(spirvUniformType.Columns == 1)
+					{
+						if(spirvUniformType.Rows == 1) uniformType = PrimitiveType::Float;
+						else if(spirvUniformType.Rows == 2) uniformType = PrimitiveType::Vector2;
+						else if(spirvUniformType.Rows == 3) uniformType = PrimitiveType::Vector3;
+						else if(spirvUniformType.Rows == 4) uniformType = PrimitiveType::Vector4;
+					}
+					else
+					{
+						if(spirvUniformType.Rows == 4) uniformType = PrimitiveType::Matrix;
+					}
+				}
+				else if(spirvUniformType.Columns == 1 && spirvUniformType.Rows == 1)
+				{
+					if(spirvUniformType.basetype == D3D_SVT_INT)
+					{
+						uniformType = PrimitiveType::Int32;
+					}
+					else if(spirvUniformType.basetype == D3D_SVT_UINT)
+					{
+						uniformType = PrimitiveType::Uint32;
+					}
+					//TODO: 16bit int type doesn't seem to exist
+					/*else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Short)
+					{
+						uniformType = PrimitiveType::Int16;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UShort)
+					{
+						uniformType = PrimitiveType::Uint16;
+					}*/
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::D3D_SVT_INT8)
+					{
+						uniformType = PrimitiveType::Int8;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::D3D_SVT_UINT8)
+					{
+						uniformType = PrimitiveType::Uint8;
+					}
+				}
+
 				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}

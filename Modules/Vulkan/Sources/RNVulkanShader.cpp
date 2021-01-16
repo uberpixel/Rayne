@@ -193,7 +193,52 @@ namespace RN
 
 				if(name->GetLength() == 0) break;
 
-				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
+				spirv_cross::SPIRType spirvUniformType = reflector.get_type(type.member_types[index]);
+
+				PrimitiveType uniformType = PrimitiveType::Invalid;
+				if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Float)
+				{
+					if(spirvUniformType.columns == 1)
+					{
+						if(spirvUniformType.vecsize == 1) uniformType = PrimitiveType::Float;
+						else if(spirvUniformType.vecsize == 2) uniformType = PrimitiveType::Vector2;
+						else if(spirvUniformType.vecsize == 3) uniformType = PrimitiveType::Vector3;
+						else if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Vector4;
+					}
+					else
+					{
+						if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Matrix;
+					}
+				}
+				else if(spirvUniformType.columns == 1 && spirvUniformType.vecsize == 1)
+				{
+					if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Int)
+					{
+						uniformType = PrimitiveType::Int32;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UInt)
+					{
+						uniformType = PrimitiveType::Uint32;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Short)
+					{
+						uniformType = PrimitiveType::Int16;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UShort)
+					{
+						uniformType = PrimitiveType::Uint16;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::SByte)
+					{
+						uniformType = PrimitiveType::Int8;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UByte)
+					{
+						uniformType = PrimitiveType::Uint8;
+					}
+				}
+
+				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}
 

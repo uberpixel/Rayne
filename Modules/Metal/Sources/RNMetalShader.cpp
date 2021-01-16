@@ -61,8 +61,55 @@ namespace RN
 					{
 						String *name = RNSTR([[member name] UTF8String]);
 						uint32 offset = [member offset];
+						MTLDataType type = [member dataType];
+						
+						PrimitiveType uniformType = PrimitiveType::Invalid;
+						if(type == MTLDataTypeFloat)
+						{
+							uniformType = PrimitiveType::Float;
+						}
+						else if(type == MTLDataTypeFloat2)
+						{
+							uniformType = PrimitiveType::Vector2;
+						}
+						else if(type == MTLDataTypeFloat3)
+						{
+							uniformType = PrimitiveType::Vector3;
+						}
+						else if(type == MTLDataTypeFloat4)
+						{
+							uniformType = PrimitiveType::Vector4;
+						}
+						else if(type == MTLDataTypeFloat4x4)
+						{
+							uniformType = PrimitiveType::Matrix;
+						}
+						else if(type == MTLDataTypeInt)
+						{
+							uniformType = PrimitiveType::Int32;
+						}
+						else if(type == MTLDataTypeUInt)
+						{
+							uniformType = PrimitiveType::Uint32;
+						}
+						else if(type == MTLDataTypeShort)
+						{
+							uniformType = PrimitiveType::Int16;
+						}
+						else if(type == MTLDataTypeUShort)
+						{
+							uniformType = PrimitiveType::Uint16;
+						}
+						else if(type == MTLDataTypeChar)
+						{
+							uniformType = PrimitiveType::Int8;
+						}
+						else if(type == MTLDataTypeUChar)
+						{
+							uniformType = PrimitiveType::Uint8;
+						}
 
-						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, offset);
+						Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, uniformType, offset);
 						uniformDescriptors->AddObject(descriptor->Autorelease());
 					}
 					

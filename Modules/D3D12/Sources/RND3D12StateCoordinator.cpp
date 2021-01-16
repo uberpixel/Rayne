@@ -44,6 +44,8 @@ namespace RN
 
 	DXGI_FORMAT _vertexFormatLookup[] =
 	{
+		DXGI_FORMAT_UNKNOWN,
+
 		DXGI_FORMAT_R8_UINT,
 		DXGI_FORMAT_R16_UINT,
 		DXGI_FORMAT_R32_UINT,

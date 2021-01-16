@@ -15,6 +15,8 @@ namespace RN
 {
 	MTLVertexFormat _vertexFormatLookup[] =
 	{
+		MTLVertexFormatInvalid,
+		
 		MTLVertexFormatUChar2,
 		MTLVertexFormatUShort2,
 		MTLVertexFormatUInt,

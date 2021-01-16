@@ -22,6 +22,8 @@ namespace RN
 
 	RN_CONSTEXPR PrimitiveTypeEntry __PrimitiveTypeTable[] = {
 
+		{0, 0},
+		
 		{sizeof(uint8),      alignof(uint8)},
 		{sizeof(uint16),     alignof(uint16)},
 		{sizeof(uint32),     alignof(uint32)},

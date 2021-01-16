@@ -17,6 +17,8 @@ namespace RN
 {
 	VkFormat _vertexFormatLookup[] =
 		{
+			VK_FORMAT_UNDEFINED,
+
 			VK_FORMAT_R8G8_UINT,
 			VK_FORMAT_R16G16_UINT,
 			VK_FORMAT_R32_UINT,

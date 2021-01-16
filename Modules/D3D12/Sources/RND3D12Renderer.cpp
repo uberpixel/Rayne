@@ -1328,7 +1328,154 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
-					//TODO: Implement custom shader variables!
+					Object *object = materialProperties.GetCustomShaderUniform(descriptor->GetName());
+					if(object)
+					{
+						if(object->IsKindOfClass(Value::GetMetaClass()))
+						{
+							Value *value = object->Downcast<Value>();
+							switch(value->GetValueType())
+							{
+								case TypeTranslator<Vector2>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Vector2))
+									{
+										Vector2 vector = value->GetValue<Vector2>();
+										std::memcpy(buffer + descriptor->GetOffset(), &vector.x, descriptor->GetSize());
+									}
+									break;
+								}
+								case TypeTranslator<Vector3>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Vector3))
+									{
+										Vector3 vector = value->GetValue<Vector3>();
+										std::memcpy(buffer + descriptor->GetOffset(), &vector.x, descriptor->GetSize());
+									}
+									break;
+								}
+								case TypeTranslator<Vector4>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Vector4))
+									{
+										Vector4 vector = value->GetValue<Vector4>();
+										std::memcpy(buffer + descriptor->GetOffset(), &vector.x, descriptor->GetSize());
+									}
+									break;
+								}
+								case TypeTranslator<Matrix>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Matrix))
+									{
+										Matrix matrix = value->GetValue<Matrix>();
+										std::memcpy(buffer + descriptor->GetOffset(), &matrix.m[0], descriptor->GetSize());
+									}
+									break;
+								}
+								case TypeTranslator<Quaternion>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Quaternion))
+									{
+										Quaternion quaternion = value->GetValue<Quaternion>();
+										std::memcpy(buffer + descriptor->GetOffset(), &quaternion.x, descriptor->GetSize());
+									}
+									break;
+								}
+								case TypeTranslator<Color>::value:
+								{
+									if(descriptor->GetSize() == sizeof(Color))
+									{
+										Color color = value->GetValue<Color>();
+										std::memcpy(buffer + descriptor->GetOffset(), &color.r, descriptor->GetSize());
+									}
+									break;
+								}
+								default:
+									break;
+							}
+						}
+						else
+						{
+							Number *number = object->Downcast<Number>();
+							switch(number->GetType())
+							{
+								case Number::Type::Int8:
+								{
+									if(descriptor->GetSize() == sizeof(int8))
+									{
+										int8 value = number->GetInt8Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Int16:
+								{
+									if(descriptor->GetSize() == sizeof(int8))
+									{
+										int16 value = number->GetInt16Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Int32:
+								{
+									if(descriptor->GetSize() == sizeof(int32))
+									{
+										int32 value = number->GetInt32Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Uint8:
+								{
+									if(descriptor->GetSize() == sizeof(uint8))
+									{
+										uint8 value = number->GetUint8Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Uint16:
+								{
+									if(descriptor->GetSize() == sizeof(uint16))
+									{
+										uint16 value = number->GetUint16Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Uint32:
+								{
+									if(descriptor->GetSize() == sizeof(uint32))
+									{
+										uint32 value = number->GetUint32Value();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Float32:
+								{
+									if(descriptor->GetSize() == sizeof(float))
+									{
+										float value = number->GetFloatValue();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								case Number::Type::Boolean:
+								{
+									if(descriptor->GetSize() == sizeof(bool))
+									{
+										bool value = number->GetBoolValue();
+										std::memcpy(buffer + descriptor->GetOffset(), &value, descriptor->GetSize());
+									}
+									break;
+								}
+								default:
+									break;
+							}
+						}
+					}
 					break;
 				}
 

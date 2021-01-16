@@ -13,6 +13,8 @@
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
 #include "../Objects/RNArray.h"
+#include "../Objects/RNValue.h"
+#include "../Objects/RNNumber.h"
 #include "RNTexture.h"
 #include "RNShader.h"
 #include "RNShaderLibrary.h"
@@ -71,8 +73,14 @@ namespace RN
 	{
 	public:
 		
-		struct Properties
+		class Properties
 		{
+		friend Material;
+		public:
+			Properties();
+			Properties(const Properties &properties);
+			~Properties();
+			
 			uint8 colorWriteMask;
 			
 			DepthMode depthMode;
@@ -98,6 +106,13 @@ namespace RN
 			BlendFactor blendFactorDestinationRGB;
 			BlendFactor blendFactorSourceAlpha;
 			BlendFactor blendFactorDestinationAlpha;
+			
+			RNAPI void SetCustomShaderUniform(const String *name, Value *value);
+			RNAPI void SetCustomShaderUniform(const String *name, Number *number);
+			RNAPI Object *GetCustomShaderUniform(const String *name) const;
+			
+		private:
+			Dictionary *_customShaderUniforms;
 		};
 
 		RN_OPTIONS(Override, uint32,
@@ -110,8 +125,9 @@ namespace RN
 			TextureTileFactor = (1 << 6),
 			CullMode = (1 << 7),
 		   	ColorWriteMask = (1 << 8),
+			CustomUniforms = (1 << 9),
 
-			DefaultDepth = (0xffffffff & ~(GroupPolygonOffset|ColorWriteMask))
+			DefaultDepth = (0xffffffff & ~(GroupPolygonOffset|ColorWriteMask|CustomUniforms))
 		);
 
 		RNAPI Material(Shader *vertexShader, Shader *fragmentShader);
@@ -152,6 +168,10 @@ namespace RN
 
 		RNAPI void SetPolygonOffset(bool enable, float factor = 1.1f, float units = 0.1f);
 		RNAPI void SetAlphaToCoverage(bool enabled, float min = 0.3, float max = 0.8);
+		
+		RNAPI void SetCustomShaderUniform(const String *name, Value *value);
+		RNAPI void SetCustomShaderUniform(const String *name, Number *number);
+		RNAPI Object *GetCustomShaderUniform(const String *name) const;
 
 		uint32 GetOverride() const { return _override; }
 

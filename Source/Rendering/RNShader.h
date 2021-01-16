@@ -90,7 +90,6 @@ namespace RN
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);
-			RNAPI UniformDescriptor(const String *name, size_t offset);
 			RNAPI virtual ~UniformDescriptor();
 
 			const String *GetName() const { return _name; }

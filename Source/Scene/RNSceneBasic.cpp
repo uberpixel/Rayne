@@ -137,7 +137,6 @@ namespace RN
 			while(member)
 			{
 				Camera *camera = member->Get();
-				camera->PostUpdate();
 
 				//Early out if camera is not supposed to render or if this isn't it's priority loop
 				if(camera->GetFlags() & Camera::Flags::NoRender || (cameraPriority == 0 && !(camera->GetFlags() & Camera::Flags::RenderEarly)) || (cameraPriority == 1 && (camera->GetFlags() & Camera::Flags::RenderEarly || camera->GetFlags() & Camera::Flags::RenderLate)) || (cameraPriority == 2 && !(camera->GetFlags() & Camera::Flags::RenderLate)))
@@ -145,6 +144,7 @@ namespace RN
 					member = member->GetNext();
 					continue;
 				}
+				camera->PostUpdate();
 
 				renderer->SubmitCamera(camera, [&] {
 					

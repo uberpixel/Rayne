@@ -12,33 +12,45 @@ namespace RN
 {
 	RNDefineMeta(Material, Object)
 
+	Material::Properties::Properties() : colorWriteMask(0xf), depthMode(DepthMode::Less), depthWriteEnabled(true), ambientColor(Color(0.5f, 0.5f, 0.5f, 1.0f)), diffuseColor(Color(1.0f, 1.0f, 1.0f, 1.0f)), specularColor(Color(1.0f, 1.0f, 1.0f, 4.0f)), emissiveColor(Color(0.0f, 0.0f, 0.0f, 0.0f)), usePolygonOffset(false), polygonOffsetFactor(1.1f), polygonOffsetUnits(0.1f), useAlphaToCoverage(false), alphaToCoverageClamp(1.0f), textureTileFactor(1.0f), cullMode(CullMode::BackFace), blendOperationRGB(BlendOperation::None), blendOperationAlpha(BlendOperation::None), blendFactorSourceRGB(BlendFactor::SourceAlpha), blendFactorDestinationRGB(BlendFactor::OneMinusSourceAlpha), blendFactorSourceAlpha(BlendFactor::SourceAlpha), blendFactorDestinationAlpha(BlendFactor::OneMinusSourceAlpha), _customShaderUniforms(nullptr)
+	{
+		
+	}
+
+	Material::Properties::Properties(const Properties &properties) : colorWriteMask(properties.colorWriteMask), depthMode(properties.depthMode), depthWriteEnabled(properties.depthWriteEnabled), ambientColor(properties.ambientColor), diffuseColor(properties.diffuseColor), specularColor(properties.specularColor), emissiveColor(properties.emissiveColor), usePolygonOffset(properties.usePolygonOffset), polygonOffsetFactor(properties.polygonOffsetFactor), polygonOffsetUnits(properties.polygonOffsetUnits), useAlphaToCoverage(properties.useAlphaToCoverage), alphaToCoverageClamp(properties.alphaToCoverageClamp), textureTileFactor(properties.textureTileFactor), cullMode(properties.cullMode), blendOperationRGB(properties.blendOperationRGB), blendOperationAlpha(properties.blendOperationAlpha), blendFactorSourceRGB(properties.blendFactorSourceRGB), blendFactorDestinationRGB(properties.blendFactorDestinationRGB), blendFactorSourceAlpha(properties.blendFactorSourceAlpha), blendFactorDestinationAlpha(properties.blendFactorDestinationAlpha)
+	{
+		_customShaderUniforms = SafeRetain(properties._customShaderUniforms);
+	}
+
+	Material::Properties::~Properties()
+	{
+		SafeRelease(_customShaderUniforms);
+	}
+
+	void Material::Properties::SetCustomShaderUniform(const String *name, Value *value)
+	{
+		if(!_customShaderUniforms) _customShaderUniforms = new RN::Dictionary();
+		_customShaderUniforms->SetObjectForKey(value, name);
+	}
+
+	void Material::Properties::SetCustomShaderUniform(const String *name, Number *number)
+	{
+		if(!_customShaderUniforms) _customShaderUniforms = new RN::Dictionary();
+		_customShaderUniforms->SetObjectForKey(number, name);
+	}
+
+	Object *Material::Properties::GetCustomShaderUniform(const String *name) const
+	{
+		if(!_customShaderUniforms) return nullptr;
+		return _customShaderUniforms->GetObjectForKey(name);
+	}
+
 	Material::Material(Shader *vertexShader, Shader *fragmentShader) :
 		_override(0),
 		_textures(new Array()),
 		_vertexBuffers(nullptr),
 		_fragmentBuffers(nullptr)
 	{
-		_properties.colorWriteMask = 0xf;
-		_properties.depthMode = DepthMode::Less;
-		_properties.depthWriteEnabled = true;
-	  	_properties.ambientColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
-		_properties.diffuseColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
-		_properties.specularColor = Color(1.0f, 1.0f, 1.0f, 4.0f);
-		_properties.emissiveColor = Color(0.0f, 0.0f, 0.0f, 0.0f);
-		_properties.alphaToCoverageClamp = 1.0f;
-		_properties.useAlphaToCoverage = false;
-		_properties.textureTileFactor = 1.0f;
-		_properties.usePolygonOffset = false;
-		_properties.polygonOffsetFactor = 1.1f;
-		_properties.polygonOffsetUnits = 0.1f;
-		_properties.cullMode = CullMode::BackFace;
-		_properties.blendOperationRGB = BlendOperation::None;
-		_properties.blendOperationAlpha = BlendOperation::None;
-		_properties.blendFactorSourceRGB = BlendFactor::SourceAlpha;
-		_properties.blendFactorSourceAlpha = BlendFactor::SourceAlpha;
-		_properties.blendFactorDestinationRGB = BlendFactor::OneMinusSourceAlpha;
-		_properties.blendFactorDestinationAlpha = BlendFactor::OneMinusSourceAlpha;
-		
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
 		{
 			if(i == 0)
@@ -61,29 +73,9 @@ namespace RN
 		_override(other->_override),
 		_textures(SafeCopy(other->_textures)),
 		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
-		_fragmentBuffers(SafeCopy(other->_fragmentBuffers))
+		_fragmentBuffers(SafeCopy(other->_fragmentBuffers)),
+		_properties(other->_properties)
 	{
-		_properties.colorWriteMask = other->_properties.colorWriteMask;
-		_properties.depthMode = other->_properties.depthMode;
-		_properties.depthWriteEnabled = other->_properties.depthWriteEnabled;
-		_properties.ambientColor = other->_properties.ambientColor;
-		_properties.diffuseColor = other->_properties.diffuseColor;
-		_properties.specularColor = other->_properties.specularColor;
-		_properties.emissiveColor = other->_properties.emissiveColor;
-		_properties.alphaToCoverageClamp = other->_properties.alphaToCoverageClamp;
-		_properties.useAlphaToCoverage = other->_properties.useAlphaToCoverage;
-		_properties.textureTileFactor = other->_properties.textureTileFactor;
-		_properties.usePolygonOffset = other->_properties.usePolygonOffset;
-		_properties.polygonOffsetFactor = other->_properties.polygonOffsetFactor;
-		_properties.polygonOffsetUnits = other->_properties.polygonOffsetUnits;
-		_properties.cullMode = other->_properties.cullMode;
-		_properties.blendOperationRGB = other->_properties.blendOperationRGB;
-		_properties.blendOperationAlpha = other->_properties.blendOperationAlpha;
-		_properties.blendFactorSourceRGB = other->_properties.blendFactorSourceRGB;
-		_properties.blendFactorSourceAlpha = other->_properties.blendFactorSourceAlpha;
-		_properties.blendFactorDestinationRGB = other->_properties.blendFactorDestinationRGB;
-		_properties.blendFactorDestinationAlpha = other->_properties.blendFactorDestinationAlpha;
-		
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
 		{
 			_vertexShader[i] = SafeRetain(other->_vertexShader[i]);
@@ -247,6 +239,21 @@ namespace RN
 		_properties.blendFactorDestinationAlpha = blendFactorAlpha;
 	}
 
+	void Material::SetCustomShaderUniform(const String *name, Value *value)
+	{
+		_properties.SetCustomShaderUniform(name, value);
+	}
+
+	void Material::SetCustomShaderUniform(const String *name, Number *number)
+	{
+		_properties.SetCustomShaderUniform(name, number);
+	}
+
+	Object *Material::GetCustomShaderUniform(const String *name) const
+	{
+		return _properties.GetCustomShaderUniform(name);
+	}
+
 	Shader *Material::GetFragmentShader(Shader::UsageHint type) const
 	{
 		if(!_fragmentShader[static_cast<uint8>(type)] && !_vertexShader[static_cast<uint8>(type)])
@@ -318,6 +325,22 @@ namespace RN
 		if(!(overrideMaterial->GetOverride() & Override::CullMode) && !(_override & Override::CullMode))
 		{
 			properties.cullMode = overrideMaterial->_properties.cullMode;
+		}
+		
+		if(!(overrideMaterial->GetOverride() & Override::CustomUniforms) && !(_override & Override::CustomUniforms))
+		{
+			if(overrideMaterial->_properties._customShaderUniforms)
+			{
+				if(!properties._customShaderUniforms)
+				{
+					properties._customShaderUniforms = overrideMaterial->_properties._customShaderUniforms->Retain();
+				}
+				else
+				{
+					//This seems to override any existing values, so exactly what I want here.
+					properties._customShaderUniforms->AddEntriesFromDictionary(overrideMaterial->_properties._customShaderUniforms);
+				}
+			}
 		}
 
 		return properties;

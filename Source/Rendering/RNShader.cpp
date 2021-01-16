@@ -108,10 +108,6 @@ namespace RN
 		_identifier(Identifier::Custom),
 		_type(type),
 		_offset(offset)
-	{}
-
-	Shader::UniformDescriptor::UniformDescriptor(const String *name, size_t offset) :
-		_name(name->Copy()), _offset(offset)
 	{
 		if(name->IsEqual(RNCSTR("global_time")) || name->IsEqual(RNCSTR("time")))
 		{
