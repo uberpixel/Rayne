@@ -52,7 +52,8 @@ namespace RN
 		_override(0),
 		_textures(new Array()),
 		_vertexBuffers(nullptr),
-		_fragmentBuffers(nullptr)
+		_fragmentBuffers(nullptr),
+		_skipRendering(false)
 	{
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
 		{
@@ -77,6 +78,7 @@ namespace RN
 		_textures(SafeCopy(other->_textures)),
 		_vertexBuffers(SafeCopy(other->_vertexBuffers)),
 		_fragmentBuffers(SafeCopy(other->_fragmentBuffers)),
+		_skipRendering(other->_skipRendering),
 		_properties(other->_properties)
 	{
 		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
@@ -255,6 +257,11 @@ namespace RN
 	Object *Material::GetCustomShaderUniform(const String *name) const
 	{
 		return _properties.GetCustomShaderUniform(name);
+	}
+
+	void Material::SetSkipRendering(bool skip)
+	{
+		_skipRendering = skip;
 	}
 
 	Shader *Material::GetFragmentShader(Shader::UsageHint type) const

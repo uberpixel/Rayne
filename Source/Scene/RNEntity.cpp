@@ -95,10 +95,14 @@ namespace RN
 
 		for(size_t i = 0; i < count; i ++)
 		{
-			Drawable *drawable = drawables[i];
-
-			drawable->Update(stage->GetMeshAtIndex(i), stage->GetMaterialAtIndex(i), _model->GetSkeleton(), this);
-			renderer->SubmitDrawable(drawable);
+			Material *material = stage->GetMaterialAtIndex(i);
+			
+			if(!material->GetSkipRendering())
+			{
+				Drawable *drawable = drawables[i];
+				drawable->Update(stage->GetMeshAtIndex(i), material, _model->GetSkeleton(), this);
+				renderer->SubmitDrawable(drawable);
+			}
 		}
 	}
 }

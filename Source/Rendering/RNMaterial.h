@@ -172,6 +172,9 @@ namespace RN
 		RNAPI void SetCustomShaderUniform(const String *name, Value *value);
 		RNAPI void SetCustomShaderUniform(const String *name, Number *number);
 		RNAPI Object *GetCustomShaderUniform(const String *name) const;
+		
+		RNAPI void SetSkipRendering(bool skip);
+		bool GetSkipRendering() const { return _skipRendering; }
 
 		uint32 GetOverride() const { return _override; }
 
@@ -215,6 +218,8 @@ namespace RN
 		Array *_textures;
 		Array *_vertexBuffers;
 		Array *_fragmentBuffers;
+		
+		bool _skipRendering;
 
 		Properties _properties;
 
