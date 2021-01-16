@@ -10,7 +10,6 @@
 #define __RAYNE_UIIMAGEVIEW_H_
 
 #include "RNUIView.h"
-#include "RNUIImage.h"
 
 namespace RN
 {
@@ -22,11 +21,15 @@ namespace RN
 			UIAPI ImageView();
 			UIAPI ~ImageView();
 
-			UIAPI void SetImage(Image *image);
-			Image *GetImage() const { return _image; }
+			UIAPI void SetImage(Texture *image);
+			Texture *GetImage() const { return _image; }
+			
+		protected:
+			UIAPI virtual void UpdateModel() override;
 
 		private:
-			Image *_image;
+			Texture *_image;
+			bool _isFirstImage;
 
 			RNDeclareMetaAPI(ImageView, UIAPI)
 		};

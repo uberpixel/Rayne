@@ -19,7 +19,6 @@ set(SOURCES
         RNUIServer.cpp
         RNUIInit.cpp
         RNUIEdgeInsets.h
-        RNUIImage.cpp
         RNUIFontManager.cpp
         RNUIImageView.cpp
         RNUIButton.cpp
@@ -37,7 +36,6 @@ set(HEADERS
         RNUIServer.h
         RNUIConfig.h
         RNUIEdgeInsets.h
-        RNUIImage.h
         RNUIFontManager.h
         RNUIImageView.h
         RNUIButton.h

@@ -25,16 +25,16 @@ namespace RN
 			
 			UIAPI void SetFrame(const Rect &frame) override;
 
-			UIAPI void SetImageNormal(Image *image);
-			UIAPI void SetImageHighlight(Image *image);
+			UIAPI void SetImageNormal(Texture *image);
+			UIAPI void SetImageHighlight(Texture *image);
 			UIAPI void SetBackgroundColorNormal(const Color &color);
 			UIAPI void SetBackgroundColorHighlight(const Color &color);
 			UIAPI void SetTextColorNormal(const Color &color);
 			UIAPI void SetTextColorHighlight(const Color &color);
 			
 			Label *GetLabel() const { return _label; }
-			Image *GetImageNormal() const { return _imageNormal; }
-			Image *GetImageHighlight() const { return _imageHighlight; }
+			Texture *GetImageNormal() const { return _imageNormal; }
+			Texture *GetImageHighlight() const { return _imageHighlight; }
 			const Color &GetBackgroundColorNormal() const { return _backgroundColorNormal; }
 			const Color &GetBackgroundColorHighlight() const { return _backgroundColorHighlight; }
 			const Color &GetTextColorNormal() const { return _textColorNormal; }
@@ -48,8 +48,8 @@ namespace RN
 		private:
 			Label *_label;
 			
-			Image *_imageNormal;
-			Image *_imageHighlight;
+			Texture *_imageNormal;
+			Texture *_imageHighlight;
 			Color _backgroundColorNormal;
 			Color _backgroundColorHighlight;
 			Color _textColorNormal;

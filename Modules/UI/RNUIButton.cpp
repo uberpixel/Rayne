@@ -37,7 +37,7 @@ namespace RN
 			_label->SetBounds(GetBounds());
 		}
 
-		void Button::SetImageNormal(Image *image)
+		void Button::SetImageNormal(Texture *image)
 		{
 			SafeRelease(_imageNormal);
 			_imageNormal = image;
@@ -46,7 +46,7 @@ namespace RN
 			if(!_isHighlighted) SetImage(_imageNormal);
 		}
 	
-		void Button::SetImageHighlight(Image *image)
+		void Button::SetImageHighlight(Texture *image)
 		{
 			SafeRelease(_imageHighlight);
 			_imageHighlight = image;
