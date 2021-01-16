@@ -259,6 +259,8 @@ namespace RN
 			return future.Get().get();
 		}
 
+		RNDebug("Loading asset " << name);
+
 		// Load the resource
 		File *file;
 		Dictionary *settings = SafeCopy(tsettings);
