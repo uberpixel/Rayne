@@ -16,7 +16,7 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _lineHeight(1.0f), _outlineWidth(0.0f), _shadowBlurStrength(0.0f)
+		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f)
 		{
 			
 		}
@@ -58,9 +58,9 @@ namespace RN
 			_needsMeshUpdate = true;
 		}
     
-        void Label::SetLineHeight(float lineHeight)
+        void Label::SetAdditionalLineHeight(float lineHeight)
         {
-            _lineHeight = lineHeight;
+			_additionalLineHeight = lineHeight;
 			_needsMeshUpdate = true;
         }
 		
@@ -98,8 +98,9 @@ namespace RN
 			uint32 numberOfVertices = 0;
 			uint32 numberOfIndices = 0;
 			
-			Array *characters = new Array();
-			Array *spacings = new Array();
+			Array *characters = new Array(_attributedText->GetLength());
+			Array *spacings = new Array(_attributedText->GetLength());
+			
 			std::vector<int> linebreaks;
 			std::vector<float> linewidth;
 			std::vector<float> lineascent;
@@ -134,7 +135,7 @@ namespace RN
 				Font *currentFont = currentAttributes->GetFont();
 				
 				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
-				float offset = currentFont->GetOffsetForNextCharacter(currentCodepoint, nextCodepoint) * scaleFactor;
+				float offset = currentFont->GetOffsetForNextCharacter(currentCodepoint, nextCodepoint) * scaleFactor + currentAttributes->GetKerning();
 				
 				float characterAscent = currentFont->GetAscent() * scaleFactor;
 				float characterDescent = -currentFont->GetDescent() * scaleFactor;
@@ -161,21 +162,22 @@ namespace RN
 					
 					if(currentCodepoint > 0)
 					{
-						float previousOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, currentCodepoint) * scaleFactor;
-						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor;
+						//TODO: To adjsut this correctly, the previous characters attributes are needed...
+						float previousOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, currentCodepoint) * scaleFactor + currentAttributes->GetKerning();
+						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
 				}
 				
 				if(currentCodepoint == 10)
 				{
-					totalHeight += maxAscent + maxDescent + maxLineOffset;
+					totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
 					
 					linebreaks.push_back(i);
 					linewidth.push_back(currentWidth);
 					lineascent.push_back(maxAscent);
 					linedescent.push_back(maxDescent);
-					lineoffset.push_back(maxLineOffset * _lineHeight);
+					lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 					maxAscent = 0.0f;
 					maxDescent = 0.0f;
 					maxLineOffset = 0.0f;
@@ -202,13 +204,13 @@ namespace RN
 					lastWhitespaceRange.length = 0;
 					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
 					{
-						totalHeight += maxAscent + maxDescent + maxLineOffset;
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
 						
 						linebreaks.push_back(lastWhiteSpaceIndex);
 						linewidth.push_back(lastWordWidth);
 						lineascent.push_back(lastWordMaxAscent);
 						linedescent.push_back(lastWordMaxDescent);
-						lineoffset.push_back(lastWordMaxLineOffset * _lineHeight);
+						lineoffset.push_back(lastWordMaxLineOffset + _additionalLineHeight);
 						currentWidth -= lastWordWidth;
 						maxAscent = tempMaxAscent;
 						tempMaxAscent = 0.0f;
@@ -229,7 +231,7 @@ namespace RN
 					}
 					else
 					{
-						totalHeight += maxAscent + maxDescent + maxLineOffset;
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
 						
 						linewidth.push_back(currentWidth);
 						currentWidth = 0.0f;
@@ -237,7 +239,7 @@ namespace RN
 						
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
-						lineoffset.push_back(maxLineOffset * _lineHeight);
+						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 						maxAscent = 0.0f;
 						maxDescent = 0.0f;
 						maxLineOffset = 0.0f;
@@ -252,7 +254,7 @@ namespace RN
 			linewidth.push_back(currentWidth);
 			lineascent.push_back(maxAscent);
 			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset * _lineHeight);
+			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 
 			float *vertexPositionBuffer = new float[numberOfVertices * 2];
 			float *vertexUVBuffer = new float[numberOfVertices * 3];

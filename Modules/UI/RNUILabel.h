@@ -29,7 +29,7 @@ namespace RN
 			UIAPI void SetTextColor(const Color &color);
 			UIAPI void SetVerticalAlignment(TextVerticalAlignment alignment);
 			
-            UIAPI void SetLineHeight(float lineHeight);
+            UIAPI void SetAdditionalLineHeight(float lineHeight);
 			UIAPI void SetShadowColor(Color color);
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
@@ -43,7 +43,7 @@ namespace RN
 			TextAttributes _defaultAttributes;
 			TextVerticalAlignment _verticalAlignment;
 			
-            float _lineHeight;
+            float _additionalLineHeight;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
 

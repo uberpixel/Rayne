@@ -43,8 +43,8 @@ namespace RN
 		{
 		friend AttributedString;
 		public:
-			UIAPI TextAttributes(Font *font, float fontSize, RN::Color color, TextAlignment alignment = TextAlignmentLeft, TextWrapMode wrapMode = TextWrapModeWord) : _font(font->Retain()), _color(color), _alignment(alignment), _wrapMode(wrapMode), _fontSize(fontSize) {}
-			UIAPI TextAttributes(const TextAttributes &attributes) : _font(attributes._font->Retain()), _color(attributes._color), _alignment(attributes._alignment), _wrapMode(attributes._wrapMode), _fontSize(attributes._fontSize), _range(attributes._range) {}
+			UIAPI TextAttributes(Font *font, float fontSize, RN::Color color, TextAlignment alignment = TextAlignmentLeft, TextWrapMode wrapMode = TextWrapModeWord, float kerning = 0.0f) : _font(font->Retain()), _color(color), _alignment(alignment), _wrapMode(wrapMode), _fontSize(fontSize), _kerning(kerning) {}
+			UIAPI TextAttributes(const TextAttributes &attributes) : _font(attributes._font->Retain()), _color(attributes._color), _alignment(attributes._alignment), _wrapMode(attributes._wrapMode), _fontSize(attributes._fontSize), _kerning(attributes._kerning), _range(attributes._range) {}
 			UIAPI ~TextAttributes() {_font->Release();}
 			
 			UIAPI void SetFont(Font *font);
@@ -52,12 +52,14 @@ namespace RN
 			UIAPI void SetColor(const Color &color);
 			UIAPI void SetAlignment(TextAlignment alignment);
 			UIAPI void SetWrapMode(TextWrapMode wrapMode);
+			UIAPI void SetKerning(float kerning);
 			
 			Font *GetFont() const { return _font; }
 			const Color &GetColor() const { return _color; }
 			TextAlignment GetAlignment() const { return _alignment; }
 			TextWrapMode GetWrapMode() const { return _wrapMode; }
 			float GetFontSize() const { return _fontSize; }
+			float GetKerning() const { return _kerning; }
 			
 		private:
 			Font *_font;
@@ -65,6 +67,7 @@ namespace RN
 			TextAlignment _alignment;
 			TextWrapMode _wrapMode;
 			float _fontSize;
+			float _kerning;
 			
 			RN::Range _range;
 		};
