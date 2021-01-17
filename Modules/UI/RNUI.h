@@ -14,7 +14,6 @@
 #include "RNUIConfig.h"
 #include "RNUIPath.h"
 #include "RNUIEdgeInsets.h"
-#include "RNUIImage.h"
 #include "RNUIFontManager.h"
 
 #include "RNUIServer.h"
