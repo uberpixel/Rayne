@@ -327,7 +327,9 @@ namespace RN
 			RN::Model *model = GetModel();
 			if(model)
 			{
-				model->GetLODStage(0)->GetMaterialAtIndex(0)->SetDiffuseColor(_backgroundColor);
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				material->SetDiffuseColor(_backgroundColor);
+				material->SetSkipRendering(_backgroundColor.a < k::EpsilonFloat);
 			}
 		}
 
@@ -359,7 +361,7 @@ namespace RN
 				Model::LODStage *lodStage = model->GetLODStage(0);
 				for(int i = 0; i < lodStage->GetCount(); i++)
 				{
-					lodStage->GetMaterialAtIndex(i)->SetEmissiveColor(Color(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom()));
+					lodStage->GetMaterialAtIndex(i)->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom())));
 				}
 			}
 			
@@ -393,7 +395,6 @@ namespace RN
 		{
 			float *vertexPositionBuffer = new float[4 * 2];
 			float *vertexUVBuffer = new float[4 * 2];
-			float *vertexColorBuffer = new float[4 * 4];
 			
 			uint32 *indexBuffer = new uint32[6];
 			
@@ -424,26 +425,6 @@ namespace RN
 			
 			vertexUVBuffer[3 * 2 + 0] = 0.0f;
 			vertexUVBuffer[3 * 2 + 1] = 1.0f;
-			
-			vertexColorBuffer[0 * 4 + 0] = 1.0f;
-			vertexColorBuffer[0 * 4 + 1] = 1.0f;
-			vertexColorBuffer[0 * 4 + 2] = 1.0f;
-			vertexColorBuffer[0 * 4 + 3] = 1.0f;
-			
-			vertexColorBuffer[1 * 4 + 0] = 1.0f;
-			vertexColorBuffer[1 * 4 + 1] = 1.0f;
-			vertexColorBuffer[1 * 4 + 2] = 1.0f;
-			vertexColorBuffer[1 * 4 + 3] = 1.0f;
-			
-			vertexColorBuffer[2 * 4 + 0] = 1.0f;
-			vertexColorBuffer[2 * 4 + 1] = 1.0f;
-			vertexColorBuffer[2 * 4 + 2] = 1.0f;
-			vertexColorBuffer[2 * 4 + 3] = 1.0f;
-			
-			vertexColorBuffer[3 * 4 + 0] = 1.0f;
-			vertexColorBuffer[3 * 4 + 1] = 1.0f;
-			vertexColorBuffer[3 * 4 + 2] = 1.0f;
-			vertexColorBuffer[3 * 4 + 3] = 1.0f;
 		
 			indexBuffer[0] = 0;
 			indexBuffer[1] = 3;
@@ -457,21 +438,18 @@ namespace RN
 			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
 			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
 			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
-			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Vector4);
 			
 			Mesh *mesh = new Mesh(meshVertexAttributes, 4, 6);
 			mesh->BeginChanges();
 			
 			mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
 			mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
-			mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 			
 			mesh->EndChanges();
 
 			delete[] vertexPositionBuffer;
 			delete[] vertexUVBuffer;
-			delete[] vertexColorBuffer;
 			delete[] indexBuffer;
 			
 			Model *model = GetModel();
@@ -481,7 +459,6 @@ namespace RN
 				Shader::Options *shaderOptions = Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-				shaderOptions->AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				//material->SetDepthMode(DepthMode::Always);
@@ -489,12 +466,13 @@ namespace RN
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+				material->SetSkipRendering(_backgroundColor.a < k::EpsilonFloat);
+				material->SetDiffuseColor(_backgroundColor);
 
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				
-				material->SetEmissiveColor(Color(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom()));
-				//material->SetEmissiveColor(Color(-100000.0f, 100000.0f, -100000.0f, 100000.0f));
+				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom())));
 
 				model = new Model();
 				model->AddLODStage(0.05f)->AddMesh(mesh->Autorelease(), material);
@@ -508,8 +486,6 @@ namespace RN
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
-			
-			model->GetLODStage(0)->GetMaterialAtIndex(0)->SetDiffuseColor(_backgroundColor);
 		}
 
 		// ---------------------

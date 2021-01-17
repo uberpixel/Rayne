@@ -29,7 +29,6 @@ namespace RN
 
 		private:
 			Texture *_image;
-			bool _isFirstImage;
 
 			RNDeclareMetaAPI(ImageView, UIAPI)
 		};

@@ -143,6 +143,7 @@
 					"options":
 					[
 						"RN_UV0",
+						"RN_UV1",
 						"RN_COLOR"
 					]
 				}
@@ -155,7 +156,8 @@
 				{
 					"options":
 					[
-						"RN_UV0"
+						"RN_UV0",
+						"RN_UV1"
 					]
 				}
 			}

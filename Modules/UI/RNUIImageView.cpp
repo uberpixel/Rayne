@@ -15,8 +15,11 @@ namespace RN
 		RNDefineMeta(ImageView, View)
 
 		ImageView::ImageView() :
-			_image(nullptr), _isFirstImage(true)
-		{}
+			_image(nullptr)
+		{
+			
+		}
+	
 		ImageView::~ImageView()
 		{
 			SafeRelease(_image);
@@ -24,9 +27,7 @@ namespace RN
 
 		void ImageView::SetImage(Texture *image)
 		{
-			if(_image == image && (!_isFirstImage || !_image)) return;
-			
-			bool needsMaterialChange = (_image != nullptr) != (image != nullptr);
+			if(_image == image) return;
 			
 			SafeRelease(_image);
 			_image = SafeRetain(image);
@@ -34,32 +35,49 @@ namespace RN
 			Model *model = GetModel();
 			if(model)
 			{
-				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
 				material->RemoveAllTextures();
-				
 				if(_image) material->AddTexture(_image);
 				
-				if(needsMaterialChange || _isFirstImage)
-				{
-					Shader::Options *shaderOptions = Shader::Options::WithNone();
-					shaderOptions->EnableAlpha();
-					shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-					shaderOptions->AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
-					if(_image) shaderOptions->AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
-					
-					material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
-					material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
-				}
+				material->SetSkipRendering(_image == nullptr);
 			}
 		}
 	
 		void ImageView::UpdateModel()
 		{
 			View::UpdateModel();
-			SafeRetain(_image);
-			SetImage(_image);
-			SafeRelease(_image);
-			_isFirstImage = false;
+			RN::Model::LODStage *lodStage = GetModel()->GetLODStage(0);
+			
+			if(lodStage->GetCount() < 2)
+			{
+				RN::Shader::Options *shaderOptions = RN::Shader::Options::WithNone();
+				shaderOptions->EnableAlpha();
+				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+				shaderOptions->AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+				
+				RN::Material *material = RN::Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
+				material->SetAlphaToCoverage(false);
+				material->SetDepthWriteEnabled(false);
+				material->SetCullMode(CullMode::None);
+				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
+				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
+				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+				material->SetDiffuseColor(Color::White());
+				
+				const Rect &scissorRect = GetScissorRect();
+				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+				
+				lodStage->AddMesh(lodStage->GetMeshAtIndex(0), material);
+				
+				if(_image) material->AddTexture(_image);
+				material->SetSkipRendering(_image == nullptr);
+				
+				SetModel(GetModel());
+			}
+			else
+			{
+				lodStage->ReplaceMesh(lodStage->GetMeshAtIndex(0), 1);
+			}
 		}
 	}
 }

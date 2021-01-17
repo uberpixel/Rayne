@@ -26,8 +26,10 @@ cbuffer vertexUniforms
 {
 	matrix modelViewProjectionMatrix;
 	float4 diffuseColor;
-	float4 emissiveColor;
 	float4 cameraAmbientColor;
+
+	float4 uiClippingRect;
+	float2 uiOffset;
 };
 
 struct InputVertex
@@ -73,12 +75,13 @@ FragmentVertex ui_vertex(InputVertex vert)
 	result.curveTexCoords = vert.curveTexCoords;
 #endif
 
-	result.position = mul(modelViewProjectionMatrix, float4(vert.position, 0.0, 1.0));
+	float2 position = vert.position + uiOffset;
+	result.position = mul(modelViewProjectionMatrix, float4(position, 0.0, 1.0));
 
-	result.clipDistance.x = vert.position.x - emissiveColor.x;
-	result.clipDistance.y = emissiveColor.y - vert.position.x;
-	result.clipDistance.z = -emissiveColor.z - vert.position.y;
-	result.clipDistance.w = vert.position.y + emissiveColor.w;
+	result.clipDistance.x = position.x - uiClippingRect.x;
+	result.clipDistance.y = uiClippingRect.y - position.x;
+	result.clipDistance.z = -uiClippingRect.z - position.y;
+	result.clipDistance.w = position.y + uiClippingRect.w;
 
 #if RN_COLOR
 	result.color = vert.color * diffuseColor * cameraAmbientColor;

@@ -83,11 +83,25 @@ namespace RN
 		void Label::SetShadowColor(Color color)
 		{
 			_shadowColor = color;
+			
+			Model *model = GetModel();
+			if(model)
+			{
+				Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
+				shadowMaterial->SetDiffuseColor(_shadowColor);
+				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
+			}
 		}
 		
 		void Label::SetShadowOffset(Vector2 offset)
 		{
 			_shadowOffset = offset;
+			
+			Model *model = GetModel();
+			if(model)
+			{
+				model->GetLODStage(0)->GetMaterialAtIndex(1)->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+			}
 		}
 	
 	
@@ -375,33 +389,45 @@ namespace RN
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
 				material->SetAlphaToCoverage(false);
-				//material->SetDepthMode(DepthMode::Always);
 				material->SetDepthWriteEnabled(false);
 				material->SetCullMode(CullMode::None);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
-
+				material->SetDiffuseColor(Color::White());
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				
 				const Rect &scissorRect = GetScissorRect();
-				material->SetEmissiveColor(Color(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom()));
-				//material->SetEmissiveColor(Color(-100000.0f, 100000.0f, -100000.0f, 100000.0f));
-
+				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+				
+				RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
+				shadowShaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
+				shadowShaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+				shadowShaderOptions->EnableAlpha();
+				
+				Material *shadowMaterial = material->Copy();
+				shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions));
+				shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions));
+				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
+				shadowMaterial->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+				shadowMaterial->SetDiffuseColor(_shadowColor);
+				
+				material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(0.0f, 0.0f)));
+				
+				model->GetLODStage(0)->AddMesh(textMesh, shadowMaterial);
 				model->GetLODStage(0)->AddMesh(textMesh->Autorelease(), material);
 				
 				SetModel(model);
 			}
 			else
 			{
-				model->GetLODStage(0)->ReplaceMesh(textMesh->Autorelease(), 1);
+				model->GetLODStage(0)->ReplaceMesh(textMesh, 1);
+				model->GetLODStage(0)->ReplaceMesh(textMesh->Autorelease(), 2);
 			}
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
-			
-			model->GetLODStage(0)->GetMaterialAtIndex(1)->SetDiffuseColor(Color::White());
 		}
 	}
 }
