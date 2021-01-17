@@ -30,9 +30,6 @@ namespace RN
 			UIAPI void SetVerticalAlignment(TextVerticalAlignment alignment);
 			
             UIAPI void SetLineHeight(float lineHeight);
-			UIAPI void SetOutlineWidth(float width);
-			UIAPI void SetOutlineColor(Color color);
-			UIAPI void SetShadowBlurStrength(float strength);
 			UIAPI void SetShadowColor(Color color);
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
@@ -47,9 +44,6 @@ namespace RN
 			TextVerticalAlignment _verticalAlignment;
 			
             float _lineHeight;
-			float _outlineWidth;
-			Color _outlineColor;
-			float _shadowBlurStrength;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
 

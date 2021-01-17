@@ -63,22 +63,6 @@ namespace RN
             _lineHeight = lineHeight;
 			_needsMeshUpdate = true;
         }
-	
-		void Label::SetOutlineWidth(float width)
-		{
-			_outlineWidth = width;
-			//_internals->style.setStrokeWidth(_outlineWidth);
-		}
-		
-		void Label::SetOutlineColor(Color color)
-		{
-			_outlineColor = color;
-		}
-	
-		void Label::SetShadowBlurStrength(float strength)
-		{
-			_shadowBlurStrength = strength;
-		}
 		
 		void Label::SetShadowColor(Color color)
 		{
@@ -191,7 +175,7 @@ namespace RN
 					linewidth.push_back(currentWidth);
 					lineascent.push_back(maxAscent);
 					linedescent.push_back(maxDescent);
-					lineoffset.push_back(maxLineOffset);
+					lineoffset.push_back(maxLineOffset * _lineHeight);
 					maxAscent = 0.0f;
 					maxDescent = 0.0f;
 					maxLineOffset = 0.0f;
@@ -224,7 +208,7 @@ namespace RN
 						linewidth.push_back(lastWordWidth);
 						lineascent.push_back(lastWordMaxAscent);
 						linedescent.push_back(lastWordMaxDescent);
-						lineoffset.push_back(lastWordMaxLineOffset);
+						lineoffset.push_back(lastWordMaxLineOffset * _lineHeight);
 						currentWidth -= lastWordWidth;
 						maxAscent = tempMaxAscent;
 						tempMaxAscent = 0.0f;
@@ -253,7 +237,7 @@ namespace RN
 						
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
-						lineoffset.push_back(maxLineOffset);
+						lineoffset.push_back(maxLineOffset * _lineHeight);
 						maxAscent = 0.0f;
 						maxDescent = 0.0f;
 						maxLineOffset = 0.0f;
@@ -268,7 +252,7 @@ namespace RN
 			linewidth.push_back(currentWidth);
 			lineascent.push_back(maxAscent);
 			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset);
+			lineoffset.push_back(maxLineOffset * _lineHeight);
 
 			float *vertexPositionBuffer = new float[numberOfVertices * 2];
 			float *vertexUVBuffer = new float[numberOfVertices * 3];
