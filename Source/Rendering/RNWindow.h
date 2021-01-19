@@ -26,10 +26,11 @@ namespace RN
 		//TODO: Maybe make a RNSwapChain and move this there?
 		struct SwapChainDescriptor
 		{
-			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA_8_SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4), vsync(true), wantsFullscreen(false){}
+			SwapChainDescriptor(Texture::Format colorFormat = Texture::Format::BGRA_8_SRGB, Texture::Format depthStencilFormat = Texture::Format::Invalid) : colorFormat(colorFormat), depthStencilFormat(depthStencilFormat), bufferCount(4), layerCount(1), vsync(true), wantsFullscreen(false){}
 			Texture::Format colorFormat;
 			Texture::Format depthStencilFormat;
 			uint8 bufferCount;
+			uint8 layerCount;
 			bool vsync;
 			bool wantsFullscreen;
 		};
