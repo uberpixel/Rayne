@@ -265,6 +265,25 @@ namespace RN
 
 	void MetalRenderer::SubmitCamera(Camera *camera, Function &&function)
 	{
+		const Array *multiviewCameras = camera->GetMultiviewCameras();
+		if(multiviewCameras && multiviewCameras->GetCount() > 0)
+		{
+			//TODO: Multiview is not supported by metal, should use instanced with viewport selection instead (https://developer.apple.com/documentation/metal/mtlrenderpassdescriptor/rendering_to_multiple_texture_slices_in_a_draw_command?language=objc)
+			/*if(multiviewCameras->GetCount() > 1 && GetVulkanDevice()->GetSupportsMultiview())
+			{
+
+			}
+			else*/
+			{
+				//If multiview is not supported or there is only one multiview camera, render them individually (and ignore their parent camera)
+				multiviewCameras->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop){
+					SubmitCamera(camera, std::move(function));
+				});
+
+				return;
+			}
+		}
+		
 		// Set up
 		MetalRenderPass renderPass;
 		renderPass.type = MetalRenderPass::Type::Default;
