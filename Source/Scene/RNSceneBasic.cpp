@@ -130,25 +130,42 @@ namespace RN
 	void SceneBasic::Render(Renderer *renderer)
 	{
 		WillRender(renderer);
+		
+		//Run camera PostUpdate once for each camera
+		IntrusiveList<Camera>::Member *cameraMember = _cameras.GetHead();
+		while(cameraMember)
+		{
+			Camera *camera = cameraMember->Get();
+			camera->PostUpdate();
+			cameraMember = cameraMember->GetNext();
+		}
 
 		for(int cameraPriority = 0; cameraPriority < 3; cameraPriority++)
 		{
-			IntrusiveList<Camera>::Member *member = _cameras.GetHead();
-			while(member)
+			cameraMember = _cameras.GetHead();
+			while(cameraMember)
 			{
-				Camera *camera = member->Get();
+				Camera *camera = cameraMember->Get();
 
 				//Early out if camera is not supposed to render or if this isn't it's priority loop
 				if(camera->GetFlags() & Camera::Flags::NoRender || (cameraPriority == 0 && !(camera->GetFlags() & Camera::Flags::RenderEarly)) || (cameraPriority == 1 && (camera->GetFlags() & Camera::Flags::RenderEarly || camera->GetFlags() & Camera::Flags::RenderLate)) || (cameraPriority == 2 && !(camera->GetFlags() & Camera::Flags::RenderLate)))
 				{
-					member = member->GetNext();
+					cameraMember = cameraMember->GetNext();
 					continue;
 				}
-				camera->PostUpdate();
+				
+				//Multiview cameras need to be skipped, they are rendered through their parent camera
+				if(camera->GetIsMultiviewCamera())
+				{
+					cameraMember = cameraMember->GetNext();
+					continue;
+				}
 
 				renderer->SubmitCamera(camera, [&] {
 					
 					//TODO: Add back some multithreading while not breaking the priorities.
+					
+					//Submit lights first
 					IntrusiveList<Light>::Member *lightMember = _lights.GetHead();
 					while(lightMember)
 					{
@@ -159,6 +176,7 @@ namespace RN
 						lightMember = lightMember->GetNext();
 					}
 					
+					//Submit all drawables for rendering
 					IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
 					while(nodeMember)
 					{
@@ -170,7 +188,7 @@ namespace RN
 					}
 				});
 
-				member = member->GetNext();
+				cameraMember = cameraMember->GetNext();
 			}
 		}
 
