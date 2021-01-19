@@ -183,7 +183,7 @@ def main():
                     if outFormat == 'cso':
                         parameterList = [fxcCmdPath, '-I', '.', '-Fo', permutationOutFile, '-E', entryName, '-T', shaderType + '_5_1', hlslFile]
                     else:
-                        parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
+                        parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '--minorshadermodel', '1', '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
 
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
