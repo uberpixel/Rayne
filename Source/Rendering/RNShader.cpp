@@ -35,6 +35,10 @@ namespace RN
 		return options->Autorelease();
 	}
 
+	Shader::Options::Options(const Options *options) : _defines(options->_defines->Copy())
+	{
+	}
+
 	Shader::Options::Options() : _defines(new Dictionary())
 	{
 	}
@@ -119,9 +123,19 @@ namespace RN
 			_identifier = ModelMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")))
+		{
+			_identifier = InverseModelMatrix;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_modelview")) || name->IsEqual(RNCSTR("modelViewMatrix")))
 		{
 			_identifier = ModelViewMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_modelview_multiview")) || name->IsEqual(RNCSTR("modelViewMatrix_multiview")))
+		{
+			_identifier = ModelViewMatrixMultiview;
 			_type = PrimitiveType::Matrix;
 		}
 		else if(name->IsEqual(RNCSTR("transform_modelviewprojection")) || name->IsEqual(RNCSTR("modelViewProjectionMatrix")))
@@ -129,9 +143,19 @@ namespace RN
 			_identifier = ModelViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_modelviewprojection_multiview")) || name->IsEqual(RNCSTR("modelViewProjectionMatrix_multiview")))
+		{
+			_identifier = ModelViewProjectionMatrixMultiview;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_view")) || name->IsEqual(RNCSTR("viewMatrix")))
 		{
 			_identifier = ViewMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_view_multiview")) || name->IsEqual(RNCSTR("viewMatrix_multiview")))
+		{
+			_identifier = ViewMatrixMultiview;
 			_type = PrimitiveType::Matrix;
 		}
 		else if(name->IsEqual(RNCSTR("transform_viewprojection")) || name->IsEqual(RNCSTR("viewProjectionMatrix")))
@@ -139,14 +163,19 @@ namespace RN
 			_identifier = ViewProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_viewprojection_multiview")) || name->IsEqual(RNCSTR("viewProjectionMatrix_multiview")))
+		{
+			_identifier = ViewProjectionMatrixMultiview;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_projection")) || name->IsEqual(RNCSTR("projectionMatrix")))
 		{
 			_identifier = ProjectionMatrix;
 			_type = PrimitiveType::Matrix;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")))
+		else if(name->IsEqual(RNCSTR("transform_projection_multiview")) || name->IsEqual(RNCSTR("projectionMatrix_multiview")))
 		{
-			_identifier = InverseModelMatrix;
+			_identifier = ProjectionMatrixMultiview;
 			_type = PrimitiveType::Matrix;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelview")) || name->IsEqual(RNCSTR("inverseModelViewMatrix")))
@@ -154,9 +183,19 @@ namespace RN
 			_identifier = InverseModelViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_inversemodelview_multiview")) || name->IsEqual(RNCSTR("inverseModelViewMatrix_multiview")))
+		{
+			_identifier = InverseModelViewMatrixMultiview;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection")) || name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix")))
 		{
 			_identifier = InverseModelViewProjectionMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection_multiview")) || name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix_multiview")))
+		{
+			_identifier = InverseModelViewProjectionMatrixMultiview;
 			_type = PrimitiveType::Matrix;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseview")) || name->IsEqual(RNCSTR("inverseViewMatrix")))
@@ -164,15 +203,35 @@ namespace RN
 			_identifier = InverseViewMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_inverseview_multiview")) || name->IsEqual(RNCSTR("inverseViewMatrix_multiview")))
+		{
+			_identifier = InverseViewMatrixMultiview;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection")) || name->IsEqual(RNCSTR("inverseViewProjectionMatrix")))
 		{
 			_identifier = InverseViewProjectionMatrix;
+			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection_multiview")) || name->IsEqual(RNCSTR("inverseViewProjectionMatrix_multiview")))
+		{
+			_identifier = InverseViewProjectionMatrixMultiview;
 			_type = PrimitiveType::Matrix;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseprojection")) || name->IsEqual(RNCSTR("inverseProjectionMatrix")))
 		{
 			_identifier = InverseProjectionMatrix;
 			_type = PrimitiveType::Matrix;
+		}
+		else if(name->IsEqual(RNCSTR("transform_inverseprojection_multiview")) || name->IsEqual(RNCSTR("inverseProjectionMatrix_multiview")))
+		{
+			_identifier = InverseProjectionMatrixMultiview;
+			_type = PrimitiveType::Matrix;
+		}
+		else if (name->IsEqual(RNCSTR("camera_position_multiview")) || name->IsEqual(RNCSTR("cameraPosition_multiview")))
+		{
+			_identifier = CameraPositionMultiview;
+			_type = PrimitiveType::Vector3;
 		}
 		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")))
 		{
@@ -203,11 +262,6 @@ namespace RN
 		{
 			_identifier = AlphaToCoverageClamp;
 			_type = PrimitiveType::Vector2;
-		}
-		else if (name->IsEqual(RNCSTR("camera_position")) || name->IsEqual(RNCSTR("cameraPosition")))
-		{
-			_identifier = CameraPosition;
-			_type = PrimitiveType::Vector3;
 		}
 		else if (name->IsEqual(RNCSTR("camera_ambientcolor")) || name->IsEqual(RNCSTR("cameraAmbientColor")))
 		{
@@ -263,7 +317,7 @@ namespace RN
 
 	size_t Shader::UniformDescriptor::GetSize() const
 	{
-		//TODO: Handle alignement!
+		//TODO: Handle alignment!
 		switch(_identifier)
 		{
 			case DirectionalLights:
@@ -273,13 +327,46 @@ namespace RN
 				return 64 * 4;	//TODO: use define or something for the 4
 				
 			case PointLights:
-				return (16 + 16) * 8;	//TODO: use define or something for the 5
+				return (16 + 16) * 8;	//TODO: use define or something for the 8
 				
 			case SpotLights:
-				return (16 + 16 + 16) * 8;	//TODO: use define or something for the 5
+				return (16 + 16 + 16) * 8;	//TODO: use define or something for the 8
 				
 			case BoneMatrices:
 				return 64 * 100; //TODO: Handle the 100 bones limit in some better way
+
+			case ModelViewMatrixMultiview:
+				return 64 * 6;
+
+			case ModelViewProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case ViewMatrixMultiview:
+				return 64 * 6;
+
+			case ViewProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case ProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case InverseModelViewMatrixMultiview:
+				return 64 * 6;
+
+			case InverseModelViewProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case InverseViewMatrixMultiview:
+				return 64 * 6;
+
+			case InverseViewProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case InverseProjectionMatrixMultiview:
+				return 64 * 6;
+
+			case CameraPositionMultiview:
+				return 12 * 6;
 
 			default:
 				break;

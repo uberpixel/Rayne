@@ -30,6 +30,7 @@ namespace RN
 			RNAPI static Options *WithMesh(Mesh *mesh);
 			RNAPI static Options *WithNone();
 
+			RNAPI Options(const Options *options);
             RNAPI ~Options();
 
 			RNAPI void EnableAlpha();
@@ -59,17 +60,33 @@ namespace RN
 			{
 				Custom,
 				ModelMatrix,
-				ModelViewMatrix,
-				ModelViewProjectionMatrix,
-				ViewMatrix,
-				ViewProjectionMatrix,
-				ProjectionMatrix,
 				InverseModelMatrix,
+
+				ModelViewMatrix,
+				ModelViewMatrixMultiview,
+				ModelViewProjectionMatrix,
+				ModelViewProjectionMatrixMultiview,
+				ViewMatrix,
+				ViewMatrixMultiview,
+				ViewProjectionMatrix,
+				ViewProjectionMatrixMultiview,
+				ProjectionMatrix,
+				ProjectionMatrixMultiview,
+
 				InverseModelViewMatrix,
+				InverseModelViewMatrixMultiview,
 				InverseModelViewProjectionMatrix,
+				InverseModelViewProjectionMatrixMultiview,
 				InverseViewMatrix,
+				InverseViewMatrixMultiview,
 				InverseViewProjectionMatrix,
+				InverseViewProjectionMatrixMultiview,
 				InverseProjectionMatrix,
+				InverseProjectionMatrixMultiview,
+
+				CameraPosition,
+				CameraPositionMultiview,
+
 				AmbientColor,
 				DiffuseColor,
 				SpecularColor,
@@ -77,7 +94,6 @@ namespace RN
 				TextureTileFactor,
 				AlphaToCoverageClamp,
 				Time,
-				CameraPosition,
 				CameraAmbientColor,
 				DirectionalLightsCount,
 				DirectionalLights,
@@ -250,6 +266,7 @@ namespace RN
 			Default,
 			Depth,
 			Instancing,
+			Multiview,
 
 			COUNT
 		};
