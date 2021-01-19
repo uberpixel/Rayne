@@ -74,6 +74,9 @@ namespace RN
 		RNAPI void SetClipPlane(const Plane &clipPlane);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
+		
+		RNAPI void AddMultiviewCamera(RN::Camera *camera);
+		RNAPI void RemoveMultiviewCamera(RN::Camera *camera);
 
 		RNAPI void Update(float delta) override;
 		RNAPI void PostUpdate();
@@ -107,6 +110,8 @@ namespace RN
 		const Matrix &GetInverseProjectionMatrix() const { return _inverseProjectionMatrix; }
 		const Matrix &GetViewMatrix() const { return _viewMatrix; }
 		const Matrix &GetInverseViewMatrix() const { return _inverseViewMatrix; }
+		const RN::Array *GetMultiviewCameras() const { return _multiviewCameras; }
+		bool GetIsMultiviewCamera() const { return _isMultiviewCamera; }
 		
 		IntrusiveList<Camera>::Member _cameraSceneEntry; //TODO: Make private but keep accessible to user made scene implementations
 
@@ -169,6 +174,9 @@ namespace RN
 		RenderPass *_renderPass;
 		Material *_material;
 		Camera *_lodCamera;
+		
+		RN::Array *_multiviewCameras;
+		bool _isMultiviewCamera;
 
 		__RNDeclareMetaInternal(Camera);
 	};

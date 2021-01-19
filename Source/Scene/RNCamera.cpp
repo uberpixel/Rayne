@@ -35,6 +35,8 @@ namespace RN
 	{
 		SafeRelease(_renderPass);
 		SafeRelease(_material);
+		
+		SafeRelease(_multiviewCameras);
 
 /*		if(_lightManager)
 		{
@@ -73,6 +75,9 @@ namespace RN
 
 		_priority  = 0;
 		_lodCamera = nullptr;
+		
+		_multiviewCameras = nullptr;
+		_isMultiviewCamera = false;
 
 		_prefersLightManager = true;
 	}
@@ -491,5 +496,24 @@ namespace RN
 				}*/
 
 		return true;
+	}
+
+	void Camera::AddMultiviewCamera(RN::Camera *camera)
+	{
+		RN_ASSERT(camera, "Camera cannot be empty");
+		
+		if(!_multiviewCameras)
+		{
+			_multiviewCameras = new RN::Array();
+		}
+		
+		_multiviewCameras->AddObject(camera);
+		camera->_isMultiviewCamera = true;
+	}
+
+	void Camera::RemoveMultiviewCamera(RN::Camera *camera)
+	{
+		_multiviewCameras->RemoveObject(camera);
+		camera->_isMultiviewCamera = false;
 	}
 }
