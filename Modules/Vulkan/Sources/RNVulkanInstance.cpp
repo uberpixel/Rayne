@@ -23,6 +23,7 @@ namespace RN
 		_devices(nullptr)
 	{
 		_requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+		_requiredExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #if RN_PLATFORM_WINDOWS
 		_requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
@@ -208,7 +209,7 @@ namespace RN
 	VkResult VulkanInstance::EnumerateExtensions(const char *layer, std::vector<VkExtensionProperties> &extensions) const
 	{
 		uint32_t count = 0;
-		vk::EnumerateInstanceExtensionProperties(layer, &count, nullptr);
+		RNVulkanValidate(vk::EnumerateInstanceExtensionProperties(layer, &count, nullptr));
 
 		extensions.resize(count);
 		return vk::EnumerateInstanceExtensionProperties(layer, &count, extensions.data());
@@ -217,7 +218,7 @@ namespace RN
 	VkResult VulkanInstance::EnumerateDeviceExtensions(VkPhysicalDevice device, const char *layer, std::vector<VkExtensionProperties> &extensions) const
 	{
 		uint32_t count = 0;
-		vk::EnumerateDeviceExtensionProperties(device, layer, &count, nullptr);
+		RNVulkanValidate(vk::EnumerateDeviceExtensionProperties(device, layer, &count, nullptr));
 
 		extensions.resize(count);
 		return vk::EnumerateDeviceExtensionProperties(device, layer, &count, extensions.data());
@@ -228,7 +229,7 @@ namespace RN
 	VkResult VulkanInstance::EnumerateDevices(std::vector<VkPhysicalDevice> &devices) const
 	{
 		uint32_t count = 0;
-		vk::EnumeratePhysicalDevices(_instance, &count, nullptr);
+		RNVulkanValidate(vk::EnumeratePhysicalDevices(_instance, &count, nullptr));
 
 		devices.resize(count);
 		return vk::EnumeratePhysicalDevices(_instance, &count, devices.data());

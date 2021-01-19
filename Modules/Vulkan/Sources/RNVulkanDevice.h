@@ -37,6 +37,9 @@ namespace RN
 		VKAPI VkBool32 GetMemoryWithType(uint32_t typeBits, VkFlags properties, uint32_t &typeIndex) const;
 		VKAPI size_t GetMemoryWithType(VkMemoryPropertyFlagBits required) const;
 
+		bool GetSupportsMultiview() const { return _maxMultiviewViewCount > 1; }
+		uint32 GetMaxMultiviewViewCount() const { return _maxMultiviewViewCount; }
+
 		VKAPI void SetExtensions(Array *extensions) final;
 
 	private:
@@ -45,6 +48,7 @@ namespace RN
 		static Descriptor DescriptorForDevice(VkPhysicalDevice device);
 
 		RN::Array *_deviceExtensions;
+		uint32 _maxMultiviewViewCount;
 
 		VulkanInstance *_instance;
 		VkPhysicalDevice _physicalDevice;

@@ -59,7 +59,8 @@ namespace RN
 		_instance(instance),
 		_physicalDevice(device),
 		_workQueue(kRNNotFound),
-		_deviceExtensions(nullptr)
+		_deviceExtensions(nullptr),
+		_maxMultiviewViewCount(0)
 	{
 		std::vector<VkQueueFamilyProperties> queues;
 		GetQueueProperties(queues);
@@ -107,7 +108,7 @@ namespace RN
 	VkResult VulkanDevice::GetSurfaceFormats(VkSurfaceKHR surface, std::vector<VkSurfaceFormatKHR> &formats)
 	{
 		uint32_t count = 0;
-		vk::GetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, nullptr);
+		RNVulkanValidate(vk::GetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, nullptr));
 
 		formats.resize(count);
 		return vk::GetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &count, formats.data());
@@ -116,7 +117,7 @@ namespace RN
 	VkResult VulkanDevice::GetPresentModes(VkSurfaceKHR surface, std::vector<VkPresentModeKHR> &modes)
 	{
 		uint32_t count = 0;
-		vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, nullptr);
+		RNVulkanValidate(vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, nullptr));
 
 		modes.resize(count);
 		return vk::GetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &count, modes.data());
@@ -165,6 +166,32 @@ namespace RN
 			});
 		}
 
+		//Check if optional extensions are available and add to extensions list if they are
+		std::vector<VkExtensionProperties> rawDeviceExtensions;
+		_instance->EnumerateDeviceExtensions(_physicalDevice, nullptr, rawDeviceExtensions);
+		for(const auto &extension : rawDeviceExtensions)
+		{
+			//check for multiview extension
+			if(std::strcmp(extension.extensionName, VK_KHR_MULTIVIEW_EXTENSION_NAME) == 0)
+			{
+				_deviceExtensions->AddObject(RNCSTR(extension.extensionName));
+				deviceExtensions.push_back(extension.extensionName);
+
+				VkPhysicalDeviceMultiviewProperties multiviewProperties;
+				multiviewProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES;
+				multiviewProperties.pNext = NULL;
+				
+				VkPhysicalDeviceProperties2 deviceProperties;
+				deviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+				deviceProperties.pNext = &multiviewProperties;
+
+				vk::GetPhysicalDeviceProperties2KHR(_physicalDevice, &deviceProperties);
+
+				_maxMultiviewViewCount = multiviewProperties.maxMultiviewViewCount;
+
+				RNDebug("Maximum number of multiviews: " << _maxMultiviewViewCount << " instances: " << multiviewProperties.maxMultiviewInstanceIndex);
+			}
+		}
 
 		VkPhysicalDeviceFeatures features;
 		vk::GetPhysicalDeviceFeatures(_physicalDevice, &features);
