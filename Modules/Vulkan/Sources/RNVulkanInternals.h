@@ -213,6 +213,17 @@ namespace RN
 		Color color;
 	};
 
+	struct VulkanRenderPassCameraInfo
+	{
+		Vector3 viewPosition;
+		Matrix viewMatrix;
+		Matrix inverseViewMatrix;
+		Matrix projectionMatrix;
+		Matrix inverseProjectionMatrix;
+		Matrix projectionViewMatrix;
+		Matrix inverseProjectionViewMatrix;
+	};
+
 	struct VulkanRenderPass
 	{
 		enum Type
@@ -232,15 +243,9 @@ namespace RN
 		Shader::UsageHint shaderHint;
 		Material *overrideMaterial;
 
-		Vector3 viewPosition;
-		Matrix viewMatrix;
-		Matrix inverseViewMatrix;
-		Matrix projectionMatrix;
-		Matrix inverseProjectionMatrix;
-		Matrix projectionViewMatrix;
-		Matrix inverseProjectionViewMatrix;
-
 		Color cameraAmbientColor;
+		VulkanRenderPassCameraInfo cameraInfo;
+		std::vector<VulkanRenderPassCameraInfo> multiviewCameraInfo;
 
 		std::vector<VulkanDrawable *> drawables;
 		std::vector<VulkanDirectionalLight> directionalLights;

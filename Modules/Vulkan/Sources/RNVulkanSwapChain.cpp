@@ -216,11 +216,11 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 
 		if(!_framebuffer)
 		{
-			_framebuffer = new VulkanFramebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+			_framebuffer = new VulkanFramebuffer(_size, 1, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 		}
 		else
 		{
-			_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+			_framebuffer->DidUpdateSwapChain(_size, 1, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 		}
 	};
 

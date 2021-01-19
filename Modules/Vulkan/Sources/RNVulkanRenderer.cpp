@@ -71,9 +71,9 @@ namespace RN
 		delete _constantBufferPool;
 	}
 
-	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags)
+	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, bool isMultiview)
 	{
-		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer, flags)->renderPass;
+		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer, flags, isMultiview)->renderPass;
 	}
 
 	void VulkanRenderer::CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -156,7 +156,7 @@ namespace RN
 				{
 					_completedFrame = _frameFenceValues[index];
 					ReleaseFrameResources(_frameFenceValues[index]);
-					vk::ResetFences(GetVulkanDevice()->GetDevice(), 1, &fence);
+					RNVulkanValidate(vk::ResetFences(GetVulkanDevice()->GetDevice(), 1, &fence));
 
 					_frameFenceValues[index] = -1;
 					freeFenceIndex = index;
@@ -249,7 +249,7 @@ namespace RN
 
 			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
-			vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice());
+			RNVulkanValidate(vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice()));
 			_submittedCommandBuffers->RemoveAllObjects();
 		}
 		_lock.Unlock();
@@ -390,7 +390,7 @@ namespace RN
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
 		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
-		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags());
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags(), renderpass.multiviewCameraInfo.size() > 1);
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -421,6 +421,41 @@ namespace RN
 	void VulkanRenderer::SubmitCamera(Camera *camera, Function &&function)
 	{
 		VulkanRenderPass renderPass;
+
+		const Array *multiviewCameras = camera->GetMultiviewCameras();
+		if(multiviewCameras && multiviewCameras->GetCount() > 0)
+		{
+			if(multiviewCameras->GetCount() > 1 && GetVulkanDevice()->GetSupportsMultiview())
+			{
+				multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop){
+					VulkanRenderPassCameraInfo cameraInfo;
+
+					cameraInfo.viewPosition = multiviewCamera->GetWorldPosition();
+					cameraInfo.viewMatrix = multiviewCamera->GetViewMatrix();
+					cameraInfo.inverseViewMatrix = multiviewCamera->GetInverseViewMatrix();
+
+					Matrix clipSpaceCorrectionMatrix;
+					clipSpaceCorrectionMatrix.m[5] = -1.0f;
+					clipSpaceCorrectionMatrix.m[10] = 0.5f;
+					clipSpaceCorrectionMatrix.m[14] = 0.5f;
+					cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * multiviewCamera->GetProjectionMatrix();
+					cameraInfo.inverseProjectionMatrix = multiviewCamera->GetInverseProjectionMatrix();
+					cameraInfo.projectionViewMatrix = cameraInfo.projectionMatrix * cameraInfo.viewMatrix;
+
+					renderPass.multiviewCameraInfo.push_back(cameraInfo);
+				});
+			}
+			else
+			{
+				//If multiview is not supported or there is only one multiview camera, render them individually (and ignore their parent camera)
+				multiviewCameras->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop){
+					SubmitCamera(camera, std::move(function));
+				});
+
+				return;
+			}
+		}
+
 		renderPass.drawables.resize(0);
 
 		renderPass.type = VulkanRenderPass::Type::Default;
@@ -432,18 +467,18 @@ namespace RN
 		renderPass.shaderHint = camera->GetShaderHint();
 		renderPass.overrideMaterial = camera->GetMaterial();
 
-		renderPass.viewPosition = camera->GetWorldPosition();
-		renderPass.viewMatrix = camera->GetViewMatrix();
-		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+		renderPass.cameraInfo.viewPosition = camera->GetWorldPosition();
+		renderPass.cameraInfo.viewMatrix = camera->GetViewMatrix();
+		renderPass.cameraInfo.inverseViewMatrix = camera->GetInverseViewMatrix();
 
 		Matrix clipSpaceCorrectionMatrix;
 		clipSpaceCorrectionMatrix.m[5] = -1.0f;
 		clipSpaceCorrectionMatrix.m[10] = 0.5f;
 		clipSpaceCorrectionMatrix.m[14] = 0.5f;
-		renderPass.projectionMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
-		renderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+		renderPass.cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
+		renderPass.cameraInfo.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
-		renderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;
+		renderPass.cameraInfo.projectionViewMatrix = renderPass.cameraInfo.projectionMatrix * renderPass.cameraInfo.viewMatrix;
 		renderPass.directionalShadowDepthTexture = nullptr;
 
 		renderPass.cameraAmbientColor = camera->GetAmbientColor();
@@ -804,6 +839,12 @@ namespace RN
 			}
 			else
 			{
+				if(hint == Shader::UsageHint::Multiview)
+				{
+					options = options->Copy();
+					options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+				}
+
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
@@ -833,6 +874,12 @@ namespace RN
 			}
 			else
 			{
+				if(hint == Shader::UsageHint::Multiview)
+				{
+					options = options->Copy();
+					options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+				}
+
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
@@ -895,73 +942,244 @@ namespace RN
 					break;
 				}
 
-				case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
-				{
-					Matrix result = renderPass.viewMatrix * drawable->modelMatrix;
-					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-					break;
-				}
-
-				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
-				{
-					Matrix result = renderPass.projectionViewMatrix * drawable->modelMatrix;
-					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
-					break;
-				}
-
-				case Shader::UniformDescriptor::Identifier::ViewMatrix:
-				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.viewMatrix.m, descriptor->GetSize());
-					break;
-				}
-
-				case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
-				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionViewMatrix.m, descriptor->GetSize());
-					break;
-				}
-
-				case Shader::UniformDescriptor::Identifier::ProjectionMatrix:
-				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.projectionMatrix.m, descriptor->GetSize());
-					break;
-				}
-
 				case Shader::UniformDescriptor::Identifier::InverseModelMatrix:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), drawable->inverseModelMatrix.m, descriptor->GetSize());
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
+				{
+					Matrix result = renderPass.cameraInfo.viewMatrix * drawable->modelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ModelViewMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].viewMatrix * drawable->modelMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrix:
+				{
+					Matrix result = renderPass.cameraInfo.projectionViewMatrix * drawable->modelMatrix;
+					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix * drawable->modelMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ViewMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.viewMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ViewMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].viewMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ViewProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.projectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ViewProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ProjectionMatrix:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.projectionMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::ProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::InverseModelViewMatrix:
 				{
-					Matrix result = renderPass.inverseViewMatrix * drawable->inverseModelMatrix;
+					Matrix result = renderPass.cameraInfo.inverseViewMatrix * drawable->inverseModelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseModelViewMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].inverseViewMatrix * drawable->inverseModelMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrix:
 				{
-					Matrix result = renderPass.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+					Matrix result = renderPass.cameraInfo.inverseProjectionViewMatrix * drawable->inverseModelMatrix;
 					std::memcpy(buffer + descriptor->GetOffset(), result.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseModelViewProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseViewMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseViewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.inverseViewMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseViewMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].inverseViewMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.inverseProjectionViewMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseViewProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::InverseProjectionMatrix:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), renderPass.inverseProjectionMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), renderPass.cameraInfo.inverseProjectionMatrix.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::InverseProjectionMatrixMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Matrix result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionMatrix;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+					}
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraPosition:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraInfo.viewPosition.x, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraPositionMultiview:
+				{
+					if(renderPass.multiviewCameraInfo.size() > 0)
+					{
+						Vector3 result[6];
+						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+						{
+							result[i] = renderPass.multiviewCameraInfo[i].viewPosition;
+						}
+
+						std::memcpy(buffer + descriptor->GetOffset(), &result[0].x, 12 * renderPass.multiviewCameraInfo.size());
+					}
 					break;
 				}
 
@@ -998,12 +1216,6 @@ namespace RN
 				case Shader::UniformDescriptor::Identifier::AlphaToCoverageClamp:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.alphaToCoverageClamp.x, descriptor->GetSize());
-					break;
-				}
-
-				case Shader::UniformDescriptor::Identifier::CameraPosition:
-				{
-					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.viewPosition.x, descriptor->GetSize());
 					break;
 				}
 
@@ -1341,7 +1553,7 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial, renderPass.renderPass->GetFlags());
+			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial, renderPass.renderPass->GetFlags(), renderPass.multiviewCameraInfo.size() > 1);
 			VulkanUniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 
@@ -1574,17 +1786,17 @@ namespace RN
 
         VkDeviceSize offsets[1] = { 0 };
         // Bind mesh vertex buffer
-        vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
+		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
 		if(drawable->mesh->GetIndicesCount() > 0)
         {
             // Bind mesh index buffer
-            vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+			vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
             // Render mesh vertex buffer using it's indices
-            vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+			vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
         }
 		else
         {
-		    vk::CmdDraw(commandBuffer, drawable->mesh->GetVerticesCount(), 1, 0, 0);
+			vk::CmdDraw(commandBuffer, drawable->mesh->GetVerticesCount(), 1, 0, 0);
         }
 
 		_currentDrawableIndex += 1;

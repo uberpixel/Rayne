@@ -330,7 +330,7 @@ namespace RN
 		_currentLayout = imageInfo.initialLayout;
 
 		VkImageFormatProperties formatProperties;
-		vk::GetPhysicalDeviceImageFormatProperties(device->GetPhysicalDevice(), imageInfo.format, imageInfo.imageType, imageInfo.tiling, imageInfo.usage, imageInfo.flags, &formatProperties);
+		RNVulkanValidate(vk::GetPhysicalDeviceImageFormatProperties(device->GetPhysicalDevice(), imageInfo.format, imageInfo.imageType, imageInfo.tiling, imageInfo.usage, imageInfo.flags, &formatProperties));
 
 		RN_ASSERT(formatProperties.sampleCounts & descriptor.sampleCount, "Requested sample count for texture format is not supported by this device");
 
@@ -429,9 +429,9 @@ namespace RN
 		_image(image),
 		_imageView(VK_NULL_HANDLE),
 		_memory(VK_NULL_HANDLE),
-		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
+		_format(VulkanImageFormatFromTextureFormat(descriptor.format)),
+		_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
 	{
-
 	}
 
 	VulkanTexture::~VulkanTexture()
