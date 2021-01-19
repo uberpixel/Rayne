@@ -60,7 +60,7 @@ namespace RN
 		void *_session;
 		void *_nativeWindow;
 
-		OculusMobileVulkanSwapChain *_swapChain[2];
+		OculusMobileVulkanSwapChain *_swapChain;
 		uint32 _actualFrameIndex;
         double _predictedDisplayTime;
 

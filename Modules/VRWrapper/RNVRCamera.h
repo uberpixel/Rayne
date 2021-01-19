@@ -27,7 +27,7 @@ namespace RN
 		RNVRAPI void Update(float delta) override;
 		RNVRAPI void UpdateVRWindow(float delta);
 
-		RNVRAPI SceneNode *GetHead() const { return _head; }
+		RNVRAPI Camera *GetHead() const { return _head; }
 		RNVRAPI Camera *GetEye(uint8 eye) const { return _eye[eye]; }
 
 		RNVRAPI const VRHMDTrackingState &GetHMDTrackingState() const;
@@ -45,7 +45,7 @@ namespace RN
 
 		VRWindow *_window;
 		Window *_debugWindow;
-		SceneNode *_head;
+		Camera *_head;
 		Camera *_eye[2];
 		Entity *_hiddenAreaEntity[2];
 		RenderPass *_previewRenderPass;

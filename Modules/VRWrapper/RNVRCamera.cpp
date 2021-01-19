@@ -7,7 +7,6 @@
 //
 
 #include "RNVRCamera.h"
-#include "../../Source/Rendering/RNPostProcessing.h"
 
 namespace RN
 {
@@ -16,7 +15,7 @@ namespace RN
 		VRCamera::VRCamera(VRWindow *window, RenderPass *previewRenderPass, uint8 msaaSampleCount, Window *debugWindow) :
 		_window(window? window->Retain() : nullptr),
 		_debugWindow(debugWindow? debugWindow->Retain() : nullptr),
-		_head(new SceneNode()),
+		_head(new Camera()),
 		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount),
 		_eye{nullptr, nullptr},
@@ -64,8 +63,10 @@ namespace RN
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i] = new Camera();
-			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i)));
+			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i))); //This won't work with multiview! (and is only needed for the hidden area mask)
 			_head->AddChild(_eye[i]);
+			_head->AddMultiviewCamera(_eye[i]);
+			_head->SetShaderHint(Shader::UsageHint::Multiview);
 			_hiddenAreaEntity[i] = nullptr;
 
 			//TODO: Fix culling for VR!?
@@ -121,6 +122,7 @@ namespace RN
 		float eyePadding = 0.0f;
 		Texture::Format colorFormat = Texture::Format::RGBA_8;
         Texture::Format depthFormat = Texture::Format::Invalid;
+        uint8 layerCount = 1;
 
 		if(_window)
 		{
@@ -129,6 +131,8 @@ namespace RN
 
 			colorFormat = _window->GetSwapChainDescriptor().colorFormat;
             depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
+
+			layerCount = _window->GetSwapChainDescriptor().layerCount;
 		}
 
 		if(_debugWindow)
@@ -149,8 +153,16 @@ namespace RN
 
 		if(_msaaSampleCount > 1)
 		{
-			Texture *msaaTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(colorFormat, windowSize.x, windowSize.y, _msaaSampleCount));
-			Texture *msaaDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormatAndMSAA(depthFormat, windowSize.x, windowSize.y, _msaaSampleCount));
+			Texture::Descriptor msaaColorTextureDescriptor = Texture::Descriptor::With2DRenderTargetFormatAndMSAA(colorFormat, windowSize.x, windowSize.y, _msaaSampleCount);
+			msaaColorTextureDescriptor.depth = layerCount;
+			msaaColorTextureDescriptor.type = layerCount > 1? Texture::Type::Type2DArray : Texture::Type::Type2D;
+			Texture *msaaTexture = Texture::WithDescriptor(msaaColorTextureDescriptor);
+
+			Texture::Descriptor msaaDepthTextureDescriptor = Texture::Descriptor::With2DRenderTargetFormatAndMSAA(depthFormat, windowSize.x, windowSize.y, _msaaSampleCount);
+			msaaDepthTextureDescriptor.depth = layerCount;
+			msaaDepthTextureDescriptor.type = layerCount > 1? Texture::Type::Type2DArray : Texture::Type::Type2D;
+			Texture *msaaDepthTexture = Texture::WithDescriptor(msaaDepthTextureDescriptor);
+
 			msaaFramebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(windowSize);
 			msaaFramebuffer->SetColorTarget(Framebuffer::TargetView::WithTexture(msaaTexture));
 			msaaFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(msaaDepthTexture));
@@ -160,6 +172,7 @@ namespace RN
 		//TODO: Maybe instead of checking depthStencilFormat, check for oculus window?
 		if(_msaaSampleCount <= 1 && (!_window || _window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
 		{
+			//Depth buffer needs to be resolved on windows to provide to the oculus SDK for Space Warp and nicer UI overlay
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(depthFormat, windowSize.x, windowSize.y));
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
@@ -177,37 +190,31 @@ namespace RN
 			{
 				_eye[i]->GetRenderPass()->SetFrame(Rect(0.0f, i * (windowSize.y + eyePadding) / 2, windowSize.x, (windowSize.y - eyePadding) / 2));
 			}
-			else
-			{
-				resolvedFramebuffer = _window->GetFramebuffer(i);
-			}
 #endif
 
 			if(_msaaSampleCount > 1)
 			{
 				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
-
-#if RN_PLATFORM_ANDROID
-                	resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
-                    resolvePass->SetFramebuffer(resolvedFramebuffer);
-                    _eye[i]->GetRenderPass()->AddRenderPass(resolvePass);
-#endif
 			}
 			else
 			{
 				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
-
 			}
 		}
 
-#if !RN_PLATFORM_ANDROID
 		if(_msaaSampleCount > 1)
 		{
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
 			_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
+
+			_head->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
+			_head->GetRenderPass()->AddRenderPass(resolvePass);
 		}
-#endif
+		else
+		{
+			_head->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
+		}
 
 		if(_previewRenderPass)
 		{
@@ -276,6 +283,8 @@ namespace RN
 	
 	void VRCamera::SetClipFar(float clipFar)
 	{
+		_head->SetClipFar(clipFar);
+		
 		if(_eye[0])
 		{
 			_eye[0]->SetClipFar(clipFar);
@@ -289,6 +298,8 @@ namespace RN
 	
 	void VRCamera::SetClipNear(float clipNear)
 	{
+		_head->SetClipNear(clipNear);
+		
 		if(_eye[0])
 		{
 			_eye[0]->SetClipNear(clipNear);

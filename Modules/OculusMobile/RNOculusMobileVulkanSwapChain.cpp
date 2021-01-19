@@ -23,41 +23,23 @@ namespace RN
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
 		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
+		_descriptor.layerCount = 2;
 
 		_size = size;
 
-		ovrTextureFormat textureFormat = VRAPI_TEXTURE_FORMAT_8888_sRGB;
-/*		switch(descriptor.colorFormat)
-		{
-			case Texture::Format::BGRA8888SRGB:
-			{
-				textureFormat = VRAPI_TEXTURE_FORMAT_8888_sRGB;
-				break;
-			}
-			case Texture::Format::BGRA8888:
-			{
-				textureFormat = VRAPI_TEXTURE_FORMAT_8888;
-				break;
-			}
-			case Texture::Format::RGBA8888SRGB:
-			{
-				textureFormat = VRAPI_TEXTURE_FORMAT_8888_sRGB;
-				break;
-			}
-			case Texture::Format::RGBA8888:
-			{
-				textureFormat = VRAPI_TEXTURE_FORMAT_8888;
-				break;
-			}
-			default:
-			{
-				textureFormat = VRAPI_TEXTURE_FORMAT_8888_sRGB;
-				break;
-			}
-		}*/
+		ovrSwapChainCreateInfo swapChainCreateInfo;
+		swapChainCreateInfo.Format = VK_FORMAT_R8G8B8A8_SRGB;
 
-		_descriptor.bufferCount = 3;
-		_colorSwapChain = vrapi_CreateTextureSwapChain2(VRAPI_TEXTURE_TYPE_2D, textureFormat, _size.x, _size.y, 1, _descriptor.bufferCount);
+		swapChainCreateInfo.Width = _size.x;
+		swapChainCreateInfo.Height = _size.y;
+		swapChainCreateInfo.Levels = 1;
+		swapChainCreateInfo.FaceCount = 1;
+		swapChainCreateInfo.ArraySize = _descriptor.layerCount;
+		swapChainCreateInfo.BufferCount = 3;
+		swapChainCreateInfo.CreateFlags = 0;
+		swapChainCreateInfo.UsageFlags = VRAPI_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+
+		_colorSwapChain = vrapi_CreateTextureSwapChain4(&swapChainCreateInfo);
 		_descriptor.bufferCount = vrapi_GetTextureSwapChainLength(_colorSwapChain);
 
 		for(size_t i = 0; i < _descriptor.bufferCount; i++)
@@ -69,7 +51,7 @@ namespace RN
 		}
 
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-		_framebuffer = new VulkanFramebuffer(_size, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 	}
 
 	OculusMobileVulkanSwapChain::~OculusMobileVulkanSwapChain()

@@ -27,11 +27,8 @@ namespace RN
 {
 	RNDefineMeta(OculusMobileWindow, VRWindow)
 
-	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}
+	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}
 	{
-		_swapChain[0] = nullptr;
-		_swapChain[1] = nullptr;
-
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 
@@ -88,20 +85,19 @@ namespace RN
         eyeRenderSize.x = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH);
         eyeRenderSize.y = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_HEIGHT);
 
-		_swapChain[0] = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
-		_swapChain[1] = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
+		_swapChain = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
 
-		_swapChain[1]->_presentEvent = [this](){
+		_swapChain->_presentEvent = [this](){
 			if(_session)
 			{
 				ovrLayerProjection2 gameLayer = vrapi_DefaultLayerProjection2();
 
-				gameLayer.HeadPose = _swapChain[0]->_hmdState.HeadPose;
+				gameLayer.HeadPose = _swapChain->_hmdState.HeadPose;
 				for(int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++)
 				{
-					gameLayer.Textures[eye].ColorSwapChain = _swapChain[eye]->_colorSwapChain;
-					gameLayer.Textures[eye].SwapChainIndex = _swapChain[eye]->_semaphoreIndex;
-					gameLayer.Textures[eye].TexCoordsFromTanAngles = _swapChain[eye]->GetTanAngleMatrixForEye(eye);
+					gameLayer.Textures[eye].ColorSwapChain = _swapChain->_colorSwapChain;
+					gameLayer.Textures[eye].SwapChainIndex = _swapChain->_semaphoreIndex;
+					gameLayer.Textures[eye].TexCoordsFromTanAngles = _swapChain->GetTanAngleMatrixForEye(eye);
 					gameLayer.Textures[eye].TextureRect.x = 0.0f;
 					gameLayer.Textures[eye].TextureRect.y = 0.0f;
 					gameLayer.Textures[eye].TextureRect.width = 1.0f;
@@ -142,8 +138,7 @@ namespace RN
 			vrapi_LeaveVrMode(static_cast<ovrMobile*>(_session));
 		}
 
-		SafeRelease(_swapChain[0]);
-		SafeRelease(_swapChain[1]);
+		SafeRelease(_swapChain);
 
 		vrapi_DestroySystemVulkan();
 	}
@@ -155,18 +150,18 @@ namespace RN
 
 	Vector2 OculusMobileWindow::GetSize() const
 	{
-		return _swapChain[0]->GetSize();
+		return _swapChain->GetSize();
 	}
 
 	Framebuffer *OculusMobileWindow::GetFramebuffer() const
 	{
-		return _swapChain[0]->GetFramebuffer();
+		return _swapChain->GetFramebuffer();
 	}
 
 	Framebuffer *OculusMobileWindow::GetFramebuffer(uint8 eye) const
 	{
 		RN_ASSERT(eye < 2, "Eye Index need to be 0 or 1");
-		return _swapChain[eye]->GetFramebuffer();
+		return _swapChain->GetFramebuffer();
 	}
 
 	uint32 OculusMobileWindow::GetEyePadding() const
@@ -226,8 +221,7 @@ namespace RN
         _predictedDisplayTime = vrapi_GetPredictedDisplayTime(static_cast<ovrMobile*>(_session), _actualFrameIndex);
 
 		ovrTracking2 hmdState = vrapi_GetPredictedTracking2(static_cast<ovrMobile*>(_session), _predictedDisplayTime);
-		_swapChain[0]->_hmdState = hmdState;
-		_swapChain[1]->_hmdState = hmdState;
+		_swapChain->_hmdState = hmdState;
 
 		float eyeDistance = vrapi_GetInterpupillaryDistance(&hmdState);
 		_hmdTrackingState.eyeOffset[0] = Vector3(-eyeDistance/2.0f, 0.0f, 0.0f);
@@ -543,7 +537,7 @@ namespace RN
 
 	const Window::SwapChainDescriptor &OculusMobileWindow::GetSwapChainDescriptor() const
 	{
-		return _swapChain[0]->GetSwapChainDescriptor();
+		return _swapChain->GetSwapChainDescriptor();
 	}
 
 	Array *OculusMobileWindow::GetRequiredVulkanInstanceExtensions() const
