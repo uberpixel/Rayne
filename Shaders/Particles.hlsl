@@ -6,9 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef RN_UV0
-#define RN_UV0 0
-#endif
+#pragma permutator RN_UV0
 
 #if RN_UV0
 Texture2D texture0;

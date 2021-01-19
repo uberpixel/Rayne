@@ -16,7 +16,8 @@
 						"RN_ANIMATIONS",
 						"RN_SHADOWS_DIRECTIONAL",
 						"RN_LIGHTS_DIRECTIONAL",
-						"RN_LIGHTS_POINT"
+						"RN_LIGHTS_POINT",
+						"RN_USE_MULTIVIEW"
 					]
 				}
 			},

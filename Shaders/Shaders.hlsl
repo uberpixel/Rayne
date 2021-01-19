@@ -6,11 +6,14 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-// Exported defines:
-// RN_NORMALS
-// RN_COLOR
-// RN_UV0
-// RN_ALPHA
+#pragma permutator RN_UV0 :includes RN_ALPHA
+#pragma permutator RN_NORMALS :includes RN_LIGHTS_DIRECTIONAL RN_LIGHTS_POINT
+#pragma permutator RN_COLOR
+#pragma permutator RN_ALPHA :includes RN_UV0
+#pragma permutator RN_LIGHTS_DIRECTIONAL :includes RN_SHADOWS_DIRECTIONAL RN_NORMALS
+#pragma permutator RN_LIGHTS_POINT :includes RN_NORMALS
+#pragma permutator RN_SHADOWS_DIRECTIONAL
+
 
 #include "rayne.hlsl"
 
@@ -18,15 +21,14 @@
 	Texture2D texture0;
 	SamplerState linearRepeatSampler;
 #endif
-		
-#if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
-	Texture2DArray directionalShadowTexture;
-	SamplerComparisonState directionalShadowSampler;
-#endif
 
 cbuffer vertexUniforms
 {
+#if RN_USE_MULTIVIEW
+	matrix modelViewProjectionMatrix_multiview[6];
+#else
 	matrix modelViewProjectionMatrix;
+#endif
 	matrix modelMatrix;
 
 	RN_ANIMATION_VERTEX_UNIFORMS
@@ -82,6 +84,10 @@ struct InputVertex
 #endif
 
 	RN_ANIMATION_VERTEX_DATA
+
+#if RN_USE_MULTIVIEW
+	uint viewIndex : SV_VIEWID;
+#endif
 };
 
 struct FragmentVertex
@@ -100,83 +106,6 @@ struct FragmentVertex
 #endif
 };
 
-#if RN_NORMALS && RN_LIGHTS_DIRECTIONAL && RN_SHADOWS_DIRECTIONAL
-float getShadowPCF(float4 projected, float2 offset)
-{
-	return directionalShadowTexture.SampleCmpLevelZero(directionalShadowSampler, float3(projected.xy + offset * directionalShadowInfo, projected.z), projected.w);
-}
-
-//basic 2x2 blur, with hardware bilinear filtering if enabled
-float getShadowPCF2x2(float4 projected)
-{
-	float shadow = getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
-	shadow *= 0.25f;
-	return shadow;
-}
-
-//basic 4x4 blur, with hardware bilinear filtering if enabled
-float getShadowPCF4x4(float4 projected)
-{
-	float shadow = getShadowPCF(projected, float2(-2.0, -2.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -2.0));
-	shadow += getShadowPCF(projected, float2(0.0, -2.0));
-	shadow += getShadowPCF(projected, float2(1.0, -2.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, -1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, -1.0));
-	shadow += getShadowPCF(projected, float2(0.0, -1.0));
-	shadow += getShadowPCF(projected, float2(1.0, -1.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, 0.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 0.0));
-	shadow += getShadowPCF(projected, float2(0.0, 0.0));
-	shadow += getShadowPCF(projected, float2(1.0, 0.0));
-	
-	shadow += getShadowPCF(projected, float2(-2.0, 1.0));
-	shadow += getShadowPCF(projected, float2(-1.0, 1.0));
-	shadow += getShadowPCF(projected, float2(0.0, 1.0));
-	shadow += getShadowPCF(projected, float2(1.0, 1.0));
-	
-	shadow *= 0.0625;
-	return shadow;
-}
-
-float getDirectionalShadowFactor(int light, float3 position)
-{
-	if(light != 0 || directionalShadowMatricesCount == 0)
-		return 1.0f;
-
-	float4 projectedPosition[4];
-	uint mapToUse = -1;
-	for(uint i = 0; i < directionalShadowMatricesCount; i++)
-	{
-		projectedPosition[i] = mul(directionalShadowMatrices[i], float4(position, 1.0));
-		projectedPosition[i].xyz /= projectedPosition[i].w;
-
-		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0 && abs(projectedPosition[i].y) < 1.0 && abs(projectedPosition[i].z) < 1.0)
-		{
-			mapToUse = i;
-		}
-	}
-
-	if(mapToUse == -1)
-		return 1.0f;
-	
-	projectedPosition[mapToUse].y *= -1.0;
-	projectedPosition[mapToUse].xy *= 0.5;
-	projectedPosition[mapToUse].xy += 0.5;
-	projectedPosition[mapToUse].w = mapToUse;
-
-	if(mapToUse < 3)
-		return getShadowPCF2x2(projectedPosition[mapToUse].xywz);
-	else
-		return getShadowPCF4x4(projectedPosition[mapToUse].xywz);
-}
-#endif
-
 #if RN_NORMALS && RN_LIGHTS_DIRECTIONAL
 float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDirectional directionalLights[5])
 {
@@ -185,7 +114,7 @@ float4 getDirectionalLights(float3 position, float3 normal, uint count, LightDir
 	{
 		float4 currentLight = saturate(dot(normal, -directionalLights[i].direction.xyz)) * directionalLights[i].color;
 		#if RN_SHADOWS_DIRECTIONAL
-		currentLight *= getDirectionalShadowFactor(i, position);
+		currentLight *= getDirectionalShadowFactor(i, position, directionalShadowMatrices, directionalShadowMatricesCount, directionalShadowInfo);
 		#endif
 
 		light += currentLight;
@@ -215,7 +144,12 @@ FragmentVertex gouraud_vertex(InputVertex vert)
 	FragmentVertex result;
 
 	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
+
+#if RN_USE_MULTIVIEW
+	result.position = mul(modelViewProjectionMatrix_multiview[vert.viewIndex], position);
+#else
 	result.position = mul(modelViewProjectionMatrix, position);
+#endif
 
 #if RN_COLOR
 	result.color = vert.color;

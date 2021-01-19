@@ -6,13 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef RN_UV0
-#define RN_UV0 0
-#endif
-
-#ifndef RN_COLOR
-#define RN_COLOR 0
-#endif
+#pragma permutator RN_UV0
+#pragma permutator RN_COLOR
 
 #if RN_UV0
 SamplerState linearClampSampler;
