@@ -86,8 +86,11 @@ if(WIN32)
         set(SOURCES ${SOURCES} RNOpenVRVulkanSwapChain.cpp)
         set(HEADERS ${HEADERS} RNOpenVRVulkanSwapChain.h)
 
+        ExternalProject_Get_property(vulkan_headers SOURCE_DIR)
+        set(VulkanHeaders_SOURCE_DIR ${SOURCE_DIR})
+
         set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneVulkan)
-        set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources" ${Vulkan_INCLUDE_DIR})
+        set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources" ${VulkanHeaders_SOURCE_DIR})
     endif()
 elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     set(SOURCES
