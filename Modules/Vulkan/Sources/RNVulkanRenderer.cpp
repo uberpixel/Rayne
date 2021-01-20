@@ -1164,7 +1164,8 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::CameraPosition:
 				{
-					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraInfo.viewPosition.x, descriptor->GetSize());
+					Vector4 cameraPosition(renderPass.cameraInfo.viewPosition, 0.0f);
+					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
 					break;
 				}
 
@@ -1172,13 +1173,13 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Vector3 result[6];
+						Vector4 result[6];
 						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
 						{
-							result[i] = renderPass.multiviewCameraInfo[i].viewPosition;
+							result[i] = Vector4(renderPass.multiviewCameraInfo[i].viewPosition, 0.0f);
 						}
 
-						std::memcpy(buffer + descriptor->GetOffset(), &result[0].x, 12 * renderPass.multiviewCameraInfo.size());
+						std::memcpy(buffer + descriptor->GetOffset(), &result[0].x, 16 * renderPass.multiviewCameraInfo.size());
 					}
 					break;
 				}

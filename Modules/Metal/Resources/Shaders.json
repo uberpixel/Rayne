@@ -47,7 +47,8 @@
                 "name": "particles_vertex",
                 "signature": {
                     "options": [
-                        "RN_UV0"
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -108,7 +109,8 @@
                 "signature": {
                     "options": [
                         "RN_COLOR",
-                        "RN_UV0"
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -145,7 +147,8 @@
                     "options": [
                         "RN_UV0",
                         "RN_UV1",
-                        "RN_COLOR"
+                        "RN_COLOR",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"

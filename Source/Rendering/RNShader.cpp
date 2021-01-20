@@ -231,7 +231,12 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("camera_position_multiview")) || name->IsEqual(RNCSTR("cameraPosition_multiview")))
 		{
 			_identifier = CameraPositionMultiview;
-			_type = PrimitiveType::Vector3;
+			_type = PrimitiveType::Vector4;
+		}
+		else if (name->IsEqual(RNCSTR("camera_position")) || name->IsEqual(RNCSTR("cameraPosition")))
+		{
+			_identifier = CameraPosition;
+			_type = PrimitiveType::Vector4;
 		}
 		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")))
 		{
@@ -366,7 +371,7 @@ namespace RN
 				return 64 * 6;
 
 			case CameraPositionMultiview:
-				return 12 * 6;
+				return 16 * 6;
 
 			default:
 				break;

@@ -24,7 +24,12 @@ SamplerState linearRepeatSampler;
 
 cbuffer vertexUniforms
 {
+#if RN_USE_MULTIVIEW
+	matrix modelViewProjectionMatrix_multiview[6];
+#else
 	matrix modelViewProjectionMatrix;
+#endif
+
 	float4 diffuseColor;
 	float4 cameraAmbientColor;
 
@@ -46,6 +51,10 @@ struct InputVertex
 
 #if RN_UV1
 	[[vk::location(6)]] float3 curveTexCoords : TEXCOORD1;
+#endif
+
+#if RN_USE_MULTIVIEW
+	uint viewIndex : SV_VIEWID;
 #endif
 };
 
@@ -76,7 +85,12 @@ FragmentVertex ui_vertex(InputVertex vert)
 #endif
 
 	float2 position = vert.position + uiOffset;
+
+#if RN_USE_MULTIVIEW
+	result.position = mul(modelViewProjectionMatrix_multiview[vert.viewIndex], float4(position, 0.0, 1.0));
+#else
 	result.position = mul(modelViewProjectionMatrix, float4(position, 0.0, 1.0));
+#endif
 
 	result.clipDistance.x = position.x - uiClippingRect.x;
 	result.clipDistance.y = uiClippingRect.y - position.x;

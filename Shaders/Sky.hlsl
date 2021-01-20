@@ -16,8 +16,13 @@ Texture2D texture0;
 
 cbuffer vertexUniforms
 {
+#if RN_USE_MULTIVIEW
+	matrix modelViewMatrix_multiview[6];
+	matrix projectionMatrix_multiview[6];
+#else
 	matrix modelViewMatrix;
 	matrix projectionMatrix;
+#endif
 };
 
 cbuffer fragmentUniforms
@@ -35,6 +40,10 @@ struct InputVertex
 #endif
 #if RN_COLOR
 	[[vk::location(3)]] float4 color : COLOR0;
+#endif
+
+#if RN_USE_MULTIVIEW
+	uint viewIndex : SV_VIEWID;
 #endif
 };
 
@@ -55,8 +64,13 @@ FragmentVertex sky_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
+#if RN_USE_MULTIVIEW
+	float3 rotatedPosition = mul(modelViewMatrix_multiview[vert.viewIndex], float4(vert.position, 0.0)).xyz;
+	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 0.0)).xyww;
+#else
 	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 0.0)).xyz;
 	result.position = mul(projectionMatrix, float4(rotatedPosition, 0.0)).xyww;
+#endif
 
 #if RN_UV0
 	result.texCoords = vert.texCoords;

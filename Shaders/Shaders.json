@@ -51,7 +51,8 @@
 				{
 					"options":
 					[
-						"RN_UV0"
+						"RN_UV0",
+						"RN_USE_MULTIVIEW"
 					]
 				}
 			},
@@ -112,7 +113,8 @@
 					"options":
 					[
 						"RN_COLOR",
-						"RN_UV0"
+						"RN_UV0",
+						"RN_USE_MULTIVIEW"
 					]
 				}
 			},
@@ -145,7 +147,8 @@
 					[
 						"RN_UV0",
 						"RN_UV1",
-						"RN_COLOR"
+						"RN_COLOR",
+						"RN_USE_MULTIVIEW"
 					]
 				}
 			},

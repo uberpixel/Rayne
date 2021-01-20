@@ -90,6 +90,9 @@ namespace RN
 
 //		layers.push_back("VK_LAYER_LUNARG_monitor");
 //		layers.push_back("VK_LAYER_LUNARG_assistant_layer");
+
+		//This is the only validation layer on android! (and also available on other platforms)
+//		layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
 
 		return layers;

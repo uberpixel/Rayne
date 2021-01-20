@@ -56,6 +56,8 @@ namespace RN
 				shaderOptions->AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
 				
 				RN::Material *material = RN::Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
+				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
+				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
 				material->SetAlphaToCoverage(false);
 				material->SetDepthWriteEnabled(false);
 				material->SetCullMode(CullMode::None);
