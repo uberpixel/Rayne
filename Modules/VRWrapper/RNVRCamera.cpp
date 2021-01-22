@@ -60,17 +60,19 @@ namespace RN
 			_debugWindow->Show();
 		}
 		
+		_head->AddFlags(Camera::Flags::UseSimpleCulling);
+		_head->SetShaderHint(Shader::UsageHint::Multiview);
+		
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i] = new Camera();
 			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i))); //This won't work with multiview! (and is only needed for the hidden area mask)
 			_head->AddChild(_eye[i]);
 			_head->AddMultiviewCamera(_eye[i]);
-			_head->SetShaderHint(Shader::UsageHint::Multiview);
 			_hiddenAreaEntity[i] = nullptr;
 
 			//TODO: Fix culling for VR!?
-			_eye[i]->SetFlags(_eye[i]->GetFlags() | Camera::Flags::UseSimpleCulling);
+			_eye[i]->AddFlags(Camera::Flags::UseSimpleCulling);
 			
 #if !RN_PLATFORM_WINDOWS
 			if(_window)
