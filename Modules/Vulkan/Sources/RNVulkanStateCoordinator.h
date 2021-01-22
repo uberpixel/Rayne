@@ -130,6 +130,7 @@ namespace RN
 	{
 		RenderPass::Flags flags;
 		uint8 multiviewCount;
+		bool hasFragmentDensityMap;
 		std::vector<VkFormat> imageFormats;
 		std::vector<VkFormat> resolveFormats;
 		VkRenderPass renderPass;

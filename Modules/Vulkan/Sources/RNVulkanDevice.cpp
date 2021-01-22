@@ -60,7 +60,8 @@ namespace RN
 		_physicalDevice(device),
 		_workQueue(kRNNotFound),
 		_deviceExtensions(nullptr),
-		_maxMultiviewViewCount(1)
+		_maxMultiviewViewCount(1),
+		_supportsFragmentDensityMaps(false)
 	{
 		std::vector<VkQueueFamilyProperties> queues;
 		GetQueueProperties(queues);
@@ -177,8 +178,8 @@ namespace RN
 				_deviceExtensions->AddObject(RNCSTR(extension.extensionName));
 				deviceExtensions.push_back(extension.extensionName);
 
-				VkPhysicalDeviceMultiviewProperties multiviewProperties;
-				multiviewProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES;
+				VkPhysicalDeviceMultiviewPropertiesKHR multiviewProperties;
+				multiviewProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR;
 				multiviewProperties.pNext = NULL;
 				
 				VkPhysicalDeviceProperties2 deviceProperties;
@@ -190,6 +191,26 @@ namespace RN
 				_maxMultiviewViewCount = multiviewProperties.maxMultiviewViewCount;
 
 				RNDebug("Maximum number of multiviews: " << _maxMultiviewViewCount << " instances: " << multiviewProperties.maxMultiviewInstanceIndex);
+			}
+			else if(std::strcmp(extension.extensionName, VK_EXT_FRAGMENT_DENSITY_MAP_EXTENSION_NAME) == 0)
+			{
+				_deviceExtensions->AddObject(RNCSTR(extension.extensionName));
+				deviceExtensions.push_back(extension.extensionName);
+
+				VkPhysicalDeviceFragmentDensityMapPropertiesEXT fragmentDensityMapProperties;
+				fragmentDensityMapProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT;
+				fragmentDensityMapProperties.pNext = NULL;
+
+				VkPhysicalDeviceProperties2 deviceProperties;
+				deviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+				deviceProperties.pNext = &fragmentDensityMapProperties;
+
+				vk::GetPhysicalDeviceProperties2KHR(_physicalDevice, &deviceProperties);
+				_minFragmentDensityTexelSize.x = fragmentDensityMapProperties.minFragmentDensityTexelSize.width;
+				_minFragmentDensityTexelSize.y = fragmentDensityMapProperties.minFragmentDensityTexelSize.height;
+				_maxFragmentDensityTexelSize.x = fragmentDensityMapProperties.maxFragmentDensityTexelSize.width;
+				_maxFragmentDensityTexelSize.y = fragmentDensityMapProperties.maxFragmentDensityTexelSize.height;
+				_supportsFragmentDensityMaps = true;
 			}
 		}
 

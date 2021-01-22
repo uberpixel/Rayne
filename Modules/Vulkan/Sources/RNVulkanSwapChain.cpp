@@ -216,11 +216,11 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 
 		if(!_framebuffer)
 		{
-			_framebuffer = new VulkanFramebuffer(_size, 1, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+			_framebuffer = new VulkanFramebuffer(_size, 1, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
 		}
 		else
 		{
-			_framebuffer->DidUpdateSwapChain(_size, 1, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+			_framebuffer->DidUpdateSwapChain(_size, 1, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
 		}
 	};
 
@@ -266,6 +266,11 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 	}
 
 	VkImage VulkanSwapChain::GetVulkanDepthBuffer(int i) const
+	{
+		return nullptr;
+	}
+
+	VkImage VulkanSwapChain::GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const
 	{
 		return nullptr;
 	}

@@ -33,6 +33,7 @@ namespace RN
 
 		OVRAPI VkImage GetVulkanColorBuffer(int i) const final;
 		OVRAPI VkImage GetVulkanDepthBuffer(int i) const final;
+		OVRAPI VkImage GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const final;
 
 	private:
 		OculusMobileVulkanSwapChain(const Window::SwapChainDescriptor &descriptor, const Vector2 &size);

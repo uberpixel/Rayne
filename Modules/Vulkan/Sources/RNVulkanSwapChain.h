@@ -33,6 +33,7 @@ namespace RN
 
 		VKAPI virtual VkImage GetVulkanColorBuffer(int i) const;
 		VKAPI virtual VkImage GetVulkanDepthBuffer(int i) const;
+		VKAPI virtual VkImage GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const;
 
 		VkSemaphore GetCurrentPresentSemaphore() const { return _presentSemaphores[_semaphoreIndex]; }
 		VkSemaphore GetCurrentRenderSemaphore() const { return _renderSemaphores[_semaphoreIndex]; }

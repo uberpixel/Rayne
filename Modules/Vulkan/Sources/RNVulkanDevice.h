@@ -39,6 +39,7 @@ namespace RN
 
 		bool GetSupportsMultiview() const { return _maxMultiviewViewCount > 1; }
 		uint32 GetMaxMultiviewViewCount() const { return _maxMultiviewViewCount; }
+		bool GetSupportsFragmentDensityMaps() const { return _supportsFragmentDensityMaps; }
 
 		VKAPI void SetExtensions(Array *extensions) final;
 
@@ -48,7 +49,11 @@ namespace RN
 		static Descriptor DescriptorForDevice(VkPhysicalDevice device);
 
 		RN::Array *_deviceExtensions;
+
 		uint32 _maxMultiviewViewCount;
+		bool _supportsFragmentDensityMaps;
+		Vector2 _minFragmentDensityTexelSize;
+		Vector2 _maxFragmentDensityTexelSize;
 
 		VulkanInstance *_instance;
 		VkPhysicalDevice _physicalDevice;

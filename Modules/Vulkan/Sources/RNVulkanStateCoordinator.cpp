@@ -739,6 +739,8 @@ namespace RN
 		VulkanRenderPassState renderPassState;
 		renderPassState.flags = flags;
 		renderPassState.multiviewCount = multiviewCount;
+		const VulkanFramebuffer *fragmentDensityFramebuffer = resolveFramebuffer? resolveFramebuffer : framebuffer;
+		renderPassState.hasFragmentDensityMap = fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0;
 		for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
 			renderPassState.imageFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
@@ -757,6 +759,11 @@ namespace RN
 			renderPassState.imageFormats.push_back(framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format);
 		}
 
+		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0)
+		{
+			renderPassState.imageFormats.push_back(fragmentDensityFramebuffer->_fragmentDensityTargets[0]->vulkanTargetViewDescriptor.format);
+		}
+
 		for(VulkanRenderPassState *state : _renderPassStates)
 		{
 			if((*state) == renderPassState) return state;
@@ -766,6 +773,8 @@ namespace RN
 		state->flags = renderPassState.flags;
 		state->imageFormats = renderPassState.imageFormats;
 		state->resolveFormats = renderPassState.resolveFormats;
+		state->multiviewCount = renderPassState.multiviewCount;
+		state->hasFragmentDensityMap = renderPassState.hasFragmentDensityMap;
 
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -868,6 +877,28 @@ namespace RN
 			//TODO: Figure out depth resolve!?
 		}
 
+		VkRenderPassFragmentDensityMapCreateInfoEXT fragmentDensityMapCreateInfo = {};
+		fragmentDensityMapCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
+		fragmentDensityMapCreateInfo.pNext = nullptr;
+
+		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0)
+		{
+			fragmentDensityMapCreateInfo.fragmentDensityMapAttachment.attachment = attachments.size();
+			fragmentDensityMapCreateInfo.fragmentDensityMapAttachment.layout = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;
+
+			VkAttachmentDescription attachment = {};
+			attachment.format = fragmentDensityFramebuffer->_fragmentDensityTargets[0]->vulkanTargetViewDescriptor.format;
+			attachment.flags = 0;
+			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;
+			attachments.push_back(attachment);
+		}
+
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.pNext = nullptr;
@@ -881,10 +912,13 @@ namespace RN
 		//Multiview stuff
 		uint32 viewMask = 0;
 		uint32 correlationMask = 0;
-		for(int i = 0; i < multiviewCount; i++)
+		if(multiviewCount > 1)
 		{
-			viewMask |= (1 << i);
-			correlationMask |= (1 << i);
+			for(int i = 0; i < multiviewCount; i++)
+			{
+				viewMask |= (1 << i);
+				correlationMask |= (1 << i);
+			}
 		}
 		VkRenderPassMultiviewCreateInfoKHR multiviewPassInfo = {};
 		multiviewPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO;
@@ -898,6 +932,18 @@ namespace RN
 		if(multiviewCount > 1)
 		{
 			renderPassInfo.pNext = &multiviewPassInfo;
+		}
+
+		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0)
+		{
+			if(multiviewCount > 1)
+			{
+				multiviewPassInfo.pNext = &fragmentDensityMapCreateInfo;
+			}
+			else
+			{
+				renderPassInfo.pNext = &fragmentDensityMapCreateInfo;
+			}
 		}
 
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();

@@ -51,7 +51,7 @@ namespace RN
 		}
 
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::RG_8);
 	}
 
 	OculusMobileVulkanSwapChain::~OculusMobileVulkanSwapChain()
@@ -94,6 +94,13 @@ namespace RN
     VkImage OculusMobileVulkanSwapChain::GetVulkanDepthBuffer(int i) const
 	{
 		return nullptr;
+	}
+
+	VkImage OculusMobileVulkanSwapChain::GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const
+	{
+		VkImage image;
+		vrapi_GetTextureSwapChainBufferFoveationVulkan(_colorSwapChain, i, &image, &width, &height);
+		return image;
 	}
 
 	ovrMatrix4f OculusMobileVulkanSwapChain::GetTanAngleMatrixForEye(uint8 eye)

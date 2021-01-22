@@ -28,7 +28,7 @@ namespace RN
 			VkImageView tempVulkanImageView;
 		};
 
-		VKAPI VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		VKAPI VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat, Texture::Format fragmentDensityFormat);
 		VKAPI VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer);
 		VKAPI ~VulkanFramebuffer();
 
@@ -42,7 +42,7 @@ namespace RN
 		VulkanSwapChain *GetSwapChain() const { return _swapChain; }
 
 		VKAPI void WillUpdateSwapChain();
-		VKAPI void DidUpdateSwapChain(Vector2 size, uint8 layerCount, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		VKAPI void DidUpdateSwapChain(Vector2 size, uint8 layerCount, Texture::Format colorFormat, Texture::Format depthStencilFormat, Texture::Format fragmentDensityFormat);
 
 	private:
 		void PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewLayer, uint8 multiviewCount);
@@ -57,6 +57,7 @@ namespace RN
 
 		std::vector<VulkanTargetView *> _colorTargets;
 		VulkanTargetView *_depthStencilTarget;
+		std::vector<VulkanTargetView *> _fragmentDensityTargets;
 
 		VkRenderPass _renderPass;
 		VkFramebuffer _frameBuffer;

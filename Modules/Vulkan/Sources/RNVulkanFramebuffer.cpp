@@ -158,7 +158,7 @@ namespace RN
 		return newInfo;
 	}
 
-	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
+	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat, Texture::Format fragmentDensityFormat) :
 		Framebuffer(Vector2()),
 		_sampleCount(1),
 		_renderer(renderer),
@@ -167,7 +167,7 @@ namespace RN
 		_renderPass(nullptr),
 		_frameBuffer(nullptr)
 	{
-		DidUpdateSwapChain(size, layerCount, colorFormat, depthStencilFormat);
+		DidUpdateSwapChain(size, layerCount, colorFormat, depthStencilFormat, fragmentDensityFormat);
 	}
 
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, VulkanRenderer *renderer) :
@@ -341,6 +341,26 @@ namespace RN
 			attachments.push_back(imageView);
 		}
 
+		VulkanFramebuffer *fragmentDensityFramebuffer = this;
+		if(resolveFramebuffer)
+		{
+			fragmentDensityFramebuffer = resolveFramebuffer;
+		}
+		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0)
+		{
+			uint8 index = 0;
+			if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 1 && fragmentDensityFramebuffer->_swapChain)
+			{
+				index = fragmentDensityFramebuffer->_swapChain->GetFrameIndex();
+			}
+			const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(fragmentDensityFramebuffer->_fragmentDensityTargets[index]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+
+			VkImageView imageView;
+			RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
+			fragmentDensityFramebuffer->_fragmentDensityTargets[index]->tempVulkanImageView = imageView;
+			attachments.push_back(imageView);
+		}
+
 		//TODO: Create framebuffer per framebuffer and not per camera, but also still handle msaa resolve somehow
 		//TODO: Reuse framebuffer, cause creating imageviews and framebuffer is slow
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
@@ -430,9 +450,19 @@ namespace RN
 			delete _depthStencilTarget;
 		}
 		_depthStencilTarget = nullptr;
+
+		if(_fragmentDensityTargets.size() > 1)
+		{
+			for(VulkanTargetView *targetView : _fragmentDensityTargets)
+			{
+				SafeRelease(targetView->targetView.texture);
+				delete targetView;
+			}
+		}
+		_fragmentDensityTargets.clear();
 	}
 
-	void VulkanFramebuffer::DidUpdateSwapChain(Vector2 size, uint8 layerCount, Texture::Format colorFormat, Texture::Format depthStencilFormat)
+	void VulkanFramebuffer::DidUpdateSwapChain(Vector2 size, uint8 layerCount, Texture::Format colorFormat, Texture::Format depthStencilFormat, Texture::Format fragmentDensityFormat)
 	{
 		_size = size;
 
@@ -472,6 +502,35 @@ namespace RN
 
 			commandBuffer->End();
 			_renderer->SubmitCommandBuffer(commandBuffer);
+
+			if(fragmentDensityFormat != Texture::Format::Invalid && _renderer->GetVulkanDevice()->GetSupportsFragmentDensityMaps())
+			{
+				for(uint8 i = 0; i < bufferCount; i++)
+				{
+					uint32 width = 0;
+					uint32 height = 0;
+					VkImage fragmentDensityBuffer = _swapChain->GetVulkanFragmentDensityBuffer(i, width, height);
+
+					Texture::Descriptor fragmentDensityTextureDescriptor;
+					fragmentDensityTextureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
+					fragmentDensityTextureDescriptor.width = width;
+					fragmentDensityTextureDescriptor.height = height;
+					fragmentDensityTextureDescriptor.depth = layerCount;
+					fragmentDensityTextureDescriptor.type = layerCount > 1 ? Texture::Type::Type2DArray : Texture::Type::Type2D;
+					fragmentDensityTextureDescriptor.format = fragmentDensityFormat;
+
+					VulkanTexture *bufferTexture = new VulkanTexture(fragmentDensityTextureDescriptor, _renderer, fragmentDensityBuffer);
+
+					TargetView targetView;
+					targetView.texture = bufferTexture->Autorelease();
+					targetView.mipmap = 0;
+					targetView.slice = 0;
+					targetView.length = layerCount;
+
+					VulkanTargetView *vulkanTargetView = VulkanTargetViewFromTargetView(targetView);
+					_fragmentDensityTargets.push_back(vulkanTargetView);
+				}
+			}
 		}
 
 		if(!_depthStencilTarget && depthStencilFormat != Texture::Format::Invalid)
