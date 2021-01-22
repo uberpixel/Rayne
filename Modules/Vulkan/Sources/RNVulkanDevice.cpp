@@ -60,7 +60,7 @@ namespace RN
 		_physicalDevice(device),
 		_workQueue(kRNNotFound),
 		_deviceExtensions(nullptr),
-		_maxMultiviewViewCount(0)
+		_maxMultiviewViewCount(1)
 	{
 		std::vector<VkQueueFamilyProperties> queues;
 		GetQueueProperties(queues);

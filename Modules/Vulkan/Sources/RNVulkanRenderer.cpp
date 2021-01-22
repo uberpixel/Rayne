@@ -29,7 +29,10 @@ namespace RN
 		_executedCommandBuffers(new Array()),
 		_currentCommandBuffer(nullptr),
 		_commandBufferPool(new Array()),
-        _defaultPostProcessingDrawable(nullptr)
+        _defaultPostProcessingDrawable(nullptr),
+		_currentMultiviewLayer(0),
+		_currentMultiviewCount(0),
+		_currentMultiviewFallbackRenderPass(nullptr)
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
 
@@ -71,9 +74,9 @@ namespace RN
 		delete _constantBufferPool;
 	}
 
-	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, bool isMultiview)
+	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount)
 	{
-		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer, flags, isMultiview)->renderPass;
+		return _internals->stateCoordinator.GetRenderPassState(framebuffer, resolveFramebuffer, flags, multiviewCount)->renderPass;
 	}
 
 	void VulkanRenderer::CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers)
@@ -390,7 +393,7 @@ namespace RN
 	void VulkanRenderer::SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass)
 	{
 		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame, find new solution for setting things up for msaa while reusing a framebuffer?
-		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags(), renderpass.multiviewCameraInfo.size() > 1);
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(renderpass.resolveFramebuffer, renderpass.renderPass->GetFlags(), renderpass.multiviewLayer, renderpass.multiviewCameraInfo.size());
 		renderpass.framebuffer->SetAsRendertarget(commandBuffer, renderpass.resolveFramebuffer, renderpass.renderPass->GetClearColor(), renderpass.renderPass->GetClearDepth(), renderpass.renderPass->GetClearStencil());
 
 		//Setup viewport and scissor rect
@@ -427,39 +430,87 @@ namespace RN
 		{
 			if(multiviewCameras->GetCount() > 1 && GetVulkanDevice()->GetSupportsMultiview())
 			{
-				multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop){
-					VulkanRenderPassCameraInfo cameraInfo;
+				if(multiviewCameras->GetCount() <= GetVulkanDevice()->GetMaxMultiviewViewCount() || _currentMultiviewCount > 0)
+				{
+					multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop){
+						if(_currentMultiviewCount > 0 && index < _currentMultiviewLayer) return;
+						if(_currentMultiviewCount > 0 && index >= _currentMultiviewLayer + _currentMultiviewCount)
+						{
+							stop = true;
+							return;
+						}
 
-					cameraInfo.viewPosition = multiviewCamera->GetWorldPosition();
-					cameraInfo.viewMatrix = multiviewCamera->GetViewMatrix();
-					cameraInfo.inverseViewMatrix = multiviewCamera->GetInverseViewMatrix();
+						VulkanRenderPassCameraInfo cameraInfo;
 
-					Matrix clipSpaceCorrectionMatrix;
-					clipSpaceCorrectionMatrix.m[5] = -1.0f;
-					clipSpaceCorrectionMatrix.m[10] = 0.5f;
-					clipSpaceCorrectionMatrix.m[14] = 0.5f;
-					cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * multiviewCamera->GetProjectionMatrix();
-					cameraInfo.inverseProjectionMatrix = multiviewCamera->GetInverseProjectionMatrix();
-					cameraInfo.projectionViewMatrix = cameraInfo.projectionMatrix * cameraInfo.viewMatrix;
+						cameraInfo.viewPosition = multiviewCamera->GetWorldPosition();
+						cameraInfo.viewMatrix = multiviewCamera->GetViewMatrix();
+						cameraInfo.inverseViewMatrix = multiviewCamera->GetInverseViewMatrix();
 
-					renderPass.multiviewCameraInfo.push_back(cameraInfo);
-				});
+						Matrix clipSpaceCorrectionMatrix;
+						clipSpaceCorrectionMatrix.m[5] = -1.0f;
+						clipSpaceCorrectionMatrix.m[10] = 0.5f;
+						clipSpaceCorrectionMatrix.m[14] = 0.5f;
+						cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * multiviewCamera->GetProjectionMatrix();
+						cameraInfo.inverseProjectionMatrix = multiviewCamera->GetInverseProjectionMatrix();
+						cameraInfo.projectionViewMatrix = cameraInfo.projectionMatrix * cameraInfo.viewMatrix;
+
+						renderPass.multiviewCameraInfo.push_back(cameraInfo);
+					});
+				}
+				else
+				{
+					int increment = GetVulkanDevice()->GetMaxMultiviewViewCount();
+					int i = 0;
+					while(increment > 0)
+					{
+						_currentMultiviewLayer = i;
+						_currentMultiviewCount = increment;
+
+						if(increment == 1)
+						{
+							_currentMultiviewFallbackRenderPass = camera->GetRenderPass();
+							SubmitCamera(multiviewCameras->GetObjectAtIndex<Camera>(i), std::move(function));
+							_currentMultiviewFallbackRenderPass = nullptr;
+						}
+						else
+						{
+							SubmitCamera(camera, std::move(function));
+						}
+
+						_currentMultiviewLayer = 0;
+						_currentMultiviewCount = 0;
+
+						i += increment;
+						increment = std::min(static_cast<int>(GetVulkanDevice()->GetMaxMultiviewViewCount()), static_cast<int>(multiviewCameras->GetCount() - i));
+					}
+				}
 			}
 			else
 			{
 				//If multiview is not supported or there is only one multiview camera, render them individually (and ignore their parent camera)
-				multiviewCameras->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop){
-					SubmitCamera(camera, std::move(function));
+				multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop){
+					_currentMultiviewLayer = index;
+					_currentMultiviewCount = 1;
+					_currentMultiviewFallbackRenderPass = camera->GetRenderPass();
+
+					SubmitCamera(multiviewCamera, std::move(function));
+
+					_currentMultiviewLayer = 0;
+					_currentMultiviewCount = 0;
+					_currentMultiviewFallbackRenderPass = nullptr;
 				});
 
 				return;
 			}
 		}
 
+		RenderPass *cameraRenderPass = _currentMultiviewFallbackRenderPass? _currentMultiviewFallbackRenderPass : camera->GetRenderPass();
+
 		renderPass.drawables.resize(0);
+		renderPass.multiviewLayer = _currentMultiviewLayer;
 
 		renderPass.type = VulkanRenderPass::Type::Default;
-		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.renderPass = cameraRenderPass;
 		renderPass.previousRenderPass = nullptr;
 
 		renderPass.resolveFramebuffer = nullptr;
@@ -483,7 +534,7 @@ namespace RN
 
 		renderPass.cameraAmbientColor = camera->GetAmbientColor();
 
-		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
+		Framebuffer *framebuffer = cameraRenderPass->GetFramebuffer();
 		if(!framebuffer) return;
 
 		VulkanSwapChain *newSwapChain = nullptr;
@@ -1554,7 +1605,7 @@ namespace RN
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
-			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial, renderPass.renderPass->GetFlags(), renderPass.multiviewCameraInfo.size() > 1);
+			const VulkanPipelineState *pipelineState = _internals->stateCoordinator.GetRenderPipelineState(material, drawable->mesh, renderPass.framebuffer, renderPass.resolveFramebuffer, renderPass.shaderHint, renderPass.overrideMaterial, renderPass.renderPass->GetFlags(), renderPass.multiviewCameraInfo.size());
 			VulkanUniformState *uniformState = _internals->stateCoordinator.GetUniformStateForPipelineState(pipelineState);
 			_lock.Unlock();
 

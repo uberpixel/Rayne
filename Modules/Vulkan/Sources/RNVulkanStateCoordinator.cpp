@@ -384,7 +384,7 @@ namespace RN
 		return signature;
 	}
 
-	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags, bool isMultiview)
+	const VulkanPipelineState *VulkanStateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial, RenderPass::Flags flags, uint8 multiviewCount)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
 		const Material::Properties &mergedMaterialProperties = overrideMaterial? material->GetMergedProperties(overrideMaterial) : material->GetProperties();
@@ -392,7 +392,7 @@ namespace RN
 		pipelineDescriptor.depthStencilFormat = (framebuffer->_depthStencilTarget) ? framebuffer->_depthStencilTarget->vulkanTargetViewDescriptor.format : VK_FORMAT_UNDEFINED;
 		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
 		//pipelineDescriptor.sampleQuality = 0;//(framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;
-		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer, flags, isMultiview)->renderPass;
+		pipelineDescriptor.renderPass = GetRenderPassState(framebuffer, resolveFramebuffer, flags, multiviewCount)->renderPass;
 		pipelineDescriptor.shaderHint = shaderHint;
 		pipelineDescriptor.vertexShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders))? overrideMaterial->GetVertexShader(pipelineDescriptor.shaderHint) : material->GetVertexShader(pipelineDescriptor.shaderHint);
 		pipelineDescriptor.fragmentShader = (overrideMaterial && !(overrideMaterial->GetOverride() & Material::Override::GroupShaders) && !(material->GetOverride() & Material::Override::GroupShaders)) ? overrideMaterial->GetFragmentShader(pipelineDescriptor.shaderHint) : material->GetFragmentShader(pipelineDescriptor.shaderHint);
@@ -731,13 +731,14 @@ namespace RN
 		return state;
 	}
 
-	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, bool isMultiview)
+	VulkanRenderPassState *VulkanStateCoordinator::GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount)
 	{
 		//TODO: Maybe handle swapchain case better...
 		RN_ASSERT(!resolveFramebuffer || framebuffer->_colorTargets.size() <= resolveFramebuffer->_colorTargets.size(), "Resolve framebuffer needs a target for each target in the framebuffer!");
 
 		VulkanRenderPassState renderPassState;
 		renderPassState.flags = flags;
+		renderPassState.multiviewCount = multiviewCount;
 		for(const VulkanFramebuffer::VulkanTargetView *targetView : framebuffer->_colorTargets)
 		{
 			renderPassState.imageFormats.push_back(targetView->vulkanTargetViewDescriptor.format);
@@ -880,7 +881,7 @@ namespace RN
 		//Multiview stuff
 		uint32 viewMask = 0;
 		uint32 correlationMask = 0;
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < multiviewCount; i++)
 		{
 			viewMask |= (1 << i);
 			correlationMask |= (1 << i);
@@ -894,7 +895,7 @@ namespace RN
 		multiviewPassInfo.correlationMaskCount = 1;
 		multiviewPassInfo.pCorrelationMasks = &correlationMask;
 
-		if(isMultiview)
+		if(multiviewCount > 1)
 		{
 			renderPassInfo.pNext = &multiviewPassInfo;
 		}

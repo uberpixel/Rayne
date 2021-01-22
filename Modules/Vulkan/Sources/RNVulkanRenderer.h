@@ -93,7 +93,7 @@ namespace RN
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
 		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanRenderPass &renderpass);
-		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, bool isMultiview);
+		VkRenderPass GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount);
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
@@ -127,6 +127,10 @@ namespace RN
 		size_t _currentDrawableIndex;
 		size_t _currentFrame;
 		size_t _completedFrame;
+
+		uint8 _currentMultiviewLayer;
+		uint8 _currentMultiviewCount;
+		RenderPass *_currentMultiviewFallbackRenderPass;
 
 		VulkanDrawable *_defaultPostProcessingDrawable;
 

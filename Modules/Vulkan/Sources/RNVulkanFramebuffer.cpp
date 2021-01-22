@@ -116,6 +116,48 @@ namespace RN
 		return vulkanTargetView;
 	}
 
+	static VkImageViewCreateInfo VkImageViewCreateInfoWithMultiviewPatch(const VkImageViewCreateInfo &oldInfo, uint8 multiviewLayer, uint8 multiviewCount)
+	{
+		VkImageViewCreateInfo newInfo = oldInfo;
+
+		//TODO: Support multisampled array render targets and plane slices
+		if(multiviewCount > 0 || multiviewLayer > 0)
+		{
+			if(multiviewCount == 0)
+			{
+				multiviewCount = 1;
+			}
+			switch(newInfo.viewType)
+			{
+				case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+				{
+					newInfo.subresourceRange.baseArrayLayer = multiviewLayer;
+					newInfo.subresourceRange.layerCount = multiviewCount;
+					break;
+				}
+
+				case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+				{
+					newInfo.subresourceRange.baseArrayLayer = multiviewLayer;
+					newInfo.subresourceRange.layerCount = multiviewCount;
+					break;
+				}
+
+				case VK_IMAGE_VIEW_TYPE_3D:
+				{
+					newInfo.subresourceRange.baseArrayLayer = multiviewLayer;
+					newInfo.subresourceRange.layerCount = multiviewCount;
+					break;
+				}
+
+				default:
+					RN_ASSERT(false, "Unsupported render target type ");
+			}
+		}
+
+		return newInfo;
+	}
+
 	VulkanFramebuffer::VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(Vector2()),
 		_sampleCount(1),
@@ -234,11 +276,11 @@ namespace RN
 		return _sampleCount;
 	}
 
-	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, bool isMultiview)
+	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewLayer, uint8 multiviewCount)
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
-		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer, flags, isMultiview);
+		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer, flags, multiviewCount);
 
 		std::vector<VkImageView> attachments;
 		if(_colorTargets.size() > 0)
@@ -246,8 +288,10 @@ namespace RN
 			//Create the render target view
 			if(_swapChain)
 			{
+				const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(_colorTargets[_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+
 				VkImageView imageView;
-				RNVulkanValidate(vk::CreateImageView(device, &(_colorTargets[_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+				RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
 				attachments.push_back(imageView);
                 _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 			}
@@ -256,8 +300,10 @@ namespace RN
 				int counter = 0;
 				for(VulkanTargetView *targetView : _colorTargets)
 				{
+					const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(targetView->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+
 					VkImageView imageView;
-					RNVulkanValidate(vk::CreateImageView(device, &targetView->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
+					RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
                     targetView->tempVulkanImageView = imageView;
 					attachments.push_back(imageView);
 
@@ -267,12 +313,14 @@ namespace RN
 						VkImageView imageView;
 						if(resolveFramebuffer->_swapChain)
 						{
-							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
                             resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 						}
 						else
 						{
-							RNVulkanValidate(vk::CreateImageView(device, &(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor), _renderer->GetAllocatorCallback(), &imageView));
+							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
                             resolveFramebuffer->_colorTargets[counter]->tempVulkanImageView = imageView;
 						}
 						attachments.push_back(imageView);
@@ -285,8 +333,10 @@ namespace RN
 
 		if(_depthStencilTarget)
 		{
+			const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(_depthStencilTarget->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+
 			VkImageView imageView;
-			RNVulkanValidate(vk::CreateImageView(device, &_depthStencilTarget->vulkanTargetViewDescriptor, _renderer->GetAllocatorCallback(), &imageView));
+			RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
             _depthStencilTarget->tempVulkanImageView = imageView;
 			attachments.push_back(imageView);
 		}

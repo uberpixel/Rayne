@@ -246,6 +246,7 @@ namespace RN
 		Color cameraAmbientColor;
 		VulkanRenderPassCameraInfo cameraInfo;
 		std::vector<VulkanRenderPassCameraInfo> multiviewCameraInfo;
+		uint8 multiviewLayer;
 
 		std::vector<VulkanDrawable *> drawables;
 		std::vector<VulkanDirectionalLight> directionalLights;
