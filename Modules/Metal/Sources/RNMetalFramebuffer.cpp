@@ -225,7 +225,7 @@ namespace RN
 		return _sampleCount;
 	}
 
-	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass, MetalFramebuffer *resolveFramebuffer) const
+	MTLRenderPassDescriptor *MetalFramebuffer::GetRenderPassDescriptor(RenderPass *renderPass, MetalFramebuffer *resolveFramebuffer, uint8 multiviewLayer, uint8 multiviewCount) const
 	{
 		//TODO: Currently the next camera into the same framebuffer will clear the whole framebuffer...
 		//There does not appear to be a way to only clear part of the framebuffer...
@@ -279,7 +279,15 @@ namespace RN
 				[colorAttachment setStoreAction:MTLStoreActionStore];
 			}
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
-			[colorAttachment setSlice:metalTarget->targetView.slice];
+			
+			if(multiviewCount > 0 || multiviewLayer > 0)
+			{
+				[colorAttachment setSlice:multiviewLayer];
+			}
+			else
+			{
+				[colorAttachment setSlice:metalTarget->targetView.slice];
+			}
 			[colorAttachment setLevel:metalTarget->targetView.mipmap];
 			
 			counter += 1;
@@ -315,7 +323,16 @@ namespace RN
 				{
 					[depthAttachment setStoreAction:MTLStoreActionStore];
 				}
-				[depthAttachment setSlice:_depthStencilTarget->targetView.slice];
+				
+				if(multiviewCount > 0 || multiviewLayer > 0)
+				{
+					[depthAttachment setSlice:multiviewLayer];
+				}
+				else
+				{
+					[depthAttachment setSlice:_depthStencilTarget->targetView.slice];
+				}
+				
 				[depthAttachment setLevel:_depthStencilTarget->targetView.mipmap];
 			}
 
@@ -326,7 +343,16 @@ namespace RN
 				[stencilAttachment setTexture:depthStencilTexture];
 				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
 				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
-				[stencilAttachment setSlice:_depthStencilTarget->targetView.slice];
+				
+				if(multiviewCount > 0 || multiviewLayer > 0)
+				{
+					[stencilAttachment setSlice:multiviewLayer];
+				}
+				else
+				{
+					[stencilAttachment setSlice:_depthStencilTarget->targetView.slice];
+				}
+				
 				[stencilAttachment setLevel:_depthStencilTarget->targetView.mipmap];
 			}
 		}

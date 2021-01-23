@@ -94,6 +94,9 @@ namespace RN
 
 		MetalUniformBufferPool *_uniformBufferPool;
 		ShaderLibrary *_defaultShaderLibrary;
+		
+		uint8 _currentMultiviewLayer;
+		RenderPass *_currentMultiviewFallbackRenderPass;
 
 		RNDeclareMetaAPI(MetalRenderer, MTLAPI)
 	};

@@ -174,6 +174,7 @@ namespace RN
 		Matrix inverseProjectionViewMatrix;
 		
 		Color cameraAmbientColor;
+		uint8 multiviewLayer;
 
 		std::vector<MetalDrawable *> drawables;
 

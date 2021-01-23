@@ -28,7 +28,9 @@ namespace RN
 		_mainWindow(nullptr),
 		_defaultPostProcessingDrawable(nullptr),
 		_ppConvertMaterial(nullptr),
-		_defaultShaderLibrary(nullptr)
+		_defaultShaderLibrary(nullptr),
+		_currentMultiviewLayer(0),
+		_currentMultiviewFallbackRenderPass(nullptr)
 	{
 		_internals->device = device->GetDevice();
 		_internals->commandQueue = [_internals->device newCommandQueue];
@@ -140,7 +142,7 @@ namespace RN
 			}
 			
 			_internals->currentRenderState = nullptr; //This is a property of the encoder and needs to be set to nullptr here to force setting it again.
-			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer);
+			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer, renderPass.multiviewLayer, 0);
 			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
 			[descriptor release];
 
@@ -245,7 +247,7 @@ namespace RN
 					destinationMTLTexture = destinationFramebuffer->GetSwapChain()->GetMTLTexture();
 				}
 				
-				MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, nullptr);
+				MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, nullptr, 0, 0);
 				id<MTLBlitCommandEncoder> commandEncoder = [[_internals->commandBuffer blitCommandEncoder] retain];
 				[descriptor release];
 				
@@ -275,20 +277,31 @@ namespace RN
 			}
 			else*/
 			{
-				//If multiview is not supported or there is only one multiview camera, render them individually (and ignore their parent camera)
-				multiviewCameras->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop){
-					SubmitCamera(camera, std::move(function));
+				//If multiview is not supported or there is only one multiview camera, render them individually into the correct framebuffer texture layers
+				multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop){
+					_currentMultiviewLayer = index;
+					_currentMultiviewFallbackRenderPass = camera->GetRenderPass();
+
+					SubmitCamera(multiviewCamera, std::move(function));
+
+					_currentMultiviewLayer = 0;
+					_currentMultiviewFallbackRenderPass = nullptr;
 				});
 
 				return;
 			}
 		}
 		
+		RenderPass *cameraRenderPass = _currentMultiviewFallbackRenderPass? _currentMultiviewFallbackRenderPass : camera->GetRenderPass();
+		
 		// Set up
 		MetalRenderPass renderPass;
 		renderPass.type = MetalRenderPass::Type::Default;
-		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.renderPass = cameraRenderPass;
 		renderPass.previousRenderPass = nullptr;
+
+		renderPass.drawables.resize(0);
+		renderPass.multiviewLayer = _currentMultiviewLayer;
 
 		renderPass.drawables.clear();
 		renderPass.framebuffer = nullptr;
@@ -309,7 +322,7 @@ namespace RN
 		
 		renderPass.cameraAmbientColor = camera->GetAmbientColor();
 
-		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
+		Framebuffer *framebuffer = cameraRenderPass->GetFramebuffer();
 		MetalSwapChain *newSwapChain = nullptr;
 		newSwapChain = framebuffer->Downcast<MetalFramebuffer>()->GetSwapChain();
 		renderPass.framebuffer = framebuffer->Downcast<MetalFramebuffer>();
@@ -337,7 +350,7 @@ namespace RN
 		// Create drawables
 		function();
 		
-		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
+		const Array *nextRenderPasses = cameraRenderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
 				SubmitRenderPass(nextPass, renderPass.renderPass);
 			});
