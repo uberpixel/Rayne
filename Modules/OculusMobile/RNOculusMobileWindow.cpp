@@ -27,7 +27,7 @@ namespace RN
 {
 	RNDefineMeta(OculusMobileWindow, VRWindow)
 
-	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}
+	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(1), _fixedFoveatedRenderingDynamic(false)
 	{
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
@@ -146,6 +146,36 @@ namespace RN
 	bool OculusMobileWindow::IsRendering() const
 	{
 		return true;
+	}
+
+	void OculusMobileWindow::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
+	{
+		_fixedFoveatedRenderingLevel = level;
+		_fixedFoveatedRenderingDynamic = dynamic;
+
+		vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, level);
+		vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_DYNAMIC_FOVEATION_ENABLED, dynamic);
+	}
+
+	void OculusMobileWindow::SetPreferredFramerate(uint32 framerate)
+	{
+		_preferredFrameRate = framerate;
+
+		if(_session)
+		{
+			vrapi_SetDisplayRefreshRate(static_cast<ovrMobile*>(_session), framerate);
+		}
+	}
+
+	void OculusMobileWindow::SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel)
+	{
+		_minCPULevel = cpuLevel;
+		_minGPULevel = gpuLevel;
+
+		if(_session)
+		{
+			vrapi_SetClockLevels(static_cast<ovrMobile*>(_session), cpuLevel, gpuLevel);
+		}
 	}
 
 	Vector2 OculusMobileWindow::GetSize() const
@@ -428,29 +458,29 @@ namespace RN
 					int refreshRateCount = vrapi_GetSystemPropertyInt(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
 					float *availableRefreshRates = new float[refreshRateCount];
 					vrapi_GetSystemPropertyFloatArray(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES, availableRefreshRates, refreshRateCount);
-					float highestRefreshRate = availableRefreshRates[0];
-					for(int i = 0; i < refreshRateCount; i++)
+					float highestRefreshRate = _preferredFrameRate;
+					if(_preferredFrameRate == 0)
 					{
-						RNDebug("Available Refresh Rate: " << availableRefreshRates[i]);
-						if(availableRefreshRates[i] > highestRefreshRate)
+						highestRefreshRate = availableRefreshRates[0];
+						for(int i = 0; i < refreshRateCount; i++)
 						{
-							highestRefreshRate = availableRefreshRates[i];
+							RNDebug("Available Refresh Rate: " << availableRefreshRates[i]);
+							if(availableRefreshRates[i] > highestRefreshRate)
+							{
+								highestRefreshRate = availableRefreshRates[i];
+							}
 						}
 					}
+
 					vrapi_SetDisplayRefreshRate(session, highestRefreshRate);
-					vrapi_SetClockLevels(session, 3, 4); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
+					vrapi_SetClockLevels(session, _minCPULevel, _minGPULevel); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
 					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
     				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
 
 					vrapi_SetExtraLatencyMode(session, VRAPI_EXTRA_LATENCY_MODE_ON);
 
-					int hasFoveation = 0;
-					vrapi_GetPropertyInt(static_cast<ovrJava*>(_java), (ovrProperty)VRAPI_SYS_PROP_FOVEATION_AVAILABLE, &hasFoveation);
-					if(hasFoveation == VRAPI_TRUE)
-					{
-						RNDebug(RNCSTR("Enable Foveated Rendering"));
-						vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, 2);
-					}
+					vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_DYNAMIC_FOVEATION_ENABLED, _fixedFoveatedRenderingDynamic);
+					vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, _fixedFoveatedRenderingLevel);
 				}
 			}
 		}

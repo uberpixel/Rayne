@@ -60,6 +60,10 @@ namespace RN
 		RNVRAPI virtual void Hide() override { }
 		RNVRAPI virtual void SetFullscreen(bool fullscreen) override {}
 
+		RNVRAPI virtual void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) { }
+		RNVRAPI virtual void SetPreferredFramerate(uint32 framerate) { }
+		RNVRAPI virtual void SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel) { }
+
 		RNVRAPI virtual Vector2 GetSize() const override = 0;
 
 		RNVRAPI virtual Framebuffer *GetFramebuffer() const override = 0;

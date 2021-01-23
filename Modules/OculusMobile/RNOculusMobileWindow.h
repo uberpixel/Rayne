@@ -27,6 +27,10 @@ namespace RN
 		OVRAPI void StopRendering() final;
 		OVRAPI bool IsRendering() const final;
 
+		OVRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
+		OVRAPI void SetPreferredFramerate(uint32 framerate) final;
+		OVRAPI void SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel) final;
+
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 		OVRAPI Framebuffer *GetFramebuffer(uint8 eye) const final;
@@ -70,6 +74,12 @@ namespace RN
 
 		uint8 _currentHapticsIndex[2];
 		VRControllerHaptics _haptics[2];
+
+		uint32 _preferredFrameRate;
+		uint8 _minCPULevel;
+		uint8 _minGPULevel;
+		uint8 _fixedFoveatedRenderingLevel;
+		bool _fixedFoveatedRenderingDynamic;
 
 		RNDeclareMetaAPI(OculusMobileWindow, OVRAPI)
 	};
