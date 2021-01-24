@@ -834,14 +834,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::CameraPosition:
 				{
-					RN::Vector3 cameraPosition = renderPass.viewPosition;
+					Vector4 cameraPosition = Vector4(renderPass.viewPosition, 0.0f);
 					std::memcpy(buffer + descriptor->GetOffset(), &cameraPosition.x, descriptor->GetSize());
 					break;
 				}
 					
 				case Shader::UniformDescriptor::Identifier::CameraAmbientColor:
 				{
-					RN::Color cameraAmbientColor = renderPass.cameraAmbientColor;
+					Color cameraAmbientColor = renderPass.cameraAmbientColor;
 					std::memcpy(buffer + descriptor->GetOffset(), &cameraAmbientColor.r, descriptor->GetSize());
 					break;
 				}
