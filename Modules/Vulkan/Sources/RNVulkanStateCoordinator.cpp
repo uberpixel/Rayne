@@ -805,7 +805,8 @@ namespace RN
 			if(flags & RenderPass::Flags::ClearColor) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else if(flags & RenderPass::Flags::LoadColor) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			else attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachment.storeOp = resolveFramebuffer?VK_ATTACHMENT_STORE_OP_DONT_CARE:VK_ATTACHMENT_STORE_OP_STORE;
+			if(flags & RenderPass::Flags::StoreColor) attachment.storeOp = resolveFramebuffer?VK_ATTACHMENT_STORE_OP_DONT_CARE:VK_ATTACHMENT_STORE_OP_STORE;
+			else attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -832,6 +833,8 @@ namespace RN
 				resolveAttachment.samples = static_cast<VkSampleCountFlagBits>(resolveFramebuffer->_sampleCount);
 				resolveAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				resolveAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				if(flags & RenderPass::Flags::StoreColor) resolveAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				else resolveAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 				resolveAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				resolveAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 				resolveAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -865,7 +868,8 @@ namespace RN
 			if(flags & RenderPass::Flags::ClearDepthStencil) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else if(flags & RenderPass::Flags::LoadDepthStencil) attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			else attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			if(flags & RenderPass::Flags::StoreDepthStencil) attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			else attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

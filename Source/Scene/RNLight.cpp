@@ -266,7 +266,7 @@ namespace RN
 			
 			_multiviewShadowParentCamera = new Camera();
 			_multiviewShadowParentCamera->GetRenderPass()->SetFramebuffer(multiviewFrameBuffer);
-			_multiviewShadowParentCamera->GetRenderPass()->SetFlags(RenderPass::Flags::ClearDepthStencil);
+			_multiviewShadowParentCamera->GetRenderPass()->SetFlags(RenderPass::Flags::ClearDepthStencil | RenderPass::Flags::StoreDepthStencil);
 			_multiviewShadowParentCamera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::RenderEarly);
 			_multiviewShadowParentCamera->SceneNode::SetUpdatePriority(SceneNode::UpdatePriority::UpdateLate);
 			_multiviewShadowParentCamera->SetMaterial(multiviewDepthMaterial);
@@ -301,6 +301,7 @@ namespace RN
 			}
 			
 			Camera *tempcam = new Camera();
+			tempcam->GetRenderPass()->SetFlags(RenderPass::Flags::ClearDepthStencil | RenderPass::Flags::StoreDepthStencil);
 			tempcam->GetRenderPass()->SetFramebuffer(framebuffer);
 			tempcam->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::RenderEarly);
 			tempcam->SceneNode::SetUpdatePriority(SceneNode::UpdatePriority::UpdateLate);

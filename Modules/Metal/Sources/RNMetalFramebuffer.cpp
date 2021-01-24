@@ -276,7 +276,14 @@ namespace RN
 			}
 			else
 			{
-				[colorAttachment setStoreAction:MTLStoreActionStore];
+				if(renderPass->GetFlags() & RenderPass::Flags::StoreColor)
+				{
+					[colorAttachment setStoreAction:MTLStoreActionStore];
+				}
+				else
+				{
+					[colorAttachment setStoreAction:MTLStoreActionDontCare];
+				}
 			}
 			[colorAttachment setClearColor:MTLClearColorMake(clearColor.r, clearColor.g, clearColor.b, clearColor.a)];
 			
@@ -321,7 +328,14 @@ namespace RN
 				}
 				else
 				{
-					[depthAttachment setStoreAction:MTLStoreActionStore];
+					if(renderPass->GetFlags() & RenderPass::Flags::StoreDepthStencil)
+					{
+						[depthAttachment setStoreAction:MTLStoreActionStore];
+					}
+					else
+					{
+						[depthAttachment setStoreAction:MTLStoreActionDontCare];
+					}
 				}
 				
 				if(multiviewCount > 0 || multiviewLayer > 0)

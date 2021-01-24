@@ -483,6 +483,8 @@ namespace RN
 						i += increment;
 						increment = std::min(static_cast<int>(GetVulkanDevice()->GetMaxMultiviewViewCount()), static_cast<int>(multiviewCameras->GetCount() - i));
 					}
+
+					return;
 				}
 			}
 			else

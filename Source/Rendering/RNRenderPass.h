@@ -23,9 +23,11 @@ namespace RN
 		RN_OPTIONS(Flags, uint32,
 			ClearColor = (1 << 0),
 			LoadColor = (1 << 1),
-			ClearDepthStencil = (1 << 2),
-			LoadDepthStencil = (1 << 3),
-			Defaults = ClearDepthStencil);
+			StoreColor = (1 << 2),
+			ClearDepthStencil = (1 << 3),
+			LoadDepthStencil = (1 << 4),
+			StoreDepthStencil = (1 << 5),
+			Defaults = ClearDepthStencil|StoreColor);
 
 		RNAPI RenderPass();
 		RNAPI ~RenderPass();
