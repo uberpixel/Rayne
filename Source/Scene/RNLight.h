@@ -91,7 +91,7 @@ namespace RN
 		RNAPI Light(const Light *other);
 		RNAPI ~Light() override;
 		
-		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
+		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter(), bool useMultiview = false);
 		RNAPI void DeactivateShadows();
 		bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
 		RNAPI void SetSuppressShadows(bool suppress);
@@ -131,9 +131,9 @@ namespace RN
 		void RemoveShadowCameras();
 		void SetRangeInternal(float range);
 		
-		bool ActivateDirectionalShadows();
-		bool ActivatePointShadows();
-		bool ActivateSpotShadows();
+		bool ActivateDirectionalShadows(bool useMultiview);
+		bool ActivatePointShadows(bool useMultiview);
+		bool ActivateSpotShadows(bool useMultiview);
 		
 		void UpdateShadows();
 		
@@ -153,7 +153,9 @@ namespace RN
 		Array _shadowDepthCameras;
 		Texture *_shadowDepthTexture;
 		bool _suppressShadows;
+		
 		ShadowParameter _shadowParameter;
+		Camera *_multiviewShadowParentCamera;
 
 		__RNDeclareMetaInternal(Light)
 	};

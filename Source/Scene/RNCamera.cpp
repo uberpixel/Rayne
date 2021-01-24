@@ -239,7 +239,7 @@ namespace RN
 
 		//Transform back and place the camera there
 		pos = rot*pos;
-		SetPosition(pos);
+		SetWorldPosition(pos);
 
 		//Set the light camera frustum
 		_orthoLeft = -dist;

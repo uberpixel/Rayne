@@ -267,6 +267,7 @@ namespace RN
 			Depth,
 			Instancing,
 			Multiview,
+			DepthMultiview,
 
 			COUNT
 		};

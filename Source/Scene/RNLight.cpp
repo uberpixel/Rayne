@@ -26,7 +26,8 @@ namespace RN
 		_angleCos(0.797f),
 		_shadowTarget(nullptr),
 		_shadowDepthTexture(nullptr),
-		_suppressShadows(false)
+		_suppressShadows(false),
+		_multiviewShadowParentCamera(nullptr)
 	{
 		SetBoundingSphere(Sphere(Vector3(), 1.0f));
 		SetBoundingBox(AABB(Vector3(), 1.0f), false);
@@ -41,7 +42,8 @@ namespace RN
 		SceneNode(other),
 		_lightSceneEntry(this),
 		_shadowTarget(nullptr),
-		_shadowDepthTexture(nullptr)
+		_shadowDepthTexture(nullptr),
+		_multiviewShadowParentCamera(nullptr)
 	{
 		SetBoundingSphere(Sphere(Vector3(), 1.0f));
 		SetBoundingBox(AABB(Vector3(), 1.0f), false);
@@ -60,7 +62,7 @@ namespace RN
 		_suppressShadows = other->_suppressShadows;
 		
 		if(other->HasShadows())
-			ActivateShadows(other->_shadowParameter);
+			ActivateShadows(other->_shadowParameter, other->_multiviewShadowParentCamera);
 	}
 	
 	Light::~Light()
@@ -126,26 +128,30 @@ namespace RN
 	
 	void Light::RemoveShadowCameras()
 	{
-		_shadowDepthCameras.RemoveAllObjects();
+		RN_ASSERT(false, "Not yet supported...");
+		
+		//TODO: Clean up correctly, cause this is not enough.
+		/*_shadowDepthCameras.RemoveAllObjects();
 		
 		SafeRelease(_shadowTarget);
 		SafeRelease(_shadowDepthTexture);
+		SafeRelease(_multiviewShadowParentCamera);*/
 	}
 	
-	bool Light::ActivateShadows(const ShadowParameter &parameter)
+	bool Light::ActivateShadows(const ShadowParameter &parameter, bool useMultiview)
 	{
 		_shadowParameter = parameter;
 		
 		switch(_lightType)
 		{
 			case Type::PointLight:
-				return ActivatePointShadows();
+				return ActivatePointShadows(useMultiview);
 				
 			case Type::SpotLight:
-				return ActivateSpotShadows();
+				return ActivateSpotShadows(useMultiview);
 				
 			case Type::DirectionalLight:
-				return ActivateDirectionalShadows();
+				return ActivateDirectionalShadows(useMultiview);
 
 			default:
 				return false;
@@ -210,7 +216,7 @@ namespace RN
 	}
 	
 	
-	bool Light::ActivateDirectionalShadows()
+	bool Light::ActivateDirectionalShadows(bool useMultiview)
 	{
 		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
@@ -240,20 +246,59 @@ namespace RN
 		Shader *depthFragmentShader = Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Depth);
 		
 		_shadowCameraMatrices.clear();
+		_multiviewShadowParentCamera = nullptr;
+		Framebuffer *multiviewFrameBuffer = nullptr;
+		Material *multiviewDepthMaterial = nullptr;
+		if(useMultiview)
+		{
+			int maxSplitIndex = _shadowParameter.splits.size()-1;
+			//TODO: Get rid of the need for a shader if not needed for rendering!?
+			multiviewDepthMaterial = Material::WithShaders(depthVertexShader, depthFragmentShader);
+			multiviewDepthMaterial->SetColorWriteMask(false, false, false, false);
+			multiviewDepthMaterial->SetPolygonOffset(true, _shadowParameter.splits[maxSplitIndex].biasFactor, _shadowParameter.splits[maxSplitIndex].biasUnits);
+			multiviewDepthMaterial->SetOverride(Material::Override::DefaultDepth);
+			
+			multiviewFrameBuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
+			depthTargetView.slice = 0;
+			depthTargetView.length = _shadowParameter.splits.size();
+			multiviewFrameBuffer->SetDepthStencilTarget(depthTargetView);
+			multiviewFrameBuffer->Autorelease();
+			
+			_multiviewShadowParentCamera = new Camera();
+			_multiviewShadowParentCamera->GetRenderPass()->SetFramebuffer(multiviewFrameBuffer);
+			_multiviewShadowParentCamera->GetRenderPass()->SetFlags(RenderPass::Flags::ClearDepthStencil);
+			_multiviewShadowParentCamera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::RenderEarly);
+			_multiviewShadowParentCamera->SceneNode::SetUpdatePriority(SceneNode::UpdatePriority::UpdateLate);
+			_multiviewShadowParentCamera->SetMaterial(multiviewDepthMaterial);
+			_multiviewShadowParentCamera->SetShaderHint(Shader::UsageHint::DepthMultiview);
+			_multiviewShadowParentCamera->SetLODCamera(_shadowTarget);
+			_multiviewShadowParentCamera->SetClipNear(0.0f);
+			_multiviewShadowParentCamera->SetClipFar(1000000.0f);
+			_multiviewShadowParentCamera->Autorelease();
+			_shadowTarget->GetSceneInfo()->GetScene()->AddNode(_multiviewShadowParentCamera);
+		}
 		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
 			_shadowCameraMatrices.push_back(Matrix());
 			
 			//TODO: Get rid of the need for a shader if not needed for rendering!?
-			Material *depthMaterial = Material::WithShaders(depthVertexShader, depthFragmentShader);
-			depthMaterial->SetColorWriteMask(false, false, false, false);
-			depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
-			depthMaterial->SetOverride(Material::Override::DefaultDepth);
+			Material *depthMaterial = multiviewDepthMaterial;
+			if(!depthMaterial)
+			{
+				depthMaterial = Material::WithShaders(depthVertexShader, depthFragmentShader);
+				depthMaterial->SetColorWriteMask(false, false, false, false);
+				depthMaterial->SetPolygonOffset(true, _shadowParameter.splits[i].biasFactor, _shadowParameter.splits[i].biasUnits);
+				depthMaterial->SetOverride(Material::Override::DefaultDepth);
+			}
 
-			Framebuffer *framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
-			depthTargetView.slice = i;
-			framebuffer->SetDepthStencilTarget(depthTargetView);
-			framebuffer->Autorelease();
+			Framebuffer *framebuffer = multiviewFrameBuffer;
+			if(!framebuffer)
+			{
+				framebuffer = Renderer::GetActiveRenderer()->CreateFramebuffer(Vector2(_shadowParameter.resolution));
+				depthTargetView.slice = i;
+				framebuffer->SetDepthStencilTarget(depthTargetView);
+				framebuffer->Autorelease();
+			}
 			
 			Camera *tempcam = new Camera();
 			tempcam->GetRenderPass()->SetFramebuffer(framebuffer);
@@ -265,6 +310,11 @@ namespace RN
 			tempcam->SetClipNear(_shadowParameter.clipNear);
 			tempcam->SetClipFar(_shadowParameter.clipFar);
 			tempcam->Autorelease();
+			
+			if(_multiviewShadowParentCamera)
+			{
+				_multiviewShadowParentCamera->AddMultiviewCamera(tempcam);
+			}
 
 			_shadowTarget->GetSceneInfo()->GetScene()->AddNode(tempcam);
 			_shadowDepthCameras.AddObject(tempcam);
@@ -273,7 +323,7 @@ namespace RN
 		return true;
 	}
 	
-	bool Light::ActivatePointShadows()
+	bool Light::ActivatePointShadows(bool useMultiview)
 	{
 		return false;
 
@@ -332,7 +382,7 @@ namespace RN
 		return true;*/
 	}
 	
-	bool Light::ActivateSpotShadows()
+	bool Light::ActivateSpotShadows(bool useMultiview)
 	{
 		return false;
 
@@ -458,6 +508,12 @@ namespace RN
 					_shadowCameraMatrices[i] = tempcam->MakeShadowSplit(_shadowTarget, this, _shadowParameter.directionalShadowDistance, near, far);
 					
 					near = far;
+					
+					if(_multiviewShadowParentCamera && i == _shadowParameter.splits.size()-1)
+					{
+						_multiviewShadowParentCamera->SetWorldRotation(GetWorldRotation());
+						_multiviewShadowParentCamera->MakeShadowSplit(_shadowTarget, this, _shadowParameter.directionalShadowDistance*10.0f, _shadowTarget->GetClipNear(), far);
+					}
 				}
 			}
 		}

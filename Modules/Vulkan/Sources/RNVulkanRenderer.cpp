@@ -881,6 +881,12 @@ namespace RN
 
 		ShaderLibrary *shaderLibrary = _defaultShaderLibrary;
 
+		if(hint == Shader::UsageHint::Multiview || hint == Shader::UsageHint::DepthMultiview)
+		{
+			options = options->Copy();
+			options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+		}
+
 		Shader *shader = nullptr;
 		if(type == Shader::Type::Vertex)
 		{
@@ -890,12 +896,6 @@ namespace RN
 			}
 			else
 			{
-				if(hint == Shader::UsageHint::Multiview)
-				{
-					options = options->Copy();
-					options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
-				}
-
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
@@ -925,12 +925,6 @@ namespace RN
 			}
 			else
 			{
-				if(hint == Shader::UsageHint::Multiview)
-				{
-					options = options->Copy();
-					options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
-				}
-
 				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
 				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
 				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
