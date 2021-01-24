@@ -1094,7 +1094,7 @@ namespace RN
 						Matrix result[6];
 						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
 						{
-							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix;
+							result[i] = renderPass.multiviewCameraInfo[i].projectionMatrix;
 						}
 
 						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
