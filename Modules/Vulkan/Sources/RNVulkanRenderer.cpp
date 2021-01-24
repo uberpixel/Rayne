@@ -886,7 +886,7 @@ namespace RN
 		if(hint == Shader::UsageHint::Multiview || hint == Shader::UsageHint::DepthMultiview)
 		{
 			options = options->Copy();
-			options->AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+			options->EnableMultiview();
 		}
 
 		Shader *shader = nullptr;
