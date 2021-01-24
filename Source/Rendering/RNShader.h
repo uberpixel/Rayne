@@ -33,10 +33,11 @@ namespace RN
 			RNAPI Options(const Options *options);
             RNAPI ~Options();
 
-			RNAPI void EnableAlpha();
-			RNAPI void EnablePointLights();
-			RNAPI void EnableDirectionalLights();
-			RNAPI void EnableDirectionalShadows();
+			RNAPI Options *EnableAlpha();
+			RNAPI Options *EnablePointLights();
+			RNAPI Options *EnableDirectionalLights();
+			RNAPI Options *EnableDirectionalShadows();
+			RNAPI Options *EnableMultiview();
 
 			RNAPI void AddDefine(String *name, String *value);
 

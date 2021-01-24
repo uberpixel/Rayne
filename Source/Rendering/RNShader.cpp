@@ -66,24 +66,34 @@ namespace RN
 	    SafeRelease(_defines);
     }
 
-	void Shader::Options::EnableAlpha()
+	Shader::Options *Shader::Options::EnableAlpha()
 	{
 		AddDefine(RNCSTR("RN_ALPHA"), RNCSTR("1"));
+		return this;
 	}
 
-	void Shader::Options::EnablePointLights()
+	Shader::Options *Shader::Options::EnablePointLights()
 	{
 		AddDefine(RNCSTR("RN_LIGHTS_POINT"), RNCSTR("1"));
+		return this;
 	}
 
-	void Shader::Options::EnableDirectionalLights()
+	Shader::Options *Shader::Options::EnableDirectionalLights()
 	{
 		AddDefine(RNCSTR("RN_LIGHTS_DIRECTIONAL"), RNCSTR("1"));
+		return this;
 	}
 
-	void Shader::Options::EnableDirectionalShadows()
+	Shader::Options *Shader::Options::EnableDirectionalShadows()
 	{
 		AddDefine(RNCSTR("RN_SHADOWS_DIRECTIONAL"), RNCSTR("1"));
+		return this;
+	}
+
+	Shader::Options *Shader::Options::EnableMultiview()
+	{
+		AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+		return this;
 	}
 
 	void Shader::Options::AddDefine(String *name, String *value)
