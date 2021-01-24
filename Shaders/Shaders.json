@@ -83,7 +83,8 @@
 						"RN_ALPHA",
 						"RN_UV0",
 						"RN_SKY",
-						"RN_ANIMATIONS"
+						"RN_ANIMATIONS",
+						"RN_USE_MULTIVIEW"
 					]
 				}
 			},

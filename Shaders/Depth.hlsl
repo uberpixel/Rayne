@@ -24,11 +24,20 @@ Texture2D texture0;
 
 cbuffer vertexUniforms
 {
+#if RN_USE_MULTIVIEW
+#if RN_SKY
+	matrix modelViewMatrix_multiview[6];
+	matrix projectionMatrix_multiview[6];
+#else
+	matrix modelViewProjectionMatrix_multiview[6];
+#endif
+#else
 #if RN_SKY
 	matrix modelViewMatrix;
 	matrix projectionMatrix;
 #else
 	matrix modelViewProjectionMatrix;
+#endif
 #endif
 
 	RN_ANIMATION_VERTEX_UNIFORMS
@@ -53,6 +62,10 @@ struct InputVertex
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
 	RN_ANIMATION_VERTEX_DATA
+
+#if RN_USE_MULTIVIEW
+	uint viewIndex : SV_VIEWID;
+#endif
 };
 
 struct FragmentVertex
@@ -67,12 +80,22 @@ FragmentVertex depth_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
+#if RN_USE_MULTIVIEW
 #if RN_SKY
-	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 1.0f)).xyz;
+	float3 rotatedPosition = mul(modelViewMatrix_multiview[vert.viewIndex], float4(vert.position, 1.0)).xyz;
+	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 1.0)).xyww;
+#else
+	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
+	result.position = mul(modelViewProjectionMatrix_multiview[vert.viewIndex], position);
+#endif
+#else
+#if RN_SKY
+	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 1.0)).xyz;
 	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
 #else
 	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
 	result.position = mul(modelViewProjectionMatrix, position);
+#endif
 #endif
 
 #if RN_UV0 && RN_ALPHA
