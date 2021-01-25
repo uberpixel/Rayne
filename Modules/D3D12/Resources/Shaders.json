@@ -12,7 +12,8 @@
                         "RN_ANIMATIONS",
                         "RN_SHADOWS_DIRECTIONAL",
                         "RN_LIGHTS_DIRECTIONAL",
-                        "RN_LIGHTS_POINT"
+                        "RN_LIGHTS_POINT",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -46,7 +47,8 @@
                 "name": "particles_vertex",
                 "signature": {
                     "options": [
-                        "RN_UV0"
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -77,7 +79,8 @@
                         "RN_ALPHA",
                         "RN_UV0",
                         "RN_SKY",
-                        "RN_ANIMATIONS"
+                        "RN_ANIMATIONS",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -107,7 +110,8 @@
                 "signature": {
                     "options": [
                         "RN_COLOR",
-                        "RN_UV0"
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
                     ]
                 },
                 "type": "vertex"
@@ -129,6 +133,38 @@
                             "name": "linearClampSampler",
                             "wrap": "clamp"
                         }
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~d3d12": ":RayneD3D12:/UI.vs.cso",
+        "shaders": [
+            {
+                "name": "ui_vertex",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_UV1",
+                        "RN_COLOR",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~d3d12": ":RayneD3D12:/UI.ps.cso",
+        "shaders": [
+            {
+                "name": "ui_fragment",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_UV1"
                     ]
                 },
                 "type": "fragment"

@@ -185,15 +185,16 @@ def main():
                     else:
                         parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '--minorshadermodel', '1', '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
 
+                    if outFormat == 'dxil' or outFormat == 'cso':
+                        parameterList.append("-DRN_RENDERER_D3D12=1")
+                        permutation = [p.replace('RN_USE_MULTIVIEW', '__RN_USE_MULTIVIEW__') for p in permutation] #exclude multiview stuff for d3d12 without effecting the permutation index for now
+                    elif outFormat == 'spirv':
+                        parameterList.append("-DRN_RENDERER_VULKAN=1")
+                    elif outFormat == 'metal':
+                        parameterList.append("-DRN_RENDERER_METAL=1")
+
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
-
-                    if outFormat == 'dxil' or outFormat == 'cso':
-                        parameterList.extend('-DRN_RENDERER_D3D12=1')
-                    elif outFormat == 'spirv':
-                        parameterList.extend('-DRN_RENDERER_VULKAN=1')
-                    elif outFormat == 'metal':
-                        parameterList.extend('-DRN_RENDERER_METAL=1')
 
                     if not skipShaderCompiling:
                         print(parameterList)
