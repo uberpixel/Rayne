@@ -90,7 +90,9 @@ if(WIN32)
         set(VulkanHeaders_SOURCE_DIR ${SOURCE_DIR})
 
         set(RAYNE_LIBRARIES ${RAYNE_LIBRARIES} RayneVulkan)
-        set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources" ${VulkanHeaders_SOURCE_DIR})
+        set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES}
+            "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources"
+            "${VulkanHeaders_SOURCE_DIR}/include/vulkan")
     endif()
 elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     set(SOURCES
@@ -120,7 +122,7 @@ elseif((UNIX AND NOT APPLE) AND ${RN_BUILD_VULKAN_MODULE})
     set(INCLUDE_DIRECTORIES
             ${INCLUDE_DIRECTORIES}
             "${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources"
-            ${Vulkan_INCLUDE_DIR})
+            "${VulkanHeaders_SOURCE_DIR}/include/vulkan")
 endif()
 
 rayne_add_library(RayneOpenVR "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")

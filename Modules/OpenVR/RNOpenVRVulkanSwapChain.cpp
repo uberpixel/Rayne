@@ -28,15 +28,17 @@ namespace RN
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
-		_size = Vector2(recommendedWidth * 2 + kEyePadding, recommendedHeight);
+		_size = Vector2(recommendedWidth, recommendedHeight);
 
 		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
+		textureDescriptor.type = Texture::Type::Type2DArray;
+		textureDescriptor.depth = 2;
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new VulkanFramebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new VulkanFramebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
@@ -68,7 +70,7 @@ namespace RN
 		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-		_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer->DidUpdateSwapChain(_size, 2, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
 		_isFirstRender = true;
 	}
 
@@ -103,7 +105,7 @@ namespace RN
 	{
 		VulkanTexture *texture = _targetTexture->Downcast<VulkanTexture>();
 
-		vr::VRVulkanTextureData_t vulkanEyeTexture;
+		vr::VRVulkanTextureArrayData_t vulkanEyeTexture;
 		vulkanEyeTexture.m_nImage = reinterpret_cast<uint64_t>(texture->GetVulkanImage());
 		vulkanEyeTexture.m_pDevice = _renderer->GetVulkanDevice()->GetDevice();
 		vulkanEyeTexture.m_pPhysicalDevice = _renderer->GetVulkanDevice()->GetPhysicalDevice();
@@ -114,6 +116,8 @@ namespace RN
 		vulkanEyeTexture.m_nHeight = texture->GetDescriptor().height;
 		vulkanEyeTexture.m_nWidth = texture->GetDescriptor().width;
 		vulkanEyeTexture.m_nSampleCount = texture->GetDescriptor().sampleCount;
+		vulkanEyeTexture.m_unArrayIndex = 0;
+		vulkanEyeTexture.m_unArraySize = 2;
 
 		vr::Texture_t eyeTexture = { (void *)&vulkanEyeTexture, vr::TextureType_Vulkan, vr::ColorSpace_Gamma };
 
@@ -122,12 +126,13 @@ namespace RN
 		bounds.vMax = 1.0f;
 
 		bounds.uMin = 0.0f;
-		bounds.uMax = 0.5f - kEyePadding * 0.5f / _size.x;
+		bounds.uMax = 1.0f;//0.5f - kEyePadding * 0.5f / _size.x;
 
 		vr::VRCompositor()->Submit(vr::Eye_Left, &eyeTexture, &bounds, vr::Submit_Default);
 
-		bounds.uMin = 0.5f + kEyePadding * 0.5f / _size.x;
-		bounds.uMax = 1.0f;
+		//bounds.uMin = 0.0f;//0.5f + kEyePadding * 0.5f / _size.x;
+		//bounds.uMax = 1.0f;
+		vulkanEyeTexture.m_unArrayIndex = 1;
 		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
 	}
 
