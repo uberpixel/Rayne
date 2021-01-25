@@ -47,7 +47,7 @@ namespace RN
 		class FontManager : public RN::Object
 		{
 		public:
-			static FontManager *GetSharedInstance();
+			UIAPI static FontManager *GetSharedInstance();
 			
 			UIAPI FontManager();
 			UIAPI ~FontManager();

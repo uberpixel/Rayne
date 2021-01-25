@@ -77,9 +77,9 @@ namespace RN
 		{
 		friend Material;
 		public:
-			Properties();
-			Properties(const Properties &properties);
-			~Properties();
+			RNAPI Properties();
+			RNAPI Properties(const Properties &properties);
+			RNAPI ~Properties();
 			
 			uint8 colorWriteMask;
 			
