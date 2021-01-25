@@ -1328,7 +1328,7 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
-					Object *object = materialProperties.GetCustomShaderUniform(descriptor->GetName());
+					Object *object = mergedMaterialProperties.GetCustomShaderUniform(descriptor->GetName());
 					if(object)
 					{
 						if(object->IsKindOfClass(Value::GetMetaClass()))

@@ -181,25 +181,25 @@ namespace RN
 				PrimitiveType uniformType = PrimitiveType::Invalid;
 				if(variableTypeDescription.Type == D3D_SVT_FLOAT)
 				{
-					if(spirvUniformType.Columns == 1)
+					if(variableTypeDescription.Columns == 1)
 					{
-						if(spirvUniformType.Rows == 1) uniformType = PrimitiveType::Float;
-						else if(spirvUniformType.Rows == 2) uniformType = PrimitiveType::Vector2;
-						else if(spirvUniformType.Rows == 3) uniformType = PrimitiveType::Vector3;
-						else if(spirvUniformType.Rows == 4) uniformType = PrimitiveType::Vector4;
+						if(variableTypeDescription.Rows == 1) uniformType = PrimitiveType::Float;
+						else if(variableTypeDescription.Rows == 2) uniformType = PrimitiveType::Vector2;
+						else if(variableTypeDescription.Rows == 3) uniformType = PrimitiveType::Vector3;
+						else if(variableTypeDescription.Rows == 4) uniformType = PrimitiveType::Vector4;
 					}
 					else
 					{
-						if(spirvUniformType.Rows == 4) uniformType = PrimitiveType::Matrix;
+						if(variableTypeDescription.Rows == 4) uniformType = PrimitiveType::Matrix;
 					}
 				}
-				else if(spirvUniformType.Columns == 1 && spirvUniformType.Rows == 1)
+				else if(variableTypeDescription.Columns == 1 && variableTypeDescription.Rows == 1)
 				{
-					if(spirvUniformType.basetype == D3D_SVT_INT)
+					if(variableTypeDescription.Type == D3D_SVT_INT)
 					{
 						uniformType = PrimitiveType::Int32;
 					}
-					else if(spirvUniformType.basetype == D3D_SVT_UINT)
+					else if(variableTypeDescription.Type == D3D_SVT_UINT)
 					{
 						uniformType = PrimitiveType::Uint32;
 					}
@@ -211,18 +211,18 @@ namespace RN
 					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UShort)
 					{
 						uniformType = PrimitiveType::Uint16;
-					}*/
-					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::D3D_SVT_INT8)
+					}
+					else if(variableTypeDescription.Type == D3D_SVT_INT8) //Not supported either!?
 					{
 						uniformType = PrimitiveType::Int8;
-					}
-					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::D3D_SVT_UINT8)
+					}*/
+					else if(variableTypeDescription.Type == D3D_SVT_UINT8)
 					{
 						uniformType = PrimitiveType::Uint8;
 					}
 				}
 
-				UniformDescriptor *descriptor = new UniformDescriptor(name, offset);
+				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}
 
