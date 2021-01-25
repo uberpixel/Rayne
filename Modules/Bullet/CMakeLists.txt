@@ -5,12 +5,18 @@ include(../../CMake/LibraryTarget.cmake)
 include(../../CMake/Rayne.cmake)
 include(ExternalProject)
 
+set(BULLET_PATCH_COMMAND "")
+if(WIN32)
+        set(BULLET_PATCH_COMMAND powershell -Command "(Get-Content ${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet/src/LinearMath/btScalar.h).replace('#define BT_DEBUG', '') | Set-Content ${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet/src/LinearMath/btScalar.h")
+endif()
+
 ExternalProject_Add(bullet
         GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
         GIT_TAG refs/tags/3.06
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
+        PATCH_COMMAND ${BULLET_PATCH_COMMAND}
         CMAKE_CACHE_ARGS
                 "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
                 "-DUSE_GRAPHICAL_BENCHMARK:BOOL=False"
@@ -41,6 +47,14 @@ ExternalProject_Add(bullet
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/libBulletDynamics.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/libBulletCollision.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/libLinearMath.a"
+
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/BulletDynamics_Debug.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/BulletCollision_Debug.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/LinearMath_Debug.lib"
+
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/BulletDynamics.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/BulletCollision.lib"
+                "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/LinearMath.lib"
         INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
@@ -84,7 +98,21 @@ rayne_set_module_output_directory(RayneBullet)
 
 add_dependencies(RayneBullet bullet)
 
-if(NOT ANDROID)
+if(ANDROID)
+        target_link_libraries(RayneBullet 
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/libBulletDynamics.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/libBulletCollision.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/libLinearMath.a")
+elseif(WIN32)
+        target_link_libraries(RayneBullet 
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/BulletDynamics_Debug.lib"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/BulletCollision_Debug.lib"
+        debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Debug/LinearMath_Debug.lib"
+
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/BulletDynamics.lib"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/BulletCollision.lib"
+        optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/lib/Release/LinearMath.lib")
+else()
         target_link_libraries(RayneBullet 
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Debug/libBulletDynamics.a"
         debug "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Debug/libBulletCollision.a"
@@ -93,11 +121,6 @@ if(NOT ANDROID)
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/Release/libBulletDynamics.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/Release/libBulletCollision.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/Release/libLinearMath.a")
-else()
-        target_link_libraries(RayneBullet 
-        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletDynamics/libBulletDynamics.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/BulletCollision/libBulletCollision.a"
-        "${CMAKE_CURRENT_BINARY_DIR}/bullet-prefix/src/bullet-build/src/LinearMath/libLinearMath.a")
 endif()
 
 target_include_directories(RayneBullet SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
