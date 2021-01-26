@@ -318,9 +318,8 @@ if(APPLE)
 endif()
 
 if((UNIX OR MINGW) AND (NOT ANDROID))
-    set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2)
-
     if(NOT APPLE)
+        set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -march=core2)
         set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -mfpmath=sse -msse -msse2)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
