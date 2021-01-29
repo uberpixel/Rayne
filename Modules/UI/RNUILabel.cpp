@@ -48,6 +48,8 @@ namespace RN
 	
 		void Label::SetTextColor(const Color &color)
 		{
+			if(color == _defaultAttributes.GetColor()) return;
+			
 			_defaultAttributes.SetColor(color);
 			_needsMeshUpdate = true;
 		}
