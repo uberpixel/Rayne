@@ -436,6 +436,11 @@ namespace RN
 		return _trackerTrackingState;
 	}
 
+	const VRHandTrackingState &OpenVRWindow::GetHandTrackingState(uint8 index) const
+	{
+		return _handTrackingState[index];
+	}
+
 	void OpenVRWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
 	{
 		_currentHapticsIndex[index] = 0;
