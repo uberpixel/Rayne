@@ -33,6 +33,7 @@ namespace RN
 		RNVRAPI const VRHMDTrackingState &GetHMDTrackingState() const;
 		RNVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const;
 		RNVRAPI const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const;
+		RNVRAPI const VRHandTrackingState &GetHandTrackingState(uint8 index) const;
 		RNVRAPI void SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics) const;
 
 		RNVRAPI const VRWindow::Origin GetOrigin() const;

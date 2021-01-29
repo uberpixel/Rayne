@@ -62,6 +62,7 @@ namespace RN
 		
 		_head->AddFlags(Camera::Flags::UseSimpleCulling);
 		_head->SetShaderHint(Shader::UsageHint::Multiview);
+		_head->SetFOV(110.0f);
 		
 		for(int i = 0; i < 2; i++)
 		{
@@ -271,6 +272,11 @@ namespace RN
 	const VRControllerTrackingState &VRCamera::GetTrackerTrackingState(uint8 index) const
 	{
 		return _window->GetTrackerTrackingState(index);
+	}
+
+	const VRHandTrackingState &VRCamera::GetHandTrackingState(uint8 index) const
+	{
+		return _window->GetHandTrackingState(index);
 	}
 
 	void VRCamera::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics) const

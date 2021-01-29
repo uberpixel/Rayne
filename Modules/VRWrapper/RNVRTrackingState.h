@@ -41,6 +41,30 @@ namespace RN
 		Mode mode;
 	};
 
+	struct VRHandTrackingState
+	{
+		VRHandTrackingState() : pinchStrength{0.0f, 0.0f, 0.0f, 0.0f}, active(false), tracking(false), confidence(0), menuButton(false) {}
+
+		enum PinchFinger
+		{
+			PinchFingerIndex,
+			PinchFingerMiddle,
+			PinchFingerRing,
+			PinchFingerPinky
+		};
+
+		float pinchStrength[4];
+
+		bool active;
+		bool tracking;
+		uint8 confidence;
+
+		bool menuButton;
+
+		Vector3 position;
+		Quaternion rotation;
+	};
+
 	struct VRControllerTrackingState
 	{
 		enum Type

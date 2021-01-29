@@ -319,9 +319,22 @@ namespace RN
 		_controllerTrackingState[1].hapticsSampleLength = 0.0;
 		_controllerTrackingState[1].hapticsMaxSamples = 0;
 
+		_handTrackingState[0].pinchStrength[0] = 0.0f;
+		_handTrackingState[0].pinchStrength[1] = 0.0f;
+		_handTrackingState[0].pinchStrength[2] = 0.0f;
+		_handTrackingState[0].pinchStrength[3] = 0.0f;
+		_handTrackingState[0].active = false;
+		_handTrackingState[0].tracking = false;
+		_handTrackingState[1].pinchStrength[0] = 0.0f;
+		_handTrackingState[1].pinchStrength[1] = 0.0f;
+		_handTrackingState[1].pinchStrength[2] = 0.0f;
+		_handTrackingState[1].pinchStrength[3] = 0.0f;
+		_handTrackingState[1].active = false;
+		_handTrackingState[1].tracking = false;
+
 		ovrInputCapabilityHeader capsHeader;
 		int i = 0;
-		while(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), i, &capsHeader) >= 0 && i < 2)
+		while(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), i, &capsHeader) >= 0)
 		{
 			i += 1;
 			if(capsHeader.Type == ovrControllerType_TrackedRemote)
@@ -419,6 +432,39 @@ namespace RN
 					else
 					{
 						vrapi_SetHapticVibrationSimple(static_cast<ovrMobile*>(_session), _controllerTrackingState[handIndex].controllerID, 0.0f);
+					}
+				}
+			}
+			else if(capsHeader.Type == ovrControllerType_Hand)
+			{
+				ovrInputHandCapabilities handCaps;
+				handCaps.Header = capsHeader;
+				if(vrapi_GetInputDeviceCapabilities(static_cast<ovrMobile*>(_session), &handCaps.Header) >= 0)
+				{
+					int handIndex = (handCaps.HandCapabilities & ovrHandCaps_RightHand)?1:0;
+
+					_handTrackingState[handIndex].active = true;
+
+					ovrHandPose handPose;
+					handPose.Header.Version = ovrHandVersion_1;
+					if(vrapi_GetHandPose(static_cast<ovrMobile*>(_session), handCaps.Header.DeviceID, _predictedDisplayTime, &handPose.Header) >= 0)
+					{
+						_handTrackingState[handIndex].position = GetVectorForOVRVector(handPose.RootPose.Position);
+						_handTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(handPose.RootPose.Orientation);
+						_handTrackingState[handIndex].tracking = (handPose.Status == ovrHandTrackingStatus_Tracked);
+						_handTrackingState[handIndex].confidence = handPose.HandConfidence == ovrConfidence_HIGH? 255 : 127;
+					}
+
+					ovrInputStateHand trackingState;
+					trackingState.Header.ControllerType = ovrControllerType_Hand;
+					if(vrapi_GetCurrentInputState(static_cast<ovrMobile*>(_session), handCaps.Header.DeviceID, &trackingState.Header) >= 0)
+					{
+						_handTrackingState[handIndex].pinchStrength[0] = trackingState.PinchStrength[0];
+						_handTrackingState[handIndex].pinchStrength[1] = trackingState.PinchStrength[1];
+						_handTrackingState[handIndex].pinchStrength[2] = trackingState.PinchStrength[2];
+						_handTrackingState[handIndex].pinchStrength[3] = trackingState.PinchStrength[3];
+
+						_handTrackingState[handIndex].menuButton = trackingState.InputStateStatus & ovrInputStateHandStatus_MenuPressed;
 					}
 				}
 			}
@@ -539,6 +585,11 @@ namespace RN
 	const VRControllerTrackingState &OculusMobileWindow::GetTrackerTrackingState(uint8 index) const
 	{
 		return _trackerTrackingState;
+	}
+
+	const VRHandTrackingState &OculusMobileWindow::GetHandTrackingState(uint8 index) const
+	{
+		return _handTrackingState[index];
 	}
 
 	void OculusMobileWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)
