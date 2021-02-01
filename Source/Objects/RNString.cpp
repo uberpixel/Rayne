@@ -840,10 +840,11 @@ namespace RN
 
 	size_t String::__GetTrailingPathLocation() const
 	{
-		size_t location = GetLength() - 1;
+		size_t length = GetLength();
+		size_t location = length > 0? length - 1 : 0;
 		size_t result = kRNNotFound;
 
-		while(1)
+		while(length > 0)
 		{
 			Range range(location, 1);
 			size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
@@ -901,7 +902,7 @@ namespace RN
 	}
 	void String::AppendPathComponent(const String *component)
 	{
-		if(component->GetCharacterAtIndex(0) != kRNPathDelimiter)
+		if(component->GetCharacterAtIndex(0) != kRNPathDelimiter && GetLength() > 0)
 		{
 			Range range(GetLength() - 1, 1);
 			size_t delimiter = GetRangeOfCharacterInSet(__stringPathDelimiterSet, 0, range).origin;
