@@ -394,7 +394,6 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		_platformModifier = RNCSTR("~android")->Retain();
-		AddSearchPath(RNCSTR("assets")); //Having all assets mapped from the start simplifies finding the manifest file.
 #endif
 	}
 	FileManager::~FileManager()
@@ -823,8 +822,6 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 				return RNCSTR("");
 #endif
-
-				break;
 			}
 
 			case Location::SaveDirectory:
@@ -862,11 +859,8 @@ namespace RN
 				const char *dataPath = Kernel::GetSharedInstance()->GetAndroidApp()->activity->internalDataPath;
 				return RNSTR(dataPath);
 #endif
-				break;
 			}
 		}
-
-		return nullptr;
 	}
 	
 	bool FileManager::RenameFile(const String *oldPath, const String *newPath, bool overwrite)
