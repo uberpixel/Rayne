@@ -107,7 +107,7 @@ namespace RN
 		RNAPI Node *ResolvePath(const String *path, ResolveHint hint) RN_NOEXCEPT;
 		RNAPI String *ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT;
 
-		RNAPI String *GetPathForLocation(Location location) const;
+		RNAPI String *GetPathForLocation(Location location);
 		RNAPI String *GetNormalizedPathFromFullPath(const String *fullPath);
 		
 		RNAPI bool RenameFile(const String *oldPath, const String *newPath, bool overwrite = true);
@@ -134,6 +134,8 @@ namespace RN
 		Lockable _lock;
 		Array *_nodes;
 		Dictionary *_modulePaths;
+
+		String *_applicationDirectory;
 	};
 }
 

@@ -336,7 +336,8 @@ namespace RN
 
 	FileManager::FileManager() :
 		_nodes(new Array()),
-		_modulePaths(new Dictionary())
+		_modulePaths(new Dictionary()),
+		_applicationDirectory(nullptr)
 	{
 		__sharedInstance = this;
 
@@ -357,6 +358,7 @@ namespace RN
 	{
 		SafeRelease(_nodes);
 		SafeRelease(_modulePaths);
+		SafeRelease(_applicationDirectory);
 
 		__sharedInstance = nullptr;
 	}
@@ -565,7 +567,7 @@ namespace RN
 		return nullptr;
 	}
 
-	String *FileManager::GetPathForLocation(Location location) const
+	String *FileManager::GetPathForLocation(Location location)
 	{
 #if RN_PLATFORM_MAC_OS
 		static bool isAppBundle = false;
@@ -584,13 +586,18 @@ namespace RN
 		{
 			case Location::ApplicationDirectory:
 			{
+				if(_applicationDirectory) return _applicationDirectory;
+
 #if RN_PLATFORM_MAC_OS
 				if(isAppBundle)
 				{
 					NSBundle *bundle = [NSBundle mainBundle];
 					NSString *path = [bundle bundlePath];
 
-					return RNSTR([path UTF8String] << "/Contents");
+					_applicationDirectory = RNSTR([path UTF8String] << "/Contents");
+					SafeRetain(_applicationDirectory);
+
+					return _applicationDirectory;
 				}
 				else
 				{
@@ -600,7 +607,9 @@ namespace RN
 					String *result = RNSTR([directory UTF8String]);
 					result = result->StringByDeletingLastPathComponent();
 
-					return result;
+					_applicationDirectory = SafeRetain(_applicationDirectory);
+
+					return _applicationDirectory;
 				}
 #endif
 #if RN_PLATFORM_WINDOWS
@@ -621,7 +630,8 @@ namespace RN
 					}
 				}
 
-				return RNSTR(buffer);
+				_applicationDirectory = SafeRetain(RNSTR(buffer));
+				return _applicationDirectory;
 #endif
 #if RN_PLATFORM_LINUX
 				char buffer[PATH_MAX];
@@ -641,10 +651,51 @@ namespace RN
 					}
 				}
 
-				return RNSTR(buffer);
+				_applicationDirectory = SafeRetain(RNSTR(buffer));
+				return _applicationDirectory;
 #endif
 #if RN_PLATFORM_ANDROID
-				return RNCSTR("");
+				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+
+				JNIEnv* env = nullptr;
+				bool isNewEnv = false;
+
+				switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
+				{
+					case JNI_OK:
+						break;
+
+					case JNI_EDETACHED:
+					{
+						jint attachresult = app->activity->vm->AttachCurrentThread(&env, nullptr);
+						if(attachresult == JNI_ERR)
+						{
+							RNDebug("Error attaching java env to thread.");
+							return RNCSTR("");
+						}
+
+						isNewEnv = true;
+						break;
+					}
+
+					case JNI_EVERSION:
+						RN_ASSERT(false, "Wrong jni version (should be 1.6).");
+				}
+
+				jclass clazz = env->GetObjectClass(app->activity->clazz);
+				jmethodID methodID = env->GetMethodID(clazz, "getPackageCodePath", "()Ljava/lang/String;");
+				jobject result = env->CallObjectMethod(app->activity->clazz, methodID);
+
+				jboolean isCopy;
+				std::string res = env->GetStringUTFChars((jstring)result, &isCopy);
+
+				if(isNewEnv)
+				{
+					app->activity->vm->DetachCurrentThread();
+				}
+
+				_applicationDirectory = SafeRetain(RNSTR(res));
+				return _applicationDirectory;
 #endif
 
 				break;
