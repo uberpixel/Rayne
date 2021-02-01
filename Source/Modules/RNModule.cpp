@@ -31,11 +31,26 @@ namespace RN
 		bool isDirectory = false;
 		FileManager *coordinator = FileManager::GetSharedInstance();
 
-		String *path = coordinator->ResolveFullPath(_name, 0);
-		if(path)
+		FileManager::Node *node = coordinator->ResolvePath(_name, 0);
+		if(node)
 		{
-			if(coordinator->PathExists(path, isDirectory) && isDirectory)
-				_name->AppendPathComponent(_name->GetLastPathComponent());
+			if(node->GetType() == FileManager::Node::Type::Directory)
+			{
+				isDirectory = true;
+			}
+		}
+		else
+		{
+			String *path = coordinator->ResolveFullPath(_name, 0);
+			if(path)
+			{
+				coordinator->PathExists(path, isDirectory);
+			}
+		}
+
+		if(isDirectory)
+		{
+			_name->AppendPathComponent(_name->GetLastPathComponent());
 		}
 
 		// Resolve the files
@@ -70,7 +85,10 @@ namespace RN
 		paths->Release();
 
 #if RN_PLATFORM_ANDROID
-		if(!_path) //TODO: Fix path resolving for android
+		//Android modules are not inside the resource directory, only the module resources can be found there.
+		//Instead libraries get automatically unpacked and loaded on startup.
+		//By using the name directly this code will figure that out further down.
+		if(!_path)
 		{
 			_path = _name;
 		}

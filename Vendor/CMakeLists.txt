@@ -2,15 +2,47 @@ cmake_minimum_required(VERSION 2.8.4)
 project(Rayne-Vendor)
 
 #Force better default values.
+option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
+option(JANSSON_EXAMPLES "Build Jansson examples" OFF)
 option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
 option(PNG_SHARED "Build shared lib" OFF)
 option(PNG_TESTS "Build libpng tests" OFF)
 option(PNG_EXECUTABLES "Build libpng executables" OFF)
 set(PNG_ARM_NEON "off" CACHE STRING "Enable ARM NEON optimizations: check|on|off; check is default")
+option(SKIP_INSTALL_ALL "Skip PNG install" ON)
+
+option(ENABLE_COMMONCRYPTO "Enable use of CommonCrypto" OFF)
+option(ENABLE_GNUTLS "Enable use of GnuTLS" OFF)
+option(ENABLE_MBEDTLS "Enable use of mbed TLS" OFF)
+option(ENABLE_OPENSSL "Enable use of OpenSSL" OFF)
+option(ENABLE_WINDOWS_CRYPTO "Enable use of Windows cryptography libraries" OFF)
+option(ENABLE_BZIP2 "Enable use of BZip2" OFF)
+option(ENABLE_LZMA "Enable use of LZMA" OFF)
+option(BUILD_TOOLS "Build tools in the src directory (zipcmp, zipmerge, ziptool)" OFF)
+option(BUILD_REGRESS "Build regression tests" OFF)
+option(BUILD_EXAMPLES "Build examples" OFF)
+option(BUILD_DOC "Build documentation" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(LIBZIP_DO_INSTALL "Install libzip and the related files" OFF)
+option(SHARED_LIB_VERSIONNING "Add SO version in .so build" OFF)
 
 add_subdirectory("zlib")
+
+#Force static zlib to be used
+set(ZLIB_FOUND 1)
+set(ZLIB_LIBRARIES zlibstatic)
+set(ZLIB_LIBRARY zlibstatic)
+set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib CACHE PATH "Path to directory containing zlib header files" FORCE)
+
 add_subdirectory("jansson")
 add_subdirectory("libpng")
+add_subdirectory("libzip")
+
+#Otherwise libzip tries to pull in zlib with a wrong name (which is manually linked already anyway)
+set_target_properties(zip PROPERTIES
+  INTERFACE_LINK_LIBRARIES ""
+)
 
 #Exclude all unused targets from normal build
 set_target_properties(example PROPERTIES EXCLUDE_FROM_ALL TRUE)

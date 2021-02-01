@@ -90,20 +90,8 @@ endif()
 if(POLICY CMP0026)
     set(CMAKE_POLICY_DEFAULT_CMP0026 OLD)
 endif()
-
-#Force default to build static libraries.
-option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
-option(SKIP_INSTALL_ALL "Skip PNG install" ON)
-
-#Force static zlib to be used
-set(ZLIB_FOUND 1)
-set(ZLIB_LIBRARIES zlibstatic)
-set(ZLIB_LIBRARY zlibstatic)
-set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/zlib" "${CMAKE_CURRENT_BINARY_DIR}/Vendor/zlib")
-
-# Disable Jansson tests
-option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
-option(JANSSON_EXAMPLES "Build Jansson examples" OFF)
+set(CMAKE_POLICY_DEFAULT_CMP0074 NEW)
+cmake_policy(SET CMP0074 NEW)
 
 # Include all Rayne targets
 add_subdirectory("Vendor")

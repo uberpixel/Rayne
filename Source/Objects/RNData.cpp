@@ -102,21 +102,13 @@ namespace RN
 
 	Expected<Data *> Data::WithContentsOfFile(const String *file)
 	{
-#if RN_PLATFORM_ANDROID
-		//TODO: Extract folder structure from app bundle instead and fix path resolving...
-		if(file->HasPrefix(RNCSTR(":RayneVulkan:")))
-		{
-			String *tempFileName = file->GetSubstring(Range(13, file->GetLength()-13));
-			file = RNSTR(RNCSTR("Resources/Modules/RayneVulkan/Resources") << tempFileName);
-		}
+		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
+		if(!path)
+			return InvalidArgumentException(RNSTR("Couldn't open file " << file));
 
+#if RN_PLATFORM_ANDROID
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		AAsset *asset = AAssetManager_open(app->activity->assetManager, file->GetUTF8String(), 0);
-		if(!asset)
-		{
-			RN::String *tempfile = RNSTR(RNCSTR("Resources/") << file);
-			asset = AAssetManager_open(app->activity->assetManager, tempfile->GetUTF8String(), 0);
-		}
+		AAsset *asset = AAssetManager_open(app->activity->assetManager, path->GetUTF8String(), 0);
 
 		if(asset)
 		{
@@ -144,10 +136,6 @@ namespace RN
             return data->Autorelease();
 		}
 #endif
-
-		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
-		if(!path)
-			return InvalidArgumentException(RNSTR("Couldn't open file " << file));
 
 		int fd = open(path->GetUTF8String(), O_RDONLY|O_BINARY);
 		if(fd < 0)

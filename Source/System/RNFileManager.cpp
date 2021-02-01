@@ -20,6 +20,9 @@
 #if RN_PLATFORM_WINDOWS
 	#include <io.h>
 #endif
+#if RN_PLATFORM_ANDROID
+	#include "zip.h"
+#endif
 
 #if RN_COMPILER_MSVC
 	#define F_OK 0
@@ -101,60 +104,99 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		int errorAndroid = errno;
 
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		AAssetDir *dir = AAssetManager_openDir(app->activity->assetManager, GetPath()->GetUTF8String());
-		if(!dir)
+		bool isAbsolutePath = GetPath()->HasPrefix(RNCSTR("/"));
+		String *apkFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ApplicationDirectory);
+		if(GetPath()->HasPrefix(apkFilePath) || !isAbsolutePath)
 		{
-			errno = errorAndroid;
-			throw InconsistencyException(RNSTR("Couldn't open directory " << GetPath()));
-		}
+			Dictionary *alreadyAddedPaths = new Dictionary();
 
-		const char *assetName;
-		while((assetName = AAssetDir_getNextFileName(dir)))
-		{
-			if(assetName[0] != '\0' && assetName[0] != '.')
+			zip_t *zipFile = zip_open(apkFilePath->GetUTF8String(), ZIP_RDONLY, nullptr);
+			const String *relativePath = GetPath();
+			if(isAbsolutePath)
 			{
-				RNDebug("Asset name: " << assetName);
+				relativePath = GetPath()->GetSubstring(Range(apkFilePath->GetLength(), GetPath()->GetLength() - apkFilePath->GetLength()));
+			}
+			else
+			{
+				//TODO: Maybe prefix all paths from assets folder with something unique to differentiate between using AAssetManager and norma unix file reading.
+				relativePath = RNSTR("assets/" << relativePath);
+			}
 
-				Node *node = nullptr;
-				node = new File(RNSTR(assetName), this);
-
-				if(node)
+			zip_int64_t num_entries = zip_get_num_entries(zipFile, /*flags=*/0);
+			for(zip_uint64_t i = 0; i < num_entries; ++i)
+			{
+				const char* name = zip_get_name(zipFile, i, /*flags=*/0);
+				if(name)
 				{
-					// Only allow nodes matching the platform modifier, ie ~osx or ~win
-					if(node->GetModifier())
+					String *nameString = RNSTR(name);
+					String *assetPath = nullptr;
+
+					if(nameString->HasPrefix(relativePath))
 					{
-						if(!node->GetModifier()->IsEqual(_platformModifier))
-						{
-							node->Release();
-							continue;
-						}
+						assetPath = nameString->GetSubstring(Range(relativePath->GetLength(), nameString->GetLength()-relativePath->GetLength()));
 					}
 
-					// Make sure only the platform modifier node is allowed into the VFS,
-					// the regular version is removed if necessary
-					Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
-					if(other)
+					if(assetPath)
 					{
-						if(!node->GetModifier())
+						Node *node = nullptr;
+						Array *components = assetPath->GetPathComponents();
+
+						String *newComponent = components->GetObjectAtIndex<String>(0);
+						String *alreadyAddedPath = alreadyAddedPaths->GetObjectForKey<String>(newComponent);
+						if(!alreadyAddedPath)
 						{
-							node->Release();
-							continue;
+							alreadyAddedPaths->SetObjectForKey(newComponent, newComponent);
+
+							//Every entry is a file, so every last component is a file, but all other components else are directories.
+							if(components->GetCount() > 1) //Directory
+							{
+								node = new Directory(newComponent, this);
+							}
+							else //File
+							{
+								node = new File(newComponent, this);
+							}
 						}
 
-						_children->RemoveObject(other);
+						if(node)
+						{
+							// Only allow nodes matching the platform modifier, ie ~osx or ~win
+							if(node->GetModifier())
+							{
+								if(!node->GetModifier()->IsEqual(_platformModifier))
+								{
+									node->Release();
+									continue;
+								}
+							}
+
+							// Make sure only the platform modifier node is allowed into the VFS,
+							// the regular version is removed if necessary
+							Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
+							if(other)
+							{
+								if(!node->GetModifier())
+								{
+									node->Release();
+									continue;
+								}
+
+								_children->RemoveObject(other);
+							}
+
+							_children->AddObject(node);
+							_childMap->SetObjectForKey(node, node->GetName());
+
+							node->Release();
+						}
 					}
-
-					_children->AddObject(node);
-					_childMap->SetObjectForKey(node, node->GetName());
-
-					node->Release();
 				}
 			}
-		}
 
-		AAssetDir_close(dir);
-		return;
+			zip_close(zipFile);
+
+			alreadyAddedPaths->Release();
+		}
 
 #elif RN_PLATFORM_POSIX
 		int error = errno;
@@ -352,6 +394,7 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		_platformModifier = RNCSTR("~android")->Retain();
+		AddSearchPath(RNCSTR("assets")); //Having all assets mapped from the start simplifies finding the manifest file.
 #endif
 	}
 	FileManager::~FileManager()
@@ -380,12 +423,14 @@ namespace RN
 				Range range = path->GetRangeOfString(delimiter, 0, Range(0, 2));
 				if(range.origin == 0)
 				{
-					path = path->GetSubstring(Range(1, path->GetLength() - 1));
-					path->Insert(base, 0);
+					path = path->GetSubstring(Range(2, path->GetLength() - 2));
+					if(base->GetLength() > 0)
+					{
+						path = base->StringByAppendingPathComponent(path);
+					}
 				}
 
 				AddSearchPath(path);
-
 			});
 		}
 	}
@@ -555,6 +600,19 @@ namespace RN
 
 		if(access(expanded->GetUTF8String(), F_OK) != -1)
 			return expanded->GetNormalizedPath();
+
+#if RN_PLATFORM_ANDROID
+		//TODO: This is only really needed for the manifest file,
+		//maybe find a more consistent way to check if it can be opened,
+		//will currently fail for anything outside the assets directory.
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+		AAsset *asset = AAssetManager_open(app->activity->assetManager, expanded->GetUTF8String(), 0);
+		if(asset)
+		{
+			AAsset_close(asset);
+			return expanded->GetNormalizedPath();
+		}
+#endif
 
 		if(hint & ResolveHint::CreateNode)
 		{
@@ -937,6 +995,19 @@ namespace RN
 
 	bool FileManager::PathExists(const String *path, bool &isDirectory)
 	{
+#if RN_PLATFORM_ANDROID
+		FileManager *instance = GetSharedInstance();
+		if(instance)
+		{
+			Node *node = instance->ResolvePath(path, 0);
+			if(node)
+			{
+				isDirectory = (node->GetType() == Node::Type::Directory);
+				return true;
+			}
+		}
+#endif
+
 #if RN_PLATFORM_POSIX
 		struct stat buf;
 		int result = stat(path->GetUTF8String(), &buf);
