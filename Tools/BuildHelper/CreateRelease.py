@@ -78,7 +78,7 @@ def main():
 		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=shutil.ignore_patterns('.DS_STORE'))
 	elif platform == 'android':
 		os.makedirs(destinationDirectory)
-		apkFileName = configName+"-"+configuration+".apk"
+		apkFileName = configName.replace(" ", "-").lower()+"-"+configuration+".apk"
 		shutil.copy2(os.path.join(sourceDirectory, apkFileName), os.path.join(destinationDirectory, apkFileName))
 
 if __name__ == '__main__':

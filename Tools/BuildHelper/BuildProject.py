@@ -111,7 +111,7 @@ def main():
 		keyPassword = getpass.getpass()
 		subprocess.call(['./gradlew', 'assembleRelease'])
 		subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])
-		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', os.path.join('app/build/outputs/apk/release', configName+"-"+configuration+".apk")])
+		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', os.path.join('app/build/outputs/apk/release', configName.replace(" ", "-").lower()+"-"+configuration+".apk")])
 
 if __name__ == '__main__':
 	main()

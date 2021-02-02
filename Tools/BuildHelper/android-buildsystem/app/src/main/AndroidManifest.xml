@@ -7,14 +7,15 @@
 __RN_PERMISSIONS__
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:label="__RN_PROJECT_NAME__"
         android:supportsRtl="true"
         android:hasCode="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
 
         <meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only"/>
-        <meta-data android:name="com.oculus.supportedDevices" android:value="quest|delmar"/>
+        <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
+        <meta-data android:name="com.oculus.vr.focusaware" android:value="true"/>
 
         <activity android:name="android.app.NativeActivity"
             android:label="__RN_PROJECT_NAME__"

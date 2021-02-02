@@ -1,11 +1,12 @@
 import os
 import sys
 import platform
-import urllib
 import zipfile
 import subprocess
 import Utilities
 import json
+import urllib.request
+import shutil
 
 
 def downloadItchIOButler(helperdir):
@@ -33,7 +34,8 @@ def downloadItchIOButler(helperdir):
 		return None
 
 	butlerZipFilePath = os.path.join(butlerDirectory, 'butler.zip')
-	urllib.urlretrieve(butlerDownloadURL, butlerZipFilePath)
+	with urllib.request.urlopen(butlerDownloadURL) as response, open(butlerZipFilePath, 'wb') as out_file:
+		shutil.copyfileobj(response, out_file)
 
 	zippedFile = zipfile.ZipFile(butlerZipFilePath, 'r')
 	zippedFile.extractall(butlerDirectory)
@@ -69,7 +71,9 @@ def downloadOculusPlatformUtil(helperdir):
 		print('Platform ' + platform.system() + ' not supported.')
 		return None
 
-	urllib.urlretrieve(utilityDownloadURL, utilityFile)
+	with urllib.request.urlopen(utilityDownloadURL) as response, open(utilityFile, 'wb') as out_file:
+		shutil.copyfileobj(response, out_file)
+
 	os.chmod(utilityFile, 0o775)
 
 	return utilityFile
@@ -158,10 +162,12 @@ def main():
 
 		deviceType = "rift"
 		if platform == "android":
-			deviceType = "go"
+			deviceType = "quest"
 			if len(sys.argv) == 5:
 				deviceType = sys.argv[4]
 
+		appID = None
+		appSecret = None
 		with open(os.path.join(projectRootPath, configAppInfoOculus), "rb") as appInfoFile:
 			appInfoData = json.load(appInfoFile)
 			appInfoDevicdData = appInfoData[deviceType]
@@ -180,7 +186,7 @@ def main():
 		elif platform == 'android':
 			apkToUpload = os.path.join(releasesDirectoryPath, 'android_oculus')
 			apkToUpload = os.path.join(apkToUpload, configNameLower+"-"+"oculus"+".apk")
-			subprocess.call([oculusUtilityFile, 'upload-mobile-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha'])
+			subprocess.call([oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha'])
 
 	elif storefront == "steam":
 		print("Submitting to steam is not implemented yet.")

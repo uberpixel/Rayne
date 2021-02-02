@@ -88,7 +88,7 @@ def main():
 	elif platform == 'android':
 		subprocess.call(['gradle', 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
 		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), '.', buildConfigData)
-		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + " " + buildType)
+		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + "," + buildType)
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
 		Utilities.copyToFolder(os.path.join(buildHelperPath, "../../Modules/OculusMobile/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Release/libvrapi.so"), 'app/src/main/libs/arm64-v8a/')
