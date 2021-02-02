@@ -13,9 +13,6 @@
 #elif RN_PLATFORM_WINDOWS
 	#include "../Base/RNUnistd.h"
 #endif
-#if RN_PLATFORM_ANDROID
-	#include "../Base/RNKernel.h"
-#endif
 
 #include <sys/stat.h>
 
@@ -23,6 +20,7 @@
 #include "RNSerialization.h"
 #include "RNString.h"
 #include "../System/RNFileManager.h"
+#include "../System//RNFile.h"
 
 #define kRNDataIncreaseLength 64
 #define kRNDataReadBufferSize 1024
@@ -100,69 +98,15 @@ namespace RN
 		return data->Autorelease();
 	}
 
-	Expected<Data *> Data::WithContentsOfFile(const String *file)
+	Expected<Data *> Data::WithContentsOfFile(const String *path)
 	{
-		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, 0);
-		if(!path)
-			return InvalidArgumentException(RNSTR("Couldn't open file " << file));
-
-#if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		AAsset *asset = AAssetManager_open(app->activity->assetManager, path->GetUTF8String(), 0);
-
-		if(asset)
-		{
-			off_t size = AAsset_getLength(asset);
-			uint8 *bytes = (uint8 *)malloc(size);
-			size_t bytesRead = 0;
-
-			while(bytesRead < size)
-			{
-				ssize_t result = AAsset_read(asset, bytes + bytesRead, size - bytesRead);
-				if(result < 0)
-				{
-					if(errno == EINTR)
-						continue;
-
-					AAsset_close(asset);
-					return InconsistencyException("Failed to read file");
-				}
-				else
-					bytesRead += result;
-			}
-
-			AAsset_close(asset);
-			Data *data = new Data(bytes, size, false, true);
-            return data->Autorelease();
-		}
-#endif
-
-		int fd = open(path->GetUTF8String(), O_RDONLY|O_BINARY);
-		if(fd < 0)
+		File *file = File::WithName(path, File::Mode::Read | File::Mode::NoCreate);
+		if(!file)
 			return InvalidArgumentException(RNSTR("Couldn't open file " << path));
 
-		off_t size = lseek(fd, 0, SEEK_END);
-		lseek(fd, 0, SEEK_SET);
-
+		size_t size = file->GetSize();
 		uint8 *bytes = (uint8 *)malloc(size);
-		size_t bytesRead = 0;
-
-		while(bytesRead < size)
-		{
-			ssize_t result = read(fd, bytes + bytesRead, size - bytesRead);
-			if(result < 0)
-			{
-				if(errno == EINTR)
-					continue;
-
-				close(fd);
-				return InconsistencyException("Failed to read file");
-			}
-			else
-				bytesRead += result;
-		}
-
-		close(fd);
+		file->Read(bytes, size);
 
 		Data *data = new Data(bytes, size, false, true);
 		return data->Autorelease();
@@ -227,36 +171,13 @@ namespace RN
 		std::copy(data, data + range.length, _bytes + range.origin);
 	}
 	
-	bool Data::WriteToFile(const String *file)
+	void Data::WriteToFile(const String *path)
 	{
-		String *path = FileManager::GetSharedInstance()->ResolveFullPath(file, FileManager::ResolveHint::CreateNode);
-		if(!path)
-			return false;
+		File *file = File::WithName(path, File::Mode::Write);
+		if(!file)
+			throw InvalidArgumentException(RNSTR("Couldn't create file " << path));
 
-		int fd = open(path->GetUTF8String(), O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, 0644);
-		if(fd < 0)
-			return false;
-
-		chmod(path->GetUTF8String(), 0755);
-
-		size_t written = 0;
-		while(written < _length)
-		{
-			ssize_t result = write(fd, _bytes + written, _length - written);
-			if(result < 0)
-			{
-				if(errno == EINTR)
-					continue;
-
-				close(fd);
-				return false;
-			}
-
-			written += result;
-		}
-
-		close(fd);
-		return true;
+		file->Write(_bytes, _length);
 	}
 	
 	

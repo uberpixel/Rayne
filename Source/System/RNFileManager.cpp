@@ -70,7 +70,6 @@ namespace RN
 		_path = SafeRetain(path);
 	}
 
-
 	FileManager::Directory::Directory(String *name, Node *parent) :
 		Node(name, parent, Type::Directory),
 		_children(new Array()),
@@ -114,11 +113,10 @@ namespace RN
 			const String *relativePath = GetPath();
 			if(isAbsolutePath)
 			{
-				relativePath = GetPath()->GetSubstring(Range(apkFilePath->GetLength(), GetPath()->GetLength() - apkFilePath->GetLength()));
+				relativePath = GetPath()->GetSubstring(Range(apkFilePath->GetLength()+1, GetPath()->GetLength() - apkFilePath->GetLength()-1));
 			}
 			else
 			{
-				//TODO: Maybe prefix all paths from assets folder with something unique to differentiate between using AAssetManager and norma unix file reading.
 				relativePath = RNSTR("assets/" << relativePath);
 			}
 
@@ -196,9 +194,11 @@ namespace RN
 			zip_close(zipFile);
 
 			alreadyAddedPaths->Release();
-		}
 
-#elif RN_PLATFORM_POSIX
+			return;
+		}
+#endif
+#if RN_PLATFORM_POSIX
 		int error = errno;
 		DIR *dir = opendir(GetPath()->GetUTF8String());
 
@@ -347,6 +347,14 @@ namespace RN
 #if RN_PLATFORM_POSIX
 	char *realpath_expand(const char *path, char *buffer)
 	{
+#if RN_PLATFORM_ANDROID
+		const String *rootResourcesPath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::RootResourcesDirectory);
+		if(RNSTR(path)->HasPrefix(rootResourcesPath))
+		{
+			std::strcpy(buffer, path);
+			return buffer;
+		}
+#endif
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 		char *home;
 
@@ -395,6 +403,8 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		_platformModifier = RNCSTR("~android")->Retain();
 #endif
+
+		GetPathForLocation(Location::ApplicationDirectory);
 	}
 	FileManager::~FileManager()
 	{
@@ -460,10 +470,6 @@ namespace RN
 
 	String *FileManager::GetNormalizedPathFromFullPath(const String *fullPath)
 	{
-#if RN_PLATFORM_ANDROID
-		return RNSTR(fullPath);
-#endif
-
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
 		int error = errno;
@@ -580,6 +586,7 @@ namespace RN
 	String *FileManager::ResolveFullPath(const String *path, ResolveHint hint) RN_NOEXCEPT
 	{
 		Node *result = ResolvePath(path, hint);
+		const String *fullPath = path;
 		if(result)
 		{
 			if(hint & ResolveHint::CreateNode)
@@ -587,31 +594,39 @@ namespace RN
 				String *last = path->GetLastPathComponent();
 
 				if(result->GetName()->IsEqual(last))
-					return result->GetPath()->Copy()->Autorelease();
-
-				return result->GetPath()->StringByAppendingPathComponent(last);
+				{
+					fullPath = result->GetPath()->Copy()->Autorelease();
+				}
+				else
+				{
+					fullPath = result->GetPath()->StringByAppendingPathComponent(last);
+				}
 			}
-
-			return result->GetPath()->GetNormalizedPath();
+			else
+			{
+				fullPath = result->GetPath()->GetNormalizedPath();
+			}
 		}
-		
+
+#if RN_PLATFORM_ANDROID
+		String *rootResourcesDirectory = GetPathForLocation(Location::RootResourcesDirectory);
+		if(fullPath->HasPrefix(rootResourcesDirectory))
+		{
+			//Assume the path to be correct if it is in the apk file.
+			return fullPath->Copy()->Autorelease();
+		}
+#endif
+
+		if(result)
+		{
+			return fullPath->Copy()->Autorelease();
+		}
+
 		String *expanded = __ExpandPath(path);
 
 		if(access(expanded->GetUTF8String(), F_OK) != -1)
 			return expanded->GetNormalizedPath();
 
-#if RN_PLATFORM_ANDROID
-		//TODO: This is only really needed for the manifest file,
-		//maybe find a more consistent way to check if it can be opened,
-		//will currently fail for anything outside the assets directory.
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		AAsset *asset = AAssetManager_open(app->activity->assetManager, expanded->GetUTF8String(), 0);
-		if(asset)
-		{
-			AAsset_close(asset);
-			return expanded->GetNormalizedPath();
-		}
-#endif
 
 		if(hint & ResolveHint::CreateNode)
 		{
@@ -643,7 +658,7 @@ namespace RN
 		{
 			case Location::ApplicationDirectory:
 			{
-				if(_applicationDirectory) return _applicationDirectory;
+				if(_applicationDirectory) return _applicationDirectory->Copy()->Autorelease();
 
 #if RN_PLATFORM_MAC_OS
 				if(isAppBundle)
@@ -752,7 +767,7 @@ namespace RN
 				}
 
 				_applicationDirectory = SafeRetain(RNSTR(res));
-				return _applicationDirectory;
+				return _applicationDirectory->Copy()->Autorelease();
 #endif
 
 				break;
@@ -820,7 +835,9 @@ namespace RN
 				return RNSTR(buffer);
 #endif
 #if RN_PLATFORM_ANDROID
-				return RNCSTR("");
+				String *rootResourcesDirectory = GetPathForLocation(Location::ApplicationDirectory);
+				rootResourcesDirectory->AppendPathComponent(RNCSTR("assets/"));
+				return rootResourcesDirectory;
 #endif
 			}
 

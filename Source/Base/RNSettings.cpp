@@ -131,15 +131,8 @@ namespace RN
 		try
 		{
 			Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::Options::PrettyPrint);
-			bool saved = data->WriteToFile(GetSettingsLocation());
-
-			if(saved)
-			{
-				_isDirty = false;
-				return;
-			}
-
-			RNWarning("Failed to sync settings.json");
+			data->WriteToFile(GetSettingsLocation());
+			_isDirty = false;
 		}
 		catch(Exception &e)
 		{

@@ -1047,9 +1047,9 @@ namespace RN
 	}
 
 	
-	bool String::WriteToFile(const String *file, Encoding encoding)
+	void String::WriteToFile(const String *file, Encoding encoding)
 	{
 		Data *data = GetDataWithEncoding(encoding);
-		return data->WriteToFile(file);
+		data->WriteToFile(file);
 	}
 }

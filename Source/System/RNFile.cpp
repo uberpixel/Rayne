@@ -295,7 +295,7 @@ namespace RN
 		if(fd == -1)
 		{
 			errno = error;
-			throw FileNotFoundException("Couldn't find file");
+			throw FileNotFoundException(RNSTR("Couldn't find file " << name));
 		}
 
 		return fd;
@@ -304,26 +304,6 @@ namespace RN
 	File *File::WithName(const String *name, Mode mode)
 	{
 		FileManager *coordinator = FileManager::GetSharedInstance();
-
-#if RN_PLATFORM_ANDROID
-		if(mode & Mode::Read)
-		{
-			android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-			AAsset *asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
-
-			if(!asset)
-			{
-				name = RNSTR(RNCSTR("Resources/") << name);
-				asset = AAssetManager_open(app->activity->assetManager, name->GetUTF8String(), 0);
-			}
-
-			if(asset)
-			{
-				File *file = new File(asset, name, mode);
-				return file->Autorelease();
-			}
-		}
-#endif
 
 		if(mode & Mode::Write)
 		{
@@ -346,7 +326,30 @@ namespace RN
 
 		String *path = coordinator->ResolveFullPath(name, hint);
 		if(!path)
-			throw FileNotFoundException("Couldn't find file");
+			throw FileNotFoundException(RNSTR("Couldn't find file " << name));
+
+#if RN_PLATFORM_ANDROID
+		if(mode & Mode::Read)
+		{
+			FileManager *fileManager = FileManager::GetSharedInstance();
+			if(fileManager)
+			{
+				String *rootResourcesDirectory = fileManager->GetPathForLocation(FileManager::Location::RootResourcesDirectory);
+				if(path->HasPrefix(rootResourcesDirectory))
+				{
+					android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+					String *assetsPath = path->GetSubstring(Range(rootResourcesDirectory->GetLength(), path->GetLength() - rootResourcesDirectory->GetLength()));
+					AAsset *asset = AAssetManager_open(app->activity->assetManager, assetsPath->GetUTF8String(), 0);
+
+					if(asset)
+					{
+						File *file = new File(asset, path, mode);
+						return file->Autorelease();
+					}
+				}
+			}
+		}
+#endif
 
 		int fd = __FileWithPath(path, mode);
 		File *file = new File(fd, path, mode);

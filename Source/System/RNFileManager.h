@@ -135,7 +135,7 @@ namespace RN
 		Array *_nodes;
 		Dictionary *_modulePaths;
 
-		String *_applicationDirectory;
+		const String *_applicationDirectory;
 	};
 }
 

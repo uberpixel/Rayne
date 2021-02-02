@@ -117,7 +117,7 @@ namespace RN
 		RNAPI String *GetNormalizedPath() const;
 
 
-		RNAPI bool WriteToFile(const String *file, Encoding encoding);
+		RNAPI void WriteToFile(const String *file, Encoding encoding);
 		
 	private:
 		size_t __GetTrailingPathLocation() const;
