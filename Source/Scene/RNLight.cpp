@@ -67,7 +67,7 @@ namespace RN
 	
 	Light::~Light()
 	{
-		RemoveShadowCameras();
+		//RemoveShadowCameras();
 	}
 	
 	
