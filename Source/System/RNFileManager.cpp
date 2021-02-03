@@ -669,7 +669,7 @@ namespace RN
 					_applicationDirectory = RNSTR([path UTF8String] << "/Contents");
 					SafeRetain(_applicationDirectory);
 
-					return _applicationDirectory;
+					return _applicationDirectory->Copy()->Autorelease();
 				}
 				else
 				{
@@ -681,7 +681,7 @@ namespace RN
 
 					_applicationDirectory = SafeRetain(_applicationDirectory);
 
-					return _applicationDirectory;
+					return _applicationDirectory->Copy()->Autorelease();
 				}
 #endif
 #if RN_PLATFORM_WINDOWS
@@ -703,7 +703,7 @@ namespace RN
 				}
 
 				_applicationDirectory = SafeRetain(RNSTR(buffer));
-				return _applicationDirectory;
+				return _applicationDirectory->Copy()->Autorelease();
 #endif
 #if RN_PLATFORM_LINUX
 				char buffer[PATH_MAX];
@@ -724,7 +724,7 @@ namespace RN
 				}
 
 				_applicationDirectory = SafeRetain(RNSTR(buffer));
-				return _applicationDirectory;
+				return _applicationDirectory->Copy()->Autorelease();
 #endif
 #if RN_PLATFORM_ANDROID
 				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
