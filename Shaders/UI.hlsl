@@ -19,7 +19,7 @@
 
 #if RN_UV0
 Texture2D texture0;
-SamplerState linearRepeatSampler;
+SamplerState linearClampSampler;
 #endif
 
 cbuffer vertexUniforms
@@ -112,7 +112,7 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 	half4 color = vert.color;
 
 #if RN_UV0
-	color *= texture0.Sample(linearRepeatSampler, vert.texCoords).rgba;
+	color *= texture0.Sample(linearClampSampler, vert.texCoords).rgba;
 #endif
 
 #if RN_UV1

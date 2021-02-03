@@ -159,6 +159,7 @@
 
 				"signature":
 				{
+					"samplers": [{"name": "linearClampSampler", "wrap": "clamp"}],
 					"options":
 					[
 						"RN_UV0",
