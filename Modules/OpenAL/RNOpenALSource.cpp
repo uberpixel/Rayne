@@ -100,7 +100,8 @@ namespace RN
 		_isRepeating = repeat;
 		
 		//It will just keep playing the same buffer if looping streamed stuff
-		if(_asset->GetType() == AudioAsset::Type::Ringbuffer || _asset->GetType() == AudioAsset::Type::Decoder) return;
+		if(!_asset || _asset->GetType() == AudioAsset::Type::Ringbuffer || _asset->GetType() == AudioAsset::Type::Decoder) return;
+		
 		alSourcei(_source, AL_LOOPING, repeat?AL_TRUE: AL_FALSE);
 	}
 		
