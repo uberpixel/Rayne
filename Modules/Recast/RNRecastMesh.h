@@ -24,7 +24,7 @@ namespace RN
         class Configuration
         {
         public:
-            Configuration();
+            RCAPI Configuration();
             
             float cellSize;
             float cellHeight;

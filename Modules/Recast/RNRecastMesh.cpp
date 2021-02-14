@@ -45,12 +45,12 @@ namespace RN
         
         bool write(const void* ptr, const size_t size) override
         {
-            _file->Write(ptr, size);
+            return _file->Write(ptr, size) > 0;
         }
         
         bool read(void* ptr, const size_t size) override
         {
-            _file->Read(ptr, size);
+            return _file->Read(ptr, size) > 0;
         }
         
     private:
