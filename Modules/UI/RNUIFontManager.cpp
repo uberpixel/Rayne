@@ -178,7 +178,7 @@ namespace RN
 				RN::uint32 buildBufferIndex = 0; \
 				for(size_t i = 0; i < verticesCount; i ++) \
 				{ \
-					std::copy(&triangleMesh.vertices[dataIndex + offset], &triangleMesh.vertices[dataIndex + offset + elementSize], &buildBuffer[buildBufferIndex]); \
+					std::copy(triangleMesh.vertices.begin() + dataIndex + offset, triangleMesh.vertices.begin() + dataIndex + offset + elementSize, &buildBuffer[buildBufferIndex]); \
 					buildBufferIndex += elementSize; \
 					dataIndex += vertexFloatCount; \
 				} \

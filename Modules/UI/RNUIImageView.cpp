@@ -68,6 +68,7 @@ namespace RN
 				
 				const Rect &scissorRect = GetScissorRect();
 				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+				material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(0.0f, 0.0f)));
 				
 				lodStage->AddMesh(lodStage->GetMeshAtIndex(0), material);
 				
