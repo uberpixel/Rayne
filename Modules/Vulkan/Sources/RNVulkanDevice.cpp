@@ -175,7 +175,6 @@ namespace RN
 			//check for multiview extension
 			if(std::strcmp(extension.extensionName, VK_KHR_MULTIVIEW_EXTENSION_NAME) == 0)
 			{
-				_deviceExtensions->AddObject(RNCSTR(extension.extensionName));
 				deviceExtensions.push_back(extension.extensionName);
 
 				VkPhysicalDeviceMultiviewPropertiesKHR multiviewProperties;
@@ -194,7 +193,6 @@ namespace RN
 			}
 			else if(std::strcmp(extension.extensionName, VK_EXT_FRAGMENT_DENSITY_MAP_EXTENSION_NAME) == 0)
 			{
-				_deviceExtensions->AddObject(RNCSTR(extension.extensionName));
 				deviceExtensions.push_back(extension.extensionName);
 
 				VkPhysicalDeviceFragmentDensityMapPropertiesEXT fragmentDensityMapProperties;
