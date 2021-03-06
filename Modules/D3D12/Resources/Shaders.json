@@ -165,6 +165,12 @@
                     "options": [
                         "RN_UV0",
                         "RN_UV1"
+                    ],
+                    "samplers": [
+                        {
+                            "name": "linearClampSampler",
+                            "wrap": "clamp"
+                        }
                     ]
                 },
                 "type": "fragment"
@@ -186,6 +192,9 @@
             {
                 "name": "pp_blit_fragment",
                 "signature": {
+                    "options": [
+                        "RN_PP_VR"
+                    ],
                     "samplers": [
                         {
                             "name": "linearClampSampler",

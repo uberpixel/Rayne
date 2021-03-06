@@ -182,7 +182,11 @@
 				"type": "fragment",
 				"signature":
 				{
-					"samplers": [{"name": "linearClampSampler", "wrap": "clamp"}]
+					"samplers": [{"name": "linearClampSampler", "wrap": "clamp"}],
+					"options":
+					[
+						"RN_PP_VR"
+					]
 				}
 			}
 		]
