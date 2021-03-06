@@ -293,7 +293,7 @@ namespace RN
 				VkImageView imageView;
 				RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
 				attachments.push_back(imageView);
-                _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
+            _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 			}
 			else
 			{
@@ -304,7 +304,7 @@ namespace RN
 
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-                    targetView->tempVulkanImageView = imageView;
+               targetView->tempVulkanImageView = imageView;
 					attachments.push_back(imageView);
 
 					//TODO: Add some error handling for wrong target counts for msaa
@@ -315,13 +315,13 @@ namespace RN
 						{
 							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-                            resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
+	resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 						}
 						else
 						{
 							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-                            resolveFramebuffer->_colorTargets[counter]->tempVulkanImageView = imageView;
+							resolveFramebuffer->_colorTargets[counter]->tempVulkanImageView = imageView;
 						}
 						attachments.push_back(imageView);
 					}

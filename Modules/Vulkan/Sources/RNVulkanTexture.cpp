@@ -432,6 +432,23 @@ namespace RN
 		_format(VulkanImageFormatFromTextureFormat(descriptor.format)),
 		_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
 	{
+		VkFormat format = VulkanImageFormatFromTextureFormat(descriptor.format);
+		VkImageViewCreateInfo imageViewInfo = {};
+		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewInfo.pNext = nullptr;
+		imageViewInfo.viewType = VkImageViewTypeFromTextureType(descriptor.type);
+		imageViewInfo.format = format;
+		imageViewInfo.flags = 0;
+		imageViewInfo.subresourceRange = {};
+		imageViewInfo.subresourceRange.aspectMask = VkImageAspectFlagsFromFormat(format);
+		imageViewInfo.subresourceRange.baseMipLevel = 0;
+		imageViewInfo.subresourceRange.levelCount = descriptor.mipMaps;
+		imageViewInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewInfo.subresourceRange.layerCount = descriptor.depth;
+		imageViewInfo.image = _image;
+
+		VulkanDevice *device = renderer->GetVulkanDevice();
+		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageViewInfo, _renderer->GetAllocatorCallback(), &_imageView));
 	}
 
 	VulkanTexture::~VulkanTexture()
@@ -818,7 +835,7 @@ namespace RN
 		if(toLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 		{
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			//imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; //Used to be here
 			//destStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 
@@ -836,7 +853,7 @@ namespace RN
 		// Make sure any writes to the image have been finished
 		if(toLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
-			imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; //Used to be |=
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		}
 

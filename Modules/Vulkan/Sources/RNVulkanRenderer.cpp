@@ -303,6 +303,21 @@ namespace RN
 					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 				}
 
+				//Set previous framebuffer texture layout for reading
+				if(renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+				{
+					Texture *texture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+					if(texture)
+					{
+						VulkanTexture *vulkanTexture = texture->Downcast<VulkanTexture>();
+						if(vulkanTexture->GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+						{
+							VulkanTexture::SetImageLayout(commandBuffer, vulkanTexture->GetVulkanImage(), 0, vulkanTexture->GetDescriptor().mipMaps, 0, vulkanTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_COLOR_BIT, vulkanTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanTexture::BarrierIntent::ShaderSource);
+							vulkanTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+						}
+					}
+				}
+
 				SetupRendertargets(commandBuffer, renderPass);
 
 				if(renderPass.drawables.size() > 0)
@@ -323,6 +338,21 @@ namespace RN
 				{
 					VulkanTexture::SetImageLayout(commandBuffer, renderPass.directionalShadowDepthTexture->GetVulkanImage(), 0, renderPass.directionalShadowDepthTexture->GetDescriptor().mipMaps, 0, renderPass.directionalShadowDepthTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_DEPTH_BIT, renderPass.directionalShadowDepthTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
 					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+				}
+
+				//Set previous framebuffer texture layout for writing
+				if(renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+				{
+					Texture *texture = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
+					if (texture)
+					{
+						VulkanTexture *vulkanTexture = texture->Downcast<VulkanTexture>();
+						if(vulkanTexture->GetCurrentLayout() != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+						{
+							VulkanTexture::SetImageLayout(commandBuffer, vulkanTexture->GetVulkanImage(), 0, vulkanTexture->GetDescriptor().mipMaps, 0, vulkanTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_COLOR_BIT, vulkanTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
+							vulkanTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+						}
+					}
 				}
 
 				_internals->currentRenderPassIndex += 1;
@@ -601,6 +631,8 @@ namespace RN
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
 
+		vulkanRenderPass.multiviewLayer = 0;
+		
 		vulkanRenderPass.renderPass = renderPass;
 		vulkanRenderPass.previousRenderPass = previousRenderPass;
 
@@ -675,31 +707,25 @@ namespace RN
 			if(ppStage || vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
 			{
 				//Submit fullscreen quad drawable
-                if(!_defaultPostProcessingDrawable)
-                {
-                    Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, 90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
-                    Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
+				if(!_defaultPostProcessingDrawable)
+				{
+					Mesh *planeMesh = Mesh::WithTexturedPlane(Quaternion::WithEulerAngle(Vector3(0.0f, -90.0f, 0.0f)), Vector3(0.0f), Vector2(1.0f, 1.0f));
+					Material *planeMaterial = Material::WithShaders(GetDefaultShader(Shader::Type::Vertex, nullptr), GetDefaultShader(Shader::Type::Fragment, nullptr));
 
-                    _lock.Lock();
-                    _defaultPostProcessingDrawable = static_cast<VulkanDrawable*>(CreateDrawable());
-                    _defaultPostProcessingDrawable->mesh = planeMesh->Retain();
-                    _defaultPostProcessingDrawable->material = planeMaterial->Retain();
-                    _lock.Unlock();
-                }
+					_lock.Lock();
+					_defaultPostProcessingDrawable = static_cast<VulkanDrawable*>(CreateDrawable());
+					_defaultPostProcessingDrawable->mesh = planeMesh->Retain();
+					_defaultPostProcessingDrawable->material = planeMaterial->Retain();
+					_lock.Unlock();
+				}
 
-              /*  Texture *sourceTexture = vulkanRenderPass.previousRenderPass->GetFramebuffer()->GetColorTexture(0);
-                if(vulkanRenderPass.type == VulkanRenderPass::Type::Convert)
-                {
-                    _defaultPostProcessingDrawable->material->RemoveAllTextures();
-                    _defaultPostProcessingDrawable->material->AddTexture(sourceTexture);
-                }*/
-                SubmitDrawable(_defaultPostProcessingDrawable);
+				SubmitDrawable(_defaultPostProcessingDrawable);
 
-                size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
-                _internals->totalDrawableCount += numberOfDrawables;
+				size_t numberOfDrawables = _internals->renderPasses[_internals->currentRenderPassIndex].drawables.size();
+				_internals->totalDrawableCount += numberOfDrawables;
 
-                if(numberOfDrawables > 0)
-                    _internals->currentDrawableResourceIndex += 1;
+				if(numberOfDrawables > 0)
+					_internals->currentDrawableResourceIndex += 1;
 			}
 		}
 		else
@@ -1635,7 +1661,7 @@ namespace RN
 		uint32 totalTextureCount = 0;
 
 		for(const VulkanRenderPass &renderPass : _internals->renderPasses)
-        {
+		{
         	if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
         	{
 				_internals->currentRenderPassIndex += 1;
@@ -1650,20 +1676,20 @@ namespace RN
 					const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
 
 					totalTextureCount += pipelineState->rootSignature->textureCount;
-        		}
+				}
 
 				_internals->currentDrawableResourceIndex += 1;
-        	}
+			}
 
 			_internals->currentRenderPassIndex += 1;
-        }
+		}
 
 		std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-        writeDescriptorSets.reserve(totalConstantBufferCount + totalTextureCount);
+		writeDescriptorSets.reserve(totalConstantBufferCount + totalTextureCount);
 		std::vector<VkDescriptorBufferInfo> constantBufferDescriptorInfoArray;
-        constantBufferDescriptorInfoArray.reserve(totalConstantBufferCount);
-        std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
-        imageBufferDescriptorInfoArray.reserve(totalTextureCount);
+		constantBufferDescriptorInfoArray.reserve(totalConstantBufferCount);
+		std::vector<VkDescriptorImageInfo> imageBufferDescriptorInfoArray;
+		imageBufferDescriptorInfoArray.reserve(totalTextureCount);
 
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
@@ -1739,13 +1765,27 @@ namespace RN
 					if(fragmentShader)
 					{
 						const Shader::Signature *signature = fragmentShader->GetSignature();
-
 						signature->GetTextures()->Enumerate<Shader::ArgumentTexture>([&](Shader::ArgumentTexture *argument, size_t index, bool &stop) {
 
-							const VulkanTexture *materialTexture = nullptr;
+							VkImageView imageView = VK_NULL_HANDLE;
 							if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexDirectionalShadowTexture && renderPass.directionalShadowDepthTexture)
 							{
-								materialTexture = renderPass.directionalShadowDepthTexture;
+								const VulkanTexture *materialTexture = renderPass.directionalShadowDepthTexture;
+								imageView = materialTexture->_imageView;
+							}
+							else if(argument->GetMaterialTextureIndex() == Shader::ArgumentTexture::IndexFramebufferTexture && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
+							{
+								VulkanFramebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<VulkanFramebuffer>();
+								Texture *texture = framebuffer->GetColorTexture();
+								if(texture)
+								{
+									const VulkanTexture *framebufferTexture = texture->Downcast<VulkanTexture>();
+									imageView = framebufferTexture->_imageView;
+								}
+								else
+								{
+									return;
+								}
 							}
 							else if(argument->GetMaterialTextureIndex() >= drawable->material->GetTextures()->GetCount())
 							{
@@ -1754,11 +1794,12 @@ namespace RN
 							}
 							else
 							{
-								materialTexture = drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+								const VulkanTexture *materialTexture = drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+								imageView = materialTexture->_imageView;
 							}
 
 							VkDescriptorImageInfo imageBufferDescriptorInfo = {};
-							imageBufferDescriptorInfo.imageView = materialTexture->_imageView;
+							imageBufferDescriptorInfo.imageView = imageView;
 							imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 							imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
 
@@ -1774,47 +1815,15 @@ namespace RN
 							writeDescriptorSets.push_back(writeImageDescriptorSet);
 						});
 					}
-
-                    //TODO: Find a cleaner more general solution
-     /*               if(textureCount > 0 && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
-                    {
-                        VulkanFramebuffer *framebuffer = renderPass.previousRenderPass->GetFramebuffer()->Downcast<VulkanFramebuffer>();
-                        Texture *texture = framebuffer->GetColorTexture();
-                        VulkanTexture *vulkanTexture = nullptr;
-                        if(texture)
-                        {
-                            vulkanTexture = texture->Downcast<VulkanTexture>();
-                        }
-
-                        if(vulkanTexture)
-                        {
-                            VkDescriptorImageInfo imageBufferDescriptorInfo = {};
-                            imageBufferDescriptorInfo.imageView = framebuffer->GetCurrentFrameVulkanColorImageView();
-                            imageBufferDescriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                            imageBufferDescriptorInfoArray.push_back(imageBufferDescriptorInfo);
-
-                            VkWriteDescriptorSet writeImageDescriptorSet = {};
-                            writeImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                            writeImageDescriptorSet.pNext = NULL;
-                            writeImageDescriptorSet.dstSet = descriptorSet;
-                            writeImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-                            writeImageDescriptorSet.dstBinding = binding++;
-                            writeImageDescriptorSet.pImageInfo = &imageBufferDescriptorInfoArray[imageBufferDescriptorInfoArray.size() - 1];
-                            writeImageDescriptorSet.descriptorCount = 1;
-
-                            writeDescriptorSets.push_back(writeImageDescriptorSet);
-                            textureCount -= 1;
-                        }
-                    }*/
 				}
 
 				_internals->currentDrawableResourceIndex += 1;
 			}
 
 			_internals->currentRenderPassIndex += 1;
-        }
+		}
 
-        if(writeDescriptorSets.size() > 0)
+		if(writeDescriptorSets.size() > 0)
 		{
 			vk::UpdateDescriptorSets(GetVulkanDevice()->GetDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 		}
@@ -1836,16 +1845,16 @@ namespace RN
         // Bind mesh vertex buffer
 		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
 		if(drawable->mesh->GetIndicesCount() > 0)
-        {
+		{
             // Bind mesh index buffer
 			vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
             // Render mesh vertex buffer using it's indices
 			vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
-        }
+		}
 		else
-        {
+		{
 			vk::CmdDraw(commandBuffer, drawable->mesh->GetVerticesCount(), 1, 0, 0);
-        }
+		}
 
 		_currentDrawableIndex += 1;
 	}

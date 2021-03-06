@@ -137,6 +137,10 @@ namespace RN
 			{
 				materialTextureIndex = ArgumentTexture::IndexDirectionalShadowTexture;
 			}
+			else if (name->IsEqual(RNCSTR("framebufferTexture")))
+			{
+				materialTextureIndex = ArgumentTexture::IndexFramebufferTexture;
+			}
 			else if(name->HasPrefix(RNCSTR("texture")))
 			{
 				String *indexString = name->GetSubstring(Range(7, name->GetLength() - 7));
