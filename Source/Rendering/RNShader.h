@@ -31,7 +31,7 @@ namespace RN
 			RNAPI static Options *WithNone();
 
 			RNAPI Options(const Options *options);
-            RNAPI ~Options();
+			RNAPI ~Options();
 
 			RNAPI Options *EnableAlpha();
 			RNAPI Options *EnablePointLights();
@@ -39,7 +39,7 @@ namespace RN
 			RNAPI Options *EnableDirectionalShadows();
 			RNAPI Options *EnableMultiview();
 
-			RNAPI void AddDefine(String *name, String *value);
+			RNAPI Options *AddDefine(String *name, String *value);
 
 			RNAPI bool IsEqual(const Object *other) const override;
 			RNAPI size_t GetHash() const override;
