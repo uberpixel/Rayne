@@ -43,19 +43,9 @@ namespace RN
 		if(!_window && !_debugWindow) return;
 
 		if(_window && !_window->IsRendering()) return;
-		
-		Vector2 windowSize;
-		float eyePadding = 0.0f;
-
-		if(_window)
-		{
-			windowSize = _window->GetSize();
-			eyePadding = _window->GetEyePadding();
-		}
 
 		if(_debugWindow)
 		{
-			windowSize = _debugWindow->GetSize();
 			_debugWindow->SetTitle(RNCSTR("VR Debug Window"));
 			_debugWindow->Show();
 		}
@@ -67,7 +57,7 @@ namespace RN
 		for(int i = 0; i < 2; i++)
 		{
 			_eye[i] = new Camera();
-			_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i))); //This won't work with multiview! (and is only needed for the hidden area mask)
+			//_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i))); //This won't work with multiview! (and is only needed for the hidden area mask)
 			_head->AddChild(_eye[i]);
 			_head->AddMultiviewCamera(_eye[i]);
 			_hiddenAreaEntity[i] = nullptr;
@@ -98,7 +88,7 @@ namespace RN
 		}
 
 		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
-        _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
+		_eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
 #if RN_PLATFORM_ANDROID
 
@@ -118,32 +108,37 @@ namespace RN
 
 	void VRCamera::CreatePostprocessingPipeline()
 	{
-		Framebuffer *resolvedFramebuffer = _debugWindow ? _debugWindow->GetFramebuffer() : _window->GetFramebuffer();
+		Framebuffer *resolvedFramebuffer = _window->GetFramebuffer();
 		RN_ASSERT(resolvedFramebuffer, "The VRWindow has no framebuffer!");
 
 		Vector2 windowSize;
-		float eyePadding = 0.0f;
 		Texture::Format colorFormat = Texture::Format::RGBA_8;
-        Texture::Format depthFormat = Texture::Format::Invalid;
-        uint8 layerCount = 1;
+		Texture::Format depthFormat = Texture::Format::Invalid;
+		uint8 layerCount = 1;
 
 		if(_window)
 		{
 			windowSize = _window->GetSize();
-			eyePadding = _window->GetEyePadding();
 
 			colorFormat = _window->GetSwapChainDescriptor().colorFormat;
-            depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
+			depthFormat = _window->GetSwapChainDescriptor().depthStencilFormat;
 
 			layerCount = _window->GetSwapChainDescriptor().layerCount;
 		}
 
+		PostProcessingStage *sideBySideDebugPass = nullptr;
 		if(_debugWindow)
 		{
-			windowSize = _debugWindow->GetSize();
+			//windowSize = _debugWindow->GetSize();
 
-			colorFormat = _debugWindow->GetSwapChainDescriptor().colorFormat;
-			depthFormat = _debugWindow->GetSwapChainDescriptor().depthStencilFormat;
+			//colorFormat = _debugWindow->GetSwapChainDescriptor().colorFormat;
+			//depthFormat = _debugWindow->GetSwapChainDescriptor().depthStencilFormat;
+
+			sideBySideDebugPass = new PostProcessingStage();
+			Material *copyMultiviewToSideBySideDebugMaterial = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_vertex")), Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_blit_fragment"), Shader::Options::WithNone()->AddDefine(RNCSTR("RN_PP_VR"), RNCSTR("1"))));
+			sideBySideDebugPass->SetFramebuffer(_debugWindow->GetFramebuffer());
+			sideBySideDebugPass->SetMaterial(copyMultiviewToSideBySideDebugMaterial);
+			sideBySideDebugPass->Autorelease();
 		}
 
 		Framebuffer *msaaFramebuffer = nullptr;
@@ -172,28 +167,19 @@ namespace RN
 		}
 
 		//TODO: Depth buffer handling for Android with 2 resolve buffers
-		//TODO: Maybe instead of checking depthStencilFormat, check for oculus window?
 		if(_msaaSampleCount <= 1 && (!_window || _window->GetSwapChainDescriptor().depthStencilFormat == Texture::Format::Invalid || _debugWindow))
 		{
-			//Depth buffer needs to be resolved on windows to provide to the oculus SDK for Space Warp and nicer UI overlay
-			Texture *resolvedDepthTexture = Texture::WithDescriptor(Texture::Descriptor::With2DRenderTargetFormat(depthFormat, windowSize.x, windowSize.y));
+			Texture::Descriptor depthTextureDescriptor = Texture::Descriptor::With2DRenderTargetFormat(depthFormat, windowSize.x, windowSize.y);
+			depthTextureDescriptor.depth = layerCount;
+			depthTextureDescriptor.type = layerCount > 1 ? Texture::Type::Type2DArray : Texture::Type::Type2D;
+			
+			Texture *resolvedDepthTexture = Texture::WithDescriptor(depthTextureDescriptor);
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
 		
-		for(int i = 0; i < 2; i++)
+/*	for(int i = 0; i < 2; i++)
 		{
 			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
-
-#if !RN_PLATFORM_ANDROID
-			_eye[i]->GetRenderPass()->SetFrame(Rect(i * (windowSize.x + eyePadding) / 2, 0, (windowSize.x - eyePadding) / 2, windowSize.y));
-#endif
-
-#if RN_PLATFORM_ANDROID
-			if(_debugWindow)
-			{
-				_eye[i]->GetRenderPass()->SetFrame(Rect(0.0f, i * (windowSize.y + eyePadding) / 2, windowSize.x, (windowSize.y - eyePadding) / 2));
-			}
-#endif
 
 			if(_msaaSampleCount > 1)
 			{
@@ -203,7 +189,7 @@ namespace RN
 			{
 				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
 			}
-		}
+		}*/
 
 		if(_msaaSampleCount > 1)
 		{
@@ -219,6 +205,18 @@ namespace RN
 			_head->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
 		}
 
+		if(sideBySideDebugPass)
+		{
+			if(resolvePass)
+			{
+				resolvePass->AddRenderPass(sideBySideDebugPass);
+			}
+			else
+			{
+				_head->GetRenderPass()->AddRenderPass(sideBySideDebugPass);
+			}
+		}
+
 		if(_previewRenderPass)
 		{
 			if(resolvePass)
@@ -227,7 +225,7 @@ namespace RN
 			}
 			else
 			{
-				_eye[0]->GetRenderPass()->AddRenderPass(_previewRenderPass);
+				_head->GetRenderPass()->AddRenderPass(_previewRenderPass);
 			}
 		}
 	}

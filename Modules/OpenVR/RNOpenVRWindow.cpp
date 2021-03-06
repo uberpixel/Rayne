@@ -217,11 +217,6 @@ namespace RN
 		return _swapChain->GetOpenVRSwapChainFramebuffer();
 	}
 
-	uint32 OpenVRWindow::GetEyePadding() const
-	{
-		return OpenVRSwapChain::kEyePadding;
-	}
-
 	static Matrix GetMatrixForOVRMatrix(const vr::HmdMatrix44_t &ovrMatrix)
 	{
 		Matrix result;
@@ -256,7 +251,7 @@ namespace RN
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
 		_vrSystem->GetRecommendedRenderTargetSize(&recommendedWidth, &recommendedHeight);
-		Vector2 newSize(recommendedWidth * 2 + GetEyePadding(), recommendedHeight);
+		Vector2 newSize(recommendedWidth, recommendedHeight);
 
 		if(newSize.GetSquaredDistance(_lastSize) > 0.001f)
 		{

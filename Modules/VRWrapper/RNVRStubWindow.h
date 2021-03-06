@@ -28,7 +28,6 @@ namespace RN
 
 		RNVRAPI Framebuffer *GetFramebuffer() const final { return nullptr; }
 		RNVRAPI Framebuffer *GetFramebuffer(uint8 eye) const final { return nullptr; }
-		RNVRAPI uint32 GetEyePadding() const final { return 0; }
 
 		RNVRAPI void Update(float delta, float near, float far) final {}
 

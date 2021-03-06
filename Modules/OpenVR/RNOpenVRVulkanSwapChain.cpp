@@ -24,6 +24,7 @@ namespace RN
 		_renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		_descriptor = descriptor;
 		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
+		_descriptor.layerCount = 2;
 
 		uint32 recommendedWidth;
 		uint32 recommendedHeight;
@@ -38,7 +39,7 @@ namespace RN
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new VulkanFramebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
+		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
@@ -88,6 +89,8 @@ namespace RN
 		VulkanTexture *texture = _targetTexture->Downcast<VulkanTexture>();
 		VulkanTexture::SetImageLayout(commandBuffer, texture->GetVulkanImage(), 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, texture->GetCurrentLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
 		texture->SetCurrentLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+		//vr::VRCompositor()->SubmitExplicitTimingData(); //Not sure where to do this, doing it here (or in finalize) causes massive stuttering issues. without, it falls back to doing this in waitgetposes which works good enough
 	}
 
 	void OpenVRVulkanSwapChain::Finalize(VkCommandBuffer commandBuffer)
@@ -97,14 +100,13 @@ namespace RN
 		texture->SetCurrentLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 		_isFirstRender = false;
-
-		vr::VRCompositor()->SubmitExplicitTimingData(); //Should potentially be called a little later...
 	}
 
 	void OpenVRVulkanSwapChain::PresentBackBuffer(VkQueue queue)
 	{
 		VulkanTexture *texture = _targetTexture->Downcast<VulkanTexture>();
 
+		//vr::VRVulkanTextureData_t vulkanEyeTexture;
 		vr::VRVulkanTextureArrayData_t vulkanEyeTexture;
 		vulkanEyeTexture.m_nImage = reinterpret_cast<uint64_t>(texture->GetVulkanImage());
 		vulkanEyeTexture.m_pDevice = _renderer->GetVulkanDevice()->GetDevice();
@@ -121,19 +123,10 @@ namespace RN
 
 		vr::Texture_t eyeTexture = { (void *)&vulkanEyeTexture, vr::TextureType_Vulkan, vr::ColorSpace_Gamma };
 
-		vr::VRTextureBounds_t bounds;
-		bounds.vMin = 0.0f;
-		bounds.vMax = 1.0f;
+		vr::VRCompositor()->Submit(vr::Eye_Left, &eyeTexture, nullptr, vr::Submit_VulkanTextureWithArrayData);
 
-		bounds.uMin = 0.0f;
-		bounds.uMax = 1.0f;//0.5f - kEyePadding * 0.5f / _size.x;
-
-		vr::VRCompositor()->Submit(vr::Eye_Left, &eyeTexture, &bounds, vr::Submit_Default);
-
-		//bounds.uMin = 0.0f;//0.5f + kEyePadding * 0.5f / _size.x;
-		//bounds.uMax = 1.0f;
 		vulkanEyeTexture.m_unArrayIndex = 1;
-		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, &bounds, vr::Submit_Default);
+		vr::VRCompositor()->Submit(vr::Eye_Right, &eyeTexture, nullptr, vr::Submit_VulkanTextureWithArrayData);
 	}
 
 	VkImage OpenVRVulkanSwapChain::GetVulkanColorBuffer(int i) const

@@ -24,8 +24,10 @@ elseif(APPLE)
 endif()
 
 ExternalProject_Add(openvr
-        GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
-        GIT_TAG refs/tags/v1.14.15
+        #GIT_REPOSITORY https://github.com/ValveSoftware/openvr.git
+        #GIT_TAG refs/tags/v1.16.8
+        GIT_REPOSITORY https://github.com/risa2000/openvr.git
+        GIT_TAG origin/patch_includes_v1_6_18
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
