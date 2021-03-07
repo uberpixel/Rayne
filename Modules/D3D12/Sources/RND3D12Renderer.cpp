@@ -35,7 +35,9 @@ namespace RN
 		_scheduledFenceValue(0),
 		_completedFenceValue(0),
 		_defaultPostProcessingDrawable(nullptr),
-		_ppConvertMaterial(nullptr)
+		_ppConvertMaterial(nullptr),
+		_currentMultiviewLayer(0),
+		_currentMultiviewFallbackRenderPass(nullptr)
 	{
 		ID3D12Device *underlyingDevice = device->GetDevice();
 
@@ -449,7 +451,7 @@ namespace RN
 		}
 
 		_uniformBufferPool->Update(_scheduledFenceValue, _completedFenceValue);
-		PolpulateDescriptorHeap();
+		PopulateDescriptorHeap();
 		SubmitDescriptorHeap(_currentSrvCbvHeap);
 
 		if(_internals->swapChains.size() > 0)
@@ -535,11 +537,39 @@ namespace RN
 	//TODO: Merge parts of this with SubmitRenderPass and call it in here
 	void D3D12Renderer::SubmitCamera(Camera *camera, Function &&function)
 	{
+		const Array *multiviewCameras = camera->GetMultiviewCameras();
+		if (multiviewCameras && multiviewCameras->GetCount() > 0)
+		{
+			//TODO: Multiview is not supported by metal, should use instanced with viewport selection instead (https://developer.apple.com/documentation/metal/mtlrenderpassdescriptor/rendering_to_multiple_texture_slices_in_a_draw_command?language=objc)
+			/*if(multiviewCameras->GetCount() > 1 && GetVulkanDevice()->GetSupportsMultiview())
+			{
+
+			}
+			else*/
+			{
+				//If multiview is not supported or there is only one multiview camera, render them individually into the correct framebuffer texture layers
+				multiviewCameras->Enumerate<Camera>([&](Camera *multiviewCamera, size_t index, bool &stop) {
+					_currentMultiviewLayer = index;
+					_currentMultiviewFallbackRenderPass = camera->GetRenderPass();
+
+					SubmitCamera(multiviewCamera, std::move(function));
+
+					_currentMultiviewLayer = 0;
+					_currentMultiviewFallbackRenderPass = nullptr;
+				});
+
+				return;
+			}
+		}
+
+		RenderPass *cameraRenderPass = _currentMultiviewFallbackRenderPass ? _currentMultiviewFallbackRenderPass : camera->GetRenderPass();
+		
 		D3D12RenderPass renderPass;
 		renderPass.drawables.resize(0);
+		renderPass.multiviewLayer = _currentMultiviewLayer;
 
 		renderPass.type = D3D12RenderPass::Type::Default;
-		renderPass.renderPass = camera->GetRenderPass();
+		renderPass.renderPass = cameraRenderPass;
 		renderPass.previousRenderPass = nullptr;
 
 		renderPass.shaderHint = camera->GetShaderHint();
@@ -558,7 +588,7 @@ namespace RN
 
 		renderPass.cameraAmbientColor = camera->GetAmbientColor();
 
-		Framebuffer *framebuffer = camera->GetRenderPass()->GetFramebuffer();
+		Framebuffer *framebuffer = cameraRenderPass->GetFramebuffer();
 		D3D12SwapChain *newSwapChain = nullptr;
 		newSwapChain = framebuffer->Downcast<D3D12Framebuffer>()->GetSwapChain();
 		renderPass.framebuffer = framebuffer->Downcast<D3D12Framebuffer>();
@@ -594,7 +624,7 @@ namespace RN
 			_internals->currentDrawableResourceIndex += 1;
 
 
-		const Array *nextRenderPasses = renderPass.renderPass->GetNextRenderPasses();
+		const Array *nextRenderPasses = cameraRenderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop)
 		{
 			SubmitRenderPass(nextPass, renderPass.renderPass);
@@ -605,6 +635,7 @@ namespace RN
 	{
 		D3D12RenderPass d3dRenderPass;
 		d3dRenderPass.drawables.resize(0);
+		d3dRenderPass.multiviewLayer = 0;
 
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
@@ -918,7 +949,7 @@ namespace RN
 		ID3D12GraphicsCommandList *d3dCommandList = commandList->GetCommandList();
 
 		//TODO: Call PrepareAsRendertargetForFrame() only once per framebuffer per frame
-		renderpass.framebuffer->PrepareAsRendertargetForFrame(_scheduledFenceValue);
+		renderpass.framebuffer->PrepareAsRendertargetForFrame(_scheduledFenceValue, renderpass.multiviewLayer, 1);
 		renderpass.framebuffer->SetAsRendertarget(commandList);
 
 		//Setup viewport and scissor rect
@@ -954,7 +985,7 @@ namespace RN
 		}
 	}
 
-	void D3D12Renderer::PolpulateDescriptorHeap()
+	void D3D12Renderer::PopulateDescriptorHeap()
 	{
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
@@ -1055,16 +1086,27 @@ namespace RN
 							{
 								textureResource = framebuffer->GetSwapChainColorBuffer();
 
-								//TODO: Don't hardcode format
 								srvDescriptor.Format = framebuffer->_colorTargets[0]->d3dTargetViewDesc.Format;
 								srvDescriptor.ViewDimension = static_cast<D3D12_SRV_DIMENSION>(framebuffer->_colorTargets[0]->d3dTargetViewDesc.ViewDimension);
 								srvDescriptor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-								//TODO: Don't hardcode to 2D texture!
-								srvDescriptor.Texture2D.MipLevels = 1;
-								srvDescriptor.Texture2D.MostDetailedMip = 0;
-								srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
-								srvDescriptor.Texture2D.PlaneSlice = 0;
+								//TODO: Move this in it's own mapping function supporting all possible cases
+								if(srvDescriptor.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2D)
+								{
+									srvDescriptor.Texture2D.MipLevels = 1;
+									srvDescriptor.Texture2D.MostDetailedMip = 0;
+									srvDescriptor.Texture2D.ResourceMinLODClamp = 0.0f;
+									srvDescriptor.Texture2D.PlaneSlice = 0;
+								}
+								else if(srvDescriptor.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2DARRAY)
+								{
+									srvDescriptor.Texture2DArray.MipLevels = 1;
+									srvDescriptor.Texture2DArray.MostDetailedMip = 0;
+									srvDescriptor.Texture2DArray.ResourceMinLODClamp = 0.0f;
+									srvDescriptor.Texture2DArray.PlaneSlice = 0;
+									srvDescriptor.Texture2DArray.FirstArraySlice = 0;
+									srvDescriptor.Texture2DArray.ArraySize = framebuffer->_colorTargets[0]->d3dTargetViewDesc.Texture2DArray.ArraySize;
+								}
 							}
 
 							if(textureResource)
@@ -1688,7 +1730,11 @@ namespace RN
 			}
 
 			//TODO: Handle multiple subresources?
-			commandList->GetCommandList()->ResolveSubresource(destinationColorResource, 0, sourceD3DColorTexture->_resource, 0, targetColorFormat);
+			for(int i = 0; i < sourceD3DColorTexture->_descriptor.depth; i++)
+			{
+				uint32 subresourceIndex = D3D12CalcSubresource(0, i, 0, sourceD3DColorTexture->_descriptor.mipMaps, sourceD3DColorTexture->_descriptor.depth);
+				commandList->GetCommandList()->ResolveSubresource(destinationColorResource, subresourceIndex, sourceD3DColorTexture->_resource, subresourceIndex, targetColorFormat);
+			}
 
 			sourceD3DColorTexture->TransitionToState(commandList, oldColorSourceState);
 			if(destinationD3DColorTexture)
@@ -1714,7 +1760,11 @@ namespace RN
 				}
 
 				//TODO: Handle multiple subresources?
-				commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, 0, sourceD3DDepthTexture->_resource, 0, targetDepthFormat);
+				for(int i = 0; i < sourceD3DDepthTexture->_descriptor.depth; i++)
+				{
+					uint32 subresourceIndex = D3D12CalcSubresource(0, i, 0, sourceD3DDepthTexture->_descriptor.mipMaps, sourceD3DDepthTexture->_descriptor.depth);
+					commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, 0, sourceD3DDepthTexture->_resource, 0, targetDepthFormat);
+				}
 
 				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
 				if(destinationD3DDepthTexture)

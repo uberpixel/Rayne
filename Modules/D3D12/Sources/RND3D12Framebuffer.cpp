@@ -22,70 +22,69 @@ namespace RN
 		colorTargetView->targetView.texture->Retain();
 		colorTargetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
-		//TODO: Support multisampled array render targets and plane slices
 		switch(targetView.texture->GetDescriptor().type)
 		{
-		case Texture::Type::Type1D:
-		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
-			colorTargetView->d3dTargetViewDesc.Texture1D.MipSlice = targetView.mipmap;
-			break;
-		}
-			
-		case Texture::Type::Type1DArray:
-		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
-			colorTargetView->d3dTargetViewDesc.Texture1DArray.MipSlice = targetView.mipmap;
-			colorTargetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView.slice;
-			colorTargetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView.length;
-			break;
-		}
-
-		case Texture::Type::Type2D:
-		{
-			if(targetView.texture->GetDescriptor().sampleCount <= 1)
+			case Texture::Type::Type1D:
 			{
-				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-				colorTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
-				colorTargetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
+				colorTargetView->d3dTargetViewDesc.Texture1D.MipSlice = targetView.mipmap;
+				break;
 			}
-			else
+				
+			case Texture::Type::Type1DArray:
 			{
-				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
+				colorTargetView->d3dTargetViewDesc.Texture1DArray.MipSlice = targetView.mipmap;
+				colorTargetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView.slice;
+				colorTargetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView.length;
+				break;
 			}
-			break;
-		}
 
-		case Texture::Type::Type2DArray:
-		{
-			if(targetView.texture->GetDescriptor().sampleCount <= 1)
+			case Texture::Type::Type2D:
 			{
-				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-				colorTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
-				colorTargetView->d3dTargetViewDesc.Texture2DArray.PlaneSlice = 0;
-				colorTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
-				colorTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+				if(targetView.texture->GetDescriptor().sampleCount <= 1)
+				{
+					colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+					colorTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+					colorTargetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+				}
+				else
+				{
+					colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+				}
+				break;
 			}
-			else
+
+			case Texture::Type::Type2DArray:
 			{
-				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
-				colorTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
-				colorTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
+				if(targetView.texture->GetDescriptor().sampleCount <= 1)
+				{
+					colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+					colorTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
+					colorTargetView->d3dTargetViewDesc.Texture2DArray.PlaneSlice = 0;
+					colorTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
+					colorTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+				}
+				else
+				{
+					colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
+					colorTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
+					colorTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
+				}
+				break;
 			}
-			break;
-		}
 
-		case Texture::Type::Type3D:
-		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
-			colorTargetView->d3dTargetViewDesc.Texture3D.MipSlice = targetView.mipmap;
-			colorTargetView->d3dTargetViewDesc.Texture3D.FirstWSlice = targetView.slice;
-			colorTargetView->d3dTargetViewDesc.Texture3D.WSize = targetView.length;
-			break;
-		}
+			case Texture::Type::Type3D:
+			{
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+				colorTargetView->d3dTargetViewDesc.Texture3D.MipSlice = targetView.mipmap;
+				colorTargetView->d3dTargetViewDesc.Texture3D.FirstWSlice = targetView.slice;
+				colorTargetView->d3dTargetViewDesc.Texture3D.WSize = targetView.length;
+				break;
+			}
 
-		default:
-			RN_ASSERT(false, "Unsupported render target type ");
+			default:
+				RN_ASSERT(false, "Unsupported render target type ");
 		}
 
 		return colorTargetView;
@@ -98,65 +97,188 @@ namespace RN
 		depthStencilTargetView->targetView.texture->Retain();
 		depthStencilTargetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(targetView.texture->GetDescriptor().format);
 
-		//TODO: Support multisampled array render targets
 		switch (targetView.texture->GetDescriptor().type)
 		{
-		case Texture::Type::Type1D:
-		{
-			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
-			depthStencilTargetView->d3dTargetViewDesc.Texture1D.MipSlice = targetView.mipmap;
-			break;
-		}
-
-		case Texture::Type::Type1DArray:
-		{
-			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
-			depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.MipSlice = targetView.mipmap;
-			depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView.slice;
-			depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView.length;
-			break;
-		}
-
-		case Texture::Type::Type2D:
-		{
-			if (targetView.texture->GetDescriptor().sampleCount <= 1)
+			case Texture::Type::Type1D:
 			{
-				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+				depthStencilTargetView->d3dTargetViewDesc.Texture1D.MipSlice = targetView.mipmap;
+				break;
 			}
-			else
-			{
-				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
-			}
-			break;
-		}
 
-		case Texture::Type::Type2DArray:
-		{
-			if (targetView.texture->GetDescriptor().sampleCount <= 1)
+			case Texture::Type::Type1DArray:
 			{
-				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
+				depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.MipSlice = targetView.mipmap;
+				depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView.slice;
+				depthStencilTargetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView.length;
+				break;
 			}
-			else
-			{
-				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
-				depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
-			}
-			break;
-		}
 
-		default:
-			RN_ASSERT(false, "Unsupported depth stencil target type ");
+			case Texture::Type::Type2D:
+			{
+				if (targetView.texture->GetDescriptor().sampleCount <= 1)
+				{
+					depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+				}
+				else
+				{
+					depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+				}
+				break;
+			}
+
+			case Texture::Type::Type2DArray:
+			{
+				if (targetView.texture->GetDescriptor().sampleCount <= 1)
+				{
+					depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+				}
+				else
+				{
+					depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
+					depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
+				}
+				break;
+			}
+
+			default:
+				RN_ASSERT(false, "Unsupported depth stencil target type ");
 		}
 
 		return depthStencilTargetView;
 	}
 
-	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12SwapChain *swapChain, D3D12Renderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
+	static void D3D12PatchColorTargetViewForMultiview(D3D12Framebuffer::D3D12ColorTargetView *targetView, uint8 multiviewLayer, uint8 multiviewCount)
+	{
+		if(multiviewCount > 0)
+		{
+			switch(targetView->d3dTargetViewDesc.ViewDimension)
+			{
+				case D3D12_RTV_DIMENSION_TEXTURE1DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture1DArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				case D3D12_RTV_DIMENSION_TEXTURE2DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture2DArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				case D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				default:
+					RN_ASSERT(multiviewCount <= 1 && multiviewLayer == 0, "Color render target texture type is not an array type and can not be used with multiview");
+			}
+		}
+		else
+		{
+			switch(targetView->d3dTargetViewDesc.ViewDimension)
+			{
+				case D3D12_RTV_DIMENSION_TEXTURE1DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				case D3D12_RTV_DIMENSION_TEXTURE2DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				case D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				default:
+					break;
+			}
+		}
+	}
+
+	static void D3D12PatchDepthStencilTargetViewForMultiview(D3D12Framebuffer::D3D12DepthStencilTargetView *targetView, uint8 multiviewLayer, uint8 multiviewCount)
+	{
+		if(multiviewCount > 0)
+		{
+			switch(targetView->d3dTargetViewDesc.ViewDimension)
+			{
+				case D3D12_DSV_DIMENSION_TEXTURE1DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture1DArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				case D3D12_DSV_DIMENSION_TEXTURE2DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture2DArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				case D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = multiviewLayer;
+					targetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = multiviewCount;
+					break;
+				}
+
+				default:
+					RN_ASSERT(false, "Depth stencil render target texture type is not an array type and can not be used with multiview");
+			}
+		}
+		else
+		{
+			switch (targetView->d3dTargetViewDesc.ViewDimension)
+			{
+				case D3D12_DSV_DIMENSION_TEXTURE1DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture1DArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture1DArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				case D3D12_DSV_DIMENSION_TEXTURE2DARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				case D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY:
+				{
+					targetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView->targetView.slice;
+					targetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView->targetView.length;
+					break;
+				}
+
+				default:
+					break;
+			}
+		}
+	}
+
+	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, uint8 layerCount, D3D12SwapChain *swapChain, D3D12Renderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat) :
 		Framebuffer(Vector2()),
 		_sampleCount(1),
 		_renderer(renderer),
@@ -167,7 +289,7 @@ namespace RN
 		_rtvHandle(nullptr),
 		_dsvHandle(nullptr)
 	{
-		DidUpdateSwapChain(size, colorFormat, depthStencilFormat);
+		DidUpdateSwapChain(size, layerCount, colorFormat, depthStencilFormat);
 	}
 
 	D3D12Framebuffer::D3D12Framebuffer(const Vector2 &size, D3D12Renderer *renderer) :
@@ -307,7 +429,7 @@ namespace RN
 		return nullptr;
 	}
 
-	void D3D12Framebuffer::PrepareAsRendertargetForFrame(uint32 frame)
+	void D3D12Framebuffer::PrepareAsRendertargetForFrame(uint32 frame, uint8 multiviewLayer, uint8 multiviewCount)
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 		_frameLastUsed = frame;
@@ -327,12 +449,14 @@ namespace RN
 			uint32 counter = 0;
 			if(_swapChain)
 			{
+				D3D12PatchColorTargetViewForMultiview(_colorTargets[0], multiviewLayer, multiviewCount);
 				device->CreateRenderTargetView(_swapChainColorBuffers[_swapChain->GetFrameIndex()], &_colorTargets[0]->d3dTargetViewDesc, rtvHeap->GetCPUHandle(counter++));
 			}
 			else
 			{
 				for(D3D12ColorTargetView *targetView : _colorTargets)
 				{
+					D3D12PatchColorTargetViewForMultiview(targetView, multiviewLayer, multiviewCount);
 					device->CreateRenderTargetView(targetView->targetView.texture->Downcast<D3D12Texture>()->_resource, &targetView->d3dTargetViewDesc, rtvHeap->GetCPUHandle(counter++));
 				}
 			}
@@ -348,10 +472,12 @@ namespace RN
 
 			if(_swapChain && _swapChainDepthBuffers)
 			{
+				D3D12PatchDepthStencilTargetViewForMultiview(_depthStencilTarget, multiviewLayer, multiviewCount);
 				device->CreateDepthStencilView(_swapChainDepthBuffers[_swapChain->GetFrameIndex()], &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
 			}
 			else
 			{
+				D3D12PatchDepthStencilTargetViewForMultiview(_depthStencilTarget, multiviewLayer, multiviewCount);
 				device->CreateDepthStencilView(_depthStencilTarget->targetView.texture->Downcast<D3D12Texture>()->_resource, &_depthStencilTarget->d3dTargetViewDesc, dsvHeap->GetCPUHandle(0));
 			}
 
@@ -411,7 +537,7 @@ namespace RN
 		}
 	}
 
-	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat)
+	void D3D12Framebuffer::DidUpdateSwapChain(Vector2 size, uint8 layerCount, Texture::Format colorFormat, Texture::Format depthStencilFormat)
 	{
 		_size = size;
 
@@ -444,11 +570,22 @@ namespace RN
 		targetView->targetView.texture = nullptr;
 		targetView->targetView.mipmap = 0;
 		targetView->targetView.slice = 0;
-		targetView->targetView.length = 1;
+		targetView->targetView.length = layerCount;
 		targetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(colorFormat);
-		targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
-		targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+		if(layerCount <= 1)
+		{
+			targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+			targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
+			targetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+		}
+		else
+		{
+			targetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+			targetView->d3dTargetViewDesc.Texture2DArray.MipSlice = 0;
+			targetView->d3dTargetViewDesc.Texture2DArray.PlaneSlice = 0;
+			targetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
+			targetView->d3dTargetViewDesc.Texture2DArray.ArraySize = layerCount;
+		}
 		_colorTargets.push_back(targetView);
 
 		if(!_swapChainDepthBuffers && depthStencilFormat != Texture::Format::Invalid)
@@ -459,22 +596,32 @@ namespace RN
 			target.texture = Texture::WithDescriptor(depthDescriptor);
 			target.mipmap = 0;
 			target.slice = 0;
-			target.length = 1;
+			target.length = layerCount;
 			SetDepthStencilTarget(target);
 		}
 
 		if(_swapChainDepthBuffers)
 		{
-			D3D12DepthStencilTargetView *targetView = new D3D12DepthStencilTargetView();
-			targetView->targetView.texture = nullptr;
-			targetView->targetView.mipmap = 0;
-			targetView->targetView.slice = 0;
-			targetView->targetView.length = 1;
-			targetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(depthStencilFormat);
-			targetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-			targetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
+			D3D12DepthStencilTargetView *depthStencilTargetView = new D3D12DepthStencilTargetView();
+			depthStencilTargetView->targetView.texture = nullptr;
+			depthStencilTargetView->targetView.mipmap = 0;
+			depthStencilTargetView->targetView.slice = 0;
+			depthStencilTargetView->targetView.length = layerCount;
+			depthStencilTargetView->d3dTargetViewDesc.Format = D3D12Texture::ImageFormatFromTextureFormat(depthStencilFormat);
+			if(layerCount <= 1)
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = 0;
+			}
+			else
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = 0;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = layerCount;
+			}
 
-			_depthStencilTarget = targetView;
+			_depthStencilTarget = depthStencilTargetView;
 		}
 	}
 }

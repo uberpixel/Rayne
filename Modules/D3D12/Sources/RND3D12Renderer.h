@@ -93,7 +93,7 @@ namespace RN
 		void CreateMipMapsForTexture(D3D12Texture *texture);
 		void CreateMipMaps();
 
-		void PolpulateDescriptorHeap();
+		void PopulateDescriptorHeap();
 		void SetupRendertargets(D3D12CommandList *commandList, const D3D12RenderPass &renderpass);
 
 		Array *_mipMapTextures;
@@ -131,6 +131,9 @@ namespace RN
 		UINT _completedFenceValue;
 
 		size_t _currentDrawableIndex;
+
+		uint8 _currentMultiviewLayer;
+		RenderPass *_currentMultiviewFallbackRenderPass;
 
 		RNDeclareMetaAPI(D3D12Renderer, D3DAPI)
 	};

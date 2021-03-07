@@ -55,6 +55,8 @@ namespace RN
 		_fenceValues[_frameIndex] ++;
 		_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
 
+		_descriptor.layerCount = 1; //Backed by the swapchain below, which can only have a layer count of 1
+
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 		swapChainDesc.BufferCount = _descriptor.bufferCount;
 		swapChainDesc.BufferDesc.Width = size.x;
@@ -72,7 +74,7 @@ namespace RN
 		IDXGIFactory4* factory = _renderer->GetD3D12Descriptor()->GetFactory();
 		factory->CreateSwapChain(_renderer->GetCommandQueue(), &swapChainDesc, &swapChain);
 		_swapChain = static_cast<IDXGISwapChain3 *>(swapChain);
-		_framebuffer = new D3D12Framebuffer(size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new D3D12Framebuffer(size, _descriptor.layerCount, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 	}
 
 	D3D12SwapChain::~D3D12SwapChain()
@@ -137,7 +139,7 @@ namespace RN
 				//Do the actual resize and notify the framebuffer about it
 				_framebuffer->WillUpdateSwapChain();
 				_swapChain->ResizeBuffers(_descriptor.bufferCount, _size.x, _size.y, SwapChainFormatFromTextureFormat(_descriptor.colorFormat), 0);
-				_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+				_framebuffer->DidUpdateSwapChain(_size, _descriptor.layerCount, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 				_frameIndex = _swapChain->GetCurrentBackBufferIndex();
 			}
