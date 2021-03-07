@@ -52,11 +52,6 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
-	uint32 OculusWindow::GetEyePadding() const
-	{
-		return OculusSwapChain::kEyePadding;
-	}
-
 	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
 	{
 		Vector3 result;
@@ -222,6 +217,11 @@ namespace RN
 	const VRControllerTrackingState &OculusWindow::GetTrackerTrackingState(uint8 index) const
 	{
 		return _trackerTrackingState;
+	}
+
+	const VRHandTrackingState &OculusWindow::GetHandTrackingState(uint8 index) const
+	{
+		return _handTrackingState[index];
 	}
 
 	void OculusWindow::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics)

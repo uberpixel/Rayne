@@ -33,11 +33,11 @@ namespace RN
 
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
-		OVRAPI uint32 GetEyePadding() const final;
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const final;
 		OVRAPI const VRControllerTrackingState &GetTrackerTrackingState(uint8 index) const final;
+		OVRAPI const VRHandTrackingState &GetHandTrackingState(uint8 index) const final;
 		OVRAPI void SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics) final;
 
 		OVRAPI const String *GetPreferredAudioOutputDeviceID() const;
@@ -57,6 +57,7 @@ namespace RN
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
 		VRControllerTrackingState _trackerTrackingState;
+		VRHandTrackingState _handTrackingState[2];
 
 		VRControllerHaptics _haptics[2];
 		uint16 _currentHapticsIndex[2];

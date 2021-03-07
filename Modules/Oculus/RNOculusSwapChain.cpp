@@ -13,12 +13,11 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
-	const uint32 OculusSwapChain::kEyePadding = 16; //Use a padding of 16 pixels (oculus docs recommend 8, doesn't appear to be enough though...)
-
 	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0), _frameCounter(0), _depthSwapChain(nullptr)
 	{
 		_session = nullptr;
 		_descriptor = descriptor;
+		_descriptor.layerCount = 2;
 
 		ovrInitParams initParams;
 		initParams.Flags = ovrInit_FocusAware;
@@ -46,14 +45,14 @@ namespace RN
 		ovrSizei recommenedTex0Size = ovr_GetFovTextureSize(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0], 1.0f);
 		ovrSizei recommenedTex1Size = ovr_GetFovTextureSize(_session, ovrEye_Right, _hmdDescription.DefaultEyeFov[1], 1.0f);
 		ovrSizei bufferSize;
-		bufferSize.w = recommenedTex0Size.w + recommenedTex1Size.w + kEyePadding;
+		bufferSize.w = std::max(recommenedTex0Size.w, recommenedTex1Size.w);
 		bufferSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
 		_size.x = bufferSize.w;
 		_size.y = bufferSize.h;
 
 		ovrTextureSwapChainDesc swapChainDesc = {};
 		swapChainDesc.Type = ovrTexture_2D;
-		swapChainDesc.ArraySize = 1;
+		swapChainDesc.ArraySize = 2;
 		switch(descriptor.colorFormat)
 		{
 			case Texture::Format::BGRA_8_SRGB:
@@ -108,7 +107,7 @@ namespace RN
 		{
 			ovrTextureSwapChainDesc depthSwapChainDesc = {};
 			depthSwapChainDesc.Type = ovrTexture_2D;
-			depthSwapChainDesc.ArraySize = 1;
+			depthSwapChainDesc.ArraySize = 2;
 			switch(descriptor.depthStencilFormat)
 			{
 				case Texture::Format::Depth_16I:
@@ -155,7 +154,7 @@ namespace RN
 				return;
 		}
 
-		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new D3D12Framebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 		// Initialize VR structures, filling out description.
 		_eyeRenderDesc[0] = ovr_GetRenderDesc(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0]);
@@ -167,16 +166,16 @@ namespace RN
 		_imageLayer.Header.Type = _depthSwapChain?ovrLayerType_EyeFovDepth:ovrLayerType_EyeFov;
 		_imageLayer.Header.Flags = 0;
 		_imageLayer.ColorTexture[0] = _colorSwapChain;
-		_imageLayer.ColorTexture[1] = _colorSwapChain;
+		_imageLayer.ColorTexture[1] = nullptr;//_colorSwapChain;
 		_imageLayer.DepthTexture[0] = _depthSwapChain;
-		_imageLayer.DepthTexture[1] = _depthSwapChain;
+		_imageLayer.DepthTexture[1] = nullptr;//_depthSwapChain;
 		_imageLayer.Fov[0] = _eyeRenderDesc[0].Fov;
 		_imageLayer.Fov[1] = _eyeRenderDesc[1].Fov;
 		_imageLayer.Viewport[0].Pos.x = 0;
 		_imageLayer.Viewport[0].Pos.y = 0;
 		_imageLayer.Viewport[0].Size.w = recommenedTex0Size.w;
 		_imageLayer.Viewport[0].Size.h = recommenedTex0Size.h;
-		_imageLayer.Viewport[1].Pos.x = recommenedTex0Size.w + kEyePadding;
+		_imageLayer.Viewport[1].Pos.x = 0;
 		_imageLayer.Viewport[1].Pos.y = 0;
 		_imageLayer.Viewport[1].Size.w = recommenedTex1Size.w;
 		_imageLayer.Viewport[1].Size.h = recommenedTex1Size.h;
