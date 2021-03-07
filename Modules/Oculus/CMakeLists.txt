@@ -13,7 +13,11 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNOculusInit.cpp
         RNOculusSwapChain.cpp
-        RNOculusWindow.cpp)
+        RNOculusWindow.cpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Shim/OVR_StereoProjection.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Shim/OVR_CAPI_Util.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Shim/OVR_CAPIShim.c)
 
 set(HEADERS
 	RNOculus.h
@@ -31,7 +35,6 @@ set(INCLUDE_DIRECTORIES
 
 rayne_add_library(RayneOculus "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneOculus)
-target_link_libraries(RayneOculus debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Debug/VS2015/LibOVR.lib optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/OculusSDK/LibOVR/Lib/Windows/x64/Release/VS2015/LibOVR.lib)
 
 target_link_libraries(RayneOculus RayneD3D12)
 target_include_directories(RayneOculus SYSTEM PRIVATE ${RayneD3D12_BINARY_DIR}/include)
