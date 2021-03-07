@@ -43,25 +43,35 @@ namespace RN
 
 		case Texture::Type::Type2D:
 		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-			colorTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
-			colorTargetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
-			break;
-		}
-
-		case Texture::Type::Type2DMS:
-		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+			if(targetView.texture->GetDescriptor().sampleCount <= 1)
+			{
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+				colorTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+				colorTargetView->d3dTargetViewDesc.Texture2D.PlaneSlice = 0;
+			}
+			else
+			{
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+			}
 			break;
 		}
 
 		case Texture::Type::Type2DArray:
 		{
-			colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-			colorTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
-			colorTargetView->d3dTargetViewDesc.Texture2DArray.PlaneSlice = 0;
-			colorTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
-			colorTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+			if(targetView.texture->GetDescriptor().sampleCount <= 1)
+			{
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+				colorTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
+				colorTargetView->d3dTargetViewDesc.Texture2DArray.PlaneSlice = 0;
+				colorTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
+				colorTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+			}
+			else
+			{
+				colorTargetView->d3dTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
+				colorTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
+				colorTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
+			}
 			break;
 		}
 
@@ -109,23 +119,33 @@ namespace RN
 
 		case Texture::Type::Type2D:
 		{
-			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-			depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
-			break;
-		}
-
-		case Texture::Type::Type2DMS:
-		{
-			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+			if (targetView.texture->GetDescriptor().sampleCount <= 1)
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2D.MipSlice = targetView.mipmap;
+			}
+			else
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+			}
 			break;
 		}
 
 		case Texture::Type::Type2DArray:
 		{
-			depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-			depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
-			depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
-			depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+			if (targetView.texture->GetDescriptor().sampleCount <= 1)
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.MipSlice = targetView.mipmap;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.FirstArraySlice = targetView.slice;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DArray.ArraySize = targetView.length;
+			}
+			else
+			{
+				depthStencilTargetView->d3dTargetViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.FirstArraySlice = targetView.slice;
+				depthStencilTargetView->d3dTargetViewDesc.Texture2DMSArray.ArraySize = targetView.length;
+			}
 			break;
 		}
 

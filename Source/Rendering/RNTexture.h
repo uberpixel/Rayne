@@ -103,7 +103,6 @@ namespace RN
 			Type1D,
 			Type1DArray,
 			Type2D,
-			Type2DMS,
 			Type2DArray,
 			TypeCube,
 			TypeCubeArray,
@@ -164,7 +163,7 @@ namespace RN
 			static Descriptor With2DRenderTargetFormatAndMSAA(Format format, uint32 width, uint32 height, uint8 sampleCount, uint8 sampleQuality = 0)
 			{
 				Descriptor descriptor;
-				descriptor.type = Type::Type2DMS;
+				descriptor.type = Type::Type2D;
 				descriptor.width = width;
 				descriptor.height = height;
 				descriptor.format = format;

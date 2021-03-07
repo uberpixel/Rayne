@@ -25,7 +25,6 @@ namespace RN
 			return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 
 		case Texture::Type::Type2D:
-		case Texture::Type::Type2DMS:
 		case Texture::Type::Type2DArray:
 		case Texture::Type::TypeCube:
 			return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
