@@ -33,7 +33,7 @@ namespace RN
 
 		_descriptor.bufferCount = 1;
 		_frameIndex = 0;
-		_framebuffer = new D3D12Framebuffer(_size, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer = new D3D12Framebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 
 		//TODO: Update every frame, maybe move to window
 		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
@@ -59,7 +59,7 @@ namespace RN
 		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
 		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
 		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
-		_framebuffer->DidUpdateSwapChain(_size, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_framebuffer->DidUpdateSwapChain(_size, _descriptor.layerCount, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 		_isFirstRender = true;
 	}
 
