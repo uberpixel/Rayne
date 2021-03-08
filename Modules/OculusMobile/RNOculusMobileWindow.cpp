@@ -27,7 +27,7 @@ namespace RN
 {
 	RNDefineMeta(OculusMobileWindow, VRWindow)
 
-	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false)
+	OculusMobileWindow::OculusMobileWindow() : _nativeWindow(nullptr), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
 	{
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
@@ -238,6 +238,40 @@ namespace RN
 	{
 		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
 
+		ovrEventDataBuffer eventDataBuffer = {};
+
+		while(1)
+		{
+			ovrEventHeader* eventHeader = (ovrEventHeader*)(&eventDataBuffer);
+			ovrResult res = vrapi_PollEvent(eventHeader);
+			if(res != ovrSuccess || eventHeader->EventType == VRAPI_EVENT_NONE)
+			{
+				break;
+			}
+
+			switch(eventHeader->EventType)
+			{
+				case VRAPI_EVENT_FOCUS_GAINED:
+					_hasInputFocus = true;
+					break;
+
+				case VRAPI_EVENT_FOCUS_LOST:
+					_hasInputFocus = false;
+					break;
+
+				case VRAPI_EVENT_VISIBILITY_GAINED:
+					_hasVisibility = true;
+					break;
+
+				case VRAPI_EVENT_VISIBILITY_LOST:
+					_hasVisibility = false;
+					break;
+
+				default:
+					break;
+			}
+		}
+
 		if(!_session) return;
 
 		vrapi_SetTrackingSpace(static_cast<ovrMobile*>(_session), VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
@@ -257,49 +291,10 @@ namespace RN
 		_hmdTrackingState.position = GetVectorForOVRVector(hmdState.HeadPose.Pose.Position);
 		_hmdTrackingState.rotation = GetQuaternionForOVRQuaternion(hmdState.HeadPose.Pose.Orientation);
 
-		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
-
-/*
-		if(_swapChain->_submitResult == ovrSuccess_NotVisible)
+		if(_hasVisibility && _hasInputFocus)
 		{
-			//Check if application should quit! Stop most things.
-			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
+			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 		}
-		else if(_swapChain->_submitResult == ovrError_DisplayLost)
-		{
-			//Recreate session/swap chain or quit application with an error message
-			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
-		}
-		else if(OVR_FAILURE(_swapChain->_submitResult))
-		{
-			//Quit the application
-			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
-		}
-		else
-		{
-			ovrSessionStatus status;
-			ovr_GetSessionStatus(_session, &status);
-			if(status.HasInputFocus)
-			{
-				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
-			}
-			else
-			{
-				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
-			}
-		}
-
-		ovrSessionStatus sessionStatus;
-		ovr_GetSessionStatus(_session, &sessionStatus);
-
-		if(sessionStatus.ShouldQuit)
-		{
-			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
-		}
-		if(sessionStatus.ShouldRecenter)
-		{
-			ovr_RecenterTrackingOrigin(_session); // or ovr_ClearShouldRecenterFlag(_session) to ignore the request.
-		}*/
 
 		_controllerTrackingState[0].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
 		_controllerTrackingState[0].hasHaptics = false;

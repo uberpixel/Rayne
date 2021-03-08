@@ -82,6 +82,9 @@ namespace RN
 		uint8 _fixedFoveatedRenderingLevel;
 		bool _fixedFoveatedRenderingDynamic;
 
+		bool _hasInputFocus;
+		bool _hasVisibility;
+
 		RNDeclareMetaAPI(OculusMobileWindow, OVRAPI)
 	};
 }
