@@ -34,7 +34,6 @@ namespace RN
 		OVRAPI Vector2 GetSize() const final;
 		OVRAPI Framebuffer *GetFramebuffer() const final;
 		OVRAPI Framebuffer *GetFramebuffer(uint8 eye) const final;
-		OVRAPI uint32 GetEyePadding() const final;
 
 		OVRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OVRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const final;

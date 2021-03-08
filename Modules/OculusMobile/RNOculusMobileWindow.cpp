@@ -194,11 +194,6 @@ namespace RN
 		return _swapChain->GetFramebuffer();
 	}
 
-	uint32 OculusMobileWindow::GetEyePadding() const
-	{
-		return 0;
-	}
-
 	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
 	{
 		Vector3 result;
