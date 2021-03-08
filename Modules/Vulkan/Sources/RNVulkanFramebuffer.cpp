@@ -82,15 +82,6 @@ namespace RN
 				break;
 			}
 
-			case Texture::Type::Type2DMS:
-			{
-				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
-				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.baseArrayLayer = targetView.slice;
-				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.layerCount = 1;
-				vulkanTargetView->vulkanTargetViewDescriptor.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				break;
-			}
-
 			case Texture::Type::Type2DArray:
 			{
 				vulkanTargetView->vulkanTargetViewDescriptor.subresourceRange.levelCount = 1;
