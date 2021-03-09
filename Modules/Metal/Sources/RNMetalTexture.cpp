@@ -275,15 +275,17 @@ namespace RN
 				metalDescriptor.arrayLength = descriptor.depth;
 				break;
 			case Texture::Type::Type2D:
-				metalDescriptor.textureType = MTLTextureType2D;
-				metalDescriptor.depth = descriptor.depth;
-				break;
-			case Texture::Type::Type2DMS:
-				metalDescriptor.textureType = MTLTextureType2DMultisample;
+				metalDescriptor.textureType = descriptor.sampleCount > 1? MTLTextureType2DMultisample : MTLTextureType2D;
 				metalDescriptor.depth = descriptor.depth;
 				break;
 			case Texture::Type::Type2DArray:
-				metalDescriptor.textureType = MTLTextureType2DArray;
+				if(@available(iOS 14, macOS 10.14, *)) {
+					metalDescriptor.textureType = descriptor.sampleCount > 1? MTLTextureType2DMultisampleArray : MTLTextureType2DArray;
+				}
+				else
+				{
+					metalDescriptor.textureType = MTLTextureType2DArray;
+				}
 				metalDescriptor.depth = 1;
 				metalDescriptor.arrayLength = descriptor.depth;
 				break;
