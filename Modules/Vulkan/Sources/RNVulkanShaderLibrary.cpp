@@ -150,8 +150,7 @@ namespace RN
 		permutationFileName->Append(RNSTR("." << permutationIndex));
 		permutationFileName->Append(".spirv");
 
-		//TODO: Fix things to make this work on android!
-		RN::String *filePath = permutationFileName;//RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
+		RN::String *filePath = RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
 
 		const Array *samplers = GetSamplerSignature(newOptions);
 		shader = new VulkanShader(library, filePath, _entryPoint, _type, newOptions, samplers);
