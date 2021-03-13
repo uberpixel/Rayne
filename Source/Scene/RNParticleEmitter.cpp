@@ -31,7 +31,7 @@ namespace RN
 	{
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 		
-		SetRenderPriority(RenderPriority::RenderLate);
+		SetRenderPriority(RenderPriority::RenderTransparent);
 		
 		Shader::Options *shaderOptions = Shader::Options::WithNone();
 		shaderOptions->AddDefine(RNCSTR("RN_PARTICLES"), RNCSTR("1"));
