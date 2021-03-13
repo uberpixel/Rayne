@@ -195,7 +195,7 @@ namespace RN
 		{
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
-			_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
+			//_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
 
 			_head->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
 			_head->GetRenderPass()->AddRenderPass(resolvePass);
