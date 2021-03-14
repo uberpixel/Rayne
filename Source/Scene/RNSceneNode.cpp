@@ -445,11 +445,21 @@ namespace RN
 			});
 		}
 
-		if(changeSet & ChangeSet::Parent && _parent == nullptr)
+		if(changeSet & ChangeSet::Parent)
 		{
-			SetWorldPosition(_position);
-			SetWorldRotation(_rotation);
-			SetWorldScale(_scale);
+			if(_parent == nullptr)
+			{
+				SetWorldPosition(_position);
+				SetWorldRotation(_rotation);
+				SetWorldScale(_scale);
+			}
+			
+			_updated = true;
+			
+			//Updated flag Needs to be passed on to all children and their children
+			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
+				child->DidUpdate(ChangeSet::Parent);
+			});
 		}
 
 		if(_parent)
