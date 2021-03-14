@@ -75,7 +75,10 @@ namespace RN
 				if(_image) material->AddTexture(_image);
 				material->SetSkipRendering(_image == nullptr);
 				
-				SetModel(GetModel());
+				Model *model = GetModel();
+				model->Retain();
+				SetModel(model);
+				model->Release();
 			}
 			else
 			{

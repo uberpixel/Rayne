@@ -420,7 +420,9 @@ namespace RN
 				model->GetLODStage(0)->AddMesh(textMesh, shadowMaterial);
 				model->GetLODStage(0)->AddMesh(textMesh->Autorelease(), material);
 				
+				model->Retain();
 				SetModel(model);
+				model->Release();
 			}
 			else
 			{

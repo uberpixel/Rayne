@@ -480,7 +480,9 @@ namespace RN
 				model = new Model();
 				model->AddLODStage(0.05f)->AddMesh(mesh->Autorelease(), material);
 				
+				model->Retain();
 				SetModel(model->Autorelease());
+				model->Release();
 			}
 			else
 			{
