@@ -76,6 +76,7 @@ namespace RN
 		{
 		public:
 			UIAPI AttributedString(String *string);
+			UIAPI AttributedString(AttributedString *string);
 			UIAPI ~AttributedString();
 			
 			UIAPI void SetAttributes(const TextAttributes &attributes, const RN::Range &range);
