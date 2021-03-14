@@ -73,7 +73,7 @@ namespace RN
 			Model *model = GetModel();
 			if(model)
 			{
-				Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
+				Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
 				shadowMaterial->SetDiffuseColor(_shadowColor);
 				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 			}
@@ -95,7 +95,18 @@ namespace RN
 		{
 			View::UpdateModel();
 			
-			if(!_attributedText) return;
+			if(!_attributedText || _attributedText->GetLength() == 0)
+			{
+				Model *model = GetModel();
+				if(model->GetLODStage(0)->GetCount() > 0)
+				{
+					Material *textMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
+					textMaterial->SetSkipRendering(true);
+					Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
+					shadowMaterial->SetSkipRendering(true);
+				}
+				return;
+			}
 					
 			uint32 numberOfVertices = 0;
 			uint32 numberOfIndices = 0;
@@ -401,7 +412,6 @@ namespace RN
 				shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions));
 				shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
 				shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
-				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 				shadowMaterial->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
 				shadowMaterial->SetDiffuseColor(_shadowColor);
 				
@@ -417,6 +427,11 @@ namespace RN
 				model->GetLODStage(0)->ReplaceMesh(textMesh, 1);
 				model->GetLODStage(0)->ReplaceMesh(textMesh->Autorelease(), 2);
 			}
+			
+			Material *textMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
+			textMaterial->SetSkipRendering(false);
+			Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
+			shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
