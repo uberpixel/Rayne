@@ -293,7 +293,7 @@ namespace RN
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
 			
-			if(oldSize.GetSquaredDistance(_frame.GetSize()) > 0.0f)
+			if(oldSize.GetSquaredDistance(_frame.GetSize()) > k::EpsilonFloat)
 			{
 				_needsMeshUpdate = true;
 			}

@@ -27,6 +27,8 @@ namespace RN
 		
 		void Label::SetText(String *text)
 		{
+			if(_attributedText && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
+			
 			SafeRelease(_attributedText);
 			_attributedText = new AttributedString(text);
 			_needsMeshUpdate = true;
