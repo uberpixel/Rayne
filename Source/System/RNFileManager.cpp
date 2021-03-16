@@ -12,6 +12,8 @@
 #include "../Modules/RNModule.h"
 #include "RNFileManager.h"
 
+#include "zip.h"
+
 #if RN_PLATFORM_POSIX
 	#include <dirent.h>
 	#include <unistd.h>
@@ -19,9 +21,6 @@
 #endif
 #if RN_PLATFORM_WINDOWS
 	#include <io.h>
-#endif
-#if RN_PLATFORM_ANDROID
-	#include "zip.h"
 #endif
 
 #if RN_COMPILER_MSVC
