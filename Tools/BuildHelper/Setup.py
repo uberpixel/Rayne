@@ -1,35 +1,61 @@
 import os
 import sys
 import platform
-import urllib
+import contextlib
+import urllib.request
 import zipfile
+import tarfile
 import json
 import Utilities
 
 
 def downloadAndExtractURL(downloadURL, directory):
-	currentDirectory = os.path.abspath(os.path.dirname(sys.argv[0]))
-	os.chdir(currentDirectory)
+    oldWorkingDirectory = os.getcwd()
+    currentDirectory = os.path.abspath(os.path.dirname(sys.argv[0]))
+    os.chdir(currentDirectory)
 
-	directory = os.path.join(currentDirectory, directory);
+    directory = os.path.join(currentDirectory, directory);
 
-	if platform.system() == 'Windows':
-		directory = "\\\\?\\" + directory;
+    if platform.system() == 'Windows':
+        directory = "\\\\?\\" + directory;
 
-	if not os.path.exists(directory):
-		os.makedirs(directory)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-	filePath = os.path.join(directory, 'download.zip')
-	urllib.urlretrieve(downloadURL, filePath)
+    fileType = 'zip'
+    if downloadURL.endswith('.tar.gz'):
+        fileType = 'tar.gz'
+    elif downloadURL.endswith('.tar'):
+        fileType = 'tar'
 
-	zippedFile = zipfile.ZipFile(filePath, 'r')
-	zippedFile.extractall(directory)
-	zippedFile.close()
+    filePath = os.path.join(directory, 'download.'+fileType)
 
-	if os.path.exists(filePath):
-		os.remove(filePath)
+    with open(filePath, 'wb') as out_file:
+        with contextlib.closing(urllib.request.urlopen(downloadURL)) as fp:
+            block_size = 1024 * 8
+            while True:
+                block = fp.read(block_size)
+                if not block:
+                    break
+                out_file.write(block)
 
-	os.chdir("..")
+    if fileType == 'zip':
+        zippedFile = zipfile.ZipFile(filePath, 'r')
+        zippedFile.extractall(directory)
+        zippedFile.close()
+    elif fileType == 'tar':
+        tar = tarfile.open(filePath, "r:")
+        tar.extractall(directory)
+        tar.close()
+    elif fileType == 'tar.gz':
+        tar = tarfile.open(filePath, "r:gz")
+        tar.extractall(directory)
+        tar.close()
+
+    if os.path.exists(filePath):
+        os.remove(filePath)
+
+    os.chdir(oldWorkingDirectory)
 
 
 def main():
