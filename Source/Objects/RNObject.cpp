@@ -37,6 +37,9 @@ namespace RN
 		_isZombie(false),
 #endif
 		_refCount(1)
+#if RN_BUILD_DEBUG
+		, _autoreleaseCounter(0)
+#endif
 	{}
 	
 	Object::~Object()

@@ -176,6 +176,10 @@ namespace RN
 		mutable bool _isZombie;
 #endif
 		mutable std::atomic<size_t> _refCount;
+		
+#if RN_BUILD_DEBUG
+		mutable std::atomic<size_t> _autoreleaseCounter;
+#endif
 
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		

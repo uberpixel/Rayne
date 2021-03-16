@@ -44,17 +44,8 @@ namespace RN
 	{
 		RN_ASSERT(object, "Object mustn't be NULL");
 
-		//TODO: Maybe delete and remove this as friend of Object
 #if RN_BUILD_DEBUG
-		int counter = 0;
-		for(const Object *obj : _objects)
-		{
-			if(obj == object)
-			{
-				counter += 1;
-				RN_ASSERT(counter < object->_refCount, "Object will be overreleased by autorelease pool!");
-			}
-		}
+		RN_ASSERT(object->_autoreleaseCounter.fetch_add(1) < object->_refCount, "Object will be overreleased by autorelease pool!");
 #endif
 
 		_objects.push_back(object);
@@ -70,6 +61,9 @@ namespace RN
 
 		for(const Object *object : objects)
 		{
+#if RN_BUILD_DEBUG
+			object->_autoreleaseCounter.fetch_sub(1);
+#endif
 			object->Release();
 		}
 
