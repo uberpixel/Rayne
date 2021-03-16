@@ -180,7 +180,7 @@ def main():
 
             for i in range(0, numLevels):
                 #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
-                subprocess.call([astcencPath, '-cs', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-medium'])
+                subprocess.call([astcencPath, '-cs', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-fast'])
                 os.remove(outputFileName + '.' + str(i) + inputFileExtension)
                 
             with open(targetFile, 'wb') as outputFile:
