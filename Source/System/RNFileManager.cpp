@@ -104,12 +104,12 @@ namespace RN
 		int errorAndroid = errno;
 
 		bool isAbsolutePath = GetPath()->HasPrefix(RNCSTR("/"));
-		String *apkFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ApplicationDirectory);
-		if(GetPath()->HasPrefix(apkFilePath) || !isAbsolutePath)
+		FileManager *fileManager = FileManager::GetSharedInstance();
+		String *apkFilePath = fileManager->GetPathForLocation(FileManager::Location::ApplicationDirectory);
+		Array *apkInternalFilePaths = fileManager->_androidAppBundleFiles;
+		if((GetPath()->HasPrefix(apkFilePath) || !isAbsolutePath) && apkInternalFilePaths)
 		{
 			Dictionary *alreadyAddedPaths = new Dictionary();
-
-			zip_t *zipFile = zip_open(apkFilePath->GetUTF8String(), ZIP_RDONLY, nullptr);
 			const String *relativePath = GetPath();
 			if(isAbsolutePath)
 			{
@@ -120,78 +120,69 @@ namespace RN
 				relativePath = RNSTR("assets/" << relativePath);
 			}
 
-			zip_int64_t num_entries = zip_get_num_entries(zipFile, /*flags=*/0);
-			for(zip_uint64_t i = 0; i < num_entries; ++i)
-			{
-				const char* name = zip_get_name(zipFile, i, /*flags=*/0);
-				if(name)
-				{
-					String *nameString = RNSTR(name);
-					String *assetPath = nullptr;
+			apkInternalFilePaths->Enumerate<String>([&](String *nameString, size_t index, bool &stop){
+				String *assetPath = nullptr;
 
-					if(nameString->HasPrefix(relativePath))
+				if(nameString->HasPrefix(relativePath))
+				{
+					assetPath = nameString->GetSubstring(Range(relativePath->GetLength(), nameString->GetLength()-relativePath->GetLength()));
+				}
+
+				if(assetPath)
+				{
+					Node *node = nullptr;
+					Array *components = assetPath->GetPathComponents();
+
+					String *newComponent = components->GetObjectAtIndex<String>(0);
+					String *alreadyAddedPath = alreadyAddedPaths->GetObjectForKey<String>(newComponent);
+					if(!alreadyAddedPath)
 					{
-						assetPath = nameString->GetSubstring(Range(relativePath->GetLength(), nameString->GetLength()-relativePath->GetLength()));
+						alreadyAddedPaths->SetObjectForKey(newComponent, newComponent);
+
+						//Every entry is a file, so every last component is a file, but all other components else are directories.
+						if(components->GetCount() > 1) //Directory
+						{
+							node = new Directory(newComponent, this);
+						}
+						else //File
+						{
+							node = new File(newComponent, this);
+						}
 					}
 
-					if(assetPath)
+					if(node)
 					{
-						Node *node = nullptr;
-						Array *components = assetPath->GetPathComponents();
-
-						String *newComponent = components->GetObjectAtIndex<String>(0);
-						String *alreadyAddedPath = alreadyAddedPaths->GetObjectForKey<String>(newComponent);
-						if(!alreadyAddedPath)
+						// Only allow nodes matching the platform modifier, ie ~osx or ~win
+						if(node->GetModifier())
 						{
-							alreadyAddedPaths->SetObjectForKey(newComponent, newComponent);
-
-							//Every entry is a file, so every last component is a file, but all other components else are directories.
-							if(components->GetCount() > 1) //Directory
+							if(!node->GetModifier()->IsEqual(_platformModifier))
 							{
-								node = new Directory(newComponent, this);
-							}
-							else //File
-							{
-								node = new File(newComponent, this);
+								node->Release();
+								return;
 							}
 						}
 
-						if(node)
+						// Make sure only the platform modifier node is allowed into the VFS,
+						// the regular version is removed if necessary
+						Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
+						if(other)
 						{
-							// Only allow nodes matching the platform modifier, ie ~osx or ~win
-							if(node->GetModifier())
+							if(!node->GetModifier())
 							{
-								if(!node->GetModifier()->IsEqual(_platformModifier))
-								{
-									node->Release();
-									continue;
-								}
+								node->Release();
+								return;
 							}
 
-							// Make sure only the platform modifier node is allowed into the VFS,
-							// the regular version is removed if necessary
-							Node *other = _childMap->GetObjectForKey<Node>(node->GetName());
-							if(other)
-							{
-								if(!node->GetModifier())
-								{
-									node->Release();
-									continue;
-								}
-
-								_children->RemoveObject(other);
-							}
-
-							_children->AddObject(node);
-							_childMap->SetObjectForKey(node, node->GetName());
-
-							node->Release();
+							_children->RemoveObject(other);
 						}
+
+						_children->AddObject(node);
+						_childMap->SetObjectForKey(node, node->GetName());
+
+						node->Release();
 					}
 				}
-			}
-
-			zip_close(zipFile);
+			});
 
 			alreadyAddedPaths->Release();
 
@@ -404,13 +395,22 @@ namespace RN
 		_platformModifier = RNCSTR("~android")->Retain();
 #endif
 
-		GetPathForLocation(Location::ApplicationDirectory);
+		String *applicationDirectoryPath = GetPathForLocation(Location::ApplicationDirectory);
+
+#if RN_PLATFORM_ANDROID
+		_androidAppBundleFiles = GetFilePathsFromZipFile(applicationDirectoryPath);
+		SafeRetain(_androidAppBundleFiles);
+#endif
 	}
 	FileManager::~FileManager()
 	{
 		SafeRelease(_nodes);
 		SafeRelease(_modulePaths);
 		SafeRelease(_applicationDirectory);
+
+#if RN_PLATFORM_ANDROID
+		SafeRelease(_androidAppBundleFiles);
+#endif
 
 		__sharedInstance = nullptr;
 	}
@@ -996,6 +996,34 @@ namespace RN
 
 		LockGuard<Lockable> lock(_lock);
 		_modulePaths->RemoveObjectForKey(prefix);
+	}
+
+	Array *FileManager::GetFilePathsFromZipFile(const String *path) const
+	{
+		Array *filePaths = nullptr;
+
+		zip_t *zipFile = zip_open(path->GetUTF8String(), ZIP_RDONLY, nullptr);
+		if(!zipFile) return filePaths;
+
+		zip_int64_t num_entries = zip_get_num_entries(zipFile, 0);
+		if(num_entries > 0)
+		{
+			filePaths = new Array();
+			for(zip_uint64_t i = 0; i < num_entries; ++i)
+			{
+				const char *name = zip_get_name(zipFile, i, 0);
+				if(name)
+				{
+					String *nameString = RNSTR(name);
+					filePaths->AddObject(nameString);
+				}
+			}
+
+			filePaths->Autorelease();
+		}
+		zip_close(zipFile);
+
+		return filePaths;
 	}
 
 	bool FileManager::PathExists(const String *path)

@@ -22,6 +22,7 @@ namespace RN
 	public:
 		friend class Kernel;
 		friend class Module;
+		friend class Dictionary;
 
 		class Node : public Object
 		{
@@ -130,12 +131,17 @@ namespace RN
 		void __RemoveModule(Module *module);
 
 		Array *__GetNodeContainerForPath(const String *path, Array *&outPath);
+		Array *GetFilePathsFromZipFile(const String *path) const;
 
 		Lockable _lock;
 		Array *_nodes;
 		Dictionary *_modulePaths;
 
 		const String *_applicationDirectory;
+
+#if RN_PLATFORM_ANDROID
+		Array *_androidAppBundleFiles;
+#endif
 	};
 }
 
