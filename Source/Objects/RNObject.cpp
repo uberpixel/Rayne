@@ -122,6 +122,10 @@ namespace RN
 			return;
 		}
 #endif
+		
+#if RN_BUILD_DEBUG
+		RN_ASSERT((_refCount - _autoreleaseCounter) > 0, "Object is in too many autorelease pools and will be over released!");
+#endif
 
 		// If this is the last reference this thread has, which it very well might be,
 		// we need to flush all accesses done so far. Thus the release barrier
