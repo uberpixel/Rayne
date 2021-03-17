@@ -100,7 +100,7 @@ namespace RN
 			if(!_attributedText || _attributedText->GetLength() == 0)
 			{
 				Model *model = GetModel();
-				if(model->GetLODStage(0)->GetCount() > 0)
+				if(model->GetLODStage(0)->GetCount() > 1)
 				{
 					Material *textMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
 					textMaterial->SetSkipRendering(true);
