@@ -153,7 +153,7 @@ namespace RN
 		alSourcePause(_source);
         _isPlaying = false;
 		
-		RNDebug("Stopped: " << (_isPlaying? "true" : "false"));
+		//RNDebug("Stopped: " << (_isPlaying? "true" : "false"));
 	}
 	
 	void OpenALSource::Pause()
@@ -163,7 +163,7 @@ namespace RN
 		alSourcePause(_source);
 		_isPlaying = false;
 		
-		RNDebug("Paused: " << (_isPlaying? "true" : "false"));
+		//RNDebug("Paused: " << (_isPlaying? "true" : "false"));
 	}
 
     void OpenALSource::Seek(float time)
