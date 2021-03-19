@@ -63,7 +63,7 @@ namespace RN
 		_hosts->RemoveObject(host);
 	}
 
-	void ENetWorld::Ping(String *ip, size_t repetitions)
+	double ENetWorld::Ping(String *ip, size_t repetitions)
 	{
 #if !RN_PLATFORM_WINDOWS
 		RNDebug("Pinging " << ip << ".");
@@ -174,7 +174,7 @@ namespace RN
 		
 		std::sort(pingTimes.begin(), pingTimes.end());
 		
-		double averagePing = 0.0;
+		/*double averagePing = 0.0;
 		int filterSize = pingTimes.size() / 4;
 		for(int i = filterSize; i < pingTimes.size() - filterSize; i++)
 		{
@@ -183,7 +183,12 @@ namespace RN
 		}
 		averagePing /= pingTimes.size() - 2 * filterSize;
 		
-		RNDebug("Pinging Finished with average of " << averagePing << "ms");
+		RNDebug("Pinging Finished with average of " << averagePing << "ms");*/
+		
+		double lowestPing = pingTimes.size() > 0?pingTimes[0]:10000.0;;
+		RNDebug("Pinging Finished with lowest of " << lowestPing << "ms");
+		
+		return lowestPing;
 #endif
 	}
 }
