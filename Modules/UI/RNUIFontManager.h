@@ -34,7 +34,7 @@ namespace RN
 			UIAPI float GetLineOffset();
 			
 		private:
-			Font(RN::String *filepath);
+			Font(RN::String *filepath, bool preloadASCII = true);
 			
 			stbtt_fontinfo *_fontInfo;
 			RN::Data *_fontData;
@@ -52,7 +52,7 @@ namespace RN
 			UIAPI FontManager();
 			UIAPI ~FontManager();
 			
-			UIAPI Font *GetFontForFilepath(RN::String *filepath);
+			UIAPI Font *GetFontForFilepath(RN::String *filepath, bool preloadASCII = true);
 			
 		private:
 			RN::Dictionary *_fonts;

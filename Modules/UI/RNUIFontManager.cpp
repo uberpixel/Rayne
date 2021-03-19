@@ -20,7 +20,7 @@ namespace RN
 		RNDefineMeta(Font, RN::Object)
 		RNDefineMeta(FontManager, RN::Object)
 
-		Font::Font(RN::String *filepath)
+		Font::Font(RN::String *filepath, bool preloadASCII)
 		{
 			_fontData = RN::Data::WithContentsOfFile(filepath);
 			_fontData->Retain();
@@ -28,6 +28,14 @@ namespace RN
 			stbtt_InitFont(_fontInfo, _fontData->GetBytes<unsigned char>(), stbtt_GetFontOffsetForIndex(_fontData->GetBytes<unsigned char>(), 0));
 			
 			_meshes = new RN::Dictionary();
+			
+			if(preloadASCII)
+			{
+				for(int i = 0; i < 128; i++)
+				{
+					GetMeshForCharacter(i);
+				}
+			}
 		}
 
 		Font::~Font()
@@ -269,7 +277,7 @@ namespace RN
 			_fonts->Release();
 		}
 
-		Font *FontManager::GetFontForFilepath(RN::String *filepath)
+		Font *FontManager::GetFontForFilepath(RN::String *filepath, bool preloadASCII)
 		{
 			Font *font = _fonts->GetObjectForKey<Font>(filepath);
 			if(font)
@@ -277,7 +285,7 @@ namespace RN
 				return font;
 			}
 			
-			font = new Font(filepath);
+			font = new Font(filepath, preloadASCII);
 			_fonts->SetObjectForKey(font, filepath);
 			
 			return font;
