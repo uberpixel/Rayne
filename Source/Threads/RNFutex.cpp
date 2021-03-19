@@ -84,6 +84,8 @@ namespace RN
 
 		void CleanThreadData()
 		{
+			if(!_threadData) return;
+			
 			ThreadData *data = _threadData->GetValue();
 			if(data)
 			{
