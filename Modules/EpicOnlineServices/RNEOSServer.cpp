@@ -31,11 +31,10 @@ namespace RN
 		socketID.SocketName[1] = 'u';
 		socketID.SocketName[2] = 'c';
 		socketID.SocketName[3] = 'k';
-		socketID.SocketName[4] = ' ';
-		socketID.SocketName[5] = 'Y';
-		socketID.SocketName[6] = 'e';
-		socketID.SocketName[7] = 'a';
-		socketID.SocketName[8] = 'h';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
 		
 		EOS_P2P_AddNotifyPeerConnectionRequestOptions options = {0};
 		options.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONREQUEST_API_LATEST;
@@ -71,7 +70,47 @@ namespace RN
 
 	void EOSServer::Update(float delta)
 	{
-		//while()
+		EOSWorld *world = EOSWorld::GetInstance();
+		
+		uint32 nextPacketSize = 0;
+		EOS_P2P_GetNextReceivedPacketSizeOptions nextPacketSizeOptions = {0};
+		nextPacketSizeOptions.ApiVersion = EOS_P2P_GETNEXTRECEIVEDPACKETSIZE_API_LATEST;
+		nextPacketSizeOptions.LocalUserId = world->GetUserID();
+		while(EOS_P2P_GetNextReceivedPacketSize(world->GetP2PHandle(), &nextPacketSizeOptions, &nextPacketSize) == EOS_EResult::EOS_Success)
+		{
+			EOS_P2P_ReceivePacketOptions receiveOptions = {0};
+			receiveOptions.ApiVersion = EOS_P2P_RECEIVEPACKET_API_LATEST;
+			receiveOptions.LocalUserId = world->GetUserID();
+			receiveOptions.MaxDataSizeBytes = nextPacketSize;
+			
+			EOS_ProductUserId senderUserID;
+			EOS_P2P_SocketId socketID;
+			uint8 channel = 0;
+			uint32 bytesWritten = 0;
+			
+			Data *data = Data::WithBytes(nullptr, nextPacketSize);
+			if(EOS_P2P_ReceivePacket(world->GetP2PHandle(), &receiveOptions, &senderUserID, &socketID, &channel, data->GetBytes(), &bytesWritten) != EOS_EResult::EOS_Success)
+			{
+				RNDebug("Failed receiving Data");
+				break;
+			}
+			
+			if(data->GetLength() == 7 && String::WithBytes(data->GetBytes(), data->GetLength(), Encoding::UTF8)->IsEqual(RNCSTR("CONNECT")))
+			{
+				continue;
+			}
+			
+			//TODO: Make getting peer index from senderID nicer
+			uint16 id = 0;
+			for(int i = 0; i < _peers.size(); i++)
+			{
+				if(_peers[i].peer == senderUserID)
+				{
+					id = i;
+				}
+			}
+			ReceivedPacket(data, id, channel);
+		}
 		
 /*		EOSEvent event;
 		while(EOS_host_service(_EOSHost, &event, 0) > 0)
@@ -124,11 +163,10 @@ namespace RN
 		socketID.SocketName[1] = 'u';
 		socketID.SocketName[2] = 'c';
 		socketID.SocketName[3] = 'k';
-		socketID.SocketName[4] = ' ';
-		socketID.SocketName[5] = 'Y';
-		socketID.SocketName[6] = 'e';
-		socketID.SocketName[7] = 'a';
-		socketID.SocketName[8] = 'h';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
 		
 		EOS_P2P_CloseConnectionOptions options = {0};
 		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
@@ -150,11 +188,10 @@ namespace RN
 		socketID.SocketName[1] = 'u';
 		socketID.SocketName[2] = 'c';
 		socketID.SocketName[3] = 'k';
-		socketID.SocketName[4] = ' ';
-		socketID.SocketName[5] = 'Y';
-		socketID.SocketName[6] = 'e';
-		socketID.SocketName[7] = 'a';
-		socketID.SocketName[8] = 'h';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
 		
 		EOS_P2P_AcceptConnectionOptions connectionOptions = {0};
 		connectionOptions.ApiVersion = EOS_P2P_ACCEPTCONNECTION_API_LATEST;
@@ -169,6 +206,10 @@ namespace RN
 		peer.peer = Data->RemoteUserId;
 		//EOS_peer_timeout(peer.peer, 0, 0, 0);
 		server->_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
+		
+		String *connectedMessage = RNSTR("CONNECTED");
+		RN::Data *dataToSend = connectedMessage->GetDataWithEncoding(Encoding::UTF8);
+		server->SendPacket(dataToSend, peer.id, 0, true);
 
 		server->HandleDidConnect(peer.id);
 	}

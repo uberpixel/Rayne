@@ -30,6 +30,7 @@ typedef struct _tagEOS_LogMessage EOS_LogMessage;
 
 typedef struct _tagEOS_Connect_LoginCallbackInfo EOS_Connect_LoginCallbackInfo;
 typedef struct _tagEOS_Connect_CreateDeviceIdCallbackInfo EOS_Connect_CreateDeviceIdCallbackInfo;
+typedef struct _tagEOS_Connect_CreateUserCallbackInfo EOS_Connect_CreateUserCallbackInfo;
 
 namespace RN
 {
@@ -40,6 +41,8 @@ namespace RN
 
 		EOSAPI EOSWorld();
 		EOSAPI ~EOSWorld() override;
+
+		EOSAPI void StartOculusLogin(String *userID, String *nonce);
 		
 		EOSAPI void AddHost(EOSHost *host);
 		EOSAPI void RemoveHost(EOSHost *host);
@@ -58,6 +61,7 @@ namespace RN
 	private:
 		static void LoggingCallback(const EOS_LogMessage *Message);
 		static void ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data);
+		static void ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data);
 		static void ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data);
 		
 		void CreateDeviceID();
@@ -65,7 +69,8 @@ namespace RN
 		
 		static EOSWorld *_instance;
 		Array *_hosts;
-		
+
+		String *_loginToken;
 		bool _isLoggedIn;
 		EOS_ProductUserId _loggedInUserID;
 		
@@ -74,7 +79,6 @@ namespace RN
 		EOS_HP2P _p2pInterfaceHandle;
 		
 		EOSLobbyManager *_lobbyManager;
-		
 			
 		RNDeclareMetaAPI(EOSWorld, EOSAPI)
 	};

@@ -42,11 +42,10 @@ namespace RN
 		socketID.SocketName[1] = 'u';
 		socketID.SocketName[2] = 'c';
 		socketID.SocketName[3] = 'k';
-		socketID.SocketName[4] = ' ';
-		socketID.SocketName[5] = 'Y';
-		socketID.SocketName[6] = 'e';
-		socketID.SocketName[7] = 'a';
-		socketID.SocketName[8] = 'h';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
 		
 		EOS_P2P_SendPacketOptions sendPacketOptions = {0};
 		sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -55,7 +54,7 @@ namespace RN
 		sendPacketOptions.RemoteUserId = _peers[receiverID].peer;
 		sendPacketOptions.SocketId = &socketID;
 		sendPacketOptions.Reliability = reliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
-		sendPacketOptions.bAllowDelayedDelivery = false;
+		sendPacketOptions.bAllowDelayedDelivery = true;
 		sendPacketOptions.Data = data->GetBytes();
 		sendPacketOptions.DataLengthBytes = data->GetLength();
 		EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);

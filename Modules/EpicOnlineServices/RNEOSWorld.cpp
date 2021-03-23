@@ -8,6 +8,11 @@
 
 #include "RNEOSWorld.h"
 
+#if RN_PLATFORM_ANDROID
+#include "Android/eos_Android_base.h"
+#include "Android/eos_android.h"
+#endif
+
 #include "eos_platform_prereqs.h"
 #include "eos_sdk.h"
 #include "eos_logging.h"
@@ -45,19 +50,16 @@ namespace RN
 		SDKOptions.ProductName = "Concealed";
 		SDKOptions.ProductVersion = "0.1";
 
-/*		JavaVM* VM = nullptr;
-		env->GetJavaVM(&VM);
-		const char* androidInternalPath = env->GetStringUTFChars(internalPath, nullptr);
-		const char* androidExternalPath = env->GetStringUTFChars(externalPath, nullptr);
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 
 		static EOS_Android_InitializeOptions JNIOptions = { 0 };
 		JNIOptions.ApiVersion = EOS_ANDROID_INITIALIZEOPTIONS_API_LATEST;
-		JNIOptions.VM = VM;
+		JNIOptions.VM = app->activity->vm;
 
-		JNIOptions.OptionalInternalDirectory = androidInternalPath;
-		JNIOptions.OptionalExternalDirectory = androidExternalPath;
+		JNIOptions.OptionalInternalDirectory = app->activity->internalDataPath;
+		JNIOptions.OptionalExternalDirectory = app->activity->externalDataPath;
 
-		SDKOptions.SystemInitializeOptions = &JNIOptions;*/
+		SDKOptions.SystemInitializeOptions = &JNIOptions;
 
 		if(EOS_Initialize(&SDKOptions) != EOS_EResult::EOS_Success)
 		{
@@ -95,8 +97,10 @@ namespace RN
 		
 		_connectInterfaceHandle = EOS_Platform_GetConnectInterface(_platformHandle);
 		_p2pInterfaceHandle = EOS_Platform_GetP2PInterface(_platformHandle);
-		
+
+#if !RN_PLATFORM_ANDROID
 		LoginUser();
+#endif
 
 		_instance = this;
 	}
@@ -108,6 +112,8 @@ namespace RN
 
 		_instance = nullptr;
 		EOS_Shutdown();
+
+		SafeRelease(_loginToken);
 	}
 
 	void EOSWorld::Update(float delta)
@@ -117,6 +123,12 @@ namespace RN
 		_hosts->Enumerate<EOSHost>([&](EOSHost *host, size_t index, bool &stop) {
 			host->Update(delta);
 		});
+	}
+
+	void EOSWorld::StartOculusLogin(String *userID, String *nonce)
+	{
+		_loginToken = RNSTR(userID << "|" << nonce)->Retain();
+		LoginUser();
 	}
 
 	void EOSWorld::AddHost(EOSHost *host)
@@ -282,7 +294,13 @@ namespace RN
 	{
 		EOS_Connect_Credentials connectCredentials = {};
 		connectCredentials.ApiVersion = EOS_CONNECT_CREDENTIALS_API_LATEST;
+
+#if RN_PLATFORM_ANDROID
+		connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OCULUS_USERID_NONCE;
+		connectCredentials.Token = _loginToken->GetUTF8String();
+#else
 		connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_DEVICEID_ACCESS_TOKEN;
+#endif
 		
 		EOS_Connect_UserLoginInfo userInfo;
 		userInfo.ApiVersion = EOS_CONNECT_USERLOGININFO_API_LATEST;
@@ -292,6 +310,7 @@ namespace RN
 		connectOptions.ApiVersion = EOS_CONNECT_LOGIN_API_LATEST;
 		connectOptions.Credentials = &connectCredentials;
 		connectOptions.UserLoginInfo = &userInfo;
+
 		EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
 	}
 
@@ -315,21 +334,48 @@ namespace RN
 		}
 	}
 
-	void EOSWorld::ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data)
+	void EOSWorld::ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data)
 	{
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
-			RNDebug("Succesful login");
-			
+			RNDebug("Succesfully created user");
+
 			EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+			eosWorld->LoginUser();
+		}
+		else
+		{
+			RNDebug("Failed creating user");
+		}
+	}
+
+	void EOSWorld::ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data)
+	{
+		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+		if(Data->ResultCode == EOS_EResult::EOS_Success)
+		{
+			RNDebug("Succesful login");
+
 			eosWorld->_isLoggedIn = true;
 			eosWorld->_loggedInUserID = Data->LocalUserId;
 		}
+		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser)
+		{
+#if RN_PLATFORM_ANDROID
+			EOS_Connect_CreateUserOptions createUserOptions = {0};
+			createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
+			createUserOptions.ContinuanceToken = Data->ContinuanceToken;
+			EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
+#endif
+		}
 		else if(Data->ResultCode == EOS_EResult::EOS_NotFound)
 		{
+#if RN_PLATFORM_ANDROID
+#else
 			RNDebug("No credentials found, creating device ID...");
 			EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
 			eosWorld->CreateDeviceID();
+#endif
 		}
 		else
 		{
