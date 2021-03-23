@@ -76,6 +76,7 @@ namespace RN
 	double EOSHost::GetLastRoundtripTime(uint16 peerID)
 	{
 //		return _peers[peerID].peer->lastRoundTripTime * 0.001;
+		return 0.0;
 	}
 
 	void EOSHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
