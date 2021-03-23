@@ -43,3 +43,4 @@ Build-Xcode-UI
 /Tools/BuildHelper/Vendor
 Tools/BuildHelper/__pycache__
 /Modules/Vulkan/Vendor/generators/__pycache__
+Modules/EpicOnlineServices/Vendor/
