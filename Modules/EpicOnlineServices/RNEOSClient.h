@@ -12,6 +12,7 @@
 #include "RNEOSHost.h"
 
 typedef struct _tagEOS_P2P_OnIncomingConnectionRequestInfo EOS_P2P_OnIncomingConnectionRequestInfo;
+typedef struct _tagEOS_P2P_OnRemoteConnectionClosedInfo EOS_P2P_OnRemoteConnectionClosedInfo;
 
 namespace RN
 {
@@ -28,7 +29,8 @@ namespace RN
 		EOSAPI virtual void Update(float delta) override;
 			
 	private:
-		static void OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data);
+		static void OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data);
+		
 		void ForceDisconnect();
 			
 		RNDeclareMetaAPI(EOSClient, EOSAPI)

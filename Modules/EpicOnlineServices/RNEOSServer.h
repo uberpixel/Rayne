@@ -13,6 +13,7 @@
 #include <set>
 
 typedef struct _tagEOS_P2P_OnIncomingConnectionRequestInfo EOS_P2P_OnIncomingConnectionRequestInfo;
+typedef struct _tagEOS_P2P_OnRemoteConnectionClosedInfo EOS_P2P_OnRemoteConnectionClosedInfo;
 
 namespace RN
 {
@@ -34,6 +35,7 @@ namespace RN
 			
 	private:
 		static void OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data);
+		static void OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data);
 		
 		uint16 GetUserID();
 		void ReleaseUserID(uint16 userID);

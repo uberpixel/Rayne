@@ -22,6 +22,25 @@ namespace RN
 	EOSClient::EOSClient()
 	{
 		_status = Status::Disconnected;
+		
+		EOSWorld *world = EOSWorld::GetInstance();
+		
+		EOS_P2P_SocketId socketID = {0};
+		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
+		socketID.SocketName[0] = 'F';
+		socketID.SocketName[1] = 'u';
+		socketID.SocketName[2] = 'c';
+		socketID.SocketName[3] = 'k';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
+		
+		EOS_P2P_AddNotifyPeerConnectionClosedOptions disconnectListenerOptions = {0};
+		disconnectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONCLOSED_API_LATEST;
+		disconnectListenerOptions.LocalUserId = world->GetUserID();
+		disconnectListenerOptions.SocketId = &socketID;
+		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
 	}
 		
 	EOSClient::~EOSClient()
@@ -193,5 +212,13 @@ namespace RN
 				}
 			}
 		}*/
+	}
+
+	void EOSClient::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
+	{
+		EOSClient *client = static_cast<EOSClient*>(Data->ClientData);
+		
+		RNDebug("Disconnected from Server");
+		client->ForceDisconnect();
 	}
 }

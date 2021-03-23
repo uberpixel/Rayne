@@ -54,7 +54,7 @@ namespace RN
 		sendPacketOptions.RemoteUserId = _peers[receiverID].peer;
 		sendPacketOptions.SocketId = &socketID;
 		sendPacketOptions.Reliability = reliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
-		sendPacketOptions.bAllowDelayedDelivery = true;
+		sendPacketOptions.bAllowDelayedDelivery = false;
 		sendPacketOptions.Data = data->GetBytes();
 		sendPacketOptions.DataLengthBytes = data->GetLength();
 		EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);

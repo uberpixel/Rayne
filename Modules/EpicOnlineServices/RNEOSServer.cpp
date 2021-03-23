@@ -36,12 +36,17 @@ namespace RN
 		socketID.SocketName[6] = 'a';
 		socketID.SocketName[7] = 'h';
 		
-		EOS_P2P_AddNotifyPeerConnectionRequestOptions options = {0};
-		options.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONREQUEST_API_LATEST;
-		options.LocalUserId = world->GetUserID();
-		options.SocketId = &socketID;
+		EOS_P2P_AddNotifyPeerConnectionRequestOptions connectListenerOptions = {0};
+		connectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONREQUEST_API_LATEST;
+		connectListenerOptions.LocalUserId = world->GetUserID();
+		connectListenerOptions.SocketId = &socketID;
+		EOS_P2P_AddNotifyPeerConnectionRequest(world->GetP2PHandle(), &connectListenerOptions, this, OnConnectionRequestCallback);
 		
-		EOS_P2P_AddNotifyPeerConnectionRequest(world->GetP2PHandle(), &options, this, OnConnectionRequestCallback);
+		EOS_P2P_AddNotifyPeerConnectionClosedOptions disconnectListenerOptions = {0};
+		disconnectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONCLOSED_API_LATEST;
+		disconnectListenerOptions.LocalUserId = world->GetUserID();
+		disconnectListenerOptions.SocketId = &socketID;
+		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
 	}
 		
 	EOSServer::~EOSServer()
@@ -207,10 +212,40 @@ namespace RN
 		//EOS_peer_timeout(peer.peer, 0, 0, 0);
 		server->_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
 		
-		String *connectedMessage = RNSTR("CONNECTED");
-		RN::Data *dataToSend = connectedMessage->GetDataWithEncoding(Encoding::UTF8);
-		server->SendPacket(dataToSend, peer.id, 0, true);
+		
+		EOS_P2P_SendPacketOptions connectConfirmOptions = {0};
+		connectConfirmOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+		connectConfirmOptions.SocketId = &socketID;
+		connectConfirmOptions.LocalUserId = world->GetUserID();
+		connectConfirmOptions.RemoteUserId = Data->RemoteUserId;
+		connectConfirmOptions.Channel = 0;
+		connectConfirmOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
+		connectConfirmOptions.bAllowDelayedDelivery = true;
+		connectConfirmOptions.DataLengthBytes = 9;
+		connectConfirmOptions.Data = "CONNECTED";
+		
+		EOS_P2P_SendPacket(world->GetP2PHandle(), &connectConfirmOptions);
 
 		server->HandleDidConnect(peer.id);
+	}
+
+	void EOSServer::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
+	{
+		EOSServer *server = static_cast<EOSServer*>(Data->ClientData);
+		
+		//TODO: Make getting peer index from senderID nicer
+		uint16 id = 0;
+		for(int i = 0; i < server->_peers.size(); i++)
+		{
+			if(server->_peers[i].peer == Data->RemoteUserId)
+			{
+				id = i;
+			}
+		}
+		
+		RNDebug("Client disconnected: " << id);
+		server->_peers.erase(id);
+		server->ReleaseUserID(id);
+		server->HandleDidDisconnect(id, 0);
 	}
 }
