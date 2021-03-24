@@ -31,9 +31,20 @@ namespace RN
 
 	void EOSHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
-		if(_peers.size() == 0) return;
-		if(_peers.find(receiverID) == _peers.end()) return;
+		Lock();
+		if(_peers.size() == 0 || _peers.find(receiverID) == _peers.end())
+		{
+			Unlock();
+			return;
+		}
 		
+		_scheduledPackets.push({receiverID, channel, reliable, data->Retain()});
+		Unlock();
+	}
+
+	void EOSHost::Update(float delta)
+	{
+		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
 		
 		EOS_P2P_SocketId socketID = {0};
@@ -47,17 +58,27 @@ namespace RN
 		socketID.SocketName[6] = 'a';
 		socketID.SocketName[7] = 'h';
 		
-		EOS_P2P_SendPacketOptions sendPacketOptions = {0};
-		sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
-		sendPacketOptions.Channel = channel;
-		sendPacketOptions.LocalUserId = world->GetUserID();
-		sendPacketOptions.RemoteUserId = _peers[receiverID].peer;
-		sendPacketOptions.SocketId = &socketID;
-		sendPacketOptions.Reliability = reliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
-		sendPacketOptions.bAllowDelayedDelivery = false;
-		sendPacketOptions.Data = data->GetBytes();
-		sendPacketOptions.DataLengthBytes = data->GetLength();
-		EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+		while(_scheduledPackets.size() > 0)
+		{
+			if(_peers.size() > 0 && _peers.find(_scheduledPackets.front().receiverID) != _peers.end())
+			{
+				EOS_P2P_SendPacketOptions sendPacketOptions = {0};
+				sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+				sendPacketOptions.Channel = _scheduledPackets.front().channel;
+				sendPacketOptions.LocalUserId = world->GetUserID();
+				sendPacketOptions.RemoteUserId = _peers[_scheduledPackets.front().receiverID].peer;
+				sendPacketOptions.SocketId = &socketID;
+				sendPacketOptions.Reliability = _scheduledPackets.front().isReliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
+				sendPacketOptions.bAllowDelayedDelivery = false;
+				sendPacketOptions.Data = _scheduledPackets.front().data->GetBytes();
+				sendPacketOptions.DataLengthBytes = _scheduledPackets.front().data->GetLength();
+				EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+			}
+			
+			_scheduledPackets.front().data->Release();
+			_scheduledPackets.pop();
+		}
+		Unlock();
 	}
 
 	bool EOSHost::HasReliableDataInTransit()

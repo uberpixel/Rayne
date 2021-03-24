@@ -21,6 +21,7 @@ namespace RN
 
 	EOSServer::EOSServer(uint16 maxConnections) : _maxConnections(maxConnections)
 	{
+		Lock();
 		_status = Status::Server;
 		
 		EOSWorld *world = EOSWorld::GetInstance();
@@ -47,6 +48,8 @@ namespace RN
 		disconnectListenerOptions.LocalUserId = world->GetUserID();
 		disconnectListenerOptions.SocketId = &socketID;
 		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
+		
+		Unlock();
 	}
 		
 	EOSServer::~EOSServer()
@@ -75,6 +78,9 @@ namespace RN
 
 	void EOSServer::Update(float delta)
 	{
+		EOSHost::Update(delta);
+		
+		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
 		
 		uint32 nextPacketSize = 0;
@@ -114,43 +120,12 @@ namespace RN
 					id = i;
 				}
 			}
+			Unlock();
 			ReceivedPacket(data, id, channel);
+			Lock();
 		}
 		
-/*		EOSEvent event;
-		while(EOS_host_service(_EOSHost, &event, 0) > 0)
-		{
-			switch(event.type)
-			{
-				case EOS_EVENT_TYPE_RECEIVE:
-				{
-					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
-					EOS_packet_destroy(event.packet);
-
-					uint16 id = *static_cast<uint16*>(event.peer->data);
-					ReceivedPacket(data, id, event.channelID);
-					break;
-				}
-
-				case EOS_EVENT_TYPE_DISCONNECT:
-				{
-					RNDebug("Client disconnected: " << event.peer->data);
-					uint16 id = *static_cast<uint16*>(event.peer->data);
-					_peers.erase(id);
-					ReleaseUserID(id);
-					free(event.peer->data);
-					event.peer->data = nullptr;
-
-					HandleDidDisconnect(id, event.data);
-					break;
-				}
-					
-				case EOS_EVENT_TYPE_NONE:
-				{
-					break;
-				}
-			}
-		}*/
+		Unlock();
 	}
 
 	size_t EOSServer::GetNumberOfConnectedUsers() const
@@ -160,6 +135,7 @@ namespace RN
 
 	void EOSServer::DisconnectUser(uint16 userID, uint16 data)
 	{
+		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
 		
 		EOS_P2P_SocketId socketID = {0};
@@ -180,6 +156,7 @@ namespace RN
 		options.SocketId = &socketID;
 		
 		EOS_P2P_CloseConnection(world->GetP2PHandle(), &options);
+		Unlock();
 	}
 
 	void EOSServer::OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data)

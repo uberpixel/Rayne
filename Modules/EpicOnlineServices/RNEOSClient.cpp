@@ -21,6 +21,7 @@ namespace RN
 
 	EOSClient::EOSClient()
 	{
+		Lock();
 		_status = Status::Disconnected;
 		
 		EOSWorld *world = EOSWorld::GetInstance();
@@ -41,6 +42,8 @@ namespace RN
 		disconnectListenerOptions.LocalUserId = world->GetUserID();
 		disconnectListenerOptions.SocketId = &socketID;
 		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
+		
+		Unlock();
 	}
 		
 	EOSClient::~EOSClient()
@@ -50,6 +53,7 @@ namespace RN
 
 	void EOSClient::Connect(EOS_ProductUserId serverProductID)
 	{
+		Lock();
 		RN_ASSERT(_status == Status::Disconnected, "Already connected to a server.");
 
 		_status = Status::Connecting;
@@ -79,13 +83,6 @@ namespace RN
 		connectionOptions.Data = "CONNECT";
 		
 		EOS_P2P_SendPacket(world->GetP2PHandle(), &connectionOptions);
-		
-/*		EOS_P2P_AcceptConnectionOptions connectionOptions = {0};
-		connectionOptions.ApiVersion = EOS_P2P_ACCEPTCONNECTION_API_LATEST;
-		connectionOptions.SocketId = &socketID;
-		connectionOptions.LocalUserId = world->GetUserID();
-		connectionOptions.RemoteUserId = serverProductID;
-		EOS_P2P_AcceptConnection(world->GetP2PHandle(), &connectionOptions);*/
 
 		Peer peer;
 		peer.id = 0;
@@ -94,19 +91,27 @@ namespace RN
 		{
 			RNDebug("Couldn't connect to server!");
 			_status = Status::Disconnected;
+			Unlock();
 			return;
 		}
 
 		_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
+		
+		Unlock();
 	}
 
 	void EOSClient::Disconnect()
 	{
+		Lock();
 		if(_status == Status::Disconnected || _status == Status::Disconnecting)
+		{
+			Unlock();
 			return;
+		}
 		
 		if(_status == Status::Connecting)
 		{
+			Unlock();
 			ForceDisconnect();
 			return;
 		}
@@ -132,23 +137,30 @@ namespace RN
 		options.SocketId = &socketID;
 		
 		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
+		Unlock();
 	}
 
 	void EOSClient::ForceDisconnect()
 	{
+		Lock();
 		_status = Status::Disconnected;
-		//EOS_peer_reset(_peers[0].peer);
 		_peers.clear();
+		Unlock();
 
 		RNDebug("Disconnected!");
-
 		HandleDidDisconnect(0, 0);
 	}
 
 	void EOSClient::Update(float delta)
 	{
+		EOSHost::Update(delta);
+		
+		Lock();
 		if(_status == Status::Disconnected)
+		{
+			Unlock();
 			return;
+		}
 		
 		EOSWorld *world = EOSWorld::GetInstance();
 		
@@ -179,39 +191,18 @@ namespace RN
 			{
 				RNDebug("Connected!");
 				_status = Status::Connected;
+				Unlock();
 				HandleDidConnect(0);
+				Lock();
 				continue;
 			}
 			
+			Unlock();
 			ReceivedPacket(data, 0, channel);
+			Lock();
 		}
-
-/*		EOSEvent event;
-		while(EOS_host_service(_EOSHost, &event, 0) > 0)
-		{
-			switch(event.type)
-			{
-				case EOS_EVENT_TYPE_RECEIVE:
-				{
-					Data *data = Data::WithBytes(event.packet->data, event.packet->dataLength);
-					EOS_packet_destroy(event.packet);
-
-					ReceivedPacket(data, 0, event.channelID);
-					break;
-				}
-
-				case EOS_EVENT_TYPE_DISCONNECT:
-				{
-					ForceDisconnect();
-					break;
-				}
-					
-				case EOS_EVENT_TYPE_NONE:
-				{
-					break;
-				}
-			}
-		}*/
+		
+		Unlock();
 	}
 
 	void EOSClient::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)

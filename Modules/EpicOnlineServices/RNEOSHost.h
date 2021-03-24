@@ -10,6 +10,7 @@
 #define __RAYNE_EOSHOST_H_
 
 #include "RNEOS.h"
+#include <queue>
 
 struct EOS_ProductUserIdDetails;
 typedef struct EOS_ProductUserIdDetails* EOS_ProductUserId;
@@ -25,6 +26,14 @@ namespace RN
 		{
 			uint16 id;
 			EOS_ProductUserId peer;
+		};
+		
+		struct Packet
+		{
+			uint16 receiverID;
+			uint32 channel;
+			bool isReliable;
+			Data *data;
 		};
 
 		enum Status
@@ -49,7 +58,7 @@ namespace RN
 		EOSAPI void SetPingInterval(uint16 peerID, size_t interval);
 
 	protected:
-		EOSAPI virtual void Update(float delta) = 0;
+		EOSAPI virtual void Update(float delta);
 
 		EOSAPI virtual void HandleDidConnect(uint16 userID) {};
 		EOSAPI virtual void HandleDidDisconnect(uint16 userID, uint16 data) {};
@@ -57,6 +66,7 @@ namespace RN
 		Status _status;
 
 		std::map<uint16, Peer> _peers;
+		std::queue<Packet> _scheduledPackets;
 			
 	private:
 			
