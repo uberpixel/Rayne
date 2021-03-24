@@ -218,7 +218,7 @@ namespace RN
 				continue;
 			}
 			
-			if(!IsPacketInOrder(0, packetHeader.packetID, channel))
+			if(!IsPacketInOrder(packetHeader.packetType == ProtocolPacketTypeReliableData, 0, packetHeader.packetID, channel))
 			{
 				delete[] rawData;
 				continue;

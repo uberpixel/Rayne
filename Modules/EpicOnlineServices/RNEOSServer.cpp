@@ -127,7 +127,7 @@ namespace RN
 			}
 			
 			uint16 senderID = GetUserIDForInternalID(senderUserID);
-			if(!IsPacketInOrder(senderID, packetHeader.packetID, channel))
+			if(!IsPacketInOrder(packetHeader.packetType == ProtocolPacketTypeReliableData, senderID, packetHeader.packetID, channel))
 			{
 				delete[] rawData;
 				continue;

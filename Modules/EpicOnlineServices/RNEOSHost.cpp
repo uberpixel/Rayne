@@ -29,11 +29,11 @@ namespace RN
 		
 	}
 
-	bool EOSHost::IsPacketInOrder(uint16 senderID, uint8 packetID, uint8 channel)
+	bool EOSHost::IsPacketInOrder(bool isReliable, uint16 senderID, uint8 packetID, uint8 channel)
 	{
 		//This assumes that less than 127 packets are ever lost at once...
 		Peer &peer = _peers[senderID];
-		if(peer._receivedIDForChannel[channel] < packetID || (peer._receivedIDForChannel[channel] > 127 && packetID < 127))
+		if(isReliable || peer._receivedIDForChannel[channel] < packetID || (peer._receivedIDForChannel[channel] > 127 && packetID < 127))
 		{
 			peer._receivedIDForChannel[channel] = packetID;
 			return true;
