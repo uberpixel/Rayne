@@ -27,6 +27,7 @@ typedef struct _tagEOS_Lobby_CreateLobbyCallbackInfo EOS_Lobby_CreateLobbyCallba
 typedef struct _tagEOS_LobbySearch_FindCallbackInfo EOS_LobbySearch_FindCallbackInfo;
 typedef struct _tagEOS_Lobby_UpdateLobbyCallbackInfo EOS_Lobby_UpdateLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_JoinLobbyCallbackInfo EOS_Lobby_JoinLobbyCallbackInfo;
+typedef struct _tagEOS_Lobby_LeaveLobbyCallbackInfo EOS_Lobby_LeaveLobbyCallbackInfo;
 
 namespace RN
 {
@@ -59,12 +60,14 @@ namespace RN
 		EOSAPI void CreateLobby(uint8 maxUsers, std::function<void()> callback);
 		EOSAPI void SearchLobby(std::function<void (RN::Array *)> callback);
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void()> callback);
+		EOSAPI void LeaveCurrentLobby();
 			
 	private:
 		EOSAPI EOSLobbyManager(EOSWorld *world);
 		
 		static void LobbyOnCreateCallback(const EOS_Lobby_CreateLobbyCallbackInfo *Data);
 		static void LobbyOnJoinCallback(const EOS_Lobby_JoinLobbyCallbackInfo *Data);
+		static void LobbyOnLeaveCallback(const EOS_Lobby_LeaveLobbyCallbackInfo *Data);
 		
 		static void LobbyOnSearchCallback(const EOS_LobbySearch_FindCallbackInfo *Data);
 		static void LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data);
@@ -77,7 +80,7 @@ namespace RN
 		bool _isJoiningLobby;
 		
 		bool _isConnectedToLobby;
-		String *connectedLobbyID;
+		String *_connectedLobbyID;
 		
 		std::function<void (RN::Array *)> _lobbySearchCallback;
 		std::function<void()> _didJoinLobbyCallback;

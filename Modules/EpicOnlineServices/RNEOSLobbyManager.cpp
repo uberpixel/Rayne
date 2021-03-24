@@ -32,19 +32,19 @@ namespace RN
 		EOS_LobbyDetails_Release(lobbyHandle);
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 	}
 		
 	EOSLobbyManager::~EOSLobbyManager()
 	{
-		
+		SafeRelease(_connectedLobbyID);
 	}
 
 	void EOSLobbyManager::CreateLobby(uint8 maxUsers, std::function<void()> callback)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby) return;
+		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
@@ -97,7 +97,7 @@ namespace RN
 
 	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void()> callback)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby) return;
+		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
@@ -111,6 +111,17 @@ namespace RN
 		EOS_Lobby_JoinLobby(_lobbyInterfaceHandle, &joinOptions, this, LobbyOnJoinCallback);
 	}
 
+	void EOSLobbyManager::LeaveCurrentLobby()
+	{
+		if(!_isConnectedToLobby) return;
+		
+		EOS_Lobby_LeaveLobbyOptions leaveOptions = {0};
+		leaveOptions.ApiVersion = EOS_LOBBY_LEAVELOBBY_API_LATEST;
+		leaveOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+		leaveOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+		EOS_Lobby_LeaveLobby(_lobbyInterfaceHandle, &leaveOptions, this, LobbyOnLeaveCallback);
+	}
+
 	void EOSLobbyManager::LobbyOnCreateCallback(const EOS_Lobby_CreateLobbyCallbackInfo* Data)
 	{
 		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
@@ -118,6 +129,9 @@ namespace RN
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Lobby successfully created with ID: " << Data->LobbyId);
+			
+			lobbyManager->_isConnectedToLobby = true;
+			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
 			
 			EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
 			modificationOptions.ApiVersion = EOS_LOBBY_UPDATELOBBYMODIFICATION_API_LATEST;
@@ -262,6 +276,8 @@ namespace RN
 		{
 			RNDebug("Joined lobby successfully");
 			
+			lobbyManager->_isConnectedToLobby = true;
+			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
 				lobbyManager->_didJoinLobbyCallback();
@@ -273,5 +289,23 @@ namespace RN
 		}
 		
 		lobbyManager->_isJoiningLobby = false;
+	}
+
+	void EOSLobbyManager::LobbyOnLeaveCallback(const EOS_Lobby_LeaveLobbyCallbackInfo *Data)
+	{
+		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
+		
+		if(Data->ResultCode == EOS_EResult::EOS_Success)
+		{
+			RNDebug("Left lobby successfully");
+		}
+		else
+		{
+			RNDebug("Failed leaving lobby");
+		}
+		
+		lobbyManager->_isJoiningLobby = false;
+		lobbyManager->_isConnectedToLobby = false;
+		SafeRelease(lobbyManager->_connectedLobbyID);
 	}
 }
