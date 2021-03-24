@@ -159,6 +159,31 @@ namespace RN
 		Unlock();
 	}
 
+	void EOSServer::DisconnectAll()
+	{
+		Lock();
+		EOSWorld *world = EOSWorld::GetInstance();
+		
+		EOS_P2P_SocketId socketID = {0};
+		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
+		socketID.SocketName[0] = 'F';
+		socketID.SocketName[1] = 'u';
+		socketID.SocketName[2] = 'c';
+		socketID.SocketName[3] = 'k';
+		socketID.SocketName[4] = 'Y';
+		socketID.SocketName[5] = 'e';
+		socketID.SocketName[6] = 'a';
+		socketID.SocketName[7] = 'h';
+		
+		EOS_P2P_CloseConnectionsOptions options = {0};
+		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
+		options.LocalUserId = world->GetUserID();
+		options.SocketId = &socketID;
+		
+		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
+		Unlock();
+	}
+
 	void EOSServer::OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data)
 	{
 		EOSServer *server = static_cast<EOSServer*>(Data->ClientData);

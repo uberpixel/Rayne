@@ -24,6 +24,7 @@ namespace RN
 		EOSAPI ~EOSServer();
 
 		EOSAPI void DisconnectUser(uint16 userID, uint16 data);
+		EOSAPI void DisconnectAll();
 		
 		EOSAPI size_t GetNumberOfConnectedUsers() const;
 
