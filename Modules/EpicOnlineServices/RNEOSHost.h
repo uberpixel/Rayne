@@ -21,11 +21,36 @@ namespace RN
 	{
 	public:
 		friend class EOSWorld;
+		
+		enum ProtocolPacketType : uint8
+		{
+			ProtocolPacketTypeConnectRequest,
+			ProtocolPacketTypeConnectResponse,
+			ProtocolPacketTypePingRequest,
+			ProtocolPacketTypePingResponse,
+			ProtocolPacketTypeData,
+			ProtocolPacketTypeReliableData,
+			ProtocolPacketTypeReliableDataAck
+		};
+		
+		struct ProtocolPacketHeader
+		{
+			ProtocolPacketType packetType;
+			uint8 packetID;
+		};
 
 		struct Peer
 		{
-			uint16 id;
-			EOS_ProductUserId peer;
+			uint16 userID;
+			EOS_ProductUserId internalID;
+			double smoothedPing;
+			
+			
+			uint8 _packetIDForChannel[254];
+			uint8 _receivedIDForChannel[254];
+			
+			uint8 _lastPingID;
+			struct timespec _sentPingTime;
 		};
 		
 		struct Packet
@@ -59,12 +84,19 @@ namespace RN
 
 	protected:
 		EOSAPI virtual void Update(float delta);
+		
+		EOSAPI Peer CreatePeer(uint16 userID, EOS_ProductUserId internalID);
+		EOSAPI uint16 GetUserIDForInternalID(EOS_ProductUserId internalID);
 
 		EOSAPI virtual void HandleDidConnect(uint16 userID) {};
 		EOSAPI virtual void HandleDidDisconnect(uint16 userID, uint16 data) {};
+		
+		EOSAPI void SendPing(uint16 receiverID, bool isResponse, uint8 responseID);
+		EOSAPI bool IsPacketInOrder(uint16 senderID, uint8 packetID, uint8 channel);
 
 		Status _status;
-
+		float _pingTimer;
+		
 		std::map<uint16, Peer> _peers;
 		std::queue<Packet> _scheduledPackets;
 			

@@ -99,29 +99,46 @@ namespace RN
 			uint8 channel = 0;
 			uint32 bytesWritten = 0;
 			
-			Data *data = Data::WithBytes(nullptr, nextPacketSize);
-			if(EOS_P2P_ReceivePacket(world->GetP2PHandle(), &receiveOptions, &senderUserID, &socketID, &channel, data->GetBytes(), &bytesWritten) != EOS_EResult::EOS_Success)
+			uint8 *rawData = new uint8[nextPacketSize];
+			
+			if(EOS_P2P_ReceivePacket(world->GetP2PHandle(), &receiveOptions, &senderUserID, &socketID, &channel, rawData, &bytesWritten) != EOS_EResult::EOS_Success)
 			{
 				RNDebug("Failed receiving Data");
 				break;
 			}
 			
-			if(data->GetLength() == 7 && String::WithBytes(data->GetBytes(), data->GetLength(), Encoding::UTF8)->IsEqual(RNCSTR("CONNECT")))
+			ProtocolPacketHeader packetHeader;
+			packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[0]);
+			packetHeader.packetID = rawData[1];
+			
+			if(packetHeader.packetType == ProtocolPacketTypeConnectRequest)
 			{
+				if(packetHeader.packetID == 0)
+				{
+					//This is handled in OnConnectionRequestCallback
+					//TODO: Maybe move some of it here instead to not require delayed delivery for the response
+				}
+				else
+				{
+					RNDebug("Malformed connect request");
+				}
+				delete[] rawData;
 				continue;
 			}
 			
-			//TODO: Make getting peer index from senderID nicer
-			uint16 id = 0;
-			for(int i = 0; i < _peers.size(); i++)
+			uint16 senderID = GetUserIDForInternalID(senderUserID);
+			if(!IsPacketInOrder(senderID, packetHeader.packetID, channel))
 			{
-				if(_peers[i].peer == senderUserID)
-				{
-					id = i;
-				}
+				delete[] rawData;
+				continue;
 			}
+			
+			//Get data object from the packet without protocol header
+			Data *data = Data::WithBytes(&rawData[2], nextPacketSize-2);
+			delete[] rawData;
+			
 			Unlock();
-			ReceivedPacket(data, id, channel);
+			ReceivedPacket(data, senderID, channel);
 			Lock();
 		}
 		
@@ -152,7 +169,7 @@ namespace RN
 		EOS_P2P_CloseConnectionOptions options = {0};
 		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
 		options.LocalUserId = world->GetUserID();
-		options.RemoteUserId = _peers[userID].peer;
+		options.RemoteUserId = _peers[userID].internalID;
 		options.SocketId = &socketID;
 		
 		EOS_P2P_CloseConnection(world->GetP2PHandle(), &options);
@@ -208,12 +225,14 @@ namespace RN
 		EOS_P2P_AcceptConnection(world->GetP2PHandle(), &connectionOptions);
 		
 		RNDebug("A new client connected");
-		Peer peer;
-		peer.id = server->GetUserID();
-		peer.peer = Data->RemoteUserId;
+		const Peer &peer = server->CreatePeer(server->GetUserID(), Data->RemoteUserId);
 		//EOS_peer_timeout(peer.peer, 0, 0, 0);
-		server->_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
+		server->_peers.insert(std::pair<uint16, Peer>(peer.userID, peer));
 		
+		
+		ProtocolPacketHeader packetHeader;
+		packetHeader.packetType = ProtocolPacketTypeConnectResponse;
+		packetHeader.packetID = 0;
 		
 		EOS_P2P_SendPacketOptions connectConfirmOptions = {0};
 		connectConfirmOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -223,27 +242,19 @@ namespace RN
 		connectConfirmOptions.Channel = 0;
 		connectConfirmOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
 		connectConfirmOptions.bAllowDelayedDelivery = true;
-		connectConfirmOptions.DataLengthBytes = 9;
-		connectConfirmOptions.Data = "CONNECTED";
+		connectConfirmOptions.DataLengthBytes = sizeof(packetHeader);
+		connectConfirmOptions.Data = &packetHeader;
 		
 		EOS_P2P_SendPacket(world->GetP2PHandle(), &connectConfirmOptions);
 
-		server->HandleDidConnect(peer.id);
+		server->HandleDidConnect(peer.userID);
 	}
 
 	void EOSServer::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
 	{
 		EOSServer *server = static_cast<EOSServer*>(Data->ClientData);
 		
-		//TODO: Make getting peer index from senderID nicer
-		uint16 id = 0;
-		for(int i = 0; i < server->_peers.size(); i++)
-		{
-			if(server->_peers[i].peer == Data->RemoteUserId)
-			{
-				id = i;
-			}
-		}
+		uint16 id = server->GetUserIDForInternalID(Data->RemoteUserId);
 		
 		RNDebug("Client disconnected: " << id);
 		server->_peers.erase(id);

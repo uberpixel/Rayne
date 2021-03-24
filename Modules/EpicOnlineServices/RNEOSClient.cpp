@@ -71,6 +71,10 @@ namespace RN
 		socketID.SocketName[6] = 'a';
 		socketID.SocketName[7] = 'h';
 		
+		ProtocolPacketHeader packetHeader;
+		packetHeader.packetType = ProtocolPacketTypeConnectRequest;
+		packetHeader.packetID = 0;
+		
 		EOS_P2P_SendPacketOptions connectionOptions = {0};
 		connectionOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
 		connectionOptions.SocketId = &socketID;
@@ -79,15 +83,13 @@ namespace RN
 		connectionOptions.Channel = 0;
 		connectionOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
 		connectionOptions.bAllowDelayedDelivery = true;
-		connectionOptions.DataLengthBytes = 7;
-		connectionOptions.Data = "CONNECT";
+		connectionOptions.DataLengthBytes = sizeof(packetHeader);
+		connectionOptions.Data = &packetHeader;
 		
 		EOS_P2P_SendPacket(world->GetP2PHandle(), &connectionOptions);
 
-		Peer peer;
-		peer.id = 0;
-		peer.peer = serverProductID;
-		if(peer.peer == NULL)
+		const Peer &peer = CreatePeer(0, serverProductID);
+		if(peer.internalID == NULL)
 		{
 			RNDebug("Couldn't connect to server!");
 			_status = Status::Disconnected;
@@ -95,7 +97,7 @@ namespace RN
 			return;
 		}
 
-		_peers.insert(std::pair<uint16, Peer>(peer.id, peer));
+		_peers.insert(std::pair<uint16, Peer>(peer.userID, peer));
 		
 		Unlock();
 	}
@@ -153,7 +155,7 @@ namespace RN
 
 	void EOSClient::Update(float delta)
 	{
-		EOSHost::Update(delta);
+		EOSHost::Update(delta); //Needs to go first as it picks out some packets!
 		
 		Lock();
 		if(_status == Status::Disconnected)
@@ -170,6 +172,12 @@ namespace RN
 		nextPacketSizeOptions.LocalUserId = world->GetUserID();
 		while(EOS_P2P_GetNextReceivedPacketSize(world->GetP2PHandle(), &nextPacketSizeOptions, &nextPacketSize) == EOS_EResult::EOS_Success)
 		{
+			if(nextPacketSize < sizeof(ProtocolPacketHeader))
+			{
+				RNDebug("Packet too small, this is not supposed to ever happen...");
+				continue;
+			}
+			
 			EOS_P2P_ReceivePacketOptions receiveOptions = {0};
 			receiveOptions.ApiVersion = EOS_P2P_RECEIVEPACKET_API_LATEST;
 			receiveOptions.LocalUserId = world->GetUserID();
@@ -180,22 +188,45 @@ namespace RN
 			uint8 channel = 0;
 			uint32 bytesWritten = 0;
 			
-			Data *data = Data::WithBytes(nullptr, nextPacketSize);
-			if(EOS_P2P_ReceivePacket(world->GetP2PHandle(), &receiveOptions, &senderUserID, &socketID, &channel, data->GetBytes(), &bytesWritten) != EOS_EResult::EOS_Success)
+			uint8 *rawData = new uint8[nextPacketSize];
+			
+			if(EOS_P2P_ReceivePacket(world->GetP2PHandle(), &receiveOptions, &senderUserID, &socketID, &channel, rawData, &bytesWritten) != EOS_EResult::EOS_Success)
 			{
 				RNDebug("Failed receiving Data");
 				break;
 			}
 			
-			if(data->GetLength() == 9 && String::WithBytes(data->GetBytes(), data->GetLength(), Encoding::UTF8)->IsEqual(RNCSTR("CONNECTED")))
+			ProtocolPacketHeader packetHeader;
+			packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[0]);
+			packetHeader.packetID = rawData[1];
+			
+			if(packetHeader.packetType == ProtocolPacketTypeConnectResponse)
 			{
-				RNDebug("Connected!");
-				_status = Status::Connected;
-				Unlock();
-				HandleDidConnect(0);
-				Lock();
+				if(packetHeader.packetID == 0)
+				{
+					RNDebug("Connected!");
+					_status = Status::Connected;
+					Unlock();
+					HandleDidConnect(0);
+					Lock();
+				}
+				else
+				{
+					RNDebug("Malformed connect response");
+				}
+				delete[] rawData;
 				continue;
 			}
+			
+			if(!IsPacketInOrder(0, packetHeader.packetID, channel))
+			{
+				delete[] rawData;
+				continue;
+			}
+			
+			//Get data object from the packet without protocol header
+			Data *data = Data::WithBytes(&rawData[2], nextPacketSize-2);
+			delete[] rawData;
 			
 			Unlock();
 			ReceivedPacket(data, 0, channel);
