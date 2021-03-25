@@ -127,7 +127,7 @@ namespace RN
 			}
 			
 			uint16 senderID = GetUserIDForInternalID(senderUserID);
-			if(!IsPacketInOrder(packetHeader.packetType == ProtocolPacketTypeReliableData, senderID, packetHeader.packetID, channel))
+			if(!IsPacketInOrder(packetHeader.packetType, senderID, packetHeader.packetID, channel))
 			{
 				delete[] rawData;
 				continue;
@@ -226,7 +226,7 @@ namespace RN
 		
 		RNDebug("A new client connected");
 		const Peer &peer = server->CreatePeer(server->GetUserID(), Data->RemoteUserId);
-		//EOS_peer_timeout(peer.peer, 0, 0, 0);
+		server->SetTimeout(peer.userID, 0, 0, 0);
 		server->_peers.insert(std::pair<uint16, Peer>(peer.userID, peer));
 		
 		

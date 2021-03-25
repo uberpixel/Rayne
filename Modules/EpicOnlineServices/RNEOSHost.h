@@ -48,9 +48,12 @@ namespace RN
 			
 			uint8 _packetIDForChannel[254];
 			uint8 _receivedIDForChannel[254];
+			uint8 _lastReliableIDForChannel[254];
 			
 			uint8 _lastPingID;
 			struct timespec _sentPingTime;
+			
+			bool _hasReliableInTransit;
 		};
 		
 		struct Packet
@@ -92,7 +95,7 @@ namespace RN
 		EOSAPI virtual void HandleDidDisconnect(uint16 userID, uint16 data) {};
 		
 		EOSAPI void SendPing(uint16 receiverID, bool isResponse, uint8 responseID);
-		EOSAPI bool IsPacketInOrder(bool isReliable, uint16 senderID, uint8 packetID, uint8 channel);
+		EOSAPI bool IsPacketInOrder(EOSHost::ProtocolPacketType packetType, uint16 senderID, uint8 packetID, uint8 channel);
 
 		Status _status;
 		float _pingTimer;

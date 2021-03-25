@@ -29,11 +29,54 @@ namespace RN
 		
 	}
 
-	bool EOSHost::IsPacketInOrder(bool isReliable, uint16 senderID, uint8 packetID, uint8 channel)
+	bool EOSHost::IsPacketInOrder(EOSHost::ProtocolPacketType packetType, uint16 senderID, uint8 packetID, uint8 channel)
 	{
-		//This assumes that less than 127 packets are ever lost at once...
+		EOSWorld *world = EOSWorld::GetInstance();
 		Peer &peer = _peers[senderID];
-		if(isReliable || peer._receivedIDForChannel[channel] < packetID || (peer._receivedIDForChannel[channel] > 127 && packetID < 127))
+		
+		//Send ack for reliable data. EOS has something like this internally, but does not expose any of it :(
+		if(packetType == ProtocolPacketTypeReliableData)
+		{
+			EOS_P2P_SocketId socketID = {0};
+			socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
+			socketID.SocketName[0] = 'F';
+			socketID.SocketName[1] = 'u';
+			socketID.SocketName[2] = 'c';
+			socketID.SocketName[3] = 'k';
+			socketID.SocketName[4] = 'Y';
+			socketID.SocketName[5] = 'e';
+			socketID.SocketName[6] = 'a';
+			socketID.SocketName[7] = 'h';
+			
+			ProtocolPacketHeader packetHeader;
+			packetHeader.packetType = ProtocolPacketTypeReliableDataAck;
+			packetHeader.packetID = packetID;
+			
+			EOS_P2P_SendPacketOptions sendPacketOptions = {0};
+			sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+			sendPacketOptions.Channel = channel;
+			sendPacketOptions.LocalUserId = world->GetUserID();
+			sendPacketOptions.RemoteUserId = peer.internalID;
+			sendPacketOptions.SocketId = &socketID;
+			sendPacketOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
+			sendPacketOptions.bAllowDelayedDelivery = false;
+			sendPacketOptions.Data = &packetHeader;
+			sendPacketOptions.DataLengthBytes = sizeof(packetHeader);
+			EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+		}
+		
+		//Handle reliable data ack
+		if(packetType == ProtocolPacketTypeReliableDataAck)
+		{
+			//TODO: need to somehow flag relaible data in transit per channel instead of global for peer!?
+			if(peer._hasReliableInTransit && packetID == peer._lastReliableIDForChannel[channel])
+			{
+				peer._hasReliableInTransit = false;
+			}
+		}
+		
+		//This assumes that less than 127 packets are ever lost at once...
+		if(packetType == ProtocolPacketTypeReliableData || peer._receivedIDForChannel[channel] < packetID || (peer._receivedIDForChannel[channel] > 127 && packetID < 127))
 		{
 			peer._receivedIDForChannel[channel] = packetID;
 			return true;
@@ -88,6 +131,8 @@ namespace RN
 
 	void EOSHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
+		//TODO: Split up packet if too big (whatever too big is for EOS...)
+		
 		Lock();
 		if(_peers.size() == 0 || _peers.find(receiverID) == _peers.end())
 		{
@@ -190,14 +235,17 @@ namespace RN
 		{
 			if(_peers.size() > 0 && _peers.find(_scheduledPackets.front().receiverID) != _peers.end())
 			{
+				uint8 headerData[2];
+				headerData[1] = _peers[_scheduledPackets.front().receiverID]._packetIDForChannel[_scheduledPackets.front().channel]++;
+				
 				ProtocolPacketType packetType = ProtocolPacketTypeData;
 				if(_scheduledPackets.front().isReliable)
 				{
 					packetType = ProtocolPacketTypeReliableData;
+					_peers[_scheduledPackets.front().receiverID]._hasReliableInTransit = true;
+					_peers[_scheduledPackets.front().receiverID]._lastReliableIDForChannel[_scheduledPackets.front().channel] = headerData[1];
 				}
-				uint8 headerData[2];
 				headerData[0] = static_cast<ProtocolPacketType>(packetType);
-				headerData[1] = _peers[_scheduledPackets.front().receiverID]._packetIDForChannel[_scheduledPackets.front().channel]++;
 
 				Data *data = Data::WithBytes(headerData, 2);
 				data->Append(_scheduledPackets.front().data);
@@ -228,11 +276,13 @@ namespace RN
 		peer.internalID = internalID;
 		peer.smoothedPing = 50.0;
 		peer._lastPingID = 0;
+		peer._hasReliableInTransit = false;
 		
 		for(int i = 0; i < 254; i++)
 		{
 			peer._packetIDForChannel[i] = 0;
 			peer._receivedIDForChannel[i] = 255;
+			peer._lastReliableIDForChannel[i] = 0;
 		}
 		
 		return peer;
@@ -251,13 +301,13 @@ namespace RN
 
 	bool EOSHost::HasReliableDataInTransit()
 	{
-/*		for(auto iter : _peers)
+		for(auto iter : _peers)
 		{
-			if(iter.second.peer->reliableDataInTransit > 0)
+			if(iter.second._hasReliableInTransit)
 			{
 				return true;
 			}
-		}*/
+		}
 		
 		return false;
 	}
