@@ -122,6 +122,11 @@ namespace RN
 		EOS_Lobby_LeaveLobby(_lobbyInterfaceHandle, &leaveOptions, this, LobbyOnLeaveCallback);
 	}
 
+	void EOSLobbyManager::ResetLobbySearchCallback()
+	{
+		_lobbySearchCallback = nullptr;
+	}
+
 	void EOSLobbyManager::LobbyOnCreateCallback(const EOS_Lobby_CreateLobbyCallbackInfo* Data)
 	{
 		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
