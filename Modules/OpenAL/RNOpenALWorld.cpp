@@ -302,12 +302,7 @@ namespace RN
 			ALint sampleCount = 0;
 			alcGetIntegerv(_inputDevice, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sampleCount);
 			alcCaptureSamples(_inputDevice, (ALCvoid *)_inputBufferTemp, sampleCount);
-
-			for(int i = 0; i < sampleCount; i += 1)
-			{
-				float value = static_cast<float>(_inputBufferTemp[i])/32768.0f;
-				_inputBuffer->PushData(&value, 4);
-			}
+			_inputBuffer->PushData(_inputBufferTemp, sampleCount * 2);
 		}
 	}
 
