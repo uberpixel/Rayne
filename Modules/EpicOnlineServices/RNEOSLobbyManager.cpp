@@ -32,7 +32,7 @@ namespace RN
 		EOS_LobbyDetails_Release(lobbyHandle);
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 	}
@@ -116,11 +116,22 @@ namespace RN
 	{
 		if(!_isConnectedToLobby) return;
 		
-		EOS_Lobby_LeaveLobbyOptions leaveOptions = {0};
-		leaveOptions.ApiVersion = EOS_LOBBY_LEAVELOBBY_API_LATEST;
-		leaveOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
-		leaveOptions.LobbyId = _connectedLobbyID->GetUTF8String();
-		EOS_Lobby_LeaveLobby(_lobbyInterfaceHandle, &leaveOptions, this, LobbyOnLeaveCallback);
+		if(_isConnectedLobbyOwner)
+		{
+			EOS_Lobby_DestroyLobbyOptions destroyOptions = {0};
+			destroyOptions.ApiVersion = EOS_LOBBY_DESTROYLOBBY_API_LATEST;
+			destroyOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+			destroyOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+			EOS_Lobby_DestroyLobby(_lobbyInterfaceHandle, &destroyOptions, this, LobbyOnDestroyCallback);
+		}
+		else
+		{
+			EOS_Lobby_LeaveLobbyOptions leaveOptions = {0};
+			leaveOptions.ApiVersion = EOS_LOBBY_LEAVELOBBY_API_LATEST;
+			leaveOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+			leaveOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+			EOS_Lobby_LeaveLobby(_lobbyInterfaceHandle, &leaveOptions, this, LobbyOnLeaveCallback);
+		}
 	}
 
 	void EOSLobbyManager::ResetLobbySearchCallback()
@@ -138,6 +149,7 @@ namespace RN
 			
 			lobbyManager->_isConnectedToLobby = true;
 			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
+			lobbyManager->_isConnectedLobbyOwner = true;
 			
 			EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
 			modificationOptions.ApiVersion = EOS_LOBBY_UPDATELOBBYMODIFICATION_API_LATEST;
@@ -321,6 +333,26 @@ namespace RN
 		
 		lobbyManager->_isJoiningLobby = false;
 		lobbyManager->_isConnectedToLobby = false;
+		lobbyManager->_isConnectedLobbyOwner = false;
+		SafeRelease(lobbyManager->_connectedLobbyID);
+	}
+
+	void EOSLobbyManager::LobbyOnDestroyCallback(const EOS_Lobby_DestroyLobbyCallbackInfo *Data)
+	{
+		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
+		
+		if(Data->ResultCode == EOS_EResult::EOS_Success)
+		{
+			RNDebug("Destroyed lobby successfully");
+		}
+		else
+		{
+			RNDebug("Failed destroying lobby");
+		}
+		
+		lobbyManager->_isJoiningLobby = false;
+		lobbyManager->_isConnectedToLobby = false;
+		lobbyManager->_isConnectedLobbyOwner = false;
 		SafeRelease(lobbyManager->_connectedLobbyID);
 	}
 }
