@@ -40,6 +40,9 @@ namespace RN
 		
 		uint16 GetUserID();
 		void ReleaseUserID(uint16 userID);
+
+		uint64 _connectionClosedNotificationID;
+		uint64 _connectionRequestNotificationID;
 			
 		RNDeclareMetaAPI(EOSServer, EOSAPI)
 	};

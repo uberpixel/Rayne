@@ -32,6 +32,7 @@ namespace RN
 		static void OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data);
 		
 		void ForceDisconnect();
+		uint64 _connectionClosedNotificationID;
 			
 		RNDeclareMetaAPI(EOSClient, EOSAPI)
 	};

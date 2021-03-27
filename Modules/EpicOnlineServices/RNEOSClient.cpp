@@ -41,14 +41,15 @@ namespace RN
 		disconnectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONCLOSED_API_LATEST;
 		disconnectListenerOptions.LocalUserId = world->GetUserID();
 		disconnectListenerOptions.SocketId = &socketID;
-		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
+		_connectionClosedNotificationID = EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
 		
 		Unlock();
 	}
 		
 	EOSClient::~EOSClient()
 	{
-		
+		EOSWorld *world = EOSWorld::GetInstance();
+		EOS_P2P_RemoveNotifyPeerConnectionClosed(world->GetP2PHandle(), _connectionClosedNotificationID);
 	}
 
 	void EOSClient::Connect(EOS_ProductUserId serverProductID)

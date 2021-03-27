@@ -41,20 +41,22 @@ namespace RN
 		connectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONREQUEST_API_LATEST;
 		connectListenerOptions.LocalUserId = world->GetUserID();
 		connectListenerOptions.SocketId = &socketID;
-		EOS_P2P_AddNotifyPeerConnectionRequest(world->GetP2PHandle(), &connectListenerOptions, this, OnConnectionRequestCallback);
+		_connectionRequestNotificationID = EOS_P2P_AddNotifyPeerConnectionRequest(world->GetP2PHandle(), &connectListenerOptions, this, OnConnectionRequestCallback);
 		
 		EOS_P2P_AddNotifyPeerConnectionClosedOptions disconnectListenerOptions = {0};
 		disconnectListenerOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONCLOSED_API_LATEST;
 		disconnectListenerOptions.LocalUserId = world->GetUserID();
 		disconnectListenerOptions.SocketId = &socketID;
-		EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
+		_connectionClosedNotificationID = EOS_P2P_AddNotifyPeerConnectionClosed(world->GetP2PHandle(), &disconnectListenerOptions, this, OnConnectionClosedCallback);
 		
 		Unlock();
 	}
 		
 	EOSServer::~EOSServer()
 	{
-		
+		EOSWorld *world = EOSWorld::GetInstance();
+		EOS_P2P_RemoveNotifyPeerConnectionClosed(world->GetP2PHandle(), _connectionClosedNotificationID);
+		EOS_P2P_RemoveNotifyPeerConnectionRequest(world->GetP2PHandle(), _connectionRequestNotificationID);
 	}
 
 	uint16 EOSServer::GetUserID()
