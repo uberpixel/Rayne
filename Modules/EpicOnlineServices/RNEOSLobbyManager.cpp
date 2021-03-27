@@ -32,7 +32,7 @@ namespace RN
 		EOS_LobbyDetails_Release(lobbyHandle);
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 	}
@@ -42,12 +42,13 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(uint8 maxUsers, std::function<void()> callback)
+	void EOSLobbyManager::CreateLobby(String *lobbyName, uint8 maxUsers, std::function<void()> callback)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
+		_createLobbyName = SafeRetain(lobbyName);
 		
 		EOS_Lobby_CreateLobbyOptions options = {};
 		options.ApiVersion = EOS_LOBBY_CREATELOBBY_API_LATEST;
@@ -163,6 +164,16 @@ namespace RN
 			
 			EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
 			
+			if(lobbyManager->_createLobbyName)
+			{
+				attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
+				attributeData.Key = "lobbyName";
+				attributeData.Value.AsUtf8 = lobbyManager->_createLobbyName->GetUTF8String();
+				attributeOptions.Attribute = &attributeData;
+				EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+				SafeRelease(lobbyManager->_createLobbyName);
+			}
+			
 			EOS_Lobby_UpdateLobbyOptions updateLobbyOptions = {0};
 			updateLobbyOptions.ApiVersion = EOS_LOBBY_UPDATELOBBY_API_LATEST;
 			updateLobbyOptions.LobbyModificationHandle = modificationHandle;
@@ -211,7 +222,6 @@ namespace RN
 					continue;
 				}
 				
-				String *serverName = nullptr;
 				String *lobbyID = nullptr;
 				uint8 currentPlayerCount = 0;
 				uint8 maxPlayerCount = 0;
@@ -223,14 +233,14 @@ namespace RN
 				
 				EOS_LobbyDetails_CopyAttributeByKeyOptions copyAttributesOptions = {0};
 				copyAttributesOptions.ApiVersion = EOS_LOBBYDETAILS_COPYATTRIBUTEBYKEY_API_LATEST;
-				copyAttributesOptions.AttrKey = "serverName";
-				EOS_Lobby_Attribute *serverNameAttribute = nullptr;
-				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &serverNameAttribute);
+				copyAttributesOptions.AttrKey = "lobbyName";
+				EOS_Lobby_Attribute *lobbyNameAttribute = nullptr;
+				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &lobbyNameAttribute);
 				
-				if(serverNameAttribute)
+				if(lobbyNameAttribute)
 				{
-					lobbyInfo->lobbyName = new String(serverNameAttribute->Data->Value.AsUtf8);
-					EOS_Lobby_Attribute_Release(serverNameAttribute);
+					lobbyInfo->lobbyName = new String(lobbyNameAttribute->Data->Value.AsUtf8);
+					EOS_Lobby_Attribute_Release(lobbyNameAttribute);
 				}
 				
 				
