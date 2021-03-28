@@ -40,9 +40,14 @@ namespace RN
 		return _instance;
 	}
 
-	EOSWorld::EOSWorld() : _hosts(new Array()), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
+	EOSWorld::EOSWorld(std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
+		
+		if(externalLoginCallback)
+		{
+			_externalLoginCallback = std::move(externalLoginCallback);
+		}
 
 #if RN_PLATFORM_ANDROID
 		EOS_InitializeOptions SDKOptions = { 0 };
@@ -97,10 +102,12 @@ namespace RN
 		
 		_connectInterfaceHandle = EOS_Platform_GetConnectInterface(_platformHandle);
 		_p2pInterfaceHandle = EOS_Platform_GetP2PInterface(_platformHandle);
+		
+		EOS_Connect_AddNotifyAuthExpirationOptions authExpirationOptions = {0};
+		authExpirationOptions.ApiVersion = EOS_CONNECT_ADDNOTIFYAUTHEXPIRATION_API_LATEST;
+		EOS_Connect_AddNotifyAuthExpiration(_connectInterfaceHandle, &authExpirationOptions, this, ConnectOnAuthExpirationCallback);
 
-#if !RN_PLATFORM_ANDROID
 		LoginUser();
-#endif
 
 		_instance = this;
 	}
@@ -112,8 +119,6 @@ namespace RN
 
 		_instance = nullptr;
 		EOS_Shutdown();
-
-		SafeRelease(_loginToken);
 	}
 
 	void EOSWorld::Update(float delta)
@@ -123,12 +128,6 @@ namespace RN
 		_hosts->Enumerate<EOSHost>([&](EOSHost *host, size_t index, bool &stop) {
 			host->Update(delta);
 		});
-	}
-
-	void EOSWorld::StartOculusLogin(String *userID, String *nonce)
-	{
-		_loginToken = RNSTR(userID << "|" << nonce)->Retain();
-		LoginUser();
 	}
 
 	void EOSWorld::AddHost(EOSHost *host)
@@ -292,26 +291,53 @@ namespace RN
 
 	void EOSWorld::LoginUser()
 	{
-		EOS_Connect_Credentials connectCredentials = {};
-		connectCredentials.ApiVersion = EOS_CONNECT_CREDENTIALS_API_LATEST;
+		std::function<void(String *, String *, EOSAuthServiceType)> loginCallback = [&](String *userName, String *loginToken, EOSAuthServiceType serviceType){
+			
+			EOS_Connect_Credentials connectCredentials = {};
+			connectCredentials.ApiVersion = EOS_CONNECT_CREDENTIALS_API_LATEST;
 
-#if RN_PLATFORM_ANDROID
-		connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OCULUS_USERID_NONCE;
-		connectCredentials.Token = _loginToken->GetUTF8String();
-#else
-		connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_DEVICEID_ACCESS_TOKEN;
-#endif
-		
-		EOS_Connect_UserLoginInfo userInfo;
-		userInfo.ApiVersion = EOS_CONNECT_USERLOGININFO_API_LATEST;
-		userInfo.DisplayName = "Slin";
-		
-		EOS_Connect_LoginOptions connectOptions = {0};
-		connectOptions.ApiVersion = EOS_CONNECT_LOGIN_API_LATEST;
-		connectOptions.Credentials = &connectCredentials;
-		connectOptions.UserLoginInfo = &userInfo;
+			if(loginToken && serviceType != EOSAuthServiceTypeNone)
+			{
+				if(serviceType == EOSAuthServiceTypeOculus)
+				{
+					connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OCULUS_USERID_NONCE;
+				}
+				
+				connectCredentials.Token = loginToken->GetUTF8String();
+			}
+			else
+			{
+				connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_DEVICEID_ACCESS_TOKEN;
+			}
+			
+			EOS_Connect_UserLoginInfo userInfo;
+			userInfo.ApiVersion = EOS_CONNECT_USERLOGININFO_API_LATEST;
+			if(userName)
+			{
+				userInfo.DisplayName = userName->GetUTF8String();
+			}
+			else
+			{
+				userInfo.DisplayName = "__NO_NAME__";
+			}
+			
+			EOS_Connect_LoginOptions connectOptions = {0};
+			connectOptions.ApiVersion = EOS_CONNECT_LOGIN_API_LATEST;
+			connectOptions.Credentials = &connectCredentials;
+			connectOptions.UserLoginInfo = &userInfo;
 
-		EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
+			EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
+		};
+		
+		if(_externalLoginCallback)
+		{
+			_externalLoginCallback(loginCallback);
+		}
+		else
+		{
+			loginCallback(nullptr, nullptr, EOSAuthServiceTypeNone);
+		}
+		
 	}
 
 	void EOSWorld::LoggingCallback(const EOS_LogMessage *Message)
@@ -381,5 +407,12 @@ namespace RN
 		{
 			RNDebug("Login failed");
 		}
+	}
+
+	void EOSWorld::ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data)
+	{
+		RNDebug("EOS auth is about to expire, starting renew process");
+		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+		eosWorld->LoginUser();
 	}
 }

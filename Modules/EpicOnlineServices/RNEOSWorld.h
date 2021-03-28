@@ -31,18 +31,23 @@ typedef struct _tagEOS_LogMessage EOS_LogMessage;
 typedef struct _tagEOS_Connect_LoginCallbackInfo EOS_Connect_LoginCallbackInfo;
 typedef struct _tagEOS_Connect_CreateDeviceIdCallbackInfo EOS_Connect_CreateDeviceIdCallbackInfo;
 typedef struct _tagEOS_Connect_CreateUserCallbackInfo EOS_Connect_CreateUserCallbackInfo;
+typedef struct _tagEOS_Connect_AuthExpirationCallbackInfo EOS_Connect_AuthExpirationCallbackInfo;
 
 namespace RN
 {
+	enum EOSAuthServiceType
+	{
+		EOSAuthServiceTypeNone,
+		EOSAuthServiceTypeOculus
+	};
+
 	class EOSWorld : public SceneAttachment
 	{
 	public:
 		EOSAPI static EOSWorld *GetInstance();
 
-		EOSAPI EOSWorld();
+		EOSAPI EOSWorld(std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback);
 		EOSAPI ~EOSWorld() override;
-
-		EOSAPI void StartOculusLogin(String *userID, String *nonce);
 		
 		EOSAPI void AddHost(EOSHost *host);
 		EOSAPI void RemoveHost(EOSHost *host);
@@ -63,14 +68,16 @@ namespace RN
 		static void ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data);
 		static void ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data);
 		static void ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data);
+		static void ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data);
 		
 		void CreateDeviceID();
 		void LoginUser();
 		
 		static EOSWorld *_instance;
 		Array *_hosts;
+		
+		std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> _externalLoginCallback;
 
-		String *_loginToken;
 		bool _isLoggedIn;
 		EOS_ProductUserId _loggedInUserID;
 		
