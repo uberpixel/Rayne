@@ -11,7 +11,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus or steam)')
+		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -32,7 +32,7 @@ def main():
 		return
 
 	configuration = sys.argv[3]
-	supportedTypes = ['independent', 'oculus', 'steam', 'gamelift', 'test']
+	supportedTypes = ['independent', 'oculus', 'steam', 'headless', 'test']
 	if not configuration in supportedTypes:
 		print('Build type (' + configuration + ') not supported!')
 		return
