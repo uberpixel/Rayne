@@ -230,7 +230,9 @@ namespace RN
 			}
 			delete[] rawData;
 		}
-		
+
+		std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
+
 		while(_scheduledPackets.size() > 0)
 		{
 			if(_peers.size() > 0 && _peers.find(_scheduledPackets.front().receiverID) != _peers.end())
@@ -266,6 +268,14 @@ namespace RN
 			_scheduledPackets.front().data->Release();
 			_scheduledPackets.pop();
 		}
+
+		std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+		double totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+		if(totalTime > 5)
+		{
+			RNDebug("Sending messages took " << totalTime << "ms");
+		}
+
 		Unlock();
 	}
 

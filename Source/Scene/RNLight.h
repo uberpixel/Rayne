@@ -110,7 +110,7 @@ namespace RN
 		RNAPI void SetIntensity(float intensity);
 		
 		const Color &GetColor() const { return _color; }
-		const Vector3 &GetFinalColor() { return _finalColor; }
+		const Vector4 &GetFinalColor() const { return _finalColor; }
 		
 		const Type GetType() const { return _lightType; }
 		float GetRange() const { return _range; }
@@ -140,7 +140,7 @@ namespace RN
 		Type _lightType;
 		
 		Color _color;
-		Vector3 _finalColor;
+		Vector4 _finalColor;
 		
 		float _intensity;
 		float _range;

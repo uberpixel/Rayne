@@ -1537,7 +1537,7 @@ namespace RN
 		{
 			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
 			{
-				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetColor() });
+				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetFinalColor() });
 			}
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
@@ -1552,14 +1552,14 @@ namespace RN
 		{
 			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
 			{
-				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetColor() });
+				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
 			}
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
 			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
 			{
-				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetColor() });
+				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
 			}
 		}
 	}

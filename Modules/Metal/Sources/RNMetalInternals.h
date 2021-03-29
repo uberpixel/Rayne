@@ -128,7 +128,7 @@ namespace RN
 	{
 		Vector3 position;
 		float range;
-		Color color;
+		Vector4 color;
 	};
 
 	struct MetalSpotLight
@@ -137,13 +137,13 @@ namespace RN
 		float range;
 		Vector3 direction;
 		float angle;
-		Color color;
+		Vector4 color;
 	};
 
 	struct MetalDirectionalLight
 	{
 		Vector3 direction;
-		Color color;
+		Vector4 color;
 	};
 
 	struct MetalRenderPass

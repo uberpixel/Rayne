@@ -57,14 +57,14 @@ namespace RN
 	{
 		Vector3 direction;
 		float padding;
-		Color color;
+		Vector4 color;
 	};
 
 	struct VulkanPointLight
 	{
 		Vector3 position;
 		float range;
-		Color color;
+		Vector4 color;
 	};
 
 	struct VulkanSpotLight
@@ -73,7 +73,7 @@ namespace RN
 		float range;
 		Vector3 direction;
 		float angle;
-		Color color;
+		Vector4 color;
 	};
 
 	struct D3D12RenderPass

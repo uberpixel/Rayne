@@ -540,7 +540,6 @@ namespace RN
 
 	void Light::ReCalculateColor()
 	{
-		_finalColor = Vector3(_color.r, _color.g, _color.b);
-		_finalColor *= (float)_intensity;
+		_finalColor = Vector4(_color.r * _intensity, _color.g * _intensity, _color.b * _intensity, _color.a);
 	}
 }
