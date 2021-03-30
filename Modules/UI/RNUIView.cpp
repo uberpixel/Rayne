@@ -173,9 +173,9 @@ namespace RN
 			subview->WillMoveToSuperview(this);
 
 			_subviews->AddObject(subview);
-			AddChild(subview);
-
 			subview->_superview = this;
+			
+			AddChild(subview);
 			subview->CalculateScissorRect();
 
 			subview->DidMoveToSuperview(this);
@@ -281,9 +281,9 @@ namespace RN
 		{
 			if(changeSet == ChangeSet::World)
 			{
-				if(GetParent() && !GetSceneInfo())
+				if(_superview && !GetSceneInfo())
 				{
-					SetRenderPriority(GetParent()->GetRenderPriority() + 1);
+					SetRenderPriority(_superview->GetRenderPriority() + 1);
 				}
 			}
 			
