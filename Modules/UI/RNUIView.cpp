@@ -276,6 +276,19 @@ namespace RN
 		{}
 		void View::DidMoveToSuperview(View *superview)
 		{}
+	
+		void View::WillUpdate(ChangeSet changeSet)
+		{
+			if(changeSet == ChangeSet::World)
+			{
+				if(GetParent() && !GetSceneInfo())
+				{
+					SetRenderPriority(GetParent()->GetRenderPriority() + 1);
+				}
+			}
+			
+			SceneNode::WillUpdate(changeSet);
+		}
 
 		// ---------------------
 		// MARK: -

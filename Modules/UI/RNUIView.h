@@ -70,6 +70,8 @@ namespace RN
 			
 			UIAPI virtual void UpdateModel();
 			
+			UIAPI void WillUpdate(ChangeSet changeSet) override;
+			
 			bool _needsMeshUpdate;
 
 		private:
