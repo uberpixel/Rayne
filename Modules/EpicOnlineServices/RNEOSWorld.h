@@ -46,7 +46,7 @@ namespace RN
 	public:
 		EOSAPI static EOSWorld *GetInstance();
 
-		EOSAPI EOSWorld(std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback);
+		EOSAPI EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback);
 		EOSAPI ~EOSWorld() override;
 		
 		EOSAPI void AddHost(EOSHost *host);

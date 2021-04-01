@@ -21,7 +21,7 @@ namespace RN
 	RNDefineMeta(EOSLobbyInfo, Object)
 	RNDefineMeta(EOSLobbyManager, Object)
 
-	EOSLobbyInfo::EOSLobbyInfo(): lobbyName(nullptr), maximumPlayerCount(0),  currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr)
+	EOSLobbyInfo::EOSLobbyInfo(): lobbyName(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0),  currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr)
 	{
 		
 	}
@@ -29,10 +29,11 @@ namespace RN
 	EOSLobbyInfo::~EOSLobbyInfo()
 	{
 		SafeRelease(lobbyName);
+		SafeRelease(lobbyVersion);
 		EOS_LobbyDetails_Release(lobbyHandle);
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 	}
@@ -42,13 +43,14 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(String *lobbyName, uint8 maxUsers, std::function<void()> callback)
+	void EOSLobbyManager::CreateLobby(String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
 		_createLobbyName = SafeRetain(lobbyName);
+		_createLobbyVersion = SafeRetain(lobbyVersion);
 		
 		EOS_Lobby_CreateLobbyOptions options = {};
 		options.ApiVersion = EOS_LOBBY_CREATELOBBY_API_LATEST;
@@ -186,6 +188,16 @@ namespace RN
 				SafeRelease(lobbyManager->_createLobbyName);
 			}
 			
+			if(lobbyManager->_createLobbyVersion)
+			{
+				attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
+				attributeData.Key = "lobbyVersion";
+				attributeData.Value.AsUtf8 = lobbyManager->_createLobbyVersion->GetUTF8String();
+				attributeOptions.Attribute = &attributeData;
+				EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+				SafeRelease(lobbyManager->_createLobbyVersion);
+			}
+			
 			EOS_Lobby_UpdateLobbyOptions updateLobbyOptions = {0};
 			updateLobbyOptions.ApiVersion = EOS_LOBBY_UPDATELOBBY_API_LATEST;
 			updateLobbyOptions.LobbyModificationHandle = modificationHandle;
@@ -248,11 +260,19 @@ namespace RN
 				copyAttributesOptions.AttrKey = "lobbyName";
 				EOS_Lobby_Attribute *lobbyNameAttribute = nullptr;
 				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &lobbyNameAttribute);
-				
 				if(lobbyNameAttribute)
 				{
 					lobbyInfo->lobbyName = new String(lobbyNameAttribute->Data->Value.AsUtf8);
 					EOS_Lobby_Attribute_Release(lobbyNameAttribute);
+				}
+				
+				copyAttributesOptions.AttrKey = "lobbyVersion";
+				EOS_Lobby_Attribute *lobbyVersionAttribute = nullptr;
+				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &lobbyVersionAttribute);
+				if(lobbyVersionAttribute)
+				{
+					lobbyInfo->lobbyVersion = new String(lobbyVersionAttribute->Data->Value.AsUtf8);
+					EOS_Lobby_Attribute_Release(lobbyVersionAttribute);
 				}
 				
 				

@@ -40,7 +40,7 @@ namespace RN
 		return _instance;
 	}
 
-	EOSWorld::EOSWorld(std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
+	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
 		
@@ -49,12 +49,12 @@ namespace RN
 			_externalLoginCallback = std::move(externalLoginCallback);
 		}
 
-#if RN_PLATFORM_ANDROID
 		EOS_InitializeOptions SDKOptions = { 0 };
 		SDKOptions.ApiVersion = EOS_INITIALIZE_API_LATEST;
-		SDKOptions.ProductName = "Concealed";
-		SDKOptions.ProductVersion = "0.1";
-
+		SDKOptions.ProductName = productName->GetUTF8String();
+		SDKOptions.ProductVersion = productVersion->GetUTF8String();
+		
+#if RN_PLATFORM_ANDROID
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 
 		static EOS_Android_InitializeOptions JNIOptions = { 0 };
@@ -65,33 +65,23 @@ namespace RN
 		JNIOptions.OptionalExternalDirectory = app->activity->externalDataPath;
 
 		SDKOptions.SystemInitializeOptions = &JNIOptions;
-
-		if(EOS_Initialize(&SDKOptions) != EOS_EResult::EOS_Success)
-		{
-			RNDebug("Failed initializing EOS.");
-		}
-#else
-		EOS_InitializeOptions SDKOptions = { 0 };
-		SDKOptions.ApiVersion = EOS_INITIALIZE_API_LATEST;
-		SDKOptions.ProductName = "Concealed";
-		SDKOptions.ProductVersion = "0.1";
-
-		if(EOS_Initialize(&SDKOptions) != EOS_EResult::EOS_Success)
-		{
-			RNDebug("Failed initializing EOS.");
-		}
 #endif
 		
+		if(EOS_Initialize(&SDKOptions) != EOS_EResult::EOS_Success)
+		{
+			RNDebug("Failed initializing EOS.");
+		}
+		
 		EOS_Logging_SetCallback(LoggingCallback);
-		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_VeryVerbose);
+		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, /*EOS_ELogLevel::EOS_LOG_Warning*/EOS_ELogLevel::EOS_LOG_VeryVerbose);
 		
 		EOS_Platform_Options platformOptions = {0};
 		platformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
-		platformOptions.ProductId = "50a04c8e24e345dfa61821175da71cd2";
-		platformOptions.SandboxId = "cd526f483ce44807a62c25073965696f";
-		platformOptions.ClientCredentials.ClientId = "xyza7891wae50pvCMplljZZnTMNoLirF";
-		platformOptions.ClientCredentials.ClientSecret = "IHxI1XPK7KmUVjNIjHRmjFm63oRFBhAC3W9RtQN9M+s";
-		platformOptions.DeploymentId = "c431e7d730764d2991b5e96a0bfe13d4";
+		platformOptions.ProductId = productID->GetUTF8String();
+		platformOptions.SandboxId = sandboxID->GetUTF8String();
+		platformOptions.ClientCredentials.ClientId = clientID->GetUTF8String();
+		platformOptions.ClientCredentials.ClientSecret = clientSecret->GetUTF8String();
+		platformOptions.DeploymentId = deploymentID->GetUTF8String();
 		platformOptions.bIsServer = false;
 		platformOptions.EncryptionKey = nullptr;
 		platformOptions.Flags = EOS_PF_DISABLE_OVERLAY; //Social or IAP overlay not made for VR is quite useless in VR...
