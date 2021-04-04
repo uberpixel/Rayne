@@ -193,7 +193,7 @@ namespace RN
 				}
 
 				case JNI_EVERSION:
-					RNDebug("wrong jni version (should be 1.8)");
+					RNDebug("wrong jni version (should be 1.6)");
 					return MicrophonePermissionStateNotDetermined;
 			}
 
