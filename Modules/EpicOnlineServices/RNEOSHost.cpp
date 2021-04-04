@@ -131,7 +131,9 @@ namespace RN
 
 	void EOSHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
-		//TODO: Split up packet if too big (whatever too big is for EOS...)
+		//TODO: Split up packet if too big, maximum allowed total packet size is 1170
+		RN_ASSERT(data->GetLength() < 1170, "Packet too big!");
+		//RNDebug(data->GetLength());
 		
 		Lock();
 		if(_peers.size() == 0 || _peers.find(receiverID) == _peers.end())
