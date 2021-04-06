@@ -23,25 +23,37 @@ typedef struct tagTHREADNAME_INFO
 	DWORD dwFlags; // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
+#endif
 
 void RNSetThreadName(char *threadName)
 {
-#if RN_COMPILER_MSVC
-	THREADNAME_INFO info;
-	info.dwType = 0x1000;
-	info.szName = threadName;
-	info.dwThreadID = -1;
-	info.dwFlags = 0;
-	
-	__try
-	{
-		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR *)&info);
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{}
+#if RN_PLATFORM_MAC_OS
+		pthread_setname_np(threadName);
+#endif
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+		pthread_setname_np(pthread_self(), threadName);
+#endif
+#if RN_PLATFORM_WINDOWS
+	#if RN_COMPILER_MSVC
+		THREADNAME_INFO info;
+		info.dwType = 0x1000;
+		info.szName = threadName;
+		info.dwThreadID = -1;
+		info.dwFlags = 0;
+		
+		__try
+		{
+			RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR *)&info);
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{}
+	#endif
+#endif
+
+#if RN_ENABLE_VTUNE
+		__itt_thread_set_nameA(threadName);
 #endif
 }
-#endif
 
 namespace RN
 {
@@ -62,7 +74,7 @@ namespace RN
 	{
 		Initialize();
 
-		_name = new String("Main Thread", true);
+		_name = new String("RN::Main", true);
 		__LocalThread.SetValue(this);
 		__MainThread = this;
 	}
@@ -194,20 +206,7 @@ namespace RN
 					LockGuard<Lockable> lock(_generalMutex);
 					AutoreleasePool pool;
 					
-#if RN_PLATFORM_MAC_OS
-					pthread_setname_np(_name->GetUTF8String());
-                    pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, NULL);
-#endif
-#if RN_PLATFORM_LINUX
-					pthread_setname_np(pthread_self(), _name->GetUTF8String());
-#endif
-#if RN_PLATFORM_WINDOWS
 					RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
-#endif
-
-#if RN_ENABLE_VTUNE
-					__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
-#endif
 				}
 				
 				_function();
@@ -247,19 +246,7 @@ namespace RN
 		
 		if(IsRunning() && OnThread())
 		{
-#if RN_PLATFORM_MAC_OS
-			pthread_setname_np(_name->GetUTF8String());
-#endif
-#if RN_PLATFORM_LINUX
-			pthread_setname_np(pthread_self(), _name->GetUTF8String());
-#endif
-#if RN_PLATFORM_WINDOWS
 			RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
-#endif
-
-#if RN_ENABLE_VTUNE
-			__itt_thread_set_nameA(const_cast<char *>(_name->GetUTF8String()));
-#endif
 		}
 	}
 	

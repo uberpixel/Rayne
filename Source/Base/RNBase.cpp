@@ -18,6 +18,7 @@
 
 #if RN_PLATFORM_ANDROID
 #include <android/log.h>
+#include <sys/prctl.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
@@ -201,7 +202,7 @@ namespace RN
 			androidApp->activity->vm->AttachCurrentThread(&env, nullptr);
 			
 			// Note that AttachCurrentThread will reset the thread name.
-			//prctl(PR_SET_NAME, (long)"Rayne::Main", 0, 0, 0);
+			prctl(PR_SET_NAME, (long)"RN::Main", 0, 0, 0);
 			
 			result->SetJNIEnvForRayneMainThread(env);
 #endif
