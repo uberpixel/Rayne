@@ -89,9 +89,9 @@ namespace RN
 			}
 #elif RN_PLATFORM_ANDROID
 			android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-			//JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+			JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
 
-			JNIEnv* env = nullptr;
+			/*JNIEnv* env = nullptr;
 			bool isNewEnv = false;
 
 			switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
@@ -115,7 +115,7 @@ namespace RN
 				case JNI_EVERSION:
 					RNDebug("wrong jni version (should be 1.6)");
 					return;
-			}
+			}*/
 
 			jclass activityClass = env->FindClass("android/app/NativeActivity");
 			jmethodID getClassLoaderMethod = env->GetMethodID(activityClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
@@ -136,10 +136,10 @@ namespace RN
 			
 			env->DeleteLocalRef(permissions);
 
-			if(isNewEnv)
+			/*if(isNewEnv)
 			{
 				app->activity->vm->DetachCurrentThread();
-			}
+			}*/
 #endif
 		}
 	}
@@ -169,9 +169,9 @@ namespace RN
 			}
 #elif RN_PLATFORM_ANDROID
 			android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-			//JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+			JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
 
-			JNIEnv* env = nullptr;
+			/*JNIEnv* env = nullptr;
 			bool isNewEnv = false;
 
 			switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
@@ -195,7 +195,7 @@ namespace RN
 				case JNI_EVERSION:
 					RNDebug("wrong jni version (should be 1.6)");
 					return MicrophonePermissionStateNotDetermined;
-			}
+			}*/
 
 			jclass activityClass = env->FindClass("android/app/NativeActivity");
 			jmethodID getClassLoaderMethod = env->GetMethodID(activityClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
@@ -212,10 +212,10 @@ namespace RN
 			int returnValue = env->CallStaticIntMethod(contextCompatClass, checkSelfPermissionMethod, app->activity->clazz, permissionName);
 			env->DeleteLocalRef(permissionName);
 
-			if(isNewEnv)
+			/*if(isNewEnv)
 			{
 				app->activity->vm->DetachCurrentThread();
-			}
+			}*/
 
 			//Permission not granted
 			if(returnValue == -1)

@@ -727,43 +727,13 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-
-				JNIEnv* env = nullptr;
-				bool isNewEnv = false;
-
-				switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
-				{
-					case JNI_OK:
-						break;
-
-					case JNI_EDETACHED:
-					{
-						jint attachresult = app->activity->vm->AttachCurrentThread(&env, nullptr);
-						if(attachresult == JNI_ERR)
-						{
-							RNDebug("Error attaching java env to thread.");
-							return RNCSTR("");
-						}
-
-						isNewEnv = true;
-						break;
-					}
-
-					case JNI_EVERSION:
-						RN_ASSERT(false, "Wrong jni version (should be 1.6).");
-				}
-
+				JNIEnv* env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
 				jclass clazz = env->GetObjectClass(app->activity->clazz);
 				jmethodID methodID = env->GetMethodID(clazz, "getPackageCodePath", "()Ljava/lang/String;");
 				jobject result = env->CallObjectMethod(app->activity->clazz, methodID);
 
 				jboolean isCopy;
 				std::string res = env->GetStringUTFChars((jstring)result, &isCopy);
-
-				if(isNewEnv)
-				{
-					app->activity->vm->DetachCurrentThread();
-				}
 
 				_applicationDirectory = SafeRetain(RNSTR(res));
 				return _applicationDirectory->Copy()->Autorelease();
