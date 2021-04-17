@@ -16,9 +16,9 @@
 [submodule "Tools/TextureCompression/Vendor/astc-encoder"]
 	path = Tools/TextureCompression/Vendor/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
-[submodule "Tools/TextureCompression/Vendor/nvidia-texture-tools"]
-	path = Tools/TextureCompression/Vendor/nvidia-texture-tools
-	url = https://github.com/castano/nvidia-texture-tools.git
 [submodule "Vendor/libzip"]
 	path = Vendor/libzip
 	url = https://github.com/nih-at/libzip.git
+[submodule "Tools/TextureCompression/Vendor/bc7enc_rdo"]
+	path = Tools/TextureCompression/Vendor/bc7enc_rdo
+	url = https://github.com/richgel999/bc7enc_rdo.git

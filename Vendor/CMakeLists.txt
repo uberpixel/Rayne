@@ -5,6 +5,7 @@ project(Rayne-Vendor)
 option(JANSSON_WITHOUT_TESTS "Build Jansson without tests" ON)
 option(JANSSON_EXAMPLES "Build Jansson examples" OFF)
 option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
+
 option(PNG_SHARED "Build shared lib" OFF)
 option(PNG_TESTS "Build libpng tests" OFF)
 option(PNG_EXECUTABLES "Build libpng executables" OFF)
