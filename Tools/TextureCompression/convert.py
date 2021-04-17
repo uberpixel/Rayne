@@ -32,9 +32,24 @@ def prepare():
         subprocess.call(['chmod', '+x', astcencPath])
 
         bc7encPath = os.path.dirname(sys.argv[0])
-        bc7encPath = os.path.join(bc7encPath, 'Vendor/bc7enc_rdo/build')
+        bc7encPath = os.path.join(bc7encPath, 'Vendor/bc7enc_rdo')
+        with open(os.path.join(bc7encPath, 'CMakeLists.txt')) as oldfile, open(os.path.join(bc7encPath, 'CMakeLists.new.txt'), 'w') as newfile:
+            lineCount = 0
+            for line in oldfile:
+                if lineCount == 5 and not "CMAKE_CXX_STANDARD" in line:
+                    newfile.write("set(CMAKE_CXX_STANDARD 11)\n")
+                    lineCount += 1
+                if not "-fopenmp" in line:
+                    newfile.write(line)
+                    lineCount += 1
+        os.remove(os.path.join(bc7encPath, 'CMakeLists.txt'))
+        os.rename(os.path.join(bc7encPath, 'CMakeLists.new.txt'), os.path.join(bc7encPath, 'CMakeLists.txt'))
+        bc7encPath = os.path.join(bc7encPath, 'build')
         os.makedirs(bc7encPath)
-        subprocess.call(['cmake', '..'], cwd=os.path.abspath(bc7encPath))
+        if os.path.isfile(os.path.join(os.path.dirname(sys.argv[0]), 'Vendor/bc7enc_rdo/ispc')):
+            subprocess.call(['cmake', '-D SUPPORT_BC7E=TRUE', '..'], cwd=os.path.abspath(bc7encPath))
+        else:
+            subprocess.call(['cmake', '..'], cwd=os.path.abspath(bc7encPath))
         subprocess.call(['make'], cwd=os.path.abspath(bc7encPath))
         
     elif platform.system() == 'Windows':
@@ -167,6 +182,7 @@ def main():
             width, height, bitDepth, colorType = getPNGInfo(sourceFile)
             fullwidth = width;
             fullheight = height;
+            isGamma = True
             bcFormat = 7
             if colorType == 0:
                 bcFormat = 4
@@ -184,7 +200,10 @@ def main():
 
             print('Number of mipmap levels: ' + str(numLevels))
 
-            subprocess.call([imageResizerPath, sourceFile, outputFileName + inputFileExtension, str(numLevels), '-srgb'])
+            resizerCall = [imageResizerPath, sourceFile, outputFileName + inputFileExtension, str(numLevels)]
+            if isGamma:
+                resizerCall.append('-srgb')
+            subprocess.call(resizerCall)
 
             for i in range(0, numLevels):
                 callparams = [bc7encPath]
@@ -201,15 +220,19 @@ def main():
                 os.remove(outputFileName + '.' + str(i) + inputFileExtension)
 
             #Extract the dds format value from the highest level file
-            ddsFormatValue = 99
+            ddsFormatValue = 98
             if bcFormat == 1:
-                ddsFormatValue = 72
+                ddsFormatValue = 71
             elif bcFormat == 3:
-                ddsFormatValue = 78
+                ddsFormatValue = 77
             elif bcFormat == 4:
-                ddsFormatValue = 81
+                ddsFormatValue = 80
             elif bcFormat == 5:
-                ddsFormatValue = 84
+                ddsFormatValue = 83
+
+            if isGamma and bcFormat in [1, 3, 7]:
+                ddsFormatValue += 1
+
             #with open(outputFileName + '.0.dds', 'rb') as source:
             #    source.seek(128) #Skip first header and magic number
             #    ddsFormatValue = struct.unpack('I', source.read(4))[0]
