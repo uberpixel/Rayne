@@ -232,10 +232,6 @@ def main():
 
             if isGamma and bcFormat in [1, 3, 7]:
                 ddsFormatValue += 1
-
-            #with open(outputFileName + '.0.dds', 'rb') as source:
-            #    source.seek(128) #Skip first header and magic number
-            #    ddsFormatValue = struct.unpack('I', source.read(4))[0]
                 
             with open(targetFile, 'wb') as outputFile:
                 #Write DDS header
