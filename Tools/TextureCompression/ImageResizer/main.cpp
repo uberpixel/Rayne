@@ -207,6 +207,8 @@ void process_png_file()
 {
 	width /= 2;
 	height /= 2;
+	if(width < 1) width = 1;
+	if(height < 1) height = 1;
 
 	int numberOfChannels = 1;
 	if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
@@ -230,10 +232,33 @@ void process_png_file()
 		for(int x = 0; x < width; x++)
 		{
 			unsigned short *pxOut = &(rowOut[x * numberOfChannels]);
-			unsigned short *px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
-			unsigned short *px01 = &(row0[(x * 2 + 1) * numberOfChannels]);
-			unsigned short *px10 = &(row1[(x * 2 + 0) * numberOfChannels]);
-			unsigned short *px11 = &(row1[(x * 2 + 1) * numberOfChannels]);
+			unsigned short *px00 = pxOut;
+			unsigned short *px01 = pxOut;
+			unsigned short *px10 = pxOut;
+			unsigned short *px11 = pxOut;
+
+			if(width == 1)
+			{
+				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
+				px01 = &(row0[(x * 2 + 0) * numberOfChannels]);
+				px10 = &(row1[(x * 2 + 0) * numberOfChannels]);
+				px11 = &(row1[(x * 2 + 0) * numberOfChannels]);
+			}
+			else if(height == 1)
+			{
+				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
+				px01 = &(row0[(x * 2 + 1) * numberOfChannels]);
+				px10 = &(row0[(x * 2 + 0) * numberOfChannels]);
+				px11 = &(row0[(x * 2 + 1) * numberOfChannels]);
+			}
+			else
+			{
+				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
+				px01 = &(row0[(x * 2 + 1) * numberOfChannels]);
+				px10 = &(row1[(x * 2 + 0) * numberOfChannels]);
+				px11 = &(row1[(x * 2 + 1) * numberOfChannels]);
+			}
+			
 			blend_pixels(px00, px01, px10, px11, pxOut);
 		}
 	}
