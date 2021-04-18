@@ -208,10 +208,10 @@ namespace RN
 		}
 		else
 		{
-			IntrusiveList<SceneNode>::Member *member = _renderNodes.GetHead();
+			IntrusiveList<SceneNode>::Member *member = _renderNodes.GetTail();
 			while(member->Get()->GetRenderPriority() > renderPriority)
 			{
-				member = member->GetNext();
+				member = member->GetPrevious();
 			}
 			
 			_renderNodes.InsertAfter(node->_sceneRenderEntry, member);
@@ -235,6 +235,10 @@ namespace RN
 		}
 		
 		RN_ASSERT(node->GetSceneInfo() == nullptr, "AddNode() must be called on a Node not owned by a scene");
+		
+		node->Retain();
+		SceneInfo *sceneInfo = new SceneInfo(this);
+		node->UpdateSceneInfo(sceneInfo->Autorelease());
     
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
@@ -253,10 +257,6 @@ namespace RN
 		
         //PushFront to prevent race condition with scene iterating over the nodes.
 		_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].PushFront(node->_sceneUpdateEntry);
-        
-		node->Retain();
-		SceneInfo *sceneInfo = new SceneInfo(this);
-		node->UpdateSceneInfo(sceneInfo->Autorelease());
 	}
 	
 	void SceneBasic::RemoveNode(SceneNode *node)
