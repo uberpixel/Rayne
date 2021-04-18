@@ -93,7 +93,7 @@ namespace __TMP__
 	{
 		if(!_vrWindow || !_previewWindow || !_copyEyeToScreenMaterial) return;
 
-		RN::Vector2 eyeResolution((_vrWindow->GetSize().x - _vrWindow->GetEyePadding()) / 2.0f, _vrWindow->GetSize().y);
+		RN::Vector2 eyeResolution(_vrWindow->GetSize().x, _vrWindow->GetSize().y);
 		RN::Vector2 windowResolution(_previewWindow->GetSize());
 		float eyeAspect = eyeResolution.x / eyeResolution.y;
 		float windowAspect = windowResolution.x / windowResolution.y;

@@ -203,7 +203,7 @@ namespace __TMP__
 			
 			RN::Entity *skyEntity = new RN::Entity(skyModel);
 			skyEntity->SetScale(RN::Vector3(10.0f));
-			skyEntity->AddFlags(RN::Entity::Flags::DrawLate);
+			skyEntity->SetRenderPriority(RN::SceneNode::RenderPriority::RenderSky);
 			AddLevelNode(skyEntity->Autorelease());
 		}
 	}
