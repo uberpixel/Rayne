@@ -285,7 +285,7 @@ def main():
         sourceFile = inputFileName + inputFileExtension
         targetFile = outputFileName + '.astc'
         if needsToUpdateFile(sourceFile, targetFile):
-            width, height = getImageSize(sourceFile)
+            width, height, bitDepth, colorType = getPNGInfo(sourceFile)
             numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
 
             print('Number of mipmap levels: ' + str(numLevels))
