@@ -87,7 +87,7 @@ def main():
 		subprocess.call(['cmake', '-G', 'Xcode', projectRootPath, buildconfiguration])
 	elif platform == 'android':
 		subprocess.call(['gradle', 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
-		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), '.', buildConfigData)
+		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData)
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + "," + buildType)
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))

@@ -86,7 +86,7 @@ def getSettingFromConfig(platform, setting, config, platformoverride=True):
 	return value
 
 
-def copyAndroidBuildSystem(fromdir, todir, buildConfig):
+def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig):
 	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig).encode('utf-8')
 	projectName = getSettingFromConfig("android", "name", buildConfig).encode('utf-8')
 	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig)).encode('utf-8')
@@ -104,6 +104,22 @@ def copyAndroidBuildSystem(fromdir, todir, buildConfig):
 		for permission in androidPermissions:
 			permissionsString += b"    <uses-permission android:name=\"" + permission.encode('utf-8') + b"\" />\n";
 
+	androidDependencies = getSettingFromConfig("android", "android-dependencies", buildConfig)
+	dependenciesString = b""
+	if androidDependencies:
+		for dependency in androidDependencies:
+			if dependency["type"] == "gradle":
+				dependenciesString += b"	implementation '" + dependency["name"].encode('utf-8') + b"'\n";
+			elif dependency["type"] == "aar":
+				dependenciesString += b"	compile files('" + os.path.join(projectRoot, dependency["path"]).encode('utf-8') + b"')\n";
+
+	androidActivity = "android.app.NativeActivity"
+	customAndroidActivity = getSettingFromConfig("android", "android-custom-native-activity", buildConfig)
+	if customAndroidActivity:
+		androidActivity = customAndroidActivity.split("/")[-1]
+		androidActivity = androidActivity.split(".")[0]
+		androidActivity = "." + androidActivity
+
 	for root, subdirs, files in os.walk(fromdir):
 		relativeRoot = os.path.relpath(root, fromdir)
 
@@ -120,11 +136,18 @@ def copyAndroidBuildSystem(fromdir, todir, buildConfig):
 				fileContent = readFile.read()
 				fileContent = fileContent.replace(b"__RN_BUNDLE_ID__", bundleID)
 				fileContent = fileContent.replace(b"__RN_PROJECT_NAME__", projectName)
+				fileContent = fileContent.replace(b"__RN_ANDROID_ACTIVITY__", androidActivity.encode('utf-8'))
 				fileContent = fileContent.replace(b"__RN_LIBRARY_NAME__", projectName.replace(b" ", b""))
 				fileContent = fileContent.replace(b"__RN_CMAKE_VERSION__", cmakeVersion)
 				fileContent = fileContent.replace(b"__RN_CMAKE_TARGETS__", cmakeTargets)
 				fileContent = fileContent.replace(b"__RN_PERMISSIONS__", permissionsString)
+				fileContent = fileContent.replace(b"__RN_ANDROID_DEPENDENCIES__", dependenciesString)
 
 				with open(writeFilePath, 'wb') as writeFile:
 					writeFile.write(fileContent)
+
+	if customAndroidActivity:
+		activityPath = os.path.join(projectRoot, customAndroidActivity)
+		bundleIDComponents = bundleID.decode("utf-8").split('.')
+		copyToFolder(activityPath, "app/src/main/java/" + "/".join(bundleIDComponents))
 
