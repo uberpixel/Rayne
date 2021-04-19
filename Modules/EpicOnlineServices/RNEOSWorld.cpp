@@ -43,7 +43,7 @@ namespace RN
 	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
-		
+
 		if(externalLoginCallback)
 		{
 			_externalLoginCallback = std::move(externalLoginCallback);
@@ -59,22 +59,23 @@ namespace RN
 
 		static EOS_Android_InitializeOptions JNIOptions = { 0 };
 		JNIOptions.ApiVersion = EOS_ANDROID_INITIALIZEOPTIONS_API_LATEST;
-		JNIOptions.VM = app->activity->vm;
 
 		JNIOptions.OptionalInternalDirectory = app->activity->internalDataPath;
 		JNIOptions.OptionalExternalDirectory = app->activity->externalDataPath;
 
 		SDKOptions.SystemInitializeOptions = &JNIOptions;
 #endif
-		
-		if(EOS_Initialize(&SDKOptions) != EOS_EResult::EOS_Success)
+
+		EOS_EResult result = EOS_Initialize(&SDKOptions);
+		if(result != EOS_EResult::EOS_Success)
 		{
 			RNDebug("Failed initializing EOS.");
+			return;
 		}
-		
+
 		EOS_Logging_SetCallback(LoggingCallback);
 		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, /*EOS_ELogLevel::EOS_LOG_Warning*/EOS_ELogLevel::EOS_LOG_VeryVerbose);
-		
+
 		EOS_Platform_Options platformOptions = {0};
 		platformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
 		platformOptions.ProductId = productID->GetUTF8String();
