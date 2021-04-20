@@ -96,9 +96,9 @@ namespace RN
 	class PhysXConvexHullShape : public PhysXShape
 	{
 	public:
-		PXAPI PhysXConvexHullShape(Mesh *mesh, PhysXMaterial *material);
+		PXAPI PhysXConvexHullShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 
-		PXAPI static PhysXConvexHullShape *WithMesh(Mesh *mesh, PhysXMaterial *material);
+		PXAPI static PhysXConvexHullShape *WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
 
 	private:
 

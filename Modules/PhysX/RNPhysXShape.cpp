@@ -130,7 +130,7 @@ namespace RN
 
 		physx::PxMeshGeometryFlags flags;
 		if(wantsDoubleSided) flags |= physx::PxMeshGeometryFlag::eDOUBLE_SIDED;
-		physx::PxShape* shape = physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh, physx::PxMeshScale(), flags), *material->GetPhysXMaterial(), true);
+		physx::PxShape* shape = physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z)), flags), *material->GetPhysXMaterial(), true);
 
 		_material = material->Retain();
 		_shape = shape;
@@ -142,7 +142,7 @@ namespace RN
 		return shape->Autorelease();
 	}
 
-	PhysXConvexHullShape::PhysXConvexHullShape(Mesh *mesh, PhysXMaterial *material)
+	PhysXConvexHullShape::PhysXConvexHullShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale)
 	{
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
 		RN_ASSERT(vertexAttribute && vertexAttribute->GetType() == PrimitiveType::Vector3, "Mesh needs to have vertices of Vector3!");
@@ -162,15 +162,15 @@ namespace RN
 		physx::PxPhysics *physics = PhysXWorld::GetSharedInstance()->GetPhysXInstance();
 		physx::PxConvexMesh* convexMesh = physics->createConvexMesh(input);
 
-		physx::PxShape* shape = physics->createShape(physx::PxConvexMeshGeometry(convexMesh), *material->GetPhysXMaterial(), true);
+		physx::PxShape* shape = physics->createShape(physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z))), *material->GetPhysXMaterial(), true);
 
 		_material = material->Retain();
 		_shape = shape;
 	}
 
-	PhysXConvexHullShape *PhysXConvexHullShape::WithMesh(Mesh *mesh, PhysXMaterial *material)
+	PhysXConvexHullShape *PhysXConvexHullShape::WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale)
 	{
-		PhysXConvexHullShape *shape = new PhysXConvexHullShape(mesh, material);
+		PhysXConvexHullShape *shape = new PhysXConvexHullShape(mesh, material, scale);
 		return shape->Autorelease();
 	}
 
