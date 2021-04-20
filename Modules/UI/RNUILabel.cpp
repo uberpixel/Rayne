@@ -16,7 +16,7 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor())
+		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop)
 		{
 			
 		}
