@@ -25,7 +25,7 @@ namespace RN
 			
 		}
 		
-		void Label::SetText(String *text)
+		void Label::SetText(const String *text)
 		{
 			if(_attributedText && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
 			

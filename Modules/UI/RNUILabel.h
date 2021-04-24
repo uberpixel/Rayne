@@ -22,7 +22,7 @@ namespace RN
 			UIAPI Label(const TextAttributes &defaultAttributes);
 			UIAPI ~Label();
 			
-			UIAPI void SetText(String *text);
+			UIAPI void SetText(const String *text);
 			UIAPI void SetAttributedText(AttributedString *text);
 			
 			UIAPI void SetDefaultAttributes(const TextAttributes &attributes);

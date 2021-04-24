@@ -41,7 +41,7 @@ namespace RN
 		}
 	
 
-		AttributedString::AttributedString(String *string) : String(string)
+		AttributedString::AttributedString(const String *string) : String(string)
 		{
 			
 		}

@@ -75,7 +75,7 @@ namespace RN
 		class AttributedString : public String
 		{
 		public:
-			UIAPI AttributedString(String *string);
+			UIAPI AttributedString(const String *string);
 			UIAPI AttributedString(const AttributedString *string);
 			UIAPI ~AttributedString();
 			
