@@ -95,7 +95,7 @@ namespace RN
 
 	String *Settings::GetSettingsLocation()
 	{
-		String *location = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::SaveDirectory);
+		String *location = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::InternalSaveDirectory);
 		location->AppendPathComponent(RNCSTR("settings.json"));
 
 		return location;

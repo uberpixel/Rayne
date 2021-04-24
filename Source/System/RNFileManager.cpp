@@ -810,7 +810,7 @@ namespace RN
 #endif
 			}
 
-			case Location::SaveDirectory:
+			case Location::InternalSaveDirectory:
 			{
 #if RN_PLATFORM_MAC_OS
 				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
@@ -846,7 +846,30 @@ namespace RN
 				return RNSTR(dataPath);
 #endif
 			}
+				
+			case Location::ExternalSaveDirectory:
+			{
+#if RN_PLATFORM_ANDROID
+				const char *dataPath = Kernel::GetSharedInstance()->GetAndroidApp()->activity->externalDataPath;
+				return RNSTR(dataPath);
+#else
+				return GetPathForLocation(Location::InternalSaveDirectory);
+#endif
+			}
 		}
+	}
+
+	FileManager::Directory *FileManager::WalkableDirectory(const String *path)
+	{
+		bool isDirectory = false;
+		bool exists = PathExists(path, isDirectory);
+		if(!exists || !isDirectory) return nullptr;
+		
+		Node *node = ResolvePath(path, 0);
+		if(node) return node->Downcast<Directory>();
+		
+		Directory *directory = new Directory(path);
+		return directory->Autorelease();
 	}
 	
 	bool FileManager::RenameFile(const String *oldPath, const String *newPath, bool overwrite)
@@ -1003,7 +1026,7 @@ namespace RN
 
 	bool FileManager::PathExists(const String *path, bool &isDirectory)
 	{
-#if RN_PLATFORM_ANDROID
+		//Assume that the file exists if it has already been captured
 		FileManager *instance = GetSharedInstance();
 		if(instance)
 		{
@@ -1014,7 +1037,6 @@ namespace RN
 				return true;
 			}
 		}
-#endif
 
 #if RN_PLATFORM_POSIX
 		struct stat buf;

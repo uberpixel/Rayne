@@ -100,7 +100,8 @@ namespace RN
 		{
 			ApplicationDirectory,
 			RootResourcesDirectory,
-			SaveDirectory
+			InternalSaveDirectory,
+			ExternalSaveDirectory
 		};
 
 		RNAPI static FileManager *GetSharedInstance();
@@ -113,6 +114,8 @@ namespace RN
 		
 		RNAPI bool RenameFile(const String *oldPath, const String *newPath, bool overwrite = true);
 		RNAPI bool CreateDirectory(const String *path);
+		
+		RNAPI Directory *WalkableDirectory(const String *path);
 
 		RNAPI void AddSearchPath(const String *path);
 		RNAPI void RemoveSearchPath(const String *path);
