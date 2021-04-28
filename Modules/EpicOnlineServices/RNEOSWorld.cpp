@@ -371,7 +371,7 @@ namespace RN
 		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
-			RNDebug("Succesful login");
+			RNDebug("Successful login");
 
 			eosWorld->_isLoggedIn = true;
 			eosWorld->_loggedInUserID = Data->LocalUserId;
@@ -387,12 +387,9 @@ namespace RN
 		}
 		else if(Data->ResultCode == EOS_EResult::EOS_NotFound)
 		{
-#if RN_PLATFORM_ANDROID
-#else
 			RNDebug("No credentials found, creating device ID...");
 			EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
 			eosWorld->CreateDeviceID();
-#endif
 		}
 		else
 		{
