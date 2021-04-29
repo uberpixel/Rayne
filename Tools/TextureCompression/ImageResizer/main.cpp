@@ -42,7 +42,14 @@ void read_png_file(char *filename)
 		color_type = PNG_COLOR_TYPE_RGB;
 	}
 
-	png_set_expand_16(png);
+	if(bit_depth < 16)
+	{
+		png_set_expand_16(png);
+	}
+	else
+	{
+		png_set_swap(png);
+	}
 	png_read_update_info(png, info);
 
 	if(row_pointers) abort();
