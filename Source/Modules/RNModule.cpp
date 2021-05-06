@@ -303,9 +303,14 @@ namespace RN
 
 	const String *Module::GetDescription() const
 	{
+#if RN_PLATFORM_ANDROID
+		const String *path = GetPath();
+		//The below will try to open the library file on android, but then fails and throws an exception due to the whole unzipping thing
+#else
 		const String *path = FileManager::GetSharedInstance()->GetNormalizedPathFromFullPath(GetPath());
 		if(!path)
 			path = GetPath();
+#endif
 
 		return RNSTR("<RN::Module:" << (void *)this << "> (" << GetName() << ", " << path << ")");
 	}
