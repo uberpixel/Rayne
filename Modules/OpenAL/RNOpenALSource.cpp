@@ -119,12 +119,13 @@ namespace RN
 		alSourcef(_source, AL_GAIN, gain);
 	}
 		
-	void OpenALSource::SetRange(float min, float max)
+	void OpenALSource::SetRange(float min, float max, float rolloff)
 	{
 		LockGuard<Lockable> lock(_lock);
 		
-		alSourcei(_source, AL_REFERENCE_DISTANCE, min);
-		alSourcei(_source, AL_MAX_DISTANCE, max);
+		alSourcef(_source, AL_REFERENCE_DISTANCE, min);
+		alSourcef(_source, AL_MAX_DISTANCE, max);
+		alSourcef(_source, AL_ROLLOFF_FACTOR, rolloff);
 	}
 		
 	void OpenALSource::SetSelfdestruct(bool selfdestruct)

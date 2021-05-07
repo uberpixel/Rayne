@@ -18,6 +18,13 @@ namespace RN
 	{
 	public:
 		friend OpenALWorld;
+		
+		enum AttenuationFunction
+		{
+			AttenuationFunctionNone,
+			AttenuationFunctionLinear,
+			AttenuationFunctionInverseDistanceClamped
+		};
 			
 		OALAPI OpenALSource(AudioAsset *asset);
 		OALAPI ~OpenALSource() override;
@@ -32,7 +39,7 @@ namespace RN
 		OALAPI void SetRepeat(bool repeat);
 		OALAPI void SetPitch(float pitch);
 		OALAPI void SetGain(float gain);
-		OALAPI void SetRange(float min, float max);
+		OALAPI void SetRange(float min, float max, float rolloff = 1.0f);
 		OALAPI void SetSelfdestruct(bool selfdestruct);
 			
 		OALAPI bool IsPlaying();
