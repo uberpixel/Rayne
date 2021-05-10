@@ -22,7 +22,8 @@ set(SOURCES
         RNUIFontManager.cpp
         RNUIImageView.cpp
         RNUIButton.cpp
-        RNUIScrollView.cpp)
+        RNUIScrollView.cpp
+        RNUISlider.cpp)
 
 set(RESOURCES
         Resources)
@@ -40,6 +41,7 @@ set(HEADERS
         RNUIImageView.h
         RNUIButton.h
         RNUIScrollView.h
+        RNUISlider.h
         RNUI.h)
 
 set(DEFINES

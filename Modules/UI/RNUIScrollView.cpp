@@ -31,6 +31,8 @@ namespace RN
 
 		void ScrollView::Update(float delta, Vector2 cursorPosition, bool touched)
 		{
+			if(!GetFrame().ContainsPoint(cursorPosition)) return;
+			
 			if(!_isScrollEnabled)
 			{
 				_scrollSpeed = 0.0f;
