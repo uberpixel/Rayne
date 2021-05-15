@@ -90,9 +90,10 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig):
 	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig).encode('utf-8')
 	projectName = getSettingFromConfig("android", "name", buildConfig).encode('utf-8')
 	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig)).encode('utf-8')
-	cmakeVersion = subprocess.check_output(['cmake', '--version'])
-	cmakeVersion = cmakeVersion.splitlines()[0]
-	cmakeVersion = cmakeVersion.split(b" ")[2]
+	#cmakeVersion = subprocess.check_output(['cmake', '--version'])
+	#cmakeVersion = cmakeVersion.splitlines()[0]
+	#cmakeVersion = cmakeVersion.split(b" ")[2]
+	cmakeVersion = "3.18.1" #This one can be installed with android sdk manager!
 	cmakeTargetsList = getSettingFromConfig("android", "cmake-targets", buildConfig)
 	newCmakeTargetList = list()
 	for target in cmakeTargetsList:

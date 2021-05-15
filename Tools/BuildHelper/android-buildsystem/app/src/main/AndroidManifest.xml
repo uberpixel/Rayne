@@ -11,6 +11,7 @@ __RN_PERMISSIONS__
         android:label="__RN_PROJECT_NAME__"
         android:supportsRtl="true"
         android:hasCode="true"
+        android:extractNativeLibs="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
 
         <meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only"/>
