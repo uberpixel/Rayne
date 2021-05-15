@@ -46,6 +46,8 @@ namespace RN
 		Color operator/ (float other) const;
 		
 		Vector4 GetHSV() const;
+		Color GammaToLinear();
+		Color LinearToGamma();
 		
 		static Color Red() { return Color(1.0f, 0.0f, 0.0f); }
 		static Color Green() { return Color(0.0f, 1.0f, 0.0f); }
@@ -350,6 +352,70 @@ namespace RN
 	RN_INLINE Color Color::WithHSV(const Vector4 &hsva)
 	{
 		return WithHSV(hsva.x, hsva.y, hsva.z, hsva.w);
+	}
+
+	RN_INLINE Color Color::GammaToLinear()
+	{
+		if(r <= 0.04045)
+		{
+			r = r / 12.92;
+		}
+		else
+		{
+			r = pow((r + 0.055) / 1.055, 2.4);
+		}
+		
+		if(g <= 0.04045)
+		{
+			g = g / 12.92;
+		}
+		else
+		{
+			g = pow((g + 0.055) / 1.055, 2.4);
+		}
+		
+		if(b <= 0.04045)
+		{
+			b = b / 12.92;
+		}
+		else
+		{
+			b = pow((b + 0.055) / 1.055, 2.4);
+		}
+		
+		return *this;
+	}
+
+	RN_INLINE Color Color::LinearToGamma()
+	{
+		if(r <= 0.0031308)
+		{
+			r = r * 12.92;
+		}
+		else
+		{
+			r = 1.055 * pow(r, 1.0/2.4) - 0.055;
+		}
+		
+		if(g <= 0.0031308)
+		{
+			g = g * 12.92;
+		}
+		else
+		{
+			g = 1.055 * pow(g, 1.0/2.4) - 0.055;
+		}
+		
+		if(b <= 0.0031308)
+		{
+			b = b * 12.92;
+		}
+		else
+		{
+			b = 1.055 * pow(b, 1.0/2.4) - 0.055;
+		}
+		
+		return *this;
 	}
 	
 	RN_INLINE Vector4 Color::GetHSV() const
