@@ -890,7 +890,30 @@ namespace RN
 		return ::CreateDirectory(path->GetUTF8String(), NULL);
 #endif
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
-		return mkdir(path->GetUTF8String(), S_IRWXU) == 0;
+		
+		Array *pathComponents = path->GetPathComponents();
+		String *fullPath = RNSTR("");
+		for(int i = 0; i < pathComponents->GetCount(); i++)
+		{
+			fullPath->AppendPathComponent(pathComponents->GetObjectAtIndex<String>(i));
+			
+			bool isDirectory = false;
+			if(!PathExists(fullPath, isDirectory))
+			{
+				RNDebug("Creating Path: " << fullPath);
+				if(mkdir(fullPath->GetUTF8String(), S_IRWXU) != 0)
+				{
+					RNDebug("Failed creating path with error: " << errno);
+					return false;
+				}
+			}
+			else if(isDirectory == false)
+			{
+				return false;
+			}
+		}
+		
+		return true;
 #endif
 	}
 
