@@ -19,6 +19,7 @@ namespace RN
 		{
 		public:
 			UIAPI ImageView();
+			UIAPI ImageView(Texture *image);
 			UIAPI ~ImageView();
 
 			UIAPI void SetImage(Texture *image);

@@ -20,6 +20,12 @@ namespace RN
 			
 		}
 	
+		ImageView::ImageView(Texture *image) :
+			_image(nullptr)
+		{
+			SetImage(image);
+		}
+	
 		ImageView::~ImageView()
 		{
 			SafeRelease(_image);
