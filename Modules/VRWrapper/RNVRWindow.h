@@ -69,6 +69,7 @@ namespace RN
 		RNVRAPI virtual Framebuffer *GetFramebuffer() const override = 0;
 		RNVRAPI virtual Framebuffer *GetFramebuffer(uint8 eye) const { return nullptr; }
 
+		RNVRAPI virtual void BeginFrame(float delta) {}
 		RNVRAPI virtual void Update(float delta, float near, float far) = 0;
 
 		RNVRAPI virtual const VRHMDTrackingState &GetHMDTrackingState() const = 0;

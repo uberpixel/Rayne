@@ -47,6 +47,7 @@ namespace RN
 		OVRAPI RenderingDevice *GetOutputDevice(RendererDescriptor *descriptor) const final;
 		OVRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 
+		OVRAPI void BeginFrame(float delta) final;
 		OVRAPI void Update(float delta, float near, float far) final;
 
 		OVRAPI VRWindow::DeviceType GetDeviceType() const final;

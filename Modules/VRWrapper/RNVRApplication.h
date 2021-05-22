@@ -40,6 +40,8 @@ namespace RN
 		virtual void WillFinishLaunching(Kernel *kernel) override;
 		virtual void DidFinishLaunching(Kernel *kernel) override;
 		
+		virtual void WillStep(float delta) override;
+		
 		VRWindow *GetVRWindow() const  { return _vrWindow; }
 		
 	protected:

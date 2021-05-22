@@ -151,4 +151,12 @@ namespace RN
 			previewWindow->Show();
 		}*/
 	}
+
+	void VRApplication::WillStep(float delta)
+	{
+		if(_vrWindow)
+		{
+			_vrWindow->BeginFrame(delta);
+		}
+	}
 }

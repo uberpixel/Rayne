@@ -234,6 +234,16 @@ namespace RN
 		return result;
 	}
 
+	void OculusMobileWindow::BeginFrame(float delta)
+	{
+		if(!_session) return;
+
+		_actualFrameIndex++;
+
+		vrapi_WaitFrame(static_cast<ovrMobile*>(_session), _actualFrameIndex);
+		vrapi_BeginFrame(static_cast<ovrMobile*>(_session), _actualFrameIndex);
+	}
+
 	void OculusMobileWindow::Update(float delta, float near, float far)
 	{
 		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
@@ -276,7 +286,6 @@ namespace RN
 
 		vrapi_SetTrackingSpace(static_cast<ovrMobile*>(_session), VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
 
-		_actualFrameIndex++;
         _predictedDisplayTime = vrapi_GetPredictedDisplayTime(static_cast<ovrMobile*>(_session), _actualFrameIndex);
 
 		ovrTracking2 hmdState = vrapi_GetPredictedTracking2(static_cast<ovrMobile*>(_session), _predictedDisplayTime);
@@ -474,7 +483,7 @@ namespace RN
 
 				VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 				ovrModeParmsVulkan params = vrapi_DefaultModeParmsVulkan(static_cast<ovrJava*>(_java), (unsigned long long)renderer->GetWorkQueue());
-				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW | VRAPI_MODE_FLAG_FRONT_BUFFER_SRGB;
+				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW | VRAPI_MODE_FLAG_FRONT_BUFFER_SRGB | VRAPI_MODE_FLAG_PHASE_SYNC;
 				params.ModeParms.WindowSurface = (size_t)_nativeWindow;
 				_session = vrapi_EnterVrMode((ovrModeParms *)&params);
 
