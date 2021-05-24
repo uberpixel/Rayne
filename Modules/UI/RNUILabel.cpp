@@ -28,6 +28,7 @@ namespace RN
 		void Label::SetText(const String *text)
 		{
 			if(_attributedText && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
+			if(!text) text = RNCSTR("");
 			
 			SafeRelease(_attributedText);
 			_attributedText = new AttributedString(text);
@@ -113,8 +114,8 @@ namespace RN
 			uint32 numberOfVertices = 0;
 			uint32 numberOfIndices = 0;
 			
-			Array *characters = new Array(_attributedText->GetLength());
-			Array *spacings = new Array(_attributedText->GetLength());
+			Array *characters = (new Array(_attributedText->GetLength()))->Autorelease();
+			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
 			
 			std::vector<int> linebreaks;
 			std::vector<float> linewidth;
@@ -139,6 +140,7 @@ namespace RN
 			
 			int lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
+			bool hasOnlyWhitespaces = true;
 			for(int i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
@@ -182,6 +184,10 @@ namespace RN
 						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
+				}
+				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
+				{
+					hasOnlyWhitespaces = false;
 				}
 				
 				if(currentCodepoint == 10)
@@ -264,6 +270,8 @@ namespace RN
 				currentWidth += offset;
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
+			
+			if(hasOnlyWhitespaces) return;
 			
 			totalHeight += maxAscent;// + maxDescent;
 			linewidth.push_back(currentWidth);
