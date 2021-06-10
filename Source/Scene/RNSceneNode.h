@@ -313,7 +313,7 @@ namespace RN
 		WillUpdate(ChangeSet::Position);
 		Vector3 tempPosition = pos - _parent->GetWorldPosition();
 		Quaternion tempRotation = Quaternion()/_parent->GetWorldRotation();
-		_position = tempRotation.GetRotatedVector(tempPosition);
+		_position = tempRotation.GetRotatedVector(tempPosition) / _parent->GetWorldScale();
 		DidUpdate(ChangeSet::Position);
 	}
 
