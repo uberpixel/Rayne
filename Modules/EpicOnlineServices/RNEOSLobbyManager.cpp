@@ -21,7 +21,7 @@ namespace RN
 	RNDefineMeta(EOSLobbyInfo, Object)
 	RNDefineMeta(EOSLobbyManager, Object)
 
-	EOSLobbyInfo::EOSLobbyInfo(): lobbyName(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0),  currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr)
+	EOSLobbyInfo::EOSLobbyInfo(): lobbyName(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0),  currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr), createTimestamp(0)
 	{
 		
 	}
@@ -43,7 +43,7 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion)
+	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
@@ -51,6 +51,7 @@ namespace RN
 		_didJoinLobbyCallback = callback;
 		_createLobbyName = SafeRetain(lobbyName);
 		_createLobbyVersion = SafeRetain(lobbyVersion);
+		_createLobbyTimestamp = createLobbyTimestamp;
 		
 		EOS_Lobby_CreateLobbyOptions options = {};
 		options.ApiVersion = EOS_LOBBY_CREATELOBBY_API_LATEST;
@@ -62,13 +63,13 @@ namespace RN
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
-	void EOSLobbyManager::SearchLobby(std::function<void (RN::Array *)> callback)
+	void EOSLobbyManager::SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void (RN::Array *)> callback)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isSearchingLobby) return;
 		
 		EOS_Lobby_CreateLobbySearchOptions searchOptions = {};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
-		searchOptions.MaxResults = 100;
+		searchOptions.MaxResults = maxResults;
 		
 		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &_lobbySearchHandle) != EOS_EResult::EOS_Success)
 		{
@@ -79,18 +80,31 @@ namespace RN
 		_isSearchingLobby = true;
 		_lobbySearchCallback = callback;
 		
-		EOS_Lobby_AttributeData attributeData = {0};
-		attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
-		attributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
-		attributeData.Key = "isSearchable";
-		attributeData.Value.AsBool = true;
+		EOS_Lobby_AttributeData searchableAttributeData = {0};
+		searchableAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+		searchableAttributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
+		searchableAttributeData.Key = "isSearchable";
+		searchableAttributeData.Value.AsBool = true;
 		
-		EOS_LobbySearch_SetParameterOptions searchParameterOptions = {0};
-		searchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
-		searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
-		searchParameterOptions.Parameter = &attributeData;
+		EOS_LobbySearch_SetParameterOptions searchableSearchParameterOptions = {0};
+		searchableSearchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
+		searchableSearchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
+		searchableSearchParameterOptions.Parameter = &searchableAttributeData;
 		
-		EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+		EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchableSearchParameterOptions);
+		
+		EOS_Lobby_AttributeData timestampAttributeData = {0};
+		timestampAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+		timestampAttributeData.ValueType = EOS_EAttributeType::EOS_AT_INT64;
+		timestampAttributeData.Key = "timestamp";
+		timestampAttributeData.Value.AsInt64 = timestamp;
+		
+		EOS_LobbySearch_SetParameterOptions timestampSearchParameterOptions = {0};
+		timestampSearchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
+		timestampSearchParameterOptions.ComparisonOp = older? EOS_EComparisonOp::EOS_CO_LESSTHAN : EOS_EComparisonOp::EOS_CO_GREATERTHAN;
+		timestampSearchParameterOptions.Parameter = &timestampAttributeData;
+		
+		EOS_LobbySearch_SetParameter(_lobbySearchHandle, &timestampSearchParameterOptions);
 		
 		EOS_LobbySearch_FindOptions findOptions = {};
 		findOptions.ApiVersion = EOS_LOBBYSEARCH_FIND_API_LATEST;
@@ -166,21 +180,31 @@ namespace RN
 				return;
 			}
 			
-			EOS_Lobby_AttributeData attributeData = {0};
-			attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
-			attributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
-			attributeData.Key = "isSearchable";
-			attributeData.Value.AsBool = true;
+			EOS_Lobby_AttributeData searchableAttributeData = {0};
+			searchableAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+			searchableAttributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
+			searchableAttributeData.Key = "isSearchable";
+			searchableAttributeData.Value.AsBool = true;
 			
 			EOS_LobbyModification_AddAttributeOptions attributeOptions = {0};
 			attributeOptions.ApiVersion = EOS_LOBBYMODIFICATION_ADDATTRIBUTE_API_LATEST;
 			attributeOptions.Visibility = EOS_ELobbyAttributeVisibility::EOS_LAT_PUBLIC;
-			attributeOptions.Attribute = &attributeData;
+			attributeOptions.Attribute = &searchableAttributeData;
 			
+			EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+			
+			EOS_Lobby_AttributeData timestampAttributeData = {0};
+			timestampAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+			timestampAttributeData.ValueType = EOS_EAttributeType::EOS_AT_INT64;
+			timestampAttributeData.Key = "timestamp";
+			timestampAttributeData.Value.AsInt64 = lobbyManager->_createLobbyTimestamp;
+			attributeOptions.Attribute = &timestampAttributeData;
 			EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
 			
 			if(lobbyManager->_createLobbyName)
 			{
+				EOS_Lobby_AttributeData attributeData = {0};
+				attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 				attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
 				attributeData.Key = "lobbyName";
 				attributeData.Value.AsUtf8 = lobbyManager->_createLobbyName->GetUTF8String();
@@ -191,6 +215,8 @@ namespace RN
 			
 			if(lobbyManager->_createLobbyVersion)
 			{
+				EOS_Lobby_AttributeData attributeData = {0};
+				attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 				attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
 				attributeData.Key = "lobbyVersion";
 				attributeData.Value.AsUtf8 = lobbyManager->_createLobbyVersion->GetUTF8String();
@@ -274,6 +300,15 @@ namespace RN
 				{
 					lobbyInfo->lobbyVersion = new String(lobbyVersionAttribute->Data->Value.AsUtf8);
 					EOS_Lobby_Attribute_Release(lobbyVersionAttribute);
+				}
+				
+				copyAttributesOptions.AttrKey = "timestamp";
+				EOS_Lobby_Attribute *timestampVersionAttribute = nullptr;
+				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &timestampVersionAttribute);
+				if(timestampVersionAttribute)
+				{
+					lobbyInfo->createTimestamp = timestampVersionAttribute->Data->Value.AsInt64;
+					EOS_Lobby_Attribute_Release(timestampVersionAttribute);
 				}
 				
 				
