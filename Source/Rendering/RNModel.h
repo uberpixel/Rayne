@@ -70,7 +70,7 @@ namespace RN
 				{}
 
 				Group(const Group &other) :
-					_material(other._material->Retain()),
+					_material(other._material->Copy()),
 					_mesh(other._mesh->Retain())
 				{}
 
