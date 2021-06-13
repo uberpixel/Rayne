@@ -84,15 +84,16 @@ namespace RN
 				RN::Rect scrollFrame = GetFrame();
 				scrollBounds.y += _scrollSpeed * delta;
 				
-				if(scrollBounds.y > 0.0f)
+				if(scrollBounds.y > RN::k::EpsilonFloat)
 				{
-					scrollBounds.y += std::min(0.0f - scrollBounds.y, -5.0f) * delta * 10.0f;
+					scrollBounds.y += std::max(std::min(-scrollBounds.y, -5.0f) * delta * 10.0f, -scrollBounds.y);
 					isOutOfBounds = true;
 				}
 				
-				if(scrollBounds.y < -scrollBounds.height + scrollFrame.height)
+				if(scrollBounds.y < -scrollBounds.height + scrollFrame.height - RN::k::EpsilonFloat)
 				{
-					scrollBounds.y += std::max(-scrollBounds.height + scrollFrame.height - scrollBounds.y, 5.0f) * delta * 10.0f;
+					float offset = -scrollBounds.height + scrollFrame.height - scrollBounds.y;
+					scrollBounds.y += std::min(std::max(offset, 5.0f) * delta * 10.0f, offset);
 					isOutOfBounds = true;
 				}
 				
@@ -111,10 +112,11 @@ namespace RN
 				
 				if(std::abs(_scrollSpeed) < 0.1f)
 				{
-					RN::Rect scrollBounds = GetBounds();
-					RN::Rect scrollFrame = GetFrame();
-					if(!touched && scrollBounds.y <= 0.001f && scrollBounds.y >= -scrollBounds.height + scrollFrame.height - 0.001f)
+					if(!touched && !isOutOfBounds)
 					{
+						RN::Rect scrollBounds = GetBounds();
+						RN::Rect scrollFrame = GetFrame();
+						
 						_isScrolling = false;
 						scrollBounds.y = std::min(scrollBounds.y, 0.0f);
 						scrollBounds.y = std::max(scrollBounds.y, -scrollBounds.height + scrollFrame.height);
