@@ -34,7 +34,7 @@ namespace RN
 		void Button::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
-			_label->SetBounds(GetBounds());
+			_label->SetFrame(GetBounds());
 		}
 
 		void Button::SetImageNormal(Texture *image)
