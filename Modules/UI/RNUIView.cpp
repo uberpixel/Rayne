@@ -355,20 +355,24 @@ namespace RN
 		{
 			if(_superview)
 			{
-				RN::Rect parentScissorRect = ConvertRectFromView(_superview->GetScissorRect(), _superview);
+				RN::Rect parentScissorRect = _superview->GetScissorRect();
+				parentScissorRect.x -= _superview->_bounds.x + _frame.x;
+				parentScissorRect.y -= _superview->_bounds.y + _frame.y;
+				
 				RN::Rect scissorRect;
-				scissorRect.x = -_superview->_bounds.x - _frame.x;
-				scissorRect.y = -_superview->_bounds.y - _frame.y;
-				scissorRect.width  = _superview->_frame.width;
-				scissorRect.height = _superview->_frame.height;
+				scissorRect.x = 0.0f;
+				scissorRect.y = 0.0f;
+				scissorRect.width  = _frame.width;
+				scissorRect.height = _frame.height;
 				
 				_scissorRect.x = std::max(parentScissorRect.x, scissorRect.x);
 				_scissorRect.y = std::max(parentScissorRect.y, scissorRect.y);
 				
 				float right = std::min(parentScissorRect.GetRight(), scissorRect.GetRight());
 				float bottom = std::min(parentScissorRect.GetBottom(), scissorRect.GetBottom());
-				_scissorRect.width = right - _scissorRect.x;
-				_scissorRect.height = bottom - _scissorRect.y;
+				
+				_scissorRect.width = std::max(right - _scissorRect.x, 0.0f);
+				_scissorRect.height = std::max(bottom - _scissorRect.y, 0.0f);
 			}
 			else
 			{
