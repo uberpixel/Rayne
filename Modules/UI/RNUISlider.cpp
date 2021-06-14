@@ -42,7 +42,7 @@ namespace RN
 			
 			if(touched)
 			{
-				_value = cursorPosition.x * (_to - _from) / GetFrame().width + _from;
+				_value = (cursorPosition.x - GetFrame().x) * (_to - _from) / GetFrame().width + _from;
 				
 				if(_step > k::EpsilonFloat) _value = std::round(_value / _step) * _step;
 				
