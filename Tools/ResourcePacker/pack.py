@@ -140,7 +140,7 @@ def main():
         elif platform == 'macos':
             preferredShaderType = 'metal'
         elif platform == 'linux' or platform == 'android':
-            ccc = 'spirv'
+            preferredShaderType = 'spirv'
 
     shaderConverter = os.path.join(scriptDirectory, '../ShaderProcessor/convert.py')
     textureConverter = os.path.join(scriptDirectory, '../TextureCompression/convert.py')
