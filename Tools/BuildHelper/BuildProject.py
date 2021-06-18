@@ -105,10 +105,26 @@ def main():
 	elif platform == 'android':
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
-		print('Keystore password?')
-		storePassword = getpass.getpass()
-		print('Key password?')
-		keyPassword = getpass.getpass()
+		keystoreCredentialsFile = Utilities.getSettingFromConfig(platform, "keystore-credentials", buildConfigData)
+		if keystoreCredentialsFile:
+			keystoreCredentialsFile = os.path.join(projectRootPath, keystoreCredentialsFile)
+			with open(keystoreCredentialsFile) as json_file:
+				keystoreCredentials = json.load(json_file)
+
+		storePassword = None
+		if "keystore-password" in keystoreCredentials:
+			storePassword = keystoreCredentials["keystore-password"]
+		if "key-password" in keystoreCredentials:
+			keyPassword = keystoreCredentials["key-password"]
+
+		if not storePassword:
+			print('Keystore password?')
+			storePassword = getpass.getpass()
+
+		if not keyPassword:
+			print('Key password?')
+			keyPassword = getpass.getpass()
+
 		subprocess.call(['./gradlew', 'assembleRelease'])
 		subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])
 		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', os.path.join('app/build/outputs/apk/release', configName.replace(" ", "-").lower()+"-"+configuration+".apk")])
