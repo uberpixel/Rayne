@@ -126,7 +126,7 @@ def getPNGInfo(imageFile):
 
 def main():
     if len(sys.argv) < 2:
-        print('python convert.py input.png [output (with optional extension for a specific format)]')
+        print('python convert.py input.png [output (with optional extension for a specific format) --astc=AxB]')
         return
 
     supportedFileExtensions = ['.png', '.dds', '.astc']
@@ -147,6 +147,11 @@ def main():
                 return
     else:
         outputFileName = inputFileName
+
+    astcBlockSize = '6x6'
+    for i in range(2, len(sys.argv), 1):
+        if sys.argv[i].startswith('--astc='):
+            astcBlockSize = sys.argv[i][7:]
 
     astcencPath = os.path.dirname(sys.argv[0])
     bc7encPath = os.path.dirname(sys.argv[0])
@@ -184,13 +189,13 @@ def main():
             fullheight = height;
             isGamma = True
             bcFormat = 7
-            if colorType == 0:
+            if colorType == 0: #greyscale
                 bcFormat = 4
-            elif colorType == 2:
+            elif colorType == 2: #RGB
                 bcFormat = 1
-            elif colorType == 4:
+            elif colorType == 4: #greyscale + alpha
                 bcFormat = 5
-            elif colorType == 6:
+            elif colorType == 6: #RGBA
                 bcFormat = 7
             numLevels = int(1 + math.floor(math.log(max(width, height), 2)))
             bitsPerBlock = 16
@@ -294,7 +299,7 @@ def main():
 
             for i in range(0, numLevels):
                 #subprocess.call(['sh', os.path.basename(compressonatorPath), '-fd', 'ASTC', sys.argv[1], sys.argv[2]], cwd=os.path.abspath(os.path.dirname(compressonatorPath)))
-                subprocess.call([astcencPath, '-cs', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', '6x6', '-fast'])
+                subprocess.call([astcencPath, '-cs', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.astc', astcBlockSize, '-fast'])
                 os.remove(outputFileName + '.' + str(i) + inputFileExtension)
                 
             with open(targetFile, 'wb') as outputFile:

@@ -15,21 +15,14 @@ def needsToUpdateFile(sourceFile, targetFile):
 def getTextureSpec(resourceSpec, relpath, platform):
     textureSpec = dict()
     textureSpec["compression"] = "copy"
-    textureSpec["scale"] = 1.0
 
     if "textures" in resourceSpec:
         platformCompressionName = "compression~"+platform
-        platformScaleName = "scale~"+platform
 
         if platformCompressionName in resourceSpec["textures"]:
             textureSpec["compression"] = resourceSpec["textures"][platformCompressionName].lower()
         elif "compression" in resourceSpec["textures"]:
             textureSpec["compression"] = resourceSpec["textures"]["compression"].lower()
-
-        if platformScaleName in resourceSpec["textures"]:
-            textureSpec["scale"] = resourceSpec["textures"][platformScaleName]
-        elif "scale" in resourceSpec["textures"]:
-            textureSpec["scale"] = resourceSpec["textures"]["scale"]
 
         if "overrides" in resourceSpec["textures"]:
             overrides = resourceSpec["textures"]["overrides"]
@@ -40,12 +33,6 @@ def getTextureSpec(resourceSpec, relpath, platform):
                         textureSpec["compression"] = overrides[path][platformCompressionName].lower()
                     elif "compression" in overrides[path]:
                         textureSpec["compression"] = overrides[path]["compression"].lower()
-
-                    if platformScaleName in overrides[path]:
-                        textureSpec["scale"] = overrides[path][platformScaleName]
-                    elif "scale" in overrides[path]:
-                        textureSpec["scale"] = overrides[path]["scale"]
-
                     break
 
                 path = os.path.dirname(path)
@@ -58,6 +45,9 @@ def getTextureSpec(resourceSpec, relpath, platform):
     elif textureSpec["compression"].startswith("bc"):
         textureSpec["extension"] = ".dds"
         
+    textureSpec["parameters"] = ""
+    if textureSpec["compression"].startswith("astc"):
+        textureSpec["parameters"] = textureSpec["compression"][5:]
 
     return textureSpec
 
@@ -165,7 +155,10 @@ def main():
 
                         textureInputPath = os.path.join(currentSourceDirectory, filename)
                         textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + textureSpec["extension"])
-                        subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
+                        callArray = ['python', textureConverter, textureInputPath, textureOutputPath]
+                        if len(textureSpec["parameters"]) > 0:
+                            callArray.append(textureSpec["parameters"])
+                        subprocess.call(callArray)
                         filesToSkip[filename] = True
 
                 else:
