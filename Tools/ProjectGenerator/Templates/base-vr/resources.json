@@ -3,6 +3,13 @@
 	{
 		"compression": "BCn",
 		"compression~android": "ASTC --astc=6x6",
+		"overrides":
+		{
+			"models/template":
+			{
+				"compression": "copy"
+			}
+		}
 	},
 
 	"shaders":
