@@ -119,14 +119,14 @@ def main():
 	configName = configName.replace(" ", "-")
 	configNameLower = configName.lower()
 	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
-	configAppInfoOculus = Utilities.getSettingFromConfig(platform, "appinfo-file-oculus", buildConfigData)
+	configBuildSecrets = Utilities.getSettingFromConfig(platform, "build-secrets", buildConfigData)
 	if not configName:
 		print("config file is missing name!")
 		return
 	if not configReleaseDirectory:
 		print("config file is missing release-directory!")
 		return
-	if not configAppInfoOculus and storefront == "oculus":
+	if not configBuildSecrets and storefront == "oculus":
 		print("config file is missing appinfo-file-oculus, which is required for submitting to the oculus store!")
 		return
 
@@ -168,15 +168,16 @@ def main():
 
 		appID = None
 		appSecret = None
-		with open(os.path.join(projectRootPath, configAppInfoOculus), "rb") as appInfoFile:
+		with open(os.path.join(projectRootPath, configBuildSecrets), "rb") as appInfoFile:
 			appInfoData = json.load(appInfoFile)
-			appInfoDevicdData = appInfoData[deviceType]
-			if appInfoDevicdData:
-				appID = appInfoDevicdData["app-id"]
-				appSecret = appInfoDevicdData["secret"]
+			if 'oculus' in appInfoData and deviceType in appInfoData['oculus']:
+				appInfoDeviceData = appInfoData['oculus'][deviceType]
+				if appInfoDeviceData:
+					appID = appInfoDeviceData["app-id"]
+					appSecret = appInfoDeviceData["secret"]
 
 		if not appID or not appSecret:
-			print("no app-id or secret in " + configAppInfoOculus + " for " + deviceType)
+			print("no app-id or secret in " + configBuildSecrets + " for " + deviceType)
 			return
 
 		if platform == 'windows':

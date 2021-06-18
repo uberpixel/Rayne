@@ -1,0 +1,15 @@
+{
+	"textures":
+	{
+		"compression": "BCn",
+		"compression~android": "ASTC --astc=6x6",
+	},
+
+	"shaders":
+	{
+		"libraries":
+		[
+			"shaders/Shaders.json"
+		]
+	}
+}

@@ -23,7 +23,7 @@
 		
 	],
 	"keystore~android": "../../AndroidReleaseKeyStore",
-	"appinfo-file-oculus": "Other/appinfo-oculus.json",
+	"build-secrets": "Other/build-secrets.json",
 	"dependencies":
 	{
 		

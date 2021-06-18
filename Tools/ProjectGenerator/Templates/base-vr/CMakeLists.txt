@@ -93,7 +93,7 @@ endif()
 
 target_include_directories(__TMP_APPLICATION_TARGET__ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 
-set(ADDITIONAL_RESOURCE_COPY_PARAMS "")
+set(ADDITIONAL_RESOURCE_COPY_PARAMS "--resourcespec=${CMAKE_CURRENT_SOURCE_DIR}/resources.json")
 rayne_copy_resources(__TMP_APPLICATION_TARGET__ "${RESOURCES}" "${ADDITIONAL_RESOURCE_COPY_PARAMS}")
 
 rayne_link_with(__TMP_APPLICATION_TARGET__)
@@ -150,12 +150,6 @@ else()
 endif()
 
 target_compile_definitions(__TMP_APPLICATION_TARGET__ PRIVATE ${__TMP___COMPILE_DEFINITIONS})
-
-if(WIN32)
-	add_custom_command(TARGET __TMP_APPLICATION_TARGET__ PRE_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/CompileShaders.bat)
-else()
-	add_custom_command(TARGET __TMP_APPLICATION_TARGET__ PRE_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/Assets/Shaders/CompileShaders.sh)
-endif()
 
 if(APPLE)
 	set_target_properties(__TMP_APPLICATION_TARGET__ PROPERTIES MACOSX_BUNDLE TRUE)

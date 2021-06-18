@@ -105,23 +105,22 @@ def main():
 	elif platform == 'android':
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
-		keystoreCredentialsFile = Utilities.getSettingFromConfig(platform, "keystore-credentials", buildConfigData)
-		if keystoreCredentialsFile:
-			keystoreCredentialsFile = os.path.join(projectRootPath, keystoreCredentialsFile)
-			with open(keystoreCredentialsFile) as json_file:
-				keystoreCredentials = json.load(json_file)
 
-		storePassword = None
-		if "keystore-password" in keystoreCredentials:
-			storePassword = keystoreCredentials["keystore-password"]
-		if "key-password" in keystoreCredentials:
-			keyPassword = keystoreCredentials["key-password"]
+		secretsFile = Utilities.getSettingFromConfig(platform, "build-secrets", buildConfigData)
+		if secretsFile:
+			secretsFile = os.path.join(projectRootPath, secretsFile)
+			with open(secretsFile) as json_file:
+				secretsDict = json.load(json_file)
+				if "keystore-password" in secretsDict:
+					storePassword = secretsDict["keystore-password"]
+				if "keystore-key-password" in secretsDict:
+					keyPassword = secretsDict["keystore-key-password"]
 
-		if not storePassword:
+		if not storePassword or len(storePassword) == 0:
 			print('Keystore password?')
 			storePassword = getpass.getpass()
 
-		if not keyPassword:
+		if not keyPassword or len(keyPassword) == 0:
 			print('Key password?')
 			keyPassword = getpass.getpass()
 
