@@ -95,7 +95,7 @@ def getTexturesForModelFile(file):
 
 def main():
     if len(sys.argv) < 4:
-        print('python pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures]')
+        print('python3 pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures]')
         return
 
     scriptDirectory = os.path.dirname(sys.argv[0])
@@ -123,6 +123,7 @@ def main():
             resourceSpec = json.load(jsonFile)
 
     preferredTextureExtension = ''
+    preferredShaderType = ''
     textureExtensionsToSkipForCompressed = ['.png']
     if platform:
         if platform == 'windows' or platform == 'macos' or platform == 'linux':
@@ -134,7 +135,34 @@ def main():
         else:
             print('Platform not supported')
 
+        if platform == 'windows':
+            preferredShaderType = 'cso,spirv'
+        elif platform == 'macos':
+            preferredShaderType = 'metal'
+        elif platform == 'linux' or platform == 'android':
+            ccc = 'spirv'
+
+    shaderConverter = os.path.join(scriptDirectory, '../ShaderProcessor/convert.py')
     textureConverter = os.path.join(scriptDirectory, '../TextureCompression/convert.py')
+
+    globalFileToSkip = dict()
+
+    #Compile shaders
+    if resourceSpecFile and "shaders" in resourceSpec and "libraries" in resourceSpec["shaders"]:
+        for shaderLibrary in resourceSpec["shaders"]["libraries"]:
+            shaderLibraryPath = os.path.join(sourceDirectory, shaderLibrary)
+            shaderOutputPath = os.path.join(targetDirectory, os.path.dirname(shaderLibrary))
+            print(shaderOutputPath)
+            callArray = ['python3', shaderConverter, shaderLibraryPath, preferredShaderType, shaderOutputPath, os.path.dirname(shaderLibrary)]
+            subprocess.call(callArray)
+            globalFileToSkip[shaderLibrary] = True
+
+            #exclude shader files that are part of the library from getting copied on their own
+            with open(shaderLibraryPath, 'r') as shaderLibraryData:
+                shaderLibraryJson = json.load(shaderLibraryData)
+                for shaderFile in shaderLibraryJson:
+                    if 'file' in shaderFile:
+                        globalFileToSkip[os.path.join(os.path.dirname(shaderLibrary), shaderFile['file'])] = True
 
     #loop through all subfolders and files
     for currentSourceDirectory, subdirs, files in os.walk(sourceDirectory):
@@ -145,6 +173,7 @@ def main():
 
         filesToSkip = dict()
 
+        #Convert and copy textures
         if not skipTextures:
             for filename in files:
                 if resourceSpecFile:
@@ -155,7 +184,7 @@ def main():
 
                         textureInputPath = os.path.join(currentSourceDirectory, filename)
                         textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + textureSpec["extension"])
-                        callArray = ['python', textureConverter, textureInputPath, textureOutputPath]
+                        callArray = ['python3', textureConverter, textureInputPath, textureOutputPath]
                         if len(textureSpec["parameters"]) > 0:
                             callArray.append(textureSpec["parameters"])
                         subprocess.call(callArray)
@@ -183,13 +212,13 @@ def main():
                                 textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
                                 if os.path.isfile(textureInputPath):
                                     textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
-                                    subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
+                                    subprocess.call(['python3', textureConverter, textureInputPath, textureOutputPath])
                                     for extension in textureExtensionsToSkipForCompressed:
                                         textureInputFilename = textureFileName + extension
                                         filesToSkip[textureInputFilename] = True
 
         for filename in files:
-            if not filename in filesToSkip:
+            if not filename in filesToSkip and not os.path.join(currentRelativePath, filename) in globalFileToSkip:
                 if skipTextures:
                     filebasename, fileextension = os.path.splitext(filename)
                     if fileextension in ['.dds', '.astc', '.png']:
