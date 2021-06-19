@@ -6,8 +6,6 @@ import subprocess
 import Utilities
 import json
 import urllib.request
-import shutil
-
 
 def downloadItchIOButler(helperdir):
 	butlerDirectory = os.path.join(helperdir, "Vendor")
@@ -78,12 +76,11 @@ def downloadOculusPlatformUtil(helperdir):
 
 	return utilityFile
 
-
 def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio) [devicetype (quest, go)]')
+		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [devicetype (quest, go)]')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -110,7 +107,7 @@ def main():
 		return
 
 	storefront = sys.argv[3]
-	supportedStorefronts = ['oculus', 'steam', 'itchio', 'test']
+	supportedStorefronts = ['oculus', 'steam', 'itchio', 'github', 'test']
 	if not storefront in supportedStorefronts:
 		print('Storefront (' + storefront + ') not supported!')
 		return
@@ -126,8 +123,8 @@ def main():
 	if not configReleaseDirectory:
 		print("config file is missing release-directory!")
 		return
-	if not configBuildSecrets and storefront == "oculus":
-		print("config file is missing appinfo-file-oculus, which is required for submitting to the oculus store!")
+	if not configBuildSecrets and (storefront == "oculus" or storefront == "github"):
+		print("config file is missing build-secrets, which is required for submitting to the oculus store and github!")
 		return
 
 	releasesDirectoryPath = os.path.join(projectRootPath, configReleaseDirectory)
@@ -202,6 +199,100 @@ def main():
 
 		#subprocess.call([builderFile, '+login', 'slindev', '+run_app_build_http', os.path.join(currentDirectory, appBuildFile), '+quit'])
 
+	elif storefront == "github":
+		
+		githubRepository = None
+		githubToken = None
+		with open(os.path.join(projectRootPath, configBuildSecrets), "rb") as buildSecretsFile:
+			buildSecretsData = json.load(buildSecretsFile)
+			if 'github' in buildSecretsData:
+				githubData = buildSecretsData['github']
+				githubRepository = githubData["repository"]
+				githubToken = githubData["token"]
+
+		if not githubRepository or not githubToken:
+			print("no github repository or token in " + configBuildSecrets)
+			return
+
+		githubToken = "token " + githubToken
+
+		releaseInfo = None
+		print("Github API: looking for an existing release for the current version")
+
+		#Check if a release for this version already exists
+		with urllib.request.urlopen("https://api.github.com/repos/" + githubRepository + "/releases") as response:
+			responseJson = json.load(response)
+			print("Github API: Successfully queried releases")
+			for result in responseJson:
+				if result["tag_name"] == "v" + version:
+					releaseInfo = result
+					print("Github API: Found an existing release for v" + version)
+					break
+
+		#Create a new release if not
+		if not releaseInfo:
+			print("Github API: No existing release for this version, creating a new one for v" + version)
+			headersDict = dict()
+			headersDict["Authorization"] = githubToken
+			headersDict["accept"] = "application/vnd.github.v3+json"
+			bodyDict = dict()
+			bodyDict["tag_name"] = "v" + version
+			request = urllib.request.Request("https://api.github.com/repos/" + githubRepository + "/releases", json.dumps(bodyDict).encode('ascii'), headersDict, method='POST')
+			with urllib.request.urlopen(request) as response:
+				releaseInfo = json.load(response)
+				print("Github API: Successfully created a new release v" + version)
+
+		if releaseInfo:
+			uploadFileName = None
+			if platform == "android":
+				uploadFileName = configNameLower+"-"+"independent"+".apk"
+			else:
+				#TODO: Need to create the zip file to upload!
+				uploadFileName = configNameLower+"-"+"independent"+".zip"
+
+			#if asset with the same name already exists, remove it
+			if "assets" in releaseInfo:
+				for asset in releaseInfo["assets"]:
+					if asset["name"] == uploadFileName:
+						print("Github API: Asset with name " + uploadFileName + " already exists, deleting")
+						headersDict = dict()
+						headersDict["Authorization"] = githubToken
+						headersDict["accept"] = "application/vnd.github.v3+json"
+						request = urllib.request.Request(asset["url"], headers=headersDict, method='DELETE')
+						with urllib.request.urlopen(request) as response:
+							print("Github API: deleted existing release asset " + uploadFileName)
+
+
+			#upload release file
+			headersDict = dict()
+			headersDict["Authorization"] = githubToken
+			headersDict["accept"] = "application/vnd.github.v3+json"
+			headersDict["Content-Type"] = "application/zip"
+
+			apkToUpload = os.path.join(releasesDirectoryPath, platform + '_independent')
+			apkToUpload = os.path.join(apkToUpload, uploadFileName)
+			with open(apkToUpload, "rb") as apkFile:
+				fileContent = apkFile.read()
+				url = releaseInfo["upload_url"]
+				url = url.split("{")[0]
+				url += "?name=" + uploadFileName
+				request = urllib.request.Request(url, fileContent, headers=headersDict, method='POST')
+
+				print("Github API: upload release asset " + uploadFileName)
+
+				try:
+				    response = urllib.request.urlopen(request)
+				except urllib.error.URLError as e:
+				    if hasattr(e, 'reason'):
+				        print('Failed to reach a server.')
+				        print('Reason: ', e.reason)
+				    
+				    if hasattr(e, 'code'):
+				        print('The server couldn\'t fulfill the request.')
+				        print('Error code: ', e.code)
+				else:
+					uploadInfo = json.load(response)
+					print("Github API: Successfully uploaded release asset " + uploadFileName + " for github release v" + version)
 
 if __name__ == '__main__':
 	main()
