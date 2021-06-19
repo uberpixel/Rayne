@@ -91,12 +91,11 @@ namespace RN
 			group->Wait();
 			group->Release();
 		}
-		
-		FlushDeletionQueue();
 
 		Scene::Update(delta);
-
 		DidUpdate(delta);
+		
+		FlushDeletionQueue();
 	}
 
 	void SceneBasic::FlushDeletionQueue()
@@ -121,7 +120,7 @@ namespace RN
 			_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].Erase(node->_sceneUpdateEntry);
 
 			node->UpdateSceneInfo(nullptr);
-			node->Autorelease();
+			node->Release();
 		});
 
 		_nodesToRemove->RemoveAllObjects();
