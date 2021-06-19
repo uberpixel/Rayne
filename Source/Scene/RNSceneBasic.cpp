@@ -120,7 +120,7 @@ namespace RN
 			_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].Erase(node->_sceneUpdateEntry);
 
 			node->UpdateSceneInfo(nullptr);
-			node->Autorelease(); //Autorelease here causes the constructors to be called later (otherwise RemoveAllObjects below would do it), this will cause objects removed from the scene in the constructor to be removed in the next frame, working around some issue I've been having otherwise
+			node->Autorelease(); //Autorelease here causes the constructors to be called later (otherwise RemoveAllObjects below would do it), this will cause objects removed from the scene in the destructor to be removed in the next frame, working around some issue I've been having otherwise
 			//TODO: Somehow make objects removed in the destructor also be deleted here
 		});
 

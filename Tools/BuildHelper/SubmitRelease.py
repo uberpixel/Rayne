@@ -6,6 +6,7 @@ import subprocess
 import Utilities
 import json
 import urllib.request
+import shutil
 
 def downloadItchIOButler(helperdir):
 	butlerDirectory = os.path.join(helperdir, "Vendor")
@@ -244,11 +245,16 @@ def main():
 
 		if releaseInfo:
 			uploadFileName = None
+			apkToUpload = releasesDirectoryPath
 			if platform == "android":
+				apkToUpload = os.path.join(apkToUpload, platform + '_independent')
 				uploadFileName = configNameLower+"-"+"independent"+".apk"
 			else:
-				#TODO: Need to create the zip file to upload!
-				uploadFileName = configNameLower+"-"+"independent"+".zip"
+				uploadFileName = configNameLower + "-" + platform + "_independent"
+				shutil.make_archive(os.path.join(apkToUpload, uploadFileName), 'zip', os.path.join(apkToUpload, platform + '_independent'))
+				uploadFileName += ".zip"
+
+			apkToUpload = os.path.join(apkToUpload, uploadFileName)
 
 			#if asset with the same name already exists, remove it
 			if "assets" in releaseInfo:
@@ -269,8 +275,6 @@ def main():
 			headersDict["accept"] = "application/vnd.github.v3+json"
 			headersDict["Content-Type"] = "application/zip"
 
-			apkToUpload = os.path.join(releasesDirectoryPath, platform + '_independent')
-			apkToUpload = os.path.join(apkToUpload, uploadFileName)
 			with open(apkToUpload, "rb") as apkFile:
 				fileContent = apkFile.read()
 				url = releaseInfo["upload_url"]
