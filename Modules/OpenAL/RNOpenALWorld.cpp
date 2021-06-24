@@ -306,6 +306,12 @@ namespace RN
 		}
 	}
 
+	void OpenALWorld::SetDopplerEffect(float factor, float velocity)
+	{
+		alDopplerFactor(factor);
+		alDopplerVelocity(velocity);
+	}
+
 	void OpenALWorld::SetInputAudioAsset(AudioAsset *bufferAsset)
 	{
 		SafeRelease(_inputBuffer);
