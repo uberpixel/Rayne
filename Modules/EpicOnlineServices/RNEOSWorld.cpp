@@ -98,8 +98,6 @@ namespace RN
 		authExpirationOptions.ApiVersion = EOS_CONNECT_ADDNOTIFYAUTHEXPIRATION_API_LATEST;
 		EOS_Connect_AddNotifyAuthExpiration(_connectInterfaceHandle, &authExpirationOptions, this, ConnectOnAuthExpirationCallback);
 
-		LoginUser();
-
 		_instance = this;
 	}
 		
@@ -282,6 +280,8 @@ namespace RN
 
 	void EOSWorld::LoginUser()
 	{
+		if(GetIsLoggedIn()) return;
+		
 		std::function<void(String *, String *, EOSAuthServiceType)> loginCallback = [&](String *userName, String *loginToken, EOSAuthServiceType serviceType){
 			
 			EOS_Connect_Credentials connectCredentials = {};

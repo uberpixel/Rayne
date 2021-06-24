@@ -57,6 +57,7 @@ namespace RN
 		EOSAPI EOS_HP2P GetP2PHandle() const { return _p2pInterfaceHandle; }
 		EOSAPI EOS_ProductUserId GetUserID() const { return _loggedInUserID; }
 		EOSAPI bool GetIsLoggedIn() const { return _isLoggedIn; }
+		EOSAPI void LoginUser();
 		
 		EOSAPI double Ping(String *address, size_t repetitions);
 
@@ -71,7 +72,6 @@ namespace RN
 		static void ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data);
 		
 		void CreateDeviceID();
-		void LoginUser();
 		
 		static EOSWorld *_instance;
 		Array *_hosts;
