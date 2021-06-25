@@ -66,7 +66,7 @@ namespace RN
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void()> callback);
 		EOSAPI void LeaveCurrentLobby();
 		//EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
-		//EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
+		EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
 		EOSAPI void ResetLobbySearchCallback();
 			
 	private:

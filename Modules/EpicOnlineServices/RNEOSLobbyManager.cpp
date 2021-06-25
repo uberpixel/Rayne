@@ -139,6 +139,92 @@ namespace RN
 		}
 	}
 
+	void EOSLobbyManager::SetCurrentLobbyAttributes(Dictionary *attributes)
+	{
+		//Can only edit a lobby if connected to it and the owner
+		if(!_isConnectedToLobby || !_isConnectedLobbyOwner) return;
+		
+		EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
+		modificationOptions.ApiVersion = EOS_LOBBY_UPDATELOBBYMODIFICATION_API_LATEST;
+		modificationOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+		modificationOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+		
+		EOS_HLobbyModification modificationHandle;
+		if(EOS_Lobby_UpdateLobbyModification(_lobbyInterfaceHandle, &modificationOptions, &modificationHandle) != EOS_EResult::EOS_Success)
+		{
+			RNDebug("Failed creating EOS Lobby modification handle");
+			return;
+		}
+		
+		attributes->Enumerate([&](Object *object, const Object *key, bool &stop){
+			const String *keyString = key->Downcast<String>();
+			
+			EOS_Lobby_AttributeData attributeData = {0};
+			attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+			attributeData.Key = keyString->GetUTF8String();
+			
+			if(object->IsKindOfClass(String::GetMetaClass()))
+			{
+				String *valueString = object->Downcast<String>();
+				attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
+				attributeData.Value.AsUtf8 = valueString->GetUTF8String();
+			}
+			else if(object->IsKindOfClass(Number::GetMetaClass()))
+			{
+				Number *valueNumber = object->Downcast<Number>();
+				switch(valueNumber->GetType())
+				{
+					case Number::Type::Boolean:
+					{
+						attributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
+						attributeData.Value.AsBool = valueNumber->GetBoolValue();
+						break;
+					}
+						
+					case Number::Type::Float32:
+					case Number::Type::Float64:
+					{
+						attributeData.ValueType = EOS_EAttributeType::EOS_AT_DOUBLE;
+						attributeData.Value.AsDouble = valueNumber->GetDoubleValue();
+						break;
+					}
+					
+					case Number::Type::Int8:
+					case Number::Type::Int16:
+					case Number::Type::Int32:
+					case Number::Type::Int64:
+					{
+						attributeData.ValueType = EOS_EAttributeType::EOS_AT_INT64;
+						attributeData.Value.AsInt64 = valueNumber->GetInt64Value();
+						break;
+					}
+						
+					default:
+					{
+						RN_ASSERT(false, "Unsupported attribute type! (needs to be intN, float or double)");
+					}
+				}
+			}
+			else
+			{
+				RN_ASSERT(false, "Unsupported attribute type! (needs to be String or Number)");
+			}
+			
+			EOS_LobbyModification_AddAttributeOptions attributeOptions = {0};
+			attributeOptions.ApiVersion = EOS_LOBBYMODIFICATION_ADDATTRIBUTE_API_LATEST;
+			attributeOptions.Visibility = EOS_ELobbyAttributeVisibility::EOS_LAT_PUBLIC;
+			attributeOptions.Attribute = &attributeData;
+			
+			EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+		});
+		
+		EOS_Lobby_UpdateLobbyOptions updateLobbyOptions = {0};
+		updateLobbyOptions.ApiVersion = EOS_LOBBY_UPDATELOBBY_API_LATEST;
+		updateLobbyOptions.LobbyModificationHandle = modificationHandle;
+		
+		EOS_Lobby_UpdateLobby(_lobbyInterfaceHandle, &updateLobbyOptions, this, LobbyOnUpdateCallback);
+	}
+
 	void EOSLobbyManager::ResetLobbySearchCallback()
 	{
 		_lobbySearchCallback = nullptr;
