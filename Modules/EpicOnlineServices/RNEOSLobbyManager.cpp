@@ -43,7 +43,7 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion)
+	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion, bool hasPassword)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
@@ -52,6 +52,7 @@ namespace RN
 		_createLobbyName = SafeRetain(lobbyName);
 		_createLobbyVersion = SafeRetain(lobbyVersion);
 		_createLobbyTimestamp = createLobbyTimestamp;
+		_createLobbyHasPassword = hasPassword;
 		
 		EOS_Lobby_CreateLobbyOptions options = {};
 		options.ApiVersion = EOS_LOBBY_CREATELOBBY_API_LATEST;
@@ -79,19 +80,6 @@ namespace RN
 		
 		_isSearchingLobby = true;
 		_lobbySearchCallback = callback;
-		
-		EOS_Lobby_AttributeData searchableAttributeData = {0};
-		searchableAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
-		searchableAttributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
-		searchableAttributeData.Key = "isSearchable";
-		searchableAttributeData.Value.AsBool = true;
-		
-		EOS_LobbySearch_SetParameterOptions searchableSearchParameterOptions = {0};
-		searchableSearchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
-		searchableSearchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
-		searchableSearchParameterOptions.Parameter = &searchableAttributeData;
-		
-		EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchableSearchParameterOptions);
 		
 		EOS_Lobby_AttributeData timestampAttributeData = {0};
 		timestampAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
@@ -183,8 +171,8 @@ namespace RN
 			EOS_Lobby_AttributeData searchableAttributeData = {0};
 			searchableAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 			searchableAttributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
-			searchableAttributeData.Key = "isSearchable";
-			searchableAttributeData.Value.AsBool = true;
+			searchableAttributeData.Key = "hasPassword";
+			searchableAttributeData.Value.AsBool = lobbyManager->_createLobbyHasPassword;
 			
 			EOS_LobbyModification_AddAttributeOptions attributeOptions = {0};
 			attributeOptions.ApiVersion = EOS_LOBBYMODIFICATION_ADDATTRIBUTE_API_LATEST;
@@ -303,12 +291,21 @@ namespace RN
 				}
 				
 				copyAttributesOptions.AttrKey = "timestamp";
-				EOS_Lobby_Attribute *timestampVersionAttribute = nullptr;
-				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &timestampVersionAttribute);
-				if(timestampVersionAttribute)
+				EOS_Lobby_Attribute *timestampAttribute = nullptr;
+				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &timestampAttribute);
+				if(timestampAttribute)
 				{
-					lobbyInfo->createTimestamp = timestampVersionAttribute->Data->Value.AsInt64;
-					EOS_Lobby_Attribute_Release(timestampVersionAttribute);
+					lobbyInfo->createTimestamp = timestampAttribute->Data->Value.AsInt64;
+					EOS_Lobby_Attribute_Release(timestampAttribute);
+				}
+				
+				copyAttributesOptions.AttrKey = "hasPassword";
+				EOS_Lobby_Attribute *hasPasswordAttribute = nullptr;
+				EOS_LobbyDetails_CopyAttributeByKey(lobbyDetailsHandle, &copyAttributesOptions, &hasPasswordAttribute);
+				if(hasPasswordAttribute)
+				{
+					lobbyInfo->hasPassword = hasPasswordAttribute->Data->Value.AsBool;
+					EOS_Lobby_Attribute_Release(hasPasswordAttribute);
 				}
 				
 				
