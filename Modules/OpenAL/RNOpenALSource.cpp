@@ -255,7 +255,7 @@ namespace RN
 						hasEnded = true;
 					}
 					_asset->PopData(_ringBufferTemp, _asset->GetBufferedSize());
-					std::fill(_ringBufferTemp + _asset->GetBufferedSize(), _ringBufferTemp + sizeof(_ringBufferTemp), (ALint)0);
+					std::fill(_ringBufferTemp + bufferedSamples, _ringBufferTemp + 3840, (int16)0);
 					RNDebug("not enough buffered audio: adding silence");
 				}
 				
