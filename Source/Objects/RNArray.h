@@ -263,7 +263,7 @@ namespace RN
 			});
 		}
 
-		String *GetComponentsJoinedByString(const String *separator);
+		RNAPI String *GetComponentsJoinedByString(const String *separator);
 
 	private:
 		RNAPI void UpdateSizeIfNeeded(size_t required);
