@@ -1763,7 +1763,7 @@ namespace RN
 				for(int i = 0; i < sourceD3DDepthTexture->_descriptor.depth; i++)
 				{
 					uint32 subresourceIndex = D3D12CalcSubresource(0, i, 0, sourceD3DDepthTexture->_descriptor.mipMaps, sourceD3DDepthTexture->_descriptor.depth);
-					commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, 0, sourceD3DDepthTexture->_resource, 0, targetDepthFormat);
+					commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, subresourceIndex, sourceD3DDepthTexture->_resource, subresourceIndex, targetDepthFormat);
 				}
 
 				sourceD3DDepthTexture->TransitionToState(commandList, oldDepthSourceState);
