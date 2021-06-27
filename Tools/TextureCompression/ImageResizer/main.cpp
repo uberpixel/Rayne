@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <png.h>
 #include <string.h>
+#include <cmath>
 
 int width, height;
 png_byte color_type;
@@ -125,7 +126,7 @@ float gamma_to_linear(float value)
 		return pow((value + 0.055) / 1.055, 2.4);
 	}*/
 
-	return pow(value, gAMA);
+	return std::pow(value, gAMA);
 }
 		
 float linear_to_gamma(float value)
@@ -139,7 +140,7 @@ float linear_to_gamma(float value)
 		return 1.055 * pow(value, 1.0/2.4) - 0.055;
 	}*/
 
-	return pow(value, 1.0/gAMA);
+	return std::pow(value, 1.0/gAMA);
 }
 
 void blend_pixels(unsigned short *px00, unsigned short *px01, unsigned short *px10, unsigned short *px11, unsigned short *out)

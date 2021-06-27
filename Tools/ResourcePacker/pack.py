@@ -95,7 +95,7 @@ def getTexturesForModelFile(file):
 
 def main():
     if len(sys.argv) < 4:
-        print('python3 pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures]')
+        print('python pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures]')
         return
 
     scriptDirectory = os.path.dirname(sys.argv[0])
@@ -153,7 +153,7 @@ def main():
             shaderLibraryPath = os.path.join(sourceDirectory, shaderLibrary)
             shaderOutputPath = os.path.join(targetDirectory, os.path.dirname(shaderLibrary))
             print(shaderOutputPath)
-            callArray = ['python3', shaderConverter, shaderLibraryPath, preferredShaderType, shaderOutputPath, os.path.dirname(shaderLibrary)]
+            callArray = ['python', shaderConverter, shaderLibraryPath, preferredShaderType, shaderOutputPath, os.path.dirname(shaderLibrary)]
             subprocess.call(callArray)
             globalFileToSkip[shaderLibrary] = True
 
@@ -184,7 +184,7 @@ def main():
 
                         textureInputPath = os.path.join(currentSourceDirectory, filename)
                         textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + textureSpec["extension"])
-                        callArray = ['python3', textureConverter, textureInputPath, textureOutputPath]
+                        callArray = ['python', textureConverter, textureInputPath, textureOutputPath]
                         if len(textureSpec["parameters"]) > 0:
                             callArray.append(textureSpec["parameters"])
                         subprocess.call(callArray)
@@ -212,7 +212,7 @@ def main():
                                 textureInputPath = os.path.join(currentSourceDirectory, textureInputFilename)
                                 if os.path.isfile(textureInputPath):
                                     textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + preferredTextureExtension)
-                                    subprocess.call(['python3', textureConverter, textureInputPath, textureOutputPath])
+                                    subprocess.call(['python', textureConverter, textureInputPath, textureOutputPath])
                                     for extension in textureExtensionsToSkipForCompressed:
                                         textureInputFilename = textureFileName + extension
                                         filesToSkip[textureInputFilename] = True

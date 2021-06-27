@@ -53,35 +53,61 @@ def prepare():
         subprocess.call(['make'], cwd=os.path.abspath(bc7encPath))
         
     elif platform.system() == 'Windows':
-        #Stop preparation if nvcompress file already exists
-        nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
-        nvTextureToolsExecutablePath = os.path.join(nvTextureToolsExecutablePath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/Release/nvcompress.exe')
-        if os.path.isfile(nvTextureToolsExecutablePath):
+        #Stop preparation if resizer file already exists
+        resizerPath = os.path.dirname(sys.argv[0])
+        resizerPath = os.path.join(resizerPath, 'ImageResizer/build/Release/resizer.exe')
+        if os.path.isfile(resizerPath):
+            return
+
+        vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-requires", "Microsoft.Component.MSBuild", "-find", "MSBuild\\**\\Bin\\MSBuild.exe"])
+        vswhereLines = vswhereOutput.splitlines()
+        msbuildPath = None
+        if len(vswhereLines) > 0:
+            msbuildPath = vswhereLines[0].decode("utf-8").strip()
+            print("found msbuild: " + msbuildPath)
+        if not msbuildPath:
+            print("No visual studio installation with MSBuild found!")
             return
 
         #windows
-        nvTextureToolsPath = os.path.dirname(sys.argv[0])
-        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build')
-        os.makedirs(nvTextureToolsPath)
-        subprocess.call(['cmake', '..'], cwd=os.path.abspath(nvTextureToolsPath))
+        imgeResizerPath = os.path.dirname(sys.argv[0])
+        imgeResizerPath = os.path.join(imgeResizerPath, 'ImageResizer/build')
+        if os.path.exists(imgeResizerPath):
+            shutil.rmtree(imgeResizerPath)
+        os.makedirs(imgeResizerPath)
+        subprocess.call(['cmake', '..'], cwd=os.path.abspath(imgeResizerPath))
+        subprocess.call([msbuildPath, 'ImageResizer.sln', '/p:configuration=Release'], cwd=os.path.abspath(imgeResizerPath))
 
-        vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild"])
-        vswhereLines = vswhereOutput.splitlines()
-        for vswhereLine in vswhereLines:
-            if vswhereLine.startswith("installationPath: "):
-                vsInstallationPath = vswhereLine.split(": ", 1)[1]
-        if not vsInstallationPath:
-            print("No visual studio installation with MSBuild found!")
-            return
-        msbuildSearchDirectory = os.path.join(vsInstallationPath, "MSBuild")
-        for root, dirs, files in os.walk(msbuildSearchDirectory):
-            for file in files:
-                if file == "MSBuild.exe":
-                    msbuildPath = os.path.join(root, file)
-        if not msbuildPath:
-            print("MSBuild not found!")
-            return
-        subprocess.call([msbuildPath, 'NV.sln', '-target:nvcompress', '-maxcpucount', '/p:configuration=Release'], cwd=os.path.abspath(nvTextureToolsPath))
+        #TODO: Make it compile on windows (it doesn't come with cmake file only a vs2019 solution and makefile)
+        #astcencPath = os.path.dirname(sys.argv[0])
+        #subprocess.call([msbuildPath, 'astcenc.sln', '/p:configuration=Release'], cwd=os.path.abspath(os.path.join(astcencPath, 'Vendor/astc-encoder/Source/VS2019')))
+        #astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
+        #if not os.path.isfile(astcencPath):
+        #    astcencPath = os.path.dirname(sys.argv[0])
+        #    astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-nointrin')
+        #subprocess.call(['chmod', '+x', astcencPath])
+
+        bc7encPath = os.path.dirname(sys.argv[0])
+        bc7encPath = os.path.join(bc7encPath, 'Vendor/bc7enc_rdo')
+        with open(os.path.join(bc7encPath, 'CMakeLists.txt')) as oldfile, open(os.path.join(bc7encPath, 'CMakeLists.new.txt'), 'w') as newfile:
+            lineCount = 0
+            for line in oldfile:
+                if lineCount == 5 and not "CMAKE_CXX_STANDARD" in line:
+                    newfile.write("set(CMAKE_CXX_STANDARD 11)\n")
+                    lineCount += 1
+                if not "-fopenmp" in line:
+                    newfile.write(line)
+                    lineCount += 1
+        os.remove(os.path.join(bc7encPath, 'CMakeLists.txt'))
+        os.rename(os.path.join(bc7encPath, 'CMakeLists.new.txt'), os.path.join(bc7encPath, 'CMakeLists.txt'))
+        bc7encPath = os.path.join(bc7encPath, 'build')
+        os.makedirs(bc7encPath)
+        if os.path.isfile(os.path.join(os.path.dirname(sys.argv[0]), 'Vendor/bc7enc_rdo/ispc')):
+            subprocess.call(['cmake', '-D SUPPORT_BC7E=TRUE', '..'], cwd=os.path.abspath(bc7encPath))
+        else:
+            subprocess.call(['cmake', '..'], cwd=os.path.abspath(bc7encPath))
+        subprocess.call([msbuildPath, 'bc7enc.sln', '/p:configuration=Release'], cwd=os.path.abspath(bc7encPath))
+
     elif platform.system() == 'Linux':
         #Stop preparation if nvcompress file already exists
         nvTextureToolsExecutablePath = os.path.dirname(sys.argv[0])
@@ -164,7 +190,9 @@ def main():
         imageResizerPath = os.path.join(imageResizerPath, 'ImageResizer/build/resizer')
     elif platform.system() == 'Windows':
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/windows-x64/astcenc.exe')
-        nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/Release/nvcompress.exe')
+        bc7encPath = os.path.join(bc7encPath, 'Vendor/bc7enc_rdo/build/Release/bc7enc.exe')
+        imageResizerPath = os.path.join(imageResizerPath, 'ImageResizer/build/Release/resizer.exe')
+
     elif platform.system() == 'Linux':
         astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Binary/linux-x64/astcenc.exe')
         nvTextureToolsPath = os.path.join(nvTextureToolsPath, 'Vendor/nvidia-texture-tools/build/src/nvtt/tools/nvcompress')
