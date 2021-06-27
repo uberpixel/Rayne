@@ -37,6 +37,7 @@ namespace RN
 
 		ID3D12Resource *GetD3D12Resource() const { return _resource; }
 
+		D3D12_RESOURCE_STATES GetCurrentState() const { return _currentState; }
 		D3DAPI void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
 
 		static DXGI_FORMAT ImageFormatFromTextureFormat(Texture::Format format);

@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(OculusSwapChain, D3D12SwapChain)
 
-	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0), _frameCounter(0), _depthSwapChain(nullptr)
+	OculusSwapChain::OculusSwapChain(const Window::SwapChainDescriptor &descriptor) : _submitResult(0), _frameCounter(0), _colorSwapChain{ nullptr, nullptr }, _depthSwapChain{nullptr, nullptr}, _colorTexture(nullptr), _depthTexture(nullptr)
 	{
 		_session = nullptr;
 		_descriptor = descriptor;
@@ -96,18 +96,22 @@ namespace RN
 
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 
-		result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &swapChainDesc, &_colorSwapChain);
+		result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &swapChainDesc, &_colorSwapChain[0]);
 		if(!OVR_SUCCESS(result))
 			return;
+		result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &swapChainDesc, &_colorSwapChain[1]);
+		if (!OVR_SUCCESS(result))
+			return;
+		
 		int textureCount = 0;
-		ovr_GetTextureSwapChainLength(_session, _colorSwapChain, &textureCount);
+		ovr_GetTextureSwapChainLength(_session, _colorSwapChain[0], &textureCount);
 		_descriptor.bufferCount = textureCount;
 
 		if(descriptor.depthStencilFormat != Texture::Format::Invalid)
 		{
 			ovrTextureSwapChainDesc depthSwapChainDesc = {};
 			depthSwapChainDesc.Type = ovrTexture_2D;
-			depthSwapChainDesc.ArraySize = 2;
+			depthSwapChainDesc.ArraySize = 1;
 			switch(descriptor.depthStencilFormat)
 			{
 				case Texture::Format::Depth_16I:
@@ -149,12 +153,27 @@ namespace RN
 			depthSwapChainDesc.StaticImage = ovrFalse;
 			depthSwapChainDesc.BindFlags = ovrTextureBind_DX_DepthStencil;
 
-			result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &depthSwapChainDesc, &_depthSwapChain);
+			result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &depthSwapChainDesc, &_depthSwapChain[0]);
+			if (!OVR_SUCCESS(result))
+				return;
+
+			result = ovr_CreateTextureSwapChainDX(_session, _renderer->GetCommandQueue(), &depthSwapChainDesc, &_depthSwapChain[1]);
 			if (!OVR_SUCCESS(result))
 				return;
 		}
 
-		_framebuffer = new D3D12Framebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
+		_swapChainColorBuffers[0] = new ID3D12Resource*[_descriptor.bufferCount];
+		_swapChainColorBuffers[1] = new ID3D12Resource*[_descriptor.bufferCount];
+		_swapChainDepthBuffers[0] = new ID3D12Resource*[_descriptor.bufferCount];
+		_swapChainDepthBuffers[1] = new ID3D12Resource*[_descriptor.bufferCount];
+
+		for(int i = 0; i < _descriptor.bufferCount; i++)
+		{
+			ovr_GetTextureSwapChainBufferDX(_session, _colorSwapChain[0], i, IID_PPV_ARGS(&_swapChainColorBuffers[0][i]));
+			ovr_GetTextureSwapChainBufferDX(_session, _colorSwapChain[1], i, IID_PPV_ARGS(&_swapChainColorBuffers[1][i]));
+			ovr_GetTextureSwapChainBufferDX(_session, _depthSwapChain[0], i, IID_PPV_ARGS(&_swapChainDepthBuffers[0][i]));
+			ovr_GetTextureSwapChainBufferDX(_session, _depthSwapChain[1], i, IID_PPV_ARGS(&_swapChainDepthBuffers[1][i]));
+		}
 
 		// Initialize VR structures, filling out description.
 		_eyeRenderDesc[0] = ovr_GetRenderDesc(_session, ovrEye_Left, _hmdDescription.DefaultEyeFov[0]);
@@ -163,12 +182,12 @@ namespace RN
 		_hmdToEyeViewPose[1] = _eyeRenderDesc[1].HmdToEyePose;
 
 		// Initialize our single full screen Fov layer.
-		_imageLayer.Header.Type = _depthSwapChain?ovrLayerType_EyeFovDepth:ovrLayerType_EyeFov;
+		_imageLayer.Header.Type = _depthSwapChain[0]?ovrLayerType_EyeFovDepth:ovrLayerType_EyeFov;
 		_imageLayer.Header.Flags = 0;
-		_imageLayer.ColorTexture[0] = _colorSwapChain;
-		_imageLayer.ColorTexture[1] = nullptr;//_colorSwapChain;
-		_imageLayer.DepthTexture[0] = _depthSwapChain;
-		_imageLayer.DepthTexture[1] = nullptr;//_depthSwapChain;
+		_imageLayer.ColorTexture[0] = _colorSwapChain[0];
+		_imageLayer.ColorTexture[1] = _colorSwapChain[1];
+		_imageLayer.DepthTexture[0] = _depthSwapChain[0];
+		_imageLayer.DepthTexture[1] = _depthSwapChain[1];
 		_imageLayer.Fov[0] = _eyeRenderDesc[0].Fov;
 		_imageLayer.Fov[1] = _eyeRenderDesc[1].Fov;
 		_imageLayer.Viewport[0].Pos.x = 0;
@@ -181,17 +200,44 @@ namespace RN
 		_imageLayer.Viewport[1].Size.h = recommenedTex1Size.h;
 
 		ovr_SetTrackingOriginType(_session, ovrTrackingOrigin_FloorLevel);
+
+		Texture::Descriptor textureDescriptor;
+		textureDescriptor.type = Texture::Type::Type2DArray;
+		textureDescriptor.width = _size.x;
+		textureDescriptor.height = _size.y;
+		textureDescriptor.depth = _descriptor.layerCount;
+		textureDescriptor.format = _descriptor.colorFormat;
+		textureDescriptor.usageHint = Texture::UsageHint::ShaderRead | Texture::UsageHint::RenderTarget;
+		textureDescriptor.accessOptions = GPUResource::AccessOptions::Private;
+		_colorTexture = RN::Texture::WithDescriptor(textureDescriptor)->Downcast<D3D12Texture>();
+		_colorTexture->Retain();
+
+		if(_depthSwapChain[0])
+		{
+			textureDescriptor.format = _descriptor.depthStencilFormat;
+			_depthTexture = RN::Texture::WithDescriptor(textureDescriptor)->Downcast<D3D12Texture>();
+			_depthTexture->Retain();
+		}
+
+		//TODO: Find out why setting buffer count to 1 makes the renderer crash
+		//_descriptor.bufferCount = 1; //This is the actual buffer count of this swapchain object as it is only backed by one texture
+		_framebuffer = new D3D12Framebuffer(_size, 2, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 	}
 
 	OculusSwapChain::~OculusSwapChain()
 	{
-		if(_colorSwapChain)
+		SafeRelease(_colorTexture);
+		SafeRelease(_depthTexture);
+		
+		if(_colorSwapChain[0])
 		{
-			ovr_DestroyTextureSwapChain(_session, _colorSwapChain);
+			ovr_DestroyTextureSwapChain(_session, _colorSwapChain[0]);
+			ovr_DestroyTextureSwapChain(_session, _colorSwapChain[1]);
 		}
-		if (_depthSwapChain)
+		if(_depthSwapChain[0])
 		{
-			ovr_DestroyTextureSwapChain(_session, _depthSwapChain);
+			ovr_DestroyTextureSwapChain(_session, _depthSwapChain[0]);
+			ovr_DestroyTextureSwapChain(_session, _depthSwapChain[1]);
 		}
 		ovr_Destroy(_session);
 		ovr_Shutdown();
@@ -218,14 +264,12 @@ namespace RN
 
 		// Get next available index of the texture swap chain
 		int currentIndex = 0;
-		ovr_GetTextureSwapChainCurrentIndex(_session, _colorSwapChain, &currentIndex);
+		ovr_GetTextureSwapChainCurrentIndex(_session, _colorSwapChain[0], &currentIndex);
 		_frameIndex = currentIndex;
 	}
 
 	void OculusSwapChain::Prepare(D3D12CommandList *commandList)
 	{
-		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_framebuffer->GetSwapChainDepthBuffer(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-
 		if(OVR_SUCCESS(_submitResult))
 		{
 			ovrResult tempResult = ovr_BeginFrame(_session, _frameCounter);
@@ -238,17 +282,52 @@ namespace RN
 
 	void OculusSwapChain::Finalize(D3D12CommandList *commandList)
 	{
-		commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_framebuffer->GetSwapChainDepthBuffer(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
+		D3D12_RESOURCE_STATES oldColorSourceState = _colorTexture->GetCurrentState();
+		_colorTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		D3D12_RESOURCE_STATES oldDepthSourceState;
+		if(_depthTexture)
+		{
+			oldDepthSourceState = _depthTexture->GetCurrentState();
+			_depthTexture->TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		}
+
+		for(int eye = 0; eye < 2; eye++)
+		{
+			commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_swapChainColorBuffers[eye][_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST));
+
+			CD3DX12_TEXTURE_COPY_LOCATION colorSourceLocation(_colorTexture->GetD3D12Resource(), eye);
+			CD3DX12_TEXTURE_COPY_LOCATION colorDestinationLocation(_swapChainColorBuffers[eye][_frameIndex], 0);
+			commandList->GetCommandList()->CopyTextureRegion(&colorDestinationLocation, 0, 0, 0, &colorSourceLocation, nullptr);
+
+			commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_swapChainColorBuffers[eye][_frameIndex], D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+			if(_depthTexture)
+			{
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_swapChainDepthBuffers[eye][_frameIndex], D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+
+				CD3DX12_TEXTURE_COPY_LOCATION depthSourceLocation(_depthTexture->GetD3D12Resource(), eye);
+				CD3DX12_TEXTURE_COPY_LOCATION depthDestinationLocation(_swapChainDepthBuffers[eye][_frameIndex], 0);
+				commandList->GetCommandList()->CopyTextureRegion(&depthDestinationLocation, 0, 0, 0, &depthSourceLocation, nullptr);
+
+				commandList->GetCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_swapChainDepthBuffers[eye][_frameIndex], D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+			}
+		}
+
+		_colorTexture->TransitionToState(commandList, oldColorSourceState);
+		if(_depthTexture)	_depthTexture->TransitionToState(commandList, oldDepthSourceState);
 	}
 
 	void OculusSwapChain::PresentBackBuffer()
 	{
 		// Commit the changes to the texture swap chain
-		ovr_CommitTextureSwapChain(_session, _colorSwapChain);
+		ovr_CommitTextureSwapChain(_session, _colorSwapChain[0]);
+		ovr_CommitTextureSwapChain(_session, _colorSwapChain[1]);
 
 		if(_depthSwapChain)
 		{
-			ovr_CommitTextureSwapChain(_session, _depthSwapChain);
+			ovr_CommitTextureSwapChain(_session, _depthSwapChain[0]);
+			ovr_CommitTextureSwapChain(_session, _depthSwapChain[1]);
 		}
 
 		// Submit frame with one layer we have.
@@ -265,16 +344,13 @@ namespace RN
 
 	ID3D12Resource *OculusSwapChain::GetD3D12ColorBuffer(int i) const
 	{
-		ID3D12Resource *buffer;
-		ovr_GetTextureSwapChainBufferDX(_session, _colorSwapChain, i, IID_PPV_ARGS(&buffer));
-		return buffer;
+		return _colorTexture->GetD3D12Resource();
 	}
 
 	ID3D12Resource *OculusSwapChain::GetD3D12DepthBuffer(int i) const
 	{
-		ID3D12Resource *buffer;
-		ovr_GetTextureSwapChainBufferDX(_session, _depthSwapChain, i, IID_PPV_ARGS(&buffer));
-		return buffer;
+		if(!_depthTexture) return nullptr;
+		return _depthTexture->GetD3D12Resource();
 	}
 
 	void OculusSwapChain::UpdatePredictedPose()

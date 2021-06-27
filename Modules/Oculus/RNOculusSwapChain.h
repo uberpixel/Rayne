@@ -36,7 +36,7 @@ namespace RN
 
 		OVRAPI void UpdatePredictedPose();
 
-		bool HasDepthBuffer() const final { return _depthSwapChain; }
+		bool HasDepthBuffer() const final { return _depthSwapChain[0]; }
 		const Window::SwapChainDescriptor &GetDescriptor() const { return _descriptor; }
 
 	private:
@@ -48,8 +48,8 @@ namespace RN
 		ovrGraphicsLuid _luID;
 		ovrHmdDesc _hmdDescription;
 		ovrLayerEyeFovDepth _imageLayer;
-		ovrTextureSwapChain _colorSwapChain;
-		ovrTextureSwapChain _depthSwapChain;
+		ovrTextureSwapChain _colorSwapChain[2];
+		ovrTextureSwapChain _depthSwapChain[2];
 
 		ovrEyeRenderDesc _eyeRenderDesc[2];
 		ovrPosef _hmdToEyeViewPose[2];
@@ -57,6 +57,10 @@ namespace RN
 
 		ovrResult _submitResult;
 
+		D3D12Texture *_colorTexture;
+		D3D12Texture *_depthTexture;
+		ID3D12Resource **_swapChainColorBuffers[2];
+		ID3D12Resource **_swapChainDepthBuffers[2];
 		long long _frameCounter;
 
 		RNDeclareMetaAPI(OculusSwapChain, OVRAPI)
