@@ -7,6 +7,9 @@
 //
 
 #include "RNEOSHost.h"
+
+#include <RayneConfig.h>
+
 #include "RNEOSWorld.h"
 
 #include "eos_platform_prereqs.h"
@@ -111,8 +114,8 @@ namespace RN
 		{
 			packetHeader.packetType = ProtocolPacketTypePingRequest;
 			packetHeader.packetID = _peers[receiverID]._lastPingID++;
-			
-			clock_gettime(CLOCK_MONOTONIC, &_peers[receiverID]._sentPingTime);
+
+			_peers[receiverID]._sentPingTime = Clock::now();
 		}
 		
 		EOS_P2P_SendPacketOptions sendPacketOptions = {0};
@@ -217,9 +220,9 @@ namespace RN
 			{
 				if(_peers[id]._lastPingID-1 == packetHeader.packetID)
 				{
-					struct timespec receivedPingTime;
-					clock_gettime(CLOCK_MONOTONIC, &receivedPingTime);
-					double timeElapsed = (receivedPingTime.tv_sec - _peers[id]._sentPingTime.tv_sec) * 1000.0 + ((double)(receivedPingTime.tv_nsec - _peers[id]._sentPingTime.tv_nsec))/1000000.0;
+					Clock::time_point receivedPingTime = Clock::now();
+					auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(receivedPingTime - _peers[id]._sentPingTime).count();
+					double timeElapsed = milliseconds / 1000.0;
 					
 					RNDebug("Ping time for " << id << ": " << timeElapsed);
 					
@@ -232,8 +235,6 @@ namespace RN
 			}
 			delete[] rawData;
 		}
-
-		std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
 
 		while(_scheduledPackets.size() > 0)
 		{
@@ -271,13 +272,6 @@ namespace RN
 			_scheduledPackets.pop();
 		}
 
-		std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-		double totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-		if(totalTime > 5)
-		{
-			RNDebug("Sending messages took " << totalTime << "ms");
-		}
-
 		Unlock();
 	}
 
@@ -309,6 +303,8 @@ namespace RN
 				return pair.first;
 			}
 		}
+
+		return 0;
 	}
 
 	bool EOSHost::HasReliableDataInTransit()

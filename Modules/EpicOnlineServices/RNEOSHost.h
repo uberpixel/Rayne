@@ -51,7 +51,7 @@ namespace RN
 			uint8 _lastReliableIDForChannel[254];
 			
 			uint8 _lastPingID;
-			struct timespec _sentPingTime;
+			Clock::time_point _sentPingTime;
 			
 			bool _hasReliableInTransit;
 		};
