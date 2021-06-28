@@ -41,6 +41,7 @@ def main():
         print('No data found.')
         return
 
+    pythonExecutable = sys.executable
     enableDebugSymbols = True
 
     outDirName = sys.argv[3]
@@ -100,7 +101,7 @@ def main():
 
         if 'cso' in outFormats:
             hlslFile = os.path.join(outDirName, fileName + '.hlsl')
-            subprocess.call(['python', preprocessHLSLPath, sourceFile, hlslFile])
+            subprocess.call([pythonExecutable, preprocessHLSLPath, sourceFile, hlslFile])
 
         for shader in shaders:
             if not 'name' in shader or not 'type' in shader:
