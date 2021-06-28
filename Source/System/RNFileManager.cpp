@@ -885,23 +885,23 @@ namespace RN
 		NSError *error = nullptr;
 		[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:&error];
 		return error == nullptr;
-#endif
-#if RN_PLATFORM_WINDOWS
-		return ::CreateDirectory(path->GetUTF8String(), NULL);
-#endif
-#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
-		
+#else
 		Array *pathComponents = path->GetPathComponents();
 		String *fullPath = RNSTR("");
 		for(int i = 0; i < pathComponents->GetCount(); i++)
 		{
 			fullPath->AppendPathComponent(pathComponents->GetObjectAtIndex<String>(i));
-			
+
 			bool isDirectory = false;
 			if(!PathExists(fullPath, isDirectory))
 			{
 				RNDebug("Creating Path: " << fullPath);
-				if(mkdir(fullPath->GetUTF8String(), S_IRWXU) != 0)
+
+#if RN_PLATFORM_WINDOWS
+				if(!::CreateDirectory(fullPath->GetUTF8String(), NULL))
+#elif RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+				if (mkdir(fullPath->GetUTF8String(), S_IRWXU) != 0)
+#endif
 				{
 					RNDebug("Failed creating path with error: " << errno);
 					return false;
