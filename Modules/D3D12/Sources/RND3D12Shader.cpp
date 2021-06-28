@@ -181,16 +181,16 @@ namespace RN
 				PrimitiveType uniformType = PrimitiveType::Invalid;
 				if(variableTypeDescription.Type == D3D_SVT_FLOAT)
 				{
-					if(variableTypeDescription.Columns == 1)
+					if(variableTypeDescription.Rows == 1)
 					{
-						if(variableTypeDescription.Rows == 1) uniformType = PrimitiveType::Float;
-						else if(variableTypeDescription.Rows == 2) uniformType = PrimitiveType::Vector2;
-						else if(variableTypeDescription.Rows == 3) uniformType = PrimitiveType::Vector3;
-						else if(variableTypeDescription.Rows == 4) uniformType = PrimitiveType::Vector4;
+						if(variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Float;
+						else if(variableTypeDescription.Columns == 2) uniformType = PrimitiveType::Vector2;
+						else if(variableTypeDescription.Columns == 3) uniformType = PrimitiveType::Vector3;
+						else if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Vector4;
 					}
 					else
 					{
-						if(variableTypeDescription.Rows == 4) uniformType = PrimitiveType::Matrix;
+						if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix;
 					}
 				}
 				else if(variableTypeDescription.Columns == 1 && variableTypeDescription.Rows == 1)
