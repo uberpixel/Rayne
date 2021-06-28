@@ -62,6 +62,8 @@ namespace RN
 				Custom,
 				ModelMatrix,
 				InverseModelMatrix,
+				
+				NormalMatrix,
 
 				ModelViewMatrix,
 				ModelViewMatrixMultiview,

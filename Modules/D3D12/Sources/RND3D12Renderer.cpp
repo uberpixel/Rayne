@@ -1164,6 +1164,13 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), drawable->modelMatrix.m, descriptor->GetSize());
 					break;
 				}
+
+				case Shader::UniformDescriptor::Identifier::NormalMatrix:
+				{
+					Matrix normalMatrix = drawable->inverseModelMatrix.GetTransposed();
+					std::memcpy(buffer + descriptor->GetOffset(), normalMatrix.m, descriptor->GetSize());
+					break;
+				}
 				
 				case Shader::UniformDescriptor::Identifier::ModelViewMatrix:
 				{

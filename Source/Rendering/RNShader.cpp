@@ -134,6 +134,11 @@ namespace RN
 			_identifier = InverseModelMatrix;
 			_type = PrimitiveType::Matrix;
 		}
+		else if(name->IsEqual(RNCSTR("transform_normal")) || name->IsEqual(RNCSTR("normalMatrix")))
+		{
+			_identifier = NormalMatrix;
+			_type = PrimitiveType::Matrix;
+		}
 		else if(name->IsEqual(RNCSTR("transform_modelview")) || name->IsEqual(RNCSTR("modelViewMatrix")))
 		{
 			_identifier = ModelViewMatrix;
