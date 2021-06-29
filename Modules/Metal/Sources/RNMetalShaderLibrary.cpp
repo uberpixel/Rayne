@@ -223,6 +223,7 @@ namespace RN
 			permutationFileName->Append(RNSTR("." << permutationIndex));
 			permutationFileName->Append(".metallib");
 			RN::String *filePath = RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
+			RN_ASSERT(filePath, "Missing shader permutation! It might be excluded in the shader library? Is a wrong combination of shader defines used?");
 			metalLibrary = [device newLibraryWithFile:[NSString stringWithUTF8String:filePath->GetUTF8String()] error:&error];
 		}
 		

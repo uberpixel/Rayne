@@ -174,7 +174,7 @@ def main():
                                     isValidPermutation = True
                                     break
                             if not isValidPermutation:
-                                print("excluding permutation: " + str(permutationOptions))
+                                print("excluding permutation " + str(i) + ": " + str(permutationOptions))
                                 break
 
                     if isValidPermutation and shaderOptionsDependenciesList:
@@ -191,7 +191,7 @@ def main():
                                     break
 
                             if not isValidPermutation:
-                                print("excluding permutation because of missing dependencies: " + str(permutationOptions))
+                                print("excluding permutation " + str(i) + " because of missing dependencies: " + str(permutationOptions))
                                 break
                     
                     if isValidPermutation: 
