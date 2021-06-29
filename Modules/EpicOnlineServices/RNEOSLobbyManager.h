@@ -61,9 +61,9 @@ namespace RN
 
 		EOSAPI ~EOSLobbyManager();
 		
-		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion, bool hasPassword);
+		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword);
 		EOSAPI void SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void (RN::Array *)> callback);
-		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void()> callback);
+		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
 		EOSAPI void LeaveCurrentLobby();
 		//EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
 		EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
@@ -96,7 +96,7 @@ namespace RN
 		bool _isConnectedLobbyOwner;
 		
 		std::function<void (RN::Array *)> _lobbySearchCallback;
-		std::function<void()> _didJoinLobbyCallback;
+		std::function<void(bool)> _didJoinLobbyCallback;
 			
 		RNDeclareMetaAPI(EOSLobbyManager, EOSAPI)
 	};

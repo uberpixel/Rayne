@@ -43,7 +43,7 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void()> callback, String *lobbyVersion, bool hasPassword)
+	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
@@ -101,7 +101,7 @@ namespace RN
 		EOS_LobbySearch_Find(_lobbySearchHandle, &findOptions, this, LobbyOnSearchCallback);
 	}
 
-	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void()> callback)
+	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback)
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
 		
@@ -307,12 +307,16 @@ namespace RN
 			
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback();
+				lobbyManager->_didJoinLobbyCallback(true);
 			}
 		}
 		else
 		{
 			RNDebug("Failed creating lobby");
+			if(lobbyManager->_didJoinLobbyCallback)
+			{
+				lobbyManager->_didJoinLobbyCallback(false);
+			}
 		}
 		
 		lobbyManager->_isJoiningLobby = false;
@@ -446,12 +450,16 @@ namespace RN
 			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback();
+				lobbyManager->_didJoinLobbyCallback(true);
 			}
 		}
 		else
 		{
 			RNDebug("Failed joining lobby");
+			if(lobbyManager->_didJoinLobbyCallback)
+			{
+				lobbyManager->_didJoinLobbyCallback(false);
+			}
 		}
 		
 		lobbyManager->_isJoiningLobby = false;
