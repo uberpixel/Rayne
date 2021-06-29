@@ -45,7 +45,6 @@ def main():
     enableDebugSymbols = True
 
     outDirName = sys.argv[3]
-    resourceRelativePath = sys.argv[4]
     if not os.path.exists(outDirName):
         try:
             os.makedirs(outDirName)
@@ -53,6 +52,9 @@ def main():
             if exc.errno != errno.EEXIST:
                 raise
 
+    resourceRelativePath = None
+    if len(sys.argv) >= 5:
+        resourceRelativePath = sys.argv[4]
     if not resourceRelativePath:
         resourceRelativePath = ''
 
@@ -115,11 +117,24 @@ def main():
                 shaderType = 'cs'
 
             shaderSignature = None
-            shaderOptions = None
+            shaderOptionsList = None
+            shaderOptionsExcludesList = None
+            shaderOptionsDependenciesList = None
+            shaderOptionsDict = None
             if 'signature' in shader:
                 shaderSignature = shader['signature']
                 if 'options' in shaderSignature:
                     shaderOptions = shaderSignature['options']
+                    if type(shaderOptions) is list:
+                        shaderOptionsList = shaderOptions
+                    elif type(shaderOptions) is dict:
+                        shaderOptionsDict = shaderOptions
+                        if "defines" in shaderOptionsDict:
+                            shaderOptionsList = shaderOptionsDict["defines"]
+                        if "excludes" in shaderOptionsDict:
+                            shaderOptionsExcludesList = shaderOptionsDict["excludes"]
+                        if "dependencies" in shaderOptionsDict:
+                            shaderOptionsDependenciesList = shaderOptionsDict["dependencies"]
 
             entryName = shader['name']
 
@@ -135,19 +150,57 @@ def main():
             destinationShaderFile['shaders'] = destinationShaderList
 
             permutations = list()
-            if shaderOptions:
-                permutationCount = 2**len(shaderOptions)
+            if shaderOptionsList:
+                permutationCount = 2**len(shaderOptionsList)
                 for i in range(0, permutationCount):
-                    permutation = list()
-                    for n, option in enumerate(shaderOptions):
-                        permutation.append('-D')
+                    permutation = dict()
+                    permutation["parameters"] = list()
+                    permutation["identifier"] = i
+                    permutationOptions = list()
+                    for n, option in enumerate(shaderOptionsList):
+                        permutation["parameters"].append('-D')
                         permutationValue = '0'
                         if(i & (1 << n)) != 0:
                             permutationValue = '1'
-                        permutation.append(option + '=' + permutationValue)
-                    permutations.append(permutation)
+                            permutationOptions.append(option)
+                        permutation["parameters"].append(option + '=' + permutationValue)
+
+                    isValidPermutation = True
+                    if shaderOptionsExcludesList:
+                        for exclude in shaderOptionsExcludesList:
+                            isValidPermutation = False
+                            for check in exclude:
+                                if not check in permutationOptions:
+                                    isValidPermutation = True
+                                    break
+                            if not isValidPermutation:
+                                print("excluding permutation: " + str(permutationOptions))
+                                break
+
+                    if isValidPermutation and shaderOptionsDependenciesList:
+                        for option in permutationOptions:
+                            if option not in shaderOptionsDependenciesList:
+                                continue
+                            optionHasDependencies = False
+                            while True:
+                                option = shaderOptionsDependenciesList[option]
+                                if option not in permutationOptions:
+                                    isValidPermutation = False
+                                    break
+                                if option not in shaderOptionsDependenciesList:
+                                    break
+
+                            if not isValidPermutation:
+                                print("excluding permutation because of missing dependencies: " + str(permutationOptions))
+                                break
+                    
+                    if isValidPermutation: 
+                        permutations.append(permutation)
             else:
-                permutations.append(list())
+                permutation = dict()
+                permutation["parameters"] = list()
+                permutation["identifier"] = 0
+                permutations.append(permutation)
 
             skipShaderCompiling = False
             if not getNeedsUpdate(sys.argv[0], sys.argv[1], sourceFile, outDirName, fileName + "." + shaderType + ".*.*"):
@@ -178,8 +231,9 @@ def main():
                     else:
                         removePermutations(outDirName, fileName + "." + shaderType + ".*."+outFormat)
 
-                for permutationCounter, permutation in enumerate(permutations):
-                    permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.' + outFormat)
+                for permutationDict in permutations:
+                    permutation = permutationDict["parameters"]
+                    permutationOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationDict["identifier"]) + '.' + outFormat)
 
                     if outFormat == 'cso':
                         parameterList = [fxcCmdPath, '-I', '.', '-Fo', permutationOutFile, '-E', entryName, '-T', shaderType + '_5_1', hlslFile]
@@ -203,7 +257,7 @@ def main():
 
                         if outFormat == 'metal' and platform.system() == 'Darwin':
                             bitcodeOutFile = permutationOutFile + '.air'
-                            libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationCounter) + '.metallib')
+                            libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationDict["identifier"]) + '.metallib')
                             if enableDebugSymbols:
                                 subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
                             else:

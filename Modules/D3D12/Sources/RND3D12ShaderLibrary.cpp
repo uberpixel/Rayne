@@ -40,7 +40,14 @@ namespace RN
 
 		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
 		if(!signatureOptions)
-			return newOptions;
+		{
+			Dictionary *signatureOptionsDictionary = _signatureDescription->GetObjectForKey<Dictionary>(RNCSTR("options"));
+			if(signatureOptionsDictionary)
+			{
+				signatureOptions = signatureOptionsDictionary->GetObjectForKey<Array>(RNCSTR("defines"));
+			}
+		}
+		if(!signatureOptions) return newOptions;
 
 		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
 			Dictionary *dict = option->Downcast<Dictionary>();
@@ -72,7 +79,15 @@ namespace RN
 		if (!options || !_signatureDescription) return 0;
 
 		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
-		if (!signatureOptions) return 0;
+		if(!signatureOptions)
+		{
+			Dictionary *signatureOptionsDictionary = _signatureDescription->GetObjectForKey<Dictionary>(RNCSTR("options"));
+			if(signatureOptionsDictionary)
+			{
+				signatureOptions = signatureOptionsDictionary->GetObjectForKey<Array>(RNCSTR("defines"));
+			}
+		}
+		if(!signatureOptions) return 0;
 
 		const Dictionary *oldDefines = options->GetDefines();
 		size_t permutationIndex = 0;
@@ -113,6 +128,14 @@ namespace RN
 		Array *samplerArray = ShaderLibrary::GetSamplers(samplerDataArray);
 
 		Array *signatureOptions = _signatureDescription->GetObjectForKey<Array>(RNCSTR("options"));
+		if(!signatureOptions)
+		{
+			Dictionary *signatureOptionsDictionary = _signatureDescription->GetObjectForKey<Dictionary>(RNCSTR("options"));
+			if(signatureOptionsDictionary)
+			{
+				signatureOptions = signatureOptionsDictionary->GetObjectForKey<Array>(RNCSTR("defines"));
+			}
+		}
 		if(signatureOptions)
 		{
 			signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
