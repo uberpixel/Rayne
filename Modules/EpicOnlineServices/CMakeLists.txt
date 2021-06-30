@@ -69,7 +69,7 @@ if(ANDROID)
         #add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${EOSSDK_DYNAMIC_LIBRARY}" ${android-assets-dir}/../libs/arm64-v8a/libEOSSDK.so)
         add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/arm64-v8a/libc++_shared.so" ${android-assets-dir}/../libs/arm64-v8a/libc++_shared.so)
 else()
-        add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${EOSSDK_DYNAMIC_LIBRARY}" "$<TARGET_FILE_DIR:RayneEOS>/EOSSDK-Win64-Shipping.dll")
+        add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${EOSSDK_DYNAMIC_LIBRARY}" "$<TARGET_FILE_DIR:RayneEOS>")
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneEOS/. DESTINATION lib/Rayne/RayneEOS)
