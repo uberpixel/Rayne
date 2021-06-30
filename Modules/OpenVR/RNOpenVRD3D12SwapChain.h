@@ -41,6 +41,7 @@ namespace RN
 
 	private:
 		bool _isFirstRender;
+		Texture *_outputTexture[2];
 
 		RNDeclareMetaAPI(OpenVRD3D12SwapChain, OVRAPI)
 	};
