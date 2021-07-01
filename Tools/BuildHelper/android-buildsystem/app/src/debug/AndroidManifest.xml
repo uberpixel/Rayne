@@ -26,7 +26,8 @@ __RN_PERMISSIONS__
             android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
             android:launchMode="singleTask"
             android:resizeableActivity="false"
-            android:excludeFromRecents="true">
+            android:excludeFromRecents="true"
+            android:taskAffinity="">
             <!-- Tell NativeActivity the name of or .so -->
             <meta-data android:name="android.app.lib_name"
                 android:value="__RN_LIBRARY_NAME__" />
