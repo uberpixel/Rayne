@@ -355,6 +355,14 @@ namespace RN
 				_controllerTrackingState[i].position.x = handMatrix.m[0][3];
 				_controllerTrackingState[i].position.y = handMatrix.m[1][3];
 				_controllerTrackingState[i].position.z = handMatrix.m[2][3];
+
+				_controllerTrackingState[i].velocityLinear.x = handPose[i].pose.vVelocity.v[0];
+				_controllerTrackingState[i].velocityLinear.y = handPose[i].pose.vVelocity.v[1];
+				_controllerTrackingState[i].velocityLinear.z = handPose[i].pose.vVelocity.v[2];
+
+				_controllerTrackingState[i].velocityAngular.x = handPose[i].pose.vAngularVelocity.v[0];
+				_controllerTrackingState[i].velocityAngular.y = handPose[i].pose.vAngularVelocity.v[1];
+				_controllerTrackingState[i].velocityAngular.z = handPose[i].pose.vAngularVelocity.v[2];
 			}
 
 			if(triggerTrigger[i].bActive)
