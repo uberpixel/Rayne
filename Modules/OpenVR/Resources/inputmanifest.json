@@ -6,11 +6,11 @@
       "binding_url": "vive_wand.json"
     },
     {
-      "controller_type": "touch_controller",
+      "controller_type": "knuckles",
       "binding_url": "valve_index.json"
     },
     {
-      "controller_type": "touch_controller",
+      "controller_type": "oculus_touch",
       "binding_url": "oculus_touch.json"
     }
   ], 

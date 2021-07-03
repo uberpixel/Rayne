@@ -59,28 +59,28 @@ namespace RN
 
 		vr::VRInput()->GetActionSetHandle("/actions/main", &_inputActionSetHandle);
 		
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftLower", &_inputActionHandle[InputAction::ButtonLeftLower]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftUpper", &_inputActionHandle[InputAction::ButtonLeftUpper]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftStick", &_inputActionHandle[InputAction::ButtonLeftStick]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftMenu", &_inputActionHandle[InputAction::ButtonLeftMenu]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightLower", &_inputActionHandle[InputAction::ButtonRightLower]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightUpper", &_inputActionHandle[InputAction::ButtonRightUpper]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightStick", &_inputActionHandle[InputAction::ButtonRightStick]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightMenu", &_inputActionHandle[InputAction::ButtonRightMenu]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftLower", &_inputActionHandle[InputAction::ButtonLeftLower]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftUpper", &_inputActionHandle[InputAction::ButtonLeftUpper]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftStick", &_inputActionHandle[InputAction::ButtonLeftStick]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftMenu", &_inputActionHandle[InputAction::ButtonLeftMenu]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightLower", &_inputActionHandle[InputAction::ButtonRightLower]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightUpper", &_inputActionHandle[InputAction::ButtonRightUpper]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightStick", &_inputActionHandle[InputAction::ButtonRightStick]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightMenu", &_inputActionHandle[InputAction::ButtonRightMenu]);
 
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftTrigger", &_inputActionHandle[InputAction::TriggerLeftTrigger]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftGrab", &_inputActionHandle[InputAction::TriggerLeftGrab]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightTrigger", &_inputActionHandle[InputAction::TriggerRightTrigger]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightGrab", &_inputActionHandle[InputAction::TriggerRightGrab]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftTrigger", &_inputActionHandle[InputAction::TriggerLeftTrigger]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftGrab", &_inputActionHandle[InputAction::TriggerLeftGrab]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightTrigger", &_inputActionHandle[InputAction::TriggerRightTrigger]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightGrab", &_inputActionHandle[InputAction::TriggerRightGrab]);
 
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftStickPosition", &_inputActionHandle[InputAction::AxisLeftStick]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightStickPosition", &_inputActionHandle[InputAction::AxisRightStick]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftStickPosition", &_inputActionHandle[InputAction::AxisLeftStick]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightStickPosition", &_inputActionHandle[InputAction::AxisRightStick]);
 
-		vr::VRInput()->GetActionSetHandle("/actions/main/out/LeftHandHaptics", &_inputActionHandle[InputAction::HapticsLeftHand]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/out/RightHandHaptics", &_inputActionHandle[InputAction::HapticsRightHand]);
+		vr::VRInput()->GetActionHandle("/actions/main/out/LeftHandHaptics", &_inputActionHandle[InputAction::HapticsLeftHand]);
+		vr::VRInput()->GetActionHandle("/actions/main/out/RightHandHaptics", &_inputActionHandle[InputAction::HapticsRightHand]);
 
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/LeftHandPosition", &_inputActionHandle[InputAction::PoseLeftHand]);
-		vr::VRInput()->GetActionSetHandle("/actions/main/in/RightHandPosition", &_inputActionHandle[InputAction::PoseRightHand]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/LeftHandPosition", &_inputActionHandle[InputAction::PoseLeftHand]);
+		vr::VRInput()->GetActionHandle("/actions/main/in/RightHandPosition", &_inputActionHandle[InputAction::PoseRightHand]);
 	}
 
 	OpenVRWindow::~OpenVRWindow()

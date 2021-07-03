@@ -1,7 +1,6 @@
 {
    "action_manifest_version" : 0,
    "alias_info" : {},
-   "app_key" : "system.generated.vehicleconstructionkit.exe",
    "bindings" : {
       "/actions/main" : {
          "haptics" : [
@@ -46,7 +45,7 @@
             {
                "inputs" : {
                   "click" : {
-                     "output" : "/actions/main/in/leftstick"
+                     "output" : "/actions/main/in/leftmenu"
                   },
                   "position" : {
                      "output" : "/actions/main/in/leftstickposition"

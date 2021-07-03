@@ -1,7 +1,6 @@
 {
    "action_manifest_version" : 0,
    "alias_info" : {},
-   "app_key" : "system.generated.vehicleconstructionkit.exe",
    "bindings" : {
       "/actions/main" : {
          "haptics" : [
