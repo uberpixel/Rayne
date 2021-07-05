@@ -98,7 +98,7 @@ namespace RN
 		return shape->Autorelease();
 	}
 		
-	PhysXTriangleMeshShape::PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, bool wantsDoubleSided, Vector3 scale)
+	PhysXTriangleMeshShape::PhysXTriangleMeshShape(Mesh *mesh, PhysXMaterial *material, Vector3 scale, bool wantsDoubleSided)
 	{
 		//TODO: Use btTriangleIndexVertexArray which reuses existing indexed vertex data and should be a lot faster to create
 		const Mesh::VertexAttribute *vertexAttribute = mesh->GetAttribute(Mesh::VertexAttribute::Feature::Vertices);
@@ -136,9 +136,9 @@ namespace RN
 		_shape = shape;
 	}
 		
-	PhysXTriangleMeshShape *PhysXTriangleMeshShape::WithMesh(Mesh *mesh, PhysXMaterial *material, bool wantsDoubleSided, Vector3 scale)
+	PhysXTriangleMeshShape *PhysXTriangleMeshShape::WithMesh(Mesh *mesh, PhysXMaterial *material, Vector3 scale, bool wantsDoubleSided)
 	{
-		PhysXTriangleMeshShape *shape = new PhysXTriangleMeshShape(mesh, material, wantsDoubleSided, scale);
+		PhysXTriangleMeshShape *shape = new PhysXTriangleMeshShape(mesh, material, scale, wantsDoubleSided);
 		return shape->Autorelease();
 	}
 
@@ -181,21 +181,21 @@ namespace RN
 
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided)
+	PhysXCompoundShape::PhysXCompoundShape(Model *model, PhysXMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
 		Model::LODStage *lodStage = model->GetLODStage(0);
 		size_t meshes = lodStage->GetCount();
 		for(size_t i = 0; i < meshes; i++)
 		{
 			Mesh *mesh = lodStage->GetMeshAtIndex(i);
-			AddChild(mesh, material, Vector3(), Quaternion(), useTriangleMesh, wantsDoubleSided);
+			AddChild(mesh, material, Vector3(), Quaternion(), scale, useTriangleMesh, wantsDoubleSided);
 		}
 	}
 
-	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided)
+	PhysXCompoundShape::PhysXCompoundShape(const Array *meshes, PhysXMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
 		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
-			AddChild(mesh, material, Vector3(), Quaternion(), useTriangleMesh, wantsDoubleSided);
+			AddChild(mesh, material, Vector3(), Quaternion(), scale, useTriangleMesh, wantsDoubleSided);
 		});
 	}
 		
@@ -207,20 +207,20 @@ namespace RN
 		}
 	}
 		
-	void PhysXCompoundShape::AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, bool useTriangleMesh, bool wantsDoubleSided)
+	void PhysXCompoundShape::AddChild(Mesh *mesh, PhysXMaterial *material, const RN::Vector3 &position, const RN::Quaternion &rotation, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
 		PhysXShape *shape = nullptr;
 		if(useTriangleMesh)
 		{
-			shape = PhysXTriangleMeshShape::WithMesh(mesh, material, wantsDoubleSided);
+			shape = PhysXTriangleMeshShape::WithMesh(mesh, material, scale, wantsDoubleSided);
 		}
 		else
 		{
-			shape = PhysXConvexHullShape::WithMesh(mesh, material);
+			shape = PhysXConvexHullShape::WithMesh(mesh, material, scale);
 		}
 		
 		_shapes.push_back(shape->Retain());
-		_positions.push_back(position);
+		_positions.push_back(position * scale);
 		_rotations.push_back(rotation);
 	}
 
@@ -231,9 +231,9 @@ namespace RN
 		_rotations.push_back(rotation);
 	}
 
-	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, bool useTriangleMesh, bool wantsDoubleSided)
+	PhysXCompoundShape *PhysXCompoundShape::WithModel(Model *model, PhysXMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
-		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, useTriangleMesh, wantsDoubleSided);
+		PhysXCompoundShape *shape = new PhysXCompoundShape(model, material, scale, useTriangleMesh, wantsDoubleSided);
 		return shape->Autorelease();
 	}
 }
