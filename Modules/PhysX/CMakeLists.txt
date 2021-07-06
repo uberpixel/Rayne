@@ -87,7 +87,8 @@ if(APPLE)
     set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64)
     set(PHYSX_PATCH_COMMAND sed -i.bak /CMAKE_OSX_ARCHITECTURES/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
         COMMAND sed -i.bak /arch/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
-        COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt)
+        COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
+        COMMAND "sed -i '' -e '/PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)/ {' -e 'n; n; s/#if .*/#if 1/' -e '}' <SOURCE_DIR>/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h")
 elseif(ANDROID)
     set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt)
 
@@ -175,6 +176,7 @@ if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
         COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release "${PHYSX_ARM64_CMAKE_ARGS}" -B<BINARY_DIR>/arm64 -S<SOURCE_DIR>/<SOURCE_SUBDIR>
         BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>/x64
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>/arm64
+        COMMAND rm -rf release
         COMMAND mkdir release
         COMMAND lipo -create -output release/libPhysXFoundation_static_64.a x64/bin/mac.x86_64/release/libPhysXFoundation_static_64.a arm64/bin/mac.x86_64/release/libPhysXFoundation_static_64.a
         COMMAND lipo -create -output release/libPhysXCommon_static_64.a x64/bin/mac.x86_64/release/libPhysXCommon_static_64.a arm64/bin/mac.x86_64/release/libPhysXCommon_static_64.a
