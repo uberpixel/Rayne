@@ -24,11 +24,16 @@ def prepare():
         subprocess.call(['make'], cwd=os.path.abspath(imgeResizerPath))
 
         astcencPath = os.path.dirname(sys.argv[0])
-        subprocess.call(['make'], cwd=os.path.abspath(os.path.join(astcencPath, 'Vendor/astc-encoder/Source')))
-        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
-        if not os.path.isfile(astcencPath):
-            astcencPath = os.path.dirname(sys.argv[0])
-            astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-nointrin')
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Build')
+        os.makedirs(astcencPath)
+        if platform.machine() == 'arm64':
+            subprocess.call(['cmake', '..', '-DARCH=aarch64', '-DISA_NEON=ON'], cwd=os.path.abspath(astcencPath))
+            subprocess.call(['make'], cwd=os.path.abspath(astcencPath))
+            astcencPath = os.path.join(astcencPath, 'Source/astcenc-neon')
+        else:
+            subprocess.call(['cmake', '..'], cwd=os.path.abspath(astcencPath))
+            subprocess.call(['make'], cwd=os.path.abspath(astcencPath))
+            astcencPath = os.path.join(astcencPath, 'Source/astcenc-avx2')
         subprocess.call(['chmod', '+x', astcencPath])
 
         bc7encPath = os.path.dirname(sys.argv[0])
@@ -183,9 +188,9 @@ def main():
     bc7encPath = os.path.dirname(sys.argv[0])
     imageResizerPath = os.path.dirname(sys.argv[0])
     if platform.system() == 'Darwin':
-        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Source/astcenc-avx2')
+        astcencPath = os.path.join(astcencPath, 'Vendor/astc-encoder/Build/Source/astcenc-avx2')
         if not os.path.isfile(astcencPath):
-            astcencPath = os.path.join(os.path.dirname(sys.argv[0]), 'Vendor/astc-encoder/Source/astcenc-nointrin')
+            astcencPath = os.path.join(os.path.dirname(sys.argv[0]), 'Vendor/astc-encoder/Build/Source/astcenc-neon')
         bc7encPath = os.path.join(bc7encPath, 'Vendor/bc7enc_rdo/build/bc7enc')
         imageResizerPath = os.path.join(imageResizerPath, 'ImageResizer/build/resizer')
     elif platform.system() == 'Windows':
