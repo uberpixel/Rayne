@@ -87,8 +87,7 @@ if(APPLE)
     set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/bin/mac.x86_64)
     set(PHYSX_PATCH_COMMAND sed -i.bak /CMAKE_OSX_ARCHITECTURES/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
         COMMAND sed -i.bak /arch/d <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
-        COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt
-        COMMAND "sed -i '' -e '/PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)/ {' -e 'n; n; s/#if .*/#if 1/' -e '}' <SOURCE_DIR>/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h")
+        COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/mac/CMakeLists.txt)
 elseif(ANDROID)
     set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt)
 
@@ -171,6 +170,7 @@ if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         PATCH_COMMAND ${PHYSX_PATCH_COMMAND}
+        COMMAND sed -i.bak -e "/PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)/ {" -e "n$<SEMICOLON> n$<SEMICOLON> s/\#if .*/\#if 1/" -e "}" <SOURCE_DIR>/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h
         SOURCE_SUBDIR physx/compiler/public
         CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release "${PHYSX_X64_CMAKE_ARGS}" -B<BINARY_DIR>/x64 -S<SOURCE_DIR>/<SOURCE_SUBDIR>
         COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release "${PHYSX_ARM64_CMAKE_ARGS}" -B<BINARY_DIR>/arm64 -S<SOURCE_DIR>/<SOURCE_SUBDIR>
