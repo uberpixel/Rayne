@@ -231,6 +231,7 @@ namespace RN
 			_nodesToRemove->Lock();
 			_nodesToRemove->RemoveObject(node);
 			_nodesToRemove->Unlock();
+			node->_scheduledForRemovalFromScene = false;
 			return;
 		}
 		
@@ -266,5 +267,6 @@ namespace RN
 		_nodesToRemove->Lock();
 		_nodesToRemove->AddObject(node);
 		_nodesToRemove->Unlock();
+		node->_scheduledForRemovalFromScene = true;
 	}
 }

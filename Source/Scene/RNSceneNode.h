@@ -168,6 +168,8 @@ namespace RN
 		IntrusiveList<SceneNode>::Member _sceneUpdateEntry; //TODO: Make private but keep accessible to user made scene implementations
 		IntrusiveList<SceneNode>::Member _sceneRenderEntry; //TODO: Make private but keep accessible to user made scene implementations
 		RNAPI void UpdateSceneInfo(SceneInfo *sceneInfo); //TODO: Make private but keep accessible to user made scene implementations
+		
+		bool _scheduledForRemovalFromScene; //TODO: Make private but keep accessible to user made scene
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
@@ -204,7 +206,6 @@ namespace RN
 		uint64 _lid;
 
 		SceneInfo *_sceneInfo;
-		bool _scheduledForRemovalFromScene;
 
 		ObservableScalar<Tag, SceneNode> _tag;
 
