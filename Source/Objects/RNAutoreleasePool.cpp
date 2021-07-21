@@ -56,11 +56,9 @@ namespace RN
 	
 	void AutoreleasePool::Drain()
 	{
-		std::vector<const Object *> objects;
-		std::swap(objects, _objects);
-
-		for(const Object *object : objects)
+		for(size_t i = 0; i < _objects.size(); i++)
 		{
+			const Object *object = _objects[i];
 #if RN_BUILD_DEBUG
 			object->_autoreleaseCounter.fetch_sub(1);
 #endif
