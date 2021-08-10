@@ -22,6 +22,7 @@ Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 .gclient_entries
 Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
 Modules/Oculus/Vendor/OculusSDK/
+Modules/OpenXR/Vendor/ovr_openxr_mobile_sdk_1
 Modules/SteamAudio/Vendor/steamaudio
 Modules/PhysX/Vendor/PhysX-3.4
 Modules/PhysX/Vendor/PhysX-3.4-CMake
@@ -30,6 +31,8 @@ Modules/UI/Vendor/depot_tools
 Modules/OculusAudio/Vendor/OculusAudio
 Modules/UI/Vendor/libskia/third_party
 Modules/UI/Vendor/libskia/include/third_party/vulkan
+Modules/Vulkan/Vendor/generators/__pycache__
+Modules/EpicOnlineServices/Vendor/
 # Build Folders
 xcode-build
 BUILD_VS
@@ -38,9 +41,7 @@ Build-Xcode
 Build-iOS
 cmake-build-*
 Build-Xcode-UI
-/Tools/BuildHelper/Utilities.pyc
-/Tools/BuildHelper/Vendor/oculus/ovr-platform-util.exe
-/Tools/BuildHelper/Vendor
+Tools/BuildHelper/Utilities.pyc
+Tools/BuildHelper/Vendor/oculus/ovr-platform-util.exe
+Tools/BuildHelper/Vendor
 Tools/BuildHelper/__pycache__
-/Modules/Vulkan/Vendor/generators/__pycache__
-Modules/EpicOnlineServices/Vendor/
