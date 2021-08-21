@@ -21,7 +21,7 @@ namespace RN
 {
 	RNDefineMeta(OpenXRWindow, VRWindow)
 
-	OpenXRWindow::OpenXRWindow() : _nativeWindow(nullptr), _internals(new OpenXRWindowInternals()), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
+	OpenXRWindow::OpenXRWindow() : _nativeWindow(nullptr), _internals(new OpenXRWindowInternals()), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
 	{
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
@@ -401,32 +401,18 @@ namespace RN
 			RN_ASSERT(false, "failed creating left hand button lower press action");
 		}
 
-		XrPath handLeftPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftPath);
-
-		XrPath handLeftTriggerPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
-
-		XrPath handLeftGrabPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
-
-		XrPath handLeftThumbstickXPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
-
-		XrPath handLeftThumbstickYPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
-
-		XrPath handLeftThumbstickPressPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
-
-		XrPath handLeftButtonSystemPressPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
-
-		XrPath handLeftButtonUpperPressPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
-
-		XrPath handLeftButtonLowerPressPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
+		XrActionCreateInfo handLeftHapticsActionInfo;
+		handLeftHapticsActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftHapticsActionInfo.next = nullptr;
+		strcpy(handLeftHapticsActionInfo.actionName, "hand_left_haptics");
+		handLeftHapticsActionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
+		strcpy(handLeftHapticsActionInfo.localizedActionName, "Hand Left Haptics");
+		handLeftHapticsActionInfo.countSubactionPaths = 0;
+		handLeftHapticsActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftHapticsActionInfo, &_internals->handLeftHapticsAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand haptics action");
+		}
 
         //Right hand
         XrActionCreateInfo handRightActionInfo;
@@ -546,6 +532,53 @@ namespace RN
 			RN_ASSERT(false, "failed creating right hand button lower press action");
 		}
 
+		XrActionCreateInfo handRightHapticsActionInfo;
+		handRightHapticsActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightHapticsActionInfo.next = nullptr;
+		strcpy(handRightHapticsActionInfo.actionName, "hand_right_haptics");
+		handRightHapticsActionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
+		strcpy(handRightHapticsActionInfo.localizedActionName, "Hand Right Haptics");
+		handRightHapticsActionInfo.countSubactionPaths = 0;
+		handRightHapticsActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightHapticsActionInfo, &_internals->handRightHapticsAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand haptics action");
+		}
+
+		//Suggested binding just like for oculus touch can be added for other supported controllers, the runtime is supposed to pick the best one
+		//Oculus touch bindings
+		//Left hand
+		XrPath handLeftPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftPath);
+
+		XrPath handLeftTriggerPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+
+		XrPath handLeftGrabPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
+
+		XrPath handLeftThumbstickXPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+
+		XrPath handLeftThumbstickYPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+
+		XrPath handLeftThumbstickPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+
+		XrPath handLeftButtonSystemPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+
+		XrPath handLeftButtonUpperPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
+
+		XrPath handLeftButtonLowerPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
+
+		XrPath handLeftHapticsPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
         XrPath handRightPath;
         xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightPath);
 
@@ -573,6 +606,9 @@ namespace RN
 		XrPath handRightButtonLowerPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
 
+		XrPath handRightHapticsPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
 		std::vector<XrActionSuggestedBinding> bindings;
 		bindings.push_back({_internals->handLeftAction, handLeftPath});
 		bindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
@@ -583,6 +619,7 @@ namespace RN
 		bindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
 		bindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
 		bindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
+		bindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
 
 		bindings.push_back({_internals->handRightAction, handRightPath});
 		bindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
@@ -593,6 +630,7 @@ namespace RN
 		bindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
 		bindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
 		bindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
+		bindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
 
         XrPath interactionProfilePath;
         xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
@@ -603,7 +641,7 @@ namespace RN
 		suggestedBindings.countSuggestedBindings = bindings.size();
 		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedBindings)))
 		{
-			RN_ASSERT(false, "failed action profile binding");
+			RN_ASSERT(false, "failed action profile suggested binding");
 		}
 
 		XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
@@ -751,46 +789,6 @@ namespace RN
 		return result;
 	}
 
-/*	static Vector3 GetVectorForOVRVector(const ovrVector3f &ovrVector)
-	{
-		Vector3 result;
-		result.x = ovrVector.x;
-		result.y = ovrVector.y;
-		result.z = ovrVector.z;
-		return result;
-	}
-
-	static Vector2 GetVectorForOVRVector(const ovrVector2f &ovrVector)
-	{
-		Vector2 result;
-		result.x = ovrVector.x;
-		result.y = ovrVector.y;
-		return result;
-	}
-
-	static Quaternion GetQuaternionForOVRQuaternion(const ovrQuatf &ovrQuat)
-	{
-		Quaternion result;
-		result.x = ovrQuat.x;
-		result.y = ovrQuat.y;
-		result.z = ovrQuat.z;
-		result.w = ovrQuat.w;
-		return result;
-	}
-
-	static Matrix GetMatrixForOVRMatrix(const ovrMatrix4f &ovrMatrix)
-	{
-		Matrix result;
-		for(int q = 0; q < 4; q++)
-		{
-			for(int t = 0; t < 4; t++)
-			{
-				result.m[q * 4 + t] = ovrMatrix.M[t][q];
-			}
-		}
-		return result;
-	}*/
-
 	void OpenXRWindow::BeginFrame(float delta)
 	{
 		if(_internals->session == XR_NULL_HANDLE) return;
@@ -919,7 +917,7 @@ namespace RN
 		}
 
 		_controllerTrackingState[0].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
-		_controllerTrackingState[0].hasHaptics = false;
+		_controllerTrackingState[0].hasHaptics = true;
 		_controllerTrackingState[0].active = false;
 		_controllerTrackingState[0].tracking = false;
 		_controllerTrackingState[0].hapticsSampleLength = 0.0;
@@ -927,7 +925,7 @@ namespace RN
 		_controllerTrackingState[1].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
 		_controllerTrackingState[1].active = false;
 		_controllerTrackingState[1].tracking = false;
-		_controllerTrackingState[1].hasHaptics = false;
+		_controllerTrackingState[1].hasHaptics = true;
 		_controllerTrackingState[1].hapticsSampleLength = 0.0;
 		_controllerTrackingState[1].hapticsMaxSamples = 0;
 
@@ -1013,23 +1011,49 @@ namespace RN
 			xrGetActionStateBoolean(_internals->session, &handThumbstickPressGetInfo, &handThumbstickPressState);
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = handThumbstickPressState.currentState;
 
-			XrActionStateBoolean handButtonSystemPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
-			XrActionStateGetInfo handButtonSystemPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-			handButtonSystemPressGetInfo.action = _internals->handLeftButtonSystemPressAction;
-			xrGetActionStateBoolean(_internals->session, &handButtonSystemPressGetInfo, &handButtonSystemPressState);
-			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = handButtonSystemPressState.currentState;
-
 			XrActionStateBoolean handButtonUpperPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
 			XrActionStateGetInfo handButtonUpperPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 			handButtonUpperPressGetInfo.action = _internals->handLeftButtonUpperPressAction;
 			xrGetActionStateBoolean(_internals->session, &handButtonUpperPressGetInfo, &handButtonUpperPressState);
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = handButtonUpperPressState.currentState;
 
+			XrActionStateBoolean handButtonSystemPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonSystemPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonSystemPressGetInfo.action = _internals->handLeftButtonSystemPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonSystemPressGetInfo, &handButtonSystemPressState);
+			//This is needed because the pressing the Y button will trigger both, the upper button action and the system button action on quest
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = !_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] && handButtonSystemPressState.currentState;
+
+			RNDebug("system: " << (_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start]? "yes" : "no"));
+			RNDebug("upperb: " << (_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY]? "yes" : "no"));
+
 			XrActionStateBoolean handButtonLowerPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
 			XrActionStateGetInfo handButtonLowerPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 			handButtonLowerPressGetInfo.action = _internals->handLeftButtonLowerPressAction;
 			xrGetActionStateBoolean(_internals->session, &handButtonLowerPressGetInfo, &handButtonLowerPressState);
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = handButtonLowerPressState.currentState;
+
+			if(_currentHapticsIndex[0] < _haptics[0].sampleCount)
+			{
+				float strength = _haptics[0].samples[_currentHapticsIndex[0]++];
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handLeftHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+				hapticVibration.duration = 1000000000.0; //1 second
+				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+				hapticVibration.amplitude = strength;
+				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
+				_hapticsStopped[0] = false;
+			}
+			else if(!_hapticsStopped[0])
+			{
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handLeftHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				xrStopHapticFeedback(_internals->session, &hapticActionInfo);
+				_hapticsStopped[0] = true;
+			}
 		}
 
 		//Right hand
@@ -1112,6 +1136,28 @@ namespace RN
 			handButtonLowerPressGetInfo.action = _internals->handRightButtonLowerPressAction;
 			xrGetActionStateBoolean(_internals->session, &handButtonLowerPressGetInfo, &handButtonLowerPressState);
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::AX] = handButtonLowerPressState.currentState;
+
+			if(_currentHapticsIndex[1] < _haptics[1].sampleCount)
+			{
+				float strength = _haptics[1].samples[_currentHapticsIndex[1]++];
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handRightHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+				hapticVibration.duration = 1000000000.0; //1 second
+				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+				hapticVibration.amplitude = strength;
+				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
+				_hapticsStopped[1] = false;
+			}
+			else if(!_hapticsStopped[1])
+			{
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handRightHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				xrStopHapticFeedback(_internals->session, &hapticActionInfo);
+				_hapticsStopped[1] = true;
+			}
         }
 
 /*		ovrInputCapabilityHeader capsHeader;

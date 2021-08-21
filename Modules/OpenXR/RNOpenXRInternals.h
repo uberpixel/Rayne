@@ -42,6 +42,7 @@ namespace RN
 		XrAction handLeftButtonSystemPressAction;
 		XrAction handLeftButtonUpperPressAction;
 		XrAction handLeftButtonLowerPressAction;
+		XrAction handLeftHapticsAction;
 		XrSpace handLeftSpace;
 
 		XrAction handRightAction;
@@ -53,6 +54,7 @@ namespace RN
 		XrAction handRightButtonSystemPressAction;
 		XrAction handRightButtonUpperPressAction;
 		XrAction handRightButtonLowerPressAction;
+		XrAction handRightHapticsAction;
 		XrSpace handRightSpace;
 
 		PFN_xrGetVulkanInstanceExtensionsKHR GetVulkanInstanceExtensionsKHR;

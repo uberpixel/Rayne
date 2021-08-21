@@ -76,6 +76,7 @@ namespace RN
 
 		uint8 _currentHapticsIndex[2];
 		VRControllerHaptics _haptics[2];
+		bool _hapticsStopped[2];
 
 		uint32 _preferredFrameRate;
 		uint8 _minCPULevel;
