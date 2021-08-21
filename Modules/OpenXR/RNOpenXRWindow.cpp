@@ -270,6 +270,377 @@ namespace RN
 			}, this);
 
 		UpdateVRMode();
+
+
+		XrActionSetCreateInfo actionSetInfo;
+		actionSetInfo.type = XR_TYPE_ACTION_SET_CREATE_INFO;
+		actionSetInfo.next = nullptr;
+		strcpy(actionSetInfo.actionSetName, "game");
+		strcpy(actionSetInfo.localizedActionSetName, "Game");
+		actionSetInfo.priority = 0;
+		if(!XR_SUCCEEDED(xrCreateActionSet(_internals->instance, &actionSetInfo, &_internals->gameActionSet)))
+		{
+			RN_ASSERT(false, "failed creating action set");
+		}
+
+		//Left hand
+		XrActionCreateInfo handLeftActionInfo;
+		handLeftActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftActionInfo.next = nullptr;
+		strcpy(handLeftActionInfo.actionName, "hand_left");
+		handLeftActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handLeftActionInfo.localizedActionName, "Hand Left");
+		handLeftActionInfo.countSubactionPaths = 0;
+		handLeftActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftActionInfo, &_internals->handLeftAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand action");
+		}
+
+		XrActionCreateInfo handLeftTriggerActionInfo;
+		handLeftTriggerActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftTriggerActionInfo.next = nullptr;
+		strcpy(handLeftTriggerActionInfo.actionName, "hand_left_trigger");
+		handLeftTriggerActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftTriggerActionInfo.localizedActionName, "Hand Left Trigger");
+		handLeftTriggerActionInfo.countSubactionPaths = 0;
+		handLeftTriggerActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftTriggerActionInfo, &_internals->handLeftTriggerAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand trigger action");
+		}
+
+		XrActionCreateInfo handLeftGrabActionInfo;
+		handLeftGrabActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftGrabActionInfo.next = nullptr;
+		strcpy(handLeftGrabActionInfo.actionName, "hand_left_grab");
+		handLeftGrabActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftGrabActionInfo.localizedActionName, "Hand Left Grab");
+		handLeftGrabActionInfo.countSubactionPaths = 0;
+		handLeftGrabActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftGrabActionInfo, &_internals->handLeftGrabAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand grab action");
+		}
+
+		XrActionCreateInfo handLeftThumbstickXActionInfo;
+		handLeftThumbstickXActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftThumbstickXActionInfo.next = nullptr;
+		strcpy(handLeftThumbstickXActionInfo.actionName, "hand_left_thumbstick_x");
+		handLeftThumbstickXActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftThumbstickXActionInfo.localizedActionName, "Hand Left Thumbstick X");
+		handLeftThumbstickXActionInfo.countSubactionPaths = 0;
+		handLeftThumbstickXActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftThumbstickXActionInfo, &_internals->handLeftThumbstickXAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand thumbstick x action");
+		}
+
+		XrActionCreateInfo handLeftThumbstickYActionInfo;
+		handLeftThumbstickYActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftThumbstickYActionInfo.next = nullptr;
+		strcpy(handLeftThumbstickYActionInfo.actionName, "hand_left_thumbstick_y");
+		handLeftThumbstickYActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftThumbstickYActionInfo.localizedActionName, "Hand Left Thumbstick Y");
+		handLeftThumbstickYActionInfo.countSubactionPaths = 0;
+		handLeftThumbstickYActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftThumbstickYActionInfo, &_internals->handLeftThumbstickYAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand thumbstick y action");
+		}
+
+		XrActionCreateInfo handLeftThumbstickPressActionInfo;
+		handLeftThumbstickPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftThumbstickPressActionInfo.next = nullptr;
+		strcpy(handLeftThumbstickPressActionInfo.actionName, "hand_left_thumbstick_press");
+		handLeftThumbstickPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftThumbstickPressActionInfo.localizedActionName, "Hand Left Thumbstick Press");
+		handLeftThumbstickPressActionInfo.countSubactionPaths = 0;
+		handLeftThumbstickPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftThumbstickPressActionInfo, &_internals->handLeftThumbstickPressAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand thumbstick press action");
+		}
+
+		XrActionCreateInfo handLeftButtonSystemPressActionInfo;
+		handLeftButtonSystemPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftButtonSystemPressActionInfo.next = nullptr;
+		strcpy(handLeftButtonSystemPressActionInfo.actionName, "hand_left_button_system_press");
+		handLeftButtonSystemPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftButtonSystemPressActionInfo.localizedActionName, "Hand Left Button System Press");
+		handLeftButtonSystemPressActionInfo.countSubactionPaths = 0;
+		handLeftButtonSystemPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftButtonSystemPressActionInfo, &_internals->handLeftButtonSystemPressAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand button system press action");
+		}
+
+		XrActionCreateInfo handLeftButtonUpperPressActionInfo;
+		handLeftButtonUpperPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftButtonUpperPressActionInfo.next = nullptr;
+		strcpy(handLeftButtonUpperPressActionInfo.actionName, "hand_left_button_upper_press");
+		handLeftButtonUpperPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftButtonUpperPressActionInfo.localizedActionName, "Hand Left Button Upper Press");
+		handLeftButtonUpperPressActionInfo.countSubactionPaths = 0;
+		handLeftButtonUpperPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftButtonUpperPressActionInfo, &_internals->handLeftButtonUpperPressAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand button upper press action");
+		}
+
+		XrActionCreateInfo handLeftButtonLowerPressActionInfo;
+		handLeftButtonLowerPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftButtonLowerPressActionInfo.next = nullptr;
+		strcpy(handLeftButtonLowerPressActionInfo.actionName, "hand_left_button_lower_press");
+		handLeftButtonLowerPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftButtonLowerPressActionInfo.localizedActionName, "Hand Left Button Lower Press");
+		handLeftButtonLowerPressActionInfo.countSubactionPaths = 0;
+		handLeftButtonLowerPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftButtonLowerPressActionInfo, &_internals->handLeftButtonLowerPressAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand button lower press action");
+		}
+
+		XrPath handLeftPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftPath);
+
+		XrPath handLeftTriggerPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+
+		XrPath handLeftGrabPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
+
+		XrPath handLeftThumbstickXPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+
+		XrPath handLeftThumbstickYPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+
+		XrPath handLeftThumbstickPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+
+		XrPath handLeftButtonSystemPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+
+		XrPath handLeftButtonUpperPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
+
+		XrPath handLeftButtonLowerPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
+
+        //Right hand
+        XrActionCreateInfo handRightActionInfo;
+        handRightActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+        handRightActionInfo.next = nullptr;
+        strcpy(handRightActionInfo.actionName, "hand_right");
+        handRightActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+        strcpy(handRightActionInfo.localizedActionName, "Hand Right");
+        handRightActionInfo.countSubactionPaths = 0;
+        handRightActionInfo.subactionPaths = nullptr;
+        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightActionInfo, &_internals->handRightAction)))
+        {
+            RN_ASSERT(false, "failed creating right hand action");
+        }
+
+        XrActionCreateInfo handRightTriggerActionInfo;
+        handRightTriggerActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+        handRightTriggerActionInfo.next = nullptr;
+        strcpy(handRightTriggerActionInfo.actionName, "hand_right_trigger");
+        handRightTriggerActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+        strcpy(handRightTriggerActionInfo.localizedActionName, "Hand Right Trigger");
+        handRightTriggerActionInfo.countSubactionPaths = 0;
+        handRightTriggerActionInfo.subactionPaths = nullptr;
+        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTriggerActionInfo, &_internals->handRightTriggerAction)))
+        {
+            RN_ASSERT(false, "failed creating right hand trigger action");
+        }
+
+        XrActionCreateInfo handRightGrabActionInfo;
+        handRightGrabActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+        handRightGrabActionInfo.next = nullptr;
+        strcpy(handRightGrabActionInfo.actionName, "hand_right_grab");
+        handRightGrabActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+        strcpy(handRightGrabActionInfo.localizedActionName, "Hand Right Grab");
+        handRightGrabActionInfo.countSubactionPaths = 0;
+        handRightGrabActionInfo.subactionPaths = nullptr;
+        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightGrabActionInfo, &_internals->handRightGrabAction)))
+        {
+            RN_ASSERT(false, "failed creating right hand grab action");
+        }
+
+		XrActionCreateInfo handRightThumbstickXActionInfo;
+		handRightThumbstickXActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightThumbstickXActionInfo.next = nullptr;
+		strcpy(handRightThumbstickXActionInfo.actionName, "hand_right_thumbstick_x");
+		handRightThumbstickXActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightThumbstickXActionInfo.localizedActionName, "Hand Right Thumbstick X");
+		handRightThumbstickXActionInfo.countSubactionPaths = 0;
+		handRightThumbstickXActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightThumbstickXActionInfo, &_internals->handRightThumbstickXAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand thumbstick x action");
+		}
+
+		XrActionCreateInfo handRightThumbstickYActionInfo;
+		handRightThumbstickYActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightThumbstickYActionInfo.next = nullptr;
+		strcpy(handRightThumbstickYActionInfo.actionName, "hand_right_thumbstick_y");
+		handRightThumbstickYActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightThumbstickYActionInfo.localizedActionName, "Hand Right Thumbstick Y");
+		handRightThumbstickYActionInfo.countSubactionPaths = 0;
+		handRightThumbstickYActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightThumbstickYActionInfo, &_internals->handRightThumbstickYAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand thumbstick y action");
+		}
+
+		XrActionCreateInfo handRightThumbstickPressActionInfo;
+		handRightThumbstickPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightThumbstickPressActionInfo.next = nullptr;
+		strcpy(handRightThumbstickPressActionInfo.actionName, "hand_right_thumbstick_press");
+		handRightThumbstickPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightThumbstickPressActionInfo.localizedActionName, "Hand Right Thumbstick Press");
+		handRightThumbstickPressActionInfo.countSubactionPaths = 0;
+		handRightThumbstickPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightThumbstickPressActionInfo, &_internals->handRightThumbstickPressAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand thumbstick press action");
+		}
+
+		XrActionCreateInfo handRightButtonSystemPressActionInfo;
+		handRightButtonSystemPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightButtonSystemPressActionInfo.next = nullptr;
+		strcpy(handRightButtonSystemPressActionInfo.actionName, "hand_right_button_system_press");
+		handRightButtonSystemPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightButtonSystemPressActionInfo.localizedActionName, "Hand Right Button System Press");
+		handRightButtonSystemPressActionInfo.countSubactionPaths = 0;
+		handRightButtonSystemPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightButtonSystemPressActionInfo, &_internals->handRightButtonSystemPressAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand button system press action");
+		}
+
+		XrActionCreateInfo handRightButtonUpperPressActionInfo;
+		handRightButtonUpperPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightButtonUpperPressActionInfo.next = nullptr;
+		strcpy(handRightButtonUpperPressActionInfo.actionName, "hand_right_button_upper_press");
+		handRightButtonUpperPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightButtonUpperPressActionInfo.localizedActionName, "Hand Right Button Upper Press");
+		handRightButtonUpperPressActionInfo.countSubactionPaths = 0;
+		handRightButtonUpperPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightButtonUpperPressActionInfo, &_internals->handRightButtonUpperPressAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand button upper press action");
+		}
+
+		XrActionCreateInfo handRightButtonLowerPressActionInfo;
+		handRightButtonLowerPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightButtonLowerPressActionInfo.next = nullptr;
+		strcpy(handRightButtonLowerPressActionInfo.actionName, "hand_right_button_lower_press");
+		handRightButtonLowerPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightButtonLowerPressActionInfo.localizedActionName, "Hand Right Button Lower Press");
+		handRightButtonLowerPressActionInfo.countSubactionPaths = 0;
+		handRightButtonLowerPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightButtonLowerPressActionInfo, &_internals->handRightButtonLowerPressAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand button lower press action");
+		}
+
+        XrPath handRightPath;
+        xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightPath);
+
+        XrPath handRightTriggerPath;
+        xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+
+        XrPath handRightGrabPath;
+        xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
+
+		XrPath handRightThumbstickXPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
+
+		XrPath handRightThumbstickYPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
+
+		XrPath handRightThumbstickPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
+
+		XrPath handRightButtonSystemPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/system/click", &handRightButtonSystemPressPath);
+
+		XrPath handRightButtonUpperPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
+
+		XrPath handRightButtonLowerPressPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
+
+		std::vector<XrActionSuggestedBinding> bindings;
+		bindings.push_back({_internals->handLeftAction, handLeftPath});
+		bindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
+		bindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
+		bindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
+		bindings.push_back({_internals->handLeftThumbstickYAction, handLeftThumbstickYPath});
+		bindings.push_back({_internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath});
+		bindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
+		bindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
+		bindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
+
+		bindings.push_back({_internals->handRightAction, handRightPath});
+		bindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
+		bindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
+		bindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
+		bindings.push_back({_internals->handRightThumbstickYAction, handRightThumbstickYPath});
+		bindings.push_back({_internals->handRightThumbstickPressAction, handRightThumbstickPressPath});
+		bindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
+		bindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
+		bindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
+
+        XrPath interactionProfilePath;
+        xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+		suggestedBindings.interactionProfile = interactionProfilePath;
+		suggestedBindings.suggestedBindings = bindings.data();
+		suggestedBindings.countSuggestedBindings = bindings.size();
+		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedBindings)))
+		{
+			RN_ASSERT(false, "failed action profile binding");
+		}
+
+		XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+		attachInfo.countActionSets = 1;
+		attachInfo.actionSets = &_internals->gameActionSet;
+		if(!XR_SUCCEEDED(xrAttachSessionActionSets(_internals->session, &attachInfo)))
+		{
+			RN_ASSERT(false, "failed attaching action sets");
+		}
+
+		XrActionSpaceCreateInfo handLeftSpaceCreateInfo;
+		handLeftSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+		handLeftSpaceCreateInfo.next = nullptr;
+		handLeftSpaceCreateInfo.action = _internals->handLeftAction;
+		handLeftSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+		handLeftSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+		handLeftSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+		xrCreateActionSpace(_internals->session, &handLeftSpaceCreateInfo, &_internals->handLeftSpace);
+
+        XrActionSpaceCreateInfo handRightSpaceCreateInfo;
+        handRightSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+        handRightSpaceCreateInfo.next = nullptr;
+        handRightSpaceCreateInfo.action = _internals->handRightAction;
+        handRightSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+        handRightSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+        handRightSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+        xrCreateActionSpace(_internals->session, &handRightSpaceCreateInfo, &_internals->handRightSpace);
 	}
 
 	void OpenXRWindow::StopRendering()
@@ -572,6 +943,176 @@ namespace RN
 		_handTrackingState[1].pinchStrength[3] = 0.0f;
 		_handTrackingState[1].active = false;
 		_handTrackingState[1].tracking = false;
+
+		XrActiveActionSet activeActionSet{_internals->gameActionSet, XR_NULL_PATH};
+		XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+		syncInfo.countActiveActionSets = 1;
+		syncInfo.activeActionSets = &activeActionSet;
+		xrSyncActions(_internals->session, &syncInfo);
+
+		//Left hand
+		XrActionStatePose handLeftState{XR_TYPE_ACTION_STATE_POSE};
+		XrActionStateGetInfo getHandLeftInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+        getHandLeftInfo.action = _internals->handLeftAction;
+		xrGetActionStatePose(_internals->session, &getHandLeftInfo, &handLeftState);
+
+		_controllerTrackingState[0].active = handLeftState.isActive;
+		_controllerTrackingState[0].tracking = handLeftState.isActive;
+		if(handLeftState.isActive)
+		{
+			XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
+			XrSpaceLocation location {XR_TYPE_SPACE_LOCATION, &velocity};
+			xrLocateSpace(_internals->handLeftSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &location);
+
+			if(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+			{
+				_controllerTrackingState[0].position = Vector3(location.pose.position.x, location.pose.position.y, location.pose.position.z);
+			}
+			if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+			{
+				_controllerTrackingState[0].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
+				_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+			}
+
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
+			{
+				_controllerTrackingState[0].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
+			}
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
+			{
+				_controllerTrackingState[0].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+
+            XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
+            XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            handTriggerGetInfo.action = _internals->handLeftTriggerAction;
+            xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
+            _controllerTrackingState[0].indexTrigger = handTriggerState.currentState;
+
+            XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
+            XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            handGrabGetInfo.action = _internals->handLeftGrabAction;
+            xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
+            _controllerTrackingState[0].handTrigger = handGrabState.currentState;
+
+			XrActionStateFloat handThumbstickXState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handThumbstickXGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickXGetInfo.action = _internals->handLeftThumbstickXAction;
+			xrGetActionStateFloat(_internals->session, &handThumbstickXGetInfo, &handThumbstickXState);
+			_controllerTrackingState[0].thumbstick.x = handThumbstickXState.currentState;
+
+			XrActionStateFloat handThumbstickYState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handThumbstickYGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickYGetInfo.action = _internals->handLeftThumbstickYAction;
+			xrGetActionStateFloat(_internals->session, &handThumbstickYGetInfo, &handThumbstickYState);
+			_controllerTrackingState[0].thumbstick.y = handThumbstickYState.currentState;
+
+			XrActionStateBoolean handThumbstickPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handThumbstickPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickPressGetInfo.action = _internals->handLeftThumbstickPressAction;
+			xrGetActionStateBoolean(_internals->session, &handThumbstickPressGetInfo, &handThumbstickPressState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = handThumbstickPressState.currentState;
+
+			XrActionStateBoolean handButtonSystemPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonSystemPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonSystemPressGetInfo.action = _internals->handLeftButtonSystemPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonSystemPressGetInfo, &handButtonSystemPressState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = handButtonSystemPressState.currentState;
+
+			XrActionStateBoolean handButtonUpperPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonUpperPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonUpperPressGetInfo.action = _internals->handLeftButtonUpperPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonUpperPressGetInfo, &handButtonUpperPressState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] = handButtonUpperPressState.currentState;
+
+			XrActionStateBoolean handButtonLowerPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonLowerPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonLowerPressGetInfo.action = _internals->handLeftButtonLowerPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonLowerPressGetInfo, &handButtonLowerPressState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::AX] = handButtonLowerPressState.currentState;
+		}
+
+		//Right hand
+        XrActionStatePose handRightState{XR_TYPE_ACTION_STATE_POSE};
+        XrActionStateGetInfo getHandRightInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+        getHandRightInfo.action = _internals->handRightAction;
+        xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
+
+        _controllerTrackingState[1].active = handRightState.isActive;
+        _controllerTrackingState[1].tracking = handRightState.isActive;
+        if(handRightState.isActive)
+        {
+            XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
+            XrSpaceLocation location {XR_TYPE_SPACE_LOCATION, &velocity};
+            xrLocateSpace(_internals->handRightSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &location);
+
+            if(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+            {
+                _controllerTrackingState[1].position = Vector3(location.pose.position.x, location.pose.position.y, location.pose.position.z);
+            }
+            if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+            {
+                _controllerTrackingState[1].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
+				_controllerTrackingState[1].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
+            }
+
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
+			{
+				_controllerTrackingState[1].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
+			}
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
+			{
+				_controllerTrackingState[1].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+
+            XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
+            XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            handTriggerGetInfo.action = _internals->handRightTriggerAction;
+            xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
+            _controllerTrackingState[1].indexTrigger = handTriggerState.currentState;
+
+            XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
+            XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            handGrabGetInfo.action = _internals->handRightGrabAction;
+            xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
+            _controllerTrackingState[1].handTrigger = handGrabState.currentState;
+
+			XrActionStateFloat handThumbstickXState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handThumbstickXGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickXGetInfo.action = _internals->handRightThumbstickXAction;
+			xrGetActionStateFloat(_internals->session, &handThumbstickXGetInfo, &handThumbstickXState);
+			_controllerTrackingState[1].thumbstick.x = handThumbstickXState.currentState;
+
+			XrActionStateFloat handThumbstickYState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handThumbstickYGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickYGetInfo.action = _internals->handRightThumbstickYAction;
+			xrGetActionStateFloat(_internals->session, &handThumbstickYGetInfo, &handThumbstickYState);
+			_controllerTrackingState[1].thumbstick.y = handThumbstickYState.currentState;
+
+			XrActionStateBoolean handThumbstickPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handThumbstickPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handThumbstickPressGetInfo.action = _internals->handRightThumbstickPressAction;
+			xrGetActionStateBoolean(_internals->session, &handThumbstickPressGetInfo, &handThumbstickPressState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Stick] = handThumbstickPressState.currentState;
+
+			XrActionStateBoolean handButtonSystemPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonSystemPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonSystemPressGetInfo.action = _internals->handRightButtonSystemPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonSystemPressGetInfo, &handButtonSystemPressState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Start] = handButtonSystemPressState.currentState;
+
+			XrActionStateBoolean handButtonUpperPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonUpperPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonUpperPressGetInfo.action = _internals->handRightButtonUpperPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonUpperPressGetInfo, &handButtonUpperPressState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::BY] = handButtonUpperPressState.currentState;
+
+			XrActionStateBoolean handButtonLowerPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
+			XrActionStateGetInfo handButtonLowerPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handButtonLowerPressGetInfo.action = _internals->handRightButtonLowerPressAction;
+			xrGetActionStateBoolean(_internals->session, &handButtonLowerPressGetInfo, &handButtonLowerPressState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::AX] = handButtonLowerPressState.currentState;
+        }
 
 /*		ovrInputCapabilityHeader capsHeader;
 		int i = 0;

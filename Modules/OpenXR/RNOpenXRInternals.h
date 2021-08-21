@@ -31,6 +31,30 @@ namespace RN
 
 		XrView *views;
 
+		XrActionSet gameActionSet;
+
+		XrAction handLeftAction;
+		XrAction handLeftTriggerAction;
+		XrAction handLeftGrabAction;
+		XrAction handLeftThumbstickXAction;
+		XrAction handLeftThumbstickYAction;
+		XrAction handLeftThumbstickPressAction;
+		XrAction handLeftButtonSystemPressAction;
+		XrAction handLeftButtonUpperPressAction;
+		XrAction handLeftButtonLowerPressAction;
+		XrSpace handLeftSpace;
+
+		XrAction handRightAction;
+		XrAction handRightTriggerAction;
+		XrAction handRightGrabAction;
+		XrAction handRightThumbstickXAction;
+		XrAction handRightThumbstickYAction;
+		XrAction handRightThumbstickPressAction;
+		XrAction handRightButtonSystemPressAction;
+		XrAction handRightButtonUpperPressAction;
+		XrAction handRightButtonLowerPressAction;
+		XrSpace handRightSpace;
+
 		PFN_xrGetVulkanInstanceExtensionsKHR GetVulkanInstanceExtensionsKHR;
 		PFN_xrGetVulkanDeviceExtensionsKHR GetVulkanDeviceExtensionsKHR;
 		PFN_xrGetVulkanGraphicsDeviceKHR GetVulkanGraphicsDeviceKHR;
