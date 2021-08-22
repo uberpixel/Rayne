@@ -21,8 +21,35 @@ namespace RN
 {
 	RNDefineMeta(OpenXRWindow, VRWindow)
 
-	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
 	{
+		_supportsVulkan = false;
+		_supportsPreferredFramerate = false;
+		_supportsPerformanceLevels = false;
+		_supportsAndroidThreadType = false;
+		_supportsFoveatedRendering = false;
+
+		_internals->session = XR_NULL_HANDLE;
+
+		_internals->GetVulkanInstanceExtensionsKHR = nullptr;
+		_internals->GetVulkanDeviceExtensionsKHR = nullptr;
+		_internals->GetVulkanGraphicsDeviceKHR = nullptr;
+		_internals->GetVulkanGraphicsRequirementsKHR = nullptr;
+
+		_internals->EnumerateDisplayRefreshRatesFB = nullptr;
+		_internals->GetDisplayRefreshRateFB = nullptr;
+		_internals->RequestDisplayRefreshRateFB = nullptr;
+
+		_internals->PerfSettingsSetPerformanceLevelEXT = nullptr;
+
+		_internals->CreateFoveationProfileFB = nullptr;
+		_internals->DestroyFoveationProfileFB = nullptr;
+
+		_internals->UpdateSwapchainFB = nullptr;
+		_internals->GetSwapchainStateFB = nullptr;
+
+		_internals->SetAndroidApplicationThreadKHR = nullptr;
+
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 
@@ -44,17 +71,10 @@ namespace RN
         std::vector<const char*> extensions;
 #if RN_PLATFORM_ANDROID
 		extensions.push_back(XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME);
+
+		//TODO: Should be chosen depending on the graphics backend, not android only
 		extensions.push_back(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
-
-		//Probably quest only at the moment
-		extensions.push_back(XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME);
-		extensions.push_back(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME);
-		extensions.push_back(XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME);
-
-		extensions.push_back(XR_FB_FOVEATION_EXTENSION_NAME);
-		extensions.push_back(XR_FB_FOVEATION_CONFIGURATION_EXTENSION_NAME);
-		extensions.push_back(XR_FB_FOVEATION_VULKAN_EXTENSION_NAME);
-		extensions.push_back(XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME); //Needed to apply foveation profiles to the swapchain
+		_supportsVulkan = true;
 
 		XrInstanceCreateInfoAndroidKHR instanceCreateInfo = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
 		instanceCreateInfo.applicationVM = app->activity->vm;
@@ -72,11 +92,55 @@ namespace RN
         }
         xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)allExtensions.size(), &instanceExtensionCount, allExtensions.data());
 
+        int numberOfSupportedFoveationExtensions = 0;
         RNDebug("Available Extensions (" << instanceExtensionCount << "):");
         for(const XrExtensionProperties& extension : allExtensions)
         {
-            RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
+        	if(std::strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsPreferredFramerate = true;
+			}
+        	else if(std::strcmp(extension.extensionName, XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsPerformanceLevels = true;
+			}
+			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsAndroidThreadType = true;
+			}
+
+			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				numberOfSupportedFoveationExtensions += 1;
+			}
+			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_CONFIGURATION_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				numberOfSupportedFoveationExtensions += 1;
+			}
+			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_VULKAN_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				numberOfSupportedFoveationExtensions += 1;
+			}
+			//Needed to apply foveation profiles to the swapchain
+			else if(std::strcmp(extension.extensionName, XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				numberOfSupportedFoveationExtensions += 1;
+			}
+
+			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
         }
+
+        if(numberOfSupportedFoveationExtensions == 4)
+		{
+        	_supportsFoveatedRendering = true;
+		}
 
         XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
         createInfo.next = platformSpecificInstanceCreateInfo;
@@ -111,76 +175,106 @@ namespace RN
 		_hmdTrackingState.type = (_internals->systemProperties.trackingProperties.orientationTracking && _internals->systemProperties.trackingProperties.positionTracking)? VRHMDTrackingState::Type::SixDegreesOfFreedom : VRHMDTrackingState::Type::ThreeDegreesOfFreedom;
 		RNInfo(GetHMDInfoDescription());
 
-
-        //TODO: Only load these if vulkan_enable extension is supported (there is also a vulkan_enable2 extension, not supported by quest)
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanInstanceExtensionsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanInstanceExtensionsKHR))))
-        {
-
-        }
-
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanDeviceExtensionsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanDeviceExtensionsKHR))))
-        {
-
-        }
-
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanGraphicsDeviceKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanGraphicsDeviceKHR))))
-        {
-
-        }
-
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanGraphicsRequirementsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanGraphicsRequirementsKHR))))
-        {
-
-        }
-
-        //TODO: Only load these if the XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME extension is supported
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction*)(&_internals->EnumerateDisplayRefreshRatesFB))))
-        {
-
-        }
-
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->GetDisplayRefreshRateFB))))
-        {
-
-        }
-
-        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->RequestDisplayRefreshRateFB))))
-        {
-
-        }
-
-		//TODO: Only load these if the XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME extension is supported
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
+		if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest2") == 0)
 		{
-
+			_deviceType = DeviceType::OculusQuest2;
+		}
+		else if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest") == 0)
+		{
+			_deviceType = DeviceType::OculusQuest2;
+		}
+		else
+		{
+			_deviceType = DeviceType::OculusVR;
 		}
 
-		//TODO: Only load these if the XR_FB_FOVEATION_EXTENSION_NAME extension is supported
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrCreateFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->CreateFoveationProfileFB))))
-		{
+		InitializeInput();
 
+		if(_supportsVulkan)
+		{
+			//vulkan_enable2
+			//TODO: (there is also a vulkan_enable2 extension, not supported by quest)
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanInstanceExtensionsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanInstanceExtensionsKHR))))
+			{
+
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanDeviceExtensionsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanDeviceExtensionsKHR))))
+			{
+
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanGraphicsDeviceKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanGraphicsDeviceKHR))))
+			{
+
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetVulkanGraphicsRequirementsKHR", (PFN_xrVoidFunction*)(&_internals->GetVulkanGraphicsRequirementsKHR))))
+			{
+
+			}
 		}
 
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->DestroyFoveationProfileFB))))
+		if(_supportsPreferredFramerate)
 		{
+			//XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction*)(&_internals->EnumerateDisplayRefreshRatesFB))))
+			{
 
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->GetDisplayRefreshRateFB))))
+			{
+
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->RequestDisplayRefreshRateFB))))
+			{
+
+			}
+        }
+
+		if(_supportsPreferredFramerate)
+		{
+			//XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
+			{
+
+			}
 		}
 
-		//TODO: Only load these if the XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME extension is supported
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&_internals->UpdateSwapchainFB))))
+		if(_supportsFoveatedRendering)
 		{
+			//XR_FB_FOVEATION_EXTENSION_NAME
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrCreateFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->CreateFoveationProfileFB))))
+			{
 
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->DestroyFoveationProfileFB))))
+			{
+
+			}
+
+			//XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&_internals->UpdateSwapchainFB))))
+			{
+
+			}
+
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
+			{
+
+			}
 		}
 
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
+		if(_supportsAndroidThreadType)
 		{
+			//XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
+			{
 
-		}
-
-		//TODO: Only load these if the XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME extension is supported
-		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
-		{
-
+			}
 		}
     }
 
@@ -191,158 +285,8 @@ namespace RN
 		delete _internals;
 	}
 
-	void OpenXRWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	void OpenXRWindow::InitializeInput()
 	{
-		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-
-        XrGraphicsRequirementsVulkanKHR graphicsRequirements;
-		graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
-		graphicsRequirements.next = nullptr;
-        if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
-        {
-			RN_ASSERT(false, "Failed fetching vulkan graphics requirements");
-        }
-
-        RNDebug("Minimum supported vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.minApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.minApiVersionSupported));
-        RNDebug("Maximum tested vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.maxApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.maxApiVersionSupported));
-
-		VkPhysicalDevice physicalDevice;
-		if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsDeviceKHR(_internals->instance, _internals->systemID, renderer->GetVulkanInstance()->GetInstance(), &physicalDevice)))
-		{
-			RN_ASSERT(false, "Failed fetching vulkan graphics device");
-		}
-
-		uint32_t numberOfConfigurationViews = 0;
-		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &numberOfConfigurationViews, nullptr)))
-		{
-
-		}
-
-		XrViewConfigurationView *configurationViews = new XrViewConfigurationView[numberOfConfigurationViews];
-		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, numberOfConfigurationViews, &numberOfConfigurationViews, configurationViews)))
-		{
-
-		}
-
-		for(int i = 0; i < numberOfConfigurationViews; i++)
-		{
-			RNDebug("View: " << configurationViews[i].recommendedImageRectWidth << " x " << configurationViews[i].recommendedImageRectHeight << " : " << configurationViews[i].recommendedSwapchainSampleCount);
-		}
-
-		//1:1 mapping for center according to docs would be 1536x1536, returned is 1024*1024 for GO, higher on quest
-		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth, configurationViews[0].recommendedImageRectHeight);
-		delete[] configurationViews;
-
-		XrGraphicsBindingVulkanKHR vulkanGraphicsBinding;
-		vulkanGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
-		vulkanGraphicsBinding.instance = renderer->GetVulkanInstance()->GetInstance();
-		vulkanGraphicsBinding.physicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
-		vulkanGraphicsBinding.device = renderer->GetVulkanDevice()->GetDevice();
-		vulkanGraphicsBinding.queueFamilyIndex = renderer->GetVulkanDevice()->GetWorkQueue();
-		vulkanGraphicsBinding.queueIndex = 0; //There should be only one queue at the moment, so it's index should be 0...
-		vulkanGraphicsBinding.next = nullptr;
-
-		XrSessionCreateInfo sessionCreateInfo;
-		sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
-		sessionCreateInfo.createFlags = 0;
-		sessionCreateInfo.systemId = _internals->systemID;
-		sessionCreateInfo.next = &vulkanGraphicsBinding;
-		if(!XR_SUCCEEDED(xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session)))
-		{
-			RN_ASSERT(false, "failed creating session");
-		}
-
-		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
-        referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
-        referenceSpaceCreateInfo.next = nullptr;
-        referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.x = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.y = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.z = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.x = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.y = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.z = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
-
-        xrCreateReferenceSpace(_internals->session, &referenceSpaceCreateInfo, &_internals->trackingSpace);
-
-        _internals->views = new XrView[2];
-        _internals->views[0].type = XR_TYPE_VIEW;
-        _internals->views[0].next = nullptr;
-        _internals->views[1].type = XR_TYPE_VIEW;
-        _internals->views[1].next = nullptr;
-
-		_swapChain = new OpenXRVulkanSwapChain(this, descriptor, eyeRenderSize);
-
-		_swapChain->_presentEvent = [this](){
-			if(_internals->session != XR_NULL_HANDLE)
-			{
-                XrCompositionLayerProjectionView layerProjectionView[2];
-                layerProjectionView[0].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-                layerProjectionView[0].next = nullptr;
-                layerProjectionView[0].pose = _internals->views[0].pose;
-                layerProjectionView[0].fov = _internals->views[0].fov;
-                layerProjectionView[0].subImage.swapchain = _swapChain->_internals->swapchain;
-                layerProjectionView[0].subImage.imageRect.offset.x = 0;
-                layerProjectionView[0].subImage.imageRect.offset.y = 0;
-                layerProjectionView[0].subImage.imageRect.extent.width = _swapChain->_size.x;
-                layerProjectionView[0].subImage.imageRect.extent.height = _swapChain->_size.y;
-                layerProjectionView[0].subImage.imageArrayIndex = 0;
-
-                layerProjectionView[1].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-                layerProjectionView[1].next = nullptr;
-                layerProjectionView[1].pose = _internals->views[1].pose;
-                layerProjectionView[1].fov = _internals->views[1].fov;
-                layerProjectionView[1].subImage.swapchain = _swapChain->_internals->swapchain;
-                layerProjectionView[1].subImage.imageRect.offset.x = 0;
-                layerProjectionView[1].subImage.imageRect.offset.y = 0;
-                layerProjectionView[1].subImage.imageRect.extent.width = _swapChain->_size.x;
-                layerProjectionView[1].subImage.imageRect.extent.height = _swapChain->_size.y;
-                layerProjectionView[1].subImage.imageArrayIndex = 1;
-
-                XrCompositionLayerProjection layerProjection;
-                layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
-                layerProjection.next = nullptr;
-                layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-                layerProjection.space = _internals->trackingSpace;
-                layerProjection.viewCount = 2;
-                layerProjection.views = layerProjectionView;
-
-				std::vector<XrCompositionLayerBaseHeader*> layers;
-				layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layerProjection));
-
-                XrFrameEndInfo frameEndInfo;
-                frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
-                frameEndInfo.next = nullptr;
-                frameEndInfo.displayTime = _internals->predictedDisplayTime;
-                frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-                frameEndInfo.layerCount = layers.size();
-                frameEndInfo.layers = layers.data();
-                xrEndFrame(_internals->session, &frameEndInfo);
-			}
-		};
-
-		if(_internals->RequestDisplayRefreshRateFB)
-		{
-			_internals->RequestDisplayRefreshRateFB(_internals->session, _preferredFrameRate);
-		}
-
-		if(_internals->PerfSettingsSetPerformanceLevelEXT)
-		{
-			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, (XrPerfSettingsLevelEXT)_minCPULevel);
-			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
-		}
-
-		if(_internals->SetAndroidApplicationThreadKHR)
-		{
-			_internals->SetAndroidApplicationThreadKHR(_internals->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, _mainThreadID);
-		}
-
-		if(_swapChain && _fixedFoveatedRenderingLevel > 0)
-		{
-			_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
-		}
-
 		XrActionSetCreateInfo actionSetInfo;
 		actionSetInfo.type = XR_TYPE_ACTION_SET_CREATE_INFO;
 		actionSetInfo.next = nullptr;
@@ -485,45 +429,45 @@ namespace RN
 			RN_ASSERT(false, "failed creating left hand haptics action");
 		}
 
-        //Right hand
-        XrActionCreateInfo handRightActionInfo;
-        handRightActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
-        handRightActionInfo.next = nullptr;
-        strcpy(handRightActionInfo.actionName, "hand_right");
-        handRightActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-        strcpy(handRightActionInfo.localizedActionName, "Hand Right");
-        handRightActionInfo.countSubactionPaths = 0;
-        handRightActionInfo.subactionPaths = nullptr;
-        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightActionInfo, &_internals->handRightAction)))
-        {
-            RN_ASSERT(false, "failed creating right hand action");
-        }
+		//Right hand
+		XrActionCreateInfo handRightActionInfo;
+		handRightActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightActionInfo.next = nullptr;
+		strcpy(handRightActionInfo.actionName, "hand_right");
+		handRightActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handRightActionInfo.localizedActionName, "Hand Right");
+		handRightActionInfo.countSubactionPaths = 0;
+		handRightActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightActionInfo, &_internals->handRightAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand action");
+		}
 
-        XrActionCreateInfo handRightTriggerActionInfo;
-        handRightTriggerActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
-        handRightTriggerActionInfo.next = nullptr;
-        strcpy(handRightTriggerActionInfo.actionName, "hand_right_trigger");
-        handRightTriggerActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
-        strcpy(handRightTriggerActionInfo.localizedActionName, "Hand Right Trigger");
-        handRightTriggerActionInfo.countSubactionPaths = 0;
-        handRightTriggerActionInfo.subactionPaths = nullptr;
-        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTriggerActionInfo, &_internals->handRightTriggerAction)))
-        {
-            RN_ASSERT(false, "failed creating right hand trigger action");
-        }
+		XrActionCreateInfo handRightTriggerActionInfo;
+		handRightTriggerActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightTriggerActionInfo.next = nullptr;
+		strcpy(handRightTriggerActionInfo.actionName, "hand_right_trigger");
+		handRightTriggerActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightTriggerActionInfo.localizedActionName, "Hand Right Trigger");
+		handRightTriggerActionInfo.countSubactionPaths = 0;
+		handRightTriggerActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTriggerActionInfo, &_internals->handRightTriggerAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand trigger action");
+		}
 
-        XrActionCreateInfo handRightGrabActionInfo;
-        handRightGrabActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
-        handRightGrabActionInfo.next = nullptr;
-        strcpy(handRightGrabActionInfo.actionName, "hand_right_grab");
-        handRightGrabActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
-        strcpy(handRightGrabActionInfo.localizedActionName, "Hand Right Grab");
-        handRightGrabActionInfo.countSubactionPaths = 0;
-        handRightGrabActionInfo.subactionPaths = nullptr;
-        if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightGrabActionInfo, &_internals->handRightGrabAction)))
-        {
-            RN_ASSERT(false, "failed creating right hand grab action");
-        }
+		XrActionCreateInfo handRightGrabActionInfo;
+		handRightGrabActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightGrabActionInfo.next = nullptr;
+		strcpy(handRightGrabActionInfo.actionName, "hand_right_grab");
+		handRightGrabActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightGrabActionInfo.localizedActionName, "Hand Right Grab");
+		handRightGrabActionInfo.countSubactionPaths = 0;
+		handRightGrabActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightGrabActionInfo, &_internals->handRightGrabAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand grab action");
+		}
 
 		XrActionCreateInfo handRightThumbstickXActionInfo;
 		handRightThumbstickXActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
@@ -650,14 +594,14 @@ namespace RN
 		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
 
 		//Right hand
-        XrPath handRightPath;
-        xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightPath);
+		XrPath handRightPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightPath);
 
-        XrPath handRightTriggerPath;
-        xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		XrPath handRightTriggerPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
 
-        XrPath handRightGrabPath;
-        xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
+		XrPath handRightGrabPath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
 
 		XrPath handRightThumbstickXPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
@@ -703,8 +647,8 @@ namespace RN
 		bindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
 		bindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
 
-        XrPath interactionProfilePath;
-        xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
+		XrPath interactionProfilePath;
+		xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
 
 		XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
 		suggestedBindings.interactionProfile = interactionProfilePath;
@@ -713,6 +657,159 @@ namespace RN
 		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedBindings)))
 		{
 			RN_ASSERT(false, "failed action profile suggested binding");
+		}
+	}
+
+	void OpenXRWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	{
+		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+        XrGraphicsRequirementsVulkanKHR graphicsRequirements;
+		graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
+		graphicsRequirements.next = nullptr;
+        if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
+        {
+			RN_ASSERT(false, "Failed fetching vulkan graphics requirements");
+        }
+
+        RNDebug("Minimum supported vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.minApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.minApiVersionSupported));
+        RNDebug("Maximum tested vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.maxApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.maxApiVersionSupported));
+
+		VkPhysicalDevice physicalDevice;
+		if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsDeviceKHR(_internals->instance, _internals->systemID, renderer->GetVulkanInstance()->GetInstance(), &physicalDevice)))
+		{
+			RN_ASSERT(false, "Failed fetching vulkan graphics device");
+		}
+
+		uint32_t numberOfConfigurationViews = 0;
+		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &numberOfConfigurationViews, nullptr)))
+		{
+
+		}
+
+		XrViewConfigurationView *configurationViews = new XrViewConfigurationView[numberOfConfigurationViews];
+		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, numberOfConfigurationViews, &numberOfConfigurationViews, configurationViews)))
+		{
+
+		}
+
+		for(int i = 0; i < numberOfConfigurationViews; i++)
+		{
+			RNDebug("View: " << configurationViews[i].recommendedImageRectWidth << " x " << configurationViews[i].recommendedImageRectHeight << " : " << configurationViews[i].recommendedSwapchainSampleCount);
+		}
+
+		//1:1 mapping for center according to docs would be 1536x1536, returned is 1024*1024 for GO, higher on quest
+		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth, configurationViews[0].recommendedImageRectHeight);
+		delete[] configurationViews;
+
+		XrGraphicsBindingVulkanKHR vulkanGraphicsBinding;
+		vulkanGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
+		vulkanGraphicsBinding.instance = renderer->GetVulkanInstance()->GetInstance();
+		vulkanGraphicsBinding.physicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
+		vulkanGraphicsBinding.device = renderer->GetVulkanDevice()->GetDevice();
+		vulkanGraphicsBinding.queueFamilyIndex = renderer->GetVulkanDevice()->GetWorkQueue();
+		vulkanGraphicsBinding.queueIndex = 0; //There should be only one queue at the moment, so it's index should be 0...
+		vulkanGraphicsBinding.next = nullptr;
+
+		XrSessionCreateInfo sessionCreateInfo;
+		sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
+		sessionCreateInfo.createFlags = 0;
+		sessionCreateInfo.systemId = _internals->systemID;
+		sessionCreateInfo.next = &vulkanGraphicsBinding;
+		if(!XR_SUCCEEDED(xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session)))
+		{
+			RN_ASSERT(false, "failed creating session");
+		}
+
+		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
+        referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+        referenceSpaceCreateInfo.next = nullptr;
+        referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+        referenceSpaceCreateInfo.poseInReferenceSpace.position.x = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.position.y = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.position.z = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.x = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.y = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.z = 0.0f;
+        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
+
+        xrCreateReferenceSpace(_internals->session, &referenceSpaceCreateInfo, &_internals->trackingSpace);
+
+        _internals->views = new XrView[2];
+        _internals->views[0].type = XR_TYPE_VIEW;
+        _internals->views[0].next = nullptr;
+        _internals->views[1].type = XR_TYPE_VIEW;
+        _internals->views[1].next = nullptr;
+
+		_swapChain = new OpenXRVulkanSwapChain(this, descriptor, eyeRenderSize);
+
+		_swapChain->_presentEvent = [this](){
+			if(_internals->session != XR_NULL_HANDLE && _isSessionRunning)
+			{
+                XrCompositionLayerProjectionView layerProjectionView[2];
+                layerProjectionView[0].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+                layerProjectionView[0].next = nullptr;
+                layerProjectionView[0].pose = _internals->views[0].pose;
+                layerProjectionView[0].fov = _internals->views[0].fov;
+                layerProjectionView[0].subImage.swapchain = _swapChain->_internals->swapchain;
+                layerProjectionView[0].subImage.imageRect.offset.x = 0;
+                layerProjectionView[0].subImage.imageRect.offset.y = 0;
+                layerProjectionView[0].subImage.imageRect.extent.width = _swapChain->_size.x;
+                layerProjectionView[0].subImage.imageRect.extent.height = _swapChain->_size.y;
+                layerProjectionView[0].subImage.imageArrayIndex = 0;
+
+                layerProjectionView[1].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+                layerProjectionView[1].next = nullptr;
+                layerProjectionView[1].pose = _internals->views[1].pose;
+                layerProjectionView[1].fov = _internals->views[1].fov;
+                layerProjectionView[1].subImage.swapchain = _swapChain->_internals->swapchain;
+                layerProjectionView[1].subImage.imageRect.offset.x = 0;
+                layerProjectionView[1].subImage.imageRect.offset.y = 0;
+                layerProjectionView[1].subImage.imageRect.extent.width = _swapChain->_size.x;
+                layerProjectionView[1].subImage.imageRect.extent.height = _swapChain->_size.y;
+                layerProjectionView[1].subImage.imageArrayIndex = 1;
+
+                XrCompositionLayerProjection layerProjection;
+                layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+                layerProjection.next = nullptr;
+                layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+                layerProjection.space = _internals->trackingSpace;
+                layerProjection.viewCount = 2;
+                layerProjection.views = layerProjectionView;
+
+				std::vector<XrCompositionLayerBaseHeader*> layers;
+				layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layerProjection));
+
+                XrFrameEndInfo frameEndInfo;
+                frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
+                frameEndInfo.next = nullptr;
+                frameEndInfo.displayTime = _internals->predictedDisplayTime;
+                frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+                frameEndInfo.layerCount = layers.size();
+                frameEndInfo.layers = layers.data();
+                xrEndFrame(_internals->session, &frameEndInfo);
+			}
+		};
+
+		if(_internals->RequestDisplayRefreshRateFB)
+		{
+			_internals->RequestDisplayRefreshRateFB(_internals->session, _preferredFrameRate);
+		}
+
+		if(_internals->PerfSettingsSetPerformanceLevelEXT)
+		{
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, (XrPerfSettingsLevelEXT)_minCPULevel);
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
+		}
+
+		if(_internals->SetAndroidApplicationThreadKHR)
+		{
+			_internals->SetAndroidApplicationThreadKHR(_internals->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, _mainThreadID);
+		}
+
+		if(_swapChain && _fixedFoveatedRenderingLevel > 0)
+		{
+			_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
 		}
 
 		XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
@@ -754,18 +851,13 @@ namespace RN
 
 	void OpenXRWindow::StopRendering()
 	{
-		NotificationManager::GetSharedInstance()->RemoveSubscriber(kRNAndroidWindowDidChange, this);
-
 		if(_internals->session != XR_NULL_HANDLE)
 		{
-		//	vrapi_LeaveVrMode(static_cast<ovrMobile*>(_session));
+			xrDestroySession(_internals->session);
 		}
 
         delete[] _internals->views;
-
 		SafeRelease(_swapChain);
-
-		//vrapi_DestroySystemVulkan();
 	}
 
 	bool OpenXRWindow::IsRendering() const
@@ -865,7 +957,7 @@ namespace RN
 
 	void OpenXRWindow::BeginFrame(float delta)
 	{
-		if(_internals->session == XR_NULL_HANDLE) return;
+		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
 
 		_actualFrameIndex++;
 
@@ -905,39 +997,43 @@ namespace RN
 								*reinterpret_cast<XrEventDataSessionStateChanged *>(&event);
 						if(sessionStateChangedEvent.state == XR_SESSION_STATE_READY)
 						{
+							RNDebug("Session State: Ready");
 							XrSessionBeginInfo beginInfo;
 							beginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
 							beginInfo.next = nullptr;
 							beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 							xrBeginSession(_internals->session, &beginInfo);
-
-							RNDebug("Session State: Ready");
+							_isSessionRunning = true;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
 						{
+							RNDebug("Session State: Stopping");
+							_hasSynchronization = false;
+							_isSessionRunning = false;
 							xrEndSession(_internals->session);
-                            RNDebug("Session State: Stopping");
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)
 						{
+							RNDebug("Session State: Exiting");
 							xrDestroySession(_internals->session);
-                            RNDebug("Session State: Exiting");
+							_internals->session = XR_NULL_HANDLE;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_SYNCHRONIZED)
 						{
+							RNDebug("Session State: Synchronized");
+							_hasSynchronization = true;
 							_hasVisibility = false;
-                            RNDebug("Session State: Synchronized");
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_VISIBLE)
 						{
+							RNDebug("Session State: Visible");
 							_hasVisibility = true;
 							_hasInputFocus = false;
-                            RNDebug("Session State: Visible");
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_FOCUSED)
 						{
+							RNDebug("Session State: Focused");
 							_hasInputFocus = true;
-                            RNDebug("Session State: Focused");
 						}
 						break;
 					}
@@ -952,7 +1048,6 @@ namespace RN
 					{
 						const XrEventDataReferenceSpaceChangePending &referenceSpaceChangePendingEvent =
 								*reinterpret_cast<XrEventDataReferenceSpaceChangePending *>(&event);
-						//xrCreateReferenceSpace()
 						RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
 						break;
 					}
@@ -964,7 +1059,7 @@ namespace RN
 			}
 		}
 
-        if(_internals->session == XR_NULL_HANDLE) return;
+        if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
 
         XrViewLocateInfo locateInfo;
         locateInfo.type = XR_TYPE_VIEW_LOCATE_INFO;
@@ -990,8 +1085,8 @@ namespace RN
 
         _hmdTrackingState.eyeOffset[0] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(leftEyePosition - _hmdTrackingState.position);
         _hmdTrackingState.eyeOffset[1] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(rightEyePosition - _hmdTrackingState.position);
-        _hmdTrackingState.eyeProjection[0] = GetProjectionMatrixForXRFovf(_internals->views[0].fov, 0.1f, 1000.0f);
-        _hmdTrackingState.eyeProjection[1] = GetProjectionMatrixForXRFovf(_internals->views[1].fov, 0.1f, 1000.0f);
+        _hmdTrackingState.eyeProjection[0] = GetProjectionMatrixForXRFovf(_internals->views[0].fov, near, far);
+        _hmdTrackingState.eyeProjection[1] = GetProjectionMatrixForXRFovf(_internals->views[1].fov, near, far);
 
 		if(_hasVisibility && _hasInputFocus)
 		{
@@ -1023,6 +1118,8 @@ namespace RN
 		_handTrackingState[1].pinchStrength[3] = 0.0f;
 		_handTrackingState[1].active = false;
 		_handTrackingState[1].tracking = false;
+
+		if(!_hasInputFocus) return;
 
 		XrActiveActionSet activeActionSet{_internals->gameActionSet, XR_NULL_PATH};
 		XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
@@ -1365,18 +1462,7 @@ namespace RN
 
 	VRWindow::DeviceType OpenXRWindow::GetDeviceType() const
 	{
-		/*ovrJava *java = static_cast<ovrJava*>(_java);
-		int deviceType = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_DEVICE_TYPE);
-		if(deviceType > VRAPI_DEVICE_TYPE_OCULUSQUEST_END)
-		{
-			return VRWindow::DeviceType::OculusQuest2;
-		}
-		else
-		{
-			return VRWindow::DeviceType::OculusQuest;
-		}*/
-
-		return VRWindow::DeviceType::OculusQuest2;
+		return _deviceType;
 	}
 }
 

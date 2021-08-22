@@ -57,10 +57,12 @@ namespace RN
         OXRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;
 
 	private:
+		void InitializeInput();
 		const String *GetHMDInfoDescription() const;
 
 		int _mainThreadID;
 		OpenXRWindowInternals *_internals;
+		DeviceType _deviceType;
 
 		OpenXRVulkanSwapChain *_swapChain;
 		uint32 _actualFrameIndex;
@@ -81,8 +83,17 @@ namespace RN
 		uint8 _fixedFoveatedRenderingLevel;
 		bool _fixedFoveatedRenderingDynamic;
 
-		bool _hasInputFocus;
+		bool _isSessionRunning;
+		bool _hasSynchronization;
 		bool _hasVisibility;
+		bool _hasInputFocus;
+
+		bool _supportsVulkan;
+
+		bool _supportsPerformanceLevels;
+		bool _supportsPreferredFramerate;
+		bool _supportsAndroidThreadType;
+		bool _supportsFoveatedRendering;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

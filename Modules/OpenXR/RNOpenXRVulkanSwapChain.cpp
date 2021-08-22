@@ -53,15 +53,15 @@ namespace RN
         swapchainCreateInfo.arraySize = _descriptor.layerCount;
         swapchainCreateInfo.mipCount = 1;
 
-#if RN_PLATFORM_ANDROID
-        //TODO: Check if the extension is supported and enabled instead if the android define (this is likely only supported on Quest at the moment)
+        //Enable foveated rendering
 		XrSwapchainCreateInfoFoveationFB foveationSwapChainCreateInfo;
 		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
 		foveationSwapChainCreateInfo.next = nullptr;
 		foveationSwapChainCreateInfo.flags = XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB;
-
-		swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
-#endif
+		if(_window->_supportsFoveatedRendering)
+		{
+			swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
+		}
 
         if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
         {
@@ -72,44 +72,41 @@ namespace RN
 		xrEnumerateSwapchainImages(_internals->swapchain, 0, &numberOfSwapChainImages, nullptr);
 
 		XrSwapchainImageVulkanKHR *swapchainImages = new XrSwapchainImageVulkanKHR[numberOfSwapChainImages];
-#if RN_PLATFORM_ANDROID
-		//TODO: If foveation is supported
-		XrSwapchainImageFoveationVulkanFB *swapchainFoveationImages = new XrSwapchainImageFoveationVulkanFB[numberOfSwapChainImages];
-#endif
+		_swapchainImages = new VkImage[numberOfSwapChainImages];
+
+		XrSwapchainImageFoveationVulkanFB *swapchainFoveationImages = nullptr;
+		if(_window->_supportsFoveatedRendering)
+		{
+			swapchainFoveationImages = new XrSwapchainImageFoveationVulkanFB[numberOfSwapChainImages];
+			_swapchainFoveationImages = new VkImage[numberOfSwapChainImages];
+			_swapChainFoveationImagesSize = new Vector2[numberOfSwapChainImages];
+		}
 		for(int i = 0; i < numberOfSwapChainImages; i++)
 		{
 			swapchainImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
 			swapchainImages[i].next = nullptr;
 
-#if RN_PLATFORM_ANDROID
-			//TODO: If foveation is supported
-			swapchainFoveationImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_FOVEATION_VULKAN_FB;
-			swapchainFoveationImages[i].next = nullptr;
+			if(swapchainFoveationImages)
+			{
+				swapchainFoveationImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_FOVEATION_VULKAN_FB;
+				swapchainFoveationImages[i].next = nullptr;
 
-			swapchainImages[i].next = &swapchainFoveationImages[i];
-#endif
+				swapchainImages[i].next = &swapchainFoveationImages[i];
+			}
 		}
 		xrEnumerateSwapchainImages(_internals->swapchain, numberOfSwapChainImages, &numberOfSwapChainImages, (XrSwapchainImageBaseHeader*)swapchainImages);
 		_descriptor.bufferCount = numberOfSwapChainImages;
 
-		_swapchainImages = new VkImage[numberOfSwapChainImages];
-#if RN_PLATFORM_ANDROID
-		//TODO: If foveation is supported
-		_swapchainFoveationImages = new VkImage[numberOfSwapChainImages];
-		_swapChainFoveationImagesSize = new Vector2[numberOfSwapChainImages];
-#endif
 		for(int i = 0; i < numberOfSwapChainImages; i++)
 		{
 			_swapchainImages[i] = swapchainImages[i].image;
 
-#if RN_PLATFORM_ANDROID
-			//TODO: If foveation is supported
-			_swapchainFoveationImages[i] = swapchainFoveationImages[i].image;
-			_swapChainFoveationImagesSize[i].x = swapchainFoveationImages[i].width;
-			_swapChainFoveationImagesSize[i].y = swapchainFoveationImages[i].height;
-
-			RNDebug("foveation texture size: (" << swapchainFoveationImages[i].width << ", " << swapchainFoveationImages[i].height << ")");
-#endif
+			if(swapchainFoveationImages)
+			{
+				_swapchainFoveationImages[i] = swapchainFoveationImages[i].image;
+				_swapChainFoveationImagesSize[i].x = swapchainFoveationImages[i].width;
+				_swapChainFoveationImagesSize[i].y = swapchainFoveationImages[i].height;
+			}
 		}
 		delete[] swapchainImages;
 		delete[] swapchainFoveationImages;
@@ -203,7 +200,8 @@ namespace RN
 
 	void OpenXRVulkanSwapChain::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
 	{
-#if RN_PLATFORM_ANDROID
+		if(!_window->_supportsFoveatedRendering) return;
+
 		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
 		{
 			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
@@ -228,6 +226,5 @@ namespace RN
 		swapchainStateFoveation.flags = 0;
 		swapchainStateFoveation.profile = _internals->currentFoveationProfile;
 		_window->_internals->UpdateSwapchainFB(_internals->swapchain, (XrSwapchainStateBaseHeaderFB*)&swapchainStateFoveation);
-#endif
 	}
 }
