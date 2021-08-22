@@ -95,8 +95,11 @@ namespace RN
 		bool tracking;
 		uint32 controllerID;
 
-		Vector3 position;
-		Quaternion rotation;
+		Vector3 positionAim;
+		Quaternion rotationAim;
+
+		Vector3 positionGrip;
+		Quaternion rotationGrip;
 
 		float indexTrigger;
 		float handTrigger;

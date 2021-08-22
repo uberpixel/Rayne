@@ -299,17 +299,30 @@ namespace RN
 		}
 
 		//Left hand
-		XrActionCreateInfo handLeftActionInfo;
-		handLeftActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
-		handLeftActionInfo.next = nullptr;
-		strcpy(handLeftActionInfo.actionName, "hand_left");
-		handLeftActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-		strcpy(handLeftActionInfo.localizedActionName, "Hand Left");
-		handLeftActionInfo.countSubactionPaths = 0;
-		handLeftActionInfo.subactionPaths = nullptr;
-		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftActionInfo, &_internals->handLeftAction)))
+		XrActionCreateInfo handLeftAimPoseActionInfo;
+		handLeftAimPoseActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftAimPoseActionInfo.next = nullptr;
+		strcpy(handLeftAimPoseActionInfo.actionName, "hand_left_aim");
+		handLeftAimPoseActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handLeftAimPoseActionInfo.localizedActionName, "Hand Left Aim");
+		handLeftAimPoseActionInfo.countSubactionPaths = 0;
+		handLeftAimPoseActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftAimPoseActionInfo, &_internals->handLeftAimPoseAction)))
 		{
-			RN_ASSERT(false, "failed creating left hand action");
+			RN_ASSERT(false, "failed creating left hand aim pose action");
+		}
+
+		XrActionCreateInfo handLeftGripPoseActionInfo;
+		handLeftGripPoseActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftGripPoseActionInfo.next = nullptr;
+		strcpy(handLeftGripPoseActionInfo.actionName, "hand_left_grip");
+		handLeftGripPoseActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handLeftGripPoseActionInfo.localizedActionName, "Hand Left Grip");
+		handLeftGripPoseActionInfo.countSubactionPaths = 0;
+		handLeftGripPoseActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftGripPoseActionInfo, &_internals->handLeftGripPoseAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand grip pose action");
 		}
 
 		XrActionCreateInfo handLeftTriggerActionInfo;
@@ -430,17 +443,30 @@ namespace RN
 		}
 
 		//Right hand
-		XrActionCreateInfo handRightActionInfo;
-		handRightActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
-		handRightActionInfo.next = nullptr;
-		strcpy(handRightActionInfo.actionName, "hand_right");
-		handRightActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-		strcpy(handRightActionInfo.localizedActionName, "Hand Right");
-		handRightActionInfo.countSubactionPaths = 0;
-		handRightActionInfo.subactionPaths = nullptr;
-		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightActionInfo, &_internals->handRightAction)))
+		XrActionCreateInfo handRightAimPoseActionInfo;
+		handRightAimPoseActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightAimPoseActionInfo.next = nullptr;
+		strcpy(handRightAimPoseActionInfo.actionName, "hand_right_aim");
+		handRightAimPoseActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handRightAimPoseActionInfo.localizedActionName, "Hand Right Aim");
+		handRightAimPoseActionInfo.countSubactionPaths = 0;
+		handRightAimPoseActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightAimPoseActionInfo, &_internals->handRightAimPoseAction)))
 		{
-			RN_ASSERT(false, "failed creating right hand action");
+			RN_ASSERT(false, "failed creating right hand aim pose action");
+		}
+
+		XrActionCreateInfo handRightGripPoseActionInfo;
+		handRightGripPoseActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightGripPoseActionInfo.next = nullptr;
+		strcpy(handRightGripPoseActionInfo.actionName, "hand_right_grip");
+		handRightGripPoseActionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+		strcpy(handRightGripPoseActionInfo.localizedActionName, "Hand Right Grip");
+		handRightGripPoseActionInfo.countSubactionPaths = 0;
+		handRightGripPoseActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightGripPoseActionInfo, &_internals->handRightGripPoseAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand grip pose action");
 		}
 
 		XrActionCreateInfo handRightTriggerActionInfo;
@@ -563,8 +589,11 @@ namespace RN
 		//Suggested binding just like for oculus touch can be added for other supported controllers, the runtime is supposed to pick the best one
 		//Oculus touch bindings
 		//Left hand
-		XrPath handLeftPath;
-		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftPath);
+		XrPath handLeftAimPosePath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+
+		XrPath handLeftGripPosePath;
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
 
 		XrPath handLeftTriggerPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
@@ -594,8 +623,11 @@ namespace RN
 		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
 
 		//Right hand
-		XrPath handRightPath;
-		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightPath);
+		XrPath handRightAimPosePath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+
+		XrPath handRightGripPosePath;
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
 
 		XrPath handRightTriggerPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
@@ -625,7 +657,8 @@ namespace RN
 		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
 
 		std::vector<XrActionSuggestedBinding> bindings;
-		bindings.push_back({_internals->handLeftAction, handLeftPath});
+		bindings.push_back({_internals->handLeftAimPoseAction, handLeftAimPosePath});
+		bindings.push_back({_internals->handLeftGripPoseAction, handLeftGripPosePath});
 		bindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
 		bindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
 		bindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
@@ -636,7 +669,8 @@ namespace RN
 		bindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
 		bindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
 
-		bindings.push_back({_internals->handRightAction, handRightPath});
+		bindings.push_back({_internals->handRightAimPoseAction, handRightAimPosePath});
+		bindings.push_back({_internals->handRightGripPoseAction, handRightGripPosePath});
 		bindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
 		bindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
 		bindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
@@ -820,33 +854,61 @@ namespace RN
 			RN_ASSERT(false, "failed attaching action sets");
 		}
 
-		XrActionSpaceCreateInfo handLeftSpaceCreateInfo;
-		handLeftSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
-		handLeftSpaceCreateInfo.next = nullptr;
-		handLeftSpaceCreateInfo.action = _internals->handLeftAction;
-		handLeftSpaceCreateInfo.subactionPath = XR_NULL_PATH;
-		handLeftSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
-		handLeftSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
-		xrCreateActionSpace(_internals->session, &handLeftSpaceCreateInfo, &_internals->handLeftSpace);
+		XrActionSpaceCreateInfo handLeftAimPoseSpaceCreateInfo;
+		handLeftAimPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+		handLeftAimPoseSpaceCreateInfo.next = nullptr;
+		handLeftAimPoseSpaceCreateInfo.action = _internals->handLeftAimPoseAction;
+		handLeftAimPoseSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+		handLeftAimPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+		xrCreateActionSpace(_internals->session, &handLeftAimPoseSpaceCreateInfo, &_internals->handLeftAimPoseSpace);
 
-        XrActionSpaceCreateInfo handRightSpaceCreateInfo;
-        handRightSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
-        handRightSpaceCreateInfo.next = nullptr;
-        handRightSpaceCreateInfo.action = _internals->handRightAction;
-        handRightSpaceCreateInfo.subactionPath = XR_NULL_PATH;
-        handRightSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
-        handRightSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
-        xrCreateActionSpace(_internals->session, &handRightSpaceCreateInfo, &_internals->handRightSpace);
+		XrActionSpaceCreateInfo handLeftGripPoseSpaceCreateInfo;
+		handLeftGripPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+		handLeftGripPoseSpaceCreateInfo.next = nullptr;
+		handLeftGripPoseSpaceCreateInfo.action = _internals->handLeftGripPoseAction;
+		handLeftGripPoseSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+		xrCreateActionSpace(_internals->session, &handLeftGripPoseSpaceCreateInfo, &_internals->handLeftGripPoseSpace);
+
+        XrActionSpaceCreateInfo handRightAimPoseSpaceCreateInfo;
+		handRightAimPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+		handRightAimPoseSpaceCreateInfo.next = nullptr;
+		handRightAimPoseSpaceCreateInfo.action = _internals->handRightAimPoseAction;
+		handRightAimPoseSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+        xrCreateActionSpace(_internals->session, &handRightAimPoseSpaceCreateInfo, &_internals->handRightAimPoseSpace);
+
+		XrActionSpaceCreateInfo handRightGripPoseSpaceCreateInfo;
+		handRightGripPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
+		handRightGripPoseSpaceCreateInfo.next = nullptr;
+		handRightGripPoseSpaceCreateInfo.action = _internals->handRightGripPoseAction;
+		handRightGripPoseSpaceCreateInfo.subactionPath = XR_NULL_PATH;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.orientation.x = 0.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.orientation.y = 0.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.orientation.z = 0.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.orientation.w = 1.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
+		handRightGripPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
+		xrCreateActionSpace(_internals->session, &handRightGripPoseSpaceCreateInfo, &_internals->handRightGripPoseSpace);
 	}
 
 	void OpenXRWindow::StopRendering()
@@ -1130,24 +1192,40 @@ namespace RN
 		//Left hand
 		XrActionStatePose handLeftState{XR_TYPE_ACTION_STATE_POSE};
 		XrActionStateGetInfo getHandLeftInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-        getHandLeftInfo.action = _internals->handLeftAction;
+
+		getHandLeftInfo.action = _internals->handLeftAimPoseAction;
+		xrGetActionStatePose(_internals->session, &getHandLeftInfo, &handLeftState);
+
+        getHandLeftInfo.action = _internals->handLeftGripPoseAction;
 		xrGetActionStatePose(_internals->session, &getHandLeftInfo, &handLeftState);
 
 		_controllerTrackingState[0].active = handLeftState.isActive;
 		_controllerTrackingState[0].tracking = handLeftState.isActive;
 		if(handLeftState.isActive)
 		{
-			XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
-			XrSpaceLocation location {XR_TYPE_SPACE_LOCATION, &velocity};
-			xrLocateSpace(_internals->handLeftSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &location);
+			XrSpaceLocation aimLocation {XR_TYPE_SPACE_LOCATION};
+			xrLocateSpace(_internals->handLeftAimPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &aimLocation);
 
-			if(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+			if(aimLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
 			{
-				_controllerTrackingState[0].position = Vector3(location.pose.position.x, location.pose.position.y, location.pose.position.z);
+				_controllerTrackingState[0].positionAim = Vector3(aimLocation.pose.position.x, aimLocation.pose.position.y, aimLocation.pose.position.z);
 			}
-			if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+			if(aimLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 			{
-				_controllerTrackingState[0].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
+				_controllerTrackingState[0].rotationAim = Quaternion(aimLocation.pose.orientation.x, aimLocation.pose.orientation.y, aimLocation.pose.orientation.z, aimLocation.pose.orientation.w);
+			}
+
+			XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
+			XrSpaceLocation gripLocation {XR_TYPE_SPACE_LOCATION, &velocity};
+			xrLocateSpace(_internals->handLeftGripPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &gripLocation);
+
+			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+			{
+				_controllerTrackingState[0].positionGrip = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z);
+			}
+			if(gripLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+			{
+				_controllerTrackingState[0].rotationGrip = Quaternion(gripLocation.pose.orientation.x, gripLocation.pose.orientation.y, gripLocation.pose.orientation.z, gripLocation.pose.orientation.w);
 			}
 
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
@@ -1234,25 +1312,41 @@ namespace RN
 		//Right hand
         XrActionStatePose handRightState{XR_TYPE_ACTION_STATE_POSE};
         XrActionStateGetInfo getHandRightInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-        getHandRightInfo.action = _internals->handRightAction;
+
+        getHandRightInfo.action = _internals->handRightAimPoseAction;
         xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
+
+		getHandRightInfo.action = _internals->handRightGripPoseAction;
+		xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
 
         _controllerTrackingState[1].active = handRightState.isActive;
         _controllerTrackingState[1].tracking = handRightState.isActive;
         if(handRightState.isActive)
         {
-            XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
-            XrSpaceLocation location {XR_TYPE_SPACE_LOCATION, &velocity};
-            xrLocateSpace(_internals->handRightSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &location);
+			XrSpaceLocation aimLocation {XR_TYPE_SPACE_LOCATION};
+			xrLocateSpace(_internals->handRightAimPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &aimLocation);
 
-            if(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
-            {
-                _controllerTrackingState[1].position = Vector3(location.pose.position.x, location.pose.position.y, location.pose.position.z);
-            }
-            if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
-            {
-                _controllerTrackingState[1].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
-            }
+			if(aimLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+			{
+				_controllerTrackingState[1].positionAim = Vector3(aimLocation.pose.position.x, aimLocation.pose.position.y, aimLocation.pose.position.z);
+			}
+			if(aimLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+			{
+				_controllerTrackingState[1].rotationAim = Quaternion(aimLocation.pose.orientation.x, aimLocation.pose.orientation.y, aimLocation.pose.orientation.z, aimLocation.pose.orientation.w);
+			}
+
+			XrSpaceVelocity velocity {XR_TYPE_SPACE_VELOCITY};
+			XrSpaceLocation gripLocation {XR_TYPE_SPACE_LOCATION, &velocity};
+			xrLocateSpace(_internals->handRightGripPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &gripLocation);
+
+			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+			{
+				_controllerTrackingState[1].positionGrip = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z);
+			}
+			if(gripLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+			{
+				_controllerTrackingState[1].rotationGrip = Quaternion(gripLocation.pose.orientation.x, gripLocation.pose.orientation.y, gripLocation.pose.orientation.z, gripLocation.pose.orientation.w);
+			}
 
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
 			{

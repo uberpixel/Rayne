@@ -33,7 +33,8 @@ namespace RN
 
 		XrActionSet gameActionSet;
 
-		XrAction handLeftAction;
+		XrAction handLeftAimPoseAction;
+		XrAction handLeftGripPoseAction;
 		XrAction handLeftTriggerAction;
 		XrAction handLeftGrabAction;
 		XrAction handLeftThumbstickXAction;
@@ -43,9 +44,11 @@ namespace RN
 		XrAction handLeftButtonUpperPressAction;
 		XrAction handLeftButtonLowerPressAction;
 		XrAction handLeftHapticsAction;
-		XrSpace handLeftSpace;
+		XrSpace handLeftAimPoseSpace;
+		XrSpace handLeftGripPoseSpace;
 
-		XrAction handRightAction;
+		XrAction handRightAimPoseAction;
+		XrAction handRightGripPoseAction;
 		XrAction handRightTriggerAction;
 		XrAction handRightGrabAction;
 		XrAction handRightThumbstickXAction;
@@ -55,7 +58,8 @@ namespace RN
 		XrAction handRightButtonUpperPressAction;
 		XrAction handRightButtonLowerPressAction;
 		XrAction handRightHapticsAction;
-		XrSpace handRightSpace;
+		XrSpace handRightAimPoseSpace;
+		XrSpace handRightGripPoseSpace;
 
 		PFN_xrGetVulkanInstanceExtensionsKHR GetVulkanInstanceExtensionsKHR;
 		PFN_xrGetVulkanDeviceExtensionsKHR GetVulkanDeviceExtensionsKHR;
