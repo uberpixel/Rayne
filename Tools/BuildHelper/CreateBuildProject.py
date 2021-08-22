@@ -91,8 +91,8 @@ def main():
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + "," + buildType)
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
-		Utilities.copyToFolder(os.path.join(buildHelperPath, "../../Modules/OculusMobile/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Release/libvrapi.so"), 'app/src/main/libs/arm64-v8a/')
-		Utilities.copyToFolder(os.path.join(buildHelperPath, "../../Modules/OculusMobile/Vendor/ovr_sdk_mobile_1/VrApi/Libs/Android/arm64-v8a/Debug/libvrapi.so"), 'app/src/debug/libs/arm64-v8a/')
+		Utilities.copyToFolder(os.path.join(buildHelperPath, "../../Modules/OpenXR/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so"), 'app/src/main/libs/arm64-v8a/')
+		Utilities.copyToFolder(os.path.join(buildHelperPath, "../../Modules/OpenXR/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Debug/libopenxr_loader.so"), 'app/src/debug/libs/arm64-v8a/')
 
 if __name__ == '__main__':
 	main()

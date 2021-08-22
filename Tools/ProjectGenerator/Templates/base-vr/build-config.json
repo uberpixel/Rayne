@@ -11,7 +11,7 @@
 		"RaynePhysX",
 		"RayneVulkan",
 		"RayneVR",
-		"RayneOculusMobile",
+		"RayneOpenXR",
 		"zlibstatic",
 		"zip",
 		"jansson",

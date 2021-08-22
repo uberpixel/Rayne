@@ -14,7 +14,7 @@
 
 //TODO: These should be defines somehow set by the corresponding vr module....
 #if RN_PLATFORM_ANDROID
-    #include "RNOculusMobileWindow.h"
+    #include "RNOpenXRWindow.h"
 #elif RN_PLATFORM_WINDOWS
     #ifdef BUILD_FOR_OCULUS
         #include "RNOculusWindow.h"

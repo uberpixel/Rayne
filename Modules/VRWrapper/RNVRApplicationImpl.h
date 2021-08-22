@@ -28,7 +28,7 @@ namespace RN
 			return;
 
 	#if RN_PLATFORM_ANDROID
-		_vrWindow = new RN::OculusMobileWindow();
+		_vrWindow = new RN::OpenXRWindow();
 	#else
 		bool wantsOpenVR = RN::Kernel::GetSharedInstance()->GetArguments().HasArgument("openvr", 0);
 	#if RN_PLATFORM_WINDOWS
