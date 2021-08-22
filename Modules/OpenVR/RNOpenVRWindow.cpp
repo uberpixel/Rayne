@@ -351,10 +351,14 @@ namespace RN
 
 				vr::HmdMatrix34_t handMatrix = handPose[i].pose.mDeviceToAbsoluteTracking;
 				Matrix rotationPose = GetRotationMatrixForOVRMatrix(handMatrix);
-				_controllerTrackingState[i].rotation = rotationPose.GetEulerAngle();
-				_controllerTrackingState[i].position.x = handMatrix.m[0][3];
-				_controllerTrackingState[i].position.y = handMatrix.m[1][3];
-				_controllerTrackingState[i].position.z = handMatrix.m[2][3];
+				_controllerTrackingState[i].rotationGrip = rotationPose.GetEulerAngle();
+				_controllerTrackingState[i].positionGrip.x = handMatrix.m[0][3];
+				_controllerTrackingState[i].positionGrip.y = handMatrix.m[1][3];
+				_controllerTrackingState[i].positionGrip.z = handMatrix.m[2][3];
+				_controllerTrackingState[i].rotationAim = _controllerTrackingState[i].rotationGrip * Vector3(0.0f, -45.0f, 0.0f);
+				_controllerTrackingState[i].positionAim = _controllerTrackingState[i].positionGrip;
+				_controllerTrackingState[i].positionAim -= _controllerTrackingState[i].rotationAim.GetRotatedVector(Vector3(0.0f, 0.0f, 0.055f));
+				_controllerTrackingState[i].positionAim -= _controllerTrackingState[i].rotationGrip.GetRotatedVector(Vector3(0.0f, 0.0f, 0.05f));
 
 				_controllerTrackingState[i].velocityLinear.x = handPose[i].pose.vVelocity.v[0];
 				_controllerTrackingState[i].velocityLinear.y = handPose[i].pose.vVelocity.v[1];
