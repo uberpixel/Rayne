@@ -28,7 +28,7 @@ namespace RN
 		OXRAPI bool IsRendering() const final;
 
 		OXRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
-		OXRAPI void SetPreferredFramerate(uint32 framerate) final;
+		OXRAPI void SetPreferredFramerate(float framerate) final;
 		OXRAPI void SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel) final;
 
 		OXRAPI Vector2 GetSize() const final;
@@ -58,12 +58,9 @@ namespace RN
 
 	private:
 		const String *GetHMDInfoDescription() const;
-		void UpdateVRMode();
 
 		int _mainThreadID;
 		OpenXRWindowInternals *_internals;
-		void *_session;
-		void *_nativeWindow;
 
 		OpenXRVulkanSwapChain *_swapChain;
 		uint32 _actualFrameIndex;
@@ -78,7 +75,7 @@ namespace RN
 		VRControllerHaptics _haptics[2];
 		bool _hapticsStopped[2];
 
-		uint32 _preferredFrameRate;
+		float _preferredFrameRate;
 		uint8 _minCPULevel;
 		uint8 _minGPULevel;
 		uint8 _fixedFoveatedRenderingLevel;

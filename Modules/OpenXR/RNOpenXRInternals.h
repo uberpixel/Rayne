@@ -61,11 +61,26 @@ namespace RN
 		PFN_xrGetVulkanDeviceExtensionsKHR GetVulkanDeviceExtensionsKHR;
 		PFN_xrGetVulkanGraphicsDeviceKHR GetVulkanGraphicsDeviceKHR;
 		PFN_xrGetVulkanGraphicsRequirementsKHR GetVulkanGraphicsRequirementsKHR;
+
+		PFN_xrEnumerateDisplayRefreshRatesFB EnumerateDisplayRefreshRatesFB;
+		PFN_xrGetDisplayRefreshRateFB GetDisplayRefreshRateFB;
+		PFN_xrRequestDisplayRefreshRateFB RequestDisplayRefreshRateFB;
+
+		PFN_xrPerfSettingsSetPerformanceLevelEXT PerfSettingsSetPerformanceLevelEXT;
+
+		PFN_xrCreateFoveationProfileFB CreateFoveationProfileFB;
+		PFN_xrDestroyFoveationProfileFB DestroyFoveationProfileFB;
+
+		PFN_xrUpdateSwapchainFB UpdateSwapchainFB;
+		PFN_xrGetSwapchainStateFB GetSwapchainStateFB;
+
+		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
 	};
 
     struct OpenXRSwapchainInternals
     {
         XrSwapchain swapchain;
+        XrFoveationProfileFB currentFoveationProfile;
     };
 }
 

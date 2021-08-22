@@ -15,8 +15,10 @@ namespace RN
 {
 	RNDefineMeta(OpenXRVulkanSwapChain, VulkanSwapChain)
 
-	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : _window(window), _internals(new OpenXRSwapchainInternals())
+	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : _window(window), _internals(new OpenXRSwapchainInternals()), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
 	{
+		_internals->currentFoveationProfile = XR_NULL_HANDLE;
+
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
 		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
@@ -32,6 +34,7 @@ namespace RN
 
 		for(int i = 0; i < numberOfSupportedSwapChainFormats; i++)
 		{
+			//TODO: Check if the requested swapchain format is actually supported
 			RNDebug("Supported swap chain format: " << supportedSwapChainFormats[i]);
 		}
 
@@ -50,6 +53,16 @@ namespace RN
         swapchainCreateInfo.arraySize = _descriptor.layerCount;
         swapchainCreateInfo.mipCount = 1;
 
+#if RN_PLATFORM_ANDROID
+        //TODO: Check if the extension is supported and enabled instead if the android define (this is likely only supported on Quest at the moment)
+		XrSwapchainCreateInfoFoveationFB foveationSwapChainCreateInfo;
+		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
+		foveationSwapChainCreateInfo.next = nullptr;
+		foveationSwapChainCreateInfo.flags = XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB;
+
+		swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
+#endif
+
         if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
         {
             RN_ASSERT(false, "failed creating swapchain");
@@ -59,20 +72,47 @@ namespace RN
 		xrEnumerateSwapchainImages(_internals->swapchain, 0, &numberOfSwapChainImages, nullptr);
 
 		XrSwapchainImageVulkanKHR *swapchainImages = new XrSwapchainImageVulkanKHR[numberOfSwapChainImages];
+#if RN_PLATFORM_ANDROID
+		//TODO: If foveation is supported
+		XrSwapchainImageFoveationVulkanFB *swapchainFoveationImages = new XrSwapchainImageFoveationVulkanFB[numberOfSwapChainImages];
+#endif
 		for(int i = 0; i < numberOfSwapChainImages; i++)
 		{
 			swapchainImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
 			swapchainImages[i].next = nullptr;
+
+#if RN_PLATFORM_ANDROID
+			//TODO: If foveation is supported
+			swapchainFoveationImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_FOVEATION_VULKAN_FB;
+			swapchainFoveationImages[i].next = nullptr;
+
+			swapchainImages[i].next = &swapchainFoveationImages[i];
+#endif
 		}
 		xrEnumerateSwapchainImages(_internals->swapchain, numberOfSwapChainImages, &numberOfSwapChainImages, (XrSwapchainImageBaseHeader*)swapchainImages);
 		_descriptor.bufferCount = numberOfSwapChainImages;
 
 		_swapchainImages = new VkImage[numberOfSwapChainImages];
+#if RN_PLATFORM_ANDROID
+		//TODO: If foveation is supported
+		_swapchainFoveationImages = new VkImage[numberOfSwapChainImages];
+		_swapChainFoveationImagesSize = new Vector2[numberOfSwapChainImages];
+#endif
 		for(int i = 0; i < numberOfSwapChainImages; i++)
 		{
 			_swapchainImages[i] = swapchainImages[i].image;
+
+#if RN_PLATFORM_ANDROID
+			//TODO: If foveation is supported
+			_swapchainFoveationImages[i] = swapchainFoveationImages[i].image;
+			_swapChainFoveationImagesSize[i].x = swapchainFoveationImages[i].width;
+			_swapChainFoveationImagesSize[i].y = swapchainFoveationImages[i].height;
+
+			RNDebug("foveation texture size: (" << swapchainFoveationImages[i].width << ", " << swapchainFoveationImages[i].height << ")");
+#endif
 		}
 		delete[] swapchainImages;
+		delete[] swapchainFoveationImages;
 
 		for(size_t i = 0; i < _descriptor.bufferCount; i++)
 		{
@@ -83,13 +123,22 @@ namespace RN
 		}
 
 		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, Texture::Format::Invalid);
+		_framebuffer = new VulkanFramebuffer(_size, _descriptor.layerCount, this, renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat, _swapchainFoveationImages? Texture::Format::RG_8 : Texture::Format::Invalid);
 	}
 
 	OpenXRVulkanSwapChain::~OpenXRVulkanSwapChain()
 	{
 		xrDestroySwapchain(_internals->swapchain);
 		delete[] _swapchainImages;
+		if(_swapchainFoveationImages)
+		{
+			delete[] _swapchainFoveationImages;
+			delete[] _swapChainFoveationImagesSize;
+		}
+		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
+		{
+			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
+		}
 		delete _internals;
 	}
 
@@ -145,24 +194,40 @@ namespace RN
 
 	VkImage OpenXRVulkanSwapChain::GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const
 	{
-		//VkImage image;
-		//vrapi_GetTextureSwapChainBufferFoveationVulkan(_colorSwapChain, i, &image, &width, &height);
-		return nullptr;//image;
+		if(!_swapchainFoveationImages) return nullptr;
+
+		width = _swapChainFoveationImagesSize[i].x;
+		height = _swapChainFoveationImagesSize[i].y;
+		return _swapchainFoveationImages[i];
 	}
 
-/*	ovrMatrix4f OpenXRVulkanSwapChain::GetTanAngleMatrixForEye(uint8 eye)
-    {
-    	ovrMatrix4f *projection = &_hmdState.Eye[eye].ProjectionMatrix;
+	void OpenXRVulkanSwapChain::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
+	{
+#if RN_PLATFORM_ANDROID
+		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
+		{
+			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
+		}
 
-    	const ovrMatrix4f tanAngleMatrix =
-    	{ {
-    		{ 0.5f * projection->M[0][0], 0.0f, 0.5f * projection->M[0][2] - 0.5f, 0.0f },
-    		{ 0.0f, -0.5f * projection->M[1][1], -0.5f * projection->M[1][2] - 0.5f, 0.0f },
-    		{ 0.0f, 0.0f, -1.0f, 0.0f },
-    		// Store the values to convert a clip-Z to a linear depth in the unused matrix elements.
-    		{ projection->M[2][2], projection->M[2][3], projection->M[3][2], 1.0f }
-    	} };
+		//TODO: Check if the extension is supported and enabled instead if the android define (this is likely only supported on Quest at the moment)
+		XrFoveationLevelProfileCreateInfoFB foveationLevelProfileCreateInfo;
+		foveationLevelProfileCreateInfo.type = XR_TYPE_FOVEATION_LEVEL_PROFILE_CREATE_INFO_FB;
+		foveationLevelProfileCreateInfo.next = nullptr;
+		foveationLevelProfileCreateInfo.level = (XrFoveationLevelFB)level;
+		foveationLevelProfileCreateInfo.dynamic = dynamic? XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB : XR_FOVEATION_DYNAMIC_DISABLED_FB;
+		foveationLevelProfileCreateInfo.verticalOffset = 0.0f;
 
-    	return tanAngleMatrix;
-    }*/
+		XrFoveationProfileCreateInfoFB foveationProfileCreateInfo;
+		foveationProfileCreateInfo.type = XR_TYPE_FOVEATION_PROFILE_CREATE_INFO_FB;
+		foveationProfileCreateInfo.next = &foveationLevelProfileCreateInfo;
+		_window->_internals->CreateFoveationProfileFB(_window->_internals->session, &foveationProfileCreateInfo, &_internals->currentFoveationProfile);
+
+		XrSwapchainStateFoveationFB swapchainStateFoveation;
+		swapchainStateFoveation.type = XR_TYPE_SWAPCHAIN_STATE_FOVEATION_FB;
+		swapchainStateFoveation.next = nullptr;
+		swapchainStateFoveation.flags = 0;
+		swapchainStateFoveation.profile = _internals->currentFoveationProfile;
+		_window->_internals->UpdateSwapchainFB(_internals->swapchain, (XrSwapchainStateBaseHeaderFB*)&swapchainStateFoveation);
+#endif
+	}
 }

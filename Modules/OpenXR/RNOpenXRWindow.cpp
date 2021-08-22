@@ -21,7 +21,7 @@ namespace RN
 {
 	RNDefineMeta(OpenXRWindow, VRWindow)
 
-	OpenXRWindow::OpenXRWindow() : _nativeWindow(nullptr), _internals(new OpenXRWindowInternals()), _session(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0), _minCPULevel(0), _minGPULevel(0), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _hasInputFocus(true), _hasVisibility(true)
 	{
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
@@ -45,6 +45,16 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		extensions.push_back(XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME);
 		extensions.push_back(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
+
+		//Probably quest only at the moment
+		extensions.push_back(XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME);
+		extensions.push_back(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME);
+		extensions.push_back(XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME);
+
+		extensions.push_back(XR_FB_FOVEATION_EXTENSION_NAME);
+		extensions.push_back(XR_FB_FOVEATION_CONFIGURATION_EXTENSION_NAME);
+		extensions.push_back(XR_FB_FOVEATION_VULKAN_EXTENSION_NAME);
+		extensions.push_back(XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME); //Needed to apply foveation profiles to the swapchain
 
 		XrInstanceCreateInfoAndroidKHR instanceCreateInfo = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
 		instanceCreateInfo.applicationVM = app->activity->vm;
@@ -122,6 +132,56 @@ namespace RN
         {
 
         }
+
+        //TODO: Only load these if the XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME extension is supported
+        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction*)(&_internals->EnumerateDisplayRefreshRatesFB))))
+        {
+
+        }
+
+        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->GetDisplayRefreshRateFB))))
+        {
+
+        }
+
+        if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->RequestDisplayRefreshRateFB))))
+        {
+
+        }
+
+		//TODO: Only load these if the XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME extension is supported
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
+		{
+
+		}
+
+		//TODO: Only load these if the XR_FB_FOVEATION_EXTENSION_NAME extension is supported
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrCreateFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->CreateFoveationProfileFB))))
+		{
+
+		}
+
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->DestroyFoveationProfileFB))))
+		{
+
+		}
+
+		//TODO: Only load these if the XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME extension is supported
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&_internals->UpdateSwapchainFB))))
+		{
+
+		}
+
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
+		{
+
+		}
+
+		//TODO: Only load these if the XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME extension is supported
+		if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
+		{
+
+		}
     }
 
 	OpenXRWindow::~OpenXRWindow()
@@ -262,15 +322,26 @@ namespace RN
 			}
 		};
 
-		NotificationManager::GetSharedInstance()->AddSubscriber(kRNAndroidWindowDidChange, [this](Notification *notification) {
-				if(notification->GetName()->IsEqual(kRNAndroidWindowDidChange))
-				{
-					UpdateVRMode();
-				}
-			}, this);
+		if(_internals->RequestDisplayRefreshRateFB)
+		{
+			_internals->RequestDisplayRefreshRateFB(_internals->session, _preferredFrameRate);
+		}
 
-		UpdateVRMode();
+		if(_internals->PerfSettingsSetPerformanceLevelEXT)
+		{
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, (XrPerfSettingsLevelEXT)_minCPULevel);
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
+		}
 
+		if(_internals->SetAndroidApplicationThreadKHR)
+		{
+			_internals->SetAndroidApplicationThreadKHR(_internals->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, _mainThreadID);
+		}
+
+		if(_swapChain && _fixedFoveatedRenderingLevel > 0)
+		{
+			_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
+		}
 
 		XrActionSetCreateInfo actionSetInfo;
 		actionSetInfo.type = XR_TYPE_ACTION_SET_CREATE_INFO;
@@ -707,28 +778,31 @@ namespace RN
 		_fixedFoveatedRenderingLevel = level;
 		_fixedFoveatedRenderingDynamic = dynamic;
 
-//		vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, level);
-//		vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_DYNAMIC_FOVEATION_ENABLED, dynamic);
+		if(_swapChain)
+		{
+			_swapChain->SetFixedFoveatedRenderingLevel(level, dynamic);
+		}
 	}
 
-	void OpenXRWindow::SetPreferredFramerate(uint32 framerate)
+	void OpenXRWindow::SetPreferredFramerate(float framerate)
 	{
 		_preferredFrameRate = framerate;
 
-		if(_internals->session != XR_NULL_HANDLE)
+		if(_internals->session != XR_NULL_HANDLE && _internals->RequestDisplayRefreshRateFB)
 		{
-//			vrapi_SetDisplayRefreshRate(static_cast<ovrMobile*>(_session), framerate);
+			_internals->RequestDisplayRefreshRateFB(_internals->session, framerate);
 		}
 	}
 
 	void OpenXRWindow::SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel)
 	{
-		_minCPULevel = cpuLevel;
-		_minGPULevel = gpuLevel;
+		_minCPULevel = cpuLevel * 25;
+		_minGPULevel = gpuLevel * 25;
 
-		if(_internals->session != XR_NULL_HANDLE)
+		if(_internals->session != XR_NULL_HANDLE && _internals->PerfSettingsSetPerformanceLevelEXT)
 		{
-//			vrapi_SetClockLevels(static_cast<ovrMobile*>(_session), cpuLevel, gpuLevel);
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, (XrPerfSettingsLevelEXT)_minCPULevel);
+			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
 		}
 	}
 
@@ -874,6 +948,14 @@ namespace RN
 						// ...
 						break;
 					}
+					case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+					{
+						const XrEventDataReferenceSpaceChangePending &referenceSpaceChangePendingEvent =
+								*reinterpret_cast<XrEventDataReferenceSpaceChangePending *>(&event);
+						//xrCreateReferenceSpace()
+						RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+						break;
+					}
 				}
 			}
 			else
@@ -969,7 +1051,6 @@ namespace RN
 			if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 			{
 				_controllerTrackingState[0].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
-				_controllerTrackingState[0].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
 			}
 
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
@@ -1024,9 +1105,6 @@ namespace RN
 			//This is needed because the pressing the Y button will trigger both, the upper button action and the system button action on quest
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start] = !_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY] && handButtonSystemPressState.currentState;
 
-			RNDebug("system: " << (_controllerTrackingState[0].button[VRControllerTrackingState::Button::Start]? "yes" : "no"));
-			RNDebug("upperb: " << (_controllerTrackingState[0].button[VRControllerTrackingState::Button::BY]? "yes" : "no"));
-
 			XrActionStateBoolean handButtonLowerPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
 			XrActionStateGetInfo handButtonLowerPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 			handButtonLowerPressGetInfo.action = _internals->handLeftButtonLowerPressAction;
@@ -1077,7 +1155,6 @@ namespace RN
             if(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
             {
                 _controllerTrackingState[1].rotation = Quaternion(location.pose.orientation.x, location.pose.orientation.y, location.pose.orientation.z, location.pose.orientation.w);
-				_controllerTrackingState[1].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
             }
 
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
@@ -1165,105 +1242,7 @@ namespace RN
 		while(vrapi_EnumerateInputDevices(static_cast<ovrMobile*>(_session), i, &capsHeader) >= 0)
 		{
 			i += 1;
-			if(capsHeader.Type == ovrControllerType_TrackedRemote)
-			{
-				ovrInputTrackedRemoteCapabilities remoteCaps;
-				remoteCaps.Header = capsHeader;
-				if(vrapi_GetInputDeviceCapabilities(static_cast<ovrMobile*>(_session), &remoteCaps.Header) >= 0)
-				{
-					int handIndex = (remoteCaps.ControllerCapabilities & ovrControllerCaps_RightHand)?1:0;
-
-					_controllerTrackingState[handIndex].hasHaptics = (remoteCaps.ControllerCapabilities & ovrControllerCaps_HasBufferedHapticVibration);
-					_controllerTrackingState[handIndex].hapticsSampleLength = static_cast<double>(remoteCaps.HapticSampleDurationMS)/1000.0;
-					_controllerTrackingState[handIndex].hapticsMaxSamples = remoteCaps.HapticSamplesMax;
-
-					_controllerTrackingState[handIndex].active = true;
-					_controllerTrackingState[handIndex].tracking = true;
-					_controllerTrackingState[handIndex].controllerID = remoteCaps.Header.DeviceID;
-
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = false;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = false;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = false;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = false;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = false;
-					_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::PadTouched] = false;
-
-					//_controllerTrackingState[handIndex].trackpad = Vector2();
-					_controllerTrackingState[handIndex].indexTrigger = 0.0f;
-					_controllerTrackingState[handIndex].handTrigger = 0.0f;
-					_controllerTrackingState[handIndex].thumbstick = Vector2();
-
-					ovrInputStateTrackedRemote remoteState;
-					remoteState.Header.ControllerType = ovrControllerType_TrackedRemote;
-					if(vrapi_GetCurrentInputState(static_cast<ovrMobile*>(_session), remoteCaps.Header.DeviceID, &remoteState.Header) >= 0)
-					{
-						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasTrackpad))
-						{
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Pad] = remoteState.Buttons & ovrButton_Enter;
-
-							if(remoteState.TrackpadStatus > 0 || remoteState.Buttons & ovrButton_Enter)
-							{
-								_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::PadTouched] = true;
-							}
-
-							Vector2 trackpadMax(remoteCaps.TrackpadMaxX, remoteCaps.TrackpadMaxY);
-							Vector2 trackpadPosition = (GetVectorForOVRVector(remoteState.TrackpadPosition) / trackpadMax) * 2.0f - 1.0f;
-							_controllerTrackingState[handIndex].trackpad = trackpadPosition;
-						}
-
-						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelOculusGo) || (remoteCaps.ControllerCapabilities & ovrControllerCaps_ModelGearVR))
-						{
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = remoteState.Buttons & ovrButton_Back;
-							_controllerTrackingState[handIndex].indexTrigger = (remoteState.Buttons & ovrButton_A) ? 1.0f : 0.0f;
-						}
-						else
-						{
-							if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasAnalogIndexTrigger))
-							{
-								_controllerTrackingState[handIndex].indexTrigger = remoteState.IndexTrigger;
-							}
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Start] = (remoteState.Buttons & ovrButton_Enter);
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::AX] = (remoteState.Buttons & ovrButton_A) || (remoteState.Buttons & ovrButton_X);
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::BY] = (remoteState.Buttons & ovrButton_B) || (remoteState.Buttons & ovrButton_Y);
-						}
-
-						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasJoystick))
-						{
-							_controllerTrackingState[handIndex].thumbstick = Vector2(remoteState.Joystick.x, remoteState.Joystick.y);
-							_controllerTrackingState[handIndex].button[VRControllerTrackingState::Button::Stick] = (remoteState.Buttons & ovrButton_Joystick);
-						}
-
-						if((remoteCaps.ControllerCapabilities & ovrControllerCaps_HasAnalogGripTrigger))
-						{
-							_controllerTrackingState[handIndex].handTrigger = remoteState.GripTrigger;
-						}
-					}
-
-					ovrTracking trackingState;
-					if(vrapi_GetInputTrackingState(static_cast<ovrMobile*>(_session), remoteCaps.Header.DeviceID, _predictedDisplayTime, &trackingState) >= 0)
-					{
-						_controllerTrackingState[handIndex].position = GetVectorForOVRVector(trackingState.HeadPose.Pose.Position);
-						_controllerTrackingState[handIndex].rotation = GetQuaternionForOVRQuaternion(trackingState.HeadPose.Pose.Orientation);
-						_controllerTrackingState[handIndex].rotation *= RN::Vector3(0.0f, 45.0f, 0.0f);
-
-						_controllerTrackingState[handIndex].velocityLinear = GetVectorForOVRVector(trackingState.HeadPose.LinearVelocity);
-						_controllerTrackingState[handIndex].velocityAngular.x = trackingState.HeadPose.AngularVelocity.y;
-						_controllerTrackingState[handIndex].velocityAngular.y = trackingState.HeadPose.AngularVelocity.x;
-						_controllerTrackingState[handIndex].velocityAngular.z = trackingState.HeadPose.AngularVelocity.z;
-					}
-
-					if(_currentHapticsIndex[handIndex] < _haptics[handIndex].sampleCount)
-					{
-						float strength = _haptics[handIndex].samples[_currentHapticsIndex[handIndex]++];
-						vrapi_SetHapticVibrationSimple(static_cast<ovrMobile*>(_session), _controllerTrackingState[handIndex].controllerID, strength);
-					}
-					else
-					{
-						vrapi_SetHapticVibrationSimple(static_cast<ovrMobile*>(_session), _controllerTrackingState[handIndex].controllerID, 0.0f);
-					}
-				}
-			}
-			else if(capsHeader.Type == ovrControllerType_Hand)
+			if(capsHeader.Type == ovrControllerType_Hand)
 			{
 				ovrInputHandCapabilities handCaps;
 				handCaps.Header = capsHeader;
@@ -1295,79 +1274,6 @@ namespace RN
 						_handTrackingState[handIndex].menuButton = trackingState.InputStateStatus & ovrInputStateHandStatus_MenuPressed;
 					}
 				}
-			}
-		}
-		*/
-	}
-
-	void OpenXRWindow::UpdateVRMode()
-	{
-		RNDebug(RNCSTR("UpdateVRMode called"));
-
-/*		if(!_nativeWindow)
-		{
-			if(!_session)
-			{
-				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-				_nativeWindow = app->window;
-
-				VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-				ovrModeParmsVulkan params = vrapi_DefaultModeParmsVulkan(static_cast<ovrJava*>(_java), (unsigned long long)renderer->GetWorkQueue());
-				params.ModeParms.Flags |= VRAPI_MODE_FLAG_NATIVE_WINDOW | VRAPI_MODE_FLAG_FRONT_BUFFER_SRGB | VRAPI_MODE_FLAG_PHASE_SYNC;
-				params.ModeParms.WindowSurface = (size_t)_nativeWindow;
-				_session = vrapi_EnterVrMode((ovrModeParms *)&params);
-
-				// If entering VR mode failed then the ANativeWindow was not valid.
-				if(!_session)
-				{
-					RNDebug(RNCSTR("Invalid ANativeWindow!"));
-					_nativeWindow = nullptr;
-				}
-
-				// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
-				if(_session)
-				{
-					RNDebug(RNCSTR("UpdateVRMode new session"));
-					ovrMobile *session = static_cast<ovrMobile*>(_session);
-
-					int refreshRateCount = vrapi_GetSystemPropertyInt(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
-					float *availableRefreshRates = new float[refreshRateCount];
-					vrapi_GetSystemPropertyFloatArray(static_cast<ovrJava*>(_java), VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES, availableRefreshRates, refreshRateCount);
-					float highestRefreshRate = _preferredFrameRate;
-					if(_preferredFrameRate == 0)
-					{
-						highestRefreshRate = availableRefreshRates[0];
-						for(int i = 0; i < refreshRateCount; i++)
-						{
-							RNDebug("Available Refresh Rate: " << availableRefreshRates[i]);
-							if(availableRefreshRates[i] > highestRefreshRate)
-							{
-								highestRefreshRate = availableRefreshRates[i];
-							}
-						}
-					}
-
-					vrapi_SetDisplayRefreshRate(session, highestRefreshRate);
-					vrapi_SetClockLevels(session, _minCPULevel, _minGPULevel); //TODO: Set to 0, 0 for automatic clock levels, current setting keeps optimizations more comparable
-					vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_MAIN, _mainThreadID);
-    				vrapi_SetPerfThread(session, VRAPI_PERF_THREAD_TYPE_RENDERER, _mainThreadID);
-
-					vrapi_SetExtraLatencyMode(session, VRAPI_EXTRA_LATENCY_MODE_ON);
-
-					vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_DYNAMIC_FOVEATION_ENABLED, _fixedFoveatedRenderingDynamic);
-					vrapi_SetPropertyInt(static_cast<ovrJava*>(_java), VRAPI_FOVEATION_LEVEL, _fixedFoveatedRenderingLevel);
-				}
-			}
-		}
-		else
-		{
-			_nativeWindow = nullptr;
-			if(_session)
-			{
-				vrapi_LeaveVrMode(static_cast<ovrMobile*>(_session));
-				_session = nullptr;
-
-				RNDebug(RNCSTR("UpdateVRMode session lost"));
 			}
 		}
 		*/

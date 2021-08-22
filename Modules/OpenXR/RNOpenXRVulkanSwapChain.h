@@ -39,16 +39,14 @@ namespace RN
 
 	private:
 		OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size);
-		//ovrMatrix4f GetTanAngleMatrixForEye(uint8 eye);
+		void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic);
 
 		const OpenXRWindow *_window;
 		OpenXRSwapchainInternals *_internals;
 
 		VkImage *_swapchainImages;
-
-		//ovrTracking2 _hmdState;
-
-		//ovrTextureSwapChain *_colorSwapChain;
+		VkImage *_swapchainFoveationImages;
+		Vector2 *_swapChainFoveationImagesSize;
 
 		std::function<void()> _presentEvent;
 
