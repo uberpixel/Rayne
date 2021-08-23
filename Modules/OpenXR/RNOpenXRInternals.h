@@ -11,7 +11,15 @@
 
 #include "RNOpenXR.h"
 
+#if XR_USE_GRAPHICS_API_VULKAN
 #include "RNOpenXRVulkanSwapChain.h"
+#endif
+
+#if XR_USE_GRAPHICS_API_D3D12
+#include <initguid.h>
+#include "RNOpenXRD3D12SwapChain.h"
+#include <RND3D12Renderer.h>
+#endif
 
 #include "openxr/openxr_platform_defines.h"
 #include "openxr/openxr_platform.h"
@@ -27,7 +35,7 @@ namespace RN
 		XrSession session;
 
 		XrSpace trackingSpace;
-        XrTime predictedDisplayTime;
+      XrTime predictedDisplayTime;
 
 		XrView *views;
 
@@ -61,10 +69,16 @@ namespace RN
 		XrSpace handRightAimPoseSpace;
 		XrSpace handRightGripPoseSpace;
 
+#if XR_USE_GRAPHICS_API_VULKAN
 		PFN_xrGetVulkanInstanceExtensionsKHR GetVulkanInstanceExtensionsKHR;
 		PFN_xrGetVulkanDeviceExtensionsKHR GetVulkanDeviceExtensionsKHR;
 		PFN_xrGetVulkanGraphicsDeviceKHR GetVulkanGraphicsDeviceKHR;
 		PFN_xrGetVulkanGraphicsRequirementsKHR GetVulkanGraphicsRequirementsKHR;
+#endif
+
+#if XR_USE_GRAPHICS_API_D3D12
+		PFN_xrGetD3D12GraphicsRequirementsKHR GetD3D12GraphicsRequirementsKHR;
+#endif
 
 		PFN_xrEnumerateDisplayRefreshRatesFB EnumerateDisplayRefreshRatesFB;
 		PFN_xrGetDisplayRefreshRateFB GetDisplayRefreshRateFB;
@@ -78,7 +92,9 @@ namespace RN
 		PFN_xrUpdateSwapchainFB UpdateSwapchainFB;
 		PFN_xrGetSwapchainStateFB GetSwapchainStateFB;
 
+#if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
+#endif
 	};
 
     struct OpenXRSwapchainInternals

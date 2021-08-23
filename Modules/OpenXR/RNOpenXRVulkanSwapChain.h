@@ -2,8 +2,8 @@
 //  RNOpenXRVulkanSwapChain.h
 //  Rayne-OpenXR
 //
-//  Copyright 2018 by Überpixel. All rights reserved.
-//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//  Copyright 2021 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and corona.
 //
 
 #ifndef __RAYNE_OpenXRVULKANSWAPCHAIN_H_
@@ -13,15 +13,14 @@
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanSwapChain.h"
 
-#include "openxr/openxr.h"
-
 #include "RNOpenXR.h"
+#include "RNOpenXRSwapChain.h"
 
 namespace RN
 {
 	class OpenXRWindow;
 	struct OpenXRSwapchainInternals;
-	class OpenXRVulkanSwapChain : public VulkanSwapChain
+	class OpenXRVulkanSwapChain : public OpenXRSwapChain, VulkanSwapChain
 	{
 	public:
 		friend OpenXRWindow;
@@ -37,18 +36,18 @@ namespace RN
 		OXRAPI VkImage GetVulkanDepthBuffer(int i) const final;
 		OXRAPI VkImage GetVulkanFragmentDensityBuffer(int i, uint32 &width, uint32 &height) const final;
 
+		OXRAPI void ResizeSwapChain(const Vector2 &size) final;
+		Vector2 GetSwapChainSize() const final { return GetSize(); }
+		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final { return _descriptor; }
+		Framebuffer *GetSwapChainFramebuffer() const final { return GetFramebuffer(); }
+		OXRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
+
 	private:
 		OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size);
-		void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic);
-
-		const OpenXRWindow *_window;
-		OpenXRSwapchainInternals *_internals;
 
 		VkImage *_swapchainImages;
 		VkImage *_swapchainFoveationImages;
 		Vector2 *_swapChainFoveationImagesSize;
-
-		std::function<void()> _presentEvent;
 
 		RNDeclareMetaAPI(OpenXRVulkanSwapChain, OXRAPI)
 	};

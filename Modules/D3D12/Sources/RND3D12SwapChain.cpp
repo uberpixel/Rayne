@@ -77,9 +77,15 @@ namespace RN
 		_framebuffer = new D3D12Framebuffer(size, _descriptor.layerCount, this, _renderer, _descriptor.colorFormat, _descriptor.depthStencilFormat);
 	}
 
+	D3D12SwapChain::D3D12SwapChain() : _renderer(nullptr), _swapChain(nullptr), _framebuffer(nullptr), _fenceValues(nullptr), _frameIndex(0)
+	{
+		
+	}
+
+
 	D3D12SwapChain::~D3D12SwapChain()
 	{
-		delete[] _fenceValues;
+		if(_fenceValues) delete[] _fenceValues;
 	}
 
 	void D3D12SwapChain::ResizeSwapchain(const Vector2& size)

@@ -2,8 +2,8 @@
 //  RNOpenXRWindow.h
 //  Rayne-OpenXR
 //
-//  Copyright 2018 by Überpixel. All rights reserved.
-//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//  Copyright 2021 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and corona.
 //
 
 #ifndef __RAYNE_OpenXRWINDOW_H_
@@ -14,12 +14,22 @@
 
 namespace RN
 {
+	class OpenXRSwapChain;
 	class OpenXRVulkanSwapChain;
-	class OpenXRWindowInternals;
+	class OpenXRD3D12SwapChain;
+	struct OpenXRWindowInternals;
 	class OpenXRWindow : public VRWindow
 	{
 	friend OpenXRVulkanSwapChain;
+	friend OpenXRD3D12SwapChain;
 	public:
+		enum SwapChainType
+		{
+			Metal,
+			D3D12,
+			Vulkan
+		};
+		
 		OXRAPI OpenXRWindow();
 		OXRAPI ~OpenXRWindow();
 
@@ -64,7 +74,8 @@ namespace RN
 		OpenXRWindowInternals *_internals;
 		DeviceType _deviceType;
 
-		OpenXRVulkanSwapChain *_swapChain;
+		SwapChainType _swapChainType;
+		OpenXRSwapChain *_swapChain;
 		uint32 _actualFrameIndex;
         double _predictedDisplayTime;
 
@@ -88,6 +99,7 @@ namespace RN
 		bool _hasVisibility;
 		bool _hasInputFocus;
 
+		bool _supportsD3D12;
 		bool _supportsVulkan;
 
 		bool _supportsPerformanceLevels;

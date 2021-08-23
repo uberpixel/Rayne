@@ -2,20 +2,25 @@
 //  RNOpenXRWindow.cpp
 //  Rayne-OpenXR
 //
-//  Copyright 2018 by Überpixel. All rights reserved.
-//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//  Copyright 2021 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and corona.
 //
 
 #include "RNOpenXRWindow.h"
 #include "RNOpenXRInternals.h"
 
+/*
 #include <unistd.h>
 #include <android/log.h>
 
 #include <sys/prctl.h> // for prctl( PR_SET_NAME )
 #include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h> // for native window JNI
+*/
+
+#if RN_PLATFORM_ANDROID
 #include <android_native_app_glue.h>
+#endif
 
 namespace RN
 {
@@ -31,10 +36,12 @@ namespace RN
 
 		_internals->session = XR_NULL_HANDLE;
 
+#if XR_USE_GRAPHICS_API_VULKAN
 		_internals->GetVulkanInstanceExtensionsKHR = nullptr;
 		_internals->GetVulkanDeviceExtensionsKHR = nullptr;
 		_internals->GetVulkanGraphicsDeviceKHR = nullptr;
 		_internals->GetVulkanGraphicsRequirementsKHR = nullptr;
+#endif
 
 		_internals->EnumerateDisplayRefreshRatesFB = nullptr;
 		_internals->GetDisplayRefreshRateFB = nullptr;
@@ -48,8 +55,15 @@ namespace RN
 		_internals->UpdateSwapchainFB = nullptr;
 		_internals->GetSwapchainStateFB = nullptr;
 
+#if XR_USE_PLATFORM_ANDROID
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
+#endif
 
+		
+		std::vector<const char*> extensions;
+		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
+
+#if RN_PLATFORM_ANDROID
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 
@@ -65,52 +79,56 @@ namespace RN
 			initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
 		}
 
-		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
-
-        // Create required extensions array
-        std::vector<const char*> extensions;
-#if RN_PLATFORM_ANDROID
 		extensions.push_back(XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME);
-
-		//TODO: Should be chosen depending on the graphics backend, not android only
-		extensions.push_back(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
-		_supportsVulkan = true;
 
 		XrInstanceCreateInfoAndroidKHR instanceCreateInfo = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
 		instanceCreateInfo.applicationVM = app->activity->vm;
 		instanceCreateInfo.applicationActivity = app->activity->clazz;
 
 		platformSpecificInstanceCreateInfo = reinterpret_cast<XrBaseInStructure*>(&instanceCreateInfo);
+		_mainThreadID = gettid();
 #endif
 
-        uint32_t instanceExtensionCount;
-        xrEnumerateInstanceExtensionProperties(nullptr, 0, &instanceExtensionCount, nullptr);
-        std::vector<XrExtensionProperties> allExtensions(instanceExtensionCount);
-        for(XrExtensionProperties& extension : allExtensions)
-        {
-            extension.type = XR_TYPE_EXTENSION_PROPERTIES;
-        }
-        xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)allExtensions.size(), &instanceExtensionCount, allExtensions.data());
+#ifdef XR_USE_GRAPHICS_API_D3D12
+		extensions.push_back(XR_KHR_D3D12_ENABLE_EXTENSION_NAME);
+		_supportsD3D12 = true; //TODO: Only set to true if actually available!?
+#endif
 
-        int numberOfSupportedFoveationExtensions = 0;
-        RNDebug("Available Extensions (" << instanceExtensionCount << "):");
-        for(const XrExtensionProperties& extension : allExtensions)
-        {
-        	if(std::strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME) == 0)
+#ifdef XR_USE_GRAPHICS_API_VULKAN
+		extensions.push_back(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
+		_supportsVulkan = true; //TODO: Only set to true if actually available!?
+#endif
+
+		uint32_t instanceExtensionCount;
+		xrEnumerateInstanceExtensionProperties(nullptr, 0, &instanceExtensionCount, nullptr);
+		std::vector<XrExtensionProperties> allExtensions(instanceExtensionCount);
+		for(XrExtensionProperties& extension : allExtensions)
+		{
+			extension.type = XR_TYPE_EXTENSION_PROPERTIES;
+		}
+		xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)allExtensions.size(), &instanceExtensionCount, allExtensions.data());
+
+		int numberOfSupportedFoveationExtensions = 0;
+		RNDebug("Available Extensions (" << instanceExtensionCount << "):");
+		for(const XrExtensionProperties& extension : allExtensions)
+		{
+			if(std::strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsPreferredFramerate = true;
 			}
-        	else if(std::strcmp(extension.extensionName, XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME) == 0)
+			else if(std::strcmp(extension.extensionName, XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsPerformanceLevels = true;
 			}
+#if XR_USE_PLATFORM_ANDROID
 			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsAndroidThreadType = true;
 			}
+#endif
 
 			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_EXTENSION_NAME) == 0)
 			{
@@ -122,11 +140,13 @@ namespace RN
 				extensions.push_back(extension.extensionName);
 				numberOfSupportedFoveationExtensions += 1;
 			}
+#if XR_USE_GRAPHICS_API_VULKAN
 			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_VULKAN_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
 				numberOfSupportedFoveationExtensions += 1;
 			}
+#endif
 			//Needed to apply foveation profiles to the swapchain
 			else if(std::strcmp(extension.extensionName, XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME) == 0)
 			{
@@ -135,23 +155,23 @@ namespace RN
 			}
 
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
-        }
-
-        if(numberOfSupportedFoveationExtensions == 4)
-		{
-        	_supportsFoveatedRendering = true;
 		}
 
-        XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-        createInfo.next = platformSpecificInstanceCreateInfo;
-        createInfo.enabledExtensionCount = (uint32_t)extensions.size();
-        createInfo.enabledExtensionNames = extensions.data();
+	  if(numberOfSupportedFoveationExtensions == 4)
+		{
+			_supportsFoveatedRendering = true;
+		}
 
-        strcpy(createInfo.applicationInfo.applicationName, "HelloXR");
-        createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+		XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
+		createInfo.next = platformSpecificInstanceCreateInfo;
+		createInfo.enabledExtensionCount = (uint32_t)extensions.size();
+		createInfo.enabledExtensionNames = extensions.data();
+
+		strcpy(createInfo.applicationInfo.applicationName, "HelloXR");
+		createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
 		_internals->instance = XR_NULL_HANDLE;
-        if(xrCreateInstance(&createInfo, &_internals->instance) != XR_SUCCESS)
+	  if(xrCreateInstance(&createInfo, &_internals->instance) != XR_SUCCESS)
 		{
 			RN_ASSERT(false, "Failed creating OpenXR instance");
 		}
@@ -171,7 +191,6 @@ namespace RN
 			RN_ASSERT(false, "Failed fetching HMD info!");
 		}
 
-        _mainThreadID = gettid();
 		_hmdTrackingState.type = (_internals->systemProperties.trackingProperties.orientationTracking && _internals->systemProperties.trackingProperties.positionTracking)? VRHMDTrackingState::Type::SixDegreesOfFreedom : VRHMDTrackingState::Type::ThreeDegreesOfFreedom;
 		RNInfo(GetHMDInfoDescription());
 
@@ -190,6 +209,7 @@ namespace RN
 
 		InitializeInput();
 
+#if XR_USE_GRAPHICS_API_VULKAN
 		if(_supportsVulkan)
 		{
 			//vulkan_enable2
@@ -214,6 +234,17 @@ namespace RN
 
 			}
 		}
+#endif
+
+#if XR_USE_GRAPHICS_API_D3D12
+		if(_supportsD3D12)
+		{
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetD3D12GraphicsRequirementsKHR", (PFN_xrVoidFunction*)(&_internals->GetD3D12GraphicsRequirementsKHR))))
+			{
+
+			}
+		}
+#endif
 
 		if(_supportsPreferredFramerate)
 		{
@@ -232,7 +263,7 @@ namespace RN
 			{
 
 			}
-        }
+		}
 
 		if(_supportsPreferredFramerate)
 		{
@@ -268,6 +299,7 @@ namespace RN
 			}
 		}
 
+#if XR_USE_PLATFORM_ANDROID
 		if(_supportsAndroidThreadType)
 		{
 			//XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME
@@ -276,7 +308,8 @@ namespace RN
 
 			}
 		}
-    }
+#endif
+	}
 
 	OpenXRWindow::~OpenXRWindow()
 	{
@@ -696,24 +729,71 @@ namespace RN
 
 	void OpenXRWindow::StartRendering(const SwapChainDescriptor &descriptor)
 	{
-		VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-
-        XrGraphicsRequirementsVulkanKHR graphicsRequirements;
-		graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
-		graphicsRequirements.next = nullptr;
-        if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
-        {
-			RN_ASSERT(false, "Failed fetching vulkan graphics requirements");
-        }
-
-        RNDebug("Minimum supported vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.minApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.minApiVersionSupported));
-        RNDebug("Maximum tested vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.maxApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.maxApiVersionSupported));
-
-		VkPhysicalDevice physicalDevice;
-		if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsDeviceKHR(_internals->instance, _internals->systemID, renderer->GetVulkanInstance()->GetInstance(), &physicalDevice)))
+		XrSessionCreateInfo sessionCreateInfo;
+		sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
+		sessionCreateInfo.next = nullptr;
+		sessionCreateInfo.createFlags = 0;
+		sessionCreateInfo.systemId = _internals->systemID;
+		
+#ifdef XR_USE_GRAPHICS_API_VULKAN
+		XrGraphicsBindingVulkanKHR vulkanGraphicsBinding;
+		vulkanGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
+		vulkanGraphicsBinding.next = nullptr;
+		
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Vulkan")))
 		{
-			RN_ASSERT(false, "Failed fetching vulkan graphics device");
+			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+
+			XrGraphicsRequirementsVulkanKHR graphicsRequirements;
+			graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
+			graphicsRequirements.next = nullptr;
+			if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
+			{
+				RN_ASSERT(false, "Failed fetching vulkan graphics requirements");
+			}
+
+			RNDebug("Minimum supported vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.minApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.minApiVersionSupported));
+			RNDebug("Maximum tested vulkan version: " << XR_VERSION_MAJOR(graphicsRequirements.maxApiVersionSupported) << "." << XR_VERSION_MINOR(graphicsRequirements.maxApiVersionSupported));
+
+			VkPhysicalDevice physicalDevice;
+			if(!XR_SUCCEEDED(_internals->GetVulkanGraphicsDeviceKHR(_internals->instance, _internals->systemID, renderer->GetVulkanInstance()->GetInstance(), &physicalDevice)))
+			{
+				RN_ASSERT(false, "Failed fetching vulkan graphics device");
+			}
+
+			vulkanGraphicsBinding.instance = renderer->GetVulkanInstance()->GetInstance();
+			vulkanGraphicsBinding.physicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
+			vulkanGraphicsBinding.device = renderer->GetVulkanDevice()->GetDevice();
+			vulkanGraphicsBinding.queueFamilyIndex = renderer->GetVulkanDevice()->GetWorkQueue();
+			vulkanGraphicsBinding.queueIndex = 0; //There should be only one queue at the moment, so it's index should be 0...
+
+			sessionCreateInfo.next = &vulkanGraphicsBinding;
 		}
+#endif
+
+#ifdef XR_USE_GRAPHICS_API_D3D12
+		XrGraphicsBindingD3D12KHR d3d12GraphicsBinding;
+		d3d12GraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_D3D12_KHR;
+		d3d12GraphicsBinding.next = nullptr;
+
+		if (Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("D3D12")))
+		{
+			D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
+
+			XrGraphicsRequirementsD3D12KHR graphicsRequirements;
+			graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_D3D12_KHR;
+			graphicsRequirements.next = nullptr;
+			if(!XR_SUCCEEDED(_internals->GetD3D12GraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
+			{
+				RN_ASSERT(false, "Failed fetching d3d12 graphics requirements");
+			}
+
+			d3d12GraphicsBinding.device = renderer->GetD3D12Device()->GetDevice();
+			d3d12GraphicsBinding.queue = renderer->GetCommandQueue();
+
+			sessionCreateInfo.next = &d3d12GraphicsBinding;
+		}
+#endif
 
 		uint32_t numberOfConfigurationViews = 0;
 		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &numberOfConfigurationViews, nullptr)))
@@ -722,6 +802,12 @@ namespace RN
 		}
 
 		XrViewConfigurationView *configurationViews = new XrViewConfigurationView[numberOfConfigurationViews];
+		for(int i = 0; i < numberOfConfigurationViews; i++)
+		{
+			configurationViews[i].type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
+			configurationViews[i].next = nullptr;
+		}
+		
 		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, numberOfConfigurationViews, &numberOfConfigurationViews, configurationViews)))
 		{
 
@@ -732,96 +818,94 @@ namespace RN
 			RNDebug("View: " << configurationViews[i].recommendedImageRectWidth << " x " << configurationViews[i].recommendedImageRectHeight << " : " << configurationViews[i].recommendedSwapchainSampleCount);
 		}
 
-		//1:1 mapping for center according to docs would be 1536x1536, returned is 1024*1024 for GO, higher on quest
 		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth, configurationViews[0].recommendedImageRectHeight);
 		delete[] configurationViews;
-
-		XrGraphicsBindingVulkanKHR vulkanGraphicsBinding;
-		vulkanGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
-		vulkanGraphicsBinding.instance = renderer->GetVulkanInstance()->GetInstance();
-		vulkanGraphicsBinding.physicalDevice = renderer->GetVulkanDevice()->GetPhysicalDevice();
-		vulkanGraphicsBinding.device = renderer->GetVulkanDevice()->GetDevice();
-		vulkanGraphicsBinding.queueFamilyIndex = renderer->GetVulkanDevice()->GetWorkQueue();
-		vulkanGraphicsBinding.queueIndex = 0; //There should be only one queue at the moment, so it's index should be 0...
-		vulkanGraphicsBinding.next = nullptr;
-
-		XrSessionCreateInfo sessionCreateInfo;
-		sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
-		sessionCreateInfo.createFlags = 0;
-		sessionCreateInfo.systemId = _internals->systemID;
-		sessionCreateInfo.next = &vulkanGraphicsBinding;
+		
 		if(!XR_SUCCEEDED(xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session)))
 		{
 			RN_ASSERT(false, "failed creating session");
 		}
 
 		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
-        referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
-        referenceSpaceCreateInfo.next = nullptr;
-        referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.x = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.y = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.position.z = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.x = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.y = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.z = 0.0f;
-        referenceSpaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
+		referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+		referenceSpaceCreateInfo.next = nullptr;
+		referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+		referenceSpaceCreateInfo.poseInReferenceSpace.position.x = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.position.y = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.position.z = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.orientation.x = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.orientation.y = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.orientation.z = 0.0f;
+		referenceSpaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
 
-        xrCreateReferenceSpace(_internals->session, &referenceSpaceCreateInfo, &_internals->trackingSpace);
+		xrCreateReferenceSpace(_internals->session, &referenceSpaceCreateInfo, &_internals->trackingSpace);
 
-        _internals->views = new XrView[2];
-        _internals->views[0].type = XR_TYPE_VIEW;
-        _internals->views[0].next = nullptr;
-        _internals->views[1].type = XR_TYPE_VIEW;
-        _internals->views[1].next = nullptr;
+		_internals->views = new XrView[2];
+		_internals->views[0].type = XR_TYPE_VIEW;
+		_internals->views[0].next = nullptr;
+		_internals->views[1].type = XR_TYPE_VIEW;
+		_internals->views[1].next = nullptr;
 
-		_swapChain = new OpenXRVulkanSwapChain(this, descriptor, eyeRenderSize);
+#ifdef XR_USE_GRAPHICS_API_VULKAN
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Vulkan")))
+		{
+			_swapChain = new OpenXRVulkanSwapChain(this, descriptor, eyeRenderSize);
+			_swapChainType = SwapChainType::Vulkan;
+		}
+#endif
+#ifdef XR_USE_GRAPHICS_API_D3D12
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("D3D12")))
+		{
+			_swapChain = new OpenXRD3D12SwapChain(this, descriptor, eyeRenderSize);
+			_swapChainType = SwapChainType::D3D12;
+		}
+#endif
 
 		_swapChain->_presentEvent = [this](){
 			if(_internals->session != XR_NULL_HANDLE && _isSessionRunning)
 			{
-                XrCompositionLayerProjectionView layerProjectionView[2];
-                layerProjectionView[0].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-                layerProjectionView[0].next = nullptr;
-                layerProjectionView[0].pose = _internals->views[0].pose;
-                layerProjectionView[0].fov = _internals->views[0].fov;
-                layerProjectionView[0].subImage.swapchain = _swapChain->_internals->swapchain;
-                layerProjectionView[0].subImage.imageRect.offset.x = 0;
-                layerProjectionView[0].subImage.imageRect.offset.y = 0;
-                layerProjectionView[0].subImage.imageRect.extent.width = _swapChain->_size.x;
-                layerProjectionView[0].subImage.imageRect.extent.height = _swapChain->_size.y;
-                layerProjectionView[0].subImage.imageArrayIndex = 0;
+				XrCompositionLayerProjectionView layerProjectionView[2];
+				layerProjectionView[0].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+				layerProjectionView[0].next = nullptr;
+				layerProjectionView[0].pose = _internals->views[0].pose;
+				layerProjectionView[0].fov = _internals->views[0].fov;
+				layerProjectionView[0].subImage.swapchain = _swapChain->_internals->swapchain;
+				layerProjectionView[0].subImage.imageRect.offset.x = 0;
+				layerProjectionView[0].subImage.imageRect.offset.y = 0;
+				layerProjectionView[0].subImage.imageRect.extent.width = _swapChain->GetSwapChainSize().x;
+				layerProjectionView[0].subImage.imageRect.extent.height = _swapChain->GetSwapChainSize().y;
+				layerProjectionView[0].subImage.imageArrayIndex = 0;
 
-                layerProjectionView[1].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-                layerProjectionView[1].next = nullptr;
-                layerProjectionView[1].pose = _internals->views[1].pose;
-                layerProjectionView[1].fov = _internals->views[1].fov;
-                layerProjectionView[1].subImage.swapchain = _swapChain->_internals->swapchain;
-                layerProjectionView[1].subImage.imageRect.offset.x = 0;
-                layerProjectionView[1].subImage.imageRect.offset.y = 0;
-                layerProjectionView[1].subImage.imageRect.extent.width = _swapChain->_size.x;
-                layerProjectionView[1].subImage.imageRect.extent.height = _swapChain->_size.y;
-                layerProjectionView[1].subImage.imageArrayIndex = 1;
+				layerProjectionView[1].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+				layerProjectionView[1].next = nullptr;
+				layerProjectionView[1].pose = _internals->views[1].pose;
+				layerProjectionView[1].fov = _internals->views[1].fov;
+				layerProjectionView[1].subImage.swapchain = _swapChain->_internals->swapchain;
+				layerProjectionView[1].subImage.imageRect.offset.x = 0;
+				layerProjectionView[1].subImage.imageRect.offset.y = 0;
+				layerProjectionView[1].subImage.imageRect.extent.width = _swapChain->GetSwapChainSize().x;
+				layerProjectionView[1].subImage.imageRect.extent.height = _swapChain->GetSwapChainSize().y;
+				layerProjectionView[1].subImage.imageArrayIndex = 1;
 
-                XrCompositionLayerProjection layerProjection;
-                layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
-                layerProjection.next = nullptr;
-                layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-                layerProjection.space = _internals->trackingSpace;
-                layerProjection.viewCount = 2;
-                layerProjection.views = layerProjectionView;
+				XrCompositionLayerProjection layerProjection;
+				layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+				layerProjection.next = nullptr;
+				layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+				layerProjection.space = _internals->trackingSpace;
+				layerProjection.viewCount = 2;
+				layerProjection.views = layerProjectionView;
 
 				std::vector<XrCompositionLayerBaseHeader*> layers;
 				layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layerProjection));
 
-                XrFrameEndInfo frameEndInfo;
-                frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
-                frameEndInfo.next = nullptr;
-                frameEndInfo.displayTime = _internals->predictedDisplayTime;
-                frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-                frameEndInfo.layerCount = layers.size();
-                frameEndInfo.layers = layers.data();
-                xrEndFrame(_internals->session, &frameEndInfo);
+				XrFrameEndInfo frameEndInfo;
+				frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
+				frameEndInfo.next = nullptr;
+				frameEndInfo.displayTime = _internals->predictedDisplayTime;
+				frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+				frameEndInfo.layerCount = layers.size();
+				frameEndInfo.layers = layers.data();
+				xrEndFrame(_internals->session, &frameEndInfo);
 			}
 		};
 
@@ -836,10 +920,12 @@ namespace RN
 			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
 		}
 
+#if XR_USE_PLATFORM_ANDROID
 		if(_internals->SetAndroidApplicationThreadKHR)
 		{
 			_internals->SetAndroidApplicationThreadKHR(_internals->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, _mainThreadID);
 		}
+#endif
 
 		if(_swapChain && _fixedFoveatedRenderingLevel > 0)
 		{
@@ -882,7 +968,7 @@ namespace RN
 		handLeftGripPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
 		xrCreateActionSpace(_internals->session, &handLeftGripPoseSpaceCreateInfo, &_internals->handLeftGripPoseSpace);
 
-        XrActionSpaceCreateInfo handRightAimPoseSpaceCreateInfo;
+		XrActionSpaceCreateInfo handRightAimPoseSpaceCreateInfo;
 		handRightAimPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
 		handRightAimPoseSpaceCreateInfo.next = nullptr;
 		handRightAimPoseSpaceCreateInfo.action = _internals->handRightAimPoseAction;
@@ -894,7 +980,7 @@ namespace RN
 		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.x = 0.0f;
 		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
 		handRightAimPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
-        xrCreateActionSpace(_internals->session, &handRightAimPoseSpaceCreateInfo, &_internals->handRightAimPoseSpace);
+		xrCreateActionSpace(_internals->session, &handRightAimPoseSpaceCreateInfo, &_internals->handRightAimPoseSpace);
 
 		XrActionSpaceCreateInfo handRightGripPoseSpaceCreateInfo;
 		handRightGripPoseSpaceCreateInfo.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
@@ -918,8 +1004,29 @@ namespace RN
 			xrDestroySession(_internals->session);
 		}
 
-        delete[] _internals->views;
-		SafeRelease(_swapChain);
+		delete[] _internals->views;
+
+		if(_swapChain)
+		{
+#ifdef XR_USE_GRAPHICS_API_D3D12
+			if(_swapChainType == SwapChainType::D3D12)
+			{
+				OpenXRD3D12SwapChain *swapChain = static_cast<OpenXRD3D12SwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+			}
+#endif
+
+#ifdef XR_USE_GRAPHICS_API_VULKAN
+			if(_swapChainType == SwapChainType::Vulkan)
+			{
+				OpenVRVulkanSwapChain *swapChain = static_cast<OpenVRVulkanSwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+				return;
+			}
+#endif
+		}
 	}
 
 	bool OpenXRWindow::IsRendering() const
@@ -962,18 +1069,18 @@ namespace RN
 
 	Vector2 OpenXRWindow::GetSize() const
 	{
-		return _swapChain->GetSize();
+		return _swapChain->GetSwapChainSize();
 	}
 
 	Framebuffer *OpenXRWindow::GetFramebuffer() const
 	{
-		return _swapChain->GetFramebuffer();
+		return _swapChain->GetSwapChainFramebuffer();
 	}
 
 	Framebuffer *OpenXRWindow::GetFramebuffer(uint8 eye) const
 	{
-		RN_ASSERT(eye < 2, "Eye Index need to be 0 or 1");
-		return _swapChain->GetFramebuffer();
+		RN_ASSERT(eye < 2, "Eye Index needs to be 0 or 1");
+		return _swapChain->GetSwapChainFramebuffer();
 	}
 
 	static Matrix GetProjectionMatrixForXRFovf(const XrFovf &fov, float near, float far)
@@ -1023,20 +1130,20 @@ namespace RN
 
 		_actualFrameIndex++;
 
-        XrFrameWaitInfo frameWaitInfo;
-        frameWaitInfo.type = XR_TYPE_FRAME_WAIT_INFO;
-        frameWaitInfo.next = nullptr;
-        XrFrameState frameState;
-        frameState.type = XR_TYPE_FRAME_STATE;
-        frameState.next = nullptr;
-        xrWaitFrame(_internals->session, &frameWaitInfo, &frameState);
+		XrFrameWaitInfo frameWaitInfo;
+		frameWaitInfo.type = XR_TYPE_FRAME_WAIT_INFO;
+		frameWaitInfo.next = nullptr;
+		XrFrameState frameState;
+		frameState.type = XR_TYPE_FRAME_STATE;
+		frameState.next = nullptr;
+		xrWaitFrame(_internals->session, &frameWaitInfo, &frameState);
 
-        _internals->predictedDisplayTime = frameState.predictedDisplayTime;
+		_internals->predictedDisplayTime = frameState.predictedDisplayTime;
 
-        XrFrameBeginInfo frameBeginInfo;
-        frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
-        frameBeginInfo.next = nullptr;
-        xrBeginFrame(_internals->session, &frameBeginInfo);
+		XrFrameBeginInfo frameBeginInfo;
+		frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
+		frameBeginInfo.next = nullptr;
+		xrBeginFrame(_internals->session, &frameBeginInfo);
 	}
 
 	void OpenXRWindow::Update(float delta, float near, float far)
@@ -1121,34 +1228,34 @@ namespace RN
 			}
 		}
 
-        if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
+		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
 
-        XrViewLocateInfo locateInfo;
-        locateInfo.type = XR_TYPE_VIEW_LOCATE_INFO;
-        locateInfo.next = nullptr;
-        locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-        locateInfo.displayTime = _internals->predictedDisplayTime;
-        locateInfo.space = _internals->trackingSpace;
+		XrViewLocateInfo locateInfo;
+		locateInfo.type = XR_TYPE_VIEW_LOCATE_INFO;
+		locateInfo.next = nullptr;
+		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+		locateInfo.displayTime = _internals->predictedDisplayTime;
+		locateInfo.space = _internals->trackingSpace;
 
-        XrViewState viewState;
-        viewState.type = XR_TYPE_VIEW_STATE;
-        viewState.next = nullptr;
-        viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
+		XrViewState viewState;
+		viewState.type = XR_TYPE_VIEW_STATE;
+		viewState.next = nullptr;
+		viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
 
-        uint32_t viewCount = 2;
-        xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
+		uint32_t viewCount = 2;
+		xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
 
 		RN::Vector3 leftEyePosition = Vector3(_internals->views[0].pose.position.x, _internals->views[0].pose.position.y, _internals->views[0].pose.position.z);
-        RN::Vector3 rightEyePosition = Vector3(_internals->views[1].pose.position.x, _internals->views[1].pose.position.y, _internals->views[1].pose.position.z);
-        RN::Quaternion leftEyeRotation = Quaternion(_internals->views[0].pose.orientation.x, _internals->views[0].pose.orientation.y, _internals->views[0].pose.orientation.z, _internals->views[0].pose.orientation.w);
-        RN::Quaternion rightEyeRotation = Quaternion(_internals->views[1].pose.orientation.x, _internals->views[1].pose.orientation.y, _internals->views[1].pose.orientation.z, _internals->views[1].pose.orientation.w);
-        _hmdTrackingState.position = (leftEyePosition + rightEyePosition) * 0.5f;
+		RN::Vector3 rightEyePosition = Vector3(_internals->views[1].pose.position.x, _internals->views[1].pose.position.y, _internals->views[1].pose.position.z);
+		RN::Quaternion leftEyeRotation = Quaternion(_internals->views[0].pose.orientation.x, _internals->views[0].pose.orientation.y, _internals->views[0].pose.orientation.z, _internals->views[0].pose.orientation.w);
+		RN::Quaternion rightEyeRotation = Quaternion(_internals->views[1].pose.orientation.x, _internals->views[1].pose.orientation.y, _internals->views[1].pose.orientation.z, _internals->views[1].pose.orientation.w);
+		_hmdTrackingState.position = (leftEyePosition + rightEyePosition) * 0.5f;
 		_hmdTrackingState.rotation = leftEyeRotation.GetLerpSpherical(rightEyeRotation, 0.5f);
 
-        _hmdTrackingState.eyeOffset[0] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(leftEyePosition - _hmdTrackingState.position);
-        _hmdTrackingState.eyeOffset[1] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(rightEyePosition - _hmdTrackingState.position);
-        _hmdTrackingState.eyeProjection[0] = GetProjectionMatrixForXRFovf(_internals->views[0].fov, near, far);
-        _hmdTrackingState.eyeProjection[1] = GetProjectionMatrixForXRFovf(_internals->views[1].fov, near, far);
+		_hmdTrackingState.eyeOffset[0] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(leftEyePosition - _hmdTrackingState.position);
+		_hmdTrackingState.eyeOffset[1] = _hmdTrackingState.rotation.GetConjugated().GetRotatedVector(rightEyePosition - _hmdTrackingState.position);
+		_hmdTrackingState.eyeProjection[0] = GetProjectionMatrixForXRFovf(_internals->views[0].fov, near, far);
+		_hmdTrackingState.eyeProjection[1] = GetProjectionMatrixForXRFovf(_internals->views[1].fov, near, far);
 
 		if(_hasVisibility && _hasInputFocus)
 		{
@@ -1196,7 +1303,7 @@ namespace RN
 		getHandLeftInfo.action = _internals->handLeftAimPoseAction;
 		xrGetActionStatePose(_internals->session, &getHandLeftInfo, &handLeftState);
 
-        getHandLeftInfo.action = _internals->handLeftGripPoseAction;
+		getHandLeftInfo.action = _internals->handLeftGripPoseAction;
 		xrGetActionStatePose(_internals->session, &getHandLeftInfo, &handLeftState);
 
 		_controllerTrackingState[0].active = handLeftState.isActive;
@@ -1237,17 +1344,17 @@ namespace RN
 				_controllerTrackingState[0].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
 			}
 
-            XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
-            XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-            handTriggerGetInfo.action = _internals->handLeftTriggerAction;
-            xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
-            _controllerTrackingState[0].indexTrigger = handTriggerState.currentState;
+			XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handTriggerGetInfo.action = _internals->handLeftTriggerAction;
+			xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
+			_controllerTrackingState[0].indexTrigger = handTriggerState.currentState;
 
-            XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
-            XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-            handGrabGetInfo.action = _internals->handLeftGrabAction;
-            xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
-            _controllerTrackingState[0].handTrigger = handGrabState.currentState;
+			XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handGrabGetInfo.action = _internals->handLeftGrabAction;
+			xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
+			_controllerTrackingState[0].handTrigger = handGrabState.currentState;
 
 			XrActionStateFloat handThumbstickXState{XR_TYPE_ACTION_STATE_FLOAT};
 			XrActionStateGetInfo handThumbstickXGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
@@ -1310,19 +1417,19 @@ namespace RN
 		}
 
 		//Right hand
-        XrActionStatePose handRightState{XR_TYPE_ACTION_STATE_POSE};
-        XrActionStateGetInfo getHandRightInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+		XrActionStatePose handRightState{XR_TYPE_ACTION_STATE_POSE};
+		XrActionStateGetInfo getHandRightInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 
-        getHandRightInfo.action = _internals->handRightAimPoseAction;
-        xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
+		getHandRightInfo.action = _internals->handRightAimPoseAction;
+		xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
 
 		getHandRightInfo.action = _internals->handRightGripPoseAction;
 		xrGetActionStatePose(_internals->session, &getHandRightInfo, &handRightState);
 
-        _controllerTrackingState[1].active = handRightState.isActive;
-        _controllerTrackingState[1].tracking = handRightState.isActive;
-        if(handRightState.isActive)
-        {
+		_controllerTrackingState[1].active = handRightState.isActive;
+		_controllerTrackingState[1].tracking = handRightState.isActive;
+		if(handRightState.isActive)
+		{
 			XrSpaceLocation aimLocation {XR_TYPE_SPACE_LOCATION};
 			xrLocateSpace(_internals->handRightAimPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &aimLocation);
 
@@ -1357,17 +1464,17 @@ namespace RN
 				_controllerTrackingState[1].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
 			}
 
-            XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
-            XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-            handTriggerGetInfo.action = _internals->handRightTriggerAction;
-            xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
-            _controllerTrackingState[1].indexTrigger = handTriggerState.currentState;
+			XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handTriggerGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handTriggerGetInfo.action = _internals->handRightTriggerAction;
+			xrGetActionStateFloat(_internals->session, &handTriggerGetInfo, &handTriggerState);
+			_controllerTrackingState[1].indexTrigger = handTriggerState.currentState;
 
-            XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
-            XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-            handGrabGetInfo.action = _internals->handRightGrabAction;
-            xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
-            _controllerTrackingState[1].handTrigger = handGrabState.currentState;
+			XrActionStateFloat handGrabState{XR_TYPE_ACTION_STATE_FLOAT};
+			XrActionStateGetInfo handGrabGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+			handGrabGetInfo.action = _internals->handRightGrabAction;
+			xrGetActionStateFloat(_internals->session, &handGrabGetInfo, &handGrabState);
+			_controllerTrackingState[1].handTrigger = handGrabState.currentState;
 
 			XrActionStateFloat handThumbstickXState{XR_TYPE_ACTION_STATE_FLOAT};
 			XrActionStateGetInfo handThumbstickXGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
@@ -1426,7 +1533,7 @@ namespace RN
 				xrStopHapticFeedback(_internals->session, &hapticActionInfo);
 				_hapticsStopped[1] = true;
 			}
-        }
+		}
 
 /*		ovrInputCapabilityHeader capsHeader;
 		int i = 0;
@@ -1528,6 +1635,7 @@ namespace RN
 
 	Array *OpenXRWindow::GetRequiredVulkanInstanceExtensions() const
 	{
+#if XR_USE_GRAPHICS_API_VULKAN
 		char names[4096];
 		uint32_t size = sizeof(names);
 		if(_internals->GetVulkanInstanceExtensionsKHR(_internals->instance, _internals->systemID, size, &size, names) != XR_SUCCESS)
@@ -1535,13 +1643,17 @@ namespace RN
 			return nullptr;
 		}
 
-        String *extensionString = RNSTR(names);
+		String *extensionString = RNSTR(names);
 		RNDebug("Needs vulkan instance extensions: " << extensionString);
-        return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+#else
+		return nullptr;
+#endif
 	}
 
-    Array *OpenXRWindow::GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const
-    {
+	Array *OpenXRWindow::GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const
+	{
+#if XR_USE_GRAPHICS_API_VULKAN
 		char names[4096];
 		uint32_t size = sizeof(names);
 		if(_internals->GetVulkanDeviceExtensionsKHR(_internals->instance, _internals->systemID, size, &size, names) != XR_SUCCESS)
@@ -1552,7 +1664,10 @@ namespace RN
 		String *extensionString = RNSTR(names);
 		RNDebug("Needs vulkan device extensions: " << extensionString);
 		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
-    }
+#else
+		return nullptr;
+#endif
+	}
 
 	VRWindow::DeviceType OpenXRWindow::GetDeviceType() const
 	{

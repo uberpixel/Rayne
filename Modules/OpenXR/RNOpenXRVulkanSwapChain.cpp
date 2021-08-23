@@ -15,13 +15,11 @@ namespace RN
 {
 	RNDefineMeta(OpenXRVulkanSwapChain, VulkanSwapChain)
 
-	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : _window(window), _internals(new OpenXRSwapchainInternals()), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
+	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : OpenXRSwapChain(window), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
 	{
-		_internals->currentFoveationProfile = XR_NULL_HANDLE;
-
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
-		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB;
+		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB; //TODO: Don´t hardcode the format here?
 		_descriptor.layerCount = 2;
 
 		_size = size;
@@ -45,7 +43,7 @@ namespace RN
         swapchainCreateInfo.next = nullptr;
         swapchainCreateInfo.createFlags = 0;
         swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        swapchainCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB; //TODO: Use the format from the descriptor here!
         swapchainCreateInfo.sampleCount = 1;
         swapchainCreateInfo.width = _size.x;
         swapchainCreateInfo.height = _size.y;
@@ -109,7 +107,11 @@ namespace RN
 			}
 		}
 		delete[] swapchainImages;
-		delete[] swapchainFoveationImages;
+
+		if(swapchainFoveationImages)
+		{
+			delete[] swapchainFoveationImages;
+		}
 
 		for(size_t i = 0; i < _descriptor.bufferCount; i++)
 		{
@@ -125,6 +127,7 @@ namespace RN
 
 	OpenXRVulkanSwapChain::~OpenXRVulkanSwapChain()
 	{
+		_framebuffer->Release();
 		xrDestroySwapchain(_internals->swapchain);
 		delete[] _swapchainImages;
 		if(_swapchainFoveationImages)
@@ -136,7 +139,6 @@ namespace RN
 		{
 			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
 		}
-		delete _internals;
 	}
 
 	void OpenXRVulkanSwapChain::AcquireBackBuffer()

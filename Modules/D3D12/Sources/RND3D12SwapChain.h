@@ -43,7 +43,7 @@ namespace RN
 		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const { return _descriptor; }
 
 	protected:
-		D3DAPI D3D12SwapChain(){}
+		D3DAPI D3D12SwapChain();
 
 		D3D12Renderer *_renderer;
 		D3D12Framebuffer *_framebuffer;
