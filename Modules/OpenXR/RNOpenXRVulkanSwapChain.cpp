@@ -8,7 +8,6 @@
 
 #include "RNOpenXRVulkanSwapChain.h"
 #include "RNOpenXRWindow.h"
-#include "RNVulkanInternals.h"
 #include "RNOpenXRInternals.h"
 
 namespace RN
@@ -38,20 +37,20 @@ namespace RN
 
 		delete[] supportedSwapChainFormats;
 
-        XrSwapchainCreateInfo swapchainCreateInfo;
-        swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
-        swapchainCreateInfo.next = nullptr;
-        swapchainCreateInfo.createFlags = 0;
-        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB; //TODO: Use the format from the descriptor here!
-        swapchainCreateInfo.sampleCount = 1;
-        swapchainCreateInfo.width = _size.x;
-        swapchainCreateInfo.height = _size.y;
-        swapchainCreateInfo.faceCount = 1;
-        swapchainCreateInfo.arraySize = _descriptor.layerCount;
-        swapchainCreateInfo.mipCount = 1;
+		XrSwapchainCreateInfo swapchainCreateInfo;
+		swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
+		swapchainCreateInfo.next = nullptr;
+		swapchainCreateInfo.createFlags = 0;
+		swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+		swapchainCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB; //TODO: Use the format from the descriptor here!
+		swapchainCreateInfo.sampleCount = 1;
+		swapchainCreateInfo.width = _size.x;
+		swapchainCreateInfo.height = _size.y;
+		swapchainCreateInfo.faceCount = 1;
+		swapchainCreateInfo.arraySize = _descriptor.layerCount;
+		swapchainCreateInfo.mipCount = 1;
 
-        //Enable foveated rendering
+      //Enable foveated rendering
 		XrSwapchainCreateInfoFoveationFB foveationSwapChainCreateInfo;
 		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
 		foveationSwapChainCreateInfo.next = nullptr;
@@ -61,10 +60,10 @@ namespace RN
 			swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
 		}
 
-        if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
-        {
-            RN_ASSERT(false, "failed creating swapchain");
-        }
+		if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
+		{
+		   RN_ASSERT(false, "failed creating swapchain");
+		}
 
 		uint32 numberOfSwapChainImages = 0;
 		xrEnumerateSwapchainImages(_internals->swapchain, 0, &numberOfSwapChainImages, nullptr);
@@ -228,5 +227,27 @@ namespace RN
 		swapchainStateFoveation.flags = 0;
 		swapchainStateFoveation.profile = _internals->currentFoveationProfile;
 		_window->_internals->UpdateSwapchainFB(_internals->swapchain, (XrSwapchainStateBaseHeaderFB*)&swapchainStateFoveation);
+	}
+
+	void OpenXRVulkanSwapChain::ResizeSwapChain(const Vector2& size)
+	{
+		_size = size;
+		//_framebuffer->WillUpdateSwapChain(); //As all it does is free the swap chain d3d buffer resources, it would free the targetTexture resource and should't be called in this case...
+/*		SafeRelease(_targetTexture);
+		Texture::Descriptor textureDescriptor = Texture::Descriptor::With2DTextureAndFormat(_descriptor.colorFormat, _size.x, _size.y, false);
+		textureDescriptor.usageHint = Texture::UsageHint::RenderTarget;
+		textureDescriptor.depth = _descriptor.layerCount;
+		_targetTexture = _renderer->CreateTextureWithDescriptor(textureDescriptor);
+
+		textureDescriptor.depth = 1;
+		_outputTexture[0] = _renderer->CreateTextureWithDescriptor(textureDescriptor);
+		_outputTexture[1] = _renderer->CreateTextureWithDescriptor(textureDescriptor);
+
+		_framebuffer->DidUpdateSwapChain(_size, _descriptor.layerCount, _descriptor.colorFormat, _descriptor.depthStencilFormat);*/
+	}
+
+	Framebuffer *OpenXRVulkanSwapChain::GetSwapChainFramebuffer() const
+	{
+		return GetFramebuffer();
 	}
 }

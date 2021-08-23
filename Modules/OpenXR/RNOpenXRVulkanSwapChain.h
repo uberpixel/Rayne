@@ -20,7 +20,7 @@ namespace RN
 {
 	class OpenXRWindow;
 	struct OpenXRSwapchainInternals;
-	class OpenXRVulkanSwapChain : public OpenXRSwapChain, VulkanSwapChain
+	class OpenXRVulkanSwapChain : public VulkanSwapChain, OpenXRSwapChain
 	{
 	public:
 		friend OpenXRWindow;
@@ -39,7 +39,7 @@ namespace RN
 		OXRAPI void ResizeSwapChain(const Vector2 &size) final;
 		Vector2 GetSwapChainSize() const final { return GetSize(); }
 		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final { return _descriptor; }
-		Framebuffer *GetSwapChainFramebuffer() const final { return GetFramebuffer(); }
+		Framebuffer *GetSwapChainFramebuffer() const final;
 		OXRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
 
 	private:

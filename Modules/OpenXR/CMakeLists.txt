@@ -83,7 +83,7 @@ endif()
 
 if(WIN32 AND ${RN_BUILD_D3D12_MODULE})
 	target_link_libraries(RayneOpenXR RayneD3D12)
-	target_include_directories(RayneOpenXR SYSTEM PRIVATE ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
+	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
 	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_D3D12)
 endif()
 
@@ -92,7 +92,7 @@ if((WIN32 OR (UNIX AND NOT APPLE)) AND ${RN_BUILD_VULKAN_MODULE})
 	set(VulkanHeaders_SOURCE_DIR ${SOURCE_DIR})
 
 	target_link_libraries(RayneOpenXR RayneVulkan)
-	target_include_directories(RayneOpenXR SYSTEM PRIVATE
+	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES}
 		${RayneVulkan_BINARY_DIR}/include
 		"${VulkanHeaders_SOURCE_DIR}/include/vulkan"
 		"${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources")

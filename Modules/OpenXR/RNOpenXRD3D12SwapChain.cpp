@@ -137,10 +137,10 @@ namespace RN
 
 	void OpenXRD3D12SwapChain::PresentBackBuffer()
 	{
-		 XrSwapchainImageReleaseInfo swapchainImageReleaseInfo;
-        swapchainImageReleaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
-        swapchainImageReleaseInfo.next = nullptr;
-        xrReleaseSwapchainImage(_internals->swapchain, &swapchainImageReleaseInfo);
+		XrSwapchainImageReleaseInfo swapchainImageReleaseInfo;
+		swapchainImageReleaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
+		swapchainImageReleaseInfo.next = nullptr;
+		xrReleaseSwapchainImage(_internals->swapchain, &swapchainImageReleaseInfo);
 
 		if(_presentEvent)
 		{

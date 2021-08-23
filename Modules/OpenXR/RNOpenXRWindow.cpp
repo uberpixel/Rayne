@@ -1020,7 +1020,7 @@ namespace RN
 #ifdef XR_USE_GRAPHICS_API_VULKAN
 			if(_swapChainType == SwapChainType::Vulkan)
 			{
-				OpenVRVulkanSwapChain *swapChain = static_cast<OpenVRVulkanSwapChain*>(_swapChain);
+				OpenXRVulkanSwapChain *swapChain = static_cast<OpenXRVulkanSwapChain*>(_swapChain);
 				swapChain->Release();
 				_swapChain = nullptr;
 				return;
