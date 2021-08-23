@@ -71,6 +71,7 @@ namespace RN
 		case Texture::Format::BGRA_8:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case Texture::Format::RGB_10_A_2:
+		case Texture::Format::BGR_10_A_2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
 		case Texture::Format::R_8:
 			return DXGI_FORMAT_R8_UNORM;
@@ -147,6 +148,7 @@ namespace RN
 		case Texture::Format::BGRA_8:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case Texture::Format::RGB_10_A_2:
+		case Texture::Format::BGR_10_A_2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
 		case Texture::Format::R_8:
 			return DXGI_FORMAT_R8_UNORM;
@@ -224,6 +226,7 @@ namespace RN
 			case Texture::Format::RGBA_8:
 			case Texture::Format::BGRA_8:
 			case Texture::Format::RGB_10_A_2:
+			case Texture::Format::BGR_10_A_2:
 			case Texture::Format::R_8:
 			case Texture::Format::RG_8:
 			case Texture::Format::RGB_8:
@@ -265,6 +268,7 @@ namespace RN
 			case Texture::Format::RGBA_8:
 			case Texture::Format::BGRA_8:
 			case Texture::Format::RGB_10_A_2:
+			case Texture::Format::BGR_10_A_2:
 			case Texture::Format::R_8:
 			case Texture::Format::RG_8:
 			case Texture::Format::RGB_8:

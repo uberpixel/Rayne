@@ -27,10 +27,33 @@ namespace RN
 			return VK_FORMAT_R8G8B8A8_UNORM;
 		case Texture::Format::BGRA_8:
 			return VK_FORMAT_B8G8R8A8_UNORM;
-//		case Texture::Format::RGB10A2:
-//			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::RGB_10_A_2:
+			return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+		case Texture::Format::BGR_10_A_2:
+			return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
 		default:
 			return VK_FORMAT_UNDEFINED;
+		}
+	}
+
+	static Texture::Format TextureFormatFromSwapChainFormat(VkFormat format)
+	{
+		switch(format)
+		{
+		case VK_FORMAT_R8G8B8A8_SRGB:
+			return Texture::Format::RGBA_8_SRGB;
+		case VK_FORMAT_B8G8R8A8_SRGB:
+			return Texture::Format::BGRA_8_SRGB;
+		case VK_FORMAT_R8G8B8A8_UNORM:
+			return Texture::Format::RGBA_8;
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			return Texture::Format::BGRA_8;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+			return Texture::Format::RGB_10_A_2;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			return Texture::Format::BGR_10_A_2;
+		default:
+			return Texture::Format::Invalid;
 		}
 	}
 
@@ -118,14 +141,35 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		device->GetSurfaceFormats(_surface, formats);
 
 		_format = formats.at(0);
+		VkSurfaceFormatKHR fallbackFormat = _format;
+		bool isSupportedFormat = false;
 		VkFormat requestedFormat = SwapChainFormatFromTextureFormat(_descriptor.colorFormat);
 		for(const VkSurfaceFormatKHR &format : formats)
 		{
 			if(format.format == requestedFormat)
 			{
 				_format = format;
+				isSupportedFormat = true;
 				break;
 			}
+			else if((format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB) && (_descriptor.colorFormat == Texture::Format::RGBA_8_SRGB || _descriptor.colorFormat == Texture::Format::BGRA_8_SRGB))
+			{
+				fallbackFormat = format;
+			}
+			else if ((format.format == VK_FORMAT_R8G8B8A8_UNORM || format.format == VK_FORMAT_B8G8R8A8_UNORM) && (_descriptor.colorFormat == Texture::Format::RGBA_8 || _descriptor.colorFormat == Texture::Format::BGRA_8))
+			{
+				fallbackFormat = format;
+			}
+			else if ((format.format == VK_FORMAT_A2R10G10B10_UNORM_PACK32 || format.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) && (_descriptor.colorFormat == Texture::Format::RGB_10_A_2 || _descriptor.colorFormat == Texture::Format::BGR_10_A_2))
+			{
+				fallbackFormat = format;
+			}
+		}
+
+		if(!isSupportedFormat)
+		{
+			_format = fallbackFormat;
+			_descriptor.colorFormat = TextureFormatFromSwapChainFormat(_format.format);
 		}
 
 		_extents.width = static_cast<uint32_t>(-1);
