@@ -112,7 +112,7 @@ namespace RN
 		RN_ASSERT(resolvedFramebuffer, "The VRWindow has no framebuffer!");
 
 		Vector2 windowSize;
-		Texture::Format colorFormat = Texture::Format::RGBA_8;
+		Texture::Format colorFormat = Texture::Format::RGBA_8_SRGB;
 		Texture::Format depthFormat = Texture::Format::Invalid;
 		uint8 layerCount = 1;
 
@@ -176,26 +176,11 @@ namespace RN
 			Texture *resolvedDepthTexture = Texture::WithDescriptor(depthTextureDescriptor);
 			resolvedFramebuffer->SetDepthStencilTarget(Framebuffer::TargetView::WithTexture(resolvedDepthTexture));
 		}
-		
-/*	for(int i = 0; i < 2; i++)
-		{
-			_eye[i]->GetRenderPass()->RemoveAllRenderPasses();
-
-			if(_msaaSampleCount > 1)
-			{
-				_eye[i]->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
-			}
-			else
-			{
-				_eye[i]->GetRenderPass()->SetFramebuffer(resolvedFramebuffer);
-			}
-		}*/
 
 		if(_msaaSampleCount > 1)
 		{
 			resolvePass = new PostProcessingAPIStage(PostProcessingAPIStage::Type::ResolveMSAA);
 			resolvePass->SetFramebuffer(resolvedFramebuffer);
-			//_eye[0]->GetRenderPass()->AddRenderPass(resolvePass);
 
 			_head->GetRenderPass()->SetFramebuffer(msaaFramebuffer);
 			_head->GetRenderPass()->AddRenderPass(resolvePass);
