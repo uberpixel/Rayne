@@ -54,7 +54,7 @@ namespace RN
 		swapchainCreateInfo.arraySize = _descriptor.layerCount;
 		swapchainCreateInfo.mipCount = 1;
 
-		if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
+		if(!XR_SUCCEEDED(xrCreateSwapchain(_xrWindow->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
 		{
 		   RN_ASSERT(false, "failed creating swapchain");
 		}

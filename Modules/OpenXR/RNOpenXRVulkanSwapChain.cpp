@@ -55,12 +55,12 @@ namespace RN
 		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
 		foveationSwapChainCreateInfo.next = nullptr;
 		foveationSwapChainCreateInfo.flags = XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB;
-		if(_window->_supportsFoveatedRendering)
+		if(_xrWindow->_supportsFoveatedRendering)
 		{
 			swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
 		}
 
-		if(!XR_SUCCEEDED(xrCreateSwapchain(_window->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
+		if(!XR_SUCCEEDED(xrCreateSwapchain(_xrWindow->_internals->session, &swapchainCreateInfo, &_internals->swapchain)))
 		{
 		   RN_ASSERT(false, "failed creating swapchain");
 		}
@@ -72,7 +72,7 @@ namespace RN
 		_swapchainImages = new VkImage[numberOfSwapChainImages];
 
 		XrSwapchainImageFoveationVulkanFB *swapchainFoveationImages = nullptr;
-		if(_window->_supportsFoveatedRendering)
+		if(_xrWindow->_supportsFoveatedRendering)
 		{
 			swapchainFoveationImages = new XrSwapchainImageFoveationVulkanFB[numberOfSwapChainImages];
 			_swapchainFoveationImages = new VkImage[numberOfSwapChainImages];
@@ -136,7 +136,7 @@ namespace RN
 		}
 		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
 		{
-			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
+			_xrWindow->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
 		}
 	}
 
@@ -201,11 +201,11 @@ namespace RN
 
 	void OpenXRVulkanSwapChain::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
 	{
-		if(!_window->_supportsFoveatedRendering) return;
+		if(!_xrWindow->_supportsFoveatedRendering) return;
 
 		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
 		{
-			_window->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
+			_xrWindow->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
 		}
 
 		//TODO: Check if the extension is supported and enabled instead if the android define (this is likely only supported on Quest at the moment)
@@ -219,14 +219,14 @@ namespace RN
 		XrFoveationProfileCreateInfoFB foveationProfileCreateInfo;
 		foveationProfileCreateInfo.type = XR_TYPE_FOVEATION_PROFILE_CREATE_INFO_FB;
 		foveationProfileCreateInfo.next = &foveationLevelProfileCreateInfo;
-		_window->_internals->CreateFoveationProfileFB(_window->_internals->session, &foveationProfileCreateInfo, &_internals->currentFoveationProfile);
+		_xrWindow->_internals->CreateFoveationProfileFB(_xrWindow->_internals->session, &foveationProfileCreateInfo, &_internals->currentFoveationProfile);
 
 		XrSwapchainStateFoveationFB swapchainStateFoveation;
 		swapchainStateFoveation.type = XR_TYPE_SWAPCHAIN_STATE_FOVEATION_FB;
 		swapchainStateFoveation.next = nullptr;
 		swapchainStateFoveation.flags = 0;
 		swapchainStateFoveation.profile = _internals->currentFoveationProfile;
-		_window->_internals->UpdateSwapchainFB(_internals->swapchain, (XrSwapchainStateBaseHeaderFB*)&swapchainStateFoveation);
+		_xrWindow->_internals->UpdateSwapchainFB(_internals->swapchain, (XrSwapchainStateBaseHeaderFB *) & swapchainStateFoveation);
 	}
 
 	void OpenXRVulkanSwapChain::ResizeSwapChain(const Vector2& size)

@@ -18,7 +18,6 @@
 
 namespace RN
 {
-	class OpenXRWindow;
 	struct OpenXRSwapchainInternals;
 	class OpenXRVulkanSwapChain : public VulkanSwapChain, OpenXRSwapChain
 	{

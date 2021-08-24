@@ -10,15 +10,16 @@
 #include "RNOpenXRInternals.h"
 
 /*
-#include <unistd.h>
+
 #include <android/log.h>
 
 #include <sys/prctl.h> // for prctl( PR_SET_NAME )
-#include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h> // for native window JNI
 */
 
 #if RN_PLATFORM_ANDROID
+#include <unistd.h>
+#include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android_native_app_glue.h>
 #endif
 

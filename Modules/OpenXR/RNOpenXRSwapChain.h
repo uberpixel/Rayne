@@ -14,10 +14,11 @@
 namespace RN
 {
 	struct OpenXRSwapchainInternals;
+	class OpenXRWindow;
 	class OpenXRSwapChain
 	{
 	public:
-		friend class OpenXRWindow;
+		friend OpenXRWindow;
 
 		OXRAPI ~OpenXRSwapChain();
 
@@ -31,7 +32,7 @@ namespace RN
 		OpenXRSwapChain(const OpenXRWindow *window);
 		OpenXRSwapchainInternals *_internals;
 
-		const OpenXRWindow *_window;
+		const OpenXRWindow *_xrWindow;
 
 		std::function<void()> _presentEvent;
 	};
