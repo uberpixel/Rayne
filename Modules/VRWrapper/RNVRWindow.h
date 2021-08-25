@@ -12,6 +12,8 @@
 #include "RNVR.h"
 #include "RNVRTrackingState.h"
 
+#define kRNVRDidRecenter RNCSTR("kRNVRDidRecenter")
+
 namespace RN
 {
 	class VRSwapChain;

@@ -35,7 +35,7 @@ namespace RN
 		XrSession session;
 
 		XrSpace trackingSpace;
-      XrTime predictedDisplayTime;
+		XrTime predictedDisplayTime;
 
 		XrView *views;
 
