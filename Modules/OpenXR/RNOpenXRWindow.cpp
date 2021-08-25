@@ -859,7 +859,7 @@ namespace RN
 		suggestedBindings.countSuggestedBindings = oculusTouchBindings.size();
 		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedBindings)))
 		{
-			RN_ASSERT(false, "failed action profile suggested binding");
+			RNDebug("failed action profile suggested binding");
 		}
 
 
@@ -919,7 +919,7 @@ namespace RN
 		suggestedViveWandBindings.countSuggestedBindings = viveWandBindings.size();
 		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedViveWandBindings)))
 		{
-			RN_ASSERT(false, "failed action profile suggested vive wand binding");
+			RNDebug("failed action profile suggested vive wand binding");
 		}
 
 
@@ -991,7 +991,7 @@ namespace RN
 		suggestedMicrosoftMixedRealityBindings.countSuggestedBindings = microsoftMixedRealityBindings.size();
 		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedMicrosoftMixedRealityBindings)))
 		{
-			RN_ASSERT(false, "failed action profile suggested microsoft mixed reality controller binding");
+			RNDebug("failed action profile suggested microsoft mixed reality controller binding");
 		}
 
 
@@ -1071,7 +1071,7 @@ namespace RN
 		suggestedValveIndexBindings.countSuggestedBindings = valveIndexBindings.size();
 		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedValveIndexBindings)))
 		{
-			RN_ASSERT(false, "failed action profile suggested valve index binding");
+			RNDebug("failed action profile suggested valve index binding");
 		}
 
 
@@ -1111,7 +1111,7 @@ namespace RN
 		suggestedSimpleBindings.countSuggestedBindings = simpleControllerBindings.size();
 		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedSimpleBindings)))
 		{
-			RN_ASSERT(false, "failed action profile suggested simple controller binding");
+			RNDebug("failed action profile suggested simple controller binding");
 		}
 	}
 
