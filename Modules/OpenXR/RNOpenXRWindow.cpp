@@ -27,6 +27,47 @@ namespace RN
 {
 	RNDefineMeta(OpenXRWindow, VRWindow)
 
+	static VRControllerTrackingState::Type GetControllerTypeForInteractionProfile(XrInstance instance, XrPath interactionProfile)
+	{
+		XrPath khronosSimpleController;
+		xrStringToPath(instance, "/interaction_profiles/khr/simple_controller", &khronosSimpleController);
+
+		XrPath oculusTouchController;
+		xrStringToPath(instance, "/interaction_profiles/oculus/touch_controller", &oculusTouchController);
+
+		XrPath htcViveController;
+		xrStringToPath(instance, "/interaction_profiles/htc/vive_controller", &htcViveController);
+
+		XrPath valveIndexController;
+		xrStringToPath(instance, "/interaction_profiles/valve/index_controller", &valveIndexController);
+
+		XrPath microsoftMixedRealityController;
+		xrStringToPath(instance, "/interaction_profiles/microsoft/motion_controller", &microsoftMixedRealityController);
+		
+		if(interactionProfile == khronosSimpleController)
+		{
+			return VRControllerTrackingState::Type::KhronosSimpleController;
+		}
+		else if(interactionProfile == oculusTouchController)
+		{
+			return VRControllerTrackingState::Type::OculusTouchController;
+		}
+		else if(interactionProfile == htcViveController)
+		{
+			return VRControllerTrackingState::Type::HTCViveController;
+		}
+		else if(interactionProfile == valveIndexController)
+		{
+			return VRControllerTrackingState::Type::ValveIndexController;
+		}
+		else if(interactionProfile == microsoftMixedRealityController)
+		{
+			return VRControllerTrackingState::Type::MicrosoftMixedRealityController;
+		}
+
+		return VRControllerTrackingState::Type::None;
+	}
+
 	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
 	{
 		_supportsVulkan = false;
@@ -424,6 +465,58 @@ namespace RN
 			RN_ASSERT(false, "failed creating left hand thumbstick press action");
 		}
 
+		XrActionCreateInfo handLeftTrackpadXActionInfo;
+		handLeftTrackpadXActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftTrackpadXActionInfo.next = nullptr;
+		strcpy(handLeftTrackpadXActionInfo.actionName, "hand_left_trackpad_x");
+		handLeftTrackpadXActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftTrackpadXActionInfo.localizedActionName, "Hand Left Trackpad X");
+		handLeftTrackpadXActionInfo.countSubactionPaths = 0;
+		handLeftTrackpadXActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftTrackpadXActionInfo, &_internals->handLeftTrackpadXAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand trackpad x action");
+		}
+
+		XrActionCreateInfo handLeftTrackpadYActionInfo;
+		handLeftTrackpadYActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftTrackpadYActionInfo.next = nullptr;
+		strcpy(handLeftTrackpadYActionInfo.actionName, "hand_left_trackpad_y");
+		handLeftTrackpadYActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handLeftTrackpadYActionInfo.localizedActionName, "Hand Left Trackpad Y");
+		handLeftTrackpadYActionInfo.countSubactionPaths = 0;
+		handLeftTrackpadYActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftTrackpadYActionInfo, &_internals->handLeftTrackpadYAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand trackpad y action");
+		}
+
+		XrActionCreateInfo handLeftTrackpadTouchActionInfo;
+		handLeftTrackpadTouchActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftTrackpadTouchActionInfo.next = nullptr;
+		strcpy(handLeftTrackpadTouchActionInfo.actionName, "hand_left_trackpad_touch");
+		handLeftTrackpadTouchActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftTrackpadTouchActionInfo.localizedActionName, "Hand Left Trackpad Touch");
+		handLeftTrackpadTouchActionInfo.countSubactionPaths = 0;
+		handLeftTrackpadTouchActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftTrackpadTouchActionInfo, &_internals->handLeftTrackpadTouchAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand trackpad touch action");
+		}
+
+		XrActionCreateInfo handLeftTrackpadPressActionInfo;
+		handLeftTrackpadPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handLeftTrackpadPressActionInfo.next = nullptr;
+		strcpy(handLeftTrackpadPressActionInfo.actionName, "hand_left_trackpad_press");
+		handLeftTrackpadPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handLeftTrackpadPressActionInfo.localizedActionName, "Hand Left Trackpad Press");
+		handLeftTrackpadPressActionInfo.countSubactionPaths = 0;
+		handLeftTrackpadPressActionInfo.subactionPaths = nullptr;
+		if(!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handLeftTrackpadPressActionInfo, &_internals->handLeftTrackpadPressAction)))
+		{
+			RN_ASSERT(false, "failed creating left hand trackpad press action");
+		}
+
 		XrActionCreateInfo handLeftButtonSystemPressActionInfo;
 		handLeftButtonSystemPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
 		handLeftButtonSystemPressActionInfo.next = nullptr;
@@ -568,6 +661,58 @@ namespace RN
 			RN_ASSERT(false, "failed creating right hand thumbstick press action");
 		}
 
+		XrActionCreateInfo handRightTrackpadXActionInfo;
+		handRightTrackpadXActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightTrackpadXActionInfo.next = nullptr;
+		strcpy(handRightTrackpadXActionInfo.actionName, "hand_right_trackpad_x");
+		handRightTrackpadXActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightTrackpadXActionInfo.localizedActionName, "Hand Right Trackpad X");
+		handRightTrackpadXActionInfo.countSubactionPaths = 0;
+		handRightTrackpadXActionInfo.subactionPaths = nullptr;
+		if (!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTrackpadXActionInfo, &_internals->handRightTrackpadXAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand trackpad x action");
+		}
+
+		XrActionCreateInfo handRightTrackpadYActionInfo;
+		handRightTrackpadYActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightTrackpadYActionInfo.next = nullptr;
+		strcpy(handRightTrackpadYActionInfo.actionName, "hand_right_trackpad_y");
+		handRightTrackpadYActionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+		strcpy(handRightTrackpadYActionInfo.localizedActionName, "Hand Right Trackpad Y");
+		handRightTrackpadYActionInfo.countSubactionPaths = 0;
+		handRightTrackpadYActionInfo.subactionPaths = nullptr;
+		if (!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTrackpadYActionInfo, &_internals->handRightTrackpadYAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand trackpad y action");
+		}
+
+		XrActionCreateInfo handRightTrackpadTouchActionInfo;
+		handRightTrackpadTouchActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightTrackpadTouchActionInfo.next = nullptr;
+		strcpy(handRightTrackpadTouchActionInfo.actionName, "hand_right_trackpad_touch");
+		handRightTrackpadTouchActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightTrackpadTouchActionInfo.localizedActionName, "Hand Right Trackpad Touch");
+		handRightTrackpadTouchActionInfo.countSubactionPaths = 0;
+		handRightTrackpadTouchActionInfo.subactionPaths = nullptr;
+		if (!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTrackpadTouchActionInfo, &_internals->handRightTrackpadTouchAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand trackpad touch action");
+		}
+
+		XrActionCreateInfo handRightTrackpadPressActionInfo;
+		handRightTrackpadPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
+		handRightTrackpadPressActionInfo.next = nullptr;
+		strcpy(handRightTrackpadPressActionInfo.actionName, "hand_right_trackpad_press");
+		handRightTrackpadPressActionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+		strcpy(handRightTrackpadPressActionInfo.localizedActionName, "Hand Right Trackpad Press");
+		handRightTrackpadPressActionInfo.countSubactionPaths = 0;
+		handRightTrackpadPressActionInfo.subactionPaths = nullptr;
+		if (!XR_SUCCEEDED(xrCreateAction(_internals->gameActionSet, &handRightTrackpadPressActionInfo, &_internals->handRightTrackpadPressAction)))
+		{
+			RN_ASSERT(false, "failed creating right hand trackpad press action");
+		}
+
 		XrActionCreateInfo handRightButtonSystemPressActionInfo;
 		handRightButtonSystemPressActionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
 		handRightButtonSystemPressActionInfo.next = nullptr;
@@ -620,111 +765,353 @@ namespace RN
 			RN_ASSERT(false, "failed creating right hand haptics action");
 		}
 
-		//Suggested binding just like for oculus touch can be added for other supported controllers, the runtime is supposed to pick the best one
+		//Suggested controller bindings
+		XrPath handLeftAimPosePath;
+		XrPath handLeftGripPosePath;
+		XrPath handLeftTriggerPath;
+		XrPath handLeftGrabPath;
+		XrPath handLeftThumbstickXPath;
+		XrPath handLeftThumbstickYPath;
+		XrPath handLeftThumbstickPressPath;
+		XrPath handLeftTrackpadXPath;
+		XrPath handLeftTrackpadYPath;
+		XrPath handLeftTrackpadTouchPath;
+		XrPath handLeftTrackpadPressPath;
+		XrPath handLeftButtonSystemPressPath;
+		XrPath handLeftButtonUpperPressPath;
+		XrPath handLeftButtonLowerPressPath;
+		XrPath handLeftHapticsPath;
+
+		XrPath handRightAimPosePath;
+		XrPath handRightGripPosePath;
+		XrPath handRightTriggerPath;
+		XrPath handRightGrabPath;
+		XrPath handRightThumbstickXPath;
+		XrPath handRightThumbstickYPath;
+		XrPath handRightThumbstickPressPath;
+		XrPath handRightTrackpadXPath;
+		XrPath handRightTrackpadYPath;
+		XrPath handRightTrackpadTouchPath;
+		XrPath handRightTrackpadPressPath;
+		XrPath handRightButtonSystemPressPath;
+		XrPath handRightButtonUpperPressPath;
+		XrPath handRightButtonLowerPressPath;
+		XrPath handRightHapticsPath;
+
 		//Oculus touch bindings
 		//Left hand
-		XrPath handLeftAimPosePath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
-
-		XrPath handLeftGripPosePath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
-
-		XrPath handLeftTriggerPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
-
-		XrPath handLeftGrabPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
-
-		XrPath handLeftThumbstickXPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
-
-		XrPath handLeftThumbstickYPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
-
-		XrPath handLeftThumbstickPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
-
-		XrPath handLeftButtonSystemPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
-
-		XrPath handLeftButtonUpperPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
-
-		XrPath handLeftButtonLowerPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
-
-		XrPath handLeftHapticsPath;
 		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
 
 		//Right hand
-		XrPath handRightAimPosePath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
-
-		XrPath handRightGripPosePath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
-
-		XrPath handRightTriggerPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
-
-		XrPath handRightGrabPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
-
-		XrPath handRightThumbstickXPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
-
-		XrPath handRightThumbstickYPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
-
-		XrPath handRightThumbstickPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
-
-		XrPath handRightButtonSystemPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/system/click", &handRightButtonSystemPressPath);
-
-		XrPath handRightButtonUpperPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
-
-		XrPath handRightButtonLowerPressPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
-
-		XrPath handRightHapticsPath;
 		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
 
-		std::vector<XrActionSuggestedBinding> bindings;
-		bindings.push_back({_internals->handLeftAimPoseAction, handLeftAimPosePath});
-		bindings.push_back({_internals->handLeftGripPoseAction, handLeftGripPosePath});
-		bindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
-		bindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
-		bindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
-		bindings.push_back({_internals->handLeftThumbstickYAction, handLeftThumbstickYPath});
-		bindings.push_back({_internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath});
-		bindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
-		bindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
-		bindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
-		bindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
+		std::vector<XrActionSuggestedBinding> oculusTouchBindings;
+		oculusTouchBindings.push_back({_internals->handLeftAimPoseAction, handLeftAimPosePath});
+		oculusTouchBindings.push_back({_internals->handLeftGripPoseAction, handLeftGripPosePath});
+		oculusTouchBindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
+		oculusTouchBindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
+		oculusTouchBindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
+		oculusTouchBindings.push_back({_internals->handLeftThumbstickYAction, handLeftThumbstickYPath});
+		oculusTouchBindings.push_back({_internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath});
+		oculusTouchBindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
+		oculusTouchBindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
+		oculusTouchBindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
+		oculusTouchBindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
 
-		bindings.push_back({_internals->handRightAimPoseAction, handRightAimPosePath});
-		bindings.push_back({_internals->handRightGripPoseAction, handRightGripPosePath});
-		bindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
-		bindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
-		bindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
-		bindings.push_back({_internals->handRightThumbstickYAction, handRightThumbstickYPath});
-		bindings.push_back({_internals->handRightThumbstickPressAction, handRightThumbstickPressPath});
-		bindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
-		bindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
-		bindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
-		bindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
-
+		oculusTouchBindings.push_back({_internals->handRightAimPoseAction, handRightAimPosePath});
+		oculusTouchBindings.push_back({_internals->handRightGripPoseAction, handRightGripPosePath});
+		oculusTouchBindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
+		oculusTouchBindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
+		oculusTouchBindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
+		oculusTouchBindings.push_back({_internals->handRightThumbstickYAction, handRightThumbstickYPath});
+		oculusTouchBindings.push_back({_internals->handRightThumbstickPressAction, handRightThumbstickPressPath});
+		oculusTouchBindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
+		oculusTouchBindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
+		oculusTouchBindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
+		oculusTouchBindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
+		
 		XrPath interactionProfilePath;
 		xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
 
 		XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
 		suggestedBindings.interactionProfile = interactionProfilePath;
-		suggestedBindings.suggestedBindings = bindings.data();
-		suggestedBindings.countSuggestedBindings = bindings.size();
+		suggestedBindings.suggestedBindings = oculusTouchBindings.data();
+		suggestedBindings.countSuggestedBindings = oculusTouchBindings.size();
 		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedBindings)))
 		{
 			RN_ASSERT(false, "failed action profile suggested binding");
+		}
+
+
+		//Vive wand bindings
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/click", &handLeftGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/x", &handLeftTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/y", &handLeftTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/touch", &handLeftTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/click", &handLeftTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/click", &handRightGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/x", &handRightTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/y", &handRightTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/touch", &handRightTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/click", &handRightTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> viveWandBindings;
+		viveWandBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
+		viveWandBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
+		viveWandBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
+		viveWandBindings.push_back({ _internals->handLeftGrabAction, handLeftGrabPath });
+		viveWandBindings.push_back({ _internals->handLeftTrackpadXAction, handLeftTrackpadXPath });
+		viveWandBindings.push_back({ _internals->handLeftTrackpadYAction, handLeftTrackpadYPath });
+		viveWandBindings.push_back({ _internals->handLeftTrackpadTouchAction, handLeftTrackpadTouchPath });
+		viveWandBindings.push_back({ _internals->handLeftTrackpadPressAction, handLeftTrackpadPressPath });
+		viveWandBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
+		viveWandBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
+
+		viveWandBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
+		viveWandBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
+		viveWandBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
+		viveWandBindings.push_back({ _internals->handRightGrabAction, handRightGrabPath });
+		viveWandBindings.push_back({ _internals->handRightTrackpadXAction, handRightTrackpadXPath });
+		viveWandBindings.push_back({ _internals->handRightTrackpadYAction, handRightTrackpadYPath });
+		viveWandBindings.push_back({ _internals->handRightTrackpadTouchAction, handRightTrackpadTouchPath });
+		viveWandBindings.push_back({ _internals->handRightTrackpadPressAction, handRightTrackpadPressPath });
+		viveWandBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
+		viveWandBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/htc/vive_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedViveWandBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		suggestedViveWandBindings.interactionProfile = interactionProfilePath;
+		suggestedViveWandBindings.suggestedBindings = viveWandBindings.data();
+		suggestedViveWandBindings.countSuggestedBindings = viveWandBindings.size();
+		if(!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedViveWandBindings)))
+		{
+			RN_ASSERT(false, "failed action profile suggested vive wand binding");
+		}
+
+
+		//Microsoft mixed reality controller bindings
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/click", &handLeftGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/x", &handLeftTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/y", &handLeftTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/touch", &handLeftTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/click", &handLeftTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/click", &handRightGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/x", &handRightTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/y", &handRightTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/touch", &handRightTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/click", &handRightTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> microsoftMixedRealityBindings;
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftGrabAction, handLeftGrabPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftThumbstickXAction, handLeftThumbstickXPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftThumbstickYAction, handLeftThumbstickYPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftTrackpadXAction, handLeftTrackpadXPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftTrackpadYAction, handLeftTrackpadYPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftTrackpadTouchAction, handLeftTrackpadTouchPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftTrackpadPressAction, handLeftTrackpadPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
+
+		microsoftMixedRealityBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightGrabAction, handRightGrabPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightThumbstickXAction, handRightThumbstickXPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightThumbstickYAction, handRightThumbstickYPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightThumbstickPressAction, handRightThumbstickPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightTrackpadXAction, handRightTrackpadXPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightTrackpadYAction, handRightTrackpadYPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightTrackpadTouchAction, handRightTrackpadTouchPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightTrackpadPressAction, handRightTrackpadPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
+		microsoftMixedRealityBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/microsoft/motion_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedMicrosoftMixedRealityBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		suggestedMicrosoftMixedRealityBindings.interactionProfile = interactionProfilePath;
+		suggestedMicrosoftMixedRealityBindings.suggestedBindings = microsoftMixedRealityBindings.data();
+		suggestedMicrosoftMixedRealityBindings.countSuggestedBindings = microsoftMixedRealityBindings.size();
+		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedMicrosoftMixedRealityBindings)))
+		{
+			RN_ASSERT(false, "failed action profile suggested microsoft mixed reality controller binding");
+		}
+
+
+		//Valve Index bindings
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/x", &handLeftTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/y", &handLeftTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/touch", &handLeftTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trackpad/force", &handLeftTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/system/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/b/click", &handLeftButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/a/click", &handLeftButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/x", &handRightTrackpadXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/y", &handRightTrackpadYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/touch", &handRightTrackpadTouchPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trackpad/force", &handRightTrackpadPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/system/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> valveIndexBindings;
+		valveIndexBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
+		valveIndexBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
+		valveIndexBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
+		valveIndexBindings.push_back({ _internals->handLeftGrabAction, handLeftGrabPath });
+		valveIndexBindings.push_back({ _internals->handLeftThumbstickXAction, handLeftThumbstickXPath });
+		valveIndexBindings.push_back({ _internals->handLeftThumbstickYAction, handLeftThumbstickYPath });
+		valveIndexBindings.push_back({ _internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath });
+		valveIndexBindings.push_back({ _internals->handLeftTrackpadXAction, handLeftTrackpadXPath });
+		valveIndexBindings.push_back({ _internals->handLeftTrackpadYAction, handLeftTrackpadYPath });
+		valveIndexBindings.push_back({ _internals->handLeftTrackpadTouchAction, handLeftTrackpadTouchPath });
+		valveIndexBindings.push_back({ _internals->handLeftTrackpadPressAction, handLeftTrackpadPressPath });
+		valveIndexBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
+		valveIndexBindings.push_back({ _internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath });
+		valveIndexBindings.push_back({ _internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath });
+		valveIndexBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
+
+		valveIndexBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
+		valveIndexBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
+		valveIndexBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
+		valveIndexBindings.push_back({ _internals->handRightGrabAction, handRightGrabPath });
+		valveIndexBindings.push_back({ _internals->handRightThumbstickXAction, handRightThumbstickXPath });
+		valveIndexBindings.push_back({ _internals->handRightThumbstickYAction, handRightThumbstickYPath });
+		valveIndexBindings.push_back({ _internals->handRightThumbstickPressAction, handRightThumbstickPressPath });
+		valveIndexBindings.push_back({ _internals->handRightTrackpadXAction, handRightTrackpadXPath });
+		valveIndexBindings.push_back({ _internals->handRightTrackpadYAction, handRightTrackpadYPath });
+		valveIndexBindings.push_back({ _internals->handRightTrackpadTouchAction, handRightTrackpadTouchPath });
+		valveIndexBindings.push_back({ _internals->handRightTrackpadPressAction, handRightTrackpadPressPath });
+		valveIndexBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
+		valveIndexBindings.push_back({ _internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath });
+		valveIndexBindings.push_back({ _internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath });
+		valveIndexBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/valve/index_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedValveIndexBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		suggestedValveIndexBindings.interactionProfile = interactionProfilePath;
+		suggestedValveIndexBindings.suggestedBindings = valveIndexBindings.data();
+		suggestedValveIndexBindings.countSuggestedBindings = valveIndexBindings.size();
+		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedValveIndexBindings)))
+		{
+			RN_ASSERT(false, "failed action profile suggested valve index binding");
+		}
+
+
+		//Simple controller
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/select/click", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/select/click", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> simpleControllerBindings;
+		simpleControllerBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
+		simpleControllerBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
+		simpleControllerBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
+		simpleControllerBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
+		simpleControllerBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
+
+		simpleControllerBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
+		simpleControllerBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
+		simpleControllerBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
+		simpleControllerBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
+		simpleControllerBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/khr/simple_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedSimpleBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		suggestedSimpleBindings.interactionProfile = interactionProfilePath;
+		suggestedSimpleBindings.suggestedBindings = simpleControllerBindings.data();
+		suggestedSimpleBindings.countSuggestedBindings = simpleControllerBindings.size();
+		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedSimpleBindings)))
+		{
+			RN_ASSERT(false, "failed action profile suggested simple controller binding");
 		}
 	}
 
@@ -1263,13 +1650,23 @@ namespace RN
 			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 		}
 
-		_controllerTrackingState[0].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
+		XrPath leftHandUserPath;
+		xrStringToPath(_internals->instance, "/user/hand/left", &leftHandUserPath);
+		XrInteractionProfileState leftHandInteractionProfileState{XR_TYPE_INTERACTION_PROFILE_STATE};
+		xrGetCurrentInteractionProfile(_internals->session, leftHandUserPath, &leftHandInteractionProfileState);
+
+		XrPath rightHandUserPath;
+		xrStringToPath(_internals->instance, "/user/hand/right", &rightHandUserPath);
+		XrInteractionProfileState rightHandInteractionProfileState{ XR_TYPE_INTERACTION_PROFILE_STATE };
+		xrGetCurrentInteractionProfile(_internals->session, rightHandUserPath, &rightHandInteractionProfileState);
+
+		_controllerTrackingState[0].type = GetControllerTypeForInteractionProfile(_internals->instance, leftHandInteractionProfileState.interactionProfile);
 		_controllerTrackingState[0].hasHaptics = true;
 		_controllerTrackingState[0].active = false;
 		_controllerTrackingState[0].tracking = false;
 		_controllerTrackingState[0].hapticsSampleLength = 0.0;
 		_controllerTrackingState[0].hapticsMaxSamples = 0;
-		_controllerTrackingState[1].type = static_cast<VRControllerTrackingState::Type>(_hmdTrackingState.type);
+		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 		_controllerTrackingState[1].active = false;
 		_controllerTrackingState[1].tracking = false;
 		_controllerTrackingState[1].hasHaptics = true;
@@ -1375,6 +1772,30 @@ namespace RN
 			xrGetActionStateBoolean(_internals->session, &handThumbstickPressGetInfo, &handThumbstickPressState);
 			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Stick] = handThumbstickPressState.currentState;
 
+			XrActionStateFloat handTrackpadXState{ XR_TYPE_ACTION_STATE_FLOAT };
+			XrActionStateGetInfo handTrackpadXGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadXGetInfo.action = _internals->handLeftTrackpadXAction;
+			xrGetActionStateFloat(_internals->session, &handTrackpadXGetInfo, &handTrackpadXState);
+			_controllerTrackingState[0].trackpad.x = handTrackpadXState.currentState;
+
+			XrActionStateFloat handTrackpadYState{ XR_TYPE_ACTION_STATE_FLOAT };
+			XrActionStateGetInfo handTrackpadYGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadYGetInfo.action = _internals->handLeftTrackpadYAction;
+			xrGetActionStateFloat(_internals->session, &handTrackpadYGetInfo, &handTrackpadYState);
+			_controllerTrackingState[0].trackpad.y = handTrackpadYState.currentState;
+
+			XrActionStateBoolean handTrackpadTouchState{ XR_TYPE_ACTION_STATE_BOOLEAN };
+			XrActionStateGetInfo handTrackpadTouchGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadTouchGetInfo.action = _internals->handLeftTrackpadTouchAction;
+			xrGetActionStateBoolean(_internals->session, &handTrackpadTouchGetInfo, &handTrackpadTouchState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::PadTouched] = handTrackpadTouchState.currentState;
+
+			XrActionStateBoolean handTrackpadPressState{ XR_TYPE_ACTION_STATE_BOOLEAN };
+			XrActionStateGetInfo handTrackpadPressGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadPressGetInfo.action = _internals->handLeftTrackpadPressAction;
+			xrGetActionStateBoolean(_internals->session, &handTrackpadPressGetInfo, &handTrackpadPressState);
+			_controllerTrackingState[0].button[VRControllerTrackingState::Button::Pad] = handTrackpadPressState.currentState;
+
 			XrActionStateBoolean handButtonUpperPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
 			XrActionStateGetInfo handButtonUpperPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 			handButtonUpperPressGetInfo.action = _internals->handLeftButtonUpperPressAction;
@@ -1401,19 +1822,11 @@ namespace RN
 				hapticActionInfo.action = _internals->handLeftHapticsAction;
 				hapticActionInfo.subactionPath = XR_NULL_PATH;
 				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-				hapticVibration.duration = 1000000000.0; //1 second
+				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
 				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 				hapticVibration.amplitude = strength;
 				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
 				_hapticsStopped[0] = false;
-			}
-			else if(!_hapticsStopped[0])
-			{
-				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-				hapticActionInfo.action = _internals->handLeftHapticsAction;
-				hapticActionInfo.subactionPath = XR_NULL_PATH;
-				xrStopHapticFeedback(_internals->session, &hapticActionInfo);
-				_hapticsStopped[0] = true;
 			}
 		}
 
@@ -1495,6 +1908,30 @@ namespace RN
 			xrGetActionStateBoolean(_internals->session, &handThumbstickPressGetInfo, &handThumbstickPressState);
 			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Stick] = handThumbstickPressState.currentState;
 
+			XrActionStateFloat handTrackpadXState{ XR_TYPE_ACTION_STATE_FLOAT };
+			XrActionStateGetInfo handTrackpadXGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadXGetInfo.action = _internals->handRightTrackpadXAction;
+			xrGetActionStateFloat(_internals->session, &handTrackpadXGetInfo, &handTrackpadXState);
+			_controllerTrackingState[1].trackpad.x = handTrackpadXState.currentState;
+
+			XrActionStateFloat handTrackpadYState{ XR_TYPE_ACTION_STATE_FLOAT };
+			XrActionStateGetInfo handTrackpadYGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadYGetInfo.action = _internals->handRightTrackpadYAction;
+			xrGetActionStateFloat(_internals->session, &handTrackpadYGetInfo, &handTrackpadYState);
+			_controllerTrackingState[1].trackpad.y = handTrackpadYState.currentState;
+
+			XrActionStateBoolean handTrackpadTouchState{ XR_TYPE_ACTION_STATE_BOOLEAN };
+			XrActionStateGetInfo handTrackpadTouchGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadTouchGetInfo.action = _internals->handRightTrackpadTouchAction;
+			xrGetActionStateBoolean(_internals->session, &handTrackpadTouchGetInfo, &handTrackpadTouchState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::PadTouched] = handTrackpadTouchState.currentState;
+
+			XrActionStateBoolean handTrackpadPressState{ XR_TYPE_ACTION_STATE_BOOLEAN };
+			XrActionStateGetInfo handTrackpadPressGetInfo{ XR_TYPE_ACTION_STATE_GET_INFO };
+			handTrackpadPressGetInfo.action = _internals->handRightTrackpadPressAction;
+			xrGetActionStateBoolean(_internals->session, &handTrackpadPressGetInfo, &handTrackpadPressState);
+			_controllerTrackingState[1].button[VRControllerTrackingState::Button::Pad] = handTrackpadPressState.currentState;
+
 			XrActionStateBoolean handButtonSystemPressState{XR_TYPE_ACTION_STATE_BOOLEAN};
 			XrActionStateGetInfo handButtonSystemPressGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
 			handButtonSystemPressGetInfo.action = _internals->handRightButtonSystemPressAction;
@@ -1520,19 +1957,11 @@ namespace RN
 				hapticActionInfo.action = _internals->handRightHapticsAction;
 				hapticActionInfo.subactionPath = XR_NULL_PATH;
 				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-				hapticVibration.duration = 1000000000.0; //1 second
+				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
 				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 				hapticVibration.amplitude = strength;
 				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
 				_hapticsStopped[1] = false;
-			}
-			else if(!_hapticsStopped[1])
-			{
-				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-				hapticActionInfo.action = _internals->handRightHapticsAction;
-				hapticActionInfo.subactionPath = XR_NULL_PATH;
-				xrStopHapticFeedback(_internals->session, &hapticActionInfo);
-				_hapticsStopped[1] = true;
 			}
 		}
 

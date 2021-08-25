@@ -69,8 +69,12 @@ namespace RN
 	{
 		enum Type
 		{
-			ThreeDegreesOfFreedom,
-			SixDegreesOfFreedom
+			None,
+			KhronosSimpleController,
+			OculusTouchController,
+			HTCViveController,
+			ValveIndexController,
+			MicrosoftMixedRealityController
 		};
 
 		enum Button
@@ -84,7 +88,7 @@ namespace RN
 			BUTTON_COUNT
 		};
 
-		VRControllerTrackingState() : type(Type::SixDegreesOfFreedom), hasHaptics(true), hapticsSampleLength(0.0), hapticsMaxSamples(0), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false, false} {}
+		VRControllerTrackingState() : type(Type::None), hasHaptics(true), hapticsSampleLength(0.0), hapticsMaxSamples(0), active(false), tracking(false), controllerID(-1), indexTrigger(0.0f), handTrigger(0.0f), button{false, false, false, false, false, false} {}
 
 		Type type;
 		bool hasHaptics;

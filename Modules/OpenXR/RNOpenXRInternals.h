@@ -48,6 +48,10 @@ namespace RN
 		XrAction handLeftThumbstickXAction;
 		XrAction handLeftThumbstickYAction;
 		XrAction handLeftThumbstickPressAction;
+		XrAction handLeftTrackpadXAction;
+		XrAction handLeftTrackpadYAction;
+		XrAction handLeftTrackpadTouchAction;
+		XrAction handLeftTrackpadPressAction;
 		XrAction handLeftButtonSystemPressAction;
 		XrAction handLeftButtonUpperPressAction;
 		XrAction handLeftButtonLowerPressAction;
@@ -62,6 +66,10 @@ namespace RN
 		XrAction handRightThumbstickXAction;
 		XrAction handRightThumbstickYAction;
 		XrAction handRightThumbstickPressAction;
+		XrAction handRightTrackpadXAction;
+		XrAction handRightTrackpadYAction;
+		XrAction handRightTrackpadTouchAction;
+		XrAction handRightTrackpadPressAction;
 		XrAction handRightButtonSystemPressAction;
 		XrAction handRightButtonUpperPressAction;
 		XrAction handRightButtonLowerPressAction;
