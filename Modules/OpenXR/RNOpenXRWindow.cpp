@@ -798,6 +798,49 @@ namespace RN
 		XrPath handRightButtonLowerPressPath;
 		XrPath handRightHapticsPath;
 
+		XrPath interactionProfilePath;
+
+
+		//Simple controller
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/select/click", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/select/click", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> simpleControllerBindings;
+		simpleControllerBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
+		simpleControllerBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
+		simpleControllerBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
+		simpleControllerBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
+		simpleControllerBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
+
+		simpleControllerBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
+		simpleControllerBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
+		simpleControllerBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
+		simpleControllerBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
+		simpleControllerBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/khr/simple_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedSimpleBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		suggestedSimpleBindings.interactionProfile = interactionProfilePath;
+		suggestedSimpleBindings.suggestedBindings = simpleControllerBindings.data();
+		suggestedSimpleBindings.countSuggestedBindings = simpleControllerBindings.size();
+		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedSimpleBindings)))
+		{
+			RNDebug("failed action profile suggested simple controller binding");
+		}
+
+
 		//Oculus touch bindings
 		//Left hand
 		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
@@ -849,8 +892,7 @@ namespace RN
 		oculusTouchBindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
 		oculusTouchBindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
 		oculusTouchBindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
-		
-		XrPath interactionProfilePath;
+
 		xrStringToPath(_internals->instance, "/interaction_profiles/oculus/touch_controller", &interactionProfilePath);
 
 		XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
@@ -1072,46 +1114,6 @@ namespace RN
 		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedValveIndexBindings)))
 		{
 			RNDebug("failed action profile suggested valve index binding");
-		}
-
-
-		//Simple controller
-		//Left hand
-		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
-		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
-		xrStringToPath(_internals->instance, "/user/hand/left/input/select/click", &handLeftTriggerPath);
-		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
-		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
-
-		//Right hand
-		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
-		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
-		xrStringToPath(_internals->instance, "/user/hand/right/input/select/click", &handRightTriggerPath);
-		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
-		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
-
-		std::vector<XrActionSuggestedBinding> simpleControllerBindings;
-		simpleControllerBindings.push_back({ _internals->handLeftAimPoseAction, handLeftAimPosePath });
-		simpleControllerBindings.push_back({ _internals->handLeftGripPoseAction, handLeftGripPosePath });
-		simpleControllerBindings.push_back({ _internals->handLeftTriggerAction, handLeftTriggerPath });
-		simpleControllerBindings.push_back({ _internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath });
-		simpleControllerBindings.push_back({ _internals->handLeftHapticsAction, handLeftHapticsPath });
-
-		simpleControllerBindings.push_back({ _internals->handRightAimPoseAction, handRightAimPosePath });
-		simpleControllerBindings.push_back({ _internals->handRightGripPoseAction, handRightGripPosePath });
-		simpleControllerBindings.push_back({ _internals->handRightTriggerAction, handRightTriggerPath });
-		simpleControllerBindings.push_back({ _internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath });
-		simpleControllerBindings.push_back({ _internals->handRightHapticsAction, handRightHapticsPath });
-
-		xrStringToPath(_internals->instance, "/interaction_profiles/khr/simple_controller", &interactionProfilePath);
-
-		XrInteractionProfileSuggestedBinding suggestedSimpleBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-		suggestedSimpleBindings.interactionProfile = interactionProfilePath;
-		suggestedSimpleBindings.suggestedBindings = simpleControllerBindings.data();
-		suggestedSimpleBindings.countSuggestedBindings = simpleControllerBindings.size();
-		if (!XR_SUCCEEDED(xrSuggestInteractionProfileBindings(_internals->instance, &suggestedSimpleBindings)))
-		{
-			RNDebug("failed action profile suggested simple controller binding");
 		}
 	}
 
