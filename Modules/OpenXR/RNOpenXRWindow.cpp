@@ -1608,6 +1608,7 @@ namespace RN
 						const XrEventDataReferenceSpaceChangePending &referenceSpaceChangePendingEvent =
 								*reinterpret_cast<XrEventDataReferenceSpaceChangePending *>(&event);
 						RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+						NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
 						break;
 					}
 				}
