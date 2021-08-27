@@ -16,6 +16,8 @@ def getTextureSpec(resourceSpec, relpath, platform):
     textureSpec = dict()
     textureSpec["compression"] = "copy"
 
+    relpath = os.path.normpath(relpath)
+    relpath = relpath.replace("\\", "/")
     if "textures" in resourceSpec:
         platformCompressionName = "compression~"+platform
 
