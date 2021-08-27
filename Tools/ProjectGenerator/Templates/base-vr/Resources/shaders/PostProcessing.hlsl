@@ -6,7 +6,7 @@
 //
 
 SamplerState linearRepeatSampler;
-Texture2D framebufferTexture;
+Texture2DArray framebufferTexture;
 
 cbuffer vertexUniforms
 {
@@ -37,6 +37,6 @@ FragmentVertex pp_vertex(InputVertex vert)
 
 float4 pp_blit_fragment(FragmentVertex vert) : SV_TARGET
 {
-	float4 color = framebufferTexture.Sample(linearRepeatSampler, vert.texCoords).rgba * ambientColor.rgba;
+	float4 color = framebufferTexture.Sample(linearRepeatSampler, float3(vert.texCoords, 0.0)).rgba * ambientColor.rgba;
 	return color;
 }

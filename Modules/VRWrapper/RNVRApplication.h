@@ -13,17 +13,8 @@
 #include "RNVRWindow.h"
 
 //TODO: These should be defines somehow set by the corresponding vr module....
-#if RN_PLATFORM_ANDROID
+#if !RN_PLATFORM_MAC_OS
     #include "RNOpenXRWindow.h"
-#elif RN_PLATFORM_WINDOWS
-    #ifdef BUILD_FOR_OCULUS
-        #include "RNOculusWindow.h"
-    #else
-        #include "RNOculusWindow.h"
-        #include "RNOpenVRWindow.h"
-    #endif
-#else
-    #include "RNOpenVRWindow.h"
 #endif
 
 namespace RN

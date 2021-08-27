@@ -182,7 +182,7 @@ namespace __TMP__
 		AddLevelNode(levelEntity->Autorelease());
 
 		RN::PhysXMaterial *levelPhysicsMaterial = new RN::PhysXMaterial();
-		RN::PhysXCompoundShape *levelShape = RN::PhysXCompoundShape::WithModel(levelModel, levelPhysicsMaterial->Autorelease(), true);
+		RN::PhysXCompoundShape *levelShape = RN::PhysXCompoundShape::WithModel(levelModel, levelPhysicsMaterial->Autorelease(), RN::Vector3(1.0f, 1.0f, 1.0f), true);
 		RN::PhysXStaticBody *levelBody = RN::PhysXStaticBody::WithShape(levelShape);
 		levelBody->SetCollisionFilter(Types::CollisionLevel, Types::CollisionAll);
 		levelEntity->AddAttachment(levelBody);

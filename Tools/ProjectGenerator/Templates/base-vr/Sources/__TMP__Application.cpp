@@ -25,6 +25,7 @@ namespace __TMP__
 	void Application::WillFinishLaunching(RN::Kernel *kernel)
 	{
 		RN::Application::WillFinishLaunching(kernel);
+
 		if(!RN::Kernel::GetSharedInstance()->GetArguments().HasArgument("pancake", '2d'))
 		{
 			SetupVR();

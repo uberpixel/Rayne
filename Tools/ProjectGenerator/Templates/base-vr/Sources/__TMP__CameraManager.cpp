@@ -312,7 +312,7 @@ namespace __TMP__
 
 		if(_wantsPreviewWindow || !_vrWindow)
 		{
-			RN::Window::SwapChainDescriptor swapchainDescriptor(RN::Texture::Format::RGBA_16F, (_msaa > 1) ? RN::Texture::Format::Invalid : RN::Texture::Format::Depth_32F);
+			RN::Window::SwapChainDescriptor swapchainDescriptor(RN::Texture::Format::BGRA_8_SRGB, (_msaa > 1) ? RN::Texture::Format::Invalid : RN::Texture::Format::Depth_32F);
 			swapchainDescriptor.vsync = false;
 			_previewWindow = RN::Renderer::GetActiveRenderer()->CreateAWindow(_defaultPreviewWindowResolution, RN::Screen::GetMainScreen(), swapchainDescriptor);
 			_previewWindow->Show();
@@ -362,7 +362,7 @@ namespace __TMP__
 
 			if(_msaa > 1)
 			{
-				RN::Texture *msaaTexture = RN::Texture::WithDescriptor(RN::Texture::Descriptor::With2DRenderTargetFormatAndMSAA(RN::Texture::Format::RGBA_16F, _previewWindow->GetSize().x, _previewWindow->GetSize().y, _msaa));
+				RN::Texture *msaaTexture = RN::Texture::WithDescriptor(RN::Texture::Descriptor::With2DRenderTargetFormatAndMSAA(_previewWindow->GetSwapChainDescriptor().colorFormat, _previewWindow->GetSize().x, _previewWindow->GetSize().y, _msaa));
 				RN::Texture *msaaDepthTexture = RN::Texture::WithDescriptor(RN::Texture::Descriptor::With2DRenderTargetFormatAndMSAA(RN::Texture::Format::Depth_32F, _previewWindow->GetSize().x, _previewWindow->GetSize().y, _msaa));
 				RN::Framebuffer *msaaFramebuffer = RN::Renderer::GetActiveRenderer()->CreateFramebuffer(_previewWindow->GetSize());
 				msaaFramebuffer->SetColorTarget(RN::Framebuffer::TargetView::WithTexture(msaaTexture));

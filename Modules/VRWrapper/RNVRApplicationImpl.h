@@ -27,33 +27,9 @@ namespace RN
 		if(_vrWindow)
 			return;
 
-	#if RN_PLATFORM_ANDROID
+#if !RN_PLATFORM_MAC_OS
 		_vrWindow = new RN::OpenXRWindow();
-	#else
-		bool wantsOpenVR = RN::Kernel::GetSharedInstance()->GetArguments().HasArgument("openvr", 0);
-	#if RN_PLATFORM_WINDOWS
-		bool wantsOculus = RN::Kernel::GetSharedInstance()->GetArguments().HasArgument("oculusvr", 0);
-
-		#ifndef BUILD_FOR_OCULUS
-		if(!wantsOpenVR && (!RN::OpenVRWindow::IsSteamVRRunning() || wantsOculus))
-		#endif
-		{
-			if(RN::OculusWindow::GetAvailability() == RN::VRWindow::HMD || wantsOculus)
-			{
-				_vrWindow = new RN::OculusWindow();
-				return;
-			}
-		}
-	#endif
-
-	#ifndef BUILD_FOR_OCULUS
-		if(RN::OpenVRWindow::GetAvailability() == RN::VRWindow::HMD || wantsOpenVR)
-		{
-			_vrWindow = new RN::OpenVRWindow();
-			return;
-		}
-	#endif
-	#endif
+#endif
 	}
 
 	RendererDescriptor *VRApplication::GetPreferredRenderer() const
