@@ -99,13 +99,13 @@ namespace RN
 			renderer->SetMainWindow(_vrWindow);
 
 			RN::Window::SwapChainDescriptor swapChainDescriptor;
-#if RN_PLATFORM_WINDOWS
+/*#if RN_PLATFORM_WINDOWS
 			if(_vrWindow->IsKindOfClass(RN::OculusWindow::GetMetaClass()))
 			{
 				swapChainDescriptor.depthStencilFormat = RN::Texture::Format::Depth_32F;
 				swapChainDescriptor.colorFormat = RN::Texture::Format::RGBA_16F;
 			}
-#endif
+#endif*/
 			_vrWindow->StartRendering(swapChainDescriptor);
 		}
 /*		else
