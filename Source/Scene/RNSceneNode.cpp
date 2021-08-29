@@ -487,7 +487,7 @@ namespace RN
 
 				_worldPosition = _parent->GetWorldPosition() + _parent->GetWorldScale() * _parent->GetWorldRotation().GetRotatedVector(_position);
 				_worldRotation = _parent->GetWorldRotation() * _rotation;
-				_worldScale = _parent->GetWorldScale() * _scale;
+				_worldScale = _parent->GetWorldScale() * _parent->GetWorldRotation().GetRotatedVector(_scale);
 				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
 
 				_worldTransform = _parent->GetWorldTransform() * _localTransform;
