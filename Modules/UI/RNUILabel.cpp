@@ -27,7 +27,7 @@ namespace RN
 		
 		void Label::SetText(const String *text)
 		{
-			if(_attributedText && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
+			if(_attributedText && text && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
 			if(!text) text = RNCSTR("");
 			
 			SafeRelease(_attributedText);
