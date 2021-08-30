@@ -27,50 +27,71 @@ namespace RN
 		
 		void Label::SetText(const String *text)
 		{
-			if(_attributedText && text && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0)) return;
+			Lock();
+			if(_attributedText && text && text->IsEqual(_attributedText) && !_attributedText->GetAttributesAtIndex(0))
+			{
+				Unlock();
+				return;
+			}
 			if(!text) text = RNCSTR("");
 			
 			SafeRelease(_attributedText);
 			_attributedText = new AttributedString(text);
 			_needsMeshUpdate = true;
+			Unlock();
 		}
 	
 		void Label::SetAttributedText(AttributedString *text)
 		{
+			Lock();
 			SafeRelease(_attributedText);
 			_attributedText = text;
 			SafeRetain(_attributedText);
 			_needsMeshUpdate = true;
+			Unlock();
 		}
 	
 		void Label::SetDefaultAttributes(const TextAttributes &attributes)
 		{
+			Lock();
 			_defaultAttributes = attributes;
 			_needsMeshUpdate = true;
+			Unlock();
 		}
 	
 		void Label::SetTextColor(const Color &color)
 		{
-			if(color == _defaultAttributes.GetColor()) return;
+			Lock();
+			if(color == _defaultAttributes.GetColor())
+			{
+				Unlock();
+				return;
+			}
 			
 			_defaultAttributes.SetColor(color);
 			_needsMeshUpdate = true;
+			Unlock();
 		}
 	
 		void Label::SetVerticalAlignment(TextVerticalAlignment alignment)
 		{
+			Lock();
 			_verticalAlignment = alignment;
 			_needsMeshUpdate = true;
+			Unlock();
 		}
     
         void Label::SetAdditionalLineHeight(float lineHeight)
         {
+			Lock();
 			_additionalLineHeight = lineHeight;
 			_needsMeshUpdate = true;
+			Unlock();
         }
 		
 		void Label::SetShadowColor(Color color)
 		{
+			Lock();
 			_shadowColor = color;
 			
 			Model *model = GetModel();
@@ -80,10 +101,12 @@ namespace RN
 				shadowMaterial->SetDiffuseColor(_shadowColor);
 				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 			}
+			Unlock();
 		}
 		
 		void Label::SetShadowOffset(Vector2 offset)
 		{
+			Lock();
 			_shadowOffset = offset;
 			
 			Model *model = GetModel();
@@ -91,6 +114,7 @@ namespace RN
 			{
 				model->GetLODStage(0)->GetMaterialAtIndex(1)->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
 			}
+			Unlock();
 		}
 	
 	
@@ -98,6 +122,7 @@ namespace RN
 		{
 			View::UpdateModel();
 			
+			Lock();
 			if(!_attributedText || _attributedText->GetLength() == 0)
 			{
 				Model *model = GetModel();
@@ -108,6 +133,7 @@ namespace RN
 					Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
 					shadowMaterial->SetSkipRendering(true);
 				}
+				Unlock();
 				return;
 			}
 					
@@ -271,7 +297,11 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 			
-			if(hasOnlyWhitespaces) return;
+			if(hasOnlyWhitespaces)
+			{
+				Unlock();
+				return;
+			}
 			
 			totalHeight += maxAscent;// + maxDescent;
 			linewidth.push_back(currentWidth);
@@ -333,10 +363,14 @@ namespace RN
 						characterPositionX = GetBounds().width - linewidth[linebreakIndex];
 					else if(currentAttributes->GetAlignment() == TextAlignmentCenter)
 						characterPositionX = (GetBounds().width - linewidth[linebreakIndex]) * 0.5f;
+					
 					return;
 				}
 				
-				if(!mesh->IsKindOfClass(RN::Mesh::GetMetaClass())) return;
+				if(!mesh->IsKindOfClass(RN::Mesh::GetMetaClass()))
+				{
+					return;
+				}
 				
 				RN::Mesh::Chunk chunk = mesh->GetChunk();
 				for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
@@ -447,6 +481,8 @@ namespace RN
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
+			
+			Unlock();
 		}
 	}
 }
