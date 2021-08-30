@@ -77,7 +77,8 @@ ExternalProject_Add(Kalligraph
                 ${KALLIGRAPH_BINARY_DIR}/Release/libKalligraph.a
                 ${KALLIGRAPH_BINARY_DIR}/Debug/Kalligraph.lib
                 ${KALLIGRAPH_BINARY_DIR}/Release/Kalligraph.lib
-        INSTALL_COMMAND "")
+        INSTALL_COMMAND ""
+        UPDATE_COMMAND "")
 
 add_dependencies(RayneUI Kalligraph)
 
