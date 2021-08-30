@@ -116,6 +116,175 @@ namespace RN
 			}
 			Unlock();
 		}
+		
+		Vector2 Label::GetTextSize()
+		{
+			Lock();
+			if(!_attributedText || _attributedText->GetLength() == 0)
+			{
+				Unlock();
+				return Vector2();
+			}
+			
+			Array *characters = (new Array(_attributedText->GetLength()))->Autorelease();
+			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
+			
+			std::vector<int> linebreaks;
+			std::vector<float> lineascent;
+			std::vector<float> linedescent;
+			std::vector<float> lineoffset;
+			
+			float currentWidth = 0.0f;
+			float lastWordWidth = 0.0f;
+			
+			float totalHeight = 0.0f;
+			float maxWidth = 0.0f;
+			
+			float maxAscent = 0.0f;
+			float lastWordMaxAscent = 0.0f;
+			float tempMaxAscent = 0.0f;
+			float maxDescent = 0.0f;
+			float lastWordMaxDescent = 0.0f;
+			float tempMaxDescent = 0.0f;
+			float maxLineOffset = 0.0f;
+			float lastWordMaxLineOffset = 0.0f;
+			float tempMaxLineOffset = 0.0f;
+			
+			int lastWhiteSpaceIndex = -1;
+			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
+			bool hasOnlyWhitespaces = true;
+			for(int i = 0; i < _attributedText->GetLength(); i++)
+			{
+				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
+				int nextCodepoint = i < _attributedText->GetLength()-1? _attributedText->GetCharacterAtIndex(i+1) : -1;
+
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(i);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				
+				Font *currentFont = currentAttributes->GetFont();
+				
+				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				float offset = currentFont->GetOffsetForNextCharacter(currentCodepoint, nextCodepoint) * scaleFactor + currentAttributes->GetKerning();
+				
+				float characterAscent = currentFont->GetAscent() * scaleFactor;
+				float characterDescent = -currentFont->GetDescent() * scaleFactor;
+				float characterLineOffset = currentFont->GetLineOffset() * scaleFactor;
+				maxAscent = std::max(maxAscent, characterAscent);
+				tempMaxAscent = std::max(tempMaxAscent, characterAscent);
+				maxDescent = std::max(maxDescent, characterDescent);
+				tempMaxDescent = std::max(tempMaxDescent, characterDescent);
+				maxLineOffset = std::max(maxLineOffset, characterLineOffset);
+				tempMaxLineOffset = std::max(tempMaxLineOffset, characterLineOffset);
+				
+				if(whiteSpaces->CharacterIsMember(currentCodepoint))
+				{
+					lastWhiteSpaceIndex = i;
+					
+					lastWordWidth = currentWidth;
+					
+					lastWordMaxAscent = maxAscent;
+					tempMaxAscent = 0.0f;
+					lastWordMaxDescent = maxDescent;
+					tempMaxDescent = 0.0f;
+					lastWordMaxLineOffset = maxLineOffset;
+					tempMaxLineOffset = 0.0f;
+					
+					if(currentCodepoint > 0)
+					{
+						//TODO: To adjsut this correctly, the previous characters attributes are needed...
+						float previousOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, currentCodepoint) * scaleFactor + currentAttributes->GetKerning();
+						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
+						lastWordWidth -= previousOffset - correctedOffset;
+					}
+				}
+				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
+				{
+					hasOnlyWhitespaces = false;
+				}
+				
+				if(currentCodepoint == 10)
+				{
+					totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+					if(currentWidth > maxWidth) maxWidth = currentWidth;
+					
+					linebreaks.push_back(i);
+					lineascent.push_back(maxAscent);
+					linedescent.push_back(maxDescent);
+					lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+					maxAscent = 0.0f;
+					maxDescent = 0.0f;
+					maxLineOffset = 0.0f;
+					currentWidth = 0.0f;
+					offset = 0.0f;
+				}
+				
+				if(GetBounds().width > 0.0f && currentWidth + offset > GetBounds().width && currentAttributes->GetWrapMode() != TextWrapModeNone)
+				{
+					Range lastWhitespaceRange;
+					lastWhitespaceRange.length = 0;
+					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						if(lastWordWidth > maxWidth) maxWidth = lastWordWidth;
+						
+						linebreaks.push_back(lastWhiteSpaceIndex);
+						lineascent.push_back(lastWordMaxAscent);
+						linedescent.push_back(lastWordMaxDescent);
+						lineoffset.push_back(lastWordMaxLineOffset + _additionalLineHeight);
+						currentWidth -= lastWordWidth;
+						maxAscent = tempMaxAscent;
+						tempMaxAscent = 0.0f;
+						maxDescent = tempMaxDescent;
+						tempMaxDescent = 0.0f;
+						maxLineOffset = tempMaxLineOffset;
+						tempMaxLineOffset = 0.0f;
+						
+						if(lastWhiteSpaceIndex != i)
+						{
+							currentWidth -= spacings->GetObjectAtIndex<RN::Number>(lastWhiteSpaceIndex)->GetFloatValue();
+							spacings->ReplaceObjectAtIndex(lastWhiteSpaceIndex, RN::Number::WithFloat(0.0f));
+						}
+						else
+						{
+							offset = 0.0f;
+						}
+					}
+					else
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						if(currentWidth > maxWidth) maxWidth = currentWidth;
+						
+						currentWidth = 0.0f;
+						linebreaks.push_back(i);
+						
+						lineascent.push_back(maxAscent);
+						linedescent.push_back(maxDescent);
+						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+						maxAscent = 0.0f;
+						maxDescent = 0.0f;
+						maxLineOffset = 0.0f;
+					}
+				}
+				
+				currentWidth += offset;
+				spacings->AddObject(RN::Number::WithFloat(offset));
+			}
+			
+			if(hasOnlyWhitespaces)
+			{
+				Unlock();
+				return Vector2();
+			}
+			
+			totalHeight += maxAscent;// + maxDescent;
+			if(currentWidth > maxWidth) maxWidth = currentWidth;
+			lineascent.push_back(maxAscent);
+			linedescent.push_back(maxDescent);
+			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+
+			Unlock();
+			return Vector2(maxWidth, totalHeight);
+		}
 	
 	
 		void Label::UpdateModel()

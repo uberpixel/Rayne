@@ -34,6 +34,7 @@ namespace RN
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
 			const String *GetText() const { return _attributedText; }
+			Vector2 GetTextSize();
 
 		protected:
 			UIAPI virtual void UpdateModel() override;
