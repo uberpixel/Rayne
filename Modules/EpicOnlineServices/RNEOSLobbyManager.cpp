@@ -45,7 +45,15 @@ namespace RN
 
 	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
+		if(!EOSWorld::GetInstance()->GetIsLoggedIn())
+		{
+			callback(false);
+			return;
+		}
+		if(_isJoiningLobby || _isConnectedToLobby)
+		{
+			return;
+		}
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;

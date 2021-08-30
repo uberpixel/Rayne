@@ -32,6 +32,7 @@ typedef struct _tagEOS_Connect_LoginCallbackInfo EOS_Connect_LoginCallbackInfo;
 typedef struct _tagEOS_Connect_CreateDeviceIdCallbackInfo EOS_Connect_CreateDeviceIdCallbackInfo;
 typedef struct _tagEOS_Connect_CreateUserCallbackInfo EOS_Connect_CreateUserCallbackInfo;
 typedef struct _tagEOS_Connect_AuthExpirationCallbackInfo EOS_Connect_AuthExpirationCallbackInfo;
+typedef struct _tagEOS_Connect_LoginStatusChangedCallbackInfo EOS_Connect_LoginStatusChangedCallbackInfo;
 
 namespace RN
 {
@@ -70,6 +71,7 @@ namespace RN
 		static void ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data);
 		static void ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data);
 		static void ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data);
+		static void ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data);
 		
 		void CreateDeviceID();
 		

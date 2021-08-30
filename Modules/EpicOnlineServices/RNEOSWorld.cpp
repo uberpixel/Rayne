@@ -97,6 +97,10 @@ namespace RN
 		EOS_Connect_AddNotifyAuthExpirationOptions authExpirationOptions = {0};
 		authExpirationOptions.ApiVersion = EOS_CONNECT_ADDNOTIFYAUTHEXPIRATION_API_LATEST;
 		EOS_Connect_AddNotifyAuthExpiration(_connectInterfaceHandle, &authExpirationOptions, this, ConnectOnAuthExpirationCallback);
+		
+		EOS_Connect_AddNotifyLoginStatusChangedOptions loginStatusChangedOptions = {0};
+		loginStatusChangedOptions.ApiVersion = EOS_CONNECT_ADDNOTIFYLOGINSTATUSCHANGED_API_LATEST;
+		EOS_Connect_AddNotifyLoginStatusChanged(_connectInterfaceHandle, &loginStatusChangedOptions, this, ConnectOnLoginStatusChangedCallback);
 
 		_instance = this;
 	}
@@ -402,5 +406,27 @@ namespace RN
 		RNDebug("EOS auth is about to expire, starting renew process");
 		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
 		eosWorld->LoginUser();
+	}
+	
+	void EOSWorld::ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data)
+	{
+		switch(Data->CurrentStatus)
+		{
+			case EOS_ELoginStatus::EOS_LS_NotLoggedIn:
+			{
+				RNDebug("EOS not logged in");
+				break;
+			}
+			case EOS_ELoginStatus::EOS_LS_UsingLocalProfile:
+			{
+				RNDebug("EOS not logged in, using local profile");
+				break;
+			}
+			case EOS_ELoginStatus::EOS_LS_LoggedIn:
+			{
+				RNDebug("EOS logged in");
+				break;
+			}
+		}
 	}
 }
