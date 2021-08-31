@@ -47,7 +47,7 @@ namespace RN
 	{
 		if(!EOSWorld::GetInstance()->GetIsLoggedIn())
 		{
-			callback(false);
+			if(callback) callback(false);
 			return;
 		}
 		if(_isJoiningLobby || _isConnectedToLobby)
@@ -72,9 +72,14 @@ namespace RN
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
-	void EOSLobbyManager::SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void (RN::Array *)> callback)
+	void EOSLobbyManager::SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void(bool, RN::Array *)> callback)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isSearchingLobby) return;
+		if(!EOSWorld::GetInstance()->GetIsLoggedIn())
+		{
+			if(callback) callback(false, nullptr);
+			return;
+		}
+		if(_isSearchingLobby) return;
 		
 		EOS_Lobby_CreateLobbySearchOptions searchOptions = {};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
@@ -334,8 +339,6 @@ namespace RN
 	{
 		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
 		
-		Array *lobbyInfoArray = new Array();
-		
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Lobby search successful");
@@ -346,6 +349,7 @@ namespace RN
 			uint32 resultCount = EOS_LobbySearch_GetSearchResultCount(lobbyManager->_lobbySearchHandle, &searchResultCountOptions);
 			RNDebug("Found " << resultCount << " lobbies");
 			
+			Array *lobbyInfoArray = new Array();
 			for(int i = 0; i < resultCount; i++)
 			{
 				EOS_LobbySearch_CopySearchResultByIndexOptions copyOptions = {0};
@@ -420,17 +424,22 @@ namespace RN
 					EOS_LobbyDetails_Info_Release(lobbyDetailsInfo);
 				}
 			}
+			
+			if(lobbyManager->_lobbySearchCallback)
+			{
+				lobbyManager->_lobbySearchCallback(true, lobbyInfoArray);
+			}
+			
+			lobbyInfoArray->Release();
 		}
 		else
 		{
 			RNDebug("Failed searching lobbies");
+			if(lobbyManager->_lobbySearchCallback)
+			{
+				lobbyManager->_lobbySearchCallback(false, nullptr);
+			}
 		}
-		
-		if(lobbyManager->_lobbySearchCallback)
-		{
-			lobbyManager->_lobbySearchCallback(lobbyInfoArray);
-		}
-		lobbyInfoArray->Release();
 		lobbyManager->_isSearchingLobby = false;
 	}
 
