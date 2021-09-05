@@ -28,13 +28,13 @@ namespace RN
 			UIAPI void SetDefaultAttributes(const TextAttributes &attributes);
 			UIAPI void SetTextColor(const Color &color);
 			UIAPI void SetVerticalAlignment(TextVerticalAlignment alignment);
-			
-            UIAPI void SetAdditionalLineHeight(float lineHeight);
+
+			UIAPI void SetAdditionalLineHeight(float lineHeight);
 			UIAPI void SetShadowColor(Color color);
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
 			const String *GetText() const { return _attributedText; }
-			Vector2 GetTextSize();
+			UIAPI Vector2 GetTextSize();
 
 		protected:
 			UIAPI virtual void UpdateModel() override;
