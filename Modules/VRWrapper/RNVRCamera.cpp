@@ -242,24 +242,54 @@ namespace RN
 		_didUpdateVRWindow = false;
 	}
 
-	const VRHMDTrackingState &VRCamera::GetHMDTrackingState() const
+	VRHMDTrackingState VRCamera::GetHMDTrackingState() const
 	{
-		return _window->GetHMDTrackingState();
+		VRHMDTrackingState trackingState = _window->GetHMDTrackingState();
+		trackingState.position += _originPositionOffset;
+		trackingState.position = _originalOrientationOffset.GetRotatedVector(trackingState.position);
+		trackingState.rotation = _originalOrientationOffset * trackingState.rotation;
+		
+		return trackingState;
 	}
 
-	const VRControllerTrackingState &VRCamera::GetControllerTrackingState(uint8 index) const
+	VRControllerTrackingState VRCamera::GetControllerTrackingState(uint8 index) const
 	{
-		return _window->GetControllerTrackingState(index);
+		VRControllerTrackingState trackingState = _window->GetControllerTrackingState(index);
+		trackingState.positionAim += _originPositionOffset;
+		trackingState.positionAim = _originalOrientationOffset.GetRotatedVector(trackingState.positionAim);
+		trackingState.rotationAim = _originalOrientationOffset * trackingState.rotationAim;
+		trackingState.positionGrip += _originPositionOffset;
+		trackingState.positionGrip = _originalOrientationOffset.GetRotatedVector(trackingState.positionGrip);
+		trackingState.rotationGrip = _originalOrientationOffset * trackingState.rotationGrip;
+		
+		trackingState.velocityLinear = _originalOrientationOffset.GetRotatedVector(trackingState.velocityLinear);
+		
+		return trackingState;
 	}
 
-	const VRControllerTrackingState &VRCamera::GetTrackerTrackingState(uint8 index) const
+	VRControllerTrackingState VRCamera::GetTrackerTrackingState(uint8 index) const
 	{
-		return _window->GetTrackerTrackingState(index);
+		VRControllerTrackingState trackingState = _window->GetTrackerTrackingState(index);
+		trackingState.positionAim += _originPositionOffset;
+		trackingState.positionAim = _originalOrientationOffset.GetRotatedVector(trackingState.positionAim);
+		trackingState.rotationAim = _originalOrientationOffset * trackingState.rotationAim;
+		trackingState.positionGrip += _originPositionOffset;
+		trackingState.positionGrip = _originalOrientationOffset.GetRotatedVector(trackingState.positionGrip);
+		trackingState.rotationGrip = _originalOrientationOffset * trackingState.rotationGrip;
+		
+		trackingState.velocityLinear = _originalOrientationOffset.GetRotatedVector(trackingState.velocityLinear);
+		
+		return trackingState;
 	}
 
-	const VRHandTrackingState &VRCamera::GetHandTrackingState(uint8 index) const
+	VRHandTrackingState VRCamera::GetHandTrackingState(uint8 index) const
 	{
-		return _window->GetHandTrackingState(index);
+		VRHandTrackingState trackingState = _window->GetHandTrackingState(index);
+		trackingState.position += _originPositionOffset;
+		trackingState.position = _originalOrientationOffset.GetRotatedVector(trackingState.position);
+		trackingState.rotation = _originalOrientationOffset * trackingState.rotation;
+		
+		return trackingState;
 	}
 
 	void VRCamera::SubmitControllerHaptics(uint8 index, VRControllerHaptics &haptics) const
@@ -300,5 +330,11 @@ namespace RN
 		{
 			_eye[1]->SetClipNear(clipNear);
 		}
+	}
+	
+	void VRCamera::SetOriginOffset(const Vector3 &positionOffset, const Quaternion &orientationOffset)
+	{
+		_originPositionOffset = positionOffset;
+		_originalOrientationOffset = orientationOffset;
 	}
 }
