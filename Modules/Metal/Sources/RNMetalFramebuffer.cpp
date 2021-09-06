@@ -312,8 +312,9 @@ namespace RN
 				if(renderPass->GetFlags() & RenderPass::Flags::ClearDepthStencil)
 				{
 					[depthAttachment setLoadAction:MTLLoadActionClear];
+					[depthAttachment setClearDepth:renderPass->GetClearDepth()];
 				}
-				else if(renderPass->GetFlags() & RenderPass::Flags::LoadColor)
+				else if(renderPass->GetFlags() & RenderPass::Flags::LoadDepthStencil)
 				{
 					[depthAttachment setLoadAction:MTLLoadActionLoad];
 				}
@@ -355,8 +356,37 @@ namespace RN
 			{
 				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
 				[stencilAttachment setTexture:depthStencilTexture];
-				[stencilAttachment setLoadAction:MTLLoadActionDontCare];
-				[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+				
+				if(renderPass->GetFlags() & RenderPass::Flags::ClearDepthStencil)
+				{
+					[stencilAttachment setLoadAction:MTLLoadActionClear];
+					[stencilAttachment setClearStencil:renderPass->GetClearStencil()];
+				}
+				else if(renderPass->GetFlags() & RenderPass::Flags::LoadDepthStencil)
+				{
+					[stencilAttachment setLoadAction:MTLLoadActionLoad];
+				}
+				else
+				{
+					[stencilAttachment setLoadAction:MTLLoadActionDontCare];
+				}
+				
+				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
+				{
+					[stencilAttachment setStoreAction:MTLStoreActionMultisampleResolve];
+					[stencilAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+				}
+				else
+				{
+					if(renderPass->GetFlags() & RenderPass::Flags::StoreDepthStencil)
+					{
+						[stencilAttachment setStoreAction:MTLStoreActionStore];
+					}
+					else
+					{
+						[stencilAttachment setStoreAction:MTLStoreActionDontCare];
+					}
+				}
 				
 				if(multiviewCount > 0 || multiviewLayer > 0)
 				{
