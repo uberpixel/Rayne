@@ -83,7 +83,8 @@ FragmentVertex depth_vertex(InputVertex vert)
 #if RN_USE_MULTIVIEW
 #if RN_SKY
 	float3 rotatedPosition = mul(modelViewMatrix_multiview[vert.viewIndex], float4(vert.position, 1.0)).xyz;
-	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 1.0)).xyww;
+	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 1.0)).xyzw;
+	result.position.z = 0.0;
 #else
 	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
 	result.position = mul(modelViewProjectionMatrix_multiview[vert.viewIndex], position);
@@ -91,7 +92,8 @@ FragmentVertex depth_vertex(InputVertex vert)
 #else
 #if RN_SKY
 	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 1.0)).xyz;
-	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyww;
+	result.position = mul(projectionMatrix, float4(rotatedPosition, 1.0)).xyzw;
+	result.position.z = 0.0;
 #else
 	float4 position = RN_ANIMATION_TRANSFORM(float4(vert.position, 1.0), vert)
 	result.position = mul(modelViewProjectionMatrix, position);

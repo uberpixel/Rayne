@@ -213,6 +213,7 @@ namespace RN
 		Rect frame = _renderPass->GetFrame();
 
 		//Get camera frustum extends to be covered by the split
+		//far plane is at z=0, near plane z=1 for reverse-z!
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
 		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
 		Vector3 farcorner2 = camera->ToWorld(Vector3(-1.0f, -1.0f, far));
@@ -289,6 +290,7 @@ namespace RN
 		if(_flags & Flags::Orthogonal)
 		{
 			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
+			_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 			return;
 		}
 
@@ -320,12 +322,13 @@ namespace RN
 			return;
 		}
 
-		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
-		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
-		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
-		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
-		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
-		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		//far plane is at z=0, near plane z=1 for reverse-z!
+		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0));
+		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 0.0));
+		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 0.0));
+		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
 
 		const Vector3 &position = GetWorldPosition();
 		Vector3 direction = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
@@ -354,64 +357,32 @@ namespace RN
 	Vector3 Camera::__ToWorld(const Vector3 &dir)
 	{
 		PostUpdate();
-		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 
-		if(_flags & Flags::Orthogonal)
-		{
-			Vector4 temp = Vector4(ndcPos*0.5f);
-			temp += 0.5f;
-			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
-
-			// I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
-			Vector4 vec(_orthoLeft, _orthoBottom, -std::min(_clipNear, _clipFar), 2.0f);
-			vec *= temp2;
-			vec += Vector4(_orthoRight, _orthoTop, -std::max(_clipNear, _clipFar), 2.0f)*temp;
-
-			vec = _inverseViewMatrix * vec;
-			return Vector3(vec);
-		}
-		else
-		{
-			Vector4 clipPos;
-			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
-			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
-
-			Vector4 temp = _inverseProjectionMatrix * clipPos;
-			temp = _inverseViewMatrix * temp;
-			return Vector3(temp);
-		}
+		Vector4 ndcPos(dir.x, dir.y, dir.z, 1.0f);
+		
+		Vector4 vec = _inverseViewMatrix * _inverseProjectionMatrix * ndcPos;
+		vec /= vec.w;
+		
+		return Vector3(vec);
 	}
 
 	// There should be a much better solution, but at least this works for now
 	Vector3 Camera::ToWorld(const Vector3 &dir)
 	{
 		PostUpdate();
-		Vector3 ndcPos(dir.x, dir.y, 0.0f);
-		if(_flags & Flags::Orthogonal)
-		{
-			Vector4 temp = Vector4(ndcPos*0.5f);
-			temp += 0.5f;
-			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 0.0f, 0.0f);
-
-			// I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
-			Vector4 vec(_orthoLeft, _orthoBottom, -dir.z, 2.0f);
-			vec *= temp2;
-			vec += Vector4(_orthoRight, _orthoTop, -dir.z, 2.0f)*temp;
-			vec = _inverseViewMatrix * vec;
-			return Vector3(vec);
-		}
-		else
-		{
-			Vector4 clipPos;
-			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
-			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
-
-			Vector4 temp = _inverseProjectionMatrix * clipPos;
-			temp *= -dir.z/temp.z;
-			temp.w = 1.0f;
-			temp = _inverseViewMatrix * temp;
-			return Vector3(temp);
-		}
+		Vector4 ndcPos(dir.x, dir.y, 0.0f, 1.0f);
+		
+		Vector4 vec = _inverseProjectionMatrix * ndcPos;
+		vec /= vec.w;
+		
+		float sign = vec.z < 0.0f? -1.0f : 1.0f; //Otherwise the division would lose the sign
+		vec /= vec.z * sign;
+		vec *= dir.z;
+		vec.w = 1.0;
+		
+		vec = _inverseViewMatrix * vec;
+		
+		return Vector3(vec);
 	}
 
 /*	LightManager *Camera::GetLightManager()

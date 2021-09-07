@@ -478,8 +478,6 @@ namespace RN
 
 						Matrix clipSpaceCorrectionMatrix;
 						clipSpaceCorrectionMatrix.m[5] = -1.0f;
-						clipSpaceCorrectionMatrix.m[10] = 0.5f;
-						clipSpaceCorrectionMatrix.m[14] = 0.5f;
 						cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * multiviewCamera->GetProjectionMatrix();
 						cameraInfo.inverseProjectionMatrix = multiviewCamera->GetInverseProjectionMatrix();
 						cameraInfo.projectionViewMatrix = cameraInfo.projectionMatrix * cameraInfo.viewMatrix;

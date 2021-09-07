@@ -66,10 +66,12 @@ FragmentVertex sky_vertex(InputVertex vert)
 
 #if RN_USE_MULTIVIEW
 	float3 rotatedPosition = mul(modelViewMatrix_multiview[vert.viewIndex], float4(vert.position, 0.0)).xyz;
-	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 0.0)).xyww;
+	result.position = mul(projectionMatrix_multiview[vert.viewIndex], float4(rotatedPosition, 0.0)).xyzw;
+	result.position.z = 0.0;
 #else
 	float3 rotatedPosition = mul(modelViewMatrix, float4(vert.position, 0.0)).xyz;
-	result.position = mul(projectionMatrix, float4(rotatedPosition, 0.0)).xyww;
+	result.position = mul(projectionMatrix, float4(rotatedPosition, 0.0)).xyzw;
+	result.position.z = 0.0;
 #endif
 
 #if RN_UV0

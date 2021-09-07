@@ -264,12 +264,16 @@ namespace RN
 		
 		mat.m[0] = 2.0f / rl;
 		mat.m[5] = 2.0f / tb;
-		mat.m[10] = -1.0f / fn;
+		mat.m[10] = 1.0f / fn;
 		
 		mat.m[12] = tx;
 		mat.m[13] = ty;
-		mat.m[14] = tz;
+		mat.m[14] = -tz + 1.0;
 		mat.m[15] = 1.0f;
+		
+		//Using these will put the near plane at 0 and far plane at 1, while the above does the opposite for better precision with floating point depth buffer
+		//mat.m[10] = -1.0f / fn;
+		//mat.m[14] = tz;
 		
 		return mat;
 	}
@@ -284,69 +288,17 @@ namespace RN
 		
 		mat.m[0] = w;
 		mat.m[5] = h;
-		mat.m[10] = -clipfar / (clipfar - clipnear);
+		mat.m[10] = clipfar/(clipfar - clipnear) - 1.0;
 		mat.m[11] = -1.0f;
-		mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
+		mat.m[14] = (clipfar * clipnear) / (clipfar - clipnear);
 		mat.m[15] = 0.0f;
+		
+		//Using these will put the near plane at 0 and far plane at 1, while the above does the opposite for better precision with floating point depth buffer
+		//mat.m[10] = -clipfar / (clipfar - clipnear);
+		//mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
 		
 		return mat;
 	}
-	
-	//Kinda works? maybe....
-/*	RN_INLINE Matrix Matrix::WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
-	{
-		Matrix mat;
-		
-		float xFac, yFac;
-		xFac = tanf(arc * k::Pi / 360.0f);
-		yFac = xFac / aspect;
-		
-		mat.m[0] = 1.0 / xFac;
-		mat.m[5] = 1.0 / yFac;
-		mat.m[10] = -clipfar / (clipfar - clipnear);
-		mat.m[11] = -1.0f;
-		mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
-		mat.m[15] = 0.0f;
-		
-		return mat;
-	}*/
-	
-	//Should be correct, but getting some artifacts...
-/*	RN_INLINE Matrix Matrix::WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
-	{
-		Matrix mat;
-		
-		float xFac, yFac;
-		yFac = tanf(arc * k::Pi / 360.0f);
-		xFac = yFac * aspect;
-		
-		mat.m[0] = 1.0f / xFac;
-		mat.m[5] = 1.0f / yFac;
-		mat.m[10] = -clipfar / (clipfar - clipnear);
-		mat.m[11] = -1.0f;
-		mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
-		mat.m[15] = 0.0f;
-		
-		return mat;
-	}*/
-
-/*	RN_INLINE Matrix Matrix::WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
-	{
-		Matrix mat;
-
-		float xFac, yFac;
-		yFac = tanf(arc * k::Pi / 360.0f);
-		xFac = yFac * aspect;
-
-		mat.m[0] = 1.0f / xFac;
-		mat.m[5] = 1.0f / yFac;
-		mat.m[10] = -(clipfar + clipnear) / (clipfar - clipnear);
-		mat.m[11] = -1.0f;
-		mat.m[14] = -(2.0f * clipfar * clipnear) / (clipfar - clipnear);
-		mat.m[15] = 0.0f;
-
-		return mat;
-	}*/
 	
 	//TODO: Fix...
 /*	RN_INLINE Matrix Matrix::WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)

@@ -146,7 +146,7 @@ namespace RN
 
 		if(depthFormat == Texture::Format::Invalid)
 		{
-			depthFormat = Texture::Format::Depth_24_Stencil_8;
+			depthFormat = Texture::Format::Depth_32F;
 		}
 
 		if(_msaaSampleCount > 1)

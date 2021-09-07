@@ -155,7 +155,7 @@ namespace RN
 					ArgumentSampler *argumentSampler = nullptr;
 					if(name->IsEqual(RNCSTR("directionalShadowSampler")))
 					{
-						argumentSampler = new ArgumentSampler(name, static_cast<uint32>([argument index]), ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Less);
+						argumentSampler = new ArgumentSampler(name, static_cast<uint32>([argument index]), ArgumentSampler::WrapMode::Clamp, ArgumentSampler::Filter::Linear, ArgumentSampler::ComparisonFunction::Greater);
 					}
 					else //TODO: Pre define some special names like linearRepeatSampler
 					{

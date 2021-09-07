@@ -192,6 +192,9 @@
             {
                 "name": "pp_blit_fragment",
                 "signature": {
+                    "options": [
+                        "RN_PP_VR"
+                    ],
                     "samplers": [
                         {
                             "name": "linearClampSampler",

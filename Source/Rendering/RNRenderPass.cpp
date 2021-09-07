@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(RenderPass, Object)
 
-	RenderPass::RenderPass() : _flags(Flags::Defaults), _framebuffer(nullptr), _clearDepth(1.0f), _clearStencil(0), _nextRenderPasses(new Array())
+	RenderPass::RenderPass() : _flags(Flags::Defaults), _framebuffer(nullptr), _clearDepth(0.0f), _clearStencil(0), _nextRenderPasses(new Array())
 	{
 		
 	}
