@@ -153,7 +153,7 @@ namespace RN
 		XrSwapchainImageWaitInfo swapchainImageWaitInfo;
 		swapchainImageWaitInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
 		swapchainImageWaitInfo.next = nullptr;
-		swapchainImageWaitInfo.timeout = 10000000000; //10s //TODO: Handle timeouts (release later will cause and error and all future frames start being behind somehow)
+		swapchainImageWaitInfo.timeout = 100000000000; //100s //TODO: Handle timeouts (release later will cause and error and all future frames start being behind somehow)
 		xrWaitSwapchainImage(_internals->swapchain, &swapchainImageWaitInfo);
 	}
 
