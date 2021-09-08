@@ -34,9 +34,6 @@ namespace RN
 		OALAPI void SetInputDevice(String *inputDeviceName);
 		OALAPI void SetInputAudioAsset(AudioAsset *bufferAsset);
 		
-		OALAPI void RequestMicrophonePermission();
-		OALAPI MicrophonePermissionState GetMicrophonePermissionState();
-		
 		OALAPI void SetListener(OpenALListener *attachment);
 		OALAPI OpenALSource *PlaySound(AudioAsset*resource);
 		
@@ -44,6 +41,9 @@ namespace RN
 
 		OALAPI static Array *GetOutputDeviceNames();
 		OALAPI static Array *GetInputDeviceNames();
+		
+		OALAPI static void RequestMicrophonePermission();
+		OALAPI static MicrophonePermissionState GetMicrophonePermissionState();
 
 	protected:
 		void Update(float delta) override;
