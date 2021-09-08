@@ -50,7 +50,7 @@ namespace RN
 		swapchainCreateInfo.arraySize = _descriptor.layerCount;
 		swapchainCreateInfo.mipCount = 1;
 
-      //Enable foveated rendering
+		//Enable foveated rendering
 		XrSwapchainCreateInfoFoveationFB foveationSwapChainCreateInfo;
 		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
 		foveationSwapChainCreateInfo.next = nullptr;
