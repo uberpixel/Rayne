@@ -1653,6 +1653,8 @@ namespace RN
 			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
 		}
 
+		//This is fine on android too, but is spamming too much into the logs on quest
+#if !RN_PLATFORM_ANDROID
 		XrPath leftHandUserPath;
 		xrStringToPath(_internals->instance, "/user/hand/left", &leftHandUserPath);
 		XrInteractionProfileState leftHandInteractionProfileState{XR_TYPE_INTERACTION_PROFILE_STATE};
@@ -1664,12 +1666,17 @@ namespace RN
 		xrGetCurrentInteractionProfile(_internals->session, rightHandUserPath, &rightHandInteractionProfileState);
 
 		_controllerTrackingState[0].type = GetControllerTypeForInteractionProfile(_internals->instance, leftHandInteractionProfileState.interactionProfile);
+		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
+#else
+		_controllerTrackingState[0].type = VRControllerTrackingState::Type::OculusTouchController;
+		_controllerTrackingState[1].type = VRControllerTrackingState::Type::OculusTouchController;
+#endif
+
 		_controllerTrackingState[0].hasHaptics = true;
 		_controllerTrackingState[0].active = false;
 		_controllerTrackingState[0].tracking = false;
 		_controllerTrackingState[0].hapticsSampleLength = 0.0;
 		_controllerTrackingState[0].hapticsMaxSamples = 0;
-		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 		_controllerTrackingState[1].active = false;
 		_controllerTrackingState[1].tracking = false;
 		_controllerTrackingState[1].hasHaptics = true;
