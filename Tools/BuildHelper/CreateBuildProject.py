@@ -71,7 +71,7 @@ def main():
 	if isDemo:
 		configBundleID += "_demo"
 		configName += " Demo"
-		configCmakeParameters += "-DRN_BUILD_IS_DEMO"
+		configCmakeParameters += "-DRN_BUILD_IS_DEMO=ON"
 
 	versionFilePath = os.path.join(projectRootPath, "VERSION")
 	buildNumber = Utilities.getBuildNumber(versionFilePath)
