@@ -284,7 +284,10 @@ namespace RN
 
 	void EOSWorld::LoginUser()
 	{
+		RNDebug("Start user login");
 		if(GetIsLoggedIn()) return;
+		
+		RNDebug("Start user login for real");
 		
 		std::function<void(String *, String *, EOSAuthServiceType)> loginCallback = [&](String *userName, String *loginToken, EOSAuthServiceType serviceType){
 			
@@ -321,6 +324,7 @@ namespace RN
 			connectOptions.Credentials = &connectCredentials;
 			connectOptions.UserLoginInfo = &userInfo;
 
+			RNDebug("Now logging in");
 			EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
 		};
 		
@@ -382,6 +386,7 @@ namespace RN
 		}
 		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser)
 		{
+			RNDebug("Failed login, invalid user, trying to create a new one");
 #if RN_PLATFORM_ANDROID
 			EOS_Connect_CreateUserOptions createUserOptions = {0};
 			createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
