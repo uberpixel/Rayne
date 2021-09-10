@@ -12,7 +12,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam or headless)')
+		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -44,6 +44,10 @@ def main():
 		print('Build type (' + configuration + ') not supported!')
 		return
 
+	isDemo = False
+	if len(sys.argv) == 5 and sys.argv[4] == "demo":
+		isDemo = True
+
 	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
 	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
@@ -64,19 +68,28 @@ def main():
 	if not configCmakeParameters:
 		configCmakeParameters = ""
 
+	if isDemo:
+		configBundleID += "_demo"
+		configName += " Demo"
+		configCmakeParameters += "-DRN_BUILD_IS_DEMO"
+
 	versionFilePath = os.path.join(projectRootPath, "VERSION")
 	buildNumber = Utilities.getBuildNumber(versionFilePath)
 	versionString = Utilities.getVersion(versionFilePath)
 
 	buildDirectory = os.path.join(projectRootPath, configBuildDirectory)
 	buildDirectory = os.path.join(buildDirectory, platform+'_'+configuration)
+	if isDemo:
+		buildDirectory += "_demo"
 	if os.path.isdir(buildDirectory):
 		shutil.rmtree(buildDirectory, ignore_errors=True)
 
 	os.makedirs(buildDirectory)
 	os.chdir(buildDirectory)
 
-	buildconfiguration = "-DRN_BUILD_CONFIGURATION="+configuration + " " + configCmakeParameters
+	buildconfiguration = "-DRN_BUILD_CONFIGURATION="+configuration
+	if len(configCmakeParameters) > 0:
+		buildconfiguration += "," + configCmakeParameters
 	buildType = "-DCMAKE_BUILD_TYPE="+configCmakeBuildType
 
 	if platform == 'windows':
@@ -87,7 +100,7 @@ def main():
 		subprocess.call(['cmake', '-G', 'Xcode', projectRootPath, buildconfiguration])
 	elif platform == 'android':
 		subprocess.call(['gradle', 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
-		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData)
+		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, isDemo)
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + "," + buildType)
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))

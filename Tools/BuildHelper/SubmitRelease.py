@@ -81,7 +81,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [devicetype (quest, go)]')
+		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -113,6 +113,10 @@ def main():
 		print('Storefront (' + storefront + ') not supported!')
 		return
 
+	isDemo = False
+	if len(sys.argv) == 5 and sys.argv[4] == "demo":
+		isDemo = True
+
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
 	configName = configName.replace(" ", "-")
 	configNameLower = configName.lower()
@@ -128,6 +132,9 @@ def main():
 		print("config file is missing build-secrets, which is required for submitting to the oculus store and github!")
 		return
 
+	if isDemo:
+		configNameLower += "-demo"
+
 	releasesDirectoryPath = os.path.join(projectRootPath, configReleaseDirectory)
 
 	version = Utilities.getVersion(os.path.join(projectRootPath, "VERSION"))
@@ -142,16 +149,26 @@ def main():
 
 		appName = Utilities.getSettingFromConfig(platform, "appname-itchio", buildConfigData)
 		if not appName:
-			appName = configNameLower
+			appName = configName.lower() #This does NOT include "-demo"
 
-		if platform == 'windows':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+appName+":windows"])
-		elif platform == 'linux':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+appName+":linux"])
-		elif platform == 'android':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+appName+":sidequest"])
-		elif platform == 'macos':
-			subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+appName+":macos"])
+		if not isDemo:
+			if platform == 'windows':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+appName+":windows"])
+			elif platform == 'linux':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+appName+":linux"])
+			elif platform == 'android':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+appName+":sidequest"])
+			elif platform == 'macos':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+appName+":macos"])
+		else:
+			if platform == 'windows':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent_demo'), "slin/"+appName+":windows"])
+			elif platform == 'linux':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent_demo'), "slin/"+appName+":linux"])
+			elif platform == 'android':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent_demo'), "slin/"+appName+":sidequest_demo"])
+			elif platform == 'macos':
+				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent_demo'), "slin/"+appName+":macos"])
 
 	elif storefront == "oculus":
 		oculusUtilityFile = downloadOculusPlatformUtil(buildHelperPath)
@@ -161,8 +178,9 @@ def main():
 		deviceType = "rift"
 		if platform == "android":
 			deviceType = "quest"
-			if len(sys.argv) == 5:
-				deviceType = sys.argv[4]
+
+		if isDemo:
+			deviceType += "-demo"
 
 		appID = None
 		appSecret = None
@@ -180,10 +198,14 @@ def main():
 
 		if platform == 'windows':
 			directoryToUpload = os.path.join(releasesDirectoryPath, 'windows_oculus')
+			if isDemo:
+				directoryToUpload += "_demo"
 			#directoryToUpload = os.path.join(directoryToUpload, configName)
 			subprocess.call([oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060'])
 		elif platform == 'android':
 			apkToUpload = os.path.join(releasesDirectoryPath, 'android_oculus')
+			if isDemo:
+				apkToUpload += "_demo"
 			apkToUpload = os.path.join(apkToUpload, configNameLower+"-"+"oculus"+".apk")
 			subprocess.call([oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha'])
 
@@ -248,10 +270,15 @@ def main():
 			apkToUpload = releasesDirectoryPath
 			if platform == "android":
 				apkToUpload = os.path.join(apkToUpload, platform + '_independent')
+				if isDemo:
+					apkToUpload += "_demo"
 				uploadFileName = configNameLower+"-"+"independent"+".apk"
 			else:
 				uploadFileName = configNameLower + "-" + platform + "_independent"
-				shutil.make_archive(os.path.join(apkToUpload, uploadFileName), 'zip', os.path.join(apkToUpload, platform + '_independent'))
+				directoryToArchive = os.path.join(apkToUpload, platform + '_independent')
+				if isDemo:
+					directoryToArchive += "_demo"
+				shutil.make_archive(os.path.join(apkToUpload, uploadFileName), 'zip', directoryToArchive)
 				uploadFileName += ".zip"
 
 			apkToUpload = os.path.join(apkToUpload, uploadFileName)

@@ -86,9 +86,14 @@ def getSettingFromConfig(platform, setting, config, platformoverride=True):
 	return value
 
 
-def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig):
+def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, isDemo):
 	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig).encode('utf-8')
 	projectName = getSettingFromConfig("android", "name", buildConfig).encode('utf-8')
+	libraryName = projectName.replace(b" ", b"")
+	if isDemo:
+		bundleID += b"_demo"
+		projectName += b" Demo"
+
 	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig)).encode('utf-8')
 	#cmakeVersion = subprocess.check_output(['cmake', '--version'])
 	#cmakeVersion = cmakeVersion.splitlines()[0]
@@ -138,7 +143,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig):
 				fileContent = fileContent.replace(b"__RN_BUNDLE_ID__", bundleID)
 				fileContent = fileContent.replace(b"__RN_PROJECT_NAME__", projectName)
 				fileContent = fileContent.replace(b"__RN_ANDROID_ACTIVITY__", androidActivity.encode('utf-8'))
-				fileContent = fileContent.replace(b"__RN_LIBRARY_NAME__", projectName.replace(b" ", b""))
+				fileContent = fileContent.replace(b"__RN_LIBRARY_NAME__", libraryName)
 				fileContent = fileContent.replace(b"__RN_CMAKE_VERSION__", cmakeVersion)
 				fileContent = fileContent.replace(b"__RN_CMAKE_TARGETS__", cmakeTargets)
 				fileContent = fileContent.replace(b"__RN_PERMISSIONS__", permissionsString)
@@ -150,5 +155,11 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig):
 	if customAndroidActivity:
 		activityPath = os.path.join(projectRoot, customAndroidActivity)
 		bundleIDComponents = bundleID.decode("utf-8").split('.')
-		copyToFolder(activityPath, "app/src/main/java/" + "/".join(bundleIDComponents))
+		customActivityPath = "app/src/main/java/" + "/".join(bundleIDComponents)
+		os.makedirs(customActivityPath)
 
+		with open(activityPath, 'rb') as readFile:
+			fileContent = readFile.read()
+			fileContent = fileContent.replace(b"__RN_BUNDLE_ID__", bundleID)
+			with open(os.path.join(customActivityPath, os.path.basename(customAndroidActivity)), 'wb') as writeFile:
+				writeFile.write(fileContent)

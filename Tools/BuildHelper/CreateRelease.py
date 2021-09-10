@@ -11,7 +11,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless)')
+		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -37,6 +37,10 @@ def main():
 		print('Build type (' + configuration + ') not supported!')
 		return
 
+	isDemo = False
+	if len(sys.argv) == 5 and sys.argv[4] == "demo":
+		isDemo = True
+
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
 	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
 	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
@@ -50,8 +54,13 @@ def main():
 		print("config file is missing release-directory!")
 		return
 
+	if isDemo:
+		configName += " Demo"
+
 	sourceDirectory = os.path.join(projectRootPath, configBuildDirectory)
 	sourceDirectory = os.path.join(sourceDirectory, platform+'_'+configuration)
+	if isDemo:
+		sourceDirectory += "_demo"
 	if platform == 'android':
 		sourceDirectory = os.path.join(sourceDirectory, 'app/build/outputs/apk/release')
 	elif platform == 'linux':
@@ -67,6 +76,8 @@ def main():
 
 	destinationDirectory = os.path.join(projectRootPath, configReleaseDirectory)
 	destinationDirectory = os.path.join(destinationDirectory, platform+'_'+configuration)
+	if isDemo:
+		destinationDirectory += "_demo"
 	if os.path.isdir(destinationDirectory):
 		shutil.rmtree(destinationDirectory, ignore_errors=True)
 

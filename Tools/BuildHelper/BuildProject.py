@@ -12,7 +12,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python BuildProject.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless)')
+		print('python BuildProject.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -44,6 +44,10 @@ def main():
 		print('Build type (' + configuration + ') not supported!')
 		return
 
+	isDemo = False
+	if len(sys.argv) == 5 and sys.argv[4] == "demo":
+		isDemo = True
+
 	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)
 	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
 	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
@@ -65,6 +69,11 @@ def main():
 		print("config file is missing keystore, this is required for android builds!")
 		return
 
+	configNameFull = configName
+	if isDemo:
+		configBundleID += "_demo"
+		configNameFull += " Demo"
+
 	versionFilePath = os.path.join(projectRootPath, 'VERSION')
 	buildNumber = Utilities.getBuildNumber(versionFilePath)+1
 	versionString = Utilities.getVersion(versionFilePath)
@@ -72,6 +81,8 @@ def main():
 
 	buildDirectory = os.path.join(projectRootPath, configBuildDirectory)
 	buildDirectory = os.path.join(buildDirectory, platform+'_'+configuration)
+	if isDemo:
+		buildDirectory += "_demo"
 	os.chdir(buildDirectory)
 
 	print(buildDirectory)
@@ -126,7 +137,8 @@ def main():
 
 		subprocess.call(['./gradlew', 'assembleRelease'])
 		subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])
-		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', os.path.join('app/build/outputs/apk/release', configName.replace(" ", "-").lower()+"-"+configuration+".apk")])
+		apkFilePath = os.path.join('app/build/outputs/apk/release', configNameFull.replace(" ", "-").lower() + "-" + configuration + ".apk")
+		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', apkFilePath])
 
 if __name__ == '__main__':
 	main()
