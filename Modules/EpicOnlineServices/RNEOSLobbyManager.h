@@ -41,6 +41,7 @@ namespace RN
 		EOSAPI ~EOSLobbyInfo();
 		
 		String *lobbyName;
+		String *lobbyLevel;
 		String *lobbyVersion;
 		uint8 maximumPlayerCount;
 		uint8 currentPlayerCount;
@@ -61,7 +62,7 @@ namespace RN
 
 		EOSAPI ~EOSLobbyManager();
 		
-		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword);
+		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword);
 		EOSAPI void SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void(bool, RN::Array *)> callback);
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
 		EOSAPI void LeaveCurrentLobby();
@@ -88,6 +89,7 @@ namespace RN
 		bool _isJoiningLobby;
 		
 		String *_createLobbyName;
+		String *_createLobbyLevel;
 		String *_createLobbyVersion;
 		int64 _createLobbyTimestamp;
 		bool _createLobbyHasPassword;
