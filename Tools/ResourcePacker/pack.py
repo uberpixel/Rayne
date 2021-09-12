@@ -53,6 +53,35 @@ def getTextureSpec(resourceSpec, relpath, platform):
 
     return textureSpec
 
+def needsToCopyFile(resourceSpec, relpath, platform, isDemo):
+    relpath = os.path.normpath(relpath)
+    relpath = relpath.replace("\\", "/")
+    if "filters" in resourceSpec:
+        filterDict = {}
+        if isDemo:
+            if "demo~"+platform in resourceSpec["filters"]:
+                filterDict = resourceSpec["filters"]["demo~"+platform]
+            elif "demo" in resourceSpec["filters"]:
+                filterDict = resourceSpec["filters"]["demo"]
+        else:
+            if "game~"+platform in resourceSpec["filters"]:
+                filterDict = resourceSpec["filters"]["game~"+platform]
+            elif "game" in resourceSpec["filters"]:
+                filterDict = resourceSpec["filters"]["game"]
+
+        if "exclude" in filterDict:
+            excludes = filterDict["exclude"]
+            path = relpath
+            while True:
+                if path in excludes:
+                    return False
+
+                path = os.path.dirname(path)
+                if len(path) == 0:
+                    break
+
+    return True
+
 def getTexturesForModelFile(file):
     textures = list()
     with open(file, 'rb') as modelFile:
@@ -97,7 +126,7 @@ def getTexturesForModelFile(file):
 
 def main():
     if len(sys.argv) < 4:
-        print('python pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures]')
+        print('python pack.py inputFolder outputFolder platform [--resourcespec=filename.json --skip-textures --is-demo]')
         return
 
     pythonExecutable = sys.executable
@@ -113,12 +142,15 @@ def main():
         return
 
     skipTextures = False
+    isDemo = False
     resourceSpecFile = None
     for i in range(4, len(sys.argv), 1):
         if sys.argv[i] == '--skip-textures':
             skipTextures = True
         if sys.argv[i].startswith('--resourcespec='):
             resourceSpecFile = sys.argv[i][15:]
+        if sys.argv[i] == '--is-demo':
+            isDemo = True
 
     resourceSpec = dict()
     if resourceSpecFile:
@@ -180,18 +212,19 @@ def main():
         if not skipTextures:
             for filename in files:
                 if resourceSpecFile:
-                    #Convert based on settings in resource spec file
-                    textureFileName, textureFileExtension = os.path.splitext(filename)
-                    if textureFileExtension == '.png':
-                        textureSpec = getTextureSpec(resourceSpec, os.path.join(currentRelativePath, filename), platform)
+                    if needsToCopyFile(resourceSpec, os.path.join(currentRelativePath, filename), platform, isDemo):
+                        #Convert based on settings in resource spec file
+                        textureFileName, textureFileExtension = os.path.splitext(filename)
+                        if textureFileExtension == '.png':
+                            textureSpec = getTextureSpec(resourceSpec, os.path.join(currentRelativePath, filename), platform)
 
-                        textureInputPath = os.path.join(currentSourceDirectory, filename)
-                        textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + textureSpec["extension"])
-                        callArray = [pythonExecutable, textureConverter, textureInputPath, textureOutputPath]
-                        if len(textureSpec["parameters"]) > 0:
-                            callArray.append(textureSpec["parameters"])
-                        subprocess.call(callArray)
-                        filesToSkip[filename] = True
+                            textureInputPath = os.path.join(currentSourceDirectory, filename)
+                            textureOutputPath = os.path.join(currentTargetDirectory, textureFileName + textureSpec["extension"])
+                            callArray = [pythonExecutable, textureConverter, textureInputPath, textureOutputPath]
+                            if len(textureSpec["parameters"]) > 0:
+                                callArray.append(textureSpec["parameters"])
+                            subprocess.call(callArray)
+                            filesToSkip[filename] = True
 
                 else:
                     #If no resource spec is specified fallback to only convert model textures
@@ -227,10 +260,11 @@ def main():
                     if fileextension in ['.dds', '.astc', '.png']:
                         continue
 
-                sourceFilePath = os.path.join(currentSourceDirectory, filename)
-                targetFilePath = os.path.join(currentTargetDirectory, filename)
-                if needsToUpdateFile(sourceFilePath, targetFilePath):
-                    shutil.copy2(sourceFilePath, targetFilePath)
+                if needsToCopyFile(resourceSpec, os.path.join(currentRelativePath, filename), platform, isDemo):
+                    sourceFilePath = os.path.join(currentSourceDirectory, filename)
+                    targetFilePath = os.path.join(currentTargetDirectory, filename)
+                    if needsToUpdateFile(sourceFilePath, targetFilePath):
+                        shutil.copy2(sourceFilePath, targetFilePath)
 
 
 if __name__ == '__main__':
