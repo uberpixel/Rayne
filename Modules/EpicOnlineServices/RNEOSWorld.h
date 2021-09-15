@@ -45,6 +45,14 @@ namespace RN
 	class EOSWorld : public SceneAttachment
 	{
 	public:
+		enum LoginState
+		{
+			LoginStateIsNotLoggedIn,
+			LoginStateIsLoggingIn,
+			LoginStateIsLoggedIn,
+			LoginStateLoginFailed
+		};
+		
 		EOSAPI static EOSWorld *GetInstance();
 
 		EOSAPI EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback);
@@ -57,7 +65,7 @@ namespace RN
 		EOSAPI EOS_HPlatform GetPlatformHandle() const { return _platformHandle; }
 		EOSAPI EOS_HP2P GetP2PHandle() const { return _p2pInterfaceHandle; }
 		EOSAPI EOS_ProductUserId GetUserID() const { return _loggedInUserID; }
-		EOSAPI bool GetIsLoggedIn() const { return _isLoggedIn; }
+		EOSAPI LoginState GetLoginState() const { return _loginState; }
 		EOSAPI void LoginUser();
 		
 		EOSAPI double Ping(String *address, size_t repetitions);
@@ -80,7 +88,7 @@ namespace RN
 		
 		std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> _externalLoginCallback;
 
-		bool _isLoggedIn;
+		LoginState _loginState;
 		EOS_ProductUserId _loggedInUserID;
 		
 		EOS_HPlatform _platformHandle;

@@ -46,7 +46,7 @@ namespace RN
 
 	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn())
+		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
 			if(callback) callback(false);
 			return;
@@ -76,7 +76,7 @@ namespace RN
 
 	void EOSLobbyManager::SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void(bool, RN::Array *)> callback)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn())
+		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
 			if(callback) callback(false, nullptr);
 			return;
@@ -113,12 +113,13 @@ namespace RN
 		findOptions.ApiVersion = EOS_LOBBYSEARCH_FIND_API_LATEST;
 		findOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		
+		RNDebug("Start searching lobbies");
 		EOS_LobbySearch_Find(_lobbySearchHandle, &findOptions, this, LobbyOnSearchCallback);
 	}
 
 	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback)
 	{
-		if(!EOSWorld::GetInstance()->GetIsLoggedIn() || _isJoiningLobby || _isConnectedToLobby) return;
+		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn || _isJoiningLobby || _isConnectedToLobby) return;
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
@@ -462,6 +463,9 @@ namespace RN
 			{
 				lobbyManager->_lobbySearchCallback(false, nullptr);
 			}
+			//On android this callback will be triggered 3 more times if there is no connection,
+			//Unset the callback here to not have it triggered again until another search...
+			lobbyManager->_lobbySearchCallback = nullptr;
 		}
 		lobbyManager->_isSearchingLobby = false;
 	}

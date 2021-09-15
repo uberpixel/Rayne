@@ -40,7 +40,7 @@ namespace RN
 		return _instance;
 	}
 
-	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _isLoggedIn(false), _loggedInUserID(nullptr), _lobbyManager(nullptr)
+	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _loginState(LoginStateIsNotLoggedIn), _loggedInUserID(nullptr), _lobbyManager(nullptr)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
 
@@ -285,9 +285,10 @@ namespace RN
 	void EOSWorld::LoginUser()
 	{
 		RNDebug("Start user login");
-		if(GetIsLoggedIn()) return;
+		if(_loginState == LoginStateIsLoggingIn || _loginState == LoginStateIsLoggedIn) return;
 		
 		RNDebug("Start user login for real");
+		_loginState = LoginStateIsLoggingIn;
 		
 		std::function<void(String *, String *, EOSAuthServiceType)> loginCallback = [&](String *userName, String *loginToken, EOSAuthServiceType serviceType){
 			
@@ -381,7 +382,7 @@ namespace RN
 		{
 			RNDebug("Successful login");
 
-			eosWorld->_isLoggedIn = true;
+			eosWorld->_loginState = LoginStateIsLoggedIn;
 			eosWorld->_loggedInUserID = Data->LocalUserId;
 		}
 		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser)
@@ -403,6 +404,7 @@ namespace RN
 		else
 		{
 			RNDebug("Login failed");
+			eosWorld->_loginState = LoginStateLoginFailed;
 		}
 	}
 
