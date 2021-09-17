@@ -172,10 +172,13 @@ namespace RN
 
 			subview->WillMoveToSuperview(this);
 
+			Lock();
 			_subviews->AddObject(subview);
 			subview->_superview = this;
 			
 			AddChild(subview);
+			Unlock();
+			
 			subview->CalculateScissorRect();
 
 			subview->DidMoveToSuperview(this);
@@ -194,8 +197,10 @@ namespace RN
 				subview->Retain();
 				subview->WillMoveToSuperview(nullptr);
 
+				Lock();
 				_subviews->RemoveObjectAtIndex(index);
 				subview->RemoveFromParent();
+				Unlock();
 
 				subview->_superview = nullptr;
 
@@ -220,7 +225,9 @@ namespace RN
 				subview->DidMoveToSuperview(nullptr);
 			}
 
+			Lock();
 			_subviews->RemoveAllObjects();
+			Unlock();
 		}
 
 		void View::RemoveFromSuperview()
@@ -237,8 +244,10 @@ namespace RN
 			{
 				subview->Retain();
 
+				Lock();
 				_subviews->RemoveObject(subview);
 				_subviews->AddObject(subview);
+				Unlock();
 
 				subview->Release();
 				DidBringSubviewToFront(subview);
@@ -251,11 +260,13 @@ namespace RN
 			{
 				subview->Retain();
 
+				Lock();
 				if(_subviews->GetCount() > 1)
 				{
 					_subviews->RemoveObject(subview);
 					_subviews->InsertObjectAtIndex(subview, 0);
 				}
+				Unlock();
 
 				subview->Release();
 				DidSendSubviewToBack(subview);
@@ -297,6 +308,7 @@ namespace RN
 
 		void View::SetFrame(const Rect &frame)
 		{
+			Lock();
 			Vector2 oldSize = _frame.GetSize();
 
 			_frame = frame;
@@ -310,12 +322,14 @@ namespace RN
 			{
 				_needsMeshUpdate = true;
 			}
+			Unlock();
 			
 			CalculateScissorRect();
 		}
 
 		void View::SetBounds(const Rect &bounds)
 		{
+			Lock();
 			_bounds = bounds;
 			//_needsMeshUpdate = true;
 			
@@ -325,17 +339,21 @@ namespace RN
 				View *child = _subviews->GetObjectAtIndex<View>(i);
 				child->SetPosition(RN::Vector3(_bounds.x + child->GetFrame().x, -_bounds.y - child->GetFrame().y, 0.0f));
 			}
+			Unlock();
 			
 			CalculateScissorRect();
 		}
 	
 		void View::SetHidden(bool hidden)
 		{
+			Lock();
 			_isHidden = hidden;
+			Unlock();
 		}
 
 		void View::SetBackgroundColor(const Color &color)
 		{
+			Lock();
 			_backgroundColor = color;
 			RN::Model *model = GetModel();
 			if(model)
@@ -344,6 +362,7 @@ namespace RN
 				material->SetDiffuseColor(_backgroundColor);
 				material->SetSkipRendering(_backgroundColor.a < k::EpsilonFloat);
 			}
+			Unlock();
 		}
 
 		// ---------------------
@@ -353,6 +372,7 @@ namespace RN
 
 		void View::CalculateScissorRect()
 		{
+			Lock();
 			if(_superview)
 			{
 				RN::Rect parentScissorRect;
@@ -398,6 +418,8 @@ namespace RN
 				View *child = _subviews->GetObjectAtIndex<View>(i);
 				child->CalculateScissorRect();
 			}
+			
+			Unlock();
 		}
 	
 		bool View::UpdateCursorPosition(const Vector2 &cursorPosition)
@@ -420,6 +442,8 @@ namespace RN
 	
 		void View::UpdateModel()
 		{
+			Lock();
+			
 			float *vertexPositionBuffer = new float[4 * 2];
 			float *vertexUVBuffer = new float[4 * 2];
 			
@@ -518,6 +542,7 @@ namespace RN
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
+			Unlock();
 		}
 
 		// ---------------------
