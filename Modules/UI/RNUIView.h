@@ -55,6 +55,7 @@ namespace RN
 			bool GetIsHidden() const { return _isHidden; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
+			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthOffset);
 
 			UIAPI virtual void Draw();
 			
@@ -88,6 +89,9 @@ namespace RN
 			Rect _scissorRect;
 
 			Color _backgroundColor;
+			DepthMode _depthMode;
+			bool _isDepthWriteEnabled;
+			float _depthOffset;
 
 			View *_superview;
 			Array *_subviews;

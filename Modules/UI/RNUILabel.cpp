@@ -16,7 +16,7 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop)
+		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual)
 		{
 			
 		}
@@ -113,6 +113,22 @@ namespace RN
 			if(model)
 			{
 				model->GetLODStage(0)->GetMaterialAtIndex(1)->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+			}
+			Unlock();
+		}
+		
+		void Label::SetTextDepthMode(DepthMode depthMode)
+		{
+			Lock();
+			_labelDepthMode = depthMode;
+			RN::Model *model = GetModel();
+			if(model)
+			{
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
+				material->SetDepthMode(_labelDepthMode);
+				
+				material = model->GetLODStage(0)->GetMaterialAtIndex(2);
+				material->SetDepthMode(_labelDepthMode);
 			}
 			Unlock();
 		}
@@ -602,6 +618,7 @@ namespace RN
 				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
 				material->SetAlphaToCoverage(false);
 				material->SetDepthWriteEnabled(false);
+				material->SetDepthMode(_labelDepthMode);
 				material->SetCullMode(CullMode::None);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);

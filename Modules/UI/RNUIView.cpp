@@ -22,7 +22,10 @@ namespace RN
 			_needsMeshUpdate(true),
 			_subviews(new Array()),
 			_superview(nullptr),
-			_backgroundColor(Color::ClearColor())
+			_backgroundColor(Color::ClearColor()),
+			_isDepthWriteEnabled(false),
+			_depthMode(DepthMode::GreaterOrEqual),
+			_depthOffset(-0.001f)
 		{
 			SetRenderGroup(1 << 7);
 			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
@@ -364,6 +367,23 @@ namespace RN
 			}
 			Unlock();
 		}
+		
+		void View::SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthOffset)
+		{
+			Lock();
+			_depthMode = depthMode;
+			_isDepthWriteEnabled = writeDepth;
+			_depthOffset = depthOffset;
+			RN::Model *model = GetModel();
+			if(model)
+			{
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
+				material->SetDepthMode(_depthMode);
+				material->SetPolygonOffset(_isDepthWriteEnabled, 0.0f, _depthOffset);
+			}
+			Unlock();
+		}
 
 		// ---------------------
 		// MARK: -
@@ -512,8 +532,9 @@ namespace RN
 				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
-				//material->SetDepthMode(DepthMode::Always);
-				material->SetDepthWriteEnabled(false);
+				material->SetDepthMode(_depthMode);
+				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
+				material->SetPolygonOffset(_isDepthWriteEnabled, 0.0f, _depthOffset);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);

@@ -33,6 +33,8 @@ namespace RN
 			UIAPI void SetShadowColor(Color color);
 			UIAPI void SetShadowOffset(Vector2 offset);
 			
+			UIAPI void SetTextDepthMode(DepthMode depthMode);
+			
 			const String *GetText() const { return _attributedText; }
 			UIAPI Vector2 GetTextSize();
 
@@ -47,6 +49,8 @@ namespace RN
             float _additionalLineHeight;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
+			
+			DepthMode _labelDepthMode;
 
 			RNDeclareMetaAPI(Label, UIAPI)
 		};
