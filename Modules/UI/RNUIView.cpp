@@ -25,7 +25,8 @@ namespace RN
 			_backgroundColor(Color::ClearColor()),
 			_isDepthWriteEnabled(false),
 			_depthMode(DepthMode::GreaterOrEqual),
-			_depthOffset(-0.001f)
+			_depthOffset(-200.0f),
+			_depthFactor(-50.0f)
 		{
 			SetRenderGroup(1 << 7);
 			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
@@ -368,7 +369,7 @@ namespace RN
 			Unlock();
 		}
 		
-		void View::SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthOffset)
+		void View::SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset)
 		{
 			Lock();
 			_depthMode = depthMode;
@@ -380,7 +381,7 @@ namespace RN
 				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
 				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
 				material->SetDepthMode(_depthMode);
-				material->SetPolygonOffset(_isDepthWriteEnabled, 0.0f, _depthOffset);
+				material->SetPolygonOffset(_isDepthWriteEnabled, _depthFactor, _depthOffset);
 			}
 			Unlock();
 		}
@@ -534,7 +535,7 @@ namespace RN
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);
 				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
-				material->SetPolygonOffset(_isDepthWriteEnabled, 0.0f, _depthOffset);
+				material->SetPolygonOffset(_isDepthWriteEnabled, _depthFactor, _depthOffset);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
