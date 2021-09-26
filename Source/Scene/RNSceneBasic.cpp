@@ -197,6 +197,7 @@ namespace RN
 
 	void SceneBasic::AddRenderNode(SceneNode *node)
 	{
+		Lock();
 		int32 renderPriority = node->GetRenderPriority();
 		if(!_renderNodes.GetHead() || _renderNodes.GetHead()->Get()->GetRenderPriority() >= renderPriority)
 		{
@@ -216,6 +217,7 @@ namespace RN
 			
 			_renderNodes.InsertAfter(node->_sceneRenderEntry, member);
 		}
+		Unlock();
 	}
 
 	void SceneBasic::RemoveRenderNode(SceneNode *node)
@@ -256,8 +258,11 @@ namespace RN
 			AddRenderNode(node);
 		}
 		
-        //PushFront to prevent race condition with scene iterating over the nodes.
+		//Lock to prevent race condition of multiple threads adding nodes at the same time
+		Lock();
+		//PushFront to prevent race condition with scene iterating over the nodes.
 		_updateNodes[static_cast<size_t>(node->GetUpdatePriority())].PushFront(node->_sceneUpdateEntry);
+		Unlock();
 	}
 	
 	void SceneBasic::RemoveNode(SceneNode *node)
