@@ -39,6 +39,7 @@ namespace RN
 		
 		View::~View()
 		{
+			Lock();
 			size_t count = _subviews->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
@@ -47,6 +48,7 @@ namespace RN
 			}
 
 			SafeRelease(_subviews);
+			Unlock();
 		}
 
 
@@ -169,6 +171,7 @@ namespace RN
 
 		void View::AddSubview(View *subview)
 		{
+			Lock();
 			subview->Retain();
 
 			if(subview->_superview)
@@ -176,12 +179,10 @@ namespace RN
 
 			subview->WillMoveToSuperview(this);
 
-			Lock();
 			_subviews->AddObject(subview);
 			subview->_superview = this;
 			
 			AddChild(subview);
-			Unlock();
 			
 			subview->CalculateScissorRect();
 
@@ -189,10 +190,12 @@ namespace RN
 			subview->Release();
 
 			DidAddSubview(subview);
+			Unlock();
 		}
 
 		void View::RemoveSubview(View *subview)
 		{
+			Lock();
 			size_t index = _subviews->GetIndexOfObject(subview);
 			if(index != kRNNotFound)
 			{
@@ -201,20 +204,20 @@ namespace RN
 				subview->Retain();
 				subview->WillMoveToSuperview(nullptr);
 
-				Lock();
 				_subviews->RemoveObjectAtIndex(index);
 				subview->RemoveFromParent();
-				Unlock();
 
 				subview->_superview = nullptr;
 
 				subview->DidMoveToSuperview(nullptr);
 				subview->Release();
 			}
+			Unlock();
 		}
 
 		void View::RemoveAllSubviews()
 		{
+			Lock();
 			size_t count = _subviews->GetCount();
 			for(size_t i=0; i<count; i++)
 			{
@@ -229,7 +232,6 @@ namespace RN
 				subview->DidMoveToSuperview(nullptr);
 			}
 
-			Lock();
 			_subviews->RemoveAllObjects();
 			Unlock();
 		}
@@ -447,8 +449,14 @@ namespace RN
 		{
 			bool needsRedraw = false;
 			
+			Lock();
+			//Copy to prevent multithreading issues with adding/removing/moving subviews
+			//TODO: This is called often, instead _subviews should be updated asynchroneously
+			Array *subviewsCopy = _subviews->Copy();
+			Unlock();
+			
 			// Update all children
-			size_t count = _subviews->GetCount();
+			size_t count = subviewsCopy->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
@@ -591,12 +599,14 @@ namespace RN
 			}
 			
 			// Draw all children
+			Lock();
 			size_t count = _subviews->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
 				child->Draw();
 			}
+			Unlock();
 		}
 	}
 }

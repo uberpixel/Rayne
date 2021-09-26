@@ -22,6 +22,7 @@ namespace RN
 
 		Font::Font(RN::String *filepath, bool preloadASCII)
 		{
+			Lock();
 			_fontData = RN::Data::WithContentsOfFile(filepath);
 			_fontData->Retain();
 			_fontInfo = new stbtt_fontinfo;
@@ -36,20 +37,25 @@ namespace RN
 					GetMeshForCharacter(i);
 				}
 			}
+			Unlock();
 		}
 
 		Font::~Font()
 		{
+			Lock();
 			delete _fontInfo;
 			_fontData->Release();
 			_meshes->Release();
+			Unlock();
 		}
 
 		RN::Mesh *Font::GetMeshForCharacter(int codepoint)
 		{
+			Lock();
 			RN::Mesh *existingMesh = _meshes->GetObjectForKey<RN::Mesh>(RN::Number::WithInt32(codepoint));
 			if(existingMesh)
 			{
+				Unlock();
 				return existingMesh;
 			}
 			
@@ -144,6 +150,7 @@ namespace RN
 			
 			if(paths.paths.size() == 0)
 			{
+				Unlock();
 				return nullptr;
 			}
 			
@@ -220,73 +227,91 @@ namespace RN
 			mesh->EndChanges();
 			
 			_meshes->SetObjectForKey(mesh, RN::Number::WithInt32(codepoint));
+			Unlock();
 			
 			return mesh;
 		}
 
 		float Font::GetOffsetForNextCharacter(int currentCodepoint, int nextCodepoint)
 		{
+			Lock();
 			int advance, lsb;
 			stbtt_GetCodepointHMetrics(_fontInfo, currentCodepoint, &advance, &lsb);
 			float offset = advance;
 			if(nextCodepoint >= 0)
 				offset += stbtt_GetCodepointKernAdvance(_fontInfo, currentCodepoint, nextCodepoint);
+			Unlock();
 			
 			return offset;
 		}
 
 		float Font::GetAscent()
 		{
+			Lock();
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
+			Unlock();
 			
 			return ascent;
 		}
 
 		float Font::GetDescent()
 		{
+			Lock();
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
+			Unlock();
 			
 			return descent;
 		}
 
 		float Font::GetLineOffset()
 		{
+			Lock();
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
+			Unlock();
 			
 			return linegap;
 		}
 
 		float Font::GetHeight()
 		{
+			Lock();
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
+			Unlock();
 			
 			return ascent - descent;
 		}
 
 		FontManager::FontManager()
 		{
+			Lock();
 			_fonts = new RN::Dictionary();
+			Unlock();
 		}
 
 		FontManager::~FontManager()
 		{
+			Lock();
 			_fonts->Release();
+			Unlock();
 		}
 
 		Font *FontManager::GetFontForFilepath(RN::String *filepath, bool preloadASCII)
 		{
+			Lock();
 			Font *font = _fonts->GetObjectForKey<Font>(filepath);
 			if(font)
 			{
+				Unlock();
 				return font;
 			}
 			
 			font = new Font(filepath, preloadASCII);
 			_fonts->SetObjectForKey(font, filepath);
+			Unlock();
 			
 			return font;
 		}
