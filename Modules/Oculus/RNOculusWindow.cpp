@@ -27,7 +27,7 @@ namespace RN
 		StopRendering();
 	}
 
-	void OculusWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	void OculusWindow::StartRendering(const SwapChainDescriptor &descriptor, float eyeResolutionFactor)
 	{
 		_swapChain = new OculusSwapChain(descriptor);
 	}

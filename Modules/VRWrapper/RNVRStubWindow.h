@@ -20,7 +20,7 @@ namespace RN
 		RNVRAPI VRStubWindow() { }
 		RNVRAPI ~VRStubWindow() { }
 		
-		RNVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final { }
+		RNVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor(), float eyeResolutionFactor = 1.0f) final { }
 		RNVRAPI void StopRendering() final { }
 		RNVRAPI bool IsRendering() const final { return true; }
 

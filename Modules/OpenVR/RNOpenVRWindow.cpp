@@ -90,7 +90,7 @@ namespace RN
 		_vrSystem = nullptr;
 	}
 	
-	void OpenVRWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	void OpenVRWindow::StartRendering(const SwapChainDescriptor &descriptor, float eyeResolutionFactor)
 	{
 		if(!_vrSystem)
 			return;

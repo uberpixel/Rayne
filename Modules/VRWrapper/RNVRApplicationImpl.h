@@ -106,7 +106,7 @@ namespace RN
 				swapChainDescriptor.colorFormat = RN::Texture::Format::RGBA_16F;
 			}
 #endif*/
-			_vrWindow->StartRendering(swapChainDescriptor);
+			_vrWindow->StartRendering(swapChainDescriptor, 1.0f);
 		}
 /*		else
 		{

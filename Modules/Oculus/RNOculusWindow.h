@@ -27,7 +27,7 @@ namespace RN
 		OVRAPI OculusWindow();
 		OVRAPI ~OculusWindow();
 
-		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
+		OVRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor(), float eyeResolutionFactor = 1.0f) final;
 		OVRAPI void StopRendering() final;
 		OVRAPI bool IsRendering() const final;
 

@@ -64,7 +64,7 @@ namespace RN
         delete java;
 	}
 
-	void OculusMobileWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	void OculusMobileWindow::StartRendering(const SwapChainDescriptor &descriptor, float eyeResolutionFactor)
 	{
 		ovrJava *java = static_cast<ovrJava*>(_java);
 
@@ -82,8 +82,8 @@ namespace RN
 
 		//1:1 mapping for center according to docs would be 1536x1536, returned is 1024*1024 for GO, higher on quest
 		Vector2 eyeRenderSize;
-        eyeRenderSize.x = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH);
-        eyeRenderSize.y = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_HEIGHT);
+        eyeRenderSize.x = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH) * eyeResolutionFactor;
+        eyeRenderSize.y = vrapi_GetSystemPropertyInt(java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_HEIGHT) * eyeResolutionFactor;
 
 		_swapChain = new OculusMobileVulkanSwapChain(descriptor, eyeRenderSize);
 

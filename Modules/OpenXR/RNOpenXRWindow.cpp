@@ -1117,7 +1117,7 @@ namespace RN
 		}
 	}
 
-	void OpenXRWindow::StartRendering(const SwapChainDescriptor &descriptor)
+	void OpenXRWindow::StartRendering(const SwapChainDescriptor &descriptor, float eyeResolutionFactor)
 	{
 		XrSessionCreateInfo sessionCreateInfo;
 		sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
@@ -1208,7 +1208,7 @@ namespace RN
 			RNDebug("View: " << configurationViews[i].recommendedImageRectWidth << " x " << configurationViews[i].recommendedImageRectHeight << " : " << configurationViews[i].recommendedSwapchainSampleCount);
 		}
 
-		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth, configurationViews[0].recommendedImageRectHeight);
+		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth * eyeResolutionFactor, configurationViews[0].recommendedImageRectHeight * eyeResolutionFactor);
 		delete[] configurationViews;
 		
 		if(!XR_SUCCEEDED(xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session)))

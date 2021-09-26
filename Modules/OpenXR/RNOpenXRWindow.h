@@ -33,7 +33,7 @@ namespace RN
 		OXRAPI OpenXRWindow();
 		OXRAPI ~OpenXRWindow();
 
-		OXRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor()) final;
+		OXRAPI void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor(), float eyeResolutionFactor = 1.0f) final;
 		OXRAPI void StopRendering() final;
 		OXRAPI bool IsRendering() const final;
 
