@@ -52,12 +52,12 @@ namespace RN
 			const Rect &GetScissorRect() const { return _scissorRect; }
 			
 			UIAPI void SetHidden(bool hidden);
-			bool GetIsHidden() const { return _isHidden; }
+			bool GetIsHidden() const { return _isHidden || _isHiddenByParent; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset);
 
-			UIAPI virtual void Draw();
+			UIAPI virtual void Draw(bool isParentHidden);
 			
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
 
@@ -86,6 +86,7 @@ namespace RN
 
 			bool _clipsToBounds;
 			bool _isHidden;
+			bool _isHiddenByParent;
 			Rect _scissorRect;
 
 			Color _backgroundColor;

@@ -19,6 +19,7 @@ namespace RN
 		View::View() :
 			_clipsToBounds(true),
 			_isHidden(false),
+			_isHiddenByParent(false),
 			_needsMeshUpdate(true),
 			_subviews(new Array()),
 			_superview(nullptr),
@@ -580,19 +581,19 @@ namespace RN
 		// MARK: Drawing
 		// ---------------------
 
-		void View::Draw()
+		void View::Draw(bool isParentHidden)
 		{
-			if(_isHidden || !_bounds.IntersectsRect(_scissorRect))
+			_isHiddenByParent = isParentHidden;
+			if(_isHidden || isParentHidden || !_bounds.IntersectsRect(_scissorRect))
 			{
 				AddFlags(SceneNode::Flags::Hidden);
-				return;
 			}
 			else
 			{
 				RemoveFlags(SceneNode::Flags::Hidden);
 			}
 			
-			if(_needsMeshUpdate)
+			if(_needsMeshUpdate && !_isHidden && !isParentHidden)
 			{
 				UpdateModel();
 				_needsMeshUpdate = false;
@@ -604,7 +605,7 @@ namespace RN
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->Draw();
+				child->Draw(_isHidden || isParentHidden);
 			}
 			Unlock();
 		}

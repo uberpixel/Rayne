@@ -43,7 +43,7 @@ namespace RN
 
 		void Window::Update(float delta)
 		{
-			Draw();
+			Draw(false);
 		}
 	}
 }
