@@ -124,7 +124,7 @@ namespace __TMP__
 				case Types::MaterialDefault:
 				{
 					material->SetDepthWriteEnabled(true);
-					material->SetDepthMode(RN::DepthMode::LessOrEqual);
+					material->SetDepthMode(RN::DepthMode::GreaterOrEqual);
 					material->SetAlphaToCoverage(false);
 					material->SetAmbientColor(RN::Color::White());
 					RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(lodStage->GetMeshAtIndex(i));
@@ -191,7 +191,7 @@ namespace __TMP__
 		{
 			RN::Model *skyModel = RN::Model::WithName(RNCSTR("models/template/sky.sgm"));
 			RN::Material *skyMaterial = RN::Material::WithShaders(nullptr, nullptr);
-			skyMaterial->SetDepthMode(RN::DepthMode::LessOrEqual);
+			skyMaterial->SetDepthMode(RN::DepthMode::GreaterOrEqual);
 
 			RN::Shader::Options *skyShaderOptions = RN::Shader::Options::WithMesh(skyModel->GetLODStage(0)->GetMeshAtIndex(0));
 			skyShaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
