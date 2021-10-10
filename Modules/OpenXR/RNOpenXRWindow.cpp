@@ -1516,30 +1516,6 @@ namespace RN
 
 	void OpenXRWindow::BeginFrame(float delta)
 	{
-		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
-
-		_actualFrameIndex++;
-
-		XrFrameWaitInfo frameWaitInfo;
-		frameWaitInfo.type = XR_TYPE_FRAME_WAIT_INFO;
-		frameWaitInfo.next = nullptr;
-		XrFrameState frameState;
-		frameState.type = XR_TYPE_FRAME_STATE;
-		frameState.next = nullptr;
-		xrWaitFrame(_internals->session, &frameWaitInfo, &frameState);
-
-		_internals->predictedDisplayTime = frameState.predictedDisplayTime;
-
-		XrFrameBeginInfo frameBeginInfo;
-		frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
-		frameBeginInfo.next = nullptr;
-		xrBeginFrame(_internals->session, &frameBeginInfo);
-	}
-
-	void OpenXRWindow::Update(float delta, float near, float far)
-	{
-		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
-
 		while(1)
 		{
 			XrEventDataBuffer event;
@@ -1618,6 +1594,30 @@ namespace RN
 				break;
 			}
 		}
+
+		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
+
+		_actualFrameIndex++;
+
+		XrFrameWaitInfo frameWaitInfo;
+		frameWaitInfo.type = XR_TYPE_FRAME_WAIT_INFO;
+		frameWaitInfo.next = nullptr;
+		XrFrameState frameState;
+		frameState.type = XR_TYPE_FRAME_STATE;
+		frameState.next = nullptr;
+		xrWaitFrame(_internals->session, &frameWaitInfo, &frameState);
+
+		_internals->predictedDisplayTime = frameState.predictedDisplayTime;
+
+		XrFrameBeginInfo frameBeginInfo;
+		frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
+		frameBeginInfo.next = nullptr;
+		xrBeginFrame(_internals->session, &frameBeginInfo);
+	}
+
+	void OpenXRWindow::Update(float delta, float near, float far)
+	{
+		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
 
 		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
 
