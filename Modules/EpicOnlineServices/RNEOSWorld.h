@@ -49,6 +49,8 @@ namespace RN
 		{
 			LoginStateIsNotLoggedIn,
 			LoginStateIsLoggingIn,
+			LoginStateIsLoggingInNoUser,
+			LoginStateIsLoggingInNoDeviceID,
 			LoginStateIsLoggedIn,
 			LoginStateLoginFailed
 		};

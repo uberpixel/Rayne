@@ -337,7 +337,6 @@ namespace RN
 		{
 			loginCallback(nullptr, nullptr, EOSAuthServiceTypeNone);
 		}
-		
 	}
 
 	void EOSWorld::LoggingCallback(const EOS_LogMessage *Message)
@@ -352,6 +351,7 @@ namespace RN
 			RNDebug("Succesfully created device ID");
 			
 			EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+			eosWorld->_loginState = LoginStateIsLoggingInNoDeviceID;
 			eosWorld->LoginUser();
 		}
 		else
@@ -367,6 +367,7 @@ namespace RN
 			RNDebug("Succesfully created user");
 
 			EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+			eosWorld->_loginState = LoginStateIsLoggingInNoUser;
 			eosWorld->LoginUser();
 		}
 		else
@@ -393,6 +394,8 @@ namespace RN
 			createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
 			createUserOptions.ContinuanceToken = Data->ContinuanceToken;
 			EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
+#else
+			eosWorld->_loginState = LoginStateLoginFailed;
 #endif
 		}
 		else if(Data->ResultCode == EOS_EResult::EOS_NotFound)
