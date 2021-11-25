@@ -256,7 +256,7 @@ namespace RN
 					}
 					_asset->PopData(_ringBufferTemp, _asset->GetBufferedSize());
 					std::fill(_ringBufferTemp + bufferedSamples, _ringBufferTemp + 3840, (int16)0);
-					RNDebug("not enough buffered audio: adding silence");
+					//RNDebug("not enough buffered audio: adding silence");
 				}
 				
 				//TODO: support multiple channels
