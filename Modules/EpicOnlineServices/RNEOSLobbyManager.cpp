@@ -34,6 +34,11 @@ namespace RN
 		EOS_LobbyDetails_Release(lobbyHandle);
 	}
 
+	const String *EOSLobbyInfo::GetDescription() const
+	{
+		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ">\n{\n	lobbyName: " << lobbyName << ",\n	lobbyLevel: " << lobbyLevel << ",\n	lobbyVersion: " << lobbyVersion << ",\n	maximumPlayerCount: " << maximumPlayerCount << ",\n	currentPlayerCount: " << currentPlayerCount << "\n}");
+	}
+
 	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
@@ -340,7 +345,7 @@ namespace RN
 		}
 		else
 		{
-			RNDebug("Failed creating lobby");
+			RNDebug("Failed creating lobby: " << EOS_EResult_ToString(Data->ResultCode));
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
 				lobbyManager->_didJoinLobbyCallback(false);

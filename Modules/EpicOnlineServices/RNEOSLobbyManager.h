@@ -51,6 +51,8 @@ namespace RN
 		EOS_HLobbyDetails lobbyHandle;
 		EOS_ProductUserId ownerHandle;
 		
+		const String *GetDescription() const override;
+		
 	private:
 		RNDeclareMetaAPI(EOSLobbyInfo, EOSAPI)
 	};
