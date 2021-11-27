@@ -26,7 +26,7 @@ namespace RN
 		Module *GetModule() const { return _module; }
 		MetaClass *GetSuperClass() const { return _superClass; }
 		std::string GetName() const { return _name; }
-		std::string GetFullname() const;
+		RNAPI std::string GetFullname() const;
 		
 		virtual Object *Construct() { throw InconsistencyException("Construct() called but not provided"); }
 		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw InconsistencyException("ConstructWithDeserializer() called but not provided"); }
