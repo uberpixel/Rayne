@@ -415,6 +415,7 @@ namespace RN
 	{
 		RNDebug("EOS auth is about to expire, starting renew process");
 		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
+		eosWorld->_loginState = LoginStateLoginExpired;
 		eosWorld->LoginUser();
 	}
 	

@@ -52,6 +52,7 @@ namespace RN
 			LoginStateIsLoggingInNoUser,
 			LoginStateIsLoggingInNoDeviceID,
 			LoginStateIsLoggedIn,
+			LoginStateLoginExpired,
 			LoginStateLoginFailed
 		};
 		
