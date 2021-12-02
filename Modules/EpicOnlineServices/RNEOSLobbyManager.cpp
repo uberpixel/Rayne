@@ -160,6 +160,16 @@ namespace RN
 		}
 	}
 
+	void EOSLobbyManager::KickFromCurrentLobby(EOS_ProductUserId userHandle)
+	{
+		EOS_Lobby_KickMemberOptions kickOptions = {0};
+		kickOptions.ApiVersion = EOS_LOBBY_KICKMEMBER_API_LATEST;
+		kickOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+		kickOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+		kickOptions.TargetUserId = userHandle;
+		EOS_Lobby_KickMember(_lobbyInterfaceHandle, &kickOptions, this, LobbyOnKickMemberCallback);
+	}
+
 	void EOSLobbyManager::SetCurrentLobbyAttributes(Dictionary *attributes)
 	{
 		//Can only edit a lobby if connected to it and the owner
@@ -550,5 +560,19 @@ namespace RN
 		lobbyManager->_isConnectedToLobby = false;
 		lobbyManager->_isConnectedLobbyOwner = false;
 		SafeRelease(lobbyManager->_connectedLobbyID);
+	}
+
+	void EOSLobbyManager::LobbyOnKickMemberCallback(const EOS_Lobby_KickMemberCallbackInfo *Data)
+	{
+		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
+		
+		if(Data->ResultCode == EOS_EResult::EOS_Success)
+		{
+			RNDebug("Kicked user successfully");
+		}
+		else
+		{
+			RNDebug("Failed kicking user");
+		}
 	}
 }

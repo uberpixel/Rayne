@@ -115,7 +115,7 @@ namespace RN
 		if(_status == Status::Connecting)
 		{
 			Unlock();
-			ForceDisconnect();
+			ForceDisconnect(0);
 			return;
 		}
 
@@ -143,7 +143,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSClient::ForceDisconnect()
+	void EOSClient::ForceDisconnect(RN::uint16 reason)
 	{
 		Lock();
 		_status = Status::Disconnected;
@@ -151,7 +151,7 @@ namespace RN
 		Unlock();
 
 		RNDebug("Disconnected!");
-		HandleDidDisconnect(0, 0);
+		HandleDidDisconnect(0, reason);
 	}
 
 	void EOSClient::Update(float delta)
@@ -242,6 +242,6 @@ namespace RN
 		EOSClient *client = static_cast<EOSClient*>(Data->ClientData);
 		
 		RNDebug("Disconnected from Server");
-		client->ForceDisconnect();
+		client->ForceDisconnect(static_cast<uint16>(Data->Reason));
 	}
 }

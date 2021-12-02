@@ -92,7 +92,7 @@ namespace RN
 		EOSAPI uint16 GetUserIDForInternalID(EOS_ProductUserId internalID);
 
 		EOSAPI virtual void HandleDidConnect(uint16 userID) {};
-		EOSAPI virtual void HandleDidDisconnect(uint16 userID, uint16 data) {};
+		EOSAPI virtual void HandleDidDisconnect(uint16 userID, uint16 reason) {};
 		
 		EOSAPI void SendPing(uint16 receiverID, bool isResponse, uint8 responseID);
 		EOSAPI bool IsPacketInOrder(EOSHost::ProtocolPacketType packetType, uint16 senderID, uint8 packetID, uint8 channel);

@@ -29,6 +29,7 @@ typedef struct _tagEOS_Lobby_UpdateLobbyCallbackInfo EOS_Lobby_UpdateLobbyCallba
 typedef struct _tagEOS_Lobby_JoinLobbyCallbackInfo EOS_Lobby_JoinLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_LeaveLobbyCallbackInfo EOS_Lobby_LeaveLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_DestroyLobbyCallbackInfo EOS_Lobby_DestroyLobbyCallbackInfo;
+typedef struct _tagEOS_Lobby_KickMemberCallbackInfo EOS_Lobby_KickMemberCallbackInfo;
 
 namespace RN
 {
@@ -68,7 +69,7 @@ namespace RN
 		EOSAPI void SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void(bool, RN::Array *)> callback);
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
 		EOSAPI void LeaveCurrentLobby();
-		//EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
+		EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
 		EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
 		EOSAPI void ResetLobbySearchCallback();
 			
@@ -79,6 +80,7 @@ namespace RN
 		static void LobbyOnJoinCallback(const EOS_Lobby_JoinLobbyCallbackInfo *Data);
 		static void LobbyOnLeaveCallback(const EOS_Lobby_LeaveLobbyCallbackInfo *Data);
 		static void LobbyOnDestroyCallback(const EOS_Lobby_DestroyLobbyCallbackInfo *Data);
+		static void LobbyOnKickMemberCallback(const EOS_Lobby_KickMemberCallbackInfo *Data);
 		
 		static void LobbyOnSearchCallback(const EOS_LobbySearch_FindCallbackInfo *Data);
 		static void LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data);

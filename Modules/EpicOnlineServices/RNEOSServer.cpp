@@ -261,6 +261,6 @@ namespace RN
 		RNDebug("Client disconnected: " << id);
 		server->_peers.erase(id);
 		server->ReleaseUserID(id);
-		server->HandleDidDisconnect(id, 0);
+		server->HandleDidDisconnect(id, static_cast<uint16>(Data->Reason));
 	}
 }

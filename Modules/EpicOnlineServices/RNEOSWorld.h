@@ -71,6 +71,9 @@ namespace RN
 		EOSAPI LoginState GetLoginState() const { return _loginState; }
 		EOSAPI void LoginUser();
 		
+		EOSAPI String *GetUserIDString() const;
+		EOSAPI EOS_ProductUserId GetUserIDFromString(String *userIDString) const;
+		
 		EOSAPI double Ping(String *address, size_t repetitions);
 
 	protected:

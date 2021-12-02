@@ -143,6 +143,23 @@ namespace RN
 		return _lobbyManager;
 	}
 
+	RN::String *EOSWorld::GetUserIDString() const
+	{
+		char outBuffer[EOS_PRODUCTUSERID_MAX_LENGTH + 1];
+		int32_t outBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
+		if(EOS_ProductUserId_ToString(_loggedInUserID, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
+		{
+			return RNSTR(outBuffer);
+		}
+		
+		return nullptr;
+	}
+
+	EOS_ProductUserId EOSWorld::GetUserIDFromString(String *userIDString) const
+	{
+		return EOS_ProductUserId_FromString(userIDString->GetUTF8String());
+	}
+
 	double EOSWorld::Ping(String *ip, size_t repetitions)
 	{
 /*#if !RN_PLATFORM_WINDOWS
