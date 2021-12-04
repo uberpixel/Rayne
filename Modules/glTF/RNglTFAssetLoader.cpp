@@ -69,15 +69,63 @@ namespace RN
 			RNDebug("Loaded glTF: " << file->GetPath());
 		}
 
-//		if(meta->InheritsFromClass(Mesh::GetMetaClass()))
-//			return LoadGLTFMesh(scene, 0);
-
 		// Load a full model
 		Model *model = new Model();
 		size_t stageIndex = 0;
 
 		std::vector<float> lodFactors = Model::GetDefaultLODFactors();
 		LoadGLTFLODStage(gltfModel, model->AddLODStage(lodFactors[0]), options);
+		
+		if(gltfModel.skins.size() > 0)
+		{
+			Skeleton *skeleton = new Skeleton();
+			tinygltf::Skin &gltfSkin = gltfModel.skins[0];
+			
+			tinygltf::Accessor &invBaseMatrixAccessor = gltfModel.accessors[gltfSkin.inverseBindMatrices];
+			tinygltf::BufferView &matrixBufferView = gltfModel.bufferViews[invBaseMatrixAccessor.bufferView];
+			tinygltf::Buffer &matrixBuffer = gltfModel.buffers[matrixBufferView.buffer];
+			int matrixBufferByteStride = invBaseMatrixAccessor.ByteStride(matrixBufferView);
+			
+			std::map<int, int> jointIndexMapping;
+			for(int i = 0; i < gltfSkin.joints.size(); i++)
+			{
+				jointIndexMapping[gltfSkin.joints[i]] = i;
+			}
+			
+			for(int i = 0; i < gltfSkin.joints.size(); i++)
+			{
+				bool isRoot = gltfSkin.skeleton != -1? (gltfSkin.joints[i] == gltfSkin.skeleton) : (i == 0);
+				tinygltf::Node &gltfNode = gltfModel.nodes[gltfSkin.joints[i]];
+				Vector3 bonepos;
+				/*if(gltfNode.translation.size() == 3)
+				{
+					bonepos = Vector3(gltfNode.translation[0], gltfNode.translation[1], gltfNode.translation[2]);
+				}*/
+				Bone bone(bonepos, RNSTR(gltfNode.name), isRoot);
+				/*if(gltfNode.rotation.size() == 4)
+				{
+					bone.rotation = Quaternion(gltfNode.rotation[0], gltfNode.rotation[1], gltfNode.rotation[2], gltfNode.rotation[3]);
+				}
+				if(gltfNode.scale.size() == 3)
+				{
+					bone.scale = Vector3(gltfNode.scale[0], gltfNode.scale[1], gltfNode.scale[2]);
+				}*/
+				
+				for(int n = 0; n < gltfNode.children.size(); n++)
+				{
+					bone.tempChildren.push_back(jointIndexMapping[gltfNode.children[n]]);
+				}
+				
+				//std::memcpy(bone.invBaseMatrix.m, &matrixBuffer.data[matrixBufferByteStride * i + matrixBufferView.byteOffset + invBaseMatrixAccessor.byteOffset], 64);
+				
+				//bone.absolute = true;
+				
+				skeleton->bones.push_back(bone);
+			}
+			
+			skeleton->Init();
+			model->SetSkeleton(skeleton);
+		}
 
 		model->CalculateBoundingVolumes();
 		return model->Autorelease();
@@ -90,18 +138,6 @@ namespace RN
 			auto pair = LoadGLTFMeshGroup(gltfModel, gltfModel.meshes[i], options);
 			stage->AddMesh(pair.first, pair.second->Autorelease());
 		}
-		
-		
-/*		if(options.queue)
-		{
-			for(size_t i = 0; i < scene->mNumMeshes; i++)
-			{
-				aiMesh *aimesh = scene->mMeshes[i];
-				aiMaterial *aimaterial = scene->mMaterials[aimesh->mMaterialIndex];
-
-				LoadAsyncTexture(aimaterial, filepath, aiTextureType_DIFFUSE, 0);
-			}
-		}*/
 	}
 
 	std::pair<Mesh *, Material *> GlTFAssetLoader::LoadGLTFMeshGroup(tinygltf::Model &gltfModel, tinygltf::Mesh &gltfMesh, const LoadOptions &options)
@@ -246,6 +282,9 @@ namespace RN
 			{
 				tinygltf::Accessor accessor = gltfModel.accessors[attrib.second];
 				vertexCount = accessor.count;
+				
+				//TODO: Support other component types
+				if(accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT && accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) continue;
 
 				PrimitiveType type = PrimitiveType::Float;
 				switch(accessor.type)
@@ -291,6 +330,16 @@ namespace RN
 					attributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, type);
 					attributeAccessors.emplace_back(attrib.second);
 				}
+				if(attrib.first.compare("JOINTS_0") == 0)
+				{
+					attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneIndices, type);
+					attributeAccessors.emplace_back(attrib.second);
+				}
+				if(attrib.first.compare("WEIGHTS_0") == 0)
+				{
+					attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneWeights, type);
+					attributeAccessors.emplace_back(attrib.second);
+				}
 				
 				//TODO: Support other attributes
 			}
@@ -321,28 +370,36 @@ namespace RN
 			int byteStride = accessor.ByteStride(bufferView);
 			
 			size_t elementSize = 4;
+			size_t elementCount = 4;
 			switch(attributes[i].GetType())
 			{
 				case PrimitiveType::Vector2:
 					elementSize = 8;
+					elementCount = 2;
 					break;
 				case PrimitiveType::Vector3:
 					elementSize = 12;
+					elementCount = 3;
 					break;
 				case PrimitiveType::Vector4:
 					elementSize = 16;
+					elementCount = 4;
 					break;
 				case PrimitiveType::Matrix:
 					elementSize = 64;
+					elementCount = 16;
 					break;
 				case PrimitiveType::Float:
 					elementSize = 4;
+					elementCount = 1;
 					break;
 				case PrimitiveType::Uint16:
 					elementSize = 2;
+					elementCount = 1;
 					break;
 				case PrimitiveType::Uint32:
 					elementSize = 4;
+					elementCount = 1;
 					break;
 					
 				default:
@@ -356,11 +413,26 @@ namespace RN
 					std::memcpy(data->GetBytes<uint8>() + n * elementSize, &buffer.data[byteStride * n + bufferView.byteOffset + accessor.byteOffset], elementSize);
 				}
 			}
-			else
+			else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
 			{
 				for(int n = 0; n < vertexCount; n++)
 				{
 					std::memcpy(data->GetBytes<uint8>() + n * elementSize, &buffer.data[byteStride * n + bufferView.byteOffset + accessor.byteOffset], elementSize);
+				}
+			}
+			else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+			{
+				for(int n = 0; n < vertexCount; n++)
+				{
+					std::vector<float> floatDataArray;
+					for(int m = 0; m < elementCount; m++)
+					{
+						uint8 byteData = buffer.data[byteStride * n + bufferView.byteOffset + accessor.byteOffset + m];
+						float floatData = byteData;
+						floatDataArray.push_back(floatData);
+					}
+					
+					std::memcpy(data->GetBytes<uint8>() + n * elementSize, floatDataArray.data(), elementSize);
 				}
 			}
 			
