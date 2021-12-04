@@ -5,6 +5,7 @@ option(RN_BUILD_METAL_MODULE "Build the Metal renderer module" ON)
 option(RN_BUILD_D3D12_MODULE "Build the DirectX12 renderer module" ON)
 option(RN_BUILD_VULKAN_MODULE "Build the Vulkan renderer module" ON)
 option(RN_BUILD_ASSIMP_MODULE "Build the Assimp module" OFF)
+option(RN_BUILD_GLTF_MODULE "Build the glTF module" OFF)
 option(RN_BUILD_OCULUS_MODULE "Build the Oculus module" OFF)
 option(RN_BUILD_OCULUSMOBILE_MODULE "Build the Oculus mobile module" OFF)
 option(RN_BUILD_OPENVR_MODULE "Build the OpenVR module" OFF)
@@ -36,6 +37,10 @@ endif()
 
 if(${RN_BUILD_ASSIMP_MODULE})
     add_subdirectory("Assimp")
+endif()
+
+if(${RN_BUILD_GLTF_MODULE})
+    add_subdirectory("glTF")
 endif()
 
 if(${RN_BUILD_BULLET_MODULE})
