@@ -37,7 +37,7 @@ namespace RN
 		OALAPI void SetListener(OpenALListener *attachment);
 		OALAPI OpenALSource *PlaySound(AudioAsset*resource);
 		
-		OALAPI void SetDopplerEffect(float factor, float speedOfSound);
+		OALAPI void SetDopplerEffect(float factor, float speedOfSound = 343.3);
 
 		OALAPI static Array *GetOutputDeviceNames();
 		OALAPI static Array *GetInputDeviceNames();
