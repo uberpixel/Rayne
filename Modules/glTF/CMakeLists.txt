@@ -13,6 +13,7 @@ ExternalProject_Add(tinygltf
         "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
         "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
         "-DBUILD_SHARED_LIBS:BOOL=False"
+        "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
         "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
         "-DANDROID_ABI:STRING=${ANDROID_ABI}"
         "-DANDROID_NDK:STRING=${ANDROID_NDK}"
@@ -20,6 +21,7 @@ ExternalProject_Add(tinygltf
     BUILD_BYPRODUCTS
 		"${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Debug/libtinygltf.a"
 		"${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Release/libtinygltf.a"
+                "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/libtinygltf.a"
     INSTALL_COMMAND "")
 
 set(VERSION_MAJOR 0)
@@ -52,9 +54,13 @@ target_compile_definitions(RayneGlTF PRIVATE "${DEFINES}")
 
 add_dependencies(RayneGlTF tinygltf)
 
-target_link_libraries(RayneGlTF "${LINK_LIBRARIES}"
-        debug "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Debug/libtinygltf.a"
-        optimized "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Release/libtinygltf.a")
+if(ANDROID)
+        target_link_libraries(RayneGlTF "${LINK_LIBRARIES}" "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/libtinygltf.a")
+else()
+        target_link_libraries(RayneGlTF "${LINK_LIBRARIES}"
+                debug "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Debug/libtinygltf.a"
+                optimized "${CMAKE_CURRENT_BINARY_DIR}/tinygltf-prefix/src/tinygltf-build/Release/libtinygltf.a")
+endif()
 
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneGlTF/. DESTINATION lib/Rayne/RayneGlTF)
