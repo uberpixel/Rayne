@@ -49,7 +49,8 @@ namespace RN
 		std::string err;
 		std::string warn;
 
-		bool res = gltfLoader.LoadBinaryFromFile(&gltfModel, &err, &warn, file->GetPath()->GetUTF8String());
+		Data *fileData = Data::WithContentsOfFile(file->GetPath());
+		bool res = gltfLoader.LoadBinaryFromMemory(&gltfModel, &err, &warn, fileData->GetBytes<unsigned char>(), fileData->GetLength());
 		if(!warn.empty())
 		{
 			RNDebug("load glTF warning: " << warn);
