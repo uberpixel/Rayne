@@ -90,12 +90,6 @@ if(WIN32)
         SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/RelWithDebInfo/OpenAL32.lib")
 
 elseif(ANDROID)
-        list(GET ANDROID_ASSETS_DIRECTORIES 0 android-assets-dir)
-        string(LENGTH ${android-assets-dir} length)
-        MATH(EXPR length "${length}-2")
-        string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
-        add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so ${android-assets-dir}/../libs/arm64-v8a/libopenal.so)
-
         SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
 else()
         SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
