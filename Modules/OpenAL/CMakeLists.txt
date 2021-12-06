@@ -81,27 +81,33 @@ ExternalProject_Add(openal
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib
         INSTALL_COMMAND "")
 
-add_dependencies(RayneOpenAL openal)
+add_library(OpenALLib STATIC IMPORTED)
+if(WIN32)
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
 
-if(APPLE)
-        target_link_libraries(RayneOpenAL 
-                debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib"
-                optimized "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/OpenAL32.lib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/RelWithDebInfo/OpenAL32.lib")
+
 elseif(ANDROID)
         list(GET ANDROID_ASSETS_DIRECTORIES 0 android-assets-dir)
         string(LENGTH ${android-assets-dir} length)
         MATH(EXPR length "${length}-2")
         string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
-
-        target_link_libraries(RayneOpenAL 
-                ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
         add_custom_command(TARGET RayneOpenAL PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so ${android-assets-dir}/../libs/arm64-v8a/libopenal.so)
-elseif(UNIX)
+
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/libopenal.so)
 else()
-        target_link_libraries(RayneOpenAL 
-                debug "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/OpenAL32.lib"
-                optimized "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
+
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib")
+        SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/RelWithDebInfo/libopenal.1.20.1.dylib")
 endif()
+
+add_dependencies(OpenALLib openal)
+target_link_libraries(RayneOpenAL OpenALLib)
+
 
 #Work around some xcode specific soname issues...
 if(${CMAKE_GENERATOR} STREQUAL "Xcode")

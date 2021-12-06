@@ -80,20 +80,27 @@ ExternalProject_Add(Kalligraph
         INSTALL_COMMAND ""
         UPDATE_COMMAND "")
 
-add_dependencies(RayneUI Kalligraph)
+add_library(KalligraphLib STATIC IMPORTED)
 
 if(WIN32)
-        target_link_libraries(RayneUI
-                debug ${KALLIGRAPH_BINARY_DIR}/Debug/Kalligraph.lib
-                optimized ${KALLIGRAPH_BINARY_DIR}/Release/Kalligraph.lib)
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
+
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_DEBUG "${KALLIGRAPH_BINARY_DIR}/Debug/libKalligraph.lib")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELEASE "${KALLIGRAPH_BINARY_DIR}/Release/libKalligraph.lib")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${KALLIGRAPH_BINARY_DIR}/RelWithDebInfo/libKalligraph.lib")
+
 elseif(ANDROID)
-        target_link_libraries(RayneUI
-                ${KALLIGRAPH_BINARY_DIR}/libKalligraph.a)
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION "${KALLIGRAPH_BINARY_DIR}/libKalligraph.a")
 else()
-        target_link_libraries(RayneUI
-                debug ${KALLIGRAPH_BINARY_DIR}/Debug/libKalligraph.a
-                optimized ${KALLIGRAPH_BINARY_DIR}/Release/libKalligraph.a)
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
+
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_DEBUG "${KALLIGRAPH_BINARY_DIR}/Debug/libKalligraph.a")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELEASE "${KALLIGRAPH_BINARY_DIR}/Release/libKalligraph.a")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${KALLIGRAPH_BINARY_DIR}/RelWithDebInfo/libKalligraph.a")
 endif()
+
+add_dependencies(KalligraphLib Kalligraph)
+target_link_libraries(RayneUI KalligraphLib)
 
 target_include_directories(RayneUI SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneUI PRIVATE "${DEFINES}")
