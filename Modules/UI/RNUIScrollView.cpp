@@ -29,7 +29,7 @@ namespace RN
 			_pixelPerInch = pixelPerInch;
 		}
 
-		void ScrollView::Update(float delta, Vector2 cursorPosition, bool touched)
+		void ScrollView::Update(float delta, Vector2 cursorPosition, bool touched, float alternativeScrollSpeed)
 		{
 			if(!GetFrame().ContainsPoint(cursorPosition)) return;
 			
@@ -75,6 +75,12 @@ namespace RN
 					_scrollSpeed = scrollDistance/delta;
 					_scrollSpeed = std::min(std::max(_scrollSpeed, -20000.0f), 20000.0f);
 				}
+			}
+			
+			if(!touched && std::abs(alternativeScrollSpeed) > k::EpsilonFloat)
+			{
+				_scrollSpeed = alternativeScrollSpeed;
+				_isScrolling = true;
 			}
 			
 			bool isOutOfBounds = false;

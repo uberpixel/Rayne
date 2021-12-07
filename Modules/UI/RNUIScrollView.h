@@ -21,7 +21,7 @@ namespace RN
 			UIAPI ScrollView();
 			UIAPI ~ScrollView();
 
-			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
+			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, float alternativeScrollSpeed = 0.0f);
 			
 			UIAPI void SetPixelPerInch(float pixelPerInch);
 			
