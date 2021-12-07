@@ -467,6 +467,8 @@ namespace RN
 				}
 			}
 			
+			subviewsCopy->Release();
+			
 			return needsRedraw;
 		}
 	
