@@ -81,7 +81,7 @@ ExternalProject_Add(openal
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/OpenAL32.lib
         INSTALL_COMMAND "")
 
-add_library(OpenALLib STATIC IMPORTED)
+add_library(OpenALLib SHARED IMPORTED)
 if(WIN32)
         SET_PROPERTY(TARGET OpenALLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
 
