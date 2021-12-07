@@ -329,7 +329,7 @@ namespace RN
 			WillRemoveChild(child);
 			child->WillUpdate(ChangeSet::Parent);
 
-			child->Retain()->Autorelease();
+			child->Retain();
 			child->_parent = nullptr;
 
 			_children->RemoveObject(child);
@@ -338,6 +338,8 @@ namespace RN
 			child->__CompleteAttachmentWithScene(nullptr);
 
 			DidRemoveChild(child);
+			
+			child->Release();
 		}
 	}
 
