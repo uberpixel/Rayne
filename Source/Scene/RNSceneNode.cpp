@@ -287,16 +287,12 @@ namespace RN
 
 		if(_sceneInfo && !_scheduledForRemovalFromScene)
 		{
-			_scheduledForRemovalFromScene = true;
 			_sceneInfo->GetScene()->RemoveNode(this);
 		}
 
 		if(sceneInfo)
 		{
-			if(_scheduledForRemovalFromScene)
-			{
-				_scheduledForRemovalFromScene = false;
-			}
+			//If not removed from scene yet, but _scheduledForRemovalFromScene is true, it will just stay where it is (and is removed from the deletion queue)!
 			sceneInfo->GetScene()->AddNode(this);
 		}
 	}

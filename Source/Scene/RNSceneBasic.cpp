@@ -228,7 +228,7 @@ namespace RN
 	void SceneBasic::AddNode(SceneNode *node)
 	{
 		//Remove from deletion list if scheduled for deletion if the scene didn't change.
-		if(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this && _nodesToRemove->ContainsObject(node))
+		if(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this && node->_scheduledForRemovalFromScene)
 		{
 			_nodesToRemove->Lock();
 			_nodesToRemove->RemoveObject(node);
