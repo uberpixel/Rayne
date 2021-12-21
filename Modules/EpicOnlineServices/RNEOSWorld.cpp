@@ -40,7 +40,7 @@ namespace RN
 		return _instance;
 	}
 
-	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback) : _hosts(new Array()), _externalLoginCallback(nullptr), _loginState(LoginStateIsNotLoggedIn), _loggedInUserID(nullptr), _lobbyManager(nullptr)
+	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback, bool allowFallbackToDeviceID) : _hosts(new Array()), _externalLoginCallback(nullptr), _loginState(LoginStateIsNotLoggedIn), _loggedInUserID(nullptr), _lobbyManager(nullptr), _allowFallbackToDeviceID(allowFallbackToDeviceID)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
 
@@ -425,6 +425,13 @@ namespace RN
 		{
 			RNDebug("Login failed");
 			eosWorld->_loginState = LoginStateLoginFailed;
+			
+			if(eosWorld->_externalLoginCallback && eosWorld->_allowFallbackToDeviceID)
+			{
+				RNDebug("Login with service account failed, try fallback to login with device ID");
+				eosWorld->_externalLoginCallback = nullptr;
+				eosWorld->LoginUser();
+			}
 		}
 	}
 

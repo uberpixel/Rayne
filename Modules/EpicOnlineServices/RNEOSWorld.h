@@ -58,7 +58,7 @@ namespace RN
 		
 		EOSAPI static EOSWorld *GetInstance();
 
-		EOSAPI EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback);
+		EOSAPI EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback, bool allowFallbackToDeviceID);
 		EOSAPI ~EOSWorld() override;
 		
 		EOSAPI void AddHost(EOSHost *host);
@@ -94,6 +94,7 @@ namespace RN
 		
 		std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> _externalLoginCallback;
 
+		bool _allowFallbackToDeviceID;
 		LoginState _loginState;
 		EOS_ProductUserId _loggedInUserID;
 		
