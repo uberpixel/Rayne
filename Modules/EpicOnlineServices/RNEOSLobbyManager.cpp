@@ -79,7 +79,7 @@ namespace RN
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
-	void EOSLobbyManager::SearchLobby(int64 timestamp, uint32 maxResults, bool older, std::function<void(bool, RN::Array *)> callback)
+	void EOSLobbyManager::SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
@@ -90,7 +90,7 @@ namespace RN
 		
 		EOS_Lobby_CreateLobbySearchOptions searchOptions = {};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
-		searchOptions.MaxResults = maxResults;
+		searchOptions.MaxResults = std::min(maxResults, static_cast<uint32>(EOS_LOBBY_MAX_SEARCH_RESULTS));
 		
 		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &_lobbySearchHandle) != EOS_EResult::EOS_Success)
 		{
@@ -105,14 +105,30 @@ namespace RN
 		timestampAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 		timestampAttributeData.ValueType = EOS_EAttributeType::EOS_AT_INT64;
 		timestampAttributeData.Key = "timestamp";
-		timestampAttributeData.Value.AsInt64 = timestamp;
+		timestampAttributeData.Value.AsInt64 = std::numeric_limits<int64>::max();
 		
 		EOS_LobbySearch_SetParameterOptions timestampSearchParameterOptions = {0};
 		timestampSearchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
-		timestampSearchParameterOptions.ComparisonOp = older? EOS_EComparisonOp::EOS_CO_LESSTHAN : EOS_EComparisonOp::EOS_CO_GREATERTHAN;
+		timestampSearchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_LESSTHANOREQUAL;
 		timestampSearchParameterOptions.Parameter = &timestampAttributeData;
 		
 		EOS_LobbySearch_SetParameter(_lobbySearchHandle, &timestampSearchParameterOptions);
+		
+		if(includePublic != includePrivate)
+		{
+			EOS_Lobby_AttributeData attributeData = {0};
+			attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+			attributeData.ValueType = EOS_EAttributeType::EOS_AT_BOOLEAN;
+			attributeData.Key = "hasPassword";
+			attributeData.Value.AsBool = includePrivate;
+			
+			EOS_LobbySearch_SetParameterOptions searchParameterOptions = {0};
+			searchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
+			searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
+			searchParameterOptions.Parameter = &attributeData;
+			
+			EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+		}
 		
 		EOS_LobbySearch_FindOptions findOptions = {};
 		findOptions.ApiVersion = EOS_LOBBYSEARCH_FIND_API_LATEST;
