@@ -54,6 +54,7 @@ namespace RN
 			ProtocolPacketHeader packetHeader;
 			packetHeader.packetType = ProtocolPacketTypeReliableDataAck;
 			packetHeader.packetID = packetID;
+			packetHeader.dataLength = 0;
 			
 			EOS_P2P_SendPacketOptions sendPacketOptions = {0};
 			sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -109,11 +110,13 @@ namespace RN
 		{
 			packetHeader.packetType = ProtocolPacketTypePingResponse;
 			packetHeader.packetID = responseID;
+			packetHeader.dataLength = 0;
 		}
 		else
 		{
 			packetHeader.packetType = ProtocolPacketTypePingRequest;
 			packetHeader.packetID = _peers[receiverID]._lastPingID++;
+			packetHeader.dataLength = 0;
 
 			_peers[receiverID]._sentPingTime = Clock::now();
 		}
@@ -145,7 +148,13 @@ namespace RN
 			return;
 		}
 		
-		_scheduledPackets.push({receiverID, channel, reliable, data->Retain()});
+		if(_peers[receiverID]._scheduledPackets.find(channel) != _peers[receiverID]._scheduledPackets.end())
+		{
+			_peers[receiverID]._scheduledPackets.insert(std::pair<uint32, std::queue<Packet> >(channel, std::queue<Packet>()));
+		}
+		
+		_peers[receiverID]._scheduledPackets[channel].push({receiverID, channel, reliable, data->Retain()});
+		
 		Unlock();
 	}
 
@@ -207,69 +216,93 @@ namespace RN
 				break;
 			}
 			
-			ProtocolPacketHeader packetHeader;
-			packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[0]);
-			packetHeader.packetID = rawData[1];
+			size_t dataIndex = 0;
+			while(dataIndex < bytesWritten)
+			{
+				ProtocolPacketHeader packetHeader;
+				packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[dataIndex + 0]);
+				packetHeader.packetID = rawData[dataIndex + 1];
+				packetHeader.dataLength = rawData[dataIndex + 2] | (rawData[dataIndex + 3] << 8); //These are pings, so this should always be 0!?
+				
+				uint16 id = GetUserIDForInternalID(senderUserID);
+				if(packetHeader.packetType == ProtocolPacketTypePingRequest)
+				{
+					SendPing(id, true, packetHeader.packetID);
+				}
+				else if(packetHeader.packetType == ProtocolPacketTypePingResponse)
+				{
+					if(_peers[id]._lastPingID-1 == packetHeader.packetID)
+					{
+						Clock::time_point receivedPingTime = Clock::now();
+						auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(receivedPingTime - _peers[id]._sentPingTime).count();
+						double timeElapsed = milliseconds / 1000.0;
+						
+						RNDebug("Ping time for " << id << ": " << timeElapsed);
+						
+						_peers[id].smoothedPing = _peers[id].smoothedPing * 0.5 + timeElapsed * 0.5;
+					}
+					else
+					{
+						RNDebug("Missed a ping!");
+					}
+				}
+				
+				dataIndex += packetHeader.dataLength + 4;
+			}
 			
-			uint16 id = GetUserIDForInternalID(senderUserID);
-			if(packetHeader.packetType == ProtocolPacketTypePingRequest)
-			{
-				SendPing(id, true, packetHeader.packetID);
-			}
-			else if(packetHeader.packetType == ProtocolPacketTypePingResponse)
-			{
-				if(_peers[id]._lastPingID-1 == packetHeader.packetID)
-				{
-					Clock::time_point receivedPingTime = Clock::now();
-					auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(receivedPingTime - _peers[id]._sentPingTime).count();
-					double timeElapsed = milliseconds / 1000.0;
-					
-					RNDebug("Ping time for " << id << ": " << timeElapsed);
-					
-					_peers[id].smoothedPing = _peers[id].smoothedPing * 0.5 + timeElapsed * 0.5;
-				}
-				else
-				{
-					RNDebug("Missed a ping!");
-				}
-			}
 			delete[] rawData;
 		}
 
-		while(_scheduledPackets.size() > 0)
+		for(auto& peer : _peers)
 		{
-			if(_peers.size() > 0 && _peers.find(_scheduledPackets.front().receiverID) != _peers.end())
+			for(auto& pair : peer.second._scheduledPackets)
 			{
-				uint8 headerData[2];
-				headerData[1] = _peers[_scheduledPackets.front().receiverID]._packetIDForChannel[_scheduledPackets.front().channel]++;
-				
-				ProtocolPacketType packetType = ProtocolPacketTypeData;
-				if(_scheduledPackets.front().isReliable)
+				auto& scheduledPackets = pair.second;
+				//if(scheduledPackets.size() > 0) RNDebug("packet count: " << scheduledPackets.size() << ", channel: " << pair.first);
+				while(scheduledPackets.size() > 0)
 				{
-					packetType = ProtocolPacketTypeReliableData;
-					_peers[_scheduledPackets.front().receiverID]._hasReliableInTransit = true;
-					_peers[_scheduledPackets.front().receiverID]._lastReliableIDForChannel[_scheduledPackets.front().channel] = headerData[1];
-				}
-				headerData[0] = static_cast<ProtocolPacketType>(packetType);
+					Data *data = new Data();
+					bool isReliable = false;
+					
+					//Max packet size: 1170
+					while(scheduledPackets.size() > 0 && data->GetLength() + scheduledPackets.front().data->GetLength() < 1170)
+					{
+						uint8 headerData[2];
+						headerData[1] = peer.second._packetIDForChannel[pair.first]++;
+						
+						ProtocolPacketType packetType = ProtocolPacketTypeData;
+						if(scheduledPackets.front().isReliable)
+						{
+							isReliable = true;
+							packetType = ProtocolPacketTypeReliableData;
+							peer.second._hasReliableInTransit = true;
+							peer.second._lastReliableIDForChannel[pair.first] = headerData[1];
+						}
+						headerData[0] = packetType;
 
-				Data *data = Data::WithBytes(headerData, 2);
-				data->Append(_scheduledPackets.front().data);
-				
-				EOS_P2P_SendPacketOptions sendPacketOptions = {0};
-				sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
-				sendPacketOptions.Channel = _scheduledPackets.front().channel;
-				sendPacketOptions.LocalUserId = world->GetUserID();
-				sendPacketOptions.RemoteUserId = _peers[_scheduledPackets.front().receiverID].internalID;
-				sendPacketOptions.SocketId = &socketID;
-				sendPacketOptions.Reliability = _scheduledPackets.front().isReliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
-				sendPacketOptions.bAllowDelayedDelivery = false;
-				sendPacketOptions.Data = data->GetBytes();
-				sendPacketOptions.DataLengthBytes = data->GetLength();
-				EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+						data->Append(headerData, 2);
+						uint16 dataLength = scheduledPackets.front().data->GetLength();
+						data->Append(&dataLength, 2); //Data length is actually part of the header, but much easier to just set here
+						data->Append(scheduledPackets.front().data);
+						
+						scheduledPackets.front().data->Release();
+						scheduledPackets.pop();
+					}
+					
+					EOS_P2P_SendPacketOptions sendPacketOptions = {0};
+					sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+					sendPacketOptions.Channel = pair.first;
+					sendPacketOptions.LocalUserId = world->GetUserID();
+					sendPacketOptions.RemoteUserId = peer.second.internalID;
+					sendPacketOptions.SocketId = &socketID;
+					sendPacketOptions.Reliability = isReliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
+					sendPacketOptions.bAllowDelayedDelivery = false;
+					sendPacketOptions.Data = data->GetBytes();
+					sendPacketOptions.DataLengthBytes = data->GetLength();
+					EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+					data->Release(); //Should keep data around and just clear it somehow to not reallocate all the time
+				}
 			}
-			
-			_scheduledPackets.front().data->Release();
-			_scheduledPackets.pop();
 		}
 
 		Unlock();

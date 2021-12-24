@@ -75,6 +75,7 @@ namespace RN
 		ProtocolPacketHeader packetHeader;
 		packetHeader.packetType = ProtocolPacketTypeConnectRequest;
 		packetHeader.packetID = 0;
+		packetHeader.dataLength = 0;
 		
 		EOS_P2P_SendPacketOptions connectionOptions = {0};
 		connectionOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -197,41 +198,48 @@ namespace RN
 				break;
 			}
 			
-			ProtocolPacketHeader packetHeader;
-			packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[0]);
-			packetHeader.packetID = rawData[1];
-			
-			if(packetHeader.packetType == ProtocolPacketTypeConnectResponse)
+			size_t dataIndex = 0;
+			while(dataIndex < bytesWritten)
 			{
-				if(packetHeader.packetID == 0)
+				ProtocolPacketHeader packetHeader;
+				packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[dataIndex + 0]);
+				packetHeader.packetID = rawData[dataIndex + 1];
+				packetHeader.dataLength = rawData[dataIndex + 2] | (rawData[dataIndex + 3] << 8);
+				
+				if(packetHeader.packetType == ProtocolPacketTypeConnectResponse)
 				{
-					RNDebug("Connected!");
-					_status = Status::Connected;
-					Unlock();
-					HandleDidConnect(0);
-					Lock();
+					if(packetHeader.packetID == 0)
+					{
+						RNDebug("Connected!");
+						_status = Status::Connected;
+						Unlock();
+						HandleDidConnect(0);
+						Lock();
+					}
+					else
+					{
+						RNDebug("Malformed connect response");
+					}
+					dataIndex += packetHeader.dataLength + 4;
+					continue;
 				}
-				else
+				
+				if(!IsPacketInOrder(packetHeader.packetType, 0, packetHeader.packetID, channel))
 				{
-					RNDebug("Malformed connect response");
+					dataIndex += packetHeader.dataLength + 4;
+					continue;
 				}
-				delete[] rawData;
-				continue;
+				
+				//Get data object from the packet without protocol header
+				Data *data = Data::WithBytes(&rawData[dataIndex + 4], packetHeader.dataLength);
+				dataIndex += packetHeader.dataLength + 4;
+				
+				Unlock();
+				ReceivedPacket(data, 0, channel);
+				Lock();
 			}
 			
-			if(!IsPacketInOrder(packetHeader.packetType, 0, packetHeader.packetID, channel))
-			{
-				delete[] rawData;
-				continue;
-			}
-			
-			//Get data object from the packet without protocol header
-			Data *data = Data::WithBytes(&rawData[2], nextPacketSize-2);
 			delete[] rawData;
-			
-			Unlock();
-			ReceivedPacket(data, 0, channel);
-			Lock();
 		}
 		
 		Unlock();

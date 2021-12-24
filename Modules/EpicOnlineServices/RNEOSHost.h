@@ -37,6 +37,15 @@ namespace RN
 		{
 			ProtocolPacketType packetType;
 			uint8 packetID;
+			uint16 dataLength; //This allows me to bundle multiple packets into one networking packet to send, hopefully improving EOS sending performance
+		};
+		
+		struct Packet
+		{
+			uint16 receiverID;
+			uint32 channel;
+			bool isReliable;
+			Data *data;
 		};
 
 		struct Peer
@@ -44,7 +53,6 @@ namespace RN
 			uint16 userID;
 			EOS_ProductUserId internalID;
 			double smoothedPing;
-			
 			
 			uint8 _packetIDForChannel[254];
 			uint8 _receivedIDForChannel[254];
@@ -54,14 +62,8 @@ namespace RN
 			Clock::time_point _sentPingTime;
 			
 			bool _hasReliableInTransit;
-		};
-		
-		struct Packet
-		{
-			uint16 receiverID;
-			uint32 channel;
-			bool isReliable;
-			Data *data;
+			
+			std::map<uint32, std::queue<Packet>> _scheduledPackets;
 		};
 
 		enum Status
@@ -101,7 +103,6 @@ namespace RN
 		float _pingTimer;
 		
 		std::map<uint16, Peer> _peers;
-		std::queue<Packet> _scheduledPackets;
 			
 	private:
 			
