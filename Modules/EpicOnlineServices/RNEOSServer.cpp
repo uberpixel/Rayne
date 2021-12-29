@@ -143,8 +143,6 @@ namespace RN
 				Data *data = Data::WithBytes(&rawData[dataIndex + 4], packetHeader.dataLength);
 				dataIndex += packetHeader.dataLength + 4;
 				
-				RNDebug("received channel: " << channel);
-				
 				Unlock();
 				ReceivedPacket(data, senderID, channel);
 				Lock();

@@ -253,12 +253,13 @@ namespace RN
 			delete[] rawData;
 		}
 
+		//size_t scheduled_count = 0;
+		//size_t sent_count = 0;
 		for(auto& peer : _peers)
 		{
 			for(auto& pair : peer.second._scheduledPackets)
 			{
 				auto& scheduledPackets = pair.second;
-				//if(scheduledPackets.size() > 0) RNDebug("packet count: " << scheduledPackets.size() << ", channel: " << pair.first);
 				while(scheduledPackets.size() > 0)
 				{
 					Data *data = new Data();
@@ -287,6 +288,8 @@ namespace RN
 						
 						scheduledPackets.front().data->Release();
 						scheduledPackets.pop();
+						
+						//scheduled_count += 1;
 					}
 					
 					EOS_P2P_SendPacketOptions sendPacketOptions = {0};
@@ -301,11 +304,15 @@ namespace RN
 					sendPacketOptions.DataLengthBytes = data->GetLength();
 					EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
 					data->Release(); //Should keep data around and just clear it somehow to not reallocate all the time
+					
+					//sent_count += 1;
 				}
 			}
 		}
 
 		Unlock();
+		
+		//if(scheduled_count + sent_count > 0) RNDebug("Did send " << scheduled_count << " scheduled packets as " << sent_count << " packets to " << _peers.size() << " peers.");
 	}
 
 	EOSHost::Peer EOSHost::CreatePeer(uint16 userID, EOS_ProductUserId internalID)
