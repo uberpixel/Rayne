@@ -265,8 +265,8 @@ namespace RN
 					Data *data = new Data();
 					bool isReliable = false;
 					
-					//Max packet size: 1170
-					while(scheduledPackets.size() > 0 && data->GetLength() + scheduledPackets.front().data->GetLength() < 1170)
+					//Max packet size: 1170, but seems to have issues, so trying 1000
+					while(scheduledPackets.size() > 0 && data->GetLength() + scheduledPackets.front().data->GetLength() + 4 < 1000)
 					{
 						uint8 headerData[2];
 						headerData[1] = peer.second._packetIDForChannel[pair.first]++;
