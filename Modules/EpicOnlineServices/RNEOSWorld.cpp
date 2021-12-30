@@ -155,7 +155,7 @@ namespace RN
 		return nullptr;
 	}
 
-	EOS_ProductUserId EOSWorld::GetUserIDFromString(String *userIDString) const
+	EOS_ProductUserId EOSWorld::GetUserIDFromString(const String *userIDString) const
 	{
 		return EOS_ProductUserId_FromString(userIDString->GetUTF8String());
 	}

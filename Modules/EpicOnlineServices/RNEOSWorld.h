@@ -72,7 +72,7 @@ namespace RN
 		EOSAPI void LoginUser();
 		
 		EOSAPI String *GetUserIDString() const;
-		EOSAPI EOS_ProductUserId GetUserIDFromString(String *userIDString) const;
+		EOSAPI EOS_ProductUserId GetUserIDFromString(const String *userIDString) const;
 		
 		EOSAPI double Ping(String *address, size_t repetitions);
 
