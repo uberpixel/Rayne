@@ -33,7 +33,10 @@ namespace RN
 
 		void Lock()
 		{
-			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, 0, kLockFlagLocked)))
+			_mutex.lock();
+			_thread = std::this_thread::get_id();
+			
+			/*if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, 0, kLockFlagLocked)))
 			{
 				_thread = std::this_thread::get_id();
 				_threadRecursion = 1;
@@ -47,12 +50,13 @@ namespace RN
 				return;
 			}
 
-			LockSlowPath();
+			LockSlowPath();*/
 		}
 
 		bool TryLock()
 		{
-			while(1)
+			return _mutex.try_lock();
+			/*while(1)
 			{
 				uint8 value = _flag.load(std::memory_order_acquire);
 				if(value & kLockFlagLocked)
@@ -64,26 +68,31 @@ namespace RN
 					_threadRecursion = 1;
 					return true;
 				}
-			}
+			}*/
 		}
 
 		void Unlock()
 		{
-			RN_DEBUG_ASSERT(IsLocked(), "RecursiveLockable must be acquired in order to be released!");
+			//RN_DEBUG_ASSERT(IsLocked(), "RecursiveLockable must be acquired in order to be released!");
 			RN_DEBUG_ASSERT(_thread.load(std::memory_order_acquire) == std::this_thread::get_id(), "RecursiveLockable must be unlocked from the thread that locked it");
+			
+			_mutex.unlock();
 
-			if((-- _threadRecursion) > 0)
+/*			if((-- _threadRecursion) > 0)
 				return;
 
 			if(RN_EXPECT_TRUE(__Private::CompareExchangeWeak<uint8>(_flag, kLockFlagLocked, 0)))
 				return;
 
-			UnlockSlowPath();
+			UnlockSlowPath();*/
 		}
 
 		bool IsLocked() const
 		{
-			return _flag.load(std::memory_order_acquire) & kLockFlagLocked;
+			RN_ASSERT(false, "NOT SUPPORTED");
+			return false;
+			//_mute
+			//return _flag.load(std::memory_order_acquire) & kLockFlagLocked;
 		}
 
 	private:
@@ -92,6 +101,8 @@ namespace RN
 
 		static constexpr uint8 kLockFlagLocked = (1 << 0);
 		static constexpr uint8 kLockFlagParked = (1 << 1);
+		
+		std::recursive_mutex _mutex;
 
 		std::atomic<uint8> _flag;
 		std::atomic<std::thread::id> _thread;
