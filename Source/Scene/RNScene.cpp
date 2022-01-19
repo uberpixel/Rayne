@@ -40,7 +40,7 @@ namespace RN
 		if(!node->HasFlags(RN::SceneNode::Flags::Static))
 		{
 			node->Update(delta);
-			node->UpdateInternalData();
+			//node->UpdateInternalData(); //This has been causing a lot of crashes in combination with multithreading and one update on another thread for example removing the nodes parents then causing this to crash. It might not even be needed at all as any accessors to the data will automatically call this if needed.
 		}
 	}
 
