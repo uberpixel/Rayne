@@ -138,6 +138,7 @@ namespace RN
 		float GetDotProduct(const Quaternion &other) const;
 		
 		bool IsEqual(const Quaternion &other, float epsilon) const;
+		bool IsValid() const;
 
 		struct
 		{

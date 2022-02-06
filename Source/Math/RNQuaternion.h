@@ -562,6 +562,23 @@ namespace RN
 		
 		return true;
 	}
+
+	RN_INLINE bool Quaternion::IsValid() const
+	{
+		if(!std::isfinite(x))
+			return false;
+
+		if(!std::isfinite(y))
+			return false;
+		
+		if(!std::isfinite(z))
+			return false;
+		
+		if(!std::isfinite(w))
+			return false;
+
+		return true;
+	}
 }
 
 #endif /* __RAYNE_QUATERNION_H__ */

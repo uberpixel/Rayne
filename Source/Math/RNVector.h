@@ -51,6 +51,8 @@ namespace RN
 		float GetSquaredDistance(const Vector2 &other) const;
 		Vector2 GetLerp(const Vector2 &other, float factor) const;
 		bool IsEqual(const Vector2 &other, float epsilon) const;
+		
+		bool IsValid() const;
 
 		Vector2 &Normalize(const float n=1.0f);
 		Vector2 GetNormalized(const float n=1.0f) const;
@@ -97,6 +99,8 @@ namespace RN
 		float GetDistance(const Vector3 &other) const;
 		float GetSquaredDistance(const Vector3 &other) const;
 		Vector3 GetLerp(const Vector3 &other, float factor) const;
+		
+		bool IsValid() const;
 		
 		Vector3 &Normalize(const float n=1.0f);
 		Vector3 GetNormalized(const float n=1.0f) const;
@@ -151,6 +155,8 @@ namespace RN
 		float GetSquaredDistance(const Vector4 &other) const;
 		Vector4 GetLerp(const Vector4 &other, float factor) const;
 		bool IsEqual(const Vector4 &other, float epsilon) const;
+		
+		bool IsValid() const;
 		
 		Vector4 &Normalize(const float n=1.0f);
 		Vector4 GetNormalized(const float n=1.0f) const;
@@ -317,6 +323,17 @@ namespace RN
 			return false;
 
 		if(Math::FastAbs(y - other.y) > epsilon)
+			return false;
+
+		return true;
+	}
+
+	RN_INLINE bool Vector2::IsValid() const
+	{
+		if(!std::isfinite(x))
+			return false;
+
+		if(!std::isfinite(y))
 			return false;
 
 		return true;
@@ -553,6 +570,20 @@ namespace RN
 	RN_INLINE Vector3 Vector3::GetLerp(const Vector3 &other, float factor) const
 	{
 		return *this*(1.0f-factor)+other*factor;
+	}
+
+	RN_INLINE bool Vector3::IsValid() const
+	{
+		if(!std::isfinite(x))
+			return false;
+
+		if(!std::isfinite(y))
+			return false;
+		
+		if(!std::isfinite(z))
+			return false;
+
+		return true;
 	}
 
 
@@ -814,6 +845,23 @@ namespace RN
 			return false;
 
 		if(Math::FastAbs(w - other.w) > epsilon)
+			return false;
+
+		return true;
+	}
+
+	RN_INLINE bool Vector4::IsValid() const
+	{
+		if(!std::isfinite(x))
+			return false;
+
+		if(!std::isfinite(y))
+			return false;
+		
+		if(!std::isfinite(z))
+			return false;
+		
+		if(!std::isfinite(w))
 			return false;
 
 		return true;
