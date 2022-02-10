@@ -63,6 +63,9 @@ namespace RN
 			
 			bool _hasReliableInTransit;
 			
+			float _disconnectDelay;
+			bool _wantsDisconnect;
+			
 			std::map<uint32, std::queue<Packet>> _scheduledPackets;
 		};
 

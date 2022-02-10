@@ -133,7 +133,7 @@ namespace RN
 				}
 				
 				uint16 senderID = GetUserIDForInternalID(senderUserID);
-				if(!IsPacketInOrder(packetHeader.packetType, senderID, packetHeader.packetID, channel))
+				if(!IsPacketInOrder(packetHeader.packetType, senderID, packetHeader.packetID, channel) || _peers[senderID]._wantsDisconnect) //Don't process any more data from a user that is about to be disconnected
 				{
 					dataIndex += packetHeader.dataLength + 4;
 					continue;
@@ -150,12 +150,38 @@ namespace RN
 			delete[] rawData;
 		}
 		
+		std::vector<uint16> peersToDisconnect;
+		for(auto &pair : _peers)
+		{
+			if(pair.second._wantsDisconnect)
+			{
+				pair.second._disconnectDelay -= delta;
+				if(pair.second._disconnectDelay < 0.0f)
+				{
+					peersToDisconnect.push_back(pair.first);
+				}
+			}
+		}
+		
+		for(uint16 clientID : peersToDisconnect)
+		{
+			DisconnectUser(clientID, 0);
+		}
+		
 		Unlock();
 	}
 
 	size_t EOSServer::GetNumberOfConnectedUsers() const
 	{
 		return _activeUserIDs.size();
+	}
+
+	void EOSServer::DisconnectUserDelayed(uint16 userID, uint16 data, float delay)
+	{
+		Lock();
+		_peers[userID]._disconnectDelay = delay;
+		_peers[userID]._wantsDisconnect = true;
+		Unlock();
 	}
 
 	void EOSServer::DisconnectUser(uint16 userID, uint16 data)

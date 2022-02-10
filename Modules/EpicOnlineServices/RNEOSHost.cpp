@@ -137,6 +137,8 @@ namespace RN
 
 	void EOSHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
 	{
+		if(_peers[receiverID]._wantsDisconnect) return; //Don't allow sending more data to users that are about to be disconnected.
+		
 		//TODO: Split up packet if too big, maximum allowed total packet size is 1170
 		RN_ASSERT(data->GetLength() < 1170, "Packet too big!");
 		//RNDebug(data->GetLength());
@@ -323,6 +325,8 @@ namespace RN
 		peer.smoothedPing = 50.0;
 		peer._lastPingID = 0;
 		peer._hasReliableInTransit = false;
+		peer._wantsDisconnect = false;
+		peer._disconnectDelay = 0.0f;
 		
 		for(int i = 0; i < 254; i++)
 		{
