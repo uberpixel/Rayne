@@ -72,6 +72,9 @@ namespace RN
 		EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
 		EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
 		EOSAPI void ResetLobbySearchCallback();
+		
+		bool GetIsConnectedToLobby() const { return _isConnectedToLobby; }
+		const RN::String *GetConnectedLobbyID() const { return _connectedLobbyID; }
 			
 	private:
 		EOSAPI EOSLobbyManager(EOSWorld *world);
