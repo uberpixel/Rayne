@@ -49,7 +49,7 @@ namespace RN
 		SafeRelease(_connectedLobbyID);
 	}
 
-	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword)
+	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
@@ -60,6 +60,8 @@ namespace RN
 		{
 			return;
 		}
+		
+		RN_ASSERT(!lobbyIDOverride || (lobbyIDOverride->GetLength() <= EOS_LOBBY_MAX_LOBBYIDOVERRIDE_LENGTH && lobbyIDOverride->GetLength() >= EOS_LOBBY_MIN_LOBBYIDOVERRIDE_LENGTH), "Lobby ID override has an unsupported number of characters");
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
@@ -73,9 +75,13 @@ namespace RN
 		options.ApiVersion = EOS_LOBBY_CREATELOBBY_API_LATEST;
 		options.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		options.MaxLobbyMembers = maxUsers;
-		options.PermissionLevel = EOS_ELobbyPermissionLevel::EOS_LPL_PUBLICADVERTISED;
+		//Don't include lobbies with max 1 users in any search results, nobody can join them anyway
+		options.PermissionLevel = maxUsers==1?EOS_ELobbyPermissionLevel::EOS_LPL_INVITEONLY : EOS_ELobbyPermissionLevel::EOS_LPL_PUBLICADVERTISED;
 		options.bPresenceEnabled = false;
+		options.bDisableHostMigration = true; //Host migration is currently not supported with my p2p setup, so disabling it for lobbies should help with event lobbies not disappearing
 		options.BucketId = "Server"; //Top-level filtering criteria, called the Bucket ID, which is specific to your game; often formatted like "GameMode:Region:MapName"
+		if(lobbyIDOverride) options.LobbyId = lobbyIDOverride->GetUTF8String();
+			
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
