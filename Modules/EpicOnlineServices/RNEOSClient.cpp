@@ -88,7 +88,15 @@ namespace RN
 		connectionOptions.DataLengthBytes = sizeof(packetHeader);
 		connectionOptions.Data = &packetHeader;
 		
-		EOS_P2P_SendPacket(world->GetP2PHandle(), &connectionOptions);
+		EOS_EResult result = EOS_P2P_SendPacket(world->GetP2PHandle(), &connectionOptions);
+		
+		if(result != EOS_EResult::EOS_Success)
+		{
+			RNDebug("Couldn't connect to server!");
+			_status = Status::Disconnected;
+			Unlock();
+			return;
+		}
 
 		const Peer &peer = CreatePeer(0, serverProductID);
 		if(peer.internalID == NULL)
