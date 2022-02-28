@@ -74,7 +74,11 @@ namespace RN
 		}
 
 		EOS_Logging_SetCallback(LoggingCallback);
-		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, /*EOS_ELogLevel::EOS_LOG_Warning*/EOS_ELogLevel::EOS_LOG_VeryVerbose);
+#if RN_BUILD_DEBUG
+		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_VeryVerbose);
+#else
+		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_Warning);
+#endif
 
 		EOS_Platform_Options platformOptions = {0};
 		platformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
