@@ -88,7 +88,7 @@ namespace RN
 	{
 		if((-- _openCount) == 0)
 		{
-			IOHIDDeviceRegisterInputReportCallback(_device, nullptr, 0, nullptr, this);
+			IOHIDDeviceRegisterInputReportCallback(_device, nullptr, 0, nullptr, this); //While it causes a warning, the null here are all correct!
 			IOHIDDeviceUnscheduleFromRunLoop(_device, CFRunLoopGetMain(), kCFRunLoopCommonModes);
 			IOHIDDeviceClose(_device, kIOHIDOptionsTypeNone);
 

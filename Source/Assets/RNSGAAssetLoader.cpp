@@ -49,6 +49,8 @@ namespace RN
 		delete[] skeletonname;
 		
 		uint16 bonecount = file->ReadUint16();
+		if(bonecount <= 0) return nullptr;
+		
 		for(int i = 0; i < bonecount; i++)
 		{
 			uint16 lenbonename = file->ReadUint16();
@@ -87,7 +89,7 @@ namespace RN
 			uint16 numanimbones = file->ReadUint16();
 			for(int n = 0; n < numanimbones; n++)
 			{
-				AnimationBone *animbone = 0;
+				AnimationBone *animbone = nullptr;
 				uint16 boneid = file->ReadUint16();
 				uint32 numframes = file->ReadUint32();
 				for(uint32 f = 0; f < numframes; f++)
@@ -104,7 +106,7 @@ namespace RN
 				}
 				
 				AnimationBone *lastbone = animbone;
-				while(animbone->prevFrame != 0)
+				while(animbone && animbone->prevFrame != nullptr)
 				{
 					animbone->prevFrame->nextFrame = animbone;
 					animbone = animbone->prevFrame;

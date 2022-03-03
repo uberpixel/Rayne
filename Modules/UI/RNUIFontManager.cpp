@@ -143,6 +143,8 @@ namespace RN
 				}
 			}
 			
+			stbtt_FreeShape(_fontInfo, shapeVertices);
+			
 			if(mypath.segments.size() > 0)
 			{
 				paths.paths.push_back(mypath);

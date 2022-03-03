@@ -494,7 +494,7 @@ namespace RN
 					if(loader->_fileExtensions->GetCount() > 0 && !loader->_fileExtensions->ContainsObject(extension))
 						return;
 
-					if(loader->_magicBytes)
+					if(loader->_magicBytes && loader->_magicBytes->GetLength() > 0)
 					{
 						size_t offset = loader->_magicBytesOffset;
 						size_t size = loader->_magicBytes->GetLength();

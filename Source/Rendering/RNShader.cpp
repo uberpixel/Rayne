@@ -416,6 +416,8 @@ namespace RN
 			return 16;
 		case PrimitiveType::Color:
 			return 16;
+		case PrimitiveType::Invalid:
+			return 0;
 		}
 
 		return 0;

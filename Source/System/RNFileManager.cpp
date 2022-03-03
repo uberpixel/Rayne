@@ -394,9 +394,8 @@ namespace RN
 		_platformModifier = RNCSTR("~android")->Retain();
 #endif
 
-		String *applicationDirectoryPath = GetPathForLocation(Location::ApplicationDirectory);
-
 #if RN_PLATFORM_ANDROID
+		String *applicationDirectoryPath = GetPathForLocation(Location::ApplicationDirectory);
 		_androidAppBundleFiles = GetFilePathsFromZipFile(applicationDirectoryPath);
 		SafeRetain(_androidAppBundleFiles);
 #endif
@@ -678,7 +677,7 @@ namespace RN
 					String *result = RNSTR([directory UTF8String]);
 					result = result->StringByDeletingLastPathComponent();
 
-					_applicationDirectory = SafeRetain(_applicationDirectory);
+					_applicationDirectory = SafeRetain(result);
 
 					return _applicationDirectory->Copy()->Autorelease();
 				}

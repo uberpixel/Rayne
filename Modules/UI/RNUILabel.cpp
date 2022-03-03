@@ -142,7 +142,6 @@ namespace RN
 				return Vector2();
 			}
 			
-			Array *characters = (new Array(_attributedText->GetLength()))->Autorelease();
 			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
 			
 			std::vector<int> linebreaks;

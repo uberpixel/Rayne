@@ -229,13 +229,21 @@ namespace RN
 				id<MTLTexture> sourceMTLTexture = nullptr;
 				id<MTLTexture> destinationMTLTexture = nullptr;
 				
+				RN::Vector3 sourceTextureSize;
+				
 				if(sourceTexture)
 				{
 					sourceMTLTexture = static_cast< id<MTLTexture> >(sourceTexture->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+					sourceTextureSize.x = sourceTexture->GetDescriptor().width;
+					sourceTextureSize.y = sourceTexture->GetDescriptor().height;
+					sourceTextureSize.z = sourceTexture->GetDescriptor().depth;
 				}
 				else
 				{
 					sourceMTLTexture = sourceFramebuffer->GetSwapChain()->GetMTLTexture();
+					sourceTextureSize.x = sourceFramebuffer->GetSize().x;
+					sourceTextureSize.y = sourceFramebuffer->GetSize().y;
+					sourceTextureSize.z = 0;
 				}
 				
 				if(destinationTexture)
@@ -252,7 +260,7 @@ namespace RN
 				[descriptor release];
 				
 				Rect targetRect = renderPass.renderPass->GetFrame();
-				[commandEncoder copyFromTexture:sourceMTLTexture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0) sourceSize:MTLSizeMake(sourceTexture->GetDescriptor().width, sourceTexture->GetDescriptor().height, sourceTexture->GetDescriptor().depth) toTexture:destinationMTLTexture destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(targetRect.x, targetRect.y, 0)];
+				[commandEncoder copyFromTexture:sourceMTLTexture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0) sourceSize:MTLSizeMake(sourceTextureSize.x, sourceTextureSize.y, sourceTextureSize.z) toTexture:destinationMTLTexture destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(targetRect.x, targetRect.y, 0)];
 				
 				[commandEncoder endEncoding];
 				[commandEncoder release];

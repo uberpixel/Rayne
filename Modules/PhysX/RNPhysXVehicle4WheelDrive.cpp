@@ -172,15 +172,15 @@ namespace RN
 	{
 		PhysXCollisionObject::SetCollisionFilter(group, mask);
 
-		physx::PxShape *shape;
+		//physx::PxShape *shape;
 		//_controller->getActor()->getShapes(&shape, 1);
 
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;
-		shape->setSimulationFilterData(filterData);
+		/*shape->setSimulationFilterData(filterData);
 		shape->setQueryFilterData(filterData);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);*/
 
 //		_controller->invalidateCache();
 	}

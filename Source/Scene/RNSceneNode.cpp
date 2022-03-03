@@ -19,10 +19,10 @@ namespace RN
 	SceneNode::SceneNode() :
         _sceneUpdateEntry(this),
 		_sceneRenderEntry(this),
+		_scheduledForRemovalFromScene(false),
 		_uid(__SceneNodeIDs.fetch_add(1)),
 		_lid(static_cast<uint64>(-1)),
 		_sceneInfo(nullptr),
-		_scheduledForRemovalFromScene(false),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),

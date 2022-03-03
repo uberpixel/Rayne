@@ -213,7 +213,6 @@ namespace RN
 			Filter _filter;
 			ComparisonFunction _comparisonFunction;
 			uint8 _anisotropy;
-			float _mipmapBias;
 
 			__RNDeclareMetaInternal(ArgumentSampler)
 		};

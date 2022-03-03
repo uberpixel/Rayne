@@ -45,9 +45,8 @@ namespace RN
 	Asset *ASTCAssetLoader::Load(File *file, const LoadOptions &options)
 	{
 		bool isLinear = false;
-		Number *wrapper;
-		if((wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
-			isLinear = wrapper->GetBoolValue();
+		Number *wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"));
+		if(wrapper) isLinear = wrapper->GetBoolValue();
 		
 		Texture *texture = nullptr;
 		uint8 *data = nullptr;
@@ -145,7 +144,8 @@ namespace RN
 		}
 
 		delete[] data;
-
+		
+		if(!texture) return nullptr;
 		return texture->Autorelease();
 	}
 }

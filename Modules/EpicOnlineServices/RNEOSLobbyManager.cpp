@@ -596,8 +596,6 @@ namespace RN
 
 	void EOSLobbyManager::LobbyOnKickMemberCallback(const EOS_Lobby_KickMemberCallbackInfo *Data)
 	{
-		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
-		
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Kicked user successfully");
