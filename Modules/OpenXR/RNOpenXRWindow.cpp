@@ -199,7 +199,7 @@ namespace RN
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
 		}
 
-	  if(numberOfSupportedFoveationExtensions == 4)
+		if(numberOfSupportedFoveationExtensions == 4)
 		{
 			_supportsFoveatedRendering = true;
 		}
@@ -209,12 +209,15 @@ namespace RN
 		createInfo.enabledExtensionCount = (uint32_t)extensions.size();
 		createInfo.enabledExtensionNames = extensions.data();
 
-		strcpy(createInfo.applicationInfo.applicationName, "HelloXR");
+		const RN::String *applicationTitle = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
+		if(applicationTitle) strcpy(createInfo.applicationInfo.applicationName, applicationTitle->GetUTF8String());
+		else strcpy(createInfo.applicationInfo.applicationName, "NO TITLE");
 		createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
 		_internals->instance = XR_NULL_HANDLE;
-	  if(xrCreateInstance(&createInfo, &_internals->instance) != XR_SUCCESS)
+		if(xrCreateInstance(&createInfo, &_internals->instance) != XR_SUCCESS)
 		{
+			//TODO: For some reason this fails regularly on Quest (~15% of users)
 			RN_ASSERT(false, "Failed creating OpenXR instance");
 		}
 
