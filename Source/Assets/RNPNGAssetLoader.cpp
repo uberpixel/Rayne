@@ -56,26 +56,24 @@ namespace RN
 
 	Asset *PNGAssetLoader::Load(File *file, const LoadOptions &options)
 	{
-		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
+		int transforms = PNG_TRANSFORM_SCALE_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
 
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-		png_infop pngInfo = png_create_info_struct(pngPointer);
-
 		png_set_read_fn(pngPointer, file, png_read_from_rnfile);
 
 		png_set_sig_bytes(pngPointer, 0);
 		png_set_error_fn(pngPointer, nullptr, nullptr, __PNGEmptyLogFunction);
 
+		png_infop pngInfo = png_create_info_struct(pngPointer);
 		png_read_png(pngPointer, pngInfo, transforms, nullptr);
 
-		png_uint_32 width, height;
-		int depth, colorType, interlaceType;
+		png_uint_32 width, height = 0;
+		int depth, colorType, interlaceType = 0;
 
 		png_get_IHDR(pngPointer, pngInfo, &width, &height, &depth, &colorType, &interlaceType, nullptr, nullptr);
 
-		png_bytepp rows = png_get_rows(pngPointer, pngInfo);
-
-
+		const png_bytepp rows = png_get_rows(pngPointer, pngInfo);
+		
 		uint8 *data = nullptr;
 		size_t bytesPerRow;
 		
@@ -105,11 +103,11 @@ namespace RN
 
 				for(uint32 y = 0; y < height; y ++)
 				{
-					png_bytep row = rows[y];
+					const png_bytep row = rows[y];
 
 					for(uint32 x = 0; x < width; x ++)
 					{
-						png_bytep ptr = &(row[x * 3]);
+						const png_bytep ptr = &(row[x * 3]);
 
 						*temp ++ = ptr[0];
 						*temp ++ = ptr[1];
@@ -132,11 +130,11 @@ namespace RN
 
 				for(uint32 y = 0; y < height; y ++)
 				{
-					png_bytep row = rows[y];
+					const png_bytep row = rows[y];
 
 					for(uint32 x = 0; x < width; x ++)
 					{
-						png_bytep ptr = &(row[x * 4]);
+						const png_bytep ptr = &(row[x * 4]);
 						*temp ++ = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 					}
 				}
@@ -147,9 +145,8 @@ namespace RN
 			default:
 				throw InconsistencyException(RNSTR("File " << file << " is neither RGBA nor RGB"));
 		}
-
+	
 		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
-		
 		
 		if(options.meta == Bitmap::GetMetaClass())
 		{
