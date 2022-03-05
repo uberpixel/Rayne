@@ -45,7 +45,7 @@ namespace RN
 
 		for(auto &alloc : _allocationStack)
 		{
-			RN_ASSERT(alloc.offset = 0, "BumpAllocator deleted with non-rolled back allocations");
+			RN_ASSERT(alloc.offset == 0, "BumpAllocator deleted with non-rolled back allocations");
 			delete[] alloc.memory;
 		}
 	}

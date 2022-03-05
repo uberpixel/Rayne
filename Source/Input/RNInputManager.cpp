@@ -172,7 +172,7 @@ namespace RN
 	{
 		ScopeAllocator allocator;
 
-		UINT dwSize;
+		UINT dwSize = 0;
 		GetRawInputData(lParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
 		auto lpb = allocator.AllocBytes<BYTE>(dwSize);
 

@@ -168,7 +168,7 @@ namespace RN
 			int lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
 			bool hasOnlyWhitespaces = true;
-			for(int i = 0; i < _attributedText->GetLength(); i++)
+			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
 				int nextCodepoint = i < _attributedText->GetLength()-1? _attributedText->GetCharacterAtIndex(i+1) : -1;
@@ -235,7 +235,7 @@ namespace RN
 				
 				if(GetBounds().width > 0.0f && currentWidth + offset > GetBounds().width && currentAttributes->GetWrapMode() != TextWrapModeNone)
 				{
-					Range lastWhitespaceRange;
+					Range lastWhitespaceRange(0, 0);
 					lastWhitespaceRange.length = 0;
 					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
 					{
@@ -351,7 +351,7 @@ namespace RN
 			int lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
 			bool hasOnlyWhitespaces = true;
-			for(int i = 0; i < _attributedText->GetLength(); i++)
+			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
 				int nextCodepoint = i < _attributedText->GetLength()-1? _attributedText->GetCharacterAtIndex(i+1) : -1;
@@ -431,8 +431,7 @@ namespace RN
 				
 				if(GetBounds().width > 0.0f && currentWidth + offset > GetBounds().width && currentAttributes->GetWrapMode() != TextWrapModeNone)
 				{
-					Range lastWhitespaceRange;
-					lastWhitespaceRange.length = 0;
+					Range lastWhitespaceRange(0, 0);
 					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
 					{
 						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;

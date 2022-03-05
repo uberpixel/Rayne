@@ -33,7 +33,7 @@ namespace RN
 		int64_t *supportedSwapChainFormats = new int64_t[numberOfSupportedSwapChainFormats];
 		xrEnumerateSwapchainFormats(window->_internals->session, numberOfSupportedSwapChainFormats, &numberOfSupportedSwapChainFormats, supportedSwapChainFormats);
 
-		for(int i = 0; i < numberOfSupportedSwapChainFormats; i++)
+		for(uint32 i = 0; i < numberOfSupportedSwapChainFormats; i++)
 		{
 			//TODO: Check if the requested swapchain format is actually supported
 			RNDebug("Supported swap chain format: " << supportedSwapChainFormats[i]);
@@ -65,7 +65,7 @@ namespace RN
 		XrSwapchainImageD3D12KHR *swapchainImages = new XrSwapchainImageD3D12KHR[numberOfSwapChainImages];
 		_swapchainImages = new ID3D12Resource*[numberOfSwapChainImages];
 
-		for(int i = 0; i < numberOfSwapChainImages; i++)
+		for(uint32 i = 0; i < numberOfSwapChainImages; i++)
 		{
 			swapchainImages[i].type = XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR;
 			swapchainImages[i].next = nullptr;
@@ -73,7 +73,7 @@ namespace RN
 		xrEnumerateSwapchainImages(_internals->swapchain, numberOfSwapChainImages, &numberOfSwapChainImages, (XrSwapchainImageBaseHeader*)swapchainImages);
 		_descriptor.bufferCount = numberOfSwapChainImages;
 
-		for(int i = 0; i < numberOfSwapChainImages; i++)
+		for(uint32 i = 0; i < numberOfSwapChainImages; i++)
 		{
 			_swapchainImages[i] = swapchainImages[i].texture;
 		}

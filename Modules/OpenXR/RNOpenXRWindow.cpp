@@ -1188,14 +1188,14 @@ namespace RN
 		}
 #endif
 
-		uint32_t numberOfConfigurationViews = 0;
+		uint32 numberOfConfigurationViews = 0;
 		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &numberOfConfigurationViews, nullptr)))
 		{
 
 		}
 
 		XrViewConfigurationView *configurationViews = new XrViewConfigurationView[numberOfConfigurationViews];
-		for(int i = 0; i < numberOfConfigurationViews; i++)
+		for(uint32 i = 0; i < numberOfConfigurationViews; i++)
 		{
 			configurationViews[i].type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
 			configurationViews[i].next = nullptr;
@@ -1206,7 +1206,7 @@ namespace RN
 
 		}
 
-		for(int i = 0; i < numberOfConfigurationViews; i++)
+		for(uint32 i = 0; i < numberOfConfigurationViews; i++)
 		{
 			RNDebug("View: " << configurationViews[i].recommendedImageRectWidth << " x " << configurationViews[i].recommendedImageRectHeight << " : " << configurationViews[i].recommendedSwapchainSampleCount);
 		}

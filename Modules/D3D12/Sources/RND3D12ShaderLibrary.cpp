@@ -94,7 +94,7 @@ namespace RN
 		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
 			Dictionary *dict = option->Downcast<Dictionary>();
 			String *name = nullptr;
-			if (!dict)
+			if(!dict)
 			{
 				name = option->Downcast<String>();
 			}
@@ -103,12 +103,12 @@ namespace RN
 				name = dict->GetObjectForKey<String>(RNCSTR("option"));
 			}
 
-			if (name)
+			if(name)
 			{
 				String *obj = oldDefines->GetObjectForKey<String>(name);
 				if (obj)
 				{
-					permutationIndex |= (1 << index);
+					permutationIndex |= (static_cast<unsigned long long>(1) << index);
 				}
 			}
 		});

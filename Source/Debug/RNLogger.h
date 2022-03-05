@@ -23,7 +23,7 @@ namespace RN
 		friend class Logger;
 
 		LogMessage() :
-			message(nullptr)
+			message(nullptr), file(nullptr)
 		{}
 
 		LogMessage(size_t tline, const char *tfile, const char *tfunction, const String *string) :

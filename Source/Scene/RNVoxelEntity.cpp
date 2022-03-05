@@ -567,11 +567,11 @@ namespace RN
 		
 		ApplyBlur(Vector3(0.0f), Vector3(0.0f), 2);
 		
-		for(int32 x = 0; x <= _resolutionX; x++)
+		for(uint32 x = 0; x <= _resolutionX; x++)
 		{
-			for(int32 y = 0; y <= _resolutionY; y++)
+			for(uint32 y = 0; y <= _resolutionY; y++)
 			{
-				for(int32 z = 0; z <= _resolutionZ; z++)
+				for(uint32 z = 0; z <= _resolutionZ; z++)
 				{
 					Vector3 pos00 = RN::Vector3(x-1, y-1, z-1);
 					Vector3 pos01 = RN::Vector3(x, y-1, z-1);

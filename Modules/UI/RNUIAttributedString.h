@@ -43,7 +43,7 @@ namespace RN
 		{
 		friend AttributedString;
 		public:
-			UIAPI TextAttributes(Font *font, float fontSize, RN::Color color, TextAlignment alignment = TextAlignmentLeft, TextWrapMode wrapMode = TextWrapModeWord, float kerning = 0.0f) : _font(font->Retain()), _color(color), _alignment(alignment), _wrapMode(wrapMode), _fontSize(fontSize), _kerning(kerning) {}
+			UIAPI TextAttributes(Font *font, float fontSize, RN::Color color, TextAlignment alignment = TextAlignmentLeft, TextWrapMode wrapMode = TextWrapModeWord, float kerning = 0.0f) : _font(font->Retain()), _color(color), _alignment(alignment), _wrapMode(wrapMode), _fontSize(fontSize), _kerning(kerning), _range(0, 0) {}
 			UIAPI TextAttributes(const TextAttributes &attributes) : _font(attributes._font->Retain()), _color(attributes._color), _alignment(attributes._alignment), _wrapMode(attributes._wrapMode), _fontSize(attributes._fontSize), _kerning(attributes._kerning), _range(attributes._range) {}
 			UIAPI ~TextAttributes() {_font->Release();}
 			

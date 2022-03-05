@@ -231,14 +231,14 @@ namespace RN
 	
 	float Number::GetFloatValue() const
 	{
-		float value;
+		float value = 0.0f;
 		NumberAccessAndConvert(value, float);
 		
 		return value;
 	}
 	double Number::GetDoubleValue() const
 	{
-		double value;
+		double value = 0.0;
 		NumberAccessAndConvert(value, double);
 		
 		return value;
@@ -246,7 +246,7 @@ namespace RN
 	
 	bool Number::GetBoolValue() const
 	{
-		bool value;
+		bool value = false;
 		NumberAccessAndConvert(value, bool);
 		
 		return value;
@@ -255,28 +255,28 @@ namespace RN
 	
 	int8 Number::GetInt8Value() const
 	{
-		int8 value;
+		int8 value = 0;
 		NumberAccessAndConvert(value, int8);
 		
 		return value;
 	}
 	int16 Number::GetInt16Value() const
 	{
-		int16 value;
+		int16 value = 0;
 		NumberAccessAndConvert(value, int16);
 		
 		return value;
 	}
 	int32 Number::GetInt32Value() const
 	{
-		int32 value;
+		int32 value = 0;
 		NumberAccessAndConvert(value, int32);
 		
 		return value;
 	}
 	int64 Number::GetInt64Value() const
 	{
-		int64 value;
+		int64 value = 0;
 		NumberAccessAndConvert(value, int64);
 		
 		return value;
@@ -285,28 +285,28 @@ namespace RN
 	
 	uint8 Number::GetUint8Value() const
 	{
-		uint8 value;
+		uint8 value = 0;
 		NumberAccessAndConvert(value, uint8);
 		
 		return value;
 	}
 	uint16 Number::GetUint16Value() const
 	{
-		uint16 value;
+		uint16 value = 0;
 		NumberAccessAndConvert(value, uint16);
 		
 		return value;
 	}
 	uint32 Number::GetUint32Value() const
 	{
-		uint32 value;
+		uint32 value = 0;
 		NumberAccessAndConvert(value, uint32);
 		
 		return value;
 	}
 	uint64 Number::GetUint64Value() const
 	{
-		uint64 value;
+		uint64 value = 0;
 		NumberAccessAndConvert(value, uint64);
 		
 		return value;

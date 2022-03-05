@@ -12,14 +12,15 @@ namespace RN
 {
 	RNDefineMeta(VRCamera, SceneNode)
 
-		VRCamera::VRCamera(VRWindow *window, RenderPass *previewRenderPass, uint8 msaaSampleCount, Window *debugWindow) :
-		_window(window? window->Retain() : nullptr),
-		_debugWindow(debugWindow? debugWindow->Retain() : nullptr),
+		VRCamera::VRCamera(VRWindow* window, RenderPass* previewRenderPass, uint8 msaaSampleCount, Window* debugWindow) :
+		_window(window ? window->Retain() : nullptr),
+		_debugWindow(debugWindow ? debugWindow->Retain() : nullptr),
 		_head(new Camera()),
-		_previewRenderPass(previewRenderPass? previewRenderPass->Retain() : nullptr),
+		_previewRenderPass(previewRenderPass ? previewRenderPass->Retain() : nullptr),
 		_msaaSampleCount(msaaSampleCount),
-		_eye{nullptr, nullptr},
-		_didUpdateVRWindow(false)
+		_eye{ nullptr, nullptr },
+		_didUpdateVRWindow(false),
+		_hiddenAreaEntity{nullptr, nullptr}
 	{
 		SetUpdatePriority(SceneNode::UpdatePriority::UpdateEarly);
 		AddChild(_head);

@@ -65,7 +65,7 @@ namespace RN
 			
 			KG::PathCollection paths;
 			KG::Path mypath;
-			KG::Vector2 from;
+			KG::Vector2 from = { 0.0, 0.0 };
 			for(int i = 0; i < shapeVertexCount; i++)
 			{
 				stbtt_vertex vertex = shapeVertices[i];

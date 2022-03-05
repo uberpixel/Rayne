@@ -288,7 +288,7 @@ namespace RN
 			}
 		}
 		
-		for(int i = to; i < _maxParticles; i++)
+		for(uint32 i = to; i < _maxParticles; i++)
 		{
 			*indexIterator++ = i * 4 + 0;
 			*indexIterator++ = i * 4 + 0;

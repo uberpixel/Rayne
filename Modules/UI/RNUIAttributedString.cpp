@@ -61,7 +61,7 @@ namespace RN
 			size_t newStart = range.origin;
 			size_t newEnd = range.origin + range.length;
 			
-			for(int i = _attributes.size()-1; i >= 0; i--)
+			for(int64 i = _attributes.size()-1; i >= 0; i--)
 			{
 				size_t oldStart = _attributes[i]._range.origin;
 				size_t oldEnd = _attributes[i]._range.origin + _attributes[i]._range.length;

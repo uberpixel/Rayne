@@ -22,7 +22,7 @@ namespace RN
 {
 	RNDefineMeta(EOSHost, Object)
 
-	EOSHost::EOSHost() : _pingTimer(10.0)
+	EOSHost::EOSHost() : _pingTimer(10.0), _status(Status::Disconnected)
 	{
 		
 	}
@@ -169,7 +169,7 @@ namespace RN
 		if(_pingTimer > 5.0)
 		{
 			_pingTimer = 0.0f;
-			for(auto pair : _peers)
+			for(auto &pair : _peers)
 			{
 				SendPing(pair.first, false, 0);
 			}
@@ -218,7 +218,7 @@ namespace RN
 				break;
 			}
 			
-			size_t dataIndex = 0;
+			uint16 dataIndex = 0;
 			while(dataIndex < bytesWritten)
 			{
 				ProtocolPacketHeader packetHeader;
@@ -340,7 +340,7 @@ namespace RN
 
 	uint16 EOSHost::GetUserIDForInternalID(EOS_ProductUserId internalID)
 	{
-		for(auto pair : _peers)
+		for(auto &pair : _peers)
 		{
 			if(pair.second.internalID == internalID)
 			{
@@ -353,7 +353,7 @@ namespace RN
 
 	bool EOSHost::HasReliableDataInTransit()
 	{
-		for(auto iter : _peers)
+		for(auto &iter : _peers)
 		{
 			if(iter.second._hasReliableInTransit)
 			{

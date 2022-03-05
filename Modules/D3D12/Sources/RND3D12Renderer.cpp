@@ -1737,7 +1737,7 @@ namespace RN
 			}
 
 			//TODO: Handle multiple subresources?
-			for(int i = 0; i < sourceD3DColorTexture->_descriptor.depth; i++)
+			for(uint32 i = 0; i < sourceD3DColorTexture->_descriptor.depth; i++)
 			{
 				uint32 subresourceIndex = D3D12CalcSubresource(0, i, 0, sourceD3DColorTexture->_descriptor.mipMaps, sourceD3DColorTexture->_descriptor.depth);
 				commandList->GetCommandList()->ResolveSubresource(destinationColorResource, subresourceIndex, sourceD3DColorTexture->_resource, subresourceIndex, targetColorFormat);
@@ -1767,7 +1767,7 @@ namespace RN
 				}
 
 				//TODO: Handle multiple subresources?
-				for(int i = 0; i < sourceD3DDepthTexture->_descriptor.depth; i++)
+				for(uint32 i = 0; i < sourceD3DDepthTexture->_descriptor.depth; i++)
 				{
 					uint32 subresourceIndex = D3D12CalcSubresource(0, i, 0, sourceD3DDepthTexture->_descriptor.mipMaps, sourceD3DDepthTexture->_descriptor.depth);
 					commandList->GetCommandList()->ResolveSubresource(destinationDepthResource, subresourceIndex, sourceD3DDepthTexture->_resource, subresourceIndex, targetDepthFormat);

@@ -206,7 +206,7 @@ namespace RN
 				break;
 			}
 			
-			size_t dataIndex = 0;
+			uint16 dataIndex = 0;
 			while(dataIndex < bytesWritten)
 			{
 				ProtocolPacketHeader packetHeader;

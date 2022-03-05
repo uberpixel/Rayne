@@ -1023,7 +1023,7 @@ namespace RN
 		if(num_entries > 0)
 		{
 			filePaths = new Array();
-			for(zip_uint64_t i = 0; i < num_entries; ++i)
+			for(zip_int64_t i = 0; i < num_entries; ++i)
 			{
 				const char *name = zip_get_name(zipFile, i, 0);
 				if(name)
