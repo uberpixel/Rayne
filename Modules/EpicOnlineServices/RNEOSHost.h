@@ -52,7 +52,7 @@ namespace RN
 		{
 			uint16 userID;
 			EOS_ProductUserId internalID;
-			double smoothedPing;
+			double smoothedRoundtripTime;
 			
 			uint8 _packetIDForChannel[254];
 			uint8 _receivedIDForChannel[254];

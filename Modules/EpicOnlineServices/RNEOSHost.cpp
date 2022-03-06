@@ -239,9 +239,9 @@ namespace RN
 						auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(receivedPingTime - _peers[id]._sentPingTime).count();
 						double timeElapsed = milliseconds / 1000.0;
 						
-						RNDebug("Ping time for " << id << ": " << timeElapsed);
+						//RNDebug("Ping time for " << id << ": " << timeElapsed);
 						
-						_peers[id].smoothedPing = _peers[id].smoothedPing * 0.75 + timeElapsed * 0.25;
+						_peers[id].smoothedRoundtripTime = _peers[id].smoothedRoundtripTime * 0.75 + timeElapsed * 0.25;
 					}
 					else
 					{
@@ -322,7 +322,7 @@ namespace RN
 		Peer peer;
 		peer.userID = userID;
 		peer.internalID = internalID;
-		peer.smoothedPing = 50.0;
+		peer.smoothedRoundtripTime = 0.05;
 		peer._lastPingID = 0;
 		peer._hasReliableInTransit = false;
 		peer._wantsDisconnect = false;
@@ -366,7 +366,7 @@ namespace RN
 
 	double EOSHost::GetLastRoundtripTime(uint16 peerID)
 	{
-		return _peers[peerID].smoothedPing;
+		return _peers[peerID].smoothedRoundtripTime;
 	}
 
 	void EOSHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
