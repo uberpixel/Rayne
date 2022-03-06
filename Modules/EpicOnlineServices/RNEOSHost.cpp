@@ -241,7 +241,7 @@ namespace RN
 						
 						RNDebug("Ping time for " << id << ": " << timeElapsed);
 						
-						_peers[id].smoothedPing = _peers[id].smoothedPing * 0.5 + timeElapsed * 0.5;
+						_peers[id].smoothedPing = _peers[id].smoothedPing * 0.75 + timeElapsed * 0.25;
 					}
 					else
 					{
@@ -366,7 +366,7 @@ namespace RN
 
 	double EOSHost::GetLastRoundtripTime(uint16 peerID)
 	{
-		return _peers[peerID].smoothedPing * 0.001;
+		return _peers[peerID].smoothedPing;
 	}
 
 	void EOSHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
