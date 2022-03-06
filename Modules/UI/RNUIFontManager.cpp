@@ -51,6 +51,9 @@ namespace RN
 
 		RN::Mesh *Font::GetMeshForCharacter(int codepoint)
 		{
+			//Don not generate a mesh for control characters!
+			if(codepoint <= 32) return nullptr;
+			
 			Lock();
 			RN::Mesh *existingMesh = _meshes->GetObjectForKey<RN::Mesh>(RN::Number::WithInt32(codepoint));
 			if(existingMesh)
