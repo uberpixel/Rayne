@@ -55,6 +55,7 @@ namespace RN
 		RN_OPTIONS(Flags, uint32,
 				   Static       = (1 << 0),
 				   Hidden       = (1 << 1),
+				   NoCulling	= (1 << 2),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),
