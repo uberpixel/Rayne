@@ -244,6 +244,10 @@ namespace RN
 		Material *overrideMaterial;
 
 		Color cameraAmbientColor;
+		Color cameraFogColor0;
+		Color cameraFogColor1;
+		Vector2 cameraClipDistance;
+		Vector2 cameraFogDistance;
 		VulkanRenderPassCameraInfo cameraInfo;
 		std::vector<VulkanRenderPassCameraInfo> multiviewCameraInfo;
 		uint8 multiviewLayer;

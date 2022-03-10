@@ -137,9 +137,13 @@ namespace RN
 		_dirtyProjection = true;
 	}
 
-	void Camera::SetFogColor(Color color)
+	void Camera::SetFogColor0(Color color)
 	{
-		_fogColor = color;
+		_fogColor0 = color;
+	}
+	void Camera::SetFogColor1(Color color)
+	{
+		_fogColor1 = color;
 	}
 	void Camera::SetFogNear(float near)
 	{

@@ -89,6 +89,8 @@ namespace RN
 
 				CameraPosition,
 				CameraPositionMultiview,
+				CameraClipDistance,
+				CameraFogDistance,
 
 				AmbientColor,
 				DiffuseColor,
@@ -98,6 +100,8 @@ namespace RN
 				AlphaToCoverageClamp,
 				Time,
 				CameraAmbientColor,
+				CameraFogColor0,
+				CameraFogColor1,
 				DirectionalLightsCount,
 				DirectionalLights,
 				DirectionalShadowMatrices,

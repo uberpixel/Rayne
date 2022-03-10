@@ -249,6 +249,16 @@ namespace RN
 			_identifier = CameraPosition;
 			_type = PrimitiveType::Vector4;
 		}
+		else if (name->IsEqual(RNCSTR("camera_clipdistance")) || name->IsEqual(RNCSTR("cameraClipDistance")))
+		{
+			_identifier = CameraClipDistance;
+			_type = PrimitiveType::Vector2;
+		}
+		else if (name->IsEqual(RNCSTR("camera_fogdistance")) || name->IsEqual(RNCSTR("cameraFogDistance")))
+		{
+			_identifier = CameraFogDistance;
+			_type = PrimitiveType::Vector2;
+		}
 		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")))
 		{
 			_identifier = AmbientColor;
@@ -282,6 +292,16 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("camera_ambientcolor")) || name->IsEqual(RNCSTR("cameraAmbientColor")))
 		{
 			_identifier = CameraAmbientColor;
+			_type = PrimitiveType::Color;
+		}
+		else if (name->IsEqual(RNCSTR("camera_fogcolor")) || name->IsEqual(RNCSTR("cameraFogColor")) || name->IsEqual(RNCSTR("camera_fogcolor0")) || name->IsEqual(RNCSTR("cameraFogColor0")))
+		{
+			_identifier = CameraFogColor0;
+			_type = PrimitiveType::Color;
+		}
+		else if (name->IsEqual(RNCSTR("camera_fogcolor1")) || name->IsEqual(RNCSTR("cameraFogColor1")))
+		{
+			_identifier = CameraFogColor1;
 			_type = PrimitiveType::Color;
 		}
 		else if (name->IsEqual(RNCSTR("lights_directionalcount")) || name->IsEqual(RNCSTR("directionalLightsCount")))
