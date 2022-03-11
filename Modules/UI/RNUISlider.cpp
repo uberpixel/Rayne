@@ -25,8 +25,9 @@ namespace RN
 			if(_value > to) _value = to;
 			
 			float sliderPosition = (_value - _from) / (_to - _from);
+			float movementRange = frame.width - 15.0f;
 			
-			_handleView = new View(Rect(sliderPosition * frame.width, 0.0f, 15.0f, frame.height));
+			_handleView = new View(Rect(sliderPosition * movementRange, 0.0f, 15.0f, frame.height));
 			_handleView->SetBackgroundColor(Color::Black());
 			AddSubview(_handleView);
 		}
@@ -38,17 +39,20 @@ namespace RN
 
 		void Slider::Update(float delta, Vector2 cursorPosition, bool touched)
 		{
-			if(!GetFrame().ContainsPoint(cursorPosition)) return;
+			Vector2 transformedPosition = ConvertPointFromBase(cursorPosition);
+			if(!GetBounds().ContainsPoint(transformedPosition)) return;
 			
 			if(touched)
 			{
-				_value = (cursorPosition.x - GetFrame().x) * (_to - _from) / GetFrame().width + _from;
-				
+				float movementRange = GetBounds().width - 15.0f;
+				_value = (transformedPosition.x - GetBounds().x) * (_to - _from) / movementRange + _from;
 				if(_step > k::EpsilonFloat) _value = std::round(_value / _step) * _step;
+				if(_value > _to) _value = _to;
+				if(_value < _from) _value = _from;
 				
 				float sliderPosition = (_value - _from) / (_to - _from);
 				Rect handleFrame = _handleView->GetFrame();
-				handleFrame.x = sliderPosition * GetFrame().width;
+				handleFrame.x = sliderPosition * movementRange;
 				_handleView->SetFrame(handleFrame);
 			}
 		}

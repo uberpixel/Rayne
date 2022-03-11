@@ -51,7 +51,7 @@ namespace RN
 			
 			const Rect &GetScissorRect() const { return _scissorRect; }
 			
-			UIAPI void SetHidden(bool hidden);
+			UIAPI virtual void SetHidden(bool hidden);
 			bool GetIsHidden() const { return _isHidden || _isHiddenByParent; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
