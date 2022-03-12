@@ -31,7 +31,19 @@ namespace RN
 
 		void ScrollView::Update(float delta, Vector2 cursorPosition, bool touched, float alternativeScrollSpeed)
 		{
-			if(!GetFrame().ContainsPoint(cursorPosition)) return;
+			Vector2 transformedPosition = ConvertPointFromBase(cursorPosition); //Converts to inside bounds, so reverse that effect below
+			transformedPosition.x += GetBounds().x;
+			transformedPosition.y += GetBounds().y;
+			RN::Rect innerFrame = GetFrame(); //would usually be the bounds, but in this case the bounds are getting scaled...
+			innerFrame.x = 0.0f;
+			innerFrame.y = 0.0f;
+			bool isCursorInside = innerFrame.ContainsPoint(transformedPosition);
+			
+			if(!isCursorInside)
+			{
+				touched = false;
+				alternativeScrollSpeed = 0.0f;
+			}
 			
 			if(!_isScrollEnabled)
 			{
@@ -47,7 +59,7 @@ namespace RN
 			
 			if(_wasTouched && touched)
 			{
-				float scrollDistance = cursorPosition.y - _previousCursorPosition.y;
+				float scrollDistance = transformedPosition.y - _previousCursorPosition.y;
 				if(std::abs(scrollDistance) > _pixelPerInch/25.4f*5.0f || (_tapTimer <= 0.0f && std::abs(scrollDistance) > _pixelPerInch/25.4f)) _isScrolling = true;
 				
 				if(_isScrolling)
@@ -134,7 +146,7 @@ namespace RN
 			}
 			
 			_wasTouched = touched;
-			_previousCursorPosition = cursorPosition;
+			_previousCursorPosition = transformedPosition;
 		}
 	}
 }
