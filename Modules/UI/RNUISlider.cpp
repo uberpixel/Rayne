@@ -21,20 +21,30 @@ namespace RN
 			rangeView->SetBackgroundColor(Color::White());
 			AddSubview(rangeView);
 			
-			if(_value < from) _value = from;
-			if(_value > to) _value = to;
-			
-			float sliderPosition = (_value - _from) / (_to - _from);
-			float movementRange = frame.width - 15.0f;
-			
-			_handleView = new View(Rect(sliderPosition * movementRange, 0.0f, 15.0f, frame.height));
+			_handleView = new View(Rect(0.0f, 0.0f, 15.0f, GetFrame().height));
 			_handleView->SetBackgroundColor(Color::Black());
+			SetValue(_value);
 			AddSubview(_handleView);
 		}
 
 		Slider::~Slider()
 		{
 			
+		}
+	
+		void Slider::SetValue(float value)
+		{
+			_value = value;
+			
+			if(_value < _from) _value = _from;
+			if(_value > _to) _value = _to;
+			
+			float sliderPosition = (_value - _from) / (_to - _from);
+			float movementRange = GetFrame().width - 15.0f;
+			
+			Rect handleFrame = _handleView->GetFrame();
+			handleFrame.x = sliderPosition * movementRange;
+			_handleView->SetFrame(handleFrame);
 		}
 
 		void Slider::Update(float delta, Vector2 cursorPosition, bool touched)
