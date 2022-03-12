@@ -23,12 +23,16 @@ namespace RN
 
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
 			float GetValue() const { return _value; }
+			
+			bool GetIsActive() const { return _isActive; }
 
 		private:
 			float _value;
 			float _from;
 			float _to;
 			float _step;
+			
+			bool _isActive;
 			
 			View *_handleView;
 
