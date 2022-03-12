@@ -901,7 +901,7 @@ namespace RN
 					size_t lightCount = renderPass.directionalLights.size();
 					if(lightCount > 0)
 					{
-						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (12 + 16) * lightCount);
+						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
 					}
 					break;
 				}
@@ -1137,7 +1137,7 @@ namespace RN
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
 			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-				renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), light->GetFinalColor()});
+				renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), 0.0f, light->GetFinalColor()});
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())

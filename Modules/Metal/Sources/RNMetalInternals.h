@@ -143,6 +143,7 @@ namespace RN
 	struct MetalDirectionalLight
 	{
 		Vector3 direction;
+		float padding;
 		Vector4 color;
 	};
 
