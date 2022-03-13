@@ -16,13 +16,14 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual)
+		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual), _textMaterial(nullptr), _shadowMaterial(nullptr)
 		{
 			
 		}
 		Label::~Label()
 		{
-			
+			SafeRelease(_textMaterial);
+			SafeRelease(_shadowMaterial);
 		}
 		
 		void Label::SetText(const String *text)
@@ -94,12 +95,10 @@ namespace RN
 			Lock();
 			_shadowColor = color;
 			
-			Model *model = GetModel();
-			if(model)
+			if(_shadowMaterial)
 			{
-				Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
-				shadowMaterial->SetDiffuseColor(_shadowColor);
-				shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
+				_shadowMaterial->SetDiffuseColor(_shadowColor);
+				_shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 			}
 			Unlock();
 		}
@@ -109,10 +108,9 @@ namespace RN
 			Lock();
 			_shadowOffset = offset;
 			
-			Model *model = GetModel();
-			if(model)
+			if(_shadowMaterial)
 			{
-				model->GetLODStage(0)->GetMaterialAtIndex(1)->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+				_shadowMaterial->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
 			}
 			Unlock();
 		}
@@ -121,14 +119,74 @@ namespace RN
 		{
 			Lock();
 			_labelDepthMode = depthMode;
-			RN::Model *model = GetModel();
-			if(model)
+			if(_shadowMaterial)
 			{
-				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
-				material->SetDepthMode(_labelDepthMode);
-				
-				material = model->GetLODStage(0)->GetMaterialAtIndex(2);
-				material->SetDepthMode(_labelDepthMode);
+				_shadowMaterial->SetDepthMode(_labelDepthMode);
+			}
+			
+			if(_textMaterial)
+			{
+				_textMaterial->SetDepthMode(_labelDepthMode);
+			}
+			Unlock();
+		}
+	
+		void Label::SetTextMaterial(Material *material)
+		{
+			RN_ASSERT(material, "A valid material is required!");
+			
+			Lock();
+			SafeRelease(_textMaterial);
+			_textMaterial = SafeRetain(material);
+			
+			material->SetAlphaToCoverage(false);
+			material->SetDepthWriteEnabled(false);
+			material->SetDepthMode(_labelDepthMode);
+			material->SetCullMode(CullMode::None);
+			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
+			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
+			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+			material->SetDiffuseColor(Color::White());
+
+			const Rect &scissorRect = GetScissorRect();
+			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+			
+			material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(0.0f, 0.0f)));
+			
+			RN::Model *model = GetModel();
+			if(model && model->GetLODStage(0)->GetCount() > 1)
+			{
+				model->GetLODStage(0)->ReplaceMaterial(material, 2);
+			}
+			Unlock();
+		}
+		
+		void Label::SetTextShadowMaterial(Material *material)
+		{
+			RN_ASSERT(material, "A valid material is required!");
+			
+			Lock();
+			SafeRelease(_shadowMaterial);
+			_shadowMaterial = SafeRetain(material);
+			
+			material->SetAlphaToCoverage(false);
+			material->SetDepthWriteEnabled(false);
+			material->SetDepthMode(_labelDepthMode);
+			material->SetCullMode(CullMode::None);
+			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
+			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
+			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+			material->SetDiffuseColor(Color::White());
+
+			const Rect &scissorRect = GetScissorRect();
+			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+			material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+			material->SetDiffuseColor(_shadowColor);
+			
+			RN::Model *model = GetModel();
+			if(model && model->GetLODStage(0)->GetCount() > 1)
+			{
+				model->GetLODStage(0)->ReplaceMaterial(material, 1);
 			}
 			Unlock();
 		}
@@ -610,40 +668,39 @@ namespace RN
 			RN::Model *model = GetModel();
 			if(model->GetLODStage(0)->GetCount() == 1)
 			{
-				RN::Material *material = RN::Material::WithShaders(nullptr, nullptr);
-				RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(textMesh);
-				shaderOptions->EnableAlpha();
-				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-				material->SetAlphaToCoverage(false);
-				material->SetDepthWriteEnabled(false);
-				material->SetDepthMode(_labelDepthMode);
-				material->SetCullMode(CullMode::None);
-				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
-				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
-				material->SetDiffuseColor(Color::White());
-				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
-				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
-				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
-				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
-
-				const Rect &scissorRect = GetScissorRect();
-				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
+				RN::Material *material = _textMaterial;
+				if(!material)
+				{
+					material = RN::Material::WithShaders(nullptr, nullptr);
+					
+					RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(textMesh);
+					shaderOptions->EnableAlpha();
+					shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+					
+					material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
+					material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
+					material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
+					material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
+					
+					SetTextMaterial(material);
+				}
 				
-				RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
-				shadowShaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
-				shadowShaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-				shadowShaderOptions->EnableAlpha();
-				
-				Material *shadowMaterial = material->Copy();
-				shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions));
-				shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions));
-				shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
-				shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
-				shadowMaterial->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
-				shadowMaterial->SetDiffuseColor(_shadowColor);
-				
-				material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(0.0f, 0.0f)));
+				RN::Material *shadowMaterial = _shadowMaterial;
+				if(!shadowMaterial)
+				{
+					RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
+					shadowShaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
+					shadowShaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+					shadowShaderOptions->EnableAlpha();
+					
+					shadowMaterial = RN::Material::WithShaders(nullptr, nullptr);
+					shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions));
+					shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions));
+					shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
+					shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
+					
+					SetTextShadowMaterial(shadowMaterial);
+				}
 				
 				model->GetLODStage(0)->AddMesh(textMesh, shadowMaterial);
 				model->GetLODStage(0)->AddMesh(textMesh->Autorelease(), material);

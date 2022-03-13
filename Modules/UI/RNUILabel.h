@@ -35,6 +35,9 @@ namespace RN
 			
 			UIAPI void SetTextDepthMode(DepthMode depthMode);
 			
+			UIAPI void SetTextMaterial(Material *material);
+			UIAPI void SetTextShadowMaterial(Material *material);
+			
 			const String *GetText() const { return _attributedText; }
 			UIAPI Vector2 GetTextSize();
 
@@ -46,11 +49,13 @@ namespace RN
 			TextAttributes _defaultAttributes;
 			TextVerticalAlignment _verticalAlignment;
 			
-            float _additionalLineHeight;
+			float _additionalLineHeight;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
 			
 			DepthMode _labelDepthMode;
+			RN::Material *_textMaterial;
+			RN::Material *_shadowMaterial;
 
 			RNDeclareMetaAPI(Label, UIAPI)
 		};
