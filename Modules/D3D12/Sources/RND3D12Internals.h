@@ -103,6 +103,10 @@ namespace RN
 		Matrix inverseProjectionViewMatrix;
 
 		Color cameraAmbientColor;
+		Color cameraFogColor0;
+		Color cameraFogColor1;
+		Vector2 cameraClipDistance;
+		Vector2 cameraFogDistance;
 		uint8 multiviewLayer;
 
 		std::vector<D3D12Drawable *> drawables;
