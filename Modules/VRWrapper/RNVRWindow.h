@@ -41,7 +41,9 @@ namespace RN
 
 		enum DeviceType
 		{
+			Unknown,
 			OpenVR,
+			PicoVR,
 			OculusVR,
 			OculusGo,
 			OculusQuest,

@@ -45,7 +45,29 @@ set(HEADERS
 set(DEFINES RN_BUILD_OPENXR)
 
 if(ANDROID)
-	set(DEFINES ${DEFINES} XR_USE_PLATFORM_ANDROID)
+	set(DEFINES ${DEFINES} XR_USE_PLATFORM_ANDROID XR_NO_PROTOTYPES) #Use indirect linking on android to allow different loaders
+	set(SOURCES ${SOURCES} RNOpenXRDispatchTable.c)
+	set(HEADERS ${HEADERS} RNOpenXRDispatchTable.h)
+
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR)
+		set(DEFINES ${DEFINES} RN_OPENXR_SUPPORTS_PICO_LOADER)
+
+		execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so)
+		execute_process(COMMAND patchelf --set-soname libopenxr_loader_pico.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so)
+
+		add_library(OpenXRPico SHARED IMPORTED)
+		set_target_properties(OpenXRPico PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+	endif()
+
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR)
+		set(DEFINES ${DEFINES} RN_OPENXR_SUPPORTS_METAQUEST_LOADER)
+
+		execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
+		execute_process(COMMAND patchelf --set-soname libopenxr_loader_meta.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
+		add_library(OpenXRMeta SHARED IMPORTED)
+		set_target_properties(OpenXRMeta PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+	endif()
+
 elseif(WIN32)
 	set(DEFINES ${DEFINES} XR_USE_PLATFORM_WIN32)
 elseif(UNIX AND NOT APPLE)
@@ -75,15 +97,19 @@ rayne_set_module_output_directory(RayneOpenXR)
 add_dependencies(RayneOpenXR OpenXRSDK)
 
 if(ANDROID)
-	target_link_libraries(RayneOpenXR debug ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Debug/libopenxr_loader.so optimized ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so)
-#	target_link_libraries(RayneOpenXR ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader.so)
-	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Include ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Include/openxr)
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR)
+		set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Include/openxr) #include directory for pico specific openxr header
+		target_link_libraries(RayneOpenXR PRIVATE OpenXRPico)
+	endif()
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR)
+		target_link_libraries(RayneOpenXR PRIVATE OpenXRMeta)
+	endif()
 elseif(NOT APPLE)
-	target_link_libraries(RayneOpenXR debug ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib optimized ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib)
+	target_link_libraries(RayneOpenXR PUBLIC debug ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib optimized ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib)
 endif()
 
 if(MSVC AND ${RN_BUILD_D3D12_MODULE})
-	target_link_libraries(RayneOpenXR RayneD3D12)
+	target_link_libraries(RayneOpenXR PUBLIC RayneD3D12)
 	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
 	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_D3D12)
 endif()
@@ -92,7 +118,7 @@ if(NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
 	ExternalProject_Get_property(vulkan_headers SOURCE_DIR)
 	set(VulkanHeaders_SOURCE_DIR ${SOURCE_DIR})
 
-	target_link_libraries(RayneOpenXR RayneVulkan)
+	target_link_libraries(RayneOpenXR PUBLIC RayneVulkan)
 	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES}
 		${RayneVulkan_BINARY_DIR}/include
 		"${VulkanHeaders_SOURCE_DIR}/include/vulkan"
@@ -100,7 +126,7 @@ if(NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
 	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_VULKAN)
 endif()
 
-target_include_directories(RayneOpenXR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}" ${OpenXRSDK_SOURCE_DIR}/include)
+target_include_directories(RayneOpenXR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}" ${OpenXRSDK_SOURCE_DIR}/include ${OpenXRSDK_SOURCE_DIR}/src/common)
 target_compile_definitions(RayneOpenXR PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneOpenXR/. DESTINATION lib/Rayne/RayneOpenXR)

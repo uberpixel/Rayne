@@ -107,12 +107,14 @@ namespace RN
 		bool _supportsAndroidThreadType;
 		bool _supportsFoveatedRendering;
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		int _gsIndexPICO;
 		bool _supportsViewStatePICO;
 		bool _supportsFrameEndInfoPICO;
 		bool _supportsSessionBeginInfoPICO;
 		bool _supportsAndroidControllerFunctionPICO;
 		bool _supportsConfigsPICO;
+#endif
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

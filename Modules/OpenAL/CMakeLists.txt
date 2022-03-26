@@ -103,7 +103,7 @@ else()
 endif()
 
 add_dependencies(OpenALLib openal)
-target_link_libraries(RayneOpenAL OpenALLib)
+target_link_libraries(RayneOpenAL PUBLIC OpenALLib)
 
 
 #Work around some xcode specific soname issues...

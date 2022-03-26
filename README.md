@@ -34,11 +34,14 @@ There are a couple of useful python scripts in the *Tools* directory.
 5. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```py -3 BuildAll.py```
 6. Contiune with *Creating a new Project*
 
+There are currently some issues with the Windows setup requiring the cmake path to SetupAPI (part of the windows sdk) to be set manually.
+
 #### macOS
 1. Install a recent Version of Xcode (11 and newer should be fine, older hasn't been tested in a while).
 2. Install Homebrew: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
 3. Install Python 3.x: ```brew install python```
 4. Install Ninja: ```brew install ninja```
+4.5 (Install patchelf (only needed for android builds with OpenXR!): ```brew install patchelf```)
 5. Run ```git submodule update --init``` from within the *Rayne* directory
 6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
 7. Contiune with *Creating a new Project*

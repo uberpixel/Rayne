@@ -71,7 +71,7 @@ macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERS
                 set(LIBRARY_NAME "${LIBRARY_NAME}-static")
             endif()
 
-            target_link_libraries("${TARGET_NAME}" ${LIBRARY_NAME})
+            target_link_libraries("${TARGET_NAME}" PUBLIC ${LIBRARY_NAME})
         endforeach()
     endif()
 

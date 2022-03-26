@@ -100,7 +100,7 @@ else()
 endif()
 
 add_dependencies(KalligraphLib Kalligraph)
-target_link_libraries(RayneUI KalligraphLib)
+target_link_libraries(RayneUI PUBLIC KalligraphLib)
 
 target_include_directories(RayneUI SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneUI PRIVATE "${DEFINES}")

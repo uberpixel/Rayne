@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <android/window.h> // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android_native_app_glue.h>
+
+#include <dlfcn.h>
 #endif
 
 namespace RN
@@ -76,11 +78,13 @@ namespace RN
 		_supportsAndroidThreadType = false;
 		_supportsFoveatedRendering = false;
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_supportsViewStatePICO = false;
 		_supportsFrameEndInfoPICO = false;
         _supportsSessionBeginInfoPICO = false;
 		_supportsAndroidControllerFunctionPICO = false;
 		_supportsConfigsPICO = false;
+#endif
 
 		_internals->session = XR_NULL_HANDLE;
 
@@ -107,8 +111,10 @@ namespace RN
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
 #endif
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_internals->SetConfigPICO = nullptr;
 		_internals->VibrateControllerPICO = nullptr;
+#endif
 		
 		std::vector<const char*> extensions;
 		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
@@ -116,6 +122,65 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
+
+		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+		jclass build_class = env->FindClass("android/os/Build");
+		jfieldID model_id = env->GetStaticFieldID(build_class, "MANUFACTURER", "Ljava/lang/String;");
+		jstring model_obj  = (jstring)env->GetStaticObjectField(build_class, model_id);
+		const char *manufacturerName = env->GetStringUTFChars(model_obj, 0); //TODO: Pretty sure the string needs to be freed again later
+		String *manufacturerNameString = RNSTR(manufacturerName);
+		manufacturerNameString->MakeLowercase();
+		RNDebug("Android Device manufacturer: " << manufacturerNameString);
+
+		void *module = nullptr;
+		xrGetInstanceProcAddr = nullptr;
+
+		//TODO: Ideally these should all use the same official loader library,
+		// unfortunately PICOs extensions are not official yet and even oculus needs their own loader on quest
+		// So not much I can do here for now, but this can definitely be improved in the future
+
+		//TODO: The manufacturer names could potentially change in the future. Pico could rebrand,
+		// Oculus will most likely become Meta.
+
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+		if(!module && manufacturerNameString->HasPrefix(RNCSTR("pico")))
+		{
+			module = dlopen("libopenxr_loader_pico.so", RTLD_NOW | RTLD_LOCAL);
+		}
+#endif
+#if RN_OPENXR_SUPPORTS_METAQUEST_LOADER
+		if(!module)// && manufacturerNameString->HasPrefix(RNCSTR("oculus")))
+		{
+			module = dlopen("libopenxr_loader_meta.so", RTLD_NOW | RTLD_LOCAL);
+		}
+#endif
+
+		if(!module)
+		{
+			//Fallback to the default loader name if the previous platform specific ones don't exist
+			module = dlopen("libopenxr_loader.so", RTLD_NOW | RTLD_LOCAL);
+		}
+
+		if(module)
+		{
+			xrGetInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(dlsym(module, "xrGetInstanceProcAddr"));
+		}
+
+		if(!module || !xrGetInstanceProcAddr)
+		{
+			RNError("Couldn't load OpenXR loader");
+
+			if(module)
+			{
+				dlclose(module);
+				module = nullptr;
+			}
+
+			//TODO: Handle this somehow...
+			RN_ASSERT(false, "No OpenXR Loader found!");
+		}
+
+        PopulateOpenXRDispatchTable(XR_NULL_HANDLE);
 
 		PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
 		if(XR_SUCCEEDED(xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader))))
@@ -179,6 +244,7 @@ namespace RN
 				_supportsAndroidThreadType = true;
 			}
 #endif
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 			else if(std::strcmp(extension.extensionName, XR_PICO_VIEW_STATE_EXT_ENABLE_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
@@ -204,6 +270,7 @@ namespace RN
 				extensions.push_back(extension.extensionName);
 				_supportsConfigsPICO = true;
 			}
+#endif
 			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
@@ -255,6 +322,10 @@ namespace RN
 			RN_ASSERT(false, "Failed creating OpenXR instance");
 		}
 
+#if XR_USE_PLATFORM_ANDROID
+		PopulateOpenXRDispatchTable(_internals->instance); //Fetch remaining methods that require the instance pointer
+#endif
+
 		XrSystemGetInfo systemInfo;
 		systemInfo.type = XR_TYPE_SYSTEM_GET_INFO;
 		systemInfo.next = nullptr;
@@ -281,9 +352,13 @@ namespace RN
 		{
 			_deviceType = DeviceType::OculusQuest2;
 		}
+		else if(std::strcmp(_internals->systemProperties.systemName, "Pico Pico Neo 3") == 0)
+		{
+			_deviceType = DeviceType::PicoVR;
+		}
 		else
 		{
-			_deviceType = DeviceType::OculusVR;
+			_deviceType = DeviceType::Unknown;
 		}
 
 		InitializeInput();
@@ -389,6 +464,7 @@ namespace RN
 		}
 #endif
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		if(_supportsConfigsPICO)
 		{
 			//XR_PICO_CONFIGS_EXT_EXTENSION_NAME
@@ -405,6 +481,7 @@ namespace RN
 
 			}
 		}
+#endif
 	}
 
 	OpenXRWindow::~OpenXRWindow()
@@ -958,7 +1035,7 @@ namespace RN
 			RNDebug("failed action profile suggested binding");
 		}
 
-
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		//Pico Neo 3 bindings
 		//Left hand
 		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
@@ -1022,6 +1099,7 @@ namespace RN
 		{
 			RNDebug("failed action profile suggested binding");
 		}
+#endif
 
 
 		//Vive wand bindings
@@ -1335,10 +1413,12 @@ namespace RN
 			RN_ASSERT(false, "failed creating session");
 		}
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		if(_internals->SetConfigPICO)
 		{
 			_internals->SetConfigPICO(_internals->session, ConfigsSetEXT::TRACKING_ORIGIN, "1");
 		}
+#endif
 
 		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
 		referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
@@ -1420,6 +1500,7 @@ namespace RN
 				frameEndInfo.layerCount = layers.size();
 				frameEndInfo.layers = layers.data();
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 				if(_supportsFrameEndInfoPICO)
 				{
 					XrFrameEndInfoEXT xrFrameEndInfoEXT;
@@ -1434,6 +1515,7 @@ namespace RN
 					}
 				}
 				else
+#endif
 				{
 					if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
 					{
@@ -1682,6 +1764,7 @@ namespace RN
 							beginInfo.next = nullptr;
 							beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 							if(_supportsSessionBeginInfoPICO)
                             {
                                 XrSessionBeginInfoEXT sessionBeginInfoEXT;
@@ -1694,6 +1777,7 @@ namespace RN
                                 xrBeginSession(_internals->session, &beginInfo);
                             }
 							else
+#endif
                             {
                                 xrBeginSession(_internals->session, &beginInfo);
                             }
@@ -1793,6 +1877,7 @@ namespace RN
 		viewState.next = nullptr;
 		viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		if(_supportsViewStatePICO)
 		{
 			XrViewStatePICOEXT xrViewStatePICOEXT;
@@ -1805,6 +1890,7 @@ namespace RN
 			_gsIndexPICO = xrViewStatePICOEXT.gsIndex;
 		}
 		else
+#endif
 		{
 			uint32_t viewCount = 2;
 			xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
@@ -2003,12 +2089,14 @@ namespace RN
 			{
 				float strength = _haptics[0].samples[_currentHapticsIndex[0]++];
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 				if(_internals->VibrateControllerPICO)
 				{
 					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
 					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 0); //duration in ms
 				}
 				else
+#endif
 				{
 					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
 					hapticActionInfo.action = _internals->handLeftHapticsAction;
@@ -2147,12 +2235,14 @@ namespace RN
 			{
 				float strength = _haptics[1].samples[_currentHapticsIndex[1]++];
 
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 				if(_internals->VibrateControllerPICO)
 				{
 					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
 					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 1); //duration in ms
 				}
 				else
+#endif
 				{
 					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
 					hapticActionInfo.action = _internals->handRightHapticsAction;
