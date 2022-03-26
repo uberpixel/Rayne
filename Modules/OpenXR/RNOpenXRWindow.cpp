@@ -76,6 +76,12 @@ namespace RN
 		_supportsAndroidThreadType = false;
 		_supportsFoveatedRendering = false;
 
+		_supportsViewStatePICO = false;
+		_supportsFrameEndInfoPICO = false;
+        _supportsSessionBeginInfoPICO = false;
+		_supportsAndroidControllerFunctionPICO = false;
+		_supportsConfigsPICO = false;
+
 		_internals->session = XR_NULL_HANDLE;
 
 #if XR_USE_GRAPHICS_API_VULKAN
@@ -101,6 +107,8 @@ namespace RN
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
 #endif
 
+		_internals->SetConfigPICO = nullptr;
+		_internals->VibrateControllerPICO = nullptr;
 		
 		std::vector<const char*> extensions;
 		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
@@ -171,7 +179,31 @@ namespace RN
 				_supportsAndroidThreadType = true;
 			}
 #endif
-
+			else if(std::strcmp(extension.extensionName, XR_PICO_VIEW_STATE_EXT_ENABLE_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsViewStatePICO = true;
+			}
+            else if(std::strcmp(extension.extensionName, XR_PICO_FRAME_END_INFO_EXT_EXTENSION_NAME) == 0)
+            {
+                extensions.push_back(extension.extensionName);
+                _supportsFrameEndInfoPICO = true;
+            }
+			else if(std::strcmp(extension.extensionName, XR_PICO_SESSION_BEGIN_INFO_EXT_ENABLE_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+                _supportsSessionBeginInfoPICO = true;
+			}
+			else if(std::strcmp(extension.extensionName, XR_PICO_ANDROID_CONTROLLER_FUNCTION_EXT_ENABLE_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsAndroidControllerFunctionPICO = true;
+			}
+			else if(std::strcmp(extension.extensionName, XR_PICO_CONFIGS_EXT_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsConfigsPICO = true;
+			}
 			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
@@ -199,6 +231,7 @@ namespace RN
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
 		}
 
+		//TODO: This will only be correct for vulkan and only for the oculus extensions
 		if(numberOfSupportedFoveationExtensions == 4)
 		{
 			_supportsFoveatedRendering = true;
@@ -215,7 +248,8 @@ namespace RN
 		createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
 		_internals->instance = XR_NULL_HANDLE;
-		if(xrCreateInstance(&createInfo, &_internals->instance) != XR_SUCCESS)
+		XrResult createInstanceResult = xrCreateInstance(&createInfo, &_internals->instance);
+		if(createInstanceResult != XR_SUCCESS)
 		{
 			//TODO: For some reason this fails regularly on Quest (~15% of users)
 			RN_ASSERT(false, "Failed creating OpenXR instance");
@@ -294,17 +328,17 @@ namespace RN
 		if(_supportsPreferredFramerate)
 		{
 			//XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction*)(&_internals->EnumerateDisplayRefreshRatesFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction*)(&_internals->EnumerateDisplayRefreshRatesFB))))
 			{
 
 			}
 
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->GetDisplayRefreshRateFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->GetDisplayRefreshRateFB))))
 			{
 
 			}
 
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->RequestDisplayRefreshRateFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction*)(&_internals->RequestDisplayRefreshRateFB))))
 			{
 
 			}
@@ -313,7 +347,7 @@ namespace RN
 		if(_supportsPreferredFramerate)
 		{
 			//XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
 			{
 
 			}
@@ -322,23 +356,23 @@ namespace RN
 		if(_supportsFoveatedRendering)
 		{
 			//XR_FB_FOVEATION_EXTENSION_NAME
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrCreateFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->CreateFoveationProfileFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrCreateFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->CreateFoveationProfileFB))))
 			{
 
 			}
 
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->DestroyFoveationProfileFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyFoveationProfileFB", (PFN_xrVoidFunction*)(&_internals->DestroyFoveationProfileFB))))
 			{
 
 			}
 
 			//XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&_internals->UpdateSwapchainFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&_internals->UpdateSwapchainFB))))
 			{
 
 			}
 
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
 			{
 
 			}
@@ -348,12 +382,29 @@ namespace RN
 		if(_supportsAndroidThreadType)
 		{
 			//XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME
-			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
 			{
 
 			}
 		}
 #endif
+
+		if(_supportsConfigsPICO)
+		{
+			//XR_PICO_CONFIGS_EXT_EXTENSION_NAME
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrSetConfigPICO", (PFN_xrVoidFunction*)(&_internals->SetConfigPICO))))
+			{
+
+			}
+		}
+
+		if(_supportsAndroidControllerFunctionPICO)
+		{
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrVibrateControllerPico", (PFN_xrVoidFunction*)(&_internals->VibrateControllerPICO))))
+			{
+
+			}
+		}
 	}
 
 	OpenXRWindow::~OpenXRWindow()
@@ -908,6 +959,71 @@ namespace RN
 		}
 
 
+		//Pico Neo 3 bindings
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/back/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/back/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> picoNeoBindings;
+		picoNeoBindings.push_back({_internals->handLeftAimPoseAction, handLeftAimPosePath});
+		picoNeoBindings.push_back({_internals->handLeftGripPoseAction, handLeftGripPosePath});
+		picoNeoBindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
+		picoNeoBindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
+		picoNeoBindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
+		picoNeoBindings.push_back({_internals->handLeftThumbstickYAction, handLeftThumbstickYPath});
+		picoNeoBindings.push_back({_internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath});
+		picoNeoBindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
+		picoNeoBindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
+		picoNeoBindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
+		picoNeoBindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
+
+		picoNeoBindings.push_back({_internals->handRightAimPoseAction, handRightAimPosePath});
+		picoNeoBindings.push_back({_internals->handRightGripPoseAction, handRightGripPosePath});
+		picoNeoBindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
+		picoNeoBindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
+		picoNeoBindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
+		picoNeoBindings.push_back({_internals->handRightThumbstickYAction, handRightThumbstickYPath});
+		picoNeoBindings.push_back({_internals->handRightThumbstickPressAction, handRightThumbstickPressPath});
+		picoNeoBindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
+		picoNeoBindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
+		picoNeoBindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
+		picoNeoBindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/pico/neo3_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedPicoNeoBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+		suggestedPicoNeoBindings.interactionProfile = interactionProfilePath;
+		suggestedPicoNeoBindings.suggestedBindings = picoNeoBindings.data();
+		suggestedPicoNeoBindings.countSuggestedBindings = picoNeoBindings.size();
+		XrResult neoBindingResult = xrSuggestInteractionProfileBindings(_internals->instance, &suggestedPicoNeoBindings);
+		if(!XR_SUCCEEDED(neoBindingResult))
+		{
+			RNDebug("failed action profile suggested binding");
+		}
+
+
 		//Vive wand bindings
 		//Left hand
 		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
@@ -1219,6 +1335,11 @@ namespace RN
 			RN_ASSERT(false, "failed creating session");
 		}
 
+		if(_internals->SetConfigPICO)
+		{
+			_internals->SetConfigPICO(_internals->session, ConfigsSetEXT::TRACKING_ORIGIN, "1");
+		}
+
 		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
 		referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
 		referenceSpaceCreateInfo.next = nullptr;
@@ -1298,7 +1419,27 @@ namespace RN
 				frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 				frameEndInfo.layerCount = layers.size();
 				frameEndInfo.layers = layers.data();
-				xrEndFrame(_internals->session, &frameEndInfo);
+
+				if(_supportsFrameEndInfoPICO)
+				{
+					XrFrameEndInfoEXT xrFrameEndInfoEXT;
+					xrFrameEndInfoEXT.useHeadposeExt = 1;
+					xrFrameEndInfoEXT.gsIndex = _gsIndexPICO;
+					frameEndInfo.next = (void *) &xrFrameEndInfoEXT;
+
+					//Need to do this in here so that xrFrameEndInfoEXT still exists
+					if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
+					{
+						RNDebug("Error in xrEndFrame?");
+					}
+				}
+				else
+				{
+					if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
+					{
+						RNDebug("Error in xrEndFrame?");
+					}
+				}
 			}
 		};
 
@@ -1540,7 +1681,23 @@ namespace RN
 							beginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
 							beginInfo.next = nullptr;
 							beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-							xrBeginSession(_internals->session, &beginInfo);
+
+							if(_supportsSessionBeginInfoPICO)
+                            {
+                                XrSessionBeginInfoEXT sessionBeginInfoEXT;
+                                sessionBeginInfoEXT.type = XR_TYPE_SESSION_BEGIN_INFO;
+                                sessionBeginInfoEXT.enableSinglePass = 1;
+                                sessionBeginInfoEXT.colorSpace = XrColorSpace::colorSpaceSRGB;
+                                sessionBeginInfoEXT.next = nullptr;
+                                beginInfo.next = (void *)&sessionBeginInfoEXT;
+
+                                xrBeginSession(_internals->session, &beginInfo);
+                            }
+							else
+                            {
+                                xrBeginSession(_internals->session, &beginInfo);
+                            }
+
 							_isSessionRunning = true;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
@@ -1636,8 +1793,22 @@ namespace RN
 		viewState.next = nullptr;
 		viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
 
-		uint32_t viewCount = 2;
-		xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
+		if(_supportsViewStatePICO)
+		{
+			XrViewStatePICOEXT xrViewStatePICOEXT;
+			XrViewState viewState{XR_TYPE_VIEW_STATE};
+			viewState.next = (void*)&xrViewStatePICOEXT;
+
+			uint32_t viewCount = 2;
+			xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
+
+			_gsIndexPICO = xrViewStatePICOEXT.gsIndex;
+		}
+		else
+		{
+			uint32_t viewCount = 2;
+			xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
+		}
 
 		RN::Vector3 leftEyePosition = Vector3(_internals->views[0].pose.position.x, _internals->views[0].pose.position.y, _internals->views[0].pose.position.z);
 		RN::Vector3 rightEyePosition = Vector3(_internals->views[1].pose.position.x, _internals->views[1].pose.position.y, _internals->views[1].pose.position.z);
@@ -1831,15 +2002,24 @@ namespace RN
 			if(_currentHapticsIndex[0] < _haptics[0].sampleCount)
 			{
 				float strength = _haptics[0].samples[_currentHapticsIndex[0]++];
-				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-				hapticActionInfo.action = _internals->handLeftHapticsAction;
-				hapticActionInfo.subactionPath = XR_NULL_PATH;
-				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
-				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-				hapticVibration.amplitude = strength;
-				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
-				_hapticsStopped[0] = false;
+
+				if(_internals->VibrateControllerPICO)
+				{
+					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
+					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 0); //duration in ms
+				}
+				else
+				{
+					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+					hapticActionInfo.action = _internals->handLeftHapticsAction;
+					hapticActionInfo.subactionPath = XR_NULL_PATH;
+					XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+					hapticVibration.duration = delta * 1000000000.0; //nanoseconds
+					hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+					hapticVibration.amplitude = strength;
+					xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader *) &hapticVibration);
+					_hapticsStopped[0] = false;
+				}
 			}
 		}
 
@@ -1966,15 +2146,24 @@ namespace RN
 			if(_currentHapticsIndex[1] < _haptics[1].sampleCount)
 			{
 				float strength = _haptics[1].samples[_currentHapticsIndex[1]++];
-				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-				hapticActionInfo.action = _internals->handRightHapticsAction;
-				hapticActionInfo.subactionPath = XR_NULL_PATH;
-				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
-				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-				hapticVibration.amplitude = strength;
-				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader*)&hapticVibration);
-				_hapticsStopped[1] = false;
+
+				if(_internals->VibrateControllerPICO)
+				{
+					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
+					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 1); //duration in ms
+				}
+				else
+				{
+					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+					hapticActionInfo.action = _internals->handRightHapticsAction;
+					hapticActionInfo.subactionPath = XR_NULL_PATH;
+					XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+					hapticVibration.duration = delta * 1000000000.0; //nanoseconds
+					hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+					hapticVibration.amplitude = strength;
+					xrApplyHapticFeedback(_internals->session, &hapticActionInfo,  (XrHapticBaseHeader *) &hapticVibration);
+					_hapticsStopped[1] = false;
+				}
 			}
 		}
 

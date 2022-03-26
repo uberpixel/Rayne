@@ -25,6 +25,10 @@
 #include "openxr/openxr_platform.h"
 #include "openxr/openxr.h"
 
+#if XR_USE_PLATFORM_ANDROID
+#include "openxr_pico.h"
+#endif
+
 namespace RN
 {
 	struct OpenXRWindowInternals
@@ -103,6 +107,9 @@ namespace RN
 #if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
 #endif
+
+		PFN_xrSetConfigPICO SetConfigPICO;
+		PFN_xrVibrateControllerPico VibrateControllerPICO;
 	};
 
     struct OpenXRSwapchainInternals
