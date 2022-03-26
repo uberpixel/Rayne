@@ -23,6 +23,7 @@ Modules/Vulkan/Sources/RNVulkanDispatchTable.h
 Modules/OculusMobile/Vendor/ovr_sdk_mobile_1
 Modules/Oculus/Vendor/OculusSDK/
 Modules/OpenXR/Vendor/ovr_openxr_mobile_sdk_1
+Modules/OpenXR/Vendor/Pico_OpenXR_Mobile_SDK_2
 Modules/SteamAudio/Vendor/steamaudio
 Modules/PhysX/Vendor/PhysX-3.4
 Modules/PhysX/Vendor/PhysX-3.4-CMake
