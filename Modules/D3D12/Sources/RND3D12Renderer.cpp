@@ -587,6 +587,10 @@ namespace RN
 		renderPass.directionalShadowDepthTexture = nullptr;
 
 		renderPass.cameraAmbientColor = camera->GetAmbientColor();
+		renderPass.cameraFogColor0 = camera->GetFogColor0();
+		renderPass.cameraFogColor1 = camera->GetFogColor1();
+		renderPass.cameraClipDistance = RN::Vector2(camera->GetClipNear(), camera->GetClipFar());
+		renderPass.cameraFogDistance = RN::Vector2(camera->GetFogNear(), camera->GetFogFar());
 
 		Framebuffer *framebuffer = cameraRenderPass->GetFramebuffer();
 		D3D12SwapChain *newSwapChain = nullptr;
@@ -1290,6 +1294,30 @@ namespace RN
 				{
 					RN::Color cameraAmbientColor = renderPass.cameraAmbientColor;
 					std::memcpy(buffer + descriptor->GetOffset(), &cameraAmbientColor.r, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraFogColor0:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraFogColor0.r, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraFogColor1:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraFogColor1.r, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraClipDistance:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraClipDistance.x, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CameraFogDistance:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &renderPass.cameraFogDistance.x, descriptor->GetSize());
 					break;
 				}
 
