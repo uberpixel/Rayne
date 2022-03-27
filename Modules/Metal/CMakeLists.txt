@@ -60,7 +60,7 @@ rayne_set_module_output_directory(RayneMetal)
 rayne_set_module_resources(RayneMetal ${RESOURCES})
 
 target_include_directories(RayneMetal SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
-target_link_libraries(RayneMetal "${LINK_LIBRARIES}")
+target_link_libraries(RayneMetal PUBLIC "${LINK_LIBRARIES}")
 target_compile_options(RayneMetal PRIVATE "-xobjective-c++")
 target_compile_definitions(RayneMetal PRIVATE "${DEFINES}")
 

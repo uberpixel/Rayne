@@ -134,25 +134,25 @@ rayne_set_module_resources(RayneOpenVR ${RESOURCES})
 if(WIN32)
     if(${RN_BUILD_D3D12_MODULE})
         target_compile_definitions(RayneOpenVR PRIVATE -DRN_OPENVR_SUPPORTS_D3D12)
-        target_link_libraries(RayneOpenVR RayneD3D12)
+        target_link_libraries(RayneOpenVR PUBLIC RayneD3D12)
         target_include_directories(RayneOpenVR SYSTEM PRIVATE ${RayneD3D12_BINARY_DIR}/include)
     endif()
 
     if(${RN_BUILD_VULKAN_MODULE})
         target_compile_definitions(RayneOpenVR PRIVATE -DRN_OPENVR_SUPPORTS_VULKAN)
-        target_link_libraries(RayneOpenVR RayneVulkan)
+        target_link_libraries(RayneOpenVR PUBLIC RayneVulkan)
         target_include_directories(RayneOpenVR SYSTEM PRIVATE ${RayneVulkan_BINARY_DIR}/include)
     endif()
 elseif(APPLE AND ${RN_BUILD_METAL_MODULE})
     target_compile_definitions(RayneOpenVR PRIVATE -DRN_OPENVR_SUPPORTS_METAL)
-    target_link_libraries(RayneOpenVR RayneMetal)
+    target_link_libraries(RayneOpenVR PUBLIC RayneMetal)
     target_include_directories(RayneOpenVR SYSTEM PRIVATE ${RayneMetal_BINARY_DIR}/include)
     target_compile_options(RayneOpenVR PRIVATE "-xobjective-c++")
     FIND_LIBRARY(IOSURFACE_LIBRARY IOSurface)
-    target_link_libraries(RayneOpenVR ${IOSURFACE_LIBRARY})
+    target_link_libraries(RayneOpenVR PUBLIC ${IOSURFACE_LIBRARY})
 elseif((UNIX AND NOT APPLE) AND ${RN_BUILD_VULKAN_MODULE})
     target_compile_definitions(RayneOpenVR PRIVATE -DRN_OPENVR_SUPPORTS_VULKAN)
-    target_link_libraries(RayneOpenVR RayneVulkan)
+    target_link_libraries(RayneOpenVR PUBLIC RayneVulkan)
     target_include_directories(RayneOpenVR SYSTEM PRIVATE ${RayneVulkan_BINARY_DIR}/include)
 endif()
 
@@ -161,15 +161,15 @@ target_compile_definitions(RayneOpenVR PRIVATE "${DEFINES}")
 
 add_dependencies(RayneOpenVR openvr)
 if(WIN32)
-    target_link_libraries(RayneOpenVR 
+    target_link_libraries(RayneOpenVR PUBLIC
         debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/openvr_api64.lib"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/openvr_api64.lib")
 elseif(APPLE)
-    target_link_libraries(RayneOpenVR 
+    target_link_libraries(RayneOpenVR PUBLIC
         debug "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"
         optimized "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Release/libopenvr_api.a")
 else()
-    target_link_libraries(RayneOpenVR 
+    target_link_libraries(RayneOpenVR PUBLIC
         "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/libopenvr_api.a")
 endif()
 

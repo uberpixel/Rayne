@@ -4,7 +4,7 @@ set(DIR_OF_RAYNE_CMAKE ${CMAKE_CURRENT_LIST_DIR})
 find_package(PythonInterp 3 REQUIRED)
 
 macro(rayne_link_with _TARGET)
-    target_link_libraries(${_TARGET} Rayne)
+    target_link_libraries(${_TARGET} PUBLIC Rayne)
     add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:Rayne>" "$<TARGET_FILE_DIR:${_TARGET}>/$<TARGET_FILE_NAME:Rayne>")
 
     target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
@@ -13,7 +13,7 @@ macro(rayne_link_with _TARGET)
         target_include_directories(${_TARGET} SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include ${DIR_OF_RAYNE_CMAKE}/../Vendor/android_native_app_glue)
 
         add_library(android-app-glue STATIC ${DIR_OF_RAYNE_CMAKE}/../Vendor/android_native_app_glue/android_native_app_glue.c)
-        target_link_libraries(${_TARGET} android-app-glue android log)
+        target_link_libraries(${_TARGET} PUBLIC android-app-glue android log)
 
         set_property(TARGET "${_TARGET}" APPEND_STRING PROPERTY LINK_FLAGS " -u ANativeActivity_onCreate")
     endif()
@@ -51,7 +51,7 @@ endmacro()
 macro(rayne_use_modules _TARGET _MODULES)
     foreach(_MODULE ${_MODULES})
         set(_MODULE_TARGET "${_MODULE}")
-        target_link_libraries(${_TARGET} ${_MODULE_TARGET})
+        target_link_libraries(${_TARGET} PUBLIC ${_MODULE_TARGET})
         target_include_directories(${_TARGET} SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
 
         if(APPLE)
