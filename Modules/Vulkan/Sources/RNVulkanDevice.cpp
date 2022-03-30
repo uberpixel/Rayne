@@ -212,8 +212,18 @@ namespace RN
 			}
 		}
 
-		VkPhysicalDeviceFeatures features;
-		vk::GetPhysicalDeviceFeatures(_physicalDevice, &features);
+		VkPhysicalDeviceFragmentDensityMapFeaturesEXT fragmentDensityMapFeatures = {};
+		fragmentDensityMapFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT;
+
+		VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
+		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+		multiviewFeatures.pNext = &fragmentDensityMapFeatures;
+
+		VkPhysicalDeviceFeatures2KHR features = {};
+		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+		features.pNext = &multiviewFeatures;
+
+		vk::GetPhysicalDeviceFeatures2KHR(_physicalDevice, &features);
 
 		const std::vector<float> queuePriorities(1, 0.0f);
 		VkDeviceQueueCreateInfo queueInfo = {};
@@ -231,8 +241,9 @@ namespace RN
 		deviceInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		deviceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
 		deviceInfo.ppEnabledLayerNames = layers.data();
-		deviceInfo.pEnabledFeatures = &features;
+		deviceInfo.pEnabledFeatures = nullptr; //Using VkPhysicalDeviceFeatures2KHR as pNext pointer instead to enable all available features, including extensions, which this one doesn't support
 		deviceInfo.pQueueCreateInfos = &queueInfo;
+		deviceInfo.pNext = &features;
 
 		VkResult result = vk::CreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device);
 		RNVulkanValidate(result);

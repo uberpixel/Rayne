@@ -139,6 +139,16 @@ namespace RN
 		// TODO: Verify extensions
 		std::vector<const char *> layers = DebugInstanceLayers();
 
+#if RN_BUILD_DEBUG
+		std::vector<VkExtensionProperties> rawInstanceExtensions;
+		EnumerateExtensions(nullptr, rawInstanceExtensions);
+
+		for(const auto &extension : rawInstanceExtensions)
+		{
+			RNDebug("Supported Vulkan Instance Extension: " << extension.extensionName);
+		}
+#endif
+
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = Kernel::GetSharedInstance()->GetApplication()->GetTitle()->GetUTF8String();
@@ -197,7 +207,6 @@ namespace RN
 			std::vector<VkExtensionProperties> rawDeviceExtensions;
 			EnumerateDeviceExtensions(device, nullptr, rawDeviceExtensions);
 
-			std::unordered_set<std::string> deviceExtensions;
 			for(const auto &extension : rawDeviceExtensions)
 				RNDebug("Supported Vulkan Device Extension: " << extension.extensionName);
 		}

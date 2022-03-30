@@ -27,7 +27,6 @@ import os
 import sys
 
 from dispatchTableClasses import *
-from dispatchTableParsedHeader import *
 
 def generate_header(guard):
     lines = []
@@ -175,7 +174,7 @@ def parse_vulkan_h(filename):
     for line in lines:
         line = line.strip()
 
-        if line.startswith("#define VK_API_VERSION"):
+        if line.startswith("#define VK_API_VERSION") and "VK_MAKE_API_VERSION" in line:
             minor_end = line.rfind(",")
             minor_begin = line.rfind(",", 0, minor_end) + 1
             spec_version = int(line[minor_begin:minor_end])
@@ -189,14 +188,18 @@ def parse_vulkan_h(filename):
             ext_guard = line[guard_begin:]
         elif line.startswith("#define") and "SPEC_VERSION " in line:
             version_begin = line.rfind(" ") + 1
-            spec_version = int(line[version_begin:])
+            try:
+                spec_version = int(line[version_begin:])
+            except ValueError:
+                print("ignored spec version as it is likely a define for a define of the current spec version")
         elif line.startswith("#define") and "EXTENSION_NAME " in line:
             name_end = line.rfind("\"")
             name_begin = line.rfind("\"", 0, name_end) + 1
-            name = line[name_begin:name_end]
-            # add extension
-            current_ext = Extension(name, spec_version, ext_guard)
-            extensions.append(current_ext)
+            if name_end != -1: #If name_end is -1, it is likely just a legacy define and the real one was already handled
+                name = line[name_begin:name_end]
+                # add extension
+                current_ext = Extension(name, spec_version, ext_guard)
+                extensions.append(current_ext)
         elif ext_guard and line.startswith("#endif") and ext_guard in line:
             ext_guard = None
 
@@ -217,6 +220,8 @@ if __name__ == "__main__":
     if sys.argv[1] == "parse":
         parse_vulkan_h(sys.argv[2])
     else:
+        from dispatchTableParsedHeader import *
+
         filename = sys.argv[1]
         base = os.path.basename(filename)
         contents = []

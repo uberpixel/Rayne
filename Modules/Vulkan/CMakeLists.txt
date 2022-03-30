@@ -23,7 +23,7 @@ ExternalProject_Add(spirvcross
 
 ExternalProject_Add(vulkan_headers
         GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
-        GIT_TAG refs/tags/v1.2.166
+        GIT_TAG refs/tags/v1.3.210
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
@@ -41,6 +41,7 @@ set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table parse ${VulkanHeaders_SOURCE_DIR}/include/vulkan/vulkan.h
         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.h
         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Sources/RNVulkanDispatchTable.cpp
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/generate-dispatch-table ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/dispatchTableClasses.py ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/generators/dispatchTableParsedHeader.py
