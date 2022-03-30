@@ -157,11 +157,11 @@ namespace RN
 		_newReferences->RemoveAllObjects();
 	}
 
-	void VulkanConstantBufferPool::InvalidateAllBuffers()
+	void VulkanConstantBufferPool::FlushAllBuffers()
 	{
 		_constantBuffers->Enumerate<VulkanConstantBuffer>([&](VulkanConstantBuffer *buffer, uint32 index, bool &stop){
 			if(buffer->_sizeUsed > 0)
-				buffer->GetActiveBuffer()->Invalidate();
+				buffer->GetActiveBuffer()->Flush();
 		});
 	}
 }

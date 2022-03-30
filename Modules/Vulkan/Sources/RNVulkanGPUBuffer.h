@@ -20,7 +20,9 @@ namespace RN
 		friend class VulkanRenderer;
 
 		VKAPI void *GetBuffer() final;
+		VKAPI void UnmapBuffer() final;
 		VKAPI void InvalidateRange(const Range &range) final;
+		VKAPI void FlushRange(const Range &range) final;
 		VKAPI size_t GetLength() const final;
 
 		VkBuffer GetVulkanBuffer() const;

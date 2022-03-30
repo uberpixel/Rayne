@@ -54,10 +54,10 @@ namespace RN
 		RNVulkanValidate(vk::AllocateMemory(device, &memoryAllocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		if(data != nullptr)
 		{
-			void *mapped;
-			RNVulkanValidate(vk::MapMemory(device, _memory, 0, length, 0, &mapped));
-			memcpy(mapped, data, length);
-			vk::UnmapMemory(device, _memory);
+			RNVulkanValidate(vk::MapMemory(device, _memory, 0, length, 0, &_mappedBuffer));
+			memcpy(_mappedBuffer, data, length);
+			FlushRange(Range(0, length));
+			UnmapBuffer();
 		}
 		RNVulkanValidate(vk::BindBufferMemory(device, _buffer, _memory, 0));
 	}
@@ -65,6 +65,7 @@ namespace RN
 	VulkanGPUBuffer::~VulkanGPUBuffer()
 	{
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		UnmapBuffer();
 		vk::DestroyBuffer(device, _buffer, _renderer->GetAllocatorCallback());
 		vk::FreeMemory(device, _memory, _renderer->GetAllocatorCallback());
 	}
@@ -84,11 +85,43 @@ namespace RN
 		return _buffer;
 	}
 
-	void VulkanGPUBuffer::InvalidateRange(const Range &range)
+	void VulkanGPUBuffer::UnmapBuffer()
 	{
+		if(!_mappedBuffer) return;
+
 		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		vk::UnmapMemory(device, _memory);
 		_mappedBuffer = nullptr;
+	}
+
+	void VulkanGPUBuffer::InvalidateRange(const Range &range)
+	{
+		if(!_mappedBuffer) return;
+
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		VkMappedMemoryRange memoryRange;
+		memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		memoryRange.pNext = nullptr;
+		memoryRange.memory = _memory;
+		memoryRange.offset = range.origin;
+		memoryRange.size = range.length;
+
+		RNVulkanValidate(vk::InvalidateMappedMemoryRanges(device, 1, &memoryRange));
+	}
+
+	void VulkanGPUBuffer::FlushRange(const Range &range)
+	{
+		if(!_mappedBuffer) return;
+
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		VkMappedMemoryRange memoryRange;
+		memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		memoryRange.pNext = nullptr;
+		memoryRange.memory = _memory;
+		memoryRange.offset = range.origin;
+		memoryRange.size = range.length;
+
+		RNVulkanValidate(vk::FlushMappedMemoryRanges(device, 1, &memoryRange));
 	}
 
 	size_t VulkanGPUBuffer::GetLength() const

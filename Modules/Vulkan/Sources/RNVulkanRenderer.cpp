@@ -364,7 +364,7 @@ namespace RN
 			}
 		}
 
-		_constantBufferPool->InvalidateAllBuffers();
+		_constantBufferPool->FlushAllBuffers();
 
 		//Prepare command buffer submission
 		std::vector<VkSemaphore> presentSemaphores;

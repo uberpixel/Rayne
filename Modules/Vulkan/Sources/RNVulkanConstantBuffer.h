@@ -71,7 +71,7 @@ namespace RN
 		~VulkanConstantBufferPool();
 		VulkanConstantBufferReference *GetConstantBufferReference(uint32 size, uint32 index);
 		void Update(Renderer *renderer, size_t currentFrame, size_t completedFrame);
-		void InvalidateAllBuffers();
+		void FlushAllBuffers();
 
 	private:
 		Array *_constantBuffers;
