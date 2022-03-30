@@ -22,4 +22,9 @@ namespace RN
 	{
 		InvalidateRange(Range(0, GetLength()));
 	}
+
+	void GPUBuffer::Flush()
+	{
+		FlushRange(Range(0, GetLength()));
+	}
 }

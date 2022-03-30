@@ -868,7 +868,8 @@ namespace RN
 		//TODO: Don't copy full range if not needed.
 		void *target = _vertexBuffer->GetBuffer();
 		memcpy(target, _vertexBufferCPU, _verticesSize);
-		_vertexBuffer->InvalidateRange(range);
+		_vertexBuffer->FlushRange(range);
+		_vertexBuffer->UnmapBuffer();
 	}
 
 	void Mesh::SubmitIndices(const Range &range)
@@ -879,6 +880,7 @@ namespace RN
 		//TODO: Don't copy full range if not needed.
 		void *target = _indicesBuffer->GetBuffer();
 		memcpy(target, _indicesBufferCPU, _indicesSize);
-		_indicesBuffer->InvalidateRange(range);
+		_indicesBuffer->FlushRange(range);
+		_indicesBuffer->UnmapBuffer();
 	}
 }

@@ -20,8 +20,11 @@ namespace RN
 	public:
 		RNAPI ~GPUBuffer();
 		RNAPI virtual void *GetBuffer() = 0;
+		RNAPI virtual void UnmapBuffer() = 0;
 		RNAPI virtual void Invalidate();
 		RNAPI virtual void InvalidateRange(const Range &range) = 0;
+		RNAPI virtual void Flush();
+		RNAPI virtual void FlushRange(const Range &range) = 0;
 		RNAPI virtual size_t GetLength() const = 0;
 
 	protected:
