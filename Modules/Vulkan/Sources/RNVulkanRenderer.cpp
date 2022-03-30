@@ -874,8 +874,7 @@ namespace RN
 
 	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
-		void *data = malloc(length);
-		return (new VulkanGPUBuffer(this, data, length, usageOptions));
+		return (new VulkanGPUBuffer(this, nullptr, length, usageOptions));
 	}
 	GPUBuffer *VulkanRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
 	{
