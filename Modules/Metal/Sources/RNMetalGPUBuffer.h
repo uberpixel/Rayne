@@ -21,7 +21,9 @@ namespace RN
 		friend class MetalRenderer;
 
 		MTLAPI void *GetBuffer() final;
+		MTLAPI void UnmapBuffer() final;
 		MTLAPI void InvalidateRange(const Range &range) final;
+		MTLAPI void FlushRange(const Range &range) final;
 		MTLAPI size_t GetLength() const final;
 
 	private:

@@ -74,7 +74,7 @@ namespace RN
 		~MetalUniformBufferPool();
 		MetalUniformBufferReference *GetUniformBufferReference(uint32 size, uint32 index);
 		void Update(Renderer *renderer);
-		void InvalidateAllBuffers();
+		void FlushAllBuffers();
 		
 	private:
 		Array *_uniformBuffers;

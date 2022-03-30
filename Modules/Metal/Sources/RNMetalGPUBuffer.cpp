@@ -29,7 +29,17 @@ namespace RN
 		return [buffer contents];
 	}
 
+	void MetalGPUBuffer::UnmapBuffer()
+	{
+		//Since metal is designed for shared memory, mapping and unmapping buffers does not appear to be a thing, but private buffers also exist and can't be mapped
+	}
+
 	void MetalGPUBuffer::InvalidateRange(const Range &range)
+	{
+		//This apparently happens just by the gpu writing into the buffer and finishing that operation
+	}
+
+	void MetalGPUBuffer::FlushRange(const Range &range)
 	{
 		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
 		[buffer didModifyRange:NSMakeRange(range.origin, range.length)];

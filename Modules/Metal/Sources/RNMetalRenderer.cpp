@@ -189,8 +189,8 @@ namespace RN
 			swapChain->PresentBackBuffer(_internals->commandBuffer);
 		}
 		
-		//Invalidate all uniform buffers to make the GPU get the latest changes from CPU
-		_uniformBufferPool->InvalidateAllBuffers();
+		//Flush all uniform buffers to make the GPU get the latest changes from CPU
+		_uniformBufferPool->FlushAllBuffers();
 		
 		[_internals->commandBuffer commit];
 		

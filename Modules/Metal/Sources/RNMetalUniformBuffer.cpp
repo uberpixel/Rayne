@@ -155,11 +155,11 @@ namespace RN
 		_newReferences->RemoveAllObjects();
 	}
 	
-	void MetalUniformBufferPool::InvalidateAllBuffers()
+	void MetalUniformBufferPool::FlushAllBuffers()
 	{
 		_uniformBuffers->Enumerate<MetalUniformBuffer>([&](MetalUniformBuffer *buffer, uint32 index, bool &stop){
 			if(buffer->_sizeUsed > 0)
-				buffer->GetActiveBuffer()->Invalidate();
+				buffer->GetActiveBuffer()->Flush();
 		});
 	}
 }
