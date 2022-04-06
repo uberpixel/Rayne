@@ -23,7 +23,9 @@ namespace RN
 		friend class D3D12Renderer;
 
 		D3DAPI void *GetBuffer() final;
+		D3DAPI void UnmapBuffer() final;
 		D3DAPI void InvalidateRange(const Range &range) final;
+		D3DAPI void FlushRange(const Range &range) final;
 		D3DAPI size_t GetLength() const final;
 
 		ID3D12Resource *GetD3D12Resource() const;

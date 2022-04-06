@@ -159,11 +159,11 @@ namespace RN
 		_newReferences->RemoveAllObjects();
 	}
 
-	void D3D12UniformBufferPool::InvalidateAllBuffers()
+	void D3D12UniformBufferPool::FlushAllBuffers()
 	{
 		_uniformBuffers->Enumerate<D3D12UniformBuffer>([&](D3D12UniformBuffer *buffer, uint32 index, bool &stop) {
 			if(buffer->_sizeUsed > 0)
-				buffer->GetActiveBuffer()->Invalidate();
+				buffer->GetActiveBuffer()->Flush();
 		});
 	}
 }

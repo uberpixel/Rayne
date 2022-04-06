@@ -32,7 +32,7 @@ namespace RN
 		~D3D12Resource() override;
 
 		void *GetUploadBuffer();
-		void Invalidate();
+		void Flush();
 
 		ID3D12Resource *GetD3D12Resource() const;
 		ID3D12Resource *GetTransferResource();

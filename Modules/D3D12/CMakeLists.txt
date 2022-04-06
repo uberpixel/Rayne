@@ -58,7 +58,7 @@ rayne_set_module_output_directory(RayneD3D12)
 rayne_set_module_resources(RayneD3D12 ${RESOURCES})
 
 target_include_directories(RayneD3D12 SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
-target_link_libraries(RayneD3D12 "${LINK_LIBRARIES}")
+target_link_libraries(RayneD3D12 PUBLIC "${LINK_LIBRARIES}")
 target_compile_definitions(RayneD3D12 PRIVATE "${DEFINES}")
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Build/. DESTINATION lib/Rayne/RayneD3D12)

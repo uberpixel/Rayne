@@ -71,7 +71,7 @@ namespace RN
 		~D3D12UniformBufferPool();
 		D3D12UniformBufferReference *GetUniformBufferReference(uint32 size, uint32 index);
 		void Update(size_t currentFrame, size_t completedFrame);
-		void InvalidateAllBuffers();
+		void FlushAllBuffers();
 
 	private:
 		Array *_uniformBuffers;
