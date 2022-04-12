@@ -1200,10 +1200,6 @@ namespace RN
 		if(fragmentShader)
 		{
 			metalFragmentShader = fragmentShader->Downcast<MetalShader>();
-			if(metalFragmentShader->_samplers.size() == 0)
-			{
-				__unused int i = 0;
-			}
 		}
 		
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
