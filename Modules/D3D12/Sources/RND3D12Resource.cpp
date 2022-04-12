@@ -96,10 +96,12 @@ namespace RN
 		}
 	}
 
-	void D3D12Resource::Invalidate()
+	void D3D12Resource::Flush()
 	{
 		if(_resourceType == ResourceType::Uniform)
 			return;
+
+		if (!_transferResource) return;
 
 		_transferResource->Unmap(0, nullptr);
 		_isRecording = false;

@@ -506,7 +506,7 @@ namespace RN
 				swapChain->Finalize(_currentCommandList);
 			}
 
-			_uniformBufferPool->InvalidateAllBuffers();
+			_uniformBufferPool->FlushAllBuffers();
 
 			_currentCommandList->End();
 			SubmitCommandList(_currentCommandList);

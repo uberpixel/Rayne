@@ -50,7 +50,8 @@ namespace RN
 		{
 			void *copyDst = GetBuffer();
 			std::memcpy(copyDst, data, length);
-			Invalidate();
+			FlushRange(RN::Range(0, length));
+			UnmapBuffer();
 		}
 	}
 
@@ -67,9 +68,21 @@ namespace RN
 		return _resource->GetUploadBuffer();
 	}
 
+	void D3D12GPUBuffer::UnmapBuffer()
+	{
+		//TODO: This does unmap too, but could be simplified probably
+		_resource->Flush();
+	}
+
 	void D3D12GPUBuffer::InvalidateRange(const Range &range)
 	{
-		_resource->Invalidate();
+		//TODO: Not implemented yet, should download data from the GPU to CPU
+	//	_resource->Invalidate();
+	}
+
+	void D3D12GPUBuffer::FlushRange(const Range &range)
+	{
+		_resource->Flush();
 	}
 
 	size_t D3D12GPUBuffer::GetLength() const
