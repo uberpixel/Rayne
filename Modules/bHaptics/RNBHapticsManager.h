@@ -22,16 +22,22 @@ namespace RN
 		
 		BHAPI void Update(float delta) override;
 
-		BHAPI void PingAllDevices();
-		BHAPI const Array *GetCurrentDevices();
-
-		BHAPI void SubmitDot(const String *key, BHapticsDevicePosition position, const std::vector<BHapticsDotPoint> &points, int duration);
+		bool HasDevices() const { return _hasDevices; }
 
 		BHAPI void RegisterProject(const String *key, const String *filepath);
+        BHAPI void RegisterProjectReflected(const String *key, const String *filepath);
 		BHAPI void SubmitProject(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset);
-		
+        BHAPI void SubmitDot(const String *key, BHapticsDevicePosition position, const std::vector<BHapticsDotPoint> &points, int duration);
+
+        BHAPI bool IsFeedbackRegistered(String *key);
+        BHAPI bool IsFeedbackPlaying(String *key);
+        BHAPI bool IsAnyFeedbackPlaying();
+
 		BHAPI void TurnOffFeedback(const String *key);
 		BHAPI void TurnOffAllFeedback();
+
+        BHAPI const Array *GetCurrentDevices();
+        BHAPI void PingAllDevices();
 		
 	private:
 		std::vector< std::function<void()> > _queue;

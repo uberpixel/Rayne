@@ -19,28 +19,21 @@ namespace RN
 	public:
 		static void Initialize();
 
-		static void SubmitDot(const String *key, BHapticsDevicePosition devicePosition, const std::vector<BHapticsDotPoint> &points, int durationMillis);
-		//static void SubmitPath(FString Key, FString Pos, TArray<FPathPoint> Points, int DurationMillis);
-		
-		static void TurnOffFeedback(const String *key);
-		static void TurnOffAllFeedback();
-
-		/*
-		static bool IsFeedbackRegistered(FString key);
-		static bool IsFeedbackPlaying(FString key);
-		static bool IsAnyFeedbackPlaying();
-		static TArray<uint8> GetPositionStatus(FString pos);*/
-
 		static void RegisterProject(const String *key, const String *fileStr);
-		//static void RegisterProjectReflected(FString key, FString fileStr);
+		static void RegisterProjectReflected(const String *key, const String *fileStr);
 
 		static void SubmitRegistered(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset);
-		
-		//Ping Haptic Device
-		static void PingDevice(const String *deviceAddress);
-		
-		//Ping all Haptic Devices
-		static void PingAllDevices();
+		static void SubmitDot(const String *key, BHapticsDevicePosition devicePosition, const std::vector<BHapticsDotPoint> &points, int durationMillis);
+		//static void SubmitPath(FString Key, FString Pos, TArray<FPathPoint> Points, int DurationMillis);
+
+
+		static bool IsFeedbackRegistered(String *key);
+		static bool IsFeedbackPlaying(String *key);
+		static bool IsAnyFeedbackPlaying();
+		//static TArray<uint8> GetPositionStatus(FString pos);
+
+		static void TurnOffFeedback(const String *key);
+		static void TurnOffAllFeedback();
 		
 		
 		//Device management stuff that may not be important, but could be useful
@@ -54,7 +47,12 @@ namespace RN
 		
 		//Toggle the Position of Device
 		static void ToggleDevicePosition(const String *deviceAddress);*/
-		
+
+		//Ping Haptic Device
+		static void PingDevice(const String *deviceAddress);
+
+		//Ping all Haptic Devices
+		static void PingAllDevices();
 		
 		//Device management stuff below, probably not needed on Quest!?
 		
@@ -84,12 +82,6 @@ namespace RN
 	private:
 		static BHapticsDevicePosition StringToDevicePosition(const String *positionString);
 		static const String *DevicePositionToString(BHapticsDevicePosition position);
-		
-		/*static TArray<FDevice> FoundDevices;
-		static FPlayerResponse CurrentResponse;
-		static FPlayerResponse LastUpdatedResponse;
-		static FCriticalSection m_Mutex;*/
-
 	};
 }
 

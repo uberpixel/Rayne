@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	#if RN_PLATFORM_ANDROID
+#if RN_PLATFORM_ANDROID
 	jmethodID InitializeMethod;
 	jmethodID GetCurrentDeviceMethod;
 	jmethodID StartScanMethod;
@@ -18,7 +18,21 @@ namespace RN
 	jmethodID IsScanningMethod;
 	jmethodID isRegisterMethodId;
 	jmethodID GetPositionStatusMethodId;
-	#endif
+
+    jmethodID PingDeviceMethod;
+    jmethodID PingAllMethod;
+
+    jmethodID RegisterProjectMethod;
+    jmethodID RegisterProjectReflectedMethod;
+    jmethodID SubmitRegisteredMethod;
+    jmethodID SubmitDotMethod;
+
+    jmethodID IsFeedbackRegisteredMethod;
+    jmethodID IsFeedbackPlayingMethod;
+    jmethodID IsAnyFeedbackPlayingMethod;
+    jmethodID TurnOffFeedbackMethod;
+    jmethodID TurnOffAllFeedbackMethod;
+#endif
 
 	void BHapticsAndroidWrapper::Initialize()
 	{
@@ -35,10 +49,23 @@ namespace RN
 			StartScanMethod = env->GetMethodID(activityClass, "AndroidThunkJava_Scan", "()V");
 			StopScanMethod = env->GetMethodID(activityClass, "AndroidThunkJava_StopScan", "()V");
 			IsScanningMethod = env->GetMethodID(activityClass, "AndroidThunkJava_IsScanning", "()Z");
-			GetPositionStatusMethodId =
-			env->GetMethodID(activityClass, "AndroidThunkJava_GetPositionStatus", "(Ljava/lang/String;)[B");
+			GetPositionStatusMethodId = env->GetMethodID(activityClass, "AndroidThunkJava_GetPositionStatus", "(Ljava/lang/String;)[B");
 
-			//This doesn't currently do anything, except printing the app name, but would be nice to figure out how to cleanup the wrapper in the activity for this to do the init
+            PingDeviceMethod = env->GetMethodID(activityClass, "AndroidThunkJava_Ping", "(Ljava/lang/String;)V");
+            PingAllMethod = env->GetMethodID(activityClass, "AndroidThunkJava_PingAll", "()V");
+
+            RegisterProjectMethod = env->GetMethodID(activityClass, "AndroidThunkJava_Register", "(Ljava/lang/String;Ljava/lang/String;)V");
+            RegisterProjectReflectedMethod = env->GetMethodID(activityClass, "AndroidThunkJava_RegisterReflected", "(Ljava/lang/String;Ljava/lang/String;)V");
+            SubmitRegisteredMethod = env->GetMethodID(activityClass, "AndroidThunkJava_SubmitRegistered", "(Ljava/lang/String;Ljava/lang/String;FFFF)V");
+            SubmitDotMethod = env->GetMethodID(activityClass, "AndroidThunkJava_SubmitDot", "(Ljava/lang/String;Ljava/lang/String;[I[II)V");
+
+            IsFeedbackRegisteredMethod = env->GetMethodID(activityClass, "AndroidThunkJava_IsRegistered", "(Ljava/lang/String;)Z");
+            IsFeedbackPlayingMethod = env->GetMethodID(activityClass, "AndroidThunkJava_IsPlaying", "(Ljava/lang/String;)Z");
+            IsAnyFeedbackPlayingMethod = env->GetMethodID(activityClass, "AndroidThunkJava_IsAnythingPlaying", "()Z");
+            TurnOffFeedbackMethod = env->GetMethodID(activityClass, "AndroidThunkJava_TurnOff", "(Ljava/lang/String;)V");
+            TurnOffAllFeedbackMethod = env->GetMethodID(activityClass, "AndroidThunkJava_TurnOffAll", "()V");
+
+            //This doesn't currently do anything, except printing the app name, but would be nice to figure out how to cleanup the wrapper in the activity for this to do the init
             jstring applicationName = env->NewStringUTF("GRAB");
 			env->CallVoidMethod(app->activity->clazz, InitializeMethod, applicationName);
             env->DeleteLocalRef(applicationName);
@@ -131,151 +158,91 @@ namespace RN
 		return nullptr;
 	}
 
-
-	const Array *BHapticsAndroidWrapper::GetCurrentDevices()
-	{
-		Array *devices = nullptr;
-
-	#if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jstring jstr = (jstring)env->CallObjectMethod(app->activity->clazz, GetCurrentDeviceMethod);
-
-			const char* nativeDeviceListString = env->GetStringUTFChars(jstr, 0);
-			const String *deviceListString = RNSTR(nativeDeviceListString);
-			env->ReleaseStringUTFChars(jstr, nativeDeviceListString);
-
-			RNDebug("bHaptics devices: " << deviceListString);
-
-			const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(deviceListString);
-			if(jsonDevices && jsonDevices->GetCount() > 0)
-			{
-				devices = new RN::Array(jsonDevices->GetCount());
-				jsonDevices->Enumerate<Dictionary>([&](Dictionary *dict, size_t index, bool &stop){
-					BHapticsDevice *device = new BHapticsDevice();
-
-					//TODO: Also set the properties below
-					//DeviceName
-					//Address
-
-					device->Position = StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
-
-					const Number *isConnectedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsConnected"));
-					device->IsConnected = isConnectedNumber->GetBoolValue();
-
-					const Number *isPairedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsPaired"));
-					device->IsPaired = isPairedNumber->GetBoolValue();
-
-					devices->AddObject(device);
-				});
-			}
-		}
-    #endif
-
-		return devices;
-	}
-
-	void BHapticsAndroidWrapper::PingDevice(const String *deviceAddress)
+	void BHapticsAndroidWrapper::RegisterProject(const String *key, const String *fileStr)
 	{
 #if RN_PLATFORM_ANDROID
 		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
 		if(env)
 		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID pingMethod = env->GetMethodID(activityClass, "AndroidThunkJava_Ping", "(Ljava/lang/String;)V");
-			
-			jstring deviceStrJava = env->NewStringUTF(deviceAddress->GetUTF8String());
-			env->CallVoidMethod(app->activity->clazz, pingMethod, deviceStrJava);
-			env->DeleteLocalRef(deviceStrJava);
-		}
-#endif
-	}
-
-	void BHapticsAndroidWrapper::PingAllDevices()
-	{
-#if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID PingAllMethod = env->GetMethodID(activityClass, "AndroidThunkJava_PingAll", "()V");
-			env->CallVoidMethod(app->activity->clazz, PingAllMethod);
-		}
-#endif
-	}
-
-	/*
-	void UAndroidHapticLibrary::ChangeDevicePosition(FString DeviceAddress, FString Position)
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID ChangePositionMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_ChangePosition", "(Ljava/lang/String;Ljava/lang/String;)V", false);
-			jstring DeviceAddressJava = Env->NewStringUTF(TCHAR_TO_UTF8(*DeviceAddress));
-			jstring PositionJava = Env->NewStringUTF(TCHAR_TO_UTF8(*Position));
-			FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, ChangePositionMethod, DeviceAddressJava, PositionJava);
-			Env->DeleteLocalRef(DeviceAddressJava);
-			Env->DeleteLocalRef(PositionJava);
-		}
-	#endif
-	}
-
-	void UAndroidHapticLibrary::ToggleDevicePosition(FString DeviceAddress)
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID TogglePositionMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_TogglePosition", "(Ljava/lang/String;)V", false);
-			jstring DeviceAddressJava = Env->NewStringUTF(TCHAR_TO_UTF8(*DeviceAddress));
-			FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, TogglePositionMethod,DeviceAddressJava);
-			Env->DeleteLocalRef(DeviceAddressJava);
-		}
-	#endif
-	}
-*/
-
-	void BHapticsAndroidWrapper::SubmitDot(const String *key, BHapticsDevicePosition devicePosition, const std::vector<BHapticsDotPoint> &points, int durationMillis)
-	{
-#if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID submitDotMethodId = env->GetMethodID(activityClass, "AndroidThunkJava_SubmitDot", "(Ljava/lang/String;Ljava/lang/String;[I[II)V");
-
 			jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
-			jstring posJava = env->NewStringUTF(DevicePositionToString(devicePosition)->GetUTF8String());
-
-			jintArray indexesJava = env->NewIntArray(points.size());
-			jintArray intensitiesJava = env->NewIntArray(points.size());
-
-			jint *indexes = new jint[points.size()];
-			jint *intensities = new jint[points.size()];
-			for(int i = 0; i < points.size(); ++i)
-			{
-				indexes[i] = points[i].Index;
-				intensities[i] = points[i].Intensity;
-			}
-			env->SetIntArrayRegion(indexesJava, 0, points.size(), indexes);
-			env->SetIntArrayRegion(intensitiesJava, 0, points.size(), intensities);
-
-			env->CallVoidMethod(app->activity->clazz, submitDotMethodId, keyStrJava, posJava, indexesJava, intensitiesJava, durationMillis);
-
+			jstring fileStrJava = env->NewStringUTF(fileStr->GetUTF8String());
+			env->CallVoidMethod(app->activity->clazz, RegisterProjectMethod, keyStrJava, fileStrJava);
 			env->DeleteLocalRef(keyStrJava);
-			env->DeleteLocalRef(posJava);
-
-			delete[] indexes;
-			delete[] intensities;
+			env->DeleteLocalRef(fileStrJava);
 		}
 #endif
 	}
+
+
+	void BHapticsAndroidWrapper::RegisterProjectReflected(const String *key, const String *fileStr)
+	{
+	#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
+            jstring fileStrJava = env->NewStringUTF(fileStr->GetUTF8String());
+            env->CallVoidMethod(app->activity->clazz, RegisterProjectReflectedMethod, keyStrJava, fileStrJava);
+            env->DeleteLocalRef(keyStrJava);
+            env->DeleteLocalRef(fileStrJava);
+        }
+	#endif
+	}
+
+	void BHapticsAndroidWrapper::SubmitRegistered(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset)
+	{
+#if RN_PLATFORM_ANDROID
+		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+		if(env)
+		{
+			jstring keyJava = env->NewStringUTF(key->GetUTF8String());
+			jstring altKeyJava = env->NewStringUTF(altKey? altKey->GetUTF8String() : "");
+			env->CallVoidMethod(app->activity->clazz, SubmitRegisteredMethod, keyJava, altKeyJava, intensity, duration, xOffsetAngle, yOffset);
+			env->DeleteLocalRef(keyJava);
+			env->DeleteLocalRef(altKeyJava);
+		}
+#endif
+	}
+
+    void BHapticsAndroidWrapper::SubmitDot(const String *key, BHapticsDevicePosition devicePosition, const std::vector<BHapticsDotPoint> &points, int durationMillis)
+    {
+#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
+            jstring posJava = env->NewStringUTF(DevicePositionToString(devicePosition)->GetUTF8String());
+
+            jintArray indexesJava = env->NewIntArray(points.size());
+            jintArray intensitiesJava = env->NewIntArray(points.size());
+
+            jint *indexes = new jint[points.size()];
+            jint *intensities = new jint[points.size()];
+            for(int i = 0; i < points.size(); ++i)
+            {
+                indexes[i] = points[i].Index;
+                intensities[i] = points[i].Intensity;
+            }
+            env->SetIntArrayRegion(indexesJava, 0, points.size(), indexes);
+            env->SetIntArrayRegion(intensitiesJava, 0, points.size(), intensities);
+
+            env->CallVoidMethod(app->activity->clazz, SubmitDotMethod, keyStrJava, posJava, indexesJava, intensitiesJava, durationMillis);
+
+            env->DeleteLocalRef(keyStrJava);
+            env->DeleteLocalRef(posJava);
+
+            delete[] indexes;
+            delete[] intensities;
+        }
+#endif
+    }
+
 /*
-	void UAndroidHapticLibrary::SubmitPath(FString Key, FString Pos, TArray<FPathPoint> Points, int DurationMillis)
+	void BHapticsAndroidWrapper::SubmitPath(FString Key, FString Pos, TArray<FPathPoint> Points, int DurationMillis)
 	{
 	#if RN_PLATFORM_ANDROID
 		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
@@ -317,101 +284,57 @@ namespace RN
 	#endif
 	}*/
 
-	void BHapticsAndroidWrapper::TurnOffFeedback(const String *key)
+
+	bool BHapticsAndroidWrapper::IsFeedbackRegistered(String *key)
 	{
+	    bool result = false;
 #if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID turnOffMethod = env->GetMethodID(activityClass, "AndroidThunkJava_TurnOff", "(Ljava/lang/String;)V");
-			
-			jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
-			env->CallVoidMethod(app->activity->clazz, turnOffMethod, keyStrJava);
-			env->DeleteLocalRef(keyStrJava);
-		}
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
+            result = env->CallBooleanMethod(app->activity->clazz, IsFeedbackRegisteredMethod, keyStrJava);
+            env->DeleteLocalRef(keyStrJava);
+        }
 #endif
+
+        return result;
 	}
 
-	void BHapticsAndroidWrapper::TurnOffAllFeedback()
+	bool BHapticsAndroidWrapper::IsFeedbackPlaying(String *key)
 	{
+        bool result = false;
 #if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID turnOffAll = env->GetMethodID(activityClass, "AndroidThunkJava_TurnOffAll", "()V");
-			env->CallVoidMethod(app->activity->clazz, turnOffAll);
-		}
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
+            result = env->CallBooleanMethod(app->activity->clazz, IsFeedbackPlayingMethod, keyStrJava);
+            env->DeleteLocalRef(keyStrJava);
+        }
 #endif
+
+        return result;
 	}
 
-/*	bool BHapticsAndroidWrapper::IsDeviceConnected(BHapticsDevicePosition devicePosition)
+	bool BHapticsAndroidWrapper::IsAnyFeedbackPlaying()
 	{
-		auto Devices = UAndroidHapticLibrary::GetCurrentDevices();
-		for (int i = 0; i < Devices.Num(); i++) {
-			FDevice d = Devices[i];
-			if (d.IsConnected
-				&& BhapticsUtils::PositionEnumToString(Position) == d.Position) {
-				return true;
-			}
-		}
-		return false;
+        bool result = false;
+#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            result = env->CallBooleanMethod(app->activity->clazz, IsAnyFeedbackPlayingMethod);
+        }
+#endif
+
+        return result;
 	}
 
-	bool UAndroidHapticLibrary::IsFeedbackRegistered(FString key)
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID isRegisterMethodId = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_IsRegistered", "(Ljava/lang/String;)Z", false);
-			jstring keyStrJava = Env->NewStringUTF(TCHAR_TO_UTF8(*key));
-			bool res = FJavaWrapper::CallBooleanMethod(Env, FJavaWrapper::GameActivityThis, isRegisterMethodId, keyStrJava);
-			Env->DeleteLocalRef(keyStrJava);
-
-			return res;
-		}
-	#endif
-
-		return false;
-	}
-
-	bool UAndroidHapticLibrary::IsFeedbackPlaying(FString key)
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID isRegisterMethodId =
-				FJavaWrapper::FindMethod(
-					Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_IsPlaying", "(Ljava/lang/String;)Z", false);
-			jstring keyStrJava = Env->NewStringUTF(TCHAR_TO_UTF8(*key));
-			bool res = FJavaWrapper::CallBooleanMethod(Env, FJavaWrapper::GameActivityThis, isRegisterMethodId, keyStrJava);
-			Env->DeleteLocalRef(keyStrJava);
-
-			return res;
-		}
-	#endif
-
-		return false;
-	}
-
-	bool UAndroidHapticLibrary::IsAnyFeedbackPlaying()
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID isRegisterMethodId =
-				FJavaWrapper::FindMethod(
-					Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_IsAnythingPlaying", "()Z", false);
-			return FJavaWrapper::CallBooleanMethod(Env, FJavaWrapper::GameActivityThis, isRegisterMethodId);
-		}
-	#endif
-		return false;
-	}
-
-	TArray<uint8> UAndroidHapticLibrary::GetPositionStatus(FString pos)
+/*	TArray<uint8> UAndroidHapticLibrary::GetPositionStatus(FString pos)
 	{
 		TArray<uint8> IntArray;
 		IntArray.Init(0, 20);
@@ -419,7 +342,7 @@ namespace RN
 		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
 		{
 			jstring posJava = Env->NewStringUTF(TCHAR_TO_UTF8(*pos));
-		
+
 			jbyteArray arrayJava = (jbyteArray) FJavaWrapper::CallObjectMethod(
 				Env, FJavaWrapper::GameActivityThis, GetPositionStatusMethodId, posJava);
 
@@ -438,66 +361,145 @@ namespace RN
 		return IntArray;
 	}*/
 
-	void BHapticsAndroidWrapper::RegisterProject(const String *key, const String *fileStr)
-	{
+    void BHapticsAndroidWrapper::TurnOffFeedback(const String *key)
+    {
 #if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			RNDebug(fileStr->GetLength());
-
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID registerMethodId = env->GetMethodID(activityClass, "AndroidThunkJava_Register", "(Ljava/lang/String;Ljava/lang/String;)V");
-			
-			jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
-			jstring fileStrJava = env->NewStringUTF(fileStr->GetUTF8String());
-			env->CallVoidMethod(app->activity->clazz, registerMethodId, keyStrJava, fileStrJava);
-			env->DeleteLocalRef(keyStrJava);
-			env->DeleteLocalRef(fileStrJava);
-		}
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring keyStrJava = env->NewStringUTF(key->GetUTF8String());
+            env->CallVoidMethod(app->activity->clazz, TurnOffFeedbackMethod, keyStrJava);
+            env->DeleteLocalRef(keyStrJava);
+        }
 #endif
-	}
+    }
 
-/*
-	void UAndroidHapticLibrary::RegisterProjectReflected(FString key, FString fileStr)
-	{
-	#if RN_PLATFORM_ANDROID
-		if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
-		{
-			static jmethodID registerMethodId =
-				FJavaWrapper::FindMethod(
-					Env, FJavaWrapper::GameActivityClassID,
-					"AndroidThunkJava_RegisterReflected",
-					"(Ljava/lang/String;Ljava/lang/String;)V", false);
-			jstring keyStrJava = Env->NewStringUTF(TCHAR_TO_UTF8(*key));
-			jstring fileStrJava = Env->NewStringUTF(TCHAR_TO_UTF8(*fileStr));
-			FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, registerMethodId, keyStrJava, fileStrJava);
-			Env->DeleteLocalRef(keyStrJava);
-			Env->DeleteLocalRef(fileStrJava);
-		}
-	#endif
-	}*/
-
-	void BHapticsAndroidWrapper::SubmitRegistered(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset)
-	{
+    void BHapticsAndroidWrapper::TurnOffAllFeedback()
+    {
 #if RN_PLATFORM_ANDROID
-		android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
-		JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
-		if(env)
-		{
-			jclass activityClass = env->GetObjectClass(app->activity->clazz);
-			static jmethodID submitMethodId = env->GetMethodID(activityClass, "AndroidThunkJava_SubmitRegistered", "(Ljava/lang/String;Ljava/lang/String;FFFF)V");
-			
-			jstring keyJava = env->NewStringUTF(key->GetUTF8String());
-			jstring altKeyJava = env->NewStringUTF(altKey? altKey->GetUTF8String() : "");
-			env->CallVoidMethod(app->activity->clazz, submitMethodId, keyJava, altKeyJava, intensity, duration, xOffsetAngle, yOffset);
-			env->DeleteLocalRef(keyJava);
-			env->DeleteLocalRef(altKeyJava);
-		}
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            env->CallVoidMethod(app->activity->clazz, TurnOffAllFeedbackMethod);
+        }
 #endif
-	}
+    }
 
+    const Array *BHapticsAndroidWrapper::GetCurrentDevices()
+    {
+        Array *devices = nullptr;
+
+#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring jstr = (jstring)env->CallObjectMethod(app->activity->clazz, GetCurrentDeviceMethod);
+
+            const char* nativeDeviceListString = env->GetStringUTFChars(jstr, 0);
+            const String *deviceListString = RNSTR(nativeDeviceListString);
+            env->ReleaseStringUTFChars(jstr, nativeDeviceListString);
+
+            RNDebug("bHaptics devices: " << deviceListString);
+
+            const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(deviceListString);
+            if(jsonDevices && jsonDevices->GetCount() > 0)
+            {
+                devices = new RN::Array(jsonDevices->GetCount());
+                jsonDevices->Enumerate<Dictionary>([&](Dictionary *dict, size_t index, bool &stop){
+                    BHapticsDevice *device = new BHapticsDevice();
+
+                    //TODO: Also set the properties below
+                    //DeviceName
+                    //Address
+
+                    device->Position = StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
+
+                    const Number *isConnectedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsConnected"));
+                    device->IsConnected = isConnectedNumber->GetBoolValue();
+
+                    const Number *isPairedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsPaired"));
+                    device->IsPaired = isPairedNumber->GetBoolValue();
+
+                    devices->AddObject(device);
+                });
+            }
+        }
+#endif
+
+        return devices;
+    }
+
+/*    bool BHapticsAndroidWrapper::IsDeviceConnected(BHapticsDevicePosition devicePosition)
+    {
+        auto Devices = UAndroidHapticLibrary::GetCurrentDevices();
+        for (int i = 0; i < Devices.Num(); i++) {
+            FDevice d = Devices[i];
+            if (d.IsConnected
+                && BhapticsUtils::PositionEnumToString(Position) == d.Position) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    void UAndroidHapticLibrary::ChangeDevicePosition(FString DeviceAddress, FString Position)
+    {
+    #if RN_PLATFORM_ANDROID
+        if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+        {
+            static jmethodID ChangePositionMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_ChangePosition", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+            jstring DeviceAddressJava = Env->NewStringUTF(TCHAR_TO_UTF8(*DeviceAddress));
+            jstring PositionJava = Env->NewStringUTF(TCHAR_TO_UTF8(*Position));
+            FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, ChangePositionMethod, DeviceAddressJava, PositionJava);
+            Env->DeleteLocalRef(DeviceAddressJava);
+            Env->DeleteLocalRef(PositionJava);
+        }
+    #endif
+    }
+
+    void UAndroidHapticLibrary::ToggleDevicePosition(FString DeviceAddress)
+    {
+    #if RN_PLATFORM_ANDROID
+        if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+        {
+            static jmethodID TogglePositionMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_TogglePosition", "(Ljava/lang/String;)V", false);
+            jstring DeviceAddressJava = Env->NewStringUTF(TCHAR_TO_UTF8(*DeviceAddress));
+            FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, TogglePositionMethod,DeviceAddressJava);
+            Env->DeleteLocalRef(DeviceAddressJava);
+        }
+    #endif
+    }
+*/
+
+    void BHapticsAndroidWrapper::PingDevice(const String *deviceAddress)
+    {
+#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            jstring deviceStrJava = env->NewStringUTF(deviceAddress->GetUTF8String());
+            env->CallVoidMethod(app->activity->clazz, PingDeviceMethod, deviceStrJava);
+            env->DeleteLocalRef(deviceStrJava);
+        }
+#endif
+    }
+
+    void BHapticsAndroidWrapper::PingAllDevices()
+    {
+#if RN_PLATFORM_ANDROID
+        android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
+        JNIEnv *env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+        if(env)
+        {
+            env->CallVoidMethod(app->activity->clazz, PingAllMethod);
+        }
+#endif
+    }
 
 /*
 	bool UAndroidHapticLibrary::IsLegacyMode()
