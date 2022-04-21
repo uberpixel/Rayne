@@ -22,7 +22,7 @@ namespace RN
 		
 		BHAPI void Update(float delta) override;
 
-		bool HasDevices() const { return _hasDevices; }
+		bool HasDevices() const { return _currentDevices && _currentDevices->GetCount() > 0; }
 
 		BHAPI void RegisterProject(const String *key, const String *filepath);
         BHAPI void RegisterProjectReflected(const String *key, const String *filepath);
@@ -36,12 +36,15 @@ namespace RN
 		BHAPI void TurnOffFeedback(const String *key);
 		BHAPI void TurnOffAllFeedback();
 
-        BHAPI const Array *GetCurrentDevices();
+		BHAPI void UpdateCurrentDevices();
+        BHAPI const Array *GetCurrentDevices() const;
         BHAPI void PingAllDevices();
+		BHAPI void PingDevice(BHapticsDevicePosition position);
 		
 	private:
 		std::vector< std::function<void()> > _queue;
-		bool _hasDevices;
+		const Array *_currentDevices;
+		bool _wantsDeviceUpdate;
 			
 		RNDeclareMetaAPI(BHapticsManager, BHAPI)
 	};

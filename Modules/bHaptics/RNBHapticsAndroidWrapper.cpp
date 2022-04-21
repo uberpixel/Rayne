@@ -84,6 +84,10 @@ namespace RN
 		{
 			return BHapticsDevicePosition::ForearmR;
 		}
+		else if(positionString->IsEqual(RNCSTR("Vest")))
+		{
+			return BHapticsDevicePosition::Vest;
+		}
 		else if(positionString->IsEqual(RNCSTR("VestFront")))
 		{
 			return BHapticsDevicePosition::VestFront;
@@ -125,6 +129,10 @@ namespace RN
 		else if(position == BHapticsDevicePosition::ForearmR)
 		{
 			return RNCSTR("ForearmR");
+		}
+		else if(position == BHapticsDevicePosition::Vest)
+		{
+			return RNCSTR("Vest");
 		}
 		else if(position == BHapticsDevicePosition::VestFront)
 		{
@@ -411,17 +419,16 @@ namespace RN
                 jsonDevices->Enumerate<Dictionary>([&](Dictionary *dict, size_t index, bool &stop){
                     BHapticsDevice *device = new BHapticsDevice();
 
-                    //TODO: Also set the properties below
-                    //DeviceName
-                    //Address
+					device->deviceName = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("DeviceName")));
+					device->address = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("Address")));
 
-                    device->Position = StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
+                    device->position = StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
 
                     const Number *isConnectedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsConnected"));
-                    device->IsConnected = isConnectedNumber->GetBoolValue();
+                    device->isConnected = isConnectedNumber->GetBoolValue();
 
                     const Number *isPairedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsPaired"));
-                    device->IsPaired = isPairedNumber->GetBoolValue();
+                    device->isPaired = isPairedNumber->GetBoolValue();
 
                     devices->AddObject(device);
                 });
@@ -432,21 +439,7 @@ namespace RN
         return devices;
     }
 
-/*    bool BHapticsAndroidWrapper::IsDeviceConnected(BHapticsDevicePosition devicePosition)
-    {
-        auto Devices = UAndroidHapticLibrary::GetCurrentDevices();
-        for (int i = 0; i < Devices.Num(); i++) {
-            FDevice d = Devices[i];
-            if (d.IsConnected
-                && BhapticsUtils::PositionEnumToString(Position) == d.Position) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    void UAndroidHapticLibrary::ChangeDevicePosition(FString DeviceAddress, FString Position)
+/*    void UAndroidHapticLibrary::ChangeDevicePosition(FString DeviceAddress, FString Position)
     {
     #if RN_PLATFORM_ANDROID
         if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())

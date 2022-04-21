@@ -39,11 +39,9 @@ namespace RN
 		//Device management stuff that may not be important, but could be useful
 		
 		static const Array *GetCurrentDevices();
-		
-/*		static bool IsDeviceConnected(BHapticsDevicePosition devicePosition);
 
 		//Set the Position of Device
-		static void ChangeDevicePosition(const String *deviceAddress, BHapticsDevicePosition devicePosition);
+/*		static void ChangeDevicePosition(const String *deviceAddress, BHapticsDevicePosition devicePosition);
 		
 		//Toggle the Position of Device
 		static void ToggleDevicePosition(const String *deviceAddress);*/

@@ -11,4 +11,15 @@
 namespace RN
 {
 	RNDefineMeta(BHapticsDevice, Object)
+
+	BHapticsDevice::BHapticsDevice() : address(nullptr), deviceName(nullptr), position(BHapticsDevicePosition::Default), isConnected(false), isPaired(false)
+	{
+		
+	}
+
+	BHapticsDevice::~BHapticsDevice()
+	{
+		SafeRelease(address);
+		SafeRelease(deviceName);
+	}
 }

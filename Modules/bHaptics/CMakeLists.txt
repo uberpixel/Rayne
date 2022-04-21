@@ -29,8 +29,11 @@ set(COMPILE_OPTIONS "")
 set(RAYNE_LIBRARIES Rayne)
 
 set(INCLUDE_DIRECTORIES
-        "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics/include/shared")
+        "${Rayne_BINARY_DIR}/include")
+
+if(WIN32)
+        set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics/include/shared")
+endif()
 
 rayne_add_library(RayneBHaptics "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneBHaptics)
@@ -40,7 +43,9 @@ target_compile_definitions(RayneBHaptics PRIVATE "${DEFINES}")
 target_compile_options(RayneBHaptics PRIVATE ${COMPILE_OPTIONS})
 
 
-ExternalProject_Add(bhaptics
+
+if(WIN32)
+        ExternalProject_Add(bhaptics
         GIT_REPOSITORY https://github.com/bhaptics/haptic-library.git
         GIT_TAG refs/tags/tac-1.6.5
         GIT_SHALLOW ON
@@ -63,25 +68,16 @@ ExternalProject_Add(bhaptics
                 ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.lib
         INSTALL_COMMAND "")
 
-add_library(BHapticsLib STATIC IMPORTED)
-if(WIN32)
+        add_library(BHapticsLib STATIC IMPORTED)
+
         SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
 
         SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.lib")
         SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.lib")
         SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/RelWithDebInfo/libhaptic_library.lib")
 
-elseif(ANDROID)
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/libhaptic_library.a)
-else()
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
-
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.a")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.a")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/RelWithDebInfo/libhaptic_library.a")
+        add_dependencies(BHapticsLib bhaptics)
+        target_link_libraries(RayneBHaptics PUBLIC BHapticsLib)
 endif()
-
-add_dependencies(BHapticsLib bhaptics)
-target_link_libraries(RayneBHaptics PUBLIC BHapticsLib)
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneBHaptics/. DESTINATION lib/Rayne/RayneBHaptics)

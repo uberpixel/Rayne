@@ -8,16 +8,18 @@
 
 #include "RNBHapticsManager.h"
 
-#include "RNBHapticsAndroidWrapper.h"
-
-#include "HapticLibrary.h"
-#include "model.h"
+#if RN_PLATFORM_WINDOWS
+	#include "HapticLibrary.h"
+	#include "model.h"
+#elif RN_PLATFORM_ANDROID
+	#include "RNBHapticsAndroidWrapper.h"
+#endif
 
 namespace RN
 {
 	RNDefineMeta(BHapticsManager, SceneAttachment)
 	
-	BHapticsManager::BHapticsManager() : _hasDevices(false)
+	BHapticsManager::BHapticsManager() : _currentDevices(nullptr), _wantsDeviceUpdate(false)
 	{
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Initialize();
@@ -28,17 +30,26 @@ namespace RN
 		
 	BHapticsManager::~BHapticsManager()
 	{
+#if RN_PLATFORM_WINDOWS
 		Destroy();
+#endif
 	}
 
 	void BHapticsManager::Update(float delta)
 	{
-	    if(!_hasDevices)
+	    if(!_currentDevices || _wantsDeviceUpdate)
 	    {
-            const Array *currentDevices = GetCurrentDevices();
-            if(currentDevices && currentDevices->GetCount() > 0)
+			const Array *currentDevices = nullptr;
+#if RN_PLATFORM_ANDROID
+			currentDevices = BHapticsAndroidWrapper::GetCurrentDevices();
+#elif RN_PLATFORM_WINDOWS
+#endif
+            if(currentDevices)
             {
-                _hasDevices = true;
+				SafeRelease(_currentDevices);
+				_currentDevices = currentDevices->Retain();
+				
+				_wantsDeviceUpdate = false;
             }
         }
 
@@ -138,9 +149,14 @@ namespace RN
 #endif
 	}
 
-	const Array *BHapticsManager::GetCurrentDevices()
+	void BHapticsManager::UpdateCurrentDevices()
 	{
-		return BHapticsAndroidWrapper::GetCurrentDevices();
+		_wantsDeviceUpdate = true;
+	}
+
+	const Array *BHapticsManager::GetCurrentDevices() const
+	{
+		return _currentDevices;
 	}
 
 	void BHapticsManager::PingAllDevices()
@@ -149,5 +165,24 @@ namespace RN
 		BHapticsAndroidWrapper::PingAllDevices();
 #elif RN_PLATFORM_WINDOWS
 #endif
+	}
+
+	void BHapticsManager::PingDevice(BHapticsDevicePosition position)
+	{
+		if(!_currentDevices) return;
+		
+		_currentDevices->Enumerate<BHapticsDevice>([&](BHapticsDevice *device, size_t index, bool &stop){
+			if(device->position == position && device->address)
+			{
+				device->Retain();
+				_queue.push_back([device](){
+#if RN_PLATFORM_ANDROID
+					BHapticsAndroidWrapper::PingDevice(device->address);
+#endif
+					device->Release();
+				});
+				stop = true;
+			}
+		});
 	}
 }

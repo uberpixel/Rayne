@@ -15,13 +15,12 @@ namespace RN
 {
 	enum class BHapticsDevicePosition : uint8
 	{
-		VestFront = 201, VestBack = 202,
-		Head = 4,
-		ForearmL = 10, ForearmR = 11,
-		HandL = 6, HandR = 7,
-		FootL = 8, FootR = 9,
-		Left = 1, Right = 2,
-		Default = 0
+		Default = 0,
+		Vest = 1, VestFront = 201, VestBack = 202,
+		Head = 2,
+		ForearmL = 3, ForearmR = 4,
+		HandL = 5, HandR = 6,
+		FootL = 7, FootR = 8
 	};
 
 	enum class BHapticsFeedbackMode : uint8
@@ -155,12 +154,15 @@ namespace RN
 	class BHapticsDevice : public Object
 	{
 	public:
-		const String *DeviceName;
-		const String *Address;
-		BHapticsDevicePosition Position;
+		BHapticsDevice();
+		~BHapticsDevice();
 		
-		bool IsConnected;
-		bool IsPaired;
+		const String *deviceName;
+		const String *address;
+		BHapticsDevicePosition position;
+		
+		bool isConnected;
+		bool isPaired;
 		
 	private:
 		RNDeclareMetaAPI(BHapticsDevice, BHAPI)
