@@ -174,10 +174,17 @@ PFN_xrStopHapticFeedback xrStopHapticFeedback;
 void PopulateOpenXRDispatchTable(XrInstance instance) {
 
     // ---- Core 1.0 commands
-    (xrGetInstanceProcAddr(instance, "xrEnumerateApiLayerProperties", (PFN_xrVoidFunction*)&xrEnumerateApiLayerProperties));
-    (xrGetInstanceProcAddr(instance, "xrEnumerateInstanceExtensionProperties", (PFN_xrVoidFunction*)&xrEnumerateInstanceExtensionProperties));
-    
-    (xrGetInstanceProcAddr(instance, "xrCreateInstance", (PFN_xrVoidFunction*)&xrCreateInstance));
+    if(!instance)
+    {
+        //These do not rely on an instance, but are needed to create it
+        (xrGetInstanceProcAddr(instance, "xrEnumerateApiLayerProperties", (PFN_xrVoidFunction*)&xrEnumerateApiLayerProperties));
+        (xrGetInstanceProcAddr(instance, "xrEnumerateInstanceExtensionProperties", (PFN_xrVoidFunction*)&xrEnumerateInstanceExtensionProperties));
+        
+        (xrGetInstanceProcAddr(instance, "xrCreateInstance", (PFN_xrVoidFunction*)&xrCreateInstance));
+        return;
+    }
+
+    //These all require an instance to be created first!
     (xrGetInstanceProcAddr(instance, "xrDestroyInstance", (PFN_xrVoidFunction*)&xrDestroyInstance));
     (xrGetInstanceProcAddr(instance, "xrGetInstanceProperties", (PFN_xrVoidFunction*)&xrGetInstanceProperties));
     (xrGetInstanceProcAddr(instance, "xrPollEvent", (PFN_xrVoidFunction*)&xrPollEvent));

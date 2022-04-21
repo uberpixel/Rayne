@@ -73,11 +73,17 @@ if(ANDROID)
 
 	if(RN_OPENXR_SUPPORT_METAQUEST)
 		set(DEFINES ${DEFINES} RN_OPENXR_SUPPORTS_METAQUEST_LOADER)
-
-		execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
-		execute_process(COMMAND patchelf --set-soname libopenxr_loader_meta.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
 		add_library(OpenXRMeta SHARED IMPORTED)
-		set_target_properties(OpenXRMeta PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+
+		if(${RN_BUILD_CONFIGURATION} STREQUAL "oculus")
+			#Do not rename when building for oculus, as the build will fail processing on the store if the library name is not libopenxr_loader.so
+			#Hopfully the quest specifics can be removed soon, if they start supporting the official android OpenXR loader.
+			set_target_properties(OpenXRMeta PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+		else()
+			execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
+			execute_process(COMMAND patchelf --set-soname libopenxr_loader_meta.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so)
+			set_target_properties(OpenXRMeta PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader_meta.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+		endif()
 	endif()
 
 elseif(WIN32)
