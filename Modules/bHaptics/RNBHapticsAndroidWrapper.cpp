@@ -410,8 +410,6 @@ namespace RN
             const String *deviceListString = RNSTR(nativeDeviceListString);
             env->ReleaseStringUTFChars(jstr, nativeDeviceListString);
 
-            RNDebug("bHaptics devices: " << deviceListString);
-
             const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(deviceListString);
             if(jsonDevices && jsonDevices->GetCount() > 0)
             {
