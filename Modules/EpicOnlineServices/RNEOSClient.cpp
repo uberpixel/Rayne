@@ -165,7 +165,7 @@ namespace RN
 
 	void EOSClient::Update(float delta)
 	{
-		EOSHost::Update(delta); //Needs to go first as it picks out some packets!
+		EOSHost::Update(delta); //Needs to go first as it picks out some packets! TODO: This also handles sending new packets, would reduce some latency if this was done at the end of this method
 		
 		Lock();
 		if(_status == Status::Disconnected)

@@ -92,6 +92,20 @@ namespace RN
 			}
 		}
 		
+		void EnumerateReverse(const std::function<void (Object *, size_t, bool &)>& callback) const
+		{
+			bool stop = false;
+			if(_count == 0) return;
+			
+			for(size_t i = _count - 1; ; i --)
+			{
+				callback(_data[i], i, stop);
+				
+				if(stop || i == 0)
+					break;
+			}
+		}
+		
 		template<class T>
 		void Enumerate(const std::function<void (T *, size_t, bool &)>& callback) const
 		{
@@ -102,6 +116,21 @@ namespace RN
 				callback(static_cast<T *>(_data[i]), i, stop);
 				
 				if(stop)
+					break;
+			}
+		}
+		
+		template<class T>
+		void EnumerateReverse(const std::function<void (T *, size_t, bool &)>& callback) const
+		{
+			bool stop = false;
+			if(_count == 0) return;
+			
+			for(size_t i = _count - 1; ; i --)
+			{
+				callback(static_cast<T *>(_data[i]), i, stop);
+				
+				if(stop || i == 0)
 					break;
 			}
 		}
