@@ -27,7 +27,7 @@
 
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"
-#include "Data/RNRingBuffer.h"
+#include "Data/RNAtomicRingBuffer.h"
 
 #include "Debug/RNLogFormatter.h"
 #include "Debug/RNLogger.h"

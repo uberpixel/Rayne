@@ -11,7 +11,6 @@
 
 #include "../Base/RNBase.h"
 #include "../Objects/RNObject.h"
-#include "../Data/RNRingBuffer.h"
 #include "RNWorkSource.h"
 #include "RNThread.h"
 

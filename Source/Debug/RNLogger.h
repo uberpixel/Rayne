@@ -10,7 +10,7 @@
 #define __RAYNE_LOGGING_H__
 
 #include "../Base/RNBase.h"
-#include "../Data/RNRingBuffer.h"
+#include "../Data/RNAtomicRingBuffer.h"
 #include "../Objects/RNArray.h"
 #include "../Objects/RNString.h"
 #include "../Threads/RNWorkQueue.h"

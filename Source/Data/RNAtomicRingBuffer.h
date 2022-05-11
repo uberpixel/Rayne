@@ -1,13 +1,13 @@
 //
-//  RNRingBuffer.h
+//  RNAtomicRingBuffer.h
 //  Rayne
 //
 //  Copyright 2015 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_RINGBUFFER_H__
-#define __RAYNE_RINGBUFFER_H__
+#ifndef __RAYNE_ATOMICRINGBUFFER_H__
+#define __RAYNE_ATOMICRINGBUFFER_H__
 
 #include "../Base/RNBase.h"
 
@@ -37,6 +37,7 @@ namespace RN
 
 			return false;
 		}
+		
 		bool Push(T &&value)
 		{
 			size_t tail = _tail.load(std::memory_order_relaxed);
@@ -53,7 +54,6 @@ namespace RN
 			return false;
 		}
 
-
 		bool Pop(T &value)
 		{
 			size_t head = _head.load(std::memory_order_relaxed);
@@ -69,7 +69,6 @@ namespace RN
 			return false;
 		}
 
-
 		bool WasEmpty() const
 		{
 			return (_head.load(std::memory_order_acquire) == _tail.load(std::memory_order_acquire));
@@ -82,7 +81,7 @@ namespace RN
 
 	private:
 		static RN_CONSTEXPR size_t Capacity = Size + 1;
-
+		
 		size_t Advance(size_t index) const
 		{
 			return (index + 1) % Capacity;
@@ -95,4 +94,4 @@ namespace RN
 	};
 }
 
-#endif /* __RAYNE_RINGBUFFER_H__ */
+#endif /* __RAYNE_ATOMICRINGBUFFER_H__ */

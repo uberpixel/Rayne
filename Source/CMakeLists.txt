@@ -149,7 +149,7 @@ set(RAYNE_HEADERS
     Base/RNUnistd.h
     Data/RNAny.h
     Data/RNIntrusiveList.h
-    Data/RNRingBuffer.h
+    Data/RNAtomicRingBuffer.h
     Data/RNSpatialMap.h
     Debug/RNLogFormatter.h
     Debug/RNLogger.h

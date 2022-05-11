@@ -8,7 +8,6 @@
 
 #include "RNWorkSource.h"
 #include "RNThreadLocalStorage.h"
-#include "../Data/RNRingBuffer.h"
 #include "../Debug/RNLogger.h"
 
 namespace RN
