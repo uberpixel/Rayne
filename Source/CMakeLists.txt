@@ -69,6 +69,7 @@ set(RAYNE_SOURCES
     Objects/RNValue.cpp
     Objects/RNArray.cpp
     Objects/RNDictionary.cpp
+    Objects/RNRingBuffer.cpp
     Objects/RNJSONSerialization.cpp
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
@@ -190,6 +191,7 @@ set(RAYNE_HEADERS
     Objects/RNNull.h
     Objects/RNNumber.h
     Objects/RNObject.h
+    Objects/RNRingBuffer.h
     Objects/RNSerialization.h
     Objects/RNSet.h
     Objects/RNCharacterSet.h

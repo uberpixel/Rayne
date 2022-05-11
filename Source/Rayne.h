@@ -70,6 +70,7 @@
 #include "Objects/RNNumber.h"
 #include "Objects/RNValue.h"
 #include "Objects/RNCharacterSet.h"
+#include "Objects/RNRingBuffer.h"
 #include "Objects/RNString.h"
 
 #include "Rendering/RNDynamicGPUBuffer.h"
