@@ -419,7 +419,7 @@ namespace RN
 			}
 		}
 
-		if(_supportsPreferredFramerate)
+		if(_supportsPerformanceLevels)
 		{
 			//XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrPerfSettingsSetPerformanceLevelEXT", (PFN_xrVoidFunction*)(&_internals->PerfSettingsSetPerformanceLevelEXT))))
