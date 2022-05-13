@@ -316,7 +316,8 @@ namespace RN
 					contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
 					contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
 					contact.node = nullptr;
-					SceneNodeAttachment *attachment = static_cast<SceneNodeAttachment*>(hit.getAnyHit(i).actor->userData);
+					PhysXCollisionObject *attachment = static_cast<PhysXCollisionObject*>(hit.getAnyHit(i).actor->userData);
+					contact.collisionObject = attachment;
 					if(attachment)
 					{
 						contact.node = attachment->GetParent();
@@ -344,7 +345,8 @@ namespace RN
 				contact.normal = Vector3(hit.getAnyHit(i).normal.x, hit.getAnyHit(i).normal.y, hit.getAnyHit(i).normal.z);
 				contact.position = Vector3(hit.getAnyHit(i).position.x, hit.getAnyHit(i).position.y, hit.getAnyHit(i).position.z);
 				contact.node = nullptr;
-				SceneNodeAttachment *attachment = static_cast<SceneNodeAttachment*>(hit.getAnyHit(i).actor->userData);
+				PhysXCollisionObject *attachment = static_cast<PhysXCollisionObject*>(hit.getAnyHit(i).actor->userData);
+				contact.collisionObject = attachment;
 				if(attachment)
 				{
 					contact.node = attachment->GetParent();

@@ -171,6 +171,7 @@ namespace RN
 		PhysXContactInfo hit;
 		hit.distance = -1.0f;
 		hit.node = nullptr;
+		hit.collisionObject = nullptr;
 		
 		Vector3 diff = to-from;
 		float distance = diff.GetLength();
@@ -193,7 +194,8 @@ namespace RN
 				void *userData = callback.block.actor->userData;
 				if(userData)
 				{
-					hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+					hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
+					hit.node = hit.collisionObject->GetParent();
 				}
 			}
 		}
@@ -220,6 +222,7 @@ namespace RN
 					PhysXContactInfo hit;
 					hit.distance = 0.0f;
 					hit.node = nullptr;
+					hit.collisionObject = nullptr;
 					hit.position = position;
 
 					if(callback.touches[i].actor)
@@ -227,7 +230,8 @@ namespace RN
 						void *userData = callback.touches[i].actor->userData;
 						if(userData)
 						{
-							hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+							hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
+							hit.node = hit.collisionObject->GetParent();
 						}
 					}
 
@@ -248,6 +252,7 @@ namespace RN
 						PhysXContactInfo hit;
 						hit.distance = 0.0f;
 						hit.node = nullptr;
+						hit.collisionObject = nullptr;
 						hit.position = position;
 
 						if(callback.touches[i].actor)
@@ -255,7 +260,8 @@ namespace RN
 							void *userData = callback.touches[i].actor->userData;
 							if(userData)
 							{
-								hit.node = static_cast<PhysXCollisionObject*>(userData)->GetParent();
+								hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
+								hit.node = hit.collisionObject->GetParent();
 							}
 						}
 

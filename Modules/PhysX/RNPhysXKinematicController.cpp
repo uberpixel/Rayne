@@ -101,6 +101,7 @@ namespace RN
 		PhysXContactInfo contact;
 		contact.distance = -1.0f;
 		contact.node = nullptr;
+		contact.collisionObject = nullptr;
 
 		if(hit.getNbAnyHits() == 0)
 			return contact;
@@ -112,6 +113,7 @@ namespace RN
 		if(closestHit.actor)
 		{
 			PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(closestHit.actor->userData);
+			contact.collisionObject = collisionObject;
 			if(collisionObject->GetParent())
 			{
 				contact.node = collisionObject->GetParent();

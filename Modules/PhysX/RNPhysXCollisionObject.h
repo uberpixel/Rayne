@@ -14,10 +14,12 @@
 namespace RN
 {
 	class PhysXWorld;
+	class PhysXCollisionObject;
 
 	struct PhysXContactInfo
 	{
 		SceneNode *node;
+		PhysXCollisionObject *collisionObject;
 		Vector3 position;
 		Vector3 normal;
 		float distance;
