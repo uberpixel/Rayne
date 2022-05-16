@@ -148,7 +148,7 @@ namespace RN
 		template<class T=Object>
 		T *PopHead()
 		{
-			if(_head == _tail) return;
+			if(_head == _tail) return nullptr;
 			
 			T *object = _data[_head]->Downcast<T>();
 			_head = GetNextIndex(_head);
@@ -159,7 +159,7 @@ namespace RN
 		template<class T=Object>
 		T *PopTail()
 		{
-			if(_head == _tail) return;
+			if(_head == _tail) return nullptr;
 			
 			_tail = GetPreviousIndex(_tail);
 			T *object = _data[_tail]->Downcast<T>();
