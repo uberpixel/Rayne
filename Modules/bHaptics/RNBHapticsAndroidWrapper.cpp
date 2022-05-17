@@ -406,8 +406,11 @@ namespace RN
         {
             jstring jstr = (jstring)env->CallObjectMethod(app->activity->clazz, GetCurrentDeviceMethod);
 
+            jsize stringLength = env->GetStringUTFLength(jstr);
+            if(stringLength == 0) return devices;
+
             const char* nativeDeviceListString = env->GetStringUTFChars(jstr, 0);
-            const String *deviceListString = RNSTR(nativeDeviceListString);
+            const String *deviceListString = RN::String::WithBytes(nativeDeviceListString, stringLength, RN::Encoding::UTF8);
             env->ReleaseStringUTFChars(jstr, nativeDeviceListString);
 
             const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(deviceListString);
