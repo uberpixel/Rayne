@@ -24,14 +24,14 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Initialize();
 #elif RN_PLATFORM_WINDOWS
-        Initialise("com.slindev.grab", "GRAB");
+        //Initialise("com.slindev.grab", "GRAB");
 #endif
 	}
 		
 	BHapticsManager::~BHapticsManager()
 	{
 #if RN_PLATFORM_WINDOWS
-		Destroy();
+		//Destroy();
 #endif
 	}
 
@@ -102,7 +102,7 @@ namespace RN
 			key->Release();
 		});
 #elif RN_PLATFORM_WINDOWS
-		SubmitDot(key->GetUTF8String(), key, points, 1000);
+		//SubmitDot(key->GetUTF8String(), key, points, 1000);
 #endif
 	}
 

@@ -72,9 +72,9 @@ if(WIN32)
 
         SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
 
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.lib")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.lib")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/RelWithDebInfo/libhaptic_library.lib")
+        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/haptic_library.lib")
+        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/haptic_library.lib")
+        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/RelWithDebInfo/haptic_library.lib")
 
         add_dependencies(BHapticsLib bhaptics)
         target_link_libraries(RayneBHaptics PUBLIC BHapticsLib)
