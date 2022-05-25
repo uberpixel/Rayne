@@ -12,7 +12,7 @@
 #include "../Threads/RNWorkGroup.h"
 #include "../Objects/RNAutoreleasePool.h"
 
-#define kRNSceneUpdateBatchSize 64
+#define kRNSceneUpdateBatchSize 1024
 #define kRNSceneRenderBatchSize 32
 
 namespace RN
@@ -37,8 +37,7 @@ namespace RN
 
 		for(size_t i = 0; i < 3; i ++)
 		{
-			WorkGroup *group = new WorkGroup();
-
+            WorkGroup *group = nullptr;
 			IntrusiveList<SceneNode>::Member *member = _updateNodes[i].GetHead();
 			IntrusiveList<SceneNode>::Member *first = member;
 
@@ -48,6 +47,7 @@ namespace RN
 			{
 				if(count == kRNSceneUpdateBatchSize)
 				{
+				    if(!group) group = new WorkGroup();
 					group->Perform(queue, [&, member, first] {
 
 						AutoreleasePool pool;
@@ -73,7 +73,7 @@ namespace RN
 			//Update remaining less than kRNSceneUpdateBatchSize number of nodes
 			if(first != member)
 			{
-				group->Perform(queue, [&, member, first] {
+//				group->Perform(queue, [&, member, first] {
 
 					AutoreleasePool pool;
 					auto iterator = first;
@@ -85,11 +85,14 @@ namespace RN
 						iterator = iterator->GetNext();
 					}
 
-				});
+//				});
 			}
 
-			group->Wait();
-			group->Release();
+			if(group)
+            {
+			    group->Wait();
+                group->Release();
+            }
 		}
 
 		Scene::Update(delta);
