@@ -114,7 +114,7 @@ namespace RN
 		function();
 		
 		//Advance to next gpu buffer for uniforms and create new uniform buffer if pool is not big enough for any new objects
-		_uniformBufferPool->Update(this);
+		_uniformBufferPool->Update(this); //This will also reset all reference offsets into the buffer
 
 		for(MetalSwapChain *swapChain : _internals->swapChains)
 		{
@@ -170,9 +170,45 @@ namespace RN
 			}
 			else
 			{
-				for(MetalDrawable *drawable : renderPass.drawables)
+				uint32 stepSize = 0;
+				uint32 stepSizeIndex = 0;
+				for(size_t i = 0; i < renderPass.drawables.size(); i+= stepSize)
 				{
-					RenderDrawable(drawable);
+					stepSize = renderPass.instanceSteps[stepSizeIndex];
+					stepSizeIndex += 1;
+					
+					uint32 counter = 0;
+					const MetalDrawable::CameraSpecific &cameraSpecifics = renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex];
+					for(size_t n = 0; n < cameraSpecifics.vertexShaderUniformBuffers.size(); n++)
+					{
+						for(size_t instance = 0; instance < stepSize; instance++)
+						{
+							MetalDrawable *drawable = renderPass.drawables[i + instance];
+							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+							
+							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[n];
+							UpdateUniformBufferReference(bufferReference, instance == 0);
+							FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter], bufferReference, drawable, mergedMaterialProperties);
+						}
+						counter += 1;
+					}
+					
+					for(size_t n = 0; n < cameraSpecifics.fragmentShaderUniformBuffers.size(); n++)
+					{
+						for(size_t instance = 0; instance < stepSize; instance++)
+						{
+							MetalDrawable *drawable = renderPass.drawables[i + instance];
+							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+							
+							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[n];
+							UpdateUniformBufferReference(bufferReference, instance == 0);
+							FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter], bufferReference, drawable, mergedMaterialProperties);
+						}
+						
+						counter += 1;
+					}
+					
+					RenderDrawable(renderPass.drawables[i], stepSize);
 				}
 			}
 
@@ -214,7 +250,7 @@ namespace RN
 				
 				renderPass.drawables[0]->material->RemoveAllTextures();
 				renderPass.drawables[0]->material->AddTexture(sourceTexture);
-				RenderDrawable(renderPass.drawables[0]);
+				RenderDrawable(renderPass.drawables[0], 1);
 				break;
 			}
 				
@@ -360,6 +396,9 @@ namespace RN
 		_internals->currentRenderPassIndex = _internals->renderPasses.size();
 		_internals->renderPasses.push_back(renderPass);
 
+		_internals->currentRenderState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
+		_internals->currentInstanceDrawable = nullptr;
+		
 		// Create drawables
 		function();
 		
@@ -380,6 +419,9 @@ namespace RN
 		metalRenderPass.drawables.clear();
 		metalRenderPass.framebuffer = nullptr;
 		metalRenderPass.resolveFramebuffer = nullptr;
+		
+		_internals->currentRenderState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
+		_internals->currentInstanceDrawable = nullptr;
 		
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
@@ -523,6 +565,12 @@ namespace RN
 	{
 		LockGuard<Lockable> lock(_lock);
 		return _uniformBufferPool->GetUniformBufferReference(size, index);
+	}
+
+	void MetalRenderer::UpdateUniformBufferReference(MetalUniformBufferReference *reference, bool align)
+	{
+		LockGuard<Lockable> lock(_lock);
+		return _uniformBufferPool->UpdateUniformBufferReference(reference, align);
 	}
 
 	ShaderLibrary *MetalRenderer::CreateShaderLibraryWithFile(const String *file)
@@ -1172,7 +1220,54 @@ namespace RN
 			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state);
+			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state); //This will also reserve memory in a uniform buffer.
+		}
+		
+		//Vertex and fragment shaders need to explicitly be marked to support instancing in the shader library json
+		bool canUseInstancing = drawable->material->GetVertexShader()->GetHasInstancing() && drawable->material->GetFragmentShader()->GetHasInstancing();
+		
+		//Check if uniform buffers are the same, the object can't be part of the same instanced draw call if it doesn't share the same buffers (because they are full for example)
+		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers.size() && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers.size())
+		{
+			canUseInstancing = true;
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers.size() && canUseInstancing; i++)
+			{
+				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[i]->uniformBuffer)
+				{
+					canUseInstancing = false;
+				}
+			}
+			
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers.size() && canUseInstancing; i++)
+			{
+				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[i]->uniformBuffer)
+				{
+					canUseInstancing = false;
+				}
+			}
+			
+			if(canUseInstancing)
+			{
+				//depth testing and polygon offset are setup as part of the draw call and objects can only be instanced correctly if these are the same
+				Material::Properties previousMergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+				Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+				
+				if(mergedMaterialProperties.depthMode != previousMergedMaterialProperties.depthMode || mergedMaterialProperties.depthWriteEnabled != previousMergedMaterialProperties.depthWriteEnabled || mergedMaterialProperties.usePolygonOffset != previousMergedMaterialProperties.usePolygonOffset || (mergedMaterialProperties.usePolygonOffset && (mergedMaterialProperties.polygonOffsetUnits != previousMergedMaterialProperties.polygonOffsetUnits || mergedMaterialProperties.polygonOffsetFactor != previousMergedMaterialProperties.polygonOffsetFactor)))
+				{
+					canUseInstancing = false;
+				}
+			}
+		}
+		
+		if(_internals->currentRenderState == drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqual(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
+		{
+			renderPass.instanceSteps.back() += 1; //Increase counter if the rendering state is the same
+		}
+		else
+		{
+			_internals->currentRenderState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
+			_internals->currentInstanceDrawable = drawable;
+			renderPass.instanceSteps.push_back(1); //Add new entry if the rendering state changed
 		}
 
 		_lock.Lock();
@@ -1180,7 +1275,7 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	void MetalRenderer::RenderDrawable(MetalDrawable *drawable)
+	void MetalRenderer::RenderDrawable(MetalDrawable *drawable, uint32 instanceCount)
 	{
 		id<MTLRenderCommandEncoder> encoder = _internals->commandEncoder;
 		if(_internals->currentRenderState != drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState)
@@ -1204,10 +1299,8 @@ namespace RN
 		
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-		
 		[encoder setDepthStencilState:_internals->stateCoordinator.GetDepthStencilStateForMaterial(mergedMaterialProperties, _internals->currentRenderState)];
 		[encoder setCullMode:static_cast<MTLCullMode>(mergedMaterialProperties.cullMode)];
-		
 		if(mergedMaterialProperties.usePolygonOffset)
 		{
 			[encoder setDepthBias:mergedMaterialProperties.polygonOffsetUnits slopeScale:mergedMaterialProperties.polygonOffsetFactor clamp:FLT_MAX];
@@ -1220,17 +1313,14 @@ namespace RN
 		// Update uniform buffers and set them for rendering
 		{
 			const MetalDrawable::CameraSpecific &cameraSpecifics = drawable->_cameraSpecifics[_internals->currentRenderPassIndex];
-			uint32 counter = 0;
 			for(MetalUniformBufferReference *uniformBufferReference : cameraSpecifics.vertexShaderUniformBuffers)
 			{
-				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, mergedMaterialProperties);
 				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
 				[encoder setVertexBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 			}
 			
 			for(MetalUniformBufferReference *uniformBufferReference : drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers)
 			{
-				FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter++], uniformBufferReference, drawable, mergedMaterialProperties);
 				MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(uniformBufferReference->uniformBuffer->GetActiveBuffer());
 				[encoder setFragmentBuffer:(id <MTLBuffer>)buffer->_buffer offset:uniformBufferReference->offset atIndex:uniformBufferReference->shaderResourceIndex];
 			}
@@ -1320,17 +1410,25 @@ namespace RN
 			MetalGPUBuffer *indexBuffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
 			MTLIndexType indexType = drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? MTLIndexTypeUInt16 : MTLIndexTypeUInt32;
 
-			if(drawable->count == 1)
+			if(instanceCount == 1)
+			{
 				[encoder drawIndexedPrimitives:primitiveType indexCount:drawable->mesh->GetIndicesCount() indexType:indexType indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0];
+			}
 			else
-				[encoder drawIndexedPrimitives:primitiveType indexCount:drawable->mesh->GetIndicesCount() indexType:indexType indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0 instanceCount:drawable->count];
+			{
+				[encoder drawIndexedPrimitives:primitiveType indexCount:drawable->mesh->GetIndicesCount() indexType:indexType indexBuffer:(id <MTLBuffer>)indexBuffer->_buffer indexBufferOffset:0 instanceCount:instanceCount];
+			}
 		}
 		else
 		{
-			if(drawable->count == 1)
+			if(instanceCount == 1)
+			{
 				[encoder drawPrimitives:primitiveType vertexStart:0 vertexCount:drawable->mesh->GetVerticesCount()];
+			}
 			else
-				[encoder drawPrimitives:primitiveType vertexStart:0 vertexCount:drawable->mesh->GetVerticesCount() instanceCount:drawable->count];
+			{
+				[encoder drawPrimitives:primitiveType vertexStart:0 vertexCount:drawable->mesh->GetVerticesCount() instanceCount:instanceCount];
+			}
 		}
 	}
 }

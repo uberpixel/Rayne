@@ -81,11 +81,11 @@ namespace RN
 			_cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping.clear();
 			
 			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].vertexShaderUniformBuffers)
-				delete buffer;
+				buffer->Release();
 			_cameraSpecifics[cameraID].vertexShaderUniformBuffers.clear();
 			
 			for(MetalUniformBufferReference *buffer : _cameraSpecifics[cameraID].fragmentShaderUniformBuffers)
-				delete buffer;
+				buffer->Release();
 			_cameraSpecifics[cameraID].fragmentShaderUniformBuffers.clear();
 
 			MetalRenderer *metalRenderer = renderer->Downcast<MetalRenderer>();
@@ -181,6 +181,7 @@ namespace RN
 		Vector2 cameraFogDistance;
 		uint8 multiviewLayer;
 
+		std::vector<uint32> instanceSteps; //number of drawables in the drawables list that use the same pipeline state and can all be rendered with the same draw call as result
 		std::vector<MetalDrawable *> drawables;
 
 		std::vector<MetalPointLight> pointLights;
@@ -208,6 +209,7 @@ namespace RN
 
 		size_t currentRenderPassIndex;
 		const MetalRenderingState *currentRenderState;
+		const MetalDrawable *currentInstanceDrawable;
 	};
 
 	struct MetalWindowInternals

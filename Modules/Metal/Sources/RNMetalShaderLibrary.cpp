@@ -14,11 +14,12 @@ namespace RN
 {
 	RNDefineMeta(MetalSpecificShaderLibrary, Object)
 
-	MetalSpecificShaderLibrary::MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription) :
+	MetalSpecificShaderLibrary::MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, bool hasInstancing, Dictionary *signatureDescription) :
 	_shaders(new Dictionary()),
 	_entryPoint(entryPoint->Retain()),
 	_fileName(fileName->Retain()),
 	_type(type),
+	_hasInstancing(hasInstancing),
 	_signatureDescription(signatureDescription)
 	{
 		if(_signatureDescription) _signatureDescription->Retain();
@@ -260,7 +261,7 @@ namespace RN
 		}*/
 		
 		const Array *samplers = GetSamplerSignature(newOptions);
-		shader = new MetalShader(library, _type, samplers, newOptions, function, coordinator);
+		shader = new MetalShader(library, _type, _hasInstancing, samplers, newOptions, function, coordinator);
 		_shaders->SetObjectForKey(shader, newOptions);
 		return shader->Autorelease();
 	}
@@ -287,6 +288,7 @@ namespace RN
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
 				String *shaderType = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
+				Number *hasInstancingNumber = shaderDictionary->GetObjectForKey<Number>(RNCSTR("has_instancing"));
 				Dictionary *signature = shaderDictionary->GetObjectForKey<Dictionary>(RNCSTR("signature"));
 				
 				Shader::Type type = Shader::Type::Vertex;
@@ -307,7 +309,13 @@ namespace RN
 					RN_ASSERT(false, "Unknown shader type %s for %s in library %s.", shaderType, entryPointName, file);
 				}
 				
-				MetalSpecificShaderLibrary *specificLibrary = new MetalSpecificShaderLibrary(_device, fileString, entryPointName, type, signature);
+				bool hasInstancing = false;
+				if(hasInstancingNumber)
+				{
+					hasInstancing = hasInstancingNumber->GetBoolValue();
+				}
+				
+				MetalSpecificShaderLibrary *specificLibrary = new MetalSpecificShaderLibrary(_device, fileString, entryPointName, type, hasInstancing, signature);
 				_specificShaderLibraries->SetObjectForKey(specificLibrary, entryPointName);
 			});
 		});

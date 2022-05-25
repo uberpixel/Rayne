@@ -27,7 +27,7 @@ namespace RN
 		Shader *GetShaderWithOptions(id<MTLDevice> device, MetalStateCoordinator *coordinator, ShaderLibrary *library, const Shader::Options *options);
 
 	private:
-		MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription);
+		MetalSpecificShaderLibrary(id<MTLDevice> device, const String *fileName, const String *entryPoint, Shader::Type type, bool hasInstancing, Dictionary *signatureDescription);
 		
 		const Shader::Options *GetCleanedShaderOptions(const Shader::Options *options) const;
 		size_t GetPermutationIndexForOptions(const Shader::Options *options) const;
@@ -38,6 +38,7 @@ namespace RN
 		const String *_entryPoint;
 		const String *_fileName;
 		Shader::Type _type;
+		bool _hasInstancing;
 		Dictionary *_signatureDescription;
 		
 		RNDeclareMetaAPI(MetalSpecificShaderLibrary, MTLAPI)

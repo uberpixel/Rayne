@@ -73,9 +73,10 @@ namespace RN
 		MTLAPI static MTLResourceOptions MetalResourceOptionsFromOptions(GPUResource::AccessOptions options);
 		
 		MTLAPI MetalUniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
+		MTLAPI void UpdateUniformBufferReference(MetalUniformBufferReference *reference, bool align);
 
 	protected:
-		void RenderDrawable(MetalDrawable *drawable);
+		void RenderDrawable(MetalDrawable *drawable, uint32 instanceCount);
 		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, const Material::Properties &materialProperties);
 

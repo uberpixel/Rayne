@@ -35,13 +35,16 @@ namespace RN
 		MTLAPI GPUBuffer *Advance();
 		MTLAPI GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 		
-		MTLAPI size_t Allocate(size_t size);
-		MTLAPI void Free(size_t offset, size_t size);
+		MTLAPI void Reset();
+		MTLAPI size_t Allocate(size_t size, bool align);
+		MTLAPI size_t Reserve(size_t size);
+		MTLAPI size_t Unreserve(size_t size);
 		
 	private:
 		GPUBuffer *_buffers[kRNMetalUniformBufferCount];
 		size_t _bufferIndex;
 		
+		size_t _sizeReserved;
 		size_t _sizeUsed;
 		size_t _offsetToFreeData;
 		size_t _totalSize;
@@ -59,6 +62,7 @@ namespace RN
 		uint32 shaderResourceIndex;
 		uint32 offset;
 		uint32 size;
+		uint32 reservedSize;
 		MetalUniformBuffer *uniformBuffer;
 		
 	private:
@@ -73,6 +77,7 @@ namespace RN
 		MetalUniformBufferPool();
 		~MetalUniformBufferPool();
 		MetalUniformBufferReference *GetUniformBufferReference(uint32 size, uint32 index);
+		void UpdateUniformBufferReference(MetalUniformBufferReference *reference, bool align);
 		void Update(Renderer *renderer);
 		void FlushAllBuffers();
 		
