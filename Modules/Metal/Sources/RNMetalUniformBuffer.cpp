@@ -45,7 +45,6 @@ namespace RN
 	void MetalUniformBuffer::Reset()
 	{
 		//Doesn't actually remove any data, just resets the allocation info to start allocating from the start again.
-		_bufferIndex = 0;
 		_sizeUsed = 0;
 		_offsetToFreeData = 0;
 	}
@@ -77,7 +76,7 @@ namespace RN
 		return alignedSize;
 	}
 
-	size_t MetalUniformBuffer::Unreserve(size_t size)
+	void MetalUniformBuffer::Unreserve(size_t size)
 	{
 		_sizeReserved -= size;
 	}

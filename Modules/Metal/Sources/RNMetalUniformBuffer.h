@@ -38,7 +38,7 @@ namespace RN
 		MTLAPI void Reset();
 		MTLAPI size_t Allocate(size_t size, bool align);
 		MTLAPI size_t Reserve(size_t size);
-		MTLAPI size_t Unreserve(size_t size);
+		MTLAPI void Unreserve(size_t size);
 		
 	private:
 		GPUBuffer *_buffers[kRNMetalUniformBufferCount];
