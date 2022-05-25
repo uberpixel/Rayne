@@ -240,6 +240,23 @@ namespace RN
 			return false;
 		}
 		
+		bool IsEqual(const Object *temp) const override
+		{
+			const Array *other = temp->Downcast<Array>();
+			if(!other)
+				return false;
+
+			if(GetCount() != other->GetCount())
+				return false;
+			
+			for(size_t i = 0; i < _count; i++)
+			{
+				if(!_data[i]->IsEqual(other->_data[i])) return false;
+			}
+			
+			return true;
+		}
+		
 		
 		template<class T=Object>
 		T *GetObjectAtIndex(size_t index) const

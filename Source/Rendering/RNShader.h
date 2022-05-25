@@ -122,6 +122,8 @@ namespace RN
 			Identifier GetIdentifier() const { return _identifier; }
 
 			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
+			
+			static bool IsKnownStructName(RN::String *structName);
 
 		private:
 			String *_name;
@@ -153,16 +155,23 @@ namespace RN
 		class ArgumentBuffer : public Argument
 		{
 		public:
-			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors);
+			enum class Type
+			{
+				UniformBuffer,
+				StorageBuffer
+			};
+			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type = Type::UniformBuffer);
 			RNAPI ArgumentBuffer(const ArgumentBuffer *other);
 			RNAPI ~ArgumentBuffer();
 			
 			size_t GetTotalUniformSize() const { return _totalUniformSize; }
 			const Array *GetUniformDescriptors() const { return _uniformDescriptors; }
+			Type GetType() const { return _type; }
 			
 		private:
 			Array *_uniformDescriptors;
 			size_t _totalUniformSize;
+			Type _type;
 			
 			__RNDeclareMetaInternal(ArgumentBuffer)
 		};
@@ -284,10 +293,11 @@ namespace RN
 		RNAPI const Shader::Options *GetOptions() const;
 		RNAPI const Signature *GetSignature() const;
 		RNAPI ShaderLibrary *GetLibrary() const;
+		RNAPI bool GetHasInstancing() const { return _hasInstancing; }
 
 	protected:
-		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options, const Signature *signature);
-		RNAPI Shader(ShaderLibrary *library, Type type, const Shader::Options *options);
+		RNAPI Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options, const Signature *signature);
+		RNAPI Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options);
 		RNAPI virtual ~Shader();
 
 		RNAPI void SetSignature(const Signature *signature);
@@ -296,6 +306,7 @@ namespace RN
 		const Shader::Options *_options;
 		WeakRef<ShaderLibrary> _library;
 		Type _type;
+		bool _hasInstancing;
 		const Signature *_signature;
 
 		__RNDeclareMetaInternal(Shader)

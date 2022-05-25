@@ -346,6 +346,24 @@ namespace RN
 		}
 	}
 
+	bool Shader::UniformDescriptor::IsKnownStructName(RN::String *structName)
+	{
+		if (structName->IsEqual(RNCSTR("lights_directional")) || structName->IsEqual(RNCSTR("directionalLights")))
+		{
+			return true;
+		}
+		else if (structName->IsEqual(RNCSTR("lights_point")) || structName->IsEqual(RNCSTR("pointLights")))
+		{
+			return true;
+		}
+		else if (structName->IsEqual(RNCSTR("lights_spot")) || structName->IsEqual(RNCSTR("spotLights")))
+		{
+			return true;
+		}
+		
+		return false;
+	}
+
 	Shader::UniformDescriptor::~UniformDescriptor()
 	{
 		_name->Release();
@@ -458,8 +476,8 @@ namespace RN
 		SafeRelease(_name);
 	}
 
-	Shader::ArgumentBuffer::ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors) :
-		Argument(name, index), _totalUniformSize(0)
+	Shader::ArgumentBuffer::ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type) :
+		Argument(name, index), _totalUniformSize(0), _type(type)
 	{
 		_uniformDescriptors = SafeRetain(uniformDescriptors);
 		
@@ -470,7 +488,7 @@ namespace RN
 		}
 	}
 
-	Shader::ArgumentBuffer::ArgumentBuffer(const ArgumentBuffer *other) : Argument(other)
+	Shader::ArgumentBuffer::ArgumentBuffer(const ArgumentBuffer *other) : Argument(other), _totalUniformSize(other->_totalUniformSize), _type(other->_type)
 	{
 		_uniformDescriptors = SafeRetain(other->_uniformDescriptors);
 	}
@@ -535,12 +553,12 @@ namespace RN
 	}
 
 
-	Shader::Shader(ShaderLibrary *library, Type type, const Shader::Options *options, const Signature *signature) :
-		_options(options->Retain()), _library(library), _type(type), _signature(signature->Retain())
+	Shader::Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options, const Signature *signature) :
+		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(signature->Retain())
 	{}
 
-	Shader::Shader(ShaderLibrary *library, Type type, const Shader::Options *options) :
-		_options(options->Retain()), _library(library), _type(type), _signature(nullptr)
+	Shader::Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options) :
+		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(nullptr)
 	{}
 
 	Shader::~Shader()

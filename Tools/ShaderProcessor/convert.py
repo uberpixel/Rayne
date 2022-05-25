@@ -142,6 +142,8 @@ def main():
             destinationShader = dict()
             destinationShader['type'] = shader['type']
             destinationShader['name'] = entryName
+            if 'has_instancing' in shader:
+                destinationShader["has_instancing"] = shader['has_instancing']
             if shaderSignature:
                 destinationShader['signature'] = shaderSignature;
             destinationShaderList.append(destinationShader)

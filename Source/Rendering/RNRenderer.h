@@ -37,7 +37,6 @@ namespace RN
 			mesh = nullptr;
 			material = nullptr;
 			skeleton = nullptr;
-			count = 1;
 		}
 		virtual ~Drawable()
 		{}
@@ -83,7 +82,6 @@ namespace RN
 		Skeleton *skeleton;
 		Matrix modelMatrix;
 		Matrix inverseModelMatrix;
-		size_t count;
 	};
 
 	class RendererDescriptor;

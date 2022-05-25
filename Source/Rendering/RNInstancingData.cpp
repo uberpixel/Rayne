@@ -133,7 +133,7 @@ namespace RN
 
 		for(Drawable *drawable : _drawables)
 		{
-			drawable->count = _indices.size();
+			//drawable->count = _indices.size();
 			drawable->material->SetVertexBuffers(buffers);
 			drawable->Update(node);
 
