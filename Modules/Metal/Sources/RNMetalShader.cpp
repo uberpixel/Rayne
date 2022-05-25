@@ -58,11 +58,12 @@ namespace RN
 					
 					//RNDebug("buffer: " << [[argument name] UTF8String]);
 					MTLStructType *structType = [argument bufferStructType];
-					AddBufferStructElements(uniformDescriptors, structType);
+					bool isInstanceBuffer = false;
+					AddBufferStructElements(uniformDescriptors, structType, isInstanceBuffer);
 					
 					if(uniformDescriptors->GetCount() > 0)
 					{
-						ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), uniformDescriptors->Autorelease());
+						ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), uniformDescriptors->Autorelease(), isInstanceBuffer? ArgumentBuffer::Type::StorageBuffer : ArgumentBuffer::Type::UniformBuffer);
 						buffersArray->AddObject(argumentBuffer->Autorelease());
 					}
 					else
@@ -139,7 +140,7 @@ namespace RN
 		SetSignature(signature->Autorelease());
 	}
 
-	void MetalShader::AddBufferStructElements(Array *uniformDescriptors, MTLStructType *structType)
+	void MetalShader::AddBufferStructElements(Array *uniformDescriptors, MTLStructType *structType, bool &isInstanceBuffer)
 	{
 		for(MTLStructMember *member in [structType members])
 		{
@@ -157,7 +158,8 @@ namespace RN
 					MTLStructType *otherStructType = [arrayType elementStructType];
 					if(otherStructType)
 					{
-						AddBufferStructElements(uniformDescriptors, otherStructType);
+						isInstanceBuffer = true;
+						AddBufferStructElements(uniformDescriptors, otherStructType, isInstanceBuffer);
 					}
 				}
 				return;

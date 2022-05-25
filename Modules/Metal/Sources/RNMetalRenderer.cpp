@@ -183,12 +183,18 @@ namespace RN
 					{
 						for(size_t instance = 0; instance < stepSize; instance++)
 						{
+							Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
+							
+							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+							//Assume that only storage buffers can contain per instance data
+							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+							
 							MetalDrawable *drawable = renderPass.drawables[i + instance];
 							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
 							
 							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[n];
 							UpdateUniformBufferReference(bufferReference, instance == 0);
-							FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter], bufferReference, drawable, mergedMaterialProperties);
+							FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
 						}
 						counter += 1;
 					}
@@ -197,12 +203,18 @@ namespace RN
 					{
 						for(size_t instance = 0; instance < stepSize; instance++)
 						{
+							Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
+							
+							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+							//Assume that only storage buffers can contain per instance data
+							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+							
 							MetalDrawable *drawable = renderPass.drawables[i + instance];
 							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
 							
 							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[n];
 							UpdateUniformBufferReference(bufferReference, instance == 0);
-							FillUniformBuffer(cameraSpecifics.argumentBufferToUniformBufferMapping[counter], bufferReference, drawable, mergedMaterialProperties);
+							FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
 						}
 						
 						counter += 1;
