@@ -56,7 +56,7 @@ namespace RN
 				{
 					Array *uniformDescriptors = new Array();
 					
-					RNDebug("buffer: " << [[argument name] UTF8String]);
+					//RNDebug("buffer: " << [[argument name] UTF8String]);
 					MTLStructType *structType = [argument bufferStructType];
 					AddBufferStructElements(uniformDescriptors, structType);
 					
@@ -147,7 +147,7 @@ namespace RN
 			uint32 offset = [member offset];
 			MTLDataType type = [member dataType];
 			
-			RNDebug("	buffer member: " << name << " type: " << type);
+			//RNDebug("	buffer member: " << name << " type: " << type);
 			//If this is an array of structs with unknown name, assume that it is per instance data
 			if(type == MTLDataTypeArray && !UniformDescriptor::IsKnownStructName(name))
 			{
