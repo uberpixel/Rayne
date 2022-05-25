@@ -182,19 +182,19 @@ namespace RN
 
 	Model::LODStage *Model::GetLODStage(size_t index) const
 	{
-		return _lodStages->GetObjectAtIndex<LODStage>(index);
+		return static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(index));
 	}
 	Model::LODStage *Model::GetLODStageForDistance(float distance) const
 	{
 		if(_lodStages->GetCount() <= 1 || distance <= k::EpsilonFloat)
-			return _lodStages->GetFirstObject<LODStage>();
+			return static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(0));
 
 		size_t result = 0;
 		size_t count = _lodStages->GetCount();
 
 		for(size_t i = 0; i < count; i ++)
 		{
-			LODStage *stage = _lodStages->GetObjectAtIndex<LODStage>(i);
+			LODStage *stage = static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(i));
 			if(distance <= stage->GetDistance())
 				return stage;
 

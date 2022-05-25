@@ -256,8 +256,12 @@ namespace RN
 			
 			return true;
 		}
-		
-		
+
+		Object *GetObjectAtIndex(size_t index) const
+		{
+			return _data[index];
+		}
+
 		template<class T=Object>
 		T *GetObjectAtIndex(size_t index) const
 		{
