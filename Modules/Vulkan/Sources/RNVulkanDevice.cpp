@@ -248,6 +248,10 @@ namespace RN
 		VkResult result = vk::CreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device);
 		RNVulkanValidate(result);
 
+/*		VkPhysicalDeviceProperties properties;
+		vk::GetPhysicalDeviceProperties(_physicalDevice, &properties);
+		RNDebug("Max uniform buffer size: " << properties.limits.maxUniformBufferRange);*/
+
 		return (result == VK_SUCCESS);
 	}
 

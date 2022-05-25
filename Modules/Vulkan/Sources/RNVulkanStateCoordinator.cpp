@@ -79,11 +79,11 @@ namespace RN
 	{
 		for(VulkanConstantBufferReference *buffer : vertexConstantBuffers)
 		{
-			delete buffer;
+			buffer->Release();
 		}
 		for(VulkanConstantBufferReference *buffer : fragmentConstantBuffers)
 		{
-			delete buffer;
+			buffer->Release();
 		}
 
 		for(Shader::ArgumentBuffer *buffer : constantBufferToArgumentMapping)

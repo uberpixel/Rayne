@@ -84,10 +84,11 @@ namespace RN
 
 		VKAPI void AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset = 0);
 		VKAPI VulkanConstantBufferReference *GetConstantBufferReference(size_t size, size_t index);
+		VKAPI void UpdateConstantBufferReference(VulkanConstantBufferReference *reference, bool align);
 
 	private:
 		void UpdateDescriptorSets();
-		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable);
+		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable, uint32 instanceCount);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable);
 
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);

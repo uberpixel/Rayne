@@ -25,11 +25,14 @@ namespace RN
 		memoryAllocateInfo.allocationSize = 0;
 		memoryAllocateInfo.memoryTypeIndex = 0;
 
+		//TODO: Remove host visible bit for vertex and index buffers and upload the data using a temporary buffer instead!?
+		VkFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 		VkBufferUsageFlags usage;
 		switch(usageOption)
 		{
 			case UsageOptions::Uniform:
 				usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+				//memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 				break;
 			case UsageOptions::Vertex:
 				usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -50,7 +53,7 @@ namespace RN
 		vk::GetBufferMemoryRequirements(device, _buffer, &memoryRequirements);
 		memoryAllocateInfo.allocationSize = memoryRequirements.size;
 
-		renderer->GetVulkanDevice()->GetMemoryWithType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memoryAllocateInfo.memoryTypeIndex);
+		renderer->GetVulkanDevice()->GetMemoryWithType(memoryRequirements.memoryTypeBits, memoryProperties, memoryAllocateInfo.memoryTypeIndex);
 		RNVulkanValidate(vk::AllocateMemory(device, &memoryAllocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		if(data != nullptr)
 		{

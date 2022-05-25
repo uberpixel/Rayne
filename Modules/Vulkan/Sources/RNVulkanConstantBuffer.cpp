@@ -19,7 +19,8 @@ namespace RN
 		_bufferIndex(0),
 		_sizeUsed(0),
 		_offsetToFreeData(0),
-		_totalSize(size)
+		_totalSize(size),
+		_sizeReserved(0)
 	{
 		VulkanRenderer *realRenderer = renderer->Downcast<VulkanRenderer>();
 		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
@@ -62,36 +63,53 @@ namespace RN
 		return _buffers[_bufferIndex];
 	}
 
-	size_t VulkanConstantBuffer::Allocate(size_t size)
+	void VulkanConstantBuffer::Reset()
 	{
-		RN::int32 freeSpace = static_cast<RN::int32>(_totalSize) - static_cast<RN::int32>(_offsetToFreeData);
-		if(freeSpace < static_cast<RN::int32>(size))
+		//Doesn't actually remove any data, just resets the allocation info to start allocating from the start again.
+		_sizeUsed = 0;
+		_offsetToFreeData = 0;
+	}
+
+	size_t VulkanConstantBuffer::Allocate(size_t size, bool align)
+	{
+		//Align offset when allocating the next buffer (if it is supposed to be aligned)
+		if(align) _offsetToFreeData += kRNConstantBufferAlignement - (_offsetToFreeData % kRNConstantBufferAlignement);
+
+		int availableSize = static_cast<int>(_totalSize) - static_cast<int>(_offsetToFreeData);
+		if(availableSize < static_cast<int>(size))
 			return -1;
 
 		size_t newDataOffset = _offsetToFreeData;
 		_offsetToFreeData += size;
-		_offsetToFreeData += kRNConstantBufferAlignement - (_offsetToFreeData % kRNConstantBufferAlignement);
 		_sizeUsed += size;
 		return newDataOffset;
 	}
 
-	void VulkanConstantBuffer::Free(size_t offset, size_t size)
+	size_t VulkanConstantBuffer::Reserve(size_t size)
 	{
-		_sizeUsed -= size;
-		if(_sizeUsed <= 0)
-		{
-			_offsetToFreeData = 0;
-		}
+		size_t alignedSize = size + kRNConstantBufferAlignement - (size % kRNConstantBufferAlignement);
+
+		int availableSize = static_cast<int>(_totalSize) - static_cast<int>(_sizeReserved);
+		if(availableSize < static_cast<int>(alignedSize))
+			return -1;
+
+		_sizeReserved += alignedSize;
+		return alignedSize;
 	}
 
-	VulkanConstantBufferReference::VulkanConstantBufferReference() : shaderResourceIndex(0), offset(0), size(0), constantBuffer(nullptr)
+	void VulkanConstantBuffer::Unreserve(size_t size)
+	{
+		_sizeReserved -= size;
+	}
+
+	VulkanConstantBufferReference::VulkanConstantBufferReference() : shaderResourceIndex(0), offset(0), size(0), reservedSize(0), constantBuffer(nullptr)
 	{
 
 	}
 
 	VulkanConstantBufferReference::~VulkanConstantBufferReference()
 	{
-		constantBuffer->Free(offset, size);
+		if(constantBuffer) constantBuffer->Unreserve(reservedSize);
 	}
 
 	VulkanConstantBufferPool::VulkanConstantBufferPool() :
@@ -109,11 +127,11 @@ namespace RN
 
 	VulkanConstantBufferReference *VulkanConstantBufferPool::GetConstantBufferReference(uint32 size, uint32 index)
 	{
-		size_t bufferOffset = -1;
+		size_t reservedSize = -1;
 		VulkanConstantBuffer *uniformBuffer = nullptr;
 		_constantBuffers->Enumerate<VulkanConstantBuffer>([&](VulkanConstantBuffer *buffer, uint32 index, bool &stop){
-			bufferOffset = buffer->Allocate(size);
-			if(bufferOffset != -1)
+			reservedSize = buffer->Reserve(size);
+			if(reservedSize != -1)
 			{
 				uniformBuffer = buffer;
 				stop = true;
@@ -122,7 +140,8 @@ namespace RN
 
 		VulkanConstantBufferReference *reference = new VulkanConstantBufferReference();
 		reference->size = size;
-		reference->offset = bufferOffset;
+		reference->reservedSize = reservedSize;
+		reference->offset = -1;
 		reference->constantBuffer = uniformBuffer;
 		reference->shaderResourceIndex = index;
 
@@ -132,10 +151,20 @@ namespace RN
 		return reference->Autorelease();
 	}
 
+	void VulkanConstantBufferPool::UpdateConstantBufferReference(VulkanConstantBufferReference *reference, bool align)
+	{
+		RN_ASSERT(reference->constantBuffer, "Somethings up with the reference not having a uniform buffer assigned");
+		size_t bufferOffset = reference->constantBuffer->Allocate(reference->size, align);
+		RN_ASSERT(bufferOffset != -1, "The uniform buffer does not have enough space to fit the memory required by this reference. This should never happen...");
+
+		reference->offset = bufferOffset;
+	}
+
 	void VulkanConstantBufferPool::Update(Renderer *renderer, size_t currentFrame, size_t completedFrame)
 	{
 		_constantBuffers->Enumerate<VulkanConstantBuffer>([&](VulkanConstantBuffer *buffer, uint32 index, bool &stop){
 			buffer->Advance(currentFrame, completedFrame);
+			buffer->Reset();
 		});
 
 		size_t requiredSize = 0;
@@ -145,12 +174,13 @@ namespace RN
 
 		if(requiredSize == 0) return;
 
+		//TODO: limit to a maximum size per buffer
 		requiredSize = std::max(requiredSize, static_cast<size_t>(kRNMinimumConstantBufferSize));
 		VulkanConstantBuffer *constantBuffer = new VulkanConstantBuffer(renderer, requiredSize);
 
 		_newReferences->Enumerate<VulkanConstantBufferReference>([&](VulkanConstantBufferReference *reference, uint32 index, bool &stop){
 			reference->constantBuffer = constantBuffer;
-			reference->offset = constantBuffer->Allocate(reference->size);
+			reference->reservedSize = constantBuffer->Reserve(reference->size);
 		});
 
 		_constantBuffers->AddObject(constantBuffer->Autorelease());

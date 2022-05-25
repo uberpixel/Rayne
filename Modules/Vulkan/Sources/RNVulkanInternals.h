@@ -252,6 +252,7 @@ namespace RN
 		std::vector<VulkanRenderPassCameraInfo> multiviewCameraInfo;
 		uint8 multiviewLayer;
 
+		std::vector<uint32> instanceSteps; //number of drawables in the drawables list that use the same pipeline state and can all be rendered with the same draw call as result
 		std::vector<VulkanDrawable *> drawables;
 		std::vector<VulkanDirectionalLight> directionalLights;
 		std::vector<VulkanPointLight> pointLights;
@@ -305,6 +306,9 @@ namespace RN
 		size_t totalDrawableCount;
 
 		size_t totalDescriptorTables;
+
+		const VulkanPipelineState *currentPipelineState;
+		VulkanDrawable *currentInstanceDrawable;
 	};
 }
 

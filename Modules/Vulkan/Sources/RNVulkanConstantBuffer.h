@@ -32,8 +32,10 @@ namespace RN
 		VKAPI GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
 		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
-		VKAPI size_t Allocate(size_t size);
-		VKAPI void Free(size_t offset, size_t size);
+		VKAPI void Reset();
+		VKAPI size_t Allocate(size_t size, bool align);
+		VKAPI size_t Reserve(size_t size);
+		VKAPI void Unreserve(size_t size);
 
 	private:
 		std::vector<GPUBuffer*> _buffers;
@@ -43,6 +45,7 @@ namespace RN
 		size_t _sizeUsed;
 		size_t _offsetToFreeData;
 		size_t _totalSize;
+		size_t _sizeReserved;
 
 		RNDeclareMetaAPI(VulkanConstantBuffer, VKAPI)
 	};
@@ -56,6 +59,7 @@ namespace RN
 		uint32 shaderResourceIndex;
 		uint32 offset;
 		uint32 size;
+		uint32 reservedSize;
 		VulkanConstantBuffer *constantBuffer;
 
 	private:
@@ -70,6 +74,7 @@ namespace RN
 		VulkanConstantBufferPool();
 		~VulkanConstantBufferPool();
 		VulkanConstantBufferReference *GetConstantBufferReference(uint32 size, uint32 index);
+		void UpdateConstantBufferReference(VulkanConstantBufferReference *reference, bool align);
 		void Update(Renderer *renderer, size_t currentFrame, size_t completedFrame);
 		void FlushAllBuffers();
 
