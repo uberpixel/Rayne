@@ -26,7 +26,7 @@ namespace RN
 		VKAPI const String *GetName() const final;
 
 	private:
-		VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers);
+		VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, bool hasInstancing, const Shader::Options *options, const Array *samplers);
 
 		VkPipelineShaderStageCreateInfo _shaderStage;
 		VkShaderModule _module;

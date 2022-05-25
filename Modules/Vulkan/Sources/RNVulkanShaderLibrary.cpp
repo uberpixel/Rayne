@@ -16,11 +16,12 @@ namespace RN
 	RNDefineMeta(VulkanShaderLibrary, ShaderLibrary)
 
 
-	VulkanSpecificShaderLibrary::VulkanSpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription) :
+	VulkanSpecificShaderLibrary::VulkanSpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, bool hasInstancing, Dictionary *signatureDescription) :
 		_shaders(new Dictionary()),
 		_fileName(fileName->Retain()),
 		_entryPoint(entryPoint->Retain()),
 		_type(type),
+		_hasInstancing(hasInstancing),
 		_signatureDescription(signatureDescription)
 	{
 		if(_signatureDescription) _signatureDescription->Retain();
@@ -176,7 +177,7 @@ namespace RN
 		RN::String *filePath = RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
 
 		const Array *samplers = GetSamplerSignature(newOptions);
-		shader = new VulkanShader(library, filePath, _entryPoint, _type, newOptions, samplers);
+		shader = new VulkanShader(library, filePath, _entryPoint, _type, _hasInstancing, newOptions, samplers);
 		_shaders->SetObjectForKey(shader, newOptions);
 
 		return shader->Autorelease();
@@ -202,6 +203,7 @@ namespace RN
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
 				String *shaderType = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
+				Number *hasInstancingNumber = shaderDictionary->GetObjectForKey<Number>(RNCSTR("has_instancing"));
 				Dictionary *signature = shaderDictionary->GetObjectForKey<Dictionary>(RNCSTR("signature"));
 
 				Shader::Type type = Shader::Type::Vertex;
@@ -222,7 +224,13 @@ namespace RN
 					RN_ASSERT(false, "Unknown shader type %s for %s in library %s.", shaderType, entryPointName, file);
 				}
 
-				VulkanSpecificShaderLibrary *specificLibrary = new VulkanSpecificShaderLibrary(fileString, entryPointName, type, signature);
+				bool hasInstancing = false;
+				if(hasInstancingNumber)
+				{
+					hasInstancing = hasInstancingNumber->GetBoolValue();
+				}
+
+				VulkanSpecificShaderLibrary *specificLibrary = new VulkanSpecificShaderLibrary(fileString, entryPointName, type, hasInstancing, signature);
 				_specificShaderLibraries->SetObjectForKey(specificLibrary, entryPointName);
 			});
 		});

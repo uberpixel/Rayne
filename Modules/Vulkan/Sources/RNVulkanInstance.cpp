@@ -40,6 +40,7 @@ namespace RN
 #endif
 
 		_requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		_requiredDeviceExtensions.push_back(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME); //TODO: Required for instancing with crosscompiled shader, the features are enabled in the shaders but shouldn't actually be needed, enabling this makes it work for now
 
 		if(instanceExtensions)
 		{

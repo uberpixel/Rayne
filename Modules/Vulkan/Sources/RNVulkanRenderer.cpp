@@ -47,13 +47,16 @@ namespace RN
 		VkDescriptorPoolSize uniformBufferPoolSize = {};
 		uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uniformBufferPoolSize.descriptorCount = 20000;
+		VkDescriptorPoolSize storageBufferPoolSize = {};
+		storageBufferPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		storageBufferPoolSize.descriptorCount = 20000;
 		VkDescriptorPoolSize textureBufferPoolSize = {};
 		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		textureBufferPoolSize.descriptorCount = 10000;
 		VkDescriptorPoolSize samplerBufferPoolSize = {};
 		samplerBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLER;
 		samplerBufferPoolSize.descriptorCount = 10000;
-		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, samplerBufferPoolSize, textureBufferPoolSize };
+		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, storageBufferPoolSize, samplerBufferPoolSize, textureBufferPoolSize };
 
 		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
 		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1761,7 +1764,7 @@ namespace RN
 						writeConstantDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						writeConstantDescriptorSet.pNext = NULL;
 						writeConstantDescriptorSet.dstSet = descriptorSet;
-						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						writeConstantDescriptorSet.descriptorType = (argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer)? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 						writeConstantDescriptorSet.dstBinding = argument->GetIndex();
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;
@@ -1785,7 +1788,7 @@ namespace RN
 						writeConstantDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 						writeConstantDescriptorSet.pNext = NULL;
 						writeConstantDescriptorSet.dstSet = descriptorSet;
-						writeConstantDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						writeConstantDescriptorSet.descriptorType = (argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer)? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 						writeConstantDescriptorSet.dstBinding = argument->GetIndex();
 						writeConstantDescriptorSet.pBufferInfo = &constantBufferDescriptorInfoArray[constantBufferDescriptorInfoArray.size()-1];
 						writeConstantDescriptorSet.descriptorCount = 1;

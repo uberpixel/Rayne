@@ -221,7 +221,7 @@ namespace RN
 			//Vertex shader constant buffers
 			signature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
 				VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-				setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				setUniformLayoutBinding.descriptorType = (buffer->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer)? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 				setUniformLayoutBinding.binding = buffer->GetIndex();
 				setUniformLayoutBinding.descriptorCount = 1;
@@ -246,7 +246,7 @@ namespace RN
 			//Vertex shader constant buffers
 			signature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
 				VkDescriptorSetLayoutBinding setUniformLayoutBinding = {};
-				setUniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				setUniformLayoutBinding.descriptorType = (buffer->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer)? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				setUniformLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 				setUniformLayoutBinding.binding = buffer->GetIndex();
 				setUniformLayoutBinding.descriptorCount = 1;

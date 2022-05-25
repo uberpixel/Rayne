@@ -14,8 +14,8 @@ namespace RN
 {
 	RNDefineMeta(VulkanShader, Shader)
 
-	VulkanShader::VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers) :
-		Shader(library, type, options), _name(entryPoint->Retain())
+	VulkanShader::VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, bool hasInstancing, const Shader::Options *options, const Array *samplers) :
+		Shader(library, type, hasInstancing, options), _name(entryPoint->Retain())
 	{
 		VulkanRenderer *renderer = VulkanRenderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		VulkanDevice *device = renderer->GetVulkanDevice();
@@ -180,6 +180,88 @@ namespace RN
 			}
 
 			samplersArray->AddObject(argumentSampler->Autorelease());
+		}
+
+		for(auto &resource : resources.storage_buffers)
+		{
+			Array *uniformDescriptors = new Array();
+
+			auto type = reflector.get_type(resource.base_type_id);
+			unsigned memberCount = type.member_types.size();
+
+			//TODO: This is a bit of a hack to get the struct inside an instanced uniform buffer / structuredbuffer in the hlsl shader, should change to work more generally
+            if(memberCount != 1) continue;
+			type = reflector.get_type(type.member_types[0]);
+            memberCount = type.member_types.size();
+
+			for(size_t index = 0; index < memberCount; index++)
+			{
+				size_t offset = reflector.type_struct_member_offset(type, index);
+
+                const std::string &memberName = reflector.get_member_name(type.self, index);
+                String *name = RNSTR(memberName);
+
+                if(name->GetLength() == 0) break;
+
+                spirv_cross::SPIRType spirvUniformType = reflector.get_type(type.member_types[index]);
+
+				PrimitiveType uniformType = PrimitiveType::Invalid;
+				if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Float)
+				{
+					if(spirvUniformType.columns == 1)
+					{
+						if(spirvUniformType.vecsize == 1) uniformType = PrimitiveType::Float;
+						else if(spirvUniformType.vecsize == 2) uniformType = PrimitiveType::Vector2;
+						else if(spirvUniformType.vecsize == 3) uniformType = PrimitiveType::Vector3;
+						else if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Vector4;
+					}
+					else
+					{
+						if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Matrix;
+					}
+				}
+				else if(spirvUniformType.columns == 1 && spirvUniformType.vecsize == 1)
+				{
+					if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Int)
+					{
+						uniformType = PrimitiveType::Int32;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UInt)
+					{
+						uniformType = PrimitiveType::Uint32;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Short)
+					{
+						uniformType = PrimitiveType::Int16;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UShort)
+					{
+						uniformType = PrimitiveType::Uint16;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::SByte)
+					{
+						uniformType = PrimitiveType::Int8;
+					}
+					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UByte)
+					{
+						uniformType = PrimitiveType::Uint8;
+					}
+				}
+
+				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
+				uniformDescriptors->AddObject(descriptor->Autorelease());
+			}
+
+			if(uniformDescriptors->GetCount() > 0)
+			{
+				uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease(), ArgumentBuffer::Type::StorageBuffer);
+				buffersArray->AddObject(argumentBuffer->Autorelease());
+			}
+			else
+			{
+				uniformDescriptors->Release();
+			}
 		}
 
 		for(auto &resource : resources.uniform_buffers)

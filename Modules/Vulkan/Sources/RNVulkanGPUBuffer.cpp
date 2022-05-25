@@ -29,7 +29,7 @@ namespace RN
 		switch(usageOption)
 		{
 			case UsageOptions::Uniform:
-				usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+				usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 				break;
 			case UsageOptions::Vertex:
 				usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
