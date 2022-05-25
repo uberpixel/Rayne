@@ -1833,6 +1833,10 @@ namespace RN
 						//Setup uniforms for all instances that are part of this draw call
 						for(size_t instance = 0; instance < stepSize; instance += 1)
 						{
+							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+							//Assume that only storage buffers can contain per instance data
+							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+
 						    VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 							UpdateConstantBufferReference(instanceUniformState->vertexConstantBuffers[bufferIndex], instance == 0);
 							FillUniformBuffer(argument,  instanceUniformState->vertexConstantBuffers[bufferIndex], renderPass.drawables[i + instance]);
@@ -1866,6 +1870,10 @@ namespace RN
                         //Setup uniforms for all instances that are part of this draw call
                         for(size_t instance = 0; instance < stepSize; instance += 1)
                         {
+							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+							//Assume that only storage buffers can contain per instance data
+							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+
                             VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
                             UpdateConstantBufferReference(instanceUniformState->fragmentConstantBuffers[bufferIndex], instance == 0);
                             FillUniformBuffer(argument,  instanceUniformState->fragmentConstantBuffers[bufferIndex], renderPass.drawables[i + instance]);
