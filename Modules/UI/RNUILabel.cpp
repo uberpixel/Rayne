@@ -645,10 +645,10 @@ namespace RN
 			});
 			
 			std::vector<RN::Mesh::VertexAttribute> meshVertexAttributes;
-			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Indices, RN::PrimitiveType::Uint32);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, RN::PrimitiveType::Vector2);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords1, RN::PrimitiveType::Vector3);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Color0, RN::PrimitiveType::Vector4);
+			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Indices, RN::PrimitiveType::Uint32);
 			
 			RN::Mesh *textMesh = new RN::Mesh(meshVertexAttributes, numberOfVertices, numberOfIndices);
 			textMesh->BeginChanges();

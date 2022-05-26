@@ -53,6 +53,8 @@ namespace RN
 		_indicesBuffer(nullptr),
 		_vertexBufferCPU(nullptr),
 		_indicesBufferCPU(nullptr),
+		_vertexPositionsSeparatedSize(0),
+		_vertexPositionsSeparatedStride(0),
 		_verticesCount(verticesCount),
 		_indicesCount(indicesCount),
 		_drawMode(DrawMode::Triangle),
@@ -82,8 +84,10 @@ namespace RN
 		bool hasIndices = false;
 
 		size_t offset = 0;
+		size_t stride = 0;
 		size_t initialAlignment = kRNNotFound;
 
+		size_t attributeCounter = 0;
 		for(VertexAttribute &attribute : _vertexAttributes)
 		{
 			attribute._typeSize = __PrimitiveTypeTable[static_cast<size_t>(attribute._type)].size;
@@ -107,6 +111,22 @@ namespace RN
 					_indicesSize = attribute._size * _indicesCount;
 					break;
 				}
+				
+				case VertexAttribute::Feature::Vertices:
+				{
+					if(attributeCounter == 0 && !Renderer::IsHeadless()) //Can't separate positions if they aren't the first attribute
+					{
+						attributeCounter += 1;
+						Renderer *renderer = Renderer::GetActiveRenderer();
+						
+						//Keep vertex positions as continuous block to improve binning and depth map rendering performance
+						attribute._offset = 0;
+						_vertexPositionsSeparatedStride = attribute._size + (attribute._size % renderer->GetAlignmentForType(attribute._type));
+						_vertexPositionsSeparatedSize = _vertexPositionsSeparatedStride * _verticesCount;
+						
+						break;
+					}
+				}
 
 				default:
 				{
@@ -119,7 +139,12 @@ namespace RN
 					else
 					{
 						Renderer *renderer = Renderer::GetActiveRenderer();
-						alignment = offset % renderer->GetAlignmentForType(attribute._type);
+						if(_vertexPositionsSeparatedSize > 0 && attributeCounter == 1)
+						{
+							//Make the first attribute after the positions align the end of the positions section, so that this next section can start with a 0 offset
+							_vertexPositionsSeparatedSize += _vertexPositionsSeparatedSize % renderer->GetAlignmentForType(attribute._type);
+						}
+						alignment = (_vertexPositionsSeparatedSize + offset) % renderer->GetAlignmentForType(attribute._type);
 
 						if(initialAlignment == kRNNotFound)
 							initialAlignment = renderer->GetAlignmentForType(attribute._type);
@@ -127,6 +152,8 @@ namespace RN
 
 					attribute._offset = offset + alignment;
 					offset += attribute._size + alignment;
+					
+					attributeCounter += 1;
 
 					break;
 				}
@@ -134,7 +161,7 @@ namespace RN
 		}
 
 		_stride = offset + (offset % initialAlignment);
-		_verticesSize = _stride * _verticesCount;
+		_verticesSize = _stride * _verticesCount + _vertexPositionsSeparatedSize;
 
 		// Sanity checks before doing anything with the data
 		if(hasIndices && _indicesSize == 0)
@@ -209,14 +236,23 @@ namespace RN
 				{
 					uint8 *vertices = static_cast<uint8 *>(_vertexBufferCPU);
 					const uint8 *data = static_cast<const uint8 *>(tdata);
-
+					
 					uint8 *buffer = vertices + attribute._offset;
-
+					if(feature != VertexAttribute::Feature::Vertices) buffer += _vertexPositionsSeparatedSize;
+					
 					for(size_t i = 0; i < _verticesCount; i ++)
 					{
 						std::copy(data, data + attribute._typeSize, buffer);
 
-						buffer += _stride;
+						if(feature == VertexAttribute::Feature::Vertices && _vertexPositionsSeparatedSize > 0)
+						{
+							//Use stride specific to vertex positions, if separated
+							buffer += _vertexPositionsSeparatedStride;
+						}
+						else
+						{
+							buffer += _stride;
+						}
 						data += attribute._typeSize;
 					}
 
@@ -241,12 +277,21 @@ namespace RN
 				const uint8 *data = static_cast<const uint8 *>(tdata);
 
 				uint8 *buffer = vertices + attribute._offset;
+				if(attribute._feature != VertexAttribute::Feature::Vertices) buffer += _vertexPositionsSeparatedSize;
 
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
 					std::copy(data, data + attribute._typeSize, buffer);
 
-					buffer += _stride;
+					if(attribute._feature == VertexAttribute::Feature::Vertices && _vertexPositionsSeparatedSize > 0)
+					{
+						//Use stride specific to vertex positions, if separated
+						buffer += _vertexPositionsSeparatedStride;
+					}
+					else
+					{
+						buffer += _stride;
+					}
 					data += attribute._typeSize;
 				}
 

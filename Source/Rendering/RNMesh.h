@@ -194,7 +194,9 @@ namespace RN
 		protected:
 			size_t GetStride() const
 			{
-				return (_feature == VertexAttribute::Feature::Indices) ? _chunk->_indicesDescriptor->GetSize() : _chunk->_mesh->GetStride();
+				if(_feature == VertexAttribute::Feature::Indices) return _chunk->_indicesDescriptor->GetSize();
+				if(_feature == VertexAttribute::Feature::Vertices && _chunk->_mesh->GetVertexPositionsSeparatedSize() > 0) return _chunk->_mesh->GetVertexPositionsSeparatedStride();
+				return _chunk->_mesh->GetStride();
 			}
 
 			size_t TranslateIndex(size_t index)
@@ -342,7 +344,8 @@ namespace RN
 			ElementIterator<T> GetIterator(VertexAttribute::Feature feature)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
-                if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
+				if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
+				else if(feature != VertexAttribute::Feature::Vertices) offset += _mesh->_vertexPositionsSeparatedSize;
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset; //TODO: First index is assumed to be 0, but could be different
 
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr), 0);
@@ -352,10 +355,14 @@ namespace RN
 			ElementIterator<T> GetIteratorAtIndex(VertexAttribute::Feature feature, size_t index)
 			{
 				size_t offset = _mesh->GetAttribute(feature)->GetOffset();
-                if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
+				if(feature == VertexAttribute::Feature::Indices) _indicesDescriptor = _mesh->GetAttribute(VertexAttribute::Feature::Indices);
+				else if(feature != VertexAttribute::Feature::Vertices) offset += _mesh->_vertexPositionsSeparatedSize;
 				uint8 *ptr = reinterpret_cast<uint8 *>(feature == VertexAttribute::Feature::Indices ? GetIndexData() : GetVertexData()) + offset;
 				
-				size_t stride = (feature == VertexAttribute::Feature::Indices) ? _indicesDescriptor->GetSize() : _mesh->GetStride();
+				size_t stride = 0;
+				if(feature == VertexAttribute::Feature::Indices) stride = _indicesDescriptor->GetSize();
+				else if(feature == VertexAttribute::Feature::Vertices && _mesh->GetVertexPositionsSeparatedSize() > 0) stride = _mesh->GetVertexPositionsSeparatedStride();
+				else stride = _mesh->GetStride();
 				ptr += stride * index;
 
 				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr), index);
@@ -444,6 +451,8 @@ namespace RN
 		size_t GetStride() const { return _stride; }
 		size_t GetVerticesCount() const { return _verticesCount; }
 		size_t GetIndicesCount() const { return _indicesCount; }
+		size_t GetVertexPositionsSeparatedSize() const { return _vertexPositionsSeparatedSize; }
+		size_t GetVertexPositionsSeparatedStride() const { return _vertexPositionsSeparatedStride; }
 		
 		DrawMode GetDrawMode() const { return _drawMode; }
 
@@ -470,6 +479,8 @@ namespace RN
 		void *_vertexBufferCPU;
 		void *_indicesBufferCPU;
 
+		size_t _vertexPositionsSeparatedSize;
+		size_t _vertexPositionsSeparatedStride;
 		size_t _stride;
 		size_t _verticesCount;
 		size_t _indicesCount;
