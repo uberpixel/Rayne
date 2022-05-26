@@ -486,7 +486,7 @@ namespace RN
 						cameraInfo.inverseViewMatrix = multiviewCamera->GetInverseViewMatrix();
 
 						Matrix clipSpaceCorrectionMatrix;
-						clipSpaceCorrectionMatrix.m[5] = -1.0f;
+                        clipSpaceCorrectionMatrix.m[5] = -1.0f;
 						cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * multiviewCamera->GetProjectionMatrix();
 						cameraInfo.inverseProjectionMatrix = multiviewCamera->GetInverseProjectionMatrix();
 						cameraInfo.projectionViewMatrix = cameraInfo.projectionMatrix * cameraInfo.viewMatrix;
@@ -566,8 +566,6 @@ namespace RN
 
 		Matrix clipSpaceCorrectionMatrix;
 		clipSpaceCorrectionMatrix.m[5] = -1.0f;
-		clipSpaceCorrectionMatrix.m[10] = 0.5f;
-		clipSpaceCorrectionMatrix.m[14] = 0.5f;
 		renderPass.cameraInfo.projectionMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
 		renderPass.cameraInfo.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 
@@ -1639,8 +1637,6 @@ namespace RN
 				light->GetShadowDepthCameras()->Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 					Matrix clipSpaceCorrectionMatrix;
 					clipSpaceCorrectionMatrix.m[5] = 1.0f;
-					clipSpaceCorrectionMatrix.m[10] = 0.5f;
-					clipSpaceCorrectionMatrix.m[14] = 0.5f;
 					Matrix shadowMatrix = clipSpaceCorrectionMatrix * camera->GetProjectionMatrix();
 
 					shadowMatrix = shadowMatrix * camera->GetWorldTransform().GetInverse();
@@ -1714,18 +1710,6 @@ namespace RN
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() && canUseInstancing; i++)
 			{
 				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->constantBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->constantBuffer)
-				{
-					canUseInstancing = false;
-				}
-			}
-
-			if(canUseInstancing)
-			{
-				//depth testing and polygon offset are setup as part of the draw call and objects can only be instanced correctly if these are the same
-				Material::Properties previousMergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-				Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-
-				if(mergedMaterialProperties.depthMode != previousMergedMaterialProperties.depthMode || mergedMaterialProperties.depthWriteEnabled != previousMergedMaterialProperties.depthWriteEnabled || mergedMaterialProperties.usePolygonOffset != previousMergedMaterialProperties.usePolygonOffset || (mergedMaterialProperties.usePolygonOffset && (mergedMaterialProperties.polygonOffsetUnits != previousMergedMaterialProperties.polygonOffsetUnits || mergedMaterialProperties.polygonOffsetFactor != previousMergedMaterialProperties.polygonOffsetFactor)))
 				{
 					canUseInstancing = false;
 				}
