@@ -1393,7 +1393,16 @@ namespace RN
 
 		// Mesh
 		MetalGPUBuffer *buffer = static_cast<MetalGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
-		[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:_internals->currentRenderState->vertexBufferShaderResourceIndex];
+		
+		if(_internals->currentRenderState->vertexPositionBufferShaderResourceIndex <= 30)
+		{
+			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:0 atIndex:_internals->currentRenderState->vertexPositionBufferShaderResourceIndex];
+		}
+		
+		if(_internals->currentRenderState->vertexBufferShaderResourceIndex <= 30)
+		{
+			[encoder setVertexBuffer:(id<MTLBuffer>)buffer->_buffer offset:drawable->mesh->GetVertexPositionsSeparatedSize() atIndex:_internals->currentRenderState->vertexBufferShaderResourceIndex];
+		}
 		
 		DrawMode drawMode = drawable->mesh->GetDrawMode();
 		MTLPrimitiveType primitiveType;

@@ -27,6 +27,7 @@ namespace RN
 		id<MTLRenderPipelineState> state;
 		Shader *vertexShader;
 		Shader *fragmentShader;
+		uint8 vertexPositionBufferShaderResourceIndex;
 		uint8 vertexBufferShaderResourceIndex;
 		bool wantsAlphaToCoverage;
 		uint8 colorWriteMask;
@@ -104,7 +105,7 @@ namespace RN
 		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 
 	private:
-		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh, uint8 bufferIndex);
+		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
 		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, const Material::Properties &materialProperties);
 
 		id<MTLDevice> _device;
