@@ -1642,8 +1642,7 @@ namespace RN
 					shadowMatrix = shadowMatrix * camera->GetWorldTransform().GetInverse();
 					renderPass.directionalShadowMatrices.push_back(shadowMatrix);
 				});
-				
-				//renderPass.directionalShadowMatrices = light->GetShadowMatrices();
+
 				renderPass.directionalShadowInfo = Vector2(1.0f / light->GetShadowParameters().resolution);
 			}
 		}
@@ -1965,9 +1964,12 @@ namespace RN
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
 		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
 
-        VkDeviceSize offsets[1] = { 0 };
+		//IF positions are separated, they will be in the first part of the buffer, everything else will be bound as the second binding
+        const VkDeviceSize offsets[2] = { 0, drawable->mesh->GetVertexPositionsSeparatedSize() };
+        const VkBuffer vertexBuffers[2] = {buffer->_buffer, buffer->_buffer};
+
         // Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, 1, &buffer->_buffer, offsets);
+		vk::CmdBindVertexBuffers(commandBuffer, 0, drawable->mesh->GetVertexPositionsSeparatedSize() > 0? 2 : 1, vertexBuffers, offsets);
 		if(drawable->mesh->GetIndicesCount() > 0)
 		{
             // Bind mesh index buffer

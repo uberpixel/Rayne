@@ -457,17 +457,32 @@ namespace RN
 		shaderStages[1] = fragmentShaderRayne->_shaderStage;
 
 		//Handle vertex attributes
-		VkVertexInputBindingDescription bindingDescription = {};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = mesh->GetStride();
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions;
+		if(mesh->GetVertexPositionsSeparatedSize() > 0)
+		{
+			//Positions buffer
+			VkVertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = vertexBindingDescriptions.size();
+			bindingDescription.stride = mesh->GetVertexPositionsSeparatedStride();
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			vertexBindingDescriptions.push_back(bindingDescription);
+		}
+		{
+			//Interleaved buffer
+			VkVertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = vertexBindingDescriptions.size();
+			bindingDescription.stride = mesh->GetStride();
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			vertexBindingDescriptions.push_back(bindingDescription);
+		}
+
 		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh, vertexShaderRayne);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.pNext = NULL;
-		vertexInputState.vertexBindingDescriptionCount = 1;
-		vertexInputState.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputState.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
+		vertexInputState.pVertexBindingDescriptions = vertexBindingDescriptions.data();
 		vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
 		vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
 
@@ -674,6 +689,7 @@ namespace RN
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
 		size_t offset = 0;
+		uint8 vertexBinding = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
@@ -684,11 +700,17 @@ namespace RN
 			{
 				VkVertexInputAttributeDescription attributeDescription = {};
 				attributeDescription.location = _vertexFeatureLookup[static_cast<uint32>(attribute.GetFeature())];
-				attributeDescription.binding = 0;
+				attributeDescription.binding = vertexBinding;
 				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
 				attributeDescription.offset = attribute.GetOffset();
 
 				attributeDescriptions.push_back(attributeDescription);
+
+				if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices && mesh->GetVertexPositionsSeparatedSize() > 0)
+				{
+					//Vertex positions are always the first attribute if GetVertexPositionsSeparatedSize is > 0, so just increasing the binding here like this should be fine
+					vertexBinding += 1;
+				}
 			}
 
 			offset ++;
