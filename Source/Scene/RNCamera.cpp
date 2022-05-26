@@ -228,7 +228,7 @@ namespace RN
 		float dist = center.GetDistance(farcorner1);
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(frame.width, frame.height, 1.0f);
 
-		//Place the light camera 500 units above the splits center
+		//Place the light camera above the splits center
 		Vector3 pos = center-light->GetForward()*cameraDistanceToCenter;
 
 		//Transform the position to light space

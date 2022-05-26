@@ -207,9 +207,19 @@ namespace RN
 				}
 			}
 			
-			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
-				camera->GetMaterial()->SetPolygonOffset(parameter.splits[index].biasFactor, parameter.splits[index].biasUnits);
-			});
+			if(_multiviewShadowParentCamera)
+			{
+				_multiviewShadowParentCamera->GetMaterial()->SetPolygonOffset(parameter.splits[parameter.splits.size()-1].biasFactor, parameter.splits[parameter.splits.size()-1].biasUnits);
+				_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+					camera->GetMaterial()->SetPolygonOffset(parameter.splits[parameter.splits.size()-1].biasFactor, parameter.splits[parameter.splits.size()-1].biasUnits);
+				});
+			}
+			else
+			{
+				_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+					camera->GetMaterial()->SetPolygonOffset(parameter.splits[index].biasFactor, parameter.splits[index].biasUnits);
+				});
+			}
 			
 			_shadowParameter = parameter;
 		}
@@ -272,8 +282,8 @@ namespace RN
 			_multiviewShadowParentCamera->SetMaterial(multiviewDepthMaterial);
 			_multiviewShadowParentCamera->SetShaderHint(Shader::UsageHint::DepthMultiview);
 			_multiviewShadowParentCamera->SetLODCamera(_shadowTarget);
-			_multiviewShadowParentCamera->SetClipNear(0.0f);
-			_multiviewShadowParentCamera->SetClipFar(1000000.0f);
+			_multiviewShadowParentCamera->SetClipNear(_shadowParameter.clipNear);
+			_multiviewShadowParentCamera->SetClipFar(_shadowParameter.clipFar);
 			_multiviewShadowParentCamera->Autorelease();
 			_shadowTarget->GetSceneInfo()->GetScene()->AddNode(_multiviewShadowParentCamera);
 		}
@@ -513,7 +523,7 @@ namespace RN
 					if(_multiviewShadowParentCamera && i == _shadowParameter.splits.size()-1)
 					{
 						_multiviewShadowParentCamera->SetWorldRotation(GetWorldRotation());
-						_multiviewShadowParentCamera->MakeShadowSplit(_shadowTarget, this, _shadowParameter.directionalShadowDistance*10.0f, _shadowTarget->GetClipNear(), far);
+						_multiviewShadowParentCamera->MakeShadowSplit(_shadowTarget, this, _shadowParameter.directionalShadowDistance, _shadowTarget->GetClipNear(), far);
 					}
 				}
 			}

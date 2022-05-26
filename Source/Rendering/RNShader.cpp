@@ -352,6 +352,10 @@ namespace RN
 		{
 			return true;
 		}
+		else if(structName->IsEqual(RNCSTR("shadows_directional_matrices")) || structName->IsEqual(RNCSTR("directionalShadowMatrices")))
+		{
+			return true;
+		}
 		else if (structName->IsEqual(RNCSTR("lights_point")) || structName->IsEqual(RNCSTR("pointLights")))
 		{
 			return true;

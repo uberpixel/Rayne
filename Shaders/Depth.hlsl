@@ -13,10 +13,6 @@
 
 #include "rayne.hlsl"
 
-#pragma permutator RN_SKY 0,1
-#pragma permutator RN_UV0 0,1 :includes RN_ALPHA
-#pragma permutator RN_ALPHA 0,1 :includes RN_UV0
-
 #if RN_UV0 && RN_ALPHA
 SamplerState linearRepeatSampler;
 Texture2D texture0;
