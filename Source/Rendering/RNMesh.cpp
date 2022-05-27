@@ -32,8 +32,12 @@ namespace RN
 		{sizeof(int16),      alignof(int16)},
 		{sizeof(int32),      alignof(int32)},
 
-		{sizeof(float),      alignof(float)},
+		{sizeof(uint16),     alignof(uint16)}, //Half
+		{sizeof(float),      alignof(float)}, //HalfVector2
+		{sizeof(Vector2),    alignof(Vector2)}, //HalfVector3
+		{sizeof(Vector2),    alignof(Vector2)}, //HalfVector4
 
+		{sizeof(float),      alignof(float)},
 		{sizeof(Vector2),    alignof(Vector2)},
 		{sizeof(Vector3),    alignof(Vector3)},
 		{sizeof(Vector4),    alignof(Vector4)},

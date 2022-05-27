@@ -444,8 +444,16 @@ namespace RN
 			return 2;
 		case PrimitiveType::Int32:
 			return 4;
+		case PrimitiveType::Half:
+			return 2;
 		case PrimitiveType::Float:
 			return 4;
+		case PrimitiveType::HalfVector2:
+			return 4;
+		case PrimitiveType::HalfVector3:
+			return 6;
+		case PrimitiveType::HalfVector4:
+			return 8;
 		case PrimitiveType::Vector2:
 			return 8;
 		case PrimitiveType::Vector3:

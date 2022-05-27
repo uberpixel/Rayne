@@ -691,14 +691,18 @@ namespace RN
 
 			case PrimitiveType::Uint16:
 			case PrimitiveType::Int16:
+			case PrimitiveType::Half:
 				return 2;
 
 			case PrimitiveType::Uint32:
 			case PrimitiveType::Int32:
 			case PrimitiveType::Float:
+			case PrimitiveType::HalfVector2:
 				return 4;
 
 			case PrimitiveType::Vector2:
+			case PrimitiveType::HalfVector3:
+			case PrimitiveType::HalfVector4:
 				return 8;
 
 			case PrimitiveType::Vector3:
@@ -720,14 +724,18 @@ namespace RN
 
 			case PrimitiveType::Uint16:
 			case PrimitiveType::Int16:
+			case PrimitiveType::Half:
 				return 2;
 
 			case PrimitiveType::Uint32:
 			case PrimitiveType::Int32:
 			case PrimitiveType::Float:
+			case PrimitiveType::HalfVector2:
 				return 4;
 
 			case PrimitiveType::Vector2:
+			case PrimitiveType::HalfVector3:
+			case PrimitiveType::HalfVector4:
 				return 8;
 
 			case PrimitiveType::Vector3:

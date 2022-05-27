@@ -25,8 +25,12 @@ namespace RN
 		MTLVertexFormatShort2,
 		MTLVertexFormatInt,
 
-		MTLVertexFormatFloat,
+		MTLVertexFormatHalf,
+		MTLVertexFormatHalf2,
+		MTLVertexFormatHalf3,
+		MTLVertexFormatHalf4,
 
+		MTLVertexFormatFloat,
 		MTLVertexFormatFloat2,
 		MTLVertexFormatFloat3,
 		MTLVertexFormatFloat4,

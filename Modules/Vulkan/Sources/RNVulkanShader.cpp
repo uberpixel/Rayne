@@ -220,6 +220,16 @@ namespace RN
 						if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Matrix;
 					}
 				}
+				else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Half)
+				{
+					if(spirvUniformType.columns == 1)
+					{
+						if(spirvUniformType.vecsize == 1) uniformType = PrimitiveType::Half;
+						else if(spirvUniformType.vecsize == 2) uniformType = PrimitiveType::HalfVector2;
+						else if(spirvUniformType.vecsize == 3) uniformType = PrimitiveType::HalfVector3;
+						else if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::HalfVector4;
+					}
+				}
 				else if(spirvUniformType.columns == 1 && spirvUniformType.vecsize == 1)
 				{
 					if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Int)
@@ -294,6 +304,16 @@ namespace RN
 					else
 					{
 						if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::Matrix;
+					}
+				}
+				else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Half)
+				{
+					if(spirvUniformType.columns == 1)
+					{
+						if(spirvUniformType.vecsize == 1) uniformType = PrimitiveType::Half;
+						else if(spirvUniformType.vecsize == 2) uniformType = PrimitiveType::HalfVector2;
+						else if(spirvUniformType.vecsize == 3) uniformType = PrimitiveType::HalfVector3;
+						else if(spirvUniformType.vecsize == 4) uniformType = PrimitiveType::HalfVector4;
 					}
 				}
 				else if(spirvUniformType.columns == 1 && spirvUniformType.vecsize == 1)

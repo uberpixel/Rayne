@@ -35,8 +35,12 @@ namespace RN
 		Int16,
 		Int32,
 
+		Half,
+		HalfVector2,
+		HalfVector3,
+		HalfVector4,
+		
 		Float,
-
 		Vector2,
 		Vector3,
 		Vector4,

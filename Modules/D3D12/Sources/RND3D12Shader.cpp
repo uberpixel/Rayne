@@ -193,6 +193,16 @@ namespace RN
 						if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix;
 					}
 				}
+				else if(variableTypeDescription.Type == D3D_SVT_FLOAT16)
+				{
+					if(variableTypeDescription.Rows == 1)
+					{
+						if(variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Half;
+						else if(variableTypeDescription.Columns == 2) uniformType = PrimitiveType::HalfVector2;
+						else if(variableTypeDescription.Columns == 3) uniformType = PrimitiveType::HalfVector3;
+						else if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::HalfVector4;
+					}
+				}
 				else if(variableTypeDescription.Columns == 1 && variableTypeDescription.Rows == 1)
 				{
 					if(variableTypeDescription.Type == D3D_SVT_INT)

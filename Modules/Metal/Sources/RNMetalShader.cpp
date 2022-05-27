@@ -166,7 +166,24 @@ namespace RN
 			}
 			
 			PrimitiveType uniformType = PrimitiveType::Invalid;
-			if(type == MTLDataTypeFloat)
+			
+			if(type == MTLDataTypeHalf)
+			{
+				uniformType = PrimitiveType::Half;
+			}
+			else if(type == MTLDataTypeHalf2)
+			{
+				uniformType = PrimitiveType::HalfVector2;
+			}
+			else if(type == MTLDataTypeHalf3)
+			{
+				uniformType = PrimitiveType::HalfVector3;
+			}
+			else if(type == MTLDataTypeHalf4)
+			{
+				uniformType = PrimitiveType::HalfVector4;
+			}
+			else if(type == MTLDataTypeFloat)
 			{
 				uniformType = PrimitiveType::Float;
 			}
