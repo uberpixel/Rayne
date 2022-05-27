@@ -457,7 +457,9 @@ namespace RN
 		shaderStages[1] = fragmentShaderRayne->_shaderStage;
 
 		//Handle vertex attributes
-		std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions;
+        bool vertexPositionsOnly = false;
+        const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh, vertexShaderRayne, vertexPositionsOnly);
+        std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions;
 		if(mesh->GetVertexPositionsSeparatedSize() > 0)
 		{
 			//Positions buffer
@@ -467,6 +469,7 @@ namespace RN
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 			vertexBindingDescriptions.push_back(bindingDescription);
 		}
+        if(!vertexPositionsOnly) //vertexPositionsOnly will be true only if separated positions are used and no other vertex attributes exist
 		{
 			//Interleaved buffer
 			VkVertexInputBindingDescription bindingDescription = {};
@@ -475,8 +478,6 @@ namespace RN
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 			vertexBindingDescriptions.push_back(bindingDescription);
 		}
-
-		const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh, vertexShaderRayne);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -666,6 +667,7 @@ namespace RN
 		state->descriptor = std::move(descriptor);
 		state->rootSignature = rootSignature;
 		state->state = pipeline;
+        state->vertexAttributeBufferCount = vertexBindingDescriptions.size();
 
 		collection->states.push_back(state);
 		return state;
@@ -684,9 +686,10 @@ namespace RN
 		}*/
 	}
 
-	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader)
+	std::vector<VkVertexInputAttributeDescription> VulkanStateCoordinator::CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader, bool &vertexPositionsOnly)
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        vertexPositionsOnly = true;
 
 		size_t offset = 0;
 		uint8 vertexBinding = 0;
@@ -711,6 +714,10 @@ namespace RN
 					//Vertex positions are always the first attribute if GetVertexPositionsSeparatedSize is > 0, so just increasing the binding here like this should be fine
 					vertexBinding += 1;
 				}
+                else
+                {
+                    vertexPositionsOnly = false;
+                }
 			}
 
 			offset ++;

@@ -1969,7 +1969,7 @@ namespace RN
         const VkBuffer vertexBuffers[2] = {buffer->_buffer, buffer->_buffer};
 
         // Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, drawable->mesh->GetVertexPositionsSeparatedSize() > 0? 2 : 1, vertexBuffers, offsets);
+		vk::CmdBindVertexBuffers(commandBuffer, 0, pipelineState->vertexAttributeBufferCount, vertexBuffers, offsets);
 		if(drawable->mesh->GetIndicesCount() > 0)
 		{
             // Bind mesh index buffer

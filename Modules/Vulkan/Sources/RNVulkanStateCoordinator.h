@@ -101,6 +101,8 @@ namespace RN
 		VulkanPipelineStateDescriptor descriptor;
 		const VulkanRootSignature *rootSignature;
 
+        uint8 vertexAttributeBufferCount; //This should maybe go into the descriptor and be checked cause pipelines could differ with this now!?
+
 		VkPipeline state;
 	};
 
@@ -168,7 +170,7 @@ namespace RN
 		VulkanRenderPassState *GetRenderPassState(const VulkanFramebuffer *framebuffer, const VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount);
 
 	private:
-		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader);
+		std::vector<VkVertexInputAttributeDescription> CreateVertexElementDescriptorsFromMesh(Mesh *mesh, VulkanShader *vertexShader, bool &vertexPositionsOnly);
 		const VulkanPipelineState *GetRenderPipelineStateInCollection(VulkanPipelineStateCollection *collection, Mesh *mesh, const VulkanPipelineStateDescriptor &pipelineDescriptor);
 
 		std::vector<VulkanDepthStencilState *> _depthStencilStates;
