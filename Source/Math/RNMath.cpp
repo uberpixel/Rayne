@@ -139,5 +139,44 @@ namespace RN
 			return cosf(x);
 #endif
 		}
+	
+		//Taken from https://developer.android.google.cn/games/optimize/vertex-data-management
+		uint16 ConvertFloatToHalf(float value)
+		{
+			uint32 x = static_cast<uint32>(value);
+			uint32 sign = static_cast<uint16>(x >> 31);
+			uint32 mantissa;
+			uint32 exp;
+			uint16 hf;
+
+			mantissa = x & ((1 << 23) - 1);
+			exp = x & (0xFF << 23);
+			if(exp >= 0x47800000)
+			{
+				// check if the original number is a NaN
+				if(mantissa && (exp == (0xFF << 23)))
+				{
+					// single precision NaN
+					mantissa = (1 << 23) - 1;
+				}
+				else
+				{
+					// half-float will be Inf
+					mantissa = 0;
+				}
+				hf = (static_cast<uint16>(sign) << 15) | static_cast<uint16>((0x1F << 10)) | static_cast<uint16>(mantissa >> 13);
+			}
+			// check if exponent is <= -15
+			else if(exp <= 0x38000000)
+			{
+				hf = 0;  // too small to be represented
+			}
+			else
+			{
+				hf = (static_cast<uint16>(sign) << 15) | static_cast<uint16>((exp - 0x38000000) >> 13) | static_cast<uint16>(mantissa >> 13);
+			}
+
+			return hf;
+		}
 	}
 }

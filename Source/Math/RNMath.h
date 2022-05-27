@@ -93,6 +93,8 @@ namespace RN
 		{
 			return degrees * 0.01745329251994329577f;
 		}
+	
+		RNAPI uint16 ConvertFloatToHalf(float value);
 		
 		
 		RNAPI float Sqrt(float x);
