@@ -107,9 +107,17 @@ namespace RN
 		RN_ASSERT(indexAttribute, "Mesh needs indices!");
 
 		physx::PxTriangleMeshDesc meshDesc;
-		meshDesc.points.count = mesh->GetVerticesCount();
-		meshDesc.points.stride = mesh->GetStride();
 		meshDesc.points.data = mesh->GetCPUVertexBuffer();
+		meshDesc.points.count = mesh->GetVerticesCount();
+
+		if(mesh->GetVertexPositionsSeparatedSize() > 0)
+		{
+			meshDesc.points.stride = mesh->GetVertexPositionsSeparatedStride();
+		}
+		else
+		{
+			meshDesc.points.stride = mesh->GetStride();
+		}
 
 		meshDesc.triangles.count = mesh->GetIndicesCount() / 3;
 		meshDesc.triangles.stride = indexAttribute->GetSize()*3;
@@ -148,10 +156,18 @@ namespace RN
 		RN_ASSERT(vertexAttribute && vertexAttribute->GetType() == PrimitiveType::Vector3, "Mesh needs to have vertices of Vector3!");
 
 		physx::PxConvexMeshDesc convexDesc;
-		convexDesc.points.count = mesh->GetVerticesCount();
-		convexDesc.points.stride = mesh->GetStride();
 		convexDesc.points.data = mesh->GetCPUVertexBuffer();
+		convexDesc.points.count = mesh->GetVerticesCount();
 		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+
+		if(mesh->GetVertexPositionsSeparatedSize() > 0)
+		{
+			convexDesc.points.stride = mesh->GetVertexPositionsSeparatedStride();
+		}
+		else
+		{
+			convexDesc.points.stride = mesh->GetStride();
+		}
 
 		physx::PxDefaultMemoryOutputStream buf;
 		physx::PxConvexMeshCookingResult::Enum result;
