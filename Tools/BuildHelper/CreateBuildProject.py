@@ -3,7 +3,6 @@ import sys
 import platform
 import subprocess
 import shutil
-import distutils.dir_util
 import Utilities
 import json
 
