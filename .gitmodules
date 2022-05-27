@@ -22,3 +22,6 @@
 [submodule "Tools/TextureCompression/Vendor/bc7enc_rdo"]
 	path = Tools/TextureCompression/Vendor/bc7enc_rdo
 	url = https://github.com/richgel999/bc7enc_rdo.git
+[submodule "Tools/MeshOptimzer/Optimizer/Vendor/meshoptimizer"]
+	path = Tools/MeshOptimzer/Optimizer/Vendor/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer.git

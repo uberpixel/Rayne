@@ -1,343 +1,316 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <png.h>
 #include <string.h>
-#include <cmath>
+#include <iostream>
 
-int width, height;
-png_byte color_type;
-png_byte bit_depth;
-double gAMA;
-unsigned short **row_pointers = NULL;
-bool isSRGB = false;
-int premultiplyAlphaMode = 0;
+#include <fstream>
+#include <iterator>
+#include <vector>
 
-void read_png_file(char *filename)
-{
-	FILE *fp = fopen(filename, "rb");
-
-	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if(!png) abort();
-
-	png_infop info = png_create_info_struct(png);
-	if(!info) abort();
-
-	if(setjmp(png_jmpbuf(png))) abort();
-
-	png_init_io(png, fp);
-	png_read_info(png, info);
-
-	width      = png_get_image_width(png, info);
-	height     = png_get_image_height(png, info);
-	color_type = png_get_color_type(png, info);
-	bit_depth  = png_get_bit_depth(png, info);
-	png_get_gAMA(png, info, &gAMA);
-
-	if(gAMA == 0.0)
-	{
-		gAMA = 0.454550;
-	}
-
-	if(color_type == PNG_COLOR_TYPE_PALETTE)
-	{
-		color_type = PNG_COLOR_TYPE_RGB;
-	}
-
-	if(bit_depth < 16)
-	{
-		png_set_expand_16(png);
-	}
-	else
-	{
-		png_set_swap(png);
-	}
-	png_read_update_info(png, info);
-
-	if(row_pointers) abort();
-
-	row_pointers = (unsigned short **)malloc(sizeof(unsigned short*) * height);
-	for(int y = 0; y < height; y++)
-	{
-		row_pointers[y] = (unsigned short *)malloc(png_get_rowbytes(png, info));
-	}
-
-	png_read_image(png, (png_bytep*)row_pointers);
-
-	fclose(fp);
-
-	png_destroy_read_struct(&png, &info, NULL);
-}
-
-void write_png_file(char *filename)
-{
-	int y;
-
-	FILE *fp = fopen(filename, "wb");
-	if(!fp) abort();
-
-	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if(!png) abort();
-
-	png_infop info = png_create_info_struct(png);
-	if(!info) abort();
-
-	if(setjmp(png_jmpbuf(png))) abort();
-
-	png_init_io(png, fp);
-
-	if(isSRGB)
-	{
-		png_set_gAMA(png, info, gAMA);
-	}
-
-	// Output is 8bit depth, RGBA format.
-	png_set_IHDR(
-		png,
-		info,
-		width, height,
-		16,
-		color_type,
-		PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT,
-		PNG_FILTER_TYPE_DEFAULT
-	);
-	png_write_info(png, info);
-
-	if(!row_pointers) abort();
-
-	png_set_swap(png);
-
-	png_write_image(png, (png_bytep*)row_pointers);
-	png_write_end(png, NULL);
-
-	fclose(fp);
-
-	png_destroy_write_struct(&png, &info);
-}
-
-float gamma_to_linear(float value)
-{
-	/*if(value <= 0.04045)
-	{
-		return value / 12.92;
-	}
-	else
-	{
-		return pow((value + 0.055) / 1.055, 2.4);
-	}*/
-
-	return std::pow(value, gAMA);
-}
-		
-float linear_to_gamma(float value)
-{
-	/*if(value <= 0.0031308)
-	{
-		return value * 12.92;
-	}
-	else
-	{
-		return 1.055 * pow(value, 1.0/2.4) - 0.055;
-	}*/
-
-	return std::pow(value, 1.0/gAMA);
-}
-
-void blend_pixels(unsigned short *px00, unsigned short *px01, unsigned short *px10, unsigned short *px11, unsigned short *out)
-{
-	float a0 = 1.0;
-	float a1 = 1.0;
-	float a2 = 1.0;
-	float a3 = 1.0;
-	float alpha = 1.0;
-	if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA || color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-	{
-		int alphaIndex = color_type == PNG_COLOR_TYPE_RGB_ALPHA? 3:1;
-
-		a0 = (float)px00[alphaIndex]/65535.0;
-		a1 = (float)px01[alphaIndex]/65535.0;
-		a2 = (float)px10[alphaIndex]/65535.0;
-		a3 = (float)px11[alphaIndex]/65535.0;
-
-		alpha = a0 + a1 + a2 + a3;
-		alpha *= 0.25;
-
-		out[alphaIndex] = alpha * 65535;
-	}
-
-	int numberOfColorChannels = 1;
-	if(color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-	{
-		numberOfColorChannels = 3;
-	}
-
-	for(int i = 0; i < numberOfColorChannels; i++)
-	{
-		float c0 = (float)px00[i]/65535.0;
-		float c1 = (float)px01[i]/65535.0;
-		float c2 = (float)px10[i]/65535.0;
-		float c3 = (float)px11[i]/65535.0;
-
-		if(isSRGB)
-		{
-			c0 = linear_to_gamma(c0);
-			c1 = linear_to_gamma(c1);
-			c2 = linear_to_gamma(c2);
-			c3 = linear_to_gamma(c3);
-		}
-
-		if(premultiplyAlphaMode > 0)
-		{
-			c0 *= a0;
-			c1 *= a1;
-			c2 *= a2;
-			c3 *= a3;
-		}
-
-		float value = c0 + c1 + c2 + c3;
-		value *= 0.25;
-
-		if(premultiplyAlphaMode > 1)
-		{
-			value /= alpha;
-		}
-
-		if(isSRGB)
-		{
-			value = gamma_to_linear(value);
-		}
-
-		out[i] = value * 65535;
-	}
-}
-
-void process_png_file()
-{
-	width /= 2;
-	height /= 2;
-	if(width < 1) width = 1;
-	if(height < 1) height = 1;
-
-	int numberOfChannels = 1;
-	if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-	{
-		numberOfChannels = 2;
-	}
-	else if(color_type == PNG_COLOR_TYPE_RGB)
-	{
-		numberOfChannels = 3;
-	}
-	else if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-	{
-		numberOfChannels = 4;
-	}
-
-	for(int y = 0; y < height; y++)
-	{
-		unsigned short *rowOut = row_pointers[y];
-		unsigned short *row0 = row_pointers[y * 2 + 0];
-		unsigned short *row1 = row_pointers[y * 2 + 1];
-		for(int x = 0; x < width; x++)
-		{
-			unsigned short *pxOut = &(rowOut[x * numberOfChannels]);
-			unsigned short *px00 = pxOut;
-			unsigned short *px01 = pxOut;
-			unsigned short *px10 = pxOut;
-			unsigned short *px11 = pxOut;
-
-			if(width == 1)
-			{
-				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
-				px01 = &(row0[(x * 2 + 0) * numberOfChannels]);
-				px10 = &(row1[(x * 2 + 0) * numberOfChannels]);
-				px11 = &(row1[(x * 2 + 0) * numberOfChannels]);
-			}
-			else if(height == 1)
-			{
-				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
-				px01 = &(row0[(x * 2 + 1) * numberOfChannels]);
-				px10 = &(row0[(x * 2 + 0) * numberOfChannels]);
-				px11 = &(row0[(x * 2 + 1) * numberOfChannels]);
-			}
-			else
-			{
-				px00 = &(row0[(x * 2 + 0) * numberOfChannels]);
-				px01 = &(row0[(x * 2 + 1) * numberOfChannels]);
-				px10 = &(row1[(x * 2 + 0) * numberOfChannels]);
-				px11 = &(row1[(x * 2 + 1) * numberOfChannels]);
-			}
-			
-			blend_pixels(px00, px01, px10, px11, pxOut);
-		}
-	}
-}
+#include "meshoptimizer.h"
 
 int main(int argc, char *argv[])
 {
-	if(argc < 4) abort();
+	if(argc < 3) abort();
 
-	if(argc >= 5)
+	char *inputFileName = argv[1];
+	char *outputFileName = argv[2];
+	std::cout << "copy and optimize from " << inputFileName << " to " << outputFileName << std::endl;
+
+	//Load file into a buffer
+	std::ifstream input(inputFileName, std::ios::binary);
+    std::vector<unsigned char> inputBuffer(std::istreambuf_iterator<char>(input), {});
+
+/*  ############################################################
+	#Structure of sgm files
+	############################################################
+	#magic number - uint32 - 352658064
+	#version - uint8 - 3
+	#number of materials - uint8
+	#material id - uint8
+	#	number of uv sets - uint8
+	#		number of textures - uint8
+	#			texture type hint - uint8
+	#			filename length - uint16
+	#			filename - char*filename length
+	#	number of colors - uint8
+	#		color type hint - uint8
+	#		color rgba - float32*4
+	#
+	#number of meshs - uint8
+	#mesh id - uint8
+	#	used materials id - uint8
+	#	number of vertices - uint32
+	#	texcoord count - uint8
+	#	color channel count - uint8 usually 0 or 4
+	#	has tangents - uint8 0 if not, 1 otherwise
+	#	has bones - uint8 0 if not, 1 otherwise
+	#	interleaved vertex data - float32
+	#		- position, normal, uvN, color, tangents, weights, bone indices
+	#
+	#	number of indices - uint32
+	#	index size - uint8, usually 2 or 4 bytes
+	#	indices - index size
+	#
+	#has animation - uint8 0 if not, 1 otherwise
+	#	animfilename length - uint16
+	#	animfilename - char*animfilename length
+	*/
+
+	std::vector<unsigned char> outputBuffer;
+	size_t currentReadPosition = 0;
+
+	//Magic number
+	outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+	outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+	outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+	outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+	//Version
+	outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+	//Number of materials
+	unsigned char materialCount = inputBuffer[currentReadPosition++];
+	outputBuffer.push_back(materialCount);
+
+	//Materials
+	for(unsigned char material = 0; material < materialCount; material++)
 	{
-		if(strcmp(argv[4], "-srgb") == 0)
+		//Material ID
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+		//Number of UV Sets
+		unsigned char uvSetCount = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(uvSetCount);
+
+		//UV Sets
+		for(unsigned char uvSet = 0; uvSet < uvSetCount; uvSet++)
 		{
-			isSRGB = true;
+			//Number of Textures
+			unsigned char textureCount = inputBuffer[currentReadPosition++];
+			outputBuffer.push_back(textureCount);
+
+			//Textures
+			for(unsigned char uvSet = 0; uvSet < uvSetCount; uvSet++)
+			{
+				//Texture type hint
+				outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+				//Texture file name length
+				unsigned short filenameLength;
+				std::memcpy(&filenameLength, &inputBuffer[currentReadPosition], 2);
+				outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+				outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+				//Texture file name
+				for(unsigned short character = 0; character < filenameLength; character++)
+				{
+					outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+				}
+			}
 		}
-		else if(strcmp(argv[4], "-premul") == 0)
+
+		//Number of Colors
+		unsigned char colorCount = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(colorCount);
+
+		//Colors
+		for(unsigned char color = 0; color < colorCount; color++)
 		{
-			premultiplyAlphaMode = 1;
-		}
-		else if(strcmp(argv[4], "-premulblend") == 0)
-		{
-			premultiplyAlphaMode = 2;
+			//Color type hint
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+			//Color R
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+			//Color G
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+			//Color B
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+			//Color A
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
 		}
 	}
 
-	if(argc >= 6)
+
+	//Number of Meshes
+	unsigned char meshCount = inputBuffer[currentReadPosition++];
+	outputBuffer.push_back(meshCount);
+
+	for(unsigned char mesh = 0; mesh < meshCount; mesh++)
 	{
-		if(strcmp(argv[5], "-srgb") == 0)
+		//Mesh ID
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+		//Mesh Material ID
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+		//Number of Vertices
+		unsigned int vertexCount;
+		std::memcpy(&vertexCount, &inputBuffer[currentReadPosition], 4);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+
+		//Number of texcoords
+		unsigned char texcoordCount = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(texcoordCount);
+
+		//Number of color channels
+		unsigned char colorChannelCount = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(colorChannelCount);
+
+		//Has tangents
+		unsigned char hasTangents = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(hasTangents);
+
+		//Has bones
+		unsigned char hasBones = inputBuffer[currentReadPosition++];
+		outputBuffer.push_back(hasBones);
+
+		size_t vertexSize = 3 + 3 + 2 * texcoordCount + colorChannelCount + 4 * hasTangents + 8 * hasBones;
+		vertexSize *= sizeof(float);
+
+		std::vector<unsigned char> vertexData;
+		vertexData.reserve(vertexCount * vertexSize);
+
+		//Interleaved vertex data
+		//Copy the vertex data all at once
+		vertexData.insert(std::end(vertexData), std::begin(inputBuffer) + currentReadPosition, std::begin(inputBuffer) + currentReadPosition + vertexSize * vertexCount);
+		currentReadPosition += vertexSize * vertexCount;
+
+		//Number of Indices
+		unsigned int indexCount;
+		std::memcpy(&indexCount, &inputBuffer[currentReadPosition], 4);
+		unsigned char indexCountArray[4]; //Store the data here to push into the output vector after processing the mesh, to keep everything in order
+		indexCountArray[0] = inputBuffer[currentReadPosition++];
+		indexCountArray[1] = inputBuffer[currentReadPosition++];
+		indexCountArray[2] = inputBuffer[currentReadPosition++];
+		indexCountArray[3] = inputBuffer[currentReadPosition++];
+
+		//Index size
+		unsigned char indexSize = inputBuffer[currentReadPosition++];
+
+		//Indices need to be expanded to uint32
+		std::vector<unsigned int> indexData;
+		indexData.reserve(indexCount);
+		for(unsigned int index = 0; index < indexCount; index++)
 		{
-			isSRGB = true;
+			if(indexSize == 1) //uint8
+			{
+				indexData.push_back(inputBuffer[currentReadPosition]);
+			}
+			else if(indexSize == 2) //uint16
+			{
+				unsigned short indexValue;
+				std::memcpy(&indexValue, &inputBuffer[currentReadPosition], 2);
+				indexData.push_back(indexValue);
+			}
+			else if(indexSize == 4) //uint32
+			{
+				unsigned int indexValue;
+				std::memcpy(&indexValue, &inputBuffer[currentReadPosition], 4);
+				indexData.push_back(indexValue);
+			}
+			else
+			{
+				std::cout << "Error: Unsupported index size: " << static_cast<unsigned int>(indexSize) << std::endl;
+				abort();
+			}
+
+			currentReadPosition += indexSize;
 		}
-		else if(strcmp(argv[5], "-premul") == 0)
+
+		std::cout << "Number of vertices: " << vertexCount << ", number of indices: " << indexCount << ", index size: " << static_cast<unsigned int>(indexSize) << std::endl;
+
+		//TODO: Could remap vertices here, eliminating duplicates, but the exporter already takes care of it, so should not be needed
+		//std::vector<unsigned int> remapTable(vertexCount);
+		//size_t newVertexCount = meshopt_generateVertexRemap(remapTable.data(), indexData.data(), indexCount, vertexData.data(), vertexCount, vertexSize);
+		//TODO: This remapping would then also need to generate new vertex / index buffers here to use going forward and change the vertex count before adding it to the output buffer
+
+		meshopt_VertexCacheStatistics cacheStatsBefore = meshopt_analyzeVertexCache(indexData.data(), indexCount, vertexCount, 16, 0, 0);
+		meshopt_VertexFetchStatistics fetchStatsBefore = meshopt_analyzeVertexFetch(indexData.data(), indexCount, vertexCount, vertexSize);
+
+		meshopt_optimizeVertexCache(indexData.data(), indexData.data(), indexCount, vertexCount);
+		meshopt_optimizeVertexFetch(vertexData.data(), indexData.data(), indexCount, vertexData.data(), vertexCount, vertexSize);
+
+		meshopt_VertexCacheStatistics cacheStatsAfter = meshopt_analyzeVertexCache(indexData.data(), indexCount, vertexCount, 16, 0, 0);
+		meshopt_VertexFetchStatistics fetchStatsAfter = meshopt_analyzeVertexFetch(indexData.data(), indexCount, vertexCount, vertexSize);
+
+		std::cout << "(ACMR, ATVR) before: (" << cacheStatsBefore.acmr << ", " << cacheStatsBefore.atvr << "), after: (" << cacheStatsAfter.acmr << ", " << cacheStatsAfter.atvr << ")" << std::endl;
+		std::cout << "Overfetch before: " << fetchStatsBefore.overfetch << ", after: " << fetchStatsAfter.overfetch << std::endl;
+
+		outputBuffer.insert(std::end(outputBuffer), std::begin(vertexData), std::end(vertexData));
+		outputBuffer.push_back(indexCountArray[0]);
+		outputBuffer.push_back(indexCountArray[1]);
+		outputBuffer.push_back(indexCountArray[2]);
+		outputBuffer.push_back(indexCountArray[3]);
+		outputBuffer.push_back(indexSize);
+
+		for(unsigned int index = 0; index < indexCount; index++)
 		{
-			premultiplyAlphaMode = 1;
-		}
-		else if(strcmp(argv[5], "-premulblend") == 0)
-		{
-			premultiplyAlphaMode = 2;
+			if(indexSize == 1) //uint8
+			{
+				unsigned char indexValue = static_cast<unsigned char>(indexData[index]);
+				outputBuffer.push_back(indexValue);
+			}
+			else if(indexSize == 2) //uint16
+			{
+				unsigned char indexValue[4];
+				std::memcpy(indexValue, &indexData[index], 4);
+				outputBuffer.push_back(indexValue[2]);
+				outputBuffer.push_back(indexValue[3]);
+			}
+			else if(indexSize == 4) //uint32
+			{
+				unsigned char indexValue[4];
+				std::memcpy(indexValue, &indexData[index], 4);
+				outputBuffer.push_back(indexValue[0]);
+				outputBuffer.push_back(indexValue[1]);
+				outputBuffer.push_back(indexValue[2]);
+				outputBuffer.push_back(indexValue[3]);
+			}
 		}
 	}
 
-	int mipMapCount = atoi(argv[3]);
-	char *imageFileName = (char*)calloc(strlen(argv[2])-3 + 1, 1);
-	strncpy(imageFileName, argv[2], strlen(argv[2])-3);
+	//Has animations
+	unsigned char hasAnimations = inputBuffer[currentReadPosition++];
+	outputBuffer.push_back(hasAnimations);
 
-	char *imageIndexString = (char*)calloc(5, 1);
-
-	char *imageFullFileName = (char*)calloc(strlen(argv[2]) + 10, 1);
-	strcpy(imageFullFileName, imageFileName);
-	strcat(imageFullFileName, "0.png");
-
-	read_png_file(argv[1]);
-	write_png_file(imageFullFileName);
-
-	for(int i = 1; i < mipMapCount; i++)
+	if(hasAnimations)
 	{
-		strcpy(imageFullFileName, imageFileName);
-		memset(imageIndexString, 0, 5);
-		sprintf(imageIndexString, "%d", i);
-		strcat(imageFullFileName, imageIndexString);
-		strcat(imageFullFileName, ".png");
+		//Animation file name length
+		unsigned short filenameLength;
+		std::memcpy(&filenameLength, &inputBuffer[currentReadPosition], 2);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+		outputBuffer.push_back(inputBuffer[currentReadPosition++]);
 
-		process_png_file();
-		write_png_file(imageFullFileName);
+		//Animation file name
+		for(unsigned short character = 0; character < filenameLength; character++)
+		{
+			outputBuffer.push_back(inputBuffer[currentReadPosition++]);
+		}
 	}
 
-	for(int y = 0; y < height; y++)
-	{
-		free(row_pointers[y]);
-	}
-	free(row_pointers);
+	std::ofstream output(outputFileName, std::ios::binary | std::ios_base::out);
+	std::copy(std::begin(outputBuffer), std::end(outputBuffer), std::ostreambuf_iterator<char>(output));
+
+	std::cout << "Input size: " << inputBuffer.size() << ", output size: " << outputBuffer.size() << std::endl;
 
 	return 0;
 }
