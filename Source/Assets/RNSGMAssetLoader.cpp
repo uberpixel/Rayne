@@ -300,12 +300,36 @@ namespace RN
 			bool hasBones   = file->ReadUint8();
 
 			std::vector<Mesh::VertexAttribute> attributes;
+			
+			//TODO: Also add an options for bones data
+			//TODO: Add an option for 16bit int uv coords? but they require shader changes I think....
+			//TODO: Add an option for 8bit colors?
+			//TODO: Add an option for 8bit normals?
+			bool use16bitPositions = false;
+			bool use16bitNormalsAndTangents = false;
+			bool use16bitColors = false;
+			if(options.settings->GetObjectForKey(RNCSTR("use16BitPositions")))
+			{
+				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16BitPositions"));
+				use16bitPositions = number->GetBoolValue();
+			}
+			if(options.settings->GetObjectForKey(RNCSTR("use16bitNormalsAndTangents")))
+			{
+				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16bitNormalsAndTangents"));
+				use16bitNormalsAndTangents = number->GetBoolValue();
+			}
+			if(options.settings->GetObjectForKey(RNCSTR("use8bitColors")))
+			{
+				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16bitColors"));
+				use16bitColors = number->GetBoolValue();
+			}
 
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector3);
-			attributes.emplace_back(Mesh::VertexAttribute::Feature::Normals, PrimitiveType::Vector3);
+			attributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, use16bitPositions? PrimitiveType::HalfVector3 : PrimitiveType::Vector3);
+			attributes.emplace_back(Mesh::VertexAttribute::Feature::Normals, use16bitNormalsAndTangents? PrimitiveType::HalfVector3 : PrimitiveType::Vector3);
 
-			size_t size = sizeof(Vector3) * 2;
-			size_t offset = size;
+			size_t originalVertexSize = 2 * sizeof(Vector3);
+			size_t size = use16bitPositions? sizeof(uint16) * 3 : sizeof(Vector3);
+			size += use16bitNormalsAndTangents? sizeof(uint16) * 3 : sizeof(Vector3);
 
 			size_t uv0Offset = 0;
 			size_t uv1Offset = 0;
@@ -317,74 +341,65 @@ namespace RN
 			if(uvCount > 0)
 			{
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
+				uv0Offset = originalVertexSize;
 				size += sizeof(Vector2);
-				uv0Offset = offset;
-				offset += sizeof(Vector2);
+				originalVertexSize += sizeof(Vector2);
 			}
 			
 			if(uvCount > 1)
 			{
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector2);
+				uv1Offset = originalVertexSize;
 				size += sizeof(Vector2);
-				uv1Offset = offset;
-				offset += sizeof(Vector2);
+				originalVertexSize += sizeof(Vector2);
 			}
 
 			if(dataCount == 4)
 			{
-				attributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color);
-				size += sizeof(Color);
-				colorOffset = offset;
-				offset += sizeof(Color);
+				attributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, use16bitColors? PrimitiveType::HalfVector4 : PrimitiveType::Color);
+				colorOffset = originalVertexSize;
+				size += use16bitColors? sizeof(uint16) * 4 : sizeof(Color);
+				originalVertexSize += sizeof(Color);
 			}
 			
 			if(hasTangent)
 			{
-				attributes.emplace_back(Mesh::VertexAttribute::Feature::Tangents, PrimitiveType::Vector4);
-				size += sizeof(Vector4);
-				tangentOffset = offset;
-				offset += sizeof(Vector4);
+				attributes.emplace_back(Mesh::VertexAttribute::Feature::Tangents, use16bitNormalsAndTangents? PrimitiveType::HalfVector4 : PrimitiveType::Vector4);
+				tangentOffset = originalVertexSize;
+				size += use16bitNormalsAndTangents? sizeof(uint16) * 4 : sizeof(Vector4);
+				originalVertexSize += sizeof(Vector4);
 			}
 
 			if(hasBones)
 			{
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneWeights, PrimitiveType::Vector4);
+				boneWeightOffset = originalVertexSize;
 				size += sizeof(Vector4);
-				boneWeightOffset = offset;
-				offset += sizeof(Vector4);
+				originalVertexSize += sizeof(Vector4);
 				
 				attributes.emplace_back(Mesh::VertexAttribute::Feature::BoneIndices, PrimitiveType::Vector4);
+				boneIndicesOffset = originalVertexSize;
 				size += sizeof(Vector4);
-				boneIndicesOffset = offset;
-				offset += sizeof(Vector4);
+				originalVertexSize += sizeof(Vector4);
 			}
-			
-			(void)(offset);
 
-			size_t verticesSize = size * verticesCount;
+			size_t originalVerticesSize = originalVertexSize * verticesCount;
 
-			size_t vertexOffset = file->GetOffset();
-			file->Seek(verticesSize, false);
+			//Read vertex data from file into buffer to insert into mesh further down
+			uint8 *buffer = new uint8[originalVerticesSize];
+			file->Read(buffer, originalVerticesSize);
 
 			uint32 indicesCount = file->ReadUint32();
 			uint8 indicesSize = file->ReadUint8();
-
-			size_t indicesOffset = file->GetOffset();
-
 			attributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, indicesSize < 4? PrimitiveType::Uint16 : PrimitiveType::Uint32);
 
 
-			// Load the mesh data
+			// Create the mesh
 			Mesh *mesh = new Mesh(attributes, verticesCount, indicesCount);
-
 			mesh->BeginChanges();
 
 			// Tear the mesh apart
-			uint8 *buffer = new uint8[verticesSize];
 			uint8 *buildBuffer = new uint8[verticesCount * sizeof(Vector4)];
-
-			file->Seek(vertexOffset);
-			file->Read(buffer, verticesSize);
 
 #define CopyVertexData(elementSize, offset, feature) \
 			do { \
@@ -394,13 +409,33 @@ namespace RN
     	        { \
 					std::copy(tempBuffer + offset, tempBuffer + offset + elementSize, tempBuildBuffer); \
 	                tempBuildBuffer += elementSize; \
-					tempBuffer += size; \
+					tempBuffer += originalVertexSize; \
             	} \
 				mesh->SetElementData(feature, buildBuffer); \
             } while(0)
+			
+#define CopyVertexDataCompressed(floatCount, originalOffset, feature) \
+			do { \
+				float *tempBuffer = reinterpret_cast<float*>(buffer + originalOffset); \
+				uint16 *tempBuildBuffer = reinterpret_cast<uint16*>(buildBuffer); \
+				for(size_t i = 0; i < verticesCount; i ++) \
+				{ \
+					for(uint8 f = 0; f < floatCount; f++) \
+					{ \
+						uint16 compressed = Math::ConvertFloatToHalf(*tempBuffer); \
+						std::copy(&compressed, &compressed + 1, tempBuildBuffer); \
+						tempBuffer += 1; \
+						tempBuildBuffer += 1; \
+					} \
+					tempBuffer += std::max((originalVertexSize / 4 - floatCount), static_cast<size_t>(0)); \
+				} \
+				mesh->SetElementData(feature, buildBuffer); \
+			} while(0)
 
-			CopyVertexData(sizeof(Vector3), 0, Mesh::VertexAttribute::Feature::Vertices);
-			CopyVertexData(sizeof(Vector3), sizeof(Vector3), Mesh::VertexAttribute::Feature::Normals);
+			if(use16bitPositions) CopyVertexDataCompressed(3, 0, Mesh::VertexAttribute::Feature::Vertices);
+			else CopyVertexData(sizeof(Vector3), 0, Mesh::VertexAttribute::Feature::Vertices);
+			if(use16bitNormalsAndTangents) CopyVertexDataCompressed(3, sizeof(Vector3), Mesh::VertexAttribute::Feature::Normals);
+			else CopyVertexData(sizeof(Vector3), sizeof(Vector3), Mesh::VertexAttribute::Feature::Normals);
 
 			if(uvCount > 0)
 			{
@@ -412,11 +447,13 @@ namespace RN
 			}
 			if(dataCount == 4)
 			{
-				CopyVertexData(sizeof(Color), colorOffset, Mesh::VertexAttribute::Feature::Color0);
+				if(use16bitNormalsAndTangents) CopyVertexDataCompressed(4, colorOffset, Mesh::VertexAttribute::Feature::Color0);
+				else CopyVertexData(sizeof(Color), colorOffset, Mesh::VertexAttribute::Feature::Color0);
 			}
 			if(hasTangent)
 			{
-				CopyVertexData(sizeof(Vector4), tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
+				if(use16bitNormalsAndTangents) CopyVertexDataCompressed(4, tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
+				else CopyVertexData(sizeof(Vector4), tangentOffset, Mesh::VertexAttribute::Feature::Tangents);
 			}
 			if(hasBones)
 			{
@@ -427,9 +464,7 @@ namespace RN
 			delete[] buildBuffer;
 			delete[] buffer;
 
-			// Read the indices
-			file->Seek(indicesOffset);
-
+			//Read index buffer from file
 			uint8 *indicesBuffer = new uint8[indicesCount * indicesSize];
 			file->Read(indicesBuffer, indicesCount * indicesSize);
 			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indicesBuffer);
