@@ -50,6 +50,7 @@
 #include "Math/RNSIMD.h"
 #include "Math/RNSphere.h"
 #include "Math/RNVector.h"
+#include "Math/RNHalfVector.h"
 #include "Math/RNInterpolation.h"
 
 #include "Modules/RNExtensionPoint.h"
