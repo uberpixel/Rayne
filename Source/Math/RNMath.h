@@ -95,6 +95,7 @@ namespace RN
 		}
 	
 		RNAPI uint16 ConvertFloatToHalf(float value);
+		RNAPI float ConvertHalfToFloat(uint16 value);
 		
 		
 		RNAPI float Sqrt(float x);
