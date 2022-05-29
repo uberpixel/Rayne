@@ -9,6 +9,7 @@
 #include "../Assets/RNAssetManager.h"
 #include "RNMesh.h"
 #include "RNRenderer.h"
+#include "../Math/RNHalfVector.h"
 
 namespace RN
 {
@@ -33,9 +34,9 @@ namespace RN
 		{sizeof(int32),      alignof(int32)},
 
 		{sizeof(uint16),     alignof(uint16)}, //Half
-		{sizeof(float),      alignof(float)}, //HalfVector2
-		{sizeof(Vector2),    alignof(Vector2)}, //HalfVector3
-		{sizeof(Vector2),    alignof(Vector2)}, //HalfVector4
+		{sizeof(HalfVector2), alignof(HalfVector2)}, //HalfVector2
+		{sizeof(HalfVector3), alignof(HalfVector3)}, //HalfVector3
+		{sizeof(HalfVector4), alignof(HalfVector4)}, //HalfVector4
 
 		{sizeof(float),      alignof(float)},
 		{sizeof(Vector2),    alignof(Vector2)},
@@ -375,6 +376,27 @@ namespace RN
 				for(size_t i = 0; i < _verticesCount; i ++)
 				{
 					const Vector3 &vertex = *(iterator++);
+
+					min.x = std::min(vertex.x, min.x);
+					min.y = std::min(vertex.y, min.y);
+
+					max.x = std::max(vertex.x, max.x);
+					max.y = std::max(vertex.y, max.y);
+
+					min.z = std::min(vertex.z, min.z);
+					max.z = std::max(vertex.z, max.z);
+				}
+
+				break;
+			}
+				
+			case PrimitiveType::HalfVector3:
+			{
+				ElementIterator<HalfVector3> iterator = chunk.GetIterator<HalfVector3>(VertexAttribute::Feature::Vertices);
+
+				for(size_t i = 0; i < _verticesCount; i ++)
+				{
+					const Vector3 vertex = (*(iterator++)).GetVector3();
 
 					min.x = std::min(vertex.x, min.x);
 					min.y = std::min(vertex.y, min.y);

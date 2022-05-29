@@ -175,6 +175,7 @@ set(RAYNE_HEADERS
     Math/RNSIMD.h
     Math/RNSphere.h
     Math/RNVector.h
+    Math/RNHalfVector.h
     Math/RNInterpolation.h
     Modules/RNExtensionPoint.h
     Modules/RNModule.h
