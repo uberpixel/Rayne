@@ -1068,13 +1068,12 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+						for(int i = 0; i < viewCount; i++)
 						{
-							result[i] = renderPass.multiviewCameraInfo[i].viewMatrix * drawable->modelMatrix;
+							Matrix result = renderPass.multiviewCameraInfo[i].viewMatrix * drawable->modelMatrix;
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, result.m, 64);
 						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
 					}
 					break;
 				}
@@ -1088,16 +1087,15 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::ModelViewProjectionMatrixMultiview:
 				{
-					if(renderPass.multiviewCameraInfo.size() > 0)
-					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix * drawable->modelMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
-					}
+                    if(renderPass.multiviewCameraInfo.size() > 0)
+                    {
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            Matrix result = renderPass.multiviewCameraInfo[i].projectionViewMatrix * drawable->modelMatrix;
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, result.m, 64);
+                        }
+                    }
 					break;
 				}
 
@@ -1109,16 +1107,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::ViewMatrixMultiview:
 				{
-					if(renderPass.multiviewCameraInfo.size() > 0)
-					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].viewMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
-					}
+                    if(renderPass.multiviewCameraInfo.size() > 0)
+                    {
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].viewMatrix.m, 64);
+                        }
+                    }
 					break;
 				}
 
@@ -1132,13 +1128,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].projectionViewMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].projectionViewMatrix.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1153,13 +1147,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].projectionMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].projectionMatrix.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1175,13 +1167,12 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].inverseViewMatrix * drawable->inverseModelMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            Matrix result = renderPass.multiviewCameraInfo[i].inverseViewMatrix * drawable->inverseModelMatrix;
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, result.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1197,13 +1188,12 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix * drawable->inverseModelMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            Matrix result = renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix * drawable->inverseModelMatrix;
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, result.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1218,13 +1208,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].inverseViewMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].inverseViewMatrix.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1239,13 +1227,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].inverseProjectionViewMatrix.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1260,13 +1246,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Matrix result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = renderPass.multiviewCameraInfo[i].inverseProjectionMatrix;
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), result[0].m, 64 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 64 * i, renderPass.multiviewCameraInfo[i].inverseProjectionMatrix.m, 64);
+                        }
 					}
 					break;
 				}
@@ -1282,13 +1266,11 @@ namespace RN
 				{
 					if(renderPass.multiviewCameraInfo.size() > 0)
 					{
-						Vector4 result[6];
-						for(int i = 0; i < renderPass.multiviewCameraInfo.size(); i++)
-						{
-							result[i] = Vector4(renderPass.multiviewCameraInfo[i].viewPosition, 0.0f);
-						}
-
-						std::memcpy(buffer + descriptor->GetOffset(), &result[0].x, 16 * renderPass.multiviewCameraInfo.size());
+                        size_t viewCount = std::min(renderPass.multiviewCameraInfo.size(), descriptor->GetElementCount());
+                        for(int i = 0; i < viewCount; i++)
+                        {
+                            std::memcpy(buffer + descriptor->GetOffset() + 16 * i, &renderPass.multiviewCameraInfo[i].viewPosition.x, 16);
+                        }
 					}
 					break;
 				}
@@ -1361,14 +1343,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
+					uint32 lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLights:
 				{
-					size_t lightCount = renderPass.directionalLights.size();
+					size_t lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
@@ -1378,14 +1360,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
 				{
-					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					size_t matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					if(matrixCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
@@ -1401,28 +1383,28 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::PointLights:
 				{
-					size_t lightCount = renderPass.pointLights.size();
+					size_t lightCount = std::min(renderPass.pointLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
 					}
-					if(lightCount < 8)
+					if(lightCount < descriptor->GetElementCount())
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpotLights:
 				{
-					size_t lightCount = renderPass.spotLights.size();
+					size_t lightCount = std::min(renderPass.spotLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
 					}
-					if(lightCount < 8)
+					if(lightCount < descriptor->GetElementCount())
                     {
-                    	std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
+                    	std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
                     }
 					break;
 				}
@@ -1431,8 +1413,7 @@ namespace RN
 				{
 					if(drawable->skeleton)
 					{
-						//TODO: Don't hardcode limit here
-						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), descriptor->GetElementCount());
 						if(matrixCount > 0)
 						{
 							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
@@ -1620,10 +1601,7 @@ namespace RN
 
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
-			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-			{
-				renderPass.directionalLights.push_back(VulkanDirectionalLight{ light->GetForward(), 0.0f, light->GetFinalColor() });
-			}
+            renderPass.directionalLights.push_back(VulkanDirectionalLight{ light->GetForward(), 0.0f, light->GetFinalColor() });
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())
@@ -1656,17 +1634,11 @@ namespace RN
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
-			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
-			}
+            renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
-			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
-			}
+            renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
 		}
 	}
 
@@ -1700,11 +1672,15 @@ namespace RN
 		}
 
 		//Vertex and fragment shaders need to explicitly be marked to support instancing in the shader library json
-		bool canUseInstancing = drawable->material->GetVertexShader()->GetHasInstancing() && drawable->material->GetFragmentShader()->GetHasInstancing();
+		RN::Shader *vertexShader = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->descriptor.vertexShader;
+		RN::Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->descriptor.fragmentShader;
+		bool canUseInstancing = (!vertexShader || vertexShader->GetHasInstancing()) && (!fragmentShader || fragmentShader->GetHasInstancing());
 
+		//TODO: Use binding and type arrays in vulkan root signatures pipeline layout instead
 		//Check if uniform buffers are the same, the object can't be part of the same instanced draw call if it doesn't share the same buffers (because they are full for example)
 		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size())
 		{
+			size_t maxInstanceCount = -1;
 			canUseInstancing = true;
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && canUseInstancing; i++)
 			{
@@ -1721,6 +1697,11 @@ namespace RN
 					canUseInstancing = false;
 				}
 			}
+		}
+
+		if(canUseInstancing && renderPass.instanceSteps.size() > 0 && renderPass.instanceSteps.back() >= std::min(vertexShader->GetMaxInstanceCount(), fragmentShader? fragmentShader->GetMaxInstanceCount() : -1))
+		{
+			canUseInstancing = false;
 		}
 
 		_lock.Lock();
@@ -1808,8 +1789,6 @@ namespace RN
 				{
 					stepSize = renderPass.instanceSteps[stepSizeIndex++];
 
-					//TODO: Handle instancing here
-
 					VulkanDrawable *drawable = renderPass.drawables[i];
 					const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
 
@@ -1824,9 +1803,7 @@ namespace RN
 						//Setup uniforms for all instances that are part of this draw call
 						for(size_t instance = 0; instance < stepSize; instance += 1)
 						{
-							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
-							//Assume that only storage buffers can contain per instance data
-							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+							if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
 
 						    VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 							UpdateConstantBufferReference(instanceUniformState->vertexConstantBuffers[bufferIndex], instance == 0);
@@ -1861,9 +1838,7 @@ namespace RN
                         //Setup uniforms for all instances that are part of this draw call
                         for(size_t instance = 0; instance < stepSize; instance += 1)
                         {
-							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
-							//Assume that only storage buffers can contain per instance data
-							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+							if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
 
                             VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
                             UpdateConstantBufferReference(instanceUniformState->fragmentConstantBuffers[bufferIndex], instance == 0);

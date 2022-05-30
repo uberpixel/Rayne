@@ -134,19 +134,19 @@ namespace RN
 
 		if(vertexShaderSignature)
 		{
-			vertexShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(0);
+				bindingType.push_back(argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer? 0 : 1);
 			});
 
 			vertexShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(1);
+				bindingType.push_back(2);
 			});
 
 			vertexShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(2);
+				bindingType.push_back(3);
 			});
 
 			textureCount += vertexShaderSignature->GetTextures()->GetCount();
@@ -156,19 +156,19 @@ namespace RN
 		}
 		if(fragmentShaderSignature)
 		{
-			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(0);
+				bindingType.push_back(argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer? 4 : 5);
 			});
 
 			fragmentShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(1);
+				bindingType.push_back(6);
 			});
 
 			fragmentShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop){
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(2);
+				bindingType.push_back(7);
 			});
 
 			textureCount += fragmentShaderSignature->GetTextures()->GetCount();

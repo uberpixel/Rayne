@@ -301,7 +301,9 @@ namespace RN
 		RNAPI const Shader::Options *GetOptions() const;
 		RNAPI const Signature *GetSignature() const;
 		RNAPI ShaderLibrary *GetLibrary() const;
+
 		RNAPI bool GetHasInstancing() const { return _hasInstancing; }
+		size_t GetMaxInstanceCount() const { return _maxInstanceCount; }
 
 	protected:
 		RNAPI Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options, const Signature *signature);
@@ -316,6 +318,7 @@ namespace RN
 		Type _type;
 		bool _hasInstancing;
 		const Signature *_signature;
+		size_t _maxInstanceCount;
 
 		__RNDeclareMetaInternal(Shader)
 	};

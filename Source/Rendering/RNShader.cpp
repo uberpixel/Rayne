@@ -498,8 +498,6 @@ namespace RN
 		{
 			Shader::UniformDescriptor *lastDescriptor = _uniformDescriptors->GetLastObject<Shader::UniformDescriptor>();
 			_totalUniformSize = lastDescriptor->GetOffset() + lastDescriptor->GetSize();
-			
-			if(type == Type::UniformBuffer) _totalUniformSize *= _maxInstanceCount;
 		}
 	}
 
@@ -569,11 +567,13 @@ namespace RN
 
 
 	Shader::Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options, const Signature *signature) :
-		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(signature->Retain())
-	{}
+		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(nullptr), _maxInstanceCount(1)
+	{
+		SetSignature(signature);
+	}
 
 	Shader::Shader(ShaderLibrary *library, Type type, bool hasInstancing, const Shader::Options *options) :
-		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(nullptr)
+		_options(options->Retain()), _library(library), _type(type), _hasInstancing(hasInstancing), _signature(nullptr), _maxInstanceCount(1)
 	{}
 
 	Shader::~Shader()
@@ -597,6 +597,17 @@ namespace RN
 	{
 		RN_ASSERT(!_signature, "Shader signature can only be set once!");
 		_signature = signature->Retain();
+
+		if(_hasInstancing)
+		{
+			_maxInstanceCount = -1;
+			signature->GetBuffers()->Enumerate<ArgumentBuffer>([&](ArgumentBuffer *buffer, size_t index, bool &stop){
+				if(buffer->GetMaxInstanceCount() > 1) //TODO: This check feels bad... Need to somehow know if a buffer contains per instance data or not, but I guess right now this does exactly that.
+				{
+					_maxInstanceCount = std::min(_maxInstanceCount, buffer->GetMaxInstanceCount());
+				}
+			});
+		}
 	}
 
 	const Shader::Signature *Shader::GetSignature() const

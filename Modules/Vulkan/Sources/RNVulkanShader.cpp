@@ -205,6 +205,13 @@ namespace RN
 
                 spirv_cross::SPIRType spirvUniformType = reflector.get_type(type.member_types[index]);
 
+				//Set array element count to the real number, but default to 1 for all cases
+				size_t arrayElementCount = 1;
+				if(spirvUniformType.array.size() == 1) //There are more than one, if it is multidimensional, but only support 1 dimension for now
+				{
+					arrayElementCount = spirvUniformType.array[0];
+				}
+
 				PrimitiveType uniformType = PrimitiveType::Invalid;
 				if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Float)
 				{
@@ -258,14 +265,14 @@ namespace RN
 					}
 				}
 
-				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
+				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset, arrayElementCount);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
 			}
 
 			if(uniformDescriptors->GetCount() > 0)
 			{
 				uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
-				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease(), ArgumentBuffer::Type::StorageBuffer);
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease(), ArgumentBuffer::Type::StorageBuffer, 0);
 				buffersArray->AddObject(argumentBuffer->Autorelease());
 			}
 			else
@@ -277,19 +284,42 @@ namespace RN
 		for(auto &resource : resources.uniform_buffers)
 		{
 			Array *uniformDescriptors = new Array();
+			size_t maxInstanceCount = 1;
 
-			auto &type = reflector.get_type(resource.base_type_id);
+			spirv_cross::SPIRType type = reflector.get_type(resource.base_type_id);
 			unsigned memberCount = type.member_types.size();
-			for(size_t index = 0; index < memberCount; index++)
+            size_t index = 0;
+			while(index < memberCount)
 			{
 				size_t offset = reflector.type_struct_member_offset(type, index);
 
 				const std::string &memberName = reflector.get_member_name(type.self, index);
 				String *name = RNSTR(memberName);
 
-				if(name->GetLength() == 0) break;
+				if(name->GetLength() == 0)
+                {
+                    index++;
+                    break;
+                }
 
 				spirv_cross::SPIRType spirvUniformType = reflector.get_type(type.member_types[index]);
+
+				//Set array element count to the real number, but default to 1 for all cases
+				size_t arrayElementCount = 1;
+				if(spirvUniformType.array.size() == 1) //There are more than one, if it is multidimensional, but only support 1 dimension for now
+				{
+					arrayElementCount = spirvUniformType.array[0];
+				}
+
+				//TODO: This assumes that any single unknown array of structs inside a uninform buffer contains per instance data, should make this better...
+				if(memberCount == 1 && spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Struct && !UniformDescriptor::IsKnownStructName(name))
+				{
+					index = 0;
+					type = spirvUniformType;
+					memberCount = type.member_types.size();
+					maxInstanceCount = arrayElementCount;
+					continue;
+				}
 
 				PrimitiveType uniformType = PrimitiveType::Invalid;
 				if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Float)
@@ -344,14 +374,16 @@ namespace RN
 					}
 				}
 
-				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
+				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset, arrayElementCount);
 				uniformDescriptors->AddObject(descriptor->Autorelease());
+
+                index++;
 			}
 
 			if(uniformDescriptors->GetCount() > 0)
 			{
 				uint32 binding = reflector.get_decoration(resource.id, spv::DecorationBinding);
-				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease());
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(resource.name), binding, uniformDescriptors->Autorelease(), ArgumentBuffer::Type::UniformBuffer, maxInstanceCount);
 				buffersArray->AddObject(argumentBuffer->Autorelease());
 			}
 			else
