@@ -113,11 +113,12 @@ namespace RN
 		return _defines->GetHash();
 	}
 
-	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset) :
+	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount) :
 		_name(name->Copy()),
 		_identifier(Identifier::Custom),
 		_type(type),
-		_offset(offset)
+		_offset(offset),
+		_elementCount(elementCount)
 	{
 		if(name->IsEqual(RNCSTR("global_time")) || name->IsEqual(RNCSTR("time")))
 		{
@@ -379,52 +380,52 @@ namespace RN
 		switch(_identifier)
 		{
 			case DirectionalLights:
-				return (16 + 16) * 5;	//TODO: use define or something for the 5
+				return (16 + 16) * _elementCount;
 
 			case DirectionalShadowMatrices:
-				return 64 * 4;	//TODO: use define or something for the 4
+				return 64 * _elementCount;
 				
 			case PointLights:
-				return (16 + 16) * 8;	//TODO: use define or something for the 8
+				return (16 + 16) * _elementCount;
 				
 			case SpotLights:
-				return (16 + 16 + 16) * 8;	//TODO: use define or something for the 8
+				return (16 + 16 + 16) * _elementCount;
 				
 			case BoneMatrices:
-				return 64 * 100; //TODO: Handle the 100 bones limit in some better way
+				return 64 * _elementCount;
 
 			case ModelViewMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case ModelViewProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case ViewMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case ViewProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case ProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case InverseModelViewMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case InverseModelViewProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case InverseViewMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case InverseViewProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case InverseProjectionMatrixMultiview:
-				return 64 * 6;
+				return 64 * _elementCount;
 
 			case CameraPositionMultiview:
-				return 16 * 6;
+				return 16 * _elementCount;
 
 			default:
 				break;
@@ -433,39 +434,39 @@ namespace RN
 		switch(_type)
 		{
 		case PrimitiveType::Uint8:
-			return 1;
+			return 1 * _elementCount;
 		case PrimitiveType::Uint16:
-			return 2;
+			return 2 * _elementCount;
 		case PrimitiveType::Uint32:
-			return 4;
+			return 4 * _elementCount;
 		case PrimitiveType::Int8:
-			return 1;
+			return 1 * _elementCount;
 		case PrimitiveType::Int16:
-			return 2;
+			return 2 * _elementCount;
 		case PrimitiveType::Int32:
-			return 4;
+			return 4 * _elementCount;
 		case PrimitiveType::Half:
-			return 2;
+			return 2 * _elementCount;
 		case PrimitiveType::Float:
-			return 4;
+			return 4 * _elementCount;
 		case PrimitiveType::HalfVector2:
-			return 4;
+			return 4 * _elementCount;
 		case PrimitiveType::HalfVector3:
-			return 6;
+			return 6 * _elementCount;
 		case PrimitiveType::HalfVector4:
-			return 8;
+			return 8 * _elementCount;
 		case PrimitiveType::Vector2:
-			return 8;
+			return 8 * _elementCount;
 		case PrimitiveType::Vector3:
-			return 12;
+			return 12 * _elementCount;
 		case PrimitiveType::Vector4:
-			return 16;
+			return 16 * _elementCount;
 		case PrimitiveType::Matrix:
-			return 64;
+			return 64 * _elementCount;
 		case PrimitiveType::Quaternion:
-			return 16;
+			return 16 * _elementCount;
 		case PrimitiveType::Color:
-			return 16;
+			return 16 * _elementCount;
 		case PrimitiveType::Invalid:
 			return 0;
 		}
@@ -488,8 +489,8 @@ namespace RN
 		SafeRelease(_name);
 	}
 
-	Shader::ArgumentBuffer::ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type) :
-		Argument(name, index), _totalUniformSize(0), _type(type)
+	Shader::ArgumentBuffer::ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type, size_t maxInstanceCount) :
+		Argument(name, index), _totalUniformSize(0), _type(type), _maxInstanceCount(maxInstanceCount)
 	{
 		_uniformDescriptors = SafeRetain(uniformDescriptors);
 		
@@ -497,6 +498,8 @@ namespace RN
 		{
 			Shader::UniformDescriptor *lastDescriptor = _uniformDescriptors->GetLastObject<Shader::UniformDescriptor>();
 			_totalUniformSize = lastDescriptor->GetOffset() + lastDescriptor->GetSize();
+			
+			if(type == Type::UniformBuffer) _totalUniformSize *= _maxInstanceCount;
 		}
 	}
 

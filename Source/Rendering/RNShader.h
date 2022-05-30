@@ -112,14 +112,16 @@ namespace RN
 				BoneMatrices
 			};
 
-			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset);
+			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount);
 			RNAPI virtual ~UniformDescriptor();
 
 			const String *GetName() const { return _name; }
 			PrimitiveType GetType() const { return _type; }
 			size_t GetOffset() const { return _offset; }
-			RNAPI size_t GetSize() const;
 			Identifier GetIdentifier() const { return _identifier; }
+			RNAPI size_t GetSize() const;
+			
+			size_t GetElementCount() const { return _elementCount; }
 
 			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
 			
@@ -130,6 +132,8 @@ namespace RN
 			Identifier _identifier;
 			PrimitiveType _type;
 			size_t _offset;
+			
+			size_t _elementCount; //Usually 1, but higher if this an array type with more than one element
 
 			__RNDeclareMetaInternal(UniformDescriptor)
 		};
@@ -160,7 +164,7 @@ namespace RN
 				UniformBuffer,
 				StorageBuffer
 			};
-			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type = Type::UniformBuffer);
+			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type, size_t maxInstanceCount);
 			RNAPI ArgumentBuffer(const ArgumentBuffer *other);
 			RNAPI ~ArgumentBuffer();
 			
@@ -168,10 +172,14 @@ namespace RN
 			const Array *GetUniformDescriptors() const { return _uniformDescriptors; }
 			Type GetType() const { return _type; }
 			
+			size_t GetMaxInstanceCount() const { return _maxInstanceCount; }
+			
 		private:
 			Array *_uniformDescriptors;
 			size_t _totalUniformSize;
 			Type _type;
+			
+			size_t _maxInstanceCount; //If this buffer contains per instance uniform data, it just contains an array of a struct, this is the number of elements of that array. 1 otherwise. 0 if this a storage buffer as they don't have any tight size limits and can be indexed more freely.
 			
 			__RNDeclareMetaInternal(ArgumentBuffer)
 		};
