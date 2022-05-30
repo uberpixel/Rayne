@@ -54,21 +54,16 @@ namespace RN
 			{
 				case MTLArgumentTypeBuffer:
 				{
-					Array *uniformDescriptors = new Array();
-					
 					//RNDebug("buffer: " << [[argument name] UTF8String]);
 					MTLStructType *structType = [argument bufferStructType];
-					bool isInstanceBuffer = false;
-					AddBufferStructElements(uniformDescriptors, structType, isInstanceBuffer);
+					size_t numberOfElements = 0;
+					Array *uniformDescriptors = GetBufferStructElements(structType, numberOfElements);
 					
 					if(uniformDescriptors->GetCount() > 0)
 					{
-						ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), uniformDescriptors->Autorelease(), isInstanceBuffer? ArgumentBuffer::Type::StorageBuffer : ArgumentBuffer::Type::UniformBuffer);
+						//numberOfElements will only be > 0 for per instance data. In this case marking it as storage buffer will make the renderer not limit the number of instances per draw call, as metal can handle this just fine (it's different with vulkan on some mobile hardware!)
+						ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR([[argument name] UTF8String]), static_cast<uint32>([argument index]), uniformDescriptors, numberOfElements > 0? ArgumentBuffer::Type::StorageBuffer : ArgumentBuffer::Type::UniformBuffer, numberOfElements > 0? 0 : 1);
 						buffersArray->AddObject(argumentBuffer->Autorelease());
-					}
-					else
-					{
-						uniformDescriptors->Release();
 					}
 					
 					break;
@@ -140,96 +135,112 @@ namespace RN
 		SetSignature(signature->Autorelease());
 	}
 
-	void MetalShader::AddBufferStructElements(Array *uniformDescriptors, MTLStructType *structType, bool &isInstanceBuffer)
+	Array *MetalShader::GetBufferStructElements(MTLStructType *structType, size_t &numberOfElements)
 	{
+		Array *uniformDescriptors = new Array();
+		uniformDescriptors->Autorelease();
+		
+		numberOfElements = 0;
+		
 		for(MTLStructMember *member in [structType members])
 		{
 			String *name = RNSTR([[member name] UTF8String]);
 			uint32 offset = [member offset];
 			MTLDataType type = [member dataType];
 			
+			uint32 arrayElementCount = 1;
+			PrimitiveType uniformType = PrimitiveType::Invalid;
+			
 			//RNDebug("	buffer member: " << name << " type: " << type);
 			//If this is an array of structs with unknown name, assume that it is per instance data
 			if(type == MTLDataTypeArray && !UniformDescriptor::IsKnownStructName(name))
 			{
 				MTLArrayType *arrayType = [member arrayType];
+				arrayElementCount = arrayType.arrayLength;
 				if(arrayType.elementType == MTLDataTypeStruct)
 				{
 					MTLStructType *otherStructType = [arrayType elementStructType];
 					if(otherStructType)
 					{
-						isInstanceBuffer = true;
-						AddBufferStructElements(uniformDescriptors, otherStructType, isInstanceBuffer);
+						numberOfElements = arrayElementCount;
+						size_t temp = 0;
+						return GetBufferStructElements(otherStructType, temp);
 					}
 				}
-				return;
 			}
-			
-			PrimitiveType uniformType = PrimitiveType::Invalid;
-			
-			if(type == MTLDataTypeHalf)
+			else if(type == MTLDataTypeArray)
 			{
-				uniformType = PrimitiveType::Half;
+				MTLArrayType *arrayType = [member arrayType];
+				arrayElementCount = arrayType.arrayLength;
 			}
-			else if(type == MTLDataTypeHalf2)
+			else
 			{
-				uniformType = PrimitiveType::HalfVector2;
-			}
-			else if(type == MTLDataTypeHalf3)
-			{
-				uniformType = PrimitiveType::HalfVector3;
-			}
-			else if(type == MTLDataTypeHalf4)
-			{
-				uniformType = PrimitiveType::HalfVector4;
-			}
-			else if(type == MTLDataTypeFloat)
-			{
-				uniformType = PrimitiveType::Float;
-			}
-			else if(type == MTLDataTypeFloat2)
-			{
-				uniformType = PrimitiveType::Vector2;
-			}
-			else if(type == MTLDataTypeFloat3)
-			{
-				uniformType = PrimitiveType::Vector3;
-			}
-			else if(type == MTLDataTypeFloat4)
-			{
-				uniformType = PrimitiveType::Vector4;
-			}
-			else if(type == MTLDataTypeFloat4x4)
-			{
-				uniformType = PrimitiveType::Matrix;
-			}
-			else if(type == MTLDataTypeInt)
-			{
-				uniformType = PrimitiveType::Int32;
-			}
-			else if(type == MTLDataTypeUInt)
-			{
-				uniformType = PrimitiveType::Uint32;
-			}
-			else if(type == MTLDataTypeShort)
-			{
-				uniformType = PrimitiveType::Int16;
-			}
-			else if(type == MTLDataTypeUShort)
-			{
-				uniformType = PrimitiveType::Uint16;
-			}
-			else if(type == MTLDataTypeChar)
-			{
-				uniformType = PrimitiveType::Int8;
-			}
-			else if(type == MTLDataTypeUChar)
-			{
-				uniformType = PrimitiveType::Uint8;
+				if(type == MTLDataTypeHalf)
+				{
+					uniformType = PrimitiveType::Half;
+				}
+				else if(type == MTLDataTypeHalf2)
+				{
+					uniformType = PrimitiveType::HalfVector2;
+				}
+				else if(type == MTLDataTypeHalf3)
+				{
+					uniformType = PrimitiveType::HalfVector3;
+				}
+				else if(type == MTLDataTypeHalf4)
+				{
+					uniformType = PrimitiveType::HalfVector4;
+				}
+				else if(type == MTLDataTypeFloat)
+				{
+					uniformType = PrimitiveType::Float;
+				}
+				else if(type == MTLDataTypeFloat2)
+				{
+					uniformType = PrimitiveType::Vector2;
+				}
+				else if(type == MTLDataTypeFloat3)
+				{
+					uniformType = PrimitiveType::Vector3;
+				}
+				else if(type == MTLDataTypeFloat4)
+				{
+					uniformType = PrimitiveType::Vector4;
+				}
+				else if(type == MTLDataTypeFloat4x4)
+				{
+					uniformType = PrimitiveType::Matrix;
+				}
+				else if(type == MTLDataTypeInt)
+				{
+					uniformType = PrimitiveType::Int32;
+				}
+				else if(type == MTLDataTypeUInt)
+				{
+					uniformType = PrimitiveType::Uint32;
+				}
+				else if(type == MTLDataTypeShort)
+				{
+					uniformType = PrimitiveType::Int16;
+				}
+				else if(type == MTLDataTypeUShort)
+				{
+					uniformType = PrimitiveType::Uint16;
+				}
+				else if(type == MTLDataTypeChar)
+				{
+					uniformType = PrimitiveType::Int8;
+				}
+				else if(type == MTLDataTypeUChar)
+				{
+					uniformType = PrimitiveType::Uint8;
+				}
 			}
 
-			Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, uniformType, offset);
+			Shader::UniformDescriptor *descriptor = new Shader::UniformDescriptor(name, uniformType, offset, arrayElementCount);
 			uniformDescriptors->AddObject(descriptor->Autorelease());
 		}
+		
+		return uniformDescriptors;
 	}
 }

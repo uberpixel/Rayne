@@ -959,14 +959,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
+					uint32 lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLights:
 				{
-					size_t lightCount = renderPass.directionalLights.size();
+					size_t lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
@@ -976,14 +976,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
 				{
-					size_t matrixCount = renderPass.directionalShadowMatrices.size();
+					size_t matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					if(matrixCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
@@ -999,28 +999,28 @@ namespace RN
 					
 				case Shader::UniformDescriptor::Identifier::PointLights:
 				{
-					size_t lightCount = renderPass.pointLights.size();
+					size_t lightCount = std::min(renderPass.pointLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
 					}
-					if(lightCount < 8) //TODO: Think about how max number of lights is filled up...
+					if(lightCount < descriptor->GetElementCount()) //TODO: Think about how max number of lights is filled up...
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8-lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
 				
 				case Shader::UniformDescriptor::Identifier::SpotLights:
 				{
-					size_t lightCount = renderPass.spotLights.size();
+					size_t lightCount = std::min(renderPass.spotLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
 					}
-					if(lightCount < 8) //TODO: Think about how max number of lights is filled up...
+					if(lightCount < descriptor->GetElementCount()) //TODO: Think about how max number of lights is filled up...
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8-lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					
 					break;
@@ -1031,7 +1031,7 @@ namespace RN
 					if(drawable->skeleton)
 					{
 						//TODO: Don't hardcode limit here
-						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), descriptor->GetElementCount());
 						if(matrixCount > 0)
 						{
 							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
@@ -1040,6 +1040,7 @@ namespace RN
 					break;
 				}
 
+				//TODO: Support arrays!
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
 					Object *object = materialProperties.GetCustomShaderUniform(descriptor->GetName());
@@ -1201,11 +1202,11 @@ namespace RN
 
 	void MetalRenderer::SubmitLight(const Light *light)
 	{
+		//TODO: Limit number of lights somehow!? Currently it is just limited by what the shader supports
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
-			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-				renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), 0.0f, light->GetFinalColor()});
+			renderPass.directionalLights.push_back(MetalDirectionalLight{light->GetForward(), 0.0f, light->GetFinalColor()});
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())
@@ -1217,13 +1218,11 @@ namespace RN
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
-			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
-				renderPass.pointLights.push_back(MetalPointLight{light->GetWorldPosition(), light->GetRange(), light->GetFinalColor()});
+			renderPass.pointLights.push_back(MetalPointLight{light->GetWorldPosition(), light->GetRange(), light->GetFinalColor()});
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
-			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
-				renderPass.spotLights.push_back(MetalSpotLight{light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor()});
+			renderPass.spotLights.push_back(MetalSpotLight{light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor()});
 		}
 	}
 

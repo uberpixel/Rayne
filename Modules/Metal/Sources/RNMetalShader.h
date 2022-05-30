@@ -29,7 +29,7 @@ namespace RN
 		MetalShader(ShaderLibrary *library, Type type, bool hasInstancing, const Array *samplers, const Shader::Options *options, void *shader, MetalStateCoordinator *coordinator);
 		void SetReflectedArguments(NSArray *arguments);
 		
-		void AddBufferStructElements(Array *uniformDescriptors, MTLStructType *structType, bool &isInstanceBuffer);
+		Array *GetBufferStructElements(MTLStructType *structType, size_t &numberOfElements);
 
 		void *_shader;
 		std::vector<void*> _samplers;
