@@ -254,6 +254,11 @@ namespace RN
 				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
 			else
 				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
+
+			if(descriptor.sampleCount > 1)
+			{
+				flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+			}
 		}
 		else
 		{
@@ -359,7 +364,9 @@ namespace RN
 
 		if(descriptor.usageHint & UsageHint::RenderTarget)
 		{
-			device->GetMemoryWithType(_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocateInfo.memoryTypeIndex);
+			VkFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			if(descriptor.sampleCount > 1) memoryProperties |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+			device->GetMemoryWithType(_requirements.memoryTypeBits, memoryProperties, allocateInfo.memoryTypeIndex);
 		}
 		else
 		{
