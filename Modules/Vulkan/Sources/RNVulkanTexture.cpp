@@ -232,18 +232,21 @@ namespace RN
 	{
 		VkImageUsageFlags flags = 0;
 
-		switch(descriptor.accessOptions)
-		{
-			case GPUResource::AccessOptions::ReadWrite:
-				flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-				break;
-			case GPUResource::AccessOptions::WriteOnly:
-				flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-				break;
-			case GPUResource::AccessOptions::Private:
-				flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-				break;
-		}
+        if(descriptor.sampleCount <= 1)
+        {
+            switch(descriptor.accessOptions)
+            {
+                case GPUResource::AccessOptions::ReadWrite:
+                    flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+                    break;
+                case GPUResource::AccessOptions::WriteOnly:
+                    flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+                    break;
+                case GPUResource::AccessOptions::Private:
+                    flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+                    break;
+            }
+        }
 
 		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
 		{
@@ -251,14 +254,18 @@ namespace RN
 			bool stencil = VkFormatIsStencilFormat(format);
 
 			if(!depth && !stencil)
-				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
+				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			else
-				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
+				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 			if(descriptor.sampleCount > 1)
 			{
 				flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 			}
+            else
+            {
+                flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+            }
 		}
 		else
 		{
@@ -506,7 +513,7 @@ namespace RN
 		allocateInfo.pNext = nullptr;
 		allocateInfo.allocationSize = uploadRequirements.size;
 
-		_renderer->GetVulkanDevice()->GetMemoryWithType(uploadRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocateInfo.memoryTypeIndex);
+		_renderer->GetVulkanDevice()->GetMemoryWithType(uploadRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT, allocateInfo.memoryTypeIndex);
 
 		RNVulkanValidate(vk::AllocateMemory(device, &allocateInfo, _renderer->GetAllocatorCallback(), &_uploadMemory));
 		RNVulkanValidate(vk::BindImageMemory(device, _uploadImage, _uploadMemory, 0));

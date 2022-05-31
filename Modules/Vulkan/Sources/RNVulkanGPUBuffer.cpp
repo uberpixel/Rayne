@@ -25,8 +25,8 @@ namespace RN
 		memoryAllocateInfo.allocationSize = 0;
 		memoryAllocateInfo.memoryTypeIndex = 0;
 
-		//TODO: Remove host visible bit for vertex and index buffers and upload the data using a temporary buffer instead!?
-		VkFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		//TODO: Remove host visible and cached bit for vertex and index buffers and upload the data using a temporary buffer instead!?
+		VkFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		VkBufferUsageFlags usage;
 		switch(usageOption)
 		{
@@ -101,7 +101,7 @@ namespace RN
 	{
 		if(!_mappedBuffer) return;
 
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+/*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;
 		memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 		memoryRange.pNext = nullptr;
@@ -109,14 +109,14 @@ namespace RN
 		memoryRange.offset = range.origin;
 		memoryRange.size = range.length;
 
-		RNVulkanValidate(vk::InvalidateMappedMemoryRanges(device, 1, &memoryRange));
+		RNVulkanValidate(vk::InvalidateMappedMemoryRanges(device, 1, &memoryRange));*/
 	}
 
 	void VulkanGPUBuffer::FlushRange(const Range &range)
 	{
 		if(!_mappedBuffer) return;
 
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+/*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;
 		memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 		memoryRange.pNext = nullptr;
@@ -124,7 +124,7 @@ namespace RN
 		memoryRange.offset = range.origin;
 		memoryRange.size = range.length;
 
-		RNVulkanValidate(vk::FlushMappedMemoryRanges(device, 1, &memoryRange));
+		RNVulkanValidate(vk::FlushMappedMemoryRanges(device, 1, &memoryRange));*/
 	}
 
 	size_t VulkanGPUBuffer::GetLength() const

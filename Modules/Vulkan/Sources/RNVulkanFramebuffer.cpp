@@ -491,9 +491,6 @@ namespace RN
 				_colorTargets.push_back(vulkanTargetView);
 			}
 
-			commandBuffer->End();
-			_renderer->SubmitCommandBuffer(commandBuffer);
-
 			if(fragmentDensityFormat != Texture::Format::Invalid && _renderer->GetVulkanDevice()->GetSupportsFragmentDensityMaps())
 			{
 				for(uint8 i = 0; i < bufferCount; i++)
@@ -511,6 +508,8 @@ namespace RN
 					fragmentDensityTextureDescriptor.format = fragmentDensityFormat;
 
 					VulkanTexture *bufferTexture = new VulkanTexture(fragmentDensityTextureDescriptor, _renderer, fragmentDensityBuffer);
+                    VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), fragmentDensityBuffer, 0, 1, 0, layerCount, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT, VulkanTexture::BarrierIntent::ShaderSource);
+                    bufferTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT);
 
 					TargetView targetView;
 					targetView.texture = bufferTexture->Autorelease();
@@ -522,6 +521,9 @@ namespace RN
 					_fragmentDensityTargets.push_back(vulkanTargetView);
 				}
 			}
+
+            commandBuffer->End();
+            _renderer->SubmitCommandBuffer(commandBuffer);
 		}
 
 		if(!_depthStencilTarget && depthStencilFormat != Texture::Format::Invalid)

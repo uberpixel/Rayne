@@ -927,7 +927,7 @@ namespace RN
 			attachment.format = fragmentDensityFramebuffer->_fragmentDensityTargets[0]->vulkanTargetViewDescriptor.format;
 			attachment.flags = 0;
 			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
