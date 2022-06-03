@@ -78,7 +78,6 @@ set(RAYNE_SOURCES
     Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
-    Rendering/RNInstancingData.cpp
     Rendering/RNMaterial.cpp
     Rendering/RNMesh.cpp
     Rendering/RNModel.cpp
@@ -95,7 +94,6 @@ set(RAYNE_SOURCES
     Rendering/RNWindow.cpp
     Scene/RNCamera.cpp
     Scene/RNEntity.cpp
-    Scene/RNInstancingNode.cpp
     Scene/RNScene.cpp
     Scene/RNSceneBasic.cpp
 	Scene/RNSceneWithVisibilityLists.cpp
@@ -203,7 +201,6 @@ set(RAYNE_HEADERS
     Rendering/RNFramebuffer.h
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h
-    Rendering/RNInstancingData.h
     Rendering/RNMaterial.h
     Rendering/RNMesh.h
     Rendering/RNModel.h
@@ -221,7 +218,6 @@ set(RAYNE_HEADERS
     Rendering/RNWindow.h
     Scene/RNCamera.h
     Scene/RNEntity.h
-    Scene/RNInstancingNode.h
     Scene/RNScene.h
     Scene/RNSceneBasic.h
 	Scene/RNSceneWithVisibilityLists.h

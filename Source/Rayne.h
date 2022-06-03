@@ -93,7 +93,6 @@
 
 #include "Scene/RNCamera.h"
 #include "Scene/RNEntity.h"
-#include "Scene/RNInstancingNode.h"
 #include "Scene/RNScene.h"
 #include "Scene/RNSceneBasic.h"
 #include "Scene/RNSceneWithVisibilityLists.h"
