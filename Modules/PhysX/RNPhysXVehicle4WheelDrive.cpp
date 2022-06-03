@@ -92,8 +92,11 @@ namespace RN
 		simFilterData.word1 = chassisCollisionMask;
 
 		_actor = physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
+		
+		world->Lock();
 		PhysXVehicleInternal::SetupVehicleActor(compoundShape, _wheelCount, chassisData, wheelSimFilterData, simFilterData, _actor);
 		world->GetPhysXScene()->addActor(*_actor);
+		world->Unlock();
 		_actor->userData = this;
 
 		_vehicleDrive4W = physx::PxVehicleDrive4W::allocate(_wheelCount);
@@ -107,7 +110,9 @@ namespace RN
 		sqDesc.queryMemory.userRaycastTouchBuffer = static_cast<physx::PxRaycastHit*>(_raycastHitBuffer);
 		sqDesc.queryMemory.raycastTouchBufferSize = _wheelCount;
 		sqDesc.preFilterShader = PhysXCallback::VehicleQueryPreFilter;
+		world->Lock();
 		_batchQuery = world->GetPhysXScene()->createBatchQuery(sqDesc);
+		world->Unlock();
 		
 		_vehicleDrive4W->mDriveDynData.setUseAutoGears(true);
 	}

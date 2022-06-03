@@ -40,14 +40,18 @@ namespace RN
 		_actor->userData = this;
 		_actor->setContactReportThreshold(0.0f);
 
+		PhysXWorld::GetSharedInstance()->Lock();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		scene->addActor(*_actor);
+		PhysXWorld::GetSharedInstance()->Unlock();
 	}
 		
 	PhysXDynamicBody::~PhysXDynamicBody()
 	{
+		PhysXWorld::GetSharedInstance()->Lock();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		scene->removeActor(*_actor);
+		PhysXWorld::GetSharedInstance()->Unlock();
 		_actor->release();
 		_shape->Release();
 	}

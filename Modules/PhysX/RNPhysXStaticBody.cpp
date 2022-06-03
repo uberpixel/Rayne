@@ -36,14 +36,18 @@ namespace RN
 
 		_actor->userData = this;
 
+		PhysXWorld::GetSharedInstance()->Lock();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		scene->addActor(*_actor);
+		PhysXWorld::GetSharedInstance()->Unlock();
 	}
 		
 	PhysXStaticBody::~PhysXStaticBody()
 	{
+		PhysXWorld::GetSharedInstance()->Lock();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		scene->removeActor(*_actor);
+		PhysXWorld::GetSharedInstance()->Unlock();
 
 		_actor->release();
 		_shape->Release();
