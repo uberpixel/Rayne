@@ -1680,7 +1680,6 @@ namespace RN
 		//Check if uniform buffers are the same, the object can't be part of the same instanced draw call if it doesn't share the same buffers (because they are full for example)
 		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size())
 		{
-			size_t maxInstanceCount = -1;
 			canUseInstancing = true;
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && canUseInstancing; i++)
 			{
@@ -1783,7 +1782,7 @@ namespace RN
 
 			if(renderPass.drawables.size() > 0)
 			{
-				uint32 stepSize = 0;
+				size_t stepSize = 0;
 				uint32 stepSizeIndex = 0;
 				for(size_t i = 0; i < renderPass.drawables.size(); i+= stepSize)
 				{
@@ -1816,7 +1815,7 @@ namespace RN
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
-						constantBufferDescriptorInfo.range = constantBuffer->size * stepSize;
+						constantBufferDescriptorInfo.range = constantBuffer->size * std::min(stepSize, argument->GetMaxInstanceCount());
 						constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 						VkWriteDescriptorSet writeConstantDescriptorSet = {};
@@ -1851,7 +1850,7 @@ namespace RN
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
-						constantBufferDescriptorInfo.range = constantBuffer->size * stepSize;
+						constantBufferDescriptorInfo.range = constantBuffer->size * std::min(stepSize, argument->GetMaxInstanceCount());
 						constantBufferDescriptorInfoArray.push_back(constantBufferDescriptorInfo);
 
 						VkWriteDescriptorSet writeConstantDescriptorSet = {};
