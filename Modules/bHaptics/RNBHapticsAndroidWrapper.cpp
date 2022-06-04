@@ -405,6 +405,7 @@ namespace RN
         if(env)
         {
             jstring jstr = (jstring)env->CallObjectMethod(app->activity->clazz, GetCurrentDeviceMethod);
+			if(jstr == nullptr) return devices;
 
             jsize stringLength = env->GetStringUTFLength(jstr);
             if(stringLength == 0) return devices;
