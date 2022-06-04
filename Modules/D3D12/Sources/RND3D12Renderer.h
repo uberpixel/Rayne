@@ -83,9 +83,10 @@ namespace RN
 		D3D12RendererDescriptor *GetD3D12Descriptor() const { return static_cast<D3D12RendererDescriptor *>(GetDescriptor()); }
 
 		D3DAPI D3D12UniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
+		D3DAPI void UpdateUniformBufferReference(D3D12UniformBufferReference *reference, bool align);
 
 	protected:
-		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable);
+		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable, uint32 instanceCount);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argument, D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable);
 
 		void RenderAPIRenderPass(D3D12CommandList *commandList, const D3D12RenderPass &renderPass);

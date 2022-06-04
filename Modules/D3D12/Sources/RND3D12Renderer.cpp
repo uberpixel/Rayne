@@ -440,10 +440,13 @@ namespace RN
 			}
 		}
 
-		CreateMipMaps();		
+		CreateMipMaps();
 
 		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
+
+		_internals->currentPipelineState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
+		_internals->currentInstanceDrawable = nullptr;
 
 		for(D3D12SwapChain *swapChain : _internals->swapChains)
 		{
@@ -480,19 +483,23 @@ namespace RN
 				if(renderPass.drawables.size() > 0)
 				{
 					//Draw drawables
-					for(D3D12Drawable *drawable : renderPass.drawables)
+					uint32 stepSize = 0;
+					uint32 stepSizeIndex = 0;
+					for(size_t i = 0; i < renderPass.drawables.size(); i += stepSize)
 					{
 						//TODO: Sort drawables by camera and root signature
-						if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
+						if(renderPass.drawables[i]->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature != _currentRootSignature)
 						{
-							_currentRootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
+							_currentRootSignature = renderPass.drawables[i]->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 							commandList->SetGraphicsRootSignature(_currentRootSignature->signature);
 
 							// Set the one big descriptor heap for the whole frame
 							ID3D12DescriptorHeap* srvCbvHeaps[] = { _currentSrvCbvHeap->_heap };
 							commandList->SetDescriptorHeaps(_countof(srvCbvHeaps), srvCbvHeaps);
 						}
-						RenderDrawable(commandList, drawable);
+
+						stepSize = renderPass.instanceSteps[stepSizeIndex++];
+						RenderDrawable(commandList, renderPass.drawables[i], stepSize);
 					}
 
 					_internals->currentDrawableResourceIndex += 1;
@@ -563,6 +570,9 @@ namespace RN
 		}
 
 		RenderPass *cameraRenderPass = _currentMultiviewFallbackRenderPass ? _currentMultiviewFallbackRenderPass : camera->GetRenderPass();
+
+		_internals->currentPipelineState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
+		_internals->currentInstanceDrawable = nullptr;
 		
 		D3D12RenderPass renderPass;
 		renderPass.drawables.resize(0);
@@ -640,6 +650,9 @@ namespace RN
 		D3D12RenderPass d3dRenderPass;
 		d3dRenderPass.drawables.resize(0);
 		d3dRenderPass.multiviewLayer = 0;
+
+		_internals->currentPipelineState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
+		_internals->currentInstanceDrawable = nullptr;
 
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
@@ -760,6 +773,12 @@ namespace RN
 	{
 		D3D12UniformBufferReference *reference = _uniformBufferPool->GetUniformBufferReference(size, index);
 		return reference;
+	}
+
+	void D3D12Renderer::UpdateUniformBufferReference(D3D12UniformBufferReference *reference, bool align)
+	{
+		LockGuard<Lockable> lock(_lock);
+		return _uniformBufferPool->UpdateUniformBufferReference(reference, align);
 	}
 
 	ShaderLibrary *D3D12Renderer::CreateShaderLibraryWithFile(const String *file)
@@ -1032,36 +1051,64 @@ namespace RN
 				continue;
 			}
 
-			for(D3D12Drawable *drawable : renderPass.drawables)
+			size_t stepSize = 0;
+			uint32 stepSizeIndex = 0;
+			for(size_t i = 0; i < renderPass.drawables.size(); i += stepSize)
 			{
+				stepSize = renderPass.instanceSteps[stepSizeIndex++];
+
+				D3D12Drawable *drawable = renderPass.drawables[i];
+
 				//The order of descriptors here needs to match the order in the root signature for each table
 				//
 				//Create constant buffer descriptors
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 				D3D12UniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 				size_t counter = 0;
-				for(D3D12UniformBufferReference *uniformBuffer : uniformState->vertexUniformBuffers)
+				for(size_t bufferIndex = 0; bufferIndex < uniformState->vertexUniformBuffers.size(); bufferIndex += 1)
 				{
 					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
-					FillUniformBuffer(argument, uniformBuffer, drawable);
 
+					//Setup uniforms for all instances that are part of this draw call
+					for(size_t instance = 0; instance < stepSize; instance += 1)
+					{
+						if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
+
+						D3D12UniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+						UpdateUniformBufferReference(instanceUniformState->vertexUniformBuffers[bufferIndex], instance == 0);
+						FillUniformBuffer(argument, instanceUniformState->vertexUniformBuffers[bufferIndex], renderPass.drawables[i + instance]);
+					}
+
+					D3D12UniformBufferReference *uniformBuffer = uniformState->vertexUniformBuffers[bufferIndex];
 					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
 					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
-					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
+					cbvDesc.SizeInBytes = uniformBuffer->size *std::min(stepSize, argument->GetMaxInstanceCount());
+					cbvDesc.SizeInBytes = cbvDesc.SizeInBytes + kRNUniformBufferAlignement - (cbvDesc.SizeInBytes % kRNUniformBufferAlignement); //Does this really need to be aligned here!?
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
 
 				//TODO: Add support for vertex shader textures here
 
-				for(D3D12UniformBufferReference *uniformBuffer : uniformState->fragmentUniformBuffers)
+				for(size_t bufferIndex = 0; bufferIndex < uniformState->fragmentUniformBuffers.size(); bufferIndex += 1)
 				{
 					Shader::ArgumentBuffer *argument = uniformState->uniformBufferToArgumentMapping[counter++];
-					FillUniformBuffer(argument, uniformBuffer, drawable);
+					
+					//Setup uniforms for all instances that are part of this draw call
+					for(size_t instance = 0; instance < stepSize; instance += 1)
+					{
+						if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
 
+						D3D12UniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+						UpdateUniformBufferReference(instanceUniformState->fragmentUniformBuffers[bufferIndex], instance == 0);
+						FillUniformBuffer(argument, instanceUniformState->fragmentUniformBuffers[bufferIndex], renderPass.drawables[i + instance]);
+					}
+
+					D3D12UniformBufferReference *uniformBuffer = uniformState->fragmentUniformBuffers[bufferIndex];
 					D3D12GPUBuffer *actualBuffer = uniformBuffer->uniformBuffer->GetActiveBuffer()->Downcast<D3D12GPUBuffer>();
 					cbvDesc.BufferLocation = actualBuffer->GetD3D12Resource()->GetGPUVirtualAddress() + uniformBuffer->offset;
-					cbvDesc.SizeInBytes = uniformBuffer->size + kRNUniformBufferAlignement - (uniformBuffer->size % kRNUniformBufferAlignement);
+					cbvDesc.SizeInBytes = uniformBuffer->size *std::min(stepSize, argument->GetMaxInstanceCount());
+					cbvDesc.SizeInBytes  = cbvDesc.SizeInBytes + kRNUniformBufferAlignement - (cbvDesc.SizeInBytes % kRNUniformBufferAlignement); //Does this really need to be aligned here!?
 					GetD3D12Device()->GetDevice()->CreateConstantBufferView(&cbvDesc, currentCPUHandle);
 					currentCPUHandle = _currentSrvCbvHeap->GetCPUHandle(++heapIndex);
 				}
@@ -1331,14 +1378,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
+					uint32 lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLights:
 				{
-					size_t lightCount = renderPass.directionalLights.size();
+					size_t lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
@@ -1348,15 +1395,15 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
 				{
-					size_t matrixCount = renderPass.directionalShadowMatrices.size();
-					if (matrixCount > 0)
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
+					if(matrixCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
 					}
@@ -1371,28 +1418,28 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::PointLights:
 				{
-					size_t lightCount = renderPass.pointLights.size();
+					uint32 lightCount = std::min(renderPass.pointLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
 					}
 					if(lightCount < 8)
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpotLights:
 				{
-					size_t lightCount = renderPass.spotLights.size();
+					uint32 lightCount = std::min(renderPass.spotLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
 					}
 					if(lightCount < 8)
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
@@ -1401,8 +1448,7 @@ namespace RN
 				{
 					if(drawable->skeleton)
 					{
-						//TODO: Don't hardcode limit here
-						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						uint32 matrixCount = std::min(drawable->skeleton->_matrices.size(), descriptor->GetElementCount());
 						if(matrixCount > 0)
 						{
 							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
@@ -1578,10 +1624,7 @@ namespace RN
 
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
-			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-			{
-				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetFinalColor() });
-			}
+			renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetFinalColor() });
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())
@@ -1593,17 +1636,11 @@ namespace RN
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
-			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
-			}
+			renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
-			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
-			}
+			renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
 		}
 	}
 
@@ -1629,17 +1666,72 @@ namespace RN
 			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
 		}
 
-		// Push into the queue
+		//Vertex and fragment shaders need to explicitly be marked to support instancing in the shader library json
+		RN::Shader *vertexShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.vertexShader;
+		RN::Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.fragmentShader;
+		bool canUseInstancing = (!vertexShader || vertexShader->GetHasInstancing()) && (!fragmentShader || fragmentShader->GetHasInstancing());
+
+		//Check if uniform buffers are the same, the object can't be part of the same instanced draw call if it doesn't share the same buffers (because they are full for example)
+		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size())
+		{
+			canUseInstancing = true;
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() && canUseInstancing; i++)
+			{
+				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers[i]->uniformBuffer)
+				{
+					canUseInstancing = false;
+				}
+			}
+
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size() && canUseInstancing; i++)
+			{
+				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer)
+				{
+					canUseInstancing = false;
+				}
+			}
+
+			if(canUseInstancing)
+			{
+				//depth testing and polygon offset are setup as part of the draw call and objects can only be instanced correctly if these are the same
+				Material::Properties previousMergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+				Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+
+				if(mergedMaterialProperties.depthMode != previousMergedMaterialProperties.depthMode || mergedMaterialProperties.depthWriteEnabled != previousMergedMaterialProperties.depthWriteEnabled || mergedMaterialProperties.usePolygonOffset != previousMergedMaterialProperties.usePolygonOffset || (mergedMaterialProperties.usePolygonOffset && (mergedMaterialProperties.polygonOffsetUnits != previousMergedMaterialProperties.polygonOffsetUnits || mergedMaterialProperties.polygonOffsetFactor != previousMergedMaterialProperties.polygonOffsetFactor)))
+				{
+					canUseInstancing = false;
+				}
+			}
+		}
+
+		if(canUseInstancing && renderPass.instanceSteps.size() > 0 && renderPass.instanceSteps.back() >= std::min(vertexShader->GetMaxInstanceCount(), fragmentShader ? fragmentShader->GetMaxInstanceCount() : -1))
+		{
+			canUseInstancing = false;
+		}
+
 		_lock.Lock();
+		if(_internals->currentPipelineState && _internals->currentPipelineState->state == drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->state && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqual(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
+		{
+			renderPass.instanceSteps.back() += 1; //Increase counter if the rendering state is the same
+		}
+		else
+		{
+			_internals->currentPipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
+			_internals->currentInstanceDrawable = drawable;
+			renderPass.instanceSteps.push_back(1); //Add new entry if the rendering state changed
+			
+			_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexTextureCount;
+			_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentTextureCount;
+			_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexUniformBufferCount;
+			_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentUniformBufferCount;
+		}
+
+		// Push into the queue
 		renderPass.drawables.push_back(drawable);
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexTextureCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentTextureCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->vertexUniformBufferCount;
-		_internals->totalDescriptorTables += drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature->fragmentUniformBufferCount;
 		_lock.Unlock();
 	}
 
-	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable)
+	void D3D12Renderer::RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable, uint32 instanceCount)
 	{
 		const D3D12RootSignature *rootSignature = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->rootSignature;
 		UINT rootParameter = 0;
@@ -1663,11 +1755,16 @@ namespace RN
 
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-		vertexBufferView.BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress();
-		vertexBufferView.StrideInBytes = drawable->mesh->GetStride();
-		vertexBufferView.SizeInBytes = buffer->GetLength();
-		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
+		vertexBufferViews[0].BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress();
+		vertexBufferViews[0].StrideInBytes = drawable->mesh->GetVertexPositionsSeparatedSize() > 0? drawable->mesh->GetVertexPositionsSeparatedStride() : drawable->mesh->GetStride();
+		vertexBufferViews[0].SizeInBytes = drawable->mesh->GetVertexPositionsSeparatedSize() > 0? drawable->mesh->GetVertexPositionsSeparatedSize() : buffer->GetLength();
+
+		vertexBufferViews[1].BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress() + drawable->mesh->GetVertexPositionsSeparatedSize();
+		vertexBufferViews[1].StrideInBytes = drawable->mesh->GetStride();
+		vertexBufferViews[1].SizeInBytes = buffer->GetLength() - drawable->mesh->GetVertexPositionsSeparatedSize();
+
+		commandList->IASetVertexBuffers(0, (drawable->mesh->GetVertexPositionsSeparatedSize() > 0 && drawable->mesh->GetVertexPositionsSeparatedSize() < buffer->GetLength())? 2 : 1, vertexBufferViews);
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		indexBufferView.BufferLocation = indices->GetD3D12Resource()->GetGPUVirtualAddress();
@@ -1675,7 +1772,7 @@ namespace RN
 		indexBufferView.SizeInBytes = indices->GetLength();
 		commandList->IASetIndexBuffer(&indexBufferView);
 
-		commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), 1, 0, 0, 0);
+		commandList->DrawIndexedInstanced(drawable->mesh->GetIndicesCount(), instanceCount, 0, 0, 0);
 
 		_currentDrawableIndex += 1;
 	}

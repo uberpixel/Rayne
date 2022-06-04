@@ -38,7 +38,7 @@ namespace RN
 		RNAPI virtual RendererDescriptor *GetPreferredRenderer() const;
 		RNAPI virtual RenderingDevice *GetPreferredRenderingDevice(RN::RendererDescriptor *descriptor, const Array *devices) const;
 
-		RNAPI Array *GetLoggingEngines() const;
+		RNAPI Array *GetLoggingEngines();
 
 		const String *GetTitle() const { return _title; }
 
@@ -47,6 +47,9 @@ namespace RN
 
 	private:
 		void __PrepareForWillFinishLaunching(Kernel *kernel);
+#if RN_PLATFORM_WINDOWS
+		std::wofstream _fileStream;
+#endif
 
 		String *_title;
 	};

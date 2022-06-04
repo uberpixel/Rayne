@@ -38,7 +38,8 @@ namespace RN
 		_arguments(arguments),
 		_application(application),
 		_exit(false),
-		_isActive(true)
+		_isActive(true),
+		_wantsToExit(false)
 	{}
 
 	Kernel::~Kernel()
@@ -86,6 +87,11 @@ namespace RN
 
 			WorkQueue::InitializeQueues();
 
+			_fileManager = new FileManager();
+			ReadManifest();
+			_application->__PrepareForWillFinishLaunching(this); //This takes the game title from the manifest, which is needed to log into the correct directory
+			_fileManager->__PrepareWithManifest();
+
 			_mainQueue = WorkQueue::GetMainQueue();
 			_logger = new Logger();
 
@@ -96,19 +102,13 @@ namespace RN
 
 			Screen::InitializeScreens();
 			__ExtensionPointBase::InitializeExtensionPoints();
-
-			_fileManager = new FileManager();
 			_firstFrame = true;
 			_frames = 0;
 
 			_delta = 0;
 			_time = 0;
 
-			ReadManifest();
 			SetMaxFPS(500);
-
-			_application->__PrepareForWillFinishLaunching(this);
-			_fileManager->__PrepareWithManifest();
 
 			_settings = new Settings(); // Requires the FileManager to have all search paths
 
@@ -450,8 +450,8 @@ namespace RN
 
 			if(message.message == WM_CLOSE || message.message == WM_DESTROY || message.message == WM_QUIT)
 			{
-				//TODO: Find a better way to signal the app to close or maybe just close it? This sets the ESC key to true...
-				InputManager::GetSharedInstance()->_keyPressed[0x1B] = true;
+				//Close application
+				_wantsToExit = true; //This can be queried to then trigger a shutdown of everything
 			}
 
 			TranslateMessage(&message);
