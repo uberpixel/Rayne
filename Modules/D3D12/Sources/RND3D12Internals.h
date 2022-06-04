@@ -110,6 +110,8 @@ namespace RN
 		uint8 multiviewLayer;
 
 		std::vector<D3D12Drawable *> drawables;
+		std::vector<uint32> instanceSteps; //number of drawables in the drawables list that use the same pipeline state and can all be rendered with the same draw call as result
+
 		std::vector<D3D12LightDirectional> directionalLights;
 		std::vector<VulkanPointLight> pointLights;
 		std::vector<VulkanSpotLight> spotLights;
@@ -138,6 +140,9 @@ namespace RN
 		size_t totalDrawableCount;
 
 		size_t totalDescriptorTables;
+
+		const D3D12PipelineState *currentPipelineState;
+		D3D12Drawable *currentInstanceDrawable;
 	};
 
 	class D3D12DescriptorHeap : public Object

@@ -32,8 +32,10 @@ namespace RN
 		D3DAPI GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
 		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
 
-		D3DAPI size_t Allocate(size_t size);
-		D3DAPI void Free(size_t offset, size_t size);
+		D3DAPI void Reset();
+		D3DAPI size_t Allocate(size_t size, bool align);
+		D3DAPI size_t Reserve(size_t size);
+		D3DAPI void Unreserve(size_t size);
 
 	private:
 		std::vector<GPUBuffer*> _buffers;
@@ -43,6 +45,7 @@ namespace RN
 		size_t _sizeUsed;
 		size_t _offsetToFreeData;
 		size_t _totalSize;
+		size_t _sizeReserved;
 
 		RNDeclareMetaAPI(D3D12UniformBuffer, D3DAPI)
 	};
@@ -56,6 +59,7 @@ namespace RN
 		uint32 shaderResourceIndex;
 		uint32 offset;
 		uint32 size;
+		uint32 reservedSize;
 		D3D12UniformBuffer *uniformBuffer;
 
 	private:
@@ -70,6 +74,7 @@ namespace RN
 		D3D12UniformBufferPool();
 		~D3D12UniformBufferPool();
 		D3D12UniformBufferReference *GetUniformBufferReference(uint32 size, uint32 index);
+		void UpdateUniformBufferReference(D3D12UniformBufferReference *reference, bool align);
 		void Update(size_t currentFrame, size_t completedFrame);
 		void FlushAllBuffers();
 

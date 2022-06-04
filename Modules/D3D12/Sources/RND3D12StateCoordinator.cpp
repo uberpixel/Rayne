@@ -144,19 +144,19 @@ namespace RN
 		
 		if(vertexShaderSignature)
 		{
-			vertexShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+			vertexShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(0);
+				bindingType.push_back(argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer ? 0 : 1);
 			});
 
 			vertexShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(1);
+				bindingType.push_back(2);
 			});
 
 			vertexShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(2);
+				bindingType.push_back(3);
 			});
 
 			vertexTextureCount = vertexShaderSignature->GetTextures()->GetCount();
@@ -167,19 +167,19 @@ namespace RN
 		
 		if(fragmentShaderSignature)
 		{
-			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
+			fragmentShaderSignature->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(0);
+				bindingType.push_back(argument->GetType() == Shader::ArgumentBuffer::Type::UniformBuffer ? 4 : 5);
 			});
 
 			fragmentShaderSignature->GetSamplers()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(1);
+				bindingType.push_back(6);
 			});
 
 			fragmentShaderSignature->GetTextures()->Enumerate<Shader::Argument>([&](Shader::Argument *argument, size_t index, bool &stop) {
 				bindingIndex.push_back(argument->GetIndex());
-				bindingType.push_back(2);
+				bindingType.push_back(7);
 			});
 
 			fragmentTextureCount = fragmentShaderSignature->GetTextures()->GetCount();
@@ -609,6 +609,7 @@ namespace RN
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
 		size_t bufferIndex = 0;
 
+		//TODO: Check about attributes supported by the shader and don't bind extra buffer if only position data is used when rendering
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
@@ -667,4 +668,23 @@ namespace RN
 
 		return state;
 	}
+
+	D3D12UniformState::~D3D12UniformState()
+	{
+		for(D3D12UniformBufferReference *buffer : vertexUniformBuffers)
+		{
+			buffer->Release();
+		}
+
+		for(D3D12UniformBufferReference *buffer : fragmentUniformBuffers)
+		{
+			buffer->Release();
+		}
+
+		for(Shader::ArgumentBuffer *buffer : uniformBufferToArgumentMapping)
+		{
+			buffer->Release();
+		}
+	}
+
 }

@@ -24,6 +24,8 @@ namespace RN
 
 	struct D3D12UniformState
 	{
+		~D3D12UniformState();
+
 		std::vector<Shader::ArgumentBuffer*> uniformBufferToArgumentMapping;
 		std::vector<D3D12UniformBufferReference *> vertexUniformBuffers;
 		std::vector<D3D12UniformBufferReference *> fragmentUniformBuffers;
