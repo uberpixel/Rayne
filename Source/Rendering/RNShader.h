@@ -125,7 +125,7 @@ namespace RN
 
 			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
 			
-			static bool IsKnownStructName(RN::String *structName);
+			RNAPI static bool IsKnownStructName(RN::String *structName);
 
 		private:
 			String *_name;

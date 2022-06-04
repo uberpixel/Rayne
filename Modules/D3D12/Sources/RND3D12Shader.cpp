@@ -9,12 +9,14 @@
 #include "d3dx12.h"
 #include "RND3D12Shader.h"
 
+#include <Rendering/RNShader.h>
+
 namespace RN
 {
 	RNDefineMeta(D3D12Shader, Shader)
 
-	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers) :
-		Shader(library, type, options), _shader(nullptr), _name(entryPoint->Retain())
+	D3D12Shader::D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, bool hasInstancing, const Shader::Options *options, const Array *samplers) :
+		Shader(library, type, hasInstancing, options), _shader(nullptr), _name(entryPoint->Retain())
 	{
 		if(fileName->HasSuffix(RNCSTR(".cso")))
 		{
@@ -157,6 +159,7 @@ namespace RN
 		for(UINT i = 0; i < shaderDescription.ConstantBuffers; i++)
 		{
 			Array *uniformDescriptors = new Array();
+			size_t maxInstanceCount = 1;
 			
 			ID3D12ShaderReflectionConstantBuffer* pConstBuffer = pReflector->GetConstantBufferByIndex(i);
 			D3D12_SHADER_BUFFER_DESC bufferDescription;
@@ -174,66 +177,31 @@ namespace RN
 				ID3D12ShaderReflectionType* variableType = pVariable->GetType();
 				D3D12_SHADER_TYPE_DESC variableTypeDescription;
 				variableType->GetDesc(&variableTypeDescription);
-
 				String *name = RNSTR(variableDescription.Name)->Retain();
 				uint32 offset = variableDescription.StartOffset;
 
-				PrimitiveType uniformType = PrimitiveType::Invalid;
-				if(variableTypeDescription.Type == D3D_SVT_FLOAT)
+				//TODO: This assumes that any single uinknown array of structs inside a uniform buffer contains per instance data, should make this better...
+				if(bufferDescription.Variables == 1 && variableTypeDescription.Class == D3D_SVC_STRUCT && !UniformDescriptor::IsKnownStructName(name))
 				{
-					if(variableTypeDescription.Rows == 1)
+					maxInstanceCount = variableTypeDescription.Elements;
+
+					for(UINT member = 0; member < variableTypeDescription.Members; member++)
 					{
-						if(variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Float;
-						else if(variableTypeDescription.Columns == 2) uniformType = PrimitiveType::Vector2;
-						else if(variableTypeDescription.Columns == 3) uniformType = PrimitiveType::Vector3;
-						else if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Vector4;
+						ID3D12ShaderReflectionType *memberType = variableType->GetMemberTypeByIndex(member);
+						D3D12_SHADER_TYPE_DESC memberTypeDescription;
+						memberType->GetDesc(&memberTypeDescription);
+
+						String *memberName = RNSTR(variableType->GetMemberTypeName(member))->Retain();
+
+						UniformDescriptor *descriptor = GetUniformDescriptorForReflectionInfo(memberName, memberTypeDescription, offset + memberTypeDescription.Offset);
+						uniformDescriptors->AddObject(descriptor);
 					}
-					else
-					{
-						if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix;
-					}
-				}
-				else if(variableTypeDescription.Type == D3D_SVT_FLOAT16)
-				{
-					if(variableTypeDescription.Rows == 1)
-					{
-						if(variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Half;
-						else if(variableTypeDescription.Columns == 2) uniformType = PrimitiveType::HalfVector2;
-						else if(variableTypeDescription.Columns == 3) uniformType = PrimitiveType::HalfVector3;
-						else if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::HalfVector4;
-					}
-				}
-				else if(variableTypeDescription.Columns == 1 && variableTypeDescription.Rows == 1)
-				{
-					if(variableTypeDescription.Type == D3D_SVT_INT)
-					{
-						uniformType = PrimitiveType::Int32;
-					}
-					else if(variableTypeDescription.Type == D3D_SVT_UINT)
-					{
-						uniformType = PrimitiveType::Uint32;
-					}
-					//TODO: 16bit int type doesn't seem to exist
-					/*else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Short)
-					{
-						uniformType = PrimitiveType::Int16;
-					}
-					else if(spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::UShort)
-					{
-						uniformType = PrimitiveType::Uint16;
-					}
-					else if(variableTypeDescription.Type == D3D_SVT_INT8) //Not supported either!?
-					{
-						uniformType = PrimitiveType::Int8;
-					}*/
-					else if(variableTypeDescription.Type == D3D_SVT_UINT8)
-					{
-						uniformType = PrimitiveType::Uint8;
-					}
+
+					break;
 				}
 
-				UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset);
-				uniformDescriptors->AddObject(descriptor->Autorelease());
+				UniformDescriptor *descriptor = GetUniformDescriptorForReflectionInfo(name, variableTypeDescription, offset);
+				uniformDescriptors->AddObject(descriptor);
 			}
 
 			if (uniformDescriptors->GetCount() > 0)
@@ -241,7 +209,7 @@ namespace RN
 				D3D12_SHADER_INPUT_BIND_DESC resourceBindingDescription;
 				pReflector->GetResourceBindingDescByName(bufferDescription.Name, &resourceBindingDescription);
 				
-				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(bufferDescription.Name), resourceBindingDescription.BindPoint, uniformDescriptors->Autorelease());
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR(bufferDescription.Name), resourceBindingDescription.BindPoint, uniformDescriptors->Autorelease(), ArgumentBuffer::Type::UniformBuffer, maxInstanceCount);
 				buffersArray->AddObject(argumentBuffer->Autorelease());
 			}
 			else
@@ -265,5 +233,66 @@ namespace RN
 	const String *D3D12Shader::GetName() const
 	{
 		return _name;
+	}
+
+	Shader::UniformDescriptor *D3D12Shader::GetUniformDescriptorForReflectionInfo(const String *name, const D3D12_SHADER_TYPE_DESC &variableTypeDescription, uint32 offset) const
+	{
+		PrimitiveType uniformType = PrimitiveType::Invalid;
+		if (variableTypeDescription.Type == D3D_SVT_FLOAT)
+		{
+			if (variableTypeDescription.Rows == 1)
+			{
+				if (variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Float;
+				else if (variableTypeDescription.Columns == 2) uniformType = PrimitiveType::Vector2;
+				else if (variableTypeDescription.Columns == 3) uniformType = PrimitiveType::Vector3;
+				else if (variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Vector4;
+			}
+			else
+			{
+				if (variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix;
+			}
+		}
+		else if (variableTypeDescription.Type == D3D_SVT_MIN16FLOAT)
+		{
+			if (variableTypeDescription.Rows == 1)
+			{
+				if (variableTypeDescription.Columns == 1) uniformType = PrimitiveType::Half;
+				else if (variableTypeDescription.Columns == 2) uniformType = PrimitiveType::HalfVector2;
+				else if (variableTypeDescription.Columns == 3) uniformType = PrimitiveType::HalfVector3;
+				else if (variableTypeDescription.Columns == 4) uniformType = PrimitiveType::HalfVector4;
+			}
+		}
+		else if (variableTypeDescription.Columns == 1 && variableTypeDescription.Rows == 1)
+		{
+			if (variableTypeDescription.Type == D3D_SVT_INT)
+			{
+				uniformType = PrimitiveType::Int32;
+			}
+			else if (variableTypeDescription.Type == D3D_SVT_UINT)
+			{
+				uniformType = PrimitiveType::Uint32;
+			}
+			else if (variableTypeDescription.Type == D3D_SVT_MIN16INT)
+			{
+				uniformType = PrimitiveType::Int16;
+			}
+			else if (variableTypeDescription.Type == D3D_SVT_MIN16UINT)
+			{
+				uniformType = PrimitiveType::Uint16;
+			}
+/*			else if(variableTypeDescription.Type == D3D_SVT_INT8) //Not supported!?
+			{
+				uniformType = PrimitiveType::Int8;
+			}*/
+			else if (variableTypeDescription.Type == D3D_SVT_UINT8)
+			{
+				uniformType = PrimitiveType::Uint8;
+			}
+		}
+
+		size_t arrayElementCount = variableTypeDescription.Elements;
+		if(arrayElementCount == 0) arrayElementCount = 1; //It will be 0 if not an array, force it to 1 in that case
+		UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, offset, arrayElementCount);
+		return descriptor->Autorelease();
 	}
 }

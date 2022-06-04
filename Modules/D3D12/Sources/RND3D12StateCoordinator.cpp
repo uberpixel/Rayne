@@ -56,7 +56,7 @@ namespace RN
 
 		DXGI_FORMAT_R16_FLOAT,
 		DXGI_FORMAT_R16G16_FLOAT,
-		DXGI_FORMAT_R16G16B16_FLOAT,
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 
         DXGI_FORMAT_R32_FLOAT,
@@ -607,22 +607,28 @@ namespace RN
 	{
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
+		size_t bufferIndex = 0;
 
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			//TODO: support multiple texcoords/other stuff
 			D3D12_INPUT_ELEMENT_DESC element = {};
 			element.SemanticName = _vertexFeatureLookup[static_cast<int>(attribute.GetFeature())];
 			element.SemanticIndex = _vertexFeatureIndexLookup[static_cast<int>(attribute.GetFeature())];
 			element.Format = _vertexFormatLookup[static_cast<int>(attribute.GetType())];
-			element.InputSlot = 0;
+			element.InputSlot = bufferIndex;
 			element.AlignedByteOffset = attribute.GetOffset();
 			element.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 			element.InstanceDataStepRate = 0;
 			inputElementDescs.push_back(element);
+
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices && mesh->GetVertexPositionsSeparatedSize() > 0)
+			{
+				//If positions are separated, all following vertex data is in a second bound buffer
+				bufferIndex += 1;
+			}
 		}
 
 		return inputElementDescs;

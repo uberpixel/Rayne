@@ -27,7 +27,8 @@ namespace RN
 		D3DAPI const String *GetName() const final;
 
 	private:
-		D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, const Shader::Options *options, const Array *samplers);
+		D3D12Shader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, bool hasInstancing, const Shader::Options *options, const Array *samplers);
+		UniformDescriptor *GetUniformDescriptorForReflectionInfo(const String *name, const D3D12_SHADER_TYPE_DESC &variableTypeDescription, uint32 offset) const;
 
 		Array *_uniformDescriptors;
 		ID3DBlob *_shader;

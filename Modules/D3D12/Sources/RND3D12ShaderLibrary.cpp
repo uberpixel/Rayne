@@ -13,11 +13,12 @@ namespace RN
 {
 	RNDefineMeta(D3D12SpecificShaderLibrary, Object)
 
-	D3D12SpecificShaderLibrary::D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, Dictionary *signatureDescription) :
+	D3D12SpecificShaderLibrary::D3D12SpecificShaderLibrary(const String *fileName, const String *entryPoint, Shader::Type type, bool hasInstancing, Dictionary *signatureDescription) :
 		_shaders(new Dictionary()),
 		_fileName(fileName->Retain()),
 		_entryPoint(entryPoint->Retain()),
 		_type(type),
+		_hasInstancing(hasInstancing),
 		_signatureDescription(signatureDescription)
 	{
 		if(_signatureDescription) _signatureDescription->Retain();
@@ -173,11 +174,11 @@ namespace RN
 			permutationFileName->Append(RNSTR("." << permutationIndex));
 			permutationFileName->Append(".cso");
 			RN::String *filePath = RN::FileManager::GetSharedInstance()->ResolveFullPath(permutationFileName, 0);
-			shader = new D3D12Shader(library, filePath, _entryPoint, _type, newOptions, samplers);
+			shader = new D3D12Shader(library, filePath, _entryPoint, _type, _hasInstancing, newOptions, samplers);
 		}
 		else
 		{
-			shader = new D3D12Shader(library, _fileName, _entryPoint, _type, newOptions, samplers);
+			shader = new D3D12Shader(library, _fileName, _entryPoint, _type, _hasInstancing, newOptions, samplers);
 		}
 		
 		_shaders->SetObjectForKey(shader, newOptions);
@@ -206,6 +207,7 @@ namespace RN
 			shadersArray->Enumerate<Dictionary>([&](Dictionary *shaderDictionary, size_t index, bool &stop) {
 				String *entryPointName = shaderDictionary->GetObjectForKey<String>(RNCSTR("name"));
 				String *shaderType = shaderDictionary->GetObjectForKey<String>(RNCSTR("type"));
+				Number *hasInstancingNumber = shaderDictionary->GetObjectForKey<Number>(RNCSTR("has_instancing"));
 				Dictionary *signature = shaderDictionary->GetObjectForKey<Dictionary>(RNCSTR("signature"));
 
 				Shader::Type type = Shader::Type::Vertex;
@@ -226,7 +228,13 @@ namespace RN
 					RN_ASSERT(false, "Unknown shader type %s for %s in library %s.", shaderType, entryPointName, file);
 				}
 
-				D3D12SpecificShaderLibrary *specificLibrary = new D3D12SpecificShaderLibrary(fileString, entryPointName, type, signature);
+				bool hasInstancing = false;
+				if(hasInstancingNumber)
+				{
+					hasInstancing = hasInstancingNumber->GetBoolValue();
+				}
+
+				D3D12SpecificShaderLibrary *specificLibrary = new D3D12SpecificShaderLibrary(fileString, entryPointName, type, hasInstancing, signature);
 				_specificShaderLibraries->SetObjectForKey(specificLibrary, entryPointName);
 			});
 		});

@@ -1331,14 +1331,14 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLightsCount:
 				{
-					uint32 lightCount = renderPass.directionalLights.size();
+					uint32 lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &lightCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalLights:
 				{
-					size_t lightCount = renderPass.directionalLights.size();
+					size_t lightCount = std::min(renderPass.directionalLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalLights[0], (16 + 16) * lightCount);
@@ -1348,15 +1348,15 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
 					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices:
 				{
-					size_t matrixCount = renderPass.directionalShadowMatrices.size();
-					if (matrixCount > 0)
+					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
+					if(matrixCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.directionalShadowMatrices[0].m[0], 64 * matrixCount);
 					}
@@ -1371,28 +1371,28 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::PointLights:
 				{
-					size_t lightCount = renderPass.pointLights.size();
+					uint32 lightCount = std::min(renderPass.pointLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.pointLights[0], (12 + 4 + 16) * lightCount);
 					}
 					if(lightCount < 8)
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 16) * lightCount, 0, (12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
 
 				case Shader::UniformDescriptor::Identifier::SpotLights:
 				{
-					size_t lightCount = renderPass.spotLights.size();
+					uint32 lightCount = std::min(renderPass.spotLights.size(), descriptor->GetElementCount());
 					if(lightCount > 0)
 					{
 						std::memcpy(buffer + descriptor->GetOffset(), &renderPass.spotLights[0], (12 + 4 + 12 + 4 + 16) * lightCount);
 					}
 					if(lightCount < 8)
 					{
-						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (8 - lightCount));
+						std::memset(buffer + descriptor->GetOffset() + (12 + 4 + 12 + 4 + 16) * lightCount, 0, (12 + 4 + 12 + 4 + 16) * (descriptor->GetElementCount() - lightCount));
 					}
 					break;
 				}
@@ -1401,8 +1401,7 @@ namespace RN
 				{
 					if(drawable->skeleton)
 					{
-						//TODO: Don't hardcode limit here
-						size_t matrixCount = std::min(drawable->skeleton->_matrices.size(), static_cast<size_t>(100));
+						uint32 matrixCount = std::min(drawable->skeleton->_matrices.size(), descriptor->GetElementCount());
 						if(matrixCount > 0)
 						{
 							std::memcpy(buffer + descriptor->GetOffset(), &drawable->skeleton->_matrices[0].m[0], 64 * matrixCount);
@@ -1578,10 +1577,7 @@ namespace RN
 
 		if(light->GetType() == Light::Type::DirectionalLight)
 		{
-			if(renderPass.directionalLights.size() < 5) //TODO: Don't hardcode light limit here
-			{
-				renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetFinalColor() });
-			}
+			renderPass.directionalLights.push_back(D3D12LightDirectional{ light->GetForward(), 0.0f, light->GetFinalColor() });
 
 			//TODO: Allow more lights with shadows or prevent multiple light with shadows overwriting each other
 			if(light->HasShadows())
@@ -1593,17 +1589,11 @@ namespace RN
 		}
 		else if(light->GetType() == Light::Type::PointLight)
 		{
-			if(renderPass.pointLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
-			}
+			renderPass.pointLights.push_back(VulkanPointLight{ light->GetWorldPosition(), light->GetRange(), light->GetFinalColor() });
 		}
 		else if(light->GetType() == Light::Type::SpotLight)
 		{
-			if(renderPass.spotLights.size() < 8) //TODO: Don't hardcode light limit here
-			{
-				renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
-			}
+			renderPass.spotLights.push_back(VulkanSpotLight{ light->GetWorldPosition(), light->GetRange(), light->GetForward(), light->GetAngleCos(), light->GetFinalColor() });
 		}
 	}
 
@@ -1663,11 +1653,16 @@ namespace RN
 
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-		vertexBufferView.BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress();
-		vertexBufferView.StrideInBytes = drawable->mesh->GetStride();
-		vertexBufferView.SizeInBytes = buffer->GetLength();
-		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
+		vertexBufferViews[0].BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress();
+		vertexBufferViews[0].StrideInBytes = drawable->mesh->GetVertexPositionsSeparatedSize() > 0? drawable->mesh->GetVertexPositionsSeparatedStride() : drawable->mesh->GetStride();
+		vertexBufferViews[0].SizeInBytes = drawable->mesh->GetVertexPositionsSeparatedSize() > 0? drawable->mesh->GetVertexPositionsSeparatedSize() : buffer->GetLength();
+
+		vertexBufferViews[1].BufferLocation = buffer->GetD3D12Resource()->GetGPUVirtualAddress() + drawable->mesh->GetVertexPositionsSeparatedSize();
+		vertexBufferViews[1].StrideInBytes = drawable->mesh->GetStride();
+		vertexBufferViews[1].SizeInBytes = buffer->GetLength() - drawable->mesh->GetVertexPositionsSeparatedSize();
+
+		commandList->IASetVertexBuffers(0, (drawable->mesh->GetVertexPositionsSeparatedSize() > 0 && drawable->mesh->GetVertexPositionsSeparatedSize() < buffer->GetLength())? 2 : 1, vertexBufferViews);
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		indexBufferView.BufferLocation = indices->GetD3D12Resource()->GetGPUVirtualAddress();
