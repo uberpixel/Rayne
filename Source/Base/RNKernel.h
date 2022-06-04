@@ -50,6 +50,8 @@ namespace RN
 		double GetTotalTime() const{ return _time; }
 		float GetScaleFactor() const { return 1.0f; }
 
+		bool GetWantsToExit() const { return _wantsToExit; }
+
 		Application *GetApplication() const { return _application; }
 		Settings *GetSettings() const { return _settings; }
 		const ArgumentParser &GetArguments() const { return _arguments; }
@@ -132,6 +134,8 @@ namespace RN
 		uint32 _maxFPS;
 		Clock::time_point _lastFrame;
 		bool _firstFrame;
+
+		bool _wantsToExit;
 
 		double _time;
 		double _delta;

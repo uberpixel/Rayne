@@ -38,7 +38,8 @@ namespace RN
 		_arguments(arguments),
 		_application(application),
 		_exit(false),
-		_isActive(true)
+		_isActive(true),
+		_wantsToExit(false)
 	{}
 
 	Kernel::~Kernel()
@@ -450,8 +451,8 @@ namespace RN
 
 			if(message.message == WM_CLOSE || message.message == WM_DESTROY || message.message == WM_QUIT)
 			{
-				//TODO: Find a better way to signal the app to close or maybe just close it? This sets the ESC key to true...
-				InputManager::GetSharedInstance()->_keyPressed[0x1B] = true;
+				//Close application
+				_wantsToExit = true; //This can be queried to then trigger a shutdown of everything
 			}
 
 			TranslateMessage(&message);
