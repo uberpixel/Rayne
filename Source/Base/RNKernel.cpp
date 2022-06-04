@@ -87,6 +87,11 @@ namespace RN
 
 			WorkQueue::InitializeQueues();
 
+			_fileManager = new FileManager();
+			ReadManifest();
+			_application->__PrepareForWillFinishLaunching(this); //This takes the game title from the manifest, which is needed to log into the correct directory
+			_fileManager->__PrepareWithManifest();
+
 			_mainQueue = WorkQueue::GetMainQueue();
 			_logger = new Logger();
 
@@ -97,19 +102,13 @@ namespace RN
 
 			Screen::InitializeScreens();
 			__ExtensionPointBase::InitializeExtensionPoints();
-
-			_fileManager = new FileManager();
 			_firstFrame = true;
 			_frames = 0;
 
 			_delta = 0;
 			_time = 0;
 
-			ReadManifest();
 			SetMaxFPS(500);
-
-			_application->__PrepareForWillFinishLaunching(this);
-			_fileManager->__PrepareWithManifest();
 
 			_settings = new Settings(); // Requires the FileManager to have all search paths
 

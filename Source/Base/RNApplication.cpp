@@ -22,6 +22,10 @@ namespace RN
 	Application::~Application()
 	{
 		SafeRelease(_title);
+
+#if RN_PLATFORM_WINDOWS
+		_fileStream.close();
+#endif
 	}
 
 	void Application::__PrepareForWillFinishLaunching(Kernel *kernel)
@@ -52,12 +56,20 @@ namespace RN
 		return devices->GetFirstObject<RenderingDevice>();
 	}
 	
-	Array *Application::GetLoggingEngines() const
+	Array *Application::GetLoggingEngines()
 	{
 		DebugLogFormatter *formatter = new DebugLogFormatter();
 
 #if RN_PLATFORM_WINDOWS
+#if RN_BUILD_DEBUG
 		LoggingEngine *engine = new WideCharStreamLoggingEngine(std::wcout, true);
+#else
+		String *loggingFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ExternalSaveDirectory);
+		loggingFilePath->AppendPathComponent(RNCSTR("RNLogs.txt"));
+		
+		_fileStream.open(loggingFilePath->GetUTF8String());
+		LoggingEngine *engine = new WideCharStreamLoggingEngine(_fileStream, true);
+#endif
 		engine->SetLogFormatter(formatter->Autorelease());
 		return Array::WithObjects({ engine->Autorelease() });
 #else
