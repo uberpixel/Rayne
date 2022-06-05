@@ -44,12 +44,12 @@ namespace RN
 		
 		enum RenderPriority : int32
 		{
-			RenderEarly = -1000,
+			RenderEarly = -100000,
 			RenderNormal = 0,
-			RenderLate = 1000,
-			RenderSky = 2000,
-			RenderTransparent = 3000,
-			RenderUI = 10000
+			RenderLate = 100000,
+			RenderSky = 200000,
+			RenderTransparent = 300000,
+			RenderUI = 1000000
 		};
 
 		RN_OPTIONS(Flags, uint32,
