@@ -141,7 +141,7 @@ namespace RN
 			
 			material->SetAlphaToCoverage(false);
 			material->SetDepthWriteEnabled(false);
-			material->SetDepthMode(_labelDepthMode);
+			material->SetDepthMode(_inheritRenderSettings? _depthMode : _labelDepthMode);
 			material->SetCullMode(CullMode::None);
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
@@ -171,7 +171,7 @@ namespace RN
 			
 			material->SetAlphaToCoverage(false);
 			material->SetDepthWriteEnabled(false);
-			material->SetDepthMode(_labelDepthMode);
+			material->SetDepthMode(_inheritRenderSettings? _depthMode : _labelDepthMode);
 			material->SetCullMode(CullMode::None);
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);

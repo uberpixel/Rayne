@@ -55,7 +55,7 @@ namespace RN
 			bool GetIsHidden() const { return _isHidden || _isHiddenByParent; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
-			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset);
+			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true);
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -74,6 +74,13 @@ namespace RN
 			UIAPI void WillUpdate(ChangeSet changeSet) override;
 			
 			bool _needsMeshUpdate;
+			
+			bool _inheritRenderSettings; //If this is set, the values below will be overwritten when adding to the parent
+			DepthMode _depthMode;
+			bool _isDepthWriteEnabled;
+			bool _isColorWriteEnabled;
+			float _depthOffset;
+			float _depthFactor;
 
 		private:
 			void ConvertPointToWindow(Vector2 &point) const;
@@ -90,10 +97,6 @@ namespace RN
 			Rect _scissorRect;
 
 			Color _backgroundColor;
-			DepthMode _depthMode;
-			bool _isDepthWriteEnabled;
-			float _depthOffset;
-			float _depthFactor;
 
 			View *_superview;
 			Array *_subviews;

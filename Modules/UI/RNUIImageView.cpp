@@ -65,6 +65,7 @@ namespace RN
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
 				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
 				material->SetAlphaToCoverage(false);
+				material->SetDepthMode(_depthMode);
 				material->SetDepthWriteEnabled(false);
 				material->SetCullMode(CullMode::None);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
