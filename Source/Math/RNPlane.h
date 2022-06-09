@@ -26,7 +26,7 @@ namespace RN
 		
 		Plane();
 		static Plane WithPositionNormal(const Vector3 &position, const Vector3 &normal);
-		static Plane WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
+		static Plane WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f, float offset=0.0f);
 
 		void SetPosition(const Vector3 &position);
 		void SetNormal(const Vector3 &normal);
@@ -43,12 +43,14 @@ namespace RN
 		Vector3 _position;
 		Vector3 _normal;
 		float _d;
+		float _offset;
 	};
 
 	RN_INLINE Plane::Plane()
 	{
 		_normal.y = 1.0f;
 		_d = 0.0f;
+		_offset = 0.0f;
 	}
 
 	RN_INLINE Plane Plane::WithPositionNormal(const Vector3 &position, const Vector3 &normal)
@@ -63,7 +65,7 @@ namespace RN
 		return plane;
 	}
 
-	RN_INLINE Plane Plane::WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac)
+	RN_INLINE Plane Plane::WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac, float offset)
 	{
 		Plane plane;
 
@@ -74,6 +76,8 @@ namespace RN
 
 		plane._normal = diff1.GetCrossProduct(diff2)*dirfac;
 		plane._normal.Normalize();
+		
+		plane._offset = offset;
 
 		plane.CalculateD();
 
@@ -99,7 +103,7 @@ namespace RN
 
 	RN_INLINE void Plane::CalculateD()
 	{
-		_d = _normal.GetDotProduct(_position);
+		_d = _normal.GetDotProduct(_position) + _offset;
 	}
 
 	RN_INLINE Plane::ContactInfo Plane::CastRay(const Vector3 &position, const Vector3 &direction) const

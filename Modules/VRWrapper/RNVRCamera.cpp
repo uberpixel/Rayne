@@ -62,9 +62,6 @@ namespace RN
 			_head->AddChild(_eye[i]);
 			_head->AddMultiviewCamera(_eye[i]);
 			_hiddenAreaEntity[i] = nullptr;
-
-			//TODO: Fix culling for VR!?
-			_eye[i]->AddFlags(Camera::Flags::UseSimpleCulling);
 			
 #if !RN_PLATFORM_WINDOWS
 			if(_window)
@@ -239,6 +236,9 @@ namespace RN
 
 		_head->SetRotation(hmdState.rotation);
 		_head->SetPosition(hmdState.position);
+		
+		//This assumes that the eyes are equal and only shifted horizontally
+		_head->SetFrustumPlaneOffset(0.0f, 0.0f, _eye[0]->GetPosition().x, _eye[1]->GetPosition().x);
 		
 		_didUpdateVRWindow = false;
 	}

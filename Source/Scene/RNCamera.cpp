@@ -80,6 +80,11 @@ namespace RN
 		_isMultiviewCamera = false;
 
 		_prefersLightManager = true;
+		
+		_frustumPlaneOffsets[0] = 0.0f;
+		_frustumPlaneOffsets[1] = 0.0f;
+		_frustumPlaneOffsets[2] = 0.0f;
+		_frustumPlaneOffsets[3] = 0.0f;
 	}
 
 	// Setter
@@ -191,6 +196,15 @@ namespace RN
 		_orthoBottom = bottom;
 
 		_dirtyProjection = true;
+	}
+
+	void Camera::SetFrustumPlaneOffset(float topOffset, float bottomOffset, float leftOffset, float rightOffset)
+	{
+		_frustumPlaneOffsets[0] = topOffset;
+		_frustumPlaneOffsets[1] = bottomOffset;
+		_frustumPlaneOffsets[2] = leftOffset;
+		_frustumPlaneOffsets[3] = rightOffset;
+		_dirtyFrustum = true;
 	}
 
 	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
@@ -325,7 +339,7 @@ namespace RN
             _frustumRadius = _clipFar * 1.5;
 			return;
 		}
-
+		
 		//far plane is at z=0, near plane z=1 for reverse-z!
 		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0));
@@ -350,10 +364,10 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.GetDistance(vmax);
 
-		frustums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f);
-		frustums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f);
-		frustums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f);
-		frustums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f);
+		frustums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f, _frustumPlaneOffsets[2]);
+		frustums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f, _frustumPlaneOffsets[3]);
+		frustums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f, _frustumPlaneOffsets[0]);
+		frustums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f, _frustumPlaneOffsets[1]);
 		frustums._frustumNear = Plane::WithPositionNormal(position + direction * std::min(_clipNear, _clipFar), -direction);
 		frustums._frustumFar = Plane::WithPositionNormal(position + direction * std::max(_clipNear, _clipFar), direction);
 	}

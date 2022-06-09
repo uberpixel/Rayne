@@ -91,6 +91,7 @@ namespace RN
 			Color specularColor;
 			Color emissiveColor;
 			
+			//TODO: Changing anything but colors and custom uniforms should only be allowed on creation, but not after already used for rendering as the renderers will only switch the pipeline state if the material was changed and these properties require a new pipeline state
 			bool usePolygonOffset;
 			float polygonOffsetFactor;
 			float polygonOffsetUnits;

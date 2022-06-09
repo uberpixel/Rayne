@@ -76,6 +76,8 @@ namespace RN
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 		
+		RNAPI void SetFrustumPlaneOffset(float topOffset, float bottomOffset, float leftOffset, float rightOffset);
+		
 		RNAPI void AddMultiviewCamera(RN::Camera *camera);
 		RNAPI void RemoveMultiviewCamera(RN::Camera *camera);
 
@@ -135,6 +137,8 @@ namespace RN
 
 		Vector3 _frustumCenter;
 		float _frustumRadius;
+		
+		float _frustumPlaneOffsets[4];
 
 		struct
 		{
