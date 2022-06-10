@@ -5,13 +5,14 @@ import subprocess
 import shutil
 import json
 import Utilities
+import glob
 
 
 def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease_Steam.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python CreateRelease.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -59,9 +60,11 @@ def main():
 
 	sourceDirectory = os.path.join(projectRootPath, configBuildDirectory)
 	sourceDirectory = os.path.join(sourceDirectory, platform+'_'+configuration)
+	buildDirectory = None
 	if isDemo:
 		sourceDirectory += "_demo"
 	if platform == 'android':
+		buildDirectory = os.path.join(sourceDirectory, 'app/.cxx/cmake/release/arm64-v8a/')
 		sourceDirectory = os.path.join(sourceDirectory, 'app/build/outputs/apk/release')
 	elif platform == 'linux':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build')
@@ -91,6 +94,14 @@ def main():
 		os.makedirs(destinationDirectory)
 		apkFileName = configName.replace(" ", "-").lower()+"-"+configuration+".apk"
 		shutil.copy2(os.path.join(sourceDirectory, apkFileName), os.path.join(destinationDirectory, apkFileName))
+
+		#Also copy .so files with debug symbols into the release directory
+		symbolDestinationDir = os.path.join(destinationDirectory, 'symbols')
+		os.makedirs(symbolDestinationDir)
+		for file in glob.glob('Build/**/*.so', root_dir=buildDirectory, recursive=True):
+			shutil.copy(os.path.join(buildDirectory, file), symbolDestinationDir)
+		for file in glob.glob('Rayne/Build/**/*.so', root_dir=buildDirectory, recursive=True):
+			shutil.copy(os.path.join(buildDirectory, file), symbolDestinationDir)
 
 if __name__ == '__main__':
 	main()
