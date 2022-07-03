@@ -28,7 +28,7 @@ namespace RN
 		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
-				   NoSorting    = (1 << 6),
+				   SortFrontToBack    = (1 << 6),
 				   NoRender     = (1 << 7),
 				   NoDepthWrite = (1 << 8),
 

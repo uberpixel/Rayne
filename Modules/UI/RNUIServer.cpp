@@ -27,7 +27,7 @@ namespace RN
 				//renderPass->SetClearColor(Color(1.0f, 0.0f, 0.0f, 1.0f));
 				
 				_camera = new Camera(renderPass);
-				_camera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::RenderLate);
+				_camera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::NoDepthWrite | Camera::Flags::RenderLate);
 				_camera->SetClipNear(-500.0f);
 				_camera->SetRenderGroup(1 << 7);
 				
