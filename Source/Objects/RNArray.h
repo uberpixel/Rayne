@@ -229,7 +229,7 @@ namespace RN
 			return kRNNotFound;
 		}
 		
-		bool ContainsObject(Object *object) const
+		bool ContainsObject(const Object *object) const
 		{
 			for(size_t i = 0; i < _count; i ++)
 			{
