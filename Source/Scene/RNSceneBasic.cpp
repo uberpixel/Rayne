@@ -271,7 +271,7 @@ namespace RN
 	
 	void SceneBasic::RemoveNode(SceneNode *node)
 	{
-		RN_ASSERT(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this, "RemoveNode() must be called on a Node owned by the scene");
+		RN_ASSERT(node->GetSceneInfo() && node->GetSceneInfo()->GetScene() == this && node->_scheduledForRemovalFromScene == false, "RemoveNode() must be called on a Node owned by the scene");
 		
 		_nodesToRemove->Lock();
 		_nodesToRemove->AddObject(node);
