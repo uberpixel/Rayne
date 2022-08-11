@@ -44,6 +44,11 @@ namespace RN
 
 		uint64 _connectionClosedNotificationID;
 		uint64 _connectionRequestNotificationID;
+		
+		std::map<uint32, uint32> _multipartPacketTotalParts; //Maps channel to total number of parts for multipart data
+		std::map<uint32, uint32> _multipartPacketCurrentPart; //Maps channel to current part index for multipart data
+		std::map<uint32, uint32> _multipartPacketID; //Maps channel to current packet id for multipart data, should be the same until all parts are received
+		std::map<uint32, Data*> _multipartPacketData; //Maps channel to current data collecting all multipart data into one piece
 			
 		RNDeclareMetaAPI(EOSServer, EOSAPI)
 	};

@@ -109,44 +109,136 @@ namespace RN
 				break;
 			}
 			
-			size_t dataIndex = 0;
-			while(dataIndex < bytesWritten)
+			uint16 senderID = GetUserIDForInternalID(senderUserID);
+			Peer &peer = _peers[senderID];
+			
+			if(static_cast<ProtocolPacketType>(rawData[0]) == ProtocolPacketTypeReliableDataMultipart)
 			{
-				ProtocolPacketHeader packetHeader;
-				packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[dataIndex + 0]);
-				packetHeader.packetID = rawData[dataIndex + 1];
-				packetHeader.dataLength = rawData[dataIndex + 2] | (rawData[dataIndex + 3] << 8);
+				//If this is multipart data, wait for all parts before passing them on
+				ProtocolPacketHeaderMultipart packetHeader;
+				packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[0]);
+				packetHeader.packetID = rawData[1];
+				packetHeader.dataPart = rawData[2] | (rawData[3] << 8);
+				packetHeader.totalDataParts = rawData[4] | (rawData[5] << 8);
 				
-				if(packetHeader.packetType == ProtocolPacketTypeConnectRequest)
+				if(peer._multipartPacketTotalParts.count(channel) == 0)
 				{
-					if(packetHeader.packetID == 0)
+					//Received new multipart data!
+					
+					if(packetHeader.dataPart != 0)
 					{
-						//This is handled in OnConnectionRequestCallback
-						//TODO: Maybe move some of it here instead to not require delayed delivery for the response
+						//Received new multipart data, but it's missing previous parts!?
+						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						
+						peer._multipartPacketTotalParts.erase(channel);
+						peer._multipartPacketCurrentPart.erase(channel);
+						peer._multipartPacketID.erase(channel);
+						peer._multipartPacketData[channel]->Release();
+						peer._multipartPacketData.erase(channel);
+						
+						continue;
 					}
-					else
-					{
-						RNDebug("Malformed connect request");
-					}
-					dataIndex += packetHeader.dataLength + 4;
-					continue;
+					
+					peer._multipartPacketTotalParts[channel] = packetHeader.totalDataParts;
+					peer._multipartPacketCurrentPart[channel] = packetHeader.dataPart;
+					peer._multipartPacketID[channel] = packetHeader.packetID;
+					peer._multipartPacketData[channel] = new Data();
 				}
-				
-				uint16 senderID = GetUserIDForInternalID(senderUserID);
-				if(!IsPacketInOrder(packetHeader.packetType, senderID, packetHeader.packetID, channel) || _peers[senderID]._wantsDisconnect) //Don't process any more data from a user that is about to be disconnected
+				else
 				{
-					dataIndex += packetHeader.dataLength + 4;
-					continue;
+					//Received another part of multipart data!
+					
+					if(peer._multipartPacketCurrentPart[channel] + 1 != packetHeader.dataPart || peer._multipartPacketTotalParts[channel] != packetHeader.totalDataParts || peer._multipartPacketID[channel] != packetHeader.packetID)
+					{
+						//Received multipart data, but found some inconsistency
+						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						
+						peer._multipartPacketTotalParts.erase(channel);
+						peer._multipartPacketCurrentPart.erase(channel);
+						peer._multipartPacketID.erase(channel);
+						peer._multipartPacketData[channel]->Release();
+						peer._multipartPacketData.erase(channel);
+						
+						continue;
+					}
+					
+					peer._multipartPacketCurrentPart[channel] = packetHeader.dataPart;
 				}
 				
 				//Get data object from the packet without protocol header
-				Data *data = Data::WithBytes(&rawData[dataIndex + 4], packetHeader.dataLength);
-				dataIndex += packetHeader.dataLength + 4;
+				Data *data = Data::WithBytes(&rawData[6], bytesWritten - 6);
+				peer._multipartPacketData[channel]->Append(data);
 				
-				Unlock();
-				ReceivedPacket(data, senderID, channel);
-				Lock();
+				if(packetHeader.dataPart + 1 >= packetHeader.totalDataParts)
+				{
+					RNDebug("Received full multipart data");
+					
+					Unlock();
+					ReceivedPacket(peer._multipartPacketData[channel], 0, channel);
+					Lock();
+					
+					peer._multipartPacketTotalParts.erase(channel);
+					peer._multipartPacketCurrentPart.erase(channel);
+					peer._multipartPacketID.erase(channel);
+					peer._multipartPacketData[channel]->Release();
+					peer._multipartPacketData.erase(channel);
+				}
 			}
+			else
+			{
+				if(peer._multipartPacketTotalParts.count(channel) != 0)
+				{
+					//Got non-multipart data on a channel that got multipart data before that is still incomplete.
+					//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+					
+					peer._multipartPacketTotalParts.erase(channel);
+					peer._multipartPacketCurrentPart.erase(channel);
+					peer._multipartPacketID.erase(channel);
+					peer._multipartPacketData[channel]->Release();
+					peer._multipartPacketData.erase(channel);
+					
+					continue;
+				}
+			
+				size_t dataIndex = 0;
+				while(dataIndex < bytesWritten)
+				{
+					ProtocolPacketHeader packetHeader;
+					packetHeader.packetType = static_cast<ProtocolPacketType>(rawData[dataIndex + 0]);
+					packetHeader.packetID = rawData[dataIndex + 1];
+					packetHeader.dataLength = rawData[dataIndex + 2] | (rawData[dataIndex + 3] << 8);
+					
+					if(packetHeader.packetType == ProtocolPacketTypeConnectRequest)
+					{
+						if(packetHeader.packetID == 0)
+						{
+							//This is handled in OnConnectionRequestCallback
+							//TODO: Maybe move some of it here instead to not require delayed delivery for the response
+						}
+						else
+						{
+							RNDebug("Malformed connect request");
+						}
+						dataIndex += packetHeader.dataLength + 4;
+						continue;
+					}
+					
+					if(!IsPacketInOrder(packetHeader.packetType, senderID, packetHeader.packetID, channel) || _peers[senderID]._wantsDisconnect) //Don't process any more data from a user that is about to be disconnected
+					{
+						dataIndex += packetHeader.dataLength + 4;
+						continue;
+					}
+					
+					//Get data object from the packet without protocol header
+					Data *data = Data::WithBytes(&rawData[dataIndex + 4], packetHeader.dataLength);
+					dataIndex += packetHeader.dataLength + 4;
+					
+					Unlock();
+					ReceivedPacket(data, senderID, channel);
+					Lock();
+				}
+			}
+			
 			delete[] rawData;
 		}
 		

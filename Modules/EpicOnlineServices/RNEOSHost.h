@@ -30,14 +30,27 @@ namespace RN
 			ProtocolPacketTypePingResponse,
 			ProtocolPacketTypeData,
 			ProtocolPacketTypeReliableData,
+			ProtocolPacketTypeReliableDataMultipart,
 			ProtocolPacketTypeReliableDataAck
 		};
 		
 		struct ProtocolPacketHeader
 		{
+			//32 bit
+			
 			ProtocolPacketType packetType;
 			uint8 packetID;
-			uint16 dataLength; //This allows me to bundle multiple packets into one networking packet to send, hopefully improving EOS sending performance
+			uint16 dataLength; //This allows to bundle multiple packets into one networking packet to send, improving EOS sending performance a lot
+		};
+		
+		struct ProtocolPacketHeaderMultipart
+		{
+			//48 bit
+			
+			ProtocolPacketType packetType; //Has to be ProtocolPacketTypeReliableDataMultipart
+			uint8 packetID; //The packet ID is the same for all parts!
+			uint16 dataPart; //The current part of the data, starts with 0
+			uint16 totalDataParts; //The number of parts to wait for before being able to use it
 		};
 		
 		struct Packet
@@ -67,6 +80,11 @@ namespace RN
 			bool _wantsDisconnect;
 			
 			std::map<uint32, std::queue<Packet>> _scheduledPackets;
+			
+			std::map<uint32, uint32> _multipartPacketTotalParts; //Maps channel to total number of parts for multipart data
+			std::map<uint32, uint32> _multipartPacketCurrentPart; //Maps channel to current part index for multipart data
+			std::map<uint32, uint32> _multipartPacketID; //Maps channel to current packet id for multipart data, should be the same until all parts are received
+			std::map<uint32, Data*> _multipartPacketData; //Maps channel to current data collecting all multipart data into one piece
 		};
 
 		enum Status

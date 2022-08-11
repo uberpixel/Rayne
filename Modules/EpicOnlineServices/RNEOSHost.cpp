@@ -18,6 +18,8 @@
 #include "eos_p2p.h"
 #include "eos_p2p_types.h"
 
+#define MAX_PACKET_SIZE 1000 //Max packet size: 1170, but seems to have issues, so trying 1000
+
 namespace RN
 {
 	RNDefineMeta(EOSHost, Object)
@@ -72,7 +74,7 @@ namespace RN
 		//Handle reliable data ack
 		if(packetType == ProtocolPacketTypeReliableDataAck)
 		{
-			//TODO: need to somehow flag relaible data in transit per channel instead of global for peer!?
+			//TODO: need to somehow flag reliable data in transit per channel instead of global for peer!?
 			if(peer._hasReliableInTransit && packetID == peer._lastReliableIDForChannel[channel])
 			{
 				peer._hasReliableInTransit = false;
@@ -139,9 +141,8 @@ namespace RN
 	{
 		if(_peers[receiverID]._wantsDisconnect) return; //Don't allow sending more data to users that are about to be disconnected.
 		
-		//TODO: Split up packet if too big, maximum allowed total packet size is 1170
-		RN_ASSERT(data->GetLength() < 1170, "Packet too big!");
-		//RNDebug(data->GetLength());
+		//Only reliable packets can be split up, unreliable packets need to be small enough to fit a single networking packet
+		RN_ASSERT(data->GetLength() < MAX_PACKET_SIZE || reliable, "Packet too big!");
 		
 		Lock();
 		if(_peers.size() == 0 || _peers.find(receiverID) == _peers.end())
@@ -267,47 +268,99 @@ namespace RN
 					Data *data = new Data();
 					bool isReliable = false;
 					
-					//Max packet size: 1170, but seems to have issues, so trying 1000
-					while(scheduledPackets.size() > 0 && data->GetLength() + scheduledPackets.front().data->GetLength() + 4 < 1000)
+					if(scheduledPackets.front().data->GetLength() + 4 >= MAX_PACKET_SIZE) //If it does not fit into a single networking packet
 					{
-						uint8 headerData[2];
-						headerData[1] = peer.second._packetIDForChannel[pair.first]++;
+						RN_DEBUG_ASSERT(scheduledPackets.front().isReliable, "Large packets (>= 1000 byte) need to be reliable!");
 						
-						ProtocolPacketType packetType = ProtocolPacketTypeData;
-						if(scheduledPackets.front().isReliable)
-						{
-							isReliable = true;
-							packetType = ProtocolPacketTypeReliableData;
-							peer.second._hasReliableInTransit = true;
-							peer.second._lastReliableIDForChannel[pair.first] = headerData[1];
-						}
-						headerData[0] = packetType;
-
-						data->Append(headerData, 2);
-						uint16 dataLength = scheduledPackets.front().data->GetLength();
-						data->Append(&dataLength, 2); //Data length is actually part of the header, but much easier to just set here
-						data->Append(scheduledPackets.front().data);
+						uint8 packetID = peer.second._packetIDForChannel[pair.first]++;
+						peer.second._hasReliableInTransit = true;
+						peer.second._lastReliableIDForChannel[pair.first] = packetID;
+						isReliable = true;
 						
-						scheduledPackets.front().data->Release();
+						Data *packetData = scheduledPackets.front().data;
 						scheduledPackets.pop();
 						
-						//scheduled_count += 1;
+						uint16 totalParts = std::ceil(packetData->GetLength() / static_cast<float>(MAX_PACKET_SIZE - 6)); //Get total number of parts to split the data up to
+						uint32 dataOffset = 0;
+						for(uint16 currentPart = 0; currentPart < totalParts; currentPart += 1)
+						{
+							uint8 headerData[2];
+							headerData[0] = ProtocolPacketTypeReliableDataMultipart;
+							headerData[1] = packetID;
+							
+							uint16 multiPartHeaderData[2];
+							multiPartHeaderData[0] = currentPart;
+							multiPartHeaderData[1] = totalParts;
+							
+							data->Append(headerData, 2);
+							data->Append(multiPartHeaderData, 4);
+							
+							uint32 dataLength = std::min(static_cast<uint32>(MAX_PACKET_SIZE - 6), static_cast<uint32>(packetData->GetLength() - dataOffset));
+							data->Append(packetData->GetDataInRange(Range(dataOffset, dataLength)));
+							dataOffset += dataLength;
+							
+							EOS_P2P_SendPacketOptions sendPacketOptions = {0};
+							sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+							sendPacketOptions.Channel = pair.first;
+							sendPacketOptions.LocalUserId = world->GetUserID();
+							sendPacketOptions.RemoteUserId = peer.second.internalID;
+							sendPacketOptions.SocketId = &socketID;
+							sendPacketOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
+							sendPacketOptions.bAllowDelayedDelivery = false;
+							sendPacketOptions.Data = data->GetBytes();
+							sendPacketOptions.DataLengthBytes = data->GetLength();
+							EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+							data->Release(); //Should keep data around and just clear it somehow to not reallocate all the time
+							data = new Data();
+						}
+						
+						data->Release();
+						packetData->Release();
 					}
-					
-					EOS_P2P_SendPacketOptions sendPacketOptions = {0};
-					sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
-					sendPacketOptions.Channel = pair.first;
-					sendPacketOptions.LocalUserId = world->GetUserID();
-					sendPacketOptions.RemoteUserId = peer.second.internalID;
-					sendPacketOptions.SocketId = &socketID;
-					sendPacketOptions.Reliability = isReliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
-					sendPacketOptions.bAllowDelayedDelivery = false;
-					sendPacketOptions.Data = data->GetBytes();
-					sendPacketOptions.DataLengthBytes = data->GetLength();
-					EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
-					data->Release(); //Should keep data around and just clear it somehow to not reallocate all the time
-					
-					//sent_count += 1;
+					else
+					{
+						//Combine as many packets into one as possible to improve performance
+						while(scheduledPackets.size() > 0 && data->GetLength() + scheduledPackets.front().data->GetLength() + 4 < MAX_PACKET_SIZE)
+						{
+							uint8 headerData[2];
+							headerData[1] = peer.second._packetIDForChannel[pair.first]++;
+							
+							ProtocolPacketType packetType = ProtocolPacketTypeData;
+							if(scheduledPackets.front().isReliable)
+							{
+								isReliable = true;
+								packetType = ProtocolPacketTypeReliableData;
+								peer.second._hasReliableInTransit = true;
+								peer.second._lastReliableIDForChannel[pair.first] = headerData[1];
+							}
+							headerData[0] = packetType;
+
+							data->Append(headerData, 2);
+							uint16 dataLength = scheduledPackets.front().data->GetLength();
+							data->Append(&dataLength, 2); //Data length is actually part of the header, but much easier to just set here
+							data->Append(scheduledPackets.front().data);
+							
+							scheduledPackets.front().data->Release();
+							scheduledPackets.pop();
+							
+							//scheduled_count += 1;
+						}
+						
+						EOS_P2P_SendPacketOptions sendPacketOptions = {0};
+						sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
+						sendPacketOptions.Channel = pair.first;
+						sendPacketOptions.LocalUserId = world->GetUserID();
+						sendPacketOptions.RemoteUserId = peer.second.internalID;
+						sendPacketOptions.SocketId = &socketID;
+						sendPacketOptions.Reliability = isReliable?EOS_EPacketReliability::EOS_PR_ReliableOrdered:EOS_EPacketReliability::EOS_PR_UnreliableUnordered;
+						sendPacketOptions.bAllowDelayedDelivery = false;
+						sendPacketOptions.Data = data->GetBytes();
+						sendPacketOptions.DataLengthBytes = data->GetLength();
+						EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
+						data->Release(); //Should keep data around and just clear it somehow to not reallocate all the time
+						
+						//sent_count += 1;
+					}
 				}
 			}
 		}
