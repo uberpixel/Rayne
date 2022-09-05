@@ -292,6 +292,8 @@ namespace RN
 							multiPartHeaderData[0] = currentPart;
 							multiPartHeaderData[1] = totalParts;
 							
+							RNDebug("Sending multipart data (" << packetID <<  "), part " << currentPart << " of " << totalParts);
+							
 							data->Append(headerData, 2);
 							data->Append(multiPartHeaderData, 4);
 							

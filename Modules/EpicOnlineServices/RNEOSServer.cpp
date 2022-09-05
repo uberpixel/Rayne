@@ -121,6 +121,8 @@ namespace RN
 				packetHeader.dataPart = rawData[2] | (rawData[3] << 8);
 				packetHeader.totalDataParts = rawData[4] | (rawData[5] << 8);
 				
+				RNDebug("Received multipart data (" << packetHeader.packetID <<  "), part " << packetHeader.dataPart << " of " << packetHeader.totalDataParts);
+				
 				if(peer._multipartPacketTotalParts.count(channel) == 0)
 				{
 					//Received new multipart data!
@@ -129,12 +131,9 @@ namespace RN
 					{
 						//Received new multipart data, but it's missing previous parts!?
 						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						//Nothing to clean up here, as no data exists at this point
 						
-						peer._multipartPacketTotalParts.erase(channel);
-						peer._multipartPacketCurrentPart.erase(channel);
-						peer._multipartPacketID.erase(channel);
-						peer._multipartPacketData[channel]->Release();
-						peer._multipartPacketData.erase(channel);
+						RNDebug("Received multipart data but it's bad!");
 						
 						continue;
 					}
@@ -152,6 +151,8 @@ namespace RN
 					{
 						//Received multipart data, but found some inconsistency
 						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						
+						RNDebug("Received multipart data but it's bad!");
 						
 						peer._multipartPacketTotalParts.erase(channel);
 						peer._multipartPacketCurrentPart.erase(channel);
@@ -190,6 +191,8 @@ namespace RN
 				{
 					//Got non-multipart data on a channel that got multipart data before that is still incomplete.
 					//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+					
+					RNDebug("Received multipart data but it's incomplete!");
 					
 					peer._multipartPacketTotalParts.erase(channel);
 					peer._multipartPacketCurrentPart.erase(channel);
