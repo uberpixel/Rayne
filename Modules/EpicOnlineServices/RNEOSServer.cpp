@@ -189,18 +189,26 @@ namespace RN
 			{
 				if(peer._multipartPacketTotalParts.count(channel) != 0)
 				{
-					//Got non-multipart data on a channel that got multipart data before that is still incomplete.
-					//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
-					
-					RNDebug("Received multipart data but it's incomplete!");
-					
-					peer._multipartPacketTotalParts.erase(channel);
-					peer._multipartPacketCurrentPart.erase(channel);
-					peer._multipartPacketID.erase(channel);
-					peer._multipartPacketData[channel]->Release();
-					peer._multipartPacketData.erase(channel);
-					
-					continue;
+					if(static_cast<ProtocolPacketType>(rawData[0]) == ProtocolPacketTypeReliableData)
+					{
+						//Got non-multipart reliable data on a channel that got multipart data before that is still incomplete.
+						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						
+						RNDebug("Received multipart data but it's incomplete!");
+						
+						peer._multipartPacketTotalParts.erase(channel);
+						peer._multipartPacketCurrentPart.erase(channel);
+						peer._multipartPacketID.erase(channel);
+						peer._multipartPacketData[channel]->Release();
+						peer._multipartPacketData.erase(channel);
+						
+						continue;
+					}
+					else
+					{
+						//Got out of order unreliable data while still waiting for multipart data. Just ignore and wait for remaining multipart data.
+						continue;
+					}
 				}
 			
 				size_t dataIndex = 0;
