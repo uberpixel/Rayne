@@ -217,7 +217,7 @@ namespace RN
 				packetHeader.dataPart = rawData[2] | (rawData[3] << 8);
 				packetHeader.totalDataParts = rawData[4] | (rawData[5] << 8);
 				
-				RNDebug("Received multipart data (" << packetHeader.packetID <<  "), part " << packetHeader.dataPart << " of " << packetHeader.totalDataParts);
+				//RNDebug("Received multipart data (" << packetHeader.packetID <<  "), part " << packetHeader.dataPart << " of " << packetHeader.totalDataParts);
 				
 				if(peer._multipartPacketTotalParts.count(channel) == 0)
 				{
@@ -228,6 +228,8 @@ namespace RN
 						//Received new multipart data, but it's missing previous parts!?
 						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
 						//Nothing to clean up here as the data does not exist yet
+						
+						RNDebug("Received multipart data but it's missing previous parts!");
 						
 						continue;
 					}
@@ -245,6 +247,8 @@ namespace RN
 					{
 						//Received multipart data, but found some inconsistency
 						//TODO: Consider disconnecting user? For now just skip the data. But this case means that something is seriously wrong.
+						
+						RNDebug("Received multipart data but it's missing parts!");
 						
 						peer._multipartPacketTotalParts.erase(channel);
 						peer._multipartPacketCurrentPart.erase(channel);
@@ -264,7 +268,7 @@ namespace RN
 				
 				if(packetHeader.dataPart + 1 >= packetHeader.totalDataParts)
 				{
-					RNDebug("Received full multipart data");
+					//RNDebug("Received full multipart data");
 					Unlock();
 					ReceivedPacket(peer._multipartPacketData[channel], 0, channel);
 					Lock();

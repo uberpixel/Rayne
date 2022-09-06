@@ -121,7 +121,7 @@ namespace RN
 				packetHeader.dataPart = rawData[2] | (rawData[3] << 8);
 				packetHeader.totalDataParts = rawData[4] | (rawData[5] << 8);
 				
-				RNDebug("Received multipart data (" << packetHeader.packetID <<  "), part " << packetHeader.dataPart << " of " << packetHeader.totalDataParts);
+				//RNDebug("Received multipart data (" << packetHeader.packetID <<  "), part " << packetHeader.dataPart << " of " << packetHeader.totalDataParts);
 				
 				if(peer._multipartPacketTotalParts.count(channel) == 0)
 				{
@@ -172,7 +172,7 @@ namespace RN
 				
 				if(packetHeader.dataPart + 1 >= packetHeader.totalDataParts)
 				{
-					RNDebug("Received full multipart data");
+					//RNDebug("Received full multipart data");
 					
 					Unlock();
 					ReceivedPacket(peer._multipartPacketData[channel], 0, channel);
