@@ -122,6 +122,7 @@ def main():
 	configNameLower = configName.lower()
 	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
 	configBuildSecrets = Utilities.getSettingFromConfig(platform, "build-secrets", buildConfigData)
+	configChangelog = Utilities.getSettingFromConfig(platform, "changelog", buildConfigData)
 	if not configName:
 		print("config file is missing name!")
 		return
@@ -201,13 +202,25 @@ def main():
 			if isDemo:
 				directoryToUpload += "_demo"
 			#directoryToUpload = os.path.join(directoryToUpload, configName)
-			subprocess.call([oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060'])
+			uploadCommand = [oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060']
+			if configChangelog != None:
+				with open(configChangelog, "r") as f:
+					changes = f.read()
+					uploadCommand.append('--notes')
+					uploadCommand.append('"' + changes + '"')
+			subprocess.call(uploadCommand)
 		elif platform == 'android':
 			releasesDirectoryPath = os.path.join(releasesDirectoryPath, 'android_oculus')
 			if isDemo:
 				releasesDirectoryPath += "_demo"
 			apkToUpload = os.path.join(releasesDirectoryPath, configNameLower+"-"+"oculus"+".apk")
-			subprocess.call([oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha', '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')])
+			uploadCommand = [oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha', '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')]
+			if configChangelog != None:
+				with open(configChangelog, "r") as f:
+					changes = f.read()
+					uploadCommand.append('--notes')
+					uploadCommand.append('"' + changes + '"')
+			subprocess.call(uploadCommand)
 
 			#--debug_symbols_dir /Users/slin/Dev/Rayne/Games/GRAB/Builds/android_oculus_demo/app/.cxx/cmake/release/arm64-v8a/Build --debug-symbols-pattern "*.so"
 
