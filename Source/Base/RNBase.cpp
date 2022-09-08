@@ -120,7 +120,7 @@ class AndroidBuffer : public std::streambuf
 		}
 
 	private:
-		static const int32_t kBufferSize = 1024;
+		static const size_t kBufferSize = 1024;
 		int32_t overflow(int32_t c)
 		{
 			if(c == traits_type::eof())
@@ -136,11 +136,12 @@ class AndroidBuffer : public std::streambuf
 			int32_t rc = 0;
 			if(this->pbase() != this->pptr())
 			{
+				size_t sizeToWrite = this->pptr() - this->pbase();
 				char writebuf[kBufferSize + 1];
-				memcpy(writebuf, this->pbase(), this->pptr() - this->pbase());
-				writebuf[this->pptr() - this->pbase()] = '\0';
+				memcpy(writebuf, this->pbase(), sizeToWrite); //Truncate logs if longer than the size of the buffer
+				writebuf[sizeToWrite] = '\0';
 
-				rc = __android_log_write(priority_, "std", writebuf) > 0;
+				rc = __android_log_write(priority_, "std", writebuf) > 0? 0 : -1;
 				this->setp(buffer_, buffer_ + kBufferSize - 1);
 			}
 			return rc;
