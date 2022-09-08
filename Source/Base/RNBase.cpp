@@ -128,7 +128,7 @@ class AndroidBuffer : public std::streambuf
 				*this->pptr() = traits_type::to_char_type(c);
 				this->sbumpc();
 			}
-			return this->sync() ? traits_type::eof() : traits_type::not_eof(c);
+			return this->sync() < 0? traits_type::eof() : traits_type::not_eof(c);
 		}
 
 		int32_t sync()
