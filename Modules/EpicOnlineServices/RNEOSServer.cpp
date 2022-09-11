@@ -166,9 +166,8 @@ namespace RN
 					peer._multipartPacketCurrentPart[channel] = packetHeader.dataPart;
 				}
 				
-				//Get data object from the packet without protocol header
-				Data *data = Data::WithBytes(&rawData[6], bytesWritten - 6);
-				peer._multipartPacketData[channel]->Append(data);
+				//Append data from the packet without protocol header
+				peer._multipartPacketData[channel]->Append(&rawData[6], bytesWritten - 6);
 				
 				if(packetHeader.dataPart + 1 >= packetHeader.totalDataParts)
 				{
