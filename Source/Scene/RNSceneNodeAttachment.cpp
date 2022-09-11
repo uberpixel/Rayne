@@ -29,7 +29,9 @@ namespace RN
 
 	SceneNode *SceneNodeAttachment::GetParent() const
 	{
-		return _node;
+		//Retain and autorelease so it stays alive for a bit
+		SafeRetain(_node);
+		return _node? _node->Autorelease() : nullptr;
 	}
 
 	void SceneNodeAttachment::__WillUpdate(SceneNode::ChangeSet changeSet)
