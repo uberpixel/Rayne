@@ -86,6 +86,14 @@ namespace RN
 
 	void Logger::Log(Level level, LogMessage &&message)
 	{
+#if !RN_BUILD_DEBUG
+		//TODO: The application should control the logging level! In general the level is just completely ignored at the moment, but shouldn't be.
+		if(level == Level::Debug) //Early out if the logging level is Debug, but it isn't a debug build
+		{
+			return;
+		}
+#endif
+			
 		{
 			LockGuard<Lockable> lock(_engineLock);
 
