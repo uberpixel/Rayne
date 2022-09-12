@@ -124,7 +124,7 @@ namespace RN
 #endif
 		
 #if RN_BUILD_DEBUG
-		RN_ASSERT((_refCount - _autoreleaseCounter) > 0, "Object is in too many autorelease pools and will be over released!");
+		RN_ASSERT(_refCount > _autoreleaseCounter, "Object is in too many autorelease pools and will be over released!");
 #endif
 
 		// If this is the last reference this thread has, which it very well might be,
