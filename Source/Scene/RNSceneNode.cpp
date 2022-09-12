@@ -381,9 +381,7 @@ namespace RN
 
 	SceneNode *SceneNode::GetParent() const
 	{
-		//TODO: Should probably do the same for the others above. Multithreading is painful :( Maybe even add some locks...
-		SafeRetain(_parent);
-		return _parent? _parent->Autorelease() : nullptr;
+		return _parent;
 	}
 
 	// -------------------
