@@ -196,6 +196,7 @@ namespace RN
 				{
 					hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
 					hit.node = hit.collisionObject->GetParent();
+					if(hit.node) hit.node->Retain()->Autorelease();
 				}
 			}
 		}
@@ -232,6 +233,7 @@ namespace RN
 						{
 							hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
 							hit.node = hit.collisionObject->GetParent();
+							if(hit.node) hit.node->Retain()->Autorelease();
 						}
 					}
 
@@ -262,6 +264,7 @@ namespace RN
 							{
 								hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
 								hit.node = hit.collisionObject->GetParent();
+								if(hit.node) hit.node->Retain()->Autorelease();
 							}
 						}
 

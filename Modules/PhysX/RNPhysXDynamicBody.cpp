@@ -325,6 +325,7 @@ namespace RN
 					if(attachment)
 					{
 						contact.node = attachment->GetParent();
+						if(contact.node) contact.node->Retain()->Autorelease();
 					}
 					contactInfo.push_back(contact);
 				}
@@ -354,6 +355,7 @@ namespace RN
 				if(attachment)
 				{
 					contact.node = attachment->GetParent();
+					if(contact.node) contact.node->Retain()->Autorelease();
 				}
 				contactInfo.push_back(contact);
 			}

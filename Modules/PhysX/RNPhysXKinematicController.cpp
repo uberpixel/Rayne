@@ -117,6 +117,7 @@ namespace RN
 			if(collisionObject->GetParent())
 			{
 				contact.node = collisionObject->GetParent();
+				if(contact.node) contact.node->Retain()->Autorelease();
 			}
 		}
 		return contact;

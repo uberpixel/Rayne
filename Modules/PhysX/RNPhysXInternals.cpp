@@ -106,23 +106,25 @@ namespace RN
 					{
 						PhysXContactInfo contactInfo;
 						contactInfo.distance = contactPoint.separation;
-						contactInfo.node = objectB->GetParent();
+						contactInfo.node = SafeRetain(objectB->GetParent());
 						contactInfo.collisionObject = objectB;
 
 						contactInfo.normal = RN::Vector3(contactPoint.normal.x, contactPoint.normal.y, contactPoint.normal.z);
 						contactInfo.position = RN::Vector3(contactPoint.position.x, contactPoint.position.y, contactPoint.position.z);
 						objectA->_contactCallback(objectB, contactInfo, contactState);
+						SafeRelease(contactInfo.node);
 					}
 
 					if(objectB->_contactCallback)
 					{
 						PhysXContactInfo contactInfo;
 						contactInfo.distance = contactPoint.separation;
-						contactInfo.node = objectA->GetParent();
+						contactInfo.node = SafeRetain(objectA->GetParent());
 						contactInfo.collisionObject = objectA;
 						contactInfo.normal = -RN::Vector3(contactPoint.normal.x, contactPoint.normal.y, contactPoint.normal.z);
 						contactInfo.position = RN::Vector3(contactPoint.position.x, contactPoint.position.y, contactPoint.position.z);
 						objectB->_contactCallback(objectA, contactInfo, contactState);
+						SafeRelease(contactInfo.node);
 					}
 				}
 			}
@@ -137,11 +139,12 @@ namespace RN
 		{
 			PhysXContactInfo contactInfo;
 			contactInfo.distance = 0.0f;
-			contactInfo.node = objectB->GetParent();
+			contactInfo.node = SafeRetain(objectB->GetParent());
 			contactInfo.collisionObject = objectB;
 			contactInfo.normal = RN::Vector3(hit.worldNormal.x, hit.worldNormal.y, hit.worldNormal.z);
 			contactInfo.position = RN::Vector3(hit.worldPos.x, hit.worldPos.y, hit.worldPos.z);
 			objectA->_contactCallback(objectB, contactInfo, PhysXCollisionObject::ContactState::Begin);
+			SafeRelease(contactInfo.node);
 		}
 	}
 
