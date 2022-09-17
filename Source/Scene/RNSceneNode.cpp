@@ -73,6 +73,13 @@ namespace RN
 
 	SceneNode::~SceneNode()
 	{
+		//Set parent of child nodes to null when it gets released
+		_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop){
+			child->WillUpdate(ChangeSet::Parent);
+			child->_parent = nullptr;
+			child->DidUpdate(ChangeSet::Parent);
+			child->__CompleteAttachmentWithScene(nullptr);
+		});
 		_children->Release();
 
 		if(_attachments)
