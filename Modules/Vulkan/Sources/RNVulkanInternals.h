@@ -27,7 +27,7 @@ namespace RN
 			~BufferedDescriptorSet()
 			{
 				VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-                vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), _descriptorSets.size(), _descriptorSets.data());
+				if(_descriptorSets.size() > 0) RNVulkanValidate(vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), _descriptorSets.size(), _descriptorSets.data()));
 			}
 
 			void UpdateLayout(VkDescriptorSetLayout layout, size_t currentFrame)
@@ -63,7 +63,7 @@ namespace RN
 				if(_usedFrames[_currentIndex] <= completedFrame && _usedFrames[_currentIndex] <= _resetFrame && completedFrame != -1)
 				{
 					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-					vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), 1, &_descriptorSets[_currentIndex]);
+					RNVulkanValidate(vk::FreeDescriptorSets(renderer->GetVulkanDevice()->GetDevice(), renderer->GetDescriptorPool(), 1, &_descriptorSets[_currentIndex]));
 
 					VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 					descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
