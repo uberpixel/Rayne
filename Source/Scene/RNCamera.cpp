@@ -364,10 +364,10 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.GetDistance(vmax);
 
-		frustums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f, _frustumPlaneOffsets[2]);
+		frustums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f, -_frustumPlaneOffsets[2]);
 		frustums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f, _frustumPlaneOffsets[3]);
 		frustums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f, _frustumPlaneOffsets[0]);
-		frustums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f, _frustumPlaneOffsets[1]);
+		frustums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f, -_frustumPlaneOffsets[1]);
 		frustums._frustumNear = Plane::WithPositionNormal(position + direction * std::min(_clipNear, _clipFar), -direction);
 		frustums._frustumFar = Plane::WithPositionNormal(position + direction * std::max(_clipNear, _clipFar), direction);
 	}
