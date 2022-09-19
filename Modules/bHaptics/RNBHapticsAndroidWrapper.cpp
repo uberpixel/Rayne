@@ -413,6 +413,7 @@ namespace RN
             const char* nativeDeviceListString = env->GetStringUTFChars(jstr, 0);
             const String *deviceListString = RN::String::WithBytes(nativeDeviceListString, stringLength, RN::Encoding::UTF8);
             env->ReleaseStringUTFChars(jstr, nativeDeviceListString);
+			env->DeleteLocalRef(jstr);
 
             const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(deviceListString);
             if(jsonDevices && jsonDevices->GetCount() > 0)
