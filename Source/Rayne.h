@@ -25,6 +25,8 @@
 #include "Assets/RNBitmap.h"
 #include "Assets/RNAudioAsset.h"
 
+#include "Assets/RNPNGAssetWriter.h"
+
 #include "Data/RNAny.h"
 #include "Data/RNIntrusiveList.h"
 #include "Data/RNAtomicRingBuffer.h"
