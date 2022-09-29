@@ -120,7 +120,7 @@ namespace RN
 		else
 		{
 			[descriptor setDepthWriteEnabled:NO];
-			[descriptor setDepthCompareFunction:CompareFunctionLookup[0]];
+			[descriptor setDepthCompareFunction:CompareFunctionLookup[1]];
 		}
 
 		id<MTLDepthStencilState> state = [_device newDepthStencilStateWithDescriptor:descriptor];
