@@ -159,7 +159,6 @@ namespace RN
 		RN_ASSERT(!_swapChain, "A swap chain framebuffer can not have additional color targets!");
 		RN_ASSERT(target.texture, "The color target needs a texture!");
 		RN_ASSERT((_colorTargets.size() == 0 && !_depthStencilTarget) || _sampleCount == target.texture->GetDescriptor().sampleCount, "Texture sample count differs from other framebuffer textures sample count");
-		RN_ASSERT(target.texture->GetDescriptor().accessOptions == GPUResource::AccessOptions::Private, "The framebuffer target needs to be in private storage");
 		
 		target.texture->Retain();
 		_sampleCount = target.texture->GetDescriptor().sampleCount;
