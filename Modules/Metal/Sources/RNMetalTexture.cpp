@@ -252,7 +252,7 @@ namespace RN
 		if(descriptor.usageHint & Texture::UsageHint::RenderTarget)
 		{
 			usage |= MTLTextureUsageRenderTarget;
-			metalDescriptor.storageMode = MTLStorageModePrivate;
+			metalDescriptor.storageMode = descriptor.accessOptions == GPUBuffer::AccessOptions::ReadWrite? MTLStorageModeShared : MTLStorageModePrivate;
 		}
 		
 		if(isIOSurfaceBacked)
