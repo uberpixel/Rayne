@@ -484,6 +484,7 @@ namespace RN
 		
 		metalRenderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;*/
 		metalRenderPass.directionalShadowDepthTexture = nullptr;
+		metalRenderPass.multiviewLayer = _currentMultiviewLayer;
 		
 		Framebuffer *framebuffer = renderPass->GetFramebuffer();
 		MetalSwapChain *newSwapChain = nullptr;
@@ -1373,8 +1374,16 @@ namespace RN
 					//TODO: handle post processing texture better
 					if(materialTextureIndex == textures->GetCount() && renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
 					{
-						MetalTexture *colorBuffer = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture()->Downcast<MetalTexture>();
-						[encoder setFragmentTexture:(id<MTLTexture>)colorBuffer->__GetUnderlyingTexture() atIndex:argument->GetIndex()];
+						MetalSwapChain *swapChain = renderPass.previousRenderPass->GetFramebuffer()->Downcast<MetalFramebuffer>()->GetSwapChain();
+						if(swapChain)
+						{
+							[encoder setFragmentTexture:swapChain->GetMTLTexture() atIndex:argument->GetIndex()];
+						}
+						else
+						{
+							MetalTexture *colorBuffer = renderPass.previousRenderPass->GetFramebuffer()->GetColorTexture()->Downcast<MetalTexture>();
+							[encoder setFragmentTexture:(id<MTLTexture>)colorBuffer->__GetUnderlyingTexture() atIndex:argument->GetIndex()];
+						}
 					}
 					else
 					{
