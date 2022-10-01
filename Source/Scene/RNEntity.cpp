@@ -105,4 +105,21 @@ namespace RN
 			}
 		}
 	}
+
+	void Entity::MakeDirty()
+	{
+		size_t lodStageCount = _model->GetLODStageCount();
+		for(size_t lodStage = 0; lodStage < lodStageCount; lodStage += 1)
+		{
+			Model::LODStage *stage = _model->GetLODStage(lodStage);
+			auto &drawables = _drawables[lodStage];
+
+			size_t count = stage->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				Drawable *drawable = drawables[i];
+				drawable->MakeDirty();
+			}
+		}
+	}
 }
