@@ -17,7 +17,7 @@ namespace RN
 	class PNGAssetWriter
 	{
 	public:
-		static bool Write(Texture *texture, const String *filename);
+		RNAPI static bool Write(Texture *texture, const String *filename);
 	};
 }
 
