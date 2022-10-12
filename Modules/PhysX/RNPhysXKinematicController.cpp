@@ -123,6 +123,45 @@ namespace RN
 		return contact;
 	}
 
+	PhysXContactInfo PhysXKinematicController::OverlapTest() const
+	{
+		const physx::PxExtendedVec3 &position = _controller->getPosition();
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		physx::PxOverlapBuffer hit;
+		physx::PxFilterData filterData;
+		filterData.word0 = _collisionFilterMask;
+		physx::PxShape *shape;
+		_controller->getActor()->getShapes(&shape, 1);
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
+		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+		
+		PhysXContactInfo contact;
+		contact.distance = -1.0f;
+		contact.node = nullptr;
+		contact.collisionObject = nullptr;
+
+		if(hit.getNbAnyHits() == 0)
+			return contact;
+
+		physx::PxOverlapHit closestHit = hit.getAnyHit(0);
+		contact.distance = 0.0f;
+		contact.position = Vector3(position.x, position.y, position.z);
+		contact.normal = Vector3(0.0f, 0.0f, 0.0f);
+		if(closestHit.actor)
+		{
+			PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(closestHit.actor->userData);
+			contact.collisionObject = collisionObject;
+			if(collisionObject->GetParent())
+			{
+				contact.node = collisionObject->GetParent();
+				if(contact.node) contact.node->Retain()->Autorelease();
+			}
+		}
+		return contact;
+	}
+
 	bool PhysXKinematicController::Resize(float height, bool checkIfBlocked)
 	{
 		bool isBlocked = false;

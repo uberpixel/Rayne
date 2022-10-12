@@ -32,6 +32,7 @@ namespace RN
 		PXAPI void Move(const Vector3 &direction, float delta);
 		PXAPI void Gravity(float gforce, float delta);
 		PXAPI PhysXContactInfo SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
+		PXAPI PhysXContactInfo OverlapTest() const;
 		
 		PXAPI bool Resize(float height, bool checkIfBlocked = true);
 
