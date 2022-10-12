@@ -240,15 +240,24 @@ def main():
                     if outFormat == 'cso':
                         parameterList = [fxcCmdPath, '-I', '.', '-Fo', permutationOutFile, '-E', entryName, '-T', shaderType + '_5_1', hlslFile]
                     else:
-                        parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '--minorshadermodel', '1', '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
+                        parameterList = [shaderConductorCmdPath, '-I', sourceFile, '-O', permutationOutFile, '--minorshadermodel', '2', '-E', entryName, '-S', shaderType, '-T', compilerOutFormat]
 
                     if outFormat == 'dxil' or outFormat == 'cso':
                         parameterList.append("-DRN_RENDERER_D3D12=1")
                         permutation = [p.replace('RN_USE_MULTIVIEW', '__RN_USE_MULTIVIEW__') for p in permutation] #exclude multiview stuff for d3d12 without effecting the permutation index for now
                     elif outFormat == 'spirv':
+                        if "has_16bit" in shader and shader["has_16bit"] == True:
+                            parameterList.append("--16bittypes")
+                            parameterList.append("true")
+
                         parameterList.append("-DRN_RENDERER_VULKAN=1")
                     elif outFormat == 'metal':
+                        if "has_16bit" in shader and shader["has_16bit"] == True:
+                            parameterList.append("--16bittypes")
+                            parameterList.append("true")
                         parameterList.append("-DRN_RENDERER_METAL=1")
+
+                    parameterList.append("-DRN_SHADER_TYPE_" + shaderType.upper() + "=1") #Something about this is not working correctly...
 
                     if len(permutation) > 0:
                         parameterList.extend(permutation)
