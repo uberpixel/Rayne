@@ -98,6 +98,7 @@ namespace RN
 		bool IsEqual(const Vector3 &other, float epsilon) const;
 		float GetDistance(const Vector3 &other) const;
 		float GetSquaredDistance(const Vector3 &other) const;
+		float GetDistanceToSegment(const Vector3 &a, const Vector3 &b) const;
 		Vector3 GetLerp(const Vector3 &other, float factor) const;
 		
 		bool IsValid() const;
@@ -565,6 +566,19 @@ namespace RN
 	{
 		Vector3 difference = *this - other;
 		return difference.GetDotProduct(difference);
+	}
+
+	RN_INLINE float Vector3::GetDistanceToSegment(const Vector3 &a, const Vector3 &b) const
+	{
+		Vector3 ab  = b - a;
+		Vector3 av  = *this - a;
+
+		if(av.GetDotProduct(ab) <= 0.0f) return av.GetLength();
+
+		Vector3 bv = *this - b;
+		if(bv.GetDotProduct(ab) >= 0.0) return bv.GetLength();
+
+		return (ab.GetCrossProduct(av)).GetLength() / ab.GetLength();
 	}
 
 	RN_INLINE Vector3 Vector3::GetLerp(const Vector3 &other, float factor) const
