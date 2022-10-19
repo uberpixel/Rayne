@@ -207,9 +207,17 @@ namespace RN
 				{
 					uniformType = PrimitiveType::Vector4;
 				}
+				else if(type == MTLDataTypeFloat2x2)
+				{
+					uniformType = PrimitiveType::Matrix2x2;
+				}
+				else if(type == MTLDataTypeFloat3x3)
+				{
+					uniformType = PrimitiveType::Matrix3x3;
+				}
 				else if(type == MTLDataTypeFloat4x4)
 				{
-					uniformType = PrimitiveType::Matrix;
+					uniformType = PrimitiveType::Matrix4x4;
 				}
 				else if(type == MTLDataTypeInt)
 				{

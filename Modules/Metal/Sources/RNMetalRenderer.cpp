@@ -704,11 +704,13 @@ namespace RN
 			case PrimitiveType::Vector2:
 			case PrimitiveType::HalfVector3:
 			case PrimitiveType::HalfVector4:
+			case PrimitiveType::Matrix2x2:
 				return 8;
 
 			case PrimitiveType::Vector3:
 			case PrimitiveType::Vector4:
-			case PrimitiveType::Matrix:
+			case PrimitiveType::Matrix3x3:
+			case PrimitiveType::Matrix4x4:
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
@@ -741,11 +743,15 @@ namespace RN
 
 			case PrimitiveType::Vector3:
 			case PrimitiveType::Vector4:
+			case PrimitiveType::Matrix2x2:
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
 
-			case PrimitiveType::Matrix:
+			case PrimitiveType::Matrix3x3:
+				return 48; //Stored as 3 x float4
+				
+			case PrimitiveType::Matrix4x4:
 				return 64;
 		}
 	}
@@ -810,7 +816,9 @@ namespace RN
 				case Shader::UniformDescriptor::Identifier::NormalMatrix:
 				{
 					Matrix normalMatrix = drawable->inverseModelMatrix.GetTransposed();
-					std::memcpy(buffer + descriptor->GetOffset(), normalMatrix.m, descriptor->GetSize());
+					std::memcpy(buffer + descriptor->GetOffset(), &normalMatrix.m[0], 12);
+					std::memcpy(buffer + descriptor->GetOffset() + 16, &normalMatrix.m[4], 12);
+					std::memcpy(buffer + descriptor->GetOffset() + 32, &normalMatrix.m[8], 12);
 					break;
 				}
 

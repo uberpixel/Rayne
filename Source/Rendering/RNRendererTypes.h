@@ -45,7 +45,10 @@ namespace RN
 		Vector3,
 		Vector4,
 
-		Matrix,
+		Matrix2x2,
+		Matrix3x3,
+		Matrix4x4,
+		
 		Quaternion,
 		Color
 	};

@@ -900,11 +900,13 @@ namespace RN
 			case PrimitiveType::Vector2:
 			case PrimitiveType::HalfVector3:
 			case PrimitiveType::HalfVector4:
+			case PrimitiveType::Matrix2x2:
 				return 8;
 
 			case PrimitiveType::Vector3:
 			case PrimitiveType::Vector4:
-			case PrimitiveType::Matrix:
+			case PrimitiveType::Matrix3x3:
+			case PrimitiveType::Matrix4x4:
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
@@ -941,11 +943,15 @@ namespace RN
 
 			case PrimitiveType::Vector3:
 			case PrimitiveType::Vector4:
+			case PrimitiveType::Matrix2x2:
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
 
-			case PrimitiveType::Matrix:
+			case PrimitiveType::Matrix3x3:
+				return 48;
+
+			case PrimitiveType::Matrix4x4:
 				return 64;
 
 			default:

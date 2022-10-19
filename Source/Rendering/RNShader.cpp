@@ -128,117 +128,117 @@ namespace RN
 		else if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")))
 		{
 			_identifier = ModelMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")))
 		{
 			_identifier = InverseModelMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_normal")) || name->IsEqual(RNCSTR("normalMatrix")))
 		{
 			_identifier = NormalMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix3x3;
 		}
 		else if(name->IsEqual(RNCSTR("transform_modelview")) || name->IsEqual(RNCSTR("modelViewMatrix")))
 		{
 			_identifier = ModelViewMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_modelview_multiview")) || name->IsEqual(RNCSTR("modelViewMatrix_multiview")))
 		{
 			_identifier = ModelViewMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_modelviewprojection")) || name->IsEqual(RNCSTR("modelViewProjectionMatrix")))
 		{
 			_identifier = ModelViewProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_modelviewprojection_multiview")) || name->IsEqual(RNCSTR("modelViewProjectionMatrix_multiview")))
 		{
 			_identifier = ModelViewProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_view")) || name->IsEqual(RNCSTR("viewMatrix")))
 		{
 			_identifier = ViewMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_view_multiview")) || name->IsEqual(RNCSTR("viewMatrix_multiview")))
 		{
 			_identifier = ViewMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_viewprojection")) || name->IsEqual(RNCSTR("viewProjectionMatrix")))
 		{
 			_identifier = ViewProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_viewprojection_multiview")) || name->IsEqual(RNCSTR("viewProjectionMatrix_multiview")))
 		{
 			_identifier = ViewProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_projection")) || name->IsEqual(RNCSTR("projectionMatrix")))
 		{
 			_identifier = ProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_projection_multiview")) || name->IsEqual(RNCSTR("projectionMatrix_multiview")))
 		{
 			_identifier = ProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelview")) || name->IsEqual(RNCSTR("inverseModelViewMatrix")))
 		{
 			_identifier = InverseModelViewMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelview_multiview")) || name->IsEqual(RNCSTR("inverseModelViewMatrix_multiview")))
 		{
 			_identifier = InverseModelViewMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection")) || name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix")))
 		{
 			_identifier = InverseModelViewProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inversemodelviewprojection_multiview")) || name->IsEqual(RNCSTR("inverseModelViewProjectionMatrix_multiview")))
 		{
 			_identifier = InverseModelViewProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseview")) || name->IsEqual(RNCSTR("inverseViewMatrix")))
 		{
 			_identifier = InverseViewMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseview_multiview")) || name->IsEqual(RNCSTR("inverseViewMatrix_multiview")))
 		{
 			_identifier = InverseViewMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection")) || name->IsEqual(RNCSTR("inverseViewProjectionMatrix")))
 		{
 			_identifier = InverseViewProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseviewprojection_multiview")) || name->IsEqual(RNCSTR("inverseViewProjectionMatrix_multiview")))
 		{
 			_identifier = InverseViewProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseprojection")) || name->IsEqual(RNCSTR("inverseProjectionMatrix")))
 		{
 			_identifier = InverseProjectionMatrix;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if(name->IsEqual(RNCSTR("transform_inverseprojection_multiview")) || name->IsEqual(RNCSTR("inverseProjectionMatrix_multiview")))
 		{
 			_identifier = InverseProjectionMatrixMultiview;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if (name->IsEqual(RNCSTR("camera_position_multiview")) || name->IsEqual(RNCSTR("cameraPosition_multiview")))
 		{
@@ -318,7 +318,7 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("shadows_directional_matrices")) || name->IsEqual(RNCSTR("directionalShadowMatrices")))
 		{
 			_identifier = DirectionalShadowMatrices;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 		else if (name->IsEqual(RNCSTR("shadows_directional_matrices_count")) || name->IsEqual(RNCSTR("directionalShadowMatricesCount")))
 		{
@@ -343,7 +343,7 @@ namespace RN
 		else if (name->IsEqual(RNCSTR("bone_matrices")) || name->IsEqual(RNCSTR("boneMatrices")))
 		{
 			_identifier = BoneMatrices;
-			_type = PrimitiveType::Matrix;
+			_type = PrimitiveType::Matrix4x4;
 		}
 	}
 
@@ -461,7 +461,11 @@ namespace RN
 			return 12 * _elementCount;
 		case PrimitiveType::Vector4:
 			return 16 * _elementCount;
-		case PrimitiveType::Matrix:
+		case PrimitiveType::Matrix2x2:
+			return 16 * _elementCount;
+		case PrimitiveType::Matrix3x3:
+			return 48 * _elementCount;
+		case PrimitiveType::Matrix4x4:
 			return 64 * _elementCount;
 		case PrimitiveType::Quaternion:
 			return 16 * _elementCount;

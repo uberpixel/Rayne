@@ -43,7 +43,9 @@ namespace RN
 		{sizeof(Vector3),    alignof(Vector3)},
 		{sizeof(Vector4),    alignof(Vector4)},
 
-		{sizeof(Matrix),     alignof(Matrix)},
+		{sizeof(Vector4),     alignof(Vector4)}, //float2x2
+		{sizeof(Vector3) * 3,     alignof(Vector3)}, //float3x3
+		{sizeof(Matrix),     alignof(Matrix)}, //float4x4
 		{sizeof(Quaternion), alignof(Quaternion)},
 		{sizeof(Color),      alignof(Color)}
 

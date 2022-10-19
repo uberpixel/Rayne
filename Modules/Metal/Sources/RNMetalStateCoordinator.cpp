@@ -34,8 +34,11 @@ namespace RN
 		MTLVertexFormatFloat2,
 		MTLVertexFormatFloat3,
 		MTLVertexFormatFloat4,
-
+		
+		MTLVertexFormatFloat2,
+		MTLVertexFormatFloat3,
 		MTLVertexFormatFloat4,
+		
 		MTLVertexFormatFloat4,
 		MTLVertexFormatFloat4
 	};

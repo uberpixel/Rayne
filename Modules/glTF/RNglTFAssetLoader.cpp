@@ -304,7 +304,7 @@ namespace RN
 					case TINYGLTF_TYPE_MAT3:
 					case TINYGLTF_TYPE_MAT4:
 					case TINYGLTF_TYPE_MATRIX:
-						type = PrimitiveType::Matrix;
+						type = PrimitiveType::Matrix4x4;
 						break;
 					case TINYGLTF_TYPE_SCALAR:
 						type = PrimitiveType::Float;
@@ -386,7 +386,7 @@ namespace RN
 					elementSize = 16;
 					elementCount = 4;
 					break;
-				case PrimitiveType::Matrix:
+				case PrimitiveType::Matrix4x4:
 					elementSize = 64;
 					elementCount = 16;
 					break;

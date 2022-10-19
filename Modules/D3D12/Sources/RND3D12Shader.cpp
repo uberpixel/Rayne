@@ -249,7 +249,9 @@ namespace RN
 			}
 			else
 			{
-				if (variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix;
+				if(variableTypeDescription.Columns == 2) uniformType = PrimitiveType::Matrix2x2;
+				if(variableTypeDescription.Columns == 3) uniformType = PrimitiveType::Matrix3x3;
+				if(variableTypeDescription.Columns == 4) uniformType = PrimitiveType::Matrix4x4;
 			}
 		}
 		else if (variableTypeDescription.Type == D3D_SVT_MIN16FLOAT)
