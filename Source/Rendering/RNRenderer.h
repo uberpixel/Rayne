@@ -72,7 +72,7 @@ namespace RN
             else
             {
                 modelMatrix = node->GetWorldTransform();
-                inverseModelMatrix = modelMatrix.GetInverse();
+                inverseModelMatrix = node->GetInverseWorldTransform();
             }
 		}
 		virtual void MakeDirty(){}

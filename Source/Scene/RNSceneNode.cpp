@@ -488,6 +488,10 @@ namespace RN
 			_localTransform = Matrix::WithTranslation(_position);
 			_localTransform.Rotate(_rotation);
 			_localTransform.Scale(_scale);
+			
+			_inverseLocalTransform = Matrix::WithScaling(_scale != 0.0f? (Vector3(1.0f, 1.0f, 1.0f) / _scale) : Vector3(0.0f, 0.0f, 0.0f));
+			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
+			_inverseLocalTransform.Translate(_position * -1.0f);
 
 			if(_parent)
 			{
@@ -499,6 +503,7 @@ namespace RN
 				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
 
 				_worldTransform = _parent->GetWorldTransform() * _localTransform;
+				_inverseWorldTransform = _inverseLocalTransform * _parent->GetInverseWorldTransform();
 			}
 			else
 			{
@@ -508,6 +513,7 @@ namespace RN
 				_worldEuler = _euler;
 
 				_worldTransform = _localTransform;
+				_inverseWorldTransform = _inverseLocalTransform;
 			}
 
 			_transformedBoundingBox = _boundingBox;

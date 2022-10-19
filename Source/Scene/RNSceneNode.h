@@ -159,7 +159,9 @@ namespace RN
 		RNAPI const Array *GetChildren() const;
 
 		RNAPI Matrix GetWorldTransform() const;
+		RNAPI Matrix GetInverseWorldTransform() const;
 		RNAPI Matrix GetTransform() const;
+		RNAPI Matrix GetInverseTransform() const;
 
 		RNAPI virtual bool CanRender(Renderer *renderer, Camera *camera) const;
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) const;
@@ -224,7 +226,9 @@ namespace RN
 		mutable Vector3 _worldEuler;
 
 		mutable Matrix _worldTransform;
+		mutable Matrix _inverseWorldTransform;
 		mutable Matrix _localTransform;
+		mutable Matrix _inverseLocalTransform;
 
 		mutable AABB _transformedBoundingBox;
 		mutable Sphere _transformedBoundingSphere;
@@ -403,10 +407,22 @@ namespace RN
 		return Matrix(_localTransform);
 	}
 
+	RN_INLINE Matrix SceneNode::GetInverseTransform() const
+	{
+		UpdateInternalData();
+		return Matrix(_inverseLocalTransform);
+	}
+
 	RN_INLINE Matrix SceneNode::GetWorldTransform() const
 	{
 		UpdateInternalData();
 		return Matrix(_worldTransform);
+	}
+
+	RN_INLINE Matrix SceneNode::GetInverseWorldTransform() const
+	{
+		UpdateInternalData();
+		return Matrix(_inverseWorldTransform);
 	}
 
 	RN_INLINE AABB SceneNode::GetBoundingBox() const
