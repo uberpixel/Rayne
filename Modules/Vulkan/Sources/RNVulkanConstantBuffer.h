@@ -12,7 +12,7 @@
 #include "RNVulkan.h"
 #include "RNVulkanStateCoordinator.h"
 
-#define kRNMinimumConstantBufferSize 1*1000*1000
+#define kRNMinimumConstantBufferSize 10*1000*1000 //10mb for constants to normally fit everything into a single constant buffer, even for complex scenes.
 #define kRNConstantBufferAlignement 256
 
 namespace RN
