@@ -12,40 +12,75 @@ namespace RN
 {
 	RNDefineMeta(Material, Object)
 
-	Material::Properties::Properties() : colorWriteMask(0xf), depthMode(DepthMode::Greater), depthWriteEnabled(true), ambientColor(Color(0.5f, 0.5f, 0.5f, 1.0f)), diffuseColor(Color(1.0f, 1.0f, 1.0f, 1.0f)), specularColor(Color(1.0f, 1.0f, 1.0f, 4.0f)), emissiveColor(Color(0.0f, 0.0f, 0.0f, 0.0f)), usePolygonOffset(false), polygonOffsetFactor(-1.1f), polygonOffsetUnits(-0.1f), useAlphaToCoverage(false), alphaToCoverageClamp(1.0f), textureTileFactor(1.0f), cullMode(CullMode::BackFace), blendOperationRGB(BlendOperation::None), blendOperationAlpha(BlendOperation::None), blendFactorSourceRGB(BlendFactor::SourceAlpha), blendFactorDestinationRGB(BlendFactor::OneMinusSourceAlpha), blendFactorSourceAlpha(BlendFactor::SourceAlpha), blendFactorDestinationAlpha(BlendFactor::OneMinusSourceAlpha), _customShaderUniforms(nullptr)
+	Material::Properties::Properties() : colorWriteMask(0xf), depthMode(DepthMode::Greater), depthWriteEnabled(true), ambientColor(Color(0.5f, 0.5f, 0.5f, 1.0f)), diffuseColor(Color(1.0f, 1.0f, 1.0f, 1.0f)), specularColor(Color(1.0f, 1.0f, 1.0f, 4.0f)), emissiveColor(Color(0.0f, 0.0f, 0.0f, 0.0f)), usePolygonOffset(false), polygonOffsetFactor(-1.1f), polygonOffsetUnits(-0.1f), useAlphaToCoverage(false), alphaToCoverageClamp(1.0f), textureTileFactor(1.0f), cullMode(CullMode::BackFace), blendOperationRGB(BlendOperation::None), blendOperationAlpha(BlendOperation::None), blendFactorSourceRGB(BlendFactor::SourceAlpha), blendFactorDestinationRGB(BlendFactor::OneMinusSourceAlpha), blendFactorSourceAlpha(BlendFactor::SourceAlpha), blendFactorDestinationAlpha(BlendFactor::OneMinusSourceAlpha)
 	{
 		
 	}
 
-	Material::Properties::Properties(const Properties &properties) : colorWriteMask(properties.colorWriteMask), depthMode(properties.depthMode), depthWriteEnabled(properties.depthWriteEnabled), ambientColor(properties.ambientColor), diffuseColor(properties.diffuseColor), specularColor(properties.specularColor), emissiveColor(properties.emissiveColor), usePolygonOffset(properties.usePolygonOffset), polygonOffsetFactor(properties.polygonOffsetFactor), polygonOffsetUnits(properties.polygonOffsetUnits), useAlphaToCoverage(properties.useAlphaToCoverage), alphaToCoverageClamp(properties.alphaToCoverageClamp), textureTileFactor(properties.textureTileFactor), cullMode(properties.cullMode), blendOperationRGB(properties.blendOperationRGB), blendOperationAlpha(properties.blendOperationAlpha), blendFactorSourceRGB(properties.blendFactorSourceRGB), blendFactorDestinationRGB(properties.blendFactorDestinationRGB), blendFactorSourceAlpha(properties.blendFactorSourceAlpha), blendFactorDestinationAlpha(properties.blendFactorDestinationAlpha), _customShaderUniforms(nullptr)
-	{
-		if(properties._customShaderUniforms)
-		{
-			_customShaderUniforms = properties._customShaderUniforms->Copy();
-		}
+	Material::Properties::Properties(const Properties &properties)
+    {
+		CopyFromProperties(properties);
 	}
 
 	Material::Properties::~Properties()
 	{
-		SafeRelease(_customShaderUniforms);
+		for(auto const& data : _customShaderUniforms)
+		{
+			data.second->Release();
+		}
 	}
+
+    void Material::Properties::CopyFromProperties(const Properties &properties)
+    {
+        colorWriteMask = properties.colorWriteMask;
+        depthMode = properties.depthMode;
+        depthWriteEnabled = properties.depthWriteEnabled;
+        ambientColor = properties.ambientColor;
+        diffuseColor = properties.diffuseColor;
+        specularColor = properties.specularColor;
+        emissiveColor = properties.emissiveColor;
+        usePolygonOffset = properties.usePolygonOffset;
+        polygonOffsetFactor = properties.polygonOffsetFactor;
+        polygonOffsetUnits = properties.polygonOffsetUnits;
+        useAlphaToCoverage = properties.useAlphaToCoverage;
+        alphaToCoverageClamp = properties.alphaToCoverageClamp;
+        textureTileFactor = properties.textureTileFactor;
+        cullMode = properties.cullMode;
+        blendOperationRGB = properties.blendOperationRGB;
+        blendOperationAlpha = properties.blendOperationAlpha;
+        blendFactorSourceRGB = properties.blendFactorSourceRGB;
+        blendFactorDestinationRGB = properties.blendFactorDestinationRGB;
+        blendFactorSourceAlpha = properties.blendFactorSourceAlpha;
+        blendFactorDestinationAlpha = properties.blendFactorDestinationAlpha;
+		
+		_customShaderUniforms.clear();
+		_customShaderUniforms.insert(properties._customShaderUniforms.begin(), properties._customShaderUniforms.end());
+		
+		for(auto const& data : _customShaderUniforms)
+		{
+			data.second->Retain();
+		}
+    }
 
 	void Material::Properties::SetCustomShaderUniform(const String *name, Value *value)
 	{
-		if(!_customShaderUniforms) _customShaderUniforms = new RN::Dictionary();
-		_customShaderUniforms->SetObjectForKey(value, name);
+		_customShaderUniforms[name->GetHash()] = value->Retain();
 	}
 
 	void Material::Properties::SetCustomShaderUniform(const String *name, Number *number)
 	{
-		if(!_customShaderUniforms) _customShaderUniforms = new RN::Dictionary();
-		_customShaderUniforms->SetObjectForKey(number, name);
+		_customShaderUniforms[name->GetHash()] = number->Retain();
 	}
 
 	Object *Material::Properties::GetCustomShaderUniform(const String *name) const
 	{
-		if(!_customShaderUniforms) return nullptr;
-		return _customShaderUniforms->GetObjectForKey(name);
+		const auto result = _customShaderUniforms.find(name->GetHash());
+		if(result != _customShaderUniforms.end())
+		{
+			return result->second;
+		}
+		
+		return nullptr;
 	}
 
 	Material::Material(Shader *vertexShader, Shader *fragmentShader) :
@@ -281,9 +316,9 @@ namespace RN
 
 	Material::Properties Material::GetMergedProperties(Material *overrideMaterial) const
 	{
-		Properties properties = _properties;
+		if(!overrideMaterial) return _properties;
 
-		if(!overrideMaterial) return properties;
+		Properties properties = _properties;
 		
 		if(!(overrideMaterial->GetOverride() & Override::ColorWriteMask) && !(_override & Override::ColorWriteMask))
 		{
@@ -339,16 +374,13 @@ namespace RN
 		
 		if(!(overrideMaterial->GetOverride() & Override::CustomUniforms) && !(_override & Override::CustomUniforms))
 		{
-			if(overrideMaterial->_properties._customShaderUniforms)
+			if(overrideMaterial->_properties._customShaderUniforms.size() > 0)
 			{
-				if(!properties._customShaderUniforms)
+				for(auto const& data : overrideMaterial->_properties._customShaderUniforms)
 				{
-					properties._customShaderUniforms = overrideMaterial->_properties._customShaderUniforms->Retain();
-				}
-				else
-				{
-					//This seems to override any existing values, so exactly what I want here.
-					properties._customShaderUniforms->AddEntriesFromDictionary(overrideMaterial->_properties._customShaderUniforms);
+					auto blubb = properties._customShaderUniforms.find(data.first);
+					if(blubb != properties._customShaderUniforms.end()) blubb->second->Release(); //Release old value if there is one
+					properties._customShaderUniforms[data.first] = data.second->Retain();
 				}
 			}
 		}

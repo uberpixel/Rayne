@@ -108,12 +108,14 @@ namespace RN
 			BlendFactor blendFactorSourceAlpha;
 			BlendFactor blendFactorDestinationAlpha;
 			
+			RNAPI void CopyFromProperties(const Properties &properties);
+			
 			RNAPI void SetCustomShaderUniform(const String *name, Value *value);
 			RNAPI void SetCustomShaderUniform(const String *name, Number *number);
 			RNAPI Object *GetCustomShaderUniform(const String *name) const;
 			
 		private:
-			Dictionary *_customShaderUniforms;
+			std::map<const size_t, Object *> _customShaderUniforms; //WARNING: The key is the hash of the string, which could potentially have conflicts!
 		};
 
 		RN_OPTIONS(Override, uint32,
