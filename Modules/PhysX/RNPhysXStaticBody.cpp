@@ -73,14 +73,18 @@ namespace RN
 			PhysXCompoundShape *compound = _shape->Downcast<PhysXCompoundShape>();
 			for (PhysXShape *tempShape : compound->_shapes)
 			{
+				PhysXWorld::GetSharedInstance()->Lock();
 				tempShape->GetPhysXShape()->setSimulationFilterData(filterData);
 				tempShape->GetPhysXShape()->setQueryFilterData(filterData);
+				PhysXWorld::GetSharedInstance()->Unlock();
 			}
 		}
 		else
 		{
+			PhysXWorld::GetSharedInstance()->Lock();
 			_shape->GetPhysXShape()->setSimulationFilterData(filterData);
 			_shape->GetPhysXShape()->setQueryFilterData(filterData);
+			PhysXWorld::GetSharedInstance()->Unlock();
 		}
 	}
 	
@@ -93,7 +97,9 @@ namespace RN
 			RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
 			Vector3 position = GetWorldPosition() - positionOffset;
 			Quaternion rotation = GetWorldRotation() * _rotationOffset;
+			PhysXWorld::GetSharedInstance()->Lock();
 			_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+			PhysXWorld::GetSharedInstance()->Unlock();
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -103,7 +109,9 @@ namespace RN
 				RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
 				Vector3 position = GetWorldPosition() - positionOffset;
 				Quaternion rotation = GetWorldRotation() * _rotationOffset;
+				PhysXWorld::GetSharedInstance()->Lock();
 				_actor->setGlobalPose(physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
+				PhysXWorld::GetSharedInstance()->Unlock();
 			}
 			
 			_owner = GetParent();
