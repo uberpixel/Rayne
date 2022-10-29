@@ -19,7 +19,7 @@ namespace RN
 {
 	RNDefineMeta(BHapticsManager, SceneAttachment)
 	
-	BHapticsManager::BHapticsManager() : _currentDevices(nullptr), _wantsDeviceUpdate(false)
+	BHapticsManager::BHapticsManager() : _currentDevices(nullptr), _wantsDeviceUpdate(true)
 	{
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Initialize();
@@ -37,7 +37,7 @@ namespace RN
 
 	void BHapticsManager::Update(float delta)
 	{
-	    if(!_currentDevices || _wantsDeviceUpdate)
+	    if(_wantsDeviceUpdate)
 	    {
 			const Array *currentDevices = nullptr;
 #if RN_PLATFORM_ANDROID
@@ -48,9 +48,9 @@ namespace RN
             {
 				SafeRelease(_currentDevices);
 				_currentDevices = currentDevices->Retain();
-				
-				_wantsDeviceUpdate = false;
             }
+			
+			_wantsDeviceUpdate = false;
         }
 
 		for(const auto call : _queue)
