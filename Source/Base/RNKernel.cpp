@@ -336,7 +336,7 @@ namespace RN
 
 #if RN_PLATFORM_ANDROID
 		//Wait for android app window to be available before finishing the boostrap which is usually followed by RN::Window creation
-		if(RN_EXPECT_FALSE(_firstFrame) && _androidApp->window)
+		if(RN_EXPECT_FALSE(_firstFrame))// && _androidApp->window)
 #else
 		if(RN_EXPECT_FALSE(_firstFrame))
 #endif
