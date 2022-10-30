@@ -36,10 +36,11 @@ namespace RN
 		{
 			_value = value;
 			
-			if(_value < _from) _value = _from;
-			if(_value > _to) _value = _to;
+			float clampedValue = value;
+			if(clampedValue < _from) clampedValue = _from;
+			if(clampedValue > _to) clampedValue = _to;
 			
-			float sliderPosition = (_value - _from) / (_to - _from);
+			float sliderPosition = (clampedValue - _from) / (_to - _from);
 			float movementRange = GetFrame().width - 15.0f;
 			
 			Rect handleFrame = _handleView->GetFrame();
