@@ -323,7 +323,13 @@ namespace RN
 
 			_frame = frame;
 			
-			SetPosition(RN::Vector3(_frame.x, -_frame.y, 0.0f));
+			RN::Vector3 newPosition(_frame.x, -_frame.y, 0.0f);
+			if(_superview)
+			{
+				newPosition.x = _superview->_bounds.x + newPosition.x;
+				newPosition.y = -_superview->_bounds.y + newPosition.y;
+			}
+			SetPosition(newPosition);
 
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
@@ -347,7 +353,7 @@ namespace RN
 			for(size_t i = 0; i < count; i ++)
 			{
 				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->SetPosition(RN::Vector3(_bounds.x + child->GetFrame().x, -_bounds.y - child->GetFrame().y, 0.0f));
+				child->SetPosition(RN::Vector3(_bounds.x + child->_frame.x, -_bounds.y - child->_frame.y, 0.0f));
 			}
 			Unlock();
 			

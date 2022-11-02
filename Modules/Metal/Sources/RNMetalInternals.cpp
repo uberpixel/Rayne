@@ -28,7 +28,7 @@
 		_layer = [CAMetalLayer layer];
 		[_layer setDevice:device];
 		[_layer setPixelFormat:format];
-		[_layer setFramebufferOnly:YES];
+		[_layer setFramebufferOnly:YES]; //TODO: Should be YES for some extra optimisations, but then it doesn't allow reading from it, which is needed for screenshots.
 		
 		if(screen && screen->GetNSScreen())
 		{
