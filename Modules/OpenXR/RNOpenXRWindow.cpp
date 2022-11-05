@@ -45,6 +45,9 @@ namespace RN
 
 		XrPath microsoftMixedRealityController;
 		xrStringToPath(instance, "/interaction_profiles/microsoft/motion_controller", &microsoftMixedRealityController);
+
+		XrPath picoNeo3Controller;
+		xrStringToPath(instance, "/interaction_profiles/pico/neo3_controller", &picoNeo3Controller);
 		
 		if(interactionProfile == khronosSimpleController)
 		{
@@ -65,6 +68,10 @@ namespace RN
 		else if(interactionProfile == microsoftMixedRealityController)
 		{
 			return VRControllerTrackingState::Type::MicrosoftMixedRealityController;
+		}
+		else if(interactionProfile == picoNeo3Controller)
+		{
+			return VRControllerTrackingState::Type::PicoNeo3Controller;
 		}
 
 		return VRControllerTrackingState::Type::None;
@@ -298,8 +305,8 @@ namespace RN
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
 		}
 
-		//TODO: This will only be correct for vulkan and only for the oculus extensions
-		if(numberOfSupportedFoveationExtensions == 4)
+		//TODO: This will only be correct for vulkan and only for the oculus extensions, PICO 4 will claim that it supports the FB FFR extension, but then not actually work with them
+		if(numberOfSupportedFoveationExtensions == 4 && !_supportsConfigsPICO)
 		{
 			_supportsFoveatedRendering = true;
 		}
@@ -1525,6 +1532,22 @@ namespace RN
 			}
 		};
 
+#if RN_BUILD_DEBUG
+		if(_internals->EnumerateDisplayRefreshRatesFB)
+		{
+			uint32_t numberOfRefreshRates = 0;
+			_internals->EnumerateDisplayRefreshRatesFB(_internals->session, 0, &numberOfRefreshRates, nullptr);
+
+			float *refreshRates = new float[numberOfRefreshRates];
+			_internals->EnumerateDisplayRefreshRatesFB(_internals->session, numberOfRefreshRates, &numberOfRefreshRates, refreshRates);
+			for(int i = 0; i < numberOfRefreshRates; i++)
+			{
+				RNDebug("Supported Refresh Rate: " << refreshRates[i]);
+			}
+			delete[] refreshRates;
+		}
+#endif
+
 		if(_internals->RequestDisplayRefreshRateFB)
 		{
 			_internals->RequestDisplayRefreshRateFB(_internals->session, _preferredFrameRate);
@@ -1928,8 +1951,16 @@ namespace RN
 		_controllerTrackingState[0].type = GetControllerTypeForInteractionProfile(_internals->instance, leftHandInteractionProfileState.interactionProfile);
 		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 #else
-		_controllerTrackingState[0].type = VRControllerTrackingState::Type::OculusTouchController;
-		_controllerTrackingState[1].type = VRControllerTrackingState::Type::OculusTouchController;
+		if(_supportsConfigsPICO) //This is only gonna be true on a PICO device
+		{
+			_controllerTrackingState[0].type = VRControllerTrackingState::Type::PicoNeo3Controller;
+			_controllerTrackingState[1].type = VRControllerTrackingState::Type::PicoNeo3Controller;
+		}
+		else
+		{
+			_controllerTrackingState[0].type = VRControllerTrackingState::Type::OculusTouchController;
+			_controllerTrackingState[1].type = VRControllerTrackingState::Type::OculusTouchController;
+		}
 #endif
 
 		_controllerTrackingState[0].hasHaptics = true;
