@@ -306,7 +306,11 @@ namespace RN
 		}
 
 		//TODO: This will only be correct for vulkan and only for the oculus extensions, PICO 4 will claim that it supports the FB FFR extension, but then not actually work with them
-		if(numberOfSupportedFoveationExtensions == 4 && !_supportsConfigsPICO)
+		if(numberOfSupportedFoveationExtensions == 4
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+		&& !_supportsConfigsPICO
+#endif
+			)
 		{
 			_supportsFoveatedRendering = true;
 		}
@@ -1951,12 +1955,14 @@ namespace RN
 		_controllerTrackingState[0].type = GetControllerTypeForInteractionProfile(_internals->instance, leftHandInteractionProfileState.interactionProfile);
 		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 #else
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
 		if(_supportsConfigsPICO) //This is only gonna be true on a PICO device
 		{
 			_controllerTrackingState[0].type = VRControllerTrackingState::Type::PicoNeo3Controller;
 			_controllerTrackingState[1].type = VRControllerTrackingState::Type::PicoNeo3Controller;
 		}
 		else
+#endif
 		{
 			_controllerTrackingState[0].type = VRControllerTrackingState::Type::OculusTouchController;
 			_controllerTrackingState[1].type = VRControllerTrackingState::Type::OculusTouchController;
