@@ -74,7 +74,8 @@ namespace RN
 			OculusTouchController,
 			HTCViveController,
 			ValveIndexController,
-			MicrosoftMixedRealityController
+			MicrosoftMixedRealityController,
+			PicoNeo3Controller
 		};
 
 		enum Button
