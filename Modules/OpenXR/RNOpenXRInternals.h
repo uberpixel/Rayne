@@ -28,6 +28,8 @@
 #if XR_USE_PLATFORM_ANDROID
     #if RN_OPENXR_SUPPORTS_PICO_LOADER
         #include "openxr_pico.h"
+    #elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
+        #include "openxr/meta_local_dimming.h"
     #endif
 #include "RNOpenXRDispatchTable.h"
 #endif

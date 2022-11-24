@@ -77,13 +77,14 @@ namespace RN
 		return VRControllerTrackingState::Type::None;
 	}
 
-	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
 	{
 		_supportsVulkan = false;
 		_supportsPreferredFramerate = false;
 		_supportsPerformanceLevels = false;
 		_supportsAndroidThreadType = false;
 		_supportsFoveatedRendering = false;
+        _supportsLocalDimming = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_supportsViewStatePICO = false;
@@ -276,6 +277,12 @@ namespace RN
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsConfigsPICO = true;
+			}
+#elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
+			else if(std::strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsLocalDimming = true;
 			}
 #endif
 			else if(std::strcmp(extension.extensionName, XR_FB_FOVEATION_EXTENSION_NAME) == 0)
@@ -1512,26 +1519,27 @@ namespace RN
 				frameEndInfo.layers = layers.data();
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
+				XrFrameEndInfoEXT xrFrameEndInfoEXT;
 				if(_supportsFrameEndInfoPICO)
 				{
-					XrFrameEndInfoEXT xrFrameEndInfoEXT;
 					xrFrameEndInfoEXT.useHeadposeExt = 1;
 					xrFrameEndInfoEXT.gsIndex = _gsIndexPICO;
 					frameEndInfo.next = (void *) &xrFrameEndInfoEXT;
-
-					//Need to do this in here so that xrFrameEndInfoEXT still exists
-					if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
-					{
-						RNDebug("Error in xrEndFrame?");
-					}
 				}
-				else
-#endif
+#elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
+				XrLocalDimmingFrameEndInfoMETA xrLocalDimmingFrameEndInfoMETA;
+				if(_supportsLocalDimming)
 				{
-					if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
-					{
-						RNDebug("Error in xrEndFrame?");
-					}
+					xrLocalDimmingFrameEndInfoMETA.type = XR_TYPE_FRAME_END_INFO_LOCAL_DIMMING_META;
+					xrLocalDimmingFrameEndInfoMETA.localDimmingMode = _isLocalDimmingEnabled? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
+					xrLocalDimmingFrameEndInfoMETA.next = nullptr;
+					frameEndInfo.next = (void *) &xrLocalDimmingFrameEndInfoMETA;
+				}
+#endif
+
+				if(XR_FAILED(xrEndFrame(_internals->session, &frameEndInfo)))
+				{
+					RNDebug("Error in xrEndFrame?");
 				}
 			}
 		};
@@ -1708,6 +1716,11 @@ namespace RN
 			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, (XrPerfSettingsLevelEXT)_minCPULevel);
 			_internals->PerfSettingsSetPerformanceLevelEXT(_internals->session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, (XrPerfSettingsLevelEXT)_minGPULevel);
 		}
+	}
+
+	void OpenXRWindow::SetLocalDimming(bool enabled)
+	{
+		_isLocalDimmingEnabled = (_supportsLocalDimming && enabled);
 	}
 
 	Vector2 OpenXRWindow::GetSize() const

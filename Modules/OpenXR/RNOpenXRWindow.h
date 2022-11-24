@@ -40,6 +40,7 @@ namespace RN
 		OXRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
 		OXRAPI void SetPreferredFramerate(float framerate) final;
 		OXRAPI void SetPerformanceLevel(uint8 cpuLevel, uint8 gpuLevel) final;
+		OXRAPI void SetLocalDimming(bool enabled) final;
 
 		OXRAPI Vector2 GetSize() const final;
 		OXRAPI Framebuffer *GetFramebuffer() const final;
@@ -93,6 +94,7 @@ namespace RN
 		uint8 _minGPULevel;
 		uint8 _fixedFoveatedRenderingLevel;
 		bool _fixedFoveatedRenderingDynamic;
+		bool _isLocalDimmingEnabled;
 
 		bool _isSessionRunning;
 		bool _hasSynchronization;
@@ -106,6 +108,7 @@ namespace RN
 		bool _supportsPreferredFramerate;
 		bool _supportsAndroidThreadType;
 		bool _supportsFoveatedRendering;
+		bool _supportsLocalDimming;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		int _gsIndexPICO;

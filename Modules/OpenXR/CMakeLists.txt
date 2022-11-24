@@ -126,6 +126,11 @@ elseif(NOT APPLE)
 	target_link_libraries(RayneOpenXR PUBLIC debug ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib optimized ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib)
 endif()
 
+#Include files from the meta openxr sdk for features that aren't part of the openxr specification yet
+if(RN_OPENXR_SUPPORT_METAQUEST)
+	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/ovr_openxr_mobile_sdk_1/OpenXR/Include) #include directory for meta specific openxr headers
+endif()
+
 if(MSVC AND ${RN_BUILD_D3D12_MODULE})
 	target_link_libraries(RayneOpenXR PUBLIC RayneD3D12)
 	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
