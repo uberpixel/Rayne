@@ -40,7 +40,7 @@ namespace RN
 		return _instance;
 	}
 
-	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, String *, EOSAuthServiceType)>)> externalLoginCallback, bool allowFallbackToDeviceID) : _hosts(new Array()), _externalLoginCallback(nullptr), _loginState(LoginStateIsNotLoggedIn), _loggedInUserID(nullptr), _lobbyManager(nullptr), _allowFallbackToDeviceID(allowFallbackToDeviceID)
+	EOSWorld::EOSWorld(String *productName, String *productVersion, String *productID, String *sandboxID, String *deploymentID, String *clientID, String *clientSecret, std::function<void(std::function<void(String *, const String *, EOSAuthServiceType)>)> externalLoginCallback, bool allowFallbackToDeviceID) : _hosts(new Array()), _externalLoginCallback(nullptr), _loginState(LoginStateIsNotLoggedIn), _loggedInUserID(nullptr), _lobbyManager(nullptr), _allowFallbackToDeviceID(allowFallbackToDeviceID)
 	{
 		RN_ASSERT(!_instance, "There already is an EOSWorld!");
 
@@ -311,7 +311,7 @@ namespace RN
 		RNDebug("Start user login for real");
 		_loginState = LoginStateIsLoggingIn;
 		
-		std::function<void(String *, String *, EOSAuthServiceType)> loginCallback = [&](String *userName, String *loginToken, EOSAuthServiceType serviceType){
+		std::function<void(String *, const String *, EOSAuthServiceType)> loginCallback = [&](String *userName, const String *loginToken, EOSAuthServiceType serviceType){
 			
 			EOS_Connect_Credentials connectCredentials = {};
 			connectCredentials.ApiVersion = EOS_CONNECT_CREDENTIALS_API_LATEST;
