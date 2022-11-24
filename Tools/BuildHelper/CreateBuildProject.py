@@ -11,7 +11,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -38,7 +38,7 @@ def main():
 		return
 
 	configuration = sys.argv[3]
-	supportedTypes = ['independent', 'oculus', 'steam', 'headless', 'test']
+	supportedTypes = ['independent', 'oculus', 'steam', 'pico', 'headless', 'test']
 	if not configuration in supportedTypes:
 		print('Build type (' + configuration + ') not supported!')
 		return
