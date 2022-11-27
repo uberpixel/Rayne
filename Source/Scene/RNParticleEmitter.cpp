@@ -37,6 +37,10 @@ namespace RN
 		shaderOptions->AddDefine(RNCSTR("RN_PARTICLES"), RNCSTR("1"));
 		_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default))->Retain();
 		
+		shaderOptions->EnableMultiview();
+		_material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Multiview), Shader::UsageHint::Multiview);
+		_material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Multiview), Shader::UsageHint::Multiview);
+		
 		_material->SetDepthWriteEnabled(false);
 		_material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 		_material->SetBlendFactorSource(BlendFactor::One, BlendFactor::One);
