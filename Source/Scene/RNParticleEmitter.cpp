@@ -143,13 +143,13 @@ namespace RN
 		if(particles == 0)
 			return;
 		
-		std::vector<Particle *> spawned(particles);
+		std::vector<Particle *> spawned;
+		spawned.reserve(particles);
 		
 		for(int i=0; i<particles; i++)
 		{
 			Particle *particle = CreateParticle();
-			
-			spawned[i] = particle;
+			if(particle) spawned.push_back(particle);
 		}
 		
 		_particles.insert(_particles.end(), spawned.begin(), spawned.end());
