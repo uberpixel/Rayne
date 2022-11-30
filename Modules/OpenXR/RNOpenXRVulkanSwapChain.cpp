@@ -208,7 +208,6 @@ namespace RN
 			_xrWindow->_internals->DestroyFoveationProfileFB(_internals->currentFoveationProfile);
 		}
 
-		//TODO: Check if the extension is supported and enabled instead if the android define (this is likely only supported on Quest at the moment)
 		XrFoveationLevelProfileCreateInfoFB foveationLevelProfileCreateInfo;
 		foveationLevelProfileCreateInfo.type = XR_TYPE_FOVEATION_LEVEL_PROFILE_CREATE_INFO_FB;
 		foveationLevelProfileCreateInfo.next = nullptr;

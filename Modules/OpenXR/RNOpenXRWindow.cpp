@@ -1578,10 +1578,7 @@ namespace RN
 		}
 #endif
 
-		if(_swapChain && _fixedFoveatedRenderingLevel > 0)
-		{
-			_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
-		}
+		_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
 
 		XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
 		attachInfo.countActionSets = 1;

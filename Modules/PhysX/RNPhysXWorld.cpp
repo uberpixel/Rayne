@@ -204,6 +204,53 @@ namespace RN
 		return hit;
 	}
 
+	PhysXContactInfo PhysXWorld::CastSweep(PhysXShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation, uint32 filterMask)
+	{
+		PhysXContactInfo hit;
+		hit.distance = -1.0f;
+		hit.node = nullptr;
+		hit.collisionObject = nullptr;
+		
+		Vector3 diff = to-from;
+		float distance = diff.GetLength();
+		diff.Normalize();
+		physx::PxSweepBuffer callback;
+		physx::PxFilterData filterData;
+		filterData.word0 = filterMask;
+		
+		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(from.x, from.y, from.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
+		if(shape->GetPhysXShape())
+		{
+			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation))
+			{
+				hit.distance = callback.block.distance;
+				hit.position.x = callback.block.position.x;
+				hit.position.y = callback.block.position.y;
+				hit.position.z = callback.block.position.z;
+				hit.normal.x = callback.block.normal.x;
+				hit.normal.y = callback.block.normal.y;
+				hit.normal.z = callback.block.normal.z;
+				
+				if(callback.block.actor)
+				{
+					void *userData = callback.block.actor->userData;
+					if(userData)
+					{
+						hit.collisionObject = static_cast<PhysXCollisionObject*>(userData);
+						hit.node = hit.collisionObject->GetParent();
+						if(hit.node) hit.node->Retain()->Autorelease();
+					}
+				}
+			}
+		}
+		else
+		{
+			RNDebug("CastSweep does not currently support this shape type!");
+		}
+		
+		return hit;
+	}
+
 	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterMask)
 	{
 		const physx::PxU32 bufferSize = 256;
