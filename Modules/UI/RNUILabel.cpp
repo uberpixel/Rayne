@@ -243,13 +243,19 @@ namespace RN
 					result.x = GetBounds().width;
 				}
 				
+				float scaleFactor = _defaultAttributes.GetFontSize() / _defaultAttributes.GetFont()->GetHeight();
+				result.y = (_defaultAttributes.GetFont()->GetAscent()) * scaleFactor;
+				
 				if(_verticalAlignment == TextVerticalAlignmentCenter)
 				{
-					result.y = GetBounds().height * 0.5f + _defaultAttributes.GetFontSize() * 0.5f;
+					result.y += GetBounds().height * 0.5f;
+					result.y -= _defaultAttributes.GetFontSize() * 0.5f;
+					result.y += _defaultAttributes.GetFont()->GetDescent() * 0.5f * scaleFactor;
 				}
 				else if(_verticalAlignment == TextVerticalAlignmentBottom)
 				{
-					result.y = GetBounds().height + _defaultAttributes.GetFontSize();
+					result.y += GetBounds().height;
+					result.y -= _defaultAttributes.GetFontSize();
 				}
 				
 				Unlock();
