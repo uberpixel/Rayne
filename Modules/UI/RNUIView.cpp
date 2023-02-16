@@ -17,7 +17,7 @@ namespace RN
 		RNDefineMeta(View, Entity)
 
 		View::View() :
-			_clipsToBounds(true),
+			_clipToBounds(true),
 			_isHidden(false),
 			_isHiddenByParent(false),
 			_needsMeshUpdate(true),
@@ -400,6 +400,14 @@ namespace RN
 			}
 			Unlock();
 		}
+	
+		void View::SetClipToBounds(bool enabled)
+		{
+			if(_clipToBounds == enabled) return;
+			
+			_clipToBounds = enabled;
+			CalculateScissorRect();
+		}
 
 		// ---------------------
 		// MARK: -
@@ -409,7 +417,7 @@ namespace RN
 		void View::CalculateScissorRect()
 		{
 			Lock();
-			if(_superview)
+			if(_superview && _clipToBounds)
 			{
 				RN::Rect parentScissorRect;
 				parentScissorRect.x = -_superview->_bounds.x - _frame.x;

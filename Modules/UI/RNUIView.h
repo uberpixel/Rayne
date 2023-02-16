@@ -60,6 +60,8 @@ namespace RN
 			UIAPI virtual void Draw(bool isParentHidden);
 			
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
+			
+			UIAPI void SetClipToBounds(bool enabled);
 
 		protected:
 			UIAPI virtual void DidAddSubview(View *subview);
@@ -91,7 +93,7 @@ namespace RN
 			Rect _bounds;
 			Rect _frame;
 
-			bool _clipsToBounds;
+			bool _clipToBounds;
 			bool _isHidden;
 			bool _isHiddenByParent;
 			Rect _scissorRect;
