@@ -215,8 +215,10 @@ namespace RN
 				if(!currentAttributes) currentAttributes = &_defaultAttributes;
 				Font *currentFont = currentAttributes->GetFont();
 				
+				float cursorWidth = 2.0f/30.0f * currentAttributes->GetFontSize();
+				
 				float fontSizeFactor = currentAttributes->GetFontSize() / currentFont->GetHeight();
-				_cursorView->SetFrame(Rect(characterPosition.x - 1.0f, characterPosition.y - currentFont->GetAscent() * fontSizeFactor, 2.0f, currentAttributes->GetFontSize()));
+				_cursorView->SetFrame(Rect(characterPosition.x - cursorWidth * 0.5f, characterPosition.y - currentFont->GetAscent() * fontSizeFactor, cursorWidth, currentAttributes->GetFontSize()));
 				_cursorView->SetBackgroundColor(_defaultAttributes.GetColor());
 			}
 		}
@@ -231,8 +233,27 @@ namespace RN
 			Lock();
 			if(!_attributedText || _attributedText->GetLength() == 0)
 			{
+				Vector2 result;
+				if(_defaultAttributes.GetAlignment() == TextAlignmentCenter)
+				{
+					result.x = GetBounds().width * 0.5f;
+				}
+				else if(_defaultAttributes.GetAlignment() == TextAlignmentRight)
+				{
+					result.x = GetBounds().width;
+				}
+				
+				if(_verticalAlignment == TextVerticalAlignmentCenter)
+				{
+					result.y = GetBounds().height * 0.5f + _defaultAttributes.GetFontSize() * 0.5f;
+				}
+				else if(_verticalAlignment == TextVerticalAlignmentBottom)
+				{
+					result.y = GetBounds().height + _defaultAttributes.GetFontSize();
+				}
+				
 				Unlock();
-				return Vector2();
+				return result;
 			}
 			
 			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
