@@ -16,7 +16,7 @@ namespace RN
 	{
 		RNDefineMeta(Label, View)
 
-		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual), _textMaterial(nullptr), _shadowMaterial(nullptr)
+		Label::Label(const TextAttributes &defaultAttributes) : _attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual), _textMaterial(nullptr), _shadowMaterial(nullptr), _cursorView(nullptr), _cursorBlinkTimer(0.0f)
 		{
 			
 		}
@@ -189,6 +189,490 @@ namespace RN
 				model->GetLODStage(0)->ReplaceMaterial(material, 1);
 			}
 			Unlock();
+		}
+	
+		void Label::SetCursor(bool enabled, size_t position)
+		{
+			if(enabled && !_cursorView)
+			{
+				_cursorView = new View();
+				_cursorView->SetClipToBounds(false);
+				AddSubview(_cursorView->Autorelease());
+			}
+			
+			if(!enabled && _cursorView)
+			{
+				_cursorView->RemoveFromSuperview();
+				_cursorView = nullptr;
+			}
+			
+			if(_cursorView)
+			{
+				_currentCursorPosition = position;
+				Vector2 characterPosition = GetCharacterPosition(position);
+				
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(position);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				Font *currentFont = currentAttributes->GetFont();
+				
+				float fontSizeFactor = currentAttributes->GetFontSize() / currentFont->GetHeight();
+				_cursorView->SetFrame(Rect(characterPosition.x - 1.0f, characterPosition.y - currentFont->GetAscent() * fontSizeFactor, 2.0f, currentAttributes->GetFontSize()));
+				_cursorView->SetBackgroundColor(_defaultAttributes.GetColor());
+			}
+		}
+	
+		void Label::SetCursor(bool enabled, Vector2 position)
+		{
+			SetCursor(enabled, GetCharacterAtPosition(position + RN::Vector2(0.0f, _defaultAttributes.GetFontSize() * 0.5f)));
+		}
+	
+		Vector2 Label::GetCharacterPosition(size_t charIndex)
+		{
+			Lock();
+			if(!_attributedText || _attributedText->GetLength() == 0)
+			{
+				Unlock();
+				return Vector2();
+			}
+			
+			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
+			
+			std::vector<int64> linebreaks;
+			std::vector<float> linewidth;
+			std::vector<float> lineascent;
+			std::vector<float> linedescent;
+			std::vector<float> lineoffset;
+			
+			float currentWidth = 0.0f;
+			float lastWordWidth = 0.0f;
+			
+			float totalHeight = 0.0f;
+			
+			float maxAscent = 0.0f;
+			float lastWordMaxAscent = 0.0f;
+			float tempMaxAscent = 0.0f;
+			float maxDescent = 0.0f;
+			float lastWordMaxDescent = 0.0f;
+			float tempMaxDescent = 0.0f;
+			float maxLineOffset = 0.0f;
+			float lastWordMaxLineOffset = 0.0f;
+			float tempMaxLineOffset = 0.0f;
+			
+			int characterCounter = 0;
+			
+			int64 lastWhiteSpaceIndex = -1;
+			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
+			bool hasOnlyWhitespaces = true;
+			for(int64 i = 0; i < _attributedText->GetLength(); i++)
+			{
+				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
+				int nextCodepoint = i < _attributedText->GetLength()-1? _attributedText->GetCharacterAtIndex(i+1) : -1;
+
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(i);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				
+				Font *currentFont = currentAttributes->GetFont();
+				
+				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				float offset = currentFont->GetOffsetForNextCharacter(currentCodepoint, nextCodepoint) * scaleFactor + currentAttributes->GetKerning();
+				
+				float characterAscent = currentFont->GetAscent() * scaleFactor;
+				float characterDescent = -currentFont->GetDescent() * scaleFactor;
+				float characterLineOffset = currentFont->GetLineOffset() * scaleFactor;
+				maxAscent = std::max(maxAscent, characterAscent);
+				tempMaxAscent = std::max(tempMaxAscent, characterAscent);
+				maxDescent = std::max(maxDescent, characterDescent);
+				tempMaxDescent = std::max(tempMaxDescent, characterDescent);
+				maxLineOffset = std::max(maxLineOffset, characterLineOffset);
+				tempMaxLineOffset = std::max(tempMaxLineOffset, characterLineOffset);
+				
+				if(whiteSpaces->CharacterIsMember(currentCodepoint))
+				{
+					lastWhiteSpaceIndex = i;
+					
+					lastWordWidth = currentWidth;
+					
+					lastWordMaxAscent = maxAscent;
+					tempMaxAscent = 0.0f;
+					lastWordMaxDescent = maxDescent;
+					tempMaxDescent = 0.0f;
+					lastWordMaxLineOffset = maxLineOffset;
+					tempMaxLineOffset = 0.0f;
+					
+					if(currentCodepoint > 0)
+					{
+						//TODO: To adjsut this correctly, the previous characters attributes are needed...
+						float previousOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, currentCodepoint) * scaleFactor + currentAttributes->GetKerning();
+						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
+						lastWordWidth -= previousOffset - correctedOffset;
+					}
+				}
+				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
+				{
+					hasOnlyWhitespaces = false;
+				}
+				
+				if(currentCodepoint == 10)
+				{
+					totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+					
+					linebreaks.push_back(i);
+					linewidth.push_back(currentWidth);
+					lineascent.push_back(maxAscent);
+					linedescent.push_back(maxDescent);
+					lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+					maxAscent = 0.0f;
+					maxDescent = 0.0f;
+					maxLineOffset = 0.0f;
+					currentWidth = 0.0f;
+					offset = 0.0f;
+				}
+				
+				characterCounter += 1;
+				
+				if(GetBounds().width > 0.0f && currentWidth + offset > GetBounds().width && currentAttributes->GetWrapMode() != TextWrapModeNone)
+				{
+					Range lastWhitespaceRange(0, 0);
+					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						
+						linebreaks.push_back(lastWhiteSpaceIndex);
+						linewidth.push_back(lastWordWidth);
+						lineascent.push_back(lastWordMaxAscent);
+						linedescent.push_back(lastWordMaxDescent);
+						lineoffset.push_back(lastWordMaxLineOffset + _additionalLineHeight);
+						currentWidth -= lastWordWidth;
+						maxAscent = tempMaxAscent;
+						tempMaxAscent = 0.0f;
+						maxDescent = tempMaxDescent;
+						tempMaxDescent = 0.0f;
+						maxLineOffset = tempMaxLineOffset;
+						tempMaxLineOffset = 0.0f;
+						
+						if(lastWhiteSpaceIndex != i)
+						{
+							currentWidth -= spacings->GetObjectAtIndex<RN::Number>(lastWhiteSpaceIndex)->GetFloatValue();
+							spacings->ReplaceObjectAtIndex(lastWhiteSpaceIndex, RN::Number::WithFloat(0.0f));
+						}
+						else
+						{
+							offset = 0.0f;
+						}
+					}
+					else
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						
+						linewidth.push_back(currentWidth);
+						currentWidth = 0.0f;
+						linebreaks.push_back(i);
+						
+						lineascent.push_back(maxAscent);
+						linedescent.push_back(maxDescent);
+						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+						maxAscent = 0.0f;
+						maxDescent = 0.0f;
+						maxLineOffset = 0.0f;
+					}
+				}
+				
+				currentWidth += offset;
+				spacings->AddObject(RN::Number::WithFloat(offset));
+			}
+			
+			totalHeight += maxAscent;// + maxDescent;
+			linewidth.push_back(currentWidth);
+			lineascent.push_back(maxAscent);
+			linedescent.push_back(maxDescent);
+			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			
+			RN::uint32 linebreakIndex = 0;
+			
+			float characterPositionX = 0.0f;
+			float characterPositionY = -lineascent[0] + linedescent[0];
+			
+			if(_verticalAlignment == TextVerticalAlignmentCenter)
+			{
+				characterPositionY -= GetBounds().height * 0.5f;
+				characterPositionY += totalHeight * 0.5f;
+				characterPositionY -= linedescent[0] * 0.5f;
+			}
+			else if(_verticalAlignment == TextVerticalAlignmentBottom)
+			{
+				characterPositionY -= GetBounds().height;
+				characterPositionY += totalHeight;
+			}
+			
+			const TextAttributes *initialAttributes = _attributedText->GetAttributesAtIndex(0);
+			if(!initialAttributes) initialAttributes = &_defaultAttributes;
+			
+			if(initialAttributes->GetAlignment() == TextAlignmentRight)
+				characterPositionX = GetBounds().width - linewidth[linebreakIndex];
+			else if(initialAttributes->GetAlignment() == TextAlignmentCenter)
+				characterPositionX = (GetBounds().width - linewidth[linebreakIndex]) * 0.5f;
+			
+			for(int index = 0; index <= characterCounter; index++)
+			{
+				if(index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index-1)->GetFloatValue();
+				
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				
+				if(index == charIndex)
+				{
+					break;
+				}
+				
+				if(linebreakIndex < linebreaks.size() && linebreaks[linebreakIndex] == index)
+				{
+					characterPositionY -= linedescent[linebreakIndex];
+					characterPositionY -= lineoffset[linebreakIndex];
+					linebreakIndex += 1;
+					characterPositionY -= lineascent[linebreakIndex];
+					
+					characterPositionX = 0.0f;
+					if(currentAttributes->GetAlignment() == TextAlignmentRight)
+						characterPositionX = GetBounds().width - linewidth[linebreakIndex];
+					else if(currentAttributes->GetAlignment() == TextAlignmentCenter)
+						characterPositionX = (GetBounds().width - linewidth[linebreakIndex]) * 0.5f;
+				}
+			}
+
+			Unlock();
+			Vector2 result(characterPositionX, -characterPositionY);
+			RNDebug("Cursor Result: (" << result.x << ", " << result.y << ")");
+			return result;
+		}
+	
+		size_t Label::GetCharacterAtPosition(const Vector2 &position)
+		{
+			Lock();
+			if(!_attributedText || _attributedText->GetLength() == 0)
+			{
+				Unlock();
+				return 0;
+			}
+			
+			RNDebug("Cursor Target: (" << position.x << ", " << position.y << ")");
+			Vector2 realPosition;
+			realPosition.x = position.x;
+			realPosition.y = /*GetBounds().height +*/ -position.y;
+			
+			Array *spacings = (new Array(_attributedText->GetLength()))->Autorelease();
+			
+			std::vector<int64> linebreaks;
+			std::vector<float> linewidth;
+			std::vector<float> lineascent;
+			std::vector<float> linedescent;
+			std::vector<float> lineoffset;
+			
+			float currentWidth = 0.0f;
+			float lastWordWidth = 0.0f;
+			
+			float totalHeight = 0.0f;
+			
+			float maxAscent = 0.0f;
+			float lastWordMaxAscent = 0.0f;
+			float tempMaxAscent = 0.0f;
+			float maxDescent = 0.0f;
+			float lastWordMaxDescent = 0.0f;
+			float tempMaxDescent = 0.0f;
+			float maxLineOffset = 0.0f;
+			float lastWordMaxLineOffset = 0.0f;
+			float tempMaxLineOffset = 0.0f;
+			
+			int characterCounter = 0;
+			
+			int64 lastWhiteSpaceIndex = -1;
+			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
+			bool hasOnlyWhitespaces = true;
+			for(int64 i = 0; i < _attributedText->GetLength(); i++)
+			{
+				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
+				int nextCodepoint = i < _attributedText->GetLength()-1? _attributedText->GetCharacterAtIndex(i+1) : -1;
+
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(i);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				
+				Font *currentFont = currentAttributes->GetFont();
+				
+				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				float offset = currentFont->GetOffsetForNextCharacter(currentCodepoint, nextCodepoint) * scaleFactor + currentAttributes->GetKerning();
+				
+				float characterAscent = currentFont->GetAscent() * scaleFactor;
+				float characterDescent = -currentFont->GetDescent() * scaleFactor;
+				float characterLineOffset = currentFont->GetLineOffset() * scaleFactor;
+				maxAscent = std::max(maxAscent, characterAscent);
+				tempMaxAscent = std::max(tempMaxAscent, characterAscent);
+				maxDescent = std::max(maxDescent, characterDescent);
+				tempMaxDescent = std::max(tempMaxDescent, characterDescent);
+				maxLineOffset = std::max(maxLineOffset, characterLineOffset);
+				tempMaxLineOffset = std::max(tempMaxLineOffset, characterLineOffset);
+				
+				if(whiteSpaces->CharacterIsMember(currentCodepoint))
+				{
+					lastWhiteSpaceIndex = i;
+					
+					lastWordWidth = currentWidth;
+					
+					lastWordMaxAscent = maxAscent;
+					tempMaxAscent = 0.0f;
+					lastWordMaxDescent = maxDescent;
+					tempMaxDescent = 0.0f;
+					lastWordMaxLineOffset = maxLineOffset;
+					tempMaxLineOffset = 0.0f;
+					
+					if(currentCodepoint > 0)
+					{
+						//TODO: To adjsut this correctly, the previous characters attributes are needed...
+						float previousOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, currentCodepoint) * scaleFactor + currentAttributes->GetKerning();
+						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
+						lastWordWidth -= previousOffset - correctedOffset;
+					}
+				}
+				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
+				{
+					hasOnlyWhitespaces = false;
+				}
+				
+				if(currentCodepoint == 10)
+				{
+					totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+					
+					linebreaks.push_back(i);
+					linewidth.push_back(currentWidth);
+					lineascent.push_back(maxAscent);
+					linedescent.push_back(maxDescent);
+					lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+					maxAscent = 0.0f;
+					maxDescent = 0.0f;
+					maxLineOffset = 0.0f;
+					currentWidth = 0.0f;
+					offset = 0.0f;
+				}
+				
+				characterCounter += 1;
+				
+				if(GetBounds().width > 0.0f && currentWidth + offset > GetBounds().width && currentAttributes->GetWrapMode() != TextWrapModeNone)
+				{
+					Range lastWhitespaceRange(0, 0);
+					if(currentAttributes->GetWrapMode() == TextWrapModeWord && lastWhiteSpaceIndex != -1 && (linebreaks.size() == 0 || lastWhiteSpaceIndex > linebreaks.back()))
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						
+						linebreaks.push_back(lastWhiteSpaceIndex);
+						linewidth.push_back(lastWordWidth);
+						lineascent.push_back(lastWordMaxAscent);
+						linedescent.push_back(lastWordMaxDescent);
+						lineoffset.push_back(lastWordMaxLineOffset + _additionalLineHeight);
+						currentWidth -= lastWordWidth;
+						maxAscent = tempMaxAscent;
+						tempMaxAscent = 0.0f;
+						maxDescent = tempMaxDescent;
+						tempMaxDescent = 0.0f;
+						maxLineOffset = tempMaxLineOffset;
+						tempMaxLineOffset = 0.0f;
+						
+						if(lastWhiteSpaceIndex != i)
+						{
+							currentWidth -= spacings->GetObjectAtIndex<RN::Number>(lastWhiteSpaceIndex)->GetFloatValue();
+							spacings->ReplaceObjectAtIndex(lastWhiteSpaceIndex, RN::Number::WithFloat(0.0f));
+						}
+						else
+						{
+							offset = 0.0f;
+						}
+					}
+					else
+					{
+						totalHeight += maxAscent + maxDescent + maxLineOffset + _additionalLineHeight;
+						
+						linewidth.push_back(currentWidth);
+						currentWidth = 0.0f;
+						linebreaks.push_back(i);
+						
+						lineascent.push_back(maxAscent);
+						linedescent.push_back(maxDescent);
+						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+						maxAscent = 0.0f;
+						maxDescent = 0.0f;
+						maxLineOffset = 0.0f;
+					}
+				}
+				
+				currentWidth += offset;
+				spacings->AddObject(RN::Number::WithFloat(offset));
+			}
+			
+			totalHeight += maxAscent;// + maxDescent;
+			linewidth.push_back(currentWidth);
+			lineascent.push_back(maxAscent);
+			linedescent.push_back(maxDescent);
+			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			
+			RN::uint32 linebreakIndex = 0;
+			
+			float characterPositionX = 0.0f;
+			float characterPositionY = -lineascent[0] + linedescent[0];
+			
+			if(_verticalAlignment == TextVerticalAlignmentCenter)
+			{
+				characterPositionY -= GetBounds().height * 0.5f;
+				characterPositionY += totalHeight * 0.5f;
+				characterPositionY -= linedescent[0] * 0.5f;
+			}
+			else if(_verticalAlignment == TextVerticalAlignmentBottom)
+			{
+				characterPositionY -= GetBounds().height;
+				characterPositionY += totalHeight;
+			}
+			
+			const TextAttributes *initialAttributes = _attributedText->GetAttributesAtIndex(0);
+			if(!initialAttributes) initialAttributes = &_defaultAttributes;
+			
+			if(initialAttributes->GetAlignment() == TextAlignmentRight)
+				characterPositionX = GetBounds().width - linewidth[linebreakIndex];
+			else if(initialAttributes->GetAlignment() == TextAlignmentCenter)
+				characterPositionX = (GetBounds().width - linewidth[linebreakIndex]) * 0.5f;
+			
+			float closestDistance = 0.0;
+			size_t closestIndex = -1;
+			
+			for(int index = 0; index <= characterCounter; index++)
+			{
+				if(index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index-1)->GetFloatValue();
+				
+				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
+				if(!currentAttributes) currentAttributes = &_defaultAttributes;
+				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				
+				Vector2 characterPosition(characterPositionX, characterPositionY);
+				float newDistance = characterPosition.GetSquaredDistance(realPosition);
+				if(newDistance < closestDistance || closestIndex == -1)
+				{
+					closestDistance = newDistance;
+					closestIndex = index;
+				}
+				
+				if(linebreakIndex < linebreaks.size() && linebreaks[linebreakIndex] == index)
+				{
+					characterPositionY -= linedescent[linebreakIndex];
+					characterPositionY -= lineoffset[linebreakIndex];
+					linebreakIndex += 1;
+					characterPositionY -= lineascent[linebreakIndex];
+					
+					characterPositionX = 0.0f;
+					if(currentAttributes->GetAlignment() == TextAlignmentRight)
+						characterPositionX = GetBounds().width - linewidth[linebreakIndex];
+					else if(currentAttributes->GetAlignment() == TextAlignmentCenter)
+						characterPositionX = (GetBounds().width - linewidth[linebreakIndex]) * 0.5f;
+				}
+			}
+
+			Unlock();
+			return closestIndex;
 		}
 		
 		Vector2 Label::GetTextSize()
@@ -724,6 +1208,20 @@ namespace RN
 			SetBoundingBox(model->GetBoundingBox());
 			
 			Unlock();
+		}
+	
+		void Label::Update(float delta)
+		{
+			View::Update(delta);
+			
+			if(!_cursorView) return;
+			_cursorBlinkTimer += delta;
+			
+			if(_cursorBlinkTimer > 0.5f)
+			{
+				_cursorView->SetHidden(!_cursorView->GetIsHidden());
+				_cursorBlinkTimer -= 0.5f;
+			}
 		}
 	}
 }

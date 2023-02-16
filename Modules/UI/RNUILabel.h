@@ -39,7 +39,16 @@ namespace RN
 			UIAPI void SetTextShadowMaterial(Material *material);
 			
 			const String *GetText() const { return _attributedText; }
+			UIAPI Vector2 GetCharacterPosition(size_t charIndex);
+			UIAPI size_t GetCharacterAtPosition(const Vector2 &position);
 			UIAPI Vector2 GetTextSize();
+			
+			UIAPI void SetCursor(bool enabled, size_t position);
+			UIAPI void SetCursor(bool enabled, Vector2 position);
+			size_t GetCursorPosition() const { return _currentCursorPosition; }
+			bool GetHasCursor() const { return _cursorView != nullptr; }
+			
+			UIAPI void Update(float delta) override;
 
 		protected:
 			UIAPI virtual void UpdateModel() override;
@@ -54,8 +63,12 @@ namespace RN
 			Vector2 _shadowOffset;
 			
 			DepthMode _labelDepthMode;
-			RN::Material *_textMaterial;
-			RN::Material *_shadowMaterial;
+			Material *_textMaterial;
+			Material *_shadowMaterial;
+			
+			View *_cursorView;
+			float _cursorBlinkTimer;
+			size_t _currentCursorPosition;
 
 			RNDeclareMetaAPI(Label, UIAPI)
 		};
