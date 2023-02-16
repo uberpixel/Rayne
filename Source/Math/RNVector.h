@@ -588,13 +588,13 @@ namespace RN
 
 	RN_INLINE bool Vector3::IsValid() const
 	{
-		if(!std::isfinite(x) || std::abs(x) > 100000000000000000000.0f) //10^20, preventing big values, mainly because they break things when fed to a physics engine
+		if(!std::isfinite(x))
 			return false;
 
-		if(!std::isfinite(y) || std::abs(x) > 100000000000000000000.0f) //10^20
+		if(!std::isfinite(y))
 			return false;
 		
-		if(!std::isfinite(z) || std::abs(x) > 100000000000000000000.0f) //10^20
+		if(!std::isfinite(z))
 			return false;
 
 		return true;
