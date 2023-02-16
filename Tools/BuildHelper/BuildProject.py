@@ -138,8 +138,8 @@ def main():
 		subprocess.call(['./gradlew', 'assembleRelease'])
 		#subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])
 		apkFilePath = os.path.join('app/build/outputs/apk/release', configNameFull.replace(" ", "-").lower() + "-" + configuration + ".apk")
-		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/zipalign', '-f', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', apkFilePath])
-		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/29.0.2/apksigner', 'sign', '--verbose', '--v1-signing-enabled', 'true', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'false', '--ks', os.path.join(projectRootPath, configKeystore), '--ks-pass', 'pass:' + storePassword, '--ks-key-alias', 'AndroidReleaseKey', '--key-pass', 'pass:' + keyPassword, apkFilePath])
+		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/33.0.0/zipalign', '-p', '-f', '-v', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', apkFilePath])
+		subprocess.call(['/Users/slin/Library/Android/sdk/build-tools/33.0.0/apksigner', 'sign', '--verbose', '--v1-signing-enabled', 'true', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'false', '--ks', os.path.join(projectRootPath, configKeystore), '--ks-pass', 'pass:' + storePassword, '--ks-key-alias', 'AndroidReleaseKey', '--key-pass', 'pass:' + keyPassword, apkFilePath])
 
 if __name__ == '__main__':
 	main()
