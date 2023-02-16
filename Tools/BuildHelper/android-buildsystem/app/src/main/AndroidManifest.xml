@@ -12,7 +12,8 @@ __RN_PERMISSIONS__
         android:supportsRtl="true"
         android:hasCode="true"
         android:extractNativeLibs="true"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+        android:icon="@mipmap/ic_launcher" >
 
         <meta-data android:name="pvr.app.type" android:value="vr" />
         <meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only"/>

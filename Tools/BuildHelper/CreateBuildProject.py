@@ -52,6 +52,7 @@ def main():
 	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
 	configCmakeBuildType = Utilities.getSettingFromConfig(platform, "cmake-build-type", buildConfigData)
 	configCmakeParameters = Utilities.getSettingFromConfig(platform, "cmake-parameters", buildConfigData, False)
+	configIconsDirectory = Utilities.getSettingFromConfig(platform, "icons", buildConfigData)
 	if not configBundleID:
 		print("config file is missing bundle-id!")
 		return
@@ -100,6 +101,7 @@ def main():
 	elif platform == 'android':
 		subprocess.call(['gradle', 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
 		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, isDemo)
+		shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"))
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration + "," + buildType)
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
