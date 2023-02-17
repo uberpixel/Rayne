@@ -469,7 +469,6 @@ namespace RN
 
 			Unlock();
 			Vector2 result(characterPositionX, -characterPositionY);
-			RNDebug("Cursor Result: (" << result.x << ", " << result.y << ")");
 			return result;
 		}
 	
@@ -482,7 +481,6 @@ namespace RN
 				return 0;
 			}
 			
-			RNDebug("Cursor Target: (" << position.x << ", " << position.y << ")");
 			Vector2 realPosition;
 			realPosition.x = position.x;
 			realPosition.y = /*GetBounds().height +*/ -position.y;
