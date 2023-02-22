@@ -15,7 +15,7 @@ namespace RN
 	RNDefineMeta(VulkanShader, Shader)
 
 	VulkanShader::VulkanShader(ShaderLibrary *library, const String *fileName, const String *entryPoint, Type type, bool hasInstancing, const Shader::Options *options, const Array *samplers) :
-		Shader(library, type, hasInstancing, options), _name(entryPoint->Retain())
+		Shader(library, type, hasInstancing, options), _name(entryPoint->Retain()), _instancingAttributes(nullptr)
 	{
 		VulkanRenderer *renderer = VulkanRenderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 		VulkanDevice *device = renderer->GetVulkanDevice();
@@ -67,7 +67,10 @@ namespace RN
 		uint8 textureCount = 0;
 		Array *reflectionSamplers = new Array();
 		Array *specificReflectionSamplers = new Array();
-		Array *uniformDescriptors = new Array();
+
+		Array *buffersArray = new Array();
+		Array *samplersArray = new Array();
+		Array *texturesArray = new Array();
 
 		for(uint32 i = 0; i < static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1; i++)
 		{
@@ -76,6 +79,9 @@ namespace RN
 
 		if(stage == VK_SHADER_STAGE_VERTEX_BIT)
 		{
+			Array *instanceAttributes = new Array();
+			uint32 instanceAttributeOffset = 0;
+
 			for(auto &resource : resources.stage_inputs)
 			{
 				String *name = RNSTR(resource.name);
@@ -119,13 +125,89 @@ namespace RN
 				{
 					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom)] = true;
 				}
-			}
-			
-		}
 
-		Array *buffersArray = new Array();
-		Array *samplersArray = new Array();
-		Array *texturesArray = new Array();
+				else if(name->HasPrefix(RNCSTR("in_var_INSTANCE_")))
+				{
+					auto type = reflector.get_type(resource.base_type_id);
+
+					//Set array element count to the real number, but default to 1 for all cases
+					size_t arrayElementCount = 1;
+					if(type.array.size() == 1) //There are more than one, if it is multidimensional, but only support 1 dimension for now
+					{
+						arrayElementCount = type.array[0];
+					}
+
+					PrimitiveType uniformType = PrimitiveType::Invalid;
+					if(type.basetype == spirv_cross::SPIRType::BaseType::Float)
+					{
+						if(type.columns == 1)
+						{
+							if(type.vecsize == 1) uniformType = PrimitiveType::Float;
+							else if(type.vecsize == 2) uniformType = PrimitiveType::Vector2;
+							else if(type.vecsize == 3) uniformType = PrimitiveType::Vector3;
+							else if(type.vecsize == 4) uniformType = PrimitiveType::Vector4;
+						}
+						else
+						{
+							if(type.vecsize == 2) uniformType = PrimitiveType::Matrix2x2;
+							if(type.vecsize == 3) uniformType = PrimitiveType::Matrix3x3;
+							if(type.vecsize == 4) uniformType = PrimitiveType::Matrix4x4;
+						}
+					}
+					else if(type.basetype == spirv_cross::SPIRType::BaseType::Half)
+					{
+						if(type.columns == 1)
+						{
+							if(type.vecsize == 1) uniformType = PrimitiveType::Half;
+							else if(type.vecsize == 2) uniformType = PrimitiveType::HalfVector2;
+							else if(type.vecsize == 3) uniformType = PrimitiveType::HalfVector3;
+							else if(type.vecsize == 4) uniformType = PrimitiveType::HalfVector4;
+						}
+					}
+					else if(type.columns == 1 && type.vecsize == 1)
+					{
+						if(type.basetype == spirv_cross::SPIRType::BaseType::Int)
+						{
+							uniformType = PrimitiveType::Int32;
+						}
+						else if(type.basetype == spirv_cross::SPIRType::BaseType::UInt)
+						{
+							uniformType = PrimitiveType::Uint32;
+						}
+						else if(type.basetype == spirv_cross::SPIRType::BaseType::Short)
+						{
+							uniformType = PrimitiveType::Int16;
+						}
+						else if(type.basetype == spirv_cross::SPIRType::BaseType::UShort)
+						{
+							uniformType = PrimitiveType::Uint16;
+						}
+						else if(type.basetype == spirv_cross::SPIRType::BaseType::SByte)
+						{
+							uniformType = PrimitiveType::Int8;
+						}
+						else if(type.basetype == spirv_cross::SPIRType::BaseType::UByte)
+						{
+							uniformType = PrimitiveType::Uint8;
+						}
+					}
+
+					UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, instanceAttributeOffset, arrayElementCount);
+					instanceAttributeOffset += descriptor->GetSize(); //Might need some alignment rules? I guess I'll find out when I use it...
+					instanceAttributes->AddObject(descriptor->Autorelease());
+				}
+			}
+
+			if(instanceAttributes->GetCount() > 0)
+			{
+				ArgumentBuffer *argumentBuffer = new ArgumentBuffer(RNSTR("_InstanceAttributes_"), 0, instanceAttributes->Autorelease(), ArgumentBuffer::Type::InstanceAttributesBuffer, 0);
+				_instancingAttributes = argumentBuffer;
+			}
+			else
+			{
+				instanceAttributes->Release();
+			}
+		}
 
 		for(auto &resource : resources.separate_images)
 		{
@@ -313,7 +395,7 @@ namespace RN
 					arrayElementCount = spirvUniformType.array[0];
 				}
 
-				//TODO: This assumes that any single unknown array of structs inside a uninform buffer contains per instance data, should make this better...
+				//TODO: This assumes that any single unknown array of structs inside a uniform buffer contains per instance data, should make this better...
 				if(memberCount == 1 && spirvUniformType.basetype == spirv_cross::SPIRType::BaseType::Struct && !UniformDescriptor::IsKnownStructName(name))
 				{
 					index = 0;
@@ -408,6 +490,7 @@ namespace RN
 
 		_name->Release();
 		_entryPoint->Release();
+		SafeRelease(_instancingAttributes);
 	}
 
 	const String *VulkanShader::GetName() const

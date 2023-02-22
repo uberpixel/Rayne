@@ -11,7 +11,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanWindow.h"
-#include "RNVulkanConstantBuffer.h"
+#include "RNVulkanDynamicBuffer.h"
 
 namespace RN
 {
@@ -82,16 +82,23 @@ namespace RN
 		VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA
 	};
 
+	VulkanUniformState::VulkanUniformState() : instanceAttributesBuffer(nullptr), instanceAttributesArgumentBuffer(nullptr)
+	{
+
+	}
 	VulkanUniformState::~VulkanUniformState()
 	{
-		for(VulkanConstantBufferReference *buffer : vertexConstantBuffers)
+		for(VulkanDynamicBufferReference *buffer : vertexConstantBuffers)
 		{
 			buffer->Release();
 		}
-		for(VulkanConstantBufferReference *buffer : fragmentConstantBuffers)
+		for(VulkanDynamicBufferReference *buffer : fragmentConstantBuffers)
 		{
 			buffer->Release();
 		}
+
+		SafeRelease(instanceAttributesBuffer);
+		SafeRelease(instanceAttributesArgumentBuffer);
 
 		for(Shader::ArgumentBuffer *buffer : constantBufferToArgumentMapping)
 			buffer->Release();
@@ -465,6 +472,7 @@ namespace RN
 
 		//Handle vertex attributes
         bool vertexPositionsOnly = false;
+		bool hasInstancing = vertexShaderRayne->GetHasInstancing() && vertexShaderRayne->_instancingAttributes != nullptr;
         const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions = CreateVertexElementDescriptorsFromMesh(mesh, vertexShaderRayne, vertexPositionsOnly);
         std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions;
 		if(mesh->GetVertexPositionsSeparatedSize() > 0)
@@ -483,6 +491,15 @@ namespace RN
 			bindingDescription.binding = vertexBindingDescriptions.size();
 			bindingDescription.stride = mesh->GetStride();
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			vertexBindingDescriptions.push_back(bindingDescription);
+		}
+		if(hasInstancing)
+		{
+			//Per instance data buffer binding
+			VkVertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = vertexBindingDescriptions.size();
+			bindingDescription.stride = vertexShaderRayne->_instancingAttributes->GetTotalUniformSize();
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 			vertexBindingDescriptions.push_back(bindingDescription);
 		}
 
@@ -698,7 +715,6 @@ namespace RN
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
         vertexPositionsOnly = true;
 
-		size_t offset = 0;
 		uint8 vertexBinding = 0;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		for(const Mesh::VertexAttribute &attribute : attributes)
@@ -726,8 +742,25 @@ namespace RN
                     vertexPositionsOnly = false;
                 }
 			}
+		}
 
-			offset ++;
+		if(vertexShader->_instancingAttributes && vertexShader->GetHasInstancing())
+		{
+			if(!vertexPositionsOnly) vertexBinding += 1;
+            uint32 location = 10;
+			vertexShader->_instancingAttributes->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *attribute, size_t index, bool &stop){
+                for(int i = 0; i < (attribute->GetType() == PrimitiveType::Matrix4x4? 4 : (attribute->GetType() == PrimitiveType::Matrix3x3? 3 : 1)); i++)
+                {
+                    VkVertexInputAttributeDescription attributeDescription = {};
+                    attributeDescription.location = location;
+                    attributeDescription.binding = vertexBinding;
+                    attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute->GetType())];
+                    attributeDescription.offset = attribute->GetOffset() + i * 4 * 4;
+
+                    attributeDescriptions.push_back(attributeDescription);
+                    location += 1;
+                }
+			});
 		}
 
 		return attributeDescriptions;
@@ -742,6 +775,12 @@ namespace RN
 		Shader *fragmentShader = pipelineState->descriptor.fragmentShader;
 		if(vertexShader && vertexShader->GetSignature())
 		{
+			VulkanShader *vulkanShader = vertexShader->Downcast<VulkanShader>();
+			if(vulkanShader->GetHasInstancing() && vulkanShader->_instancingAttributes)
+			{
+				state->instanceAttributesArgumentBuffer = vulkanShader->_instancingAttributes->Retain();
+				state->instanceAttributesBuffer = renderer->GetConstantBufferReference(vulkanShader->_instancingAttributes->GetTotalUniformSize(), vulkanShader->_instancingAttributes->GetIndex(), GPUResource::UsageOptions::Vertex)->Retain();
+			}
 			vertexShader->GetSignature()->GetBuffers()->Enumerate<Shader::ArgumentBuffer>([&](Shader::ArgumentBuffer *buffer, size_t index, bool &stop){
 				size_t totalSize = buffer->GetTotalUniformSize();
 				if(totalSize > 0)

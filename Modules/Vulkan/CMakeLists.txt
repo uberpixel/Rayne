@@ -67,7 +67,7 @@ set(SOURCES
         Sources/RNVulkanShader.cpp
         Sources/RNVulkanShaderLibrary.cpp
         Sources/RNVulkanStateCoordinator.cpp
-        Sources/RNVulkanConstantBuffer.cpp
+        Sources/RNVulkanDynamicBuffer.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cfg.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross_parsed_ir.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_parser.cpp
@@ -90,7 +90,7 @@ set(HEADERS
         Sources/RNVulkanShader.h
         Sources/RNVulkanShaderLibrary.h
         Sources/RNVulkanStateCoordinator.h
-        Sources/RNVulkanConstantBuffer.h
+        Sources/RNVulkanDynamicBuffer.h
         #../../Vendor/SPIRV-Cross/spirv.hpp
         #../../Vendor/SPIRV-Cross/spirv_common.hpp
         #../../Vendor/SPIRV-Cross/spirv_cfg.hpp

@@ -125,17 +125,17 @@ namespace RN
 			_identifier = Time;
 			_type = PrimitiveType::Float;
 		}
-		else if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")))
+		else if(name->IsEqual(RNCSTR("transform_model")) || name->IsEqual(RNCSTR("modelMatrix")) || name->IsEqual(RNCSTR("in_var_INSTANCE_MODELMATRIX")))
 		{
 			_identifier = ModelMatrix;
 			_type = PrimitiveType::Matrix4x4;
 		}
-		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")))
+		else if(name->IsEqual(RNCSTR("transform_inversemodel")) || name->IsEqual(RNCSTR("inverseModelMatrix")) || name->IsEqual(RNCSTR("in_var_INSTANCE_INVERSEMODELMATRIX")))
 		{
 			_identifier = InverseModelMatrix;
 			_type = PrimitiveType::Matrix4x4;
 		}
-		else if(name->IsEqual(RNCSTR("transform_normal")) || name->IsEqual(RNCSTR("normalMatrix")))
+		else if(name->IsEqual(RNCSTR("transform_normal")) || name->IsEqual(RNCSTR("normalMatrix")) || name->IsEqual(RNCSTR("in_var_INSTANCE_NORMALMATRIX")))
 		{
 			_identifier = NormalMatrix;
 			_type = PrimitiveType::Matrix3x3;
@@ -260,32 +260,32 @@ namespace RN
 			_identifier = CameraFogDistance;
 			_type = PrimitiveType::Vector2;
 		}
-		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")))
+		else if(name->IsEqual(RNCSTR("material_ambientcolor")) || name->IsEqual(RNCSTR("ambientColor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_AMBIENTCOLOR")))
 		{
 			_identifier = AmbientColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_diffusecolor")) || name->IsEqual(RNCSTR("diffuseColor")))
+		else if(name->IsEqual(RNCSTR("material_diffusecolor")) || name->IsEqual(RNCSTR("diffuseColor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_DIFFUSECOLOR")))
 		{
 			_identifier = DiffuseColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_specularcolor")) || name->IsEqual(RNCSTR("specularColor")))
+		else if(name->IsEqual(RNCSTR("material_specularcolor")) || name->IsEqual(RNCSTR("specularColor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_SPECULARCOLOR")))
 		{
 			_identifier = SpecularColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_emissivecolor")) || name->IsEqual(RNCSTR("emissiveColor")))
+		else if(name->IsEqual(RNCSTR("material_emissivecolor")) || name->IsEqual(RNCSTR("emissiveColor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_EMISSIVECOLOR")))
 		{
 			_identifier = EmissiveColor;
 			_type = PrimitiveType::Color;
 		}
-		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")))
+		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_TEXTURETILEFACTOR")))
 		{
 			_identifier = TextureTileFactor;
 			_type = PrimitiveType::Float;
 		}
-		else if (name->IsEqual(RNCSTR("material_alphatocoverageclamp")) || name->IsEqual(RNCSTR("alphaToCoverageClamp")))
+		else if (name->IsEqual(RNCSTR("material_alphatocoverageclamp")) || name->IsEqual(RNCSTR("alphaToCoverageClamp")) || name->IsEqual(RNCSTR("in_var_INSTANCE_ALPHATOCOVERAGECLAMP")))
 		{
 			_identifier = AlphaToCoverageClamp;
 			_type = PrimitiveType::Vector2;

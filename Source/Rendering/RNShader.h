@@ -162,7 +162,8 @@ namespace RN
 			enum class Type
 			{
 				UniformBuffer,
-				StorageBuffer
+				StorageBuffer,
+				InstanceAttributesBuffer
 			};
 			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type, size_t maxInstanceCount);
 			RNAPI ArgumentBuffer(const ArgumentBuffer *other);

@@ -13,7 +13,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanShaderLibrary.h"
 #include "RNVulkanFramebuffer.h"
-#include "RNVulkanConstantBuffer.h"
+#include "RNVulkanDynamicBuffer.h"
 
 namespace RN
 {
@@ -68,13 +68,13 @@ namespace RN
 		RNVulkanValidate(vk::CreateDescriptorPool(device->GetDevice(), &descriptorPoolInfo, GetAllocatorCallback(), &_descriptorPool));
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"));
-		_constantBufferPool = new VulkanConstantBufferPool();
+		_dynamicBufferPool = new VulkanDynamicBufferPool();
 	}
 
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
-		delete _constantBufferPool;
+		delete _dynamicBufferPool;
 	}
 
 	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount)
@@ -267,7 +267,7 @@ namespace RN
 		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
 
-		_constantBufferPool->Update(this, _currentFrame, _completedFrame);
+		_dynamicBufferPool->Update(this, _currentFrame, _completedFrame);
 		UpdateDescriptorSets();
 
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
@@ -373,7 +373,7 @@ namespace RN
 			}
 		}
 
-		_constantBufferPool->FlushAllBuffers();
+		_dynamicBufferPool->FlushAllBuffers();
 
 		//Prepare command buffer submission
 		std::vector<VkSemaphore> presentSemaphores;
@@ -909,16 +909,16 @@ namespace RN
 		return (new VulkanGPUBuffer(this, data, length, usageOptions));
 	}
 
-	VulkanConstantBufferReference *VulkanRenderer::GetConstantBufferReference(size_t size, size_t index)
+	VulkanDynamicBufferReference *VulkanRenderer::GetConstantBufferReference(size_t size, size_t index, GPUResource::UsageOptions usageOptions)
 	{
-		VulkanConstantBufferReference *reference = _constantBufferPool->GetConstantBufferReference(size, index);
+		VulkanDynamicBufferReference *reference = _dynamicBufferPool->GetDynamicBufferReference(size, index, usageOptions);
 		return reference;
 	}
 
-	void VulkanRenderer::UpdateConstantBufferReference(VulkanConstantBufferReference *reference, bool align)
+	void VulkanRenderer::UpdateDynamicBufferReference(VulkanDynamicBufferReference *reference, bool align)
 	{
 		LockGuard<Lockable> lock(_lock);
-		return _constantBufferPool->UpdateConstantBufferReference(reference, align);
+		return _dynamicBufferPool->UpdateDynamicBufferReference(reference, align);
 	}
 
 	ShaderLibrary *VulkanRenderer::CreateShaderLibraryWithFile(const String *file)
@@ -1023,10 +1023,10 @@ namespace RN
 		return new VulkanFramebuffer(size, this);
 	}
 
-	void VulkanRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable)
+	void VulkanRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanDynamicBufferReference *dynamicBufferReference, VulkanDrawable *drawable)
 	{
-		GPUBuffer *gpuBuffer = constantBufferReference->constantBuffer->GetActiveBuffer();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + constantBufferReference->offset;
+		GPUBuffer *gpuBuffer = dynamicBufferReference->dynamicBuffer->GetActiveBuffer();
+		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + dynamicBufferReference->offset;
 
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 		const Material::Properties &mergedMaterialProperties = overrideMaterial? drawable->material->GetMergedProperties(overrideMaterial) : drawable->material->GetProperties();
@@ -1690,7 +1690,7 @@ namespace RN
 			canUseInstancing = true;
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && canUseInstancing; i++)
 			{
-				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->constantBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->constantBuffer)
+				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer)
 				{
 					canUseInstancing = false;
 				}
@@ -1698,7 +1698,7 @@ namespace RN
 
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() && canUseInstancing; i++)
 			{
-				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->constantBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->constantBuffer)
+				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer)
 				{
 					canUseInstancing = false;
 				}
@@ -1801,6 +1801,23 @@ namespace RN
 					VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
 
 					VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+					if(uniformState->instanceAttributesBuffer)
+					{
+                        //These are not actually part of the descripter sets, but filling them with data here anyway
+						Shader::ArgumentBuffer *argument = uniformState->instanceAttributesArgumentBuffer;
+
+						//Setup per instance uniforms as vertex data for all instances that are part of this draw call
+						for(size_t instance = 0; instance < stepSize; instance += 1)
+						{
+							if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
+
+							VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
+                            VulkanDynamicBufferReference *instanceAttributesBuffer = instanceUniformState->instanceAttributesBuffer;
+							UpdateDynamicBufferReference(instanceAttributesBuffer, instance == 0);
+							FillUniformBuffer(argument,  instanceAttributesBuffer, renderPass.drawables[i + instance]);
+						}
+					}
+
 					size_t counter = 0;
 					for(size_t bufferIndex = 0; bufferIndex < uniformState->vertexConstantBuffers.size(); bufferIndex += 1)
 					{
@@ -1812,13 +1829,15 @@ namespace RN
 							if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
 
 						    VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-							UpdateConstantBufferReference(instanceUniformState->vertexConstantBuffers[bufferIndex], instance == 0);
+							UpdateDynamicBufferReference(
+									instanceUniformState->vertexConstantBuffers[bufferIndex],
+									instance == 0);
 							FillUniformBuffer(argument,  instanceUniformState->vertexConstantBuffers[bufferIndex], renderPass.drawables[i + instance]);
 						}
 
-                        VulkanConstantBufferReference *constantBuffer = uniformState->vertexConstantBuffers[bufferIndex];
+                        VulkanDynamicBufferReference *constantBuffer = uniformState->vertexConstantBuffers[bufferIndex];
 
-						GPUBuffer *gpuBuffer = constantBuffer->constantBuffer->GetActiveBuffer();
+						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
@@ -1847,13 +1866,15 @@ namespace RN
 							if(instance > 0 && argument->GetMaxInstanceCount() == 1) break;
 
                             VulkanUniformState *instanceUniformState = renderPass.drawables[i + instance]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
-                            UpdateConstantBufferReference(instanceUniformState->fragmentConstantBuffers[bufferIndex], instance == 0);
+							UpdateDynamicBufferReference(
+									instanceUniformState->fragmentConstantBuffers[bufferIndex],
+									instance == 0);
                             FillUniformBuffer(argument,  instanceUniformState->fragmentConstantBuffers[bufferIndex], renderPass.drawables[i + instance]);
                         }
 
-                        VulkanConstantBufferReference *constantBuffer = uniformState->fragmentConstantBuffers[bufferIndex];
+                        VulkanDynamicBufferReference *constantBuffer = uniformState->fragmentConstantBuffers[bufferIndex];
 
-						GPUBuffer *gpuBuffer = constantBuffer->constantBuffer->GetActiveBuffer();
+						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
@@ -1944,6 +1965,7 @@ namespace RN
 	void VulkanRenderer::RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable, uint32 instanceCount)
 	{
 		const VulkanPipelineState *pipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
+        const VulkanUniformState *uniformState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState;
 		const VulkanRootSignature *rootSignature = pipelineState->rootSignature;
 
 		VkDescriptorSet descriptorSet = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->GetActiveDescriptorSet();
@@ -1952,13 +1974,29 @@ namespace RN
 
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
 		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
+        VulkanGPUBuffer *instanceAttributesBuffer = uniformState->instanceAttributesBuffer? static_cast<VulkanGPUBuffer *>(uniformState->instanceAttributesBuffer->dynamicBuffer->GetActiveBuffer()) : nullptr;
 
-		//IF positions are separated, they will be in the first part of the buffer, everything else will be bound as the second binding
-        const VkDeviceSize offsets[2] = { 0, drawable->mesh->GetVertexPositionsSeparatedSize() };
-        const VkBuffer vertexBuffers[2] = {buffer->_buffer, buffer->_buffer};
+		//IF positions are separated, they will be in the first part of the buffer, everything else will be bound as the second binding, per instance data if provided through attributes are bound as a third buffer
+        VkDeviceSize offsets[3];
+        VkBuffer vertexBuffers[3];
+        int attributesBufferIndex = 0;
+
+        offsets[attributesBufferIndex] = 0;
+        vertexBuffers[attributesBufferIndex++] = buffer->_buffer;
+
+        if(pipelineState->vertexAttributeBufferCount > 1)
+        {
+            offsets[attributesBufferIndex] = drawable->mesh->GetVertexPositionsSeparatedSize();
+            vertexBuffers[attributesBufferIndex++] = buffer->_buffer;
+        }
+        if(instanceAttributesBuffer)
+        {
+            offsets[attributesBufferIndex] = uniformState->instanceAttributesBuffer->offset;
+            vertexBuffers[attributesBufferIndex++] = instanceAttributesBuffer->GetVulkanBuffer();
+        }
 
         // Bind mesh vertex buffer
-		vk::CmdBindVertexBuffers(commandBuffer, 0, pipelineState->vertexAttributeBufferCount, vertexBuffers, offsets);
+		vk::CmdBindVertexBuffers(commandBuffer, 0, attributesBufferIndex, vertexBuffers, offsets);
 		if(drawable->mesh->GetIndicesCount() > 0)
 		{
             // Bind mesh index buffer

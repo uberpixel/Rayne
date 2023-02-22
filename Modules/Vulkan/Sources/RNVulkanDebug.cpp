@@ -94,8 +94,8 @@ namespace RN
 		//This is the only validation layer on android! (and also available on other platforms)
 //		layers.push_back("VK_LAYER_KHRONOS_validation");
 
-        // Enable qualcomm validation specific for Adreno GPUs
-//      layers.push_back("VK_LAYER_ADRENO_debug");
+		// Enable qualcomm validation specific for Adreno GPUs
+//		layers.push_back("VK_LAYER_ADRENO_debug");
 #endif
 
 		return layers;

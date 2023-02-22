@@ -16,17 +16,20 @@ namespace RN
 	RNExceptionType(VulkanStructArgumentUnsupported)
 
 	class VulkanFramebuffer;
-	class VulkanConstantBufferReference;
+	class VulkanDynamicBufferReference;
 	class VulkanShader;
 
 	struct VulkanUniformState
 	{
 		std::vector<Shader::ArgumentBuffer*> constantBufferToArgumentMapping;
-		std::vector<VulkanConstantBufferReference *> vertexConstantBuffers;
-		std::vector<VulkanConstantBufferReference *> fragmentConstantBuffers;
+		VulkanDynamicBufferReference *instanceAttributesBuffer;
+		Shader::ArgumentBuffer *instanceAttributesArgumentBuffer;
+		std::vector<VulkanDynamicBufferReference *> vertexConstantBuffers;
+		std::vector<VulkanDynamicBufferReference *> fragmentConstantBuffers;
 
 		VkDescriptorSet descriptorSet;
 
+		VulkanUniformState();
 		~VulkanUniformState();
 	};
 

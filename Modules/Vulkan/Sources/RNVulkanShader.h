@@ -34,6 +34,7 @@ namespace RN
 		Data *_entryPoint;
 
 		bool _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
+		ArgumentBuffer *_instancingAttributes;
 
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
 	};

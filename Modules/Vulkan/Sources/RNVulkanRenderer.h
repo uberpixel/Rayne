@@ -24,8 +24,8 @@ namespace RN
 	class VulkanCommandBufferWithCallback;
 	class VulkanFramebuffer;
 	class VulkanStateCoordinator;
-	class VulkanConstantBufferPool;
-	class VulkanConstantBufferReference;
+	class VulkanDynamicBufferPool;
+	class VulkanDynamicBufferReference;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -83,13 +83,13 @@ namespace RN
 		VKAPI void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
 		VKAPI void AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset = 0);
-		VKAPI VulkanConstantBufferReference *GetConstantBufferReference(size_t size, size_t index);
-		VKAPI void UpdateConstantBufferReference(VulkanConstantBufferReference *reference, bool align);
+		VKAPI VulkanDynamicBufferReference *GetConstantBufferReference(size_t size, size_t index, GPUResource::UsageOptions usageOptions = GPUResource::UsageOptions::Uniform);
+		VKAPI void UpdateDynamicBufferReference(VulkanDynamicBufferReference *reference, bool align);
 
 	private:
 		void UpdateDescriptorSets();
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable, uint32 instanceCount);
-		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanConstantBufferReference *constantBufferReference, VulkanDrawable *drawable);
+		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanDynamicBufferReference *dynamicBufferReference, VulkanDrawable *drawable);
 
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
 
@@ -119,7 +119,7 @@ namespace RN
 		Array *_executedCommandBuffers;
 		Array *_commandBufferPool;
 
-		VulkanConstantBufferPool *_constantBufferPool;
+		VulkanDynamicBufferPool *_dynamicBufferPool;
 
 		std::vector<VkFence> _frameFences;
 		std::vector<uint32> _frameFenceValues;
