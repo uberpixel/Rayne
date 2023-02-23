@@ -42,24 +42,6 @@ namespace RN
 		MTLVertexFormatFloat4,
 		MTLVertexFormatFloat4
 	};
-	
-	uint32 _vertexFeatureLookup[]
-	{
-		0, //"POSITION",
-		1, //"NORMAL",
-		2, //"TANGENT",
-		3, //"COLOR",
-		4, //"COLOR",
-		5, //"TEXCOORD",
-		6, //"TEXCOORD",
-		
-		0, //Indices
-		
-		7, //BoneWeights,
-		8, //BoneIndices,
-		
-		9 //"CUSTOM"
-	};
 
 	MTLCompareFunction CompareFunctionLookup[] =
 	{
@@ -271,7 +253,7 @@ namespace RN
 				return state;
 		}
 
-		MTLVertexDescriptor *vertexDescriptor = CreateVertexDescriptorFromMesh(mesh);
+		MTLVertexDescriptor *vertexDescriptor = CreateVertexDescriptorFromMesh(mesh, static_cast<MetalShader*>(collection->vertexShader));
 
 		MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
 		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
@@ -347,7 +329,7 @@ namespace RN
 		return state;
 	}
 
-	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh)
+	MTLVertexDescriptor *MetalStateCoordinator::CreateVertexDescriptorFromMesh(Mesh *mesh, MetalShader *shader)
 	{
 		MTLVertexDescriptor *descriptor = [[MTLVertexDescriptor alloc] init];
 		
@@ -355,43 +337,57 @@ namespace RN
 		
 		if(mesh->GetVertexPositionsSeparatedSize() > 0)
 		{
-			descriptor.layouts[29].stride = mesh->GetVertexPositionsSeparatedStride();
-			descriptor.layouts[29].stepFunction = MTLVertexStepFunctionPerVertex;
-			descriptor.layouts[29].stepRate = 1;
+			bool didSetBufferAttributes = false;
 			
 			const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 			for(const Mesh::VertexAttribute &attribute : attributes)
 			{
-				if(attribute.GetFeature() != Mesh::VertexAttribute::Feature::Vertices)
-					continue;
+				if(attribute.GetFeature() != Mesh::VertexAttribute::Feature::Vertices) continue;
 
-				MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[_vertexFeatureLookup[static_cast<int>(attribute.GetFeature())]];
+				uint32 attributeIndex = shader->_hasInputVertexAttribute[static_cast<int>(attribute.GetFeature())];
+				if(attributeIndex == -1) continue;
+				
+				MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[attributeIndex];
 				attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];
 				attributeDescriptor.offset = attribute.GetOffset();
 				attributeDescriptor.bufferIndex = 29;
 				
+				didSetBufferAttributes = true;
+				
 				break;
 			}
+			
+			if(didSetBufferAttributes)
+			{
+				descriptor.layouts[29].stride = mesh->GetVertexPositionsSeparatedStride();
+				descriptor.layouts[29].stepFunction = MTLVertexStepFunctionPerVertex;
+				descriptor.layouts[29].stepRate = 1;
+			}
 		}
-		
-		
-		descriptor.layouts[30].stride = mesh->GetStride();
-		descriptor.layouts[30].stepFunction = MTLVertexStepFunctionPerVertex;
-		descriptor.layouts[30].stepRate = 1;
 
+		bool didSetBufferAttributes = false;
 		const std::vector<Mesh::VertexAttribute> &attributes = mesh->GetVertexAttributes();
 		for(const Mesh::VertexAttribute &attribute : attributes)
 		{
-			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
-				continue;
-			
-			if(mesh->GetVertexPositionsSeparatedSize() > 0 && attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices)
-				continue;
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices) continue;
+			if(mesh->GetVertexPositionsSeparatedSize() > 0 && attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices) continue;
 
-			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[_vertexFeatureLookup[static_cast<int>(attribute.GetFeature())]];
+			uint32 attributeIndex = shader->_hasInputVertexAttribute[static_cast<int>(attribute.GetFeature())];
+			if(attributeIndex == -1) continue;
+			
+			MTLVertexAttributeDescriptor *attributeDescriptor = descriptor.attributes[attributeIndex];
 			attributeDescriptor.format = _vertexFormatLookup[static_cast<MTLVertexFormat>(attribute.GetType())];
 			attributeDescriptor.offset = attribute.GetOffset();
 			attributeDescriptor.bufferIndex = 30;
+			
+			didSetBufferAttributes = true;
+		}
+		
+		if(didSetBufferAttributes)
+		{
+			descriptor.layouts[30].stride = mesh->GetStride();
+			descriptor.layouts[30].stepFunction = MTLVertexStepFunctionPerVertex;
+			descriptor.layouts[30].stepRate = 1;
 		}
 
 		return descriptor;

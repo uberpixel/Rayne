@@ -24,6 +24,59 @@ namespace RN
 		// owned object
 		
 		_rnSamplers = samplers->Retain();
+		
+		for(uint32 i = 0; i < static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1; i++)
+		{
+			_hasInputVertexAttribute[i] = -1;
+		}
+		
+		id<MTLFunction> shaderFunction = static_cast<id<MTLFunction>>(_shader);
+		[shaderFunction.vertexAttributes enumerateObjectsUsingBlock:^(MTLVertexAttribute * _Nonnull attribute, NSUInteger idx, BOOL * _Nonnull stop) {
+		 
+			RN::String *name = RNSTR(attribute.name.UTF8String);
+			uint32 location = attribute.attributeIndex;
+		 
+			if(name->IsEqual(RNCSTR("in_var_POSITION")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Vertices)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_NORMAL")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Normals)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_TANGENT")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Tangents)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_COLOR")) || name->IsEqual(RNCSTR("in_var_COLOR0")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color0)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_COLOR1")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color1)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_TEXCOORD")) || name->IsEqual(RNCSTR("in_var_TEXCOORD0")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords0)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_TEXCOORD1")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords1)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_BONEWEIGHTS")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneWeights)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_BONEINDICES")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneIndices)] = location;
+			}
+			else if (name->IsEqual(RNCSTR("in_var_CUSTOM")))
+			{
+				_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom)] = location;
+			}
+		}];
 	}
 
 	MetalShader::~MetalShader()

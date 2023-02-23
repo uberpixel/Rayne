@@ -105,7 +105,7 @@ namespace RN
 		MTLAPI const MetalRenderingState *GetRenderPipelineState(Material *material, Mesh *mesh, Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial);
 
 	private:
-		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh);
+		MTLVertexDescriptor *CreateVertexDescriptorFromMesh(Mesh *mesh, MetalShader *shader);
 		const MetalRenderingState *GetRenderPipelineStateInCollection(MetalRenderingStateCollection *collection, Mesh *mesh, Framebuffer *framebuffer, const Material::Properties &materialProperties);
 
 		id<MTLDevice> _device;
