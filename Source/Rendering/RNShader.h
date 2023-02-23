@@ -112,7 +112,7 @@ namespace RN
 				BoneMatrices
 			};
 
-			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount);
+			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location = -1);
 			RNAPI virtual ~UniformDescriptor();
 
 			const String *GetName() const { return _name; }
@@ -122,6 +122,7 @@ namespace RN
 			RNAPI size_t GetSize() const;
 			
 			size_t GetElementCount() const { return _elementCount; }
+            size_t GetAttributeLocation() const { return _location; }
 
 			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
 			
@@ -134,6 +135,7 @@ namespace RN
 			size_t _offset;
 			
 			size_t _elementCount; //Usually 1, but higher if this an array type with more than one element
+			size_t _location; //Used for per instance vertex attributes TODO: Move those into a separate descriptor type!?
 
 			__RNDeclareMetaInternal(UniformDescriptor)
 		};

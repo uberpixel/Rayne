@@ -74,7 +74,7 @@ namespace RN
 
 		for(uint32 i = 0; i < static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1; i++)
 		{
-			_hasInputVertexAttribute[i] = false;
+			_hasInputVertexAttribute[i] = -1;
 		}
 
 		if(stage == VK_SHADER_STAGE_VERTEX_BIT)
@@ -85,50 +85,55 @@ namespace RN
 			for(auto &resource : resources.stage_inputs)
 			{
 				String *name = RNSTR(resource.name);
+				uint32 location = reflector.get_decoration(resource.id, spv::DecorationLocation);
+
 				if(name->IsEqual(RNCSTR("in_var_POSITION")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Vertices)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Vertices)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_NORMAL")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Normals)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Normals)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_TANGENT")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Tangents)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Tangents)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_COLOR")) || name->IsEqual(RNCSTR("in_var_COLOR0")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color0)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color0)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_COLOR1")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color1)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Color1)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD")) || name->IsEqual(RNCSTR("in_var_TEXCOORD0")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords0)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords0)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_TEXCOORD1")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords1)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::UVCoords1)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_BONEWEIGHTS")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneWeights)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneWeights)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_BONEINDICES")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneIndices)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::BoneIndices)] = location;
 				}
 				else if (name->IsEqual(RNCSTR("in_var_CUSTOM")))
 				{
-					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom)] = true;
+					_hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom)] = location;
 				}
 
-				else if(name->HasPrefix(RNCSTR("in_var_INSTANCE_")))
+				else if(name->HasPrefix(RNCSTR("in_var_INSTANCEDATA")))
 				{
 					auto type = reflector.get_type(resource.base_type_id);
+					unsigned memberCount = type.member_types.size();
+
+					RNDebug(memberCount);
 
 					//Set array element count to the real number, but default to 1 for all cases
 					size_t arrayElementCount = 1;
@@ -192,7 +197,7 @@ namespace RN
 						}
 					}
 
-					UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, instanceAttributeOffset, arrayElementCount);
+					UniformDescriptor *descriptor = new UniformDescriptor(name, uniformType, instanceAttributeOffset, arrayElementCount, location);
 					instanceAttributeOffset += descriptor->GetSize(); //Might need some alignment rules? I guess I'll find out when I use it...
 					instanceAttributes->AddObject(descriptor->Autorelease());
 				}

@@ -113,12 +113,13 @@ namespace RN
 		return _defines->GetHash();
 	}
 
-	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount) :
+	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location) :
 		_name(name->Copy()),
 		_identifier(Identifier::Custom),
 		_type(type),
 		_offset(offset),
-		_elementCount(elementCount)
+		_elementCount(elementCount),
+		_location(location)
 	{
 		if(name->IsEqual(RNCSTR("global_time")) || name->IsEqual(RNCSTR("time")))
 		{

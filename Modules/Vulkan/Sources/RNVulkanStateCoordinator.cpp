@@ -45,24 +45,6 @@ namespace RN
 			VK_FORMAT_R32G32B32A32_SFLOAT
 		};
 
-	uint32 _vertexFeatureLookup[]
-	{
-		0, //"POSITION",
-		1, //"NORMAL",
-		2, //"TANGENT",
-		3, //"COLOR0",
-		4, //"COLOR1",
-		5, //"TEXCOORD0",
-		6, //"TEXCOORD1",
-
-		0, //Indices
-
-		7, //BoneWeights,
-		8, //BoneIndices,
-
-		9 //"CUSTOM"
-	};
-
 	VkBlendFactor _blendFactorLookup[] =
 	{
 		VK_BLEND_FACTOR_ZERO,
@@ -722,10 +704,11 @@ namespace RN
 			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Indices)
 				continue;
 
-			if(vertexShader->_hasInputVertexAttribute[static_cast<uint32>(attribute.GetFeature())])
+            uint32 attributeLocation = vertexShader->_hasInputVertexAttribute[static_cast<uint32>(attribute.GetFeature())];
+			if(attributeLocation != -1)
 			{
 				VkVertexInputAttributeDescription attributeDescription = {};
-				attributeDescription.location = _vertexFeatureLookup[static_cast<uint32>(attribute.GetFeature())];
+				attributeDescription.location = attributeLocation;
 				attributeDescription.binding = vertexBinding;
 				attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute.GetType())];
 				attributeDescription.offset = attribute.GetOffset();
@@ -747,18 +730,16 @@ namespace RN
 		if(vertexShader->_instancingAttributes && vertexShader->GetHasInstancing())
 		{
 			if(!vertexPositionsOnly) vertexBinding += 1;
-            uint32 location = 10;
 			vertexShader->_instancingAttributes->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *attribute, size_t index, bool &stop){
                 for(int i = 0; i < (attribute->GetType() == PrimitiveType::Matrix4x4? 4 : (attribute->GetType() == PrimitiveType::Matrix3x3? 3 : 1)); i++)
                 {
                     VkVertexInputAttributeDescription attributeDescription = {};
-                    attributeDescription.location = location;
+                    attributeDescription.location = attribute->GetAttributeLocation() + i;
                     attributeDescription.binding = vertexBinding;
                     attributeDescription.format = _vertexFormatLookup[static_cast<VkFormat>(attribute->GetType())];
                     attributeDescription.offset = attribute->GetOffset() + i * 4 * 4;
 
                     attributeDescriptions.push_back(attributeDescription);
-                    location += 1;
                 }
 			});
 		}

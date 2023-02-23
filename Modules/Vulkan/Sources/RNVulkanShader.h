@@ -33,7 +33,7 @@ namespace RN
 		const String *_name;
 		Data *_entryPoint;
 
-		bool _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
+		uint32 _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
 		ArgumentBuffer *_instancingAttributes;
 
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
