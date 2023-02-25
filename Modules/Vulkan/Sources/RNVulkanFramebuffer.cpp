@@ -155,8 +155,7 @@ namespace RN
 		_renderer(renderer),
 		_swapChain(swapChain),
 		_depthStencilTarget(nullptr),
-		_renderPass(nullptr),
-		_frameBuffer(nullptr)
+        _currentVariantIndex(0)
 	{
 		DidUpdateSwapChain(size, layerCount, colorFormat, depthStencilFormat, fragmentDensityFormat);
 	}
@@ -167,8 +166,7 @@ namespace RN
 		_renderer(renderer),
 		_swapChain(nullptr),
 		_depthStencilTarget(nullptr),
-		_renderPass(nullptr),
-		_frameBuffer(nullptr)
+		_currentVariantIndex(0)
 	{
 /*		_colorFormat = D3D12ImageFormatFromTextureFormat(descriptor.colorFormat);
 		_depthFormat = D3D12ImageFormatFromTextureFormat(descriptor.depthFormat);
@@ -193,6 +191,23 @@ namespace RN
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
 		//TODO: Maybe release swap chain resources!?
+
+		//Release cached vulkan framebuffers and their resources
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		for(const VulkanFramebufferVariant &variant : _framebufferVariants)
+		{
+			VkFramebuffer framebuffer = variant.framebuffer;
+			std::vector<VkImageView> imageViews = variant.attachments;
+
+			_renderer->AddFrameFinishedCallback([this, device, imageViews, framebuffer]() {
+				vk::DestroyFramebuffer(device, framebuffer, _renderer->GetAllocatorCallback());
+
+				for(VkImageView imageView : imageViews)
+				{
+					vk::DestroyImageView(device, imageView, _renderer->GetAllocatorCallback());
+				}
+			});
+		}
 
 		for(VulkanTargetView *targetView : _colorTargets)
 		{
@@ -269,22 +284,67 @@ namespace RN
 
 	void VulkanFramebuffer::PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewLayer, uint8 multiviewCount)
 	{
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-
-		_renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer, flags, multiviewCount);
-
-		std::vector<VkImageView> attachments;
+		//Check if there is already a cached variant for this framebuffer
+		uint8 swapchainImageIndex = 0;
+		uint8 resolveSwapchainImageIndex = 0;
+		uint8 fragmentDensitySwapchainImageIndex = 0;
 		if(_colorTargets.size() > 0)
 		{
 			//Create the render target view
 			if(_swapChain)
 			{
-				const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(_colorTargets[_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+				swapchainImageIndex = _swapChain->GetFrameIndex();
+			}
+			else if(resolveFramebuffer->_swapChain)
+			{
+				resolveSwapchainImageIndex = resolveFramebuffer->_swapChain->GetFrameIndex();
+			}
+		}
+		VulkanFramebuffer *fragmentDensityFramebuffer = this;
+		if(resolveFramebuffer)
+		{
+			fragmentDensityFramebuffer = resolveFramebuffer;
+		}
+		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 1 && fragmentDensityFramebuffer->_swapChain)
+		{
+			fragmentDensitySwapchainImageIndex = fragmentDensityFramebuffer->_swapChain->GetFrameIndex();
+		}
+
+		uint8 counter = 0;
+		for(const VulkanFramebufferVariant &variant : _framebufferVariants)
+		{
+			if(variant.resolveFramebuffer == resolveFramebuffer && variant.renderPassFlags == flags && variant.multiviewLayer == multiviewLayer && variant.multiviewCount == multiviewCount && variant.swapchainImageIndex == swapchainImageIndex && variant.resolveSwapchainImageIndex == resolveSwapchainImageIndex && variant.fragmentDensitySwapchainImageIndex == fragmentDensitySwapchainImageIndex)
+			{
+				_currentVariantIndex = counter;
+				return;
+			}
+			counter += 1;
+		}
+        _currentVariantIndex = _framebufferVariants.size();
+
+		VulkanFramebufferVariant newVariant;
+		newVariant.resolveFramebuffer = resolveFramebuffer;
+		newVariant.renderPassFlags = flags;
+		newVariant.multiviewLayer = multiviewLayer;
+		newVariant.multiviewCount = multiviewCount;
+		newVariant.swapchainImageIndex = 0;
+		newVariant.resolveSwapchainImageIndex = 0;
+		newVariant.fragmentDensitySwapchainImageIndex = 0;
+
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		newVariant.renderPass = _renderer->GetVulkanRenderPass(this, resolveFramebuffer, flags, multiviewCount);
+
+		if(_colorTargets.size() > 0)
+		{
+			//Create the render target view
+			if(_swapChain)
+			{
+				newVariant.swapchainImageIndex = _swapChain->GetFrameIndex();
+				const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(_colorTargets[newVariant.swapchainImageIndex]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 
 				VkImageView imageView;
 				RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-				attachments.push_back(imageView);
-            _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
+				newVariant.attachments.push_back(imageView);
 			}
 			else
 			{
@@ -295,8 +355,7 @@ namespace RN
 
 					VkImageView imageView;
 					RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-               targetView->tempVulkanImageView = imageView;
-					attachments.push_back(imageView);
+					newVariant.attachments.push_back(imageView);
 
 					//TODO: Add some error handling for wrong target counts for msaa
 					if(resolveFramebuffer)
@@ -304,17 +363,16 @@ namespace RN
 						VkImageView imageView;
 						if(resolveFramebuffer->_swapChain)
 						{
-							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+							newVariant.resolveSwapchainImageIndex = resolveFramebuffer->_swapChain->GetFrameIndex();
+							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[newVariant.resolveSwapchainImageIndex]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-	resolveFramebuffer->_colorTargets[resolveFramebuffer->_swapChain->GetFrameIndex()]->tempVulkanImageView = imageView;
 						}
 						else
 						{
 							const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(resolveFramebuffer->_colorTargets[counter]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 							RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-							resolveFramebuffer->_colorTargets[counter]->tempVulkanImageView = imageView;
 						}
-						attachments.push_back(imageView);
+						newVariant.attachments.push_back(imageView);
 					}
 
 					counter += 1;
@@ -328,28 +386,20 @@ namespace RN
 
 			VkImageView imageView;
 			RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-            _depthStencilTarget->tempVulkanImageView = imageView;
-			attachments.push_back(imageView);
+			newVariant.attachments.push_back(imageView);
 		}
 
-		VulkanFramebuffer *fragmentDensityFramebuffer = this;
-		if(resolveFramebuffer)
-		{
-			fragmentDensityFramebuffer = resolveFramebuffer;
-		}
 		if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 0)
 		{
-			uint8 index = 0;
 			if(fragmentDensityFramebuffer->_fragmentDensityTargets.size() > 1 && fragmentDensityFramebuffer->_swapChain)
 			{
-				index = fragmentDensityFramebuffer->_swapChain->GetFrameIndex();
+				newVariant.fragmentDensitySwapchainImageIndex = fragmentDensityFramebuffer->_swapChain->GetFrameIndex();
 			}
-			const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(fragmentDensityFramebuffer->_fragmentDensityTargets[index]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
+			const VkImageViewCreateInfo &imageViewCreateInfo = VkImageViewCreateInfoWithMultiviewPatch(fragmentDensityFramebuffer->_fragmentDensityTargets[newVariant.fragmentDensitySwapchainImageIndex]->vulkanTargetViewDescriptor, multiviewLayer, multiviewCount);
 
 			VkImageView imageView;
 			RNVulkanValidate(vk::CreateImageView(device, &imageViewCreateInfo, _renderer->GetAllocatorCallback(), &imageView));
-			fragmentDensityFramebuffer->_fragmentDensityTargets[index]->tempVulkanImageView = imageView;
-			attachments.push_back(imageView);
+			newVariant.attachments.push_back(imageView);
 		}
 
 		//TODO: Create framebuffer per framebuffer and not per camera, but also still handle msaa resolve somehow
@@ -357,24 +407,15 @@ namespace RN
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		frameBufferCreateInfo.pNext = nullptr;
-		frameBufferCreateInfo.renderPass = _renderPass;
-		frameBufferCreateInfo.attachmentCount = attachments.size();
-		frameBufferCreateInfo.pAttachments = attachments.data();
+		frameBufferCreateInfo.renderPass = newVariant.renderPass;
+		frameBufferCreateInfo.attachmentCount = newVariant.attachments.size();
+		frameBufferCreateInfo.pAttachments = newVariant.attachments.data();
 		frameBufferCreateInfo.width = static_cast<uint32>(_size.x);
 		frameBufferCreateInfo.height = static_cast<uint32>(_size.y);
 		frameBufferCreateInfo.layers = 1; //Must be 1 for multiview, so this is ok for now, but will need to be the actual layer count when rendering to multiple layers with selection in the shader
 
-		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &_frameBuffer));
-
-		VkFramebuffer framebuffer = _frameBuffer;
-		_renderer->AddFrameFinishedCallback([this, device, attachments, framebuffer]() {
-			vk::DestroyFramebuffer(device, framebuffer, _renderer->GetAllocatorCallback());
-
-			for(VkImageView imageView : attachments)
-			{
-				vk::DestroyImageView(device, imageView, _renderer->GetAllocatorCallback());
-			}
-		});
+		RNVulkanValidate(vk::CreateFramebuffer(device, &frameBufferCreateInfo, _renderer->GetAllocatorCallback(), &newVariant.framebuffer));
+        _framebufferVariants.push_back(newVariant);
 	}
 
 	void VulkanFramebuffer::SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const
@@ -414,8 +455,8 @@ namespace RN
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = NULL;
-		renderPassBeginInfo.renderPass = _renderPass;
-		renderPassBeginInfo.framebuffer = _frameBuffer;
+		renderPassBeginInfo.renderPass = _framebufferVariants[_currentVariantIndex].renderPass;
+		renderPassBeginInfo.framebuffer = _framebufferVariants[_currentVariantIndex].framebuffer;
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
 		renderPassBeginInfo.renderArea.extent.width = static_cast<uint32_t>(_size.x);
@@ -540,22 +581,4 @@ namespace RN
 			SetDepthStencilTarget(target);
 		}
 	}
-
-    VkImageView VulkanFramebuffer::GetCurrentFrameVulkanColorImageView() const
-    {
-        if(_colorTargets.size() > 0)
-        {
-            //Create the render target view
-            if(_swapChain)
-            {
-                return _colorTargets[_swapChain->GetFrameIndex()]->tempVulkanImageView;
-            }
-            else
-            {
-                return _colorTargets[0]->tempVulkanImageView;
-            }
-        }
-
-        return NULL;
-    }
 }

@@ -25,7 +25,24 @@ namespace RN
 		{
 			TargetView targetView;
 			VkImageViewCreateInfo vulkanTargetViewDescriptor;
-			VkImageView tempVulkanImageView;
+		};
+
+		struct VulkanFramebufferVariant
+		{
+			//Used to check if the current vulkan framebuffer can be reused or needs to be recreated
+			VulkanFramebuffer *resolveFramebuffer;
+			RenderPass::Flags renderPassFlags;
+			uint8 multiviewLayer;
+			uint8 multiviewCount;
+
+			uint8 swapchainImageIndex;
+			uint8 resolveSwapchainImageIndex;
+			uint8 fragmentDensitySwapchainImageIndex;
+
+			VkRenderPass renderPass;
+			VkFramebuffer framebuffer;
+
+			std::vector<VkImageView> attachments;
 		};
 
 		VKAPI VulkanFramebuffer(const Vector2 &size, uint8 layerCount, VulkanSwapChain *swapChain, VulkanRenderer *renderer, Texture::Format colorFormat, Texture::Format depthStencilFormat, Texture::Format fragmentDensityFormat);
@@ -47,7 +64,6 @@ namespace RN
 	private:
 		void PrepareAsRendertargetForFrame(VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewLayer, uint8 multiviewCount);
 		void SetAsRendertarget(VkCommandBuffer commandBuffer, VulkanFramebuffer *resolveFramebuffer, const Color &clearColor, float depth, uint8 stencil) const;
-		VkImageView GetCurrentFrameVulkanColorImageView() const;
 
 		VulkanRenderer *_renderer;
 		uint8 _sampleCount;
@@ -59,8 +75,8 @@ namespace RN
 		VulkanTargetView *_depthStencilTarget;
 		std::vector<VulkanTargetView *> _fragmentDensityTargets;
 
-		VkRenderPass _renderPass;
-		VkFramebuffer _frameBuffer;
+		uint8 _currentVariantIndex;
+		std::vector<VulkanFramebufferVariant> _framebufferVariants;
 
 		RNDeclareMetaAPI(VulkanFramebuffer, VKAPI)
 	};
