@@ -53,6 +53,10 @@ namespace RN
 	{
 		LockGuard<Lockable> lock(_lock);
 		
+		bool wasPlaying = _isPlaying;
+		alSourceStop(_source);
+		_isPlaying = false;
+		
 		alSourcei(_source, AL_BUFFER, 0);
 		
 		if(_asset && (_asset->GetType() == AudioAsset::Type::Ringbuffer || _asset->GetType() == AudioAsset::Type::Decoder))
@@ -90,6 +94,12 @@ namespace RN
 		if(_asset && _asset->GetType() == AudioAsset::Type::Decoder)
 		{
 			_asset->Decode();
+		}
+		
+		if(wasPlaying)
+		{
+			_isPlaying = true;
+			alSourcePlay(_source);
 		}
 	}
 		
