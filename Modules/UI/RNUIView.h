@@ -57,6 +57,7 @@ namespace RN
 			UIAPI void SetBackgroundColor(const Color &color);
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true);
 			UIAPI void SetCornerRadius(float radius);
+			UIAPI float GetCornerRadius() const { return _cornerRadius; }
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			

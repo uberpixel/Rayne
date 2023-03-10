@@ -404,7 +404,7 @@ namespace RN
 	
 		void View::SetCornerRadius(float radius)
 		{
-			_cornerRadius = std::max(std::min(std::min(radius, _bounds.width), _bounds.height), 0.0f);
+			_cornerRadius = radius;
 			_needsMeshUpdate = true;
 		}
 	
@@ -505,7 +505,9 @@ namespace RN
 			
 			Mesh *mesh = nullptr;
 			
-			if(_cornerRadius > 0.0f)
+			float cornerRadius = std::max(std::min(std::min(_cornerRadius, _bounds.width), _bounds.height), 0.0f);
+			
+			if(cornerRadius > 0.0f)
 			{
 				float *vertexPositionBuffer = new float[20 * 2];
 				float *vertexUV0Buffer = new float[20 * 2];
@@ -515,62 +517,62 @@ namespace RN
 				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[1 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[1 * 2 + 0] = cornerRadius;
 				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[2 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[2 * 2 + 0] = cornerRadius;
 				vertexPositionBuffer[2 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[3 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[3 * 2 + 0] = _frame.width - cornerRadius;
 				vertexPositionBuffer[3 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[4 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[4 * 2 + 0] = _frame.width - cornerRadius;
 				vertexPositionBuffer[4 * 2 + 1] = 0.0f;
 				
 				vertexPositionBuffer[5 * 2 + 0] = _frame.width;
 				vertexPositionBuffer[5 * 2 + 1] = 0.0f;
 				
 				vertexPositionBuffer[6 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[6 * 2 + 1] = -_cornerRadius;
+				vertexPositionBuffer[6 * 2 + 1] = -cornerRadius;
 				
 				vertexPositionBuffer[7 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[7 * 2 + 1] = -_cornerRadius;
+				vertexPositionBuffer[7 * 2 + 1] = -cornerRadius;
 				
 				vertexPositionBuffer[8 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[8 * 2 + 1] = _cornerRadius - _frame.height;
+				vertexPositionBuffer[8 * 2 + 1] = cornerRadius - _frame.height;
 				
 				vertexPositionBuffer[9 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[9 * 2 + 1] = _cornerRadius - _frame.height;
+				vertexPositionBuffer[9 * 2 + 1] = cornerRadius - _frame.height;
 				
 				vertexPositionBuffer[10 * 2 + 0] = _frame.width;
 				vertexPositionBuffer[10 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[11 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[11 * 2 + 0] = _frame.width - cornerRadius;
 				vertexPositionBuffer[11 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[12 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[12 * 2 + 0] = _frame.width - cornerRadius;
 				vertexPositionBuffer[12 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[13 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[13 * 2 + 0] = cornerRadius;
 				vertexPositionBuffer[13 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[14 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[14 * 2 + 0] = cornerRadius;
 				vertexPositionBuffer[14 * 2 + 1] = -_frame.height;
 				
 				vertexPositionBuffer[15 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[15 * 2 + 1] = -_frame.height;
 				
 				vertexPositionBuffer[16 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[16 * 2 + 1] = _cornerRadius - _frame.height;
+				vertexPositionBuffer[16 * 2 + 1] = cornerRadius - _frame.height;
 				
 				vertexPositionBuffer[17 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[17 * 2 + 1] = _cornerRadius - _frame.height;
+				vertexPositionBuffer[17 * 2 + 1] = cornerRadius - _frame.height;
 				
 				vertexPositionBuffer[18 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[18 * 2 + 1] = -_cornerRadius;
+				vertexPositionBuffer[18 * 2 + 1] = -cornerRadius;
 				
 				vertexPositionBuffer[19 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[19 * 2 + 1] = -_cornerRadius;
+				vertexPositionBuffer[19 * 2 + 1] = -cornerRadius;
 				
 				for(int i = 0; i < 20; i++)
 				{
