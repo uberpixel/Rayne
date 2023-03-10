@@ -29,7 +29,8 @@ namespace RN
 			_isColorWriteEnabled(true),
 			_depthMode(DepthMode::GreaterOrEqual),
 			_depthOffset(-200.0f),
-			_depthFactor(-50.0f)
+			_depthFactor(-50.0f),
+			_cornerRadius(0.0f)
 		{
 			SetRenderGroup(1 << 7);
 			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
@@ -401,6 +402,12 @@ namespace RN
 			Unlock();
 		}
 	
+		void View::SetCornerRadius(float radius)
+		{
+			_cornerRadius = std::max(std::min(std::min(radius, _bounds.width), _bounds.height), 0.0f);
+			_needsMeshUpdate = true;
+		}
+	
 		void View::SetClipToBounds(bool enabled)
 		{
 			if(_clipToBounds == enabled) return;
@@ -496,64 +503,230 @@ namespace RN
 		{
 			Lock();
 			
-			float *vertexPositionBuffer = new float[4 * 2];
-			float *vertexUVBuffer = new float[4 * 2];
+			Mesh *mesh = nullptr;
 			
-			uint32 *indexBuffer = new uint32[6];
-			
-			uint32 vertexOffset = 0;
-			uint32 indexIndexOffset = 0;
-			uint32 indexOffset = 0;
-			
-			vertexPositionBuffer[0 * 2 + 0] = 0.0f;
-			vertexPositionBuffer[0 * 2 + 1] = 0.0f;
-			
-			vertexPositionBuffer[1 * 2 + 0] = _frame.width;
-			vertexPositionBuffer[1 * 2 + 1] = 0.0f;
-			
-			vertexPositionBuffer[2 * 2 + 0] = _frame.width;
-			vertexPositionBuffer[2 * 2 + 1] = -_frame.height;
-			
-			vertexPositionBuffer[3 * 2 + 0] = 0.0f;
-			vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
-			
-			vertexUVBuffer[0 * 2 + 0] = 0.0f;
-			vertexUVBuffer[0 * 2 + 1] = 0.0f;
-			
-			vertexUVBuffer[1 * 2 + 0] = 1.0f;
-			vertexUVBuffer[1 * 2 + 1] = 0.0f;
-			
-			vertexUVBuffer[2 * 2 + 0] = 1.0f;
-			vertexUVBuffer[2 * 2 + 1] = 1.0f;
-			
-			vertexUVBuffer[3 * 2 + 0] = 0.0f;
-			vertexUVBuffer[3 * 2 + 1] = 1.0f;
-		
-			indexBuffer[0] = 0;
-			indexBuffer[1] = 3;
-			indexBuffer[2] = 1;
-			
-			indexBuffer[3] = 3;
-			indexBuffer[4] = 2;
-			indexBuffer[5] = 1;
-			
-			std::vector<Mesh::VertexAttribute> meshVertexAttributes;
-			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
-			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
-			meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
-			
-			Mesh *mesh = new Mesh(meshVertexAttributes, 4, 6);
-			mesh->BeginChanges();
-			
-			mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
-			mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
-			mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
-			
-			mesh->EndChanges();
-
-			delete[] vertexPositionBuffer;
-			delete[] vertexUVBuffer;
-			delete[] indexBuffer;
+			if(_cornerRadius > 0.0f)
+			{
+				float *vertexPositionBuffer = new float[20 * 2];
+				float *vertexUV0Buffer = new float[20 * 2];
+				float *vertexUV1Buffer = new float[20 * 3];
+				uint32 *indexBuffer = new uint32[30];
+				
+				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[1 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[2 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[2 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[3 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[3 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[4 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[4 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[5 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[5 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[6 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[6 * 2 + 1] = -_cornerRadius;
+				
+				vertexPositionBuffer[7 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[7 * 2 + 1] = -_cornerRadius;
+				
+				vertexPositionBuffer[8 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[8 * 2 + 1] = _cornerRadius - _frame.height;
+				
+				vertexPositionBuffer[9 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[9 * 2 + 1] = _cornerRadius - _frame.height;
+				
+				vertexPositionBuffer[10 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[10 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[11 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[11 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[12 * 2 + 0] = _frame.width - _cornerRadius;
+				vertexPositionBuffer[12 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[13 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[13 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[14 * 2 + 0] = _cornerRadius;
+				vertexPositionBuffer[14 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[15 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[15 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[16 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[16 * 2 + 1] = _cornerRadius - _frame.height;
+				
+				vertexPositionBuffer[17 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[17 * 2 + 1] = _cornerRadius - _frame.height;
+				
+				vertexPositionBuffer[18 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[18 * 2 + 1] = -_cornerRadius;
+				
+				vertexPositionBuffer[19 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[19 * 2 + 1] = -_cornerRadius;
+				
+				for(int i = 0; i < 20; i++)
+				{
+					vertexUV0Buffer[i * 2 + 0] = vertexPositionBuffer[i * 2 + 0] / _frame.width;
+					vertexUV0Buffer[i * 2 + 1] = -vertexPositionBuffer[i * 2 + 1] / _frame.height;
+					
+					vertexUV1Buffer[i * 3 + 0] = 0.0f;
+					vertexUV1Buffer[i * 3 + 1] = 1.0f;
+					vertexUV1Buffer[i * 3 + 2] = 1.0f;
+				}
+				
+				vertexUV1Buffer[19 * 3 + 0] = 0.0f;
+				vertexUV1Buffer[19 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[0 * 3 + 0] = 0.5f;
+				vertexUV1Buffer[0 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[1 * 3 + 0] = 1.0f;
+				vertexUV1Buffer[1 * 3 + 1] = 1.0f;
+				
+				vertexUV1Buffer[4 * 3 + 0] = 0.0f;
+				vertexUV1Buffer[4 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[5 * 3 + 0] = 0.5f;
+				vertexUV1Buffer[5 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[6 * 3 + 0] = 1.0f;
+				vertexUV1Buffer[6 * 3 + 1] = 1.0f;
+				
+				vertexUV1Buffer[9 * 3 + 0] = 0.0f;
+				vertexUV1Buffer[9 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[10 * 3 + 0] = 0.5f;
+				vertexUV1Buffer[10 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[11 * 3 + 0] = 1.0f;
+				vertexUV1Buffer[11 * 3 + 1] = 1.0f;
+				
+				vertexUV1Buffer[14 * 3 + 0] = 0.0f;
+				vertexUV1Buffer[14 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[15 * 3 + 0] = 0.5f;
+				vertexUV1Buffer[15 * 3 + 1] = 0.0f;
+				vertexUV1Buffer[16 * 3 + 0] = 1.0f;
+				vertexUV1Buffer[16 * 3 + 1] = 1.0f;
+				
+				indexBuffer[0] = 0;
+				indexBuffer[1] = 1;
+				indexBuffer[2] = 19;
+				
+				indexBuffer[3] = 2;
+				indexBuffer[4] = 17;
+				indexBuffer[5] = 18;
+				
+				indexBuffer[6] = 2;
+				indexBuffer[7] = 13;
+				indexBuffer[8] = 17;
+				
+				indexBuffer[9] = 14;
+				indexBuffer[10] = 15;
+				indexBuffer[11] = 16;
+				
+				indexBuffer[12] = 2;
+				indexBuffer[13] = 3;
+				indexBuffer[14] = 13;
+				
+				indexBuffer[15] = 3;
+				indexBuffer[16] = 12;
+				indexBuffer[17] = 13;
+				
+				indexBuffer[18] = 3;
+				indexBuffer[19] = 7;
+				indexBuffer[20] = 12;
+				
+				indexBuffer[21] = 7;
+				indexBuffer[22] = 8;
+				indexBuffer[23] = 12;
+				
+				indexBuffer[24] = 4;
+				indexBuffer[25] = 5;
+				indexBuffer[26] = 6;
+				
+				indexBuffer[27] = 9;
+				indexBuffer[28] = 10;
+				indexBuffer[29] = 11;
+				
+				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector3);
+				
+				mesh = new Mesh(meshVertexAttributes, 20, 30);
+				mesh->BeginChanges();
+				
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUV0Buffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords1, vertexUV1Buffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
+				
+				mesh->EndChanges();
+				
+				delete[] vertexPositionBuffer;
+				delete[] vertexUV0Buffer;
+				delete[] vertexUV1Buffer;
+				delete[] indexBuffer;
+			}
+			else
+			{
+				float *vertexPositionBuffer = new float[4 * 2];
+				float *vertexUVBuffer = new float[4 * 2];
+				uint32 *indexBuffer = new uint32[6];
+				
+				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[1 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
+				
+				vertexPositionBuffer[2 * 2 + 0] = _frame.width;
+				vertexPositionBuffer[2 * 2 + 1] = -_frame.height;
+				
+				vertexPositionBuffer[3 * 2 + 0] = 0.0f;
+				vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
+				
+				vertexUVBuffer[0 * 2 + 0] = 0.0f;
+				vertexUVBuffer[0 * 2 + 1] = 0.0f;
+				
+				vertexUVBuffer[1 * 2 + 0] = 1.0f;
+				vertexUVBuffer[1 * 2 + 1] = 0.0f;
+				
+				vertexUVBuffer[2 * 2 + 0] = 1.0f;
+				vertexUVBuffer[2 * 2 + 1] = 1.0f;
+				
+				vertexUVBuffer[3 * 2 + 0] = 0.0f;
+				vertexUVBuffer[3 * 2 + 1] = 1.0f;
+				
+				indexBuffer[0] = 0;
+				indexBuffer[1] = 3;
+				indexBuffer[2] = 1;
+				
+				indexBuffer[3] = 3;
+				indexBuffer[4] = 2;
+				indexBuffer[5] = 1;
+				
+				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
+				
+				mesh = new Mesh(meshVertexAttributes, 4, 6);
+				mesh->BeginChanges();
+				
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
+				
+				mesh->EndChanges();
+				
+				delete[] vertexPositionBuffer;
+				delete[] vertexUVBuffer;
+				delete[] indexBuffer;
+			}
 			
 			Model *model = GetModel();
 			if(!model)
@@ -562,6 +735,7 @@ namespace RN
 				Shader::Options *shaderOptions = Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+				if(_cornerRadius > 0.0f) shaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);

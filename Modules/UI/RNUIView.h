@@ -56,6 +56,7 @@ namespace RN
 
 			UIAPI void SetBackgroundColor(const Color &color);
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true);
+			UIAPI void SetCornerRadius(float radius);
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -98,6 +99,7 @@ namespace RN
 			bool _isHiddenByParent;
 			Rect _scissorRect;
 
+			float _cornerRadius;
 			Color _backgroundColor;
 
 			View *_superview;
