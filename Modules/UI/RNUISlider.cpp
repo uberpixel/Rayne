@@ -18,10 +18,12 @@ namespace RN
 		{
 			float lineWidth = 4.0;
 			View *rangeView = new View(Rect(0.0f, (frame.height - lineWidth) * 0.5, frame.width, lineWidth));
+			rangeView->SetCornerRadius(lineWidth * 0.5f);
 			rangeView->SetBackgroundColor(Color::White());
 			AddSubview(rangeView);
 			
 			_handleView = new View(Rect(0.0f, 0.0f, 15.0f, GetFrame().height));
+			_handleView->SetCornerRadius(7.5f);
 			_handleView->SetBackgroundColor(Color::Black());
 			SetValue(_value);
 			AddSubview(_handleView);
