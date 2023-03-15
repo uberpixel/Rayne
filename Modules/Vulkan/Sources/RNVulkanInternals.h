@@ -14,6 +14,8 @@
 #include "RNVulkanRenderer.h"
 #include "RNVulkanSwapChain.h"
 
+#include <vk_mem_alloc.h>
+
 namespace RN
 {
 	class BufferedDescriptorSet
@@ -309,6 +311,8 @@ namespace RN
 
 		const VulkanPipelineState *currentPipelineState;
 		VulkanDrawable *currentInstanceDrawable;
+
+		VmaAllocator memoryAllocator;
 	};
 }
 

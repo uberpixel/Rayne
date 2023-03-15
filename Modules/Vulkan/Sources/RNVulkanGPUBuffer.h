@@ -12,6 +12,8 @@
 #include "RNVulkan.h"
 #include "RNVulkanRenderer.h"
 
+#include <vk_mem_alloc.h>
+
 namespace RN
 {
 	class VulkanGPUBuffer : public GPUBuffer
@@ -34,8 +36,12 @@ namespace RN
 		VulkanRenderer *_renderer;
 
 		VkBuffer _buffer;
-		VkDeviceMemory _memory;
+		VmaAllocation _allocation;
 
+		VkBuffer _stagingBuffer;
+		VmaAllocation _stagingAllocation;
+
+		bool _isHostVisible;
 		size_t _length;
 		void *_mappedBuffer;
 

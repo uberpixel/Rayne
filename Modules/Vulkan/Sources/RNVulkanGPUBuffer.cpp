@@ -7,6 +7,8 @@
 //
 
 #include "RNVulkanGPUBuffer.h"
+
+#include "RNVulkanInternals.h"
 #include "RNVulkanRenderer.h"
 
 namespace RN
@@ -14,71 +16,77 @@ namespace RN
 	RNDefineMeta(VulkanGPUBuffer, GPUBuffer)
 
 	VulkanGPUBuffer::VulkanGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption)
-	 : _length(length), _renderer(renderer), _mappedBuffer(nullptr)
+	 : _length(length), _renderer(renderer), _mappedBuffer(nullptr), _isHostVisible(false), _stagingBuffer(VK_NULL_HANDLE), _stagingAllocation(VK_NULL_HANDLE)
 	{
-		VkDevice device = renderer->GetVulkanDevice()->GetDevice();
-		VkMemoryRequirements memoryRequirements;
+		VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufferInfo.size = length;
 
-		VkMemoryAllocateInfo memoryAllocateInfo = {};
-		memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memoryAllocateInfo.pNext = NULL;
-		memoryAllocateInfo.allocationSize = 0;
-		memoryAllocateInfo.memoryTypeIndex = 0;
+		VmaAllocationCreateInfo allocCreateInfo = {};
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-		//TODO: Remove host visible and cached bit for vertex and index buffers and upload the data using a temporary buffer instead!?
-		VkFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		VkBufferUsageFlags usage;
-		switch(usageOption)
+		switch (usageOption)
 		{
 			case UsageOptions::Uniform:
-				usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-				//memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+				bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+				allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+				allocCreateInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+				allocCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 				break;
 			case UsageOptions::Vertex:
-				usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+				bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 				break;
 			case UsageOptions::Index:
-				usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+				bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 				break;
 		}
 
-		VkBufferCreateInfo bufferCreateInfo = {};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferCreateInfo.pNext = NULL;
-		bufferCreateInfo.usage = usage;
-		bufferCreateInfo.size = length;
-		bufferCreateInfo.flags = 0;
+		RNVulkanValidate(vmaCreateBuffer(renderer->_internals->memoryAllocator, &bufferInfo, &allocCreateInfo, &_buffer, &_allocation, nullptr));
 
-		RNVulkanValidate(vk::CreateBuffer(device, &bufferCreateInfo, _renderer->GetAllocatorCallback(), &_buffer));
-		vk::GetBufferMemoryRequirements(device, _buffer, &memoryRequirements);
-		memoryAllocateInfo.allocationSize = memoryRequirements.size;
+		VkMemoryPropertyFlags memoryPropertyFlags;
+		vmaGetAllocationMemoryProperties(renderer->_internals->memoryAllocator, _allocation, &memoryPropertyFlags);
+		if(memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+		{
+			_isHostVisible = true;
+		}
 
-		renderer->GetVulkanDevice()->GetMemoryWithType(memoryRequirements.memoryTypeBits, memoryProperties, memoryAllocateInfo.memoryTypeIndex);
-		RNVulkanValidate(vk::AllocateMemory(device, &memoryAllocateInfo, _renderer->GetAllocatorCallback(), &_memory));
 		if(data != nullptr)
 		{
-			RNVulkanValidate(vk::MapMemory(device, _memory, 0, length, 0, &_mappedBuffer));
-			memcpy(_mappedBuffer, data, length);
+			memcpy(GetBuffer(), data, length);
 			FlushRange(Range(0, length));
 			UnmapBuffer();
 		}
-		RNVulkanValidate(vk::BindBufferMemory(device, _buffer, _memory, 0));
 	}
 
 	VulkanGPUBuffer::~VulkanGPUBuffer()
 	{
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		UnmapBuffer();
-		vk::DestroyBuffer(device, _buffer, _renderer->GetAllocatorCallback());
-		vk::FreeMemory(device, _memory, _renderer->GetAllocatorCallback());
+		vmaDestroyBuffer(_renderer->_internals->memoryAllocator, _buffer, _allocation);
 	}
 
 	void *VulkanGPUBuffer::GetBuffer()
 	{
 		if(!_mappedBuffer)
 		{
-			VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-			RNVulkanValidate(vk::MapMemory(device, _memory, 0, _length, 0, &_mappedBuffer));
+			if(_isHostVisible)
+			{
+				vmaMapMemory(_renderer->_internals->memoryAllocator, _allocation, &_mappedBuffer);
+			}
+			else
+			{
+				VkBufferCreateInfo stagingBufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+				stagingBufferInfo.size = _length;
+				stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+				VmaAllocationCreateInfo stagingAllocInfo = {};
+				stagingAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+				stagingAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+
+				VkBuffer stagingBuffer;
+				VmaAllocation stagingAllocation;
+				RNVulkanValidate(vmaCreateBuffer(_renderer->_internals->memoryAllocator, &stagingBufferInfo, &stagingAllocInfo, &_stagingBuffer, &_stagingAllocation, nullptr));
+
+				vmaMapMemory(_renderer->_internals->memoryAllocator, _stagingAllocation, &_mappedBuffer);
+			}
 		}
 		return _mappedBuffer;
 	}
@@ -92,14 +100,30 @@ namespace RN
 	{
 		if(!_mappedBuffer) return;
 
-		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
-		vk::UnmapMemory(device, _memory);
+		if(_isHostVisible)
+		{
+			vmaUnmapMemory(_renderer->_internals->memoryAllocator, _allocation);
+		}
+		else
+		{
+			vmaUnmapMemory(_renderer->_internals->memoryAllocator, _stagingAllocation);
+
+			VmaAllocation stagingAllocation = _stagingAllocation;
+			VkBuffer stagingBuffer = _stagingBuffer;
+			VulkanRenderer *renderer = _renderer;
+			renderer->AddFrameFinishedCallback([renderer, stagingBuffer, stagingAllocation]() {
+				vmaDestroyBuffer(renderer->_internals->memoryAllocator, stagingBuffer, stagingAllocation);
+			});
+
+			_stagingBuffer = VK_NULL_HANDLE;
+			_stagingAllocation = VK_NULL_HANDLE;
+		}
 		_mappedBuffer = nullptr;
 	}
 
 	void VulkanGPUBuffer::InvalidateRange(const Range &range)
 	{
-		if(!_mappedBuffer) return;
+		if(!_mappedBuffer || _isHostVisible) return;
 
 /*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;
@@ -114,7 +138,20 @@ namespace RN
 
 	void VulkanGPUBuffer::FlushRange(const Range &range)
 	{
-		if(!_mappedBuffer) return;
+		if(!_mappedBuffer || _isHostVisible) return;
+
+		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
+		commandBuffer->Begin();
+
+		VkBufferCopy copyRegion;
+		copyRegion.srcOffset = 0;
+		copyRegion.dstOffset = 0;
+		copyRegion.size = _length;
+		vk::CmdCopyBuffer(commandBuffer->GetCommandBuffer(), _stagingBuffer, _buffer, 1, &copyRegion);
+
+		commandBuffer->End();
+
+		_renderer->SubmitCommandBuffer(commandBuffer);
 
 /*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;

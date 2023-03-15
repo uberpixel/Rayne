@@ -15,6 +15,12 @@
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanDynamicBuffer.h"
 
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
+
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 namespace RN
 {
 	RNDefineMeta(VulkanRenderer, Renderer)
@@ -35,6 +41,35 @@ namespace RN
 		_currentMultiviewFallbackRenderPass(nullptr)
 	{
 		vk::GetDeviceQueue(device->GetDevice(), device->GetWorkQueue(), 0, &_workQueue);
+
+		VmaVulkanFunctions vulkanFunctions = {};
+		vulkanFunctions.vkGetInstanceProcAddr = vk::GetInstanceProcAddr;
+		vulkanFunctions.vkGetDeviceProcAddr = vk::GetDeviceProcAddr;
+		vulkanFunctions.vkGetPhysicalDeviceProperties = vk::GetPhysicalDeviceProperties;
+		vulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vk::GetPhysicalDeviceMemoryProperties;
+		vulkanFunctions.vkAllocateMemory = vk::AllocateMemory;
+		vulkanFunctions.vkFreeMemory = vk::FreeMemory;
+		vulkanFunctions.vkMapMemory = vk::MapMemory;
+		vulkanFunctions.vkUnmapMemory = vk::UnmapMemory;
+		vulkanFunctions.vkFlushMappedMemoryRanges = vk::FlushMappedMemoryRanges;
+		vulkanFunctions.vkInvalidateMappedMemoryRanges = vk::InvalidateMappedMemoryRanges;
+		vulkanFunctions.vkBindBufferMemory = vk::BindBufferMemory;
+		vulkanFunctions.vkBindImageMemory = vk::BindImageMemory;
+		vulkanFunctions.vkGetBufferMemoryRequirements = vk::GetBufferMemoryRequirements;
+		vulkanFunctions.vkGetImageMemoryRequirements = vk::GetImageMemoryRequirements;
+		vulkanFunctions.vkCreateBuffer = vk::CreateBuffer;
+		vulkanFunctions.vkDestroyBuffer = vk::DestroyBuffer;
+		vulkanFunctions.vkCreateImage = vk::CreateImage;
+		vulkanFunctions.vkDestroyImage = vk::DestroyImage;
+		vulkanFunctions.vkCmdCopyBuffer = vk::CmdCopyBuffer;
+
+		VmaAllocatorCreateInfo allocatorCreateInfo = {};
+		allocatorCreateInfo.device = device->GetDevice();
+		allocatorCreateInfo.physicalDevice = device->GetPhysicalDevice();
+		allocatorCreateInfo.instance = device->GetInstance()->GetInstance();
+		allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+		allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+		RNVulkanValidate(vmaCreateAllocator(&allocatorCreateInfo, &_internals->memoryAllocator));
 
 		//Create command pool
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
@@ -74,6 +109,7 @@ namespace RN
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
+		vmaDestroyAllocator(_internals->memoryAllocator);
 		delete _dynamicBufferPool;
 	}
 

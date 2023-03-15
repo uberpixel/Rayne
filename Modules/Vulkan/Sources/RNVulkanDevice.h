@@ -31,6 +31,7 @@ namespace RN
 
 		VkDevice GetDevice() const { return _device; }
 		VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
+		VulkanInstance *GetInstance() const { return _instance; }
 
 		uint32_t GetWorkQueue() const { return static_cast<uint32_t>(_workQueue); }
 

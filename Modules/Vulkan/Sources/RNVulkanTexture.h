@@ -11,6 +11,8 @@
 
 #include "RNVulkan.h"
 
+#include <vk_mem_alloc.h>
+
 namespace RN
 {
 	class VulkanRenderer;
@@ -61,7 +63,7 @@ namespace RN
 		VulkanRenderer *_renderer;
 
 		VkImage _uploadImage;
-		VkDeviceMemory _uploadMemory;
+		VmaAllocation _uploadAllocation;
 		VkSubresourceLayout _uploadSubresourceLayout;
 		void *_uploadData;
 		bool _isFirstUpload;
@@ -69,7 +71,7 @@ namespace RN
 		VkFormat _format;
 		VkImage _image;
 		VkImageView _imageView;
-		VkDeviceMemory _memory;
+		VmaAllocation _allocation;
 		VkMemoryRequirements _requirements;
 		VkImageLayout _currentLayout;
 

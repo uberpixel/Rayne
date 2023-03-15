@@ -26,12 +26,15 @@ namespace RN
 	class VulkanStateCoordinator;
 	class VulkanDynamicBufferPool;
 	class VulkanDynamicBufferReference;
+	class VulkanGPUBuffer;
 
 	class VulkanRenderer : public Renderer
 	{
 	public:
 		friend VulkanFramebuffer;
 		friend VulkanStateCoordinator;
+		friend VulkanGPUBuffer;
+		friend VulkanTexture;
 
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();

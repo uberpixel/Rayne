@@ -31,6 +31,18 @@ ExternalProject_Add(vulkan_headers
         BUILD_COMMAND ""
         INSTALL_COMMAND "")
 
+set(VMA_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/VulkanMemoryAllocator-prefix/src/VulkanMemoryAllocator)
+set(VMA_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/VulkanMemoryAllocator-prefix/src/VulkanMemoryAllocator-build)
+ExternalProject_Add(VulkanMemoryAllocator
+        GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+        GIT_TAG origin/master
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND "")
+
 ExternalProject_Get_property(vulkan_headers SOURCE_DIR)
 set(VulkanHeaders_SOURCE_DIR ${SOURCE_DIR})
 
@@ -121,8 +133,10 @@ rayne_set_module_resources(RayneVulkan ${RESOURCES})
 add_dependencies(VulkanGenerateDispatchTable vulkan_headers)
 add_dependencies(RayneVulkan_copyHeaderTarget VulkanGenerateDispatchTable)
 add_dependencies(RayneVulkan_copyHeaderTarget spirvcross)
+add_dependencies(RayneVulkan_copyHeaderTarget VulkanMemoryAllocator)
 
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross)
+target_include_directories(RayneVulkan SYSTEM PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/VulkanMemoryAllocator-prefix/src/VulkanMemoryAllocator/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${Rayne_BINARY_DIR}/include)
 target_include_directories(RayneVulkan SYSTEM PRIVATE ${VulkanHeaders_SOURCE_DIR}/include/vulkan)
 target_compile_definitions(RayneVulkan PRIVATE "${DEFINES}")
