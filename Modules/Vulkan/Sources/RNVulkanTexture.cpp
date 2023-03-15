@@ -482,9 +482,10 @@ namespace RN
 
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-		RNVulkanValidate(vmaCreateImage(_renderer->_internals->memoryAllocator, &imageInfo, &allocCreateInfo, &_uploadImage, &_uploadAllocation, nullptr));
+		VmaAllocationInfo allocationInfo;
+		RNVulkanValidate(vmaCreateImage(_renderer->_internals->memoryAllocator, &imageInfo, &allocCreateInfo, &_uploadImage, &_uploadAllocation, &allocationInfo));
 
 		VkImageSubresource subRes = {};
 		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -494,14 +495,12 @@ namespace RN
 		// Includes row pitch, size offsets, etc.
 		vk::GetImageSubresourceLayout(device, _uploadImage, &subRes, &_uploadSubresourceLayout);
 
-		// Map memory
-		vmaMapMemory(_renderer->_internals->memoryAllocator, _uploadAllocation, &_uploadData);
+		// Get pointer to mapped memory
+		_uploadData = allocationInfo.pMappedData;
 	}
 
 	void VulkanTexture::StopStreamingData()
 	{
-		vmaUnmapMemory(_renderer->_internals->memoryAllocator, _uploadAllocation);
-
 		VkImage uploadImage = _uploadImage;
 		VmaAllocation uploadAllocation = _uploadAllocation;
 		VulkanRenderer *renderer = _renderer;

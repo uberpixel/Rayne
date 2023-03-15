@@ -79,13 +79,14 @@ namespace RN
 
 				VmaAllocationCreateInfo stagingAllocInfo = {};
 				stagingAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-				stagingAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+				stagingAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
 				VkBuffer stagingBuffer;
 				VmaAllocation stagingAllocation;
-				RNVulkanValidate(vmaCreateBuffer(_renderer->_internals->memoryAllocator, &stagingBufferInfo, &stagingAllocInfo, &_stagingBuffer, &_stagingAllocation, nullptr));
+				VmaAllocationInfo allocationInfo;
+				RNVulkanValidate(vmaCreateBuffer(_renderer->_internals->memoryAllocator, &stagingBufferInfo, &stagingAllocInfo, &_stagingBuffer, &_stagingAllocation, &allocationInfo));
 
-				vmaMapMemory(_renderer->_internals->memoryAllocator, _stagingAllocation, &_mappedBuffer);
+				_mappedBuffer = allocationInfo.pMappedData;
 			}
 		}
 		return _mappedBuffer;
@@ -106,8 +107,6 @@ namespace RN
 		}
 		else
 		{
-			vmaUnmapMemory(_renderer->_internals->memoryAllocator, _stagingAllocation);
-
 			VmaAllocation stagingAllocation = _stagingAllocation;
 			VkBuffer stagingBuffer = _stagingBuffer;
 			VulkanRenderer *renderer = _renderer;
