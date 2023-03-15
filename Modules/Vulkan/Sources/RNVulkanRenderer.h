@@ -82,7 +82,8 @@ namespace RN
 		VkDescriptorPool GetDescriptorPool() const { return _descriptorPool; }
 
 		VKAPI VulkanCommandBuffer *GetCommandBuffer();
-		VKAPI VulkanCommandBufferWithCallback *GetCommandBufferWithCallback();
+		VKAPI VulkanCommandBuffer *StartResourcesCommandBuffer();
+        VKAPI void EndResourcesCommandBuffer();
 		VKAPI void SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
 		VKAPI void AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset = 0);
@@ -117,6 +118,7 @@ namespace RN
 		VkDescriptorPool _descriptorPool;
 		VkQueue _workQueue;
 		VulkanCommandBuffer *_currentCommandBuffer;
+		VulkanCommandBuffer *_currentResourcesCommandBuffer;
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;
 		Array *_executedCommandBuffers;

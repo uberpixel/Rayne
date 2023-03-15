@@ -139,8 +139,7 @@ namespace RN
 	{
 		if(!_mappedBuffer || _isHostVisible) return;
 
-		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-		commandBuffer->Begin();
+		VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 
 		VkBufferCopy copyRegion;
 		copyRegion.srcOffset = 0;
@@ -148,9 +147,7 @@ namespace RN
 		copyRegion.size = _length;
 		vk::CmdCopyBuffer(commandBuffer->GetCommandBuffer(), _stagingBuffer, _buffer, 1, &copyRegion);
 
-		commandBuffer->End();
-
-		_renderer->SubmitCommandBuffer(commandBuffer);
+		_renderer->EndResourcesCommandBuffer();
 
 /*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;

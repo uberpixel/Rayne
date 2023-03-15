@@ -367,8 +367,7 @@ namespace RN
 		{
 			if(VkFormatIsDepthFormat(_format) || VkFormatIsStencilFormat(_format))
 			{
-				VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-				commandBuffer->Begin();
+				VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 				uint32 aspectFlagBits = 0;
 				if(VkFormatIsDepthFormat(_format))
 				{
@@ -380,17 +379,14 @@ namespace RN
 				}
 				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth, aspectFlagBits, _currentLayout, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
 				_currentLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				commandBuffer->End();
-				_renderer->SubmitCommandBuffer(commandBuffer);
+				_renderer->EndResourcesCommandBuffer();
 			}
 			else //Any color rendertarget
 			{
-				VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-				commandBuffer->Begin();
+				VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 				SetImageLayout(commandBuffer->GetCommandBuffer(), _image, 0, _descriptor.mipMaps, 0, _descriptor.depth, VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, BarrierIntent::RenderTarget);
 				_currentLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				commandBuffer->End();
-				_renderer->SubmitCommandBuffer(commandBuffer);
+				_renderer->EndResourcesCommandBuffer();
 			}
 		}
 
@@ -543,8 +539,7 @@ namespace RN
 			rowIndex += 1;
 		}
 
-		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-		commandBuffer->Begin();
+		VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 		if(_isFirstUpload)
 		{
 			SetImageLayout(commandBuffer->GetCommandBuffer(), _uploadImage, 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, BarrierIntent::UploadSource);
@@ -586,9 +581,8 @@ namespace RN
 					   VK_IMAGE_ASPECT_COLOR_BIT, _currentLayout, oldLayout,
 					   BarrierIntent::ShaderSource);
 		_currentLayout = oldLayout;
-		commandBuffer->End();
 
-		_renderer->SubmitCommandBuffer(commandBuffer);
+		_renderer->EndResourcesCommandBuffer();
 
 		if(isOneTimeUpload)
 		{

@@ -503,8 +503,7 @@ namespace RN
 		uint8 bufferCount = _swapChain->GetBufferCount();
 		if(bufferCount > 0)
 		{
-			VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
-			commandBuffer->Begin();
+			VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 
 			for(uint8 i = 0; i < bufferCount; i++)
 			{
@@ -563,8 +562,7 @@ namespace RN
 				}
 			}
 
-            commandBuffer->End();
-            _renderer->SubmitCommandBuffer(commandBuffer);
+            _renderer->EndResourcesCommandBuffer();
 		}
 
 		if(!_depthStencilTarget && depthStencilFormat != Texture::Format::Invalid)

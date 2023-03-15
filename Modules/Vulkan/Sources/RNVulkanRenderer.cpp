@@ -34,6 +34,7 @@ namespace RN
 		_submittedCommandBuffers(new Array()),
 		_executedCommandBuffers(new Array()),
 		_currentCommandBuffer(nullptr),
+		_currentResourcesCommandBuffer(nullptr),
 		_commandBufferPool(new Array()),
         _defaultPostProcessingDrawable(nullptr),
 		_currentMultiviewLayer(0),
@@ -157,6 +158,24 @@ namespace RN
 		return commandBuffer->Autorelease();
 	}
 
+	VulkanCommandBuffer *VulkanRenderer::StartResourcesCommandBuffer()
+	{
+		if(!_currentResourcesCommandBuffer)
+        {
+            _currentResourcesCommandBuffer = GetCommandBuffer()->Retain();
+		    _currentResourcesCommandBuffer->Begin();
+        }
+
+        _currentResourcesCommandBuffer->Lock();
+		return _currentResourcesCommandBuffer;
+	}
+
+    void VulkanRenderer::EndResourcesCommandBuffer()
+    {
+        RN_DEBUG_ASSERT(_currentResourcesCommandBuffer, "No active Resources command buffer!");
+        _currentResourcesCommandBuffer->Unlock();
+    }
+
 	void VulkanRenderer::SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer)
 	{
 		_lock.Lock();
@@ -270,7 +289,20 @@ namespace RN
 		_internals->swapChains.clear();
 //		_currentRootSignature = nullptr;
 
+        UpdateFrameFences(); //Releases resources of frames that finished
+        CreateMipMaps();
+
 		_lock.Lock();
+		if(_currentResourcesCommandBuffer)
+		{
+            _currentResourcesCommandBuffer->Lock();
+			_currentResourcesCommandBuffer->End();
+            _submittedCommandBuffers->AddObject(_currentResourcesCommandBuffer);
+            _currentResourcesCommandBuffer->Unlock();
+			SafeRelease(_currentResourcesCommandBuffer);
+		}
+
+        VkSemaphore resourceUploadsSemaphore = VK_NULL_HANDLE;
 		if(_submittedCommandBuffers->GetCount() > 0)
 		{
 			std::vector<VkCommandBuffer> buffers;
@@ -279,7 +311,17 @@ namespace RN
 			_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
 				buffer->_frameValue = _currentFrame;
 				buffers.push_back(buffer->_commandBuffer);
+                _executedCommandBuffers->AddObject(buffer);
 			});
+
+            //Create a semaphore for the render queue to wait for the resource upload queue
+            VkSemaphoreCreateInfo semaphoreInfo{};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            VkDevice device = GetVulkanDevice()->GetDevice();
+            vk::CreateSemaphore(device, &semaphoreInfo, nullptr, &resourceUploadsSemaphore);
+            AddFrameFinishedCallback([device, resourceUploadsSemaphore](){
+                vk::DestroySemaphore(device, resourceUploadsSemaphore, nullptr);
+            });
 
 			//Submit command buffers
 			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -288,17 +330,15 @@ namespace RN
 			submitInfo.commandBufferCount = buffers.size();
 			submitInfo.pCommandBuffers = buffers.data();
 			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = &resourceUploadsSemaphore;
 
 			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
-			RNVulkanValidate(vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice()));
+			//RNVulkanValidate(vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice()));
 			_submittedCommandBuffers->RemoveAllObjects();
 		}
 		_lock.Unlock();
-
-		UpdateFrameFences();
-
-		CreateMipMaps();
 
 		//SubmitCamera is called for each camera and creates lists of drawables per camera
 		function();
@@ -414,6 +454,9 @@ namespace RN
 		//Prepare command buffer submission
 		std::vector<VkSemaphore> presentSemaphores;
 		std::vector<VkSemaphore> renderSemaphores;
+
+        if(resourceUploadsSemaphore) presentSemaphores.push_back(resourceUploadsSemaphore); //Wait until all resources are available
+
 		for(VulkanSwapChain *swapChain : _internals->swapChains)
 		{
 			VkSemaphore presentSemaphore = swapChain->GetCurrentPresentSemaphore();
@@ -884,8 +927,7 @@ namespace RN
 		if(_mipMapTextures->GetCount() == 0)
 			return;
 
-		VulkanCommandBuffer *commandBuffer = GetCommandBuffer();
-		commandBuffer->Begin();
+		VulkanCommandBuffer *commandBuffer = StartResourcesCommandBuffer();
 
 		_mipMapTextures->Enumerate<VulkanTexture>([&](VulkanTexture *texture, size_t index, bool &stop) {
 
@@ -928,8 +970,7 @@ namespace RN
 			VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), texture->GetVulkanImage(), 0, texture->GetDescriptor().mipMaps, 0, texture->GetDescriptor().depth, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanTexture::BarrierIntent::ShaderSource);
 		});
 
-		commandBuffer->End();
-		SubmitCommandBuffer(commandBuffer);
+		EndResourcesCommandBuffer();
 
 		_mipMapTextures->RemoveAllObjects();
 	}
