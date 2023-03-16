@@ -1820,12 +1820,14 @@ namespace RN
                             }
 
 							_isSessionRunning = true;
+							_swapChain->SetActive(true);
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
 						{
 							RNDebug("Session State: Stopping");
 							_hasSynchronization = false;
 							_isSessionRunning = false;
+							_swapChain->SetActive(false);
 							xrEndSession(_internals->session);
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)

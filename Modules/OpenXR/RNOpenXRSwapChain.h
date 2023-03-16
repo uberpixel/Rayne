@@ -28,11 +28,14 @@ namespace RN
 		OXRAPI virtual Framebuffer *GetSwapChainFramebuffer() const = 0;
 		OXRAPI virtual void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic){}
 
+		OXRAPI virtual void SetActive(bool active) { _isActive = active; }
+
 	protected:
 		OpenXRSwapChain(const OpenXRWindow *window);
 		OpenXRSwapchainInternals *_internals;
 
 		const OpenXRWindow *_xrWindow;
+		bool _isActive;
 
 		std::function<void()> _presentEvent;
 	};

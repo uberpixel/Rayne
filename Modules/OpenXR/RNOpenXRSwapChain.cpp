@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	OpenXRSwapChain::OpenXRSwapChain(const OpenXRWindow *window) : _internals(new OpenXRSwapchainInternals()), _xrWindow(window)
+	OpenXRSwapChain::OpenXRSwapChain(const OpenXRWindow *window) : _internals(new OpenXRSwapchainInternals()), _xrWindow(window), _isActive(false)
 	{
 		_internals->currentFoveationProfile = XR_NULL_HANDLE;
 	}

@@ -110,6 +110,8 @@ namespace RN
 
 	void OpenXRD3D12SwapChain::AcquireBackBuffer()
 	{
+		if(!_isActive) return;
+
 		XrSwapchainImageAcquireInfo swapchainImageAcquireInfo;
 		swapchainImageAcquireInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO;
 		swapchainImageAcquireInfo.next = nullptr;
@@ -121,7 +123,7 @@ namespace RN
 		XrSwapchainImageWaitInfo swapchainImageWaitInfo;
 		swapchainImageWaitInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
 		swapchainImageWaitInfo.next = nullptr;
-		swapchainImageWaitInfo.timeout = 10000000000; //10s //TODO: Handle timeouts (release later will cause and error and all future frames start being behind somehow)
+		swapchainImageWaitInfo.timeout = XR_INFINITE_DURATION;
 		xrWaitSwapchainImage(_internals->swapchain, &swapchainImageWaitInfo);
 	}
 
@@ -137,6 +139,8 @@ namespace RN
 
 	void OpenXRD3D12SwapChain::PresentBackBuffer()
 	{
+		if (!_isActive) return;
+
 		XrSwapchainImageReleaseInfo swapchainImageReleaseInfo;
 		swapchainImageReleaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
 		swapchainImageReleaseInfo.next = nullptr;
