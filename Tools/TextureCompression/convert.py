@@ -254,7 +254,7 @@ def main():
                 elif bcFormat == 5:
                     callparams.append('-5')
                 callparams.extend(['-f', '-g', outputFileName + '.' + str(i) + inputFileExtension, outputFileName + '.' + str(i) + '.dds'])
-                subprocess.call(callparams)
+                subprocess.run(callparams, stdout=subprocess.DEVNULL)
                 os.remove(outputFileName + '.' + str(i) + inputFileExtension)
 
             #Extract the dds format value from the highest level file
