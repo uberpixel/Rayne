@@ -62,6 +62,7 @@ namespace RN
 		OXRAPI void Update(float delta, float near, float far) final;
 
 		OXRAPI VRWindow::DeviceType GetDeviceType() const final;
+		OXRAPI String *GetRuntimeName() const final { return _runtimeName;  }
 		OXRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Floor; }
 
 		OXRAPI Array *GetRequiredVulkanInstanceExtensions() const final;
@@ -74,6 +75,7 @@ namespace RN
 		int _mainThreadID;
 		OpenXRWindowInternals *_internals;
 		DeviceType _deviceType;
+		String *_runtimeName;
 
 		SwapChainType _swapChainType;
 		OpenXRSwapChain *_swapChain;

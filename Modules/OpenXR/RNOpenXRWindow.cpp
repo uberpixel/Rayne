@@ -77,7 +77,7 @@ namespace RN
 		return VRControllerTrackingState::Type::None;
 	}
 
-	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
 	{
 		_supportsVulkan = false;
 		_supportsPreferredFramerate = false;
@@ -379,6 +379,12 @@ namespace RN
 			_deviceType = DeviceType::Unknown;
 		}
 
+		XrInstanceProperties instanceProperties = {};
+		instanceProperties.type = XR_TYPE_INSTANCE_PROPERTIES;
+		xrGetInstanceProperties(_internals->instance, &instanceProperties);
+		_runtimeName = RNSTR(instanceProperties.runtimeName)->Retain();
+		RNDebug("Active OpenXR Runtime: " << _runtimeName);
+
 		InitializeInput();
 
 #if XR_USE_GRAPHICS_API_VULKAN
@@ -505,6 +511,7 @@ namespace RN
 	OpenXRWindow::~OpenXRWindow()
 	{
 		StopRendering();
+		SafeRelease(_runtimeName);
 		xrDestroyInstance(_internals->instance);
 		delete _internals;
 	}

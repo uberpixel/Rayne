@@ -89,6 +89,7 @@ namespace RN
 		RNVRAPI virtual Mesh *GetHiddenAreaMesh(uint8 eye) const {return nullptr;}
 
 		RNVRAPI virtual DeviceType GetDeviceType() const = 0;
+		RNVRAPI virtual String *GetRuntimeName() const = 0;
 		RNVRAPI virtual Origin GetOrigin() const { return Origin::Floor; }
 
 		RNVRAPI virtual uint64 GetWindowHandle() const override;
