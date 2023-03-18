@@ -210,7 +210,7 @@ namespace RN
 
 		const Properties &GetProperties() const { return _properties; }
 		
-		RNAPI Properties GetMergedProperties(Material *overrideMaterial) const;
+		RNAPI Properties GetMergedProperties(Material *overrideMaterial);
 
 	private:
 		Override _override;
@@ -225,6 +225,7 @@ namespace RN
 		bool _skipRendering;
 
 		Properties _properties;
+		Properties _mergedProperties; //Used as temporary storage for the merged properties, to prevent reallocation, but could be reused between materials too...
 
 		__RNDeclareMetaInternal(Material)
 	};

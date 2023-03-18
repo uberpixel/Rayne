@@ -314,77 +314,120 @@ namespace RN
 		return _vertexShader[static_cast<uint8>(type)];
 	}
 
-	Material::Properties Material::GetMergedProperties(Material *overrideMaterial) const
+	Material::Properties Material::GetMergedProperties(Material *overrideMaterial)
 	{
 		if(!overrideMaterial) return _properties;
-
-		Properties properties = _properties;
 		
 		if(!(overrideMaterial->GetOverride() & Override::ColorWriteMask) && !(_override & Override::ColorWriteMask))
 		{
-			properties.colorWriteMask = overrideMaterial->_properties.colorWriteMask;
+			_mergedProperties.colorWriteMask = overrideMaterial->_properties.colorWriteMask;
+		}
+		else
+		{
+			_mergedProperties.colorWriteMask = _properties.colorWriteMask;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupDepth) && !(_override & Override::GroupDepth))
 		{
-			properties.depthMode = overrideMaterial->_properties.depthMode;
-			properties.depthWriteEnabled = overrideMaterial->_properties.depthWriteEnabled;
+			_mergedProperties.depthMode = overrideMaterial->_properties.depthMode;
+			_mergedProperties.depthWriteEnabled = overrideMaterial->_properties.depthWriteEnabled;
+		}
+		else
+		{
+			_mergedProperties.depthMode = _properties.depthMode;
+			_mergedProperties.depthWriteEnabled = _properties.depthWriteEnabled;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupColors) && !(_override & Override::GroupColors))
 		{
-			properties.ambientColor = overrideMaterial->_properties.ambientColor;
-			properties.diffuseColor = overrideMaterial->_properties.diffuseColor;
-			properties.specularColor = overrideMaterial->_properties.specularColor;
-			properties.emissiveColor = overrideMaterial->_properties.emissiveColor;
+			_mergedProperties.ambientColor = overrideMaterial->_properties.ambientColor;
+			_mergedProperties.diffuseColor = overrideMaterial->_properties.diffuseColor;
+			_mergedProperties.specularColor = overrideMaterial->_properties.specularColor;
+			_mergedProperties.emissiveColor = overrideMaterial->_properties.emissiveColor;
+		}
+		else
+		{
+			_mergedProperties.ambientColor = _properties.ambientColor;
+			_mergedProperties.diffuseColor = _properties.diffuseColor;
+			_mergedProperties.specularColor = _properties.specularColor;
+			_mergedProperties.emissiveColor = _properties.emissiveColor;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupAlphaToCoverage) && !(_override & Override::GroupAlphaToCoverage))
 		{
-			properties.useAlphaToCoverage = overrideMaterial->_properties.useAlphaToCoverage;
-			properties.alphaToCoverageClamp = overrideMaterial->_properties.alphaToCoverageClamp;
+			_mergedProperties.useAlphaToCoverage = overrideMaterial->_properties.useAlphaToCoverage;
+			_mergedProperties.alphaToCoverageClamp = overrideMaterial->_properties.alphaToCoverageClamp;
+		}
+		else
+		{
+			_mergedProperties.useAlphaToCoverage = _properties.useAlphaToCoverage;
+			_mergedProperties.alphaToCoverageClamp = _properties.alphaToCoverageClamp;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupBlending) && !(_override & Override::GroupBlending))
 		{
-			properties.blendOperationRGB = overrideMaterial->_properties.blendOperationRGB;
-			properties.blendOperationAlpha = overrideMaterial->_properties.blendOperationAlpha;
-			properties.blendFactorSourceRGB = overrideMaterial->_properties.blendFactorSourceRGB;
-			properties.blendFactorSourceAlpha = overrideMaterial->_properties.blendFactorSourceAlpha;
-			properties.blendFactorDestinationRGB = overrideMaterial->_properties.blendFactorDestinationRGB;
-			properties.blendFactorDestinationAlpha = overrideMaterial->_properties.blendFactorDestinationAlpha;
+			_mergedProperties.blendOperationRGB = overrideMaterial->_properties.blendOperationRGB;
+			_mergedProperties.blendOperationAlpha = overrideMaterial->_properties.blendOperationAlpha;
+			_mergedProperties.blendFactorSourceRGB = overrideMaterial->_properties.blendFactorSourceRGB;
+			_mergedProperties.blendFactorSourceAlpha = overrideMaterial->_properties.blendFactorSourceAlpha;
+			_mergedProperties.blendFactorDestinationRGB = overrideMaterial->_properties.blendFactorDestinationRGB;
+			_mergedProperties.blendFactorDestinationAlpha = overrideMaterial->_properties.blendFactorDestinationAlpha;
+		}
+		else
+		{
+			_mergedProperties.blendOperationRGB = _properties.blendOperationRGB;
+			_mergedProperties.blendOperationAlpha = _properties.blendOperationAlpha;
+			_mergedProperties.blendFactorSourceRGB = _properties.blendFactorSourceRGB;
+			_mergedProperties.blendFactorSourceAlpha = _properties.blendFactorSourceAlpha;
+			_mergedProperties.blendFactorDestinationRGB = _properties.blendFactorDestinationRGB;
+			_mergedProperties.blendFactorDestinationAlpha = _properties.blendFactorDestinationAlpha;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::TextureTileFactor) && !(_override & Override::TextureTileFactor))
 		{
-			properties.textureTileFactor = overrideMaterial->_properties.textureTileFactor;
+			_mergedProperties.textureTileFactor = overrideMaterial->_properties.textureTileFactor;
+		}
+		else
+		{
+			_mergedProperties.textureTileFactor = _properties.textureTileFactor;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::GroupPolygonOffset) && !(_override & Override::GroupPolygonOffset))
 		{
-			properties.usePolygonOffset = overrideMaterial->_properties.usePolygonOffset;
-			properties.polygonOffsetFactor = overrideMaterial->_properties.polygonOffsetFactor;
-			properties.polygonOffsetUnits = overrideMaterial->_properties.polygonOffsetUnits;
+			_mergedProperties.usePolygonOffset = overrideMaterial->_properties.usePolygonOffset;
+			_mergedProperties.polygonOffsetFactor = overrideMaterial->_properties.polygonOffsetFactor;
+			_mergedProperties.polygonOffsetUnits = overrideMaterial->_properties.polygonOffsetUnits;
+		}
+		else
+		{
+			_mergedProperties.usePolygonOffset = _properties.usePolygonOffset;
+			_mergedProperties.polygonOffsetFactor = _properties.polygonOffsetFactor;
+			_mergedProperties.polygonOffsetUnits = _properties.polygonOffsetUnits;
 		}
 		
 		if(!(overrideMaterial->GetOverride() & Override::CullMode) && !(_override & Override::CullMode))
 		{
-			properties.cullMode = overrideMaterial->_properties.cullMode;
+			_mergedProperties.cullMode = overrideMaterial->_properties.cullMode;
 		}
-		
-		if(!(overrideMaterial->GetOverride() & Override::CustomUniforms) && !(_override & Override::CustomUniforms))
+		else
 		{
-			if(overrideMaterial->_properties._customShaderUniforms.size() > 0)
-			{
-				for(auto const& data : overrideMaterial->_properties._customShaderUniforms)
-				{
-					auto blubb = properties._customShaderUniforms.find(data.first);
-					if(blubb != properties._customShaderUniforms.end()) blubb->second->Release(); //Release old value if there is one
-					properties._customShaderUniforms[data.first] = data.second->Retain();
-				}
-			}
+			_mergedProperties.cullMode = _properties.cullMode;
 		}
 
-		return properties;
+		_mergedProperties._customShaderUniforms.clear();
+		_mergedProperties._customShaderUniforms.insert(_properties._customShaderUniforms.begin(), _properties._customShaderUniforms.end());
+		if(!(overrideMaterial->GetOverride() & Override::CustomUniforms) && !(_override & Override::CustomUniforms) && overrideMaterial->_properties._customShaderUniforms.size() > 0)
+		{
+			for(auto const &data : overrideMaterial->_properties._customShaderUniforms)
+			{
+				_mergedProperties._customShaderUniforms[data.first] = data.second;
+			}
+		}
+		for(auto const &data : _mergedProperties._customShaderUniforms)
+		{
+			data.second->Retain();
+		}
+
+		return _mergedProperties;
 	}
 }

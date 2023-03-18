@@ -186,12 +186,11 @@ namespace RN
 	}
 	Model::LODStage *Model::GetLODStageForDistance(float distance) const
 	{
-		if(_lodStages->GetCount() <= 1 || distance <= k::EpsilonFloat)
+		size_t count = _lodStages->GetCount();
+		if(count <= 1 || distance <= k::EpsilonFloat)
 			return static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(0));
 
 		size_t result = 0;
-		size_t count = _lodStages->GetCount();
-
 		for(size_t i = 0; i < count; i ++)
 		{
 			LODStage *stage = static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(i));
