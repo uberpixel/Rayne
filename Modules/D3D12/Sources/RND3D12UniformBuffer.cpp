@@ -155,9 +155,9 @@ namespace RN
 
 	void D3D12UniformBufferPool::UpdateUniformBufferReference(D3D12UniformBufferReference *reference, bool align)
 	{
-		RN_ASSERT(reference->uniformBuffer, "Somethings up with the reference not having a uniform buffer assigned");
+		RN_DEBUG_ASSERT(reference->uniformBuffer, "Somethings up with the reference not having a uniform buffer assigned");
 		size_t bufferOffset = reference->uniformBuffer->Allocate(reference->size, align);
-		RN_ASSERT(bufferOffset != -1, "The uniform buffer does not have enough space to fit the memory required by this reference. This should never happen...");
+		RN_DEBUG_ASSERT(bufferOffset != -1, "The uniform buffer does not have enough space to fit the memory required by this reference. This should never happen...");
 
 		reference->offset = bufferOffset;
 	}

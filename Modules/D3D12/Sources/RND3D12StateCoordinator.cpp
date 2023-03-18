@@ -408,7 +408,7 @@ namespace RN
 	const D3D12PipelineState *D3D12StateCoordinator::GetRenderPipelineState(Material *material, Mesh *mesh, D3D12Framebuffer *framebuffer, Shader::UsageHint shaderHint, Material *overrideMaterial)
 	{
 		const Mesh::VertexDescriptor &descriptor = mesh->GetVertexDescriptor();
-		Material::Properties mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
+		const Material::Properties &mergedMaterialProperties = material->GetMergedProperties(overrideMaterial);
 		D3D12PipelineStateDescriptor pipelineDescriptor;
 		pipelineDescriptor.sampleCount = framebuffer->GetSampleCount();
 		pipelineDescriptor.sampleQuality = (framebuffer->_colorTargets.size() > 0 && !framebuffer->GetSwapChain()) ? framebuffer->_colorTargets[0]->targetView.texture->GetDescriptor().sampleQuality : 0;

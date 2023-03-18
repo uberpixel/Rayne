@@ -1214,7 +1214,7 @@ namespace RN
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + uniformBufferReference->offset;
 
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
-		Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
+		const Material::Properties &mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const D3D12RenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		argument->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
@@ -1685,19 +1685,23 @@ namespace RN
 		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size())
 		{
 			canUseInstancing = true;
-			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size() && canUseInstancing; i++)
+			size_t vertexUniformBufferCount = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers.size();
+			for(int i = 0; i < vertexUniformBufferCount; i++)
 			{
 				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexUniformBuffers[i]->uniformBuffer)
 				{
 					canUseInstancing = false;
+					break;
 				}
 			}
 
-			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size() && canUseInstancing; i++)
+			size_t fragmentUniformBufferCount = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size();
+			for(int i = 0; i < fragmentUniformBufferCount; i++)
 			{
 				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer)
 				{
 					canUseInstancing = false;
+					break;
 				}
 			}
 		}
