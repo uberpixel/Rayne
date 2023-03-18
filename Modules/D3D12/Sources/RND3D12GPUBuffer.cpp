@@ -19,7 +19,7 @@ namespace RN
 		_resource(nullptr)
 	{
 		D3D12Renderer *renderer = static_cast<D3D12Renderer *>(Renderer::GetActiveRenderer());
-		ID3D12Device *device = renderer->GetD3D12Device()->GetDevice();
+		D3D12Device *device = renderer->GetD3D12Device();
 
 		if(usageOptions == UsageOptions::Uniform)
 		{

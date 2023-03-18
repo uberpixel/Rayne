@@ -305,7 +305,9 @@ namespace RN
 		_renderer(renderer),
 		_isReady(false),
 		_needsMipMaps(false), 
-		_srvDescriptor{}
+		_srvDescriptor{},
+		_allocation(nullptr),
+		_resource(nullptr)
 	{
 		ID3D12Device *device = _renderer->GetD3D12Device()->GetDevice();
 
@@ -398,7 +400,11 @@ namespace RN
 
 			// create the final texture buffer
 			_currentState = D3D12TextureStateFromTextureDescriptor(descriptor);
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, &clearValue, IID_PPV_ARGS(&_resource));
+
+			D3D12MA::ALLOCATION_DESC allocationDesc = {};
+			allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+			_renderer->GetD3D12Device()->GetMemoryAllocator()->CreateResource(&allocationDesc, &imageDesc, _currentState, &clearValue, &_allocation, IID_NULL, NULL);
+			_resource = _allocation->GetResource();
 
 			_isReady = true;
 		}
@@ -406,14 +412,17 @@ namespace RN
 		{
 			// create the final texture buffer
 			_currentState = D3D12_RESOURCE_STATE_COPY_DEST;
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &imageDesc, _currentState, nullptr, IID_PPV_ARGS(&_resource));
+			D3D12MA::ALLOCATION_DESC allocationDesc = {};
+			allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+			_renderer->GetD3D12Device()->GetMemoryAllocator()->CreateResource(&allocationDesc, &imageDesc, _currentState, NULL, &_allocation, IID_NULL, NULL);
+			_resource = _allocation->GetResource();
 		}
 	}
 
 	D3D12Texture::~D3D12Texture()
 	{
 		D3D12Renderer *renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
-		renderer->AddFrameResouce(_resource);
+		renderer->AddFrameResouce(_allocation);
 	}
 
 	void D3D12Texture::SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows)
@@ -444,10 +453,13 @@ namespace RN
 		imageDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 		// create a temporary buffer to upload the texture from
-		ID3D12Resource *textureUploadBuffer;
+		D3D12MA::Allocation *textureUploadAllocation;
 		UINT64 textureUploadBufferSize;
 		device->GetCopyableFootprints(&imageDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
-		device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&textureUploadBuffer));
+
+		D3D12MA::ALLOCATION_DESC allocationDesc = {};
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+		_renderer->GetD3D12Device()->GetMemoryAllocator()->CreateResource(&allocationDesc, &CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, NULL, &textureUploadAllocation, IID_NULL, NULL);
 
 		D3D12_SUBRESOURCE_DATA textureData = {};
 		textureData.pData = bytes;
@@ -455,15 +467,15 @@ namespace RN
 		textureData.SlicePitch = bytesPerRow * numberOfRows;
 
 		D3D12CommandList *commandList = _renderer->GetCommandList();
-		commandList->SetFinishedCallback([this, textureUploadBuffer]{
+		commandList->SetFinishedCallback([this, textureUploadAllocation]{
 			_isReady = true;
-			textureUploadBuffer->Release();
+			textureUploadAllocation->Release();
 		});
 
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 
 		// Now we copy the upload buffer contents to the default heap
-		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadBuffer, 0, slice * _descriptor.mipMaps + mipmapLevel, 1, &textureData);
+		UpdateSubresources(commandList->GetCommandList(), _resource, textureUploadAllocation->GetResource(), 0, slice * _descriptor.mipMaps + mipmapLevel, 1, &textureData);
 
 		// transition the texture default heap to a pixel shader resource (we will be sampling from this heap in the pixel shader to get the color of pixels)
 		TransitionToState(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

@@ -9,6 +9,18 @@ set(VERSION_PATCH 0)
 set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
+set(D3D12MA_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/D3D12MemoryAllocator-prefix/src/D3D12MemoryAllocator)
+ExternalProject_Add(D3D12MemoryAllocator
+        GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git
+        GIT_TAG origin/master
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        BUILD_BYPRODUCTS
+            ${D3D12MA_SOURCE_DIR}/src/D3D12MemAlloc.cpp
+        INSTALL_COMMAND "")
+
 set(SOURCES
         Sources/RND3D12.cpp
         Sources/RND3D12Device.cpp
@@ -25,7 +37,8 @@ set(SOURCES
         Sources/RND3D12UniformBuffer.cpp
         Sources/RND3D12SwapChain.cpp
         Sources/RND3D12Window.cpp
-        Sources/RND3D12.cpp)
+        Sources/RND3D12.cpp
+        ${D3D12MA_SOURCE_DIR}/src/D3D12MemAlloc.cpp)
 
 set(HEADERS
         Sources/d3dx12.h
@@ -56,8 +69,10 @@ set(LINK_LIBRARIES d3d12.lib d3dcompiler.lib dxgi.lib)
 rayne_add_library(RayneD3D12 "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneD3D12)
 rayne_set_module_resources(RayneD3D12 ${RESOURCES})
+add_dependencies(RayneD3D12_copyHeaderTarget D3D12MemoryAllocator)
 
 target_include_directories(RayneD3D12 SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
+target_include_directories(RayneD3D12 SYSTEM PRIVATE ${D3D12MA_SOURCE_DIR}/include)
 target_link_libraries(RayneD3D12 PUBLIC "${LINK_LIBRARIES}")
 target_compile_definitions(RayneD3D12 PRIVATE "${DEFINES}")
 

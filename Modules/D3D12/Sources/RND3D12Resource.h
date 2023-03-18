@@ -11,6 +11,7 @@
 #define __RAYNE_D3D12RESOURCE_H_
 
 #include "RND3D12.h"
+#include <D3D12MemAlloc.h>
 
 namespace RN
 {
@@ -28,27 +29,28 @@ namespace RN
 			Texture
 		};
 
-		D3D12Resource(ID3D12Device *device, size_t length, ResourceType resourceType);
+		D3D12Resource(D3D12Device *device, size_t length, ResourceType resourceType);
 		~D3D12Resource() override;
 
 		void *GetUploadBuffer();
 		void Flush();
 
 		ID3D12Resource *GetD3D12Resource() const;
-		ID3D12Resource *GetTransferResource();
 
 		size_t GetLength();
 
 		void SetResourceState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES resourceState);
 
 	private:
-		ID3D12Device *_device;
+		D3D12MA::Allocation* GetTransferAllocation();
+
+		D3D12Device *_device;
 
 		ResourceType _resourceType;
 		size_t _length;
 
-		ID3D12Resource *_transferResource;
-		ID3D12Resource *_resource;
+		D3D12MA::Allocation *_allocation;
+		D3D12MA::Allocation *_transferAllocation;
 
 		D3D12_RESOURCE_STATES _resourceState;
 		bool _isTransfering;

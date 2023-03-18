@@ -300,9 +300,13 @@ namespace RN
 			tempTextureDescriptor.SampleDesc.Quality = 0;
 			tempTextureDescriptor.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 			tempTextureDescriptor.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			ID3D12Resource *textureResource;
-			device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &tempTextureDescriptor, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureResource));
-			temporaryResources.push_back(textureResource);
+			D3D12MA::Allocation *textureAllocation;
+			
+			D3D12MA::ALLOCATION_DESC allocationDesc = {};
+			allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+			GetD3D12Device()->GetMemoryAllocator()->CreateResource(&allocationDesc, &tempTextureDescriptor, D3D12_RESOURCE_STATE_COPY_DEST, NULL, &textureAllocation, IID_NULL, NULL);
+			temporaryResources.push_back(textureAllocation);
+			ID3D12Resource* textureResource = textureAllocation->GetResource();
 
 			//Transition from pixel shader resource to copy source
 			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture->_resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE));
@@ -1692,18 +1696,6 @@ namespace RN
 			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers.size() && canUseInstancing; i++)
 			{
 				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentUniformBuffers[i]->uniformBuffer)
-				{
-					canUseInstancing = false;
-				}
-			}
-
-			if(canUseInstancing)
-			{
-				//depth testing and polygon offset are setup as part of the draw call and objects can only be instanced correctly if these are the same
-				Material::Properties previousMergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-				Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-
-				if(mergedMaterialProperties.depthMode != previousMergedMaterialProperties.depthMode || mergedMaterialProperties.depthWriteEnabled != previousMergedMaterialProperties.depthWriteEnabled || mergedMaterialProperties.usePolygonOffset != previousMergedMaterialProperties.usePolygonOffset || (mergedMaterialProperties.usePolygonOffset && (mergedMaterialProperties.polygonOffsetUnits != previousMergedMaterialProperties.polygonOffsetUnits || mergedMaterialProperties.polygonOffsetFactor != previousMergedMaterialProperties.polygonOffsetFactor)))
 				{
 					canUseInstancing = false;
 				}

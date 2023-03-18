@@ -40,10 +40,24 @@ namespace RN
 		_device(nullptr)
 	{}
 
+	D3D12Device::~D3D12Device()
+	{
+		_memoryAllocator->Release();
+		_device->Release();
+	}
+
 	bool D3D12Device::CreateDevice()
 	{
 		//TODO: Handle different feature levels
 		HRESULT result = ::D3D12CreateDevice(_adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&_device));
+
+		if(result != S_OK) return false;
+
+		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
+		allocatorDesc.pDevice = _device;
+		allocatorDesc.pAdapter = _adapter;
+		result = D3D12MA::CreateAllocator(&allocatorDesc, &_memoryAllocator);
+
 		return (result == S_OK);
 	}
 }

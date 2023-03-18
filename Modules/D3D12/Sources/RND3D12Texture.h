@@ -12,6 +12,8 @@
 
 #include "RND3D12.h"
 
+#include <D3D12MemAlloc.h>
+
 namespace RN
 {
 	class D3D12Renderer;
@@ -35,7 +37,7 @@ namespace RN
 		D3DAPI void GenerateMipMaps() final;
 		D3DAPI bool HasColorChannel(ColorChannel channel) const final;
 
-		ID3D12Resource *GetD3D12Resource() const { return _resource; }
+		ID3D12Resource *GetD3D12Resource() const { return _allocation->GetResource(); }
 
 		D3D12_RESOURCE_STATES GetCurrentState() const { return _currentState; }
 		D3DAPI void TransitionToState(D3D12CommandList *commandList, D3D12_RESOURCE_STATES targetState);
@@ -47,6 +49,7 @@ namespace RN
 		D3D12StateCoordinator *_coordinator;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC _srvDescriptor;
+		D3D12MA::Allocation *_allocation;
 		ID3D12Resource *_resource;
 		D3D12_RESOURCE_STATES _currentState;
 
