@@ -132,8 +132,10 @@ if(RN_OPENXR_SUPPORT_METAQUEST)
 endif()
 
 if(MSVC AND ${RN_BUILD_D3D12_MODULE})
+	ExternalProject_Get_property(D3D12MemoryAllocator SOURCE_DIR)
+	set(D3D12MemoryAllocator_SOURCE_DIR ${SOURCE_DIR})
 	target_link_libraries(RayneOpenXR PUBLIC RayneD3D12)
-	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources")
+	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneD3D12_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../D3D12/include/Sources" "${D3D12MemoryAllocator_SOURCE_DIR}/include")
 	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_D3D12)
 endif()
 
