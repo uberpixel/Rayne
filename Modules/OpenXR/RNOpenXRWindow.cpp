@@ -2423,7 +2423,9 @@ namespace RN
 
 		String *extensionString = RNSTR(names);
 		RNDebug("Needs vulkan instance extensions: " << extensionString);
-		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+		
+		RN::Array *result = extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+		return result;
 #else
 		return nullptr;
 #endif
@@ -2441,7 +2443,17 @@ namespace RN
 
 		String *extensionString = RNSTR(names);
 		RNDebug("Needs vulkan device extensions: " << extensionString);
-		return extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+		RN::Array *result = extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
+		int removeIndex = -1;
+		result->Enumerate<String>([&](String *extension, size_t index, bool &stop) {
+			if(extension->IsEqual(RNCSTR(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)))
+			{
+				removeIndex = index;
+				stop = true;
+			}
+		});
+		if (removeIndex != -1) result->RemoveObjectAtIndex(removeIndex);
+		return result;
 #else
 		return nullptr;
 #endif
