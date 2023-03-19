@@ -54,7 +54,7 @@ namespace RN
 	};
 }
 
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_MAC_OS
 void *operator new(size_t size);
 void *operator new[](size_t size);
 void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
