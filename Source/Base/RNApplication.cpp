@@ -39,7 +39,12 @@ namespace RN
 	void Application::WillExit() {}
 
 	void Application::WillStep(float delta) {}
-	void Application::DidStep(float delta) {}
+	void Application::DidStep(float delta)
+	{
+#if RN_PLATFORM_WINDOWS && !RN_BUILD_DEBUG
+		_fileStream.flush();
+#endif
+	}
 
 	void Application::WillBecomeActive() {}
 	void Application::DidBecomeActive() {}
