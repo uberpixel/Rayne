@@ -53,7 +53,6 @@ namespace RN
 		D3D12MA::Allocation *_transferAllocation;
 
 		D3D12_RESOURCE_STATES _resourceState;
-		bool _isTransfering;
 		bool _isRecording;
 		void *_transferPointer;
 

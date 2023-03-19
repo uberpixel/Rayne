@@ -20,7 +20,6 @@ namespace RN
 		_resourceType(resourceType),
 		_length(length),
 		_transferPointer(nullptr),
-		_isTransfering(false),
 		_isRecording(false),
 		_allocation(nullptr),
 		_transferAllocation(nullptr)
@@ -89,7 +88,6 @@ namespace RN
 				return _transferPointer;
 
 			_isRecording = true;
-			_isTransfering = true;
 
 			_transferAllocation = GetTransferAllocation();
 
@@ -115,8 +113,7 @@ namespace RN
 		D3D12CommandList *commandList = renderer->GetCommandList();
 		D3D12MA::Allocation *transferAllocation = _transferAllocation;
 		_transferAllocation = nullptr;
-		commandList->SetFinishedCallback([this, transferAllocation] {
-			_isTransfering = false;
+		commandList->SetFinishedCallback([transferAllocation] {
 			transferAllocation->Release();
 		});
 
