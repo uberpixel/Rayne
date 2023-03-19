@@ -1106,7 +1106,7 @@ namespace RN
 		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + dynamicBufferReference->offset;
 
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
-		const Material::Properties &mergedMaterialProperties = overrideMaterial? drawable->material->GetMergedProperties(overrideMaterial) : drawable->material->GetProperties();
+		const Material::Properties &mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
 		argumentBuffer->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {

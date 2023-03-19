@@ -240,6 +240,7 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		swapchainInfo.presentMode = mode;
 		swapchainInfo.clipped = VK_TRUE;
 		swapchainInfo.oldSwapchain = _swapchain;
+		_swapchain = nullptr;
 
 		RNVulkanValidate(vk::CreateSwapchainKHR(_device, &swapchainInfo, nullptr, &_swapchain));
 		_extents = extent;
