@@ -24,8 +24,16 @@ ExternalProject_Add(OpenXRSDK
 		"-DANDROID_STL:STRING=${ANDROID_STL}"
 	BUILD_BYPRODUCTS
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
+		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib"
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib"
 	INSTALL_COMMAND "")
+
+add_library(OpenXRLoader STATIC IMPORTED)
+set_target_properties(OpenXRLoader PROPERTIES
+	IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo"
+	IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
+	IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib"
+	IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -123,7 +131,7 @@ if(ANDROID)
 		target_link_libraries(RayneOpenXR PRIVATE OpenXRMeta)
 	endif()
 elseif(NOT APPLE)
-	target_link_libraries(RayneOpenXR PUBLIC debug ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib optimized ${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib)
+	target_link_libraries(RayneOpenXR PRIVATE OpenXRLoader)
 endif()
 
 #Include files from the meta openxr sdk for features that aren't part of the openxr specification yet
