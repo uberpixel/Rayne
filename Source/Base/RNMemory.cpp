@@ -10,68 +10,12 @@
 #include "RNBase.h"
 #include "../Math/RNSIMD.h"
 
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-	#define RN_TARGET_HAS_GPERFTOOLS 0
-#else
-	#define RN_TARGET_HAS_GPERFTOOLS 0
-#endif
-
-#if RN_TARGET_HAS_GPERFTOOLS
-#ifdef __cplusplus
-extern "C" {
-#endif
-	// Returns a human-readable version string.  If major, minor,
-	// and/or patch are not NULL, they are set to the major version,
-	// minor version, and patch-code (a string, usually "").
-	const char* tc_version(int* major, int* minor, const char** patch);
-
-	void* tc_malloc(size_t size);
-	void tc_free(void* ptr);
-	void* tc_realloc(void* ptr, size_t size);
-	void* tc_calloc(size_t nmemb, size_t size);
-	void tc_cfree(void* ptr);
-
-	void* tc_memalign(size_t __alignment, size_t __size);
-	int tc_posix_memalign(void** ptr, size_t align, size_t size);
-	void* tc_valloc(size_t __size);
-	void* tc_pvalloc(size_t __size);
-
-	void tc_malloc_stats(void);
-	int tc_mallopt(int cmd, int value);
-
-	// This is an alias for MallocExtension::instance()->GetAllocatedSize().
-	// It is equivalent to
-	//    OS X: malloc_size()
-	//    glibc: malloc_usable_size()
-	//    Windows: _msize()
-	size_t tc_malloc_size(void* ptr);
-
-#ifdef __cplusplus
-	int tc_set_new_mode(int flag);
-	void* tc_new(size_t size);
-	void* tc_new_nothrow(size_t size, const std::nothrow_t&);
-	void tc_delete(void* p);
-	void tc_delete_nothrow(void* p, const std::nothrow_t&);
-	void* tc_newarray(size_t size);
-	void* tc_newarray_nothrow(size_t size, const std::nothrow_t&);
-	void tc_deletearray(void* p);
-	void tc_deletearray_nothrow(void* p, const std::nothrow_t&);
-}
-#endif
-#endif
-
 namespace RN
 {
 	namespace Memory
 	{
 		void *AllocateAligned(size_t size, size_t alignment)
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			void *ptr;
-			int result = tc_posix_memalign(&ptr, alignment, size);
-			
-			return (result == 0) ? ptr : 0;
-#else
 #if RN_PLATFORM_POSIX
 			if(alignment < sizeof(void *))
 				alignment = sizeof(void *);
@@ -84,19 +28,14 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 			return _aligned_malloc(size, alignment);
 #endif
-#endif
 		}
 		void FreeAligned(void *ptr)
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			tc_free(ptr);
-#else
 #if RN_PLATFORM_POSIX
 			free(ptr);
 #endif
 #if RN_PLATFORM_WINDOWS
 			_aligned_free(ptr);
-#endif
 #endif
 		}
 		
@@ -106,11 +45,7 @@ namespace RN
 #if RN_SIMD
 			return AllocateAligned(size, RN_SIMD_ALIGNMENT);
 #else
-	#if RN_TARGET_HAS_GPERFTOOLS
-			return tc_malloc(size);
-	#else
 			return malloc(size);
-	#endif
 #endif
 		}
 		void FreeSIMD(void *ptr)
@@ -118,80 +53,44 @@ namespace RN
 #if RN_SIMD
 			FreeAligned(ptr);
 #else
-	#if RN_TARGET_HAS_GPERFTOOLS
-			tc_free(ptr);
-	#else
 			free(ptr);
-	#endif
 #endif
 		}
 		
 		
 		void *Allocate(size_t size)
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			return tc_new(size);
-#else
 			return malloc(size);
-#endif
 		}
 		void *AllocateArray(size_t size)
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			return tc_newarray(size);
-#else
 			return malloc(size);
-#endif
 		}
 		void *Allocate(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			return tc_new_nothrow(size, n);
-#else
 			return malloc(size);
-#endif
 		}
 		void *AllocateArray(size_t size, const std::nothrow_t &n) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			return tc_newarray_nothrow(size, n);
-#else
 			return malloc(size);
-#endif
 		}
 		
 		
 		void Free(void *ptr) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			tc_delete(ptr);
-#else
 			free(ptr);
-#endif
 		}
 		void FreeArray(void *ptr) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			tc_deletearray(ptr);
-#else
 			free(ptr);
-#endif
 		}
 		void Free(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			tc_delete_nothrow(ptr, n);
-#else
 			free(ptr);
-#endif
 		}
 		void FreeArray(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 		{
-#if RN_TARGET_HAS_GPERFTOOLS
-			tc_deletearray_nothrow(ptr, n);
-#else
 			free(ptr);
-#endif
 		}
 		
 		
@@ -360,7 +259,8 @@ namespace RN
 	};
 }
 
-#if RN_PLATFORM_MAC_OS
+//Overwrite new and delete here to use custom memory allocator for everything, but default ones are pretty good already.
+/*
 void *operator new(size_t size)
 {
 	return RN::Memory::Allocate(size);
@@ -395,4 +295,4 @@ void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }
-#endif
+*/

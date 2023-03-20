@@ -54,7 +54,8 @@ namespace RN
 	};
 }
 
-#if RN_PLATFORM_MAC_OS
+//Overwrite new and delete here to use custom memory allocator for everything, but default ones are pretty good already.
+/*
 void *operator new(size_t size);
 void *operator new[](size_t size);
 void *operator new(size_t size, const std::nothrow_t &n) RN_NOEXCEPT;
@@ -64,6 +65,6 @@ void operator delete(void *ptr) RN_NOEXCEPT;
 void operator delete[](void *ptr) RN_NOEXCEPT;
 void operator delete(void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
 void operator delete[](void *ptr, const std::nothrow_t &n) RN_NOEXCEPT;
-#endif
+*/
 
 #endif /* __RAYNE_MEMORY_H__ */
