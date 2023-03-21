@@ -308,8 +308,10 @@ namespace RN
 		Lock();
 		MetalSpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<MetalSpecificShaderLibrary>(name);
 		if(!specificLibrary)
+		{
 			Unlock();
 			return nullptr;
+		}
 		
 		if(!options)
 			options = Shader::Options::WithNone();

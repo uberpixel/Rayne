@@ -241,14 +241,26 @@ namespace RN
 
 	Shader *VulkanShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
+		Lock();
 		VulkanSpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<VulkanSpecificShaderLibrary>(name);
 		if(!specificLibrary)
+		{
+			Unlock();
 			return nullptr;
+		}
 
+		Shader *shader = nullptr;
 		if(options)
-			return specificLibrary->GetShaderWithOptions(this, options);
+		{
+			shader = specificLibrary->GetShaderWithOptions(this, options);
+		}
+		else
+		{
+			shader = specificLibrary->GetShaderWithOptions(this, Shader::Options::WithNone());
+		}
 
-		return specificLibrary->GetShaderWithOptions(this, Shader::Options::WithNone());
+		Unlock();
+		return shader;
 	}
 
 	Shader *VulkanShaderLibrary::GetInstancedShaderForShader(Shader *shader)

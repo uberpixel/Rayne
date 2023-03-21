@@ -249,7 +249,7 @@ namespace RN
 		D3D12SpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<D3D12SpecificShaderLibrary>(name);
 		RN_ASSERT(specificLibrary, "Shader with name does not exist in shader library.");
 
-		RN::Shader *shader = nullptr;
+		Shader *shader = nullptr;
 		if(options)
 			shader = specificLibrary->GetShaderWithOptions(this, options);
 		else
