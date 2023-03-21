@@ -35,65 +35,70 @@ namespace RN
 		return options->Autorelease();
 	}
 
-	Shader::Options::Options(const Options *options) : _defines(options->_defines->Copy())
+	Shader::Options::Options(const Options *options) : _defines(options->_defines)
 	{
 	}
 
-	Shader::Options::Options() : _defines(new Dictionary())
+	Shader::Options::Options()
 	{
 	}
 
-	Shader::Options::Options(Mesh *mesh) : _defines(new Dictionary())
+	Shader::Options::Options(Mesh *mesh)
 	{
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Normals))
-			AddDefine(RNCSTR("RN_NORMALS"), RNCSTR("1"));
+			AddDefine("RN_NORMALS", "1");
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Tangents))
-			AddDefine(RNCSTR("RN_TANGENTS"), RNCSTR("1"));
+			AddDefine("RN_TANGENTS", "1");
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::Color0))
-			AddDefine(RNCSTR("RN_COLOR"), RNCSTR("1"));
+			AddDefine("RN_COLOR", "1");
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords0))
-			AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+			AddDefine("RN_UV0", "1");
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::UVCoords1))
-			AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
+			AddDefine("RN_UV1", "1");
 		
 		//TODO: This should be based on the model having a skeleton...
 		if(mesh->GetAttribute(Mesh::VertexAttribute::Feature::BoneWeights))
-			AddDefine(RNCSTR("RN_ANIMATIONS"), RNCSTR("1"));
+			AddDefine("RN_ANIMATIONS", "1");
 	}
 
     Shader::Options::~Options()
     {
-	    SafeRelease(_defines);
+	    
     }
 
 	Shader::Options *Shader::Options::EnableAlpha()
 	{
-		return AddDefine(RNCSTR("RN_ALPHA"), RNCSTR("1"));
+		return AddDefine("RN_ALPHA", "1");
 	}
 
 	Shader::Options *Shader::Options::EnablePointLights()
 	{
-		return AddDefine(RNCSTR("RN_LIGHTS_POINT"), RNCSTR("1"));
+		return AddDefine("RN_LIGHTS_POINT", "1");
 	}
 
 	Shader::Options *Shader::Options::EnableDirectionalLights()
 	{
-		return AddDefine(RNCSTR("RN_LIGHTS_DIRECTIONAL"), RNCSTR("1"));
+		return AddDefine("RN_LIGHTS_DIRECTIONAL", "1");
 	}
 
 	Shader::Options *Shader::Options::EnableDirectionalShadows()
 	{
-		return AddDefine(RNCSTR("RN_SHADOWS_DIRECTIONAL"), RNCSTR("1"));
+		return AddDefine("RN_SHADOWS_DIRECTIONAL", "1");
 	}
 
 	Shader::Options *Shader::Options::EnableMultiview()
 	{
-		return AddDefine(RNCSTR("RN_USE_MULTIVIEW"), RNCSTR("1"));
+		return AddDefine("RN_USE_MULTIVIEW", "1");
 	}
 
-	Shader::Options *Shader::Options::AddDefine(String *name, String *value)
+	Shader::Options *Shader::Options::AddDefine(const String *name, const String *value)
 	{
-		_defines->SetObjectForKey(value, name);
+		return AddDefine(name->GetUTF8String(), value->GetUTF8String());
+	}
+
+	Shader::Options *Shader::Options::AddDefine(const char *name, const char *value)
+	{
+		_defines[name] = value;
 		return this;
 	}
 
@@ -102,15 +107,47 @@ namespace RN
 		const Shader::Options *options = other->Downcast<Shader::Options>();
 		if(RN_EXPECT_FALSE(!options))
 			return false;
-
-		if(!options->_defines->IsEqual(_defines))
-			return false;
-
-		return true;
+		
+		return _defines.size() == options->_defines.size() && std::equal(_defines.begin(), _defines.end(), options->_defines.begin());
 	}
+
+	bool Shader::Options::HasValue(const char *key, const char *value)
+	{
+		auto pos = _defines.find(key);
+		return pos != _defines.end() && pos->second == std::string(value);
+	}
+
+	const String *Shader::Options::GetValue(const char *key) const
+	{
+		auto pos = _defines.find(key);
+		if(pos == _defines.end()) return nullptr;
+		return RNSTR(pos->second);
+	}
+
+	void Shader::Options::Enumerate(const std::function<void (const std::string &value, const std::string &key, bool &stop)>& callback) const
+	{
+		bool stop = false;
+		for(auto pair : _defines)
+		{
+			callback(pair.first, pair.second, stop);
+			if(stop) return;
+		}
+	}
+
+	size_t Shader::Options::GetCount() const
+	{
+		return _defines.size();
+	}
+
 	size_t Shader::Options::GetHash() const
 	{
-		return _defines->GetHash();
+		size_t hash = 0;
+		for(auto pair : _defines)
+		{
+			RN::HashCombine(hash, pair.first);
+			RN::HashCombine(hash, pair.second);
+		}
+		return hash;
 	}
 
 	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location) :

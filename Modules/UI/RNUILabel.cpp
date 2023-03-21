@@ -1184,7 +1184,7 @@ namespace RN
 					
 					RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(textMesh);
 					shaderOptions->EnableAlpha();
-					shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+					shaderOptions->AddDefine("RN_UI", "1");
 					
 					material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 					material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
@@ -1198,8 +1198,8 @@ namespace RN
 				if(!shadowMaterial)
 				{
 					RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
-					shadowShaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
-					shadowShaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
+					shadowShaderOptions->AddDefine("RN_UV1", "1");
+					shadowShaderOptions->AddDefine("RN_UI", "1");
 					shadowShaderOptions->EnableAlpha();
 					
 					shadowMaterial = RN::Material::WithShaders(nullptr, nullptr);

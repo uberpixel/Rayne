@@ -35,7 +35,6 @@ namespace RN
 	
 	const Shader::Options *MetalSpecificShaderLibrary::GetCleanedShaderOptions(const Shader::Options *options) const
 	{
-		const Dictionary *oldDefines = options->GetDefines();
 		Shader::Options *newOptions = Shader::Options::WithNone();
 		if(!_signatureDescription)
 			return newOptions;
@@ -66,7 +65,7 @@ namespace RN
 			
 			if(name)
 			{
-				String *obj = oldDefines->GetObjectForKey<String>(name);
+				const String *obj = options->GetValue(name->GetUTF8String());
 				if(obj)
 				{
 					newOptions->AddDefine(name, obj);
@@ -93,7 +92,6 @@ namespace RN
 		
 		if(!signatureOptions) return 0;
 		
-		const Dictionary *oldDefines = options->GetDefines();
 		size_t permutationIndex = 0;
 		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
 			Dictionary *dict = option->Downcast<Dictionary>();
@@ -109,7 +107,7 @@ namespace RN
 			
 			if(name)
 			{
-				String *obj = oldDefines->GetObjectForKey<String>(name);
+				const String *obj = options->GetValue(name->GetUTF8String());
 				if(obj)
 				{
 					permutationIndex |= (1 << index);
@@ -147,7 +145,7 @@ namespace RN
 				if(dict)
 				{
 					String *name = dict->GetObjectForKey<String>(RNCSTR("option"));
-					if(!options->GetDefines()->GetObjectForKey(name))
+					if(!options->GetValue(name->GetUTF8String()))
 					{
 						return;
 					}
@@ -176,40 +174,20 @@ namespace RN
 		if(!isShaderBinary)
 		{
 			MTLCompileOptions *metalOptions = [[MTLCompileOptions alloc] init];
-			if(newOptions)
+			if(newOptions && newOptions->GetCount() > 0)
 			{
-				const Dictionary *defines = newOptions->GetDefines();
-				if(defines)
-				{
-					NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
-					
-					defines->Enumerate<Object, Object>([&](Object *value, const Object *key, bool &stop) {
-						
-						if(key->IsKindOfClass(String::GetMetaClass()))
-						{
-							NSString *keyString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(key)->GetUTF8String()];
-							
-							if(value->IsKindOfClass(Number::GetMetaClass()))
-							{
-								NSNumber *valueNumber = [[NSNumber alloc] initWithLongLong:static_cast<Number *>(value)->GetInt64Value()];
-								[metalDefines setObject:valueNumber forKey:keyString];
-								[valueNumber release];
-							}
-							else if(value->IsKindOfClass(String::GetMetaClass()))
-							{
-								NSString *valueString = [[NSString alloc] initWithUTF8String:static_cast<const String *>(value)->GetUTF8String()];
-								[metalDefines setObject:valueString forKey:keyString];
-								[valueString release];
-							}
-							
-							[keyString release];
-						}
-						
-					});
-					
-					[metalOptions setPreprocessorMacros:metalDefines];
-					[metalDefines release];
-				}
+				NSMutableDictionary *metalDefines = [[NSMutableDictionary alloc] init];
+				
+				newOptions->Enumerate([&](const std::string &value, const std::string &key, bool &stop) {
+					NSString *keyString = [[NSString alloc] initWithUTF8String:key.c_str()];
+					NSString *valueString = [[NSString alloc] initWithUTF8String:value.c_str()];
+					[metalDefines setObject:valueString forKey:keyString];
+					[valueString release];
+					[keyString release];
+				});
+				
+				[metalOptions setPreprocessorMacros:metalDefines];
+				[metalDefines release];
 			}
 			
 			String *content = String::WithContentsOfFile(_fileName, Encoding::UTF8);

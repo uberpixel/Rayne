@@ -58,8 +58,8 @@ namespace RN
 			{
 				RN::Shader::Options *shaderOptions = RN::Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
-				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-				shaderOptions->AddDefine(RNCSTR("RN_UV0"), RNCSTR("1"));
+				shaderOptions->AddDefine("RN_UI", "1");
+				shaderOptions->AddDefine("RN_UV0", "1");
 				
 				RN::Material *material = RN::Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);

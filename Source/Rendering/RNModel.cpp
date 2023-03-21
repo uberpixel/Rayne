@@ -69,7 +69,7 @@ namespace RN
 		baseMaterial->SetDepthMode(DepthMode::GreaterOrEqual);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(leftMesh);
-		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+		shaderOptions->AddDefine("RN_SKY", "1");
 		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
 		baseMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));
 		baseMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Depth), Shader::UsageHint::Depth);
@@ -131,7 +131,7 @@ namespace RN
 		domeMaterial->SetDepthMode(DepthMode::GreaterOrEqual);
 
 		Shader::Options *shaderOptions = Shader::Options::WithMesh(domeMesh);
-		shaderOptions->AddDefine(RNCSTR("RN_SKY"), RNCSTR("1"));
+		shaderOptions->AddDefine("RN_SKY", "1");
 
 		domeMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default));
 		domeMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default));

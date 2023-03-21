@@ -34,7 +34,7 @@ namespace RN
 		SetRenderPriority(RenderPriority::RenderTransparent);
 		
 		Shader::Options *shaderOptions = Shader::Options::WithNone();
-		shaderOptions->AddDefine(RNCSTR("RN_PARTICLES"), RNCSTR("1"));
+		shaderOptions->AddDefine("RN_PARTICLES", "1");
 		_material = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, Shader::UsageHint::Default), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions, Shader::UsageHint::Default))->Retain();
 		
 		shaderOptions->EnableMultiview();

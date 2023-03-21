@@ -39,17 +39,22 @@ namespace RN
 			RNAPI Options *EnableDirectionalShadows();
 			RNAPI Options *EnableMultiview();
 
-			RNAPI Options *AddDefine(String *name, String *value);
+			RNAPI Options *AddDefine(const String *name, const String *value);
+			RNAPI Options *AddDefine(const char *name, const char *value);
 
 			RNAPI bool IsEqual(const Object *other) const override;
 			RNAPI size_t GetHash() const override;
+			
+			RNAPI bool HasValue(const char *key, const char *value);
+			RNAPI const String *GetValue(const char *key) const;
+			RNAPI size_t GetCount() const;
+			RNAPI void Enumerate(const std::function<void (const std::string &value, const std::string &key, bool &stop)>& callback) const;
 
-			const Dictionary *GetDefines() const { return _defines; }
 		private:
 			RNAPI Options();
 			RNAPI Options(Mesh *mesh);
 
-			Dictionary *_defines;
+			std::map<std::string, std::string> _defines;
 
 			__RNDeclareMetaInternal(Options)
 		};

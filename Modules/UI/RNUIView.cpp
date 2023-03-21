@@ -736,8 +736,8 @@ namespace RN
 				Material *material = Material::WithShaders(nullptr, nullptr);
 				Shader::Options *shaderOptions = Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
-				shaderOptions->AddDefine(RNCSTR("RN_UI"), RNCSTR("1"));
-				if(_cornerRadius > 0.0f) shaderOptions->AddDefine(RNCSTR("RN_UV1"), RNCSTR("1"));
+				shaderOptions->AddDefine("RN_UI", "1");
+				if(_cornerRadius > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);

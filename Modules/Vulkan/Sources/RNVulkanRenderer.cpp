@@ -1035,18 +1035,15 @@ namespace RN
 			}
 			else
 			{
-				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
-				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
-				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
-				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				if(options && options->HasValue("RN_SKY", "1"))	//Use a different shader for the sky
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_vertex"), options);
 				}
-				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
+				else if(options && options->HasValue("RN_PARTICLES", "1"))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_vertex"), options);
 				}
-				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				else if(options && options->HasValue("RN_UI", "1"))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_vertex"), options);
 				}
@@ -1064,18 +1061,15 @@ namespace RN
 			}
 			else
 			{
-				const String *skyDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_SKY")) : nullptr;
-				const String *particlesDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_PARTICLES")) : nullptr;
-				const String *uiDefine = options? options->GetDefines()->GetObjectForKey<const String>(RNCSTR("RN_UI")) : nullptr;
-				if(skyDefine && !skyDefine->IsEqual(RNCSTR("0")))	//Use a different shader for the sky
+				if(options && options->HasValue("RN_SKY", "1"))	//Use a different shader for the sky
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("sky_fragment"), options);
 				}
-				else if(particlesDefine && !particlesDefine->IsEqual(RNCSTR("0")))
+				else if(options && options->HasValue("RN_PARTICLES", "1"))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("particles_fragment"), options);
 				}
-				else if(uiDefine && !uiDefine->IsEqual(RNCSTR("0")))
+				else if(options && options->HasValue("RN_UI", "1"))
 				{
 					shader = shaderLibrary->GetShaderWithName(RNCSTR("ui_fragment"), options);
 				}

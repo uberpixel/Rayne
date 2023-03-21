@@ -133,7 +133,7 @@ namespace RN
 			//depthFormat = _debugWindow->GetSwapChainDescriptor().depthStencilFormat;
 
 			sideBySideDebugPass = new PostProcessingStage();
-			Material *copyMultiviewToSideBySideDebugMaterial = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_vertex")), Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_blit_fragment"), Shader::Options::WithNone()->AddDefine(RNCSTR("RN_PP_VR"), RNCSTR("1"))));
+			Material *copyMultiviewToSideBySideDebugMaterial = Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_vertex")), Renderer::GetActiveRenderer()->GetDefaultShaderLibrary()->GetShaderWithName(RNCSTR("pp_blit_fragment"), Shader::Options::WithNone()->AddDefine("RN_PP_VR", "1")));
 			sideBySideDebugPass->SetFramebuffer(_debugWindow->GetFramebuffer());
 			sideBySideDebugPass->SetMaterial(copyMultiviewToSideBySideDebugMaterial);
 			sideBySideDebugPass->Autorelease();
