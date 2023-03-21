@@ -305,14 +305,19 @@ namespace RN
 
 	Shader *MetalShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
+		Lock();
 		MetalSpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<MetalSpecificShaderLibrary>(name);
 		if(!specificLibrary)
+			Unlock();
 			return nullptr;
 		
 		if(!options)
 			options = Shader::Options::WithNone();
 		
-		return specificLibrary->GetShaderWithOptions(_device, _coordinator, this, options);
+		Shader *shader = specificLibrary->GetShaderWithOptions(_device, _coordinator, this, options);;
+		Unlock();
+		
+		return shader;
 	}
 
 	Shader *MetalShaderLibrary::GetInstancedShaderForShader(Shader *shader)

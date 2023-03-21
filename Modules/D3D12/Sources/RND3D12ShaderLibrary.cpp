@@ -34,7 +34,6 @@ namespace RN
 
 	const Shader::Options *D3D12SpecificShaderLibrary::GetCleanedShaderOptions(const Shader::Options *options) const
 	{
-		const Dictionary *oldDefines = options->GetDefines();
 		Shader::Options *newOptions = Shader::Options::WithNone();
 		if(!_signatureDescription)
 			return newOptions;
@@ -64,7 +63,7 @@ namespace RN
 
 			if(name)
 			{
-				String *obj = oldDefines->GetObjectForKey<String>(name);
+				String *obj = options->GetValue(name->GetUTF8String());
 				if(obj)
 				{
 					newOptions->AddDefine(name, obj);
@@ -90,7 +89,6 @@ namespace RN
 		}
 		if(!signatureOptions) return 0;
 
-		const Dictionary *oldDefines = options->GetDefines();
 		size_t permutationIndex = 0;
 		signatureOptions->Enumerate([&](Object *option, size_t index, bool &stop) {
 			Dictionary *dict = option->Downcast<Dictionary>();
@@ -106,7 +104,7 @@ namespace RN
 
 			if(name)
 			{
-				String *obj = oldDefines->GetObjectForKey<String>(name);
+				String *obj = options->GetValue(name->GetUTF8String())
 				if (obj)
 				{
 					permutationIndex |= (static_cast<unsigned long long>(1) << index);
@@ -144,7 +142,7 @@ namespace RN
 				if(dict)
 				{
 					String *name = dict->GetObjectForKey<String>(RNCSTR("option"));
-					if(!options->GetDefines()->GetObjectForKey(name))
+					if(!options->GetValue(name->GetUTF8String()))
 					{
 						return;
 					}
@@ -247,6 +245,7 @@ namespace RN
 
 	Shader *D3D12ShaderLibrary::GetShaderWithName(const String *name, const Shader::Options *options)
 	{
+		Lock();
 		D3D12SpecificShaderLibrary *specificLibrary = _specificShaderLibraries->GetObjectForKey<D3D12SpecificShaderLibrary>(name);
 		RN_ASSERT(specificLibrary, "Shader with name does not exist in shader library.");
 
@@ -258,6 +257,7 @@ namespace RN
 
 		RN_ASSERT(shader, "Shader with name does not exist in shader library.");
 
+		Unlock();
 		return shader;
 	}
 

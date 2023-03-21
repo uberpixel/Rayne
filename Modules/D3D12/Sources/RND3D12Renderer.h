@@ -59,7 +59,6 @@ namespace RN
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		D3DAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		D3DAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint = Shader::UsageHint::Default) final;
 		D3DAPI ShaderLibrary *GetDefaultShaderLibrary();
 
 		D3DAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;

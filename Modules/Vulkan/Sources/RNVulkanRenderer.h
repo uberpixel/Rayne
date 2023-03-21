@@ -60,7 +60,6 @@ namespace RN
 		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;
 
-		VKAPI Shader *GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint usageHint = Shader::UsageHint::Default) final;
 		VKAPI ShaderLibrary *GetDefaultShaderLibrary() final;
 
 		VKAPI Texture *CreateTextureWithDescriptor(const Texture::Descriptor &descriptor) final;
