@@ -63,7 +63,7 @@ namespace RN
 
 			if(name)
 			{
-				String *obj = options->GetValue(name->GetUTF8String());
+				const String *obj = options->GetValue(name->GetUTF8String());
 				if(obj)
 				{
 					newOptions->AddDefine(name, obj);
@@ -104,8 +104,8 @@ namespace RN
 
 			if(name)
 			{
-				String *obj = options->GetValue(name->GetUTF8String())
-				if (obj)
+				const String *obj = options->GetValue(name->GetUTF8String());
+				if(obj)
 				{
 					permutationIndex |= (static_cast<unsigned long long>(1) << index);
 				}

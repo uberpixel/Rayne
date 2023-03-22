@@ -60,7 +60,7 @@ if(WIN32)
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
                 "-DANDROID_NDK:STRING=${ANDROID_NDK}"
                 "-DANDROID_STL:STRING=${ANDROID_STL}"
-                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
+                "-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.a
                 ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.a

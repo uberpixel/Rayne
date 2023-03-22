@@ -12,6 +12,9 @@ option(RAYNE_VTUNE "Enable VTune if avaialable" ON)
 option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
 option(CMAKE_OSX_ARCHITECTURES "OSX architectures to compile for" "$(ARCHS_STANDARD)")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE")
 else()

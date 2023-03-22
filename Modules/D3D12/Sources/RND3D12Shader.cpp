@@ -57,8 +57,8 @@ namespace RN
 			char *text = fileName->GetUTF8String();
 		
 			std::vector<D3D_SHADER_MACRO> shaderDefines;
-			options->GetDefines()->Enumerate<String, String>([&](String *value, const String *key, bool &stop) {
-				shaderDefines.push_back({key->GetUTF8String(), value->GetUTF8String()});
+			options->Enumerate([&](const std::string &value, const std::string &key, bool &stop) {
+				shaderDefines.push_back({key.c_str(), value.c_str()});
 			});
 
 			shaderDefines.push_back({0, 0});

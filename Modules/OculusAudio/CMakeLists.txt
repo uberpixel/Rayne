@@ -30,7 +30,7 @@ else()
         UPDATE_COMMAND ""
         CMAKE_CACHE_ARGS
                 "-DBUILD_SHARED_LIBS:BOOL=False"
-                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
+                "-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/rtaudio-prefix/src/rtaudio-build/Debug/librtaudio.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/rtaudio-prefix/src/rtaudio-build/Release/librtaudio.a"

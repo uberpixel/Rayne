@@ -71,7 +71,7 @@ ExternalProject_Add(Kalligraph
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
                 "-DANDROID_NDK:STRING=${ANDROID_NDK}"
                 "-DANDROID_STL:STRING=${ANDROID_STL}"
-                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
+                "-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 ${KALLIGRAPH_BINARY_DIR}/libKalligraph.a
                 ${KALLIGRAPH_BINARY_DIR}/Debug/libKalligraph.a
