@@ -21,6 +21,7 @@ ExternalProject_Add(libsoundio
                 "-DENABLE_ALSA:BOOL=True"
                 "-DENABLE_COREAUDIO:BOOL=True"
                 "-DENABLE_WASAPI:BOOL=True"
+                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/libsoundio-prefix/src/libsoundio-build/Debug/libsoundio.a"
                 "${CMAKE_CURRENT_BINARY_DIR}/libsoundio-prefix/src/libsoundio-build/Release/libsoundio.a"

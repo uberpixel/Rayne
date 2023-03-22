@@ -22,6 +22,7 @@ ExternalProject_Add(OpenXRSDK
 		"-DANDROID_ABI:STRING=${ANDROID_ABI}"
 		"-DANDROID_NDK:STRING=${ANDROID_NDK}"
 		"-DANDROID_STL:STRING=${ANDROID_STL}"
+		"-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
 	BUILD_BYPRODUCTS
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib"

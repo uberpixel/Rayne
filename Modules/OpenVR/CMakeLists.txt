@@ -37,6 +37,7 @@ ExternalProject_Add(openvr
                 "-DBUILD_UNIVERSAL:BOOL=False"
                 "-DBUILD_SHARED:BOOL=False"
                 "-DUSE_LIBCXX:BOOL=${USE_LIBCXX}"
+                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
                 #"-DCMAKE_CXX_FLAGS:STRING=-DVR_API_PUBLIC -DOPENVR_API_EXPORTS -DWIN32 /EHsc"
         BUILD_BYPRODUCTS
                 "${CMAKE_CURRENT_BINARY_DIR}/openvr-prefix/src/openvr/bin/${PLATFORM_NAME}/Debug/libopenvr_api.a"

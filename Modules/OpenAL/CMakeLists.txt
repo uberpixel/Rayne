@@ -73,6 +73,7 @@ ExternalProject_Add(openal
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
                 "-DANDROID_NDK:STRING=${ANDROID_NDK}"
                 "-DANDROID_STL:STRING=${ANDROID_STL}"
+                "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Debug/libopenal.1.20.1.dylib
                 ${CMAKE_CURRENT_BINARY_DIR}/openal-prefix/src/openal-build/Release/libopenal.1.20.1.dylib

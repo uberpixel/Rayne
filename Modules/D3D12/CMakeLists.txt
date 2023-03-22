@@ -16,6 +16,7 @@ ExternalProject_Add(D3D12MemoryAllocator
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         CONFIGURE_COMMAND ""
+        UPDATE_COMMAND ""
         BUILD_COMMAND ""
         BUILD_BYPRODUCTS
             ${D3D12MA_SOURCE_DIR}/src/D3D12MemAlloc.cpp
