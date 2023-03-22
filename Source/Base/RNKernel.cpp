@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "RNScopeAllocator.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Objects/RNJSONSerialization.h"
 #include "../Rendering/RNRendererDescriptor.h"
@@ -66,6 +67,9 @@ namespace RN
 											std::bind(&Kernel::HandleObserver, this, std::placeholders::_1,
 													  std::placeholders::_2));
 			_mainThread = new Thread();
+			
+			RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
+
 
 			_runLoop = _mainThread->GetRunLoop();
 			_runLoop->AddObserver(_observer);
@@ -222,11 +226,13 @@ namespace RN
 
 	void Kernel::FinishBootstrap()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->DidFinishLaunching(this);
 	}
 
 	void Kernel::TearDown()
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
 		_application->WillExit();
 
 		Screen::TeardownScreens();
@@ -306,6 +312,8 @@ namespace RN
 
 	void Kernel::HandleObserver(RunLoopObserver *observer, RunLoopObserver::Activity activity)
 	{
+		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
+
 		if(RN_EXPECT_FALSE(_exit))
 		{
 			_runLoop->Stop();
