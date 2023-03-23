@@ -383,7 +383,7 @@ namespace RN
 		instanceProperties.type = XR_TYPE_INSTANCE_PROPERTIES;
 		xrGetInstanceProperties(_internals->instance, &instanceProperties);
 		_runtimeName = RNSTR(instanceProperties.runtimeName)->Retain();
-		RNDebug("Active OpenXR Runtime: " << _runtimeName);
+		RNInfo("Active OpenXR Runtime: " << _runtimeName);
 
 		InitializeInput();
 
@@ -1432,9 +1432,11 @@ namespace RN
 
 		Vector2 eyeRenderSize(configurationViews[0].recommendedImageRectWidth * eyeResolutionFactor, configurationViews[0].recommendedImageRectHeight * eyeResolutionFactor);
 		delete[] configurationViews;
-		
-		if(!XR_SUCCEEDED(xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session)))
+
+		XrResult result = xrCreateSession(_internals->instance, &sessionCreateInfo, &_internals->session);
+		if(!XR_SUCCEEDED(result))
 		{
+			RNDebug("Failed creating OpenXR Session with return value: " << result);
 			RN_ASSERT(false, "failed creating session");
 		}
 

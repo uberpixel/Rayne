@@ -10,7 +10,7 @@ option(RN_OPENXR_SUPPORT_PICO "Include the loader library for Pico android devic
 
 ExternalProject_Add(OpenXRSDK
 	GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK.git
-	GIT_TAG refs/tags/release-1.0.18
+	GIT_TAG refs/tags/release-1.0.27
 	GIT_SHALLOW ON
 	GIT_PROGRESS ON
 	UPDATE_COMMAND ""
