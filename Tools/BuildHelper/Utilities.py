@@ -98,7 +98,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, isDemo):
 	#cmakeVersion = subprocess.check_output(['cmake', '--version'])
 	#cmakeVersion = cmakeVersion.splitlines()[0]
 	#cmakeVersion = cmakeVersion.split(b" ")[2]
-	cmakeVersion = b"3.18.1" #This one can be installed with android sdk manager!
+	cmakeVersion = b"3.22.1" #This one can be installed with android sdk manager!
 	cmakeTargetsList = getSettingFromConfig("android", "cmake-targets", buildConfig)
 	newCmakeTargetList = list()
 	for target in cmakeTargetsList:
@@ -117,7 +117,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, isDemo):
 			if dependency["type"] == "gradle":
 				dependenciesString += b"	implementation '" + dependency["name"].encode('utf-8') + b"'\n";
 			elif dependency["type"] == "aar":
-				dependenciesString += b"	compile files('" + os.path.join(projectRoot, dependency["path"]).encode('utf-8') + b"')\n";
+				dependenciesString += b"	implementation files('" + os.path.join(projectRoot, dependency["path"]).encode('utf-8') + b"')\n";
 
 	androidActivity = "android.app.NativeActivity"
 	customAndroidActivity = getSettingFromConfig("android", "android-custom-native-activity", buildConfig)

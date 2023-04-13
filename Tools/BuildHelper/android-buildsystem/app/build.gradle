@@ -16,7 +16,9 @@ def getCmakeArgumentsFromProjectProperty = { ->
 }
 
 android {
-    compileSdkVersion 30
+    namespace "__RN_BUNDLE_ID__"
+    compileSdkVersion 32
+    ndkVersion "21.4.7075529"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -34,7 +36,7 @@ android {
     defaultConfig {
         applicationId "__RN_BUNDLE_ID__"
         minSdkVersion 24
-        targetSdkVersion 30
+        targetSdkVersion 32
         versionCode getVersionCodeFromProjectProperty()
         versionName getVersionNameFromProjectProperty()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
