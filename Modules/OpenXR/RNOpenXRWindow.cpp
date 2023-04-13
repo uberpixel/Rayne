@@ -1539,7 +1539,7 @@ namespace RN
 				XrLocalDimmingFrameEndInfoMETA xrLocalDimmingFrameEndInfoMETA;
 				if(_supportsLocalDimming)
 				{
-					xrLocalDimmingFrameEndInfoMETA.type = XR_TYPE_FRAME_END_INFO_LOCAL_DIMMING_META;
+					xrLocalDimmingFrameEndInfoMETA.type = XR_TYPE_LOCAL_DIMMING_FRAME_END_INFO_META;
 					xrLocalDimmingFrameEndInfoMETA.localDimmingMode = _isLocalDimmingEnabled? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
 					xrLocalDimmingFrameEndInfoMETA.next = nullptr;
 					frameEndInfo.next = (void *) &xrLocalDimmingFrameEndInfoMETA;
