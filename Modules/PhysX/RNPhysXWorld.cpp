@@ -166,7 +166,7 @@ namespace RN
 	}
 
 
-	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to, uint32 filterMask)
+	PhysXContactInfo PhysXWorld::CastRay(const Vector3 &from, const Vector3 &to, uint32 filterGroup, uint32 filterMask)
 	{
 		PhysXContactInfo hit;
 		hit.distance = -1.0f;
@@ -178,8 +178,12 @@ namespace RN
 		diff.Normalize();
 		physx::PxRaycastBuffer callback;
 		physx::PxFilterData filterData;
-		filterData.word0 = filterMask;
-		bool didHit = _scene->raycast(physx::PxVec3(from.x, from.y, from.z), physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+        filterData.word0 = filterGroup;
+		filterData.word1 = filterMask;
+		filterData.word2 = 0;
+		filterData.word3 = 0;
+		PhysXQueryFilterCallback queryFilter;
+		bool didHit = _scene->raycast(physx::PxVec3(from.x, from.y, from.z), physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &queryFilter);
 		
 		if(didHit)
 		{
@@ -204,7 +208,7 @@ namespace RN
 		return hit;
 	}
 
-	PhysXContactInfo PhysXWorld::CastSweep(PhysXShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation, uint32 filterMask)
+	PhysXContactInfo PhysXWorld::CastSweep(PhysXShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation, uint32 filterGroup, uint32 filterMask)
 	{
 		PhysXContactInfo hit;
 		hit.distance = -1.0f;
@@ -216,12 +220,16 @@ namespace RN
 		diff.Normalize();
 		physx::PxSweepBuffer callback;
 		physx::PxFilterData filterData;
-		filterData.word0 = filterMask;
+		filterData.word0 = filterGroup;
+		filterData.word1 = filterMask;
+		filterData.word2 = 0;
+		filterData.word3 = 0;
+		PhysXQueryFilterCallback queryFilter;
 		
 		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(from.x, from.y, from.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
 		if(shape->GetPhysXShape())
 		{
-			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC), 0, 0, inflation))
+			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &queryFilter, 0, inflation))
 			{
 				hit.distance = callback.block.distance;
 				hit.position.x = callback.block.position.x;
@@ -251,19 +259,23 @@ namespace RN
 		return hit;
 	}
 
-	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterMask)
+	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterGroup, uint32 filterMask)
 	{
 		const physx::PxU32 bufferSize = 256;
 		physx::PxSweepHit hitBuffer[bufferSize];
 		physx::PxSweepBuffer callback(hitBuffer, bufferSize);
 		
 		physx::PxFilterData filterData;
-		filterData.word0 = filterMask;
+		filterData.word0 = filterGroup;
+		filterData.word1 = filterMask;
+		filterData.word2 = 0;
+		filterData.word3 = 0;
+		PhysXQueryFilterCallback queryFilter;
 		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
 		std::vector<PhysXContactInfo> results;
 		if(shape->GetPhysXShape())
 		{
-			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eNO_BLOCK), 0, 0, inflation))
+			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eNO_BLOCK|physx::PxQueryFlag::ePREFILTER), &queryFilter, 0, inflation))
 			{
 				for(uint32 i = 0; i < callback.nbTouches; i++)
 				{
@@ -294,7 +306,7 @@ namespace RN
 			for(size_t i = 0; i < compoundShape->GetNumberOfShapes(); i++)
 			{
 				PhysXShape *tempShape = compoundShape->GetShape(i);
-				if(_scene->sweep(tempShape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eNO_BLOCK), 0, 0, inflation))
+				if(_scene->sweep(tempShape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(0.0f, 1.0f, 0.0f), 0.0f, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eNO_BLOCK|physx::PxQueryFlag::ePREFILTER), 0, 0, inflation))
 				{
 					for(uint32 i = 0; i < callback.nbTouches; i++)
 					{

@@ -50,8 +50,11 @@ namespace RN
 		}
 
 		physx::PxFilterData filterData;
-		filterData.word0 = _collisionFilterMask;
-		physx::PxControllerFilters controllerFilter(&filterData, nullptr, _callback);
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+		physx::PxControllerFilters controllerFilter(&filterData, _callback, _callback);
 		physx::PxControllerCollisionFlags collisionFlags = _controller->move(physx::PxVec3(direction.x, direction.y, direction.z), 0.0f, delta, controllerFilter);
 
 		UpdatePosition();
@@ -82,6 +85,61 @@ namespace RN
 		}
 	}
 
+	std::vector<PhysXContactInfo> PhysXKinematicController::SweepTestAll(const Vector3 &direction, const Vector3 &offset) const
+	{
+		const physx::PxExtendedVec3 &position = _controller->getPosition();
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		float length = direction.GetLength();
+		Vector3 normalizedDirection = direction.GetNormalized();
+		const physx::PxU32 bufferSize = 2048;
+		physx::PxSweepHit hitBuffer[bufferSize];
+		physx::PxSweepBuffer hit(hitBuffer, bufferSize);
+		physx::PxFilterData filterData;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+		PhysXQueryFilterCallback filterCallback;
+		physx::PxShape *shape;
+		_controller->getActor()->getShapes(&shape, 1);
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
+		scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER|physx::PxQueryFlag::eNO_BLOCK), &filterCallback);
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+		
+		std::vector<PhysXContactInfo> contacts;
+
+		if(hit.getNbTouches() == 0)
+			return contacts;
+		
+		for(uint32 i = 0; i < hit.nbTouches; i++)
+		{
+			physx::PxSweepHit currentHit = hit.touches[i];
+			
+			PhysXContactInfo contact;
+			contact.distance = currentHit.distance;
+			contact.node = nullptr;
+			contact.collisionObject = nullptr;
+
+			contact.position = Vector3(currentHit.position.x, currentHit.position.y, currentHit.position.z);
+			contact.normal = Vector3(currentHit.normal.x, currentHit.normal.y, currentHit.normal.z);
+			if(currentHit.actor)
+			{
+				PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(currentHit.actor->userData);
+				contact.collisionObject = collisionObject;
+				if(collisionObject->GetParent())
+				{
+					contact.node = collisionObject->GetParent();
+					if(contact.node) contact.node->Retain()->Autorelease();
+				}
+			}
+
+			contacts.push_back(contact);
+		}
+		
+		return contacts;
+	}
+
 	PhysXContactInfo PhysXKinematicController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
 	{
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
@@ -90,12 +148,16 @@ namespace RN
 		Vector3 normalizedDirection = direction.GetNormalized();
 		physx::PxSweepBuffer hit;
 		physx::PxFilterData filterData;
-		filterData.word0 = _collisionFilterMask;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+		PhysXQueryFilterCallback filterCallback;
 		physx::PxShape *shape;
 		_controller->getActor()->getShapes(&shape, 1);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		bool didHit = scene->sweep(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), physx::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT|physx::PxHitFlag::eMTD), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &filterCallback);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		
 		PhysXContactInfo contact;
@@ -103,10 +165,10 @@ namespace RN
 		contact.node = nullptr;
 		contact.collisionObject = nullptr;
 
-		if(hit.getNbAnyHits() == 0)
+		if(!didHit)
 			return contact;
 
-		physx::PxSweepHit closestHit = hit.getAnyHit(0);
+		physx::PxSweepHit closestHit = hit.block;
 		contact.distance = closestHit.distance;
 		contact.position = Vector3(closestHit.position.x, closestHit.position.y, closestHit.position.z);
 		contact.normal = Vector3(closestHit.normal.x, closestHit.normal.y, closestHit.normal.z);
@@ -129,12 +191,16 @@ namespace RN
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
 		physx::PxOverlapBuffer hit;
 		physx::PxFilterData filterData;
-		filterData.word0 = _collisionFilterMask;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+		PhysXQueryFilterCallback filterCallback;
 		physx::PxShape *shape;
 		_controller->getActor()->getShapes(&shape, 1);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC));
+		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER|physx::PxQueryFlag::eNO_BLOCK), &filterCallback);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		
 		PhysXContactInfo contact;
@@ -179,11 +245,14 @@ namespace RN
 			physx::PxQuat orientation(k::Pi_2, physx::PxVec3(0.0f, 0.0f, 1.0f));
 
 			physx::PxFilterData filterData;
-			filterData.word0 = GetCollisionFilterMask();
-			filterData.word1 = GetCollisionFilterGroup();
+			filterData.word0 = _collisionFilterGroup;
+			filterData.word1 = _collisionFilterMask;
+			filterData.word2 = _collisionFilterID;
+			filterData.word3 = _collisionFilterIgnoreID;
 			physx::PxOverlapBuffer hit;
+			PhysXQueryFilterCallback filterCallback;
 			PhysXWorld *physXWorld = PhysXWorld::GetSharedInstance();
-			if(physXWorld->GetPhysXScene()->overlap(geom, physx::PxTransform(pos, orientation), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eANY_HIT|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eDYNAMIC))) isBlocked = true;
+			if(physXWorld->GetPhysXScene()->overlap(geom, physx::PxTransform(pos, orientation), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eANY_HIT|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::ePREFILTER), &filterCallback)) isBlocked = true;
 		}
 		
 		if(!isBlocked)
@@ -204,6 +273,8 @@ namespace RN
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
 		shape->setSimulationFilterData(filterData);
 		shape->setQueryFilterData(filterData);
 		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, false);

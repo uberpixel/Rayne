@@ -45,7 +45,7 @@ namespace RN
 		void onAdvance(const physx::PxRigidBody*const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) final {}
 	};
 
-	class PhysXKinematicControllerCallback : public physx::PxUserControllerHitReport, public physx::PxControllerFilterCallback, public physx::PxControllerBehaviorCallback
+	class PhysXKinematicControllerCallback : public physx::PxUserControllerHitReport, public physx::PxControllerFilterCallback, public physx::PxControllerBehaviorCallback, public PhysXQueryFilterCallback
 	{
 	public:
 		void onShapeHit(const physx::PxControllerShapeHit &hit) final;
