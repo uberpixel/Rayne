@@ -60,6 +60,7 @@ namespace RN
 		static Color WithRGBA(float r, float g, float b, float alpha=1.0f) { return Color(r, g, b, alpha); }
 		static Color WithHSV(float h, float s, float v, float alpha=1.0f);
 		static Color WithHSV(const Vector4 &hsva);
+		static Color WithHex(uint32 colorCode);
 		
 		struct
 		{
@@ -352,6 +353,16 @@ namespace RN
 	RN_INLINE Color Color::WithHSV(const Vector4 &hsva)
 	{
 		return WithHSV(hsva.x, hsva.y, hsva.z, hsva.w);
+	}
+
+	RN_INLINE Color Color::WithHex(uint32 colorCode)
+	{
+		RN::uint8 r, g, b, a;
+		r = ((colorCode >> 24) & 0xFF);
+		g = ((colorCode >> 16) & 0xFF);
+		b = ((colorCode >> 8) & 0xFF);
+		a = ((colorCode >> 0) & 0xFF);
+		return Color(r/255.0f, g/255.0f, b/255.0f, a/255.0f);
 	}
 
 	RN_INLINE Color Color::GammaToLinear()
