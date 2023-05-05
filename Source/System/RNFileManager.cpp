@@ -727,6 +727,15 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 				android_app *app = Kernel::GetSharedInstance()->GetAndroidApp();
 				JNIEnv* env = Kernel::GetSharedInstance()->GetJNIEnvForRayneMainThread();
+
+				//Check for and clear any pending jni exceptions that would prevent the previous code from working
+				jboolean flag = env->ExceptionCheck();
+				if(flag)
+				{
+					env->ExceptionDescribe();
+					env->ExceptionClear();
+				}
+
 				jclass clazz = env->GetObjectClass(app->activity->clazz);
 				jmethodID methodID = env->GetMethodID(clazz, "getPackageCodePath", "()Ljava/lang/String;");
 				jobject result = env->CallObjectMethod(app->activity->clazz, methodID);

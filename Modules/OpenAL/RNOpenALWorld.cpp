@@ -116,6 +116,14 @@ namespace RN
 					RNDebug("wrong jni version (should be 1.6)");
 					return;
 			}*/
+			
+			//Check for and clear any pending jni exceptions that would prevent the previous code from working
+			jboolean flag = env->ExceptionCheck();
+			if(flag)
+			{
+				env->ExceptionDescribe();
+				env->ExceptionClear();
+			}
 
 			jclass activityClass = env->FindClass("android/app/NativeActivity");
 			jmethodID getClassLoaderMethod = env->GetMethodID(activityClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
