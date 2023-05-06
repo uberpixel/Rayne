@@ -48,7 +48,7 @@ namespace RN
 		if(wantsStreaming && wantsStreaming->GetBoolValue())
 		{
 			OggAudioDecoder *audioDecoder = new OggAudioDecoder(file);
-			audio = new RN::AudioAsset(audioDecoder, /*5 * audioDecoder->_frameSize * audioDecoder->_channelCount*/ 3840 * 3 * 2, audioDecoder->_bytesPerSample, audioDecoder->_sampleRate, audioDecoder->_channelCount);
+			audio = new RN::AudioAsset(audioDecoder, /*5 * audioDecoder->_frameSize * audioDecoder->_channelCount*/ 3840 * 5 * 2, audioDecoder->_bytesPerSample, audioDecoder->_sampleRate, audioDecoder->_channelCount);
 		}
 		else
 		{
@@ -61,7 +61,7 @@ namespace RN
 
 			audio = new RN::AudioAsset();
 			Data *data = new Data(reinterpret_cast<uint8*>(audioData), samples * channels * 2);
-			audio->SetRawAudioData(data->Autorelease(), 2, sample_rate, channels);
+			audio->SetRawAudioData(data->Autorelease(), channels * 2, sample_rate, channels);
 			free(audioData);
 		}
 
@@ -74,7 +74,7 @@ namespace RN
 		int error = 0;
 		_vorbis = vorbis::stb_vorbis_open_file(file->CreateFilePtr(), 0, &error, nullptr);
 		vorbis::stb_vorbis_info vorbisInfo = vorbis::stb_vorbis_get_info(_vorbis);
-		_frameSize = vorbisInfo.max_frame_size * 2;
+		_frameSize = 4096 * 2; //Maximum ogg vorbis supported frame size, the one from info seems incorrect//vorbisInfo.max_frame_size * 2;
 		_channelCount = vorbisInfo.channels;
 		_bytesPerSample = 2 * _channelCount;
 		_sampleRate = vorbisInfo.sample_rate;

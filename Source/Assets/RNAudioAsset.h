@@ -74,7 +74,7 @@ namespace RN
 		Type _type;
 
 		Data *_data;
-		uint32 _bytesPerSample;
+		uint32 _bytesPerSample; //datatype size * channel count
 		uint32 _sampleRate;
 		uint32 _channels;
 

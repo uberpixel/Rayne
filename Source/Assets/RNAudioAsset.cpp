@@ -8,6 +8,7 @@
 
 #include "RNAudioAsset.h"
 #include "RNAssetManager.h"
+#include "../Debug/RNLogger.h"
 
 namespace RN
 {
@@ -94,15 +95,16 @@ namespace RN
 	{
 		RN_ASSERT(_type == Type::Decoder, "Decode can only be called on an AudioAsset initialized as Decoder.");
 		
-		int32 lengthToReadPosition = _readPosition - _writePosition;
-		int32 remainingLength = lengthToReadPosition > 0? lengthToReadPosition : _data->GetLength() - _writePosition + _readPosition;
+		int32 remainingLength = _data->GetLength() - GetBufferedSize();
 		while(remainingLength > _decoder->_frameSize)
 		{
 			uint32 encodedBytesCount = _decoder->DecodeFrameToAudioAsset(this);
-			if(encodedBytesCount == 0) return false;
+			if(encodedBytesCount == 0)
+			{
+				return false;
+			}
 			
-			lengthToReadPosition = _readPosition - _writePosition;
-			remainingLength = lengthToReadPosition > 0? lengthToReadPosition : _data->GetLength() - _writePosition + _readPosition;
+			remainingLength = _data->GetLength() - GetBufferedSize();
 		}
 		
 		return true;

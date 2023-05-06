@@ -44,7 +44,7 @@ namespace RN
 		vorbis::stb_vorbis *_vorbis;
 		short *_buffer;
 		uint8 _channelCount;
-		uint8 _bytesPerSample;
+		uint8 _bytesPerSample; //datatype size * channel count
 		uint32 _sampleRate;
 		
 		RNDeclareMetaAPI(OggAudioDecoder, OGGAPI)

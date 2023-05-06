@@ -81,13 +81,15 @@ namespace RN
 			
 			alGenBuffers(3, _ringBuffersID);
 			
-			_ringBufferTemp = new int16[3840];
+			_ringBufferTemp = new int16[3840 * _asset->GetChannels()];
 			std::fill(_ringBufferTemp, _ringBufferTemp + 3840, 0);
 			
 			//TODO: make the format more flexible
-			alBufferData(_ringBuffersID[0], AL_FORMAT_MONO16, _ringBufferTemp, 3840*sizeof(int16), _asset->GetSampleRate());
-			alBufferData(_ringBuffersID[1], AL_FORMAT_MONO16, _ringBufferTemp, 3840*sizeof(int16), _asset->GetSampleRate());
-			alBufferData(_ringBuffersID[2], AL_FORMAT_MONO16, _ringBufferTemp, 3840*sizeof(int16), _asset->GetSampleRate());
+			ALenum format = _asset->GetChannels() == 1? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+			ALsizei bufferSize = 3840 * sizeof(int16) * _asset->GetChannels();
+			alBufferData(_ringBuffersID[0], format, _ringBufferTemp, bufferSize, _asset->GetSampleRate());
+			alBufferData(_ringBuffersID[1], format, _ringBufferTemp, bufferSize, _asset->GetSampleRate());
+			alBufferData(_ringBuffersID[2], format, _ringBufferTemp, bufferSize, _asset->GetSampleRate());
 			alSourceQueueBuffers(_source, 3, _ringBuffersID);
 		}
 		
@@ -234,7 +236,7 @@ namespace RN
 				uint32 bufferedSamples = _asset->GetBufferedSize() / _asset->GetBytesPerSample();
 				if(bufferedSamples >= 3840)
 				{
-					if(bufferedSamples > 3840*5)
+					if(bufferedSamples > 3840*5 && _asset->GetType() != AudioAsset::Type::Decoder)
 					{
 						_asset->PopData(nullptr, _asset->GetBufferedSize() - 2 * 3840 * _asset->GetBytesPerSample());
 						RNDebug("too much buffered audio: skipping");
@@ -244,7 +246,7 @@ namespace RN
 					if(_asset->GetBytesPerSample() / _asset->GetChannels() > 2)
 					{
 						float samplesBuffer[3840];
-						_asset->PopData(samplesBuffer, _asset->GetBytesPerSample()*3840);
+						_asset->PopData(samplesBuffer, _asset->GetBytesPerSample() * 3840);
 						for(size_t i = 0; i < 3840; i++)
 						{
 							_ringBufferTemp[i] = samplesBuffer[i] * 32000.0f;
@@ -252,7 +254,7 @@ namespace RN
 					}
 					else
 					{
-						_asset->PopData(_ringBufferTemp, _asset->GetBytesPerSample()*3840);
+						_asset->PopData(_ringBufferTemp, _asset->GetBytesPerSample() * 3840);
 					}
 				}
 				else
@@ -272,7 +274,9 @@ namespace RN
 				//TODO: support multiple channels
 				ALuint bufferID = 0;
 				alSourceUnqueueBuffers(_source, 1, &bufferID);
-				alBufferData(bufferID, AL_FORMAT_MONO16, _ringBufferTemp, 3840*sizeof(int16), _asset->GetSampleRate());
+				ALenum format = _asset->GetChannels() == 1? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+				ALsizei bufferSize = 3840 * sizeof(int16) * _asset->GetChannels();
+				alBufferData(bufferID, format, _ringBufferTemp, bufferSize, _asset->GetSampleRate());
 				alSourceQueueBuffers(_source, 1, &bufferID);
 				
 				numberOfProcessedBuffers -= 1;
