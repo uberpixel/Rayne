@@ -64,7 +64,7 @@ def main():
 	if isDemo:
 		sourceDirectory += "_demo"
 	if platform == 'android':
-		buildDirectory = os.path.join(sourceDirectory, 'app/.cxx/cmake/release/arm64-v8a/')
+		buildDirectory = os.path.join(sourceDirectory, 'app/.cxx/Release/')
 		sourceDirectory = os.path.join(sourceDirectory, 'app/build/outputs/apk/release')
 	elif platform == 'linux':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build')
@@ -98,9 +98,9 @@ def main():
 		#Also copy .so files with debug symbols into the release directory
 		symbolDestinationDir = os.path.join(destinationDirectory, 'symbols')
 		os.makedirs(symbolDestinationDir)
-		for file in glob.glob('Build/**/*.so', root_dir=buildDirectory, recursive=True):
-			shutil.copy(os.path.join(buildDirectory, file), symbolDestinationDir)
-		for file in glob.glob('Rayne/Build/**/*.so', root_dir=buildDirectory, recursive=True):
+		for file in glob.glob('**/*.so', root_dir=buildDirectory, recursive=True):
+			if not "/arm64-v8a/" in file:
+				continue
 			shutil.copy(os.path.join(buildDirectory, file), symbolDestinationDir)
 
 if __name__ == '__main__':
