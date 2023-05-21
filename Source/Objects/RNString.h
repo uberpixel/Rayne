@@ -14,6 +14,7 @@
 #include "RNObject.h"
 #include "RNArray.h"
 #include "RNCharacterSet.h"
+#include "../Math/RNVector.h"
 
 namespace RN
 {
@@ -163,6 +164,9 @@ namespace RN
 		StringBuilder &operator << (std::ostream &(*pf)(std::ostream &)) { _stream << pf; return *this; }
 		StringBuilder &operator << (std::ios &(*pf)(std::ios &)) { _stream << pf; return *this; };
 		StringBuilder &operator << (std::ios_base &(*pf)(std::ios_base &)) { _stream << pf; return *this; }
+		StringBuilder &operator << (const RN::Vector2 &val) { _stream << "(" << val.x << ", " << val.y << ")"; return *this; }
+		StringBuilder &operator << (const RN::Vector3 &val) { _stream << "(" << val.x << ", " << val.y << ", " << val.z << ")"; return *this; }
+		StringBuilder &operator << (const RN::Vector4 &val) { _stream << "(" << val.x << ", " << val.y << ", " << val.z << ", " << val.w << ")"; return *this; }
 
 	private:
 		std::stringstream _stream;
