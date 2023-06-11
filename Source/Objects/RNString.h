@@ -167,6 +167,7 @@ namespace RN
 		StringBuilder &operator << (const RN::Vector2 &val) { _stream << "(" << val.x << ", " << val.y << ")"; return *this; }
 		StringBuilder &operator << (const RN::Vector3 &val) { _stream << "(" << val.x << ", " << val.y << ", " << val.z << ")"; return *this; }
 		StringBuilder &operator << (const RN::Vector4 &val) { _stream << "(" << val.x << ", " << val.y << ", " << val.z << ", " << val.w << ")"; return *this; }
+		StringBuilder &operator << (const RN::Quaternion &val) { _stream << "(" << val.x << ", " << val.y << ", " << val.z << ", " << val.w << ")"; return *this; }
 
 	private:
 		std::stringstream _stream;
