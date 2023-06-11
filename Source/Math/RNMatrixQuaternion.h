@@ -122,6 +122,8 @@ namespace RN
 		Quaternion GetNormalized() const;
 		Quaternion &Conjugate();
 		Quaternion GetConjugated() const;
+		Quaternion &Inverse();
+		Quaternion GetInverse() const;
 
 		Quaternion GetLerpSpherical(const Quaternion &other, float factor) const;
 		Quaternion GetLerpLinear(const Quaternion &other, float factor) const;

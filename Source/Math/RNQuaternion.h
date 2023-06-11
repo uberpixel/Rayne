@@ -413,6 +413,17 @@ namespace RN
 		
 		return *this;
 	}
+
+	RN_INLINE Quaternion &Quaternion::Inverse()
+	{
+		float squaredLength = x * x + y * y + z * z + w * w;
+		x = -x / squaredLength;
+		y = -y / squaredLength;
+		z = -z / squaredLength;
+		w /= squaredLength;
+		
+		return *this;
+	}
 	
 	RN_INLINE Quaternion Quaternion::GetNormalized() const
 	{
@@ -422,6 +433,12 @@ namespace RN
 	RN_INLINE Quaternion Quaternion::GetConjugated() const
 	{
 		return Quaternion(-x, -y, -z, w);
+	}
+
+	RN_INLINE Quaternion Quaternion::GetInverse() const
+	{
+		float squaredLength = x * x + y * y + z * z + w * w;
+		return Quaternion(-x / squaredLength, -y / squaredLength, -z / squaredLength, w / squaredLength);
 	}
 	
 	RN_INLINE Quaternion Quaternion::GetLerpSpherical(const Quaternion &other, float factor) const
