@@ -11,7 +11,7 @@ __RN_PERMISSIONS__
         android:label="__RN_PROJECT_NAME__"
         android:supportsRtl="true"
         android:hasCode="true"
-        android:extractNativeLibs="true"
+        android:extractNativeLibs="false"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         android:icon="@mipmap/ic_launcher" >
 
