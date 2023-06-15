@@ -106,9 +106,21 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, isDemo):
 	cmakeTargets = b", ".join(newCmakeTargetList)
 	androidPermissions = getSettingFromConfig("android", "permissions", buildConfig)
 	permissionsString = b""
+	queriesString = b""
 	if androidPermissions:
 		for permission in androidPermissions:
-			permissionsString += b"    <uses-permission android:name=\"" + permission.encode('utf-8') + b"\" />\n";
+			if type(permission) is str:
+				permissionsString += b"    <uses-permission android:name=\"" + permission.encode('utf-8') + b"\" />\n";
+			elif not "type" in permission or permission["type"] == "permission":
+				if "maxSdkVersion" in permission:
+					permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" android:maxSdkVersion=\"" + str(permission["maxSdkVersion"]).encode('utf-8') + b"\" />\n";
+				else:
+					permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
+			elif permission["type"] == "query":
+				queriesString += b"       <package android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
+
+		if len(queriesString) > 0:
+			permissionsString += b"\n    <queries>\n" + queriesString + b"    </queries>";
 
 	androidDependencies = getSettingFromConfig("android", "android-dependencies", buildConfig)
 	dependenciesString = b""
