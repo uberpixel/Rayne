@@ -19,10 +19,10 @@ namespace RN
 {
 	RNDefineMeta(BHapticsManager, SceneAttachment)
 	
-	BHapticsManager::BHapticsManager() : _currentDevices(nullptr), _wantsDeviceUpdate(true)
+	BHapticsManager::BHapticsManager(const String *applicationID, const String *apiKey, const String *defaultConfig, bool requestPermission) : _currentDevices(nullptr), _wantsDeviceUpdate(true)
 	{
 #if RN_PLATFORM_ANDROID
-		//BHapticsAndroidWrapper::Initialize();
+		BHapticsAndroidWrapper::Initialize(applicationID, apiKey, defaultConfig, requestPermission);
 #elif RN_PLATFORM_WINDOWS
         //Initialise("com.slindev.grab", "GRAB");
 #endif
@@ -37,7 +37,7 @@ namespace RN
 
 	void BHapticsManager::Update(float delta)
 	{
-	   /* if(_wantsDeviceUpdate)
+	    if(_wantsDeviceUpdate)
 	    {
 			const Array *currentDevices = nullptr;
 #if RN_PLATFORM_ANDROID
@@ -57,96 +57,66 @@ namespace RN
 		{
 			call();
 		}
-		_queue.clear();*/
+		_queue.clear();
 	}
 
-	void BHapticsManager::RegisterProject(const String *key, const String *filepath)
+	void BHapticsManager::Play(const String *eventName, float intensity, float duration, float xOffsetAngle, float yOffset)
 	{
 #if RN_PLATFORM_ANDROID
-//		String *fileContent = String::WithContentsOfFile(filepath, Encoding::UTF8);
-//		BHapticsAndroidWrapper::RegisterProject(key, fileContent);
+		eventName->Retain();
+		_queue.push_back([eventName, intensity, duration, xOffsetAngle, yOffset](){
+			BHapticsAndroidWrapper::Play(eventName, intensity, duration, xOffsetAngle, yOffset);
+			eventName->Release();
+		});
 #elif RN_PLATFORM_WINDOWS
 #endif
 	}
 
-	void BHapticsManager::RegisterProjectReflected(const String *key, const String *filepath)
+/*	void BHapticsManager::SubmitDot(const String *key, BHapticsDevicePosition position, const std::vector<BHapticsDotPoint> &points, int duration)
 	{
 #if RN_PLATFORM_ANDROID
-//		String *fileContent = String::WithContentsOfFile(filepath, Encoding::UTF8);
-//		BHapticsAndroidWrapper::RegisterProjectReflected(key, fileContent);
-#elif RN_PLATFORM_WINDOWS
-#endif
-	}
-
-	void BHapticsManager::SubmitProject(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset)
-	{
-#if RN_PLATFORM_ANDROID
-/*		key->Retain();
-		if(altKey) altKey->Retain();
-		_queue.push_back([key, altKey, intensity, duration, xOffsetAngle, yOffset](){
-			BHapticsAndroidWrapper::SubmitRegistered(key, altKey, intensity, duration, xOffsetAngle, yOffset);
-			
-			key->Release();
-			if(altKey) altKey->Release();
-		});*/
-#elif RN_PLATFORM_WINDOWS
-#endif
-	}
-
-	void BHapticsManager::SubmitDot(const String *key, BHapticsDevicePosition position, const std::vector<BHapticsDotPoint> &points, int duration)
-	{
-#if RN_PLATFORM_ANDROID
-/*		key->Retain();
+		key->Retain();
 		_queue.push_back([key, position, points, duration](){
 			BHapticsAndroidWrapper::SubmitDot(key, position, points, duration);
 			key->Release();
-		});*/
+		});
 #elif RN_PLATFORM_WINDOWS
 		//SubmitDot(key->GetUTF8String(), key, points, 1000);
 #endif
-	}
+	}*/
 
-	bool BHapticsManager::IsFeedbackRegistered(String *key)
+	bool BHapticsManager::IsPlayingByEventName(const String *eventName)
 	{
-/*#if RN_PLATFORM_ANDROID
-		return BHapticsAndroidWrapper::IsFeedbackRegistered(key);
+#if RN_PLATFORM_ANDROID
+		return BHapticsAndroidWrapper::IsPlayingByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
-#endif*/
+#endif
 		return false;
 	}
 
-	bool BHapticsManager::IsFeedbackPlaying(String *key)
+	bool BHapticsManager::IsPlaying()
 	{
-/*#if RN_PLATFORM_ANDROID
-		return BHapticsAndroidWrapper::IsFeedbackPlaying(key);
+#if RN_PLATFORM_ANDROID
+		return BHapticsAndroidWrapper::IsPlaying();
 #elif RN_PLATFORM_WINDOWS
-#endif*/
+#endif
 		return false;
 	}
 
-	bool BHapticsManager::IsAnyFeedbackPlaying()
+	void BHapticsManager::StopByEventName(const String *eventName)
 	{
-/*#if RN_PLATFORM_ANDROID
-		return BHapticsAndroidWrapper::IsAnyFeedbackPlaying();
+#if RN_PLATFORM_ANDROID
+		BHapticsAndroidWrapper::StopByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
-#endif*/
-		return false;
+#endif
 	}
 
-	void BHapticsManager::TurnOffFeedback(const String *key)
+	void BHapticsManager::Stop()
 	{
-/*#if RN_PLATFORM_ANDROID
-		BHapticsAndroidWrapper::TurnOffFeedback(key);
+#if RN_PLATFORM_ANDROID
+		BHapticsAndroidWrapper::Stop();
 #elif RN_PLATFORM_WINDOWS
-#endif*/
-	}
-
-	void BHapticsManager::TurnOffAllFeedback()
-	{
-/*#if RN_PLATFORM_ANDROID
-		BHapticsAndroidWrapper::TurnOffAllFeedback();
-#elif RN_PLATFORM_WINDOWS
-#endif*/
+#endif
 	}
 
 	void BHapticsManager::UpdateCurrentDevices()
@@ -161,28 +131,28 @@ namespace RN
 
 	void BHapticsManager::PingAllDevices()
 	{
-/*#if RN_PLATFORM_ANDROID
-		BHapticsAndroidWrapper::PingAllDevices();
+#if RN_PLATFORM_ANDROID
+		BHapticsAndroidWrapper::PingAll();
 #elif RN_PLATFORM_WINDOWS
-#endif*/
+#endif
 	}
 
 	void BHapticsManager::PingDevice(BHapticsDevicePosition position)
 	{
 		if(!_currentDevices) return;
 		
-/*		_currentDevices->Enumerate<BHapticsDevice>([&](BHapticsDevice *device, size_t index, bool &stop){
+		_currentDevices->Enumerate<BHapticsDevice>([&](BHapticsDevice *device, size_t index, bool &stop){
 			if(device->position == position && device->address)
 			{
 				device->Retain();
 				_queue.push_back([device](){
 #if RN_PLATFORM_ANDROID
-					BHapticsAndroidWrapper::PingDevice(device->address);
+					BHapticsAndroidWrapper::Ping(device->address);
 #endif
 					device->Release();
 				});
 				stop = true;
 			}
-		});*/
+		});
 	}
 }

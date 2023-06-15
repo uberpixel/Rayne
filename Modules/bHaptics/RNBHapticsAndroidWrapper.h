@@ -17,69 +17,40 @@ namespace RN
 	class BHapticsAndroidWrapper
 	{
 	public:
-		static void Initialize();
+		static void Initialize(const String *applicationID, const String *apiKey, const String *defaultConfig, bool requestPermission);
 
-		static void RegisterProject(const String *key, const String *fileStr);
-		static void RegisterProjectReflected(const String *key, const String *fileStr);
-
-		static void SubmitRegistered(const String *key, const String *altKey, float intensity, float duration, float xOffsetAngle, float yOffset);
-		static void SubmitDot(const String *key, BHapticsDevicePosition devicePosition, const std::vector<BHapticsDotPoint> &points, int durationMillis);
-		//static void SubmitPath(FString Key, FString Pos, TArray<FPathPoint> Points, int DurationMillis);
-
-
-		static bool IsFeedbackRegistered(String *key);
-		static bool IsFeedbackPlaying(String *key);
-		static bool IsAnyFeedbackPlaying();
-		//static TArray<uint8> GetPositionStatus(FString pos);
-
-		static void TurnOffFeedback(const String *key);
-		static void TurnOffAllFeedback();
-		
-		
-		//Device management stuff that may not be important, but could be useful
-		
+		static bool IsBhapticsAvailable();
 		static const Array *GetCurrentDevices();
 
-		//Set the Position of Device
-/*		static void ChangeDevicePosition(const String *deviceAddress, BHapticsDevicePosition devicePosition);
-		
-		//Toggle the Position of Device
-		static void ToggleDevicePosition(const String *deviceAddress);*/
+		static bool PlayHaptic(const String *eventName);
+		static bool Play(const String *eventName, float intensity, float duration, float angleX, float offsetY);
+		//int PlayDot(int position, float duration, TArray<int> motorValues);
+		//int PlayWaveform(int position, TArray<int> motorIntensities, TArray<EBhapticsGlovePlayTime> playTimeValues, TArray<EBhapticsGloveShapeValue> shapeValues);
+		//int PlayLoop(FString eventId, float intensity, float duration, float angleX, float offsetY, int interval, int maxCount);
 
-		//Ping Haptic Device
-		static void PingDevice(const String *deviceAddress);
+		static bool IsPlaying();
+		//bool IsPlayingByRequestId(int requestId);
+		static bool IsPlayingByEventName(const String *eventName);
 
-		//Ping all Haptic Devices
-		static void PingAllDevices();
-		
-		//Device management stuff below, probably not needed on Quest!?
-		
-		//static bool IsLegacyMode(); //Android display name is "IsStandAloneMode"!? Likely not relevant on quest anymore...
-		
-		//Scan for bHaptics devices
-/*		static void StartScanning();
+		static void Ping(const String *deviceAddress);
+		static void PingAll();
 
-		//Stop scanning for devices
-		static void StopScanning();
+		//void SwapPosition(FBhapticsDevice device);
+		static bool StopByEventName(const String *eventName);
+		//bool StopByRequestId(int requestId);
+		static bool Stop();
+		static void Destroy();
+		//FBhapticsRotationOption ProjectToVest(FVector Location, UPrimitiveComponent* HitComponent, float HalfHeight);
+		//FBhapticsRotationOption ProjectToVestLocation(FVector ContactLocation, FVector PlayerLocation, FRotator PlayerRotation);
+		//FBhapticsRotationOption CustomProjectToVest(FVector Location, UPrimitiveComponent* HitComponent, float HalfHeight, FVector UpVector, FVector ForwardVector);
 
-		//Check if its currently scanning
-		static bool IsScanning();*/
-
-		/*//Pair with Haptic Device
-		static void PairDevice(FString DeviceAddress);
-
-		//Pair with Haptic Device and set Position
-		static void PairDeviceFromPosition(FString DeviceAddress, FString DevicePosition);
-
-		//Unpair Haptic Device
-		static void UnpairDevice(FString DeviceAddress);
-		
-		//Unpair all Haptic Devices
-		static void UnpairAllDevices();*/
+		static bool _isBhapticsAvailableChecked;
 		   
 	private:
 		static BHapticsDevicePosition StringToDevicePosition(const String *positionString);
 		static const String *DevicePositionToString(BHapticsDevicePosition position);
+
+		static bool _isBhapticsAvailable;
 	};
 }
 
