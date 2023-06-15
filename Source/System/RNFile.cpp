@@ -326,7 +326,9 @@ namespace RN
 
 		String *path = coordinator->ResolveFullPath(name, hint);
 		if(!path)
+		{
 			throw FileNotFoundException(RNSTR("Couldn't find file " << name));
+		}
 
 #if RN_PLATFORM_ANDROID
 		if(mode & Mode::Read)

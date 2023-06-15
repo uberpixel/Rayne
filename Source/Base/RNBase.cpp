@@ -103,6 +103,10 @@ void Android_handle_cmd(android_app *app, int32_t cmd)
             // The window is being hidden or closed, clean it up.
             RN::NotificationManager::GetSharedInstance()->PostNotification(kRNAndroidWindowDidChange, nullptr);
             break;
+		case APP_CMD_RESUME:
+			// The window is being hidden or closed, clean it up.
+			RN::NotificationManager::GetSharedInstance()->PostNotification(kRNAndroidOnResume, nullptr);
+			break;
         default:
             RNDebug("event not handled: " << cmd);
     }

@@ -94,7 +94,7 @@ namespace RN
 			/*JNIEnv* env = nullptr;
 			bool isNewEnv = false;
 
-			switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
+			switch(app->activity->vm->GetEnv((void**)&env, RN_JNI_VERSION_1_6))
 			{
 				case JNI_OK:
 					break;
@@ -182,7 +182,7 @@ namespace RN
 			/*JNIEnv* env = nullptr;
 			bool isNewEnv = false;
 
-			switch(app->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6))
+			switch(app->activity->vm->GetEnv((void**)&env, RN_JNI_VERSION_1_6))
 			{
 				case JNI_OK:
 					break;

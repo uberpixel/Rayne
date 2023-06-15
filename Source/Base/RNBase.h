@@ -55,11 +55,14 @@
 #endif
 #if RN_PLATFORM_ANDROID
 	#include <android_native_app_glue.h>
-	#ifndef JNI_VERSION_1_6
-		#define JNI_VERSION_1_6 0x00010006
+	#ifndef RN_JNI_VERSION_1_6
+		#define RN_JNI_VERSION_1_6 0x00010006
 	#endif
 
+	#define RN_JNI_METHOD __attribute__ ((visibility ("default"))) extern "C"
+
 	#define kRNAndroidWindowDidChange RNCSTR("kRNAndroidWindowDidChange")
+	#define kRNAndroidOnResume RNCSTR("kRNAndroidOnResume")
 #endif
 
 // ---------------------------
