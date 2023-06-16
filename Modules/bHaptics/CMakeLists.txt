@@ -45,40 +45,17 @@ target_compile_options(RayneBHaptics PRIVATE ${COMPILE_OPTIONS})
 
 
 if(WIN32)
-        ExternalProject_Add(bhaptics
-        GIT_REPOSITORY https://github.com/bhaptics/haptic-library.git
-        GIT_TAG refs/tags/tac-1.6.5
-        GIT_SHALLOW ON
-        GIT_PROGRESS ON
-        UPDATE_COMMAND ""
-        PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists_haptics.txt ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics/CMakeLists.txt
-        CMAKE_CACHE_ARGS
-                "-DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH:BOOL=False"
-                "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
-                "-DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}"
-                "-DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}"
-                "-DANDROID_ABI:STRING=${ANDROID_ABI}"
-                "-DANDROID_NDK:STRING=${ANDROID_NDK}"
-                "-DANDROID_STL:STRING=${ANDROID_STL}"
-                "-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
-        BUILD_BYPRODUCTS
-                ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.a
-                ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.a
-                ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/libhaptic_library.a
-                ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/libhaptic_library.lib
-                ${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/libhaptic_library.lib
-        INSTALL_COMMAND "")
-
         add_library(BHapticsLib STATIC IMPORTED)
 
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
-
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Debug/haptic_library.lib")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/Release/haptic_library.lib")
-        SET_PROPERTY(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bhaptics-prefix/src/bhaptics-build/RelWithDebInfo/haptic_library.lib")
+        set(BHAPTICS_DYNAMIC_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/BhapticsCPP/Win64/bhaptics_library.dll)
+        set_property(TARGET BHapticsLib PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/BhapticsCPP/Win64/bhaptics_library.lib) #${BHAPTICS_DYNAMIC_LIBRARY})
+        set_property(TARGET BHapticsLib PROPERTY IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/BhapticsCPP/Win64/bhaptics_library.lib)
+        set_property(TARGET BHapticsLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/BhapticsCPP)
 
         add_dependencies(BHapticsLib bhaptics)
         target_link_libraries(RayneBHaptics PUBLIC BHapticsLib)
+
+        add_custom_command(TARGET RayneBHaptics POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${BHAPTICS_DYNAMIC_LIBRARY}" "$<TARGET_FILE_DIR:RayneBHaptics>")
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneBHaptics/. DESTINATION lib/Rayne/RayneBHaptics)

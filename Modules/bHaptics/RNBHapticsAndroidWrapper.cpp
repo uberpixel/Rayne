@@ -104,101 +104,6 @@ namespace RN
 	#endif
 	}
 
-
-	BHapticsDevicePosition BHapticsAndroidWrapper::StringToDevicePosition(const String *positionString)
-	{
-		if(positionString->IsEqual(RNCSTR("ForearmL")))
-		{
-			return BHapticsDevicePosition::ForearmL;
-		}
-		else if(positionString->IsEqual(RNCSTR("ForearmR")))
-		{
-			return BHapticsDevicePosition::ForearmR;
-		}
-		else if(positionString->IsEqual(RNCSTR("Vest")))
-		{
-			return BHapticsDevicePosition::Vest;
-		}
-		else if(positionString->IsEqual(RNCSTR("VestFront")))
-		{
-			return BHapticsDevicePosition::VestFront;
-		}
-		else if(positionString->IsEqual(RNCSTR("VestBack")))
-		{
-			return BHapticsDevicePosition::VestBack;
-		}
-		else if(positionString->IsEqual(RNCSTR("Head")))
-		{
-			return BHapticsDevicePosition::Head;
-		}
-		else if(positionString->IsEqual(RNCSTR("HandL")))
-		{
-			return BHapticsDevicePosition::HandL;
-		}
-		else if(positionString->IsEqual(RNCSTR("HandR")))
-		{
-			return BHapticsDevicePosition::HandR;
-		}
-		else if(positionString->IsEqual(RNCSTR("FootL")))
-		{
-			return BHapticsDevicePosition::FootL;
-		}
-		else if(positionString->IsEqual(RNCSTR("FootR")))
-		{
-			return BHapticsDevicePosition::FootR;
-		}
-		
-		return BHapticsDevicePosition::Default;
-	}
-
-	const String *BHapticsAndroidWrapper::DevicePositionToString(BHapticsDevicePosition position)
-	{
-		if(position == BHapticsDevicePosition::ForearmL)
-		{
-			return RNCSTR("ForearmL");
-		}
-		else if(position == BHapticsDevicePosition::ForearmR)
-		{
-			return RNCSTR("ForearmR");
-		}
-		else if(position == BHapticsDevicePosition::Vest)
-		{
-			return RNCSTR("Vest");
-		}
-		else if(position == BHapticsDevicePosition::VestFront)
-		{
-			return RNCSTR("VestFront");
-		}
-		else if(position == BHapticsDevicePosition::VestBack)
-		{
-			return RNCSTR("VestBack");
-		}
-		else if(position == BHapticsDevicePosition::Head)
-		{
-			return RNCSTR("Head");
-		}
-		else if(position == BHapticsDevicePosition::HandL)
-		{
-			return RNCSTR("HandL");
-		}
-		else if(position == BHapticsDevicePosition::HandR)
-		{
-			return RNCSTR("HandR");
-		}
-		else if(position == BHapticsDevicePosition::FootL)
-		{
-			return RNCSTR("FootL");
-		}
-		else if(position == BHapticsDevicePosition::FootR)
-		{
-			return RNCSTR("FootR");
-		}
-		
-		return nullptr;
-	}
-
-
-
 	bool BHapticsAndroidWrapper::IsBhapticsAvailable()
 	{
 #if RN_PLATFORM_ANDROID
@@ -256,7 +161,7 @@ namespace RN
 					device->deviceName = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("DeviceName")));
 					device->address = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("Address")));
 
-                    device->position = StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
+                    device->position = BHapticsDevice::StringToDevicePosition(dict->GetObjectForKey<String>(RNCSTR("Position")));
 
                     const Number *isConnectedNumber = dict->GetObjectForKey<Number>(RNCSTR("IsConnected"));
                     device->isConnected = isConnectedNumber->GetBoolValue();

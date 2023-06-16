@@ -9,8 +9,7 @@
 #include "RNBHapticsManager.h"
 
 #if RN_PLATFORM_WINDOWS
-	#include "HapticLibrary.h"
-	#include "model.h"
+	#include "BhapticsCPP.h"
 #elif RN_PLATFORM_ANDROID
 	#include "RNBHapticsAndroidWrapper.h"
 #endif
@@ -24,14 +23,23 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Initialize(applicationID, apiKey, defaultConfig, requestPermission);
 #elif RN_PLATFORM_WINDOWS
-        //Initialise("com.slindev.grab", "GRAB");
+		registryAndInit(apiKey->GetUTF8String(), applicationID->GetUTF8String(), defaultConfig->GetUTF8String());
+
+		if(isPlayerInstalled())
+		{
+			if(!isPlayerRunning())
+			{
+				//UE_LOG(BhapticsPlugin, Log, TEXT("Player is not running and TryLaunch"));
+				launchPlayer(true);
+			}
+		}
 #endif
 	}
 		
 	BHapticsManager::~BHapticsManager()
 	{
 #if RN_PLATFORM_WINDOWS
-		//Destroy();
+		wsClose();
 #endif
 	}
 
@@ -43,6 +51,35 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 			currentDevices = BHapticsAndroidWrapper::GetCurrentDevices();
 #elif RN_PLATFORM_WINDOWS
+			std::string deviceStr = getDeviceInfoJson();
+
+			if(wsIsConnected() && deviceStr.length() > 0)
+			{
+				const Array *jsonDevices = JSONSerialization::ObjectFromString<RN::Array>(RNSTR(deviceStr));
+				if (jsonDevices && jsonDevices->GetCount() > 0)
+				{
+					Array *devices = new RN::Array(jsonDevices->GetCount());
+					jsonDevices->Enumerate<Dictionary>([&](Dictionary *dict, size_t index, bool &stop) {
+						BHapticsDevice *device = new BHapticsDevice();
+
+						device->deviceName = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("deviceName")));
+						device->address = SafeRetain(dict->GetObjectForKey<String>(RNCSTR("address")));
+
+						const Number *positionNumber = dict->GetObjectForKey<Number>(RNCSTR("position"));
+						device->position = static_cast<BHapticsDevicePosition>(positionNumber->GetUint8Value());
+
+						const Number *isConnectedNumber = dict->GetObjectForKey<Number>(RNCSTR("connected"));
+						device->isConnected = isConnectedNumber->GetBoolValue();
+
+						const Number *isPairedNumber = dict->GetObjectForKey<Number>(RNCSTR("paired"));
+						device->isPaired = isPairedNumber->GetBoolValue();
+
+						devices->AddObject(device);
+					});
+
+					currentDevices = devices->Autorelease();
+				}
+			}
 #endif
             if(currentDevices)
             {
@@ -62,14 +99,16 @@ namespace RN
 
 	void BHapticsManager::Play(const String *eventName, float intensity, float duration, float xOffsetAngle, float yOffset)
 	{
-#if RN_PLATFORM_ANDROID
 		eventName->Retain();
 		_queue.push_back([eventName, intensity, duration, xOffsetAngle, yOffset](){
+#if RN_PLATFORM_ANDROID
 			BHapticsAndroidWrapper::Play(eventName, intensity, duration, xOffsetAngle, yOffset);
+#elif RN_PLATFORM_WINDOWS
+			playPosParam(eventName->GetUTF8String(), 0, intensity, duration, xOffsetAngle, yOffset);
+#endif
+
 			eventName->Release();
 		});
-#elif RN_PLATFORM_WINDOWS
-#endif
 	}
 
 /*	void BHapticsManager::SubmitDot(const String *key, BHapticsDevicePosition position, const std::vector<BHapticsDotPoint> &points, int duration)
@@ -90,6 +129,7 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		return BHapticsAndroidWrapper::IsPlayingByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
+		return isPlayingByEventId(eventName->GetUTF8String());
 #endif
 		return false;
 	}
@@ -99,6 +139,7 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		return BHapticsAndroidWrapper::IsPlaying();
 #elif RN_PLATFORM_WINDOWS
+		return isPlaying();
 #endif
 		return false;
 	}
@@ -108,6 +149,7 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::StopByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
+		stopByEventId(eventName->GetUTF8String());
 #endif
 	}
 
@@ -116,6 +158,7 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Stop();
 #elif RN_PLATFORM_WINDOWS
+		stopAll();
 #endif
 	}
 
@@ -134,6 +177,7 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::PingAll();
 #elif RN_PLATFORM_WINDOWS
+		pingAll();
 #endif
 	}
 
@@ -148,6 +192,8 @@ namespace RN
 				_queue.push_back([device](){
 #if RN_PLATFORM_ANDROID
 					BHapticsAndroidWrapper::Ping(device->address);
+#elif RN_PLATFORM_WINDOWS
+					ping(device->address->GetUTF8String());
 #endif
 					device->Release();
 				});
