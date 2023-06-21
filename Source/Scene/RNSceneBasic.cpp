@@ -165,6 +165,30 @@ namespace RN
 					continue;
 				}
 
+				std::vector<SceneNode *> sceneNodesToRender;
+
+				//Collect all drawables for rendering
+				IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
+				while(nodeMember)
+				{
+					SceneNode *node = nodeMember->Get();
+					if(node->CanRender(renderer, camera))
+					{
+						sceneNodesToRender.push_back(node);
+					}
+
+					nodeMember = nodeMember->GetNext();
+				}
+
+				std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [camera](
+						SceneNode *a, SceneNode *b) {
+					if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
+					{
+						return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
+					}
+					return a->GetRenderPriority() < b->GetRenderPriority();
+				});
+
 				renderer->SubmitCamera(camera, [&] {
 					
 					//TODO: Add back some multithreading while not breaking the priorities.
@@ -181,14 +205,9 @@ namespace RN
 					}
 					
 					//Submit all drawables for rendering
-					IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
-					while(nodeMember)
+					for(SceneNode *node : sceneNodesToRender)
 					{
-						SceneNode *node = nodeMember->Get();
-						if(node->CanRender(renderer, camera))
-							node->Render(renderer, camera);
-						
-						nodeMember = nodeMember->GetNext();
+						node->Render(renderer, camera);
 					}
 				});
 

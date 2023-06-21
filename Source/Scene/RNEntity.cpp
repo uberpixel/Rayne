@@ -83,10 +83,10 @@ namespace RN
 
 		Camera *distanceCamera = camera->GetLODCamera();
 
-		float distance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
-		distance /= distanceCamera->GetClipFar();
+		float lodDistance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
+		lodDistance /= distanceCamera->GetClipFar();
 
-		Model::LODStage *stage = _model->GetLODStageForDistance(distance);
+		Model::LODStage *stage = _model->GetLODStageForDistance(lodDistance);
 
 		size_t index = stage->GetIndex();
 		auto &drawables = _drawables[index];
