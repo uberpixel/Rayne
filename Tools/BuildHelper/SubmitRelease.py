@@ -77,6 +77,38 @@ def downloadOculusPlatformUtil(helperdir):
 
 	return utilityFile
 
+
+def downloadPicoPlatformUtil(helperdir):
+	picoDirectory = os.path.join(helperdir, "Vendor")
+	picoDirectory = os.path.join(picoDirectory, "pico")
+	picoFile = os.path.join(picoDirectory, 'pico-cli')
+	if platform.system() == 'Windows':
+		picoFile = os.path.join(picoDirectory, 'pico-cli.exe')
+
+	if os.path.isfile(picoFile):
+		return picoFile
+
+	if not os.path.exists(picoDirectory):
+		os.makedirs(picoDirectory)
+
+	picoDownloadURL = None
+	if platform.system() == 'Darwin':
+		picoDownloadURL = 'https://p16-platform-static-va.ibyteimg.com/tos-maliva-i-jo6vmmv194-us/darwin-noncn/202304111056/pico-cli?r=1681181814847245000'
+	elif platform.system() == 'Windows':
+		picoDownloadURL = 'https://p16-platform-static-va.ibyteimg.com/tos-maliva-i-jo6vmmv194-us/windows-noncn/202304111056/pico-cli.exe?r=1681181814847245000'
+	else:
+		print('Platform ' + platform.system() + ' not supported.')
+		return None
+
+	with urllib.request.urlopen(picoDownloadURL) as response, open(picoFile, 'wb') as out_file:
+		shutil.copyfileobj(response, out_file)
+
+	os.chmod(picoFile, 0o775)
+
+	return picoFile
+
+
+
 def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
@@ -108,7 +140,7 @@ def main():
 		return
 
 	storefront = sys.argv[3]
-	supportedStorefronts = ['oculus', 'steam', 'itchio', 'github', 'test']
+	supportedStorefronts = ['oculus', 'pico', 'steam', 'itchio', 'github', 'test']
 	if not storefront in supportedStorefronts:
 		print('Storefront (' + storefront + ') not supported!')
 		return
@@ -223,7 +255,41 @@ def main():
 			subprocess.call(uploadCommand)
 
 			#--debug_symbols_dir /Users/slin/Dev/Rayne/Games/GRAB/Builds/android_oculus_demo/app/.cxx/cmake/release/arm64-v8a/Build --debug-symbols-pattern "*.so"
+	elif storefront == "pico":
+		picoUtilityFile = downloadPicoPlatformUtil(buildHelperPath)
+		if not picoUtilityFile:
+			return
 
+		deviceType = "pico"
+		if isDemo:
+			deviceType += "-demo"
+
+		appID = None
+		appSecret = None
+		with open(os.path.join(projectRootPath, configBuildSecrets), "rb") as appInfoFile:
+			appInfoData = json.load(appInfoFile)
+			if 'pico' in appInfoData and deviceType in appInfoData['pico']:
+				appInfoDeviceData = appInfoData['pico'][deviceType]
+				if appInfoDeviceData:
+					appID = appInfoDeviceData["app-id"]
+					appSecret = appInfoDeviceData["secret"]
+
+		if not appID or not appSecret:
+			print("no app-id or secret in " + configBuildSecrets + " for " + deviceType)
+			return
+
+		if targetPlatform == 'android':
+			releasesDirectoryPath = os.path.join(releasesDirectoryPath, 'android_pico')
+			if isDemo:
+				releasesDirectoryPath += "_demo"
+			apkToUpload = os.path.join(releasesDirectoryPath, configNameLower+"-"+"pico"+".apk")
+			uploadCommand = [picoUtilityFile, 'upload-build', '-r', 'noncn', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', '4', '--device', 'PICO Neo3,PICO 4,PICO 4 Pro']
+			if configChangelog != None:
+				with open(configChangelog, "r") as f:
+					changes = f.read()
+					uploadCommand.append('--notes-en')
+					uploadCommand.append(changes)
+			subprocess.call(uploadCommand)
 	elif storefront == "steam":
 		steamUserName = None
 		steamConfigFile = None
