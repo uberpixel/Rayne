@@ -57,6 +57,7 @@ namespace RN
 		foveationSwapChainCreateInfo.flags = XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB;
 		if(_xrWindow->_supportsFoveatedRendering)
 		{
+			RNDebug("Foveated Rendering is enabled.");
 			swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
 		}
 

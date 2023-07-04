@@ -47,7 +47,10 @@ namespace RN
 		xrStringToPath(instance, "/interaction_profiles/microsoft/motion_controller", &microsoftMixedRealityController);
 
 		XrPath picoNeo3Controller;
-		xrStringToPath(instance, "/interaction_profiles/pico/neo3_controller", &picoNeo3Controller);
+		xrStringToPath(instance, "/interaction_profiles/bytedance/pico_neo3_controller", &picoNeo3Controller);
+
+		XrPath pico4Controller;
+		xrStringToPath(instance, "/interaction_profiles/bytedance/pico4_controller", &pico4Controller);
 		
 		if(interactionProfile == khronosSimpleController)
 		{
@@ -73,6 +76,10 @@ namespace RN
 		{
 			return VRControllerTrackingState::Type::PicoNeo3Controller;
 		}
+		else if(interactionProfile == pico4Controller)
+		{
+			return VRControllerTrackingState::Type::PicoNeo3Controller;
+		}
 
 		return VRControllerTrackingState::Type::None;
 	}
@@ -87,11 +94,7 @@ namespace RN
         _supportsLocalDimming = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		_supportsViewStatePICO = false;
-		_supportsFrameEndInfoPICO = false;
-        _supportsSessionBeginInfoPICO = false;
-		_supportsAndroidControllerFunctionPICO = false;
-		_supportsConfigsPICO = false;
+		_supportsControllerInteractionPICO = false;
 #endif
 
 		_internals->session = XR_NULL_HANDLE;
@@ -118,11 +121,6 @@ namespace RN
 #if XR_USE_PLATFORM_ANDROID
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
 #endif
-
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		_internals->SetConfigPICO = nullptr;
-		_internals->VibrateControllerPICO = nullptr;
-#endif
 		
 		std::vector<const char*> extensions;
 		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
@@ -146,6 +144,8 @@ namespace RN
 		//TODO: Ideally these should all use the same official loader library,
 		// unfortunately PICOs extensions are not official yet and even oculus needs their own loader on quest
 		// So not much I can do here for now, but this can definitely be improved in the future
+		//UPDATE: The situation is better now: PICO now doesn't need special extensions,
+		// but needs their own loader and META now supports the official loader
 
 		//TODO: The manufacturer names could potentially change in the future. Pico could rebrand,
 		// Oculus will most likely become Meta.
@@ -253,30 +253,10 @@ namespace RN
 			}
 #endif
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-			else if(std::strcmp(extension.extensionName, XR_PICO_VIEW_STATE_EXT_ENABLE_EXTENSION_NAME) == 0)
+			else if(std::strcmp(extension.extensionName, "XR_PICO_controller_interaction") == 0)
 			{
 				extensions.push_back(extension.extensionName);
-				_supportsViewStatePICO = true;
-			}
-            else if(std::strcmp(extension.extensionName, XR_PICO_FRAME_END_INFO_EXT_EXTENSION_NAME) == 0)
-            {
-                extensions.push_back(extension.extensionName);
-                _supportsFrameEndInfoPICO = true;
-            }
-			else if(std::strcmp(extension.extensionName, XR_PICO_SESSION_BEGIN_INFO_EXT_ENABLE_EXTENSION_NAME) == 0)
-			{
-				extensions.push_back(extension.extensionName);
-                _supportsSessionBeginInfoPICO = true;
-			}
-			else if(std::strcmp(extension.extensionName, XR_PICO_ANDROID_CONTROLLER_FUNCTION_EXT_ENABLE_EXTENSION_NAME) == 0)
-			{
-				extensions.push_back(extension.extensionName);
-				_supportsAndroidControllerFunctionPICO = true;
-			}
-			else if(std::strcmp(extension.extensionName, XR_PICO_CONFIGS_EXT_EXTENSION_NAME) == 0)
-			{
-				extensions.push_back(extension.extensionName);
-				_supportsConfigsPICO = true;
+				_supportsControllerInteractionPICO = true;
 			}
 #elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
 			else if(std::strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME) == 0)
@@ -315,9 +295,9 @@ namespace RN
 		//TODO: This will only be correct for vulkan and only for the oculus extensions, PICO 4 will claim that it supports the FB FFR extension, but then not actually work with them
 		if(numberOfSupportedFoveationExtensions == 4
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		&& !_supportsConfigsPICO
+			&& !_supportsControllerInteractionPICO
 #endif
-			)
+		)
 		{
 			_supportsFoveatedRendering = true;
 		}
@@ -482,25 +462,6 @@ namespace RN
 		{
 			//XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrSetAndroidApplicationThreadKHR", (PFN_xrVoidFunction*)(&_internals->SetAndroidApplicationThreadKHR))))
-			{
-
-			}
-		}
-#endif
-
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_supportsConfigsPICO)
-		{
-			//XR_PICO_CONFIGS_EXT_EXTENSION_NAME
-			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrSetConfigPICO", (PFN_xrVoidFunction*)(&_internals->SetConfigPICO))))
-			{
-
-			}
-		}
-
-		if(_supportsAndroidControllerFunctionPICO)
-		{
-			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrVibrateControllerPico", (PFN_xrVoidFunction*)(&_internals->VibrateControllerPICO))))
 			{
 
 			}
@@ -1070,7 +1031,7 @@ namespace RN
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
 		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
-		xrStringToPath(_internals->instance, "/user/hand/left/input/back/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
@@ -1083,7 +1044,7 @@ namespace RN
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
 		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
-		xrStringToPath(_internals->instance, "/user/hand/right/input/back/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/menu/click", &handRightButtonSystemPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
 		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
@@ -1113,7 +1074,7 @@ namespace RN
 		picoNeoBindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
 		picoNeoBindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
 
-		xrStringToPath(_internals->instance, "/interaction_profiles/pico/neo3_controller", &interactionProfilePath);
+		xrStringToPath(_internals->instance, "/interaction_profiles/bytedance/pico_neo3_controller", &interactionProfilePath);
 
 		XrInteractionProfileSuggestedBinding suggestedPicoNeoBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
 		suggestedPicoNeoBindings.interactionProfile = interactionProfilePath;
@@ -1121,6 +1082,71 @@ namespace RN
 		suggestedPicoNeoBindings.countSuggestedBindings = picoNeoBindings.size();
 		XrResult neoBindingResult = xrSuggestInteractionProfileBindings(_internals->instance, &suggestedPicoNeoBindings);
 		if(!XR_SUCCEEDED(neoBindingResult))
+		{
+			RNDebug("failed action profile suggested binding");
+		}
+
+
+		//Pico 4 bindings
+		//Left hand
+		xrStringToPath(_internals->instance, "/user/hand/left/input/aim/pose", &handLeftAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/grip/pose", &handLeftGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/trigger/value", &handLeftTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/squeeze/value", &handLeftGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/x", &handLeftThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/y", &handLeftThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/thumbstick/click", &handLeftThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/menu/click", &handLeftButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/y/click", &handLeftButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/input/x/click", &handLeftButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/left/output/haptic", &handLeftHapticsPath);
+
+		//Right hand
+		xrStringToPath(_internals->instance, "/user/hand/right/input/aim/pose", &handRightAimPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/grip/pose", &handRightGripPosePath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/trigger/value", &handRightTriggerPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/squeeze/value", &handRightGrabPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/x", &handRightThumbstickXPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/y", &handRightThumbstickYPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/thumbstick/click", &handRightThumbstickPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/system/click", &handRightButtonSystemPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/b/click", &handRightButtonUpperPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/input/a/click", &handRightButtonLowerPressPath);
+		xrStringToPath(_internals->instance, "/user/hand/right/output/haptic", &handRightHapticsPath);
+
+		std::vector<XrActionSuggestedBinding> pico4Bindings;
+		pico4Bindings.push_back({_internals->handLeftAimPoseAction, handLeftAimPosePath});
+		pico4Bindings.push_back({_internals->handLeftGripPoseAction, handLeftGripPosePath});
+		pico4Bindings.push_back({_internals->handLeftTriggerAction, handLeftTriggerPath});
+		pico4Bindings.push_back({_internals->handLeftGrabAction, handLeftGrabPath});
+		pico4Bindings.push_back({_internals->handLeftThumbstickXAction, handLeftThumbstickXPath});
+		pico4Bindings.push_back({_internals->handLeftThumbstickYAction, handLeftThumbstickYPath});
+		pico4Bindings.push_back({_internals->handLeftThumbstickPressAction, handLeftThumbstickPressPath});
+		pico4Bindings.push_back({_internals->handLeftButtonSystemPressAction, handLeftButtonSystemPressPath});
+		pico4Bindings.push_back({_internals->handLeftButtonUpperPressAction, handLeftButtonUpperPressPath});
+		pico4Bindings.push_back({_internals->handLeftButtonLowerPressAction, handLeftButtonLowerPressPath});
+		pico4Bindings.push_back({_internals->handLeftHapticsAction, handLeftHapticsPath});
+
+		pico4Bindings.push_back({_internals->handRightAimPoseAction, handRightAimPosePath});
+		pico4Bindings.push_back({_internals->handRightGripPoseAction, handRightGripPosePath});
+		pico4Bindings.push_back({_internals->handRightTriggerAction, handRightTriggerPath});
+		pico4Bindings.push_back({_internals->handRightGrabAction, handRightGrabPath});
+		pico4Bindings.push_back({_internals->handRightThumbstickXAction, handRightThumbstickXPath});
+		pico4Bindings.push_back({_internals->handRightThumbstickYAction, handRightThumbstickYPath});
+		pico4Bindings.push_back({_internals->handRightThumbstickPressAction, handRightThumbstickPressPath});
+		pico4Bindings.push_back({_internals->handRightButtonSystemPressAction, handRightButtonSystemPressPath});
+		pico4Bindings.push_back({_internals->handRightButtonUpperPressAction, handRightButtonUpperPressPath});
+		pico4Bindings.push_back({_internals->handRightButtonLowerPressAction, handRightButtonLowerPressPath});
+		pico4Bindings.push_back({_internals->handRightHapticsAction, handRightHapticsPath});
+
+		xrStringToPath(_internals->instance, "/interaction_profiles/bytedance/pico4_controller", &interactionProfilePath);
+
+		XrInteractionProfileSuggestedBinding suggestedPico4Bindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+		suggestedPico4Bindings.interactionProfile = interactionProfilePath;
+		suggestedPico4Bindings.suggestedBindings = pico4Bindings.data();
+		suggestedPico4Bindings.countSuggestedBindings = pico4Bindings.size();
+		XrResult pico4BindingResult = xrSuggestInteractionProfileBindings(_internals->instance, &suggestedPico4Bindings);
+		if(!XR_SUCCEEDED(pico4BindingResult))
 		{
 			RNDebug("failed action profile suggested binding");
 		}
@@ -1440,13 +1466,6 @@ namespace RN
 			RN_ASSERT(false, "failed creating session");
 		}
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_internals->SetConfigPICO)
-		{
-			_internals->SetConfigPICO(_internals->session, ConfigsSetEXT::TRACKING_ORIGIN, "1");
-		}
-#endif
-
 		XrReferenceSpaceCreateInfo referenceSpaceCreateInfo;
 		referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
 		referenceSpaceCreateInfo.next = nullptr;
@@ -1527,15 +1546,7 @@ namespace RN
 				frameEndInfo.layerCount = layers.size();
 				frameEndInfo.layers = layers.data();
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-				XrFrameEndInfoEXT xrFrameEndInfoEXT;
-				if(_supportsFrameEndInfoPICO)
-				{
-					xrFrameEndInfoEXT.useHeadposeExt = 1;
-					xrFrameEndInfoEXT.gsIndex = _gsIndexPICO;
-					frameEndInfo.next = (void *) &xrFrameEndInfoEXT;
-				}
-#elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
+#if RN_OPENXR_SUPPORTS_METAQUEST_LOADER
 				XrLocalDimmingFrameEndInfoMETA xrLocalDimmingFrameEndInfoMETA;
 				if(_supportsLocalDimming)
 				{
@@ -1809,24 +1820,7 @@ namespace RN
 							beginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
 							beginInfo.next = nullptr;
 							beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-							if(_supportsSessionBeginInfoPICO)
-                            {
-                                XrSessionBeginInfoEXT sessionBeginInfoEXT;
-                                sessionBeginInfoEXT.type = XR_TYPE_SESSION_BEGIN_INFO;
-                                sessionBeginInfoEXT.enableSinglePass = 1;
-                                sessionBeginInfoEXT.colorSpace = XrColorSpace::colorSpaceSRGB;
-                                sessionBeginInfoEXT.next = nullptr;
-                                beginInfo.next = (void *)&sessionBeginInfoEXT;
-
-                                xrBeginSession(_internals->session, &beginInfo);
-                            }
-							else
-#endif
-                            {
-                                xrBeginSession(_internals->session, &beginInfo);
-                            }
+							xrBeginSession(_internals->session, &beginInfo);
 
 							_isSessionRunning = true;
 							_swapChain->SetActive(true);
@@ -1925,24 +1919,8 @@ namespace RN
 		viewState.next = nullptr;
 		viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_supportsViewStatePICO)
-		{
-			XrViewStatePICOEXT xrViewStatePICOEXT;
-			XrViewState viewState{XR_TYPE_VIEW_STATE};
-			viewState.next = (void*)&xrViewStatePICOEXT;
-
-			uint32_t viewCount = 2;
-			xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
-
-			_gsIndexPICO = xrViewStatePICOEXT.gsIndex;
-		}
-		else
-#endif
-		{
-			uint32_t viewCount = 2;
-			xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
-		}
+		uint32_t viewCount = 2;
+		xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
 
 		RN::Vector3 leftEyePosition = Vector3(_internals->views[0].pose.position.x, _internals->views[0].pose.position.y, _internals->views[0].pose.position.z);
 		RN::Vector3 rightEyePosition = Vector3(_internals->views[1].pose.position.x, _internals->views[1].pose.position.y, _internals->views[1].pose.position.z);
@@ -1977,7 +1955,7 @@ namespace RN
 		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 #else
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_supportsConfigsPICO) //This is only gonna be true on a PICO device
+		if(_supportsControllerInteractionPICO) //This is only gonna be true on a PICO device
 		{
 			_controllerTrackingState[0].type = VRControllerTrackingState::Type::PicoNeo3Controller;
 			_controllerTrackingState[1].type = VRControllerTrackingState::Type::PicoNeo3Controller;
@@ -2147,25 +2125,15 @@ namespace RN
 			{
 				float strength = _haptics[0].samples[_currentHapticsIndex[0]++];
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_internals->VibrateControllerPICO)
-				{
-					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
-					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 0); //duration in ms
-				}
-				else
-#endif
-				{
-					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-					hapticActionInfo.action = _internals->handLeftHapticsAction;
-					hapticActionInfo.subactionPath = XR_NULL_PATH;
-					XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-					hapticVibration.duration = delta * 1000000000.0; //nanoseconds
-					hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-					hapticVibration.amplitude = strength;
-					xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader *) &hapticVibration);
-					_hapticsStopped[0] = false;
-				}
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handLeftHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
+				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+				hapticVibration.amplitude = strength;
+				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader *) &hapticVibration);
+				_hapticsStopped[0] = false;
 			}
 		}
 
@@ -2293,25 +2261,15 @@ namespace RN
 			{
 				float strength = _haptics[1].samples[_currentHapticsIndex[1]++];
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_internals->VibrateControllerPICO)
-				{
-					//PICO wants some special treatment for haptics... Standard OpenXR haptics do not work right now
-					_internals->VibrateControllerPICO(_internals->instance, strength, delta * 1000.0, 1); //duration in ms
-				}
-				else
-#endif
-				{
-					XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-					hapticActionInfo.action = _internals->handRightHapticsAction;
-					hapticActionInfo.subactionPath = XR_NULL_PATH;
-					XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
-					hapticVibration.duration = delta * 1000000000.0; //nanoseconds
-					hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-					hapticVibration.amplitude = strength;
-					xrApplyHapticFeedback(_internals->session, &hapticActionInfo,  (XrHapticBaseHeader *) &hapticVibration);
-					_hapticsStopped[1] = false;
-				}
+				XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+				hapticActionInfo.action = _internals->handRightHapticsAction;
+				hapticActionInfo.subactionPath = XR_NULL_PATH;
+				XrHapticVibration hapticVibration{XR_TYPE_HAPTIC_VIBRATION};
+				hapticVibration.duration = delta * 1000000000.0; //nanoseconds
+				hapticVibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+				hapticVibration.amplitude = strength;
+				xrApplyHapticFeedback(_internals->session, &hapticActionInfo,  (XrHapticBaseHeader *) &hapticVibration);
+				_hapticsStopped[1] = false;
 			}
 		}
 

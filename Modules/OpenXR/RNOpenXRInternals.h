@@ -27,7 +27,7 @@
 
 #if XR_USE_PLATFORM_ANDROID
     #if RN_OPENXR_SUPPORTS_PICO_LOADER
-        #include "openxr_pico.h"
+		//Include any pico specific extension headers here if they aren't part of the official headers yet
     #elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
         //Include any meta specific extension headers here if they aren't part of the official headers yet
     #endif
@@ -111,11 +111,6 @@ namespace RN
 
 #if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
-#endif
-
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		PFN_xrSetConfigPICO SetConfigPICO;
-		PFN_xrVibrateControllerPico VibrateControllerPICO;
 #endif
 	};
 

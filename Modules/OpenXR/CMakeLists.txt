@@ -56,7 +56,7 @@ set(HEADERS
 
 set(DEFINES RN_BUILD_OPENXR)
 
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/include/openxr)
 	set(RN_OPENXR_SUPPORT_PICO OFF)
 endif()
 
@@ -73,11 +73,11 @@ if(ANDROID)
 	if(RN_OPENXR_SUPPORT_PICO)
 		set(DEFINES ${DEFINES} RN_OPENXR_SUPPORTS_PICO_LOADER)
 
-		execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so)
-		execute_process(COMMAND patchelf --set-soname libopenxr_loader_pico.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so)
+		execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/libs/android.arm64-v8a/libopenxr_loader.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/libs/android.arm64-v8a/libopenxr_loader_pico.so)
+		execute_process(COMMAND patchelf --set-soname libopenxr_loader_pico.so ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/libs/android.arm64-v8a/libopenxr_loader_pico.so)
 
 		add_library(OpenXRPico SHARED IMPORTED)
-		set_target_properties(OpenXRPico PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Libs/Android/arm64-v8a/libopenxr_loader_pico.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
+		set_target_properties(OpenXRPico PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/libs/android.arm64-v8a/libopenxr_loader_pico.so INTERFACE_LINK_LIBRARIES "" IMPORTED_IMPLIB "")
 	endif()
 
 	if(RN_OPENXR_SUPPORT_METAQUEST)
@@ -125,7 +125,7 @@ add_dependencies(RayneOpenXR OpenXRSDK)
 
 if(ANDROID)
 	if(RN_OPENXR_SUPPORT_PICO)
-		set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_Mobile_SDK_2/OpenXR/Include/openxr) #include directory for pico specific openxr header
+		set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/Vendor/Pico_OpenXR_SDK_220/include/openxr) #include directory for pico specific openxr header
 		target_link_libraries(RayneOpenXR PRIVATE OpenXRPico)
 	endif()
 	if(RN_OPENXR_SUPPORT_METAQUEST)
