@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 import subprocess
 import shutil
 import json
@@ -12,7 +11,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python CreateRelease.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python CreateRelease.py build-config.json os (windows, linux, macos or android) type (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -26,10 +25,10 @@ def main():
 	if not projectRootPath:
 		projectRootPath = ""
 
-	platform = sys.argv[2]
-	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
-	if not platform in supportedPlatforms:
-		print('Platform (' + platform + ') not supported!')
+	operatingSystem = sys.argv[2]
+	supportedOperatingSystems = ['windows', 'linux', 'macos', 'android', 'test']
+	if not operatingSystem in supportedOperatingSystems:
+		print('OS (' + operatingSystem + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
@@ -42,9 +41,9 @@ def main():
 	if len(sys.argv) == 5 and sys.argv[4] == "demo":
 		isDemo = True
 
-	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
-	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
-	configReleaseDirectory = Utilities.getSettingFromConfig(platform, "release-directory", buildConfigData)
+	configName = Utilities.getSettingFromConfig(operatingSystem, configuration, "name", buildConfigData)
+	configBuildDirectory = Utilities.getSettingFromConfig(operatingSystem, configuration, "build-directory", buildConfigData)
+	configReleaseDirectory = Utilities.getSettingFromConfig(operatingSystem, configuration, "release-directory", buildConfigData)
 	if not configName:
 		print("config file is missing name!")
 		return
@@ -59,18 +58,18 @@ def main():
 		configName += " Demo"
 
 	sourceDirectory = os.path.join(projectRootPath, configBuildDirectory)
-	sourceDirectory = os.path.join(sourceDirectory, platform+'_'+configuration)
+	sourceDirectory = os.path.join(sourceDirectory, operatingSystem+'_'+configuration)
 	buildDirectory = None
 	if isDemo:
 		sourceDirectory += "_demo"
-	if platform == 'android':
+	if operatingSystem == 'android':
 		buildDirectory = os.path.join(sourceDirectory, 'app/.cxx/Release/')
 		sourceDirectory = os.path.join(sourceDirectory, 'app/build/outputs/apk/release')
-	elif platform == 'linux':
+	elif operatingSystem == 'linux':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build')
-	elif platform == 'windows':
+	elif operatingSystem == 'windows':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build/Release/'+configName.replace(" ", ""))
-	elif platform == 'macos':
+	elif operatingSystem == 'macos':
 		sourceDirectory = os.path.join(sourceDirectory, 'Build/'+configName+'/Release')
 	
 	if not os.path.isdir(sourceDirectory):
@@ -78,19 +77,19 @@ def main():
 		return
 
 	destinationDirectory = os.path.join(projectRootPath, configReleaseDirectory)
-	destinationDirectory = os.path.join(destinationDirectory, platform+'_'+configuration)
+	destinationDirectory = os.path.join(destinationDirectory, operatingSystem+'_'+configuration)
 	if isDemo:
 		destinationDirectory += "_demo"
 	if os.path.isdir(destinationDirectory):
 		shutil.rmtree(destinationDirectory, ignore_errors=True)
 
-	if platform == 'windows':
+	if operatingSystem == 'windows':
 		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=shutil.ignore_patterns('*.lib', '*.exp'))
-	elif platform == 'linux':
+	elif operatingSystem == 'linux':
 		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=None)
-	elif platform == 'macos':
+	elif operatingSystem == 'macos':
 		shutil.copytree(sourceDirectory, destinationDirectory, symlinks=False, ignore=shutil.ignore_patterns('.DS_STORE'))
-	elif platform == 'android':
+	elif operatingSystem == 'android':
 		os.makedirs(destinationDirectory)
 		apkFileName = configName.replace(" ", "-").lower()+"-"+configuration+".apk"
 		shutil.copy2(os.path.join(sourceDirectory, apkFileName), os.path.join(destinationDirectory, apkFileName))

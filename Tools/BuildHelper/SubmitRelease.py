@@ -113,7 +113,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease.py build-config.json platform (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [demo] (will add "demo" to the bundle id and name)')
+		print('python SubmitRelease.py build-config.json os (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -133,10 +133,10 @@ def main():
 	buildHelperPath = os.path.abspath(buildHelperPath)
 	projectRootPath = os.path.abspath(projectRootPath)
 
-	targetPlatform = sys.argv[2]
-	supportedPlatforms = ['windows', 'linux', 'android', 'macos', 'test']
-	if not targetPlatform in supportedPlatforms:
-		print('Platform (' + targetPlatform + ') not supported!')
+	targetOS = sys.argv[2]
+	supportedOperatingSystems = ['windows', 'linux', 'android', 'macos', 'test']
+	if not targetOS in supportedOperatingSystems:
+		print('OS (' + targetOS + ') not supported!')
 		return
 
 	storefront = sys.argv[3]
@@ -149,12 +149,12 @@ def main():
 	if len(sys.argv) == 5 and sys.argv[4] == "demo":
 		isDemo = True
 
-	configName = Utilities.getSettingFromConfig(targetPlatform, "name", buildConfigData)
+	configName = Utilities.getSettingFromConfig(targetOS, storefront, "name", buildConfigData)
 	configName = configName.replace(" ", "-")
 	configNameLower = configName.lower()
-	configReleaseDirectory = Utilities.getSettingFromConfig(targetPlatform, "release-directory", buildConfigData)
-	configBuildSecrets = Utilities.getSettingFromConfig(targetPlatform, "build-secrets", buildConfigData)
-	configChangelog = Utilities.getSettingFromConfig(targetPlatform, "changelog", buildConfigData)
+	configReleaseDirectory = Utilities.getSettingFromConfig(targetOS, storefront, "release-directory", buildConfigData)
+	configBuildSecrets = Utilities.getSettingFromConfig(targetOS, storefront, "build-secrets", buildConfigData)
+	configChangelog = Utilities.getSettingFromConfig(targetOS, storefront, "changelog", buildConfigData)
 	if not configName:
 		print("config file is missing name!")
 		return
@@ -180,27 +180,27 @@ def main():
 		subprocess.call([butlerFile, 'upgrade'])
 		subprocess.call([butlerFile, 'login'])
 
-		appName = Utilities.getSettingFromConfig(targetPlatform, "appname-itchio", buildConfigData)
+		appName = Utilities.getSettingFromConfig(targetOS, storefront, "appname-itchio", buildConfigData)
 		if not appName:
 			appName = configName.lower() #This does NOT include "-demo"
 
 		if not isDemo:
-			if targetPlatform == 'windows':
+			if targetOS == 'windows':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent'), "slin/"+appName+":windows"])
-			elif targetPlatform == 'linux':
+			elif targetOS == 'linux':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent'), "slin/"+appName+":linux"])
-			elif targetPlatform == 'android':
+			elif targetOS == 'android':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent'), "slin/"+appName+":sidequest"])
-			elif targetPlatform == 'macos':
+			elif targetOS == 'macos':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent'), "slin/"+appName+":macos"])
 		else:
-			if targetPlatform == 'windows':
+			if targetOS == 'windows':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'windows_independent_demo'), "slin/"+appName+":windows"])
-			elif targetPlatform == 'linux':
+			elif targetOS == 'linux':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'linux_independent_demo'), "slin/"+appName+":linux"])
-			elif targetPlatform == 'android':
+			elif targetOS == 'android':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'android_independent_demo'), "slin/"+appName+":sidequest_demo"])
-			elif targetPlatform == 'macos':
+			elif targetOS == 'macos':
 				subprocess.call([butlerFile, 'push', os.path.join(releasesDirectoryPath, 'macos_independent_demo'), "slin/"+appName+":macos"])
 
 	elif storefront == "oculus":
@@ -209,7 +209,7 @@ def main():
 			return
 
 		deviceType = "rift"
-		if targetPlatform == "android":
+		if targetOS == "android":
 			deviceType = "quest"
 
 		if isDemo:
@@ -229,7 +229,7 @@ def main():
 			print("no app-id or secret in " + configBuildSecrets + " for " + deviceType)
 			return
 
-		if targetPlatform == 'windows':
+		if targetOS == 'windows':
 			directoryToUpload = os.path.join(releasesDirectoryPath, 'windows_oculus')
 			if isDemo:
 				directoryToUpload += "_demo"
@@ -241,7 +241,7 @@ def main():
 					uploadCommand.append('--notes')
 					uploadCommand.append('"' + changes + '"')
 			subprocess.call(uploadCommand)
-		elif targetPlatform == 'android':
+		elif targetOS == 'android':
 			releasesDirectoryPath = os.path.join(releasesDirectoryPath, 'android_oculus')
 			if isDemo:
 				releasesDirectoryPath += "_demo"
@@ -278,7 +278,7 @@ def main():
 			print("no app-id or secret in " + configBuildSecrets + " for " + deviceType)
 			return
 
-		if targetPlatform == 'android':
+		if targetOS == 'android':
 			releasesDirectoryPath = os.path.join(releasesDirectoryPath, 'android_pico')
 			if isDemo:
 				releasesDirectoryPath += "_demo"
@@ -298,7 +298,7 @@ def main():
 			if 'steam' in buildSecretsData:
 				steamData = buildSecretsData["steam"]
 				steamUserName = steamData["username"]
-				steamConfigFile = steamData["config-file~" + targetPlatform]
+				steamConfigFile = steamData["config-file~" + targetOS]
 				
 		builderFile = 'Vendor/Steamworks/sdk/tools/ContentBuilder/builder_osx/steamcmd.sh'
 		if platform.system() == 'Windows':
@@ -354,14 +354,14 @@ def main():
 		if releaseInfo:
 			uploadFileName = None
 			apkToUpload = releasesDirectoryPath
-			if targetPlatform == "android":
-				apkToUpload = os.path.join(apkToUpload, targetPlatform + '_independent')
+			if targetOS == "android":
+				apkToUpload = os.path.join(apkToUpload, targetOS + '_independent')
 				if isDemo:
 					apkToUpload += "_demo"
 				uploadFileName = configNameLower+"-"+"independent"+".apk"
 			else:
-				uploadFileName = configNameLower + "-" + targetPlatform + "_independent"
-				directoryToArchive = os.path.join(apkToUpload, targetPlatform + '_independent')
+				uploadFileName = configNameLower + "-" + targetOS + "_independent"
+				directoryToArchive = os.path.join(apkToUpload, targetOS + '_independent')
 				if isDemo:
 					directoryToArchive += "_demo"
 				shutil.make_archive(os.path.join(apkToUpload, uploadFileName), 'zip', directoryToArchive)

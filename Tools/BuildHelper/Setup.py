@@ -77,7 +77,7 @@ def main():
 		projectRootPath = ""
 	projectRootPath = os.path.abspath(projectRootPath)
 
-	dependencies = Utilities.getSettingFromConfig("windows", "dependencies", buildConfigData)
+	dependencies = Utilities.getSettingFromConfig("windows", "", "dependencies", buildConfigData)
 	for key in dependencies:
 		downloadAndExtractURL(dependencies[key], os.path.join(projectRootPath, key))
 

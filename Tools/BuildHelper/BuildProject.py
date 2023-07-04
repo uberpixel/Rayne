@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 import subprocess
 import shutil
 import getpass
@@ -12,7 +11,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python BuildProject.py build-config.json platform (windows, linux, macos or android) type (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python BuildProject.py build-config.json os (windows, linux, macos or android) type (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -32,10 +31,10 @@ def main():
 	buildHelperPath = os.path.abspath(buildHelperPath)
 	projectRootPath = os.path.abspath(projectRootPath)
 
-	platform = sys.argv[2]
-	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
-	if not platform in supportedPlatforms:
-		print('Platform (' + platform + ') not supported!')
+	operatingSystem = sys.argv[2]
+	supportedOperatingSystems = ['windows', 'linux', 'macos', 'android', 'test']
+	if not operatingSystem in supportedOperatingSystems:
+		print('OS (' + operatingSystem + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
@@ -48,11 +47,11 @@ def main():
 	if len(sys.argv) == 5 and sys.argv[4] == "demo":
 		isDemo = True
 
-	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)
-	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
-	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
-	configCmakeBuildType = Utilities.getSettingFromConfig(platform, "cmake-build-type", buildConfigData)
-	configKeystore = Utilities.getSettingFromConfig(platform, "keystore", buildConfigData)
+	configBundleID = Utilities.getSettingFromConfig(operatingSystem, configuration, "bundle-id", buildConfigData)
+	configName = Utilities.getSettingFromConfig(operatingSystem, configuration, "name", buildConfigData)
+	configBuildDirectory = Utilities.getSettingFromConfig(operatingSystem, configuration, "build-directory", buildConfigData)
+	configCmakeBuildType = Utilities.getSettingFromConfig(operatingSystem, configuration, "cmake-build-type", buildConfigData)
+	configKeystore = Utilities.getSettingFromConfig(operatingSystem, configuration, "keystore", buildConfigData)
 	if not configBundleID:
 		print("config file is missing bundle-id!")
 		return
@@ -65,7 +64,7 @@ def main():
 	if not configCmakeBuildType:
 		print("config file is missing cmake-build-type, using Release.")
 		configCmakeBuildType = "Release"
-	if not configKeystore and platform == "android":
+	if not configKeystore and operatingSystem == "android":
 		print("config file is missing keystore, this is required for android builds!")
 		return
 
@@ -80,14 +79,14 @@ def main():
 	Utilities.setVersionAndBuildNumber(versionFilePath, versionString, buildNumber)
 
 	buildDirectory = os.path.join(projectRootPath, configBuildDirectory)
-	buildDirectory = os.path.join(buildDirectory, platform+'_'+configuration)
+	buildDirectory = os.path.join(buildDirectory, operatingSystem+'_'+configuration)
 	if isDemo:
 		buildDirectory += "_demo"
 	os.chdir(buildDirectory)
 
 	print(buildDirectory)
 
-	if platform == 'windows':
+	if operatingSystem == 'windows':
 		vswhereOutput = subprocess.check_output([os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio/Installer/vswhere.exe"), "-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild"])
 		vswhereLines = vswhereOutput.splitlines()
 		vsInstallationPath = None
@@ -107,17 +106,17 @@ def main():
 			print("MSBuild not found!")
 			return
 		subprocess.call([msbuildPath, configName.replace(" ", "")+'.vcxproj', '-maxcpucount', '/p:configuration='+configCmakeBuildType, '/p:platform=x64'])
-	elif platform == 'linux':
+	elif operatingSystem == 'linux':
 		subprocess.call(['ninja'])
-	elif platform == 'macos':
+	elif operatingSystem == 'macos':
 		subprocess.call(['/usr/libexec/PlistBuddy', '-c', 'Set :CFBundleShortVersionString '+versionString, 'CMakeFiles/Concealed.dir/Info.plist'])
 		subprocess.call(['/usr/libexec/PlistBuddy', '-c', 'Set :CFBundleVersion '+str(buildNumber), 'CMakeFiles/Concealed.dir/Info.plist'])
 		subprocess.call(['xcodebuild', 'build', '-project', configName+'.xcodeproj', '-target', configName, '-configuration', configCmakeBuildType])
-	elif platform == 'android':
+	elif operatingSystem == 'android':
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
 
-		secretsFile = Utilities.getSettingFromConfig(platform, "build-secrets", buildConfigData)
+		secretsFile = Utilities.getSettingFromConfig(operatingSystem, configuration, "build-secrets", buildConfigData)
 		if secretsFile:
 			secretsFile = os.path.join(projectRootPath, secretsFile)
 			with open(secretsFile) as json_file:

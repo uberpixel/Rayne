@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 import subprocess
 import shutil
 
@@ -71,12 +70,26 @@ def copyToFolder(file, folder):
 	shutil.copy2(file, folder)
 
 
-def getSettingFromConfig(platform, setting, config, platformoverride=True):
+def getSettingFromConfig(operatingSystem, platform, setting, config, platformoverride=True):
 	value = None
 	if setting in config:
 		value = config[setting]
 
+	platformSetting = setting+"~"+operatingSystem
+	if platformSetting in config:
+		if platformoverride:
+			value = config[platformSetting]
+		else:
+			value += " "+config[platformSetting]
+
 	platformSetting = setting+"~"+platform
+	if platformSetting in config:
+		if platformoverride:
+			value = config[platformSetting]
+		else:
+			value += " "+config[platformSetting]
+
+	platformSetting = setting+"~"+operatingSystem+"~"+platform
 	if platformSetting in config:
 		if platformoverride:
 			value = config[platformSetting]
@@ -86,53 +99,58 @@ def getSettingFromConfig(platform, setting, config, platformoverride=True):
 	return value
 
 
-def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, isDemo):
-	bundleID = getSettingFromConfig("android", "bundle-id", buildConfig).encode('utf-8')
-	projectName = getSettingFromConfig("android", "name", buildConfig).encode('utf-8')
+def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
+	bundleID = getSettingFromConfig("android", platform, "bundle-id", buildConfig).encode('utf-8')
+	projectName = getSettingFromConfig("android", platform, "name", buildConfig).encode('utf-8')
+	projectDemoName = getSettingFromConfig("android", platform, "name-demo", buildConfig).encode('utf-8')
 	libraryName = projectName.replace(b" ", b"")
 	if isDemo:
 		bundleID += b"_demo"
-		projectName += b" Demo"
+		if not projectDemoName:
+			projectName += b" Demo"
+		else:
+			projectName = projectDemoName
 
-	cmakeTargets = ", ".join(getSettingFromConfig("android", "cmake-targets", buildConfig)).encode('utf-8')
+	cmakeTargets = ", ".join(getSettingFromConfig("android", platform, "cmake-targets", buildConfig)).encode('utf-8')
 	#cmakeVersion = subprocess.check_output(['cmake', '--version'])
 	#cmakeVersion = cmakeVersion.splitlines()[0]
 	#cmakeVersion = cmakeVersion.split(b" ")[2]
 	cmakeVersion = b"3.22.1" #This one can be installed with android sdk manager!
-	cmakeTargetsList = getSettingFromConfig("android", "cmake-targets", buildConfig)
+	cmakeTargetsList = getSettingFromConfig("android", platform, "cmake-targets", buildConfig)
 	newCmakeTargetList = list()
 	for target in cmakeTargetsList:
 		newCmakeTargetList.append(("\""+target+"\"").encode('utf-8'))
 	cmakeTargets = b", ".join(newCmakeTargetList)
-	androidPermissions = getSettingFromConfig("android", "permissions", buildConfig)
+	androidPermissions = getSettingFromConfig("android", platform, "permissions", buildConfig)
 	permissionsString = b""
 	queriesString = b""
 	if androidPermissions:
 		for permission in androidPermissions:
 			if type(permission) is str:
 				permissionsString += b"    <uses-permission android:name=\"" + permission.encode('utf-8') + b"\" />\n";
-			elif not "type" in permission or permission["type"] == "permission":
-				if "maxSdkVersion" in permission:
-					permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" android:maxSdkVersion=\"" + str(permission["maxSdkVersion"]).encode('utf-8') + b"\" />\n";
-				else:
-					permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
-			elif permission["type"] == "query":
-				queriesString += b"       <package android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
+			elif not "platforms" in permission or platform in permission["platforms"]:
+				if not "type" in permission or permission["type"] == "permission":
+					if "maxSdkVersion" in permission:
+						permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" android:maxSdkVersion=\"" + str(permission["maxSdkVersion"]).encode('utf-8') + b"\" />\n";
+					else:
+						permissionsString += b"    <uses-permission android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
+				elif permission["type"] == "query":
+					queriesString += b"       <package android:name=\"" + permission["name"].encode('utf-8') + b"\" />\n";
 
 		if len(queriesString) > 0:
 			permissionsString += b"\n    <queries>\n" + queriesString + b"    </queries>";
 
-	androidDependencies = getSettingFromConfig("android", "android-dependencies", buildConfig)
+	androidDependencies = getSettingFromConfig("android", platform, "android-dependencies", buildConfig)
 	dependenciesString = b""
 	if androidDependencies:
 		for dependency in androidDependencies:
 			if dependency["type"] == "gradle":
 				dependenciesString += b"	implementation '" + dependency["name"].encode('utf-8') + b"'\n";
-			elif dependency["type"] == "aar":
+			elif dependency["type"] == "aar" and (not "platforms" in dependency or platform in dependency["platforms"]):
 				dependenciesString += b"	implementation files('" + os.path.join(projectRoot, dependency["path"]).encode('utf-8') + b"')\n";
 
 	androidActivity = "android.app.NativeActivity"
-	customAndroidActivity = getSettingFromConfig("android", "android-custom-native-activity", buildConfig)
+	customAndroidActivity = getSettingFromConfig("android", platform, "android-custom-native-activity", buildConfig)
 	if customAndroidActivity:
 		androidActivity = customAndroidActivity.split("/")[-1]
 		androidActivity = androidActivity.split(".")[0]

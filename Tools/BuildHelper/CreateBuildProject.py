@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 import subprocess
 import shutil
 import Utilities
@@ -11,7 +10,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python CreateBuildProject.py build-config.json platform (windows, linux, macos or android) configuration (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python CreateBuildProject.py build-config.json os (windows, linux, macos or android) configuration (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -31,10 +30,10 @@ def main():
 	buildHelperPath = os.path.abspath(buildHelperPath)
 	projectRootPath = os.path.abspath(projectRootPath)
 
-	platform = sys.argv[2]
-	supportedPlatforms = ['windows', 'linux', 'macos', 'android', 'test']
-	if not platform in supportedPlatforms:
-		print('Platform (' + platform + ') not supported!')
+	operatingSystem = sys.argv[2]
+	supportedOperatingSystems= ['windows', 'linux', 'macos', 'ios', 'visionos', 'android', 'test']
+	if not operatingSystem in supportedOperatingSystems:
+		print('OS (' + operatingSystem + ') not supported!')
 		return
 
 	configuration = sys.argv[3]
@@ -47,12 +46,12 @@ def main():
 	if len(sys.argv) == 5 and sys.argv[4] == "demo":
 		isDemo = True
 
-	configBundleID = Utilities.getSettingFromConfig(platform, "bundle-id", buildConfigData)
-	configName = Utilities.getSettingFromConfig(platform, "name", buildConfigData)
-	configBuildDirectory = Utilities.getSettingFromConfig(platform, "build-directory", buildConfigData)
-	configCmakeBuildType = Utilities.getSettingFromConfig(platform, "cmake-build-type", buildConfigData)
-	configCmakeParameters = Utilities.getSettingFromConfig(platform, "cmake-parameters", buildConfigData, False)
-	configIconsDirectory = Utilities.getSettingFromConfig(platform, "icons", buildConfigData)
+	configBundleID = Utilities.getSettingFromConfig(operatingSystem, configuration, "bundle-id", buildConfigData)
+	configName = Utilities.getSettingFromConfig(operatingSystem, configuration, "name", buildConfigData)
+	configBuildDirectory = Utilities.getSettingFromConfig(operatingSystem, configuration, "build-directory", buildConfigData)
+	configCmakeBuildType = Utilities.getSettingFromConfig(operatingSystem, configuration, "cmake-build-type", buildConfigData)
+	configCmakeParameters = Utilities.getSettingFromConfig(operatingSystem, configuration, "cmake-parameters", buildConfigData, False)
+	configIconsDirectory = Utilities.getSettingFromConfig(operatingSystem, configuration, "icons", buildConfigData)
 	if not configBundleID:
 		print("config file is missing bundle-id!")
 		return
@@ -78,7 +77,7 @@ def main():
 	versionString = Utilities.getVersion(versionFilePath)
 
 	buildDirectory = os.path.join(projectRootPath, configBuildDirectory)
-	buildDirectory = os.path.join(buildDirectory, platform+'_'+configuration)
+	buildDirectory = os.path.join(buildDirectory, operatingSystem+'_'+configuration)
 	if isDemo:
 		buildDirectory += "_demo"
 	if os.path.isdir(buildDirectory):
@@ -92,16 +91,20 @@ def main():
 		buildconfiguration += "," + configCmakeParameters
 	buildType = "-DCMAKE_BUILD_TYPE="+configCmakeBuildType
 
-	if platform == 'windows':
+	if operatingSystem == 'windows':
 		subprocess.call(['cmake', projectRootPath, '-G', 'Visual Studio 15 2017 Win64', buildconfiguration, buildType])
-	elif platform == 'linux':
+	elif operatingSystem == 'linux':
 		subprocess.call(['cmake', '-G', 'Ninja', projectRootPath, buildconfiguration, buildType])
-	elif platform == 'macos':
+	elif operatingSystem == 'macos':
 		subprocess.call(['cmake', '-G', 'Xcode', projectRootPath, buildconfiguration])
-	elif platform == 'android':
+	elif operatingSystem =='visionos':
+		subprocess.call(['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=visionOS', projectRootPath, buildconfiguration])
+	elif operatingSystem =='ios':
+		subprocess.call(['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=iOS', projectRootPath, buildconfiguration])
+	elif operatingSystem == 'android':
 		shutil.copytree(os.path.join(buildHelperPath, "gradle-wrapper"), buildDirectory, dirs_exist_ok=True)
 		subprocess.call([os.path.join(buildDirectory, 'gradlew'), 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
-		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, isDemo)
+		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, configuration, isDemo)
 		shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"))
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration)# + "," + buildType) #build type should already be set by gradle depending on the build variant in android studio
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
