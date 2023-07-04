@@ -354,6 +354,10 @@ namespace RN
 		{
 			_deviceType = DeviceType::PicoVR;
 		}
+		else if(std::strcmp(_internals->systemProperties.systemName, "PICO 4") == 0)
+		{
+			_deviceType = DeviceType::PicoVR;
+		}
 		else
 		{
 			_deviceType = DeviceType::Unknown;
@@ -1869,7 +1873,12 @@ namespace RN
 					{
 						const XrEventDataReferenceSpaceChangePending &referenceSpaceChangePendingEvent =
 								*reinterpret_cast<XrEventDataReferenceSpaceChangePending *>(&event);
-						RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+
+						//if(referenceSpaceChangePendingEvent.poseValid)
+						{
+							RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+						}
+
 						NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
 						break;
 					}
@@ -2030,6 +2039,25 @@ namespace RN
 			XrSpaceLocation gripLocation {XR_TYPE_SPACE_LOCATION, &velocity};
 			xrLocateSpace(_internals->handLeftGripPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &gripLocation);
 
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
+			{
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+				if(_supportsControllerInteractionPICO && gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+				{
+					_controllerTrackingState[0].velocityLinear = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z) - _controllerTrackingState[0].positionGrip;
+					_controllerTrackingState[0].velocityLinear /= delta;
+				}
+				else
+#endif
+				{
+					_controllerTrackingState[0].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
+				}
+			}
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
+			{
+				_controllerTrackingState[0].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
 			{
 				_controllerTrackingState[0].positionGrip = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z);
@@ -2037,15 +2065,6 @@ namespace RN
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 			{
 				_controllerTrackingState[0].rotationGrip = Quaternion(gripLocation.pose.orientation.x, gripLocation.pose.orientation.y, gripLocation.pose.orientation.z, gripLocation.pose.orientation.w);
-			}
-
-			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
-			{
-				_controllerTrackingState[0].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
-			}
-			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
-			{
-				_controllerTrackingState[0].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
 			}
 
 			XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
@@ -2167,6 +2186,25 @@ namespace RN
 			XrSpaceLocation gripLocation {XR_TYPE_SPACE_LOCATION, &velocity};
 			xrLocateSpace(_internals->handRightGripPoseSpace, _internals->trackingSpace, _internals->predictedDisplayTime, &gripLocation);
 
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
+			{
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+				if(_supportsControllerInteractionPICO && gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+				{
+					_controllerTrackingState[1].velocityLinear = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z) - _controllerTrackingState[1].positionGrip;
+					_controllerTrackingState[1].velocityLinear /= delta;
+				}
+				else
+#endif
+				{
+					_controllerTrackingState[1].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
+				}
+			}
+			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
+			{
+				_controllerTrackingState[1].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
 			{
 				_controllerTrackingState[1].positionGrip = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z);
@@ -2174,15 +2212,6 @@ namespace RN
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 			{
 				_controllerTrackingState[1].rotationGrip = Quaternion(gripLocation.pose.orientation.x, gripLocation.pose.orientation.y, gripLocation.pose.orientation.z, gripLocation.pose.orientation.w);
-			}
-
-			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
-			{
-				_controllerTrackingState[1].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
-			}
-			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
-			{
-				_controllerTrackingState[1].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
 			}
 
 			XrActionStateFloat handTriggerState{XR_TYPE_ACTION_STATE_FLOAT};
