@@ -79,6 +79,23 @@ namespace RN
 #else
 		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_Warning);
 #endif
+		
+		static EOS_Platform_RTCOptions rtcOptions = { 0 };
+		rtcOptions.ApiVersion = EOS_PLATFORM_RTCOPTIONS_API_LATEST;
+		
+#if RN_PLATFORM_WINDOWS
+		// Get absolute path for xaudio2_9redist.dll file
+		wchar_t CurDir[MAX_PATH + 1] = {};
+		::GetCurrentDirectoryW(MAX_PATH + 1u, CurDir);
+		std::wstring BasePath = std::wstring(CurDir);
+		std::string XAudio29DllPath = FStringUtils::Narrow(BasePath);
+		XAudio29DllPath.append("/xaudio2_9redist.dll");
+
+		EOS_Windows_RTCOptions WindowsRtcOptions = { 0 };
+		WindowsRtcOptions.ApiVersion = EOS_WINDOWS_RTCOPTIONS_API_LATEST;
+		WindowsRtcOptions.XAudio29DllPath = XAudio29DllPath.c_str();
+		rtcOptions.PlatformSpecificOptions = &WindowsRtcOptions;
+#endif
 
 		EOS_Platform_Options platformOptions = {0};
 		platformOptions.ApiVersion = EOS_PLATFORM_OPTIONS_API_LATEST;
@@ -92,6 +109,7 @@ namespace RN
 		platformOptions.Flags = EOS_PF_DISABLE_OVERLAY; //Social or IAP overlay not made for VR is quite useless in VR...
 		platformOptions.CacheDirectory = nullptr;
 		platformOptions.TickBudgetInMilliseconds = 0; //Do all work, no matter how long
+		platformOptions.RTCOptions = &rtcOptions;
 		
 		_platformHandle = EOS_Platform_Create(&platformOptions);
 		

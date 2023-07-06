@@ -23,6 +23,12 @@ typedef struct EOS_LobbySearchHandle* EOS_HLobbySearch;
 struct EOS_LobbyDetailsHandle;
 typedef struct EOS_LobbyDetailsHandle* EOS_HLobbyDetails;
 
+struct EOS_RTCHandle;
+typedef struct EOS_RTCHandle* EOS_HRTC;
+
+struct EOS_RTCAudioHandle;
+typedef struct EOS_RTCAudioHandle* EOS_HRTCAudio;
+
 typedef struct _tagEOS_Lobby_CreateLobbyCallbackInfo EOS_Lobby_CreateLobbyCallbackInfo;
 typedef struct _tagEOS_LobbySearch_FindCallbackInfo EOS_LobbySearch_FindCallbackInfo;
 typedef struct _tagEOS_Lobby_UpdateLobbyCallbackInfo EOS_Lobby_UpdateLobbyCallbackInfo;
@@ -30,6 +36,8 @@ typedef struct _tagEOS_Lobby_JoinLobbyCallbackInfo EOS_Lobby_JoinLobbyCallbackIn
 typedef struct _tagEOS_Lobby_LeaveLobbyCallbackInfo EOS_Lobby_LeaveLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_DestroyLobbyCallbackInfo EOS_Lobby_DestroyLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_KickMemberCallbackInfo EOS_Lobby_KickMemberCallbackInfo;
+
+typedef struct _tagEOS_RTCAudio_AudioBeforeRenderCallbackInfo EOS_RTCAudio_AudioBeforeRenderCallbackInfo;
 
 namespace RN
 {
@@ -65,6 +73,8 @@ namespace RN
 
 		EOSAPI ~EOSLobbyManager();
 		
+		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> audioReceivedCallback);
+		
 		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
 		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr);
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
@@ -88,8 +98,13 @@ namespace RN
 		static void LobbyOnSearchCallback(const EOS_LobbySearch_FindCallbackInfo *Data);
 		static void LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data);
 		
+		static void LobbyAudioOnBeforeRenderCallback(const EOS_RTCAudio_AudioBeforeRenderCallbackInfo *Data);
+		
 		EOS_HLobby _lobbyInterfaceHandle;
 		EOS_HLobbySearch _lobbySearchHandle;
+		
+		EOS_HRTC _rtcInterfaceHandle;
+		EOS_HRTCAudio _rtcAudioInterfaceHandle;
 		
 		bool _isCreatingLobby;
 		bool _isSearchingLobby;
@@ -104,8 +119,13 @@ namespace RN
 		String *_connectedLobbyID;
 		bool _isConnectedLobbyOwner;
 		
+		bool _isVoiceEnabled;
+		bool _isVoiceUnmixed;
+		
 		std::function<void(bool, RN::Array *)> _lobbySearchCallback;
 		std::function<void(bool)> _didJoinLobbyCallback;
+		
+		std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> _audioReceivedCallback;
 			
 		RNDeclareMetaAPI(EOSLobbyManager, EOSAPI)
 	};

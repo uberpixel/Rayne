@@ -15,6 +15,9 @@
 
 #include "eos_lobby.h"
 #include "eos_lobby_types.h"
+#include "eos_rtc.h"
+#include "eos_rtc_audio.h"
+#include "eos_rtc_audio_types.h"
 
 namespace RN
 {
@@ -39,14 +42,24 @@ namespace RN
 		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ">\n{\n	lobbyName: " << lobbyName << ",\n	lobbyLevel: " << lobbyLevel << ",\n	lobbyVersion: " << lobbyVersion << ",\n	maximumPlayerCount: " << maximumPlayerCount << ",\n	currentPlayerCount: " << currentPlayerCount << "\n}");
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false), _isVoiceEnabled(false), _isVoiceUnmixed(true), _audioReceivedCallback(nullptr)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
+		
+		_rtcInterfaceHandle = EOS_Platform_GetRTCInterface(world->GetPlatformHandle());
+		_rtcAudioInterfaceHandle = EOS_RTC_GetAudioInterface(_rtcInterfaceHandle);
 	}
 		
 	EOSLobbyManager::~EOSLobbyManager()
 	{
 		SafeRelease(_connectedLobbyID);
+	}
+
+	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> audioReceivedCallback)
+	{
+		_audioReceivedCallback = audioReceivedCallback;
+		_isVoiceEnabled = voiceEnabled;
+		_isVoiceUnmixed = unmixed;
 	}
 
 	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
@@ -81,6 +94,23 @@ namespace RN
 		options.bDisableHostMigration = true; //Host migration is currently not supported with my p2p setup, so disabling it for lobbies should help with event lobbies not disappearing
 		options.BucketId = "Server"; //Top-level filtering criteria, called the Bucket ID, which is specific to your game; often formatted like "GameMode:Region:MapName"
 		if(lobbyIDOverride) options.LobbyId = lobbyIDOverride->GetUTF8String();
+		
+		if(_isVoiceEnabled)
+		{
+			options.bEnableRTCRoom = true;
+			
+			EOS_Lobby_LocalRTCOptions localRTCOptions = {};
+			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
+			localRTCOptions.bLocalAudioDeviceInputStartsMuted = false;
+			localRTCOptions.bUseManualAudioInput = false;
+			localRTCOptions.bUseManualAudioOutput = false;
+			
+			if(_audioReceivedCallback)
+			{
+				localRTCOptions.bUseManualAudioOutput = true;
+			}
+			options.LocalRTCOptions = &localRTCOptions;
+		}
 			
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
@@ -166,6 +196,21 @@ namespace RN
 		joinOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		joinOptions.LobbyDetailsHandle = lobbyInfo->lobbyHandle;
 		joinOptions.bPresenceEnabled = false;
+		
+		if(_isVoiceEnabled)
+		{
+			EOS_Lobby_LocalRTCOptions localRTCOptions = {};
+			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
+			localRTCOptions.bLocalAudioDeviceInputStartsMuted = false;
+			localRTCOptions.bUseManualAudioInput = false;
+			localRTCOptions.bUseManualAudioOutput = false;
+			
+			if(_audioReceivedCallback)
+			{
+				localRTCOptions.bUseManualAudioOutput = true;
+			}
+			joinOptions.LocalRTCOptions = &localRTCOptions;
+		}
 		
 		EOS_Lobby_JoinLobby(_lobbyInterfaceHandle, &joinOptions, this, LobbyOnJoinCallback);
 	}
@@ -304,6 +349,26 @@ namespace RN
 			lobbyManager->_isConnectedToLobby = true;
 			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
 			lobbyManager->_isConnectedLobbyOwner = true;
+			
+			if(lobbyManager->_isVoiceEnabled && lobbyManager->_audioReceivedCallback)
+			{
+				EOS_Lobby_GetRTCRoomNameOptions roomNameOptions = {};
+				roomNameOptions.ApiVersion = EOS_LOBBY_GETRTCROOMNAME_API_LATEST;
+				roomNameOptions.LobbyId = lobbyManager->_connectedLobbyID->GetUTF8String();
+				roomNameOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+				char roomNameBuffer[512];
+				RN::uint32 roomNameLength = 512;
+				if(EOS_Lobby_GetRTCRoomName(lobbyManager->_lobbyInterfaceHandle, &roomNameOptions, roomNameBuffer, &roomNameLength) == EOS_EResult::EOS_Success)
+				{
+					EOS_RTCAudio_AddNotifyAudioBeforeRenderOptions options = {};
+					options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORERENDER_API_LATEST;
+					options.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+					options.bUnmixedAudio = lobbyManager->_isVoiceUnmixed;
+					options.RoomName = roomNameBuffer;
+					
+					EOS_RTCAudio_AddNotifyAudioBeforeRender(lobbyManager->_rtcAudioInterfaceHandle, &options, lobbyManager, LobbyAudioOnBeforeRenderCallback);
+				}
+			}
 			
 			EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
 			modificationOptions.ApiVersion = EOS_LOBBY_UPDATELOBBYMODIFICATION_API_LATEST;
@@ -543,6 +608,26 @@ namespace RN
 			{
 				lobbyManager->_didJoinLobbyCallback(true);
 			}
+			
+			if(lobbyManager->_isVoiceEnabled && lobbyManager->_audioReceivedCallback)
+			{
+				EOS_Lobby_GetRTCRoomNameOptions roomNameOptions = {};
+				roomNameOptions.ApiVersion = EOS_LOBBY_GETRTCROOMNAME_API_LATEST;
+				roomNameOptions.LobbyId = lobbyManager->_connectedLobbyID->GetUTF8String();
+				roomNameOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+				char roomNameBuffer[512];
+				RN::uint32 roomNameLength = 512;
+				if(EOS_Lobby_GetRTCRoomName(lobbyManager->_lobbyInterfaceHandle, &roomNameOptions, roomNameBuffer, &roomNameLength) == EOS_EResult::EOS_Success)
+				{
+					EOS_RTCAudio_AddNotifyAudioBeforeRenderOptions options = {};
+					options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORERENDER_API_LATEST;
+					options.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+					options.bUnmixedAudio = lobbyManager->_isVoiceUnmixed;
+					options.RoomName = roomNameBuffer;
+					
+					EOS_RTCAudio_AddNotifyAudioBeforeRender(lobbyManager->_rtcAudioInterfaceHandle, &options, lobbyManager, LobbyAudioOnBeforeRenderCallback);
+				}
+			}
 		}
 		else
 		{
@@ -603,6 +688,29 @@ namespace RN
 		else
 		{
 			RNDebug("Failed kicking user");
+		}
+	}
+
+	void EOSLobbyManager::LobbyAudioOnBeforeRenderCallback(const EOS_RTCAudio_AudioBeforeRenderCallbackInfo *Data)
+	{
+		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
+		
+		if(lobbyManager->_audioReceivedCallback)
+		{
+			RN::String *eosUserID = nullptr;
+			
+			if(Data->ParticipantId)
+			{
+				char outBuffer[EOS_PRODUCTUSERID_MAX_LENGTH + 1];
+				int32_t outBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
+				if(EOS_ProductUserId_ToString(Data->ParticipantId, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
+				{
+					eosUserID = new RN::String(outBuffer);
+				}
+			}
+			lobbyManager->_audioReceivedCallback(eosUserID, Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames);
+			
+			if(eosUserID) eosUserID->Release();
 		}
 	}
 }
