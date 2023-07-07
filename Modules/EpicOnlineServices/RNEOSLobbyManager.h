@@ -75,7 +75,8 @@ namespace RN
 		EOSAPI ~EOSLobbyManager();
 		
 		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> audioReceivedCallback);
-		EOSAPI void SetLocalPlayerMute(bool mute);
+		EOSAPI void SetLocalPlayerMuted(bool mute);
+		bool GetLocalPlayerMuted() const {return _isLocalPlayerMuted;}
 		
 		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
 		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr);

@@ -62,7 +62,7 @@ namespace RN
 		_isVoiceUnmixed = unmixed;
 	}
 
-	void EOSLobbyManager::SetLocalPlayerMute(bool mute)
+	void EOSLobbyManager::SetLocalPlayerMuted(bool mute)
 	{
 		_isLocalPlayerMuted = mute;
 		
