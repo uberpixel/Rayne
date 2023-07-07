@@ -27,6 +27,8 @@
 #if !RN_PLATFORM_WINDOWS
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#else
+#include "Windows/eos_windows.h"
 #endif
 
 namespace RN
@@ -85,15 +87,12 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		// Get absolute path for xaudio2_9redist.dll file
-		wchar_t CurDir[MAX_PATH + 1] = {};
-		::GetCurrentDirectoryW(MAX_PATH + 1u, CurDir);
-		std::wstring BasePath = std::wstring(CurDir);
-		std::string XAudio29DllPath = FStringUtils::Narrow(BasePath);
-		XAudio29DllPath.append("/xaudio2_9redist.dll");
+		String *filePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ApplicationDirectory);
+		filePath->AppendPathComponent(RNCSTR("/xaudio2_9redist.dll"));
 
 		EOS_Windows_RTCOptions WindowsRtcOptions = { 0 };
 		WindowsRtcOptions.ApiVersion = EOS_WINDOWS_RTCOPTIONS_API_LATEST;
-		WindowsRtcOptions.XAudio29DllPath = XAudio29DllPath.c_str();
+		WindowsRtcOptions.XAudio29DllPath = filePath->GetUTF8String();
 		rtcOptions.PlatformSpecificOptions = &WindowsRtcOptions;
 #endif
 

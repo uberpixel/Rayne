@@ -67,6 +67,10 @@ if(ANDROID)
         string(SUBSTRING ${android-assets-dir} 1 ${length} android-assets-dir)
 else()
         add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${EOSSDK_DYNAMIC_LIBRARY}" "$<TARGET_FILE_DIR:RayneEOS>")
+
+        if(WIN32)
+                add_custom_command(TARGET RayneEOS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/Vendor/EOS-SDK/SDK/Bin/x64/xaudio2_9redist.dll" "$<TARGET_FILE_DIR:RayneEOS>")
+        endif()
 endif()
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneEOS/. DESTINATION lib/Rayne/RayneEOS)
