@@ -62,6 +62,30 @@ namespace RN
 		_isVoiceUnmixed = unmixed;
 	}
 
+	void EOSLobbyManager::SetLocalPlayerMute(bool mute)
+	{
+		_isLocalPlayerMuted = mute;
+		
+		if(_isConnectedToLobby)
+		{
+			EOS_Lobby_GetRTCRoomNameOptions roomNameOptions = {};
+			roomNameOptions.ApiVersion = EOS_LOBBY_GETRTCROOMNAME_API_LATEST;
+			roomNameOptions.LobbyId = _connectedLobbyID->GetUTF8String();
+			roomNameOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+			char roomNameBuffer[512];
+			RN::uint32 roomNameLength = 512;
+			if(EOS_Lobby_GetRTCRoomName(_lobbyInterfaceHandle, &roomNameOptions, roomNameBuffer, &roomNameLength) == EOS_EResult::EOS_Success)
+			{
+				EOS_RTCAudio_UpdateSendingOptions sendingOptions = {};
+				sendingOptions.ApiVersion = EOS_RTCAUDIO_UPDATESENDING_API_LATEST;
+				sendingOptions.RoomName = roomNameBuffer;
+				sendingOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+				sendingOptions.AudioStatus = mute? EOS_ERTCAudioStatus::EOS_RTCAS_Disabled : EOS_ERTCAudioStatus::EOS_RTCAS_Enabled;
+				EOS_RTCAudio_UpdateSending(_rtcAudioInterfaceHandle, &sendingOptions, this, LobbyAudioOnUpdateSendingCallback);
+			}
+		}
+	}
+
 	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
@@ -95,15 +119,17 @@ namespace RN
 		options.BucketId = "Server"; //Top-level filtering criteria, called the Bucket ID, which is specific to your game; often formatted like "GameMode:Region:MapName"
 		if(lobbyIDOverride) options.LobbyId = lobbyIDOverride->GetUTF8String();
 		
+		EOS_Lobby_LocalRTCOptions localRTCOptions = {0};
 		if(_isVoiceEnabled)
 		{
 			options.bEnableRTCRoom = true;
 			
-			EOS_Lobby_LocalRTCOptions localRTCOptions = {};
 			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
-			localRTCOptions.bLocalAudioDeviceInputStartsMuted = false;
+			localRTCOptions.bLocalAudioDeviceInputStartsMuted = _isLocalPlayerMuted;
 			localRTCOptions.bUseManualAudioInput = false;
 			localRTCOptions.bUseManualAudioOutput = false;
+			
+			RNInfo("localRTCOptions.ApiVersion: " << localRTCOptions.ApiVersion);
 			
 			if(_audioReceivedCallback)
 			{
@@ -124,7 +150,7 @@ namespace RN
 		}
 		if(_isSearchingLobby) return;
 		
-		EOS_Lobby_CreateLobbySearchOptions searchOptions = {};
+		EOS_Lobby_CreateLobbySearchOptions searchOptions = {0};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
 		searchOptions.MaxResults = std::min(maxResults, static_cast<uint32>(EOS_LOBBY_MAX_SEARCH_RESULTS));
 		
@@ -176,7 +202,7 @@ namespace RN
 			}
 		}
 		
-		EOS_LobbySearch_FindOptions findOptions = {};
+		EOS_LobbySearch_FindOptions findOptions = {0};
 		findOptions.ApiVersion = EOS_LOBBYSEARCH_FIND_API_LATEST;
 		findOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		
@@ -197,11 +223,11 @@ namespace RN
 		joinOptions.LobbyDetailsHandle = lobbyInfo->lobbyHandle;
 		joinOptions.bPresenceEnabled = false;
 		
+		EOS_Lobby_LocalRTCOptions localRTCOptions = {0};
 		if(_isVoiceEnabled)
 		{
-			EOS_Lobby_LocalRTCOptions localRTCOptions = {};
 			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
-			localRTCOptions.bLocalAudioDeviceInputStartsMuted = false;
+			localRTCOptions.bLocalAudioDeviceInputStartsMuted = _isLocalPlayerMuted;
 			localRTCOptions.bUseManualAudioInput = false;
 			localRTCOptions.bUseManualAudioOutput = false;
 			
@@ -712,5 +738,10 @@ namespace RN
 			
 			if(eosUserID) eosUserID->Release();
 		}
+	}
+
+	void EOSLobbyManager::LobbyAudioOnUpdateSendingCallback(const EOS_RTCAudio_UpdateSendingCallbackInfo *Data)
+	{
+		
 	}
 }

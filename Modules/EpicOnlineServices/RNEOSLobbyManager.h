@@ -38,6 +38,7 @@ typedef struct _tagEOS_Lobby_DestroyLobbyCallbackInfo EOS_Lobby_DestroyLobbyCall
 typedef struct _tagEOS_Lobby_KickMemberCallbackInfo EOS_Lobby_KickMemberCallbackInfo;
 
 typedef struct _tagEOS_RTCAudio_AudioBeforeRenderCallbackInfo EOS_RTCAudio_AudioBeforeRenderCallbackInfo;
+typedef struct _tagEOS_RTCAudio_UpdateSendingCallbackInfo EOS_RTCAudio_UpdateSendingCallbackInfo;
 
 namespace RN
 {
@@ -74,6 +75,7 @@ namespace RN
 		EOSAPI ~EOSLobbyManager();
 		
 		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> audioReceivedCallback);
+		EOSAPI void SetLocalPlayerMute(bool mute);
 		
 		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
 		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr);
@@ -99,6 +101,7 @@ namespace RN
 		static void LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data);
 		
 		static void LobbyAudioOnBeforeRenderCallback(const EOS_RTCAudio_AudioBeforeRenderCallbackInfo *Data);
+		static void LobbyAudioOnUpdateSendingCallback(const EOS_RTCAudio_UpdateSendingCallbackInfo *Data);
 		
 		EOS_HLobby _lobbyInterfaceHandle;
 		EOS_HLobbySearch _lobbySearchHandle;
@@ -121,6 +124,7 @@ namespace RN
 		
 		bool _isVoiceEnabled;
 		bool _isVoiceUnmixed;
+		bool _isLocalPlayerMuted;
 		
 		std::function<void(bool, RN::Array *)> _lobbySearchCallback;
 		std::function<void(bool)> _didJoinLobbyCallback;

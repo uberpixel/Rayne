@@ -74,11 +74,11 @@ namespace RN
 		}
 
 		EOS_Logging_SetCallback(LoggingCallback);
-#if RN_BUILD_DEBUG
+//#if RN_BUILD_DEBUG
 		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_VeryVerbose);
-#else
+/*#else
 		EOS_Logging_SetLogLevel(EOS_ELogCategory::EOS_LC_ALL_CATEGORIES, EOS_ELogLevel::EOS_LOG_Warning);
-#endif
+#endif*/
 		
 		static EOS_Platform_RTCOptions rtcOptions = { 0 };
 		rtcOptions.ApiVersion = EOS_PLATFORM_RTCOPTIONS_API_LATEST;
@@ -380,7 +380,7 @@ namespace RN
 
 	void EOSWorld::LoggingCallback(const EOS_LogMessage *Message)
 	{
-		RNDebug(Message->Message);
+		RNInfo(Message->Message);
 	}
 
 	void EOSWorld::ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data)
