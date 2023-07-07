@@ -40,6 +40,8 @@ typedef struct _tagEOS_Lobby_KickMemberCallbackInfo EOS_Lobby_KickMemberCallback
 typedef struct _tagEOS_RTCAudio_AudioBeforeRenderCallbackInfo EOS_RTCAudio_AudioBeforeRenderCallbackInfo;
 typedef struct _tagEOS_RTCAudio_UpdateSendingCallbackInfo EOS_RTCAudio_UpdateSendingCallbackInfo;
 
+typedef uint64_t EOS_NotificationId;
+
 namespace RN
 {
 	class EOSWorld;
@@ -109,6 +111,8 @@ namespace RN
 		
 		EOS_HRTC _rtcInterfaceHandle;
 		EOS_HRTCAudio _rtcAudioInterfaceHandle;
+		
+		EOS_NotificationId _currentAudioBeforeRenderNotificationID;
 		
 		bool _isCreatingLobby;
 		bool _isSearchingLobby;
