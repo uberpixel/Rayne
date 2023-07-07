@@ -64,9 +64,7 @@ namespace RN
 
 	void EOSLobbyManager::SetLocalPlayerMuted(bool mute)
 	{
-		_isLocalPlayerMuted = mute;
-		
-		if(_isConnectedToLobby)
+		if(_isConnectedToLobby && mute != _isLocalPlayerMuted)
 		{
 			EOS_Lobby_GetRTCRoomNameOptions roomNameOptions = {};
 			roomNameOptions.ApiVersion = EOS_LOBBY_GETRTCROOMNAME_API_LATEST;
@@ -84,6 +82,8 @@ namespace RN
 				EOS_RTCAudio_UpdateSending(_rtcAudioInterfaceHandle, &sendingOptions, this, LobbyAudioOnUpdateSendingCallback);
 			}
 		}
+		
+		_isLocalPlayerMuted = mute;
 	}
 
 	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
