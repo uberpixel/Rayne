@@ -330,6 +330,7 @@ namespace RN
 			return;
 
 		velocity /= delta;
-		alSourcefv(_source, AL_VELOCITY, &velocity.x);
+		_velocity = _velocity * 0.95f + velocity * 0.05f; //Smoothen the velocity
+		alSourcefv(_source, AL_VELOCITY, &_velocity.x);
 	}
 }

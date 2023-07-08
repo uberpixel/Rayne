@@ -54,6 +54,7 @@ namespace RN
 			
 		uint32 _source;
 		Vector3 _oldPosition;
+		Vector3 _velocity;
 			
 		bool _isPlaying;
 		bool _isRepeating;
