@@ -78,8 +78,8 @@ namespace RN
 		uint32 _sampleRate;
 		uint32 _channels;
 
-		uint32 _readPosition;
-		uint32 _writePosition;
+		std::atomic<uint32> _readPosition;
+		std::atomic<uint32> _writePosition;
 		std::atomic<uint32> _bufferedSize;
 		
 		AudioDecoder *_decoder;

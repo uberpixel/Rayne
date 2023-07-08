@@ -55,8 +55,15 @@ namespace RN
 			size_t fittingLength = std::min(remainingLength, _data->GetLength() - _writePosition);
 			_data->ReplaceBytes(static_cast<const uint8 *>(bytes) + offset, Range(_writePosition, fittingLength));
 			offset += fittingLength;
-			_writePosition += fittingLength;
-			_writePosition %= _data->GetLength();
+			_writePosition.fetch_add(fittingLength);
+			
+			//Do the modulo atomically by trying it until the values match
+			uint32 oldValue = _writePosition;
+			uint32 newValue = _writePosition % _data->GetLength();
+			while(!_writePosition.compare_exchange_weak(oldValue, newValue, std::memory_order_relaxed))
+			{
+				newValue = oldValue % _data->GetLength();
+			}
 
 			_bufferedSize.fetch_add(fittingLength);
 			remainingLength -= fittingLength;
@@ -69,9 +76,16 @@ namespace RN
 
 		if(!bytes)
 		{
-			_readPosition += size;
+			_readPosition.fetch_add(size);
 			_bufferedSize.fetch_sub(size);
-			_readPosition %= _data->GetLength();
+			
+			//Do the modulo atomically by trying it until the values match
+			uint32 oldValue = _readPosition;
+			uint32 newValue = _readPosition % _data->GetLength();
+			while(!_readPosition.compare_exchange_weak(oldValue, newValue, std::memory_order_relaxed))
+			{
+				newValue = oldValue % _data->GetLength();
+			}
 			return;
 		}
 
@@ -82,9 +96,16 @@ namespace RN
 			size_t fittingLength = remainingLength;
 			fittingLength = std::min(fittingLength, _data->GetLength() - _readPosition);
 			_data->GetBytesInRange(data, Range(_readPosition, fittingLength));
-			_readPosition += fittingLength;
+			_readPosition.fetch_add(fittingLength);
 			data += fittingLength;
-			_readPosition %= _data->GetLength();
+			
+			//Do the modulo atomically by trying it until the values match
+			uint32 oldValue = _readPosition;
+			uint32 newValue = _readPosition % _data->GetLength();
+			while(!_readPosition.compare_exchange_weak(oldValue, newValue, std::memory_order_relaxed))
+			{
+				newValue = oldValue % _data->GetLength();
+			}
 
 			_bufferedSize.fetch_sub(fittingLength);
 			remainingLength -= fittingLength;
