@@ -53,6 +53,8 @@ namespace RN
 	{
 		LockGuard<Lockable> lock(_lock);
 		
+		if(_asset == asset) return;
+		
 		bool wasPlaying = _isPlaying;
 		alSourceStop(_source);
 		_isPlaying = false;
