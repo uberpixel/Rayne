@@ -112,10 +112,6 @@ namespace RN
 		bool _supportsFoveatedRendering;
 		bool _supportsLocalDimming;
 
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		bool _supportsControllerInteractionPICO;
-#endif
-
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};
 }

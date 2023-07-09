@@ -94,7 +94,7 @@ namespace RN
         _supportsLocalDimming = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		_supportsControllerInteractionPICO = false;
+		_internals->_supportsControllerInteractionPICO = false;
 #endif
 
 		_internals->session = XR_NULL_HANDLE;
@@ -256,7 +256,7 @@ namespace RN
 			else if(std::strcmp(extension.extensionName, "XR_PICO_controller_interaction") == 0)
 			{
 				extensions.push_back(extension.extensionName);
-				_supportsControllerInteractionPICO = true;
+				_internals->_supportsControllerInteractionPICO = true;
 			}
 #elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
 			else if(std::strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME) == 0)
@@ -295,7 +295,7 @@ namespace RN
 		//TODO: This will only be correct for vulkan and only for the oculus extensions, PICO 4 will claim that it supports the FB FFR extension, but then not actually work with them
 		if(numberOfSupportedFoveationExtensions == 4
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-			&& !_supportsControllerInteractionPICO
+			&& !_internals->_supportsControllerInteractionPICO
 #endif
 		)
 		{
@@ -1876,8 +1876,13 @@ namespace RN
 
 						//if(referenceSpaceChangePendingEvent.poseValid)
 						{
-							RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+							//RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
 						}
+
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+						_internals->_trackingSpaceCounterRotation = RN::Vector3(_hmdTrackingState.rotation.GetEulerAngle().x, 0.0f, 0.0f);
+						RNDebug("Recenter: " << _internals->_trackingSpaceCounterRotation.x);
+#endif
 
 						NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
 						break;
@@ -1964,7 +1969,7 @@ namespace RN
 		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 #else
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_supportsControllerInteractionPICO) //This is only gonna be true on a PICO device
+		if(_internals->_supportsControllerInteractionPICO) //This is only gonna be true on a PICO device
 		{
 			_controllerTrackingState[0].type = VRControllerTrackingState::Type::PicoNeo3Controller;
 			_controllerTrackingState[1].type = VRControllerTrackingState::Type::PicoNeo3Controller;
@@ -2042,10 +2047,11 @@ namespace RN
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
 			{
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_supportsControllerInteractionPICO && gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+				if(_internals->_supportsControllerInteractionPICO)
 				{
-					_controllerTrackingState[0].velocityLinear = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z) - _controllerTrackingState[0].positionGrip;
-					_controllerTrackingState[0].velocityLinear /= delta;
+					//On pico the velocity is somehow wrong after recentering the view, this rotation corrects for that
+					//TODO: This will break if they ever fix it...
+					_controllerTrackingState[0].velocityLinear = _internals->_trackingSpaceCounterRotation.GetRotatedVector(Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z));
 				}
 				else
 #endif
@@ -2189,10 +2195,11 @@ namespace RN
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
 			{
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_supportsControllerInteractionPICO && gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+				if(_internals->_supportsControllerInteractionPICO)
 				{
-					_controllerTrackingState[1].velocityLinear = Vector3(gripLocation.pose.position.x, gripLocation.pose.position.y, gripLocation.pose.position.z) - _controllerTrackingState[1].positionGrip;
-					_controllerTrackingState[1].velocityLinear /= delta;
+					//On pico the velocity is somehow wrong after recentering the view, this rotation corrects for that
+					//TODO: This will break if they ever fix it...
+					_controllerTrackingState[1].velocityLinear = _internals->_trackingSpaceCounterRotation.GetRotatedVector(Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z));
 				}
 				else
 #endif

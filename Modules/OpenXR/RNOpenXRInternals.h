@@ -112,6 +112,11 @@ namespace RN
 #if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
 #endif
+
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+		bool _supportsControllerInteractionPICO;
+		RN::Quaternion _trackingSpaceCounterRotation;
+#endif
 	};
 
     struct OpenXRSwapchainInternals
