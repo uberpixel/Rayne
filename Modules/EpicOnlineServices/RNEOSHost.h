@@ -67,9 +67,9 @@ namespace RN
 			EOS_ProductUserId internalID;
 			double smoothedRoundtripTime;
 			
-			uint8 _packetIDForChannel[254];
-			uint8 _receivedIDForChannel[254];
-			uint8 _lastReliableIDForChannel[254];
+			uint8 _packetIDForChannel[256];
+			uint8 _receivedIDForChannel[256];
+			uint8 _lastReliableIDForChannel[256];
 			
 			uint8 _lastPingID;
 			Clock::time_point _sentPingTime;
