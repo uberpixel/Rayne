@@ -18,14 +18,13 @@ namespace RN
 	RNDefineMeta(OpenALSource, SceneNode)
 
 		OpenALSource::OpenALSource(AudioAsset *asset) :
-		_asset(asset),
+		_asset(nullptr),
 		_isPlaying(false),
 		_isRepeating(false),
 		_isSelfdestructing(false),
 		_hasEnded(false),
 		_ringBufferTemp(nullptr)
 	{
-		SafeRetain(_asset);
 		_oldPosition = GetWorldPosition();
 			
 		alGenSources(1, &_source);
@@ -76,6 +75,7 @@ namespace RN
 		{
 			OpenALResourceAttachment *attachment = OpenALResourceAttachment::GetAttachmentForResource(asset);
 			alSourcei(_source, AL_BUFFER, attachment->GetBufferID());
+			alSourcei(_source, AL_LOOPING, _isRepeating?AL_TRUE: AL_FALSE);
 		}
 		else if(_asset->GetType() == AudioAsset::Type::Ringbuffer || _asset->GetType() == AudioAsset::Type::Decoder)
 		{
