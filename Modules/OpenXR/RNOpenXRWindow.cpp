@@ -1819,7 +1819,7 @@ namespace RN
 								*reinterpret_cast<XrEventDataSessionStateChanged *>(&event);
 						if(sessionStateChangedEvent.state == XR_SESSION_STATE_READY)
 						{
-							RNDebug("Session State: Ready");
+                            RNInfo("Session State: Ready");
 							XrSessionBeginInfo beginInfo;
 							beginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
 							beginInfo.next = nullptr;
@@ -1831,7 +1831,7 @@ namespace RN
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
 						{
-							RNDebug("Session State: Stopping");
+                            RNInfo("Session State: Stopping");
 							_hasSynchronization = false;
 							_isSessionRunning = false;
 							_swapChain->SetActive(false);
@@ -1839,25 +1839,25 @@ namespace RN
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)
 						{
-							RNDebug("Session State: Exiting");
+                            RNInfo("Session State: Exiting");
 							xrDestroySession(_internals->session);
 							_internals->session = XR_NULL_HANDLE;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_SYNCHRONIZED)
 						{
-							RNDebug("Session State: Synchronized");
+                            RNInfo("Session State: Synchronized");
 							_hasSynchronization = true;
 							_hasVisibility = false;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_VISIBLE)
 						{
-							RNDebug("Session State: Visible");
+                            RNInfo("Session State: Visible");
 							_hasVisibility = true;
 							_hasInputFocus = false;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_FOCUSED)
 						{
-							RNDebug("Session State: Focused");
+                            RNInfo("Session State: Focused");
 							_hasInputFocus = true;
 						}
 						break;
@@ -1880,8 +1880,8 @@ namespace RN
 						}
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-						_internals->_trackingSpaceCounterRotation = RN::Vector3(_hmdTrackingState.rotation.GetEulerAngle().x, 0.0f, 0.0f);
-						RNDebug("Recenter: " << _internals->_trackingSpaceCounterRotation.x);
+                        _internals->_trackingSpaceCounterRotation = RN::Vector3(_hmdTrackingState.rotation.GetEulerAngle().x, 0.0f, 0.0f);
+                        RNInfo("Recenter: " << _internals->_trackingSpaceCounterRotation.GetEulerAngle().x);
 #endif
 
 						NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
