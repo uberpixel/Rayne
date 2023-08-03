@@ -180,14 +180,17 @@ namespace RN
 					nodeMember = nodeMember->GetNext();
 				}
 
-				std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [camera](
-						SceneNode *a, SceneNode *b) {
-					if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
-					{
-						return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
-					}
-					return a->GetRenderPriority() < b->GetRenderPriority();
-				});
+				if(camera->GetFlags() & Camera::Flags::SortFrontToBack)
+				{
+					std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [camera](
+							SceneNode *a, SceneNode *b) {
+						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
+						{
+							return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
+						}
+						return a->GetRenderPriority() < b->GetRenderPriority();
+					});
+				}
 
 				renderer->SubmitCamera(camera, [&] {
 					

@@ -46,7 +46,7 @@ namespace RN
 				   UseClipPlanes   = (1 << 25),
 				   UseSimpleCulling = (1 << 26),
 
-				   Defaults = (UseFog));
+				   Defaults = (UseFog | SortFrontToBack));
 
 
 
