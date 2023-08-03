@@ -10,8 +10,7 @@ __RN_PERMISSIONS__
         android:label="__RN_PROJECT_NAME__"
         android:supportsRtl="true"
         android:hasCode="true"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-        android:icon="@mipmap/ic_launcher" >
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" __RN_APPLICATION_PROPERTIES__>
 
         <meta-data android:name="pvr.app.type" android:value="vr" />
         <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>

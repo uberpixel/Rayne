@@ -102,14 +102,14 @@ def getSettingFromConfig(operatingSystem, platform, setting, config, platformove
 def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 	bundleID = getSettingFromConfig("android", platform, "bundle-id", buildConfig).encode('utf-8')
 	projectName = getSettingFromConfig("android", platform, "name", buildConfig).encode('utf-8')
-	projectDemoName = getSettingFromConfig("android", platform, "name-demo", buildConfig).encode('utf-8')
+	projectDemoName = getSettingFromConfig("android", platform, "name-demo", buildConfig)
 	libraryName = projectName.replace(b" ", b"")
 	if isDemo:
 		bundleID += b"_demo"
 		if not projectDemoName:
 			projectName += b" Demo"
 		else:
-			projectName = projectDemoName
+			projectName = projectDemoName.encode('utf-8')
 
 	cmakeTargets = ", ".join(getSettingFromConfig("android", platform, "cmake-targets", buildConfig)).encode('utf-8')
 	#cmakeVersion = subprocess.check_output(['cmake', '--version'])
@@ -149,6 +149,11 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 			elif dependency["type"] == "aar" and (not "platforms" in dependency or platform in dependency["platforms"]):
 				dependenciesString += b"	implementation files('" + os.path.join(projectRoot, dependency["path"]).encode('utf-8') + b"')\n";
 
+	applicationPropertiesString = b""
+	androidIcons = getSettingFromConfig("android", platform, "icons", buildConfig)
+	if androidIcons:
+		applicationPropertiesString += b'\n        android:icon="@mipmap/ic_launcher" '
+
 	androidActivity = "android.app.NativeActivity"
 	customAndroidActivity = getSettingFromConfig("android", platform, "android-custom-native-activity", buildConfig)
 	if customAndroidActivity:
@@ -178,6 +183,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 				fileContent = fileContent.replace(b"__RN_CMAKE_TARGETS__", cmakeTargets)
 				fileContent = fileContent.replace(b"__RN_PERMISSIONS__", permissionsString)
 				fileContent = fileContent.replace(b"__RN_ANDROID_DEPENDENCIES__", dependenciesString)
+				fileContent = fileContent.replace(b"__RN_APPLICATION_PROPERTIES__", applicationPropertiesString)
 
 				with open(writeFilePath, 'wb') as writeFile:
 					writeFile.write(fileContent)

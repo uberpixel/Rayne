@@ -105,7 +105,8 @@ def main():
 		shutil.copytree(os.path.join(buildHelperPath, "gradle-wrapper"), buildDirectory, dirs_exist_ok=True)
 		subprocess.call([os.path.join(buildDirectory, 'gradlew'), 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
 		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, configuration, isDemo)
-		shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"))
+		if configIconsDirectory:
+			shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"))
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration)# + "," + buildType) #build type should already be set by gradle depending on the build variant in android studio
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
