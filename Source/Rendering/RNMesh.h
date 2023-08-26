@@ -115,7 +115,7 @@ namespace RN
 						if(!_names)
 							_names = new Array();
 
-						_names->AddObject(attribute.GetName()->Copy());
+						_names->AddObject(attribute.GetName()->Copy()->Autorelease());
 					}
 				}
 

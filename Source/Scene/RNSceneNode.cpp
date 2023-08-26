@@ -67,7 +67,9 @@ namespace RN
 		_tag      = other->_tag;
 
 		other->GetChildren()->Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop){
-			AddChild(node->Copy());
+			SceneNode *nodeCopy = node->Copy();
+			AddChild(nodeCopy);
+			nodeCopy->Release();
 		});
 	}
 

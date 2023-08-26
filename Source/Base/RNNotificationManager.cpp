@@ -19,6 +19,8 @@ namespace RN
 	NotificationManager::~NotificationManager()
 	{
 		_sharedInstance = nullptr;
+		
+		//TODO: Should enumerate _subscribers here and release "name"
 	}
 
 	NotificationManager *NotificationManager::GetSharedInstance()
@@ -56,17 +58,12 @@ namespace RN
 		auto iterator = _subscribers.find(const_cast<String *>(name));
 		if(iterator == _subscribers.end())
 		{
-			String *key = name->Copy();
+			String *key = name->Copy(); //Copy retains it, released when removing the subscriber
 
 			std::vector<Subscriber> subscribers;
 			subscribers.emplace_back(callback, token);
 
 			_subscribers.emplace(std::make_pair(key, std::move(subscribers)));
-		}
-		else
-		{
-			std::vector<Subscriber> &subscribers = iterator->second;
-			subscribers.emplace_back(callback, token);
 		}
 	}
 
@@ -74,45 +71,21 @@ namespace RN
 	{
 		LockGuard<Lockable> lock(_lock);
 
-		if(name)
+		auto iterator = _subscribers.find(const_cast<String *>(name));
+		if(iterator == _subscribers.end())
+			return;
+
+		for(auto it = iterator->second.begin(); it != iterator->second.end();)
 		{
-			auto iterator = _subscribers.find(const_cast<String *>(name));
-			if(iterator == _subscribers.end())
-				return;
-
-			for(auto it = iterator->second.begin(); it != iterator->second.end();)
+			if(it->token == token)
 			{
-				if(it->token == token)
-				{
-					it = iterator->second.erase(it);
-					continue;
-				}
-
-				it ++;
+				it = iterator->second.erase(it);
+				continue;
 			}
-		}
-		else
-		{
-		repeat:
-			for(auto iterator = _subscribers.begin(); iterator != _subscribers.end(); iterator ++)
-			{
-				for(auto it = iterator->second.begin(); it != iterator->second.end();)
-				{
-					if(it->token == token)
-					{
-						it = iterator->second.erase(it);
-						continue;
-					}
 
-					it ++;
-				}
-
-				if(iterator->second.empty())
-				{
-					_subscribers.erase(iterator);
-					goto repeat;
-				}
-			}
+			it ++;
 		}
+		
+		iterator->first->Release(); //Release the "name"
 	}
 }

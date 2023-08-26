@@ -52,9 +52,10 @@ namespace RN
 
 	Shader *Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint)
 	{
+		options = options->Copy();
+		
 		if(hint == Shader::UsageHint::Multiview || hint == Shader::UsageHint::DepthMultiview)
 		{
-			options = options->Copy();
 			options->EnableMultiview();
 		}
 		
@@ -112,6 +113,8 @@ namespace RN
 				}
 			}
 		}
+		
+		options->Release();
 
 		return shader;
 	}

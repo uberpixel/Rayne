@@ -75,7 +75,9 @@ namespace RN
 		void SetObjectForKey(Object *object, Object *key)
 		{
 			LockGuard<Lockable> lock(_dictionaryLock);
-			_dictionary->SetObjectForKey(object, key->Copy());
+			Object *keyCopy = key->Copy();
+			_dictionary->SetObjectForKey(object, keyCopy);
+			keyCopy->Release();
 		}
 		
 		void RemoveObjectForKey(Object *key)
