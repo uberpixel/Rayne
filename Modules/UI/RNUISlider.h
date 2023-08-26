@@ -26,6 +26,9 @@ namespace RN
 			UIAPI void SetValue(float value);
 			
 			bool GetIsActive() const { return _isActive; }
+			
+			View *GetRangeView() const { return _rangeView; }
+			View *GetHandleView() const { return _handleView; }
 
 		private:
 			float _value;
@@ -35,6 +38,7 @@ namespace RN
 			
 			bool _isActive;
 			
+			View *_rangeView;
 			View *_handleView;
 
 			RNDeclareMetaAPI(Slider, UIAPI)

@@ -17,10 +17,10 @@ namespace RN
 		Slider::Slider(const Rect &frame, float value, float from, float to, float step) : View(frame), _value(value), _from(from), _to(to), _step(step), _isActive(false)
 		{
 			float lineWidth = 4.0;
-			View *rangeView = new View(Rect(0.0f, (frame.height - lineWidth) * 0.5, frame.width, lineWidth));
-			rangeView->SetCornerRadius(lineWidth * 0.5f);
-			rangeView->SetBackgroundColor(Color::White());
-			AddSubview(rangeView);
+			_rangeView = new View(Rect(0.0f, (frame.height - lineWidth) * 0.5, frame.width, lineWidth));
+			_rangeView->SetCornerRadius(lineWidth * 0.5f);
+			_rangeView->SetBackgroundColor(Color::White());
+			AddSubview(_rangeView);
 			
 			_handleView = new View(Rect(0.0f, 0.0f, 15.0f, GetFrame().height));
 			_handleView->SetCornerRadius(7.5f);
