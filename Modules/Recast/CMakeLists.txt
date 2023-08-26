@@ -7,7 +7,7 @@ include(ExternalProject)
 
 ExternalProject_Add(recast
         GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
-        GIT_TAG origin/master
+        GIT_TAG origin/main
         GIT_SHALLOW ON
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
