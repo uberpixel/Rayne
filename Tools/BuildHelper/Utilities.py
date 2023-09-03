@@ -188,6 +188,12 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 				with open(writeFilePath, 'wb') as writeFile:
 					writeFile.write(fileContent)
 
+	customAndroidStrings = getSettingFromConfig("android", platform, "android-custom-strings", buildConfig)
+	if customAndroidStrings:
+		stringsDirectory = "app/src/main/res/values"
+		os.makedirs(stringsDirectory)
+		shutil.copy(os.path.join(projectRoot, customAndroidStrings), stringsDirectory)
+
 	if customAndroidActivity:
 		activityPath = os.path.join(projectRoot, customAndroidActivity)
 		bundleIDComponents = bundleID.decode("utf-8").split('.')
@@ -199,3 +205,6 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 			fileContent = fileContent.replace(b"__RN_BUNDLE_ID__", bundleID)
 			with open(os.path.join(customActivityPath, os.path.basename(customAndroidActivity)), 'wb') as writeFile:
 				writeFile.write(fileContent)
+
+
+

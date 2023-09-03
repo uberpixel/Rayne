@@ -106,7 +106,7 @@ def main():
 		subprocess.call([os.path.join(buildDirectory, 'gradlew'), 'init', '--type', 'basic', '--dsl', 'groovy', '--project-name', configName])
 		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, configuration, isDemo)
 		if configIconsDirectory:
-			shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"))
+			shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"), dirs_exist_ok=True)
 		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', buildconfiguration)# + "," + buildType) #build type should already be set by gradle depending on the build variant in android studio
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
