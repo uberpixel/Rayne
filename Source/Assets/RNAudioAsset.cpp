@@ -144,6 +144,12 @@ namespace RN
 		return coordinator->GetAssetWithName<AudioAsset>(name, settings);
 	}
 
+	std::shared_future<StrongRef<Asset>> AudioAsset::WithNameAsync(const String *name, const Dictionary *settings)
+	{
+		AssetManager *coordinator = AssetManager::GetSharedInstance();
+		return coordinator->GetFutureAssetWithName<AudioAsset>(name, settings);
+	}
+
 	AudioAsset* AudioAsset::WithRingbuffer(size_t size, int bytesPerSample, int sampleRate, int channels)
 	{
 		AudioAsset *asset = new AudioAsset(Type::Ringbuffer, size, bytesPerSample, sampleRate, channels);
