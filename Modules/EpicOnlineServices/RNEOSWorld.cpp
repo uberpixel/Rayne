@@ -349,6 +349,7 @@ namespace RN
 			
 			EOS_Connect_UserLoginInfo userInfo;
 			userInfo.ApiVersion = EOS_CONNECT_USERLOGININFO_API_LATEST;
+			userInfo.NsaIdToken = nullptr;
 			if(userName)
 			{
 				userInfo.DisplayName = userName->GetUTF8String();
