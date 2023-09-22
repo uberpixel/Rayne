@@ -11,7 +11,6 @@
 
 #include "../Base/RNBase.h"
 #include "RNVector.h"
-#include "RNSIMD.h"
 
 namespace RN
 {
@@ -63,18 +62,8 @@ namespace RN
 		
 		bool IsEqual(const Matrix &other, float epsilon) const;
 	
-#if RN_SIMD
-		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
-		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
-		
-		union
-		{
-			float m[16];
-			SIMD::VecFloat vec[4];
-		};
-#else
 		float m[16];
-#endif
+		
 	private:
 		float GetSubmatrixDeterminant(const int k) const;
 		

@@ -49,7 +49,6 @@
 #include "Math/RNMatrix.h"
 #include "Math/RNRandom.h"
 #include "Math/RNQuaternion.h"
-#include "Math/RNSIMD.h"
 #include "Math/RNSphere.h"
 #include "Math/RNVector.h"
 #include "Math/RNHalfVector.h"

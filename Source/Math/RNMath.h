@@ -15,7 +15,6 @@
 	#include "../RayneConfig.h"
 #endif
 
-#include "RNSIMD.h"
 #include "RNConstants.h"
 
 namespace RN

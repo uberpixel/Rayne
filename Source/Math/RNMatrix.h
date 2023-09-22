@@ -13,6 +13,14 @@
 #include "RNVector.h"
 #include "RNMatrixQuaternion.h"
 
+/*
+#if RN_PLATFORM_INTEL
+#include <immintrin.h>
+#include <smmintrin.h>
+#elif RN_PLATFORM_ARM
+#include "../Vendor/sse2neon/sse2neon.h"
+#endif
+*/
 namespace RN
 {
 	RN_INLINE Matrix::Matrix()
@@ -23,26 +31,35 @@ namespace RN
 
 	RN_INLINE Matrix &Matrix::operator*= (const Matrix &other)
 	{
-#if RN_SIMD
-		RN_ALIGNAS(16) float tmp[16];
-		SIMD::VecFloat right, result;
+/*		float temp[16];
 		
-		for(int i=0; i<16; i+=4)
-		{
-			right = SIMD::Set(other.m[i]);
-			result = SIMD::Mul(vec[0], right);
-			
-			for(int j=1; j<4; j++)
-			{
-				right = SIMD::Set(other.m[i + j]);
-				result = SIMD::Add(SIMD::Mul(vec[j], right), result);
-			}
-			
-			SIMD::Store(result, &tmp[i]);
-		}
+		__m128 simdResult;
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[0]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[1])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[2])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[3])));
+		_mm_storeu_ps(&temp[0], simdResult);
 		
-		std::copy(tmp, tmp + 16, m);
-#else
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[4]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[5])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[6])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[7])));
+		_mm_storeu_ps(&temp[4], simdResult);
+		
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[8]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[9])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[10])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[11])));
+		_mm_storeu_ps(&temp[8], simdResult);
+		
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[12]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[13])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[14])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[15])));
+		_mm_storeu_ps(&temp[12], simdResult);
+		
+		std::copy(temp, temp + 16, m);*/
+
 		float tmp[16];
 		
 		tmp[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
@@ -66,7 +83,6 @@ namespace RN
 		tmp[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
 		
 		std::copy(tmp, tmp + 16, m);
-#endif
 		
 		return *this;
 	}
@@ -75,23 +91,33 @@ namespace RN
 	{
 		Matrix matrix;
 		
-#if RN_SIMD
-		SIMD::VecFloat right, result;
+/*		__m128 simdResult;
 		
-		for(int i=0; i<16; i+=4)
-		{
-			right = SIMD::Set(other.m[i]);
-			result = SIMD::Mul(vec[0], right);
-			
-			for(int j=1; j<4; j++)
-			{
-				right = SIMD::Set(other.m[i + j]);
-				result = SIMD::Add(SIMD::Mul(vec[j], right), result);
-			}
-			
-			matrix.vec[i/4] = result;
-		}
-#else
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[0]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[1])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[2])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[3])));
+		_mm_storeu_ps(&matrix.m[0], simdResult);
+		
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[4]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[5])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[6])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[7])));
+		_mm_storeu_ps(&matrix.m[4], simdResult);
+		
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[8]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[9])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[10])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[11])));
+		_mm_storeu_ps(&matrix.m[8], simdResult);
+		
+		simdResult = _mm_mul_ps(_mm_loadu_ps(&m[0]), _mm_load1_ps(&other.m[12]));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[4]), _mm_load1_ps(&other.m[13])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[8]), _mm_load1_ps(&other.m[14])));
+		simdResult = _mm_add_ps(simdResult, _mm_mul_ps(_mm_loadu_ps(&m[12]), _mm_load1_ps(&other.m[15])));
+		_mm_storeu_ps(&matrix.m[12], simdResult);*/
+		
+
 		matrix.m[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
 		matrix.m[ 1] = m[ 1] * other.m[ 0] + m[ 5] * other.m[ 1] + m[ 9] * other.m[ 2] + m[13] * other.m[ 3];
 		matrix.m[ 2] = m[ 2] * other.m[ 0] + m[ 6] * other.m[ 1] + m[10] * other.m[ 2] + m[14] * other.m[ 3];
@@ -111,7 +137,6 @@ namespace RN
 		matrix.m[13] = m[ 1] * other.m[12] + m[ 5] * other.m[13] + m[ 9] * other.m[14] + m[13] * other.m[15];
 		matrix.m[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
 		matrix.m[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
-#endif
 		
 		return matrix;
 	}
@@ -124,6 +149,32 @@ namespace RN
 		result.x = m[0] * other.x + m[4] * other.y + m[ 8] * other.z + m[12];
 		result.y = m[1] * other.x + m[5] * other.y + m[ 9] * other.z + m[13];
 		result.z = m[2] * other.x + m[6] * other.y + m[10] * other.z + m[14];
+		
+		
+		//Slower than the above...
+		/*__m128 simdVector0 = _mm_load_ps1(&other.x);
+		__m128 simdMatrixColumn0 = _mm_loadu_ps(&m[0]);
+		__m128 r0 = _mm_mul_ps(simdVector0, simdMatrixColumn0);
+		
+		__m128 simdVector1 = _mm_load_ps1(&other.y);
+		__m128 simdMatrixColumn1 = _mm_loadu_ps(&m[4]);
+		__m128 r1 = _mm_mul_ps(simdVector1, simdMatrixColumn1);
+		
+		__m128 simdVector2 = _mm_load_ps1(&other.z);
+		__m128 simdMatrixColumn2 = _mm_loadu_ps(&m[8]);
+		__m128 r2 = _mm_mul_ps(simdVector2, simdMatrixColumn2);
+		
+		__m128 r3 = _mm_loadu_ps(&m[12]);
+		
+		r0 = _mm_add_ps(r0, r1);
+		r2 = _mm_add_ps(r2, r3);
+		r0 = _mm_add_ps(r0, r2);
+		
+		float temp[4];
+		_mm_storeu_ps(temp, r0);
+		result.x = temp[0];
+		result.y = temp[1];
+		result.z = temp[2];*/
 
 		return result;
 	}
@@ -131,18 +182,52 @@ namespace RN
 	RN_INLINE Vector4 Matrix::operator* (const Vector4 &other) const
 	{
 		Vector4 result;
+		
+/*		__m128 simdVector = _mm_loadu_ps(&other.x);
+		
+		float temp[4] = {m[0], m[4], m[8], m[12]};
+		__m128 simdMatrix0 = _mm_loadu_ps(temp);
+		temp[0] = m[1]; temp[1] = m[5]; temp[2] = m[9]; temp[3] = m[13];
+		__m128 simdMatrix1 = _mm_loadu_ps(temp);
+		temp[0] = m[2]; temp[1] = m[6]; temp[2] = m[10]; temp[3] = m[14];
+		__m128 simdMatrix2 = _mm_loadu_ps(temp);
+		temp[0] = m[3]; temp[1] = m[7]; temp[2] = m[11]; temp[3] = m[15];
+		__m128 simdMatrix3 = _mm_loadu_ps(temp);
+		
+		__m128 r0 = _mm_dp_ps(simdVector, simdMatrix0, 0xff);
+		__m128 r1 = _mm_dp_ps(simdVector, simdMatrix1, 0xff);
+		__m128 r2 = _mm_dp_ps(simdVector, simdMatrix2, 0xff);
+		__m128 r3 = _mm_dp_ps(simdVector, simdMatrix3, 0xff);
+		
+		_mm_store_ss(&result.x, r0);
+		_mm_store_ss(&result.y, r1);
+		_mm_store_ss(&result.z, r2);
+		_mm_store_ss(&result.w, r3);*/
+		
+		/*__m128 simdVector0 = _mm_load_ps1(&other.x);
+		__m128 simdMatrixColumn0 = _mm_loadu_ps(&m[0]);
+		__m128 r0 = _mm_mul_ps(simdVector0, simdMatrixColumn0);
+		
+		__m128 simdVector1 = _mm_load_ps1(&other.y);
+		__m128 simdMatrixColumn1 = _mm_loadu_ps(&m[4]);
+		__m128 r1 = _mm_mul_ps(simdVector1, simdMatrixColumn1);
+		
+		__m128 simdVector2 = _mm_load_ps1(&other.z);
+		__m128 simdMatrixColumn2 = _mm_loadu_ps(&m[8]);
+		__m128 r2 = _mm_mul_ps(simdVector2, simdMatrixColumn2);
+		
+		__m128 r3 = _mm_loadu_ps(&m[12]);
+		
+		r0 = _mm_add_ps(r0, r1);
+		r2 = _mm_add_ps(r2, r3);
+		r0 = _mm_add_ps(r0, r2);
+		
+		_mm_storeu_ps(&result.x, r0);*/
 
-#if RN_SIMD
-		result.simd = SIMD::Mul(vec[0], SIMD::Set(other.x));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[1], SIMD::Set(other.y)));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[2], SIMD::Set(other.z)));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[3], SIMD::Set(other.w)));
-#else
 		result.x = m[0] * other.x + m[4] * other.y + m[ 8] * other.z + m[12] * other.w;
 		result.y = m[1] * other.x + m[5] * other.y + m[ 9] * other.z + m[13] * other.w;
 		result.z = m[2] * other.x + m[6] * other.y + m[10] * other.z + m[14] * other.w;
 		result.w = m[3] * other.x + m[7] * other.y + m[11] * other.z + m[15] * other.w;
-#endif
 
 		return result;
 	}
@@ -397,13 +482,6 @@ namespace RN
 	
 	RN_INLINE void Matrix::Translate(const Vector3 &translation)
 	{
-#if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(translation.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(translation.z)));
-		
-		vec[3] = SIMD::Add(result, vec[3]);
-#else
 		float tmp[4];
 		
 		tmp[0] = m[ 0] * translation.x + m[ 4] * translation.y + m[ 8] * translation.z + m[12];
@@ -415,18 +493,10 @@ namespace RN
 		m[13] = tmp[1];
 		m[14] = tmp[2];
 		m[15] = tmp[3];
-#endif
 	}
 	
 	RN_INLINE void Matrix::Translate(const Vector4 &translation)
 	{
-#if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(translation.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(translation.z)));
-		
-		vec[3] = SIMD::Add(result, SIMD::Mul(vec[3], SIMD::Set(translation.w)));
-#else
 		float tmp[4];
 		
 		tmp[0] = m[ 0] * translation.x + m[ 4] * translation.y + m[ 8] * translation.z + m[12] * translation.w;
@@ -438,7 +508,6 @@ namespace RN
 		m[13] = tmp[1];
 		m[14] = tmp[2];
 		m[15] = tmp[3];
-#endif
 	}
 	
 	RN_INLINE void Matrix::Scale(const Vector3 &scaling)

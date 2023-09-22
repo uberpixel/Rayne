@@ -8,7 +8,6 @@
 
 #include "RNMemory.h"
 #include "RNBase.h"
-#include "../Math/RNSIMD.h"
 
 namespace RN
 {
@@ -38,25 +37,6 @@ namespace RN
 			_aligned_free(ptr);
 #endif
 		}
-		
-		
-		void *AllocateSIMD(size_t size)
-		{
-#if RN_SIMD
-			return AllocateAligned(size, RN_SIMD_ALIGNMENT);
-#else
-			return malloc(size);
-#endif
-		}
-		void FreeSIMD(void *ptr)
-		{
-#if RN_SIMD
-			FreeAligned(ptr);
-#else
-			free(ptr);
-#endif
-		}
-		
 		
 		void *Allocate(size_t size)
 		{

@@ -123,14 +123,6 @@ namespace RN
 		explicit Vector4(const Vector2 &other, float z=0.0f, float w=0.0f);
 		explicit Vector4(const Vector3 &other, float w=0.0f);
 		
-#if RN_SIMD
-		Vector4(const SIMD::VecFloat &other);
-		Vector4 &operator= (const SIMD::VecFloat &other);
-		
-		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
-		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
-#endif
-		
 		bool operator== (const Vector4 &other) const;
 		bool operator!= (const Vector4 &other) const;
 		
@@ -162,19 +154,6 @@ namespace RN
 		Vector4 &Normalize(const float n=1.0f);
 		Vector4 GetNormalized(const float n=1.0f) const;
 		
-#if RN_SIMD
-		union
-		{
-			struct
-			{
-				float x;
-				float y;
-				float z;
-				float w;
-			};
-			SIMD::VecFloat simd;
-		};
-#else
 		struct
 		{
 			float x;
@@ -182,7 +161,6 @@ namespace RN
 			float z;
 			float w;
 		};
-#endif
 	};
 	
 	
@@ -636,18 +614,6 @@ namespace RN
 		z = other.z;
 		w = _w;
 	}
-	
-#if RN_SIMD
-	RN_INLINE Vector4::Vector4(const SIMD::VecFloat &other) :
-		simd(other)
-	{}
-	
-	RN_INLINE Vector4 &Vector4::operator= (const SIMD::VecFloat &other)
-	{
-		simd = other;
-		return *this;
-	}
-#endif
 
 	RN_INLINE bool Vector4::operator== (const Vector4 &other) const
 	{
@@ -676,140 +642,77 @@ namespace RN
 
 	RN_INLINE Vector4 Vector4::operator- () const
 	{
-#if RN_SIMD
-		return SIMD::Negate(simd);
-#else
 		return Vector4(-x, -y, -z, -w);
-#endif
 	}
 
 	RN_INLINE Vector4 Vector4::operator+ (const Vector4 &other) const
 	{
-#if RN_SIMD
-		return SIMD::Add(simd, other.simd);
-#else
 		return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
-#endif
 	}
 	RN_INLINE Vector4 Vector4::operator- (const Vector4 &other) const
 	{
-#if RN_SIMD
-		return SIMD::Sub(simd, other.simd);
-#else
 		return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
-#endif
 	}
 	RN_INLINE Vector4 Vector4::operator* (const Vector4 &other) const
 	{
-#if RN_SIMD
-		return SIMD::Mul(simd, other.simd);
-#else
 		return Vector4(x * other.x, y * other.y, z * other.z, w * other.w);
-#endif
 	}
 	RN_INLINE Vector4 Vector4::operator/ (const Vector4 &other) const
 	{
-#if RN_SIMD
-		return SIMD::Div(simd, other.simd);
-#else
 		return Vector4(x / other.x, y / other.y, z / other.z, w / other.w);
-#endif
 	}
 	
 	RN_INLINE Vector4 Vector4::operator* (const float n) const
 	{
-#if RN_SIMD
-		return SIMD::Mul(simd, SIMD::Set(n));
-#else
 		return Vector4(x * n, y * n, z * n, w * n);
-#endif
 	}
 	RN_INLINE Vector4 Vector4::operator/ (const float n) const
 	{
-#if RN_SIMD
-		return SIMD::Div(simd, SIMD::Set(n));
-#else
 		return Vector4(x / n, y / n, z / n, w / n);
-#endif
 	}
 
 	RN_INLINE Vector4 &Vector4::operator+= (const Vector4 &other)
 	{
-#if RN_SIMD
-		simd = SIMD::Add(simd, other.simd);
-#else
 		x += other.x;
 		y += other.y;
 		z += other.z;
 		w += other.w;
-#endif
 		
 		return *this;
 	}
 
 	RN_INLINE Vector4 &Vector4::operator-= (const Vector4 &other)
 	{
-#if RN_SIMD
-		simd = SIMD::Sub(simd, other.simd);
-#else
 		x -= other.x;
 		y -= other.y;
 		z -= other.z;
 		w -= other.w;
-#endif
 
 		return *this;
 	}
 
 	RN_INLINE Vector4 &Vector4::operator*= (const Vector4 &other)
 	{
-#if RN_SIMD
-		simd = SIMD::Mul(simd, other.simd);
-#else
 		x *= other.x;
 		y *= other.y;
 		z *= other.z;
 		w *= other.w;
-#endif
 
 		return *this;
 	}
 
 	RN_INLINE Vector4 &Vector4::operator/= (const Vector4 &other)
 	{
-#if RN_SIMD
-		simd = SIMD::Div(simd, other.simd);
-#else
 		x /= other.x;
 		y /= other.y;
 		z /= other.z;
 		w /= other.w;
-#endif
 
 		return *this;
 	}
 
 	RN_INLINE float Vector4::GetLength() const
 	{
-#if RN_SIMD
-		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
-		{
-			return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
-		}
-
-		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
-		{
-			float result;
-			
-			SIMD::VecFloat r1 = SIMD::Mul(simd, simd);
-			SIMD::VecFloat r2 = _mm_shuffle_ps(r1, r1, _MM_SHUFFLE(1, 2, 3, 0));
-			SIMD::VecFloat r3 = _mm_shuffle_ps(r1, r1, _MM_SHUFFLE(2, 3, 0, 1));
-			
-			SIMD::StoreX(_mm_sqrt_ss(SIMD::Add(r3, SIMD::Add(r1, r2))), &result);
-			return result;
-		}
-#endif
-		
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}
 	
@@ -825,25 +728,6 @@ namespace RN
 
 	RN_INLINE float Vector4::GetDotProduct(const Vector4 &other) const
 	{
-#if RN_SIMD
-		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
-		{
-			return _mm_cvtss_f32(_mm_dp_ps(simd, other.simd, 0xFF));
-		}
-		
-		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
-		{
-			float result;
-			SIMD::VecFloat r1 = SIMD::Mul(simd, other.simd);
-			SIMD::VecFloat r2 = SIMD::Hadd(r1, r1);
-			SIMD::VecFloat r3 = SIMD::Hadd(r2, r2);
-			
-			SIMD::StoreX(r3, &result);
-			return result;
-
-		}
-#endif
-		
 		return (x * other.x + y * other.y + z * other.z + w * other.w);
 	}
 
@@ -883,17 +767,6 @@ namespace RN
 
 	RN_INLINE Vector4 &Vector4::Normalize(const float n)
 	{
-#if RN_SIMD
-		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
-		{
-			float length = _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
-			if(length > k::EpsilonFloat)
-				simd = SIMD::Mul(simd, SIMD::Set(n/length));
-			
-			return *this;
-		}
-#endif
-		
 		if(x*x+y*y+z*z+w*w > k::EpsilonFloat)
 		{
 			float invlength = n*Math::InverseSqrt(x*x+y*y+z*z+w*w);

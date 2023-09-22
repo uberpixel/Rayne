@@ -172,7 +172,6 @@ set(RAYNE_HEADERS
     Math/RNRandom.h
     Math/RNQuaternion.h
     Math/RNRect.h
-    Math/RNSIMD.h
     Math/RNSphere.h
     Math/RNVector.h
     Math/RNHalfVector.h
