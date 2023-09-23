@@ -17,8 +17,8 @@ def getCmakeArgumentsFromProjectProperty = { ->
 
 android {
     namespace "__RN_BUNDLE_ID__"
-    compileSdkVersion 32
-    ndkVersion "21.4.7075529"
+    compileSdk 32
+    ndkVersion "23.2.8568313"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -97,7 +97,7 @@ android {
             path "../../../CMakeLists.txt"
         }
     }
-    lintOptions {
+    lint {
         abortOnError false
     }
 }
