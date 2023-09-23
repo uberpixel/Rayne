@@ -56,6 +56,8 @@ namespace RN
 				   Static       = (1 << 0),
 				   Hidden       = (1 << 1),
 				   NoCulling	= (1 << 2),
+				   
+				   Occluder		= (1 << 3),
 
 				   HideInEditor        = (1 << 10),
 				   UndeletableInEditor = (1 << 11),

@@ -33,7 +33,16 @@ namespace RN
 		RNAPI void AddRenderNode(SceneNode *node);
 		RNAPI void RemoveRenderNode(SceneNode *node);
 
+		//Should probably be private, but this makes it easy to visualize
+		RN::uint16 _occlusionDepthBufferWidth;
+		RN::uint16 _occlusionDepthBufferHeight;
+		float *_occlusionDepthBuffer;
+
 	private:
+		void RasterizeClipSpaceTriangle(Vector4 A, Vector4 B, Vector4 C);
+		void RasterizeMesh(const Matrix &matModelViewProj, Mesh *mesh);
+		bool TestBoundingBox(const Matrix &matViewProj, const AABB &aabb);
+		
 		IntrusiveList<SceneNode> _updateNodes[3];
 		IntrusiveList<SceneNode> _renderNodes;
 		IntrusiveList<Light> _lights;
