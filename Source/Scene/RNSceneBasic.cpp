@@ -27,7 +27,7 @@ namespace RN
 		return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 	}
 
-	SceneBasic::SceneBasic() : _nodesToRemove(new Array()), _occlusionDepthBufferWidth(64), _occlusionDepthBufferHeight(64)
+	SceneBasic::SceneBasic() : _nodesToRemove(new Array()), _occlusionDepthBufferWidth(40), _occlusionDepthBufferHeight(40)
 	{
 		_occlusionDepthBuffer = new float[_occlusionDepthBufferWidth * _occlusionDepthBufferHeight];
 	}

@@ -52,6 +52,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
 endif()
 
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -ffast-math ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math ${CMAKE_CXX_FLAGS_RELEASE}")
+
 
 if(UNIX)
     if(APPLE)
