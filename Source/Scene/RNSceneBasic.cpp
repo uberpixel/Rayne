@@ -494,7 +494,7 @@ namespace RN
 						//TODO: Find a better way to check if an occluder is visible and should be added to the render queue
 						if(node->GetFlags() & SceneNode::Flags::Occluder && std::find(visibleOccluders.begin(), visibleOccluders.end(), node) != visibleOccluders.end())
 						{
-							//sceneNodesToRender.push_back(node);
+							sceneNodesToRender.push_back(node);
 							continue;
 						}
 						
@@ -530,7 +530,7 @@ namespace RN
 					});
 				}
 
-				RNInfo("Number of objects: " << sceneNodesToRender.size());
+				//RNInfo("Number of objects: " << sceneNodesToRender.size());
 
 				renderer->SubmitCamera(camera, [&] {
 					
