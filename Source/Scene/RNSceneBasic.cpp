@@ -188,7 +188,7 @@ namespace RN
 					
 					if(depth <= 1.0f)
 					{
-						depth *= 1000.0f;
+						//depth *= 10000.0f;
 						if(depth > _occlusionDepthBuffer[_occlusionDepthBufferWidth * (_occlusionDepthBufferHeight - y - 1) + x])
 						{
 							_occlusionDepthBuffer[_occlusionDepthBufferWidth * (_occlusionDepthBufferHeight - y - 1) + x] = depth;
@@ -309,7 +309,7 @@ namespace RN
 		}
 	}
 
-	bool SceneBasic::TestBoundingBox(const Matrix &matViewProj, const AABB &aabb)
+	bool SceneBasic::TestBoundingBox(const Matrix &matViewProj, const AABB &aabb, const Vector2 &screenPixelSize)
 	{
 		//Get bounding box corners
 		Vector4 boxCorners[8];
@@ -340,9 +340,7 @@ namespace RN
 			
 			boxCorners[i] /= boxCorners[i].w;
 			boxCorners[i].x = boxCorners[i].x * 0.5f + 0.5f;
-			boxCorners[i].x *= _occlusionDepthBufferWidth;
 			boxCorners[i].y = boxCorners[i].y * 0.5f + 0.5f;
-			boxCorners[i].y *= _occlusionDepthBufferHeight;
 			
 			if(i == 0)
 			{
@@ -362,13 +360,21 @@ namespace RN
 			//depth is 1 closest to the camera and goes down to 0 the further away it is
 		}
 		
-		uint16 maxX = std::max(std::min(std::ceil(maxCorners.x) + 1.0f, static_cast<float>(_occlusionDepthBufferWidth - 1)), 0.0f);
-		uint16 minX = std::max(std::min(std::floor(minCorners.x) - 1.0f, static_cast<float>(_occlusionDepthBufferWidth - 1)), 0.0f);
+		if(maxCorners.x - minCorners.x < screenPixelSize.x || maxCorners.y - minCorners.y < screenPixelSize.y) return false;
 		
-		uint16 maxY = std::max(std::min(std::ceil(maxCorners.y) + 1.0f, static_cast<float>(_occlusionDepthBufferHeight - 1)), 0.0f);
+		minCorners.x *= _occlusionDepthBufferWidth;
+		minCorners.y *= _occlusionDepthBufferHeight;
+		
+		maxCorners.x *= _occlusionDepthBufferWidth;
+		maxCorners.y *= _occlusionDepthBufferHeight;
+		
+		uint16 minX = std::max(std::min(std::floor(minCorners.x) - 1.0f, static_cast<float>(_occlusionDepthBufferWidth - 1)), 0.0f);
+		uint16 maxX = std::max(std::min(std::ceil(maxCorners.x) + 1.0f, static_cast<float>(_occlusionDepthBufferWidth - 1)), 0.0f);
+		
 		uint16 minY = std::max(std::min(std::floor(minCorners.y) - 1.0f, static_cast<float>(_occlusionDepthBufferHeight - 1)), 0.0f);
+		uint16 maxY = std::max(std::min(std::ceil(maxCorners.y) + 1.0f, static_cast<float>(_occlusionDepthBufferHeight - 1)), 0.0f);
 
-		maxCorners.z *= 1000.0f;
+		//maxCorners.z *= 10000.0f;
 
 		for(uint16 y = minY; y <= maxY; y++)
 		{
@@ -443,19 +449,21 @@ namespace RN
 					//Sort occluders front to back
 					std::sort(occluders.begin(), occluders.end(), [camera](
 							SceneNode *a, SceneNode *b) {
-						return (camera->GetWorldPosition().GetSquaredDistance(a->GetBoundingSphere().position + a->GetBoundingSphere().offset) - a->GetBoundingSphere().radius) < (camera->GetWorldPosition().GetSquaredDistance(b->GetBoundingSphere().position + b->GetBoundingSphere().offset) - b->GetBoundingSphere().radius);
+						/*return (camera->GetWorldPosition().GetSquaredDistance(a->GetBoundingSphere().position + a->GetBoundingSphere().offset) - a->GetBoundingSphere().radius) < (camera->GetWorldPosition().GetSquaredDistance(b->GetBoundingSphere().position + b->GetBoundingSphere().offset) - b->GetBoundingSphere().radius);*/
+						return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
 					});
 					
 					//Clear occlusion depth map
 					std::fill(_occlusionDepthBuffer, _occlusionDepthBuffer + _occlusionDepthBufferWidth * _occlusionDepthBufferHeight, 0.0f);
 					
-					RN::Matrix matViewProj = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+					Vector2 screenPixelSize = Vector2(1.0f/camera->GetRenderPass()->GetFrame().width, 1.0f/camera->GetRenderPass()->GetFrame().height);
+					Matrix matViewProj = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 					
 					//Render occluders to depth buffer first (first test if the bounding box is visible at all)
 					for(SceneNode *node : occluders)
 					{
 						bool isVisible = false;
-						if(TestBoundingBox(matViewProj, node->GetBoundingBox()))
+						if(TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize))
 						{
 							visibleOccluders.push_back(node);
 							isVisible = true;
@@ -486,11 +494,11 @@ namespace RN
 						//TODO: Find a better way to check if an occluder is visible and should be added to the render queue
 						if(node->GetFlags() & SceneNode::Flags::Occluder && std::find(visibleOccluders.begin(), visibleOccluders.end(), node) != visibleOccluders.end())
 						{
-							sceneNodesToRender.push_back(node);
+							//sceneNodesToRender.push_back(node);
 							continue;
 						}
 						
-						if(TestBoundingBox(matViewProj, node->GetBoundingBox()))
+						if(TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize))
 						{
 							sceneNodesToRender.push_back(node);
 						}
@@ -521,6 +529,8 @@ namespace RN
 						return a->GetRenderPriority() < b->GetRenderPriority();
 					});
 				}
+
+				RNInfo("Number of objects: " << sceneNodesToRender.size());
 
 				renderer->SubmitCamera(camera, [&] {
 					

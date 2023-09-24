@@ -41,7 +41,7 @@ namespace RN
 	private:
 		void RasterizeClipSpaceTriangle(Vector4 A, Vector4 B, Vector4 C);
 		void RasterizeMesh(const Matrix &matModelViewProj, Mesh *mesh);
-		bool TestBoundingBox(const Matrix &matViewProj, const AABB &aabb);
+		bool TestBoundingBox(const Matrix &matViewProj, const AABB &aabb, const Vector2 &screenPixelSize);
 		
 		IntrusiveList<SceneNode> _updateNodes[3];
 		IntrusiveList<SceneNode> _renderNodes;
