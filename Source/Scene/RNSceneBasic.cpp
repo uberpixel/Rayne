@@ -435,6 +435,7 @@ namespace RN
 				}
 				
 				//Do occlusion culling if there are 1 or more occluders!
+				nodeMember = _renderNodes.GetHead();
 				if(occluders.size() > 0)
 				{
 					std::vector<SceneNode *> visibleOccluders;
@@ -471,7 +472,6 @@ namespace RN
 					}
 					
 					//Test all visible objects against depth buffer
-					nodeMember = _renderNodes.GetHead();
 					while(nodeMember)
 					{
 						SceneNode *node = nodeMember->Get();
