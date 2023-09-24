@@ -398,7 +398,7 @@ namespace RN
 	// MARK: Rendering
 	// ------------------
 
-	bool SceneNode::CanRender(Renderer *renderer, Camera *camera) const
+	bool SceneNode::CanRenderUtil(Renderer *renderer, Camera *camera) const
 	{
 		if(_flags.load(std::memory_order_acquire) & Flags::Hidden)
 			return false;
@@ -410,6 +410,11 @@ namespace RN
 			return true;
 
 		return camera->InFrustum(GetBoundingSphere());
+	}
+
+	bool SceneNode::CanRender(Renderer *renderer, Camera *camera) const
+	{
+		return false;
 	}
 
 	void SceneNode::Render(Renderer *renderer, Camera *camera) const

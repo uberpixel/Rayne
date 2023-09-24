@@ -186,6 +186,9 @@ namespace RN
 		virtual void DidAddChild(SceneNode *child)  {}
 		virtual void WillRemoveChild(SceneNode *child) {}
 		virtual void DidRemoveChild(SceneNode *child) {}
+		
+		//Can be used by other classes for basic checks, like the being in the camera frustum and not hidden
+		RNAPI virtual bool CanRenderUtil(Renderer *renderer, Camera *camera) const;
 
 	private:
 		void Initialize();

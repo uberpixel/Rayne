@@ -122,4 +122,11 @@ namespace RN
 			}
 		}
 	}
+
+	bool Entity::CanRender(Renderer *renderer, Camera *camera) const
+	{
+		if(!_model) return false;
+		
+		return CanRenderUtil(renderer, camera);
+	}
 }

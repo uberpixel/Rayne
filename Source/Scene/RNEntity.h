@@ -28,6 +28,7 @@ namespace RN
 		RNAPI void SetModel(Model *model);
 		Model *GetModel() const { return _model; }
 
+		RNAPI bool CanRender(Renderer *renderer, Camera *camera) const override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) const override;
 		
 		RNAPI void MakeDirty(); //Can be used to force update the drawable. Some changes, such as replacing shaders within the same material won't have an effect otherwise
