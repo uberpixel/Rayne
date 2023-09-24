@@ -99,6 +99,8 @@ namespace RN
 
 	void BHapticsManager::Play(const String *eventName, float intensity, float duration, float xOffsetAngle, float yOffset)
 	{
+		if(!_currentDevices) return;
+
 		eventName->Retain();
 		_queue.push_back([eventName, intensity, duration, xOffsetAngle, yOffset](){
 #if RN_PLATFORM_ANDROID
@@ -126,6 +128,8 @@ namespace RN
 
 	bool BHapticsManager::IsPlayingByEventName(const String *eventName)
 	{
+		if(!_currentDevices) return false;
+
 #if RN_PLATFORM_ANDROID
 		return BHapticsAndroidWrapper::IsPlayingByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
@@ -136,6 +140,8 @@ namespace RN
 
 	bool BHapticsManager::IsPlaying()
 	{
+		if(!_currentDevices) return false;
+
 #if RN_PLATFORM_ANDROID
 		return BHapticsAndroidWrapper::IsPlaying();
 #elif RN_PLATFORM_WINDOWS
@@ -146,6 +152,8 @@ namespace RN
 
 	void BHapticsManager::StopByEventName(const String *eventName)
 	{
+		if(!_currentDevices) return;
+
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::StopByEventName(eventName);
 #elif RN_PLATFORM_WINDOWS
@@ -155,6 +163,8 @@ namespace RN
 
 	void BHapticsManager::Stop()
 	{
+		if(!_currentDevices) return;
+
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::Stop();
 #elif RN_PLATFORM_WINDOWS
@@ -174,6 +184,8 @@ namespace RN
 
 	void BHapticsManager::PingAllDevices()
 	{
+		if(!_currentDevices) return;
+
 #if RN_PLATFORM_ANDROID
 		BHapticsAndroidWrapper::PingAll();
 #elif RN_PLATFORM_WINDOWS
