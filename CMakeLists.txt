@@ -52,9 +52,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
 endif()
 
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -ffast-math ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math ${CMAKE_CXX_FLAGS_RELEASE}")
-
+set(CMAKE_CXX_FLAGS_DEBUG "-O3 -fno-math-errno -funsafe-math-optimizations ${CMAKE_CXX_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -fno-math-errno -funsafe-math-optimizations ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-math-errno -funsafe-math-optimizations ${CMAKE_CXX_FLAGS_RELEASE}")
 
 if(UNIX)
     if(APPLE)
