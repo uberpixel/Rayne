@@ -160,15 +160,14 @@ namespace RN
 		C.y = C.y * 0.5f + 0.5f;
 		C.y *= _occlusionDepthBufferHeight;
 		
+		float area = edgeFunction(Vector2(A), Vector2(B), Vector2(C));
+		if(area < 0) return; //Triangle is facing away, can just skip completely at this point
+		
 		uint16 minX = std::min(std::max(std::min(A.x, std::min(B.x, C.x)), 0.0f), static_cast<float>(_occlusionDepthBufferWidth-1));
 		uint16 minY = std::min(std::max(std::min(A.y, std::min(B.y, C.y)), 0.0f), static_cast<float>(_occlusionDepthBufferHeight-1));
 		
 		uint16 maxX = std::min(std::max(std::max(A.x, std::max(B.x, C.x)), 0.0f), static_cast<float>(_occlusionDepthBufferWidth-1));
 		uint16 maxY = std::min(std::max(std::max(A.y, std::max(B.y, C.y)), 0.0f), static_cast<float>(_occlusionDepthBufferHeight-1));
-		
-		float area = edgeFunction(Vector2(A), Vector2(B), Vector2(C));
-		
-		if(area < 0) return; //Triangle is facing away, can just skip completely at this point
 		
 		for(uint16 y = minY; y <= maxY; y++)
 		{
@@ -184,7 +183,7 @@ namespace RN
 					w0 /= area;
 					w1 /= area;
 					w2 /= area;
-					float depth = w0 * A.z + w1 * B.z + w2 * C.z;
+					float depth = w0 * A.z + w1 * B.z + w2 * C.z - 0.000001f; //Add a bit of an offset to prevent precision issues
 					
 					if(depth <= 1.0f)
 					{
@@ -214,8 +213,8 @@ namespace RN
 				iterator++;
 			}
 			
-			Vector4 A = matModelViewProj * Vector4(posA, 1.0f);
-			Vector4 B = matModelViewProj * Vector4(posB, 1.0f);
+			Vector4 A = matModelViewProj * Vector4(posB, 1.0f);
+			Vector4 B = matModelViewProj * Vector4(posA, 1.0f);
 			Vector4 C = matModelViewProj * Vector4(posC, 1.0f);
 			
 			//Skip triangle if all vertices are on the same side of the near or far clip planes
@@ -360,6 +359,7 @@ namespace RN
 			//depth is 1 closest to the camera and goes down to 0 the further away it is
 		}
 		
+		//Fail depth test for objects that are smaller than a single pixel
 		if(maxCorners.x - minCorners.x < screenPixelSize.x || maxCorners.y - minCorners.y < screenPixelSize.y) return false;
 		
 		minCorners.x *= _occlusionDepthBufferWidth;
@@ -446,10 +446,20 @@ namespace RN
 				{
 					std::vector<SceneNode *> visibleOccluders;
 					
-					//Sort occluders front to back
+					//Sort occluders by approximated size on the screen
 					std::sort(occluders.begin(), occluders.end(), [camera](
 							SceneNode *a, SceneNode *b) {
-						/*return (camera->GetWorldPosition().GetSquaredDistance(a->GetBoundingSphere().position + a->GetBoundingSphere().offset) - a->GetBoundingSphere().radius) < (camera->GetWorldPosition().GetSquaredDistance(b->GetBoundingSphere().position + b->GetBoundingSphere().offset) - b->GetBoundingSphere().radius);*/
+						float distanceA = std::max(a->GetWorldPosition().GetDistance(camera->GetWorldPosition()), 1.0f);
+						float distanceB = std::max(b->GetWorldPosition().GetDistance(camera->GetWorldPosition()), 1.0f);
+						
+						return a->GetBoundingSphere().radius / distanceA > b->GetBoundingSphere().radius / distanceB;
+					});
+					
+					occluders.resize(std::min(static_cast<size_t>(30), occluders.size())); //Only keep the biggest 30 occluders in the list
+					
+					//Sort remaining occluders front to back
+					std::sort(occluders.begin(), occluders.end(), [camera](
+							SceneNode *a, SceneNode *b) {
 						return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
 					});
 					
@@ -469,7 +479,7 @@ namespace RN
 							isVisible = true;
 						}
 						
-						if(isVisible && node->GetFlags() & SceneNode::Flags::Occluder)
+						if(isVisible)
 						{
 							//TODO: Deal with models that have multiple meshes, also what lod stage should be used if there are multiple?
 							Model *model = node->Downcast<Entity>()->GetModel();
