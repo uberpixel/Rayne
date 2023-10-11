@@ -113,6 +113,7 @@ namespace RN
 			RNAPI void SetCustomShaderUniform(const String *name, Value *value);
 			RNAPI void SetCustomShaderUniform(const String *name, Number *number);
 			RNAPI Object *GetCustomShaderUniform(const String *name) const;
+			RNAPI Object *GetCustomShaderUniform(size_t nameHash) const;
 			
 		private:
 			std::map<const size_t, Object *> _customShaderUniforms; //WARNING: The key is the hash of the string, which could potentially have conflicts!
@@ -210,7 +211,7 @@ namespace RN
 
 		const Properties &GetProperties() const { return _properties; }
 		
-		RNAPI Properties GetMergedProperties(Material *overrideMaterial);
+		RNAPI const Properties &GetMergedProperties(Material *overrideMaterial);
 
 	private:
 		Override _override;

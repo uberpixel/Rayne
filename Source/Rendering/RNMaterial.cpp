@@ -83,6 +83,17 @@ namespace RN
 		return nullptr;
 	}
 
+	Object *Material::Properties::GetCustomShaderUniform(size_t nameHash) const
+	{
+		const auto result = _customShaderUniforms.find(nameHash);
+		if(result != _customShaderUniforms.end())
+		{
+			return result->second;
+		}
+
+		return nullptr;
+	}
+
 	Material::Material(Shader *vertexShader, Shader *fragmentShader) :
 		_override(0),
 		_textures(new Array()),
@@ -314,7 +325,7 @@ namespace RN
 		return _vertexShader[static_cast<uint8>(type)];
 	}
 
-	Material::Properties Material::GetMergedProperties(Material *overrideMaterial)
+	const Material::Properties &Material::GetMergedProperties(Material *overrideMaterial)
 	{
 		if(!overrideMaterial) return _properties;
 		

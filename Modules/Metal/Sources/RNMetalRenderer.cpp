@@ -983,7 +983,7 @@ namespace RN
 				//TODO: Support arrays!
 				case Shader::UniformDescriptor::Identifier::Custom:
 				{
-					Object *object = materialProperties.GetCustomShaderUniform(descriptor->GetName());
+					Object *object = materialProperties.GetCustomShaderUniform(descriptor->GetNameHash());
 					if(object)
 					{
 						if(object->IsKindOfClass(Value::GetMetaClass()))

@@ -152,6 +152,7 @@ namespace RN
 
 	Shader::UniformDescriptor::UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location) :
 		_name(name->Copy()),
+		_nameHash(name->GetHash()),
 		_identifier(Identifier::Custom),
 		_type(type),
 		_offset(offset),

@@ -44,7 +44,7 @@ namespace RN
 
 			RNAPI bool IsEqual(const Object *other) const override;
 			RNAPI size_t GetHash() const override;
-			
+
 			RNAPI bool HasValue(const char *key, const char *value);
 			RNAPI const String *GetValue(const char *key) const;
 			RNAPI size_t GetCount() const;
@@ -67,7 +67,7 @@ namespace RN
 				Custom,
 				ModelMatrix,
 				InverseModelMatrix,
-				
+
 				NormalMatrix,
 
 				ModelViewMatrix,
@@ -121,48 +121,50 @@ namespace RN
 			RNAPI virtual ~UniformDescriptor();
 
 			const String *GetName() const { return _name; }
+			const size_t GetNameHash() const { return _nameHash; }
 			PrimitiveType GetType() const { return _type; }
 			size_t GetOffset() const { return _offset; }
 			Identifier GetIdentifier() const { return _identifier; }
 			RNAPI size_t GetSize() const;
-			
+
 			size_t GetElementCount() const { return _elementCount; }
-            size_t GetAttributeLocation() const { return _location; }
+			size_t GetAttributeLocation() const { return _location; }
 
 			const String *GetDescription() const override { return RNSTR("<ShaderUniform: name: " << _name << ", type: " << (int)_type << ">"); }
-			
+
 			RNAPI static bool IsKnownStructName(RN::String *structName);
 
 		private:
 			String *_name;
+			size_t _nameHash;
 			Identifier _identifier;
 			PrimitiveType _type;
 			size_t _offset;
-			
+
 			size_t _elementCount; //Usually 1, but higher if this an array type with more than one element
 			size_t _location; //Used for per instance vertex attributes TODO: Move those into a separate descriptor type!?
 
 			__RNDeclareMetaInternal(UniformDescriptor)
 		};
-		
+
 		class Argument : public Object
 		{
 		public:
 			String *GetName() const { return _name; }
 			uint32 GetIndex() const { return _index; }
 			void SetIndex(uint32 index) { _index = index; }
-		
+
 		protected:
 			RNAPI Argument(String *name, uint32 index);
 			RNAPI Argument(const Argument *other);
 			RNAPI ~Argument();
-			
+
 			uint32 _index;
 			String *_name;
 			
 			__RNDeclareMetaInternal(Argument)
 		};
-		
+
 		class ArgumentBuffer : public Argument
 		{
 		public:
@@ -175,18 +177,18 @@ namespace RN
 			RNAPI ArgumentBuffer(String *name, uint32 index, Array *uniformDescriptors, Type type, size_t maxInstanceCount);
 			RNAPI ArgumentBuffer(const ArgumentBuffer *other);
 			RNAPI ~ArgumentBuffer();
-			
+
 			size_t GetTotalUniformSize() const { return _totalUniformSize; }
 			const Array *GetUniformDescriptors() const { return _uniformDescriptors; }
 			Type GetType() const { return _type; }
-			
+
 			size_t GetMaxInstanceCount() const { return _maxInstanceCount; }
-			
+
 		private:
 			Array *_uniformDescriptors;
 			size_t _totalUniformSize;
 			Type _type;
-			
+
 			size_t _maxInstanceCount; //If this buffer contains per instance uniform data, it just contains an array of a struct, this is the number of elements of that array. 1 otherwise. 0 if this a storage buffer as they don't have any tight size limits and can be indexed more freely.
 			
 			__RNDeclareMetaInternal(ArgumentBuffer)
@@ -245,7 +247,7 @@ namespace RN
 
 			__RNDeclareMetaInternal(ArgumentSampler)
 		};
-		
+
 		class ArgumentTexture : public Argument
 		{
 		public:
@@ -254,13 +256,13 @@ namespace RN
 				IndexDirectionalShadowTexture = 255,
 				IndexFramebufferTexture = 254
 			};
-			
+
 			RNAPI ArgumentTexture(String *name, uint32 index, uint8 materialTextureIndex);
 			RNAPI ArgumentTexture(const ArgumentTexture *other);
 			RNAPI ~ArgumentTexture();
-			
+
 			uint8 GetMaterialTextureIndex() const { return _materialTextureIndex; }
-			
+
 		private:
 			uint8 _materialTextureIndex;
 			
