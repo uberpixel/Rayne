@@ -15,7 +15,7 @@
 #include "../Rendering/RNModel.h"
 #include "../Rendering/RNMesh.h"
 
-#define kRNSceneUpdateBatchSize 1024
+#define kRNSceneUpdateBatchSize 8192 //1024
 #define kRNSceneRenderBatchSize 32
 
 namespace RN
