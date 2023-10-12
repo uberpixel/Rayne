@@ -139,12 +139,18 @@ namespace RN
 		if(delta > 0.1f || delta < k::EpsilonFloat)
 			return;
 
-		for(int i = 0; i < _substeps; i++)
+		if(_substeps > 1)
 		{
-			_scene->simulate(delta/static_cast<double>(_substeps));	//TODO: Fix this to use fixed steps with interpolation...
-			_scene->fetchResults(true);
+			for(int i = 0; i < _substeps; i++)
+			{
+				_scene->simulate(delta/static_cast<double>(_substeps));	//TODO: Fix this to use fixed steps with interpolation...
+				_scene->fetchResults(true);
+			}
 		}
-
+		else if(_substeps == 1)
+		{
+			_scene->fetchResults(true); //This blocks and waits for the physics simulation to finish
+		}
 
 		physx::PxU32 actorCount = 0;
 		physx::PxActor **actors = _scene->getActiveActors(actorCount);
@@ -163,6 +169,11 @@ namespace RN
 	{
 		SceneAttachment::WillUpdate(delta);
 		_controllerManager->computeInteractions(delta, _controllerManagerFilterCallback);
+		
+		if(_substeps == 1)
+		{
+			_scene->simulate(delta/static_cast<double>(_substeps)); //This returns immediately and kicks off the physics simulation BEFORE updating any scene nodes, this makes the physics simulation lag behind one frame, but allows running it in parallel to the scene node updates. Direct transform changes will immediately be reflected, others only a frame later
+		}
 	}
 
 
