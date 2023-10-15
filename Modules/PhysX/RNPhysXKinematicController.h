@@ -34,6 +34,7 @@ namespace RN
 		PXAPI std::vector<PhysXContactInfo> SweepTestAll(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
 		PXAPI PhysXContactInfo SweepTest(const Vector3 &direction, const Vector3 &offset = Vector3()) const;
 		PXAPI PhysXContactInfo OverlapTest() const;
+		PXAPI std::vector<PhysXContactInfo> OverlapTestAll() const;
 		
 		PXAPI bool Resize(float height, bool checkIfBlocked = true);
 

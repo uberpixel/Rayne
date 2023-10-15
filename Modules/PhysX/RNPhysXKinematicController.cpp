@@ -200,7 +200,7 @@ namespace RN
 		_controller->getActor()->getShapes(&shape, 1);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER|physx::PxQueryFlag::eNO_BLOCK), &filterCallback);
+		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &filterCallback);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		
 		PhysXContactInfo contact;
@@ -226,6 +226,57 @@ namespace RN
 			}
 		}
 		return contact;
+	}
+
+	std::vector<PhysXContactInfo> PhysXKinematicController::OverlapTestAll() const
+	{
+		const physx::PxExtendedVec3 &position = _controller->getPosition();
+		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
+		physx::PxOverlapBuffer hit;
+		physx::PxFilterData filterData;
+		filterData.word0 = _collisionFilterGroup;
+		filterData.word1 = _collisionFilterMask;
+		filterData.word2 = _collisionFilterID;
+		filterData.word3 = _collisionFilterIgnoreID;
+		PhysXQueryFilterCallback filterCallback;
+		physx::PxShape *shape;
+		_controller->getActor()->getShapes(&shape, 1);
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
+		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &filterCallback);
+		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+
+		std::vector<PhysXContactInfo> contacts;
+
+		if(hit.getNbAnyHits() == 0)
+			return contacts;
+		
+		for(uint32 i = 0; i < hit.getNbAnyHits(); i++)
+		{
+			physx::PxOverlapHit currentHit = hit.getAnyHit(i);
+			
+			PhysXContactInfo contact;
+			contact.distance = 0.0f;
+			contact.node = nullptr;
+			contact.collisionObject = nullptr;
+
+			contact.position = Vector3(position.x, position.y, position.z);
+			contact.normal = Vector3(0.0f, 0.0f, 0.0f);
+			if(currentHit.actor)
+			{
+				PhysXCollisionObject *collisionObject = static_cast<PhysXCollisionObject*>(currentHit.actor->userData);
+				contact.collisionObject = collisionObject;
+				if(collisionObject->GetParent())
+				{
+					contact.node = collisionObject->GetParent();
+					if(contact.node) contact.node->Retain()->Autorelease();
+				}
+			}
+
+			contacts.push_back(contact);
+		}
+
+        return contacts;
 	}
 
 	bool PhysXKinematicController::Resize(float height, bool checkIfBlocked)
