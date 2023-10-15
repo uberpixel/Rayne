@@ -19,7 +19,7 @@ namespace RN
 
 	PhysXWorld *PhysXWorld::_sharedInstance = nullptr;
 
-	PhysXWorld::PhysXWorld(const Vector3 &gravity, String *pvdServerIP) : _pvd(nullptr), _hasVehicles(false), _substeps(1), _paused(false)
+	PhysXWorld::PhysXWorld(const Vector3 &gravity, String *pvdServerIP) : _pvd(nullptr), _hasVehicles(false), _substeps(1), _paused(false), _isSimulating(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one PhysX instance at a time!");
 		_sharedInstance = this;
@@ -143,13 +143,16 @@ namespace RN
 		{
 			for(int i = 0; i < _substeps; i++)
 			{
+				_isSimulating = true;
 				_scene->simulate(delta/static_cast<double>(_substeps));	//TODO: Fix this to use fixed steps with interpolation...
 				_scene->fetchResults(true);
+				_isSimulating = false;
 			}
 		}
 		else if(_substeps == 1)
 		{
 			_scene->fetchResults(true); //This blocks and waits for the physics simulation to finish
+			_isSimulating = false;
 		}
 
 		physx::PxU32 actorCount = 0;
@@ -170,8 +173,9 @@ namespace RN
 		SceneAttachment::WillUpdate(delta);
 		_controllerManager->computeInteractions(delta, _controllerManagerFilterCallback);
 		
-		if(_substeps == 1)
+		if(_substeps == 1 && !_isSimulating)
 		{
+			_isSimulating = true;
 			_scene->simulate(delta/static_cast<double>(_substeps)); //This returns immediately and kicks off the physics simulation BEFORE updating any scene nodes, this makes the physics simulation lag behind one frame, but allows running it in parallel to the scene node updates. Direct transform changes will immediately be reflected, others only a frame later
 		}
 	}

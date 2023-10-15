@@ -74,6 +74,7 @@ namespace RN
 		physx::PxControllerManager *_controllerManager;
 		
 		bool _hasVehicles;
+		bool _isSimulating;
 
 		uint8 _substeps;
 		bool _paused;
