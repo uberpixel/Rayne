@@ -908,7 +908,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 				if(!::CreateDirectory(fullPath->GetUTF8String(), NULL))
 #elif RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
-				if (mkdir(fullPath->GetUTF8String(), S_IRWXU) != 0)
+				if (mkdir(fullPath->GetUTF8String(), S_IRWXU | S_IRWXG | S_IRWXO) != 0) //read, write and execute / search / list permission for same user, group and everyone else
 #endif
 				{
 					RNDebug("Failed creating path with error: " << errno);

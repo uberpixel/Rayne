@@ -291,7 +291,7 @@ namespace RN
 		// Open the file
 		int error = errno;
 
-		int fd = open(name->GetUTF8String(), oflag, 0644);
+		int fd = open(name->GetUTF8String(), oflag, 0664); //read and write permission for same user and group, but no access for anyone else
 		if(fd == -1)
 		{
 			errno = error;
