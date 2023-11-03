@@ -24,6 +24,7 @@ namespace RN
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched);
 			float GetValue() const { return _value; }
 			UIAPI void SetValue(float value);
+			UIAPI void SetRange(float from, float to, float step = 0.0f);
 			
 			bool GetIsActive() const { return _isActive; }
 			

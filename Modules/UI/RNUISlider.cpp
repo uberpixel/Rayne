@@ -49,6 +49,14 @@ namespace RN
 			handleFrame.x = sliderPosition * movementRange;
 			_handleView->SetFrame(handleFrame);
 		}
+	
+		void Slider::SetRange(float from, float to, float step)
+		{
+			_from = from;
+			_to = to;
+			_step = step;
+			SetValue(_value);
+		}
 
 		void Slider::Update(float delta, Vector2 cursorPosition, bool touched)
 		{
