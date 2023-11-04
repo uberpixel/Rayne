@@ -11,6 +11,7 @@
 namespace RN
 {
 	RNDefineMeta(LogFormatter, Object)
+	RNDefineMeta(DebugLogFormatter, LogFormatter)
 
 	static std::string FormatTime(const std::chrono::system_clock::time_point &time)
 	{

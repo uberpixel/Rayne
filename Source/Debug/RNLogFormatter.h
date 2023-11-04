@@ -21,15 +21,17 @@ namespace RN
 		LogFormatter() = default;
 		virtual ~LogFormatter() = default;
 
-		virtual String *FormatLogMessage(const LogMessage &message) const = 0;
+		RNAPI virtual String *FormatLogMessage(const LogMessage &message) const = 0;
 
-		RNDeclareMeta(LogFormatter)
+		__RNDeclareMetaInternal(LogFormatter)
 	};
 
 	class DebugLogFormatter : public LogFormatter
 	{
 	public:
-		String *FormatLogMessage(const LogMessage &message) const final;
+		RNAPI String *FormatLogMessage(const LogMessage &message) const final;
+
+		__RNDeclareMetaInternal(DebugLogFormatter)
 	};
 }
 
