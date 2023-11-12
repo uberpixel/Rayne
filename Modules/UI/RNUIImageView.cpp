@@ -60,6 +60,7 @@ namespace RN
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine("RN_UI", "1");
 				shaderOptions->AddDefine("RN_UV0", "1");
+				if(GetCornerRadius() > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
 				
 				RN::Material *material = RN::Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
