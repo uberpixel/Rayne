@@ -24,6 +24,7 @@ namespace RN
 		MTLPixelFormat pixelFormat;
 		MTLPixelFormat depthFormat;
 		MTLPixelFormat stencilFormat;
+		uint8 sampleCount;
 		id<MTLRenderPipelineState> state;
 		Shader *vertexShader;
 		Shader *fragmentShader;

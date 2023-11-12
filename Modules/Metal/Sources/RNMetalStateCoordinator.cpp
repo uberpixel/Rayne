@@ -245,11 +245,12 @@ namespace RN
 		MTLPixelFormat pixelFormat = metalFramebuffer->GetMetalColorFormat(0);
 		MTLPixelFormat depthFormat = metalFramebuffer->GetMetalDepthFormat();
 		MTLPixelFormat stencilFormat = metalFramebuffer->GetMetalStencilFormat();
+		uint8 sampleCount = metalFramebuffer->GetSampleCount();
 		
 		for(const MetalRenderingState *state : collection->states)
 		{
-			//TODO: include things like different pixel formats and sample rate...
-			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->wantsAlphaToCoverage == materialProperties.useAlphaToCoverage && state->colorWriteMask == materialProperties.colorWriteMask && state->blendOperationRGB == materialProperties.blendOperationRGB && state->blendOperationAlpha == materialProperties.blendOperationAlpha && state->blendFactorSourceRGB == materialProperties.blendFactorSourceRGB && state->blendFactorSourceAlpha == materialProperties.blendFactorSourceAlpha && state->blendFactorDestinationRGB == materialProperties.blendFactorDestinationRGB && state->blendFactorDestinationAlpha == materialProperties.blendFactorDestinationAlpha)
+			//TODO: This might still be missing some things!?
+			if(state->pixelFormat == pixelFormat && state->depthFormat == depthFormat && state->stencilFormat == stencilFormat && state->sampleCount == sampleCount && state->wantsAlphaToCoverage == materialProperties.useAlphaToCoverage && state->colorWriteMask == materialProperties.colorWriteMask && state->blendOperationRGB == materialProperties.blendOperationRGB && state->blendOperationAlpha == materialProperties.blendOperationAlpha && state->blendFactorSourceRGB == materialProperties.blendFactorSourceRGB && state->blendFactorSourceAlpha == materialProperties.blendFactorSourceAlpha && state->blendFactorDestinationRGB == materialProperties.blendFactorDestinationRGB && state->blendFactorDestinationAlpha == materialProperties.blendFactorDestinationAlpha)
 				return state;
 		}
 
@@ -259,7 +260,7 @@ namespace RN
 		pipelineStateDescriptor.vertexFunction = static_cast<id>(collection->vertexShader->_shader);
 		pipelineStateDescriptor.fragmentFunction = static_cast<id>(collection->fragmentShader->_shader);
 		pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
-		pipelineStateDescriptor.sampleCount = metalFramebuffer->GetSampleCount();
+		pipelineStateDescriptor.sampleCount = sampleCount;
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
 		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(materialProperties.colorWriteMask);
 		pipelineStateDescriptor.colorAttachments[0].blendingEnabled = false;
@@ -311,6 +312,7 @@ namespace RN
 		state->pixelFormat = pixelFormat;
 		state->depthFormat = depthFormat;
 		state->stencilFormat = stencilFormat;
+		state->sampleCount = sampleCount;
 		state->vertexShader = collection->vertexShader;
 		state->fragmentShader = collection->fragmentShader;
 		state->vertexPositionBufferShaderResourceIndex = mesh->GetVertexPositionsSeparatedSize() > 0? 29 : 255; //Hardcoded to match value CreateVertexDescriptorFromMesh
