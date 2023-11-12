@@ -31,6 +31,17 @@ namespace RN
 		Initialize();
 	}
 
+	Camera::Camera(const Vector2 &size) :
+		_cameraSceneEntry(this),
+		_flags(Camera::Flags::Defaults)
+	{
+		//TODO: This implementaiton is probably not what a user would expect when creating a camera with a size tbh... It just renders it to the screens top left corner with the given size. Instead it should probably create a render target of that size and render into it instead.
+		_renderPass = new RenderPass();
+		_renderPass->SetFrame(RN::Rect(0, 0, size.x, size.y));
+
+		Initialize();
+	}
+
 	Camera::~Camera()
 	{
 		SafeRelease(_renderPass);
