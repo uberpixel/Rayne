@@ -11,6 +11,7 @@
 #define __RAYNE_TEXTURE_H_
 
 #include "../Base/RNBase.h"
+#include "../Objects/RNData.h"
 #include "../Objects/RNObject.h"
 #include "../Assets/RNAsset.h"
 #include "RNGPUResource.h"
@@ -258,6 +259,7 @@ namespace RN
 		};
 
 		RNAPI static Texture *WithName(const String *name, const Dictionary *settings = nullptr);
+		RNAPI static Texture *WithPNGData(const Data *data, const Dictionary *settings = nullptr);
 		RNAPI static Texture *WithDescriptor(const Descriptor &descriptor);
 
 		RNAPI virtual void StartStreamingData(const Region &region){};

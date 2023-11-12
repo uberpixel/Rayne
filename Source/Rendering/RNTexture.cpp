@@ -10,6 +10,8 @@
 #include "RNTexture.h"
 #include "RNRenderer.h"
 
+#include <png.h>
+
 namespace RN
 {
 	RNDefineMeta(Texture, Asset)
@@ -35,6 +37,138 @@ namespace RN
 		}
 
 		return coordinator->GetAssetWithName<Texture>(textureName, settings);
+	}
+
+	struct PngReadFromData
+	{
+		const Data *data;
+		size_t offset;
+	};
+
+	void __TexturePNGEmptyLogFunction(png_structp png, const char *warning)
+	{}
+
+	static void __TexturePNGReadFromData(png_structp png_ptr, png_bytep data, png_size_t length)
+	{
+		if(png_ptr == NULL)
+			return;
+
+		PngReadFromData *readData = static_cast<PngReadFromData*>(png_get_io_ptr(png_ptr));
+		readData->data->GetBytesInRange(data, Range(readData->offset, length));
+		readData->offset += length;
+	}
+
+	Texture *Texture::WithPNGData(const Data *data, const Dictionary *settings)
+	{
+		//TODO: Ideally this should use the AssetManager, but extending it to support Data and not just File is a lot of work.
+		
+		int transforms = PNG_TRANSFORM_SCALE_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
+
+		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+		
+		//TODO: Read 8 magic bytes first and check if correct
+		//uint8 magic[] = {137, 80, 78, 71, 13, 10, 26, 10};
+		
+		PngReadFromData readData;
+		readData.data = data;
+		readData.offset = 0;
+		png_set_read_fn(pngPointer, &readData, __TexturePNGReadFromData);
+
+		png_set_sig_bytes(pngPointer, 0);
+		png_set_error_fn(pngPointer, nullptr, nullptr, __TexturePNGEmptyLogFunction);
+
+		png_infop pngInfo = png_create_info_struct(pngPointer);
+		png_read_png(pngPointer, pngInfo, transforms, nullptr);
+
+		png_uint_32 width, height = 0;
+		int depth, colorType, interlaceType = 0;
+
+		png_get_IHDR(pngPointer, pngInfo, &width, &height, &depth, &colorType, &interlaceType, nullptr, nullptr);
+
+		const png_bytepp rows = png_get_rows(pngPointer, pngInfo);
+		
+		uint8 *imageData = nullptr;
+		size_t bytesPerRow;
+		
+		bool mipMapped = true;
+		bool isLinear = false;
+		Number *wrapper;
+		
+		if(settings && (wrapper = settings->GetObjectForKey<Number>(RNCSTR("mipMapped"))))
+			mipMapped = wrapper->GetBoolValue();
+		
+		if(settings && (wrapper = settings->GetObjectForKey<Number>(RNCSTR("isLinear"))))
+			isLinear = wrapper->GetBoolValue();
+
+		Texture::Format textureFormat = Texture::Format::Invalid;
+
+		switch(colorType)
+		{
+			case PNG_COLOR_TYPE_RGB:
+			{
+				imageData = new uint8[width * height * 4];
+				textureFormat = isLinear?Texture::Format::RGB_8:Texture::Format::RGB_8_SRGB;
+				bytesPerRow = 4 * width;
+
+				uint8 *temp = imageData;
+
+				for(uint32 y = 0; y < height; y ++)
+				{
+					const png_bytep row = rows[y];
+
+					for(uint32 x = 0; x < width; x ++)
+					{
+						const png_bytep ptr = &(row[x * 3]);
+
+						*temp ++ = ptr[0];
+						*temp ++ = ptr[1];
+						*temp ++ = ptr[2];
+						*temp ++ = 255;
+					}
+				}
+
+				break;
+			}
+
+			case PNG_COLOR_TYPE_RGBA:
+			{
+				imageData = new uint8[width * height * 4];
+				textureFormat = isLinear?Texture::Format::RGBA_8:Texture::Format::RGBA_8_SRGB;
+				bytesPerRow = 4 * width;
+				
+				uint32 *temp = reinterpret_cast<uint32 *>(imageData);
+
+				for(uint32 y = 0; y < height; y ++)
+				{
+					const png_bytep row = rows[y];
+
+					for(uint32 x = 0; x < width; x ++)
+					{
+						const png_bytep ptr = &(row[x * 4]);
+						*temp ++ = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+					}
+				}
+
+				break;
+			}
+				
+			default:
+				throw InconsistencyException(RNSTR("PNG Data is neither RGBA nor RGB"));
+		}
+
+		png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
+		
+		Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
+		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+
+		texture->SetData(0, imageData, bytesPerRow, height);
+
+		if(mipMapped)
+			texture->GenerateMipMaps();
+
+		delete[] imageData;
+
+		return texture->Autorelease();
 	}
 
 	Texture *Texture::WithDescriptor(const Descriptor &descriptor)
