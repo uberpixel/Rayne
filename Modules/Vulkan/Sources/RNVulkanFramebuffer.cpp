@@ -295,7 +295,7 @@ namespace RN
 			{
 				swapchainImageIndex = _swapChain->GetFrameIndex();
 			}
-			else if(resolveFramebuffer->_swapChain)
+			else if(resolveFramebuffer && resolveFramebuffer->_swapChain)
 			{
 				resolveSwapchainImageIndex = resolveFramebuffer->_swapChain->GetFrameIndex();
 			}
