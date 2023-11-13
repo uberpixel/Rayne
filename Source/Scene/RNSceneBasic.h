@@ -32,6 +32,8 @@ namespace RN
 		
 		RNAPI void AddRenderNode(SceneNode *node);
 		RNAPI void RemoveRenderNode(SceneNode *node);
+		
+		RNAPI void MakeDrawablesDirty();
 
 		//Should probably be private, but this makes it easy to visualize
 		RN::uint16 _occlusionDepthBufferWidth;

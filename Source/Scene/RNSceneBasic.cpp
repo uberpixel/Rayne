@@ -112,12 +112,14 @@ namespace RN
 
 	void SceneBasic::FlushDeletionQueue()
 	{
+		bool didUpdateCameras = false;
 		_nodesToRemove->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
 
 			if(node->IsKindOfClass(Camera::GetMetaClass()))
 			{
 				Camera *camera = static_cast<Camera *>(node);
 				_cameras.Erase(camera->_cameraSceneEntry);
+				didUpdateCameras = true;
 			}
 			else if(node->IsKindOfClass(Light::GetMetaClass()))
 			{
@@ -138,6 +140,11 @@ namespace RN
 		});
 
 		_nodesToRemove->RemoveAllObjects();
+		
+		if(didUpdateCameras)
+		{
+			MakeDrawablesDirty();
+		}
 	}
 
 	void SceneBasic::RasterizeClipSpaceTriangle(Vector4 A, Vector4 B, Vector4 C)
@@ -623,6 +630,8 @@ namespace RN
 		{
 			Camera *camera = static_cast<Camera *>(node);
 			_cameras.PushFront(camera->_cameraSceneEntry);
+			
+			MakeDrawablesDirty();
 		}
 		else if(node->IsKindOfClass(Light::GetMetaClass()))
 		{
@@ -649,5 +658,19 @@ namespace RN
 		_nodesToRemove->AddObject(node);
 		_nodesToRemove->Unlock();
 		node->_scheduledForRemovalFromScene = true;
+	}
+
+	void SceneBasic::MakeDrawablesDirty()
+	{
+		//Needed to make drawables per camera data update correctly whenever a new camera was added or removed. Also needed for any other renderpass changes...
+		IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
+		while(nodeMember)
+		{
+			SceneNode *node = nodeMember->Get();
+			Entity *entity = node->Downcast<Entity>();
+			if(entity) entity->MakeDirty();
+
+			nodeMember = nodeMember->GetNext();
+		}
 	}
 }

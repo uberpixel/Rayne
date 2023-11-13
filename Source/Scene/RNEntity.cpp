@@ -108,6 +108,8 @@ namespace RN
 
 	void Entity::MakeDirty()
 	{
+		if(!_model) return;
+		
 		size_t lodStageCount = _model->GetLODStageCount();
 		for(size_t lodStage = 0; lodStage < lodStageCount; lodStage += 1)
 		{
