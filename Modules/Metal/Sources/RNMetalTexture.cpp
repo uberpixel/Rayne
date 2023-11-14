@@ -42,12 +42,13 @@ namespace RN
 		[texture replaceRegion:MTLRegionMake3D(region.x, region.y, region.z, region.width, region.height, region.depth) mipmapLevel:mipmapLevel slice:slice withBytes:bytes bytesPerRow:bytesPerRow bytesPerImage:bytesPerRow*numberOfRows];
 	}
 
-	void MetalTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const
+	void MetalTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow, std::function<void(void)> callback) const
 	{
 		Region region = Region::With2D(0, 0, _descriptor.width, _descriptor.height);
 
 		id<MTLTexture> texture = (id<MTLTexture>)_texture;
 		[texture getBytes:bytes bytesPerRow:bytesPerRow fromRegion:MTLRegionMake3D(region.x, region.y, region.z, region.width, region.height, region.depth) mipmapLevel:mipmapLevel];
+		callback();
 	}
 
 	void MetalTexture::GenerateMipMaps()

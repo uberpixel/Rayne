@@ -268,7 +268,7 @@ namespace RN
 		RNAPI virtual void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows) = 0;
 		RNAPI virtual void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow, size_t numberOfRows) = 0;
-		RNAPI virtual void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const = 0;
+		RNAPI virtual void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow, std::function<void(void)> callback) const = 0;
 
 		RNAPI virtual void GenerateMipMaps() = 0;
 		RNAPI virtual bool HasColorChannel(ColorChannel channel) const;

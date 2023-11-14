@@ -42,7 +42,7 @@ namespace RN
 		VKAPI void SetData(uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows) final;
 		VKAPI void SetData(const Region &region, uint32 mipmapLevel, const void *bytes, size_t bytesPerRow, size_t numberOfRows) final;
 		VKAPI void SetData(const Region &region, uint32 mipmapLevel, uint32 slice, const void *bytes, size_t bytesPerRow, size_t numberOfRows) final;
-		VKAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const final;
+		VKAPI void GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow, std::function<void(void)> callback) const final;
 
 		VKAPI void GenerateMipMaps() final;
 

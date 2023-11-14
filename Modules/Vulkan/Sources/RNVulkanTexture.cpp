@@ -590,15 +590,17 @@ namespace RN
 		}
 	}
 
-	void VulkanTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const
+	void VulkanTexture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow, std::function<void(void)> callback) const
 	{
 		//TODO: Force main thread, or make it more flexible
 
-/*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
+		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
 		VkImage downloadImage;
 		VkDeviceMemory downloadMemory;
 		VkMemoryRequirements downloadRequirements;
+
+        VkImageLayout initialLayout = GetCurrentLayout();
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -614,7 +616,7 @@ namespace RN
 		imageInfo.mipLevels = 1;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
-		imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		RNVulkanValidate(vk::CreateImage(device, &imageInfo, _renderer->GetAllocatorCallback(), &downloadImage));
 
 		vk::GetImageMemoryRequirements(device, downloadImage, &downloadRequirements);
@@ -630,8 +632,8 @@ namespace RN
 
 		VulkanCommandBuffer *commandBuffer = _renderer->GetCommandBuffer();
 		commandBuffer->Begin();
-		SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanTexture::BarrierIntent::CopyDestination);
+		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::CopySource);
 
 		VkImageCopy copyRegion = {};
 
@@ -652,35 +654,39 @@ namespace RN
 		copyRegion.extent.depth = _descriptor.depth;
 
 		vk::CmdCopyImage(commandBuffer->GetCommandBuffer(), _image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, downloadImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+        SetImageLayout(commandBuffer->GetCommandBuffer(), _image, mipmapLevel, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, initialLayout, _descriptor.usageHint & Texture::UsageHint::RenderTarget? VulkanTexture::BarrierIntent::RenderTarget : VulkanTexture::BarrierIntent::ShaderSource);
+        SetImageLayout(commandBuffer->GetCommandBuffer(), downloadImage, 0, 1, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanTexture::BarrierIntent::CopySource);
 
 		commandBuffer->End();
 		_renderer->SubmitCommandBuffer(commandBuffer);
 
-		//TODO: block and wait for GPU to copy data before reading it.
+        _renderer->AddFrameFinishedCallback([this, downloadImage, downloadMemory, downloadRequirements, callback, bytes, bytesPerRow](){
+			VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 
-		VkSubresourceLayout subResLayout;
-		void *data;
+            VkSubresourceLayout subResLayout;
+            void *data;
 
-		VkImageSubresource subRes = {};
-		subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		subRes.mipLevel = 0;
+            VkImageSubresource subRes = {};
+            subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subRes.mipLevel = 0;
 
-		// Get sub resources layout
-		// Includes row pitch, size offsets, etc.
-		vk::GetImageSubresourceLayout(device, downloadImage, &subRes, &subResLayout);
+            // Get sub resources layout
+            // Includes row pitch, size offsets, etc.
+            vk::GetImageSubresourceLayout(device, downloadImage, &subRes, &subResLayout);
 
-		// Map image memory
-		RNVulkanValidate(vk::MapMemory(device, downloadMemory, 0, downloadRequirements.size, 0, &data));
+            // Map image memory
+            RNVulkanValidate(vk::MapMemory(device, downloadMemory, 0, downloadRequirements.size, 0, &data));
 
-		// Copy image data into memory
-		memcpy(bytes, data, bytesPerRow*_descriptor.height);
+            // Copy image data into memory
+            memcpy(bytes, data, bytesPerRow*_descriptor.height);
 
-		vk::UnmapMemory(device, downloadMemory);
+            vk::UnmapMemory(device, downloadMemory);
 
-		vk::DestroyImage(device, downloadImage, _renderer->GetAllocatorCallback());
-		vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());*/
+            vk::DestroyImage(device, downloadImage, _renderer->GetAllocatorCallback());
+            vk::FreeMemory(device, downloadMemory, _renderer->GetAllocatorCallback());
+
+            callback();
+        });
 	}
 
 	void VulkanTexture::GenerateMipMaps()
