@@ -260,6 +260,8 @@ namespace RN
 		std::vector<VulkanPointLight> pointLights;
 		std::vector<VulkanSpotLight> spotLights;
 
+		std::vector<VulkanTexture *> renderTargetsUsedInShader;
+
 		std::vector<Matrix> directionalShadowMatrices;
 		VulkanTexture *directionalShadowDepthTexture;
 		Vector2 directionalShadowInfo;

@@ -382,6 +382,15 @@ namespace RN
 					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 				}
 
+                //Set textures layout for reading for render targets that are used in this frame
+                for(VulkanTexture *vulkanTexture : renderPass.renderTargetsUsedInShader)
+                {
+                    if(vulkanTexture->GetCurrentLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) continue; //Nothing to do if the layout is already correct
+
+                    VulkanTexture::SetImageLayout(commandBuffer, vulkanTexture->GetVulkanImage(), 0, vulkanTexture->GetDescriptor().mipMaps, 0, vulkanTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_COLOR_BIT, vulkanTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanTexture::BarrierIntent::ShaderSource);
+                    vulkanTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                }
+
 				//Set previous framebuffer texture layout for reading
 				if(renderPass.previousRenderPass && renderPass.previousRenderPass->GetFramebuffer())
 				{
@@ -423,6 +432,16 @@ namespace RN
 				{
 					VulkanTexture::SetImageLayout(commandBuffer, renderPass.directionalShadowDepthTexture->GetVulkanImage(), 0, renderPass.directionalShadowDepthTexture->GetDescriptor().mipMaps, 0, renderPass.directionalShadowDepthTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_DEPTH_BIT, renderPass.directionalShadowDepthTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
 					renderPass.directionalShadowDepthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+				}
+
+				//Set textures layout for writing for render targets that are used in this frame
+				//TODO: This should also support depth/stencil attachments, currently only correct for color attachments!
+				for(VulkanTexture *vulkanTexture : renderPass.renderTargetsUsedInShader)
+				{
+					if(vulkanTexture->GetCurrentLayout() == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) continue; //Nothing to do if the layout is already correct
+
+					VulkanTexture::SetImageLayout(commandBuffer, vulkanTexture->GetVulkanImage(), 0, vulkanTexture->GetDescriptor().mipMaps, 0, vulkanTexture->GetDescriptor().depth, VK_IMAGE_ASPECT_COLOR_BIT, vulkanTexture->GetCurrentLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
+					vulkanTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 				}
 
 				//Set previous framebuffer texture layout for writing
@@ -1781,8 +1800,10 @@ namespace RN
 		_internals->currentRenderPassIndex = 0;
 		_internals->currentDrawableResourceIndex = 0;
 
-		for(const VulkanRenderPass &renderPass : _internals->renderPasses)
+		for(VulkanRenderPass &renderPass : _internals->renderPasses)
 		{
+			renderPass.renderTargetsUsedInShader.clear();
+
 			if(renderPass.type != VulkanRenderPass::Type::Default && renderPass.type != VulkanRenderPass::Type::Convert)
 			{
 				_internals->currentRenderPassIndex += 1;
@@ -1929,8 +1950,14 @@ namespace RN
 							}
 							else
 							{
-								const VulkanTexture *materialTexture = drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
+								VulkanTexture *materialTexture = drawable->material->GetTextures()->GetObjectAtIndex<VulkanTexture>(argument->GetMaterialTextureIndex());
 								imageView = materialTexture->_imageView;
+
+                                if(materialTexture->GetDescriptor().usageHint & Texture::UsageHint::RenderTarget)
+                                {
+									//Add render targets to list of textures that needs to be transitioned for this render pass
+                                    renderPass.renderTargetsUsedInShader.push_back(materialTexture);
+                                }
 							}
 
 							VkDescriptorImageInfo imageBufferDescriptorInfo = {};
