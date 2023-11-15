@@ -17,6 +17,7 @@ namespace RN
 	class PNGAssetWriter
 	{
 	public:
+		RNAPI static void Encode(Texture *texture, std::function<void(RN::Data *pngData)> callback);
 		RNAPI static bool Write(Texture *texture, const String *filename);
 	};
 }
