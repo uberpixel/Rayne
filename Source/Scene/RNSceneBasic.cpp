@@ -600,6 +600,10 @@ namespace RN
 			
 			_renderNodes.InsertAfter(node->_sceneRenderEntry, member);
 		}
+		
+		Entity *entity = node->Downcast<Entity>();
+		if(entity) entity->MakeDirty();
+		
 		Unlock();
 	}
 
