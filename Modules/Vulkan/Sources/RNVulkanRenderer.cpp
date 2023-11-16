@@ -658,6 +658,8 @@ namespace RN
 		renderPass.shaderHint = camera->GetShaderHint();
 		renderPass.overrideMaterial = camera->GetMaterial();
 
+        renderPass.cameraInfo.camera = camera;
+
 		renderPass.cameraInfo.viewPosition = camera->GetWorldPosition();
 		renderPass.cameraInfo.viewMatrix = camera->GetViewMatrix();
 		renderPass.cameraInfo.inverseViewMatrix = camera->GetInverseViewMatrix();
@@ -1680,7 +1682,7 @@ namespace RN
 		_lock.Unlock();
 
 		Material *material = drawable->material;
-		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].dirty)
+		if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].dirty || drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].camera != renderPass.cameraInfo.camera)
 		{
 			//TODO: Fix the camera situation...
 			_lock.Lock();
@@ -1689,7 +1691,7 @@ namespace RN
 			_lock.Unlock();
 
 			RN_ASSERT(pipelineState && uniformState, "Failed to create pipeline or uniform state for drawable!");
-			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, pipelineState, uniformState);
+			drawable->UpdateRenderingState(_internals->currentDrawableResourceIndex, renderPass.cameraInfo.camera, pipelineState, uniformState);
 
 			if(!drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet)
 			{

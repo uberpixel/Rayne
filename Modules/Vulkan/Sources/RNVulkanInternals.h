@@ -131,6 +131,7 @@ namespace RN
 			VulkanUniformState *uniformState;
 			bool dirty;
 			BufferedDescriptorSet *descriptorSet;
+            Camera *camera;
 		};
 
 		~VulkanDrawable()
@@ -159,9 +160,10 @@ namespace RN
 			}
 		}
 
-		void UpdateRenderingState(size_t cameraID, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
+		void UpdateRenderingState(size_t cameraID, Camera *camera, const VulkanPipelineState *pipelineState, VulkanUniformState *uniformState)
 		{
 			_cameraSpecifics[cameraID].pipelineState = pipelineState;
+            _cameraSpecifics[cameraID].camera = camera;
 			if(_cameraSpecifics[cameraID].uniformState)
 			{
 				VulkanUniformState *oldUniformState = _cameraSpecifics[cameraID].uniformState;
@@ -217,6 +219,7 @@ namespace RN
 
 	struct VulkanRenderPassCameraInfo
 	{
+		Camera *camera;
 		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
