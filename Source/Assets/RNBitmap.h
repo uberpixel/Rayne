@@ -50,10 +50,12 @@ namespace RN
 		RNAPI Bitmap(const Bitmap *other);
 		RNAPI Bitmap(const uint8_t *bytes, const BitmapInfo &info);
 		RNAPI Bitmap(const Data *data, const BitmapInfo &info);
+		RNAPI Bitmap(Data *data, const BitmapInfo &info);
 
 		RNAPI ~Bitmap();
 
 		RNAPI Bitmap *GetBitmapWithFormat(BitmapInfo::Format format, size_t bytesPerRow = 0) const;
+		RNAPI Bitmap *GetScaledBitmap(size_t newWidth, size_t newHeight) const;
 
 		Color GetPixel(size_t x, size_t y) const;
 		void SetPixel(size_t x, size_t y, const Color &color);
@@ -62,10 +64,10 @@ namespace RN
 		size_t GetHeight() const { return _info.height; }
 		const BitmapInfo &GetInfo() const { return _info; }
 
-		const Data *GetData() const { return _data; }
+		Data *GetData() const { return _data; }
 
 	private:
-		Bitmap(Data *data, const BitmapInfo &info, bool dummy);
+		//Bitmap(Data *data, const BitmapInfo &info, bool dummy);
 
 		void Update();
 

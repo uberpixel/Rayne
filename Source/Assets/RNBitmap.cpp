@@ -47,7 +47,7 @@ namespace RN
 		Update();
 	}
 
-	Bitmap::Bitmap(Data *data, const BitmapInfo &info, bool dummy) :
+	Bitmap::Bitmap(Data *data, const BitmapInfo &info) :
 		_data(SafeRetain(data)),
 		_info(info)
 	{
@@ -94,23 +94,22 @@ namespace RN
 			}
 			case BitmapInfo::Format::RGBA_8:
 			{
-				const uint32_t *data = _data->GetBytes<uint32_t>(index);
+				const uint8_t *data = _data->GetBytes<uint8_t>(index);
 
-				pixel.r = ((*data >> 24) & 0xFF) / 255.0f;
-				pixel.g = ((*data >> 16) & 0xFF) / 255.0f;
-				pixel.b = ((*data >> 8) & 0xFF) / 255.0f;
-				pixel.a = ((*data >> 0) & 0xFF) / 255.0f;
+				pixel.r = data[0] / 255.0f;
+				pixel.g = data[1] / 255.0f;
+				pixel.b = data[2] / 255.0f;
+				pixel.a = data[3] / 255.0f;
 
 				break;
 			}
 			case BitmapInfo::Format::RGB_8:
 			{
-				const uint16 *dataRG = _data->GetBytes<uint16>(index);
-				const uint8 *dataB = reinterpret_cast<const uint8 *>(dataRG + 1);
+				const uint8_t *data = _data->GetBytes<uint8_t>(index);
 
-				pixel.r = ((*dataRG >> 0) & 0xFF) / 255.0f;
-				pixel.g = ((*dataRG >> 8) & 0xFF) / 255.0f;
-				pixel.b = (*dataB) / 255.0f;
+				pixel.r = data[0] / 255.0f;
+				pixel.g = data[1] / 255.0f;
+				pixel.b = data[2] / 255.0f;
 				pixel.a = 1.0f;
 
 				break;
@@ -247,6 +246,78 @@ namespace RN
 		}
 	}
 
+	Bitmap *Bitmap::GetScaledBitmap(size_t newWidth, size_t newHeight) const
+	{
+		RN_ASSERT(newWidth <= _info.width && newHeight <= _info.height, "Bitmap scaling only supports downscaling at the moment");
+		
+		const Bitmap *source = this->Retain();
+		size_t tempWidth = source->_info.width;
+		size_t tempHeight = source->_info.height;
+		
+		Bitmap *scaled = nullptr;
+		
+		while(tempWidth != newWidth || tempHeight != newHeight)
+		{
+			tempWidth = std::max(tempWidth / 2, newWidth);
+			tempHeight = std::max(tempHeight / 2, newHeight);
+			
+			BitmapInfo scaledInfo;
+			scaledInfo.width = tempWidth;
+			scaledInfo.height = tempHeight;
+			scaledInfo.format = _info.format;
+			scaledInfo.bytesPerRow = tempWidth * kBytesPerPixel[static_cast<size_t>(_info.format)];
+			
+			Data *scaledData = new Data(scaledInfo.bytesPerRow * scaledInfo.height);
+			scaled = new Bitmap(scaledData, scaledInfo);
+			scaledData->Release();
+			
+			Color newColor;
+			
+			int l;
+			int c;
+			float t;
+			float u;
+			float tmp;
+			float d1, d2, d3, d4;
+			Color p1, p2, p3, p4; /* nearby pixels */
+			
+			for(int y = 0; y < tempHeight; y++)
+			{
+				for(int x = 0; x < tempWidth; x++)
+				{
+					tmp = (float) (x + 0.25f) / (float) (tempWidth - 1) * (source->_info.width - 1);
+					c = std::min(std::max(static_cast<int>(floor(tmp)), 0), static_cast<int>(source->_info.width - 2));
+					t = tmp - c;
+					
+					tmp = (float) (y + 0.25f) / (float)(tempHeight - 1) * (source->_info.height - 1);
+					l = std::min(std::max(static_cast<int>(floor(tmp)), 0), static_cast<int>(source->_info.height - 2));
+					u = tmp - l;
+					
+					//coefficients
+					d1 = (1 - t) * (1 - u);
+					d2 = (1 - t) * u;
+					d3 = t * u;
+					d4 = t * (1 - u);
+					
+					//nearby pixels
+					p1 = source->GetPixel(c, l);
+					p2 = source->GetPixel(c, l + 1);
+					p3 = source->GetPixel(c + 1, l + 1);
+					p4 = source->GetPixel(c + 1, l);
+					
+					newColor = p1 * d1 + p2 * d2 + p3 * d3 + p4 * d4;
+					
+					scaled->SetPixel(x, y, newColor);
+				}
+			}
+			
+			source->Release();
+			source = scaled;
+		}
+		
+		return scaled->Autorelease();
+	}
+
 	Bitmap *Bitmap::GetBitmapWithFormat(BitmapInfo::Format format, size_t bytesPerRow) const
 	{
 		if(bytesPerRow == 0)
@@ -263,7 +334,7 @@ namespace RN
 		info.bytesPerRow = bytesPerRow;
 
 		Data *data = new Data(nullptr, info.bytesPerRow * info.height);
-		Bitmap *other = new Bitmap(data, info, true);
+		Bitmap *other = new Bitmap(data, info);
 
 		for(size_t y = 0; y < _info.height; y ++)
 		{
