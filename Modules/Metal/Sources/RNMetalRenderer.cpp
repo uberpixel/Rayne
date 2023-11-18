@@ -366,6 +366,8 @@ namespace RN
 		renderPass.overrideMaterial = camera->GetMaterial();
 		renderPass.resolveFramebuffer = nullptr;
 
+		renderPass.camera = camera;
+		
 		renderPass.viewPosition = camera->GetWorldPosition();
 		renderPass.viewMatrix = camera->GetViewMatrix();
 		renderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
@@ -1173,13 +1175,13 @@ namespace RN
 
 		MetalRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].dirty)
+		if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].dirty || drawable->_cameraSpecifics[_internals->currentRenderPassIndex].camera != renderPass.camera)
 		{
 			_lock.Lock();
 			const MetalRenderingState *state = _internals->stateCoordinator.GetRenderPipelineState(drawable->material, drawable->mesh, renderPass.framebuffer, renderPass.shaderHint, renderPass.overrideMaterial);
 			_lock.Unlock();
 
-			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, this, state); //This will also reserve memory in a uniform buffer.
+			drawable->UpdateRenderingState(_internals->currentRenderPassIndex, renderPass.camera, this, state); //This will also reserve memory in a uniform buffer.
 		}
 		
 		//Vertex and fragment shaders need to explicitly be marked to support instancing in the shader library json

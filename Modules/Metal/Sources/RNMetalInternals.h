@@ -41,6 +41,7 @@ namespace RN
 		//TODO: Maybe store these per camera/renderpass!?
 		struct CameraSpecific
 		{
+			Camera *camera;
 			const MetalRenderingState *pipelineState;
 			bool dirty;
 			
@@ -68,12 +69,13 @@ namespace RN
 		{
 			while(_cameraSpecifics.size() <= cameraID)
 			{
-				_cameraSpecifics.push_back({nullptr, true});
+				_cameraSpecifics.push_back({nullptr, nullptr, true});
 			}
 		}
 
-		void UpdateRenderingState(size_t cameraID, Renderer *renderer, const MetalRenderingState *state)
+		void UpdateRenderingState(size_t cameraID, Camera * camera, Renderer *renderer, const MetalRenderingState *state)
 		{
+			_cameraSpecifics[cameraID].camera = camera;
 			_cameraSpecifics[cameraID].pipelineState = state;
 			
 			for(Shader::ArgumentBuffer *buffer : _cameraSpecifics[cameraID].argumentBufferToUniformBufferMapping)
@@ -166,6 +168,7 @@ namespace RN
 		Material *overrideMaterial;
 		MetalFramebuffer *resolveFramebuffer;
 
+		Camera *camera;
 		Vector3 viewPosition;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
