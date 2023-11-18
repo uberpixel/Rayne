@@ -19,6 +19,7 @@ namespace RN
 	{
 	public:
 		RNAPI Data();
+		RNAPI Data(size_t length);
 		RNAPI Data(const void *bytes, size_t length);
 		RNAPI Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
 		RNAPI Data(const Data *other);

@@ -37,6 +37,11 @@ namespace RN
 		
 		_ownsData = _freeData = true;
 	}
+
+	Data::Data(size_t length) :
+		Data(nullptr, length, false, true)
+	{
+	}
 	
 	Data::Data(const void *bytes, size_t length) :
 		Data(bytes, length, false, true)
