@@ -885,6 +885,11 @@ namespace RN
 		if(overwrite) std::remove(newPath->GetUTF8String());
 		return std::rename(oldPath->GetUTF8String(), newPath->GetUTF8String()) == 0;
 	}
+
+	bool FileManager::DeleteFile(const String *path)
+	{
+		std::remove(path->GetUTF8String());
+	}
 	
 	bool FileManager::CreateDirectory(const String *path)
 	{

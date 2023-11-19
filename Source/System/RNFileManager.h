@@ -114,6 +114,7 @@ namespace RN
 		
 		RNAPI bool RenameFile(const String *oldPath, const String *newPath, bool overwrite = true);
 		RNAPI bool CreateDirectory(const String *path);
+		RNAPI bool DeleteFile(const String *path);
 		
 		RNAPI Directory *WalkableDirectory(const String *path);
 
