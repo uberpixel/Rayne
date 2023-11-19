@@ -164,16 +164,37 @@ namespace RN
 		else
 		{
 			Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, width, height, mipMapped);
-			Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+			
+			if(WorkQueue::GetCurrentWorkQueue()->IsEqual(WorkQueue::GetMainQueue()))
+			{
+				Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+				texture->SetData(0, data, bytesPerRow, height);
 
-			texture->SetData(0, data, bytesPerRow, height);
+				if(mipMapped)
+					texture->GenerateMipMaps();
+				
+				delete[] data;
+				
+				return texture->Autorelease();
+			}
+			
+			//Force this to run on the main thread as it will otherwise cause issues with the Vulkan renderer
+			auto textureFuture = WorkQueue::GetMainQueue()->PerformWithFuture([data, bytesPerRow, height, descriptor, mipMapped]() -> Texture * {
+			
+				Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+				texture->SetData(0, data, bytesPerRow, height);
 
-			if(mipMapped)
-				texture->GenerateMipMaps();
-
+				if(mipMapped)
+					texture->GenerateMipMaps();
+				
+				return texture;
+			});
+			
+			textureFuture.wait();
+			
 			delete[] data;
 
-			return texture->Autorelease();
+			return textureFuture.get()->Autorelease();
 		}
 	}
 	
