@@ -29,7 +29,7 @@ namespace RN
 		rndata->Append(data, length);
 	}
 
-	void PNGAssetWriter::Encode(Texture *texture, std::function<void(RN::Data *pngData)> callback)
+	void PNGAssetWriter::Encode(Texture *texture, std::function<void(RN::Data *pngData)> callback, bool interlace)
 	{
 		int colorType = 0;
 		int bitDepth = 0;
@@ -58,11 +58,11 @@ namespace RN
 		Data *textureData = Data::WithBytes(nullptr, texture->GetDescriptor().width * texture->GetDescriptor().height * channelCount);
 		textureData->Retain();
 		texture->Retain();
-		texture->GetData(textureData->GetBytes(), 0, texture->GetDescriptor().width * channelCount, [textureData, colorType, bitDepth, channelCount, texture, callback](){
+		texture->GetData(textureData->GetBytes(), 0, texture->GetDescriptor().width * channelCount, [textureData, colorType, bitDepth, channelCount, interlace, texture, callback](){
 
 			WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Background);
 			WorkGroup *group = new WorkGroup();
-			group->Perform(queue, [textureData, colorType, bitDepth, channelCount, texture, callback] {
+			group->Perform(queue, [textureData, colorType, bitDepth, channelCount, interlace, texture, callback] {
 
 				AutoreleasePool pool;
 				
@@ -97,7 +97,7 @@ namespace RN
 				RN::Data *resultData = new RN::Data();
 				png_set_write_fn(png_ptr, resultData, png_write_to_rndata, nullptr);
 
-				png_set_IHDR(png_ptr, info_ptr, texture->GetDescriptor().width, texture->GetDescriptor().height, bitDepth, colorType, PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+				png_set_IHDR(png_ptr, info_ptr, texture->GetDescriptor().width, texture->GetDescriptor().height, bitDepth, colorType, interlace? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 				//png_set_gAMA(png_ptr, info_ptr, mainprog_ptr->gamma);
 
@@ -126,7 +126,7 @@ namespace RN
 		return;
 	}
 
-	RN::Data *PNGAssetWriter::Encode(Bitmap *bitmap)
+	RN::Data *PNGAssetWriter::Encode(Bitmap *bitmap, bool interlace)
 	{
 		int colorType = 0;
 		int bitDepth = 0;
@@ -173,7 +173,7 @@ namespace RN
 		RN::Data *resultData = new RN::Data();
 		png_set_write_fn(png_ptr, resultData, png_write_to_rndata, nullptr);
 
-		png_set_IHDR(png_ptr, info_ptr, bitmap->GetInfo().width, bitmap->GetInfo().height, bitDepth, colorType, PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_set_IHDR(png_ptr, info_ptr, bitmap->GetInfo().width, bitmap->GetInfo().height, bitDepth, colorType, interlace? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 		//png_set_gAMA(png_ptr, info_ptr, mainprog_ptr->gamma);
 
@@ -195,7 +195,7 @@ namespace RN
 		return resultData->Autorelease();
 	}
 
-	bool PNGAssetWriter::Write(Texture *texture, const String *filename)
+	bool PNGAssetWriter::Write(Texture *texture, const String *filename, bool interlace)
 	{
 		int colorType = 0;
 		int bitDepth = 0;
@@ -223,11 +223,11 @@ namespace RN
 		textureData->Retain();
 		texture->Retain();
 		filename->Retain();
-		texture->GetData(textureData->GetBytes(), 0, texture->GetDescriptor().width * channelCount, [textureData, colorType, bitDepth, channelCount, texture, filename](){
+		texture->GetData(textureData->GetBytes(), 0, texture->GetDescriptor().width * channelCount, [textureData, colorType, bitDepth, channelCount, texture, filename, interlace](){
 
 			WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Background);
 			WorkGroup *group = new WorkGroup();
-			group->Perform(queue, [textureData, colorType, bitDepth, channelCount, texture, filename] {
+			group->Perform(queue, [textureData, colorType, bitDepth, channelCount, texture, filename, interlace] {
 
 				AutoreleasePool pool;
 				
@@ -273,7 +273,7 @@ namespace RN
 				
 				png_init_io(png_ptr, fp);
 
-				png_set_IHDR(png_ptr, info_ptr, texture->GetDescriptor().width, texture->GetDescriptor().height, bitDepth, colorType, PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+				png_set_IHDR(png_ptr, info_ptr, texture->GetDescriptor().width, texture->GetDescriptor().height, bitDepth, colorType, interlace? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 				//png_set_gAMA(png_ptr, info_ptr, mainprog_ptr->gamma);
 
