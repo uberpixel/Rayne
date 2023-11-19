@@ -888,7 +888,7 @@ namespace RN
 
 	bool FileManager::DeleteFile(const String *path)
 	{
-		std::remove(path->GetUTF8String());
+		return (std::remove(path->GetUTF8String()) == 0);
 	}
 	
 	bool FileManager::CreateDirectory(const String *path)
