@@ -485,7 +485,7 @@ namespace RN
 		_renderer->SubmitCommandList(commandList);
 	}
 
-	void D3D12Texture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow) const
+	void D3D12Texture::GetData(void *bytes, uint32 mipmapLevel, size_t bytesPerRow, std::function<void(void)> callback) const
 	{
 /*		//TODO: Force main thread, or make it more flexible
 
