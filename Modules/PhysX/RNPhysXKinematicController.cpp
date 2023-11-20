@@ -232,7 +232,8 @@ namespace RN
 	{
 		const physx::PxExtendedVec3 &position = _controller->getPosition();
 		physx::PxScene *scene = PhysXWorld::GetSharedInstance()->GetPhysXScene();
-		physx::PxOverlapBuffer hit;
+		physx::PxOverlapHit hitBuffer[256];
+		physx::PxOverlapBuffer hit(hitBuffer, 255);
 		physx::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;

@@ -139,7 +139,7 @@ namespace RN
 		if(delta > 0.1f || delta < k::EpsilonFloat)
 			return;
 
-		if(_substeps > 1)
+		if(_substeps > 1 && delta > RN::k::EpsilonFloat)
 		{
 			for(int i = 0; i < _substeps; i++)
 			{
@@ -149,7 +149,7 @@ namespace RN
 				_isSimulating = false;
 			}
 		}
-		else if(_substeps == 1)
+		else if(_substeps == 1 && _isSimulating)
 		{
 			_scene->fetchResults(true); //This blocks and waits for the physics simulation to finish
 			_isSimulating = false;
@@ -171,12 +171,16 @@ namespace RN
 	void PhysXWorld::WillUpdate(float delta)
 	{
 		SceneAttachment::WillUpdate(delta);
-		_controllerManager->computeInteractions(delta, _controllerManagerFilterCallback);
-		
-		if(_substeps == 1 && !_isSimulating)
+
+		if(delta > RN::k::EpsilonFloat)
 		{
-			_isSimulating = true;
-			_scene->simulate(delta/static_cast<double>(_substeps)); //This returns immediately and kicks off the physics simulation BEFORE updating any scene nodes, this makes the physics simulation lag behind one frame, but allows running it in parallel to the scene node updates. Direct transform changes will immediately be reflected, others only a frame later
+			_controllerManager->computeInteractions(delta, _controllerManagerFilterCallback);
+
+			if(_substeps == 1 && !_isSimulating)
+			{
+				_isSimulating = true;
+				_scene->simulate(delta / static_cast<double>(_substeps)); //This returns immediately and kicks off the physics simulation BEFORE updating any scene nodes, this makes the physics simulation lag behind one frame, but allows running it in parallel to the scene node updates. Direct transform changes will immediately be reflected, others only a frame later
+			}
 		}
 	}
 
