@@ -20,10 +20,84 @@ namespace RN
 
 	RNDefineMeta(VulkanWindow, Window);
 
+	//TODO: Related to Kernel HandleSystemEvents
+	LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg)
+		{
+		case WM_DESTROY:
+		{
+			VulkanWindow* window = reinterpret_cast<VulkanWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			NotificationManager::GetSharedInstance()->PostNotification(kRNWindowWillDestroy, window);
+			PostQuitMessage(0);
+			return 0;
+		}
+
+		case WM_NCCREATE:
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams));
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+
+		case WM_SIZE:
+		{
+			VulkanWindow* window = reinterpret_cast<VulkanWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			if (window)
+				window->UpdateSize();
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		}
+
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		{
+			VulkanWindow* window = reinterpret_cast<VulkanWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+			if(wParam == VK_RETURN)
+			{
+				window->SetPressedReturn(true);
+			}
+
+			if(wParam == VK_MENU)
+			{
+				window->SetPressedAlt(true);
+			}
+
+			if(window->GetPressedReturn() && window->GetPressedAlt())
+			{
+				window->SetFullscreen(!window->GetFullscreen());
+			}
+
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		}
+
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		{
+			VulkanWindow* window = reinterpret_cast<VulkanWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+			if (wParam == VK_RETURN)
+			{
+				window->SetPressedReturn(false);
+			}
+
+			if (wParam == VK_MENU)
+			{
+				window->SetPressedAlt(false);
+			}
+
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		}
+
+		default:
+			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		}
+		return 0;
+	}
+
 	VulkanWindow::VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
 		_renderer(renderer),
-		_swapChain(nullptr)
+		_swapChain(nullptr),
+		_keyPressedAlt(false),
+		_keyPressedReturn(false)
 	{
 #if RN_PLATFORM_WINDOWS
 		HINSTANCE hInstance = ::GetModuleHandle(nullptr);
@@ -33,7 +107,7 @@ namespace RN
 			__windowClass = { 0 };
 			__windowClass.cbSize = sizeof(WNDCLASSEX);
 			__windowClass.style = CS_HREDRAW | CS_VREDRAW;
-			__windowClass.lpfnWndProc = &DefWindowProcW;
+			__windowClass.lpfnWndProc = &MainWndProc;
 			__windowClass.hInstance = hInstance;
 			__windowClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
 			__windowClass.lpszClassName = L"RNVulkanWindowClass";
@@ -228,8 +302,14 @@ namespace RN
 
 	void VulkanWindow::SetFullscreen(bool fullscreen)
 	{
+		if(!_swapChain) return;
 		_swapChain->SetFullscreen(fullscreen);
+	}
 
+	bool VulkanWindow::GetFullscreen() const
+	{
+		if(!_swapChain) return false;
+		return _swapChain->GetIsFullscreen();
 	}
 
 	Vector2 VulkanWindow::GetSize() const
@@ -263,6 +343,8 @@ namespace RN
 
 	void VulkanWindow::UpdateSize()
 	{
+		if(!_swapChain) return;
+
 		_swapChain->ResizeSwapchain(GetSize());
 		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 	}

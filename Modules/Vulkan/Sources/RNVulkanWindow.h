@@ -46,11 +46,23 @@ namespace RN
 #endif
 		VulkanSwapChain *GetSwapChain() const { return _swapChain; }
 
+		void SetPressedAlt(bool pressed) { _keyPressedAlt = pressed; }
+		void SetPressedReturn(bool pressed) { _keyPressedReturn = pressed; }
+
+		bool GetPressedAlt() const { return _keyPressedAlt; }
+		bool GetPressedReturn() const { return _keyPressedReturn; }
+
+		//TODO: Should fetch the current fullscreen state from the swapchain
+		VKAPI bool GetFullscreen() const;
+
 	private:
 		VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor);
 
 		VulkanSwapChain *_swapChain;
 		VulkanRenderer *_renderer;
+
+		bool _keyPressedAlt;
+		bool _keyPressedReturn;
 
 #if RN_PLATFORM_WINDOWS
 		HWND _hwnd;

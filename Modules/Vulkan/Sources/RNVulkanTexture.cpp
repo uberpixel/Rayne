@@ -302,7 +302,8 @@ namespace RN
 		_image(VK_NULL_HANDLE),
 		_imageView(VK_NULL_HANDLE),
 		_allocation(VK_NULL_HANDLE),
-		_format(VulkanImageFormatFromTextureFormat(descriptor.format))
+		_format(VulkanImageFormatFromTextureFormat(descriptor.format)),
+		_isFromSwapchain(false)
 	{
 		VulkanDevice *device = renderer->GetVulkanDevice();
 
@@ -407,7 +408,7 @@ namespace RN
 		RNVulkanValidate(vk::CreateImageView(device->GetDevice(), &imageViewInfo, _renderer->GetAllocatorCallback(), &_imageView));
 	}
 
-	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image) :
+	VulkanTexture::VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image, bool fromSwapchain) :
 		Texture(descriptor),
 		_renderer(renderer),
 		_uploadImage(VK_NULL_HANDLE),
@@ -417,7 +418,8 @@ namespace RN
 		_imageView(VK_NULL_HANDLE),
 		_allocation(VK_NULL_HANDLE),
 		_format(VulkanImageFormatFromTextureFormat(descriptor.format)),
-		_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+		_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED),
+		_isFromSwapchain(fromSwapchain)
 	{
 		VkFormat format = VulkanImageFormatFromTextureFormat(descriptor.format);
 		VkImageViewCreateInfo imageViewInfo = {};
@@ -448,7 +450,7 @@ namespace RN
 		if(_imageView != VK_NULL_HANDLE)
 			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
 
-		if (_image != VK_NULL_HANDLE)
+		if (_image != VK_NULL_HANDLE && !_isFromSwapchain)
 			vmaDestroyImage(_renderer->_internals->memoryAllocator, _image, _allocation);
 	}
 

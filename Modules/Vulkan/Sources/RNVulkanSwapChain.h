@@ -83,7 +83,8 @@ namespace RN
 		void CreateSurface();
 		void CreateSwapChain();
 		void ResizeSwapchain(const Vector2 &size);
-		void SetFullscreen(bool fullscreen) const;
+		void SetFullscreen(bool fullscreen);
+		bool GetIsFullscreen() const { return _isFullscreen; }
 
 		VkImage _colorBuffers[32];
 
@@ -92,6 +93,10 @@ namespace RN
 		VkSwapchainKHR _swapchain;
 
 		VkExtent2D _extents;
+		bool _isFullscreen;
+		Vector2 _preFullscreenWindowSize;
+		Vector2 _preFullscreenWindowPosition;
+		uint64 _preFullscreenWindowStyle;
 
 		RNDeclareMetaAPI(VulkanSwapChain, VKAPI)
 	};

@@ -33,7 +33,7 @@ namespace RN
 		};
 
 		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer);
-		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image);
+		VKAPI VulkanTexture(const Descriptor &descriptor, VulkanRenderer *renderer, VkImage image, bool fromSwapchain);
 		VKAPI ~VulkanTexture() override;
 
 		VKAPI void StartStreamingData(const Region &region) override;
@@ -67,6 +67,7 @@ namespace RN
 		VkSubresourceLayout _uploadSubresourceLayout;
 		void *_uploadData;
 		bool _isFirstUpload;
+		bool _isFromSwapchain;
 
 		VkFormat _format;
 		VkImage _image;

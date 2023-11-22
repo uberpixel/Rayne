@@ -469,6 +469,24 @@ namespace RN
 
 	void VulkanFramebuffer::WillUpdateSwapChain()
 	{
+		VulkanDevice* device = _renderer->GetVulkanDevice();
+
+		for(const VulkanFramebufferVariant& variant : _framebufferVariants)
+		{
+			VkFramebuffer framebuffer = variant.framebuffer;
+			std::vector<VkImageView> imageViews = variant.attachments;
+
+			_renderer->AddFrameFinishedCallback([this, device, imageViews, framebuffer]() {
+				vk::DestroyFramebuffer(device->GetDevice(), framebuffer, _renderer->GetAllocatorCallback());
+
+				for (VkImageView imageView : imageViews)
+				{
+					vk::DestroyImageView(device->GetDevice(), imageView, _renderer->GetAllocatorCallback());
+				}
+			});
+		}
+		_framebufferVariants.clear();
+
 		for(VulkanTargetView *targetView : _colorTargets)
 		{
 			SafeRelease(targetView->targetView.texture);
@@ -517,7 +535,7 @@ namespace RN
 				colorTextureDescriptor.type = layerCount > 1? Texture::Type::Type2DArray : Texture::Type::Type2D;
 				colorTextureDescriptor.format = colorFormat;
 
-				VulkanTexture *bufferTexture = new VulkanTexture(colorTextureDescriptor, _renderer, colorBuffer);
+				VulkanTexture *bufferTexture = new VulkanTexture(colorTextureDescriptor, _renderer, colorBuffer, true);
 				VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), colorBuffer, 0, 1, 0, layerCount, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VulkanTexture::BarrierIntent::RenderTarget);
 				bufferTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -547,7 +565,7 @@ namespace RN
 					fragmentDensityTextureDescriptor.type = layerCount > 1 ? Texture::Type::Type2DArray : Texture::Type::Type2D;
 					fragmentDensityTextureDescriptor.format = fragmentDensityFormat;
 
-					VulkanTexture *bufferTexture = new VulkanTexture(fragmentDensityTextureDescriptor, _renderer, fragmentDensityBuffer);
+					VulkanTexture *bufferTexture = new VulkanTexture(fragmentDensityTextureDescriptor, _renderer, fragmentDensityBuffer, true);
                     VulkanTexture::SetImageLayout(commandBuffer->GetCommandBuffer(), fragmentDensityBuffer, 0, 1, 0, layerCount, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT, VulkanTexture::BarrierIntent::ShaderSource);
                     bufferTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT);
 

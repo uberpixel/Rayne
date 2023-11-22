@@ -324,14 +324,16 @@ namespace RN
             });
 
 			//Submit command buffers
-			VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 			VkSubmitInfo submitInfo = {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			submitInfo.commandBufferCount = buffers.size();
 			submitInfo.pCommandBuffers = buffers.data();
-			submitInfo.pWaitDstStageMask = &pipelineStageFlags;
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = &resourceUploadsSemaphore;
+
+			std::vector<VkPipelineStageFlags> pipelineStageFlags;
+			pipelineStageFlags.push_back(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+			submitInfo.pWaitDstStageMask = pipelineStageFlags.data();
 
 			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
@@ -506,7 +508,6 @@ namespace RN
 		_lock.Unlock();
 
 		//Submit command buffers
-		VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = buffers.size();
@@ -515,7 +516,13 @@ namespace RN
 		submitInfo.pWaitSemaphores = presentSemaphores.data();
 		submitInfo.signalSemaphoreCount = renderSemaphores.size();
 		submitInfo.pSignalSemaphores = renderSemaphores.data();
-		submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+
+		std::vector<VkPipelineStageFlags> pipelineStageFlags;
+		for(int i = 0; i < presentSemaphores.size(); i++)
+		{
+			pipelineStageFlags.push_back(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+		}
+		submitInfo.pWaitDstStageMask = pipelineStageFlags.data();
 
 		RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, _frameFences[_currentFrameFenceIndex]));
 

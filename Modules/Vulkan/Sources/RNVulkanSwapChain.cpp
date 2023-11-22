@@ -77,7 +77,9 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		_descriptor(descriptor),
 		_surface(VK_NULL_HANDLE),
 		_swapchain(VK_NULL_HANDLE),
-		_framebuffer(nullptr)
+		_framebuffer(nullptr),
+		_preFullscreenWindowSize(_size),
+		_isFullscreen(false)
 	{
 		_device = _renderer->GetVulkanDevice()->GetDevice();
 
@@ -92,7 +94,8 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		_size(Vector2()),
 		_surface(VK_NULL_HANDLE),
 		_swapchain(VK_NULL_HANDLE),
-		_framebuffer(nullptr)
+		_framebuffer(nullptr),
+		_isFullscreen(false)
 	{
 
 	}
@@ -242,8 +245,29 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		swapchainInfo.oldSwapchain = _swapchain;
 		_swapchain = nullptr;
 
+#if RN_PLATFORM_WINDOWS
+		VkSurfaceFullScreenExclusiveInfoEXT exclusiveFullscreenInfo = {};
+		exclusiveFullscreenInfo.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+		exclusiveFullscreenInfo.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
+		swapchainInfo.pNext = &exclusiveFullscreenInfo;
+
+		/*VkSurfaceFullScreenExclusiveWin32InfoEXT exclusiveFullscreenWin32Info = {};
+		exclusiveFullscreenWin32Info.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT;
+		exclusiveFullscreenWin32Info.hmonitor = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+		exclusiveFullscreenInfo.pNext = &exclusiveFullscreenWin32Info;*/
+#endif
+
 		RNVulkanValidate(vk::CreateSwapchainKHR(_device, &swapchainInfo, nullptr, &_swapchain));
 		_extents = extent;
+		_size.x = extent.width;
+		_size.y = extent.height;
+
+		// Destroy the old swapchain
+		if(swapchainInfo.oldSwapchain)
+		{
+			RNVulkanValidate(vk::DeviceWaitIdle(_device));
+			vk::DestroySwapchainKHR(_device, swapchainInfo.oldSwapchain, nullptr);
+		}
 
 		uint32_t count = _descriptor.bufferCount;
 		vk::GetSwapchainImagesKHR(_device, _swapchain, &count, nullptr);
@@ -251,13 +275,6 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		_descriptor.bufferCount = static_cast<uint8>(count);
 
 		CreateSemaphores();
-
-		// Destroy the old swapchain
-		if(swapchainInfo.oldSwapchain != VK_NULL_HANDLE)
-		{
-			RNVulkanValidate(vk::DeviceWaitIdle(_device));
-			vk::DestroySwapchainKHR(_device, swapchainInfo.oldSwapchain, nullptr);
-		}
 
 		if(!_framebuffer)
 		{
@@ -289,15 +306,53 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		_newSize = size;
 	}
 
-	void VulkanSwapChain::SetFullscreen(bool fullscreen) const
+	void VulkanSwapChain::SetFullscreen(bool fullscreen)
 	{
-/*		if(FAILED(_swapChain->SetFullscreenState(!fullscreen, nullptr)))
+#if RN_PLATFORM_WINDOWS
+		//Those functions appear to be a windows thing!?
+		VulkanDevice* device = _renderer->GetVulkanDevice();
+		if(fullscreen)
 		{
-			// Transitions to fullscreen mode can fail when running apps over
-			// terminal services or for some other unexpected reason.  Consider
-			// notifying the user in some way when this happens.
-			RN_ASSERT(false, "Failed changing from/to fullscreen.");
-		}*/
+			WINDOWINFO windowInfo;
+			windowInfo.cbSize = sizeof(WINDOWINFO);
+			GetWindowInfo(_hwnd, &windowInfo);
+			_preFullscreenWindowSize.x = std::abs(windowInfo.rcWindow.right - windowInfo.rcWindow.left);
+			_preFullscreenWindowSize.y = std::abs(windowInfo.rcWindow.bottom - windowInfo.rcWindow.top);
+			_preFullscreenWindowPosition.x = windowInfo.rcWindow.left;
+			_preFullscreenWindowPosition.y = windowInfo.rcWindow.top;
+			_preFullscreenWindowStyle = windowInfo.dwStyle;
+
+			int width = GetSystemMetrics(SM_CXSCREEN);
+			int height = GetSystemMetrics(SM_CYSCREEN);
+
+			MONITORINFO info;
+			info.cbSize = sizeof(MONITORINFO);
+			HMONITOR monitor = MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+			if(GetMonitorInfo(monitor, &info) != 0)
+			{
+				width = std::abs(info.rcMonitor.right - info.rcMonitor.left);
+				height = std::abs(info.rcMonitor.bottom - info.rcMonitor.top);
+			}
+
+			SetWindowLongPtr(_hwnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+			SetWindowPos(_hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED);
+			ShowCursor(false);
+
+			//CreateSwapChain();
+
+			//RNVulkanValidate(vk::AcquireFullScreenExclusiveModeEXT(device->GetDevice(), _swapchain));
+		}
+		else
+		{
+			//RNVulkanValidate(vk::ReleaseFullScreenExclusiveModeEXT(device->GetDevice(), _swapchain));
+
+			SetWindowLongPtr(_hwnd, GWL_STYLE, _preFullscreenWindowStyle);
+			SetWindowPos(_hwnd, HWND_TOP, _preFullscreenWindowPosition.x, _preFullscreenWindowPosition.y, _preFullscreenWindowSize.x, _preFullscreenWindowSize.y, SWP_FRAMECHANGED);
+			ShowCursor(true);
+		}
+
+		_isFullscreen = fullscreen;
+#endif
 	}
 
 	Vector2 VulkanSwapChain::GetSize() const
@@ -405,6 +460,14 @@ VulkanSwapChain::VulkanSwapChain(const Vector2& size, VulkanRenderer* renderer, 
 		present_info.pSwapchains = &_swapchain;
 		present_info.pImageIndices = &_frameIndex;
 
-		RNVulkanValidate(vk::QueuePresentKHR(queue, &present_info));
+		VkResult result = vk::QueuePresentKHR(queue, &present_info);
+		if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+		{
+			CreateSwapChain();
+		}
+		else
+		{
+			RNVulkanValidate(result);
+		}
 	}
 }

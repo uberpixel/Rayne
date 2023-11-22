@@ -27,6 +27,7 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 		_requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+		_requiredDeviceExtensions.push_back(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
 #endif
 #if RN_PLATFORM_LINUX
 		_requiredExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
