@@ -25,14 +25,14 @@ namespace RN
 #elif RN_PLATFORM_WINDOWS
 		registryAndInit(apiKey->GetUTF8String(), applicationID->GetUTF8String(), defaultConfig->GetUTF8String());
 
-		if(isPlayerInstalled())
+/*		if(isPlayerInstalled())
 		{
 			if(!isPlayerRunning())
 			{
 				//UE_LOG(BhapticsPlugin, Log, TEXT("Player is not running and TryLaunch"));
 				launchPlayer(true);
 			}
-		}
+		}*/
 #endif
 	}
 		
