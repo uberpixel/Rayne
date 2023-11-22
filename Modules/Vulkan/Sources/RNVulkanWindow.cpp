@@ -20,6 +20,7 @@ namespace RN
 
 	RNDefineMeta(VulkanWindow, Window);
 
+#if RN_PLATFORM_WINDOWS
 	//TODO: Related to Kernel HandleSystemEvents
 	LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
@@ -91,6 +92,7 @@ namespace RN
 		}
 		return 0;
 	}
+#endif
 
 	VulkanWindow::VulkanWindow(const Vector2 &size, Screen *screen, VulkanRenderer *renderer, const Window::SwapChainDescriptor &descriptor) :
 		Window(screen),
