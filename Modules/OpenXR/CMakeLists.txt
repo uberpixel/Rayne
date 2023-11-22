@@ -157,6 +157,7 @@ if(NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
 	target_link_libraries(RayneOpenXR PUBLIC RayneVulkan)
 	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES}
 		${RayneVulkan_BINARY_DIR}/include
+		"${VulkanHeaders_SOURCE_DIR}/include"
 		"${VulkanHeaders_SOURCE_DIR}/include/vulkan"
 		"${VulkanMemoryAllocator_SOURCE_DIR}/include"
 		"${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources")

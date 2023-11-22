@@ -244,7 +244,7 @@ namespace RN
 		_controller->getActor()->getShapes(&shape, 1);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER), &filterCallback);
+		scene->overlap(shape->getGeometry().any(), physx::PxTransform(physx::PxVec3(position.x, position.y, position.z), physx::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC|physx::PxQueryFlag::eSTATIC|physx::PxQueryFlag::ePREFILTER|physx::PxQueryFlag::eNO_BLOCK), &filterCallback);
 		shape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 
 		std::vector<PhysXContactInfo> contacts;

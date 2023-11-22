@@ -196,7 +196,7 @@ if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
     set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build)
 else()
     ExternalProject_Add(physx
-        GIT_REPOSITORY https://github.com/NVIDIAGameWorks/PhysX.git
+        GIT_REPOSITORY https://github.com/SlinDev-GmbH/PhysX.git
         GIT_TAG origin/4.1
         GIT_SHALLOW ON
         GIT_PROGRESS ON

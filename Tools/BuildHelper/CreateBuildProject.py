@@ -92,7 +92,7 @@ def main():
 	buildType = "-DCMAKE_BUILD_TYPE="+configCmakeBuildType
 
 	if operatingSystem == 'windows':
-		subprocess.call(['cmake', projectRootPath, '-G', 'Visual Studio 15 2017 Win64', buildconfiguration, buildType])
+		subprocess.call(['cmake', projectRootPath, '-G', 'Visual Studio 17 2022', '-A', 'x64', buildconfiguration, buildType])
 	elif operatingSystem == 'linux':
 		subprocess.call(['cmake', '-G', 'Ninja', projectRootPath, buildconfiguration, buildType])
 	elif operatingSystem == 'macos':
