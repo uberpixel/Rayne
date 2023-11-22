@@ -51,6 +51,8 @@ namespace RN
 		RNAPI Bitmap(const uint8_t *bytes, const BitmapInfo &info);
 		RNAPI Bitmap(const Data *data, const BitmapInfo &info);
 		RNAPI Bitmap(Data *data, const BitmapInfo &info);
+		
+		RNAPI static Bitmap *WithName(const String *name, const Dictionary *settings = nullptr);
 
 		RNAPI ~Bitmap();
 

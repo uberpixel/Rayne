@@ -7,6 +7,7 @@
 //
 
 #include "RNBitmap.h"
+#include "RNAssetManager.h"
 
 namespace RN
 {
@@ -52,6 +53,12 @@ namespace RN
 		_info(info)
 	{
 		Update();
+	}
+
+	Bitmap *Bitmap::WithName(const String *name, const Dictionary *settings)
+	{
+		AssetManager *coordinator = AssetManager::GetSharedInstance();
+		return coordinator->GetAssetWithName<Bitmap>(name, settings);
 	}
 
 	Bitmap::~Bitmap()
