@@ -2059,9 +2059,19 @@ namespace RN
 					_controllerTrackingState[0].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
 				}
 			}
+			else
+			{
+				//Set velocity to 0, if not valid
+				_controllerTrackingState[0].velocityLinear = RN::Vector3();
+			}
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
 			{
 				_controllerTrackingState[0].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+			else
+			{
+				//Set velocity to 0, if not valid
+				_controllerTrackingState[0].velocityAngular = RN::Vector3();
 			}
 
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
@@ -2207,9 +2217,20 @@ namespace RN
 					_controllerTrackingState[1].velocityLinear = Vector3(velocity.linearVelocity.x, velocity.linearVelocity.y, velocity.linearVelocity.z);
 				}
 			}
+			else
+			{
+				//Set velocity to 0, if not valid
+				_controllerTrackingState[1].velocityLinear = RN::Vector3();
+			}
+
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
 			{
 				_controllerTrackingState[1].velocityAngular = Vector3(velocity.angularVelocity.x, velocity.angularVelocity.y, velocity.angularVelocity.z);
+			}
+			else
+			{
+				//Set velocity to 0, if not valid
+				_controllerTrackingState[1].velocityAngular = RN::Vector3();
 			}
 
 			if(gripLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
