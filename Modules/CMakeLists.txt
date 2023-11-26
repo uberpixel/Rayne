@@ -13,6 +13,7 @@ option(RN_BUILD_OPENXR_MODULE "Build the OpenXR module" OFF)
 option(RN_BUILD_VRSTUB_MODULE "Build the VRStub module" OFF)
 option(RN_BUILD_BULLET_MODULE "Build the Bullet physics module" ON)
 option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" OFF)
+option(RN_BUILD_JOLT_MODULE "Build the Jolt physics module" OFF)
 option(RN_BUILD_SPLASH_MODULE "Build the Splash physics module" OFF)
 option(RN_BUILD_ODE_MODULE "Build the ODE physics module" OFF)
 option(RN_BUILD_NEWTON_MODULE "Build the Newton Game Dynamics physics module" OFF)
@@ -50,6 +51,10 @@ endif()
 
 if(${RN_BUILD_PHYSX_MODULE})
     add_subdirectory("PhysX")
+endif()
+
+if(${RN_BUILD_JOLT_MODULE})
+    add_subdirectory("Jolt")
 endif()
 
 if(${RN_BUILD_SPLASH_MODULE})
