@@ -18,10 +18,11 @@ namespace RN
 		_shape(shape->Retain()),
 		_actor(nullptr)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		
-		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Dynamic, JoltObjectLayers::MOVING);
+		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Dynamic, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
 		settings.mMassPropertiesOverride.mMass = mass;
 		settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
 		settings.mUserData = reinterpret_cast<uint64>(this);
@@ -49,27 +50,13 @@ namespace RN
 	void JoltDynamicBody::SetCollisionFilter(uint32 group, uint32 mask)
 	{
 		JoltCollisionObject::SetCollisionFilter(group, mask);
+		JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface().SetObjectLayer(*_actor, JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
 
 		/*Jolt::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
 		filterData.word1 = _collisionFilterMask;
 		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-
-		if(_shape->IsKindOfClass(JoltCompoundShape::GetMetaClass()))
-		{
-			JoltCompoundShape *compound = _shape->Downcast<JoltCompoundShape>();
-			for(JoltShape *tempShape : compound->_shapes)
-			{
-				tempShape->GetJoltShape()->setSimulationFilterData(filterData);
-				tempShape->GetJoltShape()->setQueryFilterData(filterData);
-			}
-		}
-		else
-		{
-			_shape->GetJoltShape()->setSimulationFilterData(filterData);
-			_shape->GetJoltShape()->setQueryFilterData(filterData);
-		}*/
+		filterData.word3 = _collisionFilterIgnoreID;*/
 	}
 
 	void JoltDynamicBody::SetCollisionFilterID(uint32 id, uint32 ignoreid)

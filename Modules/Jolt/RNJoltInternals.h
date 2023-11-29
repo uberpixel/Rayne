@@ -20,130 +20,113 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/ShapeCast.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 namespace RN
 {
-	class JoltCompoundShape;
-
-/*	class JoltCallback
+	class JoltObjectLayerMapper : public JPH::ObjectLayerPairFilter, public JPH::BroadPhaseLayerInterface, public JPH::ObjectVsBroadPhaseLayerFilter
 	{
 	public:
-		static Jolt::PxFilterFlags CollisionFilterShader(
-			Jolt::PxFilterObjectAttributes attributes0, Jolt::PxFilterData filterData0,
-			Jolt::PxFilterObjectAttributes attributes1, Jolt::PxFilterData filterData1,
-			Jolt::PxPairFlags& pairFlags, const void* constantBlock, Jolt::PxU32 constantBlockSize);
-		
-		static Jolt::PxFilterFlags VehicleFilterShader(Jolt::PxFilterObjectAttributes attributes0, Jolt::PxFilterData filterData0, Jolt::PxFilterObjectAttributes attributes1, Jolt::PxFilterData filterData1, Jolt::PxPairFlags& pairFlags, const void* constantBlock, Jolt::PxU32 constantBlockSize);
-		static Jolt::PxQueryHitType::Enum VehicleQueryPreFilter(Jolt::PxFilterData filterData0, Jolt::PxFilterData filterData1, const void* constantBlock, Jolt::PxU32 constantBlockSize, Jolt::PxHitFlags& queryFlags);
-	};
-
-	class JoltQueryFilterCallback : public Jolt::PxQueryFilterCallback
-	{
-		Jolt::PxQueryHitType::Enum preFilter(const Jolt::PxFilterData& filterData, const Jolt::PxShape* shape, const Jolt::PxRigidActor* actor, Jolt::PxHitFlags& queryFlags) final;
-		Jolt::PxQueryHitType::Enum postFilter(const Jolt::PxFilterData& filterData, const Jolt::PxQueryHit& hit) final;
-	};
-
-	class JoltSimulationCallback : public Jolt::PxSimulationEventCallback
-	{
-	public:
-		void onConstraintBreak(Jolt::PxConstraintInfo* constraints, Jolt::PxU32 count) final {}
-		void onWake(Jolt::PxActor** actors, Jolt::PxU32 count) final {}
-		void onSleep(Jolt::PxActor** actors, Jolt::PxU32 count) final {}
-		void onContact(const Jolt::PxContactPairHeader& pairHeader, const Jolt::PxContactPair* pairs, Jolt::PxU32 nbPairs) final;
-		void onTrigger(Jolt::PxTriggerPair* pairs, Jolt::PxU32 count) final {}
-		void onAdvance(const Jolt::PxRigidBody*const* bodyBuffer, const Jolt::PxTransform* poseBuffer, const Jolt::PxU32 count) final {}
-	};
-
-	class JoltKinematicControllerCallback : public Jolt::PxUserControllerHitReport, public Jolt::PxControllerFilterCallback, public Jolt::PxControllerBehaviorCallback, public JoltQueryFilterCallback
-	{
-	public:
-		void onShapeHit(const Jolt::PxControllerShapeHit &hit) final;
-		void onControllerHit(const Jolt::PxControllersHit& hit) final;
-		void onObstacleHit(const Jolt::PxControllerObstacleHit &hit) final;
-		bool filter(const Jolt::PxController& a, const Jolt::PxController& b) final;
-		
-		Jolt::PxControllerBehaviorFlags getBehaviorFlags(const Jolt::PxShape& shape, const Jolt::PxActor& actor) final;
-		Jolt::PxControllerBehaviorFlags getBehaviorFlags(const Jolt::PxController& controller) final;
-		Jolt::PxControllerBehaviorFlags getBehaviorFlags(const Jolt::PxObstacle& obstacle) final;
-	};*/
-
-	// Layer that objects can be in, determines which other objects it can collide with
-	// Typically you at least want to have 1 layer for moving bodies and 1 layer for static bodies, but you can have more
-	// layers if you want. E.g. you could have a layer for high detail collision (which is not used by the physics simulation
-	// but only if you do collision testing).
-	namespace JoltObjectLayers
-	{
-		static constexpr JPH::ObjectLayer NON_MOVING = 0;
-		static constexpr JPH::ObjectLayer MOVING = 1;
-		static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
-	};
-
-	/// Class that determines if two object layers can collide
-	class JoltObjectLayerPairFilter : public JPH::ObjectLayerPairFilter
-	{
-	public:
-		virtual bool ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const override
+		JPH::ObjectLayer GetObjectLayer(uint32 collisionGroup, uint32 collisionMask, uint8 broadPhaseLayer)
 		{
-			switch(inObject1)
+			uint64 upperBits = (uint64)collisionMask << 32U;
+			uint64 lowerBits = (uint64)collisionGroup;
+			uint64 collision = upperBits | lowerBits;
+			
+			size_t counter = 0;
+			for(uint64 value : _objectLayerMapping)
 			{
-				case JoltObjectLayers::NON_MOVING:
-					return inObject2 == JoltObjectLayers::MOVING; // Non moving only collides with moving
-					
-				case JoltObjectLayers::MOVING:
-					return true; // Moving collides with everything
-					
-				default:
-					JPH_ASSERT(false);
-					return false;
+				if(value == collision)
+				{
+					uint16 objectLayerBits = static_cast<uint16>(counter);
+					uint16 broadPhaseBits = (static_cast<uint16>(broadPhaseLayer) << 14U);
+					return static_cast<JPH::ObjectLayer>(broadPhaseBits | objectLayerBits);
+				}
+				counter += 1;
 			}
+			
+			_objectLayerMapping.push_back(collision);
+			
+			uint16 objectLayerBits = static_cast<uint16>(counter);
+			uint16 broadPhaseBits = (static_cast<uint16>(broadPhaseLayer) << 14U);
+			return static_cast<JPH::ObjectLayer>(broadPhaseBits | objectLayerBits);
 		}
-	};
-
-	// Each broadphase layer results in a separate bounding volume tree in the broad phase. You at least want to have
-	// a layer for non-moving and moving objects to avoid having to update a tree full of static objects every frame.
-	// You can have a 1-on-1 mapping between object layers and broadphase layers (like in this case) but if you have
-	// many object layers you'll be creating many broad phase trees, which is not efficient. If you want to fine tune
-	// your broadphase layers define JPH_TRACK_BROADPHASE_STATS and look at the stats reported on the TTY.
-	namespace JoltBroadPhaseLayers
-	{
-		static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
-		static constexpr JPH::BroadPhaseLayer MOVING(1);
-		static constexpr uint NUM_LAYERS(2);
-	};
-
-	// BroadPhaseLayerInterface implementation
-	// This defines a mapping between object and broadphase layers.
-	class JoltBroadPhaseLayerInterface final : public JPH::BroadPhaseLayerInterface
-	{
-	public:
-		JoltBroadPhaseLayerInterface()
+		
+		uint32 GetCollisionGroup(JPH::ObjectLayer objectLayer) const
 		{
-			// Create a mapping table from object to broad phase layer
-			mObjectToBroadPhase[JoltObjectLayers::NON_MOVING] = JoltBroadPhaseLayers::NON_MOVING;
-			mObjectToBroadPhase[JoltObjectLayers::MOVING] = JoltBroadPhaseLayers::MOVING;
+			uint16 objectLayerIndex = static_cast<uint16>(objectLayer & 0b0011111111111111U);
+			uint64 collision = _objectLayerMapping[static_cast<size_t>(objectLayerIndex)];
+			return static_cast<uint32>(collision & 0xFFFFFFFFU);
+		}
+		
+		uint32 GetCollisionMask(JPH::ObjectLayer objectLayer) const
+		{
+			uint16 objectLayerIndex = static_cast<uint16>(objectLayer & 0b0011111111111111U);
+			uint64 collision = _objectLayerMapping[static_cast<size_t>(objectLayerIndex)];
+			return static_cast<uint32>(collision >> 32U);
+		}
+		
+		//From JPH::ObjectLayerPairFilter
+		bool ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const final
+		{
+			uint32 collisionGroup1 = GetCollisionGroup(inObject1);
+			uint32 collisionMask1 = GetCollisionMask(inObject1);
+			
+			uint32 collisionGroup2 = GetCollisionGroup(inObject2);
+			uint32 collisionMask2 = GetCollisionMask(inObject2);
+			
+			bool filterMask = (collisionGroup1 & collisionMask2) && (collisionGroup2 & collisionMask1);
+			//bool filterID = (filterData0.word3 == 0 && filterData1.word3 == 0) || (filterData0.word2 != filterData1.word3 && filterData0.word3 != filterData1.word2);
+			return (filterMask);// && filterID)
+		}
+		
+		//From JPH::ObjectVsBroadPhaseLayerFilter
+		bool ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const final
+		{
+			/*uint16 broadPhaseLayer = (inLayer1 >> 30) & 0xf; //Encoded in the last 2 bits
+			
+			if(broadPhaseLayer == 0) //Is static object layer
+			{
+				return inLayer2 != JoltBroadPhaseLayers::LAYER_STATIC; //Only collide with none-static
+			}*/
+			
+			return true; //Everything else collides with everything
+		}
+		
+		//From JPH::BroadPhaseLayerInterface
+		uint GetNumBroadPhaseLayers() const final
+		{
+			return 4;
 		}
 
-		virtual uint GetNumBroadPhaseLayers() const override
+		//From JPH::BroadPhaseLayerInterface
+		JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const final
 		{
-			return JoltBroadPhaseLayers::NUM_LAYERS;
-		}
-
-		virtual JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const override
-		{
-			JPH_ASSERT(inLayer < JoltObjectLayers::NUM_LAYERS);
-			return mObjectToBroadPhase[inLayer];
+			uint16 broadPhaseLayer = (inLayer >> 14U) & 0xf; //Encoded in the last 2 bits
+			return JPH::BroadPhaseLayer(broadPhaseLayer);
 		}
 
 	#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
+		//From JPH::BroadPhaseLayerInterface
 		virtual const char *GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const override
 		{
 			switch((JPH::BroadPhaseLayer::Type)inLayer)
 			{
-				case (JPH::BroadPhaseLayer::Type)JoltBroadPhaseLayers::NON_MOVING:
-					return "NON_MOVING";
+				case 0:
+					return "LAYER_0";
 						
-				case (JPH::BroadPhaseLayer::Type)JoltBroadPhaseLayers::MOVING:
-					return "MOVING";
+				case 1:
+					return "LAYER_1";
+					
+				case 2:
+					return "LAYER_2";
+					
+				case 3:
+					return "LAYER_3";
 					
 				default:
 					JPH_ASSERT(false);
@@ -151,30 +134,9 @@ namespace RN
 			}
 		}
 	#endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
-
+		
 	private:
-		JPH::BroadPhaseLayer mObjectToBroadPhase[JoltObjectLayers::NUM_LAYERS];
-	};
-
-	/// Class that determines if an object layer can collide with a broadphase layer
-	class JoltObjectVsBroadPhaseLayerFilter : public JPH::ObjectVsBroadPhaseLayerFilter
-	{
-	public:
-		virtual bool ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const override
-		{
-			switch (inLayer1)
-			{
-				case JoltObjectLayers::NON_MOVING:
-					return inLayer2 == JoltBroadPhaseLayers::MOVING;
-						
-				case JoltObjectLayers::MOVING:
-					return true;
-						
-				default:
-					JPH_ASSERT(false);
-					return false;
-			}
-		}
+		std::vector<uint64> _objectLayerMapping;
 	};
 
 	// An example contact listener
@@ -223,12 +185,10 @@ namespace RN
 
 	struct JoltInternals
 	{
-		JoltObjectLayerPairFilter objectLayerPairFilter;
-		JoltBroadPhaseLayerInterface broadPhaseLayerInterface;
-		JoltObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
-
 		JPH::TempAllocatorImpl *tempAllocator;
 		JPH::JobSystemThreadPool *jobSystem;
+		
+		JoltObjectLayerMapper objectLayerMapper;
 	};
 }
 

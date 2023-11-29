@@ -34,20 +34,7 @@ namespace RN
 		_controller = new JPH::CharacterVirtual(&settings, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), physics);
 		//_controller->SetListener(this);
 
-		/*_callback = new JoltKinematicControllerCallback();
-
-		Jolt::PxCapsuleControllerDesc desc;
-		desc.height = height;
-		desc.radius = radius;
-		desc.position.set(0.0f, 10.0, 0.0f);
-		desc.stepOffset = stepOffset;
-		desc.material = _material->GetJoltMaterial();
-		desc.reportCallback = _callback;
-		desc.behaviorCallback = nullptr;//_callback;
-		desc.userData = this;
-
-		Jolt::PxControllerManager *manager = JoltWorld::GetSharedInstance()->GetJoltControllerManager();
-		_controller = static_cast<Jolt::PxCapsuleController*>(manager->createController(desc));*/
+		//_callback = new JoltKinematicControllerCallback();
 	}
 	
 	JoltKinematicController::~JoltKinematicController()
@@ -64,19 +51,12 @@ namespace RN
 			return;
 		}
 
-		/*Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		Jolt::PxControllerFilters controllerFilter(&filterData, _callback, _callback);
-		Jolt::PxControllerCollisionFlags collisionFlags = _controller->move(Jolt::PxVec3(direction.x, direction.y, direction.z), 0.0f, delta, controllerFilter);
-*/
+		uint16 objectLayer = JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
 		
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 		
 		_controller->SetLinearVelocity(JPH::Vec3Arg(direction.x, direction.y, direction.z));
-		_controller->Update(delta, physics->GetGravity(), physics->GetDefaultBroadPhaseLayerFilter(JoltObjectLayers::MOVING), physics->GetDefaultLayerFilter(JoltObjectLayers::MOVING), {}, {}, *JoltWorld::GetSharedInstance()->_internals->tempAllocator);
+		_controller->Update(delta, physics->GetGravity(), physics->GetDefaultBroadPhaseLayerFilter(objectLayer), physics->GetDefaultLayerFilter(objectLayer), {}, {}, *JoltWorld::GetSharedInstance()->_internals->tempAllocator);
 		
 		UpdatePosition();
 	}
@@ -108,197 +88,204 @@ namespace RN
 
 	std::vector<JoltContactInfo> JoltKinematicController::SweepTestAll(const Vector3 &direction, const Vector3 &offset) const
 	{
-		/*const Jolt::PxExtendedVec3 &position = _controller->getPosition();
-		Jolt::PxScene *scene = JoltWorld::GetSharedInstance()->GetJoltScene();
-		float length = direction.GetLength();
-		Vector3 normalizedDirection = direction.GetNormalized();
-		const Jolt::PxU32 bufferSize = 2048;
-		Jolt::PxSweepHit hitBuffer[bufferSize];
-		Jolt::PxSweepBuffer hit(hitBuffer, bufferSize);
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		JoltQueryFilterCallback filterCallback;
-		Jolt::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->sweep(shape->getGeometry().any(), Jolt::PxTransform(Jolt::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), Jolt::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), Jolt::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, Jolt::PxHitFlags(Jolt::PxHitFlag::eDEFAULT), Jolt::PxQueryFilterData(filterData, Jolt::PxQueryFlag::eDYNAMIC|Jolt::PxQueryFlag::eSTATIC|Jolt::PxQueryFlag::ePREFILTER|Jolt::PxQueryFlag::eNO_BLOCK), &filterCallback);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, true);*/
+		std::vector<JoltContactInfo> hits;
 		
-		std::vector<JoltContactInfo> contacts;
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 
-		/*if(hit.getNbTouches() == 0)
-			return contacts;
+		Vector3 diff = direction;
+		float distance = diff.GetLength();
+		diff.Normalize();
 		
-		for(uint32 i = 0; i < hit.nbTouches; i++)
+		Vector3 pos = GetWorldPosition() + offset;
+		Quaternion rot = GetWorldRotation();
+		
+		JPH::Mat44 worldTransform = JPH::Mat44::sRotationTranslation(JPH::QuatArg(rot.x, rot.y, rot.z, rot.w), JPH::Vec3Arg(pos.x, pos.y, pos.z));
+		
+		//TODO: Limit max distance of raycast or the result
+		
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
+		
+		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
+		
+		uint16 objectLayer = JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
+		JPH::AllHitCollisionCollector<JPH::CastShapeCollector> results;
+		physics->GetNarrowPhaseQuery().CastShape(castInfo, castSettings, JPH::RVec3Arg(0, 0, 0), results, physics->GetDefaultBroadPhaseLayerFilter(objectLayer), physics->GetDefaultLayerFilter(objectLayer));
+		
+		for(auto result : results.mHits)
 		{
-			Jolt::PxSweepHit currentHit = hit.touches[i];
+			JoltContactInfo hit;
 			
-			JoltContactInfo contact;
-			contact.distance = currentHit.distance;
-			contact.node = nullptr;
-			contact.collisionObject = nullptr;
+			JPH::Vec3 position = castInfo.GetPointOnRay(result.mFraction);
+			JPH::Vec3 normal;
 
-			contact.position = Vector3(currentHit.position.x, currentHit.position.y, currentHit.position.z);
-			contact.normal = Vector3(currentHit.normal.x, currentHit.normal.y, currentHit.normal.z);
-			if(currentHit.actor)
+			// Scoped lock
 			{
-				JoltCollisionObject *collisionObject = static_cast<JoltCollisionObject*>(currentHit.actor->userData);
-				contact.collisionObject = collisionObject;
-				if(collisionObject->GetParent())
+				JPH::BodyLockRead lock(physics->GetBodyLockInterface(), result.mBodyID2);
+				if(lock.Succeeded()) // bodyID may no longer be valid
 				{
-					contact.node = collisionObject->GetParent();
-					if(contact.node) contact.node->Retain()->Autorelease();
+					const JPH::Body &body = lock.GetBody();
+					normal = body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, position);
+					hit.collisionObject = reinterpret_cast<JoltCollisionObject*>(body.GetUserData());
+				}
+				else
+				{
+					continue;
 				}
 			}
+			
+			hit.position.x = position.GetX();
+			hit.position.y = position.GetY();
+			hit.position.z = position.GetZ();
+			
+			hit.normal.x = normal.GetX();
+			hit.normal.y = normal.GetY();
+			hit.normal.z = normal.GetZ();
 
-			contacts.push_back(contact);
-		}*/
+			hit.distance = pos.GetDistance(hit.position);
+			
+			if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
+			if(hit.node) hit.node->Retain()->Autorelease();
+
+			hits.push_back(hit);
+		}
 		
-		return contacts;
+		return hits;
 	}
 
 	JoltContactInfo JoltKinematicController::SweepTest(const Vector3 &direction, const Vector3 &offset) const
 	{
-		/*const Jolt::PxExtendedVec3 &position = _controller->getPosition();
-		Jolt::PxScene *scene = JoltWorld::GetSharedInstance()->GetJoltScene();
-		float length = direction.GetLength();
-		Vector3 normalizedDirection = direction.GetNormalized();
-		Jolt::PxSweepBuffer hit;
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		JoltQueryFilterCallback filterCallback;
-		Jolt::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		bool didHit = scene->sweep(shape->getGeometry().any(), Jolt::PxTransform(Jolt::PxVec3(position.x + offset.x, position.y + offset.y, position.z + offset.z), Jolt::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), Jolt::PxVec3(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z), length, hit, Jolt::PxHitFlags(Jolt::PxHitFlag::eDEFAULT), Jolt::PxQueryFilterData(filterData, Jolt::PxQueryFlag::eDYNAMIC|Jolt::PxQueryFlag::eSTATIC|Jolt::PxQueryFlag::ePREFILTER), &filterCallback);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, true);*/
+		JoltContactInfo hit;
+		hit.distance = -1.0f;
+		hit.node = nullptr;
+		hit.collisionObject = nullptr;
 		
-		JoltContactInfo contact;
-		contact.distance = -1.0f;
-		contact.node = nullptr;
-		contact.collisionObject = nullptr;
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 
-		/*if(!didHit)
-			return contact;
-
-		Jolt::PxSweepHit closestHit = hit.block;
-		contact.distance = closestHit.distance;
-		contact.position = Vector3(closestHit.position.x, closestHit.position.y, closestHit.position.z);
-		contact.normal = Vector3(closestHit.normal.x, closestHit.normal.y, closestHit.normal.z);
-		if(closestHit.actor)
+		Vector3 diff = direction;
+		float distance = diff.GetLength();
+		diff.Normalize();
+		
+		Vector3 pos = GetWorldPosition() + offset;
+		Quaternion rot = GetWorldRotation();
+		
+		JPH::Mat44 worldTransform = JPH::Mat44::sRotationTranslation(JPH::QuatArg(rot.x, rot.y, rot.z, rot.w), JPH::Vec3Arg(pos.x, pos.y, pos.z));
+		
+		//TODO: Limit max distance of raycast or the result
+		
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
+		
+		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
+		
+		uint16 objectLayer = JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
+		JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector> result;
+		physics->GetNarrowPhaseQuery().CastShape(castInfo, castSettings, JPH::RVec3Arg(0, 0, 0), result, physics->GetDefaultBroadPhaseLayerFilter(objectLayer), physics->GetDefaultLayerFilter(objectLayer));
+		if(!result.HadHit())
 		{
-			JoltCollisionObject *collisionObject = static_cast<JoltCollisionObject*>(closestHit.actor->userData);
-			contact.collisionObject = collisionObject;
-			if(collisionObject->GetParent())
+			return hit;
+		}
+		
+		JPH::Vec3 position = castInfo.GetPointOnRay(result.mHit.mFraction);
+		JPH::Vec3 normal;
+
+		// Scoped lock
+		{
+			JPH::BodyLockRead lock(physics->GetBodyLockInterface(), result.mHit.mBodyID2);
+			if(lock.Succeeded()) // bodyID may no longer be valid
 			{
-				contact.node = collisionObject->GetParent();
-				if(contact.node) contact.node->Retain()->Autorelease();
+				const JPH::Body &body = lock.GetBody();
+				normal = body.GetWorldSpaceSurfaceNormal(result.mHit.mSubShapeID2, position);
+				hit.collisionObject = reinterpret_cast<JoltCollisionObject*>(body.GetUserData());
 			}
-		}*/
-		return contact;
+			else
+			{
+				return hit;
+			}
+		}
+		
+		hit.position.x = position.GetX();
+		hit.position.y = position.GetY();
+		hit.position.z = position.GetZ();
+		
+		hit.normal.x = normal.GetX();
+		hit.normal.y = normal.GetY();
+		hit.normal.z = normal.GetZ();
+
+		hit.distance = pos.GetDistance(hit.position);
+		
+		if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
+		if(hit.node) hit.node->Retain()->Autorelease();
+		
+		return hit;
 	}
 
 	JoltContactInfo JoltKinematicController::OverlapTest() const
 	{
-		/*const Jolt::PxExtendedVec3 &position = _controller->getPosition();
-		Jolt::PxScene *scene = JoltWorld::GetSharedInstance()->GetJoltScene();
-		Jolt::PxOverlapBuffer hit;
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		JoltQueryFilterCallback filterCallback;
-		Jolt::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->overlap(shape->getGeometry().any(), Jolt::PxTransform(Jolt::PxVec3(position.x, position.y, position.z), Jolt::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, Jolt::PxQueryFilterData(filterData, Jolt::PxQueryFlag::eDYNAMIC|Jolt::PxQueryFlag::eSTATIC|Jolt::PxQueryFlag::ePREFILTER), &filterCallback);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, true);*/
-		
 		JoltContactInfo contact;
 		contact.distance = -1.0f;
 		contact.node = nullptr;
 		contact.collisionObject = nullptr;
+		
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		
+		Vector3 position = GetWorldPosition();
+		Quaternion rotation = GetWorldRotation();
 
-		/*if(hit.getNbAnyHits() == 0)
-			return contact;
-
-		Jolt::PxOverlapHit closestHit = hit.getAnyHit(0);
-		contact.distance = 0.0f;
-		contact.position = Vector3(position.x, position.y, position.z);
-		contact.normal = Vector3(0.0f, 0.0f, 0.0f);
-		if(closestHit.actor)
+		JPH::Mat44 worldTransform = JPH::Mat44::sRotationTranslation(JPH::QuatArg(rotation.x, rotation.y, rotation.z, rotation.w), JPH::Vec3Arg(position.x, position.y, position.z));
+		JPH::CollideShapeSettings collideSettings; //Defaults seem ok for now!?
+		
+		JPH::ClosestHitCollisionCollector<JPH::CollideShapeCollector> results;
+		uint16 objectLayer = JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
+		physics->GetNarrowPhaseQuery().CollideShape(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform.PreTranslated(_shape->GetJoltShape()->GetCenterOfMass()), collideSettings, JPH::RVec3Arg(0, 0, 0), results, physics->GetDefaultBroadPhaseLayerFilter(objectLayer), physics->GetDefaultLayerFilter(objectLayer));
+		
+		if(!results.HadHit())
 		{
-			JoltCollisionObject *collisionObject = static_cast<JoltCollisionObject*>(closestHit.actor->userData);
-			contact.collisionObject = collisionObject;
-			if(collisionObject->GetParent())
-			{
-				contact.node = collisionObject->GetParent();
-				if(contact.node) contact.node->Retain()->Autorelease();
-			}
-		}*/
+			return contact;
+		}
+		
+		contact.distance = 0.0f;
+		contact.position = position;
+		contact.node = nullptr;
+		contact.collisionObject = nullptr;
+		
+		contact.collisionObject = reinterpret_cast<JoltCollisionObject*>(physics->GetBodyInterface().GetUserData(results.mHit.mBodyID2));
+		if(contact.collisionObject) contact.node = contact.collisionObject->GetParent();
+		if(contact.node) contact.node->Retain()->Autorelease();
+		
 		return contact;
 	}
 
 	std::vector<JoltContactInfo> JoltKinematicController::OverlapTestAll() const
 	{
-		/*const Jolt::PxExtendedVec3 &position = _controller->getPosition();
-		Jolt::PxScene *scene = JoltWorld::GetSharedInstance()->GetJoltScene();
-		Jolt::PxOverlapHit hitBuffer[256];
-		Jolt::PxOverlapBuffer hit(hitBuffer, 255);
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		JoltQueryFilterCallback filterCallback;
-		Jolt::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, false);
-		Quaternion orientation(RN::Vector3(0.0f, 0.0f, 90.0f));
-		scene->overlap(shape->getGeometry().any(), Jolt::PxTransform(Jolt::PxVec3(position.x, position.y, position.z), Jolt::PxQuat(orientation.x, orientation.y, orientation.z, orientation.w)), hit, Jolt::PxQueryFilterData(filterData, Jolt::PxQueryFlag::eDYNAMIC|Jolt::PxQueryFlag::eSTATIC|Jolt::PxQueryFlag::ePREFILTER|Jolt::PxQueryFlag::eNO_BLOCK), &filterCallback);
-		shape->setFlag(Jolt::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
-*/
-		std::vector<JoltContactInfo> contacts;
-
-	/*	if(hit.getNbAnyHits() == 0)
-			return contacts;
+		std::vector<JoltContactInfo> hits;
 		
-		for(uint32 i = 0; i < hit.getNbAnyHits(); i++)
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		
+		Vector3 position = GetWorldPosition();
+		Quaternion rotation = GetWorldRotation();
+
+		JPH::Mat44 worldTransform = JPH::Mat44::sRotationTranslation(JPH::QuatArg(rotation.x, rotation.y, rotation.z, rotation.w), JPH::Vec3Arg(position.x, position.y, position.z));
+		JPH::CollideShapeSettings collideSettings; //Defaults seem ok for now!?
+		
+		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> results;
+		uint16 objectLayer = JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
+		physics->GetNarrowPhaseQuery().CollideShape(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform.PreTranslated(_shape->GetJoltShape()->GetCenterOfMass()), collideSettings, JPH::RVec3Arg(0, 0, 0), results, physics->GetDefaultBroadPhaseLayerFilter(objectLayer), physics->GetDefaultLayerFilter(objectLayer));
+		
+		for(auto result : results.mHits)
 		{
-			Jolt::PxOverlapHit currentHit = hit.getAnyHit(i);
+			JoltContactInfo hit;
+			hit.distance = 0.0f;
+			hit.position = position;
+			hit.node = nullptr;
+			hit.collisionObject = nullptr;
 			
-			JoltContactInfo contact;
-			contact.distance = 0.0f;
-			contact.node = nullptr;
-			contact.collisionObject = nullptr;
+			hit.collisionObject = reinterpret_cast<JoltCollisionObject*>(physics->GetBodyInterface().GetUserData(result.mBodyID2));
+			if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
+			if(hit.node) hit.node->Retain()->Autorelease();
 
-			contact.position = Vector3(position.x, position.y, position.z);
-			contact.normal = Vector3(0.0f, 0.0f, 0.0f);
-			if(currentHit.actor)
-			{
-				JoltCollisionObject *collisionObject = static_cast<JoltCollisionObject*>(currentHit.actor->userData);
-				contact.collisionObject = collisionObject;
-				if(collisionObject->GetParent())
-				{
-					contact.node = collisionObject->GetParent();
-					if(contact.node) contact.node->Retain()->Autorelease();
-				}
-			}
-
-			contacts.push_back(contact);
-		}*/
-
-        return contacts;
+			hits.push_back(hit);
+		}
+		
+		return hits;
 	}
 
 	bool JoltKinematicController::Resize(float height, bool checkIfBlocked)
@@ -341,20 +328,8 @@ namespace RN
 	void JoltKinematicController::SetCollisionFilter(uint32 group, uint32 mask)
 	{
 		JoltCollisionObject::SetCollisionFilter(group, mask);
-
-/*		Jolt::PxShape *shape;
-		_controller->getActor()->getShapes(&shape, 1);
-
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-		shape->setSimulationFilterData(filterData);
-		shape->setQueryFilterData(filterData);
-		shape->setFlag(Jolt::PxShapeFlag::eSIMULATION_SHAPE, false);*/
-
-//		_controller->invalidateCache();
+		
+		//No need to do anything here, values will just be used by the actual methods that do the work.
 	}
 
 	Vector3 JoltKinematicController::GetFeetOffset() const

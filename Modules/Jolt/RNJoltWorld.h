@@ -31,6 +31,7 @@ namespace RN
 	{
 	public:
 		friend class JoltKinematicController;
+
 		JTAPI JoltWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), uint32 maxBodies = 65536, uint32 maxBodyPairs = 65536, uint32 maxContactConstraints = 10240);
 		JTAPI ~JoltWorld();
 
@@ -45,11 +46,11 @@ namespace RN
 		JTAPI JoltContactInfo CastRay(const Vector3 &from, const Vector3 &to, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		JTAPI JoltContactInfo CastSweep(JoltShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation = 0.0f, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		JTAPI std::vector<JoltContactInfo> CheckOverlap(JoltShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation = 0.0f, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
+		
+		//Internal utility function, should not be used outside of theis library
+		JTAPI uint16 GetObjectLayer(uint32 collisionGroup, uint32 collisionMask, uint8 broadPhaseLayer);
 
 		JTAPI JPH::PhysicsSystem *GetJoltInstance() const { return _physicsSystem; }
-		/*JTAPI Jolt::PxCooking *GetJoltCooking() const { return _cooking; }
-		JTAPI Jolt::PxScene *GetJoltScene() const { return _scene; }
-		JTAPI Jolt::PxControllerManager *GetJoltControllerManager() const { return _controllerManager; }*/
 
 		static JoltWorld *GetSharedInstance() { return _sharedInstance; }
 
@@ -61,12 +62,10 @@ namespace RN
 		PIMPL<JoltInternals> _internals;
 		
 		bool _isSimulating;
+		bool _didUpdate;
 
 		uint8 _substeps;
 		bool _paused;
-
-		//JoltSimulationCallback *_simulationCallback;
-		//JoltKinematicControllerCallback *_controllerManagerFilterCallback;
 
 		RNDeclareMetaAPI(JoltWorld, JTAPI)
 	};

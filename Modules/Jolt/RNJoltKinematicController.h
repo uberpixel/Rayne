@@ -58,7 +58,6 @@ namespace RN
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
-		//Jolt::PxCapsuleController *_controller;
 		//JoltMaterial *_material;
 		
 		JoltShape *_shape;

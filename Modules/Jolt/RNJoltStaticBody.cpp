@@ -19,10 +19,11 @@ namespace RN
 		_shape(shape->Retain()),
 		_actor(nullptr)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		
-		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Static, JoltObjectLayers::NON_MOVING);
+		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Static, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 0));
 		settings.mUserData = reinterpret_cast<uint64>(this);
 		JPH::BodyID bodyID = bodyInterface.CreateAndAddBody(settings, JPH::EActivation::DontActivate);
 		
@@ -55,29 +56,7 @@ namespace RN
 	void JoltStaticBody::SetCollisionFilter(uint32 group, uint32 mask)
 	{
 		JoltCollisionObject::SetCollisionFilter(group, mask);
-
-		/*Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-
-		if (_shape->IsKindOfClass(JoltCompoundShape::GetMetaClass()))
-		{
-			JoltCompoundShape *compound = _shape->Downcast<JoltCompoundShape>();
-			for (JoltShape *tempShape : compound->_shapes)
-			{
-				JoltWorld::GetSharedInstance()->Lock();
-				tempShape->GetJoltShape()->setSimulationFilterData(filterData);
-				tempShape->GetJoltShape()->setQueryFilterData(filterData);
-				JoltWorld::GetSharedInstance()->Unlock();
-			}
-		}
-		else
-		{
-			JoltWorld::GetSharedInstance()->Lock();
-			_shape->GetJoltShape()->setSimulationFilterData(filterData);
-			_shape->GetJoltShape()->setQueryFilterData(filterData);
-			JoltWorld::GetSharedInstance()->Unlock();
-		}*/
+		JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface().SetObjectLayer(*_actor, JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 0));
 	}
 	
 	void JoltStaticBody::DidUpdate(SceneNode::ChangeSet changeSet)
