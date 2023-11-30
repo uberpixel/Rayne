@@ -64,15 +64,7 @@ namespace __TMP__
 
 		_cameraManager.Setup(_vrWindow);
 
-		RN::String *pvdServerIP = nullptr;
-#if RN_BUILD_DEBUG
-	#if RN_PLATFORM_WINDOWS
-		pvdServerIP = RNCSTR("localhost");
-	#else
-		pvdServerIP = RNCSTR("192.168.178.22");
-	#endif
-#endif
-		_physicsWorld = new RN::PhysXWorld(RN::Vector3(0.0f, -9.81f, 0.0f), pvdServerIP);
+		_physicsWorld = new RN::JoltWorld(RN::Vector3(0.0f, -9.81f, 0.0f));
 		AddAttachment(_physicsWorld->Autorelease());
 
 		LoadLevel();
@@ -181,9 +173,9 @@ namespace __TMP__
 		RN::Entity *levelEntity = new RN::Entity(levelModel);
 		AddLevelNode(levelEntity->Autorelease());
 
-		RN::PhysXMaterial *levelPhysicsMaterial = new RN::PhysXMaterial();
-		RN::PhysXCompoundShape *levelShape = RN::PhysXCompoundShape::WithModel(levelModel, levelPhysicsMaterial->Autorelease(), RN::Vector3(1.0f, 1.0f, 1.0f), true);
-		RN::PhysXStaticBody *levelBody = RN::PhysXStaticBody::WithShape(levelShape);
+		RN::JoltMaterial *levelPhysicsMaterial = new RN::JoltMaterial();
+		RN::JoltCompoundShape *levelShape = RN::JoltCompoundShape::WithModel(levelModel, levelPhysicsMaterial->Autorelease(), RN::Vector3(1.0f, 1.0f, 1.0f), true);
+		RN::JoltStaticBody *levelBody = RN::JoltStaticBody::WithShape(levelShape);
 		levelBody->SetCollisionFilter(Types::CollisionLevel, Types::CollisionAll);
 		levelEntity->AddAttachment(levelBody);
 		

@@ -6,7 +6,8 @@ project(__TMP_APPLICATION_TARGET__)
 set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT_ONLY ON)
 
 option(RN_BUILD_BULLET_MODULE "Build the Bullet physics module" OFF)
-option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" ON)
+option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" OFF)
+option(RN_BUILD_JOLT_MODULE "Build the Jolt physics module" ON)
 option(RN_BUILD_ODE_MODULE "Build the ODE physics module" OFF)
 option(RN_BUILD_SPLASH_MODULE "Build the Splash physics module" OFF)
 option(RN_BUILD_ASSIMP_MODULE "Build the Assimp module" OFF)
@@ -36,9 +37,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(APPLE)
-	set(CMAKE_INSTALL_RPATH @executable_path;@executable_path/../Resources/Resources/Modules/RaynePhysX;@executable_path/../Resources/Resources/Modules/RayneMetal;@executable_path/../Resources/Resources/Modules/RayneOpenXR;@executable_path/../Resources/Resources/Modules/RayneVR)
+	set(CMAKE_INSTALL_RPATH @executable_path;@executable_path/../Resources/Resources/Modules/RayneJolt;@executable_path/../Resources/Resources/Modules/RayneMetal;@executable_path/../Resources/Resources/Modules/RayneOpenXR;@executable_path/../Resources/Resources/Modules/RayneVR)
 elseif(UNIX)
-	set(CMAKE_INSTALL_RPATH \$ORIGIN;\$ORIGIN/Resources/Modules/RaynePhysX;\$ORIGIN/Resources/Modules/RayneVulkan;\$ORIGIN/Resources/Modules/RayneOpenXR;\$ORIGIN/Resources/Modules/RayneVR)
+	set(CMAKE_INSTALL_RPATH \$ORIGIN;\$ORIGIN/Resources/Modules/RayneJolt;\$ORIGIN/Resources/Modules/RayneVulkan;\$ORIGIN/Resources/Modules/RayneOpenXR;\$ORIGIN/Resources/Modules/RayneVR)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../Rayne" "${CMAKE_CURRENT_BINARY_DIR}/Rayne")
@@ -74,7 +75,7 @@ set(ADDITIONAL_RESOURCE_COPY_PARAMS "--resourcespec=${CMAKE_CURRENT_SOURCE_DIR}/
 rayne_copy_resources(__TMP_APPLICATION_TARGET__ "${RESOURCES}" "${ADDITIONAL_RESOURCE_COPY_PARAMS}")
 
 rayne_link_with(__TMP_APPLICATION_TARGET__)
-rayne_use_modules(__TMP_APPLICATION_TARGET__ RaynePhysX)
+rayne_use_modules(__TMP_APPLICATION_TARGET__ RayneJolt)
 rayne_use_modules(__TMP_APPLICATION_TARGET__ RayneVR)
 
 if(NOT APPLE)

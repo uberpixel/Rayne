@@ -10,7 +10,7 @@
 
 #include <Rayne.h>
 
-#include "RNPhysXWorld.h"
+#include "RNJoltWorld.h"
 
 #include "__TMP__Types.h"
 #include "__TMP__CameraManager.h"
@@ -26,7 +26,7 @@ namespace __TMP__
 		World(RN::VRWindow *vrWindow);
 		~World();
 
-		RN::PhysXWorld *GetPhysicsWorld() const { return _physicsWorld; }
+		RN::JoltWorld *GetPhysicsWorld() const { return _physicsWorld; }
 		RN::ShaderLibrary *GetShaderLibrary() const { return _shaderLibrary; }
 		RN::VRCamera *GetVRCamera() const { return _cameraManager.GetVRCamera(); }
 		RN::Camera *GetHeadCamera() const { return _cameraManager.GetHeadCamera(); }
@@ -58,7 +58,7 @@ namespace __TMP__
 
 		RN::VRWindow *_vrWindow;
 
-		RN::PhysXWorld *_physicsWorld;
+		RN::JoltWorld *_physicsWorld;
 		
 		bool _isPaused;
 		bool _isDash;

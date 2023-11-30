@@ -8,7 +8,7 @@
 	"cmake-targets~android":
 	[
 		"Rayne",
-		"RaynePhysX",
+		"RayneJolt",
 		"RayneVulkan",
 		"RayneVR",
 		"RayneOpenXR",
