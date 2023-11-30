@@ -58,32 +58,6 @@ namespace RN
 		filterData.word2 = _collisionFilterID;
 		filterData.word3 = _collisionFilterIgnoreID;*/
 	}
-
-	void JoltDynamicBody::SetCollisionFilterID(uint32 id, uint32 ignoreid)
-	{
-		/*JoltCollisionObject::SetCollisionFilterID(id, ignoreid);
-
-		Jolt::PxFilterData filterData;
-		filterData.word0 = _collisionFilterGroup;
-		filterData.word1 = _collisionFilterMask;
-		filterData.word2 = _collisionFilterID;
-		filterData.word3 = _collisionFilterIgnoreID;
-
-		if(_shape->IsKindOfClass(JoltCompoundShape::GetMetaClass()))
-		{
-			JoltCompoundShape *compound = _shape->Downcast<JoltCompoundShape>();
-			for(JoltShape *tempShape : compound->_shapes)
-			{
-				tempShape->GetJoltShape()->setSimulationFilterData(filterData);
-				tempShape->GetJoltShape()->setQueryFilterData(filterData);
-			}
-		}
-		else
-		{
-			_shape->GetJoltShape()->setSimulationFilterData(filterData);
-			_shape->GetJoltShape()->setQueryFilterData(filterData);
-		}*/
-	}
 	
 		
 	JoltDynamicBody *JoltDynamicBody::WithShape(JoltShape *shape, float mass)

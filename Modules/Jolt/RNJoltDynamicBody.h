@@ -40,7 +40,6 @@ namespace RN
 		JTAPI void UpdatePosition() override;
 
 		JTAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
-		JTAPI void SetCollisionFilterID(uint32 id, uint32 ignoreid) override;
 			
 		JTAPI void SetMass(float mass);
 		JTAPI void SetLinearVelocity(const Vector3 &velocity);

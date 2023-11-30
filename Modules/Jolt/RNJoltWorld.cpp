@@ -141,8 +141,6 @@ namespace RN
 		hit.collisionObject = nullptr;
 
         Vector3 diff = to - from;
-		float distance = diff.GetLength();
-		diff.Normalize();
 		
 		//TODO: Limit max distance of raycast or the result
 		
@@ -191,7 +189,7 @@ namespace RN
 		return hit;
 	}
 
-	JoltContactInfo JoltWorld::CastSweep(JoltShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation, uint32 filterGroup, uint32 filterMask)
+	JoltContactInfo JoltWorld::CastSweep(JoltShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, const Vector3 &scale, uint32 filterGroup, uint32 filterMask)
 	{
 		JoltContactInfo hit;
 		hit.distance = -1.0f;
@@ -199,14 +197,12 @@ namespace RN
 		hit.collisionObject = nullptr;
 
 		Vector3 diff = to - from;
-		float distance = diff.GetLength();
-		diff.Normalize();
 		
 		JPH::Mat44 worldTransform = JPH::Mat44::sRotationTranslation(JPH::QuatArg(rotation.x, rotation.y, rotation.z, rotation.w), JPH::Vec3Arg(from.x, from.y, from.z));
 		
 		//TODO: Limit max distance of raycast or the result
 		
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(shape->GetJoltShape(), JPH::Vec3Arg(scale.x, scale.y, scale.z), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
 		
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 		
@@ -252,7 +248,7 @@ namespace RN
 		return hit;
 	}
 
-	std::vector<JoltContactInfo> JoltWorld::CheckOverlap(JoltShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterGroup, uint32 filterMask)
+	std::vector<JoltContactInfo> JoltWorld::CheckOverlap(JoltShape *shape, const Vector3 &position, const Quaternion &rotation, const Vector3 &scale, uint32 filterGroup, uint32 filterMask)
 	{
 		std::vector<JoltContactInfo> hits;
 
@@ -261,7 +257,7 @@ namespace RN
 		
 		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> results;
 		uint16 objectLayer = GetObjectLayer(filterGroup, filterMask, 1);
-		_physicsSystem->GetNarrowPhaseQuery().CollideShape(shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform.PreTranslated(shape->GetJoltShape()->GetCenterOfMass()), collideSettings, JPH::RVec3Arg(0, 0, 0), results, _physicsSystem->GetDefaultBroadPhaseLayerFilter(objectLayer), _physicsSystem->GetDefaultLayerFilter(objectLayer));
+		_physicsSystem->GetNarrowPhaseQuery().CollideShape(shape->GetJoltShape(), JPH::Vec3Arg(scale.x, scale.y, scale.z), worldTransform.PreTranslated(shape->GetJoltShape()->GetCenterOfMass()), collideSettings, JPH::RVec3Arg(0, 0, 0), results, _physicsSystem->GetDefaultBroadPhaseLayerFilter(objectLayer), _physicsSystem->GetDefaultLayerFilter(objectLayer));
 		
 		for(auto result : results.mHits)
 		{

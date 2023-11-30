@@ -45,7 +45,6 @@ namespace RN
 		JTAPI virtual void UpdatePosition() = 0;
 			
 		JTAPI virtual void SetCollisionFilter(uint32 group, uint32 mask);
-		JTAPI virtual void SetCollisionFilterID(uint32 id, uint32 ignoreid);
 		JTAPI void SetContactCallback(std::function<void(JoltCollisionObject *, const JoltContactInfo&, ContactState)> &&callback);
 		JTAPI virtual void SetPositionOffset(RN::Vector3 offset);
 		JTAPI virtual void SetRotationOffset(RN::Quaternion offset);
@@ -61,8 +60,6 @@ namespace RN
 
 		uint32 _collisionFilterGroup;
 		uint32 _collisionFilterMask;
-		uint32 _collisionFilterID;
-		uint32 _collisionFilterIgnoreID;
 
 		SceneNode *_owner;
 			

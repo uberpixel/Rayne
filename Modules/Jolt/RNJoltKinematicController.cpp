@@ -91,10 +91,6 @@ namespace RN
 		std::vector<JoltContactInfo> hits;
 		
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
-
-		Vector3 diff = direction;
-		float distance = diff.GetLength();
-		diff.Normalize();
 		
 		Vector3 pos = GetWorldPosition() + offset;
 		Quaternion rot = GetWorldRotation();
@@ -103,7 +99,7 @@ namespace RN
 		
 		//TODO: Limit max distance of raycast or the result
 		
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(direction.x, direction.y, direction.z));
 		
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 		
@@ -160,10 +156,6 @@ namespace RN
 		hit.collisionObject = nullptr;
 		
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
-
-		Vector3 diff = direction;
-		float distance = diff.GetLength();
-		diff.Normalize();
 		
 		Vector3 pos = GetWorldPosition() + offset;
 		Quaternion rot = GetWorldRotation();
@@ -172,7 +164,7 @@ namespace RN
 		
 		//TODO: Limit max distance of raycast or the result
 		
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(diff.x, diff.y, diff.z));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3Arg(1, 1, 1), worldTransform, JPH::Vec3Arg(direction.x, direction.y, direction.z));
 		
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 		

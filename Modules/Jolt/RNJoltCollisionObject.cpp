@@ -18,8 +18,6 @@ namespace RN
 		JoltCollisionObject::JoltCollisionObject() :
 		_collisionFilterGroup(0),
 		_collisionFilterMask(0xffffffff),
-		_collisionFilterID(0),
-		_collisionFilterIgnoreID(0),
 		_owner(nullptr)
 	{}
 		
@@ -32,12 +30,6 @@ namespace RN
 	{
 		_collisionFilterGroup = group;
 		_collisionFilterMask = mask;
-	}
-
-	void JoltCollisionObject::SetCollisionFilterID(uint32 id, uint32 ignoreid)
-	{
-		_collisionFilterID = id;
-		_collisionFilterIgnoreID = ignoreid;
 	}
 		
 	void JoltCollisionObject::SetContactCallback(std::function<void (JoltCollisionObject *, const JoltContactInfo&, ContactState)> &&callback)
