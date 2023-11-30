@@ -12,7 +12,7 @@
 	url = https://github.com/leetal/ios-cmake.git
 [submodule "Tools/ShaderProcessor/Vendor/ShaderConductor"]
 	path = Tools/ShaderProcessor/Vendor/ShaderConductor
-	url = https://github.com/microsoft/ShaderConductor.git
+	url = https://github.com/Slin/ShaderConductor.git
 [submodule "Tools/TextureCompression/Vendor/astc-encoder"]
 	path = Tools/TextureCompression/Vendor/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
