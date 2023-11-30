@@ -918,7 +918,8 @@ namespace RN
 
 				case Shader::UniformDescriptor::Identifier::DirectionalShadowMatricesCount:
 				{
-					uint32 matrixCount = std::min(renderPass.directionalShadowMatrices.size(), descriptor->GetElementCount());
+					//TODO: Limit matrixCount to descriptor->GetElementCount() of Shader::UniformDescriptor::Identifier::DirectionalShadowMatrices
+					uint32 matrixCount = renderPass.directionalShadowMatrices.size();
 					std::memcpy(buffer + descriptor->GetOffset(), &matrixCount, descriptor->GetSize());
 					break;
 				}
