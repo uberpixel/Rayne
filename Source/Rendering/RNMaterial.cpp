@@ -260,8 +260,8 @@ namespace RN
 	void Material::SetPolygonOffset(bool enable, float factor, float units)
 	{
 		_properties.usePolygonOffset = enable;
-		_properties.polygonOffsetFactor = factor;
-		_properties.polygonOffsetUnits = units;
+		_properties.polygonOffsetFactor = -factor;
+		_properties.polygonOffsetUnits = -units;
 	}
 	
 	void Material::SetAlphaToCoverage(bool enabled, float min, float max)
