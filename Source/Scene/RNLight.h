@@ -57,10 +57,10 @@ namespace RN
 			maxShadowDist(1.0f),
 			shadowTarget(target)
 		{
-			splits.push_back(ShadowSplit(1, 0, 3.0f, 256.0f));
-			splits.push_back(ShadowSplit(2, 0, 3.0f, 512.0f));
-			splits.push_back(ShadowSplit(2, 1, 3.0f, 1024.0f));
-			splits.push_back(ShadowSplit(3, 0, 3.0f, 1024.0f));
+			splits.push_back(ShadowSplit(1, 0, 0.25f, 2.0f));
+			splits.push_back(ShadowSplit(2, 0, 0.5f, 4.0f));
+			splits.push_back(ShadowSplit(2, 1, 1.0f, 8.0f));
+			splits.push_back(ShadowSplit(3, 0, 2.0f, 16.0f));
 		}
 		
 		size_t resolution;
