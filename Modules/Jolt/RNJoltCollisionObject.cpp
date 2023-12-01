@@ -16,7 +16,7 @@ namespace RN
 	RNDefineMeta(JoltCollisionObject, SceneNodeAttachment)
 		
 		JoltCollisionObject::JoltCollisionObject() :
-		_collisionFilterGroup(0),
+		_collisionFilterGroup(1),
 		_collisionFilterMask(0xffffffff),
 		_owner(nullptr)
 	{}
