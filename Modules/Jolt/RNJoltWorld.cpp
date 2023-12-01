@@ -106,6 +106,15 @@ namespace RN
 				collisionObject->UpdatePosition();
 			}
 		}*/
+		
+		JPH::BodyIDVector bodyIDs;
+		_physicsSystem->GetActiveBodies(JPH::EBodyType::RigidBody, bodyIDs);
+		for(JPH::BodyID bodyID : bodyIDs)
+		{
+			uint64 userData = _physicsSystem->GetBodyInterface().GetUserData(bodyID);
+			JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject*>(userData);
+			if(collisionObject) collisionObject->UpdatePosition();
+		}
 	}
 
 	void JoltWorld::WillUpdate(float delta)
