@@ -56,14 +56,14 @@ namespace RN
 		JTAPI void SetKinematicTarget(const Vector3 &position, const Quaternion &rotation);
 		//JTAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);
 
-		JTAPI void ApplyForce(const Vector3 &force);
-//		JTAPI void ApplyForce(const Vector3 &force, const Vector3 &origin);
-		JTAPI void ClearForces();
+		JTAPI void AddForce(const Vector3 &force);
+		JTAPI void AddForce(const Vector3 &force, const Vector3 &origin);
+//		JTAPI void ClearForces();
 			
-		JTAPI void ApplyTorque(const Vector3 &torque);
-		JTAPI void ApplyTorqueImpulse(const Vector3 &torque);
-		JTAPI void ApplyImpulse(const Vector3 &impulse);
-//		JTAPI void ApplyImpulse(const Vector3 &impulse, const Vector3 &origin);
+		JTAPI void AddTorque(const Vector3 &torque);
+		JTAPI void AddTorqueImpulse(const Vector3 &torque);
+		JTAPI void AddImpulse(const Vector3 &impulse);
+		JTAPI void AddImpulse(const Vector3 &impulse, const Vector3 &origin);
 			
 		JTAPI float GetMass() const;
 		

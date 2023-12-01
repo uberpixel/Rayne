@@ -25,6 +25,7 @@ namespace RN
 		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Dynamic, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
 		settings.mMassPropertiesOverride.mMass = mass;
 		settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+		settings.mMotionQuality = JPH::EMotionQuality::LinearCast;
 		settings.mUserData = reinterpret_cast<uint64>(this);
 		JPH::BodyID bodyID = bodyInterface.CreateAndAddBody(settings, JPH::EActivation::DontActivate);
 		
@@ -169,36 +170,58 @@ namespace RN
 		//_actor->setSolverIterationCounts(positionIterations, velocityIterations);
 	}
 
-	void JoltDynamicBody::ApplyForce(const Vector3 &force)
+	void JoltDynamicBody::AddForce(const Vector3 &force)
 	{
-		//_actor->addForce(Jolt::PxVec3(force.x, force.y, force.z));
-	}
-/*	void JoltDynamicBody::ApplyForce(const Vector3 &force, const Vector3 &origin)
-	{
-		_rigidBody->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
-	}*/
-	void JoltDynamicBody::ClearForces()
-	{
-		//_actor->clearForce();
-//		_actor->clearTorque();
-	}
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		
-	void JoltDynamicBody::ApplyTorque(const Vector3 &torque)
-	{
-		//_actor->addTorque(Jolt::PxVec3(torque.x, torque.y, torque.z));
+		bodyInterface.AddForce(*_actor, JPH::Vec3Arg(force.x, force.y, force.z));
 	}
-	void JoltDynamicBody::ApplyTorqueImpulse(const Vector3 &torque)
+
+	void JoltDynamicBody::AddForce(const Vector3 &force, const Vector3 &origin)
 	{
-		//_actor->addTorque(Jolt::PxVec3(torque.x, torque.y, torque.z), Jolt::PxForceMode::eIMPULSE);
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.AddForce(*_actor, JPH::Vec3Arg(force.x, force.y, force.z), JPH::Vec3Arg(origin.x, origin.y, origin.z));
 	}
-	void JoltDynamicBody::ApplyImpulse(const Vector3 &impulse)
+
+/*	void JoltDynamicBody::ClearForces()
 	{
-		//_actor->addForce(Jolt::PxVec3(impulse.x, impulse.y, impulse.z), Jolt::PxForceMode::eIMPULSE);
-	}
-/*	void JoltDynamicBody::ApplyImpulse(const Vector3 &impulse, const Vector3 &origin)
-	{
-		_rigidBody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.
 	}*/
+		
+	void JoltDynamicBody::AddTorque(const Vector3 &torque)
+	{
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.AddTorque(*_actor, JPH::Vec3Arg(torque.x, torque.y, torque.z));
+	}
+	void JoltDynamicBody::AddTorqueImpulse(const Vector3 &torque)
+	{
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.AddAngularImpulse(*_actor, JPH::Vec3Arg(torque.x, torque.y, torque.z));
+	}
+	void JoltDynamicBody::AddImpulse(const Vector3 &impulse)
+	{
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.AddImpulse(*_actor, JPH::Vec3Arg(impulse.x, impulse.y, impulse.z));
+	}
+	void JoltDynamicBody::AddImpulse(const Vector3 &impulse, const Vector3 &origin)
+	{
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
+		
+		bodyInterface.AddImpulse(*_actor, JPH::Vec3Arg(impulse.x, impulse.y, impulse.z), JPH::Vec3Arg(origin.x, origin.y, origin.z));
+	}
 
 	void JoltDynamicBody::SetEnableKinematic(bool enable)
 	{
