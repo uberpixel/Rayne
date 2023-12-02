@@ -28,8 +28,8 @@ namespace RN
 			_isDepthWriteEnabled(false),
 			_isColorWriteEnabled(true),
 			_depthMode(DepthMode::GreaterOrEqual),
-			_depthOffset(-200.0f),
-			_depthFactor(-50.0f),
+			_depthOffset(200.0f),
+			_depthFactor(50.0f),
 			_cornerRadius(0.0f)
 		{
 			SetRenderGroup(1 << 7);
