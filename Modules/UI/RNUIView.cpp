@@ -390,6 +390,7 @@ namespace RN
 			_isDepthWriteEnabled = writeDepth;
 			_isColorWriteEnabled = colorWrite;
 			_depthOffset = depthOffset;
+			_depthFactor = depthFactor;
 			RN::Model *model = GetModel();
 			if(model)
 			{
