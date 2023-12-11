@@ -23,7 +23,7 @@ namespace RN
 
 		RNAPI ~SceneAttachment();
 
-		RNAPI Scene *GetParent() const;
+		RNAPI Scene *GetParent() const { return _scene; }
 
 	protected:
 		RNAPI SceneAttachment();
