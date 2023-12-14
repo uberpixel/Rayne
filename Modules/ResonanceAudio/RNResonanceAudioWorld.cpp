@@ -170,7 +170,7 @@ namespace RN
 		if(_listener)
 		{
 			Vector3 listenerPosition = _listener->GetWorldPosition();
-			Quaternion listenerRotation = _listener->GetRotation();
+			Quaternion listenerRotation = _listener->GetWorldRotation();
 			_audioAPI->SetHeadPosition(listenerPosition.x, listenerPosition.y, listenerPosition.z);
 			_audioAPI->SetHeadRotation(listenerRotation.x, listenerRotation.y, listenerRotation.z, listenerRotation.w);
 
