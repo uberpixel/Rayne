@@ -17,13 +17,13 @@ namespace RN
 	class ResonanceAudioSampler : public Object
 	{
 	public:
-		OAAPI ResonanceAudioSampler(AudioAsset *asset = nullptr);
-		OAAPI ~ResonanceAudioSampler() override;
+		RAAPI ResonanceAudioSampler(AudioAsset *asset = nullptr);
+		RAAPI ~ResonanceAudioSampler() override;
 
-		OAAPI void SetAudioAsset(AudioAsset *asset);
-		OAAPI void SetRepeat(bool repeat);
-		OAAPI float GetSample(double time, uint8 channel);
-		OAAPI double GetTotalTime() const;
+		RAAPI void SetAudioAsset(AudioAsset *asset);
+		RAAPI void SetRepeat(bool repeat);
+		RAAPI float GetSample(double time, uint8 channel);
+		RAAPI double GetTotalTime() const;
 
 		AudioAsset *GetAsset()
 		{
@@ -39,7 +39,7 @@ namespace RN
 		bool _isRepeating;
 		Lockable _lock;
 			
-		RNDeclareMetaAPI(ResonanceAudioSampler, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioSampler, RAAPI)
 	};
 }
 

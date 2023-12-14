@@ -47,32 +47,30 @@ namespace RN
 		ResonanceAudioMaterialUniform
 	  };
 
-	struct ResonanceAudioWorldInternals;
 	class ResonanceAudioWorld : public SceneAttachment
 	{
 	public:
 		friend class ResonanceAudioSource;
-		friend class ResonanceAudioPlayer;
 
-		OAAPI static ResonanceAudioWorld *GetInstance();
+		RAAPI static ResonanceAudioWorld *GetInstance();
 
-		OAAPI ResonanceAudioWorld(ResonanceAudioSystem *audioSystem);
-		OAAPI ~ResonanceAudioWorld() override;
+		RAAPI ResonanceAudioWorld(ResonanceAudioSystem *audioSystem);
+		RAAPI ~ResonanceAudioWorld() override;
 		
 		ResonanceAudioSystem *GetAudioSystem() const { return _audioSystem; }
 		
-		OAAPI void SetListener(SceneNode *listener);
+		RAAPI void SetListener(SceneNode *listener);
 		SceneNode *GetListener() const { return _listener; };
 
-		OAAPI ResonanceAudioSource *PlaySound(AudioAsset *resource) const;
-		OAAPI ResonanceAudioSource *PlaySound(AudioAsset *resource, Vector3 position) const;
+		RAAPI ResonanceAudioSource *PlaySound(AudioAsset *resource) const;
+		RAAPI ResonanceAudioSource *PlaySound(AudioAsset *resource, Vector3 position) const;
 
-		OAAPI void SetRaycastCallback(const std::function<void (Vector3, Vector3, float &)> &raycastCallback);
-		OAAPI void SetSimpleRoom(Vector3 position, Vector3 dimensions, float reflectionConstant, ResonanceAudioMaterial left, ResonanceAudioMaterial right, ResonanceAudioMaterial bottom, ResonanceAudioMaterial top, ResonanceAudioMaterial front, ResonanceAudioMaterial back);
-		OAAPI void SetSimpleRoomEnabled(bool enabled);
+		RAAPI void SetRaycastCallback(const std::function<void (Vector3, Vector3, float &)> &raycastCallback);
+		RAAPI void SetSimpleRoom(Vector3 position, Vector3 dimensions, float reflectionConstant, ResonanceAudioMaterial left, ResonanceAudioMaterial right, ResonanceAudioMaterial bottom, ResonanceAudioMaterial top, ResonanceAudioMaterial front, ResonanceAudioMaterial back);
+		RAAPI void SetSimpleRoomEnabled(bool enabled);
 		
-		OAAPI void SetInputBuffer(AudioAsset *inputBuffer);
-		//OAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
+		RAAPI void SetInputBuffer(AudioAsset *inputBuffer);
+		//RAAPI void SetCustomWriteCallback(const std::function<void (double)> &customWriteCallback);
 
 	protected:
 		void Update(float delta) override;
@@ -99,7 +97,7 @@ namespace RN
 
 		vraudio::ResonanceAudioApi *_audioAPI;
 			
-		RNDeclareMetaAPI(ResonanceAudioWorld, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioWorld, RAAPI)
 	};
 }
 

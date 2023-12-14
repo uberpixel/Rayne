@@ -11,10 +11,10 @@
 
 #include <Rayne.h>
 
-#if defined(RN_BUILD_ResonanceAudio)
-	#define OAAPI RN_EXPORT
+#if defined(RN_BUILD_RESONANCE_AUDIO)
+	#define RAAPI RN_EXPORT
 #else
-	#define OAAPI RN_IMPORT
+	#define RAAPI RN_IMPORT
 #endif
 
 #endif /* __RAYNE_ResonanceAudio_H_ */

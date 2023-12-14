@@ -24,16 +24,12 @@
 
 namespace RN
 {
-#if RN_PLATFORM_WINDOWS || RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
 	struct ResonanceAudioSystemMiniAudioInternals
 	{
 		ma_context context;
 		ma_device outputDevice;
 		ma_device inputDevice;
 	};
-#elif RN_PLATFORM_ANDROID
-	
-#endif
 }
 
 #endif /* defined(__RAYNE_ResonanceAudioINTERNALS_H_) */

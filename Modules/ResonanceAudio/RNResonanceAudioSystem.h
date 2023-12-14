@@ -33,7 +33,7 @@ namespace RN
 		//TODO:Make private and have protected creator method in audio system
 		ResonanceAudioDevice(Type type, std::string name, bool isDefault) : type(type), name(RNSTR(name)->Retain()), isDefault(isDefault) { }
 
-		RNDeclareMetaAPI(ResonanceAudioDevice, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioDevice, RAAPI)
 	};
 
 	class ResonanceAudioDeviceMiniAudio : public ResonanceAudioDevice
@@ -45,7 +45,7 @@ namespace RN
 		//TODO:Make private and have protected creator method in audio system
 		ResonanceAudioDeviceMiniAudio(Type type, void *device, std::string name, bool isDefault) : ResonanceAudioDevice(type, name, isDefault), deviceID(device) { }
 
-		RNDeclareMetaAPI(ResonanceAudioDevice, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioDevice, RAAPI)
 	};
 
 	class ResonanceAudioWorld;
@@ -53,19 +53,19 @@ namespace RN
 	{
 	public:
 		friend ResonanceAudioWorld;
-		OAAPI ~ResonanceAudioSystem();
+		RAAPI ~ResonanceAudioSystem();
 		
-		OAAPI virtual Array *GetDevices() = 0;
-		OAAPI virtual ResonanceAudioDevice *GetDefaultInputDevice() = 0;
-		OAAPI virtual ResonanceAudioDevice *GetDefaultOutputDevice() = 0;
+		RAAPI virtual Array *GetDevices() = 0;
+		RAAPI virtual ResonanceAudioDevice *GetDefaultInputDevice() = 0;
+		RAAPI virtual ResonanceAudioDevice *GetDefaultOutputDevice() = 0;
 
-		OAAPI virtual void SetOutputDevice(ResonanceAudioDevice *outputDevice) = 0;
-		OAAPI virtual void SetInputDevice(ResonanceAudioDevice *inputDevice) = 0;
+		RAAPI virtual void SetOutputDevice(ResonanceAudioDevice *outputDevice) = 0;
+		RAAPI virtual void SetInputDevice(ResonanceAudioDevice *inputDevice) = 0;
 		
-		OAAPI static ResonanceAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 960, uint8 channelCount = 2);
+		RAAPI static ResonanceAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 960, uint8 channelCount = 2);
 			
 	protected:
-		OAAPI ResonanceAudioSystem(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
+		RAAPI ResonanceAudioSystem(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
 		std::function<void (void *, const void *, unsigned int, unsigned int)> _audioCallback;
 		
 		void SetAudioCallback(const std::function<void (void *, const void*, unsigned int, unsigned int)> &audioCallback){
@@ -76,7 +76,7 @@ namespace RN
 		uint32 _sampleRate;
 		uint32 _channelCount;
 		
-		RNDeclareMetaAPI(ResonanceAudioSystem, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioSystem, RAAPI)
 	};
 
 	struct ResonanceAudioSystemMiniAudioInternals;
@@ -85,26 +85,26 @@ namespace RN
 	public:
 		friend ResonanceAudioSystem;
 		
-		OAAPI ~ResonanceAudioSystemMiniAudio();
+		RAAPI ~ResonanceAudioSystemMiniAudio();
 		
-		OAAPI Array *GetDevices() final;
-		OAAPI ResonanceAudioDevice *GetDefaultInputDevice() final;
-		OAAPI ResonanceAudioDevice *GetDefaultOutputDevice() final;
+		RAAPI Array *GetDevices() final;
+		RAAPI ResonanceAudioDevice *GetDefaultInputDevice() final;
+		RAAPI ResonanceAudioDevice *GetDefaultOutputDevice() final;
 		
-		OAAPI void SetOutputDevice(ResonanceAudioDevice *outputDevice) final;
-		OAAPI void SetInputDevice(ResonanceAudioDevice *inputDevice) final;
+		RAAPI void SetOutputDevice(ResonanceAudioDevice *outputDevice) final;
+		RAAPI void SetInputDevice(ResonanceAudioDevice *inputDevice) final;
 		
 	private:
-		OAAPI ResonanceAudioSystemMiniAudio(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
+		RAAPI ResonanceAudioSystemMiniAudio(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
 		static void AudioCallback(ma_device* pDevice, void* pOutput, const void* pInput, uint32 frameCount);
 		
-		OAAPI void UpdateStreamSettings();
+		RAAPI void UpdateStreamSettings();
 		
 		ResonanceAudioSystemMiniAudioInternals *_internals;
 		ResonanceAudioDevice *_outputDevice;
 		ResonanceAudioDevice *_inputDevice;
 		
-		RNDeclareMetaAPI(ResonanceAudioSystemMiniAudio, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioSystemMiniAudio, RAAPI)
 	};
 }
 

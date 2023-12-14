@@ -20,26 +20,26 @@ namespace RN
 	public:
 		friend class ResonanceAudioWorld;
 
-		OAAPI ResonanceAudioSource(AudioAsset *asset = nullptr, bool wantsIndirectSound = true);
-		OAAPI ~ResonanceAudioSource() override;
+		RAAPI ResonanceAudioSource(AudioAsset *asset = nullptr, bool wantsIndirectSound = true);
+		RAAPI ~ResonanceAudioSource() override;
 			
-		OAAPI void Play();
-		OAAPI void Stop();
-		OAAPI void Seek(double time);
+		RAAPI void Play();
+		RAAPI void Stop();
+		RAAPI void Seek(double time);
 
-		OAAPI void SetAudioAsset(AudioAsset *asset);
+		RAAPI void SetAudioAsset(AudioAsset *asset);
 
-		OAAPI void SetRepeat(bool repeat);
-		OAAPI void SetDistanceAttenuation(float attentuation);
-		OAAPI void SetPitch(float pitch);
-		OAAPI void SetVolume(float volume);
-		OAAPI void SetRange(RN::Vector2 minMaxRange);
-//		OAAPI void SetSelfdestruct(bool selfdestruct);
-		OAAPI void SetChannel(uint8 channel);
-		OAAPI void SetTimeOfFlight(bool tof);
-		OAAPI void SetReverb(bool reverb);
+		RAAPI void SetRepeat(bool repeat);
+		RAAPI void SetDistanceAttenuation(float attentuation);
+		RAAPI void SetPitch(float pitch);
+		RAAPI void SetVolume(float volume);
+		RAAPI void SetRange(RN::Vector2 minMaxRange);
+//		RAAPI void SetSelfdestruct(bool selfdestruct);
+		RAAPI void SetChannel(uint8 channel);
+		RAAPI void SetTimeOfFlight(bool tof);
+		RAAPI void SetReverb(bool reverb);
 
-		OAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
+		RAAPI void Update(double frameLength, uint32 sampleCount, float **outputBuffer);
 		void Update();
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 			
@@ -47,7 +47,7 @@ namespace RN
 		bool IsRepeating() const { return _isRepeating; }
 		bool HasTimeOfFlight() const { return _hasTimeOfFlight; }
 		bool HasReverb() const { return _hasReverb; }
-		OAAPI bool HasEnded() const;
+		RAAPI bool HasEnded() const;
 		
 		RN::Vector2 GetRange() const { return _minMaxRange; }
 			
@@ -72,7 +72,7 @@ namespace RN
 
 		double _currentTime;
 			
-		RNDeclareMetaAPI(ResonanceAudioSource, OAAPI)
+		RNDeclareMetaAPI(ResonanceAudioSource, RAAPI)
 	};
 }
 

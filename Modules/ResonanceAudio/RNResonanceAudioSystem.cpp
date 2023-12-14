@@ -94,7 +94,7 @@ namespace RN
 	
 	void ResonanceAudioSystemMiniAudio::SetOutputDevice(ResonanceAudioDevice *outputDevice)
 	{
-		RN_ASSERT(!outputDevice || outputDevice->type == ResonanceAudioDevice::Type::Output, "Not an output device!");
+		RN_ASSERT(outputDevice || outputDevice->type == ResonanceAudioDevice::Type::Output, "Not an output device!");
 
 		if(_outputDevice)
 		{
@@ -172,7 +172,7 @@ namespace RN
 		{
 			ma_device_id *deviceID = new ma_device_id;
 			*deviceID = playbackInfos[i].id;
-			ResonanceAudioDeviceMiniAudio *outputDevice = new ResonanceAudioDeviceMiniAudio(ResonanceAudioDevice::Type::Output, deviceID, playbackInfos[i].name, playbackInfos[i].isDefault);
+			ResonanceAudioDeviceMiniAudio *outputDevice = new ResonanceAudioDeviceMiniAudio(ResonanceAudioDevice::Type::Output, deviceID, playbackInfos[i].name, playbackInfos[i].isDefault || playbackCount == 1);
 			deviceArray->AddObject(outputDevice->Autorelease());
 		}
 
@@ -180,7 +180,7 @@ namespace RN
 		{
 			ma_device_id *deviceID = new ma_device_id;
 			*deviceID = captureInfos[i].id;
-			ResonanceAudioDeviceMiniAudio *inputDevice = new ResonanceAudioDeviceMiniAudio(ResonanceAudioDevice::Type::Input, deviceID, captureInfos[i].name, captureInfos[i].isDefault);
+			ResonanceAudioDeviceMiniAudio *inputDevice = new ResonanceAudioDeviceMiniAudio(ResonanceAudioDevice::Type::Input, deviceID, captureInfos[i].name, captureInfos[i].isDefault || captureCount == 1);
 			deviceArray->AddObject(inputDevice->Autorelease());
 		}
 		
