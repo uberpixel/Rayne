@@ -45,7 +45,6 @@ namespace RN
 
 		VKAPI void Render(Function &&function) final;
 		VKAPI void SubmitCamera(Camera *camera, Function &&function) final;
-		VKAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		VKAPI bool SupportsTextureFormat(const String *format) const final;
 		VKAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -90,6 +89,7 @@ namespace RN
 		VKAPI void UpdateDynamicBufferReference(VulkanDynamicBufferReference *reference, bool align);
 
 	private:
+		void SubmitRenderPass(RenderPass *renderPass, VulkanRenderPass &previousRenderPass, Function &&function);
 		void UpdateDescriptorSets();
 		void RenderDrawable(VkCommandBuffer commandBuffer, VulkanDrawable *drawable, uint32 instanceCount);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanDynamicBufferReference *dynamicBufferReference, VulkanDrawable *drawable);

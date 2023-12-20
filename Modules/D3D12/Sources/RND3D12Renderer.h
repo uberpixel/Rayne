@@ -45,7 +45,6 @@ namespace RN
 
 		D3DAPI void Render(Function &&function) final;
 		D3DAPI void SubmitCamera(Camera *camera, Function &&function) final;
-		D3DAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		D3DAPI bool SupportsTextureFormat(const String *format) const final;
 		D3DAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -85,6 +84,8 @@ namespace RN
 		D3DAPI void UpdateUniformBufferReference(D3D12UniformBufferReference *reference, bool align);
 
 	protected:
+		void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass);
+
 		void RenderDrawable(ID3D12GraphicsCommandList *commandList, D3D12Drawable *drawable, uint32 instanceCount);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argument, D3D12UniformBufferReference *uniformBufferReference, D3D12Drawable *drawable);
 

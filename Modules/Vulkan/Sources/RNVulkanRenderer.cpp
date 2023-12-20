@@ -739,11 +739,11 @@ namespace RN
 		if(numberOfDrawables > 0) _internals->currentDrawableResourceIndex += 1;
 
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
-			SubmitRenderPass(nextPass, renderPass.renderPass);
+			SubmitRenderPass(nextPass, renderPass, std::forward<Function>(function));
 		});
 	}
 
-	void VulkanRenderer::SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass)
+	void VulkanRenderer::SubmitRenderPass(RenderPass *renderPass, VulkanRenderPass &previousRenderPass, Function &&function)
 	{
 		_internals->currentPipelineState = nullptr; //This is used when submitting drawables to make lists of drawables to instance and needs to be reset per render pass
 		_internals->currentInstanceDrawable = nullptr;
@@ -754,18 +754,19 @@ namespace RN
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
 
-		vulkanRenderPass.multiviewLayer = 0;
+		vulkanRenderPass.cameraInfo = previousRenderPass.cameraInfo;
+		vulkanRenderPass.multiviewCameraInfo = previousRenderPass.multiviewCameraInfo;
+		vulkanRenderPass.directionalShadowDepthTexture = nullptr;
+		vulkanRenderPass.multiviewLayer = previousRenderPass.multiviewLayer;
 		
 		vulkanRenderPass.renderPass = renderPass;
-		vulkanRenderPass.previousRenderPass = previousRenderPass;
+		vulkanRenderPass.previousRenderPass = previousRenderPass.renderPass;
 
 		vulkanRenderPass.framebuffer = nullptr;
 		vulkanRenderPass.resolveFramebuffer = nullptr;
 
 		vulkanRenderPass.shaderHint = Shader::UsageHint::Default;
 		vulkanRenderPass.overrideMaterial = ppStage ? ppStage->GetMaterial() : nullptr;
-
-		vulkanRenderPass.directionalShadowDepthTexture = nullptr;
 
 		if(!apiStage)
 		{
@@ -850,6 +851,11 @@ namespace RN
 				if(numberOfDrawables > 0)
 					_internals->currentDrawableResourceIndex += 1;
 			}
+			else
+			{
+				// Create drawables
+				function();
+			}
 		}
 		else
 		{
@@ -858,7 +864,7 @@ namespace RN
 
 		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
-			SubmitRenderPass(nextPass, renderPass);
+			SubmitRenderPass(nextPass, vulkanRenderPass, std::forward<Function>(function));
 		});
 	}
 

@@ -418,17 +418,17 @@ namespace RN
 		
 		const Array *nextRenderPasses = cameraRenderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
-				SubmitRenderPass(nextPass, renderPass.renderPass);
+				SubmitRenderPass(nextPass, renderPass, std::forward<Function>(function));
 			});
 	}
 	
-	void MetalRenderer::SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass)
+	void MetalRenderer::SubmitRenderPass(RenderPass *renderPass, MetalRenderPass &previousRenderPass, Function &&function)
 	{
 		// Set up
 		MetalRenderPass metalRenderPass;
 		metalRenderPass.type = MetalRenderPass::Type::Default;
 		metalRenderPass.renderPass = renderPass;
-		metalRenderPass.previousRenderPass = previousRenderPass;
+		metalRenderPass.previousRenderPass = previousRenderPass.renderPass;
 		
 		metalRenderPass.drawables.clear();
 		metalRenderPass.framebuffer = nullptr;
@@ -476,17 +476,16 @@ namespace RN
 		
 		metalRenderPass.shaderHint = Shader::UsageHint::Default;
 		
-		//TODO: Set matrices based on last camera renderpass?
-		/*metalRenderPass.viewPosition = camera->GetWorldPosition();
-		metalRenderPass.viewMatrix = camera->GetViewMatrix();
-		metalRenderPass.inverseViewMatrix = camera->GetInverseViewMatrix();
+		metalRenderPass.viewPosition = previousRenderPass.viewPosition;
+		metalRenderPass.viewMatrix = previousRenderPass.viewMatrix;
+		metalRenderPass.inverseViewMatrix = previousRenderPass.inverseViewMatrix;
 		
-		metalRenderPass.projectionMatrix = camera->GetProjectionMatrix();
-		metalRenderPass.inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+		metalRenderPass.projectionMatrix = previousRenderPass.projectionMatrix;
+		metalRenderPass.inverseProjectionMatrix = previousRenderPass.inverseProjectionMatrix;
 		
-		metalRenderPass.projectionViewMatrix = renderPass.projectionMatrix * renderPass.viewMatrix;*/
+		metalRenderPass.projectionViewMatrix = previousRenderPass.projectionViewMatrix;
 		metalRenderPass.directionalShadowDepthTexture = nullptr;
-		metalRenderPass.multiviewLayer = _currentMultiviewLayer;
+		metalRenderPass.multiviewLayer = previousRenderPass.multiviewLayer;
 		
 		Framebuffer *framebuffer = renderPass->GetFramebuffer();
 		MetalSwapChain *newSwapChain = nullptr;
@@ -531,6 +530,11 @@ namespace RN
 				}
 				SubmitDrawable(_defaultPostProcessingDrawable);
 			}
+			else
+			{
+				// Create drawables
+				function();
+			}
 		}
 		else
 		{
@@ -539,7 +543,7 @@ namespace RN
 		
 		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
 		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop){
-				SubmitRenderPass(nextPass, renderPass);
+				SubmitRenderPass(nextPass, metalRenderPass, std::forward<Function>(function));
 			});
 	}
 

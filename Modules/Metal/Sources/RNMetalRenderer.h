@@ -42,7 +42,6 @@ namespace RN
 
 		MTLAPI void Render(Function &&function) final;
 		MTLAPI void SubmitCamera(Camera *camera, Function &&function) final;
-		MTLAPI void SubmitRenderPass(RenderPass *renderPass, RenderPass *previousRenderPass) final;
 
 		MTLAPI bool SupportsTextureFormat(const String *format) const final;
 		MTLAPI bool SupportsDrawMode(DrawMode mode) const final;
@@ -74,6 +73,7 @@ namespace RN
 		MTLAPI void UpdateUniformBufferReference(MetalUniformBufferReference *reference, bool align);
 
 	protected:
+		void SubmitRenderPass(RenderPass *renderPass, MetalRenderPass &previousRenderPass, Function &&function);
 		void RenderDrawable(MetalDrawable *drawable, uint32 instanceCount);
 		void RenderAPIRenderPass(const MetalRenderPass &renderPass);
 		void FillUniformBuffer(Shader::ArgumentBuffer *argument, MetalUniformBufferReference *uniformBufferReference, MetalDrawable *drawable, const Material::Properties &materialProperties);
