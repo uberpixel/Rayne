@@ -65,6 +65,8 @@ namespace RN
 		OXRAPI String *GetRuntimeName() const final { return _runtimeName;  }
 		OXRAPI VRWindow::Origin GetOrigin() const final { return VRWindow::Origin::Floor; }
 
+		OXRAPI Mesh *GetHiddenAreaMesh(RN::numeric::uint8 eye) const override;
+
 		OXRAPI Array *GetRequiredVulkanInstanceExtensions() const final;
         OXRAPI Array *GetRequiredVulkanDeviceExtensions(RN::RendererDescriptor *descriptor, RenderingDevice *device) const final;
 
@@ -111,6 +113,7 @@ namespace RN
 		bool _supportsAndroidThreadType;
 		bool _supportsFoveatedRendering;
 		bool _supportsLocalDimming;
+		bool _supportsVisibilityMask;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

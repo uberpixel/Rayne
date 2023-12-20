@@ -51,7 +51,7 @@ namespace RN
 
 		XrPath pico4Controller;
 		xrStringToPath(instance, "/interaction_profiles/bytedance/pico4_controller", &pico4Controller);
-		
+
 		if(interactionProfile == khronosSimpleController)
 		{
 			return VRControllerTrackingState::Type::KhronosSimpleController;
@@ -91,7 +91,8 @@ namespace RN
 		_supportsPerformanceLevels = false;
 		_supportsAndroidThreadType = false;
 		_supportsFoveatedRendering = false;
-        _supportsLocalDimming = false;
+		_supportsLocalDimming = false;
+		_supportsVisibilityMask = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_internals->_supportsControllerInteractionPICO = false;
@@ -121,7 +122,7 @@ namespace RN
 #if XR_USE_PLATFORM_ANDROID
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
 #endif
-		
+
 		std::vector<const char*> extensions;
 		XrBaseInStructure *platformSpecificInstanceCreateInfo = nullptr;
 
@@ -188,7 +189,7 @@ namespace RN
 			RN_ASSERT(false, "No OpenXR Loader found!");
 		}
 
-        PopulateOpenXRDispatchTable(XR_NULL_HANDLE);
+		PopulateOpenXRDispatchTable(XR_NULL_HANDLE);
 
 		PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
 		if(XR_SUCCEEDED(xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader))))
@@ -245,6 +246,11 @@ namespace RN
 				extensions.push_back(extension.extensionName);
 				_supportsPerformanceLevels = true;
 			}
+			else if(std::strcmp(extension.extensionName, XR_KHR_VISIBILITY_MASK_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsVisibilityMask = true;
+			}
 #if XR_USE_PLATFORM_ANDROID
 			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
 			{
@@ -253,7 +259,7 @@ namespace RN
 			}
 #endif
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-			else if(std::strcmp(extension.extensionName, "XR_PICO_controller_interaction") == 0)
+				else if(std::strcmp(extension.extensionName, "XR_PICO_controller_interaction") == 0)
 			{
 				extensions.push_back(extension.extensionName);
 				_internals->_supportsControllerInteractionPICO = true;
@@ -282,7 +288,7 @@ namespace RN
 				numberOfSupportedFoveationExtensions += 1;
 			}
 #endif
-			//Needed to apply foveation profiles to the swapchain
+				//Needed to apply foveation profiles to the swapchain
 			else if(std::strcmp(extension.extensionName, XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME) == 0)
 			{
 				extensions.push_back(extension.extensionName);
@@ -297,7 +303,7 @@ namespace RN
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 			&& !_internals->_supportsControllerInteractionPICO
 #endif
-		)
+				)
 		{
 			_supportsFoveatedRendering = true;
 		}
@@ -456,6 +462,15 @@ namespace RN
 			}
 
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetSwapchainStateFB", (PFN_xrVoidFunction*)(&_internals->GetSwapchainStateFB))))
+			{
+
+			}
+		}
+
+		if(_supportsVisibilityMask)
+		{
+			//XR_KHR_VISIBILITY_MASK_EXTENSION_NAME
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetVisibilityMaskKHR", (PFN_xrVoidFunction*)(&_internals->GetVisibilityMaskKHR))))
 			{
 
 			}
@@ -1376,12 +1391,12 @@ namespace RN
 		sessionCreateInfo.next = nullptr;
 		sessionCreateInfo.createFlags = 0;
 		sessionCreateInfo.systemId = _internals->systemID;
-		
+
 #ifdef XR_USE_GRAPHICS_API_VULKAN
 		XrGraphicsBindingVulkanKHR vulkanGraphicsBinding;
 		vulkanGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
 		vulkanGraphicsBinding.next = nullptr;
-		
+
 		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Vulkan")))
 		{
 			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
@@ -1449,7 +1464,7 @@ namespace RN
 			configurationViews[i].type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
 			configurationViews[i].next = nullptr;
 		}
-		
+
 		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, numberOfConfigurationViews, &numberOfConfigurationViews, configurationViews)))
 		{
 
@@ -1819,7 +1834,7 @@ namespace RN
 								*reinterpret_cast<XrEventDataSessionStateChanged *>(&event);
 						if(sessionStateChangedEvent.state == XR_SESSION_STATE_READY)
 						{
-                            RNInfo("Session State: Ready");
+							RNInfo("Session State: Ready");
 							XrSessionBeginInfo beginInfo;
 							beginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
 							beginInfo.next = nullptr;
@@ -1831,7 +1846,7 @@ namespace RN
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
 						{
-                            RNInfo("Session State: Stopping");
+							RNInfo("Session State: Stopping");
 							_hasSynchronization = false;
 							_isSessionRunning = false;
 							_swapChain->SetActive(false);
@@ -1839,25 +1854,25 @@ namespace RN
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)
 						{
-                            RNInfo("Session State: Exiting");
+							RNInfo("Session State: Exiting");
 							xrDestroySession(_internals->session);
 							_internals->session = XR_NULL_HANDLE;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_SYNCHRONIZED)
 						{
-                            RNInfo("Session State: Synchronized");
+							RNInfo("Session State: Synchronized");
 							_hasSynchronization = true;
 							_hasVisibility = false;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_VISIBLE)
 						{
-                            RNInfo("Session State: Visible");
+							RNInfo("Session State: Visible");
 							_hasVisibility = true;
 							_hasInputFocus = false;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_FOCUSED)
 						{
-                            RNInfo("Session State: Focused");
+							RNInfo("Session State: Focused");
 							_hasInputFocus = true;
 						}
 						break;
@@ -1880,7 +1895,7 @@ namespace RN
 						}
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-                        _internals->_trackingSpaceCounterRotation = RN::Vector3(_hmdTrackingState.rotation.GetEulerAngle().x, 0.0f, 0.0f);
+						_internals->_trackingSpaceCounterRotation = RN::Vector3(_hmdTrackingState.rotation.GetEulerAngle().x, 0.0f, 0.0f);
                         RNInfo("Recenter: " << _internals->_trackingSpaceCounterRotation.GetEulerAngle().x);
 #endif
 
@@ -2418,6 +2433,42 @@ namespace RN
 		return nullptr;
 	}
 
+	Mesh *OpenXRWindow::GetHiddenAreaMesh(uint8 eye) const
+	{
+		if(!_supportsVisibilityMask || !_internals->GetVisibilityMaskKHR) return nullptr;
+		if(!_internals->session) return nullptr;
+
+		XrVisibilityMaskKHR visibilityMask = {};
+		visibilityMask.type = XR_TYPE_VISIBILITY_MASK_KHR;
+		visibilityMask.next = nullptr;
+		visibilityMask.vertexCapacityInput = 0;
+		visibilityMask.indexCapacityInput = 0;
+		visibilityMask.vertices = nullptr;
+		visibilityMask.indices = nullptr;
+
+		_internals->GetVisibilityMaskKHR(_internals->session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, eye, XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR, &visibilityMask);
+		if(visibilityMask.vertexCountOutput == 0) return nullptr;
+
+		visibilityMask.vertexCapacityInput = visibilityMask.vertexCountOutput;
+		visibilityMask.indexCapacityInput = visibilityMask.indexCountOutput;
+		visibilityMask.vertices = new XrVector2f[visibilityMask.vertexCapacityInput];
+		visibilityMask.indices = new uint32_t[visibilityMask.indexCapacityInput];
+
+		_internals->GetVisibilityMaskKHR(_internals->session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, eye, XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR, &visibilityMask);
+
+		Mesh *mesh = new Mesh({Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32), Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2)}, visibilityMask.vertexCountOutput, visibilityMask.indexCountOutput);
+
+		mesh->BeginChanges();
+		mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, visibilityMask.vertices);
+		mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, visibilityMask.indices);
+		mesh->EndChanges();
+
+		delete[] visibilityMask.vertices;
+		delete[] visibilityMask.indices;
+
+		return mesh->Autorelease();
+	}
+
 	RenderingDevice *OpenXRWindow::GetOutputDevice(RendererDescriptor *descriptor) const
 	{
 		return nullptr;
@@ -2440,7 +2491,7 @@ namespace RN
 
 		String *extensionString = RNSTR(names);
 		RNDebug("Needs vulkan instance extensions: " << extensionString);
-		
+
 		RN::Array *result = extensionString->GetComponentsSeparatedByString(RNCSTR(" "));
 		return result;
 #else

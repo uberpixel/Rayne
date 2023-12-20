@@ -109,6 +109,8 @@ namespace RN
 		PFN_xrUpdateSwapchainFB UpdateSwapchainFB;
 		PFN_xrGetSwapchainStateFB GetSwapchainStateFB;
 
+		PFN_xrGetVisibilityMaskKHR GetVisibilityMaskKHR;
+
 #if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
 #endif
