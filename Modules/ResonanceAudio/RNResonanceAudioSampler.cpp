@@ -54,18 +54,13 @@ namespace RN
 
 	float ResonanceAudioSampler::GetSample(double time, uint8 channel)
 	{
-		_lock.Lock();
-
+        LockGuard<Lockable> lock(_lock);
 		if(!_asset)
 		{
-			_lock.Unlock();
 			return 0.0f;
 		}
-
-		AudioAsset *tempAsset = _asset->Retain();
-		_lock.Unlock();
 		
-		if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
+		if(_isRepeating || _asset->GetType() == AudioAsset::Type::Ringbuffer)
 		{
 			if(time < 0.0f)
 			{
@@ -84,8 +79,8 @@ namespace RN
 			}
 		}
 
-		uint32 sampleRate = tempAsset->GetSampleRate();
-		uint8 channelCount = tempAsset->GetChannels();
+		uint32 sampleRate = _asset->GetSampleRate();
+		uint8 channelCount = _asset->GetChannels();
 		uint64 samplePositions[4];
 		samplePositions[0] = time * sampleRate + 2;
 		samplePositions[1] = time * sampleRate + 1;
@@ -93,14 +88,14 @@ namespace RN
 		samplePositions[3] = time * sampleRate - 1;
 		double interpolationFactor = (static_cast<double>(samplePositions[1]) / static_cast<double>(sampleRate) - time) * static_cast<double>(sampleRate);
 
-		uint64 maxSamplePosition = tempAsset->GetData()->GetLength() / tempAsset->GetBytesPerSample();
+		uint64 maxSamplePosition = _asset->GetData()->GetLength() / _asset->GetBytesPerSample();
 		for(int i = 0; i < 4; i++)
 		{
 			samplePositions[i] = samplePositions[i] * channelCount + channel;
 			
 			if(samplePositions[i] >= maxSamplePosition)
 			{
-				if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
+				if(_isRepeating || _asset->GetType() == AudioAsset::Type::Ringbuffer)
 				{
 					samplePositions[i] %= maxSamplePosition;
 				}
@@ -111,7 +106,7 @@ namespace RN
 			}
 			else if(samplePositions[i] < 0)
 			{
-				if(_isRepeating || tempAsset->GetType() == AudioAsset::Type::Ringbuffer)
+				if(_isRepeating || _asset->GetType() == AudioAsset::Type::Ringbuffer)
 				{
 					int64 moduloresult = samplePositions[i] % maxSamplePosition;
 					samplePositions[i] = maxSamplePosition + moduloresult;
@@ -124,11 +119,11 @@ namespace RN
 		}
 
 		float valuesToInterpolate[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-		switch(tempAsset->GetBytesPerSample() / channelCount)
+		switch(_asset->GetBytesPerSample() / channelCount)
 		{
 			case 1:
 			{
-				int8 *values = static_cast<int8*>(tempAsset->GetData()->GetBytes());
+				int8 *values = static_cast<int8*>(_asset->GetData()->GetBytes());
 				for(int i = 0; i < 4; i++)
 				{
 					valuesToInterpolate[i] = values[samplePositions[i]] / 128.0f;
@@ -137,7 +132,7 @@ namespace RN
 			}
 			case 2:
 			{
-				int16 *values = static_cast<int16*>(tempAsset->GetData()->GetBytes());
+				int16 *values = static_cast<int16*>(_asset->GetData()->GetBytes());
 				for(int i = 0; i < 4; i++)
 				{
 					valuesToInterpolate[i] = values[samplePositions[i]] / 32768.0f;
@@ -146,7 +141,7 @@ namespace RN
 			}
 			case 4:
 			{
-				float *values = static_cast<float*>(tempAsset->GetData()->GetBytes());
+				float *values = static_cast<float*>(_asset->GetData()->GetBytes());
 				for(int i = 0; i < 4; i++)
 				{
 					valuesToInterpolate[i] = values[samplePositions[i]];
@@ -163,9 +158,6 @@ namespace RN
 		float c3 = (0.5f * (valuesToInterpolate[3] - valuesToInterpolate[0])) + (1.5f * (valuesToInterpolate[1] - valuesToInterpolate[2]));
 		float value = (((((c3 * interpolationFactor) + c2) * interpolationFactor) + c1) * interpolationFactor) + c0;
 
-		//RNDebug(value);
-
-		tempAsset->Release();
 		return value;
 	}
 }
