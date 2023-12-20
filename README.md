@@ -6,16 +6,17 @@ Rayne is a game engine for Windows, macOS, Linux and Android (and iOS shouldn't 
 
 Most functionality (like physics, path finding and UI) is added with optional modules. Not all included modules are fully working, some may not build at all. Modules can be found in the *Modules* directory.
 Some of the working modules are:
-* D3D12
+* D3D12 (Not maintained anymore, will eventually be removed. Use Vulkan instead.)
 * Vulkan
 * Metal
 * UI
 * OpenAL
 * Ogg
 * PhysX
-* Oculus (Requires the Oculus SDK to be downloaded and copied into the module folder!) - Only works with D3D12!
-* Oculus Mobile (Requires the Oculus Mobile SDK to be downloaded and copied into the module folder!) - Only works with Vulkan!
-* OpenVR
+* OpenXR
+* Oculus (Requires the Oculus SDK to be downloaded and copied into the module folder!) - Only works with D3D12! - Outdated, use OpenXR instead.
+* Oculus Mobile (Requires the Oculus Mobile SDK to be downloaded and copied into the module folder!) - Only works with Vulkan! - Outdated, use OpenXR instead.
+* OpenVR - Outdated, use OpenXR instead.
 * ENet
 * Recast
 * Assimp
@@ -38,13 +39,14 @@ There are currently some issues with the Windows setup requiring the cmake path 
 
 #### macOS
 1. Install a recent Version of Xcode (11 and newer should be fine, older hasn't been tested in a while).
-2. Install Homebrew: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
-3. Install Python 3.x: ```brew install python```
-4. Install Ninja: ```brew install ninja```
-4.5 (Install patchelf (only needed for android builds with OpenXR!): ```brew install patchelf```)
-5. Run ```git submodule update --init``` from within the *Rayne* directory
-6. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
-7. Contiune with *Creating a new Project*
+2. Install Xcode command line tools: ```xcode-select --install```
+3. Install Homebrew: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
+4. Install Python 3.x: ```brew install python```
+5. Install Ninja: ```brew install ninja```
+5.5 (Install patchelf (only needed for android builds with OpenXR!): ```brew install patchelf```)
+6. Run ```git submodule update --init``` from within the *Rayne* directory
+7. Go to *Rayne/Tools/ShaderProcessor/Vendor/ShaderConductor* and run ```python3 BuildAll.py```
+8. Contiune with *Creating a new Project*
 
 #### Linux
 Depending on your linux distribution you may or may not want to use a different packet manager and the packets may be called differently, other packets could be missing or require an additional repository to install them from. The following has only been tested on Ubuntu 20.04 LTS.
