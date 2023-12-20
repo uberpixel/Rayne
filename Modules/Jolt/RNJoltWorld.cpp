@@ -39,6 +39,8 @@ namespace RN
 		_physicsSystem = new JPH::PhysicsSystem();
 		_physicsSystem->Init(maxBodies, 0, maxBodyPairs, maxContactConstraints, _internals->objectLayerMapper, _internals->objectLayerMapper, _internals->objectLayerMapper);
 		
+		_physicsSystem->SetContactListener(&_internals->contactListener);
+		
 		SetGravity(gravity);
 	}
 

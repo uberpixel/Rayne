@@ -30,7 +30,7 @@ namespace RN
 	public:
 		friend class JoltWorld;
 		friend class JoltSimulationCallback;
-		friend class JoltKinematicControllerCallback;
+		friend class JoltCharacterContactListener;
 
 		enum ContactState
 		{
@@ -45,7 +45,7 @@ namespace RN
 		JTAPI virtual void UpdatePosition() = 0;
 			
 		JTAPI virtual void SetCollisionFilter(uint32 group, uint32 mask);
-		JTAPI void SetContactCallback(std::function<void(JoltCollisionObject *, const JoltContactInfo&, ContactState)> &&callback);
+		JTAPI void SetContactCallback(std::function<void(JoltCollisionObject *, const JoltContactInfo&)> &&callback);
 		JTAPI virtual void SetPositionOffset(RN::Vector3 offset);
 		JTAPI virtual void SetRotationOffset(RN::Quaternion offset);
 		
@@ -64,7 +64,7 @@ namespace RN
 		SceneNode *_owner;
 			
 	private:
-		std::function<void(JoltCollisionObject *, const JoltContactInfo&, ContactState)> _contactCallback;
+		std::function<void(JoltCollisionObject *, const JoltContactInfo&)> _contactCallback;
 			
 		RNDeclareMetaAPI(JoltCollisionObject, JTAPI)
 	};

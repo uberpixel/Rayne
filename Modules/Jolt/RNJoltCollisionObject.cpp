@@ -32,7 +32,7 @@ namespace RN
 		_collisionFilterMask = mask;
 	}
 		
-	void JoltCollisionObject::SetContactCallback(std::function<void (JoltCollisionObject *, const JoltContactInfo&, ContactState)> &&callback)
+	void JoltCollisionObject::SetContactCallback(std::function<void (JoltCollisionObject *, const JoltContactInfo&)> &&callback)
 	{
 		_contactCallback = std::move(callback);
 	}

@@ -20,7 +20,7 @@ namespace JPH
 
 namespace RN
 {
-	class JoltKinematicControllerCallback;
+	class JoltCharacterInternals;
 	class JoltKinematicController : public JoltCollisionObject
 	{
 	public:
@@ -63,7 +63,7 @@ namespace RN
 		JoltShape *_shape;
 		JPH::CharacterVirtual *_controller;
 
-		//JoltKinematicControllerCallback *_callback;
+		PIMPL<JoltCharacterInternals> _internals;
 
 		float _fallSpeed;
 		SceneNode *_objectBelow;

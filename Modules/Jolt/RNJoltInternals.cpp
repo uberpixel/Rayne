@@ -9,10 +9,11 @@
 #include "RNJoltInternals.h"
 #include "RNJoltCollisionObject.h"
 #include "RNJoltKinematicController.h"
-/*
+#include "RNJoltWorld.h"
+
 namespace RN
 {
-	Jolt::PxFilterFlags JoltCallback::CollisionFilterShader(
+/*	Jolt::PxFilterFlags JoltCallback::CollisionFilterShader(
 		Jolt::PxFilterObjectAttributes attributes0, Jolt::PxFilterData filterData0,
 		Jolt::PxFilterObjectAttributes attributes1, Jolt::PxFilterData filterData1,
 		Jolt::PxPairFlags& pairFlags, const void* constantBlock, Jolt::PxU32 constantBlockSize)
@@ -129,60 +130,40 @@ namespace RN
 				}
 			}
 		}
+	}*/
+
+	void JoltCharacterContactListener::OnAdjustBodyVelocity(const JPH::CharacterVirtual *inCharacter, const JPH::Body &inBody2, JPH::Vec3 &ioLinearVelocity, JPH::Vec3 &ioAngularVelocity)
+	{
+		/* Do nothing, the linear and angular velocity are already filled in */
 	}
 
-	void JoltKinematicControllerCallback::onShapeHit(const Jolt::PxControllerShapeHit &hit)
+	bool JoltCharacterContactListener::OnContactValidate(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2)
 	{
-		JoltCollisionObject *objectA = static_cast<JoltCollisionObject*>(hit.controller->getUserData());
-		JoltCollisionObject *objectB = static_cast<JoltCollisionObject*>(hit.actor->userData);
-		if(objectA->_contactCallback)
-		{
-			JoltContactInfo contactInfo;
-			contactInfo.distance = 0.0f;
-			contactInfo.node = SafeRetain(objectB->GetParent());
-			contactInfo.collisionObject = objectB;
-			contactInfo.normal = RN::Vector3(hit.worldNormal.x, hit.worldNormal.y, hit.worldNormal.z);
-			contactInfo.position = RN::Vector3(hit.worldPos.x, hit.worldPos.y, hit.worldPos.z);
-			objectA->_contactCallback(objectB, contactInfo, JoltCollisionObject::ContactState::Begin);
-			SafeRelease(contactInfo.node);
-		}
+		return true;
 	}
 
-	void JoltKinematicControllerCallback::onControllerHit(const Jolt::PxControllersHit& hit)
+	void JoltCharacterContactListener::OnContactAdded(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings &ioSettings)
 	{
-
-	}
-
-	void JoltKinematicControllerCallback::onObstacleHit(const Jolt::PxControllerObstacleHit &hit)
-	{
-
-	}
-
-	bool JoltKinematicControllerCallback::filter(const Jolt::PxController& a, const Jolt::PxController& b)
-	{
-		JoltKinematicController *controllerA = static_cast<JoltKinematicController*>(a.getUserData());
-		JoltKinematicController *controllerB = static_cast<JoltKinematicController*>(b.getUserData());
-		if(controllerA->GetCollisionFilterGroup() & controllerB->GetCollisionFilterMask() && controllerB->GetCollisionFilterGroup() & controllerA->GetCollisionFilterMask())
-		{
-			return true;
-		}
+		/* Default do nothing */
+		JoltContactInfo info;
 		
-		return false;
+		info.collisionObject = reinterpret_cast<JoltCollisionObject*>(JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface().GetUserData(inBodyID2));
+		if(info.collisionObject) info.node = info.collisionObject->GetParent();
+		if(info.node) info.node->Retain()->Autorelease();
+		
+		info.position.x = inContactPosition.GetX();
+		info.position.y = inContactPosition.GetY();
+		info.position.z = inContactPosition.GetZ();
+		info.normal.x = -inContactNormal.GetX();
+		info.normal.y = -inContactNormal.GetY();
+		info.normal.z = -inContactNormal.GetZ();
+		info.distance = 0.0f;
+		if(controller->_contactCallback) controller->_contactCallback(info.collisionObject, info);
 	}
 
-	Jolt::PxControllerBehaviorFlags JoltKinematicControllerCallback::getBehaviorFlags(const Jolt::PxShape& shape, const Jolt::PxActor& actor)
+	void JoltCharacterContactListener::OnContactSolve(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::Vec3Arg inContactVelocity, const JPH::PhysicsMaterial *inContactMaterial, JPH::Vec3Arg inCharacterVelocity, JPH::Vec3 &ioNewCharacterVelocity)
 	{
-		return Jolt::PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT | Jolt::PxControllerBehaviorFlag::eCCT_SLIDE;
-	}
-
-	Jolt::PxControllerBehaviorFlags JoltKinematicControllerCallback::getBehaviorFlags(const Jolt::PxController &controller)
-	{
-		return Jolt::PxControllerBehaviorFlags(0);
-	}
-
-	Jolt::PxControllerBehaviorFlags JoltKinematicControllerCallback::getBehaviorFlags(const Jolt::PxObstacle &obstacle)
-	{
-		return Jolt::PxControllerBehaviorFlags(0);
+		/* Default do nothing */
 	}
 }
-*/
+

@@ -32,9 +32,8 @@ namespace RN
 		//settings->mPredictiveContactDistance = sPredictiveContactDistance;
 		settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -radius); // Accept contacts that touch the lower sphere of the capsule
 		_controller = new JPH::CharacterVirtual(&settings, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), physics);
-		//_controller->SetListener(this);
-
-		//_callback = new JoltKinematicControllerCallback();
+		_internals->contactListener.controller = this;
+		_controller->SetListener(&_internals->contactListener);
 	}
 	
 	JoltKinematicController::~JoltKinematicController()

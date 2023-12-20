@@ -10,6 +10,7 @@
 #define __RAYNE_JOLTINTERNALS_H_
 
 #include "RNJolt.h"
+#include "RNJoltKinematicController.h"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
@@ -25,6 +26,7 @@
 #include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 
 namespace RN
 {
@@ -183,12 +185,53 @@ namespace RN
 		}
 	};
 
+	class JoltCharacterContactListener : public JPH::CharacterContactListener
+	{
+	public:
+		/// Callback to adjust the velocity of a body as seen by the character. Can be adjusted to e.g. implement a conveyor belt or an inertial dampener system of a sci-fi space ship.
+		/// Note that inBody2 is locked during the callback so you can read its properties freely.
+		void OnAdjustBodyVelocity(const JPH::CharacterVirtual *inCharacter, const JPH::Body &inBody2, JPH::Vec3 &ioLinearVelocity, JPH::Vec3 &ioAngularVelocity) override;
+
+		/// Checks if a character can collide with specified body. Return true if the contact is valid.
+		bool OnContactValidate(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2) override;
+
+		/// Called whenever the character collides with a body. Returns true if the contact can push the character.
+		/// @param inCharacter Character that is being solved
+		/// @param inBodyID2 Body ID of body that is being hit
+		/// @param inSubShapeID2 Sub shape ID of shape that is being hit
+		/// @param inContactPosition World space contact position
+		/// @param inContactNormal World space contact normal
+		/// @param ioSettings Settings returned by the contact callback to indicate how the character should behave
+		void OnContactAdded(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::CharacterContactSettings &ioSettings) override;
+
+		/// Called whenever a contact is being used by the solver. Allows the listener to override the resulting character velocity (e.g. by preventing sliding along certain surfaces).
+		/// @param inCharacter Character that is being solved
+		/// @param inBodyID2 Body ID of body that is being hit
+		/// @param inSubShapeID2 Sub shape ID of shape that is being hit
+		/// @param inContactPosition World space contact position
+		/// @param inContactNormal World space contact normal
+		/// @param inContactVelocity World space velocity of contact point (e.g. for a moving platform)
+		/// @param inContactMaterial Material of contact point
+		/// @param inCharacterVelocity World space velocity of the character prior to hitting this contact
+		/// @param ioNewCharacterVelocity Contains the calculated world space velocity of the character after hitting this contact, this velocity slides along the surface of the contact. Can be modified by the listener to provide an alternative velocity.
+		void OnContactSolve(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2, JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::Vec3Arg inContactVelocity, const JPH::PhysicsMaterial *inContactMaterial, JPH::Vec3Arg inCharacterVelocity, JPH::Vec3 &ioNewCharacterVelocity) override;
+		
+		JoltKinematicController *controller;
+	};
+
 	struct JoltInternals
 	{
 		JPH::TempAllocatorImpl *tempAllocator;
 		JPH::JobSystemThreadPool *jobSystem;
 		
 		JoltObjectLayerMapper objectLayerMapper;
+		
+		JoltContactListener contactListener;
+	};
+
+	struct JoltCharacterInternals
+	{
+		JoltCharacterContactListener contactListener;
 	};
 }
 
