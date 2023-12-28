@@ -278,9 +278,9 @@ namespace RN
 		return hit;
 	}
 
-	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterGroup, uint32 filterMask)
+	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterGroup, uint32 filterMask, uint32 maxNumberOfOverlaps)
 	{
-		const physx::PxU32 bufferSize = 256;
+		const physx::PxU32 bufferSize = maxNumberOfOverlaps;
 		physx::PxSweepHit hitBuffer[bufferSize];
 		physx::PxSweepBuffer callback(hitBuffer, bufferSize);
 		
