@@ -26,6 +26,7 @@ namespace RN
 	_isSorted(false),
 	_isRenderedInversed(false),
 	_maxParticles(100),
+	_maxParticlesSoft(100),
 	_spawnRate(0.05f),
 	_time(0.0f)
 	{
@@ -107,6 +108,7 @@ namespace RN
 	{
 		RN_ASSERT(maxParticles < 16383, "Maximum number of particles needs to be smaller than 16383!");
 		_maxParticles = maxParticles;
+		_maxParticlesSoft = maxParticles;
 		SafeRelease(_mesh);
 		
 		_mesh = new Mesh({ Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
@@ -114,6 +116,13 @@ namespace RN
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector2),
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, maxParticles*4, maxParticles*6);
+	}
+
+	void ParticleEmitter::SetMaxParticlesSoft(uint32 maxParticles)
+	{
+		//This can be used to set a lower limit than the hard maximum, without recreating the mesh, it will only prevent more new particles from being spawned if there are too many, but not remove existing particles
+		RN_ASSERT(_maxParticlesSoft <= _maxParticles, "Soft maximum number of particles needs to be smaller than or equal to maximum number of particles!");
+		_maxParticlesSoft = maxParticles;
 	}
 	
 	void ParticleEmitter::SetMaterial(Material *material)
@@ -188,8 +197,8 @@ namespace RN
 		
 		if(spawn > 0)
 		{
-			if(_maxParticles > 0)
-				spawn = std::min(_maxParticles - static_cast<uint32>(_particles.size()), spawn);
+			if(_maxParticles > 0 && _maxParticlesSoft > 0)
+				spawn = std::min(_maxParticlesSoft - static_cast<uint32>(_particles.size()), spawn);
 			
 			SpawnParticles(spawn);
 		}

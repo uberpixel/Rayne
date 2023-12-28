@@ -35,6 +35,7 @@ namespace RN
 		RNAPI void SetSpawnRate(float spawnRate);
 		RNAPI void SetParticlesPerSecond(size_t particles);
 		RNAPI void SetMaxParticles(uint32 maxParticles);
+		RNAPI void SetMaxParticlesSoft(uint32 maxParticles);
 		
 		RNAPI float GetSpawnRate() const { return _spawnRate; }
 		RNAPI uint32 GetMaxParticles() const { return _maxParticles; }
@@ -75,6 +76,7 @@ namespace RN
 		bool _isSorted;
 		bool _isRenderedInversed;
 		uint32 _maxParticles;
+		uint32 _maxParticlesSoft;
 		float _spawnRate;
 		
 		float _time;
