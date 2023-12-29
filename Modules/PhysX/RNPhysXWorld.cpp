@@ -281,7 +281,7 @@ namespace RN
 	std::vector<PhysXContactInfo> PhysXWorld::CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation, uint32 filterGroup, uint32 filterMask, uint32 maxNumberOfOverlaps)
 	{
 		const physx::PxU32 bufferSize = maxNumberOfOverlaps;
-		physx::PxSweepHit hitBuffer[bufferSize];
+		physx::PxSweepHit *hitBuffer = new physx::PxSweepHit[bufferSize];
 		physx::PxSweepBuffer callback(hitBuffer, bufferSize);
 		
 		physx::PxFilterData filterData;
@@ -355,6 +355,8 @@ namespace RN
 		{
 			RNDebug("CheckOverlap does not currently support this shape type!");
 		}
+
+		delete[] hitBuffer;
 		
 		return results;
 	}
