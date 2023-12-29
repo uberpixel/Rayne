@@ -322,7 +322,7 @@ namespace RN
 		XrResult createInstanceResult = xrCreateInstance(&createInfo, &_internals->instance);
 		if(createInstanceResult != XR_SUCCESS)
 		{
-			//TODO: For some reason this fails regularly on Quest (~15% of users)
+			//TODO: For some reason this fails regularly on Quest
 			RN_ASSERT(false, "Failed creating OpenXR instance");
 		}
 

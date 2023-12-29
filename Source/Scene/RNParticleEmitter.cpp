@@ -101,6 +101,11 @@ namespace RN
 	
 	void ParticleEmitter::SetParticlesPerSecond(size_t particles)
 	{
+		if(particles == 0)
+		{
+			_spawnRate = -1.0f;
+			return;
+		}
 		_spawnRate = 1.0f / particles;
 	}
 	
