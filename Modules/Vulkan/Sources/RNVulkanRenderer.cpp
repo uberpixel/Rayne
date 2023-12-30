@@ -754,11 +754,19 @@ namespace RN
 		PostProcessingAPIStage *apiStage = renderPass->Downcast<PostProcessingAPIStage>();
 		PostProcessingStage *ppStage = renderPass->Downcast<PostProcessingStage>();
 
-		vulkanRenderPass.cameraInfo = previousRenderPass.cameraInfo;
-		vulkanRenderPass.multiviewCameraInfo = previousRenderPass.multiviewCameraInfo;
-		vulkanRenderPass.directionalShadowDepthTexture = nullptr;
-		vulkanRenderPass.multiviewLayer = previousRenderPass.multiviewLayer;
+		if(vulkanRenderPass.type != VulkanRenderPass::Type::ResolveMSAA && !ppStage && vulkanRenderPass.type != VulkanRenderPass::Type::Convert)
+		{
+			vulkanRenderPass.cameraInfo = previousRenderPass.cameraInfo;
+			vulkanRenderPass.multiviewCameraInfo = previousRenderPass.multiviewCameraInfo;
+			vulkanRenderPass.multiviewLayer = previousRenderPass.multiviewLayer;
+		}
+		else
+		{
+			vulkanRenderPass.multiviewLayer = 0;
+		}
 		
+		vulkanRenderPass.directionalShadowDepthTexture = nullptr;
+
 		vulkanRenderPass.renderPass = renderPass;
 		vulkanRenderPass.previousRenderPass = previousRenderPass.renderPass;
 
