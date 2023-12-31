@@ -25,6 +25,8 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 		_fileStream.close();
+#else
+		_fileStream.close();
 #endif
 	}
 
@@ -42,6 +44,8 @@ namespace RN
 	void Application::DidStep(float delta)
 	{
 #if RN_PLATFORM_WINDOWS && !RN_BUILD_DEBUG
+		_fileStream.flush();
+#else
 		_fileStream.flush();
 #endif
 	}
@@ -80,7 +84,14 @@ namespace RN
 #else
 		LoggingEngine *engine = new StreamLoggingEngine(std::cout, true);
 		engine->SetLogFormatter(formatter->Autorelease());
-		return Array::WithObjects({ engine->Autorelease() });
+		
+		String *loggingFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ExternalSaveDirectory);
+		loggingFilePath->AppendPathComponent(RNCSTR("RNLogs.txt"));
+		_fileStream.open(loggingFilePath->GetUTF8String());
+		LoggingEngine *engine2 = new StreamLoggingEngine(_fileStream, true);
+		engine2->SetLogFormatter(formatter);
+		
+		return Array::WithObjects({ engine->Autorelease(), engine2->Autorelease() });
 #endif
 	}
 }

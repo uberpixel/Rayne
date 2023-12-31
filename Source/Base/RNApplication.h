@@ -49,6 +49,8 @@ namespace RN
 		void __PrepareForWillFinishLaunching(Kernel *kernel);
 #if RN_PLATFORM_WINDOWS
 		std::wofstream _fileStream;
+#else
+		std::ofstream _fileStream;
 #endif
 
 		String *_title;
