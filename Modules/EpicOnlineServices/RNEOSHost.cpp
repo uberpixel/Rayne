@@ -423,20 +423,4 @@ namespace RN
 	{
 		return _peers[peerID].smoothedRoundtripTime;
 	}
-
-	void EOSHost::SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum)
-	{
-		//Times are in milliseconds!
-//		EOS_peer_timeout(_peers[peerID].peer, limit, minimum, maximum);
-		
-/*		EOS_PEER_TIMEOUT_LIMIT                = 32,
-		EOS_PEER_TIMEOUT_MINIMUM              = 5000,
-		EOS_PEER_TIMEOUT_MAXIMUM              = 30000,*/
-	}
-
-	void EOSHost::SetPingInterval(uint16 peerID, size_t interval)
-	{
-		//Times are in milliseconds!
-//		EOS_peer_ping_interval(_peers[peerID].peer, interval);
-	}
 }

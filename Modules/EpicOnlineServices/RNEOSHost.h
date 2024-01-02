@@ -105,8 +105,6 @@ namespace RN
 		EOSAPI Status GetStatus() const { return _status; }
 		EOSAPI bool HasReliableDataInTransit();
 		EOSAPI double GetLastRoundtripTime(uint16 peerID);
-		EOSAPI void SetTimeout(uint16 peerID, size_t limit, size_t minimum, size_t maximum);
-		EOSAPI void SetPingInterval(uint16 peerID, size_t interval);
 
 	protected:
 		EOSAPI virtual void Update(float delta);

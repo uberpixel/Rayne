@@ -362,7 +362,6 @@ namespace RN
 		
 		RNDebug("A new client connected");
 		const Peer &peer = server->CreatePeer(server->GetUserID(), Data->RemoteUserId);
-		server->SetTimeout(peer.userID, 0, 0, 0);
 		server->_peers.insert(std::pair<uint16, Peer>(peer.userID, peer));
 		
 		
