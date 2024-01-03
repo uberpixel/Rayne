@@ -535,7 +535,7 @@ namespace RN
 				EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
 				
 				//Can be used to filter with to then search by name locally in the returned results
-				String *lobbyNameStub = lobbyManager->_createLobbyName->GetSubstring(Range(0, 3));
+				String *lobbyNameStub = lobbyManager->_createLobbyName->GetSubstring(Range(0, std::min(3ul, lobbyManager->_createLobbyName->GetLength())));
 				lobbyNameStub->MakeLowercase();
 				
 				EOS_Lobby_AttributeData stubAttributeData = {0};
