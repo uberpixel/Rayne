@@ -533,6 +533,19 @@ namespace RN
 				attributeData.Value.AsUtf8 = lobbyManager->_createLobbyName->GetUTF8String();
 				attributeOptions.Attribute = &attributeData;
 				EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+				
+				//Can be used to filter with to then search by name locally in the returned results
+				String *lobbyNameStub = lobbyManager->_createLobbyName->GetSubstring(Range(0, 3));
+				lobbyNameStub->MakeLowercase();
+				
+				EOS_Lobby_AttributeData stubAttributeData = {0};
+				stubAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+				stubAttributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
+				stubAttributeData.Key = "lobbyNameSearchStub";
+				stubAttributeData.Value.AsUtf8 = lobbyNameStub->GetUTF8String();
+				attributeOptions.Attribute = &stubAttributeData;
+				EOS_LobbyModification_AddAttribute(modificationHandle, &attributeOptions);
+				
 				SafeRelease(lobbyManager->_createLobbyName);
 			}
 			
