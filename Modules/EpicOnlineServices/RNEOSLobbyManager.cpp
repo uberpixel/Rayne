@@ -64,7 +64,7 @@ namespace RN
 		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ">\n{\n	lobbyName: " << lobbyName << ",\n	lobbyLevel: " << lobbyLevel << ",\n	lobbyVersion: " << lobbyVersion << ",\n	maximumPlayerCount: " << maximumPlayerCount << ",\n	currentPlayerCount: " << currentPlayerCount << "\n}");
 	}
 
-	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isSearchingLobby(false), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _lobbySearchCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false), _isVoiceEnabled(false), _isVoiceUnmixed(true), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr), _currentAudioBeforeRenderNotificationID(0), _currentAudioBeforeSendNotificationID(0)
+	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) : _createLobbyName(nullptr), _createLobbyVersion(nullptr), _isJoiningLobby(false), _didJoinLobbyCallback(nullptr), _isConnectedToLobby(false), _connectedLobbyID(nullptr), _isConnectedLobbyOwner(false), _isVoiceEnabled(false), _isVoiceUnmixed(true), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr), _currentAudioBeforeRenderNotificationID(0), _currentAudioBeforeSendNotificationID(0)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 		
@@ -74,6 +74,7 @@ namespace RN
 		
 	EOSLobbyManager::~EOSLobbyManager()
 	{
+		ResetLobbySearchCallback();
 		SafeRelease(_connectedLobbyID);
 	}
 
@@ -171,27 +172,27 @@ namespace RN
 			if(callback) callback(false, nullptr);
 			return;
 		}
-		if(_isSearchingLobby) return;
+		
+		EOSLobbySearch searchData;
+		searchData.callback = callback;
 		
 		EOS_Lobby_CreateLobbySearchOptions searchOptions = {0};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
 		searchOptions.MaxResults = std::min(maxResults, static_cast<uint32>(EOS_LOBBY_MAX_SEARCH_RESULTS));
 		
-		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &_lobbySearchHandle) != EOS_EResult::EOS_Success)
+		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &searchData.handle) != EOS_EResult::EOS_Success)
 		{
 			RNDebug("Failed creating EOS Lobby search handle");
+			if(callback) callback(false, nullptr);
 			return;
 		}
-		
-		_isSearchingLobby = true;
-		_lobbySearchCallback = callback;
 		
 		if(lobbyID)
 		{
 			EOS_LobbySearch_SetLobbyIdOptions lobbyIDOptions = {0};
 			lobbyIDOptions.ApiVersion = EOS_LOBBYSEARCH_SETLOBBYID_API_LATEST;
 			lobbyIDOptions.LobbyId = lobbyID->GetUTF8String();
-			EOS_LobbySearch_SetLobbyId(_lobbySearchHandle, &lobbyIDOptions);
+			EOS_LobbySearch_SetLobbyId(searchData.handle, &lobbyIDOptions);
 		}
 		else //Can't set anything else if setting a lobby id!
 		{
@@ -206,7 +207,7 @@ namespace RN
 			timestampSearchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_LESSTHANOREQUAL;
 			timestampSearchParameterOptions.Parameter = &timestampAttributeData;
 			
-			EOS_LobbySearch_SetParameter(_lobbySearchHandle, &timestampSearchParameterOptions);
+			EOS_LobbySearch_SetParameter(searchData.handle, &timestampSearchParameterOptions);
 			
 			if(includePublic != includePrivate)
 			{
@@ -221,7 +222,7 @@ namespace RN
 				searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
 				searchParameterOptions.Parameter = &attributeData;
 				
-				EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+				EOS_LobbySearch_SetParameter(searchData.handle, &searchParameterOptions);
 			}
 			
 			if(searchFilter && searchFilter->GetCount() > 0)
@@ -261,7 +262,7 @@ namespace RN
 							RN_ASSERT(false, "Unsupported comparator!");
 						}
 						
-						EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+						EOS_LobbySearch_SetParameter(searchData.handle, &searchParameterOptions);
 					}
 				});
 			}
@@ -271,8 +272,18 @@ namespace RN
 		findOptions.ApiVersion = EOS_LOBBYSEARCH_FIND_API_LATEST;
 		findOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		
+		//Clear up previous lobby searches
+		for(int i = _lobbySearches.size() - 1 && i >= 0; i--)
+		{
+			if(!_lobbySearches[i].handle)
+			{
+				_lobbySearches.erase(_lobbySearches.begin() + i);
+			}
+		}
+		_lobbySearches.push_back(searchData);
+		
 		RNDebug("Start searching lobbies");
-		EOS_LobbySearch_Find(_lobbySearchHandle, &findOptions, this, LobbyOnSearchCallback);
+		EOS_LobbySearch_Find(searchData.handle, &findOptions, &(*_lobbySearches.end()), LobbyOnSearchCallback);
 	}
 
 	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback)
@@ -426,7 +437,11 @@ namespace RN
 
 	void EOSLobbyManager::ResetLobbySearchCallback()
 	{
-		_lobbySearchCallback = nullptr;
+		for(auto &search : _lobbySearches)
+		{
+			if(search->handle) EOS_LobbySearch_Release(search->handle);
+		}
+		_lobbySearches.clear();
 	}
 
 	void EOSLobbyManager::LobbyOnCreateCallback(const EOS_Lobby_CreateLobbyCallbackInfo* Data)
@@ -568,7 +583,7 @@ namespace RN
 
 	void EOSLobbyManager::LobbyOnSearchCallback(const EOS_LobbySearch_FindCallbackInfo *Data)
 	{
-		EOSLobbyManager *lobbyManager = static_cast<EOSLobbyManager*>(Data->ClientData);
+		EOSLobbySearch *searchData = static_cast<EOSLobbySearch*>(Data->ClientData);
 		
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
@@ -577,7 +592,7 @@ namespace RN
 			EOS_LobbySearch_GetSearchResultCountOptions searchResultCountOptions = {0};
 			searchResultCountOptions.ApiVersion = EOS_LOBBYSEARCH_GETSEARCHRESULTCOUNT_API_LATEST;
 			
-			uint32 resultCount = EOS_LobbySearch_GetSearchResultCount(lobbyManager->_lobbySearchHandle, &searchResultCountOptions);
+			uint32 resultCount = EOS_LobbySearch_GetSearchResultCount(searchData->handle, &searchResultCountOptions);
 			RNDebug("Found " << resultCount << " lobbies");
 			
 			Array *lobbyInfoArray = new Array();
@@ -588,7 +603,7 @@ namespace RN
 				copyOptions.LobbyIndex = i;
 				
 				EOS_HLobbyDetails lobbyDetailsHandle = nullptr;
-				if(EOS_LobbySearch_CopySearchResultByIndex(lobbyManager->_lobbySearchHandle, &copyOptions, &lobbyDetailsHandle) != EOS_EResult::EOS_Success)
+				if(EOS_LobbySearch_CopySearchResultByIndex(searchData->handle, &copyOptions, &lobbyDetailsHandle) != EOS_EResult::EOS_Success)
 				{
 					RNDebug("Failed fetching search result for lobby at index " << i);
 					continue;
@@ -665,9 +680,10 @@ namespace RN
 				}
 			}
 			
-			if(lobbyManager->_lobbySearchCallback)
+			if(searchData->callback)
 			{
-				lobbyManager->_lobbySearchCallback(true, lobbyInfoArray);
+				searchData->callback(true, lobbyInfoArray);
+				searchData->callback = nullptr;
 			}
 			
 			lobbyInfoArray->Release();
@@ -675,15 +691,18 @@ namespace RN
 		else
 		{
 			RNDebug("Failed searching lobbies");
-			if(lobbyManager->_lobbySearchCallback)
+			if(searchData->callback)
 			{
-				lobbyManager->_lobbySearchCallback(false, nullptr);
+				searchData->callback(false, nullptr);
+				
+				//On android this callback will be triggered 3 more times if there is no connection,
+				//Unset the callback here to not have it triggered again until another search...
+				searchData->callback = nullptr;
 			}
-			//On android this callback will be triggered 3 more times if there is no connection,
-			//Unset the callback here to not have it triggered again until another search...
-			lobbyManager->_lobbySearchCallback = nullptr;
 		}
-		lobbyManager->_isSearchingLobby = false;
+		
+		EOS_LobbySearch_Release(searchData->handle);
+		searchData->handle = nullptr;
 	}
 
 	void EOSLobbyManager::LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data)

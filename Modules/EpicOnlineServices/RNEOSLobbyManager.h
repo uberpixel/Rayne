@@ -112,6 +112,13 @@ namespace RN
 		RNDeclareMetaAPI(EOSLobbySearchParameterString, EOSAPI)
 	};
 
+	class EOSLobbyManager;
+	struct EOSLobbySearch
+	{
+		EOS_HLobbySearch handle;
+		std::function<void(bool, RN::Array *)> callback;
+	};
+
 	class EOSLobbyManager : public Object
 	{
 	public:
@@ -151,7 +158,6 @@ namespace RN
 		static void LobbyAudioOnUpdateSendingCallback(const EOS_RTCAudio_UpdateSendingCallbackInfo *Data);
 		
 		EOS_HLobby _lobbyInterfaceHandle;
-		EOS_HLobbySearch _lobbySearchHandle;
 		
 		EOS_HRTC _rtcInterfaceHandle;
 		EOS_HRTCAudio _rtcAudioInterfaceHandle;
@@ -160,7 +166,6 @@ namespace RN
 		EOS_NotificationId _currentAudioBeforeSendNotificationID;
 		
 		bool _isCreatingLobby;
-		bool _isSearchingLobby;
 		bool _isJoiningLobby;
 		
 		String *_createLobbyName;
@@ -176,7 +181,8 @@ namespace RN
 		bool _isVoiceUnmixed;
 		bool _isLocalPlayerMuted;
 		
-		std::function<void(bool, RN::Array *)> _lobbySearchCallback;
+		std::vector<EOSLobbySearch> _lobbySearches;
+		
 		std::function<void(bool)> _didJoinLobbyCallback;
 		
 		std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> _audioReceivedCallback;
