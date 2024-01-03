@@ -70,6 +70,48 @@ namespace RN
 		RNDeclareMetaAPI(EOSLobbyInfo, EOSAPI)
 	};
 
+	class EOSLobbySearchParameter : public Object
+	{
+	public:
+		friend class EOSLobbyManager;
+		enum Comparator
+		{
+			ComparatorEqual,
+			ComparatorNotEqual,
+			ComparatorNumGreaterThan,
+			ComparatorNumGreaterThanOrEqual,
+			ComparatorNumLessThan,
+			ComparatorNumLessThanOrEqual,
+			ComparatorNumDistance,
+			ComparatorStringAnyOf,
+			ComparatorStringNotAnyOf
+		};
+		
+		EOSAPI ~EOSLobbySearchParameter();
+		
+	protected:
+		EOSAPI EOSLobbySearchParameter(String *name, Comparator comparator);
+		
+	private:
+		String *_name;
+		Comparator _comparator;
+		
+		RNDeclareMetaAPI(EOSLobbySearchParameter, EOSAPI)
+	};
+
+	class EOSLobbySearchParameterString : public EOSLobbySearchParameter
+	{
+	public:
+		friend class EOSLobbyManager;
+		EOSAPI EOSLobbySearchParameterString(String *name, String *content, Comparator comparator);
+		EOSAPI ~EOSLobbySearchParameterString();
+		
+	private:
+		String *_content;
+		
+		RNDeclareMetaAPI(EOSLobbySearchParameterString, EOSAPI)
+	};
+
 	class EOSLobbyManager : public Object
 	{
 	public:
@@ -82,7 +124,7 @@ namespace RN
 		bool GetLocalPlayerMuted() const {return _isLocalPlayerMuted;}
 		
 		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
-		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr, RN::Array *searchTags = nullptr);
+		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr, RN::Array *searchFilter = nullptr);
 		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
 		EOSAPI void LeaveCurrentLobby();
 		EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);

@@ -22,6 +22,8 @@
 namespace RN
 {
 	RNDefineMeta(EOSLobbyInfo, Object)
+	RNDefineMeta(EOSLobbySearchParameter, Object)
+	RNDefineMeta(EOSLobbySearchParameterString, EOSLobbySearchParameter)
 	RNDefineMeta(EOSLobbyManager, Object)
 
 	EOSLobbyInfo::EOSLobbyInfo(): lobbyName(nullptr), lobbyLevel(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0),  currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr), createTimestamp(0)
@@ -35,6 +37,26 @@ namespace RN
 		SafeRelease(lobbyLevel);
 		SafeRelease(lobbyVersion);
 		EOS_LobbyDetails_Release(lobbyHandle);
+	}
+
+	EOSLobbySearchParameter::EOSLobbySearchParameter(String *name, Comparator comparator) : _name(SafeRetain(name)), _comparator(comparator)
+	{
+		
+	}
+
+	EOSLobbySearchParameter::~EOSLobbySearchParameter()
+	{
+		SafeRelease(_name);
+	}
+
+	EOSLobbySearchParameterString::EOSLobbySearchParameterString(String *name, String *content, Comparator comparator) : EOSLobbySearchParameter(name, comparator), _content(SafeRetain(content))
+	{
+		
+	}
+
+	EOSLobbySearchParameterString::~EOSLobbySearchParameterString()
+	{
+		SafeRelease(_content);
 	}
 
 	const String *EOSLobbyInfo::GetDescription() const
@@ -142,7 +164,7 @@ namespace RN
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
-	void EOSLobbyManager::SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID, RN::Array *searchTags)
+	void EOSLobbyManager::SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID, RN::Array *searchFilter)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
@@ -200,6 +222,48 @@ namespace RN
 				searchParameterOptions.Parameter = &attributeData;
 				
 				EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+			}
+			
+			if(searchFilter && searchFilter->GetCount() > 0)
+			{
+				searchFilter->Enumerate<EOSLobbySearchParameter>([&](EOSLobbySearchParameter *param, size_t index, bool &stop){
+					EOSLobbySearchParameterString *paramString = param->Downcast<EOSLobbySearchParameterString>();
+					if(paramString)
+					{
+						EOS_Lobby_AttributeData attributeData = {0};
+						attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
+						attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
+						attributeData.Key = paramString->_name->GetUTF8String();
+						attributeData.Value.AsUtf8 = paramString->_content->GetUTF8String();
+						
+						EOS_LobbySearch_SetParameterOptions searchParameterOptions = {0};
+						searchParameterOptions.ApiVersion = EOS_LOBBYSEARCH_SETPARAMETER_API_LATEST;
+						searchParameterOptions.Parameter = &attributeData;
+						
+						if(paramString->_comparator == EOSLobbySearchParameter::ComparatorEqual)
+						{
+							searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
+						}
+						else if(paramString->_comparator == EOSLobbySearchParameter::ComparatorNotEqual)
+						{
+							searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_NOTEQUAL;
+						}
+						else if(paramString->_comparator == EOSLobbySearchParameter::ComparatorStringAnyOf)
+						{
+							searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_ANYOF;
+						}
+						else if(paramString->_comparator == EOSLobbySearchParameter::ComparatorStringNotAnyOf)
+						{
+							searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_NOTANYOF;
+						}
+						else
+						{
+							RN_ASSERT(false, "Unsupported comparator!");
+						}
+						
+						EOS_LobbySearch_SetParameter(_lobbySearchHandle, &searchParameterOptions);
+					}
+				});
 			}
 		}
 		
