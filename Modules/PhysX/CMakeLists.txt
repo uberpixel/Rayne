@@ -91,7 +91,7 @@ if(APPLE)
 elseif(ANDROID)
     set(PHYSX_PATCH_COMMAND sed -i.bak s/-Werror//g <SOURCE_DIR>/physx/source/compiler/cmake/android/CMakeLists.txt COMMAND sed -i.bak -e "/PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)/ {" -e "n$<SEMICOLON> n$<SEMICOLON> s/\#if .*/\#if 1/" -e "}" <SOURCE_DIR>/physx/source/foundation/include/unix/neon/PsUnixNeonInlineAoS.h)
 
-    set(PHYSX_CXX_FLAGS "-Wno-unknown-warning-option -Wno-invalid-noreturn -Wno-unused-private-field -Wno-unused-local-typedef -D__ANDROID__ ${CMAKE_CXX_FLAGS_RELEASE}")
+    set(PHYSX_CXX_FLAGS "-Wno-unknown-warning-option -Wno-invalid-noreturn -Wno-unused-private-field -Wno-unused-local-typedef -D__ANDROID__ -O3 -DNDEBUG")
     set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=android
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
