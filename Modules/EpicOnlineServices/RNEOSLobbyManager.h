@@ -181,7 +181,7 @@ namespace RN
 		bool _isVoiceUnmixed;
 		bool _isLocalPlayerMuted;
 		
-		std::vector<EOSLobbySearch> _lobbySearches;
+		std::vector<EOSLobbySearch*> _lobbySearches;
 		
 		std::function<void(bool)> _didJoinLobbyCallback;
 		

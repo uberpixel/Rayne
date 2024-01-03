@@ -173,14 +173,14 @@ namespace RN
 			return;
 		}
 		
-		EOSLobbySearch searchData;
-		searchData.callback = callback;
+		EOSLobbySearch *searchData = new EOSLobbySearch();
+		searchData->callback = callback;
 		
 		EOS_Lobby_CreateLobbySearchOptions searchOptions = {0};
 		searchOptions.ApiVersion = EOS_LOBBY_CREATELOBBYSEARCH_API_LATEST;
 		searchOptions.MaxResults = std::min(maxResults, static_cast<uint32>(EOS_LOBBY_MAX_SEARCH_RESULTS));
 		
-		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &searchData.handle) != EOS_EResult::EOS_Success)
+		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &searchData->handle) != EOS_EResult::EOS_Success)
 		{
 			RNDebug("Failed creating EOS Lobby search handle");
 			if(callback) callback(false, nullptr);
@@ -192,7 +192,7 @@ namespace RN
 			EOS_LobbySearch_SetLobbyIdOptions lobbyIDOptions = {0};
 			lobbyIDOptions.ApiVersion = EOS_LOBBYSEARCH_SETLOBBYID_API_LATEST;
 			lobbyIDOptions.LobbyId = lobbyID->GetUTF8String();
-			EOS_LobbySearch_SetLobbyId(searchData.handle, &lobbyIDOptions);
+			EOS_LobbySearch_SetLobbyId(searchData->handle, &lobbyIDOptions);
 		}
 		else //Can't set anything else if setting a lobby id!
 		{
@@ -207,7 +207,7 @@ namespace RN
 			timestampSearchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_LESSTHANOREQUAL;
 			timestampSearchParameterOptions.Parameter = &timestampAttributeData;
 			
-			EOS_LobbySearch_SetParameter(searchData.handle, &timestampSearchParameterOptions);
+			EOS_LobbySearch_SetParameter(searchData->handle, &timestampSearchParameterOptions);
 			
 			if(includePublic != includePrivate)
 			{
@@ -222,7 +222,7 @@ namespace RN
 				searchParameterOptions.ComparisonOp = EOS_EComparisonOp::EOS_CO_EQUAL;
 				searchParameterOptions.Parameter = &attributeData;
 				
-				EOS_LobbySearch_SetParameter(searchData.handle, &searchParameterOptions);
+				EOS_LobbySearch_SetParameter(searchData->handle, &searchParameterOptions);
 			}
 			
 			if(searchFilter && searchFilter->GetCount() > 0)
@@ -262,7 +262,7 @@ namespace RN
 							RN_ASSERT(false, "Unsupported comparator!");
 						}
 						
-						EOS_LobbySearch_SetParameter(searchData.handle, &searchParameterOptions);
+						EOS_LobbySearch_SetParameter(searchData->handle, &searchParameterOptions);
 					}
 				});
 			}
@@ -273,17 +273,18 @@ namespace RN
 		findOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 		
 		//Clear up previous lobby searches
-		for(int i = _lobbySearches.size() - 1 && i >= 0; i--)
+		for(int i = _lobbySearches.size() - 1; i >= 0; i--)
 		{
-			if(!_lobbySearches[i].handle)
+			if(!_lobbySearches[i]->handle)
 			{
+				delete _lobbySearches[i];
 				_lobbySearches.erase(_lobbySearches.begin() + i);
 			}
 		}
 		_lobbySearches.push_back(searchData);
 		
 		RNDebug("Start searching lobbies");
-		EOS_LobbySearch_Find(searchData.handle, &findOptions, &(*_lobbySearches.end()), LobbyOnSearchCallback);
+		EOS_LobbySearch_Find(searchData->handle, &findOptions, searchData, LobbyOnSearchCallback);
 	}
 
 	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback)
@@ -437,9 +438,10 @@ namespace RN
 
 	void EOSLobbyManager::ResetLobbySearchCallback()
 	{
-		for(auto &search : _lobbySearches)
+		for(auto search : _lobbySearches)
 		{
 			if(search->handle) EOS_LobbySearch_Release(search->handle);
+			delete search;
 		}
 		_lobbySearches.clear();
 	}
