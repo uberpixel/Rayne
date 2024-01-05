@@ -63,7 +63,6 @@ namespace RN
 		{
 			png_error(png_ptr, exception.GetReason().c_str());
 		}
-		png_error(png_ptr, "yey");
 		readData->offset += length;
 	}
 
