@@ -54,7 +54,16 @@ namespace RN
 			return;
 
 		PngReadFromData *readData = static_cast<PngReadFromData*>(png_get_io_ptr(png_ptr));
-		readData->data->GetBytesInRange(data, Range(readData->offset, length));
+		
+		try
+		{
+			readData->data->GetBytesInRange(data, Range(readData->offset, length));
+		}
+		catch(RangeException exception)
+		{
+			png_error(png_ptr, exception.GetReason().c_str());
+		}
+		png_error(png_ptr, "yey");
 		readData->offset += length;
 	}
 
@@ -78,6 +87,13 @@ namespace RN
 		png_set_error_fn(pngPointer, nullptr, nullptr, __TexturePNGEmptyLogFunction);
 
 		png_infop pngInfo = png_create_info_struct(pngPointer);
+		
+		if(setjmp(png_jmpbuf(pngPointer)))
+		{
+			png_destroy_read_struct(&pngPointer, &pngInfo, nullptr);
+			throw InconsistencyException(RNSTR("PNG data could not be decoded."));
+		}
+		
 		png_read_png(pngPointer, pngInfo, transforms, nullptr);
 
 		png_uint_32 width, height = 0;
