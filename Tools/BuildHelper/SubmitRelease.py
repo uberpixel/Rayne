@@ -288,7 +288,7 @@ def main():
 				with open(configChangelog, "r") as f:
 					changes = f.read()
 					uploadCommand.append('--notes-en')
-					uploadCommand.append(changes)
+					uploadCommand.append(changes[:999])
 			subprocess.call(uploadCommand)
 	elif storefront == "steam":
 		steamUserName = None
