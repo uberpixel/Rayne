@@ -26,127 +26,33 @@ endmacro()
 check_include_files(stdint.h HAVE_STDINT_H)
 check_include_files(stddef.h HAVE_STDDEF_H)
 
+#The following types are all supported since c++17
 # 8 Bit types
-
-check_type_size(int8_t INT8_T)
-check_type_size(__int8 __INT8)
-
-if(HAVE_INT8_T)
-    set(RAYNE_INT8 int8_t)
-elseif(HAVE___INT8)
-    set(RAYNE_INT8 __int8)
-else()
-    set(RAYNE_INT8 char)
-endif()
-
-check_type_size(uint8_t UINT8_T)
-check_type_size(__uint8 __UINT8)
-
-if(HAVE_UINT8_T)
-    set(RAYNE_UINT8 uint8_t)
-elseif(HAVE___UINT8)
-    set(RAYNE_UINT8 __uint8)
-else()
-    set(RAYNE_UINT8 "unsigned char")
-endif()
+set(RAYNE_INT8 int8_t)
+set(RAYNE_UINT8 uint8_t)
 
 # 16 bit types
-
-check_type_size(int16_t INT16_T)
-check_type_size(__int16 __INT16)
-check_type_size(short SHORT)
-
-if(HAVE_INT16_T)
-    set(RAYNE_INT16 int16_t)
-elseif(HAVE___INT16)
-    set(RAYNE_INT16 __int16)
-elseif(HAVE_SHORT AND (${SHORT} EQUAL 2))
-    set(RAYNE_INT16 short)
-else()
-    message(FATAL_ERROR "Could not detect a valid 16-bit integer type")
-endif()
-
-check_type_size(uint16_t UINT16_T)
-check_type_size(__uint16 __UINT16)
-check_type_size("unsigned short" UNSIGNED_SHORT)
-
-if(HAVE_UINT16_T)
-    set(RAYNE_UINT16 uint16_t)
-elseif(HAVE___UINT16)
-    set(RAYNE_UINT16 __uint16)
-elseif(HAVE_UNSIGNED_SHORT AND (${UNSIGNED_SHORT} EQUAL 2))
-    set(RAYNE_UINT16 "unsigned short")
-else()
-    message(FATAL_ERROR "Could not detect a valid unsigned 16-bit integer type")
-endif()
+set(RAYNE_INT16 int16_t)
+set(RAYNE_UINT16 uint16_t)
 
 # 32 bit types
-
-check_type_size(int32_t INT32_T)
-check_type_size(__int32 __INT32)
-check_type_size(long LONG_INT)
-check_type_size(int INT)
-
-if(HAVE_INT32_T)
-    set(RAYNE_INT32 int32_t)
-elseif(HAVE___INT32)
-    set(RAYNE_INT32 __int32)
-elseif(HAVE_LONG_INT AND (${LONG_INT} EQUAL 4))
-    set(RAYNE_INT32 long)
-elseif(HAVE_INT AND (${INT} EQUAL 4))
-    set(RAYNE_INT32 int)
-else()
-    message(FATAL_ERROR "Could not detect a valid 32-bit integer type")
-endif()
-
-check_type_size(uint32_t UINT32_T)
-check_type_size(__uint32 __UINT32)
-check_type_size("unsigned long" UNSIGNED_LONG_INT)
-check_type_size("unsigned int" UNSIGNED_INT)
-
-if(HAVE_UINT32_T)
-    set(RAYNE_UINT32 uint32_t)
-elseif(HAVE___UINT32)
-    set(RAYNE_UINT32 __uint32)
-elseif(HAVE_UNSIGNED_LONG_INT AND (${UNSIGNED_LONG_INT} EQUAL 4))
-    set(RAYNE_UINT32 "unsigned long")
-elseif(HAVE_UNSIGNED_INT AND (${UNSIGNED_INT} EQUAL 4))
-    set(RAYNE_UINT32 "unsigned int")
-else()
-    message(FATAL_ERROR "Could not detect a valid unsigned 32-bit integer type")
-endif()
+set(RAYNE_INT32 int32_t)
+set(RAYNE_UINT32 uint32_t)
 
 # 64 bit
+set(RAYNE_INT64 int64_t)
+set(RAYNE_UINT64 uint64_t)
 
-check_type_size(int64_t INT64_T)
-check_type_size(__int64 __INT64)
-check_type_size("long long" LONG_LONG_INT)
-
-if(HAVE_INT64_T)
-    set(RAYNE_INT64 int64_t)
-elseif(HAVE___INT64)
-    set(RAYNE_INT64 __int64)
-elseif(HAVE_LONG_LONG_INT AND (${LONG_LONG_INT} EQUAL 8))
-    set(RAYNE_INT64 "long long")
-else()
-    message(FATAL_ERROR "Could not detect a valid 64-bit integer type")
-endif()
-
-check_type_size(uint64_t UINT64_T)
-check_type_size(__uint64 __UINT64)
-check_type_size("unsigned long long" UNSIGNED_LONG_LONG_INT)
-
-if(HAVE_UINT64_T)
-    set(RAYNE_UINT64 uint64_t)
-elseif(HAVE___UINT64)
-    set(RAYNE_UINT64 __uint64)
-elseif(HAVE_UNSIGNED_LONG_LONG_INT AND (${UNSIGNED_LONG_LONG_INT} EQUAL 8))
-    set(RAYNE_UINT64 "unsigned long long")
-else()
-    message(FATAL_ERROR "Could not detect a valid unsiged 64-bit integer type")
-endif()
 
 # Check language features
+
+#The following attributes are all supported since c++17
+set(RAYNE_ALIGNAS "alignas(x)")
+set(RAYNE_NOEXCEPT noexcept)
+set(RAYNE_UNUSED "[[maybe_unused]]")
+set(RAYNE_CONSTEXPR constexpr)
+set(RAYNE_NORETURN "[[noreturn]]")
+set(RAYNE_SUPPORTS_TRIVIALLY_COPYABLE 1)
 
 check_c_source_compiles("int main() { if(__PRETTY_FUNCTION__) {} }" HAVE_PRETTY_FUNCTION)
 check_c_source_compiles("int main() { if(__FUNCTION__) {} }" HAVE_FUNCTION)
@@ -168,58 +74,6 @@ else()
     set(RAYNE_EXPECT_TRUE "(x)")
     set(RAYNE_EXPECT_FALSE "(x)")
 endif()
-
-check_cxx_compiler_type_attribute("alignas(16)" HAVE_ALIGNAS)
-check_cxx_compiler_type_attribute("__declspec(align(16))" HAVE_DECLSPEC_ALIGNAS)
-
-if(HAVE_ALIGNAS)
-    set(RAYNE_ALIGNAS "alignas(x)")
-elseif(HAVE_DECLSPEC_ALIGNAS)
-    set(RAYNE_ALIGNAS "__declspec(align(x))")
-else()
-    set(RAYNE_ALIGNAS "alignas(x)")
-endif()
-
-check_cxx_source_compiles("void foo() noexcept { } int main() { foo(); }" HAVE_NOEXCEPT)
-check_cxx_source_compiles("void foo() NOEXCEPT { } int main() { foo(); }" HAVE_MSVC_NOEXCEPT)
-
-if(HAVE_NOEXCEPT)
-    set(RAYNE_NOEXCEPT noexcept)
-elseif(HAVE_MSVC_NOEXCEPT)
-    set(RAYNE_NOEXCEPT NOEXCEPT)
-else()
-    set(RAYNE_NOEXCEPT "")
-endif()
-
-check_cxx_source_compiles("int main() { __attribute__((unused)) int bar; }" HAVE_UNUSED)
-
-if(HAVE_UNUSED)
-    set(RAYNE_UNUSED "__attribute__((unused))")
-else()
-    set(RAYNE_UNUSED "")
-endif()
-
-check_cxx_source_compiles("constexpr int factorial(int n) { return n <= 1 ? 1 : (n * factorial(n-1)); } int main() {}" HAVE_CONSTEXPR)
-
-if(HAVE_CONSTEXPR)
-    set(RAYNE_CONSTEXPR constexpr)
-else()
-    set(RAYNE_CONSTEXPR const)
-endif()
-
-check_cxx_source_compiles("__attribute__((noreturn)) void foo() {}  int main() { foo(); }" HAVE_ATTR_NORETURN)
-check_cxx_source_compiles("__declspec(noreturn) void foo() {}  int main() { foo(); }" HAVE_DECLSPEC_NORETURN)
-
-if(HAVE_ATTR_NORETURN)
-    set(RAYNE_NORETURN "__attribute__((noreturn))")
-elseif(HAVE_DECLSPEC_NORETURN)
-    set(RAYNE_NORETURN "__declspec(noreturn)")
-else()
-    message(FATAL_ERROR "No noreturn attribute found")
-endif()
-
-check_cxx_compiler_attribute("__attribute__((noreturn))" HAVE_ATTR_NORETURN)
-check_cxx_compiler_attribute("__declspec(noreturn)" HAVE_DECLSPEC_NORETURN)
 
 if(WIN32)
     set(RAYNE_RNAPI_EXPORT "__declspec(dllexport)")
@@ -245,14 +99,6 @@ elseif(HAVE_DECLSPEC_NOINLINE)
     set(RAYNE_NOINLINE "__declspec(noinline)")
 else()
     message(FATAL_ERROR "No noinline attribute available")
-endif()
-
-check_cxx_source_compiles("static_assert(std::is_trivially_copyable<int>::value, \"blubb\");" HAVE_TRIVIALLY_COPYABLE)
-
-if(HAVE_TRIVIALLY_COPYABLE)
-    set(RAYNE_SUPPORTS_TRIVIALLY_COPYABLE 1)
-else()
-    set(RAYNE_SUPPORTS_TRIVIALLY_COPYABLE 0)
 endif()
 
 # Target
