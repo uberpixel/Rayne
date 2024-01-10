@@ -270,7 +270,7 @@ namespace RN
 	{
 		int oflag = O_BINARY;
 
-		if(mode & (Mode::Read | Mode::Write))
+		if((mode & Mode::Read) && (mode & Mode::Write))
 			oflag |= O_RDWR;
 		else if(mode & Mode::Read)
 			oflag |= O_RDONLY;

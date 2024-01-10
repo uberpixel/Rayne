@@ -30,6 +30,22 @@ namespace RN
 		// Figure out if name points to a folder
 		bool isDirectory = false;
 		FileManager *coordinator = FileManager::GetSharedInstance();
+		
+#if RN_PLATFORM_IOS
+		RN::String *frameworkName = _name->GetPathComponents()->GetLastObject<RN::String>();
+		RN::String *libraryNameIOS = frameworkName;
+		//TODO: Library files may also have no extensions, so this check is kinda bad...
+		if(!frameworkName->GetPathExtension())
+		{
+			frameworkName = RNSTR(coordinator->GetPathForLocation(FileManager::Location::ApplicationDirectory) << "/Frameworks/" << frameworkName << ".framework");
+		}
+		else
+		{
+			frameworkName = RNSTR(coordinator->GetPathForLocation(FileManager::Location::ApplicationDirectory) << "/Frameworks/" << frameworkName);
+		}
+		SafeRelease(_name);
+		_name = SafeRetain(frameworkName);
+#endif
 
 		FileManager::Node *node = coordinator->ResolvePath(_name, 0);
 		if(node)
@@ -50,7 +66,11 @@ namespace RN
 
 		if(isDirectory)
 		{
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+			_name->AppendPathComponent(libraryNameIOS);
+#else
 			_name->AppendPathComponent(_name->GetLastPathComponent());
+#endif
 		}
 
 		// Resolve the files
@@ -103,7 +123,11 @@ namespace RN
 		// Resolve extra paths
 		if(isDirectory)
 		{
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+			String *relativeResourcePath = basePath->StringByAppendingPathComponent(RNCSTR("ResourceFiles/Resources"));
+#else
 			String *relativeResourcePath = basePath->StringByAppendingPathComponent(RNCSTR("Resources"));
+#endif
 			_resourcePath = SafeRetain(coordinator->ResolveFullPath(relativeResourcePath, 0));
 
 			if(_resourcePath && !coordinator->PathExists(_resourcePath))
@@ -146,7 +170,7 @@ namespace RN
 
 					int flags = RTLD_GLOBAL;
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 					flags |= RTLD_NOLOAD;
 #else
 					flags |= RTLD_NOW;

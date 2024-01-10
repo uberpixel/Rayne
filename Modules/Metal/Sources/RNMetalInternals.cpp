@@ -11,6 +11,7 @@
 #include "RNMetalTexture.h"
 #include "RNMetalFramebuffer.h"
 
+#if RN_PLATFORM_MAC_OS
 @implementation RNMetalView
 {
 	CAMetalLayer *_layer;
@@ -96,3 +97,4 @@
 }
 
 @end
+#endif

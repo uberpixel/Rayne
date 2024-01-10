@@ -32,7 +32,7 @@ namespace RN
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 		_preferredTextureFileExtension = RNSTR("dds")->Retain();
-#elif RN_PLATFORM_ANDROID
+#elif RN_PLATFORM_ANDROID || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		_preferredTextureFileExtension = RNSTR("astc")->Retain();
 #else
 		_preferredTextureFileExtension = RNSTR("png")->Retain();

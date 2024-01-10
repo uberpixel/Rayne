@@ -424,7 +424,7 @@ namespace RN
 
 		temp ++;
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		strlcpy(storage, keyPath, temp - keyPath);
 #else
 		strncpy(storage, keyPath, temp - keyPath);
@@ -474,7 +474,7 @@ namespace RN
 
 		temp ++;
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		strlcpy(storage, keyPath, temp - keyPath);
 #else
 		strncpy(storage, keyPath, temp - keyPath);

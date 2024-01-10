@@ -358,7 +358,7 @@ namespace RN
 			return realpath(path, buffer);
 		}
 #endif
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		if(path[0] == '~')
 		{
 			NSString *string = [[NSString stringWithCString:path encoding:NSASCIIStringEncoding] stringByExpandingTildeInPath];
@@ -392,6 +392,12 @@ namespace RN
 #endif
 #if RN_PLATFORM_ANDROID
 		_platformModifier = RNCSTR("~android")->Retain();
+#endif
+#if RN_PLATFORM_IOS
+		_platformModifier = RNCSTR("~ios")->Retain();
+#endif
+#if RN_PLATFORM_VISIONOS
+		_platformModifier = RNCSTR("~visionos")->Retain();
 #endif
 
 #if RN_PLATFORM_ANDROID
@@ -682,6 +688,15 @@ namespace RN
 					return _applicationDirectory->Copy()->Autorelease();
 				}
 #endif
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+				NSBundle *bundle = [NSBundle mainBundle];
+				NSString *path = [bundle bundlePath];
+
+				_applicationDirectory = RNSTR([path UTF8String]);
+				SafeRetain(_applicationDirectory);
+
+				return _applicationDirectory->Copy()->Autorelease();
+#endif
 #if RN_PLATFORM_WINDOWS
 				char buffer[MAX_PATH];
 				DWORD size = MAX_PATH;
@@ -771,6 +786,12 @@ namespace RN
 					return result;
 				}
 #endif
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+				NSBundle *bundle = [NSBundle mainBundle];
+				NSString *path = [bundle resourcePath];
+
+				return RNSTR([path UTF8String] << "/ResourceFiles");
+#endif
 #if RN_PLATFORM_WINDOWS
 				char buffer[MAX_PATH];
 				DWORD size = MAX_PATH;
@@ -830,6 +851,16 @@ namespace RN
 
 				return RNSTR([[url path] UTF8String]);
 
+#endif
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
+
+				NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
+				url = [url URLByAppendingPathComponent:[NSString stringWithUTF8String:application->GetUTF8String()]];
+
+	//			[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:NULL];
+
+				return RNSTR([[url path] UTF8String]);
 #endif
 #if RN_PLATFORM_WINDOWS
 				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();

@@ -13,7 +13,7 @@ set(SOURCES
         Sources/RNMetalDevice.cpp
         Sources/RNMetalFramebuffer.cpp
         Sources/RNMetalGPUBuffer.cpp
-        #Sources/RNMetalInternals.cpp
+        Sources/RNMetalInternals.cpp
         Sources/RNMetalRenderer.cpp
         Sources/RNMetalRendererDescriptor.cpp
         Sources/RNMetalShader.cpp

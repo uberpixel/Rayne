@@ -13,6 +13,9 @@
 	#import <Foundation/Foundation.h>
 	#import <IOKit/graphics/IOGraphicsLib.h>
 #endif
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+	#import <Foundation/Foundation.h>
+#endif
 
 
 #if RN_ENABLE_VTUNE

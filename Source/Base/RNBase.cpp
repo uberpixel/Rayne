@@ -212,7 +212,7 @@ namespace RN
 			result->SetJNIEnvForRayneMainThread(env);
 #endif
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 			@autoreleasepool {
 				result->Bootstrap();
 			}
@@ -229,7 +229,7 @@ namespace RN
 			kernel->GetAndroidApp()->activity->vm->DetachCurrentThread();
 #endif
 			
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 			@autoreleasepool {
 				kernel->TearDown();
 			}
