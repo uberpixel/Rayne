@@ -59,9 +59,10 @@ namespace RN
 		std::vector<std::pair<InputManager::Callback, void *>> _callbacks;
 	};
 
-
+#if !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 	extern void BuildPlatformDeviceTree();
 	extern void TearDownPlatformDeviceTree();
+#endif
 
 	static InputManager *__sharedInstance = nullptr;
 
@@ -149,12 +150,17 @@ namespace RN
 
 		// Avoid any and all re-ordering
 		std::atomic_thread_fence(std::memory_order_seq_cst);
+		
+#if !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 		BuildPlatformDeviceTree();
+#endif
 	}
 
 	InputManager::~InputManager()
 	{
+#if !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 		TearDownPlatformDeviceTree();
+#endif
 		_devices->Release();
 		_bindings->Release();
 		_mouseDevices->Release();

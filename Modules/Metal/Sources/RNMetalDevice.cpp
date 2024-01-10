@@ -39,6 +39,7 @@ namespace RN
 			descriptor.vendorID = 0x1002;
 		}
 		
+#if RN_PLATFORM_MAC_OS
 		if(@available(macOS 10.13, *))
 		{
 			if([device isRemovable])
@@ -46,12 +47,18 @@ namespace RN
 				descriptor.type = Type::External;
 			}
 		}
+#endif
 
 		NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 		descriptor.driverVersion = RNVersionMake(version.majorVersion, version.minorVersion, version.patchVersion);
 
+#if RN_PLATFORM_MAC_OS
 		if([device supportsFeatureSet:MTLFeatureSet_OSX_GPUFamily1_v1])
 			descriptor.apiVersion = RNVersionMake(1, 1, 0);
+#else
+		if([device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily1_v1])
+			descriptor.apiVersion = RNVersionMake(1, 1, 0);
+#endif
 
 		return descriptor;
 	}

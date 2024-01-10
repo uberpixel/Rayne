@@ -56,9 +56,7 @@ namespace RN
 		size_t sizeofSizeT = sizeof(size_t);
 
 		sysctlbyname("hw.cachelinesize", &cacheLineSize, &sizeofSizeT, 0, 0);
-#endif
-
-#if RN_PLATFORM_WINDOWS
+#elif RN_PLATFORM_WINDOWS
 		size_t cacheLineSize = 0;
 		DWORD bufferSize = 0;
 		SYSTEM_LOGICAL_PROCESSOR_INFORMATION *buffer = 0;
@@ -78,13 +76,9 @@ namespace RN
 		}
 
 		free(buffer);
-#endif
-
-#if RN_PLATFORM_LINUX
+#elif RN_PLATFORM_LINUX
 		size_t cacheLineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
-#endif
-
-#if RN_PLATFORM_ANDROID
+#else
 		size_t cacheLineSize = 128; //Best guess as used by SDL2...
 #endif
 

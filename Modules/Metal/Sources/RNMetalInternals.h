@@ -10,8 +10,11 @@
 #define __RAYNE_METALINTERNALS_H__
 
 #import <Metal/Metal.h>
+
+#if RN_PLATFORM_MAC_OS
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/QuartzCore.h>
+#endif
 
 #include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
@@ -19,6 +22,7 @@
 #include "RNMetalFramebuffer.h"
 #include "RNMetalRenderer.h"
 
+#if RN_PLATFORM_MAC_OS
 @interface RNMetalView : NSView
 - (id<CAMetalDrawable>)nextDrawable;
 - (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device screen:(RN::Screen*)screen andFormat:(MTLPixelFormat)format;
@@ -27,6 +31,7 @@
 
 @interface RNMetalWindow : NSWindow
 @end
+#endif
 
 namespace RN
 {
@@ -217,7 +222,9 @@ namespace RN
 
 	struct MetalWindowInternals
 	{
+#if RN_PLATFORM_MAC_OS
 		NSWindow *window;
+#endif
 	};
 }
 

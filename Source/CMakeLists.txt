@@ -264,7 +264,13 @@ set(RAYNE_HEADERS_PRIVATE
 set(RAYNE_PLATFORM_SOURCES "")
 set(RAYNE_PLATFORM_HEADERS_PRIVATE "")
 
-if(APPLE)
+if(IOS)
+    set(RAYNE_PLATFORM_SOURCES
+            Input/RNInputIOS.cpp)
+
+    set(RAYNE_PLATFORM_HEADERS_PRIVATE
+            Input/RNInputIOS.h)
+elseif(APPLE)
     set(RAYNE_PLATFORM_SOURCES
             Input/RNInputOSX.cpp)
 
@@ -306,15 +312,18 @@ set(RAYNE_LIBRARIES "")
 set(COMPILE_DEFINITIONS "-DRN_BUILD_LIBRARY=1")
 
 if(APPLE)
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(FOUNDATION_LIBRARY Foundation)
-    find_library(IOKIT_LIBRARY IOKit)
-
     set(COMPILE_OPTIONS -xobjective-c++)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmost")
 
-    set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
+    find_library(FOUNDATION_LIBRARY Foundation)
+    set(LINK_LIBRARIES ${FOUNDATION_LIBRARY})
+    if(NOT IOS)
+        find_library(COCOA_LIBRARY Cocoa)
+        find_library(IOKIT_LIBRARY IOKit)
+
+        set(LINK_LIBRARIES ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
+    endif()
 endif()
 
 if((UNIX OR MINGW) AND (NOT ANDROID))

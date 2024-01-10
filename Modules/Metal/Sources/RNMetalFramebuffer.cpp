@@ -304,7 +304,11 @@ namespace RN
 			id<MTLTexture> depthStencilTexture = static_cast< id<MTLTexture> >(GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
 
 			//TODO: Improve check
-			if([depthStencilTexture pixelFormat] != MTLPixelFormatX24_Stencil8 && [depthStencilTexture pixelFormat] != MTLPixelFormatX32_Stencil8)
+			if(
+#if RN_PLATFORM_MAC_OS
+			   [depthStencilTexture pixelFormat] != MTLPixelFormatX24_Stencil8 &&
+#endif
+			   [depthStencilTexture pixelFormat] != MTLPixelFormatX32_Stencil8)
 			{
 				MTLRenderPassDepthAttachmentDescriptor *depthAttachment = [descriptor depthAttachment];
 				[depthAttachment setTexture:depthStencilTexture];
@@ -351,7 +355,11 @@ namespace RN
 			}
 
 			//TODO: Improve check
-			if([depthStencilTexture pixelFormat] == MTLPixelFormatDepth24Unorm_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatDepth32Float_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX24_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX32_Stencil8)
+			if(
+#if RN_PLATFORM_MAC_OS
+			   [depthStencilTexture pixelFormat] == MTLPixelFormatDepth24Unorm_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX24_Stencil8 ||
+#endif
+			   [depthStencilTexture pixelFormat] == MTLPixelFormatDepth32Float_Stencil8 || [depthStencilTexture pixelFormat] == MTLPixelFormatX32_Stencil8)
 			{
 				MTLRenderPassStencilAttachmentDescriptor *stencilAttachment = [descriptor stencilAttachment];
 				[stencilAttachment setTexture:depthStencilTexture];
@@ -449,7 +457,11 @@ namespace RN
 		if(_depthStencilTarget)
 		{
 			MTLPixelFormat depthStencilFormat = _depthStencilTarget->pixelFormat;
-			if(depthStencilFormat != MTLPixelFormatX24_Stencil8 && depthStencilFormat != MTLPixelFormatX32_Stencil8)
+			if(
+#if RN_PLATFORM_MAC_OS
+			   depthStencilFormat != MTLPixelFormatX24_Stencil8 &&
+#endif
+			   depthStencilFormat != MTLPixelFormatX32_Stencil8)
 			{
 				return depthStencilFormat;
 			}
@@ -463,7 +475,11 @@ namespace RN
 		if(_depthStencilTarget)
 		{
 			MTLPixelFormat depthStencilFormat = _depthStencilTarget->pixelFormat;
-			if(depthStencilFormat == MTLPixelFormatX24_Stencil8 || depthStencilFormat == MTLPixelFormatX32_Stencil8 || depthStencilFormat == MTLPixelFormatDepth24Unorm_Stencil8 || depthStencilFormat == MTLPixelFormatDepth32Float_Stencil8)
+			if(
+#if RN_PLATFORM_MAC_OS
+			   depthStencilFormat == MTLPixelFormatX24_Stencil8 || depthStencilFormat == MTLPixelFormatDepth24Unorm_Stencil8 ||
+#endif
+			   depthStencilFormat == MTLPixelFormatX32_Stencil8 || depthStencilFormat == MTLPixelFormatDepth32Float_Stencil8)
 			{
 				return depthStencilFormat;
 			}

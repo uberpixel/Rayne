@@ -40,7 +40,13 @@ namespace RN
 			if(apiValidation && apiValidation->GetBoolValue())
 				setenv("METAL_DEVICE_WRAPPER_TYPE", "1", 1);
 		}
-
+		
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+		MetalDevice *temp = new MetalDevice(device);
+		_devices->AddObject(temp);
+		temp->Release();
+#else
 		NSArray *devices = MTLCopyAllDevices();
 
 		for(id<MTLDevice> device in devices)
@@ -54,6 +60,7 @@ namespace RN
 		}
 
 		[devices release];
+#endif
 
 		_devices->Sort<MetalDevice>([](const MetalDevice *deviceA, const MetalDevice *deviceB) -> bool {
 
@@ -61,7 +68,6 @@ namespace RN
 				return true;
 
 			return false;
-
 		});
 	}
 

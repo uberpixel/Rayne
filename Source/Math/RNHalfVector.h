@@ -33,11 +33,7 @@ namespace RN
 			y = Math::ConvertFloatToHalf(other.y);
 		}
 		
-		explicit HalfVector2(const HalfVector2 &other)
-		{
-			x = other.x;
-			y = other.y;
-		}
+		HalfVector2(const HalfVector2 &other) = default;
 		
 		Vector2 GetVector2()
 		{
@@ -77,12 +73,7 @@ namespace RN
 			z = Math::ConvertFloatToHalf(other.z);
 		}
 		
-		explicit HalfVector3(const HalfVector3 &other)
-		{
-			x = other.x;
-			y = other.y;
-			z = other.z;
-		}
+		HalfVector3(const HalfVector3 &other) = default;
 		
 		Vector3 GetVector3()
 		{
@@ -127,13 +118,7 @@ namespace RN
 			w = Math::ConvertFloatToHalf(other.w);
 		}
 		
-		explicit HalfVector4(const HalfVector4 &other)
-		{
-			x = other.x;
-			y = other.y;
-			z = other.z;
-			w = other.w;
-		}
+		HalfVector4(const HalfVector4 &other) = default;
 		
 		Vector4 GetVector4()
 		{

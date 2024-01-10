@@ -99,14 +99,15 @@ namespace RN
 				return MTLPixelFormatStencil8;
 			case Format::Depth_16I:
 				return MTLPixelFormatDepth16Unorm;
-			case Format::Depth_24I:
-				return MTLPixelFormatDepth24Unorm_Stencil8;
 			case Format::Depth_32F_Stencil_8:
 				return MTLPixelFormatDepth32Float_Stencil8;
+				
+#if RN_PLATFORM_MAC_OS
+			case Format::Depth_24I:
+				return MTLPixelFormatDepth24Unorm_Stencil8;
 			case Format::Depth_24_Stencil_8:
 				return MTLPixelFormatDepth24Unorm_Stencil8;
 				
-#if RN_PLATFORM_MAC_OS
 			case Format::RGBA_BC1_SRGB:
 				return MTLPixelFormatBC1_RGBA_sRGB;
 			case Format::RGBA_BC2_SRGB:
@@ -256,10 +257,12 @@ namespace RN
 			metalDescriptor.storageMode = descriptor.accessOptions == GPUBuffer::AccessOptions::ReadWrite? MTLStorageModeShared : MTLStorageModePrivate;
 		}
 		
+#if RN_PLATFORM_MAC_OS
 		if(isIOSurfaceBacked)
 		{
 			metalDescriptor.storageMode = MTLStorageModeManaged;
 		}
+#endif
 		
 		metalDescriptor.usage = usage;
 		

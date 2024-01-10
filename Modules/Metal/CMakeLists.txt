@@ -13,7 +13,7 @@ set(SOURCES
         Sources/RNMetalDevice.cpp
         Sources/RNMetalFramebuffer.cpp
         Sources/RNMetalGPUBuffer.cpp
-        Sources/RNMetalInternals.cpp
+        #Sources/RNMetalInternals.cpp
         Sources/RNMetalRenderer.cpp
         Sources/RNMetalRendererDescriptor.cpp
         Sources/RNMetalShader.cpp
@@ -47,13 +47,18 @@ set(HEADERS
 set(DEFINES
         "RN_BUILD_METAL")
 
-find_library(COCOA_LIBRARY Cocoa)
-find_library(METAL_LIBRARY Metal)
-find_library(QUARTZCORE_LIBRARY QuartzCore)
 
 set(RAYNE_LIBRARIES Rayne)
-set(LINK_LIBRARIES ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY} ${METAL_LIBRARY})
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
+
+find_library(METAL_LIBRARY Metal)
+if(IOS)
+        set(LINK_LIBRARIES ${METAL_LIBRARY})
+elseif(APPLE)
+        find_library(COCOA_LIBRARY Cocoa)
+        find_library(QUARTZCORE_LIBRARY QuartzCore)
+        set(LINK_LIBRARIES ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY} ${METAL_LIBRARY})
+endif()
 
 rayne_add_library(RayneMetal "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneMetal)

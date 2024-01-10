@@ -41,8 +41,10 @@ namespace RN
 
 	void MetalGPUBuffer::FlushRange(const Range &range)
 	{
+#if RN_PLATFORM_MAC_OS
 		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;
 		[buffer didModifyRange:NSMakeRange(range.origin, range.length)];
+#endif
 	}
 
 	size_t MetalGPUBuffer::GetLength() const

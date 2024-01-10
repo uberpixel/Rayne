@@ -16,9 +16,11 @@ namespace RN
 
 	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, Screen *screen, const Window::SwapChainDescriptor &descriptor) : _frameIndex(0), _frameDivider(1), _drawable(nullptr)
 	{
+#if RN_PLATFORM_MAC_OS
 		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) device:device screen:screen andFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
 		CGSize realSize = [_metalView getSize];
 		_size = Vector2(realSize.width, realSize.height);
+#endif
 
 		_framebuffer = new MetalFramebuffer(_size, this, descriptor.colorFormat, descriptor.depthStencilFormat);
 	}

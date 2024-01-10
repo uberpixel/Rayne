@@ -20,6 +20,7 @@ namespace RN
 		Window(screen),
 		_renderer(renderer)
 	{
+#if RN_PLATFORM_MAC_OS
 		_internals->window = [[RNMetalWindow alloc] initWithContentRect:NSMakeRect(0, 0, size.x, size.y) styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable backing:NSBackingStoreBuffered defer:NO];
 		[_internals->window setBackgroundColor:[NSColor blackColor]];
 		[_internals->window setIgnoresMouseEvents:NO];
@@ -40,16 +41,21 @@ namespace RN
 		CGFloat xPos = (NSWidth([nsscreen frame]) - NSWidth(frame)) * 0.5;
 		CGFloat yPos = (NSHeight([nsscreen frame]) - NSHeight(frame)) * 0.5;
 		[_internals->window setFrame:NSMakeRect(xPos, yPos, NSWidth(frame), NSHeight(frame)) display:YES];
+#endif
 	}
 
 	void MetalWindow::SetTitle(const String *title)
 	{
+#if RN_PLATFORM_MAC_OS
 		[_internals->window setTitle:[NSString stringWithUTF8String:title->GetUTF8String()]];
+#endif
 	}
 
 	Screen *MetalWindow::GetScreen()
 	{
 		Array *screens = Screen::GetScreens();
+		
+#if RN_PLATFORM_MAC_OS
 		NSScreen *nsscreen = [_internals->window screen];
 
 		Screen *result = nullptr;
@@ -63,24 +69,33 @@ namespace RN
 			}
 
 		});
-
+		
 		RN_ASSERT(result, "Result must not be NULL, something broke internally");
 		return result;
+#else
+		return screens->GetFirstObject<Screen>();
+#endif
 	}
 
 	void MetalWindow::Show()
 	{
+#if RN_PLATFORM_MAC_OS
 		[_internals->window makeKeyAndOrderFront:nil];
+#endif
 	}
 
 	void MetalWindow::Hide()
 	{
+#if RN_PLATFORM_MAC_OS
 		[_internals->window orderOut:nil];
+#endif
 	}
 
 	void MetalWindow::SetFullscreen(bool fullscreen)
 	{
+#if RN_PLATFORM_MAC_OS
 		[_internals->window toggleFullScreen:nil];
+#endif
 	}
 
 	Vector2 MetalWindow::GetSize() const
@@ -100,6 +115,10 @@ namespace RN
 	
 	uint64 MetalWindow::GetWindowHandle() const
 	{
+#if RN_PLATFORM_MAC_OS
 		return reinterpret_cast<uint64>(_internals->window);
+#else
+		return 0;
+#endif
 	}
 }

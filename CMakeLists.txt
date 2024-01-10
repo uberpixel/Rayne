@@ -10,7 +10,15 @@ option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
 option(RAYNE_VTUNE "Enable VTune if avaialable" ON)
 
 option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
-option(CMAKE_OSX_ARCHITECTURES "OSX architectures to compile for" "$(ARCHS_STANDARD)")
+if(APPLE)
+    if(IOS OR VISIONOS)
+        set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "OSX architectures to compile for" FORCE)
+        #message(FATAL_ERROR "${CMAKE_OSX_ARCHITECTURES}")
+    else()
+        set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" CACHE STRING "OSX architectures to compile for" FORCE)
+        #message(FATAL_ERROR "${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -58,22 +66,23 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-math-errno -funsafe-math-optimizations ${C
 
 if(UNIX)
     if(APPLE)
-        execute_process(COMMAND xcrun --show-sdk-path --sdk macosx
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                RESULT_VARIABLE OSX_SDK_RESULT
-                OUTPUT_VARIABLE OSX_SDK_PATH)
+        #execute_process(COMMAND xcrun --show-sdk-path --sdk macosx
+        #        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        #        RESULT_VARIABLE OSX_SDK_RESULT
+        #        OUTPUT_VARIABLE OSX_SDK_PATH)
 
-        if(NOT ${OSX_SDK_RESULT} MATCHES "0")
-            message(FATAL_ERROR "xcrun, invalid return")
-        endif()
+        #if(NOT ${OSX_SDK_RESULT} MATCHES "0")
+        #    message(FATAL_ERROR "xcrun, invalid return")
+        #endif()
 
-        string(LENGTH ${OSX_SDK_PATH} OSX_SDK_PATH_LENGTH)
-        math(EXPR OSX_SDK_PATH_LENGTH "${OSX_SDK_PATH_LENGTH} - 1")
+        #string(LENGTH ${OSX_SDK_PATH} OSX_SDK_PATH_LENGTH)
+        #math(EXPR OSX_SDK_PATH_LENGTH "${OSX_SDK_PATH_LENGTH} - 1")
 
-        string(SUBSTRING ${OSX_SDK_PATH} 0 ${OSX_SDK_PATH_LENGTH} OSX_SDK_PATH)
+        #string(SUBSTRING ${OSX_SDK_PATH} 0 ${OSX_SDK_PATH_LENGTH} OSX_SDK_PATH)
 
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
-        set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH})
+        #set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+        #set(CMAKE_IPHONEOS_DEPLOYMENT_TARGET 15.0)
+        #set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH})
 
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")

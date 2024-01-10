@@ -550,6 +550,7 @@ namespace RN
 	//TODO: Move into an utility class
 	MTLResourceOptions MetalRenderer::MetalResourceOptionsFromOptions(GPUResource::AccessOptions options)
 	{
+#if RN_PLATFORM_MAC_OS
 		switch(options)
 		{
 			case GPUResource::AccessOptions::ReadWrite:
@@ -559,6 +560,17 @@ namespace RN
 			case GPUResource::AccessOptions::Private:
 				return  MTLResourceStorageModePrivate;
 		}
+#else
+		switch(options)
+		{
+			case GPUResource::AccessOptions::ReadWrite:
+				return MTLResourceCPUCacheModeDefaultCache;
+			case GPUResource::AccessOptions::WriteOnly:
+				return MTLResourceCPUCacheModeWriteCombined;
+			case GPUResource::AccessOptions::Private:
+				return  MTLResourceStorageModePrivate;
+		}
+#endif
 	}
 
 	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)

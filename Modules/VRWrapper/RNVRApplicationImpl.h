@@ -27,7 +27,7 @@ namespace RN
 		if(_vrWindow)
 			return;
 
-#if !RN_PLATFORM_MAC_OS
+#if !RN_PLATFORM_MAC_OS && !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 		_vrWindow = new RN::OpenXRWindow();
 #endif
 	}

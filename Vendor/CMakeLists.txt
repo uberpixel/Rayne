@@ -8,8 +8,10 @@ option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
 
 option(PNG_SHARED "Build shared lib" OFF)
 option(PNG_TESTS "Build libpng tests" OFF)
-option(PNG_EXECUTABLES "Build libpng executables" OFF)
+option(PNG_TOOLS "Build the libpng tools" OFF)
+option(PNG_HARDWARE_OPTIMIZATIONS "Enable hardware optimizations" OFF)
 set(PNG_ARM_NEON "off" CACHE STRING "Enable ARM NEON optimizations: check|on|off; check is default")
+option(PNG_BUILD_ZLIB "Custom zlib location, else find_package is used" OFF)
 option(SKIP_INSTALL_ALL "Skip PNG install" ON)
 
 option(ENABLE_COMMONCRYPTO "Enable use of CommonCrypto" OFF)

@@ -13,7 +13,7 @@
 #include "RNVRWindow.h"
 
 //TODO: These should be defines somehow set by the corresponding vr module....
-#if !RN_PLATFORM_MAC_OS
+#if !RN_PLATFORM_MAC_OS && !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
     #include "RNOpenXRWindow.h"
 #endif
 

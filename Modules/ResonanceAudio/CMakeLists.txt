@@ -259,9 +259,11 @@ set(INCLUDE_DIRECTORIES
 
 set(RAYNE_LIBRARIES Rayne)
 if(APPLE)
+        find_library(AUDIOTOOLBOX_LIB AudioToolbox)
+        find_library(AVFAUDIO_LIB AVFAudio)
         find_library(COREAUDIO_LIB CoreAudio)
         find_library(COREFOUNDATION_LIB CoreFoundation)
-        set(RAYNE_LIBRARIES Rayne ${COREAUDIO_LIB} ${COREFOUNDATION_LIB})
+        set(RAYNE_LIBRARIES Rayne ${COREAUDIO_LIB} ${COREFOUNDATION_LIB} ${AVFAUDIO_LIB} ${AUDIOTOOLBOX_LIB})
 elseif(WIN32)
         #set(RAYNE_LIBRARIES Rayne winmm ole32)
 endif()
@@ -271,6 +273,10 @@ rayne_set_module_output_directory(RayneResonanceAudio)
 
 target_include_directories(RayneResonanceAudio SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneResonanceAudio PRIVATE "${DEFINES}")
+
+if(IOS OR VISIONOS)
+        target_compile_options(RayneResonanceAudio PRIVATE -xobjective-c++)
+endif()
 
 add_dependencies(RayneResonanceAudio miniaudio)
 target_link_libraries(RayneResonanceAudio PRIVATE ResonanceAudioStaticCustom)
