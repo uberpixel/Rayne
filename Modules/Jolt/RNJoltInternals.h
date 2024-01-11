@@ -148,6 +148,7 @@ namespace RN
 		// See: ContactListener
 		virtual JPH::ValidateResult OnContactValidate(const JPH::Body &inBody1, const JPH::Body &inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult &inCollisionResult) override
 		{
+			AutoreleasePool pool;
 			RNDebug("Contact validate callback");
 
 			// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
@@ -156,16 +157,19 @@ namespace RN
 
 		virtual void OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
 		{
+			AutoreleasePool pool;
 			RNDebug("A contact was added");
 		}
 
 		virtual void OnContactPersisted(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
 		{
+			AutoreleasePool pool;
 			RNDebug("A contact was persisted");
 		}
 
 		virtual void OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair) override
 		{
+			AutoreleasePool pool;
 			RNDebug("A contact was removed");
 		}
 	};
@@ -176,11 +180,13 @@ namespace RN
 	public:
 		virtual void OnBodyActivated(const JPH::BodyID &inBodyID, uint64 inBodyUserData) override
 		{
+			AutoreleasePool pool;
 			RNDebug("A body got activated");
 		}
 
 		virtual void OnBodyDeactivated(const JPH::BodyID &inBodyID, uint64 inBodyUserData) override
 		{
+			AutoreleasePool pool;
 			RNDebug("A body went to sleep");
 		}
 	};
