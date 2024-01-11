@@ -140,11 +140,11 @@ macro(rayne_copy_resources _TARGET _RESOURCES _ADDITIONAL_PACK_PARAMS)
 
                     #Different apple platforms require different shader binaries...
                     set(RN_IOS_SHADER_TYPE ios)
-                    if(IS_IOS_SIMULATOR)
+                    if(IS_IOS_SIMULATOR GREATER -1)
                         set(RN_IOS_SHADER_TYPE ios_sim)
-                    elseif(IS_VISIONOS AND NOT IS_VISIONOS_SIMULATOR)
+                    elseif(IS_VISIONOS GREATER -1)
                         set(RN_IOS_SHADER_TYPE visionos)
-                    elseif(IS_VISIONOS_SIMULATOR)
+                    elseif(IS_VISIONOS_SIMULATOR GREATER -1)
                         set(RN_IOS_SHADER_TYPE visionos_sim)
                     endif()
 
