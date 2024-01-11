@@ -23,14 +23,21 @@ struct _XDisplay;
 typedef struct _XDisplay Display;
 #endif
 
+namespace OIS
+{
+	class InputManager;
+}
+
 namespace RN
 {
+	class OISInputHandler;
 	class InputManager
 	{
 	public:
 		friend class Kernel;
 		friend class InputDevice;
 		friend class HIDDevice;
+		friend class OISInputHandler;
 
 		RN_OPTIONS(Event, uint32,
 				   DidStart = (1 << 0),
@@ -106,6 +113,13 @@ namespace RN
 
 		Vector3 _previousMousePosition;
 		Vector3 _mouseMovement;
+#endif
+		
+#if RN_PLATFORM_IOS
+		OIS::InputManager *_inputManager;
+		OISInputHandler *_oisInputHandler;
+		Vector3 _mouseMovement;
+		size_t _currentTouchCount;
 #endif
 
 		struct Target

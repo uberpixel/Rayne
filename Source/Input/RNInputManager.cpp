@@ -21,6 +21,9 @@
 #include <X11/extensions/XInput2.h>
 #endif
 
+#include "OISInputManager.h"
+#include "OISMultiTouch.h"
+
 namespace RN
 {
 	class InputBindPoint : public Object
@@ -63,6 +66,47 @@ namespace RN
 	extern void BuildPlatformDeviceTree();
 	extern void TearDownPlatformDeviceTree();
 #endif
+
+	class OISInputHandler : public OIS::MultiTouchListener
+	{
+	public:
+		OISInputHandler(InputManager *inputManager) { _inputManager = inputManager; }
+		
+		bool touchMoved(const OIS::MultiTouchEvent& arg) override
+		{
+			_inputManager->_lock.Lock();
+			_inputManager->_mouseMovement = Vector3(arg.state.X.rel, arg.state.Y.rel, arg.state.Z.rel);
+			_inputManager->_lock.Unlock();
+			return true;
+		}
+
+		bool touchPressed(const OIS::MultiTouchEvent& arg) override
+		{
+			_inputManager->_lock.Lock();
+			_inputManager->_currentTouchCount += 1;
+			_inputManager->_lock.Unlock();
+			return true;
+		}
+
+		bool touchReleased(const OIS::MultiTouchEvent& arg) override
+		{
+			_inputManager->_lock.Lock();
+			_inputManager->_currentTouchCount -= 1;
+			_inputManager->_lock.Unlock();
+			return true;
+		}
+
+		bool touchCancelled(const OIS::MultiTouchEvent& arg) override
+		{
+			_inputManager->_lock.Lock();
+			_inputManager->_currentTouchCount -= 1;
+			_inputManager->_lock.Unlock();
+			return true;
+		}
+		
+	private:
+		InputManager *_inputManager;
+	};
 
 	static InputManager *__sharedInstance = nullptr;
 
@@ -145,6 +189,21 @@ namespace RN
 		XISelectEvents(_xDisplay, DefaultRootWindow(_xDisplay), &evmask, 1);
 		XFlush(_xDisplay);
 #endif
+		
+#if RN_PLATFORM_IOS
+		_currentTouchCount = 0;
+		
+		OIS::ParamList pl;
+		_inputManager = OIS::InputManager::createInputSystem(pl);
+		
+		//Lets enable all addons that were compiled in:
+		_inputManager->enableAddOnFactory(OIS::InputManager::AddOn_All);
+		
+		OIS::MultiTouch *multitouch = (OIS::MultiTouch*)_inputManager->createInputObject(OIS::OISMultiTouch, true);
+		
+		_oisInputHandler = new OISInputHandler(this);
+		multitouch->setEventCallback(_oisInputHandler);
+#endif
 
 		PS4Controller::RegisterDriver();
 
@@ -161,6 +220,11 @@ namespace RN
 #if !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 		TearDownPlatformDeviceTree();
 #endif
+		
+#if RN_PLATFORM_IOS
+		delete _oisInputHandler;
+#endif
+		
 		_devices->Release();
 		_bindings->Release();
 		_mouseDevices->Release();
@@ -380,6 +444,13 @@ namespace RN
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 		_mouseDelta += _mouseMovement;
 		_mouseMovement = Vector3();
+#endif
+		
+#if RN_PLATFORM_IOS
+		_lock.Lock();
+		_mouseDelta += _mouseMovement;
+		_mouseMovement = Vector3();
+		_lock.Unlock();
 #endif
 
 		if(_mode & MouseMode::Smoothed)
@@ -895,6 +966,30 @@ namespace RN
 		if (name->IsEqual(RNCSTR("ESC")))
 		{
 			return _keyPressed[9];
+		}
+#endif
+		
+#if RN_PLATFORM_IOS
+		if(name->IsEqual(RNCSTR("W")))
+		{
+			//Simulate W button for forward movement if more than one finger touches the screen
+			/*size_t touchCount = 0;
+			_lock.Lock();
+			touchCount = _currentTouchCount;
+			_lock.Unlock();*/
+			
+			return (_currentTouchCount == 2);
+		}
+		
+		if(name->IsEqual(RNCSTR("E")))
+		{
+			//Simulate W button for forward movement if more than one finger touches the screen
+			/*size_t touchCount = 0;
+			_lock.Lock();
+			touchCount = _currentTouchCount;
+			_lock.Unlock();*/
+			
+			return (_currentTouchCount == 3);
 		}
 #endif
 

@@ -29,6 +29,9 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(LIBZIP_DO_INSTALL "Install libzip and the related files" OFF)
 option(SHARED_LIB_VERSIONNING "Add SO version in .so build" OFF)
 
+option(OIS_BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(OIS_BUILD_DEMOS "Build demo applications" OFF)
+
 add_subdirectory("zlib")
 
 #Force static zlib to be used
@@ -41,6 +44,7 @@ set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR
 add_subdirectory("jansson")
 add_subdirectory("libpng")
 add_subdirectory("libzip")
+add_subdirectory("OIS")
 
 #Otherwise libzip tries to pull in zlib with a wrong name (which is manually linked already anyway)
 set_target_properties(zip PROPERTIES

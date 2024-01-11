@@ -22,3 +22,6 @@
 [submodule "Tools/MeshOptimzer/Optimizer/Vendor/meshoptimizer"]
 	path = Tools/MeshOptimzer/Optimizer/Vendor/meshoptimizer
 	url = https://github.com/zeux/meshoptimizer.git
+[submodule "Vendor/OIS"]
+	path = Vendor/OIS
+	url = https://github.com/wgois/OIS.git

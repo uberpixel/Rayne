@@ -303,7 +303,8 @@ set(INCLUDE_DIRECTORIES
         ${jansson_BINARY_DIR}/include
         ${libpng_SOURCE_DIR}
         ${libpng_BINARY_DIR}
-        ${zlib_SOURCE_DIR})
+        ${zlib_SOURCE_DIR}
+        ${OIS_SOURCE_DIR}/includes)
 
 set(COMPILE_OPTIONS "")
 set(LINK_LIBRARIES "")
@@ -403,7 +404,7 @@ if(ANDROID)
     set(LINK_LIBRARIES ${LINK_LIBRARIES} android log)
 endif()
 
-set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic zip)
+set(LINK_LIBRARIES ${LINK_LIBRARIES} jansson png_static zlibstatic zip OIS)
 
 set(TARGET_SOURCES ${RAYNE_SOURCES} ${RAYNE_HEADERS} ${RAYNE_HEADERS_PRIVATE} ${RAYNE_PLATFORM_SOURCES} ${RAYNE_PLATFORM_HEADERS_PRIVATE})
 set(TARGET_HEADERS ${RAYNE_HEADERS})
