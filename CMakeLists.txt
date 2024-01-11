@@ -10,6 +10,11 @@ option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
 option(RAYNE_VTUNE "Enable VTune if avaialable" ON)
 
 option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
+
+if((CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+    set(VISIONOS 1)
+endif()
+
 if(APPLE)
     if(IOS OR VISIONOS)
         set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "OSX architectures to compile for" FORCE)

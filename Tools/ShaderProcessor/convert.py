@@ -31,7 +31,7 @@ def removePermutations(directory, pattern):
 
 def main():
     if len(sys.argv) < 4:
-        print('Specify shader json file followed by requested formats as comma separated list with no spaces (dxil,cso,spirv,metal_macos,metal_ios), output directory path [and optional resource folder relative path] as parameters')
+        print('Specify shader json file followed by requested formats as comma separated list with no spaces (dxil,cso,spirv,metal_macos,metal_ios,metal_ios_sim,metal_visionos,metal_visionos_sim), output directory path [and optional resource folder relative path] as parameters')
         return
 
     with open(sys.argv[1], 'r') as sourceJsonData:
@@ -62,16 +62,16 @@ def main():
     destinationJson = list()
 
     shaderConductorCmdPath = os.path.dirname(sys.argv[0])
-    supportedFormats = ['dxil', 'cso', 'spirv', 'metal_macos', 'metal_ios']
+    supportedFormats = ['dxil', 'cso', 'spirv', 'metal_macos', 'metal_ios', 'metal_ios_sim', 'metal_visionos', 'metal_visionos_sim']
     shaderConductorExectutableName = 'ShaderConductorCmd'
     if platform.system() == 'Darwin':
-        supportedFormats = ['spirv', 'metal_macos', 'metal_ios']
+        supportedFormats = ['spirv', 'metal_macos', 'metal_ios', 'metal_ios_sim', 'metal_visionos', 'metal_visionos_sim']
     elif platform.system() == 'Windows':
         preprocessHLSLPath = os.path.join(shaderConductorCmdPath, 'preprocessForHLSL.py')
         shaderConductorExectutableName = 'ShaderConductorCmd.exe'
         fxcCmdPath = 'C:/Program Files (x86)/Windows Kits/10/bin/x64/fxc.exe'
     elif platform.system() == 'Linux':
-        supportedFormats = ['spirv', 'metal_macos', 'metal_ios']
+        supportedFormats = ['spirv', 'metal_macos', 'metal_ios', 'metal_ios_sim', 'metal_visionos', 'metal_visionos_sim']
     else:
         print('Script needs to be updated with ShaderConductor path for platform: ' + platform.system())
         return
@@ -220,12 +220,12 @@ def main():
                 elif outFormat == 'spirv':
                     compilerOutFormat = 'spirv'
                     destinationShaderFile['file~vulkan'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.' + outFormat
-                elif outFormat == 'metal_macos' or outFormat == 'metal_ios':
+                elif outFormat == 'metal_macos' or outFormat == 'metal_ios' or outFormat == 'metal_ios_sim' or outFormat == 'metal_visionos' or outFormat == 'metal_visionos_sim':
                     outFileFormat = 'metal'
                     if outFormat == 'metal_macos':
                         compilerOutFormat = 'msl_macos'
                     else:
-                        compilerOutFormat = 'msl_ios'
+                        compilerOutFormat = 'msl_ios' #Should also work for the simulator and visionos
 
                     if platform.system() == 'Darwin':
                         destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metallib'
@@ -233,7 +233,7 @@ def main():
                         destinationShaderFile['file~metal'] = resourceRelativePath + '/' + fileName + '.' + shaderType + '.metal'
 
                 if not skipShaderCompiling:
-                    if outFormat == 'metal_macos' or outFormat == 'metal_ios':
+                    if outFormat == 'metal_macos' or outFormat == 'metal_ios' or outFormat == 'metal_ios_sim' or outFormat == 'metal_visionos' or outFormat == 'metal_visionos_sim':
                         removePermutations(outDirName, fileName + "." + shaderType + ".*.metal")
                         removePermutations(outDirName, fileName + "." + shaderType + ".*.metallib")
                     else:
@@ -257,7 +257,7 @@ def main():
                             parameterList.append("true")
 
                         parameterList.append("-DRN_RENDERER_VULKAN=1")
-                    elif outFormat == 'metal_macos' or outFormat == 'metal_ios':
+                    elif outFormat == 'metal_macos' or outFormat == 'metal_ios' or outFormat == 'metal_ios_sim' or outFormat == 'metal_visionos' or outFormat == 'metal_visionos_sim':
                         if "has_16bit" in shader and shader["has_16bit"] == True:
                             parameterList.append("--16bittypes")
                             parameterList.append("true")
@@ -272,7 +272,7 @@ def main():
                         print(parameterList)
                         subprocess.call(parameterList)
 
-                        if (outFormat == 'metal_macos' or outFormat == 'metal_ios') and platform.system() == 'Darwin':
+                        if (outFormat == 'metal_macos' or outFormat == 'metal_ios' or outFormat == 'metal_ios_sim' or outFormat == 'metal_visionos' or outFormat == 'metal_visionos_sim') and platform.system() == 'Darwin':
                             bitcodeOutFile = permutationOutFile + '.air'
                             libOutFile = os.path.join(outDirName, fileName + '.' + shaderType + '.' + str(permutationDict["identifier"]) + '.metallib')
                             if outFormat == 'metal_macos':
@@ -281,12 +281,30 @@ def main():
                                 else:
                                     subprocess.call(['xcrun', '-sdk', 'macosx', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
                                 subprocess.call(['xcrun', '-sdk', 'macosx', 'metallib', bitcodeOutFile, '-o', libOutFile])
-                            else:
+                            elif outFormat == 'metal_ios':
                                 if enableDebugSymbols:
                                     subprocess.call(['xcrun', '-sdk', 'iphoneos', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
                                 else:
                                     subprocess.call(['xcrun', '-sdk', 'iphoneos', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
                                 subprocess.call(['xcrun', '-sdk', 'iphoneos', 'metallib', bitcodeOutFile, '-o', libOutFile])
+                            elif outFormat == 'metal_ios_sim':
+                                if enableDebugSymbols:
+                                    subprocess.call(['xcrun', '-sdk', 'iphonesimulator', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                else:
+                                    subprocess.call(['xcrun', '-sdk', 'iphonesimulator', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                subprocess.call(['xcrun', '-sdk', 'iphonesimulator', 'metallib', bitcodeOutFile, '-o', libOutFile])
+                            elif outFormat == 'metal_visionos':
+                                if enableDebugSymbols:
+                                    subprocess.call(['xcrun', '-sdk', 'xros', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                else:
+                                    subprocess.call(['xcrun', '-sdk', 'xros', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                subprocess.call(['xcrun', '-sdk', 'xros', 'metallib', bitcodeOutFile, '-o', libOutFile])
+                            elif outFormat == 'metal_visionos_sim':
+                                if enableDebugSymbols:
+                                    subprocess.call(['xcrun', '-sdk', 'xrsimulator', 'metal', '-gline-tables-only', '-MO', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                else:
+                                    subprocess.call(['xcrun', '-sdk', 'xrsimulator', 'metal', '-c', permutationOutFile, '-o', bitcodeOutFile])
+                                subprocess.call(['xcrun', '-sdk', 'xrsimulator', 'metallib', bitcodeOutFile, '-o', libOutFile])
                             os.remove(permutationOutFile)
                             os.remove(bitcodeOutFile)
 

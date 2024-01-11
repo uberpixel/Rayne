@@ -1,10 +1,13 @@
+if((CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+    set(VISIONOS 1)
+endif()
 
 set(DIR_OF_RAYNE_CMAKE ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(PythonInterp 3 REQUIRED)
 
 macro(rayne_link_with _TARGET)
-    if(IOS)
+    if(IOS OR VISIONOS)
         get_target_property(CURRENT_EMBED_FRAMEWORKS ${_TARGET} XCODE_EMBED_FRAMEWORKS)
         if(CURRENT_EMBED_FRAMEWORKS)
             set_property(TARGET ${_TARGET} PROPERTY XCODE_EMBED_FRAMEWORKS ${CURRENT_EMBED_FRAMEWORKS} Rayne ${_TARGET}Lib)
@@ -66,7 +69,7 @@ macro(rayne_use_modules _TARGET _MODULES)
     foreach(_MODULE ${_MODULES})
         set(_MODULE_TARGET "${_MODULE}")
         
-        if(IOS)
+        if(IOS OR VISIONOS)
             target_link_libraries(${_TARGET}Lib PUBLIC ${_MODULE_TARGET})
             target_include_directories(${_TARGET}Lib SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
             target_include_directories(${_TARGET} SYSTEM PRIVATE ${${_MODULE_TARGET}_BINARY_DIR}/include)
@@ -86,7 +89,7 @@ macro(rayne_use_modules _TARGET _MODULES)
 
 
         if(APPLE)
-            if(IOS)
+            if(IOS OR VISIONOS)
                 #Don't copy here for iOS, they will already be embeded in the frameworks directory
                 #add_custom_command(TARGET ${_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${_MODULE_TARGET}>" "$<TARGET_BUNDLE_CONTENT_DIR:${_TARGET}>/ResourceFiles/Resources/Modules/${_MODULE}/${_MODULE}.framework")
             else()
@@ -130,8 +133,22 @@ macro(rayne_copy_resources _TARGET _RESOURCES _ADDITIONAL_PACK_PARAMS)
             endif()
         elseif(APPLE)
             if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
-                if(IOS)
-                    add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${PYTHON_EXECUTABLE} "${DIR_OF_RAYNE_CMAKE}/../Tools/ResourcePacker/pack.py" "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_BUNDLE_CONTENT_DIR:${_TARGET}>/ResourceFiles/${_RESOURCE}" ios ${_ADDITIONAL_PACK_PARAMS})
+                if(IOS OR VISIONOS)
+                    string(FIND ${CMAKE_OSX_SYSROOT} "XROS" IS_VISIONOS)
+                    string(FIND ${CMAKE_OSX_SYSROOT} "iPhoneSimulator" IS_IOS_SIMULATOR)
+                    string(FIND ${CMAKE_OSX_SYSROOT} "XRSimulator" IS_VISIONOS_SIMULATOR)
+
+                    #Different apple platforms require different shader binaries...
+                    set(RN_IOS_SHADER_TYPE ios)
+                    if(IS_IOS_SIMULATOR)
+                        set(RN_IOS_SHADER_TYPE ios_sim)
+                    elseif(IS_VISIONOS AND NOT IS_VISIONOS_SIMULATOR)
+                        set(RN_IOS_SHADER_TYPE visionos)
+                    elseif(IS_VISIONOS_SIMULATOR)
+                        set(RN_IOS_SHADER_TYPE visionos_sim)
+                    endif()
+
+                    add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${PYTHON_EXECUTABLE} "${DIR_OF_RAYNE_CMAKE}/../Tools/ResourcePacker/pack.py" "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_BUNDLE_CONTENT_DIR:${_TARGET}>/ResourceFiles/${_RESOURCE}" ${RN_IOS_SHADER_TYPE} ${_ADDITIONAL_PACK_PARAMS})
                 else()
                     add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${PYTHON_EXECUTABLE} "${DIR_OF_RAYNE_CMAKE}/../Tools/ResourcePacker/pack.py" "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_BUNDLE_CONTENT_DIR:${_TARGET}>/ResourceFiles/${_RESOURCE}" macos ${_ADDITIONAL_PACK_PARAMS})
                 endif()

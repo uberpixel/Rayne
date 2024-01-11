@@ -37,7 +37,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(APPLE)
-	if(IOS)
+	if(IOS OR VISIONOS)
 		set(CMAKE_INSTALL_RPATH @executable_path;@executable_path/Frameworks)
 	else()
 		set(CMAKE_INSTALL_RPATH @executable_path;@executable_path/../ResourceFiles/Resources/Modules/RayneJolt;@executable_path/../ResourceFiles/Resources/Modules/RayneMetal;@executable_path/../ResourceFiles/Resources/Modules/RayneOpenXR;@executable_path/../ResourceFiles/Resources/Modules/RayneVR)

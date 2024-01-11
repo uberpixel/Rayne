@@ -264,7 +264,7 @@ set(RAYNE_HEADERS_PRIVATE
 set(RAYNE_PLATFORM_SOURCES "")
 set(RAYNE_PLATFORM_HEADERS_PRIVATE "")
 
-if(IOS)
+if(IOS OR VISIONOS)
     set(RAYNE_PLATFORM_SOURCES
             Input/RNInputIOS.cpp)
 
@@ -318,7 +318,7 @@ if(APPLE)
 
     find_library(FOUNDATION_LIBRARY Foundation)
     set(LINK_LIBRARIES ${FOUNDATION_LIBRARY})
-    if(NOT IOS)
+    if(NOT IOS AND NOT VISIONOS)
         find_library(COCOA_LIBRARY Cocoa)
         find_library(IOKIT_LIBRARY IOKit)
 

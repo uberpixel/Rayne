@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10.1)
 project(RayneMetal LANGUAGES OBJCXX)
 
+if((CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+    set(VISIONOS 1)
+endif()
+
 include(../../CMake/LibraryTarget.cmake)
 
 set(VERSION_MAJOR 0)
@@ -8,6 +12,10 @@ set(VERSION_MINOR 5)
 set(VERSION_PATCH 0)
 set(VERSION_ABI 1)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+string(FIND ${CMAKE_OSX_SYSROOT} "XROS" IS_VISIONOS)
+string(FIND ${CMAKE_OSX_SYSROOT} "iPhoneSimulator" IS_IOS_SIMULATOR)
+string(FIND ${CMAKE_OSX_SYSROOT} "XRSimulator" IS_VISIONOS_SIMULATOR)
 
 set(SOURCES
         Sources/RNMetalDevice.cpp
@@ -25,8 +33,16 @@ set(SOURCES
         Sources/RNMetalSwapChain.cpp
         Sources/RNMetalInit.cpp)
 
-if(IOS)
-        set(RESOURCES Resources_ios)
+if(IOS OR VISIONOS)
+        if(IS_VISIONOS AND NOT IS_VISIONOS_SIMULATOR)
+                set(RESOURCES Resources_visionos)
+        elseif(IS_VISIONOS_SIMULATOR)
+                set(RESOURCES Resources_visionos_sim)
+        elseif(IS_IOS_SIMULATOR)
+                set(RESOURCES Resources_ios_sim)
+        else()
+                set(RESOURCES Resources_ios)
+        endif()
 else()
         set(RESOURCES Resources_macos)
 endif()
@@ -55,7 +71,7 @@ set(RAYNE_LIBRARIES Rayne)
 set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
 
 find_library(METAL_LIBRARY Metal)
-if(IOS)
+if(IOS OR VISIONOS)
         find_library(FOUNDATION_LIBRARY Foundation)
         find_library(UIKIT_LIBRARY UIKit)
         set(LINK_LIBRARIES ${FOUNDATION_LIBRARY} ${UIKIT_LIBRARY} ${METAL_LIBRARY})
@@ -74,12 +90,13 @@ target_link_libraries(RayneMetal PUBLIC "${LINK_LIBRARIES}")
 target_compile_options(RayneMetal PRIVATE "-xobjective-c++")
 target_compile_definitions(RayneMetal PRIVATE "${DEFINES}")
 
-add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
 
-if(IOS)
-        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources_ios" "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
+if(IOS OR VISIONOS)
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/${RESOURCES}" "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
 else()
-        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/Resources_macos" "$<TARGET_FILE_DIR:RayneMetal>/Resources")
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:RayneMetal>/Resources")
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/${RESOURCES}" "$<TARGET_FILE_DIR:RayneMetal>/Resources")
 endif()
 
 

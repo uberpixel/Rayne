@@ -1,3 +1,6 @@
+if((CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+    set(VISIONOS 1)
+endif()
 
 macro(__rayne_create_target _NAME _TYPE _SOURCES _HEADERS _RAYNE_LIBRARIES _VERSION _ABI)
     # Input check
@@ -94,7 +97,7 @@ macro(rayne_set_module_resources _TARGET _RESOURCES)
     foreach(_RESOURCE ${_RESOURCES})
 
         if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}")
-            if(IOS)
+            if(IOS OR VISIONOS)
                 add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/ResourceFiles/${_RESOURCE}")
             else()
                 add_custom_command(TARGET ${_TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/${_RESOURCE}" "$<TARGET_FILE_DIR:${_TARGET}>/${_RESOURCE}")

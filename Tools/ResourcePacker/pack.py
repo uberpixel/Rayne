@@ -134,7 +134,7 @@ def main():
     sourceDirectory = sys.argv[1]
     targetDirectory = sys.argv[2]
     platform = None
-    if sys.argv[3] in ['windows', 'macos', 'linux', 'android', 'ios']:
+    if sys.argv[3] in ['windows', 'macos', 'linux', 'android', 'ios', 'ios_sim', 'visionos', 'visionos_sim']:
         platform = sys.argv[3]
 
     if not platform:
@@ -164,7 +164,7 @@ def main():
         if platform == 'windows' or platform == 'macos' or platform == 'linux':
             preferredTextureExtension = '.dds'
             textureExtensionsToSkipForCompressed = ['.png', '.astc']
-        elif platform == 'android' or platform == 'ios':
+        elif platform == 'android' or platform == 'ios' or platform == 'ios_sim' or platform == 'visionos' or platform == 'visionos_sim':
             preferredTextureExtension = '.astc'
             textureExtensionsToSkipForCompressed = ['.png', '.dds']
         else:
@@ -176,6 +176,12 @@ def main():
             preferredShaderType = 'metal_macos'
         elif platform == 'ios':
             preferredShaderType = 'metal_ios'
+        elif platform == 'ios_sim':
+            preferredShaderType = 'metal_ios_sim'
+        elif platform == 'visionos':
+            preferredShaderType = 'metal_visionos'
+        elif platform == 'visionos_sim':
+            preferredShaderType = 'metal_visionos_sim'
         elif platform == 'linux' or platform == 'android':
             preferredShaderType = 'spirv'
 

@@ -1,0 +1,236 @@
+[
+    {
+        "file~metal": ":RayneMetal:/Shaders.vs.metallib",
+        "shaders": [
+            {
+                "name": "gouraud_vertex",
+                "signature": {
+                    "options": [
+                        "RN_NORMALS",
+                        "RN_COLOR",
+                        "RN_UV0",
+                        "RN_ANIMATIONS",
+                        "RN_SHADOWS_DIRECTIONAL",
+                        "RN_LIGHTS_DIRECTIONAL",
+                        "RN_LIGHTS_POINT",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Shaders.ps.metallib",
+        "shaders": [
+            {
+                "name": "gouraud_fragment",
+                "signature": {
+                    "options": [
+                        "RN_NORMALS",
+                        "RN_COLOR",
+                        "RN_ALPHA",
+                        "RN_UV0",
+                        "RN_SHADOWS_DIRECTIONAL",
+                        "RN_LIGHTS_DIRECTIONAL",
+                        "RN_LIGHTS_POINT"
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Particles.vs.metallib",
+        "shaders": [
+            {
+                "name": "particles_vertex",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Particles.ps.metallib",
+        "shaders": [
+            {
+                "name": "particles_fragment",
+                "signature": {
+                    "options": [
+                        "RN_UV0"
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Depth.vs.metallib",
+        "shaders": [
+            {
+                "name": "depth_vertex",
+                "signature": {
+                    "options": [
+                        "RN_ALPHA",
+                        "RN_UV0",
+                        "RN_SKY",
+                        "RN_ANIMATIONS",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Depth.ps.metallib",
+        "shaders": [
+            {
+                "name": "depth_fragment",
+                "signature": {
+                    "options": [
+                        "RN_ALPHA",
+                        "RN_UV0"
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Sky.vs.metallib",
+        "shaders": [
+            {
+                "name": "sky_vertex",
+                "signature": {
+                    "options": [
+                        "RN_COLOR",
+                        "RN_UV0",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/Sky.ps.metallib",
+        "shaders": [
+            {
+                "name": "sky_fragment",
+                "signature": {
+                    "options": [
+                        "RN_COLOR",
+                        "RN_UV0"
+                    ],
+                    "samplers": [
+                        {
+                            "name": "linearClampSampler",
+                            "wrap": "clamp"
+                        }
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/UI.vs.metallib",
+        "shaders": [
+            {
+                "name": "ui_vertex",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_UV1",
+                        "RN_COLOR",
+                        "RN_USE_MULTIVIEW"
+                    ]
+                },
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/UI.ps.metallib",
+        "shaders": [
+            {
+                "name": "ui_fragment",
+                "signature": {
+                    "options": [
+                        "RN_UV0",
+                        "RN_UV1"
+                    ],
+                    "samplers": [
+                        {
+                            "name": "linearClampSampler",
+                            "wrap": "clamp"
+                        }
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/PostProcessing.vs.metallib",
+        "shaders": [
+            {
+                "name": "pp_vertex",
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/PostProcessing.ps.metallib",
+        "shaders": [
+            {
+                "name": "pp_blit_fragment",
+                "signature": {
+                    "options": [
+                        "RN_PP_VR"
+                    ],
+                    "samplers": [
+                        {
+                            "name": "linearClampSampler",
+                            "wrap": "clamp"
+                        }
+                    ]
+                },
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/OpenVRMask.vs.metallib",
+        "shaders": [
+            {
+                "name": "pp_mask_vertex",
+                "type": "vertex"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/OpenVRMask.ps.metallib",
+        "shaders": [
+            {
+                "name": "pp_mask_fragment",
+                "type": "fragment"
+            }
+        ]
+    },
+    {
+        "file~metal": ":RayneMetal:/GenerateMipMaps.cs.metallib",
+        "shaders": [
+            {
+                "name": "GenerateMipMaps",
+                "type": "compute"
+            }
+        ]
+    }
+]

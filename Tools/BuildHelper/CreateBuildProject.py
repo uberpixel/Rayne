@@ -10,7 +10,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python CreateBuildProject.py build-config.json os (windows, linux, macos, android, ios or visionos) configuration (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
+		print('python CreateBuildProject.py build-config.json os (windows, linux, macos, android, ios, visionos, ios_sim, visionos_sim) configuration (independent, oculus, steam, pico or headless) [demo] (will add "demo" to the bundle id and name)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -31,7 +31,7 @@ def main():
 	projectRootPath = os.path.abspath(projectRootPath)
 
 	operatingSystem = sys.argv[2]
-	supportedOperatingSystems= ['windows', 'linux', 'macos', 'ios', 'visionos', 'android', 'test']
+	supportedOperatingSystems= ['windows', 'linux', 'macos', 'ios', 'visionos', 'ios_sim', 'visionos_sim', 'android', 'test']
 	if not operatingSystem in supportedOperatingSystems:
 		print('OS (' + operatingSystem + ') not supported!')
 		return
@@ -103,12 +103,24 @@ def main():
 		cmakeCall = ['cmake', '-G', 'Xcode', projectRootPath]
 		cmakeCall.extend(buildconfiguration)
 		subprocess.run(cmakeCall)
+	elif operatingSystem =='ios':
+		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=iOS', projectRootPath]
+		cmakeCall.extend(buildconfiguration)
+		subprocess.run(cmakeCall)
+	elif operatingSystem =='ios_sim':
+		simulatorRootOutput = subprocess.run(['xcodebuild', '-version', '-sdk', 'iphonesimulator', 'Path'], capture_output=True)
+		simulatorRoot = simulatorRootOutput.stdout.decode("utf-8").strip()
+		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=iOS', '-DCMAKE_OSX_SYSROOT='+simulatorRoot, projectRootPath]
+		cmakeCall.extend(buildconfiguration)
+		subprocess.run(cmakeCall)
 	elif operatingSystem =='visionos':
 		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=visionOS', projectRootPath]
 		cmakeCall.extend(buildconfiguration)
 		subprocess.run(cmakeCall)
-	elif operatingSystem =='ios':
-		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=iOS', projectRootPath]
+	elif operatingSystem =='visionos_sim':
+		simulatorRootOutput = subprocess.run(['xcodebuild', '-version', '-sdk', 'xrsimulator', 'Path'], capture_output=True)
+		simulatorRoot = simulatorRootOutput.stdout.decode("utf-8").strip()
+		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=visionOS', '-DCMAKE_OSX_SYSROOT='+simulatorRoot, projectRootPath]
 		cmakeCall.extend(buildconfiguration)
 		subprocess.run(cmakeCall)
 	elif operatingSystem == 'android':
