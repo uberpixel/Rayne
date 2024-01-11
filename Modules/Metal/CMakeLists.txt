@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.1)
-project(RayneMetal)
+project(RayneMetal LANGUAGES OBJCXX)
 
 include(../../CMake/LibraryTarget.cmake)
 
@@ -25,8 +25,11 @@ set(SOURCES
         Sources/RNMetalSwapChain.cpp
         Sources/RNMetalInit.cpp)
 
-set(RESOURCES
-        Resources)
+if(IOS)
+        set(RESOURCES Resources_ios)
+else()
+        set(RESOURCES Resources_macos)
+endif()
 
 set(HEADERS
         Sources/RNMetal.h
@@ -53,7 +56,9 @@ set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
 
 find_library(METAL_LIBRARY Metal)
 if(IOS)
-        set(LINK_LIBRARIES ${METAL_LIBRARY})
+        find_library(FOUNDATION_LIBRARY Foundation)
+        find_library(UIKIT_LIBRARY UIKit)
+        set(LINK_LIBRARIES ${FOUNDATION_LIBRARY} ${UIKIT_LIBRARY} ${METAL_LIBRARY})
 elseif(APPLE)
         find_library(COCOA_LIBRARY Cocoa)
         find_library(QUARTZCORE_LIBRARY QuartzCore)
@@ -68,6 +73,14 @@ target_include_directories(RayneMetal SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_link_libraries(RayneMetal PUBLIC "${LINK_LIBRARIES}")
 target_compile_options(RayneMetal PRIVATE "-xobjective-c++")
 target_compile_definitions(RayneMetal PRIVATE "${DEFINES}")
+
+add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
+
+if(IOS)
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources_ios" "$<TARGET_FILE_DIR:RayneMetal>/ResourceFiles/Resources")
+else()
+        add_custom_command(TARGET RayneMetal PRE_BUILD COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE_DIR:RayneMetal>/Resources_macos" "$<TARGET_FILE_DIR:RayneMetal>/Resources")
+endif()
 
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneMetal/. DESTINATION lib/Rayne/RayneMetal)

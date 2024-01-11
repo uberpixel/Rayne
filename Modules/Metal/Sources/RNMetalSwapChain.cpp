@@ -14,16 +14,26 @@ namespace RN
 {
 	RNDefineMeta(MetalSwapChain, Object)
 
+#if RN_PLATFORM_MAC_OS
 	MetalSwapChain::MetalSwapChain(const Vector2 size, id<MTLDevice> device, Screen *screen, const Window::SwapChainDescriptor &descriptor) : _frameIndex(0), _frameDivider(1), _drawable(nullptr)
 	{
-#if RN_PLATFORM_MAC_OS
 		_metalView = [[RNMetalView alloc] initWithFrame:NSMakeRect(0, 0, size.x, size.y) device:device screen:screen andFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
 		CGSize realSize = [_metalView getSize];
 		_size = Vector2(realSize.width, realSize.height);
-#endif
 
 		_framebuffer = new MetalFramebuffer(_size, this, descriptor.colorFormat, descriptor.depthStencilFormat);
 	}
+#endif
+
+#if RN_PLATFORM_IOS
+	MetalSwapChain::MetalSwapChain(const Vector2 size, RNMetalLayerContainer *metalLayerContainer, const Window::SwapChainDescriptor &descriptor) : _frameIndex(0), _frameDivider(1), _drawable(nullptr)
+	{
+		_metalLayerContainer = metalLayerContainer;
+		_size = size;
+
+		_framebuffer = new MetalFramebuffer(_size, this, descriptor.colorFormat, descriptor.depthStencilFormat);
+	}
+#endif
 
 	MetalSwapChain::~MetalSwapChain()
 	{
@@ -46,7 +56,11 @@ namespace RN
 		
 		if(_frameDivider && _frameIndex%_frameDivider == 0)
 		{
+#if RN_PLATFORM_MAC_OS
 			_drawable = [_metalView nextDrawable];
+#elif RN_PLATFORM_IOS
+			_drawable = _metalLayerContainer->GetNextDrawable();
+#endif
 		}
 		else
 		{

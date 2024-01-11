@@ -85,6 +85,11 @@ namespace RN
 		RNAPI void SetJNIEnvForRayneMainThread(JNIEnv *jniEnv);
 		JNIEnv *GetJNIEnvForRayneMainThread() const { return _jniEnv; }
 #endif
+		
+#if RN_PLATFORM_IOS
+		RNAPI void SetMetalLayer(void *view);
+		void *GetMetalLayer() const { return _metalView; }
+#endif
 
 	private:
 		Kernel(Application *app, const ArgumentParser &arguments);
@@ -124,6 +129,9 @@ namespace RN
 #if RN_PLATFORM_ANDROID
 		android_app *_androidApp;
 		JNIEnv *_jniEnv;
+#endif
+#if RN_PLATFORM_IOS
+		void *_metalView;
 #endif
 
 		RunLoopObserver *_observer;

@@ -11,16 +11,20 @@
 
 #import <Metal/Metal.h>
 
-#if RN_PLATFORM_MAC_OS
-#import <Cocoa/Cocoa.h>
-#import <QuartzCore/QuartzCore.h>
-#endif
-
 #include "RNMetal.h"
 #include "RNMetalStateCoordinator.h"
 #include "RNMetalUniformBuffer.h"
 #include "RNMetalFramebuffer.h"
 #include "RNMetalRenderer.h"
+
+#if RN_PLATFORM_MAC_OS
+#import <Cocoa/Cocoa.h>
+#import <QuartzCore/QuartzCore.h>
+#endif
+
+#if RN_PLATFORM_IOS
+#import <UIKit/UIKit.h>
+#endif
 
 #if RN_PLATFORM_MAC_OS
 @interface RNMetalView : NSView
@@ -31,6 +35,19 @@
 
 @interface RNMetalWindow : NSWindow
 @end
+#endif
+
+#if RN_PLATFORM_IOS
+class RNMetalLayerContainer
+{
+public:
+	RNMetalLayerContainer(CAMetalLayer *metalLayer);
+	id<CAMetalDrawable> GetNextDrawable();
+	RN::Vector2 GetSize();
+	
+private:
+	CAMetalLayer *_metalLayer;
+};
 #endif
 
 namespace RN
@@ -224,6 +241,9 @@ namespace RN
 	{
 #if RN_PLATFORM_MAC_OS
 		NSWindow *window;
+#endif
+#if RN_PLATFORM_IOS
+		RNMetalLayerContainer *metalLayerContainer;
 #endif
 	};
 }

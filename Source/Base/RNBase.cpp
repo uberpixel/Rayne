@@ -212,9 +212,16 @@ namespace RN
 			result->SetJNIEnvForRayneMainThread(env);
 #endif
 
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+#if RN_PLATFORM_MAC_OS
 			@autoreleasepool {
 				result->Bootstrap();
+			}
+#elif RN_PLATFORM_IOS
+			RN_ASSERT(object, "Object needs to be a pointer to a CAMetalLayer for iOS builds.");
+			
+			@autoreleasepool {
+				result->Bootstrap();
+				result->SetMetalLayer(object);
 			}
 #else
 			result->Bootstrap();

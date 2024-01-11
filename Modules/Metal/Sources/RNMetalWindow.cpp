@@ -11,6 +11,7 @@
 #include "RNMetalInternals.h"
 #include "RNMetalRenderer.h"
 #include "RNMetalSwapChain.h"
+#include "RNMetalTexture.h"
 
 namespace RN
 {
@@ -41,6 +42,17 @@ namespace RN
 		CGFloat xPos = (NSWidth([nsscreen frame]) - NSWidth(frame)) * 0.5;
 		CGFloat yPos = (NSHeight([nsscreen frame]) - NSHeight(frame)) * 0.5;
 		[_internals->window setFrame:NSMakeRect(xPos, yPos, NSWidth(frame), NSHeight(frame)) display:YES];
+#endif
+		
+#if RN_PLATFORM_IOS
+		CAMetalLayer *metalLayer = (CAMetalLayer*)Kernel::GetSharedInstance()->GetMetalLayer();
+		metalLayer.device = renderer->_internals->device;
+		[metalLayer setPixelFormat:MetalTexture::PixelFormatForTextureFormat(descriptor.colorFormat)];
+		[metalLayer setFramebufferOnly:YES];
+		_internals->metalLayerContainer = new RNMetalLayerContainer(metalLayer);
+
+		// Create the swap chain
+		_swapChain = new MetalSwapChain(_internals->metalLayerContainer->GetSize(), _internals->metalLayerContainer, descriptor);
 #endif
 	}
 

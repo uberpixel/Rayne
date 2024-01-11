@@ -98,3 +98,20 @@
 
 @end
 #endif
+
+#if RN_PLATFORM_IOS
+RNMetalLayerContainer::RNMetalLayerContainer(CAMetalLayer *metalLayer)
+{
+	_metalLayer = metalLayer;
+}
+
+id<CAMetalDrawable> RNMetalLayerContainer::GetNextDrawable()
+{
+	return [_metalLayer nextDrawable];
+}
+
+RN::Vector2 RNMetalLayerContainer::GetSize()
+{
+	return RN::Vector2(_metalLayer.frame.size.width, _metalLayer.frame.size.height);
+}
+#endif

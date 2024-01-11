@@ -104,151 +104,151 @@ namespace RN
 
 	void MetalRenderer::Render(Function &&function)
 	{
-		_internals->renderPasses.clear();
-		_internals->swapChains.clear();
-		_internals->currentRenderPassIndex = 0;
-
-		CreateMipMaps();
-
-		//Submit camera is called for each camera and creates lists of drawables per camera
-		function();
-		
-		//Advance to next gpu buffer for uniforms and create new uniform buffer if pool is not big enough for any new objects
-		_uniformBufferPool->Update(this); //This will also reset all reference offsets into the buffer
-
-		for(MetalSwapChain *swapChain : _internals->swapChains)
-		{
-			//TODO: do this the first time the swap chain is actually used
-			swapChain->AcquireBackBuffer();
-			swapChain->Prepare();
-		}
-
-		_internals->commandBuffer = [[_internals->commandQueue commandBuffer] retain];
-
-		_internals->currentRenderPassIndex = 0;
-		for(MetalRenderPass &renderPass : _internals->renderPasses)
-		{
-			if(renderPass.framebuffer->GetSwapChain() && !renderPass.framebuffer->GetSwapChain()->GetMTLTexture())
+		@autoreleasepool {
+			_internals->renderPasses.clear();
+			_internals->swapChains.clear();
+			_internals->currentRenderPassIndex = 0;
+			
+			CreateMipMaps();
+			
+			//Submit camera is called for each camera and creates lists of drawables per camera
+			function();
+			
+			//Advance to next gpu buffer for uniforms and create new uniform buffer if pool is not big enough for any new objects
+			_uniformBufferPool->Update(this); //This will also reset all reference offsets into the buffer
+			
+			for(MetalSwapChain *swapChain : _internals->swapChains)
 			{
-				_internals->currentRenderPassIndex += 1;
-				continue;
+				//TODO: do this the first time the swap chain is actually used
+				swapChain->AcquireBackBuffer();
+				swapChain->Prepare();
 			}
 			
-			if(renderPass.type != MetalRenderPass::Type::Default && renderPass.type != MetalRenderPass::Type::Convert)
-			{
-				RenderAPIRenderPass(renderPass);
-				_internals->currentRenderPassIndex += 1;
-				continue;
-			}
+			_internals->commandBuffer = [_internals->commandQueue commandBuffer];
 			
-			_internals->currentRenderState = nullptr; //This is a property of the encoder and needs to be set to nullptr here to force setting it again.
-			MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer, renderPass.multiviewLayer, 0);
-			_internals->commandEncoder = [[_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor] retain];
-			[descriptor release];
-
-			Rect cameraRect = renderPass.renderPass->GetFrame();
-			if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+			_internals->currentRenderPassIndex = 0;
+			for(MetalRenderPass &renderPass : _internals->renderPasses)
 			{
-				Vector2 framebufferSize = renderPass.framebuffer->GetSize();
-				cameraRect.x = 0.0f;
-				cameraRect.y = 0.0f;
-				cameraRect.width = framebufferSize.x;
-				cameraRect.height = framebufferSize.y;
-			}
-			MTLViewport viewPort;
-			viewPort.originX = cameraRect.x;
-			viewPort.originY = cameraRect.y;
-			viewPort.width = cameraRect.width;
-			viewPort.height = cameraRect.height;
-			viewPort.znear = 0.0f;
-			viewPort.zfar = 1.0f;
-			[_internals->commandEncoder setViewport:viewPort];
-			
-			if(renderPass.type == MetalRenderPass::Type::Convert)
-			{
-				RenderAPIRenderPass(renderPass);
-			}
-			else
-			{
-				uint32 stepSize = 0;
-				uint32 stepSizeIndex = 0;
-				for(size_t i = 0; i < renderPass.drawables.size(); i+= stepSize)
+				if(renderPass.framebuffer->GetSwapChain() && !renderPass.framebuffer->GetSwapChain()->GetMTLTexture())
 				{
-					stepSize = renderPass.instanceSteps[stepSizeIndex];
-					stepSizeIndex += 1;
-					
-					uint32 counter = 0;
-					const MetalDrawable::CameraSpecific &cameraSpecifics = renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex];
-					for(size_t n = 0; n < cameraSpecifics.vertexShaderUniformBuffers.size(); n++)
+					_internals->currentRenderPassIndex += 1;
+					continue;
+				}
+				
+				if(renderPass.type != MetalRenderPass::Type::Default && renderPass.type != MetalRenderPass::Type::Convert)
+				{
+					RenderAPIRenderPass(renderPass);
+					_internals->currentRenderPassIndex += 1;
+					continue;
+				}
+				
+				_internals->currentRenderState = nullptr; //This is a property of the encoder and needs to be set to nullptr here to force setting it again.
+				MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, renderPass.resolveFramebuffer, renderPass.multiviewLayer, 0);
+				_internals->commandEncoder = [_internals->commandBuffer renderCommandEncoderWithDescriptor:descriptor];
+				[descriptor release];
+				
+				Rect cameraRect = renderPass.renderPass->GetFrame();
+				if(cameraRect.width < 0.5f || cameraRect.height < 0.5f)
+				{
+					Vector2 framebufferSize = renderPass.framebuffer->GetSize();
+					cameraRect.x = 0.0f;
+					cameraRect.y = 0.0f;
+					cameraRect.width = framebufferSize.x;
+					cameraRect.height = framebufferSize.y;
+				}
+				MTLViewport viewPort;
+				viewPort.originX = cameraRect.x;
+				viewPort.originY = cameraRect.y;
+				viewPort.width = cameraRect.width;
+				viewPort.height = cameraRect.height;
+				viewPort.znear = 0.0f;
+				viewPort.zfar = 1.0f;
+				[_internals->commandEncoder setViewport:viewPort];
+				
+				if(renderPass.type == MetalRenderPass::Type::Convert)
+				{
+					RenderAPIRenderPass(renderPass);
+				}
+				else
+				{
+					uint32 stepSize = 0;
+					uint32 stepSizeIndex = 0;
+					for(size_t i = 0; i < renderPass.drawables.size(); i+= stepSize)
 					{
-						for(size_t instance = 0; instance < stepSize; instance++)
+						stepSize = renderPass.instanceSteps[stepSizeIndex];
+						stepSizeIndex += 1;
+						
+						uint32 counter = 0;
+						const MetalDrawable::CameraSpecific &cameraSpecifics = renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex];
+						for(size_t n = 0; n < cameraSpecifics.vertexShaderUniformBuffers.size(); n++)
 						{
-							Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
-							
-							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
-							//Assume that only storage buffers can contain per instance data
-							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
-							
-							MetalDrawable *drawable = renderPass.drawables[i + instance];
-							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-							
-							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[n];
-							UpdateUniformBufferReference(bufferReference, instance == 0);
-							FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
-						}
-						counter += 1;
-					}
-					
-					for(size_t n = 0; n < cameraSpecifics.fragmentShaderUniformBuffers.size(); n++)
-					{
-						for(size_t instance = 0; instance < stepSize; instance++)
-						{
-							Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
-							
-							//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
-							//Assume that only storage buffers can contain per instance data
-							if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
-							
-							MetalDrawable *drawable = renderPass.drawables[i + instance];
-							Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
-							
-							MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[n];
-							UpdateUniformBufferReference(bufferReference, instance == 0);
-							FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
+							for(size_t instance = 0; instance < stepSize; instance++)
+							{
+								Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
+								
+								//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+								//Assume that only storage buffers can contain per instance data
+								if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+								
+								MetalDrawable *drawable = renderPass.drawables[i + instance];
+								Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+								
+								MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].vertexShaderUniformBuffers[n];
+								UpdateUniformBufferReference(bufferReference, instance == 0);
+								FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
+							}
+							counter += 1;
 						}
 						
-						counter += 1;
+						for(size_t n = 0; n < cameraSpecifics.fragmentShaderUniformBuffers.size(); n++)
+						{
+							for(size_t instance = 0; instance < stepSize; instance++)
+							{
+								Shader::ArgumentBuffer *argument = cameraSpecifics.argumentBufferToUniformBufferMapping[counter];
+								
+								//TODO: Somehow find a better way to know if an argument buffer contains instance data or not
+								//Assume that only storage buffers can contain per instance data
+								if(instance > 0 && argument->GetType() != Shader::ArgumentBuffer::Type::StorageBuffer) break;
+								
+								MetalDrawable *drawable = renderPass.drawables[i + instance];
+								Material::Properties mergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
+								
+								MetalUniformBufferReference *bufferReference = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].fragmentShaderUniformBuffers[n];
+								UpdateUniformBufferReference(bufferReference, instance == 0);
+								FillUniformBuffer(argument, bufferReference, drawable, mergedMaterialProperties);
+							}
+							
+							counter += 1;
+						}
+						
+						RenderDrawable(renderPass.drawables[i], stepSize);
 					}
-					
-					RenderDrawable(renderPass.drawables[i], stepSize);
 				}
+				
+				[_internals->commandEncoder endEncoding];
+				_internals->commandEncoder = nil;
+				
+				_internals->currentRenderPassIndex += 1;
 			}
-
-			[_internals->commandEncoder endEncoding];
-			[_internals->commandEncoder release];
-			_internals->commandEncoder = nil;
-
-			_internals->currentRenderPassIndex += 1;
+			
+			for(MetalSwapChain *swapChain : _internals->swapChains)
+			{
+				swapChain->Finalize();
+				swapChain->PresentBackBuffer(_internals->commandBuffer);
+			}
+			
+			//Flush all uniform buffers to make the GPU get the latest changes from CPU
+			_uniformBufferPool->FlushAllBuffers();
+			
+			[_internals->commandBuffer commit];
+			
+			for(MetalSwapChain *swapChain : _internals->swapChains)
+			{
+				swapChain->PostPresent(_internals->commandBuffer);
+			}
+			
+			_internals->commandBuffer = nil;
 		}
-
-		for(MetalSwapChain *swapChain : _internals->swapChains)
-		{
-			swapChain->Finalize();
-			swapChain->PresentBackBuffer(_internals->commandBuffer);
-		}
-		
-		//Flush all uniform buffers to make the GPU get the latest changes from CPU
-		_uniformBufferPool->FlushAllBuffers();
-		
-		[_internals->commandBuffer commit];
-		
-		for(MetalSwapChain *swapChain : _internals->swapChains)
-		{
-			swapChain->PostPresent(_internals->commandBuffer);
-		}
-		
-		[_internals->commandBuffer release];
-		_internals->commandBuffer = nil;
 	}
 	
 	void MetalRenderer::RenderAPIRenderPass(const MetalRenderPass &renderPass)

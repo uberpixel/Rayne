@@ -296,6 +296,13 @@ namespace RN
 		_jniEnv = jniEnv;
 	}
 #endif
+
+#if RN_PLATFORM_IOS
+	void Kernel::SetMetalLayer(void *view)
+	{
+		_metalView = view;
+	}
+#endif
 	
 	void Kernel::SetMaxFPS(uint32 maxFPS)
 	{

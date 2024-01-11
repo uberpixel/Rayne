@@ -11,7 +11,12 @@
 
 #include "RNMetal.h"
 
+#if RN_PLATFORM_MAC_OS
 @class RNMetalView;
+#endif
+#if RN_PLATFORM_IOS
+class RNMetalLayerContainer;
+#endif
 namespace RN
 {
 	class MetalFramebuffer;
@@ -50,9 +55,15 @@ namespace RN
 		uint8 _frameDivider;
 
 	private:
+#if RN_PLATFORM_MAC_OS
 		MetalSwapChain(const Vector2 size, id<MTLDevice> device, Screen *screen, const Window::SwapChainDescriptor &descriptor);
-
 		RNMetalView *_metalView;
+#endif
+#if RN_PLATFORM_IOS
+		MetalSwapChain(const Vector2 size, RNMetalLayerContainer *metalLayerContainer, const Window::SwapChainDescriptor &descriptor);
+		RNMetalLayerContainer *_metalLayerContainer;
+#endif
+
 		id _drawable;
 
 		RNDeclareMetaAPI(MetalSwapChain, MTLAPI)
