@@ -220,8 +220,15 @@ namespace RN
 			RN_ASSERT(object, "Object needs to be a pointer to a CAMetalLayer for iOS builds.");
 			
 			@autoreleasepool {
-				result->Bootstrap();
 				result->SetMetalLayer(object);
+				result->Bootstrap();
+			}
+#elif RN_PLATFORM_VISIONOS
+			RN_ASSERT(object, "Object needs to be a pointer to a Layer Renderer for visionOS builds.");
+			
+			@autoreleasepool {
+				result->SetLayerRenderer(object);
+				result->Bootstrap();
 			}
 #else
 			result->Bootstrap();

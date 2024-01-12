@@ -298,9 +298,16 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_IOS
-	void Kernel::SetMetalLayer(void *view)
+	void Kernel::SetMetalLayer(void *metalLayer)
 	{
-		_metalView = view;
+		_metalLayer = metalLayer;
+	}
+#endif
+
+#if RN_PLATFORM_VISIONOS
+	void Kernel::SetLayerRenderer(void *layerRenderer)
+	{
+		_layerRenderer = layerRenderer;
 	}
 #endif
 	

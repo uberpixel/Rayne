@@ -74,33 +74,41 @@ namespace RN
 		
 		bool touchMoved(const OIS::MultiTouchEvent& arg) override
 		{
+#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_mouseMovement = Vector3(arg.state.X.rel, arg.state.Y.rel, arg.state.Z.rel);
 			_inputManager->_lock.Unlock();
+#endif
 			return true;
 		}
 
 		bool touchPressed(const OIS::MultiTouchEvent& arg) override
 		{
+#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount += 1;
 			_inputManager->_lock.Unlock();
+#endif
 			return true;
 		}
 
 		bool touchReleased(const OIS::MultiTouchEvent& arg) override
 		{
+#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount -= 1;
 			_inputManager->_lock.Unlock();
+#endif
 			return true;
 		}
 
 		bool touchCancelled(const OIS::MultiTouchEvent& arg) override
 		{
+#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount -= 1;
 			_inputManager->_lock.Unlock();
+#endif
 			return true;
 		}
 		

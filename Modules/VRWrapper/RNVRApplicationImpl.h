@@ -30,6 +30,9 @@ namespace RN
 #if !RN_PLATFORM_MAC_OS && !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 		_vrWindow = new RN::OpenXRWindow();
 #endif
+#if RN_PLATFORM_VISIONOS
+		_vrWindow = new RN::AppleXRWindow();
+#endif
 	}
 
 	RendererDescriptor *VRApplication::GetPreferredRenderer() const

@@ -122,7 +122,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "iOS"))
 elseif((CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
     set(RAYNE_PLATFORM_OSX 0)
     set(RAYNE_PLATFORM_VISIONOS 1)
-    set(RAYNE_PLATFORM_IOS 1) #technically not correct, but keeps the code a little cleaner...
+    set(RAYNE_PLATFORM_IOS 0)
     set(RAYNE_PLATFORM_WINDOWS 0)
     set(RAYNE_PLATFORM_LINUX 0)
     set(RAYNE_PLATFORM_POSIX 1)

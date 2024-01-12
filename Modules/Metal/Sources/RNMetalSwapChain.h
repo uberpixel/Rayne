@@ -36,7 +36,9 @@ namespace RN
 		MTLAPI virtual void PresentBackBuffer(id<MTLCommandBuffer> commandBuffer);
 		MTLAPI virtual void PostPresent(id<MTLCommandBuffer> commandBuffer);
 
-		MTLAPI virtual id GetMTLTexture() const;
+		MTLAPI virtual id GetMetalColorTexture() const;
+		MTLAPI virtual id GetMetalDepthTexture() const;
+		
 		MetalFramebuffer *GetFramebuffer() const { return _framebuffer; }
 		
 		const Window::SwapChainDescriptor &GetSwapChainDescriptor() const { return _descriptor; }

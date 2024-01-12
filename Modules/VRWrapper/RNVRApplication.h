@@ -16,6 +16,9 @@
 #if !RN_PLATFORM_MAC_OS && !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
     #include "RNOpenXRWindow.h"
 #endif
+#if RN_PLATFORM_VISIONOS
+	#include "RNAppleXRWindow.h"
+#endif
 
 namespace RN
 {

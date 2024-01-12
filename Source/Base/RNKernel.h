@@ -87,8 +87,13 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_IOS
-		RNAPI void SetMetalLayer(void *view);
-		void *GetMetalLayer() const { return _metalView; }
+		RNAPI void SetMetalLayer(void *metalLayer);
+		void *GetMetalLayer() const { return _metalLayer; }
+#endif
+		
+#if RN_PLATFORM_VISIONOS
+		RNAPI void SetLayerRenderer(void *layerRenderer);
+		void *GetLayerRenderer() const { return _layerRenderer; }
 #endif
 
 	private:
@@ -131,7 +136,10 @@ namespace RN
 		JNIEnv *_jniEnv;
 #endif
 #if RN_PLATFORM_IOS
-		void *_metalView;
+		void *_metalLayer;
+#endif
+#if RN_PLATFORM_VISIONOS
+		void *_layerRenderer;
 #endif
 
 		RunLoopObserver *_observer;

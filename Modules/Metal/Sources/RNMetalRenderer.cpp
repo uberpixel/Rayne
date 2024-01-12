@@ -129,7 +129,7 @@ namespace RN
 			_internals->currentRenderPassIndex = 0;
 			for(MetalRenderPass &renderPass : _internals->renderPasses)
 			{
-				if(renderPass.framebuffer->GetSwapChain() && !renderPass.framebuffer->GetSwapChain()->GetMTLTexture())
+				if(renderPass.framebuffer->GetSwapChain() && !renderPass.framebuffer->GetSwapChain()->GetMetalColorTexture())
 				{
 					_internals->currentRenderPassIndex += 1;
 					continue;
@@ -288,7 +288,7 @@ namespace RN
 				}
 				else
 				{
-					sourceMTLTexture = sourceFramebuffer->GetSwapChain()->GetMTLTexture();
+					sourceMTLTexture = sourceFramebuffer->GetSwapChain()->GetMetalColorTexture();
 					sourceTextureSize.x = sourceFramebuffer->GetSize().x;
 					sourceTextureSize.y = sourceFramebuffer->GetSize().y;
 					sourceTextureSize.z = 0;
@@ -300,7 +300,7 @@ namespace RN
 				}
 				else
 				{
-					destinationMTLTexture = destinationFramebuffer->GetSwapChain()->GetMTLTexture();
+					destinationMTLTexture = destinationFramebuffer->GetSwapChain()->GetMetalColorTexture();
 				}
 				
 				MTLRenderPassDescriptor *descriptor = renderPass.framebuffer->GetRenderPassDescriptor(renderPass.renderPass, nullptr, 0, 0);
@@ -1335,7 +1335,7 @@ namespace RN
 						MetalSwapChain *swapChain = renderPass.previousRenderPass->GetFramebuffer()->Downcast<MetalFramebuffer>()->GetSwapChain();
 						if(swapChain)
 						{
-							[encoder setFragmentTexture:swapChain->GetMTLTexture() atIndex:argument->GetIndex()];
+							[encoder setFragmentTexture:swapChain->GetMetalColorTexture() atIndex:argument->GetIndex()];
 						}
 						else
 						{

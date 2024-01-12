@@ -203,6 +203,21 @@ namespace RN
 		_depthStencilTarget = newTarget;
 	}
 
+	void MetalFramebuffer::SetSwapchainDepthStencilTarget(const TargetView &target, Texture::Format colorFormat)
+	{
+		MetalTargetView *newTarget = new MetalTargetView;
+		newTarget->targetView = target;
+		newTarget->pixelFormat = MetalTexture::PixelFormatForTextureFormat(colorFormat);
+
+		if(_depthStencilTarget)
+		{
+			_depthStencilTarget->targetView.texture->Release();
+			delete _depthStencilTarget;
+		}
+
+		_depthStencilTarget = newTarget;
+	}
+
 	Texture *MetalFramebuffer::GetColorTexture(uint32 index) const
 	{
 		if(index >= _colorTargets.size())
@@ -239,7 +254,7 @@ namespace RN
 			if(!target.texture)
 			{
 				RN_ASSERT(_swapChain, "Empty color target view texture, but no swapchain!");
-				texture = _swapChain->GetMTLTexture();
+				texture = _swapChain->GetMetalColorTexture();
 			}
 			else
 			{
@@ -270,7 +285,7 @@ namespace RN
 				}
 				else if(resolveFramebuffer->GetSwapChain())
 				{
-					[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetSwapChain()->GetMTLTexture())];
+					[colorAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetSwapChain()->GetMetalColorTexture())];
 				}
 			}
 			else
@@ -299,9 +314,18 @@ namespace RN
 			counter += 1;
 		}
 
-		if(GetDepthStencilTexture())
+		if(_depthStencilTarget)
 		{
-			id<MTLTexture> depthStencilTexture = static_cast< id<MTLTexture> >(GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture());
+			id<MTLTexture> depthStencilTexture = nil;
+			if(!_depthStencilTarget->targetView.texture)
+			{
+				RN_ASSERT(_swapChain, "Empty depth target view texture, but no swapchain!");
+				depthStencilTexture = _swapChain->GetMetalDepthTexture();
+			}
+			else
+			{
+				depthStencilTexture = static_cast<id<MTLTexture>>(static_cast<MetalTexture *>(_depthStencilTarget->targetView.texture)->__GetUnderlyingTexture());
+			}
 
 			//TODO: Improve check
 			if(
@@ -325,10 +349,17 @@ namespace RN
 				{
 					[depthAttachment setLoadAction:MTLLoadActionDontCare];
 				}
-				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
+				if(resolveFramebuffer && resolveFramebuffer->_depthStencilTarget)
 				{
 					[depthAttachment setStoreAction:MTLStoreActionMultisampleResolve];
-					[depthAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+					if(resolveFramebuffer->GetDepthStencilTexture())
+					{
+						[depthAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+					}
+					else if(resolveFramebuffer->GetSwapChain())
+					{
+						[depthAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetSwapChain()->GetMetalDepthTexture())];
+					}
 				}
 				else
 				{
@@ -381,7 +412,14 @@ namespace RN
 				if(resolveFramebuffer && resolveFramebuffer->GetDepthStencilTexture())
 				{
 					[stencilAttachment setStoreAction:MTLStoreActionMultisampleResolve];
-					[stencilAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+					if(resolveFramebuffer->GetDepthStencilTexture())
+					{
+						[stencilAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetDepthStencilTexture()->Downcast<MetalTexture>()->__GetUnderlyingTexture())];
+					}
+					else if(resolveFramebuffer->GetSwapChain())
+					{
+						[stencilAttachment setResolveTexture:static_cast< id<MTLTexture> >(resolveFramebuffer->GetSwapChain()->GetMetalDepthTexture())];
+					}
 				}
 				else
 				{
@@ -431,13 +469,14 @@ namespace RN
 
 		if(depthStencilFormat != Texture::Format::Invalid)
 		{
-			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DRenderTargetFormat(depthStencilFormat, size.x, size.y);
-
 			TargetView target;
-			target.texture = Texture::WithDescriptor(depthDescriptor);
 			target.mipmap = 0;
 			target.slice = 0;
 			target.length = 1;
+			
+			Texture::Descriptor depthDescriptor = Texture::Descriptor::With2DRenderTargetFormat(depthStencilFormat, size.x, size.y);
+			target.texture = Texture::WithDescriptor(depthDescriptor);
+			
 			SetDepthStencilTarget(target);
 		}
 	}

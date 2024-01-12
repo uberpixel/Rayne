@@ -31,7 +31,7 @@ namespace RN
 		bool isDirectory = false;
 		FileManager *coordinator = FileManager::GetSharedInstance();
 		
-#if RN_PLATFORM_IOS
+#if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		RN::String *frameworkName = _name->GetPathComponents()->GetLastObject<RN::String>();
 		RN::String *libraryNameIOS = frameworkName;
 		//TODO: Library files may also have no extensions, so this check is kinda bad...

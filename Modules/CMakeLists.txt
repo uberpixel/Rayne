@@ -10,6 +10,7 @@ option(RN_BUILD_OCULUS_MODULE "Build the Oculus module" OFF)
 option(RN_BUILD_OCULUSMOBILE_MODULE "Build the Oculus mobile module" OFF)
 option(RN_BUILD_OPENVR_MODULE "Build the OpenVR module" OFF)
 option(RN_BUILD_OPENXR_MODULE "Build the OpenXR module" OFF)
+option(RN_BUILD_APPLEXR_MODULE "Build the AppleXR module" OFF)
 option(RN_BUILD_VRSTUB_MODULE "Build the VRStub module" OFF)
 option(RN_BUILD_BULLET_MODULE "Build the Bullet physics module" ON)
 option(RN_BUILD_PHYSX_MODULE "Build the PhysX physics module" OFF)
@@ -124,6 +125,10 @@ endif()
 
 if(NOT APPLE AND ${RN_BUILD_OPENXR_MODULE})
     add_subdirectory("OpenXR")
+endif()
+
+if(VISIONOS AND ${RN_BUILD_APPLEXR_MODULE})
+    add_subdirectory("AppleXR")
 endif()
 
 if(${RN_BUILD_BHAPTICS_MODULE})

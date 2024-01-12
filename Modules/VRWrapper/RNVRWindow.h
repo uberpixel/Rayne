@@ -47,7 +47,8 @@ namespace RN
 			OculusVR,
 			OculusGo,
 			OculusQuest,
-			OculusQuest2
+			OculusQuest2,
+			AppleXR
 		};
 
 		RNVRAPI VRWindow();

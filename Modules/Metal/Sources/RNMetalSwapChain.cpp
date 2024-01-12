@@ -86,11 +86,16 @@ namespace RN
 		
 	}
 
-	id MetalSwapChain::GetMTLTexture() const
+	id MetalSwapChain::GetMetalColorTexture() const
 	{
 		if(_drawable)
 			return [_drawable texture];
 		else
 			return nil;
+	}
+
+	id MetalSwapChain::GetMetalDepthTexture() const
+	{
+		
 	}
 }

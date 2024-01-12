@@ -31,6 +31,7 @@ namespace RN
 
 		MTLAPI void SetColorTarget(const TargetView &target, uint32 index = 0) final;
 		MTLAPI void SetDepthStencilTarget(const TargetView &target) final;
+		MTLAPI void SetSwapchainDepthStencilTarget(const TargetView &target, Texture::Format colorFormat);
 
 		MTLAPI Texture *GetColorTexture(uint32 index = 0) const final;
 		MTLAPI Texture *GetDepthStencilTexture() const final;
