@@ -46,6 +46,8 @@ namespace RN
 		MTLAPI MTLPixelFormat GetMetalStencilFormat() const;
 		
 		MTLAPI void DidUpdateSwapChain(Vector2 size, Texture::Format colorFormat, Texture::Format depthStencilFormat);
+		
+		MTLAPI void DidUpdateSwapChainSize(Vector2 size);
 
 	private:
 		uint8 _sampleCount;

@@ -86,6 +86,26 @@ namespace RN
 
 		_drawable = cp_frame_query_drawable(_frame);
 		if(_drawable == nullptr) return;
+		
+		for(int i = 0; i < 1; i++)
+		{
+			cp_view_t view = cp_drawable_get_view(_drawable, i);
+			cp_view_texture_map_t textureMap = cp_view_get_view_texture_map(view);
+			MTLViewport viewPort = cp_view_texture_map_get_viewport(textureMap);
+			_size.x = viewPort.width;
+			_size.y = viewPort.height;
+			_framebuffer->DidUpdateSwapChainSize(_size);
+			
+			simd_float4 tangents = cp_view_get_tangents(view);
+			simd_float2 depth_range = cp_drawable_get_depth_range(_drawable);
+			
+			simd_float4x4 eye_transform = cp_view_get_transform(view);
+			_hmdToEyeViewOffset[i].x = eye_transform.columns[3][1];
+			_hmdToEyeViewOffset[i].y = eye_transform.columns[3][2];
+			_hmdToEyeViewOffset[i].z = eye_transform.columns[3][3];
+			
+			_hmdEyeProjectionMatrix[i] = RN::Matrix::WithProjectionPerspective(tangents[0], tangents[1], tangents[2], tangents[3], depth_range[1], depth_range[0]);
+		}
 
 		cp_frame_timing_t final_timing = cp_drawable_get_frame_timing(_drawable);
 	
@@ -136,5 +156,11 @@ namespace RN
 	Framebuffer *AppleXRMetalSwapChain::GetAppleXRSwapChainFramebuffer() const
 	{
 		return GetFramebuffer()->Downcast<Framebuffer>();
+	}
+
+	size_t AppleXRMetalSwapChain::GetViewCount() const
+	{
+		//cp_drawable_get_view_count(<#cp_drawable_t  _Nonnull drawable#>)
+		return 1;
 	}
 }

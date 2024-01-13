@@ -19,6 +19,19 @@ namespace RN
 {
 	RNDefineMeta(AppleXRWindow, VRWindow)
 
+	static Matrix GetRotationMatrixForAppleMatrix(const simd_float4x4 &matrix)
+	{
+		Matrix result;
+		for(int q = 0; q < 3; q++)
+		{
+			for(int t = 0; t < 3; t++)
+			{
+				result.m[q * 4 + t] = matrix.columns[q][t];
+			}
+		}
+		return result;
+	}
+
 	AppleXRWindow::AppleXRWindow() : _layerRenderer(nullptr), _swapChain(nullptr), _currentHapticsIndex{ 0, 0 }, _isSessionRunning(false)
 	{
 		_hmdTrackingState.position = Vector3(0.0f, 1.0f, 0.0f);
@@ -144,25 +157,13 @@ namespace RN
 		ar_device_anchor_query_status_t anchor_status = ar_world_tracking_provider_query_device_anchor_at_timestamp(_worldTrackingProvider, p_time, _swapChain->_worldAnchor);
 		if(anchor_status != ar_device_anchor_query_status_success) return;
 		
-/*		simd_float4x4 head_position = ar_anchor_get_origin_from_anchor_transform(_swapChain->_worldAnchor);
+		simd_float4x4 head_position = ar_anchor_get_origin_from_anchor_transform(_swapChain->_worldAnchor);
 
-
-		cp_view_t view = cp_drawable_get_view(drawable, index);
-		simd_float4 tangents = cp_view_get_tangents(view);
-		simd_float2 depth_range = cp_drawable_get_depth_range(drawable);
-		simd_float4x4 transform = makeProjectiveTransformFromTangents(tangents[0], /* left */
-//																	  tangents[1], /* right */
-//																	  tangents[2], /* top */
-//																	  tangents[3], /* bottom */
-//																	  depth_range[1], /* nearZ */
-//																	  depth_range[0], /* farZ */
-//																	  true); /* reverseZ */
-/*		uniforms[index].projectionMatrix = transform;
-
-
-		// Adjust the camera transform for the current eye position.
-		simd_float4x4 camera_transform = simd_mul(head_position, cp_view_get_transform(view));
-		uniforms[index].viewMatrix = simd_inverse(camera_transform);*/
+		Matrix rotationPose = GetRotationMatrixForAppleMatrix(head_position);
+		_hmdTrackingState.position.x = head_position.columns[0][3];
+		_hmdTrackingState.position.y = head_position.columns[1][3];
+		_hmdTrackingState.position.z = head_position.columns[2][3];
+		_hmdTrackingState.rotation = rotationPose.GetEulerAngle();
 	}
 
 	void AppleXRWindow::Update(float delta, float near, float far)
@@ -171,11 +172,11 @@ namespace RN
 			return;
 
 		_swapChain->UpdatePredictedPose();
-
-		//_hmdTrackingState.eyeOffset[0] = _swapChain->_hmdToEyeViewOffset[0];
+		
+		_hmdTrackingState.eyeOffset[0] = _swapChain->_hmdToEyeViewOffset[0];
 		//_hmdTrackingState.eyeOffset[1] = _swapChain->_hmdToEyeViewOffset[1];
-		//_hmdTrackingState.eyeProjection[0] = GetMatrixForOVRMatrix(leftProjection);
-		//_hmdTrackingState.eyeProjection[1] = GetMatrixForOVRMatrix(rightProjection);
+		_hmdTrackingState.eyeProjection[0] = _swapChain->_hmdEyeProjectionMatrix[0];
+		//_hmdTrackingState.eyeProjection[1] = swapChain->_hmdEyeProjectionMatrix[1];
 
 		/*if(_swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 		{

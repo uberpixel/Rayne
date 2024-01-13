@@ -480,6 +480,11 @@ namespace RN
 			SetDepthStencilTarget(target);
 		}
 	}
+
+	void MetalFramebuffer::DidUpdateSwapChainSize(Vector2 size)
+	{
+		_size = size;
+	}
 	
 	MTLPixelFormat MetalFramebuffer::GetMetalColorFormat(uint8 texture) const
 	{

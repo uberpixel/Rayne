@@ -27,6 +27,8 @@ namespace RN
 		AXRAPI virtual const Window::SwapChainDescriptor &GetAppleXRSwapChainDescriptor() const = 0;
 		AXRAPI virtual Framebuffer *GetAppleXRSwapChainFramebuffer() const = 0;
 		
+		AXRAPI virtual size_t GetViewCount() const = 0;
+		
 		bool isActive;
 
 	protected:
@@ -37,6 +39,9 @@ namespace RN
 		
 		cp_frame_t _frame;
 		cp_frame_timing_t _predictedTime;
+		
+		Vector3 _hmdToEyeViewOffset[2];
+		Matrix _hmdEyeProjectionMatrix[2];
 	};
 }
 

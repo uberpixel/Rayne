@@ -38,6 +38,8 @@ namespace RN
 		AXRAPI Vector2 GetAppleXRSwapChainSize() const final { return GetSize(); };
 		AXRAPI Framebuffer *GetAppleXRSwapChainFramebuffer() const final;
 		
+		AXRAPI size_t GetViewCount() const final;
+		
 		const Window::SwapChainDescriptor &GetAppleXRSwapChainDescriptor() const final { return _descriptor; }
 
 	protected:
