@@ -14,6 +14,7 @@
 #include "RNVRTrackingState.h"
 
 #include <CompositorServices/CompositorServices.h>
+#include <ARKit/ARKit.h>
 
 namespace RN
 {
@@ -36,6 +37,7 @@ namespace RN
 		AXRAPI bool IsRendering() const final;
 
 		AXRAPI Vector2 GetSize() const final;
+		AXRAPI size_t GetEyeCount() const final;
 
 		AXRAPI Framebuffer *GetFramebuffer() const final;
 
@@ -51,8 +53,8 @@ namespace RN
 
 		AXRAPI const Window::SwapChainDescriptor &GetSwapChainDescriptor() const final;
 		
-		AXRAPI VRWindow::DeviceType GetDeviceType() const final { return VRWindow::DeviceType::AppleXR; }
-		AXRAPI String *GetRuntimeName() const final { return RNCSTR("visionOS");  }
+		VRWindow::DeviceType GetDeviceType() const final { return VRWindow::DeviceType::AppleXR; }
+		String *GetRuntimeName() const final { return RNCSTR("visionOS");  }
 
 	private:
 		const String *GetHMDInfoDescription() const;

@@ -173,33 +173,12 @@ namespace RN
 
 		_swapChain->UpdatePredictedPose();
 		
-		_hmdTrackingState.eyeOffset[0] = _swapChain->_hmdToEyeViewOffset[0];
-		//_hmdTrackingState.eyeOffset[1] = _swapChain->_hmdToEyeViewOffset[1];
-		_hmdTrackingState.eyeProjection[0] = _swapChain->_hmdEyeProjectionMatrix[0];
-		//_hmdTrackingState.eyeProjection[1] = swapChain->_hmdEyeProjectionMatrix[1];
-
-		/*if(_swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+		for(size_t i = 0; i < GetEyeCount(); i++)
 		{
-			vr::HmdMatrix34_t headPose = _swapChain->_frameDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
-			Matrix rotationPose = GetRotationMatrixForOVRMatrix(headPose);
-			_hmdTrackingState.position.x = headPose.m[0][3];
-			_hmdTrackingState.position.y = headPose.m[1][3];
-			_hmdTrackingState.position.z = headPose.m[2][3];
-			_hmdTrackingState.rotation = rotationPose.GetEulerAngle();
-		}*/
-
-		/*_hmdTrackingState.mode = vr::VROverlay()->IsDashboardVisible() ? VRHMDTrackingState::Mode::Paused : VRHMDTrackingState::Mode::Rendering;
-		vr::VREvent_t event;
-		while(_vrSystem->PollNextEvent(&event, sizeof(event)))
-		{
-			//TODO: Handle more AppleXR events
-			switch(event.eventType)
-			{
-			case vr::VREvent_Quit:
-				_hmdTrackingState.mode = VRHMDTrackingState::Mode::Disconnected;
-				break;
-			}
-		}*/
+			//TODO: These should ideally be directly pushed to the VRCamera when available
+			_hmdTrackingState.eyeOffset[i] = _swapChain->_hmdToEyeViewOffset[i];
+			_hmdTrackingState.eyeProjection[i] = _swapChain->_hmdEyeProjectionMatrix[i];
+		}
 
 		//TODO: Add tracker support
 		_trackerTrackingState.active = false;
@@ -256,5 +235,14 @@ namespace RN
 	const Window::SwapChainDescriptor &AppleXRWindow::GetSwapChainDescriptor() const
 	{
 		return _swapChain->GetAppleXRSwapChainDescriptor();
+	}
+
+	size_t AppleXRWindow::GetEyeCount() const
+	{
+#if TARGET_OS_SIMULATOR
+		return 1; //VisionOS simulator only supports a single view!
+#else
+		return 2;
+#endif
 	}
 }

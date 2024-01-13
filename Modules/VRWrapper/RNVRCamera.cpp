@@ -55,7 +55,7 @@ namespace RN
 		_head->SetShaderHint(Shader::UsageHint::Multiview);
 		_head->SetFOV(110.0f);
 		
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < _window->GetEyeCount(); i++)
 		{
 			_eye[i] = new Camera();
 			//_eye[i]->SetRenderGroup(0x1 | (1 << (1 + i))); //This won't work with multiview! (and is only needed for the hidden area mask)
@@ -85,8 +85,8 @@ namespace RN
 #endif
 		}
 
-		_eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
-		_eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
+		if(_eye[0]) _eye[0]->SetPosition(Vector3(-0.032f, 0.0f, 0.0f));
+		if(_eye[1]) _eye[1]->SetPosition(Vector3(0.032f, 0.0f, 0.0f));
 
 #if RN_PLATFORM_ANDROID
 
@@ -215,7 +215,7 @@ namespace RN
 
 	void VRCamera::UpdateVRWindow(float delta)
 	{
-		if(_didUpdateVRWindow || !_window || !_eye[0] || !_eye[1]) return;
+		if(_didUpdateVRWindow || !_window || !_eye[0]) return;
 		_window->Update(delta, _eye[0]->GetClipNear(), _eye[0]->GetClipFar());
 		_didUpdateVRWindow = true;
 	}
@@ -224,21 +224,22 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
-		if(!_window || !_eye[0] || !_eye[1]) return;
+		if(!_window) return;
 		
 		UpdateVRWindow(delta);
 		const VRHMDTrackingState &hmdState = GetHMDTrackingState();
 
-		_eye[0]->SetPosition(hmdState.eyeOffset[0]);
-		_eye[1]->SetPosition(hmdState.eyeOffset[1]);
-		_eye[0]->SetProjectionMatrix(hmdState.eyeProjection[0]);
-		_eye[1]->SetProjectionMatrix(hmdState.eyeProjection[1]);
+		for(size_t i= 0; i < _window->GetEyeCount(); i++)
+		{
+			_eye[i]->SetPosition(hmdState.eyeOffset[i]);
+			_eye[i]->SetProjectionMatrix(hmdState.eyeProjection[i]);
+		}
 
 		_head->SetRotation(hmdState.rotation);
 		_head->SetPosition(hmdState.position);
 		
 		//This assumes that the eyes are equal and only shifted horizontally
-		_head->SetFrustumPlaneOffset(0.0f, 0.0f, _eye[0]->GetPosition().x, _eye[1]->GetPosition().x);
+		_head->SetFrustumPlaneOffset(0.0f, 0.0f, _eye[0]? _eye[0]->GetPosition().x : 0.0f, _eye[1]? _eye[1]->GetPosition().x : 0.0f);
 		
 		_didUpdateVRWindow = false;
 	}
@@ -307,30 +308,16 @@ namespace RN
 	{
 		_head->SetClipFar(clipFar);
 		
-		if(_eye[0])
-		{
-			_eye[0]->SetClipFar(clipFar);
-		}
-		
-		if(_eye[1])
-		{
-			_eye[1]->SetClipFar(clipFar);
-		}
+		if(_eye[0]) _eye[0]->SetClipFar(clipFar);
+		if(_eye[1]) _eye[1]->SetClipFar(clipFar);
 	}
 	
 	void VRCamera::SetClipNear(float clipNear)
 	{
 		_head->SetClipNear(clipNear);
 		
-		if(_eye[0])
-		{
-			_eye[0]->SetClipNear(clipNear);
-		}
-		
-		if(_eye[1])
-		{
-			_eye[1]->SetClipNear(clipNear);
-		}
+		if(_eye[0]) _eye[0]->SetClipNear(clipNear);
+		if(_eye[1]) _eye[1]->SetClipNear(clipNear);
 	}
 	
 	void VRCamera::SetOriginOffset(const Vector3 &positionOffset, const Quaternion &orientationOffset)

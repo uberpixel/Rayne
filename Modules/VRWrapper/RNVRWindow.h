@@ -71,6 +71,7 @@ namespace RN
 		RNVRAPI virtual void SetLocalDimming(bool enabled) { }
 
 		RNVRAPI virtual Vector2 GetSize() const override = 0;
+		RNVRAPI virtual size_t GetEyeCount() const { return 2; }
 
 		RNVRAPI virtual Framebuffer *GetFramebuffer() const override = 0;
 		RNVRAPI virtual Framebuffer *GetFramebuffer(uint8 eye) const { return nullptr; }

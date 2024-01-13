@@ -32,18 +32,7 @@ namespace RN
 			MTLTextureType textureType = cp_texture_topology_get_texture_type(textureTopology);
 		}
 		
-/*		size_t viewCount = cp_layer_renderer_properties_get_view_count(properties);
-		for(size_t i = 0; i < viewCount; i++)
-		{
-			cp_get_view
-			cp_view_get_view_texture_map(<#cp_view_t  _Nonnull view#>)
-			cp_view_texture_map_get_viewport(<#cp_view_texture_map_t  _Nonnull view_texture_map#>)
-		}
-		
-		
-		cp_layer_renderer_layout layout = cp_layer_renderer_configuration_get(configuration);*/
-		
-		_size = Vector2(1024.0f, 1024.0f); //Size is hopefully not relevant for anything
+		_size = Vector2(1024.0f, 1024.0f); //Will be set to the correct size each frame
 		
 		
 		_frameIndex = 0;
@@ -55,16 +44,6 @@ namespace RN
 		targetView.length = 1;
 		targetView.texture = nullptr;
 		_framebuffer->SetSwapchainDepthStencilTarget(targetView, _descriptor.depthStencilFormat);
-
-		//TODO: Update every frame, maybe move to window
-/*		vr::HmdMatrix34_t leftEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Left);
-		vr::HmdMatrix34_t rightEyeMatrix = _vrSystem->GetEyeToHeadTransform(vr::Eye_Right);
-		_hmdToEyeViewOffset[0].x = leftEyeMatrix.m[0][3];
-		_hmdToEyeViewOffset[0].y = leftEyeMatrix.m[1][3];
-		_hmdToEyeViewOffset[0].z = leftEyeMatrix.m[2][3];
-		_hmdToEyeViewOffset[1].x = rightEyeMatrix.m[0][3];
-		_hmdToEyeViewOffset[1].y = rightEyeMatrix.m[1][3];
-		_hmdToEyeViewOffset[1].z = rightEyeMatrix.m[2][3];*/
 	}
 
 	AppleXRMetalSwapChain::~AppleXRMetalSwapChain()
@@ -87,7 +66,8 @@ namespace RN
 		_drawable = cp_frame_query_drawable(_frame);
 		if(_drawable == nullptr) return;
 		
-		for(int i = 0; i < 1; i++)
+		size_t viewCount = cp_drawable_get_view_count(_drawable);
+		for(int i = 0; i < viewCount; i++)
 		{
 			cp_view_t view = cp_drawable_get_view(_drawable, i);
 			cp_view_texture_map_t textureMap = cp_view_get_view_texture_map(view);
@@ -107,12 +87,11 @@ namespace RN
 			_hmdEyeProjectionMatrix[i] = RN::Matrix::WithProjectionPerspective(tangents[0], tangents[1], tangents[2], tangents[3], depth_range[1], depth_range[0]);
 		}
 
-		cp_frame_timing_t final_timing = cp_drawable_get_frame_timing(_drawable);
-	
-		cp_drawable_set_device_anchor(_drawable, _worldAnchor);
-	
+		//cp_frame_timing_t final_timing = cp_drawable_get_frame_timing(_drawable);
 		//ar_pose_t pose;// = my_engine_get_ar_pose(engine, final_timing);
 		//cp_drawable_set_ar_pose(drawable, pose);
+	
+		cp_drawable_set_device_anchor(_drawable, _worldAnchor);
 	}
 
 	void AppleXRMetalSwapChain::Prepare()
@@ -156,11 +135,5 @@ namespace RN
 	Framebuffer *AppleXRMetalSwapChain::GetAppleXRSwapChainFramebuffer() const
 	{
 		return GetFramebuffer()->Downcast<Framebuffer>();
-	}
-
-	size_t AppleXRMetalSwapChain::GetViewCount() const
-	{
-		//cp_drawable_get_view_count(<#cp_drawable_t  _Nonnull drawable#>)
-		return 1;
 	}
 }

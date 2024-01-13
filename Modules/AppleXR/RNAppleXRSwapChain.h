@@ -27,8 +27,6 @@ namespace RN
 		AXRAPI virtual const Window::SwapChainDescriptor &GetAppleXRSwapChainDescriptor() const = 0;
 		AXRAPI virtual Framebuffer *GetAppleXRSwapChainFramebuffer() const = 0;
 		
-		AXRAPI virtual size_t GetViewCount() const = 0;
-		
 		bool isActive;
 
 	protected:
