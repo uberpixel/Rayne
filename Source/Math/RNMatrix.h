@@ -384,6 +384,31 @@ namespace RN
 		
 		return mat;
 	}
+
+	RN_INLINE Matrix Matrix::WithProjectionPerspective(float leftTangent, float rightTangent, float topTangent, float bottomTangent, float clipnear, float clipfar)
+	{
+		Matrix mat;
+		
+		leftTangent = -leftTangent * clipnear;
+		rightTangent = rightTangent * clipnear;
+		topTangent = topTangent * clipnear;
+		bottomTangent = -bottomTangent * clipnear;
+		
+		mat.m[0] = 2.0f * clipnear / (rightTangent - leftTangent);
+		mat.m[2] = (rightTangent + leftTangent) / (rightTangent - leftTangent);
+		mat.m[5] = 2.0f * clipnear / (topTangent - bottomTangent);
+		mat.m[6] = (topTangent + bottomTangent) / (topTangent - bottomTangent);
+		mat.m[10] = clipfar/(clipfar - clipnear) - 1.0;
+		mat.m[11] = -1.0f;
+		mat.m[14] = (clipfar * clipnear) / (clipfar - clipnear);
+		mat.m[15] = 0.0f;
+		
+		//Using these will put the near plane at 0 and far plane at 1, while the above does the opposite for better precision with floating point depth buffer
+		//mat.m[10] = -clipfar / (clipfar - clipnear);
+		//mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
+		
+		return mat;
+	}
 	
 	//TODO: Fix...
 /*	RN_INLINE Matrix Matrix::WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
