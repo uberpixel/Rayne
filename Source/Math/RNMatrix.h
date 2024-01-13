@@ -403,6 +403,12 @@ namespace RN
 		mat.m[14] = (clipfar * clipnear) / (clipfar - clipnear);
 		mat.m[15] = 0.0f;
 		
+		if(isinf(clipfar))
+		{
+			mat.m[10] = 0;
+			mat.m[14] = clipnear;
+		}
+		
 		//Using these will put the near plane at 0 and far plane at 1, while the above does the opposite for better precision with floating point depth buffer
 		//mat.m[10] = -clipfar / (clipfar - clipnear);
 		//mat.m[14] = -(clipfar * clipnear) / (clipfar - clipnear);
