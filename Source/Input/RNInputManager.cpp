@@ -21,8 +21,10 @@
 #include <X11/extensions/XInput2.h>
 #endif
 
+#if RN_PLATFORM_IOS
 #include "OISInputManager.h"
 #include "OISMultiTouch.h"
+#endif
 
 namespace RN
 {
@@ -67,6 +69,7 @@ namespace RN
 	extern void TearDownPlatformDeviceTree();
 #endif
 
+#if RN_PLATFORM_IOS
 	class OISInputHandler : public OIS::MultiTouchListener
 	{
 	public:
@@ -74,47 +77,40 @@ namespace RN
 		
 		bool touchMoved(const OIS::MultiTouchEvent& arg) override
 		{
-#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_mouseMovement = Vector3(arg.state.X.rel, arg.state.Y.rel, arg.state.Z.rel);
 			_inputManager->_lock.Unlock();
-#endif
 			return true;
 		}
 
 		bool touchPressed(const OIS::MultiTouchEvent& arg) override
 		{
-#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount += 1;
 			_inputManager->_lock.Unlock();
-#endif
 			return true;
 		}
 
 		bool touchReleased(const OIS::MultiTouchEvent& arg) override
 		{
-#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount -= 1;
 			_inputManager->_lock.Unlock();
-#endif
 			return true;
 		}
 
 		bool touchCancelled(const OIS::MultiTouchEvent& arg) override
 		{
-#if RN_PLATFORM_IOS
 			_inputManager->_lock.Lock();
 			_inputManager->_currentTouchCount -= 1;
 			_inputManager->_lock.Unlock();
-#endif
 			return true;
 		}
 		
 	private:
 		InputManager *_inputManager;
 	};
+#endif
 
 	static InputManager *__sharedInstance = nullptr;
 

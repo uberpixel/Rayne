@@ -9,9 +9,16 @@ option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." OFF)
 option(PNG_SHARED "Build shared lib" OFF)
 option(PNG_TESTS "Build libpng tests" OFF)
 option(PNG_TOOLS "Build the libpng tools" OFF)
-option(PNG_HARDWARE_OPTIMIZATIONS "Enable hardware optimizations" OFF)
 option(PNG_BUILD_ZLIB "Custom zlib location, else find_package is used" OFF)
 option(SKIP_INSTALL_ALL "Skip PNG install" ON)
+if(APPLE)
+    if(NOT IOS AND NOT VISIONOS)
+        #Universal macOS builds don't support libpng optimizations at all (would require a more complicated libpng build setup)
+        option(PNG_HARDWARE_OPTIMIZATIONS "Enable hardware optimizations" OFF)
+        set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DPNG_ARM_NEON_OPT=0)
+    endif()
+endif()
+
 
 option(ENABLE_COMMONCRYPTO "Enable use of CommonCrypto" OFF)
 option(ENABLE_GNUTLS "Enable use of GnuTLS" OFF)
@@ -43,7 +50,10 @@ set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR
 add_subdirectory("jansson")
 add_subdirectory("libpng")
 add_subdirectory("libzip")
-add_subdirectory("OIS")
+
+if(IOS)
+    add_subdirectory("OIS")
+endif()
 
 #Otherwise libzip tries to pull in zlib with a wrong name (which is manually linked already anyway)
 set_target_properties(zip PROPERTIES
