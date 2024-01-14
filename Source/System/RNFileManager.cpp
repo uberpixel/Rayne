@@ -853,13 +853,8 @@ namespace RN
 
 #endif
 #if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
-				const String *application = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
-
+				//The ApplicationSupportDirectory is inside an app specific directory for these platforms!
 				NSURL *url = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
-				url = [url URLByAppendingPathComponent:[NSString stringWithUTF8String:application->GetUTF8String()]];
-
-	//			[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:NULL];
-
 				return RNSTR([[url path] UTF8String]);
 #endif
 #if RN_PLATFORM_WINDOWS
@@ -924,7 +919,7 @@ namespace RN
 	
 	bool FileManager::CreateDirectory(const String *path)
 	{
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 		NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path->GetUTF8String()]];
 		NSError *error = nullptr;
 		[[NSFileManager defaultManager] createDirectoryAtURL:url withIntermediateDirectories:YES attributes:nil error:&error];
