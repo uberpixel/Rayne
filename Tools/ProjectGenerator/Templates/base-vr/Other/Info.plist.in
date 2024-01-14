@@ -32,5 +32,14 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>CFBundleDisplayName</key>
+	<string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationPreferredDefaultSceneSessionRole</key>
+		<string>CPSceneSessionRoleImmersiveSpaceApplication</string>
+	</dict>
 </dict>
 </plist>

@@ -29,12 +29,12 @@ namespace __TMP__
 			}
 		}
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_VISIONOS
 		_wantsPreviewWindow = false;
 		_wantsPreviewCamera = false;
 		_wantsVRDebugWindow = false;
 		_msaa = 0;
-#elif RN_PLATFORM_ANDROID
+#elif RN_PLATFORM_ANDROID || RN_PLATFORM_IOS
 		_wantsPreviewWindow = false;
 		_wantsPreviewCamera = false;
 		_wantsVRDebugWindow = false;
@@ -228,8 +228,8 @@ namespace __TMP__
 
 		if(_vrCamera)
 		{
-			_vrCamera->GetEye(0)->SetAmbientColor(newColor);
-			_vrCamera->GetEye(1)->SetAmbientColor(newColor);
+			if(_vrCamera->GetEye(0)) _vrCamera->GetEye(0)->SetAmbientColor(newColor);
+			if(_vrCamera->GetEye(1)) _vrCamera->GetEye(1)->SetAmbientColor(newColor);
 		}
 
 		if(_previewCamera)
@@ -339,10 +339,18 @@ namespace __TMP__
 			_vrCamera = new RN::VRCamera(_vrWindow, monitorPass, _msaa, _vrDebugWindow);
 
 			_vrCamera->SetClipFar(10000.0f);
-			_vrCamera->GetEye(0)->SetAmbientColor(_cameraTargetAmbientColor);
-			_vrCamera->GetEye(1)->SetAmbientColor(_cameraTargetAmbientColor);
-			_vrCamera->GetEye(0)->GetRenderPass()->SetClearColor(RN::Color::Black());
-			_vrCamera->GetEye(1)->GetRenderPass()->SetClearColor(RN::Color::Black());
+			
+			if(_vrCamera->GetEye(0))
+			{
+				_vrCamera->GetEye(0)->SetAmbientColor(_cameraTargetAmbientColor);
+				_vrCamera->GetEye(0)->GetRenderPass()->SetClearColor(RN::Color::Black());
+			}
+			
+			if(_vrCamera->GetEye(1))
+			{
+				_vrCamera->GetEye(1)->SetAmbientColor(_cameraTargetAmbientColor);
+				_vrCamera->GetEye(1)->GetRenderPass()->SetClearColor(RN::Color::Black());
+			}
 
 			_headCamera = new RN::Camera();
 			_headCamera->SetFlags(_headCamera->GetFlags() | RN::Camera::Flags::NoRender);

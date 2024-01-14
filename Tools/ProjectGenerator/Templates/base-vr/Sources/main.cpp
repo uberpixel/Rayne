@@ -6,13 +6,23 @@
 //
 
 #include <Rayne.h>
-#include "__TMP__Application.h"
+#include "__TMP_APPLICATION_NAME__Lib.h"
 
 #if RN_BUILD_RELEASE
 	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-#if RN_PLATFORM_ANDROID
+#if RN_PLATFORM_VISIONOS
+	void visionos_main(cp_layer_renderer_t layerRenderer)
+	{
+		RN::Initialize(0, nullptr, new __TMP__::Application(), layerRenderer);
+	}
+#elif RN_PLATFORM_IOS
+	void ios_main(CAMetalLayer *metalLayer)
+	{
+		RN::Initialize(0, nullptr, new __TMP__::Application(), metalLayer);
+	}
+#elif RN_PLATFORM_ANDROID
 	void android_main(struct android_app *app)
 	{
 		RN::Initialize(0, nullptr, new __TMP__::Application(), app);
