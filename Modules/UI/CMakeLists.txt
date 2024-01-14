@@ -71,11 +71,15 @@ ExternalProject_Add(Kalligraph
                 "-DANDROID_ABI:STRING=${ANDROID_ABI}"
                 "-DANDROID_NDK:STRING=${ANDROID_NDK}"
                 "-DANDROID_STL:STRING=${ANDROID_STL}"
+                "-DCMAKE_SYSTEM_NAME:STRING=${CMAKE_SYSTEM_NAME}"
+                "-DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT}"
                 "-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
         BUILD_BYPRODUCTS
                 ${KALLIGRAPH_BINARY_DIR}/libKalligraph.a
                 ${KALLIGRAPH_BINARY_DIR}/Debug/libKalligraph.a
                 ${KALLIGRAPH_BINARY_DIR}/Release/libKalligraph.a
+                ${KALLIGRAPH_BINARY_DIR}/Debug-${APPLE_SDK_NAME}/libKalligraph.a
+                ${KALLIGRAPH_BINARY_DIR}/Release-${APPLE_SDK_NAME}/libKalligraph.a
                 ${KALLIGRAPH_BINARY_DIR}/Debug/Kalligraph.lib
                 ${KALLIGRAPH_BINARY_DIR}/Release/Kalligraph.lib
         INSTALL_COMMAND ""
@@ -92,6 +96,11 @@ if(WIN32)
 
 elseif(ANDROID)
         SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION "${KALLIGRAPH_BINARY_DIR}/libKalligraph.a")
+elseif(IOS OR VISIONOS)
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_DEBUG "${KALLIGRAPH_BINARY_DIR}/Debug-${APPLE_SDK_NAME}/libKalligraph.a")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELEASE "${KALLIGRAPH_BINARY_DIR}/Release-${APPLE_SDK_NAME}/libKalligraph.a")
+        SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO "${KALLIGRAPH_BINARY_DIR}/RelWithDebInfo-${APPLE_SDK_NAME}/libKalligraph.a")
 else()
         SET_PROPERTY(TARGET KalligraphLib PROPERTY IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo")
 

@@ -22,7 +22,37 @@ set(PHYSX_CMAKE_ARGS
 
 set(PHYSX_PATCH_COMMAND "")
 
-if(APPLE)
+if(IOS OR VISIONOS)
+    #set(PHYSX_CXX_FLAGS "-Wno-unknown-warning-option -Wno-invalid-noreturn -Wno-unused-private-field -Wno-unused-local-typedef -D__ANDROID__ -O3 -DNDEBUG")
+    set(PHYSX_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
+        -DTARGET_BUILD_PLATFORM=ios
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+        -DPX_OUTPUT_ARCH=arm
+        -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+        -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
+        -DCMAKE_CXX_FLAGS=${PHYSX_CXX_FLAGS}
+        -DCMAKE_BUILD_TYPE=release)
+
+
+    set(RN_PHYSX_BUILD_BYPRODUCTS
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXPvdSDK_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXFoundation_static_64.a"
+
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCharacterKinematic_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXExtensions_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysX_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXPvdSDK_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXVehicle_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCooking_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCommon_static_64.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXFoundation_static_64.a")
+elseif(APPLE)
     set(PHYSX_X64_CMAKE_ARGS ${PHYSX_CMAKE_ARGS}
         -DTARGET_BUILD_PLATFORM=mac
         -DPX_OUTPUT_ARCH=x64
@@ -165,7 +195,7 @@ else()
         "${RN_PHYSX_BUILD_DIR}/release/PhysXPvdSDK_static_64.lib")
 endif()
 
-if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64" AND NOT IOS AND NOT VISIONOS)
     ExternalProject_Add(physx
         GIT_REPOSITORY https://github.com/NVIDIAGameWorks/PhysX.git
         GIT_TAG origin/4.1
@@ -262,7 +292,26 @@ set(INCLUDE_DIRECTORIES
 
 rayne_add_library(RaynePhysX "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 
-if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+if(IOS OR VISIONOS)
+    target_link_libraries(RaynePhysX PUBLIC
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXFoundation_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCommon_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysX_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCooking_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXCharacterKinematic_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXVehicle_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXExtensions_static_64.a
+        debug ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/debug/libPhysXPvdSDK_static_64.a
+
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXFoundation_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCommon_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysX_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCooking_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXCharacterKinematic_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXVehicle_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXExtensions_static_64.a
+        optimized ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/ios.arm_64/release/libPhysXPvdSDK_static_64.a)
+elseif(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
     target_link_libraries(RaynePhysX PUBLIC ${RN_PHYSX_BUILD_DIR}/release/libPhysXFoundation_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXCommon_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysX_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXCooking_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXCharacterKinematic_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXVehicle_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXExtensions_static_64.a ${RN_PHYSX_BUILD_DIR}/release/libPhysXPvdSDK_static_64.a)
 elseif(APPLE)
     target_link_libraries(RaynePhysX PUBLIC debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXFoundation_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXCommon_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysX_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXCooking_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXCharacterKinematic_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXVehicle_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXExtensions_static_64.a debug ${RN_PHYSX_BUILD_DIR}/debug/libPhysXPvdSDK_static_64.a
