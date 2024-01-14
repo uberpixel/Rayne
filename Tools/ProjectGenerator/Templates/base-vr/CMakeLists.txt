@@ -3,6 +3,7 @@ include(ExternalProject)
 
 project(__TMP_APPLICATION_TARGET__)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../Rayne/CMake/Rayne.cmake)
 set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT_ONLY ON)
 
 option(RN_BUILD_BULLET_MODULE "Build the Bullet physics module" OFF)
@@ -31,9 +32,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Build)
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../Rayne" "${CMAKE_CURRENT_BINARY_DIR}/Rayne")
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../Rayne/CMake/Rayne.cmake)
-
 if(IOS OR VISIONOS)
 	enable_language(OBJCXX)
 	enable_language(Swift)
@@ -46,6 +44,8 @@ elseif(VISIONOS)
 else()
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 endif()
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../Rayne" "${CMAKE_CURRENT_BINARY_DIR}/Rayne")
 
 if(WIN32)
 	set(CMAKE_SYSTEM_VERSION "10.0.10240.0")

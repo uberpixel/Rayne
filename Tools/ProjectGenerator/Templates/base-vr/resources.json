@@ -3,6 +3,10 @@
 	{
 		"compression": "BCn",
 		"compression~android": "ASTC --astc=6x6",
+		"compression~ios": "ASTC --astc=6x6",
+		"compression~ios_sim": "ASTC --astc=6x6",
+		"compression~visionos": "ASTC --astc=6x6",
+		"compression~visionos_sim": "ASTC --astc=6x6",
 		"overrides":
 		{
 			"models/template":
