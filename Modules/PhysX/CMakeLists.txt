@@ -174,7 +174,7 @@ else()
         -DPX_OUTPUT_ARCH=x86
         -DPHYSX_CXX_FLAGS_DEBUG=/MDd
         -DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION})
-    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/win.x86_64.vc${MSVC_TOOLSET_VERSION}.md)
+    set(RN_PHYSX_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/physx-prefix/src/physx-build/physx/bin/win.x86_64.vc142.md)
 
     set(RN_PHYSX_BUILD_BYPRODUCTS
         "${RN_PHYSX_BUILD_DIR}/debug/PhysXFoundation_static_64.lib"

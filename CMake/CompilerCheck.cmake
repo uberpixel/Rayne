@@ -54,6 +54,10 @@ set(RAYNE_CONSTEXPR constexpr)
 set(RAYNE_NORETURN "[[noreturn]]")
 set(RAYNE_SUPPORTS_TRIVIALLY_COPYABLE 1)
 
+if(MSVC)
+set(RAYNE_NORETURN "__declspec(noreturn)")
+endif()
+
 check_c_source_compiles("int main() { if(__PRETTY_FUNCTION__) {} }" HAVE_PRETTY_FUNCTION)
 check_c_source_compiles("int main() { if(__FUNCTION__) {} }" HAVE_FUNCTION)
 
@@ -85,7 +89,6 @@ endif()
 
 check_cxx_compiler_attribute("__attribute__((__always_inline__))" HAVE_ATTR_INLINE)
 check_cxx_compiler_attribute("__attribute__((noinline))" HAVE_ATTR_NOINLINE)
-check_cxx_compiler_attribute("__declspec(noinline)" HAVE_DECLSPEC_NOINLINE)
 
 if(HAVE_ATTR_INLINE)
     set(RAYNE_INLINE "inline __attribute__((__always_inline__))")
@@ -95,7 +98,7 @@ endif()
 
 if(HAVE_ATTR_NOINLINE)
     set(RAYNE_NOINLINE "__attribute__((noinline))")
-elseif(HAVE_DECLSPEC_NOINLINE)
+elseif(MSVC)
     set(RAYNE_NOINLINE "__declspec(noinline)")
 else()
     message(FATAL_ERROR "No noinline attribute available")
