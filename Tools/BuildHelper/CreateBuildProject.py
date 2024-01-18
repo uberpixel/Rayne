@@ -114,7 +114,9 @@ def main():
 		cmakeCall.extend(buildconfiguration)
 		subprocess.run(cmakeCall)
 	elif operatingSystem =='visionos':
-		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=visionOS', projectRootPath]
+		sysRootOutput = subprocess.run(['xcodebuild', '-version', '-sdk', 'xros', 'Path'], capture_output=True)
+		sysRoot = sysRootOutput.stdout.decode("utf-8").strip()
+		cmakeCall = ['cmake', '-G', 'Xcode', '-DCMAKE_SYSTEM_NAME=visionOS', '-DCMAKE_OSX_SYSROOT='+sysRoot, projectRootPath]
 		cmakeCall.extend(buildconfiguration)
 		subprocess.run(cmakeCall)
 	elif operatingSystem =='visionos_sim':
