@@ -289,7 +289,6 @@ namespace RN
 			
 			int64 lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
-			bool hasOnlyWhitespaces = true;
 			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
@@ -333,10 +332,6 @@ namespace RN
 						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
-				}
-				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
-				{
-					hasOnlyWhitespaces = false;
 				}
 				
 				if(currentCodepoint == 10)
@@ -512,7 +507,6 @@ namespace RN
 			
 			int64 lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
-			bool hasOnlyWhitespaces = true;
 			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
@@ -556,10 +550,6 @@ namespace RN
 						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
-				}
-				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
-				{
-					hasOnlyWhitespaces = false;
 				}
 				
 				if(currentCodepoint == 10)
@@ -734,7 +724,6 @@ namespace RN
 			
 			int lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
-			bool hasOnlyWhitespaces = true;
 			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
@@ -778,10 +767,6 @@ namespace RN
 						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
-				}
-				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
-				{
-					hasOnlyWhitespaces = false;
 				}
 				
 				if(currentCodepoint == 10)
@@ -852,12 +837,6 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 			
-			if(hasOnlyWhitespaces)
-			{
-				Unlock();
-				return Vector2();
-			}
-			
 			totalHeight += maxAscent;// + maxDescent;
 			if(currentWidth > maxWidth) maxWidth = currentWidth;
 			lineascent.push_back(maxAscent);
@@ -917,7 +896,6 @@ namespace RN
 			
 			int lastWhiteSpaceIndex = -1;
 			CharacterSet *whiteSpaces = CharacterSet::WithWhitespaces();
-			bool hasOnlyWhitespaces = true;
 			for(int64 i = 0; i < _attributedText->GetLength(); i++)
 			{
 				int currentCodepoint = _attributedText->GetCharacterAtIndex(i);
@@ -961,10 +939,6 @@ namespace RN
 						float correctedOffset = currentFont->GetOffsetForNextCharacter(currentCodepoint-1, -1) * scaleFactor + currentAttributes->GetKerning();
 						lastWordWidth -= previousOffset - correctedOffset;
 					}
-				}
-				else if(currentCodepoint != 10) //Is neither whitespace nor linebreak
-				{
-					hasOnlyWhitespaces = false;
 				}
 				
 				if(currentCodepoint == 10)
@@ -1047,8 +1021,16 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 			
-			if(hasOnlyWhitespaces)
+			if(numberOfIndices < 3)
 			{
+				Model *model = GetModel();
+				if(model->GetLODStage(0)->GetCount() > 1)
+				{
+					Material *textMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
+					textMaterial->SetSkipRendering(true);
+					Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
+					shadowMaterial->SetSkipRendering(true);
+				}
 				Unlock();
 				return;
 			}
