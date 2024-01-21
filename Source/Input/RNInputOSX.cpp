@@ -859,7 +859,7 @@ namespace RN
 		IOHIDManagerOpen(_hidManager, kIOHIDOptionsTypeNone);
 		
 		
-		if(!_hasMouse)
+/*		if(!_hasMouse)
 		{
 			InputDevice::Descriptor descriptor(InputDevice::Category::Mouse);
 			descriptor.SetVendor(RNCSTR("blubb"));
@@ -870,7 +870,7 @@ namespace RN
 			OSXMouseDevice *device = new OSXMouseDevice(descriptor, nullptr);
 			device->Register();
 			device->Activate();
-		}
+		}*/
 	}
 
 	void TearDownPlatformDeviceTree()
