@@ -15,7 +15,7 @@ namespace RN
 
 	JoltWorld *JoltWorld::_sharedInstance = nullptr;
 
-	JoltWorld::JoltWorld(const Vector3 &gravity, uint32 maxBodies, uint32 maxBodyPairs, uint32 maxContactConstraints) : _substeps(1), _paused(false), _isSimulating(false)
+	JoltWorld::JoltWorld(const Vector3 &gravity, uint32 maxBodies, uint32 maxBodyPairs, uint32 maxContactConstraints) : _substeps(1), _paused(false), _isSimulating(false), _isLoadingLevel(false)
 	{
 		RN_ASSERT(!_sharedInstance, "There can only be one Jolt instance at a time!");
 		_sharedInstance = this;
@@ -123,7 +123,7 @@ namespace RN
 	{
 		SceneAttachment::WillUpdate(delta);
 		
-		_physicsSystem->OptimizeBroadPhase();
+		//_physicsSystem->OptimizeBroadPhase();
 		
 		if(_paused)
 			return;
@@ -135,6 +135,33 @@ namespace RN
 		_isSimulating = true;
 		_physicsSystem->Update(delta, _substeps, _internals->tempAllocator, _internals->jobSystem); //This waits for all jobs to finish! Maybe it can be split up into simulate and finish like with physx (wait here for all jobs, but start them in WillUpdate)
 		_isSimulating = false;
+	}
+
+
+	void JoltWorld::PrepareLoadingLevel()
+	{
+		RN_DEBUG_ASSERT(!_isLoadingLevel, "Jolt is already setup for level loading! PrepareLoadingLevel should only be called once!");
+		_isLoadingLevel = true;
+	}
+
+	void JoltWorld::FinalizeLoadingLevel()
+	{
+		RN_DEBUG_ASSERT(_isLoadingLevel, "PrepareLoadingLevel was not called or loading was already finalized!");
+		_isLoadingLevel = false;
+		
+		if(_internals->bodiesToAddLoadingLevel.size() == 0) return;
+		
+		JPH::BodyInterface &bodyInterface = _physicsSystem->GetBodyInterface();
+		JPH::BodyInterface::AddState state = bodyInterface.AddBodiesPrepare(_internals->bodiesToAddLoadingLevel.data(), _internals->bodiesToAddLoadingLevel.size());
+		bodyInterface.AddBodiesFinalize(_internals->bodiesToAddLoadingLevel.data(), _internals->bodiesToAddLoadingLevel.size(), state, JPH::EActivation::DontActivate);
+		
+		_internals->bodiesToAddLoadingLevel.clear();
+	}
+
+	void JoltWorld::AddBodyForLoadingLevel(JPH::Body *body)
+	{
+		RN_DEBUG_ASSERT(_isLoadingLevel, "Not currently loading a level! This should only be called internally for bulk body creation!");
+		_internals->bodiesToAddLoadingLevel.push_back(body->GetID());
 	}
 
 

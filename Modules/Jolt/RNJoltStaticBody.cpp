@@ -25,7 +25,20 @@ namespace RN
 		
 		JPH::BodyCreationSettings settings(shape->GetJoltShape(), JPH::RVec3Arg(0.0f, 0.0f, 0.0f), JPH::QuatArg(0.0f, 0.0f, 0.0f, 1.0f), JPH::EMotionType::Static, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 0));
 		settings.mUserData = reinterpret_cast<uint64>(this);
-		JPH::BodyID bodyID = bodyInterface.CreateAndAddBody(settings, JPH::EActivation::DontActivate);
+		
+		JPH::BodyID bodyID;
+		if(world->IsLoadingLevel())
+		{
+			//When loading a level, schedule body to be bulk inserted into the physics scene
+			JPH::Body *body = bodyInterface.CreateBody(settings);
+			bodyID = body->GetID();
+			world->AddBodyForLoadingLevel(body);
+		}
+		else
+		{
+			//Directly add to the scene if not loading a level
+			bodyID = bodyInterface.CreateAndAddBody(settings, JPH::EActivation::DontActivate);
+		}
 		
 		if(!bodyID.IsInvalid())
 		{
@@ -68,6 +81,7 @@ namespace RN
 			RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
 			Vector3 position = GetWorldPosition() - positionOffset;
 			Quaternion rotation = GetWorldRotation() * _rotationOffset;
+			rotation.Normalize();
 			
 			JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 			JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
@@ -82,6 +96,7 @@ namespace RN
 				RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
 				Vector3 position = GetWorldPosition() - positionOffset;
 				Quaternion rotation = GetWorldRotation() * _rotationOffset;
+				rotation.Normalize();
 				
 				JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 				JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();

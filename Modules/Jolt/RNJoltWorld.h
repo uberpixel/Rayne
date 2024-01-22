@@ -21,6 +21,7 @@
 namespace JPH
 {
 	class PhysicsSystem;
+	class Body;
 }
 
 namespace RN
@@ -47,10 +48,16 @@ namespace RN
 		JTAPI JoltContactInfo CastSweep(JoltShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, const Vector3 &scale = Vector3(1.0f, 1.0f, 1.0f), uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		JTAPI std::vector<JoltContactInfo> CheckOverlap(JoltShape *shape, const Vector3 &position, const Quaternion &rotation, const Vector3 &scale = Vector3(1.0f, 1.0f, 1.0f), uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		
-		//Internal utility function, should not be used outside of theis library
+		//Internal utility function, should not be used outside of this library
 		JTAPI uint16 GetObjectLayer(uint32 collisionGroup, uint32 collisionMask, uint8 broadPhaseLayer);
 
 		JTAPI JPH::PhysicsSystem *GetJoltInstance() const { return _physicsSystem; }
+		
+		//These as well as the body creation should all be called on the same thread!
+		JTAPI void PrepareLoadingLevel();
+		JTAPI void FinalizeLoadingLevel();
+		bool IsLoadingLevel() const { return _isLoadingLevel; }
+		void AddBodyForLoadingLevel(JPH::Body *body);
 
 		static JoltWorld *GetSharedInstance() { return _sharedInstance; }
 
@@ -60,6 +67,8 @@ namespace RN
 		JPH::PhysicsSystem *_physicsSystem;
 		
 		PIMPL<JoltInternals> _internals;
+		
+		bool _isLoadingLevel;
 		
 		bool _isSimulating;
 		bool _didUpdate;

@@ -233,6 +233,8 @@ namespace RN
 		JoltObjectLayerMapper objectLayerMapper;
 		
 		JoltContactListener contactListener;
+		
+		std::vector<JPH::BodyID> bodiesToAddLoadingLevel;
 	};
 
 	struct JoltCharacterInternals

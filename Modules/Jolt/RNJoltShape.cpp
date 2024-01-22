@@ -154,6 +154,7 @@ namespace RN
 		JPH::Shape::ShapeResult result = settings.Create();
 
 		_material = SafeRetain(material);
+		RN_DEBUG_ASSERT(result.IsValid(), "Invalid shape!");
 		if(result.IsValid())
 		{
 			_shape = result.Get();
