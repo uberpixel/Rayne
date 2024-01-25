@@ -252,7 +252,7 @@ namespace RN
 			return hit;
 		}
 		
-		JPH::Vec3 position = castInfo.GetPointOnRay(result.mHit.mFraction);
+		JPH::Vec3 position = result.mHit.mContactPointOn2;//castInfo.GetPointOnRay(result.mHit.mFraction);
 		JPH::Vec3 normal;
 
 		// Scoped lock
