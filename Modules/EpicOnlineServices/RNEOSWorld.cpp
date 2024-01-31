@@ -128,10 +128,10 @@ namespace RN
 //#if !RN_PLATFORM_ANDROID
 		EOS_P2P_SetRelayControlOptions relayControlOptions = {};
 		relayControlOptions.ApiVersion = EOS_P2P_SETRELAYCONTROL_API_LATEST;
-/*#if RN_PLATFORM_ANDROID
+//#if RN_PLATFORM_ANDROID
 		relayControlOptions.RelayControl = EOS_ERelayControl::EOS_RC_AllowRelays;
-#else*/
-		relayControlOptions.RelayControl = EOS_ERelayControl::EOS_RC_ForceRelays;
+//#else
+		//relayControlOptions.RelayControl = EOS_ERelayControl::EOS_RC_ForceRelays;
 		EOS_P2P_SetRelayControl(_p2pInterfaceHandle, &relayControlOptions);
 //#endif
 		_instance = this;
