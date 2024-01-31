@@ -37,6 +37,7 @@ namespace RN
 
 		enum class UpdatePriority
 		{
+			UpdateEarliest,
 			UpdateEarly,
 			UpdateNormal,
 			UpdateLate

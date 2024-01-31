@@ -54,7 +54,7 @@ namespace RN
 		RNAPI void AddRenderNode(SceneNode *node);
 		RNAPI void RemoveRenderNode(SceneNode *node);
 
-		IntrusiveList<SceneNode> _updateNodes[3];
+		IntrusiveList<SceneNode> _updateNodes[4];
 		IntrusiveList<Camera> _cameras;
 		IntrusiveList<Light> _lights;
 		

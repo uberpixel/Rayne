@@ -45,7 +45,7 @@ namespace RN
 		void RasterizeMesh(const Matrix &matModelViewProj, Mesh *mesh);
 		bool TestBoundingBox(const Matrix &matViewProj, const AABB &aabb, const Vector2 &screenPixelSize);
 		
-		IntrusiveList<SceneNode> _updateNodes[3];
+		IntrusiveList<SceneNode> _updateNodes[4];
 		IntrusiveList<SceneNode> _renderNodes;
 		IntrusiveList<Light> _lights;
 		IntrusiveList<Camera> _cameras;

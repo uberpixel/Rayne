@@ -53,7 +53,7 @@ namespace RN
 		
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
 		
-		for(size_t i = 0; i < 3; i ++)
+		for(size_t i = 0; i < 4; i ++)
 		{
 			WorkGroup *group = new WorkGroup();
 			
