@@ -279,14 +279,12 @@ namespace RN
 
 		if(mode & Mode::Write)
 		{
-			oflag |= O_APPEND;
+			if((mode & Mode::Append)) oflag |= O_APPEND;
+			else oflag |= O_TRUNC;
 
 			if(!(mode & Mode::NoCreate))
 				oflag |= O_CREAT;
 		}
-
-		if(!(mode & Mode::Append) && !(mode & Mode::Read))
-			oflag |= O_TRUNC;
 
 		// Open the file
 		int error = errno;
