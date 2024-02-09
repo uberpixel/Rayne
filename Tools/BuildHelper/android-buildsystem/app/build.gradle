@@ -43,6 +43,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments = getCmakeArgumentsFromProjectProperty()
+                arguments.add("-DANDROID_STL=c++_shared")
                 arguments.add("-DANDROID_ASSETS_DIRECTORIES='"+"${sourceSets.main.assets.srcDirs}".toString()+"'")
 
                 cppFlags ""
