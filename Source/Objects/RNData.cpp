@@ -176,13 +176,13 @@ namespace RN
 		std::copy(data, data + range.length, _bytes + range.origin);
 	}
 	
-	void Data::WriteToFile(const String *path)
+	size_t Data::WriteToFile(const String *path)
 	{
 		File *file = File::WithName(path, File::Mode::Write);
 		if(!file)
 			throw InvalidArgumentException(RNSTR("Couldn't create file " << path));
 
-		file->Write(_bytes, _length);
+		return file->Write(_bytes, _length);
 	}
 	
 	

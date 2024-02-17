@@ -35,7 +35,7 @@ namespace RN
 		RNAPI void Append(Data *other);
 		
 		RNAPI void ReplaceBytes(const void *bytes, const Range &range);
-		RNAPI void WriteToFile(const String *file);
+		RNAPI size_t WriteToFile(const String *file);
 		
 		RNAPI void GetBytesInRange(void *buffer, Range range) const;
 		RNAPI Data *GetDataInRange(Range range) const;
