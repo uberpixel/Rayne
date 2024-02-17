@@ -174,7 +174,7 @@ namespace RN
 					//RNDebug("Received full multipart data");
 					
 					Unlock();
-					ReceivedPacket(peer._multipartPacketData[channel], 0, channel);
+					ReceivedPacket(peer._multipartPacketData[channel], senderID, channel);
 					Lock();
 					
 					peer._multipartPacketTotalParts.erase(channel);
