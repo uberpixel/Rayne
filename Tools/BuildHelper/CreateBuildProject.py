@@ -131,7 +131,7 @@ def main():
 		Utilities.copyAndroidBuildSystem(os.path.join(buildHelperPath, "android-buildsystem"), projectRootPath, buildConfigData, configuration, isDemo)
 		if configIconsDirectory:
 			shutil.copytree(os.path.join(projectRootPath, configIconsDirectory), os.path.join(buildDirectory, "app/src/main/res"), dirs_exist_ok=True)
-		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', ', '.join(buildconfiguration))
+		Utilities.setGradleProperty('gradle.properties', 'projectCmakeArguments', ','.join(buildconfiguration))
 		Utilities.setGradleProperty('gradle.properties', 'projectVersion', versionString)
 		Utilities.setGradleProperty('gradle.properties', 'projectBuildNumber', str(buildNumber))
 
