@@ -34,7 +34,7 @@ namespace RN
 		}
 
 		//Enable HRTF
-		int attributes[3] = {ALC_HRTF_SOFT, ALC_TRUE, 0};
+		int attributes[7] = {ALC_HRTF_SOFT, ALC_TRUE, ALC_MONO_SOURCES, 512, ALC_STEREO_SOURCES, 256, 0};
 			
 		_context = alcCreateContext(_outputDevice, attributes);
 		alcMakeContextCurrent(_context);
