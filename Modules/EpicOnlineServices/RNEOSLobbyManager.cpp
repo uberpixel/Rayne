@@ -881,6 +881,8 @@ namespace RN
 		
 		if(lobbyManager->_audioReceivedCallback)
 		{
+			AutoreleasePool pool;
+			
 			RN::String *eosUserID = nullptr;
 			
 			if(Data->ParticipantId)
