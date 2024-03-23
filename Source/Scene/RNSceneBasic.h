@@ -51,8 +51,20 @@ namespace RN
 		IntrusiveList<Camera> _cameras;
 		Array *_nodesToRemove;
         Array *_nodesToAdd;
+		
+		size_t _currentFrameCount;
 
 		__RNDeclareMetaInternal(SceneBasic)
+	};
+
+	class SceneBasicInfo : public SceneInfo
+	{
+	public:
+		SceneBasicInfo(Scene *scene);
+		
+		size_t occludedFrameCounter;
+		
+		__RNDeclareMetaInternal(SceneBasicInfo)
 	};
 }
 

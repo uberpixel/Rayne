@@ -14,6 +14,7 @@
 #include "../Scene/RNEntity.h"
 #include "../Rendering/RNModel.h"
 #include "../Rendering/RNMesh.h"
+#include "../Math/RNRandom.h"
 
 #define kRNSceneUpdateBatchSize 8192 //1024
 #define kRNSceneRenderBatchSize 32
@@ -21,13 +22,19 @@
 namespace RN
 {
 	RNDefineMeta(SceneBasic, Scene)
+	RNDefineMeta(SceneBasicInfo, SceneInfo)
 
 	RN_INLINE float edgeFunction(const Vector2 a, const Vector2 b, const Vector2 c)
 	{
 		return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 	}
 
-	SceneBasic::SceneBasic() : _nodesToRemove(new Array()), _occlusionDepthBufferWidth(40), _occlusionDepthBufferHeight(40)
+	SceneBasicInfo::SceneBasicInfo(Scene *scene) : SceneInfo(scene), occludedFrameCounter(0)
+	{
+		
+	}
+
+	SceneBasic::SceneBasic() : _nodesToRemove(new Array()), _occlusionDepthBufferWidth(40), _occlusionDepthBufferHeight(40), _currentFrameCount(0)
 	{
 		_occlusionDepthBuffer = new float[_occlusionDepthBufferWidth * _occlusionDepthBufferHeight];
 	}
@@ -362,7 +369,12 @@ namespace RN
 		}
 		
 		//Fail depth test for objects that are smaller than a single pixel
-		if(maxCorners.x - minCorners.x < screenPixelSize.x || maxCorners.y - minCorners.y < screenPixelSize.y) return false;
+		if((maxCorners.x - minCorners.x) < screenPixelSize.x && (maxCorners.y - minCorners.y) < screenPixelSize.y)
+		{
+			//TODO: Above should use "or" but somehow tends to cull things that aren't really that small...
+			//RNDebug("failed size test: " << (maxCorners.x - minCorners.x) << " < " << screenPixelSize.x << ", " << (maxCorners.y - minCorners.y) << " < " << screenPixelSize.y);
+			return false;
+		}
 		
 		minCorners.x *= _occlusionDepthBufferWidth;
 		minCorners.y *= _occlusionDepthBufferHeight;
@@ -469,19 +481,36 @@ namespace RN
 					std::fill(_occlusionDepthBuffer, _occlusionDepthBuffer + _occlusionDepthBufferWidth * _occlusionDepthBufferHeight, 0.0f);
 					
 					Vector2 screenPixelSize = Vector2(1.0f/camera->GetRenderPass()->GetFrame().width, 1.0f/camera->GetRenderPass()->GetFrame().height);
-					Matrix matViewProj = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+					
+					Vector3 randomCameraOffset = RandomNumberGenerator::GetSharedGenerator()->GetRandomVector3Range(RN::Vector3(-0.1f, -0.1f, 0.0f), RN::Vector3(0.1f, 0.1f, 0.0f));
+					Matrix matViewProj = camera->GetProjectionMatrix() * Matrix::WithTranslation(randomCameraOffset) * camera->GetViewMatrix();
+					if(camera->GetIsMultiviewCamera())
+					{
+						size_t multiviewIndex = _currentFrameCount % camera->GetMultiviewCameras()->GetCount();
+						RN::Camera *multiviewCamera = camera->GetMultiviewCameras()->GetObjectAtIndex<RN::Camera>(multiviewIndex);
+						matViewProj = multiviewCamera->GetProjectionMatrix() * multiviewCamera->GetViewMatrix();
+					}
 					
 					//Render occluders to depth buffer first (first test if the bounding box is visible at all)
 					for(SceneNode *node : occluders)
 					{
-						bool isVisible = false;
-						if(TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize))
+						bool testResult = TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize);
+						SceneBasicInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneBasicInfo>();
+						if(!testResult && sceneInfo->occludedFrameCounter < 1000)
 						{
+							sceneInfo->occludedFrameCounter += 1;
+						}
+						if(testResult || sceneInfo->occludedFrameCounter < 20)
+						{
+							if(testResult)
+							{
+								sceneInfo->occludedFrameCounter = 0;
+							}
+							
 							visibleOccluders.push_back(node);
-							isVisible = true;
 						}
 						
-						if(isVisible)
+						if(testResult)
 						{
 							//TODO: Deal with models that have multiple meshes, also what lod stage should be used if there are multiple?
 							Model *model = node->Downcast<Entity>()->GetModel();
@@ -510,8 +539,19 @@ namespace RN
 							continue;
 						}
 						
-						if(TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize))
+						bool testResult = TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize);
+						SceneBasicInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneBasicInfo>();
+						if(!testResult && sceneInfo->occludedFrameCounter < 1000)
 						{
+							sceneInfo->occludedFrameCounter += 1;
+						}
+						if(testResult || sceneInfo->occludedFrameCounter < 20)
+						{
+							if(testResult)
+							{
+								sceneInfo->occludedFrameCounter = 0;
+							}
+							
 							sceneNodesToRender.push_back(node);
 						}
 					}
@@ -569,6 +609,9 @@ namespace RN
 				cameraMember = cameraMember->GetNext();
 			}
 		}
+		
+		_currentFrameCount += 1;
+		_currentFrameCount %= 10000;
 
 		DidRender(renderer);
 	}
@@ -619,7 +662,7 @@ namespace RN
 		RN_ASSERT(node->GetSceneInfo() == nullptr, "AddNode() must be called on a Node not owned by a scene");
 		
 		node->Retain();
-		SceneInfo *sceneInfo = new SceneInfo(this);
+		SceneBasicInfo *sceneInfo = new SceneBasicInfo(this);
 		node->UpdateSceneInfo(sceneInfo->Autorelease());
     
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
