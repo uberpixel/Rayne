@@ -488,7 +488,7 @@ namespace RN
 			size_t count = subviewsCopy->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
-				View *child = _subviews->GetObjectAtIndex<View>(i);
+				View *child = subviewsCopy->GetObjectAtIndex<View>(i);
 				if(child->UpdateCursorPosition(cursorPosition))
 				{
 					needsRedraw = true;
