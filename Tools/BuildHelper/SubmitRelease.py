@@ -246,7 +246,7 @@ def main():
 			if isDemo:
 				releasesDirectoryPath += "_demo"
 			apkToUpload = os.path.join(releasesDirectoryPath, configNameLower+"-"+"oculus"+".apk")
-			uploadCommand = [oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', 'alpha', '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')]
+			uploadCommand = [oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '--age-group', 'TEENS_AND_ADULTS', '-c', 'alpha', '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')]
 			if configChangelog != None:
 				with open(configChangelog, "r") as f:
 					changes = f.read()
