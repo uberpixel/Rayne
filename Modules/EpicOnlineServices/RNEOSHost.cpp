@@ -142,7 +142,9 @@ namespace RN
 		if(_peers[receiverID]._wantsDisconnect) return; //Don't allow sending more data to users that are about to be disconnected.
 		
 		//Only reliable packets can be split up, unreliable packets need to be small enough to fit a single networking packet
-		RN_ASSERT(data->GetLength() < MAX_PACKET_SIZE || reliable, "Packet too big!");
+		RN_DEBUG_ASSERT(data->GetLength() < MAX_PACKET_SIZE || reliable, "Packet too big!");
+		
+		if(!reliable && data->GetLength() >= MAX_PACKET_SIZE) return; //Don't send if unreliable packet is too big. Since it is unreliable, not sending it is acceptable.
 		
 		Lock();
 		if(_peers.size() == 0 || _peers.find(receiverID) == _peers.end())
