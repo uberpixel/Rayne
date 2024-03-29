@@ -117,6 +117,7 @@ namespace RN
 		VkDescriptorPool _descriptorPool;
 		VkQueue _workQueue;
 		VulkanCommandBuffer *_currentCommandBuffer;
+		Lockable _currentResourcesCommandBufferLock;
 		VulkanCommandBuffer *_currentResourcesCommandBuffer;
 		VkCommandPool _commandPool;
 		Array *_submittedCommandBuffers;

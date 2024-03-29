@@ -160,20 +160,20 @@ namespace RN
 
 	VulkanCommandBuffer *VulkanRenderer::StartResourcesCommandBuffer()
 	{
+		_currentResourcesCommandBufferLock.Lock();
 		if(!_currentResourcesCommandBuffer)
         {
             _currentResourcesCommandBuffer = GetCommandBuffer()->Retain();
 		    _currentResourcesCommandBuffer->Begin();
         }
 
-        _currentResourcesCommandBuffer->Lock();
 		return _currentResourcesCommandBuffer;
 	}
 
     void VulkanRenderer::EndResourcesCommandBuffer()
     {
         RN_DEBUG_ASSERT(_currentResourcesCommandBuffer, "No active Resources command buffer!");
-        _currentResourcesCommandBuffer->Unlock();
+	    _currentResourcesCommandBufferLock.Unlock();
     }
 
 	void VulkanRenderer::SubmitCommandBuffer(VulkanCommandBuffer *commandBuffer)
@@ -292,16 +292,16 @@ namespace RN
         UpdateFrameFences(); //Releases resources of frames that finished
         CreateMipMaps();
 
-		_lock.Lock();
+		_currentResourcesCommandBufferLock.Lock();
 		if(_currentResourcesCommandBuffer)
 		{
-            _currentResourcesCommandBuffer->Lock();
 			_currentResourcesCommandBuffer->End();
             _submittedCommandBuffers->AddObject(_currentResourcesCommandBuffer);
-            _currentResourcesCommandBuffer->Unlock();
 			SafeRelease(_currentResourcesCommandBuffer);
 		}
+		_currentResourcesCommandBufferLock.Unlock();
 
+		_lock.Lock();
         VkSemaphore resourceUploadsSemaphore = VK_NULL_HANDLE;
 		if(_submittedCommandBuffers->GetCount() > 0)
 		{
