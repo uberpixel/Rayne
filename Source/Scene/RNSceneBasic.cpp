@@ -446,7 +446,7 @@ namespace RN
 				while(nodeMember)
 				{
 					SceneNode *node = nodeMember->Get();
-					if(node->HasFlags(SceneNode::Flags::Occluder) && node->IsKindOfClass(Entity::GetMetaClass()) && node->CanRender(renderer, camera))
+					if(node->HasFlags(SceneNode::Flags::Occluder) && node->CanRender(renderer, camera))
 					{
 						occluders.push_back(node);
 					}
@@ -513,10 +513,14 @@ namespace RN
 						if(testResult)
 						{
 							//TODO: Deal with models that have multiple meshes, also what lod stage should be used if there are multiple?
-							Model *model = node->Downcast<Entity>()->GetModel();
-							RN::Mesh *mesh = model->GetLODStage(0)->GetMeshAtIndex(0);
-							Matrix matModelViewProj = matViewProj * node->GetWorldTransform();
-							RasterizeMesh(matModelViewProj, mesh);
+							RN::Entity *entity = node->Downcast<Entity>();
+							if(entity)
+							{
+								Model *model = entity->GetModel();
+								RN::Mesh *mesh = model->GetLODStage(0)->GetMeshAtIndex(0);
+								Matrix matModelViewProj = matViewProj * node->GetWorldTransform();
+								RasterizeMesh(matModelViewProj, mesh);
+							}
 						}
 					}
 					
