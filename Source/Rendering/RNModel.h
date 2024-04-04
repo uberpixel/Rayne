@@ -6,6 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#define RN_MODEL_LOD_DISABLED 1
+
 #ifndef __RAYNE_MODEL_H_
 #define __RAYNE_MODEL_H_
 
@@ -117,7 +119,15 @@ namespace RN
 
 		RNAPI LODStage *GetLODStage(size_t index) const;
 		RNAPI LODStage *GetLODStageForDistance(float distance) const;
-		size_t GetLODStageCount() const { return _lodStages->GetCount(); }
+
+		size_t GetLODStageCount() const
+		{
+#if RN_MODEL_LOD_DISABLED
+			return _lodStage? 1 : 0;
+#else
+			return _lodStages->GetCount();
+#endif
+		}
 		
 		RNAPI void SetSkeleton(Skeleton *skeleton);
 		RNAPI Skeleton *GetSkeleton() const;
@@ -134,7 +144,11 @@ namespace RN
 		RNAPI static void SetDefaultLODFactors(const std::vector<float> &factors);
 
 	private:
+#if RN_MODEL_LOD_DISABLED
+		LODStage *_lodStage;
+#else
 		Array *_lodStages;
+#endif
 		Skeleton *_skeleton;
 		ShadowVolume *_shadowVolume;
 

@@ -21,7 +21,12 @@ namespace RN
 	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 
 	Model::Model() :
-		_lodStages(new Array()), _skeleton(nullptr), _shadowVolume(nullptr)
+		_skeleton(nullptr), _shadowVolume(nullptr),
+#if RN_MODEL_LOD_DISABLED
+		_lodStage(nullptr)
+#else
+		_lodStages(new Array())
+#endif
 	{}
 
 	Model::Model(Mesh *mesh, Material *material) :
@@ -38,18 +43,27 @@ namespace RN
 		_boundingBox(other->_boundingBox),
 		_boundingSphere(other->_boundingSphere)
 	{
+#if RN_MODEL_LOD_DISABLED
+		if(other->_lodStage) _lodStage = other->_lodStage->Copy();
+		else _lodStage = nullptr;
+#else
 		_lodStages = new Array();
 		other->_lodStages->Enumerate<LODStage>([&](LODStage *stage, size_t index, bool &stop)
 		{
 			_lodStages->AddObject(stage->Copy()->Autorelease());
 		});
+#endif
 		
 		_skeleton = SafeRetain(other->_skeleton);
 	}
 
 	Model::~Model()
 	{
+#if RN_MODEL_LOD_DISABLED
+		SafeRelease(_lodStage);
+#else
 		_lodStages->Release();
+#endif
 		SafeRelease(_skeleton);
 	}
 
@@ -158,6 +172,11 @@ namespace RN
 	{
 		LODStage *stage = new LODStage(distance);
 
+#if RN_MODEL_LOD_DISABLED
+		RN_ASSERT(!_lodStage, "Only 1 LOD stage is supported, disable RN_MODEL_LOD_DISABLED to support multiple LOD stages!");
+		_lodStage = stage;
+		_lodStage->_index = 0;
+#else
 		_lodStages->AddObject(stage);
 		_lodStages->Sort<LODStage>([](const LODStage *lhs, const LODStage *rhs) -> bool {
 			return lhs->GetDistance() < rhs->GetDistance();
@@ -170,22 +189,36 @@ namespace RN
 			LODStage *temp = _lodStages->GetObjectAtIndex<LODStage>(i);
 			temp->_index = i;
 		}
+		stage->Autorelease();
+#endif
 
-		return stage->Autorelease();
+		return stage;
 	}
 
 	void Model::RemoveLODStage(size_t index)
 	{
+#if RN_MODEL_LOD_DISABLED
+		RN_ASSERT(index == 0, "Only 1 LOD stage is supported, disable RN_MODEL_LOD_DISABLED to support multiple LOD stages!");
+		SafeRelease(_lodStage);
+#else
 		_lodStages->RemoveObjectAtIndex(index);
+#endif
 	}
 
 
 	Model::LODStage *Model::GetLODStage(size_t index) const
 	{
+#if RN_MODEL_LOD_DISABLED
+		return _lodStage;
+#else
 		return static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(index));
+#endif
 	}
 	Model::LODStage *Model::GetLODStageForDistance(float distance) const
 	{
+#if RN_MODEL_LOD_DISABLED
+		return _lodStage;
+#else
 		size_t count = _lodStages->GetCount();
 		if(count <= 1 || distance <= k::EpsilonFloat)
 			return static_cast<Model::LODStage *>(_lodStages->GetObjectAtIndex(0));
@@ -201,6 +234,7 @@ namespace RN
 		}
 
 		return _lodStages->GetLastObject<LODStage>();
+#endif
 	}
 	
 	void Model::SetSkeleton(Skeleton *skeleton)
