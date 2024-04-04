@@ -319,6 +319,16 @@ namespace RN
 			_identifier = EmissiveColor;
 			_type = PrimitiveType::Color;
 		}
+		if(name->IsEqual(RNCSTR("material_custommatrix1")) || name->IsEqual(RNCSTR("customMatrix1")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX1")))
+		{
+			_identifier = CustomMatrix1;
+			_type = PrimitiveType::Matrix4x4;
+		}
+		if(name->IsEqual(RNCSTR("material_custommatrix2")) || name->IsEqual(RNCSTR("customMatrix2")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX2")))
+		{
+			_identifier = CustomMatrix2;
+			_type = PrimitiveType::Matrix4x4;
+		}
 		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_TEXTURETILEFACTOR")))
 		{
 			_identifier = TextureTileFactor;

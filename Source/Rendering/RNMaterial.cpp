@@ -53,6 +53,9 @@ namespace RN
         blendFactorSourceAlpha = properties.blendFactorSourceAlpha;
         blendFactorDestinationAlpha = properties.blendFactorDestinationAlpha;
 		
+		customMatrix1 = properties.customMatrix1;
+		customMatrix2 = properties.customMatrix2;
+		
 		_customShaderUniforms.clear();
 		_customShaderUniforms.insert(properties._customShaderUniforms.begin(), properties._customShaderUniforms.end());
 		
@@ -250,6 +253,15 @@ namespace RN
 	void Material::SetEmissiveColor(const Color &color)
 	{
 		_properties.emissiveColor = color;
+	}
+
+	void Material::SetCustomMatrix1(const Matrix &matrix)
+	{
+		_properties.customMatrix1 = matrix;
+	}
+	void Material::SetCustomMatrix2(const Matrix &matrix)
+	{
+		_properties.customMatrix2 = matrix;
 	}
 
 	void Material::SetCullMode(CullMode mode)

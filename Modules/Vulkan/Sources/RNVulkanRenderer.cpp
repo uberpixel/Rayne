@@ -1350,6 +1350,18 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::CustomMatrix1:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), mergedMaterialProperties.customMatrix1.m, descriptor->GetSize());
+					break;
+				}
+
+				case Shader::UniformDescriptor::Identifier::CustomMatrix2:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), mergedMaterialProperties.customMatrix2.m, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.textureTileFactor, descriptor->GetSize());

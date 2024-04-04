@@ -114,7 +114,12 @@ namespace RN
 				DirectionalShadowInfo,
 				PointLights,
 				SpotLights,
-				BoneMatrices
+				BoneMatrices,
+				
+				//TODO: Hide these behind a define...
+				//Used as an optimization for GRAB, will usually be a waste of memory though...
+				CustomMatrix1,
+				CustomMatrix2
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location = -1);

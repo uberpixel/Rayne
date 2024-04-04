@@ -864,6 +864,18 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.emissiveColor.r, descriptor->GetSize());
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::CustomMatrix1:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), materialProperties.customMatrix1.m, descriptor->GetSize());
+					break;
+				}
+					
+				case Shader::UniformDescriptor::Identifier::CustomMatrix2:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), materialProperties.customMatrix2.m, descriptor->GetSize());
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{

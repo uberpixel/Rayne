@@ -91,6 +91,11 @@ namespace RN
 			Color specularColor;
 			Color emissiveColor;
 			
+			//TODO: Hide these behind a define...
+			//Used as an optimization for GRAB, will usually be a waste of memory though...
+			Matrix customMatrix1;
+			Matrix customMatrix2;
+			
 			//TODO: Changing anything but colors and custom uniforms should only be allowed on creation, but not after already used for rendering as the renderers will only switch the pipeline state if the material was changed and these properties require a new pipeline state
 			bool usePolygonOffset;
 			float polygonOffsetFactor;
@@ -163,6 +168,9 @@ namespace RN
 		RNAPI void SetDiffuseColor(const Color &color);
 		RNAPI void SetSpecularColor(const Color &color);
 		RNAPI void SetEmissiveColor(const Color &color);
+		
+		RNAPI void SetCustomMatrix1(const Matrix &matrix);
+		RNAPI void SetCustomMatrix2(const Matrix &matrix);
 
 		RNAPI void SetTextureTileFactor(float factor);
 		RNAPI void SetCullMode(CullMode mode);
@@ -194,6 +202,9 @@ namespace RN
 		const Color &GetDiffuseColor() const { return _properties.diffuseColor; }
 		const Color &GetSpecularColor() const { return _properties.specularColor; }
 		const Color &GetEmissiveColor() const { return _properties.emissiveColor; }
+		
+		const Matrix &GetCustomMatrix1() const { return _properties.customMatrix1; }
+		const Matrix &GetCustomMatrix2() const { return _properties.customMatrix2; }
 
 		const Array *GetTextures() const { return _textures; }
 		float GetTextureTileFactor() const { return _properties.textureTileFactor; }
