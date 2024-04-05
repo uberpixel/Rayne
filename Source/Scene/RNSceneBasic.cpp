@@ -461,10 +461,11 @@ namespace RN
 					std::vector<SceneNode *> visibleOccluders;
 					
 					//Sort occluders by approximated size on the screen
-					std::sort(occluders.begin(), occluders.end(), [camera](
+					const RN::Vector3 cameraWorldPosition = camera->GetWorldPosition();
+					std::sort(occluders.begin(), occluders.end(), [cameraWorldPosition](
 							SceneNode *a, SceneNode *b) {
-						float distanceA = std::max(a->GetWorldPosition().GetDistance(camera->GetWorldPosition()), 1.0f);
-						float distanceB = std::max(b->GetWorldPosition().GetDistance(camera->GetWorldPosition()), 1.0f);
+						float distanceA = std::max(a->GetWorldPosition().GetDistance(cameraWorldPosition), 1.0f);
+						float distanceB = std::max(b->GetWorldPosition().GetDistance(cameraWorldPosition), 1.0f);
 						
 						return a->GetBoundingSphere().radius / distanceA > b->GetBoundingSphere().radius / distanceB;
 					});
@@ -472,9 +473,9 @@ namespace RN
 					occluders.resize(std::min(static_cast<size_t>(30), occluders.size())); //Only keep the biggest 30 occluders in the list
 					
 					//Sort remaining occluders front to back
-					std::sort(occluders.begin(), occluders.end(), [camera](
+					std::sort(occluders.begin(), occluders.end(), [cameraWorldPosition](
 							SceneNode *a, SceneNode *b) {
-						return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
+						return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) < b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
 					});
 					
 					//Clear occlusion depth map
@@ -576,11 +577,12 @@ namespace RN
 
 				if(camera->GetFlags() & Camera::Flags::SortFrontToBack)
 				{
-					std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [camera](
+					const RN::Vector3 cameraWorldPosition = camera->GetWorldPosition();
+					std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [cameraWorldPosition](
 							SceneNode *a, SceneNode *b) {
 						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
 						{
-							return a->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition()) < b->GetWorldPosition().GetSquaredDistance(camera->GetWorldPosition());
+							return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) < b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
 						}
 						return a->GetRenderPriority() < b->GetRenderPriority();
 					});
