@@ -496,7 +496,7 @@ namespace RN
 					for(SceneNode *node : occluders)
 					{
 						bool testResult = TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize);
-						SceneBasicInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneBasicInfo>();
+						SceneBasicInfo *sceneInfo = static_cast<SceneBasicInfo*>(node->GetSceneInfo());
 						if(!testResult && sceneInfo->occludedFrameCounter < 1000)
 						{
 							sceneInfo->occludedFrameCounter += 1;
@@ -545,7 +545,7 @@ namespace RN
 						}
 						
 						bool testResult = TestBoundingBox(matViewProj, node->GetBoundingBox(), screenPixelSize);
-						SceneBasicInfo *sceneInfo = node->GetSceneInfo()->Downcast<SceneBasicInfo>();
+						SceneBasicInfo *sceneInfo = static_cast<SceneBasicInfo*>(node->GetSceneInfo());
 						if(!testResult && sceneInfo->occludedFrameCounter < 1000)
 						{
 							sceneInfo->occludedFrameCounter += 1;
