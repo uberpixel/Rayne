@@ -482,7 +482,7 @@ namespace RN
 					
 					Vector2 screenPixelSize = Vector2(1.0f/camera->GetRenderPass()->GetFrame().width, 1.0f/camera->GetRenderPass()->GetFrame().height);
 					
-					Vector3 randomCameraOffset = RandomNumberGenerator::GetSharedGenerator()->GetRandomVector3Range(RN::Vector3(-0.1f, -0.1f, 0.0f), RN::Vector3(0.1f, 0.1f, 0.0f));
+					Vector3 randomCameraOffset = RandomNumberGenerator::GetSharedGenerator()->GetRandomVector3Range(RN::Vector3(-0.15f, -0.15f, 0.0f), RN::Vector3(0.15f, 0.15f, 0.0f));
 					Matrix matViewProj = camera->GetProjectionMatrix() * Matrix::WithTranslation(randomCameraOffset) * camera->GetViewMatrix();
 					if(camera->GetIsMultiviewCamera())
 					{
@@ -500,7 +500,7 @@ namespace RN
 						{
 							sceneInfo->occludedFrameCounter += 1;
 						}
-						if(testResult || sceneInfo->occludedFrameCounter < 20)
+						if(testResult || sceneInfo->occludedFrameCounter < 50)
 						{
 							if(testResult)
 							{
@@ -549,7 +549,7 @@ namespace RN
 						{
 							sceneInfo->occludedFrameCounter += 1;
 						}
-						if(testResult || sceneInfo->occludedFrameCounter < 20)
+						if(testResult || sceneInfo->occludedFrameCounter < 50)
 						{
 							if(testResult)
 							{
