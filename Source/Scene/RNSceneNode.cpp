@@ -156,6 +156,9 @@ namespace RN
 		_parent = nullptr;
 		_sceneInfo = nullptr;
 		_updated = true;
+		_updatedTransform = true;
+		_updatedInverseTransform = true;
+		_updatedBounds = true;
 		_flags = 0;
 
 		_updatePriority = UpdatePriority::UpdateNormal;
@@ -453,6 +456,9 @@ namespace RN
 		if(changeSet & ChangeSet::Position)
 		{
 			_updated = true;
+			_updatedTransform = true;
+			_updatedInverseTransform = true;
+			_updatedBounds = true;
 			
 			//Updated flag Needs to be passed on to all children and their children
 			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
@@ -470,6 +476,9 @@ namespace RN
 			}
 			
 			_updated = true;
+			_updatedTransform = true;
+			_updatedInverseTransform = true;
+			_updatedBounds = true;
 			
 			//Updated flag Needs to be passed on to all children and their children
 			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
@@ -492,14 +501,6 @@ namespace RN
 	{
 		if(_updated)
 		{
-			_localTransform = Matrix::WithTranslation(_position);
-			_localTransform.Rotate(_rotation);
-			_localTransform.Scale(_scale);
-			
-			_inverseLocalTransform = Matrix::WithScaling(_scale != 0.0f? (Vector3(1.0f, 1.0f, 1.0f) / _scale) : Vector3(0.0f, 0.0f, 0.0f));
-			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
-			_inverseLocalTransform.Translate(_position * -1.0f);
-
 			if(_parent)
 			{
 				_parent->UpdateInternalData();
@@ -508,9 +509,6 @@ namespace RN
 				_worldRotation = _parent->GetWorldRotation() * _rotation;
 				_worldScale = _parent->GetWorldScale() * _scale;
 				_worldEuler = _parent->GetWorldEulerAngle() + _euler;
-
-				_worldTransform = _parent->GetWorldTransform() * _localTransform;
-				_inverseWorldTransform = _inverseLocalTransform * _parent->GetInverseWorldTransform();
 			}
 			else
 			{
@@ -518,10 +516,61 @@ namespace RN
 				_worldRotation = _rotation;
 				_worldScale = _scale;
 				_worldEuler = _euler;
+			}
 
+			_updated = false;
+		}
+	}
+
+	void SceneNode::UpdateInternalTransformData() const
+	{
+		if(_updatedTransform)
+		{
+			_localTransform = Matrix::WithTranslation(_position);
+			_localTransform.Rotate(_rotation);
+			_localTransform.Scale(_scale);
+
+			if(_parent)
+			{
+				_parent->UpdateInternalTransformData();
+				_worldTransform = _parent->GetWorldTransform() * _localTransform;
+			}
+			else
+			{
 				_worldTransform = _localTransform;
+			}
+
+			_updatedTransform = false;
+		}
+	}
+
+	void SceneNode::UpdateInternalInverseTransformData() const
+	{
+		if(_updatedInverseTransform)
+		{
+			_inverseLocalTransform = Matrix::WithScaling(_scale != 0.0f? (Vector3(1.0f, 1.0f, 1.0f) / _scale) : Vector3(0.0f, 0.0f, 0.0f));
+			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
+			_inverseLocalTransform.Translate(_position * -1.0f);
+
+			if(_parent)
+			{
+				_parent->UpdateInternalInverseTransformData();
+				_inverseWorldTransform = _inverseLocalTransform * _parent->GetInverseWorldTransform();
+			}
+			else
+			{
 				_inverseWorldTransform = _inverseLocalTransform;
 			}
+
+			_updatedInverseTransform = false;
+		}
+	}
+
+	void SceneNode::UpdateInternalBoundsData() const
+	{
+		if(_updatedBounds)
+		{
+			UpdateInternalData();
 
 			_transformedBoundingBox = _boundingBox;
 			_transformedBoundingBox.position = _worldPosition;
@@ -533,7 +582,7 @@ namespace RN
 			_transformedBoundingSphere *= _worldScale;
 			_transformedBoundingSphere.SetRotation(_worldRotation);
 
-			_updated = false;
+			_updatedBounds = false;
 		}
 	}
 }

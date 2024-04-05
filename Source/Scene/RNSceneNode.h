@@ -194,6 +194,9 @@ namespace RN
 	private:
 		void Initialize();
 		RNAPI void UpdateInternalData() const;
+		RNAPI void UpdateInternalTransformData() const;
+		RNAPI void UpdateInternalInverseTransformData() const;
+		RNAPI void UpdateInternalBoundsData() const;
 
 		void __RemoveSceneInfo();
 		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
@@ -231,11 +234,14 @@ namespace RN
 		mutable Vector3 _worldScale;
 		mutable Vector3 _worldEuler;
 
+		mutable bool _updatedTransform;
+		mutable bool _updatedInverseTransform;
 		mutable Matrix _worldTransform;
 		mutable Matrix _inverseWorldTransform;
 		mutable Matrix _localTransform;
 		mutable Matrix _inverseLocalTransform;
 
+		mutable bool _updatedBounds;
 		mutable AABB _transformedBoundingBox;
 		mutable Sphere _transformedBoundingSphere;
 
@@ -409,37 +415,37 @@ namespace RN
 
 	RN_INLINE Matrix SceneNode::GetTransform() const
 	{
-		UpdateInternalData();
+		UpdateInternalTransformData();
 		return Matrix(_localTransform);
 	}
 
 	RN_INLINE Matrix SceneNode::GetInverseTransform() const
 	{
-		UpdateInternalData();
+		UpdateInternalInverseTransformData();
 		return Matrix(_inverseLocalTransform);
 	}
 
 	RN_INLINE Matrix SceneNode::GetWorldTransform() const
 	{
-		UpdateInternalData();
+		UpdateInternalTransformData();
 		return Matrix(_worldTransform);
 	}
 
 	RN_INLINE Matrix SceneNode::GetInverseWorldTransform() const
 	{
-		UpdateInternalData();
+		UpdateInternalInverseTransformData();
 		return Matrix(_inverseWorldTransform);
 	}
 
 	RN_INLINE AABB SceneNode::GetBoundingBox() const
 	{
-		UpdateInternalData();
+		UpdateInternalBoundsData();
 		return AABB(_transformedBoundingBox);
 	}
 
 	RN_INLINE Sphere SceneNode::GetBoundingSphere() const
 	{
-		UpdateInternalData();
+		UpdateInternalBoundsData();
 		return Sphere(_transformedBoundingSphere);
 	}
 }
