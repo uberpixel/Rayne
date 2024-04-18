@@ -20,7 +20,7 @@ namespace RN
 			View(frame),
 			_server(nullptr)
 		{
-			
+			SetDepthModeAndWrite(DepthMode::Always, false, 0.0f, 0.0f);
 		}
 
 		Window::~Window()

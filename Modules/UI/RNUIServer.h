@@ -29,6 +29,8 @@ namespace RN
 
 			UIAPI void AddWindow(UI::Window *window);
 			UIAPI void RemoveWindow(UI::Window *window);
+			
+			UIAPI void AddToScene(Scene *scene);
 
 			float GetHeight() const { return _camera->GetRenderPass()->GetFrame().height; }
 			float GetWidth() const { return _camera->GetRenderPass()->GetFrame().width; }
@@ -37,8 +39,7 @@ namespace RN
 		private:
 
 			Camera *_camera;
-
-			std::deque<Window *> _windows;
+			SceneNode *_windowContainer;
 
 			RNDeclareMetaAPI(Server, UIAPI)
 		};

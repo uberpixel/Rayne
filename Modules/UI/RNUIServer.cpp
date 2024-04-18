@@ -18,13 +18,12 @@ namespace RN
 		static Server *_defaultServer = nullptr;
 
 		Server::Server(Camera *camera) :
-			_camera(SafeRetain(camera))
+			_camera(SafeRetain(camera)), _windowContainer(nullptr)
 		{
 			if(!_camera)
 			{
 				RenderPass *renderPass = new RenderPass();
-				//renderPass->SetFlags(0);//RenderPass::Flags::ClearColor | RenderPass::Flags::ClearDepthStencil);
-				//renderPass->SetClearColor(Color(1.0f, 0.0f, 0.0f, 1.0f));
+				renderPass->SetFlags(RenderPass::Flags::LoadColor | RenderPass::Flags::StoreColor);
 				
 				_camera = new Camera(renderPass);
 				_camera->SetFlags(Camera::Flags::Orthogonal | Camera::Flags::NoDepthWrite | Camera::Flags::RenderLate);
@@ -33,14 +32,26 @@ namespace RN
 				
 				Rect frame = _camera->GetRenderPass()->GetFrame();
 				_camera->SetOrthogonalFrustum(frame.GetBottom(), frame.GetTop(), frame.GetLeft(), frame.GetRight());
-				
-				_camera->SetWorldPosition(RN::Vector3(0.0f, -frame.GetBottom(), 0.0f));
+			}
+			
+			if(!_windowContainer)
+			{
+				Rect frame = _camera->GetRenderPass()->GetFrame();
+				_windowContainer = new RN::SceneNode();
+				_camera->AddChild(_windowContainer->Autorelease());
+				_windowContainer->SetPosition(RN::Vector3(0.0f, frame.GetBottom(), 0.0f));
 			}
 		}
 
 		Server::~Server()
 		{
+			_windowContainer->RemoveFromParent();
 			SafeRelease(_camera);
+		}
+	
+		void Server::AddToScene(Scene *scene)
+		{
+			scene->AddNode(_camera);
 		}
 
 		Server *Server::GetDefaultServer()
@@ -64,19 +75,15 @@ namespace RN
 			RN_ASSERT(window->_server == nullptr, "Window mustn't be part of a server");
 
 			window->_server = this;
-			window->Retain();
-
-			_windows.push_back(window);
+			_windowContainer->AddChild(window);
 		}
 	
 		void Server::RemoveWindow(UI::Window *window)
 		{
 			RN_ASSERT(window->_server == this, "Window must be part of this server");
 
-			_windows.erase(std::find(_windows.begin(), _windows.end(), window));
-
 			window->_server = nullptr;
-			window->Release();
+			_windowContainer->RemoveChild(window);
 		}
 	}
 }
