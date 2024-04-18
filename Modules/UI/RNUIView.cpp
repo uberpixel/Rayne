@@ -30,7 +30,8 @@ namespace RN
 			_depthMode(DepthMode::GreaterOrEqual),
 			_depthOffset(200.0f),
 			_depthFactor(50.0f),
-			_cornerRadius(0.0f)
+			_cornerRadius(0.0f),
+			_renderPriorityOverride(0)
 		{
 			SetRenderGroup(1 << 7);
 			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
@@ -304,7 +305,7 @@ namespace RN
 			{
 				if(_superview && !GetSceneInfo())
 				{
-					SetRenderPriority(_superview->GetRenderPriority() + 1);
+					SetRenderPriority(_renderPriorityOverride == 0? _superview->GetRenderPriority() + 1 : _renderPriorityOverride);
 					if(_inheritRenderSettings) _depthMode = _superview->_depthMode;
 				}
 			}
@@ -415,6 +416,12 @@ namespace RN
 			
 			_clipToBounds = enabled;
 			CalculateScissorRect();
+		}
+	
+		void View::SetRenderPriorityOverride(int32 renderPriority)
+		{
+			_renderPriorityOverride = renderPriority;
+			RN_DEBUG_ASSERT(!_superview, "Needs to be called BEFORE adding to a superview to work");
 		}
 
 		// ---------------------

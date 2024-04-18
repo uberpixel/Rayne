@@ -64,6 +64,7 @@ namespace RN
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition);
 			
 			UIAPI void SetClipToBounds(bool enabled);
+			UIAPI void SetRenderPriorityOverride(int32 renderPriority);
 
 		protected:
 			UIAPI virtual void DidAddSubview(View *subview);
@@ -80,6 +81,7 @@ namespace RN
 			bool _needsMeshUpdate;
 			
 			bool _inheritRenderSettings; //If this is set, the values below will be overwritten when adding to the parent
+			int32 _renderPriorityOverride;
 			DepthMode _depthMode;
 			bool _isDepthWriteEnabled;
 			bool _isColorWriteEnabled;
