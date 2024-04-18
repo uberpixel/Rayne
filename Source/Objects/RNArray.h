@@ -313,7 +313,7 @@ namespace RN
 			});
 		}
 
-		RNAPI String *GetComponentsJoinedByString(const String *separator);
+		RNAPI String *GetComponentsJoinedByString(const String *separator) const;
 
 	private:
 		RNAPI void UpdateSizeIfNeeded(size_t required);
