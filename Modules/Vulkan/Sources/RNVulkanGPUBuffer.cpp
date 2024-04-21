@@ -60,11 +60,19 @@ namespace RN
 	VulkanGPUBuffer::~VulkanGPUBuffer()
 	{
 		UnmapBuffer();
-		vmaDestroyBuffer(_renderer->_internals->memoryAllocator, _buffer, _allocation);
+
+		//Delay the buffer deletion to end of frame to ensure that it is not in use anymore.
+		VmaAllocation allocation = _allocation;
+		VkBuffer buffer = _buffer;
+		VulkanRenderer *renderer = _renderer;
+		renderer->AddFrameFinishedCallback([renderer, buffer, allocation]() {
+			vmaDestroyBuffer(renderer->_internals->memoryAllocator, buffer, allocation);
+		});
 	}
 
 	void *VulkanGPUBuffer::GetBuffer()
 	{
+		Lock();
 		if(!_mappedBuffer)
 		{
 			if(_isHostVisible)
@@ -89,6 +97,7 @@ namespace RN
 				_mappedBuffer = allocationInfo.pMappedData;
 			}
 		}
+		Unlock();
 		return _mappedBuffer;
 	}
 
@@ -99,7 +108,12 @@ namespace RN
 
 	void VulkanGPUBuffer::UnmapBuffer()
 	{
-		if(!_mappedBuffer) return;
+		Lock();
+		if(!_mappedBuffer)
+		{
+			Unlock();
+			return;
+		}
 
 		if(_isHostVisible)
 		{
@@ -118,11 +132,20 @@ namespace RN
 			_stagingAllocation = VK_NULL_HANDLE;
 		}
 		_mappedBuffer = nullptr;
+
+		Unlock();
 	}
 
 	void VulkanGPUBuffer::InvalidateRange(const Range &range)
 	{
-		if(!_mappedBuffer || _isHostVisible) return;
+		Lock();
+		if(!_mappedBuffer || _isHostVisible)
+		{
+			Unlock();
+			return;
+		}
+
+		Unlock();
 
 /*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
 		VkMappedMemoryRange memoryRange;
@@ -137,7 +160,12 @@ namespace RN
 
 	void VulkanGPUBuffer::FlushRange(const Range &range)
 	{
-		if(!_mappedBuffer || _isHostVisible) return;
+		Lock();
+		if(!_mappedBuffer || _isHostVisible)
+		{
+			Unlock();
+			return;
+		}
 
 		VulkanCommandBuffer *commandBuffer = _renderer->StartResourcesCommandBuffer();
 
@@ -147,6 +175,7 @@ namespace RN
 		copyRegion.size = _length;
 		vk::CmdCopyBuffer(commandBuffer->GetCommandBuffer(), _stagingBuffer, _buffer, 1, &copyRegion);
 
+		Unlock();
 		_renderer->EndResourcesCommandBuffer();
 
 /*		VkDevice device = _renderer->GetVulkanDevice()->GetDevice();
