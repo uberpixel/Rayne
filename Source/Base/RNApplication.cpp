@@ -74,7 +74,7 @@ namespace RN
 		LoggingEngine *engine = new WideCharStreamLoggingEngine(std::wcout, true);
 #else
 		String *loggingFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ExternalSaveDirectory);
-		loggingFilePath->AppendPathComponent(RNCSTR("RNLogs.txt"));
+		loggingFilePath->AppendPathComponent(RNCSTR("logs/RNLogs.txt"));
 		
 		_fileStream.open(loggingFilePath->GetUTF8String());
 		LoggingEngine *engine = new WideCharStreamLoggingEngine(_fileStream, true);
@@ -86,7 +86,7 @@ namespace RN
 		engine->SetLogFormatter(formatter->Autorelease());
 		
 		String *loggingFilePath = FileManager::GetSharedInstance()->GetPathForLocation(FileManager::Location::ExternalSaveDirectory);
-		loggingFilePath->AppendPathComponent(RNCSTR("RNLogs.txt"));
+		loggingFilePath->AppendPathComponent(RNCSTR("logs/RNLogs.txt"));
 		_fileStream.open(loggingFilePath->GetUTF8String());
 		LoggingEngine *engine2 = new StreamLoggingEngine(_fileStream, true);
 		engine2->SetLogFormatter(formatter);
