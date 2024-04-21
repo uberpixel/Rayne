@@ -104,6 +104,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
 __RN_ANDROID_DEPENDENCIES__
 }
