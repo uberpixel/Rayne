@@ -242,6 +242,9 @@ namespace RN
 		
 		bool IsEqual(const Object *temp) const override
 		{
+			if(!temp)
+				return false;
+			
 			const Array *other = temp->Downcast<Array>();
 			if(!other)
 				return false;
