@@ -72,12 +72,14 @@ namespace RN
 
 	void *VulkanGPUBuffer::GetBuffer()
 	{
-		Lock();
 		if(!_mappedBuffer)
 		{
+			Lock();
 			if(_isHostVisible)
 			{
-				vmaMapMemory(_renderer->_internals->memoryAllocator, _allocation, &_mappedBuffer);
+				void *tempBuffer = nullptr;
+				vmaMapMemory(_renderer->_internals->memoryAllocator, _allocation, &tempBuffer);
+				_mappedBuffer = tempBuffer;
 			}
 			else
 			{
@@ -96,8 +98,9 @@ namespace RN
 
 				_mappedBuffer = allocationInfo.pMappedData;
 			}
+			Unlock();
 		}
-		Unlock();
+
 		return _mappedBuffer;
 	}
 

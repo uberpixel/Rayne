@@ -43,7 +43,7 @@ namespace RN
 
 		bool _isHostVisible;
 		size_t _length;
-		void *_mappedBuffer;
+		std::atomic<void *> _mappedBuffer;
 
 		RNDeclareMetaAPI(VulkanGPUBuffer, VKAPI)
 	};
