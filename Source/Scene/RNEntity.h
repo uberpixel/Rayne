@@ -37,7 +37,11 @@ namespace RN
 		void ClearDrawables();
 
 		Model *_model;
+#if RN_MODEL_LOD_DISABLED
+		std::vector<Drawable *> _drawables;
+#else
 		std::vector<std::vector<Drawable *>> _drawables;
+#endif
 
 		__RNDeclareMetaInternal(Entity)
 	};

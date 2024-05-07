@@ -33,11 +33,16 @@ namespace RN
 		if(Renderer::IsHeadless()) return;
 		
 		Renderer *renderer = Renderer::GetActiveRenderer();
+#if RN_MODEL_LOD_DISABLED
+		for(auto *drawable : _drawables)
+			renderer->DeleteDrawable(drawable);
+#else
 		for(auto &drawables : _drawables)
 		{
 			for(Drawable *drawable : drawables)
 				renderer->DeleteDrawable(drawable);
 		}
+#endif
 
 		_drawables.clear();
 	}
@@ -61,14 +66,20 @@ namespace RN
 					Model::LODStage *stage = _model->GetLODStage(i);
 					size_t groups = stage->GetCount();
 
+#if RN_MODEL_LOD_DISABLED //In this case there only ever is one stage
+					for(size_t j = 0; j < groups; j ++)
+					{
+						_drawables.push_back(renderer->CreateDrawable());
+					}
+#else
 					_drawables.emplace_back(groups, nullptr);
 
 					auto &drawables = _drawables.back();
-
 					for(size_t j = 0; j < groups; j ++)
 					{
-						drawables[j] = 	renderer->CreateDrawable();
+						drawables[j] =	renderer->CreateDrawable();
 					}
+#endif
 				}
 			}
 
@@ -81,15 +92,19 @@ namespace RN
 		if(!RN_EXPECT_FALSE(_model))
 			return;
 
+#if RN_MODEL_LOD_DISABLED
+		const Model::LODStage *stage = _model->_lodStage;
+#else
 		Camera *distanceCamera = camera->GetLODCamera();
 
 		float lodDistance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
 		lodDistance /= distanceCamera->GetClipFar();
 
-		Model::LODStage *stage = _model->GetLODStageForDistance(lodDistance);
-
-		size_t index = stage->GetIndex();
+		const Model::LODStage *stage = _model->GetLODStageForDistance(lodDistance);
+		
+		size_t index = stage->_index;
 		auto &drawables = _drawables[index];
+#endif
 
 		size_t count = stage->GetCount();
 
@@ -99,8 +114,12 @@ namespace RN
 			
 			if(!material->GetSkipRendering())
 			{
+#if RN_MODEL_LOD_DISABLED
+				Drawable *drawable = _drawables[i];
+#else
 				Drawable *drawable = drawables[i];
-				drawable->Update(stage->GetMeshAtIndex(i), material, _model->GetSkeleton(), this);
+#endif
+				drawable->Update(stage->GetMeshAtIndex(i), material, _model->_skeleton, this);
 				renderer->SubmitDrawable(drawable);
 			}
 		}
@@ -114,12 +133,19 @@ namespace RN
 		for(size_t lodStage = 0; lodStage < lodStageCount; lodStage += 1)
 		{
 			Model::LODStage *stage = _model->GetLODStage(lodStage);
+			
+#if !RN_MODEL_LOD_DISABLED
 			auto &drawables = _drawables[lodStage];
+#endif
 
 			size_t count = stage->GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
+#if RN_MODEL_LOD_DISABLED
+				Drawable *drawable = _drawables[i];
+#else
 				Drawable *drawable = drawables[i];
+#endif
 				drawable->MakeDirty();
 			}
 		}

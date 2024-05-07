@@ -23,10 +23,12 @@ namespace RN
 	class Model : public Asset
 	{
 	public:
+		friend class Entity;
 		class LODStage : public Object
 		{
 		public:
 			friend class Model;
+			friend class Entity;
 
 			LODStage(float distance) :
 				_distance(distance)
