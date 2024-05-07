@@ -260,6 +260,19 @@ namespace RN
 			return true;
 		}
 
+		bool IsEqualLite(const Array *temp) const //Only checks if objects are the same (same address), not if they are equal. Also reduced a little bit of other overhead.
+		{
+			if(GetCount() != temp->GetCount())
+				return false;
+
+			for(size_t i = 0; i < _count; i++)
+			{
+				if(_data[i] != temp->_data[i]) return false;
+			}
+
+			return true;
+		}
+
 		Object *GetObjectAtIndex(size_t index) const
 		{
 			return _data[index];

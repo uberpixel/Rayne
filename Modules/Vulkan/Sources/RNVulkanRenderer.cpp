@@ -1771,7 +1771,7 @@ namespace RN
 		}
 
 		_lock.Lock();
-		if(_internals->currentPipelineState == drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqual(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
+		if(_internals->currentPipelineState == drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqualLite(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
 		{
 			renderPass.instanceSteps.back() += 1; //Increase counter if the rendering state is the same
 		}
