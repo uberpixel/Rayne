@@ -1236,7 +1236,8 @@ namespace RN
 				}
 			}
 			
-			if(canUseInstancing)
+			//Comparing two identical things below, so just removing for now...
+			/*if(canUseInstancing)
 			{
 				//depth testing and polygon offset are setup as part of the draw call and objects can only be instanced correctly if these are the same
 				Material::Properties previousMergedMaterialProperties = drawable->material->GetMergedProperties(renderPass.overrideMaterial);
@@ -1246,7 +1247,7 @@ namespace RN
 				{
 					canUseInstancing = false;
 				}
-			}
+			}*/
 		}
 		
 		if(_internals->currentRenderState == drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqual(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
