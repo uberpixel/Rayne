@@ -1076,8 +1076,11 @@ namespace RN
 		const Material::Properties &mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
 		const VulkanRenderPass &renderPass = _internals->renderPasses[_internals->currentRenderPassIndex];
 
-		argumentBuffer->GetUniformDescriptors()->Enumerate<Shader::UniformDescriptor>([&](Shader::UniformDescriptor *descriptor, size_t index, bool &stop) {
-
+		const RN::Array *uniformDescriptors = argumentBuffer->GetUniformDescriptors();
+		size_t count = uniformDescriptors->GetCount();
+		for(size_t index = 0; index < count; index ++)
+		{
+			Shader::UniformDescriptor *descriptor = static_cast<Shader::UniformDescriptor*>(uniformDescriptors->GetObjectAtIndex(index));
 			switch(descriptor->GetIdentifier())
 			{
 				case Shader::UniformDescriptor::Identifier::Time:
@@ -1642,7 +1645,7 @@ namespace RN
 				default:
 					break;
 			}
-		});
+		}
 	}
 
 	Drawable *VulkanRenderer::CreateDrawable()
