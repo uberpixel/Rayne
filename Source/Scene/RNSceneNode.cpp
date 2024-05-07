@@ -244,10 +244,6 @@ namespace RN
 		SetWorldRotation(rotation);
 	}
 
-	bool SceneNode::HasFlags(Flags flags) const
-	{
-		return (_flags.load(std::memory_order_acquire) & flags);
-	}
 	SceneNode::Flags SceneNode::RemoveFlags(Flags flags)
 	{
 		WillUpdate(ChangeSet::Flags);

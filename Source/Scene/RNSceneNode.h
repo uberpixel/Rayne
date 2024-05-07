@@ -114,7 +114,7 @@ namespace RN
 		RNAPI void SetUpdatePriority(UpdatePriority priority);
 		RNAPI void SetRenderPriority(int32 priority);
 
-		RNAPI bool HasFlags(Flags flags) const;
+		RNAPI bool HasFlags(Flags flags) const { return (_flags.load(std::memory_order_acquire) & flags); }
 		RNAPI Flags RemoveFlags(Flags flags);
 		RNAPI Flags AddFlags(Flags flags);
 
