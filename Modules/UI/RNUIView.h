@@ -55,9 +55,10 @@ namespace RN
 			bool GetIsHidden() const { return _isHidden || _isHiddenByParent; }
 
 			UIAPI void SetBackgroundColor(const Color &color);
+			UIAPI void SetBackgroundColor(const Color &colorTopLeft, const Color &colorTopRight, const Color &colorBottomLeft, const Color &colorBottomRight);
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true);
-			UIAPI void SetCornerRadius(float radius);
-			UIAPI float GetCornerRadius() const { return _cornerRadius; }
+			UIAPI void SetCornerRadius(Vector4 radius);
+			UIAPI Vector4 GetCornerRadius() const { return _cornerRadius; }
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -102,8 +103,9 @@ namespace RN
 			bool _isHiddenByParent;
 			Rect _scissorRect;
 
-			float _cornerRadius;
-			Color _backgroundColor;
+			RN::Vector4 _cornerRadius;
+			Color _backgroundColor[4];
+			bool _hasVertexColors;
 
 			View *_superview;
 			Array *_subviews;

@@ -23,14 +23,15 @@ namespace RN
 			_needsMeshUpdate(true),
 			_subviews(new Array()),
 			_superview(nullptr),
-			_backgroundColor(Color::ClearColor()),
+			_backgroundColor{Color::ClearColor(), Color::ClearColor(), Color::ClearColor(), Color::ClearColor()},
+			_hasVertexColors(false),
 			_inheritRenderSettings(true),
 			_isDepthWriteEnabled(false),
 			_isColorWriteEnabled(true),
 			_depthMode(DepthMode::GreaterOrEqual),
 			_depthOffset(200.0f),
 			_depthFactor(50.0f),
-			_cornerRadius(0.0f),
+			_cornerRadius(0.0f, 0.0f, 0.0f, 0.0f),
 			_renderPriorityOverride(0)
 		{
 			SetRenderGroup(1 << 7);
@@ -372,14 +373,37 @@ namespace RN
 		void View::SetBackgroundColor(const Color &color)
 		{
 			Lock();
-			_backgroundColor = color;
+			if(_hasVertexColors)
+			{
+				Unlock();
+				SetBackgroundColor(color, color, color, color);
+				return;
+			}
+			
+			_backgroundColor[0] = color;
+			
 			RN::Model *model = GetModel();
 			if(model)
 			{
 				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
-				material->SetDiffuseColor(_backgroundColor);
-				material->SetSkipRendering(_backgroundColor.a < k::EpsilonFloat);
+				material->SetDiffuseColor(_backgroundColor[0]);
+				material->SetSkipRendering(_backgroundColor[0].a < k::EpsilonFloat);
 			}
+			Unlock();
+		}
+	
+		void View::SetBackgroundColor(const Color &colorTopLeft, const Color &colorTopRight, const Color &colorBottomLeft, const Color &colorBottomRight)
+		{
+			Lock();
+			RN::Model *model = GetModel();
+			RN_ASSERT(!model || _hasVertexColors, "Background color with gradient has to be set before the view is rendered the first time.");
+			
+			_hasVertexColors = true;
+			_backgroundColor[0] = colorTopLeft;
+			_backgroundColor[1] = colorTopRight;
+			_backgroundColor[2] = colorBottomLeft;
+			_backgroundColor[3] = colorBottomRight;
+			_needsMeshUpdate = true;
 			Unlock();
 		}
 		
@@ -404,7 +428,7 @@ namespace RN
 			Unlock();
 		}
 	
-		void View::SetCornerRadius(float radius)
+		void View::SetCornerRadius(Vector4 radius)
 		{
 			_cornerRadius = radius;
 			_needsMeshUpdate = true;
@@ -513,11 +537,17 @@ namespace RN
 			
 			Mesh *mesh = nullptr;
 			
-			float cornerRadius = std::max(std::min(std::min(_cornerRadius, _bounds.width), _bounds.height), 0.0f);
+			float maxCornerRadius = std::min(_bounds.width, _bounds.height) * 0.5f;
+			Vector4 cornerRadius;
+			cornerRadius.x = std::max(std::min(_cornerRadius.x, maxCornerRadius), 0.0f);
+			cornerRadius.y = std::max(std::min(_cornerRadius.y, maxCornerRadius), 0.0f);
+			cornerRadius.z = std::max(std::min(_cornerRadius.z, maxCornerRadius), 0.0f);
+			cornerRadius.w = std::max(std::min(_cornerRadius.w, maxCornerRadius), 0.0f);
 			
-			if(cornerRadius > 0.0f)
+			if(cornerRadius.x > 0.0f || cornerRadius.y > 0.0f || cornerRadius.z > 0.0f || cornerRadius.w > 0.0f)
 			{
 				float *vertexPositionBuffer = new float[20 * 2];
+				float *vertexColorBuffer = _hasVertexColors? new float[20 * 4] : nullptr;
 				float *vertexUV0Buffer = new float[20 * 2];
 				float *vertexUV1Buffer = new float[20 * 3];
 				uint32 *indexBuffer = new uint32[30];
@@ -525,62 +555,169 @@ namespace RN
 				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[1 * 2 + 0] = cornerRadius;
+				vertexPositionBuffer[1 * 2 + 0] = cornerRadius.x;
 				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[2 * 2 + 0] = cornerRadius;
+				vertexPositionBuffer[2 * 2 + 0] = cornerRadius.x;
 				vertexPositionBuffer[2 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[3 * 2 + 0] = _frame.width - cornerRadius;
+				vertexPositionBuffer[3 * 2 + 0] = _frame.width - cornerRadius.y;
 				vertexPositionBuffer[3 * 2 + 1] = 0.0f;
 				
-				vertexPositionBuffer[4 * 2 + 0] = _frame.width - cornerRadius;
+				vertexPositionBuffer[4 * 2 + 0] = _frame.width - cornerRadius.y;
 				vertexPositionBuffer[4 * 2 + 1] = 0.0f;
 				
 				vertexPositionBuffer[5 * 2 + 0] = _frame.width;
 				vertexPositionBuffer[5 * 2 + 1] = 0.0f;
 				
 				vertexPositionBuffer[6 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[6 * 2 + 1] = -cornerRadius;
+				vertexPositionBuffer[6 * 2 + 1] = -cornerRadius.y;
 				
 				vertexPositionBuffer[7 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[7 * 2 + 1] = -cornerRadius;
+				vertexPositionBuffer[7 * 2 + 1] = -cornerRadius.y;
 				
 				vertexPositionBuffer[8 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[8 * 2 + 1] = cornerRadius - _frame.height;
+				vertexPositionBuffer[8 * 2 + 1] = cornerRadius.w - _frame.height;
 				
 				vertexPositionBuffer[9 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[9 * 2 + 1] = cornerRadius - _frame.height;
+				vertexPositionBuffer[9 * 2 + 1] = cornerRadius.w - _frame.height;
 				
 				vertexPositionBuffer[10 * 2 + 0] = _frame.width;
 				vertexPositionBuffer[10 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[11 * 2 + 0] = _frame.width - cornerRadius;
+				vertexPositionBuffer[11 * 2 + 0] = _frame.width - cornerRadius.w;
 				vertexPositionBuffer[11 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[12 * 2 + 0] = _frame.width - cornerRadius;
+				vertexPositionBuffer[12 * 2 + 0] = _frame.width - cornerRadius.w;
 				vertexPositionBuffer[12 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[13 * 2 + 0] = cornerRadius;
+				vertexPositionBuffer[13 * 2 + 0] = cornerRadius.z;
 				vertexPositionBuffer[13 * 2 + 1] = -_frame.height;
 				
-				vertexPositionBuffer[14 * 2 + 0] = cornerRadius;
+				vertexPositionBuffer[14 * 2 + 0] = cornerRadius.z;
 				vertexPositionBuffer[14 * 2 + 1] = -_frame.height;
 				
 				vertexPositionBuffer[15 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[15 * 2 + 1] = -_frame.height;
 				
 				vertexPositionBuffer[16 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[16 * 2 + 1] = cornerRadius - _frame.height;
+				vertexPositionBuffer[16 * 2 + 1] = cornerRadius.z - _frame.height;
 				
 				vertexPositionBuffer[17 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[17 * 2 + 1] = cornerRadius - _frame.height;
+				vertexPositionBuffer[17 * 2 + 1] = cornerRadius.z - _frame.height;
 				
 				vertexPositionBuffer[18 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[18 * 2 + 1] = -cornerRadius;
+				vertexPositionBuffer[18 * 2 + 1] = -cornerRadius.x;
 				
 				vertexPositionBuffer[19 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[19 * 2 + 1] = -cornerRadius;
+				vertexPositionBuffer[19 * 2 + 1] = -cornerRadius.x;
+				
+				if(_hasVertexColors)
+				{
+					//Top Left
+					vertexColorBuffer[0 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[0 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[0 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[0 * 4 + 3] = _backgroundColor[0].a;
+					
+					vertexColorBuffer[1 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[1 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[1 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[1 * 4 + 3] = _backgroundColor[0].a;
+					
+					vertexColorBuffer[2 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[2 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[2 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[2 * 4 + 3] = _backgroundColor[0].a;
+					
+					vertexColorBuffer[18 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[18 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[18 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[18 * 4 + 3] = _backgroundColor[0].a;
+					
+					vertexColorBuffer[19 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[19 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[19 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[19 * 4 + 3] = _backgroundColor[0].a;
+					
+					//Top Right
+					vertexColorBuffer[3 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[3 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[3 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[3 * 4 + 3] = _backgroundColor[1].a;
+					
+					vertexColorBuffer[4 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[4 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[4 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[4 * 4 + 3] = _backgroundColor[1].a;
+					
+					vertexColorBuffer[5 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[5 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[5 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[5 * 4 + 3] = _backgroundColor[1].a;
+					
+					vertexColorBuffer[6 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[6 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[6 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[6 * 4 + 3] = _backgroundColor[1].a;
+					
+					vertexColorBuffer[7 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[7 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[7 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[7 * 4 + 3] = _backgroundColor[1].a;
+					
+					//Bottom Left
+					vertexColorBuffer[13 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[13 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[13 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[13 * 4 + 3] = _backgroundColor[2].a;
+					
+					vertexColorBuffer[14 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[14 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[14 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[14 * 4 + 3] = _backgroundColor[2].a;
+					
+					vertexColorBuffer[15 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[15 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[15 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[15 * 4 + 3] = _backgroundColor[2].a;
+					
+					vertexColorBuffer[16 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[16 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[16 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[16 * 4 + 3] = _backgroundColor[2].a;
+					
+					vertexColorBuffer[17 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[17 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[17 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[17 * 4 + 3] = _backgroundColor[2].a;
+					
+					//Bottom Right
+					vertexColorBuffer[8 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[8 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[8 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[8 * 4 + 3] = _backgroundColor[3].a;
+					
+					vertexColorBuffer[9 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[9 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[9 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[9 * 4 + 3] = _backgroundColor[3].a;
+					
+					vertexColorBuffer[10 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[10 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[10 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[10 * 4 + 3] = _backgroundColor[3].a;
+					
+					vertexColorBuffer[11 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[11 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[11 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[11 * 4 + 3] = _backgroundColor[3].a;
+					
+					vertexColorBuffer[12 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[12 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[12 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[12 * 4 + 3] = _backgroundColor[3].a;
+				}
 				
 				for(int i = 0; i < 20; i++)
 				{
@@ -663,6 +800,7 @@ namespace RN
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				if(_hasVertexColors) meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector3);
 				
@@ -670,6 +808,7 @@ namespace RN
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+				if(_hasVertexColors) mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUV0Buffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords1, vertexUV1Buffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
@@ -677,6 +816,7 @@ namespace RN
 				mesh->EndChanges();
 				
 				delete[] vertexPositionBuffer;
+				if(_hasVertexColors) delete[] vertexColorBuffer;
 				delete[] vertexUV0Buffer;
 				delete[] vertexUV1Buffer;
 				delete[] indexBuffer;
@@ -684,6 +824,7 @@ namespace RN
 			else
 			{
 				float *vertexPositionBuffer = new float[4 * 2];
+				float *vertexColorBuffer = _hasVertexColors? new float[4 * 4] : nullptr;
 				float *vertexUVBuffer = new float[4 * 2];
 				uint32 *indexBuffer = new uint32[6];
 				
@@ -698,6 +839,29 @@ namespace RN
 				
 				vertexPositionBuffer[3 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
+				
+				if(_hasVertexColors)
+				{
+					vertexColorBuffer[0 * 4 + 0] = _backgroundColor[0].r;
+					vertexColorBuffer[0 * 4 + 1] = _backgroundColor[0].g;
+					vertexColorBuffer[0 * 4 + 2] = _backgroundColor[0].b;
+					vertexColorBuffer[0 * 4 + 3] = _backgroundColor[0].a;
+					
+					vertexColorBuffer[1 * 4 + 0] = _backgroundColor[1].r;
+					vertexColorBuffer[1 * 4 + 1] = _backgroundColor[1].g;
+					vertexColorBuffer[1 * 4 + 2] = _backgroundColor[1].b;
+					vertexColorBuffer[1 * 4 + 3] = _backgroundColor[1].a;
+					
+					vertexColorBuffer[2 * 4 + 0] = _backgroundColor[3].r;
+					vertexColorBuffer[2 * 4 + 1] = _backgroundColor[3].g;
+					vertexColorBuffer[2 * 4 + 2] = _backgroundColor[3].b;
+					vertexColorBuffer[2 * 4 + 3] = _backgroundColor[3].a;
+					
+					vertexColorBuffer[3 * 4 + 0] = _backgroundColor[2].r;
+					vertexColorBuffer[3 * 4 + 1] = _backgroundColor[2].g;
+					vertexColorBuffer[3 * 4 + 2] = _backgroundColor[2].b;
+					vertexColorBuffer[3 * 4 + 3] = _backgroundColor[2].a;
+				}
 				
 				vertexUVBuffer[0 * 2 + 0] = 0.0f;
 				vertexUVBuffer[0 * 2 + 1] = 0.0f;
@@ -721,6 +885,7 @@ namespace RN
 				
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
+				if(_hasVertexColors) meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				
@@ -728,12 +893,14 @@ namespace RN
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+				if(_hasVertexColors) mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 				
 				mesh->EndChanges();
 				
 				delete[] vertexPositionBuffer;
+				if(_hasVertexColors) delete[] vertexColorBuffer;
 				delete[] vertexUVBuffer;
 				delete[] indexBuffer;
 			}
@@ -745,7 +912,8 @@ namespace RN
 				Shader::Options *shaderOptions = Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine("RN_UI", "1");
-				if(_cornerRadius > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
+				if(_cornerRadius.x > 0.0f || _cornerRadius.y > 0.0f || _cornerRadius.z > 0.0f || _cornerRadius.w > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
+				if(_hasVertexColors) shaderOptions->AddDefine("RN_COLOR", "1");
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);
@@ -755,8 +923,16 @@ namespace RN
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
-				material->SetSkipRendering(_backgroundColor.a < k::EpsilonFloat);
-				material->SetDiffuseColor(_backgroundColor);
+				if(!_hasVertexColors)
+				{
+					material->SetSkipRendering(_backgroundColor[0].a < k::EpsilonFloat);
+					material->SetDiffuseColor(_backgroundColor[0]);
+				}
+				else
+				{
+					material->SetSkipRendering(false);
+					material->SetDiffuseColor(RN::Color::White());
+				}
 
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 				material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));

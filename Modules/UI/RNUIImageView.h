@@ -25,11 +25,14 @@ namespace RN
 			UIAPI void SetImage(Texture *image);
 			Texture *GetImage() const { return _image; }
 			
+			UIAPI void SetColor(Color color); //Multiplicative, including alpha!
+			
 		protected:
 			UIAPI virtual void UpdateModel() override;
 
 		private:
 			Texture *_image;
+			Color _color;
 
 			RNDeclareMetaAPI(ImageView, UIAPI)
 		};

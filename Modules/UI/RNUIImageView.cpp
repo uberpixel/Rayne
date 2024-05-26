@@ -15,13 +15,13 @@ namespace RN
 		RNDefineMeta(ImageView, View)
 
 		ImageView::ImageView() :
-			_image(nullptr)
+			_image(nullptr), _color(Color::White())
 		{
 			
 		}
 	
 		ImageView::ImageView(Texture *image) :
-			_image(nullptr)
+			_image(nullptr), _color(Color::White())
 		{
 			SetImage(image);
 		}
@@ -49,6 +49,18 @@ namespace RN
 			}
 		}
 	
+		void ImageView::SetColor(Color color)
+		{
+			_color = color;
+			
+			Model *model = GetModel();
+			if(model)
+			{
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
+				material->SetDiffuseColor(_color);
+			}
+		}
+	
 		void ImageView::UpdateModel()
 		{
 			View::UpdateModel();
@@ -60,7 +72,7 @@ namespace RN
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine("RN_UI", "1");
 				shaderOptions->AddDefine("RN_UV0", "1");
-				if(GetCornerRadius() > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
+				if(GetCornerRadius().x > 0.0f || GetCornerRadius().y > 0.0f || GetCornerRadius().z > 0.0f || GetCornerRadius().w > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
 				
 				RN::Material *material = RN::Material::WithShaders(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions), Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
@@ -72,7 +84,7 @@ namespace RN
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
-				material->SetDiffuseColor(Color::White());
+				material->SetDiffuseColor(_color);
 				
 				const Rect &scissorRect = GetScissorRect();
 				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
