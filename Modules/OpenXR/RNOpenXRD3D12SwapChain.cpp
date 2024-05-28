@@ -18,7 +18,7 @@ namespace RN
 {
 	RNDefineMeta(OpenXRD3D12SwapChain, D3D12SwapChain)
 
-	OpenXRD3D12SwapChain::OpenXRD3D12SwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : OpenXRSwapChain(window)
+	OpenXRD3D12SwapChain::OpenXRD3D12SwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : OpenXRSwapChain(window, SwapChainType::D3D12)
 	{
 		_renderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
 		_size = size;

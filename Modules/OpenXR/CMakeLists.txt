@@ -46,13 +46,15 @@ set(SOURCES
 	RNOpenXRInit.cpp
 	RNOpenXRInternals.cpp
 	RNOpenXRSwapChain.cpp
-	RNOpenXRWindow.cpp)
+	RNOpenXRWindow.cpp
+	RNOpenXRCompositorLayer.cpp)
 
 set(HEADERS
 	RNOpenXR.h
 	RNOpenXRInternals.h
 	RNOpenXRSwapChain.h
-	RNOpenXRWindow.h)
+	RNOpenXRWindow.h
+	RNOpenXRCompositorLayer.h)
 
 set(DEFINES RN_BUILD_OPENXR)
 

@@ -14,28 +14,13 @@ namespace RN
 {
 	RNDefineMeta(OpenXRVulkanSwapChain, VulkanSwapChain)
 
-	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size) : OpenXRSwapChain(window), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
+	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size, bool supportFoveation) : OpenXRSwapChain(window, SwapChainType::Vulkan), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
 	{
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
 		_descriptor.colorFormat = Texture::Format::RGBA_8_SRGB; //TODO: Don´t hardcode the format here?
-		_descriptor.layerCount = 2;
 
 		_size = size;
-
-		uint32 numberOfSupportedSwapChainFormats = 0;
-		xrEnumerateSwapchainFormats(window->_internals->session, 0, &numberOfSupportedSwapChainFormats, nullptr);
-
-		int64_t *supportedSwapChainFormats = new int64_t[numberOfSupportedSwapChainFormats];
-		xrEnumerateSwapchainFormats(window->_internals->session, numberOfSupportedSwapChainFormats, &numberOfSupportedSwapChainFormats, supportedSwapChainFormats);
-
-		for(int i = 0; i < numberOfSupportedSwapChainFormats; i++)
-		{
-			//TODO: Check if the requested swapchain format is actually supported
-			RNDebug("Supported swap chain format: " << supportedSwapChainFormats[i]);
-		}
-
-		delete[] supportedSwapChainFormats;
 
 		XrSwapchainCreateInfo swapchainCreateInfo;
 		swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
@@ -55,7 +40,7 @@ namespace RN
 		foveationSwapChainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
 		foveationSwapChainCreateInfo.next = nullptr;
 		foveationSwapChainCreateInfo.flags = XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB;
-		if(_xrWindow->_supportsFoveatedRendering)
+		if(_xrWindow->_supportsFoveatedRendering && supportFoveation)
 		{
 			RNDebug("Foveated Rendering is enabled.");
 			swapchainCreateInfo.next = &foveationSwapChainCreateInfo;
@@ -73,7 +58,7 @@ namespace RN
 		_swapchainImages = new VkImage[numberOfSwapChainImages];
 
 		XrSwapchainImageFoveationVulkanFB *swapchainFoveationImages = nullptr;
-		if(_xrWindow->_supportsFoveatedRendering)
+		if(_xrWindow->_supportsFoveatedRendering && supportFoveation)
 		{
 			swapchainFoveationImages = new XrSwapchainImageFoveationVulkanFB[numberOfSwapChainImages];
 			_swapchainFoveationImages = new VkImage[numberOfSwapChainImages];
@@ -145,6 +130,11 @@ namespace RN
 	{
 		if(!_isActive) return;
 
+		if(!_presentEvent)
+		{
+			RNDebug("Acquire");
+		}
+
         XrSwapchainImageAcquireInfo swapchainImageAcquireInfo;
         swapchainImageAcquireInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO;
         swapchainImageAcquireInfo.next = nullptr;
@@ -179,6 +169,8 @@ namespace RN
         swapchainImageReleaseInfo.next = nullptr;
         xrReleaseSwapchainImage(_internals->swapchain, &swapchainImageReleaseInfo);
 
+		_hasContent = true;
+
 		if(_presentEvent)
 		{
 			_presentEvent();
@@ -206,7 +198,7 @@ namespace RN
 
 	void OpenXRVulkanSwapChain::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
 	{
-		if(!_xrWindow->_supportsFoveatedRendering) return;
+		if(!_swapchainFoveationImages) return;
 
 		if(_internals->currentFoveationProfile != XR_NULL_HANDLE)
 		{

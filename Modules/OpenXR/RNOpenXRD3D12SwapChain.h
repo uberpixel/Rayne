@@ -14,10 +14,11 @@
 
 namespace RN
 {
-	class OpenXRD3D12SwapChain : public D3D12SwapChain, OpenXRSwapChain
+	class OpenXRD3D12SwapChain : public D3D12SwapChain, public OpenXRSwapChain
 	{
 	public:
 		friend class OpenXRWindow;
+		friend class OpenXRCompositorLayer;
 
 		OXRAPI ~OpenXRD3D12SwapChain();
 

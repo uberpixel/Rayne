@@ -21,6 +21,8 @@
 #include <RND3D12Renderer.h>
 #endif
 
+#include "RNOpenXRCompositorLayer.h"
+
 #include "openxr/openxr_platform_defines.h"
 #include "openxr/openxr_platform.h"
 #include "openxr/openxr.h"

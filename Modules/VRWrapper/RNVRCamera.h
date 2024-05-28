@@ -39,6 +39,9 @@ namespace RN
 		RNVRAPI const VRWindow::Origin GetOrigin() const;
 		RNVRAPI void SetOriginOffset(const Vector3 &positionOffset, const Quaternion &orientationOffset);
 		
+		RNVRAPI RN::Vector3 GetOriginPositionOffset() const { return _originPositionOffset; }
+		RNVRAPI RN::Quaternion GetOriginRotationOffset() const { return _originalOrientationOffset; }
+		
 		RNVRAPI void SetClipFar(float clipFar);
 		RNVRAPI void SetClipNear(float clipNear);
 

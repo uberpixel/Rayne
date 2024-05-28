@@ -12,6 +12,7 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(SOURCES
     RNVRWindow.cpp
+    RNVRCompositorLayer.cpp
     RNVRCamera.cpp)
 
 set(HEADERS
@@ -19,6 +20,7 @@ set(HEADERS
 	RNVRApplication.h
 	RNVRApplicationImpl.h
     RNVRWindow.h
+    RNVRCompositorLayer.h
     RNVRStubWindow.h
     RNVRCamera.h
     RNVRTrackingState.h)

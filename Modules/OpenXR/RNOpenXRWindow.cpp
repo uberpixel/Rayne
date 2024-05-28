@@ -84,7 +84,7 @@ namespace RN
 		return VRControllerTrackingState::Type::None;
 	}
 
-	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _swapChain(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false)
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array())
 	{
 		_supportsVulkan = false;
 		_supportsPreferredFramerate = false;
@@ -93,6 +93,7 @@ namespace RN
 		_supportsFoveatedRendering = false;
 		_supportsLocalDimming = false;
 		_supportsVisibilityMask = false;
+		_supportsPassthrough = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_internals->_supportsControllerInteractionPICO = false;
@@ -250,6 +251,11 @@ namespace RN
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsVisibilityMask = true;
+			}
+			else if(std::strcmp(extension.extensionName, XR_FB_PASSTHROUGH_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsPassthrough = true;
 			}
 #if XR_USE_PLATFORM_ANDROID
 			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
@@ -490,6 +496,8 @@ namespace RN
 
 	OpenXRWindow::~OpenXRWindow()
 	{
+		SafeRelease(_layersUnderlay);
+		SafeRelease(_layersOverlay);
 		StopRendering();
 		SafeRelease(_runtimeName);
 		xrDestroyInstance(_internals->instance);
@@ -1499,63 +1507,117 @@ namespace RN
 
 		xrCreateReferenceSpace(_internals->session, &referenceSpaceCreateInfo, &_internals->trackingSpace);
 
+#if RN_BUILD_DEBUG
+		uint32 numberOfSupportedSwapChainFormats = 0;
+		xrEnumerateSwapchainFormats(_internals->session, 0, &numberOfSupportedSwapChainFormats, nullptr);
+
+		int64_t *supportedSwapChainFormats = new int64_t[numberOfSupportedSwapChainFormats];
+		xrEnumerateSwapchainFormats(_internals->session, numberOfSupportedSwapChainFormats, &numberOfSupportedSwapChainFormats, supportedSwapChainFormats);
+
+		for(int i = 0; i < numberOfSupportedSwapChainFormats; i++)
+		{
+			//TODO: Check if the requested swapchain format is actually supported
+			RNDebug("Supported swap chain format: " << supportedSwapChainFormats[i]);
+		}
+
+		delete[] supportedSwapChainFormats;
+#endif
+
 		_internals->views = new XrView[2];
 		_internals->views[0].type = XR_TYPE_VIEW;
 		_internals->views[0].next = nullptr;
 		_internals->views[1].type = XR_TYPE_VIEW;
 		_internals->views[1].next = nullptr;
 
-#ifdef XR_USE_GRAPHICS_API_VULKAN
-		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Vulkan")))
-		{
-			_swapChain = new OpenXRVulkanSwapChain(this, descriptor, eyeRenderSize);
-			_swapChainType = SwapChainType::Vulkan;
-		}
-#endif
-#ifdef XR_USE_GRAPHICS_API_D3D12
-		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("D3D12")))
-		{
-			_swapChain = new OpenXRD3D12SwapChain(this, descriptor, eyeRenderSize);
-			_swapChainType = SwapChainType::D3D12;
-		}
-#endif
+		_mainLayer = new OpenXRCompositorLayer(VRCompositorLayer::Type::TypeProjectionView, descriptor, eyeRenderSize, true, this);
 
-		_swapChain->_presentEvent = [this](){
+		_mainLayer->_swapChain->_presentEvent = [this](){
 			if(_internals->session != XR_NULL_HANDLE && _isSessionRunning)
 			{
-				XrCompositionLayerProjectionView layerProjectionView[2];
-				layerProjectionView[0].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-				layerProjectionView[0].next = nullptr;
-				layerProjectionView[0].pose = _internals->views[0].pose;
-				layerProjectionView[0].fov = _internals->views[0].fov;
-				layerProjectionView[0].subImage.swapchain = _swapChain->_internals->swapchain;
-				layerProjectionView[0].subImage.imageRect.offset.x = 0;
-				layerProjectionView[0].subImage.imageRect.offset.y = 0;
-				layerProjectionView[0].subImage.imageRect.extent.width = _swapChain->GetSwapChainSize().x;
-				layerProjectionView[0].subImage.imageRect.extent.height = _swapChain->GetSwapChainSize().y;
-				layerProjectionView[0].subImage.imageArrayIndex = 0;
-
-				layerProjectionView[1].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-				layerProjectionView[1].next = nullptr;
-				layerProjectionView[1].pose = _internals->views[1].pose;
-				layerProjectionView[1].fov = _internals->views[1].fov;
-				layerProjectionView[1].subImage.swapchain = _swapChain->_internals->swapchain;
-				layerProjectionView[1].subImage.imageRect.offset.x = 0;
-				layerProjectionView[1].subImage.imageRect.offset.y = 0;
-				layerProjectionView[1].subImage.imageRect.extent.width = _swapChain->GetSwapChainSize().x;
-				layerProjectionView[1].subImage.imageRect.extent.height = _swapChain->GetSwapChainSize().y;
-				layerProjectionView[1].subImage.imageArrayIndex = 1;
-
-				XrCompositionLayerProjection layerProjection;
-				layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
-				layerProjection.next = nullptr;
-				layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-				layerProjection.space = _internals->trackingSpace;
-				layerProjection.viewCount = 2;
-				layerProjection.views = layerProjectionView;
-
+				std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
+				std::vector<XrCompositionLayerProjection> projectionLayers;
+				std::vector<XrCompositionLayerQuad> quadLayers;
 				std::vector<XrCompositionLayerBaseHeader*> layers;
-				layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layerProjection));
+				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
+					if(!layer->_isActive) return;
+					if(layer->_swapChain && !layer->_swapChain->_hasContent) return;
+
+					if(layer->GetType() == VRCompositorLayer::Type::TypeProjectionView)
+					{
+						XrCompositionLayerProjectionView layerProjectionView;
+						layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+						layerProjectionView.next = nullptr;
+						layerProjectionView.pose = _internals->views[0].pose;
+						layerProjectionView.fov = _internals->views[0].fov;
+						layerProjectionView.subImage.swapchain = layer->_swapChain->_internals->swapchain;
+						layerProjectionView.subImage.imageRect.offset.x = 0;
+						layerProjectionView.subImage.imageRect.offset.y = 0;
+						layerProjectionView.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
+						layerProjectionView.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
+						layerProjectionView.subImage.imageArrayIndex = 0;
+						projectionLayerViews.push_back(layerProjectionView);
+
+						layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+						layerProjectionView.next = nullptr;
+						layerProjectionView.pose = _internals->views[1].pose;
+						layerProjectionView.fov = _internals->views[1].fov;
+						layerProjectionView.subImage.swapchain = layer->_swapChain->_internals->swapchain;
+						layerProjectionView.subImage.imageRect.offset.x = 0;
+						layerProjectionView.subImage.imageRect.offset.y = 0;
+						layerProjectionView.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
+						layerProjectionView.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
+						layerProjectionView.subImage.imageArrayIndex = 1;
+						projectionLayerViews.push_back(layerProjectionView);
+
+						XrCompositionLayerProjection layerProjection;
+						layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+						layerProjection.next = nullptr;
+						layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+						layerProjection.space = _internals->trackingSpace;
+						layerProjection.viewCount = 2;
+						layerProjection.views = &projectionLayerViews[projectionLayerViews.size() - 2];
+						projectionLayers.push_back(layerProjection);
+
+						layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&projectionLayers.back()));
+					}
+					else if(layer->GetType() == VRCompositorLayer::Type::TypeQuad)
+					{
+						XrCompositionLayerQuad layerQuad;
+						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
+						layerQuad.next = nullptr;
+						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+						layerQuad.space = _internals->trackingSpace;
+						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+						layerQuad.subImage.swapchain = layer->_swapChain->_internals->swapchain;
+						layerQuad.subImage.imageRect.offset.x = 0;
+						layerQuad.subImage.imageRect.offset.y = 0;
+						layerQuad.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
+						layerQuad.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
+						layerQuad.subImage.imageArrayIndex = 0;
+						layerQuad.pose.position.x = layer->GetPosition().x;
+						layerQuad.pose.position.y = layer->GetPosition().y;
+						layerQuad.pose.position.z = layer->GetPosition().z;
+						layerQuad.pose.orientation.x = layer->GetRotation().x;
+						layerQuad.pose.orientation.y = layer->GetRotation().y;
+						layerQuad.pose.orientation.z = layer->GetRotation().z;
+						layerQuad.pose.orientation.w = layer->GetRotation().w;
+						layerQuad.size.width = layer->GetScale().x;
+						layerQuad.size.height = layer->GetScale().y;
+						quadLayers.push_back(layerQuad);
+
+						RNDebug(layer->GetPosition());
+
+						layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&quadLayers.back()));
+					}
+				};
+
+				_layersUnderlay->Enumerate<OpenXRCompositorLayer>([&](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+					insertLayer(layer);
+				});
+				insertLayer(_mainLayer);
+				_layersOverlay->Enumerate<OpenXRCompositorLayer>([&](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+					insertLayer(layer);
+				});
 
 				XrFrameEndInfo frameEndInfo;
 				frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
@@ -1617,7 +1679,7 @@ namespace RN
 		}
 #endif
 
-		_swapChain->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
+		_mainLayer->SetFixedFoveatedRenderingLevel(_fixedFoveatedRenderingLevel, _fixedFoveatedRenderingDynamic);
 
 		XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
 		attachInfo.countActionSets = 1;
@@ -1692,28 +1754,7 @@ namespace RN
 		}
 
 		delete[] _internals->views;
-
-		if(_swapChain)
-		{
-#ifdef XR_USE_GRAPHICS_API_D3D12
-			if(_swapChainType == SwapChainType::D3D12)
-			{
-				OpenXRD3D12SwapChain *swapChain = static_cast<OpenXRD3D12SwapChain*>(_swapChain);
-				swapChain->Release();
-				_swapChain = nullptr;
-			}
-#endif
-
-#ifdef XR_USE_GRAPHICS_API_VULKAN
-			if(_swapChainType == SwapChainType::Vulkan)
-			{
-				OpenXRVulkanSwapChain *swapChain = static_cast<OpenXRVulkanSwapChain*>(_swapChain);
-				swapChain->Release();
-				_swapChain = nullptr;
-				return;
-			}
-#endif
-		}
+		SafeRelease(_mainLayer);
 	}
 
 	bool OpenXRWindow::IsRendering() const
@@ -1726,9 +1767,9 @@ namespace RN
 		_fixedFoveatedRenderingLevel = level;
 		_fixedFoveatedRenderingDynamic = dynamic;
 
-		if(_swapChain)
+		if(_mainLayer)
 		{
-			_swapChain->SetFixedFoveatedRenderingLevel(level, dynamic);
+			_mainLayer->SetFixedFoveatedRenderingLevel(level, dynamic);
 		}
 	}
 
@@ -1761,18 +1802,17 @@ namespace RN
 
 	Vector2 OpenXRWindow::GetSize() const
 	{
-		return _swapChain->GetSwapChainSize();
+		return _mainLayer->GetSize();
 	}
 
 	Framebuffer *OpenXRWindow::GetFramebuffer() const
 	{
-		return _swapChain->GetSwapChainFramebuffer();
+		return _mainLayer->GetFramebuffer();
 	}
 
 	Framebuffer *OpenXRWindow::GetFramebuffer(uint8 eye) const
 	{
-		RN_ASSERT(eye < 2, "Eye Index needs to be 0 or 1");
-		return _swapChain->GetSwapChainFramebuffer();
+		return _mainLayer->GetFramebuffer();
 	}
 
 	static Matrix GetProjectionMatrixForXRFovf(const XrFovf &fov, float near, float far)
@@ -1842,14 +1882,26 @@ namespace RN
 							xrBeginSession(_internals->session, &beginInfo);
 
 							_isSessionRunning = true;
-							_swapChain->SetActive(true);
+							_layersUnderlay->Enumerate<OpenXRCompositorLayer>([](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+								layer->SetSessionActive(true);
+							});
+							_mainLayer->SetSessionActive(true);
+							_layersOverlay->Enumerate<OpenXRCompositorLayer>([](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+								layer->SetSessionActive(true);
+							});
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_STOPPING)
 						{
 							RNInfo("Session State: Stopping");
 							_hasSynchronization = false;
 							_isSessionRunning = false;
-							_swapChain->SetActive(false);
+							_layersUnderlay->Enumerate<OpenXRCompositorLayer>([](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+								layer->SetSessionActive(false);
+							});
+							_mainLayer->SetSessionActive(false);
+							_layersOverlay->Enumerate<OpenXRCompositorLayer>([](OpenXRCompositorLayer *layer, size_t index, bool &stop){
+								layer->SetSessionActive(false);
+							});
 							xrEndSession(_internals->session);
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)
@@ -2476,7 +2528,7 @@ namespace RN
 
 	const Window::SwapChainDescriptor &OpenXRWindow::GetSwapChainDescriptor() const
 	{
-		return _swapChain->GetSwapChainDescriptor();
+		return _mainLayer->_swapChain->GetSwapChainDescriptor();
 	}
 
 	Array *OpenXRWindow::GetRequiredVulkanInstanceExtensions() const
@@ -2530,6 +2582,32 @@ namespace RN
 	VRWindow::DeviceType OpenXRWindow::GetDeviceType() const
 	{
 		return _deviceType;
+	}
+
+	VRCompositorLayer *OpenXRWindow::CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation)
+	{
+		OpenXRCompositorLayer *layer = new OpenXRCompositorLayer(type, descriptor, resolution, supportsFoveation, this);
+		layer->SetSessionActive(_isSessionRunning);
+		return layer->Autorelease();
+	}
+
+	void OpenXRWindow::AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay)
+	{
+		RN_ASSERT(!_layersUnderlay->ContainsObject(layer) && !_layersOverlay->ContainsObject(layer), "VRCompositorLayer can only be added once!");
+		if(isUnderlay)
+		{
+			_layersUnderlay->AddObject(layer);
+		}
+		else
+		{
+			_layersOverlay->AddObject(layer);
+		}
+	}
+
+	void OpenXRWindow::RemoveCompositorLayer(VRCompositorLayer *layer)
+	{
+		_layersUnderlay->RemoveObject(layer);
+		_layersOverlay->RemoveObject(layer);
 	}
 }
 

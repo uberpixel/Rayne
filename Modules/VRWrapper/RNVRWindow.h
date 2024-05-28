@@ -11,12 +11,12 @@
 
 #include "RNVR.h"
 #include "RNVRTrackingState.h"
+#include "RNVRCompositorLayer.h"
 
 #define kRNVRDidRecenter RNCSTR("kRNVRDidRecenter")
 
 namespace RN
 {
-	class VRSwapChain;
 	class VRWindow : public Window
 	{
 	public:
@@ -78,6 +78,10 @@ namespace RN
 
 		RNVRAPI virtual void BeginFrame(float delta) {}
 		RNVRAPI virtual void Update(float delta, float near, float far) = 0;
+
+		RNVRAPI virtual VRCompositorLayer *CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation) { return nullptr; }
+		RNVRAPI virtual void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay) { return; }
+		RNVRAPI virtual void RemoveCompositorLayer(VRCompositorLayer *layer) { return; }
 
 		RNVRAPI virtual const VRHMDTrackingState &GetHMDTrackingState() const = 0;
 		RNVRAPI virtual const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const = 0;

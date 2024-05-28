@@ -19,6 +19,14 @@ namespace RN
 	{
 	public:
 		friend OpenXRWindow;
+		friend class OpenXRCompositorLayer;
+
+		enum SwapChainType
+		{
+			Metal,
+			D3D12,
+			Vulkan
+		};
 
 		OXRAPI ~OpenXRSwapChain();
 
@@ -31,11 +39,14 @@ namespace RN
 		OXRAPI virtual void SetActive(bool active) { _isActive = active; }
 
 	protected:
-		OpenXRSwapChain(const OpenXRWindow *window);
+		OpenXRSwapChain(const OpenXRWindow *window, SwapChainType type);
 		OpenXRSwapchainInternals *_internals;
 
 		const OpenXRWindow *_xrWindow;
 		bool _isActive;
+		bool _hasContent;
+
+		SwapChainType _swapChainType;
 
 		std::function<void()> _presentEvent;
 	};

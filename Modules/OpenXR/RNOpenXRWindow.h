@@ -11,9 +11,11 @@
 
 #include "RNOpenXR.h"
 #include "RNVRWindow.h"
+#include "RNVRCompositorLayer.h"
 
 namespace RN
 {
+	class OpenXRCompositorLayer;
 	class OpenXRSwapChain;
 	class OpenXRVulkanSwapChain;
 	class OpenXRD3D12SwapChain;
@@ -23,13 +25,6 @@ namespace RN
 	friend OpenXRVulkanSwapChain;
 	friend OpenXRD3D12SwapChain;
 	public:
-		enum SwapChainType
-		{
-			Metal,
-			D3D12,
-			Vulkan
-		};
-		
 		OXRAPI OpenXRWindow();
 		OXRAPI ~OpenXRWindow();
 
@@ -45,6 +40,10 @@ namespace RN
 		OXRAPI Vector2 GetSize() const final;
 		OXRAPI Framebuffer *GetFramebuffer() const final;
 		OXRAPI Framebuffer *GetFramebuffer(uint8 eye) const final;
+
+		OXRAPI VRCompositorLayer *CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation) final;
+		OXRAPI void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay) final;
+		OXRAPI void RemoveCompositorLayer(VRCompositorLayer *layer) final;
 
 		OXRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
 		OXRAPI const VRControllerTrackingState &GetControllerTrackingState(uint8 index) const final;
@@ -79,8 +78,10 @@ namespace RN
 		DeviceType _deviceType;
 		String *_runtimeName;
 
-		SwapChainType _swapChainType;
-		OpenXRSwapChain *_swapChain;
+		Array *_layersUnderlay; //First one is the lowest
+		Array *_layersOverlay; //Last one is the highest
+		OpenXRCompositorLayer *_mainLayer; //Layer used for main game content, representing the window
+
 		uint32 _actualFrameIndex;
         double _predictedDisplayTime;
 
@@ -114,6 +115,7 @@ namespace RN
 		bool _supportsFoveatedRendering;
 		bool _supportsLocalDimming;
 		bool _supportsVisibilityMask;
+		bool _supportsPassthrough;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};
