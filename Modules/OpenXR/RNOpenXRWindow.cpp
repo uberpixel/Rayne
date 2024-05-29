@@ -1543,12 +1543,18 @@ namespace RN
 				std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
 				std::vector<XrCompositionLayerProjection> projectionLayers;
 				std::vector<XrCompositionLayerQuad> quadLayers;
+
+				//Reserve big enough for them to not resize dynamically as that messes up the pointers that are then passed on...
+				projectionLayerViews.reserve(20);
+				projectionLayers.reserve(10);
+				quadLayers.reserve(10);
+
 				std::vector<XrCompositionLayerBaseHeader*> layers;
 
-				XrCompositionLayerSettingsFB layerSettings;
+				/*XrCompositionLayerSettingsFB layerSettings;
 				layerSettings.type = XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB;
 				layerSettings.next = nullptr;
-				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;
+				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;*/
 
 				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
 					if(!layer->_isActive) return;
@@ -1596,7 +1602,7 @@ namespace RN
 					{
 						XrCompositionLayerQuad layerQuad;
 						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-						layerQuad.next = _supportsCompositionLayerSettings? &layerSettings : nullptr;
+						layerQuad.next = nullptr;//_supportsCompositionLayerSettings? &layerSettings : nullptr;
 						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
 						layerQuad.space = _internals->trackingSpace;
 						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -1616,8 +1622,6 @@ namespace RN
 						layerQuad.size.width = layer->GetScale().x;
 						layerQuad.size.height = layer->GetScale().y;
 						quadLayers.push_back(layerQuad);
-
-						RNDebug(layer->GetPosition());
 
 						layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&quadLayers.back()));
 					}
@@ -2603,16 +2607,18 @@ namespace RN
 		return layer->Autorelease();
 	}
 
-	void OpenXRWindow::AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay)
+	void OpenXRWindow::AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay, bool lowest)
 	{
 		RN_ASSERT(!_layersUnderlay->ContainsObject(layer) && !_layersOverlay->ContainsObject(layer), "VRCompositorLayer can only be added once!");
 		if(isUnderlay)
 		{
-			_layersUnderlay->AddObject(layer);
+			if(lowest) _layersUnderlay->InsertObjectAtIndex(layer, 0);
+			else _layersUnderlay->AddObject(layer);
 		}
 		else
 		{
-			_layersOverlay->AddObject(layer);
+			if(lowest) _layersOverlay->InsertObjectAtIndex(layer, 0);
+			else _layersOverlay->AddObject(layer);
 		}
 	}
 

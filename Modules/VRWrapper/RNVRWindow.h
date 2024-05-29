@@ -80,7 +80,7 @@ namespace RN
 		RNVRAPI virtual void Update(float delta, float near, float far) = 0;
 
 		RNVRAPI virtual VRCompositorLayer *CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation) { return nullptr; }
-		RNVRAPI virtual void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay) { return; }
+		RNVRAPI virtual void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay, bool lowest) { return; }
 		RNVRAPI virtual void RemoveCompositorLayer(VRCompositorLayer *layer) { return; }
 
 		RNVRAPI virtual const VRHMDTrackingState &GetHMDTrackingState() const = 0;

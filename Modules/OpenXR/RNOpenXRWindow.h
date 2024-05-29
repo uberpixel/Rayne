@@ -42,7 +42,7 @@ namespace RN
 		OXRAPI Framebuffer *GetFramebuffer(uint8 eye) const final;
 
 		OXRAPI VRCompositorLayer *CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation) final;
-		OXRAPI void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay) final;
+		OXRAPI void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay, bool lowest) final;
 		OXRAPI void RemoveCompositorLayer(VRCompositorLayer *layer) final;
 
 		OXRAPI const VRHMDTrackingState &GetHMDTrackingState() const final;
