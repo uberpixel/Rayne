@@ -2604,7 +2604,7 @@ namespace RN
 	{
 		OpenXRCompositorLayer *layer = new OpenXRCompositorLayer(type, descriptor, resolution, supportsFoveation, this);
 		layer->SetSessionActive(_isSessionRunning);
-		return layer->Autorelease();
+		return layer;
 	}
 
 	void OpenXRWindow::AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay, bool lowest)
