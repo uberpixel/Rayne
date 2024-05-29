@@ -57,6 +57,7 @@ namespace RN
 			UIAPI void SetBackgroundColor(const Color &color);
 			UIAPI void SetBackgroundColor(const Color &colorTopLeft, const Color &colorTopRight, const Color &colorBottomLeft, const Color &colorBottomRight);
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true);
+			UIAPI void SetBlending(BlendFactor sourceFactorRGB, BlendFactor destinationFactorRGB, BlendOperation operationRGB, BlendFactor sourceFactorA, BlendFactor destinationFactorA, BlendOperation operationA);
 			UIAPI void SetCornerRadius(Vector4 radius);
 			UIAPI Vector4 GetCornerRadius() const { return _cornerRadius; }
 
@@ -66,6 +67,8 @@ namespace RN
 			
 			UIAPI void SetClipToBounds(bool enabled);
 			UIAPI void SetRenderPriorityOverride(int32 renderPriority);
+			
+			UIAPI void SetRenderGroupForAll(uint8 renderGroup);
 
 		protected:
 			UIAPI virtual void DidAddSubview(View *subview);
@@ -88,6 +91,13 @@ namespace RN
 			bool _isColorWriteEnabled;
 			float _depthOffset;
 			float _depthFactor;
+			
+			BlendFactor _blendSourceFactorRGB;
+			BlendFactor _blendDestinationFactorRGB;
+			BlendOperation _blendOperationRGB;
+			BlendFactor _blendSourceFactorA;
+			BlendFactor _blendDestinationFactorA;
+			BlendOperation _blendOperationA;
 
 		private:
 			void ConvertPointToWindow(Vector2 &point) const;

@@ -31,6 +31,12 @@ namespace RN
 			_depthMode(DepthMode::GreaterOrEqual),
 			_depthOffset(200.0f),
 			_depthFactor(50.0f),
+			_blendSourceFactorRGB(BlendFactor::SourceAlpha),
+			_blendDestinationFactorRGB(BlendFactor::OneMinusSourceAlpha),
+			_blendOperationRGB(BlendOperation::Add),
+			_blendSourceFactorA(BlendFactor::SourceAlpha),
+			_blendDestinationFactorA(BlendFactor::OneMinusSourceAlpha),
+			_blendOperationA(BlendOperation::Add),
 			_cornerRadius(0.0f, 0.0f, 0.0f, 0.0f),
 			_renderPriorityOverride(0)
 		{
@@ -189,6 +195,7 @@ namespace RN
 			subview->_superview = this;
 			
 			AddChild(subview);
+			subview->SetRenderGroupForAll(GetRenderGroup());
 			
 			subview->CalculateScissorRect();
 
@@ -428,6 +435,28 @@ namespace RN
 			Unlock();
 		}
 	
+		void View::SetBlending(BlendFactor sourceFactorRGB, BlendFactor destinationFactorRGB, BlendOperation operationRGB, BlendFactor sourceFactorA, BlendFactor destinationFactorA, BlendOperation operationA)
+		{
+			Lock();
+			//_inheritRenderSettings = false;
+			_blendSourceFactorRGB = sourceFactorRGB;
+			_blendDestinationFactorRGB = destinationFactorRGB;
+			_blendOperationRGB = operationRGB;
+			_blendSourceFactorA = sourceFactorA;
+			_blendDestinationFactorA = destinationFactorA;
+			_blendOperationA = operationA;
+			
+			RN::Model *model = GetModel();
+			if(model)
+			{
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				material->SetBlendFactorSource(_blendSourceFactorRGB, _blendSourceFactorA);
+				material->SetBlendFactorDestination(_blendDestinationFactorRGB, _blendDestinationFactorA);
+				material->SetBlendOperation(_blendOperationRGB, _blendOperationA);
+			}
+			Unlock();
+		}
+	
 		void View::SetCornerRadius(Vector4 radius)
 		{
 			_cornerRadius = radius;
@@ -446,6 +475,14 @@ namespace RN
 		{
 			_renderPriorityOverride = renderPriority;
 			RN_DEBUG_ASSERT(!_superview, "Needs to be called BEFORE adding to a superview to work");
+		}
+	
+		void View::SetRenderGroupForAll(uint8 renderGroup)
+		{
+			SetRenderGroup(renderGroup);
+			GetSubviews()->Enumerate<View>([renderGroup](View *view, size_t index, bool &stop){
+				view->SetRenderGroupForAll(renderGroup);
+			});
 		}
 
 		// ---------------------
@@ -920,9 +957,9 @@ namespace RN
 				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
 				material->SetColorWriteMask(_isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled);
 				material->SetPolygonOffset(_isDepthWriteEnabled, _depthFactor, _depthOffset);
-				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
-				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+				material->SetBlendFactorSource(_blendSourceFactorRGB, _blendSourceFactorA);
+				material->SetBlendFactorDestination(_blendDestinationFactorRGB, _blendDestinationFactorA);
+				material->SetBlendOperation(_blendOperationRGB, _blendOperationA);
 				if(!_hasVertexColors)
 				{
 					material->SetSkipRendering(_backgroundColor[0].a < k::EpsilonFloat);
