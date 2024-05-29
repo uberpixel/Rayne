@@ -116,6 +116,7 @@ namespace RN
 		bool _supportsLocalDimming;
 		bool _supportsVisibilityMask;
 		bool _supportsPassthrough;
+		bool _supportsCompositionLayerSettings;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

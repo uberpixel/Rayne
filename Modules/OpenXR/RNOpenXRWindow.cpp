@@ -94,6 +94,7 @@ namespace RN
 		_supportsLocalDimming = false;
 		_supportsVisibilityMask = false;
 		_supportsPassthrough = false;
+		_supportsCompositionLayerSettings = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_internals->_supportsControllerInteractionPICO = false;
@@ -257,6 +258,11 @@ namespace RN
 				extensions.push_back(extension.extensionName);
 				_supportsPassthrough = true;
 			}
+			else if(std::strcmp(extension.extensionName, XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsCompositionLayerSettings = true;
+			}
 #if XR_USE_PLATFORM_ANDROID
 			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
 			{
@@ -322,7 +328,7 @@ namespace RN
 		const RN::String *applicationTitle = Kernel::GetSharedInstance()->GetApplication()->GetTitle();
 		if(applicationTitle) strcpy(createInfo.applicationInfo.applicationName, applicationTitle->GetUTF8String());
 		else strcpy(createInfo.applicationInfo.applicationName, "NO TITLE");
-		createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+		createInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
 
 		_internals->instance = XR_NULL_HANDLE;
 		XrResult createInstanceResult = xrCreateInstance(&createInfo, &_internals->instance);
@@ -1538,6 +1544,12 @@ namespace RN
 				std::vector<XrCompositionLayerProjection> projectionLayers;
 				std::vector<XrCompositionLayerQuad> quadLayers;
 				std::vector<XrCompositionLayerBaseHeader*> layers;
+
+				XrCompositionLayerSettingsFB layerSettings;
+				layerSettings.type = XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB;
+				layerSettings.next = nullptr;
+				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;
+
 				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
 					if(!layer->_isActive) return;
 					if(layer->_swapChain && !layer->_swapChain->_hasContent) return;
@@ -1572,7 +1584,7 @@ namespace RN
 						XrCompositionLayerProjection layerProjection;
 						layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
 						layerProjection.next = nullptr;
-						layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+						layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT | XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 						layerProjection.space = _internals->trackingSpace;
 						layerProjection.viewCount = 2;
 						layerProjection.views = &projectionLayerViews[projectionLayerViews.size() - 2];
@@ -1584,7 +1596,7 @@ namespace RN
 					{
 						XrCompositionLayerQuad layerQuad;
 						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-						layerQuad.next = nullptr;
+						layerQuad.next = _supportsCompositionLayerSettings? &layerSettings : nullptr;
 						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
 						layerQuad.space = _internals->trackingSpace;
 						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
