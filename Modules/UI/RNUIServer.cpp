@@ -46,7 +46,15 @@ namespace RN
 		Server::~Server()
 		{
 			_windowContainer->RemoveFromParent();
-			SafeRelease(_camera);
+			
+			if(_camera)
+			{
+				if(_camera->GetSceneInfo())
+				{
+					_camera->GetSceneInfo()->GetScene()->RemoveNode(_camera);
+				}
+				SafeRelease(_camera);
+			}
 		}
 	
 		void Server::AddToScene(Scene *scene)
