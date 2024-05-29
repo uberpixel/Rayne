@@ -1551,10 +1551,10 @@ namespace RN
 
 				std::vector<XrCompositionLayerBaseHeader*> layers;
 
-				/*XrCompositionLayerSettingsFB layerSettings;
+				XrCompositionLayerSettingsFB layerSettings;
 				layerSettings.type = XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB;
 				layerSettings.next = nullptr;
-				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;*/
+				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SUPER_SAMPLING_BIT_FB | XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SHARPENING_BIT_FB | XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;
 
 				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
 					if(!layer->_isActive) return;
@@ -1602,7 +1602,7 @@ namespace RN
 					{
 						XrCompositionLayerQuad layerQuad;
 						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-						layerQuad.next = nullptr;//_supportsCompositionLayerSettings? &layerSettings : nullptr;
+						layerQuad.next = _supportsCompositionLayerSettings? &layerSettings : nullptr;
 						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
 						layerQuad.space = _internals->trackingSpace;
 						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
