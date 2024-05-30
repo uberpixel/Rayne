@@ -28,6 +28,7 @@ namespace RN
 			_inheritRenderSettings(true),
 			_isDepthWriteEnabled(false),
 			_isColorWriteEnabled(true),
+			_isAlphaWriteEnabled(false),
 			_depthMode(DepthMode::GreaterOrEqual),
 			_depthOffset(200.0f),
 			_depthFactor(50.0f),
@@ -414,13 +415,14 @@ namespace RN
 			Unlock();
 		}
 		
-		void View::SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool colorWrite)
+		void View::SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool colorWrite, bool alphaWrite)
 		{
 			Lock();
 			_inheritRenderSettings = false;
 			_depthMode = depthMode;
 			_isDepthWriteEnabled = writeDepth;
 			_isColorWriteEnabled = colorWrite;
+			_isAlphaWriteEnabled = alphaWrite;
 			_depthOffset = depthOffset;
 			_depthFactor = depthFactor;
 			RN::Model *model = GetModel();
@@ -428,7 +430,7 @@ namespace RN
 			{
 				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
 				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
-				material->SetColorWriteMask(_isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled);
+				material->SetColorWriteMask(_isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled, _isAlphaWriteEnabled);
 				material->SetDepthMode(_depthMode);
 				material->SetPolygonOffset(_isDepthWriteEnabled, _depthFactor, _depthOffset);
 			}
@@ -955,7 +957,7 @@ namespace RN
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);
 				material->SetDepthWriteEnabled(_isDepthWriteEnabled);
-				material->SetColorWriteMask(_isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled);
+				material->SetColorWriteMask(_isColorWriteEnabled, _isColorWriteEnabled, _isColorWriteEnabled, _isAlphaWriteEnabled);
 				material->SetPolygonOffset(_isDepthWriteEnabled, _depthFactor, _depthOffset);
 				material->SetBlendFactorSource(_blendSourceFactorRGB, _blendSourceFactorA);
 				material->SetBlendFactorDestination(_blendDestinationFactorRGB, _blendDestinationFactorA);
