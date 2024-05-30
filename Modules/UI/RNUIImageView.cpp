@@ -45,7 +45,9 @@ namespace RN
 				material->RemoveAllTextures();
 				if(_image) material->AddTexture(_image);
 				
-				material->SetSkipRendering(_image == nullptr);
+				Color finalColor = _color;
+				finalColor.a *= _combinedOpacityFactor;
+				material->SetSkipRendering(_image == nullptr || finalColor.a < k::EpsilonFloat);
 			}
 		}
 	
@@ -123,6 +125,7 @@ namespace RN
 				Color finalColor = _color;
 				finalColor.a *= _combinedOpacityFactor;
 				material->SetDiffuseColor(finalColor);
+				material->SetSkipRendering(_image == nullptr || finalColor.a < k::EpsilonFloat);
 			}
 			
 			Unlock();
