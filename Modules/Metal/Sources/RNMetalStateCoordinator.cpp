@@ -262,7 +262,11 @@ namespace RN
 		pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
 		pipelineStateDescriptor.sampleCount = sampleCount;
 		pipelineStateDescriptor.colorAttachments[0].pixelFormat = pixelFormat; //TODO: Set correct pixel format for each framebuffer texture...
-		pipelineStateDescriptor.colorAttachments[0].writeMask = static_cast<MTLColorWriteMask>(materialProperties.colorWriteMask);
+		pipelineStateDescriptor.colorAttachments[0].writeMask = 0;
+		if(materialProperties.colorWriteMask & (1 << 0)) pipelineStateDescriptor.colorAttachments[0].writeMask |= MTLColorWriteMaskRed;
+		if(materialProperties.colorWriteMask & (1 << 1)) pipelineStateDescriptor.colorAttachments[0].writeMask |= MTLColorWriteMaskGreen;
+		if(materialProperties.colorWriteMask & (1 << 2)) pipelineStateDescriptor.colorAttachments[0].writeMask |= MTLColorWriteMaskBlue;
+		if(materialProperties.colorWriteMask & (1 << 3)) pipelineStateDescriptor.colorAttachments[0].writeMask |= MTLColorWriteMaskAlpha;
 		pipelineStateDescriptor.colorAttachments[0].blendingEnabled = false;
 		if(pixelFormat != MTLPixelFormatInvalid && materialProperties.blendOperationRGB != BlendOperation::None && materialProperties.blendOperationAlpha != BlendOperation::None)
 		{
