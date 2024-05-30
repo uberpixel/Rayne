@@ -82,8 +82,8 @@ namespace RN
 				material->SetDepthWriteEnabled(false);
 				material->SetCullMode(CullMode::None);
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
-				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
+				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 				material->SetDiffuseColor(_color);
 				
 				const Rect &scissorRect = GetScissorRect();

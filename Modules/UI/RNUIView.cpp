@@ -35,8 +35,8 @@ namespace RN
 			_blendSourceFactorRGB(BlendFactor::SourceAlpha),
 			_blendDestinationFactorRGB(BlendFactor::OneMinusSourceAlpha),
 			_blendOperationRGB(BlendOperation::Add),
-			_blendSourceFactorA(BlendFactor::SourceAlpha),
-			_blendDestinationFactorA(BlendFactor::OneMinusSourceAlpha),
+			_blendSourceFactorA(BlendFactor::One),
+			_blendDestinationFactorA(BlendFactor::Zero),
 			_blendOperationA(BlendOperation::Add),
 			_cornerRadius(0.0f, 0.0f, 0.0f, 0.0f),
 			_renderPriorityOverride(0)

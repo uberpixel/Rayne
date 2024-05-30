@@ -144,8 +144,8 @@ namespace RN
 			material->SetDepthMode(_inheritRenderSettings? _depthMode : _labelDepthMode);
 			material->SetCullMode(CullMode::None);
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
-			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
+			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 			material->SetDiffuseColor(Color::White());
 
 			const Rect &scissorRect = GetScissorRect();
@@ -174,8 +174,8 @@ namespace RN
 			material->SetDepthMode(_inheritRenderSettings? _depthMode : _labelDepthMode);
 			material->SetCullMode(CullMode::None);
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::SourceAlpha);
-			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
+			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 			material->SetDiffuseColor(Color::White());
 
 			const Rect &scissorRect = GetScissorRect();
