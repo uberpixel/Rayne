@@ -51,7 +51,8 @@ namespace RN
 			UIAPI void Update(float delta) override;
 
 		protected:
-			UIAPI virtual void UpdateModel() override;
+			UIAPI void UpdateModel() override;
+			UIAPI void SetOpacityFromParent(float parentCombinedOpacity) override;
 
 		private:
 			AttributedString *_attributedText;

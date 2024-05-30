@@ -57,7 +57,9 @@ namespace RN
 			if(model)
 			{
 				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
-				material->SetDiffuseColor(_color);
+				Color finalColor = _color;
+				finalColor.a *= _combinedOpacityFactor;
+				material->SetDiffuseColor(finalColor);
 			}
 		}
 	
@@ -84,7 +86,10 @@ namespace RN
 				material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 				material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
 				material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
-				material->SetDiffuseColor(_color);
+				
+				Color finalColor = _color;
+				finalColor.a *= _combinedOpacityFactor;
+				material->SetDiffuseColor(finalColor);
 				
 				const Rect &scissorRect = GetScissorRect();
 				material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
@@ -93,7 +98,7 @@ namespace RN
 				lodStage->AddMesh(lodStage->GetMeshAtIndex(0), material);
 				
 				if(_image) material->AddTexture(_image);
-				material->SetSkipRendering(_image == nullptr);
+				material->SetSkipRendering(_image == nullptr || finalColor.a < k::EpsilonFloat);
 				
 				Model *model = GetModel();
 				model->Retain();
@@ -104,6 +109,23 @@ namespace RN
 			{
 				lodStage->ReplaceMesh(lodStage->GetMeshAtIndex(0), 1);
 			}
+		}
+	
+		void ImageView::SetOpacityFromParent(float parentCombinedOpacity)
+		{
+			View::SetOpacityFromParent(parentCombinedOpacity);
+			Lock();
+			
+			Model *model = GetModel();
+			if(model)
+			{
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(1);
+				Color finalColor = _color;
+				finalColor.a *= _combinedOpacityFactor;
+				material->SetDiffuseColor(finalColor);
+			}
+			
+			Unlock();
 		}
 	}
 }

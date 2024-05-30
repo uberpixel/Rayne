@@ -28,7 +28,8 @@ namespace RN
 			UIAPI void SetColor(Color color); //Multiplicative, including alpha!
 			
 		protected:
-			UIAPI virtual void UpdateModel() override;
+			UIAPI void UpdateModel() override;
+			UIAPI void SetOpacityFromParent(float parentCombinedOpacity) override;
 
 		private:
 			Texture *_image;

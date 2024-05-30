@@ -60,6 +60,7 @@ namespace RN
 			UIAPI void SetBlending(BlendFactor sourceFactorRGB, BlendFactor destinationFactorRGB, BlendOperation operationRGB, BlendFactor sourceFactorA, BlendFactor destinationFactorA, BlendOperation operationA);
 			UIAPI void SetCornerRadius(Vector4 radius);
 			UIAPI Vector4 GetCornerRadius() const { return _cornerRadius; }
+			UIAPI void SetOpacity(float opacity);
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -78,6 +79,8 @@ namespace RN
 			UIAPI virtual void WillMoveToSuperview(View *superview);
 			UIAPI virtual void DidMoveToSuperview(View *superview);
 			
+			UIAPI virtual void SetOpacityFromParent(float parentCombinedOpacity);
+			
 			UIAPI virtual void UpdateModel();
 			
 			UIAPI void WillUpdate(ChangeSet changeSet) override;
@@ -92,6 +95,9 @@ namespace RN
 			bool _isAlphaWriteEnabled;
 			float _depthOffset;
 			float _depthFactor;
+			
+			float _opacityFactor;
+			float _combinedOpacityFactor;
 			
 			BlendFactor _blendSourceFactorRGB;
 			BlendFactor _blendDestinationFactorRGB;

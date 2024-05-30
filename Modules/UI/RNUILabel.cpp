@@ -97,8 +97,10 @@ namespace RN
 			
 			if(_shadowMaterial)
 			{
-				_shadowMaterial->SetDiffuseColor(_shadowColor);
-				_shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
+				Color finalColor = _shadowColor;
+				finalColor.a *= _combinedOpacityFactor;
+				_shadowMaterial->SetDiffuseColor(finalColor);
+				_shadowMaterial->SetSkipRendering(finalColor.a < k::EpsilonFloat);
 			}
 			Unlock();
 		}
@@ -146,7 +148,10 @@ namespace RN
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
 			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
-			material->SetDiffuseColor(Color::White());
+			
+			Color finalColor = Color::White();
+			finalColor.a *= _combinedOpacityFactor;
+			material->SetDiffuseColor(finalColor);
 
 			const Rect &scissorRect = GetScissorRect();
 			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
@@ -176,12 +181,14 @@ namespace RN
 			material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
 			material->SetBlendFactorSource(BlendFactor::SourceAlpha, BlendFactor::Zero);
 			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
-			material->SetDiffuseColor(Color::White());
 
 			const Rect &scissorRect = GetScissorRect();
 			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
 			material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
-			material->SetDiffuseColor(_shadowColor);
+			
+			Color finalColor = _shadowColor;
+			finalColor.a *= _combinedOpacityFactor;
+			material->SetDiffuseColor(finalColor);
 			
 			RN::Model *model = GetModel();
 			if(model && model->GetLODStage(0)->GetCount() > 1)
@@ -1213,6 +1220,28 @@ namespace RN
 			
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
+			
+			Unlock();
+		}
+	
+		void Label::SetOpacityFromParent(float parentCombinedOpacity)
+		{
+			View::SetOpacityFromParent(parentCombinedOpacity);
+			Lock();
+			
+			if(_textMaterial)
+			{
+				Color finalColor = Color::White();
+				finalColor.a *= _combinedOpacityFactor;
+				_textMaterial->SetDiffuseColor(finalColor);
+			}
+			
+			if(_shadowMaterial)
+			{
+				Color finalColor = _shadowColor;
+				finalColor.a *= _combinedOpacityFactor;
+				_shadowMaterial->SetDiffuseColor(finalColor);
+			}
 			
 			Unlock();
 		}
