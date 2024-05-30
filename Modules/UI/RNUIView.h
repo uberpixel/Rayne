@@ -61,6 +61,7 @@ namespace RN
 			UIAPI void SetCornerRadius(Vector4 radius);
 			UIAPI Vector4 GetCornerRadius() const { return _cornerRadius; }
 			UIAPI void SetOpacity(float opacity);
+			UIAPI void MakeCircle();
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -121,6 +122,7 @@ namespace RN
 			Rect _scissorRect;
 
 			RN::Vector4 _cornerRadius;
+			bool _isCircle;
 			Color _backgroundColor[4];
 			bool _hasVertexColors;
 

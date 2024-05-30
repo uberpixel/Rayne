@@ -41,6 +41,7 @@ namespace RN
 			_blendDestinationFactorA(BlendFactor::Zero),
 			_blendOperationA(BlendOperation::Add),
 			_cornerRadius(0.0f, 0.0f, 0.0f, 0.0f),
+			_isCircle(false),
 			_renderPriorityOverride(0)
 		{
 			SetRenderGroup(1 << 7);
@@ -530,6 +531,12 @@ namespace RN
 			}
 			Unlock();
 		}
+	
+		void View::MakeCircle()
+		{
+			RN_ASSERT(!GetModel(), "MakeCircle can only be called before displaying a view for the first time");
+			_isCircle = true;
+		}
 
 		// ---------------------
 		// MARK: -
@@ -627,7 +634,7 @@ namespace RN
 			cornerRadius.z = std::max(std::min(_cornerRadius.z, maxCornerRadius), 0.0f);
 			cornerRadius.w = std::max(std::min(_cornerRadius.w, maxCornerRadius), 0.0f);
 			
-			if(cornerRadius.x > 0.0f || cornerRadius.y > 0.0f || cornerRadius.z > 0.0f || cornerRadius.w > 0.0f)
+			if((cornerRadius.x > 0.0f || cornerRadius.y > 0.0f || cornerRadius.z > 0.0f || cornerRadius.w > 0.0f) && !_isCircle)
 			{
 				float *vertexPositionBuffer = new float[20 * 2];
 				float *vertexColorBuffer = _hasVertexColors? new float[20 * 4] : nullptr;
@@ -995,8 +1002,9 @@ namespace RN
 				Shader::Options *shaderOptions = Shader::Options::WithNone();
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine("RN_UI", "1");
-				if(_cornerRadius.x > 0.0f || _cornerRadius.y > 0.0f || _cornerRadius.z > 0.0f || _cornerRadius.w > 0.0f) shaderOptions->AddDefine("RN_UV1", "1");
+				if((_cornerRadius.x > 0.0f || _cornerRadius.y > 0.0f || _cornerRadius.z > 0.0f || _cornerRadius.w > 0.0f) && !_isCircle) shaderOptions->AddDefine("RN_UV1", "1");
 				if(_hasVertexColors) shaderOptions->AddDefine("RN_COLOR", "1");
+				if(_isCircle) shaderOptions->AddDefine("RN_UI_CIRCLE", "1");
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);

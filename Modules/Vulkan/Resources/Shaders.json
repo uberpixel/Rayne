@@ -149,7 +149,8 @@
                         "RN_UV0",
                         "RN_UV1",
                         "RN_COLOR",
-                        "RN_USE_MULTIVIEW"
+                        "RN_USE_MULTIVIEW",
+                        "RN_UI_CIRCLE"
                     ]
                 },
                 "type": "vertex"
@@ -164,7 +165,8 @@
                 "signature": {
                     "options": [
                         "RN_UV0",
-                        "RN_UV1"
+                        "RN_UV1",
+                        "RN_UI_CIRCLE"
                     ],
                     "samplers": [
                         {
