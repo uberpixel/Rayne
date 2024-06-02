@@ -325,6 +325,20 @@ namespace RN
 			
 			SceneNode::WillUpdate(changeSet);
 		}
+	
+		void View::HandleButtonClick()
+		{
+			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
+				view->HandleButtonClick();
+			});
+		}
+			
+		void View::HandleButtonClickLate()
+		{
+			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
+				view->HandleButtonClickLate();
+			});
+		}
 
 		// ---------------------
 		// MARK: -

@@ -71,6 +71,9 @@ namespace RN
 			UIAPI void SetRenderPriorityOverride(int32 renderPriority);
 			
 			UIAPI void SetRenderGroupForAll(uint8 renderGroup);
+			
+			UIAPI virtual void HandleButtonClick();
+			UIAPI virtual void HandleButtonClickLate();
 
 		protected:
 			UIAPI virtual void DidAddSubview(View *subview);
