@@ -662,6 +662,19 @@ namespace RN
 			_nodesToRemove->RemoveObject(node);
 			_nodesToRemove->Unlock();
 			node->_scheduledForRemovalFromScene = false;
+			
+			//Remove and insert at the correct position, respecting the render priority.
+			Lock();
+			SceneInfo *sceneInfo = node->GetSceneInfo();
+			sceneInfo->Retain();
+			RemoveRenderNode(node);
+			node->UpdateSceneInfo(nullptr);
+			Unlock();
+			
+			node->UpdateSceneInfo(sceneInfo);
+			AddRenderNode(node);
+			sceneInfo->Release();
+			
 			return;
 		}
 		
@@ -669,7 +682,8 @@ namespace RN
 		
 		node->Retain();
 		SceneBasicInfo *sceneInfo = new SceneBasicInfo(this);
-		node->UpdateSceneInfo(sceneInfo->Autorelease());
+		node->UpdateSceneInfo(sceneInfo);
+		sceneInfo->Release();
     
 		if(node->IsKindOfClass(Camera::GetMetaClass()))
 		{
