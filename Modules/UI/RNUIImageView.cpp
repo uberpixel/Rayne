@@ -62,6 +62,7 @@ namespace RN
 				Color finalColor = _color;
 				finalColor.a *= _combinedOpacityFactor;
 				material->SetDiffuseColor(finalColor);
+				material->SetSkipRendering(_image == nullptr || finalColor.a < k::EpsilonFloat);
 			}
 		}
 	
