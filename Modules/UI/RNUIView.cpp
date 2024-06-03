@@ -337,14 +337,14 @@ namespace RN
 		void View::HandleButtonClick()
 		{
 			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
-				if(!view->GetIsHidden()) view->HandleButtonClick();
+				if(!view->GetIsHidden() && view->_combinedOpacityFactor > RN::k::EpsilonFloat) view->HandleButtonClick();
 			});
 		}
 			
 		void View::HandleButtonClickLate()
 		{
 			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
-				if(!view->GetIsHidden()) view->HandleButtonClickLate();
+				if(!view->GetIsHidden() && view->_combinedOpacityFactor > RN::k::EpsilonFloat) view->HandleButtonClickLate();
 			});
 		}
 
