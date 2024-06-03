@@ -329,14 +329,14 @@ namespace RN
 		void View::HandleButtonClick()
 		{
 			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
-				view->HandleButtonClick();
+				if(!view->GetIsHidden()) view->HandleButtonClick();
 			});
 		}
 			
 		void View::HandleButtonClickLate()
 		{
 			_subviews->Enumerate<View>([](View *view, size_t index, bool &stop){
-				view->HandleButtonClickLate();
+				if(!view->GetIsHidden()) view->HandleButtonClickLate();
 			});
 		}
 
