@@ -316,10 +316,18 @@ namespace RN
 		{
 			if(changeSet == ChangeSet::World)
 			{
-				if(_superview && !GetSceneInfo())
+				if(!GetSceneInfo())
 				{
-					SetRenderPriority(_renderPriorityOverride == 0? _superview->GetRenderPriority() + 1 : _renderPriorityOverride);
-					if(_inheritRenderSettings) _depthMode = _superview->_depthMode;
+					if(_renderPriorityOverride != 0)
+					{
+						SetRenderPriority(_renderPriorityOverride);
+					}
+					
+					if(_superview)
+					{
+						if(_renderPriorityOverride == 0) SetRenderPriority(_superview->GetRenderPriority() + 1);
+						if(_inheritRenderSettings) _depthMode = _superview->_depthMode;
+					}
 				}
 			}
 			
