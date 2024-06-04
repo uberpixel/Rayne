@@ -500,6 +500,8 @@ namespace RN
 	
 		void View::SetCornerRadius(Vector4 radius)
 		{
+			if(radius == _cornerRadius) return;
+			
 			_cornerRadius = radius;
 			_needsMeshUpdate = true;
 		}
