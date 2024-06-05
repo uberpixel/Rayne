@@ -94,7 +94,7 @@ namespace RN
 			return needsRedraw || _wasHighlighted != _isHighlighted;
 		}
 	
-		bool Button::UpdateForHighlight()
+		void Button::UpdateForHighlight()
 		{
 			if(_wasHighlighted == _isHighlighted) return;
 			

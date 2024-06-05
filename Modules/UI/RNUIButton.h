@@ -47,7 +47,7 @@ namespace RN
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition) override;
 
 		private:
-			bool UpdateForHighlight();
+			void UpdateForHighlight();
 			
 			Label *_label;
 			
