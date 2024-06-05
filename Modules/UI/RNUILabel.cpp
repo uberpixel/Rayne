@@ -152,6 +152,7 @@ namespace RN
 			Color finalColor = Color::White();
 			finalColor.a *= _combinedOpacityFactor;
 			material->SetDiffuseColor(finalColor);
+			material->SetSkipRendering(finalColor.a < k::EpsilonFloat || !_attributedText || _attributedText->GetLength() == 0);
 
 			const Rect &scissorRect = GetScissorRect();
 			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
@@ -189,6 +190,7 @@ namespace RN
 			Color finalColor = _shadowColor;
 			finalColor.a *= _combinedOpacityFactor;
 			material->SetDiffuseColor(finalColor);
+			material->SetSkipRendering(finalColor.a < k::EpsilonFloat || !_attributedText || _attributedText->GetLength() == 0);
 			
 			RN::Model *model = GetModel();
 			if(model && model->GetLODStage(0)->GetCount() > 1)
@@ -873,7 +875,7 @@ namespace RN
 				Unlock();
 				return;
 			}
-					
+			
 			uint32 numberOfVertices = 0;
 			uint32 numberOfIndices = 0;
 			
@@ -1214,7 +1216,7 @@ namespace RN
 			}
 			
 			Material *textMaterial = model->GetLODStage(0)->GetMaterialAtIndex(2);
-			textMaterial->SetSkipRendering(false);
+			textMaterial->SetSkipRendering(_combinedOpacityFactor  < k::EpsilonFloat);
 			Material *shadowMaterial = model->GetLODStage(0)->GetMaterialAtIndex(1);
 			shadowMaterial->SetSkipRendering(_shadowColor.a < k::EpsilonFloat);
 			
@@ -1234,6 +1236,7 @@ namespace RN
 				Color finalColor = Color::White();
 				finalColor.a *= _combinedOpacityFactor;
 				_textMaterial->SetDiffuseColor(finalColor);
+				_textMaterial->SetSkipRendering(finalColor.a < k::EpsilonFloat || !_attributedText || _attributedText->GetLength() == 0);
 			}
 			
 			if(_shadowMaterial)
@@ -1241,6 +1244,7 @@ namespace RN
 				Color finalColor = _shadowColor;
 				finalColor.a *= _combinedOpacityFactor;
 				_shadowMaterial->SetDiffuseColor(finalColor);
+				_shadowMaterial->SetSkipRendering(finalColor.a < k::EpsilonFloat || !_attributedText || _attributedText->GetLength() == 0);
 			}
 			
 			Unlock();
