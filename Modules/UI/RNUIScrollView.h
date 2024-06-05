@@ -18,10 +18,10 @@ namespace RN
 		class ScrollView : public View
 		{
 		public:
-			UIAPI ScrollView();
+			UIAPI ScrollView(bool vertical = true, bool horizontal = false);
 			UIAPI ~ScrollView();
 
-			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, float alternativeScrollSpeed = 0.0f);
+			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2());
 			
 			UIAPI void SetPixelPerInch(float pixelPerInch);
 			
@@ -32,10 +32,13 @@ namespace RN
 			bool _isScrolling;
 			bool _wasTouched;
 			
+			bool _scrollsVertical;
+			bool _scrollsHorizontal;
+			
 			float _tapTimer;
 			float _pixelPerInch;
 			
-			float _scrollSpeed;
+			Vector2 _scrollSpeed;
 			Vector2 _previousCursorPosition;
 
 			RNDeclareMetaAPI(ScrollView, UIAPI)
