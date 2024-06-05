@@ -14,7 +14,7 @@ namespace RN
 	{
 		RNDefineMeta(Button, ImageView)
 
-		Button::Button(const TextAttributes &defaultTextAttributes) : _imageNormal(nullptr), _imageHighlight(nullptr), _backgroundColorNormal(Color::ClearColor()), _backgroundColorHighlight(Color::ClearColor()), _textColorNormal(Color::White()), _textColorHighlight(Color::Gray()), _isHighlighted(false)
+		Button::Button(const TextAttributes &defaultTextAttributes) : _imageNormal(nullptr), _imageHighlight(nullptr), _backgroundColorNormal(Color::ClearColor()), _backgroundColorHighlight(Color::ClearColor()), _textColorNormal(Color::White()), _textColorHighlight(Color::Gray()), _isHighlighted(false), _wasHighlighted(false)
 		{
 			_label = new Label(defaultTextAttributes);
 			AddSubview(_label->Autorelease());
@@ -83,12 +83,20 @@ namespace RN
 		{
 			bool needsRedraw = View::UpdateCursorPosition(cursorPosition);
 			
-			bool wasHighlighted = _isHighlighted;
-			
+			_wasHighlighted = _isHighlighted;
 			Vector2 transformedPosition = ConvertPointFromBase(cursorPosition);
 			_isHighlighted = GetBounds().ContainsPoint(transformedPosition);
 			
 			if(GetIsHidden() || _combinedOpacityFactor <= RN::k::EpsilonFloat) _isHighlighted = false;
+			
+			UpdateForHighlight();
+			
+			return needsRedraw || _wasHighlighted != _isHighlighted;
+		}
+	
+		bool Button::UpdateForHighlight()
+		{
+			if(_wasHighlighted == _isHighlighted) return;
 			
 			if(_isHighlighted)
 			{
@@ -96,14 +104,21 @@ namespace RN
 				SetBackgroundColor(_backgroundColorHighlight);
 				SetImage(_imageHighlight);
 			}
-			else if(wasHighlighted)
+			else
 			{
 				_label->SetTextColor(_textColorNormal);
 				SetBackgroundColor(_backgroundColorNormal);
 				SetImage(_imageNormal);
 			}
 			
-			return needsRedraw || wasHighlighted != _isHighlighted;
+			_wasHighlighted = _isHighlighted;
+		}
+	
+		void Button::SetIsHighlighted(bool isHighlighted)
+	{
+			_wasHighlighted = _isHighlighted;
+			_isHighlighted = isHighlighted;
+			UpdateForHighlight();
 		}
 	}
 }

@@ -41,11 +41,14 @@ namespace RN
 			const Color &GetTextColorHighlight() const { return _textColorHighlight; }
 			
 			bool GetIsHighlighted() const { return _isHighlighted; }
+			void SetIsHighlighted(bool isHighlighted);
 			
 		protected:
 			UIAPI virtual bool UpdateCursorPosition(const Vector2 &cursorPosition) override;
 
 		private:
+			bool UpdateForHighlight();
+			
 			Label *_label;
 			
 			Texture *_imageNormal;
@@ -56,6 +59,7 @@ namespace RN
 			Color _textColorHighlight;
 			
 			bool _isHighlighted;
+			bool _wasHighlighted;
 
 			RNDeclareMetaAPI(Button, UIAPI)
 		};
