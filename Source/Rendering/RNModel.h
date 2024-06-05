@@ -38,7 +38,14 @@ namespace RN
 				_distance(other->_distance),
 				_groups(other->_groups),
 				_index(other->_index)
-			{}
+			{
+				for(size_t i = 0; i < GetCount(); i++)
+				{
+					auto &group = _groups[i];
+					group._material->Autorelease();
+					group._material = group._material->Copy();
+				}
+			}
 
 			void AddMesh(Mesh *mesh, Material *material)
 			{
@@ -74,7 +81,7 @@ namespace RN
 				{}
 
 				Group(const Group &other) :
-					_material(other._material->Copy()),
+					_material(other._material->Retain()),
 					_mesh(other._mesh->Retain())
 				{}
 
