@@ -205,7 +205,6 @@ namespace RN
 			if(enabled && !_cursorView)
 			{
 				_cursorView = new View();
-				_cursorView->SetClipToBounds(false);
 				AddSubview(_cursorView->Autorelease());
 			}
 			

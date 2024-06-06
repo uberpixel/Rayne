@@ -17,7 +17,7 @@ namespace RN
 		RNDefineMeta(View, Entity)
 
 		View::View() :
-			_clipToBounds(true),
+			_clipToBounds(false),
 			_isHidden(false),
 			_isHiddenByParent(false),
 			_needsMeshUpdate(true),
@@ -355,6 +355,8 @@ namespace RN
 
 		void View::SetFrame(const Rect &frame)
 		{
+			if(_frame == frame) return;
+			
 			Lock();
 			Vector2 oldSize = _frame.GetSize();
 
@@ -382,6 +384,8 @@ namespace RN
 
 		void View::SetBounds(const Rect &bounds)
 		{
+			if(_bounds == bounds) return;
+			
 			Lock();
 			_bounds = bounds;
 			//_needsMeshUpdate = true;
@@ -570,26 +574,36 @@ namespace RN
 		void View::CalculateScissorRect()
 		{
 			Lock();
-			if(_superview && _clipToBounds)
+			RN::Rect oldScissorRect = _scissorRect;
+			if(_superview)
 			{
-				RN::Rect parentScissorRect;
-				parentScissorRect.x = -_superview->_bounds.x - _frame.x;
-				parentScissorRect.y = -_superview->_bounds.y - _frame.y;
-				parentScissorRect.width  = _superview->_frame.width;
-				parentScissorRect.height = _superview->_frame.height;
-				
-				RN::Rect parentParentScissorRect = _superview->GetScissorRect();
-				parentParentScissorRect.x -= _superview->_bounds.x + _frame.x;
-				parentParentScissorRect.y -= _superview->_bounds.y + _frame.y;
-				
-				float right = std::min(parentScissorRect.GetRight(), parentParentScissorRect.GetRight());
-				float bottom = std::min(parentScissorRect.GetBottom(), parentParentScissorRect.GetBottom());
-				
-				_scissorRect.x = std::max(parentScissorRect.x, parentParentScissorRect.x);
-				_scissorRect.y = std::max(parentScissorRect.y, parentParentScissorRect.y);
-				
-				_scissorRect.width = std::max(right - parentScissorRect.x, 0.0f);
-				_scissorRect.height = std::max(bottom - parentScissorRect.y, 0.0f);
+				if(_superview->_clipToBounds)
+				{
+					RN::Rect parentScissorRect;
+					parentScissorRect.x = -_superview->_bounds.x - _frame.x;
+					parentScissorRect.y = -_superview->_bounds.y - _frame.y;
+					parentScissorRect.width  = _superview->_frame.width;
+					parentScissorRect.height = _superview->_frame.height;
+					
+					RN::Rect parentParentScissorRect = _superview->_scissorRect;
+					parentParentScissorRect.x -= _superview->_bounds.x + _frame.x;
+					parentParentScissorRect.y -= _superview->_bounds.y + _frame.y;
+					
+					float right = std::min(parentScissorRect.GetRight(), parentParentScissorRect.GetRight());
+					float bottom = std::min(parentScissorRect.GetBottom(), parentParentScissorRect.GetBottom());
+					
+					_scissorRect.x = std::max(parentScissorRect.x, parentParentScissorRect.x);
+					_scissorRect.y = std::max(parentScissorRect.y, parentParentScissorRect.y);
+					
+					_scissorRect.width = std::max(right - parentScissorRect.x, 0.0f);
+					_scissorRect.height = std::max(bottom - parentScissorRect.y, 0.0f);
+				}
+				else
+				{
+					_scissorRect = _superview->_scissorRect;
+					_scissorRect.x -= _superview->_bounds.x + _frame.x;
+					_scissorRect.y -= _superview->_bounds.y + _frame.y;
+				}
 			}
 			else
 			{
@@ -599,21 +613,25 @@ namespace RN
 				_scissorRect.height = _frame.height;
 			}
 			
-			Model *model = GetModel();
-			if(model)
+			//Updating all of this tends to be slow, so only do it if the scissor rect actually changed
+			//if(oldScissorRect != _scissorRect)
 			{
-				Model::LODStage *lodStage = model->GetLODStage(0);
-				for(int i = 0; i < lodStage->GetCount(); i++)
+				Model *model = GetModel();
+				if(model)
 				{
-					lodStage->GetMaterialAtIndex(i)->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom())));
+					Model::LODStage *lodStage = model->GetLODStage(0);
+					for(int i = 0; i < lodStage->GetCount(); i++)
+					{
+						lodStage->GetMaterialAtIndex(i)->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(_scissorRect.GetLeft(), _scissorRect.GetRight(), _scissorRect.GetTop(), _scissorRect.GetBottom())));
+					}
 				}
-			}
-			
-			size_t count = _subviews->GetCount();
-			for(size_t i = 0; i < count; i ++)
-			{
-				View *child = _subviews->GetObjectAtIndex<View>(i);
-				child->CalculateScissorRect();
+				
+				size_t count = _subviews->GetCount();
+				for(size_t i = 0; i < count; i ++)
+				{
+					View *child = _subviews->GetObjectAtIndex<View>(i);
+					child->CalculateScissorRect();
+				}
 			}
 			
 			Unlock();

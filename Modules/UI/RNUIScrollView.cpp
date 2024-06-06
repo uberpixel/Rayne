@@ -16,7 +16,7 @@ namespace RN
 
 		ScrollView::ScrollView(bool vertical, bool horizontal) : _isScrollEnabled(true), _isScrolling(false), _wasTouched(false), _tapTimer(0.0f), _pixelPerInch(200), _scrollsVertical(vertical), _scrollsHorizontal(horizontal)
 		{
-
+			SetClipToBounds(true);
 		}
 
 		ScrollView::~ScrollView()
