@@ -21,7 +21,7 @@ namespace RN
 			UIAPI ScrollView(bool vertical = true, bool horizontal = false);
 			UIAPI ~ScrollView();
 
-			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2());
+			UIAPI virtual void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2());
 			
 			UIAPI void SetPixelPerInch(float pixelPerInch);
 			
