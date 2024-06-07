@@ -45,6 +45,7 @@ namespace RN
 			UIAPI void BringSubviewToFront(View *subview);
 			UIAPI void SendSubviewToBack(View *subview);
 			const Array *GetSubviews() const { return _subviews; }
+			View *GetSuperview() const { return _superview; }
 
 			UIAPI virtual void SetFrame(const Rect &frame);
 			UIAPI virtual void SetBounds(const Rect &bounds);

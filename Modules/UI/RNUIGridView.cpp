@@ -111,7 +111,7 @@ namespace RN
 					}
 					
 					View *cell = ReuseCell(column, row);
-					cell->SetFrame(RN::Rect(_margins.x + column * cellSize.x + column * _spacing.x, _margins.y + row * cellSize.y + row * _spacing.y, cellSize.x, cellSize.y));
+					if(cell) cell->SetFrame(RN::Rect(_margins.x + column * cellSize.x + column * _spacing.x, _margins.y + row * cellSize.y + row * _spacing.y, cellSize.x, cellSize.y));
 				}
 			}
 		}
