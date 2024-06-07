@@ -31,7 +31,7 @@ set(RAYNE_LIBRARIES
 
 set(INCLUDE_DIRECTORIES 
         "${Rayne_BINARY_DIR}/include"
-        "${CMAKE_CURRENT_BINARY_DIR}/../UI/include/Sources")
+        "${CMAKE_CURRENT_BINARY_DIR}/../UI/include")
 
 rayne_add_library(RayneUIComponents "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUIComponents)

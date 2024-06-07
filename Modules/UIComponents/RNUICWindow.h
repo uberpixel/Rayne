@@ -14,7 +14,7 @@
 
 namespace RN
 {
-    namespace RNUIC
+    namespace UIComponents
     {
         class Window : public RN::UI::Window
         {
