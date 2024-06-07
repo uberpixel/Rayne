@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.1)
 project(RayneUIComponents)
 
 include(../../CMake/LibraryTarget.cmake)
-include(ExternalProject)
+include(../../CMake/Rayne.cmake)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
@@ -13,10 +13,8 @@ set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(SOURCES
         RNUICWindow.cpp
         RNUICComponent.cpp
-        RNUICEventManager.cpp)
-
-set(RESOURCES
-        Resources)
+        RNUICEventManager.cpp
+        RNUICInit.cpp)
 
 set(HEADERS
         RNUIC.h
@@ -25,17 +23,20 @@ set(HEADERS
         RNUICEventManager.h)
 
 set(DEFINES
-        "RN_BUILD_UICOMPONENTS") 
+        RN_BUILD_UICOMPONENTS) 
 
-set(RAYNE_LIBRARIES Rayne)
+set(RAYNE_LIBRARIES 
+        Rayne
+        RayneUI)
 
-set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include)
+set(INCLUDE_DIRECTORIES 
+        "${Rayne_BINARY_DIR}/include"
+        "${CMAKE_CURRENT_BINARY_DIR}/../UI/include/Sources")
 
 rayne_add_library(RayneUIComponents "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUIComponents)
 
 target_include_directories(RayneUIComponents SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}")
 target_compile_definitions(RayneUIComponents PRIVATE "${DEFINES}")
-
 
 rayne_install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../Build/RayneUIComponents/. DESTINATION lib/Rayne/RayneUIComponents)
