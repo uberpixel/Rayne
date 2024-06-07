@@ -1102,7 +1102,7 @@ namespace RN
 		void View::Draw(bool isParentHidden)
 		{
 			_isHiddenByParent = isParentHidden;
-			if(_isHidden || isParentHidden || !_bounds.IntersectsRect(_scissorRect))
+			if(_isHidden || isParentHidden || !_bounds.IntersectsRect(_scissorRect) || _combinedOpacityFactor <= k::EpsilonFloat)
 			{
 				AddFlags(SceneNode::Flags::Hidden);
 			}
@@ -1111,7 +1111,7 @@ namespace RN
 				RemoveFlags(SceneNode::Flags::Hidden);
 			}
 			
-			if(_needsMeshUpdate && !_isHidden && !isParentHidden)
+			if(_needsMeshUpdate && !_isHidden && !isParentHidden && _combinedOpacityFactor > k::EpsilonFloat)
 			{
 				UpdateModel();
 				_needsMeshUpdate = false;
