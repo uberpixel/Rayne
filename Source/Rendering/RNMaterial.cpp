@@ -56,6 +56,9 @@ namespace RN
 		customMatrix1 = properties.customMatrix1;
 		customMatrix2 = properties.customMatrix2;
 		
+		uiClippingRect = properties.uiClippingRect;
+		uiOffset = properties.uiOffset;
+		
 		_customShaderUniforms.clear();
 		_customShaderUniforms.insert(properties._customShaderUniforms.begin(), properties._customShaderUniforms.end());
 		
@@ -282,6 +285,16 @@ namespace RN
 		_properties.alphaToCoverageClamp.x = min;
 		_properties.alphaToCoverageClamp.y = max;
 	}
+
+	void Material::SetUIClippingRect(Vector4 rect)
+	{
+		_properties.uiClippingRect = rect;
+	}
+
+	void Material::SetUIOffset(Vector2 offset)
+	{
+		_properties.uiOffset = offset;
+	}
 	
 	void Material::SetBlendOperation(BlendOperation blendOperationRGB, BlendOperation blendOperationAlpha)
 	{
@@ -436,6 +449,12 @@ namespace RN
 		{
 			_mergedProperties.cullMode = _properties.cullMode;
 		}
+		
+		_mergedProperties.customMatrix1 = _properties.customMatrix1;
+		_mergedProperties.customMatrix2 = _properties.customMatrix2;
+		
+		_mergedProperties.uiClippingRect = _properties.uiClippingRect;
+		_mergedProperties.uiOffset = _properties.uiOffset;
 
 		_mergedProperties._customShaderUniforms.clear();
 		_mergedProperties._customShaderUniforms.insert(_properties._customShaderUniforms.begin(), _properties._customShaderUniforms.end());

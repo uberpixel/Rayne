@@ -329,6 +329,16 @@ namespace RN
 			_identifier = CustomMatrix2;
 			_type = PrimitiveType::Matrix4x4;
 		}
+		if(name->IsEqual(RNCSTR("material_uiclippingrect")) || name->IsEqual(RNCSTR("uiClippingRect")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UICLIPPINGRECT")))
+		{
+			_identifier = UIClippingRect;
+			_type = PrimitiveType::Vector4;
+		}
+		if(name->IsEqual(RNCSTR("material_uioffset")) || name->IsEqual(RNCSTR("uiOffset")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UIOFFSET")))
+		{
+			_identifier = UIOffset;
+			_type = PrimitiveType::Vector2;
+		}
 		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_TEXTURETILEFACTOR")))
 		{
 			_identifier = TextureTileFactor;

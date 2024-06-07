@@ -876,6 +876,18 @@ namespace RN
 					std::memcpy(buffer + descriptor->GetOffset(), materialProperties.customMatrix2.m, descriptor->GetSize());
 					break;
 				}
+					
+				case Shader::UniformDescriptor::Identifier::UIClippingRect:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.uiClippingRect.x, descriptor->GetSize());
+					break;
+				}
+					
+				case Shader::UniformDescriptor::Identifier::UIOffset:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &materialProperties.uiOffset.x, descriptor->GetSize());
+					break;
+				}
 
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{

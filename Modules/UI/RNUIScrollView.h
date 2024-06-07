@@ -26,6 +26,7 @@ namespace RN
 			UIAPI void SetPixelPerInch(float pixelPerInch);
 			
 			bool IsScrolling() const { return _isScrolling; }
+			Vector2 GetScrollSpeed() const { return _scrollSpeed; }
 
 		private:
 			bool _isScrollEnabled;

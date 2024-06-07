@@ -112,7 +112,7 @@ namespace RN
 			
 			if(_shadowMaterial)
 			{
-				_shadowMaterial->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+				_shadowMaterial->SetUIOffset(Vector2(_shadowOffset.x, -_shadowOffset.y));
 			}
 			Unlock();
 		}
@@ -155,9 +155,8 @@ namespace RN
 			material->SetSkipRendering(finalColor.a < k::EpsilonFloat || !_attributedText || _attributedText->GetLength() == 0);
 
 			const Rect &scissorRect = GetScissorRect();
-			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
-			
-			material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(0.0f, 0.0f)));
+			material->SetUIClippingRect(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom()));
+			material->SetUIOffset(Vector2(0.0f, 0.0f));
 			
 			RN::Model *model = GetModel();
 			if(model && model->GetLODStage(0)->GetCount() > 1)
@@ -184,8 +183,8 @@ namespace RN
 			material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 
 			const Rect &scissorRect = GetScissorRect();
-			material->SetCustomShaderUniform(RNCSTR("uiClippingRect"), Value::WithVector4(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom())));
-			material->SetCustomShaderUniform(RNCSTR("uiOffset"), Value::WithVector2(Vector2(_shadowOffset.x, -_shadowOffset.y)));
+			material->SetUIClippingRect(Vector4(scissorRect.GetLeft(), scissorRect.GetRight(), scissorRect.GetTop(), scissorRect.GetBottom()));
+			material->SetUIOffset(Vector2(_shadowOffset.x, -_shadowOffset.y));
 			
 			Color finalColor = _shadowColor;
 			finalColor.a *= _combinedOpacityFactor;

@@ -96,6 +96,10 @@ namespace RN
 			Matrix customMatrix1;
 			Matrix customMatrix2;
 			
+			//Used by the UI system to set additional shader data as with lots of changing views using custom uniforms gets slow
+			Vector4 uiClippingRect;
+			Vector2 uiOffset;
+			
 			//TODO: Changing anything but colors and custom uniforms should only be allowed on creation, but not after already used for rendering as the renderers will only switch the pipeline state if the material was changed and these properties require a new pipeline state
 			bool usePolygonOffset;
 			float polygonOffsetFactor;
@@ -180,6 +184,9 @@ namespace RN
 
 		RNAPI void SetPolygonOffset(bool enable, float factor = 1.1f, float units = 0.1f);
 		RNAPI void SetAlphaToCoverage(bool enabled, float min = 0.3, float max = 0.8);
+		
+		RNAPI void SetUIClippingRect(Vector4 rect);
+		RNAPI void SetUIOffset(Vector2 offset);
 		
 		RNAPI void SetCustomShaderUniform(const String *name, Value *value);
 		RNAPI void SetCustomShaderUniform(const String *name, Number *number);
