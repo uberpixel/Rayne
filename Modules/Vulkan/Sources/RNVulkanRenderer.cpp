@@ -263,6 +263,7 @@ namespace RN
 		}
 
 		//Free other frame resources such as unused framebuffers and imageviews
+		Lock();
 		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
 		{
 			VulkanFrameResource &frameResource = _internals->frameResources[i];
@@ -276,6 +277,7 @@ namespace RN
 				_internals->frameResources.erase(_internals->frameResources.begin() + i);
 			}
 		}
+		Unlock();
 	}
 
 	void VulkanRenderer::Render(Function &&function)
@@ -2275,6 +2277,8 @@ namespace RN
 
 	void VulkanRenderer::AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset)
 	{
+		Lock();
 		_internals->frameResources.push_back({ _currentFrame + frameOffset, callback });
+		Unlock();
 	}
 }

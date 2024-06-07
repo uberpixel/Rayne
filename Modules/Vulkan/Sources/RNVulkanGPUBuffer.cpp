@@ -72,9 +72,9 @@ namespace RN
 
 	void *VulkanGPUBuffer::GetBuffer()
 	{
+		Lock();
 		if(!_mappedBuffer)
 		{
-			Lock();
 			if(_isHostVisible)
 			{
 				void *tempBuffer = nullptr;
@@ -91,17 +91,17 @@ namespace RN
 				stagingAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 				stagingAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-				VkBuffer stagingBuffer;
-				VmaAllocation stagingAllocation;
 				VmaAllocationInfo allocationInfo;
 				RNVulkanValidate(vmaCreateBuffer(_renderer->_internals->memoryAllocator, &stagingBufferInfo, &stagingAllocInfo, &_stagingBuffer, &_stagingAllocation, &allocationInfo));
 
 				_mappedBuffer = allocationInfo.pMappedData;
 			}
-			Unlock();
 		}
 
-		return _mappedBuffer;
+		void *mappedBuffer = _mappedBuffer;
+		Unlock();
+
+		return mappedBuffer;
 	}
 
 	VkBuffer VulkanGPUBuffer::GetVulkanBuffer() const
