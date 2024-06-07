@@ -277,7 +277,25 @@ namespace RN
                 }
                 else if (type->IsEqual(RNCSTR("scroll")))
                 {
-                    RN::UI::ScrollView *view = new RN::UI::ScrollView();
+                    bool vertical = component->GetObjectForKey<Number>(RNCSTR("vertical"))->GetBoolValue();
+                    bool horizontal = component->GetObjectForKey<Number>(RNCSTR("horizontal"))->GetBoolValue();
+
+                    bool verticalScroll = false;
+                    bool horizontalScroll = false;
+                    if (horizontal)
+                    {
+                        horizontalScroll = true;
+                    }
+                    if (vertical)
+                    {
+                        verticalScroll = true;
+                    }
+                    if (!verticalScroll && !horizontalScroll)
+                    {
+                        verticalScroll = true;
+                    }
+
+                    RN::UI::ScrollView *view = new RN::UI::ScrollView(verticalScroll, horizontalScroll);
                     view->SetFrame(frame);
                     view->SetBackgroundColor(backgroundColor);
                     
