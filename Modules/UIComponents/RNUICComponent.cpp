@@ -16,12 +16,8 @@ namespace RN
         RNDefineMeta(Component, RN::Object);
 
         Component::Component(const RN::String *filepath)
+            : _view(nullptr), _scroll(nullptr), _label(nullptr), _image(nullptr), _children(new RN::Array())
         {
-            _view = nullptr;
-            _scroll = nullptr;
-            _label = nullptr;
-            _image = nullptr;
-            _children = new RN::Array();
             RN::Data *data = RN::Data::WithContentsOfFile(filepath);
             RN::Dictionary *dictionary = RN::JSONSerialization::ObjectFromData<RN::Dictionary>(data);
             RN::Dictionary *component = dictionary->GetObjectForKey<RN::Dictionary>(RNCSTR("component"));
@@ -32,12 +28,8 @@ namespace RN
         }
 
         Component::Component(RN::Dictionary *component)
+            : _view(nullptr), _scroll(nullptr), _label(nullptr), _image(nullptr), _children(new RN::Array())
         {
-            _view = nullptr;
-            _scroll = nullptr;
-            _label = nullptr;
-            _image = nullptr;
-            _children = new RN::Array();
             if (component)
             {
                 LoadComponent(component);
@@ -46,7 +38,11 @@ namespace RN
 
         Component::~Component()
         {
-            
+            _children->Release();
+            if (_view) _view->Release();
+            if (_scroll) _scroll->Release();
+            if (_label) _label->Release();
+            if (_image) _image->Release();
         };
 
         void Component::LoadComponent(RN::Dictionary *component)
@@ -54,76 +50,29 @@ namespace RN
             _component = component;
             
             RN::String *type = component->GetObjectForKey<RN::String>(RNCSTR("type"));
-            RN::String *id = component->GetObjectForKey<RN::String>(RNCSTR("id"));
             RN::Dictionary *style = component->GetObjectForKey<RN::Dictionary>(RNCSTR("style"));
             RN::String *text = component->GetObjectForKey<RN::String>(RNCSTR("text"));
             
-            float width = NULL;
-            float height = NULL;
-            float top = NULL;
-            float left = NULL;
-            float fontSize = NULL;
-            RN::String *color = nullptr;
-            RN::String *background = nullptr;
-            RN::String *highlightColor = nullptr;
-            RN::String *highlightBackground = nullptr;
-            RN::String *textAlign = nullptr;
-            RN::String *shadow = nullptr;
-            
-            if (style)
-            {
-                RN::Number *widthValue = style->GetObjectForKey<RN::Number>(RNCSTR("width"));
-                if (widthValue) {
-                    width = widthValue->GetFloatValue();
-                }
-                RN::Number *heightValue = style->GetObjectForKey<RN::Number>(RNCSTR("height"));
-                if (heightValue) {
-                    height = heightValue->GetFloatValue();
-                }
-                RN::Number *topValue = style->GetObjectForKey<RN::Number>(RNCSTR("top"));
-                if (topValue) {
-                    top = topValue->GetFloatValue();
-                }
-                RN::Number *leftValue = style->GetObjectForKey<RN::Number>(RNCSTR("left"));
-                if (leftValue) {
-                    left = leftValue->GetFloatValue();
-                }
-                RN::Number *fontSizeValue = style->GetObjectForKey<RN::Number>(RNCSTR("fontSize"));
-                if (fontSizeValue) {
-                    fontSize = fontSizeValue->GetFloatValue();
-                }
-                color = style->GetObjectForKey<RN::String>(RNCSTR("color"));
-                background = style->GetObjectForKey<RN::String>(RNCSTR("backgroundColor"));
-                textAlign = style->GetObjectForKey<RN::String>(RNCSTR("textAlign"));
-                shadow = style->GetObjectForKey<RN::String>(RNCSTR("textShadow"));
-                
-                highlightColor = style->GetObjectForKey<RN::String>(RNCSTR("highlightColor"));
-                highlightBackground = style->GetObjectForKey<RN::String>(RNCSTR("highlightBackgroundColor"));
-            }
+            float width = GetFloatFromDictionary(style, RNCSTR("width"));
+            float height = GetFloatFromDictionary(style, RNCSTR("height"));
+            float top = GetFloatFromDictionary(style, RNCSTR("top"));
+            float left = GetFloatFromDictionary(style, RNCSTR("left"));
+            float fontSize = GetFloatFromDictionary(style, RNCSTR("fontSize"));
 
-            RN::Color textColor = RN::Color::White();
-            RN::Color backgroundColor = RN::Color::WithRGBA(0, 0, 0, 0);
-            RN::Color highlightTextColor = NULL;
-            RN::Color highlightBackgroundColor = NULL;
+            RN::String *color = GetStringFromDictionary(style, RNCSTR("color"));
+            RN::String *background = GetStringFromDictionary(style, RNCSTR("backgroundColor"));
+            RN::String *highlightColor = GetStringFromDictionary(style, RNCSTR("highlightColor"));
+            RN::String *highlightBackground = GetStringFromDictionary(style, RNCSTR("highlightBackgroundColor"));
+            RN::String *textAlign = GetStringFromDictionary(style, RNCSTR("textAlign"));
+            RN::String *shadow = GetStringFromDictionary(style, RNCSTR("textShadow"));
+
+            RN::Color textColor = color ? ColorFromHexString(color) : RN::Color::White();
+            RN::Color backgroundColor = background ? ColorFromHexString(background) : RN::Color::WithRGBA(0, 0, 0, 0);
+            RN::Color highlightTextColor = highlightColor ? ColorFromHexString(highlightColor) : RN::Color();
+            RN::Color highlightBackgroundColor = highlightBackground ? ColorFromHexString(highlightBackground) : RN::Color();
             RN::Color shadowColor = NULL;
             RN::Vector2 shadowOffset(0.0f);
             
-            if (color)
-            {
-                textColor = ColorFromHexString(color);
-            }
-            if (background)
-            {
-                backgroundColor = ColorFromHexString(background);
-            }
-            if (highlightColor)
-            {
-                highlightTextColor = ColorFromHexString(highlightColor);
-            }
-            if (highlightBackground)
-            {
-                highlightBackgroundColor = ColorFromHexString(highlightBackground);
-            }
             if (shadow)
             {
                 RN::Array *shadowComponents = shadow->GetComponentsSeparatedByString(RNCSTR(" "));
@@ -156,7 +105,6 @@ namespace RN
                 {
                     textAlignment = RN::UI::TextAlignmentCenter;
                 }
-
                 if (alignY->IsEqual(RNCSTR("bottom")))
                 {
                     textVerticalAlignment = RN::UI::TextVerticalAlignmentBottom;
@@ -237,23 +185,10 @@ namespace RN
                 }
                 else if (type->IsEqual(RNCSTR("slider")))
                 {
-                    float minimum, maximum, value, step = NULL;
-                    RN::Number *minimumVlaue = component->GetObjectForKey<RN::Number>(RNCSTR("min"));
-                    RN::Number *maximumlaue = component->GetObjectForKey<RN::Number>(RNCSTR("max"));
-                    RN::Number *valueVlaue = component->GetObjectForKey<RN::Number>(RNCSTR("value"));
-                    RN::Number *stepVlaue = component->GetObjectForKey<RN::Number>(RNCSTR("step"));
-                    if (minimumVlaue) {
-                        minimum = minimumVlaue->GetFloatValue();
-                    }
-                    if (maximumlaue) {
-                        maximum = maximumlaue->GetFloatValue();
-                    }
-                    if (valueVlaue) {
-                        value = valueVlaue->GetFloatValue();
-                    }
-                    if (stepVlaue) {
-                        step = stepVlaue->GetFloatValue();
-                    }
+                    float minimum = GetFloatFromDictionary(component, RNCSTR("min"));
+                    float maximum = GetFloatFromDictionary(component, RNCSTR("max"));
+                    float value = GetFloatFromDictionary(component, RNCSTR("value"));
+                    float step = GetFloatFromDictionary(component, RNCSTR("step"));
                     
                     RN::UI::Slider *slider = new RN::UI::Slider(frame, value, minimum, maximum, step);
                     _view = slider;
@@ -307,7 +242,7 @@ namespace RN
                     {
                         children->Enumerate<RN::Dictionary>([&](RN::Dictionary *child, size_t index, bool &stop){
                             RN::Dictionary *childComponent = child->GetObjectForKey<RN::Dictionary>(RNCSTR("component"));
-                            AddChild(new Component(childComponent));
+                            AddChild((new Component(childComponent))->Autorelease());
                         });
                     }
                 }
@@ -327,7 +262,6 @@ namespace RN
             if (_view)
             {
                 _children->AddObject(component);
-                
                 RN::UI::View *view = component->GetView();
                 _view->AddSubview(view->Autorelease());
             }
@@ -352,10 +286,7 @@ namespace RN
 
         RN::UI::View* Component::GetView()
         {
-            if (_view)
-            {
-                return _view;
-            }
+            return _view;
         }
 
         Component* Component::GetComponent(int index) {
@@ -364,16 +295,16 @@ namespace RN
 
         RN::UI::ScrollView* Component::GetScrollView()
         {
-            if (_scroll)
-            {
-                return _scroll;
-            }
+            return _scroll;
         }
 
         void Component::SetImage(RN::Texture *texture)
         {
-            RN::UI::ImageView *image = new RN::UI::ImageView(texture);
-            _image = image;
+            if (_image)
+            {
+                _image->Release();
+            }
+            _image = new RN::UI::ImageView(texture);
         }
                     
         RN::Color Component::ColorFromHexString(RN::String *hexString)
@@ -394,6 +325,20 @@ namespace RN
             ss >> colorCode;
             
             return RN::Color::WithHex(colorCode);
+        }
+
+        float Component::GetFloatFromDictionary(RN::Dictionary *dict, const RN::String *key)
+        {
+            RN::Number *number = dict->GetObjectForKey<RN::Number>(key);
+            float value = number ? number->GetFloatValue() : 0.0f;
+            return value;
+        }
+
+        RN::String* Component::GetStringFromDictionary(RN::Dictionary *dict, const RN::String *key)
+        {
+            RN::String *str = dict->GetObjectForKey<RN::String>(key);
+            if (str) str->Retain();
+            return str;
         }
     }
 }
