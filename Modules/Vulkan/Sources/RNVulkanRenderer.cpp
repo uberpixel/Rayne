@@ -79,32 +79,10 @@ namespace RN
 		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
 
-		//Create descriptor pool
-		VkDescriptorPoolSize uniformBufferPoolSize = {};
-		uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uniformBufferPoolSize.descriptorCount = 20000;
-		VkDescriptorPoolSize storageBufferPoolSize = {};
-		storageBufferPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		storageBufferPoolSize.descriptorCount = 20000;
-		VkDescriptorPoolSize textureBufferPoolSize = {};
-		textureBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-		textureBufferPoolSize.descriptorCount = 10000;
-		VkDescriptorPoolSize samplerBufferPoolSize = {};
-		samplerBufferPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLER;
-		samplerBufferPoolSize.descriptorCount = 10000;
-		std::vector<VkDescriptorPoolSize> poolSizes = { uniformBufferPoolSize, storageBufferPoolSize, samplerBufferPoolSize, textureBufferPoolSize };
-
-		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		descriptorPoolInfo.pNext = NULL;
-		descriptorPoolInfo.poolSizeCount = poolSizes.size();
-		descriptorPoolInfo.pPoolSizes = poolSizes.data();
-		descriptorPoolInfo.maxSets = 100000;
-		descriptorPoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		RNVulkanValidate(vk::CreateDescriptorPool(device->GetDevice(), &descriptorPoolInfo, GetAllocatorCallback(), &_descriptorPool));
-
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"));
 		_dynamicBufferPool = new VulkanDynamicBufferPool();
+
+		_internals->descriptorPool.Init(this);
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -1746,7 +1724,7 @@ namespace RN
 
 			if(!drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet)
 			{
-				drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet = new BufferedDescriptorSet();
+				drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet = new VulkanBufferedDescriptorSet();
 			}
 
 			drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].descriptorSet->UpdateLayout(pipelineState->rootSignature->descriptorSetLayout, _currentFrame);

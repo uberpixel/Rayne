@@ -27,6 +27,7 @@ namespace RN
 	class VulkanDynamicBufferPool;
 	class VulkanDynamicBufferReference;
 	class VulkanGPUBuffer;
+	class VulkanBufferedDescriptorSet;
 
 	class VulkanRenderer : public Renderer
 	{
@@ -35,6 +36,7 @@ namespace RN
 		friend VulkanStateCoordinator;
 		friend VulkanGPUBuffer;
 		friend VulkanTexture;
+		friend VulkanBufferedDescriptorSet;
 
 		VKAPI VulkanRenderer(VulkanRendererDescriptor *descriptor, VulkanDevice *device);
 		VKAPI ~VulkanRenderer();
@@ -77,7 +79,6 @@ namespace RN
 
 		VkQueue GetWorkQueue() const { return _workQueue; }
 		VkAllocationCallbacks *GetAllocatorCallback() const { return nullptr; }
-		VkDescriptorPool GetDescriptorPool() const { return _descriptorPool; }
 
 		VKAPI VulkanCommandBuffer *GetCommandBuffer();
 		VKAPI VulkanCommandBuffer *StartResourcesCommandBuffer();
@@ -114,7 +115,6 @@ namespace RN
 
 		Array *_mipMapTextures;
 
-		VkDescriptorPool _descriptorPool;
 		VkQueue _workQueue;
 		VulkanCommandBuffer *_currentCommandBuffer;
 		Lockable _currentResourcesCommandBufferLock;
