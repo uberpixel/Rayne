@@ -197,6 +197,7 @@ namespace RN
 
 			_subviews->AddObject(subview);
 			subview->_superview = this;
+			subview->SetPosition(RN::Vector3(_bounds.x + subview->_frame.x, -_bounds.y - subview->_frame.y, 0.0f)); //Update position to respect the new parents bounds
 			
 			AddChild(subview);
 			subview->SetRenderGroupForAll(GetRenderGroup());
