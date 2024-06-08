@@ -48,6 +48,8 @@ namespace RN
 			OculusGo,
 			OculusQuest,
 			OculusQuest2,
+			OculusQuestPro,
+			OculusQuest3,
 			AppleXR
 		};
 

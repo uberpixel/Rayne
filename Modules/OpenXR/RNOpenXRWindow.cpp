@@ -358,15 +358,23 @@ namespace RN
 		}
 
 		_hmdTrackingState.type = (_internals->systemProperties.trackingProperties.orientationTracking && _internals->systemProperties.trackingProperties.positionTracking)? VRHMDTrackingState::Type::SixDegreesOfFreedom : VRHMDTrackingState::Type::ThreeDegreesOfFreedom;
-		RNInfo(GetHMDInfoDescription());
+		RNInfo("Using HMD: " << GetHMDInfoDescription());
 
-		if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest2") == 0)
+		if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest") == 0)
+		{
+			_deviceType = DeviceType::OculusQuest;
+		}
+		else if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest2") == 0)
 		{
 			_deviceType = DeviceType::OculusQuest2;
 		}
-		else if(std::strcmp(_internals->systemProperties.systemName, "Oculus Quest") == 0)
+		else if(std::strcmp(_internals->systemProperties.systemName, "Meta Quest Pro") == 0)
 		{
-			_deviceType = DeviceType::OculusQuest2;
+			_deviceType = DeviceType::OculusQuestPro;
+		}
+		else if(std::strcmp(_internals->systemProperties.systemName, "Meta Quest 3") == 0)
+		{
+			_deviceType = DeviceType::OculusQuest3;
 		}
 		else if(std::strcmp(_internals->systemProperties.systemName, "Pico Pico Neo 3") == 0)
 		{
@@ -1602,7 +1610,7 @@ namespace RN
 					{
 						XrCompositionLayerQuad layerQuad;
 						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-						layerQuad.next = _supportsCompositionLayerSettings? &layerSettings : nullptr;
+						layerQuad.next = nullptr;//_supportsCompositionLayerSettings? &layerSettings : nullptr;
 						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
 						layerQuad.space = _internals->trackingSpace;
 						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -2457,9 +2465,7 @@ namespace RN
 
 	const String *OpenXRWindow::GetHMDInfoDescription() const
 	{
-		String *description = new String("Using HMD: ");
-		description->Append(RNSTR(_internals->systemProperties.systemName));
-		return description->Autorelease();
+		return RNSTR(_internals->systemProperties.systemName);
 	}
 
 	const VRHMDTrackingState &OpenXRWindow::GetHMDTrackingState() const
