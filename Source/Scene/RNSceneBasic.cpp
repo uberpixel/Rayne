@@ -661,7 +661,6 @@ namespace RN
 			_nodesToRemove->Lock();
 			_nodesToRemove->RemoveObject(node);
 			_nodesToRemove->Unlock();
-			node->_scheduledForRemovalFromScene = false;
 			
 			//Remove and insert at the correct position, respecting the render priority.
 			Lock();
@@ -674,6 +673,8 @@ namespace RN
 			node->UpdateSceneInfo(sceneInfo);
 			AddRenderNode(node);
 			sceneInfo->Release();
+			
+			node->_scheduledForRemovalFromScene = false; //Do this last, so scene change callbacks can check if this is just readding or completely new
 			
 			return;
 		}

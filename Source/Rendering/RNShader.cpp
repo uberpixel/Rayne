@@ -319,22 +319,22 @@ namespace RN
 			_identifier = EmissiveColor;
 			_type = PrimitiveType::Color;
 		}
-		if(name->IsEqual(RNCSTR("material_custommatrix1")) || name->IsEqual(RNCSTR("customMatrix1")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX1")))
+		else if(name->IsEqual(RNCSTR("material_custommatrix1")) || name->IsEqual(RNCSTR("customMatrix1")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX1")))
 		{
 			_identifier = CustomMatrix1;
 			_type = PrimitiveType::Matrix4x4;
 		}
-		if(name->IsEqual(RNCSTR("material_custommatrix2")) || name->IsEqual(RNCSTR("customMatrix2")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX2")))
+		else if(name->IsEqual(RNCSTR("material_custommatrix2")) || name->IsEqual(RNCSTR("customMatrix2")) || name->IsEqual(RNCSTR("in_var_INSTANCE_CUSTOMMATRIX2")))
 		{
 			_identifier = CustomMatrix2;
 			_type = PrimitiveType::Matrix4x4;
 		}
-		if(name->IsEqual(RNCSTR("material_uiclippingrect")) || name->IsEqual(RNCSTR("uiClippingRect")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UICLIPPINGRECT")))
+		else if(name->IsEqual(RNCSTR("material_uiclippingrect")) || name->IsEqual(RNCSTR("uiClippingRect")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UICLIPPINGRECT")))
 		{
 			_identifier = UIClippingRect;
 			_type = PrimitiveType::Vector4;
 		}
-		if(name->IsEqual(RNCSTR("material_uioffset")) || name->IsEqual(RNCSTR("uiOffset")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UIOFFSET")))
+		else if(name->IsEqual(RNCSTR("material_uioffset")) || name->IsEqual(RNCSTR("uiOffset")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UIOFFSET")))
 		{
 			_identifier = UIOffset;
 			_type = PrimitiveType::Vector2;
