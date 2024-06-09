@@ -1611,7 +1611,7 @@ namespace RN
 						XrCompositionLayerQuad layerQuad;
 						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
 						layerQuad.next = nullptr;//_supportsCompositionLayerSettings? &layerSettings : nullptr;
-						layerQuad.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+						layerQuad.layerFlags = 0;//XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
 						layerQuad.space = _internals->trackingSpace;
 						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
 						layerQuad.subImage.swapchain = layer->_swapChain->_internals->swapchain;

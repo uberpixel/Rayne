@@ -65,7 +65,7 @@ struct FragmentVertex
 	half4 clipDistance : TEXCOORD1;
 
 #if RN_UV0 || RN_UI_CIRCLE
-	half2 texCoords : TEXCOORD2;
+	float2 texCoords : TEXCOORD2;
 #endif
 #if RN_UV1
 	half3 curveTexCoords : TEXCOORD3;
@@ -111,8 +111,8 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 {
 	half4 color = vert.color;
 
-#if RN_UV0
-	color *= texture0.Sample(linearClampSampler, vert.texCoords).rgba;
+#if RN_UV0 && !RN_UI_SDF
+	color *= texture0.Sample(linearClampSampler, vert.texCoords.xy).rgba;
 #endif
 
 #if RN_UV1
@@ -125,8 +125,14 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 	color.a *= saturate(0.5 - dist * vert.curveTexCoords.z);
 #endif
 
+#if RN_UI_SDF && RN_UV0
+	float3 msd = texture0.Sample(linearClampSampler, vert.texCoords.xy).rgb;
+	float sd = max(min(msd.r, msd.g), min(max(msd.r, msd.g), msd.b)) - 0.5;
+	color.a *= clamp(sd/fwidth(sd) + 0.5, 0.0, 1.0);
+#endif
+
 #if RN_UI_CIRCLE
-	float2 uv = vert.texCoords * 2.0 - 1.0;
+	float2 uv = vert.texCoords.xy * 2.0 - 1.0;
 	float2 uvPixelSize;
 	uvPixelSize.x = ddx(uv.x);
 	uvPixelSize.y = ddy(uv.y);

@@ -60,6 +60,13 @@ set(INCLUDE_DIRECTORIES ${Rayne_BINARY_DIR}/include ${KALLIGRAPH_SOURCE_DIR}/Sou
 rayne_add_library(RayneUI "${SOURCES}" "${HEADERS}" "${RAYNE_LIBRARIES}" "${VERSION_STRING}" "${VERSION_ABI}")
 rayne_set_module_output_directory(RayneUI)
 
+FetchContent_Declare(ArteryFont
+    GIT_REPOSITORY https://github.com/Chlumsky/artery-font-format.git
+    GIT_TAG 888674220216d1d326c6f29cf89165b545279c1f
+)
+FetchContent_MakeAvailable(ArteryFont)
+target_include_directories(RayneUI PUBLIC "${arteryfont_SOURCE_DIR}/artery-font")
+
 ExternalProject_Add(Kalligraph
         GIT_REPOSITORY https://github.com/Slin/Kalligraph.git
         GIT_TAG origin/master

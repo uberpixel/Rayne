@@ -166,7 +166,8 @@
                     "options": [
                         "RN_UV0",
                         "RN_UV1",
-                        "RN_UI_CIRCLE"
+                        "RN_UI_CIRCLE",
+                        "RN_UI_SDF"
                     ],
                     "samplers": [
                         {

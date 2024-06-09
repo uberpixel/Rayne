@@ -12,6 +12,9 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STBTT_STATIC
 #include <stb_truetype.h>
+#include <artery-font.h>
+#include <stdio-serialization.h>
+#include <std-artery-font.h>
 
 namespace RN
 {
@@ -19,22 +22,61 @@ namespace RN
 	{
 		RNDefineMeta(Font, RN::Object)
 		RNDefineMeta(FontManager, RN::Object)
+	
+		namespace internal
+		{
+			int fileRead(void *buffer, int length, void *file)
+			{
+				return reinterpret_cast<File *>(file)->Read(buffer, length);
+			}
 
-		Font::Font(RN::String *filepath, bool preloadASCII)
+			int fileWrite(const void *buffer, int length, void *file)
+			{
+				return reinterpret_cast<File *>(file)->Write(buffer, length);
+			}
+		}
+
+		Font::Font(RN::String *filepath, bool preloadASCII) : _fontInfo(nullptr), _arFont(nullptr), _fontTexture(nullptr)
 		{
 			Lock();
-			_fontData = RN::Data::WithContentsOfFile(filepath);
-			_fontData->Retain();
-			_fontInfo = new stbtt_fontinfo;
-			stbtt_InitFont(_fontInfo, _fontData->GetBytes<unsigned char>(), stbtt_GetFontOffsetForIndex(_fontData->GetBytes<unsigned char>(), 0));
-			
 			_meshes = new RN::Dictionary();
 			
-			if(preloadASCII)
+			if(filepath->HasSuffix(RNCSTR(".arfont")))
 			{
-				for(int i = 0; i < 128; i++)
+				File *file = File::WithName(filepath);
+				auto *arFont = new artery_font::StdArteryFont<float>();
+				artery_font::decode<internal::fileRead>(*arFont, file);
+				_arFont = arFont;
+				auto variant = arFont->variants[0];
+				_textureResolution.x = arFont->images[0].width;
+				_textureResolution.y = arFont->images[0].height;
+				Data *pngData = new Data(&arFont->images[0].data[0], arFont->images[0].data.length(), true, false);
+				Dictionary *settings = new Dictionary();
+				settings->SetObjectForKey(Number::WithBool(true), RNCSTR("isLinear"));
+				settings->SetObjectForKey(Number::WithBool(false), RNCSTR("mipMapped"));
+				_fontTexture = Texture::WithPNGData(pngData, settings);
+				settings->Release();
+				SafeRetain(_fontTexture);
+				pngData->Release();
+				
+				for(int i = 0; i < variant.glyphs.length(); i++)
 				{
-					GetMeshForCharacter(i);
+					_codePointToIndex[variant.glyphs[i].codepoint] = i;
+				}
+			}
+			else
+			{
+				_fontData = RN::Data::WithContentsOfFile(filepath);
+				_fontData->Retain();
+				_fontInfo = new stbtt_fontinfo;
+				stbtt_InitFont(_fontInfo, _fontData->GetBytes<unsigned char>(), stbtt_GetFontOffsetForIndex(_fontData->GetBytes<unsigned char>(), 0));
+				
+				if(preloadASCII)
+				{
+					for(int i = 0; i < 128; i++)
+					{
+						GetMeshForCharacter(i);
+					}
 				}
 			}
 			Unlock();
@@ -43,9 +85,15 @@ namespace RN
 		Font::~Font()
 		{
 			Lock();
-			delete _fontInfo;
-			_fontData->Release();
-			_meshes->Release();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				delete arFont;
+			}
+			if(_fontInfo) delete _fontInfo;
+			SafeRelease(_fontData);
+			SafeRelease(_meshes);
+			SafeRelease(_fontTexture);
 			Unlock();
 		}
 
@@ -60,6 +108,75 @@ namespace RN
 			{
 				Unlock();
 				return existingMesh;
+			}
+			
+			if(_arFont)
+			{
+				if(_codePointToIndex.count(codepoint) == 0) return nullptr; //There is no character for the requested codepoint
+				
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				auto foundGlyph = variant.glyphs[_codePointToIndex[codepoint]];
+				
+				float *vertexPositionBuffer = new float[4 * 2];
+				float *vertexUVBuffer = new float[4 * 4];
+				uint32 *indexBuffer = new uint32[6];
+				
+				vertexPositionBuffer[0 * 2 + 0] = foundGlyph.planeBounds.l;
+				vertexPositionBuffer[0 * 2 + 1] = foundGlyph.planeBounds.t;
+				
+				vertexPositionBuffer[1 * 2 + 0] = foundGlyph.planeBounds.r;
+				vertexPositionBuffer[1 * 2 + 1] = foundGlyph.planeBounds.t;
+				
+				vertexPositionBuffer[2 * 2 + 0] = foundGlyph.planeBounds.r;
+				vertexPositionBuffer[2 * 2 + 1] = foundGlyph.planeBounds.b;
+				
+				vertexPositionBuffer[3 * 2 + 0] = foundGlyph.planeBounds.l;
+				vertexPositionBuffer[3 * 2 + 1] = foundGlyph.planeBounds.b;
+				
+				vertexUVBuffer[0 * 4 + 0] = foundGlyph.imageBounds.l / _textureResolution.x;
+				vertexUVBuffer[0 * 4 + 1] = 1.0f-foundGlyph.imageBounds.t / _textureResolution.y;
+				
+				vertexUVBuffer[1 * 4 + 0] = foundGlyph.imageBounds.r / _textureResolution.x;
+				vertexUVBuffer[1 * 4 + 1] = 1.0f-foundGlyph.imageBounds.t / _textureResolution.y;
+				
+				vertexUVBuffer[2 * 4 + 0] = foundGlyph.imageBounds.r / _textureResolution.x;
+				vertexUVBuffer[2 * 4 + 1] = 1.0f-foundGlyph.imageBounds.b / _textureResolution.y;
+				
+				vertexUVBuffer[3 * 4 + 0] = foundGlyph.imageBounds.l / _textureResolution.x;
+				vertexUVBuffer[3 * 4 + 1] = 1.0f-foundGlyph.imageBounds.b / _textureResolution.y;
+				
+				indexBuffer[0] = 0;
+				indexBuffer[1] = 3;
+				indexBuffer[2] = 1;
+				
+				indexBuffer[3] = 3;
+				indexBuffer[4] = 2;
+				indexBuffer[5] = 1;
+				
+				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector4);
+				
+				Mesh *mesh = new Mesh(meshVertexAttributes, 4, 6);
+				mesh->BeginChanges();
+				
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
+				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
+				
+				mesh->EndChanges();
+				
+				delete[] vertexPositionBuffer;
+				delete[] vertexUVBuffer;
+				delete[] indexBuffer;
+				
+				_meshes->SetObjectForKey(mesh, RN::Number::WithInt32(codepoint));
+				Unlock();
+				
+				return mesh;
 			}
 			
 			stbtt_vertex *shapeVertices;
@@ -240,6 +357,29 @@ namespace RN
 		float Font::GetOffsetForNextCharacter(int currentCodepoint, int nextCodepoint)
 		{
 			Lock();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				Vector2 kerning;
+				for(int i = 0; i < variant.kernPairs.length(); i++)
+				{
+					if(variant.kernPairs[i].codepoint1 == currentCodepoint && variant.kernPairs[i].codepoint2 == nextCodepoint)
+					{
+						kerning = Vector2(variant.kernPairs[i].advance.h, variant.kernPairs[i].advance.v);
+						break;
+					}
+				}
+				
+				auto foundGlyph = variant.glyphs[_codePointToIndex[currentCodepoint]];
+				kerning.x += foundGlyph.advance.h;
+				kerning.y += foundGlyph.advance.v;
+				
+				Unlock();
+				return kerning.x;
+			}
+			
 			int advance, lsb;
 			stbtt_GetCodepointHMetrics(_fontInfo, currentCodepoint, &advance, &lsb);
 			float offset = advance;
@@ -253,6 +393,17 @@ namespace RN
 		float Font::GetAscent()
 		{
 			Lock();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				float ascent = variant.metrics.ascender;
+				
+				Unlock();
+				return ascent;
+			}
+			
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
 			Unlock();
@@ -263,6 +414,17 @@ namespace RN
 		float Font::GetDescent()
 		{
 			Lock();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				float descent = variant.metrics.descender;
+				
+				Unlock();
+				return descent;
+			}
+			
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
 			Unlock();
@@ -273,6 +435,17 @@ namespace RN
 		float Font::GetLineOffset()
 		{
 			Lock();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				float linegap = variant.metrics.lineHeight;
+				
+				Unlock();
+				return linegap;
+			}
+			
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
 			Unlock();
@@ -283,11 +456,32 @@ namespace RN
 		float Font::GetHeight()
 		{
 			Lock();
+			if(_arFont)
+			{
+				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float>*>(_arFont);
+				auto variant = arFont->variants[0];
+				
+				float height = variant.metrics.ascender - variant.metrics.descender;
+				
+				Unlock();
+				return height;
+			}
+			
 			int ascent, descent, linegap;
 			stbtt_GetFontVMetrics(_fontInfo, &ascent, &descent, &linegap);
 			Unlock();
 			
 			return ascent - descent;
+		}
+	
+		Texture *Font::GetFontTexture()
+		{
+			return _fontTexture;
+		}
+	
+		bool Font::IsSDFFont()
+		{
+			return _arFont != nullptr;
 		}
 
 		FontManager::FontManager()

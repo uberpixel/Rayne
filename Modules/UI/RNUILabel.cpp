@@ -874,6 +874,8 @@ namespace RN
 				return;
 			}
 			
+			bool isUsingSDF = _defaultAttributes.GetFont()->IsSDFFont();
+			
 			uint32 numberOfVertices = 0;
 			uint32 numberOfIndices = 0;
 			
@@ -1049,7 +1051,7 @@ namespace RN
 			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 
 			float *vertexPositionBuffer = new float[numberOfVertices * 2];
-			float *vertexUVBuffer = new float[numberOfVertices * 3];
+			float *vertexUVBuffer = new float[numberOfVertices * (isUsingSDF? 2 : 3)];
 			float *vertexColorBuffer = new float[numberOfVertices * 4];
 			
 			RN::uint32 *indexBuffer = new RN::uint32[numberOfIndices];
@@ -1115,16 +1117,24 @@ namespace RN
 				for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
 				{
 					RN::Vector2 vertexPosition = *chunk.GetIteratorAtIndex<RN::Vector2>(RN::Mesh::VertexAttribute::Feature::Vertices, i);
-					RN::Vector3 vertexUV = *chunk.GetIteratorAtIndex<RN::Vector3>(RN::Mesh::VertexAttribute::Feature::UVCoords0, i);
-					
 					RN::uint32 targetIndex = vertexOffset + i;
 					
 					vertexPositionBuffer[targetIndex * 2 + 0] = vertexPosition.x * scaleFactor + characterPositionX;
 					vertexPositionBuffer[targetIndex * 2 + 1] = vertexPosition.y * scaleFactor + characterPositionY;
 					
-					vertexUVBuffer[targetIndex * 3 + 0] = vertexUV.x;
-					vertexUVBuffer[targetIndex * 3 + 1] = vertexUV.y;
-					vertexUVBuffer[targetIndex * 3 + 2] = vertexUV.z;
+					if(isUsingSDF)
+					{
+						RN::Vector2 vertexUV0 = *chunk.GetIteratorAtIndex<RN::Vector2>(RN::Mesh::VertexAttribute::Feature::UVCoords0, i);
+						vertexUVBuffer[targetIndex * 2 + 0] = vertexUV0.x;
+						vertexUVBuffer[targetIndex * 2 + 1] = vertexUV0.y;
+					}
+					else
+					{
+						RN::Vector3 vertexUV1 = *chunk.GetIteratorAtIndex<RN::Vector3>(RN::Mesh::VertexAttribute::Feature::UVCoords0, i);
+						vertexUVBuffer[targetIndex * 3 + 0] = vertexUV1.x;
+						vertexUVBuffer[targetIndex * 3 + 1] = vertexUV1.y;
+						vertexUVBuffer[targetIndex * 3 + 2] = vertexUV1.z;
+					}
 					
 					vertexColorBuffer[targetIndex * 4 + 0] = currentAttributes->GetColor().r;
 					vertexColorBuffer[targetIndex * 4 + 1] = currentAttributes->GetColor().g;
@@ -1144,7 +1154,8 @@ namespace RN
 			
 			std::vector<RN::Mesh::VertexAttribute> meshVertexAttributes;
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, RN::PrimitiveType::Vector2);
-			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords1, RN::PrimitiveType::Vector3);
+			if(isUsingSDF) meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords0, RN::PrimitiveType::Vector2);
+			else meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords1, RN::PrimitiveType::Vector3);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Color0, RN::PrimitiveType::Vector4);
 			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Indices, RN::PrimitiveType::Uint32);
 			
@@ -1152,7 +1163,8 @@ namespace RN
 			textMesh->BeginChanges();
 			
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
-			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::UVCoords1, vertexUVBuffer);
+			if(isUsingSDF) textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
+			else textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::UVCoords1, vertexUVBuffer);
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 			
@@ -1171,9 +1183,14 @@ namespace RN
 				{
 					material = RN::Material::WithShaders(nullptr, nullptr);
 					
-					RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(textMesh);
+					RN::Shader::Options *shaderOptions = RN::Shader::Options::WithMesh(textMesh); //This also enables RN_UV1
 					shaderOptions->EnableAlpha();
 					shaderOptions->AddDefine("RN_UI", "1");
+					if(isUsingSDF)
+					{
+						shaderOptions->AddDefine("RN_UI_SDF", "1");
+						material->AddTexture(_defaultAttributes.GetFont()->GetFontTexture());
+					}
 					
 					material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
 					material->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shaderOptions));
@@ -1186,12 +1203,22 @@ namespace RN
 				RN::Material *shadowMaterial = _shadowMaterial;
 				if(!shadowMaterial)
 				{
-					RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
-					shadowShaderOptions->AddDefine("RN_UV1", "1");
-					shadowShaderOptions->AddDefine("RN_UI", "1");
-					shadowShaderOptions->EnableAlpha();
-					
 					shadowMaterial = RN::Material::WithShaders(nullptr, nullptr);
+					
+					RN::Shader::Options *shadowShaderOptions = RN::Shader::Options::WithNone();
+					shadowShaderOptions->EnableAlpha();
+					shadowShaderOptions->AddDefine("RN_UI", "1");
+					if(isUsingSDF)
+					{
+						shadowShaderOptions->AddDefine("RN_UV0", "1");
+						shadowShaderOptions->AddDefine("RN_UI_SDF", "1");
+						shadowMaterial->AddTexture(_defaultAttributes.GetFont()->GetFontTexture());
+					}
+					else
+					{
+						shadowShaderOptions->AddDefine("RN_UV1", "1");
+					}
+					
 					shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions));
 					shadowMaterial->SetFragmentShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Fragment, shadowShaderOptions));
 					shadowMaterial->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shadowShaderOptions, RN::Shader::UsageHint::Multiview), RN::Shader::UsageHint::Multiview);
