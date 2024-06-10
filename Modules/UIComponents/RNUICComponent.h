@@ -47,6 +47,7 @@ namespace RN
             void LoadComponent(Dictionary *component);
             Color ColorFromHexString(String *hexString);
             float GetFloatFromDictionary(Dictionary *dict, const String *key);
+            bool GetBooleanFromDictionary(Dictionary *dict, const String *key);
             String* GetStringFromDictionary(Dictionary *dict, const String *key);
             
             RNDeclareMetaAPI(Component, UIAPI)

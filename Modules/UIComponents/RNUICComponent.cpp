@@ -83,12 +83,10 @@ namespace RN
             if (shadow)
             {
                 Array *shadowComponents = shadow->GetComponentsSeparatedByString(RNCSTR(" "));
-                String *offsetX = new String(shadowComponents->GetObjectAtIndex(0)->GetDescription());
-                String *offsetY = new String(shadowComponents->GetObjectAtIndex(1)->GetDescription());
+                const String *offsetX = shadowComponents->GetObjectAtIndex(0)->GetDescription();
+                const String *offsetY = shadowComponents->GetObjectAtIndex(1)->GetDescription();
                 shadowOffset.x = std::stoi(offsetX->GetUTF8String());
                 shadowOffset.y = std::stoi(offsetY->GetUTF8String());
-                offsetX->Release();
-                offsetY->Release();
                 String *shadowColorComponent = new String(shadowComponents->GetObjectAtIndex(2)->GetDescription());
                 shadowColor = ColorFromHexString(shadowColorComponent);
                 shadowColorComponent->Release();
@@ -205,25 +203,10 @@ namespace RN
                 }
                 else if (type->IsEqual(RNCSTR("scroll")))
                 {
-                    bool vertical = component->GetObjectForKey<Number>(RNCSTR("vertical"))->GetBoolValue();
-                    bool horizontal = component->GetObjectForKey<Number>(RNCSTR("horizontal"))->GetBoolValue();
+                    bool vertical = GetBooleanFromDictionary(component, RNCSTR("vertical"));
+                    bool horizontal = GetBooleanFromDictionary(component, RNCSTR("horizontal"));
 
-                    bool verticalScroll = false;
-                    bool horizontalScroll = false;
-                    if (horizontal)
-                    {
-                        horizontalScroll = true;
-                    }
-                    if (vertical)
-                    {
-                        verticalScroll = true;
-                    }
-                    if (!verticalScroll && !horizontalScroll)
-                    {
-                        verticalScroll = true;
-                    }
-
-                    UI::ScrollView *view = new UI::ScrollView(verticalScroll, horizontalScroll);
+                    UI::ScrollView *view = new UI::ScrollView(vertical, horizontal);
                     view->SetFrame(frame);
                     view->SetBackgroundColor(backgroundColor);
                     
@@ -317,6 +300,13 @@ namespace RN
         {
             Number *number = dict->GetObjectForKey<Number>(key);
             float value = number ? number->GetFloatValue() : 0.0f;
+            return value;
+        }
+    
+        bool Component::GetBooleanFromDictionary(Dictionary *dict, const String *key)
+        {
+            Number *number = dict->GetObjectForKey<Number>(key);
+            bool value = number ? number->GetBoolValue() : false;
             return value;
         }
 
