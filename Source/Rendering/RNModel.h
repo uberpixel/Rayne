@@ -115,6 +115,7 @@ namespace RN
 		};
 
 		RNAPI Model();
+		RNAPI Model(Mesh *mesh);
 		RNAPI Model(Mesh *mesh, Material *material);
 		RNAPI Model(const Model *other);
 		RNAPI ~Model();
