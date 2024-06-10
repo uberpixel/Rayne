@@ -1,8 +1,9 @@
 //
 //  RNUICWindow.cpp
-//  Rayne-UIComponents
+//  Rayne
 //
-//  Copyright 2024 by twhlynch. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNUI.h"
@@ -14,47 +15,45 @@ namespace RN
 {
     namespace UIComponents
     {
-        RNDefineMeta(Window, RN::UI::Window);
+        RNDefineMeta(Window, UI::Window);
 
-        Window::Window(const RN::Rect &frame) : RN::UI::Window(frame)
+        Window::Window(const Rect &frame) : UI::Window(frame)
+            , _components(new Array())
         {
             SetFrame(frame);
-            _components = new RN::Array();
-            _componentIds = new RN::Array();
         }
         Window::~Window()
         {
             _components->Release();
-            _componentIds->Release();
         };
 
         void Window::AddComponent(Component *component)
         {
+            _components->AddObject(component);
             AddSubview(component->GetView()->Autorelease());
         }
 
-        void Window::AddComponent(RN::Dictionary *dictionary)
+        void Window::AddComponent(Dictionary *dictionary)
         {
-            AddSubview((new Component(dictionary))->GetView()->Autorelease());
+            Component *component = new Component(dictionary);
+            _components->AddObject(component);
+            AddSubview(component->GetView()->Autorelease());
+            component->Release();
         }
 
-        void Window::AddComponent(RN::String *filepath)
+        void Window::AddComponent(String *filepath)
         {
-            AddSubview((new Component(filepath))->GetView()->Autorelease());
+            Component *component = new Component(filepath);
+            _components->AddObject(component);
+            AddSubview(component->GetView()->Autorelease());
+            component->Release();
         }
 
-        RN::UI::View* Window::GetComponent(const RN::String &id)
+        Component* Window::GetComponent(const int index)
         {
-            for (size_t i = 0; i < _components->GetCount(); i++)
-            {
-                if (id.IsEqual(_componentIds->GetObjectAtIndex<RN::String>(i)))
-                {
-                    RN::UI::View *component = _components->GetObjectAtIndex<RN::UI::View>(i);
-                    return component;
-                }
-            }
-
-            return nullptr;
+            if (index < 0 || index >= _components->GetCount()) return nullptr;
+            Component *component = _components->GetObjectAtIndex<Component>(index);
+            return component;
         }
     }
 }

@@ -1,8 +1,9 @@
 //
 //  RNUICEventManager.cpp
-//  Rayne-UIComponents
+//  Rayne
 //
-//  Copyright 2024 by twhlynch. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNUI.h"
@@ -31,13 +32,26 @@ namespace RN
             _clickEventList.push_back(function);
         }
 
-        void EventManager::ComputeClickEvent(RN::Vector2 click)
+        void EventManager::RemoveClickEvent(Component* component)
+        {
+            for (size_t i = 0; i < _clickComponentList.size(); i++)
+            {
+                if (_clickComponentList[i] == component)
+                {
+                    _clickComponentList.erase(_clickComponentList.begin() + i);
+                    _clickEventList.erase(_clickEventList.begin() + i);
+                    return;
+                }
+            }
+        }
+
+        void EventManager::ComputeClickEvent(Vector2 click)
         {
             for (size_t i = 0; i < _clickComponentList.size(); i++)
             {
                 Component *component = _clickComponentList[i];
-                RN::UI::View *view = component->GetView();
-                RN::Rect frame = view->GetFrame();
+                UI::View *view = component->GetView();
+                Rect frame = view->GetFrame();
                 if (frame.ContainsPoint(click))
                 {
                     _clickEventList[i]();

@@ -1,8 +1,9 @@
 //
 //  RNUICWindow.h
-//  Rayne-UIComponents
+//  Rayne
 //
-//  Copyright 2024 by twhlynch. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RNUICOMPONENTS_WINDOW_H_
@@ -16,21 +17,20 @@ namespace RN
 {
     namespace UIComponents
     {
-        class Window : public RN::UI::Window
+        class Window : public UI::Window
         {
         public:
-            UIAPI Window(const RN::Rect &frame);
+            UIAPI Window(const Rect &frame);
             UIAPI ~Window();
             
             UIAPI void AddComponent(Component *component);
-            UIAPI void AddComponent(RN::Dictionary *dictionary);
-            UIAPI void AddComponent(RN::String *filepath);
+            UIAPI void AddComponent(Dictionary *dictionary);
+            UIAPI void AddComponent(String *filepath);
             
-            RN::UI::View* GetComponent(const RN::String &id);
+            Component* GetComponent(int index);
 
         private:
-            RN::Array *_components;
-            RN::Array *_componentIds;
+            Array *_components;
 
             RNDeclareMetaAPI(Window, UIAPI);
         };

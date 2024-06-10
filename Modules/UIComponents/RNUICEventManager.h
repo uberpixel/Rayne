@@ -1,8 +1,9 @@
 //
 //  RNUICEventManager.h
-//  Rayne-UIComponents
+//  Rayne
 //
-//  Copyright 2024 by twhlynch. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RNUICOMPONENTS_EVENTMANAGER_H_
@@ -24,7 +25,8 @@ namespace RN
             ~EventManager();
             
             void AddClickEvent(Component* component, std::function<void()> function);
-            void ComputeClickEvent(RN::Vector2 click);
+            void RemoveClickEvent(Component* component);
+            void ComputeClickEvent(Vector2 click);
 
         private:
             std::vector<Component*> _clickComponentList;

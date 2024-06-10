@@ -1,8 +1,9 @@
 //
 //  RNUICComponent.h
-//  Rayne-UIComponents
+//  Rayne
 //
-//  Copyright 2024 by twhlynch. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RNUICOMPONENTS_COMPONENT_H_
@@ -15,38 +16,38 @@ namespace RN
 {
     namespace UIComponents
     {
-        class Component : public RN::Object
+        class Component : public Object
         {
         public:
-            UIAPI Component(const RN::String *filepath);
-            UIAPI Component(RN::Dictionary *component);
+            UIAPI Component(const String *filepath);
+            UIAPI Component(Dictionary *dictionary);
             UIAPI ~Component();
             
-            UIAPI void AddChild(RN::UI::View *view);
+            UIAPI void AddChild(UI::View *view);
             UIAPI void AddChild(Component *component);
             
-            UIAPI void SetText(const RN::String *text);
+            UIAPI void SetText(const String *text);
             UIAPI void SetPosition(int x, int y);
             
-            RN::UI::View* GetView();
+            UI::View* GetView();
             Component* GetComponent(int index);
-            RN::UI::ScrollView* GetScrollView();
+            UI::ScrollView* GetScrollView();
             
-            UIAPI void SetImage(RN::Texture *texture);
+            UIAPI void SetImage(Texture *texture);
 
         private:
-            RN::UI::View *_view;
-            RN::UI::ScrollView *_scroll;
-            RN::UI::Label *_label;
-            RN::UI::View *_image;
+            UI::View *_view;
+            UI::ScrollView *_scroll;
+            UI::Label *_label;
+            UI::ImageView *_image;
             
-            RN::Array *_children;
-            RN::Dictionary *_component;
+            Array *_children;
+            Dictionary *_component;
             
-            void LoadComponent(RN::Dictionary *component);
-            RN::Color ColorFromHexString(RN::String *hexString);
-            float GetFloatFromDictionary(RN::Dictionary *dict, const RN::String *key);
-            RN::String* GetStringFromDictionary(RN::Dictionary *dict, const RN::String *key);
+            void LoadComponent(Dictionary *component);
+            Color ColorFromHexString(String *hexString);
+            float GetFloatFromDictionary(Dictionary *dict, const String *key);
+            String* GetStringFromDictionary(Dictionary *dict, const String *key);
             
             RNDeclareMetaAPI(Component, UIAPI)
         };
