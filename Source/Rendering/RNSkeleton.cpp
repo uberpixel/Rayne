@@ -414,6 +414,8 @@ namespace RN
 				_blendanim = 0;
 			}
 		}
+		
+		Update(0.0f); //Update to get all bones in a good state
 	}
 	
 	void Skeleton::CopyAnimation(const String *from, const String *to, float start, float end, bool loop)
