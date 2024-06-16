@@ -113,7 +113,7 @@ def main():
 	if len(sys.argv) < 4:
 		print('Missing Argument!')
 		print('Correct Usage:')
-		print('python SubmitRelease.py build-config.json os (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [demo] (will add "demo" to the bundle id and name)')
+		print('python SubmitRelease.py build-config.json os (windows, linux, android or macos) storefront (oculus, steam, itchio, github) [demo] (will add "demo" to the bundle id and name) [channel_beta] (will upload to the "beta" release channel on quest)')
 		return
 
 	with open(sys.argv[1]) as json_file:
@@ -146,8 +146,13 @@ def main():
 		return
 
 	isDemo = False
-	if len(sys.argv) == 5 and sys.argv[4] == "demo":
-		isDemo = True
+	releaseChannel = 'alpha'
+
+	for param in sys.argv:
+		if param == "demo":
+			isDemo = True
+		if param == "channel_beta":
+			releaseChannel = 'beta'
 
 	configName = Utilities.getSettingFromConfig(targetOS, storefront, "name", buildConfigData)
 	configName = configName.replace(" ", "-")
@@ -234,7 +239,7 @@ def main():
 			if isDemo:
 				directoryToUpload += "_demo"
 			#directoryToUpload = os.path.join(directoryToUpload, configName)
-			uploadCommand = [oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', 'alpha', '-v', version, '-P', '--pancake', '-r', '1183534128364060']
+			uploadCommand = [oculusUtilityFile, 'upload-rift-build', '-a', appID, '-s', appSecret, '-d', directoryToUpload, '-l', configName + '.exe', '-c', releaseChannel, '-v', version, '-P', '--pancake', '-r', '1183534128364060']
 			if configChangelog != None:
 				with open(configChangelog, "r") as f:
 					changes = f.read()
@@ -246,7 +251,7 @@ def main():
 			if isDemo:
 				releasesDirectoryPath += "_demo"
 			apkToUpload = os.path.join(releasesDirectoryPath, configNameLower+"-"+"oculus"+".apk")
-			uploadCommand = [oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '--age-group', 'TEENS_AND_ADULTS', '-c', 'alpha', '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')]
+			uploadCommand = [oculusUtilityFile, 'upload-quest-build', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '--age-group', 'TEENS_AND_ADULTS', '-c', releaseChannel, '--debug_symbols_dir', os.path.join(releasesDirectoryPath, 'symbols')]
 			if configChangelog != None:
 				with open(configChangelog, "r") as f:
 					changes = f.read()
