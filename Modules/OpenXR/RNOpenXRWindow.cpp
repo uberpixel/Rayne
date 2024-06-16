@@ -1423,6 +1423,12 @@ namespace RN
 		{
 			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
 
+			//If reported as Quest Pro before, but has the Quest 3 GPU, change to be Quest 3. This allows to not specify Quest 3 in the manifest while still detecting it and keeping support for Quest 1
+			if(_deviceType == DeviceType::OculusQuestPro && renderer->GetVulkanDevice() && renderer->GetVulkanDevice()->GetName() && renderer->GetVulkanDevice()->GetName()->IsEqual(RNCSTR("Adreno (TM) 740")))
+			{
+				_deviceType = DeviceType::OculusQuest3;
+			}
+
 			XrGraphicsRequirementsVulkanKHR graphicsRequirements;
 			graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
 			graphicsRequirements.next = nullptr;
