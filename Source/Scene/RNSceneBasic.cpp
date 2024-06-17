@@ -611,11 +611,7 @@ namespace RN
 					const RN::Vector3 cameraWorldPosition = camera->GetWorldPosition();
 					std::sort(sceneNodesToRender.begin() + firstTransparentIndex, sceneNodesToRender.begin() + lastTransparentIndex + 1, [cameraWorldPosition](
 							SceneNode *a, SceneNode *b) {
-						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() == SceneNode::RenderTransparent)
-						{
-							return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) > b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
-						}
-						return a->GetRenderPriority() < b->GetRenderPriority();
+						return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) > b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
 					});
 				}
 
