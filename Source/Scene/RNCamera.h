@@ -28,6 +28,7 @@ namespace RN
 		friend class Light;
 
 		RN_OPTIONS(Flags, uint32,
+				   SortTransparentBackToFront    = (1 << 5),
 				   SortFrontToBack    = (1 << 6),
 				   NoRender     = (1 << 7),
 				   NoDepthWrite = (1 << 8),
@@ -46,7 +47,7 @@ namespace RN
 				   UseClipPlanes   = (1 << 25),
 				   UseSimpleCulling = (1 << 26),
 
-				   Defaults = (UseFog));// | SortFrontToBack));
+				   Defaults = (UseFog | SortTransparentBackToFront));// | SortFrontToBack));
 
 
 

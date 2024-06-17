@@ -440,6 +440,8 @@ namespace RN
 
 				std::vector<SceneNode *> occluders;
 				std::vector<SceneNode *> sceneNodesToRender;
+				size_t firstTransparentIndex = 0;
+				size_t lastTransparentIndex = 0;
 				
 				//Collect all occluders
 				IntrusiveList<SceneNode>::Member *nodeMember = _renderNodes.GetHead();
@@ -533,6 +535,14 @@ namespace RN
 						if(!node->CanRender(renderer, camera)) continue;
 						if(node->GetRenderPriority() >= SceneNode::RenderSky)
 						{
+							if(node->GetRenderPriority() == SceneNode::RenderTransparent)
+							{
+								if(firstTransparentIndex == 0)
+								{
+									firstTransparentIndex = sceneNodesToRender.size();
+								}
+								lastTransparentIndex = sceneNodesToRender.size();
+							}
 							sceneNodesToRender.push_back(node);
 							continue;
 						}
@@ -568,6 +578,14 @@ namespace RN
 						SceneNode *node = nodeMember->Get();
 						if(node->CanRender(renderer, camera))
 						{
+                            if(node->GetRenderPriority() == SceneNode::RenderTransparent)
+                            {
+                                if(firstTransparentIndex == 0)
+                                {
+                                    firstTransparentIndex = sceneNodesToRender.size();
+                                }
+                                lastTransparentIndex = sceneNodesToRender.size();
+                            }
 							sceneNodesToRender.push_back(node);
 						}
 
@@ -583,6 +601,19 @@ namespace RN
 						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
 						{
 							return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) < b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
+						}
+						return a->GetRenderPriority() < b->GetRenderPriority();
+					});
+				}
+				
+				if(camera->GetFlags() & Camera::Flags::SortTransparentBackToFront && firstTransparentIndex < lastTransparentIndex)
+				{
+					const RN::Vector3 cameraWorldPosition = camera->GetWorldPosition();
+					std::sort(sceneNodesToRender.begin() + firstTransparentIndex, sceneNodesToRender.begin() + lastTransparentIndex + 1, [cameraWorldPosition](
+							SceneNode *a, SceneNode *b) {
+						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() == SceneNode::RenderTransparent)
+						{
+							return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) > b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
 						}
 						return a->GetRenderPriority() < b->GetRenderPriority();
 					});
