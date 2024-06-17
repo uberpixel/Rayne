@@ -208,11 +208,16 @@ namespace RN
 
 	void SceneNode::SetRenderPriority(int32 priority)
 	{
-		//TODO: Remove this requirement
-		RN_ASSERT(_sceneInfo == nullptr, "SetRenderPriority() must be called before adding the node to the scene.");
-		
 		WillUpdate(ChangeSet::RenderPriority);
 		_renderPriority = priority;
+		
+		if(_sceneInfo && !_scheduledForRemovalFromScene)
+		{
+			//Readd to scene to update the render priority
+			_sceneInfo->GetScene()->RemoveNode(this);
+			_sceneInfo->GetScene()->AddNode(this);
+		}
+		
 		DidUpdate(ChangeSet::RenderPriority);
 	}
 
