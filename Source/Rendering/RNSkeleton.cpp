@@ -171,7 +171,7 @@ namespace RN
 						{
 							if(restart)
 							{
-								currTime -= currFrame->time;
+								currTime = std::fmod(currTime, animationLength);
 							}
 							else
 							{
@@ -197,6 +197,7 @@ namespace RN
 						{
 							if(restart)
 							{
+								//TODO: Use fmod here!
 								currTime += nextFrame->time;
 							}
 							else
@@ -268,6 +269,7 @@ namespace RN
 			currFrame = animbone;
 			nextFrame = animbone->nextFrame;
 			timeDiff = nextFrame->time-currFrame->time;
+			animationLength = animbone->prevFrame->time; //Get the time of the last frame
 		}
 		else
 		{
@@ -277,6 +279,7 @@ namespace RN
 			currFrame = nullptr;
 			nextFrame = nullptr;
 			timeDiff = 0.0f;
+			animationLength = 0.0f;
 		}
 	}
 	

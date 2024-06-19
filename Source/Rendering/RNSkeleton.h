@@ -84,6 +84,7 @@ namespace RN
 		float timeDiff;
 		bool finished;
 		bool absolute;
+		float animationLength;
 		
 	private:
 	};
