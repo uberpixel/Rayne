@@ -150,7 +150,8 @@
 						"RN_UV1",
 						"RN_COLOR",
 						"RN_USE_MULTIVIEW",
-						"RN_UI_CIRCLE"
+						"RN_UI_CIRCLE",
+						"RN_UI_GRADIENT"
 					]
 				}
 			},
@@ -166,7 +167,8 @@
 						"RN_UV0",
 						"RN_UV1",
 						"RN_UI_CIRCLE",
-						"RN_UI_SDF"
+						"RN_UI_SDF",
+						"RN_UI_GRADIENT"
 					]
 				}
 			}

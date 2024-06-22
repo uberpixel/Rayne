@@ -31,6 +31,12 @@ cbuffer vertexUniforms
 #endif
 
 	float4 diffuseColor;
+#if RN_UI_GRADIENT
+	float4 specularColor;
+	float4 emissiveColor;
+	float4 ambientColor;
+#endif
+
 	float4 cameraAmbientColor;
 
 	float4 uiClippingRect;
@@ -45,7 +51,7 @@ struct InputVertex
 	[[vk::location(3)]] float4 color : COLOR;
 #endif
 
-#if RN_UV0 || RN_UI_CIRCLE
+#if RN_UV0 || RN_UI_CIRCLE || RN_UI_GRADIENT
 	[[vk::location(5)]] float2 texCoords : TEXCOORD0;
 #endif
 
@@ -64,11 +70,17 @@ struct FragmentVertex
 	half4 color : TEXCOORD0;
 	half4 clipDistance : TEXCOORD1;
 
-#if RN_UV0 || RN_UI_CIRCLE
+#if RN_UV0 || RN_UI_CIRCLE || RN_UI_GRADIENT
 	float2 texCoords : TEXCOORD2;
 #endif
 #if RN_UV1
 	half3 curveTexCoords : TEXCOORD3;
+#endif
+
+#if RN_UI_GRADIENT
+	half4 color1 : TEXCOORD4;
+	half4 color2 : TEXCOORD5;
+	half4 color3 : TEXCOORD6;
 #endif
 };
 
@@ -76,7 +88,7 @@ FragmentVertex ui_vertex(InputVertex vert)
 {
 	FragmentVertex result;
 
-#if RN_UV0 || RN_UI_CIRCLE
+#if RN_UV0 || RN_UI_CIRCLE || RN_UI_GRADIENT
 	result.texCoords = vert.texCoords;
 #endif
 
@@ -97,10 +109,16 @@ FragmentVertex ui_vertex(InputVertex vert)
 	result.clipDistance.z = -uiClippingRect.z - position.y;
 	result.clipDistance.w = position.y + uiClippingRect.w;
 
+	float4 colorFactor = cameraAmbientColor;
 #if RN_COLOR
-	result.color = vert.color * diffuseColor * cameraAmbientColor;
-#else
-	result.color = diffuseColor * cameraAmbientColor;
+	colorFactor *= vert.color;
+#endif
+
+	result.color = diffuseColor * colorFactor;
+#if RN_UI_GRADIENT
+	result.color1 = specularColor * colorFactor;
+	result.color2 = emissiveColor * colorFactor;
+	result.color3 = ambientColor * colorFactor;
 #endif
 
 	return result;
@@ -109,7 +127,13 @@ FragmentVertex ui_vertex(InputVertex vert)
 
 half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 {
+#if RN_UI_GRADIENT
+	half4 topColor = lerp(vert.color, vert.color1, vert.texCoords.x);
+	half4 bottomColor = lerp(vert.color3, vert.color2, vert.texCoords.x);
+	half4 color = lerp(topColor, bottomColor, vert.texCoords.y);
+#else
 	half4 color = vert.color;
+#endif
 
 #if RN_UV0 && !RN_UI_SDF
 	color *= texture0.Sample(linearClampSampler, vert.texCoords.xy).rgba;

@@ -128,7 +128,7 @@ namespace RN
 			RN::Vector4 _cornerRadius;
 			bool _isCircle;
 			Color _backgroundColor[4];
-			bool _hasVertexColors;
+			bool _hasBackgroundGradient;
 
 			View *_superview;
 			Array *_subviews;

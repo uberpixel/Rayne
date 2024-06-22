@@ -24,7 +24,7 @@ namespace RN
 			_subviews(new Array()),
 			_superview(nullptr),
 			_backgroundColor{Color::ClearColor(), Color::ClearColor(), Color::ClearColor(), Color::ClearColor()},
-			_hasVertexColors(false),
+			_hasBackgroundGradient(false),
 			_inheritRenderSettings(true),
 			_isDepthWriteEnabled(false),
 			_isColorWriteEnabled(true),
@@ -412,7 +412,7 @@ namespace RN
 		void View::SetBackgroundColor(const Color &color)
 		{
 			Lock();
-			if(_hasVertexColors)
+			if(_hasBackgroundGradient)
 			{
 				Unlock();
 				SetBackgroundColor(color, color, color, color);
@@ -438,14 +438,34 @@ namespace RN
 		{
 			Lock();
 			RN::Model *model = GetModel();
-			RN_ASSERT(!model || _hasVertexColors, "Background color with gradient has to be set before the view is rendered the first time.");
+			RN_ASSERT(!model || _hasBackgroundGradient, "Background color with gradient has to be set before the view is rendered the first time.");
 			
-			_hasVertexColors = true;
+			_hasBackgroundGradient = true;
 			_backgroundColor[0] = colorTopLeft;
 			_backgroundColor[1] = colorTopRight;
 			_backgroundColor[2] = colorBottomLeft;
 			_backgroundColor[3] = colorBottomRight;
-			_needsMeshUpdate = true;
+
+			if(model)
+			{
+				Color finalColor[4];
+				finalColor[0] = _backgroundColor[0];
+				finalColor[0].a *= _combinedOpacityFactor;
+				finalColor[1] = _backgroundColor[1];
+				finalColor[1].a *= _combinedOpacityFactor;
+				finalColor[2] = _backgroundColor[2];
+				finalColor[2].a *= _combinedOpacityFactor;
+				finalColor[3] = _backgroundColor[3];
+				finalColor[3].a *= _combinedOpacityFactor;
+				
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				material->SetDiffuseColor(finalColor[0]);
+				material->SetSpecularColor(finalColor[1]);
+				material->SetEmissiveColor(finalColor[2]);
+				material->SetAmbientColor(finalColor[3]);
+				
+				material->SetSkipRendering(finalColor[0].a + finalColor[1].a + finalColor[2].a + finalColor[3].a < k::EpsilonFloat);
+			}
 			Unlock();
 		}
 	
@@ -541,22 +561,37 @@ namespace RN
 				view->SetOpacityFromParent(_combinedOpacityFactor);
 			});
 			
-			if(_hasVertexColors)
-			{
-				_needsMeshUpdate = true;
-				Unlock();
-				return;
-			}
-			
 			RN::Model *model = GetModel();
 			if(model)
 			{
-				Color finalColor = _backgroundColor[0];
-				finalColor.a *= _combinedOpacityFactor;
-				
 				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
-				material->SetDiffuseColor(finalColor);
-				material->SetSkipRendering(finalColor.a < k::EpsilonFloat);
+				if(!_hasBackgroundGradient)
+				{
+					Color finalColor = _backgroundColor[0];
+					finalColor.a *= _combinedOpacityFactor;
+					
+					material->SetDiffuseColor(finalColor);
+					material->SetSkipRendering(finalColor.a < k::EpsilonFloat);
+				}
+				else
+				{
+					Color finalColor[4];
+					finalColor[0] = _backgroundColor[0];
+					finalColor[0].a *= _combinedOpacityFactor;
+					finalColor[1] = _backgroundColor[1];
+					finalColor[1].a *= _combinedOpacityFactor;
+					finalColor[2] = _backgroundColor[2];
+					finalColor[2].a *= _combinedOpacityFactor;
+					finalColor[3] = _backgroundColor[3];
+					finalColor[3].a *= _combinedOpacityFactor;
+					
+					material->SetDiffuseColor(finalColor[0]);
+					material->SetSpecularColor(finalColor[1]);
+					material->SetEmissiveColor(finalColor[2]);
+					material->SetAmbientColor(finalColor[3]);
+					
+					material->SetSkipRendering(finalColor[0].a + finalColor[1].a + finalColor[2].a + finalColor[3].a < k::EpsilonFloat);
+				}
 			}
 			Unlock();
 		}
@@ -680,7 +715,6 @@ namespace RN
 			if((cornerRadius.x > 0.0f || cornerRadius.y > 0.0f || cornerRadius.z > 0.0f || cornerRadius.w > 0.0f) && !_isCircle)
 			{
 				float *vertexPositionBuffer = new float[20 * 2];
-				float *vertexColorBuffer = _hasVertexColors? new float[20 * 4] : nullptr;
 				float *vertexUV0Buffer = new float[20 * 2];
 				float *vertexUV1Buffer = new float[20 * 3];
 				uint32 *indexBuffer = new uint32[30];
@@ -744,113 +778,6 @@ namespace RN
 				
 				vertexPositionBuffer[19 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[19 * 2 + 1] = -cornerRadius.x;
-				
-				if(_hasVertexColors)
-				{
-					//Top Left
-					vertexColorBuffer[0 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[0 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[0 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[0 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[1 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[1 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[1 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[1 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[2 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[2 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[2 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[2 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[18 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[18 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[18 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[18 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[19 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[19 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[19 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[19 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					//Top Right
-					vertexColorBuffer[3 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[3 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[3 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[3 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[4 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[4 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[4 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[4 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[5 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[5 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[5 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[5 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[6 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[6 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[6 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[6 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[7 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[7 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[7 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[7 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					//Bottom Left
-					vertexColorBuffer[13 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[13 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[13 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[13 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[14 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[14 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[14 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[14 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[15 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[15 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[15 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[15 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[16 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[16 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[16 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[16 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[17 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[17 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[17 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[17 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-					
-					//Bottom Right
-					vertexColorBuffer[8 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[8 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[8 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[8 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[9 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[9 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[9 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[9 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[10 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[10 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[10 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[10 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[11 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[11 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[11 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[11 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[12 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[12 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[12 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[12 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-				}
 				
 				for(int i = 0; i < 20; i++)
 				{
@@ -933,7 +860,6 @@ namespace RN
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
-				if(_hasVertexColors) meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector3);
 				
@@ -941,7 +867,6 @@ namespace RN
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
-				if(_hasVertexColors) mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUV0Buffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords1, vertexUV1Buffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
@@ -949,7 +874,6 @@ namespace RN
 				mesh->EndChanges();
 				
 				delete[] vertexPositionBuffer;
-				if(_hasVertexColors) delete[] vertexColorBuffer;
 				delete[] vertexUV0Buffer;
 				delete[] vertexUV1Buffer;
 				delete[] indexBuffer;
@@ -957,7 +881,6 @@ namespace RN
 			else
 			{
 				float *vertexPositionBuffer = new float[4 * 2];
-				float *vertexColorBuffer = _hasVertexColors? new float[4 * 4] : nullptr;
 				float *vertexUVBuffer = new float[4 * 2];
 				uint32 *indexBuffer = new uint32[6];
 				
@@ -972,29 +895,6 @@ namespace RN
 				
 				vertexPositionBuffer[3 * 2 + 0] = 0.0f;
 				vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
-				
-				if(_hasVertexColors)
-				{
-					vertexColorBuffer[0 * 4 + 0] = _backgroundColor[0].r;
-					vertexColorBuffer[0 * 4 + 1] = _backgroundColor[0].g;
-					vertexColorBuffer[0 * 4 + 2] = _backgroundColor[0].b;
-					vertexColorBuffer[0 * 4 + 3] = _backgroundColor[0].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[1 * 4 + 0] = _backgroundColor[1].r;
-					vertexColorBuffer[1 * 4 + 1] = _backgroundColor[1].g;
-					vertexColorBuffer[1 * 4 + 2] = _backgroundColor[1].b;
-					vertexColorBuffer[1 * 4 + 3] = _backgroundColor[1].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[2 * 4 + 0] = _backgroundColor[3].r;
-					vertexColorBuffer[2 * 4 + 1] = _backgroundColor[3].g;
-					vertexColorBuffer[2 * 4 + 2] = _backgroundColor[3].b;
-					vertexColorBuffer[2 * 4 + 3] = _backgroundColor[3].a * _combinedOpacityFactor;
-					
-					vertexColorBuffer[3 * 4 + 0] = _backgroundColor[2].r;
-					vertexColorBuffer[3 * 4 + 1] = _backgroundColor[2].g;
-					vertexColorBuffer[3 * 4 + 2] = _backgroundColor[2].b;
-					vertexColorBuffer[3 * 4 + 3] = _backgroundColor[2].a * _combinedOpacityFactor;
-				}
 				
 				vertexUVBuffer[0 * 2 + 0] = 0.0f;
 				vertexUVBuffer[0 * 2 + 1] = 0.0f;
@@ -1018,7 +918,6 @@ namespace RN
 				
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
-				if(_hasVertexColors) meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				
@@ -1026,14 +925,12 @@ namespace RN
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
-				if(_hasVertexColors) mesh->SetElementData(Mesh::VertexAttribute::Feature::Color0, vertexColorBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::UVCoords0, vertexUVBuffer);
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 				
 				mesh->EndChanges();
 				
 				delete[] vertexPositionBuffer;
-				if(_hasVertexColors) delete[] vertexColorBuffer;
 				delete[] vertexUVBuffer;
 				delete[] indexBuffer;
 			}
@@ -1046,7 +943,7 @@ namespace RN
 				shaderOptions->EnableAlpha();
 				shaderOptions->AddDefine("RN_UI", "1");
 				if((_cornerRadius.x > 0.0f || _cornerRadius.y > 0.0f || _cornerRadius.z > 0.0f || _cornerRadius.w > 0.0f) && !_isCircle) shaderOptions->AddDefine("RN_UV1", "1");
-				if(_hasVertexColors) shaderOptions->AddDefine("RN_COLOR", "1");
+				if(_hasBackgroundGradient) shaderOptions->AddDefine("RN_UI_GRADIENT", "1");
 				if(_isCircle) shaderOptions->AddDefine("RN_UI_CIRCLE", "1");
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
@@ -1057,7 +954,7 @@ namespace RN
 				material->SetBlendFactorSource(_blendSourceFactorRGB, _blendSourceFactorA);
 				material->SetBlendFactorDestination(_blendDestinationFactorRGB, _blendDestinationFactorA);
 				material->SetBlendOperation(_blendOperationRGB, _blendOperationA);
-				if(!_hasVertexColors)
+				if(!_hasBackgroundGradient)
 				{
 					Color finalColor = _backgroundColor[0];
 					finalColor.a *= _combinedOpacityFactor;
@@ -1066,8 +963,22 @@ namespace RN
 				}
 				else
 				{
-					material->SetSkipRendering(false);
-					material->SetDiffuseColor(RN::Color::White());
+					Color finalColor[4];
+					finalColor[0] = _backgroundColor[0];
+					finalColor[0].a *= _combinedOpacityFactor;
+					finalColor[1] = _backgroundColor[1];
+					finalColor[1].a *= _combinedOpacityFactor;
+					finalColor[2] = _backgroundColor[2];
+					finalColor[2].a *= _combinedOpacityFactor;
+					finalColor[3] = _backgroundColor[3];
+					finalColor[3].a *= _combinedOpacityFactor;
+					
+					material->SetDiffuseColor(finalColor[0]);
+					material->SetSpecularColor(finalColor[1]);
+					material->SetEmissiveColor(finalColor[2]);
+					material->SetAmbientColor(finalColor[3]);
+					
+					material->SetSkipRendering(finalColor[0].a + finalColor[1].a + finalColor[2].a + finalColor[3].a < k::EpsilonFloat);
 				}
 
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));
