@@ -24,6 +24,14 @@ namespace RN
 		{
 			
 		}
+	
+		void GridView::SetToStart()
+		{
+			RN::Rect bounds = GetBounds();
+			bounds.x = 0.0f;
+			bounds.y = 0.0f;
+			SetBounds(bounds);
+		}
 
 		void GridView::Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed)
 		{
@@ -41,6 +49,8 @@ namespace RN
 			RN::Rect bounds = GetBounds();
 			bounds.width = _margins.x + _margins.z + columnCount * cellSize.x + (columnCount > 0? columnCount-1 : 0) * _spacing.x;
 			bounds.height = _margins.y + _margins.w + rowCount * cellSize.y + (rowCount > 0? rowCount-1 : 0) * _spacing.y;
+			bounds.width = std::max(visibleRect.width, bounds.width);
+			bounds.height = std::max(visibleRect.height, bounds.height);
 			SetBounds(bounds);
 			
 			Vector2 spacedCellSize = cellSize + _spacing;

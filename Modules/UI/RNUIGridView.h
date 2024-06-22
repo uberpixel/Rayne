@@ -29,6 +29,7 @@ namespace RN
 			void SetMargins(float left, float top, float right, float bottom);
 			void SetSpacing(float horizontal, float vertical);
 			void SetReloadAll() { _reloadAll = true; }
+			void SetToStart();
 
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2()) override;
 			
