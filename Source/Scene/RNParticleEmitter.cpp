@@ -44,8 +44,8 @@ namespace RN
 		
 		_material->SetDepthWriteEnabled(false);
 		_material->SetBlendOperation(BlendOperation::Add, BlendOperation::Add);
-		_material->SetBlendFactorSource(BlendFactor::One, BlendFactor::One);
-		_material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::OneMinusSourceAlpha);
+		_material->SetBlendFactorSource(BlendFactor::One, BlendFactor::Zero);
+		_material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 		
 		SetMaxParticles(_maxParticles);
 		
@@ -220,6 +220,8 @@ namespace RN
 		Mesh::ElementIterator<Vector2> sizeIterator = chunk.GetIterator<Vector2>(Mesh::VertexAttribute::Feature::UVCoords1);
 		Mesh::ElementIterator<RN::uint16> indexIterator = chunk.GetIterator<RN::uint16>(Mesh::VertexAttribute::Feature::Indices);
 		
+		float scale = GetWorldScale().x;
+		
 		int to = std::min(static_cast<int>(_particles.size()), static_cast<int>(_maxParticles));
 		if(!_isRenderedInversed)
 		{
@@ -242,7 +244,7 @@ namespace RN
 				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
 				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
 				
-				Vector2 halfSize = particle->size / 2.0f;
+				Vector2 halfSize = particle->size / 2.0f * scale;
 				Vector2 halfDirectionTop;
 				halfDirectionTop.x = Math::Cos(particle->rotation) * halfSize.x - Math::Sin(particle->rotation) * halfSize.y;
 				halfDirectionTop.y = Math::Sin(particle->rotation) * halfSize.x + Math::Cos(particle->rotation) * halfSize.y;
@@ -285,7 +287,7 @@ namespace RN
 				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
 				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
 				
-				Vector2 halfSize = particle->size / 2.0f;
+				Vector2 halfSize = particle->size / 2.0f * scale;
 				Vector2 upVector;
 				upVector.x = -Math::Sin(particle->rotation) * halfSize.x;
 				upVector.y = Math::Cos(particle->rotation) * halfSize.y;
