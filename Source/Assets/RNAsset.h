@@ -24,9 +24,12 @@ namespace RN
 
 		RNAPI const String *GetDescription() const override;
 		RNAPI const String *GetName() const;
+		
+		RNAPI void SetKeepAlive(bool keepAlive);
 
 	protected:
 		RNAPI void Dealloc() override;
+		bool _keepAlive;
 
 	private:
 		void __AwakeWithCoordinator(AssetManager *coordinator, String *name, MetaClass *meta);

@@ -17,7 +17,8 @@ namespace RN
 	Asset::Asset() :
 		_coordinator(nullptr),
 		_name(nullptr),
-		_meta(nullptr)
+		_meta(nullptr),
+		_keepAlive(false)
 	{}
 
 	void Asset::Dealloc()
@@ -49,5 +50,14 @@ namespace RN
 	const String *Asset::GetName() const
 	{
 		return _name;
+	}
+
+	void Asset::SetKeepAlive(bool keepAlive)
+	{
+		if(_keepAlive == keepAlive) return;
+		_keepAlive = keepAlive;
+		
+		if(keepAlive) Retain();
+		else Release();
 	}
 }
