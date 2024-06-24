@@ -28,7 +28,8 @@ namespace RN
 	_maxParticles(100),
 	_maxParticlesSoft(100),
 	_spawnRate(0.05f),
-	_time(0.0f)
+	_time(0.0f),
+	_canRollParticles(false)
 	{
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 		
@@ -222,10 +223,61 @@ namespace RN
 		
 		float scale = GetWorldScale().x;
 		
-		int to = std::min(static_cast<int>(_particles.size()), static_cast<int>(_maxParticles));
-		if(!_isRenderedInversed)
+		int stop = std::min(static_cast<int>(_particles.size()), static_cast<int>(_maxParticles));
+		int start = 0;
+		int increment = 1;
+		if(_isRenderedInversed)
 		{
-			for(int i = 0; i < to; i++)
+			start = stop - 1;
+			increment = -1;
+		}
+		
+		if(!_canRollParticles)
+		{
+			for(int i = start; i >= 0 && i < stop; i += increment)
+			{
+				Particle *particle = _particles[i];
+				
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				*vertexIterator++ = particle->position;
+				
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				*colorIterator++ = particle->color;
+				
+				*texcoordsIterator++ = Vector2(0.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 0.0f);
+				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
+				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
+				
+				Vector2 halfSize = particle->size / 2.0f * scale;
+				Vector2 halfDirectionTop;
+				halfDirectionTop.x = halfSize.x;
+				halfDirectionTop.y = halfSize.y;
+				
+				Vector2 halfDirectionBottom;
+				halfDirectionBottom.x = halfSize.x;
+				halfDirectionBottom.y = -halfSize.y;
+				
+				*sizeIterator++ = -halfDirectionTop;
+				*sizeIterator++ = halfDirectionBottom;
+				*sizeIterator++ = -halfDirectionBottom;
+				*sizeIterator++ = halfDirectionTop;
+				
+				*indexIterator++ = i * 4 + 0;
+				*indexIterator++ = i * 4 + 1;
+				*indexIterator++ = i * 4 + 2;
+				*indexIterator++ = i * 4 + 2;
+				*indexIterator++ = i * 4 + 1;
+				*indexIterator++ = i * 4 + 3;
+			}
+		}
+		else
+		{
+			for(int i = start; i >= 0 && i < stop; i += increment)
 			{
 				Particle *particle = _particles[i];
 				
@@ -266,50 +318,8 @@ namespace RN
 				*indexIterator++ = i * 4 + 3;
 			}
 		}
-		else
-		{
-			for(int i = to-1; i >= 0; i--)
-			{
-				Particle *particle = _particles[i];
-				
-				*vertexIterator++ = particle->position;
-				*vertexIterator++ = particle->position;
-				*vertexIterator++ = particle->position;
-				*vertexIterator++ = particle->position;
-				
-				*colorIterator++ = particle->color;
-				*colorIterator++ = particle->color;
-				*colorIterator++ = particle->color;
-				*colorIterator++ = particle->color;
-				
-				*texcoordsIterator++ = Vector2(0.0f, 0.0f);
-				*texcoordsIterator++ = Vector2(1.0f, 0.0f);
-				*texcoordsIterator++ = Vector2(0.0f, 1.0f);
-				*texcoordsIterator++ = Vector2(1.0f, 1.0f);
-				
-				Vector2 halfSize = particle->size / 2.0f * scale;
-				Vector2 upVector;
-				upVector.x = -Math::Sin(particle->rotation) * halfSize.x;
-				upVector.y = Math::Cos(particle->rotation) * halfSize.y;
-				Vector2 rightVector;
-				rightVector.x = Math::Cos(particle->rotation) * halfSize.x;
-				rightVector.y = Math::Sin(particle->rotation) * halfSize.y;
-				
-				*sizeIterator++ = -upVector - rightVector;
-				*sizeIterator++ = Vector2(upVector.x + rightVector.x, -upVector.y - rightVector.y);
-				*sizeIterator++ = Vector2(-upVector.x - rightVector.x, upVector.y + rightVector.y);
-				*sizeIterator++ = upVector + rightVector;
-				
-				*indexIterator++ = i * 4 + 0;
-				*indexIterator++ = i * 4 + 1;
-				*indexIterator++ = i * 4 + 2;
-				*indexIterator++ = i * 4 + 2;
-				*indexIterator++ = i * 4 + 1;
-				*indexIterator++ = i * 4 + 3;
-			}
-		}
 		
-		for(uint32 i = to; i < _maxParticles; i++)
+		for(uint32 i = stop; i < _maxParticles; i++)
 		{
 			*indexIterator++ = i * 4 + 0;
 			*indexIterator++ = i * 4 + 0;

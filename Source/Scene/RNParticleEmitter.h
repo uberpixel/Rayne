@@ -43,6 +43,8 @@ namespace RN
 		RNAPI bool GetIsLocal() const { return _isLocal; }
 		RNAPI void SetIsLocal(bool local) { _isLocal = local; }
 		
+		RNAPI void SetCanRollParticles(bool canRoll) { _canRollParticles = canRoll; }
+		
 		RNAPI bool GetIsSorted() const { return _isSorted; }
 		RNAPI void SetIsSorted(bool sorted) { _isSorted = sorted; }
 		
@@ -75,6 +77,7 @@ namespace RN
 		bool _isLocal;
 		bool _isSorted;
 		bool _isRenderedInversed;
+		bool _canRollParticles;
 		uint32 _maxParticles;
 		uint32 _maxParticlesSoft;
 		float _spawnRate;
