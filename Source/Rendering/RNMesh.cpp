@@ -204,15 +204,15 @@ namespace RN
 		}
 	}
 
-	void Mesh::EndChanges()
+	void Mesh::EndChanges(bool unmapAfter)
 	{
 		if((-- _changeCounter) == 0)
 		{
 			if(changedIndices)
-				SubmitIndices(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize), unmapAfter);
 
 			if(changedVertices)
-				SubmitVertices(Range(0, _verticesSize));
+				SubmitVertices(Range(0, _verticesSize), unmapAfter);
 		}
 	}
 
@@ -233,7 +233,7 @@ namespace RN
 			if(_changeCounter)
 				changedIndices = true;
 			else
-				SubmitIndices(Range(0, _indicesSize));
+				SubmitIndices(Range(0, _indicesSize), true);
 		}
 		else
 		{
@@ -266,7 +266,7 @@ namespace RN
 					if(_changeCounter)
 						changedVertices = true;
 					else
-						SubmitVertices(Range(0, _verticesSize));
+						SubmitVertices(Range(0, _verticesSize), true);
 
 					break;
 				}
@@ -305,7 +305,7 @@ namespace RN
 				if(_changeCounter)
 					changedVertices = true;
 				else
-					SubmitVertices(Range(0, _verticesSize));
+					SubmitVertices(Range(0, _verticesSize), true);
 
 				break;
 			}
@@ -933,7 +933,7 @@ namespace RN
 		return mesh->Autorelease();
 	}
 
-	void Mesh::SubmitVertices(const Range &range)
+	void Mesh::SubmitVertices(const Range &range, bool unmapAfter)
 	{
 		if(!_vertexBufferCPU || !_vertexBuffer)
 			return;
@@ -942,10 +942,10 @@ namespace RN
 		void *target = _vertexBuffer->GetBuffer();
 		memcpy(target, _vertexBufferCPU, _verticesSize);
 		_vertexBuffer->FlushRange(range);
-		_vertexBuffer->UnmapBuffer();
+		if(unmapAfter) _vertexBuffer->UnmapBuffer();
 	}
 
-	void Mesh::SubmitIndices(const Range &range)
+	void Mesh::SubmitIndices(const Range &range, bool unmapAfter)
 	{
 		if(!_indicesBufferCPU || !_indicesBuffer)
 			return;
@@ -954,6 +954,6 @@ namespace RN
 		void *target = _indicesBuffer->GetBuffer();
 		memcpy(target, _indicesBufferCPU, _indicesSize);
 		_indicesBuffer->FlushRange(range);
-		_indicesBuffer->UnmapBuffer();
+		if(unmapAfter) _indicesBuffer->UnmapBuffer();
 	}
 }

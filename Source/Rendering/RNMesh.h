@@ -430,7 +430,7 @@ namespace RN
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments, Color color);
 
 		RNAPI void BeginChanges();
-		RNAPI void EndChanges();
+		RNAPI void EndChanges(bool unmapAfter = true);
 
 		RNAPI void SetDrawMode(DrawMode mode);
 		RNAPI void SetElementData(VertexAttribute::Feature feature, const void *data);
@@ -470,8 +470,8 @@ namespace RN
 
 	private:
 		void ParseAttributes();
-		void SubmitIndices(const Range &range);
-		void SubmitVertices(const Range &range);
+		void SubmitIndices(const Range &range, bool unmapAfter);
+		void SubmitVertices(const Range &range, bool unmapAfter);
 
 		//TODO: Find a nice way to combine cpu and gpu buffers with consistent interface, optional storage and transfer between them
 		GPUBuffer *_vertexBuffer;
