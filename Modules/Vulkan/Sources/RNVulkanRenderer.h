@@ -73,6 +73,7 @@ namespace RN
 		VKAPI void DeleteDrawable(Drawable *drawable) final;
 		VKAPI void SubmitDrawable(Drawable *drawable) final;
 		VKAPI void SubmitLight(const Light *light) final;
+		VKAPI void WarmupDrawable(Mesh *mesh, Material *material, Camera *camera) final;
 
 		VulkanDevice *GetVulkanDevice() const { return static_cast<VulkanDevice *>(GetDevice()); }
 		VulkanInstance *GetVulkanInstance() const { return static_cast<VulkanRendererDescriptor *>(GetDescriptor())->GetInstance(); }

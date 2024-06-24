@@ -93,6 +93,23 @@ namespace RN
 		SafeRelease(_skeleton);
 	}
 
+	void Model::Warmup(Camera *camera)
+	{
+		Renderer *renderer = Renderer::GetActiveRenderer();
+		RN_DEBUG_ASSERT(renderer, "No active renderer!");
+		if(!renderer) return;
+		
+		for(size_t lodStage = 0; lodStage < GetLODStageCount(); lodStage += 1)
+		{
+			LODStage *stage = GetLODStage(lodStage);
+			size_t count = stage->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				renderer->WarmupDrawable(stage->GetMeshAtIndex(i), stage->GetMaterialAtIndex(i), camera);
+			}
+		}
+	}
+
 	Model *Model::WithName(const String *name, const Dictionary *settings)
 	{
 		AssetManager *coordinator = AssetManager::GetSharedInstance();

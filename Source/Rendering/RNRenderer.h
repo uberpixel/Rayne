@@ -129,6 +129,8 @@ namespace RN
 		RNAPI virtual void DeleteDrawable(Drawable *drawable) = 0;
 		RNAPI virtual void SubmitDrawable(Drawable *drawable) = 0;
 
+		RNAPI virtual void WarmupDrawable(Mesh *mesh, Material *material, Camera *camera); //If the renderer supports it, this will create the necessary render pipeline state or similar to speed things up when actually rendering the first time
+
 		RNAPI virtual void SubmitLight(const Light *light) = 0;
 
 		RendererDescriptor *GetDescriptor() const { return _descriptor; }

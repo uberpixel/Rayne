@@ -20,6 +20,7 @@ namespace RN
 {
 	class Skeleton;
 	class ShadowVolume;
+	class Camera;
 	class Model : public Asset
 	{
 	public:
@@ -119,6 +120,8 @@ namespace RN
 		RNAPI Model(Mesh *mesh, Material *material);
 		RNAPI Model(const Model *other);
 		RNAPI ~Model();
+		
+		RNAPI void Warmup(Camera *camera); //Depending on the renderer and setup, this may initialize some things to speed up the first rendering of the model with the specified camera
 
 		RNAPI static Model *WithName(const String *name, const Dictionary *settings = nullptr);
 		RNAPI static Model *WithSkycube(const String *left, const String *front, const String *right, const String *back, const String *up, const String *down);

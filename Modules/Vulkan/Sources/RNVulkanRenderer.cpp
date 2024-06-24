@@ -1701,6 +1701,40 @@ namespace RN
 		}
 	}
 
+	void VulkanRenderer::WarmupDrawable(Mesh *mesh, Material *material, Camera *camera)
+	{
+		//TODO: This is all a bit simplified and won't handle everything, but hopefully catches the main use case for now
+		Renderer::WarmupDrawable(mesh, material, camera);
+		if(!mesh || !material || !camera || !camera->GetRenderPass()) return;
+
+		RenderPass *renderPass = camera->GetRenderPass();
+		Framebuffer *framebuffer = renderPass->GetFramebuffer();
+		VulkanFramebuffer *vulkanFramebuffer = framebuffer? framebuffer->Downcast<VulkanFramebuffer>() : nullptr;
+		VulkanFramebuffer *resolveFramebuffer = nullptr;
+		RenderPass::Flags renderPassFlags = renderPass->GetFlags();
+
+		//Try to find resolve frame buffer (if there is one)
+		const Array *nextRenderPasses = renderPass->GetNextRenderPasses();
+		nextRenderPasses->Enumerate<RenderPass>([&](RenderPass *nextPass, size_t index, bool &stop) {
+			PostProcessingAPIStage *apiStage = nextPass->Downcast<PostProcessingAPIStage>();
+			if(apiStage && apiStage->GetType() == PostProcessingAPIStage::Type::ResolveMSAA)
+			{
+				RN::Framebuffer *tempFramebuffer = apiStage->GetFramebuffer();
+				resolveFramebuffer = tempFramebuffer? tempFramebuffer->Downcast<VulkanFramebuffer>() : nullptr;
+				stop = true;
+			}
+		});
+
+		size_t multiviewCameraCount = 0;
+		const Array *multiviewCameras = camera->GetMultiviewCameras();
+		if(multiviewCameras->GetCount() > 1 && GetVulkanDevice()->GetSupportsMultiview())
+		{
+			multiviewCameraCount = std::min(multiviewCameras->GetCount(), static_cast<size_t>(GetVulkanDevice()->GetMaxMultiviewViewCount()));
+		}
+
+		_internals->stateCoordinator.GetRenderPipelineState(material, mesh, vulkanFramebuffer, resolveFramebuffer, camera->GetShaderHint(), camera->GetMaterial(), renderPassFlags, multiviewCameraCount);
+	}
+
 	void VulkanRenderer::SubmitDrawable(Drawable *tdrawable)
 	{
 		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(tdrawable);

@@ -50,6 +50,11 @@ namespace RN
 		_activeRenderer = nullptr;
 	}
 
+	void Renderer::WarmupDrawable(Mesh *mesh, Material *material, Camera *camera)
+	{
+
+	}
+
 	Shader *Renderer::GetDefaultShader(Shader::Type type, Shader::Options *options, Shader::UsageHint hint)
 	{
 		Shader::Options *realOptions = options? options->Copy() : Shader::Options::WithNone()->Retain();
