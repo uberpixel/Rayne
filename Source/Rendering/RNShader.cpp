@@ -113,15 +113,14 @@ namespace RN
 
 	bool Shader::Options::HasValue(const char *key, const char *value)
 	{
-		auto pos = _defines.find(key);
-		return pos != _defines.end() && pos->second == std::string(value);
+		if(_defines.count(key) == 0) return false;
+		return _defines.at(key) == std::string(value);
 	}
 
 	const String *Shader::Options::GetValue(const char *key) const
 	{
-		auto pos = _defines.find(key);
-		if(pos == _defines.end()) return nullptr;
-		return RNSTR(pos->second);
+		if(_defines.count(key) == 0) return nullptr;
+		return RNSTR(_defines.at(key));
 	}
 
 	void Shader::Options::Enumerate(const std::function<void (const std::string &value, const std::string &key, bool &stop)>& callback) const
