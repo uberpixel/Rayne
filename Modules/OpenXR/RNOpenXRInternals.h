@@ -112,6 +112,7 @@ namespace RN
 		PFN_xrGetSwapchainStateFB GetSwapchainStateFB;
 
 		PFN_xrGetVisibilityMaskKHR GetVisibilityMaskKHR;
+		PFN_xrGetRecommendedLayerResolutionMETA GetRecommendedLayerResolutionMETA;
 
 #if XR_USE_PLATFORM_ANDROID
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
@@ -128,6 +129,20 @@ namespace RN
         XrSwapchain swapchain;
         XrFoveationProfileFB currentFoveationProfile;
     };
+
+	struct OpenXRCompositorLayerInternals
+	{
+		XrCompositionLayerSettingsFB layerSettings;
+
+		//Just keep one of each supported layer around for simplicity.
+		XrCompositionLayerProjectionView layerProjectionViews[2];
+		XrCompositionLayerProjection layerProjection;
+
+		XrCompositionLayerQuad layerQuad;
+
+		//Will point at the layer above that is in use by this class
+		XrCompositionLayerBaseHeader *layerBaseHeader;
+	};
 }
 
 

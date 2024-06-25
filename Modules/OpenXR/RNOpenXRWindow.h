@@ -24,6 +24,7 @@ namespace RN
 	{
 	friend OpenXRVulkanSwapChain;
 	friend OpenXRD3D12SwapChain;
+	friend OpenXRCompositorLayer;
 	public:
 		OXRAPI OpenXRWindow();
 		OXRAPI ~OpenXRWindow();
@@ -83,7 +84,6 @@ namespace RN
 		OpenXRCompositorLayer *_mainLayer; //Layer used for main game content, representing the window
 
 		uint32 _actualFrameIndex;
-        double _predictedDisplayTime;
 
 		VRHMDTrackingState _hmdTrackingState;
 		VRControllerTrackingState _controllerTrackingState[2];
@@ -117,6 +117,7 @@ namespace RN
 		bool _supportsVisibilityMask;
 		bool _supportsPassthrough;
 		bool _supportsCompositionLayerSettings;
+		bool _supportsDynamicResolution;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

@@ -16,12 +16,13 @@ namespace RN
 {
 	class OpenXRSwapChain;
 	class OpenXRWindow;
-	struct XRCompositionLayerBaseHeader;
+	class OpenXRCompositorLayerInternals;
 
 	class OpenXRCompositorLayer : public VRCompositorLayer
 	{
 	public:
 		friend OpenXRWindow;
+		friend class OpenXRVulkanSwapChain;
 
 		OXRAPI ~OpenXRCompositorLayer();
 
@@ -39,6 +40,9 @@ namespace RN
 
 	private:
 		void SetSessionActive(bool active);
+		void UpdateForCurrentFrame(const OpenXRWindow *window);
+
+		OpenXRCompositorLayerInternals *_internals;
 
 		OpenXRSwapChain *_swapChain;
 		bool _isActive;

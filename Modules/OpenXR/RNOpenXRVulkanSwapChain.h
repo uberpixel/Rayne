@@ -19,11 +19,12 @@
 namespace RN
 {
 	struct OpenXRSwapchainInternals;
+	class OpenXRCompositorLayer;
 	class OpenXRVulkanSwapChain : public VulkanSwapChain, public OpenXRSwapChain
 	{
 	public:
 		friend class OpenXRWindow;
-		friend class OpenXRCompositorLayer;
+		friend OpenXRCompositorLayer;
 
 		OXRAPI ~OpenXRVulkanSwapChain();
 
@@ -43,7 +44,7 @@ namespace RN
 		OXRAPI void SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic) final;
 
 	private:
-		OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size, bool supportFoveation);
+		OpenXRVulkanSwapChain(const OpenXRWindow *window, OpenXRCompositorLayer *layer, const Window::SwapChainDescriptor &descriptor, const Vector2 &size, bool supportFoveation);
 
 		VkImage *_swapchainImages;
 		VkImage *_swapchainFoveationImages;

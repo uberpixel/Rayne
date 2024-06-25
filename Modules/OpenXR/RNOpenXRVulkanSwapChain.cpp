@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(OpenXRVulkanSwapChain, VulkanSwapChain)
 
-	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, const Window::SwapChainDescriptor &descriptor, const Vector2 &size, bool supportFoveation) : OpenXRSwapChain(window, SwapChainType::Vulkan), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
+	OpenXRVulkanSwapChain::OpenXRVulkanSwapChain(const OpenXRWindow *window, OpenXRCompositorLayer *layer, const Window::SwapChainDescriptor &descriptor, const Vector2 &size, bool supportFoveation) : OpenXRSwapChain(window, layer, SwapChainType::Vulkan), _swapchainImages(nullptr), _swapchainFoveationImages(nullptr), _swapChainFoveationImagesSize(nullptr)
 	{
 		_descriptor = descriptor;
 		_descriptor.depthStencilFormat = Texture::Format::Invalid;
@@ -129,6 +129,8 @@ namespace RN
 	void OpenXRVulkanSwapChain::AcquireBackBuffer()
 	{
 		if(!_isActive) return;
+
+		_layer->UpdateForCurrentFrame(_xrWindow);
 
         XrSwapchainImageAcquireInfo swapchainImageAcquireInfo;
         swapchainImageAcquireInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO;

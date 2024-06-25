@@ -84,7 +84,7 @@ namespace RN
 		return VRControllerTrackingState::Type::None;
 	}
 
-	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _predictedDisplayTime(0.0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array())
+	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array())
 	{
 		_supportsVulkan = false;
 		_supportsPreferredFramerate = false;
@@ -95,6 +95,7 @@ namespace RN
 		_supportsVisibilityMask = false;
 		_supportsPassthrough = false;
 		_supportsCompositionLayerSettings = false;
+		_supportsDynamicResolution = false;
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 		_internals->_supportsControllerInteractionPICO = false;
@@ -262,6 +263,11 @@ namespace RN
 			{
 				extensions.push_back(extension.extensionName);
 				_supportsCompositionLayerSettings = true;
+			}
+			else if(std::strcmp(extension.extensionName, XR_META_RECOMMENDED_LAYER_RESOLUTION_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsDynamicResolution = true;
 			}
 #if XR_USE_PLATFORM_ANDROID
 			else if(std::strcmp(extension.extensionName, XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME) == 0)
@@ -491,6 +497,15 @@ namespace RN
 		{
 			//XR_KHR_VISIBILITY_MASK_EXTENSION_NAME
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetVisibilityMaskKHR", (PFN_xrVoidFunction*)(&_internals->GetVisibilityMaskKHR))))
+			{
+
+			}
+		}
+
+		if(_supportsDynamicResolution)
+		{
+			//XR_META_RECOMMENDED_LAYER_RESOLUTION_EXTENSION_NAME
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrGetRecommendedLayerResolutionMETA", (PFN_xrVoidFunction*)(&_internals->GetRecommendedLayerResolutionMETA))))
 			{
 
 			}
@@ -1550,95 +1565,15 @@ namespace RN
 		_internals->views[1].next = nullptr;
 
 		_mainLayer = new OpenXRCompositorLayer(VRCompositorLayer::Type::TypeProjectionView, descriptor, eyeRenderSize, true, this);
-
 		_mainLayer->_swapChain->_presentEvent = [this](){
 			if(_internals->session != XR_NULL_HANDLE && _isSessionRunning)
 			{
-				std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
-				std::vector<XrCompositionLayerProjection> projectionLayers;
-				std::vector<XrCompositionLayerQuad> quadLayers;
-
-				//Reserve big enough for them to not resize dynamically as that messes up the pointers that are then passed on...
-				projectionLayerViews.reserve(20);
-				projectionLayers.reserve(10);
-				quadLayers.reserve(10);
-
 				std::vector<XrCompositionLayerBaseHeader*> layers;
-
-				XrCompositionLayerSettingsFB layerSettings;
-				layerSettings.type = XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB;
-				layerSettings.next = nullptr;
-				layerSettings.layerFlags = XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SUPER_SAMPLING_BIT_FB | XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SHARPENING_BIT_FB | XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META;
 
 				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
 					if(!layer->_isActive) return;
 					if(layer->_swapChain && !layer->_swapChain->_hasContent) return;
-
-					if(layer->GetType() == VRCompositorLayer::Type::TypeProjectionView)
-					{
-						XrCompositionLayerProjectionView layerProjectionView;
-						layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-						layerProjectionView.next = nullptr;
-						layerProjectionView.pose = _internals->views[0].pose;
-						layerProjectionView.fov = _internals->views[0].fov;
-						layerProjectionView.subImage.swapchain = layer->_swapChain->_internals->swapchain;
-						layerProjectionView.subImage.imageRect.offset.x = 0;
-						layerProjectionView.subImage.imageRect.offset.y = 0;
-						layerProjectionView.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
-						layerProjectionView.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
-						layerProjectionView.subImage.imageArrayIndex = 0;
-						projectionLayerViews.push_back(layerProjectionView);
-
-						layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-						layerProjectionView.next = nullptr;
-						layerProjectionView.pose = _internals->views[1].pose;
-						layerProjectionView.fov = _internals->views[1].fov;
-						layerProjectionView.subImage.swapchain = layer->_swapChain->_internals->swapchain;
-						layerProjectionView.subImage.imageRect.offset.x = 0;
-						layerProjectionView.subImage.imageRect.offset.y = 0;
-						layerProjectionView.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
-						layerProjectionView.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
-						layerProjectionView.subImage.imageArrayIndex = 1;
-						projectionLayerViews.push_back(layerProjectionView);
-
-						XrCompositionLayerProjection layerProjection;
-						layerProjection.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
-						layerProjection.next = nullptr;
-						layerProjection.layerFlags = XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT | XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-						layerProjection.space = _internals->trackingSpace;
-						layerProjection.viewCount = 2;
-						layerProjection.views = &projectionLayerViews[projectionLayerViews.size() - 2];
-						projectionLayers.push_back(layerProjection);
-
-						layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&projectionLayers.back()));
-					}
-					else if(layer->GetType() == VRCompositorLayer::Type::TypeQuad)
-					{
-						XrCompositionLayerQuad layerQuad;
-						layerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-						layerQuad.next = nullptr;//_supportsCompositionLayerSettings? &layerSettings : nullptr;
-						layerQuad.layerFlags = 0;//XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-						layerQuad.space = _internals->trackingSpace;
-						layerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-						layerQuad.subImage.swapchain = layer->_swapChain->_internals->swapchain;
-						layerQuad.subImage.imageRect.offset.x = 0;
-						layerQuad.subImage.imageRect.offset.y = 0;
-						layerQuad.subImage.imageRect.extent.width = layer->_swapChain->GetSwapChainSize().x;
-						layerQuad.subImage.imageRect.extent.height = layer->_swapChain->GetSwapChainSize().y;
-						layerQuad.subImage.imageArrayIndex = 0;
-						layerQuad.pose.position.x = layer->GetPosition().x;
-						layerQuad.pose.position.y = layer->GetPosition().y;
-						layerQuad.pose.position.z = layer->GetPosition().z;
-						layerQuad.pose.orientation.x = layer->GetRotation().x;
-						layerQuad.pose.orientation.y = layer->GetRotation().y;
-						layerQuad.pose.orientation.z = layer->GetRotation().z;
-						layerQuad.pose.orientation.w = layer->GetRotation().w;
-						layerQuad.size.width = layer->GetScale().x;
-						layerQuad.size.height = layer->GetScale().y;
-						quadLayers.push_back(layerQuad);
-
-						layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&quadLayers.back()));
-					}
+					layers.push_back(layer->_internals->layerBaseHeader);
 				};
 
 				_layersUnderlay->Enumerate<OpenXRCompositorLayer>([&](OpenXRCompositorLayer *layer, size_t index, bool &stop){

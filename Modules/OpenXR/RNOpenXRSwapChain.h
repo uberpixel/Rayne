@@ -15,11 +15,12 @@ namespace RN
 {
 	struct OpenXRSwapchainInternals;
 	class OpenXRWindow;
+	class OpenXRCompositorLayer;
 	class OpenXRSwapChain
 	{
 	public:
 		friend OpenXRWindow;
-		friend class OpenXRCompositorLayer;
+		friend OpenXRCompositorLayer;
 
 		enum SwapChainType
 		{
@@ -39,10 +40,11 @@ namespace RN
 		OXRAPI virtual void SetActive(bool active) { _isActive = active; }
 
 	protected:
-		OpenXRSwapChain(const OpenXRWindow *window, SwapChainType type);
+		OpenXRSwapChain(const OpenXRWindow *window, OpenXRCompositorLayer *layer, SwapChainType type);
 		OpenXRSwapchainInternals *_internals;
 
 		const OpenXRWindow *_xrWindow;
+		OpenXRCompositorLayer *_layer;
 		bool _isActive;
 		bool _hasContent;
 
