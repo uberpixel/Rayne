@@ -522,6 +522,11 @@ namespace RN
 
 		//Setup viewport and scissor rect
 		Rect cameraRect = renderpass.renderPass->GetFrame();
+		if(renderpass.resolveFramebuffer)
+		{
+			if(cameraRect.width > renderpass.resolveFramebuffer->_size.x) cameraRect.width = renderpass.resolveFramebuffer->_size.x;
+			if(cameraRect.height > renderpass.resolveFramebuffer->_size.y) cameraRect.height = renderpass.resolveFramebuffer->_size.y;
+		}
 
 		// Update dynamic viewport state
 		VkViewport viewport = {};
