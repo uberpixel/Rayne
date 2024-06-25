@@ -246,6 +246,7 @@ namespace RN
 #else
 		return MicrophonePermissionStateAuthorized;
 #endif
+		return MicrophonePermissionStateForbidden;
 	}
 
 	void OpenALWorld::SetInputDevice(String *inputDeviceName)
