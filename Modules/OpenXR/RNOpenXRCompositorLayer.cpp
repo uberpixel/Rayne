@@ -170,33 +170,36 @@ namespace RN
 			_internals->layerQuad.size.height = _rotation.y;
 		}
 
-		XrRecommendedLayerResolutionGetInfoMETA recommendedLayerResolutionGetInfo;
-		recommendedLayerResolutionGetInfo.type = XR_TYPE_RECOMMENDED_LAYER_RESOLUTION_GET_INFO_META;
-		recommendedLayerResolutionGetInfo.next = nullptr;
-		recommendedLayerResolutionGetInfo.layer = _internals->layerBaseHeader;
-		recommendedLayerResolutionGetInfo.predictedDisplayTime = window->_internals->predictedDisplayTime;
-		XrRecommendedLayerResolutionMETA recommendedLayerResolution;
-		if(!XR_FAILED(window->_internals->GetRecommendedLayerResolutionMETA(window->_internals->session, &recommendedLayerResolutionGetInfo, &recommendedLayerResolution)))
+		if(window->_supportsDynamicResolution)
 		{
-			if(recommendedLayerResolution.isValid)
+			XrRecommendedLayerResolutionGetInfoMETA recommendedLayerResolutionGetInfo;
+			recommendedLayerResolutionGetInfo.type = XR_TYPE_RECOMMENDED_LAYER_RESOLUTION_GET_INFO_META;
+			recommendedLayerResolutionGetInfo.next = nullptr;
+			recommendedLayerResolutionGetInfo.layer = _internals->layerBaseHeader;
+			recommendedLayerResolutionGetInfo.predictedDisplayTime = window->_internals->predictedDisplayTime;
+			XrRecommendedLayerResolutionMETA recommendedLayerResolution;
+			if(!XR_FAILED(window->_internals->GetRecommendedLayerResolutionMETA(window->_internals->session, &recommendedLayerResolutionGetInfo, &recommendedLayerResolution)))
 			{
-				if(_type == TypeProjectionView)
+				if(recommendedLayerResolution.isValid)
 				{
-					_internals->layerProjectionViews[0].subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
-					_internals->layerProjectionViews[0].subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
+					if(_type == TypeProjectionView)
+					{
+						_internals->layerProjectionViews[0].subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
+						_internals->layerProjectionViews[0].subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
 
-					_internals->layerProjectionViews[1].subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
-					_internals->layerProjectionViews[1].subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
-				}
-				else if(_type == TypeQuad)
-				{
-					_internals->layerQuad.subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
-					_internals->layerQuad.subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
-				}
+						_internals->layerProjectionViews[1].subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
+						_internals->layerProjectionViews[1].subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
+					}
+					else if(_type == TypeQuad)
+					{
+						_internals->layerQuad.subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
+						_internals->layerQuad.subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
+					}
 
-				//TODO: Need to also adapt the framebuffer size!
-				//RNDebug("new recommended resolution: " << recommendedLayerResolution.recommendedImageDimensions.width << " x " << recommendedLayerResolution.recommendedImageDimensions.height);
-				_swapChain->GetSwapChainFramebuffer()->SetSize(RN::Vector2(recommendedLayerResolution.recommendedImageDimensions.width, recommendedLayerResolution.recommendedImageDimensions.height));
+					//TODO: Need to also adapt the framebuffer size!
+					//RNDebug("new recommended resolution: " << recommendedLayerResolution.recommendedImageDimensions.width << " x " << recommendedLayerResolution.recommendedImageDimensions.height);
+					_swapChain->GetSwapChainFramebuffer()->SetSize(RN::Vector2(recommendedLayerResolution.recommendedImageDimensions.width, recommendedLayerResolution.recommendedImageDimensions.height));
+				}
 			}
 		}
 	}
