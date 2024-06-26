@@ -88,8 +88,8 @@ namespace RN
 	VulkanRenderer::~VulkanRenderer()
 	{
 		_mipMapTextures->Release();
+		//delete _dynamicBufferPool; //TODO: Should probably be deleted, but currently this just crashes.
 		vmaDestroyAllocator(_internals->memoryAllocator);
-		delete _dynamicBufferPool;
 	}
 
 	VkRenderPass VulkanRenderer::GetVulkanRenderPass(VulkanFramebuffer *framebuffer, VulkanFramebuffer *resolveFramebuffer, RenderPass::Flags flags, uint8 multiviewCount)
