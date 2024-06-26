@@ -536,8 +536,8 @@ namespace RN
 
 			});
 
-			delete[] buffer;
-			delete[] magic;
+			if(buffer) delete[] buffer;
+			if(magic) delete[] magic;
 		}
 		else if(name)
 		{
