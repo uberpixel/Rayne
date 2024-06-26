@@ -499,6 +499,8 @@ namespace RN
 			// Process each polled events
 			if(source != NULL) source->process(_androidApp, source);
 		}
+		
+		if(_androidApp && _androidApp->destroyRequested) _wantsToExit = true;
 #endif
 	}
 
