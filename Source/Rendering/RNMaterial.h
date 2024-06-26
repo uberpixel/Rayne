@@ -71,6 +71,7 @@ namespace RN
 
 	class Material : public Object
 	{
+	friend class Entity;
 	public:
 		
 		class Properties

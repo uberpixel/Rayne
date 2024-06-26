@@ -112,7 +112,7 @@ namespace RN
 		{
 			Material *material = stage->GetMaterialAtIndex(i);
 			
-			if(!material->GetSkipRendering())
+			if(!material->_skipRendering)
 			{
 #if RN_MODEL_LOD_DISABLED
 				Drawable *drawable = _drawables[i];

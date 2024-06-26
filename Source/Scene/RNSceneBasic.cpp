@@ -466,10 +466,10 @@ namespace RN
 					const RN::Vector3 cameraWorldPosition = camera->GetWorldPosition();
 					std::sort(occluders.begin(), occluders.end(), [cameraWorldPosition](
 							SceneNode *a, SceneNode *b) {
-						float distanceA = std::max(a->GetWorldPosition().GetDistance(cameraWorldPosition), 1.0f);
-						float distanceB = std::max(b->GetWorldPosition().GetDistance(cameraWorldPosition), 1.0f);
+						float distanceA = std::max(a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition), 1.0f);
+						float distanceB = std::max(b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition), 1.0f);
 						
-						return a->GetBoundingSphere().radius / distanceA > b->GetBoundingSphere().radius / distanceB;
+						return a->GetBoundingSphere().radius * a->GetBoundingSphere().radius / distanceA > b->GetBoundingSphere().radius * b->GetBoundingSphere().radius / distanceB;
 					});
 					
 					occluders.resize(std::min(static_cast<size_t>(30), occluders.size())); //Only keep the biggest 30 occluders in the list
