@@ -1869,11 +1869,13 @@ namespace RN
 							});
 							xrEndSession(_internals->session);
 						}
-						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING)
+						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_EXITING || sessionStateChangedEvent.state == XR_SESSION_STATE_LOSS_PENDING)
 						{
 							RNInfo("Session State: Exiting");
 							xrDestroySession(_internals->session);
 							_internals->session = XR_NULL_HANDLE;
+
+							_hmdTrackingState.mode == VRHMDTrackingState::Mode::Disconnected;
 						}
 						else if(sessionStateChangedEvent.state == XR_SESSION_STATE_SYNCHRONIZED)
 						{
@@ -1949,6 +1951,8 @@ namespace RN
 
 	void OpenXRWindow::Update(float delta, float near, float far)
 	{
+		if(_hmdTrackingState.mode == VRHMDTrackingState::Mode::Disconnected) return;
+
 		_hmdTrackingState.mode = VRHMDTrackingState::Mode::Paused;
 
 		if(_internals->session == XR_NULL_HANDLE || !_isSessionRunning) return;
