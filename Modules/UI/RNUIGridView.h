@@ -26,10 +26,10 @@ namespace RN
 			UIAPI GridView(Direction direction = DirectionVertical);
 			UIAPI ~GridView();
 			
-			void SetMargins(float left, float top, float right, float bottom);
-			void SetSpacing(float horizontal, float vertical);
-			void SetReloadAll() { _reloadAll = true; }
-			void SetToStart();
+			UIAPI void SetMargins(float left, float top, float right, float bottom);
+			UIAPI void SetSpacing(float horizontal, float vertical);
+			UIAPI void SetReloadAll() { _reloadAll = true; }
+			UIAPI void SetToStart();
 
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2()) override;
 			
