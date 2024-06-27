@@ -35,7 +35,7 @@ android {
     }
     defaultConfig {
         applicationId "__RN_BUNDLE_ID__"
-        minSdkVersion 24
+        minSdkVersion 29
         targetSdkVersion 32
         versionCode getVersionCodeFromProjectProperty()
         versionName getVersionNameFromProjectProperty()
