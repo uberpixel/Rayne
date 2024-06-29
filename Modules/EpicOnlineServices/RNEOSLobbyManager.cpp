@@ -612,7 +612,7 @@ namespace RN
 			RNDebug("Failed creating lobby: " << EOS_EResult_ToString(Data->ResultCode));
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				if(Data->ResultCode == EOS_EResult::EOS_NoConnection)
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_OperationWillRetry || Data->ResultCode == EOS_EResult::EOS_TimedOut)
 				{
 					lobbyManager->_didJoinLobbyCallback(EOSResult::NoConnection);
 				}
@@ -742,7 +742,7 @@ namespace RN
 			RNDebug("Failed searching lobbies");
 			if(searchData->callback)
 			{
-				if(Data->ResultCode == EOS_EResult::EOS_NoConnection)
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_OperationWillRetry || Data->ResultCode == EOS_EResult::EOS_TimedOut)
 				{
 					searchData->callback(EOSResult::NoConnection, nullptr);
 				}
@@ -830,7 +830,7 @@ namespace RN
 			RNDebug("Failed joining lobby");
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_TimedOut)
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_TimedOut || Data->ResultCode == EOS_EResult::EOS_OperationWillRetry)
 				{
 					lobbyManager->_didJoinLobbyCallback(EOSResult::NoConnection);
 				}
