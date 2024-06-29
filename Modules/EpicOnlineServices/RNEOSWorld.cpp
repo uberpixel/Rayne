@@ -155,6 +155,11 @@ namespace RN
 		});
 	}
 
+	bool EOSWorld::GetHasNetworkConnection() const
+	{
+		return EOS_Platform_GetNetworkStatus(_platformHandle) == EOS_ENetworkStatus::EOS_NS_Online;
+	}
+
 	void EOSWorld::AddHost(EOSHost *host)
 	{
 		_hosts->AddObject(host);
@@ -478,11 +483,13 @@ namespace RN
 	
 	void EOSWorld::ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data)
 	{
+		EOSWorld *eosWorld = static_cast<EOSWorld*>(Data->ClientData);
 		switch(Data->CurrentStatus)
 		{
 			case EOS_ELoginStatus::EOS_LS_NotLoggedIn:
 			{
 				RNDebug("EOS not logged in");
+				eosWorld->_loginState = LoginStateIsNotLoggedIn;
 				break;
 			}
 			case EOS_ELoginStatus::EOS_LS_UsingLocalProfile:

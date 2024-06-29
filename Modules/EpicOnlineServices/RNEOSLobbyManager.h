@@ -116,7 +116,7 @@ namespace RN
 	struct EOSLobbySearch
 	{
 		EOS_HLobbySearch handle;
-		std::function<void(bool, RN::Array *)> callback;
+		std::function<void(EOSResult, RN::Array *)> callback;
 	};
 
 	class EOSLobbyManager : public Object
@@ -130,9 +130,9 @@ namespace RN
 		EOSAPI void SetLocalPlayerMuted(bool mute);
 		bool GetLocalPlayerMuted() const {return _isLocalPlayerMuted;}
 		
-		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
-		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID = nullptr, RN::Array *searchFilter = nullptr);
-		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback);
+		EOSAPI void CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(EOSResult)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride = nullptr);
+		EOSAPI void SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(EOSResult, RN::Array *)> callback, const RN::String *lobbyID = nullptr, RN::Array *searchFilter = nullptr);
+		EOSAPI void JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(EOSResult)> callback);
 		EOSAPI void LeaveCurrentLobby();
 		EOSAPI void KickFromCurrentLobby(EOS_ProductUserId userHandle);
 		EOSAPI void SetCurrentLobbyAttributes(Dictionary *attributes);
@@ -183,7 +183,7 @@ namespace RN
 		
 		std::vector<EOSLobbySearch*> _lobbySearches;
 		
-		std::function<void(bool)> _didJoinLobbyCallback;
+		std::function<void(EOSResult)> _didJoinLobbyCallback;
 		
 		std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> _audioReceivedCallback;
 		std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames)> _audioBeforeSendCallback;

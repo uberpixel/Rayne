@@ -110,15 +110,21 @@ namespace RN
 		_isLocalPlayerMuted = mute;
 	}
 
-	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(bool)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
+	void EOSLobbyManager::CreateLobby(int64 createLobbyTimestamp, String *lobbyName, String *lobbyLevel, uint8 maxUsers, std::function<void(EOSResult)> callback, String *lobbyVersion, bool hasPassword, const String *lobbyIDOverride)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
-			if(callback) callback(false);
+			if(callback) callback(EOSResult::NotLoggedIn);
 			return;
 		}
 		if(_isJoiningLobby || _isConnectedToLobby)
 		{
+			return;
+		}
+		
+		if(!EOSWorld::GetInstance()->GetHasNetworkConnection())
+		{
+			if(callback) callback(EOSResult::NoConnection);
 			return;
 		}
 		
@@ -165,11 +171,17 @@ namespace RN
 		EOS_Lobby_CreateLobby(_lobbyInterfaceHandle, &options, this, LobbyOnCreateCallback);
 	}
 
-	void EOSLobbyManager::SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(bool, RN::Array *)> callback, const RN::String *lobbyID, RN::Array *searchFilter)
+	void EOSLobbyManager::SearchLobby(bool includePrivate, bool includePublic, uint32 maxResults, std::function<void(EOSResult, RN::Array *)> callback, const RN::String *lobbyID, RN::Array *searchFilter)
 	{
 		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
 		{
-			if(callback) callback(false, nullptr);
+			if(callback) callback(EOSResult::NotLoggedIn, nullptr);
+			return;
+		}
+		
+		if(!EOSWorld::GetInstance()->GetHasNetworkConnection())
+		{
+			if(callback) callback(EOSResult::NoConnection, nullptr);
 			return;
 		}
 		
@@ -183,7 +195,7 @@ namespace RN
 		if(EOS_Lobby_CreateLobbySearch(_lobbyInterfaceHandle, &searchOptions, &searchData->handle) != EOS_EResult::EOS_Success)
 		{
 			RNDebug("Failed creating EOS Lobby search handle");
-			if(callback) callback(false, nullptr);
+			if(callback) callback(EOSResult::Other, nullptr);
 			return;
 		}
 		
@@ -287,9 +299,20 @@ namespace RN
 		EOS_LobbySearch_Find(searchData->handle, &findOptions, searchData, LobbyOnSearchCallback);
 	}
 
-	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(bool)> callback)
+	void EOSLobbyManager::JoinLobby(EOSLobbyInfo *lobbyInfo, std::function<void(EOSResult)> callback)
 	{
-		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn || _isJoiningLobby || _isConnectedToLobby) return;
+		if(_isJoiningLobby || _isConnectedToLobby) return;
+		if(EOSWorld::GetInstance()->GetLoginState() != EOSWorld::LoginStateIsLoggedIn)
+		{
+			if(callback) callback(EOSResult::NotLoggedIn);
+			return;
+		}
+		
+		if(!EOSWorld::GetInstance()->GetHasNetworkConnection())
+		{
+			if(callback) callback(EOSResult::NoConnection);
+			return;
+		}
 		
 		_isJoiningLobby = true;
 		_didJoinLobbyCallback = callback;
@@ -581,7 +604,7 @@ namespace RN
 			
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback(true);
+				lobbyManager->_didJoinLobbyCallback(EOSResult::Success);
 			}
 		}
 		else
@@ -589,7 +612,18 @@ namespace RN
 			RNDebug("Failed creating lobby: " << EOS_EResult_ToString(Data->ResultCode));
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback(false);
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection)
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::NoConnection);
+				}
+				else if(Data->ResultCode == EOS_EResult::EOS_InvalidAuth)
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::NotLoggedIn);
+				}
+				else
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::Other);
+				}
 			}
 		}
 		
@@ -697,7 +731,7 @@ namespace RN
 			
 			if(searchData->callback)
 			{
-				searchData->callback(true, lobbyInfoArray);
+				searchData->callback(EOSResult::Success, lobbyInfoArray);
 				searchData->callback = nullptr;
 			}
 			
@@ -708,7 +742,18 @@ namespace RN
 			RNDebug("Failed searching lobbies");
 			if(searchData->callback)
 			{
-				searchData->callback(false, nullptr);
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection)
+				{
+					searchData->callback(EOSResult::NoConnection, nullptr);
+				}
+				else if(Data->ResultCode == EOS_EResult::EOS_InvalidAuth)
+				{
+					searchData->callback(EOSResult::NotLoggedIn, nullptr);
+				}
+				else
+				{
+					searchData->callback(EOSResult::Other, nullptr);
+				}
 				
 				//On android this callback will be triggered 3 more times if there is no connection,
 				//Unset the callback here to not have it triggered again until another search...
@@ -744,7 +789,7 @@ namespace RN
 			lobbyManager->_connectedLobbyID = new String(Data->LobbyId);
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback(true);
+				lobbyManager->_didJoinLobbyCallback(EOSResult::Success);
 			}
 			
 			if(lobbyManager->_isVoiceEnabled && (lobbyManager->_audioReceivedCallback || lobbyManager->_audioBeforeSendCallback))
@@ -785,7 +830,18 @@ namespace RN
 			RNDebug("Failed joining lobby");
 			if(lobbyManager->_didJoinLobbyCallback)
 			{
-				lobbyManager->_didJoinLobbyCallback(false);
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_TimedOut)
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::NoConnection);
+				}
+				else if(Data->ResultCode == EOS_EResult::EOS_InvalidAuth)
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::NotLoggedIn);
+				}
+				else
+				{
+					lobbyManager->_didJoinLobbyCallback(EOSResult::Other);
+				}
 			}
 		}
 		

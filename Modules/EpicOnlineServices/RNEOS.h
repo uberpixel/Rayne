@@ -17,4 +17,13 @@
 	#define EOSAPI RN_IMPORT
 #endif
 
+namespace RN
+{
+	RN_OPTIONS(EOSResult, uint32,
+		   Success,
+		   NoConnection,
+		   NotLoggedIn,
+		   Other);
+}
+
 #endif /* __RAYNE_EOS_H_ */

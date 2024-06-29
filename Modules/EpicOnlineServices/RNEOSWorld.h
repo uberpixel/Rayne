@@ -69,6 +69,7 @@ namespace RN
 		EOSAPI EOS_HP2P GetP2PHandle() const { return _p2pInterfaceHandle; }
 		EOSAPI EOS_ProductUserId GetUserID() const { return _loggedInUserID; }
 		EOSAPI LoginState GetLoginState() const { return _loginState; }
+		EOSAPI bool GetHasNetworkConnection() const;
 		EOSAPI void LoginUser();
 		
 		EOSAPI String *GetUserIDString() const;
