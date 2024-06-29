@@ -462,8 +462,8 @@ namespace RN
 		else
 		{
 			RNDebug("Login failed");
-			eosWorld->_loginState = LoginStateLoginFailed;
-			
+			eosWorld->_loginState = LoginStateLoginFailed; //Will immediately be reset below in case of fallback and is required here to make it actually try logging in again
+
 			if(eosWorld->_externalLoginCallback && eosWorld->_allowFallbackToDeviceID)
 			{
 				RNDebug("Login with service account failed, try fallback to login with device ID");
