@@ -316,12 +316,7 @@ namespace RN
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
 		}
 
-		//TODO: This will only be correct for vulkan and only for the oculus extensions, PICO 4 will claim that it supports the FB FFR extension, but then not actually work with them
-		if(numberOfSupportedFoveationExtensions == 4
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-			&& !_internals->_supportsControllerInteractionPICO
-#endif
-				)
+		if(numberOfSupportedFoveationExtensions == 4)
 		{
 			_supportsFoveatedRendering = true;
 		}
