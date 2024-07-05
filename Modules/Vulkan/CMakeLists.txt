@@ -66,7 +66,6 @@ set(SOURCES
         Sources/RNVulkanDevice.cpp
         Sources/RNVulkanDispatchTable.cpp
         Sources/RNVulkanFramebuffer.cpp
-        Sources/RNVulkanGPUBuffer.cpp
         Sources/RNVulkanInstance.cpp
         Sources/RNVulkanRenderer.cpp
         Sources/RNVulkanRendererDescriptor.cpp
@@ -78,7 +77,9 @@ set(SOURCES
         Sources/RNVulkanShader.cpp
         Sources/RNVulkanShaderLibrary.cpp
         Sources/RNVulkanStateCoordinator.cpp
-        Sources/RNVulkanDynamicBuffer.cpp
+        Sources/RNVulkanGPUBuffer.cpp
+        Sources/RNVulkanDynamicGPUBuffer.cpp
+        Sources/RNVulkanStaticGPUBuffer.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cfg.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_cross_parsed_ir.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/spirvcross-prefix/src/spirvcross/spirv_parser.cpp
@@ -90,7 +91,6 @@ set(HEADERS
         Sources/RNVulkanDevice.h
         Sources/RNVulkanDispatchTable.h
         Sources/RNVulkanFramebuffer.h
-        Sources/RNVulkanGPUBuffer.h
         Sources/RNVulkanInstance.h
         Sources/RNVulkanRenderer.h
         Sources/RNVulkanRendererDescriptor.h
@@ -101,7 +101,9 @@ set(HEADERS
         Sources/RNVulkanShader.h
         Sources/RNVulkanShaderLibrary.h
         Sources/RNVulkanStateCoordinator.h
-        Sources/RNVulkanDynamicBuffer.h
+        Sources/RNVulkanGPUBuffer.h
+        Sources/RNVulkanDynamicGPUBuffer.h
+        Sources/RNVulkanStaticGPUBuffer.h
         #../../Vendor/SPIRV-Cross/spirv.hpp
         #../../Vendor/SPIRV-Cross/spirv_common.hpp
         #../../Vendor/SPIRV-Cross/spirv_cfg.hpp

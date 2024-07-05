@@ -2,7 +2,7 @@
 //  RNVulkanGPUBuffer.h
 //  Rayne
 //
-//  Copyright 2016 by Überpixel. All rights reserved.
+//  Copyright 2024 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
@@ -19,31 +19,13 @@ namespace RN
 	class VulkanGPUBuffer : public GPUBuffer
 	{
 	public:
-		friend class VulkanRenderer;
+		VKAPI void *GetBuffer() override = 0;
+		VKAPI void UnmapBuffer() override = 0;
+		VKAPI void InvalidateRange(const Range &range) override = 0;
+		VKAPI void FlushRange(const Range &range) override = 0;
+		VKAPI size_t GetLength() const override = 0;
 
-		VKAPI void *GetBuffer() final;
-		VKAPI void UnmapBuffer() final;
-		VKAPI void InvalidateRange(const Range &range) final;
-		VKAPI void FlushRange(const Range &range) final;
-		VKAPI size_t GetLength() const final;
-
-		VkBuffer GetVulkanBuffer() const;
-
-	private:
-		VulkanGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption);
-		~VulkanGPUBuffer() override;
-
-		VulkanRenderer *_renderer;
-
-		VkBuffer _buffer;
-		VmaAllocation _allocation;
-
-		VkBuffer _stagingBuffer;
-		VmaAllocation _stagingAllocation;
-
-		bool _isHostVisible;
-		size_t _length;
-		std::atomic<void *> _mappedBuffer;
+		virtual VkBuffer GetVulkanBuffer() const = 0;
 
 		RNDeclareMetaAPI(VulkanGPUBuffer, VKAPI)
 	};

@@ -415,8 +415,8 @@ namespace RN
 		};
 
 
-		RNAPI Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount);
-		RNAPI Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount);
+		RNAPI Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount, bool streamed = false);
+		RNAPI Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount, bool streamed = false);
 		RNAPI ~Mesh() override;
 
 		RNAPI static Mesh *WithName(const String *name);
@@ -430,7 +430,7 @@ namespace RN
 		RNAPI static Mesh *WithSphereMesh(float radius, size_t slices, size_t segments, Color color);
 
 		RNAPI void BeginChanges();
-		RNAPI void EndChanges(bool unmapAfter = true);
+		RNAPI void EndChanges();
 
 		RNAPI void SetDrawMode(DrawMode mode);
 		RNAPI void SetElementData(VertexAttribute::Feature feature, const void *data);
@@ -470,14 +470,16 @@ namespace RN
 
 	private:
 		void ParseAttributes();
-		void SubmitIndices(const Range &range, bool unmapAfter);
-		void SubmitVertices(const Range &range, bool unmapAfter);
+		void SubmitIndices(const Range &range);
+		void SubmitVertices(const Range &range);
 
 		//TODO: Find a nice way to combine cpu and gpu buffers with consistent interface, optional storage and transfer between them
 		GPUBuffer *_vertexBuffer;
 		GPUBuffer *_indicesBuffer;
 		void *_vertexBufferCPU;
 		void *_indicesBufferCPU;
+		
+		bool _isStreamed; //This means makes the vertex and index buffers use multiple buffers, so that new data can be written to one while the GPU renders another, will also not be unmapped
 
 		size_t _vertexPositionsSeparatedSize;
 		size_t _vertexPositionsSeparatedStride;

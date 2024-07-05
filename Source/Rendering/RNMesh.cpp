@@ -51,11 +51,11 @@ namespace RN
 
 	};
 
-	Mesh::Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
-		Mesh(std::vector<VertexAttribute>(attributes), verticesCount, indicesCount)
+	Mesh::Mesh(const std::initializer_list<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount, bool streamed) :
+		Mesh(std::vector<VertexAttribute>(attributes), verticesCount, indicesCount, streamed)
 	{}
 
-	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount) :
+	Mesh::Mesh(const std::vector<VertexAttribute> &attributes, size_t verticesCount, size_t indicesCount, bool streamed) :
 		_vertexBuffer(nullptr),
 		_indicesBuffer(nullptr),
 		_vertexBufferCPU(nullptr),
@@ -67,7 +67,8 @@ namespace RN
 		_drawMode(DrawMode::Triangle),
 		_vertexAttributes(attributes),
 		_descriptor(attributes),
-		_changeCounter(0)
+		_changeCounter(0),
+		_isStreamed(streamed)
 	{
 		_boundingBox = AABB(Vector3(0.0f), Vector3(0.0f));
 		_boundingSphere = Sphere(_boundingBox);
@@ -187,10 +188,10 @@ namespace RN
 		if(!Renderer::IsHeadless())
 		{
 			Renderer *renderer = Renderer::GetActiveRenderer();
-			_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, GPUResource::AccessOptions::ReadWrite);
+			_vertexBuffer = renderer->CreateBufferWithLength(_verticesSize, GPUResource::UsageOptions::Vertex, _isStreamed? GPUResource::AccessOptions::WriteOnly : GPUResource::AccessOptions::Private, _isStreamed);
 			if(hasIndices)
 			{
-				_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, GPUResource::AccessOptions::ReadWrite);
+				_indicesBuffer = renderer->CreateBufferWithLength(_indicesSize, GPUResource::UsageOptions::Index, _isStreamed? GPUResource::AccessOptions::WriteOnly : GPUResource::AccessOptions::Private, _isStreamed);
 			}
 		}
 	}
@@ -204,15 +205,15 @@ namespace RN
 		}
 	}
 
-	void Mesh::EndChanges(bool unmapAfter)
+	void Mesh::EndChanges()
 	{
 		if((-- _changeCounter) == 0)
 		{
 			if(changedIndices)
-				SubmitIndices(Range(0, _indicesSize), unmapAfter);
+				SubmitIndices(Range(0, _indicesSize));
 
 			if(changedVertices)
-				SubmitVertices(Range(0, _verticesSize), unmapAfter);
+				SubmitVertices(Range(0, _verticesSize));
 		}
 	}
 
@@ -233,7 +234,7 @@ namespace RN
 			if(_changeCounter)
 				changedIndices = true;
 			else
-				SubmitIndices(Range(0, _indicesSize), true);
+				SubmitIndices(Range(0, _indicesSize));
 		}
 		else
 		{
@@ -266,7 +267,7 @@ namespace RN
 					if(_changeCounter)
 						changedVertices = true;
 					else
-						SubmitVertices(Range(0, _verticesSize), true);
+						SubmitVertices(Range(0, _verticesSize));
 
 					break;
 				}
@@ -305,7 +306,7 @@ namespace RN
 				if(_changeCounter)
 					changedVertices = true;
 				else
-					SubmitVertices(Range(0, _verticesSize), true);
+					SubmitVertices(Range(0, _verticesSize));
 
 				break;
 			}
@@ -933,7 +934,7 @@ namespace RN
 		return mesh->Autorelease();
 	}
 
-	void Mesh::SubmitVertices(const Range &range, bool unmapAfter)
+	void Mesh::SubmitVertices(const Range &range)
 	{
 		if(!_vertexBufferCPU || !_vertexBuffer)
 			return;
@@ -942,10 +943,10 @@ namespace RN
 		void *target = _vertexBuffer->GetBuffer();
 		memcpy(target, _vertexBufferCPU, _verticesSize);
 		_vertexBuffer->FlushRange(range);
-		if(unmapAfter) _vertexBuffer->UnmapBuffer();
+		if(!_isStreamed) _vertexBuffer->UnmapBuffer();
 	}
 
-	void Mesh::SubmitIndices(const Range &range, bool unmapAfter)
+	void Mesh::SubmitIndices(const Range &range)
 	{
 		if(!_indicesBufferCPU || !_indicesBuffer)
 			return;
@@ -954,6 +955,6 @@ namespace RN
 		void *target = _indicesBuffer->GetBuffer();
 		memcpy(target, _indicesBufferCPU, _indicesSize);
 		_indicesBuffer->FlushRange(range);
-		if(unmapAfter) _indicesBuffer->UnmapBuffer();
+		if(!_isStreamed) _indicesBuffer->UnmapBuffer();
 	}
 }

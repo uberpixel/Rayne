@@ -121,7 +121,7 @@ namespace RN
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color),
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector2),
-			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, maxParticles*4, maxParticles*6);
+			Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16) }, maxParticles*4, maxParticles*6, true); //Create a streamable mesh
 	}
 
 	void ParticleEmitter::SetMaxParticlesSoft(uint32 maxParticles)
@@ -332,7 +332,7 @@ namespace RN
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
 		_mesh->changedVertices = true;
 		_mesh->changedIndices = true;
-		_mesh->EndChanges(false); //Pass false here to keep the buffer mapped, speeding up the updates each frame
+		_mesh->EndChanges();
 	}
 	
 	

@@ -23,7 +23,7 @@ namespace RN
 		_sizeReserved(0)
 	{
 		D3D12Renderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
-		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
+		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite, false);
 		_buffers.push_back(buffer);
 		_bufferFrames.push_back(0);
 	}
@@ -41,7 +41,7 @@ namespace RN
 		if(_bufferFrames[_bufferIndex] > completedFrame)
 		{
 			D3D12Renderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<D3D12Renderer>();
-			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_totalSize, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite);
+			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_totalSize, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::ReadWrite, false);
 
 			_bufferIndex += 1;
 			if(_bufferIndex >= _buffers.size())

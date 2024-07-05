@@ -27,7 +27,7 @@ namespace RN
 			_totalSize += 16 - (_totalSize % 16);
 		
 		for(size_t i = 0; i < kRNMetalUniformBufferCount; i++)
-			_buffers[i] = renderer->CreateBufferWithLength(_totalSize, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly);
+			_buffers[i] = renderer->CreateBufferWithLength(_totalSize, GPUResource::UsageOptions::Uniform , GPUResource::AccessOptions::WriteOnly, false);
 	}
 
 	MetalUniformBuffer::~MetalUniformBuffer()

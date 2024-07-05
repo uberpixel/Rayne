@@ -11,7 +11,7 @@
 #include "RNVulkanShader.h"
 #include "RNVulkanFramebuffer.h"
 #include "RNVulkanWindow.h"
-#include "RNVulkanDynamicBuffer.h"
+#include "RNVulkanDynamicGPUBuffer.h"
 
 namespace RN
 {

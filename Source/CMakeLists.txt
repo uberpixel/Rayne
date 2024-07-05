@@ -75,7 +75,6 @@ set(RAYNE_SOURCES
     Objects/RNSet.cpp
     Objects/RNCountedSet.cpp
     Objects/RNWeakStorage.cpp
-    Rendering/RNDynamicGPUBuffer.cpp
     Rendering/RNFramebuffer.cpp
     Rendering/RNGPUBuffer.cpp
     Rendering/RNGPUResource.cpp
@@ -198,7 +197,6 @@ set(RAYNE_HEADERS
     Objects/RNString.h
     Objects/RNValue.h
     Objects/RNWeakStorage.h
-    Rendering/RNDynamicGPUBuffer.h
     Rendering/RNFramebuffer.h
     Rendering/RNGPUBuffer.h
     Rendering/RNGPUResource.h

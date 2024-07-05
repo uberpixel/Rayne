@@ -558,7 +558,7 @@ namespace RN
 			case GPUResource::AccessOptions::WriteOnly:
 				return MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
 			case GPUResource::AccessOptions::Private:
-				return  MTLResourceStorageModePrivate;
+				return MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeManaged; //return  MTLResourceStorageModePrivate; //This allows creating with good flags without having to deal with a staging buffer in the metal renderer for now
 		}
 #else
 		switch(options)
@@ -568,24 +568,15 @@ namespace RN
 			case GPUResource::AccessOptions::WriteOnly:
 				return MTLResourceCPUCacheModeWriteCombined;
 			case GPUResource::AccessOptions::Private:
-				return  MTLResourceStorageModePrivate;
+				return MTLResourceCPUCacheModeWriteCombined; //return  MTLResourceStorageModePrivate; //This allows creating with good flags without having to deal with a staging buffer in the metal renderer for now
 		}
 #endif
 	}
 
-	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
+	GPUBuffer *MetalRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions, bool streameable)
 	{
 		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(accessOptions);
 		id<MTLBuffer> buffer = [_internals->device newBufferWithLength:length options:resourceOptions];
-		if(!buffer)
-			return nullptr;
-
-		return (new MetalGPUBuffer(buffer));
-	}
-	GPUBuffer *MetalRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
-	{
-		MTLResourceOptions resourceOptions = MetalResourceOptionsFromOptions(accessOptions);
-		id<MTLBuffer> buffer = [_internals->device newBufferWithBytes:bytes length:length options:resourceOptions];
 		if(!buffer)
 			return nullptr;
 

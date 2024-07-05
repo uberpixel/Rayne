@@ -11,6 +11,8 @@
 
 #include "RNVulkan.h"
 #include "RNVulkanStateCoordinator.h"
+#include "RNVulkanGPUBuffer.h"
+#include "RNVulkanStaticGPUBuffer.h"
 
 #define kRNMinimumDynamicBufferSize 10*1000*1000 //10mb for constants to normally fit everything into a single buffer, even for complex scenes.
 #define kRNDynamicBufferAlignement 256
@@ -21,24 +23,33 @@ namespace RN
 	class GPUBuffer;
 	class VulkanDynamicBufferPool;
 
-	class VulkanDynamicBuffer : public Object
+	class VulkanDynamicGPUBuffer : public VulkanGPUBuffer
 	{
 	public:
 		friend VulkanDynamicBufferPool;
 
-		VulkanDynamicBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions);
-		~VulkanDynamicBuffer();
+		VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions);
+		~VulkanDynamicGPUBuffer();
 
 		VKAPI GPUBuffer *Advance(size_t currentFrame, size_t completedFrame);
-		GPUBuffer *GetActiveBuffer() const { return _buffers[_bufferIndex]; }
+		GPUBuffer *GetActiveGPUBuffer() const { return _buffers[_bufferIndex]; }
+		void *GetBuffer() override { return _buffers[_bufferIndex]->GetBuffer(); }
 
+		void UnmapBuffer() override { } //Can't be unmapped and is just permanently mapped
+		void InvalidateRange(const Range &range) override { _buffers[_bufferIndex]->InvalidateRange(range); }
+		VKAPI void FlushRange(const Range &range) override;
+		RNAPI virtual size_t GetLength() const override { return _totalSize; }
+
+		virtual VkBuffer GetVulkanBuffer() const override { return _buffers[_bufferIndex]->GetVulkanBuffer(); }
+
+		//These are used for uniform buffers internally as they suballocate smaller pieces of big dynamic buffers
 		VKAPI void Reset();
 		VKAPI size_t Allocate(size_t size, bool align);
 		VKAPI size_t Reserve(size_t size);
 		VKAPI void Unreserve(size_t size);
 
 	private:
-		std::vector<GPUBuffer*> _buffers;
+		std::vector<VulkanStaticGPUBuffer*> _buffers;
 		std::vector<size_t> _bufferFrames;
 		size_t _bufferIndex;
 
@@ -49,7 +60,7 @@ namespace RN
 
 		GPUResource::UsageOptions _usageOptions;
 
-		RNDeclareMetaAPI(VulkanDynamicBuffer, VKAPI)
+		RNDeclareMetaAPI(VulkanDynamicGPUBuffer, VKAPI)
 	};
 
 	class VulkanDynamicBufferReference : public Object
@@ -62,7 +73,7 @@ namespace RN
 		uint32 offset;
 		uint32 size;
 		uint32 reservedSize;
-		VulkanDynamicBuffer *dynamicBuffer;
+		VulkanDynamicGPUBuffer *dynamicBuffer;
 		GPUResource::UsageOptions usageOptions;
 
 	private:

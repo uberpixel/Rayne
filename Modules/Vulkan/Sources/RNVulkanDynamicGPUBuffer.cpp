@@ -6,16 +6,16 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNVulkanDynamicBuffer.h"
+#include "RNVulkanDynamicGPUBuffer.h"
 #include "RNVulkanRenderer.h"
 #include "RNVulkanGPUBuffer.h"
 
 namespace RN
 {
-	RNDefineMeta(VulkanDynamicBuffer, Object)
+	RNDefineMeta(VulkanDynamicGPUBuffer, GPUBuffer)
 	RNDefineMeta(VulkanDynamicBufferReference, Object)
 
-	VulkanDynamicBuffer::VulkanDynamicBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions) :
+	VulkanDynamicGPUBuffer::VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions) :
 		_bufferIndex(0),
 		_sizeUsed(0),
 		_offsetToFreeData(0),
@@ -24,35 +24,43 @@ namespace RN
         _usageOptions(usageOptions)
 	{
 		VulkanRenderer *realRenderer = renderer->Downcast<VulkanRenderer>();
-		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, usageOptions, GPUResource::AccessOptions::ReadWrite);
-		_buffers.push_back(buffer);
+		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, usageOptions, GPUResource::AccessOptions::WriteOnly, false);
+		_buffers.push_back(dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
 		_bufferFrames.push_back(0);
 	}
 
-	VulkanDynamicBuffer::~VulkanDynamicBuffer()
+	VulkanDynamicGPUBuffer::~VulkanDynamicGPUBuffer()
 	{
 		for(size_t i = 0; i < _buffers.size(); i ++)
 			_buffers[i]->Release();
 	}
 
-	GPUBuffer *VulkanDynamicBuffer::Advance(size_t currentFrame, size_t completedFrame)
+	void VulkanDynamicGPUBuffer::FlushRange(const Range &range)
+	{
+		_buffers[_bufferIndex]->FlushRange(range);
+
+		VulkanRenderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+		Advance(realRenderer->_currentFrame, realRenderer->_completedFrame);
+	}
+
+	GPUBuffer *VulkanDynamicGPUBuffer::Advance(size_t currentFrame, size_t completedFrame)
 	{
 		_bufferIndex = (_bufferIndex + 1) % _buffers.size();
 
 		if(_bufferFrames[_bufferIndex] > completedFrame)
 		{
 			VulkanRenderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_totalSize, _usageOptions, GPUResource::AccessOptions::ReadWrite);
+			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_totalSize, _usageOptions, GPUResource::AccessOptions::WriteOnly, false);
 
 			_bufferIndex += 1;
 			if(_bufferIndex >= _buffers.size())
 			{
-				_buffers.push_back(buffer);
+				_buffers.push_back(dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
 				_bufferFrames.push_back(currentFrame);
 			}
 			else
 			{
-				_buffers.insert(_buffers.begin() + _bufferIndex, buffer);
+				_buffers.insert(_buffers.begin() + _bufferIndex, dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
 				_bufferFrames.insert(_bufferFrames.begin() + _bufferIndex, currentFrame);
 			}
 		}
@@ -64,14 +72,14 @@ namespace RN
 		return _buffers[_bufferIndex];
 	}
 
-	void VulkanDynamicBuffer::Reset()
+	void VulkanDynamicGPUBuffer::Reset()
 	{
 		//Doesn't actually remove any data, just resets the allocation info to start allocating from the start again.
 		_sizeUsed = 0;
 		_offsetToFreeData = 0;
 	}
 
-	size_t VulkanDynamicBuffer::Allocate(size_t size, bool align)
+	size_t VulkanDynamicGPUBuffer::Allocate(size_t size, bool align)
 	{
 		//Align offset when allocating the next buffer (if it is supposed to be aligned)
 		if(align) _offsetToFreeData += kRNDynamicBufferAlignement - (_offsetToFreeData % kRNDynamicBufferAlignement);
@@ -86,7 +94,7 @@ namespace RN
 		return newDataOffset;
 	}
 
-	size_t VulkanDynamicBuffer::Reserve(size_t size)
+	size_t VulkanDynamicGPUBuffer::Reserve(size_t size)
 	{
 		size_t alignedSize = size + kRNDynamicBufferAlignement - (size % kRNDynamicBufferAlignement);
 
@@ -98,7 +106,7 @@ namespace RN
 		return alignedSize;
 	}
 
-	void VulkanDynamicBuffer::Unreserve(size_t size)
+	void VulkanDynamicGPUBuffer::Unreserve(size_t size)
 	{
 		_sizeReserved -= size;
 	}
@@ -129,8 +137,8 @@ namespace RN
 	VulkanDynamicBufferReference *VulkanDynamicBufferPool::GetDynamicBufferReference(uint32 size, uint32 index, GPUResource::UsageOptions usageOptions)
 	{
 		size_t reservedSize = -1;
-		VulkanDynamicBuffer *dynamicBuffer = nullptr;
-		_dynamicBuffers->Enumerate<VulkanDynamicBuffer>([&](VulkanDynamicBuffer *buffer, uint32 index, bool &stop){
+		VulkanDynamicGPUBuffer *dynamicBuffer = nullptr;
+		_dynamicBuffers->Enumerate<VulkanDynamicGPUBuffer>([&](VulkanDynamicGPUBuffer *buffer, uint32 index, bool &stop){
             if(buffer->_usageOptions != usageOptions) return;
 
 			reservedSize = buffer->Reserve(size);
@@ -166,7 +174,7 @@ namespace RN
 
 	void VulkanDynamicBufferPool::Update(Renderer *renderer, size_t currentFrame, size_t completedFrame)
 	{
-		_dynamicBuffers->Enumerate<VulkanDynamicBuffer>([&](VulkanDynamicBuffer *buffer, uint32 index, bool &stop){
+		_dynamicBuffers->Enumerate<VulkanDynamicGPUBuffer>([&](VulkanDynamicGPUBuffer *buffer, uint32 index, bool &stop){
 			buffer->Advance(currentFrame, completedFrame);
 			buffer->Reset();
 		});
@@ -186,7 +194,7 @@ namespace RN
 		{
 			//TODO: limit to a maximum size per buffer
 			size_t requiredBufferSize = std::max(typeSize.second, static_cast<size_t>(kRNMinimumDynamicBufferSize));
-			VulkanDynamicBuffer *dynamicBuffer = new VulkanDynamicBuffer(renderer, requiredBufferSize, typeSize.first);
+			VulkanDynamicGPUBuffer *dynamicBuffer = new VulkanDynamicGPUBuffer(renderer, requiredBufferSize, typeSize.first);
 
 			_newReferences->Enumerate<VulkanDynamicBufferReference>([&](VulkanDynamicBufferReference *reference, uint32 index, bool &stop){
 				if(reference->usageOptions == typeSize.first)
@@ -204,9 +212,9 @@ namespace RN
 
 	void VulkanDynamicBufferPool::FlushAllBuffers()
 	{
-		_dynamicBuffers->Enumerate<VulkanDynamicBuffer>([&](VulkanDynamicBuffer *buffer, uint32 index, bool &stop){
+		_dynamicBuffers->Enumerate<VulkanDynamicGPUBuffer>([&](VulkanDynamicGPUBuffer *buffer, uint32 index, bool &stop){
 			if(buffer->_sizeUsed > 0)
-				buffer->GetActiveBuffer()->Flush();
+				buffer->Flush();
 		});
 	}
 }

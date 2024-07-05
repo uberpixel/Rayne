@@ -49,8 +49,7 @@ namespace RN
 		MTLAPI size_t GetAlignmentForType(PrimitiveType type) const final;
 		MTLAPI size_t GetSizeForType(PrimitiveType type) const final;
 
-		MTLAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
-		MTLAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+		MTLAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions, bool streameable) final;
 
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		MTLAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;

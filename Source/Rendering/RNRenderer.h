@@ -112,8 +112,7 @@ namespace RN
 		RNAPI virtual size_t GetAlignmentForType(PrimitiveType type) const = 0;
 		RNAPI virtual size_t GetSizeForType(PrimitiveType type) const = 0;
 
-		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
-		RNAPI virtual GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) = 0;
+		RNAPI virtual GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions, bool streameable) = 0;
 
 		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithFile(const String *file) = 0;
 		RNAPI virtual ShaderLibrary *CreateShaderLibraryWithSource(const String *source) = 0;

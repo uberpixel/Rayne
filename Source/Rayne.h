@@ -75,7 +75,6 @@
 #include "Objects/RNRingBuffer.h"
 #include "Objects/RNString.h"
 
-#include "Rendering/RNDynamicGPUBuffer.h"
 #include "Rendering/RNFramebuffer.h"
 #include "Rendering/RNGPUBuffer.h"
 #include "Rendering/RNGPUResource.h"

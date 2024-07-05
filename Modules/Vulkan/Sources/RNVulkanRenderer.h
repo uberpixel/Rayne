@@ -26,7 +26,8 @@ namespace RN
 	class VulkanStateCoordinator;
 	class VulkanDynamicBufferPool;
 	class VulkanDynamicBufferReference;
-	class VulkanGPUBuffer;
+	class VulkanStaticGPUBuffer;
+	class VulkanDynamicGPUBuffer;
 	class VulkanBufferedDescriptorSet;
 
 	class VulkanRenderer : public Renderer
@@ -34,7 +35,8 @@ namespace RN
 	public:
 		friend VulkanFramebuffer;
 		friend VulkanStateCoordinator;
-		friend VulkanGPUBuffer;
+		friend VulkanStaticGPUBuffer;
+		friend VulkanDynamicGPUBuffer;
 		friend VulkanTexture;
 		friend VulkanBufferedDescriptorSet;
 
@@ -55,8 +57,7 @@ namespace RN
 		VKAPI size_t GetSizeForType(PrimitiveType type) const final;
 
 
-		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
-		VKAPI GPUBuffer *CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions) final;
+		VKAPI GPUBuffer *CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions, bool isStreamable) final;
 
 		VKAPI ShaderLibrary *CreateShaderLibraryWithFile(const String *file) final;
 		VKAPI ShaderLibrary *CreateShaderLibraryWithSource(const String *source) final;

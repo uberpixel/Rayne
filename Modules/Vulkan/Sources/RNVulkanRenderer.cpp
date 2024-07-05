@@ -9,11 +9,11 @@
 #include "RNVulkanRenderer.h"
 #include "RNVulkanWindow.h"
 #include "RNVulkanInternals.h"
-#include "RNVulkanGPUBuffer.h"
 #include "RNVulkanShader.h"
 #include "RNVulkanShaderLibrary.h"
 #include "RNVulkanFramebuffer.h"
-#include "RNVulkanDynamicBuffer.h"
+#include "RNVulkanDynamicGPUBuffer.h"
+#include "RNVulkanStaticGPUBuffer.h"
 
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
@@ -1002,15 +1002,14 @@ namespace RN
 		_mipMapTextures->RemoveAllObjects();
 	}
 
-	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
+	GPUBuffer *VulkanRenderer::CreateBufferWithLength(size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions, bool isStreamable)
 	{
-		return (new VulkanGPUBuffer(this, nullptr, length, usageOptions));
-	}
-	GPUBuffer *VulkanRenderer::CreateBufferWithBytes(const void *bytes, size_t length, GPUResource::UsageOptions usageOptions, GPUResource::AccessOptions accessOptions)
-	{
-		void *data = malloc(length);
-		memcpy(data, bytes, length);
-		return (new VulkanGPUBuffer(this, data, length, usageOptions));
+		if(isStreamable)
+		{
+			return new VulkanDynamicGPUBuffer(this, length, usageOptions);
+		}
+
+		return (new VulkanStaticGPUBuffer(this, nullptr, length, usageOptions, accessOptions));
 	}
 
 	VulkanDynamicBufferReference *VulkanRenderer::GetConstantBufferReference(size_t size, size_t index, GPUResource::UsageOptions usageOptions)
@@ -1054,8 +1053,7 @@ namespace RN
 
 	void VulkanRenderer::FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanDynamicBufferReference *dynamicBufferReference, VulkanDrawable *drawable)
 	{
-		GPUBuffer *gpuBuffer = dynamicBufferReference->dynamicBuffer->GetActiveBuffer();
-		uint8 *buffer = reinterpret_cast<uint8 *>(gpuBuffer->GetBuffer()) + dynamicBufferReference->offset;
+		uint8 *buffer = reinterpret_cast<uint8 *>(dynamicBufferReference->dynamicBuffer->GetBuffer()) + dynamicBufferReference->offset;
 
 		Material *overrideMaterial = _internals->renderPasses[_internals->currentRenderPassIndex].overrideMaterial;
 		const Material::Properties &mergedMaterialProperties = drawable->material->GetMergedProperties(overrideMaterial);
@@ -1930,7 +1928,7 @@ namespace RN
 
                         VulkanDynamicBufferReference *constantBuffer = uniformState->vertexConstantBuffers[bufferIndex];
 
-						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveBuffer();
+						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveGPUBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
@@ -1967,7 +1965,7 @@ namespace RN
 
                         VulkanDynamicBufferReference *constantBuffer = uniformState->fragmentConstantBuffers[bufferIndex];
 
-						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveBuffer();
+						GPUBuffer *gpuBuffer = constantBuffer->dynamicBuffer->GetActiveGPUBuffer();
 						VkDescriptorBufferInfo constantBufferDescriptorInfo = {};
 						constantBufferDescriptorInfo.buffer = gpuBuffer->Downcast<VulkanGPUBuffer>()->GetVulkanBuffer();
 						constantBufferDescriptorInfo.offset = constantBuffer->offset;
@@ -2073,7 +2071,7 @@ namespace RN
 
 		VulkanGPUBuffer *buffer = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUVertexBuffer());
 		VulkanGPUBuffer *indices = static_cast<VulkanGPUBuffer *>(drawable->mesh->GetGPUIndicesBuffer());
-        VulkanGPUBuffer *instanceAttributesBuffer = uniformState->instanceAttributesBuffer? static_cast<VulkanGPUBuffer *>(uniformState->instanceAttributesBuffer->dynamicBuffer->GetActiveBuffer()) : nullptr;
+        VulkanGPUBuffer *instanceAttributesBuffer = uniformState->instanceAttributesBuffer? static_cast<VulkanGPUBuffer *>(uniformState->instanceAttributesBuffer->dynamicBuffer->GetActiveGPUBuffer()) : nullptr;
 
 		//IF positions are separated, they will be in the first part of the buffer, everything else will be bound as the second binding, per instance data if provided through attributes are bound as a third buffer
         VkDeviceSize offsets[3];
@@ -2081,12 +2079,12 @@ namespace RN
         int attributesBufferIndex = 0;
 
         offsets[attributesBufferIndex] = 0;
-        vertexBuffers[attributesBufferIndex++] = buffer->_buffer;
+        vertexBuffers[attributesBufferIndex++] = buffer->GetVulkanBuffer();
 
         if(pipelineState->vertexAttributeBufferCount > 1)
         {
             offsets[attributesBufferIndex] = drawable->mesh->GetVertexPositionsSeparatedSize();
-            vertexBuffers[attributesBufferIndex++] = buffer->_buffer;
+            vertexBuffers[attributesBufferIndex++] = buffer->GetVulkanBuffer();
         }
         if(instanceAttributesBuffer)
         {
@@ -2099,7 +2097,7 @@ namespace RN
 		if(drawable->mesh->GetIndicesCount() > 0)
 		{
             // Bind mesh index buffer
-			vk::CmdBindIndexBuffer(commandBuffer, indices->_buffer, 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+			vk::CmdBindIndexBuffer(commandBuffer, indices->GetVulkanBuffer(), 0, drawable->mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetType() == PrimitiveType::Uint16? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
             // Render mesh vertex buffer using it's indices
 			vk::CmdDrawIndexed(commandBuffer, drawable->mesh->GetIndicesCount(), instanceCount, 0, 0, 0);
 		}
