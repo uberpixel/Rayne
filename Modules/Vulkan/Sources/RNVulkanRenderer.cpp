@@ -36,6 +36,7 @@ namespace RN
 		_currentCommandBuffer(nullptr),
 		_currentResourcesCommandBuffer(nullptr),
 		_commandBufferPool(new Array()),
+		_commandBufferResourcesPool(new Array()),
         _defaultPostProcessingDrawable(nullptr),
 		_currentMultiviewLayer(0),
 		_currentMultiviewCount(0),
@@ -78,6 +79,9 @@ namespace RN
 		cmdPoolInfo.queueFamilyIndex = device->GetWorkQueue();
 		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPool));
+
+		//Create additional command pool for resource loading
+		RNVulkanValidate(vk::CreateCommandPool(device->GetDevice(), &cmdPoolInfo, nullptr, &_commandPoolSynchronised));
 
 		_defaultShaderLibrary = CreateShaderLibraryWithFile(RNCSTR(":RayneVulkan:/Shaders.json"));
 		_dynamicBufferPool = new VulkanDynamicBufferPool();
@@ -141,7 +145,34 @@ namespace RN
 		_currentResourcesCommandBufferLock.Lock();
 		if(!_currentResourcesCommandBuffer)
         {
-            _currentResourcesCommandBuffer = GetCommandBuffer()->Retain();
+			VulkanCommandBuffer *commandBuffer = nullptr;
+			for(int i = 0; i < _commandBufferResourcesPool->GetCount(); i++)
+			{
+				commandBuffer = static_cast<VulkanCommandBuffer*>(_commandBufferResourcesPool->GetObjectAtIndex(i));
+				if(commandBuffer->_frameValue < _completedFrame) break;
+			}
+
+			if(!commandBuffer || commandBuffer->_frameValue >= _completedFrame)
+			{
+				commandBuffer = new VulkanCommandBuffer(GetVulkanDevice()->GetDevice(), _commandPoolSynchronised);
+
+				VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+				commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+				commandBufferAllocateInfo.commandPool = _commandPoolSynchronised;
+				commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+				commandBufferAllocateInfo.commandBufferCount = 1;
+
+				RNVulkanValidate(vk::AllocateCommandBuffers(GetVulkanDevice()->GetDevice(), &commandBufferAllocateInfo, &commandBuffer->_commandBuffer));
+
+				_commandBufferResourcesPool->AddObject(commandBuffer);
+				commandBuffer->Release();
+			}
+			else
+			{
+				commandBuffer->Reset();
+			}
+
+            _currentResourcesCommandBuffer = commandBuffer; //already retained at as part of the pool array, not doing any memory management on this!
 		    _currentResourcesCommandBuffer->Begin();
         }
 
@@ -232,7 +263,7 @@ namespace RN
 		for(int i = _executedCommandBuffers->GetCount() - 1; i >= 0; i--)
 		{
 			VulkanCommandBuffer *commandBuffer = _executedCommandBuffers->GetObjectAtIndex<VulkanCommandBuffer>(i);
-			if(commandBuffer->_frameValue <= frame)
+			if(commandBuffer->_frameValue <= frame) //Will be added to the executed list AFTER ReleaseFrameResources is called, so this check is fine
 			{
 				_commandBufferPool->AddObject(commandBuffer);
 				_executedCommandBuffers->RemoveObjectAtIndex(i);
@@ -245,7 +276,7 @@ namespace RN
 		for(int i = _internals->frameResources.size()-1; i >= 0; i--)
 		{
 			VulkanFrameResource &frameResource = _internals->frameResources[i];
-			if(frameResource.frame <= frame)
+			if(frameResource.frame < frame) //Might be added to the frame resources just before this call, without finishing using them, so just using < here to keep around for one more frame
 			{
 				if(frameResource.finishedCallback)
 				{
@@ -273,21 +304,26 @@ namespace RN
         CreateMipMaps();
 
 		_currentResourcesCommandBufferLock.Lock();
-		if(_currentResourcesCommandBuffer)
+		VulkanCommandBuffer *resourcesCommandBuffer = _currentResourcesCommandBuffer;
+		if(resourcesCommandBuffer)
 		{
-			_currentResourcesCommandBuffer->End();
-            _submittedCommandBuffers->AddObject(_currentResourcesCommandBuffer);
-			SafeRelease(_currentResourcesCommandBuffer);
+			resourcesCommandBuffer->End();
+			resourcesCommandBuffer->_frameValue = _currentFrame;
 		}
+		_currentResourcesCommandBuffer = nullptr; //Always stays inside it's pool array, so just don't do any retain release
 		_currentResourcesCommandBufferLock.Unlock();
 
 		_lock.Lock();
         VkSemaphore resourceUploadsSemaphore = VK_NULL_HANDLE;
-		if(_submittedCommandBuffers->GetCount() > 0)
+		if(_submittedCommandBuffers->GetCount() > 0 || resourcesCommandBuffer)
 		{
 			std::vector<VkCommandBuffer> buffers;
 
-			buffers.reserve(_submittedCommandBuffers->GetCount());
+			buffers.reserve(_submittedCommandBuffers->GetCount() + 1);
+			if(resourcesCommandBuffer)
+			{
+				buffers.push_back(resourcesCommandBuffer->_commandBuffer);
+			}
 			_submittedCommandBuffers->Enumerate<VulkanCommandBuffer>([&](VulkanCommandBuffer *buffer, int i, bool &stop){
 				buffer->_frameValue = _currentFrame;
 				buffers.push_back(buffer->_commandBuffer);

@@ -122,9 +122,11 @@ namespace RN
 		Lockable _currentResourcesCommandBufferLock;
 		VulkanCommandBuffer *_currentResourcesCommandBuffer;
 		VkCommandPool _commandPool;
+		VkCommandPool _commandPoolSynchronised; //Used for asynchronously loading resources, recording onto the pool is synchronised with locks
 		Array *_submittedCommandBuffers;
 		Array *_executedCommandBuffers;
 		Array *_commandBufferPool;
+		Array *_commandBufferResourcesPool;
 
 		VulkanDynamicBufferPool *_dynamicBufferPool;
 

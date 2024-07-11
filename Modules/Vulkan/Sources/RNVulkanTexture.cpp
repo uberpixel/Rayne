@@ -442,16 +442,28 @@ namespace RN
 
 	VulkanTexture::~VulkanTexture()
 	{
-		VulkanDevice *device = _renderer->GetVulkanDevice();
-
 		if(_uploadImage != VK_NULL_HANDLE)
 			StopStreamingData();
 
-		if(_imageView != VK_NULL_HANDLE)
-			vk::DestroyImageView(device->GetDevice(), _imageView, _renderer->GetAllocatorCallback());
+		if((_image != VK_NULL_HANDLE && !_isFromSwapchain) || _imageView != VK_NULL_HANDLE)
+		{
+			VkImageView imageView = _imageView;
+			VkImage image = _isFromSwapchain? VK_NULL_HANDLE : _image;
+			VmaAllocation allocation = _allocation;
+			VulkanRenderer *renderer = _renderer;
+			renderer->AddFrameFinishedCallback([renderer, imageView, image, allocation]() {
+				if(imageView != VK_NULL_HANDLE)
+				{
+					VulkanDevice *device = renderer->GetVulkanDevice();
+					vk::DestroyImageView(device->GetDevice(), imageView, renderer->GetAllocatorCallback());
+				}
 
-		if (_image != VK_NULL_HANDLE && !_isFromSwapchain)
-			vmaDestroyImage(_renderer->_internals->memoryAllocator, _image, _allocation);
+				if(image != VK_NULL_HANDLE)
+				{
+					vmaDestroyImage(renderer->_internals->memoryAllocator, image, allocation);
+				}
+			});
+		}
 	}
 
 	void VulkanTexture::StartStreamingData(const Region &region)
