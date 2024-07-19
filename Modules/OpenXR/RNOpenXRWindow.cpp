@@ -1567,6 +1567,7 @@ namespace RN
 
 				auto insertLayer = [&](OpenXRCompositorLayer *layer) {
 					if(!layer->_isActive) return;
+					if(!layer->_shouldDisplay) return;
 					if(layer->_swapChain && !layer->_swapChain->_hasContent) return;
 					layers.push_back(layer->_internals->layerBaseHeader);
 				};

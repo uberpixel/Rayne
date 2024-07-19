@@ -47,6 +47,7 @@ namespace RN
 		OpenXRSwapChain *_swapChain;
 		bool _isActive;
 		bool _isSessionActive;
+		bool _shouldDisplay;
 
 		RNDeclareMetaAPI(OpenXRCompositorLayer, OXRAPI)
 	};

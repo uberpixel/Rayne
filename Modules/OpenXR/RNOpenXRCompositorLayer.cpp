@@ -14,7 +14,7 @@ namespace RN
 {
 	RNDefineMeta(OpenXRCompositorLayer, VRCompositorLayer)
 
-	OpenXRCompositorLayer::OpenXRCompositorLayer(Type type, const Window::SwapChainDescriptor &descriptor, Vector2 resolution, bool supportFoveation, OpenXRWindow *window) : VRCompositorLayer(type), _internals(new OpenXRCompositorLayerInternals()), _swapChain(nullptr), _isActive(true), _isSessionActive(false)
+	OpenXRCompositorLayer::OpenXRCompositorLayer(Type type, const Window::SwapChainDescriptor &descriptor, Vector2 resolution, bool supportFoveation, OpenXRWindow *window) : VRCompositorLayer(type), _internals(new OpenXRCompositorLayerInternals()), _swapChain(nullptr), _isActive(true), _isSessionActive(false), _shouldDisplay(true)
 	{
 		Window::SwapChainDescriptor tempDescriptor = descriptor;
 
@@ -166,11 +166,11 @@ namespace RN
 			_internals->layerQuad.pose.orientation.y = _rotation.y;
 			_internals->layerQuad.pose.orientation.z = _rotation.z;
 			_internals->layerQuad.pose.orientation.w = _rotation.w;
-			_internals->layerQuad.size.width = _rotation.x;
-			_internals->layerQuad.size.height = _rotation.y;
+			_internals->layerQuad.size.width = _scale.x;
+			_internals->layerQuad.size.height = _scale.y;
 		}
 
-		if(window->_supportsDynamicResolution)
+		if(window->_supportsDynamicResolution && _type == TypeProjectionView) //Seems to only return good values for the projection type!? Always 0 for quads :(
 		{
 			XrRecommendedLayerResolutionGetInfoMETA recommendedLayerResolutionGetInfo;
 			recommendedLayerResolutionGetInfo.type = XR_TYPE_RECOMMENDED_LAYER_RESOLUTION_GET_INFO_META;
@@ -195,6 +195,8 @@ namespace RN
 						_internals->layerQuad.subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
 						_internals->layerQuad.subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
 					}
+
+					_shouldDisplay = (recommendedLayerResolution.recommendedImageDimensions.width > 0 && recommendedLayerResolution.recommendedImageDimensions.height > 0);
 
 					//TODO: Need to also adapt the framebuffer size!
 					//RNDebug("new recommended resolution: " << recommendedLayerResolution.recommendedImageDimensions.width << " x " << recommendedLayerResolution.recommendedImageDimensions.height);
