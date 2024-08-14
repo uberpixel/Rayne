@@ -38,7 +38,7 @@ namespace RN
 		void UnmapBuffer() override { } //Can't be unmapped and is just permanently mapped
 		void InvalidateRange(const Range &range) override { _buffers[_bufferIndex]->InvalidateRange(range); }
 		VKAPI void FlushRange(const Range &range) override;
-		RNAPI virtual size_t GetLength() const override { return _totalSize; }
+		virtual size_t GetLength() const override { return _totalSize; }
 
 		virtual VkBuffer GetVulkanBuffer() const override { return _buffers[_bufferIndex]->GetVulkanBuffer(); }
 

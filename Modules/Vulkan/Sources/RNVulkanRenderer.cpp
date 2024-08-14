@@ -149,10 +149,10 @@ namespace RN
 			for(int i = 0; i < _commandBufferResourcesPool->GetCount(); i++)
 			{
 				commandBuffer = static_cast<VulkanCommandBuffer*>(_commandBufferResourcesPool->GetObjectAtIndex(i));
-				if(commandBuffer->_frameValue < _completedFrame) break;
+				if(commandBuffer->_frameValue < _completedFrame && _completedFrame != -1) break;
 			}
 
-			if(!commandBuffer || commandBuffer->_frameValue >= _completedFrame)
+			if(!commandBuffer || commandBuffer->_frameValue >= _completedFrame || _completedFrame == -1)
 			{
 				commandBuffer = new VulkanCommandBuffer(GetVulkanDevice()->GetDevice(), _commandPoolSynchronised);
 
