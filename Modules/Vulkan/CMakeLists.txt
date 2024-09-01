@@ -34,8 +34,8 @@ ExternalProject_Add(vulkan_headers
 set(VMA_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/VulkanMemoryAllocator-prefix/src/VulkanMemoryAllocator)
 ExternalProject_Add(VulkanMemoryAllocator
         GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-        GIT_TAG origin/master
-        GIT_SHALLOW ON
+        GIT_TAG b8e57472fffa3bd6e0a0b675f4615bf0a823ec4d #origin/master is usually fine, but broke at the time of changing this, with a pull request waiting to be merged
+        #GIT_SHALLOW ON #not allowed with commit hashes...
         GIT_PROGRESS ON
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
