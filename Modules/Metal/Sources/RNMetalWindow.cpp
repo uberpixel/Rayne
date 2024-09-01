@@ -33,7 +33,7 @@ namespace RN
 		NSScreen *nsscreen = (NSScreen *)screen->GetNSScreen();
 		if(descriptor.wantsFullscreen)
 		{
-			NSDictionary *fullscreenOptions = @{NSFullScreenModeApplicationPresentationOptions : @(NSApplicationPresentationHideMenuBar | NSApplicationPresentationHideDock | NSApplicationPresentationFullScreen | NSApplicationPresentationDisableAppleMenu)};
+			NSDictionary *fullscreenOptions = nil;//@{NSFullScreenModeApplicationPresentationOptions : @(NSApplicationPresentationHideMenuBar | NSApplicationPresentationHideDock | NSApplicationPresentationFullScreen | NSApplicationPresentationDisableAppleMenu)};
 			[_swapChain->_metalView enterFullScreenMode:nsscreen withOptions:fullscreenOptions];
 			_swapChain->_metalView.wantsLayer = YES;
 		}
