@@ -6,7 +6,7 @@
 //
 
 #include <Rayne.h>
-#include "__TMP_APPLICATION_NAME__Lib.h"
+#include "__TMP_APPLICATION_TARGET__Lib.h"
 
 #if RN_BUILD_RELEASE
 	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")

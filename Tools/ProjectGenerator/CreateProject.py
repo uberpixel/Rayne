@@ -30,7 +30,7 @@ def main():
 			if filename == "gitattributes":
 				filename = ".gitattributes"
 			filename = filename.replace("__TMP__", prefixString)
-			filename = filename.replace("__TMP_APPLICATION_NAME__", projectNameString)
+			filename = filename.replace("__TMP_APPLICATION_TARGET__", projectTarget)
 			writeFilePath = os.path.join(relativeRoot, filename)
 			
 			with open(readFilePath, 'rb') as readFile:

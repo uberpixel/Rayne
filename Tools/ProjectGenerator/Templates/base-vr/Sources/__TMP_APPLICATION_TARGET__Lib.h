@@ -1,12 +1,12 @@
 //
-//  __TMP_APPLICATION_NAME__Lib.h
+//  __TMP_APPLICATION_TARGET__Lib.h
 //  __TMP_APPLICATION_NAME__
 //
 //  Copyright __TMP_YEAR__ by __TMP_COMPANY__. All rights reserved.
 //
 
-#ifndef __TMP_APPLICATION_NAME___LIB_H
-#define __TMP_APPLICATION_NAME___LIB_H
+#ifndef __TMP_APPLICATION_TARGET__LIB_H
+#define __TMP_APPLICATION_TARGET__LIB_H
 
 #if RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 #import <Foundation/Foundation.h>
@@ -25,4 +25,4 @@
 	void ios_main(CAMetalLayer *view);
 #endif
 
-#endif //__TMP_APPLICATION_NAME___LIB_H
+#endif //__TMP_APPLICATION_TARGET__LIB_H
