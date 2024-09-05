@@ -1396,6 +1396,12 @@ namespace RN
 					break;
 				}
 
+				case Shader::UniformDescriptor::Identifier::UIOutlineColor:
+				{
+					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.uiOutlineColor.r, descriptor->GetSize());
+					break;
+				}
+
 				case Shader::UniformDescriptor::Identifier::TextureTileFactor:
 				{
 					std::memcpy(buffer + descriptor->GetOffset(), &mergedMaterialProperties.textureTileFactor, descriptor->GetSize());

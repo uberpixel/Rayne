@@ -338,6 +338,11 @@ namespace RN
 			_identifier = UIOffset;
 			_type = PrimitiveType::Vector2;
 		}
+		else if(name->IsEqual(RNCSTR("material_uioutlinecolor")) || name->IsEqual(RNCSTR("uiOutlineColor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_UIOUTLINECOLOR")))
+		{
+			_identifier = UIOutlineColor;
+			_type = PrimitiveType::Color;
+		}
 		else if(name->IsEqual(RNCSTR("material_texturetilefactor")) || name->IsEqual(RNCSTR("textureTileFactor")) || name->IsEqual(RNCSTR("in_var_INSTANCE_TEXTURETILEFACTOR")))
 		{
 			_identifier = TextureTileFactor;

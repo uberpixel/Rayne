@@ -151,7 +151,8 @@
                         "RN_COLOR",
                         "RN_USE_MULTIVIEW",
                         "RN_UI_CIRCLE",
-                        "RN_UI_GRADIENT"
+                        "RN_UI_GRADIENT",
+                        "RN_UI_OUTLINE"
                     ]
                 },
                 "type": "vertex"

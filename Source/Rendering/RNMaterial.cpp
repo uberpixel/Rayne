@@ -58,6 +58,7 @@ namespace RN
 		
 		uiClippingRect = properties.uiClippingRect;
 		uiOffset = properties.uiOffset;
+		uiOutlineColor = properties.uiOutlineColor;
 		
 		_customShaderUniforms.clear();
 		_customShaderUniforms.insert(properties._customShaderUniforms.begin(), properties._customShaderUniforms.end());
@@ -295,6 +296,11 @@ namespace RN
 	{
 		_properties.uiOffset = offset;
 	}
+
+	void Material::SetUIOutlineColor(Color color)
+	{
+		_properties.uiOutlineColor = color;
+	}
 	
 	void Material::SetBlendOperation(BlendOperation blendOperationRGB, BlendOperation blendOperationAlpha)
 	{
@@ -455,7 +461,8 @@ namespace RN
 		
 		_mergedProperties.uiClippingRect = _properties.uiClippingRect;
 		_mergedProperties.uiOffset = _properties.uiOffset;
-
+		_mergedProperties.uiOutlineColor = _properties.uiOutlineColor;
+		
 		_mergedProperties._customShaderUniforms.clear();
 		_mergedProperties._customShaderUniforms.insert(_properties._customShaderUniforms.begin(), _properties._customShaderUniforms.end());
 		if(!(overrideMaterial->GetOverride() & Override::CustomUniforms) && !(_override & Override::CustomUniforms) && overrideMaterial->_properties._customShaderUniforms.size() > 0)

@@ -5,18 +5,6 @@
 //  Copyright 2021 by SlinDev. All rights reserved.
 //
 
-#ifndef RN_UV0
-#define RN_UV0 0
-#endif
-
-#ifndef RN_UV1
-#define RN_UV1 0
-#endif
-
-#ifndef RN_COLOR
-#define RN_COLOR 0
-#endif
-
 #if RN_UV0
 Texture2D texture0;
 SamplerState linearClampSampler;
@@ -41,11 +29,19 @@ cbuffer vertexUniforms
 
 	float4 uiClippingRect;
 	float2 uiOffset;
+
+#if RN_UI_OUTLINE
+	float4 uiOutlineColor;
+#endif
 };
 
 struct InputVertex
 {
+#if RN_UI_OUTLINE
+	[[vk::location(0)]] float3 position : POSITION;
+#else
 	[[vk::location(0)]] float2 position : POSITION;
+#endif
 
 #if RN_COLOR
 	[[vk::location(3)]] float4 color : COLOR;
@@ -96,7 +92,7 @@ FragmentVertex ui_vertex(InputVertex vert)
 	result.curveTexCoords = vert.curveTexCoords;
 #endif
 
-	float2 position = vert.position + uiOffset;
+	float2 position = vert.position.xy + uiOffset;
 
 #if RN_USE_MULTIVIEW
 	result.position = mul(modelViewProjectionMatrix_multiview[vert.viewIndex], float4(position, 0.0, 1.0));
@@ -110,11 +106,18 @@ FragmentVertex ui_vertex(InputVertex vert)
 	result.clipDistance.w = position.y + uiClippingRect.w;
 
 	float4 colorFactor = cameraAmbientColor;
+
 #if RN_COLOR
 	colorFactor *= vert.color;
 #endif
 
+#if RN_UI_OUTLINE
+	result.color = vert.position.z < 0.5? diffuseColor : uiOutlineColor;
+	result.color *= colorFactor;
+#else
 	result.color = diffuseColor * colorFactor;
+#endif
+
 #if RN_UI_GRADIENT
 	result.color1 = specularColor * colorFactor;
 	result.color2 = emissiveColor * colorFactor;

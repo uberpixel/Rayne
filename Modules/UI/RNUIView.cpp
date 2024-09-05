@@ -10,6 +10,8 @@
 #include "RNUIWindow.h"
 #include "RNUIServer.h"
 
+#include <KGMeshGeneratorLoopBlinn.h> //Used to generate the outline for views with outline and rounded corners, which requires handling of overlaps
+
 namespace RN
 {
 	namespace UI
@@ -42,6 +44,8 @@ namespace RN
 			_blendOperationA(BlendOperation::Add),
 			_cornerRadius(0.0f, 0.0f, 0.0f, 0.0f),
 			_isCircle(false),
+			_hasOutline(false),
+			_outlineThickness(0.0f),
 			_renderPriorityOverride(0)
 		{
 			SetRenderGroup(1 << 7);
@@ -443,8 +447,8 @@ namespace RN
 			_hasBackgroundGradient = true;
 			_backgroundColor[0] = colorTopLeft;
 			_backgroundColor[1] = colorTopRight;
-			_backgroundColor[2] = colorBottomLeft;
-			_backgroundColor[3] = colorBottomRight;
+			_backgroundColor[2] = colorBottomRight;
+			_backgroundColor[3] = colorBottomLeft;
 
 			if(model)
 			{
@@ -601,6 +605,32 @@ namespace RN
 			RN_ASSERT(!GetModel(), "MakeCircle can only be called before displaying a view for the first time");
 			_isCircle = true;
 		}
+	
+		void View::SetOutline(Color color, float thickness)
+		{
+			Lock();
+			RN::Model *model = GetModel();
+			RN_ASSERT(!model || _hasOutline, "SetOutline has to be called before displaying a view for the first time, but can be used to update the values after");
+			
+			_hasOutline = true;
+			_outlineColor = color;
+			
+			if(thickness != _outlineThickness) _needsMeshUpdate = true;
+			_outlineThickness = thickness;
+
+			if(model)
+			{
+				Color finalColor;
+				finalColor = _outlineColor;
+				finalColor.a *= _combinedOpacityFactor;
+				
+				Material *material = model->GetLODStage(0)->GetMaterialAtIndex(0);
+				material->SetUIOutlineColor(finalColor);
+				
+				//TODO: Skip rendering stuff should also depend on the outline being visible or not...
+			}
+			Unlock();
+		}
 
 		// ---------------------
 		// MARK: -
@@ -714,75 +744,225 @@ namespace RN
 			
 			if((cornerRadius.x > 0.0f || cornerRadius.y > 0.0f || cornerRadius.z > 0.0f || cornerRadius.w > 0.0f) && !_isCircle)
 			{
-				float *vertexPositionBuffer = new float[20 * 2];
-				float *vertexUV0Buffer = new float[20 * 2];
-				float *vertexUV1Buffer = new float[20 * 3];
-				uint32 *indexBuffer = new uint32[30];
+				size_t vertexCount = 20;
+				size_t indexCount = 30;
+				size_t vertexPositionSize = (_hasOutline? 3 : 2);
 				
-				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
+				KG::TriangleMesh outlineTriangleMesh;
+				size_t outlineTriangleMeshVertexFloatCount = 0;
+				if(_hasOutline && _outlineThickness > RN::k::EpsilonFloat)
+				{
+					KG::PathCollection paths;
+					KG::Path mypath;
+					KG::PathSegment segment;
+					
+					//Outter outline
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.push_back({cornerRadius.x, 0.0});
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, 0.0});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, 0.0});
+					segment.controlPoints.push_back({_frame.width, 0.0});
+					segment.controlPoints.push_back({_frame.width, -cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width, -cornerRadius.y});
+					segment.controlPoints.push_back({_frame.width, -_frame.height + cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width, -_frame.height + cornerRadius.y});
+					segment.controlPoints.push_back({_frame.width, -_frame.height});
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_frame.height});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_frame.height});
+					segment.controlPoints.push_back({cornerRadius.x, -_frame.height});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({cornerRadius.x, -_frame.height});
+					segment.controlPoints.push_back({0.0, -_frame.height});
+					segment.controlPoints.push_back({0.0, -_frame.height + cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({0.0, -_frame.height + cornerRadius.y});
+					segment.controlPoints.push_back({0.0, -cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({0.0, -cornerRadius.y});
+					segment.controlPoints.push_back({0.0, 0.0});
+					segment.controlPoints.push_back({cornerRadius.x, 0.0});
+					mypath.segments.push_back(segment);
+						
+					paths.paths.push_back(mypath);
+					mypath.segments.clear();
+					
+					
+					//Inner outline
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({cornerRadius.x, -_outlineThickness});
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_outlineThickness});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_outlineThickness});
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -_outlineThickness});
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -cornerRadius.y});
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -_frame.height + cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -_frame.height + cornerRadius.y});
+					segment.controlPoints.push_back({_frame.width - _outlineThickness, -_frame.height + _outlineThickness});
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_frame.height + _outlineThickness});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_frame.width - cornerRadius.x, -_frame.height + _outlineThickness});
+					segment.controlPoints.push_back({cornerRadius.x, -_frame.height + _outlineThickness});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({cornerRadius.x, -_frame.height + _outlineThickness});
+					segment.controlPoints.push_back({_outlineThickness, -_frame.height + _outlineThickness});
+					segment.controlPoints.push_back({_outlineThickness, -_frame.height + cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeLine;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_outlineThickness, -_frame.height + cornerRadius.y});
+					segment.controlPoints.push_back({_outlineThickness, -cornerRadius.y});
+					mypath.segments.push_back(segment);
+					
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					segment.controlPoints.clear();
+					segment.controlPoints.push_back({_outlineThickness, -cornerRadius.y});
+					segment.controlPoints.push_back({_outlineThickness, -_outlineThickness});
+					segment.controlPoints.push_back({cornerRadius.x, -_outlineThickness});
+					mypath.segments.push_back(segment);
+						
+					paths.paths.push_back(mypath);
+					
+					outlineTriangleMesh = KG::MeshGeneratorLoopBlinn::GetMeshForPathCollection(paths);
+					outlineTriangleMeshVertexFloatCount = 5;
+
+					vertexCount += outlineTriangleMesh.vertices.size() / outlineTriangleMeshVertexFloatCount;
+					indexCount += outlineTriangleMesh.indices.size();
+				}
 				
-				vertexPositionBuffer[1 * 2 + 0] = cornerRadius.x;
-				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
+				float *vertexPositionBuffer = new float[vertexCount * vertexPositionSize];
+				float *vertexUV0Buffer = new float[vertexCount * 2];
+				float *vertexUV1Buffer = new float[vertexCount * 3];
+				uint32 *indexBuffer = new uint32[indexCount];
 				
-				vertexPositionBuffer[2 * 2 + 0] = cornerRadius.x;
-				vertexPositionBuffer[2 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[0 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[0 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[0 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[3 * 2 + 0] = _frame.width - cornerRadius.y;
-				vertexPositionBuffer[3 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[1 * vertexPositionSize + 0] = cornerRadius.x;
+				vertexPositionBuffer[1 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[1 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[4 * 2 + 0] = _frame.width - cornerRadius.y;
-				vertexPositionBuffer[4 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[2 * vertexPositionSize + 0] = cornerRadius.x;
+				vertexPositionBuffer[2 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[2 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[5 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[5 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[3 * vertexPositionSize + 0] = _frame.width - cornerRadius.y;
+				vertexPositionBuffer[3 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[3 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[6 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[6 * 2 + 1] = -cornerRadius.y;
+				vertexPositionBuffer[4 * vertexPositionSize + 0] = _frame.width - cornerRadius.y;
+				vertexPositionBuffer[4 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[4 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[7 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[7 * 2 + 1] = -cornerRadius.y;
+				vertexPositionBuffer[5 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[5 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[5 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[8 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[8 * 2 + 1] = cornerRadius.w - _frame.height;
+				vertexPositionBuffer[6 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[6 * vertexPositionSize + 1] = -cornerRadius.y;
+				if(_hasOutline) vertexPositionBuffer[6 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[9 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[9 * 2 + 1] = cornerRadius.w - _frame.height;
+				vertexPositionBuffer[7 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[7 * vertexPositionSize + 1] = -cornerRadius.y;
+				if(_hasOutline) vertexPositionBuffer[7 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[10 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[10 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[8 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[8 * vertexPositionSize + 1] = cornerRadius.w - _frame.height;
+				if(_hasOutline) vertexPositionBuffer[8 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[11 * 2 + 0] = _frame.width - cornerRadius.w;
-				vertexPositionBuffer[11 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[9 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[9 * vertexPositionSize + 1] = cornerRadius.w - _frame.height;
+				if(_hasOutline) vertexPositionBuffer[9 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[12 * 2 + 0] = _frame.width - cornerRadius.w;
-				vertexPositionBuffer[12 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[10 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[10 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[10 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[13 * 2 + 0] = cornerRadius.z;
-				vertexPositionBuffer[13 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[11 * vertexPositionSize + 0] = _frame.width - cornerRadius.w;
+				vertexPositionBuffer[11 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[11 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[14 * 2 + 0] = cornerRadius.z;
-				vertexPositionBuffer[14 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[12 * vertexPositionSize + 0] = _frame.width - cornerRadius.w;
+				vertexPositionBuffer[12 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[12 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[15 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[15 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[13 * vertexPositionSize + 0] = cornerRadius.z;
+				vertexPositionBuffer[13 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[13 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[16 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[16 * 2 + 1] = cornerRadius.z - _frame.height;
+				vertexPositionBuffer[14 * vertexPositionSize + 0] = cornerRadius.z;
+				vertexPositionBuffer[14 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[14 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[17 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[17 * 2 + 1] = cornerRadius.z - _frame.height;
+				vertexPositionBuffer[15 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[15 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[15 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[18 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[18 * 2 + 1] = -cornerRadius.x;
+				vertexPositionBuffer[16 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[16 * vertexPositionSize + 1] = cornerRadius.z - _frame.height;
+				if(_hasOutline) vertexPositionBuffer[16 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[19 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[19 * 2 + 1] = -cornerRadius.x;
+				vertexPositionBuffer[17 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[17 * vertexPositionSize + 1] = cornerRadius.z - _frame.height;
+				if(_hasOutline) vertexPositionBuffer[17 * vertexPositionSize + 2] = 0.0f;
+				
+				vertexPositionBuffer[18 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[18 * vertexPositionSize + 1] = -cornerRadius.x;
+				if(_hasOutline) vertexPositionBuffer[18 * vertexPositionSize + 2] = 0.0f;
+				
+				vertexPositionBuffer[19 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[19 * vertexPositionSize + 1] = -cornerRadius.x;
+				if(_hasOutline) vertexPositionBuffer[19 * vertexPositionSize + 2] = 0.0f;
 				
 				for(int i = 0; i < 20; i++)
 				{
-					vertexUV0Buffer[i * 2 + 0] = vertexPositionBuffer[i * 2 + 0] / _frame.width;
-					vertexUV0Buffer[i * 2 + 1] = -vertexPositionBuffer[i * 2 + 1] / _frame.height;
+					vertexUV0Buffer[i * 2 + 0] = vertexPositionBuffer[i * vertexPositionSize + 0] / _frame.width;
+					vertexUV0Buffer[i * 2 + 1] = -vertexPositionBuffer[i * vertexPositionSize + 1] / _frame.height;
 					
 					vertexUV1Buffer[i * 3 + 0] = 0.0f;
 					vertexUV1Buffer[i * 3 + 1] = 1.0f;
@@ -857,13 +1037,35 @@ namespace RN
 				indexBuffer[28] = 10;
 				indexBuffer[29] = 11;
 				
+				if(_hasOutline && _outlineThickness > RN::k::EpsilonFloat)
+				{
+					for(size_t i = 0; i < outlineTriangleMesh.vertices.size() / outlineTriangleMeshVertexFloatCount; i++)
+					{
+						vertexPositionBuffer[(i + 20) * vertexPositionSize + 0] = outlineTriangleMesh.vertices[i * outlineTriangleMeshVertexFloatCount + 0];
+						vertexPositionBuffer[(i + 20) * vertexPositionSize + 1] = outlineTriangleMesh.vertices[i * outlineTriangleMeshVertexFloatCount + 1];
+						vertexPositionBuffer[(i + 20) * vertexPositionSize + 2] = 1.0f;
+						
+						vertexUV0Buffer[(i + 20) * 2 + 0] = vertexPositionBuffer[(i + 20) * vertexPositionSize + 0] / _frame.width;
+						vertexUV0Buffer[(i + 20) * 2 + 1] = -vertexPositionBuffer[(i + 20) * vertexPositionSize + 1] / _frame.height;
+						
+						vertexUV1Buffer[(i + 20) * 3 + 0] = outlineTriangleMesh.vertices[i * outlineTriangleMeshVertexFloatCount + 2];
+						vertexUV1Buffer[(i + 20) * 3 + 1] = outlineTriangleMesh.vertices[i * outlineTriangleMeshVertexFloatCount + 3];
+						vertexUV1Buffer[(i + 20) * 3 + 2] = outlineTriangleMesh.vertices[i * outlineTriangleMeshVertexFloatCount + 4];
+					}
+					
+					for(size_t i = 0; i < outlineTriangleMesh.indices.size(); i++)
+					{
+						indexBuffer[(i + 30)] = 20 + outlineTriangleMesh.indices[i];
+					}
+				}
+				
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
-				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, _hasOutline? PrimitiveType::Vector3 : PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector3);
 				
-				mesh = new Mesh(meshVertexAttributes, 20, 30);
+				mesh = new Mesh(meshVertexAttributes, vertexCount, indexCount);
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
@@ -880,21 +1082,28 @@ namespace RN
 			}
 			else
 			{
-				float *vertexPositionBuffer = new float[4 * 2];
-				float *vertexUVBuffer = new float[4 * 2];
-				uint32 *indexBuffer = new uint32[6];
+				size_t vertexCount = _hasOutline? 12 : 4;
+				size_t indexCount = _hasOutline? 30 : 6;
+				size_t vertexPositionSize = (_hasOutline? 3 : 2);
+				float *vertexPositionBuffer = new float[vertexCount * vertexPositionSize];
+				float *vertexUVBuffer = new float[vertexCount * 2];
+				uint32 *indexBuffer = new uint32[indexCount];
 				
-				vertexPositionBuffer[0 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[0 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[0 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[0 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[0 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[1 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[1 * 2 + 1] = 0.0f;
+				vertexPositionBuffer[1 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[1 * vertexPositionSize + 1] = -_outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[1 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[2 * 2 + 0] = _frame.width;
-				vertexPositionBuffer[2 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[2 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+				vertexPositionBuffer[2 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[2 * vertexPositionSize + 2] = 0.0f;
 				
-				vertexPositionBuffer[3 * 2 + 0] = 0.0f;
-				vertexPositionBuffer[3 * 2 + 1] = -_frame.height;
+				vertexPositionBuffer[3 * vertexPositionSize + 0] = _outlineThickness;
+				vertexPositionBuffer[3 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+				if(_hasOutline) vertexPositionBuffer[3 * vertexPositionSize + 2] = 0.0f;
 				
 				vertexUVBuffer[0 * 2 + 0] = 0.0f;
 				vertexUVBuffer[0 * 2 + 1] = 0.0f;
@@ -916,12 +1125,109 @@ namespace RN
 				indexBuffer[4] = 2;
 				indexBuffer[5] = 1;
 				
+				if(_hasOutline)
+				{
+					//Inner vertices of outline
+					vertexPositionBuffer[4 * vertexPositionSize + 0] = _outlineThickness;
+					vertexPositionBuffer[4 * vertexPositionSize + 1] = -_outlineThickness;
+					vertexPositionBuffer[4 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[5 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+					vertexPositionBuffer[5 * vertexPositionSize + 1] = -_outlineThickness;
+					vertexPositionBuffer[5 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[6 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
+					vertexPositionBuffer[6 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+					vertexPositionBuffer[6 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[7 * vertexPositionSize + 0] = _outlineThickness;
+					vertexPositionBuffer[7 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
+					vertexPositionBuffer[7 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexUVBuffer[4 * 2 + 0] = 0.0f;
+					vertexUVBuffer[4 * 2 + 1] = 0.0f;
+					
+					vertexUVBuffer[5 * 2 + 0] = 1.0f;
+					vertexUVBuffer[5 * 2 + 1] = 0.0f;
+					
+					vertexUVBuffer[6 * 2 + 0] = 1.0f;
+					vertexUVBuffer[6 * 2 + 1] = 1.0f;
+					
+					vertexUVBuffer[7 * 2 + 0] = 0.0f;
+					vertexUVBuffer[7 * 2 + 1] = 1.0f;
+					
+					//Outter vertices of outline
+					vertexPositionBuffer[8 * vertexPositionSize + 0] = 0.0f;
+					vertexPositionBuffer[8 * vertexPositionSize + 1] = 0.0f;
+					vertexPositionBuffer[8 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[9 * vertexPositionSize + 0] = _frame.width;
+					vertexPositionBuffer[9 * vertexPositionSize + 1] = 0.0f;
+					vertexPositionBuffer[9 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[10 * vertexPositionSize + 0] = _frame.width;
+					vertexPositionBuffer[10 * vertexPositionSize + 1] = -_frame.height;
+					vertexPositionBuffer[10 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexPositionBuffer[11 * vertexPositionSize + 0] = 0.0f;
+					vertexPositionBuffer[11 * vertexPositionSize + 1] = -_frame.height;
+					vertexPositionBuffer[11 * vertexPositionSize + 2] = 1.0f;
+					
+					vertexUVBuffer[8 * 2 + 0] = 0.0f;
+					vertexUVBuffer[8 * 2 + 1] = 0.0f;
+					
+					vertexUVBuffer[9 * 2 + 0] = 1.0f;
+					vertexUVBuffer[9 * 2 + 1] = 0.0f;
+					
+					vertexUVBuffer[10 * 2 + 0] = 1.0f;
+					vertexUVBuffer[10 * 2 + 1] = 1.0f;
+					
+					vertexUVBuffer[11 * 2 + 0] = 0.0f;
+					vertexUVBuffer[11 * 2 + 1] = 1.0f;
+					
+					//Top part of the outline
+					indexBuffer[6] = 8; //top left
+					indexBuffer[7] = 4; //bottom left
+					indexBuffer[8] = 9; //top right
+					
+					indexBuffer[9] = 4; //bottom left
+					indexBuffer[10] = 5; //bottom right
+					indexBuffer[11] = 9; //top right
+					
+					//Bottom part of the outline
+					indexBuffer[12] = 7; //top left
+					indexBuffer[13] = 11; //bottom left
+					indexBuffer[14] = 6; //top right
+					
+					indexBuffer[15] = 11; //bottom left
+					indexBuffer[16] = 10; //bottom right
+					indexBuffer[17] = 6; //top right
+					
+					//Left part of the outline
+					indexBuffer[18] = 8; //top left
+					indexBuffer[19] = 11; //bottom left
+					indexBuffer[20] = 4; //top right
+					
+					indexBuffer[21] = 11; //bottom left
+					indexBuffer[22] = 7; //bottom right
+					indexBuffer[23] = 4; //top right
+					
+					//Right part of the outline
+					indexBuffer[24] = 5; //top left
+					indexBuffer[25] = 6; //bottom left
+					indexBuffer[26] = 9; //top right
+					
+					indexBuffer[27] = 6; //bottom left
+					indexBuffer[28] = 10; //bottom right
+					indexBuffer[29] = 9; //top right
+				}
+				
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint32);
-				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector2);
+				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::Vertices, _hasOutline? PrimitiveType::Vector3 : PrimitiveType::Vector2);
 				meshVertexAttributes.emplace_back(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2);
 				
-				mesh = new Mesh(meshVertexAttributes, 4, 6);
+				mesh = new Mesh(meshVertexAttributes, vertexCount, indexCount);
 				mesh->BeginChanges();
 				
 				mesh->SetElementData(Mesh::VertexAttribute::Feature::Vertices, vertexPositionBuffer);
@@ -945,6 +1251,7 @@ namespace RN
 				if((_cornerRadius.x > 0.0f || _cornerRadius.y > 0.0f || _cornerRadius.z > 0.0f || _cornerRadius.w > 0.0f) && !_isCircle) shaderOptions->AddDefine("RN_UV1", "1");
 				if(_hasBackgroundGradient) shaderOptions->AddDefine("RN_UI_GRADIENT", "1");
 				if(_isCircle) shaderOptions->AddDefine("RN_UI_CIRCLE", "1");
+				if(_hasOutline) shaderOptions->AddDefine("RN_UI_OUTLINE", "1");
 				material->SetAlphaToCoverage(false);
 				material->SetCullMode(CullMode::None);
 				material->SetDepthMode(_depthMode);
@@ -979,6 +1286,17 @@ namespace RN
 					material->SetAmbientColor(finalColor[3]);
 					
 					material->SetSkipRendering(finalColor[0].a + finalColor[1].a + finalColor[2].a + finalColor[3].a < k::EpsilonFloat);
+				}
+				
+				if(_hasOutline)
+				{
+					Color finalColor;
+					finalColor = _outlineColor;
+					finalColor.a *= _combinedOpacityFactor;
+					
+					material->SetUIOutlineColor(finalColor);
+					
+					//TODO: Skip rendering stuff should also depend on the outline being visible or not... see background gradient...
 				}
 
 				material->SetVertexShader(Renderer::GetActiveRenderer()->GetDefaultShader(Shader::Type::Vertex, shaderOptions));

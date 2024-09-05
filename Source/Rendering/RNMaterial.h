@@ -100,6 +100,7 @@ namespace RN
 			//Used by the UI system to set additional shader data as with lots of changing views using custom uniforms gets slow
 			Vector4 uiClippingRect;
 			Vector2 uiOffset;
+			Color uiOutlineColor;
 			
 			//TODO: Changing anything but colors and custom uniforms should only be allowed on creation, but not after already used for rendering as the renderers will only switch the pipeline state if the material was changed and these properties require a new pipeline state
 			bool usePolygonOffset;
@@ -188,6 +189,7 @@ namespace RN
 		
 		RNAPI void SetUIClippingRect(Vector4 rect);
 		RNAPI void SetUIOffset(Vector2 offset);
+		RNAPI void SetUIOutlineColor(Color color);
 		
 		RNAPI void SetCustomShaderUniform(const String *name, Value *value);
 		RNAPI void SetCustomShaderUniform(const String *name, Number *number);

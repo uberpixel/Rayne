@@ -63,6 +63,7 @@ namespace RN
 			UIAPI Vector4 GetCornerRadius() const { return _cornerRadius; }
 			UIAPI void SetOpacity(float opacity);
 			UIAPI void MakeCircle();
+			UIAPI void SetOutline(Color color, float thickness);
 
 			UIAPI virtual void Draw(bool isParentHidden);
 			
@@ -129,6 +130,9 @@ namespace RN
 			bool _isCircle;
 			Color _backgroundColor[4];
 			bool _hasBackgroundGradient;
+			bool _hasOutline;
+			Color _outlineColor;
+			float _outlineThickness;
 
 			View *_superview;
 			Array *_subviews;

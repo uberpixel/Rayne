@@ -123,7 +123,8 @@ namespace RN
 				
 				//Used as an optimization for UI rendering
 				UIClippingRect,
-				UIOffset
+				UIOffset,
+				UIOutlineColor
 			};
 
 			RNAPI UniformDescriptor(const String *name, PrimitiveType type, size_t offset, size_t elementCount, size_t location = -1);
