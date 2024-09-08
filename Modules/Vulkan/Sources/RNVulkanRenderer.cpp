@@ -1810,26 +1810,26 @@ namespace RN
 		}
 
 		//Vertex and fragment shaders need to explicitly be marked to support instancing in the shader library json
-		RN::Shader *vertexShader = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->descriptor.vertexShader;
-		RN::Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState->descriptor.fragmentShader;
+		RN::Shader *vertexShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.vertexShader;
+		RN::Shader *fragmentShader = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState->descriptor.fragmentShader;
 		bool canUseInstancing = (!vertexShader || vertexShader->GetHasInstancing()) && (!fragmentShader || fragmentShader->GetHasInstancing());
 
 		//TODO: Use binding and type arrays in vulkan root signatures pipeline layout instead
 		//Check if uniform buffers are the same, the object can't be part of the same instanced draw call if it doesn't share the same buffers (because they are full for example)
-		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size())
+		if(canUseInstancing && _internals->currentInstanceDrawable && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers.size() && drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers.size() == _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers.size())
 		{
 			canUseInstancing = true;
-			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size() && canUseInstancing; i++)
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers.size() && canUseInstancing; i++)
 			{
-				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer)
+				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers[i]->dynamicBuffer)
 				{
 					canUseInstancing = false;
 				}
 			}
 
-			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size() && canUseInstancing; i++)
+			for(int i = 0; i < drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers.size() && canUseInstancing; i++)
 			{
-				if(drawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer)
+				if(drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer != _internals->currentInstanceDrawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers[i]->dynamicBuffer)
 				{
 					canUseInstancing = false;
 				}
@@ -1842,13 +1842,13 @@ namespace RN
 		}
 
 		_lock.Lock();
-		if(_internals->currentPipelineState == drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqualLite(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
+		if(_internals->currentPipelineState == drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState && drawable->mesh == _internals->currentInstanceDrawable->mesh && drawable->material->GetTextures()->IsEqualLite(_internals->currentInstanceDrawable->material->GetTextures()) && canUseInstancing)
 		{
 			renderPass.instanceSteps.back() += 1; //Increase counter if the rendering state is the same
 		}
 		else
 		{
-			_internals->currentPipelineState = drawable->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
+			_internals->currentPipelineState = drawable->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
 			_internals->currentInstanceDrawable = drawable;
 			renderPass.instanceSteps.push_back(1); //Add new entry if the rendering state changed
 
@@ -1887,14 +1887,15 @@ namespace RN
 				{
 					stepSize = renderPass.instanceSteps[stepSizeIndex++];
 
-					totalConstantBufferCount += renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->vertexConstantBuffers.size();
-                    totalConstantBufferCount += renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex].uniformState->fragmentConstantBuffers.size();
+					totalConstantBufferCount += renderPass.drawables[i]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->vertexConstantBuffers.size();
+                    totalConstantBufferCount += renderPass.drawables[i]->_cameraSpecifics[_internals->currentDrawableResourceIndex].uniformState->fragmentConstantBuffers.size();
 
-                    const VulkanPipelineState *pipelineState = renderPass.drawables[i]->_cameraSpecifics[_internals->currentRenderPassIndex].pipelineState;
+                    const VulkanPipelineState *pipelineState = renderPass.drawables[i]->_cameraSpecifics[_internals->currentDrawableResourceIndex].pipelineState;
 
 					totalTextureCount += pipelineState->rootSignature->textureCount;
-					_internals->currentDrawableResourceIndex += 1;
 				}
+
+				_internals->currentDrawableResourceIndex += 1;
 			}
 
 			_internals->currentRenderPassIndex += 1;
