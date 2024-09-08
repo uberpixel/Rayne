@@ -118,6 +118,7 @@ namespace RN
 		bool _supportsPassthrough;
 		bool _supportsCompositionLayerSettings;
 		bool _supportsDynamicResolution;
+		bool _supportsControllerInteractionPICO;
 
 		RNDeclareMetaAPI(OpenXRWindow, OXRAPI)
 	};

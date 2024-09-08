@@ -96,10 +96,7 @@ namespace RN
 		_supportsPassthrough = false;
 		_supportsCompositionLayerSettings = false;
 		_supportsDynamicResolution = false;
-
-#if RN_OPENXR_SUPPORTS_PICO_LOADER
-		_internals->_supportsControllerInteractionPICO = false;
-#endif
+		_supportsControllerInteractionPICO = false;
 
 		_internals->session = XR_NULL_HANDLE;
 
@@ -280,7 +277,7 @@ namespace RN
 				else if(std::strcmp(extension.extensionName, "XR_PICO_controller_interaction") == 0)
 			{
 				extensions.push_back(extension.extensionName);
-				_internals->_supportsControllerInteractionPICO = true;
+				_supportsControllerInteractionPICO = true;
 			}
 #elif RN_OPENXR_SUPPORTS_METAQUEST_LOADER
 			else if(std::strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME) == 0)
@@ -2001,7 +1998,7 @@ namespace RN
 		_controllerTrackingState[1].type = GetControllerTypeForInteractionProfile(_internals->instance, rightHandInteractionProfileState.interactionProfile);
 #else
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		if(_internals->_supportsControllerInteractionPICO) //This is only gonna be true on a PICO device
+		if(_supportsControllerInteractionPICO) //This is only gonna be true on a PICO device
 		{
 			_controllerTrackingState[0].type = VRControllerTrackingState::Type::PicoNeo3Controller;
 			_controllerTrackingState[1].type = VRControllerTrackingState::Type::PicoNeo3Controller;
@@ -2079,7 +2076,7 @@ namespace RN
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
 			{
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_internals->_supportsControllerInteractionPICO)
+				if(_supportsControllerInteractionPICO)
 				{
 					//On pico the velocity is somehow wrong after recentering the view, this rotation corrects for that
 					//TODO: This will break if they ever fix it...
@@ -2237,7 +2234,7 @@ namespace RN
 			if(velocity.velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
 			{
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-				if(_internals->_supportsControllerInteractionPICO)
+				if(_supportsControllerInteractionPICO)
 				{
 					//On pico the velocity is somehow wrong after recentering the view, this rotation corrects for that
 					//TODO: This will break if they ever fix it...

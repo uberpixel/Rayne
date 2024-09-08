@@ -119,7 +119,6 @@ namespace RN
 #endif
 
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
-		bool _supportsControllerInteractionPICO;
 		RN::Quaternion _trackingSpaceCounterRotation;
 #endif
 	};

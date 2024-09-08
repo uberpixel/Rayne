@@ -170,7 +170,11 @@ namespace RN
 			_internals->layerQuad.size.height = _scale.y;
 		}
 
-		if(window->_supportsDynamicResolution && _type == TypeProjectionView) //Seems to only return good values for the projection type!? Always 0 for quads :(
+		if(window->_supportsDynamicResolution && _type == TypeProjectionView //Seems to only return good values for the projection type!? Always 0 for quads :(
+#if RN_OPENXR_SUPPORTS_PICO_LOADER
+			&& !window->_supportsControllerInteractionPICO //Don't use dynamic resolution on pico as it adjusts resolution before it goes up with gpu levels...
+#endif
+		)
 		{
 			XrRecommendedLayerResolutionGetInfoMETA recommendedLayerResolutionGetInfo;
 			recommendedLayerResolutionGetInfo.type = XR_TYPE_RECOMMENDED_LAYER_RESOLUTION_GET_INFO_META;
@@ -198,7 +202,6 @@ namespace RN
 
 					_shouldDisplay = (recommendedLayerResolution.recommendedImageDimensions.width > 0 && recommendedLayerResolution.recommendedImageDimensions.height > 0);
 
-					//TODO: Need to also adapt the framebuffer size!
 					//RNDebug("new recommended resolution: " << recommendedLayerResolution.recommendedImageDimensions.width << " x " << recommendedLayerResolution.recommendedImageDimensions.height);
 					_swapChain->GetSwapChainFramebuffer()->SetSize(RN::Vector2(recommendedLayerResolution.recommendedImageDimensions.width, recommendedLayerResolution.recommendedImageDimensions.height));
 				}
