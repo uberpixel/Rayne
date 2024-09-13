@@ -170,7 +170,7 @@ namespace RN
 			_internals->layerQuad.size.height = _scale.y;
 		}
 
-		if(window->_supportsDynamicResolution && _type == TypeProjectionView //Seems to only return good values for the projection type!? Always 0 for quads :(
+		if(window->_supportsDynamicResolution
 #if RN_OPENXR_SUPPORTS_PICO_LOADER
 			&& !window->_supportsControllerInteractionPICO //Don't use dynamic resolution on pico as it adjusts resolution before it goes up with gpu levels...
 #endif
@@ -196,8 +196,8 @@ namespace RN
 					}
 					else if(_type == TypeQuad)
 					{
-						_internals->layerQuad.subImage.imageRect.extent.width = recommendedLayerResolution.recommendedImageDimensions.width;
-						_internals->layerQuad.subImage.imageRect.extent.height = recommendedLayerResolution.recommendedImageDimensions.height;
+						_internals->layerQuad.subImage.imageRect.extent.width = std::min(recommendedLayerResolution.recommendedImageDimensions.width, _internals->layerQuad.subImage.imageRect.extent.width);
+						_internals->layerQuad.subImage.imageRect.extent.height = std::min(recommendedLayerResolution.recommendedImageDimensions.height, _internals->layerQuad.subImage.imageRect.extent.height);
 					}
 
 					_shouldDisplay = (recommendedLayerResolution.recommendedImageDimensions.width > 0 && recommendedLayerResolution.recommendedImageDimensions.height > 0);
