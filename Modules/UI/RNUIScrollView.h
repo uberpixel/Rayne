@@ -24,6 +24,7 @@ namespace RN
 			UIAPI virtual void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2());
 			
 			UIAPI void SetPixelPerInch(float pixelPerInch);
+			float GetPixelsPerInch() const { return _pixelPerInch; }
 			
 			bool IsScrolling() const { return _isScrolling; }
 			Vector2 GetScrollSpeed() const { return _scrollSpeed; }
