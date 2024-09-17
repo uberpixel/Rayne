@@ -46,7 +46,8 @@ namespace RN
 			_isCircle(false),
 			_hasOutline(false),
 			_outlineThickness(0.0f),
-			_renderPriorityOverride(0)
+			_renderPriorityOverride(0),
+			_renderPriorityOffset(1)
 		{
 			SetRenderGroup(1 << 7);
 			SetRenderPriority(SceneNode::RenderPriority::RenderUI);
@@ -330,7 +331,7 @@ namespace RN
 					
 					if(_superview)
 					{
-						if(_renderPriorityOverride == 0) SetRenderPriority(_superview->GetRenderPriority() + 1);
+						if(_renderPriorityOverride == 0) SetRenderPriority(_superview->GetRenderPriority() + _renderPriorityOffset);
 						if(_inheritRenderSettings) _depthMode = _superview->_depthMode;
 					}
 				}
@@ -546,6 +547,12 @@ namespace RN
 		void View::SetRenderPriorityOverride(int32 renderPriority)
 		{
 			_renderPriorityOverride = renderPriority;
+			RN_DEBUG_ASSERT(!_superview, "Needs to be called BEFORE adding to a superview to work");
+		}
+	
+		void View::SetRenderPriorityOffset(int32 offset)
+		{
+			_renderPriorityOffset = offset;
 			RN_DEBUG_ASSERT(!_superview, "Needs to be called BEFORE adding to a superview to work");
 		}
 	

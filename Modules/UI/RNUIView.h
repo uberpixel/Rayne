@@ -71,6 +71,7 @@ namespace RN
 			
 			UIAPI void SetClipToBounds(bool enabled);
 			UIAPI void SetRenderPriorityOverride(int32 renderPriority);
+			UIAPI void SetRenderPriorityOffset(int32 offset);
 			
 			UIAPI void SetRenderGroupForAll(uint8 renderGroup);
 			
@@ -95,6 +96,7 @@ namespace RN
 			
 			bool _inheritRenderSettings; //If this is set, the values below will be overwritten when adding to the parent
 			int32 _renderPriorityOverride;
+			int32 _renderPriorityOffset;
 			DepthMode _depthMode;
 			bool _isDepthWriteEnabled;
 			bool _isColorWriteEnabled;
