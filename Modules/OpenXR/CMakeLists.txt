@@ -10,7 +10,7 @@ option(RN_OPENXR_SUPPORT_PICO "Include the loader library for Pico android devic
 
 ExternalProject_Add(OpenXRSDK
 	GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK.git
-	GIT_TAG refs/tags/release-1.1.37
+	GIT_TAG refs/tags/release-1.1.40
 	GIT_SHALLOW ON
 	GIT_PROGRESS ON
 	UPDATE_COMMAND ""
@@ -23,18 +23,32 @@ ExternalProject_Add(OpenXRSDK
 		"-DANDROID_NDK:STRING=${ANDROID_NDK}"
 		"-DANDROID_STL:STRING=${ANDROID_STL}"
 		"-DCMAKE_SYSTEM_VERSION:STRING=${CMAKE_SYSTEM_VERSION}"
+		"-DDYNAMIC_LOADER:BOOL=OFF"
 	BUILD_BYPRODUCTS
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib"
 		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib"
+
+		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/libopenxr_loader.a"
+		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/libopenxr_loader.a"
+		"${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/libopenxr_loader.a"
 	INSTALL_COMMAND "")
 
 add_library(OpenXRLoader STATIC IMPORTED)
-set_target_properties(OpenXRLoader PROPERTIES
-	IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo"
-	IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
-	IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib"
-	IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib")
+
+if(APPLE)
+	set_target_properties(OpenXRLoader PROPERTIES
+		IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo"
+		IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/libopenxr_loader.a"
+		IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/libopenxr_loader.a"
+		IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/libopenxr_loader.a")
+else()
+	set_target_properties(OpenXRLoader PROPERTIES
+		IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo"
+		IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Debug/openxr_loaderd.lib"
+		IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/Release/openxr_loader.lib"
+		IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/OpenXRSDK-prefix/src/OpenXRSDK-build/src/loader/RelWithDebInfo/openxr_loader.lib")
+endif()
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 5)
@@ -113,6 +127,11 @@ if(NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
 	set(HEADERS ${HEADERS} RNOpenXRVulkanSwapChain.h)
 endif()
 
+if(APPLE AND ${RN_BUILD_METAL_MODULE})
+	set(SOURCES ${SOURCES} RNOpenXRMetalSwapChain.cpp)
+	set(HEADERS ${HEADERS} RNOpenXRMetalSwapChain.h)
+endif()
+
 ExternalProject_Get_property(OpenXRSDK SOURCE_DIR)
 set(OpenXRSDK_SOURCE_DIR ${SOURCE_DIR})
 
@@ -133,7 +152,7 @@ if(ANDROID)
 	if(RN_OPENXR_SUPPORT_METAQUEST)
 		target_link_libraries(RayneOpenXR PRIVATE OpenXRMeta)
 	endif()
-elseif(NOT APPLE)
+else()
 	target_link_libraries(RayneOpenXR PRIVATE OpenXRLoader)
 endif()
 
@@ -164,6 +183,13 @@ if(NOT APPLE AND ${RN_BUILD_VULKAN_MODULE})
 		"${VulkanMemoryAllocator_SOURCE_DIR}/include"
 		"${CMAKE_CURRENT_BINARY_DIR}/../Vulkan/include/Sources")
 	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_VULKAN)
+endif()
+
+if(APPLE AND ${RN_BUILD_METAL_MODULE})
+	target_link_libraries(RayneOpenXR PUBLIC RayneMetal)
+	set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${RayneMetal_BINARY_DIR}/include "${CMAKE_CURRENT_BINARY_DIR}/../Metal/include/Sources")
+	set(DEFINES ${DEFINES} XR_USE_GRAPHICS_API_METAL)
+	target_compile_options(RayneOpenXR PRIVATE "-xobjective-c++")
 endif()
 
 target_include_directories(RayneOpenXR SYSTEM PRIVATE "${INCLUDE_DIRECTORIES}" ${OpenXRSDK_SOURCE_DIR}/include ${OpenXRSDK_SOURCE_DIR}/src/common)

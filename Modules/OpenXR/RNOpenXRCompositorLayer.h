@@ -23,6 +23,7 @@ namespace RN
 	public:
 		friend OpenXRWindow;
 		friend class OpenXRVulkanSwapChain;
+		friend class OpenXRMetalSwapChain;
 
 		OXRAPI ~OpenXRCompositorLayer();
 

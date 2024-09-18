@@ -19,11 +19,13 @@ namespace RN
 	class OpenXRSwapChain;
 	class OpenXRVulkanSwapChain;
 	class OpenXRD3D12SwapChain;
+	class OpenXRMetalSwapChain;
 	struct OpenXRWindowInternals;
 	class OpenXRWindow : public VRWindow
 	{
 	friend OpenXRVulkanSwapChain;
 	friend OpenXRD3D12SwapChain;
+	friend OpenXRMetalSwapChain;
 	friend OpenXRCompositorLayer;
 	public:
 		OXRAPI OpenXRWindow();
@@ -108,6 +110,7 @@ namespace RN
 
 		bool _supportsD3D12;
 		bool _supportsVulkan;
+		bool _supportsMetal;
 
 		bool _supportsPerformanceLevels;
 		bool _supportsPreferredFramerate;

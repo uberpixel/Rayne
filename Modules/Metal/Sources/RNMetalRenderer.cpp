@@ -71,6 +71,11 @@ namespace RN
 		_mainWindow = window;
 	}
 
+	id MetalRenderer::GetCommandQueue() const
+	{
+		return _internals->commandQueue;
+	}
+
 
 	void MetalRenderer::CreateMipMapForTexture(MetalTexture *texture)
 	{

@@ -35,6 +35,12 @@ namespace RN
 				_swapChain = new OpenXRD3D12SwapChain(window, tempDescriptor, resolution);
 			}
 #endif
+#ifdef XR_USE_GRAPHICS_API_METAL
+			if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Metal")))
+			{
+				_swapChain = new OpenXRMetalSwapChain(window, this, tempDescriptor, resolution);
+			}
+#endif
 		}
 
 		_internals->layerSettings.type = XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB;
@@ -118,6 +124,16 @@ namespace RN
 			if(_swapChain->_swapChainType == OpenXRSwapChain::SwapChainType::Vulkan)
 			{
 				OpenXRVulkanSwapChain *swapChain = static_cast<OpenXRVulkanSwapChain*>(_swapChain);
+				swapChain->Release();
+				_swapChain = nullptr;
+				return;
+			}
+#endif
+
+#ifdef XR_USE_GRAPHICS_API_METAL
+			if(_swapChain->_swapChainType == OpenXRSwapChain::SwapChainType::Metal)
+			{
+				OpenXRMetalSwapChain *swapChain = static_cast<OpenXRMetalSwapChain*>(_swapChain);
 				swapChain->Release();
 				_swapChain = nullptr;
 				return;

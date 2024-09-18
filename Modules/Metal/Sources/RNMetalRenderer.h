@@ -70,6 +70,8 @@ namespace RN
 		
 		MTLAPI MetalUniformBufferReference *GetUniformBufferReference(size_t size, size_t index);
 		MTLAPI void UpdateUniformBufferReference(MetalUniformBufferReference *reference, bool align);
+		
+		MTLAPI id GetCommandQueue() const;
 
 	protected:
 		void SubmitRenderPass(RenderPass *renderPass, MetalRenderPass &previousRenderPass, Function &&function);

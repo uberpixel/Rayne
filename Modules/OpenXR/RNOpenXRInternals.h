@@ -21,6 +21,10 @@
 #include <RND3D12Renderer.h>
 #endif
 
+#if XR_USE_GRAPHICS_API_METAL
+#include "RNOpenXRMetalSwapChain.h"
+#endif
+
 #include "RNOpenXRCompositorLayer.h"
 
 #include "openxr/openxr_platform_defines.h"
@@ -97,6 +101,10 @@ namespace RN
 
 #if XR_USE_GRAPHICS_API_D3D12
 		PFN_xrGetD3D12GraphicsRequirementsKHR GetD3D12GraphicsRequirementsKHR;
+#endif
+		
+#if XR_USE_GRAPHICS_API_METAL
+		PFN_xrGetMetalGraphicsRequirementsKHR GetMetalGraphicsRequirementsKHR;
 #endif
 
 		PFN_xrEnumerateDisplayRefreshRatesFB EnumerateDisplayRefreshRatesFB;

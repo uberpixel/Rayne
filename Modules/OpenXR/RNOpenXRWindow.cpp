@@ -87,6 +87,7 @@ namespace RN
 	OpenXRWindow::OpenXRWindow() : _internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _currentHapticsIndex{0, 0}, _hapticsStopped{true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array())
 	{
 		_supportsVulkan = false;
+		_supportsMetal = false;
 		_supportsPreferredFramerate = false;
 		_supportsPerformanceLevels = false;
 		_supportsAndroidThreadType = false;
@@ -105,6 +106,14 @@ namespace RN
 		_internals->GetVulkanDeviceExtensionsKHR = nullptr;
 		_internals->GetVulkanGraphicsDeviceKHR = nullptr;
 		_internals->GetVulkanGraphicsRequirementsKHR = nullptr;
+#endif
+		
+#if XR_USE_GRAPHICS_API_D3D12
+		_internals->GetD3D12GraphicsRequirementsKHR = nullptr;
+#endif
+		
+#if XR_USE_GRAPHICS_API_METAL
+		_internals->GetMetalGraphicsRequirementsKHR = nullptr;
 #endif
 
 		_internals->EnumerateDisplayRefreshRatesFB = nullptr;
@@ -221,6 +230,11 @@ namespace RN
 #ifdef XR_USE_GRAPHICS_API_VULKAN
 		extensions.push_back(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
 		_supportsVulkan = true; //TODO: Only set to true if actually available!?
+#endif
+		
+#ifdef XR_USE_GRAPHICS_API_METAL
+		extensions.push_back(XR_KHR_METAL_ENABLE_EXTENSION_NAME);
+		_supportsMetal = true;
 #endif
 
 		uint32_t instanceExtensionCount;
@@ -426,6 +440,16 @@ namespace RN
 		if(_supportsD3D12)
 		{
 			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetD3D12GraphicsRequirementsKHR", (PFN_xrVoidFunction*)(&_internals->GetD3D12GraphicsRequirementsKHR))))
+			{
+
+			}
+		}
+#endif
+		
+#if XR_USE_GRAPHICS_API_METAL
+		if(_supportsMetal)
+		{
+			if(!XR_SUCCEEDED(xrGetInstanceProcAddr(_internals->instance, "xrGetMetalGraphicsRequirementsKHR", (PFN_xrVoidFunction*)(&_internals->GetMetalGraphicsRequirementsKHR))))
 			{
 
 			}
@@ -1486,6 +1510,22 @@ namespace RN
 			sessionCreateInfo.next = &d3d12GraphicsBinding;
 		}
 #endif
+		
+#ifdef XR_USE_GRAPHICS_API_METAL
+		XrGraphicsBindingMetalKHR metalGraphicsBinding;
+		metalGraphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_METAL_KHR;
+		metalGraphicsBinding.next = nullptr;
+
+		if(Renderer::GetActiveRenderer()->GetDescriptor()->GetAPI()->IsEqual(RNCSTR("Metal")))
+		{
+			MetalRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<MetalRenderer>();
+
+			//Needs to be created somehow from the previously passed metalDevice
+			metalGraphicsBinding.commandQueue = (__bridge void*)renderer->GetCommandQueue();
+
+			sessionCreateInfo.next = &metalGraphicsBinding;
+		}
+#endif
 
 		uint32 numberOfConfigurationViews = 0;
 		if(!XR_SUCCEEDED(xrEnumerateViewConfigurationViews(_internals->instance, _internals->systemID, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &numberOfConfigurationViews, nullptr)))
@@ -2483,6 +2523,24 @@ namespace RN
 
 	RenderingDevice *OpenXRWindow::GetOutputDevice(RendererDescriptor *descriptor) const
 	{
+#ifdef XR_USE_GRAPHICS_API_METAL
+		RNDebug(descriptor->GetAPI());
+		if(descriptor->GetAPI()->IsEqual(RNCSTR("Metal")))
+		{
+			XrGraphicsRequirementsMetalKHR graphicsRequirements;
+			graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_METAL_KHR;
+			graphicsRequirements.next = nullptr;
+			graphicsRequirements.metalDevice = nullptr;
+			if(!XR_SUCCEEDED(_internals->GetMetalGraphicsRequirementsKHR(_internals->instance, _internals->systemID, &graphicsRequirements)))
+			{
+				RN_ASSERT(false, "Failed fetching metal graphics requirements");
+			}
+			
+			//Needs to be passed into the renderer somehow
+			//graphicsRequirements.metalDevice
+		}
+#endif
+		
 		return nullptr;
 	}
 
