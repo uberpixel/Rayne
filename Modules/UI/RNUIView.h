@@ -57,6 +57,7 @@ namespace RN
 
 			UIAPI void SetBackgroundColor(const Color &color);
 			UIAPI void SetBackgroundColor(const Color &colorTopLeft, const Color &colorTopRight, const Color &colorBottomLeft, const Color &colorBottomRight);
+			Color GetBackgroundColor(int index) const { return _backgroundColor[index]; }
 			UIAPI void SetDepthModeAndWrite(DepthMode depthMode, bool writeDepth, float depthFactor, float depthOffset, bool writeColor = true, bool writeAlpha = false);
 			UIAPI void SetBlending(BlendFactor sourceFactorRGB, BlendFactor destinationFactorRGB, BlendOperation operationRGB, BlendFactor sourceFactorA, BlendFactor destinationFactorA, BlendOperation operationA);
 			UIAPI void SetCornerRadius(Vector4 radius);
