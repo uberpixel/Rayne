@@ -14,7 +14,7 @@ namespace RN
 	{
 		RNDefineMeta(ScrollView, View)
 
-		ScrollView::ScrollView(bool vertical, bool horizontal) : _isScrollEnabled(true), _isScrolling(false), _wasTouched(false), _tapTimer(0.0f), _pixelPerInch(200), _scrollsVertical(vertical), _scrollsHorizontal(horizontal)
+		ScrollView::ScrollView(bool vertical, bool horizontal) : _isScrollEnabled(true), _isScrolling(false), _wasTouched(false), _tapTimer(0.0f), _pixelPerInch(200), _scrollsVertical(vertical), _scrollsHorizontal(horizontal), _isScrollInteraction(false)
 		{
 			SetClipToBounds(true);
 		}
@@ -38,6 +38,8 @@ namespace RN
 			innerFrame.x = 0.0f;
 			innerFrame.y = 0.0f;
 			bool isCursorInside = innerFrame.ContainsPoint(transformedPosition);
+			
+			_isScrollInteraction = (_isScrollInteraction && _wasTouched);
 			
 			if(!_scrollsHorizontal) alternativeScrollSpeed.x = 0.0f;
 			if(!_scrollsVertical) alternativeScrollSpeed.y = 0.0f;
@@ -66,12 +68,18 @@ namespace RN
 				if(_scrollsHorizontal) scrollDistance.x = transformedPosition.x - _previousCursorPosition.x;
 				if(_scrollsVertical) scrollDistance.y = transformedPosition.y - _previousCursorPosition.y;
 				
-				if(scrollDistance.GetLength() > _pixelPerInch/25.4f*5.0f || (_tapTimer <= 0.0f && scrollDistance.GetLength() > _pixelPerInch/25.4f)) _isScrolling = true;
+				if(scrollDistance.GetLength() > _pixelPerInch/25.4f*5.0f || (_tapTimer <= 0.0f && scrollDistance.GetLength() > _pixelPerInch/25.4f))
+				{
+					_isScrollInteraction = true;
+					_isScrolling = true;
+				}
 				
 				if(_isScrolling)
 				{
 					RN::Rect scrollBounds = GetBounds();
 					RN::Rect scrollFrame = GetFrame();
+					
+					if(_scrollSpeed.GetLength() > 3.0f) _isScrollInteraction = true; //If scrolling fast, the tap likely either tried to make it scroll faster or to stop it, should be handled as an intentional scroll interaction
 					
 					if(scrollBounds.x + scrollDistance.x > 0.0f)
 					{

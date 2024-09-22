@@ -28,11 +28,14 @@ namespace RN
 			
 			bool IsScrolling() const { return _isScrolling; }
 			Vector2 GetScrollSpeed() const { return _scrollSpeed; }
+			
+			bool IsScrollInteraction() const { return _isScrollInteraction; }
 
 		private:
 			bool _isScrollEnabled;
 			bool _isScrolling;
 			bool _wasTouched;
+			bool _isScrollInteraction;
 			
 			bool _scrollsVertical;
 			bool _scrollsHorizontal;
