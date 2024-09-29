@@ -74,6 +74,13 @@ namespace RN
 
 	Color Bitmap::GetPixel(size_t x, size_t y) const
 	{
+		if(_info.isTransposed)
+		{
+			size_t temp = y;
+			y = _info.width - x - 1;
+			x = temp;
+		}
+		
 		Color pixel;
 		size_t index = (y * _info.bytesPerRow) + (x *_bytesPerPixel);
 
@@ -168,6 +175,13 @@ namespace RN
 	}
 	void Bitmap::SetPixel(size_t x, size_t y, const Color &pixel)
 	{
+		if(_info.isTransposed)
+		{
+			size_t temp = y;
+			y = _info.width - x - 1;
+			x = temp;
+		}
+		
 		size_t index = (y * _info.bytesPerRow) + (x *_bytesPerPixel);
 
 		switch(_info.format)
@@ -273,6 +287,7 @@ namespace RN
 			scaledInfo.height = tempHeight;
 			scaledInfo.format = _info.format;
 			scaledInfo.bytesPerRow = tempWidth * kBytesPerPixel[static_cast<size_t>(_info.format)];
+			scaledInfo.isTransposed = false;
 			
 			Data *scaledData = new Data(scaledInfo.bytesPerRow * scaledInfo.height);
 			scaled = new Bitmap(scaledData, scaledInfo);
@@ -330,7 +345,7 @@ namespace RN
 		if(bytesPerRow == 0)
 			bytesPerRow = kBytesPerPixel[static_cast<size_t>(format)] * _info.width;
 
-		if(bytesPerRow == _info.bytesPerRow && format == _info.format)
+		if(bytesPerRow == _info.bytesPerRow && format == _info.format && !_info.isTransposed)
 		{
 			Bitmap *bitmap = new Bitmap(this);
 			return bitmap->Autorelease();
@@ -339,6 +354,7 @@ namespace RN
 		BitmapInfo info(_info);
 		info.format = format;
 		info.bytesPerRow = bytesPerRow;
+		info.isTransposed = false;
 
 		Data *data = new Data(nullptr, info.bytesPerRow * info.height);
 		Bitmap *other = new Bitmap(data, info);

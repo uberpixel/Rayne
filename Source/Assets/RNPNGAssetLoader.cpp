@@ -155,6 +155,7 @@ namespace RN
 			info.width = width;
 			info.height = height;
 			info.format = bitmapFormat;
+			info.isTransposed = false;
 			
 			Bitmap *bitmap = new Bitmap(data, info);
 			delete[] data;

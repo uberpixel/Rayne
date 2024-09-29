@@ -42,6 +42,8 @@ namespace RN
 		size_t width;
 		size_t height;
 		size_t bytesPerRow;
+		
+		bool isTransposed;
 	};
 
 	class Bitmap : public Asset
