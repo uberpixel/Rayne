@@ -85,6 +85,8 @@ namespace RN
 			{
 				point.x += view->_frame.x + view->_bounds.x;
 				point.y += view->_frame.y + view->_bounds.y;
+				
+				point = Vector2(view->GetRotation().GetConjugated().GetRotatedVector(Vector3(point)));
 
 				view = view->_superview;
 			}
@@ -100,6 +102,8 @@ namespace RN
 			{
 				point.x -= view->_frame.x + view->_bounds.x;
 				point.y -= view->_frame.y + view->_bounds.y;
+				
+				point = Vector2(view->GetRotation().GetRotatedVector(Vector3(point)));
 
 				view = view->_superview;
 			}
@@ -140,6 +144,8 @@ namespace RN
 			{
 				converted.x += view->_frame.x + view->_bounds.x;
 				converted.y += view->_frame.y + view->_bounds.y;
+				
+				converted = Vector2(view->GetRotation().GetRotatedVector(Vector3(converted)));
 
 				view = view->_superview;
 			}
@@ -156,6 +162,8 @@ namespace RN
 			{
 				converted.x -= view->_frame.x + view->_bounds.x;
 				converted.y -= view->_frame.y + view->_bounds.y;
+				
+				converted = Vector2(view->GetRotation().GetRotatedVector(Vector3(converted)));
 
 				view = view->_superview;
 			}
