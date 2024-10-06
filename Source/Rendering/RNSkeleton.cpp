@@ -10,6 +10,7 @@
 #include "../Objects/RNDictionary.h"
 #include "../System/RNFile.h"
 #include "../Assets/RNAssetManager.h"
+#include "../Debug/RNLogger.h"
 
 namespace RN
 {
@@ -197,8 +198,7 @@ namespace RN
 						{
 							if(restart)
 							{
-								//TODO: Use fmod here!
-								currTime += nextFrame->time;
+								currTime = animationLength + std::fmod(currTime, animationLength);
 							}
 							else
 							{
