@@ -39,6 +39,7 @@ namespace RN
 		_refCount(1)
 #if RN_BUILD_DEBUG
 		, _autoreleaseCounter(0)
+		, _isTracked(false)
 #endif
 	{}
 	
@@ -98,6 +99,10 @@ namespace RN
 	Object *Object::Retain()
 	{
 		AssertZombieInteraction();
+		
+#if RN_BUILD_DEBUG
+		if(_isTracked) WillChangeReferenceCount(_refCount + 1);
+#endif
 
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
@@ -105,6 +110,10 @@ namespace RN
 	const Object *Object::Retain() const
 	{
 		AssertZombieInteraction();
+		
+#if RN_BUILD_DEBUG
+		if(_isTracked) WillChangeReferenceCount(_refCount + 1);
+#endif
 
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
 		return this;
@@ -125,6 +134,8 @@ namespace RN
 		
 #if RN_BUILD_DEBUG
 		RN_ASSERT(_refCount > _autoreleaseCounter, "Object is in too many autorelease pools and will be over released!");
+		
+		if(_isTracked) WillChangeReferenceCount(_refCount - 1);
 #endif
 
 		// If this is the last reference this thread has, which it very well might be,
@@ -149,6 +160,10 @@ namespace RN
 	Object *Object::Autorelease()
 	{
 		AssertZombieInteraction();
+		
+#if RN_BUILD_DEBUG
+		if(_isTracked) WillChangeAutoreleaseCount(_autoreleaseCounter + 1);
+#endif
 
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
@@ -169,6 +184,10 @@ namespace RN
 	const Object *Object::Autorelease() const
 	{
 		AssertZombieInteraction();
+		
+#if RN_BUILD_DEBUG
+		if(_isTracked) WillChangeAutoreleaseCount(_autoreleaseCounter + 1);
+#endif
 
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
@@ -195,7 +214,28 @@ namespace RN
 		RN_ASSERT(GetClass()->SupportsCopying(), "Only Objects that support the copy trait can be copied!\n");
 		return GetClass()->ConstructWithCopy(const_cast<Object *>(this));
 	}
-	
+
+#if RN_BUILD_DEBUG
+	void Object::StartReferenceTracking()
+	{
+		_isTracked = true;
+	}
+
+	void Object::StopReferenceTracking()
+	{
+		_isTracked = false;
+	}
+
+	void Object::WillChangeReferenceCount(size_t refCount) const
+	{
+		
+	}
+
+	void Object::WillChangeAutoreleaseCount(size_t autoreleaseCount) const
+	{
+		
+	}
+#endif
 	
 	void Object::Serialize(Serializer *serializer) const
 	{

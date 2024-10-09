@@ -43,6 +43,14 @@ namespace RN
 		
 		RNAPI virtual void Serialize(Serializer *serializer) const;
 		
+#if RN_BUILD_DEBUG
+		RNAPI void StartReferenceTracking();
+		RNAPI void StopReferenceTracking();
+		
+		RNAPI virtual void WillChangeReferenceCount(size_t refCount) const;
+		RNAPI virtual void WillChangeAutoreleaseCount(size_t autoreleaseCount) const;
+#endif
+		
 		RNAPI void Lock();
 		RNAPI void Unlock();
 		
@@ -179,6 +187,7 @@ namespace RN
 		
 #if RN_BUILD_DEBUG
 		mutable std::atomic<size_t> _autoreleaseCounter;
+		mutable bool _isTracked;
 #endif
 
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
