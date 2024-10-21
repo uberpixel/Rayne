@@ -324,6 +324,8 @@ namespace RN
 		template<class T=Object>
 		void Sort(const std::function<bool (const T *left, const T *right)> &function)
 		{
+			if(_count <= 1) return;
+			
 			std::sort(_data, _data + _count, [&](const Object *left, const Object *right) -> bool {
 				return function(static_cast<const T *>(left), static_cast<const T *>(right));
 			});
