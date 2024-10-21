@@ -737,18 +737,18 @@ namespace RN
 				CFStringRef productValue = (CFStringRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDProductKey));
 				CFStringRef vendorValue  = (CFStringRef)IOHIDDeviceGetProperty(deviceRef, CFSTR(kIOHIDManufacturerKey));
 
-				if(!productID || !vendorID || !productValue || !vendorValue)
+				if(!productValue || !vendorValue)
 					break;
 
-				uint32 product;
-				uint32 vendor;
+				uint32 product = 0;
+				uint32 vendor = 0;
 
 				String *productName;
 				String *vendorName;
 
 				{
-					CFNumberGetValue(productID, kCFNumberSInt32Type, &product);
-					CFNumberGetValue(vendorID, kCFNumberSInt32Type, &vendor);
+					if(productID) CFNumberGetValue(productID, kCFNumberSInt32Type, &product);
+					if(vendorID) CFNumberGetValue(vendorID, kCFNumberSInt32Type, &vendor);
 				}
 				{
 					char name[1024];
