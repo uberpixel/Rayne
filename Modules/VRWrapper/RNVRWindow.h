@@ -55,7 +55,8 @@ namespace RN
 
 		RNVRAPI VRWindow();
 		RNVRAPI ~VRWindow();
-		
+
+		RNVRAPI virtual void Setup() { RN_DEBUG_ASSERT(Renderer::GetActiveRenderer(), "Setup needs to be called after the active renderer has been set!"); }
 		RNVRAPI virtual void StartRendering(const SwapChainDescriptor &descriptor = SwapChainDescriptor(), float eyeResolutionFactor = 1.0f) = 0;
 		RNVRAPI virtual void StopRendering() = 0;
 		RNVRAPI virtual bool IsRendering() const = 0;
