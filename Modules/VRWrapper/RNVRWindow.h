@@ -61,6 +61,9 @@ namespace RN
 		RNVRAPI virtual void StopRendering() = 0;
 		RNVRAPI virtual bool IsRendering() const = 0;
 
+		RNVRAPI virtual bool InitializePassthrough(bool startRunning);
+		RNVRAPI virtual void SetPassthroughActive(bool active);
+
 		RNVRAPI virtual void SetTitle(const String *title) override {}
 		RNVRAPI virtual Screen *GetScreen() override { return nullptr; }
 
