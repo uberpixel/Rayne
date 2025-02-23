@@ -96,6 +96,6 @@ namespace RN
 
 	id MetalSwapChain::GetMetalDepthTexture() const
 	{
-		
+		return nil;
 	}
 }
