@@ -75,6 +75,8 @@ namespace RN
 				return MTLPixelFormatBGRA8Unorm;
 			case Format::RGB_10_A_2:
 				return MTLPixelFormatRGB10A2Unorm;
+			case Format::BGR_10_A_2:
+				return MTLPixelFormatBGR10A2Unorm;
 			case Format::R_8:
 				return MTLPixelFormatR8Unorm;
 			case Format::RG_8:
