@@ -683,6 +683,9 @@ namespace RN
 			case PrimitiveType::Quaternion:
 			case PrimitiveType::Color:
 				return 16;
+
+			case PrimitiveType::Invalid:
+				return 1;
 		}
 	}
 
@@ -723,6 +726,9 @@ namespace RN
 				
 			case PrimitiveType::Matrix4x4:
 				return 64;
+
+			case PrimitiveType::Invalid:
+				return 1;
 		}
 	}
 
