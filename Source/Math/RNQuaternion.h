@@ -400,6 +400,11 @@ namespace RN
 			y *= fac;
 			z *= fac;
 		}
+		else
+		{
+			w = 1.0f;
+			x = y = z = 0.0f;
+		}
 
 		return *this;
 	}
