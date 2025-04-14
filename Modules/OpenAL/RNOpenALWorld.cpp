@@ -126,7 +126,7 @@ namespace RN
 		size_t remainingSamples = sampleCount;
 		while(offset < sampleCount)
 		{
-			size_t requestedSamples = std::min(remainingSamples, 1024ul);
+			size_t requestedSamples = std::min(remainingSamples, static_cast<size_t>(1024));
 			if(samples)
 			{
 				//samples are shorts and interleaved stereo, so each sample consists of two 2byte shorts
