@@ -394,6 +394,17 @@ namespace RN
 		return _parent;
 	}
 
+	void SceneNode::Traverse(const std::function<void(SceneNode *)> &callback)
+	{
+		callback(this);
+
+		Object **children = const_cast<Object **>(_children->GetData());
+
+		for (size_t i = 0; i < _children->GetCount(); i++) {
+			static_cast<SceneNode *>(children[i])->Traverse(callback);
+		}
+	}
+
 	// -------------------
 	// MARK: -
 	// MARK: Rendering
