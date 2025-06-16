@@ -14,7 +14,7 @@
 
 struct EOS_ProductUserIdDetails;
 typedef EOS_ProductUserIdDetails *EOS_ProductUserId;
-constexpr RN::uint16 CLIENT_ID_NONE = std::numeric_limits<RN::uint16>::max();
+constexpr RN::uint16 CLIENT_ID_NONE = std::numeric_limits<RN::uint8>::max();
 
 namespace RN
 {
@@ -31,8 +31,7 @@ namespace RN
 			ProtocolPacketTypePingResponse,
 			ProtocolPacketTypeData,
 			ProtocolPacketTypeReliableData,
-			ProtocolPacketTypeReliableDataMultipart,
-			ProtocolPacketTypeReliableDataAck
+			ProtocolPacketTypeReliableDataMultipart
 		};
 
 		struct ProtocolPacketHeader
@@ -70,12 +69,9 @@ namespace RN
 
 			uint8 _packetIDForChannel[256];
 			uint8 _receivedIDForChannel[256];
-			uint8 _lastReliableIDForChannel[256];
 
 			uint8 _lastPingID;
 			Clock::time_point _sentPingTime;
-
-			bool _hasReliableInTransit;
 
 			float _disconnectDelay;
 			bool _wantsDisconnect;
@@ -102,13 +98,11 @@ namespace RN
 
 		EOSAPI void SendPacket(Data *data, uint16 receiverID, uint32 channel = 0, bool reliable = false);
 		EOSAPI void BroadcastPacket(Data *data, uint32 channel = 0, bool reliable = false, uint16 excludeClientID = CLIENT_ID_NONE);
-		EOSAPI virtual void ReceivedPacket(Data *data, uint32 senderID, uint32 channel) {}
+		EOSAPI virtual void ReceivedPacket(Data *data, uint16 senderID, uint32 channel) {}
 
 		EOSAPI Status GetStatus() const { return _status; }
-		EOSAPI bool HasReliableDataInTransit();
 		EOSAPI double GetLastRoundtripTime(uint16 peerID);
 		EOSAPI virtual void Disconnect() = 0;
-		EOSAPI bool IsServer() { return _isServer; }
 
 	protected:
 		EOSAPI virtual void Update(float delta);
@@ -124,8 +118,6 @@ namespace RN
 		EOSAPI void SendPing(EOS_ProductUserId receiverID, bool isResponse, uint8 responseID);
 
 		uint16 _clientID;
-		uint16 _serverClientID;
-		bool _isServer;
 		Status _status;
 		float _pingTimer;
 

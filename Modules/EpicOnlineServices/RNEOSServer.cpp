@@ -24,7 +24,6 @@ namespace RN
 	{
 		Lock();
 		_status = Server;
-		_isServer = true;
 
 		EOSWorld *world = EOSWorld::GetInstance();
 

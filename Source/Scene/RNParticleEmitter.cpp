@@ -233,7 +233,11 @@ namespace RN
 			return;
 		}
 		
+#if RN_PLATFORM_MAC_OS
+		_mesh->BeginChanges(false);
+#else
 		_mesh->BeginChanges(true);
+#endif
 		Mesh::Chunk chunk = _mesh->GetChunk();
 
 		Mesh::ElementIterator<Vector3> vertexIterator = chunk.GetIterator<Vector3>(Mesh::VertexAttribute::Feature::Vertices);

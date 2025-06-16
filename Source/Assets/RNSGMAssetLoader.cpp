@@ -304,6 +304,9 @@ namespace RN
 			bool use16bitPositions = false;
 			bool use16bitNormalsAndTangents = false;
 			bool use16bitColors = false;
+
+			//TODO: this should be handled in the renderer, but is easier like this for now...
+#if !RN_PLATFORM_WINDOWS //Some older amd gpus do not support 3 element vertex buffers with 16 bit compopnents and it will just crash
 			if(options.settings->GetObjectForKey(RNCSTR("use16BitPositions")))
 			{
 				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16BitPositions"));
@@ -314,6 +317,7 @@ namespace RN
 				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16bitNormalsAndTangents"));
 				use16bitNormalsAndTangents = number->GetBoolValue();
 			}
+#endif
 			if(options.settings->GetObjectForKey(RNCSTR("use8bitColors")))
 			{
 				Number *number = options.settings->GetObjectForKey<Number>(RNCSTR("use16bitColors"));

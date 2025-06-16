@@ -152,6 +152,7 @@ namespace RN
 		options.PermissionLevel = maxUsers == 1 ? EOS_ELobbyPermissionLevel::EOS_LPL_INVITEONLY : EOS_ELobbyPermissionLevel::EOS_LPL_PUBLICADVERTISED;
 		options.bPresenceEnabled = false;
 		options.bDisableHostMigration = false; //Allow host migration
+		options.bEnableJoinById = true;
 		options.BucketId = "Server"; //Top-level filtering criteria, called the Bucket ID, which is specific to your game; often formatted like "GameMode:Region:MapName"
 		if(lobbyIDOverride) options.LobbyId = lobbyIDOverride->GetUTF8String();
 
@@ -564,6 +565,15 @@ namespace RN
 					}
 				}
 			}
+			
+			if(lobbyManager->_isVoiceEnabled)
+			{
+				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
+				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;
+				audioInputSettings.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+				audioInputSettings.bPlatformAEC = EOS_TRUE;
+				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, nullptr, nullptr);
+			}
 
 			EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
 			modificationOptions.ApiVersion = EOS_LOBBY_UPDATELOBBYMODIFICATION_API_LATEST;
@@ -891,6 +901,15 @@ namespace RN
 					}
 				}
 			}
+			
+			if(lobbyManager->_isVoiceEnabled)
+			{
+				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
+				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;
+				audioInputSettings.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+				audioInputSettings.bPlatformAEC = EOS_TRUE;
+				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, nullptr, nullptr);
+			}
 		}
 		else
 		{
@@ -1057,16 +1076,9 @@ namespace RN
 
 			if(Data->ParticipantId)
 			{
-				char outBuffer[EOS_PRODUCTUSERID_MAX_LENGTH + 1];
-				int32_t outBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
-				if(EOS_ProductUserId_ToString(Data->ParticipantId, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
-				{
-					eosUserID = new RN::String(outBuffer);
-				}
+				eosUserID = EOSWorld::GetInstance()->GetUserIDString(Data->ParticipantId);
 			}
 			lobbyManager->_audioReceivedCallback(eosUserID, Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames);
-
-			if(eosUserID) eosUserID->Release();
 		}
 	}
 

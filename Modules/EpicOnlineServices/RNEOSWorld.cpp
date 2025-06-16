@@ -201,11 +201,12 @@ namespace RN
 		return _lobbyManager;
 	}
 
-	RN::String *EOSWorld::GetUserIDString() const
+	RN::String *EOSWorld::GetUserIDString(EOS_ProductUserId userID) const
 	{
+		if(!userID) userID = _loggedInUserID;
 		char outBuffer[EOS_PRODUCTUSERID_MAX_LENGTH + 1];
 		int32_t outBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
-		if(EOS_ProductUserId_ToString(_loggedInUserID, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
+		if(EOS_ProductUserId_ToString(userID, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
 		{
 			return RNSTR(outBuffer);
 		}

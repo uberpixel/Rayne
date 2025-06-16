@@ -75,7 +75,7 @@ namespace RN
 		EOSAPI bool GetHasNetworkConnection() const;
 		EOSAPI void LoginUser();
 
-		EOSAPI String *GetUserIDString() const;
+		EOSAPI String *GetUserIDString(EOS_ProductUserId userID = nullptr) const;
 		EOSAPI EOS_ProductUserId GetUserIDFromString(const String *userIDString) const;
 
 		EOSAPI double Ping(String *address, size_t repetitions);

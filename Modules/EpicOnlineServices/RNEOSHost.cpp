@@ -25,7 +25,7 @@ namespace RN
 	RNDefineMeta(EOSHost, Object)
 
 	EOSHost::EOSHost() :
-		_pingTimer(10.0), _status(Disconnected), _clientID(CLIENT_ID_NONE), _serverClientID(CLIENT_ID_NONE), _isServer(false)
+		_pingTimer(10.0), _status(Disconnected), _clientID(CLIENT_ID_NONE)
 	{
 	}
 
@@ -37,41 +37,6 @@ namespace RN
 	{
 		EOSWorld *world = EOSWorld::GetInstance();
 		Peer &peer = _peers[senderID];
-
-		//Send ack for reliable data. EOS has something like this internally, but does not expose any of it :(
-		if(packetType == ProtocolPacketTypeReliableData)
-		{
-			EOS_P2P_SocketId socketID = {};
-			socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
-			strncpy(socketID.SocketName, "FuckYeah", EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
-
-			ProtocolPacketHeader packetHeader;
-			packetHeader.packetType = ProtocolPacketTypeReliableDataAck;
-			packetHeader.packetID = packetID;
-			packetHeader.dataLength = 0;
-
-			EOS_P2P_SendPacketOptions sendPacketOptions = {0};
-			sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
-			sendPacketOptions.Channel = channel;
-			sendPacketOptions.LocalUserId = world->GetUserID();
-			sendPacketOptions.RemoteUserId = peer.internalID;
-			sendPacketOptions.SocketId = &socketID;
-			sendPacketOptions.Reliability = EOS_EPacketReliability::EOS_PR_ReliableOrdered;
-			sendPacketOptions.bAllowDelayedDelivery = false;
-			sendPacketOptions.Data = &packetHeader;
-			sendPacketOptions.DataLengthBytes = sizeof(packetHeader);
-			EOS_P2P_SendPacket(world->GetP2PHandle(), &sendPacketOptions);
-		}
-
-		//Handle reliable data ack
-		if(packetType == ProtocolPacketTypeReliableDataAck)
-		{
-			//TODO: need to somehow flag reliable data in transit per channel instead of global for peer!?
-			if(peer._hasReliableInTransit && packetID == peer._lastReliableIDForChannel[channel])
-			{
-				peer._hasReliableInTransit = false;
-			}
-		}
 
 		//This assumes that less than 127 packets are ever lost at once...
 		if(packetType == ProtocolPacketTypeReliableData || peer._receivedIDForChannel[channel] < packetID || (peer._receivedIDForChannel[channel] > 127 && packetID < 127))
@@ -280,8 +245,6 @@ namespace RN
 						RN_DEBUG_ASSERT(scheduledPackets.front().isReliable, "Large packets (>= 1000 byte) need to be reliable!");
 
 						uint8 packetID = peer.second._packetIDForChannel[pair.first]++;
-						peer.second._hasReliableInTransit = true;
-						peer.second._lastReliableIDForChannel[pair.first] = packetID;
 						isReliable = true;
 
 						Data *packetData = scheduledPackets.front().data;
@@ -339,8 +302,6 @@ namespace RN
 							{
 								isReliable = true;
 								packetType = ProtocolPacketTypeReliableData;
-								peer.second._hasReliableInTransit = true;
-								peer.second._lastReliableIDForChannel[pair.first] = headerData[1];
 							}
 							headerData[0] = packetType;
 
@@ -386,7 +347,6 @@ namespace RN
 		peer.internalID = internalID;
 		peer.smoothedRoundtripTime = 0.05;
 		peer._lastPingID = 0;
-		peer._hasReliableInTransit = false;
 		peer._wantsDisconnect = false;
 		peer._disconnectDelay = 0.0f;
 
@@ -394,7 +354,6 @@ namespace RN
 		{
 			peer._packetIDForChannel[i] = 0;
 			peer._receivedIDForChannel[i] = 255;
-			peer._lastReliableIDForChannel[i] = 0;
 		}
 
 		return peer;
@@ -405,19 +364,6 @@ namespace RN
 		auto it = _peers.find(internalID);
 		if(it != _peers.end()) return it->second.clientID;
 		return static_cast<uint16>(-1);
-	}
-
-	bool EOSHost::HasReliableDataInTransit()
-	{
-		for(auto &iter : _peers)
-		{
-			if(iter.second._hasReliableInTransit)
-			{
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	double EOSHost::GetLastRoundtripTime(uint16 peerID)

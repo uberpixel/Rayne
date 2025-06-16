@@ -19,7 +19,7 @@ namespace RN
 	class EOSP2PClient : public EOSHost
 	{
 	public:
-		EOSAPI EOSP2PClient(bool isHost, uint16 maxConnections);
+		EOSAPI EOSP2PClient(bool isHost);
 		EOSAPI ~EOSP2PClient() override;
 
 		EOSAPI void Connect(EOS_ProductUserId remoteProductUserID);
@@ -27,18 +27,21 @@ namespace RN
 		EOSAPI void DisconnectClient(uint16 clientID, uint16 data);
 		EOSAPI void DisconnectClientDelayed(uint16 clientID, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
 		EOSAPI void MigrateHost(EOS_ProductUserId hostProductUserId);
+		
+		EOSAPI bool IsHost() { return _hostClientID != CLIENT_ID_NONE && _hostClientID == _clientID; }
 
 	protected:
 		EOSAPI void Update(float delta) override;
 		EOSAPI void LogPeers() const;
 		EOSAPI virtual void HandleHostMigration(){}
+		
+		uint16 _hostClientID;
 
 	private:
 		static void OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data);
 		static void OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data);
 
 		void ForceDisconnect(uint16 reason);
-		uint16 _maxConnections;
 		uint64 _connectionRequestNotificationID;
 		uint64 _connectionClosedNotificationID;
 
