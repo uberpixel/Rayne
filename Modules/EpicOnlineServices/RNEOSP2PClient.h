@@ -24,7 +24,8 @@ namespace RN
 
 		EOSAPI void Connect(EOS_ProductUserId remoteProductUserID);
 		EOSAPI void Disconnect() override;
-		EOSAPI void DisconnectClient(uint16 clientID, uint16 data);
+		EOSAPI void DisconnectClient(EOS_ProductUserId productUserId) override;
+		EOSAPI void DisconnectClient(uint16 clientID);
 		EOSAPI void DisconnectClientDelayed(uint16 clientID, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
 		EOSAPI void MigrateHost(EOS_ProductUserId hostProductUserId);
 		

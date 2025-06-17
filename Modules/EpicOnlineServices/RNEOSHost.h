@@ -103,6 +103,7 @@ namespace RN
 		EOSAPI Status GetStatus() const { return _status; }
 		EOSAPI double GetLastRoundtripTime(uint16 peerID);
 		EOSAPI virtual void Disconnect() = 0;
+		EOSAPI virtual void DisconnectClient(EOS_ProductUserId productUserId) = 0;
 
 	protected:
 		EOSAPI virtual void Update(float delta);

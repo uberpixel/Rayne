@@ -565,7 +565,7 @@ namespace RN
 					}
 				}
 			}
-			
+
 			if(lobbyManager->_isVoiceEnabled)
 			{
 				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
@@ -901,7 +901,7 @@ namespace RN
 					}
 				}
 			}
-			
+
 			if(lobbyManager->_isVoiceEnabled)
 			{
 				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
@@ -993,10 +993,15 @@ namespace RN
 				break;
 			case EOS_ELobbyMemberStatus::EOS_LMS_KICKED:
 			case EOS_ELobbyMemberStatus::EOS_LMS_DISCONNECTED:
+				RNDebug("Member disconnected from lobby: " << Data->TargetUserId);
+				lobbyManager->RemoveRemotePeer(Data->TargetUserId);
 				if(Data->TargetUserId == localProductUserID)
 				{
-					RNDebug("Disconnected from lobby");
 					EOSWorld::GetInstance()->Disconnect();
+				}
+				else
+				{
+					EOSWorld::GetInstance()->Disconnect(Data->TargetUserId);
 				}
 				break;
 			case EOS_ELobbyMemberStatus::EOS_LMS_PROMOTED:

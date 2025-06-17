@@ -146,9 +146,36 @@ namespace RN
 
 		Unlock();
 	}
-
-	void EOSP2PClient::DisconnectClient(uint16 clientID, uint16 data)
+	
+	void EOSP2PClient::DisconnectClient(EOS_ProductUserId productUserId)
 	{
+		if(productUserId == EOSWorld::GetInstance()->GetUserID())
+		{
+			Disconnect();
+		}
+		else if(_peers.find(productUserId) != _peers.end())
+		{
+			DisconnectClient(_peers[productUserId].clientID);
+		}
+		else
+		{
+			RNWarning("Trying to disconnect unknown peer " << productUserId);
+		}
+	}
+
+	void EOSP2PClient::DisconnectClient(uint16 clientID)
+	{
+		if(clientID == _clientID)
+		{
+			Disconnect();
+			return;
+		}
+		if(_idMap.find(clientID) == _idMap.end())
+		{
+			RNWarning("Trying to disconnect unknown client " << clientID);
+			return;
+		}
+		
 		RNDebug("Disconnecting user " << clientID);
 		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
@@ -535,7 +562,7 @@ namespace RN
 
 		for(uint16 clientID : peersToDisconnect)
 		{
-			DisconnectClient(clientID, 0);
+			DisconnectClient(clientID);
 		}
 
 		Unlock();

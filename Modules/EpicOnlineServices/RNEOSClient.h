@@ -24,6 +24,7 @@ namespace RN
 
 		EOSAPI void Connect(EOS_ProductUserId serverProductID);
 		EOSAPI void Disconnect() override;
+		EOSAPI void DisconnectClient(EOS_ProductUserId productUserId) override;
 
 	protected:
 		EOSAPI virtual void Update(float delta) override;

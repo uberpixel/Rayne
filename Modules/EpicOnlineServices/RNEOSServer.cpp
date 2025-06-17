@@ -261,7 +261,7 @@ namespace RN
 
 		for(uint16 clientID : peersToDisconnect)
 		{
-			DisconnectUser(clientID, 0);
+			DisconnectUser(clientID);
 		}
 
 		Unlock();
@@ -281,7 +281,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSServer::DisconnectUser(uint16 userID, uint16 data)
+	void EOSServer::DisconnectUser(uint16 userID)
 	{
 		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
@@ -316,6 +316,22 @@ namespace RN
 
 		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
 		Unlock();
+	}
+
+	void EOSServer::DisconnectClient(EOS_ProductUserId productUserId)
+	{
+		if(productUserId == EOSWorld::GetInstance()->GetUserID())
+		{
+			Disconnect();
+		}
+		else if(_peers.find(productUserId) != _peers.end())
+		{
+			DisconnectUser(_peers[productUserId].clientID);
+		}
+		else
+		{
+			RNWarning("Trying to disconnect unknown peer " << productUserId);
+		}
 	}
 
 	void EOSServer::OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data)

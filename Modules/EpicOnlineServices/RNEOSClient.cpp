@@ -98,7 +98,7 @@ namespace RN
 
 		Unlock();
 	}
-
+	
 	void EOSClient::Disconnect()
 	{
 		Lock();
@@ -130,6 +130,15 @@ namespace RN
 
 		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
 		Unlock();
+	}
+	
+	void EOSClient::DisconnectClient(EOS_ProductUserId productUserId)
+	{
+		if(productUserId == EOSWorld::GetInstance()->GetUserID() || _peers.find(productUserId) != _peers.end()) Disconnect();
+		else
+		{
+			RNWarning("Trying to disconnect from unknown peer " << productUserId);
+		}
 	}
 
 	void EOSClient::ForceDisconnect(uint16 reason)

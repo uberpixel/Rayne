@@ -179,6 +179,13 @@ namespace RN
 		});
 	}
 
+	void EOSWorld::Disconnect(EOS_ProductUserId productUserId)
+	{
+		_hosts->Enumerate<EOSHost>([&](EOSHost *host, size_t, bool &) {
+			host->DisconnectClient(productUserId);
+		});
+	}
+
 	void EOSWorld::MigrateHost(EOS_ProductUserId hostProductUserId)
 	{
 		_hosts->Enumerate<EOSHost>([&](EOSHost *host, size_t, bool &) {
