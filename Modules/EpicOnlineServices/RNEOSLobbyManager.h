@@ -131,7 +131,7 @@ namespace RN
 		bool GetIsConnectedToLobby() const { return _isConnectedToLobby; }
 		const RN::String *GetConnectedLobbyID() const { return _connectedLobbyID; }
 		std::vector<EOS_ProductUserId> GetRemoteClientIDs() { return _remotePeers; }
-		EOS_ProductUserId GetLobbyOwnerID();
+		EOSAPI EOS_ProductUserId GetLobbyOwnerID();
 
 	private:
 		EOSAPI EOSLobbyManager(EOSWorld *world);
