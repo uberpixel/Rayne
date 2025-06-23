@@ -163,7 +163,7 @@ namespace RN
 		}
 	}
 
-	void EOSP2PClient::DisconnectClient(uint16 clientID)
+	void EOSP2PClient::DisconnectClient(uint8 clientID)
 	{
 		if(clientID == _clientID)
 		{
@@ -194,7 +194,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSP2PClient::DisconnectClientDelayed(uint16 clientID, float delay)
+	void EOSP2PClient::DisconnectClientDelayed(uint8 clientID, float delay)
 	{
 		RNDebug("Disconnecting client " << clientID << " in " << delay << " seconds");
 		Lock();
@@ -256,9 +256,9 @@ namespace RN
 		HandleDidDisconnect(_clientID, reason);
 	}
 
-	uint16 EOSP2PClient::GetUnusedClientID() const
+	uint8 EOSP2PClient::GetUnusedClientID() const
 	{
-		for(uint16 freeID = 1; freeID < CLIENT_ID_NONE; freeID++) //Starting by 1 so nobody but the host can have 0, so now in case of the host getting migrated to a newly joined user that doesn't have an id yet, 0 can safely be picked
+		for(uint8 freeID = 1; freeID < CLIENT_ID_NONE; freeID++) //Starting by 1 so nobody but the host can have 0, so now in case of the host getting migrated to a newly joined user that doesn't have an id yet, 0 can safely be picked
 		{
 			if(_idMap.find(freeID) == _idMap.end() && freeID != _clientID)
 			{
@@ -269,7 +269,7 @@ namespace RN
 		return -1;
 	}
 
-	void EOSP2PClient::AssignClientID(uint16 clientID)
+	void EOSP2PClient::AssignClientID(uint8 clientID)
 	{
 		RNDebug("Was assigned client ID " << clientID);
 		_clientID = clientID;
@@ -289,8 +289,8 @@ namespace RN
 
 			Data *packetData = new Data();
 			packetData->Append(&packetHeader, 4);
-			packetData->Append(&_clientID, sizeof(uint16));
-			packetData->Append(&peer.second.clientID, sizeof(uint16));
+			packetData->Append(&_clientID, sizeof(uint8));
+			packetData->Append(&peer.second.clientID, sizeof(uint8));
 
 			EOS_P2P_SendPacketOptions sendPacketOptions = {};
 			sendPacketOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -358,7 +358,7 @@ namespace RN
 				RNDebug("Received packet from unknown user " << senderUserID << " (creating peer)");
 				_peers.insert(std::pair(senderUserID, CreatePeer(CLIENT_ID_NONE, senderUserID)));
 			}
-			uint16 senderID = _peers[senderUserID].clientID;
+			uint8 senderID = _peers[senderUserID].clientID;
 			Peer &peer = _peers[senderUserID];
 
 			if(static_cast<ProtocolPacketType>(rawData[0]) == ProtocolPacketTypeReliableDataMultipart)
@@ -488,9 +488,9 @@ namespace RN
 					{
 						if(packetHeader.packetID == 0 && packetHeader.dataLength == 4)
 						{
-							uint16 remoteClientID = rawData[dataIndex] | rawData[dataIndex + 1] << 8; //Client id of sender
-							uint16 ownClientID = rawData[dataIndex + 2] | rawData[dataIndex + 3] << 8; //Client id sender has assigned to receiver
-							dataIndex += 4;
+							uint8 remoteClientID = rawData[dataIndex]; //Client id of sender
+							uint8 ownClientID = rawData[dataIndex + 1]; //Client id sender has assigned to receiver
+							dataIndex += 2;
 							RNDebug("Received connect response from " << senderUserID << " with client ID " << remoteClientID << " and own client ID " << ownClientID);
 
 							//Received remote user ID. Do this first to add peer for client id broadcasting
@@ -547,7 +547,7 @@ namespace RN
 			delete[] rawData;
 		}
 
-		std::vector<uint16> peersToDisconnect;
+		std::vector<uint8> peersToDisconnect;
 		for(auto &pair : _peers)
 		{
 			if(pair.second._wantsDisconnect)
@@ -560,7 +560,7 @@ namespace RN
 			}
 		}
 
-		for(uint16 clientID : peersToDisconnect)
+		for(uint8 clientID : peersToDisconnect)
 		{
 			DisconnectClient(clientID);
 		}
@@ -599,9 +599,9 @@ namespace RN
 
 		RN::Data *packetData = new RN::Data();
 		packetData->Append(&packetHeader, 4);
-		packetData->Append(&client->_clientID, sizeof(uint16));
-		uint16 remoteClientID = client->IsHost() ? client->GetUnusedClientID() : CLIENT_ID_NONE;
-		packetData->Append(&remoteClientID, sizeof(uint16));
+		packetData->Append(&client->_clientID, sizeof(uint8));
+		uint8 remoteClientID = client->IsHost() ? client->GetUnusedClientID() : CLIENT_ID_NONE;
+		packetData->Append(&remoteClientID, sizeof(uint8));
 
 		const Peer &peer = client->CreatePeer(remoteClientID, Data->RemoteUserId);
 		client->_peers.insert(std::pair(Data->RemoteUserId, peer));
@@ -640,11 +640,11 @@ namespace RN
 	void EOSP2PClient::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
 	{
 		EOSP2PClient *client = static_cast<EOSP2PClient *>(Data->ClientData);
-		uint16 id = client->_peers[Data->RemoteUserId].clientID;
+		uint8 id = client->_peers[Data->RemoteUserId].clientID;
 		client->_idMap.erase(id);
 		client->_peers.erase(Data->RemoteUserId);
 		RNDebug("Peer disconnected. peer id: " << id << " | product ID: " << Data->RemoteUserId);
 
-		client->HandleDidDisconnect(id, static_cast<uint16>(Data->Reason));
+		client->HandleDidDisconnect(id, static_cast<uint8>(Data->Reason));
 	}
 } // namespace RN

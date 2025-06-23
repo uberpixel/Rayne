@@ -14,7 +14,7 @@
 
 struct EOS_ProductUserIdDetails;
 typedef EOS_ProductUserIdDetails *EOS_ProductUserId;
-constexpr RN::uint16 CLIENT_ID_NONE = std::numeric_limits<RN::uint8>::max();
+constexpr RN::uint8 CLIENT_ID_NONE = std::numeric_limits<RN::uint8>::max();
 
 namespace RN
 {
@@ -63,7 +63,7 @@ namespace RN
 
 		struct Peer
 		{
-			uint16 clientID;
+			uint8 clientID;
 			EOS_ProductUserId internalID;
 			double smoothedRoundtripTime;
 
@@ -96,34 +96,34 @@ namespace RN
 		EOSAPI EOSHost();
 		EOSAPI ~EOSHost() override;
 
-		EOSAPI void SendPacket(Data *data, uint16 receiverID, uint32 channel = 0, bool reliable = false);
-		EOSAPI void BroadcastPacket(Data *data, uint32 channel = 0, bool reliable = false, uint16 excludeClientID = CLIENT_ID_NONE);
-		EOSAPI virtual void ReceivedPacket(Data *data, uint16 senderID, uint32 channel) {}
+		EOSAPI void SendPacket(Data *data, uint8 receiverID, uint32 channel = 0, bool reliable = false);
+		EOSAPI void BroadcastPacket(Data *data, uint32 channel = 0, bool reliable = false, uint8 excludeClientID = CLIENT_ID_NONE);
+		EOSAPI virtual void ReceivedPacket(Data *data, uint8 senderID, uint32 channel) {}
 
 		EOSAPI Status GetStatus() const { return _status; }
-		EOSAPI double GetLastRoundtripTime(uint16 peerID);
+		EOSAPI double GetLastRoundtripTime(uint8 peerID);
 		EOSAPI virtual void Disconnect() = 0;
 		EOSAPI virtual void DisconnectClient(EOS_ProductUserId productUserId) = 0;
 
 	protected:
 		EOSAPI virtual void Update(float delta);
 
-		EOSAPI Peer CreatePeer(uint16 clientID, EOS_ProductUserId internalID);
-		EOSAPI uint16 GetUserIDForInternalID(EOS_ProductUserId internalID);
+		EOSAPI Peer CreatePeer(uint8 clientID, EOS_ProductUserId internalID);
+		EOSAPI uint8 GetUserIDForInternalID(EOS_ProductUserId internalID);
 
-		EOSAPI virtual void HandleDidConnect(uint16 clientID) {}
-		EOSAPI virtual void HandleDidDisconnect(uint16 clientID, uint16 reason) {}
+		EOSAPI virtual void HandleDidConnect(uint8 clientID) {}
+		EOSAPI virtual void HandleDidDisconnect(uint8 clientID, uint16 reason) {}
 
 		EOSAPI bool IsPacketInOrder(ProtocolPacketType packetType, EOS_ProductUserId senderID, uint8 packetID, uint8 channel);
 		EOSAPI void SendPacket(Data *data, EOS_ProductUserId receiverID, uint32 channel = 0, bool reliable = false);
 		EOSAPI void SendPing(EOS_ProductUserId receiverID, bool isResponse, uint8 responseID);
 
-		uint16 _clientID;
+		uint8 _clientID;
 		Status _status;
 		float _pingTimer;
 
 		std::map<EOS_ProductUserId, Peer> _peers;
-		std::map<uint16, EOS_ProductUserId> _idMap;
+		std::map<uint8, EOS_ProductUserId> _idMap;
 
 	private:
 		RNDeclareMetaAPI(EOSHost, EOSAPI)

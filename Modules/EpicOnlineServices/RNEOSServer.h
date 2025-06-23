@@ -20,11 +20,11 @@ namespace RN
 	class EOSServer : public EOSHost
 	{
 	public:
-		EOSAPI EOSServer(uint16 maxConnections = 16);
+		EOSAPI EOSServer(uint8 maxConnections = 16);
 		EOSAPI ~EOSServer() override;
 
-		EOSAPI void DisconnectUser(uint16 userID);
-		EOSAPI void DisconnectUserDelayed(uint16 userID, uint16 data, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
+		EOSAPI void DisconnectUser(uint8 userID);
+		EOSAPI void DisconnectUserDelayed(uint8 userID, uint16 data, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
 		EOSAPI void Disconnect() override;
 		EOSAPI void DisconnectClient(EOS_ProductUserId productUserId) override;
 
@@ -33,15 +33,15 @@ namespace RN
 	protected:
 		EOSAPI virtual void Update(float delta) override;
 
-		uint16 _maxConnections;
-		std::set<uint16> _activeUserIDs;
+		uint8 _maxConnections;
+		std::set<uint8> _activeUserIDs;
 
 	private:
 		static void OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data);
 		static void OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data);
 
-		uint16 GetUserID();
-		void ReleaseUserID(uint16 userID);
+		uint8 GetUserID();
+		void ReleaseUserID(uint8 userID);
 
 		uint64 _connectionClosedNotificationID;
 		uint64 _connectionRequestNotificationID;

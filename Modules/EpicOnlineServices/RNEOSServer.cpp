@@ -19,7 +19,7 @@ namespace RN
 {
 	RNDefineMeta(EOSServer, EOSHost)
 
-	EOSServer::EOSServer(uint16 maxConnections) :
+	EOSServer::EOSServer(uint8 maxConnections) :
 		_maxConnections(maxConnections)
 	{
 		Lock();
@@ -53,9 +53,9 @@ namespace RN
 		EOS_P2P_RemoveNotifyPeerConnectionRequest(world->GetP2PHandle(), _connectionRequestNotificationID);
 	}
 
-	uint16 EOSServer::GetUserID()
+	uint8 EOSServer::GetUserID()
 	{
-		for(uint16 freeID = 1; freeID < _maxConnections; freeID++)
+		for(uint8 freeID = 1; freeID < _maxConnections; freeID++)
 		{
 			if(!_activeUserIDs.count(freeID))
 			{
@@ -67,7 +67,7 @@ namespace RN
 		return -1;
 	}
 
-	void EOSServer::ReleaseUserID(uint16 userID)
+	void EOSServer::ReleaseUserID(uint8 userID)
 	{
 		_activeUserIDs.erase(userID);
 	}
@@ -104,7 +104,7 @@ namespace RN
 			}
 
 			Peer &peer = _peers[senderUserID];
-			uint16 senderID = peer.clientID;
+			uint8 senderID = peer.clientID;
 
 			if(static_cast<ProtocolPacketType>(rawData[0]) == ProtocolPacketTypeReliableDataMultipart)
 			{
@@ -246,7 +246,7 @@ namespace RN
 			delete[] rawData;
 		}
 
-		std::vector<uint16> peersToDisconnect;
+		std::vector<uint8> peersToDisconnect;
 		for(auto &pair : _peers)
 		{
 			if(pair.second._wantsDisconnect)
@@ -259,7 +259,7 @@ namespace RN
 			}
 		}
 
-		for(uint16 clientID : peersToDisconnect)
+		for(uint8 clientID : peersToDisconnect)
 		{
 			DisconnectUser(clientID);
 		}
@@ -272,7 +272,7 @@ namespace RN
 		return _activeUserIDs.size();
 	}
 
-	void EOSServer::DisconnectUserDelayed(uint16 userID, uint16 data, float delay)
+	void EOSServer::DisconnectUserDelayed(uint8 userID, uint16 data, float delay)
 	{
 		Lock();
 		EOS_ProductUserId internalID = _idMap[userID];
@@ -281,7 +281,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSServer::DisconnectUser(uint16 userID)
+	void EOSServer::DisconnectUser(uint8 userID)
 	{
 		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
@@ -362,9 +362,9 @@ namespace RN
 
 		RN::Data *packetData = new RN::Data();
 		packetData->Append(&packetHeader, 4);
-		uint16 serverUserID = server->_clientID;
-		packetData->Append(&serverUserID, sizeof(uint16));
-		packetData->Append(&peer.clientID, sizeof(uint16));
+		uint8 serverUserID = server->_clientID;
+		packetData->Append(&serverUserID, sizeof(uint8));
+		packetData->Append(&peer.clientID, sizeof(uint8));
 
 		EOS_P2P_SendPacketOptions connectConfirmOptions = {};
 		connectConfirmOptions.ApiVersion = EOS_P2P_SENDPACKET_API_LATEST;
@@ -386,7 +386,7 @@ namespace RN
 	{
 		EOSServer *server = static_cast<EOSServer *>(Data->ClientData);
 
-		uint16 id = server->_peers[Data->RemoteUserId].clientID;
+		uint8 id = server->_peers[Data->RemoteUserId].clientID;
 
 		RNDebug("Client disconnected: " << id);
 		server->_idMap.erase(id);

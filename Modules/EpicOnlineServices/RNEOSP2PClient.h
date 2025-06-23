@@ -25,8 +25,8 @@ namespace RN
 		EOSAPI void Connect(EOS_ProductUserId remoteProductUserID);
 		EOSAPI void Disconnect() override;
 		EOSAPI void DisconnectClient(EOS_ProductUserId productUserId) override;
-		EOSAPI void DisconnectClient(uint16 clientID);
-		EOSAPI void DisconnectClientDelayed(uint16 clientID, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
+		EOSAPI void DisconnectClient(uint8 clientID);
+		EOSAPI void DisconnectClientDelayed(uint8 clientID, float delay = 1.0f); //Using this, will not immediately force disconnect the user, leaving some time for previously sent data to arrive (like a reason for getting disconnected)
 		EOSAPI void MigrateHost(EOS_ProductUserId hostProductUserId);
 		
 		EOSAPI bool IsHost() { return _hostClientID != CLIENT_ID_NONE && _hostClientID == _clientID; }
@@ -36,7 +36,7 @@ namespace RN
 		EOSAPI void LogPeers() const;
 		EOSAPI virtual void HandleHostMigration(){}
 		
-		uint16 _hostClientID;
+		uint8 _hostClientID;
 
 	private:
 		static void OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data);
@@ -46,8 +46,8 @@ namespace RN
 		uint64 _connectionRequestNotificationID;
 		uint64 _connectionClosedNotificationID;
 
-		uint16 GetUnusedClientID() const;
-		void AssignClientID(uint16 clientID);
+		uint8 GetUnusedClientID() const;
+		void AssignClientID(uint8 clientID);
 
 		RNDeclareMetaAPI(EOSP2PClient, EOSAPI)
 	};

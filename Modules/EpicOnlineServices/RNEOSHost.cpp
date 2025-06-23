@@ -113,7 +113,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSHost::SendPacket(Data *data, uint16 receiverID, uint32 channel, bool reliable)
+	void EOSHost::SendPacket(Data *data, uint8 receiverID, uint32 channel, bool reliable)
 	{
 		//Only reliable packets can be split up, unreliable packets need to be small enough to fit a single networking packet
 		RN_DEBUG_ASSERT(data->GetLength() < MAX_PACKET_SIZE || reliable, "Packet too big!");
@@ -132,7 +132,7 @@ namespace RN
 		Unlock();
 	}
 
-	void EOSHost::BroadcastPacket(Data *data, uint32 channel, bool reliable, RN::uint16 excludeClientID)
+	void EOSHost::BroadcastPacket(Data *data, uint32 channel, bool reliable, uint8 excludeClientID)
 	{
 		for(auto peer : _peers)
 		{
@@ -340,7 +340,7 @@ namespace RN
 		//if(scheduled_count + sent_count > 0) RNDebug("Did send " << scheduled_count << " scheduled packets as " << sent_count << " packets to " << _peers.size() << " peers.");
 	}
 
-	EOSHost::Peer EOSHost::CreatePeer(uint16 clientID, EOS_ProductUserId internalID)
+	EOSHost::Peer EOSHost::CreatePeer(uint8 clientID, EOS_ProductUserId internalID)
 	{
 		Peer peer;
 		peer.clientID = clientID;
@@ -359,14 +359,14 @@ namespace RN
 		return peer;
 	}
 
-	uint16 EOSHost::GetUserIDForInternalID(EOS_ProductUserId internalID)
+	uint8 EOSHost::GetUserIDForInternalID(EOS_ProductUserId internalID)
 	{
 		auto it = _peers.find(internalID);
 		if(it != _peers.end()) return it->second.clientID;
-		return static_cast<uint16>(-1);
+		return CLIENT_ID_NONE;
 	}
 
-	double EOSHost::GetLastRoundtripTime(uint16 peerID)
+	double EOSHost::GetLastRoundtripTime(uint8 peerID)
 	{
 		return _peers[_idMap[peerID]].smoothedRoundtripTime;
 	}
