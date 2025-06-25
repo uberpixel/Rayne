@@ -134,18 +134,18 @@ namespace RN
 		{
 			RNDebug("Closed all connections");
 			_status = Disconnected;
-			HandleDidDisconnect(_clientID, 0); //OnConnectionClosedCallback is not guaranteed to be called when lobby closed, so explicitly call handler here
 			_peers.clear();
 			_idMap.clear();
 			_clientID = CLIENT_ID_NONE;
 			_hostClientID = CLIENT_ID_NONE;
+			Unlock();
+			HandleDidDisconnect(_clientID, 0); //OnConnectionClosedCallback is not guaranteed to be called when lobby closed, so explicitly call handler here
 		}
 		else
 		{
 			RNWarning("Failed closing all connections");
+			Unlock();
 		}
-
-		Unlock();
 	}
 	
 	void EOSP2PClient::DisconnectClient(EOS_ProductUserId productUserId)
