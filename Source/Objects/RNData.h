@@ -40,6 +40,9 @@ namespace RN
 		RNAPI void GetBytesInRange(void *buffer, Range range) const;
 		RNAPI Data *GetDataInRange(Range range) const;
 
+		RNAPI Data *GetCompressed() const;
+		RNAPI Data *GetDecompressed() const;
+
 		template<class T = void>
 		const T *GetBytes(size_t offset = 0) const
 		{

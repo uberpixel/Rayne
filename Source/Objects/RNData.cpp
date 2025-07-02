@@ -22,6 +22,8 @@
 #include "RNSerialization.h"
 #include "RNString.h"
 
+#include <zlib.h>
+
 #define kRNDataIncreaseLength 64
 #define kRNDataReadBufferSize 1024
 
@@ -202,5 +204,92 @@ namespace RN
 
 		uint8 *data = static_cast<uint8 *>(buffer);
 		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);
+	}
+
+	// deflate compression
+	// adapted from https://stackoverflow.com/a/4538786
+	Data *Data::GetCompressed() const
+	{
+		RN::Data *compressed = new RN::Data();
+
+		const size_t BUFSIZE = 128 * 1024;
+		uint8_t temp_buffer[BUFSIZE];
+
+		z_stream strm;
+		strm.zalloc = 0;
+		strm.zfree = 0;
+		strm.next_in = _bytes;
+		strm.avail_in = _length;
+		strm.next_out = temp_buffer;
+		strm.avail_out = BUFSIZE;
+
+		deflateInit(&strm, Z_BEST_COMPRESSION);
+
+		while(strm.avail_in != 0)
+		{
+			int res = deflate(&strm, Z_NO_FLUSH);
+			assert(res == Z_OK);
+			if(strm.avail_out == 0)
+			{
+				compressed->Append(temp_buffer, BUFSIZE);
+				strm.next_out = temp_buffer;
+				strm.avail_out = BUFSIZE;
+			}
+		}
+
+		int deflate_res = Z_OK;
+		while(deflate_res == Z_OK)
+		{
+			if(strm.avail_out == 0)
+			{
+				compressed->Append(temp_buffer, BUFSIZE);
+				strm.next_out = temp_buffer;
+				strm.avail_out = BUFSIZE;
+			}
+			deflate_res = deflate(&strm, Z_FINISH);
+		}
+
+		assert(deflate_res == Z_STREAM_END);
+		compressed->Append(temp_buffer, BUFSIZE - strm.avail_out);
+		deflateEnd(&strm);
+
+		return compressed;
+	}
+
+	// deflate decompression
+	Data *Data::GetDecompressed() const
+	{
+		RN::Data *decompressed = new RN::Data();
+
+		const size_t BUFSIZE = 128 * 1024;
+		uint8_t temp_buffer[BUFSIZE];
+
+		z_stream strm;
+		strm.zalloc = 0;
+		strm.zfree = 0;
+		strm.next_in = _bytes;
+		strm.avail_in = _length;
+		strm.next_out = temp_buffer;
+		strm.avail_out = BUFSIZE;
+
+		inflateInit(&strm);
+
+		int inflate_res = Z_OK;
+		while(inflate_res == Z_OK)
+		{
+			if(strm.avail_out == 0)
+			{
+				decompressed->Append(temp_buffer, BUFSIZE);
+				strm.next_out = temp_buffer;
+				strm.avail_out = BUFSIZE;
+			}
+			inflate_res = inflate(&strm, Z_NO_FLUSH);
+		}
+
+		assert(inflate_res == Z_STREAM_END);
+		decompressed->Append(temp_buffer, BUFSIZE - strm.avail_out);
+		inflateEnd(&strm);
+
+		return decompressed;
 	}
 } // namespace RN
