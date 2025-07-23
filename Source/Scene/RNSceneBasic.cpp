@@ -499,7 +499,8 @@ namespace RN
 						ZoneScopedN("Find 30 biggest occluders");
 
 						//Sort occluders by approximated size on the screen
-						std::nth_element(occluders.begin(), occluders.begin() + 30, occluders.end(), [](SceneNode *a, SceneNode *b) {
+						int clampedCount = std::min(static_cast<int>(occluders.size()), 30);
+						std::nth_element(occluders.begin(), occluders.begin() + clampedCount, occluders.end(), [](SceneNode *a, SceneNode *b) {
 							SceneBasicInfo *sceneInfoA = static_cast<SceneBasicInfo *>(a->GetSceneInfo());
 							SceneBasicInfo *sceneInfoB = static_cast<SceneBasicInfo *>(b->GetSceneInfo());
 							return sceneInfoA->occluderSize > sceneInfoB->occluderSize;
