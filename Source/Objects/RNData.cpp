@@ -229,7 +229,13 @@ namespace RN
 		while(strm.avail_in != 0)
 		{
 			int res = deflate(&strm, Z_NO_FLUSH);
-			assert(res == Z_OK);
+
+			if(res != Z_OK)
+			{
+				compressed->Release();
+				return nullptr;
+			}
+
 			if(strm.avail_out == 0)
 			{
 				compressed->Append(temp_buffer, BUFSIZE);
@@ -250,7 +256,12 @@ namespace RN
 			deflate_res = deflate(&strm, Z_FINISH);
 		}
 
-		assert(deflate_res == Z_STREAM_END);
+		if(deflate_res != Z_STREAM_END)
+		{
+			compressed->Release();
+			return nullptr;
+		}
+
 		compressed->Append(temp_buffer, BUFSIZE - strm.avail_out);
 		deflateEnd(&strm);
 
@@ -287,7 +298,12 @@ namespace RN
 			inflate_res = inflate(&strm, Z_NO_FLUSH);
 		}
 
-		assert(inflate_res == Z_STREAM_END);
+		if(inflate_res != Z_STREAM_END)
+		{
+			decompressed->Release();
+			return nullptr;
+		}
+
 		decompressed->Append(temp_buffer, BUFSIZE - strm.avail_out);
 		inflateEnd(&strm);
 
