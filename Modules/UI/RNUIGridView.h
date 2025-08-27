@@ -31,6 +31,8 @@ namespace RN
 			UIAPI void SetReloadAll() { _reloadAll = true; }
 			UIAPI void SetToStart();
 
+			UIAPI const Array *GetUsedCells() const { return _usedCells; }
+
 			UIAPI void Update(float delta, Vector2 cursorPosition, bool touched, Vector2 alternativeScrollSpeed = Vector2()) override;
 
 		protected:
