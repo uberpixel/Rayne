@@ -43,6 +43,7 @@ namespace RN
 			UIAPI Vector2 GetCharacterPosition(size_t charIndex);
 			UIAPI size_t GetCharacterAtPosition(const Vector2 &position);
 			UIAPI Vector2 GetTextSize();
+			UIAPI Color GetTextColor() const { return _defaultAttributes.GetColor(); }
 
 			UIAPI void SetCursor(bool enabled, size_t position);
 			UIAPI void SetCursor(bool enabled, Vector2 position);
