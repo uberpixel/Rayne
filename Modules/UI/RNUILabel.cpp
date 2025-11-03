@@ -412,15 +412,7 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
-			{
-				totalHeight += maxAscent; // + maxDescent;
-				linewidth.push_back(currentWidth);
-				lineascent.push_back(maxAscent);
-				linedescent.push_back(maxDescent);
-				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-			}
-			else if(!linebreaks.empty())
+			if(!linebreaks.empty() && (maxAscent == 0.0f && maxDescent == 0.0f && currentWidth == 0.0f))
 			{
 				// ended with a newline -> add a line based on previous line
 				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
@@ -428,6 +420,14 @@ namespace RN
 				lineascent.push_back(lineascent.back());
 				linedescent.push_back(linedescent.back());
 				lineoffset.push_back(lineoffset.back());
+			}
+			else
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 			}
 
 			RN::uint32 linebreakIndex = 0;
@@ -645,15 +645,8 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
-			{
-				totalHeight += maxAscent; // + maxDescent;
-				linewidth.push_back(currentWidth);
-				lineascent.push_back(maxAscent);
-				linedescent.push_back(maxDescent);
-				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-			}
-			else if(!linebreaks.empty())
+
+			if(!linebreaks.empty() && (maxAscent == 0.0f && maxDescent == 0.0f && currentWidth == 0.0f))
 			{
 				// ended with a newline -> add a line based on previous line
 				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
@@ -661,6 +654,14 @@ namespace RN
 				lineascent.push_back(lineascent.back());
 				linedescent.push_back(linedescent.back());
 				lineoffset.push_back(lineoffset.back());
+			}
+			else
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 			}
 
 			RN::uint32 linebreakIndex = 0;
@@ -876,15 +877,7 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
-			{
-				totalHeight += maxAscent; // + maxDescent;
-				if(currentWidth > maxWidth) maxWidth = currentWidth;
-				lineascent.push_back(maxAscent);
-				linedescent.push_back(maxDescent);
-				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-			}
-			else if(!linebreaks.empty())
+			if(!linebreaks.empty() && (maxAscent == 0.0f && maxDescent == 0.0f && currentWidth == 0.0f))
 			{
 				// ended with a newline -> add a line based on previous line
 				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
@@ -893,6 +886,15 @@ namespace RN
 				linedescent.push_back(linedescent.back());
 				lineoffset.push_back(lineoffset.back());
 			}
+			else
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				if(currentWidth > maxWidth) maxWidth = currentWidth;
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			}
+
 			Unlock();
 			return Vector2(maxWidth, totalHeight);
 		}
@@ -1089,15 +1091,7 @@ namespace RN
 				return;
 			}
 
-			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
-			{
-				totalHeight += maxAscent; // + maxDescent;
-				linewidth.push_back(currentWidth);
-				lineascent.push_back(maxAscent);
-				linedescent.push_back(maxDescent);
-				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-			}
-			else if(!linebreaks.empty())
+			if(!linebreaks.empty() && (maxAscent == 0.0f && maxDescent == 0.0f && currentWidth == 0.0f))
 			{
 				// ended with a newline -> add a line based on previous line
 				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
@@ -1105,6 +1099,14 @@ namespace RN
 				lineascent.push_back(lineascent.back());
 				linedescent.push_back(linedescent.back());
 				lineoffset.push_back(lineoffset.back());
+			}
+			else
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 			}
 
 			float *vertexPositionBuffer = new float[numberOfVertices * 2];
