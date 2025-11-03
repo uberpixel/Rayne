@@ -412,11 +412,23 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			totalHeight += maxAscent; // + maxDescent;
-			linewidth.push_back(currentWidth);
-			lineascent.push_back(maxAscent);
-			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			}
+			else if(!linebreaks.empty())
+			{
+				// ended with a newline -> add a line based on previous line
+				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
+				linewidth.push_back(0.0f);
+				lineascent.push_back(lineascent.back());
+				linedescent.push_back(linedescent.back());
+				lineoffset.push_back(lineoffset.back());
+			}
 
 			RN::uint32 linebreakIndex = 0;
 
@@ -446,7 +458,7 @@ namespace RN
 			for(int index = 0; index <= characterCounter; index++)
 			{
 				bool isLinebreak = (linebreakIndex < linebreaks.size() && linebreaks[linebreakIndex] == index);
-				if(!isLinebreak && index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index - 1)->GetFloatValue();
+				if(index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index - 1)->GetFloatValue();
 
 				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
 				if(!currentAttributes) currentAttributes = &_defaultAttributes;
@@ -633,11 +645,23 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			totalHeight += maxAscent; // + maxDescent;
-			linewidth.push_back(currentWidth);
-			lineascent.push_back(maxAscent);
-			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			}
+			else if(!linebreaks.empty())
+			{
+				// ended with a newline -> add a line based on previous line
+				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
+				linewidth.push_back(0.0f);
+				lineascent.push_back(lineascent.back());
+				linedescent.push_back(linedescent.back());
+				lineoffset.push_back(lineoffset.back());
+			}
 
 			RN::uint32 linebreakIndex = 0;
 
@@ -670,7 +694,7 @@ namespace RN
 			for(int index = 0; index <= characterCounter; index++)
 			{
 				bool isLinebreak = (linebreakIndex < linebreaks.size() && linebreaks[linebreakIndex] == index);
-				if(!isLinebreak && index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index - 1)->GetFloatValue();
+				if(index > 0) characterPositionX += spacings->GetObjectAtIndex<RN::Number>(index - 1)->GetFloatValue();
 
 				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
 				if(!currentAttributes) currentAttributes = &_defaultAttributes;
@@ -852,12 +876,23 @@ namespace RN
 				spacings->AddObject(RN::Number::WithFloat(offset));
 			}
 
-			totalHeight += maxAscent; // + maxDescent;
-			if(currentWidth > maxWidth) maxWidth = currentWidth;
-			lineascent.push_back(maxAscent);
-			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-
+			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				if(currentWidth > maxWidth) maxWidth = currentWidth;
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			}
+			else if(!linebreaks.empty())
+			{
+				// ended with a newline -> add a line based on previous line
+				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
+				if(0.0f > maxWidth) maxWidth = 0.0f;
+				lineascent.push_back(lineascent.back());
+				linedescent.push_back(linedescent.back());
+				lineoffset.push_back(lineoffset.back());
+			}
 			Unlock();
 			return Vector2(maxWidth, totalHeight);
 		}
@@ -1054,11 +1089,23 @@ namespace RN
 				return;
 			}
 
-			totalHeight += maxAscent; // + maxDescent;
-			linewidth.push_back(currentWidth);
-			lineascent.push_back(maxAscent);
-			linedescent.push_back(maxDescent);
-			lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			if(maxAscent > 0.0f || maxDescent > 0.0f || currentWidth > 0.0f)
+			{
+				totalHeight += maxAscent; // + maxDescent;
+				linewidth.push_back(currentWidth);
+				lineascent.push_back(maxAscent);
+				linedescent.push_back(maxDescent);
+				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
+			}
+			else if(!linebreaks.empty())
+			{
+				// ended with a newline -> add a line based on previous line
+				totalHeight += lineascent.back() + linedescent.back() + lineoffset.back();
+				linewidth.push_back(0.0f);
+				lineascent.push_back(lineascent.back());
+				linedescent.push_back(linedescent.back());
+				lineoffset.push_back(lineoffset.back());
+			}
 
 			float *vertexPositionBuffer = new float[numberOfVertices * 2];
 			float *vertexUVBuffer = new float[numberOfVertices * (isUsingSDF ? 2 : 3)];
