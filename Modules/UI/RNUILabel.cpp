@@ -400,7 +400,7 @@ namespace RN
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
 						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-						
+
 						currentWidth = offset;
 						maxAscent = characterAscent;
 						maxDescent = characterDescent;
@@ -450,7 +450,7 @@ namespace RN
 
 				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
 				if(!currentAttributes) currentAttributes = &_defaultAttributes;
-				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				// float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
 
 				if(index == charIndex)
 				{
@@ -621,7 +621,7 @@ namespace RN
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
 						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-						
+
 						currentWidth = offset;
 						maxAscent = characterAscent;
 						maxDescent = characterDescent;
@@ -674,7 +674,7 @@ namespace RN
 
 				const TextAttributes *currentAttributes = _attributedText->GetAttributesAtIndex(index);
 				if(!currentAttributes) currentAttributes = &_defaultAttributes;
-				float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
+				// float scaleFactor = currentAttributes->GetFontSize() / currentAttributes->GetFont()->GetHeight();
 
 				Vector2 characterPosition(characterPositionX, characterPositionY);
 				float newDistance = characterPosition.GetSquaredDistance(realPosition);
@@ -840,7 +840,7 @@ namespace RN
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
 						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-						
+
 						currentWidth = offset;
 						maxAscent = characterAscent;
 						maxDescent = characterDescent;
@@ -1028,7 +1028,7 @@ namespace RN
 						lineascent.push_back(maxAscent);
 						linedescent.push_back(maxDescent);
 						lineoffset.push_back(maxLineOffset + _additionalLineHeight);
-						
+
 						currentWidth = offset;
 						maxAscent = characterAscent;
 						maxDescent = characterDescent;
@@ -1182,15 +1182,15 @@ namespace RN
 			textMesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Indices, indexBuffer);
 
 			textMesh->EndChanges();
-			
+
 #if RN_BUILD_DEBUG
 			if(vertexOffset != numberOfVertices)
 			{
 				RNDebug("Vertex count missmatch for label with text: " << _attributedText);
 			}
 #endif
-			
-			RN_DEBUG_ASSERT(vertexOffset == numberOfVertices,  "Vert-count mismatch!");
+
+			RN_DEBUG_ASSERT(vertexOffset == numberOfVertices, "Vert-count mismatch!");
 			RN_DEBUG_ASSERT(indexIndexOffset == numberOfIndices, "Index-count mismatch!");
 
 			delete[] vertexPositionBuffer;
