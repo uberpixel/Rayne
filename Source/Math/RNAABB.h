@@ -153,26 +153,30 @@ namespace RN
 	{
 		Matrix matrix = rotation.GetRotationMatrix();
 
-		Vector3 corners[4];
-		corners[0] = matrix * Vector3(minExtend.x, minExtend.y, maxExtend.z);
-		corners[1] = matrix * Vector3(minExtend.x, maxExtend.y, maxExtend.z);
-		corners[2] = matrix * Vector3(maxExtend.x, maxExtend.y, minExtend.z);
-		corners[3] = matrix * Vector3(maxExtend.x, minExtend.y, minExtend.z);
+		Vector3 corners[8];
+		corners[0] = matrix * Vector3(minExtend.x, minExtend.y, minExtend.z);
+		corners[1] = matrix * Vector3(minExtend.x, minExtend.y, maxExtend.z);
+		corners[2] = matrix * Vector3(minExtend.x, maxExtend.y, minExtend.z);
+		corners[3] = matrix * Vector3(minExtend.x, maxExtend.y, maxExtend.z);
+		corners[4] = matrix * Vector3(maxExtend.x, minExtend.y, minExtend.z);
+		corners[5] = matrix * Vector3(maxExtend.x, minExtend.y, maxExtend.z);
+		corners[6] = matrix * Vector3(maxExtend.x, maxExtend.y, minExtend.z);
+		corners[7] = matrix * Vector3(maxExtend.x, maxExtend.y, maxExtend.z);
 
 		minExtend = matrix * minExtend;
 		maxExtend = matrix * maxExtend;
 
-		for(size_t i = 0; i < 4; i++)
+		for(Vector3 &corner : corners)
 		{
 			//This used to use std::min, but could trigger an exception in visual studio debug builds
 			//if both values are equal, even though the standard explicitly allows it...
-			minExtend.x = (corners[i].x < minExtend.x) ? corners[i].x : minExtend.x;
-			minExtend.y = (corners[i].y < minExtend.y) ? corners[i].y : minExtend.y;
-			minExtend.z = (corners[i].z < minExtend.z) ? corners[i].z : minExtend.z;
+			minExtend.x = corner.x < minExtend.x ? corner.x : minExtend.x;
+			minExtend.y = corner.y < minExtend.y ? corner.y : minExtend.y;
+			minExtend.z = corner.z < minExtend.z ? corner.z : minExtend.z;
 
-			maxExtend.x = (corners[i].x > maxExtend.x) ? corners[i].x : maxExtend.x;
-			maxExtend.y = (corners[i].y > maxExtend.y) ? corners[i].y : maxExtend.y;
-			maxExtend.z = (corners[i].z > maxExtend.z) ? corners[i].z : maxExtend.z;
+			maxExtend.x = corner.x > maxExtend.x ? corner.x : maxExtend.x;
+			maxExtend.y = corner.y > maxExtend.y ? corner.y : maxExtend.y;
+			maxExtend.z = corner.z > maxExtend.z ? corner.z : maxExtend.z;
 		}
 	}
 } // namespace RN
