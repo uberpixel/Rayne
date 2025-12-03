@@ -32,7 +32,7 @@ namespace RN
 		bool Intersects(const AABB &other) const;
 		bool Contains(const Vector3 &position) const;
 
-		void SetRotation(const Quaternion &rotation);
+		void Rotate(const Quaternion &rotation);
 
 		Vector3 position;
 		Vector3 minExtend;
@@ -149,7 +149,7 @@ namespace RN
 		return true;
 	}
 
-	RN_INLINE void AABB::SetRotation(const Quaternion &rotation)
+	RN_INLINE void AABB::Rotate(const Quaternion &rotation)
 	{
 		Matrix matrix = rotation.GetRotationMatrix();
 
