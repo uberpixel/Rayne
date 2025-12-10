@@ -55,6 +55,7 @@ namespace RN
 		PXAPI std::vector<PhysXContactInfo> CastRayAll(const Vector3 &from, const Vector3 &to, uint32 filterGroup, uint32 filterMask, uint32 maxNumberOfOverlaps = 256);
 		PXAPI PhysXContactInfo CastSweep(PhysXShape *shape, const Quaternion &rotation, const Vector3 &from, const Vector3 &to, float inflation = 0.0f, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		PXAPI std::vector<PhysXContactInfo> CheckOverlap(PhysXShape *shape, const Vector3 &position, const Quaternion &rotation, float inflation = 0.0f, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff, uint32 maxNumberOfOverlaps = 256);
+		PXAPI bool ComputePenetration(PhysXShape *shape0, const Vector3 &position0, const Quaternion &rotation0, PhysXShape *shape1, const Vector3 &position1, const Quaternion &rotation1, Vector3 &outDirection, float &outDepth);
 
 		PXAPI physx::PxPhysics *GetPhysXInstance() const { return _physics; }
 		PXAPI physx::PxCooking *GetPhysXCooking() const { return _cooking; }

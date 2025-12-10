@@ -486,4 +486,101 @@ namespace RN
 
 		return results;
 	}
+
+	bool PhysXWorld::ComputePenetration(PhysXShape *shape0, const Vector3 &position0, const Quaternion &rotation0,
+										PhysXShape *shape1, const Vector3 &position1, const Quaternion &rotation1,
+										Vector3 &outDirection, float &outDepth)
+	{
+		outDepth = 0.0f;
+		outDirection = Vector3(0.0f, 0.0f, 0.0f);
+
+		if(!shape0 || !shape1)
+			return false;
+
+		const physx::PxTransform pose0(
+		physx::PxVec3(position0.x, position0.y, position0.z),
+		physx::PxQuat(rotation0.x, rotation0.y, rotation0.z, rotation0.w));
+
+		const physx::PxTransform pose1(
+		physx::PxVec3(position1.x, position1.y, position1.z),
+		physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w));
+
+		bool hasPenetration = false;
+		physx::PxVec3 bestDirection(0.0f, 0.0f, 0.0f);
+		physx::PxF32 bestDepth = 0.0f;
+
+		// Small helper that tests one shape pair and keeps the deepest penetration
+		auto testPair = [&](PhysXShape *s0, const physx::PxTransform &p0,
+							PhysXShape *s1, const physx::PxTransform &p1) {
+			if(!s0 || !s1) return;
+
+			physx::PxShape *pxShape0 = s0->GetPhysXShape();
+			physx::PxShape *pxShape1 = s1->GetPhysXShape();
+			if(!pxShape0 || !pxShape1) return;
+
+			const physx::PxGeometry &geom0 = pxShape0->getGeometry().any();
+			const physx::PxGeometry &geom1 = pxShape1->getGeometry().any();
+
+			physx::PxVec3 direction;
+			physx::PxF32 depth = 0.0f;
+
+			if(physx::PxGeometryQuery::computePenetration(direction, depth, geom0, p0, geom1, p1))
+			{
+				if(depth > bestDepth || !hasPenetration)
+				{
+					bestDepth = depth;
+					bestDirection = direction;
+					hasPenetration = true;
+				}
+			}
+		};
+
+		const bool shape0IsCompound = shape0->IsKindOfClass(PhysXCompoundShape::GetMetaClass());
+		const bool shape1IsCompound = shape1->IsKindOfClass(PhysXCompoundShape::GetMetaClass());
+
+		if(!shape0IsCompound && !shape1IsCompound)
+		{
+			testPair(shape0, pose0, shape1, pose1);
+		}
+		else if(shape0IsCompound && !shape1IsCompound)
+		{
+			PhysXCompoundShape *compound0 = shape0->Downcast<PhysXCompoundShape>();
+			for(size_t i = 0; i < compound0->GetNumberOfShapes(); ++i)
+			{
+				PhysXShape *child0 = compound0->GetShape(i);
+				testPair(child0, pose0, shape1, pose1);
+			}
+		}
+		else if(!shape0IsCompound && shape1IsCompound)
+		{
+			PhysXCompoundShape *compound1 = shape1->Downcast<PhysXCompoundShape>();
+			for(size_t i = 0; i < compound1->GetNumberOfShapes(); ++i)
+			{
+				PhysXShape *child1 = compound1->GetShape(i);
+				testPair(shape0, pose0, child1, pose1);
+			}
+		}
+		else
+		{
+			PhysXCompoundShape *compound0 = shape0->Downcast<PhysXCompoundShape>();
+			PhysXCompoundShape *compound1 = shape1->Downcast<PhysXCompoundShape>();
+
+			for(size_t i = 0; i < compound0->GetNumberOfShapes(); ++i)
+			{
+				PhysXShape *child0 = compound0->GetShape(i);
+				for(size_t j = 0; j < compound1->GetNumberOfShapes(); ++j)
+				{
+					PhysXShape *child1 = compound1->GetShape(j);
+					testPair(child0, pose0, child1, pose1);
+				}
+			}
+		}
+
+		if(!hasPenetration)
+			return false;
+
+		outDirection = RN::Vector3(bestDirection.x, bestDirection.y, bestDirection.z);
+		outDepth = bestDepth;
+		return true;
+	}
 } // namespace RN
