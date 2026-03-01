@@ -89,7 +89,7 @@ namespace RN
 	}
 
 	OpenXRWindow::OpenXRWindow() :
-		_internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _currentHapticsIndex {0, 0}, _hapticsStopped {true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array())
+		_internals(new OpenXRWindowInternals()), _runtimeName(nullptr), _actualFrameIndex(0), _currentHapticsIndex {0, 0}, _hapticsStopped {true, true}, _preferredFrameRate(0.0f), _minCPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _minGPULevel(XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), _fixedFoveatedRenderingLevel(2), _fixedFoveatedRenderingDynamic(false), _isLocalDimmingEnabled(false), _isSessionRunning(false), _hasSynchronization(false), _hasVisibility(false), _hasInputFocus(false), _mainLayer(nullptr), _layersUnderlay(new Array()), _layersOverlay(new Array()), _isHandTrackingEnabled(false)
 	{
 		_supportsVulkan = false;
 		_supportsMetal = false;
@@ -104,9 +104,12 @@ namespace RN
 		_supportsCompositionLayerSettings = false;
 		_supportsDynamicResolution = false;
 		_supportsControllerInteractionPICO = false;
+		_supportsHandTracking = false;
 
 		_internals->session = XR_NULL_HANDLE;
 		_internals->passthroughSessionFB = XR_NULL_HANDLE;
+		_internals->handTracker[0] = XR_NULL_HANDLE;
+		_internals->handTracker[1] = XR_NULL_HANDLE;
 
 #if XR_USE_GRAPHICS_API_VULKAN
 		_internals->GetVulkanInstanceExtensionsKHR = nullptr;
@@ -140,6 +143,10 @@ namespace RN
 		_internals->PassthroughLayerPauseFB = nullptr;
 		_internals->PassthroughLayerResumeFB = nullptr;
 		_internals->PassthroughLayerSetStyleFB = nullptr;
+
+		_internals->CreateHandTrackerEXT = nullptr;
+		_internals->LocateHandJointsEXT = nullptr;
+		_internals->DestroyHandTrackerEXT = nullptr;
 
 #if XR_USE_PLATFORM_ANDROID
 		_internals->SetAndroidApplicationThreadKHR = nullptr;
@@ -272,6 +279,11 @@ namespace RN
 				extensions.push_back(extension.extensionName);
 				numberOfSupportedFoveationExtensions += 1;
 			}
+			else if(std::strcmp(extension.extensionName, XR_EXT_HAND_TRACKING_EXTENSION_NAME) == 0)
+			{
+				extensions.push_back(extension.extensionName);
+				_supportsHandTracking = true;
+			}
 
 			RNDebug("  Name: " << extension.extensionName << ", Spec Version: " << extension.extensionVersion);
 		}
@@ -318,7 +330,17 @@ namespace RN
 		}
 
 		_internals->systemProperties.type = XR_TYPE_SYSTEM_PROPERTIES;
+
+		_internals->systemProperties.next = nullptr;
+
+		XrSystemHandTrackingPropertiesEXT handTrackingProperties = {};
+		handTrackingProperties.type = XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT;
+		if(_supportsHandTracking)
+		{
+			_internals->systemProperties.next = &handTrackingProperties;
+		}
 		XrResult systemPropertiesResult = xrGetSystemProperties(_internals->instance, _internals->systemID, &_internals->systemProperties);
+		_internals->systemProperties.next = nullptr;
 		if(systemPropertiesResult != XR_SUCCESS)
 		{
 			char resultString[XR_MAX_RESULT_STRING_SIZE] = {};
@@ -326,6 +348,7 @@ namespace RN
 			RNError("OpenXR system properties fetch failed: " << systemPropertiesResult << " (" << resultString << ")");
 			RN_ASSERT(false, "Failed fetching HMD info!");
 		}
+		_supportsHandTracking = handTrackingProperties.supportsHandTracking;
 
 		_hmdTrackingState.type = (_internals->systemProperties.trackingProperties.orientationTracking && _internals->systemProperties.trackingProperties.positionTracking) ? VRHMDTrackingState::Type::SixDegreesOfFreedom : VRHMDTrackingState::Type::ThreeDegreesOfFreedom;
 		RNInfo("Using HMD: " << GetHMDInfoDescription());
@@ -472,6 +495,13 @@ namespace RN
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrPassthroughLayerPauseFB", (PFN_xrVoidFunction *)(&_internals->PassthroughLayerPauseFB)))) {}
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrPassthroughLayerResumeFB", (PFN_xrVoidFunction *)(&_internals->PassthroughLayerResumeFB)))) {}
 			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrPassthroughLayerSetStyleFB", (PFN_xrVoidFunction *)(&_internals->PassthroughLayerSetStyleFB)))) {}
+		}
+
+		if(_supportsHandTracking)
+		{
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrCreateHandTrackerEXT", (PFN_xrVoidFunction *)(&_internals->CreateHandTrackerEXT)))) {}
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrDestroyHandTrackerEXT", (PFN_xrVoidFunction *)(&_internals->DestroyHandTrackerEXT)))) {}
+			if(XR_FAILED(xrGetInstanceProcAddr(_internals->instance, "xrLocateHandJointsEXT", (PFN_xrVoidFunction *)(&_internals->LocateHandJointsEXT)))) {}
 		}
 
 #if XR_USE_PLATFORM_ANDROID
@@ -1678,6 +1708,11 @@ namespace RN
 		handRightGripPoseSpaceCreateInfo.poseInActionSpace.position.y = 0.0f;
 		handRightGripPoseSpaceCreateInfo.poseInActionSpace.position.z = 0.0f;
 		xrCreateActionSpace(_internals->session, &handRightGripPoseSpaceCreateInfo, &_internals->handRightGripPoseSpace);
+
+		if(_isHandTrackingEnabled)
+		{
+			InitializeHandTracking();
+		}
 	}
 
 	void OpenXRWindow::StopRendering()
@@ -1686,6 +1721,9 @@ namespace RN
 		{
 			xrDestroySession(_internals->session);
 		}
+
+		_internals->handTracker[0] = XR_NULL_HANDLE;
+		_internals->handTracker[1] = XR_NULL_HANDLE;
 
 		delete[] _internals->views;
 		SafeRelease(_mainLayer);
@@ -1724,6 +1762,54 @@ namespace RN
 			_internals->PassthroughStartFB(_internals->passthroughSessionFB);
 		else
 			_internals->PassthroughPauseFB(_internals->passthroughSessionFB);
+	}
+
+	void OpenXRWindow::InitializeHandTracking()
+	{
+		if(_internals->session == XR_NULL_HANDLE) return; // no session yet
+		if(_internals->handTracker[0] != XR_NULL_HANDLE) return; // already created
+
+		for(int i = 0; i < 2; i++)
+		{
+			XrHandTrackerCreateInfoEXT createInfo {};
+			createInfo.type = XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT;
+			createInfo.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
+			createInfo.hand = (i == 0) ? XR_HAND_LEFT_EXT : XR_HAND_RIGHT_EXT;
+			XrResult result = _internals->CreateHandTrackerEXT(_internals->session, &createInfo, &_internals->handTracker[i]);
+			if(result != XR_SUCCESS)
+			{
+				// clean up successfully created tracker
+				for(int j = 0; j < i; j++)
+				{
+					if(_internals->handTracker[j] != XR_NULL_HANDLE)
+					{
+						_internals->DestroyHandTrackerEXT(_internals->handTracker[j]);
+						_internals->handTracker[j] = XR_NULL_HANDLE;
+					}
+				}
+				_internals->handTracker[0] = XR_NULL_HANDLE;
+				_internals->handTracker[1] = XR_NULL_HANDLE;
+				_isHandTrackingEnabled = false;
+				return;
+			}
+		}
+	}
+
+	bool OpenXRWindow::EnableHandTracking()
+	{
+		if(_isHandTrackingEnabled) return true;
+		if(!_supportsHandTracking) return false;
+		if(!_internals->CreateHandTrackerEXT) return false;
+		if(!_internals->LocateHandJointsEXT) return false;
+		if(!_internals->DestroyHandTrackerEXT) return false;
+
+		RN_ASSERT(XR_HAND_JOINT_COUNT_EXT == VRHandTrackingState::Joint::_JointCount, "JointCount must match OpenXR");
+
+		_isHandTrackingEnabled = true;
+
+		InitializeHandTracking();
+
+		return _isHandTrackingEnabled;
 	}
 
 	void OpenXRWindow::SetFixedFoveatedRenderingLevel(uint8 level, bool dynamic)
@@ -2029,18 +2115,20 @@ namespace RN
 		_controllerTrackingState[1].hapticsSampleLength = 0.0;
 		_controllerTrackingState[1].hapticsMaxSamples = 0;
 
-		_handTrackingState[0].pinchStrength[0] = 0.0f;
-		_handTrackingState[0].pinchStrength[1] = 0.0f;
-		_handTrackingState[0].pinchStrength[2] = 0.0f;
-		_handTrackingState[0].pinchStrength[3] = 0.0f;
-		_handTrackingState[0].active = false;
-		_handTrackingState[0].tracking = false;
-		_handTrackingState[1].pinchStrength[0] = 0.0f;
-		_handTrackingState[1].pinchStrength[1] = 0.0f;
-		_handTrackingState[1].pinchStrength[2] = 0.0f;
-		_handTrackingState[1].pinchStrength[3] = 0.0f;
-		_handTrackingState[1].active = false;
-		_handTrackingState[1].tracking = false;
+		if(_isHandTrackingEnabled)
+		{
+			for(size_t handIndex = 0; handIndex < 2; handIndex++)
+			{
+				VRHandTrackingState &hand = _handTrackingState[handIndex];
+
+				for(size_t jointIndex = 0; jointIndex < VRHandTrackingState::Joint::_JointCount; jointIndex++)
+				{
+					hand.joints[jointIndex].position = 0.0f;
+					hand.joints[jointIndex].rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+				}
+				hand.tracking = false;
+			}
+		}
 
 		if(!_hasInputFocus) return;
 
@@ -2377,6 +2465,51 @@ namespace RN
 				hapticVibration.amplitude = strength;
 				xrApplyHapticFeedback(_internals->session, &hapticActionInfo, (XrHapticBaseHeader *)&hapticVibration);
 				_hapticsStopped[1] = false;
+			}
+		}
+
+		if(_isHandTrackingEnabled)
+		{
+			for(size_t handIndex = 0; handIndex < 2; ++handIndex)
+			{
+				if(!_internals->handTracker[handIndex]) continue;
+
+				// get hand info from openxr
+				XrHandJointLocationEXT jointLocations[XR_HAND_JOINT_COUNT_EXT];
+
+				XrHandJointLocationsEXT locations {};
+				locations.type = XR_TYPE_HAND_JOINT_LOCATIONS_EXT;
+				locations.jointCount = XR_HAND_JOINT_COUNT_EXT;
+				locations.jointLocations = jointLocations;
+
+				XrHandJointsLocateInfoEXT locateInfo {};
+				locateInfo.type = XR_TYPE_HAND_JOINTS_LOCATE_INFO_EXT;
+				locateInfo.baseSpace = _internals->trackingSpace;
+				locateInfo.time = _internals->predictedDisplayTime;
+
+				XrResult result = _internals->LocateHandJointsEXT(_internals->handTracker[handIndex], &locateInfo, &locations);
+
+				// _handTrackingState is reset at the start of update so just skip
+				if(result != XR_SUCCESS || !locations.isActive) continue;
+
+				_handTrackingState[handIndex].tracking = true;
+
+				// set joint states
+				for(size_t jointIndex = 0; jointIndex < XR_HAND_JOINT_COUNT_EXT; ++jointIndex)
+				{
+					const XrHandJointLocationEXT &joint = jointLocations[jointIndex];
+					const XrPosef &pose = joint.pose;
+
+					if(joint.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+					{
+						_handTrackingState[handIndex].joints[jointIndex].position = Vector3(pose.position.x, pose.position.y, pose.position.z);
+					}
+
+					if(joint.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+					{
+						_handTrackingState[handIndex].joints[jointIndex].rotation = Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+					}
+				}
 			}
 		}
 

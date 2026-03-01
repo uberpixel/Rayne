@@ -284,9 +284,12 @@ namespace RN
 	VRHandTrackingState VRCamera::GetHandTrackingState(uint8 index) const
 	{
 		VRHandTrackingState trackingState = _window->GetHandTrackingState(index);
-		trackingState.position += _originPositionOffset;
-		trackingState.position = _originalOrientationOffset.GetRotatedVector(trackingState.position);
-		trackingState.rotation = _originalOrientationOffset * trackingState.rotation;
+		for(size_t jointIndex = 0; jointIndex < VRHandTrackingState::Joint::_JointCount; jointIndex++)
+		{
+			trackingState.joints[jointIndex].position += _originPositionOffset;
+			trackingState.joints[jointIndex].position = _originalOrientationOffset.GetRotatedVector(trackingState.joints[jointIndex].position);
+			trackingState.joints[jointIndex].rotation = _originalOrientationOffset * trackingState.joints[jointIndex].rotation;
+		}
 
 		return trackingState;
 	}

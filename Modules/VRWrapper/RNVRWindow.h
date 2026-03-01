@@ -86,6 +86,8 @@ namespace RN
 		RNVRAPI virtual bool InitializePassthrough(bool startRunning) { return false; } //returns false if passthrough is not supported or failed initializing
 		RNVRAPI virtual void SetPassthroughActive(bool active) {}
 
+		RNVRAPI virtual bool EnableHandTracking() { return false; }
+
 		RNVRAPI virtual VRCompositorLayer *CreateCompositorLayer(VRCompositorLayer::Type type, const SwapChainDescriptor &descriptor, RN::Vector2 resolution, bool supportsFoveation) { return nullptr; }
 		RNVRAPI virtual void AddCompositorLayer(VRCompositorLayer *layer, bool isUnderlay, bool lowest) { return; }
 		RNVRAPI virtual void RemoveCompositorLayer(VRCompositorLayer *layer) { return; }

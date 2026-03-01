@@ -45,26 +45,49 @@ namespace RN
 	struct VRHandTrackingState
 	{
 		VRHandTrackingState() :
-			pinchStrength {0.0f, 0.0f, 0.0f, 0.0f}, active(false), tracking(false), confidence(0), menuButton(false) {}
+			tracking(false), joints {}
+		{}
 
-		enum PinchFinger
+		enum Joint // matches XrHandJointEXT
 		{
-			PinchFingerIndex,
-			PinchFingerMiddle,
-			PinchFingerRing,
-			PinchFingerPinky
+			Palm,
+			Wrist,
+			ThumbMetacarpal,
+			ThumbProximal,
+			ThumbDistal,
+			ThumbTip,
+			IndexMetacarpal,
+			IndexProximal,
+			IndexIntermediate,
+			IndexDistal,
+			IndexTip,
+			MiddleMetacarpal,
+			MiddleProximal,
+			MiddleIntermediate,
+			MiddleDistal,
+			MiddleTip,
+			RingMetacarpal,
+			RingProximal,
+			RingIntermediate,
+			RingDistal,
+			RingTip,
+			LittleMetacarpal,
+			LittleProximal,
+			LittleIntermediate,
+			LittleDistal,
+			LittleTip,
+			_JointCount,
 		};
 
-		float pinchStrength[4];
+		struct JointState
+		{
+			Vector3 position;
+			Quaternion rotation;
+		};
 
-		bool active;
 		bool tracking;
-		uint8 confidence;
 
-		bool menuButton;
-
-		Vector3 position;
-		Quaternion rotation;
+		JointState joints[Joint::_JointCount];
 	};
 
 	struct VRControllerTrackingState

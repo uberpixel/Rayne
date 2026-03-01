@@ -119,6 +119,11 @@ namespace RN
 		PFN_xrSetAndroidApplicationThreadKHR SetAndroidApplicationThreadKHR;
 		RN::Quaternion _trackingSpaceCounterRotation; //TODO: Only used on pico as a workaround when resetting the view
 #endif
+
+		PFN_xrCreateHandTrackerEXT CreateHandTrackerEXT;
+		PFN_xrDestroyHandTrackerEXT DestroyHandTrackerEXT;
+		PFN_xrLocateHandJointsEXT LocateHandJointsEXT;
+		XrHandTrackerEXT handTracker[2];
 	};
 
 	struct OpenXRSwapchainInternals
