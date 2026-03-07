@@ -54,9 +54,9 @@ namespace RN
 	class JoltBoxShape : public JoltShape
 	{
 	public:
-		JTAPI JoltBoxShape(const Vector3 &halfExtents, JoltMaterial *material);
+		JTAPI JoltBoxShape(const Vector3 &halfExtents, JoltMaterial *material, float convexRadius = 0.05f);
 
-		JTAPI static JoltBoxShape *WithHalfExtents(const Vector3 &halfExtents, JoltMaterial *material);
+		JTAPI static JoltBoxShape *WithHalfExtents(const Vector3 &halfExtents, JoltMaterial *material, float convexRadius = 0.05f);
 
 		RNDeclareMetaAPI(JoltBoxShape, JTAPI)
 	};
@@ -85,9 +85,9 @@ namespace RN
 	class JoltConvexHullShape : public JoltShape
 	{
 	public:
-		JTAPI JoltConvexHullShape(Mesh *mesh, JoltMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		JTAPI JoltConvexHullShape(Mesh *mesh, JoltMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f), float convexRadius = 0.05f);
 
-		JTAPI static JoltConvexHullShape *WithMesh(Mesh *mesh, JoltMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f));
+		JTAPI static JoltConvexHullShape *WithMesh(Mesh *mesh, JoltMaterial *material, Vector3 scale = Vector3(1.0f, 1.0f, 1.0f), float convexRadius = 0.05f);
 
 	private:
 		RNDeclareMetaAPI(JoltConvexHullShape, JTAPI)

@@ -63,16 +63,16 @@ namespace RN
 	}
 
 
-	JoltBoxShape::JoltBoxShape(const Vector3 &halfExtents, JoltMaterial *material)
+	JoltBoxShape::JoltBoxShape(const Vector3 &halfExtents, JoltMaterial *material, float convexRadius)
 	{
 		_material = SafeRetain(material);
-		_shape = new JPH::BoxShape(JPH::Vec3Arg(halfExtents.x, halfExtents.y, halfExtents.z), JPH::cDefaultConvexRadius, material ? material->GetJoltMaterial() : nullptr);
+		_shape = new JPH::BoxShape(JPH::Vec3Arg(halfExtents.x, halfExtents.y, halfExtents.z), convexRadius, material ? material->GetJoltMaterial() : nullptr);
 		_shape->AddRef();
 	}
 
-	JoltBoxShape *JoltBoxShape::WithHalfExtents(const Vector3 &halfExtents, JoltMaterial *material)
+	JoltBoxShape *JoltBoxShape::WithHalfExtents(const Vector3 &halfExtents, JoltMaterial *material, float convexRadius)
 	{
-		JoltBoxShape *shape = new JoltBoxShape(halfExtents, material);
+		JoltBoxShape *shape = new JoltBoxShape(halfExtents, material, convexRadius);
 		return shape->Autorelease();
 	}
 
@@ -172,7 +172,7 @@ namespace RN
 		return shape->Autorelease();
 	}
 
-	JoltConvexHullShape::JoltConvexHullShape(Mesh *mesh, JoltMaterial *material, Vector3 scale)
+	JoltConvexHullShape::JoltConvexHullShape(Mesh *mesh, JoltMaterial *material, Vector3 scale, float convexRadius)
 	{
 		JPH::Array<JPH::Vec3> vertices;
 
@@ -190,7 +190,7 @@ namespace RN
 			vertices.push_back(JPH::Vec3(position.x * scale.x, position.y * scale.y, position.z * scale.z));
 		}
 
-		JPH::ConvexHullShapeSettings settings(vertices, JPH::cDefaultConvexRadius, material ? material->GetJoltMaterial() : nullptr);
+		JPH::ConvexHullShapeSettings settings(vertices, convexRadius, material ? material->GetJoltMaterial() : nullptr);
 		JPH::Shape::ShapeResult result = settings.Create();
 
 		_material = SafeRetain(material);
@@ -202,9 +202,9 @@ namespace RN
 		}
 	}
 
-	JoltConvexHullShape *JoltConvexHullShape::WithMesh(Mesh *mesh, JoltMaterial *material, Vector3 scale)
+	JoltConvexHullShape *JoltConvexHullShape::WithMesh(Mesh *mesh, JoltMaterial *material, Vector3 scale, float convexRadius)
 	{
-		JoltConvexHullShape *shape = new JoltConvexHullShape(mesh, material, scale);
+		JoltConvexHullShape *shape = new JoltConvexHullShape(mesh, material, scale, convexRadius);
 		return shape->Autorelease();
 	}
 
