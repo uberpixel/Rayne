@@ -1720,6 +1720,7 @@ namespace RN
 		if(_internals->session != XR_NULL_HANDLE)
 		{
 			xrDestroySession(_internals->session);
+			_internals->session = XR_NULL_HANDLE;
 		}
 
 		_internals->handTracker[0] = XR_NULL_HANDLE;
