@@ -12,6 +12,7 @@ __RN_PERMISSIONS__
         android:hasCode="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" __RN_APPLICATION_PROPERTIES__>
 
+__RN_METADATA__
         <meta-data android:name="pvr.app.type" android:value="vr" />
         <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
         <meta-data android:name="com.oculus.supportedDevices" android:value="quest2|questpro|quest3|quest3s"/>

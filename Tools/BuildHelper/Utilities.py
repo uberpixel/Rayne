@@ -125,6 +125,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 	featuresString = b""
 	permissionsString = b""
 	queriesString = b""
+	metadataString = b""
 	if androidPermissions:
 		for permission in androidPermissions:
 			if type(permission) is str:
@@ -142,6 +143,8 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 					if "required" in permission and permission["required"] == True:
 						requiredString = "true"
 					featuresString += b"    <uses-feature android:name=\"" + permission["name"].encode('utf-8') + b"\" android:required=\"" + requiredString.encode('utf-8') + b"\" />\n"
+				elif permission["type"] == "metadata":
+					metadataString += b"        <meta-data android:name=\"" + permission["name"].encode('utf-8') + b"\" android:value=\"" + permission["value"].encode('utf-8') + b"\"/>\n"
 
 		if len(queriesString) > 0:
 			permissionsString += b"\n    <queries>\n" + queriesString + b"    </queries>"
@@ -201,6 +204,7 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 				fileContent = fileContent.replace(b"__RN_CMAKE_VERSION__", cmakeVersion)
 				fileContent = fileContent.replace(b"__RN_CMAKE_TARGETS__", cmakeTargets)
 				fileContent = fileContent.replace(b"__RN_PERMISSIONS__", permissionsString)
+				fileContent = fileContent.replace(b"__RN_METADATA__", metadataString)
 				fileContent = fileContent.replace(b"__RN_ANDROID_DEPENDENCIES__", dependenciesString)
 				fileContent = fileContent.replace(b"__RN_APPLICATION_PROPERTIES__", applicationPropertiesString)
 				fileContent = fileContent.replace(b"__RN_ANDROID_SDK_VERSION_MIN__", androidSDKVersionMin)
