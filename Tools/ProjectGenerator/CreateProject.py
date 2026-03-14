@@ -3,47 +3,61 @@ import sys
 import datetime
 
 def main():
-	templateName = input("Template name? ")
-	projectNameString = input("Project name? ")
-	projectName = projectNameString.encode()
-	projectTarget = projectNameString.replace(" ", "").encode()
-	prefixString = input("Project prefix? ")
-	prefix = prefixString.encode()
-	companyName = input("Company name? ").encode()
-	bundleID = input("Bundle ID? ").encode()
-	year = str(datetime.datetime.now().year).encode()
+	template = input("Template name? ")
 
-	fromdir = os.path.join(os.path.dirname(sys.argv[0]), "Templates")
-	fromdir = os.path.join(fromdir, templateName)
+	# project info
+	project_name = input("Project name? ")
+	project_prefix = input("Project prefix? ")
+	company_name = input("Company name? ")
+	bundle_id = input("Bundle ID? ")
 
-	for root, subdirs, files in os.walk(fromdir):
-		relativeRoot = os.path.relpath(root, fromdir)
+	project_target = bundle_id.split(".")[-1]
+	bundle_domain = ".".join(bundle_id.split(".")[:-1])
+	year = str(datetime.datetime.now().year)
 
+	# template source
+	from_dir = os.path.join(os.path.dirname(sys.argv[0]), "Templates")
+	from_dir = os.path.join(from_dir, template)
+
+	# traverse template
+	for root, subdirs, files in os.walk(from_dir):
+		relative_root = os.path.relpath(root, from_dir)
+
+		# copy dirs
 		for subdir in subdirs:
-			os.makedirs(os.path.join(relativeRoot, subdir))
+			os.makedirs(os.path.join(relative_root, subdir))
 
+		# copy files
 		for filename in files:
 			if filename == ".DS_Store":
 				continue
-			readFilePath = os.path.join(root, filename)
+
+			read_file_path = os.path.join(root, filename)
 
 			if filename == "gitattributes":
 				filename = ".gitattributes"
-			filename = filename.replace("__TMP__", prefixString)
-			filename = filename.replace("__TMP_APPLICATION_TARGET__", projectTarget.decode("utf-8"))
-			writeFilePath = os.path.join(relativeRoot, filename)
-			
-			with open(readFilePath, 'rb') as readFile:
-				fileContent = readFile.read()
-				fileContent = fileContent.replace("__TMP__".encode(), prefix)
-				fileContent = fileContent.replace("__TMP_BUNDLE_ID__".encode(), bundleID)
-				fileContent = fileContent.replace("__TMP_APPLICATION_NAME__".encode(), projectName)
-				fileContent = fileContent.replace("__TMP_APPLICATION_TARGET__".encode(), projectTarget)
-				fileContent = fileContent.replace("__TMP_COMPANY__".encode(), companyName)
-				fileContent = fileContent.replace("__TMP_YEAR__".encode(), year)
 
-				with open(writeFilePath, 'wb') as writeFile:
-					writeFile.write(fileContent)
+			# replace filename variables
+			filename = filename.replace("__TMP__", project_prefix)
+			filename = filename.replace("__TMP_APPLICATION_TARGET__", project_target)
+
+			write_file_path = os.path.join(relative_root, filename)
+
+			# copy content
+			with open(read_file_path, 'rb') as read_file:
+				file_content = read_file.read()
+
+				# replace content variables
+				file_content = file_content.replace(b"__TMP__", project_prefix.encode())
+				file_content = file_content.replace(b"__TMP_BUNDLE_ID__", bundle_id.encode())
+				file_content = file_content.replace(b"__TMP_BUNDLE_DOMAIN__", bundle_domain.encode())
+				file_content = file_content.replace(b"__TMP_APPLICATION_NAME__", project_name.encode())
+				file_content = file_content.replace(b"__TMP_APPLICATION_TARGET__", project_target.encode())
+				file_content = file_content.replace(b"__TMP_COMPANY__", company_name.encode())
+				file_content = file_content.replace(b"__TMP_YEAR__", year.encode())
+
+				with open(write_file_path, 'wb') as write_file:
+					write_file.write(file_content)
 
 if __name__ == '__main__':
 	main()
