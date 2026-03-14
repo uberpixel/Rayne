@@ -211,6 +211,8 @@ namespace RN
 
 	JoltCompoundShape::JoltCompoundShape()
 	{
+		_shape = new JPH::MutableCompoundShape();
+		_shape->AddRef();
 	}
 
 	JoltCompoundShape::JoltCompoundShape(Model *model, JoltMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
@@ -229,6 +231,9 @@ namespace RN
 
 	JoltCompoundShape::JoltCompoundShape(const Array *meshes, JoltMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
+		_shape = new JPH::MutableCompoundShape();
+		_shape->AddRef();
+
 		meshes->Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
 			AddChild(mesh, material, Vector3(), Quaternion(), scale, useTriangleMesh, wantsDoubleSided);
 		});
