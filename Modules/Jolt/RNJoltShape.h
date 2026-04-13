@@ -107,16 +107,12 @@ namespace RN
 		JTAPI void AddChild(JoltShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 
 		JoltShape *GetShape(size_t index) const { return _shapes[index]; }
-		RN::Vector3 GetPosition(size_t index) const { return _positions[index]; }
-		RN::Quaternion GetRotation(size_t index) const { return _rotations[index]; }
 		size_t GetNumberOfShapes() const { return _shapes.size(); }
 
 		JTAPI static JoltCompoundShape *WithModel(Model *model, JoltMaterial *material, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided = false);
 
 	private:
 		std::vector<JoltShape *> _shapes;
-		std::vector<RN::Vector3> _positions;
-		std::vector<RN::Quaternion> _rotations;
 
 		RNDeclareMetaAPI(JoltCompoundShape, JTAPI)
 	};
