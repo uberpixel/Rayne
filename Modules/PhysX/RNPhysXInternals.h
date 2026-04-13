@@ -31,6 +31,8 @@ namespace RN
 
 	class PhysXQueryFilterCallback : public physx::PxQueryFilterCallback
 	{
+	public:
+		physx::PxRigidActor *ignoreActor = nullptr;
 		physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData &filterData, const physx::PxShape *shape, const physx::PxRigidActor *actor, physx::PxHitFlags &queryFlags) final;
 		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData &filterData, const physx::PxQueryHit &hit) final;
 	};

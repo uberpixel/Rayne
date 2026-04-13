@@ -66,6 +66,7 @@ namespace RN
 
 	physx::PxQueryHitType::Enum PhysXQueryFilterCallback::preFilter(const physx::PxFilterData &filterData, const physx::PxShape *shape, const physx::PxRigidActor *actor, physx::PxHitFlags &queryFlags)
 	{
+		if(ignoreActor && actor == ignoreActor) return physx::PxQueryHitType::eNONE;
 		const physx::PxFilterData &shapeFilterData = shape->getQueryFilterData();
 		bool filterMask = (shapeFilterData.word0 & filterData.word1) && (filterData.word0 & shapeFilterData.word1);
 		bool filterID = (shapeFilterData.word3 == 0 && filterData.word3 == 0) || (shapeFilterData.word2 != filterData.word3 && shapeFilterData.word3 != filterData.word2);

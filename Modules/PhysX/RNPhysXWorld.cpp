@@ -351,8 +351,10 @@ namespace RN
 
 		Vector3 diff = to - from;
 		float distance = diff.GetLength();
+		if(distance < RN::k::EpsilonFloat) return hit;
+
 		diff.Normalize();
-		physx::PxSweepBuffer callback;
+
 		physx::PxFilterData filterData;
 		filterData.word0 = filterGroup;
 		filterData.word1 = filterMask;
@@ -360,18 +362,40 @@ namespace RN
 		filterData.word3 = 0;
 		PhysXQueryFilterCallback queryFilter;
 
-		physx::PxTransform pose = physx::PxTransform(physx::PxVec3(from.x, from.y, from.z), physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
-		if(shape->GetPhysXShape())
-		{
-			if(_scene->sweep(shape->GetPhysXShape()->getGeometry().any(), pose, physx::PxVec3(diff.x, diff.y, diff.z), distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &queryFilter, 0, inflation))
+		const physx::PxTransform pose(
+		physx::PxVec3(from.x, from.y, from.z),
+		physx::PxQuat(rotation.x, rotation.y, rotation.z, rotation.w));
+
+		const physx::PxVec3 dir(diff.x, diff.y, diff.z);
+
+		auto sweep = [&](PhysXShape *testShape) {
+			if(!testShape) return;
+
+			physx::PxShape *pxShape = testShape->GetPhysXShape();
+			if(!pxShape) return;
+
+			queryFilter.ignoreActor = pxShape->getActor();
+
+			physx::PxSweepBuffer callback;
+			const bool didHit = _scene->sweep(pxShape->getGeometry().any(), pose, dir, distance, callback, physx::PxHitFlags(physx::PxHitFlag::eDEFAULT), physx::PxQueryFilterData(filterData, physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::ePREFILTER), &queryFilter, 0, inflation);
+
+			if(!didHit)
+				return;
+
+			// Keep closest blocking hit across all children
+			if(hit.distance < 0.0f || callback.block.distance < hit.distance)
 			{
 				hit.distance = callback.block.distance;
 				hit.position.x = callback.block.position.x;
 				hit.position.y = callback.block.position.y;
 				hit.position.z = callback.block.position.z;
+
 				hit.normal.x = callback.block.normal.x;
 				hit.normal.y = callback.block.normal.y;
 				hit.normal.z = callback.block.normal.z;
+
+				hit.node = nullptr;
+				hit.collisionObject = nullptr;
 
 				if(callback.block.actor)
 				{
@@ -384,11 +408,26 @@ namespace RN
 					}
 				}
 
-				if(callback.block.shape)
-				{
-					hit.shapeOther = static_cast<PhysXShape *>(callback.block.shape->userData);
-				}
+				hit.shapeSelf = testShape; // the child that hit
+				hit.shapeOther = callback.block.shape ? static_cast<PhysXShape *>(callback.block.shape->userData) : nullptr;
 			}
+		};
+
+		if(shape->GetPhysXShape())
+		{
+			sweep(shape);
+		}
+		else if(shape->IsKindOfClass(PhysXCompoundShape::GetMetaClass()))
+		{
+			PhysXCompoundShape *compound = shape->Downcast<PhysXCompoundShape>();
+
+			for(size_t i = 0; i < compound->GetNumberOfShapes(); i++)
+			{
+				PhysXShape *child = compound->GetShape(i);
+				sweep(child);
+			}
+
+			// todo(OJ) or return compound shape? if(bestHit.distance >= 0.0f) bestHit.shapeSelf = shape;
 		}
 		else
 		{
