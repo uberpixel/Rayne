@@ -308,6 +308,25 @@ namespace RN
 		return RNSTR("<" << GetClass()->GetFullname() << ":" << (void *)this << ">\n{\n	lobbyName: " << lobbyName << ",\n	lobbyLevel: " << lobbyLevel << ",\n	lobbyVersion: " << lobbyVersion << ",\n	maximumPlayerCount: " << maximumPlayerCount << ",\n	currentPlayerCount: " << currentPlayerCount << "\n}");
 	}
 
+	String *EOSLobbyInfo::GetAttribute(const String *key) const
+	{
+		if(!lobbyHandle || !key) return nullptr;
+
+		EOS_LobbyDetails_CopyAttributeByKeyOptions options;
+		options.ApiVersion = EOS_LOBBYDETAILS_COPYATTRIBUTEBYKEY_API_LATEST;
+		options.AttrKey = key->GetUTF8String();
+
+		EOS_Lobby_Attribute *attribute = nullptr;
+		if(EOS_LobbyDetails_CopyAttributeByKey(lobbyHandle, &options, &attribute) == EOS_EResult::EOS_Success && attribute)
+		{
+			String *value = new String(attribute->Data->Value.AsUtf8);
+			EOS_Lobby_Attribute_Release(attribute);
+			return value->Autorelease();
+		}
+
+		return nullptr;
+	}
+
 	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) :
 		_isVoiceEnabled(false), _isVoiceUnmixed(true), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr)
 	{

@@ -67,6 +67,7 @@ namespace RN
 		EOS_ProductUserId ownerHandle;
 
 		EOSAPI const String *GetDescription() const override;
+		EOSAPI String *GetAttribute(const String *key) const;
 
 	private:
 		RNDeclareMetaAPI(EOSLobbyInfo, EOSAPI)
