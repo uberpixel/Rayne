@@ -319,9 +319,15 @@ namespace RN
 		EOS_Lobby_Attribute *attribute = nullptr;
 		if(EOS_LobbyDetails_CopyAttributeByKey(lobbyHandle, &options, &attribute) == EOS_EResult::EOS_Success && attribute)
 		{
-			String *value = new String(attribute->Data->Value.AsUtf8);
+			String *value = nullptr;
+			if(attribute->Data && attribute->Data->ValueType == EOS_EAttributeType::EOS_AT_STRING && attribute->Data->Value.AsUtf8)
+			{
+				value = new String(attribute->Data->Value.AsUtf8);
+				value->Autorelease();
+			}
+
 			EOS_Lobby_Attribute_Release(attribute);
-			return value->Autorelease();
+			return value;
 		}
 
 		return nullptr;
