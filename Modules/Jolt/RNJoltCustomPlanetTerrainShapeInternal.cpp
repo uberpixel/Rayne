@@ -8,6 +8,8 @@
 #include "RNJoltCustomPlanetTerrainShapeInternal.h"
 
 #include <Jolt/Jolt.h>
+#include <Jolt/Geometry/ClipPoly.h>
+#include <Jolt/Geometry/ClosestPoint.h>
 #include <Jolt/Geometry/RayTriangle.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Collision/CastConvexVsTriangles.h>
@@ -16,7 +18,6 @@
 #include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CollideConvexVsTriangles.h>
 #include <Jolt/Physics/Collision/CollisionDispatch.h>
-#include <Jolt/Physics/Collision/InternalEdgeRemovingCollector.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/TransformedShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexShape.h>
@@ -259,30 +260,6 @@ public:
 		return ScaleHelpers::MakeNonZeroScale(scale);
 	}
 
-	template<class Visitor>
-	uint CollideTriangles(const AABox &box, float maxSeparationDistance, const SubShapeIDCreator &subShapeIDCreator, Visitor &visitor, const PrecisionBase &localBase) const
-	{
-		struct CollisionVisitor
-		{
-			CollisionVisitor(Visitor &target, const SubShapeIDCreator &creator) : visitor(target), subShapeIDCreator(creator) {}
-
-			bool ShouldAbort() const { return visitor.ShouldAbort(); }
-			void VisitTriangle(const Triangle &triangle, Vec3Arg normal)
-			{
-				visitor.SetTriangleContactInfo(normal);
-				visitor.Collide(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], 0, subShapeIDCreator.PushID(GetTriangleSubShapeID(triangle.id), TriangleSubShapeIDBits).GetID());
-			}
-
-			Visitor &visitor;
-			const SubShapeIDCreator &subShapeIDCreator;
-		};
-
-		CollisionVisitor collisionVisitor(visitor, subShapeIDCreator);
-		const uint triangleCount = VisitTriangles(box, maxSeparationDistance, localBase, collisionVisitor, MaxCollisionTriangles);
-		visitor.ClearTriangleContactInfo();
-		return triangleCount;
-	}
-
 	static void sRegister()
 	{
 		ShapeFunctions &functions = ShapeFunctions::sGet(EShapeSubType::User1);
@@ -325,7 +302,6 @@ private:
 	static constexpr uint32 SampledGridVertexCacheMask = SampledGridVertexCacheSize - 1u;
 	static constexpr float MinimumTriangleNormalLengthSq = 1.0e-12f;
 	static constexpr float MinimumSolidRecoverySupportDepth = 0.005f;
-	static constexpr float InactiveEdgeNormalRejectDotThreshold = 0.5f;
 	static constexpr float AboveSurfaceQueryMargin = 4.0f;
 
 	struct SampledGridKey
@@ -796,20 +772,12 @@ private:
 		return sweptBox;
 	}
 
-	static void TranslateFace(CollideShapeResult::Face &face, Vec3Arg offset)
-	{
-		for(CollideShapeResult::Face::size_type i = 0; i < face.size(); i += 1)
-		{
-			face[i] += offset;
-		}
-	}
-
 	static void TranslateResult(CollideShapeResult &result, Vec3Arg offset)
 	{
 		result.mContactPointOn1 += offset;
 		result.mContactPointOn2 += offset;
-		TranslateFace(result.mShape1Face, offset);
-		TranslateFace(result.mShape2Face, offset);
+		for(Vec3 &vertex : result.mShape1Face) vertex += offset;
+		for(Vec3 &vertex : result.mShape2Face) vertex += offset;
 	}
 
 	static void BuildSurfaceFace(Vec3Arg center, Vec3Arg normal, float extent, CollideShapeResult::Face &face)
@@ -826,70 +794,137 @@ private:
 		face[3] = center - tangent * extent + bitangent * extent;
 	}
 
-	static bool IsUsefulTriangleContact(const CollideShapeResult &result, float maxSeparationDistance)
-	{
-		return result.mPenetrationDepth >= -maxSeparationDistance;
-	}
-
 	class OffsetCollideShapeCollector final : public CollideShapeCollector
 	{
 	public:
-		OffsetCollideShapeCollector(CollideShapeCollector &collector, Vec3Arg offset, float maxSeparationDistance, Mat44Arg terrainTransform) :
+		OffsetCollideShapeCollector(CollideShapeCollector &collector, Vec3Arg offset, const ConvexShape *convex, Vec3Arg scale, Mat44Arg transform, const CollideShapeSettings &settings) :
 			CollideShapeCollector(collector),
 			_collector(collector),
 			_offset(offset),
-			_maxSeparationDistance(maxSeparationDistance),
-			_terrainTransform(terrainTransform)
-		{}
-
-		void SetTriangleContactInfo(Vec3Arg triangleNormal)
+			_convex(convex),
+			_scale(scale),
+			_transform(transform),
+			_settings(settings)
 		{
-			_triangleNormalWorld = _terrainTransform.Multiply3x3(triangleNormal).NormalizedOr(Vec3::sZero());
-			_hasTriangleContactInfo = true;
+			// GJK's edge distance cannot bound the depth of the surface contact we build below.
+			if(!collector.ShouldEarlyOut()) ResetEarlyOutFraction();
 		}
 
-		void ClearTriangleContactInfo()
+		bool FinishTriangles()
 		{
-			_hasTriangleContactInfo = false;
+			_collectingTriangles = false;
+			// A real ridge can have only an edge contact. Prefer face contacts whenever
+			// available, but retain the deepest raw contact if no triangle supports a face.
+			if(!_hasUsefulHit && _hasEdgeContact) AddHit(_edgeContact);
+			UpdateEarlyOutFraction(_collector.GetEarlyOutFraction());
+			return _hasUsefulHit;
 		}
 
 		void AddHit(const CollideShapeResult &result) override
 		{
-			bool inactiveEdgeNormalRejected = false;
-
-			if(_hasTriangleContactInfo)
+			CollideShapeResult surfaceResult = result;
+			if(_collectingTriangles)
 			{
-				const Vec3 rawContactNormal = -result.mPenetrationAxis.NormalizedOr(Vec3::sZero());
-				inactiveEdgeNormalRejected = rawContactNormal.Dot(_triangleNormalWorld) < InactiveEdgeNormalRejectDotThreshold;
+				const CollideShapeResult::Face &triangle = result.mShape2Face;
+				JPH_ASSERT(triangle.size() == 3);
+				const Vec3 normal = (triangle[1] - triangle[0]).Cross(triangle[2] - triangle[0]).NormalizedOr(Vec3::sZero());
+				if(normal.IsNearZero() || result.mPenetrationAxis.Dot(normal) >= 0.0f) return;
+				if(!BuildSurfaceContact(surfaceResult, normal))
+				{
+					if(result.mPenetrationDepth >= -_settings.mMaxSeparationDistance && (!_hasEdgeContact || result.mPenetrationDepth > _edgeContact.mPenetrationDepth))
+					{
+						_edgeContact = result;
+						_hasEdgeContact = true;
+					}
+					return;
+				}
 			}
+			if(surfaceResult.mPenetrationDepth >= -_settings.mMaxSeparationDistance) _hasUsefulHit = true;
+			if(-surfaceResult.mPenetrationDepth >= _collector.GetEarlyOutFraction()) return;
 
-			const bool useful = !inactiveEdgeNormalRejected && IsUsefulTriangleContact(result, _maxSeparationDistance);
-			if(useful)
+			if(_settings.mCollectFacesMode == ECollectFacesMode::NoFaces)
 			{
-				_usefulHitCount += 1;
+				surfaceResult.mShape1Face.clear();
+				surfaceResult.mShape2Face.clear();
 			}
-
-			if(inactiveEdgeNormalRejected) return;
-
-			CollideShapeResult offsetResult = result;
-			RNCustomPlanetTerrainShape::TranslateResult(offsetResult, _offset);
-			_collector.AddHit(offsetResult);
-			UpdateEarlyOutFraction(_collector.GetEarlyOutFraction());
-		}
-
-		uint GetUsefulHitCount() const
-		{
-			return _usefulHitCount;
+			RNCustomPlanetTerrainShape::TranslateResult(surfaceResult, _offset);
+			_collector.AddHit(surfaceResult);
+			if(_collector.ShouldEarlyOut()) ForceEarlyOut();
 		}
 
 	private:
+		bool BuildSurfaceContact(CollideShapeResult &result, Vec3Arg normal) const
+		{
+			const CollideShapeResult::Face &triangle = result.mShape2Face;
+
+			// Terrain edges are internal. Build the contact from the face toward the terrain,
+			// not from GJK's closest point on a neighbouring triangle edge.
+			const Vec3 localNormal = _transform.Multiply3x3Transposed(normal);
+			CollideShapeResult::Face &face = result.mShape1Face;
+			face.clear();
+			_convex->GetSupportingFace(SubShapeID(), localNormal, _scale, _transform, face);
+
+			if(face.size() >= 2)
+			{
+				CollideShapeResult::Face clipped;
+				const Vec3 edge = face[1] - face[0];
+				Vec3 faceNormal;
+				if(face.size() >= 3)
+				{
+					ClipPolyVsPoly(triangle, face, -normal, clipped);
+					faceNormal = edge.Cross(face[2] - face[0]);
+				}
+				else
+				{
+					ClipPolyVsEdge(triangle, face[0], face[1], -normal, clipped);
+					faceNormal = edge.Cross(-normal).Cross(edge);
+				}
+
+				// Jolt otherwise falls back to the original edge point when clipping is empty.
+				// Leave this candidate for FinishTriangles instead of mixing it into face contacts.
+				const float denominator = normal.Dot(faceNormal);
+				if(clipped.empty() || denominator == 0.0f) return false;
+
+				result.mPenetrationDepth = -FLT_MAX;
+				for(Vec3Arg point : clipped)
+				{
+					const float depth = (point - face[0]).Dot(faceNormal) / denominator;
+					if(depth > result.mPenetrationDepth)
+					{
+						result.mPenetrationDepth = depth;
+						result.mContactPointOn1 = point - normal * depth;
+						result.mContactPointOn2 = point;
+					}
+				}
+			}
+			else
+			{
+				// Spheres and other point supports have no face to clip. Their support point
+				// must project onto this triangle, within the existing collision tolerance.
+				ConvexShape::SupportBuffer buffer;
+				const ConvexShape::Support *support = _convex->GetSupportFunction(ConvexShape::ESupportMode::Default, buffer, _scale);
+				result.mContactPointOn1 = _transform * support->GetSupport(-localNormal) - normal * support->GetConvexRadius();
+				result.mPenetrationDepth = (triangle[0] - result.mContactPointOn1).Dot(normal);
+				result.mContactPointOn2 = result.mContactPointOn1 + normal * result.mPenetrationDepth;
+				uint32 closestSet;
+				const Vec3 closest = ClosestPoint::GetClosestPointOnTriangle(triangle[0] - result.mContactPointOn2, triangle[1] - result.mContactPointOn2, triangle[2] - result.mContactPointOn2, closestSet);
+				if(closest.LengthSq() > Square(_settings.mCollisionTolerance)) return false;
+			}
+
+			result.mPenetrationAxis = -normal;
+			return result.mPenetrationDepth >= -_settings.mMaxSeparationDistance;
+		}
+
 		CollideShapeCollector &_collector;
 		Vec3 _offset;
-		float _maxSeparationDistance;
-		Mat44 _terrainTransform;
-		Vec3 _triangleNormalWorld = Vec3::sZero();
-		uint _usefulHitCount = 0;
-		bool _hasTriangleContactInfo = false;
+		const ConvexShape *_convex;
+		Vec3 _scale;
+		Mat44 _transform;
+		const CollideShapeSettings &_settings;
+		CollideShapeResult _edgeContact;
+		bool _hasEdgeContact = false;
+		bool _hasUsefulHit = false;
+		bool _collectingTriangles = true;
 	};
 
 	class OffsetCastShapeCollector final : public CastShapeCollector
@@ -957,32 +992,30 @@ private:
 				return mBoundsOf1InSpaceOf2;
 			}
 
-			void SetTriangleContactInfo(Vec3Arg triangleNormal)
+			void VisitTriangle(const Triangle &triangle, [[maybe_unused]] Vec3Arg normal)
 			{
-				static_cast<OffsetCollideShapeCollector &>(mCollector).SetTriangleContactInfo(triangleNormal);
+				Collide(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], 0, subShapeIDCreator.PushID(GetTriangleSubShapeID(triangle.id), TriangleSubShapeIDBits).GetID());
 			}
 
-			void ClearTriangleContactInfo()
-			{
-				static_cast<OffsetCollideShapeCollector &>(mCollector).ClearTriangleContactInfo();
-			}
+			SubShapeIDCreator subShapeIDCreator;
 		};
 
 		const Mat44 shiftedTransform1 = GetShiftedTransform(transform1, worldBase);
 		const Mat44 shiftedTransform2 = GetShiftedReferenceTransform(transform2);
 
-		OffsetCollideShapeCollector offsetCollector(collector, worldBase, settings.mMaxSeparationDistance, shiftedTransform2);
-		Visitor visitor(convex, scale1, scale2, shiftedTransform1, shiftedTransform2, subShapeID1, settings, offsetCollector);
-
-		if(planet->_solidRecoveryOnly)
+		OffsetCollideShapeCollector offsetCollector(collector, worldBase, convex, scale1, shiftedTransform1, settings);
+		if(!planet->_solidRecoveryOnly)
 		{
-			planet->AddSolidRecoveryContact(convex, scale1, scale2, shiftedTransform1, shiftedTransform2, subShapeID1, subShapeIDCreator2.GetID(), settings, offsetCollector, localBase);
-			return;
+			// Keep raw GJK candidates until the collector has validated the surface overlap.
+			// Rebuild face contacts together with their points and depth; retain raw edge fallback.
+			CollideShapeSettings terrainSettings = settings;
+			terrainSettings.mActiveEdgeMode = EActiveEdgeMode::CollideWithAll;
+			terrainSettings.mCollectFacesMode = ECollectFacesMode::CollectFaces;
+			Visitor visitor(convex, scale1, scale2, shiftedTransform1, shiftedTransform2, subShapeID1, terrainSettings, offsetCollector);
+			visitor.subShapeIDCreator = subShapeIDCreator2;
+			planet->VisitTriangles(visitor.GetQueryBounds(), settings.mMaxSeparationDistance, localBase, visitor, MaxCollisionTriangles);
 		}
-
-		planet->CollideTriangles(visitor.GetQueryBounds(), settings.mMaxSeparationDistance, subShapeIDCreator2, visitor, localBase);
-		const uint usefulTriangleHitCount = offsetCollector.GetUsefulHitCount();
-		if(usefulTriangleHitCount == 0)
+		if(!offsetCollector.FinishTriangles())
 		{
 			planet->AddSolidRecoveryContact(convex, scale1, scale2, shiftedTransform1, shiftedTransform2, subShapeID1, subShapeIDCreator2.GetID(), settings, offsetCollector, localBase);
 		}
@@ -1004,55 +1037,32 @@ private:
 	{
 		const Shape *shape1 = body1.GetShape();
 		const Shape *shape2 = body2.GetShape();
-		if(shape1 && shape2 && shape1->GetType() == EShapeType::Convex && shape2->GetSubType() == EShapeSubType::User1)
+		const bool terrainFirst = shape1 && shape1->GetSubType() == EShapeSubType::User1;
+		const Shape *convexShape = terrainFirst ? shape2 : shape1;
+		const Shape *terrainShape = terrainFirst ? shape1 : shape2;
+		if(!convexShape || !terrainShape || convexShape->GetType() != EShapeType::Convex || terrainShape->GetSubType() != EShapeSubType::User1)
 		{
-			SubShapeIDCreator subShapeIDCreator1;
-			SubShapeIDCreator subShapeIDCreator2;
-			if(!shapeFilter.ShouldCollide(shape1, subShapeIDCreator1.GetID(), shape2, subShapeIDCreator2.GetID())) return;
-
-			const ConvexShape *convex = static_cast<const ConvexShape *>(shape1);
-			const RNCustomPlanetTerrainShape *planet = static_cast<const RNCustomPlanetTerrainShape *>(shape2);
-			const PrecisionBase localBase = GetSimulationCollisionLocalBase(body1, body2);
-			if(body1.GetEnhancedInternalEdgeRemovalWithBody(body2))
-			{
-				settings.mActiveEdgeMode = EActiveEdgeMode::CollideWithAll;
-				settings.mCollectFacesMode = ECollectFacesMode::CollectFaces;
-				InternalEdgeRemovingCollector edgeRemovingCollector(collector, settings.mInternalEdgeRemovalVertexToleranceSq);
-				CollideConvexVsPlanetTerrain(convex, planet, Vec3::sOne(), Vec3::sOne(), transform1, transform2, subShapeIDCreator1.GetID(), subShapeIDCreator2, settings, edgeRemovingCollector, localBase, Vec3::sZero());
-				edgeRemovingCollector.Flush();
-			}
-			else
-			{
-				CollideConvexVsPlanetTerrain(convex, planet, Vec3::sOne(), Vec3::sOne(), transform1, transform2, subShapeIDCreator1.GetID(), subShapeIDCreator2, settings, collector, localBase, Vec3::sZero());
-			}
-			return;
-		}
-		if(shape1 && shape2 && shape1->GetSubType() == EShapeSubType::User1 && shape2->GetType() == EShapeType::Convex)
-		{
-			SubShapeIDCreator subShapeIDCreator1;
-			SubShapeIDCreator subShapeIDCreator2;
-			if(!shapeFilter.ShouldCollide(shape1, subShapeIDCreator1.GetID(), shape2, subShapeIDCreator2.GetID())) return;
-
-			const RNCustomPlanetTerrainShape *planet = static_cast<const RNCustomPlanetTerrainShape *>(shape1);
-			const ConvexShape *convex = static_cast<const ConvexShape *>(shape2);
-			const PrecisionBase localBase = GetSimulationCollisionLocalBase(body2, body1);
-			ReversedCollideShapeCollector reversedCollector(collector);
-			if(body1.GetEnhancedInternalEdgeRemovalWithBody(body2))
-			{
-				settings.mActiveEdgeMode = EActiveEdgeMode::CollideWithAll;
-				settings.mCollectFacesMode = ECollectFacesMode::CollectFaces;
-				InternalEdgeRemovingCollector edgeRemovingCollector(reversedCollector, settings.mInternalEdgeRemovalVertexToleranceSq);
-				CollideConvexVsPlanetTerrain(convex, planet, Vec3::sOne(), Vec3::sOne(), transform2, transform1, subShapeIDCreator2.GetID(), subShapeIDCreator1, settings, edgeRemovingCollector, localBase, Vec3::sZero());
-				edgeRemovingCollector.Flush();
-			}
-			else
-			{
-				CollideConvexVsPlanetTerrain(convex, planet, Vec3::sOne(), Vec3::sOne(), transform2, transform1, subShapeIDCreator2.GetID(), subShapeIDCreator1, settings, reversedCollector, localBase, Vec3::sZero());
-			}
+			PhysicsSystem::sDefaultSimCollideBodyVsBody(body1, body2, transform1, transform2, settings, collector, shapeFilter);
 			return;
 		}
 
-		PhysicsSystem::sDefaultSimCollideBodyVsBody(body1, body2, transform1, transform2, settings, collector, shapeFilter);
+		const SubShapeIDCreator subShapeIDCreator;
+		if(!shapeFilter.ShouldCollide(shape1, subShapeIDCreator.GetID(), shape2, subShapeIDCreator.GetID())) return;
+
+		const ConvexShape *convex = static_cast<const ConvexShape *>(convexShape);
+		const RNCustomPlanetTerrainShape *planet = static_cast<const RNCustomPlanetTerrainShape *>(terrainShape);
+		const PrecisionBase localBase = terrainFirst ? GetSimulationCollisionLocalBase(body2, body1) : GetSimulationCollisionLocalBase(body1, body2);
+		const Mat44 &convexTransform = terrainFirst ? transform2 : transform1;
+		const Mat44 &terrainTransform = terrainFirst ? transform1 : transform2;
+		ReversedCollideShapeCollector reversedCollector(collector);
+		CollideShapeCollector &orderedCollector = terrainFirst ? static_cast<CollideShapeCollector &>(reversedCollector) : collector;
+		if(body1.GetEnhancedInternalEdgeRemovalWithBody(body2))
+		{
+			settings.mActiveEdgeMode = EActiveEdgeMode::CollideWithAll;
+			settings.mCollectFacesMode = ECollectFacesMode::CollectFaces;
+		}
+		// The terrain collector emits face contacts or one fallback, so no second edge filter is needed.
+		CollideConvexVsPlanetTerrain(convex, planet, Vec3::sOne(), Vec3::sOne(), convexTransform, terrainTransform, subShapeIDCreator.GetID(), subShapeIDCreator, settings, orderedCollector, localBase, Vec3::sZero());
 	}
 
 	static void sCastConvexVsPlanetTerrain(const ShapeCast &shapeCast, const ShapeCastSettings &settings, const Shape *shape, Vec3Arg scale, [[maybe_unused]] const ShapeFilter &shapeFilter, Mat44Arg planetTransform, const SubShapeIDCreator &shapeSubShapeIDCreator, const SubShapeIDCreator &planetSubShapeIDCreator, CastShapeCollector &collector)
