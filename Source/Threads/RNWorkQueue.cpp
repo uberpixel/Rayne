@@ -83,6 +83,7 @@ namespace RN
 	WorkQueue::WorkQueue(Priority priority, Flags flags, const String *identifier) :
 		_identifier(identifier->Copy()),
 		_flags(flags),
+		_priority(priority),
 		_concurrency(std::thread::hardware_concurrency()),
 		_width(0),
 		_realWidth(0),
@@ -410,6 +411,7 @@ namespace RN
 
 	void WorkQueue::ThreadEntry()
 	{
+		Thread::SetCurrentThreadPriority(_priority);
 		if(!PerformWorkWithTimeout(500))
 		{
 			Thread *thread = Thread::GetCurrentThread();

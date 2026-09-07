@@ -15,14 +15,6 @@
 
 #include <Jolt/Physics/Constraints/TwoBodyConstraint.h>
 
-#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
-	#include <sys/resource.h>
-#endif
-
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
-	#include <pthread/qos.h>
-#endif
-
 namespace RN
 {
 	RNDefineMeta(JoltWorld, SceneAttachment)
@@ -35,13 +27,7 @@ namespace RN
 		snprintf(threadName, sizeof(threadName), "RN::Jolt.%d", threadIndex);
 		Thread::SetCurrentThreadName(threadName);
 
-#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
-		setpriority(PRIO_PROCESS, 0, -2);
-#elif RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
-		pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
-#elif RN_PLATFORM_WINDOWS
-		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-#endif
+		Thread::SetCurrentThreadPriority(Thread::Priority::High);
 	}
 
 	JoltWorld::JoltWorld(const Vector3 &gravity, uint32 maxBodies, uint32 maxBodyPairs, uint32 maxContactConstraints, int32 workerCount) :

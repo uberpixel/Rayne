@@ -27,6 +27,9 @@ typedef struct tagTHREADNAME_INFO
 
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 	#include <sys/prctl.h>
+	#include <sys/resource.h>
+	#include <sys/syscall.h>
+	#include <unistd.h>
 #endif
 
 void RN::Thread::SetCurrentThreadName(const char *threadName)
@@ -69,6 +72,9 @@ namespace RN
 	__RNDefineMetaAndGFYMSVC(Thread, Object)
 
 	static Thread *__MainThread;
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+	static pid_t __MainThreadID = 0;
+#endif
 	static ThreadLocalStorage<Thread *> __LocalThread;
 	static std::atomic<uint32> __ThreadAtomicIDs;
 
@@ -81,6 +87,9 @@ namespace RN
 		_name = new String("RN::Main", true);
 		__LocalThread.SetValue(this);
 		__MainThread = this;
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+		__MainThreadID = static_cast<pid_t>(syscall(SYS_gettid));
+#endif
 	}
 
 	Thread::~Thread()
@@ -110,6 +119,34 @@ namespace RN
 	Thread *Thread::GetMainThread()
 	{
 		return __MainThread;
+	}
+
+	void Thread::SetCurrentThreadPriority(Priority priority)
+	{
+		int error = 0;
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
+		// Rayne's main thread can differ from the process leader on Android.
+		errno = 0;
+		const int niceValue = priority == Priority::High ? getpriority(PRIO_PROCESS, __MainThreadID) : (priority == Priority::Background ? 10 : 0);
+		error = errno;
+		if(!error && setpriority(PRIO_PROCESS, 0, niceValue) != 0) error = errno;
+#elif RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+		const qos_class_t qos = priority == Priority::High ? QOS_CLASS_USER_INITIATED : (priority == Priority::Background ? QOS_CLASS_BACKGROUND : QOS_CLASS_DEFAULT);
+		error = pthread_set_qos_class_self_np(qos, 0);
+#elif RN_PLATFORM_WINDOWS
+		const int threadPriority = priority == Priority::High ? THREAD_PRIORITY_ABOVE_NORMAL : (priority == Priority::Background ? THREAD_PRIORITY_BELOW_NORMAL : THREAD_PRIORITY_NORMAL);
+		if(!::SetThreadPriority(::GetCurrentThread(), threadPriority)) error = static_cast<int>(::GetLastError());
+#endif
+		if(!error) return;
+
+		AutoreleasePool pool;
+		Thread *thread = GetCurrentThread();
+		const char *threadName = thread ? thread->GetName()->GetUTF8String() : "external thread";
+		const char *priorityName = priority == Priority::High ? "High" : (priority == Priority::Background ? "Background" : "Default");
+		if(Logger::GetSharedInstance())
+			RNWarningf("Failed setting %s priority for %s: OS error %d", priorityName, threadName, error);
+		else
+			fprintf(stderr, "Failed setting %s priority for %s: OS error %d\n", priorityName, threadName, error);
 	}
 
 	void Thread::CleanUp()

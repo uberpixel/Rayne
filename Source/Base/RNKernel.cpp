@@ -127,7 +127,7 @@ namespace RN
 
 			_notificationManager = new NotificationManager();
 			_assetManager = AssetManager::GetSharedInstance(); //Potentially needed for registering modules during static initialisation, so GetSharedInstance constructs it if needed
-			_assetManager->SetDefaultQueue(WorkQueue::GetGlobalQueue(WorkQueue::Priority::High));
+			_assetManager->SetDefaultQueue(WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default));
 			_sceneManager = new SceneManager();
 			_inputManager = new InputManager();
 			_moduleManager = new ModuleManager();

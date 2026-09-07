@@ -28,12 +28,7 @@ namespace RN
 				   Serial = 0,
 				   Concurrent = (1 << 0));
 
-		enum class Priority : uint32
-		{
-			High = 0,
-			Default = 1,
-			Background = 2
-		};
+		using Priority = Thread::Priority;
 
 		RNAPI WorkQueue(Priority priority, Flags flags, const String *identifier);
 		RNAPI ~WorkQueue();
@@ -165,6 +160,7 @@ namespace RN
 
 		String *_identifier;
 		Flags _flags;
+		Priority _priority;
 
 		size_t _concurrency;
 		size_t _threshold;

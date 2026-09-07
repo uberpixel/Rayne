@@ -68,7 +68,7 @@ namespace RN
 		RN_PROFILE_SCOPE();
 		WillUpdate(delta);
 
-		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::Default);
+		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
 
 		for(size_t i = 0; i < 4; i++)
 		{

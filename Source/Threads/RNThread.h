@@ -25,6 +25,13 @@ namespace RN
 	public:
 		friend class Kernel;
 
+		enum class Priority : uint32
+		{
+			High = 0,
+			Default = 1,
+			Background = 2
+		};
+
 		template<typename F>
 		explicit Thread(F &&func, bool start = true) :
 			_function(std::move(func))
@@ -88,6 +95,7 @@ namespace RN
 
 		RNAPI static Thread *GetCurrentThread();
 		RNAPI static void SetCurrentThreadName(const char *name);
+		RNAPI static void SetCurrentThreadPriority(Priority priority);
 		RNAPI static Thread *GetMainThread();
 		RNAPI static void CleanUp(); // Must be called on exit for custom spawned threads. RNThreads call this automatically
 
