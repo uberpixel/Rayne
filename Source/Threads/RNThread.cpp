@@ -29,9 +29,9 @@ typedef struct tagTHREADNAME_INFO
 	#include <sys/prctl.h>
 #endif
 
-void RNSetThreadName(char *threadName)
+void RN::Thread::SetCurrentThreadName(const char *threadName)
 {
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 	pthread_setname_np(threadName);
 #endif
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
@@ -211,7 +211,7 @@ namespace RN
 					LockGuard<Lockable> lock(_generalMutex);
 					AutoreleasePool pool;
 
-					RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
+					SetCurrentThreadName(_name->GetUTF8String());
 				}
 
 				_function();
@@ -250,7 +250,7 @@ namespace RN
 
 		if(IsRunning() && OnThread())
 		{
-			RNSetThreadName(const_cast<char *>(_name->GetUTF8String()));
+			SetCurrentThreadName(_name->GetUTF8String());
 		}
 	}
 

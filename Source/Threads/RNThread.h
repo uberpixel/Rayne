@@ -87,6 +87,7 @@ namespace RN
 		}
 
 		RNAPI static Thread *GetCurrentThread();
+		RNAPI static void SetCurrentThreadName(const char *name);
 		RNAPI static Thread *GetMainThread();
 		RNAPI static void CleanUp(); // Must be called on exit for custom spawned threads. RNThreads call this automatically
 

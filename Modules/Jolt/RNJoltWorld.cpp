@@ -29,8 +29,12 @@ namespace RN
 
 	JoltWorld *JoltWorld::_sharedInstance = nullptr;
 
-	void JoltWorld::InitializeWorkerThread(int)
+	void JoltWorld::InitializeWorkerThread(int threadIndex)
 	{
+		char threadName[32];
+		snprintf(threadName, sizeof(threadName), "RN::Jolt.%d", threadIndex);
+		Thread::SetCurrentThreadName(threadName);
+
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 		setpriority(PRIO_PROCESS, 0, -2);
 #elif RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
