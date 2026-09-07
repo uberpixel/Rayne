@@ -715,6 +715,30 @@ namespace RN
 	void VulkanRenderer::StartRenderThread()
 	{
 		_internals->renderThread = new Thread([this]() {
+#if RN_PLATFORM_ANDROID
+			// Keep the render thread attached so presentation calls do not attach and detach every frame.
+			const AndroidState *androidState = Kernel::GetSharedInstance()->GetAndroidState();
+			JavaVM *javaVM = androidState? androidState->GetJavaVM() : nullptr;
+			bool didAttachCurrentThread = false;
+			ScopeGuard javaThreadGuard([javaVM, &didAttachCurrentThread]() {
+				if(didAttachCurrentThread)
+					javaVM->DetachCurrentThread();
+			});
+
+			if(javaVM)
+			{
+				JNIEnv *env = nullptr;
+				if(javaVM->GetEnv(reinterpret_cast<void **>(&env), RN_JNI_VERSION_1_6) == JNI_EDETACHED)
+				{
+					char threadName[] = "RN::VulkanRender";
+					JavaVMAttachArgs attachArgs = {RN_JNI_VERSION_1_6, threadName, nullptr};
+					didAttachCurrentThread = (javaVM->AttachCurrentThread(&env, &attachArgs) == JNI_OK);
+					if(didAttachCurrentThread)
+						Thread::SetCurrentThreadName(threadName);
+				}
+			}
+#endif
+
 			while(true)
 			{
 				AutoreleasePool pool;
