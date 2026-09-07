@@ -39,7 +39,9 @@ namespace RN
 		friend class JoltRigidBodyController;
 		friend class JoltStaticBody;
 
-		JTAPI JoltWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), uint32 maxBodies = 65536, uint32 maxBodyPairs = 65536, uint32 maxContactConstraints = 10240);
+		// workerCount: -1 selects hardware concurrency minus one (or zero if unknown), 0 uses only the calling thread.
+		// Positive values add that many workers; the calling thread also executes physics jobs.
+		JTAPI JoltWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), uint32 maxBodies = 65536, uint32 maxBodyPairs = 65536, uint32 maxContactConstraints = 10240, int32 workerCount = -1);
 		JTAPI ~JoltWorld();
 
 		JTAPI void SetGravity(const Vector3 &gravity);

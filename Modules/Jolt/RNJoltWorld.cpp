@@ -40,9 +40,10 @@ namespace RN
 #endif
 	}
 
-	JoltWorld::JoltWorld(const Vector3 &gravity, uint32 maxBodies, uint32 maxBodyPairs, uint32 maxContactConstraints) :
+	JoltWorld::JoltWorld(const Vector3 &gravity, uint32 maxBodies, uint32 maxBodyPairs, uint32 maxContactConstraints, int32 workerCount) :
 		_defaultDynamicBodyLinearDamping(0.05f), _defaultDynamicBodyAngularDamping(0.05f), _defaultDynamicBodyMaxLinearVelocity(500.0f), _defaultDynamicBodyMaxAngularVelocity(0.25f * k::Pi * 60.0f), _worldPosition(), _worldRotation(), _inverseWorldRotation(), _worldPositionRotation(), _inverseWorldPositionRotation(), _substeps(1), _paused(false), _isSimulating(false), _isLoadingLevel(false)
 	{
+		RN_ASSERT(workerCount >= -1, "Worker count must be -1 (automatic) or non-negative.");
 		RN_ASSERT(!_sharedInstance, "There can only be one Jolt instance at a time!");
 		_sharedInstance = this;
 
@@ -59,12 +60,16 @@ namespace RN
 
 		_internals->tempAllocator = new JPH::TempAllocatorImpl(10 * 1024 * 1024); //Preallocate 10mb for temp allocations during physics update
 
-		// We need a job system that will execute physics jobs on multiple threads. Typically
-		// you would implement the JobSystem interface yourself and let Jolt Physics run on top
-		// of your own job scheduler. JobSystemThreadPool is an example implementation.
+		if(workerCount < 0)
+		{
+			uint32 hardwareConcurrency = std::thread::hardware_concurrency();
+			workerCount = hardwareConcurrency > 0 ? static_cast<int32>(hardwareConcurrency - 1) : 0;
+		}
+
+		// The calling thread also executes jobs, so workerCount only counts additional threads.
 		_internals->jobSystem = new JPH::JobSystemThreadPool();
 		_internals->jobSystem->SetThreadInitFunction(InitializeWorkerThread);
-		_internals->jobSystem->Init(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
+		_internals->jobSystem->Init(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, workerCount);
 
 		_physicsSystem = new JPH::PhysicsSystem();
 		_physicsSystem->Init(maxBodies, 0, maxBodyPairs, maxContactConstraints, _internals->objectLayerMapper, _internals->objectLayerMapper, _internals->objectLayerMapper);
