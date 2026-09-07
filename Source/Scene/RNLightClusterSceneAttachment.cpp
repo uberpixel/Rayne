@@ -42,7 +42,7 @@ namespace RN
 		SafeRelease(attachment);
 	}
 
-	void LightClusterSceneAttachment::SubmitCameraPassAttachmentSnapshots(Renderer *renderer, Camera *camera, const SceneCameraPassContext &)
+	void LightClusterSceneAttachment::SubmitCameraPassAttachmentSnapshots(Renderer *renderer, Camera *camera, const SceneCameraPassContext &context)
 	{
 		RN_ASSERT(renderer, "Renderer mustn't be NULL");
 
@@ -53,8 +53,8 @@ namespace RN
 		if(!lightManager)
 			return;
 
-		LightClusterPassSnapshot *snapshot = new LightClusterPassSnapshot(lightManager->GetDrawSnapshot());
+		LightClusterPassSnapshot *snapshot = new LightClusterPassSnapshot(lightManager, lightManager->CaptureBuildInput(camera, context.visibleLights));
 		renderer->SubmitCameraPassAttachmentSnapshot(snapshot);
 		SafeRelease(snapshot);
 	}
-}
+} // namespace RN

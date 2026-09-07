@@ -7,8 +7,8 @@
 //
 
 #include "RNLightClusterRendererAttachment.h"
-#include "RNLightClusterPassSnapshot.h"
 #include "../Rendering/RNRenderFrame.h"
+#include "RNLightClusterPassSnapshot.h"
 
 namespace RN
 {
@@ -34,11 +34,11 @@ namespace RN
 			if(!snapshot)
 				continue;
 
-			const LightManager::DrawSnapshot &drawSnapshot = snapshot->GetDrawSnapshot();
+			const LightManager::DrawSnapshot &drawSnapshot = snapshot->PrepareDrawSnapshot();
 			pass.SetPassResourceBuffer(RNCSTR("lightClusterPointLights"), drawSnapshot.GetPointLightBuffer());
 			pass.SetPassResourceBuffer(RNCSTR("lightClusterSpotLights"), drawSnapshot.GetSpotLightBuffer());
 			pass.SetPassResourceBuffer(RNCSTR("lightClusterRecords"), drawSnapshot.GetClusterRecordsBuffer());
 			pass.SetPassResourceBuffer(RNCSTR("lightClusterIndices"), drawSnapshot.GetClusterIndexBuffer());
 		}
 	}
-}
+} // namespace RN

@@ -10,7 +10,6 @@
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNAutoreleasePool.h"
 #include "../Scene/RNLightClusterSceneAttachment.h"
-#include "../Scene/RNLightManager.h"
 #include "../Scene/RNShadowSceneAttachment.h"
 #include "../Threads/RNWorkGroup.h"
 #include "../Threads/RNWorkQueue.h"
@@ -185,10 +184,6 @@ namespace RN
 					for(Light *light : visibleLights)
 						light->Render(renderer, camera);
 
-					if(LightManager *lm = camera->GetLightManager())
-					{
-						lm->BuildForCamera(camera, visibleLights);
-					}
 					SceneCameraPassContext cameraPassContext(visibleLights);
 					SubmitCameraPassAttachmentSnapshots(renderer, camera, cameraPassContext);
 					RenderVolumeList(renderer, camera, _defaultVolume);

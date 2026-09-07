@@ -9,10 +9,10 @@
 #ifndef __RAYNE_LIGHT_MANAGER_H__
 #define __RAYNE_LIGHT_MANAGER_H__
 
-#include "RNSceneNode.h"
+#include "../Rendering/RNGPUBuffer.h"
 #include "RNCamera.h"
 #include "RNLight.h"
-#include "../Rendering/RNGPUBuffer.h"
+#include "RNSceneNode.h"
 
 namespace RN
 {
@@ -93,7 +93,19 @@ namespace RN
 			float radius;
 		};
 
-		RNAPI LightManager(uint32 x, uint32 y, uint32 z, float zLogFactor = 0.7f, uint16_t maxPackedPointLights = 256, uint16_t maxPackedSpotLights = 256);
+		struct BuildInput
+		{
+			ClusterGridInfo grid {};
+			uint16 maxLightsPerCluster = 255;
+			std::vector<PointLightPacked> pointLights;
+			std::vector<SpotLightPacked> spotLights;
+			std::vector<SpotLightCullData> spotLightCullData;
+			std::vector<Matrix> views;
+			std::vector<Matrix> projections;
+			std::vector<Vector3> viewPositions;
+		};
+
+		RNAPI LightManager(uint32 x, uint32 y, uint32 z, float zLogFactor = 0.7f, uint16 maxPackedPointLights = 256, uint16 maxPackedSpotLights = 256);
 		RNAPI ~LightManager() override;
 
 		RNAPI void SetClusterGridInfo(uint32 x, uint32 y, uint32 z, float zLogFactor = 0.5f);
@@ -101,72 +113,66 @@ namespace RN
 		RNAPI void SetZFirstSliceDepth(float meters);
 		RNAPI const ClusterGridInfo &GetClusterGridInfo() const { return _grid; }
 
-		// Call each frame before rendering drawables for a camera
-		RNAPI void BuildForCamera(Camera *camera, const std::vector<Light *> &lights);
+		// Capture scene values on the submission thread; consume them only on the render thread.
+		RNAPI BuildInput CaptureBuildInput(const Camera *camera, const std::vector<Light *> &lights) const;
+		RNAPI DrawSnapshot BuildDrawSnapshot(BuildInput &&input);
 
-		// GPU buffers for shaders (optional; backends may fetch CPU data instead)
+		// Render-thread access to the most recently built buffers and CPU data.
 		RNAPI GPUBuffer *GetPointLightBuffer() const { return _pointLightBuffer; }
 		RNAPI GPUBuffer *GetSpotLightBuffer() const { return _spotLightBuffer; }
 		RNAPI GPUBuffer *GetClusterIndexBuffer() const { return _clusterIndexBuffer; }
 		RNAPI GPUBuffer *GetClusterRecordsBuffer() const { return _clusterRecordsBuffer; }
 		DrawSnapshot GetDrawSnapshot() const { return DrawSnapshot(_pointLightBuffer, _spotLightBuffer, _clusterRecordsBuffer, _clusterIndexBuffer); }
 
-		// CPU accessors (for debugging or CPU-driven pipelines)
-		RNAPI const std::vector<PointLightPacked> &GetPackedPointLights() const { return _packedPointLights; }
-		RNAPI const std::vector<SpotLightPacked> &GetPackedSpotLights() const { return _packedSpotLights; }
-		RNAPI const std::vector<uint16_t> &GetClusterLightIndices() const { return _clusterLightIndices; }
+		// These accessors must also only be used on the render thread.
+		RNAPI const std::vector<PointLightPacked> &GetPackedPointLights() const { return _buildInput.pointLights; }
+		RNAPI const std::vector<SpotLightPacked> &GetPackedSpotLights() const { return _buildInput.spotLights; }
+		RNAPI const std::vector<uint16> &GetClusterLightIndices() const { return _clusterLightIndices; }
 		RNAPI const std::vector<ClusterRecord> &GetClusterRecords() const { return _clusterRecords; }
 
-		RNAPI void SetMaxLightsPerCluster(uint16_t max);
-		uint16_t GetMaxLightsPerCluster() const { return _maxLightsPerCluster; }
-		RNAPI void SetMaxPackedLights(uint16_t maxPointLights, uint16_t maxSpotLights);
-		uint16_t GetMaxPackedPointLights() const { return _maxPackedPointLights; }
-		uint16_t GetMaxPackedSpotLights() const { return _maxPackedSpotLights; }
+		RNAPI void SetMaxLightsPerCluster(uint16 max);
+		uint16 GetMaxLightsPerCluster() const { return _maxLightsPerCluster; }
+		RNAPI void SetMaxPackedLights(uint16 maxPointLights, uint16 maxSpotLights);
+		uint16 GetMaxPackedPointLights() const { return _maxPackedPointLights; }
+		uint16 GetMaxPackedSpotLights() const { return _maxPackedSpotLights; }
 
 	private:
-		void ClearData();
-		void PackLights(const Camera *camera, const std::vector<Light *> &lights);
-		void BuildClusters(Camera *camera);
+		void BuildClusters();
 		void UploadBuffers();
-		void PreallocateBuffers(uint32 pointEstimate, uint32 spotEstimate, uint16 pointPerClusterEstimate, uint16 spotPerClusterEstimate);
+		static void EnsureBufferCapacity(GPUBuffer *&buffer, size_t capacity);
 
 		// Helpers
-		uint32 ComputeClusterCount() const { return _grid.clustersX * _grid.clustersY * _grid.clustersZ; }
-		float ComputeZSlice(const Camera *camera, float viewZ) const;
+		uint32 ComputeClusterCount() const { return _buildInput.grid.clustersX * _buildInput.grid.clustersY * _buildInput.grid.clustersZ; }
+		float ComputeZSlice(float viewZ) const;
 
-		ClusterGridInfo _grid;
+		// Submission-thread configuration. Setters never touch render-thread state.
+		ClusterGridInfo _grid {};
+		uint16 _maxLightsPerCluster;
+		uint16 _maxPackedPointLights;
+		uint16 _maxPackedSpotLights;
 
-		std::vector<PointLightPacked> _packedPointLights;
-		std::vector<SpotLightPacked> _packedSpotLights;
-		std::vector<SpotLightCullData> _spotLightCullData;
+		// Render-thread state, retained across builds to reuse scratch storage and buffers.
+		BuildInput _buildInput;
 
-		std::vector<uint16_t> _clusterLightIndices; // point indices then spot indices per cluster
+		std::vector<uint16> _clusterLightIndices; // point indices then spot indices per cluster
 		std::vector<ClusterRecord> _clusterRecords;
-		std::vector<uint16_t> _clusterPointScratch;
-		std::vector<uint16_t> _clusterSpotScratch;
-		std::vector<uint8_t> _clusterPointCountsScratch;
-		std::vector<uint8_t> _clusterSpotCountsScratch;
-		std::vector<uint32_t> _clusterOffsetsScratch;
+		std::vector<uint16> _clusterPointScratch;
+		std::vector<uint16> _clusterSpotScratch;
+		std::vector<uint8> _clusterPointCountsScratch;
+		std::vector<uint8> _clusterSpotCountsScratch;
+		std::vector<uint32> _clusterOffsetsScratch;
 
 		GPUBuffer *_pointLightBuffer;
 		GPUBuffer *_spotLightBuffer;
 		GPUBuffer *_clusterIndexBuffer;
 		GPUBuffer *_clusterRecordsBuffer;
 
-		// Cached per-camera parameters for cluster header
-		float _lastClipNear;
-		float _lastClipFar;
-
 		bool _hasSpotClusterBoundsCache;
 		std::vector<Matrix> _cachedSpotBoundsProjections;
 		std::vector<SpotClusterBound> _cachedSpotClusterBoundsByEye;
 
-		uint16_t _maxLightsPerCluster;
-		uint16_t _maxPackedPointLights;
-		uint16_t _maxPackedSpotLights;
-
 		__RNDeclareMetaInternal(LightManager)
 	};
-}
+} // namespace RN
 
 #endif

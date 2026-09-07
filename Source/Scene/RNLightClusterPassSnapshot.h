@@ -16,17 +16,26 @@ namespace RN
 	class LightClusterPassSnapshot : public Object
 	{
 	public:
-		LightClusterPassSnapshot(const LightManager::DrawSnapshot &snapshot) :
-			_snapshot(snapshot)
+		LightClusterPassSnapshot(LightManager *lightManager, LightManager::BuildInput &&input) :
+			_lightManager(lightManager),
+			_input(std::move(input))
 		{}
 
-		const LightManager::DrawSnapshot &GetDrawSnapshot() const { return _snapshot; }
+		// A camera snapshot may be shared by several passes. Build and retain its buffers once.
+		const LightManager::DrawSnapshot &PrepareDrawSnapshot()
+		{
+			if(!_snapshot.IsValid())
+				_snapshot = _lightManager->BuildDrawSnapshot(std::move(_input));
+			return _snapshot;
+		}
 
 	private:
+		StrongRef<LightManager> _lightManager;
+		LightManager::BuildInput _input;
 		LightManager::DrawSnapshot _snapshot;
 
 		__RNDeclareMetaInternal(LightClusterPassSnapshot)
 	};
-}
+} // namespace RN
 
 #endif

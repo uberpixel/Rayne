@@ -14,7 +14,6 @@
 #include "../Rendering/RNModel.h"
 #include "../Scene/RNEntity.h"
 #include "../Scene/RNLightClusterSceneAttachment.h"
-#include "../Scene/RNLightManager.h"
 #include "../Scene/RNShadowSceneAttachment.h"
 #include "../Threads/RNWorkGroup.h"
 #include "../Threads/RNWorkQueue.h"
@@ -542,10 +541,6 @@ namespace RN
 						lightMember = lightMember->GetNext();
 					}
 
-					if(LightManager *lm = camera->GetLightManager())
-					{
-						lm->BuildForCamera(camera, visibleLights);
-					}
 					SceneCameraPassContext cameraPassContext(visibleLights);
 					SubmitCameraPassAttachmentSnapshots(renderer, camera, cameraPassContext);
 

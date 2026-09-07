@@ -8,29 +8,24 @@
 
 #include "RNLightManager.h"
 #include "../Rendering/RNRenderer.h"
-#include "../Threads/RNWorkGroup.h"
 
 namespace RN
 {
-	namespace
-	{
-		constexpr uint16_t kLightManagerShaderMaxPointLights = 512;
-		constexpr uint16_t kLightManagerShaderMaxSpotLights = 512;
-	}
+	constexpr uint16 kLightManagerShaderMaxPointLights = 512;
+	constexpr uint16 kLightManagerShaderMaxSpotLights = 512;
+	constexpr uint32 kLightManagerShaderMaxClusterRecords = 4000;
 
 	RNDefineMeta(LightManager, Object)
 
-	LightManager::LightManager(uint32 x, uint32 y, uint32 z, float zLogFactor, uint16_t maxPackedPointLights, uint16_t maxPackedSpotLights) :
+	LightManager::LightManager(uint32 x, uint32 y, uint32 z, float zLogFactor, uint16 maxPackedPointLights, uint16 maxPackedSpotLights) :
+		_maxLightsPerCluster(255),
+		_maxPackedPointLights(std::max<uint16>(1, std::min<uint16>(maxPackedPointLights, kLightManagerShaderMaxPointLights))),
+		_maxPackedSpotLights(std::max<uint16>(1, std::min<uint16>(maxPackedSpotLights, kLightManagerShaderMaxSpotLights))),
 		_pointLightBuffer(nullptr),
 		_spotLightBuffer(nullptr),
 		_clusterIndexBuffer(nullptr),
 		_clusterRecordsBuffer(nullptr),
-		_lastClipNear(0.0f),
-		_lastClipFar(0.0f),
-		_hasSpotClusterBoundsCache(false),
-		_maxLightsPerCluster(255),
-		_maxPackedPointLights(std::max<uint16_t>(1, std::min<uint16_t>(maxPackedPointLights, kLightManagerShaderMaxPointLights))),
-		_maxPackedSpotLights(std::max<uint16_t>(1, std::min<uint16_t>(maxPackedSpotLights, kLightManagerShaderMaxSpotLights)))
+		_hasSpotClusterBoundsCache(false)
 	{
 		SetClusterGridInfo(x, y, z, zLogFactor);
 		_grid.zFirstSliceDepth = 3.0f;
@@ -50,105 +45,82 @@ namespace RN
 		_grid.clustersY = std::max<uint32>(1, y);
 		_grid.clustersZ = std::max<uint32>(1, z);
 		_grid.zLogFactor = std::clamp(zLogFactor, 0.0f, 1.0f);
-		_hasSpotClusterBoundsCache = false;
-
-		// Ensure buffers for new cluster count are reasonably pre-sized
-		PreallocateBuffers(256, 128, 16, 8);
 	}
 
-	void LightManager::PreallocateBuffers(uint32 pointEstimate, uint32 spotEstimate, uint16 pointPerClusterEstimate, uint16 spotPerClusterEstimate)
+	void LightManager::EnsureBufferCapacity(GPUBuffer *&buffer, size_t capacity)
 	{
-		uint32 clusterCount = ComputeClusterCount();
-		pointPerClusterEstimate = std::max<uint16_t>(1, std::min<uint16_t>(pointPerClusterEstimate, _maxLightsPerCluster));
-		spotPerClusterEstimate = std::max<uint16_t>(1, std::min<uint16_t>(spotPerClusterEstimate, _maxLightsPerCluster));
-
-		// Metal requires uniform buffers to be at least as large as the declared array sizes in HLSL.
-		size_t pointBytes = std::max<size_t>(pointEstimate, kLightManagerShaderMaxPointLights) * sizeof(PointLightPacked);
-		size_t spotBytes  = std::max<size_t>(spotEstimate,  kLightManagerShaderMaxSpotLights)  * sizeof(SpotLightPacked);
-		size_t indexBytes = clusterCount * (pointPerClusterEstimate + spotPerClusterEstimate) * sizeof(uint16);
-		size_t headerBytes = sizeof(ClusterGridInfo);
-
-		// Records buffer must match shader-declared maximum array size
-		const uint32 kLightClusterRecordsMax = 4000;
-		size_t recordsBytes = headerBytes + static_cast<size_t>(kLightClusterRecordsMax) * sizeof(ClusterRecord);
-
-		if(!_pointLightBuffer || _pointLightBuffer->GetLength() < pointBytes)
-		{
-			SafeRelease(_pointLightBuffer);
-			_pointLightBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(pointBytes, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::WriteOnly, true);
-		}
-		if(!_spotLightBuffer || _spotLightBuffer->GetLength() < spotBytes)
-		{
-			SafeRelease(_spotLightBuffer);
-			_spotLightBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(spotBytes, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::WriteOnly, true);
-		}
-		if(!_clusterIndexBuffer || _clusterIndexBuffer->GetLength() < indexBytes)
-		{
-			SafeRelease(_clusterIndexBuffer);
-			_clusterIndexBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(indexBytes, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::WriteOnly, true);
-		}
-		if(!_clusterRecordsBuffer || _clusterRecordsBuffer->GetLength() < recordsBytes)
-		{
-			SafeRelease(_clusterRecordsBuffer);
-			_clusterRecordsBuffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(recordsBytes, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::WriteOnly, true);
-		}
+		if(buffer && buffer->GetLength() >= capacity) return;
+		SafeRelease(buffer);
+		buffer = Renderer::GetActiveRenderer()->CreateBufferWithLength(capacity, GPUResource::UsageOptions::Uniform, GPUResource::AccessOptions::WriteOnly, true);
 	}
 
 	void LightManager::SetZLogFactor(float zLogFactor)
 	{
 		_grid.zLogFactor = std::clamp(zLogFactor, 0.0f, 1.0f);
-		_hasSpotClusterBoundsCache = false;
 	}
 
 	void LightManager::SetZFirstSliceDepth(float meters)
 	{
 		_grid.zFirstSliceDepth = std::max(0.0f, meters);
-		_hasSpotClusterBoundsCache = false;
 	}
 
-	void LightManager::SetMaxLightsPerCluster(uint16_t max)
+	void LightManager::SetMaxLightsPerCluster(uint16 max)
 	{
-		uint16_t clamped = std::max<uint16_t>(1, std::min<uint16_t>(max, static_cast<uint16_t>(255)));
-		if(_maxLightsPerCluster == clamped) return;
-		_maxLightsPerCluster = clamped;
-
-		// Re-preallocate with the new per-cluster limits; keep conservative light estimates if none packed yet
-		uint32 pointEstimate = _packedPointLights.empty() ? 256u : static_cast<uint32>(_packedPointLights.size());
-		uint32 spotEstimate  = _packedSpotLights.empty()  ? 128u : static_cast<uint32>(_packedSpotLights.size());
-		PreallocateBuffers(pointEstimate, spotEstimate, clamped, clamped);
+		_maxLightsPerCluster = std::max<uint16>(1, std::min<uint16>(max, static_cast<uint16>(255)));
 	}
 
-	void LightManager::SetMaxPackedLights(uint16_t maxPointLights, uint16_t maxSpotLights)
+	void LightManager::SetMaxPackedLights(uint16 maxPointLights, uint16 maxSpotLights)
 	{
-		const uint16_t clampedPoint = std::max<uint16_t>(1, std::min<uint16_t>(maxPointLights, kLightManagerShaderMaxPointLights));
-		const uint16_t clampedSpot = std::max<uint16_t>(1, std::min<uint16_t>(maxSpotLights, kLightManagerShaderMaxSpotLights));
+		const uint16 clampedPoint = std::max<uint16>(1, std::min<uint16>(maxPointLights, kLightManagerShaderMaxPointLights));
+		const uint16 clampedSpot = std::max<uint16>(1, std::min<uint16>(maxSpotLights, kLightManagerShaderMaxSpotLights));
 		_maxPackedPointLights = clampedPoint;
 		_maxPackedSpotLights = clampedSpot;
 	}
 
-	void LightManager::BuildForCamera(Camera *camera, const std::vector<Light *> &lights)
+	LightManager::DrawSnapshot LightManager::BuildDrawSnapshot(BuildInput &&input)
 	{
-		ClearData();
-		PackLights(camera, lights);
-		BuildClusters(camera);
+		RN_PROFILE_SCOPE();
+		const ClusterGridInfo &previousGrid = _buildInput.grid;
+		const ClusterGridInfo &grid = input.grid;
+		if(previousGrid.clustersX != grid.clustersX || previousGrid.clustersY != grid.clustersY || previousGrid.clustersZ != grid.clustersZ ||
+		   previousGrid.zLogFactor != grid.zLogFactor || previousGrid.zFirstSliceDepth != grid.zFirstSliceDepth ||
+		   !Math::Compare(previousGrid.clipNear, grid.clipNear) || !Math::Compare(previousGrid.clipFar, grid.clipFar))
+		{
+			_hasSpotClusterBoundsCache = false;
+		}
+
+		_buildInput = std::move(input);
+		BuildClusters();
 		UploadBuffers();
+		return GetDrawSnapshot();
 	}
 
-	void LightManager::ClearData()
+	LightManager::BuildInput LightManager::CaptureBuildInput(const Camera *camera, const std::vector<Light *> &lights) const
 	{
-		_packedPointLights.clear();
-		_packedSpotLights.clear();
-		_spotLightCullData.clear();
-		_clusterLightIndices.clear();
-		_clusterRecords.clear();
-	}
+		BuildInput input;
+		input.grid = _grid;
+		input.grid.clipNear = camera->GetClipNear();
+		input.grid.clipFar = camera->GetReferenceFar();
+		input.maxLightsPerCluster = _maxLightsPerCluster;
 
-	void LightManager::PackLights(const Camera *camera, const std::vector<Light *> &lights)
-	{
+		const Array *multiview = camera->GetMultiviewCameras();
+		const size_t viewCount = (multiview && multiview->GetCount() > 0) ? multiview->GetCount() : 1;
+		input.views.reserve(viewCount);
+		input.projections.reserve(viewCount);
+		input.viewPositions.reserve(viewCount);
+		for(size_t i = 0; i < viewCount; ++i)
+		{
+			const Camera *eye = (multiview && multiview->GetCount() > 0) ? multiview->GetObjectAtIndex<Camera>(i) : camera;
+			if(!eye) continue;
+			input.views.push_back(eye->GetViewMatrix());
+			input.projections.push_back(eye->GetProjectionMatrix());
+			input.viewPositions.push_back(eye->GetRenderPosition());
+		}
+
 		const PositionType &renderOrigin = camera->GetRenderOrigin();
-		_packedPointLights.reserve(lights.size());
-		_packedSpotLights.reserve(lights.size());
-		_spotLightCullData.reserve(lights.size());
+		input.pointLights.reserve(lights.size());
+		input.spotLights.reserve(lights.size());
+		input.spotLightCullData.reserve(lights.size());
 		for(const Light *light : lights)
 		{
 			Light::Type type = light->GetType();
@@ -156,14 +128,14 @@ namespace RN
 
 			if(type == Light::Type::SpotLight)
 			{
-				if(_packedSpotLights.size() >= _maxPackedSpotLights) continue;
+				if(input.spotLights.size() >= _maxPackedSpotLights) continue;
 				Vector3 pos(light->GetWorldPosition() - renderOrigin);
 				Vector3 dir = light->GetForward();
 				SpotLightPacked out;
 				out.positionRange = Vector4(pos.x, pos.y, pos.z, light->GetRange());
 				out.color = light->GetFinalColor();
 				out.dirCos = Vector4(dir.x, dir.y, dir.z, light->GetAngleCos());
-				_packedSpotLights.push_back(out);
+				input.spotLights.push_back(out);
 
 				const Sphere cullSphere = light->GetBoundingSphere();
 				SpotLightCullData cullData;
@@ -171,90 +143,64 @@ namespace RN
 				cullData.radius = cullSphere.radius;
 				cullData.forward = dir;
 				cullData.tanHalfAngle = light->GetTanHalfAngle();
-				_spotLightCullData.push_back(cullData);
+				input.spotLightCullData.push_back(cullData);
 			}
 			else // Point
 			{
-				if(_packedPointLights.size() >= _maxPackedPointLights) continue;
+				if(input.pointLights.size() >= _maxPackedPointLights) continue;
 				Vector3 pos(light->GetWorldPosition() - renderOrigin);
 				PointLightPacked out;
 				out.positionRange = Vector4(pos.x, pos.y, pos.z, light->GetRange());
 				out.color = light->GetFinalColor();
-				_packedPointLights.push_back(out);
+				input.pointLights.push_back(out);
 			}
 		}
+		return input;
 	}
 
-	float LightManager::ComputeZSlice(const Camera *camera, float viewZ) const
+	float LightManager::ComputeZSlice(float viewZ) const
 	{
-		const uint32 slices = _grid.clustersZ;
-		const float n = camera->GetClipNear();
-		const float f = camera->GetReferenceFar();
+		const uint32 slices = _buildInput.grid.clustersZ;
+		const float n = _buildInput.grid.clipNear;
+		const float f = _buildInput.grid.clipFar;
 		const float z = std::clamp(viewZ, n, f);
 
-		if(_grid.zFirstSliceDepth > 0.0f)
+		if(_buildInput.grid.zFirstSliceDepth > 0.0f)
 		{
-			const float firstEnd = std::min(n + _grid.zFirstSliceDepth, f);
+			const float firstEnd = std::min(n + _buildInput.grid.zFirstSliceDepth, f);
 			if(z <= firstEnd) return 0.0f;
 
 			const float uLinear = (z - firstEnd) / std::max(1e-6f, (f - firstEnd));
 			const float uLog = (log2f(std::max(z / std::max(firstEnd, 1e-6f), 1.0f)) / std::max(log2f(std::max(f / std::max(firstEnd, 1e-6f), 1.0f)), 1e-6f));
-			const float u = std::lerp(uLinear, uLog, std::clamp(_grid.zLogFactor, 0.0f, 1.0f));
+			const float u = std::lerp(uLinear, uLog, std::clamp(_buildInput.grid.zLogFactor, 0.0f, 1.0f));
 			// Shader: 1 + u * (slices-1)
 			const float sliceF = 1.0f + u * float(std::max<int>(1, int(slices) - 1));
 			return std::clamp(floorf(sliceF), 0.0f, float(slices - 1));
 		}
 
 		const float uLinear = (z - n) / std::max(1e-6f, (f - n));
-		const float uLog    = (log2f(std::max(z / std::max(n, 1e-6f), 1.0f)) /
+		const float uLog = (log2f(std::max(z / std::max(n, 1e-6f), 1.0f)) /
 							std::max(log2f(std::max(f / std::max(n, 1e-6f), 1.0f)), 1e-6f));
-		const float u = std::lerp(uLinear, uLog, std::clamp(_grid.zLogFactor, 0.0f, 1.0f));
+		const float u = std::lerp(uLinear, uLog, std::clamp(_buildInput.grid.zLogFactor, 0.0f, 1.0f));
 		// Shader: u * slices
 		const float sliceF = u * float(slices);
 		return std::clamp(floorf(sliceF), 0.0f, float(slices - 1));
 	}
 
-	void LightManager::BuildClusters(Camera *camera)
+	void LightManager::BuildClusters()
 	{
+		RN_PROFILE_SCOPE();
 		uint32 clusterCount = ComputeClusterCount();
-
-		// Collect view/projection for parent camera
-		const Array *mv = camera->GetMultiviewCameras();
-
-		// Parent/head view & proj; collect per-eye matrices when multiview is present
-		Matrix parentView = camera->GetViewMatrix();
-		Matrix parentProj = camera->GetProjectionMatrix();
-		std::vector<Matrix> views;
-		std::vector<Matrix> projs;
-		std::vector<Matrix> viewProjs;
-		std::vector<Vector3> viewPositions;
-		const size_t expectedViewCount = (mv && mv->GetCount() > 0) ? mv->GetCount() : 1;
-		views.reserve(expectedViewCount);
-		projs.reserve(expectedViewCount);
-		viewProjs.reserve(expectedViewCount);
-		viewPositions.reserve(expectedViewCount);
-		if(mv && mv->GetCount() > 0)
-		{
-			for(size_t i = 0; i < mv->GetCount(); ++i)
-			{
-				Camera *eye = mv->GetObjectAtIndex<Camera>(i);
-				if(!eye) continue;
-				Matrix v = eye->GetViewMatrix();
-				Matrix p = eye->GetProjectionMatrix();
-				views.push_back(v);
-				projs.push_back(p);
-				viewProjs.push_back(p * v);
-				viewPositions.push_back(eye->GetRenderPosition());
-			}
-		}
-		else
-		{
-			views.push_back(parentView);
-			projs.push_back(parentProj);
-			viewProjs.push_back(parentProj * parentView);
-			viewPositions.push_back(camera->GetRenderPosition());
-		}
+		const auto &views = _buildInput.views;
+		const auto &projs = _buildInput.projections;
+		const auto &viewPositions = _buildInput.viewPositions;
 		const size_t viewCount = views.size();
+		std::vector<Matrix> viewProjs;
+		viewProjs.reserve(viewCount);
+		for(size_t vi = 0; vi < viewCount; ++vi)
+		{
+			viewProjs.push_back(projs[vi] * views[vi]);
+		}
 		std::vector<float> projAbsX(viewCount);
 		std::vector<float> projAbsY(viewCount);
 		for(size_t vi = 0; vi < viewCount; ++vi)
@@ -263,19 +209,18 @@ namespace RN
 			projAbsY[vi] = std::abs(projs[vi].m[5]);
 		}
 
-		const float zNear = camera->GetClipNear();
-		const float zFar = camera->GetReferenceFar();
-		const bool clipPlanesMatch = Math::Compare(_lastClipNear, zNear) && Math::Compare(_lastClipFar, zFar);
-		uint32 tilesX = _grid.clustersX;
-		uint32 tilesY = _grid.clustersY;
-		uint32 tilesZ = _grid.clustersZ;
+		const float zNear = _buildInput.grid.clipNear;
+		const float zFar = _buildInput.grid.clipFar;
+		uint32 tilesX = _buildInput.grid.clustersX;
+		uint32 tilesY = _buildInput.grid.clustersY;
+		uint32 tilesZ = _buildInput.grid.clustersZ;
 		// Inflate projected bounds by half a tile in NDC to reduce precision/quantization under-coverage.
 		const float ndcPadX = 1.0f / float(std::max(1u, tilesX));
 		const float ndcPadY = 1.0f / float(std::max(1u, tilesY));
 		const float invTilesX = 1.0f / float(std::max(1u, tilesX));
 		const float invTilesY = 1.0f / float(std::max(1u, tilesY));
 		const std::vector<SpotClusterBound> *clusterConeBoundsByEye = nullptr;
-		if(!_packedSpotLights.empty())
+		if(!_buildInput.spotLights.empty())
 		{
 			bool projectionsMatch = (_cachedSpotBoundsProjections.size() == viewCount);
 			if(projectionsMatch)
@@ -294,9 +239,8 @@ namespace RN
 				}
 			}
 			const bool canUseSpotBoundsCache =
-				_hasSpotClusterBoundsCache &&
-				clipPlanesMatch &&
-				projectionsMatch;
+			_hasSpotClusterBoundsCache &&
+			projectionsMatch;
 
 			auto solveDepthFromU = [&](float nearDepth, float farDepth, float u) {
 				u = std::clamp(u, 0.0f, 1.0f);
@@ -308,9 +252,11 @@ namespace RN
 					float mid = 0.5f * (low + high);
 					float uLinear = (mid - nearDepth) / std::max(1e-6f, (farDepth - nearDepth));
 					float uLog = log2f(std::max(mid / std::max(nearDepth, 1e-6f), 1.0f)) / logDenominator;
-					float mixedU = std::lerp(uLinear, uLog, std::clamp(_grid.zLogFactor, 0.0f, 1.0f));
-					if(mixedU < u) low = mid;
-					else high = mid;
+					float mixedU = std::lerp(uLinear, uLog, std::clamp(_buildInput.grid.zLogFactor, 0.0f, 1.0f));
+					if(mixedU < u)
+						low = mid;
+					else
+						high = mid;
 				}
 				return 0.5f * (low + high);
 			};
@@ -319,9 +265,9 @@ namespace RN
 			{
 				std::vector<float> zSliceNearDepth(tilesZ);
 				std::vector<float> zSliceFarDepth(tilesZ);
-				if(_grid.zFirstSliceDepth > 0.0f)
+				if(_buildInput.grid.zFirstSliceDepth > 0.0f)
 				{
-					const float firstEnd = std::min(zNear + _grid.zFirstSliceDepth, zFar);
+					const float firstEnd = std::min(zNear + _buildInput.grid.zFirstSliceDepth, zFar);
 					zSliceNearDepth[0] = zNear;
 					zSliceFarDepth[0] = firstEnd;
 
@@ -440,11 +386,8 @@ namespace RN
 
 			clusterConeBoundsByEye = &_cachedSpotClusterBoundsByEye;
 		}
-		_lastClipNear = zNear;
-		_lastClipFar = zFar;
 
-		auto screenToCluster = [&](float ndcX, float ndcY, uint32 &cx, uint32 &cy)
-		{
+		auto screenToCluster = [&](float ndcX, float ndcY, uint32 &cx, uint32 &cy) {
 			const float tileX = (ndcX * 0.5f + 0.5f) * float(tilesX);
 			const float tileY = (ndcY * 0.5f + 0.5f) * float(tilesY);
 			cx = std::clamp(uint32(tileX), 0u, tilesX - 1u);
@@ -480,9 +423,9 @@ namespace RN
 					float rNdcXv, rNdcYv;
 					computeProjectedRadius(vi, depthv, rNdcXv, rNdcYv);
 					const float ndcMinXv = std::max(-1.0f, centerNdcXv - rNdcXv);
-					const float ndcMaxXv = std::min( 1.0f, centerNdcXv + rNdcXv);
+					const float ndcMaxXv = std::min(1.0f, centerNdcXv + rNdcXv);
 					const float ndcMinYv = std::max(-1.0f, centerNdcYv - rNdcYv);
-					const float ndcMaxYv = std::min( 1.0f, centerNdcYv + rNdcYv);
+					const float ndcMaxYv = std::min(1.0f, centerNdcYv + rNdcYv);
 					minNdcX = std::min(minNdcX, ndcMinXv);
 					maxNdcX = std::max(maxNdcX, ndcMaxXv);
 					minNdcY = std::min(minNdcY, ndcMinYv);
@@ -493,16 +436,19 @@ namespace RN
 
 			if(!hadProjected)
 			{
-				minNdcX = -1.0f; maxNdcX = 1.0f; minNdcY = -1.0f; maxNdcY = 1.0f;
+				minNdcX = -1.0f;
+				maxNdcX = 1.0f;
+				minNdcY = -1.0f;
+				maxNdcY = 1.0f;
 			}
 			minNdcX = std::max(-1.0f, minNdcX - ndcPadX);
-			maxNdcX = std::min( 1.0f, maxNdcX + ndcPadX);
+			maxNdcX = std::min(1.0f, maxNdcX + ndcPadX);
 			minNdcY = std::max(-1.0f, minNdcY - ndcPadY);
-			maxNdcY = std::min( 1.0f, maxNdcY + ndcPadY);
+			maxNdcY = std::min(1.0f, maxNdcY + ndcPadY);
 
-			ClusterSpan span{};
-			span.zMin = uint32(ComputeZSlice(camera, minZDepth));
-			span.zMax = uint32(ComputeZSlice(camera, maxZDepth));
+			ClusterSpan span {};
+			span.zMin = uint32(ComputeZSlice(minZDepth));
+			span.zMax = uint32(ComputeZSlice(maxZDepth));
 			if(span.zMax < span.zMin) std::swap(span.zMin, span.zMax);
 
 			screenToCluster(minNdcX, minNdcY, span.x0, span.y0);
@@ -536,7 +482,7 @@ namespace RN
 				span.y1 = tilesY - 1;
 				span.zMin = 0;
 				const float clampedDepth = std::clamp(maxInfluenceDepth, zNear, zFar);
-				span.zMax = uint32(ComputeZSlice(camera, clampedDepth));
+				span.zMax = uint32(ComputeZSlice(clampedDepth));
 				return span;
 			}
 
@@ -549,8 +495,8 @@ namespace RN
 		};
 
 		// Reuse scratch buffers to avoid per-frame per-cluster allocations.
-		const size_t pointClusterCapacity = std::min(static_cast<size_t>(_maxLightsPerCluster), _packedPointLights.size());
-		const size_t spotClusterCapacity = std::min(static_cast<size_t>(_maxLightsPerCluster), _packedSpotLights.size());
+		const size_t pointClusterCapacity = std::min(static_cast<size_t>(_buildInput.maxLightsPerCluster), _buildInput.pointLights.size());
+		const size_t spotClusterCapacity = std::min(static_cast<size_t>(_buildInput.maxLightsPerCluster), _buildInput.spotLights.size());
 		_clusterPointScratch.resize(static_cast<size_t>(clusterCount) * pointClusterCapacity);
 		_clusterSpotScratch.resize(static_cast<size_t>(clusterCount) * spotClusterCapacity);
 		_clusterPointCountsScratch.assign(clusterCount, 0);
@@ -560,169 +506,132 @@ namespace RN
 
 		const uint32 sliceStride = tilesX * tilesY;
 		const uint32 rowStride = tilesX;
-		std::vector<ClusterSpan> pointSpans;
-		pointSpans.reserve(_packedPointLights.size());
-		for(uint32 li = 0; li < _packedPointLights.size(); ++li)
+		for(uint32 li = 0; li < _buildInput.pointLights.size(); ++li)
 		{
-			const PointLightPacked &pl = _packedPointLights[li];
+			const PointLightPacked &pl = _buildInput.pointLights[li];
 			const Vector3 position(pl.positionRange.x, pl.positionRange.y, pl.positionRange.z);
-			pointSpans.push_back(computePointClusterSpan(position, pl.positionRange.w));
+			const ClusterSpan span = computePointClusterSpan(position, pl.positionRange.w);
+			const uint16 lightIndex = static_cast<uint16>(li);
+			for(uint32 z = span.zMin; z < span.zMax + 1u; ++z)
+			{
+				const uint32 zBase = z * sliceStride;
+				for(uint32 y = span.y0; y <= span.y1; ++y)
+				{
+					uint32 idx = zBase + y * rowStride + span.x0;
+					for(uint32 x = span.x0; x <= span.x1; ++x, ++idx)
+					{
+						uint8 &count = _clusterPointCountsScratch[idx];
+						if(count >= _buildInput.maxLightsPerCluster) continue;
+						_clusterPointScratch[static_cast<size_t>(idx) * pointClusterCapacity + count] = lightIndex;
+						++count;
+					}
+				}
+			}
 		}
 
-		struct SpotWork
-		{
-			ClusterSpan span;
-			float sideExpandFactor;
-		};
 		struct SpotEyeWork
 		{
 			Vector3 direction;
 			Vector3 position;
 			bool directionValid = false;
 		};
-		std::vector<SpotWork> spotWork;
-		std::vector<SpotEyeWork> spotEyeWork(_packedSpotLights.size() * viewCount);
-		spotWork.reserve(_packedSpotLights.size());
-		for(uint32 li = 0; li < _packedSpotLights.size(); ++li)
+		std::vector<SpotEyeWork> spotEyeWork(_buildInput.spotLights.empty() ? 0 : viewCount);
+
+		for(uint32 li = 0; li < _buildInput.spotLights.size(); ++li)
 		{
-			const SpotLightPacked &pl = _packedSpotLights[li];
+			const SpotLightPacked &pl = _buildInput.spotLights[li];
 			const Vector3 position(pl.positionRange.x, pl.positionRange.y, pl.positionRange.z);
-			const SpotLightCullData &cullData = _spotLightCullData[li];
+			const SpotLightCullData &cullData = _buildInput.spotLightCullData[li];
 			const ClusterSpan span = computeClusterSpan(cullData.center, cullData.radius, [&](size_t vi, float depthv, float &rNdcXv, float &rNdcYv) {
 				const float denom = std::max(depthv * depthv - cullData.radius * cullData.radius, 1e-6f);
 				const float rSil = cullData.radius / std::sqrt(denom);
 				rNdcXv = projAbsX[vi] * rSil;
 				rNdcYv = projAbsY[vi] * rSil;
 			});
-			spotWork.push_back({span, std::sqrt(1.0f + cullData.tanHalfAngle * cullData.tanHalfAngle)});
+			const float sideExpandFactor = std::sqrt(1.0f + cullData.tanHalfAngle * cullData.tanHalfAngle);
 
-			const size_t eyeBase = static_cast<size_t>(li) * viewCount;
 			for(size_t vi = 0; vi < viewCount; ++vi)
 			{
-				SpotEyeWork &eyeWork = spotEyeWork[eyeBase + vi];
+				SpotEyeWork &eyeWork = spotEyeWork[vi];
 				const Vector4 directionVS4 = views[vi] * Vector4(cullData.forward, 0.0f);
 				Vector3 direction(directionVS4.x, directionVS4.y, directionVS4.z);
 				const float dirLenSq = direction.GetSquaredLength();
-				if(std::isfinite(dirLenSq) && dirLenSq > 1e-12f)
+				eyeWork.directionValid = std::isfinite(dirLenSq) && dirLenSq > 1e-12f;
+				if(eyeWork.directionValid)
 				{
 					direction *= 1.0f / std::sqrt(dirLenSq);
 					eyeWork.direction = direction;
-					eyeWork.directionValid = true;
 				}
 				const Vector4 positionVS4 = views[vi] * Vector4(position, 1.0f);
 				eyeWork.position = Vector3(positionVS4.x, positionVS4.y, positionVS4.z);
 			}
-		}
-
-		auto assignLightsToSlices = [&](uint32 firstSlice, uint32 endSlice) {
-			RN_PROFILE_SCOPE_N("Assign Light Clusters");
-			for(uint32 li = 0; li < pointSpans.size(); ++li)
+			const uint16 lightIndex = static_cast<uint16>(li);
+			for(uint32 z = span.zMin; z < span.zMax + 1u; ++z)
 			{
-				const ClusterSpan &span = pointSpans[li];
-				if(span.zMax < firstSlice || span.zMin >= endSlice) continue;
-				const uint16 lightIndex = static_cast<uint16>(li);
-				const uint32 lightFirstSlice = std::max(span.zMin, firstSlice);
-				const uint32 lightEndSlice = std::min(span.zMax + 1u, endSlice);
-				for(uint32 z = lightFirstSlice; z < lightEndSlice; ++z)
+				const uint32 zBase = z * sliceStride;
+				for(uint32 y = span.y0; y <= span.y1; ++y)
 				{
-					const uint32 zBase = z * sliceStride;
-					for(uint32 y = span.y0; y <= span.y1; ++y)
+					uint32 idx = zBase + y * rowStride + span.x0;
+					for(uint32 x = span.x0; x <= span.x1; ++x, ++idx)
 					{
-						uint32 idx = zBase + y * rowStride + span.x0;
-						for(uint32 x = span.x0; x <= span.x1; ++x, ++idx)
+						bool passesAnyEye = false;
+						for(size_t vi = 0; vi < viewCount; ++vi)
 						{
-							uint8_t &count = _clusterPointCountsScratch[idx];
-							if(count >= _maxLightsPerCluster) continue;
-							_clusterPointScratch[static_cast<size_t>(idx) * pointClusterCapacity + count] = lightIndex;
-							++count;
-						}
-					}
-				}
-			}
-
-			for(uint32 li = 0; li < spotWork.size(); ++li)
-			{
-				const SpotWork &work = spotWork[li];
-				const ClusterSpan &span = work.span;
-				if(span.zMax < firstSlice || span.zMin >= endSlice) continue;
-				const SpotLightPacked &pl = _packedSpotLights[li];
-				const SpotLightCullData &cullData = _spotLightCullData[li];
-				const uint16 lightIndex = static_cast<uint16>(li);
-				const size_t eyeBase = static_cast<size_t>(li) * viewCount;
-				const uint32 lightFirstSlice = std::max(span.zMin, firstSlice);
-				const uint32 lightEndSlice = std::min(span.zMax + 1u, endSlice);
-				for(uint32 z = lightFirstSlice; z < lightEndSlice; ++z)
-				{
-					const uint32 zBase = z * sliceStride;
-					for(uint32 y = span.y0; y <= span.y1; ++y)
-					{
-						uint32 idx = zBase + y * rowStride + span.x0;
-						for(uint32 x = span.x0; x <= span.x1; ++x, ++idx)
-						{
-							bool passesAnyEye = false;
-							for(size_t vi = 0; vi < viewCount; ++vi)
+							const SpotEyeWork &eyeWork = spotEyeWork[vi];
+							if(!eyeWork.directionValid)
 							{
-								const SpotEyeWork &eyeWork = spotEyeWork[eyeBase + vi];
-								if(!eyeWork.directionValid) { passesAnyEye = true; break; }
-
-								const SpotClusterBound &clusterBounds = (*clusterConeBoundsByEye)[vi * static_cast<size_t>(clusterCount) + idx];
-								const Vector3 toCluster = clusterBounds.center - eyeWork.position;
-								const float axial = eyeWork.direction.GetDotProduct(toCluster);
-								if(!std::isfinite(axial)) { passesAnyEye = true; break; }
-								if(axial < -clusterBounds.radius || axial > pl.positionRange.w + clusterBounds.radius) continue;
-
-								const float radialSq = (toCluster - eyeWork.direction * axial).GetSquaredLength();
-								if(!std::isfinite(radialSq)) { passesAnyEye = true; break; }
-
-								const float coneDistance = (axial > pl.positionRange.w) ? pl.positionRange.w : std::max(axial, 0.0f);
-								const float radialLimit = coneDistance * cullData.tanHalfAngle + clusterBounds.radius * work.sideExpandFactor;
-								const float radialLimitSq = radialLimit * radialLimit;
-								if(!std::isfinite(radialLimitSq)) { passesAnyEye = true; break; }
-								if(radialSq <= radialLimitSq) { passesAnyEye = true; break; }
+								passesAnyEye = true;
+								break;
 							}
-							if(!passesAnyEye) continue;
 
-							uint8_t &count = _clusterSpotCountsScratch[idx];
-							if(count >= _maxLightsPerCluster) continue;
-							_clusterSpotScratch[static_cast<size_t>(idx) * spotClusterCapacity + count] = lightIndex;
-							++count;
+							const SpotClusterBound &clusterBounds = (*clusterConeBoundsByEye)[vi * static_cast<size_t>(clusterCount) + idx];
+							const Vector3 toCluster = clusterBounds.center - eyeWork.position;
+							const float axial = eyeWork.direction.GetDotProduct(toCluster);
+							if(!std::isfinite(axial))
+							{
+								passesAnyEye = true;
+								break;
+							}
+							if(axial < -clusterBounds.radius || axial > pl.positionRange.w + clusterBounds.radius) continue;
+
+							const float radialSq = (toCluster - eyeWork.direction * axial).GetSquaredLength();
+							if(!std::isfinite(radialSq))
+							{
+								passesAnyEye = true;
+								break;
+							}
+
+							const float coneDistance = (axial > pl.positionRange.w) ? pl.positionRange.w : std::max(axial, 0.0f);
+							const float radialLimit = coneDistance * cullData.tanHalfAngle + clusterBounds.radius * sideExpandFactor;
+							const float radialLimitSq = radialLimit * radialLimit;
+							if(!std::isfinite(radialLimitSq))
+							{
+								passesAnyEye = true;
+								break;
+							}
+							if(radialSq <= radialLimitSq)
+							{
+								passesAnyEye = true;
+								break;
+							}
 						}
+						if(!passesAnyEye) continue;
+
+						uint8 &count = _clusterSpotCountsScratch[idx];
+						if(count >= _buildInput.maxLightsPerCluster) continue;
+						_clusterSpotScratch[static_cast<size_t>(idx) * spotClusterCapacity + count] = lightIndex;
+						++count;
 					}
 				}
 			}
-		};
-
-		const uint32 laneCount = std::min(2u, tilesZ);
-		const size_t workerCount = laneCount - 1u;
-		WorkGroup *workGroup = nullptr;
-		if(workerCount > 0)
-		{
-			workGroup = new WorkGroup();
-			WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
-			for(uint32 lane = 1; lane < laneCount; ++lane)
-			{
-				const uint32 firstSlice = lane * tilesZ / laneCount;
-				const uint32 endSlice = (lane + 1u) * tilesZ / laneCount;
-				workGroup->Perform(queue, [&, firstSlice, endSlice] {
-					assignLightsToSlices(firstSlice, endSlice);
-				}, workerCount);
-			}
-		}
-
-		assignLightsToSlices(0, tilesZ / laneCount);
-		if(workGroup)
-		{
-			RN_PROFILE_SCOPE_N("Wait for Light Clusters");
-			workGroup->Wait();
-			workGroup->Release();
 		}
 
 		// Build per-cluster counts and offsets
 		uint32 totalCount = 0;
 		for(uint32 i = 0; i < clusterCount; ++i)
 		{
-			const uint8_t pcount = _clusterPointCountsScratch[i];
-			const uint8_t scount = _clusterSpotCountsScratch[i];
+			const uint8 pcount = _clusterPointCountsScratch[i];
+			const uint8 scount = _clusterSpotCountsScratch[i];
 			_clusterOffsetsScratch[i] = totalCount;
 			totalCount += static_cast<uint32>(pcount) + static_cast<uint32>(scount);
 		}
@@ -731,18 +640,18 @@ namespace RN
 		_clusterLightIndices.resize(totalCount);
 		for(uint32 i = 0, offset = 0; i < clusterCount; ++i)
 		{
-			const uint8_t pcount = _clusterPointCountsScratch[i];
-			const uint8_t scount = _clusterSpotCountsScratch[i];
+			const uint8 pcount = _clusterPointCountsScratch[i];
+			const uint8 scount = _clusterSpotCountsScratch[i];
 			if(pcount)
 			{
 				const size_t src = static_cast<size_t>(i) * pointClusterCapacity;
-				memcpy(_clusterLightIndices.data() + offset, _clusterPointScratch.data() + src, static_cast<size_t>(pcount) * sizeof(uint16_t));
+				memcpy(_clusterLightIndices.data() + offset, _clusterPointScratch.data() + src, static_cast<size_t>(pcount) * sizeof(uint16));
 				offset += pcount;
 			}
 			if(scount)
 			{
 				const size_t src = static_cast<size_t>(i) * spotClusterCapacity;
-				memcpy(_clusterLightIndices.data() + offset, _clusterSpotScratch.data() + src, static_cast<size_t>(scount) * sizeof(uint16_t));
+				memcpy(_clusterLightIndices.data() + offset, _clusterSpotScratch.data() + src, static_cast<size_t>(scount) * sizeof(uint16));
 				offset += scount;
 			}
 		}
@@ -753,7 +662,7 @@ namespace RN
 		for(uint32 g = 0; g < groupCount; ++g)
 		{
 			uint32 base = g * 6u;
-			ClusterRecord rec{};
+			ClusterRecord rec {};
 			rec.offset = (base < clusterCount) ? _clusterOffsetsScratch[base] : 0u;
 			auto packPair = [&](uint32 idxInGroup) -> uint32 {
 				uint32 ci = base + idxInGroup;
@@ -770,31 +679,25 @@ namespace RN
 
 	void LightManager::UploadBuffers()
 	{
-		size_t pointBytes = std::max<size_t>(_packedPointLights.size(), kLightManagerShaderMaxPointLights) * sizeof(PointLightPacked);
-		size_t spotBytes = std::max<size_t>(_packedSpotLights.size(),  kLightManagerShaderMaxSpotLights)  * sizeof(SpotLightPacked);
+		size_t pointBytes = std::max<size_t>(_buildInput.pointLights.size(), kLightManagerShaderMaxPointLights) * sizeof(PointLightPacked);
+		size_t spotBytes = std::max<size_t>(_buildInput.spotLights.size(), kLightManagerShaderMaxSpotLights) * sizeof(SpotLightPacked);
 		size_t indexBytes = _clusterLightIndices.size() * sizeof(uint16);
 		size_t headerBytes = sizeof(ClusterGridInfo);
 		size_t recordsBytes = _clusterRecords.size() * sizeof(ClusterRecord);
 
-		// Keep cluster index capacity stable across visibility changes to avoid transient realloc/release churn.
-		PreallocateBuffers(static_cast<uint32>(_packedPointLights.size()), static_cast<uint32>(_packedSpotLights.size()), _maxLightsPerCluster, _maxLightsPerCluster);
+		// Keep shader-declared light/record sizes and index capacity stable across visibility changes.
+		EnsureBufferCapacity(_pointLightBuffer, pointBytes);
+		EnsureBufferCapacity(_spotLightBuffer, spotBytes);
+		EnsureBufferCapacity(_clusterIndexBuffer, static_cast<size_t>(ComputeClusterCount()) * 2u * _buildInput.maxLightsPerCluster * sizeof(uint16));
+		EnsureBufferCapacity(_clusterRecordsBuffer, headerBytes + kLightManagerShaderMaxClusterRecords * sizeof(ClusterRecord));
 
-		if(pointBytes > 0)
-		{
-			void *dst = _pointLightBuffer->GetBuffer();
-			// Copy actual lights first; leave the rest undefined
-			size_t used = _packedPointLights.size() * sizeof(PointLightPacked);
-			if(used > 0) memcpy(dst, _packedPointLights.data(), used);
-			_pointLightBuffer->FlushRange(Range(0, pointBytes));
-		}
-
-		if(spotBytes > 0)
-		{
-			void *dst = _spotLightBuffer->GetBuffer();
-			size_t used = _packedSpotLights.size() * sizeof(SpotLightPacked);
-			if(used > 0) memcpy(dst, _packedSpotLights.data(), used);
-			_spotLightBuffer->FlushRange(Range(0, spotBytes));
-		}
+		auto uploadLights = [](GPUBuffer *buffer, const auto &lights, size_t bufferSize) {
+			size_t used = lights.size() * sizeof(lights[0]);
+			if(used > 0) memcpy(buffer->GetBuffer(), lights.data(), used);
+			buffer->FlushRange(Range(0, bufferSize));
+		};
+		uploadLights(_pointLightBuffer, _buildInput.pointLights, pointBytes);
+		uploadLights(_spotLightBuffer, _buildInput.spotLights, spotBytes);
 
 		if(indexBytes > 0)
 		{
@@ -807,11 +710,9 @@ namespace RN
 		{
 			void *dst = _clusterRecordsBuffer->GetBuffer();
 			// Write header
-			_grid.clipNear = _lastClipNear;
-			_grid.clipFar = _lastClipFar;
-			memcpy(dst, &_grid, headerBytes);
+			memcpy(dst, &_buildInput.grid, headerBytes);
 			memcpy(static_cast<uint8 *>(dst) + headerBytes, _clusterRecords.data(), recordsBytes);
 			_clusterRecordsBuffer->FlushRange(Range(0, headerBytes + recordsBytes));
 		}
 	}
-}
+} // namespace RN
