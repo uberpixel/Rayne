@@ -398,9 +398,10 @@ namespace RN
 	{
 #if RN_ENABLE_UNIVERSE_SCALE
 		_linearTransformVersion += 1;
-		_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
-			child->InvalidateLinearTransform();
-		});
+		for(size_t i = 0; i < _children->GetCount(); i += 1)
+		{
+			static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->InvalidateLinearTransform();
+		}
 #endif
 	}
 

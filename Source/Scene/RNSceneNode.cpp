@@ -579,9 +579,10 @@ namespace RN
 
 		if(_attachments)
 		{
-			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
-				attachment->__WillUpdate(changeSet);
-			});
+			for(size_t i = 0; i < _attachments->GetCount(); i += 1)
+			{
+				static_cast<SceneNodeAttachment *>(_attachments->GetObjectAtIndex(i))->__WillUpdate(changeSet);
+			}
 		}
 	}
 
@@ -591,10 +592,10 @@ namespace RN
 		{
 			_transformVersion += 1;
 
-			//Updated flag Needs to be passed on to all children and their children
-			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
-				child->DidUpdate(ChangeSet::Position);
-			});
+			for(size_t i = 0; i < _children->GetCount(); i += 1)
+			{
+				static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->DidUpdate(ChangeSet::Position);
+			}
 		}
 
 		if(changeSet & ChangeSet::Parent)
@@ -604,10 +605,10 @@ namespace RN
 			_linearTransformVersion += 1;
 #endif
 
-			//Updated flag Needs to be passed on to all children and their children
-			_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
-				child->DidUpdate(ChangeSet::Parent);
-			});
+			for(size_t i = 0; i < _children->GetCount(); i += 1)
+			{
+				static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->DidUpdate(ChangeSet::Parent);
+			}
 		}
 
 		if(_parent)
@@ -615,9 +616,10 @@ namespace RN
 
 		if(_attachments)
 		{
-			_attachments->Enumerate<SceneNodeAttachment>([changeSet](SceneNodeAttachment *attachment, size_t index, bool &stop) {
-				attachment->__DidUpdate(changeSet);
-			});
+			for(size_t i = 0; i < _attachments->GetCount(); i += 1)
+			{
+				static_cast<SceneNodeAttachment *>(_attachments->GetObjectAtIndex(i))->__DidUpdate(changeSet);
+			}
 		}
 	}
 
