@@ -412,7 +412,7 @@ namespace RN
 		return counter;
 	}
 
-	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback)
+	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback)
 	{
 		const bool removeBeforeRender = !voiceEnabled || !audioReceivedCallback;
 		const bool removeBeforeSend = !voiceEnabled || !audioBeforeSendCallback;
@@ -1382,7 +1382,7 @@ namespace RN
 		{
 			AutoreleasePool pool;
 
-			RN::String *eosUserID = nullptr;
+			const RN::String *eosUserID = nullptr;
 
 			if(Data->ParticipantId)
 			{

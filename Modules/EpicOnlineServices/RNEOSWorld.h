@@ -74,7 +74,7 @@ namespace RN
 		EOSAPI bool GetHasNetworkConnection() const;
 		EOSAPI void LoginUser();
 
-		EOSAPI String *GetUserIDString(EOS_ProductUserId userID = nullptr) const;
+		EOSAPI const String *GetUserIDString(EOS_ProductUserId userID = nullptr) const;
 		EOSAPI EOS_ProductUserId GetUserIDFromString(const String *userIDString) const;
 		EOSAPI String *GetLocalUserIdTokenString() const;
 		EOSAPI void SetLoginCallback(std::function<void(bool)> callback);
@@ -102,6 +102,9 @@ namespace RN
 		bool _allowFallbackToDeviceID;
 		LoginState _loginState;
 		EOS_ProductUserId _loggedInUserID;
+
+		mutable Lockable _userIDStringsLock;
+		mutable std::unordered_map<EOS_ProductUserId, StrongRef<const String>> _userIDStrings;
 
 		EOS_HPlatform _platformHandle;
 		EOS_HConnect _connectInterfaceHandle;

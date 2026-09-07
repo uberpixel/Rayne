@@ -193,7 +193,7 @@ namespace RN
 
 		EOSAPI ~EOSLobbyManager();
 
-		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback = nullptr, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback = nullptr);
+		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback = nullptr, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback = nullptr);
 		EOSAPI void SetLocalPlayerMuted(bool mute);
 		bool GetLocalPlayerMuted() const { return _isLocalPlayerMuted; }
 
@@ -245,7 +245,7 @@ namespace RN
 		std::vector<EOSLobbySearch *> _lobbySearches;
 		std::vector<EOSConnectedLobbyInfo *> _connectedLobbies;
 
-		std::function<void(RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> _audioReceivedCallback;
+		std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> _audioReceivedCallback;
 		std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> _audioBeforeSendCallback;
 
 		RNDeclareMetaAPI(EOSLobbyManager, EOSAPI)

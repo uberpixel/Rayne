@@ -271,14 +271,22 @@ namespace RN
 		return _lobbyManager;
 	}
 
-	RN::String *EOSWorld::GetUserIDString(EOS_ProductUserId userID) const
+	const RN::String *EOSWorld::GetUserIDString(EOS_ProductUserId userID) const
 	{
 		if(!userID) userID = _loggedInUserID;
+		if(!userID) return nullptr;
+
+		LockGuard<Lockable> lock(_userIDStringsLock);
+		auto iterator = _userIDStrings.find(userID);
+		if(iterator != _userIDStrings.end()) return iterator->second.Load();
+
 		char outBuffer[EOS_PRODUCTUSERID_MAX_LENGTH + 1];
 		int32_t outBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
 		if(EOS_ProductUserId_ToString(userID, outBuffer, &outBufferLength) == EOS_EResult::EOS_Success)
 		{
-			return RNSTR(outBuffer);
+			const String *userIDString = String::WithString(outBuffer);
+			_userIDStrings.emplace(userID, userIDString);
+			return userIDString;
 		}
 
 		return nullptr;
