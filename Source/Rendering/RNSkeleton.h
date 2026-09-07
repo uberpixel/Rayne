@@ -134,15 +134,22 @@ namespace RN
 		RNAPI const std::vector<Matrix> &GetMatrices() const { return _matrices; }
 		uint64 GetDrawSnapshotVersion() const { return _drawSnapshotVersion; }
 		RNAPI void GetDrawSnapshot(DrawSnapshot &snapshot) const;
+		// Submission-thread cache. Published snapshots remain immutable while frames use them.
+		RNAPI const std::shared_ptr<const DrawSnapshot> &GetSharedDrawSnapshot() const;
 
 		std::vector<Bone> bones;
 		Dictionary *animations;
 		std::vector<Matrix> _matrices;
 
 	private:
-		void MarkDrawSnapshotDirty() { _drawSnapshotVersion += 1; }
+		void MarkDrawSnapshotDirty()
+		{
+			_drawSnapshotVersion += 1;
+			_sharedDrawSnapshot.reset();
+		}
 
 		uint64 _drawSnapshotVersion;
+		mutable std::shared_ptr<const DrawSnapshot> _sharedDrawSnapshot;
 
 		Animation *_blendanim;
 		float _blendtime;

@@ -146,9 +146,14 @@ namespace RN
 			uint64 frameID;
 		};
 
-		void RegisterDrawableForSnapshotDrain(Drawable *drawable);
-		void UnregisterDrawableFromSnapshotDrain(Drawable *drawable);
-		void DrainDrawableSnapshots(uint64 completedFrameID);
+		struct RetiredDrawSnapshots
+		{
+			uint64 frameID;
+			std::vector<std::shared_ptr<const void>> snapshots;
+		};
+
+		void RetireDrawSnapshots(uint64 frameID, std::shared_ptr<const void> mesh, std::shared_ptr<const void> material, std::shared_ptr<const void> skeleton);
+		void DrainDrawSnapshots(uint64 completedFrameID);
 		void FlushDeletedDrawables();
 		void ReleaseRendererReferences();
 		void RegisterDefaultShaderSources();
@@ -161,7 +166,8 @@ namespace RN
 		uint64 _completedRenderFrameID;
 		size_t _lastRenderFrameDrawItemCount;
 		std::vector<DeletedDrawable> _pendingDeletedDrawables;
-		std::vector<Drawable *> _drawablesPendingSnapshotDrain;
+		// Snapshot retirement is written and drained on the submission thread.
+		std::deque<RetiredDrawSnapshots> _retiredDrawSnapshots;
 		std::vector<StrongRef<RendererAttachment>> _rendererAttachments;
 		std::vector<std::vector<StrongRef<Object>>> _cameraPassAttachmentSnapshotStack;
 		std::unordered_map<size_t, Shader::ArgumentBuffer::Source> _argumentBufferSources;

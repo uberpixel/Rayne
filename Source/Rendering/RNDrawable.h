@@ -21,42 +21,13 @@
 namespace RN
 {
 	class RenderPass;
-	class Renderer;
 	class SceneNode;
 
 	struct Drawable
 	{
-		friend class Renderer;
-		friend class RenderFrame;
-
 		RNAPI Drawable();
 		RNAPI virtual ~Drawable();
 
-	private:
-		struct MeshSnapshot
-		{
-			Mesh::DrawSnapshot _snapshot;
-			uint64 _lastUsedFrameID = 0;
-		};
-
-		struct MaterialSnapshot
-		{
-			MaterialSnapshot(uint64 version) :
-				_version(version)
-			{}
-
-			Material::DrawSnapshot _snapshot;
-			uint64 _version = 0;
-			uint64 _lastUsedFrameID = 0;
-		};
-
-		struct SkeletonSnapshot
-		{
-			Skeleton::DrawSnapshot _snapshot;
-			uint64 _lastUsedFrameID = 0;
-		};
-
-	public:
 		struct PipelineKey
 		{
 			size_t meshPipelineHash = 0;
@@ -157,23 +128,25 @@ namespace RN
 		class DrawSnapshotBundle
 		{
 		public:
-			const Mesh::DrawSnapshot &GetMesh() const { return _mesh->_snapshot; }
-			const Material::DrawSnapshot &GetMaterial() const { return _material->_snapshot; }
-			const Skeleton::DrawSnapshot &GetSkeleton() const { return _skeleton->_snapshot; }
-			uint64 GetMaterialSnapshotVersion() const { return _material->_version; }
+			const Mesh::DrawSnapshot &GetMesh() const { return *_mesh; }
+			const Material::DrawSnapshot &GetMaterial() const { return *_material; }
+			const Skeleton::DrawSnapshot &GetSkeleton() const { return *_skeleton; }
+			uint64 GetMaterialSnapshotVersion() const { return _materialVersion; }
 
 		private:
 			friend struct Drawable;
 
-			DrawSnapshotBundle(MeshSnapshot *mesh, MaterialSnapshot *material, SkeletonSnapshot *skeleton) :
+			DrawSnapshotBundle(const Mesh::DrawSnapshot *mesh, const Material::DrawSnapshot *material, const Skeleton::DrawSnapshot *skeleton, uint64 materialVersion) :
 				_mesh(mesh),
 				_material(material),
-				_skeleton(skeleton)
+				_skeleton(skeleton),
+				_materialVersion(materialVersion)
 			{}
 
-			MeshSnapshot *_mesh;
-			MaterialSnapshot *_material;
-			SkeletonSnapshot *_skeleton;
+			const Mesh::DrawSnapshot *_mesh;
+			const Material::DrawSnapshot *_material;
+			const Skeleton::DrawSnapshot *_skeleton;
+			uint64 _materialVersion;
 		};
 
 		RNAPI void SetSources(Mesh *mesh, Material *material, Skeleton *skeleton);
@@ -189,14 +162,24 @@ namespace RN
 		static constexpr uint8 SkeletonSnapshotDirty = 1 << 2;
 		static constexpr uint8 AllSnapshotsDirty = MeshSnapshotDirty | MaterialSnapshotDirty | SkeletonSnapshotDirty;
 
-		void UpdateSourceVersions();
-		bool DrainDrawSnapshots(uint64 completedFrameID);
-		bool HasDrawSnapshotHistory() const;
 		void UpdateDrawSnapshots(uint64 frameID);
 
-		std::deque<MeshSnapshot> _meshSnapshots;
-		std::deque<MaterialSnapshot> _materialSnapshots;
-		std::deque<SkeletonSnapshot> _skeletonSnapshots;
+		template<class Source>
+		static std::shared_ptr<const typename Source::DrawSnapshot> CaptureSourceSnapshot(Source *source)
+		{
+			if(source) return source->GetSharedDrawSnapshot();
+
+			static const auto emptySnapshot = [] {
+				auto snapshot = std::make_shared<typename Source::DrawSnapshot>();
+				snapshot->Reset();
+				return snapshot;
+			}();
+			return emptySnapshot;
+		}
+
+		std::shared_ptr<const Mesh::DrawSnapshot> _meshSnapshot;
+		std::shared_ptr<const Material::DrawSnapshot> _materialSnapshot;
+		std::shared_ptr<const Skeleton::DrawSnapshot> _skeletonSnapshot;
 
 		// Source objects are kept for snapshot refresh/version checks.
 		StrongRef<Mesh> _sourceMesh;
@@ -209,7 +192,6 @@ namespace RN
 		uint64 _materialSnapshotVersion = 0;
 		uint64 _skeletonDrawSnapshotVersion = 0;
 		uint8 _drawSnapshotDirtyMask = AllSnapshotsDirty;
-		bool _isRegisteredForSnapshotDrain = false;
 	};
 } // namespace RN
 

@@ -535,6 +535,17 @@ namespace RN
 		_matrices.clear();
 	}
 
+	const std::shared_ptr<const Skeleton::DrawSnapshot> &Skeleton::GetSharedDrawSnapshot() const
+	{
+		if(!_sharedDrawSnapshot)
+		{
+			auto snapshot = std::make_shared<DrawSnapshot>();
+			GetDrawSnapshot(*snapshot);
+			_sharedDrawSnapshot = std::move(snapshot);
+		}
+		return _sharedDrawSnapshot;
+	}
+
 	void Skeleton::GetDrawSnapshot(DrawSnapshot &snapshot) const
 	{
 		snapshot._matrices = _matrices;

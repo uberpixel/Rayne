@@ -385,6 +385,17 @@ namespace RN
 		return nullptr;
 	}
 
+	const std::shared_ptr<const Mesh::DrawSnapshot> &Mesh::GetSharedDrawSnapshot() const
+	{
+		if(!_sharedDrawSnapshot)
+		{
+			auto snapshot = std::make_shared<DrawSnapshot>();
+			GetDrawSnapshot(*snapshot);
+			_sharedDrawSnapshot = std::move(snapshot);
+		}
+		return _sharedDrawSnapshot;
+	}
+
 	void Mesh::GetDrawSnapshot(DrawSnapshot &snapshot) const
 	{
 		snapshot._descriptor = _descriptor;

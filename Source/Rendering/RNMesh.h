@@ -509,6 +509,8 @@ namespace RN
 		RNAPI void CalculateBoundingVolumes();
 		uint64 GetPipelineVersion() const { return _pipelineVersion; }
 		RNAPI void GetDrawSnapshot(DrawSnapshot &snapshot) const;
+		// Submission-thread cache. Published snapshots remain immutable while frames use them.
+		RNAPI const std::shared_ptr<const DrawSnapshot> &GetSharedDrawSnapshot() const;
 		RNAPI void GetBufferSnapshot(BufferSnapshot &snapshot) const;
 
 		//TODO: Having the two types is a bit confusing since they result in different iterator behaviour
@@ -542,6 +544,7 @@ namespace RN
 		void MarkPipelineDirty()
 		{
 			_pipelineVersion += 1;
+			_sharedDrawSnapshot.reset();
 		}
 
 		void ParseAttributes();
@@ -574,6 +577,7 @@ namespace RN
 		uint32 _changeCounter;
 
 		uint64 _pipelineVersion;
+		mutable std::shared_ptr<const DrawSnapshot> _sharedDrawSnapshot;
 
 		AABB _boundingBox;
 		Sphere _boundingSphere;

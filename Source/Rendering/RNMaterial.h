@@ -293,9 +293,15 @@ namespace RN
 		uint64 GetDrawSnapshotVersion() const { return _drawSnapshotVersion; }
 		uint64 GetPipelineVersion() const { return _pipelineVersion; }
 		RNAPI void GetDrawSnapshot(DrawSnapshot &snapshot) const;
+		// Submission-thread cache. Published snapshots remain immutable while frames use them.
+		RNAPI const std::shared_ptr<const DrawSnapshot> &GetSharedDrawSnapshot() const;
 
 	private:
-		void MarkDrawSnapshotDirty() { _drawSnapshotVersion += 1; }
+		void MarkDrawSnapshotDirty()
+		{
+			_drawSnapshotVersion += 1;
+			_sharedDrawSnapshot.reset();
+		}
 		void MarkPipelineDirty()
 		{
 			_pipelineVersion += 1;
@@ -313,6 +319,7 @@ namespace RN
 		Array *_textures;
 
 		uint64 _drawSnapshotVersion;
+		mutable std::shared_ptr<const DrawSnapshot> _sharedDrawSnapshot;
 		uint64 _pipelineVersion;
 
 		Properties _properties;

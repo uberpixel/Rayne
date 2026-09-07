@@ -1037,7 +1037,7 @@ namespace RN
 			completedFrameID = _completedRenderFrameID;
 		}
 
-		DrainDrawableSnapshots(completedFrameID);
+		DrainDrawSnapshots(completedFrameID);
 		frame.ReserveDrawItems(drawItemReserveCount);
 	}
 
@@ -1057,69 +1057,26 @@ namespace RN
 
 	void Renderer::QueueDrawableDeletion(Drawable *drawable)
 	{
-		UnregisterDrawableFromSnapshotDrain(drawable);
-
 		LockGuard<Lockable> lock(_frameLifecycleLock);
 		_pendingDeletedDrawables.push_back({ drawable, _lastStartedRenderFrameID });
 	}
 
-	void Renderer::RegisterDrawableForSnapshotDrain(Drawable *drawable)
+	void Renderer::RetireDrawSnapshots(uint64 frameID, std::shared_ptr<const void> mesh, std::shared_ptr<const void> material, std::shared_ptr<const void> skeleton)
 	{
-		LockGuard<Lockable> lock(_frameLifecycleLock);
-		if(drawable->_isRegisteredForSnapshotDrain)
-			return;
+		// Keep replaced snapshots until every submission that could reference them has completed.
+		if(_retiredDrawSnapshots.empty() || _retiredDrawSnapshots.back().frameID != frameID)
+			_retiredDrawSnapshots.push_back({frameID, {}});
 
-		drawable->_isRegisteredForSnapshotDrain = true;
-		_drawablesPendingSnapshotDrain.push_back(drawable);
+		auto &snapshots = _retiredDrawSnapshots.back().snapshots;
+		if(mesh) snapshots.push_back(std::move(mesh));
+		if(material) snapshots.push_back(std::move(material));
+		if(skeleton) snapshots.push_back(std::move(skeleton));
 	}
 
-	void Renderer::UnregisterDrawableFromSnapshotDrain(Drawable *drawable)
+	void Renderer::DrainDrawSnapshots(uint64 completedFrameID)
 	{
-		LockGuard<Lockable> lock(_frameLifecycleLock);
-		if(!drawable->_isRegisteredForSnapshotDrain)
-			return;
-
-		drawable->_isRegisteredForSnapshotDrain = false;
-		for(auto iterator = _drawablesPendingSnapshotDrain.begin(); iterator != _drawablesPendingSnapshotDrain.end(); ++iterator)
-		{
-			if(*iterator == drawable)
-			{
-				_drawablesPendingSnapshotDrain.erase(iterator);
-				return;
-			}
-		}
-	}
-
-	void Renderer::DrainDrawableSnapshots(uint64 completedFrameID)
-	{
-		std::vector<Drawable *> drawables;
-		{
-			LockGuard<Lockable> lock(_frameLifecycleLock);
-			drawables.swap(_drawablesPendingSnapshotDrain);
-			for(Drawable *drawable : drawables)
-				drawable->_isRegisteredForSnapshotDrain = false;
-		}
-
-		size_t pendingCount = 0;
-		for(Drawable *drawable : drawables)
-		{
-			if(drawable->DrainDrawSnapshots(completedFrameID))
-				drawables[pendingCount++] = drawable;
-		}
-
-		if(pendingCount == 0)
-			return;
-
-		LockGuard<Lockable> lock(_frameLifecycleLock);
-		for(size_t i = 0; i < pendingCount; i += 1)
-		{
-			Drawable *drawable = drawables[i];
-			if(drawable->_isRegisteredForSnapshotDrain)
-				continue;
-
-			drawable->_isRegisteredForSnapshotDrain = true;
-			_drawablesPendingSnapshotDrain.push_back(drawable);
-		}
+		while(!_retiredDrawSnapshots.empty() && _retiredDrawSnapshots.front().frameID <= completedFrameID)
+			_retiredDrawSnapshots.pop_front();
 	}
 
 	void Renderer::FlushDeletedDrawables()
@@ -1159,7 +1116,7 @@ namespace RN
 	void Renderer::ReleaseRendererReferences()
 	{
 		FlushAllDeletedDrawables();
-		DrainDrawableSnapshots(static_cast<uint64>(-1));
+		DrainDrawSnapshots(static_cast<uint64>(-1));
 
 		{
 			LockGuard<Lockable> lock(_rendererAttachmentsLock);

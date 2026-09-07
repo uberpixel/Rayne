@@ -57,23 +57,17 @@ namespace RN
 
 	void Drawable::SetSources(Mesh *mesh, Material *material, Skeleton *skeleton)
 	{
-		bool meshSourceChanged = _sourceMesh.Get() != mesh;
-		bool materialSourceChanged = _sourceMaterial.Get() != material;
-		bool skeletonSourceChanged = _sourceSkeleton.Get() != skeleton;
-
-		if(meshSourceChanged)
+		if(_sourceMesh.Get() != mesh)
 		{
 			_sourceMesh = mesh;
 			_drawSnapshotDirtyMask |= MeshSnapshotDirty;
 		}
-		if(materialSourceChanged)
+		if(_sourceMaterial.Get() != material)
 		{
 			_sourceMaterial = material;
-			_materialDrawSnapshotVersion = material ? material->GetDrawSnapshotVersion() : 0;
-			_materialSnapshotVersion += 1;
 			_drawSnapshotDirtyMask |= MaterialSnapshotDirty;
 		}
-		if(skeletonSourceChanged)
+		if(_sourceSkeleton.Get() != skeleton)
 		{
 			_sourceSkeleton = skeleton;
 			_drawSnapshotDirtyMask |= SkeletonSnapshotDirty;
@@ -96,28 +90,6 @@ namespace RN
 		SetIndirectDrawBuffer(nullptr, IndirectDrawType::Draw, 0, 1, 0);
 	}
 
-	void Drawable::UpdateSourceVersions()
-	{
-		Mesh *mesh = _sourceMesh.Get();
-		uint64 meshPipelineVersion = mesh ? mesh->GetPipelineVersion() : 0;
-		if(_meshPipelineVersion != meshPipelineVersion)
-			_drawSnapshotDirtyMask |= MeshSnapshotDirty;
-
-		Material *material = _sourceMaterial.Get();
-		uint64 materialDrawSnapshotVersion = material ? material->GetDrawSnapshotVersion() : 0;
-		if(_materialDrawSnapshotVersion != materialDrawSnapshotVersion)
-		{
-			_materialDrawSnapshotVersion = materialDrawSnapshotVersion;
-			_materialSnapshotVersion += 1;
-			_drawSnapshotDirtyMask |= MaterialSnapshotDirty;
-		}
-
-		Skeleton *skeleton = _sourceSkeleton.Get();
-		uint64 skeletonDrawSnapshotVersion = skeleton ? skeleton->GetDrawSnapshotVersion() : 0;
-		if(_skeletonDrawSnapshotVersion != skeletonDrawSnapshotVersion)
-			_drawSnapshotDirtyMask |= SkeletonSnapshotDirty;
-	}
-
 	void Drawable::GetMeshBufferSnapshot(Mesh::BufferSnapshot &snapshot) const
 	{
 		Mesh *mesh = _sourceMesh.Get();
@@ -129,97 +101,60 @@ namespace RN
 
 	Drawable::DrawSnapshotBundle Drawable::GetDrawSnapshotBundleForFrame(uint64 frameID)
 	{
-		UpdateSourceVersions();
+		UpdateDrawSnapshots(frameID);
 
-		if(_drawSnapshotDirtyMask != 0)
-			UpdateDrawSnapshots(frameID);
+		RN_DEBUG_ASSERT(_meshSnapshot && _materialSnapshot && _skeletonSnapshot, "Drawable has no draw snapshots");
 
-		RN_DEBUG_ASSERT(!_meshSnapshots.empty() && !_materialSnapshots.empty() && !_skeletonSnapshots.empty(), "Drawable has no draw snapshots");
-
-		return DrawSnapshotBundle(&_meshSnapshots.back(), &_materialSnapshots.back(), &_skeletonSnapshots.back());
-	}
-
-	bool Drawable::DrainDrawSnapshots(uint64 completedFrameID)
-	{
-		while(_meshSnapshots.size() > 1 && _meshSnapshots.front()._lastUsedFrameID <= completedFrameID)
-			_meshSnapshots.pop_front();
-
-		while(_materialSnapshots.size() > 1 && _materialSnapshots.front()._lastUsedFrameID <= completedFrameID)
-			_materialSnapshots.pop_front();
-
-		while(_skeletonSnapshots.size() > 1 && _skeletonSnapshots.front()._lastUsedFrameID <= completedFrameID)
-			_skeletonSnapshots.pop_front();
-
-		return HasDrawSnapshotHistory();
-	}
-
-	bool Drawable::HasDrawSnapshotHistory() const
-	{
-		return _meshSnapshots.size() > 1 || _materialSnapshots.size() > 1 || _skeletonSnapshots.size() > 1;
+		return DrawSnapshotBundle(_meshSnapshot.get(), _materialSnapshot.get(), _skeletonSnapshot.get(), _materialSnapshotVersion);
 	}
 
 	void Drawable::UpdateDrawSnapshots(uint64 frameID)
 	{
-		bool didAddSnapshot = false;
+		Mesh *mesh = _sourceMesh.Get();
+		uint64 meshPipelineVersion = mesh ? mesh->GetPipelineVersion() : 0;
+		if(_meshPipelineVersion != meshPipelineVersion)
+			_drawSnapshotDirtyMask |= MeshSnapshotDirty;
+
+		Material *material = _sourceMaterial.Get();
+		uint64 materialDrawSnapshotVersion = material ? material->GetDrawSnapshotVersion() : 0;
+		if(_materialDrawSnapshotVersion != materialDrawSnapshotVersion)
+			_drawSnapshotDirtyMask |= MaterialSnapshotDirty;
+
+		Skeleton *skeleton = _sourceSkeleton.Get();
+		uint64 skeletonDrawSnapshotVersion = skeleton ? skeleton->GetDrawSnapshotVersion() : 0;
+		if(_skeletonDrawSnapshotVersion != skeletonDrawSnapshotVersion)
+			_drawSnapshotDirtyMask |= SkeletonSnapshotDirty;
+
+		if(_drawSnapshotDirtyMask == 0) return;
+
+		std::shared_ptr<const void> retiredMesh;
+		std::shared_ptr<const void> retiredMaterial;
+		std::shared_ptr<const void> retiredSkeleton;
 
 		if((_drawSnapshotDirtyMask & MeshSnapshotDirty) != 0)
 		{
-			if(!_meshSnapshots.empty())
-				_meshSnapshots.back()._lastUsedFrameID = frameID;
-
-			_meshSnapshots.emplace_back();
-			didAddSnapshot = true;
-			MeshSnapshot &snapshot = _meshSnapshots.back();
-
-			Mesh *mesh = _sourceMesh.Get();
-			if(mesh)
-				mesh->GetDrawSnapshot(snapshot._snapshot);
-			else
-				snapshot._snapshot.Reset();
-
-			_meshPipelineVersion = mesh ? mesh->GetPipelineVersion() : 0;
-			_drawSnapshotDirtyMask &= AllSnapshotsDirty ^ MeshSnapshotDirty;
+			retiredMesh = std::move(_meshSnapshot);
+			_meshSnapshot = CaptureSourceSnapshot(mesh);
+			_meshPipelineVersion = meshPipelineVersion;
 		}
 
 		if((_drawSnapshotDirtyMask & MaterialSnapshotDirty) != 0)
 		{
-			if(!_materialSnapshots.empty())
-				_materialSnapshots.back()._lastUsedFrameID = frameID;
-
-			_materialSnapshots.emplace_back(_materialSnapshotVersion);
-			didAddSnapshot = true;
-			MaterialSnapshot &snapshot = _materialSnapshots.back();
-
-			Material *material = _sourceMaterial.Get();
-			if(material)
-				material->GetDrawSnapshot(snapshot._snapshot);
-			else
-				snapshot._snapshot.Reset();
-
-			_materialDrawSnapshotVersion = material ? material->GetDrawSnapshotVersion() : 0;
-			_drawSnapshotDirtyMask &= AllSnapshotsDirty ^ MaterialSnapshotDirty;
+			retiredMaterial = std::move(_materialSnapshot);
+			_materialSnapshot = CaptureSourceSnapshot(material);
+			_materialDrawSnapshotVersion = materialDrawSnapshotVersion;
+			_materialSnapshotVersion += 1;
 		}
 
 		if((_drawSnapshotDirtyMask & SkeletonSnapshotDirty) != 0)
 		{
-			if(!_skeletonSnapshots.empty())
-				_skeletonSnapshots.back()._lastUsedFrameID = frameID;
-
-			_skeletonSnapshots.emplace_back();
-			didAddSnapshot = true;
-			SkeletonSnapshot &snapshot = _skeletonSnapshots.back();
-
-			Skeleton *skeleton = _sourceSkeleton.Get();
-			if(skeleton)
-				skeleton->GetDrawSnapshot(snapshot._snapshot);
-			else
-				snapshot._snapshot.Reset();
-
-			_skeletonDrawSnapshotVersion = skeleton ? skeleton->GetDrawSnapshotVersion() : 0;
-			_drawSnapshotDirtyMask &= AllSnapshotsDirty ^ SkeletonSnapshotDirty;
+			retiredSkeleton = std::move(_skeletonSnapshot);
+			_skeletonSnapshot = CaptureSourceSnapshot(skeleton);
+			_skeletonDrawSnapshotVersion = skeletonDrawSnapshotVersion;
 		}
 
-		if(didAddSnapshot && HasDrawSnapshotHistory() && !Renderer::IsHeadless())
-			Renderer::GetActiveRenderer()->RegisterDrawableForSnapshotDrain(this);
+		_drawSnapshotDirtyMask = 0;
+		if((retiredMesh || retiredMaterial || retiredSkeleton) && !Renderer::IsHeadless())
+			Renderer::GetActiveRenderer()->RetireDrawSnapshots(frameID, std::move(retiredMesh), std::move(retiredMaterial), std::move(retiredSkeleton));
 	}
 } // namespace RN
