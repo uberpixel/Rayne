@@ -657,27 +657,11 @@ namespace RN
 		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser && Data->ContinuanceToken)
 		{
 			RNDebug("Failed login, invalid user, trying to create a new one");
-#if RN_BUILD_DEBUG && RN_PLATFORM_WINDOWS
-			if(Kernel::GetSharedInstance()->GetArguments().HasArgumentAndValue("eos_dev_user", '\0'))
-			{
-				EOS_Connect_CreateUserOptions createUserOptions = {0};
-				createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
-				createUserOptions.ContinuanceToken = Data->ContinuanceToken;
-				EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
-
-				return;
-			}
-#endif
-
-#if RN_PLATFORM_ANDROID
 			EOS_Connect_CreateUserOptions createUserOptions = {0};
 			createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
 			createUserOptions.ContinuanceToken = Data->ContinuanceToken;
 			EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
 			return;
-#else
-			eosWorld->_loginState = LoginStateLoginFailed;
-#endif
 		}
 		else if(Data->ResultCode == EOS_EResult::EOS_NotFound && !eosWorld->_externalLoginCallback)
 		{
