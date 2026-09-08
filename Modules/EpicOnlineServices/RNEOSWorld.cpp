@@ -466,15 +466,17 @@ namespace RN
 	{
 		RNDebug("Start user login");
 		if(_loginState == LoginStateIsLoggingIn || _loginState == LoginStateIsLoggedIn) return;
+		if(!_connectInterfaceHandle) { FinishLogin(nullptr); return; }
 
 		RNDebug("Start user login for real");
 		_loginState = LoginStateIsLoggingIn;
 
-		std::function<void(String *, const String *, EOSAuthServiceType)> loginCallback = [&](String *userName, const String *loginToken, EOSAuthServiceType serviceType) {
-			if(_externalLoginCallback && (!loginToken || loginToken->GetLength() == 0 || serviceType == EOSAuthServiceTypeNone) && !_allowFallbackToDeviceID)
+		std::function<void(String *, const String *, EOSAuthServiceType)> loginCallback = [world = WeakRef<EOSWorld>(this)](String *userName, const String *loginToken, EOSAuthServiceType serviceType) {
+			auto *eosWorld = world.Load();
+			if(!eosWorld || eosWorld->_loginState != LoginStateIsLoggingIn) return;
+			if(eosWorld->_externalLoginCallback && (!loginToken || loginToken->GetLength() == 0 || serviceType == EOSAuthServiceTypeNone) && !eosWorld->_allowFallbackToDeviceID)
 			{
-				_loginState = LoginStateLoginFailed;
-				if(_loginCallback) _loginCallback(false);
+				eosWorld->FinishLogin(nullptr);
 				return;
 			}
 			EOS_Connect_Credentials connectCredentials = {};
@@ -490,6 +492,7 @@ namespace RN
 				{
 					connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OPENID_ACCESS_TOKEN;
 				}
+				else { eosWorld->FinishLogin(nullptr); return; }
 
 				connectCredentials.Token = loginToken->GetUTF8String();
 			}
@@ -516,7 +519,7 @@ namespace RN
 			connectOptions.UserLoginInfo = connectCredentials.Type == EOS_EExternalCredentialType::EOS_ECT_OPENID_ACCESS_TOKEN ? nullptr : &userInfo;
 
 			RNDebug("Now logging in");
-			EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
+			EOS_Connect_Login(eosWorld->_connectInterfaceHandle, &connectOptions, eosWorld, ConnectOnLoginCallback);
 		};
 
 		if(_externalLoginCallback)
@@ -589,6 +592,24 @@ namespace RN
 		RNInfo(Message->Message);
 	}
 
+	void EOSWorld::FinishLogin(EOS_ProductUserId userID)
+	{
+		if(userID)
+		{
+			_loggedInUserID = userID;
+			_loginState = LoginStateIsLoggedIn;
+			RNInfo("EOS Connect login succeeded");
+		}
+		else
+		{
+			_loginState = LoginStateLoginFailed;
+			RNWarning("EOS Connect login failed");
+		}
+		// A matchmaking callback belongs to one login, not subsequent renewals.
+		auto callback = std::exchange(_loginCallback, {});
+		if(callback) callback(userID != nullptr);
+	}
+
 	void EOSWorld::ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data)
 	{
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
@@ -602,33 +623,14 @@ namespace RN
 		else
 		{
 			RNDebug("Failed creating device ID");
+			static_cast<EOSWorld *>(Data->ClientData)->FinishLogin(nullptr);
 		}
 	}
 
 	void EOSWorld::ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data)
 	{
-		if(Data->ResultCode == EOS_EResult::EOS_Success)
-		{
-			RNDebug("Succesfully created user");
-
-			EOSWorld *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
-
-#if RN_BUILD_DEBUG && RN_PLATFORM_WINDOWS
-			if(Kernel::GetSharedInstance()->GetArguments().HasArgumentAndValue("eos_dev_user", '\0'))
-			{
-				eosWorld->_loginState = LoginStateIsLoggedIn;
-				eosWorld->_loggedInUserID = Data->LocalUserId;
-				return;
-			}
-#endif
-
-			eosWorld->_loginState = LoginStateIsLoggingInNoUser;
-			eosWorld->LoginUser();
-		}
-		else
-		{
-			RNDebug("Failed creating user");
-		}
+		auto *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
+		eosWorld->FinishLogin(Data->ResultCode == EOS_EResult::EOS_Success ? Data->LocalUserId : nullptr);
 	}
 
 	void EOSWorld::ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data)
@@ -640,10 +642,10 @@ namespace RN
 		{
 			RNDebug("Successful login");
 
-			eosWorld->_loginState = LoginStateIsLoggedIn;
-			eosWorld->_loggedInUserID = Data->LocalUserId;
+			eosWorld->FinishLogin(Data->LocalUserId);
+			return;
 		}
-		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser)
+		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser && Data->ContinuanceToken)
 		{
 			RNDebug("Failed login, invalid user, trying to create a new one");
 #if RN_BUILD_DEBUG && RN_PLATFORM_WINDOWS
@@ -654,7 +656,6 @@ namespace RN
 				createUserOptions.ContinuanceToken = Data->ContinuanceToken;
 				EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
 
-				if(eosWorld->_loginCallback) eosWorld->_loginCallback(false);
 				return;
 			}
 #endif
@@ -664,6 +665,7 @@ namespace RN
 			createUserOptions.ApiVersion = EOS_CONNECT_CREATEUSER_API_LATEST;
 			createUserOptions.ContinuanceToken = Data->ContinuanceToken;
 			EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
+			return;
 #else
 			eosWorld->_loginState = LoginStateLoginFailed;
 #endif
@@ -672,6 +674,7 @@ namespace RN
 		{
 			RNDebug("No credentials found, creating device ID...");
 			eosWorld->CreateDeviceID();
+			return;
 		}
 		else
 		{
@@ -683,10 +686,11 @@ namespace RN
 				RNDebug("Login with service account failed, try fallback to login with device ID");
 				eosWorld->_externalLoginCallback = nullptr;
 				eosWorld->LoginUser();
+				return;
 			}
 		}
 
-		if(eosWorld->_loginCallback) eosWorld->_loginCallback(success);
+		eosWorld->FinishLogin(nullptr);
 	}
 
 

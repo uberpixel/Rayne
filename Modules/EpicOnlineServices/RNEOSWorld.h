@@ -94,6 +94,7 @@ namespace RN
 		static void ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data);
 
 		void CreateDeviceID();
+		void FinishLogin(EOS_ProductUserId userID);
 
 		static EOSWorld *_instance;
 		Dictionary *_hosts;
