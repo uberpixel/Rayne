@@ -471,6 +471,12 @@ namespace RN
 		_loginState = LoginStateIsLoggingIn;
 
 		std::function<void(String *, const String *, EOSAuthServiceType)> loginCallback = [&](String *userName, const String *loginToken, EOSAuthServiceType serviceType) {
+			if(_externalLoginCallback && (!loginToken || loginToken->GetLength() == 0 || serviceType == EOSAuthServiceTypeNone) && !_allowFallbackToDeviceID)
+			{
+				_loginState = LoginStateLoginFailed;
+				if(_loginCallback) _loginCallback(false);
+				return;
+			}
 			EOS_Connect_Credentials connectCredentials = {};
 			connectCredentials.ApiVersion = EOS_CONNECT_CREDENTIALS_API_LATEST;
 
@@ -479,6 +485,10 @@ namespace RN
 				if(serviceType == EOSAuthServiceTypeOculus)
 				{
 					connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OCULUS_USERID_NONCE;
+				}
+				else if(serviceType == EOSAuthServiceTypeOpenID)
+				{
+					connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_OPENID_ACCESS_TOKEN;
 				}
 
 				connectCredentials.Token = loginToken->GetUTF8String();
@@ -503,7 +513,7 @@ namespace RN
 			EOS_Connect_LoginOptions connectOptions = {0};
 			connectOptions.ApiVersion = EOS_CONNECT_LOGIN_API_LATEST;
 			connectOptions.Credentials = &connectCredentials;
-			connectOptions.UserLoginInfo = &userInfo;
+			connectOptions.UserLoginInfo = connectCredentials.Type == EOS_EExternalCredentialType::EOS_ECT_OPENID_ACCESS_TOKEN ? nullptr : &userInfo;
 
 			RNDebug("Now logging in");
 			EOS_Connect_Login(_connectInterfaceHandle, &connectOptions, this, ConnectOnLoginCallback);
@@ -658,7 +668,7 @@ namespace RN
 			eosWorld->_loginState = LoginStateLoginFailed;
 #endif
 		}
-		else if(Data->ResultCode == EOS_EResult::EOS_NotFound)
+		else if(Data->ResultCode == EOS_EResult::EOS_NotFound && !eosWorld->_externalLoginCallback)
 		{
 			RNDebug("No credentials found, creating device ID...");
 			eosWorld->CreateDeviceID();

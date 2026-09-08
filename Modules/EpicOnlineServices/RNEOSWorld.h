@@ -40,7 +40,8 @@ namespace RN
 	enum EOSAuthServiceType
 	{
 		EOSAuthServiceTypeNone,
-		EOSAuthServiceTypeOculus
+		EOSAuthServiceTypeOculus,
+		EOSAuthServiceTypeOpenID
 	};
 
 	class EOSWorld : public SceneAttachment
