@@ -469,11 +469,8 @@ namespace RN
 
 	void EOSWorld::BeginLogin(bool renew)
 	{
-		RNDebug("Start user login");
 		if(_loginInProgress || (!renew && _loginState == LoginStateIsLoggedIn)) return;
 		if(!_connectInterfaceHandle) { FinishLogin(nullptr); return; }
-
-		RNDebug("Start user login for real");
 		_loginInProgress = true;
 		// Keep lobbies and packet processing active while renewing a live session.
 		if(_loginState != LoginStateIsLoggedIn) _loginState = LoginStateIsLoggingIn;
@@ -508,17 +505,9 @@ namespace RN
 				connectCredentials.Type = EOS_EExternalCredentialType::EOS_ECT_DEVICEID_ACCESS_TOKEN;
 			}
 
-			EOS_Connect_UserLoginInfo userInfo;
+			EOS_Connect_UserLoginInfo userInfo = {};
 			userInfo.ApiVersion = EOS_CONNECT_USERLOGININFO_API_LATEST;
-			userInfo.NsaIdToken = nullptr;
-			if(userName)
-			{
-				userInfo.DisplayName = userName->GetUTF8String();
-			}
-			else
-			{
-				userInfo.DisplayName = "__NO_NAME__";
-			}
+			userInfo.DisplayName = userName ? userName->GetUTF8String() : "__NO_NAME__";
 
 			EOS_Connect_LoginOptions connectOptions = {0};
 			connectOptions.ApiVersion = EOS_CONNECT_LOGIN_API_LATEST;
@@ -620,19 +609,18 @@ namespace RN
 
 	void EOSWorld::ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data)
 	{
+		EOSWorld *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
-			RNDebug("Succesfully created device ID");
-
-			EOSWorld *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
+			RNDebug("Successfully created device ID");
 			eosWorld->_loginInProgress = false;
 			eosWorld->_loginState = LoginStateIsLoggingInNoDeviceID;
 			eosWorld->LoginUser();
 		}
 		else
 		{
-			RNDebug("Failed creating device ID");
-			static_cast<EOSWorld *>(Data->ClientData)->FinishLogin(nullptr);
+			RNWarning("Failed creating device ID: " << EOS_EResult_ToString(Data->ResultCode));
+			eosWorld->FinishLogin(nullptr);
 		}
 	}
 
@@ -645,16 +633,12 @@ namespace RN
 	void EOSWorld::ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data)
 	{
 		EOSWorld *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
-		const bool success = (Data->ResultCode == EOS_EResult::EOS_Success);
-
-		if(success)
+		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
-			RNDebug("Successful login");
-
 			eosWorld->FinishLogin(Data->LocalUserId);
 			return;
 		}
-		else if(Data->ResultCode == EOS_EResult::EOS_InvalidUser && Data->ContinuanceToken)
+		if(Data->ResultCode == EOS_EResult::EOS_InvalidUser && Data->ContinuanceToken)
 		{
 			RNDebug("Failed login, invalid user, trying to create a new one");
 			EOS_Connect_CreateUserOptions createUserOptions = {0};
@@ -663,36 +647,30 @@ namespace RN
 			EOS_Connect_CreateUser(eosWorld->_connectInterfaceHandle, &createUserOptions, eosWorld, ConnectOnCreateUserCallback);
 			return;
 		}
-		else if(Data->ResultCode == EOS_EResult::EOS_NotFound && !eosWorld->_externalLoginCallback)
+		if(Data->ResultCode == EOS_EResult::EOS_NotFound && !eosWorld->_externalLoginCallback)
 		{
 			RNDebug("No credentials found, creating device ID...");
 			eosWorld->CreateDeviceID();
 			return;
 		}
-		else
+		RNWarning("EOS Connect login returned " << EOS_EResult_ToString(Data->ResultCode));
+		if(eosWorld->_externalLoginCallback && eosWorld->_allowFallbackToDeviceID)
 		{
-			RNDebug("Login failed");
-			eosWorld->_loginState = LoginStateLoginFailed; //Will immediately be reset below in case of fallback and is required here to make it actually try logging in again
-
-			if(eosWorld->_externalLoginCallback && eosWorld->_allowFallbackToDeviceID)
-			{
-				RNDebug("Login with service account failed, try fallback to login with device ID");
-				eosWorld->_externalLoginCallback = nullptr;
-				eosWorld->_loginInProgress = false;
-				eosWorld->LoginUser();
-				return;
-			}
+			RNDebug("Login with service account failed, try fallback to login with device ID");
+			eosWorld->_externalLoginCallback = nullptr;
+			eosWorld->_loginInProgress = false;
+			eosWorld->_loginState = LoginStateLoginFailed;
+			eosWorld->LoginUser();
+			return;
 		}
-
 		eosWorld->FinishLogin(nullptr);
 	}
 
-
 	void EOSWorld::ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data)
 	{
-		RNDebug("EOS auth is about to expire, starting renew process");
 		EOSWorld *eosWorld = static_cast<EOSWorld *>(Data->ClientData);
 		if(Data->LocalUserId != eosWorld->_loggedInUserID) return;
+		RNInfo("EOS auth is about to expire, requesting fresh credentials");
 		eosWorld->BeginLogin(true);
 	}
 
