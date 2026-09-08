@@ -94,6 +94,7 @@ namespace RN
 		static void ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data);
 
 		void CreateDeviceID();
+		void BeginLogin(bool renew);
 		void FinishLogin(EOS_ProductUserId userID);
 
 		static EOSWorld *_instance;
@@ -103,6 +104,7 @@ namespace RN
 
 		bool _allowFallbackToDeviceID;
 		LoginState _loginState;
+		bool _loginInProgress = false;
 		EOS_ProductUserId _loggedInUserID;
 
 		mutable Lockable _userIDStringsLock;
