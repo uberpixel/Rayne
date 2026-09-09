@@ -170,6 +170,7 @@ namespace RN
 		JTAPI void SetTargetOrientationBS(const Quaternion &q_bs);
 
 		JTAPI void SetLinearMotorParams(float frequency, float damping, float maxForce);
+		JTAPI void SetLinearMotorStiffnessParams(float stiffness, float damping, float maxForce);
 		JTAPI void SetAngularMotorParams(float frequency, float damping, float maxTorque);
 		JTAPI void SetAngularMotorStiffnessParams(float stiffness, float damping, float maxTorque);
 
