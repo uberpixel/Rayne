@@ -609,12 +609,16 @@ namespace RN
 		return static_cast<JPH::HingeConstraint *>(_constraint)->GetTotalLambdaMotor();
 	}
 
-	JoltSixDOFConstraint::JoltSixDOFConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
+	JoltSixDOFConstraint::JoltSixDOFConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2) :
+		JoltSixDOFConstraint(body1 ? body1->GetJoltBodyID() : 0xffffffffU, globalPosition1, worldRotation1, body2 ? body2->GetJoltBodyID() : 0xffffffffU, globalPosition2, worldRotation2)
+	{}
+
+	JoltSixDOFConstraint::JoltSixDOFConstraint(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
 	{
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
-		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
-		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
+		JPH::BodyID bodyID1(firstBodyID);
+		JPH::BodyID bodyID2(secondBodyID);
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
 
 		JPH::SixDOFConstraintSettings settings;
