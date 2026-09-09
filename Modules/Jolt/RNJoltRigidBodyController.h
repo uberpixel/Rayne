@@ -28,6 +28,7 @@ namespace RN
 		JTAPI ~JoltRigidBodyController() override;
 
 		JTAPI void UpdatePosition() override;
+		JTAPI uint32 GetJoltBodyID() const;
 
 		JTAPI void Move(const Vector3 &velocity, float delta);
 		JTAPI void SetLinearVelocity(const Vector3 &velocity);

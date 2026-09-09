@@ -69,6 +69,11 @@ namespace RN
 		SafeRelease(_shape);
 	}
 
+	uint32 JoltRigidBodyController::GetJoltBodyID() const
+	{
+		return _controller->GetBodyID().GetIndexAndSequenceNumber();
+	}
+
 	void JoltRigidBodyController::Move(const Vector3 &velocity, float delta)
 	{
 		if(delta <= k::EpsilonFloat)
