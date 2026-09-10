@@ -16,6 +16,7 @@ namespace JPH
 {
 	class BodyID;
 	class Constraint;
+	class SixDOFConstraint;
 }
 
 namespace RN
@@ -159,7 +160,11 @@ namespace RN
 		};
 
 		JTAPI JoltSixDOFConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2);
-		JTAPI JoltSixDOFConstraint(uint32 bodyID1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 bodyID2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2);
+		JTAPI JoltSixDOFConstraint(uint32 bodyID1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 bodyID2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling = false);
+		// Opt-in motor-only constraints: 0 makes body 2 an unaffected moving support.
+		// Limits and friction are not supported when mass scaling is enabled.
+		JTAPI void SetMotorBody2MassScale(float scale);
+
 		JTAPI static JoltSixDOFConstraint *WithBodiesAndGlobalFrames(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2);
 
 		JTAPI void SetMotorState(Axis axis, int state); // 0=Off,1=Velocity,2=Position,3=PositionAndVelocity
@@ -185,6 +190,8 @@ namespace RN
 		JTAPI void SetMaxFriction(Axis axis, float maxFriction);
 
 	private:
+		JPH::SixDOFConstraint *GetMotorConstraint() const;
+		bool _enableBody2MassScaling = false;
 		void RebuildWithLimits(const Vector3 *translationLimitMin, const Vector3 *translationLimitMax, const Vector3 *rotationLimitMin, const Vector3 *rotationLimitMax);
 
 		RNDeclareMetaAPI(JoltSixDOFConstraint, JTAPI)

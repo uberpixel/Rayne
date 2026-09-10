@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 #include "RNJoltConstraint.h"
+#include "RNJoltScaledMotorConstraint.h"
 #include "RNJoltInternals.h"
 #include "RNJoltWorld.h"
 
@@ -613,7 +614,8 @@ namespace RN
 		JoltSixDOFConstraint(body1 ? body1->GetJoltBodyID() : 0xffffffffU, globalPosition1, worldRotation1, body2 ? body2->GetJoltBodyID() : 0xffffffffU, globalPosition2, worldRotation2)
 	{}
 
-	JoltSixDOFConstraint::JoltSixDOFConstraint(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
+	JoltSixDOFConstraint::JoltSixDOFConstraint(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling) :
+		_enableBody2MassScaling(enableBody2MassScaling)
 	{
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
@@ -621,7 +623,9 @@ namespace RN
 		JPH::BodyID bodyID2(secondBodyID);
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
 
-		JPH::SixDOFConstraintSettings settings;
+		JoltScaledMotorConstraintSettings scaledSettings;
+		JPH::SixDOFConstraintSettings regularSettings;
+		JPH::SixDOFConstraintSettings &settings = enableBody2MassScaling ? scaledSettings.motorSettings : regularSettings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
 		auto getSafeRotation = [](const Quaternion &rotation) -> Quaternion {
 			if(!rotation.IsValid()) return Quaternion();
@@ -655,7 +659,7 @@ namespace RN
 		settings.MakeFreeAxis(JPH::SixDOFConstraintSettings::RotationY);
 		settings.MakeFreeAxis(JPH::SixDOFConstraintSettings::RotationZ);
 
-		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
+		SetConstraint(bodyInterface.CreateConstraint(enableBody2MassScaling ? static_cast<JPH::TwoBodyConstraintSettings *>(&scaledSettings) : &settings, bodyID1, bodyID2), bodyID1, bodyID2);
 
 		// Default motor params
 		SetLinearMotorParams(30.0f, 6.0f, 5000.0f);
@@ -670,6 +674,17 @@ namespace RN
 		SetMotorState(Axis::RotationZ, 2);
 	}
 
+	JPH::SixDOFConstraint *JoltSixDOFConstraint::GetMotorConstraint() const
+	{
+		return _enableBody2MassScaling ? static_cast<JoltScaledMotorConstraint *>(_constraint)->GetMotor() : static_cast<JPH::SixDOFConstraint *>(_constraint);
+	}
+
+	void JoltSixDOFConstraint::SetMotorBody2MassScale(float scale)
+	{
+		if(!_constraint || !_enableBody2MassScaling || !std::isfinite(scale)) return;
+		static_cast<JoltScaledMotorConstraint *>(_constraint)->SetBody2MassScale(scale);
+	}
+
 	JoltSixDOFConstraint *JoltSixDOFConstraint::WithBodiesAndGlobalFrames(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
 	{
 		JoltSixDOFConstraint *c = new JoltSixDOFConstraint(body1, globalPosition1, worldRotation1, body2, globalPosition2, worldRotation2);
@@ -679,7 +694,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetMotorState(Axis axis, int state)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::EMotorState s = JPH::EMotorState::Off;
 		if(state == 1) s = JPH::EMotorState::Velocity;
 		else if(state == 2) s = JPH::EMotorState::Position;
@@ -692,7 +707,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTargetPositionCS(const Vector3 &p_cs)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::Vec3 currentTarget = six->GetTargetPositionCS();
 		bool shouldActivate = Vector3(currentTarget.GetX(), currentTarget.GetY(), currentTarget.GetZ()) != p_cs;
 		six->SetTargetPositionCS(ToJoltVec3(p_cs));
@@ -701,7 +716,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTargetVelocityCS(const Vector3 &v_cs)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::Vec3 currentTarget = six->GetTargetVelocityCS();
 		bool shouldActivate = Vector3(currentTarget.GetX(), currentTarget.GetY(), currentTarget.GetZ()) != v_cs || v_cs.GetSquaredLength() > k::EpsilonFloat;
 		six->SetTargetVelocityCS(ToJoltVec3(v_cs));
@@ -710,7 +725,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTargetAngularVelocityCS(const Vector3 &w_cs)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::Vec3 currentTarget = six->GetTargetAngularVelocityCS();
 		bool shouldActivate = Vector3(currentTarget.GetX(), currentTarget.GetY(), currentTarget.GetZ()) != w_cs || w_cs.GetSquaredLength() > k::EpsilonFloat;
 		six->SetTargetAngularVelocityCS(ToJoltVec3(w_cs));
@@ -719,7 +734,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTargetOrientationCS(const Quaternion &q_cs)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::Quat currentTarget = six->GetTargetOrientationCS();
 		bool shouldActivate = Quaternion(currentTarget.GetX(), currentTarget.GetY(), currentTarget.GetZ(), currentTarget.GetW()) != q_cs;
 		six->SetTargetOrientationCS(ToJoltQuat(q_cs));
@@ -728,7 +743,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTargetOrientationBS(const Quaternion &q_bs)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::Quat previousTarget = six->GetTargetOrientationCS();
 		six->SetTargetOrientationBS(ToJoltQuat(q_bs));
 		JPH::Quat currentTarget = six->GetTargetOrientationCS();
@@ -739,7 +754,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetLinearMotorParams(float frequency, float damping, float maxForce)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		for(int a = 0; a < 3; ++a)
 		{
 			JPH::MotorSettings &m = six->GetMotorSettings(static_cast<JPH::SixDOFConstraint::EAxis>(a));
@@ -752,7 +767,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetAngularMotorParams(float frequency, float damping, float maxTorque)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		for(int a = 3; a < 6; ++a)
 		{
 			JPH::MotorSettings &m = six->GetMotorSettings(static_cast<JPH::SixDOFConstraint::EAxis>(a));
@@ -766,7 +781,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetLinearMotorStiffnessParams(float stiffness, float damping, float maxForce)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		for(int a = 0; a < 3; ++a)
 		{
 			JPH::MotorSettings &m = six->GetMotorSettings(static_cast<JPH::SixDOFConstraint::EAxis>(a));
@@ -780,7 +795,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetAngularMotorStiffnessParams(float stiffness, float damping, float maxTorque)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		for(int a = 3; a < 6; ++a)
 		{
 			JPH::MotorSettings &m = six->GetMotorSettings(static_cast<JPH::SixDOFConstraint::EAxis>(a));
@@ -795,7 +810,7 @@ namespace RN
 	{
 		if(!_constraint) return Vector3();
 
-		JPH::Vec3 impulse = static_cast<JPH::SixDOFConstraint *>(_constraint)->GetTotalLambdaMotorTranslation();
+		JPH::Vec3 impulse = _enableBody2MassScaling ? static_cast<JoltScaledMotorConstraint *>(_constraint)->GetMotorTranslationImpulse() : GetMotorConstraint()->GetTotalLambdaMotorTranslation();
 		return Vector3(impulse.GetX(), impulse.GetY(), impulse.GetZ());
 	}
 
@@ -803,7 +818,7 @@ namespace RN
 	{
 		if(!_constraint) return Vector3();
 
-		JPH::Vec3 impulse = static_cast<JPH::SixDOFConstraint *>(_constraint)->GetTotalLambdaMotorRotation();
+		JPH::Vec3 impulse = _enableBody2MassScaling ? static_cast<JoltScaledMotorConstraint *>(_constraint)->GetMotorRotationImpulse() : GetMotorConstraint()->GetTotalLambdaMotorRotation();
 		return Vector3(impulse.GetX(), impulse.GetY(), impulse.GetZ());
 	}
 
@@ -821,7 +836,7 @@ namespace RN
 
 	void JoltSixDOFConstraint::RebuildWithLimits(const Vector3 *translationLimitMin, const Vector3 *translationLimitMax, const Vector3 *rotationLimitMin, const Vector3 *rotationLimitMax)
 	{
-		if(!_constraint) return;
+		if(!_constraint || _enableBody2MassScaling) return;
 
 		auto configureAxis = [](JPH::SixDOFConstraintSettings *settings, JPH::SixDOFConstraintSettings::EAxis axis, float limitMin, float limitMax) {
 			if(limitMin <= -1000000.0f && limitMax >= 1000000.0f)
@@ -839,7 +854,7 @@ namespace RN
 			settings->SetLimitedAxis(axis, limitMin, limitMax);
 		};
 
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::BodyID bodyID1(_bodyPairCollisionBody1);
 		JPH::BodyID bodyID2(_bodyPairCollisionBody2);
 		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
@@ -884,7 +899,7 @@ namespace RN
 		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
 		SetConstraint(bodyInterface.CreateConstraint(settings, bodyID1, bodyID2), bodyID1, bodyID2);
 
-		six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		six = GetMotorConstraint();
 		for(int i = 0; i < 6; i++)
 		{
 			six->SetMotorState(static_cast<JPH::SixDOFConstraint::EAxis>(i), motorState[i]);
@@ -899,7 +914,7 @@ namespace RN
 	void JoltSixDOFConstraint::SetTranslationSpringParams(float frequency, float damping)
 	{
 		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::SpringSettings s;
 		s.mMode = JPH::ESpringMode::FrequencyAndDamping;
 		s.mFrequency = frequency;
@@ -915,7 +930,7 @@ namespace RN
 		if(!_constraint) return;
 		int a = static_cast<int>(axis);
 		if(a < 0 || a > 2) return; // only translation axes support spring limits
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		JPH::SpringSettings s;
 		s.mMode = JPH::ESpringMode::FrequencyAndDamping;
 		s.mFrequency = frequency;
@@ -925,8 +940,8 @@ namespace RN
 
 	void JoltSixDOFConstraint::SetMaxFriction(Axis axis, float maxFriction)
 	{
-		if(!_constraint) return;
-		JPH::SixDOFConstraint *six = static_cast<JPH::SixDOFConstraint *>(_constraint);
+		if(!_constraint || _enableBody2MassScaling) return;
+		JPH::SixDOFConstraint *six = GetMotorConstraint();
 		six->SetMaxFriction(static_cast<JPH::SixDOFConstraint::EAxis>(static_cast<int>(axis)), maxFriction);
 	}
 }
