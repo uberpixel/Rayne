@@ -299,7 +299,8 @@ private:
 	static constexpr uint32 SampledTriangleGridVShift = 1;
 	static constexpr uint32 SampledTriangleGridMask = (1u << CollisionGridBlockCellBits) - 1u;
 	static constexpr uint SampledGridVertexCacheSize = 8192;
-	static constexpr uint32 SampledGridVertexCacheMask = SampledGridVertexCacheSize - 1u;
+	static constexpr uint SampledGridVertexCacheWays = 4;
+	static constexpr uint32 SampledGridVertexCacheSetMask = SampledGridVertexCacheSize / SampledGridVertexCacheWays - 1u;
 	static constexpr float MinimumTriangleNormalLengthSq = 1.0e-12f;
 	static constexpr float MinimumSolidRecoverySupportDepth = 0.005f;
 	static constexpr float AboveSurfaceQueryMargin = 4.0f;
@@ -327,6 +328,7 @@ private:
 		uint32 revision = 0;
 		uint32 cacheEpoch = 0;
 		uint8 face = 0xff;
+		uint8 useOrder = 0;
 		int gridU = 0;
 		int gridV = 0;
 		double absoluteX = 0.0;
@@ -338,6 +340,26 @@ private:
 
 	struct SampledGridVertexCache
 	{
+		SampledGridVertexCache()
+		{
+			for(uint i = 0; i < SampledGridVertexCacheSize; i += SampledGridVertexCacheWays)
+				entries[i].useOrder = 0x1b; // MRU to LRU: ways 3, 2, 1, 0; fill way 0 first.
+		}
+
+		void Touch(CachedSampledGridVertex *set, uint way)
+		{
+			// Keep the four-way LRU permutation in the first entry's padding.
+			// A hit changes only this byte, not all four vertex cache lines.
+			const uint8 order = set[0].useOrder;
+			if((order & 3u) == way) return;
+			if(((order >> 2u) & 3u) == way)
+				set[0].useOrder = static_cast<uint8>((order & 0xf0u) | ((order & 3u) << 2u) | way);
+			else if(((order >> 4u) & 3u) == way)
+				set[0].useOrder = static_cast<uint8>((order & 0xc0u) | ((order & 0xfu) << 2u) | way);
+			else
+				set[0].useOrder = static_cast<uint8>(((order & 0x3fu) << 2u) | way);
+		}
+
 		CachedSampledGridVertex entries[SampledGridVertexCacheSize];
 	};
 
@@ -367,10 +389,9 @@ private:
 		return (triangleID & SampledTriangleIDFlag) != 0;
 	}
 
-	static uint32 GetSampledGridVertexHash(uint32 revision, uint32 cacheEpoch, uint8 face, int gridU, int gridV)
+	static uint32 GetSampledGridVertexHash(uint8 face, int gridU, int gridV)
 	{
-		uint32 hash = revision + 0x9e3779b9u;
-		hash ^= cacheEpoch + 0x165667b1u + (hash << 6u) + (hash >> 2u);
+		uint32 hash = 0x9e3779b9u;
 		hash ^= static_cast<uint32>(face) + 0x85ebca6bu + (hash << 6u) + (hash >> 2u);
 		hash ^= static_cast<uint32>(gridU) + 0xc2b2ae35u + (hash << 6u) + (hash >> 2u);
 		hash ^= static_cast<uint32>(gridV) + 0x27d4eb2fu + (hash << 6u) + (hash >> 2u);
@@ -568,13 +589,6 @@ private:
 		return z >= 0.0 ? 4 : 5;
 	}
 
-	static int GetGridBlockOrigin(int gridCoordinate)
-	{
-		int block = gridCoordinate / CollisionGridBlockCellCount;
-		if(gridCoordinate < 0 && gridCoordinate % CollisionGridBlockCellCount != 0) block -= 1;
-		return block * CollisionGridBlockCellCount;
-	}
-
 	static void GetSampledGridBlockOrigin(uint8 face, const PrecisionBase &localOrigin, double referenceRadius, int &originU, int &originV)
 	{
 		double x = 0.0;
@@ -584,8 +598,12 @@ private:
 		double v = 0.0;
 		if(GetDirectionForOrigin(localOrigin, x, y, z) && GetFaceCoordinatesOnFace(x, y, z, face, u, v))
 		{
-			originU = GetGridBlockOrigin(GetGridCoordinate(u * referenceRadius));
-			originV = GetGridBlockOrigin(GetGridCoordinate(v * referenceRadius));
+			// Center the representable IDs on the collider origin so nearby cells on
+			// either side remain available, even at a fixed grid-block boundary.
+			// Absolute grid coordinates and the sampled-vertex cache stay unchanged.
+			// The origin only moves on rebase, when the caller invalidates contact IDs.
+			originU = GetGridCoordinate(u * referenceRadius) - CollisionGridBlockCellCount / 2;
+			originV = GetGridCoordinate(v * referenceRadius) - CollisionGridBlockCellCount / 2;
 			return;
 		}
 
@@ -593,13 +611,10 @@ private:
 		originV = 0;
 	}
 
-	static bool MakeSampledTriangleID(uint8 face, uint8 diagonal, int gridU, int gridV, const PrecisionBase &localOrigin, double referenceRadius, uint32 &id)
+	static bool MakeSampledTriangleID(uint8 face, uint8 diagonal, int gridU, int gridV, int originU, int originV, uint32 &id)
 	{
 		if(face >= 6 || diagonal > 1) return false;
 
-		int originU = 0;
-		int originV = 0;
-		GetSampledGridBlockOrigin(face, localOrigin, referenceRadius, originU, originV);
 		const int localU = gridU - originU;
 		const int localV = gridV - originV;
 		if(localU < 0 || localU >= CollisionGridBlockCellCount) return false;
@@ -1303,17 +1318,46 @@ private:
 	{
 		static thread_local SampledGridVertexCache cache;
 
-		const uint32 cacheIndex = GetSampledGridVertexHash(collisionRevision, cacheEpoch, face, gridU, gridV) & SampledGridVertexCacheMask;
-		CachedSampledGridVertex &cachedVertex = cache.entries[cacheIndex];
-		if(cachedVertex.shape == this &&
-			cachedVertex.revision == collisionRevision &&
-			cachedVertex.cacheEpoch == cacheEpoch &&
-			cachedVertex.face == face &&
-			cachedVertex.gridU == gridU &&
-			cachedVertex.gridV == gridV)
+		// Four candidates prevent nearby vertices with the same hash bucket from
+		// repeatedly evicting each other. Capacity and absolute grid keys stay fixed.
+		const uint32 setIndex = GetSampledGridVertexHash(face, gridU, gridV) & SampledGridVertexCacheSetMask;
+		CachedSampledGridVertex *set = &cache.entries[setIndex * SampledGridVertexCacheWays];
+		uint cacheWay = set[0].useOrder >> 6u;
+		int emptyWay = -1;
+		bool found = false;
+		for(uint i = 0; i < SampledGridVertexCacheWays; i += 1)
+		{
+			const CachedSampledGridVertex &candidate = set[i];
+			if(candidate.shape == this && candidate.face == face && candidate.gridU == gridU && candidate.gridV == gridV)
+			{
+				cacheWay = i;
+				found = true;
+				break;
+			}
+			if(!candidate.shape && emptyWay < 0) emptyWay = static_cast<int>(i);
+		}
+		// Refresh matching keys in place; otherwise prefer an empty slot to LRU.
+		// An older epoch may still contain reusable geometry.
+		if(!found && emptyWay >= 0) cacheWay = static_cast<uint>(emptyWay);
+		CachedSampledGridVertex &cachedVertex = set[cacheWay];
+		bool current = found && cachedVertex.revision == collisionRevision && cachedVertex.cacheEpoch == cacheEpoch;
+		Vec3 direction;
+		if(!current)
+		{
+			direction = GetCubeSphereDirection(face,
+				static_cast<double>(gridU) * CollisionGridCellSize / referenceRadius,
+				static_cast<double>(gridV) * CollisionGridCellSize / referenceRadius);
+			if(found && _provider && _provider->CanReusePlanetTerrainCollisionSample(direction.GetX(), direction.GetY(), direction.GetZ(), cachedVertex.revision, cachedVertex.cacheEpoch, collisionRevision, cacheEpoch))
+			{
+				cachedVertex.revision = collisionRevision;
+				cachedVertex.cacheEpoch = cacheEpoch;
+				current = true;
+			}
+		}
+		cache.Touch(set, cacheWay);
+		if(current)
 		{
 			if(!cachedVertex.valid) return false;
-
 			position = GetOffsetPosition(cachedVertex.absoluteX - localOrigin.x,
 										 cachedVertex.absoluteY - localOrigin.y,
 										 cachedVertex.absoluteZ - localOrigin.z,
@@ -1322,9 +1366,6 @@ private:
 			return true;
 		}
 
-		const double u = static_cast<double>(gridU) * CollisionGridCellSize / referenceRadius;
-		const double v = static_cast<double>(gridV) * CollisionGridCellSize / referenceRadius;
-		const Vec3 direction = GetCubeSphereDirection(face, u, v);
 		RN::JoltCustomPlanetTerrainSample sample;
 		const bool valid = _provider && _provider->SamplePlanetTerrain(direction.GetX(), direction.GetY(), direction.GetZ(), sample);
 
@@ -1356,7 +1397,7 @@ private:
 		}
 	}
 
-	bool BuildSampledGridTriangleFromVertices(const SampledGridKey &key, const Vec3 &p00, const Vec3 &p10, const Vec3 &p01, const Vec3 &p11, const PrecisionBase &localOrigin, double referenceRadius, Triangle &triangle, Vec3 &normal) const
+	bool BuildSampledGridTriangleFromVertices(const SampledGridKey &key, const Vec3 &p00, const Vec3 &p10, const Vec3 &p01, const Vec3 &p11, int originU, int originV, Triangle &triangle, Vec3 &normal, const AABox *queryBox = nullptr) const
 	{
 		if(key.diagonal == 0)
 		{
@@ -1371,7 +1412,10 @@ private:
 			triangle.vertices[2] = p01;
 		}
 
-		if(!MakeSampledTriangleID(key.face, key.diagonal, key.gridU, key.gridV, localOrigin, referenceRadius, triangle.id)) return false;
+		// Most padded grid triangles miss the query; reject them before computing
+		// IDs and normalized face normals.
+		if(queryBox && !DoesTriangleOverlapBox(triangle, *queryBox)) return false;
+		if(!MakeSampledTriangleID(key.face, key.diagonal, key.gridU, key.gridV, originU, originV, triangle.id)) return false;
 		// All cube-sphere faces use the same outward u/v winding, which positive radial terrain samples preserve.
 		normal = (triangle.vertices[1] - triangle.vertices[0]).Cross(triangle.vertices[2] - triangle.vertices[0]);
 		const float normalLengthSq = normal.LengthSq();
@@ -1390,8 +1434,11 @@ private:
 		if(!BuildSampledGridVertex(key.face, key.gridU + 1, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10)) return false;
 		if(!BuildSampledGridVertex(key.face, key.gridU, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01)) return false;
 		if(!BuildSampledGridVertex(key.face, key.gridU + 1, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return false;
+		int originU = 0;
+		int originV = 0;
+		GetSampledGridBlockOrigin(key.face, localOrigin, referenceRadius, originU, originV);
 		Vec3 normal;
-		return BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, localOrigin, referenceRadius, triangle, normal);
+		return BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, originU, originV, triangle, normal);
 	}
 
 	void IncludeSampledGridPoint(Vec3Arg point, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, SampledGridFaceRange ranges[6]) const
@@ -1413,7 +1460,7 @@ private:
 		}
 	}
 
-	void ExpandSampledGridRangeToBlock(SampledGridFaceRange &range, uint8 face, const PrecisionBase &localOrigin, double referenceRadius) const
+	static void ExpandSampledGridRangeToBlock(SampledGridFaceRange &range, int originU, int originV)
 	{
 		if(!range.valid) return;
 
@@ -1422,9 +1469,6 @@ private:
 		range.minV -= CollisionGridQueryPaddingCells;
 		range.maxV += CollisionGridQueryPaddingCells;
 
-		int originU = 0;
-		int originV = 0;
-		GetSampledGridBlockOrigin(face, localOrigin, referenceRadius, originU, originV);
 		const int maxBlockU = originU + CollisionGridBlockCellCount - 1;
 		const int maxBlockV = originV + CollisionGridBlockCellCount - 1;
 		if(range.minU < originU) range.minU = originU;
@@ -1513,7 +1557,11 @@ private:
 		{
 			if(triangleCount >= maximumTriangleCount || visitor.ShouldAbort()) return triangleCount;
 
-			ExpandSampledGridRangeToBlock(ranges[face], face, localOrigin, referenceRadius);
+			if(!ranges[face].valid) continue;
+			int originU = 0;
+			int originV = 0;
+			GetSampledGridBlockOrigin(face, localOrigin, referenceRadius, originU, originV);
+			ExpandSampledGridRangeToBlock(ranges[face], originU, originV);
 			if(!ranges[face].valid) continue;
 
 			const uint vertexCount = static_cast<uint>(ranges[face].maxU - ranges[face].minU + 2);
@@ -1555,8 +1603,7 @@ private:
 
 						Triangle triangle;
 						Vec3 normal;
-						if(!BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, localOrigin, referenceRadius, triangle, normal)) continue;
-						if(!DoesTriangleOverlapBox(triangle, box)) continue;
+						if(!BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, originU, originV, triangle, normal, &box)) continue;
 
 						visitor.VisitTriangle(triangle, normal);
 						triangleCount += 1;

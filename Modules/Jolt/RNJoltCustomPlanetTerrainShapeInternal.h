@@ -36,6 +36,9 @@ namespace RN
 		virtual void GetPlanetTerrainLocalOrigin(double &x, double &y, double &z) const = 0;
 		virtual unsigned int GetPlanetTerrainCollisionRevision() const = 0;
 		virtual unsigned int GetPlanetTerrainCollisionCacheEpoch() const = 0;
+		// Optional validation after an epoch/revision change. Default providers
+		// retain full invalidation; true must guarantee the sampled value is unchanged.
+		virtual bool CanReusePlanetTerrainCollisionSample(float, float, float, unsigned int, unsigned int, unsigned int, unsigned int) const { return false; }
 		virtual bool SamplePlanetTerrain(float directionX, float directionY, float directionZ, JoltCustomPlanetTerrainSample &sample) const = 0;
 
 	protected:

@@ -26,6 +26,8 @@ namespace RN
 		JTAPI virtual JoltPosition GetPlanetTerrainLocalOrigin() const;
 		JTAPI virtual uint32 GetPlanetTerrainCollisionRevision() const;
 		JTAPI virtual uint32 GetPlanetTerrainCollisionCacheEpoch() const;
+		// Called only to revalidate cached grid samples after publication changes.
+		JTAPI virtual bool CanReusePlanetTerrainCollisionSample(const Vector3 &direction, uint32 oldRevision, uint32 oldEpoch, uint32 revision, uint32 epoch) const;
 		JTAPI virtual bool SamplePlanetTerrain(const Vector3 &direction, SurfaceSample &sample) const = 0;
 
 		RNDeclareMetaAPI(JoltCustomPlanetTerrainProvider, JTAPI)

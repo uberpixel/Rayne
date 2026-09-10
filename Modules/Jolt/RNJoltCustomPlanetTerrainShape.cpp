@@ -59,6 +59,11 @@ namespace RN
 			return _provider ? _provider->GetPlanetTerrainCollisionCacheEpoch() : 0;
 		}
 
+		bool CanReusePlanetTerrainCollisionSample(float x, float y, float z, unsigned int oldRevision, unsigned int oldEpoch, unsigned int revision, unsigned int epoch) const override
+		{
+			return _provider && _provider->CanReusePlanetTerrainCollisionSample(Vector3(x, y, z), oldRevision, oldEpoch, revision, epoch);
+		}
+
 		bool SamplePlanetTerrain(float directionX, float directionY, float directionZ, JoltCustomPlanetTerrainSample &sample) const override
 		{
 			if(!_provider) return false;
@@ -99,6 +104,11 @@ namespace RN
 	uint32 JoltCustomPlanetTerrainProvider::GetPlanetTerrainCollisionCacheEpoch() const
 	{
 		return 0;
+	}
+
+	bool JoltCustomPlanetTerrainProvider::CanReusePlanetTerrainCollisionSample([[maybe_unused]] const Vector3 &direction, [[maybe_unused]] uint32 oldRevision, [[maybe_unused]] uint32 oldEpoch, [[maybe_unused]] uint32 revision, [[maybe_unused]] uint32 epoch) const
+	{
+		return false;
 	}
 
 	JoltCustomPlanetTerrainShape::JoltCustomPlanetTerrainShape(JoltCustomPlanetTerrainProvider *provider, bool solidRecoveryOnly)
