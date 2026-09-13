@@ -376,7 +376,7 @@ namespace RN
 		if(result.lostReliableData && senderID != CLIENT_ID_NONE)
 		{
 			Retain();
-			HandleReliablePacketLoss(senderID);
+			HandleReliablePacketLoss(senderID, channel);
 			for(Data *packet : receivedPackets) packet->Release();
 			for(const DecodedPacket &packet : result.packets) packet.data->Release();
 			Release();
@@ -521,6 +521,7 @@ namespace RN
 			client->Unlock();
 			RNWarning("Connection to peer " << id << " closed while the peer is still present; reconnecting");
 			client->Connect(Data->RemoteUserId);
+			client->HandleConnectionInterrupted(id);
 			return;
 		}
 

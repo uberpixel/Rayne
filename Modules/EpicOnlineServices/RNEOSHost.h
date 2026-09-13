@@ -167,6 +167,7 @@ namespace RN
 		EOSAPI Peer CreatePeer(EOSClientID clientID, EOS_ProductUserId internalID);
 		EOSAPI void ClearPeerData(Peer &peer);
 		EOSAPI void ClearScheduledPackets(Peer &peer);
+		EOSAPI void ClearScheduledPackets(Peer &peer, uint32 channel);
 		EOSAPI void ClearMultipartPacket(Peer &peer, uint32 channel);
 		EOSAPI EOSClientID GetUserIDForInternalID(EOS_ProductUserId internalID);
 		EOSAPI EOSClientID GetClientIDForProductUserID(EOS_ProductUserId productUserID) const;
@@ -176,6 +177,7 @@ namespace RN
 		EOSAPI virtual void HandleDidDisconnect(EOSClientID clientID, uint16 reason) {}
 		EOSAPI virtual void HandleReliableMultipartProgress(EOSClientID clientID, uint32 channel) {}
 		EOSAPI virtual void HandleReliablePacketLoss(EOSClientID clientID);
+		EOSAPI virtual void HandleReliablePacketLoss(EOSClientID clientID, uint32 channel);
 
 		EOSAPI bool IsUnreliablePacketInOrder(Peer &peer, uint32 packetID, uint8 channel);
 		EOSAPI void SendPacket(Data *data, EOS_ProductUserId receiverID, uint32 channel = 0, bool reliable = false);

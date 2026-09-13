@@ -108,7 +108,7 @@ namespace RN
 		if(result.multipartProgress) HandleReliableMultipartProgress(senderID, channel);
 		if(result.lostReliableData)
 		{
-			HandleReliablePacketLoss(senderID);
+			HandleReliablePacketLoss(senderID, channel);
 			for(const DecodedPacket &packet : result.packets) packet.data->Release();
 			return;
 		}

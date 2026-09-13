@@ -160,7 +160,7 @@ namespace RN
 		if(result.multipartProgress) HandleReliableMultipartProgress(0, channel);
 		if(result.lostReliableData)
 		{
-			HandleReliablePacketLoss(0);
+			HandleReliablePacketLoss(0, channel);
 			for(const DecodedPacket &packet : result.packets) packet.data->Release();
 			return;
 		}

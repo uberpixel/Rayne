@@ -36,7 +36,9 @@ namespace RN
 		EOSAPI void ReceivedPacketInternal(uint8 *rawData, uint32 bytesWritten, EOS_ProductUserId senderUserID, uint8 channel) final;
 		EOSAPI void Update(float delta) override;
 		EOSAPI virtual void HandleHostMigration(){}
+		EOSAPI virtual void HandleConnectionInterrupted(EOSClientID) {}
 		EOSAPI virtual bool ShouldAcceptPeer(EOS_ProductUserId productUserID) const { return true; }
+		using EOSHost::HandleReliablePacketLoss;
 		EOSAPI void HandleReliablePacketLoss(EOSClientID clientID) override;
 		
 		EOSClientID _hostClientID;

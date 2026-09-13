@@ -106,8 +106,8 @@ namespace RN
 			Unlock();
 			if(reliable)
 			{
-				RNWarning("Disconnecting after the reliable EOS send queue reached its memory limit");
-				HandleReliablePacketLoss(clientID);
+				RNWarning("Reliable EOS send queue reached its memory limit on channel " << channel);
+				HandleReliablePacketLoss(clientID, channel);
 			}
 			else
 			{
@@ -409,7 +409,7 @@ namespace RN
 	void EOSHost::Update(float delta)
 	{
 		std::vector<EOS_ProductUserId> pingTargets;
-		std::vector<EOSClientID> peersWithExpiredMultipartPackets;
+		std::vector<std::pair<EOSClientID, uint32>> peersWithExpiredMultipartPackets;
 		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
 		if(!world || !world->GetP2PHandle())
@@ -431,7 +431,6 @@ namespace RN
 		for(auto &peerPair : _peers)
 		{
 			Peer &peer = peerPair.second;
-			bool didExpireMultipartPacket = false;
 			std::vector<uint32> expiredChannels;
 			for(auto &assembly : peer._multipartAssemblies)
 			{
@@ -441,9 +440,8 @@ namespace RN
 			for(uint32 channel : expiredChannels)
 			{
 				ClearMultipartPacket(peer, channel);
-				didExpireMultipartPacket = true;
+				if(peer.clientID != CLIENT_ID_NONE) peersWithExpiredMultipartPackets.emplace_back(peer.clientID, channel);
 			}
-			if(didExpireMultipartPacket && peer.clientID != CLIENT_ID_NONE) peersWithExpiredMultipartPackets.push_back(peer.clientID);
 
 			size_t remainingSendBytes = EOSMaxSendBytesPerPeerPerUpdate;
 			for(auto channel = peer._scheduledPackets.begin(); channel != peer._scheduledPackets.end();)
@@ -463,7 +461,7 @@ namespace RN
 		Unlock();
 
 		for(EOS_ProductUserId peerID : pingTargets) SendPing(peerID, false, 0);
-		for(EOSClientID clientID : peersWithExpiredMultipartPackets) HandleReliablePacketLoss(clientID);
+		for(const auto &[clientID, channel] : peersWithExpiredMultipartPackets) HandleReliablePacketLoss(clientID, channel);
 	}
 
 	EOSHost::Peer EOSHost::CreatePeer(EOSClientID clientID, EOS_ProductUserId internalID)
@@ -504,6 +502,26 @@ namespace RN
 		}
 		peer._scheduledPackets.clear();
 		peer._scheduledPacketBytes = 0;
+	}
+
+	void EOSHost::ClearScheduledPackets(Peer &peer, uint32 channel)
+	{
+		auto scheduled = peer._scheduledPackets.find(channel);
+		if(scheduled == peer._scheduledPackets.end()) return;
+		while(!scheduled->second.empty())
+		{
+			Data *data = scheduled->second.front().data;
+			peer._scheduledPacketBytes -= data->GetLength();
+			data->Release();
+			scheduled->second.pop();
+		}
+		peer._scheduledPackets.erase(scheduled);
+	}
+
+	void EOSHost::HandleReliablePacketLoss(EOSClientID clientID, uint32)
+	{
+		// Preserve the existing failure policy for clients that don't distinguish channels.
+		HandleReliablePacketLoss(clientID);
 	}
 
 	void EOSHost::HandleReliablePacketLoss(EOSClientID clientID)
