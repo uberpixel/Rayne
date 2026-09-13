@@ -71,7 +71,7 @@ def main():
 
 	configNameFull = configName
 	if isDemo:
-		configBundleID += "_demo"
+		configBundleID = Utilities.getSettingFromConfig(operatingSystem, configuration, "bundle-id-demo", buildConfigData) or configBundleID + "_demo"
 		configNameFull += " Demo"
 
 	versionFilePath = os.path.join(projectRootPath, 'VERSION')
@@ -135,14 +135,20 @@ def main():
 			print('Key password?')
 			keyPassword = getpass.getpass()
 
-		subprocess.call(['./gradlew', 'assembleRelease'])
+		result = subprocess.call(['./gradlew', 'assembleRelease'])
+		if result != 0:
+			sys.exit(result)
 		#subprocess.call(['jarsigner', '-verbose', '-keystore', os.path.join(projectRootPath, configKeystore), '-storepass', storePassword, 'app/build/outputs/apk/release/app-release-unsigned.apk', 'AndroidReleaseKey', '-keypass', keyPassword])
 		apkFilePath = os.path.join('app/build/outputs/apk/release', configNameFull.replace(" ", "-").lower() + "-" + configuration + ".apk")
 
 		zipalignOptions = glob.glob('/Users/slin/Library/Android/sdk/build-tools/*/zipalign')
 		apksignerOptions = glob.glob('/Users/slin/Library/Android/sdk/build-tools/*/apksigner')
-		subprocess.call([zipalignOptions[0], '-p', '-f', '-v', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', apkFilePath])
-		subprocess.call([apksignerOptions[0], 'sign', '--verbose', '--v1-signing-enabled', 'true', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'false', '--ks', os.path.join(projectRootPath, configKeystore), '--ks-pass', 'pass:' + storePassword, '--ks-key-alias', 'AndroidReleaseKey', '--key-pass', 'pass:' + keyPassword, apkFilePath])
+		result = subprocess.call([zipalignOptions[0], '-p', '-f', '-v', '4', 'app/build/outputs/apk/release/app-release-unsigned.apk', apkFilePath])
+		if result != 0:
+			sys.exit(result)
+		result = subprocess.call([apksignerOptions[0], 'sign', '--verbose', '--v1-signing-enabled', 'true', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'false', '--ks', os.path.join(projectRootPath, configKeystore), '--ks-pass', 'pass:' + storePassword, '--ks-key-alias', 'AndroidReleaseKey', '--key-pass', 'pass:' + keyPassword, apkFilePath])
+		if result != 0:
+			sys.exit(result)
 
 if __name__ == '__main__':
 	main()

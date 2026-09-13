@@ -69,7 +69,7 @@ def main():
 		configCmakeParameters = ""
 
 	if isDemo:
-		configBundleID += "_demo"
+		configBundleID = Utilities.getSettingFromConfig(operatingSystem, configuration, "bundle-id-demo", buildConfigData) or configBundleID + "_demo"
 		configName += " Demo"
 		configCmakeParameters += "-DRN_BUILD_IS_DEMO=ON"
 

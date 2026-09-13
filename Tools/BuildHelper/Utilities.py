@@ -162,7 +162,8 @@ def copyAndroidBuildSystem(fromdir, projectRoot, buildConfig, platform, isDemo):
 	projectDemoName = getSettingFromConfig("android", platform, "name-demo", buildConfig)
 	libraryName = projectName.replace(b" ", b"")
 	if isDemo:
-		bundleID += b"_demo"
+		demoBundleID = getSettingFromConfig("android", platform, "bundle-id-demo", buildConfig)
+		bundleID = demoBundleID.encode("utf-8") if demoBundleID else bundleID + b"_demo"
 		if not projectDemoName:
 			projectName += b" Demo"
 		else:
