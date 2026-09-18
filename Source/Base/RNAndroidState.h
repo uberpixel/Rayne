@@ -50,6 +50,7 @@ namespace RN
 		RNAPI std::string GetPackageCodePath() const;
 		ANativeWindow *GetWindow() const { return _window.load(std::memory_order_acquire); }
 		int32 GetActivityState() const { return _activityState.load(std::memory_order_acquire); }
+		int32 GetLiveActivityState() const { return _liveActivityState.load(std::memory_order_acquire); }
 		bool GetDestroyRequested() const { return _destroyRequested.load(std::memory_order_acquire); }
 		RNAPI bool RequestPermission(const char *permission, int32 requestCode) const;
 		RNAPI int32 CheckSelfPermission(const char *permission) const;
@@ -102,6 +103,7 @@ namespace RN
 		std::atomic<android_app *> _app;
 		std::atomic<ANativeWindow *> _window;
 		std::atomic<int32> _activityState;
+		std::atomic<int32> _liveActivityState;
 		std::atomic<bool> _destroyRequested;
 		std::atomic<JNIEnv *> _rayneMainThreadJNIEnv;
 

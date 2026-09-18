@@ -15,6 +15,7 @@ namespace RN
 		_app(nullptr),
 		_window(nullptr),
 		_activityState(APP_CMD_STOP),
+		_liveActivityState(APP_CMD_STOP),
 		_destroyRequested(false),
 		_rayneMainThreadJNIEnv(nullptr),
 		_pendingState{nullptr, APP_CMD_STOP, false, false, false, false, false, false, false, false, false}
@@ -198,6 +199,7 @@ namespace RN
 
 		_window.store(app? app->window : nullptr, std::memory_order_release);
 		_activityState.store(app? app->activityState : APP_CMD_STOP, std::memory_order_release);
+		_liveActivityState.store(app? app->activityState : APP_CMD_STOP, std::memory_order_release);
 		_destroyRequested.store(app? (app->destroyRequested != 0) : false, std::memory_order_release);
 	}
 
@@ -227,6 +229,8 @@ namespace RN
 			false,
 			true
 		};
+
+		_liveActivityState.store(state.activityState, std::memory_order_release);
 
 		LockGuard<Lockable> lock(_pendingStateLock);
 		int32 previousActivityState = _pendingState.hasPendingState ? _pendingState.activityState : _activityState.load(std::memory_order_acquire);
