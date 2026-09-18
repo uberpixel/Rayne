@@ -435,7 +435,14 @@ namespace RN
 			for(auto &assembly : peer._multipartAssemblies)
 			{
 				assembly.second.age += std::max(delta, 0.0f);
-				if(assembly.second.age >= EOSMultipartTimeout) expiredChannels.push_back(assembly.first);
+				if(assembly.second.age >= EOSMultipartTimeout)
+				{
+					RNInfo("Reliable EOS multipart receive timed out: peer=" << peer.clientID << " channel=" << assembly.first <<
+						" packetID=" << assembly.second.packetID << " receivedParts=" << (assembly.second.currentPart + 1) <<
+						" expectedParts=" << assembly.second.totalParts << " bufferedBytes=" << assembly.second.data->GetLength() <<
+						" idleSeconds=" << assembly.second.age);
+					expiredChannels.push_back(assembly.first);
+				}
 			}
 			for(uint32 channel : expiredChannels)
 			{
