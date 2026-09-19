@@ -73,6 +73,8 @@ namespace RN
 		_supportsSamplerAnisotropy(false),
 		_supportsFullscreenExclusive(false),
 		_supportsMultiDrawIndirect(false),
+		_supportsShaderFloat16(false),
+		_supportsShaderInt8(false),
 		_maxSamplerAnisotropy(1.0f),
 		_supportsExternalTextureImport(false),
 		_supportsExternalTextureSynchronization(false),
@@ -250,6 +252,7 @@ namespace RN
 		bool supportsMultiview = AddDeviceExtensionIfAvailable(deviceExtensions, rawDeviceExtensions, VK_KHR_MULTIVIEW_EXTENSION_NAME);
 		bool supportsFragmentDensityMap = AddDeviceExtensionIfAvailable(deviceExtensions, rawDeviceExtensions, VK_EXT_FRAGMENT_DENSITY_MAP_EXTENSION_NAME);
 		bool supportsFragmentDensityMap2 = AddDeviceExtensionIfAvailable(deviceExtensions, rawDeviceExtensions, VK_EXT_FRAGMENT_DENSITY_MAP_2_EXTENSION_NAME);
+		bool supportsShaderFloat16Int8 = AddDeviceExtensionIfAvailable(deviceExtensions, rawDeviceExtensions, VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
 
 		VkPhysicalDeviceMultiviewPropertiesKHR multiviewProperties = {};
 		multiviewProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR;
@@ -340,10 +343,20 @@ namespace RN
 		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
 		features.pNext = &multiviewFeatures;
 
+		VkPhysicalDeviceShaderFloat16Int8FeaturesKHR shaderFloat16Int8Features = {};
+		shaderFloat16Int8Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES_KHR;
+		if(supportsShaderFloat16Int8)
+		{
+			shaderFloat16Int8Features.pNext = features.pNext;
+			features.pNext = &shaderFloat16Int8Features;
+		}
+
 		vk::GetPhysicalDeviceFeatures2(_physicalDevice, &features);
 
 		_supportsSamplerAnisotropy = (features.features.samplerAnisotropy == VK_TRUE);
 		_supportsMultiDrawIndirect = (features.features.multiDrawIndirect == VK_TRUE);
+		_supportsShaderFloat16 = supportsShaderFloat16Int8 && (shaderFloat16Int8Features.shaderFloat16 == VK_TRUE);
+		_supportsShaderInt8 = supportsShaderFloat16Int8 && (shaderFloat16Int8Features.shaderInt8 == VK_TRUE);
 
 		if(_maxMultiviewViewCount <= 1 || (multiviewFeatures.multiview != VK_TRUE))
 		{

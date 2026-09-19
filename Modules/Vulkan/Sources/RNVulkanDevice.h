@@ -50,6 +50,8 @@ namespace RN
 		bool GetSupportsFullscreenExclusive() const { return _supportsFullscreenExclusive; }
 		bool GetSupportsTileProperties() const { return _supportsTileProperties; }
 		bool GetSupportsMultiDrawIndirect() const { return _supportsMultiDrawIndirect; }
+		bool GetSupportsShaderFloat16() const { return _supportsShaderFloat16; }
+		bool GetSupportsShaderInt8() const { return _supportsShaderInt8; }
 		bool GetSupportsExternalTextureImport() const { return _supportsExternalTextureImport; }
 		bool GetSupportsExternalTextureSynchronization() const { return _supportsExternalTextureSynchronization; }
 
@@ -77,6 +79,8 @@ namespace RN
 		bool _supportsSamplerAnisotropy;
 		bool _supportsFullscreenExclusive;
 		bool _supportsMultiDrawIndirect;
+		bool _supportsShaderFloat16;
+		bool _supportsShaderInt8;
 		float _maxSamplerAnisotropy;
 		bool _supportsTileProperties;
 		bool _supportsExternalTextureImport;
