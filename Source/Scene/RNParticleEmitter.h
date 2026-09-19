@@ -30,7 +30,9 @@ namespace RN
 	class ParticleEmitter : public SceneNode
 	{
 	public:
-		RNAPI ParticleEmitter();
+		// Vertex count is fixed at construction, clamped to 3..10 (default: quad).
+		// Other shapes enclose the UV circle and may extend UVs outside 0..1.
+		RNAPI ParticleEmitter(uint32 particleVertexCount = 4);
 		RNAPI ParticleEmitter(const ParticleEmitter *emitter);
 		RNAPI ~ParticleEmitter() override;
 
@@ -43,6 +45,8 @@ namespace RN
 		RNAPI void SetParticlesPerSecond(size_t particles);
 		RNAPI void SetMaxParticles(uint32 maxParticles);
 		RNAPI void SetMaxParticlesSoft(uint32 maxParticles);
+
+		RNAPI uint32 GetParticleVertexCount() const { return _particleVertexCount; }
 
 		RNAPI float GetSpawnRate() const { return _spawnRate; }
 		RNAPI uint32 GetMaxParticles() const { return _maxParticles; }
@@ -102,6 +106,7 @@ namespace RN
 
 	private:
 		void UpdateMesh() const;
+		void InitializeParticleGeometry();
 
 		std::vector<float> _lifespans;
 		std::vector<ParticleData> _particles;
@@ -119,6 +124,10 @@ namespace RN
 		bool _canRollParticles;
 		uint32 _maxParticles;
 		uint32 _maxParticlesSoft;
+		const uint32 _particleVertexCount;
+		Vector2 _particleOutline[10];
+		Vector2 _particleUVs[10];
+		uint8 _particleIndices[24];
 		float _spawnRate;
 
 		float _time;
@@ -149,7 +158,7 @@ namespace RN
 	class GenericParticleEmitter : public ParticleEmitter
 	{
 	public:
-		RNAPI GenericParticleEmitter();
+		RNAPI GenericParticleEmitter(uint32 particleVertexCount = 4);
 		RNAPI GenericParticleEmitter(const GenericParticleEmitter *emitter);
 		
 		Vector2 GetLifeSpan() const { return _lifeSpan; }

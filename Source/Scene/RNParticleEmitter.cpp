@@ -21,7 +21,7 @@ namespace RN
 	// MARK: Particle Emitter
 	// ---------------------
 
-	ParticleEmitter::ParticleEmitter() :
+	ParticleEmitter::ParticleEmitter(uint32 particleVertexCount) :
 		_drawable(nullptr),
 		_material(nullptr),
 		_mesh(nullptr),
@@ -29,10 +29,11 @@ namespace RN
 		_ignoreScale(false),
 		_isSorted(false),
 		_isRenderedInversed(false),
+		_canRollParticles(false),
 		_maxParticles(100),
 		_maxParticlesSoft(100),
+		_particleVertexCount(std::max(uint32(3), std::min(particleVertexCount, uint32(10)))),
 		_spawnRate(0.05f),
-		_canRollParticles(false),
 		_time(0.0f),
 		_particleOrigin(),
 		_hasParticleOrigin(false),
@@ -55,6 +56,7 @@ namespace RN
 		_material->SetBlendFactorSource(BlendFactor::One, BlendFactor::One);
 		_material->SetBlendFactorDestination(BlendFactor::OneMinusSourceAlpha, BlendFactor::One);
 
+		InitializeParticleGeometry();
 		SetMaxParticles(_maxParticles);
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
@@ -65,19 +67,26 @@ namespace RN
 	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
 		SceneNode(emitter),
 		_drawable(nullptr),
-		_material(emitter->GetMaterial()),
+		_material(SafeRetain(emitter->GetMaterial())),
 		_mesh(nullptr),
 		_isLocal(emitter->_isLocal),
 		_ignoreScale(emitter->_ignoreScale),
 		_isSorted(emitter->_isSorted),
 		_isRenderedInversed(emitter->_isRenderedInversed),
+		_canRollParticles(emitter->_canRollParticles),
 		_maxParticles(emitter->_maxParticles),
+		_maxParticlesSoft(emitter->_maxParticlesSoft),
+		_particleVertexCount(emitter->_particleVertexCount),
 		_spawnRate(emitter->_spawnRate),
 		_time(emitter->_time),
 		_particleOrigin(),
-		_hasParticleOrigin(false)
+		_hasParticleOrigin(false),
+		_meshIsInitialized(false)
 	{
-		_rng = emitter->GetGenerator();
+		_rng = SafeRetain(emitter->GetGenerator());
+		InitializeParticleGeometry();
+		SetMaxParticles(_maxParticles);
+		_maxParticlesSoft = emitter->_maxParticlesSoft;
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
 		_drawable = renderer->CreateDrawable();
@@ -133,17 +142,54 @@ namespace RN
 		_maxParticles = maxParticles;
 		_maxParticlesSoft = maxParticles;
 		SafeRelease(_mesh);
+		const size_t vertexCount = static_cast<size_t>(_maxParticles) * _particleVertexCount;
+		const size_t indexCount = static_cast<size_t>(_maxParticles) * (_particleVertexCount - 2) * 3;
+		const PrimitiveType indexType = vertexCount <= 65536 ? PrimitiveType::Uint16 : PrimitiveType::Uint32;
 
 		_mesh = new Mesh({Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
 						  Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Color0, PrimitiveType::Color),
 						  Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords0, PrimitiveType::Vector2),
 						  Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::UVCoords1, PrimitiveType::Vector2),
-						  Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, PrimitiveType::Uint16)},
-						 maxParticles * 4, maxParticles * 6, true); //Create a streamable mesh
+						  Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Indices, indexType)},
+						 vertexCount, indexCount, true); //Create a streamable mesh
 
 		_meshIsInitialized = false;
 		if(_drawable)
 			_drawable->SetSources(_mesh, _material, nullptr);
+	}
+
+	void ParticleEmitter::InitializeParticleGeometry()
+	{
+		if(_particleVertexCount == 4)
+		{
+			// Preserve the original quad's exact UV layout and triangle diagonal.
+			_particleOutline[0] = Vector2(-1.0f, -1.0f);
+			_particleOutline[1] = Vector2(1.0f, -1.0f);
+			_particleOutline[2] = Vector2(-1.0f, 1.0f);
+			_particleOutline[3] = Vector2(1.0f, 1.0f);
+			const uint8 indices[6] = {0, 1, 2, 2, 1, 3};
+			memcpy(_particleIndices, indices, sizeof(indices));
+		}
+		else
+		{
+			const float halfAngle = k::Pi / _particleVertexCount;
+			const float extent = 1.000001f / cosf(halfAngle);
+			for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
+			{
+				const float angle = -k::Pi * 0.5f - halfAngle + vertex * (2.0f * halfAngle);
+				_particleOutline[vertex] = Vector2(cosf(angle), sinf(angle)) * extent;
+			}
+			for(uint32 triangle = 0; triangle < _particleVertexCount - 2; triangle++)
+			{
+				_particleIndices[triangle * 3] = 0;
+				_particleIndices[triangle * 3 + 1] = triangle + 1;
+				_particleIndices[triangle * 3 + 2] = triangle + 2;
+			}
+		}
+		for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
+		{
+			_particleUVs[vertex] = _particleOutline[vertex] * 0.5f + Vector2(0.5f);
+		}
 	}
 
 	void ParticleEmitter::SetMaxParticlesSoft(uint32 maxParticles)
@@ -293,7 +339,6 @@ namespace RN
 		Mesh::ElementIterator<Color> colorIterator = chunk.GetIterator<Color>(Mesh::VertexAttribute::Feature::Color0);
 		Mesh::ElementIterator<Vector2> texcoordsIterator = chunk.GetIterator<Vector2>(Mesh::VertexAttribute::Feature::UVCoords0);
 		Mesh::ElementIterator<Vector2> sizeIterator = chunk.GetIterator<Vector2>(Mesh::VertexAttribute::Feature::UVCoords1);
-		Mesh::ElementIterator<RN::uint16> indexIterator = chunk.GetIterator<RN::uint16>(Mesh::VertexAttribute::Feature::Indices);
 
 		/* HACK: convert the iterators to plain pointers and get their strides
 		 * then copy everything by plain memcpy
@@ -304,22 +349,30 @@ namespace RN
 		uint8 *colorPtr = reinterpret_cast<uint8 *>(&*colorIterator);
 		uint8 *texcoordsPtr = reinterpret_cast<uint8 *>(&*texcoordsIterator);
 		uint8 *sizePtr = reinterpret_cast<uint8 *>(&*sizeIterator);
-		uint8 *indexPtr = reinterpret_cast<uint8 *>(&*indexIterator);
 
 		const size_t stride = _mesh->GetStride();
 		const size_t vertexStride = _mesh->GetVertexPositionsSeparatedSize() > 0 ? _mesh->GetVertexPositionsSeparatedStride() : stride;
 		const size_t indexStride = _mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetSize();
+		uint8 *indexPtr;
+		if(indexStride == sizeof(uint16))
+		{
+			auto indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
+			indexPtr = reinterpret_cast<uint8 *>(&*indexIterator);
+		}
+		else
+		{
+			auto indexIterator = chunk.GetIterator<uint32>(Mesh::VertexAttribute::Feature::Indices);
+			indexPtr = reinterpret_cast<uint8 *>(&*indexIterator);
+		}
 
 		auto copy1 = [](uint8 *&ptr, size_t stride, const auto &value) {
 			memcpy(ptr, &value, sizeof(value));
 			ptr += stride;
 		};
 
-		auto copy4 = [copy1](uint8 *&ptr, size_t stride, const auto &value) {
-			copy1(ptr, stride, value);
-			copy1(ptr, stride, value);
-			copy1(ptr, stride, value);
-			copy1(ptr, stride, value);
+		auto copyIndex = [&indexPtr, indexStride, copy1](uint32 index) {
+			if(indexStride == sizeof(uint16)) copy1(indexPtr, indexStride, static_cast<uint16>(index));
+			else copy1(indexPtr, indexStride, index);
 		};
 
 		float scale = _ignoreScale ? 1.0f : GetWorldScale().x;
@@ -333,91 +386,45 @@ namespace RN
 			increment = -1;
 		}
 
-		if(!_canRollParticles)
+		const uint32 indicesPerParticle = (_particleVertexCount - 2) * 3;
+		uint32 outputParticle = 0;
+		for(int i = start; i >= 0 && i < stop; i += increment, outputParticle++)
 		{
-			for(int i = start; i >= 0 && i < stop; i += increment)
+			const ParticleData &particle = _particles[i];
+			const Vector2 halfSize = particle.size / 2.0f * scale;
+			for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
 			{
-				const ParticleData &particle = _particles[i];
-
-				copy4(vertexPtr, vertexStride, particle.position);
-
-				copy4(colorPtr, stride, particle.color);
-
-				copy1(texcoordsPtr, stride, Vector2(0.0f, 0.0f));
-				copy1(texcoordsPtr, stride, Vector2(1.0f, 0.0f));
-				copy1(texcoordsPtr, stride, Vector2(0.0f, 1.0f));
-				copy1(texcoordsPtr, stride, Vector2(1.0f, 1.0f));
-
-				Vector2 halfSize = particle.size / 2.0f * scale;
-				Vector2 halfDirectionTop;
-				halfDirectionTop.x = halfSize.x;
-				halfDirectionTop.y = halfSize.y;
-
-				Vector2 halfDirectionBottom;
-				halfDirectionBottom.x = halfSize.x;
-				halfDirectionBottom.y = -halfSize.y;
-
-				copy1(sizePtr, stride, -halfDirectionTop);
-				copy1(sizePtr, stride, halfDirectionBottom);
-				copy1(sizePtr, stride, -halfDirectionBottom);
-				copy1(sizePtr, stride, halfDirectionTop);
-
-				copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 1));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 2));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 2));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 1));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 3));
+				copy1(vertexPtr, vertexStride, particle.position);
+				copy1(colorPtr, stride, particle.color);
+				copy1(texcoordsPtr, stride, _particleUVs[vertex]);
 			}
-		}
-		else
-		{
-			for(int i = start; i >= 0 && i < stop; i += increment)
+
+			if(_canRollParticles)
 			{
-				const ParticleData &particle = _particles[i];
-				
-				copy4(vertexPtr, vertexStride, particle.position);
-				
-				copy4(colorPtr, stride, particle.color);
-
-				copy1(texcoordsPtr, stride, Vector2(0.0f, 0.0f));
-				copy1(texcoordsPtr, stride, Vector2(1.0f, 0.0f));
-				copy1(texcoordsPtr, stride, Vector2(0.0f, 1.0f));
-				copy1(texcoordsPtr, stride, Vector2(1.0f, 1.0f));
-
-				Vector2 halfSize = particle.size / 2.0f * scale;
-				float cosine = Math::Cos(particle.rotation);
-				float sine = Math::Sin(particle.rotation);
-				Vector2 halfDirectionTop;
-				halfDirectionTop.x = cosine * halfSize.x - sine * halfSize.y;
-				halfDirectionTop.y = sine * halfSize.x + cosine * halfSize.y;
-
-				Vector2 halfDirectionBottom;
-				halfDirectionBottom.x = cosine * halfSize.x + sine * halfSize.y;
-				halfDirectionBottom.y = sine * halfSize.x - cosine * halfSize.y;
-
-				copy1(sizePtr, stride, -halfDirectionTop);
-				copy1(sizePtr, stride, halfDirectionBottom);
-				copy1(sizePtr, stride, -halfDirectionBottom);
-				copy1(sizePtr, stride, halfDirectionTop);
-
-				copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 1));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 2));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 2));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 1));
-				copy1(indexPtr, indexStride, uint16(i * 4 + 3));
+				const float cosine = Math::Cos(particle.rotation);
+				const float sine = Math::Sin(particle.rotation);
+				for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
+				{
+					const Vector2 point = _particleOutline[vertex];
+					const Vector2 offset(point.x * halfSize.x, point.y * halfSize.y);
+					copy1(sizePtr, stride, Vector2(cosine * offset.x - sine * offset.y, sine * offset.x + cosine * offset.y));
+				}
 			}
-		}
+			else
+			{
+				for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
+				{
+					const Vector2 point = _particleOutline[vertex];
+					copy1(sizePtr, stride, Vector2(point.x * halfSize.x, point.y * halfSize.y));
+				}
+			}
 
+			const uint32 base = outputParticle * _particleVertexCount;
+			for(uint32 index = 0; index < indicesPerParticle; index++) copyIndex(base + _particleIndices[index]);
+		}
 		for(uint32 i = stop; i < _maxParticles; i++)
 		{
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
-			copy1(indexPtr, indexStride, uint16(i * 4 + 0));
+			for(uint32 index = 0; index < indicesPerParticle; index++) copyIndex(0);
 		}
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
@@ -496,7 +503,8 @@ namespace RN
 	// MARK: Generic Particle Emitter
 	// ---------------------
 
-	GenericParticleEmitter::GenericParticleEmitter() :
+	GenericParticleEmitter::GenericParticleEmitter(uint32 particleVertexCount) :
+		ParticleEmitter(particleVertexCount),
 		_lifeSpan(Vector2(2.0f, 4.0f)),
 		_startColor(Color()),
 		_endColor(Color(1.0f, 1.0f, 1.0f, 0.0f)),
