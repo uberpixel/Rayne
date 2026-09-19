@@ -48,23 +48,43 @@ namespace RN
 		Number *wrapper = options.settings->GetObjectForKey<Number>(RNCSTR("isLinear"));
 		if(wrapper) isLinear = wrapper->GetBoolValue();
 
-		Texture *texture = nullptr;
-		uint8 *data = nullptr;
+		struct MipLevel
+		{
+			Texture::Region region;
+			size_t offset;
+			size_t size;
+			size_t bytesPerRow;
+			size_t numberOfRows;
+		};
 
-		int mipIndex = 0;
+		std::vector<MipLevel> mipLevels;
+		Texture::Descriptor descriptor;
+		size_t bufferSize = 0;
+
 		while(file->GetOffset() < file->GetSize())
 		{
 			ASTCFormatHeader mipHeader;
-			file->Read(&mipHeader, sizeof(ASTCFormatHeader));
+			if(file->Read(&mipHeader, sizeof(ASTCFormatHeader)) != sizeof(ASTCFormatHeader))
+				throw InconsistencyException(RNSTR("ASTC file " << file << " has a truncated header."));
+
+			if(mipHeader.blockdim_z != 1)
+				throw InconsistencyException(RNSTR("ASTC file " << file << " requires 2D blocks (block depth 1); volumetric ASTC blocks are not supported."));
 
 			RN::uint32 mipWidth = mipHeader.xsize[0] + (mipHeader.xsize[1] << 8) + (mipHeader.xsize[2] << 16);
 			RN::uint32 mipHeight = mipHeader.ysize[0] + (mipHeader.ysize[1] << 8) + (mipHeader.ysize[2] << 16);
+			RN::uint32 mipDepth = mipHeader.zsize[0] + (mipHeader.zsize[1] << 8) + (mipHeader.zsize[2] << 16);
+
+			if(mipWidth == 0 || mipHeight == 0 || mipDepth == 0 || mipHeader.blockdim_x == 0 || mipHeader.blockdim_y == 0)
+				throw InconsistencyException(RNSTR("ASTC file " << file << " has invalid image or block dimensions."));
 
 			size_t xblocks = (mipWidth + mipHeader.blockdim_x - 1) / mipHeader.blockdim_x;
 			size_t yblocks = (mipHeight + mipHeader.blockdim_y - 1) / mipHeader.blockdim_y;
-			size_t mipDataSize = xblocks * yblocks << 4;
+			size_t remainingBytes = file->GetSize() - file->GetOffset();
+			if(remainingBytes / 16 / xblocks / yblocks < mipDepth)
+				throw InconsistencyException(RNSTR("ASTC file " << file << " has truncated mip data."));
+			size_t mipDataSize = xblocks * yblocks * mipDepth * 16;
 
-			if(!texture)
+			if(mipLevels.empty())
 			{
 				Texture::Format textureFormat = Texture::Format::Invalid;
 				if(isLinear)
@@ -130,22 +150,34 @@ namespace RN
 						textureFormat = Texture::Format::RGBA_ASTC_12X12_SRGB;
 				}
 
-				bool mipMapped = ((mipDataSize + sizeof(ASTCFormatHeader)) < file->GetSize());
-				Texture::Descriptor descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, mipWidth, mipHeight, mipMapped);
-				texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+				descriptor = Texture::Descriptor::With2DTextureAndFormat(textureFormat, mipWidth, mipHeight, false);
+				descriptor.type = mipDepth > 1 ? Texture::Type::Type3D : Texture::Type::Type2D;
+				descriptor.depth = mipDepth;
 			}
 
-			if(!data) data = (uint8 *)malloc(mipDataSize);
-			file->Read(data, mipDataSize);
-
-			size_t mipBytesPerRow = xblocks * 16;
-			texture->SetData(Texture::Region(0, 0, 0, mipWidth, mipHeight, 1), mipIndex, data, mipBytesPerRow, yblocks);
-			mipIndex += 1;
+			mipLevels.push_back({Texture::Region(0, 0, 0, mipWidth, mipHeight, mipDepth), file->GetOffset(), mipDataSize, xblocks * 16, yblocks});
+			bufferSize = std::max(bufferSize, mipDataSize);
+			file->Seek(mipLevels.back().offset + mipDataSize);
 		}
 
-		delete[] data;
+		if(mipLevels.empty()) return nullptr;
+		descriptor.mipMaps = static_cast<uint32>(mipLevels.size());
+		Texture *texture = Renderer::GetActiveRenderer()->CreateTextureWithDescriptor(descriptor);
+		ScopeGuard textureGuard([&]() {
+			SafeRelease(texture);
+		});
+		std::unique_ptr<uint8[]> data(new uint8[bufferSize]);
+		for(uint32 mipIndex = 0; mipIndex < descriptor.mipMaps; mipIndex++)
+		{
+			const MipLevel &mip = mipLevels[mipIndex];
+			file->Seek(mip.offset);
+			if(file->Read(data.get(), mip.size) != mip.size)
+				throw InconsistencyException(RNSTR("ASTC file " << file << " has truncated mip data."));
 
-		if(!texture) return nullptr;
+			texture->SetData(mip.region, mipIndex, data.get(), mip.bytesPerRow, mip.numberOfRows);
+		}
+
+		textureGuard.Commit();
 		return texture->Autorelease();
 	}
 } // namespace RN
