@@ -146,7 +146,7 @@ namespace RN
 					if(displayIDs[i] == display)
 					{
 						_frame = Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-						_nsscreen = screen;
+						_nsscreen = [screen retain];
 						break;
 					}
 				}
@@ -291,6 +291,9 @@ namespace RN
 
 	Screen::~Screen()
 	{
+#if RN_PLATFORM_MAC_OS
+		[(NSScreen *)_nsscreen release];
+#endif
 		if(_name)
 			_name->Release();
 
