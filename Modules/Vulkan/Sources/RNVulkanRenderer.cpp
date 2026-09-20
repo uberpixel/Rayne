@@ -1549,12 +1549,12 @@ namespace RN
 		{
 			vulkanRenderPass.renderFramePassIndex = frameSubmission.renderFrame.AddPass(drawSnapshot, renderPassResources->GetOverrideMaterialSnapshot(), renderPassResources->GetIdentity(), renderPassResources->GetOverrideMaterialSnapshotVersion());
 			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(vulkanRenderPass.renderFramePassIndex);
-			framePass.SetCameraSnapshot(previousFramePass.GetCameraSnapshot());
+			framePass.SetCameraSnapshot(previousFramePass.GetCameraSnapshot().WithFrame(drawSnapshot.IsSubpass() ? previousFramePass.GetCameraSnapshot().GetFrame() : drawSnapshot.GetFrame()));
 			if(shouldInheritViews)
 			{
 				for(const RenderFrame::CameraSnapshot &multiviewCameraSnapshot : previousFramePass.GetMultiviewCameraSnapshots())
 				{
-					framePass.AddMultiviewCameraSnapshot(multiviewCameraSnapshot);
+					framePass.AddMultiviewCameraSnapshot(multiviewCameraSnapshot.WithFrame(framePass.GetCameraSnapshot().GetFrame()));
 				}
 			}
 			if(drawSnapshot.IsSubpass())

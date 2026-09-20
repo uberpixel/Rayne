@@ -134,6 +134,12 @@ namespace RN
 			const Vector2 &GetFogDistance() const { return _fogDistance; }
 			const int32 &GetTag() const { return _tag; }
 			const Rect &GetFrame() const { return _frame; }
+			CameraSnapshot WithFrame(const Rect &frame) const
+			{
+				CameraSnapshot snapshot(*this);
+				snapshot._frame = frame;
+				return snapshot;
+			}
 
 		private:
 			static CameraSnapshot WithCameraProjection(Camera *camera, const Rect &frame, const Matrix &projectionMatrix)

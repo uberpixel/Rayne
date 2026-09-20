@@ -850,7 +850,8 @@ namespace RN
 		{
 			metalRenderPass.renderFramePassIndex = frameSubmission.renderFrame.AddPass(drawSnapshot, renderPassResources->GetOverrideMaterialSnapshot(), renderPassResources->GetIdentity(), renderPassResources->GetOverrideMaterialSnapshotVersion());
 			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(metalRenderPass.renderFramePassIndex);
-			framePass.SetCameraSnapshot(frameSubmission.renderFrame.GetPass(previousRenderPass.renderFramePassIndex).GetCameraSnapshot());
+			const RenderFrame::CameraSnapshot &previousCamera = frameSubmission.renderFrame.GetPass(previousRenderPass.renderFramePassIndex).GetCameraSnapshot();
+			framePass.SetCameraSnapshot(previousCamera.WithFrame(drawSnapshot.IsSubpass() ? previousCamera.GetFrame() : drawSnapshot.GetFrame()));
 			frameSubmission.activeRenderPassIndex = frameSubmission.renderPasses.size();
 			frameSubmission.renderPasses.push_back(metalRenderPass);
 
