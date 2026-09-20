@@ -997,6 +997,12 @@ namespace RN
 						if(counter < renderPass.subpasses.size())
 						{
 							vk::CmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+							if(renderPass.multiviewCount > 1)
+							{
+								// Multiview invalidates all non-render-pass state at each subpass boundary.
+								ResetDrawBindStateCache();
+								SetViewportAndScissor(commandBuffer, drawSnapshot.GetFrame());
+							}
 						}
 					}
 				}
@@ -1172,7 +1178,11 @@ namespace RN
 
 		// Follow-up passes render into their own target frame, not the previous camera frame.
 		Rect cameraRect = drawSnapshot.IsSubpass() ? framePass.GetCameraSnapshot().GetFrame() : drawSnapshot.GetFrame();
+		SetViewportAndScissor(commandBuffer, cameraRect);
+	}
 
+	void VulkanRenderer::SetViewportAndScissor(VkCommandBuffer commandBuffer, const Rect &cameraRect)
+	{
 		// Update dynamic viewport state
 		VkViewport viewport = {};
 		viewport.x = cameraRect.x;

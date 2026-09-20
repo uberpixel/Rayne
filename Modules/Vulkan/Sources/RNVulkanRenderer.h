@@ -123,6 +123,7 @@ namespace RN
 		bool SupportsViewState(const VulkanFramebuffer *framebuffer, uint8 multiviewLayer, uint8 multiviewCount) const;
 		void FillUniformBuffer(Shader::ArgumentBuffer *argumentBuffer, VulkanDynamicBufferReference *dynamicBufferReference, const RenderFrame::DrawItem &drawItem, const Material::Properties &mergedMaterialProperties, const RenderFrame::Pass &framePass);
 		void ResetDrawBindStateCache();
+		void SetViewportAndScissor(VkCommandBuffer commandBuffer, const Rect &cameraRect);
 		VulkanFrameSubmission &GetActiveFrameSubmission();
 
 		void RenderAPIRenderPass(VulkanCommandBuffer *commandBuffer, const VulkanRenderPass &renderPass);
