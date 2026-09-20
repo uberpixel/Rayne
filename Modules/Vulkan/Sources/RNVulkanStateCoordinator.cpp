@@ -1038,16 +1038,14 @@ namespace RN
 
 				attributeDescriptions.push_back(attributeDescription);
 
-				if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices && mesh.GetVertexPositionsSeparatedSize() > 0)
-				{
-					//Vertex positions are always the first attribute if GetVertexPositionsSeparatedSize is > 0, so just increasing the binding here like this should be fine
-					vertexBinding += 1;
-				}
-                else
-                {
-                    vertexPositionsOnly = false;
-                }
+				if(attribute.GetFeature() != Mesh::VertexAttribute::Feature::Vertices || mesh.GetVertexPositionsSeparatedSize() == 0)
+					vertexPositionsOnly = false;
 			}
+
+			// The mesh binds its separated position stream even when the shader
+			// does not read positions. Remaining attributes still use binding 1.
+			if(attribute.GetFeature() == Mesh::VertexAttribute::Feature::Vertices && mesh.GetVertexPositionsSeparatedSize() > 0)
+				vertexBinding += 1;
 		}
 
 		if(vertexShader->_instancingAttributes && vertexShader->GetHasInstancing())
