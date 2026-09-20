@@ -221,7 +221,15 @@ namespace RN
 	{
 		Rect frame = GetFrame();
 
-		GetNextFramePasses()->Enumerate<FramePass>([&](FramePass *nextPass, size_t, bool &stop) {
+		const FramePass *resolveParent = this;
+		while(resolveParent->GetNextFramePasses()->GetCount() == 1)
+		{
+			RenderPass *subpass = resolveParent->GetNextFramePasses()->GetObjectAtIndex(0)->Downcast<RenderPass>();
+			if(!subpass || !subpass->GetIsSubpass()) break;
+			resolveParent = subpass;
+		}
+
+		resolveParent->GetNextFramePasses()->Enumerate<FramePass>([&](FramePass *nextPass, size_t, bool &stop) {
 			PostProcessingAPIStage *apiStage = nextPass->Downcast<PostProcessingAPIStage>();
 			if(apiStage && apiStage->GetType() == PostProcessingAPIStage::Type::ResolveMSAA)
 			{
