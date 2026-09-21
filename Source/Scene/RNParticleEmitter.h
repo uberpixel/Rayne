@@ -30,9 +30,11 @@ namespace RN
 	class ParticleEmitter : public SceneNode
 	{
 	public:
-		// Vertex count is fixed at construction, clamped to 3..10 (default: quad).
+		// Outline vertex count is fixed at construction, clamped to 3..10 (default: quad).
+		// An optional center vertex adds one vertex and triangulates a fan around it.
 		// Other shapes enclose the UV circle and may extend UVs outside 0..1.
-		RNAPI ParticleEmitter(uint32 particleVertexCount = 4);
+		// Raw size is copied unchanged to UV1 for custom shaders, without scale or rotation.
+		RNAPI ParticleEmitter(uint32 particleVertexCount = 4, bool useRawParticleSize = false, bool addCenterVertex = false);
 		RNAPI ParticleEmitter(const ParticleEmitter *emitter);
 		RNAPI ~ParticleEmitter() override;
 
@@ -125,9 +127,11 @@ namespace RN
 		uint32 _maxParticles;
 		uint32 _maxParticlesSoft;
 		const uint32 _particleVertexCount;
-		Vector2 _particleOutline[10];
-		Vector2 _particleUVs[10];
-		uint8 _particleIndices[24];
+		const bool _useRawParticleSize;
+		const bool _hasCenterVertex;
+		Vector2 _particleOutline[11];
+		Vector2 _particleUVs[11];
+		uint8 _particleIndices[30];
 		float _spawnRate;
 
 		float _time;

@@ -21,7 +21,7 @@ namespace RN
 	// MARK: Particle Emitter
 	// ---------------------
 
-	ParticleEmitter::ParticleEmitter(uint32 particleVertexCount) :
+	ParticleEmitter::ParticleEmitter(uint32 particleVertexCount, bool useRawParticleSize, bool addCenterVertex) :
 		_drawable(nullptr),
 		_material(nullptr),
 		_mesh(nullptr),
@@ -32,7 +32,9 @@ namespace RN
 		_canRollParticles(false),
 		_maxParticles(100),
 		_maxParticlesSoft(100),
-		_particleVertexCount(std::max(uint32(3), std::min(particleVertexCount, uint32(10)))),
+		_particleVertexCount(std::max(uint32(3), std::min(particleVertexCount, uint32(10))) + (addCenterVertex ? 1 : 0)),
+		_useRawParticleSize(useRawParticleSize),
+		_hasCenterVertex(addCenterVertex),
 		_spawnRate(0.05f),
 		_time(0.0f),
 		_particleOrigin(),
@@ -77,6 +79,8 @@ namespace RN
 		_maxParticles(emitter->_maxParticles),
 		_maxParticlesSoft(emitter->_maxParticlesSoft),
 		_particleVertexCount(emitter->_particleVertexCount),
+		_useRawParticleSize(emitter->_useRawParticleSize),
+		_hasCenterVertex(emitter->_hasCenterVertex),
 		_spawnRate(emitter->_spawnRate),
 		_time(emitter->_time),
 		_particleOrigin(),
@@ -143,7 +147,7 @@ namespace RN
 		_maxParticlesSoft = maxParticles;
 		SafeRelease(_mesh);
 		const size_t vertexCount = static_cast<size_t>(_maxParticles) * _particleVertexCount;
-		const size_t indexCount = static_cast<size_t>(_maxParticles) * (_particleVertexCount - 2) * 3;
+		const size_t indexCount = static_cast<size_t>(_maxParticles) * (_particleVertexCount - (_hasCenterVertex ? 1 : 2)) * 3;
 		const PrimitiveType indexType = vertexCount <= 65536 ? PrimitiveType::Uint16 : PrimitiveType::Uint32;
 
 		_mesh = new Mesh({Mesh::VertexAttribute(Mesh::VertexAttribute::Feature::Vertices, PrimitiveType::Vector3),
@@ -160,7 +164,8 @@ namespace RN
 
 	void ParticleEmitter::InitializeParticleGeometry()
 	{
-		if(_particleVertexCount == 4)
+		const uint32 outlineVertexCount = _particleVertexCount - (_hasCenterVertex ? 1 : 0);
+		if(outlineVertexCount == 4 && !_hasCenterVertex)
 		{
 			// Preserve the original quad's exact UV layout and triangle diagonal.
 			_particleOutline[0] = Vector2(-1.0f, -1.0f);
@@ -172,18 +177,31 @@ namespace RN
 		}
 		else
 		{
-			const float halfAngle = k::Pi / _particleVertexCount;
+			const float halfAngle = k::Pi / outlineVertexCount;
 			const float extent = 1.000001f / cosf(halfAngle);
-			for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
+			for(uint32 vertex = 0; vertex < outlineVertexCount; vertex++)
 			{
 				const float angle = -k::Pi * 0.5f - halfAngle + vertex * (2.0f * halfAngle);
 				_particleOutline[vertex] = Vector2(cosf(angle), sinf(angle)) * extent;
 			}
-			for(uint32 triangle = 0; triangle < _particleVertexCount - 2; triangle++)
+			if(_hasCenterVertex)
 			{
-				_particleIndices[triangle * 3] = 0;
-				_particleIndices[triangle * 3 + 1] = triangle + 1;
-				_particleIndices[triangle * 3 + 2] = triangle + 2;
+				_particleOutline[outlineVertexCount] = Vector2(0.0f);
+				for(uint32 triangle = 0; triangle < outlineVertexCount; triangle++)
+				{
+					_particleIndices[triangle * 3] = outlineVertexCount;
+					_particleIndices[triangle * 3 + 1] = triangle;
+					_particleIndices[triangle * 3 + 2] = (triangle + 1) % outlineVertexCount;
+				}
+			}
+			else
+			{
+				for(uint32 triangle = 0; triangle < outlineVertexCount - 2; triangle++)
+				{
+					_particleIndices[triangle * 3] = 0;
+					_particleIndices[triangle * 3 + 1] = triangle + 1;
+					_particleIndices[triangle * 3 + 2] = triangle + 2;
+				}
 			}
 		}
 		for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++)
@@ -386,7 +404,7 @@ namespace RN
 			increment = -1;
 		}
 
-		const uint32 indicesPerParticle = (_particleVertexCount - 2) * 3;
+		const uint32 indicesPerParticle = (_particleVertexCount - (_hasCenterVertex ? 1 : 2)) * 3;
 		uint32 outputParticle = 0;
 		for(int i = start; i >= 0 && i < stop; i += increment, outputParticle++)
 		{
@@ -399,7 +417,11 @@ namespace RN
 				copy1(texcoordsPtr, stride, _particleUVs[vertex]);
 			}
 
-			if(_canRollParticles)
+			if(_useRawParticleSize)
+			{
+				for(uint32 vertex = 0; vertex < _particleVertexCount; vertex++) copy1(sizePtr, stride, particle.size);
+			}
+			else if(_canRollParticles)
 			{
 				const float cosine = Math::Cos(particle.rotation);
 				const float sine = Math::Sin(particle.rotation);
