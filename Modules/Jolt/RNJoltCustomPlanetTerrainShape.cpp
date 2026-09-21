@@ -40,6 +40,11 @@ namespace RN
 			return _provider ? _provider->GetMaximumPlanetTerrainRadius() : 0.0f;
 		}
 
+		double GetMaximumPlanetTerrainProjectionInRegion(unsigned char face, double minU, double minV, double maxU, double maxV, double x, double y, double z) const override
+		{
+			return _provider ? _provider->GetMaximumPlanetTerrainProjectionInRegion(face, minU, minV, maxU, maxV, DVector3(x, y, z)) : 0.0;
+		}
+
 		void GetPlanetTerrainLocalOrigin(double &x, double &y, double &z) const override
 		{
 			JoltPosition origin;
@@ -90,6 +95,11 @@ namespace RN
 		uint32 _referenceCount;
 		JoltCustomPlanetTerrainProvider *_provider;
 	};
+
+	double JoltCustomPlanetTerrainProvider::GetMaximumPlanetTerrainProjectionInRegion([[maybe_unused]] uint8 face, [[maybe_unused]] double minU, [[maybe_unused]] double minV, [[maybe_unused]] double maxU, [[maybe_unused]] double maxV, [[maybe_unused]] const DVector3 &direction) const
+	{
+		return 0.0;
+	}
 
 	JoltPosition JoltCustomPlanetTerrainProvider::GetPlanetTerrainLocalOrigin() const
 	{

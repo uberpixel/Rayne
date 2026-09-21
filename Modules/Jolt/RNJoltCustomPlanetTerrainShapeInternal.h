@@ -33,6 +33,9 @@ namespace RN
 		virtual void RetainProvider() = 0;
 		virtual void ReleaseProvider() = 0;
 		virtual float GetMaximumPlanetTerrainRadius() const = 0;
+		// Conservative maximum dot(position, direction) for all regional samples.
+		// Return zero when no bound is available; queries then use exact triangles.
+		virtual double GetMaximumPlanetTerrainProjectionInRegion(unsigned char, double, double, double, double, double, double, double) const { return 0.0; }
 		virtual void GetPlanetTerrainLocalOrigin(double &x, double &y, double &z) const = 0;
 		virtual unsigned int GetPlanetTerrainCollisionRevision() const = 0;
 		virtual unsigned int GetPlanetTerrainCollisionCacheEpoch() const = 0;

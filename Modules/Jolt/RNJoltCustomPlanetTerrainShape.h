@@ -23,6 +23,9 @@ namespace RN
 		};
 
 		JTAPI virtual float GetMaximumPlanetTerrainRadius() const = 0;
+		// Bounds dot(position, direction), including collision and fallback surfaces.
+		// Zero disables regional ray culling for providers without such bounds.
+		JTAPI virtual double GetMaximumPlanetTerrainProjectionInRegion(uint8 face, double minU, double minV, double maxU, double maxV, const DVector3 &direction) const;
 		JTAPI virtual JoltPosition GetPlanetTerrainLocalOrigin() const;
 		JTAPI virtual uint32 GetPlanetTerrainCollisionRevision() const;
 		JTAPI virtual uint32 GetPlanetTerrainCollisionCacheEpoch() const;

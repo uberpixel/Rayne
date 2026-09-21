@@ -284,7 +284,6 @@ public:
 private:
 	static constexpr uint MaxCollisionTriangles = 8192;
 	static constexpr uint MaxCastTriangles = 8192;
-	static constexpr uint MaxRayTriangles = 8192;
 	static constexpr uint MaxContextTriangles = 64;
 	static constexpr uint TriangleSubShapeIDBits = 32;
 	static constexpr uint32 TriangleSubShapeIDMask = 0xffffffffu;
@@ -744,13 +743,6 @@ private:
 		return bounds;
 	}
 
-	static AABox GetRayBounds(const RayCast &ray, float maximumFraction)
-	{
-		AABox bounds(ray.mOrigin, ray.mOrigin);
-		bounds.Encapsulate(ray.mOrigin + ray.mDirection * maximumFraction);
-		return bounds;
-	}
-
 	static bool ShouldRayHitTriangle(const RayCast &ray, const RayCastSettings &settings, Vec3Arg triangleNormal)
 	{
 		if(settings.mBackFaceModeTriangles == EBackFaceMode::CollideWithBackFaces) return true;
@@ -1122,15 +1114,152 @@ private:
 		planet->VisitTriangles(castBounds, 0.0f, localBase, streamingVisitor, MaxCastTriangles);
 	}
 
+	struct SampledGridRay
+	{
+		double u, v, w;
+		double du, dv, dw;
+	};
+
+	static SampledGridRay GetSampledGridRay(uint8 face, const RayCast &ray, const PrecisionBase &localBase, const PrecisionBase &localOrigin)
+	{
+		const double x = static_cast<double>(ray.mOrigin.GetX()) + localBase.x + localOrigin.x;
+		const double y = static_cast<double>(ray.mOrigin.GetY()) + localBase.y + localOrigin.y;
+		const double z = static_cast<double>(ray.mOrigin.GetZ()) + localBase.z + localOrigin.z;
+		const double dx = ray.mDirection.GetX(), dy = ray.mDirection.GetY(), dz = ray.mDirection.GetZ();
+		switch(face)
+		{
+			case 0: return {-z, y, x, -dz, dy, dx};
+			case 1: return {z, y, -x, dz, dy, -dx};
+			case 2: return {x, -z, y, dx, -dz, dy};
+			case 3: return {x, z, -y, dx, dz, -dy};
+			case 4: return {x, y, z, dx, dy, dz};
+			default: return {-x, y, -z, -dx, dy, -dz};
+		}
+	}
+
+	static bool ClipSampledGridRayPlane(double distance, double slope, double &first, double &last)
+	{
+		if(slope == 0.0) return distance >= 0.0;
+		const double fraction = -distance / slope;
+		if(slope > 0.0)
+		{
+			if(fraction > first) first = fraction;
+		}
+		else if(fraction < last) last = fraction;
+		return first <= last;
+	}
+
+	static bool ClipSampledGridRay(const SampledGridRay &ray, double referenceRadius, int minU, int minV, int sizeU, int sizeV, double &first, double &last)
+	{
+		// Grid rectangles bound cones from the planet center. Clip before asking
+		// the provider for any heights. Keep the collision query's edge padding
+		// for float direction conversion and interpolated surface positions.
+		const double scale = CollisionGridCellSize / referenceRadius;
+		const double lowU = (minU - CollisionGridQueryPaddingCells) * scale;
+		const double lowV = (minV - CollisionGridQueryPaddingCells) * scale;
+		const double highU = (minU + sizeU + CollisionGridQueryPaddingCells) * scale;
+		const double highV = (minV + sizeV + CollisionGridQueryPaddingCells) * scale;
+		return ClipSampledGridRayPlane(ray.w - 1.0e-8, ray.dw, first, last) &&
+			ClipSampledGridRayPlane(ray.u - lowU * ray.w, ray.du - lowU * ray.dw, first, last) &&
+			ClipSampledGridRayPlane(highU * ray.w - ray.u, highU * ray.dw - ray.du, first, last) &&
+			ClipSampledGridRayPlane(ray.v - lowV * ray.w, ray.dv - lowV * ray.dw, first, last) &&
+			ClipSampledGridRayPlane(highV * ray.w - ray.v, highV * ray.dw - ray.dv, first, last);
+	}
+
+	template<class Visitor>
+	void VisitRayGridRegion(const SampledGridRay &ray, uint8 face, int originU, int originV, int minU, int minV, int sizeU, int sizeV,
+		const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch,
+		double first, double last, Visitor &visitor) const
+	{
+		if(visitor.ShouldAbort() || first > static_cast<double>(visitor.GetEarlyOutFraction())) return;
+		// A common support plane bounds all regional samples and every triangle
+		// between them. Test it before generating metre-spaced vertices.
+		if(sizeU >= 16 && sizeV >= 16)
+		{
+			double nx = localOrigin.x, ny = localOrigin.y, nz = localOrigin.z;
+			if(Normalize(nx, ny, nz))
+			{
+				const double scale = CollisionGridCellSize / referenceRadius;
+				const double maximum = _provider->GetMaximumPlanetTerrainProjectionInRegion(face,
+					(minU - CollisionGridQueryPaddingCells) * scale, (minV - CollisionGridQueryPaddingCells) * scale,
+					(minU + sizeU + CollisionGridQueryPaddingCells) * scale, (minV + sizeV + CollisionGridQueryPaddingCells) * scale, nx, ny, nz);
+				if(maximum > 0.0 && std::isfinite(maximum))
+				{
+					// Apply the same orthogonal face transform used by SampledGridRay.
+					const double normals[6][3] = {{-nz, ny, nx}, {nz, ny, -nx}, {nx, -nz, ny}, {nx, nz, -ny}, {nx, ny, nz}, {-nx, ny, -nz}};
+					const double *normal = normals[face];
+					const double start = ray.u * normal[0] + ray.v * normal[1] + ray.w * normal[2];
+					const double slope = ray.du * normal[0] + ray.dv * normal[1] + ray.dw * normal[2];
+					const double end = std::min(last, static_cast<double>(visitor.GetEarlyOutFraction()));
+					// Ray triangles use coordinates relative to the ray origin, so
+					// their float error scales with ray length, not planet radius.
+					const double margin = sqrt(ray.du * ray.du + ray.dv * ray.dv + ray.dw * ray.dw) * 1.0e-6 + 0.001;
+					if(std::min(start + slope * first, start + slope * end) > maximum + margin) return;
+				}
+			}
+		}
+		if(sizeU == 1 && sizeV == 1)
+		{
+			Vec3 p00, p10, p01, p11;
+			if(!BuildSampledGridVertex(face, minU, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p00) ||
+				!BuildSampledGridVertex(face, minU + 1, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10) ||
+				!BuildSampledGridVertex(face, minU, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01) ||
+				!BuildSampledGridVertex(face, minU + 1, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return;
+			for(uint8 diagonal = 0; diagonal < 2 && !visitor.ShouldAbort(); diagonal += 1)
+			{
+				SampledGridKey key;
+				key.face = face;
+				key.gridU = minU;
+				key.gridV = minV;
+				key.diagonal = diagonal;
+				Triangle triangle;
+				Vec3 normal;
+				if(BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, originU, originV, triangle, normal)) visitor.VisitTriangle(triangle, normal);
+			}
+			return;
+		}
+
+		// Split the longer grid axis and visit the child's ray interval in near
+		// order. Closest-hit collectors can then prune later regions immediately.
+		const bool splitU = sizeU >= sizeV;
+		const int childSizeU = splitU ? sizeU / 2 : sizeU;
+		const int childSizeV = splitU ? sizeV : sizeV / 2;
+		const int childU[2] = {minU, minU + (splitU ? childSizeU : 0)};
+		const int childV[2] = {minV, minV + (splitU ? 0 : childSizeV)};
+		double childFirst[2] = {first, first};
+		const double end = last < visitor.GetEarlyOutFraction() ? last : visitor.GetEarlyOutFraction();
+		double childLast[2] = {end, end};
+		const bool intersects[2] = {
+			ClipSampledGridRay(ray, referenceRadius, childU[0], childV[0], childSizeU, childSizeV, childFirst[0], childLast[0]),
+			ClipSampledGridRay(ray, referenceRadius, childU[1], childV[1], childSizeU, childSizeV, childFirst[1], childLast[1])};
+		const uint nearer = childFirst[1] < childFirst[0] ? 1 : 0;
+		for(uint i = 0; i < 2; i += 1)
+		{
+			const uint child = i == 0 ? nearer : 1 - nearer;
+			if(intersects[child]) VisitRayGridRegion(ray, face, originU, originV, childU[child], childV[child], childSizeU, childSizeV,
+				localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, childFirst[child], childLast[child], visitor);
+		}
+	}
+
 	template<class Visitor>
 	void VisitRayTriangles(const RayCast &shiftedRay, float maximumFraction, const PrecisionBase &localBase, Visitor &visitor) const
 	{
-		if(maximumFraction <= 0.0f) return;
-		if(shiftedRay.mDirection.LengthSq() <= 0.0f) return;
-
-		AABox rayBounds = GetRayBounds(shiftedRay, maximumFraction);
-		rayBounds.ExpandBy(Vec3::sReplicate(0.01f));
-		VisitTriangles(rayBounds, 0.0f, localBase, visitor, MaxRayTriangles);
+		if(!_provider || maximumFraction <= 0.0f || shiftedRay.mDirection.LengthSq() <= 0.0f) return;
+		const PrecisionBase localOrigin = GetLocalOrigin();
+		const double referenceRadius = GetGridReferenceRadius(localOrigin, _boundsRadius);
+		const uint32 collisionRevision = _provider->GetPlanetTerrainCollisionRevision();
+		const uint32 cacheEpoch = _provider->GetPlanetTerrainCollisionCacheEpoch();
+		for(uint8 face = 0; face < 6 && !visitor.ShouldAbort(); face += 1)
+		{
+			int originU, originV;
+			GetSampledGridBlockOrigin(face, localOrigin, referenceRadius, originU, originV);
+			const SampledGridRay ray = GetSampledGridRay(face, shiftedRay, localBase, localOrigin);
+			double first = 0.0;
+			double last = maximumFraction < visitor.GetEarlyOutFraction() ? maximumFraction : visitor.GetEarlyOutFraction();
+			if(!ClipSampledGridRay(ray, referenceRadius, originU, originV, CollisionGridBlockCellCount, CollisionGridBlockCellCount, first, last)) continue;
+			VisitRayGridRegion(ray, face, originU, originV, originU, originV, CollisionGridBlockCellCount, CollisionGridBlockCellCount,
+				localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, first, last, visitor);
+		}
 	}
 
 	bool FindRayTriangleHit(const RayCast &ray, const RayCastSettings &settings, const SubShapeIDCreator &subShapeIDCreator, RayCastResult &hit) const
@@ -1146,6 +1275,7 @@ private:
 			{}
 
 			bool ShouldAbort() const { return false; }
+			float GetEarlyOutFraction() const { return hit.mFraction; }
 			void VisitTriangle(const Triangle &triangle, Vec3Arg normal)
 			{
 				if(!ShouldRayHitTriangle(ray, settings, normal)) return;
@@ -1183,6 +1313,7 @@ private:
 			{}
 
 			bool ShouldAbort() const { return collector.ShouldEarlyOut(); }
+			float GetEarlyOutFraction() const { return collector.GetEarlyOutFraction(); }
 			void VisitTriangle(const Triangle &triangle, Vec3Arg normal)
 			{
 				if(!ShouldRayHitTriangle(ray, settings, normal)) return;
