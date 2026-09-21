@@ -18,6 +18,7 @@
 #include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CollideConvexVsTriangles.h>
 #include <Jolt/Physics/Collision/CollisionDispatch.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/TransformedShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexShape.h>
@@ -177,8 +178,13 @@ public:
 			return true;
 		}
 
-		RayCastSettings settings;
-		return FindRayTriangleHit(ray, settings, subShapeIDCreator, hit);
+		ClosestHitCollisionCollector<CastRayCollector> collector;
+		collector.ResetEarlyOutFraction(hit.mFraction);
+		CastRayTriangles(ray, RayCastSettings(), subShapeIDCreator, collector);
+		if(!collector.HadHit()) return false;
+		hit.mFraction = collector.mHit.mFraction;
+		hit.mSubShapeID2 = collector.mHit.mSubShapeID2;
+		return true;
 	}
 
 	void CastRay(const RayCast &ray, const RayCastSettings &rayCastSettings, const SubShapeIDCreator &subShapeIDCreator, CastRayCollector &collector, const ShapeFilter &shapeFilter = { }) const override
@@ -1118,6 +1124,8 @@ private:
 	{
 		double u, v, w;
 		double du, dv, dw;
+		DVec3 projectionNormal = DVec3::sZero();
+		double projectionStart = 0.0, projectionSlope = 0.0;
 	};
 
 	static SampledGridRay GetSampledGridRay(uint8 face, const RayCast &ray, const PrecisionBase &localBase, const PrecisionBase &localOrigin)
@@ -1172,31 +1180,17 @@ private:
 		double first, double last, Visitor &visitor) const
 	{
 		if(visitor.ShouldAbort() || first > static_cast<double>(visitor.GetEarlyOutFraction())) return;
-		// A common support plane bounds all regional samples and every triangle
-		// between them. Test it before generating metre-spaced vertices.
-		if(sizeU >= 16 && sizeV >= 16)
+		// A common support plane also bounds triangles between regional samples.
+		if(sizeU >= 16 && sizeV >= 16 && ray.projectionNormal.LengthSq() > 0.0)
 		{
-			double nx = localOrigin.x, ny = localOrigin.y, nz = localOrigin.z;
-			if(Normalize(nx, ny, nz))
-			{
-				const double scale = CollisionGridCellSize / referenceRadius;
-				const double maximum = _provider->GetMaximumPlanetTerrainProjectionInRegion(face,
-					(minU - CollisionGridQueryPaddingCells) * scale, (minV - CollisionGridQueryPaddingCells) * scale,
-					(minU + sizeU + CollisionGridQueryPaddingCells) * scale, (minV + sizeV + CollisionGridQueryPaddingCells) * scale, nx, ny, nz);
-				if(maximum > 0.0 && std::isfinite(maximum))
-				{
-					// Apply the same orthogonal face transform used by SampledGridRay.
-					const double normals[6][3] = {{-nz, ny, nx}, {nz, ny, -nx}, {nx, -nz, ny}, {nx, nz, -ny}, {nx, ny, nz}, {-nx, ny, -nz}};
-					const double *normal = normals[face];
-					const double start = ray.u * normal[0] + ray.v * normal[1] + ray.w * normal[2];
-					const double slope = ray.du * normal[0] + ray.dv * normal[1] + ray.dw * normal[2];
-					const double end = std::min(last, static_cast<double>(visitor.GetEarlyOutFraction()));
-					// Ray triangles use coordinates relative to the ray origin, so
-					// their float error scales with ray length, not planet radius.
-					const double margin = sqrt(ray.du * ray.du + ray.dv * ray.dv + ray.dw * ray.dw) * 1.0e-6 + 0.001;
-					if(std::min(start + slope * first, start + slope * end) > maximum + margin) return;
-				}
-			}
+			const double scale = CollisionGridCellSize / referenceRadius;
+			const double maximum = _provider->GetMaximumPlanetTerrainProjectionInRegion(face,
+				(minU - CollisionGridQueryPaddingCells) * scale, (minV - CollisionGridQueryPaddingCells) * scale,
+				(minU + sizeU + CollisionGridQueryPaddingCells) * scale, (minV + sizeV + CollisionGridQueryPaddingCells) * scale,
+				ray.projectionNormal.GetX(), ray.projectionNormal.GetY(), ray.projectionNormal.GetZ());
+			const double end = std::min(last, static_cast<double>(visitor.GetEarlyOutFraction()));
+			if(maximum > 0.0 && std::isfinite(maximum) &&
+				std::min(ray.projectionStart + ray.projectionSlope * first, ray.projectionStart + ray.projectionSlope * end) > maximum) return;
 		}
 		if(sizeU == 1 && sizeV == 1)
 		{
@@ -1249,56 +1243,28 @@ private:
 		const double referenceRadius = GetGridReferenceRadius(localOrigin, _boundsRadius);
 		const uint32 collisionRevision = _provider->GetPlanetTerrainCollisionRevision();
 		const uint32 cacheEpoch = _provider->GetPlanetTerrainCollisionCacheEpoch();
+		double nx = localOrigin.x, ny = localOrigin.y, nz = localOrigin.z;
+		const DVec3 projectionNormal = Normalize(nx, ny, nz) ? DVec3(nx, ny, nz) : DVec3::sZero();
+		const DVec3 direction(shiftedRay.mDirection);
+		const DVec3 start = DVec3(shiftedRay.mOrigin) + DVec3(localBase.x + localOrigin.x, localBase.y + localOrigin.y, localBase.z + localOrigin.z);
+		// Float triangle coordinates are relative to the ray origin. Fold their
+		// length-dependent error margin into the projection once for the whole ray.
+		const double projectionStart = start.Dot(projectionNormal) - direction.Length() * 1.0e-6 - 0.001;
+		const double projectionSlope = direction.Dot(projectionNormal);
 		for(uint8 face = 0; face < 6 && !visitor.ShouldAbort(); face += 1)
 		{
 			int originU, originV;
 			GetSampledGridBlockOrigin(face, localOrigin, referenceRadius, originU, originV);
-			const SampledGridRay ray = GetSampledGridRay(face, shiftedRay, localBase, localOrigin);
+			SampledGridRay ray = GetSampledGridRay(face, shiftedRay, localBase, localOrigin);
+			ray.projectionNormal = projectionNormal;
+			ray.projectionStart = projectionStart;
+			ray.projectionSlope = projectionSlope;
 			double first = 0.0;
 			double last = maximumFraction < visitor.GetEarlyOutFraction() ? maximumFraction : visitor.GetEarlyOutFraction();
 			if(!ClipSampledGridRay(ray, referenceRadius, originU, originV, CollisionGridBlockCellCount, CollisionGridBlockCellCount, first, last)) continue;
 			VisitRayGridRegion(ray, face, originU, originV, originU, originV, CollisionGridBlockCellCount, CollisionGridBlockCellCount,
 				localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, first, last, visitor);
 		}
-	}
-
-	bool FindRayTriangleHit(const RayCast &ray, const RayCastSettings &settings, const SubShapeIDCreator &subShapeIDCreator, RayCastResult &hit) const
-	{
-		const PrecisionBase localBase = MakePrecisionBase(RVec3(ray.mOrigin));
-		const RayCast shiftedRay(ray.mOrigin - localBase.vector, ray.mDirection);
-
-		bool hasHit = false;
-		struct Visitor
-		{
-			Visitor(const RayCast &sourceRay, const RayCastSettings &sourceSettings, const SubShapeIDCreator &creator, RayCastResult &targetHit, bool &targetHasHit) :
-				ray(sourceRay), settings(sourceSettings), subShapeIDCreator(creator), hit(targetHit), hasHit(targetHasHit)
-			{}
-
-			bool ShouldAbort() const { return false; }
-			float GetEarlyOutFraction() const { return hit.mFraction; }
-			void VisitTriangle(const Triangle &triangle, Vec3Arg normal)
-			{
-				if(!ShouldRayHitTriangle(ray, settings, normal)) return;
-
-				const float fraction = RayTriangle(ray.mOrigin, ray.mDirection, triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
-				if(fraction >= hit.mFraction) return;
-
-				hit.mFraction = fraction;
-				hit.mSubShapeID2 = subShapeIDCreator.PushID(GetTriangleSubShapeID(triangle.id), TriangleSubShapeIDBits).GetID();
-				hasHit = true;
-			}
-
-			const RayCast &ray;
-			const RayCastSettings &settings;
-			const SubShapeIDCreator &subShapeIDCreator;
-			RayCastResult &hit;
-			bool &hasHit;
-		};
-
-		Visitor visitor(shiftedRay, settings, subShapeIDCreator, hit, hasHit);
-		VisitRayTriangles(shiftedRay, hit.mFraction, localBase, visitor);
-
-		return hasHit;
 	}
 
 	void CastRayTriangles(const RayCast &ray, const RayCastSettings &settings, const SubShapeIDCreator &subShapeIDCreator, CastRayCollector &collector) const
