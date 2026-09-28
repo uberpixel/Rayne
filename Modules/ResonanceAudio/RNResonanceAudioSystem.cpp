@@ -211,21 +211,28 @@ namespace RN
 		SafeRelease(_inputDevice);
 		_inputDevice = inputDevice;
 		SafeRetain(_inputDevice);
+		if(!_inputDevice) return;
 
 		ma_device_config config = ma_device_config_init(ma_device_type_capture);
-		config.playback.pDeviceID = static_cast<ma_device_id *>(inputDevice->Downcast<ResonanceAudioDeviceMiniAudio>()->deviceID);
-		config.playback.format = ma_format_f32; // Set to ma_format_unknown to use the device's native format.
-		config.playback.channels = _channelCount; // Set to 0 to use the device's native channel count.
+		config.capture.pDeviceID = static_cast<ma_device_id *>(inputDevice->Downcast<ResonanceAudioDeviceMiniAudio>()->deviceID);
+		config.capture.format = ma_format_f32; // Set to ma_format_unknown to use the device's native format.
+		config.capture.channels = _channelCount; // Set to 0 to use the device's native channel count.
 		config.sampleRate = _sampleRate; // Set to 0 to use the device's native sample rate.
 		config.dataCallback = &AudioCallback; // This function will be called when miniaudio needs more data.
 		config.pUserData = this; // Can be accessed from the device object (device.pUserData).
 
 		if(ma_device_init(&_internals->context, &config, &_internals->inputDevice) != MA_SUCCESS)
 		{
+			SafeRelease(_inputDevice);
 			return; // Failed to initialize the device.
 		}
 
-		ma_device_start(&_internals->inputDevice); // The device is sleeping by default so you'll need to start it manually.
+		if(ma_device_start(&_internals->inputDevice) != MA_SUCCESS)
+		{
+			ma_device_uninit(&_internals->inputDevice);
+			SafeRelease(_inputDevice);
+			return;
+		}
 
 		RNInfo("Using audio input device: " << _inputDevice->name);
 	}
