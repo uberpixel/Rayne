@@ -100,11 +100,24 @@ namespace RN
 
 		RN::Mesh *Font::GetMeshForCharacter(int codepoint)
 		{
+			return GetMeshForCharacter(codepoint, 0.0f);
+		}
+
+		RN::Mesh *Font::GetMeshForCharacter(int codepoint, float outlineWidth)
+		{
 			//Don not generate a mesh for control characters!
 			if(codepoint <= 32) return nullptr;
 
+			if(_arFont || outlineWidth == 0.0f || !std::isfinite(outlineWidth)) outlineWidth = 0.0f;
 			Lock();
-			RN::Mesh *existingMesh = _meshes->GetObjectForKey<RN::Mesh>(RN::Number::WithInt32(codepoint));
+			Number *widthKey = Number::WithFloat(outlineWidth);
+			Dictionary *meshCache = _meshes->GetObjectForKey<Dictionary>(widthKey);
+			if(!meshCache)
+			{
+				meshCache = (new Dictionary())->Autorelease();
+				_meshes->SetObjectForKey(meshCache, widthKey);
+			}
+			RN::Mesh *existingMesh = meshCache->GetObjectForKey<RN::Mesh>(RN::Number::WithInt32(codepoint));
 			if(existingMesh)
 			{
 				Unlock();
@@ -113,7 +126,11 @@ namespace RN
 
 			if(_arFont)
 			{
-				if(_codePointToIndex.count(codepoint) == 0) return nullptr; //There is no character for the requested codepoint
+				if(_codePointToIndex.count(codepoint) == 0)
+				{
+					Unlock();
+					return nullptr; //There is no character for the requested codepoint
+				}
 
 				artery_font::StdArteryFont<float> *arFont = static_cast<artery_font::StdArteryFont<float> *>(_arFont);
 				auto variant = arFont->variants[0];
@@ -174,7 +191,7 @@ namespace RN
 				delete[] vertexUVBuffer;
 				delete[] indexBuffer;
 
-				_meshes->SetObjectForKey(mesh->Autorelease(), RN::Number::WithInt32(codepoint));
+				meshCache->SetObjectForKey(mesh->Autorelease(), RN::Number::WithInt32(codepoint));
 				Unlock();
 
 				return mesh;
@@ -277,79 +294,80 @@ namespace RN
 				return nullptr;
 			}
 
-			KG::TriangleMesh triangleMesh = KG::MeshGeneratorLoopBlinn::GetMeshForPathCollection(paths);
+			KG::TriangleMesh triangleMesh;
+			KG::MeshGeneratorLoopBlinn::Status status = KG::MeshGeneratorLoopBlinn::GetMeshForPathCollection(paths, outlineWidth, triangleMesh);
+			if(status != KG::MeshGeneratorLoopBlinn::Status::Success)
+			{
+				Unlock();
+				RNWarning("Unable to generate outline for character " << codepoint << "; using the normal glyph.");
+				Mesh *fallback = GetMeshForCharacter(codepoint);
+				if(fallback)
+				{
+					Lock();
+					meshCache->SetObjectForKey(fallback, RN::Number::WithInt32(codepoint));
+					Unlock();
+				}
+				return fallback;
+			}
+			if(triangleMesh.indices.empty())
+			{
+				Unlock();
+				return nullptr;
+			}
 
-			std::vector<RN::Mesh::VertexAttribute> attributes;
-			attributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Indices, RN::PrimitiveType::Uint32);
-
-			RN::int32 vertexFloatCount = 0;
+			// Read Kalligraph's layout once. Its outline role is packed into the
+			// cached position's z component; ordinary glyphs retain XY positions.
+			int positionOffset = -1, uvOffset = -1, outlineOffset = -1;
+			size_t vertexFloatCount = 0;
 			for(KG::TriangleMesh::VertexFeature feature : triangleMesh.features)
 			{
 				switch(feature)
 				{
 					case KG::TriangleMesh::VertexFeaturePosition:
-						attributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, RN::PrimitiveType::Vector2);
+						positionOffset = vertexFloatCount;
 						vertexFloatCount += 2;
 						break;
-
 					case KG::TriangleMesh::VertexFeatureUV:
-						attributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords0, RN::PrimitiveType::Vector3);
+						uvOffset = vertexFloatCount;
 						vertexFloatCount += 3;
 						break;
-
 					case KG::TriangleMesh::VertexFeatureColor:
-						attributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Color0, RN::PrimitiveType::Vector4);
 						vertexFloatCount += 4;
 						break;
+					case KG::TriangleMesh::VertexFeatureOutline:
+						outlineOffset = vertexFloatCount++;
+						break;
 				}
 			}
 
-			RN::uint32 verticesCount = triangleMesh.vertices.size() / vertexFloatCount;
+			using Feature = RN::Mesh::VertexAttribute::Feature;
+			std::vector<RN::Mesh::VertexAttribute> attributes;
+			attributes.emplace_back(Feature::Indices, RN::PrimitiveType::Uint32);
+			attributes.emplace_back(Feature::Vertices, outlineOffset >= 0 ? RN::PrimitiveType::Vector3 : RN::PrimitiveType::Vector2);
+			if(uvOffset >= 0) attributes.emplace_back(Feature::UVCoords0, RN::PrimitiveType::Vector3);
+
+			const size_t verticesCount = triangleMesh.vertices.size() / vertexFloatCount;
 			RN::Mesh *mesh = new RN::Mesh(attributes, verticesCount, triangleMesh.indices.size());
 			mesh->BeginChanges();
-
-			float *buildBuffer = new float[verticesCount * 4];
-
-#define CopyVertexData(elementSize, offset, feature)                                                                                                                         \
-	{                                                                                                                                                                        \
-		RN::uint32 dataIndex = 0;                                                                                                                                            \
-		RN::uint32 buildBufferIndex = 0;                                                                                                                                     \
-		for(size_t i = 0; i < verticesCount; i++)                                                                                                                            \
-		{                                                                                                                                                                    \
-			std::copy(triangleMesh.vertices.begin() + dataIndex + offset, triangleMesh.vertices.begin() + dataIndex + offset + elementSize, &buildBuffer[buildBufferIndex]); \
-			buildBufferIndex += elementSize;                                                                                                                                 \
-			dataIndex += vertexFloatCount;                                                                                                                                   \
-		}                                                                                                                                                                    \
-		mesh->SetElementData(feature, buildBuffer);                                                                                                                          \
-	}
-
-			RN::uint32 offset = 0;
-			for(KG::TriangleMesh::VertexFeature feature : triangleMesh.features)
-			{
-				switch(feature)
+			std::vector<float> buildBuffer(verticesCount * 3);
+			auto copyAttribute = [&](Feature feature, int offset, size_t components, int extraOffset = -1) {
+				if(offset < 0) return;
+				const size_t stride = components + (extraOffset >= 0 ? 1 : 0);
+				for(size_t i = 0; i < verticesCount; i++)
 				{
-					case KG::TriangleMesh::VertexFeaturePosition:
-						CopyVertexData(2, offset, RN::Mesh::VertexAttribute::Feature::Vertices);
-						offset += 2;
-						break;
-
-					case KG::TriangleMesh::VertexFeatureUV:
-						CopyVertexData(3, offset, RN::Mesh::VertexAttribute::Feature::UVCoords0);
-						offset += 3;
-						break;
-
-					case KG::TriangleMesh::VertexFeatureColor:
-						CopyVertexData(4, offset, RN::Mesh::VertexAttribute::Feature::Color0);
-						offset += 4;
-						break;
+					const float *source = triangleMesh.vertices.data() + i * vertexFloatCount;
+					float *target = buildBuffer.data() + i * stride;
+					std::copy(source + offset, source + offset + components, target);
+					if(extraOffset >= 0) target[components] = source[extraOffset];
 				}
-			}
-
-			delete[] buildBuffer;
+				mesh->SetElementData(feature, buildBuffer.data());
+			};
+			copyAttribute(Feature::Vertices, positionOffset, 2, outlineOffset);
+			copyAttribute(Feature::UVCoords0, uvOffset, 3);
 			mesh->SetElementData(RN::Mesh::VertexAttribute::Feature::Indices, triangleMesh.indices.data());
 			mesh->EndChanges();
 
-			_meshes->SetObjectForKey(mesh->Autorelease(), RN::Number::WithInt32(codepoint));
+			meshCache->SetObjectForKey(mesh->Autorelease(), RN::Number::WithInt32(codepoint));
 			Unlock();
 
 			return mesh;

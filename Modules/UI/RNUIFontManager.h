@@ -27,6 +27,7 @@ namespace RN
 			UIAPI ~Font();
 
 			UIAPI Mesh *GetMeshForCharacter(int codepoint);
+			UIAPI Mesh *GetMeshForCharacter(int codepoint, float outlineWidth);
 
 			UIAPI float GetOffsetForNextCharacter(int currentCodepoint, int nextCodepoint);
 			UIAPI float GetHeight();
