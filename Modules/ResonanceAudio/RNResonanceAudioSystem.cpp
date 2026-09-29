@@ -141,6 +141,25 @@ namespace RN
 		{
 			// Error.
 		}
+#if RN_PLATFORM_ANDROID && defined(MA_SUPPORT_AAUDIO)
+		else if(_internals->context.backend == ma_backend_aaudio)
+		{
+			// Miniaudio lacks these attributes. Hook builder setup, including route changes.
+			static MA_PFN_AAudioStreamBuilder_setDirection setDirection;
+			static void (*setSpatialized)(ma_AAudioStreamBuilder *, bool);
+			static void (*setBehavior)(ma_AAudioStreamBuilder *, int32_t);
+			ma_context &context = _internals->context;
+			setDirection = reinterpret_cast<decltype(setDirection)>(context.aaudio.AAudioStreamBuilder_setDirection);
+			setSpatialized = reinterpret_cast<decltype(setSpatialized)>(ma_dlsym(ma_context_get_log(&context), context.aaudio.hAAudio, "AAudioStreamBuilder_setIsContentSpatialized"));
+			setBehavior = reinterpret_cast<decltype(setBehavior)>(ma_dlsym(ma_context_get_log(&context), context.aaudio.hAAudio, "AAudioStreamBuilder_setSpatializationBehavior"));
+			context.aaudio.AAudioStreamBuilder_setDirection = reinterpret_cast<ma_proc>(+[](ma_AAudioStreamBuilder *builder, ma_aaudio_direction_t direction) {
+				setDirection(builder, direction);
+				if(direction != MA_AAUDIO_DIRECTION_OUTPUT) return;
+				if(setSpatialized) setSpatialized(builder, true);
+				if(setBehavior) setBehavior(builder, 2); // AAUDIO_SPATIALIZATION_BEHAVIOR_NEVER, API 32.
+			});
+		}
+#endif
 	}
 
 	ResonanceAudioSystemMiniAudio::~ResonanceAudioSystemMiniAudio()
