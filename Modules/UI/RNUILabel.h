@@ -28,6 +28,9 @@ namespace RN
 			UIAPI void SetDefaultAttributes(const TextAttributes &attributes);
 			UIAPI TextAttributes GetDefaultAttributes() const { return _defaultAttributes; }
 			UIAPI void SetTextColor(const Color &color);
+			UIAPI void SetTextOutline(const Color &color, float width);
+			float GetTextOutlineWidth() const { return _textOutlineWidth; }
+			Color GetTextOutlineColor() const { return _textOutlineColor; }
 			UIAPI void SetVerticalAlignment(TextVerticalAlignment alignment);
 
 			UIAPI void SetAdditionalLineHeight(float lineHeight);
@@ -57,11 +60,14 @@ namespace RN
 			UIAPI void SetOpacityFromParent(float parentCombinedOpacity) override;
 
 		private:
+			void UpdateTextOutlineColor();
 			AttributedString *_attributedText;
 			TextAttributes _defaultAttributes;
 			TextVerticalAlignment _verticalAlignment;
 
 			float _additionalLineHeight;
+			Color _textOutlineColor;
+			float _textOutlineWidth;
 			Color _shadowColor;
 			Vector2 _shadowOffset;
 

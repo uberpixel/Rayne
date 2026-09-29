@@ -75,6 +75,9 @@ struct FragmentVertex
 #endif
 #if RN_UV1
 	half3 curveTexCoords : TEXCOORD3;
+#if RN_UI_OUTLINE
+	half4 outlineColor : TEXCOORD7;
+#endif
 #endif
 
 #if RN_UI_GRADIENT
@@ -112,7 +115,12 @@ FragmentVertex ui_vertex(InputVertex vert)
 	float4 colorFactor = float4(cameraAmbientColor.rgb, 1.0);
 
 #if RN_COLOR
+#if RN_UI_OUTLINE && RN_UV1
+	colorFactor.rgb *= vert.position.z < 0.5 ? vert.color.rgb : float3(1.0, 1.0, 1.0);
+	colorFactor.a *= vert.color.a;
+#else
 	colorFactor *= vert.color;
+#endif
 #endif
 
 #if RN_UI_OUTLINE
@@ -123,9 +131,22 @@ FragmentVertex ui_vertex(InputVertex vert)
 #endif
 
 #if RN_UI_GRADIENT
+#if RN_UI_OUTLINE
+	result.color1 = (vert.position.z < 0.5 ? specularColor : uiOutlineColor) * colorFactor;
+	result.color2 = (vert.position.z < 0.5 ? emissiveColor : uiOutlineColor) * colorFactor;
+	result.color3 = (vert.position.z < 0.5 ? ambientColor : uiOutlineColor) * colorFactor;
+#else
 	result.color1 = specularColor * colorFactor;
 	result.color2 = emissiveColor * colorFactor;
 	result.color3 = ambientColor * colorFactor;
+#endif
+#endif
+
+#if RN_UI_OUTLINE && RN_UV1
+	result.outlineColor = uiOutlineColor * float4(cameraAmbientColor.rgb, 1.0);
+#if RN_COLOR
+	result.outlineColor.a *= vert.color.a;
+#endif
 #endif
 
 	return result;
@@ -142,10 +163,6 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 	half4 color = vert.color;
 #endif
 
-#if RN_UV0 && !RN_UI_SDF
-	color *= texture0.Sample(anisotropicClampSampler, vert.texCoords.xy).rgba;
-#endif
-
 #if RN_UV1
 	float curve = (vert.curveTexCoords.x * vert.curveTexCoords.x - vert.curveTexCoords.y);
 
@@ -153,7 +170,24 @@ half4 ui_fragment(FragmentVertex vert) : SV_TARGET
 	float py = ddy(curve);
 	float dist = curve / sqrt(px * px + py * py); //Normalize to pixelsize for anti aliasing
 
-	color.a *= saturate(0.5 - dist * vert.curveTexCoords.z);
+	float coverage = saturate(0.5 - dist * sign(vert.curveTexCoords.z));
+	if(abs(vert.curveTexCoords.z) > 1.5)
+	{
+#if RN_UI_OUTLINE
+		float4 fill = float4(color.rgb * color.a, color.a);
+		float4 outline = float4(vert.outlineColor.rgb * vert.outlineColor.a, vert.outlineColor.a);
+		float4 blended = lerp(outline, fill, coverage);
+		color = half4(blended.a > 0.0 ? blended.rgb / max(blended.a, 1.0e-20) : float3(0.0, 0.0, 0.0), blended.a);
+#endif
+	}
+	else
+	{
+		color.a *= coverage;
+	}
+#endif
+
+#if RN_UV0 && !RN_UI_SDF
+	color *= texture0.Sample(anisotropicClampSampler, vert.texCoords.xy).rgba;
 #endif
 
 #if RN_UI_SDF && RN_UV0

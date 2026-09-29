@@ -17,7 +17,7 @@ namespace RN
 		RNDefineMeta(Label, View)
 
 		Label::Label(const TextAttributes &defaultAttributes) :
-			_attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual), _textMaterial(nullptr), _shadowMaterial(nullptr), _cursorView(nullptr), _cursorBlinkTimer(0.0f), _currentCursorPosition(0)
+			_attributedText(nullptr), _defaultAttributes(defaultAttributes), _additionalLineHeight(0.0f), _textOutlineColor(Color::Black()), _textOutlineWidth(0.0f), _shadowColor(Color::ClearColor()), _verticalAlignment(TextVerticalAlignmentTop), _labelDepthMode(DepthMode::GreaterOrEqual), _textMaterial(nullptr), _shadowMaterial(nullptr), _cursorView(nullptr), _cursorBlinkTimer(0.0f), _currentCursorPosition(0)
 		{
 		}
 		Label::~Label()
@@ -75,6 +75,30 @@ namespace RN
 
 			_defaultAttributes.SetColor(color);
 			SetNeedsRenderPreparation();
+			Unlock();
+		}
+
+		void Label::UpdateTextOutlineColor()
+		{
+			if(!_textMaterial) return;
+			Color color = _textOutlineColor;
+			color.a *= _combinedOpacityFactor;
+			_textMaterial->SetUIOutlineColor(color);
+		}
+
+		void Label::SetTextOutline(const Color &color, float width)
+		{
+			Lock();
+			if(_textOutlineColor != color)
+			{
+				_textOutlineColor = color;
+				UpdateTextOutlineColor();
+			}
+			if(_textOutlineWidth != width)
+			{
+				_textOutlineWidth = width;
+				SetNeedsRenderPreparation();
+			}
 			Unlock();
 		}
 
@@ -156,6 +180,7 @@ namespace RN
 			Color finalColor = Color::White();
 			finalColor.a *= _combinedOpacityFactor;
 			material->SetDiffuseColor(finalColor);
+			UpdateTextOutlineColor();
 			SetDrawableRenderingEnabled(2, finalColor.a >= k::EpsilonFloat && _attributedText && _attributedText->GetLength() > 0);
 
 			const Rect &scissorRect = GetScissorRect();
@@ -1013,7 +1038,7 @@ namespace RN
 					offset = 0.0f;
 				}
 
-				Mesh *mesh = currentFont->GetMeshForCharacter(currentCodepoint);
+				Mesh *mesh = currentFont->GetMeshForCharacter(currentCodepoint, scaleFactor > 0.0f ? _textOutlineWidth / scaleFactor : 0.0f);
 				if(mesh)
 				{
 					characters->AddObject(mesh);
@@ -1105,15 +1130,18 @@ namespace RN
 				lineoffset.push_back(maxLineOffset + _additionalLineHeight);
 			}
 
-			float *vertexPositionBuffer = new float[numberOfVertices * 2];
+			const size_t positionComponents = isUsingSDF ? 2 : 3;
+			float *vertexPositionBuffer = new float[numberOfVertices * positionComponents];
 			float *vertexUVBuffer = new float[numberOfVertices * (isUsingSDF ? 2 : 3)];
 			float *vertexColorBuffer = new float[numberOfVertices * 4];
 
 			RN::uint32 *indexBuffer = new RN::uint32[numberOfIndices];
+			std::vector<RN::uint32> fillIndices;
+			const bool sortOutlineIndices = !isUsingSDF && _textOutlineWidth != 0.0f;
+			if(sortOutlineIndices) fillIndices.reserve(numberOfIndices);
 
 			RN::uint32 vertexOffset = 0;
 			RN::uint32 indexIndexOffset = 0;
-			RN::uint32 indexOffset = 0;
 
 			RN::uint32 linebreakIndex = 0;
 
@@ -1168,13 +1196,14 @@ namespace RN
 				}
 
 				RN::Mesh::Chunk chunk = mesh->GetChunk();
+				const bool hasOutlineRoles = !isUsingSDF && mesh->GetAttribute(RN::Mesh::VertexAttribute::Feature::Vertices)->GetType() == RN::PrimitiveType::Vector3;
 				for(size_t i = 0; i < mesh->GetVerticesCount(); i++)
 				{
 					RN::Vector2 vertexPosition = *chunk.GetIteratorAtIndex<RN::Vector2>(RN::Mesh::VertexAttribute::Feature::Vertices, i);
 					RN::uint32 targetIndex = vertexOffset + i;
 
-					vertexPositionBuffer[targetIndex * 2 + 0] = vertexPosition.x * scaleFactor + characterPositionX;
-					vertexPositionBuffer[targetIndex * 2 + 1] = vertexPosition.y * scaleFactor + characterPositionY;
+					vertexPositionBuffer[targetIndex * positionComponents + 0] = vertexPosition.x * scaleFactor + characterPositionX;
+					vertexPositionBuffer[targetIndex * positionComponents + 1] = vertexPosition.y * scaleFactor + characterPositionY;
 
 					if(isUsingSDF)
 					{
@@ -1190,24 +1219,36 @@ namespace RN
 						vertexUVBuffer[targetIndex * 3 + 2] = vertexUV1.z;
 					}
 
-					vertexColorBuffer[targetIndex * 4 + 0] = currentAttributes->GetColor().r;
-					vertexColorBuffer[targetIndex * 4 + 1] = currentAttributes->GetColor().g;
-					vertexColorBuffer[targetIndex * 4 + 2] = currentAttributes->GetColor().b;
-					vertexColorBuffer[targetIndex * 4 + 3] = currentAttributes->GetColor().a;
+					if(!isUsingSDF)
+					{
+						vertexPositionBuffer[targetIndex * positionComponents + 2] = hasOutlineRoles ?
+						chunk.GetIteratorAtIndex<RN::Vector3>(RN::Mesh::VertexAttribute::Feature::Vertices, i)->z :
+						0.0f;
+					}
+					const Color &color = currentAttributes->GetColor();
+					vertexColorBuffer[targetIndex * 4 + 0] = color.r;
+					vertexColorBuffer[targetIndex * 4 + 1] = color.g;
+					vertexColorBuffer[targetIndex * 4 + 2] = color.b;
+					vertexColorBuffer[targetIndex * 4 + 3] = color.a;
 				}
 
 				for(size_t i = 0; i < mesh->GetIndicesCount(); i++)
 				{
-					indexBuffer[indexIndexOffset + i] = *chunk.GetIteratorAtIndex<RN::uint32>(RN::Mesh::VertexAttribute::Feature::Indices, i) + indexOffset;
+					RN::uint32 sourceIndex = *chunk.GetIteratorAtIndex<RN::uint32>(RN::Mesh::VertexAttribute::Feature::Indices, i);
+					const bool isOutline = sortOutlineIndices && vertexPositionBuffer[(vertexOffset + sourceIndex) * positionComponents + 2] > 0.5f;
+					// Across the whole label, neighboring outlines must precede all fills.
+					if(isOutline || !sortOutlineIndices)
+						indexBuffer[indexIndexOffset++] = sourceIndex + vertexOffset;
+					else
+						fillIndices.push_back(sourceIndex + vertexOffset);
 				}
 
 				vertexOffset += mesh->GetVerticesCount();
-				indexOffset += mesh->GetVerticesCount();
-				indexIndexOffset += mesh->GetIndicesCount();
 			});
+			for(RN::uint32 index : fillIndices) indexBuffer[indexIndexOffset++] = index;
 
 			std::vector<RN::Mesh::VertexAttribute> meshVertexAttributes;
-			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, RN::PrimitiveType::Vector2);
+			meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::Vertices, isUsingSDF ? RN::PrimitiveType::Vector2 : RN::PrimitiveType::Vector3);
 			if(isUsingSDF)
 				meshVertexAttributes.emplace_back(RN::Mesh::VertexAttribute::Feature::UVCoords0, RN::PrimitiveType::Vector2);
 			else
@@ -1258,6 +1299,10 @@ namespace RN
 					{
 						shaderOptions->AddDefine("RN_UI_SDF", "1");
 						material->AddTexture(_defaultAttributes.GetFont()->GetFontTexture());
+					}
+					else
+					{
+						shaderOptions->AddDefine("RN_UI_OUTLINE", "1");
 					}
 
 					ApplyDefaultUIShaders(material, shaderOptions);
@@ -1322,6 +1367,7 @@ namespace RN
 				Color finalColor = Color::White();
 				finalColor.a *= _combinedOpacityFactor;
 				_textMaterial->SetDiffuseColor(finalColor);
+				UpdateTextOutlineColor();
 				SetDrawableRenderingEnabled(2, finalColor.a >= k::EpsilonFloat && _attributedText && _attributedText->GetLength() > 0);
 			}
 
