@@ -162,6 +162,7 @@
                     "options": [
                         "RN_UV0",
                         "RN_UV1",
+                        "RN_UI_OUTLINE",
                         "RN_UI_CIRCLE",
                         "RN_UI_SDF",
                         "RN_UI_GRADIENT"
@@ -222,6 +223,11 @@
         "shaders": [
             {
                 "name": "GenerateMipMaps",
+                "threads_per_group": [
+                    8,
+                    8,
+                    1
+                ],
                 "type": "compute"
             }
         ]
