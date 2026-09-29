@@ -119,43 +119,78 @@ namespace RN
 				Vector2 innerControl(thickness, -thickness);
 				Vector2 innerEnd(innerRadius, -thickness);
 
-				KG::Path path;
-				path.segments.reserve(4);
+				KG::Path outer;
+				outer.segments.reserve(4);
 
 				KG::PathSegment segment;
 				segment.type = KG::PathSegment::TypeBezierQuadratic;
 				addPoint(segment, outerStart);
 				addPoint(segment, outerControl);
 				addPoint(segment, outerEnd);
-				path.segments.push_back(segment);
+				outer.segments.push_back(segment);
 
 				segment = KG::PathSegment();
 				segment.type = KG::PathSegment::TypeLine;
 				addPoint(segment, outerEnd);
 				addPoint(segment, innerEnd);
-				path.segments.push_back(segment);
+				outer.segments.push_back(segment);
 
 				segment = KG::PathSegment();
-				segment.type = KG::PathSegment::TypeBezierQuadratic;
+				segment.type = KG::PathSegment::TypeLine;
 				addPoint(segment, innerEnd);
-				addPoint(segment, innerControl);
 				addPoint(segment, innerStart);
-				path.segments.push_back(segment);
+				outer.segments.push_back(segment);
 
 				segment = KG::PathSegment();
 				segment.type = KG::PathSegment::TypeLine;
 				addPoint(segment, innerStart);
 				addPoint(segment, outerStart);
-				path.segments.push_back(segment);
+				outer.segments.push_back(segment);
 
-				KG::PathCollection paths;
-				paths.paths.push_back(path);
+				KG::PathCollection silhouette;
+				silhouette.paths.push_back(outer);
 
-				mesh = KG::MeshGeneratorLoopBlinn::GetMeshForPathCollection(paths);
+				KG::PathCollection fill;
+				if(radius > thickness)
+				{
+					KG::Path inner;
+					inner.segments.reserve(2);
+
+					segment = KG::PathSegment();
+					segment.type = KG::PathSegment::TypeBezierQuadratic;
+					addPoint(segment, innerStart);
+					addPoint(segment, innerControl);
+					addPoint(segment, innerEnd);
+					inner.segments.push_back(segment);
+
+					segment = KG::PathSegment();
+					segment.type = KG::PathSegment::TypeLine;
+					addPoint(segment, innerEnd);
+					addPoint(segment, innerStart);
+					inner.segments.push_back(segment);
+
+					fill.paths.push_back(inner);
+				}
+
+				if(thickness > 0.0f && KG::MeshGeneratorLoopBlinn::GetMeshForContours(silhouette, fill, mesh) == KG::MeshGeneratorLoopBlinn::Status::Success)
+				{
+					return mesh;
+				}
+
+				mesh = KG::MeshGeneratorLoopBlinn::GetMeshForPathCollection(silhouette);
+				std::vector<float> vertices;
+				vertices.reserve(mesh.vertices.size() / 5 * 6);
+				for(size_t i = 0; i < mesh.vertices.size(); i += 5)
+				{
+					vertices.insert(vertices.end(), mesh.vertices.begin() + i, mesh.vertices.begin() + i + 5);
+					vertices.push_back(0.0f);
+				}
+				mesh.vertices.swap(vertices);
+				mesh.features.push_back(KG::TriangleMesh::VertexFeatureOutline);
 				return mesh;
 			}
 
-			static const KG::TriangleMesh GetCornerMesh(float radius, float thickness, bool useCache)
+			static KG::TriangleMesh GetCornerMesh(float radius, float thickness, bool useCache)
 			{
 				static std::map<CornerCacheKey, KG::TriangleMesh> cache;
 
@@ -1014,34 +1049,28 @@ namespace RN
 				size_t vertexPositionSize = (_hasOutline ? 3 : 2);
 
 				const bool shouldGenerateOutlineMesh = (_hasOutline && _outlineThickness > RN::k::EpsilonFloat);
-				size_t outlineEdgeVertexCount = 0;
-				size_t outlineEdgeIndexCount = 0;
-				size_t cornerOutlineVertexCount = 0;
-				size_t cornerOutlineIndexCount = 0;
 
 				std::array<KG::TriangleMesh, 4> cornerMeshData;
 
 				if(shouldGenerateOutlineMesh)
 				{
-					outlineEdgeVertexCount = 4 * 4;
-					outlineEdgeIndexCount = 4 * 6;
+					vertexCount += 4 * 4;
+					// Corner meshes also own the four fill wedges.
+					indexCount = 18 + 4 * 6;
 
 					auto accumulateCorner = [&](size_t index, float radius)
 					{
 						if(radius <= RN::k::EpsilonFloat) return;
 						cornerMeshData[index] = GetCornerMesh(radius, _outlineThickness, _useOutlineCache);
 
-						cornerOutlineVertexCount += cornerMeshData[index].vertices.size() / 5;
-						cornerOutlineIndexCount += cornerMeshData[index].indices.size();
+						vertexCount += cornerMeshData[index].vertices.size() / 6;
+						indexCount += cornerMeshData[index].indices.size();
 					};
 
 					accumulateCorner(0, cornerRadius.y);
 					accumulateCorner(1, cornerRadius.w);
 					accumulateCorner(2, cornerRadius.z);
 					accumulateCorner(3, cornerRadius.x);
-
-					vertexCount += outlineEdgeVertexCount + cornerOutlineVertexCount;
-					indexCount += outlineEdgeIndexCount + cornerOutlineIndexCount;
 				}
 
 				float *vertexPositionBuffer = new float[vertexCount * vertexPositionSize];
@@ -1049,23 +1078,30 @@ namespace RN
 				float *vertexUV1Buffer = new float[vertexCount * 3];
 				uint32 *indexBuffer = new uint32[indexCount];
 
+				Vector4 innerCornerRadius(
+					std::max(_outlineThickness, cornerRadius.x),
+					std::max(_outlineThickness, cornerRadius.y),
+					std::max(_outlineThickness, cornerRadius.z),
+					std::max(_outlineThickness, cornerRadius.w)
+				);
+
 				vertexPositionBuffer[0 * vertexPositionSize + 0] = _outlineThickness;
 				vertexPositionBuffer[0 * vertexPositionSize + 1] = -_outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[0 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[1 * vertexPositionSize + 0] = cornerRadius.x;
+				vertexPositionBuffer[1 * vertexPositionSize + 0] = innerCornerRadius.x;
 				vertexPositionBuffer[1 * vertexPositionSize + 1] = -_outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[1 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[2 * vertexPositionSize + 0] = cornerRadius.x;
+				vertexPositionBuffer[2 * vertexPositionSize + 0] = innerCornerRadius.x;
 				vertexPositionBuffer[2 * vertexPositionSize + 1] = -_outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[2 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[3 * vertexPositionSize + 0] = _frame.width - cornerRadius.y;
+				vertexPositionBuffer[3 * vertexPositionSize + 0] = _frame.width - innerCornerRadius.y;
 				vertexPositionBuffer[3 * vertexPositionSize + 1] = -_outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[3 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[4 * vertexPositionSize + 0] = _frame.width - cornerRadius.y;
+				vertexPositionBuffer[4 * vertexPositionSize + 0] = _frame.width - innerCornerRadius.y;
 				vertexPositionBuffer[4 * vertexPositionSize + 1] = -_outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[4 * vertexPositionSize + 2] = 0.0f;
 
@@ -1074,38 +1110,38 @@ namespace RN
 				if(_hasOutline) vertexPositionBuffer[5 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[6 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
-				vertexPositionBuffer[6 * vertexPositionSize + 1] = -cornerRadius.y;
+				vertexPositionBuffer[6 * vertexPositionSize + 1] = -innerCornerRadius.y;
 				if(_hasOutline) vertexPositionBuffer[6 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[7 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
-				vertexPositionBuffer[7 * vertexPositionSize + 1] = -cornerRadius.y;
+				vertexPositionBuffer[7 * vertexPositionSize + 1] = -innerCornerRadius.y;
 				if(_hasOutline) vertexPositionBuffer[7 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[8 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
-				vertexPositionBuffer[8 * vertexPositionSize + 1] = cornerRadius.w - _frame.height;
+				vertexPositionBuffer[8 * vertexPositionSize + 1] = innerCornerRadius.w - _frame.height;
 				if(_hasOutline) vertexPositionBuffer[8 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[9 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
-				vertexPositionBuffer[9 * vertexPositionSize + 1] = cornerRadius.w - _frame.height;
+				vertexPositionBuffer[9 * vertexPositionSize + 1] = innerCornerRadius.w - _frame.height;
 				if(_hasOutline) vertexPositionBuffer[9 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[10 * vertexPositionSize + 0] = _frame.width - _outlineThickness;
 				vertexPositionBuffer[10 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[10 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[11 * vertexPositionSize + 0] = _frame.width - cornerRadius.w;
+				vertexPositionBuffer[11 * vertexPositionSize + 0] = _frame.width - innerCornerRadius.w;
 				vertexPositionBuffer[11 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[11 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[12 * vertexPositionSize + 0] = _frame.width - cornerRadius.w;
+				vertexPositionBuffer[12 * vertexPositionSize + 0] = _frame.width - innerCornerRadius.w;
 				vertexPositionBuffer[12 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[12 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[13 * vertexPositionSize + 0] = cornerRadius.z;
+				vertexPositionBuffer[13 * vertexPositionSize + 0] = innerCornerRadius.z;
 				vertexPositionBuffer[13 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[13 * vertexPositionSize + 2] = 0.0f;
 
-				vertexPositionBuffer[14 * vertexPositionSize + 0] = cornerRadius.z;
+				vertexPositionBuffer[14 * vertexPositionSize + 0] = innerCornerRadius.z;
 				vertexPositionBuffer[14 * vertexPositionSize + 1] = -_frame.height + _outlineThickness;
 				if(_hasOutline) vertexPositionBuffer[14 * vertexPositionSize + 2] = 0.0f;
 
@@ -1114,19 +1150,19 @@ namespace RN
 				if(_hasOutline) vertexPositionBuffer[15 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[16 * vertexPositionSize + 0] = _outlineThickness;
-				vertexPositionBuffer[16 * vertexPositionSize + 1] = cornerRadius.z - _frame.height;
+				vertexPositionBuffer[16 * vertexPositionSize + 1] = innerCornerRadius.z - _frame.height;
 				if(_hasOutline) vertexPositionBuffer[16 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[17 * vertexPositionSize + 0] = _outlineThickness;
-				vertexPositionBuffer[17 * vertexPositionSize + 1] = cornerRadius.z - _frame.height;
+				vertexPositionBuffer[17 * vertexPositionSize + 1] = innerCornerRadius.z - _frame.height;
 				if(_hasOutline) vertexPositionBuffer[17 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[18 * vertexPositionSize + 0] = _outlineThickness;
-				vertexPositionBuffer[18 * vertexPositionSize + 1] = -cornerRadius.x;
+				vertexPositionBuffer[18 * vertexPositionSize + 1] = -innerCornerRadius.x;
 				if(_hasOutline) vertexPositionBuffer[18 * vertexPositionSize + 2] = 0.0f;
 
 				vertexPositionBuffer[19 * vertexPositionSize + 0] = _outlineThickness;
-				vertexPositionBuffer[19 * vertexPositionSize + 1] = -cornerRadius.x;
+				vertexPositionBuffer[19 * vertexPositionSize + 1] = -innerCornerRadius.x;
 				if(_hasOutline) vertexPositionBuffer[19 * vertexPositionSize + 2] = 0.0f;
 
 				for(int i = 0; i < 20; i++)
@@ -1177,87 +1213,70 @@ namespace RN
 				vertexUV1Buffer[16 * 3 + 0] = 1.0f;
 				vertexUV1Buffer[16 * 3 + 1] = 1.0f;
 
-				indexBuffer[0] = 0;
-				indexBuffer[1] = 1;
-				indexBuffer[2] = 19;
+				indexBuffer[0] = 2;
+				indexBuffer[1] = 17;
+				indexBuffer[2] = 18;
 
 				indexBuffer[3] = 2;
-				indexBuffer[4] = 17;
-				indexBuffer[5] = 18;
+				indexBuffer[4] = 13;
+				indexBuffer[5] = 17;
 
 				indexBuffer[6] = 2;
-				indexBuffer[7] = 13;
-				indexBuffer[8] = 17;
+				indexBuffer[7] = 3;
+				indexBuffer[8] = 13;
 
-				indexBuffer[9] = 14;
-				indexBuffer[10] = 15;
-				indexBuffer[11] = 16;
+				indexBuffer[9] = 3;
+				indexBuffer[10] = 12;
+				indexBuffer[11] = 13;
 
-				indexBuffer[12] = 2;
-				indexBuffer[13] = 3;
-				indexBuffer[14] = 13;
+				indexBuffer[12] = 3;
+				indexBuffer[13] = 7;
+				indexBuffer[14] = 12;
 
-				indexBuffer[15] = 3;
-				indexBuffer[16] = 12;
-				indexBuffer[17] = 13;
+				indexBuffer[15] = 7;
+				indexBuffer[16] = 8;
+				indexBuffer[17] = 12;
 
-				indexBuffer[18] = 3;
-				indexBuffer[19] = 7;
-				indexBuffer[20] = 12;
+				if(!shouldGenerateOutlineMesh)
+				{
+					indexBuffer[18] = 0;
+					indexBuffer[19] = 1;
+					indexBuffer[20] = 19;
 
-				indexBuffer[21] = 7;
-				indexBuffer[22] = 8;
-				indexBuffer[23] = 12;
+					indexBuffer[21] = 14;
+					indexBuffer[22] = 15;
+					indexBuffer[23] = 16;
 
-				indexBuffer[24] = 4;
-				indexBuffer[25] = 5;
-				indexBuffer[26] = 6;
+					indexBuffer[24] = 4;
+					indexBuffer[25] = 5;
+					indexBuffer[26] = 6;
 
-				indexBuffer[27] = 9;
-				indexBuffer[28] = 10;
-				indexBuffer[29] = 11;
+					indexBuffer[27] = 9;
+					indexBuffer[28] = 10;
+					indexBuffer[29] = 11;
+				}
 
 				if(shouldGenerateOutlineMesh)
 				{
 					size_t outlineVertexCursor = 20;
-					size_t outlineIndexCursor = 30;
+					size_t outlineIndexCursor = 18;
 
-					Vector4 innerCornerRadius(
-						std::max(_outlineThickness, cornerRadius.x),
-						std::max(_outlineThickness, cornerRadius.y),
-						std::max(_outlineThickness, cornerRadius.z),
-						std::max(_outlineThickness, cornerRadius.w)
-					);
-
-					auto writePositionAndUV0 = [&](size_t vertexIndex, const Vector2 &position)
+					auto writeVertex = [&](size_t index, const Vector2 &position, const Vector3 &curveUV, float outlineRole)
 					{
-						vertexPositionBuffer[vertexIndex * vertexPositionSize + 0] = position.x;
-						vertexPositionBuffer[vertexIndex * vertexPositionSize + 1] = position.y;
-						vertexPositionBuffer[vertexIndex * vertexPositionSize + 2] = 1.0f;
+						vertexPositionBuffer[index * vertexPositionSize + 0] = position.x;
+						vertexPositionBuffer[index * vertexPositionSize + 1] = position.y;
+						if(_hasOutline) vertexPositionBuffer[index * vertexPositionSize + 2] = outlineRole;
 
 						float u = position.x / _frame.width * _uvScale.x + _uvOffset.x;
 						float v = -position.y / _frame.height * _uvScale.y + _uvOffset.y;
 						if(_mirrorU) u = 1.0f - u;
 						if(_mirrorV) v = 1.0f - v;
 
-						vertexUV0Buffer[vertexIndex * 2 + 0] = u;
-						vertexUV0Buffer[vertexIndex * 2 + 1] = v;
-					};
-
-					auto writeOutlineVertex = [&](size_t vertexIndex, const Vector2 &position)
-					{
-						writePositionAndUV0(vertexIndex, position);
-						vertexUV1Buffer[vertexIndex * 3 + 0] = 0.0f;
-						vertexUV1Buffer[vertexIndex * 3 + 1] = 1.0f;
-						vertexUV1Buffer[vertexIndex * 3 + 2] = 1.0f;
-					};
-
-					auto writeCornerVertex = [&](size_t vertexIndex, const Vector2 &position, const Vector3 &uv1)
-					{
-						writePositionAndUV0(vertexIndex, position);
-						vertexUV1Buffer[vertexIndex * 3 + 0] = uv1.x;
-						vertexUV1Buffer[vertexIndex * 3 + 1] = uv1.y;
-						vertexUV1Buffer[vertexIndex * 3 + 2] = uv1.z;
+						vertexUV0Buffer[index * 2 + 0] = u;
+						vertexUV0Buffer[index * 2 + 1] = v;
+						vertexUV1Buffer[index * 3 + 0] = curveUV.x;
+						vertexUV1Buffer[index * 3 + 1] = curveUV.y;
+						vertexUV1Buffer[index * 3 + 2] = curveUV.z;
 					};
 
 					auto addOutlineQuad = [&](const Vector2 &outerStart, const Vector2 &outerEnd, const Vector2 &innerStart, const Vector2 &innerEnd)
@@ -1265,10 +1284,10 @@ namespace RN
 						size_t vertexOffset = outlineVertexCursor;
 						outlineVertexCursor += 4;
 
-						writeOutlineVertex(vertexOffset + 0, outerStart);
-						writeOutlineVertex(vertexOffset + 1, outerEnd);
-						writeOutlineVertex(vertexOffset + 2, innerStart);
-						writeOutlineVertex(vertexOffset + 3, innerEnd);
+						writeVertex(vertexOffset + 0, outerStart, Vector3(0.0f, 1.0f, 1.0f), 1.0f);
+						writeVertex(vertexOffset + 1, outerEnd, Vector3(0.0f, 1.0f, 1.0f), 1.0f);
+						writeVertex(vertexOffset + 2, innerStart, Vector3(0.0f, 1.0f, 1.0f), 1.0f);
+						writeVertex(vertexOffset + 3, innerEnd, Vector3(0.0f, 1.0f, 1.0f), 1.0f);
 
 						size_t indexOffset = outlineIndexCursor;
 						outlineIndexCursor += 6;
@@ -1280,7 +1299,7 @@ namespace RN
 						indexBuffer[indexOffset + 5] = static_cast<uint32>(vertexOffset + 3);
 					};
 
-					auto addCornerMesh = [&](CornerType type, const Vector2 &translation, float radius, const KG::TriangleMesh &cornerMesh)
+					auto addCornerMesh = [&](CornerType type, const Vector2 &translation, const KG::TriangleMesh &cornerMesh)
 					{
 						if(cornerMesh.vertices.empty()) return;
 
@@ -1300,18 +1319,19 @@ namespace RN
 							return position;
 						};
 
-						const size_t vertexCount = cornerMesh.vertices.size() / 5;
+						const size_t vertexCount = cornerMesh.vertices.size() / 6;
 						size_t vertexOffset = outlineVertexCursor;
 						for(size_t i = 0; i < vertexCount; i++)
 						{
-							const float x = static_cast<float>(cornerMesh.vertices[i * 5 + 0]);
-							const float y = static_cast<float>(cornerMesh.vertices[i * 5 + 1]);
-							const float g = static_cast<float>(cornerMesh.vertices[i * 5 + 2]);
-							const float f = static_cast<float>(cornerMesh.vertices[i * 5 + 3]);
-							const float s = static_cast<float>(cornerMesh.vertices[i * 5 + 4]);
+							const float x = cornerMesh.vertices[i * 6 + 0];
+							const float y = cornerMesh.vertices[i * 6 + 1];
+							const float curveU = cornerMesh.vertices[i * 6 + 2];
+							const float curveV = cornerMesh.vertices[i * 6 + 3];
+							const float curveDirection = cornerMesh.vertices[i * 6 + 4];
+							const float outlineRole = cornerMesh.vertices[i * 6 + 5];
 
-							Vector2 rotatedPosition = rotatePosition(Vector2(x, y)) + translation;
-							writeCornerVertex(vertexOffset + i, rotatedPosition, Vector3(g, f, s));
+							Vector2 position = rotatePosition(Vector2(x, y)) + translation;
+							writeVertex(vertexOffset + i, position, Vector3(curveU, curveV, curveDirection), outlineRole);
 						}
 
 						const uint32 baseIndex = static_cast<uint32>(vertexOffset);
@@ -1351,10 +1371,10 @@ namespace RN
 						Vector2(_outlineThickness, -_frame.height + innerCornerRadius.z),
 						Vector2(_outlineThickness, -innerCornerRadius.x));
 
-					addCornerMesh(CornerType::TopRight, Vector2(_frame.width, 0.0f), cornerRadius.y, cornerMeshData[0]);
-					addCornerMesh(CornerType::BottomRight, Vector2(_frame.width, -_frame.height), cornerRadius.w, cornerMeshData[1]);
-					addCornerMesh(CornerType::BottomLeft, Vector2(0.0f, -_frame.height), cornerRadius.z, cornerMeshData[2]);
-					addCornerMesh(CornerType::TopLeft, Vector2(0.0f, 0.0f), cornerRadius.x, cornerMeshData[3]);
+					addCornerMesh(CornerType::TopRight, Vector2(_frame.width, 0.0f), cornerMeshData[0]);
+					addCornerMesh(CornerType::BottomRight, Vector2(_frame.width, -_frame.height), cornerMeshData[1]);
+					addCornerMesh(CornerType::BottomLeft, Vector2(0.0f, -_frame.height), cornerMeshData[2]);
+					addCornerMesh(CornerType::TopLeft, Vector2(0.0f, 0.0f), cornerMeshData[3]);
 				}
 
 				std::vector<Mesh::VertexAttribute> meshVertexAttributes;
