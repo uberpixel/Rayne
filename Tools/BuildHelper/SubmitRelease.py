@@ -288,7 +288,7 @@ def main():
 			if isDemo:
 				releasesDirectoryPath += "_demo"
 			apkToUpload = os.path.join(releasesDirectoryPath, configNameLower+"-"+"pico"+".apk")
-			uploadCommand = [picoUtilityFile, 'upload-build', '-r', 'noncn', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', '4', '--device', 'PICO Neo3,PICO 4,PICO 4 Pro']
+			uploadCommand = [picoUtilityFile, 'upload-build', '-r', 'noncn', '--apk', apkToUpload, '-a', appID, '-s', appSecret, '-c', '4', '--device', 'PICO Neo3,PICO 4,PICO 4 Pro,PICO 4 Ultra,PICO Space Pro']
 			if configChangelog != None:
 				with open(configChangelog, "r") as f:
 					changes = f.read()
