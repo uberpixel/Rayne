@@ -704,11 +704,6 @@ private:
 		return MakePrecisionBase(RVec3(planetTransform.InversedRotationTranslation() * shapeTransform.GetTranslation()));
 	}
 
-	static PrecisionBase GetCastLocalBase(const ShapeCast &shapeCast, Mat44Arg planetTransform)
-	{
-		return MakePrecisionBase(RVec3(planetTransform.InversedRotationTranslation() * shapeCast.mCenterOfMassStart.GetTranslation()));
-	}
-
 	static PrecisionBase GetSimulationCollisionLocalBase(const Body &shapeBody, const Body &planetBody)
 	{
 		return MakePrecisionBase(planetBody.GetInverseCenterOfMassTransform() * shapeBody.GetCenterOfMassPosition());
@@ -1094,10 +1089,11 @@ private:
 			}
 		};
 
-		const PrecisionBase localBase = GetCastLocalBase(shapeCast, planetTransform);
+		// CollisionDispatch supplies the cast in planet-local space; results use the world offset.
+		const PrecisionBase localBase = MakePrecisionBase(RVec3(shapeCast.mCenterOfMassStart.GetTranslation()));
 		const Vec3 worldBase = planetTransform * localBase.vector;
 		const Mat44 shiftedPlanetTransform = GetShiftedReferenceTransform(planetTransform);
-		const ShapeCast shiftedShapeCast = shapeCast.PostTranslated(-worldBase);
+		const ShapeCast shiftedShapeCast = shapeCast.PostTranslated(-localBase.vector);
 		OffsetCastShapeCollector offsetCollector(collector, worldBase);
 
 		const AABox castBounds = GetShapeCastBounds(shiftedShapeCast);
