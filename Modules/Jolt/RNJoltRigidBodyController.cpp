@@ -179,7 +179,9 @@ namespace RN
 		if(((heightDifference < 0.0f) ? -heightDifference : heightDifference) < k::EpsilonFloat) return true;
 
 		JoltShape *newShape = JoltCapsuleShape::WithRadius(_radius, height);
-		bool didSetShape = _controller->SetShape(newShape->GetJoltShape(), checkIfBlocked ? 0.01f : 1000000.0f);
+		// Accept the overlap allowed by normal physics contacts when checking a resize.
+		float allowedPenetration = std::max(0.01f, JoltWorld::GetSharedInstance()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
+		bool didSetShape = _controller->SetShape(newShape->GetJoltShape(), checkIfBlocked ? allowedPenetration : 1000000.0f);
 		if(!didSetShape) return false;
 
 		SafeRelease(_shape);
