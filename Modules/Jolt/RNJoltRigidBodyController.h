@@ -35,6 +35,9 @@ namespace RN
 		JTAPI void SetMaxLinearVelocity(float max);
 		JTAPI void ApplyGravity(const Vector3 &gravity);
 		JTAPI bool Resize(float height, bool checkIfBlocked = true);
+		// Query a feet-preserving capsule at both poses without changing the body.
+		// Unlike Resize, require clear non-support contacts while allowing normal floor penetration.
+		JTAPI bool CanResize(float height, const Vector3 &movement = Vector3()) const;
 		JTAPI void SetStepOffset(float stepOffset) { _stepOffset = stepOffset; }
 		JTAPI void SetUpDirection(const Vector3 &upDirection);
 		JTAPI void SetExternalSupportAnchor(uint32 bodyID, const Vector3 &localPosition, float maxForce);

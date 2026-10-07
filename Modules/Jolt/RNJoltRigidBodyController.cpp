@@ -190,6 +190,29 @@ namespace RN
 		return true;
 	}
 
+	bool JoltRigidBodyController::CanResize(float height, const Vector3 &movement) const
+	{
+		if(!std::isfinite(height) || height <= 0.0f || !movement.IsValid()) return false;
+
+		JoltShape *candidateShape = JoltCapsuleShape::WithRadius(_radius, height);
+		const JPH::Quat rotation = _controller->GetRotation();
+		const JPH::RVec3 position = _controller->GetPosition() + rotation * JPH::Vec3(0.0f, (height - _height) * 0.5f, 0.0f);
+		const float allowedPenetration = std::max(0.01f, JoltWorld::GetSharedInstance()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
+		for(int pose = 0; pose < 2; pose++)
+		{
+			const JPH::RVec3 candidatePosition = position + JoltConversions::ToJoltVector(movement) * static_cast<float>(pose);
+			JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> hits;
+			_controller->CheckCollision(candidatePosition, rotation, JoltConversions::ToJoltVector(movement), 0.0f, candidateShape->GetJoltShape(), candidatePosition, hits);
+			for(const JPH::CollideShapeResult &hit : hits.mHits)
+			{
+				const JPH::Vec3 normal = -hit.mPenetrationAxis.NormalizedOr(JPH::Vec3::sZero());
+				const float limit = normal.Dot(rotation * JPH::Vec3::sAxisY()) >= 0.5f ? allowedPenetration : k::EpsilonFloat;
+				if(hit.mPenetrationDepth > limit) return false;
+			}
+		}
+		return true;
+	}
+
 	void JoltRigidBodyController::SetCollisionFilter(uint32 group, uint32 mask)
 	{
 		JoltCollisionObject::SetCollisionFilter(group, mask);
