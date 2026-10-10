@@ -288,9 +288,7 @@ namespace RN
 			return;
 		}
 
-		const uint32 sourcesIndex = world->_audioSourcesSnapshotIndex.load(std::memory_order_acquire) % 3;
-		world->_audioSourcesSnapshotInUseIndex.store(sourcesIndex, std::memory_order_relaxed);
-		Array *sourcesSnapshot = world->_audioSourcesSnapshots[sourcesIndex];
+		Array *sourcesSnapshot = world->AcquireAudioSourcesSnapshot();
 
 		sourcesSnapshot->Enumerate<ResonanceAudioSource>([&](ResonanceAudioSource *source, size_t index, bool &stop){
 			source->Update();

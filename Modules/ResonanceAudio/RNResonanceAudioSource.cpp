@@ -304,30 +304,23 @@ namespace RN
 			return false;
 		}
 
-		if(_sampler->GetAsset()->GetType() == AudioAsset::Type::Ringbuffer)
+		const bool isRingbuffer = asset->GetType() == AudioAsset::Type::Ringbuffer;
+		uint32 ringBytes = 0;
+		if(isRingbuffer)
 		{
-			//Buffer for audio data to play
-			uint32 bytesPerSecond = _sampler->GetAsset()->GetSampleRate() * _sampler->GetAsset()->GetBytesPerSample();
-			uint32 assetFrameSamples = std::round(frameLength * bytesPerSecond);
-			if(_sampler->GetAsset()->GetBufferedSize() < assetFrameSamples)
+			const uint32 bytesPerSecond = asset->GetSampleRate() * asset->GetBytesPerSample();
+			ringBytes = std::round(frameLength * bytesPerSecond);
+			const uint32 bufferedSize = asset->GetBufferedSize();
+			if(bufferedSize < ringBytes)
 			{
 				*outputBuffer = nullptr;
 				return false;
 			}
-			else
-			{
-				//Skip samples if data is written faster than played
-				uint32 maxBufferedLength = assetFrameSamples * 20;
-				if(_sampler->GetAsset()->GetBufferedSize() > maxBufferedLength)
-				{
-					uint32 skipBytes = _sampler->GetAsset()->GetBufferedSize() - assetFrameSamples;
-					double skipTime = skipBytes / static_cast<double>(bytesPerSecond);
-					_currentTime += skipTime;
-					_sampler->GetAsset()->PopData(nullptr, skipBytes);
-				}
-
-				_sampler->GetAsset()->PopData(nullptr, assetFrameSamples);
-			}
+			// Catch up to the newest frame when the producer runs too far ahead.
+			if(bufferedSize > ringBytes * 20) asset->PopData(nullptr, bufferedSize - ringBytes);
+			// A new source may attach to an already consumed stream. The unread
+			// ring position, rather than source lifetime, defines its next sample.
+			_currentTime = asset->GetReadPosition() / static_cast<double>(bytesPerSecond);
 		}
 
 		double sampleLength = frameLength / static_cast<double>(sampleCount);
@@ -345,11 +338,12 @@ namespace RN
 		float volume = _isPositional ? 1.0f : _volume.load(std::memory_order_relaxed);
 		bool isMonoAsset = _sampler->GetAsset()->GetChannels() == 1;
 		
+		const bool ringFadeOut = isRingbuffer && _fadeSamples < 0;
 		float *targetBuffer = *outputBuffer;
 
 		for(int i = 0; i < sampleCount; i++)
 		{
-			float gain = volume;
+			float gain = ringFadeOut && _fadeSamples == 0 ? 0.0f : volume;
 
 			if(_fadeSamples > 0)
 			{
@@ -371,7 +365,9 @@ namespace RN
 			if(_isPlaying) localTime += sampleLength * pitch;
 			pitch += pitchStep;
 
-			if(_fadeSamples == 0)
+			// Keep the ring asset and its unread bytes owned until sampling completes.
+			// Pending stream changes take effect at the next frame boundary.
+			if(_fadeSamples == 0 && !isRingbuffer)
 			{
 				if(ProcessPendingActions())
 				{
@@ -388,6 +384,7 @@ namespace RN
 				localTime = fmod(localTime, totalTime);
 			}
 		}
+		if(isRingbuffer) asset->PopData(nullptr, ringBytes);
 		_currentPitch = targetPitch;
 		_currentTime = localTime;
 		_cachedCurrentTime.store(_currentTime, std::memory_order_relaxed);

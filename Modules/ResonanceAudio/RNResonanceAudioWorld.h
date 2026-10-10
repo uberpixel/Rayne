@@ -70,6 +70,7 @@ namespace RN
 		void AddAudioSource(ResonanceAudioSource *source);
 		void RemoveAudioSource(ResonanceAudioSource *source);
 		void PublishAudioSourcesSnapshot(const std::vector<ResonanceAudioSource *> &sources);
+		Array *AcquireAudioSourcesSnapshot();
 
 		static ResonanceAudioWorld *_instance;
 
@@ -78,8 +79,11 @@ namespace RN
 		std::vector<ResonanceAudioSource *> _audioSources;
 		bool _audioSourcesSnapshotDirty = false;
 		Array *_audioSourcesSnapshots[3];
-		std::atomic<uint32> _audioSourcesSnapshotIndex {0};
-		std::atomic<uint32> _audioSourcesSnapshotInUseIndex {0};
+		// SPSC ownership: output callback owns front, scene update owns back.
+		// Bit 2 marks a complete pending publication; exchange transfers ownership.
+		uint32 _audioSourcesSnapshotFront = 0;
+		std::atomic<uint32> _audioSourcesSnapshotPending {1};
+		uint32 _audioSourcesSnapshotBack = 2;
 
 		std::atomic<float> _worldMasterVolume;
 

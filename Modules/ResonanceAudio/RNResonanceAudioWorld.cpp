@@ -81,11 +81,7 @@ namespace RN
 
 	void ResonanceAudioWorld::PublishAudioSourcesSnapshot(const std::vector<ResonanceAudioSource *> &sources)
 	{
-		const uint32 inUse = _audioSourcesSnapshotInUseIndex.load(std::memory_order_relaxed) % 3;
-		const uint32 published = _audioSourcesSnapshotIndex.load(std::memory_order_relaxed) % 3;
-
-		uint32 writeIndex = (published + 1) % 3;
-		if(writeIndex == inUse) writeIndex = (writeIndex + 1) % 3;
+		const uint32 writeIndex = _audioSourcesSnapshotBack;
 
 		Array *fresh = _audioSourcesSnapshots[writeIndex];
 		fresh->RemoveAllObjects();
@@ -95,7 +91,16 @@ namespace RN
 			fresh->AddObject(source);
 		}
 
-		_audioSourcesSnapshotIndex.store(writeIndex, std::memory_order_release);
+		_audioSourcesSnapshotBack = _audioSourcesSnapshotPending.exchange(writeIndex | 4U, std::memory_order_acq_rel) & 3U;
+	}
+
+	Array *ResonanceAudioWorld::AcquireAudioSourcesSnapshot()
+	{
+		if(_audioSourcesSnapshotPending.load(std::memory_order_acquire) & 4U)
+		{
+			_audioSourcesSnapshotFront = _audioSourcesSnapshotPending.exchange(_audioSourcesSnapshotFront, std::memory_order_acq_rel) & 3U;
+		}
+		return _audioSourcesSnapshots[_audioSourcesSnapshotFront];
 	}
 
 	void ResonanceAudioWorld::SetSimpleRoomEnabled(bool enabled)
