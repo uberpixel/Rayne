@@ -64,6 +64,7 @@ namespace RN
 		uint32 GetSampleRate() const { return _sampleRate; }
 		uint32 GetChannels() const { return _channels; }
 		uint32 GetBufferedSize() const { return _bufferedSize.load(); }
+		uint32 GetReadPosition() const { return _readPosition.load(std::memory_order_relaxed); }
 		Type GetType() const { return _type; }
 
 		RNAPI static AudioAsset *WithName(const String *name, const Dictionary *settings = nullptr);
