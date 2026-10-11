@@ -1257,6 +1257,7 @@ namespace RN
 			{
 				RNInfo("Member joined: " << Data->TargetUserId);
 				connectedLobbyInfo->AddRemotePeer(Data->TargetUserId);
+				if(connectedLobbyInfo->_associatedHost) connectedLobbyInfo->_associatedHost->LobbyMemberJoined(Data->TargetUserId);
 				break;
 			}
 			case EOS_ELobbyMemberStatus::EOS_LMS_LEFT:
@@ -1274,7 +1275,7 @@ namespace RN
 				{
 					if(connectedLobbyInfo->_associatedHost)
 					{
-						connectedLobbyInfo->_associatedHost->DisconnectClient(Data->TargetUserId);
+						connectedLobbyInfo->_associatedHost->LobbyMemberLeft(Data->TargetUserId);
 					}
 				}
 				break;
@@ -1304,7 +1305,7 @@ namespace RN
 				{
 					if(connectedLobbyInfo->_associatedHost)
 					{
-						connectedLobbyInfo->_associatedHost->DisconnectClient(Data->TargetUserId);
+						connectedLobbyInfo->_associatedHost->LobbyMemberLeft(Data->TargetUserId);
 					}
 				}
 				break;

@@ -83,34 +83,33 @@ namespace RN
 			Unlock();
 			return;
 		}
-
-		if(_status == Connecting)
-		{
-			Unlock();
-			ForceDisconnect(0);
-			return;
-		}
-
 		_status = Disconnecting;
+		for(auto &peer : _peers)
+		{
+			peer.second._wantsDisconnect = true;
+		}
+		Retain();
+		Unlock();
 
 		EOSWorld *world = EOSWorld::GetInstance();
-
 		EOS_P2P_SocketId socketID = {};
 		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
 		strncpy(socketID.SocketName, _socketID->GetUTF8String(), EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
-
-		EOS_P2P_CloseConnectionsOptions options;
-		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
+		EOS_P2P_CloseConnectionsOptions options = {};
+		options.ApiVersion = EOS_P2P_CLOSECONNECTIONS_API_LATEST;
 		options.LocalUserId = world->GetUserID();
 		options.SocketId = &socketID;
-
 		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
-		Unlock();
+		ForceDisconnect(0);
+		Release();
 	}
-	
+
 	void EOSClient::DisconnectClient(EOS_ProductUserId productUserId)
 	{
-		if(productUserId == EOSWorld::GetInstance()->GetUserID() || _peers.find(productUserId) != _peers.end()) Disconnect();
+		Lock();
+		bool isKnownPeer = productUserId == EOSWorld::GetInstance()->GetUserID() || _peers.find(productUserId) != _peers.end();
+		Unlock();
+		if(isKnownPeer) Disconnect();
 		else
 		{
 			RNWarning("Trying to disconnect from unknown peer " << productUserId);
@@ -120,6 +119,11 @@ namespace RN
 	void EOSClient::ForceDisconnect(uint16 reason)
 	{
 		Lock();
+		if(_status == Disconnected && _peers.empty())
+		{
+			Unlock();
+			return;
+		}
 		_status = Disconnected;
 		for(auto &peer : _peers) ClearPeerData(peer.second);
 		_peers.clear();
@@ -134,7 +138,7 @@ namespace RN
 	{
 		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeader)) return;
 		EOSHost::ReceivedPacketInternal(rawData, bytesWritten, senderUserID, channel);
-		if(channel == 255) return; //This is a ping, handled by the Host class
+		if(IsReservedChannel(channel)) return; //Host control traffic
 
 		Lock();
 		if(_status == Disconnected || _status == Disconnecting || _peers.empty() || _peers.begin()->first != senderUserID)
@@ -145,42 +149,55 @@ namespace RN
 
 		Peer &peer = _peers.begin()->second; //Server is the only peer
 		peer._isConnectionActive = true;
+		uint64 senderStream = peer._reliableSendStream;
 		DecodeResult result = DecodePackets(peer, rawData, bytesWritten, channel);
 		bool didConnect = false;
-		for(const DecodedPacket &packet : result.packets)
+		if(result.connectResponse && _status == Connecting)
 		{
-			if(packet.type == ProtocolPacketTypeConnectResponse && packet.packetID == 0 && packet.data->GetLength() == 0 && _status == Connecting)
-			{
-				_status = Connected;
-				didConnect = true;
-			}
+			_status = Connected;
+			peer._didNotifyConnection = true;
+			didConnect = true;
 		}
 		Unlock();
 
-		if(result.multipartProgress) HandleReliableMultipartProgress(0, channel);
-		if(result.lostReliableData)
+		Retain();
+		auto isSenderCurrent = [&]()
 		{
-			HandleReliablePacketLoss(0, channel);
-			for(const DecodedPacket &packet : result.packets) packet.data->Release();
-			return;
-		}
-		if(didConnect)
+			Lock();
+			auto currentPeer = _peers.find(senderUserID);
+			bool isCurrent = _status != Disconnected && _status != Disconnecting && currentPeer != _peers.end() &&
+				currentPeer->second.clientID == 0 && currentPeer->second._reliableSendStream == senderStream && !currentPeer->second._wantsDisconnect;
+			Unlock();
+			return isCurrent;
+		};
+
+		if(result.multipartProgress && isSenderCurrent()) HandleReliableMultipartProgress(0, channel);
+		if(result.lostReliableData && isSenderCurrent()) HandleReliablePacketLoss(0, channel);
+		if(!result.lostReliableData && didConnect && isSenderCurrent())
 		{
 			RNDebug("Connected!");
 			HandleDidConnect(0);
 		}
-		for(const DecodedPacket &packet : result.packets)
+		for(Data *packet : result.packets)
 		{
-			if(packet.type == ProtocolPacketTypeData || packet.type == ProtocolPacketTypeReliableData) ReceivedPacket(packet.data, 0, channel);
-			packet.data->Release();
+			if(!result.lostReliableData && isSenderCurrent()) ReceivedPacket(packet, 0, channel);
+			packet->Release();
 		}
+		Release();
 	}
 
 	void EOSClient::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
 	{
 		EOSClient *client = static_cast<EOSClient *>(Data->ClientData);
 
+		if(!client || Data->Reason == EOS_EConnectionClosedReason::EOS_CCR_ClosedByLocalUser) return;
+		client->Lock();
+		bool isKnownPeer = client->_peers.count(Data->RemoteUserId) > 0;
+		client->Unlock();
+		if(!isKnownPeer) return;
+		client->Retain();
 		RNDebug("Disconnected from Server");
 		client->ForceDisconnect(static_cast<uint16>(Data->Reason));
+		client->Release();
 	}
 } // namespace RN

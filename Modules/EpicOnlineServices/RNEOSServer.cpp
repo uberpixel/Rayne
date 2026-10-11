@@ -82,7 +82,7 @@ namespace RN
 	{
 		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeader)) return;
 		EOSHost::ReceivedPacketInternal(rawData, bytesWritten, senderUserID, channel);
-		if(channel == 255) return; //This is a ping, handled by the Host class
+		if(IsReservedChannel(channel)) return; //Host control traffic
 
 		Lock();
 		auto sender = _peers.find(senderUserID);
@@ -94,56 +94,29 @@ namespace RN
 		Peer &peer = sender->second;
 		uint8 senderID = static_cast<uint8>(peer.clientID);
 		peer._isConnectionActive = true;
+		uint64 senderStream = peer._reliableSendStream;
 		DecodeResult result = DecodePackets(peer, rawData, bytesWritten, channel);
-		bool acceptsData = !peer._wantsDisconnect;
-		for(const DecodedPacket &packet : result.packets)
-		{
-			if(packet.type == ProtocolPacketTypeConnectRequest && (packet.packetID != 0 || packet.data->GetLength() != 0))
-			{
-				RNDebug("Malformed connect request");
-			}
-		}
 		Unlock();
 
-		if(result.multipartProgress) HandleReliableMultipartProgress(senderID, channel);
-		if(result.lostReliableData)
+		Retain();
+		auto isSenderCurrent = [&]()
 		{
-			HandleReliablePacketLoss(senderID, channel);
-			for(const DecodedPacket &packet : result.packets) packet.data->Release();
-			return;
-		}
-		for(const DecodedPacket &packet : result.packets)
+			Lock();
+			auto currentPeer = _peers.find(senderUserID);
+			bool isCurrent = _status != Disconnected && _status != Disconnecting && currentPeer != _peers.end() &&
+				currentPeer->second.clientID == senderID && currentPeer->second._reliableSendStream == senderStream && !currentPeer->second._wantsDisconnect;
+			Unlock();
+			return isCurrent;
+		};
+
+		if(result.multipartProgress && isSenderCurrent()) HandleReliableMultipartProgress(senderID, channel);
+		if(result.lostReliableData && isSenderCurrent()) HandleReliablePacketLoss(senderID, channel);
+		for(Data *packet : result.packets)
 		{
-			if(acceptsData && (packet.type == ProtocolPacketTypeData || packet.type == ProtocolPacketTypeReliableData)) ReceivedPacket(packet.data, senderID, channel);
-			packet.data->Release();
+			if(!result.lostReliableData && isSenderCurrent()) ReceivedPacket(packet, senderID, channel);
+			packet->Release();
 		}
-	}
-
-	void EOSServer::Update(float delta)
-	{
-		EOSHost::Update(delta); //This sends regular pings and handles sending of scheduled packets
-
-		Lock();
-		
-		std::vector<uint8> peersToDisconnect;
-		for(auto &pair : _peers)
-		{
-			if(pair.second._wantsDisconnect)
-			{
-				pair.second._disconnectDelay -= delta;
-				if(pair.second._disconnectDelay < 0.0f)
-				{
-					peersToDisconnect.push_back(static_cast<uint8>(pair.second.clientID));
-				}
-			}
-		}
-
-		for(uint8 clientID : peersToDisconnect)
-		{
-			DisconnectUser(clientID);
-		}
-
-		Unlock();
+		Release();
 	}
 
 	size_t EOSServer::GetNumberOfConnectedUsers() const
@@ -154,47 +127,67 @@ namespace RN
 	void EOSServer::DisconnectUserDelayed(uint8 userID, uint16 data, float delay)
 	{
 		Lock();
-		EOS_ProductUserId internalID = _idMap[userID];
-		_peers[internalID]._disconnectDelay = delay;
-		_peers[internalID]._wantsDisconnect = true;
+		auto mappedPeer = _idMap.find(userID);
+		if(mappedPeer != _idMap.end())
+		{
+			auto peer = _peers.find(mappedPeer->second);
+			if(peer != _peers.end())
+			{
+				peer->second._disconnectDelay = delay;
+				peer->second._wantsDisconnect = true;
+			}
+		}
 		Unlock();
 	}
 
 	void EOSServer::DisconnectUser(uint8 userID)
 	{
 		Lock();
-		EOSWorld *world = EOSWorld::GetInstance();
-
-		EOS_P2P_SocketId socketID = {};
-		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
-		strncpy(socketID.SocketName, _socketID->GetUTF8String(), EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
-
-		EOS_P2P_CloseConnectionOptions options;
-		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
-		options.LocalUserId = world->GetUserID();
-		options.RemoteUserId = _idMap[userID];
-		options.SocketId = &socketID;
-
-		EOS_P2P_CloseConnection(world->GetP2PHandle(), &options);
+		auto mappedPeer = _idMap.find(userID);
+		if(mappedPeer == _idMap.end())
+		{
+			Unlock();
+			return;
+		}
+		EOS_ProductUserId productUserID = mappedPeer->second;
+		auto peer = _peers.find(productUserID);
+		if(peer == _peers.end())
+		{
+			Unlock();
+			return;
+		}
+		ClearPeerData(peer->second);
+		_peers.erase(peer);
+		_idMap.erase(mappedPeer);
+		ReleaseUserID(userID);
+		Retain();
 		Unlock();
+
+		ClosePeerTransport(productUserID);
+		HandleDidDisconnect(userID, 0);
+		Release();
 	}
 
 	void EOSServer::Disconnect()
 	{
+		Retain();
 		Lock();
-		EOSWorld *world = EOSWorld::GetInstance();
-
-		EOS_P2P_SocketId socketID = {};
-		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
-		strncpy(socketID.SocketName, _socketID->GetUTF8String(), EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
-
-		EOS_P2P_CloseConnectionsOptions options;
-		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
-		options.LocalUserId = world->GetUserID();
-		options.SocketId = &socketID;
-
-		EOS_P2P_CloseConnections(world->GetP2PHandle(), &options);
+		std::vector<std::pair<EOS_ProductUserId, uint64>> peersToDisconnect;
+		for(auto &peer : _peers)
+		{
+			peer.second._wantsDisconnect = true;
+			peersToDisconnect.emplace_back(peer.first, peer.second._reliableSendStream);
+		}
 		Unlock();
+		for(const auto &closingPeer : peersToDisconnect)
+		{
+			Lock();
+			auto peer = _peers.find(closingPeer.first);
+			bool isCurrentPeer = peer != _peers.end() && peer->second._reliableSendStream == closingPeer.second;
+			Unlock();
+			if(isCurrentPeer) DisconnectClient(closingPeer.first);
+		}
+		Release();
 	}
 
 	void EOSServer::DisconnectClient(EOS_ProductUserId productUserId)
@@ -202,15 +195,13 @@ namespace RN
 		if(productUserId == EOSWorld::GetInstance()->GetUserID())
 		{
 			Disconnect();
+			return;
 		}
-		else if(_peers.find(productUserId) != _peers.end())
-		{
-			DisconnectUser(static_cast<uint8>(_peers[productUserId].clientID));
-		}
-		else
-		{
-			RNWarning("Trying to disconnect unknown peer " << productUserId);
-		}
+		Lock();
+		auto peer = _peers.find(productUserId);
+		uint8 clientID = peer != _peers.end() ? static_cast<uint8>(peer->second.clientID) : EOSServerClientIDNone;
+		Unlock();
+		if(clientID != EOSServerClientIDNone) DisconnectUser(clientID);
 	}
 
 	void EOSServer::OnConnectionRequestCallback(const EOS_P2P_OnIncomingConnectionRequestInfo *Data)
@@ -227,7 +218,7 @@ namespace RN
 		connectionOptions.SocketId = &socketID;
 		connectionOptions.LocalUserId = world->GetUserID();
 		connectionOptions.RemoteUserId = Data->RemoteUserId;
-		EOS_P2P_AcceptConnection(world->GetP2PHandle(), &connectionOptions);
+		if(EOS_P2P_AcceptConnection(world->GetP2PHandle(), &connectionOptions) != EOS_EResult::EOS_Success) return;
 
 		server->Lock();
 		auto existingPeer = server->_peers.find(Data->RemoteUserId);
@@ -242,6 +233,7 @@ namespace RN
 			}
 			existingPeer = server->_peers.insert(std::pair(Data->RemoteUserId, server->CreatePeer(clientID, Data->RemoteUserId))).first;
 			server->_idMap[clientID] = Data->RemoteUserId;
+			existingPeer->second._didNotifyConnection = true;
 		}
 		existingPeer->second._isConnectionActive = true;
 		uint8 clientID = static_cast<uint8>(existingPeer->second.clientID);
@@ -253,18 +245,23 @@ namespace RN
 		if(isNewPeer)
 		{
 			RNDebug("A new client connected");
+			server->Retain();
 			server->HandleDidConnect(clientID);
+			server->Release();
 		}
 	}
 
 	void EOSServer::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
 	{
 		EOSServer *server = static_cast<EOSServer *>(Data->ClientData);
+		if(!server || Data->Reason == EOS_EConnectionClosedReason::EOS_CCR_ClosedByLocalUser) return;
+		server->Retain();
 		server->Lock();
 		auto peer = server->_peers.find(Data->RemoteUserId);
 		if(peer == server->_peers.end())
 		{
 			server->Unlock();
+			server->Release();
 			return;
 		}
 		uint8 id = static_cast<uint8>(peer->second.clientID);
@@ -276,5 +273,6 @@ namespace RN
 
 		RNDebug("Client disconnected: " << id);
 		server->HandleDidDisconnect(id, static_cast<uint16>(Data->Reason));
+		server->Release();
 	}
 } // namespace RN

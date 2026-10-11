@@ -20,10 +20,13 @@ namespace RN
 	class EOSP2PClient : public EOSHost
 	{
 	public:
-		EOSAPI EOSP2PClient(bool isHost, String *socketID, EOS_ProductUserId hostProductUserID);
+		EOSAPI EOSP2PClient(bool isHost, String *socketID, EOS_ProductUserId hostProductUserID, bool recoverableMesh = false);
 		EOSAPI ~EOSP2PClient() override;
 
 		EOSAPI void Connect(EOS_ProductUserId remoteProductUserID);
+		// Reset or resynchronize application state on both peers before reconnecting.
+		// If the remote peer blocked us, it must also call Reconnect.
+		EOSAPI void Reconnect(EOS_ProductUserId remoteProductUserID);
 		EOSAPI void Disconnect() override;
 		EOSAPI void DisconnectClient(EOS_ProductUserId productUserId) override;
 		EOSAPI void DisconnectClient(EOSClientID clientID);
@@ -36,10 +39,8 @@ namespace RN
 		EOSAPI void ReceivedPacketInternal(uint8 *rawData, uint32 bytesWritten, EOS_ProductUserId senderUserID, uint8 channel) final;
 		EOSAPI void Update(float delta) override;
 		EOSAPI virtual void HandleHostMigration(){}
-		EOSAPI virtual void HandleConnectionInterrupted(EOSClientID) {}
+		EOSAPI void HandlePeerFailure(EOS_ProductUserId productUserID) override;
 		EOSAPI virtual bool ShouldAcceptPeer(EOS_ProductUserId productUserID) const { return true; }
-		using EOSHost::HandleReliablePacketLoss;
-		EOSAPI void HandleReliablePacketLoss(EOSClientID clientID) override;
 		
 		EOSClientID _hostClientID;
 		EOS_ProductUserId _hostProductUserID;
@@ -52,11 +53,15 @@ namespace RN
 		uint64 _connectionRequestNotificationID;
 		uint64 _connectionClosedNotificationID;
 
-		bool SendConnectRequest(EOS_ProductUserId receiverID);
+		struct ConnectionHandshake { uint64 streamID; uint64 echoedStreamID; };
+		bool SendConnectRequest(EOS_ProductUserId receiverID, bool response = false, bool pending = false);
+		void FailPeer(EOS_ProductUserId productUserID, bool closeTransport);
+		void ReceiveMeshHandshake(EOS_ProductUserId senderUserID, const ProtocolPacketHeader &header, const ConnectionHandshake &handshake);
 		Peer *BindPeerLocked(EOS_ProductUserId productUserID);
 		bool TryCompleteHostMigration();
 		void FinalizePeerDisconnect(EOS_ProductUserId productUserID, uint16 reason);
 		
+		bool _recoverableMesh;
 		float _connectionTimeout;
 		std::set<EOS_ProductUserId> _blockedPeers;
 

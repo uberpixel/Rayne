@@ -20,9 +20,14 @@
 
 namespace RN
 {
+	constexpr size_t EOSReliableWindow = 256 * 1024;
 	constexpr size_t EOSMaxSendBytesPerPeerPerUpdate = 128 * 1024;
+	constexpr size_t EOSSendChannelShare = 16 * 1024;
+	constexpr size_t EOSBackgroundReliableWindow = 64 * 1024;
+	constexpr size_t EOSMeshScheduledBytesPerPeer = 1024 * 1024;
+	constexpr float EOSUnreliablePacketLifetime = 0.25f;
+	constexpr double EOSPeerProgressTimeout = 60.0;
 	constexpr size_t EOSMaxScheduledBytesPerPeer = 32 * 1024 * 1024;
-	constexpr float EOSMultipartTimeout = 10.0f;
 	constexpr size_t EOSMaxMultipartChannelsPerPeer = 4;
 
 	RNDefineMeta(EOSHost, Object)
@@ -32,15 +37,108 @@ namespace RN
 	{
 		RN_ASSERT(_socketID, "Socket id needs to be set and needs to be unique per host if there are multiple!");
 		RN_ASSERT(_socketID->GetLength() < EOS_P2P_SOCKETID_SOCKETNAME_SIZE, "Socket ID length needs to be 32 or less!");
+		EOSWorld *world = EOSWorld::GetInstance();
+		EOS_P2P_SocketId sdkSocketID = {};
+		sdkSocketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
+		strncpy(sdkSocketID.SocketName, _socketID->GetUTF8String(), EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
+		EOS_P2P_AddNotifyPeerConnectionInterruptedOptions interruptedOptions = {};
+		interruptedOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONINTERRUPTED_API_LATEST;
+		interruptedOptions.LocalUserId = world->GetUserID();
+		interruptedOptions.SocketId = &sdkSocketID;
+		_connectionInterruptedNotificationID = EOS_P2P_AddNotifyPeerConnectionInterrupted(world->GetP2PHandle(), &interruptedOptions, this, OnConnectionInterruptedCallback);
+
+		EOS_P2P_AddNotifyPeerConnectionEstablishedOptions establishedOptions = {};
+		establishedOptions.ApiVersion = EOS_P2P_ADDNOTIFYPEERCONNECTIONESTABLISHED_API_LATEST;
+		establishedOptions.LocalUserId = world->GetUserID();
+		establishedOptions.SocketId = &sdkSocketID;
+		_connectionEstablishedNotificationID = EOS_P2P_AddNotifyPeerConnectionEstablished(world->GetP2PHandle(), &establishedOptions, this, OnConnectionEstablishedCallback);
 	}
 
 	EOSHost::~EOSHost()
 	{
+		EOSWorld *world = EOSWorld::GetInstance();
+		if(world && world->GetP2PHandle())
+		{
+			if(_connectionInterruptedNotificationID != EOS_INVALID_NOTIFICATIONID) EOS_P2P_RemoveNotifyPeerConnectionInterrupted(world->GetP2PHandle(), _connectionInterruptedNotificationID);
+			if(_connectionEstablishedNotificationID != EOS_INVALID_NOTIFICATIONID) EOS_P2P_RemoveNotifyPeerConnectionEstablished(world->GetP2PHandle(), _connectionEstablishedNotificationID);
+		}
+
 		for(auto &peer : _peers)
 		{
 			ClearPeerData(peer.second);
 		}
 		SafeRelease(_socketID);
+	}
+
+	void EOSHost::SetPeerBackgroundSpareTime(EOSClientID clientID, uint32 seconds)
+	{
+		Lock();
+		auto mapped = _idMap.find(clientID);
+		auto peer = mapped == _idMap.end() ? _peers.end() : _peers.find(mapped->second);
+		if(peer != _peers.end()) peer->second._backgroundSpareUntil = Clock::now() + std::chrono::seconds(seconds);
+		Unlock();
+	}
+
+	bool EOSHost::HasPeerBackgroundSpareTime(EOSClientID clientID)
+	{
+		Lock();
+		auto mapped = _idMap.find(clientID);
+		auto peer = mapped == _idMap.end() ? _peers.end() : _peers.find(mapped->second);
+		bool eligible = peer != _peers.end() && Clock::now() < peer->second._backgroundSpareUntil;
+		Unlock();
+		return eligible;
+	}
+
+	void EOSHost::ClosePeerTransport(EOS_ProductUserId productUserID)
+	{
+		EOSWorld *world = EOSWorld::GetInstance();
+		EOS_P2P_SocketId socketID = {};
+		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
+		strncpy(socketID.SocketName, _socketID->GetUTF8String(), EOS_P2P_SOCKETID_SOCKETNAME_SIZE);
+		EOS_P2P_CloseConnectionOptions options = {};
+		options.ApiVersion = EOS_P2P_CLOSECONNECTION_API_LATEST;
+		options.LocalUserId = world->GetUserID();
+		options.RemoteUserId = productUserID;
+		options.SocketId = &socketID;
+		EOS_P2P_CloseConnection(world->GetP2PHandle(), &options);
+	}
+
+	size_t EOSHost::GetRemainingReliableWindow(const Peer &peer, uint32 channel) const
+	{
+		size_t remaining = EOSReliableWindow - std::min<uint64>(EOSReliableWindow, peer._outstandingReliableBytes);
+		if(channel == _backgroundChannel)
+		{
+			const ChannelState &state = peer._channels[channel];
+			uint64 outstanding = state.sentReliableBytes - std::min(state.sentReliableBytes, state.acknowledgedReliableBytes);
+			remaining = std::min<size_t>(remaining, EOSBackgroundReliableWindow - std::min<uint64>(EOSBackgroundReliableWindow, outstanding));
+		}
+		return remaining;
+	}
+
+	bool EOSHost::SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable)
+	{
+		if(peer._isConnectionInterrupted || (peer._requiresBoundStream && !peer._didNotifyConnection)) return false;
+
+		size_t wireLength = length + sizeof(ProtocolPacketEnvelope);
+		if(reliable && wireLength > GetRemainingReliableWindow(peer, channel)) return false;
+		ProtocolPacketEnvelope envelope {reliable ? ProtocolPacketTypeReliableEnvelope : ProtocolPacketTypeUnreliableEnvelope,
+			peer._reliableSendStream, reliable ? peer._channels[channel].sentReliableBytes + wireLength : 0};
+		uint8 encoded[MaximumPacketSize];
+		if(wireLength > sizeof(encoded)) return false;
+		memcpy(encoded, &envelope, sizeof(envelope));
+		memcpy(encoded + sizeof(envelope), bytes, length);
+		if(!SendRawPacket(peer.internalID, channel, encoded, wireLength, reliable, reliable)) return false;
+		if(reliable)
+		{
+			ChannelState &state = peer._channels[channel];
+			if(state.sentReliableBytes == state.acknowledgedReliableBytes)
+			{
+				state.lastReliableProgressTime = _peerProgressTime;
+			}
+			state.sentReliableBytes = envelope.sentBytes;
+			peer._outstandingReliableBytes += wireLength;
+		}
+		return true;
 	}
 
 	bool EOSHost::IsUnreliablePacketInOrder(Peer &peer, uint32 packetID, uint8 channel)
@@ -78,12 +176,11 @@ namespace RN
 		SendRawPacket(receiverID, 255, &packetHeader, sizeof(packetHeader), false);
 	}
 
-	void EOSHost::SendPacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable)
+	EOSHost::SendResult EOSHost::QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive)
 	{
-		if(!data || channel > 255) return;
+		if(!data || channel > 255 || IsReservedChannel(channel)) return SendResult::InvalidPacket;
 		size_t packetLength = data->GetLength();
-		RN_DEBUG_ASSERT(packetLength < MaximumPacketSize || reliable, "Large EOS packets need to be reliable");
-		if(!reliable && packetLength >= MaximumPacketSize) return;
+		if(packetLength > MaximumReassembledPacketSize) return SendResult::InvalidPacket;
 		RN_ASSERT(!reliable || packetLength <= MaximumReassembledPacketSize, "Reliable EOS packet exceeds the maximum reassembled size");
 
 		Lock();
@@ -92,44 +189,92 @@ namespace RN
 		{
 			Unlock();
 			RNDebug("Unknown peer " << receiverID);
-			return;
+			return SendResult::PeerUnavailable;
 		}
-		if(peer->second._wantsDisconnect)
+		if(peer->second._wantsDisconnect || (requireActive && (!peer->second._didNotifyConnection || peer->second._isConnectionInterrupted)))
 		{
 			Unlock();
-			return; //Don't allow sending more data to users that are about to be disconnected.
+			return SendResult::PeerUnavailable; //Don't allow sending more data to users that are about to be disconnected.
 		}
-		bool exceedsQueueLimit = packetLength > EOSMaxScheduledBytesPerPeer || peer->second._scheduledPacketBytes > EOSMaxScheduledBytesPerPeer - packetLength;
+		if(!reliable && packetLength + sizeof(ProtocolPayloadHeader) + sizeof(ProtocolPacketEnvelope) > MaximumPacketSize)
+		{
+			Unlock();
+			return SendResult::InvalidPacket;
+		}
+		// Leave half the mesh queue available for reliable traffic.
+		size_t queueLimit = _limitAggregateSending ? EOSMeshScheduledBytesPerPeer / (reliable ? 1 : 2) : EOSMaxScheduledBytesPerPeer;
+		if(channel == _backgroundChannel)
+		{
+			// One logical repair packet preserves queue space for foreground traffic.
+			auto queued = peer->second._scheduledPackets.find(channel);
+			if(queued != peer->second._scheduledPackets.end() && !queued->second.empty())
+			{
+				Unlock();
+				return SendResult::QueueFull;
+			}
+			queueLimit /= 2;
+		}
+		bool exceedsQueueLimit = packetLength > queueLimit || peer->second._scheduledPacketBytes > queueLimit - packetLength;
 		if(exceedsQueueLimit)
 		{
-			EOSClientID clientID = peer->second.clientID;
 			Unlock();
-			if(reliable)
-			{
-				RNWarning("Reliable EOS send queue reached its memory limit on channel " << channel);
-				HandleReliablePacketLoss(clientID, channel);
-			}
-			else
-			{
-				RNWarning("Dropping an unreliable EOS packet because the peer send queue reached its memory limit");
-			}
-			return;
+			return SendResult::QueueFull;
 		}
 
-		if(peer->second._scheduledPackets.find(channel) == peer->second._scheduledPackets.end())
-		{
-			peer->second._scheduledPackets.insert(std::pair(channel, std::queue<Packet>()));
-		}
-
-		peer->second._scheduledPackets[channel].push({reliable, data->Retain()});
+		Packet queued;
+		queued.isReliable = reliable;
+		queued.data = data->Retain();
+		queued.queuedAt = Clock::now();
+		peer->second._scheduledPackets[channel].push_back(queued);
 		peer->second._scheduledPacketBytes += packetLength;
 
 		Unlock();
+		return SendResult::Queued;
+	}
+
+	void EOSHost::SendPacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable)
+	{
+		if(QueuePacket(data, receiverID, channel, reliable, false) == SendResult::QueueFull && reliable)
+		{
+			Lock();
+			auto peer = _peers.find(receiverID);
+			EOSClientID clientID = peer != _peers.end() ? peer->second.clientID : CLIENT_ID_NONE;
+			Unlock();
+			if(clientID != CLIENT_ID_NONE) HandleReliablePacketLoss(clientID, channel);
+		}
+	}
+
+	EOSHost::SendResult EOSHost::TrySendPacket(Data *data, EOSClientID receiverID, uint32 channel, bool reliable)
+	{
+		Lock();
+		auto receiver = _idMap.find(receiverID);
+		EOS_ProductUserId internalID = receiver != _idMap.end() ? receiver->second : nullptr;
+		Unlock();
+		return internalID ? QueuePacket(data, internalID, channel, reliable, true) : SendResult::PeerUnavailable;
+	}
+
+	void EOSHost::LobbyMemberJoined(EOS_ProductUserId productUserID)
+	{
+		Retain();
+		HandleLobbyMemberJoined(GetClientIDForProductUserID(productUserID));
+		Release();
+	}
+
+	void EOSHost::LobbyMemberLeft(EOS_ProductUserId productUserID)
+	{
+		Retain();
+		EOSClientID clientID = GetClientIDForProductUserID(productUserID);
+		DisconnectClient(productUserID);
+		Lock();
+		bool departed = _status != Disconnected && _status != Disconnecting && !_peers.count(productUserID);
+		Unlock();
+		if(departed && clientID != CLIENT_ID_NONE) HandleLobbyMemberLeft(clientID);
+		Release();
 	}
 
 	void EOSHost::SendPacket(Data *data, EOSClientID receiverID, uint32 channel, bool reliable)
 	{
-		if(!data || channel > 255) return;
+		if(!data || channel > 255 || IsReservedChannel(channel)) return;
 		Lock();
 		auto receiver = _idMap.find(receiverID);
 		if(receiver == _idMap.end())
@@ -145,7 +290,7 @@ namespace RN
 
 	void EOSHost::BroadcastPacket(Data *data, uint32 channel, bool reliable, EOSClientID excludeClientID)
 	{
-		if(!data || channel > 255) return;
+		if(!data || channel > 255 || IsReservedChannel(channel)) return;
 		std::vector<EOS_ProductUserId> receivers;
 		Lock();
 		for(const auto &peer : _peers)
@@ -154,11 +299,36 @@ namespace RN
 			receivers.push_back(peer.first);
 		}
 		Unlock();
-		for(EOS_ProductUserId receiver : receivers) SendPacket(data, receiver, channel, reliable);
+		for(EOS_ProductUserId receiver : receivers)
+		{
+			SendPacket(data, receiver, channel, reliable);
+		}
 	}
 
 	void EOSHost::ReceivedPacketInternal(uint8 *rawData, uint32 bytesWritten, EOS_ProductUserId senderUserID, uint8 channel)
 	{
+		if(channel == 254)
+		{
+			if(!rawData) return;
+			if(bytesWritten != sizeof(ReliableAcknowledgement)) return;
+			ReliableAcknowledgement ack;
+			memcpy(&ack, rawData, sizeof(ack));
+			Lock();
+			auto found = _peers.find(senderUserID);
+			if(found != _peers.end() && ack.channel < 254 && ack.streamID == found->second._reliableSendStream)
+			{
+				Peer &peer = found->second;
+				ChannelState &state = peer._channels[ack.channel];
+				if(ack.receivedBytes > state.acknowledgedReliableBytes && ack.receivedBytes <= state.sentReliableBytes)
+				{
+					peer._outstandingReliableBytes -= ack.receivedBytes - state.acknowledgedReliableBytes;
+					state.acknowledgedReliableBytes = ack.receivedBytes;
+					state.lastReliableProgressTime = _peerProgressTime;
+				}
+			}
+			Unlock();
+			return;
+		}
 		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeader) || channel != 255) return;
 		Lock();
 		size_t dataIndex = 0;
@@ -201,14 +371,17 @@ namespace RN
 	EOSHost::MultipartReceiveResult EOSHost::ReceiveMultipartPacket(Peer &peer, const uint8 *rawData, size_t bytesWritten, uint32 channel)
 	{
 		MultipartReceiveResult result;
-		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeaderMultipart)) return result;
+		if(!rawData || bytesWritten < sizeof(ProtocolPayloadHeaderMultipart)) return result;
 
-		ProtocolPacketHeaderMultipart packetHeader;
+		ProtocolPayloadHeaderMultipart packetHeader;
 		memcpy(&packetHeader, rawData, sizeof(packetHeader));
-		constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPacketHeaderMultipart);
+		constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPayloadHeaderMultipart) - sizeof(ProtocolPacketEnvelope);
 		constexpr size_t maximumPartCount = (MaximumReassembledPacketSize + payloadSize - 1) / payloadSize;
-		if(packetHeader.packetType != ProtocolPacketTypeReliableDataMultipart || packetHeader.totalDataParts == 0 ||
-			packetHeader.totalDataParts > maximumPartCount || packetHeader.dataPart >= packetHeader.totalDataParts) return result;
+		if(packetHeader.payloadType != ProtocolPayloadTypeMultipart || packetHeader.totalDataParts == 0 ||
+			packetHeader.totalDataParts > maximumPartCount || packetHeader.dataPart >= packetHeader.totalDataParts)
+		{
+			return result;
+		}
 
 		auto assembly = peer._multipartAssemblies.find(channel);
 		if(assembly != peer._multipartAssemblies.end() && (assembly->second.currentPart + 1 != packetHeader.dataPart ||
@@ -226,15 +399,14 @@ namespace RN
 				result.lostData = true;
 				return result;
 			}
-			assembly = peer._multipartAssemblies.insert(std::pair(channel, MultipartAssembly {packetHeader.packetID, packetHeader.totalDataParts, 0, new Data(), 0.0f})).first;
+			assembly = peer._multipartAssemblies.insert(std::pair(channel, MultipartAssembly {packetHeader.packetID, packetHeader.totalDataParts, 0, new Data()})).first;
 		}
 		else
 		{
 			assembly->second.currentPart = packetHeader.dataPart;
 		}
-		assembly->second.age = 0.0f;
 
-		size_t packetPayloadLength = bytesWritten - sizeof(ProtocolPacketHeaderMultipart);
+		size_t packetPayloadLength = bytesWritten - sizeof(ProtocolPayloadHeaderMultipart);
 		Data *multipartData = assembly->second.data;
 		if(packetPayloadLength > MaximumReassembledPacketSize - multipartData->GetLength())
 		{
@@ -243,7 +415,7 @@ namespace RN
 			return result;
 		}
 
-		multipartData->Append(rawData + sizeof(ProtocolPacketHeaderMultipart), packetPayloadLength);
+		multipartData->Append(rawData + sizeof(ProtocolPayloadHeaderMultipart), packetPayloadLength);
 		result.progressed = true;
 		if(packetHeader.dataPart + 1 == packetHeader.totalDataParts)
 		{
@@ -256,19 +428,59 @@ namespace RN
 	EOSHost::DecodeResult EOSHost::DecodePackets(Peer &peer, const uint8 *rawData, size_t bytesWritten, uint32 channel)
 	{
 		DecodeResult result;
-		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeader)) return result;
+		if(!rawData || bytesWritten < sizeof(ProtocolPacketHeader) || channel > 255) return result;
 		ProtocolPacketType type = static_cast<ProtocolPacketType>(rawData[0]);
-		if(type == ProtocolPacketTypeReliableDataMultipart)
+		if(type == ProtocolPacketTypeConnectRequest || type == ProtocolPacketTypeConnectResponse)
 		{
+			if(peer._requiresBoundStream || bytesWritten != sizeof(ProtocolPacketHeader)) return result;
+			ProtocolPacketHeader header;
+			memcpy(&header, rawData, sizeof(header));
+			if(header.packetID != 0 || header.dataLength != 0) return result;
+			result.connectRequest = type == ProtocolPacketTypeConnectRequest;
+			result.connectResponse = type == ProtocolPacketTypeConnectResponse;
+			return result;
+		}
+		if(type != ProtocolPacketTypeReliableEnvelope && type != ProtocolPacketTypeUnreliableEnvelope) return result;
+		if(bytesWritten < sizeof(ProtocolPacketEnvelope) + sizeof(ProtocolPayloadHeader) || bytesWritten > MaximumPacketSize) return result;
+		ProtocolPacketEnvelope envelope;
+		memcpy(&envelope, rawData, sizeof(envelope));
+		if(peer._requiresBoundStream && (!peer._remoteStream || envelope.streamID != peer._remoteStream)) return result;
+		const bool reliable = type == ProtocolPacketTypeReliableEnvelope;
+		if(reliable)
+		{
+			if(envelope.streamID == 0 || envelope.sentBytes < bytesWritten) return result;
+			ChannelState &state = peer._channels[channel];
+			// EOS orders reliable datagrams independently on each channel. ACK delivery, not application validation.
+			if(state.receivedReliableStream != envelope.streamID)
+			{
+				ClearMultipartPacket(peer, channel);
+				state.receivedReliableStream = envelope.streamID;
+				state.receivedReliableBytes = 0;
+				state.lastAcknowledgedBytes = 0;
+			}
+			if(envelope.sentBytes <= state.receivedReliableBytes) return result;
+			if(envelope.sentBytes - bytesWritten > state.receivedReliableBytes)
+			{
+				result.lostReliableData = true;
+				ClearMultipartPacket(peer, channel);
+			}
+			state.receivedReliableBytes = envelope.sentBytes;
+		}
+		rawData += sizeof(envelope);
+		bytesWritten -= sizeof(envelope);
+		ProtocolPayloadType payloadType = static_cast<ProtocolPayloadType>(rawData[0]);
+		if(payloadType == ProtocolPayloadTypeMultipart)
+		{
+			if(!reliable) return result;
 			MultipartReceiveResult multipart = ReceiveMultipartPacket(peer, rawData, bytesWritten, channel);
 			result.multipartProgress = multipart.progressed;
-			result.lostReliableData = multipart.lostData;
-			if(multipart.data) result.packets.push_back({ProtocolPacketTypeReliableData, 0, multipart.data});
+			result.lostReliableData = result.lostReliableData || multipart.lostData;
+			if(multipart.data) result.packets.push_back(multipart.data);
 			return result;
 		}
 		if(peer._multipartAssemblies.count(channel) != 0)
 		{
-			if(type == ProtocolPacketTypeData) return result;
+			if(!reliable && payloadType == ProtocolPayloadTypeData) return result;
 			ClearMultipartPacket(peer, channel);
 			result.lostReliableData = true;
 		}
@@ -276,22 +488,26 @@ namespace RN
 		size_t dataIndex = 0;
 		while(dataIndex < bytesWritten)
 		{
-			ProtocolPacketHeader header;
-			const uint8 *payload = nullptr;
-			if(!ReadPacketHeader(rawData, bytesWritten, dataIndex, header, payload)) break;
-			bool isData = header.packetType == ProtocolPacketTypeData || header.packetType == ProtocolPacketTypeReliableData;
-			bool isControl = header.packetType == ProtocolPacketTypeConnectRequest || header.packetType == ProtocolPacketTypeConnectResponse;
-			if(!isData && !isControl) break;
-			if(header.packetType == ProtocolPacketTypeData && !IsUnreliablePacketInOrder(peer, header.packetID, static_cast<uint8>(channel))) continue;
-			result.packets.push_back({header.packetType, header.packetID, new Data(payload, header.dataLength)});
+			if(bytesWritten - dataIndex < sizeof(ProtocolPayloadHeader)) break;
+			ProtocolPayloadHeader header;
+			memcpy(&header, rawData + dataIndex, sizeof(header));
+			dataIndex += sizeof(header);
+			if(header.payloadType != ProtocolPayloadTypeData || header.dataLength > bytesWritten - dataIndex) break;
+			const uint8 *payload = rawData + dataIndex;
+			dataIndex += header.dataLength;
+			if(!reliable && !IsUnreliablePacketInOrder(peer, header.packetID, static_cast<uint8>(channel))) continue;
+			result.packets.push_back(new Data(payload, header.dataLength));
 		}
 		return result;
 	}
 
-	bool EOSHost::SendRawPacket(EOS_ProductUserId receiverID, uint32 channel, const void *bytes, size_t length, bool reliable)
+	bool EOSHost::SendRawPacket(EOS_ProductUserId receiverID, uint32 channel, const void *bytes, size_t length, bool reliable, bool throttleReliable)
 	{
 		EOSWorld *world = EOSWorld::GetInstance();
-		if(!world || !world->GetP2PHandle() || !receiverID || !bytes || length == 0 || length > MaximumPacketSize || channel > 255) return false;
+		if(!world || !world->GetP2PHandle() || !receiverID || !bytes || length == 0 || length > MaximumPacketSize || channel > 255)
+		{
+			return false;
+		}
 
 		EOS_P2P_SocketId socketID = {};
 		socketID.ApiVersion = EOS_P2P_SOCKETID_API_LATEST;
@@ -307,16 +523,16 @@ namespace RN
 		options.bAllowDelayedDelivery = reliable;
 		options.Data = bytes;
 		options.DataLengthBytes = static_cast<uint32>(length);
-		return EOS_P2P_SendPacket(world->GetP2PHandle(), &options) == EOS_EResult::EOS_Success;
+		return world->SendPacket(&options, throttleReliable);
 	}
 
-	bool EOSHost::SendMultipartPacket(Peer &peer, uint32 channel, std::queue<Packet> &scheduledPackets, size_t &remainingSendBytes)
+	bool EOSHost::SendMultipartPacket(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes)
 	{
 		Packet &packet = scheduledPackets.front();
 		RN_ASSERT(packet.isReliable, "Multipart EOS packets need to be reliable");
 		RN_ASSERT(packet.data->GetLength() <= MaximumReassembledPacketSize, "Reliable EOS packet exceeds the maximum reassembled size");
 
-		constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPacketHeaderMultipart);
+		constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPayloadHeaderMultipart) - sizeof(ProtocolPacketEnvelope);
 		size_t totalPartCount = (packet.data->GetLength() + payloadSize - 1) / payloadSize;
 		if(!packet.isMultipartStarted)
 		{
@@ -329,77 +545,76 @@ namespace RN
 		{
 			size_t dataOffset = static_cast<size_t>(packet.multipartNextPart) * payloadSize;
 			size_t dataLength = std::min(payloadSize, packet.data->GetLength() - dataOffset);
-			size_t encodedLength = sizeof(ProtocolPacketHeaderMultipart) + dataLength;
-			if(encodedLength > remainingSendBytes) return false;
+			size_t encodedLength = sizeof(ProtocolPayloadHeaderMultipart) + dataLength;
+			size_t wireLength = encodedLength + sizeof(ProtocolPacketEnvelope);
+			if(wireLength > remainingSendBytes) return false;
 
 			Data *encodedPacket = new Data();
-			ProtocolPacketHeaderMultipart header;
-			header.packetType = ProtocolPacketTypeReliableDataMultipart;
+			ProtocolPayloadHeaderMultipart header;
+			header.payloadType = ProtocolPayloadTypeMultipart;
 			header.packetID = packet.multipartPacketID;
 			header.dataPart = packet.multipartNextPart;
 			header.totalDataParts = static_cast<uint16>(totalPartCount);
 			encodedPacket->Append(&header, sizeof(header));
 			encodedPacket->Append(packet.data->GetDataInRange(Range(dataOffset, dataLength)));
-			bool didSend = SendRawPacket(peer.internalID, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), true);
+			bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), true);
 			encodedPacket->Release();
 			if(!didSend) return false;
-			remainingSendBytes -= encodedLength;
+			remainingSendBytes -= wireLength;
 			packet.multipartNextPart += 1;
 		}
 
 		peer._scheduledPacketBytes -= packet.data->GetLength();
 		packet.data->Release();
-		scheduledPackets.pop();
+		scheduledPackets.pop_front();
 		return true;
 	}
 
-	bool EOSHost::SendPacketBatch(Peer &peer, uint32 channel, std::queue<Packet> &scheduledPackets, size_t &remainingSendBytes)
+	bool EOSHost::SendPacketBatch(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes)
 	{
 		bool reliable = scheduledPackets.front().isReliable;
-		Data *encodedPacket = new Data();
-		std::vector<Packet> packets;
-		while(!scheduledPackets.empty())
+		constexpr size_t overhead = sizeof(ProtocolPacketEnvelope);
+		size_t sendLimit = std::min(MaximumPacketSize, remainingSendBytes);
+		if(reliable)
 		{
-			Packet &packet = scheduledPackets.front();
-			size_t encodedLength = sizeof(ProtocolPacketHeader) + packet.data->GetLength();
-			if(packet.isReliable != reliable || encodedLength >= MaximumPacketSize ||
-				encodedPacket->GetLength() + encodedLength >= MaximumPacketSize || encodedPacket->GetLength() + encodedLength > remainingSendBytes) break;
+			sendLimit = std::min(sendLimit, std::min(EOSWorld::GetInstance()->GetRemainingReliableSendBytes(), GetRemainingReliableWindow(peer, channel)));
+		}
+		sendLimit -= std::min(sendLimit, overhead);
+		Data *encodedPacket = new Data();
+		size_t packetCount = 0;
+		for(const Packet &packet : scheduledPackets)
+		{
+			size_t encodedLength = sizeof(ProtocolPayloadHeader) + packet.data->GetLength();
+			if(packet.isReliable != reliable || encodedPacket->GetLength() + encodedLength > sendLimit)
+			{
+				break;
+			}
 
-			ProtocolPacketHeader header;
-			header.packetType = reliable ? ProtocolPacketTypeReliableData : ProtocolPacketTypeData;
+			ProtocolPayloadHeader header;
+			header.payloadType = ProtocolPayloadTypeData;
 			header.packetID = peer._channels[channel].nextPacketID++;
 			header.dataLength = static_cast<uint16>(packet.data->GetLength());
 			encodedPacket->Append(&header, sizeof(header));
 			encodedPacket->Append(packet.data);
-			packets.push_back(packet);
-			scheduledPackets.pop();
+			packetCount += 1;
 		}
 
-		if(packets.empty())
+		if(packetCount == 0)
 		{
 			encodedPacket->Release();
 			return false;
 		}
 
-		bool didSend = SendRawPacket(peer.internalID, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), reliable);
-		if(!didSend && reliable)
+		bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), reliable);
+		if(didSend || !reliable)
 		{
-			std::queue<Packet> restoredPackets;
-			for(Packet &packet : packets) restoredPackets.push(packet);
-			while(!scheduledPackets.empty())
+			if(didSend) remainingSendBytes -= encodedPacket->GetLength() + overhead;
+			for(size_t packetIndex = 0; packetIndex < packetCount; packetIndex++)
 			{
-				restoredPackets.push(scheduledPackets.front());
-				scheduledPackets.pop();
-			}
-			scheduledPackets.swap(restoredPackets);
-		}
-		else
-		{
-			if(didSend) remainingSendBytes -= encodedPacket->GetLength();
-			for(Packet &packet : packets)
-			{
+				Packet &packet = scheduledPackets.front();
 				peer._scheduledPacketBytes -= packet.data->GetLength();
 				packet.data->Release();
+				scheduledPackets.pop_front();
 			}
 		}
 		encodedPacket->Release();
@@ -408,67 +623,256 @@ namespace RN
 
 	void EOSHost::Update(float delta)
 	{
+		Retain();
 		std::vector<EOS_ProductUserId> pingTargets;
-		std::vector<std::pair<EOSClientID, uint32>> peersWithExpiredMultipartPackets;
+		std::vector<std::pair<EOS_ProductUserId, uint64>> peersToDisconnect;
 		Lock();
 		EOSWorld *world = EOSWorld::GetInstance();
 		if(!world || !world->GetP2PHandle())
 		{
 			Unlock();
+			Release();
 			return;
 		}
 
+		Clock::time_point now = Clock::now();
+		double acknowledgementTime = std::chrono::duration<double>(now.time_since_epoch()).count();
+		// A local suspend must not consume every remote peer's progress deadline at once.
+		_peerProgressTime += std::min(std::max(delta, 0.0f), 1.0f);
 		_pingTimer += std::max(delta, 0.0f);
-		if(_pingTimer > 5.0f)
+		bool shouldPing = _pingTimer > 5.0f;
+		if(shouldPing) _pingTimer = 0.0f;
+		std::vector<Peer *> sendPeers;
+		for(auto &entry : _peers)
 		{
-			_pingTimer = 0.0f;
-			for(auto &pair : _peers)
+			Peer &peer = entry.second;
+			bool hasExpired = peer._isConnectionInterrupted && _peerProgressTime - peer._connectionInterruptedAt >= EOSPeerProgressTimeout;
+			for(uint32 channel = 0; channel < 254 && !hasExpired; channel++)
 			{
-				if(pair.second._isConnectionActive) pingTargets.push_back(pair.first);
+				const ChannelState &state = peer._channels[channel];
+				hasExpired = state.sentReliableBytes > state.acknowledgedReliableBytes && _peerProgressTime - state.lastReliableProgressTime >= EOSPeerProgressTimeout;
 			}
-		}
-
-		for(auto &peerPair : _peers)
-		{
-			Peer &peer = peerPair.second;
-			std::vector<uint32> expiredChannels;
-			for(auto &assembly : peer._multipartAssemblies)
+			if(hasExpired)
 			{
-				assembly.second.age += std::max(delta, 0.0f);
-				if(assembly.second.age >= EOSMultipartTimeout)
+				RNWarning("Disconnecting EOS peer " << entry.first << " after 60 seconds without reliable or connection progress");
+				peersToDisconnect.emplace_back(entry.first, peer._reliableSendStream);
+				continue;
+			}
+			if(peer._wantsDisconnect)
+			{
+				peer._disconnectDelay -= std::max(delta, 0.0f);
+				if(peer._disconnectDelay <= 0.0f)
 				{
-					RNInfo("Reliable EOS multipart receive timed out: peer=" << peer.clientID << " channel=" << assembly.first <<
-						" packetID=" << assembly.second.packetID << " receivedParts=" << (assembly.second.currentPart + 1) <<
-						" expectedParts=" << assembly.second.totalParts << " bufferedBytes=" << assembly.second.data->GetLength() <<
-						" idleSeconds=" << assembly.second.age);
-					expiredChannels.push_back(assembly.first);
+					peersToDisconnect.emplace_back(entry.first, peer._reliableSendStream);
 				}
 			}
-			for(uint32 channel : expiredChannels)
+			if(shouldPing && peer._isConnectionActive && !peer._isConnectionInterrupted)
 			{
-				ClearMultipartPacket(peer, channel);
-				if(peer.clientID != CLIENT_ID_NONE) peersWithExpiredMultipartPackets.emplace_back(peer.clientID, channel);
+				pingTargets.push_back(entry.first);
 			}
-
-			size_t remainingSendBytes = EOSMaxSendBytesPerPeerPerUpdate;
-			for(auto channel = peer._scheduledPackets.begin(); channel != peer._scheduledPackets.end();)
+			sendPeers.push_back(&peer);
+		}
+		_aggregateSendCredit = std::min<double>(EOSMaxSendBytesPerPeerPerUpdate,
+			_aggregateSendCredit + std::max(delta, 0.0f) * _uploadBytesPerSecond);
+		size_t aggregateSendBytes = static_cast<size_t>(_aggregateSendCredit);
+		Clock::time_point dispatchStarted = Clock::now();
+		for(size_t index = 0; index < sendPeers.size(); index++)
+		{
+			Peer &peer = *sendPeers[(_nextSendPeer + index) % sendPeers.size()];
+			for(uint32 channel = 0; channel < 254; channel++)
 			{
-				std::queue<Packet> &scheduledPackets = channel->second;
-				while(!scheduledPackets.empty() && remainingSendBytes >= sizeof(ProtocolPacketHeader))
+				ChannelState &state = peer._channels[channel];
+				double elapsed = acknowledgementTime - state.lastAcknowledgementTime;
+				if(!state.receivedReliableStream || elapsed < 0.05 ||
+					(state.receivedReliableBytes == state.lastAcknowledgedBytes && elapsed < 0.25))
 				{
-					bool isMultipart = scheduledPackets.front().data->GetLength() + sizeof(ProtocolPacketHeader) >= MaximumPacketSize;
-					bool didAdvance = isMultipart ? SendMultipartPacket(peer, channel->first, scheduledPackets, remainingSendBytes) : SendPacketBatch(peer, channel->first, scheduledPackets, remainingSendBytes);
-					if(!didAdvance) break;
+					continue;
 				}
-				if(scheduledPackets.empty()) channel = peer._scheduledPackets.erase(channel);
-				else ++channel;
-				if(remainingSendBytes < sizeof(ProtocolPacketHeader)) break;
+				ReliableAcknowledgement ack {state.receivedReliableStream, state.receivedReliableBytes, static_cast<uint8>(channel)};
+				if(SendRawPacket(peer.internalID, 254, &ack, sizeof(ack), false))
+				{
+					state.lastAcknowledgedBytes = state.receivedReliableBytes;
+					state.lastAcknowledgementTime = acknowledgementTime;
+				}
 			}
 		}
+		// Visit all foreground peers before repair, reserving a quarter for repair.
+		// Foreground reuses unused repair capacity before new peers borrow any remainder.
+		std::vector<size_t> peerSentBytes(sendPeers.size(), 0);
+		_backgroundSendCredit = std::min<double>(EOSMaxSendBytesPerPeerPerUpdate / 4,
+			_backgroundSendCredit + std::max(delta, 0.0f) * _uploadBytesPerSecond / 4);
+		size_t repairBudget = std::min(aggregateSendBytes, static_cast<size_t>(_backgroundSendCredit));
+		size_t foregroundBudget = aggregateSendBytes - repairBudget;
+		bool hasBackgroundChannel = _backgroundChannel < 254;
+		bool limitSending = _limitAggregateSending || hasBackgroundChannel;
+		for(unsigned pass = 0; pass < (hasBackgroundChannel ? 4u : 1u); ++pass)
+		{
+			if(pass == 3)
+			{
+				// Fair foreground passes may leave usable bytes when a later peer runs out of window.
+				// Keep shared credit and SDK headroom for foreground to accumulate its next datagram.
+				bool hasReadyForeground = false;
+				for(size_t index = 0; index < sendPeers.size() && !hasReadyForeground; ++index)
+				{
+					const Peer &candidate = *sendPeers[(_nextSendPeer + index) % sendPeers.size()];
+					if(candidate._isConnectionInterrupted || (candidate._requiresBoundStream && !candidate._didNotifyConnection)) continue;
+					for(const auto &queuedChannel : candidate._scheduledPackets)
+					{
+						if(queuedChannel.first == _backgroundChannel || queuedChannel.second.empty()) continue;
+						const Packet &packet = queuedChannel.second.front();
+						size_t requiredBytes = packet.data->GetLength() + sizeof(ProtocolPayloadHeader) + sizeof(ProtocolPacketEnvelope);
+						if(requiredBytes > MaximumPacketSize)
+						{
+							constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPayloadHeaderMultipart) - sizeof(ProtocolPacketEnvelope);
+							size_t dataOffset = static_cast<size_t>(packet.multipartNextPart) * payloadSize;
+							requiredBytes = std::min(payloadSize, packet.data->GetLength() - dataOffset) + sizeof(ProtocolPayloadHeaderMultipart) + sizeof(ProtocolPacketEnvelope);
+						}
+						hasReadyForeground = requiredBytes <= EOSMaxSendBytesPerPeerPerUpdate - peerSentBytes[index] &&
+							(!packet.isReliable || requiredBytes <= GetRemainingReliableWindow(candidate, queuedChannel.first));
+						if(hasReadyForeground) break;
+					}
+				}
+				if(hasReadyForeground) break;
+			}
+			bool background = pass == 1 || pass == 3;
+			std::vector<size_t> contendersRemaining(sendPeers.size() + 1, 0);
+			for(size_t index = sendPeers.size(); index > 0; --index)
+			{
+				const Peer &candidate = *sendPeers[(_nextSendPeer + index - 1) % sendPeers.size()];
+				contendersRemaining[index - 1] = contendersRemaining[index];
+				if(candidate._isConnectionInterrupted || (pass == 3 && now >= candidate._backgroundSpareUntil)) continue;
+				for(const auto &queuedChannel : candidate._scheduledPackets)
+				{
+					if(queuedChannel.second.empty() || (queuedChannel.first == _backgroundChannel) != background) continue;
+					const Packet &packet = queuedChannel.second.front();
+					size_t requiredBytes = std::min(size_t(MaximumPacketSize), packet.data->GetLength() + sizeof(ProtocolPayloadHeader) + (sizeof(ProtocolPacketEnvelope)));
+					if(!packet.isReliable || requiredBytes <= GetRemainingReliableWindow(candidate, queuedChannel.first))
+					{
+						contendersRemaining[index - 1]++;
+						break;
+					}
+				}
+			}
+			size_t passBytes = pass == 0 && hasBackgroundChannel ? foregroundBudget : (pass == 1 ? std::min(aggregateSendBytes, repairBudget) : aggregateSendBytes);
+			for(size_t index = 0; index < sendPeers.size(); index++)
+			{
+				Peer &peer = *sendPeers[(_nextSendPeer + index) % sendPeers.size()];
+				if(pass == 3 && now >= peer._backgroundSpareUntil) continue;
+				// Share the remaining SDK and mesh budget among peers with sendable work.
+				size_t sendContenders = contendersRemaining[index];
+				size_t globalSendBytes = world->GetRemainingReliableSendBytes();
+				size_t remainingReliableBytes = std::max(globalSendBytes / std::max(sendContenders, size_t(1)), std::min(globalSendBytes, size_t(MaximumPacketSize)));
+				size_t remainingSendBytes = EOSMaxSendBytesPerPeerPerUpdate;
+				if(limitSending)
+					remainingSendBytes = std::min(passBytes, std::max(passBytes / std::max(sendContenders, size_t(1)), std::min(passBytes, size_t(MaximumPacketSize))));
+				remainingSendBytes = std::min(remainingSendBytes, EOSMaxSendBytesPerPeerPerUpdate - peerSentBytes[index]);
+				std::vector<uint32> channels;
+				for(const auto &channel : peer._scheduledPackets)
+				{
+					if((channel.first == _backgroundChannel) == background) channels.push_back(channel.first);
+				}
+				bool didMakeProgress;
+				do
+				{
+					didMakeProgress = false;
+					for(size_t offset = 0; offset < channels.size(); offset++)
+					{
+						uint32 channel = channels[(peer._nextSendChannel + offset) % channels.size()];
+						auto queuedChannel = peer._scheduledPackets.find(channel);
+						if(queuedChannel == peer._scheduledPackets.end()) continue;
+						auto &scheduledPackets = queuedChannel->second;
+						size_t channelSentBytes = 0;
+						while(!scheduledPackets.empty())
+						{
+							if(!scheduledPackets.front().isReliable &&
+								std::chrono::duration<double>(now - scheduledPackets.front().queuedAt).count() >= EOSUnreliablePacketLifetime)
+							{
+								peer._scheduledPacketBytes -= scheduledPackets.front().data->GetLength();
+								scheduledPackets.front().data->Release();
+								scheduledPackets.pop_front();
+								continue;
+							}
+							if(peer._isConnectionInterrupted) break;
+							if(_limitAggregateSending && std::chrono::duration<double>(Clock::now() - dispatchStarted).count() >= 0.002) break;
+							bool reliable = scheduledPackets.front().isReliable;
+							size_t channelBudget = std::min(remainingSendBytes, EOSSendChannelShare - std::min(channelSentBytes, EOSSendChannelShare));
+							if(reliable) channelBudget = std::min(channelBudget, remainingReliableBytes);
+							if(channelBudget < sizeof(ProtocolPayloadHeader)) break;
+							size_t initialBudget = channelBudget;
+							bool isMultipart = scheduledPackets.front().data->GetLength() + sizeof(ProtocolPayloadHeader) > MaximumPacketSize - sizeof(ProtocolPacketEnvelope);
+							bool didAdvance = isMultipart ? SendMultipartPacket(peer, channel, scheduledPackets, channelBudget) : SendPacketBatch(peer, channel, scheduledPackets, channelBudget);
+							size_t sentBytes = initialBudget - channelBudget;
+							remainingSendBytes -= sentBytes;
+							peerSentBytes[index] += sentBytes;
+							if(pass == 1) _backgroundSendCredit = std::max(0.0, _backgroundSendCredit - sentBytes);
+							if(limitSending) { aggregateSendBytes -= sentBytes; passBytes -= sentBytes; _aggregateSendCredit -= sentBytes; }
+							remainingReliableBytes -= std::min(remainingReliableBytes, sentBytes);
+							channelSentBytes += sentBytes;
+							didMakeProgress = didMakeProgress || sentBytes > 0 || didAdvance;
+							if(!didAdvance) break;
+						}
+						if(scheduledPackets.empty()) peer._scheduledPackets.erase(channel);
+					}
+				}
+				while(didMakeProgress && remainingSendBytes >= sizeof(ProtocolPayloadHeader) &&
+					(!_limitAggregateSending || std::chrono::duration<double>(Clock::now() - dispatchStarted).count() < 0.002));
+			}
+		}
+		for(Peer *peer : sendPeers) peer->_nextSendChannel++;
+		_nextSendPeer++;
 		Unlock();
 
-		for(EOS_ProductUserId peerID : pingTargets) SendPing(peerID, false, 0);
-		for(const auto &[clientID, channel] : peersWithExpiredMultipartPackets) HandleReliablePacketLoss(clientID, channel);
+		for(EOS_ProductUserId peerID : pingTargets)
+		{
+			SendPing(peerID, false, 0);
+		}
+		for(const auto &closingPeer : peersToDisconnect)
+		{
+			Lock();
+			auto peer = _peers.find(closingPeer.first);
+			bool isCurrentPeer = peer != _peers.end() && peer->second._reliableSendStream == closingPeer.second;
+			bool isExplicit = isCurrentPeer && peer->second._wantsDisconnect;
+			Unlock();
+			if(isCurrentPeer)
+			{
+				if(isExplicit) DisconnectClient(closingPeer.first);
+				else HandlePeerFailure(closingPeer.first);
+			}
+		}
+		Release();
+	}
+
+	void EOSHost::OnConnectionInterruptedCallback(const EOS_P2P_OnPeerConnectionInterruptedInfo *Data)
+	{
+		EOSHost *host = static_cast<EOSHost *>(Data->ClientData);
+		if(!host) return;
+		host->Lock();
+		auto peer = host->_peers.find(Data->RemoteUserId);
+		if(peer != host->_peers.end())
+		{
+			if(!peer->second._isConnectionInterrupted)
+			{
+				peer->second._connectionInterruptedAt = host->_peerProgressTime;
+			}
+			peer->second._isConnectionInterrupted = true;
+			peer->second._isConnectionActive = false;
+		}
+		host->Unlock();
+	}
+
+	void EOSHost::OnConnectionEstablishedCallback(const EOS_P2P_OnPeerConnectionEstablishedInfo *Data)
+	{
+		EOSHost *host = static_cast<EOSHost *>(Data->ClientData);
+		if(!host) return;
+		host->Lock();
+		auto peer = host->_peers.find(Data->RemoteUserId);
+		if(peer != host->_peers.end())
+		{
+			peer->second._isConnectionInterrupted = false;
+			peer->second._connectionInterruptedAt = 0.0;
+			peer->second._isConnectionActive = true;
+		}
+		host->Unlock();
 	}
 
 	EOSHost::Peer EOSHost::CreatePeer(EOSClientID clientID, EOS_ProductUserId internalID)
@@ -476,6 +880,7 @@ namespace RN
 		Peer peer;
 		peer.clientID = clientID;
 		peer.internalID = internalID;
+		peer._reliableSendStream = ++_nextReliableStream;
 
 		return peer;
 	}
@@ -499,15 +904,10 @@ namespace RN
 
 	void EOSHost::ClearScheduledPackets(Peer &peer)
 	{
-		for(auto &channel : peer._scheduledPackets)
+		while(!peer._scheduledPackets.empty())
 		{
-			while(!channel.second.empty())
-			{
-				SafeRelease(channel.second.front().data);
-				channel.second.pop();
-			}
+			ClearScheduledPackets(peer, peer._scheduledPackets.begin()->first);
 		}
-		peer._scheduledPackets.clear();
 		peer._scheduledPacketBytes = 0;
 	}
 
@@ -520,7 +920,7 @@ namespace RN
 			Data *data = scheduled->second.front().data;
 			peer._scheduledPacketBytes -= data->GetLength();
 			data->Release();
-			scheduled->second.pop();
+			scheduled->second.pop_front();
 		}
 		peer._scheduledPackets.erase(scheduled);
 	}
@@ -541,11 +941,7 @@ namespace RN
 		RNWarning("The reliable EOS stream with peer " << clientID << " became incomplete; disconnecting");
 		if(productUserID)
 		{
-			DisconnectClient(productUserID);
-		}
-		else
-		{
-			Disconnect();
+			HandlePeerFailure(productUserID);
 		}
 	}
 
@@ -611,7 +1007,7 @@ namespace RN
 			return false;
 		}
 		auto peer = _peers.find(mappedPeer->second);
-		bool isActive = peer != _peers.end() && peer->second._isConnectionActive;
+		bool isActive = peer != _peers.end() && peer->second._isConnectionActive && !peer->second._isConnectionInterrupted;
 		Unlock();
 		return isActive;
 	}

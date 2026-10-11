@@ -26,6 +26,7 @@ struct EOS_ProductUserIdDetails;
 typedef struct EOS_ProductUserIdDetails *EOS_ProductUserId;
 
 typedef struct _tagEOS_LogMessage EOS_LogMessage;
+typedef struct _tagEOS_P2P_SendPacketOptions EOS_P2P_SendPacketOptions;
 
 typedef struct _tagEOS_Connect_LoginCallbackInfo EOS_Connect_LoginCallbackInfo;
 typedef struct _tagEOS_Connect_CreateDeviceIdCallbackInfo EOS_Connect_CreateDeviceIdCallbackInfo;
@@ -86,6 +87,15 @@ namespace RN
 		void Update(float delta) override;
 
 	private:
+		friend class EOSHost;
+		void RefreshSendBudget();
+		size_t GetRemainingReliableSendBytes();
+		bool SendPacket(const EOS_P2P_SendPacketOptions *options, bool throttleReliable);
+		Lockable _sendBudgetLock;
+		size_t _remainingReliableSendBytes = 0;
+		bool _hasUnlimitedSendBudget = false;
+		size_t _nextSendHost = 0;
+
 		static void LoggingCallback(const EOS_LogMessage *Message);
 		static void ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data);
 		static void ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data);

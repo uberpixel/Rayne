@@ -32,7 +32,6 @@ namespace RN
 
 	protected:
 		EOSAPI void ReceivedPacketInternal(uint8 *rawData, uint32 bytesWritten, EOS_ProductUserId senderUserID, uint8 channel) final;
-		EOSAPI virtual void Update(float delta) override;
 
 		uint8 _maxConnections;
 		std::set<uint8> _activeUserIDs;

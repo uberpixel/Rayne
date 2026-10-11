@@ -194,6 +194,7 @@ namespace RN
 	void EOSWorld::Update(float delta)
 	{
 		EOS_Platform_Tick(_platformHandle);
+		RefreshSendBudget();
 		
 		if(_loginState == LoginState::LoginStateIsLoggedIn)
 		{
@@ -236,13 +237,60 @@ namespace RN
 					continue;
 				}
 				
+				host->Retain();
 				host->ReceivedPacketInternal(rawData.data(), bytesWritten, senderUserID, channel);
+				host->Release();
 			}
 		}
 
-		_hosts->Enumerate<EOSHost, String>([&](EOSHost *host, const String *socketID, bool &) {
-			host->Update(delta);
-		});
+		Array *hosts = _hosts->GetAllObjects()->Retain();
+		for(size_t index = 0; index < hosts->GetCount(); index++)
+		{
+			EOSHost *host = hosts->GetObjectAtIndex<EOSHost>((_nextSendHost + index) % hosts->GetCount());
+			if(_hosts->GetObjectForKey<EOSHost>(host->GetSocketID()) == host)
+			{
+				host->Update(delta);
+			}
+		}
+		_nextSendHost++;
+		hosts->Release();
+	}
+
+	void EOSWorld::RefreshSendBudget()
+	{
+		LockGuard<Lockable> lock(_sendBudgetLock);
+		_remainingReliableSendBytes = 0;
+		_hasUnlimitedSendBudget = false;
+		EOS_P2P_GetPacketQueueInfoOptions options = {};
+		options.ApiVersion = EOS_P2P_GETPACKETQUEUEINFO_API_LATEST;
+		EOS_P2P_PacketQueueInfo info = {};
+		if(!_p2pInterfaceHandle || EOS_P2P_GetPacketQueueInfo(_p2pInterfaceHandle, &options, &info) != EOS_EResult::EOS_Success) return;
+		_hasUnlimitedSendBudget = info.OutgoingPacketQueueMaxSizeBytes == EOS_P2P_MAX_QUEUE_SIZE_UNLIMITED;
+		if(_hasUnlimitedSendBudget) return;
+		uint64 limit = info.OutgoingPacketQueueMaxSizeBytes - info.OutgoingPacketQueueMaxSizeBytes / 4;
+		if(info.OutgoingPacketQueueCurrentSizeBytes < limit)
+		{
+			_remainingReliableSendBytes = static_cast<size_t>(std::min<uint64>(limit - info.OutgoingPacketQueueCurrentSizeBytes, std::numeric_limits<size_t>::max()));
+		}
+	}
+
+	size_t EOSWorld::GetRemainingReliableSendBytes()
+	{
+		LockGuard<Lockable> lock(_sendBudgetLock);
+		return _hasUnlimitedSendBudget ? std::numeric_limits<size_t>::max() : _remainingReliableSendBytes;
+	}
+
+	bool EOSWorld::SendPacket(const EOS_P2P_SendPacketOptions *options, bool throttleReliable)
+	{
+		// This lock never takes a host lock. Every socket spends the same cached SDK headroom.
+		LockGuard<Lockable> lock(_sendBudgetLock);
+		if(throttleReliable && !_hasUnlimitedSendBudget && options->DataLengthBytes > _remainingReliableSendBytes) return false;
+		if(EOS_P2P_SendPacket(_p2pInterfaceHandle, options) != EOS_EResult::EOS_Success) return false;
+		if(!_hasUnlimitedSendBudget)
+		{
+			_remainingReliableSendBytes -= std::min<size_t>(options->DataLengthBytes, _remainingReliableSendBytes);
+		}
+		return true;
 	}
 
 	bool EOSWorld::GetHasNetworkConnection() const
