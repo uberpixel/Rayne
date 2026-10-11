@@ -483,6 +483,8 @@ namespace RN
 
 		RN_ASSERT(!lobbyIDOverride || (lobbyIDOverride->GetLength() <= EOS_LOBBY_MAX_LOBBYIDOVERRIDE_LENGTH && lobbyIDOverride->GetLength() >= EOS_LOBBY_MIN_LOBBYIDOVERRIDE_LENGTH), "Lobby ID override has an unsupported number of characters");
 
+		RNInfo("CreateLobby name = " << lobbyName << ", level = " << lobbyLevel << ", maxUsers = " << maxUsers);
+
 		EOSConnectedLobbyInfo *connectedLobbyInfo = new EOSConnectedLobbyInfo();
 		connectedLobbyInfo->_status = EOSConnectedLobbyInfo::Status::Creating;
 		connectedLobbyInfo->_didJoinLobbyCallback = callback;
@@ -541,7 +543,9 @@ namespace RN
 			if(callback) callback(EOSResult::NoConnection, nullptr);
 			return nullptr;
 		}
-		
+
+		RNInfo("JoinLobby " << lobbyInfo->GetDescription());
+
 		EOSConnectedLobbyInfo *connectedLobbyInfo = new EOSConnectedLobbyInfo();
 		connectedLobbyInfo->_status = EOSConnectedLobbyInfo::Status::Connecting;
 		connectedLobbyInfo->_didJoinLobbyCallback = callback;
@@ -604,6 +608,8 @@ namespace RN
 
 		if(eosUserID)
 		{
+			RNInfo("SearchLobby by eosUserID " << eosUserID);
+
 			EOS_LobbySearch_SetTargetUserIdOptions targetUserIDOptions = {0};
 			targetUserIDOptions.ApiVersion = EOS_LOBBYSEARCH_SETTARGETUSERID_API_LATEST;
 			targetUserIDOptions.TargetUserId = EOSWorld::GetInstance()->GetUserIDFromString(eosUserID);
@@ -611,6 +617,8 @@ namespace RN
 		}
 		else if(lobbyID)
 		{
+			RNInfo("SearchLobby by lobbyID " << lobbyID);
+
 			EOS_LobbySearch_SetLobbyIdOptions lobbyIDOptions = {0};
 			lobbyIDOptions.ApiVersion = EOS_LOBBYSEARCH_SETLOBBYID_API_LATEST;
 			lobbyIDOptions.LobbyId = lobbyID->GetUTF8String();
@@ -618,6 +626,8 @@ namespace RN
 		}
 		else //Can't set anything else if setting a lobby id!
 		{
+			RNInfo("SearchLobby by filters " << (searchFilter ? searchFilter->GetCount() : 0));
+
 			EOS_Lobby_AttributeData timestampAttributeData = {0};
 			timestampAttributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 			timestampAttributeData.ValueType = EOS_EAttributeType::EOS_AT_INT64;
@@ -653,6 +663,8 @@ namespace RN
 					EOSLobbySearchParameterString *paramString = param->Downcast<EOSLobbySearchParameterString>();
 					if(paramString)
 					{
+						RNInfo("SearchLobby filter " << index << ": " << paramString->_name << " = " << paramString->_content << ", op = " << static_cast<int>(paramString->_comparator));
+
 						EOS_Lobby_AttributeData attributeData = {0};
 						attributeData.ApiVersion = EOS_LOBBY_ATTRIBUTEDATA_API_LATEST;
 						attributeData.ValueType = EOS_EAttributeType::EOS_AT_STRING;
@@ -705,7 +717,7 @@ namespace RN
 		}
 		_lobbySearches.push_back(searchData);
 
-		RNDebug("Start searching lobbies");
+		RNInfo("Start searching lobbies");
 		EOS_LobbySearch_Find(searchData->handle, &findOptions, searchData, LobbyOnSearchCallback);
 	}
 
@@ -726,6 +738,8 @@ namespace RN
 		if(!world) return;
 		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
 		if(!lobbyManager) return;
+
+		RNInfo("LobbyOnCreateCallback result " << EOS_EResult_ToString(Data->ResultCode));
 
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
@@ -918,6 +932,7 @@ namespace RN
 	{
 		EOSLobbySearch *searchData = static_cast<EOSLobbySearch *>(Data->ClientData);
 
+		RNInfo("Lobby search result " << EOS_EResult_ToString(Data->ResultCode));
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Lobby search successful");
@@ -926,7 +941,7 @@ namespace RN
 			searchResultCountOptions.ApiVersion = EOS_LOBBYSEARCH_GETSEARCHRESULTCOUNT_API_LATEST;
 
 			uint32 resultCount = EOS_LobbySearch_GetSearchResultCount(searchData->handle, &searchResultCountOptions);
-			RNDebug("Found " << resultCount << " lobbies");
+			RNInfo("Found " << resultCount << " lobbies");
 
 			Array *lobbyInfoArray = new Array();
 			for(int i = 0; i < resultCount; i++)
@@ -1007,6 +1022,8 @@ namespace RN
 					lobbyInfo->ownerHandle = lobbyDetailsInfo->LobbyOwnerUserId;
 					EOS_LobbyDetails_Info_Release(lobbyDetailsInfo);
 				}
+
+				RNInfo("Found lobby " << i << ": " << lobbyInfo->GetDescription());
 			}
 
 			if(searchData->callback)
@@ -1047,6 +1064,8 @@ namespace RN
 
 	void EOSLobbyManager::LobbyOnUpdateCallback(const EOS_Lobby_UpdateLobbyCallbackInfo *Data)
 	{
+		RNInfo("LobbyOnUpdateCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << Data->LobbyId);
+
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Lobby parameters updated successfully");
@@ -1064,6 +1083,8 @@ namespace RN
 		if(!world) return;
 		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
 		if(!lobbyManager) return;
+
+		RNInfo("LobbyOnJoinCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << connectedLobbyInfo->_lobbyID << ", lobbyName = " << connectedLobbyInfo->_lobbyName << ", lobbyLevel = " << connectedLobbyInfo->_lobbyLevel);
 
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
@@ -1175,6 +1196,8 @@ namespace RN
 		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
 		if(!lobbyManager) return;
 
+		RNInfo("LobbyOnLeaveCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << connectedLobbyInfo->_lobbyID << ", lobbyName = " << connectedLobbyInfo->_lobbyName << ", lobbyLevel = " << connectedLobbyInfo->_lobbyLevel);
+
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNInfo("Left lobby successfully");
@@ -1225,20 +1248,20 @@ namespace RN
 			RNError("Lobby not found");
 			return;
 		}
-		
-		RNDebug("Lobby member status received for " << Data->TargetUserId << " in lobby " << Data->LobbyId << " with status " << (size_t)Data->CurrentStatus);
+
+		RNInfo("Lobby member status received for " << Data->TargetUserId << " in lobby " << Data->LobbyId << " with status " << (size_t)Data->CurrentStatus);
 
 		switch(Data->CurrentStatus)
 		{
 			case EOS_ELobbyMemberStatus::EOS_LMS_JOINED:
 			{
-				RNDebug("Member joined: " << Data->TargetUserId);
+				RNInfo("Member joined: " << Data->TargetUserId);
 				connectedLobbyInfo->AddRemotePeer(Data->TargetUserId);
 				break;
 			}
 			case EOS_ELobbyMemberStatus::EOS_LMS_LEFT:
 			{
-				RNDebug("Member left: " << Data->TargetUserId);
+				RNInfo("Member left: " << Data->TargetUserId);
 				connectedLobbyInfo->RemoveRemotePeer(Data->TargetUserId);
 				if(Data->TargetUserId == world->GetUserID())
 				{
@@ -1258,7 +1281,7 @@ namespace RN
 			}
 			case EOS_ELobbyMemberStatus::EOS_LMS_CLOSED:
 			{
-				RNDebug("Lobby closed: " << Data->TargetUserId);
+				RNInfo("Lobby closed: " << Data->TargetUserId);
 				if(connectedLobbyInfo->_associatedHost)
 				{
 					connectedLobbyInfo->_associatedHost->Disconnect();
@@ -1268,7 +1291,7 @@ namespace RN
 			case EOS_ELobbyMemberStatus::EOS_LMS_KICKED:
 			case EOS_ELobbyMemberStatus::EOS_LMS_DISCONNECTED:
 			{
-				RNDebug("Member disconnected from lobby: " << Data->TargetUserId);
+				RNInfo("Member disconnected from lobby: " << Data->TargetUserId);
 				connectedLobbyInfo->RemoveRemotePeer(Data->TargetUserId);
 				if(Data->TargetUserId == world->GetUserID())
 				{
@@ -1288,7 +1311,7 @@ namespace RN
 			}
 			case EOS_ELobbyMemberStatus::EOS_LMS_PROMOTED:
 			{
-				RNDebug("Host migrating to: " << Data->TargetUserId);
+				RNInfo("Host migrating to: " << Data->TargetUserId);
 				connectedLobbyInfo->_isHost = world->GetUserID() == Data->TargetUserId;
 				
 				if(connectedLobbyInfo->_associatedHost)
@@ -1319,6 +1342,8 @@ namespace RN
 		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
 		if(!lobbyManager) return;
 
+		RNInfo("LobbyOnDestroyCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << connectedLobbyInfo->_lobbyID << ", lobbyName = " << connectedLobbyInfo->_lobbyName << ", lobbyLevel = " << connectedLobbyInfo->_lobbyLevel);
+
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Destroyed lobby successfully");
@@ -1348,6 +1373,8 @@ namespace RN
 
 	void EOSLobbyManager::LobbyOnKickMemberCallback(const EOS_Lobby_KickMemberCallbackInfo *Data)
 	{
+		RNInfo("LobbyOnKickMemberCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << Data->LobbyId);
+
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Kicked user successfully");
