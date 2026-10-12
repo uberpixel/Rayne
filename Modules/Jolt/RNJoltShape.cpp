@@ -289,6 +289,49 @@ namespace RN
 		_shape->AddRef();
 	}
 
+	JoltCompoundShape::JoltCompoundShape(const std::vector<Child> &children)
+	{
+		if(children.empty() || children.size() > 0xffffffffU) return;
+
+		bool hasCompoundChild = false;
+		JPH::uint indexBits = 32 - JPH::CountLeadingZeros(static_cast<JPH::uint32>(children.size() - 1));
+		for(const Child &child : children)
+		{
+			if(!child.shape || !child.shape->GetJoltShape() || !child.position.IsValid() || !child.rotation.IsValid()) return;
+			if(indexBits + child.shape->GetJoltShape()->GetSubShapeIDBitsRecursive() > JPH::SubShapeID::MaxBits) return;
+			hasCompoundChild |= child.shape->GetJoltShape()->GetType() == JPH::EShapeType::Compound;
+		}
+
+		_shapes.reserve(children.size());
+
+		// Nested SetMass can move the child COM; retain the incremental capture order.
+		if(hasCompoundChild)
+		{
+			_shape = new JPH::MutableCompoundShape();
+			_shape->AddRef();
+			for(const Child &child : children)
+			{
+				AddChild(child.shape, child.position, child.rotation, child.userData);
+				SetChildMass(_shapes.size() - 1, child.mass);
+			}
+			return;
+		}
+
+		JPH::MutableCompoundShapeSettings settings;
+		settings.mSubShapes.reserve(children.size());
+		for(const Child &child : children)
+		{
+			if(child.mass > k::EpsilonFloat) child.shape->SetMass(child.mass);
+			_shapes.push_back(child.shape->Retain());
+			settings.AddShape(JPH::Vec3(child.position.x, child.position.y, child.position.z), JPH::Quat(child.rotation.x, child.rotation.y, child.rotation.z, child.rotation.w), child.shape->GetJoltShape(), child.userData);
+		}
+
+		JPH::Shape::ShapeResult result = settings.Create();
+		if(!result.IsValid()) return;
+		_shape = result.Get();
+		_shape->AddRef();
+	}
+
 	JoltCompoundShape::JoltCompoundShape(Model *model, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
 	{
 		_shape = new JPH::MutableCompoundShape();

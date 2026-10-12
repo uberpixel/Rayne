@@ -130,6 +130,18 @@ namespace RN
 	public:
 		//friend JoltDynamicBody;
 		//friend JoltStaticBody;
+		struct Child
+		{
+			JoltShape *shape;
+			Vector3 position;
+			Quaternion rotation;
+			float mass;
+			uint32 userData;
+		};
+
+		// Builds flat children together and preserves incremental mass updates for nested compounds.
+		// GetJoltShape() is null if validation fails.
+		JTAPI JoltCompoundShape(const std::vector<Child> &children);
 		JTAPI JoltCompoundShape();
 		JTAPI JoltCompoundShape(Model *model, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided = false);
 		JTAPI JoltCompoundShape(const Array *meshes, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided = false);
