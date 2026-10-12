@@ -139,7 +139,7 @@ namespace RN
 			uint32 userData;
 		};
 
-		// Builds flat children together and preserves incremental mass updates for nested compounds.
+		// Batches flat or disjoint uniformly scaled children; preserves incremental updates otherwise.
 		// GetJoltShape() is null if validation fails.
 		JTAPI JoltCompoundShape(const std::vector<Child> &children);
 		JTAPI JoltCompoundShape();
@@ -160,6 +160,7 @@ namespace RN
 		JTAPI static JoltCompoundShape *WithModel(Model *model, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided = false);
 
 	private:
+		static bool CanScaleMassUniformly(JoltShape *shape, float mass, std::unordered_set<const JPH::Shape *> &visited);
 		void UpdateCenterOfMass();
 
 		std::vector<JoltShape *> _shapes;

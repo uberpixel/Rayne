@@ -289,6 +289,31 @@ namespace RN
 		_shape->AddRef();
 	}
 
+	bool JoltCompoundShape::CanScaleMassUniformly(JoltShape *shape, float mass, std::unordered_set<const JPH::Shape *> &visited)
+	{
+		JPH::Shape *joltShape = shape->GetJoltShape();
+		if(!joltShape || !visited.insert(joltShape).second || !std::isfinite(mass) || mass <= k::EpsilonFloat) return false;
+		JPH::MassProperties properties = joltShape->GetMassProperties();
+		if(!std::isfinite(properties.mMass) || properties.mMass <= k::EpsilonFloat) return false;
+
+		if(JoltCompoundShape *compound = shape->Downcast<JoltCompoundShape>())
+		{
+			float scale = mass / properties.mMass;
+			if(!std::isfinite(scale) || scale <= 0.0f || compound->_shapes.empty()) return false;
+			for(JoltShape *child : compound->_shapes)
+			{
+				if(!child || !child->GetJoltShape()) return false;
+				float childMass = child->GetJoltShape()->GetMassProperties().mMass * scale;
+				if(!CanScaleMassUniformly(child, childMass, visited)) return false;
+			}
+			return true;
+		}
+
+		if(joltShape->GetType() != JPH::EShapeType::Convex) return false;
+		float density = static_cast<JPH::ConvexShape *>(joltShape)->GetDensity() * mass / properties.mMass;
+		return std::isfinite(density) && density > 0.0f;
+	}
+
 	JoltCompoundShape::JoltCompoundShape(const std::vector<Child> &children)
 	{
 		if(children.empty() || children.size() > 0xffffffffU) return;
@@ -304,8 +329,22 @@ namespace RN
 
 		_shapes.reserve(children.size());
 
-		// Nested SetMass can move the child COM; retain the incremental capture order.
+		bool canBatchNested = hasCompoundChild;
 		if(hasCompoundChild)
+		{
+			std::unordered_set<const JPH::Shape *> visited;
+			for(const Child &child : children)
+			{
+				if(!CanScaleMassUniformly(child.shape, child.mass, visited))
+				{
+					canBatchNested = false;
+					break;
+				}
+			}
+		}
+
+		// Aliases and suppressed leaf masses can move nested COM nonuniformly.
+		if(hasCompoundChild && !canBatchNested)
 		{
 			_shape = new JPH::MutableCompoundShape();
 			_shape->AddRef();
@@ -321,7 +360,7 @@ namespace RN
 		settings.mSubShapes.reserve(children.size());
 		for(const Child &child : children)
 		{
-			if(child.mass > k::EpsilonFloat) child.shape->SetMass(child.mass);
+			if(!canBatchNested && child.mass > k::EpsilonFloat) child.shape->SetMass(child.mass);
 			_shapes.push_back(child.shape->Retain());
 			settings.AddShape(JPH::Vec3(child.position.x, child.position.y, child.position.z), JPH::Quat(child.rotation.x, child.rotation.y, child.rotation.z, child.rotation.w), child.shape->GetJoltShape(), child.userData);
 		}
@@ -330,6 +369,12 @@ namespace RN
 		if(!result.IsValid()) return;
 		_shape = result.Get();
 		_shape->AddRef();
+		if(canBatchNested)
+		{
+			// Capture child transforms before mass changes, as AddChild does.
+			for(const Child &child : children) child.shape->SetMass(child.mass);
+			UpdateCenterOfMass();
+		}
 	}
 
 	JoltCompoundShape::JoltCompoundShape(Model *model, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided)
