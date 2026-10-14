@@ -25,6 +25,7 @@ namespace RN
 	constexpr size_t EOSSendChannelShare = 16 * 1024;
 	constexpr size_t EOSBackgroundReliableWindow = 64 * 1024;
 	constexpr size_t EOSMeshScheduledBytesPerPeer = 1024 * 1024;
+	constexpr double EOSMeshInterruptionTimeout = 5.0;
 	constexpr float EOSUnreliablePacketLifetime = 0.25f;
 	constexpr double EOSPeerProgressTimeout = 60.0;
 	constexpr size_t EOSMaxScheduledBytesPerPeer = 32 * 1024 * 1024;
@@ -646,7 +647,10 @@ namespace RN
 		for(auto &entry : _peers)
 		{
 			Peer &peer = entry.second;
-			bool hasExpired = peer._isConnectionInterrupted && _peerProgressTime - peer._connectionInterruptedAt >= EOSPeerProgressTimeout;
+			// A mesh can replace one interrupted stream without ending the lobby session.
+			double interruptionTimeout = peer._requiresBoundStream && !peer._wantsDisconnect ? EOSMeshInterruptionTimeout : EOSPeerProgressTimeout;
+			bool interruptionExpired = peer._isConnectionInterrupted && _peerProgressTime - peer._connectionInterruptedAt >= interruptionTimeout;
+			bool hasExpired = interruptionExpired;
 			for(uint32 channel = 0; channel < 254 && !hasExpired; channel++)
 			{
 				const ChannelState &state = peer._channels[channel];
@@ -654,7 +658,7 @@ namespace RN
 			}
 			if(hasExpired)
 			{
-				RNWarning("Disconnecting EOS peer " << entry.first << " after 60 seconds without reliable or connection progress");
+				RNWarning("Disconnecting EOS peer " << entry.first << " after " << (interruptionExpired ? interruptionTimeout : EOSPeerProgressTimeout) << " seconds without " << (interruptionExpired ? "connection" : "reliable") << " progress");
 				peersToDisconnect.emplace_back(entry.first, peer._reliableSendStream);
 				continue;
 			}

@@ -420,6 +420,14 @@ namespace RN
 			didConnect = isResponse;
 			shouldRespond = true;
 		}
+		// A response proving both current stream IDs also proves transport recovery.
+		// Unconfirmed requests and stale responses cannot resume an interrupted stream.
+		if(isResponse && handshake.echoedStreamID == peer->_reliableSendStream && handshake.streamID == peer->_remoteStream)
+		{
+			peer->_isConnectionInterrupted = false;
+			peer->_connectionInterruptedAt = 0.0;
+			peer->_isConnectionActive = true;
+		}
 		if(didConnect)
 		{
 			peer->_isConnectionActive = true;
@@ -733,7 +741,7 @@ namespace RN
 			return;
 		}
 		// Repeated close hints for an already retired attempt must not keep postponing its retry.
-		if(!peer->second._didNotifyConnection && peer->second._isReconnectScheduled)
+		if(!peer->second._didNotifyConnection && peer->second._isReconnectScheduled && !peer->second._isConnectionInterrupted)
 		{
 			Unlock();
 			return;
