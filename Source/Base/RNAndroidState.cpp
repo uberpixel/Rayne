@@ -234,6 +234,7 @@ namespace RN
 
 		LockGuard<Lockable> lock(_pendingStateLock);
 		int32 previousActivityState = _pendingState.hasPendingState ? _pendingState.activityState : _activityState.load(std::memory_order_acquire);
+		state.didResume = state.didResume || (previousActivityState != APP_CMD_RESUME && state.activityState == APP_CMD_RESUME);
 		state.didStart = previousActivityState != APP_CMD_START && state.activityState == APP_CMD_START;
 		state.didPause = previousActivityState != APP_CMD_PAUSE && state.activityState == APP_CMD_PAUSE;
 		state.didStop = previousActivityState != APP_CMD_STOP && state.activityState == APP_CMD_STOP;
