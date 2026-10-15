@@ -43,7 +43,7 @@ namespace RN
 	}
 
 	EOSConnectedLobbyInfo::EOSConnectedLobbyInfo() :
-		_status(Status::Disconnected), _lobbyID(nullptr), _lobbyName(nullptr), _lobbyLevel(nullptr), _lobbyVersion(nullptr), _lobbyDetails(0), _createTimestamp(0), _lobbyHasPassword(false), _isHost(false), _didJoinLobbyCallback(nullptr), _audioBeforeRenderNotificationID(0), _audioBeforeSendNotificationID(0)
+		_associatedHost(nullptr), _status(Status::Disconnected), _lobbyID(nullptr), _lobbyName(nullptr), _lobbyLevel(nullptr), _lobbyVersion(nullptr), _lobbyDetails(0), _createTimestamp(0), _lobbyHasPassword(false), _isHost(false), _didJoinLobbyCallback(nullptr), _audioBeforeRenderNotificationID(0), _audioBeforeSendNotificationID(0)
 	{
 	}
 
@@ -110,22 +110,13 @@ namespace RN
 		_status = Status::Disconnecting;
 
 		EOS_HLobby lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(EOSWorld::GetInstance()->GetPlatformHandle());
-		if(_isHost && _remotePeers.empty())
-		{
-			EOS_Lobby_DestroyLobbyOptions destroyOptions;
-			destroyOptions.ApiVersion = EOS_LOBBY_DESTROYLOBBY_API_LATEST;
-			destroyOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
-			destroyOptions.LobbyId = _lobbyID->GetUTF8String();
-			EOS_Lobby_DestroyLobby(lobbyInterfaceHandle, &destroyOptions, this, EOSLobbyManager::LobbyOnDestroyCallback);
-		}
-		else
-		{
-			EOS_Lobby_LeaveLobbyOptions leaveOptions = {0};
-			leaveOptions.ApiVersion = EOS_LOBBY_LEAVELOBBY_API_LATEST;
-			leaveOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
-			leaveOptions.LobbyId = _lobbyID->GetUTF8String();
-			EOS_Lobby_LeaveLobby(lobbyInterfaceHandle, &leaveOptions, this, EOSLobbyManager::LobbyOnLeaveCallback);
-		}
+		RNInfo("EOS lobby leave requested lobbyID=" << _lobbyID << " isHost=" << _isHost << " cachedRemoteMemberCount=" << _remotePeers.size());
+
+		EOS_Lobby_LeaveLobbyOptions leaveOptions = {0};
+		leaveOptions.ApiVersion = EOS_LOBBY_LEAVELOBBY_API_LATEST;
+		leaveOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
+		leaveOptions.LobbyId = _lobbyID->GetUTF8String();
+		EOS_Lobby_LeaveLobby(lobbyInterfaceHandle, &leaveOptions, this, EOSLobbyManager::LobbyOnLeaveCallback);
 
 		if(_lobbyDetails)
 		{
@@ -1100,6 +1091,7 @@ namespace RN
 			EOS_EResult copyDetailsResult = EOS_Lobby_CopyLobbyDetailsHandle(lobbyManager->_lobbyInterfaceHandle, &copyOptions, &connectedLobbyInfo->_lobbyDetails);
 			if(copyDetailsResult == EOS_EResult::EOS_Success)
 			{
+				connectedLobbyInfo->_isHost = connectedLobbyInfo->GetLobbyOwnerID() == world->GetUserID();
 				connectedLobbyInfo->RetrievePeers();
 			}
 
@@ -1332,43 +1324,6 @@ namespace RN
 				break;
 		}
 		
-		SafeRelease(connectedLobbyInfo);
-	}
-
-	void EOSLobbyManager::LobbyOnDestroyCallback(const EOS_Lobby_DestroyLobbyCallbackInfo *Data)
-	{
-		EOSConnectedLobbyInfo *connectedLobbyInfo = static_cast<EOSConnectedLobbyInfo *>(Data->ClientData);
-		EOSWorld *world = EOSWorld::GetInstance();
-		if(!world) return;
-		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
-		if(!lobbyManager) return;
-
-		RNInfo("LobbyOnDestroyCallback result " << EOS_EResult_ToString(Data->ResultCode) << ", lobbyID = " << connectedLobbyInfo->_lobbyID << ", lobbyName = " << connectedLobbyInfo->_lobbyName << ", lobbyLevel = " << connectedLobbyInfo->_lobbyLevel);
-
-		if(Data->ResultCode == EOS_EResult::EOS_Success)
-		{
-			RNDebug("Destroyed lobby successfully");
-		}
-		else if(Data->ResultCode == EOS_EResult::EOS_AlreadyPending)
-		{
-			RNDebug("Lobby already getting destroyed");
-			return;
-		}
-		else
-		{
-			RNDebug("Failed destroying lobby");
-		}
-		
-		connectedLobbyInfo->_status = EOSConnectedLobbyInfo::Status::Disconnected;
-		SafeRelease(connectedLobbyInfo->_lobbyID);
-
-		lobbyManager->RemoveLobbyAudioNotifications(connectedLobbyInfo);
-		
-		auto position = std::find(lobbyManager->_connectedLobbies.begin(), lobbyManager->_connectedLobbies.end(), connectedLobbyInfo);
-		if(position != lobbyManager->_connectedLobbies.end())
-		{
-			lobbyManager->_connectedLobbies.erase(position);
-		}
 		SafeRelease(connectedLobbyInfo);
 	}
 

@@ -34,7 +34,6 @@ typedef struct _tagEOS_LobbySearch_FindCallbackInfo EOS_LobbySearch_FindCallback
 typedef struct _tagEOS_Lobby_UpdateLobbyCallbackInfo EOS_Lobby_UpdateLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_JoinLobbyCallbackInfo EOS_Lobby_JoinLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_LeaveLobbyCallbackInfo EOS_Lobby_LeaveLobbyCallbackInfo;
-typedef struct _tagEOS_Lobby_DestroyLobbyCallbackInfo EOS_Lobby_DestroyLobbyCallbackInfo;
 typedef struct _tagEOS_Lobby_KickMemberCallbackInfo EOS_Lobby_KickMemberCallbackInfo;
 typedef struct _tagEOS_Lobby_LobbyMemberStatusReceivedCallbackInfo EOS_Lobby_LobbyMemberStatusReceivedCallbackInfo;
 
@@ -221,7 +220,6 @@ namespace RN
 		static void LobbyOnJoinCallback(const EOS_Lobby_JoinLobbyCallbackInfo *Data);
 		static void LobbyOnLeaveCallback(const EOS_Lobby_LeaveLobbyCallbackInfo *Data);
 		static void LobbyOnMemberStatusReceived(const EOS_Lobby_LobbyMemberStatusReceivedCallbackInfo *Data);
-		static void LobbyOnDestroyCallback(const EOS_Lobby_DestroyLobbyCallbackInfo *Data);
 		static void LobbyOnKickMemberCallback(const EOS_Lobby_KickMemberCallbackInfo *Data);
 
 		static void LobbyOnSearchCallback(const EOS_LobbySearch_FindCallbackInfo *Data);
