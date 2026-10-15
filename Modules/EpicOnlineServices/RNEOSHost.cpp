@@ -862,6 +862,8 @@ namespace RN
 			peer->second._isConnectionActive = false;
 		}
 		host->Unlock();
+		RNInfo("EOS transport interrupted: local=" << host->_clientID << " remote=" << (Data->RemoteUserId ? host->GetClientIDForProductUserID(Data->RemoteUserId) : CLIENT_ID_NONE)
+			<< " socket=" << (Data->SocketId ? Data->SocketId->SocketName : "<none>"));
 	}
 
 	void EOSHost::OnConnectionEstablishedCallback(const EOS_P2P_OnPeerConnectionEstablishedInfo *Data)
@@ -877,6 +879,9 @@ namespace RN
 			peer->second._isConnectionActive = true;
 		}
 		host->Unlock();
+		RNInfo("EOS transport established: local=" << host->_clientID << " remote=" << (Data->RemoteUserId ? host->GetClientIDForProductUserID(Data->RemoteUserId) : CLIENT_ID_NONE)
+			<< " socket=" << (Data->SocketId ? Data->SocketId->SocketName : "<none>")
+			<< " connectionType=" << static_cast<uint32>(Data->ConnectionType) << " networkType=" << static_cast<uint32>(Data->NetworkType));
 	}
 
 	EOSHost::Peer EOSHost::CreatePeer(EOSClientID clientID, EOS_ProductUserId internalID)

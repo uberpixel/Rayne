@@ -96,7 +96,7 @@ namespace RN
 		if(!peer)
 		{
 			Unlock();
-			RNWarning("EOS product user ID collision while connecting to " << remoteProductUserID);
+			RNWarning("EOS client ID collision while connecting: local=" << _clientID << " remote=" << GetClientIDForProductUserID(remoteProductUserID) << " socket=" << _socketID->GetUTF8String());
 			Disconnect();
 			return;
 		}
@@ -656,9 +656,11 @@ namespace RN
 		acceptOptions.RemoteUserId = Data->RemoteUserId;
 		acceptOptions.SocketId = Data->SocketId;
 
-		if(EOS_P2P_AcceptConnection(world->GetP2PHandle(), &acceptOptions) != EOS_EResult::EOS_Success)
+		EOS_EResult result = EOS_P2P_AcceptConnection(world->GetP2PHandle(), &acceptOptions);
+		if(result != EOS_EResult::EOS_Success)
 		{
-			RNWarning("Failed to accept connection request from " << Data->RemoteUserId);
+			RNWarning("EOS incoming request acceptance failed: local=" << client->_clientID << " remote=" << (Data->RemoteUserId ? client->GetClientIDForProductUserID(Data->RemoteUserId) : CLIENT_ID_NONE)
+				<< " socket=" << (Data->SocketId ? Data->SocketId->SocketName : "<none>") << " result=" << EOS_EResult_ToString(result));
 			return;
 		}
 
@@ -667,7 +669,8 @@ namespace RN
 		if(!peer)
 		{
 			client->Unlock();
-			RNWarning("EOS product user ID collision from " << Data->RemoteUserId << "; disconnecting the P2P session");
+			RNWarning("EOS client ID collision after incoming acceptance: local=" << client->_clientID << " remote=" << (Data->RemoteUserId ? client->GetClientIDForProductUserID(Data->RemoteUserId) : CLIENT_ID_NONE)
+				<< " socket=" << (Data->SocketId ? Data->SocketId->SocketName : "<none>") << "; disconnecting the P2P session");
 			client->Disconnect();
 			return;
 		}
@@ -697,8 +700,11 @@ namespace RN
 	void EOSP2PClient::OnConnectionClosedCallback(const EOS_P2P_OnRemoteConnectionClosedInfo *Data)
 	{
 		EOSP2PClient *client = static_cast<EOSP2PClient *>(Data->ClientData);
+		if(!client) return;
+		RNInfo("EOS connection closed: local=" << client->_clientID << " remote=" << (Data->RemoteUserId ? client->GetClientIDForProductUserID(Data->RemoteUserId) : CLIENT_ID_NONE)
+			<< " socket=" << (Data->SocketId ? Data->SocketId->SocketName : "<none>") << " reason=" << static_cast<uint32>(Data->Reason));
 		// Local close paths own finalization, even if EOS delivers their notification after an explicit reconnect.
-		if(!client || Data->Reason == EOS_EConnectionClosedReason::EOS_CCR_ClosedByLocalUser) return;
+		if(Data->Reason == EOS_EConnectionClosedReason::EOS_CCR_ClosedByLocalUser) return;
 		client->Lock();
 		bool isKnownPeer = client->_peers.count(Data->RemoteUserId) > 0;
 		client->Unlock();
