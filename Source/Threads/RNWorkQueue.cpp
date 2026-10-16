@@ -92,7 +92,8 @@ namespace RN
 		_running(0),
 		_sleeping(0),
 		_suspended(0),
-		_barrier(false)
+		_barrier(false),
+		_pendingBarrier(nullptr)
 	{
 		size_t multiplier = 16;
 		size_t maxThreads = 32;
@@ -143,12 +144,29 @@ namespace RN
 			_syncSignal.NotifyAll();
 		}
 
-		_internals->workSignal.NotifyAll();
+		{
+			LockGuard<Lockable> lock(_internals->workLock);
+			_internals->workSignal.NotifyAll();
+		}
 
 		for(Thread *thread : threads)
 		{
 			thread->WaitForExit();
 			thread->Release();
+		}
+
+		if(_pendingBarrier)
+		{
+			if(_pendingBarrier->TestFlag(WorkSource::Flags::Synchronous))
+			{
+				// The synchronous caller owns the source until completion.
+				_pendingBarrier->_function = Function();
+				LockGuard<Lockable> lock(_syncLock);
+				_pendingBarrier->Complete();
+				_syncSignal.NotifyAll();
+			}
+			else
+				_pendingBarrier->Relinquish();
 		}
 
 		_identifier->Release();
@@ -188,182 +206,206 @@ namespace RN
 	}
 	void WorkQueue::PerformBarrier(Function &&function)
 	{
-		PerformWithFlags(std::move(function), WorkSource::Flags::Barrier);
+		// Serial queues already execute work exclusively.
+		PerformWithFlags(std::move(function), (_flags & Flags::Concurrent) ? WorkSource::Flags::Barrier : 0);
 	}
 
 	void WorkQueue::PerformSynchronous(Function &&function)
 	{
 		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous);
 
-		UniqueLock<Lockable> lock(_syncLock);
-		if(source->IsComplete())
 		{
-			source->Relinquish();
-			return;
+			UniqueLock<Lockable> lock(_syncLock);
+			_syncSignal.Wait(lock, [&] { return source->IsComplete(); });
 		}
-
-		_syncSignal.Wait(lock, [&] { return (source->IsComplete()); });
+		std::exception_ptr exception = source->_exception;
 		source->Relinquish();
+		if(exception) std::rethrow_exception(exception);
 	}
 	void WorkQueue::PerformSynchronousBarrier(Function &&function)
 	{
-		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous | WorkSource::Flags::Barrier);
-
-		UniqueLock<Lockable> lock(_syncLock);
-		if(source->IsComplete())
+		WorkSource *source = PerformWithFlags(std::move(function), WorkSource::Flags::Synchronous | ((_flags & Flags::Concurrent) ? WorkSource::Flags::Barrier : 0));
 		{
-			source->Relinquish();
-			return;
+			UniqueLock<Lockable> lock(_syncLock);
+			_syncSignal.Wait(lock, [&] { return source->IsComplete(); });
 		}
-
-		_syncSignal.Wait(lock, [&] { return (source->IsComplete()); });
+		std::exception_ptr exception = source->_exception;
 		source->Relinquish();
+		if(exception) std::rethrow_exception(exception);
 	}
 
 	WorkSource *WorkQueue::PerformWithFlags(Function &&function, WorkSource::Flags flags, size_t concurrencyHint)
 	{
-		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
-
-		_internals->workQueue.enqueue(source);
-		_open.fetch_add(1, std::memory_order_relaxed);
-
+		std::shared_ptr<std::atomic<bool>> completed;
 		if(flags & WorkSource::Flags::Barrier)
 		{
-			// Push _concurrency BarrierBlock work sources to keep other threads
-			// from running over the barrier. This works because threads encountering a BarrierBlock
-			// will consume the block and wait until the barrier completes.
-			// Also we only guarantee that barriers work with single producer submission
-
-			for(size_t i = 0; i < _concurrency; i++)
-			{
-				WorkSource *source = WorkSource::DequeueWorkSource([] {}, WorkSource::Flags::Barrier | WorkSource::Flags::BarrierBlock);
-				_internals->workQueue.enqueue(source);
-				_open.fetch_add(1, std::memory_order_relaxed);
-			}
+			completed = std::make_shared<std::atomic<bool>>(false);
+			function = [function = std::move(function), completed]() mutable {
+				try
+				{
+					function();
+				}
+				catch(...)
+				{
+					completed->store(true);
+					throw;
+				}
+				completed->store(true);
+			};
 		}
+		WorkSource *source = WorkSource::DequeueWorkSource(std::move(function), flags);
 
-		ReCalculateWidth(concurrencyHint);
-
-		// Assure wake up
-		if(_sleeping.load(std::memory_order_acquire) && _suspended.load(std::memory_order_acquire) == 0)
+		std::vector<WorkSource *> batch;
+		const size_t count = (flags & WorkSource::Flags::Barrier) ? _concurrency + 1 : 1;
+		bool counted = false;
+		UniqueLock<Lockable> wakeLock(_internals->workLock, LockPolicy::DeferLock);
+		try
 		{
-			UniqueLock<Lockable> lock(_internals->workLock);
-			_internals->workSignal.NotifyOne();
+			if(flags & WorkSource::Flags::Barrier)
+			{
+				batch.reserve(count);
+				batch.push_back(source);
+				// Publish the barrier and all admission markers together. Ordering
+				// between barriers and other work still requires a single producer.
+				for(size_t i = 0; i < _concurrency; i++)
+				{
+					batch.push_back(WorkSource::DequeueWorkSource([this, completed] {
+						LockGuard<Lockable> lock(_barrierLock);
+						if(!completed->load())
+							_barrier.store(true);
+					},
+																  WorkSource::Flags::BarrierBlock));
+				}
+			}
+
+			// Prepare workers before publication so a failed start cannot strand
+			// accepted work. Count first so workers cannot retire or decrement early.
+			_open.fetch_add(count, std::memory_order_relaxed);
+			counted = true;
+			ReCalculateWidth(concurrencyHint);
+
+			// Keep sleepers locked out until the work is published or its count
+			// has been rolled back.
+			if(_sleeping.load(std::memory_order_acquire) && _suspended.load(std::memory_order_acquire) == 0)
+			{
+				wakeLock.Lock();
+				_internals->workSignal.NotifyOne();
+			}
+
+			bool accepted = batch.empty() ? _internals->workQueue.enqueue(source) : _internals->workQueue.enqueue_bulk(batch.begin(), batch.size());
+			if(!accepted) throw std::bad_alloc();
+		}
+		catch(...)
+		{
+			if(counted) _open.fetch_sub(count, std::memory_order_relaxed);
+			if(wakeLock.OwnsLock()) wakeLock.Unlock();
+			source->Relinquish();
+			for(size_t i = 1; i < batch.size(); i++)
+				batch[i]->Relinquish();
+			throw;
 		}
 
 		return source;
 	}
 
-	bool WorkQueue::PerformWork()
+	void WorkQueue::FinishWork()
 	{
+		if(_running.fetch_sub(1) == 1 && _barrier.load())
+		{
+			LockGuard<Lockable> lock(_barrierLock);
+			_barrierSignal.NotifyAll();
+		}
+	}
+
+	bool WorkQueue::PerformWork(bool yielding)
+	{
+		Thread *thread = Thread::GetCurrentThread();
 		bool result;
+		if(yielding && _suspended.load()) return false;
 		ConditionalSpin(_suspended.load(std::memory_order_acquire) == 0, result);
-
 		if(!result)
 		{
+			if(yielding) return false;
 			UniqueLock<Lockable> lock(_internals->workLock);
-			_internals->workSignal.Wait(lock, [&]() -> bool { return (_suspended.load(std::memory_order_acquire) == 0); });
+			_internals->workSignal.Wait(lock, [&] { return _suspended.load() == 0 || thread->IsCancelled(); });
 		}
+		if(thread->IsCancelled()) return false;
 
-		ConditionalSpin(_barrier.load(std::memory_order_acquire) == false, result);
-		if(!result)
-		{
-			// There currently is a barrier executing, so wait until that one is completed
-			UniqueLock<Lockable> lock(_barrierLock);
-			_barrierSignal.Wait(lock, [&]() -> bool { return (_barrier.load(std::memory_order_acquire) == false); });
-		}
-
-		// Grab work from the work pool
 		WorkSource *source = nullptr;
-		ConditionalSpinLow(_internals->workQueue.try_dequeue(source), result);
-
-		if(!result)
-			return false;
-
-		bool isBarrier;
-		if((isBarrier = source->TestFlag(WorkSource::Flags::Barrier)))
-			_barrier.store(true, std::memory_order_release);
-
-		_running.fetch_add(1, std::memory_order_relaxed);
-		_open.fetch_sub(1, std::memory_order_relaxed);
-
-
-		// Barrier path
-		if(isBarrier)
+		if(_barrier.load())
 		{
+			if(yielding) return false;
+			UniqueLock<Lockable> lock(_barrierLock);
+			_barrierSignal.Wait(lock, [&] {
+				return !_barrier.load() || (_pendingBarrier && _running.load() == 0) || thread->IsCancelled();
+			});
+			if(thread->IsCancelled()) return false;
+			if(_barrier.load())
+			{
+				source = _pendingBarrier;
+				_pendingBarrier = nullptr;
+				_running.fetch_add(1);
+			}
+		}
+
+		if(!source)
+		{
+			// Reserve before dequeue so a barrier also counts paused consumers.
+			_running.fetch_add(1);
+			if(_barrier.load())
+			{
+				FinishWork();
+				return false;
+			}
+			ConditionalSpinLow(_internals->workQueue.try_dequeue(source), result);
+			if(!result)
+			{
+				FinishWork();
+				return false;
+			}
+			_open.fetch_sub(1, std::memory_order_relaxed);
+
 			if(source->TestFlag(WorkSource::Flags::BarrierBlock))
 			{
-				// Give the barrier thread a bit of time to set the barrier flag
-				// This avoids racing without introducing a lock
-				ConditionalSpinLow(_barrier.load(std::memory_order_acquire) == true, result);
-
-				// Wait for rendezvous with the barrier signal
-				UniqueLock<Lockable> lock(_barrierLock);
-				_barrierSignal.Wait(lock, [&]() -> bool {
-					return (_barrier.load(std::memory_order_acquire) == false);
-				});
-
+				// Markers close admission without waiting inside a yielding callback.
+				source->Callout();
+				FinishWork();
 				source->Relinquish();
 				return true;
 			}
-
-			// If the work is a barrier, wait until all other work loads clear up
-			ConditionalSpin(_running.load(std::memory_order_acquire) > 1, result);
-
-			if(!result)
+			if(source->TestFlag(WorkSource::Flags::Barrier))
 			{
-				UniqueLock<Lockable> lock(_barrierLock);
-				_barrierSignal.Wait(lock, [&]() -> bool {
-					return (_running.load() == 1);
-				});
+				{
+					LockGuard<Lockable> lock(_barrierLock);
+					_pendingBarrier = source;
+					_barrier.store(true);
+				}
+				FinishWork();
+				return true;
 			}
+		}
 
-			// Call out and perform the work
-			std::atomic_thread_fence(std::memory_order_acquire);
-			source->Callout();
-			std::atomic_thread_fence(std::memory_order_release);
-
-			// Signal that the barrier is done
+		std::atomic_thread_fence(std::memory_order_acquire);
+		source->Callout();
+		std::atomic_thread_fence(std::memory_order_release);
+		if(source->TestFlag(WorkSource::Flags::Barrier))
+		{
 			LockGuard<Lockable> lock(_barrierLock);
-			_barrier.store(false, std::memory_order_relaxed);
+			_running.fetch_sub(1);
+			_barrier.store(false);
 			_barrierSignal.NotifyAll();
 		}
-		else // Non barrier path
-		{
-			// Call out and perform the work
-			std::atomic_thread_fence(std::memory_order_acquire);
-			source->Callout();
-			std::atomic_thread_fence(std::memory_order_release);
-
-			// Clean up
-			if(_barrier.load(std::memory_order_acquire))
-			{
-				// A barrier is waiting to execute, signal it to be ready if needed
-				LockGuard<Lockable> lock(_barrierLock);
-				if((--_running) == 1)
-					_barrierSignal.NotifyAll();
-			}
-			else
-			{
-				_running.fetch_sub(1, std::memory_order_relaxed);
-			}
-		}
-
+		else
+			FinishWork();
 
 		if(source->TestFlag(WorkSource::Flags::Synchronous))
 		{
-			// Synchronous work sources aren't immediately relinquished but
-			// the waiting thread is signalled that the work is completed
-			// and it will relinquish the source eventually
-
 			LockGuard<Lockable> lock(_syncLock);
 			source->Complete();
 			_syncSignal.NotifyAll();
-
-			return true;
 		}
-
-		source->Relinquish();
+		else
+			source->Relinquish();
 		return true;
 	}
 
@@ -383,12 +425,11 @@ namespace RN
 
 				if(!result)
 				{
+					pool.Drain();
 					UniqueLock<Lockable> lock(_internals->workLock);
 
 					if(_open.load() == 0)
 					{
-						pool.Drain();
-
 						_sleeping.fetch_add(1, std::memory_order_relaxed);
 						bool result = _internals->workSignal.WaitFor(lock, std::chrono::milliseconds(timeout), [&]() -> bool { return (_open.load(std::memory_order_acquire) > 0 || thread->IsCancelled()); });
 						_sleeping.fetch_sub(1, std::memory_order_relaxed);
@@ -406,22 +447,43 @@ namespace RN
 
 	void WorkQueue::__Yield()
 	{
-		PerformWorkWithTimeout(1);
+		auto canPerformWork = [this] {
+			return _open.load() > 0 && !_barrier.load() && !_suspended.load();
+		};
+		if(canPerformWork())
+		{
+			AutoreleasePool pool;
+			if(PerformWork(true)) return;
+		}
+
+		Thread *thread = Thread::GetCurrentThread();
+		UniqueLock<Lockable> lock(_internals->workLock);
+		_sleeping.fetch_add(1, std::memory_order_relaxed);
+		_internals->workSignal.WaitFor(lock, std::chrono::milliseconds(1), [&] { return canPerformWork() || thread->IsCancelled(); });
+		_sleeping.fetch_sub(1, std::memory_order_relaxed);
 	}
 
 	void WorkQueue::ThreadEntry()
 	{
 		Thread::SetCurrentThreadPriority(_priority);
-		if(!PerformWorkWithTimeout(500))
+		while(!PerformWorkWithTimeout(500))
 		{
 			Thread *thread = Thread::GetCurrentThread();
 
 			_threadLock.Lock();
 
+			// Hand queued work back to this worker before committing its retirement.
+			if(_open.load() > 0)
+			{
+				_threadLock.Unlock();
+				continue;
+			}
+
 			_threads.erase(std::find(_threads.begin(), _threads.end(), thread));
 			_width--;
 
 			_threadLock.Unlock();
+			break;
 		}
 	}
 
@@ -447,24 +509,33 @@ namespace RN
 			width = (_open.load(std::memory_order_acquire) > 0) ? 1 : 0;
 		}
 
-		_threadLock.Lock();
+		LockGuard<Lockable> lock(_threadLock);
 		_realWidth = width;
 
 		if(width > _width)
 		{
-			for(size_t i = 0; i < width - _width; i++)
+			_threads.reserve(_threads.size() + width - _width);
+			while(_width < width)
 			{
 				Thread *thread = new Thread([this] { ThreadEntry(); }, false);
-				thread->SetName(_identifier->StringByAppendingString(RNSTR("." << _threadCount++)));
-				thread->Start();
+				try
+				{
+					thread->SetName(_identifier->StringByAppendingString(RNSTR("." << _threadCount++)));
+					thread->Start();
+				}
+				catch(...)
+				{
+					// No OS thread was created; release its reserved self reference too.
+					thread->Release();
+					thread->Release();
+					throw;
+				}
 
 				_threads.push_back(thread);
+				_width++;
 				thread->Release();
 			}
-
-			_width = width;
 		}
-		_threadLock.Unlock();
 	}
 
 	void WorkQueue::Suspend()
@@ -474,6 +545,9 @@ namespace RN
 	void WorkQueue::Resume()
 	{
 		if(_suspended.fetch_sub(1, std::memory_order_acquire) == 1)
+		{
+			LockGuard<Lockable> lock(_internals->workLock);
 			_internals->workSignal.NotifyAll();
+		}
 	}
 } // namespace RN

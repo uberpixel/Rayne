@@ -34,24 +34,10 @@ namespace RN
 
 		template<typename F>
 		explicit Thread(F &&func, bool start = true) :
-			_function(std::move(func))
-		{
-			Initialize();
-			AutoAssignName();
+			Thread(Function(std::move(func)), start)
+		{}
 
-			if(start)
-				Start();
-		}
-
-		Thread(Function &&func, bool start = true) :
-			_function(std::move(func))
-		{
-			Initialize();
-			AutoAssignName();
-
-			if(start)
-				Start();
-		}
+		RNAPI Thread(Function &&func, bool start = true);
 
 		RNAPI ~Thread();
 
@@ -109,18 +95,18 @@ namespace RN
 		void __UnscheduleExecuteOnExit(void *context);
 
 		Lockable _generalMutex;
-		RunLoop *_runLoop;
+		RunLoop *_runLoop = nullptr;
 
 		Lockable _dictionaryLock;
-		Dictionary *_dictionary;
-		String *_name;
+		Dictionary *_dictionary = nullptr;
+		String *_name = nullptr;
 
 		std::atomic<bool> _isRunning;
 		std::atomic<bool> _isCancelled;
 		std::atomic<bool> _isDetached;
 
 		Function _function;
-		std::thread::id _id;
+		std::atomic<std::thread::id> _id {std::thread::id()};
 		std::thread _thread;
 
 		Lockable _exitMutex;

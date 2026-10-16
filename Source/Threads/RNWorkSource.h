@@ -30,7 +30,17 @@ namespace RN
 		bool TestFlag(Flags flags) const { return (_flags & flags); }
 		bool IsComplete() const { return _completed; }
 
-		void Callout() { _function(); }
+		void Callout()
+		{
+			try
+			{
+				_function();
+			}
+			catch(...)
+			{
+				_exception = std::current_exception();
+			}
+		}
 		void Complete() { _completed = true; }
 		void Relinquish();
 
@@ -39,6 +49,7 @@ namespace RN
 		void Refurbish(Function &&function, Flags flags);
 
 		Function _function;
+		std::exception_ptr _exception;
 		Flags _flags;
 		WorkSourcePool *_pool;
 		std::atomic<bool> _completed;

@@ -74,7 +74,7 @@ namespace RN
 			std::promise<resultType> promise;
 			std::future<resultType> result(promise.get_future());
 
-			Perform([promise = std::move(promise), f = std::move(f)]() mutable {
+			PerformBarrier([promise = std::move(promise), f = std::move(f)]() mutable {
 				try
 				{
 					promise.set_value(f());
@@ -154,7 +154,8 @@ namespace RN
 
 		void ThreadEntry();
 		bool PerformWorkWithTimeout(uint32 timeout);
-		bool PerformWork();
+		bool PerformWork(bool yielding = false);
+		void FinishWork();
 
 		void ReCalculateWidth(size_t concurrencyHint = 0);
 
@@ -174,6 +175,7 @@ namespace RN
 		std::atomic<size_t> _sleeping;
 		std::atomic<size_t> _suspended;
 		std::atomic<bool> _barrier;
+		WorkSource *_pendingBarrier;
 
 		Condition _barrierSignal;
 		Lockable _barrierLock;

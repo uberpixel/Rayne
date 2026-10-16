@@ -71,6 +71,9 @@ namespace RN
 
 	void WorkSource::Relinquish()
 	{
+		_function = Function();
+		_exception = nullptr;
+
 		_pool->lock.Lock();
 		_next = _pool->head;
 		_pool->head = this;

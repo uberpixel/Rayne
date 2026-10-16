@@ -79,12 +79,19 @@ namespace RN
 	static std::atomic<uint32> __ThreadAtomicIDs;
 
 	Thread::Thread() :
-		_name(nullptr),
 		_id(std::this_thread::get_id())
 	{
-		Initialize();
-
-		_name = new String("RN::Main", true);
+		try
+		{
+			Initialize();
+			_name = new String("RN::Main", true);
+		}
+		catch(...)
+		{
+			delete _runLoop;
+			SafeRelease(_dictionary);
+			throw;
+		}
 		__LocalThread.SetValue(this);
 		__MainThread = this;
 #if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
@@ -92,8 +99,29 @@ namespace RN
 #endif
 	}
 
+	Thread::Thread(Function &&func, bool start) :
+		_function(std::move(func))
+	{
+		try
+		{
+			Initialize();
+			AutoAssignName();
+			if(start) Start();
+		}
+		catch(...)
+		{
+			delete _runLoop;
+			SafeRelease(_dictionary);
+			SafeRelease(_name);
+			throw;
+		}
+	}
+
 	Thread::~Thread()
 	{
+		// Keep the handle until destruction so Start() cannot throw after launch.
+		if(_thread.joinable()) _thread.detach();
+
 		delete _runLoop;
 
 		_dictionary->Release();
@@ -106,8 +134,9 @@ namespace RN
 		_isCancelled = false;
 		_isDetached = false;
 
-		_runLoop = new RunLoop();
+		std::unique_ptr<RunLoop> runLoop(new RunLoop());
 		_dictionary = new Dictionary();
+		_runLoop = runLoop.release();
 
 		Retain();
 	}
@@ -201,10 +230,8 @@ namespace RN
 
 	void Thread::Entry()
 	{
-		_id = std::this_thread::get_id();
+		_id.store(std::this_thread::get_id());
 		__LocalThread.SetValue(this);
-
-		_isRunning.store(true);
 	}
 
 	void Thread::Exit()
@@ -236,32 +263,43 @@ namespace RN
 
 	void Thread::Start()
 	{
+		// Reserve the one allowed start; the handle is detached on destruction.
 		if(_isDetached.exchange(true))
 			throw InconsistencyException("Can't start already detached thread!");
 
-		_thread = std::thread([&]() {
-			Entry();
+		_isRunning.store(true);
+		try
+		{
+			_thread = std::thread([this]() {
+				Entry();
 
-			try
-			{
+				try
 				{
-					LockGuard<Lockable> lock(_generalMutex);
-					AutoreleasePool pool;
+					{
+						LockGuard<Lockable> lock(_generalMutex);
+						AutoreleasePool pool;
 
-					SetCurrentThreadName(_name->GetUTF8String());
+						SetCurrentThreadName(_name->GetUTF8String());
+					}
+
+					_function();
+				}
+				catch(Exception e)
+				{
+					//HandleException(e);
 				}
 
-				_function();
-			}
-			catch(Exception e)
-			{
-				//HandleException(e);
-			}
-
-			Exit();
-		});
-
-		_thread.detach();
+				Exit();
+			});
+		}
+		catch(...)
+		{
+			LockGuard<Lockable> lock(_exitMutex);
+			_isRunning.store(false);
+			_isDetached.store(false);
+			_exitSignal.NotifyAll();
+			throw;
+		}
 	}
 
 
@@ -272,18 +310,17 @@ namespace RN
 
 	bool Thread::OnThread() const
 	{
-		return (_id == std::this_thread::get_id());
+		return (_id.load() == std::this_thread::get_id());
 	}
 
 	void Thread::SetName(const String *name)
 	{
 		LockGuard<Lockable> lock(_generalMutex);
 
+		String *copy = SafeCopy(name);
+		if(!copy) copy = RNCSTR("")->Retain();
 		_name->Release();
-		_name = SafeCopy(name);
-
-		if(!_name)
-			_name = RNCSTR("")->Retain();
+		_name = copy;
 
 		if(IsRunning() && OnThread())
 		{
