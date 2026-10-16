@@ -32,18 +32,24 @@ namespace RN
 			template<class Validation, class BeforeSleep>
 			static bool Wait(const void *address, Validation &&validation, BeforeSleep &&beforeSleep, Clock::time_point timeout)
 			{
-				return __WaitConditionally(address, std::function<bool()>(std::forward<Validation>(validation)), std::function<void()>(std::forward<BeforeSleep>(beforeSleep)), timeout);
+				auto validate = [&validation]() -> bool {
+					return validation();
+				};
+				auto prepare = [&beforeSleep]() {
+					beforeSleep();
+				};
+				return __WaitBorrowed(address, &validate, [](void *context) -> bool { return (*static_cast<decltype(validate) *>(context))(); }, &prepare, [](void *context) { (*static_cast<decltype(prepare) *>(context))(); }, timeout);
 			}
 
 			template<class Validation>
 			static bool Wait(const void *address, Validation &&validation)
 			{
-				return __WaitConditionally(address, std::function<bool()>(std::forward<Validation>(validation)), []() {}, Clock::time_point::max());
+				return Wait(address, std::forward<Validation>(validation), []() {}, Clock::time_point::max());
 			}
 
 			static bool Wait(const void *address)
 			{
-				return __WaitConditionally(address, []() -> bool { return true; }, []() {}, Clock::time_point::max());
+				return Wait(address, []() -> bool { return true; });
 			}
 
 			template<class T, class U>
@@ -55,11 +61,24 @@ namespace RN
 				});
 			}
 
+			template<class Callback>
+			static void WakeOne(const void *address, Callback &&callback)
+			{
+				auto wake = [&callback](WakeResult result) {
+					callback(result);
+				};
+				__WakeOneBorrowed(address, &wake, [](void *context, WakeResult result) {
+					(*static_cast<decltype(wake) *>(context))(result);
+				});
+			}
+
 			RNAPI static WakeResult WakeOne(const void *address);
 			RNAPI static void WakeOne(const void *address, std::function<void(WakeResult)> callback);
 			RNAPI static void WakeAll(const void *address);
 
 		private:
+			RNAPI static bool __WaitBorrowed(const void *address, void *validationContext, bool (*validation)(void *), void *beforeSleepContext, void (*beforeSleep)(void *), Clock::time_point timeout);
+			RNAPI static void __WakeOneBorrowed(const void *address, void *context, void (*callback)(void *, WakeResult));
 			RNAPI static bool __WaitConditionally(const void *address, std::function<bool()> validation, std::function<void()> beforeSleep, Clock::time_point timeout);
 		};
 	} // namespace __Private

@@ -30,9 +30,21 @@ namespace RN
 			if(timeout < Clock::now())
 				return false;
 
-			bool result = __Private::Futex::Wait(&_hasWaiters, [this]() -> bool {
-				_hasWaiters.store(true, std::memory_order_release);
-				return true; }, [&lock]() { lock.Unlock(); }, timeout);
+			bool unlocked = false;
+			bool result;
+			try
+			{
+				result = __Private::Futex::Wait(&_hasWaiters, [this]() -> bool {
+					_hasWaiters.store(true, std::memory_order_release);
+					return true; }, [&lock, &unlocked]() {
+					lock.Unlock();
+					unlocked = true; }, timeout);
+			}
+			catch(...)
+			{
+				if(unlocked) lock.Lock();
+				throw;
+			}
 
 			lock.Lock();
 			return result;
@@ -42,7 +54,7 @@ namespace RN
 		{
 			while(!predicate())
 			{
-				if(!WaitUntil(lock, timeout))
+				if(!WaitUntil(lock, timeout) && Clock::now() >= timeout)
 					return predicate();
 			}
 
@@ -87,7 +99,15 @@ namespace RN
 				return;
 
 			_hasWaiters.store(false, std::memory_order_release);
-			__Private::Futex::WakeAll(&_hasWaiters);
+			try
+			{
+				__Private::Futex::WakeAll(&_hasWaiters);
+			}
+			catch(...)
+			{
+				_hasWaiters.store(true, std::memory_order_release);
+				throw;
+			}
 		}
 
 	private:

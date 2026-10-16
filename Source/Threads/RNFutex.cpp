@@ -7,8 +7,8 @@
 //
 
 #include "RNFutex.h"
+#include "../Base/RNBase.h"
 #include "RNLockable.h"
-#include "RNThreadLocalStorage.h"
 
 namespace RN
 {
@@ -61,38 +61,25 @@ namespace RN
 
 		static SpinLock _threadLock;
 		static std::unordered_map<void *, ThreadData *> _threadQueue;
-		static ThreadLocalStorage<ThreadData *> *_threadData;
 
+		inline std::unique_ptr<ThreadData> &GetThreadDataStorage()
+		{
+			static thread_local std::unique_ptr<ThreadData> data;
+			return data;
+		}
 
 		ThreadData *GetThreadData()
 		{
-			static std::once_flag flag;
-			std::call_once(flag, [] {
-				_threadData = new ThreadLocalStorage<ThreadData *>();
-			});
-
-			ThreadData *data = _threadData->GetValue();
-
+			auto &data = GetThreadDataStorage();
 			if(RN_EXPECT_FALSE(!data))
-			{
-				data = new ThreadData();
-				_threadData->SetValue(data);
-			}
+				data.reset(new ThreadData());
 
-			return data;
+			return data.get();
 		}
 
 		void CleanThreadData()
 		{
-			if(!_threadData) return;
-
-			ThreadData *data = _threadData->GetValue();
-			if(data)
-			{
-				_threadData->SetValue(nullptr);
-
-				delete data;
-			}
+			GetThreadDataStorage().reset();
 		}
 
 		void QueueThreadData(const void *address, ThreadData *data)
@@ -127,164 +114,147 @@ namespace RN
 		void DequeueThreadData(const void *address, ThreadData *data)
 		{
 			LockGuard<SpinLock> lock(_threadLock);
+			std::unique_lock<std::mutex> dataLock(data->lock);
 
 			auto iterator = _threadQueue.find(const_cast<void *>(address));
-			if(iterator == _threadQueue.end())
+			if(iterator != _threadQueue.end())
 			{
-				// Umm... ?!
-				return;
-			}
+				ThreadData **link = &iterator->second;
+				while(*link && *link != data)
+					link = &(*link)->next;
 
-
-			ThreadData *prev = nullptr;
-			ThreadData *temp = iterator->second;
-			while(temp)
-			{
-				if(temp == data)
+				if(*link)
 				{
-					if(!prev)
-					{
+					*link = data->next;
+					if(!iterator->second)
 						_threadQueue.erase(iterator);
-
-						if(temp->next)
-							_threadQueue.insert({const_cast<void *>(address), temp->next});
-
-						temp->next = nullptr;
-						return;
-					}
-
-					prev->next = temp->next;
-					temp->next = nullptr;
-					return;
 				}
-
-				prev = temp;
-				temp = temp->next;
 			}
 
 			data->next = nullptr;
+			data->address = nullptr;
 		}
 
 		bool Futex::__WaitConditionally(const void *address, std::function<bool()> validation, std::function<void()> beforeSleep, Clock::time_point timeout)
 		{
-			ThreadData *data = GetThreadData();
+			return Wait(address, validation, beforeSleep, timeout);
+		}
 
+		bool Futex::__WaitBorrowed(const void *address, void *validationContext, bool (*validation)(void *), void *beforeSleepContext, void (*beforeSleep)(void *), Clock::time_point timeout)
+		{
+			ThreadData *data = nullptr;
+			try
 			{
-				std::unique_lock<std::mutex> lock(data->lock);
-				RN_ASSERT(data->address == nullptr, "Recursively called Futex::Wait()");
-
-				data->address = address;
+				data = GetThreadData();
 			}
+			catch(const std::bad_alloc &)
+			{}
+			catch(const std::system_error &)
+			{}
 
-			QueueThreadData(address, data);
-
-			if(!validation())
+			if(data)
 			{
-				DequeueThreadData(address, data);
+				{
+					std::unique_lock<std::mutex> lock(data->lock);
+					RN_ASSERT(data->address == nullptr, "Recursively called Futex::Wait()");
+					data->address = address;
+				}
 
+				try
+				{
+					QueueThreadData(address, data);
+				}
+				catch(const std::bad_alloc &)
 				{
 					std::unique_lock<std::mutex> lock(data->lock);
 					data->address = nullptr;
+					data = nullptr;
 				}
+			}
 
-				beforeSleep();
+			if(!data)
+			{
+				// No validation has published a parked state. Retry as a spurious wake.
+				beforeSleep(beforeSleepContext);
+				std::this_thread::yield();
 				return false;
 			}
 
-			beforeSleep();
-
+			bool waitFailed = false;
+			try
 			{
+				if(!validation(validationContext))
+				{
+					DequeueThreadData(address, data);
+					beforeSleep(beforeSleepContext);
+					return false;
+				}
+
+				beforeSleep(beforeSleepContext);
+
 				std::unique_lock<std::mutex> lock(data->lock);
 				while(data->address && Clock::now() < timeout)
 				{
-					if(timeout == Clock::time_point::max())
-						data->condition.wait(lock);
-					else
-						data->condition.wait_until(lock, timeout);
-
-					lock.unlock();
-					lock.lock();
+					try
+					{
+						if(timeout == Clock::time_point::max())
+							data->condition.wait(lock);
+						else
+							data->condition.wait_until(lock, timeout);
+					}
+					catch(const std::system_error &)
+					{
+						waitFailed = true;
+						break;
+					}
 				}
 
 				RN_DEBUG_ASSERT(!data->address || data->address == address, "Invalid data address");
 				if(!data->address)
 					return true;
 			}
-
-			DequeueThreadData(address, data);
-
+			catch(...)
 			{
-				std::unique_lock<std::mutex> lock(data->lock);
-				data->address = nullptr;
+				DequeueThreadData(address, data);
+				throw;
 			}
 
+			DequeueThreadData(address, data);
+			if(waitFailed)
+				std::this_thread::yield();
 			return false;
 		}
 
 		void Futex::WakeOne(const void *address, std::function<void(WakeResult)> callback)
 		{
-			ThreadData *data;
+			WakeOne<std::function<void(WakeResult)> &>(address, callback);
+		}
 
+		void Futex::__WakeOneBorrowed(const void *address, void *context, void (*callback)(void *, WakeResult))
+		{
+			LockGuard<SpinLock> lock(_threadLock);
+			auto iterator = _threadQueue.find(const_cast<void *>(address));
+			if(iterator == _threadQueue.end())
 			{
-				LockGuard<SpinLock> lock(_threadLock);
+				callback(context, 0);
+				return;
+			}
 
-				auto iterator = _threadQueue.find(const_cast<void *>(address));
-				if(iterator == _threadQueue.end())
-				{
-					callback(0);
-					return;
-				}
+			ThreadData *data = iterator->second;
+			std::unique_lock<std::mutex> dataLock(data->lock);
+			RN_DEBUG_ASSERT(data->address == address, "Invalid data address");
 
-				data = iterator->second;
-				while(data)
-				{
-					if(data->address == nullptr)
-					{
-						data = data->next;
-						continue;
-					}
+			WakeResult result = WakeResult::WokeUpThread;
+			if(data->next)
+				result |= WakeResult::HasMoreThreads;
+			callback(context, result);
 
-					RN_DEBUG_ASSERT(data->address == address, "Invalid data address");
-
-					WakeResult result = WakeResult::WokeUpThread;
-
-					ThreadData *temp = data->next;
-					while(temp)
-					{
-						if(temp->address == address)
-						{
-							result |= WakeResult::HasMoreThreads;
-							break;
-						}
-
-						temp = temp->next;
-					}
-
-					callback(result);
-					break;
-				}
-
-				if(!data)
-				{
-					callback(0);
-					return;
-				}
-
-				// Remove the ThreadData from the queue
+			iterator->second = data->next;
+			if(!iterator->second)
 				_threadQueue.erase(iterator);
 
-				if(data->next)
-					_threadQueue.insert({const_cast<void *>(address), data->next});
-
-				data->next = nullptr;
-			}
-
-			// Clear the address
-			{
-				std::unique_lock<std::mutex> lock(data->lock);
-				data->address = nullptr;
-			}
-
+			data->next = nullptr;
+			data->address = nullptr;
 			data->condition.notify_one();
 		}
 
@@ -301,36 +271,23 @@ namespace RN
 
 		void Futex::WakeAll(const void *address)
 		{
-			std::vector<ThreadData *> threads;
+			LockGuard<SpinLock> lock(_threadLock);
+			auto iterator = _threadQueue.find(const_cast<void *>(address));
+			if(iterator == _threadQueue.end())
+				return;
 
+			while(iterator->second)
 			{
-				LockGuard<SpinLock> lock(_threadLock);
-
-				auto iterator = _threadQueue.find(const_cast<void *>(address));
-				if(iterator == _threadQueue.end())
-					return;
-
-				{
-					ThreadData *data = iterator->second;
-					while(data)
-					{
-						threads.push_back(data);
-						data = data->next;
-					}
-				}
-
-				_threadQueue.erase(iterator);
-			}
-
-			for(ThreadData *data : threads)
-			{
-				{
-					std::unique_lock<std::mutex> lock(data->lock);
-					data->address = nullptr;
-				}
-
+				ThreadData *data = iterator->second;
+				std::unique_lock<std::mutex> dataLock(data->lock);
+				iterator->second = data->next;
+				data->next = nullptr;
+				data->address = nullptr;
 				data->condition.notify_one();
 			}
+
+			_threadQueue.erase(iterator);
 		}
+
 	} // namespace __Private
 } // namespace RN
