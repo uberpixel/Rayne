@@ -9,43 +9,77 @@
 #include "RNLogger.h"
 #include "../Base/RNSettings.h"
 #include "../Base/RNUnistd.h"
-#include "../Threads/RNWorkGroup.h"
 #include "RNLoggingEngine.h"
 
 namespace RN
 {
 	static Logger *__sharedLogger = nullptr;
 
-	Logger::Logger()
+	thread_local bool Logger::_callback = false;
+
+	Logger::CallbackScope::CallbackScope() :
+		previous(_callback)
+	{
+		_callback = true;
+	}
+
+	Logger::CallbackScope::~CallbackScope()
+	{
+		_callback = previous;
+	}
+
+	Logger::Logger() :
+		_draining(false), _hasAsyncEngines(false)
 	{
 		_queue = new WorkQueue(WorkQueue::Priority::Background, WorkQueue::Flags::Serial, RNCSTR("RN::Logger"));
-		_engines = new Array();
-		_threadEngines = new Array();
-		_flag.clear(std::memory_order_release);
-
 		__sharedLogger = this;
 	}
 
 	Logger::~Logger()
 	{
-		__FlushQueue();
-		_queue->Release();
-
+		bool needsAsyncShutdown;
 		{
-			LockGuard<Lockable> lock(_engineLock);
-
-			_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-				engine->Close();
-			});
-
-			_engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-				engine->Close();
-			});
-
-			_threadEngines->RemoveAllObjects();
-			_engines->RemoveAllObjects();
+			LockGuard<Lockable> lock(_lock);
+			needsAsyncShutdown = _draining || _hasAsyncEngines.load();
 		}
-
+		if(needsAsyncShutdown)
+		{
+			Perform([this] {
+				for(auto &engine : _engines)
+				{
+					try
+					{
+						engine->Flush();
+					}
+					catch(...)
+					{}
+					try
+					{
+						engine->Close();
+					}
+					catch(...)
+					{}
+				}
+				_engines.clear();
+				_hasAsyncEngines.store(false);
+			},
+					true);
+		}
+		_queue->Release();
+		{
+			CallbackScope scope;
+			LockGuard<Lockable> lock(_engineLock);
+			for(auto &engine : _threadEngines)
+			{
+				try
+				{
+					engine->Close();
+				}
+				catch(...)
+				{}
+			}
+			_threadEngines.clear();
+		}
 		__sharedLogger = nullptr;
 	}
 
@@ -56,36 +90,72 @@ namespace RN
 
 	void Logger::AddEngine(LoggingEngine *engine, Level level)
 	{
-		LockGuard<Lockable> lock(_engineLock);
-
-		bool bound = engine->IsThreadBound();
-
-		if(bound)
-			_threadEngines->AddObject(engine);
+		if(_callback) throw InconsistencyException("Cannot add a logging engine from a logging callback");
+		CallbackScope scope;
+		auto add = [this, engine = StrongRef<LoggingEngine>(engine), level] {
+			auto &engines = engine->IsThreadBound() ? _threadEngines : _engines;
+			for(auto &registered : engines)
+			{
+				if(registered.Get() == engine.Get()) return;
+			}
+			engines.reserve(engines.size() + 1);
+			engine->_level = level;
+			engine->Open();
+			engines.push_back(engine);
+			if(!engine->IsThreadBound()) _hasAsyncEngines.store(true);
+		};
+		if(engine->IsThreadBound())
+		{
+			LockGuard<Lockable> lock(_engineLock);
+			add();
+		}
 		else
-			_engines->AddObject(engine);
-
-		engine->_level = level;
-		engine->Open();
+			Perform(std::move(add), true);
 	}
 
 	void Logger::RemoveEngine(LoggingEngine *engine)
 	{
-		Flush(true);
-
-		LockGuard<Lockable> lock(_engineLock);
-		engine->Close();
-
-		bool bound = engine->IsThreadBound();
-
-		if(bound)
-			_threadEngines->RemoveObject(engine);
+		if(_callback) throw InconsistencyException("Cannot remove a logging engine from a logging callback");
+		CallbackScope scope;
+		auto remove = [this, engine = StrongRef<LoggingEngine>(engine)] {
+			bool bound = engine->IsThreadBound();
+			auto &engines = bound ? _threadEngines : _engines;
+			auto iterator = engines.begin();
+			while(iterator != engines.end() && iterator->Get() != engine.Get()) ++iterator;
+			if(iterator == engines.end()) return;
+			engines.erase(iterator);
+			if(!bound)
+			{
+				_hasAsyncEngines.store(!engines.empty());
+				try
+				{
+					engine->Flush();
+				}
+				catch(...)
+				{
+					try
+					{
+						engine->Close();
+					}
+					catch(...)
+					{}
+					throw;
+				}
+			}
+			engine->Close();
+		};
+		if(engine->IsThreadBound())
+		{
+			LockGuard<Lockable> lock(_engineLock);
+			remove();
+		}
 		else
-			_engines->RemoveObject(engine);
+			Perform(std::move(remove), true);
 	}
 
 	void Logger::Log(Level level, LogMessage &&message)
 	{
+		if(_callback) return;
 #if !RN_BUILD_DEBUG
 		//TODO: The application should control the logging level! In general the level is just completely ignored at the moment, but shouldn't be.
 		if(level == Level::Debug) //Early out if the logging level is Debug, but it isn't a debug build
@@ -93,46 +163,30 @@ namespace RN
 			return;
 		}
 #endif
-
 		{
+			CallbackScope scope;
 			LockGuard<Lockable> lock(_engineLock);
-
-			if(_threadEngines->GetCount() > 0)
+			for(auto &engine : _threadEngines)
 			{
-				_threadEngines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-					const LogFormatter *formatter = engine->GetFormatter();
-					String *formatted = message.message;
-
-					if(formatter)
-						formatted = formatter->FormatLogMessage(message);
-
-					engine->Log(formatted);
-				});
+				const LogFormatter *formatter = engine->GetFormatter();
+				String *formatted = formatter ? formatter->FormatLogMessage(message) : message.message;
+				engine->Log(formatted);
 			}
-
-			if(_engines->GetCount() == 0)
-				return;
 		}
-
-		_queue->Perform([message {std::move(message)}, this]() mutable {
+		if(!_hasAsyncEngines.load()) return;
+		Enqueue([message {std::move(message)}, this]() mutable {
+			for(auto &engine : _engines)
 			{
-				UniqueLock<Lockable> lock(_lock);
-
-				while(!_messages.Push(std::move(message)))
-				{
-					lock.Unlock();
-					__FlushQueue();
-					lock.Lock();
-				}
+				const LogFormatter *formatter = engine->GetFormatter();
+				String *formatted = formatter ? formatter->FormatLogMessage(message) : message.message;
+				engine->Log(formatted);
 			}
-
-			if(!_flag.test_and_set(std::memory_order_acq_rel))
-				_queue->Perform([=] { __FlushQueue(); });
 		});
 	}
 
 	void Logger::Log(Level level, size_t line, const char *file, const char *function, const char *format, ...)
 	{
+		if(_callback) return;
 		va_list args;
 		va_start(args, format);
 		ssize_t size = vsnprintf(nullptr, 0, format, args);
@@ -152,79 +206,91 @@ namespace RN
 
 	void Logger::Log(Level level, size_t line, const char *file, const char *function, const String *string)
 	{
+		if(_callback) return;
 		LogMessage message(line, file, function, string);
 		Log(level, std::move(message));
 	}
 
 	void Logger::Flush(bool synchronous)
 	{
-		Array *engines;
-
+		if(_callback) return;
 		{
-			LockGuard<Lockable> lock(_engineLock);
-			engines = _engines->Copy();
+			LockGuard<Lockable> lock(_lock);
+			if(!_draining && !_hasAsyncEngines.load()) return;
 		}
-
-		Function work([=]() {
-			engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-				engine->Flush();
-			});
-
-			engines->Release();
-		});
-
-		synchronous ? _queue->PerformSynchronousBarrier(std::move(work)) : _queue->PerformBarrier(std::move(work));
+		Perform([this] {
+			for(auto &engine : _engines) engine->Flush();
+		},
+				synchronous);
 	}
 
-	void Logger::__FlushQueue()
+	void Logger::Perform(Function &&work, bool synchronous)
 	{
-		if(RN_EXPECT_FALSE(_messages.WasEmpty()))
+		// Capture destruction on the logger worker must never wait for itself.
+		if(!synchronous || WorkQueue::GetCurrentWorkQueue() == _queue)
+		{
+			Enqueue(std::move(work));
 			return;
-
-		Array *engines;
-
-		{
-			LockGuard<Lockable> lock(_engineLock);
-			engines = _engines->Copy();
 		}
+		std::promise<void> promise;
+		std::future<void> future = promise.get_future();
+		Enqueue([work = std::move(work), promise = std::move(promise)]() mutable {
+			try
+			{
+				work();
+				promise.set_value();
+			}
+			catch(...)
+			{
+				promise.set_exception(std::current_exception());
+			}
+		});
+		future.get();
+	}
 
-		std::vector<LogMessage> *messages = new std::vector<LogMessage>();
+	void Logger::Enqueue(Function &&command)
+	{
+		UniqueLock<Lockable> lock(_lock);
+		_commands.push_back(std::move(command));
+		if(_draining) return;
+		try
 		{
-			LogMessage message;
-
-			while(_messages.Pop(message))
-				messages->push_back(std::move(message));
+			_queue->Perform([this] { Drain(); });
+			_draining = true;
 		}
+		catch(...)
+		{
+			Function rejected = std::move(_commands.back());
+			_commands.pop_back();
+			lock.Unlock();
+			throw;
+		}
+	}
 
-		WorkGroup *group = new WorkGroup();
-
-		engines->Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
-			group->Perform(_queue, [engine, messages]() {
-				const LogFormatter *formatter = engine->GetFormatter();
-
-				for(auto iterator = messages->begin(); iterator != messages->end(); iterator++)
+	void Logger::Drain()
+	{
+		// Keep callback suppression active through command capture destruction.
+		CallbackScope scope;
+		while(true)
+		{
+			Function command;
+			{
+				LockGuard<Lockable> lock(_lock);
+				if(_commands.empty())
 				{
-					String *formatted = iterator->message;
-
-					if(formatter)
-						formatted = formatter->FormatLogMessage(*iterator);
-
-					engine->Log(formatted);
+					_draining = false;
+					return;
 				}
-			});
-		});
-
-
-		group->Notify(_queue, [=]() {
-			delete messages;
-			engines->Release();
-
-			_flag.clear(std::memory_order_release);
-
-			if(!_messages.WasEmpty())
-				__FlushQueue();
-		});
-
-		group->Release();
+				command = std::move(_commands.front());
+				_commands.pop_front();
+			}
+			// One failing sink must not strand the remaining accepted commands.
+			try
+			{
+				command();
+			}
+			catch(...)
+			{}
+		}
 	}
 } // namespace RN

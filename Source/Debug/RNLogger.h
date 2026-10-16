@@ -10,7 +10,6 @@
 #define __RAYNE_LOGGING_H__
 
 #include "../Base/RNBase.h"
-#include "../Data/RNAtomicRingBuffer.h"
 #include "../Objects/RNArray.h"
 #include "../Objects/RNString.h"
 #include "../Threads/RNWorkQueue.h"
@@ -102,9 +101,11 @@ namespace RN
 
 		RNAPI static Logger *GetSharedInstance();
 
+		// Engine changes from sink callbacks throw InconsistencyException.
 		RNAPI void AddEngine(LoggingEngine *engine, Level level = Level::Debug);
 		RNAPI void RemoveEngine(LoggingEngine *engine);
 
+		// Recursive logging and flushing from sink callbacks are ignored.
 		RNAPI void Log(Level level, LogMessage &&message);
 		RNAPI void Log(Level level, size_t line, const char *file, const char *function, const char *format, ...);
 		RNAPI void Log(Level level, size_t line, const char *file, const char *function, const String *message);
@@ -115,19 +116,31 @@ namespace RN
 		Logger();
 		~Logger();
 
-		void __FlushQueue();
+		struct CallbackScope
+		{
+			CallbackScope();
+			~CallbackScope();
+
+			bool previous;
+		};
+
+		static thread_local bool _callback;
+		void Perform(Function &&command, bool synchronous);
+		void Enqueue(Function &&command);
+		void Drain();
 
 		Lockable _lock;
-		AtomicRingBuffer<LogMessage, 256> _messages;
+		std::deque<Function> _commands;
+		bool _draining;
 
 		Lockable _engineLock;
-		Array *_threadEngines;
-		Array *_engines;
+		// Bound engines use _engineLock; asynchronous engines belong to Drain().
+		std::vector<StrongRef<LoggingEngine>> _threadEngines;
+		std::vector<StrongRef<LoggingEngine>> _engines;
+		std::atomic<bool> _hasAsyncEngines;
 
 		WorkQueue *_queue;
 		std::chrono::system_clock::time_point _lastMessage;
-
-		std::atomic_flag _flag;
 	};
 } // namespace RN
 
