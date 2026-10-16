@@ -196,6 +196,10 @@ namespace RN
 
 	protected:
 		RNAPI virtual void WillUpdate(ChangeSet changeSet);
+		// With universe scale enabled, transform getters may be stale before the base call.
+		// After it returns, this node, its descendants and ancestors can be queried (caches stay lazy).
+		// Other branches may still be pending until their common ancestor's base call
+		// returns; the full affected subtree is current after the outermost setter returns.
 		RNAPI virtual void DidUpdate(ChangeSet changeSet);
 
 		virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
@@ -254,6 +258,7 @@ namespace RN
 		uint64 _transformVersion;
 #if RN_ENABLE_UNIVERSE_SCALE
 		uint64 _linearTransformVersion;
+		bool _linearTransformDirty;
 #endif
 		mutable bool _boundsDirty;
 		mutable uint64 _cachedWorldDataVersion;
@@ -397,11 +402,7 @@ namespace RN
 	RN_INLINE void SceneNode::InvalidateLinearTransform()
 	{
 #if RN_ENABLE_UNIVERSE_SCALE
-		_linearTransformVersion += 1;
-		for(size_t i = 0; i < _children->GetCount(); i += 1)
-		{
-			static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->InvalidateLinearTransform();
-		}
+		_linearTransformDirty = true;
 #endif
 	}
 

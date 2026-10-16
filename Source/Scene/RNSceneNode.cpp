@@ -169,6 +169,7 @@ namespace RN
 		_transformVersion = 1;
 #if RN_ENABLE_UNIVERSE_SCALE
 		_linearTransformVersion = 1;
+		_linearTransformDirty = false;
 #endif
 		_boundsDirty = true;
 		_cachedWorldDataVersion = 0;
@@ -593,11 +594,24 @@ namespace RN
 		if(changeSet & ChangeSet::Position)
 		{
 			_transformVersion += 1;
+#if RN_ENABLE_UNIVERSE_SCALE
+			// Keep the marker active during child callbacks so nested ancestor translations
+			// also invalidate sibling branches still pending in this walk.
+			const bool linearTransformDirty = _linearTransformDirty;
+			if(linearTransformDirty) _linearTransformVersion += 1;
+#endif
 
 			for(size_t i = 0; i < _children->GetCount(); i += 1)
 			{
-				static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->DidUpdate(ChangeSet::Position);
+				SceneNode *child = static_cast<SceneNode *>(_children->GetObjectAtIndex(i));
+#if RN_ENABLE_UNIVERSE_SCALE
+				if(linearTransformDirty) child->InvalidateLinearTransform();
+#endif
+				child->DidUpdate(ChangeSet::Position);
 			}
+#if RN_ENABLE_UNIVERSE_SCALE
+			_linearTransformDirty = false;
+#endif
 		}
 
 		if(changeSet & ChangeSet::Parent)
@@ -605,12 +619,17 @@ namespace RN
 			_transformVersion += 1;
 #if RN_ENABLE_UNIVERSE_SCALE
 			_linearTransformVersion += 1;
+			// Reparenting must also keep pending branches invalidated during nested translations.
+			_linearTransformDirty = true;
 #endif
 
 			for(size_t i = 0; i < _children->GetCount(); i += 1)
 			{
 				static_cast<SceneNode *>(_children->GetObjectAtIndex(i))->DidUpdate(ChangeSet::Parent);
 			}
+#if RN_ENABLE_UNIVERSE_SCALE
+			_linearTransformDirty = false;
+#endif
 		}
 
 		if(_parent)
