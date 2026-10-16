@@ -33,56 +33,98 @@ namespace RN
 	{
 		Enter();
 
-		queue->Perform([this, f = std::move(function)]() mutable {
-			Function func(std::move(f));
-			func();
+		try
+		{
+			queue->Perform([this, f = std::move(function)]() mutable {
+				Function func(std::move(f));
+				try
+				{
+					func();
+				}
+				catch(...)
+				{
+					Leave();
+					throw;
+				}
 
+				Leave();
+			},
+						   concurrencyHint);
+		}
+		catch(...)
+		{
 			Leave();
-		}, concurrencyHint);
+			throw;
+		}
 	}
 
 	void WorkGroup::Enter()
 	{
-		if((_open.fetch_add(1, std::memory_order_acquire)) == 0)
+		LockGuard<Lockable> lock(_lock);
+		if(_open++ == 0)
 			Retain();
 	}
 	void WorkGroup::Leave()
 	{
-		if(_open.fetch_sub(1, std::memory_order_release) == 1)
+		UniqueLock<Lockable> lock(_lock);
+		if(--_open == 0)
 		{
-			std::atomic_thread_fence(std::memory_order_acquire);
-
+			decltype(_waiters) waiters;
+			std::exception_ptr exception;
+			waiters.swap(_waiters);
+			try
 			{
-				LockGuard<Lockable> lock(_lock);
 				_signal.NotifyAll();
-
-				for(auto &pair : _waiters)
-				{
-					WorkQueue *queue = std::get<0>(pair);
-					queue->Perform(std::move(std::get<1>(pair)));
-					queue->Release();
-				}
-
-				_waiters.clear();
 			}
+			catch(...)
+			{
+				exception = std::current_exception();
+			}
+			lock.Unlock();
 
+			// A rejected notification must not strand the remaining captures or
+			// references. Dispatch and destroy captures outside the group lock.
+			for(auto &pair : waiters)
+			{
+				WorkQueue *queue = std::get<0>(pair);
+				try
+				{
+					queue->Perform(std::move(std::get<1>(pair)));
+				}
+				catch(...)
+				{
+					if(!exception) exception = std::current_exception();
+				}
+				queue->Release();
+			}
+			waiters.clear();
 			Release();
+			if(exception) std::rethrow_exception(exception);
 		}
 	}
 
 	void WorkGroup::Wait()
 	{
 		UniqueLock<Lockable> lock(_lock);
-		_signal.Wait(lock, [&]() -> bool { return (_open.load() == 0); });
+		_signal.Wait(lock, [&]() -> bool { return (_open == 0); });
 	}
 	bool WorkGroup::WaitUntil(const Clock::time_point &timeout)
 	{
 		UniqueLock<Lockable> lock(_lock);
-		return _signal.WaitUntil(lock, timeout, [&]() -> bool { return (_open.load() == 0); });
+		return _signal.WaitUntil(lock, timeout, [&]() -> bool { return (_open == 0); });
 	}
 	void WorkGroup::Notify(WorkQueue *queue, Function &&function)
 	{
-		LockGuard<Lockable> lock(_lock);
-		_waiters.push_back(std::make_pair(queue->Retain(), std::move(function)));
+		{
+			LockGuard<Lockable> lock(_lock);
+			if(_open != 0)
+			{
+				_waiters.emplace_back(queue, std::move(function));
+				queue->Retain();
+				return;
+			}
+		}
+
+		queue->Perform(std::move(function));
 	}
 } // namespace RN

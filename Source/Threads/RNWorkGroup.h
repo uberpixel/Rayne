@@ -36,7 +36,7 @@ namespace RN
 		Condition _signal;
 		std::vector<std::pair<WorkQueue *, Function>> _waiters;
 
-		std::atomic<size_t> _open;
+		size_t _open;
 
 		__RNDeclareMetaInternal(WorkGroup)
 	};
