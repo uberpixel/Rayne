@@ -312,6 +312,8 @@ namespace RN
 			_rotation->y != localRotation.y ||
 			_rotation->z != localRotation.z ||
 			_rotation->w != localRotation.w;
+		if(!rotationChanged && _position->x == localPosition.x && _position->y == localPosition.y && _position->z == localPosition.z)
+			return;
 #endif
 		WillUpdate(ChangeSet::Position);
 
