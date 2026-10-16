@@ -962,12 +962,11 @@ namespace RN
 
 	EOSClientID EOSHost::GetClientIDForProductUserID(EOS_ProductUserId productUserID) const
 	{
-		char productUserIDString[EOS_PRODUCTUSERID_MAX_LENGTH + 1] = {};
-		int32_t length = sizeof(productUserIDString);
-		EOS_EResult result = EOS_ProductUserId_ToString(productUserID, productUserIDString, &length);
-		size_t stringLength = strlen(productUserIDString);
-		RN_ASSERT(result == EOS_EResult::EOS_Success && stringLength >= 16, "Failed to derive a network ID from an EOS product user ID.");
-		if(result != EOS_EResult::EOS_Success || stringLength < 16) return CLIENT_ID_NONE;
+		const String *userIDString = productUserID ? EOSWorld::GetInstance()->GetUserIDString(productUserID) : nullptr;
+		const char *productUserIDString = userIDString ? userIDString->GetUTF8String() : nullptr;
+		size_t stringLength = productUserIDString ? strlen(productUserIDString) : 0;
+		RN_ASSERT(productUserIDString && stringLength >= 16, "Failed to derive a network ID from an EOS product user ID.");
+		if(!productUserIDString || stringLength < 16) return CLIENT_ID_NONE;
 
 		EOSClientID clientID = 0;
 		for(const char *character = productUserIDString + stringLength - 16; *character; character += 1)
