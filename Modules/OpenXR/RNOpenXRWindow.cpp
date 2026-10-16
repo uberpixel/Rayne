@@ -132,6 +132,7 @@ namespace RN
 		_internals->currentFramePredictedDisplayTime = 0;
 		_internals->currentFrameShouldRender = false;
 		_internals->currentFrameIsValid = false;
+		_internals->headTrackingValid = true;
 		_internals->views = nullptr;
 
 #if XR_USE_GRAPHICS_API_VULKAN
@@ -682,6 +683,7 @@ namespace RN
 	void OpenXRWindow::DestroySession()
 	{
 		DestroyPassthroughSession();
+		_internals->headTrackingValid = true;
 
 		if(_internals->session != XR_NULL_HANDLE)
 		{
@@ -1899,11 +1901,13 @@ namespace RN
 		delete[] supportedSwapChainFormats;
 #endif
 
-		_internals->views = new XrView[2];
-		_internals->views[0].type = XR_TYPE_VIEW;
-		_internals->views[0].next = nullptr;
-		_internals->views[1].type = XR_TYPE_VIEW;
-		_internals->views[1].next = nullptr;
+		_internals->views = new XrView[2] {};
+		for(int i = 0; i < 2; i++)
+		{
+			_internals->views[i].type = XR_TYPE_VIEW;
+			_internals->views[i].pose.orientation.w = 1.0f;
+			_internals->views[i].fov = {-k::Pi_4, k::Pi_4, k::Pi_4, -k::Pi_4};
+		}
 
 		_mainLayer = new OpenXRCompositorLayer(VRCompositorLayer::Type::TypeProjectionView, descriptor, eyeRenderSize, true, this);
 
@@ -2218,8 +2222,7 @@ namespace RN
 	void OpenXRWindow::BeginFrame(float delta)
 	{
 		RN_PROFILE_SCOPE();
-		_internals->currentFrameIsValid = false;
-		_internals->currentFrameShouldRender = false;
+		ResetCurrentFrameState();
 
 		while(1)
 		{
@@ -2365,6 +2368,7 @@ namespace RN
 
 	void OpenXRWindow::ResetCurrentFrameState()
 	{
+		_hmdTrackingState.poseValid = false;
 		_internals->currentFrameIsValid = false;
 		_internals->currentFrameShouldRender = false;
 	}
@@ -2390,15 +2394,38 @@ namespace RN
 		XrViewState viewState;
 		viewState.type = XR_TYPE_VIEW_STATE;
 		viewState.next = nullptr;
-		viewState.viewStateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_TRACKED_BIT | XR_VIEW_STATE_POSITION_TRACKED_BIT;
+		viewState.viewStateFlags = 0;
 
-		uint32_t viewCount = 2;
-		xrLocateViews(_internals->session, &locateInfo, &viewState, viewCount, &viewCount, _internals->views);
+		XrView views[2] {{XR_TYPE_VIEW}, {XR_TYPE_VIEW}};
+		uint32_t viewCount = 0;
+		const XrResult result = xrLocateViews(_internals->session, &locateInfo, &viewState, 2, &viewCount, views);
+		const XrViewStateFlags requiredFlags = XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_VALID_BIT;
+		bool validViews = XR_SUCCEEDED(result) && viewCount == 2 && (viewState.viewStateFlags & requiredFlags) == requiredFlags;
+		for(uint32_t eye = 0; validViews && eye < 2; eye++)
+		{
+			const XrView &view = views[eye];
+			Vector3 position(view.pose.position.x, view.pose.position.y, view.pose.position.z);
+			Quaternion rotation(view.pose.orientation.x, view.pose.orientation.y, view.pose.orientation.z, view.pose.orientation.w);
+			float rotationLength = rotation.GetLength();
+			validViews = position.IsValid() && std::isfinite(rotationLength) && rotationLength > k::EpsilonFloat;
+		}
+		_hmdTrackingState.poseValid = validViews;
+		if(validViews != _internals->headTrackingValid)
+		{
+			RNInfo("[OpenXRTracking] Head tracking " << (validViews ? "recovered" : "invalid") << "; result=" << result << "; flags=" << viewState.viewStateFlags << "; count=" << viewCount);
+			_internals->headTrackingValid = validViews;
+		}
+		if(validViews)
+		{
+			_internals->views[0] = views[0];
+			_internals->views[1] = views[1];
+		}
 
 		RN::Vector3 leftEyePosition = Vector3(_internals->views[0].pose.position.x, _internals->views[0].pose.position.y, _internals->views[0].pose.position.z);
 		RN::Vector3 rightEyePosition = Vector3(_internals->views[1].pose.position.x, _internals->views[1].pose.position.y, _internals->views[1].pose.position.z);
 		RN::Quaternion leftEyeRotation = Quaternion(_internals->views[0].pose.orientation.x, _internals->views[0].pose.orientation.y, _internals->views[0].pose.orientation.z, _internals->views[0].pose.orientation.w);
 		RN::Quaternion rightEyeRotation = Quaternion(_internals->views[1].pose.orientation.x, _internals->views[1].pose.orientation.y, _internals->views[1].pose.orientation.z, _internals->views[1].pose.orientation.w);
+
 		_hmdTrackingState.position = (leftEyePosition + rightEyePosition) * 0.5f;
 		_hmdTrackingState.rotation = leftEyeRotation.GetLerpSpherical(rightEyeRotation, 0.5f);
 

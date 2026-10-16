@@ -38,6 +38,7 @@ namespace RN
 		XrTime currentFramePredictedDisplayTime;
 		bool currentFrameShouldRender;
 		bool currentFrameIsValid;
+		bool headTrackingValid;
 
 		XrView *views;
 

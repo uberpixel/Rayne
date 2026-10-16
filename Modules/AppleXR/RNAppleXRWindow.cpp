@@ -73,6 +73,7 @@ namespace RN
 
 	void AppleXRWindow::StopRendering()
 	{
+		_hmdTrackingState.poseValid = false;
 		if(_swapChain)
 		{
 #ifdef RN_APPLEXR_SUPPORTS_METAL
@@ -122,6 +123,7 @@ namespace RN
 
 	void AppleXRWindow::BeginFrame(float delta)
 	{
+		_hmdTrackingState.poseValid = false;
 		if(!_swapChain) return;
 
 		switch(cp_layer_renderer_get_state(_layerRenderer))
@@ -165,6 +167,7 @@ namespace RN
 		_hmdTrackingState.position.y = head_position.columns[1][3];
 		_hmdTrackingState.position.z = head_position.columns[2][3];
 		_hmdTrackingState.rotation = rotationPose.GetEulerAngle();
+		_hmdTrackingState.poseValid = _hmdTrackingState.position.IsValid() && _hmdTrackingState.rotation.IsValid();
 	}
 
 	void AppleXRWindow::Update(float delta, float near, float far)

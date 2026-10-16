@@ -29,7 +29,7 @@ namespace RN
 		};
 
 		VRHMDTrackingState() :
-			type(Type::SixDegreesOfFreedom), mode(Paused) {}
+			type(Type::SixDegreesOfFreedom), mode(Paused), poseValid(false) {}
 
 		Type type;
 
@@ -41,6 +41,7 @@ namespace RN
 		Quaternion rotation;
 
 		Mode mode;
+		bool poseValid;
 	};
 
 	struct VRHandTrackingState
