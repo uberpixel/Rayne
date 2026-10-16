@@ -924,6 +924,8 @@ namespace RN
 		EOSLobbySearch *searchData = static_cast<EOSLobbySearch *>(Data->ClientData);
 
 		RNInfo("Lobby search result " << EOS_EResult_ToString(Data->ResultCode));
+		if(!EOS_EResult_IsOperationComplete(Data->ResultCode)) return;
+
 		if(Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			RNDebug("Lobby search successful");
@@ -1030,7 +1032,7 @@ namespace RN
 			RNDebug("Failed searching lobbies");
 			if(searchData->callback)
 			{
-				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_OperationWillRetry || Data->ResultCode == EOS_EResult::EOS_TimedOut)
+				if(Data->ResultCode == EOS_EResult::EOS_NoConnection || Data->ResultCode == EOS_EResult::EOS_TimedOut)
 				{
 					searchData->callback(EOSResult::NoConnection, nullptr);
 				}
@@ -1043,8 +1045,6 @@ namespace RN
 					searchData->callback(EOSResult::Other, nullptr);
 				}
 
-				//On android this callback will be triggered 3 more times if there is no connection,
-				//Unset the callback here to not have it triggered again until another search...
 				searchData->callback = nullptr;
 			}
 		}
