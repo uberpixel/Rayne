@@ -1190,11 +1190,12 @@ private:
 		}
 		if(sizeU == 1 && sizeV == 1)
 		{
+			SampledGridVertexCache &cache = GetSampledGridVertexCache();
 			Vec3 p00, p10, p01, p11;
-			if(!BuildSampledGridVertex(face, minU, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p00) ||
-				!BuildSampledGridVertex(face, minU + 1, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10) ||
-				!BuildSampledGridVertex(face, minU, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01) ||
-				!BuildSampledGridVertex(face, minU + 1, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return;
+			if(!BuildSampledGridVertex(cache, face, minU, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p00) ||
+				!BuildSampledGridVertex(cache, face, minU + 1, minV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10) ||
+				!BuildSampledGridVertex(cache, face, minU, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01) ||
+				!BuildSampledGridVertex(cache, face, minU + 1, minV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return;
 			for(uint8 diagonal = 0; diagonal < 2 && !visitor.ShouldAbort(); diagonal += 1)
 			{
 				SampledGridKey key;
@@ -1313,7 +1314,7 @@ private:
 
 		Vec3 surfacePosition;
 		Vec3 surfaceNormal;
-		if(!BuildSampledGridVertex(key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, surfacePosition, &surfaceNormal)) return false;
+		if(!BuildSampledGridVertex(GetSampledGridVertexCache(), key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, surfacePosition, &surfaceNormal)) return false;
 
 		const Vec3 surfaceNormalWorld = shiftedTransform2.Multiply3x3(surfaceNormal).NormalizedOr(Vec3::sAxisY());
 		const Vec3 surfacePositionWorld = shiftedTransform2 * (scale2 * surfacePosition);
@@ -1407,10 +1408,14 @@ private:
 		return scratch;
 	}
 
-	bool BuildSampledGridVertex(uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	static SampledGridVertexCache &GetSampledGridVertexCache()
 	{
 		static thread_local SampledGridVertexCache cache;
+		return cache;
+	}
 
+	bool BuildSampledGridVertex(SampledGridVertexCache &cache, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	{
 		// Four candidates prevent nearby vertices with the same hash bucket from
 		// repeatedly evicting each other. Capacity and absolute grid keys stay fixed.
 		const uint32 setIndex = GetSampledGridVertexHash(face, gridU, gridV) & SampledGridVertexCacheSetMask;
@@ -1480,13 +1485,13 @@ private:
 		return true;
 	}
 
-	void FillSampledGridVertexRow(uint8 face, int minU, int gridV, uint vertexCount, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Array<Vec3> &positions, Array<uint8> &valid) const
+	void FillSampledGridVertexRow(SampledGridVertexCache &cache, uint8 face, int minU, int gridV, uint vertexCount, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Array<Vec3> &positions, Array<uint8> &valid) const
 	{
 		positions.resize(vertexCount);
 		valid.resize(vertexCount);
 		for(uint i = 0; i < vertexCount; i += 1)
 		{
-			valid[i] = BuildSampledGridVertex(face, minU + static_cast<int>(i), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i]) ? 1 : 0;
+			valid[i] = BuildSampledGridVertex(cache, face, minU + static_cast<int>(i), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i]) ? 1 : 0;
 		}
 	}
 
@@ -1519,14 +1524,15 @@ private:
 
 	bool BuildSampledGridTriangle(const SampledGridKey &key, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Triangle &triangle) const
 	{
+		SampledGridVertexCache &cache = GetSampledGridVertexCache();
 		Vec3 p00;
 		Vec3 p10;
 		Vec3 p01;
 		Vec3 p11;
-		if(!BuildSampledGridVertex(key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p00)) return false;
-		if(!BuildSampledGridVertex(key.face, key.gridU + 1, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10)) return false;
-		if(!BuildSampledGridVertex(key.face, key.gridU, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01)) return false;
-		if(!BuildSampledGridVertex(key.face, key.gridU + 1, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return false;
+		if(!BuildSampledGridVertex(cache, key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p00)) return false;
+		if(!BuildSampledGridVertex(cache, key.face, key.gridU + 1, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p10)) return false;
+		if(!BuildSampledGridVertex(cache, key.face, key.gridU, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p01)) return false;
+		if(!BuildSampledGridVertex(cache, key.face, key.gridU + 1, key.gridV + 1, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, p11)) return false;
 		int originU = 0;
 		int originV = 0;
 		GetSampledGridBlockOrigin(key.face, localOrigin, referenceRadius, originU, originV);
@@ -1613,7 +1619,7 @@ private:
 		if(!GetClosestSampledGridVertexKey(box.GetCenter(), localBase, localOrigin, referenceRadius, key)) return false;
 
 		Vec3 surfacePosition;
-		if(!BuildSampledGridVertex(key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, surfacePosition)) return false;
+		if(!BuildSampledGridVertex(GetSampledGridVertexCache(), key.face, key.gridU, key.gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, surfacePosition)) return false;
 
 		const Vec3 direction = GetPlanetLocalDirection(box.GetCenter(), localBase, localOrigin);
 		const double minimumBoxRadius = GetMinimumProjectedBoxRadius(box, direction, localBase, localOrigin);
@@ -1646,6 +1652,7 @@ private:
 
 		uint triangleCount = 0;
 		SampledGridRowScratch &scratch = GetSampledGridRowScratch();
+		SampledGridVertexCache &cache = GetSampledGridVertexCache();
 		for(uint8 face = 0; face < 6; face += 1)
 		{
 			if(triangleCount >= maximumTriangleCount || visitor.ShouldAbort()) return triangleCount;
@@ -1660,8 +1667,8 @@ private:
 			const uint vertexCount = static_cast<uint>(ranges[face].maxU - ranges[face].minU + 2);
 			Array<Vec3> *vertexRows = scratch.positions;
 			Array<uint8> *validRows = scratch.valid;
-			FillSampledGridVertexRow(face, ranges[face].minU, ranges[face].minV, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[0], validRows[0]);
-			FillSampledGridVertexRow(face, ranges[face].minU, ranges[face].minV + 1, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[1], validRows[1]);
+			FillSampledGridVertexRow(cache, face, ranges[face].minU, ranges[face].minV, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[0], validRows[0]);
+			FillSampledGridVertexRow(cache, face, ranges[face].minU, ranges[face].minV + 1, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[1], validRows[1]);
 
 			for(int gridV = ranges[face].minV; gridV <= ranges[face].maxV; gridV += 1)
 			{
@@ -1671,7 +1678,7 @@ private:
 				const uint upperRowIndex = 1u - lowerRowIndex;
 				if(gridV != ranges[face].minV)
 				{
-					FillSampledGridVertexRow(face, ranges[face].minU, gridV + 1, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[upperRowIndex], validRows[upperRowIndex]);
+					FillSampledGridVertexRow(cache, face, ranges[face].minU, gridV + 1, vertexCount, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, vertexRows[upperRowIndex], validRows[upperRowIndex]);
 				}
 
 				for(int gridU = ranges[face].minU; gridU <= ranges[face].maxU; gridU += 1)
