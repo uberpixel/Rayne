@@ -131,6 +131,8 @@ namespace RN
 		
 		EOS_NotificationId _audioBeforeRenderNotificationID;
 		EOS_NotificationId _audioBeforeSendNotificationID;
+		uintptr_t _audioBeforeRenderCallbackToken = 0;
+		uintptr_t _audioBeforeSendCallbackToken = 0;
 		
 		RNDeclareMetaAPI(EOSConnectedLobbyInfo, EOSAPI)
 	};
@@ -192,6 +194,8 @@ namespace RN
 
 		EOSAPI ~EOSLobbyManager();
 
+		// Lobby lifecycle and audio registration changes must run on the main thread
+		// Audio callbacks may run on other threads and must not change lobbies or audio registration
 		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback = nullptr, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback = nullptr);
 		EOSAPI void SetLocalPlayerMuted(bool mute);
 		bool GetLocalPlayerMuted() const { return _isLocalPlayerMuted; }
@@ -214,6 +218,7 @@ namespace RN
 
 	private:
 		EOSAPI EOSLobbyManager(EOSWorld *world);
+		void AddLobbyAudioNotification(EOSConnectedLobbyInfo *connectedLobbyInfo, EOS_ProductUserId userID, const char *roomName, bool beforeRender);
 		void RemoveLobbyAudioNotifications(EOSConnectedLobbyInfo *connectedLobbyInfo, bool removeBeforeRender = true, bool removeBeforeSend = true);
 
 		static void LobbyOnCreateCallback(const EOS_Lobby_CreateLobbyCallbackInfo *Data);
@@ -229,6 +234,11 @@ namespace RN
 		static void LobbyAudioOnBeforeRenderCallback(const EOS_RTCAudio_AudioBeforeRenderCallbackInfo *Data);
 		static void LobbyAudioOnUpdateSendingCallback(const EOS_RTCAudio_UpdateSendingCallbackInfo *Data);
 		static void LobbyAudioOnSetInputDeviceSettingsCallback(const EOS_RTCAudio_OnSetInputDeviceSettingsCallbackInfo *Data);
+
+		static RecursiveLockable _audioCallbackLock;
+		static EOSLobbyManager *_audioCallbackManager;
+		static uintptr_t _nextAudioCallbackToken;
+		std::unordered_map<uintptr_t, EOSConnectedLobbyInfo *> _audioCallbackLobbies;
 
 		EOS_HLobby _lobbyInterfaceHandle;
 		EOS_HRTC _rtcInterfaceHandle;

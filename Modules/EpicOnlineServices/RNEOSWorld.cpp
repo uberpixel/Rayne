@@ -158,6 +158,7 @@ namespace RN
 	EOSWorld::~EOSWorld()
 	{
 		EOSLobbyManager *lobbyManager = _lobbyManager;
+		if(lobbyManager) lobbyManager->SetGlobalAudioOptions(false, false, nullptr, nullptr);
 		_lobbyManager = nullptr;
 		SafeRelease(lobbyManager);
 		SafeRelease(_hosts);

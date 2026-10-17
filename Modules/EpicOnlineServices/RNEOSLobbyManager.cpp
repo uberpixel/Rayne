@@ -107,6 +107,7 @@ namespace RN
 	{
 		if(_status != Status::Connected) return;
 		
+		EOSWorld::GetInstance()->GetLobbyManager()->RemoveLobbyAudioNotifications(this);
 		_status = Status::Disconnecting;
 
 		EOS_HLobby lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(EOSWorld::GetInstance()->GetPlatformHandle());
@@ -334,6 +335,10 @@ namespace RN
 		return nullptr;
 	}
 
+	RecursiveLockable EOSLobbyManager::_audioCallbackLock;
+	EOSLobbyManager *EOSLobbyManager::_audioCallbackManager = nullptr;
+	uintptr_t EOSLobbyManager::_nextAudioCallbackToken = 1;
+
 	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) :
 		_isVoiceEnabled(false), _isVoiceUnmixed(true), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr)
 	{
@@ -345,10 +350,20 @@ namespace RN
 		EOS_Lobby_AddNotifyLobbyMemberStatusReceivedOptions statusOptions = {};
 		statusOptions.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYMEMBERSTATUSRECEIVED_API_LATEST;
 		_memberStatusReceivedNotificationID = EOS_Lobby_AddNotifyLobbyMemberStatusReceived(_lobbyInterfaceHandle, &statusOptions, this, LobbyOnMemberStatusReceived);
+
+		LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+		_audioCallbackManager = this;
 	}
 
 	EOSLobbyManager::~EOSLobbyManager()
 	{
+		RN_ASSERT(Thread::GetCurrentThread() == Thread::GetMainThread(), "Lobby manager destruction must run on the main thread");
+		{
+			LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+			if(_audioCallbackManager == this) _audioCallbackManager = nullptr;
+			_audioReceivedCallback = nullptr;
+			_audioBeforeSendCallback = nullptr;
+		}
 		ResetLobbySearchCallback();
 		for(auto *connectedLobby : _connectedLobbies)
 		{
@@ -358,21 +373,76 @@ namespace RN
 		if(_lobbyInterfaceHandle && _memberStatusReceivedNotificationID != EOS_INVALID_NOTIFICATIONID) EOS_Lobby_RemoveNotifyLobbyMemberStatusReceived(_lobbyInterfaceHandle, _memberStatusReceivedNotificationID);
 	}
 
+	void EOSLobbyManager::AddLobbyAudioNotification(EOSConnectedLobbyInfo *connectedLobbyInfo, EOS_ProductUserId userID, const char *roomName, bool beforeRender)
+	{
+		RN_ASSERT(Thread::GetCurrentThread() == Thread::GetMainThread(), "Audio registration must run on the main thread");
+		uintptr_t token;
+		uintptr_t &lobbyToken = beforeRender ? connectedLobbyInfo->_audioBeforeRenderCallbackToken : connectedLobbyInfo->_audioBeforeSendCallbackToken;
+		{
+			LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+			if(_audioCallbackManager != this || !_isVoiceEnabled || !_nextAudioCallbackToken) return;
+			if(connectedLobbyInfo->_status != EOSConnectedLobbyInfo::Status::Connected) return;
+			if(beforeRender ? !_audioReceivedCallback : !_audioBeforeSendCallback) return;
+			if(lobbyToken) return;
+			token = _nextAudioCallbackToken++;
+			lobbyToken = token;
+			_audioCallbackLobbies.emplace(token, connectedLobbyInfo);
+		}
+
+		EOS_NotificationId &notificationID = beforeRender ? connectedLobbyInfo->_audioBeforeRenderNotificationID : connectedLobbyInfo->_audioBeforeSendNotificationID;
+		if(beforeRender)
+		{
+			EOS_RTCAudio_AddNotifyAudioBeforeRenderOptions options = {};
+			options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORERENDER_API_LATEST;
+			options.LocalUserId = userID;
+			options.bUnmixedAudio = _isVoiceUnmixed;
+			options.RoomName = roomName;
+			notificationID = EOS_RTCAudio_AddNotifyAudioBeforeRender(_rtcAudioInterfaceHandle, &options, reinterpret_cast<void *>(token), LobbyAudioOnBeforeRenderCallback);
+		}
+		else
+		{
+			EOS_RTCAudio_AddNotifyAudioBeforeSendOptions options = {};
+			options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORESEND_API_LATEST;
+			options.LocalUserId = userID;
+			options.RoomName = roomName;
+			notificationID = EOS_RTCAudio_AddNotifyAudioBeforeSend(_rtcAudioInterfaceHandle, &options, reinterpret_cast<void *>(token), LobbyAudioOnBeforeSendCallback);
+		}
+
+		if(notificationID == EOS_INVALID_NOTIFICATIONID)
+		{
+			LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+			_audioCallbackLobbies.erase(token);
+			lobbyToken = 0;
+		}
+	}
+
 	void EOSLobbyManager::RemoveLobbyAudioNotifications(EOSConnectedLobbyInfo *connectedLobbyInfo, bool removeBeforeRender, bool removeBeforeSend)
 	{
-		if(!_rtcAudioInterfaceHandle || !connectedLobbyInfo) return;
-
-		if(removeBeforeRender && connectedLobbyInfo->_audioBeforeRenderNotificationID != 0)
+		RN_ASSERT(Thread::GetCurrentThread() == Thread::GetMainThread(), "Audio removal must run on the main thread");
+		if(!connectedLobbyInfo) return;
+		EOS_NotificationId renderID = EOS_INVALID_NOTIFICATIONID;
+		EOS_NotificationId sendID = EOS_INVALID_NOTIFICATIONID;
 		{
-			EOS_RTCAudio_RemoveNotifyAudioBeforeRender(_rtcAudioInterfaceHandle, connectedLobbyInfo->_audioBeforeRenderNotificationID);
-			connectedLobbyInfo->_audioBeforeRenderNotificationID = 0;
+			LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+			if(removeBeforeRender)
+			{
+				_audioCallbackLobbies.erase(connectedLobbyInfo->_audioBeforeRenderCallbackToken);
+				connectedLobbyInfo->_audioBeforeRenderCallbackToken = 0;
+				renderID = connectedLobbyInfo->_audioBeforeRenderNotificationID;
+				connectedLobbyInfo->_audioBeforeRenderNotificationID = EOS_INVALID_NOTIFICATIONID;
+			}
+			if(removeBeforeSend)
+			{
+				_audioCallbackLobbies.erase(connectedLobbyInfo->_audioBeforeSendCallbackToken);
+				connectedLobbyInfo->_audioBeforeSendCallbackToken = 0;
+				sendID = connectedLobbyInfo->_audioBeforeSendNotificationID;
+				connectedLobbyInfo->_audioBeforeSendNotificationID = EOS_INVALID_NOTIFICATIONID;
+			}
 		}
 
-		if(removeBeforeSend && connectedLobbyInfo->_audioBeforeSendNotificationID != 0)
-		{
-			EOS_RTCAudio_RemoveNotifyAudioBeforeSend(_rtcAudioInterfaceHandle, connectedLobbyInfo->_audioBeforeSendNotificationID);
-			connectedLobbyInfo->_audioBeforeSendNotificationID = 0;
-		}
+		if(!_rtcAudioInterfaceHandle) return;
+		if(renderID != EOS_INVALID_NOTIFICATIONID) EOS_RTCAudio_RemoveNotifyAudioBeforeRender(_rtcAudioInterfaceHandle, renderID);
+		if(sendID != EOS_INVALID_NOTIFICATIONID) EOS_RTCAudio_RemoveNotifyAudioBeforeSend(_rtcAudioInterfaceHandle, sendID);
 	}
 
 	size_t EOSLobbyManager::GetConnectedLobbyCount() const
@@ -405,6 +475,17 @@ namespace RN
 
 	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback)
 	{
+		RN_ASSERT(Thread::GetCurrentThread() == Thread::GetMainThread(), "Audio options must be set on the main thread");
+		// Wait for active callbacks before unregistering. EOS does not document
+		// whether RemoveNotify waits for them.
+		{
+			LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+			_audioReceivedCallback = voiceEnabled ? audioReceivedCallback : nullptr;
+			_audioBeforeSendCallback = voiceEnabled ? audioBeforeSendCallback : nullptr;
+			_isVoiceEnabled = voiceEnabled;
+			_isVoiceUnmixed = unmixed;
+		}
+
 		const bool removeBeforeRender = !voiceEnabled || !audioReceivedCallback;
 		const bool removeBeforeSend = !voiceEnabled || !audioBeforeSendCallback;
 		if(removeBeforeRender || removeBeforeSend)
@@ -414,11 +495,6 @@ namespace RN
 				RemoveLobbyAudioNotifications(connectedLobby, removeBeforeRender, removeBeforeSend);
 			}
 		}
-
-		_audioReceivedCallback = audioReceivedCallback;
-		_audioBeforeSendCallback = audioBeforeSendCallback;
-		_isVoiceEnabled = voiceEnabled;
-		_isVoiceUnmixed = unmixed;
 	}
 
 	void EOSLobbyManager::SetLocalPlayerMuted(bool mute)
@@ -447,7 +523,7 @@ namespace RN
 				sendingOptions.RoomName = roomNameBuffer;
 				sendingOptions.LocalUserId = EOSWorld::GetInstance()->GetUserID();
 				sendingOptions.AudioStatus = mute ? EOS_ERTCAudioStatus::EOS_RTCAS_Disabled : EOS_ERTCAudioStatus::EOS_RTCAS_Enabled;
-				EOS_RTCAudio_UpdateSending(_rtcAudioInterfaceHandle, &sendingOptions, lobby, LobbyAudioOnUpdateSendingCallback);
+				EOS_RTCAudio_UpdateSending(_rtcAudioInterfaceHandle, &sendingOptions, nullptr, LobbyAudioOnUpdateSendingCallback);
 			}
 			else
 			{
@@ -757,26 +833,8 @@ namespace RN
 				EOS_EResult roomNameResult = EOS_Lobby_GetRTCRoomName(lobbyManager->_lobbyInterfaceHandle, &roomNameOptions, roomNameBuffer, &roomNameLength);
 				if(roomNameResult == EOS_EResult::EOS_Success)
 				{
-					if(lobbyManager->_audioReceivedCallback)
-					{
-						EOS_RTCAudio_AddNotifyAudioBeforeRenderOptions options = {};
-						options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORERENDER_API_LATEST;
-						options.LocalUserId = world->GetUserID();
-						options.bUnmixedAudio = lobbyManager->_isVoiceUnmixed;
-						options.RoomName = roomNameBuffer;
-
-						connectedLobbyInfo->_audioBeforeRenderNotificationID = EOS_RTCAudio_AddNotifyAudioBeforeRender(lobbyManager->_rtcAudioInterfaceHandle, &options, connectedLobbyInfo, LobbyAudioOnBeforeRenderCallback);
-					}
-
-					if(lobbyManager->_audioBeforeSendCallback)
-					{
-						EOS_RTCAudio_AddNotifyAudioBeforeSendOptions options = {};
-						options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORESEND_API_LATEST;
-						options.LocalUserId = world->GetUserID();
-						options.RoomName = roomNameBuffer;
-
-						connectedLobbyInfo->_audioBeforeSendNotificationID = EOS_RTCAudio_AddNotifyAudioBeforeSend(lobbyManager->_rtcAudioInterfaceHandle, &options, connectedLobbyInfo, LobbyAudioOnBeforeSendCallback);
-					}
+					lobbyManager->AddLobbyAudioNotification(connectedLobbyInfo, world->GetUserID(), roomNameBuffer, true);
+					lobbyManager->AddLobbyAudioNotification(connectedLobbyInfo, world->GetUserID(), roomNameBuffer, false);
 					RNInfo("EOS voice audio notifications after create lobbyID=" << Data->LobbyId << " renderId=" << connectedLobbyInfo->_audioBeforeRenderNotificationID << " sendId=" << connectedLobbyInfo->_audioBeforeSendNotificationID);
 				}
 				else
@@ -795,7 +853,7 @@ namespace RN
 				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;
 				audioInputSettings.LocalUserId = world->GetUserID();
 				audioInputSettings.bPlatformAEC = EOS_TRUE;
-				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, connectedLobbyInfo, LobbyAudioOnSetInputDeviceSettingsCallback);
+				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, nullptr, LobbyAudioOnSetInputDeviceSettingsCallback);
 			}
 
 			EOS_Lobby_UpdateLobbyModificationOptions modificationOptions = {0};
@@ -1111,26 +1169,8 @@ namespace RN
 				EOS_EResult roomNameResult = EOS_Lobby_GetRTCRoomName(lobbyManager->_lobbyInterfaceHandle, &roomNameOptions, roomNameBuffer, &roomNameLength);
 				if(roomNameResult == EOS_EResult::EOS_Success)
 				{
-					if(lobbyManager->_audioReceivedCallback)
-					{
-						EOS_RTCAudio_AddNotifyAudioBeforeRenderOptions options = {};
-						options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORERENDER_API_LATEST;
-						options.LocalUserId = world->GetUserID();
-						options.bUnmixedAudio = lobbyManager->_isVoiceUnmixed;
-						options.RoomName = roomNameBuffer;
-
-						connectedLobbyInfo->_audioBeforeRenderNotificationID = EOS_RTCAudio_AddNotifyAudioBeforeRender(lobbyManager->_rtcAudioInterfaceHandle, &options, connectedLobbyInfo, LobbyAudioOnBeforeRenderCallback);
-					}
-
-					if(lobbyManager->_audioBeforeSendCallback)
-					{
-						EOS_RTCAudio_AddNotifyAudioBeforeSendOptions options = {};
-						options.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYAUDIOBEFORESEND_API_LATEST;
-						options.LocalUserId = world->GetUserID();
-						options.RoomName = roomNameBuffer;
-
-						connectedLobbyInfo->_audioBeforeSendNotificationID = EOS_RTCAudio_AddNotifyAudioBeforeSend(lobbyManager->_rtcAudioInterfaceHandle, &options, connectedLobbyInfo, LobbyAudioOnBeforeSendCallback);
-					}
+					lobbyManager->AddLobbyAudioNotification(connectedLobbyInfo, world->GetUserID(), roomNameBuffer, true);
+					lobbyManager->AddLobbyAudioNotification(connectedLobbyInfo, world->GetUserID(), roomNameBuffer, false);
 					RNInfo("EOS voice audio notifications after join lobbyID=" << Data->LobbyId << " renderId=" << connectedLobbyInfo->_audioBeforeRenderNotificationID << " sendId=" << connectedLobbyInfo->_audioBeforeSendNotificationID);
 				}
 				else
@@ -1149,7 +1189,7 @@ namespace RN
 				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;
 				audioInputSettings.LocalUserId = world->GetUserID();
 				audioInputSettings.bPlatformAEC = EOS_TRUE;
-				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, connectedLobbyInfo, LobbyAudioOnSetInputDeviceSettingsCallback);
+				EOS_RTCAudio_SetInputDeviceSettings(lobbyManager->_rtcAudioInterfaceHandle, &audioInputSettings, nullptr, LobbyAudioOnSetInputDeviceSettingsCallback);
 			}
 		}
 		else
@@ -1204,10 +1244,9 @@ namespace RN
 			RNInfo("Failed leaving lobby");
 		}
 		
+		lobbyManager->RemoveLobbyAudioNotifications(connectedLobbyInfo);
 		connectedLobbyInfo->_status = EOSConnectedLobbyInfo::Status::Disconnected;
 		SafeRelease(connectedLobbyInfo->_lobbyID);
-
-		lobbyManager->RemoveLobbyAudioNotifications(connectedLobbyInfo);
 		
 		auto position = std::find(lobbyManager->_connectedLobbies.begin(), lobbyManager->_connectedLobbies.end(), connectedLobbyInfo);
 		if(position != lobbyManager->_connectedLobbies.end())
@@ -1343,36 +1382,30 @@ namespace RN
 
 	void EOSLobbyManager::LobbyAudioOnBeforeSendCallback(const EOS_RTCAudio_AudioBeforeSendCallbackInfo *Data)
 	{
-		EOSConnectedLobbyInfo *connectedLobbyInfo = static_cast<EOSConnectedLobbyInfo *>(Data->ClientData);
-		EOSWorld *world = EOSWorld::GetInstance();
-		if(!world) return;
-		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
-		if(!lobbyManager) return;
-		if(lobbyManager->_audioBeforeSendCallback)
-		{
-			lobbyManager->_audioBeforeSendCallback(Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames, connectedLobbyInfo);
-		}
+		LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+		EOSLobbyManager *lobbyManager = _audioCallbackManager;
+		if(!lobbyManager || !lobbyManager->_audioBeforeSendCallback) return;
+		auto registration = lobbyManager->_audioCallbackLobbies.find(reinterpret_cast<uintptr_t>(Data->ClientData));
+		if(registration == lobbyManager->_audioCallbackLobbies.end()) return;
+		StrongRef<EOSConnectedLobbyInfo> connectedLobbyInfo(registration->second);
+		auto callback = lobbyManager->_audioBeforeSendCallback;
+		callback(Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames, connectedLobbyInfo.Get());
 	}
 
 	void EOSLobbyManager::LobbyAudioOnBeforeRenderCallback(const EOS_RTCAudio_AudioBeforeRenderCallbackInfo *Data)
 	{
-		EOSConnectedLobbyInfo *connectedLobbyInfo = static_cast<EOSConnectedLobbyInfo *>(Data->ClientData);
+		LockGuard<RecursiveLockable> lock(_audioCallbackLock);
+		EOSLobbyManager *lobbyManager = _audioCallbackManager;
+		if(!lobbyManager || !lobbyManager->_audioReceivedCallback) return;
+		auto registration = lobbyManager->_audioCallbackLobbies.find(reinterpret_cast<uintptr_t>(Data->ClientData));
+		if(registration == lobbyManager->_audioCallbackLobbies.end()) return;
+		StrongRef<EOSConnectedLobbyInfo> connectedLobbyInfo(registration->second);
 		EOSWorld *world = EOSWorld::GetInstance();
 		if(!world) return;
-		EOSLobbyManager *lobbyManager = world->GetLobbyManager();
-		if(!lobbyManager) return;
-		if(lobbyManager->_audioReceivedCallback)
-		{
-			AutoreleasePool pool;
-
-			const RN::String *eosUserID = nullptr;
-
-			if(Data->ParticipantId)
-			{
-				eosUserID = world->GetUserIDString(Data->ParticipantId);
-			}
-			lobbyManager->_audioReceivedCallback(eosUserID, Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames, connectedLobbyInfo);
-		}
+		auto callback = lobbyManager->_audioReceivedCallback;
+		AutoreleasePool pool;
+		const RN::String *eosUserID = Data->ParticipantId ? world->GetUserIDString(Data->ParticipantId) : nullptr;
+		callback(eosUserID, Data->Buffer->SampleRate, Data->Buffer->Channels, Data->Buffer->FramesCount, Data->Buffer->Frames, connectedLobbyInfo.Get());
 	}
 
 	void EOSLobbyManager::LobbyAudioOnUpdateSendingCallback(const EOS_RTCAudio_UpdateSendingCallbackInfo *Data)
@@ -1383,10 +1416,9 @@ namespace RN
 			return;
 		}
 
-		EOSConnectedLobbyInfo *connectedLobbyInfo = static_cast<EOSConnectedLobbyInfo *>(Data->ClientData);
 		if(Data->ResultCode != EOS_EResult::EOS_Success)
 		{
-			RNInfo("EOS voice update sending failed result=" << EOS_EResult_ToString(Data->ResultCode) << " lobbyID=" << (connectedLobbyInfo && connectedLobbyInfo->_lobbyID ? connectedLobbyInfo->_lobbyID->GetUTF8String() : "<none>"));
+			RNInfo("EOS voice update sending failed result=" << EOS_EResult_ToString(Data->ResultCode));
 		}
 	}
 
@@ -1398,10 +1430,9 @@ namespace RN
 			return;
 		}
 
-		EOSConnectedLobbyInfo *connectedLobbyInfo = static_cast<EOSConnectedLobbyInfo *>(Data->ClientData);
 		if(Data->ResultCode != EOS_EResult::EOS_Success)
 		{
-			RNInfo("EOS voice set input device settings failed result=" << EOS_EResult_ToString(Data->ResultCode) << " lobbyID=" << (connectedLobbyInfo && connectedLobbyInfo->_lobbyID ? connectedLobbyInfo->_lobbyID->GetUTF8String() : "<none>"));
+			RNInfo("EOS voice set input device settings failed result=" << EOS_EResult_ToString(Data->ResultCode));
 		}
 	}
 } // namespace RN
