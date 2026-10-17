@@ -553,17 +553,16 @@ namespace RN
 			return false;
 		}
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
-		if(!bodyInterface.IsAdded(joltBodyID))
+		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::BodyLockRead supportLock(physics->GetBodyLockInterface(), joltBodyID);
+		if(!supportLock.Succeeded() || !supportLock.GetBody().IsInBroadPhase())
 		{
 			return false;
 		}
 
-		JPH::RVec3 joltPosition;
-		JPH::Quat joltRotation;
-		bodyInterface.GetPositionAndRotation(joltBodyID, joltPosition, joltRotation);
-		JoltPosition supportPosition = JoltConversions::ToPosition(joltPosition);
-		Quaternion supportRotation = JoltConversions::ToEngineRotation(joltRotation);
+		const JPH::Body &supportBody = supportLock.GetBody();
+		JoltPosition supportPosition = JoltConversions::ToPosition(supportBody.GetPosition());
+		Quaternion supportRotation = JoltConversions::ToEngineRotation(supportBody.GetRotation());
 		if(!supportPosition.IsValid() || !supportRotation.IsValid())
 		{
 			return false;
@@ -576,7 +575,7 @@ namespace RN
 			return false;
 		}
 
-		JPH::Vec3 joltVelocity = bodyInterface.GetPointVelocity(joltBodyID, JoltConversions::ToJoltPosition(anchorPosition));
+		JPH::Vec3 joltVelocity = supportBody.GetPointVelocityCOM(JPH::Vec3(JoltConversions::ToJoltPosition(anchorPosition) - supportBody.GetCenterOfMassPosition()));
 		position = anchorPosition;
 		velocity = JoltConversions::ToEngineVector(joltVelocity);
 		return velocity.IsValid();
@@ -616,7 +615,8 @@ namespace RN
 		JPH::Vec3 groundVelocity = _controller->GetGroundVelocity();
 		_groundVelocity = JoltConversions::ToEngineVector(groundVelocity);
 		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
-		JPH::Vec3 groundAngularVelocity = physics->GetBodyInterface().GetAngularVelocity(_controller->GetGroundBodyID());
+		JPH::BodyLockRead groundLock(physics->GetBodyLockInterface(), _controller->GetGroundBodyID());
+		JPH::Vec3 groundAngularVelocity = groundLock.Succeeded()? groundLock.GetBody().GetAngularVelocity() : JPH::Vec3::sZero();
 		_groundAngularVelocity = JoltConversions::ToEngineVector(groundAngularVelocity);
 		JPH::Vec3 groundNormal = _controller->GetGroundNormal();
 		_groundNormal = JoltConversions::ToEngineVector(groundNormal);
