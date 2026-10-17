@@ -926,14 +926,14 @@ namespace RN
 		RNInfo("Lobby search result " << EOS_EResult_ToString(Data->ResultCode));
 		if(!EOS_EResult_IsOperationComplete(Data->ResultCode)) return;
 
-		if(Data->ResultCode == EOS_EResult::EOS_Success)
+		if(Data->ResultCode == EOS_EResult::EOS_Success || Data->ResultCode == EOS_EResult::EOS_NotFound)
 		{
 			RNDebug("Lobby search successful");
 
 			EOS_LobbySearch_GetSearchResultCountOptions searchResultCountOptions = {0};
 			searchResultCountOptions.ApiVersion = EOS_LOBBYSEARCH_GETSEARCHRESULTCOUNT_API_LATEST;
 
-			uint32 resultCount = EOS_LobbySearch_GetSearchResultCount(searchData->handle, &searchResultCountOptions);
+			uint32 resultCount = Data->ResultCode == EOS_EResult::EOS_Success ? EOS_LobbySearch_GetSearchResultCount(searchData->handle, &searchResultCountOptions) : 0;
 			RNInfo("Found " << resultCount << " lobbies");
 
 			Array *lobbyInfoArray = new Array();
