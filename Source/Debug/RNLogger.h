@@ -144,12 +144,18 @@ namespace RN
 	};
 } // namespace RN
 
+#if RN_BUILD_DEBUG
 #define RNDebugf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Debug, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
+#define RNDebug(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Debug, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RNSTR(__VA_ARGS__))
+#else
+#define RNDebugf(...) ((void)0)
+#define RNDebug(...) ((void)0)
+#endif
+
 #define RNInfof(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Info, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
 #define RNWarningf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Warning, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
 #define RNErrorf(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Error, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, __VA_ARGS__)
 
-#define RNDebug(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Debug, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RNSTR(__VA_ARGS__))
 #define RNInfo(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Info, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RNSTR(__VA_ARGS__))
 #define RNWarning(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Warning, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RNSTR(__VA_ARGS__))
 #define RNError(...) RN::Logger::GetSharedInstance()->Log(RN::Logger::Level::Error, __LINE__, __FILE__, RN_FUNCTION_SIGNATURE, RNSTR(__VA_ARGS__))
