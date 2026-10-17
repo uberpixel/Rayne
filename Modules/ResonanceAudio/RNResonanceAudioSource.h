@@ -14,6 +14,7 @@
 namespace RN
 {
 	class ResonanceAudioSampler;
+	class ResonanceAudioWorld;
 	struct ResonanceAudioSourceInternals;
 	class ResonanceAudioSource : public SceneNode
 	{
@@ -87,7 +88,10 @@ namespace RN
 		void ConsumePendingState();
 		bool ProcessPendingActions();
 
+		ResonanceAudioWorld *_world; // The world is not retained and clears this pointer after callbacks stop.
 		bool _isRegisteredInWorld;
+		std::atomic<uint64> _playbackRevision {1};
+		std::atomic<uint64> _selfdestructRequest {0};
 
 		std::atomic<uint8> _channel;
 		ResonanceAudioSampler *_sampler;

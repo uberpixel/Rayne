@@ -75,7 +75,6 @@ namespace RN
 		RN_ASSERT(world, "Owning world must be set before creating listener contexts!");
 
 		ResonanceAudioListenerContext *context = new ResonanceAudioListenerContext(world, _channelCount, _frameSize, _sampleRate);
-		context->Retain();
 		_listenerContexts.push_back(context);
 		PublishListenerContextsSnapshot();
 
@@ -84,12 +83,20 @@ namespace RN
 
 	void ResonanceAudioSystem::RemoveAllListenerContexts()
 	{
+		// Devices are stopped before detachment, so every snapshot can be cleared.
+		for(Array *snapshot : _listenerContextSnapshots)
+		{
+			if(snapshot) snapshot->RemoveAllObjects();
+		}
 		for(ResonanceAudioListenerContext *context : _listenerContexts)
 		{
-			if(context) context->Release();
+			if(!context) continue;
+			context->_world = nullptr;
+			context->SetInputSamplesCallback(nullptr);
+			context->SetListener(nullptr);
+			context->Release();
 		}
 		_listenerContexts.clear();
-		PublishListenerContextsSnapshot();
 	}
 
 	ResonanceAudioListenerContext *ResonanceAudioSystem::GetListenerContext() const
@@ -164,17 +171,8 @@ namespace RN
 
 	ResonanceAudioSystemMiniAudio::~ResonanceAudioSystemMiniAudio()
 	{
-		if(_outputDevice)
-		{
-			ma_device_uninit(&_internals->outputDevice);
-			SafeRelease(_outputDevice);
-		}
-
-		if(_inputDevice)
-		{
-			ma_device_uninit(&_internals->inputDevice);
-			SafeRelease(_inputDevice);
-		}
+		SetOutputDevice(nullptr);
+		SetInputDevice(nullptr);
 
 		ma_context_uninit(&_internals->context);
 
@@ -189,7 +187,7 @@ namespace RN
 
 	void ResonanceAudioSystemMiniAudio::SetOutputDevice(ResonanceAudioDevice *outputDevice)
 	{
-		RN_ASSERT(outputDevice || outputDevice->type == ResonanceAudioDevice::Type::Output, "Not an output device!");
+		RN_ASSERT(!outputDevice || outputDevice->type == ResonanceAudioDevice::Type::Output, "Not an output device!");
 
 		if(_outputDevice)
 		{
@@ -198,6 +196,7 @@ namespace RN
 		SafeRelease(_outputDevice);
 		_outputDevice = outputDevice;
 		SafeRetain(_outputDevice);
+		if(!_outputDevice) return;
 
 		ma_device_config config = ma_device_config_init(ma_device_type_playback);
 		config.playback.pDeviceID = static_cast<ma_device_id *>(outputDevice->Downcast<ResonanceAudioDeviceMiniAudio>()->deviceID);
@@ -210,10 +209,16 @@ namespace RN
 
 		if(ma_device_init(&_internals->context, &config, &_internals->outputDevice) != MA_SUCCESS)
 		{
+			SafeRelease(_outputDevice);
 			return; // Failed to initialize the device.
 		}
 
-		ma_device_start(&_internals->outputDevice); // The device is sleeping by default so you'll need to start it manually.
+		if(ma_device_start(&_internals->outputDevice) != MA_SUCCESS)
+		{
+			ma_device_uninit(&_internals->outputDevice);
+			SafeRelease(_outputDevice);
+			return;
+		}
 
 		RNInfo("Using audio output device: " << _outputDevice->name);
 	}

@@ -72,10 +72,12 @@ namespace RN
 		void PublishAudioSourcesSnapshot(const std::vector<ResonanceAudioSource *> &sources);
 		Array *AcquireAudioSourcesSnapshot();
 
+		static RecursiveLockable _sourceLifetimeLock;
 		static ResonanceAudioWorld *_instance;
 
 		ResonanceAudioSystem *_audioSystem;
 
+		std::vector<ResonanceAudioSource *> _allAudioSources; // Tracks all sources, including detached sources, without retaining them.
 		std::vector<ResonanceAudioSource *> _audioSources;
 		bool _audioSourcesSnapshotDirty = false;
 		Array *_audioSourcesSnapshots[3];

@@ -31,6 +31,8 @@ namespace RN
 
 	class ResonanceAudioListenerContext : public Object
 	{
+		friend class ResonanceAudioSystem;
+
 	public:
 		RAAPI ResonanceAudioListenerContext(ResonanceAudioWorld *world, uint32 channelCount, uint32 frameSize, uint32 sampleRate);
 		RAAPI ~ResonanceAudioListenerContext() override;
@@ -66,7 +68,7 @@ namespace RN
 		float *GetSharedFrameData() const { return _sharedFrameData; }
 
 	private:
-		WeakRef<ResonanceAudioWorld> _world;
+		ResonanceAudioWorld *_world;
 		SceneNode *_listener;
 		PositionType _oldPosition;
 
@@ -74,8 +76,8 @@ namespace RN
 		uint32 _channelCount;
 		float *_sharedFrameData;
 
-		std::function<void(uint32, uint32, uint32, const float *)> _inputSamplesCallbackBuffers[2] = {};
-		std::atomic<uint32> _inputSamplesCallbackIndex {0};
+		RecursiveLockable _inputSamplesCallbackLock;
+		std::function<void(uint32, uint32, uint32, const float *)> _inputSamplesCallback;
 
 		std::atomic<float> _listenerMasterVolume;
 		std::atomic<float> _wetVolume;

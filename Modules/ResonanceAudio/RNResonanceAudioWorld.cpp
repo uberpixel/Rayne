@@ -19,10 +19,12 @@ namespace RN
 {
 	RNDefineMeta(ResonanceAudioWorld, SceneAttachment)
 
+	RecursiveLockable ResonanceAudioWorld::_sourceLifetimeLock;
 	ResonanceAudioWorld *ResonanceAudioWorld::_instance = nullptr;
 
 	ResonanceAudioWorld *ResonanceAudioWorld::GetInstance()
 	{
+		LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
 		return _instance;
 	}
 
@@ -31,6 +33,7 @@ namespace RN
 		_audioSystem(audioSystem),
 		_worldMasterVolume(1.0f)
 	{
+		LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
 		RN_ASSERT(!_instance, "There already is a ResonanceAudioWorld!");
 		RN_ASSERT(_audioSystem, "Audio system needs to be provided when creating an audio world!");
 
@@ -47,36 +50,56 @@ namespace RN
 
 	ResonanceAudioWorld::~ResonanceAudioWorld()
 	{
-		_audioSystem->RemoveAllListenerContexts();
-		_audioSystem->SetOwningWorld(nullptr);
-		_audioSystem->Release();
+		{
+			LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
+			if(_instance == this) _instance = nullptr;
+		}
+
+		// Stop callbacks before releasing sources or their audio API.
+		_audioSystem->SetOutputDevice(nullptr);
+		_audioSystem->SetInputDevice(nullptr);
+
+		LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
 
 		for(int i = 0; i < 3; i++)
 		{
 			SafeRelease(_audioSourcesSnapshots[i]);
 		}
 
-		_instance = nullptr;
+		// Sources can outlive this attachment, including sources never added to a scene.
+		vraudio::ResonanceAudioApi *audioAPI = GetAudioAPI();
+		for(ResonanceAudioSource *source : _allAudioSources)
+		{
+			if(audioAPI && source->_isPositional) audioAPI->DestroySource(source->_sourceID);
+			source->_sourceID = vraudio::ResonanceAudioApi::kInvalidSourceId;
+			source->_world = nullptr;
+			source->_isRegisteredInWorld = false;
+			source->_isPlaying = false;
+			source->_cachedIsPlaying.store(false, std::memory_order_relaxed);
+			source->_selfdestructRequest.store(0, std::memory_order_relaxed);
+		}
+
+		_audioSystem->RemoveAllListenerContexts();
+		_audioSystem->SetOwningWorld(nullptr);
+		SafeRelease(_audioSystem);
 	}
 
 	void ResonanceAudioWorld::AddAudioSource(ResonanceAudioSource *source)
 	{
-		Lock();
+		LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
 		_audioSources.push_back(source);
 		_audioSourcesSnapshotDirty = true;
-		Unlock();
 	}
 
 	void ResonanceAudioWorld::RemoveAudioSource(ResonanceAudioSource *source)
 	{
-		Lock();
+		LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
 		auto iterator = std::find(_audioSources.begin(), _audioSources.end(), source);
 		if(iterator != _audioSources.end())
 		{
 			_audioSources.erase(iterator);
 			_audioSourcesSnapshotDirty = true;
 		}
-		Unlock();
 	}
 
 	void ResonanceAudioWorld::PublishAudioSourcesSnapshot(const std::vector<ResonanceAudioSource *> &sources)
@@ -155,13 +178,14 @@ namespace RN
 		SceneAttachment::Update(delta);
 
 		// Publish audio sources snapshot at most once per frame (instead of on every add/remove).
-		Lock();
-		if(_audioSourcesSnapshotDirty)
 		{
-			PublishAudioSourcesSnapshot(_audioSources);
-			_audioSourcesSnapshotDirty = false;
+			LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
+			if(_audioSourcesSnapshotDirty)
+			{
+				PublishAudioSourcesSnapshot(_audioSources);
+				_audioSourcesSnapshotDirty = false;
+			}
 		}
-		Unlock();
 		
 		if(_audioSystem)
 		{

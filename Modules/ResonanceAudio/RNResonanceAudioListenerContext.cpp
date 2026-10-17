@@ -122,10 +122,8 @@ namespace RN
 
 	void ResonanceAudioListenerContext::SetInputSamplesCallback(std::function<void(uint32, uint32, uint32, const float *)> inputSamplesCallback)
 	{
-		const uint32 currentIndex = _inputSamplesCallbackIndex.load(std::memory_order_relaxed) & 1;
-		const uint32 nextIndex = currentIndex ^ 1;
-		_inputSamplesCallbackBuffers[nextIndex] = std::move(inputSamplesCallback);
-		_inputSamplesCallbackIndex.store(nextIndex, std::memory_order_release);
+		LockGuard<RecursiveLockable> lock(_inputSamplesCallbackLock);
+		_inputSamplesCallback = std::move(inputSamplesCallback);
 	}
 
 	void ResonanceAudioListenerContext::SetListener(SceneNode *listener)
@@ -164,6 +162,7 @@ namespace RN
 
 	void ResonanceAudioListenerContext::Update(float delta)
 	{
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		if(!_listener)
 			return;
 
@@ -233,7 +232,6 @@ namespace RN
 		SceneNode *listener = _listener;
 		const PositionType listenerPosition = listener ? listener->GetWorldPosition() : PositionType();
 
-		world->Lock();
 		for(ResonanceAudioSource *source : world->_audioSources)
 		{
 			if(!source || !source->IsPositional()) continue;
@@ -257,13 +255,13 @@ namespace RN
 				_audioAPI->SetSoundObjectOcclusionIntensity(source->_sourceID, (distance > -0.5f) ? 10.0f : 0.0f);
 			}
 		}
-		world->Unlock();
 	}
 
 	void ResonanceAudioListenerContext::RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 sampleRate, uint32 channelCount, uint32 frameCount, uint32 status)
 	{
 		AutoreleasePool pool;
 
+		// The world stops both devices before detaching contexts. Callbacks must not retain it during destruction.
 		ResonanceAudioWorld *world = _world;
 		if(!world)
 		{
@@ -275,12 +273,15 @@ namespace RN
 		}
 
 		// Capture microphone samples if requested
-		const uint32 callbackIndex = _inputSamplesCallbackIndex.load(std::memory_order_acquire) & 1;
-		const auto &inputSamplesCallback = _inputSamplesCallbackBuffers[callbackIndex];
-		if(inputSamplesCallback && inputBuffer)
+		if(inputBuffer)
 		{
-			const float *floatInput = static_cast<const float *>(inputBuffer);
-			inputSamplesCallback(sampleRate, channelCount, frameCount, floatInput);
+			LockGuard<RecursiveLockable> lock(_inputSamplesCallbackLock);
+			// Keep the callback alive if it replaces itself.
+			auto inputSamplesCallback = _inputSamplesCallback;
+			if(inputSamplesCallback)
+			{
+				inputSamplesCallback(sampleRate, channelCount, frameCount, static_cast<const float *>(inputBuffer));
+			}
 		}
 
 		if(!outputBuffer)

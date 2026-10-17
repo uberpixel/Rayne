@@ -34,6 +34,17 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
+		const uint64 request = _selfdestructRequest.exchange(0, std::memory_order_acq_rel);
+		if(request && request == _playbackRevision.load(std::memory_order_acquire) &&
+		   _isSelfdestructing.load(std::memory_order_relaxed) && HasEnded() && !IsPlaying())
+		{
+			if(GetSceneInfo() && GetSceneInfo()->GetScene())
+			{
+				GetSceneInfo()->GetScene()->RemoveNode(this);
+				return;
+			}
+		}
+
 		auto ResetDoppler = [&] {
 			_dopplerPitchMultiplier.store(1.0f, std::memory_order_relaxed);
 			_dopplerInitialized = false;
@@ -42,7 +53,8 @@ namespace RN
 		if(!_isPositional)
 			return;
 
-		ResonanceAudioWorld *world = ResonanceAudioWorld::GetInstance();
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		ResonanceAudioWorld *world = _world;
 		if(!world || delta <= 0.0f || !IsPlaying())
 		{
 			ResetDoppler();
@@ -109,6 +121,7 @@ namespace RN
 	}
 
 	ResonanceAudioSource::ResonanceAudioSource(AudioAsset *asset, bool wantsIndirectSound, bool isPositional) :
+		_world(nullptr),
 		_isRegisteredInWorld(false),
 		_channel(0),
 		_sampler(new ResonanceAudioSampler(asset)),
@@ -153,26 +166,38 @@ namespace RN
 			_isRepeating.store(true, std::memory_order_relaxed);
 		}
 
-		RN_ASSERT(ResonanceAudioWorld::_instance, "You need to create a ResonanceAudioWorld before creating audio sources!");
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		_world = ResonanceAudioWorld::_instance;
+		RN_ASSERT(_world, "You need to create a ResonanceAudioWorld before creating audio sources!");
 
+		if(!_world) return;
+		_world->_allAudioSources.push_back(this);
 		if(_isPositional)
 		{
-			_sourceID = ResonanceAudioWorld::_instance->GetAudioAPI()->CreateSoundObjectSource(vraudio::RenderingMode::kBinauralHighQuality);
-			ResonanceAudioWorld::_instance->GetAudioAPI()->SetSourceDistanceModel(_sourceID, MapRolloffModel(_rolloffModel), _minMaxRange.x, _minMaxRange.y);
+			_sourceID = _world->GetAudioAPI()->CreateSoundObjectSource(vraudio::RenderingMode::kBinauralHighQuality);
+			_world->GetAudioAPI()->SetSourceDistanceModel(_sourceID, MapRolloffModel(_rolloffModel), _minMaxRange.x, _minMaxRange.y);
 		}
 	}
 
 	ResonanceAudioSource::~ResonanceAudioSource()
 	{
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		AudioAsset *pendingAsset = _pendingAsset.exchange(nullptr, std::memory_order_acq_rel);
 		if(pendingAsset != GetNullAssetSentinel()) SafeRelease(pendingAsset);
 		SafeRelease(_nextAsset);
-		if(_isRegisteredInWorld)
+		ResonanceAudioWorld *world = _world;
+		if(world)
 		{
-			ResonanceAudioWorld::_instance->RemoveAudioSource(this);
-			_isRegisteredInWorld = false;
+			if(_isRegisteredInWorld) world->RemoveAudioSource(this);
+			auto &sources = world->_allAudioSources;
+			auto iterator = std::find(sources.begin(), sources.end(), this);
+			if(iterator != sources.end()) sources.erase(iterator);
+			if(_isPositional)
+			{
+				vraudio::ResonanceAudioApi *audioAPI = world->GetAudioAPI();
+				if(audioAPI) audioAPI->DestroySource(_sourceID);
+			}
 		}
-		if(_isPositional) ResonanceAudioWorld::_instance->GetAudioAPI()->DestroySource(_sourceID);
 		_sampler->Release();
 	}
 
@@ -180,6 +205,7 @@ namespace RN
 	{
 		AudioAsset* retained = asset ? SafeRetain(asset) : GetNullAssetSentinel();
 		AudioAsset* old = _pendingAsset.exchange(retained, std::memory_order_acq_rel);
+		_playbackRevision.fetch_add(1, std::memory_order_acq_rel);
 		if(old != GetNullAssetSentinel()) SafeRelease(old);
 	}
 
@@ -195,10 +221,11 @@ namespace RN
 
 	void ResonanceAudioSource::SetCurrentDistanceAttenuationValue(float attentuation)
 	{
-		if(!_isPositional) return;
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		if(!_isPositional || !_world || !_world->GetAudioAPI()) return;
 		RN_DEBUG_ASSERT(_rolloffModel == DistanceRolloffModel::None, "Distance attenuation value is only supported for none rolloff model");
 
-		ResonanceAudioWorld::_instance->GetAudioAPI()->SetSourceDistanceAttenuation(_sourceID, attentuation);
+		_world->GetAudioAPI()->SetSourceDistanceAttenuation(_sourceID, attentuation);
 	}
 
 	void ResonanceAudioSource::SetPitch(float pitch)
@@ -213,11 +240,13 @@ namespace RN
 
 	void ResonanceAudioSource::UpdateDistanceModel()
 	{
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		if(!_world || !_world->GetAudioAPI()) return;
 		const float minimumDistance = std::max(0.001f, _minMaxRange.x);
 		const float maximumDistanceOrRolloff = _rolloffModel == DistanceRolloffModel::Inverse ?
 			std::max(0.0f, _minMaxRange.y) : std::max(minimumDistance, _minMaxRange.y);
 
-		ResonanceAudioWorld::_instance->GetAudioAPI()->SetSourceDistanceModel(
+		_world->GetAudioAPI()->SetSourceDistanceModel(
 			_sourceID, MapRolloffModel(_rolloffModel), minimumDistance, maximumDistanceOrRolloff);
 	}
 
@@ -259,6 +288,7 @@ namespace RN
 	void ResonanceAudioSource::Play()
 	{
 		_pendingFinalAction.store(PendingAction::Play, std::memory_order_release);
+		_playbackRevision.fetch_add(1, std::memory_order_acq_rel);
 	}
 
 	void ResonanceAudioSource::Stop()
@@ -275,6 +305,7 @@ namespace RN
 	void ResonanceAudioSource::Seek(double time)
 	{
 		_pendingSeekTime.store(std::max(time, 0.0), std::memory_order_release);
+		_playbackRevision.fetch_add(1, std::memory_order_acq_rel);
 	}
 
 	bool ResonanceAudioSource::HasEnded() const
@@ -395,6 +426,8 @@ namespace RN
 
 	void ResonanceAudioSource::Update()
 	{
+		if(!_world || !_world->GetAudioAPI()) return;
+		const uint64 playbackRevision = _playbackRevision.load(std::memory_order_acquire);
 		if(_isPositional)
 		{
 			const uint32 spatialSequence = _spatialSequence.load(std::memory_order_acquire);
@@ -405,7 +438,7 @@ namespace RN
 				const float positionZ = _spatialPositionZ.load(std::memory_order_relaxed);
 				if(_spatialSequence.load(std::memory_order_acquire) == spatialSequence)
 				{
-					ResonanceAudioWorld::_instance->GetAudioAPI()->SetSourcePosition(_sourceID, positionX, positionY, positionZ);
+					_world->GetAudioAPI()->SetSourcePosition(_sourceID, positionX, positionY, positionZ);
 					_currentSpatialSequence = spatialSequence;
 				}
 			}
@@ -413,7 +446,7 @@ namespace RN
 			float volume = _volume.load(std::memory_order_relaxed);
 			if(volume != _currentVolume)
 			{
-				ResonanceAudioWorld::_instance->GetAudioAPI()->SetSourceVolume(_sourceID, volume);
+				_world->GetAudioAPI()->SetSourceVolume(_sourceID, volume);
 				_currentVolume = volume;
 			}
 		}
@@ -426,16 +459,16 @@ namespace RN
 		
 		if(_isPositional && _isPlaying)
 		{
-			const uint32 frameSize = ResonanceAudioWorld::_instance->_audioSystem->_frameSize;
-			const uint32 sampleRate = ResonanceAudioWorld::_instance->_audioSystem->_sampleRate;
+			const uint32 frameSize = _world->_audioSystem->_frameSize;
+			const uint32 sampleRate = _world->_audioSystem->_sampleRate;
 
 			//For none positional sources this happens in the audio handling callback
-			ResonanceAudioListenerContext *listenerContext = ResonanceAudioWorld::_instance->GetListenerContext();
+			ResonanceAudioListenerContext *listenerContext = _world->GetListenerContext();
 			float *newBuffer = listenerContext ? listenerContext->GetSharedFrameData() : nullptr;
 			if(newBuffer)
 			{
 				Update(static_cast<double>(frameSize) / static_cast<double>(sampleRate), frameSize, &newBuffer, 1);
-				ResonanceAudioWorld::_instance->GetAudioAPI()->SetInterleavedBuffer(_sourceID, newBuffer, 1, frameSize);
+				_world->GetAudioAPI()->SetInterleavedBuffer(_sourceID, newBuffer, 1, frameSize);
 			}
 		}
 
@@ -444,29 +477,33 @@ namespace RN
 			_isPlaying = false;
 			_cachedIsPlaying.store(false, std::memory_order_relaxed);
 
-			if(_isSelfdestructing.load(std::memory_order_relaxed) && GetSceneInfo() && GetSceneInfo()->GetScene())
+			if(_isSelfdestructing.load(std::memory_order_relaxed) && !_controlBits &&
+			   !_pendingAsset.load(std::memory_order_acquire) &&
+			   _pendingFinalAction.load(std::memory_order_acquire) != PendingAction::Play &&
+			   _pendingSeekTime.load(std::memory_order_acquire) < 0.0)
 			{
-				GetSceneInfo()->GetScene()->RemoveNode(const_cast<ResonanceAudioSource *>(this));
+				_selfdestructRequest.store(playbackRevision, std::memory_order_release);
 			}
 		}
 	}
 
 	void ResonanceAudioSource::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		SceneNode::DidUpdate(changeSet);
 		
 		// Register/unregister based on whether the node is actually attached to a scene.
-		if(changeSet & (SceneNode::ChangeSet::Parent | SceneNode::ChangeSet::World))
+		if(_world && (changeSet & (SceneNode::ChangeSet::Parent | SceneNode::ChangeSet::World)))
 		{
 			const bool isInScene = (GetSceneInfo() != nullptr);
 			if(isInScene && !_isRegisteredInWorld)
 			{
-				ResonanceAudioWorld::_instance->AddAudioSource(this);
+				_world->AddAudioSource(this);
 				_isRegisteredInWorld = true;
 			}
 			else if(!isInScene && _isRegisteredInWorld)
 			{
-				ResonanceAudioWorld::_instance->RemoveAudioSource(this);
+				_world->RemoveAudioSource(this);
 				_isRegisteredInWorld = false;
 			}
 		}
