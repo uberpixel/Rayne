@@ -104,24 +104,27 @@ namespace RN
 		EOS_P2P_CloseConnection(world->GetP2PHandle(), &options);
 	}
 
-	size_t EOSHost::GetRemainingReliableWindow(const Peer &peer, uint32 channel) const
+	size_t EOSHost::GetRemainingReliableWindow(const Peer &peer, uint32 channel, bool allowBackgroundSpare) const
 	{
 		size_t remaining = EOSReliableWindow - std::min<uint64>(EOSReliableWindow, peer._outstandingReliableBytes);
 		if(channel == _backgroundChannel)
 		{
 			const ChannelState &state = peer._channels[channel];
 			uint64 outstanding = state.sentReliableBytes - std::min(state.sentReliableBytes, state.acknowledgedReliableBytes);
-			remaining = std::min<size_t>(remaining, EOSBackgroundReliableWindow - std::min<uint64>(EOSBackgroundReliableWindow, outstanding));
+			// Only the shared spare-capacity pass may expand initial catchup's window.
+			bool spare = allowBackgroundSpare && Clock::now() < peer._backgroundSpareUntil;
+			size_t window = spare ? 2 * EOSBackgroundReliableWindow : EOSBackgroundReliableWindow;
+			remaining = std::min<size_t>(remaining, window - std::min<uint64>(window, outstanding));
 		}
 		return remaining;
 	}
 
-	bool EOSHost::SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable)
+	bool EOSHost::SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable, bool allowBackgroundSpare)
 	{
 		if(peer._isConnectionInterrupted || (peer._requiresBoundStream && !peer._didNotifyConnection)) return false;
 
 		size_t wireLength = length + sizeof(ProtocolPacketEnvelope);
-		if(reliable && wireLength > GetRemainingReliableWindow(peer, channel)) return false;
+		if(reliable && wireLength > GetRemainingReliableWindow(peer, channel, allowBackgroundSpare)) return false;
 		ProtocolPacketEnvelope envelope {reliable ? ProtocolPacketTypeReliableEnvelope : ProtocolPacketTypeUnreliableEnvelope,
 			peer._reliableSendStream, reliable ? peer._channels[channel].sentReliableBytes + wireLength : 0};
 		uint8 encoded[MaximumPacketSize];
@@ -527,7 +530,7 @@ namespace RN
 		return world->SendPacket(&options, throttleReliable);
 	}
 
-	bool EOSHost::SendMultipartPacket(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes)
+	bool EOSHost::SendMultipartPacket(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes, bool allowBackgroundSpare)
 	{
 		Packet &packet = scheduledPackets.front();
 		RN_ASSERT(packet.isReliable, "Multipart EOS packets need to be reliable");
@@ -558,7 +561,7 @@ namespace RN
 			header.totalDataParts = static_cast<uint16>(totalPartCount);
 			encodedPacket->Append(&header, sizeof(header));
 			encodedPacket->Append(packet.data->GetDataInRange(Range(dataOffset, dataLength)));
-			bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), true);
+			bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), true, allowBackgroundSpare);
 			encodedPacket->Release();
 			if(!didSend) return false;
 			remainingSendBytes -= wireLength;
@@ -571,14 +574,14 @@ namespace RN
 		return true;
 	}
 
-	bool EOSHost::SendPacketBatch(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes)
+	bool EOSHost::SendPacketBatch(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes, bool allowBackgroundSpare)
 	{
 		bool reliable = scheduledPackets.front().isReliable;
 		constexpr size_t overhead = sizeof(ProtocolPacketEnvelope);
 		size_t sendLimit = std::min(MaximumPacketSize, remainingSendBytes);
 		if(reliable)
 		{
-			sendLimit = std::min(sendLimit, std::min(EOSWorld::GetInstance()->GetRemainingReliableSendBytes(), GetRemainingReliableWindow(peer, channel)));
+			sendLimit = std::min(sendLimit, std::min(EOSWorld::GetInstance()->GetRemainingReliableSendBytes(), GetRemainingReliableWindow(peer, channel, allowBackgroundSpare)));
 		}
 		sendLimit -= std::min(sendLimit, overhead);
 		Data *encodedPacket = new Data();
@@ -606,7 +609,7 @@ namespace RN
 			return false;
 		}
 
-		bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), reliable);
+		bool didSend = SendScheduledPacket(peer, channel, encodedPacket->GetBytes(), encodedPacket->GetLength(), reliable, allowBackgroundSpare);
 		if(didSend || !reliable)
 		{
 			if(didSend) remainingSendBytes -= encodedPacket->GetLength() + overhead;
@@ -739,6 +742,7 @@ namespace RN
 				if(hasReadyForeground) break;
 			}
 			bool background = pass == 1 || pass == 3;
+			bool allowBackgroundSpare = pass == 3;
 			std::vector<size_t> contendersRemaining(sendPeers.size() + 1, 0);
 			for(size_t index = sendPeers.size(); index > 0; --index)
 			{
@@ -750,7 +754,7 @@ namespace RN
 					if(queuedChannel.second.empty() || (queuedChannel.first == _backgroundChannel) != background) continue;
 					const Packet &packet = queuedChannel.second.front();
 					size_t requiredBytes = std::min(size_t(MaximumPacketSize), packet.data->GetLength() + sizeof(ProtocolPayloadHeader) + (sizeof(ProtocolPacketEnvelope)));
-					if(!packet.isReliable || requiredBytes <= GetRemainingReliableWindow(candidate, queuedChannel.first))
+					if(!packet.isReliable || requiredBytes <= GetRemainingReliableWindow(candidate, queuedChannel.first, allowBackgroundSpare))
 					{
 						contendersRemaining[index - 1]++;
 						break;
@@ -804,7 +808,7 @@ namespace RN
 							if(channelBudget < sizeof(ProtocolPayloadHeader)) break;
 							size_t initialBudget = channelBudget;
 							bool isMultipart = scheduledPackets.front().data->GetLength() + sizeof(ProtocolPayloadHeader) > MaximumPacketSize - sizeof(ProtocolPacketEnvelope);
-							bool didAdvance = isMultipart ? SendMultipartPacket(peer, channel, scheduledPackets, channelBudget) : SendPacketBatch(peer, channel, scheduledPackets, channelBudget);
+							bool didAdvance = isMultipart ? SendMultipartPacket(peer, channel, scheduledPackets, channelBudget, allowBackgroundSpare) : SendPacketBatch(peer, channel, scheduledPackets, channelBudget, allowBackgroundSpare);
 							size_t sentBytes = initialBudget - channelBudget;
 							remainingSendBytes -= sentBytes;
 							peerSentBytes[index] += sentBytes;

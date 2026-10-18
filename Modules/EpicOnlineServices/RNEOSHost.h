@@ -260,8 +260,8 @@ namespace RN
 
 	private:
 		SendResult QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive);
-		size_t GetRemainingReliableWindow(const Peer &peer, uint32 channel) const;
-		bool SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable);
+		size_t GetRemainingReliableWindow(const Peer &peer, uint32 channel, bool allowBackgroundSpare = false) const;
+		bool SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable, bool allowBackgroundSpare);
 		static void OnConnectionInterruptedCallback(const EOS_P2P_OnPeerConnectionInterruptedInfo *Data);
 		static void OnConnectionEstablishedCallback(const EOS_P2P_OnPeerConnectionEstablishedInfo *Data);
 		uint64 _connectionInterruptedNotificationID = 0;
@@ -270,8 +270,8 @@ namespace RN
 		size_t _nextSendPeer = 0;
 		bool ReadPacketHeader(const uint8 *rawData, size_t bytesWritten, size_t &dataIndex, ProtocolPacketHeader &packetHeader, const uint8 *&payload) const;
 		MultipartReceiveResult ReceiveMultipartPacket(Peer &peer, const uint8 *rawData, size_t bytesWritten, uint32 channel);
-		bool SendMultipartPacket(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes);
-		bool SendPacketBatch(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes);
+		bool SendMultipartPacket(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes, bool allowBackgroundSpare);
+		bool SendPacketBatch(Peer &peer, uint32 channel, std::deque<Packet> &scheduledPackets, size_t &remainingSendBytes, bool allowBackgroundSpare = false);
 
 		RNDeclareMetaAPI(EOSHost, EOSAPI)
 	};
