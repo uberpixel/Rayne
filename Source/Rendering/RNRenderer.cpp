@@ -25,6 +25,17 @@ namespace RN
 	RNExceptionImp(ShaderCompilation)
 
 	static Renderer *_activeRenderer = nullptr;
+#if RN_PLATFORM_IOS
+	static Lockable _applicationRendererLock;
+	static bool _applicationRenderingSuspended = false;
+
+	void Renderer::SetApplicationRenderingSuspended(bool suspended)
+	{
+		LockGuard<Lockable> lock(_applicationRendererLock);
+		_applicationRenderingSuspended = suspended;
+		if(_activeRenderer) _activeRenderer->SetRenderingSuspended(suspended);
+	}
+#endif
 
 	Renderer::Renderer(RendererDescriptor *descriptor, RenderingDevice *device) :
 		_frameStatisticsTimer(0.0),
@@ -771,16 +782,29 @@ namespace RN
 
 	void Renderer::Activate()
 	{
+#if RN_PLATFORM_IOS
+		LockGuard<Lockable> lock(_applicationRendererLock);
+#endif
 		RN_ASSERT(!_activeRenderer, "Rayne only supports one active renderer at a time");
 		_activeRenderer = this;
 		Retain();
+#if RN_PLATFORM_IOS
+		SetRenderingSuspended(_applicationRenderingSuspended);
+#endif
 	}
 
 	void Renderer::Deactivate()
 	{
+#if RN_PLATFORM_IOS
+		LockGuard<Lockable> lock(_applicationRendererLock);
+#endif
 		RN_ASSERT(_activeRenderer == this, "Deactivate() must be called on the active renderer");
 
 		Renderer *renderer = _activeRenderer;
+#if RN_PLATFORM_IOS
+		// Keep the renderer visible to UIKit until the worker has parked and GPU work is scheduled.
+		renderer->SetRenderingSuspended(true);
+#endif
 		// Base renderer state can retain backend resources; release it while the concrete renderer is still active.
 		renderer->ReleaseRendererReferences();
 		renderer->Release();

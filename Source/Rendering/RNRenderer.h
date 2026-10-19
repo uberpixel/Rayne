@@ -74,6 +74,11 @@ namespace RN
 		RNAPI virtual void Render(Function &&function) = 0;
 		RNAPI virtual void ScheduleRenderThreadWork(Function &&function);
 		RNAPI virtual void SynchronizeRenderThread();
+#if RN_PLATFORM_IOS
+		// Safe before renderer creation. Suspension waits only for the render worker
+		// to schedule in-flight GPU work; it never waits for the game thread.
+		RNAPI static void SetApplicationRenderingSuspended(bool suspended);
+#endif
 		RNAPI virtual void SubmitCamera(Camera *camera, Function &&function) = 0;
 
 		RNAPI virtual bool SupportsTextureFormat(const String *format) const = 0;
@@ -124,6 +129,9 @@ namespace RN
 		RenderingDevice *GetDevice() const { return _device; }
 
 	protected:
+#if RN_PLATFORM_IOS
+		virtual void SetRenderingSuspended(bool suspended) {}
+#endif
 		RNAPI Renderer(RendererDescriptor *descriptor, RenderingDevice *device);
 		RNAPI void BeginRenderFrameSubmission(RenderFrame &frame);
 		RNAPI void FinishRenderFrameSubmission(const RenderFrame &frame);

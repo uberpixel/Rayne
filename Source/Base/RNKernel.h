@@ -88,6 +88,9 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_IOS
+		// Called serially on the UIKit thread, including before Initialize().
+		// Suspension waits for the render worker, never the game thread.
+		RNAPI static void SetApplicationSuspended(bool suspended);
 		RNAPI void SetMetalLayer(void *metalLayer);
 		void *GetMetalLayer() const { return _metalLayer; }
 #endif

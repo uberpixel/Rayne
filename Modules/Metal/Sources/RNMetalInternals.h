@@ -258,7 +258,12 @@ namespace RN
 
 	struct MetalRendererInternals
 	{
+#if RN_PLATFORM_IOS
+		// Stay paused until activation applies the application state.
+		RenderThreadQueue<MetalFrameSubmission> renderThreadQueue {true};
+#else
 		RenderThreadQueue<MetalFrameSubmission> renderThreadQueue;
+#endif
 		Thread *renderThread = nullptr;
 #if RN_BUILD_DEBUG
 		std::thread::id submissionThread;

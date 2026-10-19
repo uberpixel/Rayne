@@ -232,6 +232,25 @@ namespace RN
 		}
 	}
 
+#if RN_PLATFORM_IOS
+	void MetalRenderer::SetRenderingSuspended(bool suspended)
+	{
+		if(!suspended)
+		{
+			_internals->renderThreadQueue.Resume();
+			return;
+		}
+
+		_internals->renderThreadQueue.Suspend(Function([this]() {
+			// The same command queue orders this after frames, mipmaps and readbacks.
+			// A CPU queue barrier alone does not establish GPU scheduling.
+			id<MTLCommandBuffer> barrier = [_internals->commandQueue commandBuffer];
+			[barrier commit];
+			[barrier waitUntilScheduled];
+		}));
+	}
+#endif
+
 	void MetalRenderer::StartRenderThread()
 	{
 		_internals->renderThread = new Thread([this]() {

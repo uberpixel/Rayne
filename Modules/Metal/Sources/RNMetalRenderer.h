@@ -82,6 +82,9 @@ namespace RN
 		MTLAPI id GetCommandQueue() const;
 
 	protected:
+#if RN_PLATFORM_IOS
+		void SetRenderingSuspended(bool suspended) final;
+#endif
 		void StartRenderThread();
 		void StopRenderThread();
 		bool IsOnRenderThread() const;

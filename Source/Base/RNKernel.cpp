@@ -18,6 +18,21 @@
 namespace RN
 {
 	static Kernel *__sharedInstance = nullptr;
+#if RN_PLATFORM_IOS
+	static Lockable _applicationActivityLock;
+	static Condition _applicationActivityCondition;
+	static bool _applicationSuspended = false;
+
+	void Kernel::SetApplicationSuspended(bool suspended)
+	{
+		// Resume the render worker before waking the game thread, which may be
+		// waiting for it. Suspension waits only for the render worker, never the game thread.
+		Renderer::SetApplicationRenderingSuspended(suspended);
+		LockGuard<Lockable> lock(_applicationActivityLock);
+		_applicationSuspended = suspended;
+		_applicationActivityCondition.NotifyAll();
+	}
+#endif
 
 #if RN_ENABLE_VTUNE
 	static __itt_string_handle *__inputTask;
@@ -401,6 +416,33 @@ namespace RN
 	{
 		RN_PROFILE_SCOPE();
 		RN_UNUSED ScopeAllocator rootAllocator(BumpAllocator::GetThreadAllocator());
+		AutoreleasePool pool;
+
+#if RN_PLATFORM_IOS
+		{
+			UniqueLock<Lockable> lock(_applicationActivityLock);
+			if(_applicationSuspended)
+			{
+				lock.Unlock();
+				if(!_firstFrame)
+				{
+					_application->WillResignActive();
+					_isActive = false;
+					_application->DidResignActive();
+				}
+				lock.Lock();
+				_applicationActivityCondition.Wait(lock, [this]() { return !_applicationSuspended || _exit; });
+				lock.Unlock();
+				if(!_firstFrame && !_exit)
+				{
+					_application->WillBecomeActive();
+					_isActive = true;
+					_application->DidBecomeActive();
+				}
+				_lastFrame = Clock::now();
+			}
+		}
+#endif
 
 		if(RN_EXPECT_FALSE(_exit))
 		{
@@ -433,8 +475,6 @@ namespace RN
 			finishFrame();
 			return true;
 		};
-
-		AutoreleasePool pool;
 
 		Clock::time_point now = Clock::now();
 
@@ -600,6 +640,12 @@ namespace RN
 	void Kernel::Exit()
 	{
 		RN_PROFILE_SCOPE();
+#if RN_PLATFORM_IOS
+		LockGuard<Lockable> lock(_applicationActivityLock);
+#endif
 		_exit = true;
+#if RN_PLATFORM_IOS
+		_applicationActivityCondition.NotifyAll();
+#endif
 	}
 } // namespace RN
