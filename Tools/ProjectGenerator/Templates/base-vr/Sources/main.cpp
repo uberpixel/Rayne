@@ -18,6 +18,11 @@
 		RN::Initialize(0, nullptr, new __TMP__::Application(), layerRenderer);
 	}
 #elif RN_PLATFORM_IOS
+	void ios_application_active(int active)
+	{
+		RN::Kernel::SetApplicationSuspended(!active);
+	}
+
 	void ios_main(CAMetalLayer *metalLayer)
 	{
 		RN::Initialize(0, nullptr, new __TMP__::Application(), metalLayer);

@@ -23,6 +23,7 @@
 #elif RN_PLATFORM_IOS
 	#import <UIKit/UIKit.h>
 	void ios_main(CAMetalLayer *view);
+	void ios_application_active(int active);
 #endif
 
 #endif //__TMP_APPLICATION_TARGET__LIB_H

@@ -13,9 +13,8 @@ import __TMP_APPLICATION_NAME__Lib
 @main
 struct Testing: App {
 	var body: some Scene {
-		let metalView = RayneMetalView()
 		WindowGroup {
-			metalView
+			RayneMetalView()
 				.edgesIgnoringSafeArea(.all)
 		}
 	}
@@ -23,18 +22,8 @@ struct Testing: App {
 
 struct RayneMetalView: UIViewRepresentable {
 
-	let metalView = RayneMetalLayerView()
 	func makeUIView(context: Context) -> RayneMetalLayerView {
-		metalView.isMultipleTouchEnabled = true
-		let metalLayer = metalView.layer as? CAMetalLayer
-		
-		let rayneMainThread = Thread {
-			ios_main(metalLayer)
-		}
-		rayneMainThread.name = "Rayne Main Thread"
-		rayneMainThread.start()
-		
-		return metalView
+		RayneMetalLayerView()
 	}
 	
 	func updateUIView(_ uiView: RayneMetalLayerView, context: Context) {}
@@ -42,6 +31,38 @@ struct RayneMetalView: UIViewRepresentable {
 
 final class RayneMetalLayerView: UIView {
 	override class var layerClass: AnyClass { CAMetalLayer.self }
+	private var hasStarted = false
+
+	override init(frame: CGRect) {
+		super.init(frame: frame)
+		isMultipleTouchEnabled = true
+		NotificationCenter.default.addObserver(self, selector: #selector(inactive), name: UIApplication.willResignActiveNotification, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(active), name: UIApplication.didBecomeActiveNotification, object: nil)
+	}
+
+	required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+	deinit { NotificationCenter.default.removeObserver(self) }
+
+	@objc private func inactive() { ios_application_active(0) }
+	@objc private func active() { ios_application_active(1) }
+
+	override func layoutSubviews() {
+		super.layoutSubviews()
+		guard let window, bounds.width > 0, bounds.height > 0 else { return }
+		let metalLayer = layer as! CAMetalLayer
+		let scale = window.screen.nativeScale
+		contentScaleFactor = scale
+		metalLayer.drawableSize = CGSize(width: (bounds.width * scale).rounded(), height: (bounds.height * scale).rounded())
+
+		guard !hasStarted else { return }
+		hasStarted = true
+		ios_application_active(UIApplication.shared.applicationState == .active ? 1 : 0)
+		let rayneMainThread = Thread {
+			ios_main(metalLayer)
+		}
+		rayneMainThread.name = "Rayne Main Thread"
+		rayneMainThread.start()
+	}
 }
 
 #elseif os(visionOS)
