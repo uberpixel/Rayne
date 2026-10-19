@@ -340,7 +340,7 @@ namespace RN
 	uintptr_t EOSLobbyManager::_nextAudioCallbackToken = 1;
 
 	EOSLobbyManager::EOSLobbyManager(EOSWorld *world) :
-		_isVoiceEnabled(false), _isVoiceUnmixed(true), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr)
+		_isVoiceEnabled(false), _isVoiceUnmixed(true), _useManualAudioInput(false), _isLocalPlayerMuted(false), _audioReceivedCallback(nullptr), _audioBeforeSendCallback(nullptr)
 	{
 		_lobbyInterfaceHandle = EOS_Platform_GetLobbyInterface(world->GetPlatformHandle());
 
@@ -473,7 +473,7 @@ namespace RN
 		return counter;
 	}
 
-	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback)
+	void EOSLobbyManager::SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback, bool manualAudioInput)
 	{
 		RN_ASSERT(Thread::GetCurrentThread() == Thread::GetMainThread(), "Audio options must be set on the main thread");
 		// Wait for active callbacks before unregistering. EOS does not document
@@ -484,6 +484,7 @@ namespace RN
 			_audioBeforeSendCallback = voiceEnabled ? audioBeforeSendCallback : nullptr;
 			_isVoiceEnabled = voiceEnabled;
 			_isVoiceUnmixed = unmixed;
+			_useManualAudioInput = manualAudioInput;
 		}
 
 		const bool removeBeforeRender = !voiceEnabled || !audioReceivedCallback;
@@ -581,7 +582,7 @@ namespace RN
 
 			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
 			localRTCOptions.bLocalAudioDeviceInputStartsMuted = _isLocalPlayerMuted;
-			localRTCOptions.bUseManualAudioInput = false;
+			localRTCOptions.bUseManualAudioInput = _useManualAudioInput;
 			localRTCOptions.bUseManualAudioOutput = false;
 
 			if(_audioReceivedCallback)
@@ -629,7 +630,7 @@ namespace RN
 		{
 			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
 			localRTCOptions.bLocalAudioDeviceInputStartsMuted = _isLocalPlayerMuted;
-			localRTCOptions.bUseManualAudioInput = false;
+			localRTCOptions.bUseManualAudioInput = _useManualAudioInput;
 			localRTCOptions.bUseManualAudioOutput = false;
 
 			if(_audioReceivedCallback)
@@ -847,7 +848,7 @@ namespace RN
 				RNInfo("EOS voice skipped audio callback notification registration after create voiceEnabled=" << lobbyManager->_isVoiceEnabled << " hasAudioReceivedCallback=" << static_cast<bool>(lobbyManager->_audioReceivedCallback) << " hasAudioBeforeSendCallback=" << static_cast<bool>(lobbyManager->_audioBeforeSendCallback));
 			}
 
-			if(lobbyManager->_isVoiceEnabled)
+			if(lobbyManager->_isVoiceEnabled && !lobbyManager->_useManualAudioInput)
 			{
 				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
 				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;
@@ -1183,7 +1184,7 @@ namespace RN
 				RNInfo("EOS voice skipped audio callback notification registration after join voiceEnabled=" << lobbyManager->_isVoiceEnabled << " hasAudioReceivedCallback=" << static_cast<bool>(lobbyManager->_audioReceivedCallback) << " hasAudioBeforeSendCallback=" << static_cast<bool>(lobbyManager->_audioBeforeSendCallback));
 			}
 
-			if(lobbyManager->_isVoiceEnabled)
+			if(lobbyManager->_isVoiceEnabled && !lobbyManager->_useManualAudioInput)
 			{
 				EOS_RTCAudio_SetInputDeviceSettingsOptions audioInputSettings = {};
 				audioInputSettings.ApiVersion = EOS_RTCAUDIO_SETINPUTDEVICESETTINGS_API_LATEST;

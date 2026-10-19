@@ -196,7 +196,8 @@ namespace RN
 
 		// Lobby lifecycle and audio registration changes must run on the main thread
 		// Audio callbacks may run on other threads and must not change lobbies or audio registration
-		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback = nullptr, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback = nullptr);
+		// Manual input prevents SDK recording in subsequently created/joined rooms; existing rooms are unchanged.
+		EOSAPI void SetGlobalAudioOptions(bool voiceEnabled, bool unmixed, std::function<void(const RN::String *eosUserID, RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioReceivedCallback = nullptr, std::function<void(RN::uint32 sampleRate, RN::uint32 channels, RN::uint32 framesCount, RN::int16 *frames, EOSConnectedLobbyInfo *connectedLobbyInfo)> audioBeforeSendCallback = nullptr, bool manualAudioInput = false);
 		EOSAPI void SetLocalPlayerMuted(bool mute);
 		bool GetLocalPlayerMuted() const { return _isLocalPlayerMuted; }
 
@@ -248,6 +249,7 @@ namespace RN
 
 		bool _isVoiceEnabled;
 		bool _isVoiceUnmixed;
+		bool _useManualAudioInput;
 		bool _isLocalPlayerMuted;
 
 		std::vector<EOSLobbySearch *> _lobbySearches;
