@@ -360,11 +360,23 @@ namespace RN
 		_previousMouseDelta = _mouseDelta;
 		_mouseDelta = Vector3();
 
+#if RN_PLATFORM_MAC_OS
+		memset(_mouseButton, 0, sizeof(_mouseButton));
+#endif
+
 		devices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
 			device->Update();
 		});
 
 		_mouseDevices->Enumerate<InputDevice>([&](InputDevice *device, size_t index, bool &stop) {
+#if RN_PLATFORM_MAC_OS
+			for(size_t button = 0; button < sizeof(_mouseButton) / sizeof(_mouseButton[0]); button++)
+			{
+				ButtonControl *control = device->GetControlWithName<ButtonControl>(RNSTR("Button " << (button + 1)));
+				_mouseButton[button] |= control && control->IsPressed();
+			}
+#endif
+
 			Array *controls = device->GetControlsWithType(InputDevice::Type::DeltaAxis);
 
 			controls->Enumerate<DeltaAxisControl>([&](DeltaAxisControl *control, size_t index, bool &stop) {

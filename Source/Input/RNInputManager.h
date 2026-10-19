@@ -82,7 +82,7 @@ namespace RN
 		RNAPI HIDDevice *GetHIDDevice(uint16 vendorID, uint16 productID) const;
 
 		const Vector3 &GetMouseDelta() const { return _mouseDelta; }
-		bool IsMouseButtonPressed(uint8 index) const { return _mouseButton[index]; }
+		bool IsMouseButtonPressed(uint8 index) const { return index < sizeof(_mouseButton) / sizeof(_mouseButton[0]) && _mouseButton[index]; }
 
 #if RN_PLATFORM_MAC_OS
 		void ProcessKeyEvent(uint16 keyCode, bool state);
