@@ -11,12 +11,14 @@
 #include "RNMetalTexture.h"
 #include "RNMetalFramebuffer.h"
 #include "RNMetalSwapChain.h"
+#include "RNMetalWindow.h"
 #include "../../../Source/Rendering/RNFrameSubmissionPruner.h"
 
 #if RN_PLATFORM_MAC_OS
 @implementation RNMetalView
 {
 	CAMetalLayer *_layer;
+	RN::MetalWindow *_windowOwner;
 };
 
 - (id<CAMetalDrawable>)nextDrawable
@@ -41,6 +43,7 @@
 
 		[self setWantsLayer:YES];
 		[self setLayer:_layer];
+		[self setDrawableSize:[self getSize]];
 	}
 
 	return self;
@@ -48,8 +51,38 @@
 
 - (CGSize)getSize
 {
-	//TODO: Use layer contentScale
-	return CGSizeMake(self.frame.size.width * 2.0f, self.frame.size.height * 2.0f);
+	CGSize size = self.window ? [self convertRectToBacking:self.bounds].size : CGSizeMake(self.bounds.size.width * _layer.contentsScale, self.bounds.size.height * _layer.contentsScale);
+	return CGSizeMake(std::ceil(size.width), std::ceil(size.height));
+}
+
+- (void)setDrawableSize:(CGSize)size
+{
+	if(self.window) _layer.contentsScale = self.window.backingScaleFactor;
+	_layer.drawableSize = size;
+}
+
+- (void)setWindowOwner:(RN::MetalWindow *)window
+{
+	_windowOwner = window;
+	if(_windowOwner) _windowOwner->UpdateSize();
+}
+
+- (void)setFrameSize:(NSSize)size
+{
+	[super setFrameSize:size];
+	if(_windowOwner) _windowOwner->UpdateSize();
+}
+
+- (void)viewDidMoveToWindow
+{
+	[super viewDidMoveToWindow];
+	if(_windowOwner) _windowOwner->UpdateSize();
+}
+
+- (void)viewDidChangeBackingProperties
+{
+	[super viewDidChangeBackingProperties];
+	if(_windowOwner) _windowOwner->UpdateSize();
 }
 
 @end

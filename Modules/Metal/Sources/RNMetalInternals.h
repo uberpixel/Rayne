@@ -32,6 +32,8 @@
 - (id<CAMetalDrawable>)nextDrawable;
 - (instancetype)initWithFrame:(NSRect)frameRect device:(id<MTLDevice>)device screen:(RN::Screen*)screen andFormat:(MTLPixelFormat)format;
 - (CGSize)getSize;
+- (void)setDrawableSize:(CGSize)size;
+- (void)setWindowOwner:(RN::MetalWindow *)window;
 @end
 
 @interface RNMetalWindow : NSWindow

@@ -42,6 +42,7 @@ namespace RN
 		CGFloat xPos = (NSWidth([nsscreen frame]) - NSWidth(frame)) * 0.5;
 		CGFloat yPos = (NSHeight([nsscreen frame]) - NSHeight(frame)) * 0.5;
 		[_internals->window setFrame:NSMakeRect(xPos, yPos, NSWidth(frame), NSHeight(frame)) display:YES];
+		[_swapChain->_metalView setWindowOwner:this];
 #endif
 		
 #if RN_PLATFORM_IOS
@@ -53,6 +54,35 @@ namespace RN
 
 		// Create the swap chain
 		_swapChain = new MetalSwapChain(_internals->metalLayerContainer->GetSize(), renderer, _internals->metalLayerContainer, descriptor);
+#endif
+	}
+
+	MetalWindow::~MetalWindow()
+	{
+#if RN_PLATFORM_MAC_OS
+		[_swapChain->_metalView setWindowOwner:nullptr];
+#endif
+	}
+
+	void MetalWindow::UpdateSize()
+	{
+#if RN_PLATFORM_MAC_OS
+		CGSize backingSize = [_swapChain->_metalView getSize];
+		if(backingSize.width < 1.0 || backingSize.height < 1.0) return;
+
+		Vector2 size(backingSize.width, backingSize.height);
+		if(_swapChain->_size == size)
+		{
+			[_swapChain->_metalView setDrawableSize:backingSize];
+			return;
+		}
+
+		// Queued frames must acquire their old-sized drawable before the layer changes.
+		_renderer->SynchronizeRenderThread();
+		[_swapChain->_metalView setDrawableSize:backingSize];
+		_swapChain->_size = size;
+		_swapChain->_framebuffer->Downcast<MetalFramebuffer>()->DidUpdateSwapChain(size, _swapChain->_descriptor.colorFormat, _swapChain->_descriptor.depthStencilFormat);
+		NotificationManager::GetSharedInstance()->PostNotification(kRNWindowDidChangeSize, this);
 #endif
 	}
 

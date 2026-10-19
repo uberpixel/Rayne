@@ -22,6 +22,9 @@ namespace RN
 	public:
 		friend class MetalRenderer;
 
+		MTLAPI ~MetalWindow() override;
+		MTLAPI void UpdateSize();
+
 		MTLAPI void SetTitle(const String *title) final;
 		MTLAPI Screen *GetScreen() final;
 
