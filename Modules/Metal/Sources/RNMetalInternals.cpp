@@ -147,7 +147,8 @@ id<CAMetalDrawable> RNMetalLayerContainer::GetNextDrawable()
 
 RN::Vector2 RNMetalLayerContainer::GetSize()
 {
-	return RN::Vector2(_metalLayer.frame.size.width, _metalLayer.frame.size.height);
+	const CGSize size = _metalLayer.drawableSize;
+	return RN::Vector2(size.width, size.height);
 }
 #endif
 
