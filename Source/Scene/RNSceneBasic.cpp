@@ -46,7 +46,7 @@ namespace RN
 	}
 
 	SceneBasic::SceneBasic(const OcclusionCullingParameters &occlusionCullingParameters) :
-		_nodesToRemove(new Array()), _occlusionCullingParameters(occlusionCullingParameters), _currentFrameCount(0)
+		_renderNodesCacheDirty(true), _nodesToRemove(new Array()), _occlusionCullingParameters(occlusionCullingParameters), _currentFrameCount(0)
 	{
 		RN_PROFILE_SCOPE();
 		_occlusionCuller = new OcclusionCuller(_occlusionCullingParameters.textureWidth, _occlusionCullingParameters.textureHeight);
@@ -187,6 +187,18 @@ namespace RN
 		});
 
 		_nodesToRemove->RemoveAllObjects();
+	}
+
+	void SceneBasic::RebuildRenderNodesCache()
+	{
+		if(!_renderNodesCacheDirty) return;
+
+		_renderNodesCache.clear();
+		_renderNodesCache.reserve(_renderNodes.GetCount());
+		for(IntrusiveList<SceneNode>::Member *member = _renderNodes.GetHead(); member; member = member->GetNext())
+			_renderNodesCache.push_back(member->Get());
+
+		_renderNodesCacheDirty = false;
 	}
 
 	bool SceneBasic::IsOccluderCacheCandidate(SceneNode *node) const
@@ -509,9 +521,7 @@ namespace RN
 					}
 					else
 					{
-						while(nodeMember)
-						{
-							SceneNode *node = nodeMember->Get();
+						auto collectNode = [&](SceneNode *node) {
 							if(node->CanRender(renderer, camera))
 							{
 								if(node->GetFlags() & SceneNode::Flags::Occluder)
@@ -529,8 +539,21 @@ namespace RN
 								}
 								sceneNodesToRender.push_back(node);
 							}
+						};
 
-							nodeMember = nodeMember->GetNext();
+						if(camera->_firstNodeMember)
+						{
+							while(nodeMember)
+							{
+								collectNode(nodeMember->Get());
+								nodeMember = nodeMember->GetNext();
+							}
+						}
+						else
+						{
+							RebuildRenderNodesCache();
+							for(SceneNode *node : _renderNodesCache)
+								collectNode(node);
 						}
 					}
 				}
@@ -637,6 +660,7 @@ namespace RN
 			_renderNodes.InsertAfter(node->_sceneRenderEntry, member);
 		}
 
+		_renderNodesCacheDirty = true;
 		Unlock();
 		AddCachedOccluderNode(node);
 	}
@@ -661,6 +685,7 @@ namespace RN
 
 		RemoveCachedOccluderNode(node);
 		_renderNodes.Erase(node->_sceneRenderEntry);
+		_renderNodesCacheDirty = true;
 	}
 
 	void SceneBasic::AddNode(SceneNode *node)

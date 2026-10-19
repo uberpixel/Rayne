@@ -54,11 +54,15 @@ namespace RN
 	private:
 		IntrusiveList<SceneNode> _updateNodes[4];
 		IntrusiveList<SceneNode> _renderNodes;
+		// Non-owning cache in _renderNodes order, rebuilt after membership or priority changes.
+		std::vector<SceneNode *> _renderNodesCache;
+		bool _renderNodesCacheDirty;
 		IntrusiveList<Light> _lights;
 		IntrusiveList<Camera> _cameras;
 		Array *_nodesToRemove;
 		Array *_nodesToAdd;
 
+		void RebuildRenderNodesCache();
 		bool IsOccluderCacheCandidate(SceneNode *node) const;
 		void AddCachedOccluderNode(SceneNode *node);
 		void RemoveCachedOccluderNode(SceneNode *node);
