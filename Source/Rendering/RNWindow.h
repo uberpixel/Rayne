@@ -56,6 +56,10 @@ namespace RN
 
 		RNAPI virtual uint64 GetWindowHandle() const = 0;
 
+		// Normalized content coordinates, with (0, 0) at the top left. Currently macOS only.
+		// Returns false if unsupported, off the main thread, unfocused, or outside the content view.
+		RNAPI bool GetMousePosition(Vector2 &position) const;
+
 		RNAPI void TrapMouseCursor();
 		RNAPI void ReleaseMouseCursor();
 

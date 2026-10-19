@@ -38,6 +38,26 @@ namespace RN
 		return false;
 	}
 
+	bool Window::GetMousePosition(Vector2 &position) const
+	{
+#if RN_PLATFORM_MAC_OS
+		if(!NSThread.isMainThread) return false;
+		uint64 windowHandle = GetWindowHandle();
+		if(!windowHandle || windowHandle == -1) return false;
+		NSWindow *window = reinterpret_cast<NSWindow *>(windowHandle);
+		if(!NSApp.isActive || !window.isKeyWindow) return false;
+		NSView *view = window.contentView;
+		NSPoint point = [view convertPoint:window.mouseLocationOutsideOfEventStream fromView:nil];
+		NSRect bounds = view.bounds;
+		if(bounds.size.width <= 0 || bounds.size.height <= 0 || !NSPointInRect(point, bounds)) return false;
+		float y = (point.y - bounds.origin.y) / bounds.size.height;
+		position = Vector2((point.x - bounds.origin.x) / bounds.size.width, view.isFlipped ? y : 1.0f - y);
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	void Window::TrapMouseCursor()
 	{
 		uint64 windowHandle = GetWindowHandle();
