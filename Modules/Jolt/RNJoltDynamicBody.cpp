@@ -882,7 +882,7 @@ namespace RN
 	void JoltDynamicBody::UpdatePosition()
 	{
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
-		if(!_owner || !bodyInterface)
+		if(!GetParent() || !bodyInterface)
 		{
 			return;
 		}

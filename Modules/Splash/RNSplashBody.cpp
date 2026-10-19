@@ -60,7 +60,10 @@ namespace RN
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
 		{
-			SplashWorld::GetSharedInstance()->InsertBody(this);
+			if(GetParent())
+				SplashWorld::GetSharedInstance()->InsertBody(this);
+			else
+				SplashWorld::GetSharedInstance()->RemoveBody(this);
 		}
 	}
 

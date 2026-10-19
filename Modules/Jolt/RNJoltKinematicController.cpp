@@ -332,7 +332,7 @@ namespace RN
 
 	void JoltKinematicController::UpdatePosition()
 	{
-		if(!_owner)
+		if(!GetParent())
 		{
 			return;
 		}

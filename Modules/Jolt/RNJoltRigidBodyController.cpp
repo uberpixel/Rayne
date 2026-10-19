@@ -645,7 +645,7 @@ namespace RN
 
 	void JoltRigidBodyController::UpdatePosition()
 	{
-		if(!_owner)
+		if(!GetParent())
 		{
 			return;
 		}

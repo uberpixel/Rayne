@@ -138,7 +138,7 @@ namespace RN
 
 	void JoltStaticBody::UpdatePosition()
 	{
-		if(!_owner)
+		if(!GetParent())
 		{
 			return;
 		}

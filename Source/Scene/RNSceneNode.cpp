@@ -87,10 +87,16 @@ namespace RN
 
 		if(_attachments)
 		{
-			_attachments->Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			Array *attachments = _attachments;
+			_attachments = nullptr;
+			// Clear every parent before callbacks can inspect or reattach other attachments.
+			attachments->Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 				attachment->_node = nullptr;
 			});
-			_attachments->Release();
+			attachments->Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+				attachment->__DidUpdate(ChangeSet::Attachments);
+			});
+			attachments->Release();
 		}
 	}
 

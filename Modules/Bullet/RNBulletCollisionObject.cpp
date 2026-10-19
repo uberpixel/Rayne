@@ -117,19 +117,14 @@ namespace RN
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
 		{
-			SceneInfo *sceneInfo = GetParent()->GetSceneInfo();
-
-			if(sceneInfo)
+			if(!GetParent())
 			{
-				if(!_owner && GetParent())
-				{
-					BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
-				}
-				else if(_owner && !GetParent())
-				{
-					if(_owner)
-						_owner->RemoveCollisionObject(this);
-				}
+				if(_owner)
+					_owner->RemoveCollisionObject(this);
+			}
+			else if(!_owner && GetParent()->GetSceneInfo())
+			{
+				BulletWorld::GetSharedInstance()->InsertCollisionObject(this);
 			}
 		}
 	}
