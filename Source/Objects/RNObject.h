@@ -217,6 +217,9 @@ namespace RN
 		mutable std::atomic<size_t> _refCount;
 
 #if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
+		// Strong references not yet consumed by Release() or reserved by an autorelease pool.
+		// One atomic balance avoids comparing reference and pool counters sampled at different times.
+		mutable std::atomic<size_t> _availableReferenceCount;
 		mutable std::atomic<size_t> _autoreleaseCounter;
 		mutable bool _isTracked;
 #endif

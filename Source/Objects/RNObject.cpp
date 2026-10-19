@@ -55,6 +55,7 @@ namespace RN
 		_refCount(1)
 #if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
 		,
+		_availableReferenceCount(1),
 		_autoreleaseCounter(0),
 		_isTracked(false)
 #endif
@@ -129,6 +130,9 @@ namespace RN
 #endif
 
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
+#if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
+		_availableReferenceCount.fetch_add(1, std::memory_order_relaxed);
+#endif
 		return this;
 	}
 
@@ -149,6 +153,9 @@ namespace RN
 #endif
 
 		_refCount.fetch_add(1, std::memory_order_relaxed); // RMW pairs with relaxed memory ordering
+#if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
+		_availableReferenceCount.fetch_add(1, std::memory_order_relaxed);
+#endif
 		return this;
 	}
 
@@ -169,7 +176,7 @@ namespace RN
 #endif
 
 #if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
-		RN_ASSERT(_refCount.load(std::memory_order_relaxed) > _autoreleaseCounter.load(std::memory_order_relaxed), "Object is in too many autorelease pools and will be over released!");
+		RN_ASSERT(_availableReferenceCount.fetch_sub(1, std::memory_order_relaxed) > 0, "Object is in too many autorelease pools and will be over released!");
 
 		if(_isTracked)
 		{

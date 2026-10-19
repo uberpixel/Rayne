@@ -44,8 +44,9 @@ namespace RN
 	{
 		RN_ASSERT(object, "Object mustn't be NULL");
 
-#if RN_BUILD_DEBUG
-		RN_ASSERT(object->_autoreleaseCounter.fetch_add(1) < object->_refCount.load(std::memory_order_relaxed), "Object will be overreleased by autorelease pool!");
+#if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
+		RN_ASSERT(object->_availableReferenceCount.fetch_sub(1, std::memory_order_relaxed) > 0, "Object will be overreleased by autorelease pool!");
+		object->_autoreleaseCounter.fetch_add(1, std::memory_order_relaxed);
 #endif
 
 		_objects.push_back(object);
@@ -59,8 +60,10 @@ namespace RN
 		for(size_t i = 0; i < _objects.size(); i++)
 		{
 			const Object *object = _objects[i];
-#if RN_BUILD_DEBUG
-			object->_autoreleaseCounter.fetch_sub(1);
+#if RN_BUILD_DEBUG || RN_BUILD_DEBUG_REFCOUNT
+			object->_autoreleaseCounter.fetch_sub(1, std::memory_order_relaxed);
+			// Return the pool reservation for the Release() below to consume.
+			object->_availableReferenceCount.fetch_add(1, std::memory_order_relaxed);
 #endif
 			object->Release();
 		}
