@@ -47,25 +47,27 @@ namespace RN
 		}
 	}
 
+	void ResonanceAudioSystem::SetOutputSamplesCallback(std::function<void(const float *, uint32, uint32, uint32)> callback)
+	{
+		// Removal waits for an in-flight callback before its captured owner is released
+		std::lock_guard<std::mutex> lock(_outputSamplesLock);
+		_outputSamplesCallback = std::move(callback);
+	}
+
 	void ResonanceAudioSystem::RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 frameCount, uint32 sampleRate, uint32 channelCount, uint32 status)
 	{
 		const uint32 snapshotIndex = _listenerContextSnapshotIndex.load(std::memory_order_acquire) % 3;
 		_listenerContextSnapshotInUseIndex.store(snapshotIndex, std::memory_order_relaxed);
 		Array *snapshot = _listenerContextSnapshots[snapshotIndex];
+		ResonanceAudioListenerContext *listenerContext = snapshot && snapshot->GetCount() ? snapshot->GetObjectAtIndex<ResonanceAudioListenerContext>(0) : nullptr;
+		if(listenerContext) listenerContext->RenderAudio(outputBuffer, inputBuffer, sampleRate, channelCount, frameCount, status);
+		else if(outputBuffer) memset(outputBuffer, 0, frameCount * channelCount * sizeof(float));
 
-		if(snapshot && snapshot->GetCount() > 0)
+		// A busy control thread skips a tap block rather than delaying device output
+		if(outputBuffer && _outputSamplesLock.try_lock())
 		{
-			ResonanceAudioListenerContext *listenerContext = snapshot->GetObjectAtIndex<ResonanceAudioListenerContext>(0);
-			if(listenerContext)
-			{
-				listenerContext->RenderAudio(outputBuffer, inputBuffer, sampleRate, channelCount, frameCount, status);
-				return;
-			}
-		}
-		
-		if(outputBuffer)
-		{
-			memset(outputBuffer, 0, frameCount * channelCount * sizeof(float));
+			std::lock_guard<std::mutex> lock(_outputSamplesLock, std::adopt_lock);
+			if(_outputSamplesCallback) _outputSamplesCallback(static_cast<const float *>(outputBuffer), frameCount, sampleRate, channelCount);
 		}
 	}
 

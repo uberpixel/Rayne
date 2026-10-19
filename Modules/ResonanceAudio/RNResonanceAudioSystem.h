@@ -67,6 +67,9 @@ namespace RN
 		RAAPI virtual void SetOutputDevice(ResonanceAudioDevice *outputDevice) = 0;
 		RAAPI virtual void SetInputDevice(ResonanceAudioDevice *inputDevice) = 0;
 
+		// Called on the output thread after mixing, so callbacks must never block
+		RAAPI void SetOutputSamplesCallback(std::function<void(const float *, uint32, uint32, uint32)> callback);
+
 		RAAPI static ResonanceAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 960, uint8 channelCount = 2);
 
 	protected:
@@ -79,6 +82,9 @@ namespace RN
 		void PublishListenerContextsSnapshot();
 
 		void RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 frameCount, uint32 sampleRate, uint32 channelCount, uint32 status);
+
+		std::mutex _outputSamplesLock;
+		std::function<void(const float *, uint32, uint32, uint32)> _outputSamplesCallback;
 
 		uint32 _frameSize;
 		uint32 _sampleRate;
